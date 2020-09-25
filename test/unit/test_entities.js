@@ -20,9 +20,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const Tp = require('thingpedia');
+import * as Tp from 'thingpedia';
 
-const { getBestEntityMatch } = require('../../lib/dialogue-agent/entity-linking/entity-finder');
+import { getBestEntityMatch } from '../../lib/dialogue-agent/entity-linking/entity-finder';
 
 const THINGPEDIA_URL = 'https://almond-dev.stanford.edu/thingpedia';
 
@@ -120,7 +120,6 @@ async function main() {
     if (failed)
         throw new Error('testEntities FAILED');
 }
-if (module.parent)
-    module.exports = main;
-else
+export default main;
+if (!module.parent)
     main();

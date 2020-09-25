@@ -19,15 +19,15 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const Tp = require('thingpedia');
+import * as Tp from 'thingpedia';
 
-const FileParameterProvider = require('./file_parameter_provider');
+import FileParameterProvider from './file_parameter_provider';
 
 /**
  * A subclass of {@link thingpedia}.FileClient that supports
  * looking up entities by value using the file parameter provider.
  */
-class FileThingpediaClient extends Tp.FileClient {
+export default class FileThingpediaClient extends Tp.FileClient {
     constructor(options) {
         super(options);
 
@@ -46,4 +46,3 @@ class FileThingpediaClient extends Tp.FileClient {
         return result;
     }
 }
-module.exports = FileThingpediaClient;

@@ -19,15 +19,15 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const util = require('util');
-const fs = require('fs');
-const path = require('path');
+import * as util from 'util';
+import * as fs from 'fs';
+import * as path from 'path';
 
 /**
  * Parse a TSV file in a format similar to shared-parameter-datasets.tsv
  * with one line per Thingpedia query, pointing to a JSON file for each.
  */
-class MultiJSONDatabase {
+export default class MultiJSONDatabase {
     constructor(filename) {
         this._filename = filename;
         this._dirname = path.dirname(filename);
@@ -59,4 +59,3 @@ class MultiJSONDatabase {
         return this._store.get(key);
     }
 }
-module.exports = MultiJSONDatabase;

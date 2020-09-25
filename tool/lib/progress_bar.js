@@ -26,7 +26,7 @@
  *
  * Displays a progress bar.
  */
-module.exports = class ProgressBar {
+export default class ProgressBar {
     constructor(target, { width = 30, verbose = 1 } = {}) {
         this.width = width;
         this.target = target;
@@ -129,4 +129,4 @@ module.exports = class ProgressBar {
     add(n, values=[]) {
         this.update(this.seen_so_far+n, values);
     }
-};
+}

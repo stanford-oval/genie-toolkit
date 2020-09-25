@@ -19,13 +19,13 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
-const ThingTalk = require('thingtalk');
-const Tp = require('thingpedia');
-const fs = require('fs');
-const path = require('path');
-const util = require('util');
-const ThingpediaDeviceFactories = require('./thingpedia-device-factories.json');
+import assert from 'assert';
+import * as ThingTalk from 'thingtalk';
+import * as Tp from 'thingpedia';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as util from 'util';
+import ThingpediaDeviceFactories from './thingpedia-device-factories.json';
 
 const _rssFactory = {
     "type":"form",
@@ -35,7 +35,7 @@ const _rssFactory = {
     "fields":[{"name":"url","label":"Feed URL","type":"text"}]
 };
 
-module.exports = class MockThingpediaClient extends Tp.BaseClient {
+export default class MockThingpediaClient extends Tp.BaseClient {
     constructor(testRunner) {
         super();
         this._testRunner = testRunner;
@@ -277,4 +277,4 @@ module.exports = class MockThingpediaClient extends Tp.BaseClient {
 
         return util.promisify(fs.readFile)(path.resolve(path.dirname(module.filename), 'examples/' + kinds[0] + '.tt'), { encoding: 'utf8' });
     }
-};
+}

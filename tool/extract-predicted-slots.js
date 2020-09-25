@@ -19,23 +19,23 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
-const Stream = require('stream');
-const fs = require('fs');
-const JSONStream = require('JSONStream');
-const assert = require('assert');
+import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
+import Stream from 'stream';
+import * as fs from 'fs';
+import JSONStream from 'JSONStream';
+import assert from 'assert';
 
-const StreamUtils = require('../lib/utils/stream-utils');
-const { getBestEntityMatch } = require('../lib/dialogue-agent/entity-linking/entity-finder');
-const Utils = require('../lib/utils/misc-utils');
-const I18n = require('../lib/i18n');
-const TargetLanguages = require('../lib/languages');
-const { DialogueParser } = require('../lib/dataset-tools/parsers');
+import * as StreamUtils from '../lib/utils/stream-utils';
+import { getBestEntityMatch } from '../lib/dialogue-agent/entity-linking/entity-finder';
+import * as Utils from '../lib/utils/misc-utils';
+import * as I18n from '../lib/i18n';
+import * as TargetLanguages from '../lib/languages';
+import { DialogueParser } from '../lib/dataset-tools/parsers';
 
-const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
-const MultiJSONDatabase = require('./lib/multi_json_database');
-const ParserClient = require('../lib/prediction/parserclient');
+import { maybeCreateReadStream, readAllLines } from './lib/argutils';
+import MultiJSONDatabase from './lib/multi_json_database';
+import * as ParserClient from '../lib/prediction/parserclient';
 
 
 class DialogueToDSTStream extends Stream.Transform {
@@ -295,93 +295,91 @@ class DialogueToDSTStream extends Stream.Transform {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('extract-predicted-slots', {
-            add_help: true,
-            description: "Transform a dialog input file in ThingTalk format into a dialogue state tracking prediction file."
-        });
-        parser.add_argument('-o', '--output', {
-            required: false,
-            default: process.stdout,
-            type: fs.createWriteStream,
-            help: "Write results to this file instead of stdout"
-        });
-        parser.add_argument('-l', '--locale', {
-            required: false,
-            default: 'en-US',
-            help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
-        });
-        parser.add_argument('--url', {
-            required: false,
-            help: "URL of the server to evaluate. Use a file:// URL pointing to a model directory to evaluate using a local instance of decanlp",
-            default: 'http://127.0.0.1:8400',
-        });
-        parser.add_argument('--tokenized', {
-            required: false,
-            action: 'store_true',
-            default: false,
-            help: "The dataset is already tokenized."
-        });
-        parser.add_argument('--no-tokenized', {
-            required: false,
-            dest: 'tokenized',
-            action: 'store_false',
-            help: "The dataset is not already tokenized (this is the default)."
-        });
-        parser.add_argument('--thingpedia', {
-            required: true,
-            help: 'Path to ThingTalk file containing class definitions.'
-        });
-        parser.add_argument('input_file', {
-            nargs: '+',
-            type: maybeCreateReadStream,
-            help: 'Input datasets to evaluate (in dialog format); use - for standard input'
-        });
-        parser.add_argument('--debug', {
-            action: 'store_true',
-            help: 'Enable debugging.',
-            default: true
-        });
-        parser.add_argument('--no-debug', {
-            action: 'store_false',
-            dest: 'debug',
-            help: 'Disable debugging.',
-        });
-        parser.add_argument('--database-file', {
-            required: false,
-            help: `Path to a file pointing to JSON databases used to simulate queries.`,
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('extract-predicted-slots', {
+        add_help: true,
+        description: "Transform a dialog input file in ThingTalk format into a dialogue state tracking prediction file."
+    });
+    parser.add_argument('-o', '--output', {
+        required: false,
+        default: process.stdout,
+        type: fs.createWriteStream,
+        help: "Write results to this file instead of stdout"
+    });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en-US',
+        help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
+    });
+    parser.add_argument('--url', {
+        required: false,
+        help: "URL of the server to evaluate. Use a file:// URL pointing to a model directory to evaluate using a local instance of decanlp",
+        default: 'http://127.0.0.1:8400',
+    });
+    parser.add_argument('--tokenized', {
+        required: false,
+        action: 'store_true',
+        default: false,
+        help: "The dataset is already tokenized."
+    });
+    parser.add_argument('--no-tokenized', {
+        required: false,
+        dest: 'tokenized',
+        action: 'store_false',
+        help: "The dataset is not already tokenized (this is the default)."
+    });
+    parser.add_argument('--thingpedia', {
+        required: true,
+        help: 'Path to ThingTalk file containing class definitions.'
+    });
+    parser.add_argument('input_file', {
+        nargs: '+',
+        type: maybeCreateReadStream,
+        help: 'Input datasets to evaluate (in dialog format); use - for standard input'
+    });
+    parser.add_argument('--debug', {
+        action: 'store_true',
+        help: 'Enable debugging.',
+        default: true
+    });
+    parser.add_argument('--no-debug', {
+        action: 'store_false',
+        dest: 'debug',
+        help: 'Disable debugging.',
+    });
+    parser.add_argument('--database-file', {
+        required: false,
+        help: `Path to a file pointing to JSON databases used to simulate queries.`,
+    });
+}
 
-    async execute(args) {
-        let tpClient = null;
-        if (args.thingpedia)
-            tpClient = new Tp.FileClient(args);
-        const parser = ParserClient.get(args.url, args.locale);
-        await parser.start();
+export async function execute(args) {
+    let tpClient = null;
+    if (args.thingpedia)
+        tpClient = new Tp.FileClient(args);
+    const parser = ParserClient.get(args.url, args.locale);
+    await parser.start();
 
-        let database;
-        if (args.database_file) {
-            database = new MultiJSONDatabase(args.database_file);
-            await database.load();
-        }
-
-        readAllLines(args.input_file, '====')
-            .pipe(new DialogueParser())
-            .pipe(new DialogueToDSTStream({
-                locale: args.locale,
-                debug: args.debug,
-                tokenized: args.tokenized,
-                thingpediaClient: tpClient,
-                database: database,
-                parser: parser,
-            }))
-            .pipe(JSONStream.stringifyObject(undefined, undefined, undefined, 2))
-            .pipe(args.output);
-
-        await StreamUtils.waitFinish(args.output);
-
-        await parser.stop();
+    let database;
+    if (args.database_file) {
+        database = new MultiJSONDatabase(args.database_file);
+        await database.load();
     }
-};
+
+    readAllLines(args.input_file, '====')
+        .pipe(new DialogueParser())
+        .pipe(new DialogueToDSTStream({
+            locale: args.locale,
+            debug: args.debug,
+            tokenized: args.tokenized,
+            thingpediaClient: tpClient,
+            database: database,
+            parser: parser,
+        }))
+        .pipe(JSONStream.stringifyObject(undefined, undefined, undefined, 2))
+        .pipe(args.output);
+
+    await StreamUtils.waitFinish(args.output);
+
+    await parser.stop();
+}

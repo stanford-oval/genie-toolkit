@@ -19,15 +19,15 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const fs = require('fs');
-const Stream = require('stream');
-const csvparse = require('csv-parse');
-const csvstringify = require('csv-stringify');
+import * as fs from 'fs';
+import Stream from 'stream';
+import csvparse from 'csv-parse';
+import csvstringify from 'csv-stringify';
 
-const StreamUtils = require('../lib/utils/stream-utils');
-const I18n = require('../lib/i18n');
+import * as StreamUtils from '../lib/utils/stream-utils';
+import * as I18n from '../lib/i18n';
 
-const { maybeCreateReadStream, } = require('./lib/argutils');
+import { maybeCreateReadStream, } from './lib/argutils';
 
 class TokenizerStream extends Stream.Transform {
     constructor(options) {
@@ -80,33 +80,31 @@ class TokenizerStream extends Stream.Transform {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('preprocess-string-dataset', {
-            add_help: true,
-            description: "Preprocess (tokenize) a string value dataset."
-        });
-        parser.add_argument('-l', '--locale', {
-            required: false,
-            default: 'en-US',
-            help: `BGP 47 locale tag of the language to use for tokenization (defaults to 'en-US', English)`
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('input_file', {
-            nargs: '+',
-            type: maybeCreateReadStream,
-            help: 'Input string datasets to tokenize (in TSV format); use - for standard input'
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('preprocess-string-dataset', {
+        add_help: true,
+        description: "Preprocess (tokenize) a string value dataset."
+    });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en-US',
+        help: `BGP 47 locale tag of the language to use for tokenization (defaults to 'en-US', English)`
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('input_file', {
+        nargs: '+',
+        type: maybeCreateReadStream,
+        help: 'Input string datasets to tokenize (in TSV format); use - for standard input'
+    });
+}
 
-    async execute(args) {
-        await StreamUtils.waitFinish(StreamUtils.chain(args.input_file, {})
-            .pipe(csvparse({ delimiter: '\t', relax: true }))
-            .pipe(new TokenizerStream(args))
-            .pipe(csvstringify({ delimiter: '\t' }))
-            .pipe(args.output));
-    },
-};
+export async function execute(args) {
+    await StreamUtils.waitFinish(StreamUtils.chain(args.input_file, {})
+        .pipe(csvparse({ delimiter: '\t', relax: true }))
+        .pipe(new TokenizerStream(args))
+        .pipe(csvstringify({ delimiter: '\t' }))
+        .pipe(args.output));
+}

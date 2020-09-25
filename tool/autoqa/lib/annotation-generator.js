@@ -18,9 +18,9 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 "use strict";
-const CanonicalGenerator = require('./canonical-generator');
+import CanonicalGenerator from './canonical-generator';
 
-class AutoAnnotationGenerator {
+export default class AutoAnnotationGenerator {
     constructor(classDef, constants, queries, parameterDatasets, options) {
         this.canonicalGenerator = new CanonicalGenerator(classDef, constants, queries, parameterDatasets, options);
     }
@@ -31,5 +31,3 @@ class AutoAnnotationGenerator {
         return classDef;
     }
 }
-
-module.exports = AutoAnnotationGenerator;

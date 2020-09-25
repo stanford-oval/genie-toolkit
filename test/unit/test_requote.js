@@ -9,9 +9,9 @@
 // See COPYING for details
 "use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const { requoteSentence } = require('../../tool/requote');
+import { requoteSentence } from '../../tool/requote';
 
 
 const SINGLE_TURN_TEST_CASES = [
@@ -151,7 +151,6 @@ async function main() {
         testRequoteSingleTurn();
         testRequoteContextual();
 }
-
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

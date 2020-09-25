@@ -19,86 +19,84 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const util = require('util');
-const fs = require('fs');
-const path = require('path');
+import util from 'util';
+import * as fs from 'fs';
+import path from 'path';
 
-const Training = require('../lib/training');
-const ProgressBar = require('./lib/progress_bar');
+import * as Training from '../lib/training';
+import ProgressBar from './lib/progress_bar';
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('train', {
-            add_help: true,
-            description: "Train a model on a Genie-generated dataset."
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('train', {
+        add_help: true,
+        description: "Train a model on a Genie-generated dataset."
+    });
+    parser.add_argument('--datadir', {
+        required: true,
+        help: "Directory containing the train/eval/test set to train with."
+    });
+    parser.add_argument('--outputdir', {
+        required: true,
+        help: "Directory where the final trained model will be placed."
+    });
+    parser.add_argument('--workdir', {
+        required: true,
+        help: "Temporary directory for preprocessed datasets, checkpoints and Tensorboard files."
+    });
+    parser.add_argument('--config-file', {
+        required: false,
+        help: "JSON configuration file setting hyper-parameters and parser options."
+    });
+    parser.add_argument('--backend', {
+        required: false,
+        default: Training.DEFAULT_BACKEND,
+        choices: Object.keys(Training.BACKENDS),
+        help: "Which training backend to use (experimental)"
+    });
+
+    parser.add_argument('--debug', {
+        action: 'store_true',
+        help: 'Enable debugging.',
+    });
+    parser.add_argument('--no-debug', {
+        action: 'store_false',
+        dest: 'debug',
+        help: 'Disable debugging.',
+    });
+}
+
+export async function execute(args) {
+    let config = {};
+    if (args.config_file)
+        config = JSON.parse(await util.promisify(fs.readFile)(args.config_file));
+
+    const job = Training.createJob({
+        backend: args.backend,
+        config,
+
+        datadir: args.datadir,
+        workdir: args.workdir,
+        outputdir: args.outputdir,
+
+        debug: !!args.debug
+    });
+
+    if (!args.debug) {
+        const progbar = new ProgressBar(1);
+        job.on('progress', (value) => {
+            progbar.update(value);
         });
-        parser.add_argument('--datadir', {
-            required: true,
-            help: "Directory containing the train/eval/test set to train with."
-        });
-        parser.add_argument('--outputdir', {
-            required: true,
-            help: "Directory where the final trained model will be placed."
-        });
-        parser.add_argument('--workdir', {
-            required: true,
-            help: "Temporary directory for preprocessed datasets, checkpoints and Tensorboard files."
-        });
-        parser.add_argument('--config-file', {
-            required: false,
-            help: "JSON configuration file setting hyper-parameters and parser options."
-        });
-        parser.add_argument('--backend', {
-            required: false,
-            default: Training.DEFAULT_BACKEND,
-            choices: Object.keys(Training.BACKENDS),
-            help: "Which training backend to use (experimental)"
-        });
 
-        parser.add_argument('--debug', {
-            action: 'store_true',
-            help: 'Enable debugging.',
-        });
-        parser.add_argument('--no-debug', {
-            action: 'store_false',
-            dest: 'debug',
-            help: 'Disable debugging.',
-        });
-    },
-
-    async execute(args) {
-        let config = {};
-        if (args.config_file)
-            config = JSON.parse(await util.promisify(fs.readFile)(args.config_file));
-
-        const job = Training.createJob({
-            backend: args.backend,
-            config,
-
-            datadir: args.datadir,
-            workdir: args.workdir,
-            outputdir: args.outputdir,
-
-            debug: !!args.debug
-        });
-
-        if (!args.debug) {
-            const progbar = new ProgressBar(1);
-            job.on('progress', (value) => {
-                progbar.update(value);
-            });
-
-            // issue an update now to show the progress bar
-            progbar.update(0);
-        }
-
-        await job.train();
-
-        console.log('Training complete');
-        console.log('Evaluation result (on validation set)');
-        for (let key in job.metrics)
-            console.log(` ${key} = ${job.metrics[key]}`);
-        await util.promisify(fs.writeFile)(path.resolve(args.workdir, 'eval-metrics.json'),
-            JSON.stringify(job.metrics, undefined, 2));
+        // issue an update now to show the progress bar
+        progbar.update(0);
     }
-};
+
+    await job.train();
+
+    console.log('Training complete');
+    console.log('Evaluation result (on validation set)');
+    for (let key in job.metrics)
+        console.log(` ${key} = ${job.metrics[key]}`);
+    await util.promisify(fs.writeFile)(path.resolve(args.workdir, 'eval-metrics.json'),
+        JSON.stringify(job.metrics, undefined, 2));
+}

@@ -19,8 +19,8 @@
 // Author: Silei <silei@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
-require('./test-classes/test_database');
+import assert from 'assert';
+import './test-classes/test_database';
 
 async function collectOutputs(app) {
     let into = [];
@@ -80,8 +80,8 @@ async function testAggregateDatabaseQuery(engine) {
     }]);
 }
 
-module.exports = async function testDatabase(engine) {
+export default async function testDatabase(engine) {
     await testSimpleDatabaseQuery(engine);
     await testJoinDatabaseQuery(engine);
     await testAggregateDatabaseQuery(engine);
-};
+}

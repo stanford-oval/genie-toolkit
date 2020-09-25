@@ -19,16 +19,16 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const path = require('path');
-const JSONStream = require('JSONStream');
-const stream = require('stream');
-const zlib = require('zlib');
-const fs = require('fs');
+import path from 'path';
+import JSONStream from 'JSONStream';
+import stream from 'stream';
+import zlib from 'zlib';
+import * as fs from 'fs';
 const pfs = fs.promises;
-const Tp = require('thingpedia');
+import * as Tp from 'thingpedia';
 
-const I18n = require('../../../lib/i18n');
-const StreamUtils = require('../../../lib/utils/stream-utils');
+import * as I18n from '../../../lib/i18n';
+import * as StreamUtils from '../../../lib/utils/stream-utils';
 
 async function loadURL(url) {
     const parsed = new URL(url);
@@ -169,35 +169,33 @@ class ESBulkInserter extends stream.Writable {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('wikidata-es-import', {
-            add_help: true,
-            description: "Import a wikidata dump into ElasticSearch"
-        });
-        parser.add_argument('--url', {
-            required: false,
-            default: 'https://dumps.wikimedia.org/wikidatawiki/entities/latest-all.json.gz',
-            help: 'URL of the Wikidata dump to process (can be a file:// URL or a http(s):// URL).'
-        });
-        parser.add_argument('--es-config', {
-            required: true,
-            help: 'Path to a JSON file containing the ElasticSearch configuration (url, username, password).'
-        });
-        parser.add_argument('--offset', {
-            required: false,
-            default: 0,
-            help: 'Skip this many entities from the dump (resume uploading).'
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('wikidata-es-import', {
+        add_help: true,
+        description: "Import a wikidata dump into ElasticSearch"
+    });
+    parser.add_argument('--url', {
+        required: false,
+        default: 'https://dumps.wikimedia.org/wikidatawiki/entities/latest-all.json.gz',
+        help: 'URL of the Wikidata dump to process (can be a file:// URL or a http(s):// URL).'
+    });
+    parser.add_argument('--es-config', {
+        required: true,
+        help: 'Path to a JSON file containing the ElasticSearch configuration (url, username, password).'
+    });
+    parser.add_argument('--offset', {
+        required: false,
+        default: 0,
+        help: 'Skip this many entities from the dump (resume uploading).'
+    });
+}
 
-    async execute(args) {
-        const [stream,] = await loadURL(args.url);
+export async function execute(args) {
+    const [stream,] = await loadURL(args.url);
 
-        await StreamUtils.waitFinish(stream
-            .setEncoding('utf8')
-            .pipe(JSONStream.parse('*'))
-            .pipe(new ItemProcessor(args.offset))
-            .pipe(new ESBulkInserter(require(path.resolve(args.es_config)))));
-    }
-};
+    await StreamUtils.waitFinish(stream
+        .setEncoding('utf8')
+        .pipe(JSONStream.parse('*'))
+        .pipe(new ItemProcessor(args.offset))
+        .pipe(new ESBulkInserter(require(path.resolve(args.es_config)))));
+}

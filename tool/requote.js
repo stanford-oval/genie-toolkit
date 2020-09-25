@@ -20,16 +20,16 @@
 //          Mehrad Moradshahi <mehrad@cs.stanford.edu>
 "use strict";
 
-const fs = require('fs');
-const Stream = require('stream');
-const assert = require('assert');
-const ConditionalDatasetSplitter = require('../lib/dataset-tools/conditional-splitter');
+import * as fs from 'fs';
+import Stream from 'stream';
+import assert from 'assert';
+import ConditionalDatasetSplitter from '../lib/dataset-tools/conditional-splitter';
 
-const i18n = require('../lib/i18n');
+import * as i18n from '../lib/i18n';
 
-const { DatasetParser, DatasetStringifier } = require('../lib/dataset-tools/parsers');
-const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
-const StreamUtils = require('../lib/utils/stream-utils');
+import { DatasetParser, DatasetStringifier } from '../lib/dataset-tools/parsers';
+import { maybeCreateReadStream, readAllLines } from './lib/argutils';
+import * as StreamUtils from '../lib/utils/stream-utils';
 
 const ENTITY_MATCH_REGEX = /^([A-Z].*)_[0-9|۰-۹]+$/;
 const NUMBER_MATCH_REGEX = /^([0-9|۰-۹]+)$/;
@@ -409,115 +409,112 @@ function requoteSentence(id, context, sentence, program, mode, requote_numbers, 
     return [newSentence.join(' '), newProgram.join(' ')];
 }
 
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('requote', {
+        add_help: true,
+        description: "Requote a dataset."
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--contextual', {
+        action: 'store_true',
+        help: 'Process a contextual dataset.',
+        default: false
+    });
+    parser.add_argument('--mode', {
+        type: String,
+        help: 'Type of requoting (replace with placeholder, or just add quotation marks around params)',
+        choices: ['replace', 'qpis'],
+        default: 'replace'
+    });
+    parser.add_argument('--requote-numbers', {
+        action: 'store_true',
+        help: 'Requote numbers',
+        default: false
+    });
+    parser.add_argument('--skip-errors', {
+        action: 'store_true',
+        help: 'Skip examples that we are unable to requote',
+        default: false
+    });
+    parser.add_argument('input_file', {
+        nargs: '+',
+        type: maybeCreateReadStream,
+        help: 'Input datasets to evaluate (in TSV format); use - for standard input'
+    });
+    parser.add_argument('--handle-heuristics', {
+        action: 'store_true',
+        help: 'Handle cases where augmentation introduced non-matching parameters in sentence and program',
+        default: false
+    });
+    parser.add_argument('--param-locale', {
+        type: String,
+        help: 'BGP 47 locale tag of the language for parameter values',
+        default: 'en-US'
+    });
+    parser.add_argument('--output-errors', {
+        type: fs.createWriteStream,
+        help: 'If provided, examples which fail to be requoted are written in this file as well as being printed to stdout '
+    });
+}
 
+export async function execute(args) {
+    const promises = [];
 
+    let outputErrors = null;
+    const output = new DatasetStringifier();
+    promises.push(StreamUtils.waitFinish(output.pipe(args.output)));
+    if (args.output_errors) {
+        outputErrors = new DatasetStringifier();
+        promises.push(StreamUtils.waitFinish(outputErrors.pipe(args.output_errors)));
+    }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('requote', {
-            add_help: true,
-            description: "Requote a dataset."
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('--contextual', {
-            action: 'store_true',
-            help: 'Process a contextual dataset.',
-            default: false
-        });
-        parser.add_argument('--mode', {
-            type: String,
-            help: 'Type of requoting (replace with placeholder, or just add quotation marks around params)',
-            choices: ['replace', 'qpis'],
-            default: 'replace'
-        });
-        parser.add_argument('--requote-numbers', {
-            action: 'store_true',
-            help: 'Requote numbers',
-            default: false
-        });
-        parser.add_argument('--skip-errors', {
-            action: 'store_true',
-            help: 'Skip examples that we are unable to requote',
-            default: false
-        });
-        parser.add_argument('input_file', {
-            nargs: '+',
-            type: maybeCreateReadStream,
-            help: 'Input datasets to evaluate (in TSV format); use - for standard input'
-        });
-        parser.add_argument('--handle-heuristics', {
-            action: 'store_true',
-            help: 'Handle cases where augmentation introduced non-matching parameters in sentence and program',
-            default: false
-        });
-        parser.add_argument('--param-locale', {
-            type: String,
-            help: 'BGP 47 locale tag of the language for parameter values',
-            default: 'en-US'
-        });
-        parser.add_argument('--output-errors', {
-            type: fs.createWriteStream,
-            help: 'If provided, examples which fail to be requoted are written in this file as well as being printed to stdout '
-        });
-    },
+    readAllLines(args.input_file)
+        .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true }))
+        .pipe(new Stream.Transform({
+            objectMode: true,
+            transform(ex, encoding, callback) {
+                try {
+                    const [newSentence, newProgram] =
+                        requoteSentence(ex.id, ex.context, ex.preprocessed, ex.target_code, args.mode,
+                            args.requote_numbers, args.handle_heuristics, args.param_locale);
+                    ex.preprocessed = newSentence;
+                    ex.target_code = newProgram;
+                    ex.is_ok = true;
+                    this.push(ex);
+                    callback();
 
-    async execute(args) {
-
-        const promises = [];
-
-        let outputErrors = null;
-        const output = new DatasetStringifier();
-        promises.push(StreamUtils.waitFinish(output.pipe(args.output)));
-        if (args.output_errors) {
-            outputErrors = new DatasetStringifier();
-            promises.push(StreamUtils.waitFinish(outputErrors.pipe(args.output_errors)));
-        }
-
-        readAllLines(args.input_file)
-            .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true }))
-            .pipe(new Stream.Transform({
-                objectMode: true,
-                transform(ex, encoding, callback) {
-                    try {
-                        const [newSentence, newProgram] =
-                            requoteSentence(ex.id, ex.context, ex.preprocessed, ex.target_code, args.mode,
-                                args.requote_numbers, args.handle_heuristics, args.param_locale);
-                        ex.preprocessed = newSentence;
-                        ex.target_code = newProgram;
-                        ex.is_ok = true;
+                } catch(e) {
+                    console.error('**************');
+                    console.error('Failed to requote');
+                    console.error(ex.id);
+                    console.error(ex.preprocessed);
+                    console.error(ex.target_code);
+                    console.error('**************');
+                    ex.is_ok = false;
+                    if (args.skip_errors) {
                         this.push(ex);
                         callback();
-
-                    } catch(e) {
-                        console.error('**************');
-                        console.error('Failed to requote');
-                        console.error(ex.id);
-                        console.error(ex.preprocessed);
-                        console.error(ex.target_code);
-                        console.error('**************');
-                        ex.is_ok = false;
-                        if (args.skip_errors) {
-                            this.push(ex);
-                            callback();
-                        } else {
-                            callback(e);
-                        }
+                    } else {
+                        callback(e);
                     }
-                },
-
-                flush(callback) {
-                    process.nextTick(callback);
                 }
-            }))
-            .pipe(new ConditionalDatasetSplitter({
-                output: output,
-                outputErrors: outputErrors
-            }));
+            },
 
-        return Promise.all(promises);
-    },
+            flush(callback) {
+                process.nextTick(callback);
+            }
+        }))
+        .pipe(new ConditionalDatasetSplitter({
+            output: output,
+            outputErrors: outputErrors
+        }));
+
+    return Promise.all(promises);
+}
+
+export {
     requoteSentence
 };

@@ -19,9 +19,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const IpAddress = require('../../lib/engine/util/ip_address');
+import * as IpAddress from '../../lib/engine/util/ip_address';
 
 async function main() {
     const addresses = await IpAddress.getServerAddresses();
@@ -30,6 +30,6 @@ async function main() {
     });
     await IpAddress.getServerName();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

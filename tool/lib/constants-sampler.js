@@ -19,9 +19,9 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 "use strict";
 
-const { choose } = require('../../lib/utils/random');
-const { sampleString } = require('../../lib/utils/misc-utils');
-const i18n = require('../../lib/i18n');
+import { choose } from '../../lib/utils/random';
+import { sampleString } from '../../lib/utils/misc-utils';
+import * as i18n from '../../lib/i18n';
 
 function getEntityType(type) {
     if (type.isEntity)
@@ -40,7 +40,7 @@ function isString(type) {
 }
 
 
-module.exports = class ConstantSampler {
+export default class ConstantSampler {
     constructor(schemaRetriever, constProvider, options) {
         this._schemaRetriever = schemaRetriever;
         this._constProvider = constProvider;
@@ -153,4 +153,4 @@ module.exports = class ConstantSampler {
         return samples;
     }
 
-};
+}

@@ -21,22 +21,22 @@
 
 process.on('unhandledRejection', (up) => { throw up; });
 
-const assert = require('assert');
-const fs = require('fs');
-const byline = require('byline');
-const util = require('util');
-const path = require('path');
-const yaml = require('js-yaml');
-const seedrandom = require('seedrandom');
+import assert from 'assert';
+import * as fs from 'fs';
+import byline from 'byline';
+import * as util from 'util';
+import * as path from 'path';
+import * as yaml from 'js-yaml';
+import * as seedrandom from 'seedrandom';
 
-const { DialogueParser } = require('../../lib/dataset-tools/parsers');
-const StreamUtils = require('../../lib/utils/stream-utils');
-const Conversation = require('../../lib/dialogue-agent/conversation');
+import { DialogueParser } from '../../lib/dataset-tools/parsers';
+import * as StreamUtils from '../../lib/utils/stream-utils';
+import Conversation from '../../lib/dialogue-agent/conversation';
 
-const MockThingpediaClient = require('./mock_thingpedia_client');
-const MockEngine = require('./mock_engine');
+import MockThingpediaClient from './mock_thingpedia_client';
+import * as MockEngine from './mock_engine';
 
-const MultiJSONDatabase = require('../../tool/lib/multi_json_database');
+import MultiJSONDatabase from '../../tool/lib/multi_json_database';
 
 class RestartableRandomNumberGenerator {
     constructor() {

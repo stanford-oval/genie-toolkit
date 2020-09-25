@@ -19,7 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const Tp = require('thingpedia');
+import * as Tp from 'thingpedia';
 
 class MockPreferences {
     constructor() {
@@ -69,6 +69,6 @@ class MockPlatform extends Tp.BasePlatform {
     }
 }
 
-module.exports = {
+export {
     MockPlatform
-};
+}

@@ -21,21 +21,21 @@
 
 // Parse a .jsonld file and normalize it based on how we expect schema.org to look like
 
-const assert = require('assert');
-const fs = require('fs');
-const util = require('util');
-//const assert = require('assert');
-const ThingTalk = require('thingtalk');
-const crypto = require('crypto');
+import assert from 'assert';
+import * as fs from 'fs';
+import util from 'util';
+//import assert from 'assert';
+import * as ThingTalk from 'thingtalk';
+import * as crypto from 'crypto';
 
-const StreamUtils = require('../../../lib/utils/stream-utils');
+import * as StreamUtils from '../../../lib/utils/stream-utils';
 
-const { makeMetadata } = require('../lib/metadata');
+import { makeMetadata } from '../lib/metadata';
 
-const {
+import {
     PROPERTY_RENAMES,
     ENUM_VALUE_NORMALIZE
-} = require('./manual-annotations');
+} from './manual-annotations';
 
 const SECOND = 1000;
 const MINUTE = 60 * SECOND;
@@ -540,47 +540,45 @@ class Normalizer {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('schemaorg-normalize-data', {
-            add_help: true,
-            description: "Normalize schema.org JSON+LD files to match their ThingTalk representation."
-        });
-        parser.add_argument('--data-output', {
-            type: fs.createWriteStream
-        });
-        parser.add_argument('--meta-output', {
-            type: fs.createWriteStream
-        });
-        parser.add_argument('--thingpedia', {
-            required: true,
-            help: 'Path to ThingTalk file containing class definitions.'
-        });
-        parser.add_argument('input_file', {
-            nargs: '+',
-            help: 'Input JSON+LD files to normalize. Multiple input files will be merged in one.'
-        });
-        parser.add_argument('--class-name', {
-            required: false,
-            help: 'The name of the device class, used for decide class-specific types',
-            default: 'org.schema'
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('schemaorg-normalize-data', {
+        add_help: true,
+        description: "Normalize schema.org JSON+LD files to match their ThingTalk representation."
+    });
+    parser.add_argument('--data-output', {
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--meta-output', {
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--thingpedia', {
+        required: true,
+        help: 'Path to ThingTalk file containing class definitions.'
+    });
+    parser.add_argument('input_file', {
+        nargs: '+',
+        help: 'Input JSON+LD files to normalize. Multiple input files will be merged in one.'
+    });
+    parser.add_argument('--class-name', {
+        required: false,
+        help: 'The name of the device class, used for decide class-specific types',
+        default: 'org.schema'
+    });
+}
 
-    async execute(args) {
-        const normalizer = new Normalizer(args.class_name);
-        await normalizer.init(args.thingpedia);
-        for (let filename of args.input_file)
-            await normalizer.process(filename);
+export async function execute(args) {
+    const normalizer = new Normalizer(args.class_name);
+    await normalizer.init(args.thingpedia);
+    for (let filename of args.input_file)
+        await normalizer.process(filename);
 
-        if (args.meta_output) {
-            args.meta_output.end(JSON.stringify(normalizer.meta, undefined, 2));
-            await StreamUtils.waitFinish(args.meta_output);
-        }
-
-        if (args.data_output) {
-            args.data_output.end(JSON.stringify(normalizer.output, undefined, 2));
-            await StreamUtils.waitFinish(args.data_output);
-        }
+    if (args.meta_output) {
+        args.meta_output.end(JSON.stringify(normalizer.meta, undefined, 2));
+        await StreamUtils.waitFinish(args.meta_output);
     }
-};
+
+    if (args.data_output) {
+        args.data_output.end(JSON.stringify(normalizer.output, undefined, 2));
+        await StreamUtils.waitFinish(args.data_output);
+    }
+}

@@ -19,8 +19,8 @@
 // Author: Swee Kiat Lim <sweekiat@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
-const timers = require('../../lib/engine/apps/timers');
+import assert from 'assert';
+import * as timers from '../../lib/engine/apps/timers';
 
 function testTimer_setTimems() {
     let timer = new timers.Timer(null, null);
@@ -506,6 +506,6 @@ function main() {
     testTimer_splitWeek_error();
     testTimer_nextTimeout_error();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

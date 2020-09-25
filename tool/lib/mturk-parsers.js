@@ -20,10 +20,10 @@
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const Stream = require('stream');
+import * as Stream from 'stream';
 
-const I18n = require('../../lib/i18n');
-const { ParaphraseValidator } = require('../../lib/dataset-tools/mturk/validator');
+import * as I18n from '../../lib/i18n';
+import { ParaphraseValidator } from '../../lib/dataset-tools/mturk/validator';
 
 // Parse the raw output of Amazon MTurk paraphrasing into easier to handle objects
 //
@@ -427,7 +427,7 @@ class ParaphrasingRejecter extends Stream.Transform {
     }
 }
 
-module.exports = {
+export {
     ParaphrasingParser,
     ParaphrasingAccumulator,
     ValidationParser,

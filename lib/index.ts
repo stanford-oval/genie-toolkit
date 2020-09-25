@@ -41,7 +41,7 @@ import {
 } from './dataset-tools/evaluation/dialogue_evaluator';
 
 import * as Training from './training';
-import ParserClient from './prediction/parserclient';
+import * as ParserClient from './prediction/parserclient';
 
 import * as I18n from './i18n';
 import parallelize from './utils/parallelize';

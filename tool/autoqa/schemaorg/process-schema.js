@@ -19,22 +19,22 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const Inflectors = require('en-inflectors').Inflectors;
-const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
+import { Inflectors } from 'en-inflectors';
+import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
 const Type = ThingTalk.Type;
 const Ast = ThingTalk.Ast;
-const fs = require('fs');
-const util = require('util');
+import * as fs from 'fs';
+import util from 'util';
 
-const { clean } = require('../../../lib/utils/misc-utils');
-const EnglishLanguagePack = require('../../../lib/i18n/american-english');
-const { isHumanEntity } = require('../../../languages/thingtalk/utils');
-const StreamUtils = require('../../../lib/utils/stream-utils');
+import { clean } from '../../../lib/utils/misc-utils';
+import EnglishLanguagePack from '../../../lib/i18n/american-english';
+import { isHumanEntity } from '../../../languages/thingtalk/utils';
+import * as StreamUtils from '../../../lib/utils/stream-utils';
 
-const genBaseCanonical = require('../lib/base-canonical-generator');
+import genBaseCanonical from '../lib/base-canonical-generator';
 
-const {
+import {
     BUILTIN_TYPEMAP,
     BLACKLISTED_TYPES,
     BLACKLISTED_PROPERTIES,
@@ -52,7 +52,7 @@ const {
     PROPERTIES_DROP_WITH_GEO,
     STRUCT_INCLUDE_THING_PROPERTIES,
     STRING_FILE_OVERRIDES
-} = require('./manual-annotations');
+} from './manual-annotations';
 
 const keepAnnotation = false;
 
@@ -748,63 +748,61 @@ class SchemaProcessor {
 }
 
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('schemaorg-process-schema', {
-            add_help: true,
-            description: "Process a schema.org JSON+LD definition into a Thingpedia class."
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('--cache-file', {
-            required: false,
-            default: './schema.jsonld',
-            help: 'Path to a cache file containing the schema.org definitions.'
-        });
-        parser.add_argument('--url', {
-            required: false,
-            // FIXME: replace it with a link with fixed version number 9.0 (couldn't find one currently)
-            default: 'https://schema.org/version/latest/schemaorg-current-http.jsonld',
-            help: 'The schema.org URL to retrieve the definitions from.'
-        });
-        parser.add_argument('--domain', {
-            required: false,
-            help: 'The domain of current experiment, used for domain-specific manual overrides.'
-        });
-        parser.add_argument('--manual', {
-            action: 'store_true',
-            help: 'Enable manual annotations.',
-            default: false
-        });
-        parser.add_argument('--wikidata-path', {
-            required: false,
-            help: 'path to the json file with wikidata property labels'
-        });
-        parser.add_argument('--always-base-canonical', {
-            action: 'store_true',
-            help: `Always generate base canonical`,
-            default: true
-        });
-        parser.add_argument('--no-always-base-canonical', {
-            action: 'store_false',
-            help: `Do not always generate base canonical`,
-            dest: `always_base_canonical`,
-        });
-        parser.add_argument('--class-name', {
-            required: false,
-            help: 'The name of the generated class, this will also affect the entity names',
-            default: 'org.schema'
-        });
-        parser.add_argument('--white-list', {
-            required: true,
-            help: 'A list of queries allowed to use in the class, split by comma (no space).'
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('schemaorg-process-schema', {
+        add_help: true,
+        description: "Process a schema.org JSON+LD definition into a Thingpedia class."
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--cache-file', {
+        required: false,
+        default: './schema.jsonld',
+        help: 'Path to a cache file containing the schema.org definitions.'
+    });
+    parser.add_argument('--url', {
+        required: false,
+        // FIXME: replace it with a link with fixed version number 9.0 (couldn't find one currently)
+        default: 'https://schema.org/version/latest/schemaorg-current-http.jsonld',
+        help: 'The schema.org URL to retrieve the definitions from.'
+    });
+    parser.add_argument('--domain', {
+        required: false,
+        help: 'The domain of current experiment, used for domain-specific manual overrides.'
+    });
+    parser.add_argument('--manual', {
+        action: 'store_true',
+        help: 'Enable manual annotations.',
+        default: false
+    });
+    parser.add_argument('--wikidata-path', {
+        required: false,
+        help: 'path to the json file with wikidata property labels'
+    });
+    parser.add_argument('--always-base-canonical', {
+        action: 'store_true',
+        help: `Always generate base canonical`,
+        default: true
+    });
+    parser.add_argument('--no-always-base-canonical', {
+        action: 'store_false',
+        help: `Do not always generate base canonical`,
+        dest: `always_base_canonical`,
+    });
+    parser.add_argument('--class-name', {
+        required: false,
+        help: 'The name of the generated class, this will also affect the entity names',
+        default: 'org.schema'
+    });
+    parser.add_argument('--white-list', {
+        required: true,
+        help: 'A list of queries allowed to use in the class, split by comma (no space).'
+    });
+}
 
-    async execute(args) {
-        const schemaProcessor = new SchemaProcessor(args);
-        schemaProcessor.run();
-    }
-};
+export async function execute(args) {
+    const schemaProcessor = new SchemaProcessor(args);
+    schemaProcessor.run();
+}

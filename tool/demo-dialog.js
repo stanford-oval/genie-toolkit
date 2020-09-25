@@ -19,19 +19,19 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const seedrandom = require('seedrandom');
-const readline = require('readline');
-const events = require('events');
-const path = require('path');
-const Tp = require('thingpedia');
+import seedrandom from 'seedrandom';
+import * as readline from 'readline';
+import * as events from 'events';
+import path from 'path';
+import * as Tp from 'thingpedia';
 
-const TargetLanguages = require('../lib/languages');
-const ParserClient = require('../lib/prediction/parserclient');
-const I18n = require('../lib/i18n');
-const MultiJSONDatabase = require('./lib/multi_json_database');
-const SentenceGenerator = require('../lib/sentence-generator/generator');
+import * as TargetLanguages from '../lib/languages';
+import * as ParserClient from '../lib/prediction/parserclient';
+import * as I18n from '../lib/i18n';
+import MultiJSONDatabase from './lib/multi_json_database';
+import SentenceGenerator from '../lib/sentence-generator/generator';
 
-const ThingTalk = require('thingtalk');
+import * as ThingTalk from 'thingtalk';
 
 const USE_NEURAL_POLICY = false;
 const MAX_DEPTH = 9;
@@ -285,78 +285,76 @@ class DialogAgent extends events.EventEmitter {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('demo-dialog', {
-            add_help: true,
-            description: `Test a dialogue agent interactively.`
-        });
-        parser.add_argument('-l', '--locale', {
-            required: false,
-            default: 'en-US',
-            help: `BGP 47 locale tag of the natural language being processed (defaults to en-US).`
-        });
-        parser.add_argument('--thingpedia', {
-            required: true,
-            help: 'Path to ThingTalk file containing class definitions.'
-        });
-        parser.add_argument('-t', '--target-language', {
-            required: false,
-            default: 'thingtalk',
-            choices: TargetLanguages.AVAILABLE_LANGUAGES,
-            help: `The programming language to generate`
-        });
-        parser.add_argument('--database-file', {
-            required: false,
-            help: `Path to a file pointing to JSON databases used to simulate queries.`,
-        });
-        parser.add_argument('--template', {
-            nargs: '+',
-            default: [path.resolve(path.dirname(module.filename), '../languages/thingtalk/en/dialogue.genie')],
-            help: 'Path to file containing construct templates, in Genie syntax.'
-        });
-        parser.add_argument('--entities', {
-            required: false,
-            help: 'Path to JSON file containing entity type definitions.'
-        });
-        parser.add_argument('--dataset', {
-            required: false,
-            help: 'Path to file containing primitive templates, in ThingTalk syntax.'
-        });
-        parser.add_argument('--server', {
-            required: false,
-            default: 'http://127.0.0.1:8400',
-            help: `The URL of the natural language server.`
-        });
-        parser.add_argument('--random-seed', {
-            default: 'almond is awesome',
-            help: 'Random seed'
-        });
-        parser.add_argument('--debug', {
-            action: 'store_true',
-            help: 'Enable debugging.',
-            default: true
-        });
-        parser.add_argument('--no-debug', {
-            action: 'store_false',
-            dest: 'debug',
-            help: 'Disable debugging.',
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('demo-dialog', {
+        add_help: true,
+        description: `Test a dialogue agent interactively.`
+    });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en-US',
+        help: `BGP 47 locale tag of the natural language being processed (defaults to en-US).`
+    });
+    parser.add_argument('--thingpedia', {
+        required: true,
+        help: 'Path to ThingTalk file containing class definitions.'
+    });
+    parser.add_argument('-t', '--target-language', {
+        required: false,
+        default: 'thingtalk',
+        choices: TargetLanguages.AVAILABLE_LANGUAGES,
+        help: `The programming language to generate`
+    });
+    parser.add_argument('--database-file', {
+        required: false,
+        help: `Path to a file pointing to JSON databases used to simulate queries.`,
+    });
+    parser.add_argument('--template', {
+        nargs: '+',
+        default: [path.resolve(path.dirname(module.filename), '../languages/thingtalk/en/dialogue.genie')],
+        help: 'Path to file containing construct templates, in Genie syntax.'
+    });
+    parser.add_argument('--entities', {
+        required: false,
+        help: 'Path to JSON file containing entity type definitions.'
+    });
+    parser.add_argument('--dataset', {
+        required: false,
+        help: 'Path to file containing primitive templates, in ThingTalk syntax.'
+    });
+    parser.add_argument('--server', {
+        required: false,
+        default: 'http://127.0.0.1:8400',
+        help: `The URL of the natural language server.`
+    });
+    parser.add_argument('--random-seed', {
+        default: 'almond is awesome',
+        help: 'Random seed'
+    });
+    parser.add_argument('--debug', {
+        action: 'store_true',
+        help: 'Enable debugging.',
+        default: true
+    });
+    parser.add_argument('--no-debug', {
+        action: 'store_false',
+        dest: 'debug',
+        help: 'Disable debugging.',
+    });
+}
 
-    async execute(args) {
-        const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-        rl.setPrompt('$ ');
+export async function execute(args) {
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    rl.setPrompt('$ ');
 
-        const agent = new DialogAgent(rl, args);
-        rl.on('SIGINT', () => agent.quit());
-        await agent.start();
-        //process.stdin.on('end', quit);
+    const agent = new DialogAgent(rl, args);
+    rl.on('SIGINT', () => agent.quit());
+    await agent.start();
+    //process.stdin.on('end', quit);
 
-        await new Promise((resolve, reject) => {
-            agent.on('error', reject);
-            agent.on('quit', resolve);
-        });
-        await agent.stop();
-    }
-};
+    await new Promise((resolve, reject) => {
+        agent.on('error', reject);
+        agent.on('quit', resolve);
+    });
+    await agent.stop();
+}

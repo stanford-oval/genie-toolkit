@@ -19,14 +19,14 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
-const path = require('path');
-const fs = require('fs');
+import assert from 'assert';
+import path from 'path';
+import * as fs from 'fs';
 const pfs = fs.promises;
 
-const { DialogueParser, DatasetParser } = require('../lib/dataset-tools/parsers');
+import { DialogueParser, DatasetParser } from '../lib/dataset-tools/parsers';
 
-const { readAllLines } = require('./lib/argutils');
+import { readAllLines } from './lib/argutils';
 
 function measure(corpus, name) {
     let words = new Set();
@@ -97,56 +97,54 @@ function readByLine(filename) {
     return readAllLines([fs.createReadStream(filename)]);
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('measure-training-set', {
-            add_help: true,
-            description: "Compute useful statistics about a training set."
-        });
-        parser.add_argument('datadir', {
-            help: 'Training set directory to measure; must contain synthetic.txt, user/train.tsv'
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('measure-training-set', {
+        add_help: true,
+        description: "Compute useful statistics about a training set."
+    });
+    parser.add_argument('datadir', {
+        help: 'Training set directory to measure; must contain synthetic.txt, user/train.tsv'
+    });
+}
 
-    async execute(args) {
-        let numDialogues = 0;
-        let numTurns = 0;
-        const syntheticTxt = path.resolve(args.datadir, 'synthetic.txt');
-        if (await existsSafe(syntheticTxt)) {
-            for await (const dlg of readByLine(syntheticTxt).pipe(new DialogueParser())) {
-                numDialogues += 1;
-                numTurns += dlg.length;
-            }
+export async function execute(args) {
+    let numDialogues = 0;
+    let numTurns = 0;
+    const syntheticTxt = path.resolve(args.datadir, 'synthetic.txt');
+    if (await existsSafe(syntheticTxt)) {
+        for await (const dlg of readByLine(syntheticTxt).pipe(new DialogueParser())) {
+            numDialogues += 1;
+            numTurns += dlg.length;
         }
-        console.error('Counted dialogues');
-
-        let numSyntheticSentences = 0;
-
-        for await (const _ of readByLine(path.resolve(args.datadir, 'user/synthetic.user.tsv')))
-            numSyntheticSentences += 1;
-
-        console.error('Counted synthetic sentences');
-
-        const sentenceCorpus = [];
-        const contextCorpus = [];
-        const targetCorpus = [];
-        let numTrainingSentences = 0;
-        for await (const ex of readByLine(path.resolve(args.datadir, 'user/train.tsv')).pipe(new DatasetParser({ contextual: true }))) {
-            sentenceCorpus.push(ex.preprocessed);
-            contextCorpus.push(ex.context);
-            targetCorpus.push(ex.target_code);
-            numTrainingSentences += 1;
-        }
-
-        console.error('Loaded training set');
-
-        const sentenceEntropy = measure(sentenceCorpus, 'sentence');
-        const contextEntropy = measure(contextCorpus, 'context');
-        const targetEntropy = measure(targetCorpus, 'target');
-        const numContexts = (new Set(contextCorpus)).size;
-
-        console.log([args.datadir, numDialogues, numSyntheticSentences, numTrainingSentences,
-                     contextEntropy, sentenceEntropy, targetEntropy,
-                     numTurns/numDialogues, numContexts].join('\t'));
     }
-};
+    console.error('Counted dialogues');
+
+    let numSyntheticSentences = 0;
+
+    for await (const _ of readByLine(path.resolve(args.datadir, 'user/synthetic.user.tsv')))
+        numSyntheticSentences += 1;
+
+    console.error('Counted synthetic sentences');
+
+    const sentenceCorpus = [];
+    const contextCorpus = [];
+    const targetCorpus = [];
+    let numTrainingSentences = 0;
+    for await (const ex of readByLine(path.resolve(args.datadir, 'user/train.tsv')).pipe(new DatasetParser({ contextual: true }))) {
+        sentenceCorpus.push(ex.preprocessed);
+        contextCorpus.push(ex.context);
+        targetCorpus.push(ex.target_code);
+        numTrainingSentences += 1;
+    }
+
+    console.error('Loaded training set');
+
+    const sentenceEntropy = measure(sentenceCorpus, 'sentence');
+    const contextEntropy = measure(contextCorpus, 'context');
+    const targetEntropy = measure(targetCorpus, 'target');
+    const numContexts = (new Set(contextCorpus)).size;
+
+    console.log([args.datadir, numDialogues, numSyntheticSentences, numTrainingSentences,
+                 contextEntropy, sentenceEntropy, targetEntropy,
+                 numTurns/numDialogues, numContexts].join('\t'));
+}

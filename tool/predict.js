@@ -19,13 +19,13 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const fs = require('fs');
-const Stream = require('stream');
+import * as fs from 'fs';
+import Stream from 'stream';
 
-const { DatasetParser, DatasetStringifier } = require('../lib/dataset-tools/parsers');
-const StreamUtils = require('../lib/utils/stream-utils');
-const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
-const ParserClient = require('../lib/prediction/parserclient');
+import { DatasetParser, DatasetStringifier } from '../lib/dataset-tools/parsers';
+import * as StreamUtils from '../lib/utils/stream-utils';
+import { maybeCreateReadStream, readAllLines } from './lib/argutils';
+import * as ParserClient from '../lib/prediction/parserclient';
 
 class PredictStream extends Stream.Transform {
     constructor(parser, tokenized, debug) {
@@ -60,75 +60,73 @@ class PredictStream extends Stream.Transform {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('predict', {
-            add_help: true,
-            description: "Compute predictions for Genie-generated dataset."
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('--url', {
-            required: false,
-            help: "URL of the server to use. Use a file:// URL pointing to a model directory to predict using a local instance of decanlp",
-            default: 'http://127.0.0.1:8400',
-        });
-        parser.add_argument('--contextual', {
-            action: 'store_true',
-            help: 'Process a contextual dataset.',
-            default: false
-        });
-        parser.add_argument('--tokenized', {
-            required: false,
-            action: 'store_true',
-            default: true,
-            help: "The dataset is already tokenized (this is the default)."
-        });
-        parser.add_argument('--no-tokenized', {
-            required: false,
-            dest: 'tokenized',
-            action: 'store_false',
-            help: "The dataset is not already tokenized."
-        });
-        parser.add_argument('input_file', {
-            nargs: '+',
-            type: maybeCreateReadStream,
-            help: 'Input datasets to evaluate (in TSV format); use - for standard input'
-        });
-        parser.add_argument('-l', '--locale', {
-            required: false,
-            default: 'en-US',
-            help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
-        });
-        parser.add_argument('--debug', {
-            action: 'store_true',
-            help: 'Enable debugging.',
-            default: true
-        });
-        parser.add_argument('--no-debug', {
-            action: 'store_false',
-            dest: 'debug',
-            help: 'Disable debugging.',
-        });
-        parser.add_argument('--csv', {
-            action: 'store_true',
-            help: 'Output a single CSV line',
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('predict', {
+        add_help: true,
+        description: "Compute predictions for Genie-generated dataset."
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--url', {
+        required: false,
+        help: "URL of the server to use. Use a file:// URL pointing to a model directory to predict using a local instance of decanlp",
+        default: 'http://127.0.0.1:8400',
+    });
+    parser.add_argument('--contextual', {
+        action: 'store_true',
+        help: 'Process a contextual dataset.',
+        default: false
+    });
+    parser.add_argument('--tokenized', {
+        required: false,
+        action: 'store_true',
+        default: true,
+        help: "The dataset is already tokenized (this is the default)."
+    });
+    parser.add_argument('--no-tokenized', {
+        required: false,
+        dest: 'tokenized',
+        action: 'store_false',
+        help: "The dataset is not already tokenized."
+    });
+    parser.add_argument('input_file', {
+        nargs: '+',
+        type: maybeCreateReadStream,
+        help: 'Input datasets to evaluate (in TSV format); use - for standard input'
+    });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en-US',
+        help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
+    });
+    parser.add_argument('--debug', {
+        action: 'store_true',
+        help: 'Enable debugging.',
+        default: true
+    });
+    parser.add_argument('--no-debug', {
+        action: 'store_false',
+        dest: 'debug',
+        help: 'Disable debugging.',
+    });
+    parser.add_argument('--csv', {
+        action: 'store_true',
+        help: 'Output a single CSV line',
+    });
+}
 
-    async execute(args) {
-        const parser = ParserClient.get(args.url, args.locale);
-        await parser.start();
-    
-        readAllLines(args.input_file)
-            .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true, parseMultiplePrograms: true }))
-            .pipe(new PredictStream(parser, args.tokenized, args.debug))
-            .pipe(new DatasetStringifier())
-            .pipe(args.output);
-       
-        await StreamUtils.waitFinish(args.output);
-        await parser.stop();
-    }
-};
+export async function execute(args) {
+    const parser = ParserClient.get(args.url, args.locale);
+    await parser.start();
+
+    readAllLines(args.input_file)
+        .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true, parseMultiplePrograms: true }))
+        .pipe(new PredictStream(parser, args.tokenized, args.debug))
+        .pipe(new DatasetStringifier())
+        .pipe(args.output);
+
+    await StreamUtils.waitFinish(args.output);
+    await parser.stop();
+}

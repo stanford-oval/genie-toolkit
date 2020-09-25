@@ -19,22 +19,22 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
-const fs = require('fs');
-const util = require('util');
-const stream = require('stream');
-const seedrandom = require('seedrandom');
-const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
+import assert from 'assert';
+import * as fs from 'fs';
+import util from 'util';
+import stream from 'stream';
+import seedrandom from 'seedrandom';
+import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
 const Ast = ThingTalk.Ast;
 
-const ParserClient = require('../lib/prediction/parserclient');
-const { DialogueSerializer } = require('../lib/dataset-tools/parsers');
-const StreamUtils = require('../lib/utils/stream-utils');
-const MultiJSONDatabase = require('./lib/multi_json_database');
-const ProgressBar = require('./lib/progress_bar');
-const { getBestEntityMatch } = require('../lib/dialogue-agent/entity-linking/entity-finder');
-const TargetLanguages = require('../lib/languages');
+import * as ParserClient from '../lib/prediction/parserclient';
+import { DialogueSerializer } from '../lib/dataset-tools/parsers';
+import * as StreamUtils from '../lib/utils/stream-utils';
+import MultiJSONDatabase from './lib/multi_json_database';
+import ProgressBar from './lib/progress_bar';
+import { getBestEntityMatch } from '../lib/dialogue-agent/entity-linking/entity-finder';
+import * as TargetLanguages from '../lib/languages';
 
 function undoTradePreprocessing(sentence) {
     return sentence.replace(/ -(ly|s)/g, '$1').replace(/\b24:([0-9]{2})\b/g, '00:$1');
@@ -724,69 +724,67 @@ class Converter extends stream.Readable {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('auto-annotate-multiwoz', {
-            add_help: true,
-            description: `Heuristically convert multiwoz annotations to ThingTalk.`
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('--thingpedia', {
-            required: true,
-            help: 'Path to ThingTalk file containing class definitions.'
-        });
-        parser.add_argument('--database-file', {
-            required: false,
-            help: `Path to a file pointing to JSON databases used to simulate queries.`,
-        });
-        parser.add_argument('--user-nlu-server', {
-            required: false,
-            default: 'http://127.0.0.1:8400',
-            help: `The URL of the natural language server to parse user utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
-        });
-        parser.add_argument('--agent-nlu-server', {
-            required: false,
-            default: 'http://127.0.0.1:8400',
-            help: `The URL of the natural language server to parse agent utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
-        });
-        parser.add_argument('--only-multidomain', {
-            required: false,
-            action: 'store_true',
-            help: 'Only translate multi-domain dialogues'
-        });
-        parser.add_argument('input_file', {
-            help: 'Input dialog file'
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('auto-annotate-multiwoz', {
+        add_help: true,
+        description: `Heuristically convert multiwoz annotations to ThingTalk.`
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--thingpedia', {
+        required: true,
+        help: 'Path to ThingTalk file containing class definitions.'
+    });
+    parser.add_argument('--database-file', {
+        required: false,
+        help: `Path to a file pointing to JSON databases used to simulate queries.`,
+    });
+    parser.add_argument('--user-nlu-server', {
+        required: false,
+        default: 'http://127.0.0.1:8400',
+        help: `The URL of the natural language server to parse user utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
+    });
+    parser.add_argument('--agent-nlu-server', {
+        required: false,
+        default: 'http://127.0.0.1:8400',
+        help: `The URL of the natural language server to parse agent utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
+    });
+    parser.add_argument('--only-multidomain', {
+        required: false,
+        action: 'store_true',
+        help: 'Only translate multi-domain dialogues'
+    });
+    parser.add_argument('input_file', {
+        help: 'Input dialog file'
+    });
+}
 
-    async execute(args) {
-        const data = JSON.parse(await util.promisify(fs.readFile)(args.input_file, { encoding: 'utf8' }));
+export async function execute(args) {
+    const data = JSON.parse(await util.promisify(fs.readFile)(args.input_file, { encoding: 'utf8' }));
 
-        const converter = new Converter(args);
-        const learned = new DialogueSerializer({ annotations: true });
-        const promise = StreamUtils.waitFinish(converter.pipe(learned).pipe(args.output));
+    const converter = new Converter(args);
+    const learned = new DialogueSerializer({ annotations: true });
+    const promise = StreamUtils.waitFinish(converter.pipe(learned).pipe(args.output));
 
-        const progbar = new ProgressBar(1);
-        converter.on('progress', (value) => {
-            //console.log(value);
-            progbar.update(value);
-        });
+    const progbar = new ProgressBar(1);
+    converter.on('progress', (value) => {
+        //console.log(value);
+        progbar.update(value);
+    });
 
-        // issue an update now to show the progress bar
-        progbar.update(0);
+    // issue an update now to show the progress bar
+    progbar.update(0);
 
-        await converter.start();
-        await converter.run(data);
-        await converter.stop();
+    await converter.start();
+    await converter.run(data);
+    await converter.stop();
 
-        console.log('Finished, waiting for pending writes...');
-        await promise;
-        console.log('Everything done...');
+    console.log('Finished, waiting for pending writes...');
+    await promise;
+    console.log('Everything done...');
 
-        // we need this otherwise we hang at exit, due to some open file I cannot find...
-        setTimeout(() => process.exit(), 10000);
-    }
-};
+    // we need this otherwise we hang at exit, due to some open file I cannot find...
+    setTimeout(() => process.exit(), 10000);
+}

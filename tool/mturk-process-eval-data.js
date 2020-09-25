@@ -19,12 +19,12 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const fs = require('fs');
-const Stream = require('stream');
-const csvparse = require('csv-parse');
-const csvstringify = require('csv-stringify');
+import * as fs from 'fs';
+import Stream from 'stream';
+import csvparse from 'csv-parse';
+import csvstringify from 'csv-stringify';
 
-const StreamUtils = require('../lib/utils/stream-utils');
+import * as StreamUtils from '../lib/utils/stream-utils';
 
 class Parser extends Stream.Transform {
     constructor(options) {
@@ -58,42 +58,40 @@ class Parser extends Stream.Transform {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('mturk-process-eval-data', {
-            add_help: true,
-            description: "Extract the answers of an MTurk task collecting validation/test data."
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('--sentences-per-task', {
-            required: false,
-            type: Number,
-            default: 5,
-            help: "Number of sentences in each HIT"
-        });
-        parser.add_argument('--id-prefix', {
-            required: false,
-            default: '',
-            help: "Prefix for all sentence IDs (to distinguish batches)"
-        });
-        parser.add_argument('input_file', {
-            nargs: '+',
-            help: 'MTurk result file to choose contexts from, split'
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('mturk-process-eval-data', {
+        add_help: true,
+        description: "Extract the answers of an MTurk task collecting validation/test data."
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--sentences-per-task', {
+        required: false,
+        type: Number,
+        default: 5,
+        help: "Number of sentences in each HIT"
+    });
+    parser.add_argument('--id-prefix', {
+        required: false,
+        default: '',
+        help: "Prefix for all sentence IDs (to distinguish batches)"
+    });
+    parser.add_argument('input_file', {
+        nargs: '+',
+        help: 'MTurk result file to choose contexts from, split'
+    });
+}
 
-    async execute(args) {
-        const inputs = args.input_file.map((file) => {
-            return fs.createReadStream(file, { encoding: 'utf8' })
-                .pipe(csvparse({ columns: true, delimiter: ',', relax_column_count: true }));
-        });
+export async function execute(args) {
+    const inputs = args.input_file.map((file) => {
+        return fs.createReadStream(file, { encoding: 'utf8' })
+            .pipe(csvparse({ columns: true, delimiter: ',', relax_column_count: true }));
+    });
 
-        await StreamUtils.waitFinish(StreamUtils.chain(inputs, { objectMode: true })
-            .pipe(new Parser({ sentencesPerTask: args.sentences_per_task, idPrefix: args.id_prefix }))
-            .pipe(csvstringify({ header: true, delimiter: '\t' }))
-            .pipe(args.output));
-    }
-};
+    await StreamUtils.waitFinish(StreamUtils.chain(inputs, { objectMode: true })
+        .pipe(new Parser({ sentencesPerTask: args.sentences_per_task, idPrefix: args.id_prefix }))
+        .pipe(csvstringify({ header: true, delimiter: '\t' }))
+        .pipe(args.output));
+}

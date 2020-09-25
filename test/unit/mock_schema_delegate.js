@@ -18,10 +18,10 @@
 //
 "use strict";
 
-const path = require('path');
-const Tp = require('thingpedia');
+import * as path from 'path';
+import * as Tp from 'thingpedia';
 
-module.exports = new Tp.FileClient({
+export default new Tp.FileClient({
     locale: 'en',
     thingpedia: path.resolve(path.dirname(module.filename), '../data/en-US/thingpedia.tt'),
     entities: path.resolve(path.dirname(module.filename), '../data/en-US/entities.json'),

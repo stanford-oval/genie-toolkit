@@ -19,7 +19,7 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 "use strict";
 
-const Tp = require('thingpedia');
+import * as Tp from 'thingpedia';
 
 const URL = 'https://query.wikidata.org/sparql';
 const query = `SELECT ?property ?propertyType ?propertyLabel ?propertyDescription ?propertyAltLabel ?schemaProperty WHERE {
@@ -53,16 +53,14 @@ function clean(raw) {
 }
 
 
-module.exports = {
-    initArgparse(subparsers) {
-        subparsers.add_parser('retrieve-wikidata-labels', {
-            add_help: true,
-            description: "Retrieve the labels of properties from wikidata."
-        });
-    },
+export function initArgparse(subparsers) {
+    subparsers.add_parser('retrieve-wikidata-labels', {
+        add_help: true,
+        description: "Retrieve the labels of properties from wikidata."
+    });
+}
 
-    async execute() {
-        const labels = await retrieveProperties();
-        console.log(JSON.stringify(clean(labels), null, 2));
-    }
-};
+export async function execute() {
+    const labels = await retrieveProperties();
+    console.log(JSON.stringify(clean(labels), null, 2));
+}

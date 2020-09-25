@@ -19,9 +19,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const DeviceView = require('../../lib/engine/devices/device_view');
+import DeviceView from '../../lib/engine/devices/device_view';
 
 const SUCCESS = {};
 const FAILURE = {};
@@ -412,10 +412,10 @@ async function testDeviceAddedRemoved(engine) {
     });
 }
 
-module.exports = async function testDevices(engine) {
+export default async function testDevices(engine) {
     await testLookup(engine);
     await testDeviceViews(engine);
     await testUpdateDevice(engine);
     await testDeviceMethods(engine);
     await testDeviceAddedRemoved(engine);
-};
+}

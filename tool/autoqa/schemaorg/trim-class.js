@@ -19,18 +19,18 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
-const ThingTalk = require('thingtalk');
+import assert from 'assert';
+import * as ThingTalk from 'thingtalk';
 const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
-const fs = require('fs');
-const util = require('util');
+import * as fs from 'fs';
+import util from 'util';
 
-const StreamUtils = require('../../../lib/utils/stream-utils');
-const {
+import * as StreamUtils from '../../../lib/utils/stream-utils';
+import {
     WHITELISTED_PROPERTIES_BY_DOMAIN,
     BLACKLISTED_PROPERTIES_BY_DOMAIN
-} = require('./manual-annotations');
+} from './manual-annotations';
 
 const DEFAULT_ENTITIES = [
     {"type":"tt:contact","name":"Contact Identity","is_well_known":1,"has_ner_support":0},
@@ -320,57 +320,55 @@ class SchemaTrimmer {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('schemaorg-trim-class', {
-            add_help: true,
-            description: "Reduce a schema.org class file to the subset of fields that have data."
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('--entities', {
-            required: true,
-            help: 'Where to store the generated entities.json file',
-        });
-        parser.add_argument('--thingpedia', {
-            required: true,
-            help: 'Path to ThingTalk file containing class definitions.'
-        });
-        parser.add_argument('--data', {
-            required: true,
-            help: 'Path to JSON file with normalized WebQA data.'
-        });
-        parser.add_argument('--domain', {
-            required: false,
-            help: 'The domain of current experiment, used for domain-specific manual overrides.'
-        });
-        parser.add_argument('--debug', {
-            action: 'store_true',
-            help: 'Enable debugging.',
-            default: true
-        });
-        parser.add_argument('--no-debug', {
-            action: 'store_false',
-            dest: 'debug',
-            help: 'Disable debugging.',
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('schemaorg-trim-class', {
+        add_help: true,
+        description: "Reduce a schema.org class file to the subset of fields that have data."
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--entities', {
+        required: true,
+        help: 'Where to store the generated entities.json file',
+    });
+    parser.add_argument('--thingpedia', {
+        required: true,
+        help: 'Path to ThingTalk file containing class definitions.'
+    });
+    parser.add_argument('--data', {
+        required: true,
+        help: 'Path to JSON file with normalized WebQA data.'
+    });
+    parser.add_argument('--domain', {
+        required: false,
+        help: 'The domain of current experiment, used for domain-specific manual overrides.'
+    });
+    parser.add_argument('--debug', {
+        action: 'store_true',
+        help: 'Enable debugging.',
+        default: true
+    });
+    parser.add_argument('--no-debug', {
+        action: 'store_false',
+        dest: 'debug',
+        help: 'Disable debugging.',
+    });
+}
 
-    async execute(args) {
-        const classDef = await loadClassDef(args.thingpedia);
-        const data = JSON.parse(await util.promisify(fs.readFile)(args.data, { encoding: 'utf8' }));
-        const entities = DEFAULT_ENTITIES.slice();
+export async function execute(args) {
+    const classDef = await loadClassDef(args.thingpedia);
+    const data = JSON.parse(await util.promisify(fs.readFile)(args.data, { encoding: 'utf8' }));
+    const entities = DEFAULT_ENTITIES.slice();
 
-        const trimmer = new SchemaTrimmer(classDef, data, entities, args.domain);
-        trimmer.trim();
+    const trimmer = new SchemaTrimmer(classDef, data, entities, args.domain);
+    trimmer.trim();
 
-        args.output.end(trimmer.class.prettyprint());
-        await StreamUtils.waitFinish(args.output);
-        await util.promisify(fs.writeFile)(args.entities, JSON.stringify({
-            result: 'ok',
-            data: entities
-        }, undefined, 2));
-    }
-};
+    args.output.end(trimmer.class.prettyprint());
+    await StreamUtils.waitFinish(args.output);
+    await util.promisify(fs.writeFile)(args.entities, JSON.stringify({
+        result: 'ok',
+        data: entities
+    }, undefined, 2));
+}

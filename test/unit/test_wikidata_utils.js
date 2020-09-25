@@ -19,7 +19,7 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
 const {
     getPropertyLabel,
@@ -84,7 +84,6 @@ async function main() {
     if (anyFailed)
         throw new Error('Some test failed');
 }
-
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

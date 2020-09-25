@@ -19,9 +19,9 @@
 // Author: Johnny Hsu <johnny.chhsu01@gmail.com>
 "use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const I18n = require('../../lib/i18n');
+import * as I18n from '../../lib/i18n';
 
 const SENTENCE_TEST_CASES = [
     ["給 我 一杯 drip coffee", "給 我 一杯 濾掛式 咖啡"],
@@ -47,6 +47,6 @@ function testPostProcessSynthetic() {
 async function main() {
     testPostProcessSynthetic();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

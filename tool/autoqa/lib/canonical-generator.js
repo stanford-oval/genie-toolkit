@@ -18,20 +18,20 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 "use strict";
-const fs = require('fs');
-const util = require('util');
-const path = require('path');
-const stemmer = require('stemmer');
-const Inflectors = require('en-inflectors').Inflectors;
-const child_process = require('child_process');
+import * as fs from 'fs';
+import util from 'util';
+import path from 'path';
+import stemmer from 'stemmer';
+import { Inflectors } from 'en-inflectors';
+import * as child_process from 'child_process';
 
-const utils = require('../../../lib/utils/misc-utils');
-const { makeLookupKeys } = require('../../../lib/dataset-tools/mturk/sample-utils');
-const EnglishLanguagePack = require('../../../lib/i18n/american-english');
-const { clean } = require('../../../lib/utils/misc-utils');
+import * as utils from '../../../lib/utils/misc-utils';
+import { makeLookupKeys } from '../../../lib/dataset-tools/mturk/sample-utils';
+import EnglishLanguagePack from '../../../lib/i18n/american-english';
+import { clean } from '../../../lib/utils/misc-utils';
 
-const CanonicalExtractor = require('./canonical-extractor');
-const genBaseCanonical = require('./base-canonical-generator');
+import CanonicalExtractor from './canonical-extractor';
+import genBaseCanonical from './base-canonical-generator';
 
 // extract entity type from type
 function typeToEntityType(type) {
@@ -43,7 +43,7 @@ function typeToEntityType(type) {
         return null;
 }
 
-class AutoCanonicalGenerator {
+export default class AutoCanonicalGenerator {
     constructor(classDef, constants, functions, parameterDatasets, options) {
         this.class = classDef;
         this.constants = constants;
@@ -406,5 +406,3 @@ class AutoCanonicalGenerator {
         return samples;
     }
 }
-
-module.exports = AutoCanonicalGenerator;

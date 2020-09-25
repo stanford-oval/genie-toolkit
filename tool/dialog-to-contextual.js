@@ -19,18 +19,18 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const Tp = require('thingpedia');
-const Stream = require('stream');
-const fs = require('fs');
+import * as Tp from 'thingpedia';
+import Stream from 'stream';
+import * as fs from 'fs';
 
-const TargetLanguages = require('../lib/languages');
-const { DatasetStringifier, DialogueParser } = require('../lib/dataset-tools/parsers');
-const StreamUtils = require('../lib/utils/stream-utils');
-const Utils = require('../lib/utils/misc-utils');
-const I18n = require('../lib/i18n');
+import * as TargetLanguages from '../lib/languages';
+import { DatasetStringifier, DialogueParser } from '../lib/dataset-tools/parsers';
+import * as StreamUtils from '../lib/utils/stream-utils';
+import * as Utils from '../lib/utils/misc-utils';
+import * as I18n from '../lib/i18n';
 
-const ProgressBar = require('./lib/progress_bar');
-const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
+import ProgressBar from './lib/progress_bar';
+import { maybeCreateReadStream, readAllLines } from './lib/argutils';
 
 class DialogueToTurnStream extends Stream.Transform {
     constructor(options) {
@@ -173,116 +173,114 @@ class DialogueToTurnStream extends Stream.Transform {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('dialog-to-contextual', {
-            add_help: true,
-            description: "Transform a dialog input file into a contextual dataset (turn by turn)."
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('-l', '--locale', {
-            required: false,
-            default: 'en-US',
-            help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
-        });
-        parser.add_argument('--tokenized', {
-            action: 'store_true',
-            default: true,
-            help: "The dataset is already tokenized (this is the default)."
-        });
-        parser.add_argument('--no-tokenized', {
-            dest: 'tokenized',
-            action: 'store_false',
-            help: "The dataset is not already tokenized."
-        });
-        parser.add_argument('--thingpedia', {
-            required: true,
-            help: 'Path to ThingTalk file containing class definitions.'
-        });
-        parser.add_argument('-t', '--target-language', {
-            required: false,
-            default: 'thingtalk',
-            choices: TargetLanguages.AVAILABLE_LANGUAGES,
-            help: `The programming language to generate`
-        });
-        parser.add_argument('--side', {
-            required: true,
-            choices: ['user', 'agent'],
-            help: 'Which side of the conversation should be extracted.'
-        });
-        parser.add_argument('--flags', {
-            required: false,
-            default: '',
-            help: 'Additional flags to add to the generated training examples.'
-        });
-        parser.add_argument('--id-prefix', {
-            required: false,
-            default: '',
-            help: 'Prefix to add to all sentence IDs (useful to combine multiple datasets).'
-        });
-        parser.add_argument('--deduplicate', {
-            action: 'store_true',
-            default: false,
-            help: 'Do not output duplicate turns (with the same preprocessed context and utterance)'
-        });
-        parser.add_argument('--no-deduplicate', {
-            action: 'store_false',
-            dest: 'deduplicate',
-            help: 'Output duplicate turns (with the same preprocessed context and utterance)'
-        });
-        parser.add_argument('input_file', {
-            nargs: '+',
-            type: maybeCreateReadStream,
-            help: 'Input dialog file; use - for standard input'
-        });
-        parser.add_argument('--debug', {
-            action: 'store_true',
-            help: 'Enable debugging.',
-            default: true
-        });
-        parser.add_argument('--no-debug', {
-            action: 'store_false',
-            dest: 'debug',
-            help: 'Disable debugging.',
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('dialog-to-contextual', {
+        add_help: true,
+        description: "Transform a dialog input file into a contextual dataset (turn by turn)."
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en-US',
+        help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
+    });
+    parser.add_argument('--tokenized', {
+        action: 'store_true',
+        default: true,
+        help: "The dataset is already tokenized (this is the default)."
+    });
+    parser.add_argument('--no-tokenized', {
+        dest: 'tokenized',
+        action: 'store_false',
+        help: "The dataset is not already tokenized."
+    });
+    parser.add_argument('--thingpedia', {
+        required: true,
+        help: 'Path to ThingTalk file containing class definitions.'
+    });
+    parser.add_argument('-t', '--target-language', {
+        required: false,
+        default: 'thingtalk',
+        choices: TargetLanguages.AVAILABLE_LANGUAGES,
+        help: `The programming language to generate`
+    });
+    parser.add_argument('--side', {
+        required: true,
+        choices: ['user', 'agent'],
+        help: 'Which side of the conversation should be extracted.'
+    });
+    parser.add_argument('--flags', {
+        required: false,
+        default: '',
+        help: 'Additional flags to add to the generated training examples.'
+    });
+    parser.add_argument('--id-prefix', {
+        required: false,
+        default: '',
+        help: 'Prefix to add to all sentence IDs (useful to combine multiple datasets).'
+    });
+    parser.add_argument('--deduplicate', {
+        action: 'store_true',
+        default: false,
+        help: 'Do not output duplicate turns (with the same preprocessed context and utterance)'
+    });
+    parser.add_argument('--no-deduplicate', {
+        action: 'store_false',
+        dest: 'deduplicate',
+        help: 'Output duplicate turns (with the same preprocessed context and utterance)'
+    });
+    parser.add_argument('input_file', {
+        nargs: '+',
+        type: maybeCreateReadStream,
+        help: 'Input dialog file; use - for standard input'
+    });
+    parser.add_argument('--debug', {
+        action: 'store_true',
+        help: 'Enable debugging.',
+        default: true
+    });
+    parser.add_argument('--no-debug', {
+        action: 'store_false',
+        dest: 'debug',
+        help: 'Disable debugging.',
+    });
+}
 
-    async execute(args) {
-        let tpClient = null;
-        if (args.thingpedia)
-            tpClient = new Tp.FileClient(args);
+export async function execute(args) {
+    let tpClient = null;
+    if (args.thingpedia)
+        tpClient = new Tp.FileClient(args);
 
-        const counter = new StreamUtils.CountStream();
+    const counter = new StreamUtils.CountStream();
 
-        readAllLines(args.input_file, '====')
-            .pipe(new DialogueParser())
-            .pipe(counter)
-            .pipe(new DialogueToTurnStream({
-                locale: args.locale,
-                targetLanguage: args.target_language,
-                thingpediaClient: tpClient,
-                flags: args.flags,
-                idPrefix: args.id_prefix,
-                side: args.side,
-                tokenized: args.tokenized,
-                deduplicate: args.deduplicate,
-                debug: args.debug
-            }))
-            .pipe(new DatasetStringifier())
-            .pipe(args.output);
+    readAllLines(args.input_file, '====')
+        .pipe(new DialogueParser())
+        .pipe(counter)
+        .pipe(new DialogueToTurnStream({
+            locale: args.locale,
+            targetLanguage: args.target_language,
+            thingpediaClient: tpClient,
+            flags: args.flags,
+            idPrefix: args.id_prefix,
+            side: args.side,
+            tokenized: args.tokenized,
+            deduplicate: args.deduplicate,
+            debug: args.debug
+        }))
+        .pipe(new DatasetStringifier())
+        .pipe(args.output);
 
-        const progbar = new ProgressBar(1);
-        counter.on('progress', (value) => {
-            //console.log(value);
-            progbar.update(value);
-        });
+    const progbar = new ProgressBar(1);
+    counter.on('progress', (value) => {
+        //console.log(value);
+        progbar.update(value);
+    });
 
-        // issue an update now to show the progress bar
-        progbar.update(0);
+    // issue an update now to show the progress bar
+    progbar.update(0);
 
-        await StreamUtils.waitFinish(args.output);
-    }
-};
+    await StreamUtils.waitFinish(args.output);
+}

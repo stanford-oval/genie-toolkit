@@ -19,46 +19,44 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const fs = require('fs');
-const Tp = require('thingpedia');
+import * as fs from 'fs';
+import * as Tp from 'thingpedia';
 
-const StreamUtils = require('../lib/utils/stream-utils');
+import * as StreamUtils from '../lib/utils/stream-utils';
 
 const DEFAULT_THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('download-dataset', {
-            add_help: true,
-            description: "Download primitive templates from Thingpedia."
-        });
-        parser.add_argument('-l', '--locale', {
-            required: false,
-            default: 'en',
-            help: `BGP 47 locale tag of the natural language to download the snapshot for (defaults to 'en', English)`
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('--thingpedia-url', {
-            required: false,
-            default: DEFAULT_THINGPEDIA_URL,
-            help: `base URL of Thingpedia server to contact; defaults to '${DEFAULT_THINGPEDIA_URL}'`
-        });
-        parser.add_argument('--developer-key', {
-            required: false,
-            default: '',
-            help: `developer key to use when contacting Thingpedia`
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('download-dataset', {
+        add_help: true,
+        description: "Download primitive templates from Thingpedia."
+    });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en',
+        help: `BGP 47 locale tag of the natural language to download the snapshot for (defaults to 'en', English)`
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--thingpedia-url', {
+        required: false,
+        default: DEFAULT_THINGPEDIA_URL,
+        help: `base URL of Thingpedia server to contact; defaults to '${DEFAULT_THINGPEDIA_URL}'`
+    });
+    parser.add_argument('--developer-key', {
+        required: false,
+        default: '',
+        help: `developer key to use when contacting Thingpedia`
+    });
+}
 
-    async execute(args) {
-        let url = args.thingpedia_url + '/api/v3/examples/all?locale=' + args.locale;
-        if (args.developer_key)
-            url += '&developer_key=' + args.developer_key;
+export async function execute(args) {
+    let url = args.thingpedia_url + '/api/v3/examples/all?locale=' + args.locale;
+    if (args.developer_key)
+        url += '&developer_key=' + args.developer_key;
 
-        args.output.end(await Tp.Helpers.Http.get(url, { accept: 'application/x-thingtalk' }));
-        await StreamUtils.waitFinish(args.output);
-    }
-};
+    args.output.end(await Tp.Helpers.Http.get(url, { accept: 'application/x-thingtalk' }));
+    await StreamUtils.waitFinish(args.output);
+}

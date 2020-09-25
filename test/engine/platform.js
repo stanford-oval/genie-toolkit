@@ -21,23 +21,23 @@
 
 // test platform
 
-const Tp = require('thingpedia');
-const Q = require('q');
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
-const child_process = require('child_process');
-const Gettext = require('node-gettext');
+import * as Tp from 'thingpedia';
+import Q from 'q';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import * as child_process from 'child_process';
+import Gettext from 'node-gettext';
 
-require('./test-classes/collection');
+import './test-classes/collection';
 
-var _unzipApi = {
+const _unzipApi = {
     unzip(zipPath, dir) {
-        var args = ['-uo', zipPath, '-d', dir];
+        const args = ['-uo', zipPath, '-d', dir];
         return Q.nfcall(child_process.execFile, '/usr/bin/unzip', args, {
             maxBuffer: 10 * 1024 * 1024 }).then((zipResult) => {
-            var stdout = zipResult[0];
-            var stderr = zipResult[1];
+            const stdout = zipResult[0];
+            const stderr = zipResult[1];
             console.log('stdout', stdout);
             console.log('stderr', stderr);
         });
@@ -85,8 +85,8 @@ class MemoryPreferences extends Tp.Preferences {
 }
 
 /*
-const JavaAPI = require('./java_api');
-const StreamAPI = require('./streams');
+import JavaAPI from './java_api';
+import StreamAPI from './streams';
 
 const _unzipApi = JavaAPI.makeJavaAPI('Unzip', ['unzip'], [], []);
 const _gpsApi = JavaAPI.makeJavaAPI('Gps', ['start', 'stop'], [], ['onlocationchanged']);
@@ -101,7 +101,7 @@ const _btApi = JavaAPI.makeJavaAPI('Bluetooth',
 const _audioRouterApi = JavaAPI.makeJavaAPI('AudioRouter',
     ['setAudioRouteBluetooth'], ['start', 'stop', 'isAudioRouteBluetooth'], []);
 const _systemAppsApi = JavaAPI.makeJavaAPI('SystemApps', [], ['startMusic'], []);
-const _graphicsApi = require('./graphics');
+import _graphicsApi from './graphics';
 
 const _contentJavaApi = JavaAPI.makeJavaAPI('Content', [], ['getStream'], []);
 const _contentApi = {
@@ -170,11 +170,11 @@ class Platform extends Tp.BasePlatform {
         this._btApi = null;
     }
 
-    getPlatformDevice() {
+    async getPlatformDevice() {
         return {
             kind: 'org.thingpedia.builtin.thingengine.test_platform',
             class: fs.readFileSync(path.resolve(__dirname, './test-classes/test_platform.tt')).toString(),
-            module: require('./test-classes/test_platform')
+            module: (await import('./test-classes/test_platform')).default
         };
     }
 
@@ -196,7 +196,7 @@ class Platform extends Tp.BasePlatform {
     //
     // Which capabilities are available affects which apps are allowed to run
     hasCapability(cap) {
-        switch(cap) {
+        switch (cap) {
         case 'code-download':
             // If downloading code from the thingpedia server is allowed on
             // this platform
@@ -232,7 +232,7 @@ class Platform extends Tp.BasePlatform {
     //
     // This will return null if hasCapability(cap) is false
     getCapability(cap) {
-        switch(cap) {
+        switch (cap) {
         case 'code-download':
             return _unzipApi;
 
@@ -352,7 +352,7 @@ class Platform extends Tp.BasePlatform {
     // Returns true if a change actually occurred, false if the change
     // was rejected
     setAuthToken(authToken) {
-        var oldAuthToken = this._prefs.get('auth-token');
+        const oldAuthToken = this._prefs.get('auth-token');
         if (oldAuthToken !== undefined && authToken !== oldAuthToken)
             return false;
         this._prefs.set('auth-token', authToken);
@@ -368,8 +368,6 @@ class Platform extends Tp.BasePlatform {
     }
 }
 
-module.exports = {
-    newInstance(homedir) {
-        return new Platform(homedir);
-    }
-};
+export function newInstance(homedir) {
+    return new Platform(homedir);
+}

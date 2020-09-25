@@ -23,12 +23,12 @@
 // Miscellaneous unit tests, for simple code fragments that don't need
 // a lot of mocking and fixtures
 
-const assert = require('assert');
-const ThingTalk = require('thingtalk');
-const _mockThingpediaClient = require('./mock_schema_delegate');
+import assert from 'assert';
+import * as ThingTalk from 'thingtalk';
+import _mockThingpediaClient from './mock_schema_delegate';
 
-const Helpers = require('../../lib/dialogue-agent/helpers');
-const { getProgramIcon } = require('../../lib/utils/icons');
+import * as Helpers from '../../lib/dialogue-agent/helpers';
+import { getProgramIcon } from '../../lib/utils/icons';
 
 function testCleanKind() {
     assert.strictEqual(Helpers.cleanKind('uk.co.thedogapi'), 'Thedogapi');
@@ -68,7 +68,7 @@ async function main() {
     await testCleanKind();
     await testGetIcon();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();
 

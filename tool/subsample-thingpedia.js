@@ -19,45 +19,43 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const fs = require('fs');
+import * as fs from 'fs';
 const pfs = fs.promises;
-const ThingTalk = require('thingtalk');
-const seedrandom = require('seedrandom');
+import * as ThingTalk from 'thingtalk';
+import seedrandom from 'seedrandom';
 
-const StreamUtils = require('../lib/utils/stream-utils');
-const { coin } = require('../lib/utils/random');
+import * as StreamUtils from '../lib/utils/stream-utils';
+import { coin } from '../lib/utils/random';
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('subsample-thingpedia', {
-            add_help: true,
-            description: "Subsample a Thingpedia library."
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('--fraction', {
-            required: true,
-            type: Number,
-            help: "The portion of the library to sample."
-        });
-        parser.add_argument('input_file', {
-            help: 'Input Thingpedia file to subsample'
-        });
-        parser.add_argument('--random-seed', {
-            default: 'almond is awesome',
-            help: 'Random seed'
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('subsample-thingpedia', {
+        add_help: true,
+        description: "Subsample a Thingpedia library."
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--fraction', {
+        required: true,
+        type: Number,
+        help: "The portion of the library to sample."
+    });
+    parser.add_argument('input_file', {
+        help: 'Input Thingpedia file to subsample'
+    });
+    parser.add_argument('--random-seed', {
+        default: 'almond is awesome',
+        help: 'Random seed'
+    });
+}
 
-    async execute(args) {
-        const rng = seedrandom.alea(args.random_seed);
+export async function execute(args) {
+    const rng = seedrandom.alea(args.random_seed);
 
-        const parsed = ThingTalk.Grammar.parse(await pfs.readFile(args.input_file, { encoding: 'utf8' }));
-        parsed.classes = parsed.classes.filter(() => coin(args.fraction, rng));
+    const parsed = ThingTalk.Grammar.parse(await pfs.readFile(args.input_file, { encoding: 'utf8' }));
+    parsed.classes = parsed.classes.filter(() => coin(args.fraction, rng));
 
-        args.output.end(parsed.prettyprint());
-        await StreamUtils.waitFinish(args.output);
-    }
-};
+    args.output.end(parsed.prettyprint());
+    await StreamUtils.waitFinish(args.output);
+}

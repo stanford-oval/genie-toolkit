@@ -19,8 +19,8 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 "use strict";
 
-const { clean } = require('../../../lib/utils/misc-utils');
-const EnglishLanguagePack = require('../../../lib/i18n/american-english');
+import { clean } from '../../../lib/utils/misc-utils';
+import EnglishLanguagePack from '../../../lib/i18n/american-english';
 
 function updateDefault(canonical, type) {
     if (!canonical.default)
@@ -33,7 +33,7 @@ function updateCanonical(canonical, type, values) {
     canonical[type] = (canonical[type] || []).concat(values);
 }
 
-function genBaseCanonical(canonical, name, ptype) {
+export default function genBaseCanonical(canonical, name, ptype) {
     const languagePack = new EnglishLanguagePack();
     name = clean(name);
     if (name.endsWith(' value'))
@@ -151,5 +151,3 @@ function genBaseCanonical(canonical, name, ptype) {
     updateDefault(canonical, 'property');
     updateCanonical(canonical, ptype.isBoolean? 'property_true' : 'base', name);
 }
-
-module.exports = genBaseCanonical;

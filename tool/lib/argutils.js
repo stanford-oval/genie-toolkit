@@ -19,11 +19,11 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const fs = require('fs');
-const byline = require('byline');
-const argparse = require('argparse');
+import * as fs from 'fs';
+import byline from 'byline';
+import * as argparse from 'argparse';
 
-const StreamUtils = require('../../lib/utils/stream-utils');
+import * as StreamUtils from '../../lib/utils/stream-utils';
 
 function maybeCreateReadStream(filename) {
     if (filename === '-')
@@ -45,7 +45,7 @@ class ActionSetFlag extends argparse.Action {
     }
 }
 
-module.exports = {
+export {
     ActionSetFlag,
     maybeCreateReadStream,
     readAllLines

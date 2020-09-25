@@ -19,11 +19,11 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
-const ThingTalk = require('thingtalk');
+import assert from 'assert';
+import * as ThingTalk from 'thingtalk';
 const Type = ThingTalk.Type;
 
-const baseCanonical = require('../../tool/autoqa/lib/base-canonical-generator');
+import baseCanonical from '../../tool/autoqa/lib/base-canonical-generator';
 
 const TEST_CASES = [
     ['author', new Type.Entity('org.schema.Restaurant:Person'), { default: 'property', base: ['author'] }],
@@ -56,6 +56,6 @@ function main() {
     if (anyFailed)
         throw new Error('Some test failed');
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

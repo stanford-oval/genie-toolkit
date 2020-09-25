@@ -18,21 +18,21 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 "use strict";
-const fs = require('fs');
-const util = require('util');
-const assert = require('assert');
+import * as fs from 'fs';
+import util from 'util';
+import assert from 'assert';
 
-const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
+import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
 const Type = ThingTalk.Type;
 const Ast = ThingTalk.Ast;
 
-const { clean } = require('../../../lib/utils/misc-utils');
-const StreamUtils = require('../../../lib/utils/stream-utils');
+import { clean } from '../../../lib/utils/misc-utils';
+import * as StreamUtils from '../../../lib/utils/stream-utils';
 
-const baseCanonical = require('../lib/base-canonical-generator');
-const { PROPERTY_TYPE_OVERRIDE, STRING_FILE_OVERRIDES } = require('./manual-annotations');
-const { cleanEnumValue }  = require('./utils');
+import genBaseCanonical from '../lib/base-canonical-generator';
+import { PROPERTY_TYPE_OVERRIDE, STRING_FILE_OVERRIDES } from './manual-annotations';
+import { cleanEnumValue } from './utils';
 
 function predictType(slot) {
     if (slot.name in PROPERTY_TYPE_OVERRIDE)
@@ -100,10 +100,13 @@ class SchemaProcessor {
             let slots = {};
             for (let slot of service.slots) {
                 let type = predictType(slot);
+                const canonical = {};
+                genBaseCanonical(canonical, slot.name, type);
+
                 slots[slot.name] = {
                     type,
                     annotations: {
-                        nl: { canonical: baseCanonical({}, slot.name, type)},
+                        nl: { canonical },
                         impl: { description: new Ast.Value.String(slot.description)}
                     }
                 };
@@ -196,52 +199,50 @@ class SchemaProcessor {
 }
 
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('sgd-process-schema', {
-            add_help: true,
-            description: "Process a schema JSON definition into a Thingpedia class."
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('--cache-file', {
-            required: false,
-            default: './schema.json',
-            help: 'Path to a cache file containing the schema definitions.'
-        });
-        parser.add_argument('--url', {
-            required: false,
-            default: 'https://raw.githubusercontent.com/google-research-datasets/dstc8-schema-guided-dialogue/master/train/schema.json',
-            help: 'The URL to retrieve the schema.'
-        });
-        parser.add_argument('--manual', {
-            action: 'store_true',
-            help: 'Enable manual annotations.',
-            default: false
-        });
-        parser.add_argument('--query-only', {
-            action: 'store_true',
-            help: 'Enable manual annotations.',
-            default: false
-        });
-        parser.add_argument('--include', {
-            required: false,
-            default: null,
-            help: 'services to include in the schema, split by comma (no space)'
-        });
-        parser.add_argument('--exclude', {
-            required: false,
-            default: null,
-            help: 'services to exclude in the schema, split by comma (no space)'
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('sgd-process-schema', {
+        add_help: true,
+        description: "Process a schema JSON definition into a Thingpedia class."
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--cache-file', {
+        required: false,
+        default: './schema.json',
+        help: 'Path to a cache file containing the schema definitions.'
+    });
+    parser.add_argument('--url', {
+        required: false,
+        default: 'https://raw.githubusercontent.com/google-research-datasets/dstc8-schema-guided-dialogue/master/train/schema.json',
+        help: 'The URL to retrieve the schema.'
+    });
+    parser.add_argument('--manual', {
+        action: 'store_true',
+        help: 'Enable manual annotations.',
+        default: false
+    });
+    parser.add_argument('--query-only', {
+        action: 'store_true',
+        help: 'Enable manual annotations.',
+        default: false
+    });
+    parser.add_argument('--include', {
+        required: false,
+        default: null,
+        help: 'services to include in the schema, split by comma (no space)'
+    });
+    parser.add_argument('--exclude', {
+        required: false,
+        default: null,
+        help: 'services to exclude in the schema, split by comma (no space)'
+    });
+}
 
-    async execute(args) {
-        // include & exclude cannot be specified at the same time
-        assert(!args.include || !args.exclude);
-        const schemaProcessor = new SchemaProcessor(args);
-        schemaProcessor.run();
-    }
-};
+export async function execute(args) {
+    // include & exclude cannot be specified at the same time
+    assert(!args.include || !args.exclude);
+    const schemaProcessor = new SchemaProcessor(args);
+    schemaProcessor.run();
+}

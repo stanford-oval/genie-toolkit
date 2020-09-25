@@ -19,14 +19,14 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const ThingTalk = require('thingtalk');
-const seedrandom = require('seedrandom');
-const Tp = require('thingpedia');
+import * as ThingTalk from 'thingtalk';
+import seedrandom from 'seedrandom';
+import * as Tp from 'thingpedia';
 
-const DatasetAugmenter = require('../../lib/dataset-tools/augmentation');
-const FileParameterProvider = require('../lib/file_parameter_provider');
+import DatasetAugmenter from '../../lib/dataset-tools/augmentation';
+import FileParameterProvider from '../lib/file_parameter_provider';
 
-module.exports = async function worker(args, shard) {
+export default async function worker(args, shard) {
     const tpClient = new Tp.FileClient(args);
     const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, args.debug);
     const constProvider = new FileParameterProvider(args.parameter_datasets, args.param_locale);
@@ -53,5 +53,4 @@ module.exports = async function worker(args, shard) {
         samplingType: args.sampling_type,
         numAttempts: args.num_attempts
     });
-};
-
+}

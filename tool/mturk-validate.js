@@ -19,211 +19,209 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const fs = require('fs');
-const Stream = require('stream');
-const csvparse = require('csv-parse');
-const csvstringify = require('csv-stringify');
-const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
+import * as fs from 'fs';
+import Stream from 'stream';
+import csvparse from 'csv-parse';
+import csvstringify from 'csv-stringify';
+import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
 
-const { ParaphraseValidatorFilter } = require('../lib/dataset-tools/mturk/validator');
-const { DatasetStringifier } = require('../lib/dataset-tools/parsers');
-const StreamUtils = require('../lib/utils/stream-utils');
+import { ParaphraseValidatorFilter } from '../lib/dataset-tools/mturk/validator';
+import { DatasetStringifier } from '../lib/dataset-tools/parsers';
+import * as StreamUtils from '../lib/utils/stream-utils';
 
-const MT = require('./lib/mturk-parsers');
+import * as MT from './lib/mturk-parsers';
 
-const { NUM_SENTENCES_PER_TASK, NUM_PARAPHRASES_PER_SENTENCE, NUM_SUBMISSIONS_PER_TASK } = require('./lib/constants');
+import { NUM_SENTENCES_PER_TASK, NUM_PARAPHRASES_PER_SENTENCE, NUM_SUBMISSIONS_PER_TASK } from './lib/constants';
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('mturk-validate', {
-            add_help: true,
-            description: "Validate the result of MTurk paraphrasing and validation."
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('-l', '--locale', {
-            required: false,
-            default: 'en-US',
-            help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
-        });
-        parser.add_argument('--thingpedia', {
-            required: true,
-            help: 'Path to ThingTalk file containing class definitions.'
-        });
-        parser.add_argument('--contextual', {
-            action: 'store_true',
-            help: 'Process a contextual dataset.',
-            default: false
-        });
-        parser.add_argument('--paraphrasing-input', {
-            required: true,
-            help: 'CSV file containing the output from MTurk paraphrasing.'
-        });
-        parser.add_argument('--validation-input', {
-            required: false,
-            help: 'CSV file containing the output from MTurk validation.'
-        });
-        parser.add_argument('--paraphrasing-rejects', {
-            required: false,
-            help: 'CSV file in which to write rejections for MTurk paraphrasing.'
-        });
-        parser.add_argument('--validation-rejects', {
-            required: false,
-            help: 'CSV file in which to write rejections for MTurk validation.'
-        });
-        parser.add_argument('--validation-count', {
-            required: false,
-            type: Number,
-            default: NUM_SUBMISSIONS_PER_TASK,
-            help: 'Number of workers voting on each paraphrase.'
-        });
-        parser.add_argument('--validation-threshold', {
-            required: true,
-            type: Number,
-            help: 'Number of workers that must approve of each paraphrase.'
-        });
-        parser.add_argument('--sentences-per-task', {
-            required: false,
-            type: Number,
-            default: NUM_SENTENCES_PER_TASK,
-            help: "Number of sentences in each HIT"
-        });
-        parser.add_argument('--submissions-per-task', {
-            required: false,
-            type: Number,
-            default: NUM_SUBMISSIONS_PER_TASK,
-            help: "Number of submissions (workers) for each HIT"
-        });
-        parser.add_argument('--paraphrases-per-sentence', {
-            required: false,
-            type: Number,
-            default: NUM_PARAPHRASES_PER_SENTENCE,
-            help: "Number of paraphrases collected for each sentence"
-        });
-        parser.add_argument('--id-prefix', {
-            required: false,
-            default: '',
-            help: "Prefix to the id of each example"
-        });
-        parser.add_argument('--debug', {
-            action: 'store_true',
-            help: 'Enable debugging.',
-            default: true
-        });
-        parser.add_argument('--no-debug', {
-            action: 'store_false',
-            dest: 'debug',
-            help: 'Disable debugging.',
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('mturk-validate', {
+        add_help: true,
+        description: "Validate the result of MTurk paraphrasing and validation."
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en-US',
+        help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
+    });
+    parser.add_argument('--thingpedia', {
+        required: true,
+        help: 'Path to ThingTalk file containing class definitions.'
+    });
+    parser.add_argument('--contextual', {
+        action: 'store_true',
+        help: 'Process a contextual dataset.',
+        default: false
+    });
+    parser.add_argument('--paraphrasing-input', {
+        required: true,
+        help: 'CSV file containing the output from MTurk paraphrasing.'
+    });
+    parser.add_argument('--validation-input', {
+        required: false,
+        help: 'CSV file containing the output from MTurk validation.'
+    });
+    parser.add_argument('--paraphrasing-rejects', {
+        required: false,
+        help: 'CSV file in which to write rejections for MTurk paraphrasing.'
+    });
+    parser.add_argument('--validation-rejects', {
+        required: false,
+        help: 'CSV file in which to write rejections for MTurk validation.'
+    });
+    parser.add_argument('--validation-count', {
+        required: false,
+        type: Number,
+        default: NUM_SUBMISSIONS_PER_TASK,
+        help: 'Number of workers voting on each paraphrase.'
+    });
+    parser.add_argument('--validation-threshold', {
+        required: true,
+        type: Number,
+        help: 'Number of workers that must approve of each paraphrase.'
+    });
+    parser.add_argument('--sentences-per-task', {
+        required: false,
+        type: Number,
+        default: NUM_SENTENCES_PER_TASK,
+        help: "Number of sentences in each HIT"
+    });
+    parser.add_argument('--submissions-per-task', {
+        required: false,
+        type: Number,
+        default: NUM_SUBMISSIONS_PER_TASK,
+        help: "Number of submissions (workers) for each HIT"
+    });
+    parser.add_argument('--paraphrases-per-sentence', {
+        required: false,
+        type: Number,
+        default: NUM_PARAPHRASES_PER_SENTENCE,
+        help: "Number of paraphrases collected for each sentence"
+    });
+    parser.add_argument('--id-prefix', {
+        required: false,
+        default: '',
+        help: "Prefix to the id of each example"
+    });
+    parser.add_argument('--debug', {
+        action: 'store_true',
+        help: 'Enable debugging.',
+        default: true
+    });
+    parser.add_argument('--no-debug', {
+        action: 'store_false',
+        dest: 'debug',
+        help: 'Disable debugging.',
+    });
+}
 
-    async execute(args) {
-        const tpClient = new Tp.FileClient(args);
-        const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
+export async function execute(args) {
+    const tpClient = new Tp.FileClient(args);
+    const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
 
-        let validationRejects = Promise.resolve();
-        let validationCounts;
+    let validationRejects = Promise.resolve();
+    let validationCounts;
 
-        if (args.validation_threshold > 0) {
-            if (!args.validation_input)
-                throw new Error(`Argument --validation-input is required when performing manual validation`);
-            const validationInput = fs.createReadStream(args.validation_input)
-                .pipe(csvparse({
-                    columns: true,
-                    delimiter: ',',
-                    relax_column_count: true
-                }))
-                .pipe(new MT.ValidationRejecter({
-                    sentencesPerTask: args.sentences_per_task
-                }));
-
-            if (args.validation_rejects) {
-                validationRejects = StreamUtils.waitFinish(validationInput
-                    .pipe(csvstringify({ header: true, delimiter: ',' }))
-                    .pipe(fs.createWriteStream(args.validation_rejects)));
-            }
-
-            validationCounts = await validationInput
-                .pipe(new MT.ValidationParser({
-                    sentencesPerTask: args.sentences_per_task,
-                    targetSize: args.paraphrases_per_sentence * args.submissions_per_task,
-                    skipRejected: true
-                }))
-                .pipe(new MT.ValidationCounter({
-                    targetNumVotes: args.validation_count
-                }))
-                .pipe(new StreamUtils.MapAccumulator()).read();
-        }
-
-        const rejectedPara = fs.createReadStream(args.paraphrasing_input)
+    if (args.validation_threshold > 0) {
+        if (!args.validation_input)
+            throw new Error(`Argument --validation-input is required when performing manual validation`);
+        const validationInput = fs.createReadStream(args.validation_input)
             .pipe(csvparse({
                 columns: true,
                 delimiter: ',',
                 relax_column_count: true
             }))
-            .pipe(new MT.ParaphrasingRejecter(schemaRetriever, {
-                sentencesPerTask: args.sentences_per_task,
-                paraphrasesPerSentence: args.paraphrases_per_sentence,
-                locale: args.locale,
-                contextual: args.contextual
+            .pipe(new MT.ValidationRejecter({
+                sentencesPerTask: args.sentences_per_task
             }));
 
-        let paraphrasingRejects;
-        if (args.paraphrasing_rejects) {
-            paraphrasingRejects = StreamUtils.waitFinish(rejectedPara
+        if (args.validation_rejects) {
+            validationRejects = StreamUtils.waitFinish(validationInput
                 .pipe(csvstringify({ header: true, delimiter: ',' }))
-                .pipe(fs.createWriteStream(args.paraphrasing_rejects)));
-        } else {
-            paraphrasingRejects = Promise.resolve();
+                .pipe(fs.createWriteStream(args.validation_rejects)));
         }
 
-        rejectedPara
-            .pipe(new MT.ParaphrasingParser({
+        validationCounts = await validationInput
+            .pipe(new MT.ValidationParser({
                 sentencesPerTask: args.sentences_per_task,
-                paraphrasesPerSentence: args.paraphrases_per_sentence,
-                contextual: args.contextual,
+                targetSize: args.paraphrases_per_sentence * args.submissions_per_task,
                 skipRejected: true
             }))
-            .pipe(new ParaphraseValidatorFilter(schemaRetriever, {
-                locale: args.locale,
-                debug: args.debug,
-                validationCounts,
-                validationThreshold: args.validation_threshold
+            .pipe(new MT.ValidationCounter({
+                targetNumVotes: args.validation_count
             }))
-            .pipe(new Stream.Transform({
-                objectMode: true,
-
-                transform(ex, encoding, callback) {
-                    if (args.contextual) {
-                        callback(null, {
-                            id: `${args.id_prefix}${ex.id}`,
-                            context: ex.context_preprocessed,
-                            preprocessed: ex.preprocessed,
-                            target_code: ex.target_preprocessed
-                        });
-                    } else {
-                        callback(null, {
-                            id: `${args.id_prefix}${ex.id}`,
-                            preprocessed: ex.preprocessed,
-                            target_code: ex.target_preprocessed
-                        });
-                    }
-                },
-
-                flush(callback) {
-                    callback();
-                }
-            }))
-            .pipe(new DatasetStringifier())
-            .pipe(args.output);
-
-        await Promise.all([
-            StreamUtils.waitFinish(args.output),
-            validationRejects,
-            paraphrasingRejects
-        ]);
+            .pipe(new StreamUtils.MapAccumulator()).read();
     }
-};
+
+    const rejectedPara = fs.createReadStream(args.paraphrasing_input)
+        .pipe(csvparse({
+            columns: true,
+            delimiter: ',',
+            relax_column_count: true
+        }))
+        .pipe(new MT.ParaphrasingRejecter(schemaRetriever, {
+            sentencesPerTask: args.sentences_per_task,
+            paraphrasesPerSentence: args.paraphrases_per_sentence,
+            locale: args.locale,
+            contextual: args.contextual
+        }));
+
+    let paraphrasingRejects;
+    if (args.paraphrasing_rejects) {
+        paraphrasingRejects = StreamUtils.waitFinish(rejectedPara
+            .pipe(csvstringify({ header: true, delimiter: ',' }))
+            .pipe(fs.createWriteStream(args.paraphrasing_rejects)));
+    } else {
+        paraphrasingRejects = Promise.resolve();
+    }
+
+    rejectedPara
+        .pipe(new MT.ParaphrasingParser({
+            sentencesPerTask: args.sentences_per_task,
+            paraphrasesPerSentence: args.paraphrases_per_sentence,
+            contextual: args.contextual,
+            skipRejected: true
+        }))
+        .pipe(new ParaphraseValidatorFilter(schemaRetriever, {
+            locale: args.locale,
+            debug: args.debug,
+            validationCounts,
+            validationThreshold: args.validation_threshold
+        }))
+        .pipe(new Stream.Transform({
+            objectMode: true,
+
+            transform(ex, encoding, callback) {
+                if (args.contextual) {
+                    callback(null, {
+                        id: `${args.id_prefix}${ex.id}`,
+                        context: ex.context_preprocessed,
+                        preprocessed: ex.preprocessed,
+                        target_code: ex.target_preprocessed
+                    });
+                } else {
+                    callback(null, {
+                        id: `${args.id_prefix}${ex.id}`,
+                        preprocessed: ex.preprocessed,
+                        target_code: ex.target_preprocessed
+                    });
+                }
+            },
+
+            flush(callback) {
+                callback();
+            }
+        }))
+        .pipe(new DatasetStringifier())
+        .pipe(args.output);
+
+    await Promise.all([
+        StreamUtils.waitFinish(args.output),
+        validationRejects,
+        paraphrasingRejects
+    ]);
+}

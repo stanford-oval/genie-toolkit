@@ -19,17 +19,17 @@
 // Author: Elvis Yu-Jing Lin <r06922068@ntu.edu.tw> <elvisyjlin@gmail.com>
 "use strict";
 
-const fs = require('fs');
-const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
+import * as fs from 'fs';
+import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
 const Grammar = ThingTalk.Grammar;
 const Library = ThingTalk.Ast.Input.Library;
 
-const ProgressBar = require('./progress_bar');
-const { tokenizeExample } = require('../../lib/utils/misc-utils');
-const I18n = require('../../lib/i18n');
+import ProgressBar from './progress_bar';
+import { tokenizeExample } from '../../lib/utils/misc-utils';
+import * as I18n from '../../lib/i18n';
 
-module.exports = class ThingTalkDataset {
+export default class ThingTalkDataset {
     constructor(options) {
         this._options = options;
         this._locale = null;
@@ -114,4 +114,4 @@ module.exports = class ThingTalkDataset {
         });
         return Promise.all(promises);
     }
-};
+}

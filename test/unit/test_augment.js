@@ -21,20 +21,20 @@
 
 process.on('unhandledRejection', (up) => { throw up; });
 
-const path = require('path');
-const stream = require('stream');
-const seedrandom = require('seedrandom');
+import * as path from 'path';
+import * as stream from 'stream';
+import * as seedrandom from 'seedrandom';
 
-const { BasicSentenceGenerator } = require('../../lib/sentence-generator/batch');
-const DatasetAugmenter = require('../../lib/dataset-tools/augmentation');
-const Utils = require('../../lib/utils/misc-utils');
-const FileParameterProvider = require('../../tool/lib/file_parameter_provider');
+import { BasicSentenceGenerator } from '../../lib/sentence-generator/batch';
+import DatasetAugmenter from '../../lib/dataset-tools/augmentation';
+import * as Utils from '../../lib/utils/misc-utils';
+import FileParameterProvider from '../../tool/lib/file_parameter_provider';
 
-const ThingTalk = require('thingtalk');
+import * as ThingTalk from 'thingtalk';
 const NNSyntax = ThingTalk.NNSyntax;
 const SchemaRetriever = ThingTalk.SchemaRetriever;
 
-const _tpClient = require('./mock_schema_delegate');
+import _tpClient from './mock_schema_delegate';
 const _schemaRetriever = new SchemaRetriever(_tpClient, null, true);
 
 async function processOne(id, preprocessed, code) {
@@ -114,6 +114,6 @@ async function main() {
         writer.on('error', reject);
     });
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

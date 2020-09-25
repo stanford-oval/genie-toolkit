@@ -19,11 +19,11 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const Tp = require('thingpedia');
-const seedrandom = require('seedrandom');
-const { ContextualSentenceGenerator } = require('../../lib/sentence-generator');
+import * as Tp from 'thingpedia';
+import seedrandom from 'seedrandom';
+import { ContextualSentenceGenerator } from '../../lib/sentence-generator';
 
-module.exports = function worker(args, shard) {
+export default function worker(args, shard) {
     let tpClient = null;
     if (args.thingpedia)
         tpClient = new Tp.FileClient(args);
@@ -40,4 +40,4 @@ module.exports = function worker(args, shard) {
         debug: args.debug,
     };
     return new ContextualSentenceGenerator(options);
-};
+}

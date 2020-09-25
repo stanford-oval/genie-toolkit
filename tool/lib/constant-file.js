@@ -19,9 +19,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
-const fs = require('fs');
-const byline = require('byline');
+import assert from 'assert';
+import * as fs from 'fs';
+import byline from 'byline';
 
 function parseMeasure(valueString) {
     const match = /^(-?(?:[0-9]+(?:\.[0-9]*)?(?:e[0-9]+)?|\.[0-9]+(?:e[0-9]+)?))([A-Za-z_][A-Za-z0-9_]*)/.exec(valueString);
@@ -139,7 +139,7 @@ function parseConstant(locale, type, valueString, display) {
     }
 }
 
-function parseConstantFile(locale, filename) {
+export function parseConstantFile(locale, filename) {
     const file = fs.createReadStream(filename);
     file.setEncoding('utf8');
     const input = byline(file);
@@ -176,5 +176,3 @@ function parseConstantFile(locale, filename) {
         input.on('error', reject);
     });
 }
-
-module.exports = { parseConstantFile };

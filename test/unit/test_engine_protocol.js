@@ -19,10 +19,10 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
-const Tp = require('thingpedia');
+import assert from 'assert';
+import * as Tp from 'thingpedia';
 
-const protocol = require('../../lib/engine/tiers/protocol');
+import * as protocol from '../../lib/engine/tiers/protocol';
 
 const TEST_CASES = [
     // primitives
@@ -74,6 +74,6 @@ async function main() {
     for (let i = 0; i < TEST_CASES.length; i++)
         await test(i);
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

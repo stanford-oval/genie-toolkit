@@ -19,20 +19,20 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
-const Stream = require('stream');
-const fs = require('fs');
-const seedrandom = require('seedrandom');
+import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
+import Stream from 'stream';
+import * as fs from 'fs';
+import seedrandom from 'seedrandom';
 
-const StreamUtils = require('../lib/utils/stream-utils');
-const { isExecutable } = require('../lib/dialogue-agent/dialogue_state_utils');
-const { findFilterTable } = require('../languages/thingtalk/ast_manip');
-const TargetLanguages = require('../lib/languages');
-const { DialogueParser } = require('../lib/dataset-tools/parsers');
+import * as StreamUtils from '../lib/utils/stream-utils';
+import { isExecutable } from '../lib/dialogue-agent/dialogue_state_utils';
+import { findFilterTable } from '../languages/thingtalk/ast_manip';
+import * as TargetLanguages from '../lib/languages';
+import { DialogueParser } from '../lib/dataset-tools/parsers';
 
-const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
-const MultiJSONDatabase = require('./lib/multi_json_database');
+import { maybeCreateReadStream, readAllLines } from './lib/argutils';
+import MultiJSONDatabase from './lib/multi_json_database';
 
 const USER_DIALOGUE_ACTS = new Set([
     // user says hi!
@@ -430,66 +430,64 @@ class DialogueAnalyzer extends Stream.Transform {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('analyze-dialogue-annotations', {
-            add_help: true,
-            description: "Transform a dialog input file in ThingTalk format into a dialogue state tracking dataset."
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('-l', '--locale', {
-            required: false,
-            default: 'en-US',
-            help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
-        });
-        parser.add_argument('--thingpedia', {
-            required: true,
-            help: 'Path to ThingTalk file containing class definitions.'
-        });
-        parser.add_argument('--database-file', {
-            required: true,
-            help: `Path to a file pointing to JSON databases used to simulate queries.`,
-        });
-        parser.add_argument('input_file', {
-            nargs: '+',
-            type: maybeCreateReadStream,
-            help: 'Input dialog file; use - for standard input'
-        });
-        parser.add_argument('--debug', {
-            action: 'store_true',
-            help: 'Enable debugging.',
-            default: true
-        });
-        parser.add_argument('--no-debug', {
-            action: 'store_false',
-            dest: 'debug',
-            help: 'Disable debugging.',
-        });
-        parser.add_argument('--random-seed', {
-            default: 'almond is awesome',
-            help: 'Random seed'
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('analyze-dialogue-annotations', {
+        add_help: true,
+        description: "Transform a dialog input file in ThingTalk format into a dialogue state tracking dataset."
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en-US',
+        help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
+    });
+    parser.add_argument('--thingpedia', {
+        required: true,
+        help: 'Path to ThingTalk file containing class definitions.'
+    });
+    parser.add_argument('--database-file', {
+        required: true,
+        help: `Path to a file pointing to JSON databases used to simulate queries.`,
+    });
+    parser.add_argument('input_file', {
+        nargs: '+',
+        type: maybeCreateReadStream,
+        help: 'Input dialog file; use - for standard input'
+    });
+    parser.add_argument('--debug', {
+        action: 'store_true',
+        help: 'Enable debugging.',
+        default: true
+    });
+    parser.add_argument('--no-debug', {
+        action: 'store_false',
+        dest: 'debug',
+        help: 'Disable debugging.',
+    });
+    parser.add_argument('--random-seed', {
+        default: 'almond is awesome',
+        help: 'Random seed'
+    });
+}
 
-    async execute(args) {
-        let tpClient = new Tp.FileClient(args);
+export async function execute(args) {
+    let tpClient = new Tp.FileClient(args);
 
-        const database = new MultiJSONDatabase(args.database_file);
-        await database.load();
+    const database = new MultiJSONDatabase(args.database_file);
+    await database.load();
 
-        readAllLines(args.input_file, '====')
-            .pipe(new DialogueParser())
-            .pipe(new DialogueAnalyzer({
-                locale: args.locale,
-                debug: args.debug,
-                thingpediaClient: tpClient,
-                database: database,
-            }))
-            .pipe(args.output);
+    readAllLines(args.input_file, '====')
+        .pipe(new DialogueParser())
+        .pipe(new DialogueAnalyzer({
+            locale: args.locale,
+            debug: args.debug,
+            thingpediaClient: tpClient,
+            database: database,
+        }))
+        .pipe(args.output);
 
-        await StreamUtils.waitFinish(args.output);
-    }
-};
+    await StreamUtils.waitFinish(args.output);
+}
