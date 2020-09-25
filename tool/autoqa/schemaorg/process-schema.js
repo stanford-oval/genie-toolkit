@@ -377,7 +377,7 @@ class SchemaProcessor {
         }
     }
 
-    makeArgCanonical(functionDef, name, ptype) {
+    makeArgCanonical(functionDef, argname, ptype) {
         function cleanName(name) {
             name = clean(name);
             if (name.endsWith(' value'))
@@ -385,14 +385,14 @@ class SchemaProcessor {
             return name;
         }
 
-        let canonical = this.loadPropertyCanonicalOverride(name);
+        let canonical = this.loadPropertyCanonicalOverride(argname);
         if (canonical)
             return canonical;
 
-        name = this.loadPropertyNameOverride(name) || name.slice(name.lastIndexOf('.') + 1);
+        const name = this.loadPropertyNameOverride(argname) || argname.slice(argname.lastIndexOf('.') + 1);
 
         canonical = {};
-        const candidates = name in this._wikidata_labels ? this._wikidata_labels[name].labels : [cleanName(name)];
+        const candidates = name in this._wikidata_labels ? this._wikidata_labels[name].labels : [name];
         for (let candidate of [...new Set(candidates)])
             this.addCanonical(canonical, candidate, ptype, functionDef);
         if (!("base" in canonical) && this._always_base_canonical)
@@ -408,9 +408,8 @@ class SchemaProcessor {
     }
 
     addCanonical(canonical, name, ptype, functionDef) {
-        name = name.toLowerCase();
         // drop all names with char other than letters
-        if (!/^[a-z ]+$/.test(name))
+        if (!/^[a-zA-Z ]+$/.test(name))
             return;
 
         genBaseCanonical(canonical, name, ptype, functionDef);
