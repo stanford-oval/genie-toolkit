@@ -154,6 +154,14 @@ const PROPERTY_TYPE_OVERRIDE = {
     'knowsLanguage': new Type.Array(new Type.Entity('tt:iso_lang_code'))
 };
 
+// Base canonical override
+// This is limited to one canonical per property (as if we replaced the property name)
+const PROPERTY_NAME_OVERRIDE_BY_DOMAIN = {
+    'restaurants': {
+        'starRating.ratingValue': 'michelinStar'
+    }
+};
+
 const PROPERTY_CANONICAL_OVERRIDE = {
     // thing
     url: {
@@ -625,6 +633,7 @@ module.exports = {
     STRUCTURED_HIERARCHIES,
     NON_STRUCT_TYPES,
     PROPERTY_CANONICAL_OVERRIDE,
+    PROPERTY_NAME_OVERRIDE_BY_DOMAIN,
     MANUAL_PROPERTY_CANONICAL_OVERRIDE,
     MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN,
     MANUAL_TABLE_CANONICAL_OVERRIDE,

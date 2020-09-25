@@ -41,6 +41,7 @@ const {
     STRUCTURED_HIERARCHIES,
     NON_STRUCT_TYPES,
     PROPERTY_CANONICAL_OVERRIDE,
+    PROPERTY_NAME_OVERRIDE_BY_DOMAIN,
     MANUAL_PROPERTY_CANONICAL_OVERRIDE,
     MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN,
     MANUAL_TABLE_CANONICAL_OVERRIDE,
@@ -144,7 +145,7 @@ class SchemaProcessor {
     }
 
 
-    typeToThingTalk(typename, typeHierarchy, manualAnnotation) {
+    typeToThingTalk(propname, typename, typeHierarchy, manualAnnotation) {
         if (typename in BUILTIN_TYPEMAP)
             return BUILTIN_TYPEMAP[typename];
 
@@ -153,7 +154,7 @@ class SchemaProcessor {
         if (typeHierarchy[typename].isEnum && typeHierarchy[typename].enum.length > 0)
             return new Type.Enum(typeHierarchy[typename].enum);
         if (typeHierarchy[typename].representAsStruct)
-            return this.makeCompoundType(typename, typeHierarchy[typename], typeHierarchy, manualAnnotation);
+            return this.makeCompoundType(propname, typename, typeHierarchy[typename], typeHierarchy, manualAnnotation);
 
         return new Type.Entity(this._prefix + typename);
     }
@@ -233,7 +234,7 @@ class SchemaProcessor {
         if (propname === 'author')
             best = 'Person';
 
-        let tttype = this.typeToThingTalk(best, typeHierarchy, manualAnnotation);
+        let tttype = this.typeToThingTalk(propname, best, typeHierarchy, manualAnnotation);
         if (!tttype)
             return [undefined, undefined];
 
@@ -249,7 +250,20 @@ class SchemaProcessor {
         return [best, tttype];
     }
 
-    makeCompoundType(startingTypename, typedef, typeHierarchy) {
+    loadPropertyNameOverride(argname) {
+        if (PROPERTY_NAME_OVERRIDE_BY_DOMAIN[this._domain]) {
+            if (argname in PROPERTY_NAME_OVERRIDE_BY_DOMAIN[this._domain])
+                return PROPERTY_NAME_OVERRIDE_BY_DOMAIN[this._domain][argname];
+            while (argname.includes('.')) {
+                argname = argname.slice(argname.indexOf('.') + 1);
+                if (argname in PROPERTY_NAME_OVERRIDE_BY_DOMAIN[this._domain])
+                    return PROPERTY_NAME_OVERRIDE_BY_DOMAIN[this._domain][argname];
+            }
+        }
+        return null;
+    }
+
+    makeCompoundType(parentPropertyName, startingTypename, typedef, typeHierarchy) {
         const fields = {};
 
         // collect all properties of this type (incl. inherited ones)
@@ -286,7 +300,7 @@ class SchemaProcessor {
             if (!ttType)
                 continue;
 
-            const canonical = this.makeArgCanonical(propertyname, ttType);
+            const canonical = this.makeArgCanonical(`${parentPropertyName}.${propertyname}`, ttType);
             const metadata = { canonical };
             const annotation = keepAnnotation ? {
                 'org_schema_type': new Ast.Value.String(schemaOrgType),
@@ -339,6 +353,11 @@ class SchemaProcessor {
         // 3. check default property type override (which is applied even for baseline)
         if (name in PROPERTY_CANONICAL_OVERRIDE)
             return PROPERTY_CANONICAL_OVERRIDE[name];
+
+        // for compound properties, also search by field names
+        if (name.includes('.'))
+            return this.loadPropertyCanonicalOverride(name.slice(name.indexOf('.') + 1));
+
         return null;
     }
 
@@ -353,6 +372,8 @@ class SchemaProcessor {
         let canonical = this.loadPropertyCanonicalOverride(name);
         if (canonical)
             return canonical;
+
+        name = this.loadPropertyNameOverride(name) || name.slice(name.lastIndexOf('.') + 1);
 
         canonical = {};
         const candidates = name in this._wikidata_labels ? this._wikidata_labels[name].labels : [cleanName(name)];
