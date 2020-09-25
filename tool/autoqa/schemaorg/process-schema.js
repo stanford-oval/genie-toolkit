@@ -300,8 +300,7 @@ class SchemaProcessor {
             if (!ttType)
                 continue;
 
-            const canonical = this.makeArgCanonical(`${parentPropertyName}.${propertyname}`, ttType);
-            const metadata = { canonical };
+            const metadata = {};
             const annotation = keepAnnotation ? {
                 'org_schema_type': new Ast.Value.String(schemaOrgType),
                 'org_schema_comment': new Ast.Value.String(propertydef.comment)
@@ -359,6 +358,24 @@ class SchemaProcessor {
             return this.loadPropertyCanonicalOverride(name.slice(name.indexOf('.') + 1));
 
         return null;
+    }
+
+    addCanonicalAnnotations(classDef) {
+        for (let fname in classDef.queries) {
+            for (let arg of classDef.queries[fname].iterateArguments()) {
+                arg.metadata.canonical = this.makeArgCanonical(arg.name, arg.type);
+                let elemType = arg.type;
+                while (elemType.isArray)
+                    elemType = elemType.elem;
+                if (elemType.isCompound) {
+                    for (let fieldname in elemType.fields) {
+                        let field = elemType.fields[fieldname];
+                        field.metadata.canonical = this.makeArgCanonical(field.name, field.type);
+
+                    }
+                }
+            }
+        }
     }
 
     makeArgCanonical(name, ptype) {
@@ -668,8 +685,7 @@ class SchemaProcessor {
                 if (KEYWORDS.includes(propertyname))
                     propertyname = '_' + propertyname;
 
-                const canonical = this.makeArgCanonical(propertyname, type);
-                const metadata = { canonical };
+                const metadata = {};
                 const annotation = keepAnnotation ? {
                     'org_schema_type': new Ast.Value.String(schemaOrgType),
                     'org_schema_comment': new Ast.Value.String(propertydef.comment)
@@ -761,6 +777,8 @@ class SchemaProcessor {
         }, {
             is_abstract: false
         });
+
+        this.addCanonicalAnnotations(classdef);
 
         this._output.end(classdef.prettyprint());
         await StreamUtils.waitFinish(this._output);
