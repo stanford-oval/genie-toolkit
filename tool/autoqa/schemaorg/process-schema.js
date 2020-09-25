@@ -519,6 +519,11 @@ class SchemaProcessor {
                         const comment = triple['rdfs:comment'];
                         const _extends = getIncludes(triple['rdfs:subClassOf'] || []);
                         ensureType(name);
+                        if (_extends.length > 0 && _extends.every((ex) => ex in BUILTIN_TYPEMAP)) {
+                            BLACKLISTED_TYPES.add(name);
+                            delete typeHierarchy[name];
+                            break;
+                        }
                         typeHierarchy[name].extends = _extends.filter((ex) => !BLACKLISTED_TYPES.has(ex));
                         if (typeHierarchy[name].extends.length === 0 && name !== 'Thing')
                             typeHierarchy[name].extends = ['Thing'];
