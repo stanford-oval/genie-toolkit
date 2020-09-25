@@ -25,26 +25,52 @@ const Type = ThingTalk.Type;
 
 const baseCanonical = require('../../tool/autoqa/lib/base-canonical-generator');
 
+const library = ThingTalk.Grammar.parse(`
+    class @foo {
+        query test1(out from_location: Location, 
+                    out to_location: Location);
+                    
+        query test2(out from_location: Location, 
+                    out to_location: String);
+                    
+        query test3(out by_writer: Entity(tt:person), 
+                    out by_singer: Entity(tt:person));
+    }
+`);
+const klass = library.classes[0];
+
 const TEST_CASES = [
-    ['author', Type.Entity('org.schema.Restaurant:Person'), { default: 'property', base: ['author'] }],
-    ['datePublished', Type.Date, { default: 'property', base: ['date published'] }],
-    ['review', Type.Array(Type.Entity('org.schema.Restaurant:Review')), { default: 'property', base: ['reviews'] }],
-    ['servesCuisine', Type.String, { default: 'verb', verb: ["serves # cuisine"], base: ["cuisine"] }],
+    ['author', Type.Entity('org.schema.Restaurant:Person'), { default: 'property', base: ['author'] }, null],
+    ['datePublished', Type.Date, { default: 'property', base: ['date published'] }, null],
+    ['review', Type.Array(Type.Entity('org.schema.Restaurant:Review')), { default: 'property', base: ['reviews'] }, null],
+    ['servesCuisine', Type.String, { default: 'verb', verb: ["serves # cuisine"], base: ["cuisine"] }, null],
 
-    ['from_location', Type.Location, { default: 'passive_verb', base: ['from location'], passive_verb: ['from'] }],
-    ['to_location', Type.Location, { default: 'passive_verb', base: ['to location'], passive_verb: ['to'] }],
+    ['inAlbum', Type.Entity('org.schema:MusicAlbum'), { default: 'preposition', base: ['album'], preposition: ['in', 'in album'] }, null],
+    ['byArtist', Type.Entity('org.schema:Artist'), { default: 'preposition', base: ['artist'], preposition: ['by', 'by artist'] }, null],
 
-    ['has_wifi', Type.Boolean, { default: 'property', property_true: ['wifi'], property_false: ['no wifi'] } ],
-    ['refundable', Type.Boolean, { default: 'adjective', adjective_true: ['refundable'] }],
-    ['is_unisex', Type.Boolean, { default: 'adjective', adjective_true: ['unisex'] }]
+    ['from_location', Type.Location, { default: 'preposition', base: ['location'], preposition: ['from', 'from location'] }, null],
+    ['to_location', Type.Location, { default: 'preposition', base: ['location'], preposition: ['to', 'to location'] }, null],
+
+    ['from_location', Type.Location, { default: 'preposition', base: ['location'], preposition: ['from', 'from location'] }, klass.queries.test2],
+    ['to_location', Type.String, { default: 'preposition', base: ['location'], preposition: ['to', 'to location'] }, klass.queries.test2],
+
+    ['by_writer', Type.Entity('tt:person'), { default: 'preposition', base: ['writer'], preposition: ['by', 'by writer'] }],
+    ['by_singer', Type.Entity('tt:person'), { default: 'preposition', base: ['singer'], preposition: ['by', 'by singer'] }],
+
+    ['by_writer', Type.Entity('tt:person'), { default: 'preposition', base: ['writer'], preposition: ['by writer'] }, klass.queries.test3],
+    ['by_singer', Type.Entity('tt:person'), { default: 'preposition', base: ['singer'], preposition: ['by singer'] }, klass.queries.test3],
+
+    ['has_wifi', Type.Boolean, { default: 'property', property_true: ['wifi'], property_false: ['no wifi'] }, null],
+    ['refundable', Type.Boolean, { default: 'adjective', adjective_true: ['refundable'] }, null],
+    ['is_unisex', Type.Boolean, { default: 'adjective', adjective_true: ['unisex'] }, null]
 ];
 
 
 function main() {
     let anyFailed = false;
-    for (let [name, type, expected] of TEST_CASES) {
+    for (let [name, type, expected, functionDef] of TEST_CASES) {
         const canonical = {};
-        baseCanonical(canonical, name, type);
+        baseCanonical(canonical, name, type, functionDef);
         try {
             assert.deepStrictEqual(canonical, expected);
         } catch(e) {

@@ -363,22 +363,21 @@ class SchemaProcessor {
     addCanonicalAnnotations(classDef) {
         for (let fname in classDef.queries) {
             for (let arg of classDef.queries[fname].iterateArguments()) {
-                arg.metadata.canonical = this.makeArgCanonical(arg.name, arg.type);
+                arg.metadata.canonical = this.makeArgCanonical(classDef.queries[fname], arg.name, arg.type);
                 let elemType = arg.type;
                 while (elemType.isArray)
                     elemType = elemType.elem;
                 if (elemType.isCompound) {
                     for (let fieldname in elemType.fields) {
                         let field = elemType.fields[fieldname];
-                        field.metadata.canonical = this.makeArgCanonical(field.name, field.type);
-
+                        field.metadata.canonical = this.makeArgCanonical(classDef.queries[fname], field.name, field.type);
                     }
                 }
             }
         }
     }
 
-    makeArgCanonical(name, ptype) {
+    makeArgCanonical(functionDef, name, ptype) {
         function cleanName(name) {
             name = clean(name);
             if (name.endsWith(' value'))
@@ -395,7 +394,7 @@ class SchemaProcessor {
         canonical = {};
         const candidates = name in this._wikidata_labels ? this._wikidata_labels[name].labels : [cleanName(name)];
         for (let candidate of [...new Set(candidates)])
-            this.addCanonical(canonical, candidate, ptype);
+            this.addCanonical(canonical, candidate, ptype, functionDef);
         if (!("base" in canonical) && this._always_base_canonical)
             canonical["base"] = [cleanName(name)];
 
@@ -408,13 +407,13 @@ class SchemaProcessor {
         return canonical;
     }
 
-    addCanonical(canonical, name, ptype) {
+    addCanonical(canonical, name, ptype, functionDef) {
         name = name.toLowerCase();
         // drop all names with char other than letters
         if (!/^[a-z ]+$/.test(name))
             return;
 
-        genBaseCanonical(canonical, name, ptype);
+        genBaseCanonical(canonical, name, ptype, functionDef);
     }
 
     async run() {
