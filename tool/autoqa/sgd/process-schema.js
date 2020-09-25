@@ -44,10 +44,10 @@ function predictType(slot) {
             return Type.Boolean;
         if (slot.possible_values.every((v) => !isNaN(v)))
             return Type.Number;
-        return Type.Enum(slot.possible_values.map(cleanEnumValue));
+        return new Type.Enum(slot.possible_values.map(cleanEnumValue));
     }
     if (slot.name === 'phone_number')
-        return Type.Entity('tt:phone_number');
+        return new Type.Entity('tt:phone_number');
     if (slot.name.startsWith('number_of_') || slot.name.endsWith('_number') || slot.name === 'number' ||
         slot.name.endsWith('_size') || slot.name === 'size' ||
         slot.name.endsWith('_rating') || slot.name === 'rating')

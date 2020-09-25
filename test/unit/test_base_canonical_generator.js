@@ -26,9 +26,9 @@ const Type = ThingTalk.Type;
 const baseCanonical = require('../../tool/autoqa/lib/base-canonical-generator');
 
 const TEST_CASES = [
-    ['author', Type.Entity('org.schema.Restaurant:Person'), { default: 'property', base: ['author'] }],
+    ['author', new Type.Entity('org.schema.Restaurant:Person'), { default: 'property', base: ['author'] }],
     ['datePublished', Type.Date, { default: 'property', base: ['date published'] }],
-    ['review', Type.Array(Type.Entity('org.schema.Restaurant:Review')), { default: 'property', base: ['reviews'] }],
+    ['review', new Type.Array(new Type.Entity('org.schema.Restaurant:Review')), { default: 'property', base: ['reviews'] }],
     ['servesCuisine', Type.String, { default: 'verb', verb: ["serves # cuisine"], base: ["cuisine"] }],
 
     ['from_location', Type.Location, { default: 'passive_verb', base: ['from location'], passive_verb: ['from'] }],

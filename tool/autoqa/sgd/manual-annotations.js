@@ -22,11 +22,11 @@ const ThingTalk = require('thingtalk');
 const Type = ThingTalk.Type;
 
 const PROPERTY_TYPE_OVERRIDE = {
-    'approximate_ride_duration': Type.Measure('ms'),
+    'approximate_ride_duration': new Type.Measure('ms'),
     'precipitation': Type.Number,
     'humidity': Type.Number,
-    'wind': Type.Measure('mps'),
-    'temperature': Type.Measure('C'),
+    'wind': new Type.Measure('mps'),
+    'temperature': new Type.Measure('C'),
     'balance': Type.Currency,
     'price_per_night': Type.Currency,
     'rent': Type.Currency,

@@ -56,7 +56,7 @@ function makeFilter(loader, pname, op, value, negate = false) {
         if (loader.params.out.has(pname.name + '+' + Type.RecurrentTimeSpecification) && (vtype.isTime || vtype.isDate))
             ptype = Type.RecurrentTimeSpecification;
         else
-            ptype = Type.Array(vtype);
+            ptype = new Type.Array(vtype);
         if (vtype.isString)
             op = 'contains~';
     } else if (op === '==' && vtype.isString) {
