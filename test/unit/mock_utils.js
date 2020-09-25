@@ -71,4 +71,4 @@ class MockPlatform extends Tp.BasePlatform {
 
 export {
     MockPlatform
-}
+};

@@ -40,6 +40,7 @@ export default class TestDatabaseDevice extends Tp.BaseDevice {
             return [{ foo: ':-)', bar: '(-:' }];
         if (table.isAggregation)
             return [{ count: 1 }];
+        return [];
     }
 }
 
