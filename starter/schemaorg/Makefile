@@ -1,4 +1,4 @@
-geniedir = ../..
+geniedir ?= ../..
 developer_key =
 thingpedia_cli = thingpedia
 thingpedia_url = https://thingpedia.stanford.edu/thingpedia
@@ -6,7 +6,8 @@ thingpedia_url = https://thingpedia.stanford.edu/thingpedia
 -include ./config.mk
 
 memsize := 15000
-genie = node --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/tool/genie.js
+NODE ?= node
+genie ?= $(NODE) --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/dist/tool/genie.js
 
 all_experiments = restaurants hotels people books movies music
 

@@ -488,7 +488,7 @@ class Normalizer {
         if (!input || typeof input !== 'object')
             return input;
         if (Array.isArray(input))
-            return input.map(this._preprocess.bind(this));
+            return input.map((input) => this._preprocess(input));
 
         if (!('@type' in input) && 'type' in input) {
             input['@type'] = input.type;

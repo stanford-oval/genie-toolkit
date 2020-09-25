@@ -1,4 +1,4 @@
-geniedir = ../..
+geniedir ?= ../..
 developer_key =
 thingpedia_cli = thingpedia
 thingpedia_url = https://thingpedia.stanford.edu/thingpedia
@@ -67,7 +67,8 @@ train_nlu_flags ?= \
 custom_train_nlu_flags ?=
 
 memsize := $(shell echo $$(($$(grep MemTotal /proc/meminfo | sed 's/[^0-9]//g')/1000-2500)))
-genie := node --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/tool/genie.js
+NODE ?= node
+genie ?= $(NODE) --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/dist/tool/genie.js
 
 all: train
 

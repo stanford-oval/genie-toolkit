@@ -3,6 +3,8 @@ node_modules/
 coverage/
 bundle/
 home/
+dist/
+jsdoc/
 .nyc_output/
 .idea/
 .vscode/

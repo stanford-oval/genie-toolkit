@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -16,13 +16,17 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
-"use strict";
 
 process.on('unhandledRejection', (up) => { throw up; });
 
-const argparse = require('argparse');
+import * as argparse from 'argparse';
 
-const subcommands = {
+interface SubCommand {
+    initArgparse(parser : argparse.SubParser) : void;
+    execute(args : any) : Promise<void>;
+}
+
+const subcommands : { [key : string] : SubCommand } = {
     'download-snapshot': require('./download-snapshot'),
     'download-dataset': require('./download-dataset'),
     'sample-constants': require('./sample-constants'),
@@ -92,11 +96,11 @@ async function main() {
         title: 'Available sub-commands',
         dest: 'subcommand',
         required: true
-    });
-    for (let subcommand in subcommands)
+    } as argparse.SubparserOptions);
+    for (const subcommand in subcommands)
         subcommands[subcommand].initArgparse(subparsers);
 
     const args = parser.parse_args();
-    await subcommands[args.subcommand].execute(args);    
+    await subcommands[args.subcommand].execute(args);
 }
 main();

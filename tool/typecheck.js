@@ -73,7 +73,7 @@ class TypecheckStream extends Stream.Transform {
         if (args.interactive) {
             this._rl = readline.createInterface({ input: process.stdin, output: process.stdout });
             this._rl.setPrompt('$ ');
-            this._rl.on('line', this._onLine.bind(this));
+            this._rl.on('line', (line) => this._onLine(line));
         }
 
 

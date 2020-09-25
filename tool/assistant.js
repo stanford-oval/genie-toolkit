@@ -89,8 +89,8 @@ class CommandLineHandler {
         this._conversation = conversation;
 
         this._rl = rl;
-        this._rl.on('line', this._onLine.bind(this));
-        this._rl.on('SIGINT', this._quit.bind(this));
+        this._rl.on('line', (line) => this._onLine(line));
+        this._rl.on('SIGINT', () => this._quit());
 
         this._oauthKind = null;
         this._oauthSession = {};
