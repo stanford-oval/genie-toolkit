@@ -363,6 +363,8 @@ class SchemaProcessor {
     addCanonicalAnnotations(classDef) {
         for (let fname in classDef.queries) {
             for (let arg of classDef.queries[fname].iterateArguments()) {
+                if (arg.name === 'id')
+                    continue;
                 arg.metadata.canonical = this.makeArgCanonical(classDef.queries[fname], arg.name, arg.type);
                 let elemType = arg.type;
                 while (elemType.isArray)
