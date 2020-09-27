@@ -372,7 +372,7 @@ class SchemaProcessor {
                 if (elemType.isCompound) {
                     for (let fieldname in elemType.fields) {
                         let field = elemType.fields[fieldname];
-                        field.metadata.canonical = this.makeArgCanonical(classDef.queries[fname], field.name, field.type);
+                        field.metadata.canonical = this.makeArgCanonical(classDef.queries[fname], `${arg.name}.${field.name}`, field.type);
                     }
                 }
             }
@@ -396,7 +396,7 @@ class SchemaProcessor {
         canonical = {};
         const candidates = name in this._wikidata_labels ? this._wikidata_labels[name].labels : [name];
         for (let candidate of [...new Set(candidates)])
-            this.addCanonical(canonical, candidate, ptype, functionDef);
+            this.addOneCanonical(canonical, candidate, ptype, functionDef);
         if (!("base" in canonical) && this._always_base_canonical)
             canonical["base"] = [cleanName(name)];
 
@@ -409,7 +409,7 @@ class SchemaProcessor {
         return canonical;
     }
 
-    addCanonical(canonical, name, ptype, functionDef) {
+    addOneCanonical(canonical, name, ptype, functionDef) {
         // drop all names with char other than letters
         if (!/^[a-zA-Z ]+$/.test(name))
             return;
@@ -707,18 +707,6 @@ class SchemaProcessor {
                     metadata.counted_object = [ clean(propertyname.slice('numberOf'.length)) ];
                 else if (propertyname.endsWith('Count'))
                     metadata.counted_object = [ this._langPack.pluralize(clean(propertyname.slice(0, -'Count'.length)))];
-
-                let elemType = type;
-                while (elemType.isArray)
-                    elemType = elemType.elem;
-
-                if (elemType.isCompound) {
-                    for (let field in elemType.fields) {
-                        const canonicalOverride = this.loadPropertyCanonicalOverride(`${propertyname}.${field}`);
-                        if (canonicalOverride)
-                            elemType.fields[field].nl_annotations.canonical = canonicalOverride;
-                    }
-                }
 
                 const arg = new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, propertyname, type, {
                     nl: metadata,
