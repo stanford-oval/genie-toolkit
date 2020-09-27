@@ -183,6 +183,10 @@ const PROPERTY_CANONICAL_OVERRIDE = {
         base: ['location', 'address'],
         preposition: ["in #", "from #", "around #", "at #", "on #"]
     },
+    'postalCode': {
+        base: ['postal code', 'postcode', 'zip code'],
+        preposition: ['in #', 'from #'],
+    },
     'streetAddress': {
         base: ['street']
     },
