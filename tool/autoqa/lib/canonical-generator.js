@@ -33,14 +33,22 @@ const { clean } = require('../../../lib/utils/misc-utils');
 const CanonicalExtractor = require('./canonical-extractor');
 const genBaseCanonical = require('./base-canonical-generator');
 
-// extract entity type from type
-function typeToEntityType(type) {
+function getElemType(type) {
     if (type.isArray)
-        return typeToEntityType(type.elem);
-    else if (type.isEntity)
-        return type.type;
-    else
+        return getElemType(type.elem);
+    return type;
+}
+
+function typeToString(type) {
+    const elemType = getElemType(type);
+
+    if (elemType.isEntity)
+        return elemType.type;
+
+    if (elemType.isCompound)
         return null;
+
+    return type.toString();
 }
 
 class AutoCanonicalGenerator {
@@ -145,7 +153,7 @@ class AutoCanonicalGenerator {
                 if (canonical.base && !canonical.property)
                     canonical.property = [...canonical.base];
 
-                let typestr = typeToEntityType(func.getArgType(arg.name));
+                let typestr = typeToString(func.getArgType(arg.name));
 
                 if (typestr && typeCounts[typestr] === 1) {
                     // if an entity is unique, allow dropping the property name entirely
@@ -157,6 +165,13 @@ class AutoCanonicalGenerator {
                     //       byArtist for MusicRecording - bob's song
                     if (typestr.endsWith(':Person'))
                         canonical.adjective = ["# 's", '#'];
+
+                    // if it's the only date, adding argmin/argmax/base_projection
+                    if (typestr === 'Date') {
+                        canonical.adjective_argmax = ["most recent", "latest", "last", "newest"];
+                        canonical.adjective_argmin = ["earliest", "first", "oldest"];
+                        canonical.base_projection = ['date'];
+                    }
                 }
 
                 // if property is missing, try to use entity type info
@@ -244,7 +259,7 @@ class AutoCanonicalGenerator {
     _getArgTypeCount(schema) {
         const count = {};
         for (let arg of schema.iterateArguments()) {
-            let typestr = typeToEntityType(schema.getArgType(arg.name));
+            let typestr = typeToString(arg.type);
             if (!typestr)
                 continue;
             count[typestr] = (count[typestr] || 0) + 1;
