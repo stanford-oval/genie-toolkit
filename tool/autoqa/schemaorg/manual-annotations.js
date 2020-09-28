@@ -159,6 +159,9 @@ const PROPERTY_TYPE_OVERRIDE = {
 const PROPERTY_NAME_OVERRIDE_BY_DOMAIN = {
     'restaurants': {
         'starRating.ratingValue': 'michelinStar'
+    },
+    'hotel': {
+        'starRating.ratingValue': 'star'
     }
 };
 
