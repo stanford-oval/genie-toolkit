@@ -2757,9 +2757,9 @@ stemmer@^1.0.5:
   integrity sha512-SLq7annzSKRDStasOJJoftCSCzBCKmBmH38jC4fDtCunAqOzpTpIm9zmaHmwNJiZ8gLe9qpVdBVbEG2DC5dE2A==
 
 string-interp@^0.3.1:
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/string-interp/-/string-interp-0.3.2.tgz#d713209fc05bcd340c96a4d428e4ede7889eb29b"
-  integrity sha512-HAFXnMl8hO4nqfi1whSVSYC7UAAYx2DqyI4yq9gtGVX4Nk6RS1M0gGhpGIHVznMvM6kxIJqADPswvRGdlIhGYA==
+  version "0.3.6"
+  resolved "https://registry.yarnpkg.com/string-interp/-/string-interp-0.3.6.tgz#bc5586e8e91bc82a213cd0434bb94d4802968760"
+  integrity sha512-696vVbzGoUpoCw4fX6vR/e+kh8/z6llFfVmp+6M7QTR/oZhDah6BScUrJXzQ28wkkzeiznGHHilDBOPZsJOElw==
   dependencies:
     thingtalk-units "^0.2.0"
 
