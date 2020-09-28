@@ -26,6 +26,13 @@ const child_process = require('child_process');
 
 const EnglishLanguagePack = require('../../../lib/i18n/american-english');
 
+const VALUE_MAP = {
+    "1": "one",
+    "2": "two",
+    "3": "three",
+    "4": "four"
+};
+
 class AnnotationExtractor {
     constructor(klass, queries, model, options) {
         this.class = klass;
@@ -122,8 +129,10 @@ class AnnotationExtractor {
         }
 
         // if debug file exists, use them directly
-        if (fs.existsSync(`./paraphraser-out.json`))
+        if (fs.existsSync(`./paraphraser-out.json`)) {
             this._output = JSON.parse(fs.readFileSync(`./paraphraser-out.json`, 'utf-8'));
+            return;
+        }
 
         // genienlp run-paraphrase --input_column 0 --skip_heuristics --model_name_or_path xxx --temperature 1 1 1 --num_beams 4 --pipe_mode
         const args = [
@@ -190,66 +199,106 @@ class AnnotationExtractor {
         }
         value = value.toLowerCase();
 
-        for (let paraphrase of paraphrases) {
-            paraphrase = paraphrase.toLowerCase();
+        for (let paraphrase of paraphrases)
+            this._extractOneCanonical(canonical, origin, paraphrase, value, query_canonical);
+    }
 
-            if (!paraphrase.includes(value))
+    _hasValue(paraphrase, value) {
+        // find exact match
+        if (paraphrase.includes(value))
+            return value;
+
+        // find similar
+        if (value in VALUE_MAP && paraphrase.includes(VALUE_MAP[value]))
+            return VALUE_MAP[value];
+
+        const pluralized = this._langPack.pluralize(value);
+        if (paraphrase.includes(pluralized))
+            return pluralized;
+
+        return false;
+    }
+
+    _extractOneCanonical(canonical, origin, paraphrase, value, query_canonical) {
+        paraphrase = paraphrase.toLowerCase();
+        value = this._hasValue(paraphrase, value);
+
+        if (!value)
+            return;
+
+        if (paraphrase.endsWith('.') || paraphrase.endsWith('?') || paraphrase.endsWith('!'))
+            paraphrase = paraphrase.slice(0, -1);
+
+        const pluralized_query_canonical = this._langPack.pluralize(query_canonical);
+        let tags = this._langPack.posTag(paraphrase.split(' '));
+
+        let prefixes = [];
+        if (origin.startsWith('who ')) {
+            prefixes.push('who ');
+            prefixes.push('who\'s ');
+        } if (origin.startsWith('which ')) {
+            let standard_prefix = origin.slice(0, origin.indexOf(query_canonical) + query_canonical.length + 1);
+            prefixes.push(standard_prefix);
+            prefixes.push(standard_prefix.replace('which ', 'what '));
+            prefixes.push(standard_prefix.replace(query_canonical, pluralized_query_canonical));
+            prefixes.push(standard_prefix.replace(query_canonical, pluralized_query_canonical).replace('which ', 'what '));
+        } else {
+            let standard_prefix = origin.slice(0, origin.indexOf(query_canonical) + query_canonical.length + 1);
+            prefixes.push(standard_prefix);
+            let to_replace = origin.includes(`a ${query_canonical}`) ? `a ${query_canonical}` : query_canonical;
+            const query_cannonical_alternatives = [
+                `${pluralized_query_canonical}`,
+                `some ${pluralized_query_canonical}`,
+                `all ${pluralized_query_canonical}`,
+                `any ${query_canonical}`,
+                `any ${pluralized_query_canonical}`,
+                `an ${query_canonical}`,
+                `the ${query_canonical}`
+            ];
+            for (let alternative of query_cannonical_alternatives)
+                prefixes.push(standard_prefix.replace(to_replace, alternative));
+        }
+
+        for (let prefix of new Set(prefixes)) {
+            if (!paraphrase.startsWith(prefix))
                 continue;
 
-            if (paraphrase.endsWith('.') || paraphrase.endsWith('?') || paraphrase.endsWith('!'))
-                paraphrase = paraphrase.slice(0, -1);
+            let clause = paraphrase.slice(prefix.length);
+            let length = prefix.trim().split(' ').length;
 
-            let tags = this._langPack.posTag(paraphrase.split(' '));
-
-            let prefixes = [];
-            if (origin.startsWith('who ')) {
-                prefixes.push('who ');
-                prefixes.push('who\'s ');
-            } else {
-                let standard_prefix = origin.slice(0, origin.indexOf(query_canonical) + query_canonical.length + 1);
-                prefixes.push(standard_prefix);
-                let to_replace = origin.includes(`a ${query_canonical}`) ? `a ${query_canonical}` : query_canonical;
-                prefixes.push(standard_prefix.replace(to_replace, `${query_canonical}s`));
-                prefixes.push(standard_prefix.replace(to_replace, `some ${query_canonical}s`));
-                prefixes.push(standard_prefix.replace(to_replace, `all ${query_canonical}s`));
-                prefixes.push(standard_prefix.replace(to_replace, `any ${query_canonical}s`));
-                prefixes.push(standard_prefix.replace(to_replace, `any ${query_canonical}`));
-                prefixes.push(standard_prefix.replace(to_replace, `an ${query_canonical}`));
-                prefixes.push(standard_prefix.replace(to_replace, `the ${query_canonical}`));
-            }
-
-            for (let prefix of new Set(prefixes)) {
-                if (!paraphrase.startsWith(prefix))
-                    continue;
-
-                let clause = paraphrase.slice(prefix.length);
-                let length = prefix.trim().split(' ').length;
-
-                if (prefix === 'who\'s' || clause.startsWith('is ') || clause.startsWith('are ')) {
-                    if (clause.startsWith('is ') || clause.startsWith('are ')) {
-                        clause = clause.slice(clause.indexOf(' ') + 1);
-                        length += 1;
-                    }
-                    if (clause.startsWith('a ') || clause.startsWith('an ') || clause.startsWith('the ') ||
-                        ['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[length + 1])) {
-                        canonical['reverse_property'] = canonical['reverse_property'] || [];
-                        canonical['reverse_property'].push(clause.replace(value, '#'));
-                    } else if (['IN', 'VBN', 'VBG'].includes(tags[length + 1])) {
-                        canonical['passive_verb'] = canonical['passive_verb'] || [];
-                        canonical['passive_verb'].push(clause.replace(value, '#'));
-                    }
-                } if (clause.startsWith('with ') || clause.startsWith('has ') || clause.startsWith('have ')) {
-                    canonical['property'] = canonical['property'] || [];
-                    canonical['property'].push(clause.slice(clause.indexOf(' ') + 1).replace(value, '#'));
-                } else if ((clause.startsWith('that ') || clause.startsWith('who ')) && ['VBP', 'VBZ', 'VBD'].includes(tags[length + 1])) {
-                    canonical['verb'] = canonical['verb'] || [];
-                    canonical['verb'].push(clause.slice(clause.indexOf(' ' + 1)).replace(value, '#'));
-                } else if (['VBP', 'VBZ', 'VBD'].includes(tags[length])) {
-                    canonical['verb'] = canonical['verb'] || [];
-                    canonical['verb'].push(clause.replace(value, '#'));
+            if (prefix === 'who\'s'
+                || clause.startsWith('is ') || clause.startsWith('are ')
+                || clause.startsWith('was ') || clause.startsWith('were ')) {
+                if (clause.startsWith('is ') || clause.startsWith('are ')
+                    || clause.startsWith('was ') || clause.startsWith('are ')) {
+                    clause = clause.slice(clause.indexOf(' ') + 1);
+                    length += 1;
                 }
-                break;
+                if ((clause.startsWith('a ') || clause.startsWith('an ') || clause.startsWith('the ')) &&
+                    ['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[length + 1])) {
+                    canonical['reverse_property'] = canonical['reverse_property'] || [];
+                    canonical['reverse_property'].push(clause.replace(value, '#'));
+                } else if (['VBN', 'VBG', 'JJ'].includes(tags[length])) {
+                    canonical['passive_verb'] = canonical['passive_verb'] || [];
+                    canonical['passive_verb'].push(clause.replace(value, '#'));
+                } else if (['IN', 'TO'].includes(tags[length])) {
+                    canonical['preposition'] = canonical['preposition'] || [];
+                    canonical['preposition'].push(clause.replace(value, '#'));
+                }
+            } else if (clause.startsWith('with ') || clause.startsWith('has ') || clause.startsWith('have ')) {
+                canonical['property'] = canonical['property'] || [];
+                canonical['property'].push(clause.slice(clause.indexOf(' ') + 1).replace(value, '#'));
+            } else if ((clause.startsWith('that ') || clause.startsWith('who ')) && ['VBP', 'VBZ', 'VBD'].includes(tags[length + 1])) {
+                canonical['verb'] = canonical['verb'] || [];
+                canonical['verb'].push(clause.slice(clause.indexOf(' ' + 1)).replace(value, '#'));
+            } else if (['VBN', 'VBG', 'JJ'].includes(tags[length])) {
+                canonical['passive_verb'] = canonical['passive_verb'] || [];
+                canonical['passive_verb'].push(clause.replace(value, '#'));
+            } else if (['VBP', 'VBZ', 'VBD'].includes(tags[length])) {
+                canonical['verb'] = canonical['verb'] || [];
+                canonical['verb'].push(clause.slice(clause.indexOf(' ' + 1)).replace(value, '#'));
             }
+            break;
         }
     }
 }
