@@ -372,8 +372,11 @@ class AutoCanonicalGenerator {
                         continue;
                     if (cat.endsWith('_true') || cat.endsWith('_false'))
                         continue;
+
                     if (cat === 'passive_verb' || cat === 'verb') {
-                        canonicals[cat + '_projection'] = canonicals[cat].map((c) => {
+                        canonicals[cat + '_projection'] = canonicals[cat].map((canonical) => {
+                            return this._processProjectionCanonical(canonical, cat);
+                        }).filter(Boolean).map((c) => {
                             let tokens = c.split(' ');
                             if (tokens.length === 1)
                                 return c;
@@ -382,11 +385,24 @@ class AutoCanonicalGenerator {
                             return c;
                         });
                     } else {
-                        canonicals[cat + '_projection'] = canonicals[cat];
+                        canonicals[cat + '_projection'] = canonicals[cat].map((canonical) => {
+                            return this._processProjectionCanonical(canonical, cat);
+                        }).filter(Boolean);
                     }
                 }
             }
         }
+    }
+
+    _processProjectionCanonical(canonical, cat) {
+        if (canonical.includes('#') && !canonical.endsWith(' #'))
+            return null;
+
+        canonical = canonical.replace(' #', '');
+        if (canonical.split(' ').length > 1 && cat === 'preposition')
+            return null;
+
+        return canonical;
     }
 
     _isVerb(candidate) {
