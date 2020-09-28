@@ -19,14 +19,14 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
-const fs = require('fs');
-const util = require('util');
-const child_process = require('child_process');
+import assert from 'assert';
+import * as fs from 'fs';
+import util from 'util';
+import * as child_process from 'child_process';
 
-const EnglishLanguagePack = require('../../../lib/i18n/american-english');
+import EnglishLanguagePack from '../../../lib/i18n/american-english';
 
-class AnnotationExtractor {
+export default class AnnotationExtractor {
     constructor(klass, queries, model, options) {
         this.class = klass;
         this.model = model;
@@ -250,6 +250,3 @@ class AnnotationExtractor {
         }
     }
 }
-
-
-module.exports = AnnotationExtractor;

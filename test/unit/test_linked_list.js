@@ -19,9 +19,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const LinkedList = require('../../lib/engine/util/linked_list');
+import LinkedList from '../../lib/engine/util/linked_list';
 
 function testBasic() {
     const list = new LinkedList();
@@ -108,6 +108,6 @@ async function main() {
     testPop();
     testIteration();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

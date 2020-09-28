@@ -19,14 +19,14 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const fs = require('fs');
-const Stream = require('stream');
-const csvparse = require('csv-parse');
-const csvstringify = require('csv-stringify');
+import * as fs from 'fs';
+import Stream from 'stream';
+import csvparse from 'csv-parse';
+import csvstringify from 'csv-stringify';
 
-const StreamUtils = require('../lib/utils/stream-utils');
-const { NUM_SENTENCES_PER_TASK } = require('./lib/constants');
-const { clean } = require('../lib/utils/misc-utils');
+import * as StreamUtils from '../lib/utils/stream-utils';
+import { NUM_SENTENCES_PER_TASK } from './lib/constants';
+import { clean } from '../lib/utils/misc-utils';
 
 class ParaphraseHITCreator extends Stream.Transform {
     constructor(sentencesPerTask) {
@@ -74,32 +74,30 @@ class ParaphraseHITCreator extends Stream.Transform {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('mturk-make-paraphrase-hits', {
-            add_help: true,
-            description: "Prepare the input file for the manual paraphrase HITs."
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('--sentences-per-task', {
-            required: false,
-            type: Number,
-            default: NUM_SENTENCES_PER_TASK,
-            help: "Number of sentences in each HIT"
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('mturk-make-paraphrase-hits', {
+        add_help: true,
+        description: "Prepare the input file for the manual paraphrase HITs."
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--sentences-per-task', {
+        required: false,
+        type: Number,
+        default: NUM_SENTENCES_PER_TASK,
+        help: "Number of sentences in each HIT"
+    });
+}
 
-    async execute(args) {
-        process.stdin.setEncoding('utf8');
-        process.stdin
-            .pipe(csvparse({ columns: true, delimiter: '\t' }))
-            .pipe(new ParaphraseHITCreator(args.sentences_per_task))
-            .pipe(csvstringify({ header: true, delimiter: ',' }))
-            .pipe(args.output);
+export async function execute(args) {
+    process.stdin.setEncoding('utf8');
+    process.stdin
+        .pipe(csvparse({ columns: true, delimiter: '\t' }))
+        .pipe(new ParaphraseHITCreator(args.sentences_per_task))
+        .pipe(csvstringify({ header: true, delimiter: ',' }))
+        .pipe(args.output);
 
-        return StreamUtils.waitFinish(args.output);
-    }
-};
+    return StreamUtils.waitFinish(args.output);
+}

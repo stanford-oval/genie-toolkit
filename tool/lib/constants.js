@@ -19,8 +19,6 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-module.exports = {
-    NUM_SENTENCES_PER_TASK: 4,
-    NUM_PARAPHRASES_PER_SENTENCE: 2,
-    NUM_SUBMISSIONS_PER_TASK: 3
-};
+export const NUM_SENTENCES_PER_TASK = 4;
+export const NUM_PARAPHRASES_PER_SENTENCE = 2;
+export const NUM_SUBMISSIONS_PER_TASK = 3;

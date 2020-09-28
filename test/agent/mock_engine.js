@@ -19,14 +19,14 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
-const ThingTalk = require('thingtalk');
+import assert from 'assert';
+import * as ThingTalk from 'thingtalk';
 const Ast = ThingTalk.Ast;
-const Gettext = require('node-gettext');
-const uuid = require('uuid');
-const AsyncQueue = require('consumer-queue');
+import Gettext from 'node-gettext';
+import * as uuid from 'uuid';
+import AsyncQueue from 'consumer-queue';
 
-const { MockPlatform } = require('../unit/mock_utils');
+import { MockPlatform } from '../unit/mock_utils';
 const {
     ResultGenerator,
     SimulationExecEnvironment,
@@ -214,7 +214,7 @@ class MockBuiltinDevice {
     }
 }
 
-var _cnt = 0;
+let _cnt = 0;
 
 const UNIQUE_DEVICES = new Set(['com.yelp', 'org.thingpedia.weather']);
 class MockUnknownDevice {
@@ -225,7 +225,7 @@ class MockUnknownDevice {
             this.kind = kind;
             this.uniqueId = kind;
         } else {
-            var id = ++_cnt;
+            let id = ++_cnt;
 
             this.name = "Some Device " + id;
             this.description = 'This is a device of some sort';
@@ -418,7 +418,7 @@ function toDeviceInfo(d) {
     };
 }
 
-module.exports.createMockEngine = function(thingpedia, rng, database) {
+export function createMockEngine(thingpedia, rng, database) {
     const platform = new TestPlatform();
     const schemas = new ThingTalk.SchemaRetriever(thingpedia, null, true);
 
@@ -452,7 +452,7 @@ module.exports.createMockEngine = function(thingpedia, rng, database) {
     engine.pgettext = function(msgctx, msg) {
         return gettext.dpgettext('genie-toolkit', msgctx, msg);
     };
-    engine._ = this.gettext;
+    engine._ = engine.gettext;
 
     return engine;
-};
+}

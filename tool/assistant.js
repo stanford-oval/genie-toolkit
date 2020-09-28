@@ -19,11 +19,11 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const path = require('path');
-const readline = require('readline');
+import path from 'path';
+import * as readline from 'readline';
 
-const Engine = require('../lib/engine');
-const Platform = require('./lib/cmdline-platform');
+import Engine from '../lib/engine';
+import Platform from './lib/cmdline-platform';
 
 const THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
 const NL_SERVER_URL = 'https://almond-nl.stanford.edu';
@@ -89,8 +89,8 @@ class CommandLineHandler {
         this._conversation = conversation;
 
         this._rl = rl;
-        this._rl.on('line', this._onLine.bind(this));
-        this._rl.on('SIGINT', this._quit.bind(this));
+        this._rl.on('line', (line) => this._onLine(line));
+        this._rl.on('SIGINT', () => this._quit());
 
         this._oauthKind = null;
         this._oauthSession = {};
@@ -213,68 +213,66 @@ class CommandLineHandler {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('assistant', {
-            add_help: true,
-            description: "Test/demo the assistant interactively."
-        });
-        parser.add_argument('--workdir', {
-            required: false,
-            default: process.cwd(),
-            help: 'Directory where to store the assistant database and other files (defaults to the current working directory).'
-        });
-        parser.add_argument('-l', '--locale', {
-            required: false,
-            default: 'en-US',
-            help: `BGP 47 locale tag of the language to use for the assistant (defaults to 'en-US', English)`
-        });
-        parser.add_argument('--thingpedia-url', {
-            required: false,
-            default: THINGPEDIA_URL,
-            help: 'URL of Thingpedia to use.'
-        });
-        parser.add_argument('--thingpedia-dir', {
-            required: false,
-            help: 'Path to a directory containing Thingpedia device definitions (overrides --thingpedia-url).'
-        });
-        parser.add_argument('--nlu-server', {
-            required: false,
-            default: NL_SERVER_URL,
-            help: 'NLP server URL to use for NLU (can be a file:/// URL).'
-        });
-        parser.add_argument('--nlg-server', {
-            required: false,
-            help: 'NLP server URL to use for NLG; must be specified to use neural NLG.'
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('assistant', {
+        add_help: true,
+        description: "Test/demo the assistant interactively."
+    });
+    parser.add_argument('--workdir', {
+        required: false,
+        default: process.cwd(),
+        help: 'Directory where to store the assistant database and other files (defaults to the current working directory).'
+    });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en-US',
+        help: `BGP 47 locale tag of the language to use for the assistant (defaults to 'en-US', English)`
+    });
+    parser.add_argument('--thingpedia-url', {
+        required: false,
+        default: THINGPEDIA_URL,
+        help: 'URL of Thingpedia to use.'
+    });
+    parser.add_argument('--thingpedia-dir', {
+        required: false,
+        help: 'Path to a directory containing Thingpedia device definitions (overrides --thingpedia-url).'
+    });
+    parser.add_argument('--nlu-server', {
+        required: false,
+        default: NL_SERVER_URL,
+        help: 'NLP server URL to use for NLU (can be a file:/// URL).'
+    });
+    parser.add_argument('--nlg-server', {
+        required: false,
+        help: 'NLP server URL to use for NLG; must be specified to use neural NLG.'
+    });
+}
 
-    async execute(args) {
-        const platform = new Platform(path.resolve(args.workdir), args.locale, args.thingpediaUrl);
-        const prefs = platform.getSharedPreferences();
-        prefs.set('developer-dir', args.thingpedia_dir);
-        prefs.set('experimental-use-neural-nlg', !!args.nlg_server);
-        const engine = new Engine(platform);
+export async function execute(args) {
+    const platform = new Platform(path.resolve(args.workdir), args.locale, args.thingpediaUrl);
+    const prefs = platform.getSharedPreferences();
+    prefs.set('developer-dir', args.thingpedia_dir);
+    prefs.set('experimental-use-neural-nlg', !!args.nlg_server);
+    const engine = new Engine(platform);
 
-        const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-        rl.setPrompt('$ ');
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    rl.setPrompt('$ ');
 
-        await engine.open();
-        const conversation = await engine.assistant.openConversation('main', new LocalUser(), {
-            nluServerUrl: args.nlu_server,
-            nlgServerUrl: args.nlg_server,
-            debug: false,
-            showWelcome: true
-        });
-        await conversation.addOutput(new CommandLineDelegate(rl));
+    await engine.open();
+    const conversation = await engine.assistant.openConversation('main', new LocalUser(), {
+        nluServerUrl: args.nlu_server,
+        nlgServerUrl: args.nlg_server,
+        debug: false,
+        showWelcome: true
+    });
+    await conversation.addOutput(new CommandLineDelegate(rl));
 
-        new CommandLineHandler(engine, conversation, rl);
-        await conversation.start();
-        rl.prompt();
+    new CommandLineHandler(engine, conversation, rl);
+    await conversation.start();
+    rl.prompt();
 
-        await engine.run();
+    await engine.run();
 
-        rl.close();
-        await engine.close();
-    }
-};
+    rl.close();
+    await engine.close();
+}

@@ -19,24 +19,24 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
-const Stream = require('stream');
-const fs = require('fs');
-const JSONStream = require('JSONStream');
-const seedrandom = require('seedrandom');
-const assert = require('assert');
+import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
+import Stream from 'stream';
+import * as fs from 'fs';
+import JSONStream from 'JSONStream';
+import seedrandom from 'seedrandom';
+import assert from 'assert';
 
-const MultiDST = require('../lib/languages/multidst/ast');
-const StreamUtils = require('../lib/utils/stream-utils');
-const { getBestEntityMatch } = require('../lib/dialogue-agent/entity-linking/entity-finder');
-const { uniform } = require('../lib/utils/random');
-const TargetLanguages = require('../lib/languages');
-const { DialogueParser } = require('../lib/dataset-tools/parsers');
+import * as MultiDST from '../lib/languages/multidst/ast';
+import * as StreamUtils from '../lib/utils/stream-utils';
+import { getBestEntityMatch } from '../lib/dialogue-agent/entity-linking/entity-finder';
+import { uniform } from '../lib/utils/random';
+import * as TargetLanguages from '../lib/languages';
+import { DialogueParser } from '../lib/dataset-tools/parsers';
 
-const ProgressBar = require('./lib/progress_bar');
-const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
-const MultiJSONDatabase = require('./lib/multi_json_database');
+import ProgressBar from './lib/progress_bar';
+import { maybeCreateReadStream, readAllLines } from './lib/argutils';
+import MultiJSONDatabase from './lib/multi_json_database';
 
 class DialogueToDSTStream extends Stream.Transform {
     constructor(options) {
@@ -364,107 +364,106 @@ class SimpleCountStream extends Stream.Transform {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('convert-thingtalk-to-multidst', {
-            add_help: true,
-            description: "Transform a dialog input file in ThingTalk format into a dialogue state tracking dataset."
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('-l', '--locale', {
-            required: false,
-            default: 'en-US',
-            help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
-        });
-        parser.add_argument('--thingpedia', {
-            required: true,
-            help: 'Path to ThingTalk file containing class definitions.'
-        });
-        parser.add_argument('--database-file', {
-            required: true,
-            help: `Path to a file pointing to JSON databases used to simulate queries.`,
-        });
-        parser.add_argument('-N', '--input-size', {
-            required: false,
-            help: `Total number of dialogues in the input set (used for the progress bar).`,
-        });
-        parser.add_argument('--replace-parameters', {
-            action: 'store_true',
-            help: 'Replace placeholders with values from the ontology.',
-            default: false
-        });
-        parser.add_argument('input_file', {
-            nargs: '+',
-            type: maybeCreateReadStream,
-            help: 'Input dialog file; use - for standard input'
-        });
-        parser.add_argument('--debug', {
-            action: 'store_true',
-            help: 'Enable debugging.',
-            default: true
-        });
-        parser.add_argument('--no-debug', {
-            action: 'store_false',
-            dest: 'debug',
-            help: 'Disable debugging.',
-        });
-        parser.add_argument('--random-seed', {
-            default: 'almond is awesome',
-            help: 'Random seed'
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('convert-thingtalk-to-multidst', {
+        add_help: true,
+        description: "Transform a dialog input file in ThingTalk format into a dialogue state tracking dataset."
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en-US',
+        help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
+    });
+    parser.add_argument('--thingpedia', {
+        required: true,
+        help: 'Path to ThingTalk file containing class definitions.'
+    });
+    parser.add_argument('--database-file', {
+        required: true,
+        help: `Path to a file pointing to JSON databases used to simulate queries.`,
+    });
+    parser.add_argument('-N', '--input-size', {
+        required: false,
+        help: `Total number of dialogues in the input set (used for the progress bar).`,
+    });
+    parser.add_argument('--replace-parameters', {
+        action: 'store_true',
+        help: 'Replace placeholders with values from the ontology.',
+        default: false
+    });
+    parser.add_argument('input_file', {
+        nargs: '+',
+        type: maybeCreateReadStream,
+        help: 'Input dialog file; use - for standard input'
+    });
+    parser.add_argument('--debug', {
+        action: 'store_true',
+        help: 'Enable debugging.',
+        default: true
+    });
+    parser.add_argument('--no-debug', {
+        action: 'store_false',
+        dest: 'debug',
+        help: 'Disable debugging.',
+    });
+    parser.add_argument('--random-seed', {
+        default: 'almond is awesome',
+        help: 'Random seed'
+    });
+}
 
-    async execute(args) {
-        const counter = new SimpleCountStream(args.input_size);
-        let tpClient = new Tp.FileClient(args);
+import ontology from '../languages/multiwoz/ontology.json';
+import systemOntology from '../languages/multiwoz/system-ontology.json';
 
-        const database = new MultiJSONDatabase(args.database_file);
-        await database.load();
+export async function execute(args) {
+    const counter = new SimpleCountStream(args.input_size);
+    let tpClient = new Tp.FileClient(args);
 
-        const ontology = require('../languages/multiwoz/ontology.json');
-        const systemOntology = require('../languages/multiwoz/system-ontology.json');
-        ontology['train-duration'] = systemOntology['time'];
-        ontology['train-name'] = systemOntology['id'];
-        ontology['attraction-entrance fee'] = ontology['train-price'] = systemOntology['ticket'];
-        ontology['attraction-address'] = ontology['restaurant-address'] = ontology['hotel-address'] = systemOntology['addr'];
-        ontology['attraction-address'] = ontology['restaurant-address'] = ontology['hotel-address'] = systemOntology['addr'];
-        ontology['attraction-postcode'] = ontology['restaurant-postcode'] = ontology['hotel-postcode'] = systemOntology['post'];
-        ontology['attraction-phone'] = ontology['restaurant-phone'] = ontology['hotel-phone'] = systemOntology['phone'];
-        ontology['taxi-car'] = systemOntology['car'];
-        ontology['restaurant-reference number'] = ontology['hotel-reference number'] =
-            ontology['train-reference number'] = ontology['taxi-reference number'] = systemOntology['ref'];
+    const database = new MultiJSONDatabase(args.database_file);
+    await database.load();
 
-        ontology['attraction-openhours'] = [];
-        for (let item in database.get('uk.ac.cam.multiwoz.Attraction:Attraction'))
-            ontology['attraction-openhours'].push(item.openhours || '?');
+    ontology['train-duration'] = systemOntology['time'];
+    ontology['train-name'] = systemOntology['id'];
+    ontology['attraction-entrance fee'] = ontology['train-price'] = systemOntology['ticket'];
+    ontology['attraction-address'] = ontology['restaurant-address'] = ontology['hotel-address'] = systemOntology['addr'];
+    ontology['attraction-address'] = ontology['restaurant-address'] = ontology['hotel-address'] = systemOntology['addr'];
+    ontology['attraction-postcode'] = ontology['restaurant-postcode'] = ontology['hotel-postcode'] = systemOntology['post'];
+    ontology['attraction-phone'] = ontology['restaurant-phone'] = ontology['hotel-phone'] = systemOntology['phone'];
+    ontology['taxi-car'] = systemOntology['car'];
+    ontology['restaurant-reference number'] = ontology['hotel-reference number'] =
+        ontology['train-reference number'] = ontology['taxi-reference number'] = systemOntology['ref'];
 
-        readAllLines(args.input_file, '====')
-            .pipe(new DialogueParser())
-            .pipe(new DialogueToDSTStream({
-                rng: seedrandom.alea(args.random_seed),
-                locale: args.locale,
-                debug: args.debug,
-                thingpediaClient: tpClient,
-                database: database,
-                ontology: ontology,
-                replaceParameters: args.replace_parameters,
-            }))
-            .pipe(counter)
-            .pipe(JSONStream.stringify(undefined, undefined, undefined, 2))
-            .pipe(args.output);
+    ontology['attraction-openhours'] = [];
+    for (let item in database.get('uk.ac.cam.multiwoz.Attraction:Attraction'))
+        ontology['attraction-openhours'].push(item.openhours || '?');
 
-        const progbar = new ProgressBar(1);
-        counter.on('progress', (value) => {
-            //console.log(value);
-            progbar.update(value);
-        });
+    readAllLines(args.input_file, '====')
+        .pipe(new DialogueParser())
+        .pipe(new DialogueToDSTStream({
+            rng: seedrandom.alea(args.random_seed),
+            locale: args.locale,
+            debug: args.debug,
+            thingpediaClient: tpClient,
+            database: database,
+            ontology: ontology,
+            replaceParameters: args.replace_parameters,
+        }))
+        .pipe(counter)
+        .pipe(JSONStream.stringify(undefined, undefined, undefined, 2))
+        .pipe(args.output);
 
-        // issue an update now to show the progress bar
-        progbar.update(0);
+    const progbar = new ProgressBar(1);
+    counter.on('progress', (value) => {
+        //console.log(value);
+        progbar.update(value);
+    });
 
-        await StreamUtils.waitFinish(args.output);
-    }
-};
+    // issue an update now to show the progress bar
+    progbar.update(0);
+
+    await StreamUtils.waitFinish(args.output);
+}

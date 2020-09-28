@@ -21,14 +21,14 @@
 
 // cmdline platform
 
-const Tp = require('thingpedia');
+import * as Tp from 'thingpedia';
 
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
-const child_process = require('child_process');
-const util = require('util');
-const Gettext = require('node-gettext');
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
+import * as child_process from 'child_process';
+import * as util from 'util';
+import Gettext from 'node-gettext';
 
 const _unzipApi = {
     unzip(zipPath, dir) {
@@ -72,7 +72,7 @@ function safeMkdirSync(dir) {
     }
 }
 
-module.exports = class Platform extends Tp.BasePlatform {
+export default class Platform extends Tp.BasePlatform {
     // Initialize the platform code
     // Will be called before instantiating the engine
     constructor(homedir, locale, thingpediaUrl) {
@@ -231,4 +231,4 @@ module.exports = class Platform extends Tp.BasePlatform {
         this._prefs.set('auth-token', authToken);
         return true;
     }
-};
+}

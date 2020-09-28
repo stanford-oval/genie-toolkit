@@ -1,1 +1,4 @@
 lib/sentence-generator/compiler/grammar.js
+node_modules
+dist
+coverage

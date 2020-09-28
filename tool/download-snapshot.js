@@ -19,65 +19,63 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const fs = require('fs');
-const Tp = require('thingpedia');
+import * as fs from 'fs';
+import * as Tp from 'thingpedia';
 
 const DEFAULT_THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
 
-const StreamUtils = require('../lib/utils/stream-utils');
+import * as StreamUtils from '../lib/utils/stream-utils';
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('download-snapshot', {
-            add_help: true,
-            description: "Download a snapshot of Thingpedia."
-        });
-        parser.add_argument('-l', '--locale', {
-            required: false,
-            default: 'en',
-            help: `BGP 47 locale tag of the natural language to download the snapshot for (defaults to 'en', English)`
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('--entities', {
-            required: true,
-            type: fs.createWriteStream,
-            help: `Filename where entities should be saved`
-        });
-        parser.add_argument('--thingpedia-url', {
-            required: false,
-            default: DEFAULT_THINGPEDIA_URL,
-            help: `base URL of Thingpedia server to contact; defaults to '${DEFAULT_THINGPEDIA_URL}'`
-        });
-        parser.add_argument('--snapshot', {
-            required: false,
-            default: '-1',
-            help: `identifier of the Thingpedia snapshot to download (or -1 for the latest snapshot)`
-        });
-        parser.add_argument('--developer-key', {
-            required: false,
-            default: '',
-            help: `developer key to use when contacting Thingpedia`
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('download-snapshot', {
+        add_help: true,
+        description: "Download a snapshot of Thingpedia."
+    });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en',
+        help: `BGP 47 locale tag of the natural language to download the snapshot for (defaults to 'en', English)`
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--entities', {
+        required: true,
+        type: fs.createWriteStream,
+        help: `Filename where entities should be saved`
+    });
+    parser.add_argument('--thingpedia-url', {
+        required: false,
+        default: DEFAULT_THINGPEDIA_URL,
+        help: `base URL of Thingpedia server to contact; defaults to '${DEFAULT_THINGPEDIA_URL}'`
+    });
+    parser.add_argument('--snapshot', {
+        required: false,
+        default: '-1',
+        help: `identifier of the Thingpedia snapshot to download (or -1 for the latest snapshot)`
+    });
+    parser.add_argument('--developer-key', {
+        required: false,
+        default: '',
+        help: `developer key to use when contacting Thingpedia`
+    });
+}
 
-    async execute(args) {
-        let deviceUrl = args.thingpedia_url + '/api/v3/snapshot/' + args.snapshot + '?meta=1&locale=' + args.locale;
-        if (args.developer_key)
-            deviceUrl += '&developer_key=' + args.developer_key;
-        let entityUrl = args.thingpedia_url + '/api/v3/entities/all?snapshot=' + args.snapshot + '&locale=' + args.locale;
-        if (args.developer_key)
-            entityUrl += '&developer_key=' + args.developer_key;
+export async function execute(args) {
+    let deviceUrl = args.thingpedia_url + '/api/v3/snapshot/' + args.snapshot + '?meta=1&locale=' + args.locale;
+    if (args.developer_key)
+        deviceUrl += '&developer_key=' + args.developer_key;
+    let entityUrl = args.thingpedia_url + '/api/v3/entities/all?snapshot=' + args.snapshot + '&locale=' + args.locale;
+    if (args.developer_key)
+        entityUrl += '&developer_key=' + args.developer_key;
 
-        const [devices, entities] = await Promise.all([
-            Tp.Helpers.Http.get(deviceUrl, { accept: 'application/x-thingtalk' }),
-            Tp.Helpers.Http.get(entityUrl, { accept: 'application/json' })
-        ]);
-        args.output.end(devices);
-        args.entities.end(JSON.stringify(JSON.parse(entities), undefined, 2));
+    const [devices, entities] = await Promise.all([
+        Tp.Helpers.Http.get(deviceUrl, { accept: 'application/x-thingtalk' }),
+        Tp.Helpers.Http.get(entityUrl, { accept: 'application/json' })
+    ]);
+    args.output.end(devices);
+    args.entities.end(JSON.stringify(JSON.parse(entities), undefined, 2));
 
-        await StreamUtils.waitFinish(args.output);
-    }
-};
+    await StreamUtils.waitFinish(args.output);
+}

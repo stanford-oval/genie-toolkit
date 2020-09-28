@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -17,40 +17,39 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const { BasicSentenceGenerator, DialogueGenerator } = require('./sentence-generator/batch');
-const SentenceSampler = require('./dataset-tools/mturk/sampler');
-const { ParaphraseValidator, ParaphraseValidatorFilter } = require('./dataset-tools/mturk/validator');
-const ValidationHITCreator = require('./dataset-tools/mturk/paraphrase-validation');
+import { BasicSentenceGenerator, DialogueGenerator } from './sentence-generator/batch';
+import SentenceSampler from './dataset-tools/mturk/sampler';
+import { ParaphraseValidator, ParaphraseValidatorFilter } from './dataset-tools/mturk/validator';
+import ValidationHITCreator from './dataset-tools/mturk/paraphrase-validation';
 
-const DatasetAugmenter = require('./dataset-tools/augmentation');
-const {
+import DatasetAugmenter from './dataset-tools/augmentation';
+import {
     DatasetParser,
     DatasetStringifier,
     DialogueParser,
     DialogueSerializer
-} = require('./dataset-tools/parsers');
-const DatasetSplitter = require('./dataset-tools/splitter');
-const {
+} from './dataset-tools/parsers';
+import DatasetSplitter from './dataset-tools/splitter';
+import {
     SentenceEvaluatorStream,
     CollectSentenceStatistics,
-} = require('./dataset-tools/evaluation/sentence_evaluator');
-const {
+} from './dataset-tools/evaluation/sentence_evaluator';
+import {
     DialogueEvaluatorStream,
     CollectDialogueStatistics
-} = require('./dataset-tools/evaluation/dialogue_evaluator');
+} from './dataset-tools/evaluation/dialogue_evaluator';
 
-const Training = require('./training');
-const ParserClient = require('./prediction/parserclient');
+import * as Training from './training';
+import * as ParserClient from './prediction/parserclient';
 
-const I18n = require('./i18n');
-const parallelize = require('./utils/parallelize');
-const EntityUtils = require('./utils/entity-utils');
-const IpAddressUtils = require('./engine/util/ip_address');
+import * as I18n from './i18n';
+import parallelize from './utils/parallelize';
+import * as EntityUtils from './utils/entity-utils';
+import * as IpAddressUtils from './engine/util/ip_address';
 
-const SpeechHandler = require('./speech/speech_handler');
-const AssistantEngine = require('./engine');
+import SpeechHandler from './speech/speech_handler';
+import AssistantEngine from './engine';
 
 /**
  * Classes related to MTurk paraphrasing.
@@ -61,7 +60,7 @@ const MTurk = {
     SentenceSampler,
     ParaphraseValidator,
     ParaphraseValidatorFilter,
-    ValidationHITCreator,
+    ValidationHITCreator
 };
 
 /**
@@ -73,10 +72,10 @@ const Evaluation = {
     SentenceEvaluatorStream,
     CollectSentenceStatistics,
     DialogueEvaluatorStream,
-    CollectDialogueStatistics,
+    CollectDialogueStatistics
 };
 
-module.exports = {
+export {
     // sentence generation
     BasicSentenceGenerator,
     DialogueGenerator,

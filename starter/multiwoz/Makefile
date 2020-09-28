@@ -1,11 +1,12 @@
-geniedir = ../..
+geniedir ?= ../..
 
 -include ./config.mk
 
 NULL =
 memsize := 9000
 parallel := 1
-genie = node --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/tool/genie.js
+NODE ?= node
+genie ?= $(NODE) --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/dist/tool/genie.js
 
 all_domains = attraction hotel restaurant taxi train
 all_experiments = $(all_domains) multidomain

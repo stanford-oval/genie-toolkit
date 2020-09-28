@@ -19,12 +19,12 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 "use strict";
 
-const Tp = require('thingpedia');
-const fs = require('fs');
-const path = require('path');
-const Builtins = require('../../../lib/engine/devices/builtins');
+import * as Tp from 'thingpedia';
+import * as fs from 'fs';
+import * as path from 'path';
+import Builtins from '../../../lib/engine/devices/builtins';
 
-class TestDatabaseDevice extends Tp.BaseDevice {
+export default class TestDatabaseDevice extends Tp.BaseDevice {
     constructor(engine, state) {
         super(engine, state);
 
@@ -40,9 +40,9 @@ class TestDatabaseDevice extends Tp.BaseDevice {
             return [{ foo: ':-)', bar: '(-:' }];
         if (table.isAggregation)
             return [{ count: 1 }];
+        return [];
     }
 }
-module.exports = TestDatabaseDevice;
 
 const manifest = fs.readFileSync(path.resolve(path.dirname(module.filename), 'test_database.tt')).toString('utf8');
 Builtins['org.thingpedia.builtin.test.test_database'] = {

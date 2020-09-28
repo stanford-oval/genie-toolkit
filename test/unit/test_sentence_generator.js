@@ -21,19 +21,19 @@
 
 process.on('unhandledRejection', (up) => { throw up; });
 
-const path = require('path');
-const stream = require('stream');
-const seedrandom = require('seedrandom');
+import * as path from 'path';
+import * as stream from 'stream';
+import * as seedrandom from 'seedrandom';
 
-const { BasicSentenceGenerator, DialogueGenerator } = require('../../lib/sentence-generator/batch');
-const { makeDummyEntities } = require('../../lib/utils/misc-utils');
+import { BasicSentenceGenerator, DialogueGenerator } from '../../lib/sentence-generator/batch';
+import { makeDummyEntities } from '../../lib/utils/misc-utils';
 
-const ThingTalk = require('thingtalk');
+import * as ThingTalk from 'thingtalk';
 const Grammar = ThingTalk.Grammar;
 const NNSyntax = ThingTalk.NNSyntax;
 const SchemaRetriever = ThingTalk.SchemaRetriever;
 
-const _tpClient = require('./mock_schema_delegate');
+import _tpClient from './mock_schema_delegate';
 const _schemaRetriever = new SchemaRetriever(_tpClient, null, true);
 
 async function processOne(id, sentence, code) {
@@ -197,6 +197,6 @@ async function main() {
     await doTestBasic(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/basic.genie'));
     await doTestDialogue(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/dialogue.genie'));
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

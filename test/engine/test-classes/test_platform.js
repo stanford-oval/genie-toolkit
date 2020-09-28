@@ -19,9 +19,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const Tp = require('thingpedia');
+import * as Tp from 'thingpedia';
 
-module.exports = class TestPlatformDevice extends Tp.BaseDevice {
+export default class TestPlatformDevice extends Tp.BaseDevice {
     constructor(engine, state) {
         super(engine, state);
 
@@ -32,4 +32,4 @@ module.exports = class TestPlatformDevice extends Tp.BaseDevice {
     get_foo() {
         return [{ lol: 'yes' }];
     }
-};
+}

@@ -19,9 +19,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const { requoteSentence, requoteProgram, getFunctions, getDevices } = require('../../lib/dataset-tools/requoting');
+import { requoteSentence, requoteProgram, getFunctions, getDevices } from '../../lib/dataset-tools/requoting';
 
 const SENTENCE_TEST_CASES = [
     ['tweet hello world', 'now => @com.twitter.post param:status:String = " hello world "', 'tweet QUOTED_STRING'],
@@ -119,6 +119,6 @@ async function main() {
     testGetFunctions();
     testGetDevices();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

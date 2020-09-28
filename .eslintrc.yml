@@ -1,21 +1,32 @@
 env:
   es6: true
   node: true
+parser: '@typescript-eslint/parser'
+plugins:
+  - '@typescript-eslint'
 parserOptions:
   ecmaVersion: 2018
-extends: 'eslint:recommended'
+extends:
+  - 'eslint:recommended'
+  - 'plugin:@typescript-eslint/recommended'
 rules:
-  # disable some rules we don't want
   indent: off
   no-console: off
   no-fallthrough: off
+  '@typescript-eslint/no-empty-function': off
   require-atomic-updates: off
   no-lonely-if: off
   arrow-body-style: off
+  require-yield: off
+
+  # temporary until migration is complete
+  '@typescript-eslint/no-this-alias': off
+  '@typescript-eslint/no-explicit-any': off
+  '@typescript-eslint/no-var-requires': off
 
   # correctness checks
   strict:
-    - error
+    - off
     - global
   consistent-return: error
   array-callback-return: error
@@ -23,7 +34,8 @@ rules:
     - error
     - always
   no-var: error
-  no-unused-vars:
+  no-unused-vars: off
+  '@typescript-eslint/no-unused-vars':
     - error
     -
       varsIgnorePattern: _
@@ -68,6 +80,10 @@ rules:
   arrow-parens:
     - error
     - always
+  '@typescript-eslint/array-type':
+    - error
+    -
+      default: array-simple
   block-spacing: error
   computed-property-spacing: error
   func-call-spacing: error
@@ -96,3 +112,8 @@ rules:
       method:
         before: false
         after: false
+  '@typescript-eslint/type-annotation-spacing':
+    - error
+    -
+      before: true
+      after: true

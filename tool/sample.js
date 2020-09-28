@@ -19,19 +19,19 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const seedrandom = require('seedrandom');
-const fs = require('fs');
-const byline = require('byline');
-const csvstringify = require('csv-stringify');
-const Stream = require('stream');
-const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
+import seedrandom from 'seedrandom';
+import * as fs from 'fs';
+import byline from 'byline';
+import csvstringify from 'csv-stringify';
+import Stream from 'stream';
+import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
 
-const { DatasetParser } = require('../lib/dataset-tools/parsers');
-const SentenceSampler = require('../lib/dataset-tools/mturk/sampler');
-const StreamUtils = require('../lib/utils/stream-utils');
-const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
-const { parseConstantFile } = require('./lib/constant-file');
+import { DatasetParser } from '../lib/dataset-tools/parsers';
+import SentenceSampler from '../lib/dataset-tools/mturk/sampler';
+import * as StreamUtils from '../lib/utils/stream-utils';
+import { maybeCreateReadStream, readAllLines } from './lib/argutils';
+import { parseConstantFile } from './lib/constant-file';
 
 function parseSamplingControlFile(filename) {
     const functionBlackList = new Set;
@@ -197,115 +197,113 @@ class ContextSourceLoader extends Stream.Writable {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('sample', {
-            add_help: true,
-            description: "Choose which sentences to paraphrase, given a synthetic set."
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('--thingpedia', {
-            required: true,
-            help: 'Path to JSON file containing signature, type and mixin definitions.'
-        });
-        parser.add_argument('--constants', {
-            required: true,
-            help: 'TSV file containing constant values to use.'
-        });
-        parser.add_argument('input_file', {
-            nargs: '+',
-            type: maybeCreateReadStream,
-            help: 'Input datasets to augment (in TSV format); use - for standard input'
-        });
-        parser.add_argument('-l', '--locale', {
-            default: 'en-US',
-            help: `BGP 47 locale tag of the natural language being processed (defaults to en-US).`
-        });
-        parser.add_argument('--contextual', {
-            action: 'store_true',
-            help: 'Process a contextual dataset.',
-            default: false
-        });
-        parser.add_argument('--context-source', {
-            help: 'Source dataset from where contexts were extracted; used to choose a context sentence for each context.',
-        });
-        parser.add_argument('--sampling-strategy', {
-            required: false,
-            choices: ['byCode', 'bySentence', 'bySignature'],
-            help: 'Which sampling strategy to use (defaults: bySignature).'
-        });
-        parser.add_argument('--sampling-control', {
-            required: false,
-            help: 'TSV file controlling sampling based on functions in the programs. Defaults to treating all functions equally.'
-        });
-        parser.add_argument('--compound-only', {
-            help: 'Keep only compound programs. (False if omitted)',
-            action: 'store_true'
-        });
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('sample', {
+        add_help: true,
+        description: "Choose which sentences to paraphrase, given a synthetic set."
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--thingpedia', {
+        required: true,
+        help: 'Path to JSON file containing signature, type and mixin definitions.'
+    });
+    parser.add_argument('--constants', {
+        required: true,
+        help: 'TSV file containing constant values to use.'
+    });
+    parser.add_argument('input_file', {
+        nargs: '+',
+        type: maybeCreateReadStream,
+        help: 'Input datasets to augment (in TSV format); use - for standard input'
+    });
+    parser.add_argument('-l', '--locale', {
+        default: 'en-US',
+        help: `BGP 47 locale tag of the natural language being processed (defaults to en-US).`
+    });
+    parser.add_argument('--contextual', {
+        action: 'store_true',
+        help: 'Process a contextual dataset.',
+        default: false
+    });
+    parser.add_argument('--context-source', {
+        help: 'Source dataset from where contexts were extracted; used to choose a context sentence for each context.',
+    });
+    parser.add_argument('--sampling-strategy', {
+        required: false,
+        choices: ['byCode', 'bySentence', 'bySignature'],
+        help: 'Which sampling strategy to use (defaults: bySignature).'
+    });
+    parser.add_argument('--sampling-control', {
+        required: false,
+        help: 'TSV file controlling sampling based on functions in the programs. Defaults to treating all functions equally.'
+    });
+    parser.add_argument('--compound-only', {
+        help: 'Keep only compound programs. (False if omitted)',
+        action: 'store_true'
+    });
 
-        parser.add_argument('--debug', {
-            action: 'store_true',
-            help: 'Enable debugging.',
-            default: true
-        });
-        parser.add_argument('--no-debug', {
-            action: 'store_false',
-            dest: 'debug',
-            help: 'Disable debugging.',
-        });
-        parser.add_argument('--random-seed', {
-            default: 'almond is awesome',
-            help: 'Random seed'
-        });
-    },
+    parser.add_argument('--debug', {
+        action: 'store_true',
+        help: 'Enable debugging.',
+        default: true
+    });
+    parser.add_argument('--no-debug', {
+        action: 'store_false',
+        dest: 'debug',
+        help: 'Disable debugging.',
+    });
+    parser.add_argument('--random-seed', {
+        default: 'almond is awesome',
+        help: 'Random seed'
+    });
+}
 
-    async execute(args) {
-        let contexts;
-        if (args.contextual) {
-            if (!args.context_source)
-                throw new Error(`--context-source is required if --contextual`);
+export async function execute(args) {
+    let contexts;
+    if (args.contextual) {
+        if (!args.context_source)
+            throw new Error(`--context-source is required if --contextual`);
 
-            contexts = await readAllLines([fs.createReadStream(args.context_source)])
-                .pipe(new DatasetParser({ preserveId: true }))
-                .pipe(new ContextSourceLoader())
-                .read();
-        }
-
-        const constants = await parseConstantFile(args.locale, args.constants);
-        const [functionBlackList, deviceBlackList, functionHighValueList, functionWhiteList, deviceWhiteList] =
-            await parseSamplingControlFile(args.sampling_control);
-
-        const tpClient = new Tp.FileClient(args.locale, args.thingpedia, null);
-        const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
-
-        const options = {
-            rng: seedrandom.alea(args.random_seed),
-            locale: args.locale,
-
-            samplingStrategy: args.sampling_strategy,
-            functionBlackList,
-            deviceBlackList,
-            functionHighValueList,
-            functionWhiteList,
-            deviceWhiteList,
-            contexts,
-
-            compoundOnly: !!args.compound_only,
-            debug: args.debug
-        };
-
-        readAllLines(args.input_file)
-            .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true }))
-            .pipe(new SentenceSampler(schemaRetriever, constants, options))
-            .pipe(csvstringify({ header: true, delimiter: '\t' }))
-            .pipe(args.output);
-
-        return new Promise((resolve, reject) => {
-            args.output.on('finish', resolve);
-            args.output.on('error', reject);
-        });
+        contexts = await readAllLines([fs.createReadStream(args.context_source)])
+            .pipe(new DatasetParser({ preserveId: true }))
+            .pipe(new ContextSourceLoader())
+            .read();
     }
-};
+
+    const constants = await parseConstantFile(args.locale, args.constants);
+    const [functionBlackList, deviceBlackList, functionHighValueList, functionWhiteList, deviceWhiteList] =
+        await parseSamplingControlFile(args.sampling_control);
+
+    const tpClient = new Tp.FileClient(args.locale, args.thingpedia, null);
+    const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
+
+    const options = {
+        rng: seedrandom.alea(args.random_seed),
+        locale: args.locale,
+
+        samplingStrategy: args.sampling_strategy,
+        functionBlackList,
+        deviceBlackList,
+        functionHighValueList,
+        functionWhiteList,
+        deviceWhiteList,
+        contexts,
+
+        compoundOnly: !!args.compound_only,
+        debug: args.debug
+    };
+
+    readAllLines(args.input_file)
+        .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true }))
+        .pipe(new SentenceSampler(schemaRetriever, constants, options))
+        .pipe(csvstringify({ header: true, delimiter: '\t' }))
+        .pipe(args.output);
+
+    return new Promise((resolve, reject) => {
+        args.output.on('finish', resolve);
+        args.output.on('error', reject);
+    });
+}

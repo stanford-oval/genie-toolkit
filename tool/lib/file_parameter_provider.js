@@ -19,11 +19,11 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const util = require('util');
-const fs = require('fs');
-const byline = require('byline');
-const csvparse = require('csv-parse');
-const path = require('path');
+import * as util from 'util';
+import * as fs from 'fs';
+import byline from 'byline';
+import csvparse from 'csv-parse';
+import * as path from 'path';
 
 // Load strings and entities from files
 //
@@ -33,7 +33,7 @@ const path = require('path');
 // Entities are loaded from the JSON files returned from
 // https://almond.stanford.edu/thingpedia/api/v3/entities/list/:x
 
-module.exports = class FileParameterProvider {
+export default class FileParameterProvider {
     constructor(filename, param_locale) {
         this._filename = filename;
         this._paramLocale = param_locale || 'en-US';
@@ -141,4 +141,4 @@ module.exports = class FileParameterProvider {
             throw new TypeError(`Unexpected value list type ${valueListType}`);
         }
     }
-};
+}

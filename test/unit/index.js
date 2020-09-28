@@ -32,7 +32,7 @@ async function do_test(array) {
     if (typeof array !== 'undefined' && array instanceof Array ){
         for (let fn of array) {
             console.log(`Running ${fn}`);
-            await require(fn)();
+            await (await import(fn)).default();
         }
     }
 }

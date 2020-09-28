@@ -19,14 +19,14 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 "use strict";
 
-const fs = require('fs');
-const util = require('util');
-const assert = require('assert');
-const ThingTalk = require('thingtalk');
+import * as fs from 'fs';
+import util from 'util';
+import assert from 'assert';
+import * as ThingTalk from 'thingtalk';
 
-const StreamUtils = require('../../../lib/utils/stream-utils');
+import * as StreamUtils from '../../../lib/utils/stream-utils';
 
-const genBaseCanonical = require('../lib/base-canonical-generator');
+import genBaseCanonical from '../lib/base-canonical-generator';
 
 class SchemaProcessor {
     constructor(args) {
@@ -56,24 +56,22 @@ class SchemaProcessor {
 }
 
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('wikidata-process-schema', {
-            add_help: true,
-            description: "Generate base canonical for given a wikidata schema.tt"
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('--thingpedia', {
-            required: true,
-            help: 'Path to original ThingTalk file containing class definitions.'
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('wikidata-process-schema', {
+        add_help: true,
+        description: "Generate base canonical for given a wikidata schema.tt"
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--thingpedia', {
+        required: true,
+        help: 'Path to original ThingTalk file containing class definitions.'
+    });
+}
 
-    async execute(args) {
-        const schemaProcessor = new SchemaProcessor(args);
-        schemaProcessor.run();
-    }
-};
+export async function execute(args) {
+    const schemaProcessor = new SchemaProcessor(args);
+    schemaProcessor.run();
+}

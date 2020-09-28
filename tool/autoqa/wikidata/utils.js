@@ -19,7 +19,7 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 "use strict";
 
-const Tp = require('thingpedia');
+import * as Tp from 'thingpedia';
 const URL = 'https://query.wikidata.org/sparql';
 
 /**
@@ -77,7 +77,7 @@ async function getExampleValuesForProperty(domainId, propertyId, size) {
 }
 
 
-module.exports = {
+export {
     wikidataQuery,
     getPropertyLabel,
     getPropertyList,

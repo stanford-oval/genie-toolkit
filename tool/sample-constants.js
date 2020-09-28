@@ -19,73 +19,71 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 "use strict";
 
-const fs = require('fs');
-const seedrandom = require('seedrandom');
-const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
+import * as fs from 'fs';
+import seedrandom from 'seedrandom';
+import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
 
-const StreamUtils = require('../lib/utils/stream-utils');
-const ConstantSampler = require('./lib/constants-sampler');
-const FileParameterProvider = require('./lib/file_parameter_provider');
+import * as StreamUtils from '../lib/utils/stream-utils';
+import ConstantSampler from './lib/constants-sampler';
+import FileParameterProvider from './lib/file_parameter_provider';
 
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('sample-constants', {
-            add_help: true,
-            description: "Sample constants for parameters from entities and string values."
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('-l', '--locale', {
-            required: false,
-            default: 'en-US',
-            help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
-        });
-        parser.add_argument('--thingpedia', {
-            required: true,
-            help: 'Path to .tt file containing signature, type and mixin definitions.'
-        });
-        parser.add_argument('--parameter-datasets', {
-            required: true,
-            help: 'TSV file containing the paths to datasets for strings and entity types.'
-        });
-        parser.add_argument('--random-seed', {
-            default: 'almond is awesome',
-            help: 'Random seed'
-        });
-        parser.add_argument('--sample-size', {
-            default: 10,
-            help: 'Number of samples per entity or string value'
-        });
-        parser.add_argument('--devices', {
-            required: false,
-            help: `The list of devices to sample, separated by comma`
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('sample-constants', {
+        add_help: true,
+        description: "Sample constants for parameters from entities and string values."
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en-US',
+        help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
+    });
+    parser.add_argument('--thingpedia', {
+        required: true,
+        help: 'Path to .tt file containing signature, type and mixin definitions.'
+    });
+    parser.add_argument('--parameter-datasets', {
+        required: true,
+        help: 'TSV file containing the paths to datasets for strings and entity types.'
+    });
+    parser.add_argument('--random-seed', {
+        default: 'almond is awesome',
+        help: 'Random seed'
+    });
+    parser.add_argument('--sample-size', {
+        default: 10,
+        help: 'Number of samples per entity or string value'
+    });
+    parser.add_argument('--devices', {
+        required: false,
+        help: `The list of devices to sample, separated by comma`
+    });
+}
 
-    async execute(args) {
-        const options = {
-            devices: args.devices,
-            sample_size: args.sample_size,
-            rng: seedrandom.alea(args.random_seed),
-            locale: args.locale
-        };
-        const tpClient = new Tp.FileClient(args);
-        const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
-        const constProvider = new FileParameterProvider(args.parameter_datasets);
-        await constProvider.open();
-        if (!options.devices)
-            options.devices = (await tpClient.getAllDeviceNames()).map((dev) => dev.kind).join(',');
+export async function execute(args) {
+    const options = {
+        devices: args.devices,
+        sample_size: args.sample_size,
+        rng: seedrandom.alea(args.random_seed),
+        locale: args.locale
+    };
+    const tpClient = new Tp.FileClient(args);
+    const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
+    const constProvider = new FileParameterProvider(args.parameter_datasets);
+    await constProvider.open();
+    if (!options.devices)
+        options.devices = (await tpClient.getAllDeviceNames()).map((dev) => dev.kind).join(',');
 
-        const sampler = new ConstantSampler(schemaRetriever, constProvider, options);
+    const sampler = new ConstantSampler(schemaRetriever, constProvider, options);
 
-        const constants = await sampler.sample();
-        args.output.end(constants.map((c) => c.join('\t')).join('\n') + '\n');
+    const constants = await sampler.sample();
+    args.output.end(constants.map((c) => c.join('\t')).join('\n') + '\n');
 
-        StreamUtils.waitFinish(args.output);
-        await constProvider.close();
-    }
-};
+    StreamUtils.waitFinish(args.output);
+    await constProvider.close();
+}

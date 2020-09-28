@@ -20,16 +20,16 @@
 "use strict";
 
 
-const assert = require('assert');
-const fs = require('fs');
-const util = require('util');
-const ThingTalk = require('thingtalk');
-const crypto = require('crypto');
+import assert from 'assert';
+import * as fs from 'fs';
+import util from 'util';
+import * as ThingTalk from 'thingtalk';
+import * as crypto from 'crypto';
 
-const StreamUtils = require('../../../lib/utils/stream-utils');
+import * as StreamUtils from '../../../lib/utils/stream-utils';
 
-const { makeMetadata } = require('../lib/metadata');
-const { cleanEnumValue } = require('./utils');
+import { makeMetadata } from '../lib/metadata';
+import { cleanEnumValue } from './utils';
 
 function hash(obj) {
     const str = JSON.stringify(obj);
@@ -174,42 +174,40 @@ class Normalizer {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('sgd-normalize-data', {
-            add_help: true,
-            description: "Generate normalized data from dialogs to match their ThingTalk representation."
-        });
-        parser.add_argument('--data-output', {
-            type: fs.createWriteStream
-        });
-        parser.add_argument('--meta-output', {
-            type: fs.createWriteStream
-        });
-        parser.add_argument('--thingpedia', {
-            required: true,
-            help: 'Path to ThingTalk file containing class definitions.'
-        });
-        parser.add_argument('input_file', {
-            nargs: '+',
-            help: 'Input JSON+LD files to normalize. Multiple input files will be merged in one.'
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('sgd-normalize-data', {
+        add_help: true,
+        description: "Generate normalized data from dialogs to match their ThingTalk representation."
+    });
+    parser.add_argument('--data-output', {
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--meta-output', {
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--thingpedia', {
+        required: true,
+        help: 'Path to ThingTalk file containing class definitions.'
+    });
+    parser.add_argument('input_file', {
+        nargs: '+',
+        help: 'Input JSON+LD files to normalize. Multiple input files will be merged in one.'
+    });
+}
 
-    async execute(args) {
-        const normalizer = new Normalizer();
-        await normalizer.init(args.thingpedia);
-        for (let filename of args.input_file)
-            await normalizer.process(filename);
+export async function execute(args) {
+    const normalizer = new Normalizer();
+    await normalizer.init(args.thingpedia);
+    for (let filename of args.input_file)
+        await normalizer.process(filename);
 
-        if (args.meta_output) {
-            args.meta_output.end(JSON.stringify(normalizer.meta, undefined, 2));
-            await StreamUtils.waitFinish(args.meta_output);
-        }
-
-        if (args.data_output) {
-            args.data_output.end(JSON.stringify(normalizer.output, undefined, 2));
-            await StreamUtils.waitFinish(args.data_output);
-        }
+    if (args.meta_output) {
+        args.meta_output.end(JSON.stringify(normalizer.meta, undefined, 2));
+        await StreamUtils.waitFinish(args.meta_output);
     }
-};
+
+    if (args.data_output) {
+        args.data_output.end(JSON.stringify(normalizer.output, undefined, 2));
+        await StreamUtils.waitFinish(args.data_output);
+    }
+}

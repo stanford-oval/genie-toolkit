@@ -19,17 +19,17 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const fs = require('fs');
-const Stream = require('stream');
-const readline = require('readline');
-const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
-const util = require('util');
+import * as fs from 'fs';
+import Stream from 'stream';
+import * as readline from 'readline';
+import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
+import util from 'util';
 
-const { DatasetParser, DatasetStringifier } = require('../lib/dataset-tools/parsers');
-const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
-const StreamUtils = require('../lib/utils/stream-utils');
-const Utils = require('../lib/utils/misc-utils');
+import { DatasetParser, DatasetStringifier } from '../lib/dataset-tools/parsers';
+import { maybeCreateReadStream, readAllLines } from './lib/argutils';
+import * as StreamUtils from '../lib/utils/stream-utils';
+import * as Utils from '../lib/utils/misc-utils';
 
 class CacheParser extends Stream.Transform {
     constructor() {
@@ -73,7 +73,7 @@ class TypecheckStream extends Stream.Transform {
         if (args.interactive) {
             this._rl = readline.createInterface({ input: process.stdin, output: process.stdout });
             this._rl.setPrompt('$ ');
-            this._rl.on('line', this._onLine.bind(this));
+            this._rl.on('line', (line) => this._onLine(line));
         }
 
 
@@ -227,98 +227,96 @@ class TypecheckStream extends Stream.Transform {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('typecheck', {
-            add_help: true,
-            description: "Typecheck a dataset, optionally applying transformations to ensure the types are correct."
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('--dropped', {
-            required: true,
-            help: "Location where to save sentences that were dropped",
-            type: fs.createWriteStream
-        });
-        parser.add_argument('--thingpedia', {
-            required: true,
-            help: 'Path to ThingTalk file containing class definitions.'
-        });
-        parser.add_argument('--cache', {
-            help: "Cache file with previously applied transformations."
-        });
-        parser.add_argument('--contextual', {
-            action: 'store_true',
-            help: 'Process a contextual dataset.',
-            default: false
-        });
-        parser.add_argument('--interactive', {
-            action: 'store_true',
-            help: 'Fix problems interactively.',
-            default: false
-        });
-        parser.add_argument('--no-interactive', {
-            action: 'store_false',
-            dest: 'interactive',
-            help: 'Fix problems automatically with no interaction.',
-            default: false
-        });
-        parser.add_argument('input_file', {
-            nargs: '+',
-            type: maybeCreateReadStream,
-            help: 'Input datasets to typecheck (in TSV format); use - for standard input'
-        });
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('typecheck', {
+        add_help: true,
+        description: "Typecheck a dataset, optionally applying transformations to ensure the types are correct."
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--dropped', {
+        required: true,
+        help: "Location where to save sentences that were dropped",
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--thingpedia', {
+        required: true,
+        help: 'Path to ThingTalk file containing class definitions.'
+    });
+    parser.add_argument('--cache', {
+        help: "Cache file with previously applied transformations."
+    });
+    parser.add_argument('--contextual', {
+        action: 'store_true',
+        help: 'Process a contextual dataset.',
+        default: false
+    });
+    parser.add_argument('--interactive', {
+        action: 'store_true',
+        help: 'Fix problems interactively.',
+        default: false
+    });
+    parser.add_argument('--no-interactive', {
+        action: 'store_false',
+        dest: 'interactive',
+        help: 'Fix problems automatically with no interaction.',
+        default: false
+    });
+    parser.add_argument('input_file', {
+        nargs: '+',
+        type: maybeCreateReadStream,
+        help: 'Input datasets to typecheck (in TSV format); use - for standard input'
+    });
 
-        parser.add_argument('--debug', {
-            action: 'store_true',
-            help: 'Enable debugging.',
-            default: false
-        });
-        parser.add_argument('--no-debug', {
-            action: 'store_false',
-            dest: 'debug',
-            help: 'Disable debugging.',
-        });
-        parser.add_argument('--random-seed', {
-            default: 'almond is awesome',
-            help: 'Random seed'
-        });
-    },
+    parser.add_argument('--debug', {
+        action: 'store_true',
+        help: 'Enable debugging.',
+        default: false
+    });
+    parser.add_argument('--no-debug', {
+        action: 'store_false',
+        dest: 'debug',
+        help: 'Disable debugging.',
+    });
+    parser.add_argument('--random-seed', {
+        default: 'almond is awesome',
+        help: 'Random seed'
+    });
+}
 
-    async execute(args) {
-        const tpClient = new Tp.FileClient(args);
-        const schemas = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
+export async function execute(args) {
+    const tpClient = new Tp.FileClient(args);
+    const schemas = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
 
-        let cache, cacheOut;
-        if (args.cache) {
-            if (await util.promisify(fs.exists)(args.cache)) {
-                cache = await readAllLines([fs.createReadStream(args.cache)])
-                    .pipe(new CacheParser())
-                    .pipe(new StreamUtils.MapAccumulator('from'))
-                    .read();
-            } else {
-                cache = new Map;
-            }
-            cacheOut = new CacheSerializer();
-            cacheOut.pipe(fs.createWriteStream(args.cache, { flags: 'a' }));
+    let cache, cacheOut;
+    if (args.cache) {
+        if (await util.promisify(fs.exists)(args.cache)) {
+            cache = await readAllLines([fs.createReadStream(args.cache)])
+                .pipe(new CacheParser())
+                .pipe(new StreamUtils.MapAccumulator('from'))
+                .read();
         } else {
             cache = new Map;
-            cacheOut = null;
         }
-        const droppedOut = new DatasetStringifier();
-        droppedOut.pipe(args.dropped);
-
-        readAllLines(args.input_file)
-            .pipe(new DatasetParser({ contextual: args.contextual }))
-            .pipe(new TypecheckStream(schemas, cache, cacheOut, droppedOut, args))
-            .pipe(new DatasetStringifier())
-            .pipe(args.output);
-
-        await Promise.all([
-            StreamUtils.waitFinish(args.output),
-            StreamUtils.waitFinish(args.dropped)
-        ]);
+        cacheOut = new CacheSerializer();
+        cacheOut.pipe(fs.createWriteStream(args.cache, { flags: 'a' }));
+    } else {
+        cache = new Map;
+        cacheOut = null;
     }
-};
+    const droppedOut = new DatasetStringifier();
+    droppedOut.pipe(args.dropped);
+
+    readAllLines(args.input_file)
+        .pipe(new DatasetParser({ contextual: args.contextual }))
+        .pipe(new TypecheckStream(schemas, cache, cacheOut, droppedOut, args))
+        .pipe(new DatasetStringifier())
+        .pipe(args.output);
+
+    await Promise.all([
+        StreamUtils.waitFinish(args.output),
+        StreamUtils.waitFinish(args.dropped)
+    ]);
+}

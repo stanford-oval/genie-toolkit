@@ -19,10 +19,10 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const seedrandom = require('seedrandom');
-const assert = require('assert');
+import * as seedrandom from 'seedrandom';
+import assert from 'assert';
 
-const random = require('../../lib/utils/random');
+import * as random from '../../lib/utils/random';
 
 function testChoice(rng) {
     assert.strictEqual(random.uniform([1,2,3,4], rng), 4);
@@ -81,6 +81,6 @@ async function main() {
     await testShuffle(rng);
     await testReservoirSampler(rng);
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

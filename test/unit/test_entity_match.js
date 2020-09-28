@@ -1,6 +1,6 @@
 "use strict";
 
-const { getBestEntityMatch } = require('../../lib/dialogue-agent/entity-linking/entity-finder');
+import { getBestEntityMatch } from '../../lib/dialogue-agent/entity-linking/entity-finder';
 
 const TEST_CASES = [
     [
@@ -248,8 +248,6 @@ async function main() {
         throw new Error('testEntityMatch FAILED');
 
 }
-
-if (module.parent)
-    module.exports = main;
-else
+export default main;
+if (!module.parent)
     main();

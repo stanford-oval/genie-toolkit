@@ -19,9 +19,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const TimedReference = require('../../lib/engine/util/timed_ref');
+import TimedReference from '../../lib/engine/util/timed_ref';
 
 function delay(ms) {
     return new Promise((resolve) => {
@@ -169,6 +169,6 @@ async function main() {
         testParallel()
     ]);
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

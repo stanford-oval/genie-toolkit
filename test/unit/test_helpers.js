@@ -19,11 +19,11 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
+import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
 
-const { MockPlatform } = require('./mock_utils');
-const Helpers = require('../../lib/dialogue-agent/helpers');
+import { MockPlatform } from './mock_utils';
+import * as Helpers from '../../lib/dialogue-agent/helpers';
 
 const CATEGORIES = ['media', 'social-network', 'home', 'communication', 'health', 'service', 'data-management'];
 
@@ -57,7 +57,6 @@ async function main() {
     const tpClient = new Tp.HttpClient(platform, 'https://almond-dev.stanford.edu/thingpedia');
     await test(tpClient);
 }
-if (module.parent)
-    module.exports = main;
-else
+export default main;
+if (!module.parent)
     main();

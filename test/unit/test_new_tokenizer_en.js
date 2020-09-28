@@ -19,9 +19,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const I18n = require('../../lib/i18n');
+import * as I18n from '../../lib/i18n';
 
 const TEST_CASES = [
     // order is input, raw, processed, entities, detokenized
@@ -561,6 +561,6 @@ function main() {
     if (anyFailed)
         throw new Error('Some test failed');
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

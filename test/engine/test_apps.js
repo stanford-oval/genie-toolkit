@@ -19,8 +19,8 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
-const Stream = require('stream');
+import assert from 'assert';
+import * as Stream from 'stream';
 
 const SUCCESS = {};
 const FAILURE = {};
@@ -727,7 +727,7 @@ async function testSayContext(engine, icon = null) {
 }
 
 
-module.exports = async function testApps(engine) {
+export default async function testApps(engine) {
     assert.deepStrictEqual(engine.apps.getAllApps(), []);
 
     await testLoadAppNotCompilable(engine);
@@ -758,4 +758,4 @@ module.exports = async function testApps(engine) {
 
     await delay(1000);
     assert.deepStrictEqual(engine.apps.getAllApps(), []);
-};
+}

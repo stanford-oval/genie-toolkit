@@ -19,8 +19,8 @@
 // Author: Swee Kiat Lim <sweekiat@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
-const timers = require('../../lib/engine/apps/timers');
+import assert from 'assert';
+import * as timers from '../../lib/engine/apps/timers';
 
 function testTimer_setTimems() {
     let timer = new timers.Timer(null, null);
@@ -489,7 +489,7 @@ function testTimer_nextTimeout_error() {
         timer._base = test._base;
         timer._interval = test._interval;
         timer._frequency = test._frequency;
-        assert.throws(() => {timer._nextTimeout(test._now);}, {
+        assert.throws(() => { timer._nextTimeout(test._now); }, {
             name: "Error",
             message: `Timer with total interval ${test._interval} and frequency ${test._frequency} will have intervals of ${test._interval / test._frequency}. Minimum interval is 2 seconds.`,
         });
@@ -506,6 +506,6 @@ function main() {
     testTimer_splitWeek_error();
     testTimer_nextTimeout_error();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

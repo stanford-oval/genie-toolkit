@@ -19,17 +19,17 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const fs = require('fs');
-const events = require('events');
-const csvparse = require('csv-parse');
-const csvstringify = require('csv-stringify');
-const readline = require('readline');
-const Tp = require('thingpedia');
+import * as fs from 'fs';
+import * as events from 'events';
+import csvparse from 'csv-parse';
+import csvstringify from 'csv-stringify';
+import * as readline from 'readline';
+import * as Tp from 'thingpedia';
 
-const ParserClient = require('../lib/prediction/parserclient');
-const { DatasetStringifier } = require('../lib/dataset-tools/parsers');
+import * as ParserClient from '../lib/prediction/parserclient';
+import { DatasetStringifier } from '../lib/dataset-tools/parsers';
 
-const ThingTalk = require('thingtalk');
+import * as ThingTalk from 'thingtalk';
 
 function waitFinish(stream) {
     return new Promise((resolve, reject) => {
@@ -252,100 +252,98 @@ class Trainer extends events.EventEmitter {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('manual-annotate', {
-            add_help: true,
-            description: `Import a manually annotated dataset. For each command use ` +
-                `"$number": to select from the candidates, ` +
-                `"e $number": to edit on top of the selected thingtalk code, ` +
-                `"n": show more candidates, ` +
-                `"t": to type in the thingtalk directly, ` +
-                `"d": drop the example,` +
-                `"d $comment": drop the example with some comment.`
-        });
-        parser.add_argument('--annotated', {
-            required: false,
-            default: './annotated.tsv',
-        });
-        parser.add_argument('--dropped', {
-            required: false,
-            default: './dropped.tsv',
-        });
-        parser.add_argument('input', {
-            type: fs.createReadStream,
-            help: `The script expects a tsv input file with columns: id, utterance, preprocessed, target_code`
-        });
-        parser.add_argument('--offset', {
-            required: false,
-            type: parseInt,
-            default: 1,
-            help: `Start from the nth line of the input tsv file.`
-        });
-        parser.add_argument('-l', '--locale', {
-            required: false,
-            default: 'en-US',
-            help: `BGP 47 locale tag of the natural language being processed (defaults to en-US).`
-        });
-        parser.add_argument('--thingpedia', {
-            required: true,
-            help: 'Path to ThingTalk file containing class definitions.'
-        });
-        parser.add_argument('--server', {
-            required: false,
-            default: 'https://almond-nl.stanford.edu',
-            help: `The URL of the natural language server.`
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('manual-annotate', {
+        add_help: true,
+        description: `Import a manually annotated dataset. For each command use ` +
+            `"$number": to select from the candidates, ` +
+            `"e $number": to edit on top of the selected thingtalk code, ` +
+            `"n": show more candidates, ` +
+            `"t": to type in the thingtalk directly, ` +
+            `"d": drop the example,` +
+            `"d $comment": drop the example with some comment.`
+    });
+    parser.add_argument('--annotated', {
+        required: false,
+        default: './annotated.tsv',
+    });
+    parser.add_argument('--dropped', {
+        required: false,
+        default: './dropped.tsv',
+    });
+    parser.add_argument('input', {
+        type: fs.createReadStream,
+        help: `The script expects a tsv input file with columns: id, utterance, preprocessed, target_code`
+    });
+    parser.add_argument('--offset', {
+        required: false,
+        type: parseInt,
+        default: 1,
+        help: `Start from the nth line of the input tsv file.`
+    });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en-US',
+        help: `BGP 47 locale tag of the natural language being processed (defaults to en-US).`
+    });
+    parser.add_argument('--thingpedia', {
+        required: true,
+        help: 'Path to ThingTalk file containing class definitions.'
+    });
+    parser.add_argument('--server', {
+        required: false,
+        default: 'https://almond-nl.stanford.edu',
+        help: `The URL of the natural language server.`
+    });
+}
 
-    async execute(args) {
-        const learned = new DatasetStringifier();
-        learned.pipe(fs.createWriteStream(args.annotated, { flags: (args.offset > 0 ? 'a' : 'w') }));
-        const droppedfile = fs.createWriteStream(args.dropped, { flags: (args.offset > 0 ? 'a' : 'w') });
-        const dropped = csvstringify({ header: true, delimiter: '\t' });
-        dropped.pipe(droppedfile);
+export async function execute(args) {
+    const learned = new DatasetStringifier();
+    learned.pipe(fs.createWriteStream(args.annotated, { flags: (args.offset > 0 ? 'a' : 'w') }));
+    const droppedfile = fs.createWriteStream(args.dropped, { flags: (args.offset > 0 ? 'a' : 'w') });
+    const dropped = csvstringify({ header: true, delimiter: '\t' });
+    dropped.pipe(droppedfile);
 
-        let lines = [];
-        args.input.setEncoding('utf8');
-        const input = args.input.pipe(csvparse({ columns: true, relax: true, delimiter: '\t' }));
-        input.on('data', (line) => {
-            lines.push(line);
-        });
-        await waitEnd(input);
+    let lines = [];
+    args.input.setEncoding('utf8');
+    const input = args.input.pipe(csvparse({ columns: true, relax: true, delimiter: '\t' }));
+    input.on('data', (line) => {
+        lines.push(line);
+    });
+    await waitEnd(input);
 
-        if (args.offset > 1)
-            lines = lines.slice(args.offset-1);
+    if (args.offset > 1)
+        lines = lines.slice(args.offset-1);
 
-        const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-        rl.setPrompt('$ ');
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    rl.setPrompt('$ ');
 
-        function quit() {
-            learned.end();
-            dropped.end();
+    function quit() {
+        learned.end();
+        dropped.end();
 
-            console.log('Bye\n');
-            rl.close();
-            //process.exit();
-        }
-
-        const trainer = new Trainer(rl, lines, args);
-        trainer.on('end', quit);
-        trainer.on('learned', (ex) => {
-            learned.write(ex);
-        });
-        trainer.on('dropped', (row) => {
-            dropped.write(row);
-        });
-        rl.on('SIGINT', quit);
-        await trainer.start();
-        trainer.next();
-        //process.stdin.on('end', quit);
-
-        await Promise.all([
-            waitFinish(learned),
-            waitFinish(droppedfile),
-        ]);
-
-        await trainer.stop();
+        console.log('Bye\n');
+        rl.close();
+        //process.exit();
     }
-};
+
+    const trainer = new Trainer(rl, lines, args);
+    trainer.on('end', quit);
+    trainer.on('learned', (ex) => {
+        learned.write(ex);
+    });
+    trainer.on('dropped', (row) => {
+        dropped.write(row);
+    });
+    rl.on('SIGINT', quit);
+    await trainer.start();
+    trainer.next();
+    //process.stdin.on('end', quit);
+
+    await Promise.all([
+        waitFinish(learned),
+        waitFinish(droppedfile),
+    ]);
+
+    await trainer.stop();
+}

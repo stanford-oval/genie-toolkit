@@ -18,7 +18,7 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 "use strict";
-const ThingTalk = require('thingtalk');
+import * as ThingTalk from 'thingtalk';
 const Type = ThingTalk.Type;
 
 //TODO: some of the following could differ from domain to domain; we should allow domain override.
@@ -614,7 +614,7 @@ const WHITELISTED_PROPERTIES_BY_DOMAIN = {
 };
 
 
-module.exports = {
+export {
     BUILTIN_TYPEMAP,
 
     BLACKLISTED_TYPES,

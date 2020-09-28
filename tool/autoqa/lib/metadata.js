@@ -19,7 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
 const LOCATION_TYPE = {
     display: { isArray: false, type: 'tt:String' },
@@ -70,6 +70,6 @@ function makeMetadata(className, args) {
     return meta;
 }
 
-module.exports = {
+export {
     makeMetadata
 };

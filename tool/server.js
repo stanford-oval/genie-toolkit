@@ -19,17 +19,17 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const express = require('express');
-const bodyParser = require('body-parser');
-const logger = require('morgan');
-const errorhandler = require('errorhandler');
-const qv = require('query-validation');
-const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
+import express from 'express';
+import bodyParser from 'body-parser';
+import logger from 'morgan';
+import errorhandler from 'errorhandler';
+import qv from 'query-validation';
+import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
 
-const Utils = require('../lib/utils/misc-utils');
-const Predictor = require('../lib/prediction/predictor');
-const I18n = require('../lib/i18n');
+import * as Utils from '../lib/utils/misc-utils';
+import Predictor from '../lib/prediction/predictor';
+import * as I18n from '../lib/i18n';
 
 function learn(req, res) {
     res.status(501).json({ error: 'Learning is not available with this Genie server' });
@@ -216,108 +216,106 @@ const NLG_PARAMS = {
     target: 'string',
 };
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('server', {
-            add_help: true,
-            description: "Expose a Genie-compatible NLP API over HTTP."
-        });
-        parser.add_argument('-p', '--port', {
-            required: false,
-            help: "HTTP port to listen on",
-            default: 8400,
-        });
-        parser.add_argument('--nlu-model', {
-            required: true,
-            help: "Path to the NLU model, pointing to a model directory.",
-        });
-        parser.add_argument('--nlg-model', {
-            required: false,
-            help: "Path to the NLG model, pointing to a model directory.",
-        });
-        parser.add_argument('--thingpedia', {
-            required: true,
-            help: 'Path to ThingTalk file containing class definitions.'
-        });
-        parser.add_argument('-l', '--locale', {
-            required: false,
-            default: 'en-US',
-            help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
-        });
-        parser.add_argument('--debug', {
-            action: 'store_true',
-            help: 'Enable debugging.',
-            default: true
-        });
-        parser.add_argument('--no-debug', {
-            action: 'store_false',
-            dest: 'debug',
-            help: 'Disable debugging.',
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('server', {
+        add_help: true,
+        description: "Expose a Genie-compatible NLP API over HTTP."
+    });
+    parser.add_argument('-p', '--port', {
+        required: false,
+        help: "HTTP port to listen on",
+        default: 8400,
+    });
+    parser.add_argument('--nlu-model', {
+        required: true,
+        help: "Path to the NLU model, pointing to a model directory.",
+    });
+    parser.add_argument('--nlg-model', {
+        required: false,
+        help: "Path to the NLG model, pointing to a model directory.",
+    });
+    parser.add_argument('--thingpedia', {
+        required: true,
+        help: 'Path to ThingTalk file containing class definitions.'
+    });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en-US',
+        help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
+    });
+    parser.add_argument('--debug', {
+        action: 'store_true',
+        help: 'Enable debugging.',
+        default: true
+    });
+    parser.add_argument('--no-debug', {
+        action: 'store_false',
+        dest: 'debug',
+        help: 'Disable debugging.',
+    });
+}
 
-    async execute(args) {
-        const tpClient = new Tp.FileClient(args);
-        const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
-        const app = express();
+export async function execute(args) {
+    const tpClient = new Tp.FileClient(args);
+    const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
+    const app = express();
 
-        const i18n = I18n.get(args.locale);
-        app.backend = {
-            schemas,
-            i18n,
-            tokenizer: i18n.getTokenizer(),
-            nlu: new Predictor('nlu', args.nlu_model, 1)
-        };
-        app.backend.nlu.start();
-        if (args.nlg_model && args.nlg_model !== args.nlu_model) {
-            app.backend.nlg = new Predictor('nlg', args.nlg_model, 1);
-            app.backend.nlg.start();
-        } else {
-            app.backend.nlg = app.backend.nlu;
-        }
-
-        app.args = args;
-
-        app.set('port', args.port);
-        app.use(bodyParser.json());
-        app.use(bodyParser.urlencoded({ extended: true }));
-        app.use(logger('dev'));
-
-        app.use((req, res, next) => {
-            res.set('Access-Control-Allow-Origin', '*');
-            next();
-        });
-
-        app.post('/:locale/query', qv.validatePOST(QUERY_PARAMS, { accept: 'application/json', json: true }), (req, res, next) => {
-            queryNLU(req.params, req.body, res).catch(next);
-        });
-
-        app.post('/:locale/answer', qv.validatePOST(NLG_PARAMS, { accept: 'application/json', json: true }), (req, res, next) => {
-            queryNLG(req.params, req.body, res).catch(next);
-        });
-
-        app.post('/:locale/tokenize', qv.validatePOST({ q: 'string', entities: '?object' }, { accept: 'application/json', json: true }), (req, res, next) => {
-            tokenize(req.params, req.body, res).catch(next);
-        });
-
-        app.post('/:locale/learn', learn);
-
-        // if we get here, we have a 404 error
-        app.use('/', (req, res) => {
-            res.status(404).json({ error: 'Invalid endpoint' });
-        });
-        app.use(errorhandler());
-
-        const server = app.listen(app.get('port'));
-
-        await new Promise((resolve, reject) => {
-            process.on('SIGINT', resolve);
-            process.on('SIGTERM', resolve);
-        });
-
-        await app.backend.nlu.stop();
-        if (app.backend.nlg !== app.backend.nlu)
-            await app.backend.nlg.stop();
-        server.close();
+    const i18n = I18n.get(args.locale);
+    app.backend = {
+        schemas,
+        i18n,
+        tokenizer: i18n.getTokenizer(),
+        nlu: new Predictor('nlu', args.nlu_model, 1)
+    };
+    app.backend.nlu.start();
+    if (args.nlg_model && args.nlg_model !== args.nlu_model) {
+        app.backend.nlg = new Predictor('nlg', args.nlg_model, 1);
+        app.backend.nlg.start();
+    } else {
+        app.backend.nlg = app.backend.nlu;
     }
-};
+
+    app.args = args;
+
+    app.set('port', args.port);
+    app.use(bodyParser.json());
+    app.use(bodyParser.urlencoded({ extended: true }));
+    app.use(logger('dev'));
+
+    app.use((req, res, next) => {
+        res.set('Access-Control-Allow-Origin', '*');
+        next();
+    });
+
+    app.post('/:locale/query', qv.validatePOST(QUERY_PARAMS, { accept: 'application/json', json: true }), (req, res, next) => {
+        queryNLU(req.params, req.body, res).catch(next);
+    });
+
+    app.post('/:locale/answer', qv.validatePOST(NLG_PARAMS, { accept: 'application/json', json: true }), (req, res, next) => {
+        queryNLG(req.params, req.body, res).catch(next);
+    });
+
+    app.post('/:locale/tokenize', qv.validatePOST({ q: 'string', entities: '?object' }, { accept: 'application/json', json: true }), (req, res, next) => {
+        tokenize(req.params, req.body, res).catch(next);
+    });
+
+    app.post('/:locale/learn', learn);
+
+    // if we get here, we have a 404 error
+    app.use('/', (req, res) => {
+        res.status(404).json({ error: 'Invalid endpoint' });
+    });
+    app.use(errorhandler());
+
+    const server = app.listen(app.get('port'));
+
+    await new Promise((resolve, reject) => {
+        process.on('SIGINT', resolve);
+        process.on('SIGTERM', resolve);
+    });
+
+    await app.backend.nlu.stop();
+    if (app.backend.nlg !== app.backend.nlu)
+        await app.backend.nlg.stop();
+    server.close();
+}

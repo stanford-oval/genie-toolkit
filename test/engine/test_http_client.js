@@ -19,9 +19,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const ThingTalk = require('thingtalk');
+import * as ThingTalk from 'thingtalk';
 
-module.exports = async function testHTTPClient(engine) {
+export default async function testHTTPClient(engine) {
     await ThingTalk.Grammar.parseAndTypecheck('now => @com.xkcd.get_comic() => notify;', engine.schemas, false);
 
     // do it again, to check that it is cached
@@ -29,4 +29,4 @@ module.exports = async function testHTTPClient(engine) {
 
     // now with metas
     await ThingTalk.Grammar.parseAndTypecheck('now => @com.xkcd.get_comic() => notify;', engine.schemas, true);
-};
+}

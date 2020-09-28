@@ -19,17 +19,17 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
-const fs = require('fs');
-const util = require('util');
-const path = require('path');
-const ThingTalk = require('thingtalk');
-const csvstringify = require('csv-stringify');
+import assert from 'assert';
+import * as fs from 'fs';
+import util from 'util';
+import path from 'path';
+import * as ThingTalk from 'thingtalk';
+import csvstringify from 'csv-stringify';
 
-const I18N = require('../../lib/i18n');
-const StreamUtils = require('../../lib/utils/stream-utils');
+import * as I18N from '../../lib/i18n';
+import * as StreamUtils from '../../lib/utils/stream-utils';
 
-const { makeMetadata } = require('./lib/metadata');
+import { makeMetadata } from './lib/metadata';
 
 class ParamDatasetGenerator {
     constructor(locale, debug, maxValueLength, className, dataset) {
@@ -237,71 +237,69 @@ class ParamDatasetGenerator {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('make-string-datasets', {
-            add_help: true,
-            description: "Extract string datasets from a AutoQA normalized data file."
-        });
-        parser.add_argument('--dataset', {
-            required: true,
-            choices: ['schemaorg', 'sgd', 'wikidata', 'multiwoz', 'custom'],
-            help: 'The dataset to run autoQA on.'
-        });
-        parser.add_argument('-d', '--output-dir', {
-            required: true,
-        });
-        parser.add_argument('--thingpedia', {
-            required: true,
-            help: 'Path to ThingTalk file containing class definitions.'
-        });
-        parser.add_argument('-l', '--locale', {
-            required: false,
-            default: 'en-US',
-            help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
-        });
-        parser.add_argument('--manifest', {
-            required: true,
-            help: `Write a parameter dataset manifest to this location`
-        });
-        parser.add_argument('--append-manifest', {
-            required: false,
-            action: 'store_true',
-            help: `append to the manifest instead of replacing`
-        });
-        parser.add_argument('--data', {
-            required: true,
-            help: 'Path to JSON file with normalized WebQA data.'
-        });
-        parser.add_argument('--max-value-length', {
-            required: false,
-            default: 500,
-            help: 'Ignore values longer than this (unit: number of UTF-16 code points after tokenization).'
-        });
-        parser.add_argument('--class-name', {
-            required: false,
-            help: 'The name of the device class, used to decide class-specific types'
-        });
-        parser.add_argument('--debug', {
-            action: 'store_true',
-            help: 'Enable debugging.',
-            default: true
-        });
-        parser.add_argument('--no-debug', {
-            action: 'store_false',
-            dest: 'debug',
-            help: 'Disable debugging.',
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('make-string-datasets', {
+        add_help: true,
+        description: "Extract string datasets from a AutoQA normalized data file."
+    });
+    parser.add_argument('--dataset', {
+        required: true,
+        choices: ['schemaorg', 'sgd', 'wikidata', 'multiwoz', 'custom'],
+        help: 'The dataset to run autoQA on.'
+    });
+    parser.add_argument('-d', '--output-dir', {
+        required: true,
+    });
+    parser.add_argument('--thingpedia', {
+        required: true,
+        help: 'Path to ThingTalk file containing class definitions.'
+    });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en-US',
+        help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
+    });
+    parser.add_argument('--manifest', {
+        required: true,
+        help: `Write a parameter dataset manifest to this location`
+    });
+    parser.add_argument('--append-manifest', {
+        required: false,
+        action: 'store_true',
+        help: `append to the manifest instead of replacing`
+    });
+    parser.add_argument('--data', {
+        required: true,
+        help: 'Path to JSON file with normalized WebQA data.'
+    });
+    parser.add_argument('--max-value-length', {
+        required: false,
+        default: 500,
+        help: 'Ignore values longer than this (unit: number of UTF-16 code points after tokenization).'
+    });
+    parser.add_argument('--class-name', {
+        required: false,
+        help: 'The name of the device class, used to decide class-specific types'
+    });
+    parser.add_argument('--debug', {
+        action: 'store_true',
+        help: 'Enable debugging.',
+        default: true
+    });
+    parser.add_argument('--no-debug', {
+        action: 'store_false',
+        dest: 'debug',
+        help: 'Disable debugging.',
+    });
+}
 
-    async execute(args) {
-        const generator = new ParamDatasetGenerator(args.locale, args.debug,
-            args.max_value_length, args.class_name, args.dataset);
-        await generator.init(args.thingpedia);
+export async function execute(args) {
+    const generator = new ParamDatasetGenerator(args.locale, args.debug,
+        args.max_value_length, args.class_name, args.dataset);
+    await generator.init(args.thingpedia);
 
-        const data = JSON.parse(await util.promisify(fs.readFile)(args.data, { encoding: 'utf8' }));
-        generator.run(data);
+    const data = JSON.parse(await util.promisify(fs.readFile)(args.data, { encoding: 'utf8' }));
+    generator.run(data);
 
-        await generator.output(args.output_dir, args.manifest, args.append_manifest);
-    }
-};
+    await generator.output(args.output_dir, args.manifest, args.append_manifest);
+}

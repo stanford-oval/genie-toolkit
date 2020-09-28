@@ -18,7 +18,7 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 "use strict";
-const ThingTalk = require('thingtalk');
+import * as ThingTalk from 'thingtalk';
 const Type = ThingTalk.Type;
 
 const PROPERTY_TYPE_OVERRIDE = {
@@ -48,7 +48,7 @@ const STRING_FILE_OVERRIDES = {
 };
 
 
-module.exports = {
+export {
     MANUAL_PROPERTY_CANONICAL_OVERRIDE,
     MANUAL_TABLE_CANONICAL_OVERRIDE,
 

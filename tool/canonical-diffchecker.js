@@ -19,12 +19,12 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 "use strict";
 
-const ThingTalk = require('thingtalk');
+import * as ThingTalk from 'thingtalk';
 
-const util = require('util');
-const fs = require('fs');
-const assert = require('assert');
-const csvstringify = require('csv-stringify');
+import util from 'util';
+import * as fs from 'fs';
+import assert from 'assert';
+import csvstringify from 'csv-stringify';
 
 async function loadSchema(schema) {
     const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(schema, { encoding: 'utf8' }));
@@ -108,40 +108,38 @@ function prettyprintDiff(base, diff) {
 }
 
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('canonical-diffchecker', {
-            add_help: true,
-            description: "Retrieve the labels of properties from wikidata."
-        });
-        parser.add_argument('schemas', {
-            nargs: 2,
-            help: "Two schema files to compare."
-        });
-        parser.add_argument('--queries', {
-            required: true,
-            nargs: '+',
-            help: "The name of queries to check."
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('canonical-diffchecker', {
+        add_help: true,
+        description: "Retrieve the labels of properties from wikidata."
+    });
+    parser.add_argument('schemas', {
+        nargs: 2,
+        help: "Two schema files to compare."
+    });
+    parser.add_argument('--queries', {
+        required: true,
+        nargs: '+',
+        help: "The name of queries to check."
+    });
+}
 
-    async execute(args) {
-        const schemas = await Promise.all(args.schemas.map(loadSchema));
-        assert.strictEqual(schemas[0].kind, schemas[1].kind);
+export async function execute(args) {
+    const schemas = await Promise.all(args.schemas.map(loadSchema));
+    assert.strictEqual(schemas[0].kind, schemas[1].kind);
 
-        const canonicals = schemas.map((schema) => {
-            let canonical = {};
-            for (let query of args.queries) {
-                for (let arg of schema.queries[query].iterateArguments()) {
-                    if (arg.name !== 'id')
-                        canonical[arg.name] = arg.metadata.canonical;
-                }
+    const canonicals = schemas.map((schema) => {
+        let canonical = {};
+        for (let query of args.queries) {
+            for (let arg of schema.queries[query].iterateArguments()) {
+                if (arg.name !== 'id')
+                    canonical[arg.name] = arg.metadata.canonical;
             }
-            return canonical;
-        });
+        }
+        return canonical;
+    });
 
-        const base = canonicals[0];
-        const diff = diffChecker(...canonicals);
-        prettyprintDiff(base, diff).pipe(process.stdout);
-    }
-};
+    const base = canonicals[0];
+    const diff = diffChecker(...canonicals);
+    prettyprintDiff(base, diff).pipe(process.stdout);
+}

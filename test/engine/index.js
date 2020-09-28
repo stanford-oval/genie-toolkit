@@ -19,14 +19,15 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const Q = require('q');
+import Q from 'q';
 Q.longStackSupport = true;
 process.on('unhandledRejection', (up) => { throw up; });
 
 // require(thingpedia) to initialize the polyfill
 require('thingpedia');
 
-const Engine = require('../../lib/engine');
+import Engine from '../../lib/engine';
+import * as Platform from './platform';
 
 const THINGPEDIA_URL = 'https://almond-dev.stanford.edu/thingpedia';
 const THINGENGINE_URL = 'https://almond-dev.stanford.edu';
@@ -37,7 +38,7 @@ async function runTests(engine, limitTo) {
             if (limitTo !== undefined && x !== limitTo)
                 continue;
             console.log(`Running ${x} tests`);
-            await require('./test_' + x)(engine);
+            await (await import('./test_' + x)).default(engine);
         }
 
         await engine.stop();
@@ -48,7 +49,7 @@ async function runTests(engine, limitTo) {
 }
 
 async function main() {
-    const platform = require('./platform').newInstance();
+    const platform = Platform.newInstance();
     const engine = new Engine(platform, {
         thingpediaUrl: THINGPEDIA_URL,
         cloudSyncUrl: THINGENGINE_URL

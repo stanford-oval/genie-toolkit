@@ -19,20 +19,20 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const fs = require('fs');
-const readline = require('readline');
-const events = require('events');
-const seedrandom = require('seedrandom');
-const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
+import * as fs from 'fs';
+import * as readline from 'readline';
+import * as events from 'events';
+import seedrandom from 'seedrandom';
+import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
 
-const TargetLanguages = require('../lib/languages');
-const StreamUtils = require('../lib/utils/stream-utils');
-const ParserClient = require('../lib/prediction/parserclient');
-const { DialogueParser, DialogueSerializer } = require('../lib/dataset-tools/parsers');
+import * as TargetLanguages from '../lib/languages';
+import * as StreamUtils from '../lib/utils/stream-utils';
+import * as ParserClient from '../lib/prediction/parserclient';
+import { DialogueParser, DialogueSerializer } from '../lib/dataset-tools/parsers';
 
-const { readAllLines } = require('./lib/argutils');
-const MultiJSONDatabase = require('./lib/multi_json_database');
+import { readAllLines } from './lib/argutils';
+import MultiJSONDatabase from './lib/multi_json_database';
 
 class Annotator extends events.EventEmitter {
     constructor(rl, dialogues, options) {
@@ -551,159 +551,157 @@ class Annotator extends events.EventEmitter {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('manual-annotate-dialog', {
-            add_help: true,
-            description: `Interactively annotate a dialog dataset, by annotating each sentence turn-by-turn.`
-        });
-        parser.add_argument('--annotated', {
-            required: true,
-        });
-        parser.add_argument('--dropped', {
-            required: true,
-        });
-        parser.add_argument('-l', '--locale', {
-            required: false,
-            default: 'en-US',
-            help: `BGP 47 locale tag of the natural language being processed (defaults to en-US).`
-        });
-        parser.add_argument('--thingpedia', {
-            required: true,
-            help: 'Path to ThingTalk file containing class definitions.'
-        });
-        parser.add_argument('-t', '--target-language', {
-            required: false,
-            default: 'thingtalk',
-            choices: TargetLanguages.AVAILABLE_LANGUAGES,
-            help: `The programming language to generate`
-        });
-        parser.add_argument('--database-file', {
-            required: false,
-            help: `Path to a file pointing to JSON databases used to simulate queries.`,
-        });
-        parser.add_argument('--user-nlu-server', {
-            required: false,
-            default: 'http://127.0.0.1:8400',
-            help: `The URL of the natural language server to parse user utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
-        });
-        parser.add_argument('--agent-nlu-server', {
-            required: false,
-            default: 'http://127.0.0.1:8400',
-            help: `The URL of the natural language server to parse agent utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
-        });
-        parser.add_argument('--offset', {
-            required: false,
-            type: parseInt,
-            default: 1,
-            help: `Start from the nth dialogue of the input tsv file.`
-        });
-        parser.add_argument('--existing-annotations', {
-            action: 'store_true',
-            help: 'The input file already has annotations.',
-            default: false
-        });
-        parser.add_argument('--edit-mode', {
-            action: 'store_true',
-            help: 'Edit an existing annotated dataset instead of creating a new one (implies --existing-annotations).',
-            default: false
-        });
-        parser.add_argument('--only-ids', {
-            required: false,
-            help: 'Only annotate the dialogues with the given IDs, comma-separated (must be given with --existing-annotations)',
-            default: ''
-        });
-        parser.add_argument('--max-turns', {
-            required: false,
-            help: 'Auto-annotate after the given number of turns',
-        });
-        parser.add_argument('--append', {
-            action: 'store_true',
-            help: 'Append to the output file instead of overwriting (implied by --edit-mode or --offset > 1)',
-        });
-        parser.add_argument('--no-append', {
-            action: 'store_true',
-            help: 'Overwrite the output file instead of appending (overrides --append, --edit-mode and --offset)',
-        });
-        parser.add_argument('input_file', {
-            nargs: '+',
-            type: fs.createReadStream,
-            help: 'Input dialog file'
-        });
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('manual-annotate-dialog', {
+        add_help: true,
+        description: `Interactively annotate a dialog dataset, by annotating each sentence turn-by-turn.`
+    });
+    parser.add_argument('--annotated', {
+        required: true,
+    });
+    parser.add_argument('--dropped', {
+        required: true,
+    });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en-US',
+        help: `BGP 47 locale tag of the natural language being processed (defaults to en-US).`
+    });
+    parser.add_argument('--thingpedia', {
+        required: true,
+        help: 'Path to ThingTalk file containing class definitions.'
+    });
+    parser.add_argument('-t', '--target-language', {
+        required: false,
+        default: 'thingtalk',
+        choices: TargetLanguages.AVAILABLE_LANGUAGES,
+        help: `The programming language to generate`
+    });
+    parser.add_argument('--database-file', {
+        required: false,
+        help: `Path to a file pointing to JSON databases used to simulate queries.`,
+    });
+    parser.add_argument('--user-nlu-server', {
+        required: false,
+        default: 'http://127.0.0.1:8400',
+        help: `The URL of the natural language server to parse user utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
+    });
+    parser.add_argument('--agent-nlu-server', {
+        required: false,
+        default: 'http://127.0.0.1:8400',
+        help: `The URL of the natural language server to parse agent utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.`
+    });
+    parser.add_argument('--offset', {
+        required: false,
+        type: parseInt,
+        default: 1,
+        help: `Start from the nth dialogue of the input tsv file.`
+    });
+    parser.add_argument('--existing-annotations', {
+        action: 'store_true',
+        help: 'The input file already has annotations.',
+        default: false
+    });
+    parser.add_argument('--edit-mode', {
+        action: 'store_true',
+        help: 'Edit an existing annotated dataset instead of creating a new one (implies --existing-annotations).',
+        default: false
+    });
+    parser.add_argument('--only-ids', {
+        required: false,
+        help: 'Only annotate the dialogues with the given IDs, comma-separated (must be given with --existing-annotations)',
+        default: ''
+    });
+    parser.add_argument('--max-turns', {
+        required: false,
+        help: 'Auto-annotate after the given number of turns',
+    });
+    parser.add_argument('--append', {
+        action: 'store_true',
+        help: 'Append to the output file instead of overwriting (implied by --edit-mode or --offset > 1)',
+    });
+    parser.add_argument('--no-append', {
+        action: 'store_true',
+        help: 'Overwrite the output file instead of appending (overrides --append, --edit-mode and --offset)',
+    });
+    parser.add_argument('input_file', {
+        nargs: '+',
+        type: fs.createReadStream,
+        help: 'Input dialog file'
+    });
 
-    },
+}
 
-    async execute(args) {
-        if (args.edit_mode)
-            args.existing_annotations = true;
-        if (args.only_ids && !args.existing_annotations)
-            throw new Error(`--only-ids is only valid in edit mode (with --existing-annotations)`);
+export async function execute(args) {
+    if (args.edit_mode)
+        args.existing_annotations = true;
+    if (args.only_ids && !args.existing_annotations)
+        throw new Error(`--only-ids is only valid in edit mode (with --existing-annotations)`);
 
-        let dialogues = await readAllLines(args.input_file, '====')
-            .pipe(new DialogueParser({ withAnnotations: args.existing_annotations }))
-            .pipe(new StreamUtils.ArrayAccumulator())
-            .read();
-
-
-        const learned = new DialogueSerializer({ annotations: true });
-        let appendLearned, appendDropped;
-        if (args.no_append) {
-            appendLearned = false;
-            appendDropped = false;
-        } else if (args.append) {
-            appendLearned = true;
-            appendDropped = true;
-        } else {
-            appendLearned = (args.offset > 1 && !args.edit_mode);
-            appendDropped = (args.offset > 1 || args.edit_mode);
-        }
-
-        learned.pipe(fs.createWriteStream(args.annotated, { flags: (appendLearned ? 'a' : 'w') }));
-        const dropped = new DialogueSerializer({ annotations: false });
-        dropped.pipe(fs.createWriteStream(args.dropped, { flags: (appendDropped ? 'a' : 'w') }));
-
-        if (args.edit_mode) {
-            // copy over the existing dialogues if we're in editing mode
-            for (let i = 0; i < args.offset-1; i++)
-                learned.write({ id: dialogues[i].id, turns: dialogues[i] });
-        }
-
-        if (args.offset > 1)
-            dialogues = dialogues.slice(args.offset-1);
-
-        const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-        rl.setPrompt('$ ');
-
-        function quit() {
-            learned.end();
-            dropped.end();
-            rl.close();
-            //process.exit();
-        }
-
-        const annotator = new Annotator(rl, dialogues, args);
-        await annotator.start();
+    let dialogues = await readAllLines(args.input_file, '====')
+        .pipe(new DialogueParser({ withAnnotations: args.existing_annotations }))
+        .pipe(new StreamUtils.ArrayAccumulator())
+        .read();
 
 
-        annotator.on('end', quit);
-        annotator.on('learned', (dlg) => {
-            learned.write(dlg);
-        });
-        annotator.on('dropped', (dlg) => {
-            dropped.write(dlg);
-        });
-        annotator.on('quit', quit);
-        rl.on('SIGINT', quit);
-        annotator.next();
-        //process.stdin.on('end', quit);
-
-        await Promise.all([
-            StreamUtils.waitFinish(learned),
-            StreamUtils.waitFinish(dropped),
-        ]);
-        await annotator.stop();
-
-        console.log('All dialogues annotated, waiting 30 seconds to quit...');
-        setTimeout(() => process.exit(), 30000);
+    const learned = new DialogueSerializer({ annotations: true });
+    let appendLearned, appendDropped;
+    if (args.no_append) {
+        appendLearned = false;
+        appendDropped = false;
+    } else if (args.append) {
+        appendLearned = true;
+        appendDropped = true;
+    } else {
+        appendLearned = (args.offset > 1 && !args.edit_mode);
+        appendDropped = (args.offset > 1 || args.edit_mode);
     }
-};
+
+    learned.pipe(fs.createWriteStream(args.annotated, { flags: (appendLearned ? 'a' : 'w') }));
+    const dropped = new DialogueSerializer({ annotations: false });
+    dropped.pipe(fs.createWriteStream(args.dropped, { flags: (appendDropped ? 'a' : 'w') }));
+
+    if (args.edit_mode) {
+        // copy over the existing dialogues if we're in editing mode
+        for (let i = 0; i < args.offset-1; i++)
+            learned.write({ id: dialogues[i].id, turns: dialogues[i] });
+    }
+
+    if (args.offset > 1)
+        dialogues = dialogues.slice(args.offset-1);
+
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    rl.setPrompt('$ ');
+
+    function quit() {
+        learned.end();
+        dropped.end();
+        rl.close();
+        //process.exit();
+    }
+
+    const annotator = new Annotator(rl, dialogues, args);
+    await annotator.start();
+
+
+    annotator.on('end', quit);
+    annotator.on('learned', (dlg) => {
+        learned.write(dlg);
+    });
+    annotator.on('dropped', (dlg) => {
+        dropped.write(dlg);
+    });
+    annotator.on('quit', quit);
+    rl.on('SIGINT', quit);
+    annotator.next();
+    //process.stdin.on('end', quit);
+
+    await Promise.all([
+        StreamUtils.waitFinish(learned),
+        StreamUtils.waitFinish(dropped),
+    ]);
+    await annotator.stop();
+
+    console.log('All dialogues annotated, waiting 30 seconds to quit...');
+    setTimeout(() => process.exit(), 30000);
+}

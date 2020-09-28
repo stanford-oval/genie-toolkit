@@ -19,15 +19,15 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
-const fs = require('fs');
-const path = require('path');
-const Tp = require('thingpedia');
+import assert from 'assert';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as Tp from 'thingpedia';
 
 const manifests = fs.readFileSync(path.resolve(path.dirname(module.filename), 'collection.tt'))
     .toString('utf8').split('====');
 
-const Builtins = require('../../../lib/engine/devices/builtins');
+import Builtins from '../../../lib/engine/devices/builtins';
 
 class TestSubdevice extends Tp.BaseDevice {
     constructor(engine, state, master) {

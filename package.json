@@ -2,14 +2,16 @@
   "name": "genie-toolkit",
   "version": "0.7.0",
   "description": "A Generator of Natural Language Parsers for Compositional Virtual Assistants",
-  "main": "lib/index.js",
   "repository": "https://github.com/stanford-oval/genie-toolkit.git",
   "author": "Giovanni Campagna <gcampagn@cs.stanford.edu>",
   "license": "Apache-2.0",
   "bin": {
-    "genie": "./tool/genie.js"
+    "genie": "./dist/tool/genie.js"
   },
+  "main": "dist/lib/index.js",
+  "types": "dist/lib/index.d.ts",
   "dependencies": {
+    "@types/argparse": "^2.0.0",
     "JSONStream": "^1.3.5",
     "adt": "^0.7.2",
     "argparse": "^2.0.0",
@@ -43,22 +45,30 @@
     "ws": "^7.3.0"
   },
   "devDependencies": {
+    "@istanbuljs/nyc-config-typescript": "^1.0.1",
+    "@types/node": "^14.11.1",
+    "@typescript-eslint/eslint-plugin": "^4.2.0",
+    "@typescript-eslint/parser": "^4.2.0",
     "coveralls": "^3.0.0",
-    "eslint": "^7.2.0",
-    "jsdoc": "^3.6.3",
+    "eslint": "^7.1.0",
     "nyc": "^15.0.0",
-    "pegjs": "^0.10.0"
+    "pegjs": "^0.10.0",
+    "source-map-support": "^0.5.19",
+    "ts-node": "^9.0.0",
+    "typedoc": "^0.19.2",
+    "typescript": "^4.0.3"
   },
   "scripts": {
     "update-pot": "./po/update-pot.sh",
     "update-po": "./po/update-po.sh",
-    "lint": "eslint ./lib ./tool ./languages",
+    "lint": "eslint --ext .js,.jsx,.ts,.tsx ./lib ./tool ./languages ./test",
     "test": "nyc ./test/everything.sh",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "prepare": "make",
-    "doc": "jsdoc -c jsdoc.json --readme README.md --package package.json --verbose -r lib/"
+    "doc": "typedoc lib/index.ts"
   },
   "nyc": {
+    "extends": "@istanbuljs/nyc-config-typescript",
     "exclude": [
       "lib/genie-compiler/grammar.js",
       "test/**",

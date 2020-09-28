@@ -8,10 +8,12 @@ all = \
 
 all: prepare
 
-prepare: $(all)
+prepare: bundle dist
+
+dist: $(all) lib/*.ts lib/*/*.js lib/*/*/*.js tool/*.js tool/*/*.js tool/*/*/*.js tsconfig.json
+	tsc --build tsconfig.json
 
 bundle: bundle/en.zip bundle/zh-tw.zip
-
 
 bundle/%: languages/thingtalk/%/*.genie languages/thingtalk/*.genie languages/thingtalk/*.js
 	mkdir -p $@
