@@ -44,6 +44,7 @@ const {
     PROPERTY_NAME_OVERRIDE_BY_DOMAIN,
     MANUAL_PROPERTY_CANONICAL_OVERRIDE,
     MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN,
+    TABLE_CANONICAL_OVERRIDE,
     MANUAL_TABLE_CANONICAL_OVERRIDE,
     MANUAL_COUNTED_OBJECT_OVERRIDE,
     PROPERTY_FORCE_NOT_ARRAY,
@@ -723,6 +724,8 @@ class SchemaProcessor {
             let query_canonical;
             if (this._manual && typename in MANUAL_TABLE_CANONICAL_OVERRIDE)
                 query_canonical = MANUAL_TABLE_CANONICAL_OVERRIDE[typename];
+            else if (typename in TABLE_CANONICAL_OVERRIDE)
+                query_canonical = TABLE_CANONICAL_OVERRIDE[typename];
             else
                 query_canonical = clean(typename);
 
