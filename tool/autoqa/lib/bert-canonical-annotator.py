@@ -8,6 +8,21 @@ from transformers import BertTokenizer, BertForMaskedLM, GPT2Tokenizer, GPT2LMHe
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 BLACK_LIST = ['a', 'an', 'the', 'its', 'their', 'his', 'her']
+STOP_WORDS = ['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', "you're", "you've", "you'll",
+              "you'd", 'your', 'yours', 'yourself', 'yourselves', 'he', 'him', 'his', 'himself', 'she', "she's",
+              'her', 'hers', 'herself', 'it', "it's", 'its', 'itself', 'they', 'them', 'their', 'theirs',
+              'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', "that'll", 'these', 'those', 'am', 'is',
+              'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did',
+              'doing', 'a', 'an', 'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'of', 'at',
+              'by', 'for', 'with', 'about', 'against', 'between', 'into', 'through', 'during', 'before', 'after',
+              'above', 'below', 'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over', 'under', 'again',
+              'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why', 'how', 'all', 'any', 'both',
+              'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only', 'own', 'same',
+              'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', "don't", 'should', "should've",
+              'now', 'd', 'll', 'm', 'o', 're', 've', 'y', 'ain', 'aren', "aren't", 'couldn', "couldn't", 'didn',
+              "didn't", 'doesn', "doesn't", 'hadn', "hadn't", 'hasn', "hasn't", 'haven', "haven't", 'isn', "isn't",
+              'ma', 'mightn', "mightn't", 'mustn', "mustn't", 'needn', "needn't", 'shan', "shan't", 'shouldn',
+              "shouldn't", 'wasn', "wasn't", 'weren', "weren't", 'won', "won't", 'wouldn', "wouldn't"]
 ALL_CATEGORIES = [
     'base',
     'property', 'property_true', 'property_false',
@@ -336,6 +351,32 @@ class BertLM:
                         break
         return properties
 
+    def predict_domain_names(self):
+        """
+        Predict the alternative names for the domain name
+        :return: an object containing alternatives for each query function
+        """
+        candidates = {}
+        for query in self.queries:
+            query_canonical = self.canonicals[query]
+            candidates[query] = {}
+            example_sentences = []
+            for arg in self.queries[query]['args']:
+                examples = self.construct_examples(query, arg)
+                for pos_type in examples:
+                    for example in examples[pos_type]['examples']:
+                        example_sentences.append(example['query'])
+            for sentence in example_sentences:
+                topk = self.predict_one(query, None, sentence, query_canonical, None)
+                for candidate in topk:
+                    if candidate in STOP_WORDS:
+                        continue
+                    if candidate in candidates[query]:
+                        candidates[query][candidate] += 1
+                    else:
+                        candidates[query][candidate] = 1
+        return candidates
+
     def construct_examples(self, query_name, arg_name):
         """
         construct examples for a given argument of a query
@@ -556,9 +597,10 @@ if __name__ == '__main__':
                   args.model_name_or_path, args.is_paraphraser, args.gpt2_ordering)
 
     output = {}
+    output['domains'] = bert.predict_domain_names()
     if args.command == 'synonyms' or args.command == 'all':
         output['synonyms'] = bert.predict()
     if args.command == 'adjectives' or args.command == 'all':
         output['adjectives'] = bert.predict_adjectives()
 
-    print(json.dumps(output))
+    print(json.dumps(output, indent=2))
