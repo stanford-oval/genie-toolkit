@@ -358,6 +358,8 @@ class AutoCanonicalGenerator {
             for (let arg of func.iterateArguments()) {
                 if (this.annotatedProperties.includes(arg.name) || arg.name === 'id')
                     continue;
+                if (arg.type.isBoolean)
+                    continue;
 
                 let canonicals = arg.metadata.canonical;
                 if (!canonicals)
@@ -370,7 +372,9 @@ class AutoCanonicalGenerator {
                         continue;
                     if (cat.endsWith('_projection'))
                         continue;
-                    if (cat.endsWith('_true') || cat.endsWith('_false'))
+                    if (cat.endsWith('_argmin') || cat.endsWith('_argmax'))
+                        continue;
+                    if (`${cat}_projection` in canonicals)
                         continue;
 
                     if (cat === 'passive_verb' || cat === 'verb') {
