@@ -544,6 +544,11 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN = {
     }
 };
 
+const TABLE_CANONICAL_OVERRIDE = {
+    'MusicRecording': 'song',
+    'MusicAlbum': 'album'
+};
+
 const MANUAL_TABLE_CANONICAL_OVERRIDE = {
     'Restaurant': ['restaurant', 'diner', 'place', 'joint', 'eatery', 'canteen', 'cafeteria', 'cafe'],
     'Hotel': ['hotel', 'resort', 'lodging', 'motel', 'place'],
@@ -643,6 +648,7 @@ module.exports = {
     PROPERTY_NAME_OVERRIDE_BY_DOMAIN,
     MANUAL_PROPERTY_CANONICAL_OVERRIDE,
     MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN,
+    TABLE_CANONICAL_OVERRIDE,
     MANUAL_TABLE_CANONICAL_OVERRIDE,
     MANUAL_COUNTED_OBJECT_OVERRIDE,
 
