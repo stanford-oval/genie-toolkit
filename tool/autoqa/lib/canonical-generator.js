@@ -157,8 +157,10 @@ class AutoCanonicalGenerator {
 
                 if (typestr && typeCounts[typestr] === 1) {
                     // if an entity is unique, allow dropping the property name entirely
-                    if (!this.functions.includes(typestr.substring(typestr.indexOf(':') + 1)))
-                        canonical.property.push('#');
+                    if (!this.functions.includes(typestr.substring(typestr.indexOf(':') + 1))) {
+                        if (!canonical.property.includes('#'))
+                            canonical.property.push('#');
+                    }
 
                     // if it's the only people entity, adding adjective form
                     // E.g., author for review - bob's review
