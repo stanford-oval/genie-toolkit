@@ -593,9 +593,9 @@ console-control-strings@^1.0.0, console-control-strings@~1.1.0:
   integrity sha1-PXz0Rk22RG6mRL9LOVB/mFEAjo4=
 
 consumer-queue@^1.0.0:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/consumer-queue/-/consumer-queue-1.0.2.tgz#935c73771d8b71f0711e2b495ada152f8be8f3d6"
-  integrity sha512-wTvHKMdxSrl3nIODcFVMV5OrLyaWTYgBBsGlu+bUkaj8TyCKhb1d0F/Ahr8/rGr/cwYD1MjSrDMl1wRREuO+wg==
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/consumer-queue/-/consumer-queue-1.1.0.tgz#97d00fcab46b983f2e5b508cdb22389d30d28302"
+  integrity sha512-m8thFi9TuzuQfkPjN1Co/8tmuLYF0UvCQzzWkChQhgoamaBaWe1ZgYDS6lCOHlPtf2k/yvJX01JRP7l0As3yPA==
 
 content-disposition@0.5.3:
   version "0.5.3"
