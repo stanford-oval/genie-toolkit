@@ -25,6 +25,20 @@ const AnnotationExtractor = require('../../tool/autoqa/lib/canonical-extractor')
 
 const TEST_CASES = [
     [
+        "show me a person with awards national scholarship .",
+        "Show me a person who has won a national scholarship.",
+        "national scholarship",
+        "person",
+        { verb: ["has won a #"] }
+    ],
+    [
+        "who is a alumni of cleveland state ?",
+        "Who went to Cleveland State?",
+        "cleveland state",
+        "person",
+        { verb: ["went to #"] }
+    ],
+    [
         "which review has date published Feb 14 2017 ?",
         "Which review was published on Feb 14 2017?",
         "feb 14 2017",

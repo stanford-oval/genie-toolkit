@@ -65,7 +65,7 @@ class AnnotationExtractor {
         assert.strictEqual(this._input.length, this._output.length);
 
         for (let qname of this.queries) {
-            const query_canonical = queries[qname]['canonical'];
+            const query_canonical = Array.isArray(queries[qname]['canonical']) ? queries[qname]['canonical'][0] : queries[qname]['canonical'];
             for (let arg in synonyms[qname]) {
                 const values = queries[qname]['args'][arg]['values'];
                 const slice = slices[qname][arg];
@@ -246,7 +246,7 @@ class AnnotationExtractor {
             let standard_prefix = origin.slice(0, origin.indexOf(query_canonical) + query_canonical.length + 1);
             prefixes.push(standard_prefix);
             let to_replace = origin.includes(`a ${query_canonical}`) ? `a ${query_canonical}` : query_canonical;
-            const query_cannonical_alternatives = [
+            const query_canonical_alternatives = [
                 `${pluralized_query_canonical}`,
                 `some ${pluralized_query_canonical}`,
                 `all ${pluralized_query_canonical}`,
@@ -255,7 +255,7 @@ class AnnotationExtractor {
                 `an ${query_canonical}`,
                 `the ${query_canonical}`
             ];
-            for (let alternative of query_cannonical_alternatives)
+            for (let alternative of query_canonical_alternatives)
                 prefixes.push(standard_prefix.replace(to_replace, alternative));
         }
 
@@ -290,13 +290,13 @@ class AnnotationExtractor {
                 canonical['property'].push(clause.slice(clause.indexOf(' ') + 1).replace(value, '#'));
             } else if ((clause.startsWith('that ') || clause.startsWith('who ')) && ['VBP', 'VBZ', 'VBD'].includes(tags[length + 1])) {
                 canonical['verb'] = canonical['verb'] || [];
-                canonical['verb'].push(clause.slice(clause.indexOf(' ' + 1)).replace(value, '#'));
+                canonical['verb'].push(clause.slice(clause.indexOf(' ') + 1).replace(value, '#'));
             } else if (['VBN', 'VBG', 'JJ'].includes(tags[length])) {
                 canonical['passive_verb'] = canonical['passive_verb'] || [];
                 canonical['passive_verb'].push(clause.replace(value, '#'));
             } else if (['VBP', 'VBZ', 'VBD'].includes(tags[length])) {
                 canonical['verb'] = canonical['verb'] || [];
-                canonical['verb'].push(clause.slice(clause.indexOf(' ' + 1)).replace(value, '#'));
+                canonical['verb'].push(clause.replace(value, '#'));
             }
             break;
         }
