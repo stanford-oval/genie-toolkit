@@ -65,7 +65,7 @@ module.exports = class ConstantSampler {
         const sampleOne = function(string) {
             let attempts = 1000;
             while (attempts > 0) {
-                const sampled = sampleString(string.preprocessed.split(' '), langPack, rng);
+                const sampled = sampleString(string.value.split(' '), langPack, rng);
                 if (sampled)
                     return sampled;
                 attempts -= 1;
@@ -137,7 +137,7 @@ module.exports = class ConstantSampler {
 
                     if (arg === 'id') {
                         samples.forEach((sample) => {
-                            constants.push([`param:@${device}.${f}:${arg}:String`, sample.display.toLowerCase()]);
+                            constants.push([`param:@${device}.${f}:${arg}:String`, sample.display]);
                         });
                     }
                 }
