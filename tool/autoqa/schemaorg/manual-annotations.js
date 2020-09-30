@@ -585,6 +585,7 @@ const STRUCT_INCLUDE_THING_PROPERTIES = new Set([
 const STRING_FILE_OVERRIDES = {
     'org.schema.Restaurant:Restaurant_name': 'org.openstreetmap:restaurant',
     'org.schema.Person:Person_name': 'tt:person_full_name',
+    'org.schema.Person:Person_address_addressLocality': 'tt:location',
     'org.schema.Person:Person_alumniOf': 'tt:university_names',
     'org.schema.Person:Person_worksFor': 'tt:company_name',
     'org.schema.Person:Person_jobTitle': 'tt:job_title',
