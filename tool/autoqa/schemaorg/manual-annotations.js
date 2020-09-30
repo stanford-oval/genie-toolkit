@@ -561,6 +561,9 @@ const STRUCT_INCLUDE_THING_PROPERTIES = new Set([
 
 
 const STRING_FILE_OVERRIDES = {
+    'org.schema.Hotel:Hotel_geo': 'org.schema.Hotel:Hotel_address_addressLocality',
+    'org.schema.Hotel:geo': 'org.schema.Restaurant:Hotel',
+    'org.schema.Hotel:Place_geo': 'org.schema.Hotel:Hotel_address_addressLocality',
     'org.schema.Restaurant:Restaurant_geo': 'org.schema.Restaurant:Restaurant_address_addressLocality',
     'org.schema.Restaurant:geo': 'org.schema.Restaurant:Restaurant_address_addressLocality',
     'org.schema.Restaurant:Place_geo': 'org.schema.Restaurant:Restaurant_address_addressLocality',
