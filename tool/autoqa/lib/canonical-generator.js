@@ -387,11 +387,11 @@ class AutoCanonicalGenerator {
                             if (['IN', 'TO', 'PR'].includes(this._langPack.posTag(tokens)[tokens.length - 1]))
                                 return [...tokens.slice(0, -1), '|', tokens[tokens.length - 1]].join(' ');
                             return c;
-                        });
+                        }).filter(this._dedup);
                     } else {
                         canonicals[cat + '_projection'] = canonicals[cat].map((canonical) => {
                             return this._processProjectionCanonical(canonical, cat);
-                        }).filter(Boolean);
+                        }).filter(Boolean).filter(this._dedup);
                     }
                 }
             }
@@ -401,12 +401,19 @@ class AutoCanonicalGenerator {
     _processProjectionCanonical(canonical, cat) {
         if (canonical.includes('#') && !canonical.endsWith(' #'))
             return null;
-
         canonical = canonical.replace(' #', '');
+
+        if (canonical.endsWith(' a') || canonical.endsWith(' an') || canonical.endsWith(' the'))
+            canonical = canonical.substring(0, canonical.lastIndexOf(' '));
+
         if (canonical.split(' ').length > 1 && cat === 'preposition')
             return null;
 
         return canonical;
+    }
+
+    _dedup(value, index, self) {
+        return self.indexOf(value) === index;
     }
 
     _isVerb(candidate) {
