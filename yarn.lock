@@ -721,9 +721,9 @@ console-control-strings@^1.0.0, console-control-strings@~1.1.0:
   integrity sha1-PXz0Rk22RG6mRL9LOVB/mFEAjo4=
 
 consumer-queue@^1.0.0:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/consumer-queue/-/consumer-queue-1.0.2.tgz#935c73771d8b71f0711e2b495ada152f8be8f3d6"
-  integrity sha512-wTvHKMdxSrl3nIODcFVMV5OrLyaWTYgBBsGlu+bUkaj8TyCKhb1d0F/Ahr8/rGr/cwYD1MjSrDMl1wRREuO+wg==
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/consumer-queue/-/consumer-queue-1.1.0.tgz#97d00fcab46b983f2e5b508cdb22389d30d28302"
+  integrity sha512-m8thFi9TuzuQfkPjN1Co/8tmuLYF0UvCQzzWkChQhgoamaBaWe1ZgYDS6lCOHlPtf2k/yvJX01JRP7l0As3yPA==
 
 content-disposition@0.5.3:
   version "0.5.3"
@@ -1066,7 +1066,7 @@ escape-string-regexp@^1.0.5:
   resolved "https://registry.yarnpkg.com/escape-string-regexp/-/escape-string-regexp-1.0.5.tgz#1b61c0562190a8dff6ae3bb2cf0200ca130b86d4"
   integrity sha1-G2HAViGQqN/2rjuyzwIAyhMLhtQ=
 
-eslint-scope@^5.0.0, eslint-scope@^5.1.0:
+eslint-scope@^5.0.0, eslint-scope@^5.1.1:
   version "5.1.1"
   resolved "https://registry.yarnpkg.com/eslint-scope/-/eslint-scope-5.1.1.tgz#e786e59a66cb92b3f6c1fb0d508aab174848f48c"
   integrity sha512-2NxwbF/hZ0KpepYN0cNbo+FN6XoK7GaHlQhgx/hIZl6Va0bF45RQOOwhLIy8lQDbuCiadSLCBnH2CFYquit5bw==
@@ -2984,9 +2984,9 @@ stemmer@^1.0.5:
   integrity sha512-SLq7annzSKRDStasOJJoftCSCzBCKmBmH38jC4fDtCunAqOzpTpIm9zmaHmwNJiZ8gLe9qpVdBVbEG2DC5dE2A==
 
 string-interp@^0.3.1:
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/string-interp/-/string-interp-0.3.2.tgz#d713209fc05bcd340c96a4d428e4ede7889eb29b"
-  integrity sha512-HAFXnMl8hO4nqfi1whSVSYC7UAAYx2DqyI4yq9gtGVX4Nk6RS1M0gGhpGIHVznMvM6kxIJqADPswvRGdlIhGYA==
+  version "0.3.6"
+  resolved "https://registry.yarnpkg.com/string-interp/-/string-interp-0.3.6.tgz#bc5586e8e91bc82a213cd0434bb94d4802968760"
+  integrity sha512-696vVbzGoUpoCw4fX6vR/e+kh8/z6llFfVmp+6M7QTR/oZhDah6BScUrJXzQ28wkkzeiznGHHilDBOPZsJOElw==
   dependencies:
     thingtalk-units "^0.2.0"
 
@@ -3174,9 +3174,9 @@ thingpedia@~2.8.0:
     xml2js "^0.4.17"
 
 thingtalk-units@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/thingtalk-units/-/thingtalk-units-0.2.0.tgz#b14cd56d5a2178b24c81d42c7174c8d10f1110b9"
-  integrity sha512-t2KE6EVVOxiD6qKREMxkB+sU0xb1elRWrxwyiJwA/a9LHurU5chZSGjkFdjDrtTypyfIV36yvhXQBQLrmwhFgQ==
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/thingtalk-units/-/thingtalk-units-0.2.1.tgz#2ebc5ce12344b2ac0e4a2f98c9f64e2f450aa051"
+  integrity sha512-5r7V3m1aqGOJwMEVx41udgIXLNrYJySygQIttUAlwtadArNGRt+5y3ERWCmr/kMF1Rde9h36Ps866vTRxQ7fzA==
 
 thingtalk@~1.11.0:
   version "1.11.0"
