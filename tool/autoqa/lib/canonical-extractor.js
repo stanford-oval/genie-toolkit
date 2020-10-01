@@ -177,7 +177,7 @@ class AnnotationExtractor {
                 continue;
             let canonical = Object.keys(candidates[category])[0];
             for (let sentence of candidates[category][canonical])
-                this._input.push(`${sentence}`);
+                this._input.push(`${sentence.charAt(0).toUpperCase()}${sentence.slice(1)}`);
         }
     }
 
@@ -197,7 +197,6 @@ class AnnotationExtractor {
             // base canonical, do nothing
             return;
         }
-        value = value.toLowerCase();
 
         for (let paraphrase of paraphrases)
             this._extractOneCanonical(canonical, origin, paraphrase, value, query_canonical);
@@ -220,7 +219,9 @@ class AnnotationExtractor {
     }
 
     _extractOneCanonical(canonical, origin, paraphrase, value, query_canonical) {
+        origin = origin.toLowerCase();
         paraphrase = paraphrase.toLowerCase();
+        value = value.toLowerCase();
         value = this._hasValue(paraphrase, value);
 
         if (!value)
