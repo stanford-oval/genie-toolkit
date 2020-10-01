@@ -162,6 +162,9 @@ const PROPERTY_NAME_OVERRIDE_BY_DOMAIN = {
     },
     'hotels': {
         'starRating.ratingValue': 'star'
+    },
+    'linkedin': {
+        'address.addressLocality': 'homeLocation'
     }
 };
 
@@ -190,9 +193,14 @@ const PROPERTY_CANONICAL_OVERRIDE = {
         base: ['postal code', 'postcode', 'zip code'],
         preposition: ['in #', 'from #'],
     },
+    /*
     'streetAddress': {
         base: ['street']
     },
+    'addressLocality': {
+        base: ['city'],
+        preposition: ["in #", "from #"],
+    },*/
     'addressCountry': {
         preposition: ["in #", "from #"],
         base: ["country"]
@@ -200,10 +208,6 @@ const PROPERTY_CANONICAL_OVERRIDE = {
     'addressRegion': {
         preposition: ["in #", "from #"],
         base: ["state"]
-    },
-    'addressLocality': {
-        base: ['city'],
-        preposition: ["in #", "from #"],
     }
 };
 
