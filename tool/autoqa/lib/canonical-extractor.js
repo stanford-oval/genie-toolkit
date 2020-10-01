@@ -27,10 +27,13 @@ const child_process = require('child_process');
 const EnglishLanguagePack = require('../../../lib/i18n/american-english');
 
 const VALUE_MAP = {
-    "1": "one",
-    "2": "two",
-    "3": "three",
-    "4": "four"
+    "1": ["one"],
+    "2": ["two"],
+    "3": ["three"],
+    "4": ["four"],
+    "feb 14 2017": ["february 14 2017", "february 14, 2017", "feb 14, 2017", "14 february 2017", "14 february, 2017", "14 feb 2017", "14 feb, 2017"],
+    "may 4th, 2016": ["may 4 2016", "may 4, 2016", "may 4th 2016", "4th may 2016", "4th may, 2016", "4 may 2016", "4 may, 2016"],
+    "august 2nd 2017": ["august 2, 2017", "august 2 2017", "august 2nd, 2017", "2 august 2017", "2nd august 2017", "2 august, 2017", "2nd august, 2017"]
 };
 
 class AnnotationExtractor {
@@ -208,8 +211,12 @@ class AnnotationExtractor {
             return value;
 
         // find similar
-        if (value in VALUE_MAP && paraphrase.includes(VALUE_MAP[value]))
-            return VALUE_MAP[value];
+        if (value in VALUE_MAP) {
+            for (let alternative of VALUE_MAP[value]) {
+                if (paraphrase.includes(alternative))
+                    return alternative;
+            }
+        }
 
         const pluralized = this._langPack.pluralize(value);
         if (paraphrase.includes(pluralized))
