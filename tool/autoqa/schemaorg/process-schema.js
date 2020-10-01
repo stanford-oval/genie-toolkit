@@ -318,6 +318,8 @@ class SchemaProcessor {
                 metadata.counted_object = MANUAL_COUNTED_OBJECT_OVERRIDE[propertyname];
             else if (propertyname.startsWith('numberOf'))
                 metadata.counted_object = [ clean(propertyname.slice('numberOf'.length)) ];
+            else if (propertyname.startsWith('num') && propertyname.charAt(3) === propertyname.charAt(3).toUpperCase())
+                metadata.counted_object = [ clean(propertyname.slice('num'.length)) ];
             else if (propertyname.endsWith('Count'))
                 metadata.counted_object = [ this._langPack.pluralize(clean(propertyname.slice(0, -'Count'.length)))];
 
@@ -706,6 +708,8 @@ class SchemaProcessor {
                     metadata.counted_object = MANUAL_COUNTED_OBJECT_OVERRIDE[propertyname];
                 else if (propertyname.startsWith('numberOf'))
                     metadata.counted_object = [ clean(propertyname.slice('numberOf'.length)) ];
+                else if (propertyname.startsWith('num') && propertyname.charAt(3) === propertyname.charAt(3).toUpperCase())
+                    metadata.counted_object = [ clean(propertyname.slice('num'.length)) ];
                 else if (propertyname.endsWith('Count'))
                     metadata.counted_object = [ this._langPack.pluralize(clean(propertyname.slice(0, -'Count'.length)))];
 
