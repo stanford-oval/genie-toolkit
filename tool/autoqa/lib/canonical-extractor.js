@@ -292,6 +292,11 @@ class AnnotationExtractor {
             } else if ((clause.startsWith('that ') || clause.startsWith('who ')) && ['VBP', 'VBZ', 'VBD'].includes(tags[length + 1])) {
                 canonical['verb'] = canonical['verb'] || [];
                 canonical['verb'].push(clause.slice(clause.indexOf(' ') + 1).replace(value, '#'));
+            } else if ((clause.startsWith('do ') || clause.startsWith(`does ${value}`) || clause.startsWith(`did ${value}`))) {
+                canonical['verb'] = canonical['verb'] || [];
+                canonical['reverse_verb_projection'] = canonical['reverse_verb_projection'] || [];
+                canonical['verb'].push(clause.slice(clause.indexOf(' ') + 1).replace(value, '#'));
+                canonical['reverse_verb_projection'].push(clause.slice(clause.indexOf(' ') + 1).replace(value, '').trim());
             } else if (['VBN', 'VBG', 'JJ'].includes(tags[length])) {
                 canonical['passive_verb'] = canonical['passive_verb'] || [];
                 canonical['passive_verb'].push(clause.replace(value, '#'));
