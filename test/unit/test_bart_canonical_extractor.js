@@ -25,6 +25,13 @@ const AnnotationExtractor = require('../../tool/autoqa/lib/canonical-extractor')
 
 const TEST_CASES = [
     [
+        "Which review has author Rick M. ?",
+        "Which review did Rick M. write?",
+        "Rick M.",
+        "review",
+        { verb: ["# write"], reverse_verb_projection: ["write"] }
+    ],
+    [
         "show me a person with awards national scholarship .",
         "Show me a person who has won a national scholarship.",
         "national scholarship",
