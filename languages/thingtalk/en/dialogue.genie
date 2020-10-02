@@ -18,48 +18,46 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-{
-    const assert = require('assert');
-    const ThingTalk = require('thingtalk');
-    const Ast = ThingTalk.Ast;
-    const Type = ThingTalk.Type;
+import assert from 'assert';
+import * as ThingTalk from 'thingtalk';
+import { Ast, Type } from 'thingtalk';
 
-    const C = require('../ast_manip');
-    const S = require('../state_manip');
-    const D = require('../dialogue_acts');
-}
+import * as C from '../ast_manip';
+import * as S from '../state_manip';
+import * as D from '../dialogue_acts';
 
-import '../common';
+
+import '../common.genie';
 // basic ThingTalk functionality
-import './constants';
-import './timers';
-import './filters';
-import './parameters';
-import './aggregation';
-import './computation';
-import './who_questions';
-import './stream_tables';
-import './commands';
+import './constants.genie';
+import './timers.genie';
+import './filters.genie';
+import './parameters.genie';
+import './aggregation.genie';
+import './computation.genie';
+import './who_questions.genie';
+import './stream_tables.genie';
+import './commands.genie';
 
 // common dialogue elements
-import './dlg/shared';
-import './dlg/results';
-import './dlg/coref-actions';
+import './dlg/shared.genie';
+import './dlg/results.genie';
+import './dlg/coref-actions.genie';
 
 // specific interactions
 // keep this in alphabetical order
-import './dlg/action-confirm';
-import './dlg/action-results';
-import './dlg/aggregation-results';
-import './dlg/coref-questions';
-import './dlg/empty-search';
-import './dlg/initial-request';
-import './dlg/list-proposal';
-import './dlg/recommendation';
-import './dlg/refinement';
-import './dlg/related-questions';
-import './dlg/search-questions';
-import './dlg/slot-fill';
+import './dlg/action-confirm.genie';
+import './dlg/action-results.genie';
+import './dlg/aggregation-results.genie';
+import './dlg/coref-questions.genie';
+import './dlg/empty-search.genie';
+import './dlg/initial-request.genie';
+import './dlg/list-proposal.genie';
+import './dlg/recommendation.genie';
+import './dlg/refinement.genie';
+import './dlg/related-questions.genie';
+import './dlg/search-questions.genie';
+import './dlg/slot-fill.genie';
 
 // declare contexts
 context

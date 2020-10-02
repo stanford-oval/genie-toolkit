@@ -19,11 +19,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
-const Type = ThingTalk.Type;
+import { Ast, Type } from 'thingtalk';
 
 const {
     addQuery,
@@ -174,7 +172,7 @@ function corefConstant(ctx, base, param) {
     return result.value[param.name];
 }
 
-module.exports = {
+export {
     recommendationSearchQuestionReply,
     displayResultSearchQuestionReply,
     learnMoreSearchQuestionReply,

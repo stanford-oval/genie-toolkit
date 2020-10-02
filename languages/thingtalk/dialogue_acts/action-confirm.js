@@ -19,12 +19,11 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const ThingTalk = require('thingtalk');
-const Type = ThingTalk.Type;
+import { Type } from 'thingtalk';
 
-const C = require('../ast_manip');
+import * as C from '../ast_manip';
 
 const {
     makeAgentReply,
@@ -91,7 +90,7 @@ function actionConfirmChangeParam(ctx, answer) {
     return replaceAction(ctx, 'execute', clone, 'confirmed');
 }
 
-module.exports = {
+export {
     makeActionConfirmationPhrase,
     actionConfirmAcceptPhrase,
     actionConfirmRejectPhrase,

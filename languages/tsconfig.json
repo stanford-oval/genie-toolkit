@@ -1,10 +1,6 @@
 {
     "include": [
-        "lib/**/*",
-        "tool/**/*"
-    ],
-    "exclude": [
-        "languages/**/*"
+        "thingtalk/**/*"
     ],
     "compilerOptions": {
         "target": "es2018",
@@ -16,11 +12,11 @@
         "resolveJsonModule": true,
         "strict": false,
         "noUnusedLocals": false,
-        "outDir": "dist",
+        "outDir": "../languages-dist",
         "rootDir": ".",
         "sourceMap": true,
         "incremental": true,
-        "declaration": true
+        "declaration": false
     },
     "typedocOptions": {
         "mode": "library",

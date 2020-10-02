@@ -18,12 +18,11 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-{
 // import the combinator library
-const C = require('./ast_manip');
-}
+import * as C from './ast_manip';
+import _tpLoader from './load-thingpedia';
 
-import './common-constants';
+import './common-constants.genie';
 
 // Thingpedia Grammar Rules
 
@@ -213,7 +212,6 @@ generic_anything_noun_phrase = {}
 generic_base_noun_phrase = {}
 
 {
-const _tpLoader = require('./load-thingpedia');
 await _tpLoader.init($runtime, $grammar, $locale, $options);
 }
 

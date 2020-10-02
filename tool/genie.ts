@@ -31,6 +31,7 @@ const subcommands : { [key : string] : SubCommand } = {
     'download-dataset': require('./download-dataset'),
     'sample-constants': require('./sample-constants'),
 
+    'compile-template': require('./compile-template'),
     'generate': require('./generate'),
     'generate-dialogs': require('./generate-dialogs'),
     'dialog-to-contextual': require('./dialog-to-contextual'),

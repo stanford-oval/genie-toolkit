@@ -193,8 +193,8 @@ async function doTestDialogue(filename) {
 }
 
 async function main() {
-    await doTestBasic(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/thingtalk.genie'));
     await doTestBasic(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/basic.genie'));
+    await doTestBasic(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/thingtalk.genie'));
     await doTestDialogue(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/dialogue.genie'));
 }
 export default main;

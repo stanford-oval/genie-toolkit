@@ -24,18 +24,14 @@
 // - for searches: the agent is trying to add a filter
 // - for actions/queries w/ parameters: the agent is trying to add a parameter
 
-{
-    const assert = require('assert');
-    const ThingTalk = require('thingtalk');
-    const Ast = ThingTalk.Ast;
-    const Type = ThingTalk.Type;
+import assert from 'assert';
+import { Ast, Type } from 'thingtalk';
 
-    const C = require('../../ast_manip');
-    const D = require('../../dialogue_acts');
+import * as C from '../../ast_manip';
+import * as D from '../../dialogue_acts';
 
-    // import thingpedia info
-    const _tpLoader = require('../../load-thingpedia');
-}
+// import thingpedia info
+import _tpLoader from '../../load-thingpedia';
 
 one_param_direct_search_question = {
     ( 'what' p:out_param_Any prefer_question_phrase '?'

@@ -18,31 +18,28 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-{
-const assert = require('assert');
+import assert from 'assert';
 
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
-const Type = ThingTalk.Type;
+import * as ThingTalk from 'thingtalk';
+import { Ast, Type } from 'thingtalk';
 
 // import the combinator library
-const C = require('../ast_manip');
+import * as C from '../ast_manip';
 
 // import thingpedia info
-const _tpLoader = require('../load-thingpedia');
-}
+import _tpLoader from '../load-thingpedia';
 
-import '../common';
-import './constants';
-import './timers';
-import './filters';
-import './parameters';
-import './aggregation';
-import './computation';
-import './who_questions';
-import './schema.org';
-import './commands';
-import './stream_tables';
+import '../common.genie';
+import './constants.genie';
+import './timers.genie';
+import './filters.genie';
+import './parameters.genie';
+import './aggregation.genie';
+import './computation.genie';
+import './who_questions.genie';
+import './schema.org.genie';
+import './commands.genie';
+import './stream_tables.genie';
 
 $root = {
     p:thingpedia_program if complete => C.adjustDefaultParameters(p);

@@ -17,23 +17,21 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//          Mehrad Moradshahi <mehrad@cs.stanford.edu>
 "use strict";
 
-function arraySubset(small, big) {
-    for (let element of small) {
-        let good = false;
-        for (let candidate of big) {
-            if (candidate.equals(element)) {
-                good = true;
-                break;
-            }
-        }
-        if (!good)
-            return false;
-    }
-    return true;
+import { compile } from '../lib/sentence-generator/compiler';
+
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('compile-template', {
+        add_help: true,
+        description: "Compile templates into TypeScript code, ready to be compiled into JS."
+    });
+    parser.add_argument('input_file', {
+        help: "The entrypoint to compile."
+    });
 }
 
-module.exports = {
-    arraySubset
-};
+export function execute(args) {
+    compile(args.input_file);
+}

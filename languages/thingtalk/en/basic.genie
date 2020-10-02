@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -18,26 +18,22 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-{
-const assert = require('assert');
-
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
-const Type = ThingTalk.Type;
+import { Ast, } from 'thingtalk';
 
 // import the combinator library
-const C = require('../ast_manip');
+import * as C from '../ast_manip';
 
 // import thingpedia info
-const _tpLoader = require('../load-thingpedia');
+import _tpLoader from '../load-thingpedia';
 
-function special(specialType) {
+{
+function special(specialType : string) {
     return new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.Special(null, specialType));
 }
 }
 
-import '../common';
-import './constants';
+import '../common.genie';
+import './constants.genie';
 
 bookkeeping = {
     'debug' => special('debug');

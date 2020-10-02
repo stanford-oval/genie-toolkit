@@ -19,18 +19,19 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
-const Type = ThingTalk.Type;
-const Units = require('thingtalk-units');
+import { Ast, Type } from 'thingtalk';
+import * as Units from 'thingtalk-units';
 
-const { typeToStringSafe, isSameFunction, normalizeConfirmAnnotation } = require('./utils');
-const Utils = require('./utils');
-const { notifyAction } = ThingTalk.Generate;
+import { typeToStringSafe, isSameFunction, normalizeConfirmAnnotation } from './utils';
+import * as Utils from './utils';
 
-const _loader = require('./load-thingpedia');
+import _loader from './load-thingpedia';
+
+function notifyAction(name = 'notify') {
+    return Ast.Action.notifyAction(name);
+}
 
 function makeDate(base, operator, offset) {
     if (!(base instanceof Ast.Value))
@@ -1295,6 +1296,13 @@ function sayProjection(proj) {
     return new Ast.Statement.Command(null, proj, [notifyAction()]);
 }
 
+function sayProjectionProgram(proj) {
+    const stmt = sayProjection(proj);
+    if (stmt === null)
+        return null;
+    return makeProgram(stmt);
+}
+
 function isQueryProgram(program) {
     if (!program.isProgram)
         return false;
@@ -1858,7 +1866,7 @@ function adjustDefaultParameters(stmt) {
     return stmt;
 }
 
-module.exports = {
+export {
     // helpers
     typeToStringSafe,
     isSameFunction,
@@ -1936,6 +1944,7 @@ module.exports = {
     makeSingleFieldProjection,
     makeMultiFieldProjection,
     sayProjection,
+    sayProjectionProgram,
 
     // streams
     makeEdgeFilterStream,

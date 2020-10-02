@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -19,38 +19,45 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //         Elvis Yu-Jing Lin <r06922068@ntu.edu.tw> <elvisyjlin@gmail.com>
-"use strict";
 
-const assert = require('assert');
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
-const Type = ThingTalk.Type;
+import assert from 'assert';
+import { Ast, Type } from 'thingtalk';
+import type { I18n } from 'genie-toolkit';
 
-function typeToStringSafe(type) {
-    if (type.isArray)
-        return 'Array__' + typeToStringSafe(type.elem);
-    else if (type.isEntity)
+function typeToStringSafe(type : Type) : string {
+    if (type instanceof Type.Array)
+        return 'Array__' + typeToStringSafe(type.elem as Type);
+    else if (type instanceof Type.Entity)
         return 'Entity__' + type.type.replace(':', '__');
-    else if (type.isMeasure)
+    else if (type instanceof Type.Measure)
         return 'Measure_' + type.unit;
-    else if (type.isEnum)
-        return 'Enum__' + type.entries.join('__');
+    else if (type instanceof Type.Enum)
+        return 'Enum__' + type.entries!.join('__');
     else
         return String(type);
 }
 
-function clean(name) {
+function clean(name : string) : string {
     if (/^[vwgp]_/.test(name))
         name = name.substr(2);
     return name.replace(/_/g, ' ').replace(/([^A-Z ])([A-Z])/g, '$1 $2').toLowerCase();
 }
 
+interface ThingpediaLoader {
+    params : {
+        out : Set<string>;
+    };
+}
 
-function makeFilter(loader, pname, op, value, negate = false) {
+function makeFilter(loader : ThingpediaLoader,
+                    pname : Ast.Value,
+                    op : string,
+                    value : Ast.Value,
+                    negate = false) : Ast.BooleanExpression|null {
     assert(pname instanceof Ast.Value.VarRef);
-    let vtype = value.getType();
+    const vtype = value.getType();
     let ptype = vtype;
-    if (ptype.isEntity && ptype.type === 'tt:url')
+    if (ptype instanceof Type.Entity && ptype.type === 'tt:url')
         return null;
     if (op === 'contains') {
         if (loader.params.out.has(pname.name + '+' + Type.RecurrentTimeSpecification) && (vtype.isTime || vtype.isDate))
@@ -65,17 +72,21 @@ function makeFilter(loader, pname, op, value, negate = false) {
     if (!loader.params.out.has(pname.name + '+' + ptype) && pname.name !== 'id')
         return null;
 
-    let f = new Ast.BooleanExpression.Atom(null, pname.name, op, value);
+    const f = new Ast.BooleanExpression.Atom(null, pname.name, op, value);
     if (negate)
         return new Ast.BooleanExpression.Not(null, f);
     else
         return f;
 }
 
-function makeAndFilter(loader, param, op, values, negate=false) {
+function makeAndFilter(loader : ThingpediaLoader,
+                       param : Ast.Value,
+                       op : string,
+                       values : Ast.Value[],
+                       negate=false) : Ast.BooleanExpression|null {
     if (values.length !== 2)
         return null;
-    if (values[0].name === values[1].name)
+    if (values[0].equals(values[1]))
         return null;
     const operands  = values.map((v) => makeFilter(loader, param, op, v));
     if (operands.includes(null))
@@ -86,7 +97,9 @@ function makeAndFilter(loader, param, op, values, negate=false) {
     return f;
 }
 
-function makeDateRangeFilter(loader, param, values) {
+function makeDateRangeFilter(loader : ThingpediaLoader,
+                             param : Ast.Value,
+                             values : Ast.Value[]) : Ast.BooleanExpression|null {
     if (values.length !== 2)
         return null;
     const operands = [
@@ -98,10 +111,10 @@ function makeDateRangeFilter(loader, param, values) {
     return new Ast.BooleanExpression.And(null, operands);
 }
 
-function isHumanEntity(type) {
-    if (type.isEntity)
+function isHumanEntity(type : Type|string) : boolean {
+    if (type instanceof Type.Entity)
         return isHumanEntity(type.type);
-    if (type.isArray)
+    if (type instanceof Type.Array)
         return isHumanEntity(type.elem);
     if (typeof type !== 'string')
         return false;
@@ -112,17 +125,17 @@ function isHumanEntity(type) {
     return false;
 }
 
-function isLocationEntity(type) {
-    if (type.isLocation)
+function isLocationEntity(type : Type) : boolean {
+    if (type === Type.Location)
         return true;
-    if (type.isArray)
-        return isLocationEntity(type.elem);
+    if (type instanceof Type.Array)
+        return isLocationEntity(type.elem as Type);
 
     // FIXME: other types that can be asked by "where" question (e.g., organization)
     return false;
 }
 
-function isTimeEntity(type) {
+function isTimeEntity(type : Type) : boolean {
     if (type.isDate)
         return true;
     if (type.isTime)
@@ -132,7 +145,7 @@ function isTimeEntity(type) {
     return false;
 }
 
-function interrogativePronoun(type) {
+function interrogativePronoun(type : Type) : string {
     if (isHumanEntity(type))
         return 'who';
     if (isLocationEntity(type))
@@ -146,10 +159,10 @@ function interrogativePronoun(type) {
 
 const PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})/;
 
-function* split(pattern, regexp) {
+function* split(pattern : string, regexp : RegExp|string) : Generator<string|string[], void> {
     // a split that preserves capturing parenthesis
 
-    let clone = new RegExp(regexp, 'g');
+    const clone = new RegExp(regexp, 'g');
     let match = clone.exec(pattern);
 
     let i = 0;
@@ -164,15 +177,17 @@ function* split(pattern, regexp) {
         yield pattern.substring(i, pattern.length);
 }
 
-function splitParams(utterance) {
+function splitParams(utterance : string) : Array<string|string[]> {
     return Array.from(split(utterance, PARAM_REGEX));
 }
 
-function tokenizeExample(tokenizer, utterance, id) {
+function tokenizeExample(tokenizer : I18n.BaseTokenizer,
+                         utterance : string,
+                         id : number) : string {
     let replaced = '';
-    let params = [];
+    const params : Array<[string, string]> = [];
 
-    for (let chunk of splitParams(utterance.trim())) {
+    for (const chunk of splitParams(utterance.trim())) {
         if (chunk === '')
             continue;
         if (typeof chunk === 'string') {
@@ -180,12 +195,12 @@ function tokenizeExample(tokenizer, utterance, id) {
             continue;
         }
 
-        let [match, param1, param2, opt] = chunk;
+        const [match, param1, param2, opt] = chunk;
         if (match === '$$') {
             replaced += '$';
             continue;
         }
-        let param = param1 || param2;
+        const param = param1 || param2;
         replaced += ' ____ ';
         params.push([param, opt]);
     }
@@ -201,7 +216,7 @@ function tokenizeExample(tokenizer, utterance, id) {
     let first = true;
     for (let token of tokens) {
         if (token === '____') {
-            let [param, opt] = params.shift();
+            const [param, opt] = params.shift()!;
             if (opt)
                 token = '${' + param + ':' + opt + '}';
             else
@@ -218,26 +233,29 @@ function tokenizeExample(tokenizer, utterance, id) {
     return preprocessed;
 }
 
-function isSameFunction(fndef1, fndef2) {
+function isSameFunction(fndef1 : Ast.FunctionDef,
+                        fndef2 : Ast.FunctionDef) : boolean {
     if (!fndef1.class || !fndef2.class) // a join
         return false;
     return fndef1.class.name === fndef2.class.name &&
         fndef1.name === fndef2.name;
 }
 
-function isExecutable(stmt) {
+function isExecutable(stmt : Ast.Statement) : boolean {
     let hasUndefined = false;
     const visitor = new class extends Ast.NodeVisitor {
-        visitInvocation(invocation) {
-            const requireEither = invocation.schema.getAnnotation('require_either');
+        visitInvocation(invocation : Ast.Invocation) {
+            const schema = invocation.schema;
+            assert(schema instanceof Ast.FunctionDef);
+            const requireEither = schema.getAnnotation<string[][]>('require_either');
             if (requireEither) {
                 const params = new Set;
-                for (let in_param of invocation.in_params)
+                for (const in_param of invocation.in_params)
                     params.add(in_param.name);
 
-                for (let requirement of requireEither) {
+                for (const requirement of requireEither) {
                     let satisfied = false;
-                    for (let option of requirement) {
+                    for (const option of requirement) {
                         if (params.has(option)) {
                             satisfied = true;
                             break;
@@ -251,7 +269,7 @@ function isExecutable(stmt) {
             return true;
         }
 
-        visitValue(value) {
+        visitValue(value : Ast.Value) {
             if (value.isUndefined)
                 hasUndefined = true;
             return true;
@@ -281,7 +299,7 @@ function isExecutable(stmt) {
  * Also, #[confirm] can be specified as a boolean: "true" means "confirm" and "false" means
  * "display_result".
  */
-function normalizeConfirmAnnotation(fndef) {
+function normalizeConfirmAnnotation(fndef : Ast.FunctionDef) : 'confirm' | 'display_result' | 'auto' {
     const value = fndef.getAnnotation('confirm');
     if (value === undefined) // unspecified
         return fndef.functionType === 'action' ? 'confirm' : 'display_result';
@@ -289,10 +307,36 @@ function normalizeConfirmAnnotation(fndef) {
     if (typeof value === 'boolean')
         return value ? 'confirm' : 'display_result';
 
+    assert(value === 'confirm' || value === 'display_result' || value === 'auto');
     return value;
 }
 
-module.exports = {
+export function isUnaryTableToTableOp(table : Ast.Table) : boolean {
+    return table.isFilter ||
+        table.isProjection ||
+        table.isCompute ||
+        table.isAlias ||
+        table.isSort ||
+        table.isIndex ||
+        table.isSlice ||
+        table.isAggregation;
+}
+export function isUnaryStreamToTableOp(table : Ast.Table) : boolean {
+    return false;
+}
+export function isUnaryStreamToStreamOp(stream : Ast.Stream) : boolean {
+    return stream.isEdgeNew ||
+        stream.isEdgeFilter ||
+        stream.isFilter ||
+        stream.isProjection ||
+        stream.isCompute ||
+        stream.isAlias;
+}
+export function isUnaryTableToStreamOp(stream : Ast.Stream) : boolean {
+    return stream.isMonitor;
+}
+
+export {
     clean,
 
     split,
@@ -302,32 +346,6 @@ module.exports = {
     isExecutable,
     normalizeConfirmAnnotation,
 
-    isUnaryTableToTableOp(table) {
-        return table.isFilter ||
-            table.isProjection ||
-            table.isCompute ||
-            table.isAlias ||
-            table.isSort ||
-            table.isIndex ||
-            table.isSlice ||
-            table.isAggregation ||
-            table.isSequence ||
-            table.isHistory;
-    },
-    isUnaryStreamToTableOp(table) {
-        return table.isWindow || table.isTimeSeries;
-    },
-    isUnaryStreamToStreamOp(stream) {
-        return stream.isEdgeNew ||
-            stream.isEdgeFilter ||
-            stream.isFilter ||
-            stream.isProjection ||
-            stream.isCompute ||
-            stream.isAlias;
-    },
-    isUnaryTableToStreamOp(stream) {
-        return stream.isMonitor;
-    },
     isSameFunction,
 
     typeToStringSafe,

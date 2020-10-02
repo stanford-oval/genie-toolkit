@@ -51,6 +51,8 @@ import * as IpAddressUtils from './engine/util/ip_address';
 import SpeechHandler from './speech/speech_handler';
 import AssistantEngine from './engine';
 
+import type * as SentenceGeneratorRuntime from './sentence-generator/runtime';
+
 /**
  * Classes related to MTurk paraphrasing.
  *
@@ -79,6 +81,7 @@ export {
     // sentence generation
     BasicSentenceGenerator,
     DialogueGenerator,
+    SentenceGeneratorRuntime,
 
     // dataset manipulation
     DatasetParser,

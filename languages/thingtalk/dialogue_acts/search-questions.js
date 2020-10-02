@@ -19,12 +19,11 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
+import { Ast, } from 'thingtalk';
 
-const C = require('../ast_manip');
+import * as C from '../ast_manip';
 
 const {
     makeAgentReply,
@@ -212,7 +211,7 @@ function impreciseSearchQuestionAnswer(ctx, answer) {
     return addQuery(ctx, 'execute', newTable, 'accepted');
 }
 
-module.exports = {
+export {
     checkFilterPairForDisjunctiveQuestion,
     makeSearchQuestion,
     preciseSearchQuestionAnswer,

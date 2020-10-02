@@ -19,12 +19,12 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
+import assert from 'assert';
+import * as ThingTalk from 'thingtalk';
+import { Ast, } from 'thingtalk';
 
-const C = require('./ast_manip');
-const { isExecutable } = require('./utils');
+import * as C from './ast_manip';
+import { isExecutable } from './utils';
 
 // NOTE: this version of arraySubset uses ===
 // the one in array_utils uses .equals()
@@ -776,7 +776,7 @@ function getContextTags(ctx) {
     return tags;
 }
 
-module.exports = {
+export {
     POLICY_NAME,
     INITIAL_CONTEXT_INFO,
     makeAgentReply,

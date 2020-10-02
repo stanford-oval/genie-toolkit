@@ -4,6 +4,7 @@ coverage/
 bundle/
 home/
 dist/
+languages-dist/
 jsdoc/
 .nyc_output/
 .idea/
@@ -11,6 +12,8 @@ jsdoc/
 .DS_Store
 *.pyc
 __pycache__
+*.genie.ts
+*.genie.js
 
 lib/sentence-generator/compiler/grammar.js
 po/tmp

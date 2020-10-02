@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -17,30 +17,34 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
 import * as fs from 'fs';
+import * as stream from 'stream';
 import byline from 'byline';
 import * as argparse from 'argparse';
 
 import * as StreamUtils from '../../lib/utils/stream-utils';
 
-function maybeCreateReadStream(filename) {
+function maybeCreateReadStream(filename : string) : stream.Readable {
     if (filename === '-')
         return process.stdin;
     else
         return fs.createReadStream(filename);
 }
 
-function readAllLines(files, separator = '') {
+function readAllLines(files : stream.Readable[], separator = '') : stream.Readable {
     return StreamUtils.chain(files.map((s) => s.setEncoding('utf8').pipe(byline())), { objectMode: true, separator });
 }
 
 class ActionSetFlag extends argparse.Action {
-    call(parser, namespace, values) {
+    'const' ! : boolean;
+
+    call(parser : argparse.ArgumentParser,
+         namespace : any,
+         values : string[]) : void {
         if (!namespace.flags)
             namespace.flags = {};
-        for (let value of values)
+        for (const value of values)
             namespace.flags[value] = this.const;
     }
 }

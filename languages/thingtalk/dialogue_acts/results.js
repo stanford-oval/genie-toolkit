@@ -19,7 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
 const {
     isInfoPhraseCompatibleWithResult,
@@ -72,6 +72,6 @@ function checkInfoPhrase(ctx, info) {
     }
 }
 
-module.exports = {
+export {
     checkInfoPhrase
 };

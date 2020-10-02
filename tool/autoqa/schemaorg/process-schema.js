@@ -29,7 +29,6 @@ import util from 'util';
 
 import { clean } from '../../../lib/utils/misc-utils';
 import EnglishLanguagePack from '../../../lib/i18n/american-english';
-import { isHumanEntity } from '../../../languages/thingtalk/utils';
 import * as StreamUtils from '../../../lib/utils/stream-utils';
 
 import genBaseCanonical from '../lib/base-canonical-generator';
@@ -55,6 +54,20 @@ import {
 } from './manual-annotations';
 
 const keepAnnotation = false;
+
+function isHumanEntity(type) {
+    if (type instanceof Type.Entity)
+        return isHumanEntity(type.type);
+    if (type instanceof Type.Array)
+        return isHumanEntity(type.elem);
+    if (typeof type !== 'string')
+        return false;
+    if (['tt:contact', 'tt:username', 'org.wikidata:human'].includes(type))
+        return true;
+    if (type.startsWith('org.schema') && type.endsWith(':Person'))
+        return true;
+    return false;
+}
 
 function getId(id) {
     if (id.startsWith('http://schema.org/'))

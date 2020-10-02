@@ -18,18 +18,13 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-{
-const assert = require('assert');
+import assert from 'assert';
+import { Ast, Type } from 'thingtalk';
 
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
-const Type = ThingTalk.Type;
+import * as C from '../ast_manip';
 
-// import the combinator library
-const C = require('../ast_manip');
-
-const _tpLoader = require('../load-thingpedia');
-}
+// import thingpedia info
+import _tpLoader from '../load-thingpedia';
 
 forward_get_do_command = {
     ('get' | 'take' | 'retrieve')  table:if_filtered_table ('and then' | 'then') action:thingpedia_action if !complete => new Ast.Statement.Command(null, table, [action]);
@@ -573,6 +568,7 @@ complete_action = {
         const newAction = C.addActionInputParam(command.actions[0], param);
         if (newAction === null)
             return null;
+        assert(newAction instanceof Ast.Action.Invocation);
         return new Ast.Statement.Command(null, command.table, [newAction]);
     };
 }

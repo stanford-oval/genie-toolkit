@@ -19,13 +19,12 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
+import { Ast, } from 'thingtalk';
 
-const C = require('../ast_manip');
-const _loader = require('../load-thingpedia');
+import * as C from '../ast_manip';
+import _loader from '../load-thingpedia';
 
 const {
     addNewItem,
@@ -234,7 +233,7 @@ function addInitialDontCare(stmt, dontcare) {
     return clone;
 }
 
-module.exports = {
+export {
     initialRequest,
     startNewRequest,
     addInitialDontCare

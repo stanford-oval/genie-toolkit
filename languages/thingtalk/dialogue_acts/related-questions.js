@@ -19,9 +19,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const C = require('../ast_manip');
+import * as C from '../ast_manip';
 
 const {
     addQuery,
@@ -72,6 +72,6 @@ function relatedQuestion(ctx, stmt) {
     return addQuery(ctx, 'execute', newTable, 'accepted');
 }
 
-module.exports = {
+export {
     relatedQuestion,
 };

@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -17,21 +17,23 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-Object.assign(module.exports,
-    require('./action-confirm'),
-    require('./action-results'),
-    require('./aggregation-results'),
-    require('./coref-actions'),
-    require('./coref-questions'),
-    require('./empty-search'),
-    require('./initial-request'),
-    require('./list-proposal'),
-    require('./recommendation'),
-    require('./refinement'),
-    require('./related-questions'),
-    require('./results'),
-    require('./search-questions'),
-    require('./slot-fill'),
-);
+interface EqualityComparable {
+    equals(x : this) : boolean;
+}
+
+export function arraySubset(small : EqualityComparable[],
+                            big : EqualityComparable[]) : boolean {
+    for (const element of small) {
+        let good = false;
+        for (const candidate of big) {
+            if (candidate.equals(element)) {
+                good = true;
+                break;
+            }
+        }
+        if (!good)
+            return false;
+    }
+    return true;
+}

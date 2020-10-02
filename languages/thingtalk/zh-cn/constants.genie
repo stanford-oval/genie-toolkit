@@ -18,16 +18,13 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>, Jian Li <jianli19@cs.stanford.edu>
 
-{
-const assert = require('assert');
+import assert from 'assert';
+import { Ast, Type } from 'thingtalk';
 
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
-const Type = ThingTalk.Type;
+import * as C from '../ast_manip';
 
-// import the combinator library
-const C = require('../ast_manip');
-}
+// import thingpedia info
+import _tpLoader from '../load-thingpedia';
 
 constant_Number = {
     // `turking` is a flags that controls a group of grammar rules
@@ -73,7 +70,7 @@ constant_Date = {
     duration:constant_Measure_ms '以后' => C.makeDate(null, '+', duration);
     duration:constant_Measure_ms '之后' => C.makeDate(null, '+', duration);
     duration:constant_Measure_ms '以前' => C.makeDate(null, '-', duration);
-    duration:constant_Measure_ms '之前' => C.makeDateDate(null, '-', duration);
+    duration:constant_Measure_ms '之前' => C.makeDate(null, '-', duration);
     '在' pt:constant_date_point '以后' duration:constant_Measure_ms => C.makeDate(pt.value, '+', duration);
     '在' pt:constant_date_point '之后' duration:constant_Measure_ms => C.makeDate(pt.value, '+', duration);
     '在' pt:constant_date_point '以前' duration:constant_Measure_ms => C.makeDate(pt.value, '-', duration);

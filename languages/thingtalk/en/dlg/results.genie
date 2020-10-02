@@ -20,19 +20,15 @@
 
 // Templates that describe results from a query
 
-{
-    const assert = require('assert');
-    const ThingTalk = require('thingtalk');
-    const Ast = ThingTalk.Ast;
-    const Type = ThingTalk.Type;
+import assert from 'assert';
+import { Ast, Type } from 'thingtalk';
 
-    const C = require('../../ast_manip');
-    const D = require('../../dialogue_acts');
-    const { SlotBag, checkAndAddSlot } = require('../../slot_bag');
+import * as C from '../../ast_manip';
+import * as D from '../../dialogue_acts';
+import { SlotBag, checkAndAddSlot } from '../../slot_bag';
 
-    // import thingpedia info
-    const _tpLoader = require('../../load-thingpedia');
-}
+// import thingpedia info
+import _tpLoader from '../../load-thingpedia';
 
 // names of objects in the result
 

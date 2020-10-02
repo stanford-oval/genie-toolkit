@@ -26,15 +26,11 @@
 // - some form of "yes"
 // - some form of "no" followed by another search refinement
 
-{
-    const assert = require('assert');
-    const ThingTalk = require('thingtalk');
-    const Ast = ThingTalk.Ast;
-    const Type = ThingTalk.Type;
+import assert from 'assert';
+import { Ast, Type } from 'thingtalk';
 
-    const C = require('../../ast_manip');
-    const D = require('../../dialogue_acts');
-}
+import * as C from '../../ast_manip';
+import * as D from '../../dialogue_acts';
 
 search_result_preamble = {
     ctx:ctx_search_command ('there are' | 'i can see' | 'i have found' | 'i can recommend') ('many' | 'several') base:base_noun_phrase
