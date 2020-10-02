@@ -351,6 +351,10 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         verb_projection: ['know', 'understand', 'master'],
         adjective: ['# speaking']
     },
+    addressLocality: {
+        base: ['city'],
+        preposition: ["in #", "from #"],
+    },
 
     // recipes
     publisher: {
