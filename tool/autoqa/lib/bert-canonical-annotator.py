@@ -4,6 +4,7 @@ import json
 import sys
 import torch
 from transformers import BertTokenizer, BertForMaskedLM, GPT2Tokenizer, GPT2LMHeadModel
+from nltk.corpus import wordnet
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -212,6 +213,10 @@ class BertLM:
         :param k: number of top candidates to return, this defaults to self.k if absent
         :return: a array in length k of predicted tokens
         """
+        # skip uncommon word
+        if not wordnet.synsets(word):
+            return []
+
         if k is None:
             k = self.k_synonyms
 
