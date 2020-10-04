@@ -23,6 +23,7 @@ const assert = require('assert');
 const fs = require('fs');
 const util = require('util');
 const child_process = require('child_process');
+const stemmer = require('stemmer');
 
 const EnglishLanguagePack = require('../../../lib/i18n/american-english');
 
@@ -82,11 +83,14 @@ class AnnotationExtractor {
 
                 let canonicals = (this.class.queries[qname] || this.class.actions[qname]).getArgument(arg).metadata.canonical;
                 for (let typeNewCanonical in this.newCanonicals[arg]) {
-                    for (let newCanonical of this.newCanonicals[arg][typeNewCanonical]) {
-                        if (!(newCanonical.startsWith('# ') || newCanonical.endsWith(' #') || newCanonical.includes(' # ')))
+                    for (let newCanonical of new Set(this.newCanonicals[arg][typeNewCanonical])) {
+                        if (!(newCanonical.startsWith('# ') || newCanonical.endsWith(' #') || newCanonical.includes(' # ') || newCanonical === '#'))
                             continue;
 
-                        if (this.hasConflict(arg, newCanonical))
+                        if (newCanonical === '#' && typeNewCanonical !== 'adjective')
+                            continue;
+
+                        if (this.hasConflict(qname, arg, typeNewCanonical, newCanonical))
                             continue;
 
                         if (!canonicals[typeNewCanonical]) {
@@ -104,17 +108,68 @@ class AnnotationExtractor {
         }
     }
 
-    hasConflict(currentArg, currentCanonical) {
-        for (let arg in this.newCanonicals) {
-            if (arg === currentArg)
+    hasConflict(fname, currentArg, currentPos, currentCanonical) {
+        const func = this.class.queries[fname] || this.class.actions[fname];
+        currentArg = func.getArgument(currentArg);
+        const currentStringset = currentArg.getImplementationAnnotation('string_values');
+        for (let arg of func.iterateArguments()) {
+            if (arg.name === currentArg.name)
                 continue;
+
+            // for non base, we only check conflict between arguments of the same type, or same string set
+            if (currentPos !== 'base') {
+                if (currentStringset) {
+                    let stringset = arg.getImplementationAnnotation('string_values');
+                    if (stringset && stringset !== currentStringset)
+                        continue;
+                }
+                let currentType = currentArg.type.isArray ? currentArg.type.elem : currentArg.type;
+                let type = arg.type.isArray ? arg.type.elem : arg.type;
+                if (!currentType.equals(type))
+                    continue;
+            }
+
             for (let pos in this.newCanonicals[arg]) {
                 for (let canonical of this.newCanonicals[arg][pos]) {
-                    if (canonical.replace('#', '').trim() === currentCanonical.replace('#', '').trim())
-                        return true;
+                   if (canonical.replace('#', '').trim() === currentCanonical.replace('#', '').trim())
+                       return true;
+                }
+            }
+
+            const canonicals = arg.metadata.canonical;
+
+            for (let pos in canonicals) {
+                // if current pos is base, only check base
+                if (currentPos === 'base' && pos !== 'base')
+                    continue;
+                // if current pos is not base, only check non-base
+                if (currentPos !== 'base' && pos === 'base')
+                    continue;
+                let conflictFound = false;
+                let todelete = [];
+                for (let i = 0; i < canonicals[pos].length; i++) {
+                    let canonical = canonicals[pos][i];
+                    if (stemmer(canonical) === stemmer(currentCanonical)) {
+                        // conflict with the base canonical phrase of another parameter, return true directly
+                        if (i === 0)
+                            return true;
+                        // conflict with generate canonicals of another parameter, remove conflicts, then return true
+                        conflictFound = true;
+                        todelete.push(canonical);
+                    }
+                }
+                if (conflictFound) {
+                    for (let canonical of todelete) {
+                        let index = canonicals[pos].indexOf(canonical);
+                        canonicals[pos].splice(index, 1);
+                    }
+                    return true;
                 }
             }
         }
+
+        //TODO: also consider conflicts between candidates
+
         return false;
     }
 
@@ -265,6 +320,15 @@ class AnnotationExtractor {
             ];
             for (let alternative of query_canonical_alternatives)
                 prefixes.push(standard_prefix.replace(to_replace, alternative));
+        }
+
+        if (paraphrase.startsWith('show me ') && paraphrase.endsWith(query_canonical)) {
+            const clause = paraphrase.slice('show me '.length, -query_canonical.length - 1);
+            if ((clause.startsWith('a ') || clause.startsWith('an ') || clause.startsWith('the ')) && clause.split(' ').length <= 3) {
+                canonical['adjective'] = canonical['adjective'] || [];
+                canonical['adjective'].push(clause.slice(clause.indexOf(' ') + 1).replace(value, '#'));
+            }
+            return;
         }
 
         for (let prefix of new Set(prefixes)) {
