@@ -582,7 +582,7 @@ if __name__ == '__main__':
                         help='predict without masking tokens')
     parser.add_argument('--k-synonyms',
                         type=int,
-                        default=5,
+                        default=3,
                         help='top-k candidates per example to return when generating synonyms')
     parser.add_argument('--k-adjectives',
                         type=int,
