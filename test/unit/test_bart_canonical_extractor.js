@@ -25,6 +25,27 @@ const AnnotationExtractor = require('../../tool/autoqa/lib/canonical-extractor')
 
 const TEST_CASES = [
     [
+        "Show me a album with language Swedish .",
+        "Show me the Swedish album.",
+        "Swedish",
+        "album",
+        { adjective: ["#"] }
+    ],
+    [
+        "Show me a restaurant with cuisine izakaya .",
+        "Show me the Izakaya restaurant.",
+        "Izakaya",
+        "restaurant",
+        { adjective: ["#"] }
+    ],
+    [
+        "Show me a restaurant with cuisine laotian .",
+        "Show me a Laotian cuisine restaurant.",
+        "Laotian",
+        "restaurant",
+        { adjective: ["# cuisine"] }
+    ],
+    [
         "Which review has author Rick M. ?",
         "Which review did Rick M. write?",
         "Rick M.",
