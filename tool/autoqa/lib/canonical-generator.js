@@ -157,7 +157,7 @@ class AutoCanonicalGenerator {
 
                 if (typestr && typeCounts[typestr] === 1) {
                     // if an entity is unique, allow dropping the property name entirely
-                    if (!this.functions.includes(typestr.substring(typestr.indexOf(':') + 1))) {
+                    if (canonical.property && !this.functions.includes(typestr.substring(typestr.indexOf(':') + 1))) {
                         if (!canonical.property.includes('#'))
                             canonical.property.push('#');
                     }
@@ -368,7 +368,7 @@ class AutoCanonicalGenerator {
                     continue;
 
                 for (let cat in canonicals) {
-                    if (['default', 'adjective', 'implicit_identity', 'property'].includes(cat))
+                    if (['default', 'adjective', 'implicit_identity', 'property', 'projection_pronoun'].includes(cat))
                         continue;
                     if (cat.endsWith('_projection'))
                         continue;
