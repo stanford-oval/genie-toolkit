@@ -345,10 +345,19 @@ class BertLM:
             predictions = self.predict_one(table, None, 'show me a [MASK] ' + query_canonical, '[MASK]', k)
             for param in self.values[table]:
                 values = self.values[table][param]
+                if len(values) == 0:
+                    continue
+                lengths = [len(v.split()) for v in values]
+                if sum(lengths) / len(lengths) > 3:
+                    continue
+                count = 0
                 for v in predictions:
                     if v in values:
+                        count += 1
+                    if count >= min(3, len(values)/3):
                         properties.append(table + '.' + param)
                         break
+
         return properties
 
     def predict_domain_names(self):
