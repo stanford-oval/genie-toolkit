@@ -126,6 +126,12 @@ module.exports = {
             action: 'store_true',
             help: `mask token before predicting`
         });
+        parser.add_argument('--filtering', {
+            required: false,
+            default: false,
+            action: 'store_true',
+            help: `Enable filtering for phrase extraction.`
+        });
         parser.add_argument('--debug', {
             required: false,
             default: false,

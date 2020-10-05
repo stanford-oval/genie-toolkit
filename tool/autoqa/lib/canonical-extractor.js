@@ -81,15 +81,11 @@ class AnnotationExtractor {
                 if (!(arg in this.newCanonicals))
                     continue;
 
+                const wordCounter = this.countWords(this.newCanonicals[arg]);
                 let canonicals = (this.class.queries[qname] || this.class.actions[qname]).getArgument(arg).metadata.canonical;
                 for (let typeNewCanonical in this.newCanonicals[arg]) {
-                    for (let newCanonical of new Set(this.newCanonicals[arg][typeNewCanonical])) {
-                        if (!(newCanonical.startsWith('# ') || newCanonical.endsWith(' #') || newCanonical.includes(' # ') || newCanonical === '#'))
-                            continue;
-
-                        if (newCanonical === '#' && typeNewCanonical !== 'adjective')
-                            continue;
-
+                    const candidates = this.filterCandidates(typeNewCanonical, this.newCanonicals[arg][typeNewCanonical], wordCounter);
+                    for (let newCanonical of candidates) {
                         if (this.hasConflict(qname, arg, typeNewCanonical, newCanonical))
                             continue;
 
@@ -106,6 +102,43 @@ class AnnotationExtractor {
                 }
             }
         }
+    }
+
+    countWords(candidates) {
+        const counter = {};
+        for (let pos in candidates) {
+            for (let candidate of candidates[pos]) {
+                for (let word of candidate.split(' '))
+                    counter[word] = (counter[word] || 0) + 1;
+            }
+        }
+        return counter;
+    }
+
+    filterCandidates(pos, candidates, wordCounter) {
+        candidates = new Set(candidates);
+
+        const filtered = [];
+        for (let candidate of candidates) {
+            if (!(candidate.startsWith('# ') || candidate.endsWith(' #') || candidate.includes(' # ') || candidate === '#'))
+                continue;
+
+            if (candidate === '#' && pos !== 'adjective')
+                continue;
+
+            let includesRareWord = false;
+            for (let word of candidate.split(' ')) {
+                if (wordCounter[word] < 2) {
+                    includesRareWord = true;
+                    break;
+                }
+            }
+            if (this.options.filtering && includesRareWord)
+                continue;
+
+            filtered.push(candidate);
+        }
+        return filtered;
     }
 
     hasConflict(fname, currentArg, currentPos, currentCanonical) {
