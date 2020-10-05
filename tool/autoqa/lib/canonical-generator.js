@@ -241,7 +241,7 @@ class AutoCanonicalGenerator {
             }
 
             const { domains, synonyms, adjectives } = JSON.parse(stdout);
-            if (this.algorithm.includes('bert'))
+            if (this.algorithm.includes('bert') || this.algorithm.includes('domain_synonyms'))
                 this._updateFunctionCanonicals(domains);
             if (this.algorithm.includes('bert') || this.algorithm.includes('adj'))
                 this._updateCanonicals(synonyms, adjectives);
@@ -301,9 +301,9 @@ class AutoCanonicalGenerator {
             let func = this.class.queries[fname] || this.class.actions[fname];
             const canonical = Array.isArray(func.nl_annotations.canonical) ? func.nl_annotations.canonical : [func.nl_annotations.canonical];
             const candidates = canonicals[fname];
-            const maxCount = Math.max(...Object.values(candidates));
+            const maxCount = Object.values(candidates).reduce((a, b) => a + b, 0) / 5;
             for (let candidate in candidates) {
-                if (candidates[candidate] > maxCount * 0.6)
+                if (candidates[candidate] > maxCount * 0.5)
                     canonical.push(candidate);
             }
 

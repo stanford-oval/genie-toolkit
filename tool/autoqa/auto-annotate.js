@@ -79,7 +79,7 @@ module.exports = {
             default: false
         });
         parser.add_argument('--algorithm', {
-            help: 'Different algorithms to generate canonicals including bert, bart, adj, split by comma (no space)',
+            help: 'Different algorithms to generate canonicals including bert, bart, adj, domain_synonyms split by comma (no space)',
             default: null
         });
         parser.add_argument('--batch-size', {
