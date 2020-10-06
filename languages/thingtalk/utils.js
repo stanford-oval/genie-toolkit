@@ -75,7 +75,7 @@ function makeFilter(loader, pname, op, value, negate = false) {
 function makeAndFilter(loader, param, op, values, negate=false) {
     if (values.length !== 2)
         return null;
-    if (values[0].name === values[1].name)
+    if (values[0].equals(values[1]))
         return null;
     const operands  = values.map((v) => makeFilter(loader, param, op, v));
     if (operands.includes(null))
