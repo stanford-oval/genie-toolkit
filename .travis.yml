@@ -15,56 +15,56 @@ jobs:
       install:
       - pyenv global 3.6.7
       - pip install --user torch transformers
-      - travis_retry yarn
+      - travis_retry npm ci
       script:
-      - yarn lint
-      - yarn doc
-      - TZ="America/Los_Angeles" yarn run nyc ts-node ./test/unit
-      after_success: yarn run coverage
+      - npm run lint
+      - npm run doc
+      - TZ="America/Los_Angeles" npx nyc ts-node ./test/unit
+      after_success: npm run coverage
     -
       name: "Dialogue Agent Tests"
       install:
-      - travis_retry yarn
+      - travis_retry npm ci
       script:
-      - TZ="America/Los_Angeles" yarn run nyc ts-node ./test/agent
-      after_success: yarn run coverage
+      - TZ="America/Los_Angeles" npx nyc ts-node ./test/agent
+      after_success: npm run coverage
     -
       name: "Engine Tests"
       install:
-      - travis_retry yarn
+      - travis_retry npm ci
       script:
-      - TZ="America/Los_Angeles" yarn run nyc ts-node ./test/engine
-      after_success: yarn run coverage
+      - TZ="America/Los_Angeles" npx nyc ts-node ./test/engine
+      after_success: npm run coverage
     -
       name: "Command-line Tests"
       install:
-      - travis_retry yarn
-      script: yarn run nyc ./test/cmdline.sh
-      after_success: yarn run coverage
+      - travis_retry npm ci
+      script: npx nyc ./test/cmdline.sh
+      after_success: npm run coverage
     -
       name: "Starter Code Tests (Basic)"
       install:
       - pyenv global 3.6.7
       - ./travis/install-starter-deps.sh
-      - travis_retry yarn
-      script: yarn run nyc ./test/basic-starter.sh
-      after_success: yarn run coverage
+      - travis_retry npm ci
+      script: npx nyc ./test/basic-starter.sh
+      after_success: npm run coverage
     -
       name: "Starter Code Tests (Schema.org)"
       install:
       - pyenv global 3.6.7
       - ./travis/install-starter-deps.sh
-      - travis_retry yarn
-      script: yarn run nyc ./test/schemaorg-starter.sh
-      after_success: yarn run coverage
+      - travis_retry npm ci
+      script: npx nyc ./test/schemaorg-starter.sh
+      after_success: npm run coverage
     -
       name: "Starter Code Tests (MultiWOZ)"
       install:
       - pyenv global 3.6.7
       - ./travis/install-starter-deps.sh
-      - travis_retry yarn
-      script: yarn run nyc ./test/multiwoz-starter.sh
-      after_success: yarn run coverage
+      - travis_retry npm ci
+      script: npx nyc ./test/multiwoz-starter.sh
+      after_success: npm run coverage
 
 notifications:
   webhooks: https://coveralls.io/webhook
