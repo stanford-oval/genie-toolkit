@@ -101,9 +101,24 @@ type CompiledTemplate = (runtime : typeof SentenceGeneratorRuntime,
 
 export async function importGenie(filename : string,
                                   searchPath = '.') : Promise<CompiledTemplate> {
-    const target = require.extensions['.ts'] ? 'ts' : 'js';
-
     filename = path.resolve(searchPath, filename);
+
+    // try loading compiled js first
+    let target : 'js'|'ts' = 'js';
+    try {
+        return (await import(filename + '.' + target)).default;
+    } catch(e) {
+        if (e.code !== 'MODULE_NOT_FOUND')
+            throw e;
+    }
+
+    // if that did not work, try compiling the template on-demand
+    // we compile to .ts if we're running in ts-node or nyc with the
+    // typescript extensions
+    // and compile to js ourselves otherwise
+    // (in the latter case, type errors won't be reported across modules)
+
+    target = require.extensions['.ts'] ? 'ts' : 'js';
     try {
         await pfs.access(filename + '.' + target);
     } catch(e) {

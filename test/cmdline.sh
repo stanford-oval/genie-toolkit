@@ -49,7 +49,7 @@ diff -u com.spotify:genre.tsv $srcdir/test/data/en-US/expected-spotify-genre.tsv
 node $srcdir/dist/tool/genie.js generate --help
 node $srcdir/dist/tool/genie.js generate --maxdepth 2 \
   --thingpedia thingpedia.tt --entities entities.json --dataset dataset.tt \
-  --template $srcdir/languages/thingtalk/en/thingtalk.genie -o /dev/null -l en
+  --template $srcdir/languages-dist/thingtalk/en/thingtalk.genie -o /dev/null -l en
 
 # sample
 node $srcdir/dist/tool/genie.js sample -o synthetic-sampled.tsv \
@@ -130,26 +130,5 @@ node $srcdir/dist/tool/genie.js split-train-eval everything.tsv \
 node $srcdir/dist/tool/genie.js split-train-eval everything.tsv \
   --train /dev/null --eval /dev/null \
   --split-strategy combination --eval-probability 0.5
-
-## now the same thing, but contextual
-
-# generate-contextual
-#node $srcdir/dist/tool/genie.js extract-contexts -l en-US -o contexts.txt \
-#   --thingpedia $srcdir/test/data/en-US/thingpedia.tt $srcdir/test/data/en-US/synthetic.tsv
-#node $srcdir/dist/tool/genie.js generate-contextual --maxdepth 3 \
-#    --thingpedia $srcdir/test/data/en-US/thingpedia.tt --entities entities.json --dataset dataset.tt \
-#   --template $srcdir/languages/thingtalk/en/contextual.genie -o /dev/null -l en contexts.txt
-#node $srcdir/dist/tool/genie.js contextualize -o /dev/null -l en --context contexts.txt $srcdir/test/data/en-US/synthetic.tsv
-#
-#node $srcdir/dist/tool/genie.js sample -o synthetic-contextual-sampled.tsv \
-#  --thingpedia $srcdir/test/data/en-US/thingpedia.tt \
-#  --contextual --context-source $srcdir/test/data/en-US/synthetic-context-source.tsv \
-#  --constants $srcdir/data/en-US/constants.tsv --sampling-control $srcdir/test/data/en-US/easy-hard-functions.tsv \
-#  $srcdir/test/data/en-US/synthetic-contextual.tsv
-#diff -u $srcdir/test/data/en-US/expected-synthetic-contextual-sampled.tsv synthetic-contextual-sampled.tsv
-#
-#node $srcdir/dist/tool/genie.js mturk-make-paraphrase-hits -o mturk-contextual-paraphrasing.csv \
-#  --sentences-per-task 3 < synthetic-contextual-sampled.tsv
-#diff -u $srcdir/test/data/en-US/expected-contextual-mturk-paraphrasing.csv mturk-contextual-paraphrasing.csv
 
 rm -fr $workdir
