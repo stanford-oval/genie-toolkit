@@ -19,8 +19,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>, Johnny Hsu <johnny.chhsu01@gmail.com>
 
-import assert from 'assert';
-import { Ast, Type } from 'thingtalk';
+import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
 

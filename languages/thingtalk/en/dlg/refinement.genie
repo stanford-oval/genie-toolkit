@@ -26,10 +26,6 @@
 // - some form of "yes"
 // - some form of "no" followed by another search refinement
 
-import assert from 'assert';
-import { Ast, Type } from 'thingtalk';
-
-import * as C from '../../ast_manip';
 import * as D from '../../dialogue_acts';
 
 search_result_preamble = {

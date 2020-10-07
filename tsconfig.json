@@ -15,7 +15,7 @@
         "moduleResolution": "node",
         "resolveJsonModule": true,
         "strict": false,
-        "noUnusedLocals": false,
+        "noUnusedLocals": true,
         "outDir": "dist",
         "rootDir": ".",
         "sourceMap": true,

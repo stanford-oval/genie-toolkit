@@ -21,9 +21,7 @@
 // Templates that describe results from a query
 
 import assert from 'assert';
-import { Ast, Type } from 'thingtalk';
 
-import * as C from '../../ast_manip';
 import * as D from '../../dialogue_acts';
 import { SlotBag, checkAndAddSlot } from '../../slot_bag';
 

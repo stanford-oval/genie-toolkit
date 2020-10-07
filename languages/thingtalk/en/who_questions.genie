@@ -18,9 +18,6 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 
-import assert from 'assert';
-import { Ast, Type } from 'thingtalk';
-
 import * as C from '../ast_manip';
 
 // import thingpedia info
