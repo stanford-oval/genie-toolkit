@@ -37,11 +37,7 @@ import TraditionalChinese from './traditional-chinese';
 import BaseTokenizer from './tokenizer/base';
 export { BaseTokenizer };
 
-// TODO finish interface
-export interface LanguagePack {
-    getTokenizer() : BaseTokenizer;
-    postprocessSynthetic(sentence : string) : string;
-}
+export type LanguagePack = DefaultLanguagePack;
 
 interface LPClass {
     new() : LanguagePack;

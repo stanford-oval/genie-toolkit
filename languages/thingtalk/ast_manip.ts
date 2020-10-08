@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -29,11 +29,11 @@ import * as Utils from './utils';
 
 import _loader from './load-thingpedia';
 
-function notifyAction(name = 'notify') {
+function notifyAction(name : 'notify'|'return' = 'notify') : Ast.NotifyAction {
     return Ast.Action.notifyAction(name);
 }
 
-function makeDate(base, operator, offset) {
+function makeDate(base : Ast.Value|Ast.DateEdge|Ast.DatePiece|Ast.WeekDayDate|null, operator : '+'|'-', offset : Ast.Value|null) : Ast.Value {
     if (!(base instanceof Ast.Value))
         base = new Ast.Value.Date(base);
     if (offset === null)
@@ -44,15 +44,15 @@ function makeDate(base, operator, offset) {
     return value;
 }
 
-function makeMonthDateRange(year, month) {
+function makeMonthDateRange(year : number|null, month : number|null) : [Ast.Value, Ast.Value] {
     return [
         makeDate(new Ast.DatePiece(year, month, null, null), '+', null),
         makeDate(new Ast.DatePiece(year, month, null, null), '+', new Ast.Value.Measure(1, 'mon'))
     ];
 }
 
-function getFunctionNames(ast) {
-    const functions = [];
+function getFunctionNames(ast : Ast.Node) : string[] {
+    const functions : string[] = [];
     ast.visit(new class extends Ast.NodeVisitor {
         visitInvocation(invocation) {
             functions.push(invocation.selector.kind + ':' + invocation.channel);
@@ -74,7 +74,7 @@ function getFunctions(ast) {
 }
 
 function isSelfJoinStream(stream) {
-    let functions = getFunctionNames(stream);
+    const functions = getFunctionNames(stream);
     if (functions.length > 1) {
         if (!Array.isArray(functions))
             throw new TypeError('??? ' + functions);
@@ -97,7 +97,7 @@ function betaReduce(ast, pname, value) {
     const clone = ast.clone();
 
     let found = false;
-    for (let slot of clone.iterateSlots2({})) {
+    for (const slot of clone.iterateSlots2({})) {
         if (slot instanceof Ast.Selector)
             continue;
 
@@ -145,12 +145,12 @@ function unassignInputParameter(schema, passign, pname) {
 // perform eta reduction
 // (turn (\(x) -> f(x)) into just f
 function etaReduceInvocation(invocation, pname) {
-    let clone = new Ast.Invocation(null, invocation.selector, invocation.channel,
+    const clone = new Ast.Invocation(null, invocation.selector, invocation.channel,
         Array.from(invocation.in_params), null);
     let passign;
     for (let i = 0; i < clone.in_params.length; i++) {
-        let inParam = clone.in_params[i];
-        if (inParam.value.isVarRef && inParam.value.name === pname) {
+        const inParam = clone.in_params[i];
+        if (inParam.value instanceof Ast.Value.VarRef && inParam.value.name === pname) {
             passign = inParam.name;
             clone.in_params.splice(i, 1);
             break;
@@ -167,10 +167,10 @@ function etaReduceTable(table, pname) {
     if (!table.schema.hasArgument(pname) || !table.schema.isArgInput(pname))
         return [undefined, table];
     if (table.isInvocation) {
-        let [passign, clone] = etaReduceInvocation(table.invocation, pname);
+        const [passign, clone] = etaReduceInvocation(table.invocation, pname);
         return [passign, new Ast.Table.Invocation(null, clone, clone.schema)];
     } else if (table.isFilter) {
-        let [passign, clone] = etaReduceTable(table.table, pname);
+        const [passign, clone] = etaReduceTable(table.table, pname);
         return [passign, new Ast.Table.Filter(null, clone, table.filter, clone.schema)];
     } else {
         // TODO
@@ -232,7 +232,7 @@ function makeListExpression(param, filter) {
         if (!(filter.name in type.fields))
             return null;
     }
-    let vtype = filter.value.getType();
+    const vtype = filter.value.getType();
     if (!_loader.params.out.has(`${filter.name}+${vtype}`))
         return null;
     return new Ast.Value.Filter(param, filter);
@@ -297,12 +297,12 @@ function makeEdgeFilterStream(proj, op, value) {
     if (!(proj instanceof Ast.Table.Projection))
         return null;
 
-    let f = new Ast.BooleanExpression.Atom(null, proj.args[0], op, value);
+    const f = new Ast.BooleanExpression.Atom(null, proj.args[0], op, value);
     if (!checkFilter(proj.table, f))
         return null;
     if (!proj.schema.is_monitorable || proj.schema.is_list)
         return null;
-    let outParams = Object.keys(proj.table.schema.out);
+    const outParams = Object.keys(proj.table.schema.out);
     if (outParams.length === 1 && _loader.flags.turking)
         return null;
 
@@ -311,8 +311,8 @@ function makeEdgeFilterStream(proj, op, value) {
 
 function addUnit(unit, num) {
     if (num.isVarRef) {
-        let v = new Ast.Value.VarRef(num.name + '__' + unit);
-        v.unit = unit;
+        const v = new Ast.Value.VarRef(num.name + '__' + unit);
+        (v as any).unit = unit;
         v.getType = () => new Type.Measure(unit);
         return v;
     } else {
@@ -323,9 +323,9 @@ function addUnit(unit, num) {
 function resolveProjection(args, schema) {
     assert(args.length >= 1);
     args = new Set(args);
-    for (let arg of schema.minimal_projection)
+    for (const arg of schema.minimal_projection)
         args.add(arg);
-    for (let arg of args)
+    for (const arg of args)
         assert(schema.hasArgument(arg));
     // if default_projection is non-empty, it's overwritten after a projection
     schema.default_projection = [];
@@ -345,14 +345,14 @@ function makeEventTableProjection(table) {
     if (table.isProjection)
         return null;
 
-    let outParams = Object.keys(table.schema.out);
+    const outParams = Object.keys(table.schema.out);
     if (outParams.length === 1 && table.schema.out[outParams[0]].isString)
         return makeProjection(table, outParams[0]);
 
-    for (let pname in table.schema.out) {
+    for (const pname in table.schema.out) {
         if (pname === 'picture_url')
             return null;
-        let ptype = table.schema.out[pname];
+        const ptype = table.schema.out[pname];
         if (_loader.types.id.has(typeToStringSafe(ptype)))
             return null;
     }
@@ -362,14 +362,14 @@ function makeEventTableProjection(table) {
 function makeEventStreamProjection(table) {
     if (!table.schema.is_monitorable)
         return null;
-    let outParams = Object.keys(table.schema.out);
+    const outParams = Object.keys(table.schema.out);
     if (outParams.length === 1 && table.schema.out[outParams[0]].isString)
         return makeStreamProjection(new Ast.Stream.Monitor(null, table, null, table.schema), outParams[0]);
 
-    for (let pname in table.schema.out) {
+    for (const pname in table.schema.out) {
         if (pname === 'picture_url')
             return null;
-        let ptype = table.schema.out[pname];
+        const ptype = table.schema.out[pname];
         if (_loader.types.id.has(typeToStringSafe(ptype)))
             return null;
     }
@@ -381,7 +381,7 @@ function makeTypeBasedTableProjection(table, ptype, ptypestr = typeToStringSafe(
         return null;
 
     if (_loader.types.id.has(ptypestr)) {
-        for (let pname in table.schema.out) {
+        for (const pname in table.schema.out) {
             if (table.schema.out[pname].equals(ptype))
                 return makeProjection(table, pname);
         }
@@ -393,7 +393,7 @@ function makeTypeBasedTableProjection(table, ptype, ptypestr = typeToStringSafe(
         if (idArg && idArg.type.equals(ptype))
             return makeProjection(table, 'id');
 
-        let outParams = Object.keys(table.schema.out);
+        const outParams = Object.keys(table.schema.out);
         if (outParams.length !== 1 || !ptype.equals(table.schema.getArgType(outParams[0])))
             return null;
         return makeProjection(table, outParams[0]);
@@ -406,7 +406,7 @@ function makeTypeBasedStreamProjection(table, ptype, ptypestr) {
     if (!table.schema.is_monitorable)
         return null;
     if (_loader.types.id.has(ptypestr)) {
-        for (let pname in table.schema.out) {
+        for (const pname in table.schema.out) {
             if (table.schema.out[pname].equals(ptype))
                 return makeStreamProjection(new Ast.Stream.Monitor(null, table, null, table.schema), pname);
         }
@@ -416,7 +416,7 @@ function makeTypeBasedStreamProjection(table, ptype, ptypestr) {
         if (idArg && idArg.type.equals(ptype))
             return makeStreamProjection(new Ast.Stream.Monitor(null, table, null, table.schema), 'id');
 
-        let outParams = Object.keys(table.schema.out);
+        const outParams = Object.keys(table.schema.out);
         if (outParams.length !== 1 || !ptype.equals(table.schema.getArgType(outParams[0])))
             return null;
         return makeStreamProjection(new Ast.Stream.Monitor(null, table, null, table.schema), outParams[0]);
@@ -424,9 +424,9 @@ function makeTypeBasedStreamProjection(table, ptype, ptypestr) {
 }
 
 function isEqualityFilteredOnParameter(table, pname) {
-    for (let [,filter] of iterateFilters(table)) {
-        for (let field of iterateFields(filter)) {
-            if (field.name === pname &&
+    for (const [,filter] of iterateFilters(table)) {
+        for (const field of iterateFields(filter)) {
+            if (field.name === pname && field instanceof Ast.AtomBooleanExpression &&
                 (field.operator === '==' || field.operator === '=~'))
                 return true;
         }
@@ -443,7 +443,7 @@ function makeSingleFieldProjection(ftype, ptype, table, pname) {
     if (!table.schema.out[pname])
         return null;
 
-    let outParams = Object.keys(table.schema.out);
+    const outParams = Object.keys(table.schema.out);
     if (outParams.length === 1)
         return table;
 
@@ -466,7 +466,7 @@ function makeSingleFieldProjection(ftype, ptype, table, pname) {
 
 function makeMultiFieldProjection(ftype, table, outParams) {
     const names = [];
-    for (let outParam of outParams) {
+    for (const outParam of outParams) {
         const name = outParam.name;
         if (_loader.flags.schema_org) {
             if (name === 'id')
@@ -487,7 +487,7 @@ function makeMultiFieldProjection(ftype, table, outParams) {
     }
 
     if (ftype === 'table') {
-        for (let pname of names) {
+        for (const pname of names) {
             if (isEqualityFilteredOnParameter(table, pname))
                 return null;
         }
@@ -499,14 +499,14 @@ function makeMultiFieldProjection(ftype, table, outParams) {
     }
 }
 
-function makeArgMaxMinTable(table, pname, direction, count) {
+function makeArgMaxMinTable(table, pname, direction : 'asc'|'desc', count ?: Ast.Value) {
     const t_sort = makeSortedTable(table, pname, direction);
 
     if (!t_sort)
         return null;
 
     count = count || new Ast.Value.Number(1);
-    if (count.isNumber && count.value <= 0)
+    if (count instanceof Ast.Value.Number && count.value <= 0)
         return null;
 
     return new Ast.Table.Slice(null, t_sort, new Ast.Value.Number(1), count, t_sort.schema);
@@ -526,8 +526,8 @@ function makeSortedTable(table, pname, direction = 'desc') {
     if (hasUniqueFilter(table))
         return null;
 
-    for (let [,filter] of iterateFilters(table)) {
-        for (let atom of iterateFields(filter)) {
+    for (const [,filter] of iterateFilters(table)) {
+        for (const atom of iterateFields(filter)) {
             if (atom.name === pname)
                 return null;
         }
@@ -557,16 +557,19 @@ function checkValidQuery(table) {
     return !hasIDFilter;
 }
 
-function makeProgram(rule) {
+function makeProgram(rule : Ast.ExecutableStatement) : Ast.Program {
     assert(rule instanceof Ast.Statement);
+    assert(!(rule instanceof Ast.Assignment));
 
     // FIXME: A hack for schema.org only to drop certain programs
-    let table = rule.table;
-    if (table) {
-        if (!checkValidQuery(table))
-            return null;
+    if (rule instanceof Ast.Command) {
+        const table = rule.table;
+        if (table) {
+            if (!checkValidQuery(table))
+                return null;
+        }
     }
-    if (rule.stream) {
+    if (rule instanceof Ast.Rule) {
         if (_loader.flags.nostream)
             return null;
     }
@@ -593,7 +596,7 @@ function checkComputeFilter(table, filter) {
         assert.strictEqual(filter.lhs.operands.length, 2);
         if (!filter.rhs.isMeasure || Units.normalizeUnit(filter.rhs.unit) !== 'm')
             return false;
-        for (let operand of filter.lhs.operands) {
+        for (const operand of filter.lhs.operands) {
             if (operand.isVarRef && !table.schema.hasArgument(operand.name))
                 return false;
             if (!(operand.isVarRef || operand.isLocation))
@@ -605,7 +608,7 @@ function checkComputeFilter(table, filter) {
     // count, sum, avg, min, max
     if (filter.lhs.operands.length !== 1)
         return false;
-    let param = filter.lhs.operands[0];
+    const param = filter.lhs.operands[0];
 
     if (!table.schema.out[param.name])
         return false;
@@ -616,8 +619,8 @@ function checkComputeFilter(table, filter) {
         return false;
     if (filter.lhs.op === 'count') {
         vtype = Type.Number;
-        let canonical = table.schema.getArgCanonical(param.name);
-        for (let p of table.schema.iterateArguments()) {
+        const canonical = table.schema.getArgCanonical(param.name);
+        for (const p of table.schema.iterateArguments()) {
             if (p.name === param.name + 'Count')
                 return false;
             if (p.canonical === canonical + 'count' || p.canonical === canonical.slice(0,-1) + ' count')
@@ -674,7 +677,7 @@ function checkAtomFilter(table, filter) {
         vtype = [vtype];
 
     let typeMatch = false;
-    for (let type of vtype) {
+    for (const type of vtype) {
         if (filter.value.getType().equals(type))
             typeMatch = true;
     }
@@ -684,10 +687,10 @@ function checkAtomFilter(table, filter) {
 
     if (vtype.isNumber || vtype.isMeasure) {
         let min = -Infinity;
-        let minArg = arg.getImplementationAnnotation('min_number');
+        const minArg = arg.getImplementationAnnotation('min_number');
         if (minArg !== undefined)
             min = minArg;
-        let maxArg = arg.getImplementationAnnotation('max_number');
+        const maxArg = arg.getImplementationAnnotation('max_number');
         let max = Infinity;
         if (maxArg !== undefined)
             max = maxArg;
@@ -710,7 +713,7 @@ function checkFilter(table, filter) {
     if (filter.isExternal)
         return true;
     if (filter.isAnd || filter.isOr) {
-        for (let operands of filter.operands) {
+        for (const operands of filter.operands) {
             if (!checkFilter(table, operands))
                 return false;
         }
@@ -749,14 +752,14 @@ function* iterateFilters(table) {
     }
 }
 
-function* iterateFields(filter) {
+function* iterateFields(filter : Ast.BooleanExpression) : Generator<Ast.AtomBooleanExpression|Ast.DontCareBooleanExpression, void> {
     assert(filter instanceof Ast.BooleanExpression);
-    if (filter.isAnd) {
-        for (let operand of filter.operands)
+    if (filter instanceof Ast.AndBooleanExpression) {
+        for (const operand of filter.operands)
             yield *iterateFields(operand);
-    } else if (filter.isNot) {
+    } else if (filter instanceof Ast.NotBooleanExpression) {
         yield *iterateFields(filter.expr);
-    } else if (filter.isAtom || filter.isDontCare) {
+    } else if (filter instanceof Ast.AtomBooleanExpression || filter instanceof Ast.DontCareBooleanExpression) {
         yield filter;
     } else {
         assert(filter.isTrue || filter.isFalse || filter.isOr || filter.isCompute || filter.isExternal);
@@ -764,7 +767,7 @@ function* iterateFields(filter) {
 }
 
 function hasUniqueFilter(table) {
-    for (let [, filter] of iterateFilters(table)) {
+    for (const [, filter] of iterateFilters(table)) {
         if (checkFilterUniqueness(table, filter))
             return true;
     }
@@ -804,11 +807,11 @@ function checkFilterUniqueness(table, filter) {
 
 function normalizeFilter(table, filter) {
     if (filter.lhs && filter.lhs.isComputation && filter.lhs.op === 'count' && filter.lhs.operands.length === 1) {
-        let name = filter.lhs.operands[0].name;
-        let canonical = table.schema.getArgCanonical(name);
+        const name = filter.lhs.operands[0].name;
+        const canonical = table.schema.getArgCanonical(name);
         if (!canonical)
             return null;
-        for (let p of table.schema.iterateArguments()) {
+        for (const p of table.schema.iterateArguments()) {
             if (p.name === name + 'Count' ||
                 p.canonical === canonical + ' count' ||
                 p.canonical === canonical.slice(0,-1) + ' count')
@@ -819,7 +822,13 @@ function normalizeFilter(table, filter) {
     return filter;
 }
 
-function addFilter(table, filter, options = {}) {
+interface AddFilterOptions {
+    ifFilter ?: boolean;
+}
+
+function addFilter(table : Ast.Table,
+                   filter : Ast.BooleanExpression,
+                   options : AddFilterOptions = {}) {
     filter = normalizeFilter(table, filter);
     if (!filter)
         return null;
@@ -836,16 +845,16 @@ function addFilter(table, filter, options = {}) {
     if (!table.schema.is_list && !options.ifFilter)
         return null;
 
-    if (table.isProjection) {
+    if (table instanceof Ast.Table.Projection) {
         const added = addFilter(table.table, filter);
         if (added === null)
             return null;
         return new Ast.Table.Projection(null, added, table.args, table.schema);
     }
 
-    if (table.isFilter) {
+    if (table instanceof Ast.Table.Filter) {
         // if we already have a filter, don't add a new complex filter
-        if (!filter.isAtom && !(filter.isNot && filter.expr.isAtom))
+        if (!filter.isAtom && !(filter instanceof Ast.NotBooleanExpression && filter.expr.isAtom))
              return null;
 
         if (checkFilterUniqueness(table, filter))
@@ -854,13 +863,15 @@ function addFilter(table, filter, options = {}) {
         if (hasUniqueFilter(table))
             return null;
 
-        let existing = table.filter;
-        let atom = filter.isNot ? filter.expr : filter;
+        const existing = table.filter;
+        const atom = filter instanceof Ast.NotBooleanExpression ? filter.expr : filter;
+        assert(atom instanceof Ast.AtomBooleanExpression);
         // check that we don't create a non-sensical filter, eg.
         // p == X && p == Y, or p > X && p > Y
-        let operands = existing.isAnd ? existing.operands : [existing];
-        for (let operand of operands) {
-            if (operand.isAtom && operand.name === atom.name &&
+        const operands = existing instanceof Ast.AndBooleanExpression ? existing.operands : [existing];
+        for (const operand of operands) {
+            if (operand instanceof Ast.AtomBooleanExpression &&
+                operand.name === atom.name &&
                 (operand.operator === atom.operator ||
                  operand.operator === '==' ||
                  atom.operator === '==' ||
@@ -870,15 +881,15 @@ function addFilter(table, filter, options = {}) {
         }
 
         const arg = table.schema.getArgument(atom.name);
-        if (arg.annotations.conflict_filter) {
-            const conflict = arg.annotations.conflict_filter.toJS();
-            for (let atom2 of iterateFields(existing)) {
+        const conflict = arg.getImplementationAnnotation<string[]>('conflict_filter');
+        if (conflict !== undefined) {
+            for (const atom2 of iterateFields(existing)) {
                 if (conflict.includes(atom2.name))
                     return null;
             }
         }
 
-        let newFilter = new Ast.BooleanExpression.And(null, [existing, filter]).optimize();
+        const newFilter = new Ast.BooleanExpression.And(null, [existing, filter]).optimize();
         return new Ast.Table.Filter(null, table.table, newFilter, table.schema);
     }
 
@@ -892,25 +903,31 @@ function addFilter(table, filter, options = {}) {
     return new Ast.Table.Filter(null, table, filter, schema);
 }
 
-function addFilterToProgram(program, filter) {
-    if (!program.rules[0].stream && !program.rules[0].table)
+function addFilterToProgram(program : Ast.Program, filter : Ast.BooleanExpression) {
+    const rule = program.rules[0];
+    if (rule instanceof Ast.Command && !rule.table)
         return null;
 
-    if (!program.rules[0].stream || !program.rules[0].stream.isMonitor)
+    if (rule instanceof Ast.Rule && !rule.stream.isMonitor)
         return null;
 
     const clone = program.clone();
 
-    if (clone.rules[0].stream) {
-        if (!checkFilter(clone.rules[0].stream.table, filter))
+    const clonerule = clone.rules[0];
+    assert(!(clonerule instanceof Ast.Assignment));
+
+    if (clonerule instanceof Ast.Rule) {
+        const stream = clonerule.stream;
+        assert(stream instanceof Ast.Stream.Monitor);
+        if (!checkFilter(stream.table, filter))
             return null;
 
-        clone.rules[0].stream.table = addFilter(clone.rules[0].stream.table, filter, true);
-        if (!clone.rules[0].stream.table)
+        stream.table = addFilter(stream.table, filter);
+        if (!stream.table)
             return null;
     } else {
-        clone.rules[0].table = addFilter(clone.rules[0].table, filter, true);
-        if (!clone.rules[0].table)
+        clonerule.table = addFilter(clonerule.table, filter);
+        if (!clonerule.table)
             return null;
     }
 
@@ -928,17 +945,17 @@ function tableToStream(table, projArg) {
     return stream;
 }
 
-function builtinSayAction(pname) {
+function builtinSayAction(pname ?: Ast.Value|string) : Ast.Action|null {
     if (!_loader.standardSchemas.say)
         return null;
 
-    let selector = new Ast.Selector.Device(null, 'org.thingpedia.builtin.thingengine.builtin', null, null);
+    const selector = new Ast.Selector.Device(null, 'org.thingpedia.builtin.thingengine.builtin', null, null);
     if (pname instanceof Ast.Value) {
-        let param = new Ast.InputParam(null, 'message', pname);
+        const param = new Ast.InputParam(null, 'message', pname);
         return new Ast.Action.Invocation(null, new Ast.Invocation(null, selector, 'say', [param], _loader.standardSchemas.say),
             _loader.standardSchemas.say.removeArgument('message'));
     } else if (pname) {
-        let param = new Ast.InputParam(null, 'message', new Ast.Value.VarRef(pname));
+        const param = new Ast.InputParam(null, 'message', new Ast.Value.VarRef(pname));
         return new Ast.Action.Invocation(null, new Ast.Invocation(null, selector, 'say', [param], _loader.standardSchemas.say),
             _loader.standardSchemas.say.removeArgument('message'));
     } else {
@@ -963,7 +980,7 @@ function timeGetPredicate(low, high) {
     if (!_loader.standardSchemas.get_time)
         return null;
 
-    let operands = [];
+    const operands = [];
 
     if (low)
         operands.push(new Ast.BooleanExpression.Atom(null, 'time', '>=', low));
@@ -976,7 +993,7 @@ function timeGetPredicate(low, high) {
 
 function hasGetPredicate(filter) {
     if (filter.isAnd || filter.isOr) {
-        for (let op of filter.operands) {
+        for (const op of filter.operands) {
             if (hasGetPredicate(op))
                 return true;
         }
@@ -992,7 +1009,7 @@ function makeGetPredicate(proj, op, value, negate = false) {
         return null;
     if (!proj.table.isInvocation)
         return null;
-    let arg = proj.args[0];
+    const arg = proj.args[0];
     let filter = new Ast.BooleanExpression.Atom(null, arg, op, value);
     if (negate)
         filter = new Ast.BooleanExpression.Not(null, filter);
@@ -1009,13 +1026,13 @@ function mergeSchemas(functionType, lhsSchema, rhsSchema, passign) {
     // handle parameter name conflicts by having the second primitive win
     const newArgNames = new Set;
     const newArgs = [];
-    for (let arg of rhsSchema.iterateArguments()) {
+    for (const arg of rhsSchema.iterateArguments()) {
         if (arg.name === passign)
             continue;
         newArgNames.add(arg.name);
         newArgs.push(arg);
     }
-    for (let arg of lhsSchema.iterateArguments()) {
+    for (const arg of lhsSchema.iterateArguments()) {
         if (newArgNames.has(arg.name))
             continue;
         /*if (!lhsSchema.isArgInput(arg.name))
@@ -1028,8 +1045,8 @@ function mergeSchemas(functionType, lhsSchema, rhsSchema, passign) {
         is_list: lhsSchema.is_list || rhsSchema.is_list,
         is_monitorable: lhsSchema.is_monitorable && rhsSchema.is_monitorable,
         require_filter: lhsSchema.require_filter || rhsSchema.require_filter,
-        default_projection: [...new Set(lhsSchema.default_projection.concat(rhsSchema.default_projection))],
-        minimal_projection: [...new Set(lhsSchema.minimal_projection.concat(rhsSchema.minimal_projection))],
+        default_projection: [...new Set<string>(lhsSchema.default_projection.concat(rhsSchema.default_projection))],
+        minimal_projection: [...new Set<string>(lhsSchema.minimal_projection.concat(rhsSchema.minimal_projection))],
         no_filter: lhsSchema.no_filter && rhsSchema.no_filter
     });
 }
@@ -1040,10 +1057,10 @@ function filterTableJoin(into, filteredTable) {
     if (!filteredTable.isFilter)
         return null;
     let tableName;
-    for (let [, invocation] of filteredTable.iteratePrimitives())
+    for (const [, invocation] of filteredTable.iteratePrimitives())
         tableName = invocation.channel;
     let passign;
-    for (let arg of into.schema.iterateArguments()) {
+    for (const arg of into.schema.iterateArguments()) {
         if (arg.name !== 'id' && arg.type.isEntity && arg.type.type.substring(arg.type.type.indexOf(':') + 1) === tableName)
             passign = arg;
     }
@@ -1065,10 +1082,10 @@ function arrayFilterTableJoin(into, filteredTable) {
     if (!filteredTable.isFilter)
         return null;
     let tableName;
-    for (let [, invocation] of filteredTable.iteratePrimitives())
+    for (const [, invocation] of filteredTable.iteratePrimitives())
         tableName = invocation.channel;
     let passign;
-    for (let arg of into.schema.iterateArguments()) {
+    for (const arg of into.schema.iterateArguments()) {
         if (arg.type.isArray && arg.type.elem.isEntity && arg.type.elem.type.substring(arg.type.type.indexOf(':') + 1) === tableName)
             passign = arg;
     }
@@ -1107,7 +1124,7 @@ function tableJoinReplacePlaceholder(into, pname, projection) {
     if (!ptype.equals(intotype))
         return null;
 
-    let [passign, etaReduced] = etaReduceTable(into, pname);
+    const [passign, etaReduced] = etaReduceTable(into, pname);
     if (passign === undefined) {
         //console.error(`Ignored join between ${into} and ${projection}: cannot find parameter ${pname}`);
         return null;
@@ -1115,7 +1132,7 @@ function tableJoinReplacePlaceholder(into, pname, projection) {
     //console.log('passign: ' + passign + ', ptype: ' + ptype);
 
     const newSchema = mergeSchemas('query', projection.schema, etaReduced.schema, passign);
-    let replacement = joinArg === '$event' ? new Ast.Value.Event(null) : new Ast.Value.VarRef(joinArg);
+    const replacement = joinArg === '$event' ? new Ast.Value.Event(null) : new Ast.Value.VarRef(joinArg);
     return new Ast.Table.Join(null, projection.table, etaReduced, [new Ast.InputParam(null, passign, replacement)], newSchema);
 }
 
@@ -1174,16 +1191,16 @@ function actionReplaceParamWithStream(into, pname, projection) {
 function getDoCommand(command, pname, joinArg) {
     //if (command.actions.length !== 1 || command.actions[0].selector.isBuiltin)
     //    throw new TypeError('???');
-    let actiontype = command.actions[0].schema.inReq[pname];
+    const actiontype = command.actions[0].schema.inReq[pname];
     if (!actiontype)
         return null;
     if (_loader.flags.dialogues && joinArg.name !== 'id')
         return null;
-    let commandtype = joinArg.isEvent ? Type.String : command.table.schema.out[joinArg.name];
+    const commandtype = joinArg.isEvent ? Type.String : command.table.schema.out[joinArg.name];
     if (!commandtype || !commandtype.equals(actiontype))
         return null;
 
-    let reduced = betaReduce(command.actions[0], pname, joinArg);
+    const reduced = betaReduce(command.actions[0], pname, joinArg);
     if (reduced === null)
         return null;
     return new Ast.Statement.Command(null, command.table, [reduced]);
@@ -1192,18 +1209,18 @@ function getDoCommand(command, pname, joinArg) {
 function whenDoRule(rule, pname, joinArg) {
     //if (rule.actions.length !== 1 || rule.actions[0].selector.isBuiltin)
     //    throw new TypeError('???');
-    let actiontype = rule.actions[0].schema.inReq[pname];
+    const actiontype = rule.actions[0].schema.inReq[pname];
     if (!actiontype)
         return null;
     if (_loader.flags.dialogues && joinArg.name !== 'id')
         return null;
-    let commandtype = joinArg.isEvent ? Type.String : rule.stream.schema.out[joinArg.name];
+    const commandtype = joinArg.isEvent ? Type.String : rule.stream.schema.out[joinArg.name];
     if (!commandtype || !commandtype.equals(actiontype))
         return null;
     if (joinArg.isEvent && (rule.stream.isTimer || rule.stream.isAtTimer))
         return null;
 
-    let reduced = betaReduce(rule.actions[0], pname, joinArg);
+    const reduced = betaReduce(rule.actions[0], pname, joinArg);
     if (reduced === null)
         return null;
     return new Ast.Statement.Rule(null, rule.stream, [reduced]);
@@ -1212,16 +1229,16 @@ function whenDoRule(rule, pname, joinArg) {
 function whenGetStream(stream, pname, joinArg) {
     if (!stream.isJoin)
         throw new TypeError('???');
-    let commandtype = stream.table.schema.inReq[pname];
+    const commandtype = stream.table.schema.inReq[pname];
     if (!commandtype)
         return null;
-    let streamtype = joinArg.isEvent ? Type.String : stream.stream.schema.out[joinArg.name];
+    const streamtype = joinArg.isEvent ? Type.String : stream.stream.schema.out[joinArg.name];
     if (!streamtype || !streamtype.equals(commandtype))
         return null;
     if (joinArg.isEvent && (stream.stream.isTimer || stream.stream.isAtTimer))
         return null;
 
-    let [passign, etaReduced] = etaReduceTable(stream.table, pname);
+    const [passign, etaReduced] = etaReduceTable(stream.table, pname);
     if (passign === undefined) {
         //console.error(`Ignored join between ${into} and ${projection}: cannot find parameter ${pname}`);
         return null;
@@ -1247,7 +1264,7 @@ function isConstantAssignable(value, ptype) {
 }
 
 function replacePlaceholderWithConstant(lhs, pname, value) {
-    let ptype = lhs.schema.inReq[pname];
+    const ptype = lhs.schema.inReq[pname];
     if (!isConstantAssignable(value, ptype))
         return null;
     if (ptype.isEnum && ptype.entries.indexOf(value.toJS()) < 0)
@@ -1307,11 +1324,11 @@ function isQueryProgram(program) {
     if (!program.isProgram)
         return false;
 
-    let hasTrigger = program.rules.length > 0 && program.rules.some((r) => r.isRule);
+    const hasTrigger = program.rules.length > 0 && program.rules.some((r) => r.isRule);
     if (hasTrigger)
         return false;
 
-    for (let [primType, prim] of program.iteratePrimitives(false)) {
+    for (const [primType, prim] of program.iteratePrimitives(false)) {
         if (prim.selector.isBuiltin)
             continue;
         if (primType === 'action')
@@ -1325,7 +1342,7 @@ function isContinuousProgram(program) {
     if (!program.isProgram)
         return false;
 
-    for (let rule of program.rules) {
+    for (const rule of program.rules) {
         if (rule.isRule)
             return true;
     }
@@ -1333,7 +1350,7 @@ function isContinuousProgram(program) {
 }
 
 function isCompleteCommand(thingtalk) {
-    for (let [, slot] of thingtalk.iterateSlots()) {
+    for (const [, slot] of thingtalk.iterateSlots()) {
         if (slot instanceof Ast.Selector)
             continue;
         if (slot.value.isUndefined)
@@ -1368,14 +1385,14 @@ function replaceAnyParameterFromContext(context, newValue) {
     const slotsOfType = [];
 
     const clone = context.clone();
-    for (let [schema, slot] of clone.iterateSlots()) {
+    for (const [schema, slot] of clone.iterateSlots()) {
         if (slot instanceof Ast.Selector)
             continue;
         if (slot.value.isVarRef)
             continue;
-        let argname = slot.name;
+        const argname = slot.name;
         let type = schema.inReq[argname] || schema.inOpt[argname] || schema.out[argname];
-        if (slot instanceof Ast.BooleanExpression && slot.operator === 'contains')
+        if (slot instanceof Ast.BooleanExpression.Atom && slot.operator === 'contains')
             type = type.elem;
 
         if (isConstantAssignable(newValue, type))
@@ -1390,15 +1407,15 @@ function replaceAnyParameterFromContext(context, newValue) {
 }
 
 function fillNextSlot(program, newValue) {
-    for (let [schema, slot] of program.iterateSlots()) {
+    for (const [schema, slot] of program.iterateSlots()) {
         if (slot instanceof Ast.Selector)
             continue;
         if (slot.value.isVarRef || !slot.value.isUndefined)
             continue;
 
-        let argname = slot.name;
+        const argname = slot.name;
         let type = schema.inReq[argname] || schema.inOpt[argname] || schema.out[argname];
-        if (slot instanceof Ast.BooleanExpression && slot.operator === 'contains')
+        if (slot instanceof Ast.BooleanExpression.Atom && slot.operator === 'contains')
             type = type.elem;
         if (!isConstantAssignable(newValue, type))
             return null;
@@ -1423,7 +1440,7 @@ function hasConflictParam(table, pname, operation) {
 
     }
     const pcleaned = cleanName(pname);
-    for (let arg in table.schema.out) {
+    for (const arg in table.schema.out) {
         if (!table.schema.out[arg].isNumber)
             continue;
         if (cleanName(table.schema.getArgCanonical(arg)) === `${pcleaned} ${operation}`)
@@ -1432,9 +1449,9 @@ function hasConflictParam(table, pname, operation) {
     return false;
 }
 
-function maybeGetIdFilter(filter) {
-    for (let atom of iterateFields(filter)) {
-        if (atom.name === 'id')
+function maybeGetIdFilter(filter : Ast.BooleanExpression) : Ast.Value|undefined {
+    for (const atom of iterateFields(filter)) {
+        if (atom.name === 'id' && atom instanceof Ast.AtomBooleanExpression)
             return atom.value;
     }
     return undefined;
@@ -1460,9 +1477,9 @@ function addReverseGetPredicateJoin(table, get_predicate_table, pname, negate = 
     if (lhsArg.name === 'id')
         return null;
 
-    let invocation = get_predicate_table.isFilter ? get_predicate_table.table.invocation : get_predicate_table.invocation;
+    const invocation = get_predicate_table.isFilter ? get_predicate_table.table.invocation : get_predicate_table.invocation;
 
-    let newAtom = new Ast.BooleanExpression.Atom(null, pname,
+    const newAtom = new Ast.BooleanExpression.Atom(null, pname,
         (lhsArg.type.isArray ? 'contains' : '=='),
         new Ast.Value.VarRef('id'));
     let get_predicate = new Ast.BooleanExpression.External(null,
@@ -1498,7 +1515,7 @@ function addGetPredicateJoin(table, get_predicate_table, pname, negate = false) 
             return null;
 
     } else {
-        for (let arg of table.schema.iterateArguments()) {
+        for (const arg of table.schema.iterateArguments()) {
             if (arg.type.equals(idType) ||
                 (arg.type.isArray && arg.type.elem.equals(idType))) {
                 lhsArg = arg;
@@ -1542,7 +1559,7 @@ function addArrayJoin(lhs, rhs) {
     if (!idType || !idType.isEntity)
         return null;
     let lhsArg = undefined;
-    for (let arg of lhs.schema.iterateArguments()) {
+    for (const arg of lhs.schema.iterateArguments()) {
         if (arg.type.equals(idType) ||
             (arg.type.isArray && arg.type.elem.equals(idType))) {
             lhsArg = arg;
@@ -1602,7 +1619,7 @@ function makeWithinGeoDistanceExpression(table, location, filterValue) {
         return null;
     if (!filterValue.getType().isMeasure)
         return null;
-    let unit = filterValue.unit;
+    const unit = filterValue.unit;
     assert(unit);
     if (Units.normalizeUnit(unit) !== 'm')
         return null;
@@ -1615,11 +1632,11 @@ function makeWithinGeoDistanceExpression(table, location, filterValue) {
     return makeComputeFilterExpression(table, 'distance', [new Ast.Value.VarRef('geo'), location], new Type.Measure('m'), '<=', filterValue);
 }
 
-function makeComputeArgMinMaxExpression(table, operation, operands, resultType, direction = 'desc') {
+function makeComputeArgMinMaxExpression(table, operation, operands, resultType, direction : 'asc'|'desc' = 'desc') {
     if (hasUniqueFilter(table))
         return null;
-    for (let [, filter] of iterateFilters(table)) {
-        for (let atom of iterateFields(filter)) {
+    for (const [, filter] of iterateFilters(table)) {
+        for (const atom of iterateFields(filter)) {
             if (atom.name === operands[0].name)
                 return null;
         }
@@ -1639,8 +1656,8 @@ function makeAggComputeExpression(table, operation, field, list, resultType) {
     else
         name = list.value.name;
     assert(typeof name === 'string');
-    let canonical = table.schema.getArgCanonical(name);
-    for (let p of table.schema.iterateArguments()) {
+    const canonical = table.schema.getArgCanonical(name);
+    for (const p of table.schema.iterateArguments()) {
         if (p.name === name + 'Count' || p.canonical === canonical + 'count' || p.canonical === canonical.slice(0,-1) + ' count')
             return makeProjection(table, p.name);
     }
@@ -1665,7 +1682,7 @@ function makeAggComputeProjExpression(table, operation, field, list, resultType)
     return makeProjection(compute, operation);
 }
 
-function makeAggComputeArgMinMaxExpression(table, operation, field, list, resultType, direction = 'desc') {
+function makeAggComputeArgMinMaxExpression(table, operation, field, list, resultType, direction : 'asc'|'desc' = 'desc') {
     if (hasUniqueFilter(table))
         return null;
     const compute = makeAggComputeExpression(table, operation, field, list, resultType);
@@ -1677,7 +1694,7 @@ function makeAggComputeArgMinMaxExpression(table, operation, field, list, result
 }
 
 function hasArgumentOfType(invocation, type) {
-    for (let arg of invocation.schema.iterateArguments()) {
+    for (const arg of invocation.schema.iterateArguments()) {
         if (!arg.is_input)
             continue;
         if (arg.type.equals(type))
@@ -1706,7 +1723,11 @@ function filterUsesParam(filter, pname) {
     return used;
 }
 
-function checkInvocationInputParam(invocation, param, options = {}) {
+interface AddInputParamsOptions {
+    allowOutput ?: boolean;
+}
+
+function checkInvocationInputParam(invocation, param, options : AddInputParamsOptions = {}) {
     assert(invocation instanceof Ast.Invocation);
     const arg = invocation.schema.getArgument(param.name);
     if (!arg || (!arg.is_input && !options.allowOutput) || !isConstantAssignable(param.value, arg.type))
@@ -1718,10 +1739,10 @@ function checkInvocationInputParam(invocation, param, options = {}) {
             return false;
 
         let min = -Infinity;
-        let minArg = arg.getImplementationAnnotation('min_number');
+        const minArg = arg.getImplementationAnnotation<number>('min_number');
         if (minArg !== undefined)
             min = minArg;
-        let maxArg = arg.getImplementationAnnotation('max_number');
+        const maxArg = arg.getImplementationAnnotation<number>('max_number');
         let max = Infinity;
         if (maxArg !== undefined)
             max = maxArg;
@@ -1734,12 +1755,12 @@ function checkInvocationInputParam(invocation, param, options = {}) {
     return true;
 }
 
-function addInvocationInputParam(invocation, param, options) {
+function addInvocationInputParam(invocation, param, options ?: AddInputParamsOptions) {
     if (!checkInvocationInputParam(invocation, param, options))
         return null;
 
     const clone = invocation.clone();
-    for (let existing of clone.in_params) {
+    for (const existing of clone.in_params) {
         if (existing.name === param.name) {
             if (existing.value.isUndefined) {
                 existing.value = param.value;

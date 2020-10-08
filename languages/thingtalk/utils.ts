@@ -23,6 +23,7 @@
 import assert from 'assert';
 import { Ast, Type } from 'thingtalk';
 import type { I18n } from 'genie-toolkit';
+import type { ThingpediaLoader } from './load-thingpedia';
 
 function typeToStringSafe(type : Type) : string {
     if (type instanceof Type.Array)
@@ -41,12 +42,6 @@ function clean(name : string) : string {
     if (/^[vwgp]_/.test(name))
         name = name.substr(2);
     return name.replace(/_/g, ' ').replace(/([^A-Z ])([A-Z])/g, '$1 $2').toLowerCase();
-}
-
-interface ThingpediaLoader {
-    params : {
-        out : Set<string>;
-    };
 }
 
 function makeFilter(loader : ThingpediaLoader,
@@ -233,9 +228,12 @@ function tokenizeExample(tokenizer : I18n.BaseTokenizer,
     return preprocessed;
 }
 
-function isSameFunction(fndef1 : Ast.FunctionDef,
-                        fndef2 : Ast.FunctionDef) : boolean {
-    if (!fndef1.class || !fndef2.class) // a join
+function isSameFunction(fndef1 : Ast.ExpressionSignature,
+                        fndef2 : Ast.ExpressionSignature) : boolean {
+    if (!(fndef1 instanceof Ast.FunctionDef) ||
+        !(fndef2 instanceof Ast.FunctionDef)) // a join
+        return false;
+    if (!fndef1.class || !fndef2.class)
         return false;
     return fndef1.class.name === fndef2.class.name &&
         fndef1.name === fndef2.name;

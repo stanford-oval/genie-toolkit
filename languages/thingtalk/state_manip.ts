@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -29,10 +29,10 @@ import { isExecutable } from './utils';
 // NOTE: this version of arraySubset uses ===
 // the one in array_utils uses .equals()
 // this one is called on array of strings, so === is appropriate
-function arraySubset(small, big) {
-    for (let element of small) {
+function arraySubset<T>(small : T[], big : T[]) : boolean {
+    for (const element of small) {
         let good = false;
-        for (let candidate of big) {
+        for (const candidate of big) {
             if (candidate === element) {
                 good = true;
                 break;
@@ -59,33 +59,64 @@ const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
 const INITIAL_CONTEXT_INFO = {};
 
 const LARGE_RESULT_THRESHOLD = 50;
-function isLargeResultSet(result) {
-    return result.more || result.count.isVarRef || result.count.value >= LARGE_RESULT_THRESHOLD;
+function isLargeResultSet(result : Ast.DialogueHistoryResultList) : boolean {
+    return result.more || !(result.count instanceof Ast.Value.Number) || result.count.value >= LARGE_RESULT_THRESHOLD;
 }
 
-function getTableArgMinMax(table) {
-    while (table.isProjection || table.isCompute)
+function invertDirection(dir : 'asc'|'desc') : 'asc'|'desc' {
+    if (dir === 'asc')
+        return 'desc';
+    else
+        return 'asc';
+}
+
+function getTableArgMinMax(table : Ast.Table) : [string, string]|null {
+    while (table instanceof Ast.Table.Projection || table instanceof Ast.Table.Compute)
         table = table.table;
 
     // either an index of a sort, where the index is exactly 1 or -1
     // or a slice of a sort, with a base of 1 or -1, and a limit of 1
     // (both are equivalent and get normalized, but sometimes we don't run the normalization)
-    if ((table.isIndex && table.table.isSort && table.indices.length === 1 && table.indices[0].isNumber &&
-         (table.indices[0].value === 1 || table.indices[0].value === -1)) ||
-        (table.isSlice && table.table.isSort && table.base.isNumber &&
-         (table.base.value === 1 || table.base.value === -1) && table.limit.isNumber && table.limit.value === 1))
-        return [table.table.field, table.table.direction];
+    if (table instanceof Ast.Table.Index && table.table instanceof Ast.Table.Sort && table.indices.length === 1) {
+        const index = table.indices[0];
+        if (index instanceof Ast.Value.Number &&
+            (index.value === 1 || index.value === -1))
+            return [table.table.field, index.value === -1 ? invertDirection(table.table.direction) : table.table.direction];
+    }
+
+    if (table instanceof Ast.Table.Slice && table.table instanceof Ast.Table.Sort) {
+        const { base, limit } = table;
+        if (base instanceof Ast.Value.Number && (base.value === 1 || base.value === -1) &&
+            limit instanceof Ast.Value.Number && limit.value === 1)
+        return [table.table.field, base.value === -1 ? invertDirection(table.table.direction) : table.table.direction];
+    }
 
     return null;
 }
 
 class ResultInfo {
-    constructor(state, item) {
+    isTable : boolean;
+    isQuestion : boolean;
+    isAggregation : boolean;
+    isList : boolean;
+    argMinMaxField : [string, string]|null;
+    projection : string[]|null;
+    hasError : boolean;
+    hasEmptyResult : boolean;
+    hasSingleResult : boolean;
+    hasLargeResult : boolean;
+    hasID : boolean;
+
+    constructor(state : Ast.DialogueState,
+                item : Ast.DialogueHistoryItem) {
         assert(item.results !== null);
-        this.isTable = !!(item.stmt.table && item.stmt.actions.every((a) => a.isNotify));
+
+        const stmt = item.stmt;
+        assert(stmt instanceof Ast.Command);
+        this.isTable = !!(stmt.table && stmt.actions.every((a) => a.isNotify));
 
         if (this.isTable) {
-            const table = item.stmt.table;
+            const table = stmt.table;
             // if there is a compute at top-level, there is a projection too
             assert(!table.isCompute);
             this.isQuestion = !!(table.isProjection || table.isCompute || table.isIndex || table.isAggregation);
@@ -93,7 +124,7 @@ class ResultInfo {
             this.isList = table.schema.is_list;
             this.argMinMaxField = getTableArgMinMax(table);
             assert(this.argMinMaxField === null || this.isQuestion);
-            this.projection = table.isProjection ? table.args.slice() : null;
+            this.projection = table instanceof Ast.Table.Projection ? table.args.slice() : null;
             if (this.projection)
                 this.projection.sort();
         } else {
@@ -114,12 +145,22 @@ class ResultInfo {
 }
 
 class NextStatementInfo {
-    constructor(currentItem, resultInfo, nextItem) {
-        this.isAction = !nextItem.stmt.table;
+    isAction : boolean;
+    chainParameter : string|null;
+    chainParameterFilled : boolean;
+    isComplete : boolean;
+
+    constructor(currentItem : Ast.DialogueHistoryItem|null,
+                resultInfo : ResultInfo,
+                nextItem : Ast.DialogueHistoryItem) {
+        const nextstmt = nextItem.stmt;
+        assert(nextstmt instanceof Ast.Command);
+
+        this.isAction = !nextstmt.table;
 
         this.chainParameter = null;
         this.chainParameterFilled = false;
-        this.isComplete = isExecutable(nextItem.stmt);
+        this.isComplete = isExecutable(nextstmt);
 
         if (!this.isAction)
             return;
@@ -130,14 +171,17 @@ class NextStatementInfo {
 
         if (!currentItem || !resultInfo || !resultInfo.isTable)
             return;
-        const tableschema = currentItem.stmt.table.schema;
+        const currentstmt = currentItem.stmt;
+        assert(currentstmt instanceof Ast.Command);
+        const tableschema = currentstmt.table.schema;
         const idType = tableschema.getArgType('id');
         if (!idType)
             return;
 
+        assert(action instanceof Ast.Action.Invocation);
         const invocation = action.invocation;
         const actionschema = invocation.schema;
-        for (let arg of actionschema.iterateArguments()) {
+        for (const arg of actionschema.iterateArguments()) {
             if (!arg.is_input)
                 continue;
             if (arg.type.equals(idType)) {
@@ -149,7 +193,7 @@ class NextStatementInfo {
         if (this.chainParameter === null)
             return;
 
-        for (let in_param of invocation.in_params) {
+        for (const in_param of invocation.in_params) {
             if (in_param.name === this.chainParameter && !in_param.value.isUndefined) {
                 this.chainParameterFilled = true;
                 break;
@@ -159,8 +203,30 @@ class NextStatementInfo {
 }
 
 class ContextInfo {
-    constructor(state, currentTableSchema, currentFunctionSchema, resultInfo, previousDomainIdx, currentIdx,
-        nextIdx, nextFunctionSchema, nextInfo, aux = null) {
+    state : Ast.DialogueState;
+    currentFunctionSchema : Ast.FunctionDef|null;
+    currentFunction : string|null;
+    currentTableSchema : Ast.FunctionDef|null;
+    resultInfo : ResultInfo|null;
+    isMultiDomain : boolean;
+    previousDomainIdx : number|null;
+    currentIdx : number|null;
+    nextFunctionSchema : Ast.FunctionDef|null;
+    nextFunction : string|null;
+    nextIdx : number|null;
+    nextInfo : NextStatementInfo|null;
+    aux : unknown;
+
+    constructor(state : Ast.DialogueState,
+                currentTableSchema : Ast.FunctionDef|null,
+                currentFunctionSchema : Ast.FunctionDef|null,
+                resultInfo : ResultInfo|null,
+                previousDomainIdx : number|null,
+                currentIdx : number|null,
+                nextIdx : number|null,
+                nextFunctionSchema : Ast.FunctionDef|null,
+                nextInfo : NextStatementInfo|null,
+                aux : unknown = null) {
         this.state = state;
 
         assert(currentFunctionSchema === null || currentFunctionSchema instanceof Ast.FunctionDef);
@@ -193,7 +259,7 @@ class ContextInfo {
     }
 
     toString() {
-        return `ContextInfo(${this.state.prettyprint()})`;
+        return `ContextInfo(${this.state.prettyprint(true)})`;
     }
 
     get results() {
@@ -303,14 +369,14 @@ function isUserAskingResultQuestion(ctx) {
         return C.filterUsesParam(filterTable.filter, 'id');
     }
 
-    let currentProjection = ctx.resultInfo.projection;
+    const currentProjection = ctx.resultInfo.projection;
     if (!currentProjection)
         return false;
 
-    let previous = ctx.state.history[ctx.currentIdx - 1];
+    const previous = ctx.state.history[ctx.currentIdx - 1];
     // only complete (executed) programs make it to the history, so this must be true
     assert(previous.results !== null);
-    let previousResultInfo = new ResultInfo(ctx.state, previous);
+    const previousResultInfo = new ResultInfo(ctx.state, previous);
     if (!previousResultInfo.projection)
         return true;
 
@@ -376,7 +442,7 @@ function sortByName(p1, p2) {
 
 function setOrAddInvocationParam(newInvocation, pname, value) {
     let found = false;
-    for (let in_param of newInvocation.in_params) {
+    for (const in_param of newInvocation.in_params) {
         if (in_param.name === pname) {
             found = true;
             in_param.value = value;
@@ -390,7 +456,7 @@ function setOrAddInvocationParam(newInvocation, pname, value) {
 }
 
 function mergeParameters(toInvocation, fromInvocation) {
-    for (let in_param of fromInvocation.in_params) {
+    for (const in_param of fromInvocation.in_params) {
         if (in_param.value.isUndefined)
             continue;
         setOrAddInvocationParam(toInvocation, in_param.name, in_param.value);
@@ -425,7 +491,7 @@ function addActionParam(ctx, dialogueAct, action, pname, value, confirm) {
             const newInvocation = C.getInvocation(newHistoryItem);
             setOrAddInvocationParam(newInvocation, pname, value);
             // also add the new parameters from this action, if any
-            for (let param of action.in_params) {
+            for (const param of action.in_params) {
                 if (param.value.isUndefined)
                     continue;
                 setOrAddInvocationParam(newInvocation, param.name, param.value);
@@ -439,7 +505,7 @@ function addActionParam(ctx, dialogueAct, action, pname, value, confirm) {
         const in_params = [new Ast.InputParam(null, pname, value)];
         const setparams = new Set;
         setparams.add(pname);
-        for (let param of action.in_params) {
+        for (const param of action.in_params) {
             if (param.value.isUndefined)
                 continue;
             if (param.name !== pname)
@@ -450,13 +516,13 @@ function addActionParam(ctx, dialogueAct, action, pname, value, confirm) {
         // make sure we add all $undefined values, otherwise we'll fail
         // to recognize that the statement is not yet executable, and we'll
         // crash in the compiler
-        for (let arg of action.schema.iterateArguments()) {
+        for (const arg of action.schema.iterateArguments()) {
             if (arg.is_input && arg.required && !setparams.has(arg.name))
                 in_params.push(new Ast.InputParam(null, arg.name, new Ast.Value.Undefined(true)));
         }
 
         let newStmt;
-        let newInvocation = new Ast.Invocation(null,
+        const newInvocation = new Ast.Invocation(null,
             action.selector,
             action.channel,
             in_params,
@@ -478,8 +544,8 @@ function addActionParam(ctx, dialogueAct, action, pname, value, confirm) {
 }
 
 function replaceAction(ctx, dialogueAct, action, confirm) {
-    let newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, action, action.schema)]);
-    let newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
+    const newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, action, action.schema)]);
+    const newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
 
     return addNewItem(ctx, dialogueAct, null, confirm, newHistoryItem);
 }
@@ -503,13 +569,13 @@ function addAction(ctx, dialogueAct, action, confirm) {
             if (confirm === 'proposed' || confirm === ctx.next.confirm)
                 return new Ast.DialogueState(null, POLICY_NAME, dialogueAct, null, ctx.state.history);
 
-            newHistoryItem = new Ast.DialogueStateHistoryItem(null, ctx.next.stmt, null, confirm);
+            newHistoryItem = new Ast.DialogueHistoryItem(null, ctx.next.stmt, null, confirm);
         }
     }
 
     if (!newHistoryItem) {
         let newStmt;
-        let newInvocation = new Ast.Invocation(null,
+        const newInvocation = new Ast.Invocation(null,
             action.selector,
             action.channel,
             [],
@@ -532,8 +598,8 @@ function addAction(ctx, dialogueAct, action, confirm) {
 
 function addQuery(ctx, dialogueAct, newTable, confirm) {
     newTable = C.adjustDefaultParameters(newTable);
-    let newStmt = new Ast.Statement.Command(null, newTable, [C.notifyAction()]);
-    let newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
+    const newStmt = new Ast.Statement.Command(null, newTable, [C.notifyAction()]);
+    const newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
 
     // add the new history item right after the current one, and remove all proposed elements
 
@@ -552,15 +618,29 @@ function addQuery(ctx, dialogueAct, newTable, confirm) {
 }
 
 function addQueryAndAction(ctx, dialogueAct, newTable, newAction, confirm) {
-    let newTableStmt = new Ast.Statement.Command(null, newTable, [C.notifyAction()]);
-    let newTableHistoryItem = new Ast.DialogueHistoryItem(null, newTableStmt, null, confirm);
+    const newTableStmt = new Ast.Statement.Command(null, newTable, [C.notifyAction()]);
+    const newTableHistoryItem = new Ast.DialogueHistoryItem(null, newTableStmt, null, confirm);
 
     // add the new table history item right after the current one, and replace everything after that
 
-    let newActionStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, newAction, newAction.schema)]);
-    let newActionHistoryItem = new Ast.DialogueHistoryItem(null, newActionStmt, null, confirm);
+    const newActionStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, newAction, newAction.schema)]);
+    const newActionHistoryItem = new Ast.DialogueHistoryItem(null, newActionStmt, null, confirm);
 
     return addNewItem(ctx, dialogueAct, null, confirm, newTableHistoryItem, newActionHistoryItem);
+}
+
+interface AgentReplyOptions {
+    end ?: boolean;
+    raw ?: boolean;
+}
+
+interface AgentReplyRecord {
+    state : Ast.DialogueState,
+    context : ContextInfo,
+    tags : string[],
+    expect : ThingTalk.Type|null,
+    end : boolean;
+    raw : boolean;
 }
 
 /**
@@ -572,7 +652,11 @@ function addQueryAndAction(ctx, dialogueAct, newTable, newAction, confirm) {
  * - the interaction state (the expected type of the reply, if any, and a boolean indicating raw mode)
  * - extra information for the new context
  */
-function makeAgentReply(ctx, state, aux = null, expectedType = null, options = {}) {
+function makeAgentReply(ctx : ContextInfo,
+                        state : Ast.DialogueState,
+                        aux : unknown = null,
+                        expectedType : ThingTalk.Type|null = null,
+                        options : AgentReplyOptions = {}) : AgentReplyRecord {
     assert(state instanceof Ast.DialogueState);
     assert(state.dialogueAct.startsWith('sys_'));
     assert(expectedType === null || expectedType instanceof ThingTalk.Type);
@@ -618,8 +702,8 @@ function makeAgentReply(ctx, state, aux = null, expectedType = null, options = {
     };
 }
 
-function setEndBit(reply, value) {
-    const newReply = {};
+function setEndBit(reply : AgentReplyRecord, value : boolean) : AgentReplyRecord {
+    const newReply = {} as AgentReplyRecord;
     Object.assign(newReply, reply);
     newReply.end = value;
     return newReply;

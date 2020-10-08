@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -26,18 +26,23 @@ import { Ast, Type } from 'thingtalk';
 import { isSameFunction } from './utils';
 
 class SlotBag {
-    constructor(schema) {
+    schema : Ast.ExpressionSignature|null;
+    store : Map<string, Ast.Value>;
+
+    constructor(schema : Ast.ExpressionSignature|null) {
         this.schema = schema;
         this.store = new Map;
     }
 
-    static merge(b1, b2) {
-        if (b1.schema !== null && b2.schema !== null && !isSameFunction(b1.schema, b2.schema))
+    static merge(b1 : SlotBag, b2 : SlotBag) : SlotBag|null {
+        const schema1 = b1.schema;
+        const schema2 = b2.schema;
+        if (schema1 !== null && schema2 !== null && !isSameFunction(schema1, schema2))
             return null;
-        const newbag = new SlotBag(b1.schema || b2.schema);
-        for (let [key, value] of b1.entries())
+        const newbag = new SlotBag(schema1 || schema2);
+        for (const [key, value] of b1.entries())
             newbag.set(key, value.clone());
-        for (let [key, value] of b2.entries()) {
+        for (const [key, value] of b2.entries()) {
             if (newbag.has(key))
                 return null;
             newbag.set(key, value.clone());
@@ -45,49 +50,49 @@ class SlotBag {
         return newbag;
     }
 
-    clone() {
-        let newbag = new SlotBag(this.schema);
-        for (let [key, value] of this.entries())
+    clone() : SlotBag {
+        const newbag = new SlotBag(this.schema);
+        for (const [key, value] of this.entries())
             newbag.set(key, value.clone());
         return newbag;
     }
 
-    get size() {
+    get size() : number {
         return this.store.size;
     }
-    entries() {
+    entries() : Iterable<[string, Ast.Value]> {
         return this.store.entries();
     }
-    get(key) {
+    get(key) : Ast.Value|undefined {
         return this.store.get(key);
     }
-    has(key) {
+    has(key) : boolean {
         return this.store.has(key);
     }
-    keys() {
+    keys() : Iterable<string> {
         return this.store.keys();
     }
-    values() {
+    values() : Iterable<Ast.Value> {
         return this.store.values();
     }
-    [Symbol.iterator]() {
+    [Symbol.iterator]() : Iterable<[string, Ast.Value]> {
         return this.store[Symbol.iterator]();
     }
-    set(key, value) {
+    set(key : string, value : Ast.Value) : void {
         assert(value instanceof Ast.Value);
         this.store.set(key, value);
     }
-    clear() {
+    clear() : void {
         return this.store.clear();
     }
-    delete(key) {
+    delete(key : string) : boolean {
         return this.store.delete(key);
     }
 }
 
-function checkAndAddSlot(bag, filter) {
+function checkAndAddSlot(bag : SlotBag, filter : Ast.BooleanExpression) : SlotBag|null {
     assert(bag instanceof SlotBag);
-    if (!filter.isAtom)
+    if (!(filter instanceof Ast.AtomBooleanExpression))
         return null;
     const arg = bag.schema.getArgument(filter.name);
     if (!arg || arg.is_input)
