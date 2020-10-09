@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -17,7 +17,6 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
 import BaseTokenizer from './tokenizer/base';
 
@@ -26,10 +25,23 @@ import BaseTokenizer from './tokenizer/base';
  * in Genie.
  */
 export default class DefaultLanguagePack {
+    ARGUMENT_NAME_OVERRIDES ! : { [key : string] : string[] };
+    IGNORABLE_TOKENS ! : { [key : string] : string[] };
+    _NO_SPACE_TOKENS ! : Set<string>;
+    NO_IDEA ! : string[];
+    CHANGE_SUBJECT_TEMPLATES ! : string[];
+    SINGLE_DEVICE_TEMPLATES ! : Array<[string, RegExp|null]>;
+    DEFINITE_ARTICLE_REGEXP ! : RegExp|undefined;
+
+    // FIXME
+    ABBREVIATIONS ! : any;
+
+    protected _tokenizer : BaseTokenizer|undefined;
+
     /**
      * Return an instance of the tokenizer used by this language.
      */
-    getTokenizer() {
+    getTokenizer() : BaseTokenizer {
         if (this._tokenizer)
             return this._tokenizer;
         return this._tokenizer = new BaseTokenizer();
@@ -42,7 +54,7 @@ export default class DefaultLanguagePack {
      * grammar/readability issues that are too inconvenient to prevent
      * using the templates.
      */
-    postprocessSynthetic(sentence, program, rng) {
+    postprocessSynthetic(sentence : string, program : unknown, rng : () => number, forTarget : 'user'|'agent') : string {
         return sentence;
     }
 
@@ -53,7 +65,7 @@ export default class DefaultLanguagePack {
      * This is a low-level method called by {@link DefaultLanguagePack#detokenizeSentence}.
      * It can be used to detokenize one token at a time.
      */
-    detokenize(sentence, prevtoken, token) {
+    detokenize(sentence : string, prevtoken : string, token : string) : string {
         if (sentence && !this._NO_SPACE_TOKENS.has(token))
             sentence += ' ';
         sentence += token;
@@ -67,10 +79,10 @@ export default class DefaultLanguagePack {
      * This is used for sentences presented to an MTurk worker for paraphrasing,
      * and it is used for the agent replies before they are shown to the user.
      */
-    detokenizeSentence(tokens) {
+    detokenizeSentence(tokens : string[]) : string {
         let sentence = '';
         let prevToken = '';
-        for (let token of tokens) {
+        for (const token of tokens) {
             sentence = this.detokenize(sentence, prevToken, token);
             prevToken = token;
         }
@@ -84,12 +96,12 @@ export default class DefaultLanguagePack {
      * This includes true-casing, detokenizing, and replacing entity tokens
      * with actual values.
      */
-    postprocessNLG(answer, entities) {
+    postprocessNLG(answer : string, entities : { [key : string] : any }) : string {
         // simple true-casing: uppercase all letters at the beginning of the sentence
         // and after a period, question or exclamation mark
         answer = answer.replace(/(^| [.?!] )([a-z])/g, (_, prefix, letter) => prefix + letter.toUpperCase());
 
-        answer = answer.split(' ').map((token) => {
+        const tokens = answer.split(' ').map((token) => {
             if (token in entities) {
                 if (token.startsWith('GENERIC_ENTITY_'))
                     return (entities[token].display || entities[token].value);
@@ -97,7 +109,7 @@ export default class DefaultLanguagePack {
             }
             return token;
         });
-        answer = this.detokenizeSentence(answer);
+        answer = this.detokenizeSentence(tokens);
 
         return answer;
     }
@@ -108,7 +120,7 @@ export default class DefaultLanguagePack {
      * This function should return `undefined` if there is no plural form
      * of the given phrase.
      */
-    pluralize(phrase) {
+    pluralize(phrase : string) : string|undefined {
         // no plural form
         return undefined;
     }
@@ -119,7 +131,7 @@ export default class DefaultLanguagePack {
      * This function should return `undefined` if there is no past tense
      * of the given phrase.
      */
-    toVerbPast(phrase) {
+    toVerbPast(phrase : string) : string|undefined {
         // no past
         return undefined;
     }
@@ -131,7 +143,7 @@ export default class DefaultLanguagePack {
      * the user) and converts to a phrase that talks about "your devices"
      * uttered by the agent.
      */
-    toAgentSideUtterance(phrase) {
+    toAgentSideUtterance(phrase : string) : string {
         // by default, no change
         return phrase;
     }
@@ -141,7 +153,7 @@ export default class DefaultLanguagePack {
      * either tokenized/preprocessed out or they are unlikely to be used with
      * voice.
      */
-    isGoodWord(word) {
+    isGoodWord(word : string) : boolean {
         // all words are good words
         return true;
     }
@@ -154,7 +166,7 @@ export default class DefaultLanguagePack {
      * A good rule of thumb is to filter out all phrases that consist entirely
      * of stop words.
      */
-    isGoodSentence(sentence) {
+    isGoodSentence(sentence : string) : boolean {
         // all sentences are good words
         return true;
     }
@@ -165,7 +177,7 @@ export default class DefaultLanguagePack {
      * This covers ASCII digits as well as language-specific number systems,
      * like Arabic digits.
      */
-    isGoodNumber(number) {
+    isGoodNumber(number : string) : boolean {
         return /^([0-9|\u0660-\u0669]+)$/.test(number);
     }
 
@@ -176,7 +188,7 @@ export default class DefaultLanguagePack {
      * {@link DefaultLanguagePack#isGoodWord} to account for foreign person
      * names and loan words.
      */
-     isGoodPersonName(word) {
+     isGoodPersonName(word : string) : boolean {
         return this.isGoodWord(word) || /^(\w+\s\w\s?\.)$/.test(word);
     }
 
@@ -186,7 +198,7 @@ export default class DefaultLanguagePack {
      * If the language has no concept of definite articles, this function
      * must return `undefined`.
      */
-    addDefiniteArticle(phrase) {
+    addDefiniteArticle(phrase : string) : string|undefined {
         return undefined;
     }
 }
@@ -207,18 +219,12 @@ DefaultLanguagePack.prototype.ARGUMENT_NAME_OVERRIDES = {
  * This should cover abbreviations, prefixes and suffixes that are usually
  * omitted in colloquial speech.
  */
-DefaultLanguagePack.prototype. IGNORABLE_TOKENS = {
+DefaultLanguagePack.prototype.IGNORABLE_TOKENS = {
     'sportradar': ['fc', 'ac', 'us', 'if', 'as', 'rc', 'rb', 'il', 'fk', 'cd', 'cf'],
     'tt:stock_id': ['l.p.', 's.a.', 'plc', 'n.v', 's.a.b', 'c.v.'],
     'org:freedesktop:app_id': ['gnome']
 };
 
-const ABBREVIATIONS = [];
-const PROCESSED_ABBREVIATIONS = {};
-for (let abbr of ABBREVIATIONS) {
-    for (let variant of abbr)
-        PROCESSED_ABBREVIATIONS[variant] = abbr;
-}
 /**
  * Interchangeable abbreviations for entity names
  *
@@ -228,7 +234,7 @@ for (let abbr of ABBREVIATIONS) {
  * Use this to fix tokenization inconsistencies in the entity database, to add
  * colloquial forms, and to add robustness to punctuation.
  */
-DefaultLanguagePack.prototype.ABBREVIATIONS = PROCESSED_ABBREVIATIONS;
+DefaultLanguagePack.prototype.ABBREVIATIONS = {};
 
 /**
  * Tokens that should not be preceded by a space.

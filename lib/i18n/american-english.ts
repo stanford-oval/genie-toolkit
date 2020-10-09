@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -17,7 +17,6 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
 /*eslint no-misleading-character-class: off */
 
@@ -48,10 +47,10 @@ const PUNCTUATIONS = [
     ',', '.', ':', ';', '(', ')', '[', ']', '{', '}', '"', '\'', '-', '!', '?'
 ];
 
-function replaceMeMy(sentence) {
+function replaceMeMy(sentence : string) : string {
     sentence = sentence.replace(/\b((?!(?:let|inform|notify|alert|send)\b)[a-zA-Z0-9]+) me\b/g, '$1 them');
 
-    return sentence.replace(/\b(my|i|mine)\b/g, (what) => {
+    return sentence.replace(/\b(my|i|mine)\b/g, (what : string) => {
         switch (what) {
         case 'me':
             return 'them';
@@ -72,7 +71,7 @@ function replaceMeMy(sentence) {
 //
 // we still handle these, even if we switched away from the PTB tokenizer,
 // because it helps with migrating the datasets
-const SPECIAL_TOKENS = {
+const SPECIAL_TOKENS : { [key : string] : string } = {
     '.': '.',
     ',': ',',
     '?': '?',
@@ -89,7 +88,7 @@ const SPECIAL_TOKENS = {
     '-lsb-': ' [',
 };
 
-function capitalize(word) {
+function capitalize(word : string) : string {
     return word[0].toUpperCase() + word.substring(1);
 }
 
@@ -107,16 +106,16 @@ const MUST_CAPITALIZE_TOKEN = new Set([
 ]);
 
 
-function isNumber(word) {
+function isNumber(word : string) : boolean {
     // numbers with optional "," every 3 digits, cannot start with "."
     return /^\d{1,3}(,?\d{3})*(\.\d+)?$/.test(word);
 }
 
-function isZipcode(word) {
+function isZipcode(word : string) : boolean {
     if (word.length !== 5)
         return false;
-    for (let char of word) {
-        if (isNaN(char))
+    for (const char of word) {
+        if (isNaN(Number(char)))
             return false;
     }
     return true;
@@ -127,13 +126,15 @@ function isZipcode(word) {
  * American English.
  */
 export default class EnglishLanguagePack extends DefaultLanguagePack {
-    getTokenizer() {
+    protected _tokenizer : EnglishTokenizer|undefined;
+
+    getTokenizer() : EnglishTokenizer {
         if (this._tokenizer)
             return this._tokenizer;
         return this._tokenizer = new EnglishTokenizer();
     }
 
-    postprocessSynthetic(sentence, program, rng, forTarget = 'user') {
+    postprocessSynthetic(sentence : string, program : any, rng : () => number, forTarget = 'user') : string {
         assert(rng);
         if (program.isProgram && program.principal !== null)
             sentence = replaceMeMy(sentence);
@@ -210,7 +211,7 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
         return sentence.trim();
     }
 
-    detokenize(sentence, prevtoken, token) {
+    detokenize(sentence : string, prevtoken : string, token : string) : string {
         if (token === '.' && /[.!?]$/.test(prevtoken))
             return sentence;
         if (!token)
@@ -237,12 +238,12 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
         return sentence;
     }
 
-    postprocessNLG(answer, entities) {
+    postprocessNLG(answer : string, entities : { [key : string] : any }) : string {
         // simple true-casing: uppercase all letters at the beginning of the sentence
         // and after a period, question or exclamation mark
         answer = answer.replace(/(^| [.?!] )([a-z])/g, (_, prefix, letter) => prefix + letter.toUpperCase());
 
-        answer = answer.split(' ').map((token) => {
+        const tokens = answer.split(' ').map((token) => {
             if (token in entities) {
                 if (token.startsWith('GENERIC_ENTITY_'))
                     return (entities[token].display || entities[token].value);
@@ -254,7 +255,7 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
                 return capitalize(token);
             return token;
         });
-        answer = this.detokenizeSentence(answer);
+        answer = this.detokenizeSentence(tokens);
 
         // remove duplicate spaces
         answer = answer.replace(/\s+/g, ' ');
@@ -268,7 +269,7 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
         return answer;
     }
 
-    pluralize(name) {
+    pluralize(name : string) : string {
         if (!name.includes(' ')) {
             if (new Tag([name]).initial().tags[0] === 'NN')
                 return new Inflectors(name).toPlural();
@@ -290,7 +291,7 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
      * @param phrase
      * @returns {string|undefined}
      */
-    toVerbPast(phrase) {
+    toVerbPast(phrase : string) : string|undefined {
         const words = phrase.split(' ');
         if (words[0].startsWith('$')) // the phrase starts with a placeholder
             return undefined;
@@ -301,7 +302,7 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
         return [inflected, ...words.slice(1)].join(' ');
     }
 
-    toAgentSideUtterance(phrase) {
+    toAgentSideUtterance(phrase : string) : string {
         return phrase.replace(/\b(i|me|my|mine)\b/g, (what) => {
             switch (what) {
             case 'me':
@@ -322,7 +323,7 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
      * @param phrase
      * @returns {string|undefined}
      */
-    toVerbBase(phrase) {
+    toVerbBase(phrase : string) : string|undefined {
         const words = phrase.split(' ');
         if (words[0].startsWith('$')) // the phrase starts with a placeholder
             return undefined;
@@ -336,7 +337,7 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
      * @param phrase
      * @returns {string|undefined}
      */
-    toVerbSingular(phrase) {
+    toVerbSingular(phrase : string) : string|undefined {
         const words = phrase.split(' ');
         if (words[0].startsWith('$')) // the phrase starts with a placeholder
             return undefined;
@@ -345,23 +346,23 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
         return [inflected, ...words.slice(1)].join(' ');
     }
 
-    isGoodWord(word) {
+    isGoodWord(word : string) : boolean {
         // filter out words that cannot be in the dataset,
         // because they would be either tokenized/preprocessed out or
         // they are unlikely to be used with voice
         return /^([a-zA-Z0-9-][a-zA-Z0-9.&'-_\u00C0-\u00D6\u00D8\u00F6\u00F8-\u01BA\u01BB\u01BC-\u01BF\u01C0-\u01C3\u01C4-\u0293\u0294\u0295\u02AF\u02EE\u0300-\u036f]+|,|\?)$/.test(word);
     }
 
-    isGoodSentence(sentence) {
+    isGoodSentence(sentence : string) : boolean {
         if (sentence.length < 3)
             return false;
         // filter out any sentence with punctuations
-        for (let char of sentence) {
+        for (const char of sentence) {
             if (PUNCTUATIONS.includes(char))
                 return false;
         }
         // filter out any sentence starts/ends with stop words
-        let words = sentence.split(' ');
+        const words = sentence.split(' ');
         if (STOPWORDS.includes(words[0]) || STOPWORDS.includes(words[words.length-1]))
             return false;
         if (['has', 'have', 'having'].includes(words[0]))
@@ -369,7 +370,7 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
 
         // filter out sentences containing only numbers
         let allNumber = true;
-        for (let word of words) {
+        for (const word of words) {
             if (!isNumber(word) || isZipcode(word))
                 allNumber = false;
         }
@@ -379,19 +380,19 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
         return true;
     }
 
-    isGoodNumber(number) {
+    isGoodNumber(number : string) : boolean {
         return /^([0-9]+)$/.test(number);
     }
 
-    isGoodPersonName(word) {
+    isGoodPersonName(word : string) : boolean {
         return this.isGoodWord(word) || /^(\w+\s\w\s?\.)$/.test(word);
     }
 
-    addDefiniteArticle(phrase) {
+    addDefiniteArticle(phrase : string) : string {
         return 'the ' + phrase;
     }
 
-    posTag(tokens) {
+    posTag(tokens : string[]) : string[] {
         return new Tag(tokens)
             .initial() // initial dictionary and pattern based tagging
             .smooth() // further context based smoothing
@@ -427,12 +428,12 @@ const ABBREVIATIONS = [
     ['&', 'and'],
     ['inc.', 'inc', 'incorporated'],
 ];
-const PROCESSED_ABBREVIATIONS = {};
-for (let abbr of ABBREVIATIONS) {
-    for (let variant of abbr)
+const PROCESSED_ABBREVIATIONS : { [key : string] : string[] } = {};
+for (const abbr of ABBREVIATIONS) {
+    for (const variant of abbr)
         PROCESSED_ABBREVIATIONS[variant] = abbr;
 }
-EnglishLanguagePack.prototype.PROCESSED_ABBREVIATIONS = PROCESSED_ABBREVIATIONS;
+EnglishLanguagePack.prototype.ABBREVIATIONS = PROCESSED_ABBREVIATIONS;
 
 EnglishLanguagePack.prototype.NO_IDEA = [
     'no idea', 'don\'t know', 'dont know', 'don\'t understand',

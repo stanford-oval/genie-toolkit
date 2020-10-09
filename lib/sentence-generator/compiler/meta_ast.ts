@@ -27,7 +27,7 @@ export class Grammar {
                 public statements : Statement[]) {
     }
 
-    codegen(runtimepath : string) : string {
+    codegen() : string {
         let buffer = '';
 
         buffer += (this.comment);
