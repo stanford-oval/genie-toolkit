@@ -51,10 +51,9 @@ function findSpanContaining(index, spansBySentencePos) {
     return false;
 }
 
-// check normalized version of tokens to handle accent marks/ grapheme properly
 function substringIsFound(sequence, substring, i) {
     for (let j = 0; j < substring.length; j++) {
-        if (sequence[i+j].normalize() !== substring[j].normalize())
+        if (sequence[i+j] !== substring[j])
             return false;
     }
     return true;
