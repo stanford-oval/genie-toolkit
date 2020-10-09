@@ -476,8 +476,6 @@ module.exports = {
             promises.push(StreamUtils.waitFinish(outputErrors.pipe(args.output_errors)));
         }
 
-        const allEqual = (arr) => arr.every((v) => v === arr[0]);
-
         readAllLines(args.input_file)
             .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true, parseMultiplePrograms: true}))
             .pipe(new Stream.Transform({
@@ -493,7 +491,6 @@ module.exports = {
                             requoted_programs.push(newProgram);
                             requoted_sentences.push(newSentence);
                         }
-                        // assert(allEqual(requoted_sentences));
                         ex.preprocessed = requoted_sentences[0];
                         ex.target_code = requoted_programs;
                         ex.is_ok = true;

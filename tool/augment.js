@@ -153,7 +153,7 @@ module.exports = {
         parser.add_argument('--sampling-type', {
             choices: ['default', 'random', 'uniform'],
             help: 'Random/ Uniform strategy assigns random/ uniform weights to parameters instead of reading from file',
-            default: false
+            default: 'default'
         });
         parser.add_argument('--subset-param-set', {
             required: false,

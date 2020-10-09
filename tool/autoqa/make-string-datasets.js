@@ -165,6 +165,10 @@ class ParamDatasetGenerator {
         const manifestDir = path.dirname(manifestFile);
         const manifest = fs.createWriteStream(manifestFile, { flags: appendManifest ? 'a' : 'w' });
 
+        function isNotCapital(token) {
+            return !/^[A-Z]/.test(token);
+        }
+
         for (let [fileId, fileContent] of this._stringFiles) {
             const outputpath = path.resolve(outputDir, this._prefix + fileId + (fileContent.isEntity ? '.json' : '.tsv'));
 
@@ -213,11 +217,7 @@ class ParamDatasetGenerator {
                     let tokens = tokenized[i].tokens;
 
                     // clean up value
-                    value = value.replace('\n', ' ');
-
-                    function isNotCapital(token) {
-                        return !/^[A-Z]/.test(token);
-                    }
+                    value = value.replaceAll('\n', ' ');
 
                     if (tokens.length === 0 || tokens.some((tok) => /^[A-Z]/.test(tok)))
                         tokens = tokens.filter(isNotCapital);
