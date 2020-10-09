@@ -18,11 +18,10 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-{
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
-const Type = ThingTalk.Type;
+import * as ThingTalk from 'thingtalk';
+import { Ast, Type } from 'thingtalk';
 
+{
 const MAX_CONSTANTS = 20;
 const MAX_SMALL_INTEGER = 12;
 }

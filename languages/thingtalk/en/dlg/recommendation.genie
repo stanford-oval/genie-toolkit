@@ -27,18 +27,14 @@
 // - a question (= "recommendation_search_question_pair")
 // - closing the dialogue (= "recommendation_cancel_pair")
 
-{
-    const assert = require('assert');
-    const ThingTalk = require('thingtalk');
-    const Ast = ThingTalk.Ast;
-    const Type = ThingTalk.Type;
+import assert from 'assert';
+import { Ast, Type } from 'thingtalk';
 
-    const C = require('../../ast_manip');
-    const D = require('../../dialogue_acts');
+import * as C from '../../ast_manip';
+import * as D from '../../dialogue_acts';
 
-    // import thingpedia info
-    const _tpLoader = require('../../load-thingpedia');
-}
+// import thingpedia info
+import _tpLoader from '../../load-thingpedia';
 
 question_system_recommendation_short = {
     ctx:ctx_with_result_and_action 'how about' proposal:constant_name
@@ -133,7 +129,7 @@ system_nonlist_result = {
     //    => D.checkActionForDisplayResult(proposal, action);
 
     ?anything_else proposal:actionable_system_display_result_short anything_else_phrase => {
-        const clone = {};
+        const clone : any = {};
         Object.assign(clone, proposal);
         clone.hasAnythingElse = true;
         return clone;
@@ -206,8 +202,4 @@ recommendation_accept_phrase_by_name = {
     name:generic_list_proposal_accept_phrase => [name, null];
     name:list_proposal_accept_phrase_must_have_action => [name, null];
     accept:list_proposal_accept_phrase_with_action => accept;
-}
-
-recommendation_related_question_pair = {
-    prop:system_recommendation '<sep>'  => [prop, question];
 }

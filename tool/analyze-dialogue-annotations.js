@@ -19,6 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
+import assert from 'assert';
 import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
 import Stream from 'stream';
@@ -26,13 +27,51 @@ import * as fs from 'fs';
 import seedrandom from 'seedrandom';
 
 import * as StreamUtils from '../lib/utils/stream-utils';
-import { isExecutable } from '../lib/dialogue-agent/dialogue_state_utils';
-import { findFilterTable } from '../languages/thingtalk/ast_manip';
 import * as TargetLanguages from '../lib/languages';
 import { DialogueParser } from '../lib/dataset-tools/parsers';
 
 import { maybeCreateReadStream, readAllLines } from './lib/argutils';
 import MultiJSONDatabase from './lib/multi_json_database';
+
+function findFilterTable(root) {
+    let table = root;
+    while (!table.isFilter) {
+        if (table.isSequence ||
+            table.isHistory ||
+            table.isWindow ||
+            table.isTimeSeries)
+            throw new Error('NOT IMPLEMENTED');
+
+        // do not touch these with filters
+        if (table.isAggregation ||
+            table.isVarRef ||
+            table.isResultRef)
+            return null;
+
+        // go inside these
+        if (table.isSort ||
+            table.isIndex ||
+            table.isSlice ||
+            table.isProjection ||
+            table.isCompute ||
+            table.isAlias) {
+            table = table.table;
+            continue;
+        }
+
+        if (table.isJoin) {
+            // go right on join, always
+            table = table.rhs;
+            continue;
+        }
+
+        assert(table.isInvocation);
+        // if we get here, there is no filter table at all
+        return null;
+    }
+
+    return table;
+}
 
 const USER_DIALOGUE_ACTS = new Set([
     // user says hi!
@@ -200,7 +239,7 @@ class DialogueAnalyzer extends Stream.Transform {
         if (previousUserTarget.history.length > 0) {
             const userLast = previousUserTarget[previousUserTarget.history.length-1];
             const contextLast = context[context.history.length-1];
-            if (userLast && isExecutable(userLast.stmt) && contextLast.results === null)
+            if (userLast && userLast.isExecutable() && contextLast.results === null)
                 return 'added_optional';
 
             if (userLast && userLast.stmt.prettyprint() !== contextLast.stmt.prettyprint())

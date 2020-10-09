@@ -63,10 +63,10 @@ custom_gen_flags ?=
 
 schema_deps = $(experiment)/schema.tt $(experiment)/entities.json
 template_deps = \
-	$(geniedir)/languages/thingtalk/*.js \
-	$(geniedir)/languages/thingtalk/*.genie \
-	$(geniedir)/languages/thingtalk/en/*.genie \
-	$(geniedir)/languages/thingtalk/en/dlg/*.genie
+	$(geniedir)/languages-dist/thingtalk/*.js \
+	$(geniedir)/languages-dist/thingtalk/*.genie.js \
+	$(geniedir)/languages-dist/thingtalk/en/*.genie.js \
+	$(geniedir)/languages-dist/thingtalk/en/dlg/*.genie.js
 
 evalflags ?=
 
@@ -118,7 +118,7 @@ multidomain/test/annotated.txt : $(foreach v,$(all_domains),$(v)/test/annotated.
 $(experiment)/synthetic-%.txt : $(schema_deps) $(dataset_file) $(template_deps)
 	$(genie) generate-dialogs \
 	  --locale en-US --target-language thingtalk \
-	  --template $(geniedir)/languages/$(template_file) \
+	  --template $(geniedir)/languages-dist/$(template_file) \
 	  --thingpedia $(experiment)/schema.tt --entities $(experiment)/entities.json --dataset $(dataset_file) \
 	  -o $@.tmp -f txt $(generate_flags) --no-debug $(custom_gen_flags) --random-seed $@ \
 	  -n $(target_size) -B $(minibatch_size)

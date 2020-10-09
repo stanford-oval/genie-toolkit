@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -20,89 +20,90 @@
 "use strict";
 
 // A lazy functional list with O(1) concatenation
-export default class List {
-    static concat(...lists) {
-        let result = List.Nil;
+export default abstract class List<T> {
+    static Nil : List<never>;
+
+    static concat<T>(...lists : Array<T|List<T>>) : List<T> {
+        let result : List<T> = List.Nil;
         for (let i = lists.length-1; i >= 0; i--) {
             if (lists[i] instanceof List && result === List.Nil)
-                result = lists[i];
+                result = lists[i] as List<T>;
             else if (lists[i] instanceof List)
-                result = new List.Concat(lists[i], result);
+                result = new Concat<T>(lists[i] as List<T>, result);
             else
-                result = new List.Cons(lists[i], result);
+                result = new Cons<T>(lists[i] as T, result);
         }
         return result;
     }
 
-    static singleton(el) {
-        return new List.Cons(el, List.Nil);
+    static singleton<T>(el : T) : List<T> {
+        return new Cons<T>(el, List.Nil);
     }
 
-    static append(list, el) {
-        return new List.Snoc(list, el);
+    static append<T>(list : List<T>, el : T) : List<T> {
+        return new Snoc(list, el);
     }
+
+    abstract traverse(cb : (x : T) => void) : void;
+    abstract getFirst() : T;
 }
 
-class NilClass extends List {
-    traverse(cb) {
+class NilClass extends List<never> {
+    traverse(cb : (x : never) => void) : void {
     }
 
-    getFirst() {
-        return null;
+    getFirst() : never {
+        throw new Error('getFirst on an empty list');
     }
 }
 List.Nil = new NilClass();
 
-class Cons extends List {
-    constructor(head, tail) {
+class Cons<T> extends List<T> {
+    constructor(public head : T,
+                public tail : List<T>) {
         super();
-        this.head = head;
-        this.tail = tail;
     }
 
-    traverse(cb) {
+    traverse(cb : (x : T) => void) : void {
         cb(this.head);
         this.tail.traverse(cb);
     }
 
-    getFirst() {
+    getFirst() : T {
         return this.head;
     }
 }
-List.Cons = Cons;
 
-class Snoc extends List {
-    constructor(head, tail) {
+class Snoc<T> extends List<T> {
+    constructor(public head : List<T>,
+                public tail : T) {
         super();
-        this.head = head;
-        this.tail = tail;
     }
 
-    traverse(cb) {
+    traverse(cb : (x : T) => void) : void {
         this.head.traverse(cb);
         cb(this.tail);
     }
 
-    getFirst() {
+    getFirst() : T {
         return this.head.getFirst();
     }
 }
-List.Snoc = Snoc;
 
-class Concat extends List {
-    constructor(first, second) {
+class Concat<T> extends List<T> {
+    constructor(public first : List<T>,
+                public second : List<T>) {
         super();
         this.first = first;
         this.second = second;
     }
 
-    traverse(cb) {
+    traverse(cb : (x : T) => void) : void {
         this.first.traverse(cb);
         this.second.traverse(cb);
     }
 
-    getFirst() {
+    getFirst() : T {
         return this.first.getFirst();
     }
 }
-List.Concat = Concat;

@@ -19,13 +19,11 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
-const Type = ThingTalk.Type;
+import { Ast, Type } from 'thingtalk';
 
-const { isSameFunction } = require('./utils');
+import { isSameFunction } from './utils';
 
 class SlotBag {
     constructor(schema) {
@@ -121,7 +119,7 @@ function checkAndAddSlot(bag, filter) {
 }
 
 
-module.exports = {
+export {
     SlotBag,
     checkAndAddSlot,
 };

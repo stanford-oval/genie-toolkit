@@ -87,9 +87,9 @@ thingpedia/entities.json:
 	$(thingpedia_cli) --url $(thingpedia_url) --developer-key $(developer_key) --access-token invalid \
 	  download-entities -o $@
 
-$(experiment)/synthetic.tsv : $(experiment)/thingpedia.tt $(experiment)/dataset.tt $(experiment)/entities.json $(geniedir)/languages/thingtalk/en/*.genie
+$(experiment)/synthetic.tsv : $(experiment)/thingpedia.tt $(experiment)/dataset.tt $(experiment)/entities.json $(geniedir)/languages-dist/thingtalk/en/*.genie.js
 	$(genie) generate \
-	  --template $(geniedir)/languages/$(template_file) \
+	  --template $(geniedir)/languages-dist/$(template_file) \
 	  --thingpedia $(experiment)/thingpedia.tt --entities $(experiment)/entities.json --dataset $(experiment)/dataset.tt \
 	  -o $@.tmp --no-debug $(generate_flags) --random-seed $@
 	mv $@.tmp $@

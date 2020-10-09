@@ -18,17 +18,10 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-{
-    const assert = require('assert');
+import assert from 'assert';
+import { Ast, Type } from 'thingtalk';
 
-    const ThingTalk = require('thingtalk');
-    const Ast = ThingTalk.Ast;
-    const Type = ThingTalk.Type;
-    const Generate = ThingTalk.Generate;
-
-// import the combinator library
-    const C = require('../ast_manip');
-}
+import * as C from '../ast_manip';
 
 projection_Number = {
     ?aggregation 'the' ('number' | 'total number' | 'count') 'of' ('' | 'the' | 'this' | 'that') t:complete_table => {

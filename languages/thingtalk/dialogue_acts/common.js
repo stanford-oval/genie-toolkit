@@ -19,12 +19,11 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
+import { Ast, } from 'thingtalk';
 
-const { arraySubset } = require('../array_utils');
+import { arraySubset } from '../array_utils';
 const {
     setOrAddInvocationParam,
 } = require('../state_manip');
@@ -204,7 +203,7 @@ function isSimpleFilterTable(table) {
     return table.isFilter && ((table.table.isCompute && table.table.table.isInvocation) || table.table.isInvocation);
 }
 
-module.exports = {
+export {
     isFilterCompatibleWithInfo,
     isFilterCompatibleWithResult,
     isInfoPhraseCompatibleWithResult,

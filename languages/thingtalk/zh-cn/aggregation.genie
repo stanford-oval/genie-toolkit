@@ -18,26 +18,22 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>, Jian Li <jianli19@cs.stanford.edu>
 
-{
-    const assert = require('assert');
+import assert from 'assert';
+import { Ast, Type } from 'thingtalk';
 
-    const ThingTalk = require('thingtalk');
-    const Ast = ThingTalk.Ast;
-    const Type = ThingTalk.Type;
-    const Generate = ThingTalk.Generate;
+import * as C from '../ast_manip';
 
-// import the combinator library
-    const C = require('../ast_manip');
-}
+// import thingpedia info
+import _tpLoader from '../load-thingpedia';
 
 projection_Number = {
     t:complete_table '的' ('数量' | '数目' | '总数') => {
         if (!t.schema.is_list)
             return null;
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT)
-            .addArguments([new Ast.ArgumentDef(Ast.ArgDirection.OUT, 'count', Type.Number)]);
-        const agg = new Ast.Table.Aggregation(t, '*', 'count', null, newSchema);
-        return new Ast.Table.Projection(agg, ['count'], newSchema);
+            .addArguments([new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'count', Type.Number)]);
+        const agg = new Ast.Table.Aggregation(null, t, '*', 'count', null, newSchema);
+        return new Ast.Table.Projection(null, agg, ['count'], newSchema);
     };
 }
 
@@ -49,8 +45,8 @@ projection_Any = {
             return null;
 
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
-        const agg = new Ast.Table.Aggregation(t, p.name, 'sum', null, newSchema);
-        return new Ast.Table.Projection(agg, [p.name], newSchema);
+        const agg = new Ast.Table.Aggregation(null, t, p.name, 'sum', null, newSchema);
+        return new Ast.Table.Projection(null, agg, [p.name], newSchema);
     };
 
     t:complete_table '的' p:out_param_Numeric '的' ('和' | '总和' | '总数') => {
@@ -60,8 +56,8 @@ projection_Any = {
             return null;
 
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
-        const agg = new Ast.Table.Aggregation(t, p.name, 'sum', null, newSchema);
-        return new Ast.Table.Projection(agg, [p.name], newSchema);
+        const agg = new Ast.Table.Aggregation(null, t, p.name, 'sum', null, newSchema);
+        return new Ast.Table.Projection(null, agg, [p.name], newSchema);
     };
 
     t:complete_table '的' p:out_param_Numeric '加 起来' => {
@@ -71,8 +67,8 @@ projection_Any = {
             return null;
 
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
-        const agg = new Ast.Table.Aggregation(t, p.name, 'sum', null, newSchema);
-        return new Ast.Table.Projection(agg, [p.name], newSchema);
+        const agg = new Ast.Table.Aggregation(null, t, p.name, 'sum', null, newSchema);
+        return new Ast.Table.Projection(null, agg, [p.name], newSchema);
     };
 
     !turking t:complete_table '的 平均' p:out_param_Numeric => {
@@ -82,8 +78,8 @@ projection_Any = {
             return null;
 
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
-        const agg = new Ast.Table.Aggregation(t, p.name, 'avg', null, newSchema);
-        return new Ast.Table.Projection(agg, [p.name], newSchema);
+        const agg = new Ast.Table.Aggregation(null, t, p.name, 'avg', null, newSchema);
+        return new Ast.Table.Projection(null, agg, [p.name], newSchema);
     };
     t:complete_table p:out_param_Numeric '的 平均'=> {
         if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
@@ -92,8 +88,8 @@ projection_Any = {
             return null;
 
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
-        const agg = new Ast.Table.Aggregation(t, p.name, 'avg', null, newSchema);
-        return new Ast.Table.Projection(agg, [p.name], newSchema);
+        const agg = new Ast.Table.Aggregation(null, t, p.name, 'avg', null, newSchema);
+        return new Ast.Table.Projection(null, agg, [p.name], newSchema);
     };
 
     !turking t:complete_table '的' p:out_param_Numeric '的 平均 值'=> {
@@ -103,8 +99,8 @@ projection_Any = {
             return null;
 
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
-        const agg = new Ast.Table.Aggregation(t, p.name, 'avg', null, newSchema);
-        return new Ast.Table.Projection(agg, [p.name], newSchema);
+        const agg = new Ast.Table.Aggregation(null, t, p.name, 'avg', null, newSchema);
+        return new Ast.Table.Projection(null, agg, [p.name], newSchema);
     };
 
     t:complete_table ('中' | '里' | '里面') ('最低' | '最少' | '最小') '的' p:out_param_Numeric => {
@@ -114,8 +110,8 @@ projection_Any = {
             return null;
 
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
-        const agg = new Ast.Table.Aggregation(t, p.name, 'min', null, newSchema);
-        return new Ast.Table.Projection(agg, [p.name], newSchema);
+        const agg = new Ast.Table.Aggregation(null, t, p.name, 'min', null, newSchema);
+        return new Ast.Table.Projection(null, agg, [p.name], newSchema);
     };
 
     t:complete_table ('中' | '里' | '里面') ('最高' | '最大' | '最多') '的' p:out_param_Numeric => {
@@ -125,7 +121,7 @@ projection_Any = {
             return null;
 
         const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
-        const agg = new Ast.Table.Aggregation(t, p.name, 'max', null, newSchema);
-        return new Ast.Table.Projection(agg, [p.name], newSchema);
+        const agg = new Ast.Table.Aggregation(null, t, p.name, 'max', null, newSchema);
+        return new Ast.Table.Projection(null, agg, [p.name], newSchema);
     };
 }

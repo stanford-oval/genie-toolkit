@@ -26,9 +26,7 @@
 // - some form of search refinement (= "negative_list_proposa_reply_pair")
 // - a question about an element of the list (= "list_proposal_search_question_pair")
 
-{
-    const D = require('../../dialogue_acts');
-}
+import * as D from '../../dialogue_acts';
 
 // a "list proposal" consists of the first few results of the current query,
 // together with informative results about them, an offer to learn more, or an offer for an action

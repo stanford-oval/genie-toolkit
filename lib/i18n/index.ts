@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -34,7 +34,20 @@ import Polish from './polish';
 import SimplifiedChinese from './simplified-chinese';
 import TraditionalChinese from './traditional-chinese';
 
-const _classes = {
+import BaseTokenizer from './tokenizer/base';
+export { BaseTokenizer };
+
+// TODO finish interface
+export interface LanguagePack {
+    getTokenizer() : BaseTokenizer;
+    postprocessSynthetic(sentence : string) : string;
+}
+
+interface LPClass {
+    new() : LanguagePack;
+}
+
+const _classes : { [locale : string] : LPClass } = {
     // all English is American English, cause 'Murrica
     'en': AmericanEnglish,
 
@@ -56,17 +69,17 @@ const _classes = {
     'zh': SimplifiedChinese,
     'zh-cn': SimplifiedChinese,
     'zh-hans': SimplifiedChinese,
-    
+
     'zh-tw': TraditionalChinese,
     'zh-hant': TraditionalChinese,
 };
 
-const _instances = new Map;
+const _instances = new Map<string, LanguagePack>();
 
-export function get(locale) {
+export function get(locale : string) : LanguagePack {
     locale = locale.toLowerCase();
     if (_instances.has(locale))
-        return _instances.get(locale);
+        return _instances.get(locale)!;
 
     const chunks = locale.split('-');
     for (let i = chunks.length; i >= 1; i--) {

@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -17,7 +17,6 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
 import * as events from 'events';
 
@@ -25,8 +24,27 @@ import SpeechRecognizer from './speech_recognizer';
 import SpeechSynthesizer from './speech_synthesizer';
 import { MessageType } from '../dialogue-agent/protocol';
 
+interface SpeechHandlerOptions {
+    subscriptionKey ?: string;
+}
+
 export default class SpeechHandler extends events.EventEmitter {
-    constructor(conversation, platform, options = {}) {
+    private _platform : any;
+    private _conversation : any;
+    private _pulse : any;
+    private _wakeWordDetector : any;
+    private _systemLock : any;
+    private _recognizer : SpeechRecognizer;
+    private _tts : SpeechSynthesizer;
+    private _currentRequest : any;
+    private _started : boolean;
+    private _enableVoiceInput : boolean;
+    private _enableVoiceOutput : boolean;
+    private _stream : any;
+
+    constructor(conversation : any,
+                platform : any,
+                options : SpeechHandlerOptions = {}) {
         super();
         this._platform = platform;
 
@@ -52,7 +70,7 @@ export default class SpeechHandler extends events.EventEmitter {
         this._enableVoiceOutput = true;
     }
 
-    setVoiceInput(enable) {
+    setVoiceInput(enable : boolean) : void {
         if (enable === this._enableVoiceInput)
             return;
         this._enableVoiceInput = enable;
@@ -62,7 +80,7 @@ export default class SpeechHandler extends events.EventEmitter {
             this._stopVoiceInput();
     }
 
-    setVoiceOutput(enable) {
+    setVoiceOutput(enable : boolean) : void {
         if (enable === this._enableVoiceOutput)
             return;
         this._enableVoiceOutput = enable;
@@ -71,14 +89,14 @@ export default class SpeechHandler extends events.EventEmitter {
     }
 
     // called from conversation
-    setHypothesis() {
+    setHypothesis() : void {
         // ignore, this is called from the conversation when it broadcasts the hypothesis
         // to all listeners
     }
-    setExpected(expect) {
+    setExpected(expect : string) : void {
     }
 
-    async addMessage(message) {
+    async addMessage(message : any) : Promise<void> {
         switch (message.type) {
         case MessageType.COMMAND:
             await this._tts.clearQueue();
@@ -94,7 +112,7 @@ export default class SpeechHandler extends events.EventEmitter {
         case MessageType.RDL:
             if (!this._enableVoiceOutput)
                 break;
-            await this._speechSynth.say(message.rdl.displayTitle);
+            await this._tts.say(message.rdl.displayTitle);
             break;
 
         // ignore all other message types
@@ -106,22 +124,22 @@ export default class SpeechHandler extends events.EventEmitter {
      *
      * This can be used to emulate a wakeword with a push button.
      */
-    wakeword() {
+    wakeword() : void {
         this.emit('wakeword');
         this._onDetected();
     }
 
-    _onDetected() {
+    private _onDetected() {
         // if we already have a request active, ignore the wakeword, we're
         // already streaming the sound to the server
         if (this._currentRequest)
             return;
 
         this._currentRequest = this._recognizer.request(this._stream);
-        this._currentRequest.on('hypothesis', (hypothesis) => {
+        this._currentRequest.on('hypothesis', (hypothesis : string) => {
             this._conversation.setHypothesis(hypothesis);
         });
-        this._currentRequest.on('done', (status, utterance) => {
+        this._currentRequest.on('done', (status : string, utterance : string) => {
             this._currentRequest = null;
             if (status === 'Success') {
                 console.log('Recognized as "' + utterance + '"');
@@ -135,18 +153,18 @@ export default class SpeechHandler extends events.EventEmitter {
                 console.log('Recognition error: ' + status);
             }
         });
-        this._currentRequest.on('error', (error) => {
+        this._currentRequest.on('error', (error : Error) => {
             this._currentRequest = null;
             this._onError(error);
         });
     }
 
-    _onError(error) {
+    private _onError(error : Error) {
         console.log('Error in speech recognition: ' + error.message);
         this._tts.say("Sorry, I had an error understanding your speech: " + error.message);
     }
 
-    start() {
+    start() : void {
         this._conversation.addOutput(this, false);
         this._started = true;
 
@@ -154,7 +172,7 @@ export default class SpeechHandler extends events.EventEmitter {
             this._startVoiceInput();
     }
 
-    _startVoiceInput() {
+    private _startVoiceInput() {
         this._stream = this._pulse.createRecordStream({
             format: 'S16LE',
             rate: 16000,
@@ -166,14 +184,14 @@ export default class SpeechHandler extends events.EventEmitter {
             }
         });
 
-        this._stream.on('state', (state) => {
+        this._stream.on('state', (state : string) => {
             console.log('Record stream is now ' + state);
             if (state === 'ready')
                 this.emit('ready');
         });
 
         if (this._wakeWordDetector) {
-            this._wakeWordDetector.on('wakeword', (wakeword) => {
+            this._wakeWordDetector.on('wakeword', (wakeword : string) => {
                 if (this._systemLock && this._systemLock.isActive) {
                     console.log('Ignored wakeword ' + wakeword + ' because the system is locked');
                     return;
@@ -194,7 +212,7 @@ export default class SpeechHandler extends events.EventEmitter {
         this._tts.clearQueue();
     }
 
-    _stopVoiceInput() {
+    private _stopVoiceInput() {
         if (!this._stream)
             return;
         this._stream.end();

@@ -71,6 +71,6 @@ cause problems.
 
 If you want to also extend ThingTalk (with new syntax or new features) you will need to
 fork and modify the library, which lives at <https://github.com/stanford-oval/thingtalk>.
-After modifying the library, you can use `yarn link` or a combination of package.json `dependencies`
-and `resolutions` to point the almond-cloud installation to your library. You must make sure
-that only one copy of the ThingTalk library is loaded (use `find node_modules/ -name thingtalk` to check).
+After modifying the library, you can use `npm link` to point the almond-cloud installation
+to your library. You must make sure that only one copy of the ThingTalk library is loaded
+(use `npm ls thingtalk` to check).

@@ -123,9 +123,9 @@ emptydataset.tt:
 multidomain/manifest.tt: $(addsuffix /manifest.tt,$(all_experiments))
 	cat $^ > $@
 
-%/synthetic.tsv: %/manifest.tt $(dataset_file) $(geniedir)/languages/thingtalk/en/*.genie
+%/synthetic.tsv: %/manifest.tt $(dataset_file) $(geniedir)/languages-dist/thingtalk/en/*.genie.js
 	$(genie) generate \
-	  --template $(geniedir)/languages/$(template_file) \
+	  --template $(geniedir)/languages-dist/$(template_file) \
 	  --thingpedia $*/manifest.tt --entities $*/entities.json --dataset $(dataset_file) \
 	  --target-pruning-size $(target_pruning_size) \
 	  -o $@.tmp --no-debug $(generate_flags) --maxdepth $(maxdepth) \

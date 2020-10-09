@@ -19,12 +19,11 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
+import { Ast, } from 'thingtalk';
 
-const C = require('../ast_manip');
+import * as C from '../ast_manip';
 
 const {
     addQuery
@@ -464,7 +463,7 @@ function combinePreambleAndRequest(preamble, request, info, proposalType) {
     return request;
 }
 
-module.exports = {
+export {
     findOrMakeFilterTable,
     queryRefinement,
     refineFilterToAnswerQuestion,

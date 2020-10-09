@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -24,6 +24,8 @@ import assert from 'assert';
 import List from './list';
 import { uniform } from '../utils/random';
 
+export { importGenie as import } from './compiler';
+
 const LogLevel = {
     NONE: 0,
 
@@ -45,13 +47,12 @@ const LogLevel = {
 };
 
 class Placeholder {
-    constructor(symbol, option) {
-        this.symbol = symbol;
-        this.option = option;
+    constructor(public symbol : string,
+                public option ?: ('const' | 'no-undefined')) {
         assert(!option || option === 'const' || option === 'no-undefined');
     }
 
-    toString() {
+    toString() : string {
         return '${' + this.symbol + '}'; //'
     }
 }
@@ -71,19 +72,18 @@ class Placeholder {
  * See {@link Grammar#_initializeContexts} for a longer explanation.
  */
 class Context {
-    constructor(priv, info) {
-        this.priv = priv;
-        this.info = info;
+    constructor(public priv : unknown,
+                public info : unknown) {
     }
 
-    toString() {
+    toString() : string {
         return `CTX[${this.info}]`;
     }
 
-    static compatible(c1, c2) {
+    static compatible(c1 : Context|null, c2 : Context|null) : boolean {
         return c1 === null || c2 === null || c1 === c2;
     }
-    static meet(c1, c2) {
+    static meet(c1 : Context|null, c2 : Context|null) : Context|null {
         if (c1 === null)
             return c2;
         else
@@ -91,11 +91,38 @@ class Context {
     }
 }
 
+type DerivationChild = string | Context | Placeholder | Derivation;
+
+type SemanticAction = (...args : unknown[]) => unknown|null;
+
+interface CombinerAction {
+    (children : DerivationChild[], rulePriority : number) : Derivation|null;
+    isReplacePlaceholder ?: boolean;
+}
+
+interface ReplacePlaceholderOptions {
+    isConstant ?: boolean;
+    isUndefined ?: boolean;
+    throwIfMissing ?: boolean;
+}
+
+
 // A Derivation represents a sentence, possibly with placeholders,
 // and a value, possibly with unspecified input parameters, that
 // was computed at a certain point in the derivation tree
 class Derivation {
-    constructor(value, sentence, context = null, priority = 0) {
+    value : unknown;
+    context : Context|null;
+    sentence : List<DerivationChild>;
+    priority : number;
+
+    private _flatSentence : string|null;
+    private _hasPlaceholders : boolean|undefined;
+
+    constructor(value : unknown,
+                sentence : List<DerivationChild>,
+                context : Context|null = null,
+                priority = 0) {
         this.value = value;
         if (value === undefined)
             throw new TypeError('Invalid value');
@@ -110,44 +137,48 @@ class Derivation {
         this._hasPlaceholders = undefined;
     }
 
-    hasPlaceholders() {
+    hasPlaceholders() : boolean {
         if (this._hasPlaceholders !== undefined)
             return this._hasPlaceholders;
 
         let hasPlaceholders = false;
-        this.sentence.traverse((child) => {
+        this.sentence.traverse((child : DerivationChild) => {
             hasPlaceholders = hasPlaceholders || child instanceof Placeholder;
         });
         return this._hasPlaceholders = hasPlaceholders;
     }
 
-    hasPlaceholder(what) {
+    hasPlaceholder(what : string) : boolean {
         let hasPlaceholder = false;
-        this.sentence.traverse((child) => {
+        this.sentence.traverse((child : DerivationChild) => {
             hasPlaceholder = hasPlaceholder || (child instanceof Placeholder && child.symbol === what);
         });
         return hasPlaceholder;
     }
 
-    get complete() {
-        let v = !this.hasPlaceholders();
+    get complete() : boolean {
+        const v = !this.hasPlaceholders();
         return v;
     }
 
-    toString() {
+    toString() : string {
         if (this._flatSentence)
             return this._flatSentence;
 
         const flattened = [];
-        this.sentence.traverse((el) => flattened.push(String(el)));
+        this.sentence.traverse((el : DerivationChild) => flattened.push(String(el)));
         return this._flatSentence = flattened.join(' ');
     }
 
-    clone() {
+    clone() : Derivation {
         return new Derivation(this.value, this.sentence, this.context, this.priority);
     }
 
-    replacePlaceholder(name, replacement, semanticAction, { isConstant, isUndefined = false, throwIfMissing = false }, rulePriority) {
+    replacePlaceholder(name : string,
+                       replacement : Derivation|string,
+                       semanticAction : SemanticAction,
+                       { isConstant, isUndefined = false, throwIfMissing = false } : ReplacePlaceholderOptions,
+                       rulePriority : number) : Derivation|null {
         let newValue;
         let isDerivation;
         if (!(replacement instanceof Derivation)) {
@@ -171,21 +202,22 @@ class Derivation {
             return null;
         }
 
-        let newSentence = List.Nil;
+        let newSentence : List<DerivationChild> = List.Nil;
         let newContext = this.context;
         let newPriority = this.priority + rulePriority;
         let found = false;
         let bad = false;
-        this.sentence.traverse((child) => {
+        this.sentence.traverse((child : DerivationChild) => {
             if (child instanceof Placeholder && child.symbol === name) {
                 if (child.option === 'no-undefined' && isUndefined)
                     bad = true;
                 if (child.option === 'const' && !isConstant && !isUndefined)
                     bad = true;
                 if (isDerivation) {
-                    newSentence = List.concat(newSentence, replacement.sentence);
-                    newContext = Context.meet(newContext, replacement.context);
-                    newPriority += replacement.priority;
+                    const deriv = replacement as Derivation;
+                    newSentence = List.concat(newSentence, deriv.sentence);
+                    newContext = Context.meet(newContext, deriv.context);
+                    newPriority += deriv.priority;
                 } else {
                     newSentence = List.append(newSentence, replacement);
                 }
@@ -207,11 +239,13 @@ class Derivation {
         return new Derivation(newValue, newSentence, newContext, newPriority);
     }
 
-    static combine(children, semanticAction, rulePriority) {
+    static combine(children : DerivationChild[],
+                   semanticAction : SemanticAction,
+                   rulePriority : number) : Derivation|null {
         if (children.length === 1) {
             assert(!(children[0] instanceof Context));
             if (children[0] instanceof Derivation) {
-                let clone = children[0].clone();
+                const clone = children[0].clone();
                 clone.value = semanticAction(children[0].value);
                 assert(clone.value !== undefined);
                 if (clone.value === null)
@@ -219,13 +253,13 @@ class Derivation {
                 clone.priority += rulePriority;
                 return clone;
             } else if (children[0] instanceof Placeholder) {
-                let value = semanticAction(undefined);
+                const value = semanticAction(undefined);
                 assert(value !== undefined);
                 if (value === null)
                     return null;
                 return new Derivation(value, List.singleton(children[0]), null, rulePriority);
             } else { // constant or terminal
-                let value = semanticAction(undefined);
+                const value = semanticAction(undefined);
                 assert(value !== undefined);
                 if (value === null)
                     return null;
@@ -233,12 +267,12 @@ class Derivation {
             }
         }
 
-        let sentence = List.Nil;
-        let values = [];
-        let newContext = null;
+        let sentence : List<DerivationChild> = List.Nil;
+        const values : unknown[] = [];
+        let newContext : Context|null = null;
         let newPriority = rulePriority;
 
-        for (let child of children) {
+        for (const child of children) {
             // does not go into the input sentence
             if (child instanceof Context) {
                 newContext = child;
@@ -261,7 +295,7 @@ class Derivation {
         //console.log('combine: ' + children.join(' ++ '));
         //console.log('values: ' + values.join(' , '));
 
-        let value = semanticAction(...values);
+        const value = semanticAction(...values);
         assert(value !== undefined);
         if (value === null)
             return null;
@@ -270,12 +304,14 @@ class Derivation {
 }
 
 
+
 // Combination operators: use to create a semantic function that, given two child derivations,
 // produces a new derivation
 
-function simpleCombine(semanticAction, flag, topLevel = false) {
-    return function(children, rulePriority) {
-
+function simpleCombine(semanticAction : SemanticAction,
+                       flag : string|undefined,
+                       topLevel = false) : CombinerAction {
+    return function(children : DerivationChild[], rulePriority : number) : Derivation|null {
         const result = Derivation.combine(children, semanticAction, rulePriority);
         if (result === null)
             return null;
@@ -292,8 +328,12 @@ function simpleCombine(semanticAction, flag, topLevel = false) {
     };
 }
 
-function combineReplacePlaceholder(pname, semanticAction, options) {
-    let f= function([c1, c2], rulePriority) {
+function combineReplacePlaceholder(pname : string,
+                                   semanticAction : SemanticAction,
+                                   options : ReplacePlaceholderOptions) : CombinerAction {
+    const f : CombinerAction = function([c1, c2] : DerivationChild[], rulePriority : number) {
+        assert(c1 instanceof Derivation);
+        assert(!(c2 instanceof Placeholder) && !(c2 instanceof Context));
         return c1.replacePlaceholder(pname, c2, semanticAction, options, rulePriority);
     };
     f.isReplacePlaceholder = true;
@@ -301,26 +341,33 @@ function combineReplacePlaceholder(pname, semanticAction, options) {
 }
 
 class NonTerminal {
-    constructor(symbol) {
+    symbol : string;
+    index : number;
+
+    constructor(symbol : string) {
         this.symbol = symbol;
         this.index = -1;
     }
 
-    toString() {
+    toString() : string {
         return `NT[${this.symbol}]`;
     }
 }
 
+type RNG = () => number;
+
 class Choice {
-    constructor(choices) {
+    choices : string[];
+
+    constructor(choices : string[]) {
         this.choices = choices;
     }
 
-    choose(rng) {
+    choose(rng : RNG) : string {
         return uniform(this.choices, rng);
     }
 
-    toString() {
+    toString() : string {
         return `C[${this.choices.join('|')}]`;
     }
 }

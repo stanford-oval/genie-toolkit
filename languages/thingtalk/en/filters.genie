@@ -19,18 +19,15 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import assert from 'assert';
+import { Ast, Type } from 'thingtalk';
+
+import * as C from '../ast_manip';
+
+// import thingpedia info
+import _tpLoader from '../load-thingpedia';
+
 {
-const assert = require('assert');
-
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
-const Type = ThingTalk.Type;
-
-// import the combinator library
-const C = require('../ast_manip');
-
-const _tpLoader = require('../load-thingpedia');
-
 const HERE = new Ast.Value.Location(new Ast.Location.Relative('current_location'));
 }
 

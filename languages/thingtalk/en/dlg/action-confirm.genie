@@ -22,18 +22,14 @@
 // Either the action was successful, and we're done, or
 // the action failed, and we give the user an option to try again
 
-{
-    const assert = require('assert');
-    const ThingTalk = require('thingtalk');
-    const Ast = ThingTalk.Ast;
-    const Type = ThingTalk.Type;
+import assert from 'assert';
+import { Ast, Type } from 'thingtalk';
 
-    const C = require('../../ast_manip');
-    const D = require('../../dialogue_acts');
+import * as C from '../../ast_manip';
+import * as D from '../../dialogue_acts';
 
-    // import thingpedia info
-    const _tpLoader = require('../../load-thingpedia');
-}
+// import thingpedia info
+import _tpLoader from '../../load-thingpedia';
 
 action_confirm_phrase = {
     ( ctx:ctx_confirm_action 'ok , do you want me to' action:action_description_phrase '?'

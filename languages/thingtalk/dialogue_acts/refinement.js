@@ -19,7 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const C = require('../ast_manip');
+import * as C from '../ast_manip';
 
 const {
     makeAgentReply,
@@ -88,7 +88,7 @@ function positiveProposalReply(ctx) {
     return proposalReply(ctx, proposal, refineFilterToAnswerQuestion);
 }
 
-module.exports = {
+export {
     checkSearchResultPreamble,
     makeRefinementProposal,
     positiveProposalReply,

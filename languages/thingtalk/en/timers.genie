@@ -18,10 +18,9 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-{
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
+import { Ast, } from 'thingtalk';
 
+{
 const TIMER_SCHEMA = new Ast.FunctionDef(null,
     'stream',
     null, // class

@@ -18,18 +18,15 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import assert from 'assert';
+import { Ast, Type } from 'thingtalk';
+
+import * as C from '../ast_manip';
+
+// import thingpedia info
+import _tpLoader from '../load-thingpedia';
+
 {
-    const assert = require('assert');
-
-    const ThingTalk = require('thingtalk');
-    const Ast = ThingTalk.Ast;
-    const Type = ThingTalk.Type;
-    const Generate = ThingTalk.Generate;
-
-// import the combinator library
-    const C = require('../ast_manip');
-    const _tpLoader = require('../load-thingpedia');
-
     const HERE = new Ast.Value.Location(new Ast.Location.Relative('current_location'));
 }
 
@@ -101,7 +98,7 @@ projection_Number = {
             const elementType = table.schema.out[p.name].elem;
             if (!elementType.isCompound || !elementType.fields[filter.name])
                 return null;
-            const list = C.makeListExpression(_tpLoader, p, filter);
+            const list = C.makeListExpression(p, filter);
             if (!list)
                 return null;
             return C.makeAggComputeProjExpression(table, 'count', null, list, Type.Number);
@@ -177,7 +174,7 @@ compute_question = {
             const elementType = table.schema.out[p.name].elem;
             if (!elementType.isCompound || !elementType.fields[filter.name])
                 return null;
-            const list = C.makeListExpression(_tpLoader, p, filter);
+            const list = C.makeListExpression(p, filter);
             if (!list)
                 return null;
             return C.makeAggComputeProjExpression(table, 'count', null, list, Type.Number);

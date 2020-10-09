@@ -1,8 +1,6 @@
 # Installation Instructions
 
-Genie is hosted on [NPM](https://npmjs.com). We recommend using [Yarn](https://yarnpkg.com)
-as a package manager, to ensure exact compatibility with Genie's dependencies. Genie depends
-on nodejs == 10.*.
+Genie is hosted on [NPM](https://npmjs.com), and depends on nodejs >= 10.*.
 
 ## Option 1: "git" install
 
@@ -12,24 +10,20 @@ You need a recent version of Yarn for this.
 ```bash
 git clone https://github.com/stanford-oval/genie-toolkit
 cd genie-toolkit
-yarn
-yarn link
+npm install
+npm link
 ```
 
 This method will install the latest development version of Genie. You can switch
 to a different version with `git checkout`. See the [releases page](https://github.com/stanford-oval/genie-toolkit/releases)
 for available versions. After you run `git checkout`, make sure to also run
-`yarn` to ensure that all dependencies are at the correct version.
+`npm install` to ensure that all dependencies are at the correct version.
 
-After running this, try running "genie --help". If encounter "command not found",
-make sure the Yarn global bin directory (usually `~/.yarn/bin`) is in your PATH.
-You can find the path with the command `yarn global bin`.
-
-## Option 2: "yarn" install
+## Option 2: "npm" install
 
 You can also install Genie using:
 ```
-yarn add genie-toolkit
+npm install genie-toolkit
 ```
 
 This method will install Genie as a library, not as a command-line tool. It is

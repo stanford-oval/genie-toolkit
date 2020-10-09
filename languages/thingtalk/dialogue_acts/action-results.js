@@ -19,14 +19,13 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-const assert = require('assert');
+import assert from 'assert';
 
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
+import { Ast } from 'thingtalk';
 
-const C = require('../ast_manip');
+import * as C from '../ast_manip';
 
-const { SlotBag } = require('../slot_bag');
+import { SlotBag } from '../slot_bag';
 const {
     makeAgentReply,
     makeSimpleState,
@@ -216,7 +215,7 @@ function actionSuccessQuestion(ctx, questions) {
     return makeSimpleState(ctx, 'action_question', questions.map(([qname, qtype]) => qname));
 }
 
-module.exports = {
+export {
     makeThingpediaActionSuccessPhrase,
     makeCompleteActionSuccessPhrase,
     makeGenericActionSuccessPhrase,

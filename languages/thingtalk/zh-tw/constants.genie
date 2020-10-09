@@ -19,16 +19,13 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-{
-const assert = require('assert');
+import assert from 'assert';
+import { Ast, Type } from 'thingtalk';
 
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
-const Type = ThingTalk.Type;
+import * as C from '../ast_manip';
 
-// import the combinator library
-const C = require('../ast_manip');
-}
+// import thingpedia info
+import _tpLoader from '../load-thingpedia';
 
 constant_Number = {
     // `turking` is a flags that controls a group of grammar rules
