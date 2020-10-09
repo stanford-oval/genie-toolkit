@@ -217,7 +217,14 @@ class ParamDatasetGenerator {
                     let tokens = tokenized[i].tokens;
 
                     // clean up value
-                    value = value.replaceAll('\n', ' ');
+                    value = value.replace(/\n/g, ' ');
+                    if (value === 'unspecified')
+                        continue;
+
+                    // sometimes locations are in "street_address, county, country" or "town, city, country" format
+                    // in those cases we remove everything after first comma and return the rest
+                    if (['address', 'location', 'geo'].some((v) => fileId.includes(v)) && value.indexOf(',') !== -1 && value.split(',') >= 3)
+                        value = value.slice(0, value.indexOf(',')).trim();
 
                     if (tokens.length === 0 || tokens.some((tok) => /^[A-Z]/.test(tok)))
                         tokens = tokens.filter(isNotCapital);
