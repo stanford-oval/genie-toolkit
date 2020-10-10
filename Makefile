@@ -17,7 +17,7 @@ sources = \
 	tool/*/*/*.js \
 	tool/*/*/*.ts
 
-languages = en zh-tw zh-cn
+languages = en
 
 bundled_templates := \
 	$(foreach lang,$(languages),$(patsubst %.genie,%.genie.ts,$(wildcard languages/thingtalk/*.genie languages/thingtalk/$(lang)/*.genie languages/thingtalk/$(lang)/*/*.genie)))
