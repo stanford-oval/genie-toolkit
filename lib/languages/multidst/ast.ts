@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -38,18 +38,18 @@ const INTENTS = new Set([
 ]);
 
 // minimal AST classes
-class AstNode {
-    /* instanbul ignore next */
-    prettyprint() {
-        throw new Error('not implemented');
-    }
+abstract class AstNode {
+    abstract prettyprint() : string;
+    abstract clone() : AstNode;
 
-    optimize() {
+    optimize() : this {
         return this;
     }
 }
 
-class Value extends AstNode {
+abstract class Value extends AstNode {
+    abstract equals(x : AstNode) : boolean;
+    abstract clone() : Value;
 }
 
 class QuestionValue extends Value {
@@ -57,100 +57,113 @@ class QuestionValue extends Value {
         super();
     }
 
-    prettyprint() {
+    prettyprint() : string {
         return '?';
     }
 
-    clone() {
+    clone() : this {
         return this; // question values are immutable
     }
 
-    equals(other) {
+    equals(other : AstNode) : boolean {
         return this === other;
     }
 }
 const QUESTION = new QuestionValue();
 
 class TristateValue extends Value {
-    constructor(value) {
+    value : 'yes'|'no'|'dontcare';
+
+    constructor(value : 'yes'|'no'|'dontcare') {
         super();
         assert(value === 'yes' || value === 'no' || value === 'dontcare');
         this.value = value;
     }
 
-    prettyprint() {
+    prettyprint() : string {
         return this.value;
     }
 
-    clone() {
+    clone() : TristateValue {
         return new TristateValue(this.value);
     }
 
-    equals(other) {
+    equals(other : AstNode) : boolean {
         return other instanceof TristateValue && other.value === this.value;
     }
 }
 
 class ConstantValue extends Value {
-    constructor(value) {
+    value : string|number|boolean;
+
+    constructor(value : string|number|boolean) {
         super();
         this.value = value;
     }
 
-    prettyprint() {
+    prettyprint() : string {
         return '" ' + this.value + ' "';
     }
 
-    clone() {
+    clone() : ConstantValue {
         return new ConstantValue(this.value);
     }
 
-    equals(other) {
+    equals(other : AstNode) : boolean {
         return other instanceof ConstantValue && other.value === this.value;
     }
 }
 
 class SlotValue extends Value {
-    constructor(symbol) {
+    symbol : string;
+
+    constructor(symbol : string) {
         super();
         assert(symbol.startsWith('SLOT_'));
         this.symbol = symbol;
     }
 
-    prettyprint() {
+    prettyprint() : string {
         return this.symbol;
     }
 
-    clone() {
+    clone() : SlotValue {
         return new SlotValue(this.symbol);
     }
 
-    equals(other) {
+    equals(other : AstNode) : boolean {
         return other instanceof SlotValue && other.symbol === this.symbol;
     }
 }
 
 class MaybeValue extends Value {
-    constructor(wrapped) {
+    wrapped : Value;
+
+    constructor(wrapped : Value) {
         super();
         this.wrapped = wrapped;
     }
 
-    prettyprint() {
+    prettyprint() : string {
         return 'maybe ' + this.wrapped.prettyprint();
     }
 
-    clone() {
+    clone() : MaybeValue {
         return new MaybeValue(this.wrapped.clone());
     }
 
-    equals(other) {
+    equals(other : AstNode) : boolean {
         return other instanceof MaybeValue && this.wrapped.equals(other.wrapped);
     }
 }
 
 class DialogState extends AstNode {
-    constructor(domain = null) {
+    intent : string|null;
+    domain : string|null;
+    store : Map<string, Value>;
+    private _cachedHasQuestion : boolean|undefined;
+
+    constructor(domain : string|null = null) {
         super();
         this.store = new Map;
 
@@ -160,29 +173,29 @@ class DialogState extends AstNode {
         this._cachedHasQuestion = undefined;
     }
 
-    get size() {
+    get size() : number {
         return this.store.size;
     }
-    entries() {
+    entries() : Iterable<[string, Value]> {
         return this.store.entries();
     }
-    get(key) {
+    get(key : string) : Value|undefined {
         return this.store.get(key);
     }
-    has(key) {
+    has(key : string) : boolean {
         return this.store.has(key);
     }
-    keys() {
+    keys() : Iterable<string> {
         return this.store.keys();
     }
-    values() {
+    values() : Iterable<Value> {
         return this.store.values();
     }
-    [Symbol.iterator]() {
+    [Symbol.iterator]() : Iterable<[string, Value]> {
         return this.store[Symbol.iterator]();
     }
 
-    prettyprint() {
+    prettyprint() : string {
         if (this.intent === null)
             throw new Error('must set intent before calling prettyprint()');
         assert(INTENTS.has(this.intent));
@@ -191,32 +204,32 @@ class DialogState extends AstNode {
         const keys = Array.from(this.store.keys());
         keys.sort();
 
-        let buffer = [this.intent];
+        const buffer : string[] = [this.intent];
         if (this.domain !== null)
             buffer.push(this.domain);
         else
             assert(keys.length === 0 && this.intent === 'greet' || this.intent === 'null');
-        for (let key of keys)
-            buffer.push(key.replace(/-/g, ' '), 'is', this.store.get(key).prettyprint());
+        for (const key of keys)
+            buffer.push(key.replace(/-/g, ' '), 'is', this.store.get(key)!.prettyprint());
         return buffer.join(' ');
     }
 
-    clone() {
-        let newstate = new DialogState;
+    clone() : DialogState {
+        const newstate = new DialogState;
         newstate.intent = this.intent;
         newstate.domain = this.domain;
-        for (let [key, value] of this.entries())
+        for (const [key, value] of this.entries())
             newstate.set(key, value);
         return newstate;
     }
 
-    clear() {
+    clear() : void {
         return this.store.clear();
     }
-    delete(key) {
+    delete(key : string) : boolean {
         return this.store.delete(key);
     }
-    set(key, value) {
+    set(key : string, value : Value) : void {
         assert(value instanceof Value);
         const domain = key.split('-')[0];
         if (this.domain === null)
@@ -234,10 +247,10 @@ class DialogState extends AstNode {
         this.store.set(key, value);
     }
 
-    hasQuestion() {
+    hasQuestion() : boolean {
         if (this._cachedHasQuestion !== undefined)
             return this._cachedHasQuestion;
-        for (let value of this.store.values()) {
+        for (const value of this.store.values()) {
             if (value === QUESTION)
                 return this._cachedHasQuestion = true;
         }

@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -18,60 +18,69 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
+import assert from 'assert';
+import { Ast } from 'thingtalk';
 
 import editDistance from '../../utils/edit-distance';
 
 // FIXME use the actual tokenizer
-function tokenize(string) {
-    let tokens = string.split(/(\s+|[,."'!?])/g);
+function tokenize(string : string) : string[] {
+    const tokens = string.split(/(\s+|[,."'!?])/g);
     return tokens.filter((t) => !(/^\s*$/).test(t)).map((t) => t.toLowerCase());
 }
 
-export function collectDisambiguationHints(result, idEntities, previousLocations) {
-    for (let key in result.value) {
+export interface EntityRecord {
+    value : string,
+    name : string,
+    canonical : string
+}
+
+export function collectDisambiguationHints(result : Ast.DialogueHistoryResultItem,
+                                           idEntities : Map<string, EntityRecord[]>,
+                                           previousLocations : Ast.Location[]) : void {
+    for (const key in result.value) {
         const value = result.value[key];
-        if (previousLocations && value.isLocation && value.value.isAbsolute)
+        if (previousLocations && value instanceof Ast.LocationValue && value.value instanceof Ast.AbsoluteLocation)
             previousLocations.push(value.value);
 
         if (key === 'id') {
             const id = result.value.id;
-            if (!id.isEntity || !id.display)
+            if (!(id instanceof Ast.EntityValue) || !id.display)
                 continue;
             const idType = id.type;
             const idEntity = {
-                value: id.value,
+                value: id.value!,
                 name: id.display,
                 canonical: tokenize(id.display).join(' ')
             };
             if (idEntities.has(idType))
-                idEntities.get(idType).push(idEntity);
+                idEntities.get(idType)!.push(idEntity);
             else
                 idEntities.set(idType, [idEntity]);
         }
     }
 }
 
-export function getBestEntityMatch(searchTerm, entityType, candidates) {
-    let best = undefined,
-        bestScore = undefined;
+export function getBestEntityMatch(searchTerm : string, entityType : string, candidates : EntityRecord[]) : EntityRecord {
+    let best : EntityRecord|undefined = undefined,
+        bestScore : number|undefined = undefined;
 
-    let refinedSearchTerm = removeParenthesis(searchTerm);
-    let searchTermTokens = refinedSearchTerm.split(' ');
+    const refinedSearchTerm = removeParenthesis(searchTerm);
+    const searchTermTokens = refinedSearchTerm.split(' ');
 
-    for (let cand of candidates) {
+    for (const cand of candidates) {
         if (cand.canonical === searchTerm)
             return cand;
-        let candDisplay = removeParenthesis(cand.canonical);
+        const candDisplay = removeParenthesis(cand.canonical);
         let score = 0;
         score -= 0.1 * editDistance(refinedSearchTerm, candDisplay);
 
-        let candTokens = candDisplay.split(' ');
-        candTokens = new Set(candTokens);
+        const candTokens = new Set(candDisplay.split(' '));
 
-        for (let candToken of candTokens) {
+        for (const candToken of candTokens) {
             let found = false;
-            for (let token of searchTermTokens) {
+            for (const token of searchTermTokens) {
                 if (token === candToken || (editDistance(token, candToken) <= 1 && token.length > 1)) {
                     score += 10;
                     found = true;
@@ -95,9 +104,10 @@ export function getBestEntityMatch(searchTerm, entityType, candidates) {
         }
     }
 
+    assert(best);
     return best;
 }
 
-function removeParenthesis(str){
+function removeParenthesis(str : string) : string {
     return str.replace(/ \(.*?\)/g, '');
 }

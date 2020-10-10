@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -21,9 +21,14 @@
 
 import assert from 'assert';
 
-import * as ThingTalk from 'thingtalk';
-const Ast = ThingTalk.Ast;
-const Type = ThingTalk.Type;
+import {
+    Ast,
+    Type,
+    Compiler,
+    SchemaRetriever,
+    CompiledProgram,
+    Builtin
+} from 'thingtalk';
 
 import {
     ResultGenerator,
@@ -36,8 +41,28 @@ const MORE_SIZE = 50;
 // above PAGE_SIZE, we set the count but don't actually show the full list of results
 const PAGE_SIZE = 10;
 
-class ThingTalkSimulatorState {
-    constructor(options) {
+export interface SimulationDatabase {
+    has(key : string) : boolean;
+    get(key : string) : Array<{ [key : string] : unknown }>|undefined;
+}
+
+interface SimulatorOptions {
+    locale : string;
+    schemaRetriever : SchemaRetriever;
+    rng : () => number;
+    database ?: SimulationDatabase;
+    overrides ?: Map<string, string>;
+}
+
+export class ThingTalkSimulatorState {
+    private _locale : string;
+    private _schemas : SchemaRetriever;
+    private _rng : () => number;
+    private _database : SimulationDatabase|undefined;
+    private _overrides : Map<string, string>;
+    private _execEnv : SimulationExecEnvironment;
+
+    constructor(options : SimulatorOptions) {
         this._locale = options.locale;
         this._schemas = options.schemaRetriever;
         this._rng = options.rng;
@@ -49,11 +74,11 @@ class ThingTalkSimulatorState {
         });
     }
 
-     async compile(stmt, cache) {
+     async compile(stmt : Ast.Rule|Ast.Command, cache : Map<string, CompiledProgram>) : Promise<CompiledProgram> {
         const clone = stmt.clone();
 
         const program = new Ast.Program(null, [], [], [clone]);
-        const cacheKey = program.prettyprint();
+        const cacheKey = program.prettyprint(true);
         //console.error(cacheKey);
 
         let compiled = cache.get(cacheKey);
@@ -61,30 +86,30 @@ class ThingTalkSimulatorState {
             return compiled;
 
         try {
-            const compiler = new ThingTalk.Compiler(this._schemas);
+            const compiler = new Compiler(this._schemas);
 
             compiled = await compiler.compileProgram(program);
             assert(compiled.rules.length === 0);
             cache.set(cacheKey, compiled);
         } catch(e) {
             console.error(`Failed to compile program: ` + e.message);
-            console.error(program.prettyprint());
+            console.error(program.prettyprint(true));
             throw e;
         }
         return compiled;
     }
 
-    async simulate(stmt, compiled) {
-        const results = [];
-        let error = null;
+    async simulate(stmt : Ast.Rule|Ast.Command, compiled : CompiledProgram) : Promise<Ast.DialogueHistoryResultList> {
+        const results : Ast.DialogueHistoryResultItem[] = [];
+        let error : Ast.Value|null = null;
         const generator = new ResultGenerator(this._rng, this._overrides);
-        for (let slot of stmt.iterateSlots2()) {
+        for (const slot of stmt.iterateSlots2()) {
             if (slot instanceof Ast.Selector)
                 continue;
             generator.addCandidate(slot.get());
         }
         this._execEnv.generator = generator;
-        this._execEnv.output = async (outputType, outputValue) => {
+        this._execEnv.output = async (outputType : string, outputValue : { [key : string] : unknown }) => {
             const mapped = new Ast.DialogueHistoryResultItem(null, await this._mapResult(outputType, outputValue));
             results.push(mapped);
         };
@@ -92,7 +117,7 @@ class ThingTalkSimulatorState {
             if (!(err instanceof SimulatedError)) {
                 console.error(`Failed to execute program`);
                 console.error(msg, err);
-                console.error(new Ast.Program(null, [], [], [stmt]).prettyprint());
+                console.error(new Ast.Program(null, [], [], [stmt]).prettyprint(true));
                 process.exit(1);
                 return;
             }
@@ -103,10 +128,11 @@ class ThingTalkSimulatorState {
         };
 
         try {
+            assert(typeof compiled.command === 'function');
             await compiled.command(this._execEnv);
         } catch(e) {
             console.error(`Failed to execute program: ` + e.message);
-            console.error(new Ast.Program(null, [], [], [stmt]).prettyprint());
+            console.error(new Ast.Program(null, [], [], [stmt]).prettyprint(true));
             throw e;
         }
 
@@ -115,18 +141,18 @@ class ThingTalkSimulatorState {
             new Ast.Value.Number(Math.min(MORE_SIZE, numResults)), numResults > MORE_SIZE, error);
     }
 
-    _inferType(jsValue) {
+    private _inferType(jsValue : unknown) : Type {
         if (typeof jsValue === 'boolean')
             return Type.Boolean;
         if (typeof jsValue === 'string')
             return Type.String;
         if (typeof jsValue === 'number')
             return Type.Number;
-        if (jsValue instanceof ThingTalk.Builtin.Currency)
+        if (jsValue instanceof Builtin.Currency)
             return Type.Currency;
-        if (jsValue instanceof ThingTalk.Builtin.Entity)
+        if (jsValue instanceof Builtin.Entity)
             return new Type.Entity('');
-        if (jsValue instanceof ThingTalk.Builtin.Time)
+        if (jsValue instanceof Builtin.Time)
             return Type.Time;
         if (jsValue instanceof Date)
             return Type.Date;
@@ -138,21 +164,23 @@ class ThingTalkSimulatorState {
         return Type.Any;
     }
 
-    _outputTypeToSchema(outputType) {
-        let [kind, fname] = outputType.split(':');
-        let ftype = 'query';
-        if (fname.startsWith('action/')) {
+    private _outputTypeToSchema(outputType : string) : Promise<Ast.FunctionDef> {
+        const [kind, fname] = outputType.split(':');
+        let ftype : 'query'|'action' = 'query';
+
+        let fname_ = fname;
+        if (fname_.startsWith('action/')) {
             ftype = 'action';
-            fname = fname.substring('action/'.length);
+            fname_ = fname_.substring('action/'.length);
         }
-        return this._schemas.getSchemaAndNames(kind, ftype, fname);
+        return this._schemas.getSchemaAndNames(kind, ftype, fname_);
     }
 
-    async _mapResult(outputType, outputValue) {
-        const mappedResult = {};
+    private async _mapResult(outputType : string|null, outputValue : { [key : string] : unknown }) : Promise<{ [key : string] : Ast.Value }> {
+        const mappedResult : { [key : string] : Ast.Value } = {};
         if (outputType === null) {
             // fallback
-            for (let key in outputValue) {
+            for (const key in outputValue) {
                 const jsValue = outputValue[key];
                 mappedResult[key] = Ast.Value.fromJS(this._inferType(jsValue), jsValue);
             }
@@ -160,7 +188,7 @@ class ThingTalkSimulatorState {
         }
 
         if (outputType.indexOf('+') >= 0) {
-            let types = outputType.split('+');
+            const types = outputType.split('+');
             outputType = types[types.length-1];
         }
 
@@ -182,13 +210,13 @@ class ThingTalkSimulatorState {
         } else {
             const schema = await this._outputTypeToSchema(outputType);
 
-            for (let key in outputValue) {
+            for (const key in outputValue) {
                 const value = outputValue[key];
                 if (value === null || value === undefined)
                     continue;
                 const type = schema.getArgType(key) || this._inferType(value);
-                if (type.isCompound)
-                    mappedResult[key] = this._mapCompound(key + '.', schema, value);
+                if (type instanceof Type.Compound)
+                    mappedResult[key] = this._mapCompound(key + '.', schema, value as { [key : string] : unknown });
                 else
                     mappedResult[key] = Ast.Value.fromJS(type, value);
             }
@@ -196,13 +224,13 @@ class ThingTalkSimulatorState {
         return mappedResult;
     }
 
-    _mapCompound(prefix, schema, object) {
-        let result = {};
-        for (let key in object) {
+    private _mapCompound(prefix : string, schema : Ast.FunctionDef, object : { [key : string] : unknown }) : Ast.Value {
+        const result : { [key : string] : Ast.Value } = {};
+        for (const key in object) {
             const value = object[key];
             const type = schema.getArgType(prefix + key) || this._inferType(value);
-            if (type.isCompound)
-                result[key] = this._mapCompound(prefix + key + '.', type, object);
+            if (type instanceof Type.Compound)
+                result[key] = this._mapCompound(prefix + key + '.', schema, object as { [key : string] : unknown });
             else
                 result[key] = Ast.Value.fromJS(type, value);
         }
@@ -214,17 +242,22 @@ class ThingTalkSimulatorState {
  * Simulate the execution of ThingTalk code.
  */
 export default class ThingTalkStatementSimulator {
-    constructor(options) {
+    private _options : SimulatorOptions;
+    private cache : Map<string, CompiledProgram>;
+
+    constructor(options : SimulatorOptions) {
         this._options = options;
         this.cache = new Map;
     }
 
-    async executeStatement(stmt, execState) {
+    async executeStatement(stmt : Ast.Rule|Ast.Command,
+                           execState : ThingTalkSimulatorState) : Promise<[Ast.DialogueHistoryResultList, ThingTalkSimulatorState]> {
         assert(stmt instanceof Ast.Statement.Command || stmt instanceof Ast.Statement.Rule);
 
         if (stmt instanceof Ast.Statement.Rule) {
             // nothing to do, this always returns nothing
-            return [[], execState];
+            return [new Ast.DialogueHistoryResultList(null, [],
+                new Ast.Value.Number(0), false, null), execState];
         }
 
         if (execState === undefined)

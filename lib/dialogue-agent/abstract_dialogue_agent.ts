@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -20,22 +20,44 @@
 "use strict";
 
 import assert from 'assert';
-import * as ThingTalk from 'thingtalk';
-const Ast = ThingTalk.Ast;
+import { Ast, Type, SchemaRetriever } from 'thingtalk';
 
 import { shouldAutoConfirmStatement } from './dialogue_state_utils';
 import { contactSearch } from './entity-linking/contact_search';
-import { collectDisambiguationHints, getBestEntityMatch } from './entity-linking/entity-finder';
+import { collectDisambiguationHints, getBestEntityMatch, EntityRecord } from './entity-linking/entity-finder';
 
 import * as Helpers from './helpers';
+import ValueCategory from './value-category';
 
 // FIXME should add this to Ast.Selector...
-function getDeviceAttribute(selector, name) {
-    for (let attr of selector.attributes) {
+function getDeviceAttribute(selector : Ast.DeviceSelector, name : string) : Ast.InputParam|undefined {
+    for (const attr of selector.attributes) {
         if (attr.name === name)
             return attr;
     }
     return undefined;
+}
+
+interface AbstractDialogueAgentOptions {
+    locale : string;
+    timezone : string;
+    debug : boolean;
+}
+
+interface AbstractStatementExecutor<PrivateStateType> {
+    executeStatement(stmt : Ast.Rule|Ast.Command, privateState : PrivateStateType|undefined) : Promise<[Ast.DialogueHistoryResultList, PrivateStateType]>;
+}
+
+interface DisambiguationHints {
+    devices : Map<string, [string|null, Ast.InputParam|undefined]>;
+    idEntities : Map<string, EntityRecord[]>;
+    previousLocations : Ast.Location[];
+}
+
+export interface DeviceInfo {
+    kind : string;
+    uniqueId : string;
+    name : string;
 }
 
 /**
@@ -50,8 +72,13 @@ function getDeviceAttribute(selector, name) {
  *
  * There are two subclasses, one used during simulation, and one used for execution.
  */
-export default class AbstractDialogueAgent {
-    constructor(schemas, options) {
+export default abstract class AbstractDialogueAgent<PrivateStateType> {
+    protected _schemas : SchemaRetriever;
+    protected _debug : boolean;
+    locale : string;
+    timezone : string;
+
+    constructor(schemas : SchemaRetriever, options : AbstractDialogueAgentOptions) {
         this._schemas = schemas;
 
         this._debug = options.debug;
@@ -71,7 +98,7 @@ export default class AbstractDialogueAgent {
      * @param {any} privateState - additional state carried by the dialogue agent (per dialogue)
      * @return {Ast.DialogueState} - the new state, with information about the returned query or action
      */
-    async execute(state, privateState) {
+    async execute(state : Ast.DialogueState, privateState : PrivateStateType|undefined) : Promise<[Ast.DialogueState, PrivateStateType|undefined, boolean]> {
         let anyChange = false;
         let clone = state;
 
@@ -96,28 +123,29 @@ export default class AbstractDialogueAgent {
                 continue;
             assert(clone.history[i].isExecutable());
 
-            [clone.history[i].results, privateState] = await this._executor.executeStatement(clone.history[i].stmt, privateState);
+            [clone.history[i].results, privateState] = await this.executor.executeStatement(clone.history[i].stmt, privateState);
         }
 
         return [clone, privateState, anyChange];
     }
 
-    _collectDisambiguationHintsForState(state) {
-        const idEntities = new Map;
-        const devices = new Map;
-        const previousLocations = [];
+    private _collectDisambiguationHintsForState(state : Ast.DialogueState) {
+        const idEntities = new Map<string, EntityRecord[]>();
+        const devices = new Map<string, [string|null, Ast.InputParam|undefined]>();
+        const previousLocations : Ast.Location[] = [];
 
         // collect all ID entities and all locations from the state
-        for (let item of state.history) {
-            if (item.results === null)
+        for (const item of state.history) {
+            const results = item.results;
+            if (results === null)
                 continue;
 
-            for (let slot of item.stmt.iterateSlots2()) {
-                if (slot instanceof Ast.Selector)
+            for (const slot of item.stmt.iterateSlots2()) {
+                if (slot instanceof Ast.DeviceSelector)
                     devices.set(slot.kind, [slot.id, getDeviceAttribute(slot, 'name')]);
             }
 
-            for (let result of item.results.results)
+            for (const result of results.results)
                 collectDisambiguationHints(result, idEntities, previousLocations);
         }
 
@@ -137,7 +165,7 @@ export default class AbstractDialogueAgent {
      * @param {any} hints - hints to use to resolve any ambiguity
      * @protected
      */
-    async _prepareForExecution(stmt, hints) {
+    private async _prepareForExecution(stmt : Ast.Rule|Ast.Command, hints : DisambiguationHints) : Promise<void> {
         // FIXME this method can cause a few questions that
         // bypass the neural network, which is not great
         //
@@ -153,12 +181,12 @@ export default class AbstractDialogueAgent {
         // or "use the light closest to me", or similar)
 
         stmt.visit(new class extends Ast.NodeVisitor {
-            visitInvocation(invocation) {
-                let set = new Set;
-                for (let inParam of invocation.in_params)
+            visitInvocation(invocation : Ast.Invocation) {
+                const set = new Set;
+                for (const inParam of invocation.in_params)
                     set.add(inParam.name);
 
-                for (let arg of invocation.schema.iterateArguments()) {
+                for (const arg of invocation.schema!.iterateArguments()) {
                     if (arg.is_input && !arg.required && arg.impl_annotations.default && !set.has(arg.name))
                         invocation.in_params.push(new Ast.InputParam(null, arg.name, arg.impl_annotations.default));
                 }
@@ -166,11 +194,14 @@ export default class AbstractDialogueAgent {
             }
         });
 
-        for (let slot of stmt.iterateSlots2()) {
-            if (slot instanceof Ast.Selector)
+        for (const slot of stmt.iterateSlots2()) {
+            if (slot instanceof Ast.Selector) {
+                if (!(slot instanceof Ast.DeviceSelector))
+                    continue;
                 await this._chooseDevice(slot, hints);
-            else
+            } else {
                 await this._concretizeValue(slot, hints);
+            }
         }
     }
 
@@ -180,20 +211,19 @@ export default class AbstractDialogueAgent {
      * @param {any} msg - what to show
      * @protected
      */
-    debug() {
+    debug(...args : unknown[]) : void {
         if (!this._debug)
             return;
-        console.log.apply(console, arguments);
+        console.log(...args);
     }
 
-    async _chooseDevice(selector, hints) {
-        function like(str, substr) {
+    private async _chooseDevice(selector : Ast.DeviceSelector, hints : DisambiguationHints) : Promise<void> {
+        function like(str : string, substr : string) : boolean {
             if (!str)
                 return false;
             return str.toLowerCase().indexOf(substr.toLowerCase()) >= 0;
         }
 
-        if (selector.isBuiltin) return;
         if (selector.id !== null)
             return;
 
@@ -202,7 +232,7 @@ export default class AbstractDialogueAgent {
         if (hints.devices.has(kind)) {
             // if we have already selected a device for this kind in the context, reuse what
             // we chose before without asking again
-            const [previousId, previousName] = hints.devices.get(kind);
+            const [previousId, previousName] = hints.devices.get(kind)!;
             selector.id = previousId;
             if (name && previousName)
                 name.value = previousName.value;
@@ -231,7 +261,7 @@ export default class AbstractDialogueAgent {
 
         let selecteddevices = alldevices;
         if (name !== undefined)
-            selecteddevices = alldevices.filter((d) => like(d.name, name.value.toJS()));
+            selecteddevices = alldevices.filter((d) => like(d.name, name.value.toJS() as string));
 
         // TODO let the user choose if multiple devices match...
         if (selecteddevices.length >= 1) {
@@ -245,7 +275,7 @@ export default class AbstractDialogueAgent {
 
         const choosefrom = (selecteddevices.length ? selecteddevices : alldevices);
         const choice = await this.disambiguate('device',
-            selecteddevices.length && name ? name.value.toJS() : null, choosefrom.map((d) => d.name), kind);
+            selecteddevices.length && name ? name.value.toJS() as string : null, choosefrom.map((d) => d.name), kind);
         selector.id = choosefrom[choice].uniqueId;
         if (name)
             name.value = new Ast.Value.String(choosefrom[0].name);
@@ -253,9 +283,9 @@ export default class AbstractDialogueAgent {
             selector.attributes.push(new Ast.InputParam(null, 'name', new Ast.Value.String(choosefrom[0].name)));
     }
 
-    async _addDisplayToDevice(value) {
+    private async _addDisplayToDevice(value : Ast.EntityValue) : Promise<void> {
         try {
-            const classDef = await this._schemas.getFullMeta(value.value);
+            const classDef = await this._schemas.getFullMeta(value.value!);
 
             value.display = classDef.metadata.thingpedia_name || classDef.metadata.canonical ||
                 Helpers.cleanKind(value.value);
@@ -265,7 +295,7 @@ export default class AbstractDialogueAgent {
         }
     }
 
-    async _maybeAddDisplayToValue(value) {
+    private async _maybeAddDisplayToValue(value : Ast.EntityValue) : Promise<void> {
         switch (value.type) {
         case 'tt:contact':
             await this.addDisplayToContact(value);
@@ -277,12 +307,12 @@ export default class AbstractDialogueAgent {
         }
     }
 
-    async _concretizeValue(slot, hints) {
+    private async _concretizeValue(slot : Ast.AbstractSlot, hints : DisambiguationHints) : Promise<void> {
         let value = slot.get();
         const ptype = slot.type;
 
-        if (value.isEntity && (value.type === 'tt:username' || value.type === 'tt:contact_name')
-            && ptype.isEntity && ptype.type !== value.type)
+        if (value instanceof Ast.EntityValue && (value.type === 'tt:username' || value.type === 'tt:contact_name')
+            && ptype instanceof Type.Entity && ptype.type !== value.type)
             slot.set(await contactSearch(this, ptype, value.value));
             // continue resolving in case the new type is tt:contact
 
@@ -290,25 +320,25 @@ export default class AbstractDialogueAgent {
         // according to the user's preferences or locale
         // since dlg.locale is overwritten to be en-US, we infer the locale
         // via other environment variables like LANG (language) or TZ (timezone)
-        if (value.isMeasure && value.unit.startsWith('default')) {
+        if (value instanceof Ast.MeasureValue && value.unit.startsWith('default')) {
             value.unit = this.getPreferredUnit(value.unit.substring('default'.length).toLowerCase());
-        } else if (value.isLocation && value.value.isUnresolved) {
+        } else if (value instanceof Ast.LocationValue && value.value instanceof Ast.UnresolvedLocation) {
             slot.set(await this.lookupLocation(value.value.name, hints.previousLocations || []));
-        } else if (value.isLocation && value.value.isRelative) {
+        } else if (value instanceof Ast.LocationValue && value.value instanceof Ast.RelativeLocation) {
             slot.set(await this.resolveUserContext('$context.location.' + value.value.relativeTag));
-        } else if (value.isTime && value.value !== undefined && value.value.isRelative) {
+        } else if (value instanceof Ast.TimeValue && value.value instanceof Ast.RelativeTime) {
             slot.set(await this.resolveUserContext('$context.time.' + value.value.relativeTag));
-        } else if (value.isEntity && value.value === null) {
+        } else if (value instanceof Ast.EntityValue && value.value === null) {
             const candidates = (hints.idEntities ? hints.idEntities.get(value.type) : undefined)
-                || await this.lookupEntityCandidates(value.type, value.display, hints);
-            const resolved = getBestEntityMatch(value.display, value.type, candidates);
+                || await this.lookupEntityCandidates(value.type, value.display!, hints);
+            const resolved = getBestEntityMatch(value.display!, value.type, candidates);
             value.value = resolved.value;
             value.display = resolved.name;
         }
 
         value = slot.get();
         assert(value.isConcrete());
-        if (value.isEntity && !value.display)
+        if (value instanceof Ast.EntityValue && !value.display)
             await this._maybeAddDisplayToValue(value);
     }
 
@@ -317,12 +347,8 @@ export default class AbstractDialogueAgent {
     /* instanbul ignore next */
     /**
      * Retrieve the executor to use for each statement.
-     *
-     * @type {AbstractStatementExecutor}
-     * @abstract
-     * @protected
      */
-    get executor() {
+    protected get executor() : AbstractStatementExecutor<PrivateStateType> {
         throw new TypeError('Abstract method');
     }
 
@@ -333,9 +359,8 @@ export default class AbstractDialogueAgent {
      * @param {string} kind - the kind to check
      * @returns {Array<DeviceInfo>} - the list of configured devices
      * @abstract
-     * @protected
      */
-    getAllDevicesOfKind() {
+    protected getAllDevicesOfKind(kind : string) : DeviceInfo[] {
         throw new TypeError('Abstract method');
     }
 
@@ -345,10 +370,8 @@ export default class AbstractDialogueAgent {
      *
      * @param {string} kind - the kind to configure
      * @returns {DeviceInfo} - the newly configured device
-     * @abstract
-     * @protected
      */
-    async tryConfigureDevice(kind) {
+    protected async tryConfigureDevice(kind : string) : Promise<DeviceInfo> {
         throw new TypeError('Abstract method');
     }
 
@@ -362,10 +385,11 @@ export default class AbstractDialogueAgent {
      * @param {string[]} choices - the choices among which to disambiguate
      * @param {string} hint - a type-specific hint to show to the user
      * @returns {number} - the index of the provided choice
-     * @abstract
-     * @protected
      */
-    async disambiguate(type, name, choices, hint) {
+    protected async disambiguate(type : 'device'|'contact'|'entity',
+                                 name : string|null,
+                                 choices : string[],
+                                 hint : string) : Promise<number> {
         throw new TypeError('Abstract method');
     }
 
@@ -376,10 +400,8 @@ export default class AbstractDialogueAgent {
      * @param {ValueCategory} category - the category of information to look up
      * @param {string} name - the name to look up
      * @returns {string[]} - the list of resolved information of all contacts matching the name
-     * @abstract
-     * @protected
      */
-    async lookupContact(category, name) {
+    protected async lookupContact(category : ValueCategory, name : string) : Promise<string[]> {
         throw new TypeError('Abstract method');
     }
 
@@ -388,10 +410,8 @@ export default class AbstractDialogueAgent {
      * Add the display field to a phone or email entity, by looking up the contact in the address book.
      *
      * @param {thingtalk.Ast.Value} contact - the entity to look up
-     * @abstract
-     * @protected
      */
-    async addDisplayToContact(contact) {
+    protected async addDisplayToContact(contact : Ast.Value) : Promise<void> {
         throw new TypeError('Abstract method');
     }
 
@@ -402,10 +422,8 @@ export default class AbstractDialogueAgent {
      * @param {ValueCategory} category - the category of information to look up
      * @param {string} name - the name to look up
      * @returns {thingtalk.Ast.Value.Entity} - the entity corresponding to the picked up information
-     * @abstract
-     * @protected
      */
-    async askMissingContact(category, name) {
+    protected async askMissingContact(category : ValueCategory, name : string) : Promise<Ast.EntityValue> {
         throw new TypeError('Abstract method');
     }
 
@@ -416,10 +434,8 @@ export default class AbstractDialogueAgent {
      * @param {string} searchKey - the location name to look up
      * @param {thingtalk.Ast.Location[]} previousLocations - recently mentioned locations
      * @returns {thingtalk.Ast.Value} - the best match for the given name
-     * @abstract
-     * @protected
      */
-    async lookupLocation(searchKey, previousLocations) {
+    protected async lookupLocation(searchKey : string, previousLocations : Ast.Location[]) : Promise<Ast.LocationValue> {
         throw new TypeError('Abstract method');
     }
 
@@ -435,7 +451,9 @@ export default class AbstractDialogueAgent {
      * @abstract
      * @protected
      */
-    async lookupEntityCandidates(entityType, entityDisplay, hints) {
+    protected async lookupEntityCandidates(entityType : string,
+                                           entityDisplay : string,
+                                           hints : DisambiguationHints) : Promise<EntityRecord[]> {
         throw new TypeError('Abstract method');
     }
 
@@ -448,7 +466,7 @@ export default class AbstractDialogueAgent {
      * @abstract
      * @protected
      */
-    async resolveUserContext(variable) {
+    protected async resolveUserContext(variable : string) : Promise<Ast.Value> {
         throw new TypeError('Abstract method');
     }
 
@@ -457,12 +475,12 @@ export default class AbstractDialogueAgent {
      * Compute the user's preferred unit to use when the program specifies an ambiguous unit
      * such as "degrees".
      *
-     * @param {string} baseUnit - the base unit of the relevant measurement (e.g. `C` for temperature)
+     * @param {string} type - the type of unit to retrieve (e.g. "temperature")
      * @returns {string} - the preferred unit
      * @abstract
      * @protected
      */
-    getPreferredUnit(type) {
+    protected getPreferredUnit(type : string) : string {
         throw new TypeError('Abstract method');
     }
 }

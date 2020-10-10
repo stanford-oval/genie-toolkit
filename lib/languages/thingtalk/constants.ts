@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -21,23 +21,27 @@
 
 import assert from 'assert';
 
-import * as ThingTalk from 'thingtalk';
-const Type = ThingTalk.Type;
-const Ast = ThingTalk.Ast;
+import { Ast, Type } from 'thingtalk';
 
 const MAX_CONSTANTS = 15;
 const MAX_SMALL_INTEGER = 12;
 
-function numberToString(num) {
+function numberToString(num : number) : string {
     if (Math.floor(num) === num)
         return String(num);
     else
         return num.toFixed(1);
 }
 
-function extractConstants(ast) {
-    const constants = {};
-    function addConstant(token, display, value) {
+interface Constant {
+    display : string;
+    value : Ast.Value;
+}
+type ConstantMap = { [key : string] : Constant[] };
+
+function extractConstants(ast : Ast.Node) : ConstantMap {
+    const constants : ConstantMap = {};
+    function addConstant(token : string, display : string, value : Ast.Value) : void {
         if (constants[token])
             constants[token].push({ display, value });
         else
@@ -45,43 +49,45 @@ function extractConstants(ast) {
     }
 
     ast.visit(new class extends Ast.NodeVisitor {
-        visitStringValue(value) {
+        visitStringValue(value : Ast.StringValue) : boolean {
             addConstant('QUOTED_STRING', value.value.replace(/[ \t\v\r\n]+/g, ' ').trim(), value);
+            return true;
         }
 
-        visitEntityValue(value) {
+        visitEntityValue(value : Ast.EntityValue) : boolean {
             switch (value.type) {
             case 'tt:url':
-                addConstant('URL', value.value, value);
+                addConstant('URL', value.value || '', value);
                 break;
 
             case 'tt:username':
-                addConstant('USERNAME', value.value, value);
+                addConstant('USERNAME', value.value || '', value);
                 break;
 
             case 'tt:hashtag':
-                addConstant('HASHTAG', value.value, value);
+                addConstant('HASHTAG', value.value || '', value);
                 break;
 
             case 'tt:phone_number':
-                addConstant('PHONE_NUMBER', value.value, value);
+                addConstant('PHONE_NUMBER', value.value || '', value);
                 break;
 
             case 'tt:email_address':
-                addConstant('EMAIL_ADDRESS', value.value, value);
+                addConstant('EMAIL_ADDRESS', value.value || '', value);
                 break;
 
             case 'tt:path_name':
-                addConstant('PATH_NAME', value.value, value);
+                addConstant('PATH_NAME', value.value || '', value);
                 break;
 
             default:
-                addConstant('GENERIC_ENTITY_' + value.type, value.display || value.value, value);
+                addConstant('GENERIC_ENTITY_' + value.type, value.display || value.value || '', value);
                 break;
             }
+            return true;
         }
 
-        visitMeasureValue(value) {
+        visitMeasureValue(value : Ast.MeasureValue) : boolean {
             const normalizedUnit = new Type.Measure(value.unit).unit;
             // TODO:
             // - use the user's preferred measurement unit and/or the most appropriate unit for the
@@ -91,34 +97,40 @@ function extractConstants(ast) {
             //   it depends on https://github.com/tc39/proposal-unified-intl-numberformat
             //   which is part of ES2020 (so node 14 or later?)
             addConstant('MEASURE_' + normalizedUnit, numberToString(value.value) + ' ' + value.unit, value);
+            return true;
         }
 
-        visitNumberValue(value) {
+        visitNumberValue(value : Ast.NumberValue) : boolean {
             addConstant('NUMBER', numberToString(value.value), value);
+            return true;
         }
 
-        visitCurrencyValue(value) {
-            addConstant('CURRENCY', (value.value.toFixed(2)) + ' ' + value.unit, value);
+        visitCurrencyValue(value : Ast.CurrencyValue) : boolean {
+            addConstant('CURRENCY', value.code + ' ' + (value.value.toFixed(2)), value);
+            return true;
         }
 
-        visitLocationValue(value) {
-            if (value.value instanceof Ast.Location.Absolute && value.value.display)
-                addConstant('LOCATION', value.value.display, value);
-            else if (value.value instanceof Ast.Location.Unresolved && value.value.name)
-                addConstant('LOCATION', value.value.name, value);
+        visitLocationValue(value : Ast.LocationValue) : boolean {
+            const loc = value.value;
+            if (loc instanceof Ast.AbsoluteLocation && loc.display)
+                addConstant('LOCATION', loc.display, value);
+            else if (loc instanceof Ast.UnresolvedLocation && loc.name)
+                addConstant('LOCATION', loc.name, value);
+            return true;
         }
 
-        visitTimeValue(value) {
-            if (!(value.value instanceof Ast.Time.Absolute))
-                return;
+        visitTimeValue(value : Ast.TimeValue) : boolean {
             const time = value.value;
+            if (!(time instanceof Ast.AbsoluteTime))
+                return true;
             addConstant('TIME', `${time.hour}:${time.minute < 10 ? '0' : ''}${time.minute}:${time.second < 10 ? '0' : ''}${time.second}`, value);
+            return true;
         }
 
-        visitDateValue(value) {
-            if (!(value.value instanceof Date))
-                return;
+        visitDateValue(value : Ast.DateValue) : boolean {
             const date = value.value;
+            if (!(date instanceof Date))
+                return true;
 
             // FIXME we should pass the right locale here, and also use ThingTalk.FormatUtils
             // which has better defaults
@@ -131,16 +143,17 @@ function extractConstants(ast) {
                 addConstant('DATE', date.toLocaleDateString(), value);
             else
                 addConstant('DATE', date.toLocaleString(), value);
+            return true;
         }
     });
 
     return constants;
 }
 
-function createConstants(token, type, maxConstants) {
+function createConstants(token : string, type : Type, maxConstants : number) : Constant[] {
     // ignore maxConstants, because it's too low (5) and there is no way to set it differently
 
-    const constants = [];
+    const constants : Constant[] = [];
     for (let i = 0; i < MAX_CONSTANTS; i++) {
         switch (token) {
         case 'NUMBER':
@@ -218,7 +231,7 @@ function createConstants(token, type, maxConstants) {
         case 'RECURRENT_TIME_SPECIFICATION':
             constants.push({
                 display: 'RECURRENT_TIME_SPECIFICATION' + i,
-                value: undefined
+                value: undefined as unknown as Ast.Value // FIXME
             });
             break;
         default: {
@@ -228,6 +241,7 @@ function createConstants(token, type, maxConstants) {
                 break;
 
             assert(token.startsWith('GENERIC_ENTITY_'));
+            assert(type instanceof Type.Entity);
             const string = `str:ENTITY_${type.type}::${i}:`;
             constants.push({
                 display: token + '_' + i,

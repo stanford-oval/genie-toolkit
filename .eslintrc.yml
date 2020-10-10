@@ -18,6 +18,9 @@ rules:
   no-lonely-if: off
   arrow-body-style: off
   require-yield: off
+  # namespaces are useful to add static methods to enums and to implement
+  # nested classes
+  '@typescript-eslint/no-namespace': off
 
   # temporary until migration is complete
   '@typescript-eslint/no-this-alias': off

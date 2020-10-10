@@ -613,8 +613,8 @@ function checkComputeFilter(table, filter) {
     if (!table.schema.out[param.name])
         return false;
 
-    let vtype, ptype, ftype;
-    ptype = table.schema.out[param.name];
+    let vtype, ftype;
+    const ptype = table.schema.out[param.name];
     if (!ptype.isArray)
         return false;
     if (filter.lhs.op === 'count') {
@@ -644,10 +644,8 @@ function checkAtomFilter(table, filter) {
     if (arg.getAnnotation('filterable') === false)
         return false;
 
-    let vtype, ptype;
-
-    ptype = table.schema.out[filter.name];
-    vtype = ptype;
+    const ptype = table.schema.out[filter.name];
+    let vtype = ptype;
     if (filter.operator === 'contains') {
         if (ptype.isArray)
             vtype = vtype.elem;

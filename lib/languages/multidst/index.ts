@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -20,19 +20,23 @@
 "use strict";
 
 import * as Ast from './ast';
+import type { EntityMap } from '../../utils/entity-utils';
 
-export async function parse(code, entities, options) {
+export async function parse(code : string|string[], entities ?: EntityMap, options ?: unknown) : Promise<Ast.DialogState> {
     const dialoguestate = new Ast.DialogState;
 
     let parserState = 'intent';
+    let tokens : string[];
     if (typeof code === 'string')
-        code = code.split(' ');
+        tokens = code.split(' ');
+    else
+        tokens = code;
 
-    let currentBuffer = [];
-    let currentSlotKey = undefined;
+    const currentBuffer : string[] = [];
+    let currentSlotKey : string|undefined = undefined;
     let currentIsMaybe = false;
 
-    for (let token of code) {
+    for (const token of tokens) {
         switch (parserState) {
         case 'end':
             throw new Error(`Unexpected token ${token} in state ${parserState}`);
@@ -83,15 +87,15 @@ export async function parse(code, entities, options) {
             if ('?' === token) {
                 dialoguestate.set(currentSlotKey, Ast.QUESTION);
                 parserState = 'begin';
-            } else if (['yes', 'no', 'dontcare', 'none'].includes(token)) {
-                let value = new Ast.TristateValue(token);
+            } else if (token === 'yes' || token === 'no' || token === 'dontcare') {
+                let value : Ast.Value = new Ast.TristateValue(token);
                 if (currentIsMaybe)
                     value = new Ast.MaybeValue(value);
                 dialoguestate.set(currentSlotKey, value);
                 currentIsMaybe = false;
                 parserState = 'begin';
             } else if (token.startsWith('SLOT_')) {
-                let value = new Ast.SlotValue(token);
+                let value : Ast.Value = new Ast.SlotValue(token);
                 if (currentIsMaybe)
                     value = new Ast.MaybeValue(value);
                 dialoguestate.set(currentSlotKey, value);
@@ -106,10 +110,10 @@ export async function parse(code, entities, options) {
 
         case 'string':
             if (token === '"') {
-                let value = new Ast.ConstantValue(currentBuffer.join(' '));
+                let value : Ast.Value = new Ast.ConstantValue(currentBuffer.join(' '));
                 if (currentIsMaybe)
                     value = new Ast.MaybeValue(value);
-                dialoguestate.set(currentSlotKey, value);
+                dialoguestate.set(currentSlotKey!, value);
                 currentBuffer.length = 0;
                 currentIsMaybe = false;
                 parserState = 'begin';
@@ -141,30 +145,30 @@ class Simulator {
      * @param {any} state - the current state, representing the query or action to execute
      * @return {ant} - the new state, with information about the returned query or action
      */
-    execute(state) {
+    async execute(state : Ast.DialogState) : Promise<[Ast.DialogState, undefined, boolean]> {
         // the dialogue state already encodes enough information to choose the system utterance,
         // because we choose randomly the number of results and what those results look like
-        return state.clone();
+        return [state.clone(), undefined, false];
     }
 }
 
-export function serialize(ast, sentence, entities) {
+export function serialize(ast : Ast.DialogState, sentence : string[], entities : EntityMap) : string[] {
     return ast.prettyprint().split(' ');
 }
 
-export function serializeNormalized(ast) {
+export function serializeNormalized(ast : Ast.DialogState) : [string[], EntityMap] {
     return [ast.prettyprint().split(' '), {}];
 }
 
 // multidst does not use constants
-export function extractConstants(ast) {
+export function extractConstants(ast : Ast.DialogState) : { [key : string] : never } {
     return {};
 }
-export function createConstants(type) {
+export function createConstants(type : string) : never[] {
     return [];
 }
 
-export async function normalize(code, options) {
+export async function normalize(code : string|string[], options ?: unknown) : Promise<string> {
     try {
         return (await parse(code)).prettyprint();
     } catch(e) {
@@ -185,18 +189,33 @@ export async function normalize(code, options) {
  * @param {any} newState - the new state of the dialogue, after the user speaks
  * @return {any} - the delta to predict
  */
-export function computePrediction(oldState, newState, forTarget) {
+export function computePrediction(oldState : Ast.DialogState|null, newState : Ast.DialogState, forTarget : 'user'|'agent') : Ast.DialogState {
     // always predict newState a-new
     return newState;
 }
 
-export function serializePrediction(prediction, sentence, entities, forTarget) {
+export function serializePrediction(prediction : Ast.DialogState, sentence : string[], entities : EntityMap, forTarget : 'user'|'agent') : string[] {
     if (forTarget === 'user')
         return prediction.prettyprint().split(' ');
     else // we don't care about the agent dialogue policy in this task
         return [];
 }
 
-export function createSimulator() {
+export function createSimulator() : Simulator {
     return new Simulator();
+}
+
+class StateValidator {
+    async load() {
+    }
+
+    validateUser(state : Ast.DialogState) {
+    }
+
+    validateAgent(state : Ast.DialogState) {
+    }
+}
+
+export function createStateValidator(policyManifest ?: string) : StateValidator {
+    return new StateValidator();
 }

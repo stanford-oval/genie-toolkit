@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -19,13 +19,30 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-import * as ThingTalk from 'thingtalk';
-const NNSyntax = ThingTalk.NNSyntax;
+import { NNSyntax } from 'thingtalk';
 
 import * as I18n from '../../i18n';
 
+interface EntityRetrieverOptions {
+    locale : string;
+    allowNonConsecutive : boolean;
+    useHeuristics : boolean;
+    alwaysAllowStrings : boolean;
+    ignoreSentence : boolean;
+}
+
 export default class GenieEntityRetriever extends NNSyntax.EntityRetriever {
-    constructor(sentence, entities, options) {
+    private _locale : string;
+    private _langPack : I18n.LanguagePack;
+    private _tokenizer : I18n.BaseTokenizer;
+    private _allowNonConsecutive : boolean;
+    private _useHeuristics : boolean;
+    private _alwaysAllowStrings : boolean;
+    private _ignoreSentence : boolean;
+
+    constructor(sentence : string[],
+                entities : NNSyntax.EntityMap,
+                options : EntityRetrieverOptions) {
         super(sentence, entities);
 
         this._locale = options.locale;
@@ -37,7 +54,7 @@ export default class GenieEntityRetriever extends NNSyntax.EntityRetriever {
         this._ignoreSentence = options.ignoreSentence;
     }
 
-    _sentenceContainsNonConsecutive(tokens) {
+    private _sentenceContainsNonConsecutive(tokens : string[]) : boolean {
         // check that the sequence "sentence" contains the subsequence "tokens"
         // other tokens can be interspersed between the tokens of "tokens"
         // but the order cannot be changed
@@ -52,7 +69,7 @@ export default class GenieEntityRetriever extends NNSyntax.EntityRetriever {
         //         - return recurse(i+1, j)
 
         const sentence = this.sentence;
-        function recursiveHelper(i, j) {
+        function recursiveHelper(i : number, j : number) : boolean {
             if (j === tokens.length) // no tokens left to match (all tokens matched)
                 return true;
             if (i === sentence.length) // empty sentence suffix
@@ -67,7 +84,7 @@ export default class GenieEntityRetriever extends NNSyntax.EntityRetriever {
         return recursiveHelper(0, 0);
     }
 
-    _findEntityFromSentence(entityType, entityString, ignoreNotFound) {
+    protected _findEntityFromSentence(entityType : string, entityString : string, ignoreNotFound : boolean) : string|undefined {
         // use the raw tokens, rather than the preprocessed tokens
         // the difference is NUMBER/TIME/etc are shown in numeric form
         // if those tokens are present in the entity name we have a bug
@@ -76,7 +93,7 @@ export default class GenieEntityRetriever extends NNSyntax.EntityRetriever {
         // bigger problem
         // those tokens won't be found in the sentence anyway, so this matters
         // only if `alwaysAllowStrings` is set
-        let entityTokens = this._tokenizer.tokenize(entityString).rawTokens;
+        const entityTokens = this._tokenizer.tokenize(entityString).rawTokens;
 
         if (this._ignoreSentence) {
             if (ignoreNotFound)
@@ -85,7 +102,7 @@ export default class GenieEntityRetriever extends NNSyntax.EntityRetriever {
                 return entityTokens.join(' ');
         }
 
-        let found = this._allowNonConsecutive ?
+        const found = this._allowNonConsecutive ?
             this._sentenceContainsNonConsecutive(entityTokens) :
             this._sentenceContains(entityTokens);
         if (found)

@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -19,18 +19,33 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
+import assert from 'assert';
 import * as ThingTalk from './thingtalk';
 import * as MultiDST from './multidst';
 
 export const AVAILABLE_LANGUAGES = ['multidst', 'thingtalk', 'dlgthingtalk'];
+
+interface Constant {
+    display : string;
+    value : unknown;
+}
+export type ConstantMap = { [key : string] : Constant[] };
 
 const _languages = {
     'multidst': MultiDST,
     'thingtalk': ThingTalk
 };
 
-export function get(targetLanguage) {
-    if (targetLanguage === 'dlgthingtalk')
+export type TargetLanguage = (typeof _languages)[keyof typeof _languages];
+
+export type DialogueState = ReturnType<TargetLanguage['computePrediction']>;
+export type Program = ReturnType<TargetLanguage['parse']> extends Promise<infer T> ? T : never;
+
+export type Simulator = ReturnType<TargetLanguage['createSimulator']>;
+
+export function get(targetLanguage ?: string) : TargetLanguage {
+    if (targetLanguage === undefined || targetLanguage === 'dlgthingtalk')
         targetLanguage = 'thingtalk';
+    assert(targetLanguage === 'multidst' || targetLanguage === 'thingtalk');
     return _languages[targetLanguage];
 }
