@@ -152,11 +152,12 @@ class GPT2Ranker:
 
 
 class BertLM:
-    def __init__(self, queries, mask, k_synonyms, k_adjectives, pruning_threshold, model_name_or_path, is_paraphraser, gpt2_ordering):
+    def __init__(self, queries, mask, k_synonyms, k_domain_synonyms, k_adjectives, pruning_threshold, model_name_or_path, is_paraphraser, gpt2_ordering):
         """
         :param queries: an object contains the canonicals, values, paths for args in each query
         :param mask: a boolean indicates if we do masking before prediction
-        :param k_synonyms: number of top candidates to return per example when predicting synonyms
+        :param k_synonyms: number of top candidates to return per example when predicting synonyms for property names
+        :param k_domain_synonyms: number of top candidates to return per example when predicting synonyms for domain names
         :param k_adjectives: number of top candidates to return when predicting adjectives
         :param pruning_threshold: frequency a candidate needs to appear to be considered valid
         :param model_name_or_path: a string specifying a model name recognizable by the Transformers package
@@ -180,6 +181,7 @@ class BertLM:
         self.is_paraphraser = is_paraphraser
         self.mask = mask
         self.k_synonyms = k_synonyms
+        self.k_domain_synonyms = k_domain_synonyms
         self.k_adjectives = k_adjectives
         self.pruning_threshold = pruning_threshold
         self.queries = queries
@@ -381,7 +383,7 @@ class BertLM:
                     for example in examples[pos_type]['examples']:
                         example_sentences.append(example['query'])
             for sentence in example_sentences:
-                topk = self.predict_one(query, None, sentence, query_canonical, None)
+                topk = self.predict_one(query, None, sentence, query_canonical, self.k_domain_synonyms)
                 for candidate in topk:
                     if candidate in STOP_WORDS:
                         continue
@@ -583,7 +585,11 @@ if __name__ == '__main__':
     parser.add_argument('--k-synonyms',
                         type=int,
                         default=3,
-                        help='top-k candidates per example to return when generating synonyms')
+                        help='top-k candidates per example to return when generating synonyms for property name')
+    parser.add_argument('--k-domain-synonyms',
+                        type=int,
+                        default=5,
+                        help='top-k candidates per example to return when generating synonyms for domain name')
     parser.add_argument('--k-adjectives',
                         type=int,
                         default=500,
@@ -607,7 +613,7 @@ if __name__ == '__main__':
 
     queries = json.load(sys.stdin)
 
-    bert = BertLM(queries, args.mask, args.k_synonyms, args.k_adjectives, args.pruning_threshold,
+    bert = BertLM(queries, args.mask, args.k_synonyms, args.k_domain_synonyms, args.k_adjectives, args.pruning_threshold,
                   args.model_name_or_path, args.is_paraphraser, args.gpt2_ordering)
 
     output = {}

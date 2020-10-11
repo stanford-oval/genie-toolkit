@@ -33,6 +33,10 @@ const { clean } = require('../../../lib/utils/misc-utils');
 const CanonicalExtractor = require('./canonical-extractor');
 const genBaseCanonical = require('./base-canonical-generator');
 
+const topk_property_synonyms = 3;
+const topk_domain_synonyms = 5;
+const topk_adjectives = 500;
+
 function getElemType(type) {
     if (type.isArray)
         return getElemType(type.elem);
@@ -197,6 +201,9 @@ class AutoCanonicalGenerator {
 
         if (this.algorithm.length > 0) {
             const args = [path.resolve(path.dirname(module.filename), './bert-canonical-annotator.py'), 'all'];
+            args.push('--k-synonyms', topk_property_synonyms);
+            args.push('--k-domain-synonyms', topk_domain_synonyms);
+            args.push('--k-adjectives', topk_adjectives);
             if (this.is_paraphraser)
                 args.push('--is-paraphraser');
             if (this.gpt2_ordering)
@@ -301,9 +308,9 @@ class AutoCanonicalGenerator {
             let func = this.class.queries[fname] || this.class.actions[fname];
             const canonical = Array.isArray(func.nl_annotations.canonical) ? func.nl_annotations.canonical : [func.nl_annotations.canonical];
             const candidates = canonicals[fname];
-            const maxCount = Object.values(candidates).reduce((a, b) => a + b, 0) / 5;
+            const maxCount = Object.values(candidates).reduce((a, b) => a + b, 0) / topk_domain_synonyms;
             for (let candidate in candidates) {
-                if (candidates[candidate] > maxCount * 0.5)
+                if (candidates[candidate] > maxCount * this.pruning)
                     canonical.push(candidate);
             }
 
