@@ -61,11 +61,10 @@ class AutoCanonicalGenerator {
         this.constants = constants;
         this.functions = functions ? functions : Object.keys(classDef.queries).concat(Object.keys(classDef.actions));
 
-        this.algorithm = options.algorithm ? options.algorithm.split(',') : [];
+        this.algorithms = options.algorithms;
         this.pruning = options.pruning;
         this.mask = options.mask;
-        this.is_paraphraser = options.is_paraphraser;
-        this.model = options.model;
+        this.language_model = options.language_model;
         this.gpt2_ordering = options.gpt2_ordering;
         this.paraphraser_model = options.paraphraser_model;
 
@@ -199,13 +198,11 @@ class AutoCanonicalGenerator {
             }
         }
 
-        if (this.algorithm.length > 0) {
+        if (this.algorithms.length > 0) {
             const args = [path.resolve(path.dirname(module.filename), './bert-canonical-annotator.py'), 'all'];
             args.push('--k-synonyms', topk_property_synonyms);
             args.push('--k-domain-synonyms', topk_domain_synonyms);
             args.push('--k-adjectives', topk_adjectives);
-            if (this.is_paraphraser)
-                args.push('--is-paraphraser');
             if (this.gpt2_ordering)
                 args.push('--gpt2-ordering');
             if (this.pruning) {
@@ -213,7 +210,7 @@ class AutoCanonicalGenerator {
                 args.push(this.pruning);
             }
             args.push('--model-name-or-path');
-            args.push(this.model);
+            args.push(this.language_model);
             args.push(this.mask ? '--mask' : '--no-mask');
 
             // call bert to generate candidates
@@ -248,11 +245,11 @@ class AutoCanonicalGenerator {
             }
 
             const { domains, synonyms, adjectives } = JSON.parse(stdout);
-            if (this.algorithm.includes('bert') || this.algorithm.includes('domain_synonyms'))
+            if (this.algorithms.includes('bert-domain-synonyms'))
                 this._updateFunctionCanonicals(domains);
-            if (this.algorithm.includes('bert') || this.algorithm.includes('adj'))
+            if (this.algorithms.includes('bert-property-synonyms') || this.algorithms.includes('bert-adjectives'))
                 this._updateCanonicals(synonyms, adjectives);
-            if (this.algorithm.includes('bart')) {
+            if (this.algorithms.includes('bart-paraphrase')) {
                 const startTime = new Date();
                 const extractor = new CanonicalExtractor(this.class, this.functions, this.paraphraser_model, this.options);
                 await extractor.run(synonyms, functions);
@@ -332,10 +329,10 @@ class AutoCanonicalGenerator {
                 else if (Array.isArray(canonicals))
                     canonicals = { base: canonicals };
 
-                if (this.algorithm.includes('adj') && adjectives.includes(`${fname}.${arg}`))
+                if (this.algorithms.includes('bert-adjectives') && adjectives.includes(`${fname}.${arg}`))
                     canonicals['adjective'] = ['#'];
 
-                if (this.algorithm.includes('bert')) {
+                if (this.algorithms.includes('bert-property-synonyms')) {
                     for (let type in candidates[fname][arg]) {
                         for (let candidate in candidates[fname][arg][type]) {
                             if (this._hasConflict(fname, arg, type, candidate))
