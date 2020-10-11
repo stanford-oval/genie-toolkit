@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -20,21 +20,25 @@
 "use strict";
 
 import assert from 'assert';
-import Stream from 'stream';
+import * as Stream from 'stream';
 
-class ArrayAccumulator extends Stream.Writable {
+type WriteCallback = (err ?: Error) => void;
+
+class ArrayAccumulator<T> extends Stream.Writable implements Stream.Writable {
+    private _buffer : T[];
+
     constructor() {
         super({ objectMode: true });
 
         this._buffer = [];
     }
 
-    _write(obj, encoding, callback) {
+    _write(obj : T, encoding : BufferEncoding, callback : WriteCallback) : void {
         this._buffer.push(obj);
         callback();
     }
 
-    read() {
+    read() : Promise<T[]> {
         return new Promise((resolve, reject) => {
             this.on('finish', () => resolve(this._buffer));
             this.on('error', reject);
@@ -42,19 +46,21 @@ class ArrayAccumulator extends Stream.Writable {
     }
 }
 
-class SetAccumulator extends Stream.Writable {
+class SetAccumulator<T> extends Stream.Writable implements Stream.Writable {
+    private _buffer : Set<T>;
+
     constructor() {
         super({ objectMode: true });
 
         this._buffer = new Set;
     }
 
-    _write(obj, encoding, callback) {
+    _write(obj : T, encoding : BufferEncoding, callback : WriteCallback) : void {
         this._buffer.add(obj);
         callback();
     }
 
-    read() {
+    read() : Promise<Set<T>> {
         return new Promise((resolve, reject) => {
             this.on('finish', () => resolve(this._buffer));
             this.on('error', reject);
@@ -62,20 +68,23 @@ class SetAccumulator extends Stream.Writable {
     }
 }
 
-class MapAccumulator extends Stream.Writable {
-    constructor(field = 'id') {
+class MapAccumulator<V, F extends keyof V> extends Stream.Writable implements Stream.Writable {
+    _buffer : Map<V[F], V>;
+    _field : F;
+
+    constructor(field : F = 'id' as F) {
         super({ objectMode: true });
 
         this._buffer = new Map;
         this._field = field;
     }
 
-    _write(obj, encoding, callback) {
+    _write(obj : V, encoding : BufferEncoding, callback : WriteCallback) : void {
         this._buffer.set(obj[this._field], obj);
         callback();
     }
 
-    read() {
+    read() : Promise<Map<V[F], V>> {
         return new Promise((resolve, reject) => {
             this.on('finish', () => resolve(this._buffer));
             this.on('error', reject);
@@ -83,14 +92,16 @@ class MapAccumulator extends Stream.Writable {
     }
 }
 
-class ArrayStream extends Stream.Readable {
-    constructor(array, options) {
+class ArrayStream<T> extends Stream.Readable implements Stream.Readable {
+    private _iterator : Iterator<T>;
+
+    constructor(array : T[], options : Stream.ReadableOptions) {
         super(options);
 
         this._iterator = array[Symbol.iterator]();
     }
 
-    _read() {
+    _read() : void {
         for (;;) {
             const { value, done } = this._iterator.next();
             if (done) {
@@ -105,8 +116,23 @@ class ArrayStream extends Stream.Readable {
     }
 }
 
-class ChainStream extends Stream.Readable {
-    constructor(chain, options) {
+interface ChainStreamOptions extends Stream.ReadableOptions {
+    separator : string|Buffer;
+}
+
+interface InternalReadableStream extends Stream.Readable {
+    _readableState : {
+        length : number;
+        ended : number;
+    };
+}
+
+class ChainStream extends Stream.Readable implements Stream.Readable {
+    private _chain : Stream.Readable[];
+    private _separator : string|Buffer;
+    private _i : number;
+
+    constructor(chain : Stream.Readable[], options : ChainStreamOptions) {
         super(options);
 
         this._chain = chain;
@@ -114,13 +140,13 @@ class ChainStream extends Stream.Readable {
         this._i = 0;
     }
 
-    _read(n) {
+    _read(n : number) : void {
         if (this._i >= this._chain.length) {
             this.push(null);
             return;
         }
 
-        let next = this._chain[this._i];
+        const next = this._chain[this._i] as InternalReadableStream;
         let chunk = next.read(n);
         if (chunk !== null) {
             this.push(chunk);
@@ -169,11 +195,15 @@ class ChainStream extends Stream.Readable {
     }
 }
 
-function chain(streams, options) {
+function chain(streams : Stream.Readable[], options : ChainStreamOptions) : ChainStream {
     return new ChainStream(streams, options);
 }
 
-class CountStream extends Stream.Duplex {
+class CountStream<T> extends Stream.Duplex {
+    private _buffer : T[];
+    private _N : number;
+    private _reading : boolean;
+
     constructor() {
         super({ objectMode: true });
 
@@ -182,13 +212,13 @@ class CountStream extends Stream.Duplex {
         this._reading = false;
     }
 
-    _read() {
+    _read() : void {
         if (!this._reading)
             return;
         this._pushSome();
     }
 
-    _pushSome() {
+    private _pushSome() {
         while (this._buffer.length > 0 && this.push(this._buffer.shift())) {
             const consumed = this._N - this._buffer.length;
             if (consumed % 100 === 0)
@@ -203,13 +233,13 @@ class CountStream extends Stream.Duplex {
         }
     }
 
-    _write(obj, encoding, callback) {
+    _write(obj : T, encoding : BufferEncoding, callback : WriteCallback) : void {
         this._buffer.push(obj);
         this._N++;
         callback();
     }
 
-    _final(callback) {
+    _final(callback : WriteCallback) : void {
         this._reading = true;
         this._pushSome();
         callback();
@@ -225,7 +255,7 @@ export {
     CountStream,
 };
 
-export function waitFinish(stream) {
+export function waitFinish(stream : Stream.Writable) : Promise<void> {
     return new Promise((resolve, reject) => {
         stream.once('finish', resolve);
         stream.on('error', reject);

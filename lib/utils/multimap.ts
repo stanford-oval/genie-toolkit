@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -19,62 +19,65 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-export default class MultiMap {
-    constructor(elements = []) {
+export default class MultiMap<K, V> {
+    private _storage : Map<K, V[]>;
+    private _size : number;
+
+    constructor(elements : Iterable<[K, V]> = []) {
         this._storage = new Map;
         this._size = 0;
 
-        for (let [key, value] of elements)
+        for (const [key, value] of elements)
             this.put(key, value);
     }
 
-    keys() {
-        return this.store.keys();
+    keys() : Iterable<K> {
+        return this._storage.keys();
     }
-    *values() {
-        for (let [,value] of this)
+    *values() : Iterable<V> {
+        for (const [,value] of this)
             yield value;
     }
-    *[Symbol.iterator]() {
-        for (let [key, array] of this._storage) {
-            for (let value of array)
+    *[Symbol.iterator]() : Generator<[K, V], void> {
+        for (const [key, array] of this._storage) {
+            for (const value of array)
                 yield [key, value];
         }
     }
-    entries() {
+    entries() : Iterable<[K, V]> {
         return this[Symbol.iterator]();
     }
 
-    get size() {
+    get size() : number {
         return this._size;
     }
 
-    clear() {
+    clear() : void {
         this._storage.clear();
         this._size = 0;
     }
 
-    delete(key) {
-        let len = (this._storage.get(key) || []).length;
+    delete(key : K) : void {
+        const len = (this._storage.get(key) || []).length;
         this._size -= len;
         this._storage.delete(key);
     }
 
-    forEach(callback, thisArg) {
+    forEach<T>(callback : (this : T, value : V, key : K, map : this) => void, thisArg : T) : void {
         this._storage.forEach((valueArray, key) => {
             valueArray.forEach((value) => callback.call(thisArg, value, key, this));
         });
     }
 
-    get(key) {
+    get(key : K) : V[] {
         return this._storage.get(key) || [];
     }
 
-    has(key) {
+    has(key : K) : boolean {
         return this._storage.has(key);
     }
 
-    put(key, value) {
+    put(key : K, value : V) : number {
         let valueArray = this._storage.get(key);
         if (!valueArray) {
             valueArray = [];

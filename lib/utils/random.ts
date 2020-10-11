@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -19,16 +19,14 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-import assert from 'assert';
-
-function choose(from, n, rng = Math.random) {
+function choose<T>(from : T[], n : number, rng : () => number = Math.random) : T[] {
     if (n === 0)
         return [];
     if (n >= from.length)
         return from;
 
-    let taken = [];
-    function next() {
+    const taken : boolean[] = [];
+    function next() : T {
         let idx = Math.floor(rng()*(from.length - taken.length));
         for (let i = 0; i < from.length; i++) {
             if (taken[i])
@@ -40,10 +38,10 @@ function choose(from, n, rng = Math.random) {
             idx--;
         }
 
-        throw new assert.AssertionError(`code should not be reached`);
+        throw new Error(`code should not be reached`);
     }
 
-    let res = [];
+    const res : T[] = [];
     while (n > 0) {
         res.push(next());
         n--;
@@ -51,13 +49,13 @@ function choose(from, n, rng = Math.random) {
     return res;
 }
 
-function coin(prob, rng = Math.random) {
+function coin(prob : number, rng : () => number = Math.random) : boolean {
     return rng() <= prob;
 }
-function uniform(array, rng = Math.random) {
+function uniform<T>(array : T[], rng : () => number = Math.random) : T {
     return array[Math.floor(rng() * array.length)];
 }
-function categorical(weights, rng = Math.random) {
+function categorical(weights : number[], rng : () => number = Math.random) : number {
     const cumsum = new Array(weights.length);
     cumsum[0] = weights[0];
     for (let i = 1; i < weights.length; i++)
@@ -72,26 +70,31 @@ function categorical(weights, rng = Math.random) {
     return cumsum.length-1;
 }
 
-function swap(array, i, j) {
+function swap<T>(array : T[], i : number, j : number) : void {
     const tmp = array[i];
     array[i] = array[j];
     array[j] = tmp;
 }
 
 // inplace array shuffle
-function shuffle(array, rng = Math.random) {
+function shuffle<T>(array : T[], rng : () => number = Math.random) : void {
     for (let i = 0; i < array.length-1; i++) {
         const idx = Math.floor(rng() * (array.length - i));
         swap(array, i, i+idx);
     }
 }
 
-function randint(low, high, rng = Math.random) {
+function randint(low : number, high : number, rng : () => number = Math.random) : number {
     return Math.round(low + (high - low) * rng());
 }
 
-class ReservoirSampler {
-    constructor(targetSize, rng) {
+class ReservoirSampler<T> {
+    private _targetSize : number;
+    private _rng : () => number;
+    private _counter : number;
+    private _reservoir : T[];
+
+    constructor(targetSize : number, rng : () => number) {
         this._targetSize = targetSize;
         this._rng = rng;
 
@@ -99,28 +102,28 @@ class ReservoirSampler {
         this._reservoir = [];
     }
 
-    get length() {
+    get length() : number {
         return this._reservoir.length;
     }
 
-    [Symbol.iterator]() {
+    [Symbol.iterator]() : Iterator<T> {
         return this._reservoir[Symbol.iterator]();
     }
 
-    get counter() {
+    get counter() : number {
         return this._counter;
     }
 
-    get sampled() {
+    get sampled() : T[] {
         return this._reservoir;
     }
 
-    reset() {
+    reset() : void {
         this._counter = 0;
         this._reservoir = [];
     }
 
-    add(element) {
+    add(element : T) : T|undefined {
         this._counter ++;
         if (this._reservoir.length < this._targetSize) {
             this._reservoir.push(element);

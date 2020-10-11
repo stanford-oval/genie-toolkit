@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -17,11 +17,10 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
 import assert from 'assert';
 
-export default function editDistance(one, two) {
+export default function editDistance(one : string|string[], two : string|string[]) : number {
     if (typeof one === 'string' && typeof two === 'string') {
         if (one === two)
             return 0;
@@ -33,12 +32,12 @@ export default function editDistance(one, two) {
 
     const R = one.length+1;
     const C = two.length+1;
-    const matrix = new Array(R*C);
-    function set(i, j, v) {
+    const matrix = new Array<number>(R*C);
+    function set(i : number, j : number, v : number) {
         assert(i*C + j < R*C);
         matrix[i*C + j] = v;
     }
-    function get(i, j) {
+    function get(i : number, j : number) : number {
         assert(i*C + j < R*C);
         return matrix[i*C + j];
     }

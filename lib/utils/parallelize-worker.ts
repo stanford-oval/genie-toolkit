@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -31,7 +31,7 @@ import { workerData, parentPort } from 'worker_threads';
 
         read() {}
     });
-    parentPort.on('message', (msg) => {
+    parentPort!.on('message', (msg) => {
         if (msg.data)
             input.push(msg.data);
         else if (msg.end)
@@ -44,13 +44,13 @@ import { workerData, parentPort } from 'worker_threads';
         objectMode: true,
 
         write(data, encoding, callback) {
-            parentPort.postMessage({ data, end: false });
+            parentPort!.postMessage({ data, end: false });
             callback();
         },
         final(callback) {
-            parentPort.postMessage({ data: undefined, end: true });
+            parentPort!.postMessage({ data: undefined, end: true });
             process.nextTick(() => {
-                parentPort.close();
+                parentPort!.close();
                 callback();
             });
         }

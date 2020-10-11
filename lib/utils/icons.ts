@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -19,19 +19,18 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 "use strict";
 
-import * as ThingTalk from 'thingtalk';
-const Ast = ThingTalk.Ast;
+import { Ast } from 'thingtalk';
 
-function isPlatformBuiltin(kind) {
+function isPlatformBuiltin(kind : string) : boolean {
     return kind.startsWith('org.thingpedia.builtin.thingengine');
 }
 
-function getProgramIcon(program) {
-    let icon = null;
-    for (let [, prim] of program.iteratePrimitives()) {
-        if (prim.selector.isBuiltin)
+export function getProgramIcon(program : Ast.Input) : string|null {
+    let icon : string|null = null;
+    for (const [, prim] of program.iteratePrimitives(false)) {
+        if (!(prim.selector instanceof Ast.DeviceSelector))
             continue;
-        let newIcon = getPrimitiveIcon(prim);
+        const newIcon = getPrimitiveIcon(prim);
         // ignore builtin/platform devices when choosing the icon
         if (!newIcon || isPlatformBuiltin(newIcon))
             continue;
@@ -40,26 +39,14 @@ function getProgramIcon(program) {
     return icon;
 }
 
-function getPrimitiveIcon(prim) {
-    let kind;
+export function getPrimitiveIcon(prim : Ast.Invocation|Ast.ExternalBooleanExpression|Ast.SpecifiedPermissionFunction|null) : string|null {
     if (prim === null)
         return null;
-    if (prim instanceof Ast.PermissionFunction)
+    let kind = null;
+    if (prim instanceof Ast.SpecifiedPermissionFunction)
         kind = prim.kind;
-    else if (prim.selector.isDevice)
+    else if (prim.selector instanceof Ast.DeviceSelector)
         kind = prim.selector.kind;
 
-    if (kind && kind !== 'remote' && !kind.startsWith('__dyn')) {
-        if (prim.selector && prim.selector.device)
-            return prim.selector.device.kind;
-        else
-            return kind;
-    } else {
-        return null;
-    }
+    return kind;
 }
-
-export {
-    getPrimitiveIcon,
-    getProgramIcon
-};

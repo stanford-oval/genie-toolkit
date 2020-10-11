@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -22,7 +22,10 @@
 "use strict";
 
 import assert from 'assert';
+import { Type } from 'thingtalk';
+
 import { categorical } from './random';
+import * as I18n from '../i18n';
 
 import {
     makeDummyEntity,
@@ -31,13 +34,15 @@ import {
 } from './entity-utils';
 
 class ValidationError extends Error {
-    constructor(message) {
+    code : string;
+
+    constructor(message : string) {
         super(message);
         this.code = 'EINVAL';
     }
 }
 
-function clean(name) {
+function clean(name : string) : string {
     if (/^[vwgp]_/.test(name))
         name = name.substr(2);
     return name.replace(/_/g, ' ').trim().replace(/([^A-Z ])([A-Z])/g, '$1 $2').toLowerCase();
@@ -45,10 +50,10 @@ function clean(name) {
 
 const PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})/;
 
-function* split(pattern, regexp) {
+function* split(pattern : string, regexp : RegExp|string) : Generator<string|string[], void> {
     // a split that preserves capturing parenthesis
 
-    let clone = new RegExp(regexp, 'g');
+    const clone = new RegExp(regexp, 'g');
     let match = clone.exec(pattern);
 
     let i = 0;
@@ -65,15 +70,18 @@ function* split(pattern, regexp) {
 
 
 
-function splitParams(utterance) {
+function splitParams(utterance : string) : Array<string|string[]> {
     return Array.from(split(utterance, PARAM_REGEX));
 }
 
-function tokenizeExample(tokenizer, utterance, id, language) {
+function tokenizeExample(tokenizer : I18n.BaseTokenizer,
+                         utterance : string,
+                         id : number,
+                         language : number) : string {
     let replaced = '';
-    let params = [];
+    const params : Array<[string, string]> = [];
 
-    for (let chunk of splitParams(utterance.trim())) {
+    for (const chunk of splitParams(utterance.trim())) {
         if (chunk === '')
             continue;
         if (typeof chunk === 'string') {
@@ -81,12 +89,12 @@ function tokenizeExample(tokenizer, utterance, id, language) {
             continue;
         }
 
-        let [match, param1, param2, opt] = chunk;
+        const [match, param1, param2, opt] = chunk;
         if (match === '$$') {
             replaced += '$';
             continue;
         }
-        let param = param1 || param2;
+        const param = param1 || param2;
         replaced += ' ____ ';
         params.push([param, opt]);
     }
@@ -102,7 +110,7 @@ function tokenizeExample(tokenizer, utterance, id, language) {
     let first = true;
     for (let token of tokens) {
         if (token === '____') {
-            let [param, opt] = params.shift();
+            const [param, opt] = params.shift()!;
             if (opt)
                 token = '${' + param + ':' + opt + '}';
             else
@@ -119,7 +127,7 @@ function tokenizeExample(tokenizer, utterance, id, language) {
     return preprocessed;
 }
 
-function sampleString(words, langPack, rng) {
+function sampleString(words : string[], langPack : I18n.LanguagePack, rng : () => number) : string|null {
     assert(rng);
     let seq;
     if (words.length > 6) {
@@ -151,10 +159,10 @@ function sampleString(words, langPack, rng) {
     return cand;
 }
 
-function isHumanEntity(type) {
-    if (type.isEntity)
+function isHumanEntity(type : Type|string) : boolean {
+    if (type instanceof Type.Entity)
         return isHumanEntity(type.type);
-    if (type.isArray)
+    if (type instanceof Type.Array)
         return isHumanEntity(type.elem);
     if (typeof type !== 'string')
         return false;

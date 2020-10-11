@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -15,31 +15,33 @@
  * Elements must be object and are sorted according to their `priority` property.
  * Ties are broken by insertion order.
  */
-export default class PriorityQueue {
+export default class PriorityQueue<T extends { priority : number }> {
+    private _storage : T[];
+
     constructor() {
         this._storage = [];
     }
 
-    get size() {
+    get size() : number {
         return this._storage.length;
     }
 
-    _getParent(node) {
+    private _getParent(node : number) {
         return Math.floor((node-1)/2);
     }
-    _getLeftChild(node) {
+    private _getLeftChild(node : number) {
         return 2*node+1;
     }
-    _getRightChild(node) {
+    private _getRightChild(node : number) {
         return 2*node+2;
     }
-    _swap(a, b) {
+    private _swap(a : number, b : number) {
         const tmp = this._storage[a];
         this._storage[a] = this._storage[b];
         this._storage[b] = tmp;
     }
 
-    push(element) {
+    push(element : T) : void {
         let node = this._storage.length;
         this._storage.push(element);
 
@@ -59,22 +61,22 @@ export default class PriorityQueue {
         }
     }
 
-    peek() {
+    peek() : T|undefined {
         return this._storage[0];
     }
 
-    pop() {
+    pop() : T|undefined {
         if (this._storage.length === 0)
             return undefined;
 
         // swap the first and the last element
         this._swap(0, this._storage.length-1);
-        let toReturn = this._storage.pop();
+        const toReturn = this._storage.pop();
 
         // adjust the heap invariant by pushing down the top element
         // (which is now misplaced)
         let node = 0;
-        let top = this._storage[node];
+        const top = this._storage[node];
         while (node < this._storage.length-1) {
             const lchild = this._getLeftChild(node);
             const rchild = this._getRightChild(node);

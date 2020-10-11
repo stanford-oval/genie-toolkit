@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -17,13 +17,16 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
 import assert from 'assert';
+import { NNSyntax } from 'thingtalk';
+
+export type AnyEntity = NNSyntax.AnyEntity;
+export type EntityMap = NNSyntax.EntityMap;
 
 const MAX_SMALL_INTEGER = 12;
 
-const ENTITIES = {
+const ENTITIES : { [key : string] : (idx : number) => AnyEntity } = {
     DURATION: (idx) => ({ value: idx + 2, unit: 'ms' }),
     NUMBER: (idx) => idx + MAX_SMALL_INTEGER + 1,
     DATE: (idx) => ({ day: idx + 2, month: 1, year: 2018 }),
@@ -41,73 +44,94 @@ const ENTITIES = {
 };
 Object.freeze(ENTITIES);
 
-function namedString(key, idx) {
+function namedString(key : string, idx : number) : string {
     return `str:${key}::${idx}:`;
 }
 
-function makeDummyMeasure(entity) {
+function makeDummyMeasure(entity : string) : NNSyntax.MeasureEntity {
     const match = /^MEASURE_([A-Za-z]+)_([0-9]+)$/.exec(entity);
+    assert(match);
     return { unit: match[1], value: 2.0 + parseInt(match[2]) };
 }
 
-function parseDate(form) {
+function parseDate(form : Date|NNSyntax.DateEntity) : Date {
     if (form instanceof Date)
         return form;
 
-    let now = new Date;
+    const now = new Date;
     let year = form.year;
-    if (year < 0 || year === undefined)
+    if (year === undefined || year < 0)
         year = now.getFullYear();
     let month = form.month;
-    if (month < 0 || month === undefined)
+    if (month === undefined || month < 0)
         month = now.getMonth() + 1;
     let day = form.day;
-    if (day < 0 || day === undefined)
+    if (day === undefined || day < 0)
         day = now.getDate();
     let hour = form.hour;
-    if (hour < 0 || hour === undefined)
+    if (hour === undefined || hour < 0)
         hour = 0;
     let minute = form.minute;
-    if (minute < 0 || minute === undefined)
+    if (minute === undefined || minute < 0)
         minute = 0;
     let second = form.second;
-    if (second < 0 || second === undefined)
+    if (second === undefined || second < 0)
         second = 0;
-    let millisecond = (second - Math.floor(second))*1000;
+    const millisecond = (second - Math.floor(second))*1000;
     second = Math.floor(second);
 
     return new Date(year, month-1, day, hour, minute, second, millisecond);
 }
 
-function entitiesEqual(type, one, two) {
+function entitiesEqual(type : string, one : AnyEntity, two : AnyEntity) : boolean {
     if (one === two)
         return true;
     if (!one || !two)
         return false;
-    if (type.startsWith('GENERIC_ENTITY_'))
-        return (one.value === two.value);
+    if (type.startsWith('GENERIC_ENTITY_')) {
+        const eone = one as NNSyntax.GenericEntity;
+        const etwo = two as NNSyntax.GenericEntity;
+
+        if (!eone.value && !etwo.value)
+            return eone.display === etwo.display;
+        return (eone.value === etwo.value);
+    }
 
     if (type.startsWith('MEASURE_') ||
-        type === 'DURATION')
-        return one.value === two.value && one.unit === two.unit;
+        type === 'DURATION') {
+        const eone = one as NNSyntax.MeasureEntity;
+        const etwo = two as NNSyntax.MeasureEntity;
+        return eone.value === etwo.value && eone.unit === etwo.unit;
+    }
 
     switch (type) {
-    case 'CURRENCY':
-        return one.value === two.value && one.unit === two.unit;
-    case 'TIME':
-        return one.hour === two.hour &&
-            one.minute === two.minute &&
-            (one.second || 0) === (two.second || 0);
+    case 'CURRENCY': {
+        const eone = one as NNSyntax.MeasureEntity;
+        const etwo = two as NNSyntax.MeasureEntity;
+        return eone.value === etwo.value && eone.unit === etwo.unit;
+    }
+    case 'TIME': {
+        const eone = one as NNSyntax.TimeEntity;
+        const etwo = two as NNSyntax.TimeEntity;
+        return eone.hour === etwo.hour &&
+            eone.minute === etwo.minute &&
+            (eone.second || 0) === (etwo.second || 0);
+    }
     case 'DATE':
         if (!(one instanceof Date))
-            one = parseDate(one);
+            one = parseDate(one as NNSyntax.DateEntity);
         if (!(two instanceof Date))
-            two = parseDate(two);
+            two = parseDate(two as NNSyntax.DateEntity);
 
         return +one === +two;
-    case 'LOCATION':
-        return Math.abs(one.latitude - two.latitude) < 0.01 &&
-            Math.abs(one.longitude - two.longitude) < 0.01;
+    case 'LOCATION': {
+        const eone = one as NNSyntax.LocationEntity;
+        const etwo = two as NNSyntax.LocationEntity;
+        if (isNaN(eone.latitude) && isNaN(etwo.latitude) && isNaN(eone.longitude) && isNaN(etwo.longitude))
+            return eone.display === etwo.display;
+        return Math.abs(eone.latitude - etwo.latitude) < 0.01 &&
+            Math.abs(eone.longitude - etwo.longitude) < 0.01;
+    }
     }
 
     return false;
@@ -115,7 +139,7 @@ function entitiesEqual(type, one, two) {
 
 const ENTITY_MATCH_REGEX = /^([A-Z].*)_([0-9]+)$/;
 
-function makeDummyEntity(token) {
+function makeDummyEntity(token : string) : AnyEntity {
     const match = ENTITY_MATCH_REGEX.exec(token);
     if (match === null)
         throw new TypeError(`invalid entity ${token}`);
@@ -125,36 +149,41 @@ function makeDummyEntity(token) {
     if (entityType.startsWith('MEASURE_'))
         return makeDummyMeasure(token);
     else if (entityType.startsWith('GENERIC_ENTITY_'))
-        return { value: namedString(entityType.substring('GENERIC_'.length), entityIndex), display: null };
+        return { value: namedString(entityType.substring('GENERIC_'.length), Number(entityIndex)), display: null };
     else if (!(entityType in ENTITIES))
         throw new Error(`missing entity ${token}`);
     else
         return ENTITIES[entityType](Number(entityIndex));
 }
 
-function makeDummyEntities(preprocessed) {
-    const entities = {};
-    for (let token of preprocessed.split(' ')) {
+function makeDummyEntities(preprocessed : string) : EntityMap {
+    const entities : EntityMap = {};
+    for (const token of preprocessed.split(' ')) {
         if (/^[A-Z]/.test(token))
             entities[token] = makeDummyEntity(token);
     }
     return entities;
 }
 
-function renumberEntities(tokenized, context) {
+interface TokenizerResult {
+    entities : EntityMap;
+    tokens : string[];
+}
+
+function renumberEntities(tokenized : TokenizerResult, context : EntityMap) : void {
     const { entities, tokens } = tokenized;
-    const out = {};
+    const out : EntityMap = {};
 
-    const offsets = {};
-    for (let key in context) {
-        const [, type, num] = /^(.+)_([0-9]+)$/.exec(key);
+    const offsets : { [key : string] : number } = {};
+    for (const key in context) {
+        const [, type, num] = /^(.+)_([0-9]+)$/.exec(key)!;
 
-        let next = offsets[type] || 0;
+        const next = offsets[type] || 0;
         offsets[type] = Math.max(next, parseInt(num, 10) + 1);
         out[key] = context[key];
     }
 
-    const rewrites = {};
+    const rewrites : { [key : string] : string } = {};
 
     for (let i = 0; i < tokens.length; i++) {
         if (tokens[i] in rewrites) {
@@ -164,11 +193,11 @@ function renumberEntities(tokenized, context) {
 
         if (tokens[i] in entities) {
             const key = tokens[i];
-            const [, type, ] = /^(.+)_([0-9]+)$/.exec(key);
+            const [, type, ] = /^(.+)_([0-9]+)$/.exec(key)!;
             const value = entities[key];
 
             let found = false;
-            for (let what in context) {
+            for (const what in context) {
                 if (!what.startsWith(type + '_'))
                     continue;
 
@@ -181,7 +210,7 @@ function renumberEntities(tokenized, context) {
             }
 
             if (!found) {
-                let next = offsets[type] || 0;
+                const next = offsets[type] || 0;
                 offsets[type] = next + 1;
                 const newkey = type + '_' + next;
                 out[newkey] = entities[key];

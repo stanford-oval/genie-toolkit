@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -39,25 +39,32 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
-"use strict";
 
 import * as events from 'events';
+import * as stream from 'stream';
 
 // Exactly what the name suggests, this class is wraps a TCP/Unix stream
 // socket to send and receive JSON payloads
 export default class JsonDatagramSocket extends events.EventEmitter {
-    constructor(reader, writer, encoding) {
+    private _reader : stream.Readable|null;
+    private _writer : stream.Writable|null;
+    private _encoding : BufferEncoding;
+    private _partialMessage : string;
+
+    constructor(reader : stream.Readable,
+                writer : stream.Writable,
+                encoding ?: BufferEncoding) {
         super();
 
         this._reader = reader;
         this._writer = writer;
-        this._encoding = encoding;
+        this._encoding = encoding || 'utf8';
 
         this._partialMessage = '';
 
         // NOTE: this is for reading ONLY
         // Always specify the encoding when writing
-        reader.setEncoding(encoding);
+        reader.setEncoding(this._encoding);
         reader.on('data', (data) => {
             if (reader !== this._reader) // robustness
                 return;
@@ -70,17 +77,19 @@ export default class JsonDatagramSocket extends events.EventEmitter {
         reader.on('end', () => {
             this.emit('end');
         });
-        reader.on('close', (hadError) => {
+        reader.on('close', (hadError : boolean) => {
             this.emit('close', hadError);
         });
     }
 
-    end(callback) {
+    end(callback ?: (err : Error) => void) : void {
+        if (this._writer === null)
+            return;
         this._writer.end(callback);
         this._writer = null;
     }
 
-    destroy() {
+    destroy() : void {
         if (this._reader !== null)
             this._reader.destroy();
         if (this._writer !== null)
@@ -89,10 +98,10 @@ export default class JsonDatagramSocket extends events.EventEmitter {
         this._writer = null;
     }
 
-    _tryReadMessage() {
+    private _tryReadMessage() : void {
         let msg;
 
-        let split = this._partialMessage.split('\n');
+        const split = this._partialMessage.split('\n');
         this._partialMessage = split[split.length-1];
 
         for (let i = 0; i < split.length-1; i++) {
@@ -123,7 +132,9 @@ export default class JsonDatagramSocket extends events.EventEmitter {
         this._partialMessage = '';
     }
 
-    write(msg, callback) {
+    write(msg : unknown, callback ?: (err : Error|null|undefined) => void) : void {
+        if (this._writer === null)
+            throw new Error('stream closed');
         this._writer.write(JSON.stringify(msg), this._encoding);
         this._writer.write('\n', this._encoding, callback);
     }

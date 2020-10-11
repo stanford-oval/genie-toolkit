@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -21,19 +21,29 @@
 
 import Stream from 'stream';
 
-let Worker;
+import type { Worker as WorkerType } from 'worker_threads';
+
+let Worker : WorkerType|null;
 try {
     Worker = require('worker_threads').Worker;
 } catch(e) {
     Worker = null;
 }
 
-async function singleparallelize(workerPath, args) {
+async function singleparallelize(workerPath : string, args : unknown) {
     const worker = (await import(workerPath)).default;
     return worker(args, 0);
 }
 
-export default function parallelize(N, workerPath, args) {
+type WorkerMessage = {
+    data : unknown;
+    end : false;
+} | {
+    data : undefined;
+    end : true;
+};
+
+export default function parallelize(N : number, workerPath : string, args : unknown) {
     if (N <= 0)
         N = 1;
     if (N === 1 || Worker === null) {
@@ -42,9 +52,9 @@ export default function parallelize(N, workerPath, args) {
         return singleparallelize(workerPath, args);
     }
 
-    let workers = [];
+    const workers : WorkerType[] = [];
     for (let i = 0; i < N; i++) {
-        workers.push(new Worker(require.resolve('./parallelize-worker'), {
+        workers.push(new (Worker as any)(require.resolve('./parallelize-worker'), {
             workerData: { args, workerPath, shard: i },
         }));
     }
@@ -61,15 +71,15 @@ export default function parallelize(N, workerPath, args) {
             callback();
         },
         final(callback) {
-            for (let worker of workers)
+            for (const worker of workers)
                 worker.postMessage({ data: undefined, end: true });
             callback();
         }
     });
 
     let waitCount = N;
-    for (let worker of workers) {
-        worker.on('message', (msg) => {
+    for (const worker of workers) {
+        worker.on('message', (msg : WorkerMessage) => {
             if (msg.data) {
                 stream.push(msg.data);
             } else if (msg.end) {
@@ -80,7 +90,7 @@ export default function parallelize(N, workerPath, args) {
                 throw new Error('unrecognized message: ' + JSON.stringify(msg));
             }
         });
-        worker.on('error', (e) => {
+        worker.on('error', (e : Error) => {
             stream.emit('error', e);
         });
     }

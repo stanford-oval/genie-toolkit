@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -17,24 +17,11 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-export default function binarySearch(cumsum, value) {
-    let a = 0, b = cumsum.length;
-    for (;;) {
-        if (b - a === 1)
-            return a;
-        if (b - a === 2) {
-            if (value <= cumsum[a])
-                return a;
-            else
-                return a+1;
-        }
-        let m = Math.floor((a+b)/2);
-        if (value <= cumsum[m])
-            b = m+1;
-        else
-            a = m;
-    }
+export function stringEscape(str : string) : string {
+    if (str === null || str === undefined)
+        return 'null';
+    return '"' + str.replace(/(["\\])/g, '\\$1').replace(/\n/g, '\\n') + '"';
+    // the following comment fixes broken syntax highlighting in GtkSourceView
+    //]/
 }
-
