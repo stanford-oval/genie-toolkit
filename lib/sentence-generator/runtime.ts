@@ -91,13 +91,13 @@ class Context {
     }
 }
 
-type DerivationChild<T> = string | Context | Placeholder | Derivation<T>;
+export type DerivationChild<T> = string | Context | Placeholder | Derivation<T>;
 
-type SemanticAction<ArgType extends unknown[], ReturnType> = (...args : ArgType) => ReturnType|null;
+export type SemanticAction<ArgType extends unknown[], ReturnType> = (...args : ArgType) => ReturnType|null;
 
-type DerivationChildTuple<ArgTypes extends unknown[]> = { [K in keyof ArgTypes] : DerivationChild<ArgTypes[K]> };
+export type DerivationChildTuple<ArgTypes extends unknown[]> = { [K in keyof ArgTypes] : DerivationChild<ArgTypes[K]> };
 
-interface CombinerAction<ArgTypes extends unknown[], ReturnType> {
+export interface CombinerAction<ArgTypes extends unknown[], ReturnType> {
     (children : DerivationChildTuple<ArgTypes>, rulePriority : number) : Derivation<ReturnType>|null;
     isReplacePlaceholder ?: boolean;
 }

@@ -81,7 +81,7 @@ interface GrammarOptions {
 
 export class ThingpediaLoader {
     private _runtime : typeof Genie.SentenceGeneratorRuntime;
-    private _grammar : Genie.SentenceGenerator;
+    private _grammar : Genie.SentenceGenerator<any, Ast.Input>;
     private _schemas : SchemaRetriever;
     private _tpClient : Tp.BaseClient;
     private _langPack : Genie.I18n.LanguagePack;
@@ -108,7 +108,7 @@ export class ThingpediaLoader {
     };
 
     async init(runtime : typeof Genie.SentenceGeneratorRuntime,
-               grammar : Genie.SentenceGenerator,
+               grammar : Genie.SentenceGenerator<any, Ast.Input>,
                langPack : Genie.I18n.LanguagePack,
                options : GrammarOptions) : Promise<void> {
         this._runtime = runtime;

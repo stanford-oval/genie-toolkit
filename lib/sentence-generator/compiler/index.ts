@@ -27,6 +27,7 @@ import * as metaast from './meta_ast';
 
 import type * as SentenceGeneratorRuntime from '../runtime';
 import type * as I18n from '../../i18n';
+import type SentenceGenerator from '../generator';
 
 const COMPILER_OPTIONS : ts.CompilerOptions = {
     module: ts.ModuleKind.CommonJS,
@@ -84,12 +85,6 @@ export function compile(filename : string) : Promise<void> {
     return processFilename(filename, 'ts');
 }
 
-interface AbstractGrammar {
-    declareSymbol(symbol : string) : void;
-    declareContext(symbol : string) : void;
-    addRule() : void;
-}
-
 interface GrammarOptions {
     flags : { [flag : string] : boolean };
 }
@@ -97,7 +92,7 @@ interface GrammarOptions {
 type CompiledTemplate = (runtime : typeof SentenceGeneratorRuntime,
                          options : GrammarOptions,
                          langPack : I18n.LanguagePack,
-                         grammar : AbstractGrammar) => Promise<void>;
+                         grammar : SentenceGenerator<any, any>) => Promise<void>;
 
 export async function importGenie(filename : string,
                                   searchPath = '.') : Promise<CompiledTemplate> {

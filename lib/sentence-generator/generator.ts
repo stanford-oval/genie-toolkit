@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -22,7 +22,7 @@
 import assert from 'assert';
 import * as events from 'events';
 
-import * as i18n from '../i18n';
+import * as I18n from '../i18n';
 import MultiMap from '../utils/multimap';
 import { ReservoirSampler, uniform, coin } from '../utils/random';
 import PriorityQueue from '../utils/priority_queue';
@@ -37,13 +37,44 @@ import {
     Context,
     Derivation,
     NonTerminal,
+    CombinerAction,
+    DerivationChild,
 } from './runtime';
 import { importGenie } from './compiler';
 
-class Rule {
-    constructor(number, expansion, combiner,
+type RuleExpansionChunk = string | Choice | NonTerminal;
+
+interface RuleAttributes {
+    weight ?: number;
+    priority ?: number;
+    repeat ?: boolean;
+    forConstant ?: boolean;
+    temporary ?: boolean;
+    identity ?: boolean;
+    expandchoice ?: boolean;
+}
+
+class Rule<ArgTypes extends unknown[], ReturnType> {
+    number : number;
+    expansion : RuleExpansionChunk[];
+    combiner : CombinerAction<ArgTypes, ReturnType>;
+
+    weight : number;
+    priority : number;
+    repeat : boolean;
+    forConstant : boolean;
+    temporary : boolean;
+    identity : boolean;
+    expandchoice : boolean;
+
+    hasContext : boolean;
+    enabled : boolean;
+
+    constructor(number : number,
+                expansion : RuleExpansionChunk[],
+                combiner : CombinerAction<ArgTypes, ReturnType>,
                 { weight = 1, priority = 0, repeat = false, forConstant = false, temporary = false,
-                  identity = false, expandchoice = true }) {
+                  identity = false, expandchoice = true } : RuleAttributes) {
         this.number = number;
         this.expansion = expansion;
         assert(this.expansion.length > 0);
@@ -90,19 +121,88 @@ for (let i = 7; i < 20; i++)
 const EXPONENTIAL_PRUNE_SIZE = 500000000;
 const MAX_SAMPLE_SIZE = 1000000;
 
+type FunctionTable = Map<string, (...args : any[]) => any>;
+
+type ContextInitializer<ContextType> = (previousTurn : ContextType, functionTable : FunctionTable) => [string[], unknown]|null;
+
+interface GenericSentenceGeneratorOptions {
+    locale : string;
+    targetLanguage ?: string;
+    templateFiles : string[];
+    flags : { [key : string] : boolean };
+    rootSymbol ?: string;
+    targetPruningSize : number;
+    maxDepth : number;
+    maxConstants : number;
+    debug : number;
+    rng : () => number;
+}
+
+interface BasicSentenceGeneratorOptions {
+    contextual : false;
+    contextInitializer ?: undefined;
+}
+
+interface ContextualSentenceGeneratorOptions<ContextType> {
+    contextual : true;
+    rootSymbol ?: string;
+    contextInitializer : ContextInitializer<ContextType>;
+}
+
+export type SentenceGeneratorOptions<ContextType> =
+    GenericSentenceGeneratorOptions &
+    (BasicSentenceGeneratorOptions | ContextualSentenceGeneratorOptions<ContextType>);
+
+interface Constant {
+    display : string;
+    value : unknown;
+}
+
+type Charts = Array<Array<ReservoirSampler<any>>>;
+
 /**
  * Low-level class that generates sentences and associated logical forms,
  * given a grammar expressed as Genie template files.
  */
-export default class SentenceGenerator extends events.EventEmitter {
-    constructor(options) {
+export default class SentenceGenerator<ContextType, RootOutputType> extends events.EventEmitter {
+    private _templateFiles : string[];
+    private _langPack : I18n.LanguagePack;
+
+    private _target : TargetLanguages.TargetLanguage;
+
+    private _options : SentenceGeneratorOptions<ContextType>;
+    private _contextual : boolean;
+
+    private _nonTermTable : Map<string, number>;
+    private _nonTermList : string[];
+    private _rules : Rule<any[], any>[][];
+    private _contextTable : Map<string, number>;
+    private _functionTable : FunctionTable;
+
+    private _rootSymbol : string;
+    private _rootIndex : number;
+
+    private _contextInitializer : ContextInitializer<ContextType>|undefined;
+
+    private _constantMap : MultiMap<string, number>;
+
+    private _finalized : boolean;
+    private _averagePruningFactor : number[][];
+    private _minDistanceFromRoot : number[];
+    private _nonTermHasContext : boolean[];
+
+    private _charts : Charts;
+
+    private _progress : number;
+
+    constructor(options : SentenceGeneratorOptions<ContextType>) {
         super();
 
         this._templateFiles = options.templateFiles;
-        this._langPack = i18n.get(options.locale);
+        this._langPack = I18n.get(options.locale);
 
         this._target = TargetLanguages.get(options.targetLanguage);
-        this._options = options || {};
+        this._options = options;
         this._contextual = options.contextual;
 
         this._nonTermTable = new Map;
@@ -125,32 +225,32 @@ export default class SentenceGenerator extends events.EventEmitter {
         this._minDistanceFromRoot = [];
         this._nonTermHasContext = [];
 
-        this._charts = undefined;
+        this._charts = [];
 
         this._progress = 0;
     }
 
-    async initialize() {
-        for (let filename of this._templateFiles) {
+    async initialize() : Promise<void> {
+        for (const filename of this._templateFiles) {
             const imported = await importGenie(filename);
             await imported(SentenceGeneratorRuntime, this._options, this._langPack, this);
         }
         this.finalize();
     }
 
-    get progress() {
+    get progress() : number {
         return this._progress;
     }
 
-    hasSymbol(symbol) {
+    hasSymbol(symbol : string) : boolean {
         return this._nonTermTable.has(symbol);
     }
 
-    hasContext(symbol) {
+    hasContext(symbol : string) : boolean {
         return this._contextTable.has(symbol);
     }
 
-    _internalDeclareSymbol(symbol) {
+    private _internalDeclareSymbol(symbol : string) : number {
         const index = this._nonTermList.length;
         this._nonTermList.push(symbol);
         this._rules.push([]);
@@ -159,7 +259,7 @@ export default class SentenceGenerator extends events.EventEmitter {
         return index;
     }
 
-    declareFunction(name, fn) {
+    declareFunction(name : string, fn : (...args : any[]) => any) : void {
         if (this._finalized)
             throw new GenieTypeError(`Grammar was finalized, cannot declare more functions`);
         if (this._functionTable.has(name))
@@ -167,7 +267,7 @@ export default class SentenceGenerator extends events.EventEmitter {
         this._functionTable.set(name, fn);
     }
 
-    declareContext(context, fn) {
+    declareContext(context : string) : void {
         if (this._finalized)
             throw new GenieTypeError(`Grammar was finalized, cannot declare more contexts`);
         if (!this._contextual)
@@ -182,7 +282,7 @@ export default class SentenceGenerator extends events.EventEmitter {
         this._contextTable.set(context, index);
     }
 
-    declareSymbol(symbol) {
+    declareSymbol(symbol : string) : void {
         if (this._finalized)
             throw new GenieTypeError(`Grammar was finalized, declare more non-terminals`);
         if (this.hasContext(symbol))
@@ -196,19 +296,22 @@ export default class SentenceGenerator extends events.EventEmitter {
         this._internalDeclareSymbol(symbol);
     }
 
-    _lookupNonTerminal(symbol) {
+    private _lookupNonTerminal(symbol : string) : number {
         const index = this._nonTermTable.get(symbol);
         if (index === undefined)
             throw new GenieTypeError(`Identifier ${symbol} is not a non-terminal`);
         return index;
     }
 
-    _addRuleInternal(symbolId, expansion, combiner, attributes = {}) {
+    private _addRuleInternal<ArgTypes extends unknown[], ResultType>(symbolId : number,
+                                                                     expansion : RuleExpansionChunk[],
+                                                                     combiner : CombinerAction<ArgTypes, ResultType>,
+                                                                     attributes : RuleAttributes = {}) {
         const rulenumber = this._rules[symbolId].length;
-        this._rules[symbolId].push(new Rule(rulenumber, expansion, combiner, attributes));
+        this._rules[symbolId].push(new Rule<any[], any>(rulenumber, expansion, combiner as CombinerAction<any[], any>, attributes));
     }
 
-    addConstants(symbol, token, type, attributes = {}) {
+    addConstants(symbol : string, token : string, type : any, attributes : RuleAttributes = {}) : void {
         if (this._finalized)
             throw new GenieTypeError(`Grammar was finalized, cannot add more rules`);
         // ignore $user when loading the agent templates and vice-versa
@@ -219,14 +322,17 @@ export default class SentenceGenerator extends events.EventEmitter {
         this._constantMap.put(token, symbolId);
 
         attributes.forConstant = true;
-        for (let constant of this._target.createConstants(token, type, this._options.maxConstants || DEFAULT_MAX_CONSTANTS)) {
+        for (const constant of this._target.createConstants(token, type, this._options.maxConstants || DEFAULT_MAX_CONSTANTS)) {
             const sentencepiece = constant.display;
-            const combiner = () => new Derivation(constant.value, List.singleton(sentencepiece), attributes.priority);
+            const combiner = () => new Derivation(constant.value, List.singleton(sentencepiece), null, attributes.priority || 0);
             this._addRuleInternal(symbolId, [sentencepiece], combiner, attributes);
         }
     }
 
-    addRule(symbol, expansion, combiner, attributes = {}) {
+    addRule<ArgTypes extends unknown[], ResultType>(symbol : string,
+                                                    expansion : RuleExpansionChunk[],
+                                                    combiner : CombinerAction<ArgTypes, ResultType>,
+                                                    attributes : RuleAttributes = {}) : void {
         if (this._finalized)
             throw new GenieTypeError(`Grammar was finalized, cannot add more rules`);
         // ignore $user when loading the agent templates and vice-versa
@@ -235,7 +341,7 @@ export default class SentenceGenerator extends events.EventEmitter {
         this._addRuleInternal(this._lookupNonTerminal(symbol), expansion, combiner, attributes);
     }
 
-    _typecheck() {
+    private _typecheck() {
         if (this._contextual && !this._functionTable.has('context'))
             throw new GenieTypeError(`Missing "context" function for contextual grammar`);
 
@@ -243,18 +349,18 @@ export default class SentenceGenerator extends events.EventEmitter {
             const nonTerm = this._nonTermList[nonTermIndex];
             const rules = this._rules[nonTermIndex];
 
-            for (let rule of rules) {
+            for (const rule of rules) {
                 let first = true;
                 let hasContext = false;
 
-                for (let expansion of rule.expansion) {
+                for (const expansion of rule.expansion) {
                     if (expansion instanceof NonTerminal) {
                         if (this.hasContext(expansion.symbol)) {
                             if (!first)
                                 throw new GenieTypeError(`Context symbol ${expansion.symbol} must be first in expansion of ${nonTerm}`);
                             hasContext = true;
                             first = false;
-                            expansion.index = this._nonTermTable.get(expansion.symbol);
+                            expansion.index = this._nonTermTable.get(expansion.symbol)!;
                             continue;
                         }
 
@@ -273,7 +379,7 @@ export default class SentenceGenerator extends events.EventEmitter {
         }
     }
 
-    _computeHasContext() {
+    private _computeHasContext() {
         // iterate until convergence
 
         this._nonTermHasContext = [];
@@ -297,18 +403,18 @@ export default class SentenceGenerator extends events.EventEmitter {
                     continue;
                 }
 
-                for (let rule of rules) {
+                for (const rule of rules) {
                     if (rule.hasContext) {
                         this._nonTermHasContext[nonTermIndex] = true;
                         anyChange = true;
                         break;
                     }
 
-                    let first = rule.expansion[0];
+                    const first = rule.expansion[0];
                     if (first instanceof NonTerminal && this.hasContext(first.symbol)) {
                         rule.hasContext = true;
                     } else {
-                        for (let expansion of rule.expansion) {
+                        for (const expansion of rule.expansion) {
                             if (expansion instanceof NonTerminal && this._nonTermHasContext[expansion.index]) {
                                 rule.hasContext = true;
                                 break;
@@ -336,28 +442,28 @@ export default class SentenceGenerator extends events.EventEmitter {
         assert(this._nonTermHasContext[this._rootIndex]);
     }
 
-    _computeDistanceFromRoot() {
+    private _computeDistanceFromRoot() {
         // fill the array so it dense
         for (let i = 0; i < this._nonTermList.length; i++)
             this._minDistanceFromRoot.push(1<<29); // integer infinity
         assert(this._nonTermList.length === this._minDistanceFromRoot.length);
 
-        let queue = [];
-        for (let { index } of this._contextTable.values())
+        const queue : Array<[number, number]> = [];
+        for (const index of this._contextTable.values())
             this._minDistanceFromRoot[index] = 0;
         this._minDistanceFromRoot[this._rootIndex] = 0;
         queue.push([this._rootIndex, 0]);
 
         while (queue.length > 0) {
-            let [index, distance] = queue.shift();
+            const [index, distance] = queue.shift()!;
             if (distance > this._minDistanceFromRoot[index])
                 continue;
 
-            for (let rule of this._rules[index]) {
-                for (let expansion of rule.expansion) {
+            for (const rule of this._rules[index]) {
+                for (const expansion of rule.expansion) {
                     if (expansion instanceof NonTerminal) {
                         assert(expansion.index !== undefined);
-                        let existingDistance = this._minDistanceFromRoot[expansion.index];
+                        const existingDistance = this._minDistanceFromRoot[expansion.index];
                         if (!(distance+1 >= existingDistance)) { // undefined/NaN-safe comparison
                             this._minDistanceFromRoot[expansion.index] = distance+1;
                             queue.push([expansion.index, distance+1]);
@@ -381,10 +487,10 @@ export default class SentenceGenerator extends events.EventEmitter {
         }
     }
 
-    _addAutomaticRepeat() {
+    private _addAutomaticRepeat() {
         for (let index = 0; index < this._nonTermList.length; index++) {
             let shouldSetRepeat = false;
-            for (let rule of this._rules[index]) {
+            for (const rule of this._rules[index]) {
                 if (rule.repeat || rule.weight !== 1) {
                     shouldSetRepeat = true;
                     break;
@@ -392,13 +498,13 @@ export default class SentenceGenerator extends events.EventEmitter {
             }
 
             if (shouldSetRepeat) {
-                for (let rule of this._rules[index])
+                for (const rule of this._rules[index])
                     rule.repeat = true;
             }
         }
     }
 
-    _optimizeConstLikeNonTerminals() {
+    private _optimizeConstLikeNonTerminals() {
         // replace non-terminals that only expand to strings with no semantic functions
         // into choice terminals
         //
@@ -425,7 +531,7 @@ export default class SentenceGenerator extends events.EventEmitter {
         //
         // this is faster to generate because we don't need to enumerate thanks phrase
 
-        let choiceLikeNonTerms = new Map;
+        const choiceLikeNonTerms = new Map;
         for (let index = 0; index < this._nonTermList.length; index++) {
             // if there is only one expansion, this optimization has no effect,
             // and if there is none, it will break things
@@ -433,8 +539,8 @@ export default class SentenceGenerator extends events.EventEmitter {
                 continue;
 
             let isChoiceLike = true;
-            let choices = [];
-            for (let rule of this._rules[index]) {
+            const choices = [];
+            for (const rule of this._rules[index]) {
                 if (rule.expansion.length !== 1 ||
                     typeof rule.expansion[0] !== 'string' ||
                     !rule.identity) {
@@ -451,7 +557,7 @@ export default class SentenceGenerator extends events.EventEmitter {
         }
 
         for (let index = 0; index < this._nonTermList.length; index++) {
-            for (let rule of this._rules[index]) {
+            for (const rule of this._rules[index]) {
                 if (!rule.expandchoice)
                     continue;
 
@@ -483,10 +589,10 @@ export default class SentenceGenerator extends events.EventEmitter {
             this._optimizeConstLikeNonTerminals();
 
         for (let index = 0; index < this._nonTermList.length; index++) {
-            let prunefactors = [];
+            const prunefactors : number[] = [];
             this._averagePruningFactor.push(prunefactors);
 
-            for (let rule of this._rules[index]) {
+            for (const rule of this._rules[index]) {
                 // initialize prune factor estimates to 0.2
                 // so we don't start pruning until we have a good estimate
                 prunefactors.push(0.2);
@@ -499,8 +605,8 @@ export default class SentenceGenerator extends events.EventEmitter {
         this._computeDistanceFromRoot();
     }
 
-    _estimateDepthSize(charts, depth, firstGeneration) {
-        const ruleEstimates = {};
+    private _estimateDepthSize(charts : Charts, depth : number, firstGeneration : boolean) : [number, number[][]] {
+        const ruleEstimates = [];
         let estimate = 0;
         for (let index = 0; index < this._nonTermList.length; index++) {
             const minDistance = this._minDistanceFromRoot[index];
@@ -508,12 +614,12 @@ export default class SentenceGenerator extends events.EventEmitter {
                 continue;
             const rules = this._rules[index];
 
-            const estimates = [];
+            const estimates : number[] = [];
             ruleEstimates[index] = estimates;
             estimates.length = rules.length;
-            for (let rule of rules) {
+            for (const rule of rules) {
                 let [/*maxdepth*/, /*worstCaseGenSize*/, estimatedGenSize]
-                    = estimateRuleSize(charts, depth, index, rule, this._averagePruningFactor, this._options);
+                    = estimateRuleSize(charts, depth, index, rule, this._averagePruningFactor);
 
                 const ruleTargetSize = this._getRuleTarget(rule, index, depth, firstGeneration);
                 estimatedGenSize = Math.min(Math.round(estimatedGenSize), ruleTargetSize);
@@ -524,24 +630,24 @@ export default class SentenceGenerator extends events.EventEmitter {
         return [estimate, ruleEstimates];
     }
 
-    _enableAllRules() {
+    private _enableAllRules() {
         for (let index = 0; index < this._nonTermList.length; index++) {
-            for (let rule of this._rules[index])
+            for (const rule of this._rules[index])
                 rule.enabled = true;
         }
     }
 
-    _disableUnreachableRules(charts) {
+    private _disableUnreachableRules(charts : Charts) : void {
         // disable all rules that use contexts that are empty
 
         // iteratively propagate disabling the rules
 
         // initially, all non-terminals are disabled, except the root, and all rules are disabled
-        let nonTermEnabled = [];
+        const nonTermEnabled = [];
         for (let index = 0; index < this._nonTermList.length; index++) {
             nonTermEnabled[index] = false;
 
-            for (let rule of this._rules[index])
+            for (const rule of this._rules[index])
                 rule.enabled = false;
         }
         nonTermEnabled[this._rootIndex] = true;
@@ -561,7 +667,7 @@ export default class SentenceGenerator extends events.EventEmitter {
                 if (!nonTermEnabled[index])
                     continue;
 
-                for (let rule of this._rules[index]) {
+                for (const rule of this._rules[index]) {
                     // if this rule was already enabled, do nothing
                     if (rule.enabled)
                         continue;
@@ -577,7 +683,7 @@ export default class SentenceGenerator extends events.EventEmitter {
                             rule.enabled = true;
                             anyChange = true;
 
-                            for (let expansion of rule.expansion) {
+                            for (const expansion of rule.expansion) {
                                 if (expansion instanceof NonTerminal)
                                     nonTermEnabled[expansion.index] = true;
                             }
@@ -590,7 +696,7 @@ export default class SentenceGenerator extends events.EventEmitter {
                             console.log(`enabling rule NT[${this._nonTermList[index]}] -> ${rule.expansion.join(' ')}`);
                         rule.enabled = true;
                         anyChange = true;
-                        for (let expansion of rule.expansion) {
+                        for (const expansion of rule.expansion) {
                             if (expansion instanceof NonTerminal)
                                 nonTermEnabled[expansion.index] = true;
                         }
@@ -600,21 +706,25 @@ export default class SentenceGenerator extends events.EventEmitter {
         }
     }
 
-    invokeFunction(name, ...args) {
+    invokeFunction(name : string, ...args : any[]) : any {
         //if (!this._functionTable.has(name))
         //    return null;
-        return this._functionTable.get(name)(...args);
+        return this._functionTable.get(name)!(...args);
     }
 
-    addConstantsFromContext(constants) {
+    addConstantsFromContext(constants : { [key : string] : Constant[] }) : void {
         // create temporary rules generating these constants
         // these rules are added to all the non-terminals where we saw a `const()` declaration
-        const attributes = { forConstant: true, temporary: true };
+        const attributes = {
+            forConstant: true,
+            temporary: true,
+            priority: 0
+        };
 
-        for (let token in constants) {
-            for (let symbolId of this._constantMap.get(token)) {
-                for (let constant of constants[token]) {
-                    const combiner = () => new Derivation(constant.value, List.singleton(constant.display), attributes.priority);
+        for (const token in constants) {
+            for (const symbolId of this._constantMap.get(token)) {
+                for (const constant of constants[token]) {
+                    const combiner = () => new Derivation(constant.value, List.singleton(constant.display), null, attributes.priority);
                     this._addRuleInternal(symbolId, [constant.display], combiner, attributes);
                     if (this._options.debug >= LogLevel.EVERYTHING)
                         console.log(`added temporary rule NT[${this._nonTermList[symbolId]}] -> ${constant.display}`);
@@ -623,16 +733,16 @@ export default class SentenceGenerator extends events.EventEmitter {
         }
     }
 
-    _removeTemporaryRules() {
+    private _removeTemporaryRules() {
         for (let index = 0; index < this._nonTermList.length; index++)
             this._rules[index] = this._rules[index].filter((r) => !r.temporary);
     }
 
-    _disableRulesForConstants() {
+    private _disableRulesForConstants() {
         // disable all rules that generate constants
         // we'll make temporary ones using the constants extracted from the context instead
         for (let index = 0; index < this._nonTermList.length; index++) {
-            for (let rule of this._rules[index]) {
+            for (const rule of this._rules[index]) {
                 if (rule.forConstant && !rule.temporary) {
                     rule.enabled = false;
                     if (this._options.debug >= LogLevel.EVERYTHING)
@@ -654,13 +764,13 @@ export default class SentenceGenerator extends events.EventEmitter {
      * @param context {any} - the current context
      * @return {Derivation} - the sampled derivation
      */
-    generateOne(context) {
+    generateOne(context : ContextType) : Derivation<RootOutputType>|undefined {
         this.finalize();
         assert(this._contextual);
 
-        const rootSampler = new PriorityQueue();
+        const rootSampler = new PriorityQueue<Derivation<RootOutputType>>();
 
-        const charts = [];
+        const charts : Charts = [];
 
         for (let depth = 0; depth <= this._options.maxDepth; depth++) {
             if (this._options.debug >= LogLevel.INFO)
@@ -670,7 +780,7 @@ export default class SentenceGenerator extends events.EventEmitter {
             const targetPruningSize = Math.ceil(this._options.targetPruningSize * POWERS[depth]);
             charts[depth] = [];
             for (let index = 0; index < this._nonTermList.length; index++)
-                charts[depth][index] = [];
+                charts[depth][index] = new ReservoirSampler(Infinity, this._options.rng);
             assert(charts[depth].length === this._nonTermList.length);
 
             if (this._contextual && depth === 0) {
@@ -686,7 +796,7 @@ export default class SentenceGenerator extends events.EventEmitter {
                 const isRoot = index === this._rootIndex;
 
                 let nonTermSize = 0;
-                let queue = new PriorityQueue();
+                const queue = new PriorityQueue<Derivation<any>>();
                 for (const rule of this._rules[index]) {
                     if (!rule.enabled)
                         continue;
@@ -703,7 +813,7 @@ export default class SentenceGenerator extends events.EventEmitter {
                     }
                 }
 
-                let initialSize = charts[depth][index].length;
+                const initialSize = charts[depth][index].length;
                 nonTermSize = Math.min(queue.size, targetPruningSize);
                 for (let i = 0; i < nonTermSize; i++) {
                     const derivation = queue.pop();
@@ -711,7 +821,7 @@ export default class SentenceGenerator extends events.EventEmitter {
                     if (isRoot)
                         rootSampler.push(derivation);
                     else
-                        charts[depth][index].push(derivation);
+                        charts[depth][index].add(derivation);
                 }
                 nonTermSize += initialSize;
                 assert(isRoot || charts[depth][index].length === nonTermSize);
@@ -730,7 +840,10 @@ export default class SentenceGenerator extends events.EventEmitter {
         return rootSampler.pop();
     }
 
-    _getRuleTarget(rule, nonTermIndex, depth, firstGeneration) {
+    private _getRuleTarget(rule : Rule<unknown[], unknown>,
+                           nonTermIndex : number,
+                           depth : number,
+                           firstGeneration : boolean) : number {
         const nonTermHasContext = this._nonTermHasContext[nonTermIndex];
         if (!firstGeneration && !nonTermHasContext)
             return 0;
@@ -771,17 +884,19 @@ export default class SentenceGenerator extends events.EventEmitter {
      * - The templates can pass arbitrary information from the agent turns to the user turns,
      *   including information that is not representable in a ThingTalk dialogue state.
      */
-    _initializeContexts(contextInputs, charts, depth, addConstants) {
-        for (let ctxIn of contextInputs) {
+    private _initializeContexts(contextInputs : ContextType[],
+                                charts : Charts,
+                                depth : number) : void {
+        for (const ctxIn of contextInputs) {
             try {
-                const result = this._contextInitializer(ctxIn, this._functionTable, addConstants);
+                const result = this._contextInitializer!(ctxIn, this._functionTable);
                 if (result !== null) {
                     const [tags, info] = result;
                     const ctx = new Context(ctxIn, info);
-                    for (let tag of tags) {
+                    for (const tag of tags) {
                         const index = this._contextTable.get(tag);
                         assert(index !== undefined, `Invalid context tag ${tag}`);
-                        charts[depth][index].push(ctx);
+                        charts[depth][index].add(ctx);
                     }
                 }
             } catch(e) {
@@ -791,7 +906,7 @@ export default class SentenceGenerator extends events.EventEmitter {
         }
 
         if (this._options.debug >= LogLevel.GENERATION) {
-            for (let index of this._contextTable.values()) {
+            for (const index of this._contextTable.values()) {
                 if (charts[depth][index].length > 0)
                     console.log(`stats: size(charts[${depth}][${this._nonTermList[index]}]) = ${charts[depth][index].length}`);
             }
@@ -804,7 +919,8 @@ export default class SentenceGenerator extends events.EventEmitter {
      * This method is optimized for batch generation, and will cache intermediate generations
      * that do not depend on the context between subsequent calls.
      */
-    generate(contextInputs, callback) {
+    generate(contextInputs : ContextType[],
+             callback : (depth : number, derivation : Derivation<RootOutputType>) => void) : void {
         this.finalize();
 
         // enable all rules (in case we called generateOne before)
@@ -836,7 +952,7 @@ export default class SentenceGenerator extends events.EventEmitter {
                         if (!this._nonTermHasContext[index])
                             this._charts[depth][index] = new ReservoirSampler(Math.ceil(targetPruningSize), this._options.rng);
                         else
-                            this._charts[depth][index] = undefined; // keep the array dense
+                            this._charts[depth][index] = new ReservoirSampler(0, this._options.rng); // keep the array dense, this value will never be used
                     }
                 }
 
@@ -846,7 +962,7 @@ export default class SentenceGenerator extends events.EventEmitter {
             }
         }
 
-        const charts = [];
+        const charts : Charts = [];
         for (let depth = 0; depth <= this._options.maxDepth; depth++) {
             if (this._options.debug >= LogLevel.INFO)
                 console.log(`--- DEPTH ${depth}`);
@@ -857,8 +973,10 @@ export default class SentenceGenerator extends events.EventEmitter {
             for (let index = 0; index < this._nonTermList.length; index++) {
                 // use the shared chart if we can, otherwise make a fresh one
 
+                // the chart for context symbols is never pruned, but we use
+                // a ReservoirSampler nonetheless to keep the types manageable
                 if (this._contextual && depth === 0 && this.hasContext(this._nonTermList[index]))
-                    charts[depth][index] = [];
+                    charts[depth][index] = new ReservoirSampler(Infinity, this._options.rng);
                 else if (!this._contextual || this._nonTermHasContext[index])
                     charts[depth][index] = new ReservoirSampler(Math.ceil(targetPruningSize), this._options.rng);
                 else
@@ -876,7 +994,7 @@ export default class SentenceGenerator extends events.EventEmitter {
             const targetProgress = progressAtDepth[depth];
 
             // subdivide the remaining progress among the (estimated) derivations we'll generate at this depth
-            let progressIncrement;
+            let progressIncrement : number;
             if (estimatedTotal >= 1)
                 progressIncrement = (targetProgress - this._progress)/estimatedTotal;
             else
@@ -898,8 +1016,9 @@ export default class SentenceGenerator extends events.EventEmitter {
                         continue;
 
                     let ruleProductivity = 0;
-                    let ruleTarget = this._getRuleTarget(rule, index, depth, firstGeneration);
-                    let sampler = new ReservoirSampler(ruleTarget, this._options.rng);
+                    const ruleTarget = this._getRuleTarget(rule, index, depth, firstGeneration);
+                    const sampler = new ReservoirSampler(ruleTarget, this._options.rng);
+
                     try {
                         expandRule(charts, depth, index, rule, this._averagePruningFactor, ruleTarget, this._options, this._nonTermList, (derivation) => {
                             if (derivation === null)
@@ -929,14 +1048,17 @@ export default class SentenceGenerator extends events.EventEmitter {
                         console.error(`Error expanding rule NT[${this._nonTermList[index]}] -> ${rule.expansion.join(' ')}`);
                         throw e;
                     }
+
                     // if this rule hasn't hit the target, duplicate all the outputs until we hit exactly the target
+                    let output : Iterable<any> = sampler;
                     if (rule.repeat && sampler.length > 0 && sampler.length < ruleTarget) {
                         const lengthbefore = sampler.length;
-                        sampler = Array.from(sampler);
+                        const array = Array.from(sampler);
                         const lengthafter = sampler.length;
                         assert(lengthbefore === lengthafter);
                         for (let i = sampler.length; i < ruleTarget; i++)
-                            sampler.push(uniform(sampler, this._options.rng));
+                            array.push(uniform(array, this._options.rng));
+                        output = array;
                     }
 
                     // adjust our estimated total size, based on what just happened with this rule
@@ -960,14 +1082,17 @@ export default class SentenceGenerator extends events.EventEmitter {
                         this._progress = targetProgress;
                     this.emit('progress', this._progress);
 
-                    for (let derivation of sampler)
+                    for (const derivation of output)
                         charts[depth][index].add(derivation);
                 }
                 nonTermSize = charts[depth][index].length;
                 if (isRoot) {
-                    for (let derivation of charts[depth][index])
+                    for (const derivation of charts[depth][index])
                         callback(depth, derivation);
-                    charts[depth][index].reset();
+
+                    const chart = charts[depth][index];
+                    assert(chart instanceof ReservoirSampler);
+                    chart.reset();
                 }
 
                 if (this._options.debug >= LogLevel.GENERATION && nonTermSize > 0)
@@ -988,7 +1113,10 @@ export default class SentenceGenerator extends events.EventEmitter {
     }
 }
 
-function computeWorstCaseGenSize(charts, depth, rule, maxdepth) {
+function computeWorstCaseGenSize(charts : Charts,
+                                 depth : number,
+                                 rule : Rule<unknown[], unknown>,
+                                 maxdepth : number) : number {
     const expansion = rule.expansion;
     const anyNonTerm = expansion.some((x) => x instanceof NonTerminal);
     if (!anyNonTerm)
@@ -998,7 +1126,7 @@ function computeWorstCaseGenSize(charts, depth, rule, maxdepth) {
 
     let worstCaseGenSize = 0;
     for (let i = 0; i < expansion.length; i++) {
-        let fixeddepth = depth-1;
+        const fixeddepth = depth-1;
 
         /*worstCaseGenSize += (function recursiveHelper(k) {
             if (k === expansion.length)
@@ -1023,15 +1151,16 @@ function computeWorstCaseGenSize(charts, depth, rule, maxdepth) {
         let tmp = 1;
 
         for (let k = expansion.length - 1; k >= 0; k--) {
+            const currentExpansion = expansion[k];
             if (k === i) {
-                if (expansion[k] instanceof NonTerminal)
-                    tmp = charts[fixeddepth][expansion[k].index].length * tmp;
+                if (currentExpansion instanceof NonTerminal)
+                    tmp = charts[fixeddepth][currentExpansion.index].length * tmp;
                 else
                     tmp = 0;
-            } else if (expansion[k] instanceof NonTerminal) {
+            } else if (currentExpansion instanceof NonTerminal) {
                 let sum = 0;
                 for (let j = 0; j <= (k > i ? maxdepth : maxdepth-1); j++)
-                    sum += charts[j][expansion[k].index].length * tmp;
+                    sum += charts[j][currentExpansion.index].length * tmp;
                 tmp = sum;
             }
         }
@@ -1041,12 +1170,16 @@ function computeWorstCaseGenSize(charts, depth, rule, maxdepth) {
     return worstCaseGenSize;
 }
 
-function estimateRuleSize(charts, depth, nonTermIndex, rule, averagePruningFactor, options) {
+function estimateRuleSize(charts : Charts,
+                          depth : number,
+                          nonTermIndex : number,
+                          rule : Rule<unknown[], unknown>,
+                          averagePruningFactor : number[][]) : [number, number, number, number] {
     // first compute how many things we expect to produce in the worst case
     let maxdepth = depth-1;
     let worstCaseGenSize = computeWorstCaseGenSize(charts, depth, rule, maxdepth);
     if (worstCaseGenSize === 0)
-        return [maxdepth, 0, 0, 0, 1];
+        return [maxdepth, 0, 0, 1];
 
     // prevent exponential behavior!
     while (worstCaseGenSize >= EXPONENTIAL_PRUNE_SIZE && maxdepth >= 0) {
@@ -1054,14 +1187,33 @@ function estimateRuleSize(charts, depth, nonTermIndex, rule, averagePruningFacto
         worstCaseGenSize = computeWorstCaseGenSize(charts, depth, rule, maxdepth);
     }
     if (maxdepth < 0 || worstCaseGenSize === 0)
-        return [maxdepth, 0, 0, 0, 1];
+        return [maxdepth, 0, 0, 1];
 
     const estimatedPruneFactor = averagePruningFactor[nonTermIndex][rule.number];
     const estimatedGenSize = worstCaseGenSize * estimatedPruneFactor;
     return [maxdepth, worstCaseGenSize, estimatedGenSize, estimatedPruneFactor];
 }
 
-function expandRule(charts, depth, nonTermIndex, rule, averagePruningFactor, targetPruningSize, options, nonTermList, emit) {
+interface ExpandOptions {
+    debug : number;
+    rng : () => number;
+}
+
+type DerivationChildOrChoice = DerivationChild<any> | Choice;
+
+function assignChoices(choices : DerivationChildOrChoice[], rng : () => number) : Array<DerivationChild<any>> {
+    return choices.map((c) => c instanceof Choice ? c.choose(rng) : c);
+}
+
+function expandRule(charts : Charts,
+                    depth : number,
+                    nonTermIndex : number,
+                    rule : Rule<any[], any>,
+                    averagePruningFactor : number[][],
+                    targetPruningSize : number,
+                    options : ExpandOptions,
+                    nonTermList : string[],
+                    emit : (value : Derivation<any>) => void) : void {
     const rng = options.rng;
 
     const expansion = rule.expansion;
@@ -1069,8 +1221,11 @@ function expandRule(charts, depth, nonTermIndex, rule, averagePruningFactor, tar
     const anyNonTerm = expansion.some((x) => x instanceof NonTerminal);
 
     if (!anyNonTerm) {
-        if (depth === 0)
-            emit(combiner(expansion, rule.priority));
+        if (depth === 0) {
+            const deriv = combiner(assignChoices(expansion, rng), rule.priority);
+            if (deriv !== null)
+                emit(deriv);
+        }
         return;
     }
     if (depth === 0)
@@ -1130,7 +1285,7 @@ function expandRule(charts, depth, nonTermIndex, rule, averagePruningFactor, tar
     // and then cycle through which non-terminal is allowed to grow
 
     const [maxdepth, worstCaseGenSize, estimatedGenSize, estimatedPruneFactor] =
-        estimateRuleSize(charts, depth, nonTermIndex, rule, averagePruningFactor, options);
+        estimateRuleSize(charts, depth, nonTermIndex, rule, averagePruningFactor);
 
     if (maxdepth < depth-1 && options.debug >= LogLevel.INFO)
         console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : reduced max depth to avoid exponential behavior`);
@@ -1148,18 +1303,18 @@ function expandRule(charts, depth, nonTermIndex, rule, averagePruningFactor, tar
     const basicCoinProbability = Math.min(1, targetPruningSize / estimatedGenSize);
     let coinProbability = basicCoinProbability;
 
-    let choices = [];
+    const choices : DerivationChildOrChoice[] = [];
     //let depths = [];
     let actualGenSize = 0;
     let prunedGenSize = 0;
     for (let i = 0; i < expansion.length; i++) {
-        let fixeddepth = depth-1;
-        (function recursiveHelper(k, context) {
+        const fixeddepth = depth-1;
+        (function recursiveHelper(k : number, context : Context|null) {
             if (k === expansion.length) {
                 //console.log('combine: ' + choices.join(' ++ '));
                 //console.log('depths: ' + depths);
                 if (!(coinProbability < 1.0) || coin(coinProbability, rng)) {
-                    let v = combiner(choices.map((c) => c instanceof Choice ? c.choose(rng) : c), rule.priority);
+                    const v = combiner(assignChoices(choices, rng), rule.priority);
                     if (v !== null) {
                         actualGenSize ++;
                         if (actualGenSize < targetPruningSize / 2 &&
@@ -1180,9 +1335,10 @@ function expandRule(charts, depth, nonTermIndex, rule, averagePruningFactor, tar
                 }
                 return;
             }
+            const currentExpansion = expansion[k];
             if (k === i) {
-                if (expansion[k] instanceof NonTerminal) {
-                    for (let candidate of charts[fixeddepth][expansion[k].index]) {
+                if (currentExpansion instanceof NonTerminal) {
+                    for (const candidate of charts[fixeddepth][currentExpansion.index]) {
                         let newContext;
                         if (candidate instanceof Context) {
                             if (!Context.compatible(context, candidate))
@@ -1193,9 +1349,9 @@ function expandRule(charts, depth, nonTermIndex, rule, averagePruningFactor, tar
                             if (!Context.compatible(context, candidate.context))
                                 continue;
                             newContext = Context.meet(context, candidate.context);
+                            if (combiner.isReplacePlaceholder && k === 0 && !candidate.hasPlaceholders())
+                                continue;
                         }
-                        if (combiner.isReplacePlaceholder && k === 0 && !candidate.hasPlaceholders())
-                            continue;
                         choices[k] = candidate;
                         //depths[k] = fixeddepth;
                         recursiveHelper(k+1, newContext);
@@ -1203,9 +1359,9 @@ function expandRule(charts, depth, nonTermIndex, rule, averagePruningFactor, tar
                 }
                 return;
             }
-            if (expansion[k] instanceof NonTerminal) {
+            if (currentExpansion instanceof NonTerminal) {
                 for (let j = 0; j <= (k > i ? maxdepth : maxdepth-1); j++) {
-                    for (let candidate of charts[j][expansion[k].index]) {
+                    for (const candidate of charts[j][currentExpansion.index]) {
                         let newContext;
                         if (candidate instanceof Context) {
                             if (!Context.compatible(context, candidate))
@@ -1216,16 +1372,16 @@ function expandRule(charts, depth, nonTermIndex, rule, averagePruningFactor, tar
                             if (!Context.compatible(context, candidate.context))
                                 continue;
                             newContext = Context.meet(context, candidate.context);
+                            if (combiner.isReplacePlaceholder && k === 0 && !candidate.hasPlaceholders())
+                                continue;
                         }
-                        if (combiner.isReplacePlaceholder && k === 0 && !candidate.hasPlaceholders())
-                            continue;
                         choices[k] = candidate;
                         //depths[k] = j;
                         recursiveHelper(k+1, newContext);
                     }
                 }
             } else {
-                choices[k] = expansion[k];
+                choices[k] = currentExpansion;
                 recursiveHelper(k+1, context);
             }
         })(0, null);
