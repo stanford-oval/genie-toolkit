@@ -41,18 +41,18 @@ const klass = library.classes[0];
 
 const TEST_CASES = [
     ['author', new Type.Entity('org.schema.Restaurant:Person'), { default: 'property', base: ['author'] }, null],
-    ['datePublished', new Type.Date, { default: 'property', base: ['date published'] }, null],
+    ['datePublished', Type.Date, { default: 'property', base: ['date published'] }, null],
     ['review', new Type.Array(Type.Entity('org.schema.Restaurant:Review')), { default: 'property', base: ['reviews'] }, null],
-    ['servesCuisine', new Type.String, { default: 'verb', verb: ["serves # cuisine"], base: ["cuisine"] }, null],
+    ['servesCuisine', Type.String, { default: 'verb', verb: ["serves # cuisine"], base: ["cuisine"] }, null],
 
     ['inAlbum', new Type.Entity('org.schema:MusicAlbum'), { default: 'preposition', base: ['album'], preposition: ['in', 'in album'] }, null],
     ['byArtist', new Type.Entity('org.schema:Artist'), { default: 'preposition', base: ['artist'], preposition: ['by', 'by artist'] }, null],
 
-    ['from_location', new Type.Location, { default: 'preposition', base: ['location'], preposition: ['from', 'from location'] }, null],
-    ['to_location', new Type.Location, { default: 'preposition', base: ['location'], preposition: ['to', 'to location'] }, null],
+    ['from_location', Type.Location, { default: 'preposition', base: ['location'], preposition: ['from', 'from location'] }, null],
+    ['to_location', Type.Location, { default: 'preposition', base: ['location'], preposition: ['to', 'to location'] }, null],
 
-    ['from_location', new Type.Location, { default: 'preposition', base: ['location'], preposition: ['from', 'from location'] }, klass.queries.test2],
-    ['to_location', new Type.String, { default: 'preposition', base: ['location'], preposition: ['to', 'to location'] }, klass.queries.test2],
+    ['from_location', Type.Location, { default: 'preposition', base: ['location'], preposition: ['from', 'from location'] }, klass.queries.test2],
+    ['to_location', Type.String, { default: 'preposition', base: ['location'], preposition: ['to', 'to location'] }, klass.queries.test2],
 
     ['by_writer', new Type.Entity('tt:person'), { default: 'preposition', base: ['writer'], preposition: ['by', 'by writer'] }],
     ['by_singer', new Type.Entity('tt:person'), { default: 'preposition', base: ['singer'], preposition: ['by', 'by singer'] }],
@@ -60,9 +60,9 @@ const TEST_CASES = [
     ['by_writer', new Type.Entity('tt:person'), { default: 'preposition', base: ['writer'], preposition: ['by writer'] }, klass.queries.test3],
     ['by_singer', new Type.Entity('tt:person'), { default: 'preposition', base: ['singer'], preposition: ['by singer'] }, klass.queries.test3],
 
-    ['has_wifi', new Type.Boolean, { default: 'property', property_true: ['wifi'], property_false: ['no wifi'] }, null],
-    ['refundable', new Type.Boolean, { default: 'adjective', adjective_true: ['refundable'] }, null],
-    ['is_unisex', new Type.Boolean, { default: 'adjective', adjective_true: ['unisex'] }, null]
+    ['has_wifi', Type.Boolean, { default: 'property', property_true: ['wifi'], property_false: ['no wifi'] }, null],
+    ['refundable', Type.Boolean, { default: 'adjective', adjective_true: ['refundable'] }, null],
+    ['is_unisex', Type.Boolean, { default: 'adjective', adjective_true: ['unisex'] }, null]
 ];
 
 
