@@ -213,7 +213,7 @@ class BertLM:
         :return: a array in length k of predicted tokens
         """
         # skip uncommon word
-        if not wordnet.synsets(word):
+        if word != '[MASK]' and not wordnet.synsets(word):
             return []
 
         if k is None:
