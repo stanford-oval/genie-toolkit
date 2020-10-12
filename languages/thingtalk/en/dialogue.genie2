@@ -1,0 +1,277 @@
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+
+import assert from 'assert';
+import { Ast, } from 'thingtalk';
+
+import * as S from '../state_manip';
+import * as D from '../dialogue_acts';
+
+// TODO
+import './stuff';
+
+// first, the state machine
+
+// how to read:
+//
+// the state machine is composed of blocks, each defining a set of transitions out
+// of an abstract state (denoted with an identifier that starts with "state_")
+//
+// each transition is composed by a state identifier, followed by "->", followed
+// by one or more agent acts (an identifier that starts with "agent_") that the
+// agent might take at state
+// each agent act is followed by "->" and the list of expected dialogue acts from the user
+// (starting with "user_")
+//
+// the user dialogue act is then optionally followed by "->" and the list of possible
+// states that can occur after the user has spoken that way
+// if this part is omitted, all states can occur
+//
+// if a state is named in the user dialogue act, it can be itself followed by the
+// corresponding agent dialogue act(s) and user dialogue act(s)
+// (that is, the named state is defined inline right after defining the user speech,
+// rather than that at the top of the state machine)
+// in that case, the named state can only appear at that specific point of the state machine
+// (it is an error if that state occurs at any other point)
+//
+// an agent dialogue act can also be expressed as "use state_name", which
+// indicates that all the agent actions for the named state are also valid
+//
+// similarly, a user dialogue act can be expressed as "use agent_name", which
+// indicates that the user will also perform all the actions suggested by the
+// named dialogue act, or expressed as "use state_name -> agent_name", which
+// picks a set of user dialogue act from an unrelated state
+//
+// two special purpose states are defined:
+// - "null" is the beginning of the dialogue
+//   it can be followed by "agent -> user" (agent speaks first)
+//   or by "-> user" only (user speaks first)
+// - "always" marks user dialogue acts that are always injected at any state
+//   (except the "null" state, the "end" state, and subject to the semantic function)
+$dialogue {
+    // the beginning of the dialogue
+    // if the agent speaks first
+    null
+    -> agent_init
+    -> user_initial_request;
+
+    // if the user speaks first
+    null -> user_initial_request;
+
+    // generally available user acts
+    always -> {
+        user_restart; // the user gives an unrelated command
+
+        user_nevermind // the user cancels the dialogue
+        -> state_cancel;
+    };
+
+    // the actual state machine, dispatching on the result of executing
+    // the ThingTalk code
+
+    state_incomplete // command is missing parameters
+    -> agent_slot_fill
+    -> {
+        user_imprecise_answer; // the user answers the questions with a straight up value
+        user_precise_answer; // the user answers the questions with a full sentence
+    };
+
+    state_confirm_necessary // command needs extra confirmation before executing
+    -> agent_confirm_command
+    -> {
+        user_accept_phrase; // the user accepts the command with a short "yes"
+        user_reject_phrase; // the user rejects the command with a short "no"
+        user_change_parameter; // the user issues the command for a different parameter
+        user_explicit_reject; // the user rejects the command and proposes a different command or an explicit correction
+    };
+
+    state_display_result // command is not a search, and produced a result
+    -> agent_display_result
+    -> {
+        user_projection_question; // the user asks for a field (projection or computation) of the current result
+        user_change_parameter; // the user issues a command for a different parameter
+        user_thank_you
+        -> state_cancel; // user thanks the agent and closes the conversation
+    };
+
+    state_execution_error // command failed (e.g. there are no slots available for a restaurant reservation)
+    -> agent_display_error
+    -> {
+        user_change_parameter; // the user tries the command for a different parameter
+        user_thank_you
+        -> state_cancel; // user thanks the agent and closes the conversation
+    };
+
+    state_cancel
+    -> agent_anything_else
+    -> {
+        user_initial_request;
+
+        user_accept_phrase
+        -> state_restart
+        -> agent_restart
+        -> user_initial_request;
+
+        user_reject_phrase
+        -> state_end
+        -> agent_end;
+    };
+
+    state_empty_search
+    -> {
+        agent_empty_search
+        -> {
+            user_change_parameter; // the user reissues the search with a different parameter
+            user_change_filter; // the user reissues the search with a different filter
+
+            user_explicit_refinement; // the user refines the search by restating the domain and the parameters & filters
+        };
+
+        agent_empty_search_with_question // "would you like a different..." ?
+        -> {
+            user_imprecise_answer;
+            user_precise_answer; // the user answers the questions with a full sentence
+        };
+    };
+
+    state_single_result
+    -> {
+        agent_single_result // the agent presents the result
+        -> {
+            user_ask_learn_more_by_coref // the user asks to learn more about the one result
+            -> state_learn_more;
+
+            user_ask_result_question; // the user asks a question about the result (projection, computation, sort, slice)
+
+            user_chain_question; // the user uses the result in a subsequent question in a different domain (different table)
+            user_chain_action; // the user uses the result in an action
+
+            user_change_parameter; // the user reissues the search with a different parameter
+            user_change_filter; // the user reissues the search with a different filter
+
+            user_explicit_refinement; // the user refines the search by restating the domain and the parameters & filters
+        };
+
+        agent_single_result_with_learn_more // the agent presents the result, and offers the user to learn more
+        -> {
+            user_accept_phrase
+            -> state_learn_more;
+
+            user_reject_phrase
+            -> state_cancel;
+
+            use agent_single_result; // all the other phrases are ok
+        };
+
+        agent_single_result_with_action // the agent presents the result, and offers the user to perform an action
+        -> {
+            user_accept_phrase;
+
+            user_reject_phrase
+            -> state_cancel;
+
+            use agent_single_result; // all the other phrases are ok
+        };
+    };
+
+    state_small_result
+    -> {
+        agent_list_result // the agent talks about the top 2-3 results
+        -> {
+            user_ask_learn_more_by_name // the user asks to learn more about one result
+            -> state_learn_more;
+
+            user_ask_result_question; // the user asks a question about the result (projection, computation, sort, slice)
+
+            user_explicit_refinement; // the user refines the search by restating the domain and the parameters & filters
+            user_restart;
+        };
+
+        agent_list_result_with_action // the agent talks about the top 2-3 results and offers to perform an action
+        -> {
+            user_reject_phrase
+            -> state_cancel;
+
+            user_ask_learn_more_by_name // the user asks to learn more about one result
+            -> state_learn_more
+            -> agent_ask_learn_more_what // the agent asks what the user wants to learn
+            -> user_projection_question; // the user asks for a field (projection or computation) of the current result
+
+            user_ask_result_question; // the user asks a question about the result (projection, computation, sort, slice)
+
+            user_explicit_refinement; // the user refines the search by restating the domain and the parameters & filters
+            user_restart;
+        };
+
+        use state_small_result;
+    };
+
+    state_large_result
+    -> {
+        agent_search_question // the agent offers to refine the search: "what food would you like?"
+        -> {
+            user_imprecise_answer;
+            user_precise_answer; // the user answers the questions with a full sentence
+            user_explicit_refinement; // the user refines the search on their own, by restating the domain and the parameters & filters
+        };
+
+        agent_propose_refined_query // "how about a restaurant that serves Chinese food?"
+        -> {
+            user_accept_phrase;
+            user_reject_phrase;
+            user_explicit_refinement;
+        };
+
+        use state_list_result;
+    };
+
+    state_learn_more
+    -> agent_ask_learn_more_what // the agent asks what the user wants to learn
+    -> user_projection_question;
+}
+
+// now examples of how individual dialogue acts can be written
+
+// each dialogue act is a plain old Genie template
+// but it is declared with the "dialogueact" keyword
+// with that keyword, the semantic function has access to the $ctx object
+// which is the computed ContextInfo object
+
+dialogueact agent_init = {
+    ( ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
+    | ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
+    ) => D.agentGreet($ctx);
+}
+
+dialogueact agent_restart = {
+    ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
+        => D.agentGreet($ctx);
+}
+
+dialogueact user_initial_request = {
+    ( stmt:say_command [weight=0.1]
+    | stmt:complete_action
+    | generic_preamble_for_action stmt:complete_action
+    | generic_preamble_for_action stmt:complete_forward_get_do_command
+    | stmt:search_command [weight=2]
+    | stmt:complete_question [weight=0.5]
+    | stmt:projection_question [weight=0.1]
+    ) => D.userInitialRequest($ctx, stmt);
+}
