@@ -151,7 +151,7 @@ class SchemaProcessor {
             return BUILTIN_TYPEMAP[typename];
 
         if (typeHierarchy[typename].isItemList)
-            return new Type.Array(this.typeToThingTalk(typeHierarchy[typename].itemType, typeHierarchy, manualAnnotation));
+            return new Type.Array(this.typeToThingTalk(propname, typeHierarchy[typename].itemType, typeHierarchy, manualAnnotation));
         if (typeHierarchy[typename].isEnum && typeHierarchy[typename].enum.length > 0)
             return new Type.Enum(typeHierarchy[typename].enum);
         if (typeHierarchy[typename].representAsStruct)
