@@ -79,7 +79,7 @@ async function main() {
         paraphrasingExpandFactor: 30,
         noQuoteExpandFactor: 10,
         singleDeviceExpandFactor: 1,
-
+        subsetParamSet:[0, 1],
         locale: 'en-US',
         paramLocale: 'en',
         rng,
@@ -95,7 +95,7 @@ async function main() {
 
         write(ex, encoding, callback) {
             Promise.resolve().then(() => {
-                return processOne(ex.id, ex.preprocessed, ex.target_code);
+                return processOne(ex.id, ex.preprocessed, ex.target_code[0]);
             }).then(() => {
                 callback(null);
             }, (e) => {
