@@ -14,8 +14,7 @@ jobs:
       name: "Unit Tests"
       install:
       - pyenv global 3.6.7
-      - pip install --user torch transformers nltk
-      - python -m nltk.downloader wordnet
+      - pip install --user torch transformers
       - travis_retry yarn
       script:
       - yarn lint
@@ -54,8 +53,6 @@ jobs:
       name: "Starter Code Tests (Schema.org)"
       install:
       - pyenv global 3.6.7
-      - pip install --user nltk
-      - python -m nltk.downloader wordnet
       - ./travis/install-starter-deps.sh
       - travis_retry yarn
       script: yarn run nyc ./test/schemaorg-starter.sh

@@ -104,6 +104,9 @@ models/paraphraser-bart-large-speedup-megabatch-5m:
 	wget --no-verbose https://almond-static.stanford.edu/test-data/paraphraser-bart-large-speedup-megabatch-5m.tar.xz
 	tar -C models -xvf paraphraser-bart-large-speedup-megabatch-5m.tar.xz
 
+common-words.txt:
+	wget --no-verbose https://almond-static.stanford.edu/test-data/common-words.txt
+
 %/schema.tt: $(geniedir)/tool/autoqa/schemaorg/process-schema.js
 	$(genie) schemaorg-process-schema -o $@ $(process_schemaorg_flags) --domain $* --class-name $($(*)_class_name) --white-list $($(*)_white_list)
 
@@ -123,7 +126,7 @@ emptydataset.tt:
 	$(genie) sample-constants -o $@ --parameter-datasets $*/parameter-datasets.tsv --thingpedia $*/schema.trimmed.tt --devices $($(*)_class_name)
 	cat $(geniedir)/data/en-US/constants.tsv >> $@
 
-%/manifest.tt: %/constants.tsv %/schema.trimmed.tt %/parameter-datasets.tsv models/paraphraser-bart-large-speedup-megabatch-5m
+%/manifest.tt: %/constants.tsv %/schema.trimmed.tt %/parameter-datasets.tsv models/paraphraser-bart-large-speedup-megabatch-5m common-words.txt
 	$(genie) auto-annotate -o $@.tmp --constants $*/constants.tsv --thingpedia $*/schema.trimmed.tt --functions $($(*)_white_list) $(annotate_flags) --parameter-datasets $*/parameter-datasets.tsv --dataset schemaorg
 	mv $@.tmp $@
 

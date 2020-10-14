@@ -1,10 +1,10 @@
+import os
 import csv
 import argparse
 import json
 import sys
 import torch
 from transformers import BertTokenizer, BertForMaskedLM, GPT2Tokenizer, GPT2LMHeadModel
-from nltk.corpus import wordnet
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
@@ -34,6 +34,15 @@ ALL_CATEGORIES = [
     'preposition', 'preposition_true', 'preposition_false',
     'adjective_true', 'adjective_false'
 ]
+
+def load_common_words():
+    if not os.path.exists('./common-words.txt') or os.path.getsize('./common-words.txt') == 0:
+        return None
+    common_words = set();
+    with open('./common-words.txt') as fin:
+        for line in fin:
+            common_words.add(line.strip())
+    return common_words
 
 
 def split_canonical(canonical):
@@ -181,6 +190,7 @@ class BertLM:
         self.k_domain_synonyms = k_domain_synonyms
         self.k_adjectives = k_adjectives
         self.pruning_threshold = pruning_threshold
+        self.common_words = load_common_words()
         self.queries = queries
         self.canonicals = {}  # canonical of queries
         self.values = {}  # all the values of each argument
@@ -213,7 +223,7 @@ class BertLM:
         :return: a array in length k of predicted tokens
         """
         # skip uncommon word
-        if word != '[MASK]' and not wordnet.synsets(word):
+        if self.common_words and word != '[MASK]' and word not in self.common_words:
             return []
 
         if k is None:
