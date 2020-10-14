@@ -191,7 +191,7 @@ const PROPERTY_CANONICAL_OVERRIDE = {
     },
     'postalCode': {
         base: ['postal code', 'postcode', 'zip code'],
-        preposition: ['in #', 'from #'],
+        preposition: ['in #', 'from #', 'in the # zip code'],
     },
     /*
     'streetAddress': {
@@ -352,7 +352,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         adjective: ['# speaking']
     },
     addressLocality: {
-        base: ['city'],
+        base: ['city', 'town', 'area'],
         preposition: ["in #", "from #"],
     },
 
