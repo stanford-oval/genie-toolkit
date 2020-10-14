@@ -83,7 +83,7 @@ module.exports = {
         });
         parser.add_argument('--url', {
             required: false,
-            help: "URL of the server to evaluate. Use a file:// URL pointing to a model directory to evaluate using a local instance of decanlp",
+            help: "URL of the server to evaluate. Use a file:// URL pointing to a model directory to evaluate using a local instance of genienlp",
             default: 'http://127.0.0.1:8400',
         });
         parser.add_argument('--tokenized', {
@@ -137,6 +137,12 @@ module.exports = {
             action: 'store_false',
             dest: 'debug',
             help: 'Disable debugging.',
+        });
+        parser.add_argument('--output-errors', {
+            required: false,
+            default: process.stdout,
+            type: fs.createWriteStream,
+            help: "Write erred examples to this file instead of stdout"
         });
         parser.add_argument('--csv', {
             action: 'store_true',
@@ -193,7 +199,8 @@ module.exports = {
                 tokenized: args.tokenized,
                 debug: args.debug,
                 complexityMetric: args.complexity_metric,
-                oracle: args.oracle
+                oracle: args.oracle,
+                outputErrors: args.output_errors
             }))
             .pipe(new CollectSentenceStatistics({
                 minComplexity: args.min_complexity,
