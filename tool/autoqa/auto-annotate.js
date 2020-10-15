@@ -68,19 +68,14 @@ module.exports = {
             default: null,
             help: `List of functions to include, split by comma (no space). Include all functions if not specified`,
         });
-        parser.add_argument('--skip', {
-            action: 'store_true',
-            help: 'Skip the entire process.',
-            default: false
-        });
         parser.add_argument('--remove-existing-canonicals', {
             action: 'store_true',
-            help: 'Remove all existing canonical annotations',
+            help: 'Remove all existing canonical annotations in the schema',
             default: false
         });
-        parser.add_argument('--algorithm', {
-            help: 'Different algorithms to generate canonicals including bert, bart, adj, split by comma (no space)',
-            default: null
+        parser.add_argument('--algorithms', {
+            nargs: '*',
+            help: 'Different algorithms to generate canonicals including bert-property-synonyms, bart-paraphrase, bert-adjectives, bert-domain-synonyms'
         });
         parser.add_argument('--batch-size', {
             required: false,
@@ -98,17 +93,15 @@ module.exports = {
             required: true,
             help: `TSV file containing the paths to datasets for strings and entity types.`
         });
-        parser.add_argument('--model', {
+        parser.add_argument('--language-model', {
             required: false,
             default: 'bert-large-uncased',
             help: `A string specifying a model name recognizable by the Transformers package (e.g. bert-base-uncased), `
                 + `or a path to the directory where the model is saved`
         });
-        parser.add_argument('--is-paraphraser', {
+        parser.add_argument('--paraphraser-model', {
             required: false,
-            default: false,
-            action: 'store_true',
-            help: `Set to True if model_name_or_path was fine-tuned on a paraphrasing dataset`
+            help: `A path to the directory where the bart paraphraser model is saved`
         });
         parser.add_argument('--gpt2-ordering', {
             required: false,
@@ -116,15 +109,11 @@ module.exports = {
             action: 'store_true',
             help: `Set to True to use gpt2 to decide where to put value`
         });
-        parser.add_argument('--paraphraser-model', {
-            required: false,
-            help: `A path to the directory where the bart paraphraser model is saved`
-        });
-        parser.add_argument('--mask', {
+        parser.add_argument('--filtering', {
             required: false,
             default: false,
             action: 'store_true',
-            help: `mask token before predicting`
+            help: `Enable filtering for phrase extraction.`
         });
         parser.add_argument('--debug', {
             required: false,
@@ -137,7 +126,7 @@ module.exports = {
     async execute(args) {
         const classDefs = await loadClassDefs(args.thingpedia);
 
-        if (args.skip) {
+        if (!args.algorithms) {
             for (let classDef of classDefs)
                 args.output.write(classDef.prettyprint() + '\n');
             args.output.end();
