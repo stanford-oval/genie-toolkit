@@ -149,7 +149,7 @@ async function wikidataQuery(query) {
             accept: 'application/json'
         });
         return JSON.parse(result).results.bindings;
-    } catch (e) {
+    } catch(e) {
         const error = new Error('The connection timed out waiting for a response');
         error.code = 500;
         throw error;
