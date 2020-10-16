@@ -140,7 +140,7 @@ boolean_user_search_question = {
         }
         if (param.name === 'id')
             return null;
-        return [[param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()]];
+        return [[param.name, param.operator === 'contains' ? new Type.Array(param.value.getType()) : param.value.getType()]];
     };
 
     ( 'is' ('it' | 'that') 'a' param:apv_filter base:base_table '?'
@@ -172,7 +172,7 @@ boolean_user_search_question = {
         }
         if (param.name === 'id')
             return null;
-        return [[param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()]];
+        return [[param.name, param.operator === 'contains' ? new Type.Array(param.value.getType()) : param.value.getType()]];
     };
 }
 
@@ -191,7 +191,7 @@ boolean_user_search_question_for_list = {
         }
         if (param.name === 'id')
             return null;
-        return [[param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()]];
+        return [[param.name, param.operator === 'contains' ? new Type.Array(param.value.getType()) : param.value.getType()]];
     };
 
     ( ('is either of them' | 'is any of them' | 'are they') 'a' param:apv_filter base:base_table '?'
@@ -221,7 +221,7 @@ boolean_user_search_question_for_list = {
         }
         if (param.name === 'id')
             return null;
-        return [[param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()]];
+        return [[param.name, param.operator === 'contains' ? new Type.Array(param.value.getType()) : param.value.getType()]];
     };
 }
 
@@ -271,7 +271,7 @@ boolean_user_search_question_with_name = {
         }
         if (param.name === 'id')
             return null;
-        return [name, [[param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()]]];
+        return [name, [[param.name, param.operator === 'contains' ? new Type.Array(param.value.getType()) : param.value.getType()]]];
     };
 
     ( 'is' name:constant_name 'a' param:apv_filter base:base_table '?'
@@ -295,7 +295,7 @@ boolean_user_search_question_with_name = {
         }
         if (param.name === 'id')
             return null;
-        return [name, [[param.name, param.operator === 'contains' ? Type.Array(param.value.getType()) : param.value.getType()]]];
+        return [name, [[param.name, param.operator === 'contains' ? new Type.Array(param.value.getType()) : param.value.getType()]]];
     };
 }
 

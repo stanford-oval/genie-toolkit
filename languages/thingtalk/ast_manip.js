@@ -39,7 +39,7 @@ function makeDate(base, operator, offset) {
         return base;
 
     const value = new Ast.Value.Computation(operator, [base, offset],
-        [Type.Date, Type.Measure('ms'), Type.Date], Type.Date);
+        [Type.Date, new Type.Measure('ms'), Type.Date], Type.Date);
     return value;
 }
 
@@ -192,7 +192,7 @@ function makeDateRangeFilter(param, values) {
 function makeOrFilter(param, op, values, negate  =false) {
     if (values.length !== 2)
         return null;
-    if (values[0].name === values[1].name)
+    if (values[0].equals(values[1]))
         return null;
     const operands  = values.map((v) => makeFilter(param, op, v, negate));
     if (operands.includes(null))
@@ -206,7 +206,7 @@ function makeOrFilter(param, op, values, negate  =false) {
 function makeButFilter(param, op, values) {
     if (values.length !== 2)
         return null;
-    if (values[0].name === values[1].name)
+    if (values[0].equals(values[1]))
         return null;
     const operands  = [
         makeFilter(param, op, values[0]),
@@ -243,7 +243,7 @@ function makeAggregateFilter(param, aggregationOp, field, op, value) {
             return null;
         assert(field === null || field === '*');
         const agg = new Ast.Value.Computation(aggregationOp, [param],
-            [Type.Array('x'), Type.Number], Type.Number);
+            [new Type.Array('x'), Type.Number], Type.Number);
         return new Ast.BooleanExpression.Compute(null, agg, op, value);
     } else if (['sum', 'avg', 'max', 'min'].includes(aggregationOp)) {
         const vtype = value.getType();
@@ -255,8 +255,8 @@ function makeAggregateFilter(param, aggregationOp, field, op, value) {
                 return null;
         }
         const agg = new Ast.Value.Computation(aggregationOp, [
-            field ? new Ast.Value.ArrayField(param, field.name) : param
-        ], [Type.Array(vtype), vtype], vtype);
+            param ? new Ast.Value.ArrayField(param, field.name) : param
+        ], [new Type.Array(vtype), vtype], vtype);
         return new Ast.BooleanExpression.Compute(null, agg, op, value);
     }
     return null;
@@ -272,7 +272,7 @@ function makeAggregateFilterWithFilter(param, filter, aggregationOp, field, op, 
         if (!value.getType().isNumber)
             return null;
         assert(field === null);
-        const agg = new Ast.Value.Computation(aggregationOp, [list], [Type.Array('x'), Type.Number], Type.Number);
+        const agg = new Ast.Value.Computation(aggregationOp, [list], [new Type.Array('x'), Type.Number], Type.Number);
         return new Ast.BooleanExpression.Compute(null, agg, op, value);
     } else if (['sum', 'avg', 'max', 'min'].includes(aggregationOp)) {
         const vtype = value.getType();
@@ -285,7 +285,7 @@ function makeAggregateFilterWithFilter(param, filter, aggregationOp, field, op, 
         }
         const agg = new Ast.Value.Computation(aggregationOp, [
             field ? new Ast.Value.ArrayField(list, field.name) : list
-        ], [Type.Array(vtype), vtype], vtype);
+        ], [new Type.Array(vtype), vtype], vtype);
         return new Ast.BooleanExpression.Compute(null, agg, op, value);
     }
     return null;
@@ -312,7 +312,7 @@ function addUnit(unit, num) {
     if (num.isVarRef) {
         let v = new Ast.Value.VarRef(num.name + '__' + unit);
         v.unit = unit;
-        v.getType = () => Type.Measure(unit);
+        v.getType = () => new Type.Measure(unit);
         return v;
     } else {
         return new Ast.Value.Measure(num.value, unit);
@@ -320,12 +320,12 @@ function addUnit(unit, num) {
 }
 
 function resolveProjection(args, schema) {
-    assert (args.length >= 1);
+    assert(args.length >= 1);
     args = new Set(args);
     for (let arg of schema.minimal_projection)
         args.add(arg);
     for (let arg of args)
-        assert (schema.hasArgument(arg));
+        assert(schema.hasArgument(arg));
     // if default_projection is non-empty, it's overwritten after a projection
     schema.default_projection = [];
     if (schema.annotations)
@@ -656,11 +656,11 @@ function checkAtomFilter(table, filter) {
             return false;
         vtype = Type.String;
     } else if (filter.operator === 'in_array') {
-        vtype = Type.Array(ptype);
+        vtype = new Type.Array(ptype);
     } else if (filter.operator === 'in_array~') {
         if (!vtype.isEntity && !vtype.isString)
             return false;
-        vtype = Type.Array(Type.String);
+        vtype = new Type.Array(Type.String);
     } else if (filter.operator === '=~') {
         if (!ptype.isEntity && !ptype.isString)
             return false;
@@ -734,7 +734,7 @@ function checkFilter(table, filter) {
     throw new Error(`Unexpected filter type ${filter}`);
 }
 
-function *iterateFilters(table) {
+function* iterateFilters(table) {
     if (table.isInvocation || table.isVarRef || table.isResultRef)
         return;
 
@@ -748,7 +748,7 @@ function *iterateFilters(table) {
     }
 }
 
-function *iterateFields(filter) {
+function* iterateFields(filter) {
     assert(filter instanceof Ast.BooleanExpression);
     if (filter.isAnd) {
         for (let operand of filter.operands)
@@ -1561,8 +1561,8 @@ function makeComputeExpression(table, operation, operands, resultType) {
         new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, operation, resultType)]);
     const expression = new Ast.Value.Computation(operation, operands);
     if (operation === 'distance') {
-        expression.overload = [Type.Location, Type.Location, Type.Measure('m')];
-        expression.type = Type.Measure('m');
+        expression.overload = [Type.Location, Type.Location, new Type.Measure('m')];
+        expression.type = new Type.Measure('m');
     }
 
     return new Ast.Table.Compute(null, table, expression, null, computeSchema);
@@ -1580,8 +1580,8 @@ function makeComputeFilterExpression(table, operation, operands, resultType, fil
 
     const expression = new Ast.Value.Computation(operation, operands);
     if (operation === 'distance') {
-        expression.overload = [Type.Location, Type.Location, Type.Measure('m')];
-        expression.type = Type.Measure('m');
+        expression.overload = [Type.Location, Type.Location, new Type.Measure('m')];
+        expression.type = new Type.Measure('m');
     }
     const filter = new Ast.BooleanExpression.Compute(null, expression, filterOp, filterValue);
     if (filter)
@@ -1604,7 +1604,7 @@ function makeWithinGeoDistanceExpression(table, location, filterValue) {
     // the distance should be at least 100 meters (if the value is small number)
     if (filterValue.isMeasure && Units.transformToBaseUnit(filterValue.value, unit) < 100)
         return null;
-    return makeComputeFilterExpression(table, 'distance', [new Ast.Value.VarRef('geo'), location], Type.Measure('m'), '<=', filterValue);
+    return makeComputeFilterExpression(table, 'distance', [new Ast.Value.VarRef('geo'), location], new Type.Measure('m'), '<=', filterValue);
 }
 
 function makeComputeArgMinMaxExpression(table, operation, operands, resultType, direction = 'desc') {
@@ -1640,10 +1640,10 @@ function makeAggComputeExpression(table, operation, field, list, resultType) {
         new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, operation, resultType)]);
     const expression = new Ast.Value.Computation(operation, [field ? new Ast.Value.ArrayField(list, field) : list]);
     if (operation === 'count') {
-        expression.overload = [Type.Array('x'), Type.Number];
+        expression.overload = [new Type.Array('x'), Type.Number];
         expression.type = Type.Number;
     } else {
-        expression.overload = [Type.Array(resultType), resultType];
+        expression.overload = [new Type.Array(resultType), resultType];
         expression.type = resultType;
     }
 

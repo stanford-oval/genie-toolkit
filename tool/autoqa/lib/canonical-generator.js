@@ -33,14 +33,26 @@ const { clean } = require('../../../lib/utils/misc-utils');
 const CanonicalExtractor = require('./canonical-extractor');
 const genBaseCanonical = require('./base-canonical-generator');
 
-// extract entity type from type
-function typeToEntityType(type) {
+const topk_property_synonyms = 3;
+const topk_domain_synonyms = 5;
+const topk_adjectives = 500;
+
+function getElemType(type) {
     if (type.isArray)
-        return typeToEntityType(type.elem);
-    else if (type.isEntity)
-        return type.type;
-    else
+        return getElemType(type.elem);
+    return type;
+}
+
+function typeToString(type) {
+    const elemType = getElemType(type);
+
+    if (elemType.isEntity)
+        return elemType.type;
+
+    if (elemType.isCompound)
         return null;
+
+    return type.toString();
 }
 
 class AutoCanonicalGenerator {
@@ -49,11 +61,10 @@ class AutoCanonicalGenerator {
         this.constants = constants;
         this.functions = functions ? functions : Object.keys(classDef.queries).concat(Object.keys(classDef.actions));
 
-        this.algorithm = options.algorithm ? options.algorithm.split(',') : [];
+        this.algorithms = options.algorithms;
         this.pruning = options.pruning;
         this.mask = options.mask;
-        this.is_paraphraser = options.is_paraphraser;
-        this.model = options.model;
+        this.language_model = options.language_model;
         this.gpt2_ordering = options.gpt2_ordering;
         this.paraphraser_model = options.paraphraser_model;
 
@@ -145,18 +156,27 @@ class AutoCanonicalGenerator {
                 if (canonical.base && !canonical.property)
                     canonical.property = [...canonical.base];
 
-                let typestr = typeToEntityType(func.getArgType(arg.name));
+                let typestr = typeToString(func.getArgType(arg.name));
 
                 if (typestr && typeCounts[typestr] === 1) {
                     // if an entity is unique, allow dropping the property name entirely
-                    if (!this.functions.includes(typestr.substring(typestr.indexOf(':') + 1)))
-                        canonical.property = canonical.property ? [...canonical.property, '#'] : ['#'];
+                    if (canonical.property && !this.functions.includes(typestr.substring(typestr.indexOf(':') + 1))) {
+                        if (!canonical.property.includes('#'))
+                            canonical.property.push('#');
+                    }
 
                     // if it's the only people entity, adding adjective form
                     // E.g., author for review - bob's review
                     //       byArtist for MusicRecording - bob's song
                     if (typestr.endsWith(':Person'))
                         canonical.adjective = ["# 's", '#'];
+
+                    // if it's the only date, adding argmin/argmax/base_projection
+                    if (typestr === 'Date') {
+                        canonical.adjective_argmax = ["most recent", "latest", "last", "newest"];
+                        canonical.adjective_argmin = ["earliest", "first", "oldest"];
+                        canonical.base_projection = ['date'];
+                    }
                 }
 
                 // if property is missing, try to use entity type info
@@ -178,10 +198,11 @@ class AutoCanonicalGenerator {
             }
         }
 
-        if (this.algorithm.length > 0) {
+        if (this.algorithms.length > 0) {
             const args = [path.resolve(path.dirname(module.filename), './bert-canonical-annotator.py'), 'all'];
-            if (this.is_paraphraser)
-                args.push('--is-paraphraser');
+            args.push('--k-synonyms', topk_property_synonyms);
+            args.push('--k-domain-synonyms', topk_domain_synonyms);
+            args.push('--k-adjectives', topk_adjectives);
             if (this.gpt2_ordering)
                 args.push('--gpt2-ordering');
             if (this.pruning) {
@@ -189,7 +210,7 @@ class AutoCanonicalGenerator {
                 args.push(this.pruning);
             }
             args.push('--model-name-or-path');
-            args.push(this.model);
+            args.push(this.language_model);
             args.push(this.mask ? '--mask' : '--no-mask');
 
             // call bert to generate candidates
@@ -218,15 +239,17 @@ class AutoCanonicalGenerator {
                     await output(`./bert-canonical-annotator-out.json`, JSON.stringify(JSON.parse(stdout), null, 2));
                     const time = Math.round((new Date() - startTime) / 1000);
                     console.log(`Bert annotator took ${time} seconds to run.`);
-                } catch (e) {
+                } catch(e) {
                      await output(`./bert-canonical-annotator-out.json`, stdout);
                 }
             }
 
-            const { synonyms, adjectives } = JSON.parse(stdout);
-            if (this.algorithm.includes('bert') || this.algorithm.includes('adj'))
+            const { domains, synonyms, adjectives } = JSON.parse(stdout);
+            if (this.algorithms.includes('bert-domain-synonyms'))
+                this._updateFunctionCanonicals(domains);
+            if (this.algorithms.includes('bert-property-synonyms') || this.algorithms.includes('bert-adjectives'))
                 this._updateCanonicals(synonyms, adjectives);
-            if (this.algorithm.includes('bart')) {
+            if (this.algorithms.includes('bart-paraphrase')) {
                 const startTime = new Date();
                 const extractor = new CanonicalExtractor(this.class, this.functions, this.paraphraser_model, this.options);
                 await extractor.run(synonyms, functions);
@@ -235,6 +258,7 @@ class AutoCanonicalGenerator {
                     console.log(`Bart annotator took ${time} seconds to run.`);
                 }
             }
+            this._addProjectionCanonicals();
         }
 
         return this.class;
@@ -243,7 +267,7 @@ class AutoCanonicalGenerator {
     _getArgTypeCount(schema) {
         const count = {};
         for (let arg of schema.iterateArguments()) {
-            let typestr = typeToEntityType(schema.getArgType(arg.name));
+            let typestr = typeToString(arg.type);
             if (!typestr)
                 continue;
             count[typestr] = (count[typestr] || 0) + 1;
@@ -276,6 +300,21 @@ class AutoCanonicalGenerator {
         return null;
     }
 
+    _updateFunctionCanonicals(canonicals) {
+        for (let fname of this.functions) {
+            let func = this.class.queries[fname] || this.class.actions[fname];
+            const canonical = Array.isArray(func.nl_annotations.canonical) ? func.nl_annotations.canonical : [func.nl_annotations.canonical];
+            const candidates = canonicals[fname];
+            const maxCount = Object.values(candidates).reduce((a, b) => a + b, 0) / topk_domain_synonyms;
+            for (let candidate in candidates) {
+                if (candidates[candidate] > maxCount * this.pruning)
+                    canonical.push(candidate);
+            }
+
+            func.nl_annotations.canonical = canonical;
+        }
+    }
+
     _updateCanonicals(candidates, adjectives) {
         for (let fname of this.functions) {
             let func = this.class.queries[fname] || this.class.actions[fname];
@@ -290,10 +329,10 @@ class AutoCanonicalGenerator {
                 else if (Array.isArray(canonicals))
                     canonicals = { base: canonicals };
 
-                if (this.algorithm.includes('adj') && adjectives.includes(`${fname}.${arg}`))
+                if (this.algorithms.includes('bert-adjectives') && adjectives.includes(`${fname}.${arg}`))
                     canonicals['adjective'] = ['#'];
 
-                if (this.algorithm.includes('bert')) {
+                if (this.algorithms.includes('bert-property-synonyms')) {
                     for (let type in candidates[fname][arg]) {
                         for (let candidate in candidates[fname][arg][type]) {
                             if (this._hasConflict(fname, arg, type, candidate))
@@ -316,6 +355,70 @@ class AutoCanonicalGenerator {
                 }
             }
         }
+    }
+
+    _addProjectionCanonicals() {
+        for (let fname of this.functions) {
+            let func = this.class.queries[fname] || this.class.actions[fname];
+            for (let arg of func.iterateArguments()) {
+                if (this.annotatedProperties.includes(arg.name) || arg.name === 'id')
+                    continue;
+                if (arg.type.isBoolean)
+                    continue;
+
+                let canonicals = arg.metadata.canonical;
+                if (!canonicals)
+                    continue;
+                if (typeof canonicals === 'string' || Array.isArray(canonicals))
+                    continue;
+
+                for (let cat in canonicals) {
+                    if (['default', 'adjective', 'implicit_identity', 'property', 'projection_pronoun'].includes(cat))
+                        continue;
+                    if (cat.endsWith('_projection'))
+                        continue;
+                    if (cat.endsWith('_argmin') || cat.endsWith('_argmax'))
+                        continue;
+                    if (`${cat}_projection` in canonicals)
+                        continue;
+
+                    if (cat === 'passive_verb' || cat === 'verb') {
+                        canonicals[cat + '_projection'] = canonicals[cat].map((canonical) => {
+                            return this._processProjectionCanonical(canonical, cat);
+                        }).filter(Boolean).map((c) => {
+                            let tokens = c.split(' ');
+                            if (tokens.length === 1)
+                                return c;
+                            if (['IN', 'TO', 'PR'].includes(this._langPack.posTag(tokens)[tokens.length - 1]))
+                                return [...tokens.slice(0, -1), '|', tokens[tokens.length - 1]].join(' ');
+                            return c;
+                        }).filter(this._dedup);
+                    } else {
+                        canonicals[cat + '_projection'] = canonicals[cat].map((canonical) => {
+                            return this._processProjectionCanonical(canonical, cat);
+                        }).filter(Boolean).filter(this._dedup);
+                    }
+                }
+            }
+        }
+    }
+
+    _processProjectionCanonical(canonical, cat) {
+        if (canonical.includes('#') && !canonical.endsWith(' #'))
+            return null;
+        canonical = canonical.replace(' #', '');
+
+        if (canonical.endsWith(' a') || canonical.endsWith(' an') || canonical.endsWith(' the'))
+            canonical = canonical.substring(0, canonical.lastIndexOf(' '));
+
+        if (canonical.split(' ').length > 1 && cat === 'preposition')
+            return null;
+
+        return canonical;
+    }
+
+    _dedup(value, index, self) {
+        return self.indexOf(value) === index;
     }
 
     _isVerb(candidate) {

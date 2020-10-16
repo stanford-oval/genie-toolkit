@@ -69,6 +69,9 @@ function checkListProposal(nameList, info, hasLearnMore) {
 
 function addActionToListProposal(nameList, action) {
     const { ctx, results } = nameList;
+    if (ctx.resultInfo.projection !== null)
+        return null;
+
     const resultType = results[0].value.id.getType();
     if (!C.hasArgumentOfType(action, resultType))
         return null;
@@ -130,6 +133,14 @@ function positiveListProposalReply(ctx, [name, acceptedAction, mustHaveAction]) 
     } else {
         if (actionProposal !== null && !C.isSameFunction(actionProposal.schema, acceptedAction.schema))
             return null;
+
+        // do not consider a phrase of the form "play X" to be "accepting the action by name"
+        // if the action auto-confirms, because the user is likely playing something else
+        if (acceptedAction && name) {
+            const confirm = C.normalizeConfirmAnnotation(acceptedAction.schema);
+            if (confirm === 'auto')
+                return null;
+        }
 
         const chainParam = findChainParam(results[0], acceptedAction);
         if (!chainParam)

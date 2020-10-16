@@ -114,7 +114,7 @@ class ThingpediaLoader {
         this._recordType(Type.Currency);
         this._recordType(Type.Number);
         for (let unit of Units.BaseUnits)
-            this._recordType(Type.Measure(unit));
+            this._recordType(new Type.Measure(unit));
 
         await this._loadMetadata();
     }
@@ -263,7 +263,8 @@ class ThingpediaLoader {
 
             const attributes = { priority: ANNOTATION_PRIORITY[cat] };
             assert(Number.isFinite(attributes.priority), cat);
-            if (cat === canonical['default'])
+            if (cat === canonical['default'] ||
+                cat === ANNOTATION_RENAME[canonical['default']])
                 attributes.priority += 1;
 
             for (let form of annotvalue) {
@@ -341,7 +342,8 @@ class ThingpediaLoader {
                 repeat: true,
                 priority: ANNOTATION_PRIORITY[cat]
             };
-            if (cat === canonical['default'])
+            if (cat === canonical['default'] ||
+                cat === ANNOTATION_RENAME[canonical['default']])
                 attributes.priority += 1;
 
             for (let form of annotvalue) {
@@ -494,7 +496,8 @@ class ThingpediaLoader {
                 priority: ANNOTATION_PRIORITY[cat]
             };
             assert(Number.isFinite(attributes.priority), cat);
-            if (cat === canonical['default'])
+            if (cat === canonical['default'] ||
+                cat === ANNOTATION_RENAME[canonical['default']])
                 attributes.priority += 1;
 
             if (cat === 'npv') {
@@ -521,8 +524,11 @@ class ThingpediaLoader {
                 if (!Array.isArray(annotvalue))
                     annotvalue = [annotvalue];
 
-                for (let form of annotvalue)
+                for (let form of annotvalue) {
                     this._grammar.addRule(cat + '_argminmax', [form], this._runtime.simpleCombine(() => [pvar, argMinMax]), attributes);
+                    if (this._options.flags.inference)
+                        break;
+                }
             } else if (isProjection) {
                 if (cat === 'base')
                     continue;
@@ -977,7 +983,7 @@ class ThingpediaLoader {
 
     _addEntityConstants() {
         for (let entityType in this._entities) {
-            const ttType = Type.Entity(entityType);
+            const ttType = new Type.Entity(entityType);
             let typestr = typeToStringSafe(ttType);
             const { has_ner_support } = this._entities[entityType];
 
@@ -1066,7 +1072,7 @@ class ThingpediaLoader {
     }
 
     async _getDataset(kind) {
-        return await this._tpClient.getExamplesByKinds([kind]);
+        return this._tpClient.getExamplesByKinds([kind]);
     }
 
     async _loadMetadata() {

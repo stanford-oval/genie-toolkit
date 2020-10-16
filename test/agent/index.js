@@ -182,8 +182,14 @@ async function mockNLU(conversation) {
         const tokens = utterance.split(' ');
         const entities = {};
         for (let command of commands) {
-            if (command.utterance === utterance)
+            if (command.utterance === utterance) {
+                if (command.error) {
+                    const err = new Error(command.error.message);
+                    err.code = command.error.code;
+                    throw err;
+                }
                 return { tokens, entities, candidates: command.candidates };
+            }
         }
 
         return realSendUtterance.apply(this, arguments);

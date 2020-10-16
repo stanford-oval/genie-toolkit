@@ -82,7 +82,7 @@ function parseMeasure(str) {
 
     try {
         ThingTalk.Units.normalizeUnit(unit);
-    } catch (e) {
+    } catch(e) {
         console.error(`Invalid measurement unit ${unit}`);
         return undefined;
     }

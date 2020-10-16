@@ -33,14 +33,14 @@ const BUILTIN_TYPEMAP = {
     DateTime: Type.Date,
     Date: Type.Date,
     DataType: Type.Any,
-    URL: Type.Entity('tt:url'),
-    ImageObject: Type.Entity('tt:picture'),
-    Barcode: Type.Entity('tt:picture'),
+    URL: new Type.Entity('tt:url'),
+    ImageObject: new Type.Entity('tt:picture'),
+    Barcode: new Type.Entity('tt:picture'),
 
-    Mass: Type.Measure('kg'),
-    Energy: Type.Measure('kcal'),
-    Distance: Type.Measure('m'),
-    Duration: Type.Measure('ms'),
+    Mass: new Type.Measure('kg'),
+    Energy: new Type.Measure('kcal'),
+    Distance: new Type.Measure('m'),
+    Duration: new Type.Measure('ms'),
 
     GeoCoordinates: Type.Location,
     MonetaryAmount: Type.Currency,
@@ -117,41 +117,55 @@ const PROPERTY_FORCE_NOT_ARRAY = new Set([
 ]);
 
 const PROPERTY_TYPE_OVERRIDE = {
-    'telephone': Type.Entity('tt:phone_number'),
-    'email': Type.Entity('tt:email_address'),
-    'faxNumber': Type.Entity('tt:phone_number'),
-    'image': Type.Entity('tt:picture'),
-    'logo': Type.Entity('tt:picture'),
+    'telephone': new Type.Entity('tt:phone_number'),
+    'email': new Type.Entity('tt:email_address'),
+    'faxNumber': new Type.Entity('tt:phone_number'),
+    'image': new Type.Entity('tt:picture'),
+    'logo': new Type.Entity('tt:picture'),
     'checkinTime': Type.Time,
     'checkoutTime': Type.Time,
     'price': Type.Currency,
 
-    'weight': Type.Measure('ms'),
-    'depth': Type.Measure('m'),
+    'weight': new Type.Measure('ms'),
+    'depth': new Type.Measure('m'),
     'description': Type.String,
-    'addressCountry': Type.Entity('tt:country'),
-    'addressRegion': Type.Entity('tt:us_state'),
+    'addressCountry': new Type.Entity('tt:country'),
+    'addressRegion': new Type.Entity('tt:us_state'),
 
     // we want to prefer VideoObject to the default Clip
-    'video': Type.Entity('org.schema:VideoObject'),
+    'video': new Type.Entity('org.schema:VideoObject'),
 
     // we want to prefer Organization to the default Person
-    'publisher': Type.Entity('org.schema:Organization'),
+    'publisher': new Type.Entity('org.schema:Organization'),
 
     // weird number like things, but mostly text
     'recipeYield': Type.String,
 
-    'genre': Type.Array(Type.String),
-    'creator': Type.Array(Type.Entity('org.schema.Movie:Person')),
+    'genre': new Type.Array(Type.String),
+    'creator': new Type.Array(new Type.Entity('org.schema.Movie:Person')),
     'contentRating': Type.String,
-    'byArtist': Type.Entity('org.schema.Music:Person'),
+    'byArtist': new Type.Entity('org.schema.Music:Person'),
 
     'openingHours': Type.RecurrentTimeSpecification,
-    'priceRange': Type.Enum(['cheap', 'moderate', 'expensive', 'luxury']),
+    'priceRange': new Type.Enum(['cheap', 'moderate', 'expensive', 'luxury']),
     'workLocation': Type.Location,
 
-    'inLanguage': Type.Entity('tt:iso_lang_code'),
-    'knowsLanguage': Type.Array(Type.Entity('tt:iso_lang_code'))
+    'inLanguage': new Type.Entity('tt:iso_lang_code'),
+    'knowsLanguage': new Type.Array(new Type.Entity('tt:iso_lang_code'))
+};
+
+// Base canonical override
+// This is limited to one canonical per property (as if we replaced the property name)
+const PROPERTY_NAME_OVERRIDE_BY_DOMAIN = {
+    'restaurants': {
+        'starRating.ratingValue': 'michelinStar'
+    },
+    'hotels': {
+        'starRating.ratingValue': 'star'
+    },
+    'linkedin': {
+        'address.addressLocality': 'homeLocation'
+    }
 };
 
 const PROPERTY_CANONICAL_OVERRIDE = {
@@ -175,9 +189,18 @@ const PROPERTY_CANONICAL_OVERRIDE = {
         base: ['location', 'address'],
         preposition: ["in #", "from #", "around #", "at #", "on #"]
     },
+    'postalCode': {
+        base: ['postal code', 'postcode', 'zip code'],
+        preposition: ['in #', 'from #', 'in the # zip code'],
+    },
+    /*
     'streetAddress': {
         base: ['street']
     },
+    'addressLocality': {
+        base: ['city'],
+        preposition: ["in #", "from #"],
+    },*/
     'addressCountry': {
         preposition: ["in #", "from #"],
         base: ["country"]
@@ -185,10 +208,6 @@ const PROPERTY_CANONICAL_OVERRIDE = {
     'addressRegion': {
         preposition: ["in #", "from #"],
         base: ["state"]
-    },
-    'addressLocality': {
-        base: ['city'],
-        preposition: ["in #", "from #"],
     }
 };
 
@@ -331,6 +350,10 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         base_projection: ['language'],
         verb_projection: ['know', 'understand', 'master'],
         adjective: ['# speaking']
+    },
+    addressLocality: {
+        base: ['city', 'town', 'area'],
+        preposition: ["in #", "from #"],
     },
 
     // recipes
@@ -529,6 +552,11 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN = {
     }
 };
 
+const TABLE_CANONICAL_OVERRIDE = {
+    'MusicRecording': 'song',
+    'MusicAlbum': 'album'
+};
+
 const MANUAL_TABLE_CANONICAL_OVERRIDE = {
     'Restaurant': ['restaurant', 'diner', 'place', 'joint', 'eatery', 'canteen', 'cafeteria', 'cafe'],
     'Hotel': ['hotel', 'resort', 'lodging', 'motel', 'place'],
@@ -552,8 +580,6 @@ const PROPERTIES_NO_FILTER = [
 ];
 
 const PROPERTIES_DROP_WITH_GEO = [
-    'streetAddress', // street address and address locality should be handled by geo
-    'addressLocality'
 ];
 
 // HACK: certain structured types want to get the name & description property from Thing
@@ -565,10 +591,16 @@ const STRUCT_INCLUDE_THING_PROPERTIES = new Set([
 const STRING_FILE_OVERRIDES = {
     'org.schema.Restaurant:Restaurant_name': 'org.openstreetmap:restaurant',
     'org.schema.Person:Person_name': 'tt:person_full_name',
+    'org.schema.Person:Person_address_addressLocality': 'tt:location',
+    'org.schema.Hotel:Hotel_geo': 'org.schema.Hotel:Hotel_address_addressLocality',
+    'org.schema.Hotel:geo': 'org.schema.Restaurant:Hotel',
+    'org.schema.Hotel:Place_geo': 'org.schema.Hotel:Hotel_address_addressLocality',
+    'org.schema.Restaurant:Restaurant_geo': 'org.schema.Restaurant:Restaurant_address_addressLocality',
+    'org.schema.Restaurant:geo': 'org.schema.Restaurant:Restaurant_address_addressLocality',
+    'org.schema.Restaurant:Place_geo': 'org.schema.Restaurant:Restaurant_address_addressLocality',
     'org.schema.Person:Person_alumniOf': 'tt:university_names',
     'org.schema.Person:Person_worksFor': 'tt:company_name',
     'org.schema.Person:Person_jobTitle': 'tt:job_title',
-    'org.schema.Hotel:Hotel_name': 'org.openstreetmap:hotel',
     'org.schema.Music:MusicRecording_byArtist': 'tt:song_artist',
     'org.schema.Music:MusicAlbum_byArtist': 'tt:song_artist',
     'org.schema.Music:MusicRecording_inAlbum': 'tt:song_album',
@@ -625,8 +657,10 @@ module.exports = {
     STRUCTURED_HIERARCHIES,
     NON_STRUCT_TYPES,
     PROPERTY_CANONICAL_OVERRIDE,
+    PROPERTY_NAME_OVERRIDE_BY_DOMAIN,
     MANUAL_PROPERTY_CANONICAL_OVERRIDE,
     MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN,
+    TABLE_CANONICAL_OVERRIDE,
     MANUAL_TABLE_CANONICAL_OVERRIDE,
     MANUAL_COUNTED_OBJECT_OVERRIDE,
 

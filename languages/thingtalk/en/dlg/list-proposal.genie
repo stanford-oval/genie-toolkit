@@ -33,12 +33,18 @@
 // a "list proposal" consists of the first few results of the current query,
 // together with informative results about them, an offer to learn more, or an offer for an action
 system_list_proposal = {
-    ('i see' | 'i have' | 'i have found') name_list:result_name_list '.'
-        ('' |
-         'would you like to learn more ?' | 'would you like to learn more about either of them ?' |
-         'would you like to know more about them ?' | 'would you like to hear more about them ?' |
-         'are you interested to hear more about any of them ?')
-        => D.checkListProposal(name_list, null, true);
+    !inference {
+        ('i see' | 'i have' | 'i have found') name_list:result_name_list '.'
+            ('' |
+             'would you like to learn more ?' | 'would you like to learn more about either of them ?' |
+             'would you like to know more about them ?' | 'would you like to hear more about them ?' |
+             'are you interested to hear more about any of them ?')
+            => D.checkListProposal(name_list, null, true);
+    }
+    ?inference {
+        ('i see' | 'i have' | 'i have found') name_list:result_name_list '.'
+            => D.checkListProposal(name_list, null, true);
+    }
 
     ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' ('they' | 'all of them') 'are' info:result_info_phrase '.' [priority=2]
         => D.checkListProposal(name_list, info, true);
@@ -49,8 +55,10 @@ system_list_proposal = {
         return D.checkListProposal(name_list, info, true);
     };
 
-    ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' action:action_coref_list_proposal [priority=1]
-        => D.addActionToListProposal(name_list, action);
+    !inference {
+        ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' action:action_coref_list_proposal [priority=-1]
+            => D.addActionToListProposal(name_list, action);
+    }
 }
 
 generic_list_proposal_accept_phrase = {

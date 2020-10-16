@@ -1,0 +1,14 @@
+[{
+  "song": "spotify:track:4sPmO7WMQUAf45kwMOtONw",
+  "$error": {
+     "code": "no_active_device",
+     "message": "No Spotify device is active"
+  }
+},
+{
+  "song": "spotify:track:2zYzyRzz6pRmhPzyfMEC8s",
+  "$error": {
+     "code": "E_some_other_error",
+     "message": "Some other error occurred"
+  }
+}]

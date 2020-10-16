@@ -38,18 +38,6 @@ music_paraphrase =
 
 eval_set ?= eval
 
-mode ?= default
-
-default_process_schemaorg_flags = --manual
-base_process_schemaorg_flags =
-auto_process_schemaorg_falgs =
-custom_process_schemaorg_falgs ?=
-
-default_annotate_flags =
-base_annotate_flags =
-auto_annotate_flags = --algorithm bert,adj,bart --paraphraser-model ./models/paraphraser-bart
-custom_annotate_flags ?=
-
 template_file ?= thingtalk/en/thingtalk.genie
 dataset_file ?= emptydataset.tt
 synthetic_flags ?= \
@@ -63,6 +51,26 @@ generate_flags = $(foreach v,$(synthetic_flags),--set-flag $(v))
 
 target_pruning_size ?= 500
 maxdepth ?= 8
+
+annotation ?= manual
+paraphraser_options ?= --paraphraser-model ./models/paraphraser-bart-large-speedup-megabatch-5m
+
+baseline_process_schemaorg_flags =
+wikidata_process_schemaorg_flags = --wikidata-path ./wikidata-property-labels.json
+bert_process_schemaorg_flags =
+bart_process_schemaorg_flags =
+manual_process_schemaorg_flags = --manual
+manual+bart_process_schemaorg_flags = --manual
+
+baseline_annotate_flags =
+wikidata_annotate_flags =
+bert_annotate_flags = --algorithms bert-property-synonyms bert-domain-synonyms bert-adjectives
+bart_annotate_flags = --algorithms bart-paraphrase $(paraphraser_options)
+manual_annotate_flags =
+manual+bart_annotate_flags = --algorithms bart-paraphrase $(paraphraser_options)
+
+process_schemaorg_flags ?= $($(annotation)_process_schemaorg_flags)
+annotate_flags ?= $($(annotation)_annotate_flags)
 
 model ?= 1
 train_iterations ?= 100000
@@ -91,13 +99,16 @@ custom_train_nlu_flags ?=
 .PHONY: all train evaluate
 .SECONDARY:
 
-models/paraphraser-bart:
-	mkdir models
-	wget --no-verbose https://almond-static.stanford.edu/test-data/paraphraser-bart.tar.xz
-	tar -C models -xvf paraphraser-bart.tar.xz
+models/paraphraser-bart-large-speedup-megabatch-5m:
+	mkdir -p models
+	wget --no-verbose https://almond-static.stanford.edu/test-data/paraphraser-bart-large-speedup-megabatch-5m.tar.xz
+	tar -C models -xvf paraphraser-bart-large-speedup-megabatch-5m.tar.xz
+
+common-words.txt:
+	wget --no-verbose https://almond-static.stanford.edu/test-data/common-words.txt
 
 %/schema.tt: $(geniedir)/tool/autoqa/schemaorg/process-schema.js
-	$(genie) schemaorg-process-schema -o $@ $($(mode)_process_schemaorg_flags) --domain $* --class-name $($(*)_class_name) --white-list $($(*)_white_list)
+	$(genie) schemaorg-process-schema -o $@ $(process_schemaorg_flags) --domain $* --class-name $($(*)_class_name) --white-list $($(*)_white_list)
 
 emptydataset.tt:
 	echo 'dataset @empty {}' > $@
@@ -115,8 +126,8 @@ emptydataset.tt:
 	$(genie) sample-constants -o $@ --parameter-datasets $*/parameter-datasets.tsv --thingpedia $*/schema.trimmed.tt --devices $($(*)_class_name)
 	cat $(geniedir)/data/en-US/constants.tsv >> $@
 
-%/manifest.tt: %/constants.tsv %/schema.trimmed.tt %/parameter-datasets.tsv models/paraphraser-bart
-	$(genie) auto-annotate -o $@.tmp --constants $*/constants.tsv --thingpedia $*/schema.trimmed.tt --functions $($(*)_white_list) $($(mode)_annotate_flags) --parameter-datasets $*/parameter-datasets.tsv --dataset schemaorg
+%/manifest.tt: %/constants.tsv %/schema.trimmed.tt %/parameter-datasets.tsv models/paraphraser-bart-large-speedup-megabatch-5m common-words.txt
+	$(genie) auto-annotate -o $@.tmp --constants $*/constants.tsv --thingpedia $*/schema.trimmed.tt --functions $($(*)_white_list) $(annotate_flags) --parameter-datasets $*/parameter-datasets.tsv --dataset schemaorg
 	mv $@.tmp $@
 
 multidomain/manifest.tt: $(addsuffix /manifest.tt,$(all_experiments))

@@ -58,7 +58,20 @@ actionable_system_recommendation_short = {
 
     ( ctx:ctx_with_result_and_action 'i' ('recommend' | 'suggest') proposal:constant_name
     | ctx:ctx_with_result_noquestion ('i see' | 'i have' | 'i have found' | 'i have one , it is') proposal:constant_name
+    | ctx:ctx_with_result_argminmax 'the answer is' proposal:constant_name
     ) => D.makeRecommendation(ctx, proposal);
+
+    // these are tagged with ?inference because they use a lot of non-terminals in a single templates
+    // which makes them too slow at training time
+    ?inference {
+        ctx:ctx_with_result_argminmax 'the' base:base_table 'with the highest' param:out_param_Any 'is' proposal:constant_name [priority=1]
+            => D.makeArgMinMaxRecommendation(ctx, proposal, base, param, 'desc');
+        ctx:ctx_with_result_argminmax 'the' base:base_table 'with the lowest' param:out_param_Any 'is' proposal:constant_name [priority=1]
+            => D.makeArgMinMaxRecommendation(ctx, proposal, base, param, 'asc');
+
+        ctx:ctx_with_result_argminmax 'the' argminmax:apv_argminmax base:base_table 'is' proposal:constant_name [priority=2]
+            => D.makeArgMinMaxRecommendation(ctx, proposal, base, argminmax[0], argminmax[1]);
+    }
 }
 
 recommendation_info_action_pair = {
@@ -94,9 +107,11 @@ proposal_info_action_pair = {
         return [info, action];
     };
 
-    'is a' info:result_info_phrase '.' learn_more_offer [weight=0.2] => {
-        return [info, null];
-    };
+    !inference {
+        'is a' info:result_info_phrase '.' learn_more_offer [weight=0.2] => {
+            return [info, null];
+        };
+    }
 }
 
 actionable_system_display_result_short = {
@@ -117,7 +132,7 @@ system_nonlist_result = {
     //proposal:actionable_system_display_result_short action:action_coref_recommendation
     //    => D.checkActionForDisplayResult(proposal, action);
 
-    proposal:actionable_system_display_result_short anything_else_phrase => {
+    ?anything_else proposal:actionable_system_display_result_short anything_else_phrase => {
         const clone = {};
         Object.assign(clone, proposal);
         clone.hasAnythingElse = true;

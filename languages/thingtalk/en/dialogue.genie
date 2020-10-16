@@ -50,6 +50,7 @@ import './dlg/coref-actions';
 // keep this in alphabetical order
 import './dlg/action-confirm';
 import './dlg/action-results';
+import './dlg/aggregation-results';
 import './dlg/coref-questions';
 import './dlg/empty-search';
 import './dlg/initial-request';
@@ -69,17 +70,20 @@ context
     // these should be returned by S.getContextTags()
     ctx_multidomain,
     ctx_with_result,
+    ctx_with_table_result,
     ctx_with_action,
     ctx_without_action,
     ctx_with_result_and_action,
     ctx_with_result_question,
     ctx_with_result_noquestion,
+    ctx_with_result_argminmax,
     ctx_without_projection,
     ctx_for_related_question,
 
-    // result states (used to interpret user utterances)
+    // abstract result states (used to interpret user utterances)
     // these should be returned by S.tagContextForAgent()
     ctx_greet,
+    ctx_reinit,
     ctx_cancel,
     ctx_end,
     ctx_search_command,
@@ -145,11 +149,39 @@ function context(state) {
 // handle answers generated from the UI
 function answer(state, answer) {
     const ctx = S.getContextInfo(state);
+
+    // if the agent proposed something and the user says "yes", we accept the proposal
+    if (state.history[state.history.length-1].confirm === 'proposed' &&
+        answer.isBoolean && answer.value === true) {
+        const item = state.history[state.history.length-1].clone();
+        item.confirm = 'accepted';
+        return S.addNewItem(ctx, 'execute', null, 'accepted', item);
+    }
+
     switch (state.dialogueAct) {
     case 'sys_anything_else':
-        if (answer.isBoolean && answer.value === false)
-            return S.makeSimpleState(ctx, 'end', null);
+        if (answer.isBoolean) {
+            if (answer.value)
+                return S.makeSimpleState(ctx, 'reinit', null);
+            else
+                return S.makeSimpleState(ctx, 'end', null);
+        }
         return null;
+    case 'sys_recommend_one':
+    case 'sys_recommend_two':
+    case 'sys_recommend_three':
+    case 'sys_recommend_four':
+        // "yes" to a recommendation (without a proposed action) is an answer to
+        // "would you like to learn more"
+        if (answer.isBoolean && answer.value === true)
+            return S.makeSimpleState(ctx, 'learn_more', null);
+        // fallthrough
+    case 'sys_display_result':
+        // "no" to a recommendation or display result is cancel
+        if (answer.isBoolean && answer.value === false)
+            return S.makeSimpleState(ctx, 'cancel', null);
+        return null;
+
     case 'sys_slot_fill':
         return D.impreciseSlotFillAnswer(ctx, answer);
     case 'sys_search_question':
@@ -171,28 +203,42 @@ $agent = {
     !inference {
         ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
         | ctx:ctx_init ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
+        | ctx:ctx_reinit ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
         ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null));
     }
     ?inference {
         ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what can i do for you') '?'
         | ctx:ctx_init ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what can i do for you') '?'
+        | ctx:ctx_reinit ('how can i help you' | 'what can i do for you') '?'
         ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null));
     }
 
-    ctx:ctx_cancel anything_else_phrase
-        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_anything_else', null));
+    ?anything_else {
+        ctx:ctx_cancel anything_else_phrase
+            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_anything_else', null));
 
-    ctx:ctx_end 'alright ,' ('bye !' | 'good bye !')
-        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null));
+        ctx:ctx_end 'alright ,' ('bye !' | 'good bye !')
+            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null));
+    }
+    !anything_else {
+        ( ctx:ctx_cancel 'alright ,' ('bye !' | 'good bye !')
+        | ctx:ctx_end 'alright ,' ('bye !' | 'good bye !')
+        ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null));
+    }
 
     // action results
     action_success_phrase;
-    action:action_success_phrase anything_else_phrase => S.setEndBit(action, false);
+    ?anything_else action:action_success_phrase anything_else_phrase => S.setEndBit(action, false);
     action_error_phrase;
 
     // query results
     ctx:ctx_display_nonlist_result proposal:system_nonlist_result
         => D.makeDisplayResultReply(ctx, proposal);
+
+    // aggregation results
+    ( ctx:ctx_aggregation_question reply:count_aggregation_reply
+    | ctx:ctx_aggregation_question reply:other_aggregation_reply
+    ) => reply;
 
     // confirming an action
     action_confirm_phrase;
@@ -203,7 +249,7 @@ $agent = {
 
     // query refinement (through proposal or search question)
     !inference prop:system_generic_proposal => prop;
-    ctx:ctx_search_command questions:search_question
+    !inference ctx:ctx_search_command questions:search_question
         => D.makeSearchQuestion(ctx, questions);
 
     // slot filling of actions
@@ -236,9 +282,14 @@ $user = {
     | ctx:ctx_sys_anything_else thanks_phrase ('goodbye !' | '') [weight=0.01]
     ) => S.makeSimpleState(ctx, 'end', null);
 
-    ( ctx:ctx_sys_anything_else stmt:initial_command
-    | ctx:ctx_sys_anything_else yes_please_phrase stmt:initial_command
-    ) => D.startNewRequest(ctx, stmt);
+    ?anything_else {
+        ( ctx:ctx_sys_anything_else stmt:initial_command
+        | ctx:ctx_sys_anything_else yes_please_phrase stmt:initial_command
+        ) => D.startNewRequest(ctx, stmt);
+
+        ctx:ctx_sys_anything_else yes_please_phrase
+            => S.makeSimpleState(ctx, 'reinit', null);
+    }
 
     // action confirmations
     ctx:ctx_sys_confirm_action accept_phrase [weight=0.9]
