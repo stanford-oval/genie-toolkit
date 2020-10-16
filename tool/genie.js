@@ -61,6 +61,8 @@ const subcommands = {
     'subsample-thingpedia': require('./subsample-thingpedia'),
     'preprocess-string-dataset': require('./preprocess-string-dataset'),
 
+    'autoqa-annotation-diff': require('./autoqa/annotation-diff'),
+
     'schemaorg-process-schema': require('./autoqa/schemaorg/process-schema'),
     'schemaorg-normalize-data': require('./autoqa/schemaorg/normalize-data'),
     'schemaorg-trim-class': require('./autoqa/schemaorg/trim-class'),

@@ -32,7 +32,7 @@ const Gettext = require('node-gettext');
 
 const _unzipApi = {
     unzip(zipPath, dir) {
-        var args = ['-uo', zipPath, '-d', dir];
+        let args = ['-uo', zipPath, '-d', dir];
         return util.promisify(child_process.execFile)('/usr/bin/unzip', args, {
             maxBuffer: 10 * 1024 * 1024 }).then(({ stdout, stderr }) => {
             console.log('stdout', stdout);
@@ -123,7 +123,7 @@ module.exports = class Platform extends Tp.BasePlatform {
     //
     // Which capabilities are available affects which apps are allowed to run
     hasCapability(cap) {
-        switch(cap) {
+        switch (cap) {
         case 'code-download':
         case 'thingpedia-client':
         case 'gettext':
@@ -140,7 +140,7 @@ module.exports = class Platform extends Tp.BasePlatform {
     //
     // This will return null if hasCapability(cap) is false
     getCapability(cap) {
-        switch(cap) {
+        switch (cap) {
         case 'code-download':
             return _unzipApi;
         case 'thingpedia-client':
@@ -225,7 +225,7 @@ module.exports = class Platform extends Tp.BasePlatform {
     // Returns true if a change actually occurred, false if the change
     // was rejected
     setAuthToken(authToken) {
-        var oldAuthToken = this._prefs.get('auth-token');
+        let oldAuthToken = this._prefs.get('auth-token');
         if (oldAuthToken !== undefined && authToken !== oldAuthToken)
             return false;
         this._prefs.set('auth-token', authToken);

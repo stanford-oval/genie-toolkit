@@ -68,3 +68,8 @@
       score: 0.8
     - code: ['now', '=>', '@com.facebook.post']
       score: 0.7
+-
+  utterance: '!! test command error 500 !!'
+  error:
+    code: 500
+    message: 'Internal Server Error'

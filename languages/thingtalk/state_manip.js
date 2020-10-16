@@ -67,8 +67,13 @@ function getTableArgMinMax(table) {
     while (table.isProjection || table.isCompute)
         table = table.table;
 
-    if (table.isIndex && table.table.isSort && table.indices.length === 1 && table.indices[0].isNumber &&
-        table.indices[0].value === 1)
+    // either an index of a sort, where the index is exactly 1 or -1
+    // or a slice of a sort, with a base of 1 or -1, and a limit of 1
+    // (both are equivalent and get normalized, but sometimes we don't run the normalization)
+    if ((table.isIndex && table.table.isSort && table.indices.length === 1 && table.indices[0].isNumber &&
+         (table.indices[0].value === 1 || table.indices[0].value === -1)) ||
+        (table.isSlice && table.table.isSort && table.base.isNumber &&
+         (table.base.value === 1 || table.base.value === -1) && table.limit.isNumber && table.limit.value === 1))
         return [table.table.field, table.table.direction];
 
     return null;
@@ -277,15 +282,22 @@ function isUserAskingResultQuestion(ctx) {
     // is the user asking a question about the result (or a specific element), or refining a search?
     // we say it's a question if the user is asking a projection question, and it's not the first turn,
     // and the projection was different at the previous turn
+    // we also treat it as a question for all compute questions because that simplifies
+    // writing the templates
 
     if (ctx.state.dialogueAct === 'action_question')
         return true;
     if (ctx.currentIdx === null)
         return false;
+
+    const currentTable = ctx.current.stmt.table;
+    if (!currentTable)
+        return false;
+    if (currentTable.isProjection && currentTable.table.isCompute)
+        return true;
+
     if (ctx.currentIdx === 0) {
-        if (!ctx.current.stmt.table)
-            return false;
-        const filterTable = C.findFilterTable(ctx.current.stmt.table);
+        const filterTable = C.findFilterTable(currentTable);
         if (!filterTable)
             return false;
         return C.filterUsesParam(filterTable.filter, 'id');
@@ -630,6 +642,9 @@ function tagContextForAgent(ctx) {
         assert(ctx.state.history.length === 0, `expected empty history for greet`);
         return ['ctx_greet'];
 
+    case 'reinit':
+        return ['ctx_reinit'];
+
     case 'cancel':
         return ['ctx_cancel'];
 
@@ -677,14 +692,10 @@ function tagContextForAgent(ctx) {
                 // "how many restaurants nearby have more than 500 reviews?"
                 return ['ctx_aggregation_question'];
             } else if (ctx.resultInfo.argMinMaxField !== null) {
-                /* FIXME
-                const [field, direction] = info.resultInfo.argMinMaxField;
-                // for now, we treat these as single result questions
-                if (field === 'distance') // "find the nearest starbucks"
-                    tags.push('ctx_distance_argminmax_question');
-                else // "what is the highest rated restaurant nearby?"
-                    tags.push('ctx_argminmax_question');
-                */
+                // these are treated as single result questions, but
+                // the context is tagged as ctx_with_result_argminmax instead of
+                // ctx_with_result_noquestion
+                // so the answer is worded differently
                 return ['ctx_single_result_search_command', 'ctx_complete_search_command'];
             } else if (ctx.resultInfo.hasSingleResult) {
                 // "what is the rating of Terun?"
@@ -744,12 +755,18 @@ function getContextTags(ctx) {
 
     assert(ctx.results.length > 0);
     tags.push('ctx_with_result');
+    if (ctx.resultInfo.isTable)
+        tags.push('ctx_with_table_result');
+
     if (ctxCanHaveRelatedQuestion(ctx))
         tags.push('ctx_for_related_question');
     if (isUserAskingResultQuestion(ctx)) {
         tags.push('ctx_with_result_question');
     } else {
-        tags.push('ctx_with_result_noquestion');
+        if (ctx.resultInfo.argMinMaxField)
+            tags.push('ctx_with_result_argminmax');
+        else
+            tags.push('ctx_with_result_noquestion');
         if (ctx.nextInfo)
             tags.push('ctx_with_result_and_action');
 

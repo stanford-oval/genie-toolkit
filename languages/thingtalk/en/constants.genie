@@ -88,14 +88,22 @@ constant_date_range = {
         }
 
         // year
-        year:constant_Number => [
-            C.makeDate(new Ast.DatePiece(year.value, null, null, null), '+', null),
-            C.makeDate(new Ast.DatePiece(year.value, null, null, null), '+', new Ast.Value.Measure(1, 'year'))
-        ];
-        year:constant_Number 's' => [
-            C.makeDate(new Ast.DatePiece(year.value, null, null, null), '+', null),
-            C.makeDate(new Ast.DatePiece(year.value, null, null, null), '+', new Ast.Value.Measure(10, 'year'))
-        ];
+        year:constant_Number => {
+            if (year.value <= 0)
+                return null;
+            return [
+                C.makeDate(new Ast.DatePiece(year.value, null, null, null), '+', null),
+                C.makeDate(new Ast.DatePiece(year.value, null, null, null), '+', new Ast.Value.Measure(1, 'year'))
+            ];
+        };
+        year:constant_Number 's' => {
+            if (year.value <= 0)
+                return null;
+            return [
+                C.makeDate(new Ast.DatePiece(year.value, null, null, null), '+', null),
+                C.makeDate(new Ast.DatePiece(year.value, null, null, null), '+', new Ast.Value.Measure(10, 'year'))
+            ];
+        };
     }
 
     // months

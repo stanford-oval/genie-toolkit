@@ -52,6 +52,9 @@ function makeActionRecommendation(ctx, action) {
 
     const results = ctx.results;
     assert(results.length > 0);
+    const currentTable = ctx.current.stmt.table;
+    if (currentTable && currentTable.isSlice && currentTable.limit.value !== 1)
+        return null;
 
     const topResult = results[0];
     const id = topResult.value.id;
@@ -69,9 +72,24 @@ function makeActionRecommendation(ctx, action) {
     return null;
 }
 
+function makeArgMinMaxRecommendation(ctx, name, base, param, direction) {
+    if (!ctx.resultInfo.argMinMaxField)
+        return null;
+    if (!C.isSameFunction(base.schema, ctx.currentFunctionSchema))
+        return null;
+    if (direction !== ctx.resultInfo.argMinMaxField[1] ||
+        param.name !== ctx.resultInfo.argMinMaxField[0])
+        return null;
+
+    return makeRecommendation(ctx, name);
+}
+
 function makeRecommendation(ctx, name) {
     const results = ctx.results;
     assert(results.length > 0);
+    const currentTable = ctx.current.stmt.table;
+    if (currentTable && currentTable.isSlice && currentTable.limit.value !== 1)
+        return null;
 
     const topResult = results[0];
     const id = topResult.value.id;
@@ -85,6 +103,9 @@ function makeRecommendation(ctx, name) {
 function makeThingpediaRecommendation(ctx, info) {
     const results = ctx.results;
     assert(results.length > 0);
+    const currentTable = ctx.current.stmt.table;
+    if (currentTable && currentTable.isSlice && currentTable.limit.value !== 1)
+        return null;
 
     const topResult = results[0];
     if (!topResult.value.id)
@@ -164,7 +185,7 @@ function combineDisplayResult(proposal, newInfo) {
     const results = ctx.results;
     assert(results.length > 0);
     const topResult = results[0];
-    assert (isInfoPhraseCompatibleWithResult(topResult, newInfo));
+    assert(isInfoPhraseCompatibleWithResult(topResult, newInfo));
 
     newInfo = SlotBag.merge(oldInfo, newInfo);
     if (newInfo === null)
@@ -234,6 +255,14 @@ function positiveRecommendationReply(ctx, acceptedAction, name) {
     if (name !== null && !topResult.value.id.equals(name))
         return null;
 
+    // do not consider a phrase of the form "play X" to be "accepting the action by name"
+    // if the action auto-confirms, because the user is likely playing something else
+    if (acceptedAction && name) {
+        const confirm = C.normalizeConfirmAnnotation(acceptedAction.schema);
+        if (confirm === 'auto')
+            return null;
+    }
+
     const chainParam = findChainParam(topResult, acceptedAction);
     if (!chainParam)
         return null;
@@ -274,6 +303,7 @@ function repeatCommandReply(ctx) {
 
 module.exports = {
     makeActionRecommendation,
+    makeArgMinMaxRecommendation,
     makeRecommendation,
     makeThingpediaRecommendation,
     makeAnswerStyleRecommendation,

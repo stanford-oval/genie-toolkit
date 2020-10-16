@@ -89,7 +89,7 @@ module.exports = class ThingTalkDataset {
                 this._dataset.examples[index].preprocessed = await this.preprocessAll(
                     this._dataset.examples[index].utterances, this._dataset.examples[index].id, language
                 );
-            } catch (e) {
+            } catch(e) {
                 console.log(this._dataset.examples[index].id);
                 console.log(this._dataset.examples[index].utterances);
                 console.log(this._dataset.examples[index].preprocessed);

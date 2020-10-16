@@ -18,8 +18,8 @@ A: >> expecting = yesno
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.facebook.post(status="hello world") #[confirm=enum(confirmed)];
 
-A: Alright, I posted hello world on facebook.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => @com.facebook.post attribute:id = GENERIC_ENTITY_tt:device_id_0 param:status = QUOTED_STRING_0 #[ results = [ ] ] ; // {"QUOTED_STRING_0":"hello world","GENERIC_ENTITY_tt:device_id_0":{"value":"com.facebook-6","display":"Some Device 6"}}
+A: I posted hello world on facebook.
+A: >> context = null // {}
 A: >> expecting = null
 
 ====
@@ -42,8 +42,8 @@ A: >> expecting = yesno
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.facebook.post(status="hello world") #[confirm=enum(confirmed)];
 
-A: Alright, I posted hello world on facebook.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => @com.facebook.post attribute:id = GENERIC_ENTITY_tt:device_id_0 param:status = QUOTED_STRING_0 #[ results = [ ] ] ; // {"QUOTED_STRING_0":"hello world","GENERIC_ENTITY_tt:device_id_0":{"value":"com.facebook-6","display":"Some Device 6"}}
+A: I posted hello world on facebook.
+A: >> context = null // {}
 A: >> expecting = null
 
 # U: Thank you, goodbye
@@ -73,8 +73,8 @@ A: >> expecting = yesno
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.twitter.post(status="hello world") #[confirm=enum(confirmed)];
 
-A: Alright, I tweeted hello world.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => @com.twitter.post attribute:id = GENERIC_ENTITY_tt:device_id_0 param:status = QUOTED_STRING_0 #[ results = [ ] ] ; // {"QUOTED_STRING_0":"hello world","GENERIC_ENTITY_tt:device_id_0":{"value":"twitter-foo","display":"Twitter Account foo"}}
+A: I tweeted hello world.
+A: >> context = null // {}
 A: >> expecting = null
 
 ====
@@ -83,7 +83,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant() => notify;
 
-A: I have found Ramen Nagi or Evvia Estiatorio. They're restaurants rated 4.5 star.
+A: I see Ramen Nagi or Evvia Estiatorio. They're restaurants rated 4.5 star.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two ; now => @com.yelp.restaurant => notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:image_url = PICTURE_0 , param:link = URL_0 , param:cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_1 ] , param:price = enum:moderate , param:rating = NUMBER_0 , param:reviewCount = NUMBER_1 , param:geo = LOCATION_0 , param:phone = PHONE_NUMBER_0 } ] ] #[ count = NUMBER_2 ] #[ more = true ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"PICTURE_0":"https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg","URL_0":"https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"ramen","display":"Ramen"},"GENERIC_ENTITY_com.yelp:restaurant_cuisine_1":{"value":"noodles","display":"Noodles"},"NUMBER_0":4.5,"NUMBER_1":1625,"LOCATION_0":{"latitude":37.445523,"longitude":-122.1607073261,"display":null},"PHONE_NUMBER_0":"","NUMBER_2":50}
 A: >> expecting = command
 
@@ -91,29 +91,29 @@ A: >> expecting = command
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => [price] of @com.yelp.restaurant(), id == "vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant => notify;
 
-A: Ramen Nagi is a restaurant that are moderate. Would you like to learn more?
+A: Ramen Nagi is a moderate restaurants.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => [ param:price ] of ( ( @com.yelp.restaurant ) filter param:id == GENERIC_ENTITY_com.yelp:restaurant_0 ) => notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:price = enum:moderate } ] ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":null}}
-A: >> expecting = command
+A: >> expecting = null
 
 # U: No, I'm looking for something expensive.
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), price == enum(expensive) => notify;
 
-A: I see Evvia Estiatorio and NOLA Restaurant & Bar. They're restaurants that are expensive.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two ; now => ( @com.yelp.restaurant ) filter param:price == enum:expensive => notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:image_url = PICTURE_0 , param:link = URL_0 , param:cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 ] , param:price = enum:expensive , param:rating = NUMBER_0 , param:reviewCount = NUMBER_1 , param:geo = LOCATION_0 , param:phone = PHONE_NUMBER_0 } ] ] #[ count = 10 ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"1vMgajRAI3lYwuCeGX58oQ","display":"Evvia Estiatorio"},"PICTURE_0":"https://s3-media3.fl.yelpcdn.com/bphoto/Q3lgbcNuRbdrITtLN5CQgQ/o.jpg","URL_0":"https://www.yelp.com/biz/evvia-estiatorio-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"greek","display":"Greek"},"NUMBER_0":4.5,"NUMBER_1":2393,"LOCATION_0":{"latitude":37.445077,"longitude":-122.163778,"display":null},"PHONE_NUMBER_0":"+16503260983"}
+A: I have Evvia Estiatorio, NOLA Restaurant & Bar and Tamarine Restaurant. All of them are expensive restaurants.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three ; now => ( @com.yelp.restaurant ) filter param:price == enum:expensive => notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:image_url = PICTURE_0 , param:link = URL_0 , param:cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 ] , param:price = enum:expensive , param:rating = NUMBER_0 , param:reviewCount = NUMBER_1 , param:geo = LOCATION_0 , param:phone = PHONE_NUMBER_0 } ] ] #[ count = 10 ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"1vMgajRAI3lYwuCeGX58oQ","display":"Evvia Estiatorio"},"PICTURE_0":"https://s3-media3.fl.yelpcdn.com/bphoto/Q3lgbcNuRbdrITtLN5CQgQ/o.jpg","URL_0":"https://www.yelp.com/biz/evvia-estiatorio-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"greek","display":"Greek"},"NUMBER_0":4.5,"NUMBER_1":2393,"LOCATION_0":{"latitude":37.445077,"longitude":-122.163778,"display":null},"PHONE_NUMBER_0":"+16503260983"}
 A: >> expecting = command
 
 # U: Thanks, this is sufficient.
 U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
 
-A: Is there anything else I can help you with?
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_anything_else ; now => ( @com.yelp.restaurant ) filter param:price == enum:expensive => notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:image_url = PICTURE_0 , param:link = URL_0 , param:cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 ] , param:price = enum:expensive , param:rating = NUMBER_0 , param:reviewCount = NUMBER_1 , param:geo = LOCATION_0 , param:phone = PHONE_NUMBER_0 } ] ] #[ count = 10 ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"1vMgajRAI3lYwuCeGX58oQ","display":"Evvia Estiatorio"},"PICTURE_0":"https://s3-media3.fl.yelpcdn.com/bphoto/Q3lgbcNuRbdrITtLN5CQgQ/o.jpg","URL_0":"https://www.yelp.com/biz/evvia-estiatorio-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"greek","display":"Greek"},"NUMBER_0":4.5,"NUMBER_1":2393,"LOCATION_0":{"latitude":37.445077,"longitude":-122.163778,"display":null},"PHONE_NUMBER_0":"+16503260983"}
-A: >> expecting = command
+#A: Is there anything else I can help you with?
+#A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_anything_else ; now => ( @com.yelp.restaurant ) filter param:price == enum:expensive => #notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:image_url = PICTURE_0 , param:link = URL_0 , param:cuisines = #[ GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 ] , param:price = enum:expensive , param:rating = NUMBER_0 , param:reviewCount = NUMBER_1 , param:geo = #LOCATION_0 , param:phone = PHONE_NUMBER_0 } ] ] #[ count = 10 ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"1vMgajRAI3lYwuCeGX58oQ","display":"Evvia Estiatorio"},"PICTURE_0":"https://s3-media3.fl.yelpcdn.com/bphoto/Q3lgbcNuRbdrITtLN5CQgQ/o.jpg","URL_0":"https://www.yelp.com/biz/evvia-estiatorio-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"greek","display":"Greek"},"NUMBER_0":4.5,"NUMBER_1":2393,"LOCATION_0":{"latitude":37.445077,"longitude":-122.163778,"display":null},"PHONE_NUMBER_0":"+16503260983"}
+#A: >> expecting = command
 
 # U: No thanks, goodbye
-U: \t $dialogue @org.thingpedia.dialogue.transaction.end;
+#U: \t $dialogue @org.thingpedia.dialogue.transaction.end;
 
-A: Alright, good bye!
+A: Alright, bye!
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -123,16 +123,16 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
 
-A: The current weather in Palo Alto, California is raining. The temperature is 18 C and the humidity is 15 %.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @org.thingpedia.weather.current param:location = LOCATION_0 => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 , param:wind_speed = MEASURE_mps_0 , param:humidity = NUMBER_0 , param:cloudiness = 7 , param:fog = NUMBER_0 , param:status = enum:raining , param:icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":18},"MEASURE_mps_0":{"unit":"mps","value":7},"NUMBER_0":15,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
+A: The current weather in Palo Alto, California is sunny. The temperature is 15.6 C and the humidity is 91.3 %.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @org.thingpedia.weather.current param:location = LOCATION_0 => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 , param:wind_speed = MEASURE_mps_0 , param:humidity = NUMBER_0 , param:cloudiness = NUMBER_1 , param:fog = 0 , param:status = enum:sunny , param:icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":15.6},"MEASURE_mps_0":{"unit":"mps","value":3.4},"NUMBER_0":91.3,"NUMBER_1":4.7,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
 A: >> expecting = null
 
 # what's the temperature?
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => [temperature] of @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
 
-A: It is raining today in Palo Alto, California and the temperature is 18 C.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => [ param:temperature ] of ( @org.thingpedia.weather.current param:location = LOCATION_0 ) => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 , param:status = enum:raining } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":18}}
+A: The temperature is 15.6 C.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => [ param:temperature ] of ( @org.thingpedia.weather.current param:location = LOCATION_0 ) => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 , param:status = enum:sunny } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":15.6}}
 A: >> expecting = null
 
 ====
@@ -148,8 +148,8 @@ A: >> expecting = location
 # let's use the location picker!
 U: \t bookkeeping(answer(new Location(37.442156, -122.1634471, "Palo Alto, California")));
 
-A: The current weather in Palo Alto, California is raining. The temperature is 18 C and the humidity is 15 %.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @org.thingpedia.weather.current param:location = LOCATION_0 => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 , param:wind_speed = MEASURE_mps_0 , param:humidity = NUMBER_0 , param:cloudiness = 7 , param:fog = NUMBER_0 , param:status = enum:raining , param:icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":18},"MEASURE_mps_0":{"unit":"mps","value":7},"NUMBER_0":15,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
+A: The current weather in Palo Alto, California is sunny. The temperature is 15.6 C and the humidity is 91.3 %.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => @org.thingpedia.weather.current param:location = LOCATION_0 => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 , param:wind_speed = MEASURE_mps_0 , param:humidity = NUMBER_0 , param:cloudiness = NUMBER_1 , param:fog = 0 , param:status = enum:sunny , param:icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":15.6},"MEASURE_mps_0":{"unit":"mps","value":3.4},"NUMBER_0":91.3,"NUMBER_1":4.7,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
 A: >> expecting = null
 
 ====
@@ -158,8 +158,8 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (@com.spotify.song(), id =~ ("despacito"))[1] => @com.spotify.play_song(song=id);
 
-A: Alright, I played Despacito on Spotify on str:ENTITY_com.spotify:device::36:.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => ( ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:id =~ QUOTED_STRING_0 ) [ 1 ] => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 on param:song = param:id #[ results = [ { param:song = GENERIC_ENTITY_com.spotify:song_0 , param:device = GENERIC_ENTITY_com.spotify:device_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"despacito","GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:6habFhsOp2NvshLv26DqMb","display":"Despacito"},"GENERIC_ENTITY_com.spotify:device_0":{"value":"str:ENTITY_com.spotify:device::36:","display":null}}
+A: I played Despacito on Spotify on str:ENTITY_com.spotify:device::36:.
+A: >> context = null // {}
 A: >> expecting = null
 
 ====
@@ -168,8 +168,8 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (@com.spotify.song(), contains(artists, null^^com.spotify:artist("ariana grande")))[1] => @com.spotify.play_song(song=id);
 
-A: Alright, I played 7 rings on Spotify on str:ENTITY_com.spotify:device::36:.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => ( ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:artists contains GENERIC_ENTITY_com.spotify:artist_0 ) [ 1 ] => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 on param:song = param:id #[ results = [ { param:song = GENERIC_ENTITY_com.spotify:song_0 , param:device = GENERIC_ENTITY_com.spotify:device_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"spotify:artist:66CXWjxzNUsdJxJ2JdwvnR","display":"Ariana Grande"},"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:6ocbgoVGwYJhOv1GgI9NsF","display":"7 rings"},"GENERIC_ENTITY_com.spotify:device_0":{"value":"str:ENTITY_com.spotify:device::36:","display":null}}
+A: I played 7 rings on Spotify on str:ENTITY_com.spotify:device::36:.
+A: >> context = null // {}
 A: >> expecting = null
 
 ====
@@ -178,8 +178,8 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (@com.spotify.song(), album == null^^com.spotify:album("folklore")) =>  @com.spotify.play_song(song=id);
 
-A: Alright, your request was completed successfully.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:album == GENERIC_ENTITY_com.spotify:album_0 => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 on param:song = param:id #[ results = [ { param:song = GENERIC_ENTITY_com.spotify:song_0 , param:device = GENERIC_ENTITY_com.spotify:device_0 } ] ] #[ count = NUMBER_0 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:2fenSS68JI1h4Fo296JfGr","display":"folklore"},"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:4R2kfaDFhslZEMJqAFNpdd","display":"cardigan"},"GENERIC_ENTITY_com.spotify:device_0":{"value":"str:ENTITY_com.spotify:device::36:","display":null},"NUMBER_0":22}
+A: Your request was completed successfully.
+A: >> context = null // {}
 A: >> expecting = null
 
 ====
@@ -238,7 +238,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), contains(cuisines, null^^com.yelp:restaurant_cuisine("italian")) => notify;
 
-A: I have Patxi's Pizza, Cafe Borrone or Osteria Toscana. All of them are restaurants in the Italian category which are moderate.
+A: I have found Patxi's Pizza, Cafe Borrone or Osteria Toscana. All of them are restaurant having Italian food that is moderate.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three ; now => ( @com.yelp.restaurant ) filter param:cuisines contains GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:image_url = PICTURE_0 , param:link = URL_0 , param:cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_1 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_2 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 ] , param:price = enum:moderate , param:rating = NUMBER_0 , param:reviewCount = NUMBER_1 , param:geo = LOCATION_0 , param:phone = PHONE_NUMBER_0 } ] ] #[ count = 5 ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"italian","display":"Italian"},"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"OLa29RISTT2raUNPLo-9xw","display":"Patxi's Pizza"},"PICTURE_0":"https://s3-media3.fl.yelpcdn.com/bphoto/Jvow48SJ-SfCcxLt0a7uWg/o.jpg","URL_0":"https://www.yelp.com/biz/patxis-pizza-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_1":{"value":"pizza","display":"Pizza"},"GENERIC_ENTITY_com.yelp:restaurant_cuisine_2":{"value":"salad","display":"Salad"},"NUMBER_0":3.5,"NUMBER_1":1700,"LOCATION_0":{"latitude":37.445153,"longitude":-122.163337,"display":null},"PHONE_NUMBER_0":"+16504739999"}
 A: >> expecting = command
 
@@ -267,18 +267,18 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), contains(cuisines, null^^com.yelp:restaurant_cuisine("italian")) => notify;
 
-A: I have Patxi's Pizza, Cafe Borrone or Osteria Toscana. All of them are restaurants in the Italian category which are moderate.
+A: I have found Patxi's Pizza, Cafe Borrone or Osteria Toscana. All of them are restaurant having Italian food that is moderate.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three ; now => ( @com.yelp.restaurant ) filter param:cuisines contains GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:image_url = PICTURE_0 , param:link = URL_0 , param:cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_1 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_2 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 ] , param:price = enum:moderate , param:rating = NUMBER_0 , param:reviewCount = NUMBER_1 , param:geo = LOCATION_0 , param:phone = PHONE_NUMBER_0 } ] ] #[ count = 5 ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"italian","display":"Italian"},"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"OLa29RISTT2raUNPLo-9xw","display":"Patxi's Pizza"},"PICTURE_0":"https://s3-media3.fl.yelpcdn.com/bphoto/Jvow48SJ-SfCcxLt0a7uWg/o.jpg","URL_0":"https://www.yelp.com/biz/patxis-pizza-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_1":{"value":"pizza","display":"Pizza"},"GENERIC_ENTITY_com.yelp:restaurant_cuisine_2":{"value":"salad","display":"Salad"},"NUMBER_0":3.5,"NUMBER_1":1700,"LOCATION_0":{"latitude":37.445153,"longitude":-122.163337,"display":null},"PHONE_NUMBER_0":"+16504739999"}
 A: >> expecting = command
 
 U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
 
-A: Is there anything else I can help you with?
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_anything_else ; now => ( @com.yelp.restaurant ) filter param:cuisines contains GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:image_url = PICTURE_0 , param:link = URL_0 , param:cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_1 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_2 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 ] , param:price = enum:moderate , param:rating = NUMBER_0 , param:reviewCount = NUMBER_1 , param:geo = LOCATION_0 , param:phone = PHONE_NUMBER_0 } ] ] #[ count = 5 ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"italian","display":"Italian"},"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"OLa29RISTT2raUNPLo-9xw","display":"Patxi's Pizza"},"PICTURE_0":"https://s3-media3.fl.yelpcdn.com/bphoto/Jvow48SJ-SfCcxLt0a7uWg/o.jpg","URL_0":"https://www.yelp.com/biz/patxis-pizza-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_1":{"value":"pizza","display":"Pizza"},"GENERIC_ENTITY_com.yelp:restaurant_cuisine_2":{"value":"salad","display":"Salad"},"NUMBER_0":3.5,"NUMBER_1":1700,"LOCATION_0":{"latitude":37.445153,"longitude":-122.163337,"display":null},"PHONE_NUMBER_0":"+16504739999"}
-A: >> expecting = command
+#A: Is there anything else I can help you with?
+#A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_anything_else ; now => ( @com.yelp.restaurant ) filter param:cuisines contains GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:image_url = PICTURE_0 , param:link = URL_0 , param:cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_1 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_2 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 ] , param:price = enum:moderate , param:rating = NUMBER_0 , param:reviewCount = NUMBER_1 , param:geo = LOCATION_0 , param:phone = PHONE_NUMBER_0 } ] ] #[ count = 5 ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"italian","display":"Italian"},"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"OLa29RISTT2raUNPLo-9xw","display":"Patxi's Pizza"},"PICTURE_0":"https://s3-media3.fl.yelpcdn.com/bphoto/Jvow48SJ-SfCcxLt0a7uWg/o.jpg","URL_0":"https://www.yelp.com/biz/patxis-pizza-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_1":{"value":"pizza","display":"Pizza"},"GENERIC_ENTITY_com.yelp:restaurant_cuisine_2":{"value":"salad","display":"Salad"},"NUMBER_0":3.5,"NUMBER_1":1700,"LOCATION_0":{"latitude":37.445153,"longitude":-122.163337,"display":null},"PHONE_NUMBER_0":"+16504739999"}
+#A: >> expecting = command
 
 # "no thanks", but intercepted by the exact match
-U: \r bookkeeping special special:no
+#U: \r bookkeeping special special:no
 A: Alright, good bye!
 A: >> context = null // {}
 A: >> expecting = null
@@ -288,8 +288,8 @@ A: >> expecting = null
 # repeat this song
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.spotify.player_repeat(repeat=enum(track));
-A: Alright, I repeated this song for you.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => @com.spotify.player_repeat attribute:id = GENERIC_ENTITY_tt:device_id_0 param:repeat = enum:track #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"}}
+A: I repeated this song for you.
+A: >> context = null // {}
 A: >> expecting = null
 
 ====
@@ -298,9 +298,9 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), contains(cuisines, "peruvian"^^com.yelp:restaurant_cuisine("Peruvian")) => notify;
 
-A: Sorry, I cannot find any restaurant with those characteristics. Would you like another cuisines?
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_empty_search_question param:cuisines ; now => ( @com.yelp.restaurant ) filter param:cuisines contains GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 => notify #[ results = [ ] ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"peruvian","display":"Peruvian"}}
-A: >> expecting = generic
+A: Sorry, I cannot find any restaurant like that.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_empty_search ; now => ( @com.yelp.restaurant ) filter param:cuisines contains GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 => notify #[ results = [ ] ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"peruvian","display":"Peruvian"}}
+A: >> expecting = command
 
 ====
 # 17-empty-action-result
@@ -308,15 +308,306 @@ A: >> expecting = generic
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.spotify.song(), contains(artists, "invalid"^^com.spotify:artist("Invalid")) => @com.spotify.play_song(song=id);
 
-A: Sorry, there are no song with those characteristics. Would you like a different artist?
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_empty_search_question param:artists ; now => ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:artists contains GENERIC_ENTITY_com.spotify:artist_0 => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 on param:song = param:id #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"invalid","display":"Invalid"}}
-A: >> expecting = generic
+A: Sorry, I cannot find any song like that.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_empty_search ; now => ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:artists contains GENERIC_ENTITY_com.spotify:artist_0 => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 on param:song = param:id #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"invalid","display":"Invalid"}}
+A: >> expecting = command
 
 ====
 # 18-agent-phrase-with-my
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.spotify.player_shuffle(shuffle=enum(on));
-A: Alright, I shuffled your Spotify.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_success ; now => @com.spotify.player_shuffle attribute:id = GENERIC_ENTITY_tt:device_id_0 param:shuffle = enum:on #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"}}
+A: I shuffled your Spotify.
+A: >> context = null // {}
 A: >> expecting = null
 
+====
+# 19-aggregation-count-basic
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => aggregate count of @com.yelp.restaurant() => notify;
+
+A: I see 60 restaurant with those characteristics.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => aggregate count of ( @com.yelp.restaurant ) => notify #[ results = [ { param:count = NUMBER_0 } ] ] ; // {"NUMBER_0":60}
+A: >> expecting = null
+
+====
+# 20-aggregation-count-filter
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => aggregate count of (@com.yelp.restaurant(), contains(cuisines, "italian"^^com.yelp:restaurant_cuisine("Italian"))) => notify;
+
+A: There are 5 restaurant with those characteristics.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => aggregate count of ( ( @com.yelp.restaurant ) filter param:cuisines contains GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 ) => notify #[ results = [ { param:count = 5 } ] ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"italian","display":"Italian"}}
+A: >> expecting = null
+
+====
+# 21-aggregation-min
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => aggregate min rating of (@com.yelp.restaurant()) => notify;
+
+A: The minimum rating is 3.5.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => aggregate min param:rating of ( @com.yelp.restaurant ) => notify #[ results = [ { param:rating = NUMBER_0 } ] ] ; // {"NUMBER_0":3.5}
+A: >> expecting = null
+
+====
+# 22-aggregation-avg
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => aggregate avg rating of (@com.yelp.restaurant()) => notify;
+
+A: The average rating is 4.1.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => aggregate avg param:rating of ( @com.yelp.restaurant ) => notify #[ results = [ { param:rating = NUMBER_0 } ] ] ; // {"NUMBER_0":4.058333333333334}
+A: >> expecting = null
+
+====
+# 22-aggregation-avg
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => aggregate avg rating of (@com.yelp.restaurant()) => notify;
+
+A: The average rating is 4.1.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => aggregate avg param:rating of ( @com.yelp.restaurant ) => notify #[ results = [ { param:rating = NUMBER_0 } ] ] ; // {"NUMBER_0":4.058333333333334}
+A: >> expecting = null
+
+====
+# 23-distance-question
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => [distance] of compute distance(geo, $context.location.current_location) of (@com.yelp.restaurant()) => notify;
+
+A: The distance is 2004.1 m.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => [ param:distance ] of ( compute distance ( param:geo , LOCATION_0 ) of ( @com.yelp.restaurant ) ) => notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:distance = MEASURE_m_0 } ] ] #[ count = NUMBER_0 ] #[ more = true ] ; // {"LOCATION_0":{"latitude":37.4275,"longitude":-122.1697,"display":null},"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"MEASURE_m_0":{"unit":"m","value":2004.0661629148217},"NUMBER_0":50}
+A: >> expecting = null
+
+====
+# 24-error-500
+U: !! test command error 500 !!
+
+A: Sorry, there seems to be a problem with the Almond service at the moment. Please try again later.
+A: >> context = null // {}
+A: >> expecting = null
+
+====
+# 25-yesno-yelp-1
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => (@com.yelp.restaurant(), id =~ "ramen nagi") => notify;
+
+A: Ramen Nagi is a moderate restaurants rated 4.5 star.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => ( @com.yelp.restaurant ) filter param:id =~ QUOTED_STRING_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:image_url = PICTURE_0 , param:link = URL_0 , param:cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_1 ] , param:price = enum:moderate , param:rating = NUMBER_0 , param:reviewCount = NUMBER_1 , param:geo = LOCATION_0 , param:phone = PHONE_NUMBER_0 } ] ] ; // {"QUOTED_STRING_0":"ramen nagi","GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"PICTURE_0":"https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg","URL_0":"https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"ramen","display":"Ramen"},"GENERIC_ENTITY_com.yelp:restaurant_cuisine_1":{"value":"noodles","display":"Noodles"},"NUMBER_0":4.5,"NUMBER_1":1625,"LOCATION_0":{"latitude":37.445523,"longitude":-122.1607073261,"display":null},"PHONE_NUMBER_0":""}
+A: >> expecting = null
+
+# yes please
+U: \r bookkeeping special special:yes
+
+A: What would you like to know?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_learn_more_what ; now => ( @com.yelp.restaurant ) filter param:id =~ QUOTED_STRING_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:image_url = PICTURE_0 , param:link = URL_0 , param:cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_1 ] , param:price = enum:moderate , param:rating = NUMBER_0 , param:reviewCount = NUMBER_1 , param:geo = LOCATION_0 , param:phone = PHONE_NUMBER_0 } ] ] ; // {"QUOTED_STRING_0":"ramen nagi","GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"PICTURE_0":"https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg","URL_0":"https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"ramen","display":"Ramen"},"GENERIC_ENTITY_com.yelp:restaurant_cuisine_1":{"value":"noodles","display":"Noodles"},"NUMBER_0":4.5,"NUMBER_1":1625,"LOCATION_0":{"latitude":37.445523,"longitude":-122.1607073261,"display":null},"PHONE_NUMBER_0":""}
+A: >> expecting = command
+
+====
+# 26-yesno-yelp-2
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => (@com.yelp.restaurant(), id =~ "ramen nagi") => notify;
+
+A: Ramen Nagi is a moderate restaurants rated 4.5 star.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => ( @com.yelp.restaurant ) filter param:id =~ QUOTED_STRING_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:image_url = PICTURE_0 , param:link = URL_0 , param:cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_1 ] , param:price = enum:moderate , param:rating = NUMBER_0 , param:reviewCount = NUMBER_1 , param:geo = LOCATION_0 , param:phone = PHONE_NUMBER_0 } ] ] ; // {"QUOTED_STRING_0":"ramen nagi","GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"PICTURE_0":"https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg","URL_0":"https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"ramen","display":"Ramen"},"GENERIC_ENTITY_com.yelp:restaurant_cuisine_1":{"value":"noodles","display":"Noodles"},"NUMBER_0":4.5,"NUMBER_1":1625,"LOCATION_0":{"latitude":37.445523,"longitude":-122.1607073261,"display":null},"PHONE_NUMBER_0":""}
+A: >> expecting = null
+
+# no thanks
+U: \r bookkeeping special special:no
+
+#A: Is there anything else I can help you with?
+#A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_anything_else ; now => ( @com.yelp.restaurant ) filter param:id =~ QUOTED_STRING_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:image_url = PICTURE_0 , param:link = URL_0 , param:cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_1 ] , param:price = enum:moderate , param:rating = NUMBER_0 , param:reviewCount = NUMBER_1 , param:geo = LOCATION_0 , param:phone = PHONE_NUMBER_0 } ] ] ; // {"QUOTED_STRING_0":"ramen nagi","GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"PICTURE_0":"https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg","URL_0":"https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"ramen","display":"Ramen"},"GENERIC_ENTITY_com.yelp:restaurant_cuisine_1":{"value":"noodles","display":"Noodles"},"NUMBER_0":4.5,"NUMBER_1":1625,"LOCATION_0":{"latitude":37.445523,"longitude":-122.1607073261,"display":null},"PHONE_NUMBER_0":""}
+#A: >> expecting = command
+
+# no thanks
+#U: \r bookkeeping special special:no
+
+A: Alright, good bye!
+A: >> context = null // {}
+A: >> expecting = null
+
+====
+# 27-yesno-spotify-1
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => (@com.spotify.song(), id =~ "Nice For What") => notify;
+
+A: Nice For What is a song by Drake in the album Scorpion. Would you like to play it on Spotify?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:id =~ QUOTED_STRING_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.spotify:song_0 , param:artists = [ GENERIC_ENTITY_com.spotify:artist_0 ] , param:album = GENERIC_ENTITY_com.spotify:album_0 , param:genres = [ QUOTED_STRING_1 , QUOTED_STRING_2 , QUOTED_STRING_3 , QUOTED_STRING_4 , QUOTED_STRING_5 , QUOTED_STRING_6 ] , param:release_date = DATE_0 , param:popularity = NUMBER_0 , param:energy = NUMBER_1 , param:danceability = NUMBER_2 } ] ] ; now => @com.spotify.play_song param:song = GENERIC_ENTITY_com.spotify:song_0 #[ confirm = enum:proposed ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"Nice For What","GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:3CA9pLiwRIGtUBiMjbZmRw","display":"Nice For What"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"spotify:artist:3TVXtAsR1Inumwj472S9r4","display":"Drake"},"GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:1ATL5GLyefJaxhQzSPVrLX","display":"Scorpion"},"QUOTED_STRING_1":"canadian hip hop","QUOTED_STRING_2":"canadian pop","QUOTED_STRING_3":"hip hop","QUOTED_STRING_4":"pop rap","QUOTED_STRING_5":"rap","QUOTED_STRING_6":"toronto rap","DATE_0":"2018-06-29T00:00:00.000Z","NUMBER_0":79,"NUMBER_1":90,"NUMBER_2":58}
+A: >> expecting = command
+
+# yes please
+U: \r bookkeeping special special:yes
+
+A: I played Nice For What on Spotify on str:ENTITY_com.spotify:device::43:.
+A: >> context = null // {}
+A: >> expecting = null
+
+====
+# 28-yesno-spotify-2
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => (@com.spotify.song(), id =~ "Nice For What") => notify;
+
+A: Nice For What is a song by Drake in the album Scorpion. Would you like to play it on Spotify?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:id =~ QUOTED_STRING_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.spotify:song_0 , param:artists = [ GENERIC_ENTITY_com.spotify:artist_0 ] , param:album = GENERIC_ENTITY_com.spotify:album_0 , param:genres = [ QUOTED_STRING_1 , QUOTED_STRING_2 , QUOTED_STRING_3 , QUOTED_STRING_4 , QUOTED_STRING_5 , QUOTED_STRING_6 ] , param:release_date = DATE_0 , param:popularity = NUMBER_0 , param:energy = NUMBER_1 , param:danceability = NUMBER_2 } ] ] ; now => @com.spotify.play_song param:song = GENERIC_ENTITY_com.spotify:song_0 #[ confirm = enum:proposed ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"Nice For What","GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:3CA9pLiwRIGtUBiMjbZmRw","display":"Nice For What"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"spotify:artist:3TVXtAsR1Inumwj472S9r4","display":"Drake"},"GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:1ATL5GLyefJaxhQzSPVrLX","display":"Scorpion"},"QUOTED_STRING_1":"canadian hip hop","QUOTED_STRING_2":"canadian pop","QUOTED_STRING_3":"hip hop","QUOTED_STRING_4":"pop rap","QUOTED_STRING_5":"rap","QUOTED_STRING_6":"toronto rap","DATE_0":"2018-06-29T00:00:00.000Z","NUMBER_0":79,"NUMBER_1":90,"NUMBER_2":58}
+A: >> expecting = command
+
+# no thanks
+U: \r bookkeeping special special:no
+
+#A: Is there anything else I can help you with?
+#A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_anything_else ; now => ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:id =~ QUOTED_STRING_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.spotify:song_0 , param:artists = [ GENERIC_ENTITY_com.spotify:artist_0 ] , param:album = GENERIC_ENTITY_com.spotify:album_0 , param:genres = [ QUOTED_STRING_1 , QUOTED_STRING_2 , QUOTED_STRING_3 , QUOTED_STRING_4 , QUOTED_STRING_5 , QUOTED_STRING_6 ] , param:release_date = DATE_0 , param:popularity = NUMBER_0 , param:energy = NUMBER_1 , param:danceability = NUMBER_2 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"Nice For What","GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:3CA9pLiwRIGtUBiMjbZmRw","display":"Nice For What"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"spotify:artist:3TVXtAsR1Inumwj472S9r4","display":"Drake"},"GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:1ATL5GLyefJaxhQzSPVrLX","display":"Scorpion"},"QUOTED_STRING_1":"canadian hip hop","QUOTED_STRING_2":"canadian pop","QUOTED_STRING_3":"hip hop","QUOTED_STRING_4":"pop rap","QUOTED_STRING_5":"rap","QUOTED_STRING_6":"toronto rap","DATE_0":"2018-06-29T00:00:00.000Z","NUMBER_0":79,"NUMBER_1":90,"NUMBER_2":58}
+#A: >> expecting = command
+
+# no thanks
+#U: \r bookkeeping special special:no
+
+A: Alright, good bye!
+A: >> context = null // {}
+A: >> expecting = null
+
+====
+# 29-expected-spotify-error
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => @com.spotify.play_song(song="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:song("Hello"));
+
+A: Sorry, no Spotify player is active.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_error ; now => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 param:song = GENERIC_ENTITY_com.spotify:song_0 #[ results = [ ] ] #[ error = enum:no_active_device ] ; // {"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:4sPmO7WMQUAf45kwMOtONw","display":"Hello"},"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"}}
+A: >> expecting = null
+
+====
+# 30-unexpected-spotify-error
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => @com.spotify.play_song(song="spotify:track:2zYzyRzz6pRmhPzyfMEC8s"^^com.spotify:song("Hello"));
+
+A: Sorry, Some other error occurred.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_action_error ; now => @com.spotify.play_song attribute:id = GENERIC_ENTITY_tt:device_id_0 param:song = GENERIC_ENTITY_com.spotify:song_0 #[ results = [ ] ] #[ error = QUOTED_STRING_0 ] ; // {"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:2zYzyRzz6pRmhPzyfMEC8s","display":"Hello"},"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"Some other error occurred"}
+A: >> expecting = null
+
+====
+# 31-displaying-dates
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => [release_date] of (@com.spotify.song(), id =~ "Nice For What") => notify;
+
+A: Nice For What is a song from 6/28/2018. Would you like to play it on Spotify?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => [ param:release_date ] of ( ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:id =~ QUOTED_STRING_0 ) => notify #[ results = [ { param:id = GENERIC_ENTITY_com.spotify:song_0 , param:release_date = DATE_0 } ] ] ; now => @com.spotify.play_song param:song = GENERIC_ENTITY_com.spotify:song_0 #[ confirm = enum:proposed ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"Nice For What","GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:3CA9pLiwRIGtUBiMjbZmRw","display":"Nice For What"},"DATE_0":"2018-06-29T00:00:00.000Z"}
+A: >> expecting = command
+
+====
+# 32-projection-must-be-shown
+# issue #338
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => [release_date] of (@com.spotify.song(), id =~ "hello") => notify;
+
+A: Hello? is a song from 5/24/2018. Would you like to play it on Spotify?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => [ param:release_date ] of ( ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:id =~ QUOTED_STRING_0 ) => notify #[ results = [ { param:id = GENERIC_ENTITY_com.spotify:song_0 , param:release_date = DATE_0 } ] ] #[ count = 11 ] ; now => @com.spotify.play_song param:song = GENERIC_ENTITY_com.spotify:song_0 #[ confirm = enum:proposed ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"hello","GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:7qwt4xUIqQWCu1DJf96g2k","display":"Hello?"},"DATE_0":"2018-05-25T00:00:00.000Z"}
+A: >> expecting = command
+
+====
+# 33-top-k-must-not-be-single
+# issue #339
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => (sort popularity desc of @com.spotify.song())[1:3] => notify;
+
+A: I have found ROCKSTAR (feat. Roddy Ricch), Blinding Lights or death bed (coffee for your head).
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three ; now => ( sort param:popularity desc of ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) ) [ 1 : 3 ] => notify #[ results = [ { param:id = GENERIC_ENTITY_com.spotify:song_0 , param:artists = [ GENERIC_ENTITY_com.spotify:artist_0 , GENERIC_ENTITY_com.spotify:artist_1 ] , param:album = GENERIC_ENTITY_com.spotify:album_0 , param:genres = [ QUOTED_STRING_0 , QUOTED_STRING_1 ] , param:release_date = DATE_0 , param:popularity = NUMBER_0 , param:energy = NUMBER_1 , param:danceability = NUMBER_2 } ] ] #[ count = 3 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:7ytR5pFWmSjzHJIeQkgog4","display":"ROCKSTAR (feat. Roddy Ricch)"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"spotify:artist:4r63FhuTkUYltbVAg5TQnk","display":"DaBaby"},"GENERIC_ENTITY_com.spotify:artist_1":{"value":"spotify:artist:757aE44tKEUQEqRuT6GnEB","display":"Roddy Ricch"},"GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:623PL2MBg50Br5dLXC9E9e","display":"BLAME IT ON BABY"},"QUOTED_STRING_0":"north carolina hip hop","QUOTED_STRING_1":"rap","DATE_0":"2020-04-17T00:00:00.000Z","NUMBER_0":100,"NUMBER_1":69,"NUMBER_2":74}
+A: >> expecting = command
+
+====
+# 34-search-album
+
+# what is the release date of the album the wall
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => [release_date] of (@com.spotify.album(), id =~ "the wall") => notify;
+
+A: The Wall is an album from 11/29/1979.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => [ param:release_date ] of ( ( @com.spotify.album attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:id =~ QUOTED_STRING_0 ) => notify #[ results = [ { param:id = GENERIC_ENTITY_com.spotify:album_0 , param:release_date = DATE_0 } ] ] #[ count = 4 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"the wall","GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:5Dbax7G8SWrP9xyzkOvy2F","display":"The Wall"},"DATE_0":"1979-11-30T00:00:00.000Z"}
+A: >> expecting = null
+
+====
+# 35-change-of-topic
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => [release_date] of (@com.spotify.album(), id =~ "the wall") => notify;
+
+A: The Wall is an album from 11/29/1979.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => [ param:release_date ] of ( ( @com.spotify.album attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:id =~ QUOTED_STRING_0 ) => notify #[ results = [ { param:id = GENERIC_ENTITY_com.spotify:album_0 , param:release_date = DATE_0 } ] ] #[ count = 4 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"the wall","GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:5Dbax7G8SWrP9xyzkOvy2F","display":"The Wall"},"DATE_0":"1979-11-30T00:00:00.000Z"}
+A: >> expecting = null
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
+
+A: The current weather in Palo Alto, California is sunny. The temperature is 15.6 C and the humidity is 91.3 %.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_display_result ; now => [ param:release_date ] of ( ( @com.spotify.album attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:id =~ QUOTED_STRING_0 ) => notify #[ results = [ { param:id = GENERIC_ENTITY_com.spotify:album_0 , param:release_date = DATE_0 } ] ] #[ count = 4 ] ; now => @org.thingpedia.weather.current param:location = LOCATION_0 => notify #[ results = [ { param:location = LOCATION_0 , param:temperature = MEASURE_C_0 , param:wind_speed = MEASURE_mps_0 , param:humidity = NUMBER_0 , param:cloudiness = NUMBER_1 , param:fog = 0 , param:status = enum:sunny , param:icon = PICTURE_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"the wall","GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:5Dbax7G8SWrP9xyzkOvy2F","display":"The Wall"},"DATE_0":"1979-11-30T00:00:00.000Z","LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":15.6},"MEASURE_mps_0":{"unit":"mps","value":3.4},"NUMBER_0":91.3,"NUMBER_1":4.7,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
+A: >> expecting = null
+
+====
+# 36-reinit
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => (@com.spotify.song(), id =~ "Nice For What") => notify;
+
+A: Nice For What is a song by Drake in the album Scorpion. Would you like to play it on Spotify?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:id =~ QUOTED_STRING_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.spotify:song_0 , param:artists = [ GENERIC_ENTITY_com.spotify:artist_0 ] , param:album = GENERIC_ENTITY_com.spotify:album_0 , param:genres = [ QUOTED_STRING_1 , QUOTED_STRING_2 , QUOTED_STRING_3 , QUOTED_STRING_4 , QUOTED_STRING_5 , QUOTED_STRING_6 ] , param:release_date = DATE_0 , param:popularity = NUMBER_0 , param:energy = NUMBER_1 , param:danceability = NUMBER_2 } ] ] ; now => @com.spotify.play_song param:song = GENERIC_ENTITY_com.spotify:song_0 #[ confirm = enum:proposed ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"Nice For What","GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:3CA9pLiwRIGtUBiMjbZmRw","display":"Nice For What"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"spotify:artist:3TVXtAsR1Inumwj472S9r4","display":"Drake"},"GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:1ATL5GLyefJaxhQzSPVrLX","display":"Scorpion"},"QUOTED_STRING_1":"canadian hip hop","QUOTED_STRING_2":"canadian pop","QUOTED_STRING_3":"hip hop","QUOTED_STRING_4":"pop rap","QUOTED_STRING_5":"rap","QUOTED_STRING_6":"toronto rap","DATE_0":"2018-06-29T00:00:00.000Z","NUMBER_0":79,"NUMBER_1":90,"NUMBER_2":58}
+A: >> expecting = command
+
+# no thanks
+U: \r bookkeeping special special:no
+
+A: Alright, good bye!
+A: >> context = null // {}
+A: >> expecting = null
+
+#A: Is there anything else I can help you with?
+#A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_anything_else ; now => ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:id =~ QUOTED_STRING_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.spotify:song_0 , param:artists = [ GENERIC_ENTITY_com.spotify:artist_0 ] , param:album = GENERIC_ENTITY_com.spotify:album_0 , param:genres = [ QUOTED_STRING_1 , QUOTED_STRING_2 , QUOTED_STRING_3 , QUOTED_STRING_4 , QUOTED_STRING_5 , QUOTED_STRING_6 ] , param:release_date = DATE_0 , param:popularity = NUMBER_0 , param:energy = NUMBER_1 , param:danceability = NUMBER_2 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"Nice For What","GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:3CA9pLiwRIGtUBiMjbZmRw","display":"Nice For What"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"spotify:artist:3TVXtAsR1Inumwj472S9r4","display":"Drake"},"GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:1ATL5GLyefJaxhQzSPVrLX","display":"Scorpion"},"QUOTED_STRING_1":"canadian hip hop","QUOTED_STRING_2":"canadian pop","QUOTED_STRING_3":"hip hop","QUOTED_STRING_4":"pop rap","QUOTED_STRING_5":"rap","QUOTED_STRING_6":"toronto rap","DATE_0":"2018-06-29T00:00:00.000Z","NUMBER_0":79,"NUMBER_1":90,"NUMBER_2":58}
+#A: >> expecting = command
+
+# yes please
+#U: \r bookkeeping special special:yes
+
+#A: What can I do for you?
+#A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_greet ; now => ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) filter param:id =~ QUOTED_STRING_0 => notify #[ results = [ { param:id = GENERIC_ENTITY_com.spotify:song_0 , param:artists = [ GENERIC_ENTITY_com.spotify:artist_0 ] , param:album = GENERIC_ENTITY_com.spotify:album_0 , param:genres = [ QUOTED_STRING_1 , QUOTED_STRING_2 , QUOTED_STRING_3 , QUOTED_STRING_4 , QUOTED_STRING_5 , QUOTED_STRING_6 ] , param:release_date = DATE_0 , param:popularity = NUMBER_0 , param:energy = NUMBER_1 , param:danceability = NUMBER_2 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"Nice For What","GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:3CA9pLiwRIGtUBiMjbZmRw","display":"Nice For What"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"spotify:artist:3TVXtAsR1Inumwj472S9r4","display":"Drake"},"GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:1ATL5GLyefJaxhQzSPVrLX","display":"Scorpion"},"QUOTED_STRING_1":"canadian hip hop","QUOTED_STRING_2":"canadian pop","QUOTED_STRING_3":"hip hop","QUOTED_STRING_4":"pop rap","QUOTED_STRING_5":"rap","QUOTED_STRING_6":"toronto rap","DATE_0":"2018-06-29T00:00:00.000Z","NUMBER_0":79,"NUMBER_1":90,"NUMBER_2":58}
+#A: >> expecting = command
+
+====
+# 37-argminmax-most
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => (sort popularity desc of @com.spotify.song())[1] => notify;
+
+A: The most popular song is ROCKSTAR (feat. Roddy Ricch). It is song by DaBaby from 4/16/2020. Would you like to play it on Spotify?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => ( sort param:popularity desc of ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) ) [ 1 ] => notify #[ results = [ { param:id = GENERIC_ENTITY_com.spotify:song_0 , param:artists = [ GENERIC_ENTITY_com.spotify:artist_0 , GENERIC_ENTITY_com.spotify:artist_1 ] , param:album = GENERIC_ENTITY_com.spotify:album_0 , param:genres = [ QUOTED_STRING_0 , QUOTED_STRING_1 ] , param:release_date = DATE_0 , param:popularity = NUMBER_0 , param:energy = NUMBER_1 , param:danceability = NUMBER_2 } ] ] ; now => @com.spotify.play_song param:song = GENERIC_ENTITY_com.spotify:song_0 #[ confirm = enum:proposed ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:7ytR5pFWmSjzHJIeQkgog4","display":"ROCKSTAR (feat. Roddy Ricch)"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"spotify:artist:4r63FhuTkUYltbVAg5TQnk","display":"DaBaby"},"GENERIC_ENTITY_com.spotify:artist_1":{"value":"spotify:artist:757aE44tKEUQEqRuT6GnEB","display":"Roddy Ricch"},"GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:623PL2MBg50Br5dLXC9E9e","display":"BLAME IT ON BABY"},"QUOTED_STRING_0":"north carolina hip hop","QUOTED_STRING_1":"rap","DATE_0":"2020-04-17T00:00:00.000Z","NUMBER_0":100,"NUMBER_1":69,"NUMBER_2":74}
+A: >> expecting = command
+
+====
+# 38-argminmax-least
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => (sort popularity asc of @com.spotify.song())[1] => notify;
+
+A: The least popular song is Love Yourself. It is song by Justin Bieber in the album Romantic Pop Songs. Would you like to play it on Spotify?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => ( sort param:popularity asc of ( @com.spotify.song attribute:id = GENERIC_ENTITY_tt:device_id_0 ) ) [ 1 ] => notify #[ results = [ { param:id = GENERIC_ENTITY_com.spotify:song_0 , param:artists = [ GENERIC_ENTITY_com.spotify:artist_0 ] , param:album = GENERIC_ENTITY_com.spotify:album_0 , param:genres = [ QUOTED_STRING_0 , QUOTED_STRING_1 , QUOTED_STRING_2 ] , param:release_date = DATE_0 , param:popularity = 0 , param:energy = NUMBER_0 , param:danceability = NUMBER_1 } ] ] ; now => @com.spotify.play_song param:song = GENERIC_ENTITY_com.spotify:song_0 #[ confirm = enum:proposed ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:0VXeNEtuiD77F2StUeUadK","display":"Love Yourself"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"spotify:artist:1uNFoZAHBGtllmzznpCI3s","display":"Justin Bieber"},"GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:74jDw6TsdKnT92V790QfvF","display":"Romantic Pop Songs"},"QUOTED_STRING_0":"canadian pop","QUOTED_STRING_1":"pop","QUOTED_STRING_2":"post-teen pop","DATE_0":"2020-08-10T00:00:00.000Z","NUMBER_0":43,"NUMBER_1":78}
+A: >> expecting = command
+
+====
+# 39-argminmax-2
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => (sort reviewCount desc of @com.yelp.restaurant())[1] => notify;
+
+A: The restaurant with the highest review count is NOLA Restaurant & Bar. It is a expensive restaurants rated 3.5 star.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => ( sort param:reviewCount desc of ( @com.yelp.restaurant ) ) [ 1 ] => notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:image_url = PICTURE_0 , param:link = URL_0 , param:cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_1 ] , param:price = enum:expensive , param:rating = NUMBER_0 , param:reviewCount = NUMBER_1 , param:geo = LOCATION_0 , param:phone = PHONE_NUMBER_0 } ] ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"jwaXc3VVGDFQu1aCoiXwdw","display":"NOLA Restaurant & Bar"},"PICTURE_0":"https://s3-media2.fl.yelpcdn.com/bphoto/tna5SSdgZq3fFxoi4-Xx7A/o.jpg","URL_0":"https://www.yelp.com/biz/nola-restaurant-and-bar-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"cajun","display":"Cajun/Creole"},"GENERIC_ENTITY_com.yelp:restaurant_cuisine_1":{"value":"newamerican","display":"American (New)"},"NUMBER_0":3.5,"NUMBER_1":2821,"LOCATION_0":{"latitude":37.4450225830078,"longitude":-122.161323547363,"display":null},"PHONE_NUMBER_0":"+16503282722"}
+A: >> expecting = null
+
+====
+# 40-argminmax-2-least
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => (sort reviewCount asc of @com.yelp.restaurant())[1] => notify;
+
+A: The restaurant with the lowest review count is The Ivy Cambridge Brasserie. It is restaurant rated 4.5 star.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one ; now => ( sort param:reviewCount asc of ( @com.yelp.restaurant ) ) [ 1 ] => notify #[ results = [ { param:id = GENERIC_ENTITY_com.yelp:restaurant_0 , param:image_url = PICTURE_0 , param:link = URL_0 , param:cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 ] , param:rating = NUMBER_0 , param:reviewCount = 12 , param:geo = LOCATION_0 , param:phone = PHONE_NUMBER_0 } ] ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"yzBYyndSQ3RI6Hci2F9pRQ","display":"The Ivy Cambridge Brasserie"},"PICTURE_0":"https://s3-media4.fl.yelpcdn.com/bphoto/9daDsE_Aq-AtJnDDPruBSQ/o.jpg","URL_0":"https://www.yelp.com/biz/the-ivy-cambridge-brasserie-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"british","display":"British"},"NUMBER_0":4.5,"LOCATION_0":{"latitude":52.2069714284192,"longitude":0.118247921026355,"display":null},"PHONE_NUMBER_0":"+441223344044"}
+A: >> expecting = null

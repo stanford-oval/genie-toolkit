@@ -17,43 +17,9 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
+
 "use strict";
-const ThingTalk = require('thingtalk');
-const Type = ThingTalk.Type;
-
-const PROPERTY_TYPE_OVERRIDE = {
-    'approximate_ride_duration': new Type.Measure('ms'),
-    'precipitation': Type.Number,
-    'humidity': Type.Number,
-    'wind': new Type.Measure('mps'),
-    'temperature': new Type.Measure('C'),
-    'balance': Type.Currency,
-    'price_per_night': Type.Currency,
-    'rent': Type.Currency,
-};
-
-const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
-
-};
-
-const MANUAL_TABLE_CANONICAL_OVERRIDE = {
-
-};
-
-const PROPERTIES_NO_FILTER = [
-
-];
-
-const STRING_FILE_OVERRIDES = {
-};
 
 
 module.exports = {
-    MANUAL_PROPERTY_CANONICAL_OVERRIDE,
-    MANUAL_TABLE_CANONICAL_OVERRIDE,
-
-    PROPERTY_TYPE_OVERRIDE,
-    PROPERTIES_NO_FILTER,
-
-    STRING_FILE_OVERRIDES
 };

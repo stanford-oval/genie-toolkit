@@ -536,7 +536,7 @@ class Annotator extends events.EventEmitter {
         }
 
         if (this._candidates.length > 0) {
-            for (var i = 0; i < 3 && i < this._candidates.length; i++)
+            for (let i = 0; i < 3 && i < this._candidates.length; i++)
                 console.log(`${i+1}) ${this._candidates[i].prettyprint()}`);
         } else {
             console.log(`No candidates for this program`);

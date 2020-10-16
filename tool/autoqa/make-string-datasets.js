@@ -179,6 +179,10 @@ class ParamDatasetGenerator {
         const manifestDir = path.dirname(manifestFile);
         const manifest = fs.createWriteStream(manifestFile, { flags: appendManifest ? 'a' : 'w' });
 
+        function isNotCapital(token) {
+            return !/^[A-Z]/.test(token);
+        }
+
         for (let [fileId, fileContent] of this._stringFiles) {
             const outputpath = path.resolve(outputDir, this._prefix + fileId + (fileContent.isEntity ? '.json' : '.tsv'));
 
@@ -222,20 +226,36 @@ class ParamDatasetGenerator {
                 const tokenized = this._tokenizeAll(strings);
 
                 for (let i = 0; i < strings.length; i++) {
-                    const value = strings[i];
+                    let value = strings[i];
                     const weight = weights[i];
-                    const tokens = tokenized[i].tokens;
+                    let tokens = tokenized[i].tokens;
 
-                    // if some tokens are uppercase, they are entities, like NUMBER_0,
-                    // in which case we ignore this value
-                    if (tokens.length === 0 || tokens.some((tok) => /^[A-Z]/.test(tok)))
+                    // clean up value
+                    value = value.replace(/\n/g, ' ');
+                    if (value === 'unspecified')
                         continue;
+
+                    // sometimes locations are in "street_address, county, country" or "town, city, country" format
+                    // in those cases we remove everything after first comma and return the rest
+                    if (['address', 'location', 'geo'].some((v) => fileId.includes(v)) && value.indexOf(',') !== -1 && value.split(',') >= 3)
+                        value = value.slice(0, value.indexOf(',')).trim();
+
+                    if (tokens.length === 0 || tokens.some((tok) => /^[A-Z]/.test(tok)))
+                        tokens = tokens.filter(isNotCapital);
 
                     const tokenizedString = tokens.join(' ');
                     if (this._maxValueLength >= 0 && tokenizedString.length > this._maxValueLength)
                         continue;
 
-                    output.write([value, tokenizedString, weight]);
+                    let spans = [tokenizedString];
+                    // if string contains several cuisines break them apart
+                    if (fileId.endsWith('servesCuisine'))
+                        spans = tokenizedString.split(/[,;]/);
+
+                    for (let span of spans) {
+                        if (/\S/.test(span))
+                            output.write([value, span.trim(), weight]);
+                    }
                 }
 
                 output.end();

@@ -32,13 +32,13 @@ for (let i = 0; i <= MAX_SMALL_INTEGER; i++)
 
 constant_String                    = const(QUOTED_STRING, Type.String);
 
-constant_Entity__tt__url           = const(URL, Type.Entity('tt:url'));
+constant_Entity__tt__url           = const(URL, new Type.Entity('tt:url'));
 
-constant_Entity__tt__username      = const(USERNAME, Type.Entity('tt:username'));
-constant_Entity__tt__hashtag       = const(HASHTAG, Type.Entity('tt:hashtag'));
-constant_Entity__tt__phone_number  = const(PHONE_NUMBER, Type.Entity('tt:phone_number'));
-constant_Entity__tt__email_address = const(EMAIL_ADDRESS, Type.Entity('tt:email_address'));
-constant_Entity__tt__path_name     = const(PATH_NAME, Type.Entity('tt:path_name'));
+constant_Entity__tt__username      = const(USERNAME, new Type.Entity('tt:username'));
+constant_Entity__tt__hashtag       = const(HASHTAG, new Type.Entity('tt:hashtag'));
+constant_Entity__tt__phone_number  = const(PHONE_NUMBER, new Type.Entity('tt:phone_number'));
+constant_Entity__tt__email_address = const(EMAIL_ADDRESS, new Type.Entity('tt:email_address'));
+constant_Entity__tt__path_name     = const(PATH_NAME, new Type.Entity('tt:path_name'));
 
 constant_Number = const(NUMBER, Type.Number);
 constant_Currency = const(CURRENCY, Type.Currency);
@@ -54,19 +54,25 @@ constant_Boolean = {}
 constant_RecurrentTimeSpecification = {}
 
 constant_Measure_ms = {
-    ?inference const(MEASURE_ms, Type.Measure('ms'));
+    ?inference const(MEASURE_ms, new Type.Measure('ms'));
 }
 constant_Measure_byte = {
-    ?inference const(MEASURE_byte, Type.Measure('byte'));
+    ?inference const(MEASURE_byte, new Type.Measure('byte'));
 }
 constant_Measure_kg = {
-    ?inference const(MEASURE_kg, Type.Measure('kg'));
+    ?inference const(MEASURE_kg, new Type.Measure('kg'));
 }
 constant_Measure_C = {
-    ?inference const(MEASURE_C, Type.Measure('C'));
+    ?inference const(MEASURE_C, new Type.Measure('C'));
 }
 constant_Measure_m = {
-    ?inference const(MEASURE_m, Type.Measure('m'));
+    ?inference const(MEASURE_m, new Type.Measure('m'));
+}
+constant_Measure_m2 = {
+    ?inference const(MEASURE_m2, new Type.Measure('m2'));
+}
+constant_Measure_m3 = {
+    ?inference const(MEASURE_m3, new Type.Measure('m3'));
 }
 constant_Measure_m2 = {
     ?inference const(MEASURE_m2, Type.Measure('m2'));
@@ -75,28 +81,28 @@ constant_Measure_m3 = {
     ?inference const(MEASURE_m3, Type.Measure('m3'));
 }
 constant_Measure_mps = {
-    ?inference const(MEASURE_mps, Type.Measure('mps'));
+    ?inference const(MEASURE_mps, new Type.Measure('mps'));
 }
 constant_Measure_Pa = {
-    ?inference const(MEASURE_Pa, Type.Measure('Pa'));
+    ?inference const(MEASURE_Pa, new Type.Measure('Pa'));
 }
 constant_Measure_kcal = {
-    ?inference const(MEASURE_kcal, Type.Measure('kcal'));
+    ?inference const(MEASURE_kcal, new Type.Measure('kcal'));
 }
 constant_Measure_W = {
-    ?inference const(MEASURE_W, Type.Measure('W'));
+    ?inference const(MEASURE_W, new Type.Measure('W'));
 }
 constant_Measure_lx = {
-    ?inference const(MEASURE_lx, Type.Measure('lx'));
+    ?inference const(MEASURE_lx, new Type.Measure('lx'));
 }
 constant_Measure_lm = {
-    ?inference const(MEASURE_lm, Type.Measure('lm'));
+    ?inference const(MEASURE_lm, new Type.Measure('lm'));
 }
 constant_Measure_dB = {
-    ?inference const(MEASURE_dB, Type.Measure('dB'));
+    ?inference const(MEASURE_dB, new Type.Measure('dB'));
 }
 constant_Measure_dBm = {
-    ?inference const(MEASURE_dBm, Type.Measure('byte'));
+    ?inference const(MEASURE_dBm, new Type.Measure('byte'));
 }
 
 // this is used for equality filtering, so !turking anything that is weird when equality compared

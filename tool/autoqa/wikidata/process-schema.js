@@ -251,8 +251,7 @@ class SchemaProcessor {
         }
 
         for (let domain of this._domains) {
-            const domainLabel = await getItemLabel(domain);
-            const fname = domain in this._domainCanonicals ? this._domainCanonicals[domain] : domainLabel;
+            const domainLabel = domain in this._domainCanonicals ? this._domainCanonicals[domain] : await getItemLabel(domain);
             const properties = this._propertiesByDomain[domain];
             const args = [
                 new Ast.ArgumentDef(
@@ -291,7 +290,7 @@ class SchemaProcessor {
             }
 
             queries[domainLabel] = new Ast.FunctionDef(
-                null, 'query', null, fname, null, qualifiers, args, annotations);
+                null, 'query', null, snakecase(domainLabel), null, qualifiers, args, annotations);
         }
 
         const imports = [

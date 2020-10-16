@@ -56,7 +56,7 @@ function makeFilter(loader, pname, op, value, negate = false) {
         if (loader.params.out.has(pname.name + '+' + Type.RecurrentTimeSpecification) && (vtype.isTime || vtype.isDate))
             ptype = Type.RecurrentTimeSpecification;
         else
-            ptype = Type.Array(vtype);
+            ptype = new Type.Array(vtype);
         if (vtype.isString)
             op = 'contains~';
     } else if (op === '==' && vtype.isString) {
@@ -75,7 +75,7 @@ function makeFilter(loader, pname, op, value, negate = false) {
 function makeAndFilter(loader, param, op, values, negate=false) {
     if (values.length !== 2)
         return null;
-    if (values[0].name === values[1].name)
+    if (values[0].equals(values[1]))
         return null;
     const operands  = values.map((v) => makeFilter(loader, param, op, v));
     if (operands.includes(null))
