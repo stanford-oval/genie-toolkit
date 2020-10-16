@@ -60,6 +60,7 @@ const subcommands = {
     'dataset': require('./dataset'),
     'subsample-thingpedia': require('./subsample-thingpedia'),
     'preprocess-string-dataset': require('./preprocess-string-dataset'),
+    'preprocess-entity-dataset': require('./preprocess-entity-dataset'),
 
     'autoqa-annotation-diff': require('./autoqa/annotation-diff'),
 
