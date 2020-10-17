@@ -24,6 +24,7 @@ function argnameFromLabel(label) {
         .replace('/[(|)]/g', '') // replace parentheses
         .replace(/-/g, '_') // replace -
         .replace(/\s/g, '_') // replace whitespace
+        .replace('/', '_') // replace backslash
         .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // remove accent
 }
 
@@ -35,8 +36,6 @@ class ParamDatasetGenerator {
         this._output_dir = options.output_dir;
         this._maxValueLength = options.maxValueLength;
         this._tokenizer = I18N.get(options.locale).getTokenizer();
-        this.param_dataset = {};
-        for (const domain of this._domains) this.param_dataset[domain] = [];
     }
 
     async _readSync(func, dir) {
@@ -116,11 +115,9 @@ class ParamDatasetGenerator {
     }
 
     async run() {
-        const appendManifest = false;
-    
+        const appendManifest = false;    
         for (const domain of this._domains) {
             const outputDir = path.join(this._output_dir, domain, 'parameter-datasets');
-            console.log(outputDir);
             await util.promisify(fs.mkdir)(outputDir, { recursive: true });
             const manifest = fs.createWriteStream(
                 path.join(this._output_dir, domain, 'parameter-datasets.tsv'),
