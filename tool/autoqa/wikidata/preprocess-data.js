@@ -33,7 +33,8 @@ class ParamDatasetGenerator {
         this._locale = options.locale;
         this._domains = options.domains;
         this._input_dir = options.input_dir;
-        this._output_dir = options.output_dir;
+        this._base_dir = options.base_dir;
+        this._output_dir = path.join(options.base_dir, options.output_dir);
         this._maxValueLength = options.maxValueLength;
         this._tokenizer = I18N.get(options.locale).getTokenizer();
     }
@@ -104,10 +105,10 @@ class ParamDatasetGenerator {
             // Dump propety data
             if (data.length !== 0) {
                 if (isEntity) {
-                    manifest.write(`entity\t${this._locale}\torg.wikidata:${fileId}\t${path.relative(__dirname, outputPath)}\n`);
+                    manifest.write(`entity\t${this._locale}\torg.wikidata:${fileId}\t${path.relative(this._base_dir, outputPath)}\n`);
                     await util.promisify(fs.writeFile)(outputPath, JSON.stringify({ result: 'ok', data }, undefined, 2), { encoding: 'utf8' });
                 } else {
-                    manifest.write(`string\t${this._locale}\torg.wikidata:${fileId}\t${path.relative(__dirname, outputPath)}\n`);
+                    manifest.write(`string\t${this._locale}\torg.wikidata:${fileId}\t${path.relative(this._base_dir, outputPath)}\n`);
                     await util.promisify(fs.writeFile)(outputPath, data.join(os.EOL), { encoding: 'utf8' });
                 }
             }
@@ -115,7 +116,7 @@ class ParamDatasetGenerator {
     }
 
     async run() {
-        const appendManifest = false;    
+        const appendManifest = false;
         for (const domain of this._domains) {
             const outputDir = path.join(this._output_dir, domain, 'parameter-datasets');
             await util.promisify(fs.mkdir)(outputDir, { recursive: true });
@@ -138,7 +139,8 @@ async function main() {
         locale: 'en-US',
         domains: ['Q515', 'Q6256'],
         input_dir: path.join('/mnt/data/shared/wikidata', 'value'),
-        output_dir: path.join(__dirname, 'data')
+        base_dir: path.join(os.homedir(), 'CS294S/genie-workdirs/wikidata294'),
+        output_dir: 'data'
     });
     await paramDatasetGenerator.run();
 }
