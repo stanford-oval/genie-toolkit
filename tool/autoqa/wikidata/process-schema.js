@@ -26,6 +26,9 @@ const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
 
+const path = require('path');
+const os = require('os');
+
 const StreamUtils = require('../../../lib/utils/stream-utils');
 const { clean } = require('../../../lib/utils/misc-utils');
 const { cleanEnumValue, snakecase, titleCase, DEFAULT_ENTITIES } = require('../lib/utils');
@@ -58,7 +61,8 @@ function argnameFromLabel(label) {
         .replace(/,/g, '') // remove comma
         .replace(/_\/_/g, '_or_') // replace slash by or
         .replace('/[(|)]/g', '') // replace parentheses
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // remove accent
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove accent
+        .replace(/[\W]+/g, '_');
 }
 
 function getElementType(type) {
@@ -100,6 +104,10 @@ class SchemaProcessor {
         this._wikidataLabels = wikidataLabels;
         this._schemaorgManifest = schemaorgManifest;
         this._schemaorgProperties = {};
+
+        // Test if worth adding type mapping from paramter_datasets.tsv
+        this._paramDatasetsTsv = path.join(os.homedir(), '/CS294S/genie-workdirs/wikidata294/data', this._domains[0], 'parameter-datasets.tsv');
+        this._paramDatasets = { 'entity': new Set() , 'string': new Set() };
     }
 
     async _getType(domain, domainLabel, property, propertyLabel) {
@@ -200,6 +208,16 @@ class SchemaProcessor {
                 return schemaorgType;
         }
 
+        // Based on parameter_datasets.tsv type
+        const typeName = `org.wikidata:${argnameFromLabel(propertyLabel)}`;
+        if (this._paramDatasets['string'].includes(typeName)) {
+            return Type.String;
+        }
+
+        if (this._paramDatasets['entity'].includes(typeName)) {
+            return Type.Entity(typeName);
+        }
+
         // majority or arrays of string so this may be better default.
         return Type.String;
 
@@ -250,6 +268,21 @@ class SchemaProcessor {
             }
         }
 
+        // load parameter dataset file ids if available
+        if (this._paramDatasetsTsv) {
+            const paramDatasets = await util.promisify(fs.readFile)(this._paramDatasetsTsv, { encoding: 'utf8' });
+            for (const dataset of paramDatasets.split('\n')) {
+                if (dataset === '') continue;
+                const data = dataset.split('\t');
+                //console.log(data)
+                if (data[0] == 'string') {
+                    this._paramDatasets['string'].add(data[2]);
+                } else {
+                    this._paramDatasets['entity'].add(data[2]);
+                }
+            }
+        }
+
         for (let domain of this._domains) {
             const domainLabel = domain in this._domainCanonicals ? this._domainCanonicals[domain] : await getItemLabel(domain);
             const properties = this._propertiesByDomain[domain];
@@ -273,7 +306,8 @@ class SchemaProcessor {
                 };
                 const elemType = getElementType(type);
                 if (elemType.isString)
-                    annotations.impl['string_values'] = new Ast.Value.String(`org.wikidata:${snakecase(domainLabel)}_${name}`);
+                    // annotations.impl['string_values'] = new Ast.Value.String(`org.wikidata:${snakecase(domainLabel)}_${name}`);
+                    annotations.impl['string_values'] = new Ast.Value.String(`org.wikidata:${name}`);
                 if (elemType.isEntity && elemType.type.startsWith('org.wikidata:'))
                     this._addEntity(elemType.type, titleCase(label), true);
                 args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, name, type, annotations));

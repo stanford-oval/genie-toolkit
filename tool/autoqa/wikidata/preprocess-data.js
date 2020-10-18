@@ -21,8 +21,8 @@ function argnameFromLabel(label) {
         .replace('/[(|)]/g', '') // replace parentheses
         .replace(/-/g, '_') // replace -
         .replace(/\s/g, '_') // replace whitespace
-        .replace('/', '_') // replace backslash
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // remove accent
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove accent
+        .replace(/[\W]+/g, '_');
 }
 
 class ParamDatasetGenerator {
@@ -50,8 +50,17 @@ class ParamDatasetGenerator {
         
         for (const inputPath of inputsPath) {
             const property = inputPath.split('.')[0];
+            this._properties[domain].add(property);
             const fileId = argnameFromLabel(await getPropertyLabel(property));
-            const outputPath = path.join(outputDir, `org.wikidata:${fileId}.${isEntity?'json':'tsv'}`);
+            
+            // To-Do
+            const globalRegex = RegExp('[\W]+', 'g');
+            if (fileId.includes('/') || fileId.includes('æ') || globalRegex.test(fileId)) {
+                console.log(fileId);
+                continue;
+            }
+            
+                 const outputPath = path.join(outputDir, `org.wikidata:${fileId}.${isEntity?'json':'tsv'}`);
 
             const inputs = (await this. _readSync(fs.readFile, path.join(inputDir, inputPath))).split(os.EOL);
             const data = [];
@@ -63,9 +72,9 @@ class ParamDatasetGenerator {
 
                 if (isEntity) {
                     // Some entity does not have label. Skip.
-                    if (!('label' in item))
+                    if (!('label' in item) || item.label.includes('æ'))
                         continue;
-                    
+
                     const entity = {
                         value: item.label,
                         name: item.value
@@ -82,11 +91,10 @@ class ParamDatasetGenerator {
                         continue;
 
                     data.push(entity);
-                    this._properties[domain].add(property);
                 } else {
                     const value = item.value;
-                    // skip if value is number
-                    if (!isNaN(value))
+                    // skip if value is number or include æ 
+                    if (!isNaN(value) || value.includes('æ'))
                         continue;
 
                     const tokens = this._tokenizer.tokenize(item.value).tokens;
@@ -102,7 +110,6 @@ class ParamDatasetGenerator {
                         continue;
 
                     data.push(`${value}\t${tokenizedString}\t${weight}`);
-                    this._properties[domain].add(property);
                 }
             }
 
