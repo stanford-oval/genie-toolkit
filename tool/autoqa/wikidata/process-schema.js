@@ -209,14 +209,14 @@ class SchemaProcessor {
         }
 
         // Based on parameter_datasets.tsv type
-        const typeName = `org.wikidata:${argnameFromLabel(propertyLabel)}`;
-        if (this._paramDatasets['string'].includes(typeName)) {
+        /*const typeName = `org.wikidata:${argnameFromLabel(propertyLabel)}`;
+        if (this._paramDatasets['string'].has(typeName)) {
             return Type.String;
         }
 
-        if (this._paramDatasets['entity'].includes(typeName)) {
+        if (this._paramDatasets['entity'].has(typeName)) {
             return Type.Entity(typeName);
-        }
+        }*/
 
         // majority or arrays of string so this may be better default.
         return Type.String;
