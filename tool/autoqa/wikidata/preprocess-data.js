@@ -1,11 +1,8 @@
 "use strict";
 
-const assert = require('assert');
 const fs = require('fs');
 const util = require('util');
 const path = require('path');
-const ThingTalk = require('thingtalk');
-const csvstringify = require('csv-stringify');
 const os = require('os');
 
 const I18N = require('../../../lib/i18n');
@@ -37,6 +34,10 @@ class ParamDatasetGenerator {
         this._output_dir = path.join(options.base_dir, options.output_dir);
         this._maxValueLength = options.maxValueLength;
         this._tokenizer = I18N.get(options.locale).getTokenizer();
+        this._properties = {};
+        for (const domain of this._domains) {
+            this._properties[domain] = new Set();
+        }
     }
 
     async _readSync(func, dir) {
@@ -48,7 +49,8 @@ class ParamDatasetGenerator {
         const inputsPath = await this. _readSync(fs.readdir, inputDir);
         
         for (const inputPath of inputsPath) {
-            const fileId = argnameFromLabel(await getPropertyLabel(inputPath.split('.')[0]));
+            const property = inputPath.split('.')[0];
+            const fileId = argnameFromLabel(await getPropertyLabel(property));
             const outputPath = path.join(outputDir, `org.wikidata:${fileId}.${isEntity?'json':'tsv'}`);
 
             const inputs = (await this. _readSync(fs.readFile, path.join(inputDir, inputPath))).split(os.EOL);
@@ -80,6 +82,7 @@ class ParamDatasetGenerator {
                         continue;
 
                     data.push(entity);
+                    this._properties[domain].add(property);
                 } else {
                     const value = item.value;
                     // skip if value is number
@@ -99,16 +102,17 @@ class ParamDatasetGenerator {
                         continue;
 
                     data.push(`${value}\t${tokenizedString}\t${weight}`);
+                    this._properties[domain].add(property);
                 }
             }
 
             // Dump propety data
             if (data.length !== 0) {
                 if (isEntity) {
-                    manifest.write(`entity\t${this._locale}\torg.wikidata:${fileId}\t${path.relative(this._base_dir, outputPath)}\n`);
+                    manifest.write(`entity\t${this._locale}\torg.wikidata:${fileId}\t${path.relative(path.join(this._output_dir, domain), outputPath)}\n`);
                     await util.promisify(fs.writeFile)(outputPath, JSON.stringify({ result: 'ok', data }, undefined, 2), { encoding: 'utf8' });
                 } else {
-                    manifest.write(`string\t${this._locale}\torg.wikidata:${fileId}\t${path.relative(this._base_dir, outputPath)}\n`);
+                    manifest.write(`string\t${this._locale}\torg.wikidata:${fileId}\t${path.relative(path.join(this._output_dir, domain), outputPath)}\n`);
                     await util.promisify(fs.writeFile)(outputPath, data.join(os.EOL), { encoding: 'utf8' });
                 }
             }
@@ -130,6 +134,8 @@ class ParamDatasetGenerator {
             ]);
             manifest.end();
             await StreamUtils.waitFinish(manifest);
+            await util.promisify(fs.writeFile)(path.join(this._output_dir, domain, 'properties.txt'), 
+                Array.from(this._properties[domain]).join(','), { encoding: 'utf8' });
         }
     }
 }
