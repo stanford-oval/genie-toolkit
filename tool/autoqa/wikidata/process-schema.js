@@ -92,7 +92,7 @@ async function retrieveProperties(domain, properties) {
 
 class SchemaProcessor {
     constructor(domains, domainCanonicals, propertiesByDomain, requiredPropertiesByDomain, output, outputEntities,
-                manual, wikidataLabels, schemaorgManifest) {
+                manual, wikidataLabels, schemaorgManifest, paramDatasetsTsv) {
         this._domains = domains;
         this._domainCanonicals = domainCanonicals;
         this._propertiesByDomain = propertiesByDomain;
@@ -106,8 +106,8 @@ class SchemaProcessor {
         this._schemaorgProperties = {};
 
         // Test if worth adding type mapping from paramter_datasets.tsv
-        //this._paramDatasetsTsv = path.join(os.homedir(), '/CS294S/genie-workdirs/wikidata294/data', this._domains[0], 'parameter-datasets.tsv');
-        //this._paramDatasets = { 'entity': new Set() , 'string': new Set() };
+        this._paramDatasetsTsv = paramDatasetsTsv;
+        this._paramDatasets = { 'entity': new Set() , 'string': new Set() };
     }
 
     async _getType(domain, domainLabel, property, propertyLabel) {
@@ -128,6 +128,15 @@ class SchemaProcessor {
     }
 
     async _getElemType(domain, domainLabel, property, propertyLabel) {
+        // Based on parameter_datasets.tsv type
+        const typeName = `org.wikidata:${argnameFromLabel(propertyLabel)}`;
+        if (this._paramDatasets['string'].has(typeName)) {
+            return Type.String;
+        }
+        if (this._paramDatasets['entity'].has(typeName)) {
+            return Type.Entity(typeName);
+        }
+
         if (PROPERTY_TYPE_SAME_AS_SUBJECT.has(property))
             return Type.Entity(`org.wikidata:${snakecase(domainLabel)}`);
 
@@ -208,16 +217,6 @@ class SchemaProcessor {
                 return schemaorgType;
         }
 
-        // Based on parameter_datasets.tsv type
-        /*const typeName = `org.wikidata:${argnameFromLabel(propertyLabel)}`;
-        if (this._paramDatasets['string'].has(typeName)) {
-            return Type.String;
-        }
-
-        if (this._paramDatasets['entity'].has(typeName)) {
-            return Type.Entity(typeName);
-        }*/
-
         // majority or arrays of string so this may be better default.
         return Type.String;
 
@@ -269,7 +268,7 @@ class SchemaProcessor {
         }
 
         // load parameter dataset file ids if available
-        /*if (this._paramDatasetsTsv) {
+        if (this._paramDatasetsTsv) {
             const paramDatasets = await util.promisify(fs.readFile)(this._paramDatasetsTsv, { encoding: 'utf8' });
             for (const dataset of paramDatasets.split('\n')) {
                 if (dataset === '') continue;
@@ -281,7 +280,7 @@ class SchemaProcessor {
                     this._paramDatasets['entity'].add(data[2]);
                 }
             }
-        }*/
+        }
 
         for (let domain of this._domains) {
             const domainLabel = domain in this._domainCanonicals ? this._domainCanonicals[domain] : await getItemLabel(domain);
@@ -404,7 +403,10 @@ module.exports = {
                 'use "none" to indicate no required property needed;\n' +
                 'use "default" to include properties included in P1963 (properties of this type);\n' +
                 'exclude a property by placing a minus sign before its id (no space)'
-
+        });
+        parser.add_argument('--parameter-datasets', {
+            required: true,
+            help: 'Path to parammeter_datasets.tsv; used for entity/string type mapping'
         });
     },
 
@@ -445,7 +447,7 @@ module.exports = {
         }
         const schemaProcessor = new SchemaProcessor(
             domains, domainCanonicals, propertiesByDomain, requiredPropertiesByDomain, args.output, args.entities,
-            args.manual, args.wikidata_labels, args.schemaorg_manifest
+            args.manual, args.wikidata_labels, args.schemaorg_manifest, args.parameter_datasets
         );
         schemaProcessor.run();
     }
