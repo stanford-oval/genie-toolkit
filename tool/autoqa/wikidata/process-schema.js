@@ -106,8 +106,8 @@ class SchemaProcessor {
         this._schemaorgProperties = {};
 
         // Test if worth adding type mapping from paramter_datasets.tsv
-        this._paramDatasetsTsv = path.join(os.homedir(), '/CS294S/genie-workdirs/wikidata294/data', this._domains[0], 'parameter-datasets.tsv');
-        this._paramDatasets = { 'entity': new Set() , 'string': new Set() };
+        //this._paramDatasetsTsv = path.join(os.homedir(), '/CS294S/genie-workdirs/wikidata294/data', this._domains[0], 'parameter-datasets.tsv');
+        //this._paramDatasets = { 'entity': new Set() , 'string': new Set() };
     }
 
     async _getType(domain, domainLabel, property, propertyLabel) {
@@ -269,7 +269,7 @@ class SchemaProcessor {
         }
 
         // load parameter dataset file ids if available
-        if (this._paramDatasetsTsv) {
+        /*if (this._paramDatasetsTsv) {
             const paramDatasets = await util.promisify(fs.readFile)(this._paramDatasetsTsv, { encoding: 'utf8' });
             for (const dataset of paramDatasets.split('\n')) {
                 if (dataset === '') continue;
@@ -281,7 +281,7 @@ class SchemaProcessor {
                     this._paramDatasets['entity'].add(data[2]);
                 }
             }
-        }
+        }*/
 
         for (let domain of this._domains) {
             const domainLabel = domain in this._domainCanonicals ? this._domainCanonicals[domain] : await getItemLabel(domain);
