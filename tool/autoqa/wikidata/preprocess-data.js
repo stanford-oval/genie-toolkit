@@ -93,10 +93,10 @@ class ParamDatasetGenerator {
                 } else {
                     const value = item.value;
                     // skip if value is number or include æ 
-                    if (!isNaN(value)) {
+                    //if (!isNaN(value)) {
                         //this._properties[domain].add(property);
-                        continue;
-                    } 
+                        //continue;
+                    //} 
                     
                     if (value.includes('æ'))
                         continue;
