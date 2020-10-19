@@ -111,8 +111,8 @@ class SchemaProcessor {
     }
 
     async _getType(domain, domainLabel, property, propertyLabel) {
-        if (property in PROPERTY_TYPE_OVERRIDE)
-            return PROPERTY_TYPE_OVERRIDE[property];
+        //if (property in PROPERTY_TYPE_OVERRIDE)
+            //return PROPERTY_TYPE_OVERRIDE[property];
 
         const elemType = await this._getElemType(domain, domainLabel, property, propertyLabel);
         if (PROPERTY_FORCE_ARRAY.has(property))
@@ -273,7 +273,6 @@ class SchemaProcessor {
             for (const dataset of paramDatasets.split('\n')) {
                 if (dataset === '') continue;
                 const data = dataset.split('\t');
-                //console.log(data)
                 if (data[0] == 'string') {
                     this._paramDatasets['string'].add(data[2]);
                 } else {
