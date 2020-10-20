@@ -128,7 +128,7 @@ function findSpanType(program, begin_index, end_index, requote_numbers, string_n
 }
 
 
-function createProgram(program, spansByProgramPos, entityRemap, requote_numbers, ignoredProgramSpans) {
+function createProgram(program, spansByProgramPos, entityRemap, ignoredProgramSpans, requote_numbers, ignore_unmatched_spans) {
     let in_string = false;
     let newProgram = [];
     let programSpanIndex = 0;
@@ -140,13 +140,21 @@ function createProgram(program, spansByProgramPos, entityRemap, requote_numbers,
             if (in_string)
                 continue;
             const currentSpan = spansByProgramPos[programSpanIndex];
-            if (!currentSpan.sentenceSpan || !currentSpan.sentenceSpan.mapTo)
-                console.log(spansByProgramPos);
-            assert(currentSpan.sentenceSpan.mapTo);
-
-            newProgram.push(currentSpan.sentenceSpan.mapTo);
-            programSpanIndex++;
-            continue;
+            try {
+                if (!currentSpan.sentenceSpan || !currentSpan.sentenceSpan.mapTo)
+                    console.log(spansByProgramPos);
+                assert(currentSpan.sentenceSpan.mapTo);
+                newProgram.push(currentSpan.sentenceSpan.mapTo);
+                programSpanIndex++;
+                continue;
+            } catch(e) {
+                if (ignore_unmatched_spans) {
+                    newProgram.push(token);
+                    continue;
+                } else {
+                    throw e;
+                }
+            }
         }
         if (in_string)
             continue;
@@ -294,14 +302,14 @@ function getProgSpans(program, requote_numbers) {
 }
 
 
-function findSpanPositions(id, sentence, program, requote_numbers, handle_heuristics, param_locale) {
+function findSpanPositions(id, sentence, program, options) {
     const spansBySentencePos = [];
     const spansByProgramPos = [];
 
     let ignoredProgramSpans = [];
 
     // allProgSpans is sorted by length (longest first)
-    const allProgSpans = getProgSpans(program, requote_numbers);
+    const allProgSpans = getProgSpans(program, options.requote_numbers);
 
     for (const progSpan of allProgSpans) {
         let [begin_index, end_index, span_type] = [progSpan.begin, progSpan.end, progSpan.span_type];
@@ -309,16 +317,21 @@ function findSpanPositions(id, sentence, program, requote_numbers, handle_heuris
 
         // first try without overlapping parameters, then try with overlapping parameters
         // (this is mostly useful for parameters that used twice, which happens in some dialogue dataset)
-        let [idx, parsedWithArticle] = findSubstring(sentence, substring, spansBySentencePos, false /* allow overlapping */, handle_heuristics, param_locale);
+        let [idx, parsedWithArticle] = findSubstring(sentence, substring, spansBySentencePos, false /* allow overlapping */, options.handle_heuristics, options.param_locale);
         if (idx < 0) {
             // skip requoting "small" numbers that do not exist in the sentence
             if (SMALL_NUMBER_REGEX.test(substring)) {
                 ignoredProgramSpans.push({begin: begin_index, end: end_index, type: span_type});
                 continue;
             } else {
-                let allFoundIndices = findSubstring(sentence, substring, spansBySentencePos, true /* allow overlapping */, handle_heuristics, param_locale);
+                let allFoundIndices = findSubstring(sentence, substring, spansBySentencePos, true /* allow overlapping */, options.handle_heuristics, options.param_locale);
                 if (!allFoundIndices.length) {
-                    throw new Error(`Cannot find span ${substring.join(' ')} in sentence id ${id}`);
+                    if (options.ignore_unmatched_spans) {
+                        ignoredProgramSpans.push({begin: begin_index, end: end_index, type: span_type});
+                        continue;
+                    } else {
+                        throw new Error(`Cannot find span ${substring.join(' ')} in sentence id ${id}`);
+                    }
                 } else {
                     // in rare cases, program span tokens might be present in multiple sentence spans
                     // so we check all of them one by one until a full span match is found
@@ -365,7 +378,7 @@ function findSpanPositions(id, sentence, program, requote_numbers, handle_heuris
 }
 
 
-function requoteSentence(id, context, sentence, program, mode, requote_numbers, handle_heuristics, param_locale) {
+function requoteSentence(id, context, sentence, program, options) {
     sentence = sentence.split(' ');
     program = program.split(' ');
 
@@ -377,7 +390,7 @@ function requoteSentence(id, context, sentence, program, mode, requote_numbers, 
         }
     }
 
-    let [spansBySentencePos, spansByProgramPos, ignoredProgramSpans] = findSpanPositions(id, sentence, program, requote_numbers, handle_heuristics, param_locale);
+    let [spansBySentencePos, spansByProgramPos, ignoredProgramSpans] = findSpanPositions(id, sentence, program, options);
 
     if (spansBySentencePos.length === 0)
         return [sentence.join(' '), program.join(' ')];
@@ -398,10 +411,12 @@ function requoteSentence(id, context, sentence, program, mode, requote_numbers, 
 
     let newSentence, newProgram, entityRemap;
 
-    if (mode === 'replace'){
+
+
+    if (options.mode === 'replace'){
         [newSentence, entityRemap] = createSentence(sentence, contextEntities, spansBySentencePos);
-        newProgram = createProgram(program, spansByProgramPos, entityRemap, requote_numbers, ignoredProgramSpans);
-    } else if (mode === 'qpis') {
+        newProgram = createProgram(program, spansByProgramPos, entityRemap, ignoredProgramSpans, options.requote_numbers, options.ignore_unmatched_spans);
+    } else if (options.mode === 'qpis') {
         newSentence = qpisSentence(sentence, spansBySentencePos);
         newProgram = program;
     }
@@ -461,6 +476,11 @@ module.exports = {
             type: fs.createWriteStream,
             help: 'If provided, examples which fail to be requoted are written in this file as well as being printed to stdout '
         });
+        parser.add_argument('--ignore-unmatched-spans', {
+            action: 'store_true',
+            help: 'If true, we will not quote parameters in program which do not have a corresponding span in the sentence.',
+            default: false
+        });
     },
 
     async execute(args) {
@@ -481,12 +501,17 @@ module.exports = {
                 objectMode: true,
                 transform(ex, encoding, callback) {
                     try {
+                        const options = {
+                            'mode': args.mode,
+                            'requote_numbers': args.requote_numbers,
+                            'handle_heuristics': args.handle_heuristics, 'param_locale': args.param_locale,
+                            'ignore_unmatched_spans': args.ignore_unmatched_spans
+                        };
                         let requoted_programs = [];
                         let requoted_sentences = [];
                         for (const program of ex.target_code) {
                             const [newSentence, newProgram] =
-                                requoteSentence(ex.id, ex.context, ex.preprocessed, program, args.mode,
-                                    args.requote_numbers, args.handle_heuristics, args.param_locale);
+                                requoteSentence(ex.id, ex.context, ex.preprocessed, program, options);
                             requoted_programs.push(newProgram);
                             requoted_sentences.push(newSentence);
                         }
