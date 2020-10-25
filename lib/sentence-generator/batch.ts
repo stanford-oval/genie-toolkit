@@ -55,7 +55,7 @@ class BasicSentenceGenerator extends stream.Readable {
     private _idPrefix : string;
     private _langPack : I18n.LanguagePack;
     private _rng : () => number;
-    private _generator : SentenceGenerator<never, TargetLanguages.Program>;
+    private _generator : SentenceGenerator<undefined, TargetLanguages.Program>;
     private _initialization : Promise<void>|null;
     private _i : number;
 

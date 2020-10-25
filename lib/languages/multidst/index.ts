@@ -164,7 +164,7 @@ export function serializeNormalized(ast : Ast.DialogState) : [string[], EntityMa
 export function extractConstants(ast : Ast.DialogState) : { [key : string] : never } {
     return {};
 }
-export function createConstants(type : string) : never[] {
+export function createConstants(type : string) : undefined[] {
     return [];
 }
 

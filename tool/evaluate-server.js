@@ -168,6 +168,12 @@ export function initArgparse(subparsers) {
         help: 'Indicates evaluation of an oracle model where ThingTalk code should be passed to the genienlp server',
         default: false
     });
+    parser.add_argument('--offset', {
+        required: false,
+        type: Number,
+        default: 0,
+        help: 'Start evaluation from this line of input data',
+    });
 }
 
 export async function execute(args) {
@@ -178,7 +184,7 @@ export async function execute(args) {
     await parser.start();
 
     const output = readAllLines(args.input_file)
-        .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true, parseMultiplePrograms: true }))
+        .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true, parseMultiplePrograms: true, offset: args.offset }))
         .pipe(new SentenceEvaluatorStream(parser, {
             locale: args.locale,
             targetLanguage: args.target_language,

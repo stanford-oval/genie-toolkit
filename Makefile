@@ -41,13 +41,16 @@ dist: $(wildcard $(sources)) $(generated) tsconfig.json
 	# removing the "node/" prefix works though, because then
 	# the module is resolved as a standard module in nodejs
 	find dist/ -name \*.d.ts | xargs sed -i 's|from "node/|from "|g'
+	# copy the BERT script to the build folder
+	mkdir -p dist/tool/autoqa/lib
+	cp tool/autoqa/lib/bert-canonical-annotator.py dist/tool/autoqa/lib
 	touch dist
 
 languages-dist: $(bundled_templates) $(wildcard languages/*/*.js languages/*/*.ts languages/*/*/*.js languages/*/*/*.ts) dist
 	tsc --build languages/tsconfig.json
 	touch languages-dist
 
-bundle: bundle/en.zip bundle/zh-tw.zip bundle/zh-cn.zip
+bundle: bundle/en.zip
 
 bundle/%.zip: languages-dist
 	mkdir -p bundle/$*
