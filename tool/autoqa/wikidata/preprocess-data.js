@@ -1,42 +1,41 @@
 "use strict";
 
 const fs = require('fs');
+const fsExtra = require('fs-extra')
+const assert = require('assert');
 const util = require('util');
 const path = require('path');
 const os = require('os');
 
+const ThingTalk = require('thingtalk');
+const Type = ThingTalk.Type;
+
 const I18N = require('../../../lib/i18n');
-const StreamUtils = require('../../../lib/utils/stream-utils');
-const { snakecase } = require('../lib/utils');
 
 const {
-    getPropertyLabel
+    getItemLabel,
+    getPropertyLabel,
+    getType,
+    argnameFromLabel,
+    loadSchemaOrgManifest
 } = require('./utils');
-
-function argnameFromLabel(label) {
-    return snakecase(label)
-        .replace(/'/g, '') // remove apostrophe
-        .replace(/,/g, '') // remove comma
-        .replace(/_\/_/g, '_or_') // replace slash by or
-        .replace('/[(|)]/g', '') // replace parentheses
-        .replace(/-/g, '_') // replace -
-        .replace(/\s/g, '_') // replace whitespace
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove accent
-        .replace(/[\W]+/g, '_');
-}
 
 class ParamDatasetGenerator {
     constructor(options) {
         this._locale = options.locale;
         this._domains = options.domains;
         this._canonicals = options.canonicals;
-        this._input_dir = options.input_dir;
-        this._output_dir = options.output_dir;
+        this._input_dir = options.inputDir;
+        this._output_dir = options.outputDir;
         this._maxValueLength = options.maxValueLength;
         this._tokenizer = I18N.get(options.locale).getTokenizer();
         this._properties = {};
+        this._pathes = {};
+        this._schemaorgManifest = options.schemaorgManifest;
+        this._schemaorgProperties = {};
         for (const domain of this._domains) {
             this._properties[domain] = new Set();
+            this._pathes[domain] = new Set();
         }
     }
 
@@ -44,23 +43,32 @@ class ParamDatasetGenerator {
         return util.promisify(func)(dir, { encoding: 'utf8' });
     }
 
-    async _processData(domain, table, manifest, outputDir, isEntity, canonical) {
+    async _processData(domain, domainLabel, table, outputDir, isEntity, canonical) {
         const inputDir = path.join(this._input_dir, domain, table);
         const inputsPath = await this. _readSync(fs.readdir, inputDir);
         
         for (const inputPath of inputsPath) {
             const property = inputPath.split('.')[0];
-            const fileId = argnameFromLabel(await getPropertyLabel(property));
+            const label = await getPropertyLabel(property);
+            const type = await getType(domain, domainLabel, property, label, this._schemaorgProperties);
+            const typeStr = type.toString();
             
-            // To-Do
-            const globalRegex = RegExp('[\W]+', 'g');
-            if (fileId.includes('/') || fileId.includes('æ') || globalRegex.test(fileId)) {
-                console.log(fileId);
+            // If not entity or String type save property and skip.
+            if (type !== Type.String && !typeStr.includes('Entity')) {
+                this._properties[domain].add(property);
                 continue;
+            }
+
+            // If entity fileId should be defined
+            let fileId;
+            if (typeStr.includes('Entity')) {
+                fileId = typeStr.substring(typeStr.indexOf(":") + 1, typeStr.indexOf(")"));
+                isEntity = true;
+            }  else {
+                fileId = await argnameFromLabel(label);
             }
             
             const outputPath = path.join(outputDir, `org.wikidata:${fileId}.${isEntity?'json':'tsv'}`);
-
             const inputs = (await this. _readSync(fs.readFile, path.join(inputDir, inputPath))).split(os.EOL);
             const data = [];
             for (const input of inputs) {
@@ -90,13 +98,8 @@ class ParamDatasetGenerator {
                         continue;
 
                     data.push(entity);
-                } else {
+                } else if (type === Type.String) {
                     const value = item.value;
-                    // skip if value is number or include æ 
-                    //if (!isNaN(value)) {
-                        //this._properties[domain].add(property);
-                        //continue;
-                    //} 
                     
                     if (value.includes('æ'))
                         continue;
@@ -120,49 +123,81 @@ class ParamDatasetGenerator {
             // Dump propety data
             if (data.length !== 0) {
                 this._properties[domain].add(property);
-                if (isEntity) {
-                    manifest.write(`entity\t${this._locale}\torg.wikidata:${fileId}\t${path.relative(path.join(this._output_dir, canonical), outputPath)}\n`);
-                    await util.promisify(fs.writeFile)(outputPath, JSON.stringify({ result: 'ok', data }, undefined, 2), { encoding: 'utf8' });
-                } else {
-                    manifest.write(`string\t${this._locale}\torg.wikidata:${fileId}\t${path.relative(path.join(this._output_dir, canonical), outputPath)}\n`);
-                    await util.promisify(fs.writeFile)(outputPath, data.join(os.EOL), { encoding: 'utf8' });
-                }
+                const outData = isEntity ? JSON.stringify({ result: 'ok', data }, undefined, 2) : data.join(os.EOL);
+                await util.promisify(fs.appendFile)(outputPath, outData, { encoding: 'utf8' });
+                this._pathes[domain].add(`entity\t${this._locale}\torg.wikidata:${fileId}\t${path.relative(path.join(this._output_dir, canonical), outputPath)}`);
             }
         }
     }
 
     async run() {
-        const appendManifest = false;
+        await loadSchemaOrgManifest(this._schemaorgManifest, this._schemaorgProperties);
         for (const idx in this._domains) {
             const outputDir = path.join(this._output_dir, this._canonicals[idx], 'parameter-datasets');
+            await util.promisify(fsExtra.emptyDir)(outputDir); // Clean up parameter-datasets
             await util.promisify(fs.mkdir)(outputDir, { recursive: true });
-            const manifest = fs.createWriteStream(
-                path.join(this._output_dir, this._canonicals[idx], 'parameter-datasets.tsv'),
-                { flags: appendManifest ? 'a' : 'w' });
+            const domainLabel = await getItemLabel(this._domains[idx]);    
             await Promise.all([
-                this._processData(this._domains[idx], 'labeled_entity', manifest, outputDir, true, this._canonicals[idx]),
-                this._processData(this._domains[idx], 'value', manifest, outputDir, false, this._canonicals[idx]),
-                this._processData(this._domains[idx], 'external', manifest, outputDir, false, this._canonicals[idx])
+                this._processData(this._domains[idx], domainLabel, 'labeled_entity', outputDir, true, this._canonicals[idx]),
+                this._processData(this._domains[idx], domainLabel, 'value', outputDir, false, this._canonicals[idx]),
+                this._processData(this._domains[idx], domainLabel, 'external', outputDir, false, this._canonicals[idx])
             ]);
-            manifest.end();
-            await StreamUtils.waitFinish(manifest);
+            await util.promisify(fs.writeFile)(path.join(this._output_dir, this._canonicals[idx], 'parameter-datasets.tsv'), 
+                Array.from(this._pathes[this._domains[idx]]).join('\n'), { encoding: 'utf8' });
             await util.promisify(fs.writeFile)(path.join(this._output_dir, this._canonicals[idx], 'properties.txt'), 
                 Array.from(this._properties[this._domains[idx]]).join(','), { encoding: 'utf8' });
         }
     }
 }
 
-async function main() {
-    const paramDatasetGenerator = new ParamDatasetGenerator({
-        locale: 'en-US',
-        domains: ['Q515', 'Q6256'],
-        canonicals: ['city', 'country'],
-        input_dir: path.join('/mnt/data/shared/wikidata', 'value'),
-        output_dir: path.join(os.homedir(), 'CS294S/genie-workdirs/wikidata294')
-    });
-    await paramDatasetGenerator.run();
-}
+module.exports = {
+    initArgparse(subparsers) {
+        const parser = subparsers.add_parser('wikidata-preprocess-data', {
+            add_help: true,
+            description: "Generate parameter-datasets.tsv from processed wikidata dump. "
+        });
+        parser.add_argument('-o', '--output', {
+            required: true,
+            help: ''
+        });
+        parser.add_argument('-i', '--input', {
+            required: true,
+            help: ''
+        });
+        parser.add_argument('--locale', {
+            required: false,
+            default: 'en-US'
+        });
+        parser.add_argument('--domains', {
+            required: true,
+            help: 'domains (by item id) to process data, split by comma (no space)'
+        });
+        parser.add_argument('--domain-canonicals', {
+            required: true,
+            help: 'the canonical form for the given domains, used as the query names, split by comma (no space);'
+        });
+        parser.add_argument('--schemaorg-manifest', {
+            required: false,
+            help: 'Path to manifest.tt for schema.org; used for predict the type of wikidata properties'
+        });
+        parser.add_argument('--max-value-length', {
+            required: false,
+            help: ''
+        });
+    },
 
-if (require.main === module) {
-    main()
-}
+    async execute(args) {
+        const domains = args.domains.split(',');
+        const canonicals = args.domain_canonicals.split(',');
+        const paramDatasetGenerator = new ParamDatasetGenerator({
+            locale: args.locale,
+            domains: domains,
+            canonicals: canonicals,
+            inputDir: args.input,
+            outputDir: args.output,
+            schemaorgManifest:args.schemaorg_manifest,
+            maxValueLength: args.max_value_length
+        });
+        paramDatasetGenerator.run();
+    }
+};

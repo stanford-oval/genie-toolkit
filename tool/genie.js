@@ -73,6 +73,7 @@ const subcommands = {
     'sgd-normalize-data': require('./autoqa/sgd/normalize-data'),
 
     'wikidata-process-schema': require('./autoqa/wikidata/process-schema'),
+    'wikidata-preprocess-data': require('./autoqa/wikidata/preprocess-data'),
     'wikidata-es-import': require('./autoqa/wikidata/es-import'),
     'wikidata-download-data': require('./autoqa/wikidata/download-data'),
     'wikidata-label-retriever': require('./autoqa/wikidata/label-retriever'),

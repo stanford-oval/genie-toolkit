@@ -24,6 +24,7 @@
     "errorhandler": "^1.5.1",
     "express": "^4.17.1",
     "flex-js": "^1.0.5",
+    "fs-extra": "^9.0.1",
     "ip": "^1.1.5",
     "js-yaml": "^3.14.0",
     "morgan": "^1.10.0",
