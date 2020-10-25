@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 import assert from 'assert';
 
@@ -48,8 +48,8 @@ const LogLevel = {
 
 class Placeholder {
     constructor(public symbol : string,
-                public option ?: ('const' | 'no-undefined')) {
-        assert(!option || option === 'const' || option === 'no-undefined');
+                public option ?: string) {
+        assert(!option || option === 'const' || option === 'no-undefined', `Invalid placeholder option ${option}`);
     }
 
     toString() : string {
@@ -91,12 +91,14 @@ class Context {
     }
 }
 
-type DerivationChild = string | Context | Placeholder | Derivation;
+export type DerivationChild<T> = string | Context | Placeholder | Derivation<T>;
 
-type SemanticAction = (...args : unknown[]) => unknown|null;
+export type SemanticAction<ArgType extends unknown[], ReturnType> = (...args : ArgType) => ReturnType|null;
 
-interface CombinerAction {
-    (children : DerivationChild[], rulePriority : number) : Derivation|null;
+export type DerivationChildTuple<ArgTypes extends unknown[]> = { [K in keyof ArgTypes] : DerivationChild<ArgTypes[K]> };
+
+export interface CombinerAction<ArgTypes extends unknown[], ReturnType> {
+    (children : DerivationChildTuple<ArgTypes>, rulePriority : number) : Derivation<ReturnType>|null;
     isReplacePlaceholder ?: boolean;
 }
 
@@ -110,17 +112,17 @@ interface ReplacePlaceholderOptions {
 // A Derivation represents a sentence, possibly with placeholders,
 // and a value, possibly with unspecified input parameters, that
 // was computed at a certain point in the derivation tree
-class Derivation {
-    value : unknown;
+class Derivation<ValueType> {
+    value : ValueType;
     context : Context|null;
-    sentence : List<DerivationChild>;
+    sentence : List<DerivationChild<unknown>>;
     priority : number;
 
     private _flatSentence : string|null;
     private _hasPlaceholders : boolean|undefined;
 
-    constructor(value : unknown,
-                sentence : List<DerivationChild>,
+    constructor(value : ValueType,
+                sentence : List<DerivationChild<unknown>>,
                 context : Context|null = null,
                 priority = 0) {
         this.value = value;
@@ -142,7 +144,7 @@ class Derivation {
             return this._hasPlaceholders;
 
         let hasPlaceholders = false;
-        this.sentence.traverse((child : DerivationChild) => {
+        this.sentence.traverse((child : DerivationChild<unknown>) => {
             hasPlaceholders = hasPlaceholders || child instanceof Placeholder;
         });
         return this._hasPlaceholders = hasPlaceholders;
@@ -150,7 +152,7 @@ class Derivation {
 
     hasPlaceholder(what : string) : boolean {
         let hasPlaceholder = false;
-        this.sentence.traverse((child : DerivationChild) => {
+        this.sentence.traverse((child : DerivationChild<unknown>) => {
             hasPlaceholder = hasPlaceholder || (child instanceof Placeholder && child.symbol === what);
         });
         return hasPlaceholder;
@@ -165,24 +167,24 @@ class Derivation {
         if (this._flatSentence)
             return this._flatSentence;
 
-        const flattened = [];
-        this.sentence.traverse((el : DerivationChild) => flattened.push(String(el)));
+        const flattened : string[] = [];
+        this.sentence.traverse((el : DerivationChild<unknown>) => flattened.push(String(el)));
         return this._flatSentence = flattened.join(' ');
     }
 
-    clone() : Derivation {
+    clone() : Derivation<ValueType> {
         return new Derivation(this.value, this.sentence, this.context, this.priority);
     }
 
-    replacePlaceholder(name : string,
-                       replacement : Derivation|string,
-                       semanticAction : SemanticAction,
-                       { isConstant, isUndefined = false, throwIfMissing = false } : ReplacePlaceholderOptions,
-                       rulePriority : number) : Derivation|null {
+    replacePlaceholder<OtherArgType, ResultType>(name : string,
+                                                 replacement : Derivation<OtherArgType>|string,
+                                                 semanticAction : SemanticAction<[ValueType, OtherArgType], ResultType>,
+                                                 { isConstant, isUndefined = false, throwIfMissing = false } : ReplacePlaceholderOptions,
+                                                 rulePriority : number) : Derivation<ResultType>|null {
         let newValue;
-        let isDerivation;
+        let isDerivation : boolean;
         if (!(replacement instanceof Derivation)) {
-            newValue = semanticAction(this.value, undefined);
+            newValue = semanticAction(this.value, undefined as unknown as OtherArgType);
             isDerivation = false;
         } else {
             assert(Context.compatible(this.context, replacement.context));
@@ -202,19 +204,19 @@ class Derivation {
             return null;
         }
 
-        let newSentence : List<DerivationChild> = List.Nil;
+        let newSentence : List<DerivationChild<unknown>> = List.Nil;
         let newContext = this.context;
         let newPriority = this.priority + rulePriority;
         let found = false;
         let bad = false;
-        this.sentence.traverse((child : DerivationChild) => {
+        this.sentence.traverse((child : DerivationChild<unknown>) => {
             if (child instanceof Placeholder && child.symbol === name) {
                 if (child.option === 'no-undefined' && isUndefined)
                     bad = true;
                 if (child.option === 'const' && !isConstant && !isUndefined)
                     bad = true;
                 if (isDerivation) {
-                    const deriv = replacement as Derivation;
+                    const deriv = replacement as Derivation<OtherArgType>;
                     newSentence = List.concat(newSentence, deriv.sentence);
                     newContext = Context.meet(newContext, deriv.context);
                     newPriority += deriv.priority;
@@ -239,27 +241,27 @@ class Derivation {
         return new Derivation(newValue, newSentence, newContext, newPriority);
     }
 
-    static combine(children : DerivationChild[],
-                   semanticAction : SemanticAction,
-                   rulePriority : number) : Derivation|null {
+    static combine<ArgTypes extends unknown[], ResultType>(children : DerivationChildTuple<ArgTypes>,
+                                                           semanticAction : SemanticAction<ArgTypes, ResultType>,
+                                                           rulePriority : number) : Derivation<ResultType>|null {
         if (children.length === 1) {
             assert(!(children[0] instanceof Context));
             if (children[0] instanceof Derivation) {
-                const clone = children[0].clone();
-                clone.value = semanticAction(children[0].value);
-                assert(clone.value !== undefined);
-                if (clone.value === null)
+                const newValue = semanticAction(... ([children[0].value] as ArgTypes));
+                assert(newValue !== undefined);
+                if (newValue === null)
                     return null;
-                clone.priority += rulePriority;
-                return clone;
+                const newDerivation = new Derivation(newValue, children[0].sentence, children[0].context, children[0].priority);
+                newDerivation.priority += rulePriority;
+                return newDerivation;
             } else if (children[0] instanceof Placeholder) {
-                const value = semanticAction(undefined);
+                const value = semanticAction(... ([undefined] as ArgTypes));
                 assert(value !== undefined);
                 if (value === null)
                     return null;
                 return new Derivation(value, List.singleton(children[0]), null, rulePriority);
             } else { // constant or terminal
-                const value = semanticAction(undefined);
+                const value = semanticAction(... ([undefined] as ArgTypes));
                 assert(value !== undefined);
                 if (value === null)
                     return null;
@@ -267,7 +269,7 @@ class Derivation {
             }
         }
 
-        let sentence : List<DerivationChild> = List.Nil;
+        let sentence : List<DerivationChild<unknown>> = List.Nil;
         const values : unknown[] = [];
         let newContext : Context|null = null;
         let newPriority = rulePriority;
@@ -295,7 +297,7 @@ class Derivation {
         //console.log('combine: ' + children.join(' ++ '));
         //console.log('values: ' + values.join(' , '));
 
-        const value = semanticAction(...values);
+        const value = semanticAction(...(values as ArgTypes));
         assert(value !== undefined);
         if (value === null)
             return null;
@@ -308,18 +310,21 @@ class Derivation {
 // Combination operators: use to create a semantic function that, given two child derivations,
 // produces a new derivation
 
-function simpleCombine(semanticAction : SemanticAction,
-                       flag : string|undefined,
-                       topLevel = false) : CombinerAction {
-    return function(children : DerivationChild[], rulePriority : number) : Derivation|null {
+function simpleCombine<ArgTypes extends unknown[], ResultType>(semanticAction : SemanticAction<ArgTypes, ResultType>,
+                                                               flag ?: string|null,
+                                                               topLevel = false) : CombinerAction<ArgTypes, ResultType> {
+    return function(children : DerivationChildTuple<ArgTypes>, rulePriority : number) : Derivation<ResultType>|null {
         const result = Derivation.combine(children, semanticAction, rulePriority);
         if (result === null)
             return null;
         if (flag) {
             if (flag.startsWith('!')) {
-                if (result[flag.substring(1)])
+                const sub = flag.substring(1);
+                assert(sub === 'complete'); // add more flags here if necessary
+                if (result[sub])
                     return null;
             } else {
+                assert(flag === 'complete'); // add more flags here if necessary
                 if (!result[flag])
                     return null;
             }
@@ -328,10 +333,10 @@ function simpleCombine(semanticAction : SemanticAction,
     };
 }
 
-function combineReplacePlaceholder(pname : string,
-                                   semanticAction : SemanticAction,
-                                   options : ReplacePlaceholderOptions) : CombinerAction {
-    const f : CombinerAction = function([c1, c2] : DerivationChild[], rulePriority : number) {
+function combineReplacePlaceholder<FirstType, SecondType, ResultType>(pname : string,
+                                                                      semanticAction : SemanticAction<[FirstType, SecondType], ResultType>,
+                                                                      options : ReplacePlaceholderOptions) : CombinerAction<[FirstType, SecondType], ResultType> {
+    const f : CombinerAction<[FirstType, SecondType], ResultType> = function([c1, c2] : [DerivationChild<FirstType>, DerivationChild<SecondType>], rulePriority : number) {
         assert(c1 instanceof Derivation);
         assert(!(c2 instanceof Placeholder) && !(c2 instanceof Context));
         return c1.replacePlaceholder(pname, c2, semanticAction, options, rulePriority);

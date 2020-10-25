@@ -114,7 +114,7 @@ chain_query = {
     };
 }
 
-for (let [pname, [typestr, pcanonical]] of _tpLoader.params.in.values()) {
+for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
     // don't parameter pass booleans or enums, as that rarely makes sense
     if (typestr !== 'Boolean' && !typestr.startsWith('Enum__')) {
         if (_tpLoader.types.id.has(typestr)) {

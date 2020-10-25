@@ -20,14 +20,7 @@
 
 // Templates that describe results from a query
 
-import assert from 'assert';
-import { Ast, Type } from 'thingtalk';
-
-import * as C from '../../ast_manip';
 import * as D from '../../dialogue_acts';
-
-// import thingpedia info
-import _tpLoader from '../../load-thingpedia';
 
 count_aggregation_reply_suffix = {
     ctx:ctx_with_table_result base:base_table ('like that' | 'with those characteristics')

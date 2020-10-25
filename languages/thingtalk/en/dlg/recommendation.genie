@@ -27,9 +27,6 @@
 // - a question (= "recommendation_search_question_pair")
 // - closing the dialogue (= "recommendation_cancel_pair")
 
-import assert from 'assert';
-import { Ast, Type } from 'thingtalk';
-
 import * as C from '../../ast_manip';
 import * as D from '../../dialogue_acts';
 

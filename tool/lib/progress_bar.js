@@ -18,7 +18,7 @@
 //
 // Author: The 224N TAs
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 /**
  * Progbar class copied from keras (https://github.com/fchollet/keras/)

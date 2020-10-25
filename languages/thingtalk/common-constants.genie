@@ -18,11 +18,9 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import * as ThingTalk from 'thingtalk';
 import { Ast, Type } from 'thingtalk';
 
 {
-const MAX_CONSTANTS = 20;
 const MAX_SMALL_INTEGER = 12;
 }
 

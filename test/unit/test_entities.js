@@ -18,7 +18,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 import * as Tp from 'thingpedia';
 

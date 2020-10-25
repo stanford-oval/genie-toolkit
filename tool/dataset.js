@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Elvis Yu-Jing Lin <r06922068@ntu.edu.tw> <elvisyjlin@gmail.com>
-"use strict";
+
 
 import ThingTalkDataset from './lib/thingtalk-dataset';
 

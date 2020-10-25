@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 // A lazy functional list with O(1) concatenation
 export default abstract class List<T> {

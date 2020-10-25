@@ -17,15 +17,15 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
+
 
 import assert from 'assert';
 
-const {
+import {
     getPropertyLabel,
     getPropertyList,
     getExampleValuesForProperty
-} = require('../../tool/autoqa/wikidata/utils');
+} from '../../tool/autoqa/wikidata/utils';
 
 const TEST_CASES_PROPERTY_LABELS = [
     ['P31', 'instance of'],

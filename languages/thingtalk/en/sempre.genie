@@ -18,9 +18,6 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 
-import assert from 'assert';
-
-import * as ThingTalk from 'thingtalk';
 import { Ast, Type } from 'thingtalk';
 
 // import the combinator library
@@ -28,10 +25,6 @@ import * as C from '../ast_manip';
 
 // import thingpedia info
 import _tpLoader from '../load-thingpedia';
-
-{
-const HERE = new Ast.Value.Location(new Ast.Location.Relative('current_location'));
-}
 
 import '../common.genie';
 import './constants.genie';

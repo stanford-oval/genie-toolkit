@@ -17,14 +17,14 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 import * as C from '../ast_manip';
 
-const {
+import {
     makeAgentReply,
     makeSimpleState,
-} = require('../state_manip');
+} from '../state_manip';
 
 function makeCountAggregationReplySuffix(ctx, table, mustFilter) {
     if (!ctx.resultInfo.isAggregation)

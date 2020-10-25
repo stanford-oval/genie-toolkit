@@ -17,19 +17,19 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 import * as C from '../ast_manip';
 
-const {
+import {
     makeAgentReply,
     addQuery,
-} = require('../state_manip');
-const {
+} from '../state_manip';
+import {
     refineFilterToChangeFilter,
     refineFilterToAnswerQuestion,
     proposalReply
-} = require('./refinement-helpers');
+} from './refinement-helpers';
 
 
 function checkSearchResultPreamble(ctx, base, num, more) {

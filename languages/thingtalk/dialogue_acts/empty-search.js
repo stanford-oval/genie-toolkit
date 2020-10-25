@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 import assert from 'assert';
 
@@ -25,18 +25,18 @@ import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
 
-const {
+import {
     makeAgentReply,
     makeSimpleState,
     addQuery,
-} = require('../state_manip');
-const {
+} from '../state_manip';
+import {
     queryRefinement,
     refineFilterToChangeFilter
-} = require('./refinement-helpers');
-const {
+} from './refinement-helpers';
+import {
     isValidSearchQuestion
-} = require('./common');
+} from './common';
 
 // Refinement dialogue acts: the search is NOT complete (0, or more than 1 result), and the
 // agent doesn't want to show results

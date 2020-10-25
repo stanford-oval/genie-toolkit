@@ -7,7 +7,7 @@
 // Author: Mehrad Moradshahi <mehrad@cs.stanford.edu>
 //
 // See COPYING for details
-"use strict";
+
 
 import assert from 'assert';
 

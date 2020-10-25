@@ -26,15 +26,6 @@
 // - some form of "yes"
 // - some form of "no" followed by another search refinement
 
-import assert from 'assert';
-import { Ast, Type } from 'thingtalk';
-
-import * as C from '../../ast_manip';
-import * as D from '../../dialogue_acts';
-
-// import thingpedia info
-import _tpLoader from '../../load-thingpedia';
-
 empty_search_error = {
     sorry_preamble ('there are no' | 'i cannot find any') base:base_table ('matching your request' | 'with those characteristics' | 'like that')
     '.' => [base, null];

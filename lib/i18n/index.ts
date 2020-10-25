@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 import DefaultLanguagePack from './default';
 import AmericanEnglish from './american-english';
@@ -37,11 +37,7 @@ import TraditionalChinese from './traditional-chinese';
 import BaseTokenizer from './tokenizer/base';
 export { BaseTokenizer };
 
-// TODO finish interface
-export interface LanguagePack {
-    getTokenizer() : BaseTokenizer;
-    postprocessSynthetic(sentence : string) : string;
-}
+export type LanguagePack = DefaultLanguagePack;
 
 interface LPClass {
     new() : LanguagePack;

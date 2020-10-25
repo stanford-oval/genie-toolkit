@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
+
 
 import { clean } from '../../../lib/utils/misc-utils';
 import EnglishLanguagePack from '../../../lib/i18n/american-english';

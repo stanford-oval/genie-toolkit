@@ -18,15 +18,19 @@ rules:
   no-lonely-if: off
   arrow-body-style: off
   require-yield: off
+  '@typescript-eslint/no-non-null-assertion': off
+  '@typescript-eslint/no-explicit-any': off
+  # namespaces are useful to add static methods to enums and to implement
+  # nested classes
+  '@typescript-eslint/no-namespace': off
 
   # temporary until migration is complete
   '@typescript-eslint/no-this-alias': off
-  '@typescript-eslint/no-explicit-any': off
-  '@typescript-eslint/no-var-requires': off
+  '@typescript-eslint/explicit-module-boundary-types': off
 
   # correctness checks
   strict:
-    - off
+    - error
     - global
   consistent-return: error
   array-callback-return: error

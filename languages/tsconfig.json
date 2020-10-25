@@ -11,7 +11,7 @@
         "moduleResolution": "node",
         "resolveJsonModule": true,
         "strict": false,
-        "noUnusedLocals": false,
+        "noUnusedLocals": true,
         "outDir": "../languages-dist",
         "rootDir": ".",
         "sourceMap": true,

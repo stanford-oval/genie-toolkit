@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 import assert from 'assert';
 import * as ThingTalk from 'thingtalk';
@@ -27,10 +27,10 @@ import * as uuid from 'uuid';
 import AsyncQueue from 'consumer-queue';
 
 import { MockPlatform } from '../unit/mock_utils';
-const {
+import {
     ResultGenerator,
     SimulationExecEnvironment,
-} = require('../../lib/dialogue-agent/simulator/simulation_exec_environment');
+} from '../../lib/dialogue-agent/simulator/simulation_exec_environment';
 
 
 class QueueOutputDelegate {

@@ -17,12 +17,12 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
-const ThingTalk = require('thingtalk');
-const fs = require('fs');
-const util = require('util');
+
+import assert from 'assert';
+import * as ThingTalk from 'thingtalk';
+import * as fs from 'fs';
+import * as util from 'util';
 
 async function loadClassDef(thingpedia) {
     const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
@@ -76,38 +76,36 @@ function diffQuery(q1, q2) {
 }
 
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('autoqa-annotation-diff', {
-            add_help: true,
-            description: "Find the canonical annotation difference between two classes; return annotations existed " +
-                "in the first one that is not available in the second."
-        });
-        parser.add_argument('--thingpedia1', {
-            required: true,
-            help: 'Path to the first ThingTalk file containing class definitions.'
-        });
-        parser.add_argument('--thingpedia2', {
-            required: true,
-            help: 'Path to the second ThingTalk file containing class definitions.'
-        });
-        parser.add_argument('--queries', {
-            required: false,
-            help: 'Queries to include, split by comma with no space; run on all functions if absent'
-        });
-    },
+export async function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('autoqa-annotation-diff', {
+        add_help: true,
+        description: "Find the canonical annotation difference between two classes; return annotations existed " +
+            "in the first one that is not available in the second."
+    });
+    parser.add_argument('--thingpedia1', {
+        required: true,
+        help: 'Path to the first ThingTalk file containing class definitions.'
+    });
+    parser.add_argument('--thingpedia2', {
+        required: true,
+        help: 'Path to the second ThingTalk file containing class definitions.'
+    });
+    parser.add_argument('--queries', {
+        required: false,
+        help: 'Queries to include, split by comma with no space; run on all functions if absent'
+    });
+}
 
-    async execute(args) {
-        const classDef1 = await loadClassDef(args.thingpedia1);
-        const classDef2 = await loadClassDef(args.thingpedia2);
+export async function execute(args) {
+    const classDef1 = await loadClassDef(args.thingpedia1);
+    const classDef2 = await loadClassDef(args.thingpedia2);
 
-        const queries = args.queries ? args.queries.split(',') : Object.keys(classDef1.queries);
-        const diff = {};
-        for (let qname of queries) {
-            const q1 = classDef1.queries[qname];
-            const q2 = classDef2.queries[qname];
-            diff[qname] = diffQuery(q1, q2);
-        }
-        console.log(JSON.stringify(diff, null, 2));
+    const queries = args.queries ? args.queries.split(',') : Object.keys(classDef1.queries);
+    const diff = {};
+    for (let qname of queries) {
+        const q1 = classDef1.queries[qname];
+        const q2 = classDef2.queries[qname];
+        diff[qname] = diffQuery(q1, q2);
     }
-};
+    console.log(JSON.stringify(diff, null, 2));
+}

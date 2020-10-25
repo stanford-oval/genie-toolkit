@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 // Parse a .jsonld file and normalize it based on how we expect schema.org to look like
 

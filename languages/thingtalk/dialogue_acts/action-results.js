@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 import assert from 'assert';
 
@@ -26,15 +26,15 @@ import { Ast } from 'thingtalk';
 import * as C from '../ast_manip';
 
 import { SlotBag } from '../slot_bag';
-const {
+import {
     makeAgentReply,
     makeSimpleState,
     setOrAddInvocationParam,
     replaceAction,
-} = require('../state_manip');
-const {
+} from '../state_manip';
+import {
     isInfoPhraseCompatibleWithResult
-} = require('./common');
+} from './common';
 
 function makeThingpediaActionSuccessPhrase(ctx, info) {
     const results = ctx.results;

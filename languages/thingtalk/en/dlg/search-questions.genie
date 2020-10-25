@@ -24,10 +24,8 @@
 // - for searches: the agent is trying to add a filter
 // - for actions/queries w/ parameters: the agent is trying to add a parameter
 
-import assert from 'assert';
-import { Ast, Type } from 'thingtalk';
+import { Ast, } from 'thingtalk';
 
-import * as C from '../../ast_manip';
 import * as D from '../../dialogue_acts';
 
 // import thingpedia info
@@ -120,7 +118,7 @@ disjunctive_search_question = {
     | ('are you looking for' | 'would you like' | 'do you need') 'something' question:question_pvp_filter_pair '?'
     | ('are you looking for' | 'would you like' | 'do you need') 'something that' question:question_avp_filter_pair '?'
     ) => {
-        const [pname, ptype] = question;
+        const [pname,] = question;
         return [pname];
     };
 

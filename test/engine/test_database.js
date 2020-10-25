@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Silei <silei@cs.stanford.edu>
-"use strict";
+
 
 import assert from 'assert';
 import './test-classes/test_database';

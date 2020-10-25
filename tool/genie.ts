@@ -84,7 +84,6 @@ const subcommands : { [key : string] : SubCommand } = {
     'canonical-diffchecker': require('./canonical-diffchecker'),
 
     'auto-annotate-multiwoz': require('./auto-annotate-multiwoz'),
-    'convert-thingtalk-to-multidst': require('./convert-thingtalk-to-multidst'),
     'extract-predicted-slots': require('./extract-predicted-slots'),
     'analyze-dialogue-annotations': require('./analyze-dialogue-annotations')
 };

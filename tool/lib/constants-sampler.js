@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
+
 
 import { choose } from '../../lib/utils/random';
 import { sampleString } from '../../lib/utils/misc-utils';

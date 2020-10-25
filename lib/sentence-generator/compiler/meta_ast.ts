@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 import assert from 'assert';
 import { stringEscape } from '../../utils/escaping';
@@ -27,7 +27,7 @@ export class Grammar {
                 public statements : Statement[]) {
     }
 
-    codegen(runtimepath : string) : string {
+    codegen() : string {
         let buffer = '';
 
         buffer += (this.comment);
@@ -35,8 +35,8 @@ export class Grammar {
             if (stmt instanceof JSImportStmt)
                 buffer += stmt.codegen();
         }
-        buffer += `import type { SentenceGeneratorRuntime } from "genie-toolkit";\n`;
-        buffer += `export default async function($runtime : typeof SentenceGeneratorRuntime, $options : any, $locale : any, $grammar : any) : Promise<void> {\n`;
+        buffer += `import type { SentenceGeneratorRuntime, SentenceGenerator, I18n } from "genie-toolkit";\n`;
+        buffer += `export default async function($runtime : typeof SentenceGeneratorRuntime, $options : any, $locale : I18n.LanguagePack, $grammar : SentenceGenerator<any, any>) : Promise<void> {\n`;
         for (const stmt of this.statements) {
             if (stmt instanceof JSImportStmt)
                 continue;

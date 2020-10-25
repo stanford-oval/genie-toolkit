@@ -17,7 +17,7 @@ sources = \
 	tool/*/*/*.js \
 	tool/*/*/*.ts
 
-languages = en zh-tw zh-cn
+languages = en
 
 bundled_templates := \
 	$(foreach lang,$(languages),$(patsubst %.genie,%.genie.ts,$(wildcard languages/thingtalk/*.genie languages/thingtalk/$(lang)/*.genie languages/thingtalk/$(lang)/*/*.genie)))
@@ -50,7 +50,7 @@ languages-dist: $(bundled_templates) $(wildcard languages/*/*.js languages/*/*.t
 	tsc --build languages/tsconfig.json
 	touch languages-dist
 
-bundle: bundle/en.zip bundle/zh-tw.zip bundle/zh-cn.zip
+bundle: bundle/en.zip
 
 bundle/%.zip: languages-dist
 	mkdir -p bundle/$*

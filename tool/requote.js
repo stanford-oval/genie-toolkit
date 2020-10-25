@@ -18,7 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>,
 //          Mehrad Moradshahi <mehrad@cs.stanford.edu>
-"use strict";
+
 
 import * as fs from 'fs';
 import Stream from 'stream';

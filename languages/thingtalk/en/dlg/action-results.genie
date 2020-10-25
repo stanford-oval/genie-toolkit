@@ -22,8 +22,7 @@
 // Either the action was successful, and we're done, or
 // the action failed, and we give the user an option to try again
 
-import assert from 'assert';
-import { Ast, Type } from 'thingtalk';
+import { Ast, } from 'thingtalk';
 
 import * as C from '../../ast_manip';
 import * as D from '../../dialogue_acts';

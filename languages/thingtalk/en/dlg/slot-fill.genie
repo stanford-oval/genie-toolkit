@@ -24,15 +24,6 @@
 // - for searches: the agent is trying to add a filter
 // - for actions/queries w/ parameters: the agent is trying to add a parameter
 
-import assert from 'assert';
-import { Ast, Type } from 'thingtalk';
-
-import * as C from '../../ast_manip';
-import * as D from '../../dialogue_acts';
-
-// import thingpedia info
-import _tpLoader from '../../load-thingpedia';
-
 one_param_slot_fill_question = {
     !inference {
         ( p:thingpedia_slot_fill_question '?' [priority=0.1]

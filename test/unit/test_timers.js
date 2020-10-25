@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Swee Kiat Lim <sweekiat@cs.stanford.edu>
-"use strict";
+
 
 import assert from 'assert';
 import * as timers from '../../lib/engine/apps/timers';
