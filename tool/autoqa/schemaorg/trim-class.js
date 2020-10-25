@@ -29,7 +29,9 @@ import util from 'util';
 import * as StreamUtils from '../../../lib/utils/stream-utils';
 import {
     WHITELISTED_PROPERTIES_BY_DOMAIN,
-    BLACKLISTED_PROPERTIES_BY_DOMAIN
+    BLACKLISTED_PROPERTIES_BY_DOMAIN,
+    PROPERTIES_DROP_WITH_GEO,
+    STRING_FILE_OVERRIDES
 } from './manual-annotations';
 
 const DEFAULT_ENTITIES = [
@@ -255,14 +257,18 @@ class SchemaTrimmer {
         }
 
         if (tabledef.args.includes('geo') && hasAddress && !hasGeo) {
+            const implAnnotations = {
+                org_schema_type: new Ast.Value.String('GeoCoordinates'),
+                org_schema_has_data: new Ast.Value.Boolean(false)
+            };
+            const stringfileId = `${this._className}:${tablename}_geo`;
+            if (stringfileId in STRING_FILE_OVERRIDES)
+                implAnnotations.string_values = new Ast.Value.String(STRING_FILE_OVERRIDES[stringfileId]);
             const arg = new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'geo', Type.Location, {
                 nl: {
                     canonical: { base:["location", "address"] }
                 },
-                impl: {
-                    org_schema_type: new Ast.Value.String('GeoCoordinates'),
-                    org_schema_has_data: new Ast.Value.Boolean(false)
-                }
+                impl: implAnnotations
             });
             newArgs.push(arg);
             hasGeo = arg;
@@ -270,8 +276,8 @@ class SchemaTrimmer {
 
         // remove streetAddress & addressLocality if we already have geo
         if (hasAddress && hasGeo) {
-            delete hasAddress.type.fields['addressLocality'];
-            delete hasAddress.type.fields['streetAddress'];
+            for (let field of PROPERTIES_DROP_WITH_GEO)
+                delete hasAddress.type.fields[field];
         }
         if (tabledef.hasArgument('address') && tabledef.hasArgument('geo')) {
             for (let _extend of tabledef.extends) {
@@ -279,8 +285,8 @@ class SchemaTrimmer {
                     const parent = this._classDef.queries[_extend];
                     const address = parent.getArgument('address');
                     if (address) {
-                        delete address.type.fields['addressLocality'];
-                        delete address.type.fields['streetAddress'];
+                        for (let field of PROPERTIES_DROP_WITH_GEO)
+                            delete address.type.fields[field];
                     }
                 }
             }

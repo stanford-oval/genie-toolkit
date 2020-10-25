@@ -150,9 +150,14 @@ export function initArgparse(subparsers) {
         default: false
     });
     parser.add_argument('--sampling-type', {
-        choices: ['default', 'random'],
+        choices: ['default', 'uniform', 'random'],
         help: 'Random strategy assigns random weights to parameters instead of reading from file',
         default: false
+    });
+    parser.add_argument('--subset-param-set', {
+        required: false,
+        default: '0.0-1.0',
+        help: `Only use a subset of parameter dataset for augmentation in the range {beg}-{end}`
     });
     parser.add_argument('--num-attempts', {
         type: Number,
@@ -197,7 +202,7 @@ export async function execute(args) {
     delete args.input_file;
     delete args.output;
     inputFile
-        .pipe(new DatasetParser({ contextual: args.contextual, overrideFlags: args.override_flags }))
+        .pipe(new DatasetParser({ contextual: args.contextual, overrideFlags: args.override_flags, parseMultiplePrograms: true }))
         .pipe(counter)
         .pipe(await parallelize(args.parallelize, require.resolve('./workers/augment-worker'), args))
         .pipe(new DatasetStringifier())

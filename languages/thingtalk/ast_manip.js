@@ -193,7 +193,7 @@ function makeDateRangeFilter(param, values) {
 function makeOrFilter(param, op, values, negate  =false) {
     if (values.length !== 2)
         return null;
-    if (values[0].name === values[1].name)
+    if (values[0].equals(values[1]))
         return null;
     const operands  = values.map((v) => makeFilter(param, op, v, negate));
     if (operands.includes(null))
@@ -207,7 +207,7 @@ function makeOrFilter(param, op, values, negate  =false) {
 function makeButFilter(param, op, values) {
     if (values.length !== 2)
         return null;
-    if (values[0].name === values[1].name)
+    if (values[0].equals(values[1]))
         return null;
     const operands  = [
         makeFilter(param, op, values[0]),
