@@ -16,6 +16,7 @@ const {
     getItemLabel,
     getPropertyLabel,
     getType,
+    getElementType,
     argnameFromLabel,
     loadSchemaOrgManifest
 } = require('./utils');
@@ -51,17 +52,18 @@ class ParamDatasetGenerator {
             const property = inputPath.split('.')[0];
             const label = await getPropertyLabel(property);
             const type = await getType(domain, domainLabel, property, label, this._schemaorgProperties);
-            const typeStr = type.toString();
+            const elemType = getElementType(type);
             
             // If not entity or String type save property and skip.
-            if (type !== Type.String && !typeStr.includes('Entity')) {
+            if (!elemType.isString && !elemType.isEntity) {
                 this._properties[domain].add(property);
                 continue;
             }
 
             // If entity fileId should be defined
             let fileId;
-            if (typeStr.includes('Entity')) {
+            if (elemType.isEntity) {
+                const typeStr = type.toString();
                 fileId = typeStr.substring(typeStr.indexOf(":") + 1, typeStr.indexOf(")"));
                 isEntity = true;
             }  else {
@@ -98,7 +100,7 @@ class ParamDatasetGenerator {
                         continue;
 
                     data.push(entity);
-                } else if (type === Type.String) {
+                } else if (elemType.isString) {
                     const value = item.value;
                     
                     if (value.includes('æ'))
@@ -123,9 +125,19 @@ class ParamDatasetGenerator {
             // Dump propety data
             if (data.length !== 0) {
                 this._properties[domain].add(property);
-                const outData = isEntity ? JSON.stringify({ result: 'ok', data }, undefined, 2) : data.join(os.EOL);
-                await util.promisify(fs.appendFile)(outputPath, outData, { encoding: 'utf8' });
-                this._pathes[domain].add(`entity\t${this._locale}\torg.wikidata:${fileId}\t${path.relative(path.join(this._output_dir, canonical), outputPath)}`);
+                const dataPath = `entity\t${this._locale}\torg.wikidata:${fileId}\t${path.relative(path.join(this._output_dir, canonical), outputPath)}`
+                
+                if (!isEntity) {
+                    await util.promisify(fs.appendFile)(outputPath, data.join(os.EOL), { encoding: 'utf8' });
+                } else {
+                    let outData = { result: 'ok', data };
+                    if (this._pathes[domain].has(dataPath)) {
+                        outData = JSON.parse(await this. _readSync(fs.readFile, outputPath));
+                        outData['data'] = outData['data'].concat(data);
+                    }
+                    await util.promisify(fs.writeFile)(outputPath, JSON.stringify(outData, undefined, 2), { encoding: 'utf8' });
+                }
+                this._pathes[domain].add(dataPath);
             }
         }
     }

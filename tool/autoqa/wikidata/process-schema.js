@@ -116,22 +116,6 @@ class SchemaProcessor {
 
         // load schema.org manifest if available
         await loadSchemaOrgManifest(this._schemaorgManifest, this._schemaorgProperties);
-        /*if (this._schemaorgManifest) {
-            const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(this._schemaorgManifest, { encoding: 'utf8' }));
-            assert(library.isLibrary && library.classes.length === 1);
-            const classDef = library.classes[0];
-
-            for (let fn in classDef.queries) {
-                const fndef = classDef.queries[fn];
-                for (let argname of fndef.args) {
-                    let key = argname;
-                    if (argname.includes('.'))
-                        key = argname.substring(argname.lastIndexOf('.') + 1);
-                    if (!(argname in this._schemaorgProperties))
-                        this._schemaorgProperties[key] = fndef.getArgType(argname);
-                }
-            }
-        }*/
 
         // load parameter dataset file ids if available
         if (this._paramDatasetsTsv) {
