@@ -45,6 +45,11 @@ interface BasicGeneratorOptions {
     flags : { [key : string] : boolean };
     debug : number;
     rng : () => number;
+
+    // options passed to the templates
+    thingpediaClient ?: Tp.BaseClient;
+    onlyDevices ?: string[];
+    whiteList ?: string;
 }
 
 /**
@@ -76,6 +81,10 @@ class BasicSentenceGenerator extends stream.Readable {
             maxConstants: options.maxConstants || 5,
             debug: options.debug,
             rng: options.rng,
+
+            thingpediaClient: options.thingpediaClient,
+            onlyDevices: options.onlyDevices,
+            whiteList: options.whiteList
         });
         this._generator.on('progress', (value : number) => {
             this.emit('progress', value);
@@ -425,6 +434,10 @@ interface DialogueGeneratorOptions {
     // simulator options
     thingpediaClient : Tp.BaseClient;
     database ?: SimulationDatabase;
+
+    // options passed to the templates
+    onlyDevices ?: string[];
+    whiteList ?: string;
 }
 
 /**
@@ -471,6 +484,9 @@ class DialogueGenerator extends stream.Readable {
             maxConstants: options.maxConstants || 5,
             debug: options.debug,
             rng: options.rng,
+            thingpediaClient: options.thingpediaClient,
+            onlyDevices: options.onlyDevices,
+            whiteList: options.whiteList,
 
             contextInitializer: (partialDialogue : PartialDialogue, functionTable) => {
                 const tagger = functionTable.get('context')!;
@@ -493,6 +509,9 @@ class DialogueGenerator extends stream.Readable {
             maxConstants: options.maxConstants || 5,
             debug: options.debug,
             rng: options.rng,
+            thingpediaClient: options.thingpediaClient,
+            onlyDevices: options.onlyDevices,
+            whiteList: options.whiteList,
 
             contextInitializer: (agentTurn : AgentTurn, functionTable) => {
                 if (agentTurn.context === null) {

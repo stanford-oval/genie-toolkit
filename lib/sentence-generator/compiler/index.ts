@@ -87,6 +87,9 @@ export function compile(filename : string) : Promise<void> {
 
 interface GrammarOptions {
     flags : { [flag : string] : boolean };
+    debug : number;
+    onlyDevices ?: string[];
+    whiteList ?: string;
 }
 
 type CompiledTemplate = (runtime : typeof SentenceGeneratorRuntime,

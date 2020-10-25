@@ -136,6 +136,12 @@ interface GenericSentenceGeneratorOptions {
     maxConstants : number;
     debug : number;
     rng : () => number;
+
+    // options passed to the templates
+    thingpediaClient ?: any;
+    schemaRetriever ?: any;
+    onlyDevices ?: string[];
+    whiteList ?: string;
 }
 
 interface BasicSentenceGeneratorOptions {
@@ -941,7 +947,7 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
 
         let firstGeneration = true;
         if (this._contextual) {
-            if (this._charts === undefined) {
+            if (this._charts.length === 0) {
                 this._charts = [];
                 for (let depth = 0; depth <= this._options.maxDepth; depth++) {
                     // multiply non-contextual non-terminals by a factor

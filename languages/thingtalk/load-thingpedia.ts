@@ -838,7 +838,6 @@ export class ThingpediaLoader {
                 const [, param1, param2, opt] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk);
                 const param = param1 || param2;
                 assert(param);
-                assert(opt === 'const' || opt === 'no-undefined');
                 expansion.push(new this._runtime.Placeholder(param, opt));
             } else {
                 expansion.push(chunk);

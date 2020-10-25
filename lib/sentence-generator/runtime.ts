@@ -48,8 +48,8 @@ const LogLevel = {
 
 class Placeholder {
     constructor(public symbol : string,
-                public option ?: ('const' | 'no-undefined')) {
-        assert(!option || option === 'const' || option === 'no-undefined');
+                public option ?: string) {
+        assert(!option || option === 'const' || option === 'no-undefined', `Invalid placeholder option ${option}`);
     }
 
     toString() : string {
