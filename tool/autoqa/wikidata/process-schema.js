@@ -26,9 +26,6 @@ const ThingTalk = require('thingtalk');
 const Ast = ThingTalk.Ast;
 const Type = ThingTalk.Type;
 
-const path = require('path');
-const os = require('os');
-
 const StreamUtils = require('../../../lib/utils/stream-utils');
 const { clean } = require('../../../lib/utils/misc-utils');
 const { snakecase, titleCase, DEFAULT_ENTITIES } = require('../lib/utils');
@@ -147,7 +144,7 @@ class SchemaProcessor {
             for (let property of properties) {
                 const label = await getPropertyLabel(property);
                 const name = argnameFromLabel(label);
-                const type = await getType(domain, domainLabel, property, label, this._schemaorgProperties, this._paramDatasets);
+                const type = await getType(domain, domainLabel, property, label, this._schemaorgProperties, this._paramDatasets, true);
                 const annotations = {
                     nl: { canonical: await this._getArgCanonical(property, label, type) },
                     impl: { wikidata_id: new Ast.Value.String(property) }

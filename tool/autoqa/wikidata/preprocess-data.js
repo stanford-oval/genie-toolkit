@@ -52,25 +52,45 @@ class ParamDatasetGenerator {
             const property = inputPath.split('.')[0];
             const label = await getPropertyLabel(property);
             const type = await getType(domain, domainLabel, property, label, this._schemaorgProperties);
-            const elemType = getElementType(type);
+            let fileId = `org.wikidata:${(await argnameFromLabel(label))}`;
+            let entityString = false; // temporary
+            if (type) {
+                const elemType = getElementType(type);
             
-            // If not entity or String type save property and skip.
-            if (!elemType.isString && !elemType.isEntity) {
-                this._properties[domain].add(property);
-                continue;
-            }
+                // If not entity or String/Location/Currency type save property and skip.
+                if (!elemType.isString && !elemType.isEntity && !elemType.isLocation && !elemType.isCurrency) {
+                    this._properties[domain].add(property);
+                    continue;
+                }
 
-            // If entity fileId should be defined
-            let fileId;
-            if (elemType.isEntity) {
-                const typeStr = type.toString();
-                fileId = typeStr.substring(typeStr.indexOf(":") + 1, typeStr.indexOf(")"));
-                isEntity = true;
-            }  else {
-                fileId = await argnameFromLabel(label);
+                if (elemType.isEntity) {
+                    const typeStr = type.toString();
+                    fileId = `${typeStr.substring(typeStr.lastIndexOf("Entity(") + 7, typeStr.indexOf(")"))}`;
+                    isEntity = true;
+                }  else if (elemType.isLocation) {
+                    fileId = 'tt:location';
+                    // to-do: Clean up
+                    isEntity = false;
+                    entityString = true;
+                }  else if (elemType.isCurrency) {
+                    fileId = 'tt:currency_code';
+                    // to-do: Clean up
+                    if (isEntity) {
+                        isEntity = false;
+                        entityString = true;
+                    }
+                }
+
+                if (elemType.isString) {
+                    // to-do: Clean up
+                    if (isEntity) {
+                        isEntity = false;
+                        entityString = true;
+                    }
+                }
             }
             
-            const outputPath = path.join(outputDir, `org.wikidata:${fileId}.${isEntity?'json':'tsv'}`);
+            const outputPath = path.join(outputDir, `${fileId}.${isEntity?'json':'tsv'}`);
             const inputs = (await this. _readSync(fs.readFile, path.join(inputDir, inputPath))).split(os.EOL);
             const data = [];
             for (const input of inputs) {
@@ -100,14 +120,18 @@ class ParamDatasetGenerator {
                         continue;
 
                     data.push(entity);
-                } else if (elemType.isString) {
-                    const value = item.value;
+                } else {
+                    let value = item.value;
+                    // Temp workaround
+                    if (entityString && item.label) {
+                        value = item.label;
+                    }
                     
                     if (value.includes('æ'))
                         continue;
 
-                    const tokens = this._tokenizer.tokenize(item.value).tokens;
-                    const weight = 1; // ?
+                    const tokens = this._tokenizer.tokenize(value).tokens;
+                    const weight = 1;
                     
                     // if some tokens are uppercase, they are entities, like NUMBER_0,
                     // in which case we ignore this value
@@ -125,12 +149,14 @@ class ParamDatasetGenerator {
             // Dump propety data
             if (data.length !== 0) {
                 this._properties[domain].add(property);
-                const dataPath = `entity\t${this._locale}\torg.wikidata:${fileId}\t${path.relative(path.join(this._output_dir, canonical), outputPath)}`
-                
+                let dataPath;          
                 if (!isEntity) {
-                    await util.promisify(fs.appendFile)(outputPath, data.join(os.EOL), { encoding: 'utf8' });
+                    dataPath = `string\t${this._locale}\t${fileId}\t${path.relative(path.join(this._output_dir, canonical), outputPath)}`;
+                    let outData = data.join(os.EOL).concat(os.EOL);
+                    await util.promisify(fs.appendFile)(outputPath, outData, { encoding: 'utf8' });
                 } else {
                     let outData = { result: 'ok', data };
+                    dataPath = `entity\t${this._locale}\t${fileId}\t${path.relative(path.join(this._output_dir, canonical), outputPath)}`;
                     if (this._pathes[domain].has(dataPath)) {
                         outData = JSON.parse(await this. _readSync(fs.readFile, outputPath));
                         outData['data'] = outData['data'].concat(data);

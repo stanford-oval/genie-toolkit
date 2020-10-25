@@ -355,27 +355,29 @@ async function getEquivalent(id) {
 /**
  * 
  */
-async function getType(domain, domainLabel, property, propertyLabel, schemaorgProperties, paramDatasets) {
+async function getType(domain, domainLabel, property, propertyLabel, schemaorgProperties, paramDatasets, setDefault) {
     if (property in PROPERTY_TYPE_OVERRIDE)
         return PROPERTY_TYPE_OVERRIDE[property];
 
-    const elemType = await getElemType(domain, domainLabel, property, propertyLabel, schemaorgProperties, paramDatasets);
-    if (PROPERTY_FORCE_ARRAY.has(property))
-        return Type.Array(elemType);
-    if (PROPERTY_FORCE_NOT_ARRAY.has(property))
+    const elemType = await getElemType(domain, domainLabel, property, propertyLabel, schemaorgProperties, paramDatasets, setDefault);
+    if (elemType) {
+        if (PROPERTY_FORCE_ARRAY.has(property))
+            return Type.Array(elemType);
+        if (PROPERTY_FORCE_NOT_ARRAY.has(property))
+            return elemType;
+
+        if (elemType.isEntity && elemType.type === 'tt:picture')
+            return Type.Array(elemType);
+
+        // TODO: decide if an property has an array type based on data
         return elemType;
-
-    if (elemType.isEntity && elemType.type === 'tt:picture')
-        return Type.Array(elemType);
-
-    // TODO: decide if an property has an array type based on data
-    return elemType;
+    }
 }
 
 /**
  * 
  */
-async function getElemType(domain, domainLabel, property, propertyLabel, schemaorgProperties, paramDatasets) {
+async function getElemType(domain, domainLabel, property, propertyLabel, schemaorgProperties, paramDatasets, setDefault) {
     if (PROPERTY_TYPE_SAME_AS_SUBJECT.has(property))
         return Type.Entity(`org.wikidata:${snakecase(domainLabel)}`);
 
@@ -459,13 +461,18 @@ async function getElemType(domain, domainLabel, property, propertyLabel, schemao
     // Based on parameter_datasets.tsv type
     if (paramDatasets) {
         const typeName = `org.wikidata:${argnameFromLabel(propertyLabel)}`;
+        if (paramDatasets['string'].has(typeName)) {
+            return Type.String;
+        }
         if (paramDatasets['entity'].has(typeName)) {
             return Type.Entity(typeName);
         }
     }
 
-    // majority or arrays of string so this may be better default.
-    return Type.String;
+    if (setDefault) {
+        // majority or arrays of string so this may be better default.
+        return Type.String;
+    }
 }
 
 /**
