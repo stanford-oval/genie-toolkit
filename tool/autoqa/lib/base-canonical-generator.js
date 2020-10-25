@@ -33,8 +33,7 @@ function updateCanonical(canonical, type, values) {
     canonical[type] = (canonical[type] || []).concat(values);
 }
 
-export default function genBaseCanonical(canonical, name, ptype) {
-    const languagePack = new EnglishLanguagePack();
+function preprocessName(languagePack, name, ptype) {
     name = clean(name);
     if (name.endsWith(' value'))
         name = name.substring(0, name.length - ' value'.length);
@@ -43,6 +42,39 @@ export default function genBaseCanonical(canonical, name, ptype) {
         name = languagePack.pluralize(name);
 
     const tags = languagePack.posTag(name.split(' '));
+    return [name, tags];
+}
+
+function typeEqual(t1, t2) {
+    // TODO: replace this once we switch away from adt
+    if (t1.isCompound && t2.isCompound) {
+        if (t1.name !== t2.name)
+            return false;
+        if (Object.keys(t1.fields).length !== Object.keys(t2.fields).length)
+            return false;
+        for (let f in t1.fields) {
+            if (!(f in t2.fields))
+                return false;
+            if (!typeEqual(t1.fields[f].type, (t2.fields[f].type)))
+                return false;
+        }
+        return true;
+    } else if (t1.isEnum && t2.isEnum) {
+        if (t1.entries.length !== t2.entries.length)
+            return false;
+        for (let entry of t1.entries) {
+            if (!t2.entries.includes(entry))
+                return false;
+        }
+        return true;
+    } else {
+        return t1.equals(t2);
+    }
+}
+
+export default function genBaseCanonical(canonical, argname, ptype, functionDef = null) {
+    const languagePack = new EnglishLanguagePack();
+    let [name, tags] = preprocessName(languagePack, argname, ptype);
 
     // e.g., saturatedFatContent
     if (name.endsWith(' content') && ptype.isMeasure) {
@@ -108,9 +140,42 @@ export default function genBaseCanonical(canonical, name, ptype) {
     // e.g., from_location, to_location, inAlbum
     if (tags.length === 2 && (tags[0] === 'IN' || tags[0] === 'TO') && ['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[1])) {
         let preposition = name.split(' ')[0];
-        updateDefault(canonical, 'passive_verb');
-        updateCanonical(canonical, ptype.isBoolean ? 'passive_verb_true' : 'passive_verb', preposition);
-        updateCanonical(canonical, 'base', name);
+        let noun = name.substring(preposition.length + 1);
+        updateDefault(canonical, 'preposition');
+
+        let [hasPrepositionConflict, hasNounConflict] = [false, false];
+        if (functionDef) {
+            for (let arg of functionDef.iterateArguments()) {
+                // stop if already found conflicts
+                if (hasPrepositionConflict && hasNounConflict)
+                    break;
+                // don't consider property with different type
+                if (!typeEqual(arg.type, ptype))
+                    continue;
+                // skip the argument itself
+                if (arg.name === argname)
+                    continue;
+                let [name, tags] = preprocessName(languagePack, arg.name, arg.type);
+                // skip itself
+                if (tags.length === 2 && (tags[0] === 'IN' || tags[0] === 'TO') && ['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[1])) {
+                    let otherProposition = name.split(' ')[0];
+                    let otherNoun = name.substring(otherProposition.length + 1);
+                    if (preposition === otherProposition)
+                        hasPrepositionConflict = true;
+                    if (noun === otherNoun)
+                        hasNounConflict = true;
+                }
+            }
+        }
+
+        if (!hasPrepositionConflict)
+            updateCanonical(canonical, ptype.isBoolean ? 'preposition_true' : 'preposition', preposition);
+        updateCanonical(canonical, ptype.isBoolean ? 'preposition_true' : 'preposition', name);
+
+        if (!hasNounConflict)
+            updateCanonical(canonical, 'base', noun);
+        else
+            updateCanonical(canonical, 'base', name);
         return;
     }
 
@@ -119,19 +184,16 @@ export default function genBaseCanonical(canonical, name, ptype) {
         let tokens = name.split(' ');
         let noun = tokens.slice(0, tokens.length - 1);
         let verb = tokens[tokens.length - 1];
-        let verb_phrases = [
-            [languagePack.toVerbBase(verb), ...noun].join(' '),
-            [languagePack.toVerbSingular(verb), ...noun].join(' ')
-        ];
+        let verb_phrase = [languagePack.toVerbSingular(verb), ...noun].join(' ');
         updateDefault(canonical, 'property');
         updateCanonical(canonical, 'property_true', name);
-        updateCanonical(canonical, 'verb_true', verb_phrases);
+        updateCanonical(canonical, 'verb_true', verb_phrase);
         return;
     }
 
     if (['IN', 'VBN', 'VBG', 'TO'].includes(tags[0])) {
-        updateDefault(canonical, 'passive_verb');
-        updateCanonical(canonical, ptype.isBoolean ? 'passive_verb_true' : 'passive_verb', name);
+        updateDefault(canonical, 'preposition');
+        updateCanonical(canonical, ptype.isBoolean ? 'preposition_true' : 'preposition', name);
         return;
     }
 

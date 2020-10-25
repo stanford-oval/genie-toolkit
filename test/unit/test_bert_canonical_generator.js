@@ -144,7 +144,24 @@ const expected_output = {
   },
   "adjectives": [
     "Restaurant.servesCuisine"
-  ]
+  ],
+  "domains": {
+    "Restaurant": {
+       bite: 2,
+       burger: 1,
+       cafe: 4,
+       chef: 3,
+       chinatown: 1,
+       cuisine: 2,
+       diner: 8,
+       dining: 3,
+       grocery: 2,
+       hamburger: 1,
+       pizza: 3,
+       place: 8,
+       seafood: 2
+    }
+  }
 };
 
 
@@ -152,7 +169,8 @@ async function main() {
     const args = [
         path.resolve(path.dirname(module.filename), '../../tool/autoqa/lib/bert-canonical-annotator.py'),
         'all',
-        '--no-mask'
+        '--no-mask',
+        '--k-synonyms', '5'
     ];
     const child = child_process.spawn(`python`, args, {stdio: ['pipe', 'pipe', 'inherit']});
     const stdout = await new Promise((resolve, reject) => {

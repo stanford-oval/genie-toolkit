@@ -40,8 +40,10 @@ import {
     STRUCTURED_HIERARCHIES,
     NON_STRUCT_TYPES,
     PROPERTY_CANONICAL_OVERRIDE,
+    PROPERTY_NAME_OVERRIDE_BY_DOMAIN,
     MANUAL_PROPERTY_CANONICAL_OVERRIDE,
     MANUAL_PROPERTY_CANONICAL_OVERRIDE_BY_DOMAIN,
+    TABLE_CANONICAL_OVERRIDE,
     MANUAL_TABLE_CANONICAL_OVERRIDE,
     MANUAL_COUNTED_OBJECT_OVERRIDE,
     PROPERTY_FORCE_NOT_ARRAY,
@@ -117,7 +119,7 @@ function recursiveAddStringValues(arg, fileId) {
     if (fileId in PROPERTIES_NO_FILTER)
         return;
 
-    if (type.isEntity && STRING_FILE_OVERRIDES[fileId]) {
+    if ((type.isEntity || type.isLocation) && STRING_FILE_OVERRIDES[fileId]) {
         arg.annotations['string_values'] = new Ast.Value.String(STRING_FILE_OVERRIDES[fileId]);
         return;
     }
@@ -157,16 +159,16 @@ class SchemaProcessor {
     }
 
 
-    typeToThingTalk(typename, typeHierarchy, manualAnnotation) {
+    typeToThingTalk(propname, typename, typeHierarchy, manualAnnotation) {
         if (typename in BUILTIN_TYPEMAP)
             return BUILTIN_TYPEMAP[typename];
 
         if (typeHierarchy[typename].isItemList)
-            return new Type.Array(this.typeToThingTalk(typeHierarchy[typename].itemType, typeHierarchy, manualAnnotation));
+            return new Type.Array(this.typeToThingTalk(propname, typeHierarchy[typename].itemType, typeHierarchy, manualAnnotation));
         if (typeHierarchy[typename].isEnum && typeHierarchy[typename].enum.length > 0)
             return new Type.Enum(typeHierarchy[typename].enum);
         if (typeHierarchy[typename].representAsStruct)
-            return this.makeCompoundType(typename, typeHierarchy[typename], typeHierarchy, manualAnnotation);
+            return this.makeCompoundType(propname, typename, typeHierarchy[typename], typeHierarchy, manualAnnotation);
 
         return new Type.Entity(this._prefix + typename);
     }
@@ -246,7 +248,7 @@ class SchemaProcessor {
         if (propname === 'author')
             best = 'Person';
 
-        let tttype = this.typeToThingTalk(best, typeHierarchy, manualAnnotation);
+        let tttype = this.typeToThingTalk(propname, best, typeHierarchy, manualAnnotation);
         if (!tttype)
             return [undefined, undefined];
 
@@ -262,7 +264,20 @@ class SchemaProcessor {
         return [best, tttype];
     }
 
-    makeCompoundType(startingTypename, typedef, typeHierarchy) {
+    loadPropertyNameOverride(argname) {
+        if (PROPERTY_NAME_OVERRIDE_BY_DOMAIN[this._domain]) {
+            if (argname in PROPERTY_NAME_OVERRIDE_BY_DOMAIN[this._domain])
+                return PROPERTY_NAME_OVERRIDE_BY_DOMAIN[this._domain][argname];
+            while (argname.includes('.')) {
+                argname = argname.slice(argname.indexOf('.') + 1);
+                if (argname in PROPERTY_NAME_OVERRIDE_BY_DOMAIN[this._domain])
+                    return PROPERTY_NAME_OVERRIDE_BY_DOMAIN[this._domain][argname];
+            }
+        }
+        return null;
+    }
+
+    makeCompoundType(parentPropertyName, startingTypename, typedef, typeHierarchy) {
         const fields = {};
 
         // collect all properties of this type (incl. inherited ones)
@@ -299,8 +314,7 @@ class SchemaProcessor {
             if (!ttType)
                 continue;
 
-            const canonical = this.makeArgCanonical(propertyname, ttType);
-            const metadata = { canonical };
+            const metadata = {};
             const annotation = keepAnnotation ? {
                 'org_schema_type': new Ast.Value.String(schemaOrgType),
                 'org_schema_comment': new Ast.Value.String(propertydef.comment)
@@ -317,6 +331,8 @@ class SchemaProcessor {
                 metadata.counted_object = MANUAL_COUNTED_OBJECT_OVERRIDE[propertyname];
             else if (propertyname.startsWith('numberOf'))
                 metadata.counted_object = [ clean(propertyname.slice('numberOf'.length)) ];
+            else if (/num[A-Z].*/.test(propertyname))
+                metadata.counted_object = [ clean(propertyname.slice('num'.length)) ];
             else if (propertyname.endsWith('Count'))
                 metadata.counted_object = [ this._langPack.pluralize(clean(propertyname.slice(0, -'Count'.length)))];
 
@@ -352,10 +368,34 @@ class SchemaProcessor {
         // 3. check default property type override (which is applied even for baseline)
         if (name in PROPERTY_CANONICAL_OVERRIDE)
             return PROPERTY_CANONICAL_OVERRIDE[name];
+
+        // for compound properties, also search by field names
+        if (name.includes('.'))
+            return this.loadPropertyCanonicalOverride(name.slice(name.indexOf('.') + 1));
+
         return null;
     }
 
-    makeArgCanonical(name, ptype) {
+    addCanonicalAnnotations(classDef) {
+        for (let fname in classDef.queries) {
+            for (let arg of classDef.queries[fname].iterateArguments()) {
+                if (arg.name === 'id')
+                    continue;
+                arg.metadata.canonical = this.makeArgCanonical(classDef.queries[fname], arg.name, arg.type);
+                let elemType = arg.type;
+                while (elemType.isArray)
+                    elemType = elemType.elem;
+                if (elemType.isCompound) {
+                    for (let fieldname in elemType.fields) {
+                        let field = elemType.fields[fieldname];
+                        field.metadata.canonical = this.makeArgCanonical(classDef.queries[fname], `${arg.name}.${field.name}`, field.type);
+                    }
+                }
+            }
+        }
+    }
+
+    makeArgCanonical(functionDef, argname, ptype) {
         function cleanName(name) {
             name = clean(name);
             if (name.endsWith(' value'))
@@ -363,14 +403,16 @@ class SchemaProcessor {
             return name;
         }
 
-        let canonical = this.loadPropertyCanonicalOverride(name);
+        let canonical = this.loadPropertyCanonicalOverride(argname);
         if (canonical)
             return canonical;
 
+        const name = this.loadPropertyNameOverride(argname) || argname.slice(argname.lastIndexOf('.') + 1);
+
         canonical = {};
-        const candidates = name in this._wikidata_labels ? this._wikidata_labels[name].labels : [cleanName(name)];
+        const candidates = name in this._wikidata_labels ? this._wikidata_labels[name].labels : [name];
         for (let candidate of [...new Set(candidates)])
-            this.addCanonical(canonical, candidate, ptype);
+            this.addOneCanonical(canonical, candidate, ptype, functionDef);
         if (!("base" in canonical) && this._always_base_canonical)
             canonical["base"] = [cleanName(name)];
 
@@ -383,13 +425,12 @@ class SchemaProcessor {
         return canonical;
     }
 
-    addCanonical(canonical, name, ptype) {
-        name = name.toLowerCase();
+    addOneCanonical(canonical, name, ptype, functionDef) {
         // drop all names with char other than letters
-        if (!/^[a-z ]+$/.test(name))
+        if (!/^[a-zA-Z ]+$/.test(name))
             return;
 
-        genBaseCanonical(canonical, name, ptype);
+        genBaseCanonical(canonical, name, ptype, functionDef);
     }
 
     async run() {
@@ -494,6 +535,11 @@ class SchemaProcessor {
                         const comment = triple['rdfs:comment'];
                         const _extends = getIncludes(triple['rdfs:subClassOf'] || []);
                         ensureType(name);
+                        if (_extends.length > 0 && _extends.every((ex) => ex in BUILTIN_TYPEMAP)) {
+                            BLACKLISTED_TYPES.add(name);
+                            delete typeHierarchy[name];
+                            break;
+                        }
                         typeHierarchy[name].extends = _extends.filter((ex) => !BLACKLISTED_TYPES.has(ex));
                         if (typeHierarchy[name].extends.length === 0 && name !== 'Thing')
                             typeHierarchy[name].extends = ['Thing'];
@@ -660,8 +706,7 @@ class SchemaProcessor {
                 if (KEYWORDS.includes(propertyname))
                     propertyname = '_' + propertyname;
 
-                const canonical = this.makeArgCanonical(propertyname, type);
-                const metadata = { canonical };
+                const metadata = {};
                 const annotation = keepAnnotation ? {
                     'org_schema_type': new Ast.Value.String(schemaOrgType),
                     'org_schema_comment': new Ast.Value.String(propertydef.comment)
@@ -676,20 +721,10 @@ class SchemaProcessor {
                     metadata.counted_object = MANUAL_COUNTED_OBJECT_OVERRIDE[propertyname];
                 else if (propertyname.startsWith('numberOf'))
                     metadata.counted_object = [ clean(propertyname.slice('numberOf'.length)) ];
+                else if (propertyname.startsWith('num') && propertyname.charAt(3) === propertyname.charAt(3).toUpperCase())
+                    metadata.counted_object = [ clean(propertyname.slice('num'.length)) ];
                 else if (propertyname.endsWith('Count'))
                     metadata.counted_object = [ this._langPack.pluralize(clean(propertyname.slice(0, -'Count'.length)))];
-
-                let elemType = type;
-                while (elemType.isArray)
-                    elemType = elemType.elem;
-
-                if (elemType.isCompound) {
-                    for (let field in elemType.fields) {
-                        const canonicalOverride = this.loadPropertyCanonicalOverride(`${propertyname}.${field}`);
-                        if (canonicalOverride)
-                            elemType.fields[field].nl_annotations.canonical = canonicalOverride;
-                    }
-                }
 
                 const arg = new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, propertyname, type, {
                     nl: metadata,
@@ -706,6 +741,8 @@ class SchemaProcessor {
             let query_canonical;
             if (this._manual && typename in MANUAL_TABLE_CANONICAL_OVERRIDE)
                 query_canonical = MANUAL_TABLE_CANONICAL_OVERRIDE[typename];
+            else if (typename in TABLE_CANONICAL_OVERRIDE)
+                query_canonical = TABLE_CANONICAL_OVERRIDE[typename];
             else
                 query_canonical = clean(typename);
 
@@ -753,6 +790,8 @@ class SchemaProcessor {
         }, {
             is_abstract: false
         });
+
+        this.addCanonicalAnnotations(classdef);
 
         this._output.end(classdef.prettyprint());
         await StreamUtils.waitFinish(this._output);
