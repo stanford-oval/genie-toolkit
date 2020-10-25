@@ -354,7 +354,7 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
     }
 
     hasPunctuation(sentence : string) : boolean {
-        for (let char of sentence) {
+        for (const char of sentence) {
             if (PUNCTUATIONS.includes(char))
                 return true;
         }
@@ -366,7 +366,7 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
             return false;
         // if sentence contains punctuation, first drop anything after comma;
         // then filter out the sentence if still has punctuations
-        let has_punctuation = this.hasPunctuation(sentence);
+        const has_punctuation = this.hasPunctuation(sentence);
         if (has_punctuation) {
             const comma_index = sentence.indexOf(',');
             if (comma_index !== -1)

@@ -1,4 +1,4 @@
-"use strict";
+
 
 import { getBestEntityMatch } from '../../lib/dialogue-agent/entity-linking/entity-finder';
 

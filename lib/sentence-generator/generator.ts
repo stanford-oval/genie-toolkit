@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 import assert from 'assert';
 import * as events from 'events';
@@ -175,7 +175,7 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
 
     private _nonTermTable : Map<string, number>;
     private _nonTermList : string[];
-    private _rules : Rule<any[], any>[][];
+    private _rules : Array<Array<Rule<any[], any>>>;
     private _contextTable : Map<string, number>;
     private _functionTable : FunctionTable;
 
@@ -988,7 +988,8 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
                 this._initializeContexts(contextInputs, charts, depth);
 
             // compute estimates of how many things we will produce at this depth
-            let [estimatedTotal, estimatedPerRule] = this._estimateDepthSize(charts, depth, firstGeneration);
+            const [initialEstimatedTotal, estimatedPerRule] = this._estimateDepthSize(charts, depth, firstGeneration);
+            let estimatedTotal = initialEstimatedTotal;
             let actual = 0;
 
             const targetProgress = progressAtDepth[depth];

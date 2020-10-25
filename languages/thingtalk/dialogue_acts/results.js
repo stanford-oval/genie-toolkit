@@ -17,13 +17,13 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 import assert from 'assert';
 
-const {
+import {
     isInfoPhraseCompatibleWithResult,
-} = require('./common');
+} from './common';
 
 function checkInfoPhrase(ctx, info) {
     if (info.schema !== null) {

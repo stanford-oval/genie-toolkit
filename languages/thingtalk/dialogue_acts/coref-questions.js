@@ -17,19 +17,19 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 import assert from 'assert';
 
 import { Ast, Type } from 'thingtalk';
 
-const {
+import {
     addQuery,
-} = require('../state_manip');
-const {
+} from '../state_manip';
+import {
     queryRefinement,
     refineFilterToAnswerQuestion,
-} = require('./refinement-helpers');
+} from './refinement-helpers';
 
 
 function areQuestionsValidForContext(ctx, questions) {

@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 import * as Ast from './ast';
 import type { EntityMap } from '../../utils/entity-utils';

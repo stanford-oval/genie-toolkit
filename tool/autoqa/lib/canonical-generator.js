@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
+
 import * as fs from 'fs';
 import util from 'util';
 import path from 'path';
@@ -76,6 +76,8 @@ export default class AutoCanonicalGenerator {
         this.annotatedProperties = [];
         const file = path.resolve(path.dirname(module.filename), `../${options.dataset}/manual-annotations.js`);
         if (options.dataset !== 'custom' && fs.existsSync(file)) {
+            // FIXME refactor to use import() instead (must be async)
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
             const manualAnnotations = require(`../${options.dataset}/manual-annotations`);
             if (manualAnnotations.PROPERTY_CANONICAL_OVERRIDE)
                 this.annotatedProperties = Object.keys(manualAnnotations.PROPERTY_CANONICAL_OVERRIDE);

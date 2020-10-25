@@ -19,7 +19,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //         Elvis Yu-Jing Lin <r06922068@ntu.edu.tw> <elvisyjlin@gmail.com>
-"use strict";
+
 
 import assert from 'assert';
 import { Type } from 'thingtalk';

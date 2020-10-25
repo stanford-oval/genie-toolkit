@@ -7,7 +7,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
-"use strict";
+
 
 import assert from 'assert';
 import * as seedrandom from 'seedrandom';

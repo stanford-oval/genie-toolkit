@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
+
 import * as fs from 'fs';
 import util from 'util';
 import assert from 'assert';

@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 import assert from 'assert';
 
@@ -25,21 +25,21 @@ import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
 
-const {
+import {
     makeAgentReply,
     makeSimpleState,
     addQuery,
     addQueryAndAction,
-} = require('../state_manip');
-const {
+} from '../state_manip';
+import {
     queryRefinement,
     refineFilterToAnswerQuestion
-} = require('./refinement-helpers');
-const {
+} from './refinement-helpers';
+import {
     isValidSearchQuestion,
     isSimpleFilterTable,
     addParametersFromContext
-} = require('./common');
+} from './common';
 
 function isGoodSearchQuestion(ctx, questions) {
     if (!isValidSearchQuestion(ctx.current.stmt.table, questions))

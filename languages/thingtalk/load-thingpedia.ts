@@ -18,7 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //         Silei Xu <silei@cs.stanford.edu>
-"use strict";
+
 
 import assert from 'assert';
 
@@ -32,7 +32,7 @@ import * as Units from 'thingtalk-units';
 import type * as Genie from 'genie-toolkit';
 import type * as Tp from 'thingpedia';
 
-const {
+import {
     clean,
     typeToStringSafe,
     makeFilter,
@@ -41,7 +41,7 @@ const {
     isHumanEntity,
     interrogativePronoun,
     tokenizeExample
-} = require('./utils');
+} from './utils';
 import { SlotBag } from './slot_bag';
 
 function identity(x) {
@@ -553,8 +553,8 @@ export class ThingpediaLoader {
                     throw new TypeError(`Invalid annotation #_[canonical.implicit_identity=${annotvalue}] for ${functionName}`);
                 if (annotvalue) {
                     const expansion = [constant];
-                    this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)), attributes);
-                    this._grammar.addRule('coref_' + cat + '_filter', [corefconst], this._runtime.simpleCombine((value) => makeFilter(this, pvar, op, value, false)), attributes);
+                    this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value : Ast.Value) => makeFilter(this, pvar, op, value, false)), attributes);
+                    this._grammar.addRule('coref_' + cat + '_filter', [corefconst], this._runtime.simpleCombine((value : Ast.Value) => makeFilter(this, pvar, op, value, false)), attributes);
                 }
                 continue;
             }
@@ -629,13 +629,13 @@ export class ThingpediaLoader {
                         this._addOutParam(functionName, pname, ptype, typestr, form.trim());
                         if (!canonical.npp && !canonical.property) {
                             const expansion = [form, constant];
-                            this._grammar.addRule('npp_filter', expansion, this._runtime.simpleCombine((_, value) => makeFilter(this, pvar, op, value, false)));
+                            this._grammar.addRule('npp_filter', expansion, this._runtime.simpleCombine((_, value : Ast.Value) => makeFilter(this, pvar, op, value, false)));
                             const corefexpansion = [form, corefconst];
-                            this._grammar.addRule('coref_npp_filter', corefexpansion, this._runtime.simpleCombine((_, value) => makeFilter(this, pvar, op, value, false)), attributes);
+                            this._grammar.addRule('coref_npp_filter', corefexpansion, this._runtime.simpleCombine((_, value : Ast.Value) => makeFilter(this, pvar, op, value, false)), attributes);
 
                             if (canUseBothForm) {
                                 const pairexpansion = [form, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
-                                this._grammar.addRule('npp_filter', pairexpansion, this._runtime.simpleCombine((_1, _2, values) => makeAndFilter(this, pvar, op, values, false)), attributes);
+                                this._grammar.addRule('npp_filter', pairexpansion, this._runtime.simpleCombine((_1, _2, values : Ast.Value[]) => makeAndFilter(this, pvar, op, values, false)), attributes);
                             }
                         }
                     } else {
@@ -669,12 +669,12 @@ export class ThingpediaLoader {
                             pairexpansion = ['', new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), ''];
                             daterangeexpansion = ['', new this._runtime.NonTerminal('constant_date_range'), ''];
                         }
-                        this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((_1, value, _2) => makeFilter(this, pvar, op, value, false)), attributes);
-                        this._grammar.addRule('coref_' + cat + '_filter', corefexpansion, this._runtime.simpleCombine((_1, value, _2) => makeFilter(this, pvar, op, value, false)), attributes);
+                        this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((_1, value : Ast.Value, _2) => makeFilter(this, pvar, op, value, false)), attributes);
+                        this._grammar.addRule('coref_' + cat + '_filter', corefexpansion, this._runtime.simpleCombine((_1, value : Ast.Value, _2) => makeFilter(this, pvar, op, value, false)), attributes);
                         if (canUseBothForm)
-                            this._grammar.addRule(cat + '_filter', pairexpansion, this._runtime.simpleCombine((_1, _2, values, _3) => makeAndFilter(this, pvar, op, values, false)), attributes);
+                            this._grammar.addRule(cat + '_filter', pairexpansion, this._runtime.simpleCombine((_1, _2, values : Ast.Value[], _3) => makeAndFilter(this, pvar, op, values, false)), attributes);
                         if (ptype.isDate)
-                            this._grammar.addRule(cat + '_filter', daterangeexpansion, this._runtime.simpleCombine((_1, values, _2) => makeDateRangeFilter(this, pvar, values)), attributes);
+                            this._grammar.addRule(cat + '_filter', daterangeexpansion, this._runtime.simpleCombine((_1, values : Ast.Value[], _2) => makeDateRangeFilter(this, pvar, values)), attributes);
                     }
 
                     if (this._options.flags.inference)

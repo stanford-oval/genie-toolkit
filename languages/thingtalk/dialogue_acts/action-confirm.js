@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 import assert from 'assert';
 
@@ -25,13 +25,13 @@ import { Type } from 'thingtalk';
 
 import * as C from '../ast_manip';
 
-const {
+import {
     makeAgentReply,
     makeSimpleState,
     sortByName,
     setOrAddInvocationParam,
     replaceAction,
-} = require('../state_manip');
+} from '../state_manip';
 
 
 function makeActionConfirmationPhrase(ctx, action) {

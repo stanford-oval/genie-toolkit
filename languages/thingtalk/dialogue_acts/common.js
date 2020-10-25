@@ -17,16 +17,16 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 import assert from 'assert';
 
 import { Ast, } from 'thingtalk';
 
 import { arraySubset } from '../array_utils';
-const {
+import {
     setOrAddInvocationParam,
-} = require('../state_manip');
+} from '../state_manip';
 
 
 function isFilterCompatibleWithInfo(info, filter) {

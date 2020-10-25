@@ -18,7 +18,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 // Miscellaneous unit tests, for simple code fragments that don't need
 // a lot of mocking and fixtures

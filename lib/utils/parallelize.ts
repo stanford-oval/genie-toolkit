@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 import Stream from 'stream';
 
@@ -25,6 +25,7 @@ import type { Worker as WorkerType } from 'worker_threads';
 
 let Worker : WorkerType|null;
 try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
     Worker = require('worker_threads').Worker;
 } catch(e) {
     Worker = null;

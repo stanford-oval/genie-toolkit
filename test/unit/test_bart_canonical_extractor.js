@@ -17,11 +17,11 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
 
-const AnnotationExtractor = require('../../tool/autoqa/lib/canonical-extractor');
+import assert from 'assert';
+
+import AnnotationExtractor from '../../tool/autoqa/lib/canonical-extractor';
 
 const TEST_CASES = [
     [
@@ -96,7 +96,6 @@ const TEST_CASES = [
     ],
 ];
 
-
 function main() {
     const extractor = new AnnotationExtractor(null, [], null, {});
 
@@ -115,6 +114,6 @@ function main() {
     if (anyFailed)
         throw new Error('Some test failed');
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

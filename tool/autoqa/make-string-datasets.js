@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 import assert from 'assert';
 import * as fs from 'fs';
@@ -49,6 +49,8 @@ class ParamDatasetGenerator {
         this._propertiesNoFilter = [];
         const file = path.resolve(path.dirname(module.filename), `../${dataset}/manual-annotations.js`);
         if (dataset !== 'custom' && fs.existsSync(file)) {
+            // FIXME refactor to use import() instead (must be async)
+            // eslint-disable-next-line @typescript-eslint/no-var-requires
             const manualAnnotations = require(`../${dataset}/manual-annotations`);
             if (manualAnnotations.PROPERTIES_NO_FILTER)
                 this._propertiesNoFilter = manualAnnotations.PROPERTIES_NO_FILTER;

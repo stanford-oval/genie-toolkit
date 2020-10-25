@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 export const NUM_SENTENCES_PER_TASK = 4;
 export const NUM_PARAPHRASES_PER_SENTENCE = 2;

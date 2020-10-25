@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 function choose<T>(from : T[], n : number, rng : () => number = Math.random) : T[] {
     if (n === 0)

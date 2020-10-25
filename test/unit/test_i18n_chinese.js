@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Johnny Hsu <johnny.chhsu01@gmail.com>
-"use strict";
+
 
 import assert from 'assert';
 

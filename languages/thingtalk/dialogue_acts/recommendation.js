@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 import assert from 'assert';
 
@@ -26,24 +26,24 @@ import { Ast, } from 'thingtalk';
 import * as C from '../ast_manip';
 
 import { SlotBag, checkAndAddSlot } from '../slot_bag';
-const {
+import {
     makeAgentReply,
     makeSimpleState,
     addActionParam,
     addNewItem,
-} = require('../state_manip');
-const {
+} from '../state_manip';
+import {
     isInfoPhraseCompatibleWithResult,
     findChainParam
-} = require('./common');
-const {
+} from './common';
+import {
     refineFilterToAnswerQuestionOrChangeFilter,
     combinePreambleAndRequest,
     proposalReply
-} = require('./refinement-helpers');
-const {
+} from './refinement-helpers';
+import {
     checkInfoPhrase
-} = require('./results');
+} from './results';
 
 
 function makeActionRecommendation(ctx, action) {

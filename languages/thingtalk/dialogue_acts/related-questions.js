@@ -17,19 +17,19 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 import assert from 'assert';
 
 import * as C from '../ast_manip';
 
-const {
+import {
     addQuery,
-} = require('../state_manip');
-const {
+} from '../state_manip';
+import {
     findOrMakeFilterTable,
     refineFilterToAnswerQuestion,
-} = require('./refinement-helpers');
+} from './refinement-helpers';
 
 function relatedQuestion(ctx, stmt) {
     const currentTable = ctx.current.stmt.table;

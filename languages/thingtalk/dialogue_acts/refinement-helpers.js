@@ -17,7 +17,7 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 import assert from 'assert';
 
@@ -25,13 +25,13 @@ import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
 
-const {
+import {
     addQuery
-} = require('../state_manip');
-const {
+} from '../state_manip';
+import {
     isFilterCompatibleWithInfo,
     isSimpleFilterTable
-} = require('./common');
+} from './common';
 
 /**
  * Find the filter table in the context.

@@ -7,7 +7,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
-"use strict";
+
 
 /**
  * Standard max-heap-based priority queue.
