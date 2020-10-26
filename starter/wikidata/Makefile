@@ -7,7 +7,7 @@ thingpedia_url = https://thingpedia.stanford.edu/thingpedia
 -include ./config.mk
 
 memsize := 15000
-genie = node --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/tool/genie.js
+genie = node --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/dist/tool/genie.js
 
 all_experiments = city country star university company people artist athlete sports-team tv-series
 
@@ -169,9 +169,9 @@ shared-parameter-datasets.tsv:
 	$(genie) auto-annotate -o $@.tmp --constants $*/constants.tsv --thingpedia $*/wikidata.tt --functions $($(*)_canonical) $($(mode)_annotate_flags) --parameter-datasets $*/parameter-datasets.tsv --dataset wikidata
 	mv $@.tmp $@
 
-%/synthetic.tsv: %/manifest.tt $(dataset_file) $(geniedir)/languages/thingtalk/en/*.genie
+%/synthetic.tsv: %/manifest.tt $(dataset_file) $(geniedir)/languages-dist/thingtalk/en/*.js
 	$(genie) generate \
-	  --template $(geniedir)/languages/$(template_file) \
+	  --template $(geniedir)/languages-dist/$(template_file) \
 	  --thingpedia $*/manifest.tt --entities $*/entities.json --dataset $(dataset_file) \
 	  --target-pruning-size $(target_pruning_size) \
 	  -o $@.tmp --no-debug $(generate_flags) $(custom_generate_flags) --maxdepth $(maxdepth) \

@@ -107,12 +107,12 @@ class SchemaProcessor {
 
         const elemType = await this._getElemType(domain, domainLabel, property, propertyLabel);
         if (PROPERTY_FORCE_ARRAY.has(property))
-            return Type.Array(elemType);
+            return new Type.Array(elemType);
         if (PROPERTY_FORCE_NOT_ARRAY.has(property))
             return elemType;
 
         if (elemType.isEntity && elemType.type === 'tt:picture')
-            return Type.Array(elemType);
+            return new Type.Array(elemType);
 
         // TODO: decide if an property has an array type based on data
         return elemType;
@@ -120,17 +120,17 @@ class SchemaProcessor {
 
     async _getElemType(domain, domainLabel, property, propertyLabel) {
         if (PROPERTY_TYPE_SAME_AS_SUBJECT.has(property))
-            return Type.Entity(`org.wikidata:${snakecase(domainLabel)}`);
+            return new Type.Entity(`org.wikidata:${snakecase(domainLabel)}`);
 
         const enumEntries = await getOneOfConstraint(property);
         if (enumEntries.length > 0)
-            return Type.Enum(enumEntries.map(cleanEnumValue));
+            return new Type.Enum(enumEntries.map(cleanEnumValue));
 
         const classes = await getClasses(property);
         if (classes.includes('Q18636219')) // Wikidata property with datatype 'time'
             return Type.Date;
         if (classes.includes('Q18616084')) // Wikidata property to indicate a language
-            return Type.Entity('tt:iso_lang_code');
+            return new Type.Entity('tt:iso_lang_code');
 
         if (propertyLabel.startsWith('date of'))
             return Type.Date;
@@ -138,19 +138,19 @@ class SchemaProcessor {
         const units = await getAllowedUnits(property);
         if (units.length > 0) {
             if (units.includes('kilogram'))
-                return Type.Measure('kg');
+                return new Type.Measure('kg');
             if (units.includes('metre') ||  units.includes('kilometre'))
-                return Type.Measure('m');
+                return new Type.Measure('m');
             if (units.includes('second') || units.includes('year'))
-                return Type.Measure('ms');
+                return new Type.Measure('ms');
             if (units.includes('degree Celsius'))
-                return Type.Measure('C');
+                return new Type.Measure('C');
             if (units.includes('metre per second') || units.includes('kilometre per second'))
-                return Type.Measure('mps');
+                return new Type.Measure('mps');
             if (units.includes('square metre'))
-                return Type.Measure('m2');
+                return new Type.Measure('m2');
             if (units.includes('cubic metre'))
-                return Type.Measure('m3');
+                return new Type.Measure('m3');
             if (units.includes('percent'))
                 return Type.Number;
             if (units.includes('United States dollar'))
@@ -168,9 +168,9 @@ class SchemaProcessor {
 
         const subpropertyOf = await wikidataQuery(`SELECT ?value WHERE { wd:${property} wdt:P1647 ?value. } `);
         if (subpropertyOf.some((property) => property.value.value === 'http://www.wikidata.org/entity/P18'))
-            return Type.Entity('tt:picture');
+            return new Type.Entity('tt:picture');
         if (subpropertyOf.some((property) => property.value.value === 'http://www.wikidata.org/entity/P2699'))
-            return Type.Entity('tt:url');
+            return new Type.Entity('tt:url');
         if (subpropertyOf.some((property) => property.value.value === 'http://www.wikidata.org/entity/P276'))
             return Type.Location;
 
@@ -178,7 +178,7 @@ class SchemaProcessor {
         if (types.length > 0) {
             // human type: Q5: human, Q215627: person
             if (types.some((type) => type.label === 'human' || type.label === 'person'))
-                return Type.Entity(`org.wikidata:human`);
+                return new Type.Entity(`org.wikidata:human`);
 
             // location type: Q618123: geographic object, Q2221906: geographic location
             if (types.some((type) => type.label === 'geographical object' || type.label === 'geographical location'))
@@ -193,7 +193,7 @@ class SchemaProcessor {
             if (schemaorgElemType.isEntity && schemaorgElemType.type.startsWith('org.schema')) {
                 const entityType = schemaorgElemType.type.substring(schemaorgElemType.type.lastIndexOf(':') + 1).toLowerCase();
                 return schemaorgType.isArray ?
-                    Type.Array(Type.Entity(`org.wikidata:${entityType}`)) : Type.Entity(`org.wikidata:${entityType}`);
+                    new Type.Array(new Type.Entity(`org.wikidata:${entityType}`)) : new Type.Entity(`org.wikidata:${entityType}`);
             }
             if (!schemaorgType.isCompound)
                 return schemaorgType;
@@ -257,7 +257,7 @@ class SchemaProcessor {
                     null,
                     Ast.ArgDirection.OUT,
                     'id',
-                    Type.Entity(`org.wikidata:${snakecase(domainLabel)}`), {
+                    new Type.Entity(`org.wikidata:${snakecase(domainLabel)}`), {
                     nl: { canonical: { base: ['name'], passive_verb: ['named', 'called'] } }
                 })
             ];
