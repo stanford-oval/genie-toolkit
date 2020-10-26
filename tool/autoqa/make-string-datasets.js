@@ -105,9 +105,13 @@ class ParamDatasetGenerator {
         for (let base of typemeta.extends)
             this._processObject(value, base, visitedTypes);
 
-        // if this entity has a name, add it to the string file
+        // if this entity has a name, add it to the string file (one-shot QA format)
         if (type !== 'Thing' && type !== 'Intangible' && value.name)
             this._getStringFile(type, true).push({ name: value.name, value: value['@id'] });
+
+        // if this entity has id and its value contains display, add it to the string file (dialogue format)
+        if (value.id && value.id.display && value.id.display !== value.id.value)
+            this._getStringFile(type, true).push({ name: value.id.display, value: value.id.value });
 
         for (let field in typemeta.fields) {
             const expectedType = typemeta.fields[field];
@@ -139,6 +143,9 @@ class ParamDatasetGenerator {
                 assert(typeof value === 'string');
                 this._addString(path.join('_'), value);
             }
+
+            if (!expectedType.type.startsWith('tt:') && value.display && value.display !== value.value)
+                this._getStringFile(expectedType.type, true).push({ name: value.display, value: value.value });
         } else {
             // compound type
 
@@ -150,10 +157,17 @@ class ParamDatasetGenerator {
         }
     }
 
-    run(data) {
-        for (let type in data) {
-            for (let objId in data[type])
-                this._processObject(data[type][objId], data[type][objId]['@type']);
+    run(data, fn) {
+        if (Array.isArray(data)) {
+            // normalized data format for dialogues
+            for (let d of data)
+                this._processObject(d, fn.slice(`${this._className}:`.length));
+        } else {
+            // normalized data format for one-shot QA
+            for (let type in data) {
+                for (let objId in data[type])
+                    this._processObject(data[type][objId], data[type][objId]['@type']);
+            }
         }
     }
 
@@ -292,7 +306,7 @@ export function initArgparse(subparsers) {
     });
     parser.add_argument('--data', {
         required: true,
-        help: 'Path to JSON file with normalized WebQA data.'
+        help: 'Path to JSON file with normalized AutoQA data, or to the database map TSV file.'
     });
     parser.add_argument('--max-value-length', {
         required: false,
@@ -320,8 +334,19 @@ export async function execute(args) {
         args.max_value_length, args.class_name, args.dataset);
     await generator.init(args.thingpedia);
 
-    const data = JSON.parse(await util.promisify(fs.readFile)(args.data, { encoding: 'utf8' }));
-    generator.run(data);
+    if (args.data.endsWith('database-map.tsv')) {
+        const dir = path.dirname(args.data);
+        const lines = await util.promisify(fs.readFile)(args.data, { encoding: 'utf8' });
+        for (let line of lines.trim().split('\n')) {
+            const [fn, dbPath] = line.split('\t');
+            const resolvedPath = path.resolve(dir, dbPath);
+            const data = JSON.parse(await util.promisify(fs.readFile)(resolvedPath, { encoding: 'utf8' }));
+            generator.run(data, fn);
+        }
+    } else {
+        const data = JSON.parse(await util.promisify(fs.readFile)(args.data, { encoding: 'utf8' }));
+        generator.run(data);
+    }
 
     await generator.output(args.output_dir, args.manifest, args.append_manifest);
 }

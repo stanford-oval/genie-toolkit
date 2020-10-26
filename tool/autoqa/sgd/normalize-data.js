@@ -29,7 +29,7 @@ import * as crypto from 'crypto';
 import * as StreamUtils from '../../../lib/utils/stream-utils';
 
 import { makeMetadata } from '../lib/metadata';
-import { cleanEnumValue } from './utils';
+import { cleanEnumValue } from '../lib/utils';
 
 function hash(obj) {
     const str = JSON.stringify(obj);

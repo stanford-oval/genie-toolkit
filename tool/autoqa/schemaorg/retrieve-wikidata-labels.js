@@ -54,9 +54,9 @@ function clean(raw) {
 
 
 export function initArgparse(subparsers) {
-    subparsers.add_parser('retrieve-wikidata-labels', {
+    subparsers.add_parser('schemaorg-retrieve-wikidata-labels', {
         add_help: true,
-        description: "Retrieve the labels of properties from wikidata."
+        description: "Retrieve the labels of schema.org properties from wikidata."
     });
 }
 

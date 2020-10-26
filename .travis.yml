@@ -57,6 +57,13 @@ jobs:
       - travis_retry npm ci
       script: npx nyc ./test/schemaorg-starter.sh
       after_success: npm run coverage
+    - name: "Starter Code Tests (Wikidata)"
+      install:
+      - pyenv global 3.6.7
+      - ./travis/install-starter-deps.sh
+      - travis_retry npm ci
+      script: npx nyc ./test/wikidata-starter.sh
+      after_success: npm run coverage
     -
       name: "Starter Code Tests (MultiWOZ)"
       install:

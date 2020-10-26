@@ -71,16 +71,20 @@ const subcommands : { [key : string] : SubCommand } = {
     'schemaorg-process-schema': require('./autoqa/schemaorg/process-schema'),
     'schemaorg-normalize-data': require('./autoqa/schemaorg/normalize-data'),
     'schemaorg-trim-class': require('./autoqa/schemaorg/trim-class'),
+    'schemaorg-retrieve-wikidata-labels': require('./autoqa/schemaorg/retrieve-wikidata-labels'),
 
     'sgd-process-schema': require('./autoqa/sgd/process-schema'),
     'sgd-normalize-data': require('./autoqa/sgd/normalize-data'),
 
     'wikidata-process-schema': require('./autoqa/wikidata/process-schema'),
     'wikidata-es-import': require('./autoqa/wikidata/es-import'),
+    'wikidata-download-data': require('./autoqa/wikidata/download-data'),
+    'wikidata-label-retriever': require('./autoqa/wikidata/label-retriever'),
+    'wikidata-make-string-datasets': require('./autoqa/wikidata/make-string-datasets'),
+    'wikidata-demo': require('./autoqa/wikidata/demo.js'),
 
     'auto-annotate': require('./autoqa/auto-annotate'),
     'make-string-datasets': require('./autoqa/make-string-datasets'),
-    'retrieve-wikidata-labels': require('./autoqa/retrieve-wikidata-labels'),
     'canonical-diffchecker': require('./canonical-diffchecker'),
 
     'auto-annotate-multiwoz': require('./auto-annotate-multiwoz'),

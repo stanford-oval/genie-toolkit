@@ -41,7 +41,7 @@ export async function parse(code : string, options : ParseOptions) : Promise<Ast
     return state;
 }
 
-export async function parsePrediction(code : string|string[], entities : EntityMap, options : ParseOptions) : Promise<Ast.Input|null> {
+export async function parsePrediction(code : string|string[], entities : EntityMap, options : ParseOptions, strict = false) : Promise<Ast.Input|null> {
     const tpClient = options.thingpediaClient;
     if (!options.schemaRetriever)
         options.schemaRetriever = new SchemaRetriever(tpClient, null, true);
@@ -60,6 +60,8 @@ export async function parsePrediction(code : string|string[], entities : EntityM
         NNSyntax.toNN(state, [], {}, { allocateEntities: true });
         return state;
     } catch(e) {
+        if (strict)
+            throw e;
         return null;
     }
 }

@@ -1,0 +1,16 @@
+.embeddings/
+emptydataset.tt
+config.mk
+
+wikidata.tt
+manifest.tt
+constants.tsv
+data.json
+entities.json
+parameter-datasets
+parameter-datasets.tsv
+
+shared-parameter-datasets/
+datadir/
+models/
+
