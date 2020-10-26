@@ -27,10 +27,11 @@
 // - a question (= "recommendation_search_question_pair")
 // - closing the dialogue (= "recommendation_cancel_pair")
 
+import { Ast, } from 'thingtalk';
 import * as D from '../../dialogue_acts';
 import * as S from '../../state_manip';
 
-related_question = {
+related_question : Ast.DialogueState = {
     ctx:ctx_for_related_question stmt:search_command [weight=0.1] => D.relatedQuestion(ctx, stmt);
     ctx:ctx_for_related_question stmt:complete_question => D.relatedQuestion(ctx, stmt);
     ctx:ctx_for_related_question stmt:projection_question [weight=0.1] => D.relatedQuestion(ctx, stmt);

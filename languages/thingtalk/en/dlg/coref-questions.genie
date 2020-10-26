@@ -32,7 +32,7 @@ import _tpLoader from '../../load-thingpedia';
 
 // this is the almost the same as a plain out_param_list, but we drop the wrapper
 // VarRef and return a list of strings
-out_param_list_for_coref_question = {
+out_param_list_for_coref_question : string[] = {
     p1:out_param_Any 'and' p2:out_param_Any => {
         if (p1.name === 'id' || p2.name === 'id' || p1.name === p2.name)
             return null;
@@ -48,7 +48,7 @@ out_param_list_for_coref_question = {
     };
 }
 
-simple_user_search_question = {
+simple_user_search_question : Array<[string, Type|null]> = {
     // straight up questions
     ( ('can you tell me' | '') 'what is' ('the' | 'its') param:out_param_Any '?'
     | 'can you tell me' ('the' | 'its') param:out_param_Any '?'
@@ -104,7 +104,7 @@ simple_user_search_question = {
     };
 }
 
-simple_user_search_question_for_list = {
+simple_user_search_question_for_list : Array<[string, Type|null]> = {
     // straight up questions
     ( ('can you tell me' | '') 'what are' ('the' | 'their') param:out_param_Any '?'
     | 'can you tell me' ('the' | 'their') param:out_param_Any '?'
@@ -120,18 +120,20 @@ simple_user_search_question_for_list = {
     };
 }
 
-boolean_user_search_question = {
+boolean_user_search_question : Array<[string, Type|null]> = {
     // question in boolean
     ( 'does' ('that' | 'it') 'have' param:npp_filter '?'
     | 'does' ('that' | 'it') param:avp_filter '?'
     ) => {
-        if (!(param instanceof Ast.BooleanExpression.Atom)) {
-            assert(param instanceof Ast.BooleanExpression.And);
-            assert(param.operands.length === 2 && param.operands[0] instanceof Ast.BooleanExpression.Atom
-                   && param.operands[1] instanceof Ast.BooleanExpression.Atom);
-            assert(param.operands[0].name === param.operands[1].name &&
-                   param.operands[0].value.getType().equals(param.operands[1].value.getType()));
-            return [[param.operands[0].name, param.operands[0].value.getType()]];
+        if (!(param instanceof Ast.AtomBooleanExpression)) {
+            assert(param instanceof Ast.AndBooleanExpression);
+            assert(param.operands.length === 2);
+            const [op1, op2] = [param.operands[0], param.operands[1]];
+            assert(op1 instanceof Ast.AtomBooleanExpression);
+            assert(op2 instanceof Ast.AtomBooleanExpression);
+            assert(op1.name === op2.name &&
+                   op1.value.getType().equals(op2.value.getType()));
+            return [[op1.name, op1.value.getType()]];
         }
         if (param.name === 'id')
             return null;
@@ -157,13 +159,15 @@ boolean_user_search_question = {
             return null;
         if (!base.schema.is_list)
             return null;
-        if (!(param instanceof Ast.BooleanExpression.Atom)) {
-            assert(param instanceof Ast.BooleanExpression.And);
-            assert(param.operands.length === 2 && param.operands[0] instanceof Ast.BooleanExpression.Atom
-                   && param.operands[1] instanceof Ast.BooleanExpression.Atom);
-            assert(param.operands[0].name === param.operands[1].name &&
-                   param.operands[0].value.getType().equals(param.operands[1].value.getType()));
-            return [[param.operands[0].name, param.operands[0].value.getType()]];
+        if (!(param instanceof Ast.AtomBooleanExpression)) {
+            assert(param instanceof Ast.AndBooleanExpression);
+            assert(param.operands.length === 2);
+            const [op1, op2] = [param.operands[0], param.operands[1]];
+            assert(op1 instanceof Ast.AtomBooleanExpression);
+            assert(op2 instanceof Ast.AtomBooleanExpression);
+            assert(op1.name === op2.name &&
+                   op1.value.getType().equals(op2.value.getType()));
+            return [[op1.name, op1.value.getType()]];
         }
         if (param.name === 'id')
             return null;
@@ -171,18 +175,20 @@ boolean_user_search_question = {
     };
 }
 
-boolean_user_search_question_for_list = {
+boolean_user_search_question_for_list : Array<[string, Type|null]> = {
     // question in boolean
     ( ('does either of them' | 'does any of them' | 'do they') 'have' param:npp_filter '?'
     | ('does either of them' | 'does any of them' | 'do they') param:avp_filter '?'
     ) => {
-        if (!(param instanceof Ast.BooleanExpression.Atom)) {
-            assert(param instanceof Ast.BooleanExpression.And);
-            assert(param.operands.length === 2 && param.operands[0] instanceof Ast.BooleanExpression.Atom
-                   && param.operands[1] instanceof Ast.BooleanExpression.Atom);
-            assert(param.operands[0].name === param.operands[1].name &&
-                   param.operands[0].value.getType().equals(param.operands[1].value.getType()));
-            return [[param.operands[0].name, param.operands[0].value.getType()]];
+        if (!(param instanceof Ast.AtomBooleanExpression)) {
+            assert(param instanceof Ast.AndBooleanExpression);
+            assert(param.operands.length === 2);
+            const [op1, op2] = [param.operands[0], param.operands[1]];
+            assert(op1 instanceof Ast.AtomBooleanExpression);
+            assert(op2 instanceof Ast.AtomBooleanExpression);
+            assert(op1.name === op2.name &&
+                   op1.value.getType().equals(op2.value.getType()));
+            return [[op1.name, op1.value.getType()]];
         }
         if (param.name === 'id')
             return null;
@@ -206,13 +212,15 @@ boolean_user_search_question_for_list = {
     ) => {
         if (!C.checkFilter(base, param))
             return null;
-        if (!(param instanceof Ast.BooleanExpression.Atom)) {
-            assert(param instanceof Ast.BooleanExpression.And);
-            assert(param.operands.length === 2 && param.operands[0] instanceof Ast.BooleanExpression.Atom
-                   && param.operands[1] instanceof Ast.BooleanExpression.Atom);
-            assert(param.operands[0].name === param.operands[1].name &&
-                   param.operands[0].value.getType().equals(param.operands[1].value.getType()));
-            return [[param.operands[0].name, param.operands[0].value.getType()]];
+        if (!(param instanceof Ast.AtomBooleanExpression)) {
+            assert(param instanceof Ast.AndBooleanExpression);
+            assert(param.operands.length === 2);
+            const [op1, op2] = [param.operands[0], param.operands[1]];
+            assert(op1 instanceof Ast.AtomBooleanExpression);
+            assert(op2 instanceof Ast.AtomBooleanExpression);
+            assert(op1.name === op2.name &&
+                   op1.value.getType().equals(op2.value.getType()));
+            return [[op1.name, op1.value.getType()]];
         }
         if (param.name === 'id')
             return null;
@@ -222,7 +230,7 @@ boolean_user_search_question_for_list = {
 
 // questions by name (when in an list)
 
-user_search_question_with_name = {
+user_search_question_with_name : [Ast.EntityValue, Array<[string, Type|null]>] = {
     // straight up questions
     ( ('can you tell me' | '') 'what is' name:constant_name '\'s' param:out_param_Any '?'
     | ('can you tell me' | '') 'what is' 'the' param:out_param_Any 'of' name:constant_name '?'
@@ -248,7 +256,7 @@ user_search_question_with_name = {
     };
 }
 
-boolean_user_search_question_with_name = {
+boolean_user_search_question_with_name : [Ast.EntityValue, Array<[string, Type|null]>] = {
     // question in boolean
     ( 'does' name:constant_name 'have' param:npp_filter '?'
     | 'does' name:constant_name param:avp_filter '?'
@@ -256,13 +264,15 @@ boolean_user_search_question_with_name = {
     | 'is' name:constant_name param:pvp_filter '?'
     | 'is' name:constant_name param:preposition_filter '?'
     ) => {
-        if (!(param instanceof Ast.BooleanExpression.Atom)) {
-            assert(param instanceof Ast.BooleanExpression.And);
-            assert(param.operands.length === 2 && param.operands[0] instanceof Ast.BooleanExpression.Atom
-                   && param.operands[1] instanceof Ast.BooleanExpression.Atom);
-            assert(param.operands[0].name === param.operands[1].name &&
-                   param.operands[0].value.getType().equals(param.operands[1].value.getType()));
-            return [[param.operands[0].name, param.operands[0].value.getType()]];
+        if (!(param instanceof Ast.AtomBooleanExpression)) {
+            assert(param instanceof Ast.AndBooleanExpression);
+            assert(param.operands.length === 2);
+            const [op1, op2] = [param.operands[0], param.operands[1]];
+            assert(op1 instanceof Ast.AtomBooleanExpression);
+            assert(op2 instanceof Ast.AtomBooleanExpression);
+            assert(op1.name === op2.name &&
+                   op1.value.getType().equals(op2.value.getType()));
+            return [name, [[op1.name, op1.value.getType()]]];
         }
         if (param.name === 'id')
             return null;
@@ -280,13 +290,15 @@ boolean_user_search_question_with_name = {
         const idArg = base.schema.getArgument('id');
         if (!idArg || !idArg.type.equals(name.getType()))
             return null;
-        if (!(param instanceof Ast.BooleanExpression.Atom)) {
-            assert(param instanceof Ast.BooleanExpression.And);
-            assert(param.operands.length === 2 && param.operands[0] instanceof Ast.BooleanExpression.Atom
-                   && param.operands[1] instanceof Ast.BooleanExpression.Atom);
-            assert(param.operands[0].name === param.operands[1].name &&
-                   param.operands[0].value.getType().equals(param.operands[1].value.getType()));
-            return [[param.operands[0].name, param.operands[0].value.getType()]];
+        if (!(param instanceof Ast.AtomBooleanExpression)) {
+            assert(param instanceof Ast.AndBooleanExpression);
+            assert(param.operands.length === 2);
+            const [op1, op2] = [param.operands[0], param.operands[1]];
+            assert(op1 instanceof Ast.AtomBooleanExpression);
+            assert(op2 instanceof Ast.AtomBooleanExpression);
+            assert(op1.name === op2.name &&
+                   op1.value.getType().equals(op2.value.getType()));
+            return [name, [[op1.name, op1.value.getType()]]];
         }
         if (param.name === 'id')
             return null;
@@ -294,13 +306,13 @@ boolean_user_search_question_with_name = {
     };
 }
 
-user_search_question = {
+user_search_question : Array<[string, Type|null]> = {
     ('no ,' | '') questions:simple_user_search_question => questions;
     ('no ,' | '') questions:thingpedia_user_question '?' [weight=0.3] => questions;
     questions:boolean_user_search_question => questions;
 }
 
-user_search_question_for_list = {
+user_search_question_for_list : [Ast.EntityValue, Array<[string, Type|null]>] = {
     questions:simple_user_search_question => [null, questions];
     questions:simple_user_search_question_for_list => [null, questions];
     questions:boolean_user_search_question_for_list => [null, questions];

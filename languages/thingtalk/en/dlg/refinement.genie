@@ -26,10 +26,12 @@
 // - some form of "yes"
 // - some form of "no" followed by another search refinement
 
+import { Ast, } from 'thingtalk';
+
 import * as D from '../../dialogue_acts';
 import * as S from '../../state_manip';
 
-search_result_preamble = {
+search_result_preamble : S.ContextInfo = {
     ctx:ctx_search_command ('there are' | 'i can see' | 'i have found' | 'i can recommend') ('many' | 'several') base:base_noun_phrase
         ('matching your request' | 'matching your constraints' | 'with those characteristics' | 'like that' | '') '.'
         => D.checkSearchResultPreamble(ctx, base, null, false);
@@ -39,7 +41,7 @@ search_result_preamble = {
         => D.checkSearchResultPreamble(ctx, base, num, false);
 }
 
-system_generic_proposal = {
+system_generic_proposal : S.AgentReplyRecord = {
     ( ctx:ctx_search_command ('are you looking for a' | 'how about a' | 'how about the') proposal:answer_noun_phrase '?'
     | ctx:ctx_search_command ('are you looking for' | 'how about') proposal:anything_phrase '?'
     ) => D.makeRefinementProposal(ctx, proposal);
@@ -49,18 +51,18 @@ system_generic_proposal = {
     ) => D.makeRefinementProposal(ctx, proposal);
 }
 
-negative_proposal_request = {
+negative_proposal_request : Ast.Table = {
     counterproposal_preamble ('a' | 'any') request:answer_noun_phrase '.' => request;
     counterproposal_preamble request:anything_phrase '.' => request;
 }
 
-negative_proposal_answer_preamble = {
+negative_proposal_answer_preamble : Ast.Table = {
     ( ('no ,' | 'no' | '') ('i am not in the mood for a' | 'i do not like' | 'i do not want') phrase:answer_noun_phrase
     | ('no ,' | 'no' | '') ('i am not in the mood for a' | 'i do not like' | 'i do not want') phrase:anything_phrase
     ) => phrase;
 }
 
-negative_proposal_reply = {
+negative_proposal_reply : [Ast.Table|null, Ast.Table|null] = {
     ('no ,' | 'no' | '') request:negative_proposal_request => [null, request];
     preamble:negative_proposal_answer_preamble => [preamble, null];
     preamble:negative_proposal_answer_preamble request:negative_proposal_request => [preamble, request];

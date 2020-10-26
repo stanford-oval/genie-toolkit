@@ -26,7 +26,9 @@
 // - some form of "yes"
 // - some form of "no" followed by another search refinement
 
-empty_search_error = {
+import { Ast, } from 'thingtalk';
+
+empty_search_error : [Ast.InvocationTable|null, Ast.VarRefValue|null] = {
     sorry_preamble ('there are no' | 'i cannot find any') base:base_table ('matching your request' | 'with those characteristics' | 'like that')
     '.' => [base, null];
 
@@ -35,7 +37,7 @@ empty_search_error = {
         '.' 'would you like' ('a different' | 'another') p:out_param_Any '?' [priority=1] => {
             if (!base.schema.hasArgument(p.name))
                 return null;
-            if (p === 'id')
+            if (p.name === 'id')
                 return null;
             return [base, p];
         };
@@ -52,11 +54,11 @@ empty_search_error = {
     }
 }
 
-precise_empty_search_change_request = {
+precise_empty_search_change_request : Ast.Table = {
     ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('do you have' | 'can you find' | 'is there' | 'how about') 'a' phrase:answer_noun_phrase '?' => phrase;
     ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('do you have' | 'can you find' | 'is there' | 'how about') phrase:anything_phrase '?' => phrase;
 }
-imprecise_empty_search_change_request = {
+imprecise_empty_search_change_request : Ast.Value|Ast.BooleanExpression = {
     ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('do you have' | 'can you find' | 'is there' | 'how about') answer:imprecise_search_answer_phrase '?'
         => answer;
 }

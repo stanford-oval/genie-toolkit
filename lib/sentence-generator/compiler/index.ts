@@ -107,6 +107,7 @@ class Compiler {
     private _assignAllTypes() {
         const self = this;
         const visitor = new class extends metaast.NodeVisitor {
+            // assign a type to every usage of a non-terminal
             visitNonTerminalRuleHead(node : metaast.NonTerminalRuleHead) {
                 if (!(node.category instanceof metaast.IdentifierNTR))
                     return;
@@ -114,6 +115,20 @@ class Compiler {
                 const type = self._typeMap.get(symbol);
                 if (type)
                     node.type = type;
+            }
+
+            // also assign a type to every non-terminal declaration, if
+            // it doesn't have one already
+            visitNonTerminalStmt(stmt : metaast.NonTerminalStmt) {
+                if (stmt.type)
+                    return;
+                if (!(stmt.name instanceof metaast.IdentifierNTR))
+                    return;
+                const symbol = stmt.name.name;
+
+                const existing = self._typeMap.get(symbol);
+                if (existing)
+                    stmt.type = existing;
             }
         };
 

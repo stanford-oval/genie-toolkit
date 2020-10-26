@@ -35,7 +35,7 @@ function special(specialType : string) {
 import '../common.genie';
 import './constants.genie';
 
-bookkeeping = {
+bookkeeping : Ast.Bookkeeping = {
     'debug' => special('debug');
 
     ('cancel'
@@ -52,7 +52,7 @@ bookkeeping = {
     c:constant_Any => new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.Answer(null, c));
 }
 
-$root = {
+$root : Ast.Input = {
     bookkeeping;
 
     ( 'get' query:thingpedia_query

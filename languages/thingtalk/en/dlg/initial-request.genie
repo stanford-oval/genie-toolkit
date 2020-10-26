@@ -18,9 +18,10 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import { Ast, } from 'thingtalk';
 import * as D from '../../dialogue_acts';
 
-initial_command = {
+initial_command : Ast.Rule|Ast.Command = {
     // now => say
     say_command [weight=0.1];
 
@@ -57,6 +58,9 @@ initial_command = {
     prog:thingpedia_program if complete => {
         if (prog.rules.length !== 1)
             return null;
-        return prog.rules[0];
+        const rule = prog.rules[0];
+        if (rule instanceof Ast.Assignment)
+            return null;
+        return rule;
     };
 }

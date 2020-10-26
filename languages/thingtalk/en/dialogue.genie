@@ -19,7 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
-import { Ast, } from 'thingtalk';
+import { Ast, Type } from 'thingtalk';
 
 import * as S from '../state_manip';
 import * as D from '../dialogue_acts';

@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -24,9 +24,11 @@
 // - for searches: the agent is trying to add a filter
 // - for actions/queries w/ parameters: the agent is trying to add a parameter
 
+import { Ast, } from 'thingtalk';
+
 import * as S from '../../state_manip';
 
-one_param_slot_fill_question = {
+one_param_slot_fill_question : string[] = {
     !inference {
         ( p:thingpedia_slot_fill_question '?' [priority=0.1]
         | 'what' p:input_param prefer_question_phrase '?'
@@ -39,14 +41,17 @@ one_param_slot_fill_question = {
         // HACK: at inference time, we add the function ID to the thingpedia_slot_fill_question
         // value and check against the current context
         ctx:ctx_incomplete_action_after_search p:thingpedia_slot_fill_question '?' [priority=0.1] => {
-            if (ctx.nextFunction !== p.functionName)
+            // we cannot quite typecheck such a HACK unfortunately...
+            const actualp = p as unknown as { functionName : string, name : string };
+
+            if (ctx.nextFunction !== actualp.functionName)
                 return null;
-            return [p.name];
+            return [actualp.name];
         };
     }
 }
 
-two_param_slot_fill_question = {
+two_param_slot_fill_question : string[] = {
     ( 'what' p1:input_param 'and' p2:input_param prefer_question_phrase '?'
     | p1:thingpedia_slot_fill_question 'and' 'what' p2:input_param prefer_question_phrase '?'
     | 'what' p1:input_param prefer_question_phrase 'and' p2:thingpedia_slot_fill_question '?'
@@ -57,12 +62,12 @@ two_param_slot_fill_question = {
     };
 }
 
-slot_fill_question = {
+slot_fill_question : string[] = {
     one_param_slot_fill_question [priority=0.1];
     !inference two_param_slot_fill_question;
 }
 
-imprecise_slot_fill_answer_phrase = {
+imprecise_slot_fill_answer_phrase : Ast.Value|Ast.InputParam = {
     ( slot:constant_Any
     | slot:npp_input_param
     | slot:apv_input_param
@@ -71,7 +76,7 @@ imprecise_slot_fill_answer_phrase = {
     ) => slot;
 }
 
-imprecise_slot_fill_coref_answer = {
+imprecise_slot_fill_coref_answer : Ast.Value|Ast.InputParam = {
     ( slot:coref_constant
     | slot:coref_npp_input_param
     | slot:coref_apv_input_param
@@ -80,7 +85,7 @@ imprecise_slot_fill_coref_answer = {
     ) => slot;
 }
 
-imprecise_slot_fill_answer = {
+imprecise_slot_fill_answer : Ast.Value|Ast.InputParam = {
     ans:imprecise_slot_fill_answer_phrase ('please' | '') '.' => ans;
     generic_preamble_for_answer ans:imprecise_slot_fill_answer_phrase '.' => ans;
 
@@ -88,7 +93,7 @@ imprecise_slot_fill_answer = {
     generic_preamble_for_answer ans:imprecise_slot_fill_coref_answer '.' => ans;
 }
 
-precise_slot_fill_answer = {
+precise_slot_fill_answer : Ast.Invocation = {
     // complete answer (action or get command), like "I am looking to book it for ... at ..."
     generic_preamble_for_action action:action_continuation_command => action;
 

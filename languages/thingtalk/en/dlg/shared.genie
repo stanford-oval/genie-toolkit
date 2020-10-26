@@ -21,7 +21,7 @@
 // Shared templates and utilities, mostly collecting actual phrases or groups of phrases
 // rather than complex logic
 
-counterproposal_preamble = {
+counterproposal_preamble : string = {
     'i was thinking more of';
     'i would like';
     'i am looking for';
@@ -31,13 +31,13 @@ counterproposal_preamble = {
     'that does not sound great , do you have';
 }
 
-the_base_noun_phrase = {
+the_base_noun_phrase : string = {
     ( 'the' noun:base_noun_phrase
     | 'that' noun:base_noun_phrase
     ) => noun;
 }
 
-generic_excitement_phrase = {
+generic_excitement_phrase : string = {
     '' [priority=0.1];
 
     'alright ,';
@@ -48,24 +48,24 @@ generic_excitement_phrase = {
     'perfect !';
 }
 
-greeting = {
+greeting : string = {
     'hello !';
     'hi !';
 }
 
-generic_negative_proposal_reply = {
+generic_negative_proposal_reply : string = {
     'i do not like that';
     'i do not like that , do you have any other option ?';
 }
 
-accept_phrase = {
+accept_phrase : string = {
     'i like that';
     'yes i like that';
     'sure i like that';
     'sounds good';
 }
 
-reject_phrase = {
+reject_phrase : string = {
     'no';
     'actually , no';
     'that will not work';
@@ -74,7 +74,7 @@ reject_phrase = {
     'actually , not yet';
 }
 
-tell_me_more_phrase = {
+tell_me_more_phrase : string = {
     'can you tell me more ?';
     'can you tell me more about it ?';
     'can you give me more info ?';
@@ -83,7 +83,7 @@ tell_me_more_phrase = {
     'tell me more .';
 }
 
-learn_more_offer = {
+learn_more_offer : string = {
     // give a small boost to anything with a learn more
     'would you like to learn more ?' [priority=0.1];
     'would you like to know more about it ?' [priority=0.1];
@@ -91,17 +91,17 @@ learn_more_offer = {
     'are you interested to hear more about it ?' [priority=0.1];
 }
 
-yes_please_phrase = {
+yes_please_phrase : string = {
     'yes';
     'yes , please';
     'yeah';
 }
 
-ok_thanks_phrase = {
+ok_thanks_phrase : string = {
     'ok thank you that is all i need .';
     'ok thanks that is all i need .';
 }
-thanks_phrase = {
+thanks_phrase : string = {
     'thank you , this is good for now .';
     'thank you , that will be all .';
     'thank you , that will be all for now .';
@@ -111,7 +111,7 @@ thanks_phrase = {
     'thank you for your help !';
     'thank you for your help , this is what i need .';
 }
-no_thanks_phrase = {
+no_thanks_phrase : string = {
     'no thanks .';
     'no , thanks .';
     'no i am good thanks .';
@@ -127,34 +127,34 @@ no_thanks_phrase = {
     'no thank you that will be all .';
 }
 
-anything_else_phrase = {
+anything_else_phrase : string = {
     'is there anything else i can help you with ?';
     'can i help you with anything else ?';
     'do you need anything else ?';
     'anything else for you today ?';
 }
 
-sorry_preamble = {
+sorry_preamble : string = {
     'sorry ,';
     'i am sorry ,';
     '';
 }
 
-nevermind_phrase = {
+nevermind_phrase : string = {
     'ok , never mind';
     'never mind then';
     'alright , never mind';
     'too bad , alright';
 }
 
-ask_recommend_phrase = {
+ask_recommend_phrase : string = {
     'which one would you recommend ?';
     'which 1 would you recommend ?';
     'what is your favorite ?';
     'surprise me ! just pick one please .';
 }
 
-generic_dontcare_phrase = {
+generic_dontcare_phrase : string = {
     'it does not matter .';
     'it does not matter . can you suggest one ?';
     'i' ('do not have a' | 'have no') 'preference .' => '';
@@ -163,7 +163,7 @@ generic_dontcare_phrase = {
     'i have no preference . which' ('one' | '1') 'is best ?' => '';
 }
 
-no_dontcare_phrase = {
+no_dontcare_phrase : string = {
     'no' ('.' | ',') 'can you suggest one ?' => '';
     'no' ('.' | ',') 'please make a recommendation .' => '';
     'no' ('.' | ',') 'which' ('one' | '1') 'is best ?' => '';
@@ -172,7 +172,7 @@ no_dontcare_phrase = {
     'i have no preference . please make a recommendation .' => '';
 }
 
-prefer_question_phrase = {
+prefer_question_phrase : string = {
     'do you want';
     'would you prefer';
     'would you like';
@@ -180,12 +180,12 @@ prefer_question_phrase = {
     'are you looking for';
 }
 
-system_learn_more = {
+system_learn_more : string = {
     'what would you like to know ?';
     'what would you like to hear ?';
 }
 
-repeat_command_phrase = {
+repeat_command_phrase : string = {
     'again !';
     'another one';
     'do this again';

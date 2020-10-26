@@ -28,11 +28,13 @@ import * as C from '../../ast_manip';
 import * as D from '../../dialogue_acts';
 import * as S from '../../state_manip';
 
+import { SlotBag } from '../../slot_bag';
+
 // import thingpedia info
 import _tpLoader from '../../load-thingpedia';
 
 for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
-    thingpedia_action_past = {
+    thingpedia_action_past : Ast.InvocationAction = {
         ( action:thingpedia_action_past 'it' [priority=-0.01]
         | action:thingpedia_action_past 'this' [priority=-0.01]
         | action:thingpedia_action_past 'that' [priority=-0.01]
@@ -45,7 +47,7 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
     }
 }
 
-complete_past_action_phrase = {
+complete_past_action_phrase : Ast.Invocation = {
     ( action:thingpedia_action_past
     | action:thingpedia_action_past 'for you'
     ) if complete => {
@@ -61,18 +63,18 @@ complete_past_action_phrase = {
     ( action:complete_past_action_phrase param:preposition_filter [priority=0.1]
     | action:complete_past_action_phrase ('with' | 'having') param:npp_filter [priority=0.1]
     ) => {
-        if (!(param instanceof Ast.BooleanExpression.Atom))
+        if (!(param instanceof Ast.AtomBooleanExpression))
             return null;
         return C.addInvocationInputParam(action, new Ast.InputParam(null, param.name, param.value), { allowOutput: true });
     };
 }
 
-generic_action_success_phrase = {
+generic_action_success_phrase : string = {
     'your request was completed successfully';
     'consider your request done !';
 }
 
-action_success_phrase = {
+action_success_phrase : S.AgentReplyRecord = {
     ctx:ctx_completed_action_success generic_excitement_phrase result:thingpedia_result '.' if complete [priority=5]
         => D.makeThingpediaActionSuccessPhrase(ctx, result);
 
@@ -90,7 +92,7 @@ action_success_phrase = {
         => D.makeGenericActionSuccessPhrase(ctx);
 }
 
-short_action_error_message = {
+short_action_error_message : S.ContextInfo = {
     ctx:ctx_completed_action_error msg:thingpedia_error_message if complete
         => D.checkThingpediaErrorMessage(ctx, msg);
 
@@ -103,22 +105,22 @@ short_action_error_message = {
     };
 }
 
-long_action_error_message = {
+long_action_error_message : S.ContextInfo = {
     ('i could not' | 'it was not possible to') action:action_description_phrase (':' | 'because') ctx:short_action_error_message
         => D.checkActionErrorMessage(ctx, action);
 }
 
-one_param_try_different_param_question = {
+one_param_try_different_param_question : string[] = {
     ( 'would you like to try a different' p:input_param '?'
     | 'would you like a different' p:input_param '?'
     | 'shall i try another' p:input_param '?'
     | 'how about for another' p:input_param '?'
     ) => {
-        return [p.name];
+        return [p];
     };
 }
 
-two_param_try_different_param_question = {
+two_param_try_different_param_question : string[] = {
     ( 'would you like to try a different' p1:input_param 'or' p2:input_param '?'
     | 'would you like a different' p1:input_param 'or' p2:input_param '?'
     | 'shall i try another' p1:input_param 'or' p2:input_param '?'
@@ -130,7 +132,7 @@ two_param_try_different_param_question = {
     };
 }
 
-action_error_phrase = {
+action_error_phrase : S.AgentReplyRecord = {
     sorry_preamble ctx:short_action_error_message '.' => D.makeActionErrorPhrase(ctx, []);
 
     !inference {

@@ -464,6 +464,8 @@ function makeSingleFieldProjection(ftype, ptype, table, pname) {
     }
 }
 
+function makeMultiFieldProjection(ftype : 'table', table : Ast.Table, outParams : Ast.VarRefValue[]) : Ast.ProjectionTable|null;
+function makeMultiFieldProjection(ftype : 'stream', table : Ast.Table, outParams : Ast.VarRefValue[]) : Ast.ProjectionStream|null;
 function makeMultiFieldProjection(ftype, table, outParams) {
     const names = [];
     for (const outParam of outParams) {
@@ -1772,7 +1774,9 @@ function addInvocationInputParam(invocation, param, options ?: AddInputParamsOpt
     return clone;
 }
 
-function addActionInputParam(action, param) {
+function addActionInputParam(action : Ast.Action, param : Ast.InputParam) : Ast.InvocationAction|null;
+function addActionInputParam(action : Ast.Table, param : Ast.InputParam) : Ast.InvocationTable|null;
+function addActionInputParam(action : Ast.Action|Ast.Table, param : Ast.InputParam) {
     if (!(action instanceof Ast.Action.Invocation || action instanceof Ast.Table.Invocation))
         return null;
     const newInvocation = addInvocationInputParam(action.invocation, param);

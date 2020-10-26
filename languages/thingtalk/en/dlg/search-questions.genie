@@ -32,7 +32,7 @@ import * as S from '../../state_manip';
 // import thingpedia info
 import _tpLoader from '../../load-thingpedia';
 
-one_param_direct_search_question = {
+one_param_direct_search_question : string[] = {
     ( 'what' p:out_param_Any prefer_question_phrase '?'
     | p:thingpedia_search_question '?'
     ) => {
@@ -42,11 +42,11 @@ one_param_direct_search_question = {
     };
 }
 
-one_param_direct_search_question_with_preamble = {
+one_param_direct_search_question_with_preamble : string[] = {
     search_result_preamble question:one_param_direct_search_question => question;
 }
 
-two_param_direct_search_question = {
+two_param_direct_search_question : string[] = {
     ( 'what' p1:out_param_Any 'and' p2:out_param_Any prefer_question_phrase '?'
     | p1:thingpedia_search_question 'and' 'what' p2:out_param_Any prefer_question_phrase '?'
     | 'what' p1:out_param_Any prefer_question_phrase 'and' p2:thingpedia_search_question '?'
@@ -57,7 +57,7 @@ two_param_direct_search_question = {
     };
 }
 
-one_param_yesno_direct_search_question = {
+one_param_yesno_direct_search_question : string[] = {
     ( 'any preference of' p:out_param_Any '?'
     | 'do you have a specific' p:out_param_Any 'in mind?'
     | 'do you have a preference of' p:out_param_Any '?'
@@ -71,11 +71,11 @@ one_param_yesno_direct_search_question = {
     };
 }
 
-one_param_yesno_direct_search_question_with_preamble = {
+one_param_yesno_direct_search_question_with_preamble : string[] = {
     search_result_preamble question:one_param_yesno_direct_search_question => question;
 }
 
-two_param_yesno_direct_search_question = {
+two_param_yesno_direct_search_question : string[] = {
     ( 'any preference of' p1:out_param_Any 'or' p2:out_param_Any '?'
     | 'do you have a specific' p1:out_param_Any 'or' p2:out_param_Any 'in mind?'
     | 'do you have a preference of' p1:out_param_Any 'or' p2:out_param_Any '?'
@@ -89,30 +89,36 @@ two_param_yesno_direct_search_question = {
     };
 }
 
-question_npp_filter_pair = {
+question_npp_filter_pair /* FIXME : [string, Type]*/ = {
     ctx:ctx_with_result_noquestion f1:npp_filter 'or' f2:npp_filter =>
         D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
-    ctx:ctx_with_result_noquestion f1:npp_filter 'or' c:constant_Any  =>
-        D.checkFilterPairForDisjunctiveQuestion(ctx, f1, new Ast.BooleanExpression.Atom(null, f1.name, f1.operator, c));
+    ctx:ctx_with_result_noquestion f1:npp_filter 'or' c:constant_Any => {
+        if (!(f1 instanceof Ast.AtomBooleanExpression))
+            return null;
+        return D.checkFilterPairForDisjunctiveQuestion(ctx, f1, new Ast.BooleanExpression.Atom(null, f1.name, f1.operator, c));
+    };
 }
-question_apv_filter_pair = {
+question_apv_filter_pair /* FIXME : [string, Type]*/ = {
     ctx:ctx_with_result_noquestion f1:apv_filter 'or' f2:apv_filter =>
         D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
 }
-question_avp_filter_pair = {
-    ctx:ctx_with_result_noquestion f1:avp_filter 'or' c:constant_Any =>
-        D.checkFilterPairForDisjunctiveQuestion(ctx, f1, new Ast.BooleanExpression.Atom(null, f1.name, f1.operator, c));
+question_avp_filter_pair /* FIXME : [string, Type]*/ = {
+    ctx:ctx_with_result_noquestion f1:avp_filter 'or' c:constant_Any => {
+        if (!(f1 instanceof Ast.AtomBooleanExpression))
+            return null;
+        return D.checkFilterPairForDisjunctiveQuestion(ctx, f1, new Ast.BooleanExpression.Atom(null, f1.name, f1.operator, c));
+    };
 }
-question_preposition_filter_pair = {
+question_preposition_filter_pair /* FIXME : [string, Type]*/ = {
     ctx:ctx_with_result_noquestion f1:preposition_filter 'or' f2:preposition_filter =>
         D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
 }
-question_pvp_filter_pair = {
+question_pvp_filter_pair /* FIXME : [string, Type]*/ = {
     ctx:ctx_with_result_noquestion f1:pvp_filter 'or' f2:pvp_filter =>
         D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
 }
 
-disjunctive_search_question = {
+disjunctive_search_question : string[] = {
     ( ('are you looking for' | 'would you like' | 'do you need') 'something with' question:question_npp_filter_pair '?'
     | ('are you looking for' | 'would you like' | 'do you need') 'something' question:question_apv_filter_pair '?'
     | ('are you looking for' | 'would you like' | 'do you need') 'something' question:question_preposition_filter_pair '?'
@@ -138,13 +144,13 @@ disjunctive_search_question = {
     };
 }
 
-generic_question = {
+generic_question : string[] = {
     'which one would you like ?' => [];
     'do you have a specific one in mind ?' => [];
     'do you have any more information to narrow down the search ?' => [];
 }
 
-simple_search_question = {
+simple_search_question : string[] = {
     one_param_direct_search_question [priority=0.1];
     two_param_direct_search_question;
 
@@ -154,13 +160,13 @@ simple_search_question = {
     two_param_yesno_direct_search_question;
 }
 
-search_question = {
+search_question : string[] = {
     simple_search_question;
     search_result_preamble question:simple_search_question [weight=0.1] => question;
 }
 
 
-verbose_search_answer = {
+verbose_search_answer : Ast.Table = {
     // complete answer, like "I am looking for a bla restaurant"
     generic_preamble_for_answer ('a' | 'the') query:answer_noun_phrase => query;
 
@@ -168,7 +174,7 @@ verbose_search_answer = {
     generic_preamble_for_answer query:anything_phrase => query;
 }
 
-verbose_search_answer_with_action = {
+verbose_search_answer_with_action : [Ast.Table, Ast.Invocation] = {
     // complete answer with another action phrase, like "I am looking for a bla restaurant. I will need to book it for 3 people."
     query:verbose_search_answer ('.' | ',') generic_preamble_for_action action:coref_action_command => {
         // check that one of the parameters of action has the right type to param pass into the action
@@ -191,14 +197,14 @@ verbose_search_answer_with_action = {
     };
 }
 
-precise_search_question_answer = {
+precise_search_question_answer : [Ast.Table, Ast.Invocation|null, boolean] = {
     table:verbose_search_answer => [table, null, false];
     ('yes' | 'yes ,' | '') table:verbose_search_answer => [table, null, true];
     table_action:verbose_search_answer_with_action => [...table_action, false];
     ('yes' | 'yes ,' | '') table_action:verbose_search_answer_with_action => [...table_action, true];
 }
 
-specific_dontcare_phrase = {
+specific_dontcare_phrase : Ast.DontCareBooleanExpression = {
     ( 'the' param:out_param_Any 'does not matter .'
     | 'the' param:out_param_Any 'is not an issue .'
     | 'the' param:out_param_Any 'is not important .'
@@ -209,15 +215,15 @@ specific_dontcare_phrase = {
     ) => new Ast.BooleanExpression.DontCare(null, param.name);
 
     ('i do not care that it has' | 'it need not have' | 'i do not need') param:npp_filter => {
-        if (!(param instanceof Ast.BooleanExpression.Atom))
+        if (!(param instanceof Ast.AtomBooleanExpression))
             return null;
-        if (!param.value.isBoolean || param.value.value !== true)
+        if (!(param.value instanceof Ast.BooleanValue) || param.value.value !== true)
             return null;
         return new Ast.BooleanExpression.DontCare(null, param.name);
     };
 }
 
-coref_constant = {
+coref_constant : Ast.Value = {
     ( ctx:ctx_multidomain ('the' | 'the same') base:base_table '\'s' param:out_param_Any '.'
     | ctx:ctx_multidomain generic_preamble_for_answer ('the' | 'the same') base:base_table '\'s' param:out_param_Any '.'
     | ctx:ctx_multidomain 'the same' param:out_param_Any 'as' 'the' base:base_table '.'
@@ -227,7 +233,7 @@ coref_constant = {
     ) => D.corefConstant(ctx, base, param);
 }
 
-imprecise_search_coref_answer = {
+imprecise_search_coref_answer : Ast.Value|Ast.BooleanExpression = {
     ( slot:coref_constant
     | slot:coref_npp_filter
     | slot:coref_apv_filter
@@ -237,7 +243,7 @@ imprecise_search_coref_answer = {
 }
 
 
-imprecise_search_answer_phrase = {
+imprecise_search_answer_phrase : Ast.Value|Ast.BooleanExpression = {
     ( slot:constant_Any
     | slot:npp_filter
     | slot:apv_filter
@@ -246,13 +252,13 @@ imprecise_search_answer_phrase = {
     ) => slot;
 }
 
-imprecise_search_answer = {
+imprecise_search_answer : Ast.Value|Ast.BooleanExpression = {
     ans:imprecise_search_answer_phrase ('please' | '') '.' => ans;
 
     generic_preamble_for_answer ans:imprecise_search_answer_phrase '.' => ans;
 }
 
-imprecise_search_question_answer = {
+imprecise_search_question_answer : Ast.Value|Ast.BooleanExpression|'dontcare' = {
     imprecise_search_answer;
     imprecise_search_coref_answer;
     generic_dontcare_phrase [weight=0.1] => 'dontcare';

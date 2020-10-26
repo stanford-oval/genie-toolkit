@@ -25,7 +25,7 @@ import * as C from '../ast_manip';
 // import thingpedia info
 import _tpLoader from '../load-thingpedia';
 
-constant_Number = {
+constant_Number : Ast.NumberValue = {
     // `turking` is a flags that controls a group of grammar rules
     // syntax is ?flag to enable the rule (or group of rules) only if the flag is set, !flag to disable the
     // rule if the flag is set
@@ -49,7 +49,7 @@ constant_Number = {
     }
 }
 
-constant_date_point = {
+constant_date_point : Ast.Value = {
     'now'                 => C.makeDate(null, '+', null);
     'today'               => C.makeDate(new Ast.DateEdge('start_of', 'day'), '+', null);
     'yesterday'           => C.makeDate(new Ast.DateEdge('start_of', 'day'), '-', new Ast.Value.Measure(1, 'day'));
@@ -65,7 +65,7 @@ constant_date_point = {
     }
 }
 
-constant_date_range = {
+constant_date_range : [Ast.Value, Ast.Value] = {
     'this week'   => [C.makeDate(new Ast.DateEdge('start_of', 'week'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'week'), '+', null)];
     'this month'  => [C.makeDate(new Ast.DateEdge('start_of', 'mon'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'mon'), '+', null)];
     'this year'   => [C.makeDate(new Ast.DateEdge('start_of', 'year'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'year'), '+', null)];
@@ -127,7 +127,7 @@ constant_date_range = {
     ('dec' | 'december') 'of' year:constant_Number => C.makeMonthDateRange(year.value, 12);
 }
 
-constant_day_of_week = {
+constant_day_of_week : Ast.Value = {
     // weekdays
     ('mon' | 'monday') => C.makeDate(new Ast.WeekDayDate('monday', null), '+', null);
     'last' ('mon' | 'monday') => C.makeDate(new Ast.WeekDayDate('monday', null), '-', new Ast.Value.Measure(1, 'week'));
@@ -152,7 +152,7 @@ constant_day_of_week = {
     'next' ('sun' | 'sunday') => C.makeDate(new Ast.WeekDayDate('sunday', null), '+', new Ast.Value.Measure(1, 'week'));
 }
 
-constant_Date = {
+constant_Date : Ast.Value = {
     !inference {
         constant_date_point;
         constant_day_of_week;
@@ -171,7 +171,7 @@ constant_Date = {
 
 
 
-constant_Measure_ms = {
+constant_Measure_ms : Ast.Value = {
     !inference {
         !turking num:constant_Number 'ms' => C.addUnit('ms', num);
         !turking num:constant_Number 'milliseconds' => C.addUnit('ms', num);
@@ -189,7 +189,7 @@ constant_Measure_ms = {
     }
 }
 
-constant_Measure_byte = {
+constant_Measure_byte : Ast.Value = {
     !inference {
         !turking num:constant_Number 'byte' => C.addUnit('byte', num);
         num:constant_Number 'kb' => C.addUnit('KB', num);
@@ -203,7 +203,7 @@ constant_Measure_byte = {
     }
 }
 
-constant_Measure_kg = {
+constant_Measure_kg : Ast.Value = {
     !inference {
         !turking num:constant_Number 'grams' => C.addUnit('g', num);
         num:constant_Number 'kilograms' => C.addUnit('kg', num);
@@ -215,7 +215,7 @@ constant_Measure_kg = {
     }
 }
 
-constant_Measure_C = {
+constant_Measure_C : Ast.Value = {
     !inference {
         !turking {
             num:constant_Number 'c' => C.addUnit('C', num);
@@ -227,7 +227,7 @@ constant_Measure_C = {
     }
 }
 
-constant_Measure_m = {
+constant_Measure_m : Ast.Value = {
     !inference {
         !turking num:constant_Number 'm' => C.addUnit('m', num);
         num:constant_Number 'meters' => C.addUnit('m', num);
@@ -242,7 +242,7 @@ constant_Measure_m = {
     }
 }
 
-constant_Measure_m2 = {
+constant_Measure_m2 : Ast.Value = {
     !inference {
         num:constant_Number 'square meters' => C.addUnit('m2', num);
         num:constant_Number 'square km' => C.addUnit('km2', num);
@@ -252,7 +252,7 @@ constant_Measure_m2 = {
     }
 }
 
-constant_Measure_m3 = {
+constant_Measure_m3 : Ast.Value = {
     !inference {
         num:constant_Number 'cubic meters' => C.addUnit('m3', num);
         num:constant_Number 'cubic km' => C.addUnit('km3', num);
@@ -274,7 +274,7 @@ constant_Measure_m3 = {
     }
 }
 
-constant_Measure_mps = {
+constant_Measure_mps : Ast.Value = {
     !inference {
         num:constant_Number 'mph' => C.addUnit('mph', num);
         !turking num:constant_Number 'm/s' => C.addUnit('mps', num);
@@ -285,7 +285,7 @@ constant_Measure_mps = {
     }
 }
 
-constant_Measure_W = {
+constant_Measure_W : Ast.Value = {
     !inference {
         num:constant_Number 'w' => C.addUnit('W', num);
         num:constant_Number 'watt' => C.addUnit('W', num);
@@ -293,29 +293,29 @@ constant_Measure_W = {
         num:constant_Number 'kilowatt' => C.addUnit('W', num);
     }
 }
-constant_Measure_lx = {
+constant_Measure_lx : Ast.Value = {
     !inference {
         num:constant_Number 'lx' => C.addUnit('lx', num);
     }
 }
-constant_Measure_lm = {
+constant_Measure_lm : Ast.Value = {
     !inference {
         num:constant_Number 'lm' => C.addUnit('lm', num);
     }
 }
-constant_Measure_dB = {
+constant_Measure_dB : Ast.Value = {
     !inference {
         num:constant_Number 'db' => C.addUnit('dB', num);
         num:constant_Number 'decibels' => C.addUnit('dB', num);
     }
 }
-constant_Measure_dBm = {
+constant_Measure_dBm : Ast.Value = {
     !inference {
         num:constant_Number 'dbm' => C.addUnit('dBm', num);
     }
 }
 
-constant_Location = {
+constant_Location : Ast.LocationValue = {
     !inference {
         'here'                    => new Ast.Value.Location(new Ast.Location.Relative('current_location'));
         !turking 'where i am now' => new Ast.Value.Location(new Ast.Location.Relative('current_location'));
@@ -332,7 +332,7 @@ constant_Location = {
     }
 }
 
-constant_pairs = {
+constant_pairs : [Ast.Value, Ast.Value] = {
     c1:constant_Any 'and' c2:constant_Any => {
         if (!c1.getType().equals(c2.getType()))
             return null;
@@ -341,7 +341,7 @@ constant_pairs = {
         return [c1, c2];
     };
 }
-constant_or_pairs = {
+constant_or_pairs : [Ast.Value, Ast.Value] = {
     c1:constant_Any 'or' c2:constant_Any => {
         if (!c1.getType().equals(c2.getType()))
             return null;
@@ -350,7 +350,7 @@ constant_or_pairs = {
         return [c1, c2];
     };
 }
-constant_nor_pairs = {
+constant_nor_pairs : [Ast.Value, Ast.Value] = {
     c1:constant_Any 'nor' c2:constant_Any => {
         if (!c1.getType().equals(c2.getType()))
             return null;
@@ -363,7 +363,7 @@ constant_nor_pairs = {
 // ContextRef is not a constant, it needs special templates
 // e.g., if this is `constant_String`, then we will generate:
 // $cuisine restaurant -> "this"/"the selection on the screen" restaurant
-constant_String_ContextRef = {
+constant_String_ContextRef : Ast.ContextRefValue = {
     ?screen_selection ( 'this'
     | 'the selection on the screen'
     ) => new Ast.Value.ContextRef('selection', Type.String);

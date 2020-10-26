@@ -34,7 +34,7 @@ projection_Measure_m = {}
 compute_question = {}
 with_arg_min_max_table = {}
 
-projection_Measure_m = {
+projection_Measure_m : Ast.Table = {
     !turking {
         ( 'the distance' ('of' | 'to') table:with_filtered_table ('from here' | '')
         | 'the distance' ('of' | 'to') 'the' table:with_arg_min_max_table ('from here' | ''))=> {
@@ -78,7 +78,7 @@ projection_Measure_m = {
     }
 }
 
-projection_Number = {
+projection_Number : Ast.Table = {
     !turking {
         ( 'the number of' p:out_param_Array__Any ('of' | 'in' | 'in the') table:with_filtered_table
         | 'the number of' p:out_param_Array__Any ('of' | 'in') 'the' table:with_arg_min_max_table ) => {
@@ -92,10 +92,11 @@ projection_Number = {
 
         ( 'the number of' p:out_param_Array__Any 'with' filter:with_filter ('of' | 'in' | 'in the') table:with_filtered_table
         | 'the number of' p:out_param_Array__Any 'with' filter:with_filter ('of' | 'in') 'the' table:with_arg_min_max_table) => {
-            if (!table.schema.out[p.name] || !table.schema.out[p.name].isArray || filter.isAtom)
+            const ptype = table.schema.out[p.name];
+            if (!ptype || !(ptype instanceof Type.Array) || !(filter instanceof Ast.AtomBooleanExpression))
                 return null;
-            const elementType = table.schema.out[p.name].elem;
-            if (!elementType.isCompound || !elementType.fields[filter.name])
+            const elementType = ptype.elem as Type;
+            if (!(elementType instanceof Type.Compound) || !elementType.fields[filter.name])
                 return null;
             const list = C.makeListExpression(p, filter);
             if (!list)
@@ -112,7 +113,7 @@ projection_Number = {
     }
 }
 
-compute_question = {
+compute_question : Ast.Table = {
     !turking {
         ( 'how' ('far' | 'near' | 'close') ('is' | 'are') table:with_filtered_table ('from here' | '') ('?'|'')
         | 'how' ('far' | 'near' | 'close') ('is' | 'are') 'the' table:with_arg_min_max_table ('from here' | '') ('?'|'')
@@ -168,10 +169,11 @@ compute_question = {
         | 'how many' p:out_param_Array__Any 'with' filter:with_filter 'in the' table:with_arg_min_max_table '?'
         | 'how many' p:out_param_Array__Any 'with' filter:with_filter 'are there in the' table:with_arg_min_max_table '?'
         ) => {
-            if (!table.schema.out[p.name] || !table.schema.out[p.name].isArray)
+            const ptype = table.schema.out[p.name];
+            if (!ptype || !(ptype instanceof Type.Array) || !(filter instanceof Ast.AtomBooleanExpression))
                 return null;
-            const elementType = table.schema.out[p.name].elem;
-            if (!elementType.isCompound || !elementType.fields[filter.name])
+            const elementType = ptype.elem as Type;
+            if (!(elementType instanceof Type.Compound) || !elementType.fields[filter.name])
                 return null;
             const list = C.makeListExpression(p, filter);
             if (!list)
@@ -187,7 +189,7 @@ compute_question = {
         ) => {
             if (!table.schema.is_list)
                 return null;
-            const newSchema = table.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT)
+            const newSchema = table.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT)
                 .addArguments([new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'count', Type.Number)]);
             const agg = new Ast.Table.Aggregation(null, table, '*', 'count', null, newSchema);
             return new Ast.Table.Projection(null, agg, ['count'], newSchema);
@@ -202,7 +204,7 @@ compute_question = {
             if (!t.schema.is_list)
                 return null;
 
-            const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
+            const newSchema = t.schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
             const agg = new Ast.Table.Aggregation(null, t, p.name, 'sum', null, newSchema);
             return new Ast.Table.Projection(null, agg, [p.name], newSchema);
         };
@@ -210,7 +212,7 @@ compute_question = {
     }
 }
 
-with_arg_min_max_table = {
+with_arg_min_max_table : Ast.Table = {
     !turking {
         ('nearest' | 'closest') table:complete_table ('' | 'from here' | 'to here' | 'to me')  => {
             if (!table.schema.out.geo || !table.schema.out.geo.isLocation)

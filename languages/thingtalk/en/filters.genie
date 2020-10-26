@@ -31,7 +31,7 @@ const HERE = new Ast.Value.Location(new Ast.Location.Relative('current_location'
 }
 
 // generic filters (npp)
-get_predicate_filter = {
+get_predicate_filter : Ast.BooleanExpression = {
     'before' t1:constant_Time => C.timeGetPredicate(null, t1);
     'after' t2:constant_Time  => C.timeGetPredicate(t2, null);
     'between' t1:constant_Time 'and' t2:constant_Time => C.timeGetPredicate(t1, t2);
@@ -45,7 +45,7 @@ get_predicate_filter = {
     proj:projection_Any ('is not' | 'is n\'t' | 'is different than') x:constant_Any => C.makeGetPredicate(proj, '==', x, true);
 }
 
-if_filter = {
+if_filter : Ast.BooleanExpression = {
     get_predicate_filter;
 
     'the' p:out_param_Any ('is' | 'is exactly' | 'is equal to') x:constant_Any        => {
@@ -117,7 +117,7 @@ if_filter = {
     //!turking f:either_filter => f;
 }
 
-edge_filter = {
+edge_filter : Ast.BooleanExpression = {
     !turking 'the' p:out_param_Any ('becomes' | 'becomes equal to') x:constant_Any => C.makeFilter(p, '==', x);
 
     //p:the_out_param_Numeric ('is now greater than' | 'becomes greater than' | 'becomes higher than' | 'goes above' | 'increases above' | 'goes over' | 'rises above') x:constant_Numeric => C.makeFilter(p, '>=', x);
@@ -159,7 +159,7 @@ edge_filter = {
     p:out_param_Time ('is now' | 'becomes' | 'goes') ('before' | 'earlier than' | 'sooner than') x:constant_Time => C.makeFilter(p, '<=', x);
 }
 
-either_filter = {
+either_filter : Ast.BooleanExpression = {
     'the' param:out_param_Any ('is' | 'is equal to' | 'is one of' | 'is either') pair:constant_or_pairs => {
         // param is a Value.VarRef
         //console.log('param: ' + param.name);
@@ -180,7 +180,7 @@ either_filter = {
     };
 }
 
-range = {
+range : [Ast.Value, Ast.Value] = {
     'between' v1:constant_Numeric 'and' v2:constant_Numeric => {
         if (!v1.getType().equals(v2.getType()))
             return null;
@@ -196,7 +196,7 @@ range = {
         return [v1, v2];
     };
 }
-range_filter = {
+range_filter : Ast.BooleanExpression = {
     param:the_out_param_Numeric 'is' range:range => {
         const [v1, v2] = range;
         const f1 = C.makeFilter(param, '>=', v1);
@@ -205,7 +205,7 @@ range_filter = {
     };
 }
 
-with_filter = {
+with_filter : Ast.BooleanExpression = {
     p:out_param_Any 'equal to' x:constant_Any => C.makeFilter(p, '==', x);
     !turking p:out_param_String ('containing' | 'including') x:constant_String => C.makeFilter(p, '=~', x);
     !turking x:constant_String ('in the' | 'in its' | 'in their') p:out_param_String => C.makeFilter(p, '=~', x);
@@ -445,7 +445,7 @@ with_filter = {
 for (let pname in _tpLoader.compoundArrays) {
     for (let fname in _tpLoader.compoundArrays[pname].fields) {
         if (_tpLoader.compoundArrays[pname].fields[fname].type.isNumeric()) {
-            with_filter = {
+            with_filter : Ast.BooleanExpression = {
                 ('total' | 'sum') f:out_param_Numeric ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'sum', f, '==', x);
                 ('total' | 'sum') f:out_param_Numeric ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'sum', f, '>=', x);
                 ('total' | 'sum') f:out_param_Numeric ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'sum', f, '>=', x);
@@ -467,7 +467,7 @@ for (let pname in _tpLoader.compoundArrays) {
 }
 
 
-range_with_filter = {
+range_with_filter : Ast.BooleanExpression = {
     param:out_param_Numeric range:range => {
         const [v1, v2] = range;
         const f1 = C.makeFilter(param, '>=', v1);
@@ -477,30 +477,30 @@ range_with_filter = {
 }
 
 // add the "both" prefix that is used by auto-generated *_filters
-both_prefix = {
+both_prefix : string = {
     'both';
 }
 
-preposition_filter = {
+preposition_filter : Ast.BooleanExpression = {
     ('here' | 'around here' | 'near here') => C.makeFilter(new Ast.Value.VarRef('geo'), '==', HERE);
     ('nearby' | 'around me' | 'in this area') => C.makeFilter(new Ast.Value.VarRef('geo'), '==', HERE);
-    ('in' | 'around' | 'near') x:constant_Location=> C.makeFilter(new Ast.Value.VarRef('geo'), '==', x);
+    ('in' | 'around' | 'near') x:constant_Location => C.makeFilter(new Ast.Value.VarRef('geo'), '==', x);
 }
 
 // filters on npp parameter for "whose" question
 // e.g.: whose nickname is boogie?
-whose_npp_filter = {
+whose_npp_filter : Ast.BooleanExpression = {
     p:out_param_Any 'is' x:constant_Any => C.makeFilter(p, '==', x);
     p:out_param_Any 'is' x:constant_Any => C.makeFilter(p, 'contains', x);
 }
 
 
 //FIXME: calculate threshold using max rating instead of a fixed number
-quality_filter = {
+quality_filter : Ast.BooleanExpression = {
     ('good' | 'great' | 'nice' | 'decent') => C.makeFilter(new Ast.Value.VarRef('aggregateRating.ratingValue'), '>=', new Ast.Value.Number(4));
 }
 
-within_filter = {
+within_filter : ({ distance : Ast.Value, place : Ast.Value }) = {
     'within' distance:constant_Measure_m ('' | 'radius' | 'of here' | 'from here' | 'from me' | 'of me' | 'of this area' | 'of my location' | 'from current location') => ({ distance, place: HERE });
 
     'within' distance:constant_Measure_m ('' | 'radius') ('of' | 'from') place:constant_Location

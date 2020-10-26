@@ -20,10 +20,12 @@
 
 // Templates that describe results from a query
 
+import { Ast, } from 'thingtalk';
+
 import * as D from '../../dialogue_acts';
 import * as S from '../../state_manip';
 
-count_aggregation_reply_suffix = {
+count_aggregation_reply_suffix : S.ContextInfo = {
     ctx:ctx_with_table_result base:base_table ('like that' | 'with those characteristics')
         => D.makeCountAggregationReplySuffix(ctx, base, false);
 
@@ -33,12 +35,12 @@ count_aggregation_reply_suffix = {
         => D.makeCountAggregationReplySuffix(ctx, table, true);
 }
 
-count_aggregation_reply = {
+count_aggregation_reply : S.AgentReplyRecord = {
     ('there are' | 'i see' | 'i have') num:constant_Number ctx:count_aggregation_reply_suffix
         => D.makeCountAggregationReply(ctx, num);
 }
 
-agg_operator_for_reply = {
+agg_operator_for_reply : 'min'|'max'|'avg'|'sum' = {
     'minimum' => 'min';
     'smallest' => 'min';
     'maximum' => 'max';
@@ -47,7 +49,7 @@ agg_operator_for_reply = {
     'total' => 'sum';
 }
 
-other_aggregation_reply = {
+other_aggregation_reply : S.AgentReplyRecord = {
     ctx:ctx_with_table_result 'the' op:agg_operator_for_reply p:out_param_Any 'is' c:constant_Any
         => D.makeOtherAggregationReply(ctx, op, p, c);
 }       

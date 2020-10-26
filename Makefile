@@ -34,7 +34,7 @@ generated := \
 	lib/engine/db/schema.json \
 	lib/sentence-generator/compiler/grammar.js
 
-$(built_bundled_templates) : languages/*/*/*.genie languages/*/*/*/*.genie lib/sentence-generator/compiler/*.ts lib/sentence-generator/compiler/grammar.js
+$(built_bundled_templates) : languages/*/*.genie languages/*/*/*.genie languages/*/*/*/*.genie lib/sentence-generator/compiler/*.ts lib/sentence-generator/compiler/grammar.js
 	node ./dist/tool/genie.js compile-template $(patsubst %.genie.ts,%.genie,$@)
 
 dist: $(wildcard $(sources)) $(generated) tsconfig.json

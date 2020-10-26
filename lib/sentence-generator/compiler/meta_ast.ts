@@ -307,7 +307,7 @@ function makeBodyLambda(head : RuleHeadPart[],
             bodyArgs.push(`$${i++}` + ' : ' + headPart.type);
     }
 
-    return `(${bodyArgs.join(', ')}) : ${type} => ${body}`;
+    return `(${bodyArgs.join(', ')}) : (${type})|null => ${body}`;
 }
 
 export class Expansion extends Rule {

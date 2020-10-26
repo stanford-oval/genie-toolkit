@@ -26,7 +26,7 @@ import * as C from '../ast_manip';
 // import thingpedia info
 import _tpLoader from '../load-thingpedia';
 
-complete_table = {
+complete_table : Ast.Table = {
     thingpedia_query if complete;
 
     !notablejoin table_join_replace_placeholder if complete;
@@ -39,22 +39,22 @@ complete_table = {
     ) => C.addActionInputParam(table, param);
 }
 
-complete_get_command = {
+complete_get_command : Ast.Table = {
     thingpedia_get_command if complete;
 }
 
 // if filter: if it rains (used for stream only)
-if_filtered_table = {
+if_filtered_table : Ast.Table = {
     !always_filter complete_table;
     one_if_filter_table;
     !turking two_if_filter_table;
 }
 
-one_if_filter_table = {
+one_if_filter_table : Ast.Table = {
     !nofilter table:complete_table 'if' filter:if_filter => C.addFilter(table, filter, { ifFilter: true });
 }
 
-two_if_filter_table = {
+two_if_filter_table : Ast.Table = {
     !nofilter table:one_if_filter_table 'and' filter:if_filter => C.addFilter(table, filter, { ifFilter: true });
 }
 
@@ -62,7 +62,7 @@ two_if_filter_table = {
 // (1) with filtered: restaurants with name bla
 // (2) which filtered: restaurants which have name bla
 // (3) "clean" filtered (i.e., no which/with): chinese restaurants, reviews written by bob
-with_filtered_table = {
+with_filtered_table : Ast.Table = {
     complete_table [weight=3];
 
     // one filter
@@ -81,7 +81,7 @@ with_filtered_table = {
     three_clean_filter_table [weight=0.1];
 }
 
-answer_noun_phrase = {
+answer_noun_phrase : Ast.Table = {
     // one filter
     one_with_filter_table [weight=10];
     one_which_filter_table [weight=10];
@@ -93,7 +93,7 @@ answer_noun_phrase = {
     two_clean_filter_table;
 }
 
-one_with_filter_table = {
+one_with_filter_table : Ast.Table = {
     !nofilter table:complete_table ('with' | 'having') filter:with_filter => C.addFilter(table, filter);
     !nofilter table:complete_table ('with' | 'having') filter:npp_filter => C.addFilter(table, filter);
 
@@ -104,7 +104,7 @@ one_with_filter_table = {
     }
 }
 
-one_which_filter_table = {
+one_which_filter_table : Ast.Table = {
     !nofilter table:complete_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
     !nofilter table:complete_table ('which' | 'that') filter:avp_filter => C.addFilter(table, filter);
     !nofilter table:complete_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
@@ -114,14 +114,14 @@ one_which_filter_table = {
     !nofilter table:complete_table ('which' | 'that') filter:reverse_verb_filter => C.addFilter(table, filter);
 }
 
-one_clean_filter_table = {
+one_clean_filter_table : Ast.Table = {
     !nofilter filter:apv_filter table:complete_table => C.addFilter(table, filter);
     !nofilter table:complete_table filter:pvp_filter => C.addFilter(table, filter);
     !nofilter table:complete_table filter:preposition_filter => C.addFilter(table, filter);
     !nofilter filter:quality_filter table:complete_table => C.addFilter(table, filter);
 }
 
-two_with_filter_table = {
+two_with_filter_table : Ast.Table = {
     !nofilter table:one_with_filter_table 'and' filter:with_filter => C.addFilter(table, filter);
     !nofilter table:one_which_filter_table ('' | ',') ('and having' | 'and with' | ', with' | 'and have') filter:with_filter => C.addFilter(table, filter);
     !nofilter table:one_clean_filter_table ('' | ',') ('with' | 'having' | 'that have') filter:with_filter => C.addFilter(table, filter);
@@ -141,7 +141,7 @@ two_with_filter_table = {
     }
 }
 
-two_which_filter_table = {
+two_which_filter_table : Ast.Table = {
     !nofilter table:one_with_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
     !nofilter table:one_with_filter_table ('' | ',') ('which' | 'that') filter:avp_filter => C.addFilter(table, filter);
     !nofilter table:one_with_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
@@ -169,14 +169,14 @@ two_which_filter_table = {
     !nofilter filter:apv_filter table:one_which_filter_table => C.addFilter(table, filter);
 }
 
-two_clean_filter_table = {
+two_clean_filter_table : Ast.Table = {
     !nofilter filter:apv_filter table:one_clean_filter_table => C.addFilter(table, filter);
     !nofilter table:one_clean_filter_table filter:pvp_filter => C.addFilter(table, filter);
     !nofilter table:one_clean_filter_table filter:preposition_filter => C.addFilter(table, filter);
     !nofilter filter:quality_filter table:one_clean_filter_table => C.addFilter(table, filter);
 }
 
-three_with_filter_table = {
+three_with_filter_table : Ast.Table = {
     !nofilter table:two_with_filter_table 'and' filter:with_filter => C.addFilter(table, filter);
     !nofilter table:two_which_filter_table ('' | ',') ('and having' | 'and with' | ', with' | 'and have') filter:with_filter => C.addFilter(table, filter);
     !nofilter table:two_clean_filter_table ('' | ',') ('with' | 'having' | 'that have') filter:with_filter => C.addFilter(table, filter);
@@ -196,7 +196,7 @@ three_with_filter_table = {
     }
 }
 
-three_which_filter_table = {
+three_which_filter_table : Ast.Table = {
     !nofilter table:two_with_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
     !nofilter table:two_with_filter_table ('' | ',') ('which' | 'that') filter:avp_filter => C.addFilter(table, filter);
     !nofilter table:two_with_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
@@ -224,25 +224,25 @@ three_which_filter_table = {
     !nofilter filter:apv_filter table:two_which_filter_table => C.addFilter(table, filter);
 }
 
-three_clean_filter_table = {
+three_clean_filter_table : Ast.Table = {
     !nofilter filter:apv_filter table:two_clean_filter_table => C.addFilter(table, filter);
     !nofilter table:two_clean_filter_table filter:pvp_filter => C.addFilter(table, filter);
     !nofilter table:two_clean_filter_table filter:preposition_filter => C.addFilter(table, filter);
     !nofilter filter:quality_filter table:two_clean_filter_table => C.addFilter(table, filter);
 }
 
-anything_phrase = {
+anything_phrase : Ast.Table = {
     anything_with_filter_phrase;
     anything_which_filter_phrase;
     anything_clean_filter_phrase;
 }
 
-anything_with_filter_phrase = {
+anything_with_filter_phrase : Ast.Table = {
     ('any' | 'some') phrase:generic_base_noun_phrase ('with' | 'having') filter:npp_filter => C.addFilter(phrase, filter);
     phrase:generic_anything_noun_phrase ('with' | 'having') filter:npp_filter => C.addFilter(phrase, filter);
 }
 
-anything_which_filter_phrase = {
+anything_which_filter_phrase : Ast.Table = {
     ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') ('has' | 'have') filter:npp_filter => C.addFilter(phrase, filter);
     ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(phrase, filter);
     ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') filter:avp_filter => C.addFilter(phrase, filter);
@@ -253,7 +253,7 @@ anything_which_filter_phrase = {
     phrase:generic_anything_noun_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(phrase, filter);
 }
 
-anything_clean_filter_phrase = {
+anything_clean_filter_phrase : Ast.Table = {
     ('any' | 'some') filter:apv_filter phrase:generic_base_noun_phrase => C.addFilter(phrase, filter);
     ('any' | 'some') phrase:generic_base_noun_phrase filter:pvp_filter => C.addFilter(phrase, filter);
     ('any' | 'some') phrase:generic_base_noun_phrase filter:preposition_filter => C.addFilter(phrase, filter);
@@ -266,7 +266,7 @@ anything_clean_filter_phrase = {
 // (1) be filter: reviews are written by bob
 // (2) have: restaurants have panda in name
 // (3) verb: restaurants serve chinese food
-verb_filtered_table = {
+verb_filtered_table : Ast.Table = {
     // one filter
     one_be_filter_table;
     one_have_filter_table;
@@ -278,23 +278,23 @@ verb_filtered_table = {
     two_verb_filter_table;
 }
 
-one_be_filter_table = {
+one_be_filter_table : Ast.Table = {
     !nofilter table:complete_table ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
     !nofilter table:complete_table ('is' | 'are') filter:pvp_filter => C.addFilter(table, filter);
     !nofilter table:complete_table ('is' | 'are') filter:apv_filter  => C.addFilter(table, filter);
     !nofilter table:complete_table ('is' | 'are') filter:npv_filter => C.addFilter(table, filter);
 }
 
-one_have_filter_table = {
+one_have_filter_table : Ast.Table = {
     !nofilter table:complete_table ('get' | 'have') filter:with_filter => C.addFilter(table, filter);
     !nofilter table:complete_table ('get' | 'have') filter:npp_filter => C.addFilter(table, filter);
 }
 
-one_verb_filter_table = {
+one_verb_filter_table : Ast.Table = {
     !nofilter table:complete_table filter:avp_filter => C.addFilter(table, filter);
 }
 
-two_be_filter_table = {
+two_be_filter_table : Ast.Table = {
     !nofilter table:one_be_filter_table 'and' filter:npi_filter => C.addFilter(table, filter);
     !nofilter table:one_be_filter_table 'and' filter:pvp_filter => C.addFilter(table, filter);
     !nofilter table:one_be_filter_table 'and' filter:apv_filter  => C.addFilter(table, filter);
@@ -311,7 +311,7 @@ two_be_filter_table = {
     !nofilter table:one_verb_filter_table ('' | ',') 'and' ('is' | 'are') filter:npv_filter => C.addFilter(table, filter);
 }
 
-two_have_filter_table = {
+two_have_filter_table : Ast.Table = {
     !nofilter table:one_be_filter_table ('' | ',') 'and' ('get' | 'have') filter:with_filter => C.addFilter(table, filter);
     !nofilter table:one_have_filter_table 'and' filter:with_filter => C.addFilter(table, filter);
     !nofilter table:one_verb_filter_table ('' | ',') 'and' ('get' | 'have') filter:with_filter => C.addFilter(table, filter);
@@ -320,13 +320,13 @@ two_have_filter_table = {
     !nofilter table:one_verb_filter_table ('' | ',') 'and' ('get' | 'have') filter:npp_filter => C.addFilter(table, filter);
 }
 
-two_verb_filter_table = {
+two_verb_filter_table : Ast.Table = {
     !nofilter table:one_be_filter_table 'and' filter:avp_filter => C.addFilter(table, filter);
     !nofilter table:one_have_filter_table 'and' filter:avp_filter => C.addFilter(table, filter);
     !nofilter table:one_verb_filter_table 'and' filter:avp_filter => C.addFilter(table, filter);
 }
 
-generic_argminmax = {
+generic_argminmax : [Ast.VarRefValue, 'asc'|'desc'] = {
     ('maximum' | 'highest') p:out_param_Number => [p, 'desc'];
     ('minimum' | 'lowest') p:out_param_Number => [p, 'asc'];
 
@@ -365,7 +365,7 @@ generic_argminmax = {
 }
 
 // arg min max
-with_arg_min_max_table = {
+with_arg_min_max_table : Ast.Table = {
     // note: the *_argminmax templates expect "the" to be prepended in front,
     // except for (avp_argminmax, pvp_argminmax and preposition_argminmax)
     // for the whole expression, "the" will be prepended by the template that uses
@@ -429,7 +429,7 @@ with_arg_min_max_table = {
     }
 }
 
-have_arg_min_max_table = {
+have_arg_min_max_table : Ast.Table = {
     ?aggregation {
     ( t:complete_table ('has' | 'gets') 'the' argminmax:generic_argminmax
     | t:complete_table ('has' | 'gets') 'the' argminmax:npp_argminmax
@@ -491,13 +491,13 @@ have_arg_min_max_table = {
 }
 
 
-edge_stream = {
+edge_stream : Ast.Stream = {
     !turking ('when' | 'if') 'the' p:projection_Any ('becomes' | 'becomes equal to') x:constant_Any => C.makeEdgeFilterStream(p, '==', x);
     ('when' | 'if') 'the' p:projection_Numeric ('becomes greater than' | 'becomes higher than' | 'goes above' | 'increases above') x:constant_Numeric => C.makeEdgeFilterStream(p, '>=', x);
     ('when' | 'if') 'the' p:projection_Numeric ('becomes smaller than' | 'becomes lower than' | 'goes below' | 'decreases below') x:constant_Numeric => C.makeEdgeFilterStream(p, '<=', x);
 }
 
-stream = {
+stream : Ast.Stream = {
     thingpedia_stream if complete;
     !turking {
         ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:with_filtered_table ('change' | 'update') => C.tableToStream(table, null);
@@ -548,7 +548,7 @@ stream = {
 }
 
 
-with_filtered_table_join = {
+with_filtered_table_join : Ast.Table = {
     !notablejoin {
     // get-predicate form of join
     table:with_filtered_table ('with' | 'having' | 'that has' | 'that have' | 'which has' | 'which have') get_predicate_table:with_filtered_table
@@ -568,7 +568,7 @@ with_filtered_table_join = {
     }
 }
 
-have_filtered_table_join = {
+have_filtered_table_join : Ast.Table = {
     // get-predicate form of join
     !notablejoin {
     table:verb_filtered_table ('and' | 'and have' | 'and also' | 'and in addition' | 'but also') get_predicate_table:with_filtered_table

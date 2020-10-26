@@ -120,7 +120,7 @@ function isQueryAnswerValidForQuestion(table, questions) {
     return answersQuestion;
 }
 
-function preciseSearchQuestionAnswer(ctx, [answerTable, answerAction]) {
+function preciseSearchQuestionAnswer(ctx, [answerTable, answerAction, _bool]) {
     const questions = ctx.state.dialogueActParam;
     if (questions !== null && !isQueryAnswerValidForQuestion(answerTable, questions))
         return null;
