@@ -57,6 +57,13 @@ jobs:
       - travis_retry yarn
       script: yarn run nyc ./test/schemaorg-starter.sh
       after_success: yarn run coverage
+    - name: "Starter Code Tests (Wikidata)"
+      install:
+        - pyenv global 3.6.7
+        - ./travis/install-starter-deps.sh
+        - travis_retry yarn
+      script: yarn run nyc ./test/wikidata-starter.sh
+      after_success: yarn run coverage
     -
       name: "Starter Code Tests (MultiWOZ)"
       install:

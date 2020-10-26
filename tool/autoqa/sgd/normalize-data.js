@@ -29,7 +29,7 @@ const crypto = require('crypto');
 const StreamUtils = require('../../../lib/utils/stream-utils');
 
 const { makeMetadata } = require('../lib/metadata');
-const { cleanEnumValue } = require('./utils');
+const { cleanEnumValue } = require('../lib/utils');
 
 function hash(obj) {
     const str = JSON.stringify(obj);

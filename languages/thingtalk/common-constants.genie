@@ -74,6 +74,12 @@ constant_Measure_m2 = {
 constant_Measure_m3 = {
     ?inference const(MEASURE_m3, new Type.Measure('m3'));
 }
+constant_Measure_m2 = {
+    ?inference const(MEASURE_m2, Type.Measure('m2'));
+}
+constant_Measure_m3 = {
+    ?inference const(MEASURE_m3, Type.Measure('m3'));
+}
 constant_Measure_mps = {
     ?inference const(MEASURE_mps, new Type.Measure('mps'));
 }

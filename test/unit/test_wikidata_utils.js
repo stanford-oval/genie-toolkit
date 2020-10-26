@@ -24,7 +24,6 @@ const assert = require('assert');
 const {
     getPropertyLabel,
     getPropertyList,
-    getExampleValuesForProperty
 } = require('../../tool/autoqa/wikidata/utils');
 
 const TEST_CASES_PROPERTY_LABELS = [
@@ -38,12 +37,6 @@ const TEST_CASES_PROPERTY_LIST = [
 
     ]
 ];
-
-const TEST_CASES_EXAMPLE_VALUES = [
-    ['Q5', 'P735', 5],
-    ['Q515', 'P30', 5]
-];
-
 
 async function main() {
     let anyFailed = false;
@@ -64,19 +57,6 @@ async function main() {
                 assert(properties.includes(expected_property));
         } catch(e) {
             console.error(`Test case "${id}" failed`);
-            console.error(e);
-            anyFailed = true;
-        }
-    }
-    for (let [domainId, propertyId, size] of TEST_CASES_EXAMPLE_VALUES) {
-        const values = await getExampleValuesForProperty(domainId, propertyId, size);
-        try {
-            for (let value of values) {
-                assert(value.id.startsWith('http://www.wikidata.org/entity/Q'));
-                assert.strictEqual(typeof value.label, 'string');
-            }
-        } catch(e) {
-            console.error(`Test case "${domainId}.${propertyId}" failed`);
             console.error(e);
             anyFailed = true;
         }

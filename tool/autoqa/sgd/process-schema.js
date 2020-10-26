@@ -32,7 +32,7 @@ const StreamUtils = require('../../../lib/utils/stream-utils');
 
 const baseCanonical = require('../lib/base-canonical-generator');
 const { PROPERTY_TYPE_OVERRIDE, STRING_FILE_OVERRIDES } = require('./manual-annotations');
-const { cleanEnumValue }  = require('./utils');
+const { cleanEnumValue }  = require('../lib/utils');
 
 function predictType(slot) {
     if (slot.name in PROPERTY_TYPE_OVERRIDE)
