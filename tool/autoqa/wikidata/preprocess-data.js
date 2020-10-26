@@ -52,8 +52,7 @@ class ParamDatasetGenerator {
             const property = inputPath.split('.')[0];
             const label = await getPropertyLabel(property);
             const type = await getType(domain, domainLabel, property, label, this._schemaorgProperties);
-            let fileId = `org.wikidata:${(await argnameFromLabel(label))}`;
-            let entityString = false; // temporary
+            let fileId = `org.wikidata:${(await argnameFromLabel(label))}`;            
             if (type) {
                 const elemType = getElementType(type);
             
@@ -69,24 +68,14 @@ class ParamDatasetGenerator {
                     isEntity = true;
                 }  else if (elemType.isLocation) {
                     fileId = 'tt:location';
-                    // to-do: Clean up
                     isEntity = false;
-                    entityString = true;
                 }  else if (elemType.isCurrency) {
                     fileId = 'tt:currency_code';
-                    // to-do: Clean up
-                    if (isEntity) {
-                        isEntity = false;
-                        entityString = true;
-                    }
+                    isEntity = false;
                 }
 
                 if (elemType.isString) {
-                    // to-do: Clean up
-                    if (isEntity) {
-                        isEntity = false;
-                        entityString = true;
-                    }
+                    isEntity = false;
                 }
             }
             
@@ -100,15 +89,15 @@ class ParamDatasetGenerator {
                 const item = JSON.parse(input);
 
                 if (isEntity) {
-                    // Some entity does not have label. Skip.
-                    if (!('label' in item) || item.label.includes('æ'))
+                    // Some entity does not have value. Skip.
+                    if (!('value' in item) || item.value.includes('æ'))
                         continue;
 
                     const entity = {
-                        value: item.label,
-                        name: item.value
+                        value: item.value,
+                        name: item.name
                     };
-                    const tokens = this._tokenizer.tokenize(item.label).tokens;
+                    const tokens = this._tokenizer.tokenize(item.value).tokens;
 
                     // if some tokens are uppercase, they are entities, like NUMBER_0,
                     // in which case we ignore this value
@@ -121,15 +110,10 @@ class ParamDatasetGenerator {
 
                     data.push(entity);
                 } else {
-                    let value = item.value;
-                    // Temp workaround
-                    if (entityString && item.label) {
-                        value = item.label;
-                    }
-                    
-                    if (value.includes('æ'))
+                    if (!('value' in item) || item.value.includes('æ'))
                         continue;
-
+                    
+                    const value = item.value;
                     const tokens = this._tokenizer.tokenize(value).tokens;
                     const weight = 1;
                     
