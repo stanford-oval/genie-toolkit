@@ -18,7 +18,7 @@ EOF
 make experiment=multidomain subdatasets=1 max_turns=3 target_pruning_size=10 datadir
 
 # train a model (for a few iterations)
-make experiment=multidomain model=small train_iterations=60 train_save_every=10 \
+make experiment=multidomain model=small train_iterations=30 train_save_every=10 \
   train_log_every=5 train-user
 
 # get some sample data to test with
