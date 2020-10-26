@@ -374,7 +374,7 @@ on = {
   'when it is' => 'when it is';
 }
 
-timer = {
+timer : Ast.TimerStream|Ast.AtTimerStream = {
     ?extended_timers {
         // this noon one can be removed since noon maps to TIME_0?
         optional_once optional_emphasis at_noon => new Ast.Stream.AtTimer(null, [TIME_NOON], null, AT_TIMER_SCHEMA);

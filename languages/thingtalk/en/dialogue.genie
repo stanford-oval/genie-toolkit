@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -58,7 +58,7 @@ import './dlg/search-questions.genie';
 import './dlg/slot-fill.genie';
 
 // declare contexts
-context
+context : S.ContextInfo = {
     // initial (null) context
     ctx_init,
 
@@ -119,7 +119,8 @@ context
     ctx_sys_recommend_many,
     ctx_sys_recommend_one,
     ctx_sys_search_question,
-    ctx_sys_slot_fill;
+    ctx_sys_slot_fill
+};
 
 
 // map a concrete dialogue state (produced by the simulation or the neural network)
@@ -127,7 +128,7 @@ context
 // a set of auxiliary tags that are used to prune the generation
 // this function also computes the "context", which is the state augmented with derived
 // information used by the semantic functions
-function context(state) {
+function context(state : Ast.DialogueState) : [string[], unknown] {
     if (state === null)
         return [['ctx_init'], S.INITIAL_CONTEXT_INFO];
 
@@ -143,12 +144,12 @@ function context(state) {
 }
 
 // handle answers generated from the UI
-function answer(state, answer) {
+function answer(state : Ast.DialogueState, answer : Ast.Value) : Ast.DialogueState {
     const ctx = S.getContextInfo(state);
 
     // if the agent proposed something and the user says "yes", we accept the proposal
     if (state.history[state.history.length-1].confirm === 'proposed' &&
-        answer.isBoolean && answer.value === true) {
+        answer instanceof Ast.BooleanValue && answer.value === true) {
         const item = state.history[state.history.length-1].clone();
         item.confirm = 'accepted';
         return S.addNewItem(ctx, 'execute', null, 'accepted', item);
@@ -156,7 +157,7 @@ function answer(state, answer) {
 
     switch (state.dialogueAct) {
     case 'sys_anything_else':
-        if (answer.isBoolean) {
+        if (answer instanceof Ast.BooleanValue) {
             if (answer.value)
                 return S.makeSimpleState(ctx, 'reinit', null);
             else
@@ -169,12 +170,12 @@ function answer(state, answer) {
     case 'sys_recommend_four':
         // "yes" to a recommendation (without a proposed action) is an answer to
         // "would you like to learn more"
-        if (answer.isBoolean && answer.value === true)
+        if (answer instanceof Ast.BooleanValue && answer.value === true)
             return S.makeSimpleState(ctx, 'learn_more', null);
         // fallthrough
     case 'sys_display_result':
         // "no" to a recommendation or display result is cancel
-        if (answer.isBoolean && answer.value === false)
+        if (answer instanceof Ast.BooleanValue && answer.value === false)
             return S.makeSimpleState(ctx, 'cancel', null);
         return null;
 
@@ -183,7 +184,7 @@ function answer(state, answer) {
     case 'sys_search_question':
         return D.impreciseSearchQuestionAnswer(ctx, answer);
     case 'sys_confirm_action':
-        if (answer.isBoolean) {
+        if (answer instanceof Ast.BooleanValue) {
             if (answer.value)
                 return D.actionConfirmAcceptPhrase(ctx);
             else
@@ -195,7 +196,7 @@ function answer(state, answer) {
     }
 }
 
-$agent = {
+$agent : S.AgentReplyRecord = {
     !inference {
         ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
         | ctx:ctx_init ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
@@ -265,7 +266,7 @@ $agent = {
         => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_learn_more_what', null));
 }
 
-$user = {
+$user : Ast.DialogueState = {
     ctx:ctx_init greeting [weight=0.01, expandchoice=false]
         => S.makeSimpleState(ctx, 'greet', null);
     ( ctx:ctx_init stmt:initial_command [weight=0.5]

@@ -40,49 +40,136 @@ const COMPILER_OPTIONS : ts.CompilerOptions = {
     strict: false,
 };
 
-async function processFilename(filename : string,
-                               target : 'js' | 'ts') : Promise<void> {
-    let input = await pfs.readFile(filename, { encoding: 'utf8' });
+class Compiler {
+    private _target : 'js' | 'ts';
 
-    let parsed;
-    try {
-        parsed = metagrammar.parse(input) as metaast.Grammar;
-    } catch(e) {
-        e.fileName = filename;
-        console.error(e);
-        process.exit(1);
+    private _files = new Map<string, metaast.Grammar>();
+
+    // map a non-terminal to its type declaration, if any
+    private _typeMap = new Map<string, string>();
+
+    constructor(target : 'js' | 'ts') {
+        this._target = target;
     }
 
-    input = parsed.codegen();
+    private async _loadFile(filename : string) {
+        if (this._files.has(filename))
+            return;
 
-    if (target === 'js') {
-        const result = ts.transpileModule(input, {
-            compilerOptions: COMPILER_OPTIONS,
-            fileName: filename,
-            reportDiagnostics: true,
-        });
-        if (result.diagnostics && result.diagnostics.length > 0) {
-            let error = '';
-            result.diagnostics.forEach((diagnostic) => {
-                if (diagnostic.file) {
-                    const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start!);
-                    const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
-                    error += `${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}\n`;
-                } else {
-                    error += ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n') + '\n';
-                }
-            });
-            throw new Error(`TypeScript compilation failed: ${error}`);
+        const dirname = path.dirname(filename);
+        const input = await pfs.readFile(filename, { encoding: 'utf8' });
+        let parsed;
+        try {
+            parsed = metagrammar.parse(input) as metaast.Grammar;
+        } catch(e) {
+            e.fileName = filename;
+            throw e;
         }
+
+        this._files.set(filename, parsed);
+
+        const allImports = new Set<string>();
+        const self = this;
+        parsed.visit(new class extends metaast.NodeVisitor {
+            visitImport(stmt : metaast.Import) {
+                const resolved = path.resolve(dirname, stmt.what);
+                allImports.add(resolved);
+            }
+
+            visitContextStmt(stmt : metaast.ContextStmt) {
+                if (!stmt.type)
+                    return;
+                for (const symbol of stmt.names)
+                    self._typeMap.set(symbol, stmt.type);
+            }
+
+            visitNonTerminalStmt(stmt : metaast.NonTerminalStmt) {
+                if (stmt.type === undefined || stmt.type === 'any')
+                    return;
+                if (!(stmt.name instanceof metaast.IdentifierNTR))
+                    return;
+                const symbol = stmt.name.name;
+
+                const existing = self._typeMap.get(symbol);
+                if (!existing || existing === 'any') {
+                    self._typeMap.set(symbol, stmt.type);
+                    return;
+                }
+                if (existing !== stmt.type)
+                    throw new TypeError(`Invalid conflicting type annotation for non-terminal ${symbol}`);
+            }
+        });
+
+        for (const import_ of allImports)
+            await this._loadFile(import_);
     }
 
-    const output = filename + '.' + target;
-    await pfs.writeFile(output, input);
+    private _assignAllTypes() {
+        const self = this;
+        const visitor = new class extends metaast.NodeVisitor {
+            visitNonTerminalRuleHead(node : metaast.NonTerminalRuleHead) {
+                if (!(node.category instanceof metaast.IdentifierNTR))
+                    return;
+                const symbol = node.category.name;
+                const type = self._typeMap.get(symbol);
+                if (type)
+                    node.type = type;
+            }
+        };
+
+        for (const parsed of this._files.values())
+            parsed.visit(visitor);
+    }
+
+    async process(filename : string) : Promise<void> {
+        // load all template files and extract all the type annotations
+        await this._loadFile(filename);
+
+        // assign the type annotations to all the uses of the non-terminals
+        this._assignAllTypes();
+
+        await this._outputAllFiles();
+    }
+
+    private async _outputAllFiles() {
+        for (const [filename, parsed] of this._files)
+            await this._outputFile(filename, parsed);
+    }
+
+    private async _outputFile(filename : string,
+                              parsed : metaast.Grammar) {
+        const outputFile = filename + '.' + this._target;
+        let output = parsed.codegen();
+
+        if (this._target === 'js') {
+            const result = ts.transpileModule(output, {
+                compilerOptions: COMPILER_OPTIONS,
+                fileName: filename,
+                reportDiagnostics: true,
+            });
+            if (result.diagnostics && result.diagnostics.length > 0) {
+                let error = '';
+                result.diagnostics.forEach((diagnostic) => {
+                    if (diagnostic.file) {
+                        const { line, character } = diagnostic.file.getLineAndCharacterOfPosition(diagnostic.start!);
+                        const message = ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n');
+                        error += `${diagnostic.file.fileName} (${line + 1},${character + 1}): ${message}\n`;
+                    } else {
+                        error += ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n') + '\n';
+                    }
+                });
+                throw new Error(`TypeScript compilation failed: ${error}`);
+            }
+            output = result.outputText;
+        }
+
+        await pfs.writeFile(outputFile, output);
+    }
 }
 
 
 export function compile(filename : string) : Promise<void> {
-    return processFilename(filename, 'ts');
+    return new Compiler('ts').process(filename);
 }
 
 interface GrammarOptions {
@@ -122,7 +209,7 @@ export async function importGenie(filename : string,
     } catch(e) {
         if (e.code !== 'ENOENT')
             throw e;
-        await processFilename(filename, target);
+        await new Compiler(target).process(filename);
     }
 
     return (await import(filename + '.' + target)).default;

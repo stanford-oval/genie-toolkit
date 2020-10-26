@@ -20,7 +20,13 @@ sources = \
 languages = en
 
 bundled_templates := \
-	$(foreach lang,$(languages),$(patsubst %.genie,%.genie.ts,$(wildcard languages/thingtalk/*.genie languages/thingtalk/$(lang)/*.genie languages/thingtalk/$(lang)/*/*.genie)))
+	languages/thingtalk/en/dialogue.genie \
+	languages/thingtalk/en/thingtalk.genie \
+	languages/thingtalk/en/contextual.genie \
+	languages/thingtalk/en/basic.genie \
+	languages/thingtalk/en/sempre.genie
+
+built_bundled_templates := $(addsuffix .ts,$(bundled_templates))
 
 generated := \
 	$(patsubst %.po,%.mo,$(wildcard po/*.po)) \
@@ -28,8 +34,8 @@ generated := \
 	lib/engine/db/schema.json \
 	lib/sentence-generator/compiler/grammar.js
 
-%.genie.ts : %.genie lib/sentence-generator/compiler/*.ts lib/sentence-generator/compiler/grammar.js
-	node ./dist/tool/genie.js compile-template $<
+$(built_bundled_templates) : languages/*/*/*.genie languages/*/*/*/*.genie lib/sentence-generator/compiler/*.ts lib/sentence-generator/compiler/grammar.js
+	node ./dist/tool/genie.js compile-template $(patsubst %.genie.ts,%.genie,$@)
 
 dist: $(wildcard $(sources)) $(generated) tsconfig.json
 	tsc --build tsconfig.json
@@ -46,7 +52,7 @@ dist: $(wildcard $(sources)) $(generated) tsconfig.json
 	cp tool/autoqa/lib/bert-canonical-annotator.py dist/tool/autoqa/lib
 	touch dist
 
-languages-dist: $(bundled_templates) $(wildcard languages/*/*.js languages/*/*.ts languages/*/*/*.js languages/*/*/*.ts) dist
+languages-dist: $(built_bundled_templates) $(wildcard languages/*/*.js languages/*/*.ts languages/*/*/*.js languages/*/*/*.ts) dist
 	tsc --build languages/tsconfig.json
 	touch languages-dist
 

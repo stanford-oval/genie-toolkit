@@ -27,6 +27,7 @@
 // - some form of "no" followed by another search refinement
 
 import * as D from '../../dialogue_acts';
+import * as S from '../../state_manip';
 
 search_result_preamble = {
     ctx:ctx_search_command ('there are' | 'i can see' | 'i have found' | 'i can recommend') ('many' | 'several') base:base_noun_phrase

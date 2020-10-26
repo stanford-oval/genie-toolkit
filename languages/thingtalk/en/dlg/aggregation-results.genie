@@ -21,6 +21,7 @@
 // Templates that describe results from a query
 
 import * as D from '../../dialogue_acts';
+import * as S from '../../state_manip';
 
 count_aggregation_reply_suffix = {
     ctx:ctx_with_table_result base:base_table ('like that' | 'with those characteristics')

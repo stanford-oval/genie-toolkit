@@ -24,6 +24,8 @@
 // - for searches: the agent is trying to add a filter
 // - for actions/queries w/ parameters: the agent is trying to add a parameter
 
+import * as S from '../../state_manip';
+
 one_param_slot_fill_question = {
     !inference {
         ( p:thingpedia_slot_fill_question '?' [priority=0.1]

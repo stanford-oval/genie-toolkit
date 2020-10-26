@@ -22,9 +22,23 @@
 import assert from 'assert';
 import { stringEscape } from '../../utils/escaping';
 
+export class NodeVisitor {
+    visitImport(stmt : Import) {}
+
+    visitContextStmt(stmt : ContextStmt) {}
+    visitNonTerminalStmt(stmt : NonTerminalStmt) {}
+
+    visitNonTerminalRuleHead(node : RuleHeadPart) {}
+}
+
 export class Grammar {
     constructor(public comment : string,
                 public statements : Statement[]) {
+    }
+
+    visit(visitor : NodeVisitor) {
+        for (const stmt of this.statements)
+            stmt.visit(visitor);
     }
 
     codegen() : string {
@@ -59,6 +73,7 @@ export abstract class Statement {
     static Import : typeof Import;
 
     abstract codegen(prefix ?: string) : string;
+    abstract visit(visitor : NodeVisitor) : void;
 }
 
 export class CodeBlock extends Statement {
@@ -69,6 +84,8 @@ export class CodeBlock extends Statement {
     codegen() : string {
         return this.code;
     }
+
+    visit(visitor : NodeVisitor) {}
 }
 Statement.CodeBlock = CodeBlock;
 
@@ -80,6 +97,8 @@ export class JSImportStmt extends Statement {
     codegen() : string {
         return `import ${this.code};\n`;
     }
+
+    visit(visitor : NodeVisitor) {}
 }
 Statement.JSImportStmt = JSImportStmt;
 
@@ -114,23 +133,35 @@ NonTerminalRef.Computed = ComputedNTR;
 
 export class NonTerminalStmt extends Statement {
     constructor(public name : NonTerminalRef,
+                public type : string|undefined,
                 public rules : Rule[]) {
         super();
+    }
+
+    visit(visitor : NodeVisitor) {
+        visitor.visitNonTerminalStmt(this);
+        for (const rule of this.rules)
+            rule.visit(visitor);
     }
 
     codegen(prefix = '') : string {
         let buffer = '';
         buffer += (`${prefix}$grammar.declareSymbol(${this.name.codegen()});\n`);
         for (const rule of this.rules)
-            buffer += rule.codegen(this.name, prefix);
+            buffer += rule.codegen(this.name, prefix, this.type);
         return buffer;
     }
 }
 Statement.NonTerminal = NonTerminalStmt;
 
 export class ContextStmt extends Statement {
-    constructor(public names : string[]) {
+    constructor(public names : string[],
+                public type : string|undefined) {
         super();
+    }
+
+    visit(visitor : NodeVisitor) {
+        visitor.visitContextStmt(this);
     }
 
     codegen(prefix = '') : string {
@@ -141,13 +172,16 @@ Statement.Context = ContextStmt;
 
 export class FunctionDeclarationStmt extends Statement {
     constructor(public name : string,
-                public args : string[],
-                public code : string) {
+                public args : string,
+                public code : string,
+                public type = 'any') {
         super();
     }
 
+    visit(visitor : NodeVisitor) {}
+
     codegen(prefix = '') : string {
-        return `${prefix}$grammar.declareFunction('${this.name}', (${this.args.join(', ')}) => {${this.code}});\n`;
+        return `${prefix}$grammar.declareFunction('${this.name}', (${this.args}) : ${this.type} => {${this.code}});\n`;
     }
 }
 Statement.FunctionDeclaration = FunctionDeclarationStmt;
@@ -156,6 +190,11 @@ export class ForLoop extends Statement {
     constructor(public head : string,
                 public statements : Statement[]) {
         super();
+    }
+
+    visit(visitor : NodeVisitor) {
+        for (const stmt of this.statements)
+            stmt.visit(visitor);
     }
 
     codegen(prefix = '') : string {
@@ -174,6 +213,13 @@ export class IfStmt extends Statement {
                 public iftrue : Statement[],
                 public iffalse : Statement[]) {
         super();
+    }
+
+    visit(visitor : NodeVisitor) {
+        for (const stmt of this.iftrue)
+            stmt.visit(visitor);
+        for (const stmt of this.iffalse)
+            stmt.visit(visitor);
     }
 
     codegen(prefix = '') : string {
@@ -195,6 +241,10 @@ Statement.If = IfStmt;
 export class Import extends Statement {
     constructor(public what : string) {
         super();
+    }
+
+    visit(visitor : NodeVisitor) {
+        visitor.visitImport(this);
     }
 
     codegen(prefix = '') : string {
@@ -226,7 +276,8 @@ export abstract class Rule {
     static Condition : typeof Condition;
     static Replacement : typeof Replacement;
 
-    abstract codegen(nonTerminal : NonTerminalRef, prefix ?: string) : string;
+    abstract codegen(nonTerminal : NonTerminalRef, prefix ?: string, type ?: string) : string;
+    abstract visit(visitor : NodeVisitor) : void;
 }
 
 export class Constants extends Rule {
@@ -236,24 +287,27 @@ export class Constants extends Rule {
         super();
     }
 
-    codegen(nonTerminal : NonTerminalRef, prefix = '') : string {
+    visit(visitor : NodeVisitor) {}
+
+    codegen(nonTerminal : NonTerminalRef, prefix = '', type ?: string) : string {
         return `${prefix}$grammar.addConstants(${nonTerminal.codegen()}, ${stringEscape(this.token)}, ${this.typeCode}, ${this.attrs.codegen()});\n`;
     }
 }
 Rule.Constants = Constants;
 
 function makeBodyLambda(head : RuleHeadPart[],
-                        body : string) : string {
+                        body : string,
+                        type = 'any') : string {
     const bodyArgs : string[] = [];
     let i = 0;
     for (const headPart of head) {
         if (headPart instanceof NonTerminalRuleHead && headPart.name)
-            bodyArgs.push(headPart.name + ' : any');
+            bodyArgs.push(headPart.name + ' : ' + headPart.type);
         else
-            bodyArgs.push(`$${i++}` + ' : any');
+            bodyArgs.push(`$${i++}` + ' : ' + headPart.type);
     }
 
-    return `(${bodyArgs.join(', ')}) => ${body}`;
+    return `(${bodyArgs.join(', ')}) : ${type} => ${body}`;
 }
 
 export class Expansion extends Rule {
@@ -265,8 +319,13 @@ export class Expansion extends Rule {
         assert(Array.isArray(head));
     }
 
-    codegen(nonTerminal : NonTerminalRef, prefix = '') : string {
-        const expanderCode = makeBodyLambda(this.head, this.bodyCode);
+    visit(visitor : NodeVisitor) {
+        for (const head of this.head)
+            head.visit(visitor);
+    }
+
+    codegen(nonTerminal : NonTerminalRef, prefix = '', type ?: string) : string {
+        const expanderCode = makeBodyLambda(this.head, this.bodyCode, type);
 
         return `${prefix}$grammar.addRule(${nonTerminal.codegen()}, [${this.head.map((h) => h.codegen()).join(', ')}], $runtime.simpleCombine((${expanderCode}), ${this.conditionCode ? stringEscape(this.conditionCode) : 'null'}, ${nonTerminal instanceof IdentifierNTR && nonTerminal.name === '$root'}), ${this.attrs.codegen()});\n`;
     }
@@ -279,7 +338,12 @@ export class Condition extends Rule {
         super();
     }
 
-    codegen(nonTerminal : NonTerminalRef, prefix = '') : string {
+    visit(visitor : NodeVisitor) {
+        for (const rule of this.rules)
+            rule.visit(visitor);
+    }
+
+    codegen(nonTerminal : NonTerminalRef, prefix = '', type ?: string) : string {
         const flag = this.flag.startsWith('?') ?
             `$options.flags.${this.flag.substring(1)}` :
             `!$options.flags.${this.flag.substring(1)}`;
@@ -287,7 +351,7 @@ export class Condition extends Rule {
         let buffer = '';
         buffer += (`${prefix}if (${flag}) {\n`);
         for (const rule of this.rules)
-            buffer += rule.codegen(nonTerminal, prefix + '    ');
+            buffer += rule.codegen(nonTerminal, prefix + '    ', type);
         buffer += (`${prefix}}\n`);
         return buffer;
     }
@@ -303,8 +367,13 @@ export class Replacement extends Rule {
         super();
     }
 
-    codegen(nonTerminal : NonTerminalRef, prefix = '') : string {
-        const expanderCode = makeBodyLambda(this.head, this.bodyCode);
+    visit(visitor : NodeVisitor) {
+        for (const head of this.head)
+            head.visit(visitor);
+    }
+
+    codegen(nonTerminal : NonTerminalRef, prefix = '', type ?: string) : string {
+        const expanderCode = makeBodyLambda(this.head, this.bodyCode, type);
 
         return (`${prefix}$grammar.addRule(${nonTerminal.codegen()}, [${this.head.map((h) => h.codegen()).join(', ')}], $runtime.combineReplacePlaceholder(${this.placeholder}, (${expanderCode}), ${this.optionCode}), ${this.attrs.codegen()});\n`);
     }
@@ -317,13 +386,21 @@ export abstract class RuleHeadPart {
     static ComputedStringLiteral : typeof ComputedStringLiteralRuleHead;
     static Choice : typeof ChoiceRuleHead;
 
+    abstract type : string;
     abstract codegen() : string;
+    abstract visit(visitor : NodeVisitor) : void;
 }
 
 export class NonTerminalRuleHead extends RuleHeadPart {
+    type = 'any';
+
     constructor(public name : string|null,
                 public category : NonTerminalRef) {
         super();
+    }
+
+    visit(visitor : NodeVisitor) {
+        visitor.visitNonTerminalRuleHead(this);
     }
 
     codegen() : string {
@@ -333,9 +410,13 @@ export class NonTerminalRuleHead extends RuleHeadPart {
 RuleHeadPart.NonTerminal = NonTerminalRuleHead;
 
 export class StringLiteralRuleHead extends RuleHeadPart {
+    type = 'undefined';
+
     constructor(public value : string) {
         super();
     }
+
+    visit(visitor : NodeVisitor) {}
 
     codegen() : string {
         return stringEscape(this.value);
@@ -344,9 +425,13 @@ export class StringLiteralRuleHead extends RuleHeadPart {
 RuleHeadPart.StringLiteral = StringLiteralRuleHead;
 
 export class ComputedStringLiteralRuleHead extends RuleHeadPart {
+    type = 'undefined';
+
     constructor(public code : string) {
         super();
     }
+
+    visit(visitor : NodeVisitor) {}
 
     codegen() : string {
         return this.code;
@@ -355,9 +440,13 @@ export class ComputedStringLiteralRuleHead extends RuleHeadPart {
 RuleHeadPart.ComputedStringLiteral = ComputedStringLiteralRuleHead;
 
 export class ChoiceRuleHead extends RuleHeadPart {
+    type = 'undefined';
+
     constructor(public values : string[]) {
         super();
     }
+
+    visit(visitor : NodeVisitor) {}
 
     codegen() : string {
         return `new $runtime.Choice([${this.values.map(stringEscape).join(', ')}])`;

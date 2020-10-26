@@ -23,6 +23,7 @@
 import assert from 'assert';
 
 import * as D from '../../dialogue_acts';
+import * as S from '../../state_manip';
 import { SlotBag, checkAndAddSlot } from '../../slot_bag';
 
 // import thingpedia info

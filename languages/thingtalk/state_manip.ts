@@ -94,7 +94,7 @@ function getTableArgMinMax(table : Ast.Table) : [string, string]|null {
     return null;
 }
 
-class ResultInfo {
+export class ResultInfo {
     isTable : boolean;
     isQuestion : boolean;
     isAggregation : boolean;
@@ -144,7 +144,7 @@ class ResultInfo {
     }
 }
 
-class NextStatementInfo {
+export class NextStatementInfo {
     isAction : boolean;
     chainParameter : string|null;
     chainParameterFilled : boolean;
@@ -202,7 +202,7 @@ class NextStatementInfo {
     }
 }
 
-class ContextInfo {
+export class ContextInfo {
     state : Ast.DialogueState;
     currentFunctionSchema : Ast.FunctionDef|null;
     currentFunction : string|null;
@@ -215,7 +215,7 @@ class ContextInfo {
     nextFunction : string|null;
     nextIdx : number|null;
     nextInfo : NextStatementInfo|null;
-    aux : unknown;
+    aux : any;
 
     constructor(state : Ast.DialogueState,
                 currentTableSchema : Ast.FunctionDef|null,
@@ -226,7 +226,7 @@ class ContextInfo {
                 nextIdx : number|null,
                 nextFunctionSchema : Ast.FunctionDef|null,
                 nextInfo : NextStatementInfo|null,
-                aux : unknown = null) {
+                aux : any = null) {
         this.state = state;
 
         assert(currentFunctionSchema === null || currentFunctionSchema instanceof Ast.FunctionDef);
@@ -634,7 +634,7 @@ interface AgentReplyOptions {
     raw ?: boolean;
 }
 
-interface AgentReplyRecord {
+export interface AgentReplyRecord {
     state : Ast.DialogueState,
     context : ContextInfo,
     tags : string[],

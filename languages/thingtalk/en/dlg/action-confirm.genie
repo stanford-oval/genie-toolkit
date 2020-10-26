@@ -23,6 +23,7 @@
 // the action failed, and we give the user an option to try again
 
 import * as D from '../../dialogue_acts';
+import * as S from '../../state_manip';
 
 action_confirm_phrase = {
     ( ctx:ctx_confirm_action 'ok , do you want me to' action:action_description_phrase '?'
