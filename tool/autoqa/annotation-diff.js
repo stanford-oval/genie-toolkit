@@ -76,7 +76,7 @@ function diffQuery(q1, q2) {
 }
 
 
-export async function initArgparse(subparsers) {
+export function initArgparse(subparsers) {
     const parser = subparsers.add_parser('autoqa-annotation-diff', {
         add_help: true,
         description: "Find the canonical annotation difference between two classes; return annotations existed " +

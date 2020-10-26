@@ -18,14 +18,5 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 
-
-export function cleanEnumValue(v) {
-    // replace dash with space
-    v = v.replace(/-/g, ' ');
-    // camelcase the value
-    v = v.replace(/(?:^|\s+|-)[A-Za-z]/g, (letter) => letter.trim().toUpperCase());
-    // add underscore prefix if value starts with number
-    if (/^\d.*/.test(v))
-        v = '_' + v;
-    return v;
-}
+export {
+};

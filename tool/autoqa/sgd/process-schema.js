@@ -32,7 +32,7 @@ import * as StreamUtils from '../../../lib/utils/stream-utils';
 
 import genBaseCanonical from '../lib/base-canonical-generator';
 import { PROPERTY_TYPE_OVERRIDE, STRING_FILE_OVERRIDES } from './manual-annotations';
-import { cleanEnumValue } from './utils';
+import { cleanEnumValue } from '../lib/utils';
 
 function predictType(slot) {
     if (slot.name in PROPERTY_TYPE_OVERRIDE)
