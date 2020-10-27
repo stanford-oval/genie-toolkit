@@ -128,7 +128,7 @@ context : S.ContextInfo = {
 // a set of auxiliary tags that are used to prune the generation
 // this function also computes the "context", which is the state augmented with derived
 // information used by the semantic functions
-function context(state : Ast.DialogueState) : [string[], unknown] {
+function context(state : Ast.DialogueState) : [string[], unknown]|null {
     if (state === null)
         return [['ctx_init'], S.INITIAL_CONTEXT_INFO];
 
@@ -144,7 +144,7 @@ function context(state : Ast.DialogueState) : [string[], unknown] {
 }
 
 // handle answers generated from the UI
-function answer(state : Ast.DialogueState, answer : Ast.Value) : Ast.DialogueState {
+function answer(state : Ast.DialogueState, answer : Ast.Value) : Ast.DialogueState|null {
     const ctx = S.getContextInfo(state);
 
     // if the agent proposed something and the user says "yes", we accept the proposal

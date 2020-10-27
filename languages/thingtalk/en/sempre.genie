@@ -29,9 +29,9 @@ import _tpLoader from '../load-thingpedia';
 import '../common.genie';
 import './constants.genie';
 
-table = thingpedia_query if complete;
+table : Ast.Table = thingpedia_query if complete;
 
-filter = {
+filter : Ast.BooleanExpression = {
     'whose' p:out_param_Any 'is' v:constant_Any => C.makeFilter(p, v.getType().isString ? '=~' : '==', v);
     'whose' p:out_param_Any 'is not' v:constant_Any =>  C.makeFilter(p, v.getType().isString ? '=~' : '==', v, true);
     'whose' p:out_param_Array__Any 'is' v:constant_Any => C.makeFilter(p, 'contains', v);
@@ -49,7 +49,7 @@ filter = {
     'that has' ('more than' | 'at least') v:constant_Number p:out_param_Any => C.makeAggregateFilter(p, 'count', '*', '>=', v);
 }
 
-filtered_table = {
+filtered_table : Ast.Table = {
     t:table f:filter => C.addFilter(t, f);
     t:filtered_table 'and' f:filter => C.addFilter(t, f);
 
@@ -87,7 +87,7 @@ filtered_table = {
     // arg minmax on count
     ( table:table 'that has the least number of' p:out_param_Array__Any
     | table:filtered_table 'that has the least number of' p:out_param_Array__Any ) => {
-        if (!table.schema.out[p.name] || !table.schema.out[p.name].isArray)
+        if (!table.schema!.out[p.name] || !table.schema!.out[p.name].isArray)
             return null;
         const conflictParam = C.hasConflictParam(table, p.name, 'count');
         if (conflictParam)
@@ -96,7 +96,7 @@ filtered_table = {
     };
     ( table:table 'that has the most number of' p:out_param_Array__Any
     | table:filtered_table 'that has the most number of' p:out_param_Array__Any ) => {
-        if (!table.schema.out[p.name] || !table.schema.out[p.name].isArray)
+        if (!table.schema!.out[p.name] || !table.schema!.out[p.name].isArray)
             return null;
         const conflictParam = C.hasConflictParam(table, p.name, 'count');
         if (conflictParam)
@@ -117,12 +117,12 @@ filtered_table = {
     // count
     ( 'number of' table:table
     | 'number of' table:filtered_table ) => {
-        if (!table.schema.is_list)
+        if (!table.schema!.is_list)
             return null;
-        const newSchema = table.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT)
+        const newSchema = table.schema!.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT)
             .addArguments([new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'count', Type.Number)]);
         newSchema.minimal_projection = [];
-        if (newSchema.annotations)
+        if (newSchema instanceof Ast.FunctionDef)
             newSchema.annotations.minimal_projection = new Ast.Value.Array([]);
         const agg = new Ast.Table.Aggregation(null, table, '*', 'count', null, newSchema);
         return new Ast.Table.Projection(null, agg, ['count'], newSchema);
@@ -131,28 +131,30 @@ filtered_table = {
     // sum & avg
     ( 'total' p:out_param_Numeric 'of' t:table
     | 'total' p:out_param_Numeric 'of' t:filtered_table ) => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+        const schema = t.schema!;
+        if (!schema.out[p.name] || !schema.out[p.name].isNumeric())
             return null;
-        if (!t.schema.is_list)
+        if (!schema.is_list)
             return null;
 
-        const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
+        const newSchema = schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
         newSchema.minimal_projection = [];
-        if (newSchema.annotations)
+        if (newSchema instanceof Ast.FunctionDef)
             newSchema.annotations.minimal_projection = new Ast.Value.Array([]);
         const agg = new Ast.Table.Aggregation(null, t, p.name, 'sum', null, newSchema);
         return new Ast.Table.Projection(null, agg, [p.name], newSchema);
     };
     ( 'average' p:out_param_Numeric 'of' t:table
     | 'average' p:out_param_Numeric 'of' t:filtered_table ) => {
-        if (!t.schema.out[p.name] || !t.schema.out[p.name].isNumeric())
+        const schema = t.schema!;
+        if (!schema.out[p.name] || !schema.out[p.name].isNumeric())
             return null;
-        if (!t.schema.is_list)
+        if (!schema.is_list)
             return null;
 
-        const newSchema = t.schema.filterArguments((arg, i) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
+        const newSchema = schema.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
         newSchema.minimal_projection = [];
-        if (newSchema.annotations)
+        if (newSchema instanceof Ast.FunctionDef)
             newSchema.annotations.minimal_projection = new Ast.Value.Array([]);
         const agg = new Ast.Table.Aggregation(null, t, p.name, 'avg', null, newSchema);
         return new Ast.Table.Projection(null, agg, [p.name], newSchema);
@@ -160,7 +162,7 @@ filtered_table = {
 }
 
 
-$root = {
+$root : Ast.Input = {
     t:table => {
         const proj = C.sayProjection(t);
         if (proj)

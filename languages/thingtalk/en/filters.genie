@@ -410,57 +410,57 @@ with_filter : Ast.BooleanExpression = {
     ('total' | 'sum') p:out_param_Array__Numeric ('greater than' | 'more than' | 'above' ) x:constant_Numeric => C.makeAggregateFilter(p, 'sum', null, '>=', x);
     ('total' | 'sum') p:out_param_Array__Numeric ('lower than' | 'less than' | 'below' ) x:constant_Numeric => C.makeAggregateFilter(p, 'sum', null, '<=', x);
 
-    !turking ('total' | 'sum') f:out_param_Numeric 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter(p, 'sum', f, '==', x);
-    !turking ('total' | 'sum') f:out_param_Numeric 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter(p, 'sum', f, '>=', x);
-    !turking ('total' | 'sum') f:out_param_Numeric 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter(p, 'sum', f, '>=', x);
+    !turking ('total' | 'sum') f:out_param_Numeric 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter(p, 'sum', f.name, '==', x);
+    !turking ('total' | 'sum') f:out_param_Numeric 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter(p, 'sum', f.name, '>=', x);
+    !turking ('total' | 'sum') f:out_param_Numeric 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter(p, 'sum', f.name, '>=', x);
 
     // aggregate filters - avg
     'average' p:out_param_Array__Numeric ('of' | 'being' ) x:constant_Numeric => C.makeAggregateFilter(p, 'avg', null, '==', x);
     'average' p:out_param_Array__Numeric ('greater than' | 'more than' | 'above') x:constant_Numeric => C.makeAggregateFilter(p, 'avg', null, '>=', x);
     'average' p:out_param_Array__Numeric ('lower than' | 'less than' | 'below') x:constant_Numeric => C.makeAggregateFilter(p, 'avg', null, '<=', x);
 
-    !turking 'average' f:out_param_Numeric 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter(p, 'avg', f, '==', x);
-    !turking 'average' f:out_param_Numeric 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter(p, 'avg', f, '>=', x);
-    !turking 'average' f:out_param_Numeric 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter(p, 'avg', f, '>=', x);
+    !turking 'average' f:out_param_Numeric 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter(p, 'avg', f.name, '==', x);
+    !turking 'average' f:out_param_Numeric 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter(p, 'avg', f.name, '>=', x);
+    !turking 'average' f:out_param_Numeric 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter(p, 'avg', f.name, '>=', x);
 
     // aggregate filters - max
     ('maximum' | 'highest') p:out_param_Array__Numeric ('of' | 'being' ) x:constant_Numeric => C.makeAggregateFilter(p, 'max', null, '==', x);
     ('maximum' | 'highest') p:out_param_Array__Numeric ('greater than' | 'more than' | 'above') x:constant_Numeric => C.makeAggregateFilter(p, 'max', null, '>=', x);
     ('maximum' | 'highest') p:out_param_Array__Numeric ('lower than' | 'less than' | 'below') x:constant_Numeric => C.makeAggregateFilter(p, 'max', null, '<=', x);
 
-    !turking ('maximum' | 'highest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter(p, 'max', f, '==', x);
-    !turking ('maximum' | 'highest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter(p, 'max', f, '>=', x);
-    !turking ('maximum' | 'highest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter(p, 'max', f, '>=', x);
+    !turking ('maximum' | 'highest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter(p, 'max', f.name, '==', x);
+    !turking ('maximum' | 'highest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter(p, 'max', f.name, '>=', x);
+    !turking ('maximum' | 'highest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter(p, 'max', f.name, '>=', x);
 
     // aggregate filters - min
     ('minimum' | 'lowest') p:out_param_Array__Numeric ('of' | 'being' ) x:constant_Numeric => C.makeAggregateFilter(p, 'min', null, '==', x);
     ('minimum' | 'lowest') p:out_param_Array__Numeric ('greater than' | 'more than' | 'above') x:constant_Numeric => C.makeAggregateFilter(p, 'min', null, '>=', x);
     ('minimum' | 'lowest') p:out_param_Array__Numeric ('lower than' | 'less than' | 'below') x:constant_Numeric => C.makeAggregateFilter(p, 'min', null, '<=', x);
 
-    !turking ('minimum' | 'lowest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter(p, 'min', f, '==', x);
-    !turking ('minimum' | 'lowest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter(p, 'min', f, '>=', x);
-    !turking ('minimum' | 'lowest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter(p, 'min', f, '>=', x);
+    !turking ('minimum' | 'lowest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter(p, 'min', f.name, '==', x);
+    !turking ('minimum' | 'lowest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter(p, 'min', f.name, '>=', x);
+    !turking ('minimum' | 'lowest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter(p, 'min', f.name, '>=', x);
 }
 
 for (let pname in _tpLoader.compoundArrays) {
     for (let fname in _tpLoader.compoundArrays[pname].fields) {
         if (_tpLoader.compoundArrays[pname].fields[fname].type.isNumeric()) {
             with_filter : Ast.BooleanExpression = {
-                ('total' | 'sum') f:out_param_Numeric ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'sum', f, '==', x);
-                ('total' | 'sum') f:out_param_Numeric ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'sum', f, '>=', x);
-                ('total' | 'sum') f:out_param_Numeric ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'sum', f, '>=', x);
+                ('total' | 'sum') f:out_param_Numeric ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'sum', f.name, '==', x);
+                ('total' | 'sum') f:out_param_Numeric ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'sum', f.name, '>=', x);
+                ('total' | 'sum') f:out_param_Numeric ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'sum', f.name, '>=', x);
 
-                'average' f:out_param_Numeric ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'avg', f, '==', x);
-                'average' f:out_param_Numeric ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'avg', f, '>=', x);
-                'average' f:out_param_Numeric ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'avg', f, '>=', x);
+                'average' f:out_param_Numeric ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'avg', f.name, '==', x);
+                'average' f:out_param_Numeric ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'avg', f.name, '>=', x);
+                'average' f:out_param_Numeric ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'avg', f.name, '>=', x);
 
-                ('maximum' | 'highest') f:out_param_Numeric ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'max', f, '==', x);
-                ('maximum' | 'highest') f:out_param_Numeric ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'max', f, '>=', x);
-                ('maximum' | 'highest') f:out_param_Numeric ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'max', f, '>=', x);
+                ('maximum' | 'highest') f:out_param_Numeric ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'max', f.name, '==', x);
+                ('maximum' | 'highest') f:out_param_Numeric ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'max', f.name, '>=', x);
+                ('maximum' | 'highest') f:out_param_Numeric ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'max', f.name, '>=', x);
 
-                ('minimum' | 'lowest') f:out_param_Numeric ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'min', f, '==', x);
-                ('minimum' | 'lowest') f:out_param_Numeric ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'min', f, '>=', x);
-                ('minimum' | 'lowest') f:out_param_Numeric ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'min', f, '>=', x);
+                ('minimum' | 'lowest') f:out_param_Numeric ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'min', f.name, '==', x);
+                ('minimum' | 'lowest') f:out_param_Numeric ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'min', f.name, '>=', x);
+                ('minimum' | 'lowest') f:out_param_Numeric ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter(new Ast.Value.VarRef(pname), 'min', f.name, '>=', x);
             }
         }
     }

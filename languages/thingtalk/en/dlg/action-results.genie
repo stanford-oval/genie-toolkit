@@ -39,7 +39,7 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
         | action:thingpedia_action_past 'this' [priority=-0.01]
         | action:thingpedia_action_past 'that' [priority=-0.01]
         ) [-> pname] => {
-            const type = action.schema.getArgType(pname);
+            const type = action.schema!.getArgType(pname);
             if (!type || !type.isEntity)
                 return null;
             return C.replacePlaceholderWithUndefined(action, pname, typestr);
@@ -97,8 +97,8 @@ short_action_error_message : S.ContextInfo = {
         => D.checkThingpediaErrorMessage(ctx, msg);
 
     ctx:ctx_completed_action_error msg:constant_String => {
-        const error = ctx.error;
-        if (error.isString && error.equals(msg))
+        const error = ctx.error!;
+        if (error.equals(msg))
             return ctx;
         else
             return null;

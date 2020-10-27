@@ -137,8 +137,8 @@ disjunctive_search_question : string[] = {
     | ('are you looking for' | 'would you like' | 'do you need') 'a' table:base_table 'that' question:question_avp_filter_pair '?'
     ) => {
         const [pname, ptype] = question;
-        const tableptype = table.schema.getArgType(pname);
-        if (!tableptype || !ptype.equals(tableptype) || table.schema.getArgument(pname).getAnnotation('filterable') === false)
+        const arg = table.schema!.getArgument(pname);
+        if (!arg || !ptype.equals(arg.type) || arg.getAnnotation('filterable') === false)
             return null;
         return [pname];
     };
@@ -178,12 +178,12 @@ verbose_search_answer_with_action : [Ast.Table, Ast.Invocation] = {
     // complete answer with another action phrase, like "I am looking for a bla restaurant. I will need to book it for 3 people."
     query:verbose_search_answer ('.' | ',') generic_preamble_for_action action:coref_action_command => {
         // check that one of the parameters of action has the right type to param pass into the action
-        let idArg = query.schema.getArgument('id');
+        let idArg = query.schema!.getArgument('id');
         if (!idArg)
             return null;
 
         let found = false;
-        for (let arg of action.schema.iterateArguments()) {
+        for (let arg of action.schema!.iterateArguments()) {
             if (!arg.is_input)
                 continue
             if (arg.type.equals(idArg.type)) {

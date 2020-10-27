@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -36,7 +36,7 @@ thingpedia_query : Ast.Table = {}
 thingpedia_get_command : Ast.Table = {}
 thingpedia_stream : Ast.Stream = {}
 thingpedia_action : Ast.InvocationAction = {}
-thingpedia_program : Ast.Program = {}
+thingpedia_program : (Ast.Program & { schema : Ast.ExpressionSignature; }) = {}
 thingpedia_who_question : Ast.Table = {}
 
 thingpedia_search_question : Ast.VarRefValue = {}
@@ -249,7 +249,7 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
         msg:thingpedia_error_message v:$('constant_' + typestr) [-> pname { isConstant: true }] [priority=0.5] => C.replaceErrorMessagePlaceholder(msg, pname, v);
     }
 
-    thingpedia_program : Ast.Program = {
+    thingpedia_program : (Ast.Program & { schema : Ast.ExpressionSignature; }) = {
         p:thingpedia_program v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(p, pname, v);
     }
 
@@ -270,7 +270,7 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
                 thingpedia_action : Ast.InvocationAction = a:thingpedia_action $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
                     C.replacePlaceholderWithUndefined(a, pname, typestr);
 
-                thingpedia_program : Ast.Program = p:thingpedia_program $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
+                thingpedia_program : (Ast.Program & { schema : Ast.ExpressionSignature; }) = p:thingpedia_program $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
                     C.replacePlaceholderWithUndefined(p, pname, typestr);
             }
         }

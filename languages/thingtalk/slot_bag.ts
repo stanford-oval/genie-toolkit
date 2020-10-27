@@ -63,10 +63,10 @@ class SlotBag {
     entries() : Iterable<[string, Ast.Value]> {
         return this.store.entries();
     }
-    get(key) : Ast.Value|undefined {
+    get(key : string) : Ast.Value|undefined {
         return this.store.get(key);
     }
-    has(key) : boolean {
+    has(key : string) : boolean {
         return this.store.has(key);
     }
     keys() : Iterable<string> {
@@ -94,7 +94,7 @@ function checkAndAddSlot(bag : SlotBag, filter : Ast.BooleanExpression) : SlotBa
     assert(bag instanceof SlotBag);
     if (!(filter instanceof Ast.AtomBooleanExpression))
         return null;
-    const arg = bag.schema.getArgument(filter.name);
+    const arg = bag.schema!.getArgument(filter.name);
     if (!arg || arg.is_input)
         return null;
     const ptype = arg.type;

@@ -512,7 +512,7 @@ stream : Ast.Stream = {
             if (proj instanceof Ast.Table.Projection) {
                 if (proj.args[0] === 'picture_url')
                     return null;
-                let outParams = Object.keys(proj.table.schema.out);
+                let outParams = Object.keys(proj.table.schema!.out);
                 if (outParams.length === 1 && _tpLoader.flags.turking)
                     return null;
                 if (outParams.length === 1)
@@ -526,22 +526,22 @@ stream : Ast.Stream = {
         };
     }
     !nofilter ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table 'change and' filter:edge_filter => {
-        if (!table.schema.is_monitorable || !C.checkFilter(table, filter) || table.schema.is_list)
+        if (!table.schema!.is_monitorable || !C.checkFilter(table, filter) || table.schema!.is_list)
             return null;
-        table = C.addFilter(table, filter, { ifFilter: true });
-        if (!table)
+        const withFilter = C.addFilter(table, filter, { ifFilter: true });
+        if (!withFilter)
             return null;
-        return C.tableToStream(table, null);
+        return C.tableToStream(withFilter, null);
     };
     !nofilter ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table 'change and' filter:if_filter => {
-        if (!table.schema.is_monitorable || !C.checkFilter(table, filter))
+        if (!table.schema!.is_monitorable || !C.checkFilter(table, filter))
             return null;
-        if (_tpLoader.flags.turking && table.schema.is_list)
+        if (_tpLoader.flags.turking && table.schema!.is_list)
             return null;
-        table = C.addFilter(table, filter, { ifFilter: true });
-        if (!table)
+        const withFilter = C.addFilter(table, filter, { ifFilter: true });
+        if (!withFilter)
             return null;
-        return C.tableToStream(table, null);
+        return C.tableToStream(withFilter, null);
     };
     !nofilter edge_stream;
     ?timer timer;

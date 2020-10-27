@@ -155,7 +155,7 @@ function isTimeEntity(type : Type) : boolean {
     return false;
 }
 
-function interrogativePronoun(type : Type) : string {
+function interrogativePronoun(type : Type) : 'who'|'where'|'when'|'what' {
     if (isHumanEntity(type))
         return 'who';
     if (isLocationEntity(type))

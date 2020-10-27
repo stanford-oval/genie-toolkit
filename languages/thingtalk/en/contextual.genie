@@ -29,11 +29,11 @@ import * as C from '../ast_manip';
 import _tpLoader from '../load-thingpedia';
 
 {
-function addParamToAction(command, pname, joinArg) {
-    let actiontype = command.action.schema.inReq[pname];
+function addParamToAction(command : any, pname : string, joinArg : Ast.EventValue|Ast.VarRefValue) {
+    let actiontype = command.action.schema!.inReq[pname];
     if (!actiontype)
         return null;
-    let commandtype = joinArg.isEvent ? Type.String : command.table.schema.out[joinArg.name];
+    let commandtype = joinArg instanceof Ast.EventValue ? Type.String : command.table.schema.out[joinArg.name];
     if (!commandtype || !commandtype.equals(actiontype))
         return null;
 
@@ -43,11 +43,11 @@ function addParamToAction(command, pname, joinArg) {
     return { table: command.table, action: reduced };
 }
 
-function addParamToQuery(command, pname, joinArg) {
-    let rhstype = command.rhs.schema.inReq[pname];
+function addParamToQuery(command : any, pname : string, joinArg : Ast.EventValue|Ast.VarRefValue) {
+    let rhstype = command.rhs.schema!.inReq[pname];
     if (!rhstype)
         return null;
-    let lhstype = joinArg.isEvent ? Type.String : command.lhs.schema.out[joinArg.name];
+    let lhstype = joinArg instanceof Ast.EventValue ? Type.String : command.lhs.schema.out[joinArg.name];
     if (!lhstype || !lhstype.equals(rhstype))
         return null;
 

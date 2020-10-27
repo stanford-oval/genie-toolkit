@@ -80,7 +80,7 @@ simple_user_search_question : Array<[string, Type|null]> = {
     | 'i would like to' ('know' | 'see') 'the' base:base_table '\'s' param:out_param_Any ('first' | '') '.'
     | 'i just need' ('the' | 'its') 'the' base:base_table '\'s' param:out_param_Any '.'
     ) => {
-        if (!base.schema.out[param.name])
+        if (!base.schema!.out[param.name])
             return null;
         if (param.name === 'id')
             return null;
@@ -98,7 +98,7 @@ simple_user_search_question : Array<[string, Type|null]> = {
     | 'i would like to' ('know' | 'see') 'the' base:base_table '\'s' params:out_param_list_for_coref_question ('first' | '') '.'
     | 'i just need' ('the' | 'its') 'the' base:base_table '\'s' params:out_param_list_for_coref_question '.'
     ) => {
-        if (!params.every((pname) => !!base.schema.out[pname]))
+        if (!params.every((pname) => !!base.schema!.out[pname]))
             return null;
         return params.map((pname) => [pname, null]);
     };
@@ -157,7 +157,7 @@ boolean_user_search_question : Array<[string, Type|null]> = {
     ) => {
         if (!C.checkFilter(base, param))
             return null;
-        if (!base.schema.is_list)
+        if (!base.schema!.is_list)
             return null;
         if (!(param instanceof Ast.AtomBooleanExpression)) {
             assert(param instanceof Ast.AndBooleanExpression);
@@ -287,7 +287,7 @@ boolean_user_search_question_with_name : [Ast.EntityValue, Array<[string, Type|n
     ) => {
         if (!C.checkFilter(base, param))
             return null;
-        const idArg = base.schema.getArgument('id');
+        const idArg = base.schema!.getArgument('id');
         if (!idArg || !idArg.type.equals(name.getType()))
             return null;
         if (!(param instanceof Ast.AtomBooleanExpression)) {
@@ -312,7 +312,7 @@ user_search_question : Array<[string, Type|null]> = {
     questions:boolean_user_search_question => questions;
 }
 
-user_search_question_for_list : [Ast.EntityValue, Array<[string, Type|null]>] = {
+user_search_question_for_list : [Ast.EntityValue|null, Array<[string, Type|null]>] = {
     questions:simple_user_search_question => [null, questions];
     questions:simple_user_search_question_for_list => [null, questions];
     questions:boolean_user_search_question_for_list => [null, questions];

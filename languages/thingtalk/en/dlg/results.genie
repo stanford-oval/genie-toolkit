@@ -35,10 +35,10 @@ import _tpLoader from '../../load-thingpedia';
 result_name_pair : ({ ctx : S.ContextInfo; results : Ast.DialogueHistoryResultItem[] }) = {
     ctx:ctx_with_result n1:constant_name ',' n2:constant_name => {
         const results = ctx.results;
-        assert(results.length > 0);
+        assert(results && results.length > 0);
         if (results.length < 2)
             return null;
-        if (!ctx.resultInfo.hasID)
+        if (!ctx.resultInfo!.hasID)
             return null;
 
         const r1 = results[0];
@@ -52,10 +52,10 @@ result_name_pair : ({ ctx : S.ContextInfo; results : Ast.DialogueHistoryResultIt
 result_name_list : ({ ctx : S.ContextInfo; results : Ast.DialogueHistoryResultItem[] }) = {
     ctx:ctx_with_result n1:constant_name ('and' | 'or') n2:constant_name [priority=2] => {
         const results = ctx.results;
-        assert(results.length > 0);
+        assert(results && results.length > 0);
         if (results.length < 2)
             return null;
-        if (!ctx.resultInfo.hasID)
+        if (!ctx.resultInfo!.hasID)
             return null;
 
         const r1 = results[0];
@@ -68,10 +68,10 @@ result_name_list : ({ ctx : S.ContextInfo; results : Ast.DialogueHistoryResultIt
     pair:result_name_pair ('and' | 'or') n3:constant_name [priority=3] => {
         const ctx = pair.ctx;
         const results = ctx.results;
-        assert(results.length > 0);
+        assert(results && results.length > 0);
         if (results.length < 3)
             return null;
-        if (!ctx.resultInfo.hasID)
+        if (!ctx.resultInfo!.hasID)
             return null;
         const r3 = results[2];
         if (!r3.value.id.equals(n3))

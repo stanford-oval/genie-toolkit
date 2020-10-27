@@ -43,12 +43,12 @@ complete_forward_get_do_command : Ast.Command = {
         const action = command.actions[0];
         assert(action instanceof Ast.InvocationAction);
 
-        let actiontype = action.schema.inReq[joinArg.name];
+        let actiontype = action.schema!.inReq[joinArg.name];
         if (!actiontype)
             return null;
         if (action.invocation.in_params.some((p) => p.name === joinArg.name))
             return null;
-        let commandtype = command.table.schema.out[joinArg.name];
+        let commandtype = command.table!.schema!.out[joinArg.name];
         if (!commandtype || !Type.isAssignable(commandtype, actiontype))
             return null;
 
@@ -76,18 +76,18 @@ forward_when_do_rule : Ast.Rule = {
     // pp from when to do (required)
     // this is because "monitor X and then Y" makes sense only if X flows into Y
     ('monitor' | 'watch') table:with_filtered_table ('and then' | 'then') action:thingpedia_action ('' | '.') if !complete => {
-        if (!table.schema.is_monitorable)
+        if (!table.schema!.is_monitorable)
             return null;
         return new Ast.Statement.Rule(null, new Ast.Stream.Monitor(null, table, null, table.schema), [action]);
     };
     !turking ('monitor' | 'watch') proj:projection_Any ('and then' | 'then') action:thingpedia_action ('' | '.') if !complete => {
-        if (!proj.schema.is_monitorable)
+        if (!proj.schema!.is_monitorable)
             return null;
         let stream;
         if (proj instanceof Ast.ProjectionTable) {
             if (proj.args && proj.args[0] === 'picture_url')
                 return null;
-            let outParams = Object.keys(proj.table.schema.out);
+            let outParams = Object.keys(proj.table.schema!.out);
             if (outParams.length === 1 && _tpLoader.flags.turking)
                 return null;
             if (outParams.length === 1)
@@ -103,7 +103,7 @@ forward_when_do_rule : Ast.Rule = {
     };
 
     'check for new' table:complete_table ('and then' | 'then') action:thingpedia_action ('' | '.') if !complete => {
-        if (!table.schema.is_monitorable)
+        if (!table.schema!.is_monitorable)
             return null;
         return new Ast.Statement.Rule(null, new Ast.Stream.Monitor(null, table, null, table.schema), [action]);
     };
@@ -117,13 +117,13 @@ complete_forward_when_do_rule : Ast.Rule = {
         //    throw new TypeError('???');
         const action = rule.actions[0];
         assert(action instanceof Ast.InvocationAction);
-        let actiontype = action.schema.inReq[joinArg.name];
+        let actiontype = action.schema!.inReq[joinArg.name];
         if (!actiontype)
             return null;
         if (action.invocation.in_params.some((p) => p.name === joinArg.name))
             return null;
 
-        let commandtype = rule.stream.schema.out[joinArg.name];
+        let commandtype = rule.stream.schema!.out[joinArg.name];
         if (!commandtype || !Type.isAssignable(commandtype, actiontype))
             return null;
         if (joinArg.isEvent && (rule.stream.isTimer || rule.stream.isAtTimer))
@@ -139,7 +139,7 @@ backward_when_do_rule : Ast.Rule = {
     action:thingpedia_action stream:stream ('' | '.') => new Ast.Statement.Rule(null, stream, [action]);
 
     action:thingpedia_action 'after checking for new' table:complete_table ('' | '.') if !complete => {
-        if (!table.schema.is_monitorable)
+        if (!table.schema!.is_monitorable)
             return null;
         return new Ast.Statement.Rule(null, new Ast.Stream.Monitor(null, table, null, table.schema), [action]);
     };
@@ -168,7 +168,7 @@ when_get_stream : Ast.JoinStream = {
                 return null;
             if (proj.args[0] === 'picture_url')
                 return null;
-            let outParams = Object.keys(proj.table.schema.out);
+            let outParams = Object.keys(proj.table.schema!.out);
             if (outParams.length === 1)
                 return null;
         }
@@ -190,7 +190,7 @@ when_get_stream : Ast.JoinStream = {
                 return null;
             if (proj.args[0] === 'picture_url')
                 return null;
-            let outParams = Object.keys(proj.table.schema.out);
+            let outParams = Object.keys(proj.table.schema!.out);
             if (outParams.length === 1)
                 return null;
         }
@@ -224,7 +224,7 @@ timer_rule : Ast.Rule = {
     !primonly (
           timer:timer command:complete_get_do_command
         | command:complete_get_do_command timer:timer
-    ) => new Ast.Statement.Rule(null, new Ast.Stream.Join(null, timer, command.table, [], command.table.schema), command.actions);
+    ) => new Ast.Statement.Rule(null, new Ast.Stream.Join(null, timer, command.table!, [], command.table!.schema), command.actions);
 }
 
 generic_preamble_for_answer : string = {
@@ -311,7 +311,7 @@ search_command : Ast.Command = {
         | generic_preamble_for_action generic_verb_for_search generic_article table:with_filtered_table
     ) => new Ast.Statement.Command(null, table, [C.notifyAction()]);
     ( 'please' | '') ('list' | 'enumerate') table:with_filtered_table => {
-        if (!table.schema.is_list)
+        if (!table.schema!.is_list)
             return null;
         return new Ast.Statement.Command(null, table, [C.notifyAction()]);
     };
@@ -421,7 +421,7 @@ projection_question : Ast.Command = {
     | 'who is' proj:projection_Entity__tt__username '?'
     | 'who is' proj:projection_Entity__tt__email_address '?'
     ) => {
-        if (proj instanceof Ast.Table.Projection && proj.schema.getArgType(proj.args[0]).isArray)
+        if (proj instanceof Ast.Table.Projection && proj.schema!.getArgType(proj.args[0]) instanceof Type.Array)
             return null;
         return C.sayProjection(proj);
     };
@@ -430,7 +430,7 @@ projection_question : Ast.Command = {
     | 'who are' proj:projection_Entity__tt__username '?'
     | 'who are' proj:projection_Entity__tt__email_address '?'
     ) => {
-        if (proj instanceof Ast.Table.Projection && !proj.schema.getArgType(proj.args[0]).isArray)
+        if (proj instanceof Ast.Table.Projection && !(proj.schema!.getArgType(proj.args[0]) instanceof Type.Array))
             return null;
         return C.sayProjection(proj);
     };
@@ -452,25 +452,25 @@ explicit_when_condition : Ast.Stream = {
     ('if' | 'when') filter:if_filter 'in' table:complete_table => {
         if (C.hasGetPredicate(filter))
             return null;
-        if (!table.schema.is_monitorable)
+        if (!table.schema!.is_monitorable)
             return null;
-        if (_tpLoader.flags.turking && table.schema.is_list)
+        if (_tpLoader.flags.turking && table.schema!.is_list)
             return null;
-        table = C.addFilter(table, filter, { ifFilter: true });
-        if (!table)
+        const withFilter = C.addFilter(table, filter, { ifFilter: true });
+        if (!withFilter)
             return null;
-        return C.tableToStream(table, null);
+        return C.tableToStream(withFilter, null);
     };
 
     ('if' | 'when') filter:edge_filter 'in' table:complete_table => {
         if (C.hasGetPredicate(filter))
             return null;
-        if (!table.schema.is_monitorable || table.schema.is_list)
+        if (!table.schema!.is_monitorable || table.schema!.is_list)
             return null;
-        table = C.addFilter(table, filter, { ifFilter: true });
-        if (!table)
+        const withFilter = C.addFilter(table, filter, { ifFilter: true });
+        if (!withFilter)
             return null;
-        return C.tableToStream(table, null);
+        return C.tableToStream(withFilter, null);
     };
 }
 
@@ -484,10 +484,10 @@ when_command : Ast.Rule = {
     ) => new Ast.Statement.Rule(null, stream, [C.notifyAction()]);
 
     !turking ('let me know' | 'notify me') ('of' | 'about') ('changes' | 'updates') 'in' proj:projection_Any => {
-        if (!proj.schema.is_monitorable)
+        if (!proj.schema!.is_monitorable)
             return null;
         if (proj instanceof Ast.Table.Projection) {
-            let outParams = Object.keys(proj.table.schema.out);
+            let outParams = Object.keys(proj.table.schema!.out);
             if (outParams.length === 1 && _tpLoader.flags.turking)
                 return null;
             // note that we intentionally don't use tableToStream here, because we don't want to introduce edge filters
@@ -520,16 +520,16 @@ monitor_command : Ast.Rule = {
     // when => notify
 
     ('monitor' | 'watch') table:with_filtered_table => {
-        if (!table.schema.is_monitorable)
+        if (!table.schema!.is_monitorable)
             return null;
         return new Ast.Statement.Rule(null, new Ast.Stream.Monitor(null, table, null, table.schema), [C.notifyAction()]);
     };
     !turking ('monitor' | 'watch') proj:projection_Any => {
-        if (!proj.schema.is_monitorable)
+        if (!proj.schema!.is_monitorable)
             return null;
         let stream;
         if (proj instanceof Ast.Table.Projection) {
-            let outParams = Object.keys(proj.table.schema.out);
+            let outParams = Object.keys(proj.table.schema!.out);
             if (outParams.length === 1 && _tpLoader.flags.turking)
                 return null;
             stream = C.tableToStream(proj.table, proj.args);
@@ -550,12 +550,12 @@ monitor_command : Ast.Rule = {
     !nofilter ('monitor' | 'watch') table:complete_table 'and' ('alert me' | 'notify me' | 'inform me' | 'warn me') ('if' | 'when') filter:if_filter => {
         if (C.hasGetPredicate(filter))
             return null;
-        if (table.schema.is_list || !table.schema.is_monitorable)
+        if (table.schema!.is_list || !table.schema!.is_monitorable)
             return null;
-        table = C.addFilter(table, filter);
-        if (!table)
+        const withFilter = C.addFilter(table, filter);
+        if (!withFilter)
             return null;
-        let stream = C.tableToStream(table, null);
+        let stream = C.tableToStream(withFilter, null);
         if (!stream)
             return null;
         return new Ast.Statement.Rule(null, stream, [C.notifyAction()]);
@@ -582,8 +582,8 @@ say_command : Ast.Command = {}
 
 if (_tpLoader.standardSchemas.say) {
     timer_rule : Ast.Rule = {
-        'send me a reminder' stream:timer => new Ast.Statement.Rule(null, stream, [C.builtinSayAction()]);
-        'send me' ('a message' | 'an alert' | 'a notification' | 'a reminder' | 'a popup notification') stream:timer ('saying' | 'with the text') constant:constant_String => new Ast.Statement.Rule(null, stream, [C.builtinSayAction(constant)]);
+        'send me a reminder' stream:timer => new Ast.Statement.Rule(null, stream, [C.builtinSayAction()!]);
+        'send me' ('a message' | 'an alert' | 'a notification' | 'a reminder' | 'a popup notification') stream:timer ('saying' | 'with the text') constant:constant_String => new Ast.Statement.Rule(null, stream, [C.builtinSayAction(constant)!]);
     }
 
     when_command : Ast.Rule = {
@@ -591,7 +591,7 @@ if (_tpLoader.standardSchemas.say) {
             (
                   'alert me' stream:stream ('saying' | 'with the text') constant:constant_String
                 | 'show' ('the notification' | 'the message' | 'a popup notification that says' | 'a popup containing') constant:constant_String stream:stream
-             ) => new Ast.Statement.Rule(null, stream, [C.builtinSayAction(constant)]);
+             ) => new Ast.Statement.Rule(null, stream, [C.builtinSayAction(constant)!]);
         }
     }
 
@@ -600,6 +600,6 @@ if (_tpLoader.standardSchemas.say) {
               'say' c:constant_String
             | 'send me a message saying' c:constant_String
             | 'show a popup that says' c:constant_String
-        ) => new Ast.Statement.Command(null, null, [C.builtinSayAction(c)]);
+        ) => new Ast.Statement.Command(null, null, [C.builtinSayAction(c)!]);
     }
 }

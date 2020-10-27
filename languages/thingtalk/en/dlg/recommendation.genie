@@ -88,7 +88,7 @@ actionable_system_recommendation_short : Recommendation = {
 
 recommendation_info_action_pair : [SlotBag, Ast.Invocation|null] = {
     'is a' info:result_info_phrase '.' action:action_coref_recommendation [weight=0.8] => {
-        const resultType = info.schema.getArgType('id');
+        const resultType = info.schema!.getArgType('id');
 
         if (!resultType || !C.hasArgumentOfType(action, resultType))
             return null;
@@ -112,7 +112,7 @@ direct_user_question_answer : Recommendation = {
 
 proposal_info_action_pair : [SlotBag, Ast.Invocation|null] = {
     'is a' info:result_info_phrase '.' action:action_coref_recommendation [weight=0.8] => {
-        const resultType = info.schema.getArgType('id');
+        const resultType = info.schema!.getArgType('id');
 
         if (!resultType || !C.hasArgumentOfType(action, resultType))
             return null;
