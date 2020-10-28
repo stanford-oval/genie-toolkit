@@ -24,7 +24,12 @@ import * as events from 'events';
 
 import * as I18n from '../i18n';
 import MultiMap from '../utils/multimap';
-import { ReservoirSampler, uniform, coin } from '../utils/random';
+import {
+    ReservoirSampler,
+    uniform,
+    coin,
+    categoricalPrecomputed
+} from '../utils/random';
 import PriorityQueue from '../utils/priority_queue';
 import * as TargetLanguages from '../languages';
 
@@ -624,8 +629,7 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
             ruleEstimates[index] = estimates;
             estimates.length = rules.length;
             for (const rule of rules) {
-                let [/*maxdepth*/, /*worstCaseGenSize*/, estimatedGenSize]
-                    = estimateRuleSize(charts, depth, index, rule, this._averagePruningFactor);
+                let { estimatedGenSize, } = estimateRuleSize(charts, depth, index, rule, this._averagePruningFactor);
 
                 const ruleTargetSize = this._getRuleTarget(rule, index, depth, firstGeneration);
                 estimatedGenSize = Math.min(Math.round(estimatedGenSize), ruleTargetSize);
@@ -1177,28 +1181,37 @@ function computeWorstCaseGenSize(charts : Charts,
     return worstCaseGenSize;
 }
 
+interface RuleSizeEstimate {
+    worstCaseGenSize : number;
+    reducedWorstCaseGenSize : number;
+    maxdepth : number;
+    estimatedGenSize : number;
+    estimatedPruneFactor : number;
+}
+
 function estimateRuleSize(charts : Charts,
                           depth : number,
                           nonTermIndex : number,
                           rule : Rule<unknown[], unknown>,
-                          averagePruningFactor : number[][]) : [number, number, number, number] {
+                          averagePruningFactor : number[][]) : RuleSizeEstimate {
     // first compute how many things we expect to produce in the worst case
     let maxdepth = depth-1;
-    let worstCaseGenSize = computeWorstCaseGenSize(charts, depth, rule, maxdepth);
+    const worstCaseGenSize = computeWorstCaseGenSize(charts, depth, rule, maxdepth);
     if (worstCaseGenSize === 0)
-        return [maxdepth, 0, 0, 1];
+        return { maxdepth, worstCaseGenSize: 0, reducedWorstCaseGenSize: 0, estimatedGenSize: 0, estimatedPruneFactor: 1 };
 
     // prevent exponential behavior!
-    while (worstCaseGenSize >= EXPONENTIAL_PRUNE_SIZE && maxdepth >= 0) {
+    let reducedWorstCaseGenSize = worstCaseGenSize;
+    while (reducedWorstCaseGenSize >= EXPONENTIAL_PRUNE_SIZE && maxdepth >= 0) {
         maxdepth--;
-        worstCaseGenSize = computeWorstCaseGenSize(charts, depth, rule, maxdepth);
+        reducedWorstCaseGenSize = computeWorstCaseGenSize(charts, depth, rule, maxdepth);
     }
-    if (maxdepth < 0 || worstCaseGenSize === 0)
-        return [maxdepth, 0, 0, 1];
+    if (maxdepth < 0 || reducedWorstCaseGenSize === 0)
+        return { maxdepth, worstCaseGenSize, reducedWorstCaseGenSize, estimatedGenSize: 0, estimatedPruneFactor: 1 };
 
     const estimatedPruneFactor = averagePruningFactor[nonTermIndex][rule.number];
     const estimatedGenSize = worstCaseGenSize * estimatedPruneFactor;
-    return [maxdepth, worstCaseGenSize, estimatedGenSize, estimatedPruneFactor];
+    return { maxdepth, worstCaseGenSize, reducedWorstCaseGenSize, estimatedGenSize, estimatedPruneFactor } ;
 }
 
 interface ExpandOptions {
@@ -1212,32 +1225,17 @@ function assignChoices(choices : DerivationChildOrChoice[], rng : () => number) 
     return choices.map((c) => c instanceof Choice ? c.choose(rng) : c);
 }
 
-function expandRule(charts : Charts,
-                    depth : number,
-                    nonTermIndex : number,
-                    rule : Rule<any[], any>,
-                    averagePruningFactor : number[][],
-                    targetPruningSize : number,
-                    options : ExpandOptions,
-                    nonTermList : string[],
-                    emit : (value : Derivation<any>) => void) : void {
-    const rng = options.rng;
-
-    const expansion = rule.expansion;
-    const combiner = rule.combiner;
-    const anyNonTerm = expansion.some((x) => x instanceof NonTerminal);
-
-    if (!anyNonTerm) {
-        if (depth === 0) {
-            const deriv = combiner(assignChoices(expansion, rng), rule.priority);
-            if (deriv !== null)
-                emit(deriv);
-        }
-        return;
-    }
-    if (depth === 0)
-        return;
-
+function expandRuleExhaustive(charts : Charts,
+                              depth : number,
+                              maxdepth : number,
+                              basicCoinProbability : number,
+                              nonTermIndex : number,
+                              rule : Rule<any[], any>,
+                              sizeEstimate : RuleSizeEstimate,
+                              targetPruningSize : number,
+                              options : ExpandOptions,
+                              nonTermList : string[],
+                              emit : (value : Derivation<any>) => void) : [number, number] {
     // for each piece of the expansion, we take turn and use
     // depth-1 of that, depth' < depth-1 of anything before, and
     // depth' <= depth-1 of anything after
@@ -1285,35 +1283,25 @@ function expandRule(charts : Charts,
     // This is a SUPEREXPONENTIAL algorithm
     // Keep the depth low if you want to live
 
-    //console.log('expand $' + nonterminal + ' -> ' + expansion.join(''));
-
     // to avoid hitting exponential behavior too often, we tweak the above
     // algorithm to not go above maxdepth for all but one non-terminal,
     // and then cycle through which non-terminal is allowed to grow
 
-    const [maxdepth, worstCaseGenSize, estimatedGenSize, estimatedPruneFactor] =
-        estimateRuleSize(charts, depth, nonTermIndex, rule, averagePruningFactor);
+    const rng = options.rng;
+    const expansion = rule.expansion;
+    const combiner = rule.combiner;
 
     if (maxdepth < depth-1 && options.debug >= LogLevel.INFO)
         console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : reduced max depth to avoid exponential behavior`);
-    if (worstCaseGenSize === 0)
-        return;
 
     if (options.debug >= LogLevel.EVERYTHING)
-        console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : worst case ${worstCaseGenSize}, expect ${Math.round(estimatedGenSize)}`);
+        console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : worst case ${sizeEstimate.worstCaseGenSize}, expect ${Math.round(sizeEstimate.estimatedGenSize)}`);
 
-    const now = Date.now();
-
-    // to avoid spending too much time calling the combiner for things we'll prune later,
-    // we randomly sample out of all possible combinations about as many as we estimate
-    // we'll need to fill the reservoir
-    const basicCoinProbability = Math.min(1, targetPruningSize / estimatedGenSize);
-    let coinProbability = basicCoinProbability;
-
-    const choices : DerivationChildOrChoice[] = [];
-    //let depths = [];
+    const estimatedPruneFactor = sizeEstimate.estimatedPruneFactor;
+    const choices : DerivationChildOrChoice[] = new Array<DerivationChildOrChoice>(expansion.length);
     let actualGenSize = 0;
     let prunedGenSize = 0;
+    let coinProbability = basicCoinProbability;
     for (let i = 0; i < expansion.length; i++) {
         const fixeddepth = depth-1;
         (function recursiveHelper(k : number, context : Context|null) {
@@ -1394,7 +1382,287 @@ function expandRule(charts : Charts,
         })(0, null);
     }
 
+    return [actualGenSize, prunedGenSize];
+}
+
+function expandRuleSample(charts : Charts,
+                          depth : number,
+                          nonTermIndex : number,
+                          rule : Rule<any[], any>,
+                          sizeEstimate : RuleSizeEstimate,
+                          targetSemanticFunctionCalls : number,
+                          targetPruningSize : number,
+                          options : ExpandOptions,
+                          nonTermList : string[],
+                          emit : (value : Derivation<any>) => void) : [number, number] {
+    const rng = options.rng;
+    const expansion = rule.expansion;
+    const combiner = rule.combiner;
+
+    // this is an approximate, sampling-based version of the above algorithm,
+    // which does not require enumerating anything
+
+    assert(depth > 0);
+
+    // we take N samples from all the possible enumerations
+    //
+    // a valid sample must contain at least one derivation from depth = D-1
+    // so we first choose which non-terminal will be the D-1, which we
+    // call the pivot element
+    // then we sample one derivation from each non-terminal to the left of the
+    // pivot, from depth <= D-2
+    // and one derivation from each non-terminal to the right of the pivot,
+    // from depth <= D-1
+
+    // the tricky part is how to sample precisely, without making a copy of all
+    // charts at depth <= D-2
+    // to do so, we precompute a lot of cumsums and then sample categorically
+    // from them
+
+    // first we get rid of the depth === 1 case, where we must sample from
+    // depth == 0 and the pivot business does not make sense
+    if (depth === 1) {
+        let actualGenSize = 0, prunedGenSize = 0;
+        const choices : Array<DerivationChild<any>> = new Array<DerivationChild<any>>(expansion.length);
+        for (let sampleIdx = 0; sampleIdx < targetSemanticFunctionCalls; sampleIdx++) {
+            for (let i = 0; i < expansion.length; i++) {
+                const currentExpansion = expansion[i];
+                if (!(currentExpansion instanceof NonTerminal))
+                    choices[i] = currentExpansion instanceof Choice ? currentExpansion.choose(rng) : currentExpansion;
+                else
+                    choices[i] = uniform(charts[0][currentExpansion.index].sampled, rng);
+            }
+
+            const v = combiner(choices, rule.priority);
+            if (v !== null) {
+                actualGenSize ++;
+                emit(v);
+            } else {
+                prunedGenSize ++;
+            }
+        }
+
+        return [actualGenSize, prunedGenSize];
+    }
+
+    // now do the actual pivot dance
+
+    // for each non-terminal in the rule expansion, compute the cumsum size of
+    // all charts for depth < D
+    // (this is used to choose which depth to sample from, for the non-pivot)
+
+    const ltDSize : number[][] = new Array(expansion.length);
+    for (let i = 0; i < expansion.length; i++) {
+        const currentExpansion = expansion[i];
+        if (currentExpansion instanceof NonTerminal) {
+            const nonTermIndex = currentExpansion.index;
+
+            ltDSize[i] = new Array(depth);
+            ltDSize[i][0] = charts[0][nonTermIndex].length;
+            for (let j = 1; j < depth; j++)
+                ltDSize[i][j] = ltDSize[i][j-1] + charts[j][nonTermIndex].length;
+        } else {
+            ltDSize[i] = [1];
+        }
+        // the last element of the cumsum is the total size of the non-terminal
+        // if this size is 0, the worst case expansion size of this rule
+        // is also 0 and we don't even hit this function
+        assert(ltDSize[i][ltDSize[i].length-1] > 0);
+    }
+
+    // the probability of being pivot is the number of expansions
+    // that this non-terminal would be pivot for
+    //
+    // which compute that as the total number of expansions to the
+    // left, aka the cumprod of ltDSize[<i][depth-2]
+    // times the depth-1 size of the current non terminal
+    // times the total number of expansions to the right
+    // aka the cumprod of ltDSize[>i][depth-1]
+
+    const leftCumProd : number[] = new Array(expansion.length);
+    for (let i = 0; i < expansion.length; i++) {
+        if (expansion[i] instanceof NonTerminal) {
+            if (i === 0)
+                leftCumProd[i] = ltDSize[i][depth-2];
+            else
+                leftCumProd[i] = leftCumProd[i-1] * ltDSize[i][depth-2];
+        } else {
+            if (i === 0)
+                leftCumProd[i] = 1;
+            else
+                leftCumProd[i] = leftCumProd[i-1];
+        }
+    }
+    const rightCumProd : number[] = new Array(expansion.length);
+    for (let i = expansion.length-1; i >= 0; i--) {
+        if (expansion[i] instanceof NonTerminal) {
+            if (i === expansion.length-1)
+                rightCumProd[i] = ltDSize[i][depth-1];
+            else
+                rightCumProd[i] = rightCumProd[i+1] * ltDSize[i][depth-1];
+        } else {
+            if (i === expansion.length-1)
+                rightCumProd[i] = 1;
+            else
+                rightCumProd[i] = rightCumProd[i+1];
+        }
+    }
+
+    // compute the probability that an element is a pivot
+    const pivotProbabilityCumsum : number[] = new Array(expansion.length);
+
+    for (let i = 0; i < expansion.length; i++) {
+        const currentExpansion = expansion[i];
+        if (currentExpansion instanceof NonTerminal) {
+            const left = i > 0 ? leftCumProd[i-1] : 1;
+            const right = i < expansion.length-1 ? rightCumProd[i+1] : 1;
+            const self = charts[depth-1][currentExpansion.index].length;
+            const pivotProbability = left * self * right;
+
+            if (i === 0)
+                pivotProbabilityCumsum[i] = pivotProbability;
+            else
+                pivotProbabilityCumsum[i] = pivotProbabilityCumsum[i-1] + pivotProbability;
+        } else {
+            // a terminal token can never be the pivot (because it only gets
+            // generated at depth 0)
+            if (i === 0)
+                pivotProbabilityCumsum[i] = 0;
+            else
+                pivotProbabilityCumsum[i] = pivotProbabilityCumsum[i-1];
+        }
+    }
+
+    // now make the samples
+    let actualGenSize = 0, prunedGenSize = 0;
+    const choices : Array<DerivationChild<any>> = new Array<DerivationChild<any>>(expansion.length);
+    let newContext : Context|null = null;
+
+    outerloop:
+    for (let sampleIdx = 0; sampleIdx < targetSemanticFunctionCalls; sampleIdx++) {
+        newContext = null;
+
+        // choose the pivot
+        const pivotIdx = categoricalPrecomputed(pivotProbabilityCumsum, pivotProbabilityCumsum.length, rng);
+
+        for (let i = 0; i < expansion.length; i++) {
+            const currentExpansion = expansion[i];
+            if (i === pivotIdx) {
+                if (!(currentExpansion instanceof NonTerminal))
+                    continue outerloop;
+
+                const from = charts[depth-1][currentExpansion.index].sampled;
+                assert(from.length > 0);
+                choices[i] = uniform(from, rng);
+            } else {
+                if (!(currentExpansion instanceof NonTerminal)) {
+                    choices[i] = currentExpansion instanceof Choice ? currentExpansion.choose(rng) : currentExpansion;
+
+                } else {
+                    const maxdepth = i < pivotIdx ? depth-2 : depth-1;
+
+                    const chosenDepth = categoricalPrecomputed(ltDSize[i], maxdepth+1, rng);
+                    const from = charts[chosenDepth][currentExpansion.index].sampled;
+                    assert(from.length > 0);
+                    choices[i] = uniform(from, rng);
+                }
+            }
+
+            const chosen = choices[i];
+            if (chosen instanceof Context) {
+                if (!Context.compatible(newContext, chosen))
+                    continue outerloop;
+                newContext = chosen;
+            } else if (chosen instanceof Derivation) {
+                if (!Context.compatible(newContext, chosen.context))
+                    continue outerloop;
+                newContext = Context.meet(newContext, chosen.context);
+                if (combiner.isReplacePlaceholder && i === 0 && !chosen.hasPlaceholders())
+                    continue outerloop;
+            }
+        }
+
+        const v = combiner(choices, rule.priority);
+        if (v !== null) {
+            actualGenSize ++;
+            emit(v);
+        } else {
+            prunedGenSize ++;
+        }
+    }
+
+    return [actualGenSize, prunedGenSize];
+}
+
+function expandRule(charts : Charts,
+                    depth : number,
+                    nonTermIndex : number,
+                    rule : Rule<any[], any>,
+                    averagePruningFactor : number[][],
+                    targetPruningSize : number,
+                    options : ExpandOptions,
+                    nonTermList : string[],
+                    emit : (value : Derivation<any>) => void) : void {
+    const rng = options.rng;
+
+    const expansion = rule.expansion;
+    const combiner = rule.combiner;
+    const anyNonTerm = expansion.some((x) => x instanceof NonTerminal);
+
+    if (!anyNonTerm) {
+        if (depth === 0) {
+            const deriv = combiner(assignChoices(expansion, rng), rule.priority);
+            if (deriv !== null)
+                emit(deriv);
+        }
+        return;
+    }
+    if (depth === 0)
+        return;
+
+    //
+
+    const sizeEstimate =
+        estimateRuleSize(charts, depth, nonTermIndex, rule, averagePruningFactor);
+    const { maxdepth, worstCaseGenSize, estimatedGenSize, estimatedPruneFactor } = sizeEstimate;
+
+    if (worstCaseGenSize === 0)
+        return;
+
+    const now = Date.now();
+
+    // to avoid spending too much time calling the combiner for things we'll prune later,
+    // we randomly sample out of all possible combinations about as many as we estimate
+    // we'll need to fill the reservoir
+    const coinProbability = Math.min(1, targetPruningSize / estimatedGenSize);
+
+    // make an estimate of the number of times we'll need to call the semantic function
+    // to get the target pruning size
+    const targetSemanticFunctionCalls = targetPruningSize / estimatedPruneFactor;
+
     //console.log('expand $' + nonterminal + ' -> ' + expansion.join('') + ' : actual ' + actualGenSize);
+
+    let actualGenSize, prunedGenSize;
+    let strategy;
+    if (sizeEstimate.maxdepth === depth-1 && (coinProbability >= 1 || targetSemanticFunctionCalls >= worstCaseGenSize * 0.8)) {
+        if (options.debug >= LogLevel.EVERYTHING)
+            console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : using recursive expansion`);
+
+        // use the exhaustive algorithm if we expect to we'll be close to exhaustive anyway
+        [actualGenSize, prunedGenSize] = expandRuleExhaustive(charts, depth, maxdepth, coinProbability,
+            nonTermIndex, rule, sizeEstimate, targetPruningSize,
+            options, nonTermList, emit);
+        strategy = 'enumeration';
+    } else {
+        if (options.debug >= LogLevel.EVERYTHING)
+            console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : using sampling`);
+
+        // otherwise use the imprecise but faster sampling algorithm
+        [actualGenSize, prunedGenSize] = expandRuleSample(charts, depth,
+            nonTermIndex, rule, sizeEstimate, targetSemanticFunctionCalls, targetPruningSize,
+            options, nonTermList, emit);
+        strategy = 'sampling';
+    }
 
     if (actualGenSize + prunedGenSize === 0)
         return;
@@ -1402,7 +1670,7 @@ function expandRule(charts : Charts,
 
     const elapsed = Date.now() - now;
     if (options.debug >= LogLevel.INFO && elapsed >= 10000)
-        console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : took ${(elapsed/1000).toFixed(2)} seconds`);
+        console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : took ${(elapsed/1000).toFixed(2)} seconds using ${strategy}`);
 
     const movingAverageOfPruneFactor = (0.01 * estimatedPruneFactor + newEstimatedPruneFactor) / (1.01);
     averagePruningFactor[nonTermIndex][rule.number] = movingAverageOfPruneFactor;

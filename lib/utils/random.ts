@@ -18,6 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import assert from 'assert';
 
 function choose<T>(from : T[], n : number, rng : () => number = Math.random) : T[] {
     if (n === 0)
@@ -49,10 +50,10 @@ function choose<T>(from : T[], n : number, rng : () => number = Math.random) : T
     return res;
 }
 
-function coin(prob : number, rng : () => number = Math.random) : boolean {
+function coin(prob : number, rng : () => number) : boolean {
     return rng() <= prob;
 }
-function uniform<T>(array : T[], rng : () => number = Math.random) : T {
+function uniform<T>(array : T[], rng : () => number) : T {
     return array[Math.floor(rng() * array.length)];
 }
 function categorical(weights : number[], rng : () => number = Math.random) : number {
@@ -60,14 +61,16 @@ function categorical(weights : number[], rng : () => number = Math.random) : num
     cumsum[0] = weights[0];
     for (let i = 1; i < weights.length; i++)
         cumsum[i] = cumsum[i-1] + weights[i];
-
-    const value = rng() * cumsum[cumsum.length-1];
-
-    for (let i = 0; i < weights.length; i++) {
+    return categoricalPrecomputed(cumsum, cumsum.length, rng);
+}
+export function categoricalPrecomputed(cumsum : number[], arraylength = cumsum.length, rng : () => number) : number {
+    assert(arraylength <= cumsum.length);
+    const value = rng() * cumsum[arraylength-1];
+    for (let i = 0; i < arraylength; i++) {
         if (value <= cumsum[i])
             return i;
     }
-    return cumsum.length-1;
+    return arraylength-1;
 }
 
 function swap<T>(array : T[], i : number, j : number) : void {
