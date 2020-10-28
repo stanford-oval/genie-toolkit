@@ -1667,6 +1667,8 @@ function expandRule(charts : Charts,
     if (actualGenSize + prunedGenSize === 0)
         return;
     const newEstimatedPruneFactor = actualGenSize / (actualGenSize + prunedGenSize);
+    if (options.debug >= LogLevel.INFO && newEstimatedPruneFactor < 0.2)
+        console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : semantic function only accepted ${(newEstimatedPruneFactor*100).toFixed(1)}% of derivations`);
 
     const elapsed = Date.now() - now;
     if (options.debug >= LogLevel.INFO && elapsed >= 10000)
