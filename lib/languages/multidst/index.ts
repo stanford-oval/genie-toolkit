@@ -133,6 +133,18 @@ export async function parse(code : string|string[], entities ?: EntityMap, optio
     return dialoguestate;
 }
 
+export function parsePrediction(code : string|string[], entities : EntityMap, options : unknown, strict : true) : Promise<Ast.DialogState>;
+export function parsePrediction(code : string|string[], entities : EntityMap, options : unknown, strict ?: boolean) : Promise<Ast.DialogState|null>;
+export async function parsePrediction(code : string|string[], entities : EntityMap, options : unknown, strict = false) : Promise<Ast.DialogState|null> {
+    try {
+        return parse(code, entities, options);
+    } catch(e) {
+        if (strict)
+            throw e;
+        return null;
+    }
+}
+
 class Simulator {
     constructor() {}
 

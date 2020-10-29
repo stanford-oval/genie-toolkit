@@ -34,8 +34,8 @@ import Polish from './polish';
 import SimplifiedChinese from './simplified-chinese';
 import TraditionalChinese from './traditional-chinese';
 
-import BaseTokenizer from './tokenizer/base';
-export { BaseTokenizer };
+import BaseTokenizer, { TokenizerResult } from './tokenizer/base';
+export { BaseTokenizer, TokenizerResult };
 
 export type LanguagePack = DefaultLanguagePack;
 

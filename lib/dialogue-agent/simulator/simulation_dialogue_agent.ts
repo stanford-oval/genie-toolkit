@@ -93,15 +93,15 @@ export default class SimulationDialogueAgent extends AbstractDialogueAgent<Thing
         throw new TypeError('Should not attempt to configure devices in simulation');
     }
 
-    protected async disambiguate(type : 'device'|'contact'|'entity',
-                                 name : string,
-                                 choices : string[],
-                                 hint : string) : Promise<number> {
+    async disambiguate(type : 'device'|'contact',
+                       name : string|null,
+                       choices : string[],
+                       hint ?: string) : Promise<number> {
         // pick something at random...
         return Math.floor(this._rng() * choices.length);
     }
 
-    protected async lookupContact(category : ValueCategory, name : string) : Promise<never> {
+    async lookupContact(category : ValueCategory, name : string) : Promise<never> {
         // TODO???
         throw new TypeError('Abstract method');
     }
@@ -111,12 +111,12 @@ export default class SimulationDialogueAgent extends AbstractDialogueAgent<Thing
         // and we don't care about the display field
     }
 
-    protected async askMissingContact(category : ValueCategory, name : string) : Promise<never> {
+    async askMissingContact(category : ValueCategory, name : string) : Promise<never> {
         // TODO???
         throw new TypeError('Abstract method');
     }
 
-    protected async lookupLocation(searchKey : string, previousLocations : Ast.Location[]) : Promise<Ast.LocationValue> {
+    protected async lookupLocation(searchKey : string, previousLocations : Ast.AbsoluteLocation[]) : Promise<Ast.LocationValue> {
         // should not happen in non-interactive mode, we only deal with absolute locations
         // and let the augmentation step convert to location names later
         if (!this._interactive)
