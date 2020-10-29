@@ -38,31 +38,17 @@ import { SlotBag } from '../../slot_bag';
 // import thingpedia info
 import _tpLoader from '../../load-thingpedia';
 
-{
-    /* FIXME
-    interface Recommendation {
-        ctx ?: S.ContextInfo;
-        topResult : Ast.EntityValue;
-        info : SlotBag|null;
-        action : Ast.Invocation|null;
-        hasLearnMore ?: boolean;
-        hasAnythingElse ?: boolean;
-    }
-    */
-    type Recommendation = any;
-}
-
-question_system_recommendation_short : Recommendation = {
+question_system_recommendation_short : D.Recommendation = {
     ctx:ctx_with_result_and_action 'how about' proposal:constant_name
         => D.makeRecommendation(ctx, proposal);
 }
 
-action_recommendation : Recommendation = {
+action_recommendation : D.Recommendation = {
     ctx:ctx_with_result_and_action ('would you like to' | 'would you like me to') action:contextual_action_phrase if complete [weight=0.1]
         => D.makeActionRecommendation(ctx, action);
 }
 
-actionable_system_recommendation_short : Recommendation = {
+actionable_system_recommendation_short : D.Recommendation = {
     ctx:ctx_with_result_noquestion proposal:thingpedia_result if complete [priority=2]
         => D.makeThingpediaRecommendation(ctx, proposal);
     ctx:ctx_with_result_noquestion proposal:thingpedia_result if complete [priority=2]
@@ -100,12 +86,12 @@ recommendation_info_action_pair : [SlotBag, Ast.Invocation|null] = {
     };
 }
 
-user_question_answer_begin : Recommendation = {
+user_question_answer_begin : D.Recommendation = {
     ctx:ctx_with_result_question proposal:constant_name
         => D.makeRecommendation(ctx, proposal);
 }
 
-direct_user_question_answer : Recommendation = {
+direct_user_question_answer : D.Recommendation = {
     ctx:ctx_with_result_question info:direct_result_info_phrase
         => D.makeThingpediaRecommendation(ctx, info);
 }
@@ -126,13 +112,13 @@ proposal_info_action_pair : [SlotBag, Ast.Invocation|null] = {
     }
 }
 
-actionable_system_display_result_short : Recommendation = {
+actionable_system_display_result_short : D.Recommendation = {
     ctx:ctx_with_result info:thingpedia_result '.' if complete [priority=10]
         => D.makeDisplayResult(ctx, info);
 }
 
 // a non-list result
-system_nonlist_result : any = {
+system_nonlist_result : D.Recommendation = {
     actionable_system_display_result_short;
 
     ctx:ctx_with_result info:direct_result_info_phrase
@@ -156,7 +142,7 @@ system_nonlist_result : any = {
 // and action to do with it
 // the action can come from the context (if the user expressed it earlier), or it can
 // be offered immediately
-system_recommendation : any = {
+system_recommendation : D.Recommendation = {
     ( ctx_with_action proposal:question_system_recommendation_short '.'
     | ctx_with_action proposal:actionable_system_recommendation_short '.'
     ) => proposal;
@@ -199,14 +185,14 @@ system_recommendation : any = {
     | proposal:user_question_answer_begin pair:proposal_info_action_pair [weight=2]
     ) => {
         const [info, action] = pair;
-        proposal = D.checkRecommendation(proposal, info);
-        if (proposal === null)
+        const maybeProposal = D.checkRecommendation(proposal, info);
+        if (maybeProposal === null)
             return null;
-        const { topResult, } = proposal;
+        const { topResult, } = maybeProposal;
         // reset the action to null if the agent explicitly asks to "learn more"
         if (action === null)
             return { hasLearnMore: true, topResult, info, action: null };
-        return D.checkActionForRecommendation(proposal, action);
+        return D.checkActionForRecommendation(maybeProposal, action);
     };
 }
 

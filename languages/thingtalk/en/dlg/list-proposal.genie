@@ -29,14 +29,13 @@
 import { Ast, } from 'thingtalk';
 
 import * as D from '../../dialogue_acts';
-import * as S from '../../state_manip';
 
 import { SlotBag } from '../../slot_bag';
 
 // a "list proposal" consists of the first few results of the current query,
 // together with informative results about them, an offer to learn more, or an offer for an action
 
-system_list_proposal /* FIXME : [Ast.DialogueHistoryResultItem[], SlotBag|null, Ast.Invocation|null, boolean]*/ = {
+system_list_proposal : D.ListProposal = {
     !inference {
         ('i see' | 'i have' | 'i have found') name_list:result_name_list '.'
             ('' |

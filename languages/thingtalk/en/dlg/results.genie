@@ -32,7 +32,7 @@ import _tpLoader from '../../load-thingpedia';
 
 // names of objects in the result
 
-result_name_pair : ({ ctx : S.ContextInfo; results : Ast.DialogueHistoryResultItem[] }) = {
+result_name_pair : D.NameList = {
     ctx:ctx_with_result n1:constant_name ',' n2:constant_name => {
         const results = ctx.results;
         assert(results && results.length > 0);
@@ -49,7 +49,7 @@ result_name_pair : ({ ctx : S.ContextInfo; results : Ast.DialogueHistoryResultIt
     };
 }
 
-result_name_list : ({ ctx : S.ContextInfo; results : Ast.DialogueHistoryResultItem[] }) = {
+result_name_list : D.NameList = {
     ctx:ctx_with_result n1:constant_name ('and' | 'or') n2:constant_name [priority=2] => {
         const results = ctx.results;
         assert(results && results.length > 0);
@@ -136,7 +136,10 @@ result_info_phrase : SlotBag = {
 }
 
 base_slot_bag : SlotBag = {
-    table:base_table => new SlotBag(table.schema);
+    table:base_table => {
+        assert(table.schema instanceof Ast.FunctionDef);
+        return new SlotBag(table.schema);
+    };
 }
 
 one_with_info_phrase : SlotBag = {

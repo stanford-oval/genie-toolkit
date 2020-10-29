@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -21,17 +21,26 @@
 
 import assert from 'assert';
 
-import { Ast, } from 'thingtalk';
+import { Ast, Type } from 'thingtalk';
 
 import * as C from '../ast_manip';
 
 import {
+    ContextInfo,
     addQuery
 } from '../state_manip';
 import {
     isFilterCompatibleWithInfo,
     isSimpleFilterTable
 } from './common';
+import { SlotBag } from '../slot_bag';
+
+type UnaryTable = Ast.SortedTable
+    | Ast.IndexTable
+    | Ast.SlicedTable
+    | Ast.ProjectionTable
+    | Ast.ComputeTable
+    | Ast.AliasTable;
 
 /**
  * Find the filter table in the context.
@@ -40,49 +49,42 @@ import {
  *
  * Returns [root, filterTable]
  */
-function findOrMakeFilterTable(root) {
+function findOrMakeFilterTable(root : Ast.Table) : [Ast.Table|null, Ast.FilteredTable|null] {
     let table = root;
-    let holder = null;
-    while (!table.isFilter) {
-        if (table.isSequence ||
-            table.isHistory ||
-            table.isWindow ||
-            table.isTimeSeries)
-            throw new Error('NOT IMPLEMENTED');
-
+    let holder : Ast.JoinTable|UnaryTable|null = null;
+    while (!(table instanceof Ast.FilteredTable)) {
         // do not touch these with filters
         if (table.isAggregation ||
-            table.isVarRef ||
-            table.isResultRef)
+            table.isVarRef)
             return [null, null];
 
         // go inside these
-        if (table.isSort ||
-            table.isIndex ||
-            table.isSlice ||
-            table.isProjection ||
-            table.isCompute ||
-            table.isAlias) {
+        if (table instanceof Ast.SortedTable ||
+            table instanceof Ast.IndexTable ||
+            table instanceof Ast.SlicedTable ||
+            table instanceof Ast.ProjectionTable ||
+            table instanceof Ast.ComputeTable ||
+            table instanceof Ast.AliasTable) {
             holder = table;
             table = table.table;
             continue;
         }
 
-        if (table.isJoin) {
+        if (table instanceof Ast.JoinTable) {
             holder = table;
             // go right on join, always
             table = table.rhs;
             continue;
         }
 
-        assert(table.isInvocation);
+        assert(table instanceof Ast.InvocationTable);
         // if we get here, there is no filter table at all
         // make up one
         const newFilterTable = new Ast.Table.Filter(null, table, Ast.BooleanExpression.True, table.schema);
         if (holder === null) {
             assert(table === root);
             return [newFilterTable, newFilterTable];
-        } else if (holder.isJoin) {
+        } else if (holder instanceof Ast.JoinTable) {
             holder.rhs = newFilterTable;
             return [root, newFilterTable];
         } else {
@@ -95,8 +97,8 @@ function findOrMakeFilterTable(root) {
 }
 
 
-function setsIntersect(s1, s2) {
-    for (let el of s1) {
+function setsIntersect<T>(s1 : Set<T>, s2 : Set<T>) : boolean {
+    for (const el of s1) {
         if (s2.has(el))
             return true;
     }
@@ -104,38 +106,41 @@ function setsIntersect(s1, s2) {
 }
 
 
-function neutralizeIDFilter(ast) {
+function neutralizeIDFilter(ast : Ast.BooleanExpression) : Ast.BooleanExpression {
     // clone a filter and replace "id == ..." atoms with "true"
 
-    if (ast.isNot)
+    if (ast instanceof Ast.NotBooleanExpression)
         return new Ast.BooleanExpression.Not(null, neutralizeIDFilter(ast.expr));
-    if (ast.isOr)
+    if (ast instanceof Ast.OrBooleanExpression)
         return new Ast.BooleanExpression.Or(null, ast.operands.map(neutralizeIDFilter));
-    if (ast.isAnd)
+    if (ast instanceof Ast.AndBooleanExpression)
         return new Ast.BooleanExpression.And(null, ast.operands.map(neutralizeIDFilter));
     if (ast.isTrue || ast.isDontCare || ast.isFalse || ast.isCompute || ast.isExternal)
         return ast;
 
-    assert(ast.isAtom);
+    assert(ast instanceof Ast.AtomBooleanExpression);
     if (ast.name === 'id' && ast.operator === '==')
         return Ast.BooleanExpression.True;
     return ast;
 }
 
+type SlotBooleanExpression = Ast.AtomBooleanExpression | Ast.DontCareBooleanExpression;
 
-function filterToNegatedSlots(filter) {
+function filterToNegatedSlots(filter : Ast.BooleanExpression) : Record<string, Ast.NotBooleanExpression> {
     filter = filter.optimize();
-    let operands, slots = {};
-    if (filter.isAnd)
+    const slots : Record<string, Ast.NotBooleanExpression> = {};
+    let operands : Ast.BooleanExpression[];
+    if (filter instanceof Ast.AndBooleanExpression)
         operands = filter.operands;
     else
         operands = [filter];
 
-    for (let operand of operands) {
-        if (!operand.isNot)
+    for (const operand of operands) {
+        if (!(operand instanceof Ast.NotBooleanExpression))
             continue;
-        let atom = operand.expr;
-        if (!atom.isAtom && !atom.isDontCare)
+        const atom = operand.expr;
+        if (!(atom instanceof Ast.AtomBooleanExpression) &&
+            !(atom instanceof Ast.DontCareBooleanExpression))
             continue;
 
         slots[atom.name] = operand;
@@ -144,16 +149,18 @@ function filterToNegatedSlots(filter) {
     return slots;
 }
 
-function filterToSlots(filter) {
+function filterToSlots(filter : Ast.BooleanExpression) : Record<string, SlotBooleanExpression> {
     filter = filter.optimize();
-    let operands, slots = {};
-    if (filter.isAnd)
+    const slots : Record<string, SlotBooleanExpression> = {};
+    let operands : Ast.BooleanExpression[];
+    if (filter instanceof Ast.AndBooleanExpression)
         operands = filter.operands;
     else
         operands = [filter];
 
-    for (let operand of operands) {
-        if (!operand.isAtom && !operand.isDontCare)
+    for (const operand of operands) {
+        if (!(operand instanceof Ast.AtomBooleanExpression) &&
+            !(operand instanceof Ast.DontCareBooleanExpression))
             continue;
 
         slots[operand.name] = operand;
@@ -162,25 +169,31 @@ function filterToSlots(filter) {
     return slots;
 }
 
-function queryRefinement(ctxTable, newFilter, refineFilter, newProjection) {
+type RefineFilterCallback = (old : Ast.BooleanExpression, new_ : Ast.BooleanExpression) => Ast.BooleanExpression|null;
+
+function queryRefinement(ctxTable : Ast.Table,
+                         newFilter : Ast.BooleanExpression|null,
+                         refineFilter : RefineFilterCallback|null,
+                         newProjection : string[]|null) : Ast.Table|null {
     let cloneTable = ctxTable.clone();
 
-    let refinedFilter;
+    let refinedFilter : Ast.BooleanExpression;
     if (newFilter !== null) {
-        let filterTable;
-        [cloneTable, filterTable] = findOrMakeFilterTable(cloneTable);
+        assert(refineFilter);
+        const [newCloneTable, filterTable] = findOrMakeFilterTable(cloneTable);
         //if (ctxFilterTable === null)
         //    return null;
-        assert(filterTable.isFilter);
+        assert(newCloneTable && filterTable);
+        cloneTable = newCloneTable;
 
         // TODO we need to push down the filter, if possible
         if (!isSimpleFilterTable(filterTable))
             return null;
 
-        refinedFilter = refineFilter(filterTable.filter, newFilter);
-        if (refinedFilter === null)
+        const newRefinedFilter = refineFilter(filterTable.filter, newFilter);
+        if (newRefinedFilter === null)
             return null;
-
+        refinedFilter = newRefinedFilter;
         filterTable.filter = refinedFilter;
     }
 
@@ -188,45 +201,47 @@ function queryRefinement(ctxTable, newFilter, refineFilter, newProjection) {
         // if we have a new projection, we remove the projection entirely and replace it
         // with the new one
 
-        if (cloneTable.isProjection)
+        if (cloneTable instanceof Ast.ProjectionTable)
             cloneTable = cloneTable.table;
         // there should be no projection of projection (will be optimized)
-        assert(!cloneTable.isProjection);
+        assert(!(cloneTable instanceof Ast.ProjectionTable));
 
         // remove a compute table as well (top-level compute is a sort of projection)
-        if (cloneTable.isCompute)
+        if (cloneTable instanceof Ast.ComputeTable)
             cloneTable = cloneTable.table;
 
         // still no projection here...
-        assert(!cloneTable.isProjection);
+        assert(!(cloneTable instanceof Ast.ProjectionTable));
 
         cloneTable = new Ast.Table.Projection(null, cloneTable, newProjection,
-            C.resolveProjection(newProjection, cloneTable.schema));
+            C.resolveProjection(newProjection, cloneTable.schema!));
     } else {
         // otherwise, we remove all fields from the projection that were mentioned in the
         // filter
 
-        let oldProjection;
-        if (cloneTable.isProjection) {
+        let oldProjection : string[]|undefined;
+        if (cloneTable instanceof Ast.ProjectionTable) {
             oldProjection = cloneTable.args;
             cloneTable = cloneTable.table;
         }
         // there should be no projection of projection (will be optimized)
-        assert(!cloneTable.isProjection);
+        assert(!(cloneTable instanceof Ast.ProjectionTable));
+
+        // either one of newProjection or newFilter must be provided
+        assert(newFilter !== null);
 
         if (oldProjection) {
-            if (newFilter !== null)
-                newProjection = oldProjection.filter((pname) => !C.filterUsesParam(refinedFilter, pname));
+            const newProjection = oldProjection.filter((pname) => !C.filterUsesParam(refinedFilter, pname));
 
             // if we removed the projection of the compute field, remove the projection entirely
-            if (cloneTable.isCompute) {
+            if (cloneTable instanceof Ast.ComputeTable) {
                 assert(cloneTable.expression instanceof Ast.Value.Computation);
-                let field = cloneTable.expression.op;
+                const field = cloneTable.expression.op;
                 if (!newProjection.includes(field))
                     cloneTable = cloneTable.table;
 
                 // there should still be no projection of projection (will be optimized)
-                assert(!cloneTable.isProjection);
+                assert(!(cloneTable instanceof Ast.ProjectionTable));
             }
 
             // if the projection is now empty, we don't add
@@ -243,7 +258,7 @@ function queryRefinement(ctxTable, newFilter, refineFilter, newProjection) {
 
             if (newProjection.length > 0) {
                 cloneTable = new Ast.Table.Projection(null, cloneTable, newProjection,
-                    C.resolveProjection(newProjection, cloneTable.schema));
+                    C.resolveProjection(newProjection, cloneTable.schema!));
             }
         }
     }
@@ -252,7 +267,8 @@ function queryRefinement(ctxTable, newFilter, refineFilter, newProjection) {
 }
 
 
-function refineFilterToAnswerQuestion(ctxFilter, refinedFilter) {
+function refineFilterToAnswerQuestion(ctxFilter : Ast.BooleanExpression,
+                                      refinedFilter : Ast.BooleanExpression) {
     // this function is used when:
     // - the agent asks a search refinement question, and the user answers it
     // - the agent proposes something to refine the question
@@ -261,16 +277,16 @@ function refineFilterToAnswerQuestion(ctxFilter, refinedFilter) {
     // furthermore, "id ==" filters are removed from the refined filter, so a user
     // can choose a restaurant for a while then change their mind
 
-    function getParamsInFilter(filter) {
-        let params = new Set;
+    function getParamsInFilter(filter : Ast.BooleanExpression) {
+        const params = new Set<string>();
         filter.visit(new class extends Ast.NodeVisitor {
-            visitAtomBooleanExpression(atom) {
+            visitAtomBooleanExpression(atom : Ast.AtomBooleanExpression) {
                 if (atom.name === 'id' && atom.operator === '==')
                     return false;
                 params.add(atom.name);
                 return false;
             }
-            visitDontCareBooleanExpression(atom) {
+            visitDontCareBooleanExpression(atom : Ast.DontCareBooleanExpression) {
                 params.add(atom.name);
                 return false;
             }
@@ -288,7 +304,8 @@ function refineFilterToAnswerQuestion(ctxFilter, refinedFilter) {
 }
 
 
-function refineFilterToAnswerQuestionOrChangeFilter(ctxFilter, refinedFilter) {
+function refineFilterToAnswerQuestionOrChangeFilter(ctxFilter : Ast.BooleanExpression,
+                                                    refinedFilter : Ast.BooleanExpression) {
     // this function is used:
     // - the agent proposes something, and the user replies with a bunch of filters
     //   (e.g. "how about terun?" "nah i'm looking for something chinese")
@@ -308,20 +325,21 @@ function refineFilterToAnswerQuestionOrChangeFilter(ctxFilter, refinedFilter) {
     const refinedSlots = filterToSlots(refinedFilter);
     const negatedRefinedSlots = filterToNegatedSlots(refinedFilter);
 
-    let changedParam = undefined;
+    let changedParam : string|undefined = undefined;
     // slots in the context must not mentioned in the refinement, except at most one can, and
     // it must be different operator or value
     //
     // note that both positive and negative filters are killed by this check
     // so neither "I want X food" nor "I don't like X food" are acceptable when "food =~ X" was
     // already in the context
-    for (let key in ctxSlots) {
-        assert(ctxSlots[key].isAtom || ctxSlots[key].isDontCare);
+    for (const key in ctxSlots) {
+        assert(ctxSlots[key] instanceof Ast.AtomBooleanExpression ||
+               ctxSlots[key] instanceof Ast.DontCareBooleanExpression);
         if (negatedRefinedSlots[key])
             return null;
         if (refinedSlots[key]) {
             // dont change opinion from a dontcare to a not dontcare
-            if (ctxSlots[key].isDontCare)
+            if (ctxSlots[key] instanceof Ast.DontCareBooleanExpression)
                 return null;
 
             if (refinedSlots[key].equals(ctxSlots[key]))
@@ -332,9 +350,9 @@ function refineFilterToAnswerQuestionOrChangeFilter(ctxFilter, refinedFilter) {
         }
     }
 
-    const newCtxClauses = [];
-    for (let clause of (ctxFilter.isAnd ? ctxFilter.operands : [ctxFilter])) {
-        if (clause.isAtom || clause.isDontCare) {
+    const newCtxClauses : Ast.BooleanExpression[] = [];
+    for (const clause of (ctxFilter instanceof Ast.AndBooleanExpression ? ctxFilter.operands : [ctxFilter])) {
+        if (clause instanceof Ast.AtomBooleanExpression || clause instanceof Ast.DontCareBooleanExpression) {
             if (refinedSlots[clause.name])
                 continue;
         }
@@ -345,7 +363,8 @@ function refineFilterToAnswerQuestionOrChangeFilter(ctxFilter, refinedFilter) {
 }
 
 
-function refineFilterToChangeFilter(ctxFilter, refinedFilter) {
+function refineFilterToChangeFilter(ctxFilter : Ast.BooleanExpression,
+                                    refinedFilter : Ast.BooleanExpression) {
     // this function is used:
     // - when the agent returned zero results, and the user
     //   must change the search
@@ -363,17 +382,17 @@ function refineFilterToChangeFilter(ctxFilter, refinedFilter) {
     const ctxSlots = filterToSlots(ctxFilter);
     const refinedSlots = filterToSlots(refinedFilter);
     // all slots in the context must be either not mentioned in the refinement, or changed
-    for (let key in ctxSlots) {
+    for (const key in ctxSlots) {
         if (refinedSlots[key] && refinedSlots[key].equals(ctxSlots[key]))
             return null;
     }
     // all slots that are in the refinement must be mentioned in the context
-    for (let key in refinedSlots) {
+    for (const key in refinedSlots) {
         if (!ctxSlots[key])
             return null;
     }
 
-    const ctxClauses = (ctxFilter.isAnd ? ctxFilter.operands : [ctxFilter]).filter((clause) => {
+    const ctxClauses = (ctxFilter instanceof Ast.AndBooleanExpression ? ctxFilter.operands : [ctxFilter]).filter((clause) => {
         let good = true;
         clause.visit(new class extends Ast.NodeVisitor {
              visitExternalBooleanExpression() {
@@ -387,11 +406,11 @@ function refineFilterToChangeFilter(ctxFilter, refinedFilter) {
                 return false;
             }
 
-            visitAtomBooleanExpression(atom) {
+            visitAtomBooleanExpression(atom : Ast.AtomBooleanExpression) {
                 good = good && !C.filterUsesParam(refinedFilter, atom.name);
                 return true;
             }
-            visitDontCareBooleanExpression(atom) {
+            visitDontCareBooleanExpression(atom : Ast.DontCareBooleanExpression) {
                 good = good && !C.filterUsesParam(refinedFilter, atom.name);
                 return true;
             }
@@ -406,56 +425,63 @@ function refineFilterToChangeFilter(ctxFilter, refinedFilter) {
  * User act: in response to any proposal from the agent (refined query, recommendation, list
  * proposal), the user replies with a search.
  */
-function proposalReply(ctx, request, refinementFunction) {
-    if (!C.isSameFunction(ctx.currentFunctionSchema, request.schema))
+function proposalReply(ctx : ContextInfo,
+                       request : Ast.Table,
+                       refinementFunction : RefineFilterCallback) {
+    if (!C.isSameFunction(ctx.currentFunctionSchema!, request.schema!))
         return null;
 
     // TODO we need to push down the filter, if possible
     if (!isSimpleFilterTable(request))
         return null;
 
-    const currentTable = ctx.current.stmt.table;
-    const newTable = queryRefinement(currentTable, request.filter, refinementFunction);
+    const currentStmt = ctx.current!.stmt;
+    assert(currentStmt instanceof Ast.Command);
+    const currentTable = currentStmt.table!;
+    const newTable = queryRefinement(currentTable, request.filter, refinementFunction, null);
     if (newTable === null)
         return null;
 
     return addQuery(ctx, 'execute', newTable, 'accepted');
 }
 
-function isValidNegativePreambleForInfo(info, preamble) {
+function isValidNegativePreambleForInfo(info : SlotBag, preamble : Ast.FilteredTable) : boolean {
     // the preamble must match the info provided
     // (and we will negate it later)
     return isFilterCompatibleWithInfo(info, preamble.filter);
 }
 
-function combinePreambleAndRequest(preamble, request, info, proposalType) {
+function combinePreambleAndRequest(preamble : Ast.FilteredTable|null,
+                                   request : Ast.FilteredTable|null,
+                                   info : SlotBag|null,
+                                   proposalType : Type) {
     if (preamble !== null) {
         if (info === null || !isValidNegativePreambleForInfo(info, preamble))
             return null;
     }
 
     if (preamble !== null && request !== null) {
-        if (!C.isSameFunction(preamble.schema, request.schema))
+        if (!C.isSameFunction(preamble.schema!, request.schema!))
             return null;
         const refined = refineFilterToChangeFilter(preamble.filter, request.filter);
         if (refined === null)
             return null;
 
         // convert the preamble into a request by negating it, then add the new request
-        request = new Ast.Table.Filter(null, request.table, new Ast.BooleanExpression.And(null, [
+        request = new Ast.FilteredTable(null, request.table, new Ast.BooleanExpression.And(null, [
             new Ast.BooleanExpression.Not(null, preamble.filter),
             request.filter
         ]), request.schema);
     } else if (preamble !== null) {
         // convert the preamble into a request by negating it
         // shallow clone
-        assert(preamble instanceof Ast.Table.Filter);
+        assert(preamble instanceof Ast.FilteredTable);
         request = new Ast.Table.Filter(null, preamble.table, preamble.filter, preamble.schema);
         request.filter = new Ast.BooleanExpression.Not(null, request.filter);
     }
     assert(request !== null);
 
-    const idType = request.schema.getArgType('id');
+    const idType = request.schema!.getArgType('id');
 
     if (!idType || !idType.equals(proposalType))
         return null;

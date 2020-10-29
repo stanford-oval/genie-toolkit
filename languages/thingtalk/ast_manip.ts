@@ -179,6 +179,9 @@ function etaReduceTable(table : Ast.Table, pname : string) : [string|undefined, 
     }
 }
 
+function makeFilter(param : Ast.VarRefValue, op : string, value : Ast.Value, negate ?: false) : Ast.AtomBooleanExpression|null;
+function makeFilter(param : Ast.VarRefValue, op : string, value : Ast.Value, negate : true) : Ast.NotBooleanExpression|null;
+function makeFilter(param : Ast.VarRefValue, op : string, value : Ast.Value, negate : boolean) : Ast.BooleanExpression|null;
 function makeFilter(param : Ast.VarRefValue, op : string, value : Ast.Value, negate = false) : Ast.BooleanExpression|null {
     return Utils.makeFilter(_loader, param, op, value, negate);
 }

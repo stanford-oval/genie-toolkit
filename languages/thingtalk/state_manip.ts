@@ -429,7 +429,7 @@ function addNewItem(ctx : ContextInfo,
 
 function makeSimpleState(ctx : ContextInfo,
                          dialogueAct : string,
-                         dialogueActParam : string|null) : Ast.DialogueState {
+                         dialogueActParam : string[]|null) : Ast.DialogueState {
     // a "simple state" carries the current executed/confirmed/accepted items, but not the
     // proposed ones
 
@@ -571,7 +571,7 @@ function addActionParam(ctx : ContextInfo,
 function replaceAction(ctx : ContextInfo,
                        dialogueAct : string,
                        action : Ast.Invocation,
-                       confirm : 'accepted' | 'proposed') : Ast.DialogueState {
+                       confirm : 'accepted' | 'proposed' | 'confirmed') : Ast.DialogueState {
     const newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, action, action.schema)]);
     const newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
 
@@ -670,7 +670,7 @@ function addQueryAndAction(ctx : ContextInfo,
     return addNewItem(ctx, dialogueAct, null, confirm, newTableHistoryItem, newActionHistoryItem);
 }
 
-interface AgentReplyOptions {
+export interface AgentReplyOptions {
     end ?: boolean;
     raw ?: boolean;
 }

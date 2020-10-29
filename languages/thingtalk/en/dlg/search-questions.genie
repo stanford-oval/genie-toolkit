@@ -24,7 +24,7 @@
 // - for searches: the agent is trying to add a filter
 // - for actions/queries w/ parameters: the agent is trying to add a parameter
 
-import { Ast, } from 'thingtalk';
+import { Ast, Type } from 'thingtalk';
 
 import * as D from '../../dialogue_acts';
 import * as S from '../../state_manip';
@@ -89,7 +89,7 @@ two_param_yesno_direct_search_question : string[] = {
     };
 }
 
-question_npp_filter_pair /* FIXME : [string, Type]*/ = {
+question_npp_filter_pair : [string, Type] = {
     ctx:ctx_with_result_noquestion f1:npp_filter 'or' f2:npp_filter =>
         D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
     ctx:ctx_with_result_noquestion f1:npp_filter 'or' c:constant_Any => {
@@ -98,22 +98,22 @@ question_npp_filter_pair /* FIXME : [string, Type]*/ = {
         return D.checkFilterPairForDisjunctiveQuestion(ctx, f1, new Ast.BooleanExpression.Atom(null, f1.name, f1.operator, c));
     };
 }
-question_apv_filter_pair /* FIXME : [string, Type]*/ = {
+question_apv_filter_pair : [string, Type] = {
     ctx:ctx_with_result_noquestion f1:apv_filter 'or' f2:apv_filter =>
         D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
 }
-question_avp_filter_pair /* FIXME : [string, Type]*/ = {
+question_avp_filter_pair : [string, Type] = {
     ctx:ctx_with_result_noquestion f1:avp_filter 'or' c:constant_Any => {
         if (!(f1 instanceof Ast.AtomBooleanExpression))
             return null;
         return D.checkFilterPairForDisjunctiveQuestion(ctx, f1, new Ast.BooleanExpression.Atom(null, f1.name, f1.operator, c));
     };
 }
-question_preposition_filter_pair /* FIXME : [string, Type]*/ = {
+question_preposition_filter_pair : [string, Type] = {
     ctx:ctx_with_result_noquestion f1:preposition_filter 'or' f2:preposition_filter =>
         D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
 }
-question_pvp_filter_pair /* FIXME : [string, Type]*/ = {
+question_pvp_filter_pair : [string, Type] = {
     ctx:ctx_with_result_noquestion f1:pvp_filter 'or' f2:pvp_filter =>
         D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
 }

@@ -26,10 +26,10 @@ import { Ast, Type } from 'thingtalk';
 import { isSameFunction } from './utils';
 
 class SlotBag {
-    schema : Ast.ExpressionSignature|null;
+    schema : Ast.FunctionDef|null;
     store : Map<string, Ast.Value>;
 
-    constructor(schema : Ast.ExpressionSignature|null) {
+    constructor(schema : Ast.FunctionDef|null) {
         this.schema = schema;
         this.store = new Map;
     }
@@ -75,7 +75,7 @@ class SlotBag {
     values() : Iterable<Ast.Value> {
         return this.store.values();
     }
-    [Symbol.iterator]() : Iterable<[string, Ast.Value]> {
+    [Symbol.iterator]() : IterableIterator<[string, Ast.Value]> {
         return this.store[Symbol.iterator]();
     }
     set(key : string, value : Ast.Value) : void {

@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -24,19 +24,22 @@ import assert from 'assert';
 import { Ast, Type } from 'thingtalk';
 
 import {
+    ContextInfo,
     addQuery,
 } from '../state_manip';
 import {
     queryRefinement,
     refineFilterToAnswerQuestion,
 } from './refinement-helpers';
+import type { Recommendation } from './recommendation';
+import type { ListProposal } from './list-proposal';
 
 
-function areQuestionsValidForContext(ctx, questions) {
-    if (ctx.resultInfo.isAggregation)
+function areQuestionsValidForContext(ctx : ContextInfo, questions : Array<[string, Type|null]>) {
+    if (ctx.resultInfo!.isAggregation)
         return null;
 
-    const schema = ctx.currentFunctionSchema;
+    const schema = ctx.currentFunctionSchema!;
 
     // if the function only contains one parameter, do not generate projection for it
     if (Object.keys(schema.out).length === 1)
@@ -54,24 +57,27 @@ function areQuestionsValidForContext(ctx, questions) {
     return true;
 }
 
-function recommendationSearchQuestionReply(ctx, questions) {
-    const proposal = ctx.aux;
+function recommendationSearchQuestionReply(ctx : ContextInfo, questions : Array<[string, Type|null]>) {
+    const proposal = ctx.aux as Recommendation;
     const { topResult, info, } = proposal;
     if (info !== null) {
         for (const [pname, ptype] of questions) {
             if (info.has(pname))
                 return null;
-            if (!info.schema.hasArgument(pname))
-                return null;
-            if (ptype !== null && !info.schema.getArgType(pname).equals(ptype))
-                return null;
+                const arg = info.schema!.getArgument(pname);
+                if (!arg)
+                    return null;
+                if (ptype !== null && !arg.type.equals(ptype))
+                    return null;
         }
     }
 
     if (!areQuestionsValidForContext(ctx, questions))
         return null;
 
-    const currentTable = ctx.current.stmt.table;
+    const currentStmt = ctx.current!.stmt;
+    assert(currentStmt instanceof Ast.Command);
+    const currentTable = currentStmt.table!;
     const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', topResult.value.id);
     const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion,
         questions.map(([qname, qtype]) => qname));
@@ -80,12 +86,14 @@ function recommendationSearchQuestionReply(ctx, questions) {
     return addQuery(ctx, 'execute', newTable, 'accepted');
 }
 
-function learnMoreSearchQuestionReply(ctx, questions) {
-    const topResult = ctx.results[0];
+function learnMoreSearchQuestionReply(ctx : ContextInfo, questions : Array<[string, Type|null]>) {
+    const topResult = ctx.results![0];
     if (!areQuestionsValidForContext(ctx, questions))
         return null;
 
-    const currentTable = ctx.current.stmt.table;
+    const currentStmt = ctx.current!.stmt;
+    assert(currentStmt instanceof Ast.Command);
+    const currentTable = currentStmt.table!;
     const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', topResult.value.id);
     const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion,
         questions.map(([qname, qtype]) => qname));
@@ -94,11 +102,13 @@ function learnMoreSearchQuestionReply(ctx, questions) {
     return addQuery(ctx, 'execute', newTable, 'accepted');
 }
 
-function displayResultSearchQuestionReply(ctx, questions) {
+function displayResultSearchQuestionReply(ctx : ContextInfo, questions : Array<[string, Type|null]>) {
     if (!areQuestionsValidForContext(ctx, questions))
         return null;
 
-    const currentTable = ctx.current.stmt.table;
+    const currentStmt = ctx.current!.stmt;
+    assert(currentStmt instanceof Ast.Command);
+    const currentTable = currentStmt.table!;
     const newTable = queryRefinement(currentTable, null, refineFilterToAnswerQuestion,
         questions.map(([qname, qtype]) => qname));
     if (newTable === null)
@@ -106,13 +116,13 @@ function displayResultSearchQuestionReply(ctx, questions) {
     return addQuery(ctx, 'execute', newTable, 'accepted');
 }
 
-function listProposalSearchQuestionReply(ctx, [name, questions]) {
-    const proposal = ctx.aux;
+function listProposalSearchQuestionReply(ctx : ContextInfo, [name, questions] : [Ast.Value|null, Array<[string, Type|null]>]) {
+    const proposal = ctx.aux as ListProposal;
     const [results, info] = proposal;
 
     if (name !== null) {
         let good = false;
-        for (let result of results) {
+        for (const result of results) {
             if (!result.value.id)
                 continue;
             if (result.value.id.equals(name)) {
@@ -125,13 +135,14 @@ function listProposalSearchQuestionReply(ctx, [name, questions]) {
     }
 
     if (info !== null) {
-        for (let [pname, type] of questions) {
+        for (const [pname, type] of questions) {
             assert(typeof pname === 'string');
             if (info.has(pname))
                 return null;
-            if (!info.schema.hasArgument(pname))
+            const arg = info.schema!.getArgument(pname);
+            if (!arg)
                 return null;
-            if (type !== null && !info.schema.getArgType(pname).equals(type))
+            if (type !== null && !arg.type.equals(type))
                 return null;
         }
     }
@@ -139,7 +150,9 @@ function listProposalSearchQuestionReply(ctx, [name, questions]) {
     if (!areQuestionsValidForContext(ctx, questions))
         return null;
 
-    const currentTable = ctx.current.stmt.table;
+    const currentStmt = ctx.current!.stmt;
+    assert(currentStmt instanceof Ast.Command);
+    const currentTable = currentStmt.table!;
     let newTable;
     if (name !== null) {
         const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', name);
@@ -155,16 +168,17 @@ function listProposalSearchQuestionReply(ctx, [name, questions]) {
     return addQuery(ctx, 'execute', newTable, 'accepted');
 }
 
-function corefConstant(ctx, base, param) {
+function corefConstant(ctx : ContextInfo, base : Ast.Table, param : Ast.VarRefValue) {
     const previous = ctx.previousDomain;
     assert(previous);
-    if (previous.results.results.length === 0)
+    if (!previous.results || previous.results.results.length === 0)
         return null;
     const ctxStmt = previous.stmt;
-    const ctxSchema = ctxStmt.table ? ctxStmt.table.schema : ctxStmt.actions[0].schema;
-    if (!ctxSchema.class) // FIXME not sure how this happens...
+    assert(ctxStmt instanceof Ast.Command);
+    const ctxSchema = ctxStmt.table ? ctxStmt.table.schema! : ctxStmt.actions[0].schema!;
+    if (!(ctxSchema instanceof Ast.FunctionDef) || !ctxSchema.class) // FIXME not sure how this happens...
         return null;
-    if (ctxSchema.class.name !== base.schema.class.name)
+    if (ctxSchema.class.name !== base.schema!.class!.name)
         return null;
     const result = previous.results.results[0];
     if (!result.value[param.name])

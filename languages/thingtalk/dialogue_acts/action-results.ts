@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -21,12 +21,13 @@
 
 import assert from 'assert';
 
-import { Ast } from 'thingtalk';
+import { Ast, Type } from 'thingtalk';
 
 import * as C from '../ast_manip';
 
 import { SlotBag } from '../slot_bag';
 import {
+    ContextInfo,
     makeAgentReply,
     makeSimpleState,
     setOrAddInvocationParam,
@@ -36,13 +37,13 @@ import {
     isInfoPhraseCompatibleWithResult
 } from './common';
 
-function makeThingpediaActionSuccessPhrase(ctx, info) {
+function makeThingpediaActionSuccessPhrase(ctx : ContextInfo, info : SlotBag) {
     const results = ctx.results;
-    if (results.length !== 1)
+    if (!results || results.length !== 1)
         return null;
 
-    const ctxInvocation = C.getInvocation(ctx.current);
-    if (!C.isSameFunction(ctxInvocation.schema, info.schema))
+    const ctxInvocation = C.getInvocation(ctx.current!);
+    if (!C.isSameFunction(ctxInvocation.schema!, info.schema!))
         return null;
 
     const topResult = results[0];
@@ -52,8 +53,9 @@ function makeThingpediaActionSuccessPhrase(ctx, info) {
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_success', null), info);
 }
 
-function makeCompleteActionSuccessPhrase(ctx, action, info) {
+function makeCompleteActionSuccessPhrase(ctx : ContextInfo, action : Ast.Invocation, info : SlotBag|null) {
     const results = ctx.results;
+    assert(results);
 
     // TODO: multiple action results at once:
     // "I played Foo, Bar, and Baz for you."
@@ -63,16 +65,16 @@ function makeCompleteActionSuccessPhrase(ctx, action, info) {
     // check the action is the same we actually executed, and all the parameters we're mentioning
     // match the actual parameters of the action
     assert(action instanceof Ast.Invocation);
-    const ctxInvocation = C.getInvocation(ctx.current);
-    if (!C.isSameFunction(ctxInvocation.schema, action.schema))
+    const ctxInvocation = C.getInvocation(ctx.current!);
+    if (!C.isSameFunction(ctxInvocation.schema!, action.schema!))
         return null;
 
-    for (let newParam of action.in_params) {
+    for (const newParam of action.in_params) {
         if (newParam.value.isUndefined)
             continue;
 
         let found = false;
-        for (let oldParam of ctxInvocation.in_params) {
+        for (const oldParam of ctxInvocation.in_params) {
             assert(!oldParam.value.isUndefined); // we ran the action, so it cannot have $? params
 
             if (newParam.name === oldParam.name) {
@@ -84,7 +86,7 @@ function makeCompleteActionSuccessPhrase(ctx, action, info) {
             }
         }
         if (!found) {
-            const arg = action.schema.getArgument(newParam.name);
+            const arg = action.schema!.getArgument(newParam.name)!;
             if (arg.is_input)
                 return null;
 
@@ -119,38 +121,43 @@ function makeCompleteActionSuccessPhrase(ctx, action, info) {
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_success', null), info);
 }
 
-function makeGenericActionSuccessPhrase(ctx) {
+function makeGenericActionSuccessPhrase(ctx : ContextInfo) {
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_success', null), null);
 }
 
-function checkThingpediaErrorMessage(ctx, msg) {
-    if (!C.isSameFunction(ctx.currentFunctionSchema, msg.bag.schema))
+export interface ErrorMessage {
+    code : string;
+    bag : SlotBag;
+}
+
+function checkThingpediaErrorMessage(ctx : ContextInfo, msg : ErrorMessage) {
+    if (!C.isSameFunction(ctx.currentFunctionSchema!, msg.bag.schema!))
         return null;
     const error = ctx.error;
-    if (!error.isEnum || error.value !== msg.code)
+    if (!(error instanceof Ast.EnumValue) || error.value !== msg.code)
         return null;
 
-    const action = C.getInvocation(ctx.current);
-    for (let in_param of action.in_params) {
-        if (msg.bag.has(in_param.name) && !msg.bag.get(in_param.name).equals(in_param.value))
+    const action = C.getInvocation(ctx.current!);
+    for (const in_param of action.in_params) {
+        if (msg.bag.has(in_param.name) && !msg.bag.get(in_param.name)!.equals(in_param.value))
             return null;
     }
 
     return ctx;
 }
 
-function checkActionErrorMessage(ctx, action) {
+function checkActionErrorMessage(ctx : ContextInfo, action : Ast.Invocation) {
     // check the action is the same we actually executed, and all the parameters we're mentioning
     // match the actual parameters of the action
-    if (!C.isSameFunction(ctx.currentFunctionSchema, action.schema))
+    if (!C.isSameFunction(ctx.currentFunctionSchema!, action.schema!))
         return null;
-    const ctxInvocation = C.getInvocation(ctx.current);
-    for (let newParam of action.in_params) {
+    const ctxInvocation = C.getInvocation(ctx.current!);
+    for (const newParam of action.in_params) {
         if (newParam.value.isUndefined)
             continue;
 
         let found = false;
-        for (let oldParam of ctxInvocation.in_params) {
+        for (const oldParam of ctxInvocation.in_params) {
             if (newParam.name === oldParam.name) {
                 if (!newParam.value.equals(oldParam.value))
                     return null;
@@ -165,9 +172,9 @@ function checkActionErrorMessage(ctx, action) {
     return ctx;
 }
 
-function makeActionErrorPhrase(ctx, questions) {
-    const schema = ctx.currentFunctionSchema;
-    for (let q of questions) {
+function makeActionErrorPhrase(ctx : ContextInfo, questions : string[]) {
+    const schema = ctx.currentFunctionSchema!;
+    for (const q of questions) {
         const arg = schema.getArgument(q);
         if (!arg || !arg.is_input)
             return null;
@@ -178,15 +185,15 @@ function makeActionErrorPhrase(ctx, questions) {
         return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_error', null));
 
     if (questions.length === 1) {
-        const type = schema.getArgument(questions[0]).type;
+        const type = schema.getArgType(questions[0])!;
         return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_error_question', questions), null, type);
     }
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_error_question', questions));
 }
 
-function actionErrorChangeParam(ctx, answer) {
-    const schema = ctx.currentFunctionSchema;
-    const questions = ctx.dialogueActParam || [];
+function actionErrorChangeParam(ctx : ContextInfo, answer : Ast.Value|Ast.InputParam) {
+    const schema = ctx.currentFunctionSchema!;
+    const questions = ctx.state.dialogueActParam || [];
     if (answer instanceof Ast.Value) {
         if (questions.length !== 1)
             return null;
@@ -196,7 +203,7 @@ function actionErrorChangeParam(ctx, answer) {
     if (!arg || !arg.is_input || !arg.type.equals(answer.value.getType()))
         return null;
 
-    const action = C.getInvocation(ctx.current);
+    const action = C.getInvocation(ctx.current!);
     if (!action)
         return null;
     const clone = action.clone();
@@ -204,9 +211,9 @@ function actionErrorChangeParam(ctx, answer) {
     return replaceAction(ctx, 'execute', clone, 'accepted');
 }
 
-function actionSuccessQuestion(ctx, questions) {
-    for (let [qname, qtype] of questions) {
-        const arg = ctx.currentFunctionSchema.getArgument(qname);
+function actionSuccessQuestion(ctx : ContextInfo, questions : Array<[string, Type|null]>) {
+    for (const [qname, qtype] of questions) {
+        const arg = ctx.currentFunctionSchema!.getArgument(qname);
         if (!arg || arg.is_input)
             return null;
         if (qtype !== null && !qtype.equals(arg.type))

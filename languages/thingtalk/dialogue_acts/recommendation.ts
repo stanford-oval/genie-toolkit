@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -27,6 +27,8 @@ import * as C from '../ast_manip';
 
 import { SlotBag, checkAndAddSlot } from '../slot_bag';
 import {
+    AgentReplyOptions,
+    ContextInfo,
     makeAgentReply,
     makeSimpleState,
     addActionParam,
@@ -46,13 +48,24 @@ import {
 } from './results';
 
 
-function makeActionRecommendation(ctx, action) {
+export interface Recommendation {
+    ctx ?: ContextInfo;
+    topResult : Ast.DialogueHistoryResultItem;
+    info : SlotBag|null;
+    action : Ast.Invocation|null;
+    hasLearnMore ?: boolean;
+    hasAnythingElse ?: boolean;
+}
+
+function makeActionRecommendation(ctx : ContextInfo, action : Ast.Invocation) {
     assert(action instanceof Ast.Invocation);
 
     const results = ctx.results;
-    assert(results.length > 0);
-    const currentTable = ctx.current.stmt.table;
-    if (currentTable && currentTable.isSlice && currentTable.limit.value !== 1)
+    assert(results && results.length > 0);
+    const currentStmt = ctx.current!.stmt;
+    assert(currentStmt instanceof Ast.Command);
+    const currentTable = currentStmt.table;
+    if (currentTable && currentTable instanceof Ast.SlicedTable && currentTable.limit.toJS() !== 1)
         return null;
 
     const topResult = results[0];
@@ -63,7 +76,7 @@ function makeActionRecommendation(ctx, action) {
     if (action.in_params.length !== 1)
         return null;
 
-    for (let param of action.in_params) {
+    for (const param of action.in_params) {
         if (param.value.equals(id))
             return { topResult, info: null, action };
     }
@@ -71,23 +84,26 @@ function makeActionRecommendation(ctx, action) {
     return null;
 }
 
-function makeArgMinMaxRecommendation(ctx, name, base, param, direction) {
-    if (!ctx.resultInfo.argMinMaxField)
+function makeArgMinMaxRecommendation(ctx : ContextInfo, name : Ast.Value, base : Ast.Table, param : Ast.VarRefValue, direction : 'asc'|'desc') {
+    const resultInfo = ctx.resultInfo!;
+    if (!resultInfo.argMinMaxField)
         return null;
-    if (!C.isSameFunction(base.schema, ctx.currentFunctionSchema))
+    if (!C.isSameFunction(base.schema!, ctx.currentFunctionSchema!))
         return null;
-    if (direction !== ctx.resultInfo.argMinMaxField[1] ||
-        param.name !== ctx.resultInfo.argMinMaxField[0])
+    if (direction !== resultInfo.argMinMaxField[1] ||
+        param.name !== resultInfo.argMinMaxField[0])
         return null;
 
     return makeRecommendation(ctx, name);
 }
 
-function makeRecommendation(ctx, name) {
+function makeRecommendation(ctx : ContextInfo, name : Ast.Value) {
     const results = ctx.results;
-    assert(results.length > 0);
-    const currentTable = ctx.current.stmt.table;
-    if (currentTable && currentTable.isSlice && currentTable.limit.value !== 1)
+    assert(results && results.length > 0);
+    const currentStmt = ctx.current!.stmt;
+    assert(currentStmt instanceof Ast.Command);
+    const currentTable = currentStmt.table;
+    if (currentTable && currentTable instanceof Ast.SlicedTable && currentTable.limit.toJS() !== 1)
         return null;
 
     const topResult = results[0];
@@ -96,14 +112,16 @@ function makeRecommendation(ctx, name) {
     if (!id || !id.equals(name))
         return null;
 
-    return { topResult, ctx, info: null, action: ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next) : null };
+    return { topResult, ctx, info: null, action: ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next!) : null };
 }
 
-function makeThingpediaRecommendation(ctx, info) {
+function makeThingpediaRecommendation(ctx : ContextInfo, info : SlotBag) {
     const results = ctx.results;
-    assert(results.length > 0);
-    const currentTable = ctx.current.stmt.table;
-    if (currentTable && currentTable.isSlice && currentTable.limit.value !== 1)
+    assert(results && results.length > 0);
+    const currentStmt = ctx.current!.stmt;
+    assert(currentStmt instanceof Ast.Command);
+    const currentTable = currentStmt.table;
+    if (currentTable && currentTable instanceof Ast.SlicedTable && currentTable.limit.toJS() !== 1)
         return null;
 
     const topResult = results[0];
@@ -113,17 +131,17 @@ function makeThingpediaRecommendation(ctx, info) {
     if (!isInfoPhraseCompatibleWithResult(topResult, info))
         return null;
 
-    return { topResult, ctx, info, action: ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next) : null };
+    return { topResult, ctx, info, action: ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next!) : null };
 }
 
 
-function checkRecommendation({ topResult, action: nextAction }, info) {
+function checkRecommendation({ topResult, action: nextAction } : Recommendation, info : SlotBag) {
     assert(info instanceof SlotBag);
     if (!topResult.value.id)
         return null;
 
     const resultType = topResult.value.id.getType();
-    const idType = info.schema.getArgType('id');
+    const idType = info.schema!.getArgType('id')!;
     if (!idType || !idType.equals(resultType))
         return null;
 
@@ -133,13 +151,13 @@ function checkRecommendation({ topResult, action: nextAction }, info) {
     return { topResult, info, action: nextAction };
 }
 
-function checkActionForRecommendation({ topResult, info, action: nextAction }, action) {
+function checkActionForRecommendation({ topResult, info, action: nextAction } : Recommendation, action : Ast.Invocation) {
     if (!topResult.value.id)
         return null;
     const resultType = topResult.value.id.getType();
 
     if (nextAction !== null) {
-        if (!C.isSameFunction(nextAction.schema, action.schema))
+        if (!C.isSameFunction(nextAction.schema!, action.schema!))
             return null;
     }
 
@@ -150,8 +168,10 @@ function checkActionForRecommendation({ topResult, info, action: nextAction }, a
 }
 
 // make a recommendation that looks like an answer, that is, "so and so is a ..."
-function makeAnswerStyleRecommendation({ topResult, ctx, action }, filter) {
-    let info = new SlotBag(ctx.currentFunctionSchema);
+function makeAnswerStyleRecommendation({ topResult, ctx, action } : Recommendation, filter : Ast.BooleanExpression) {
+    if (!ctx)
+        return null;
+    let info : SlotBag|null = new SlotBag(ctx.currentFunctionSchema);
     info = checkAndAddSlot(info, filter);
     if (info === null)
         return null;
@@ -159,46 +179,52 @@ function makeAnswerStyleRecommendation({ topResult, ctx, action }, filter) {
     if (info === null)
         return null;
 
-    return checkRecommendation({ topResult, action }, info);
+    return checkRecommendation({ topResult, action, info: null }, info);
 }
 
 
-function makeDisplayResult(ctx, info) {
+function makeDisplayResult(ctx : ContextInfo, info : SlotBag) {
     const results = ctx.results;
-    assert(results.length > 0);
+    assert(results && results.length > 0);
     const topResult = results[0];
 
-    if (ctx.currentFunctionSchema.is_list)
+    if (ctx.currentFunctionSchema!.is_list)
         return null;
     if (!isInfoPhraseCompatibleWithResult(topResult, info))
         return null;
-    info = checkInfoPhrase(ctx, info);
-    if (info === null)
-        return null;
-
-    return { topResult, ctx, info, action: ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next) : null, hasAnythingElse: false };
-}
-
-function combineDisplayResult(proposal, newInfo) {
-    const { ctx, info:oldInfo } = proposal;
-    const results = ctx.results;
-    assert(results.length > 0);
-    const topResult = results[0];
-    assert(isInfoPhraseCompatibleWithResult(topResult, newInfo));
-
-    newInfo = SlotBag.merge(oldInfo, newInfo);
+    const newInfo = checkInfoPhrase(ctx, info);
     if (newInfo === null)
         return null;
 
-    const newProposal = {};
-    Object.assign(newProposal, proposal);
-    newProposal.info = newInfo;
+    return { topResult, ctx, info: newInfo, action: ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next!) : null, hasAnythingElse: false };
+}
+
+function combineDisplayResult(proposal : Recommendation, newInfo : SlotBag) {
+    const { ctx, info:oldInfo } = proposal;
+    if (!ctx)
+        return null;
+    const results = ctx.results;
+    assert(results && results.length > 0);
+    const topResult = results[0];
+    assert(isInfoPhraseCompatibleWithResult(topResult, newInfo));
+
+    const maybeNewInfo = oldInfo ? SlotBag.merge(oldInfo, newInfo) : newInfo;
+    if (maybeNewInfo === null)
+        return null;
+
+    const newProposal : Recommendation = {
+        ctx: proposal.ctx,
+        topResult: proposal.topResult,
+        hasAnythingElse: proposal.hasAnythingElse,
+        action: proposal.action,
+        info: maybeNewInfo,
+    };
     return newProposal;
 }
 
-function makeRecommendationReply(ctx, proposal) {
+function makeRecommendationReply(ctx : ContextInfo, proposal : Recommendation) {
     const { topResult, action, hasLearnMore } = proposal;
-    const options = {};
+    const options : AgentReplyOptions = {};
     if (action || hasLearnMore)
         options.end = false;
     if (action === null) {
@@ -212,15 +238,19 @@ function makeRecommendationReply(ctx, proposal) {
     }
 }
 
-function makeDisplayResultReply(ctx, proposal) {
+function makeDisplayResultReply(ctx : ContextInfo, proposal : Recommendation) {
     const { action, hasAnythingElse } = proposal;
-    const options = {};
+    const options : AgentReplyOptions = {};
     if (action || hasAnythingElse)
         options.end = false;
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_display_result', null), proposal, null, options);
 }
 
-function negativeRecommendationReply(ctx, [preamble, request]) {
+function negativeRecommendationReply(ctx : ContextInfo, [preamble, request] : [Ast.Table|null, Ast.Table|null]) {
+    if (!((preamble === null || preamble instanceof Ast.FilteredTable) &&
+          (request === null || request instanceof Ast.FilteredTable)))
+        return null;
+
     const proposal = ctx.aux;
     const { topResult, info, } = proposal;
     const proposalType = topResult.value.id.getType();
@@ -230,8 +260,8 @@ function negativeRecommendationReply(ctx, [preamble, request]) {
     return proposalReply(ctx, request, refineFilterToAnswerQuestionOrChangeFilter);
 }
 
-function positiveRecommendationReply(ctx, acceptedAction, name) {
-    const proposal = ctx.aux;
+function positiveRecommendationReply(ctx : ContextInfo, acceptedAction : Ast.Invocation|null, name : Ast.Value|null) {
+    const proposal = ctx.aux as Recommendation;
     const { topResult, action: actionProposal } = proposal;
 
     if (acceptedAction === null) {
@@ -248,16 +278,17 @@ function positiveRecommendationReply(ctx, acceptedAction, name) {
 
         acceptedAction = actionProposal;
     }
+    assert(acceptedAction);
 
-    if (actionProposal !== null && !C.isSameFunction(actionProposal.schema, acceptedAction.schema))
+    if (actionProposal !== null && !C.isSameFunction(actionProposal.schema!, acceptedAction.schema!))
         return null;
     if (name !== null && !topResult.value.id.equals(name))
         return null;
 
     // do not consider a phrase of the form "play X" to be "accepting the action by name"
     // if the action auto-confirms, because the user is likely playing something else
-    if (acceptedAction && name) {
-        const confirm = C.normalizeConfirmAnnotation(acceptedAction.schema);
+    if (name) {
+        const confirm = C.normalizeConfirmAnnotation(acceptedAction.schema as Ast.FunctionDef);
         if (confirm === 'auto')
             return null;
     }
@@ -265,10 +296,10 @@ function positiveRecommendationReply(ctx, acceptedAction, name) {
     const chainParam = findChainParam(topResult, acceptedAction);
     if (!chainParam)
         return null;
-    return addActionParam(ctx, 'execute', acceptedAction, chainParam, topResult.value.id, 'accepted');
+    return addActionParam(ctx, 'execute', acceptedAction!, chainParam, topResult.value.id, 'accepted');
 }
 
-function recommendationCancelReply(ctx, valid) {
+function recommendationCancelReply(ctx : ContextInfo, valid : boolean) {
     // see dialogue.genie for the meaning of this boolean
     if (!valid)
         return null;
@@ -280,21 +311,21 @@ function recommendationCancelReply(ctx, valid) {
     return makeSimpleState(ctx, 'cancel', null);
 }
 
-function recommendationLearnMoreReply(ctx, name) {
-    const proposal = ctx.aux;
+function recommendationLearnMoreReply(ctx : ContextInfo, name : Ast.Value|null) {
+    const proposal = ctx.aux as Recommendation;
     const { topResult, } = proposal;
     if (name !== null && !topResult.value.id.equals(name))
         return null;
     return makeSimpleState(ctx, 'learn_more', null);
 }
 
-function repeatCommandReply(ctx) {
+function repeatCommandReply(ctx : ContextInfo) {
     if (ctx.next)
         return null;
-    if (ctx.currentFunctionSchema.is_monitorable)
+    if (ctx.currentFunctionSchema!.is_monitorable)
         return null;
 
-    const clone = ctx.current.clone();
+    const clone = ctx.current!.clone();
     clone.results = null;
     clone.confirm = 'accepted';
     return addNewItem(ctx, 'execute', null, 'accepted', clone);

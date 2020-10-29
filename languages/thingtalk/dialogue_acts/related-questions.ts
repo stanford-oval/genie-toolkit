@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -18,12 +18,13 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 import assert from 'assert';
+import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
 
 import {
+    ContextInfo,
     addQuery,
 } from '../state_manip';
 import {
@@ -31,36 +32,42 @@ import {
     refineFilterToAnswerQuestion,
 } from './refinement-helpers';
 
-function relatedQuestion(ctx, stmt) {
-    const currentTable = ctx.current.stmt.table;
+function relatedQuestion(ctx : ContextInfo, stmt : Ast.ExecutableStatement) {
+    const currentStmt = ctx.current!.stmt;
+    assert(currentStmt instanceof Ast.Command);
+    const currentTable = currentStmt.table!;
 
-    if (!stmt.isCommand || !stmt.table)
+    if (!(stmt instanceof Ast.Command) || !stmt.table)
         return null;
     if (stmt.actions.some((a) => !a.isNotify))
         return null;
     let newTable = stmt.table;
-    if (!newTable.schema.class)
+    const newSchema = newTable.schema;
+    if (!(newSchema instanceof Ast.FunctionDef))
         return null;
 
-    if (C.isSameFunction(currentTable.schema, newTable.schema))
+    if (C.isSameFunction(currentTable.schema!, newTable.schema!))
         return null;
-    let functionName = newTable.schema.class.kind + ':' + newTable.schema.name;
-    const related = currentTable.schema.getAnnotation('related');
-    if (!related.includes(functionName))
+
+    const currentSchema = currentTable.schema;
+    assert(currentSchema instanceof Ast.FunctionDef);
+
+    const functionName = newSchema.class!.kind + ':' + newSchema.name;
+    const related = currentSchema.getAnnotation<string[]>('related');
+    if (!related || !related.includes(functionName))
         return null;
 
     if (!C.checkValidQuery(stmt.table))
         return null;
 
-    let ctxFilterTable, newFilterTable;
-    [newTable, newFilterTable] = findOrMakeFilterTable(newTable.clone());
+    const [newTableTmp, newFilterTable] = findOrMakeFilterTable(newTable.clone());
     if (newFilterTable === null)
         return null;
-    assert(newFilterTable.isFilter);
-    if (!newFilterTable.table.isInvocation)
+    newTable = newTableTmp!;
+    if (!(newFilterTable.table instanceof Ast.InvocationTable))
         return null;
 
-    ctxFilterTable = C.findFilterTable(currentTable);
+    const ctxFilterTable = C.findFilterTable(currentTable);
 
     if (ctxFilterTable) {
         const newFilter = refineFilterToAnswerQuestion(ctxFilterTable.filter, newFilterTable.filter);

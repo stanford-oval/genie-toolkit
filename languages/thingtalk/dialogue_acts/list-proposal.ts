@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -26,6 +26,8 @@ import { Ast, } from 'thingtalk';
 import * as C from '../ast_manip';
 
 import {
+    AgentReplyOptions,
+    ContextInfo,
     makeAgentReply,
     makeSimpleState,
     addActionParam,
@@ -42,48 +44,57 @@ import {
     combinePreambleAndRequest,
     proposalReply,
 } from './refinement-helpers';
+import {
+    SlotBag
+} from '../slot_bag';
 
-function checkListProposal(nameList, info, hasLearnMore) {
+export interface NameList {
+    ctx : ContextInfo;
+    results : Ast.DialogueHistoryResultItem[];
+}
+export type ListProposal = [Ast.DialogueHistoryResultItem[], SlotBag|null, Ast.Invocation|null, boolean];
+
+function checkListProposal(nameList : NameList, info : SlotBag|null, hasLearnMore : boolean) : ListProposal|null {
     const { ctx, results } = nameList;
     const resultType = results[0].value.id.getType();
 
     if (info !== null) {
-        const idType = info.schema.getArgType('id');
+        const idType = info.schema!.getArgType('id');
 
         if (!idType || !idType.equals(resultType))
             return null;
 
-        for (let result of results) {
+        for (const result of results) {
             if (!isInfoPhraseCompatibleWithResult(result, info))
                 return null;
         }
     } else {
-        if (ctx.resultInfo.projection !== null)
+        if (ctx.resultInfo!.projection !== null)
             return null;
     }
 
-    const action = ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next) : null;
+    const action = ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next!) : null;
     return [results, info, action, hasLearnMore];
 }
 
-function addActionToListProposal(nameList, action) {
+function addActionToListProposal(nameList : NameList, action : Ast.Invocation) : ListProposal|null {
     const { ctx, results } = nameList;
-    if (ctx.resultInfo.projection !== null)
+    if (ctx.resultInfo!.projection !== null)
         return null;
 
     const resultType = results[0].value.id.getType();
     if (!C.hasArgumentOfType(action, resultType))
         return null;
-    const ctxAction = ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next) : null;
-    if (ctxAction && !C.isSameFunction(ctxAction.schema, action.schema))
+    const ctxAction = ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next!) : null;
+    if (ctxAction && !C.isSameFunction(ctxAction.schema!, action.schema!))
         return null;
 
     return [results, null, action, false];
 }
 
-function makeListProposalReply(ctx, proposal) {
+function makeListProposalReply(ctx : ContextInfo, proposal : ListProposal) {
     const [results, /*info*/, action, hasLearnMore] = proposal;
-    const options = {};
+    const options : AgentReplyOptions = {};
     if (action || hasLearnMore)
         options.end = false;
     const dialogueAct = results.length === 2 ? 'sys_recommend_two' : 'sys_recommend_three';
@@ -93,7 +104,7 @@ function makeListProposalReply(ctx, proposal) {
         return makeAgentReply(ctx, addAction(ctx, dialogueAct, action, 'proposed'), proposal, null, options);
 }
 
-function positiveListProposalReply(ctx, [name, acceptedAction, mustHaveAction]) {
+function positiveListProposalReply(ctx : ContextInfo, [name, acceptedAction, mustHaveAction] : [Ast.Value, Ast.Invocation|null, boolean]) {
     // if actionProposal === null the flow is roughly
     //
     // U: hello i am looking for a restaurant
@@ -103,10 +114,10 @@ function positiveListProposalReply(ctx, [name, acceptedAction, mustHaveAction]) 
     // in this case, the agent should hit the "... is a ... restaurant in the ..."
     // we treat it as "execute" dialogue act and add a filter that causes the program to return a single result
 
-    const proposal = ctx.aux;
+    const proposal = ctx.aux as ListProposal;
     const [results, /*info*/, actionProposal] = proposal;
     let good = false;
-    for (let result of results) {
+    for (const result of results) {
         if (result.value.id.equals(name)) {
             good = true;
             break;
@@ -122,21 +133,23 @@ function positiveListProposalReply(ctx, [name, acceptedAction, mustHaveAction]) 
         if (mustHaveAction)
             return null;
 
-        const currentTable = ctx.current.stmt.table;
+        const currentStmt = ctx.current!.stmt;
+        assert(currentStmt instanceof Ast.Command);
+        const currentTable = currentStmt.table!;
         const namefilter = new Ast.BooleanExpression.Atom(null, 'id', '==', name);
-        const newTable = queryRefinement(currentTable, namefilter, (one, two) => new Ast.BooleanExpression.And(null, [one, two]));
+        const newTable = queryRefinement(currentTable, namefilter, (one, two) => new Ast.BooleanExpression.And(null, [one, two]), null);
         if (newTable === null)
             return null;
 
         return addQuery(ctx, 'execute', newTable, 'accepted');
     } else {
-        if (actionProposal !== null && !C.isSameFunction(actionProposal.schema, acceptedAction.schema))
+        if (actionProposal !== null && !C.isSameFunction(actionProposal.schema!, acceptedAction.schema!))
             return null;
 
         // do not consider a phrase of the form "play X" to be "accepting the action by name"
         // if the action auto-confirms, because the user is likely playing something else
         if (acceptedAction && name) {
-            const confirm = C.normalizeConfirmAnnotation(acceptedAction.schema);
+            const confirm = C.normalizeConfirmAnnotation(acceptedAction.schema as Ast.FunctionDef);
             if (confirm === 'auto')
                 return null;
         }
@@ -148,7 +161,7 @@ function positiveListProposalReply(ctx, [name, acceptedAction, mustHaveAction]) 
     }
 }
 
-function positiveListProposalReplyActionByName(ctx, action) {
+function positiveListProposalReplyActionByName(ctx : ContextInfo, action : Ast.Invocation) {
     const proposal = ctx.aux;
     const [results,] = proposal;
 
@@ -157,8 +170,8 @@ function positiveListProposalReplyActionByName(ctx, action) {
     const idType = results[0].value.id.getType();
     // find the chain parameter for the action, extract the name, and set the param to undefined
     // as the rest of the code expects
-    for (let in_param of acceptedAction.in_params) {
-        const arg = action.schema.getArgument(in_param.name);
+    for (const in_param of acceptedAction.in_params) {
+        const arg = action.schema!.getArgument(in_param.name);
         assert(arg);
         if (arg.type.equals(idType)) {
             name = in_param.value;
@@ -166,11 +179,17 @@ function positiveListProposalReplyActionByName(ctx, action) {
             break;
         }
     }
-    return positiveListProposalReply(ctx, [name, acceptedAction]);
+    if (!name)
+        return null;
+    return positiveListProposalReply(ctx, [name, acceptedAction, false]);
 }
 
-function negativeListProposalReply(ctx, [preamble, request]) {
-    const proposal = ctx.aux;
+function negativeListProposalReply(ctx : ContextInfo, [preamble, request] : [Ast.Table|null, Ast.Table|null]) {
+    if (!((preamble === null || preamble instanceof Ast.FilteredTable) &&
+          (request === null || request instanceof Ast.FilteredTable)))
+        return null;
+
+    const proposal = ctx.aux as ListProposal;
     const [results, info] = proposal;
     const proposalType = results[0].value.id.getType();
     request = combinePreambleAndRequest(preamble, request, info, proposalType);
@@ -179,16 +198,16 @@ function negativeListProposalReply(ctx, [preamble, request]) {
     return proposalReply(ctx, request, refineFilterToAnswerQuestionOrChangeFilter);
 }
 
-function listProposalLearnMoreReply(ctx, name) {
+function listProposalLearnMoreReply(ctx : ContextInfo, name : Ast.EntityValue) {
     // note: a learn more from a list proposal is different than a learn_more from a recommendation
     // in a recommendation, there is no change to the program, and the agent replies "what would
     // you like to know"
     // in a list proposal, we add a filter "id == "
 
-    const proposal = ctx.aux;
+    const proposal = ctx.aux as ListProposal;
     const [results,] = proposal;
     let good = false;
-    for (let result of results) {
+    for (const result of results) {
         if (result.value.id.equals(name)) {
             good = true;
             break;
@@ -197,9 +216,11 @@ function listProposalLearnMoreReply(ctx, name) {
     if (!good)
         return null;
 
-    const currentTable = ctx.current.stmt.table;
+    const currentStmt = ctx.current!.stmt;
+    assert(currentStmt instanceof Ast.Command);
+    const currentTable = currentStmt.table!;
     const namefilter = new Ast.BooleanExpression.Atom(null, 'id', '==', name);
-    const newTable = queryRefinement(currentTable, namefilter, (one, two) => new Ast.BooleanExpression.And(null, [one, two]));
+    const newTable = queryRefinement(currentTable, namefilter, (one, two) => new Ast.BooleanExpression.And(null, [one, two]), null);
     if (newTable === null)
         return null;
 

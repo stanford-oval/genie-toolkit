@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -21,11 +21,12 @@
 
 import assert from 'assert';
 
-import { Ast, } from 'thingtalk';
+import { Ast, Type } from 'thingtalk';
 
 import * as C from '../ast_manip';
 
 import {
+    ContextInfo,
     makeAgentReply,
     makeSimpleState,
     addQuery,
@@ -41,22 +42,30 @@ import {
     addParametersFromContext
 } from './common';
 
-function isGoodSearchQuestion(ctx, questions) {
-    if (!isValidSearchQuestion(ctx.current.stmt.table, questions))
+function isGoodSearchQuestion(ctx : ContextInfo, questions : string[]) {
+    const currentStmt = ctx.current!.stmt;
+    assert(currentStmt instanceof Ast.Command);
+    if (!isValidSearchQuestion(currentStmt.table!, questions))
         return false;
 
-    const ctxFilterTable = C.findFilterTable(ctx.current.stmt.table);
+    const ctxFilterTable = C.findFilterTable(currentStmt.table!);
     if (!ctxFilterTable)
         return false;
-    for (let q of questions) {
+    for (const q of questions) {
         if (C.filterUsesParam(ctxFilterTable.filter, q))
             return false;
     }
     return true;
 }
 
-function checkFilterPairForDisjunctiveQuestion(ctx, f1, f2) {
-    if (!ctx.currentFunctionSchema.is_list)
+function checkFilterPairForDisjunctiveQuestion(ctx : ContextInfo,
+                                               f1 : Ast.BooleanExpression,
+                                               f2 : Ast.BooleanExpression) : [string, Type]|null {
+    if (!(f1 instanceof Ast.AtomBooleanExpression))
+        return null;
+    if (!(f2 instanceof Ast.AtomBooleanExpression))
+        return null;
+    if (!ctx.currentFunctionSchema!.is_list)
         return null;
     if (f1.name !== f2.name)
         return null;
@@ -67,7 +76,7 @@ function checkFilterPairForDisjunctiveQuestion(ctx, f1, f2) {
 
     let good1 = false;
     let good2 = false;
-    for (let result of ctx.results) {
+    for (const result of ctx.results!) {
         const value = result.value[f1.name];
         if (!value)
             return null;
@@ -84,7 +93,7 @@ function checkFilterPairForDisjunctiveQuestion(ctx, f1, f2) {
     return [f1.name, f1.value.getType()];
 }
 
-function makeSearchQuestion(ctx, questions) {
+function makeSearchQuestion(ctx : ContextInfo, questions : string[]) {
     if (!isGoodSearchQuestion(ctx, questions))
         return null;
 
@@ -92,7 +101,9 @@ function makeSearchQuestion(ctx, questions) {
         return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_generic_search_question', null));
 
     if (questions.length === 1) {
-        const type = ctx.current.stmt.table.schema.getArgument(questions[0]).type;
+        const currentStmt = ctx.current!.stmt;
+        assert(currentStmt instanceof Ast.Command);
+        const type = currentStmt.table!.schema!.getArgument(questions[0])!.type;
         return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_search_question', questions), null, type);
     }
 
@@ -102,16 +113,16 @@ function makeSearchQuestion(ctx, questions) {
 /**
  * Check if the table filters on the parameters `questions` (effectively providing a constraint on question)
  */
-function isQueryAnswerValidForQuestion(table, questions) {
+function isQueryAnswerValidForQuestion(table : Ast.Table, questions : string[]) {
     assert(Array.isArray(questions));
     let answersQuestion = false;
     table.visit(new class extends Ast.NodeVisitor {
-        visitAtomBooleanExpression(atom) {
+        visitAtomBooleanExpression(atom : Ast.AtomBooleanExpression) {
             if (questions.some((q) => q === atom.name))
                 answersQuestion = true;
             return true;
         }
-        visitDontCareBooleanExpression(atom) {
+        visitDontCareBooleanExpression(atom : Ast.DontCareBooleanExpression) {
             if (questions.some((q) => q === atom.name))
                 answersQuestion = true;
             return true;
@@ -120,9 +131,11 @@ function isQueryAnswerValidForQuestion(table, questions) {
     return answersQuestion;
 }
 
-function preciseSearchQuestionAnswer(ctx, [answerTable, answerAction, _bool]) {
+function preciseSearchQuestionAnswer(ctx : ContextInfo, [answerTable, answerAction, _bool] : [Ast.Table, Ast.Invocation|null, boolean]) {
     const questions = ctx.state.dialogueActParam;
     if (questions !== null && !isQueryAnswerValidForQuestion(answerTable, questions))
+        return null;
+    if (!(answerTable instanceof Ast.FilteredTable))
         return null;
 
     const answerFunctions = C.getFunctionNames(answerTable);
@@ -130,7 +143,9 @@ function preciseSearchQuestionAnswer(ctx, [answerTable, answerAction, _bool]) {
         return null;
     if (answerFunctions[0] !== ctx.currentFunction)
         return null;
-    const currentTable = ctx.current.stmt.table;
+    const currentStmt = ctx.current!.stmt;
+    assert(currentStmt instanceof Ast.Command);
+    const currentTable = currentStmt.table!;
     if (!isValidSearchQuestion(currentTable, questions || []))
         return null;
 
@@ -148,17 +163,17 @@ function preciseSearchQuestionAnswer(ctx, [answerTable, answerAction, _bool]) {
 
             // check that we don't fill the chain parameter through this path:
             // the chain parameter can only be filled if the agent shows the results
-            for (let in_param of answerAction.in_params) {
-                if (in_param.name === ctx.nextInfo.chainParameter &&
-                    !ctx.nextInfo.chainParameterFilled)
+            for (const in_param of answerAction.in_params) {
+                if (in_param.name === ctx.nextInfo!.chainParameter &&
+                    !ctx.nextInfo!.chainParameterFilled)
                     return null;
             }
 
-            answerAction = addParametersFromContext(answerAction, C.getInvocation(ctx.next));
+            answerAction = addParametersFromContext(answerAction, C.getInvocation(ctx.next!));
         }
     }
 
-    const newTable = queryRefinement(currentTable, answerTable.filter, refineFilterToAnswerQuestion);
+    const newTable = queryRefinement(currentTable, answerTable.filter, refineFilterToAnswerQuestion, null);
     if (newTable === null)
         return null;
     if (answerAction !== null)
@@ -168,26 +183,34 @@ function preciseSearchQuestionAnswer(ctx, [answerTable, answerAction, _bool]) {
 }
 
 
-function impreciseSearchQuestionAnswer(ctx, answer) {
+function impreciseSearchQuestionAnswer(ctx : ContextInfo, answer : Ast.BooleanExpression|Ast.Value|'dontcare') {
     const questions = ctx.state.dialogueActParam;
     if (questions === null || questions.length !== 1)
         return null;
     assert(Array.isArray(questions) && questions.length > 0);
+
+    let answerFilter : Ast.BooleanExpression;
     if (answer === 'dontcare') {
-        answer = new Ast.BooleanExpression.DontCare(null, questions[0]);
+        answerFilter = new Ast.BooleanExpression.DontCare(null, questions[0]);
     } else if (answer instanceof Ast.BooleanExpression) {
-        let pname;
-        if (answer.isAnd) {
-            assert(answer.operands.length === 2 && answer.operands[0] instanceof Ast.BooleanExpression.Atom
-                   && answer.operands[1] instanceof Ast.BooleanExpression.Atom);
-            assert(answer.operands[0].name === answer.operands[1].name &&
-                   answer.operands[0].value.getType().equals(answer.operands[1].value.getType()));
-            pname = answer.operands[0].name;
-        } else if (answer.isNot) {
-            assert(answer.expr.isAtom || answer.expr.isDontCare);
-            pname = answer.expr.name;
+        answerFilter = answer;
+        let pname : string;
+        if (answer instanceof Ast.AndBooleanExpression) {
+            assert(answer.operands.length === 2);
+            const [op1, op2] = answer.operands;
+            assert(op1 instanceof Ast.AtomBooleanExpression
+                   && op2 instanceof Ast.AtomBooleanExpression);
+            assert(op1.name === op2.name &&
+                   op1.value.getType().equals(op2.value.getType()));
+            pname = op1.name;
+        } else if (answer instanceof Ast.NotBooleanExpression) {
+            const inner = answer.expr;
+            assert(inner instanceof Ast.AtomBooleanExpression ||
+                   inner instanceof Ast.DontCareBooleanExpression);
+            pname = inner.name;
         } else {
-            assert(answer.isAtom || answer.isDontCare);
+            assert(answer instanceof Ast.AtomBooleanExpression ||
+                   answer instanceof Ast.DontCareBooleanExpression);
             pname = answer.name;
         }
         if (!questions.some((q) => q === pname))
@@ -195,17 +218,19 @@ function impreciseSearchQuestionAnswer(ctx, answer) {
     } else {
         assert(questions.length === 1);
         assert(answer instanceof Ast.Value);
-        answer = C.makeFilter(new Ast.Value.VarRef(questions[0]), '==', answer);
-        if (answer === null)
+        const newFilter = C.makeFilter(new Ast.Value.VarRef(questions[0]), '==', answer);
+        if (newFilter === null)
             return null;
+        answerFilter = newFilter;
     }
 
-    assert(answer instanceof Ast.BooleanExpression);
-    const currentTable = ctx.current.stmt.table;
-    if (!C.checkFilter(currentTable, answer))
+    const currentStmt = ctx.current!.stmt;
+    assert(currentStmt instanceof Ast.Command);
+    const currentTable = currentStmt.table!;
+    if (!C.checkFilter(currentTable, answerFilter))
         return null;
 
-    const newTable = queryRefinement(currentTable, answer, refineFilterToAnswerQuestion);
+    const newTable = queryRefinement(currentTable, answerFilter, refineFilterToAnswerQuestion, null);
     if (newTable === null)
         return null;
     return addQuery(ctx, 'execute', newTable, 'accepted');

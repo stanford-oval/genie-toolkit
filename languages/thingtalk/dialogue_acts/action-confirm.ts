@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -21,11 +21,12 @@
 
 import assert from 'assert';
 
-import { Type } from 'thingtalk';
+import { Ast, Type } from 'thingtalk';
 
 import * as C from '../ast_manip';
 
 import {
+    ContextInfo,
     makeAgentReply,
     makeSimpleState,
     sortByName,
@@ -34,11 +35,11 @@ import {
 } from '../state_manip';
 
 
-function makeActionConfirmationPhrase(ctx, action) {
-    const ctxInvocation = C.getInvocation(ctx.next);
+function makeActionConfirmationPhrase(ctx : ContextInfo, action : Ast.Invocation) {
+    const ctxInvocation = C.getInvocation(ctx.next!);
     if (ctxInvocation.selector.isBuiltin)
         return null;
-    if (!C.isSameFunction(ctxInvocation.schema, action.schema))
+    if (!C.isSameFunction(ctxInvocation.schema!, action.schema!))
         return null;
 
     // all parameters have been slot-filled, otherwise we wouldn't be confirming...
@@ -60,28 +61,32 @@ function makeActionConfirmationPhrase(ctx, action) {
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_confirm_action', null), null, Type.Boolean);
 }
 
-function actionConfirmAcceptPhrase(ctx) {
+function actionConfirmAcceptPhrase(ctx : ContextInfo) {
     const clone = ctx.clone();
-    assert(clone.next.confirm === 'accepted');
-    clone.next.confirm = 'confirmed';
+    assert(clone.next!.confirm === 'accepted');
+    clone.next!.confirm = 'confirmed';
     clone.state.dialogueAct = 'execute';
     clone.state.dialogueActParam = null;
     return clone.state;
 }
 
-function actionConfirmRejectPhrase(ctx) {
+function actionConfirmRejectPhrase(ctx : ContextInfo) {
     const clone = ctx.clone();
-    clone.next.confirm = 'proposed';
+    clone.next!.confirm = 'proposed';
     return makeSimpleState(clone, 'cancel', null);
 }
 
-function actionConfirmChangeParam(ctx, answer) {
-
+function actionConfirmChangeParam(ctx : ContextInfo, answer : Ast.Value|Ast.InputParam) {
+    if (!ctx.next)
+        return null;
     const action = C.getInvocation(ctx.next);
     if (!action) return null;
 
+    if (answer instanceof Ast.Value)
+        return null;
+
     // don't accept in params that don't apply to this specific action
-    const arg = ctx.nextFunctionSchema.getArgument(answer.name);
+    const arg = ctx.nextFunctionSchema!.getArgument(answer.name);
     if (!arg || !arg.is_input || !arg.type.equals(answer.value.getType()))
         return null;
 

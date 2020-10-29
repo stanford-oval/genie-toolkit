@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -26,6 +26,7 @@ import { Ast, } from 'thingtalk';
 import * as C from '../ast_manip';
 
 import {
+    ContextInfo,
     makeAgentReply,
     makeSimpleState,
     addQuery,
@@ -46,6 +47,8 @@ import {
 // - some form of "yes"
 // - some form of "no" followed by another search refinement
 
+type EmptySearch = [Ast.Table|null, Ast.VarRefValue|null];
+
 /**
  * Agent dialogue act: a search command returned no result.
  *
@@ -53,8 +56,8 @@ import {
  * @param base - the base table used in the reply
  * @param question - a search question used in the reply
  */
-function makeEmptySearchError(ctx, [base, question]) {
-    if (base !== null && !C.isSameFunction(base.schema, ctx.currentTableSchema))
+function makeEmptySearchError(ctx : ContextInfo, [base, question] : EmptySearch) {
+    if (base !== null && !C.isSameFunction(base.schema!, ctx.currentTableSchema!))
         return null;
 
     let type, state;
@@ -62,9 +65,11 @@ function makeEmptySearchError(ctx, [base, question]) {
         if (!isGoodEmptySearchQuestion(ctx, question.name))
             return null;
 
-        const arg = ctx.currentTableSchema.getArgument(question.name);
+        const arg = ctx.currentTableSchema!.getArgument(question.name);
+        if (!arg)
+            return null;
         type = arg.type;
-        state = makeSimpleState(ctx, 'sys_empty_search_question', question.name);
+        state = makeSimpleState(ctx, 'sys_empty_search_question', [question.name]);
     } else {
         type = null;
         state = makeSimpleState(ctx, 'sys_empty_search', null);
@@ -72,21 +77,26 @@ function makeEmptySearchError(ctx, [base, question]) {
     return makeAgentReply(ctx, state, [base, question], type);
 }
 
-function isGoodEmptySearchQuestion(ctx, question) {
+function isGoodEmptySearchQuestion(ctx : ContextInfo, question : string) {
     assert(typeof question === 'string');
-    if (!isValidSearchQuestion(ctx.current.stmt.table, [question]))
+    const currentStmt = ctx.current!.stmt;
+    assert(currentStmt instanceof Ast.Command);
+    const currentTable = currentStmt.table!;
+    if (!isValidSearchQuestion(currentTable, [question]))
         return false;
 
-    const ctxFilterTable = C.findFilterTable(ctx.current.stmt.table);
+    const ctxFilterTable = C.findFilterTable(currentTable);
     if (!ctxFilterTable || !C.filterUsesParam(ctxFilterTable.filter, question))
         return false;
 
     return true;
 }
 
-function emptySearchChangePhraseCommon(ctx, newFilter) {
-    const currentTable = ctx.current.stmt.table;
-    const newTable = queryRefinement(currentTable, newFilter, refineFilterToChangeFilter);
+function emptySearchChangePhraseCommon(ctx : ContextInfo, newFilter : Ast.BooleanExpression) {
+    const currentStmt = ctx.current!.stmt;
+    assert(currentStmt instanceof Ast.Command);
+    const currentTable = currentStmt.table!;
+    const newTable = queryRefinement(currentTable, newFilter, refineFilterToChangeFilter, null);
     if (newTable === null)
         return null;
     return addQuery(ctx, 'execute', newTable, 'accepted');
@@ -98,9 +108,11 @@ function emptySearchChangePhraseCommon(ctx, newFilter) {
  * The "precise" variant explicitly contains a reference to a table, which must be the same
  * as the context.
  */
-function preciseEmptySearchChangeRequest(ctx, phrase) {
-    const [, param] = ctx.aux;
-    if (!C.isSameFunction(ctx.currentTableSchema, phrase.schema))
+function preciseEmptySearchChangeRequest(ctx : ContextInfo, phrase : Ast.Table) {
+    if (!(phrase instanceof Ast.FilteredTable))
+        return null;
+    const [, param] = ctx.aux as EmptySearch;
+    if (!C.isSameFunction(ctx.currentTableSchema!, phrase.schema!))
         return null;
     if (param !== null && !C.filterUsesParam(phrase.filter, param.name))
         return null;
@@ -114,21 +126,24 @@ function preciseEmptySearchChangeRequest(ctx, phrase) {
  * The "imprecise" variant only contains a value and optionally a parameter name.
  * The table is inferred from the context.
  */
-function impreciseEmptySearchChangeRequest(ctx, answer) {
-    const [base, param] = ctx.aux;
+function impreciseEmptySearchChangeRequest(ctx : ContextInfo, answer : Ast.Value|Ast.BooleanExpression) {
+    const [base, param] = ctx.aux as EmptySearch;
     // because we're imprecise, we're only valid if the agent asked a specific question
     if (base === null || param === null)
         return null;
+    let answerFilter : Ast.BooleanExpression|null;
     if (answer instanceof Ast.Value)
-        answer = C.makeFilter(param, '==', answer);
-    if (answer === null)
+        answerFilter = C.makeFilter(param, '==', answer);
+    else
+        answerFilter = answer;
+    if (answerFilter === null || !(answerFilter instanceof Ast.AtomBooleanExpression))
         return null;
-    if (answer.name !== param.name)
+    if (answerFilter.name !== param.name)
         return null;
-    if (!C.checkFilter(base, answer))
+    if (!C.checkFilter(base, answerFilter))
         return null;
 
-    return emptySearchChangePhraseCommon(ctx, answer);
+    return emptySearchChangePhraseCommon(ctx, answerFilter);
 }
 
 export {

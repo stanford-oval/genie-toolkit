@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -24,18 +24,19 @@ import assert from 'assert';
 import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
+import { ContextInfo } from '../state_manip';
 
-function contextualAction(ctx, action) {
+function contextualAction(ctx : ContextInfo, action : Ast.Invocation) {
     assert(action instanceof Ast.Invocation);
-    const ctxInvocation = C.getInvocation(ctx.next);
-    if (!ctxInvocation || ctxInvocation.selector.isBuiltin)
+    const ctxInvocation = C.getInvocation(ctx.next!);
+    if (!ctxInvocation || !(ctxInvocation.selector instanceof Ast.DeviceSelector))
         return null;
-    if (!C.isSameFunction(ctxInvocation.schema, action.schema))
+    if (!C.isSameFunction(ctxInvocation.schema!, action.schema!))
         return null;
     if (action.in_params.length === 0) // common case, no new parameters
         return ctxInvocation;
 
-    for (let newParam of action.in_params) {
+    for (const newParam of action.in_params) {
         if (newParam.value.isUndefined)
             continue;
 
@@ -43,8 +44,9 @@ function contextualAction(ctx, action) {
 
         // if we're introducing a value for the chain parameter that was not previously provided,
         // it must one of the top 3 results
-        if (newParam.name === ctx.nextInfo.chainParameter &&
-           !ctx.nextInfo.chainParameterFilled) {
+        const nextInfo = ctx.nextInfo!;
+        if (newParam.name === nextInfo.chainParameter &&
+           !nextInfo.chainParameterFilled) {
             if (!ctx.results)
                 return null;
             const results = ctx.results;
@@ -60,7 +62,7 @@ function contextualAction(ctx, action) {
                 return null;
         }
 
-        for (let oldParam of ctxInvocation.in_params) {
+        for (const oldParam of ctxInvocation.in_params) {
             if (oldParam.value.isUndefined)
                 continue;
             if (newParam.name !== oldParam.name)
@@ -75,12 +77,12 @@ function contextualAction(ctx, action) {
     const clone = new Ast.Invocation(null, ctxInvocation.selector, ctxInvocation.channel,
         ctxInvocation.in_params.map((ip) => new Ast.InputParam(null, ip.name, ip.value)),
         ctxInvocation.schema);
-    for (let newParam of action.in_params) {
+    for (const newParam of action.in_params) {
         if (newParam.value.isUndefined)
             continue;
 
         let found = false;
-        for (let oldParam of clone.in_params) {
+        for (const oldParam of clone.in_params) {
             if (newParam.name === oldParam.name) {
                 if (oldParam.value.isUndefined)
                     oldParam.value = newParam.value;

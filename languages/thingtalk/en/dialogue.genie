@@ -355,7 +355,7 @@ $user : Ast.DialogueState = {
     ctx:ctx_sys_recommend_one acceptedAction:recommendation_accept_phrase_with_action [weight=0.7]
         => D.positiveRecommendationReply(ctx, acceptedAction, null);
     ctx:ctx_sys_recommend_one name:recommendation_accept_phrase_by_name [weight=0.7]
-        => D.positiveRecommendationReply(ctx, null, name);
+        => D.positiveRecommendationReply(ctx, name[1], name[0]);
 
     // accepting recommendation to learn more
     ( ctx:ctx_sys_recommend_one tell_me_more_phrase [weight=0.5]

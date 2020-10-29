@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -22,29 +22,35 @@
 import assert from 'assert';
 
 import {
+    ContextInfo
+} from '../state_manip';
+import { SlotBag } from '../slot_bag';
+
+import {
     isInfoPhraseCompatibleWithResult,
 } from './common';
 
-function checkInfoPhrase(ctx, info) {
+function checkInfoPhrase(ctx : ContextInfo, info : SlotBag) {
     if (info.schema !== null) {
-        if (ctx.currentFunction !== info.schema.class.name + ':' + info.schema.name)
+        if (ctx.currentFunction !== info.schema.class!.name + ':' + info.schema.name)
             return null;
     }
 
     // check that the filter uses the right set of parameters
-    if (ctx.resultInfo.projection !== null) {
+    const resultInfo = ctx.resultInfo!;
+    if (resultInfo.projection !== null) {
         // check that all projected names are present
-        for (let name of ctx.resultInfo.projection) {
+        for (const name of resultInfo.projection) {
             if (!info.has(name))
                 return null;
         }
     } else {
         // we must have at least one result to be here
-        let topResult = ctx.results[0];
+        const topResult = ctx.results![0];
         assert(topResult);
 
         // check that the names are part of the #[default_projection], if one is specified
-        for (let name of info.keys()) {
+        for (const name of info.keys()) {
             if (!topResult.value[name])
                 return null;
         }
@@ -52,7 +58,7 @@ function checkInfoPhrase(ctx, info) {
 
     // check that the filter is compatible with at least one of the top 3 results
     let good = false;
-    const results = ctx.results;
+    const results = ctx.results!;
     for (let i = 0; i < Math.min(3, results.length); i++) {
         if (isInfoPhraseCompatibleWithResult(results[i], info)) {
             good = true;

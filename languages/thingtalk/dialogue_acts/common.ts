@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -27,26 +27,27 @@ import { arraySubset } from '../array_utils';
 import {
     setOrAddInvocationParam,
 } from '../state_manip';
+import { SlotBag } from '../slot_bag';
 
 
-function isFilterCompatibleWithInfo(info, filter) {
+function isFilterCompatibleWithInfo(info : SlotBag, filter : Ast.BooleanExpression) : boolean {
     assert(filter instanceof Ast.BooleanExpression);
     if (filter.isTrue || filter.isDontCare)
         return true;
     if (filter.isFalse)
         return false;
-    if (filter.isOr)
+    if (filter instanceof Ast.OrBooleanExpression)
         return filter.operands.some((op) => isFilterCompatibleWithInfo(info, op));
-    if (filter.isAnd)
+    if (filter instanceof Ast.AndBooleanExpression)
         return filter.operands.every((op) => isFilterCompatibleWithInfo(info, op));
-    if (filter.isNot)
+    if (filter instanceof Ast.NotBooleanExpression)
         return !isFilterCompatibleWithInfo(info, filter.expr);
 
     // approximate
     if (filter.isExternal || filter.isCompute)
         return true;
 
-    assert(filter.isAtom);
+    assert(filter instanceof Ast.AtomBooleanExpression);
     const pname = filter.name;
     if (!info.has(pname))
         return false;
@@ -57,20 +58,20 @@ function isFilterCompatibleWithInfo(info, filter) {
     switch (filter.operator) {
     case '==':
     case '=~':
-        return filter.value.equals(info.get(pname));
+        return filter.value.equals(info.get(pname)!);
 
     case 'contains':
     case 'contains~':
-        return info.get(pname).value.some((v) => v.equals(filter.value));
+        return (info.get(pname) as Ast.ArrayValue).value.some((v) => v.equals(filter.value));
 
     case 'in_array':
     case 'in_array~':
-        return filter.value.value.some((v) => v.equals(info.get(pname)));
+        return (filter.value as Ast.ArrayValue).value.some((v) => v.equals(info.get(pname)!));
 
     case '>=':
-        return info.get(pname).toJS() >= filter.value.toJS();
+        return (info.get(pname)!.toJS() as number) >= (filter.value.toJS() as number);
     case '<=':
-        return info.get(pname).toJS() <= filter.value.toJS();
+        return (info.get(pname)!.toJS() as number) <= (filter.value.toJS() as number);
 
     default:
         // approximate
@@ -78,16 +79,17 @@ function isFilterCompatibleWithInfo(info, filter) {
     }
 }
 
-function isFilterCompatibleWithResult(topResult, filter) {
+function isFilterCompatibleWithResult(topResult : Ast.DialogueHistoryResultItem,
+                                      filter : Ast.BooleanExpression) : boolean {
     if (filter.isTrue || filter.isDontCare)
         return true;
     if (filter.isFalse)
         return false;
-    if (filter.isAnd)
+    if (filter instanceof Ast.AndBooleanExpression)
         return filter.operands.every((op) => isFilterCompatibleWithResult(topResult, op));
-    if (filter.isOr)
+    if (filter instanceof Ast.OrBooleanExpression)
         return filter.operands.some((op) => isFilterCompatibleWithResult(topResult, op));
-    if (filter.isNot)
+    if (filter instanceof Ast.NotBooleanExpression)
         return !isFilterCompatibleWithResult(topResult, filter.expr);
 
     if (filter.isExternal) // approximate
@@ -96,6 +98,7 @@ function isFilterCompatibleWithResult(topResult, filter) {
     if (filter.isCompute) // approximate
         return true;
 
+    assert(filter instanceof Ast.AtomBooleanExpression);
     const values = topResult.value;
 
     // if the value was not returned, don't verbalize it
@@ -104,7 +107,7 @@ function isFilterCompatibleWithResult(topResult, filter) {
 
     const resultValue = topResult.value[filter.name];
 
-    if (resultValue.isEntity) {
+    if (resultValue instanceof Ast.EntityValue) {
         // approximate: all strings are made up so we don't need a true likeTest here
         if (filter.operator === '=~')
             return resultValue.display === filter.value.toJS();
@@ -124,13 +127,13 @@ function isFilterCompatibleWithResult(topResult, filter) {
     }
 }
 
-function isInfoPhraseCompatibleWithResult(topResult, info) {
-    for (let [pname, infoValue] of info) {
+function isInfoPhraseCompatibleWithResult(topResult : Ast.DialogueHistoryResultItem, info : SlotBag) {
+    for (const [pname, infoValue] of info) {
         const resultValue = topResult.value[pname];
         if (!resultValue)
             return false;
 
-        if (resultValue.isArray && infoValue.isArray) {
+        if (resultValue instanceof Ast.ArrayValue && infoValue instanceof Ast.ArrayValue) {
             if (!arraySubset(infoValue.value, resultValue.value))
                 return false;
         } else {
@@ -147,9 +150,9 @@ function isInfoPhraseCompatibleWithResult(topResult, info) {
  * This checks two things: that all parameters are valid output parameters of the table,
  * and all parameters are filterable.
  */
-function isValidSearchQuestion(table, questions) {
-    for (let q of questions) {
-        const arg = table.schema.getArgument(q);
+function isValidSearchQuestion(table : Ast.Table, questions : string[]) {
+    for (const q of questions) {
+        const arg = table.schema!.getArgument(q);
         if (!arg || arg.is_input)
             return false;
         if (arg.getAnnotation('filterable') === false)
@@ -159,9 +162,9 @@ function isValidSearchQuestion(table, questions) {
 }
 
 
-function addParametersFromContext(toInvocation, fromInvocation) {
-    let newParams = new Set;
-    for (let in_param of toInvocation.in_params) {
+function addParametersFromContext(toInvocation : Ast.Invocation, fromInvocation : Ast.Invocation) {
+    const newParams = new Set<string>();
+    for (const in_param of toInvocation.in_params) {
         if (in_param.value.isUndefined)
             continue;
         newParams.add(in_param.name);
@@ -169,7 +172,7 @@ function addParametersFromContext(toInvocation, fromInvocation) {
 
     let cloned = false;
 
-    for (let in_param of fromInvocation.in_params) {
+    for (const in_param of fromInvocation.in_params) {
         if (in_param.value.isUndefined)
             continue;
         if (newParams.has(in_param.name))
@@ -186,11 +189,11 @@ function addParametersFromContext(toInvocation, fromInvocation) {
     return toInvocation;
 }
 
-function findChainParam(topResult, action) {
+function findChainParam(topResult : Ast.DialogueHistoryResultItem, action : Ast.Invocation) : string|undefined {
     const resultType = topResult.value.id.getType();
 
-    let chainParam = undefined;
-    for (let arg of action.schema.iterateArguments()) {
+    let chainParam : string|undefined = undefined;
+    for (const arg of action.schema!.iterateArguments()) {
         if (arg.type.equals(resultType)) {
             chainParam = arg.name;
             break;
@@ -199,8 +202,10 @@ function findChainParam(topResult, action) {
     return chainParam;
 }
 
-function isSimpleFilterTable(table) {
-    return table.isFilter && ((table.table.isCompute && table.table.table.isInvocation) || table.table.isInvocation);
+function isSimpleFilterTable(table : Ast.Table) : table is Ast.FilteredTable {
+    return table instanceof Ast.FilteredTable &&
+        ((table.table instanceof Ast.ComputeTable && table.table.table instanceof Ast.InvocationTable)
+         || table.table instanceof Ast.InvocationTable);
 }
 
 export {

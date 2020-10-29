@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -18,10 +18,13 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import assert from 'assert';
+import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
 
 import {
+    ContextInfo,
     makeAgentReply,
     addQuery,
 } from '../state_manip';
@@ -32,13 +35,13 @@ import {
 } from './refinement-helpers';
 
 
-function checkSearchResultPreamble(ctx, base, num, more) {
+function checkSearchResultPreamble(ctx : ContextInfo, base : string, num : Ast.Value|null, more : boolean) {
     if (base !== ctx.currentFunction)
         return null;
     if (num !== null) {
-        if (!num.equals(ctx.current.count))
+        if (!num.equals(ctx.current!.results!.count))
             return null;
-        if (more !== ctx.current.more)
+        if (more !== ctx.current!.results!.more)
             return null;
     }
 
@@ -49,14 +52,16 @@ function checkSearchResultPreamble(ctx, base, num, more) {
  * Agent act: the agent proposes to execute a different query statement (a refinement of
  * the current query).
  */
-function makeRefinementProposal(ctx, proposal) {
+function makeRefinementProposal(ctx : ContextInfo, proposal : Ast.Table) {
     // this if() can be false only with weird primitive templates
-    if (!(proposal.isFilter && proposal.table.isInvocation))
+    if (!(proposal instanceof Ast.FilteredTable && proposal.table instanceof Ast.InvocationTable))
         return null;
-    if (!C.isSameFunction(ctx.currentFunctionSchema, proposal.schema))
+    if (!C.isSameFunction(ctx.currentFunctionSchema!, proposal.schema!))
         return null;
 
-    const ctxFilterTable = C.findFilterTable(ctx.current.stmt.table);
+    const currentStmt = ctx.current!.stmt;
+    assert(currentStmt instanceof Ast.Command);
+    const ctxFilterTable = C.findFilterTable(currentStmt.table!);
     if (ctxFilterTable === null)
         return null;
 
@@ -68,13 +73,15 @@ function makeRefinementProposal(ctx, proposal) {
     return makeAgentReply(ctx, sysState, proposal);
 }
 
-function negativeProposalReply(ctx, [preamble, request]) {
+function negativeProposalReply(ctx : ContextInfo, [preamble, request] : [Ast.Table|null, Ast.Table|null]) {
     // discard if we have a preamble, because it's too complicated to check if the preamble is meaningful
     if (preamble !== null)
         return null;
+    if (!(request instanceof Ast.FilteredTable))
+        return null;
 
-    const proposal = ctx.aux;
-    if (!C.isSameFunction(ctx.currentFunctionSchema, request.schema))
+    const proposal = ctx.aux as Ast.FilteredTable;
+    if (!C.isSameFunction(ctx.currentFunctionSchema!, request.schema!))
         return null;
     const refined = refineFilterToChangeFilter(proposal.filter, request.filter);
     if (refined === null)
@@ -83,8 +90,8 @@ function negativeProposalReply(ctx, [preamble, request]) {
     return proposalReply(ctx, request, refineFilterToAnswerQuestion);
 }
 
-function positiveProposalReply(ctx) {
-    const proposal = ctx.aux;
+function positiveProposalReply(ctx : ContextInfo) {
+    const proposal = ctx.aux as Ast.FilteredTable;
     return proposalReply(ctx, proposal, refineFilterToAnswerQuestion);
 }
 
