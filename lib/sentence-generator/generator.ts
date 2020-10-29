@@ -1552,7 +1552,16 @@ function expandRuleSample(charts : Charts,
                     continue outerloop;
 
                 const from = charts[depth-1][currentExpansion.index].sampled;
-                assert(from.length > 0);
+                if (from.length === 0) {
+                    // uh oh!
+                    console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')}`);
+                    console.log(`pivotIdx = ${pivotIdx}`);
+                    console.log(`ltDSize =`, ltDSize);
+                    console.log(`leftCumProd =`, leftCumProd);
+                    console.log(`rightCumProd =`, rightCumProd);
+                    console.log(`pivotProbabilityCumsum =`, pivotProbabilityCumsum);
+                    throw new Error(`Unexpected empty chart for pivot`);
+                }
                 choices[i] = uniform(from, rng);
             } else {
                 if (!(currentExpansion instanceof NonTerminal)) {
@@ -1563,7 +1572,19 @@ function expandRuleSample(charts : Charts,
 
                     const chosenDepth = categoricalPrecomputed(ltDSize[i], maxdepth+1, rng);
                     const from = charts[chosenDepth][currentExpansion.index].sampled;
-                    assert(from.length > 0);
+                    if (from.length === 0) {
+                        // uh oh!
+                        console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')}`);
+                        console.log(`pivotIdx = ${pivotIdx}`);
+                        console.log(`currentIdx = ${i}`);
+                        console.log(`maxdepth = ${maxdepth}`);
+                        console.log(`chosenDepth = ${chosenDepth}`);
+                        console.log(`ltDSize =`, ltDSize);
+                        console.log(`leftCumProd =`, leftCumProd);
+                        console.log(`rightCumProd =`, rightCumProd);
+                        console.log(`pivotProbabilityCumsum =`, pivotProbabilityCumsum);
+                        throw new Error(`Unexpected empty chart for non-pivot`);
+                    }
                     choices[i] = uniform(from, rng);
                 }
             }
