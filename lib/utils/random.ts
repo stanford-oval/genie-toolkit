@@ -18,6 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import assert from 'assert';
 
 function choose<T>(from : T[], n : number, rng : () => number = Math.random) : T[] {
     if (n === 0)
@@ -49,25 +50,36 @@ function choose<T>(from : T[], n : number, rng : () => number = Math.random) : T
     return res;
 }
 
-function coin(prob : number, rng : () => number = Math.random) : boolean {
+function coin(prob : number, rng : () => number) : boolean {
     return rng() <= prob;
 }
-function uniform<T>(array : T[], rng : () => number = Math.random) : T {
+function uniform<T>(array : T[], rng : () => number) : T {
     return array[Math.floor(rng() * array.length)];
 }
-function categorical(weights : number[], rng : () => number = Math.random) : number {
+function categorical(weights : number[], rng : () => number) : number {
     const cumsum = new Array(weights.length);
     cumsum[0] = weights[0];
     for (let i = 1; i < weights.length; i++)
         cumsum[i] = cumsum[i-1] + weights[i];
+    return categoricalPrecomputed(cumsum, cumsum.length, rng);
+}
 
-    const value = rng() * cumsum[cumsum.length-1];
-
-    for (let i = 0; i < weights.length; i++) {
-        if (value <= cumsum[i])
+export function categoricalPrecomputed(cumsum : number[], arraylength = cumsum.length, rng : () => number) : number {
+    assert(arraylength <= cumsum.length);
+    const value = rng() * cumsum[arraylength-1];
+    for (let i = 0; i < arraylength; i++) {
+        // note: this must be < because in some rare cases the rng() will
+        // produce exactly 0, in which case with <= we'll return the first element
+        // in the array even if the probability is 0
+        // < is incorrect for the last element (when the rng() returns exactly 1)
+        // but we'll return the last element if no element is found
+        if (value < cumsum[i]) {
+            // the element we return must have positive probability
+            assert((i === 0 && cumsum[i] > 0) || (i > 0 && cumsum[i] - cumsum[i-1] > 0));
             return i;
+        }
     }
-    return cumsum.length-1;
+    return arraylength-1;
 }
 
 function swap<T>(array : T[], i : number, j : number) : void {
@@ -77,14 +89,14 @@ function swap<T>(array : T[], i : number, j : number) : void {
 }
 
 // inplace array shuffle
-function shuffle<T>(array : T[], rng : () => number = Math.random) : void {
+function shuffle<T>(array : T[], rng : () => number) : void {
     for (let i = 0; i < array.length-1; i++) {
         const idx = Math.floor(rng() * (array.length - i));
         swap(array, i, i+idx);
     }
 }
 
-function randint(low : number, high : number, rng : () => number = Math.random) : number {
+function randint(low : number, high : number, rng : () => number) : number {
     return Math.round(low + (high - low) * rng());
 }
 
