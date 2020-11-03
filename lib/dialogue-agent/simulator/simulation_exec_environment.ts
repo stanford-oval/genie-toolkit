@@ -378,13 +378,16 @@ class SimulationExecEnvironment extends ExecEnvironment {
         const schema = await this._schemas.getMeta(kind, 'action', fname);
 
         const fromDB = await this._tryFromSimulationDatabase(schema, 'action', kind, fname, params, null);
-        if (fromDB)
-            return fromDB;
+        if (fromDB) {
+            for (const el of fromDB)
+                yield el;
+            return;
+        }
 
         // with some probability, fail the action
         if (this._simulateErrors && coin(0.1, this._rng)) {
             await this._failAction(schema);
-            return undefined;
+            return;
         }
 
         let anyOutArgument = false;
@@ -396,9 +399,7 @@ class SimulationExecEnvironment extends ExecEnvironment {
         }
 
         if (anyOutArgument)
-            return [[outputType, this.generator!.generate(schema, params, 0)]];
-
-        return undefined;
+            yield [outputType, this.generator!.generate(schema, params, 0)];
     }
 
     private _tryFromSimulationDatabase(schema : Ast.FunctionDef,
@@ -551,13 +552,17 @@ class SimulationExecEnvironment extends ExecEnvironment {
                        hints : CompiledQueryHints) : AsyncIterable<[string, Record<string, unknown>]> {
         const functionKey = kind + ':' + fname;
         const cached = this._findInCache(functionKey, params);
-        if (cached)
-            return Promise.resolve(cached);
+        if (cached) {
+            for (const el of cached)
+                yield el;
+            return;
+        }
 
         const [list, cacheable] = await this._doInvokeQuery(kind, fname, params, hints);
         if (cacheable)
             this._execCache.push([functionKey, params, list]);
-        return list;
+        for (const el of list)
+            yield el;
     }
 }
 

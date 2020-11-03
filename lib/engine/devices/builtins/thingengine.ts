@@ -46,6 +46,8 @@ export default class ThingEngineDevice extends Tp.BaseDevice {
     identity : string;
     address : string;
     own : true;
+    cloudId : string|undefined;
+    developerKey : string|null|undefined;
 
     _tierManager : TierManager;
 
@@ -64,7 +66,11 @@ export default class ThingEngineDevice extends Tp.BaseDevice {
         // "friendly" API access
         this._tierManager = engine._tiers;
 
+        this.cloudId = undefined;
+        this.developerKey = undefined;
         if (this.tier === Tp.Tier.CLOUD) {
+            this.cloudId = state.cloudId!;
+            this.developerKey = state.developerKey;
             this._checkCloudIdDevKey(state);
             if (this._tierManager.ownTier !== Tp.Tier.CLOUD)
                 (engine.platform as PlatformWithDeveloperKey).setDeveloperKey(state.developerKey);

@@ -10,6 +10,8 @@ sources = \
 	lib/*/*.ts \
 	lib/*/*/*.js \
 	lib/*/*/*.ts \
+	lib/*/*/*/*.js \
+	lib/*/*/*/*.ts \
 	tool/*.js \
 	tool/*.ts \
 	tool/*/*.js \

@@ -15,4 +15,4 @@ S4000227894	if something happens on my security camera retrieve what philips hue
 S4000511177	setup thingengine when a file is modified on google drive	"monitor (@com.google.drive.list_drive_files()) => @org.thingpedia.builtin.thingengine.builtin.configure(device=""org.thingpedia.builtin.thingengine""^^tt:device);"
 S4000113241	notify me should photos in album “X” on facebook change and after 7:30 am	"edge (monitor (@com.facebook.list_photos(album=""x""))) on @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= new Time(7, 30) } => notify;"
 S4000123458	who is the sender of my emails	now => @com.gmail.inbox() => notify;
-S4000123459	order a coffee	now => @org.thingpedia.demo.coffee.order();
+S4000123459	order a coffee	now => @org.thingpedia.demo.coffee.order(beverage=$?, delivery_location=$?, size=$?);

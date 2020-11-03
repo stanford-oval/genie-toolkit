@@ -439,6 +439,10 @@ export function createMockEngine(thingpedia, rng, database) {
             return devices.map((d) => toDeviceInfo(d));
         },
 
+        getDeviceInfo(uniqueId) {
+            return toDeviceInfo(this.devices.getDevice(uniqueId));
+        },
+
         createDevice(blob) {
             return this.devices.addSerialized(blob);
         }

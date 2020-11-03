@@ -18,22 +18,22 @@ jobs:
       - travis_retry npm ci
       script:
       - npm run lint
-      - npm run doc
-      - TZ="America/Los_Angeles" npx nyc ts-node ./test/unit
+      #- npm run doc
+      - TZ="America/Los_Angeles" npx nyc ts-node -T ./test/unit
       after_success: npm run coverage
     -
       name: "Dialogue Agent Tests"
       install:
       - travis_retry npm ci
       script:
-      - TZ="America/Los_Angeles" npx nyc ts-node ./test/agent
+      - TZ="America/Los_Angeles" npx nyc ts-node -T ./test/agent
       after_success: npm run coverage
     -
       name: "Engine Tests"
       install:
       - travis_retry npm ci
       script:
-      - TZ="America/Los_Angeles" npx nyc ts-node ./test/engine
+      - TZ="America/Los_Angeles" npx nyc ts-node -T ./test/engine
       after_success: npm run coverage
     -
       name: "Command-line Tests"

@@ -241,7 +241,7 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         return candidates;
     }
 
-    private async _tryGetCurrentLocation() {
+    private async _tryGetCurrentLocation() : Promise<Ast.AbsoluteLocation|null> {
         const gps = this._platform.getCapability('gps');
         if (gps === null)
             return null;
@@ -301,11 +301,14 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
     }
 
     protected async resolveUserContext(variable : string) : Promise<Ast.Value> {
-        let value;
+        let value : Ast.Value|null = null;
         switch (variable) {
-            case '$context.location.current_location':
-                value = await this._tryGetCurrentLocation();
+            case '$context.location.current_location': {
+                const location = await this._tryGetCurrentLocation();
+                if (location)
+                    value = new Ast.Value.Location(location);
                 break;
+            }
             case '$context.location.home':
             case '$context.location.work':
                 value = this._tryGetStoredVariable(ThingTalk.Type.Location, variable);

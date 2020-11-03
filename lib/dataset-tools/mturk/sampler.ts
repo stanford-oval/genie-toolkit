@@ -231,8 +231,8 @@ class SentenceProcessor {
         let num_pp = 0;
         let num_filters = 0;
         const functions = [];
-        for (let i = 0; i < code.length; i++) {
-            const token = code[i];
+        for (let i = 0; i < tokens.length; i++) {
+            const token = tokens[i];
 
             if (token.startsWith('@') && token !== '@org.thingpedia.builtin.thingengine.builtin.say') {
                 if (this._functionBlackList && this._functionBlackList.has(token))
@@ -250,15 +250,15 @@ class SentenceProcessor {
                 functions.push(token);
             }
             if (token.startsWith('param:')
-                && i < code.length -2 &&
-                code[i+1] === '=' &&
-                code[i+2].startsWith('param:'))
+                && i < tokens.length -2 &&
+                tokens[i+1] === '=' &&
+                tokens[i+2].startsWith('param:'))
                 num_pp++;
             if (token.startsWith('param:')
-                && i < code.length -1
-                && ['==', '>=', '<=', '=~', '!=', 'contains', 'in_array', 'starts_with', 'ends_with'].indexOf(code[i+1]) >= 0
+                && i < tokens.length -1
+                && ['==', '>=', '<=', '=~', '!=', 'contains', 'in_array', 'starts_with', 'ends_with'].indexOf(tokens[i+1]) >= 0
                 && i >= 2
-                && !code[i-2].startsWith('param:'))
+                && !tokens[i-2].startsWith('param:'))
                 num_filters++;
         }
         const function_signature = functions.join('+');
@@ -267,7 +267,7 @@ class SentenceProcessor {
             return null;
         let prim_type = 'compound';
         if (num_functions < 2) {
-            if (code[0] === 'now' && code[code.length - 1] !== 'notify')
+            if (tokens[0] === 'now' && tokens[tokens.length - 1] !== 'notify')
                 prim_type = 'action';
             else
                 prim_type = 'query';
@@ -299,7 +299,7 @@ class SentenceProcessor {
 
         let program;
         try {
-            program = NNSyntax.fromNN(code, ((entity : string, param : string|null, functionname : string|null, unit : string|null) =>
+            program = NNSyntax.fromNN(tokens, ((entity : string, param : string|null, functionname : string|null, unit : string|null) =>
                 this._entityRetriever(entity, param, functionname, unit, { forContext: false })) as unknown as EntityMap /* FIXME */);
             await program.typecheck(this._schemaRetriever, false);
         } catch(e) {
@@ -355,7 +355,7 @@ class SentenceProcessor {
                     break;
                 }
             }
-            if (assistant_action === null) {
+            if (assistant_action === '') {
                 if (context instanceof Ast.Program && context.rules.every((r) => r instanceof Ast.Command && r.actions.every((a) => a instanceof Ast.NotifyAction)))
                     assistant_action = 'result';
                 else
