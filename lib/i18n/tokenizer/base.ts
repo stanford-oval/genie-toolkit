@@ -101,13 +101,26 @@ const TOUCH_TONES : Record<string, string> = {
     z: '9',
 };
 
+// This interface exists so that we don't depend on Lexer in the public
+// interface, so the generated .d.ts will not try to load flex-js and die
+// miserably
+interface LexerLike<TokenType> {
+    index : number;
+    text : string;
+    state : string;
+
+    addRule(expr : RegExp, cb ?: (self : LexerLike<TokenType>) => TokenType) : void;
+}
+
 export default class BaseTokenizer {
-    protected _lexer : Lexer<Token>;
+    private _realLexer : Lexer<Token>;
+    protected _lexer : LexerLike<Token>;
 
     constructor() {
-        this._lexer = new Lexer();
+        this._realLexer = new Lexer();
+        this._lexer = this._realLexer;
 
-        this._lexer.setIgnoreCase(true);
+        this._realLexer.setIgnoreCase(true);
 
         // IMPORTANT NOTE for reading this
         // this is a classic longest-match-first (greedy) lexical analyzer
@@ -138,11 +151,11 @@ export default class BaseTokenizer {
     protected _addDefinition(name : string, expansion : RegExp) {
         // HACK: the "addDefinition" function of Lexer does not recursively expand definitions, so we need to do that ourselves
         let source = expansion.source;
-        for (const name in this._lexer.definitions) {
+        for (const name in this._realLexer.definitions) {
             const replace = new RegExp('{' + name + '}', 'ig');
-            source = source.replace(replace, '(?:' + this._lexer.definitions[name] + ')');
+            source = source.replace(replace, '(?:' + this._realLexer.definitions[name] + ')');
         }
-        this._lexer.addDefinition(name, new RegExp(source));
+        this._realLexer.addDefinition(name, new RegExp(source));
     }
 
     protected _initBase() {
@@ -211,7 +224,7 @@ export default class BaseTokenizer {
     }
 
     protected _initQuotedStrings() {
-        function makeQuotedString(lexer : Lexer<Token>) {
+        function makeQuotedString(lexer : LexerLike<Token>) {
             const content = lexer.text.substring(1, lexer.text.length-1);
             return makeToken(lexer.index, lexer.text, '“' + content + '”', 'QUOTED_STRING', content);
         }
@@ -515,7 +528,7 @@ export default class BaseTokenizer {
         // apply compatibility normalizations of certain exotic Unicode characters, and split out
         // combining characters
         text = text.normalize('NFKD');
-        this._lexer.setSource(text);
+        this._realLexer.setSource(text);
 
         const assignments : Record<string, Map<AnyEntity, number>> = {};
         const entities : EntityMap = {};
@@ -523,7 +536,7 @@ export default class BaseTokenizer {
         const tokens : string[] = [];
 
         let token : Token|(typeof Lexer.EOF);
-        while ((token = this._lexer.lex()) !== Lexer.EOF) {
+        while ((token = this._realLexer.lex()) !== Lexer.EOF) {
             rawTokens.push(token.normalized);
             if (token.type) {
                 let assigned = assignments[token.type];

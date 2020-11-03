@@ -158,7 +158,7 @@ class ResultGenerator {
         if (reused !== undefined)
             return reused;
 
-        const newTime = new ThingTalk.Builtin.Time(randint(0, 23), randint(0, 59), 0);
+        const newTime = new ThingTalk.Builtin.Time(randint(0, 23, this._rng), randint(0, 59, this._rng), 0);
         this._constants.get('TIME')!.push(newTime);
         return newTime;
     }

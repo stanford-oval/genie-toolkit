@@ -537,12 +537,6 @@ export default class ParameterReplacer {
                 continue;
             }
 
-            if (arg && arg.metadata.pluralize && coin(0.5, this._rng)) {
-                const plural = this._paramLangPack.pluralize(sampled);
-                if (plural)
-                    return { sentenceValue: plural, programValue: sampled };
-            }
-
             return this._transformValue(sampled, sampled, arg);
         }
         this._warn(`failreplace:${slot.tag}:${slot.type}`, `Could not replace ${valueListKey} even after ${this._numAttempts} attempts for slot ${slot}`);

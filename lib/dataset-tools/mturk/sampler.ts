@@ -533,7 +533,7 @@ const SAMPLING_STRATEGIES : {
                 if (sentences.length < 20000) {
                     sentences.push(newSentence);
                     bags.set(newSentence, bag);
-                } else if (coin(20000/state.s)) {
+                } else if (coin(20000/state.s, options.rng)) {
                     const i = Math.floor(options.rng()*20000);
                     const toDelete = sentences[i];
                     bags.delete(toDelete);
@@ -551,7 +551,7 @@ const SAMPLING_STRATEGIES : {
 
             if (bag2.length < 3) {
                 bag2.push(result);
-            } else if (coin(3/bag2.n)) {
+            } else if (coin(3/bag2.n, options.rng)) {
                 const i = Math.floor(options.rng()*3);
                 bag2[i] = result;
             }

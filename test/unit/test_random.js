@@ -74,13 +74,107 @@ function testReservoirSampler(rng) {
     assert.deepStrictEqual(Array.from(sampler), [6, 9, 8]);
 }
 
+function testCategorical(rng) {
+    let weights = [1, 0, 1, 2];
+    let samples = [0, 0, 0, 0];
+
+    for (let i = 0; i < 10000; i++) {
+        const sample = random.categorical(weights, rng);
+        assert(sample >= 0);
+        assert(sample <= 3);
+        samples[sample] += 1;
+    }
+
+    assert.deepStrictEqual(samples, [ 2481, 0, 2498, 5021 ]);
+
+    weights = [0, 0, 0, 1];
+    samples = [0, 0, 0, 0];
+
+    for (let i = 0; i < 10000; i++) {
+        const sample = random.categorical(weights, rng);
+        assert(sample >= 0);
+        assert(sample <= 3);
+        samples[sample] += 1;
+    }
+
+    assert.deepStrictEqual(samples, [ 0, 0, 0, 10000 ]);
+
+    weights = [1, 0, 0, 0];
+    samples = [0, 0, 0, 0];
+
+    for (let i = 0; i < 10000; i++) {
+        const sample = random.categorical(weights, rng);
+        assert(sample >= 0);
+        assert(sample <= 3);
+        samples[sample] += 1;
+    }
+
+    assert.deepStrictEqual(samples, [ 10000, 0, 0, 0 ]);
+}
+
+function testCategoricalPrecomputed(rng) {
+    let cumsum = [1, 2, 3, 4];
+    let samples = [0, 0, 0, 0];
+
+    for (let i = 0; i < 10000; i++) {
+        const sample = random.categoricalPrecomputed(cumsum, cumsum.length, rng);
+        assert(sample >= 0);
+        assert(sample <= 3);
+        samples[sample] += 1;
+    }
+    assert.deepStrictEqual(samples, [ 2479, 2452, 2546, 2523 ]);
+
+    samples = [0, 0, 0, 0];
+    for (let i = 0; i < 10000; i++) {
+        const sample = random.categoricalPrecomputed(cumsum, cumsum.length-1, rng);
+        assert(sample >= 0);
+        assert(sample <= 3);
+        samples[sample] += 1;
+    }
+    assert.deepStrictEqual(samples, [ 3330, 3366, 3304, 0 ]);
+
+    cumsum = [0, 0, 0, 1];
+    samples = [0, 0, 0, 0];
+    for (let i = 0; i < 10000; i++) {
+        const sample = random.categoricalPrecomputed(cumsum, cumsum.length, rng);
+        assert(sample >= 0);
+        assert(sample <= 3);
+        samples[sample] += 1;
+    }
+    assert.deepStrictEqual(samples, [ 0, 0, 0, 10000 ]);
+
+    cumsum = [0, 0, 1, 1];
+    samples = [0, 0, 0, 0];
+    for (let i = 0; i < 10000; i++) {
+        const sample = random.categoricalPrecomputed(cumsum, cumsum.length, rng);
+        assert(sample >= 0);
+        assert(sample <= 3);
+        samples[sample] += 1;
+    }
+    assert.deepStrictEqual(samples, [ 0, 0, 10000, 0 ]);
+
+    cumsum = [0, 0, 1, 2];
+    samples = [0, 0, 0, 0];
+    for (let i = 0; i < 10000; i++) {
+        const sample = random.categoricalPrecomputed(cumsum, cumsum.length, rng);
+        assert(sample >= 0);
+        assert(sample <= 3);
+        samples[sample] += 1;
+    }
+    assert.deepStrictEqual(samples, [ 0, 0, 5045, 4955 ]);
+}
+
+
 async function main() {
     const rng = seedrandom.alea('test almond');
 
     await testChoice(rng);
     await testShuffle(rng);
     await testReservoirSampler(rng);
+    await testCategorical(rng);
+    await testCategoricalPrecomputed(rng);
 }
+
 export default main;
 if (!module.parent)
     main();

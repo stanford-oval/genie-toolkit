@@ -113,8 +113,10 @@ function computePrediction(oldState : Ast.DialogueState|null, newState : Ast.Dia
             if (!oldItem.equals(newItem)) {
                 console.log(oldItem.prettyprint());
                 console.log(newItem.prettyprint());
+                console.log(oldItem);
+                console.log(newItem);
+                throw new Error(`Items unexpectedly different in computing prediction`);
             }
-            assert(oldItem.equals(newItem));
         }
     }
 
