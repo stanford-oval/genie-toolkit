@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -27,23 +27,28 @@
 // - a question (= "recommendation_search_question_pair")
 // - closing the dialogue (= "recommendation_cancel_pair")
 
+import { Ast, } from 'thingtalk';
+
 import * as C from '../../ast_manip';
 import * as D from '../../dialogue_acts';
+import * as S from '../../state_manip';
+
+import { SlotBag } from '../../slot_bag';
 
 // import thingpedia info
 import _tpLoader from '../../load-thingpedia';
 
-question_system_recommendation_short = {
+question_system_recommendation_short : D.Recommendation = {
     ctx:ctx_with_result_and_action 'how about' proposal:constant_name
         => D.makeRecommendation(ctx, proposal);
 }
 
-action_recommendation = {
+action_recommendation : D.Recommendation = {
     ctx:ctx_with_result_and_action ('would you like to' | 'would you like me to') action:contextual_action_phrase if complete [weight=0.1]
         => D.makeActionRecommendation(ctx, action);
 }
 
-actionable_system_recommendation_short = {
+actionable_system_recommendation_short : D.Recommendation = {
     ctx:ctx_with_result_noquestion proposal:thingpedia_result if complete [priority=2]
         => D.makeThingpediaRecommendation(ctx, proposal);
     ctx:ctx_with_result_noquestion proposal:thingpedia_result if complete [priority=2]
@@ -67,9 +72,9 @@ actionable_system_recommendation_short = {
     }
 }
 
-recommendation_info_action_pair = {
+recommendation_info_action_pair : [SlotBag, Ast.Invocation|null] = {
     'is a' info:result_info_phrase '.' action:action_coref_recommendation [weight=0.8] => {
-        const resultType = info.schema.getArgType('id');
+        const resultType = info.schema!.getArgType('id');
 
         if (!resultType || !C.hasArgumentOfType(action, resultType))
             return null;
@@ -81,19 +86,19 @@ recommendation_info_action_pair = {
     };
 }
 
-user_question_answer_begin = {
+user_question_answer_begin : D.Recommendation = {
     ctx:ctx_with_result_question proposal:constant_name
         => D.makeRecommendation(ctx, proposal);
 }
 
-direct_user_question_answer = {
+direct_user_question_answer : D.Recommendation = {
     ctx:ctx_with_result_question info:direct_result_info_phrase
         => D.makeThingpediaRecommendation(ctx, info);
 }
 
-proposal_info_action_pair = {
+proposal_info_action_pair : [SlotBag, Ast.Invocation|null] = {
     'is a' info:result_info_phrase '.' action:action_coref_recommendation [weight=0.8] => {
-        const resultType = info.schema.getArgType('id');
+        const resultType = info.schema!.getArgType('id');
 
         if (!resultType || !C.hasArgumentOfType(action, resultType))
             return null;
@@ -107,13 +112,13 @@ proposal_info_action_pair = {
     }
 }
 
-actionable_system_display_result_short = {
+actionable_system_display_result_short : D.Recommendation = {
     ctx:ctx_with_result info:thingpedia_result '.' if complete [priority=10]
         => D.makeDisplayResult(ctx, info);
 }
 
 // a non-list result
-system_nonlist_result = {
+system_nonlist_result : D.Recommendation = {
     actionable_system_display_result_short;
 
     ctx:ctx_with_result info:direct_result_info_phrase
@@ -137,7 +142,7 @@ system_nonlist_result = {
 // and action to do with it
 // the action can come from the context (if the user expressed it earlier), or it can
 // be offered immediately
-system_recommendation = {
+system_recommendation : D.Recommendation = {
     ( ctx_with_action proposal:question_system_recommendation_short '.'
     | ctx_with_action proposal:actionable_system_recommendation_short '.'
     ) => proposal;
@@ -180,23 +185,23 @@ system_recommendation = {
     | proposal:user_question_answer_begin pair:proposal_info_action_pair [weight=2]
     ) => {
         const [info, action] = pair;
-        proposal = D.checkRecommendation(proposal, info);
-        if (proposal === null)
+        const maybeProposal = D.checkRecommendation(proposal, info);
+        if (maybeProposal === null)
             return null;
-        const { topResult, } = proposal;
+        const { topResult, } = maybeProposal;
         // reset the action to null if the agent explicitly asks to "learn more"
         if (action === null)
             return { hasLearnMore: true, topResult, info, action: null };
-        return D.checkActionForRecommendation(proposal, action);
+        return D.checkActionForRecommendation(maybeProposal, action);
     };
 }
 
-recommendation_accept_phrase_with_action = {
+recommendation_accept_phrase_with_action : Ast.Invocation = {
     accept_phrase generic_preamble_for_action action:coref_action_command => action;
 }
 
-recommendation_accept_phrase_by_name = {
+recommendation_accept_phrase_by_name : [Ast.EntityValue, Ast.Invocation|null] = {
     name:generic_list_proposal_accept_phrase => [name, null];
     name:list_proposal_accept_phrase_must_have_action => [name, null];
-    accept:list_proposal_accept_phrase_with_action => accept;
+    accept:list_proposal_accept_phrase_with_action => [accept[0], accept[1]];
 }

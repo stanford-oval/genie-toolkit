@@ -114,7 +114,7 @@ rules:
         before: false
         after: true
       method:
-        before: false
+        before: true
         after: false
   '@typescript-eslint/type-annotation-spacing':
     - error

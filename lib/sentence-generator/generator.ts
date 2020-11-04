@@ -39,6 +39,7 @@ import {
     LogLevel,
 
     Choice,
+    Placeholder,
     Context,
     Derivation,
     NonTerminal,
@@ -47,7 +48,7 @@ import {
 } from './runtime';
 import { importGenie } from './compiler';
 
-type RuleExpansionChunk = string | Choice | NonTerminal;
+type RuleExpansionChunk = string | Choice | Placeholder | NonTerminal;
 
 interface RuleAttributes {
     weight ?: number;

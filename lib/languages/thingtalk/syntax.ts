@@ -26,7 +26,7 @@ import { Ast, SchemaRetriever, Grammar, NNSyntax } from 'thingtalk';
 import GenieEntityRetriever from './entity-retriever';
 import type { EntityMap } from '../../utils/entity-utils';
 
-interface ParseOptions {
+export interface ParseOptions {
     thingpediaClient : Tp.BaseClient;
     schemaRetriever ?: SchemaRetriever;
 }
@@ -41,6 +41,8 @@ export async function parse(code : string, options : ParseOptions) : Promise<Ast
     return state;
 }
 
+export function parsePrediction(code : string|string[], entities : EntityMap, options : ParseOptions, strict : true) : Promise<Ast.Input>;
+export function parsePrediction(code : string|string[], entities : EntityMap, options : ParseOptions, strict ?: boolean) : Promise<Ast.Input|null>;
 export async function parsePrediction(code : string|string[], entities : EntityMap, options : ParseOptions, strict = false) : Promise<Ast.Input|null> {
     const tpClient = options.thingpediaClient;
     if (!options.schemaRetriever)
@@ -73,7 +75,10 @@ interface SerializeOptions {
     ignoreSentence ?: boolean;
 }
 
-export function serializeNormalized(program : Ast.Input, entities : EntityMap = {}, options : SerializeOptions = {}) : [string[], EntityMap] {
+export function serializeNormalized(program : Ast.Input|null, entities : EntityMap = {}, options : SerializeOptions = {}) : [string[], EntityMap] {
+    if (program === null)
+        return [['null'], {}];
+
     options.allocateEntities = true;
     options.typeAnnotations = false;
     const code : string[] = NNSyntax.toNN(program, [], entities, options);

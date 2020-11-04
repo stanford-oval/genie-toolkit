@@ -25,85 +25,85 @@ const MAX_SMALL_INTEGER = 12;
 }
 
 for (let i = 0; i <= MAX_SMALL_INTEGER; i++)
-    constant_Number = #(String(i)) => new Ast.Value.Number(i);
+    constant_Number : Ast.NumberValue = #(String(i)) => new Ast.Value.Number(i);
 
-constant_String                    = const(QUOTED_STRING, Type.String);
+constant_String                    : Ast.StringValue = const(QUOTED_STRING, Type.String);
 
-constant_Entity__tt__url           = const(URL, new Type.Entity('tt:url'));
+constant_Entity__tt__url           : Ast.EntityValue = const(URL, new Type.Entity('tt:url'));
 
-constant_Entity__tt__username      = const(USERNAME, new Type.Entity('tt:username'));
-constant_Entity__tt__hashtag       = const(HASHTAG, new Type.Entity('tt:hashtag'));
-constant_Entity__tt__phone_number  = const(PHONE_NUMBER, new Type.Entity('tt:phone_number'));
-constant_Entity__tt__email_address = const(EMAIL_ADDRESS, new Type.Entity('tt:email_address'));
-constant_Entity__tt__path_name     = const(PATH_NAME, new Type.Entity('tt:path_name'));
+constant_Entity__tt__username      : Ast.EntityValue = const(USERNAME, new Type.Entity('tt:username'));
+constant_Entity__tt__hashtag       : Ast.EntityValue = const(HASHTAG, new Type.Entity('tt:hashtag'));
+constant_Entity__tt__phone_number  : Ast.EntityValue = const(PHONE_NUMBER, new Type.Entity('tt:phone_number'));
+constant_Entity__tt__email_address : Ast.EntityValue = const(EMAIL_ADDRESS, new Type.Entity('tt:email_address'));
+constant_Entity__tt__path_name     : Ast.EntityValue = const(PATH_NAME, new Type.Entity('tt:path_name'));
 
-constant_Number = const(NUMBER, Type.Number);
-constant_Currency = const(CURRENCY, Type.Currency);
-constant_Time = const(TIME, Type.Time);
-constant_Date = const(DATE, Type.Date);
-constant_Location = const(LOCATION, Type.Location);
+constant_Number   : Ast.NumberValue = const(NUMBER, Type.Number);
+constant_Currency : Ast.CurrencyValue = const(CURRENCY, Type.Currency);
+constant_Time     : Ast.Value = const(TIME, Type.Time);
+constant_Date     : Ast.Value = const(DATE, Type.Date);
+constant_Location : Ast.LocationValue = const(LOCATION, Type.Location);
 
-constant_Entity__tt__picture  = {}
-constant_Entity__tt__function = {}
-constant_Entity__tt__program  = {}
-constant_Entity__tt__device   = {}
-constant_Boolean = {}
-constant_RecurrentTimeSpecification = {}
+constant_Entity__tt__picture  : Ast.EntityValue = {}
+constant_Entity__tt__function : Ast.EntityValue = {}
+constant_Entity__tt__program  : Ast.EntityValue = {}
+constant_Entity__tt__device   : Ast.EntityValue = {}
+constant_Boolean : Ast.BooleanValue = {}
+constant_RecurrentTimeSpecification : Ast.RecurrentTimeSpecificationValue = {}
 
-constant_Measure_ms = {
+constant_Measure_ms : Ast.Value = {
     ?inference const(MEASURE_ms, new Type.Measure('ms'));
 }
-constant_Measure_byte = {
+constant_Measure_byte : Ast.Value = {
     ?inference const(MEASURE_byte, new Type.Measure('byte'));
 }
-constant_Measure_kg = {
+constant_Measure_kg : Ast.Value = {
     ?inference const(MEASURE_kg, new Type.Measure('kg'));
 }
-constant_Measure_C = {
+constant_Measure_C : Ast.Value = {
     ?inference const(MEASURE_C, new Type.Measure('C'));
 }
-constant_Measure_m = {
+constant_Measure_m : Ast.Value = {
     ?inference const(MEASURE_m, new Type.Measure('m'));
 }
-constant_Measure_m2 = {
+constant_Measure_m2 : Ast.Value = {
     ?inference const(MEASURE_m2, new Type.Measure('m2'));
 }
-constant_Measure_m3 = {
+constant_Measure_m3 : Ast.Value = {
     ?inference const(MEASURE_m3, new Type.Measure('m3'));
 }
-constant_Measure_m2 = {
+constant_Measure_m2 : Ast.Value = {
     ?inference const(MEASURE_m2, new Type.Measure('m2'));
 }
-constant_Measure_m3 = {
+constant_Measure_m3 : Ast.Value = {
     ?inference const(MEASURE_m3, new Type.Measure('m3'));
 }
-constant_Measure_mps = {
+constant_Measure_mps : Ast.Value = {
     ?inference const(MEASURE_mps, new Type.Measure('mps'));
 }
-constant_Measure_Pa = {
+constant_Measure_Pa : Ast.Value = {
     ?inference const(MEASURE_Pa, new Type.Measure('Pa'));
 }
-constant_Measure_kcal = {
+constant_Measure_kcal : Ast.Value = {
     ?inference const(MEASURE_kcal, new Type.Measure('kcal'));
 }
-constant_Measure_W = {
+constant_Measure_W : Ast.Value = {
     ?inference const(MEASURE_W, new Type.Measure('W'));
 }
-constant_Measure_lx = {
+constant_Measure_lx : Ast.Value = {
     ?inference const(MEASURE_lx, new Type.Measure('lx'));
 }
-constant_Measure_lm = {
+constant_Measure_lm : Ast.Value = {
     ?inference const(MEASURE_lm, new Type.Measure('lm'));
 }
-constant_Measure_dB = {
+constant_Measure_dB : Ast.Value = {
     ?inference const(MEASURE_dB, new Type.Measure('dB'));
 }
-constant_Measure_dBm = {
+constant_Measure_dBm : Ast.Value = {
     ?inference const(MEASURE_dBm, new Type.Measure('byte'));
 }
 
 // this is used for equality filtering, so !turking anything that is weird when equality compared
-constant_Any = {
+constant_Any : Ast.Value = {
     !unbalanced {
         constant_String [repeat=true];
     }

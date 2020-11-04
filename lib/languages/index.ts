@@ -37,12 +37,20 @@ const _languages = {
 };
 
 export type TargetLanguage = (typeof _languages)[keyof typeof _languages];
+export type ThingTalkTarget = typeof ThingTalk;
+export type MultiDSTTarget = typeof MultiDST;
+
+export type ParseOptions = ThingTalk.ParseOptions;
 
 export type DialogueState = ReturnType<TargetLanguage['computePrediction']>;
 export type Program = ReturnType<TargetLanguage['parse']> extends Promise<infer T> ? T : never;
 
 export type Simulator = ReturnType<TargetLanguage['createSimulator']>;
 
+export function get(targetLanguage ?: 'thingtalk') : ThingTalkTarget;
+export function get(targetLanguage : 'dlgthingtalk') : ThingTalkTarget;
+export function get(targetLanguage : 'multidst') : MultiDSTTarget;
+export function get(targetLanguage ?: string) : TargetLanguage;
 export function get(targetLanguage ?: string) : TargetLanguage {
     if (targetLanguage === undefined || targetLanguage === 'dlgthingtalk')
         targetLanguage = 'thingtalk';

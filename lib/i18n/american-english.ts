@@ -211,8 +211,8 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
         return sentence.trim();
     }
 
-    detokenize(sentence : string, prevtoken : string, token : string) : string {
-        if (token === '.' && /[.!?]$/.test(prevtoken))
+    detokenize(sentence : string, prevtoken : string|null, token : string) : string {
+        if (token === '.' && prevtoken && /[.!?]$/.test(prevtoken))
             return sentence;
         if (!token)
             return sentence;

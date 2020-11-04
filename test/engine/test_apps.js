@@ -682,6 +682,7 @@ function testTimerSequence(engine, conversation) {
     });
 }
 
+/*
 async function testGetContext(engine, icon = null) {
     const app = await engine.createApp('now => @org.thingpedia.builtin.test.dup_data(data_in=$context.selection: String) => notify;',
         { icon , name: 'some app', description: 'some app description' });
@@ -699,12 +700,6 @@ async function testGetContext(engine, icon = null) {
             data_in: 'Selected text'
         }
     }]);
-}
-
-function delay(ms) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, ms);
-    });
 }
 
 async function testSayContext(engine, icon = null) {
@@ -725,7 +720,13 @@ async function testSayContext(engine, icon = null) {
         }
     }]);
 }
+*/
 
+function delay(ms) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
 
 export default async function testApps(engine) {
     assert.deepStrictEqual(engine.apps.getAllApps(), []);
@@ -747,14 +748,13 @@ export default async function testApps(engine) {
     await testWhenErrorInit(engine);
     await testWhenErrorAsync(engine);
 
-    await testGetContext(engine);
+    //await testGetContext(engine);
+    //await testSayContext(engine);
 
     // these three must be exactly in this order
     await testGetSequence(engine);
     await testGetGetSequence(engine);
     await testTimerSequence(engine);
-
-    await testSayContext(engine);
 
     await delay(1000);
     assert.deepStrictEqual(engine.apps.getAllApps(), []);

@@ -23,7 +23,7 @@ import assert from 'assert';
 import { Ast, Type, SchemaRetriever } from 'thingtalk';
 
 import { shouldAutoConfirmStatement } from './dialogue_state_utils';
-import { contactSearch } from './entity-linking/contact_search';
+import { contactSearch, Contact } from './entity-linking/contact_search';
 import { collectDisambiguationHints, getBestEntityMatch, EntityRecord } from './entity-linking/entity-finder';
 
 import * as Helpers from './helpers';
@@ -48,10 +48,10 @@ interface AbstractStatementExecutor<PrivateStateType> {
     executeStatement(stmt : Ast.Rule|Ast.Command, privateState : PrivateStateType|undefined) : Promise<[Ast.DialogueHistoryResultList, PrivateStateType]>;
 }
 
-interface DisambiguationHints {
+export interface DisambiguationHints {
     devices : Map<string, [string|null, Ast.InputParam|undefined]>;
     idEntities : Map<string, EntityRecord[]>;
-    previousLocations : Ast.Location[];
+    previousLocations : Ast.AbsoluteLocation[];
 }
 
 export interface DeviceInfo {
@@ -132,7 +132,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
     private _collectDisambiguationHintsForState(state : Ast.DialogueState) {
         const idEntities = new Map<string, EntityRecord[]>();
         const devices = new Map<string, [string|null, Ast.InputParam|undefined]>();
-        const previousLocations : Ast.Location[] = [];
+        const previousLocations : Ast.AbsoluteLocation[] = [];
 
         // collect all ID entities and all locations from the state
         for (const item of state.history) {
@@ -163,9 +163,8 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      *
      * @param {thingtalk.Ast.Statement} stmt - the statement to prepare
      * @param {any} hints - hints to use to resolve any ambiguity
-     * @protected
      */
-    private async _prepareForExecution(stmt : Ast.Rule|Ast.Command, hints : DisambiguationHints) : Promise<void> {
+    protected async _prepareForExecution(stmt : Ast.Rule|Ast.Command, hints : DisambiguationHints) : Promise<void> {
         // FIXME this method can cause a few questions that
         // bypass the neural network, which is not great
         //
@@ -288,7 +287,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
             const classDef = await this._schemas.getFullMeta(value.value!);
 
             value.display = classDef.metadata.thingpedia_name || classDef.metadata.canonical ||
-                Helpers.cleanKind(value.value);
+                Helpers.cleanKind(value.value!);
         } catch(e) {
             /* ignore if the device does not exist, it might be a constant of the form
                "str:ENTITY_tt:device::" */
@@ -313,7 +312,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
 
         if (value instanceof Ast.EntityValue && (value.type === 'tt:username' || value.type === 'tt:contact_name')
             && ptype instanceof Type.Entity && ptype.type !== value.type)
-            slot.set(await contactSearch(this, ptype, value.value));
+            slot.set(await contactSearch(this, ptype, value.value!));
             // continue resolving in case the new type is tt:contact
 
         // default units (e.g. defaultTemperature) will be concretized
@@ -329,11 +328,16 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         } else if (value instanceof Ast.TimeValue && value.value instanceof Ast.RelativeTime) {
             slot.set(await this.resolveUserContext('$context.time.' + value.value.relativeTag));
         } else if (value instanceof Ast.EntityValue && value.value === null) {
-            const candidates = (hints.idEntities ? hints.idEntities.get(value.type) : undefined)
-                || await this.lookupEntityCandidates(value.type, value.display!, hints);
-            const resolved = getBestEntityMatch(value.display!, value.type, candidates);
-            value.value = resolved.value;
-            value.display = resolved.name;
+            if (value.type === 'tt:email_address' || value.type === 'tt:phone_number' ||
+                value.type === 'tt:contact') {
+                slot.set(await contactSearch(this, ptype, value.display!));
+            } else {
+                const candidates = (hints.idEntities ? hints.idEntities.get(value.type) : undefined)
+                    || await this.lookupEntityCandidates(value.type, value.display!, hints);
+                const resolved = getBestEntityMatch(value.display!, value.type, candidates);
+                value.value = resolved.value;
+                value.display = resolved.name;
+            }
         }
 
         value = slot.get();
@@ -386,10 +390,10 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * @param {string} hint - a type-specific hint to show to the user
      * @returns {number} - the index of the provided choice
      */
-    protected async disambiguate(type : 'device'|'contact'|'entity',
-                                 name : string|null,
-                                 choices : string[],
-                                 hint : string) : Promise<number> {
+    async disambiguate(type : 'device'|'contact',
+                       name : string|null,
+                       choices : string[],
+                       hint ?: string) : Promise<number> {
         throw new TypeError('Abstract method');
     }
 
@@ -401,7 +405,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * @param {string} name - the name to look up
      * @returns {string[]} - the list of resolved information of all contacts matching the name
      */
-    protected async lookupContact(category : ValueCategory, name : string) : Promise<string[]> {
+    async lookupContact(category : ValueCategory, name : string) : Promise<Contact[]> {
         throw new TypeError('Abstract method');
     }
 
@@ -411,7 +415,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      *
      * @param {thingtalk.Ast.Value} contact - the entity to look up
      */
-    protected async addDisplayToContact(contact : Ast.Value) : Promise<void> {
+    protected async addDisplayToContact(contact : Ast.EntityValue) : Promise<void> {
         throw new TypeError('Abstract method');
     }
 
@@ -423,7 +427,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * @param {string} name - the name to look up
      * @returns {thingtalk.Ast.Value.Entity} - the entity corresponding to the picked up information
      */
-    protected async askMissingContact(category : ValueCategory, name : string) : Promise<Ast.EntityValue> {
+    async askMissingContact(category : ValueCategory, name : string) : Promise<Ast.EntityValue> {
         throw new TypeError('Abstract method');
     }
 
@@ -435,7 +439,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * @param {thingtalk.Ast.Location[]} previousLocations - recently mentioned locations
      * @returns {thingtalk.Ast.Value} - the best match for the given name
      */
-    protected async lookupLocation(searchKey : string, previousLocations : Ast.Location[]) : Promise<Ast.LocationValue> {
+    protected async lookupLocation(searchKey : string, previousLocations : Ast.AbsoluteLocation[]) : Promise<Ast.LocationValue> {
         throw new TypeError('Abstract method');
     }
 

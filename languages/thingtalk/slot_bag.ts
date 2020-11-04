@@ -26,10 +26,10 @@ import { Ast, Type } from 'thingtalk';
 import { isSameFunction } from './utils';
 
 class SlotBag {
-    schema : Ast.ExpressionSignature|null;
+    schema : Ast.FunctionDef|null;
     store : Map<string, Ast.Value>;
 
-    constructor(schema : Ast.ExpressionSignature|null) {
+    constructor(schema : Ast.FunctionDef|null) {
         this.schema = schema;
         this.store = new Map;
     }
@@ -63,10 +63,10 @@ class SlotBag {
     entries() : Iterable<[string, Ast.Value]> {
         return this.store.entries();
     }
-    get(key) : Ast.Value|undefined {
+    get(key : string) : Ast.Value|undefined {
         return this.store.get(key);
     }
-    has(key) : boolean {
+    has(key : string) : boolean {
         return this.store.has(key);
     }
     keys() : Iterable<string> {
@@ -75,7 +75,7 @@ class SlotBag {
     values() : Iterable<Ast.Value> {
         return this.store.values();
     }
-    [Symbol.iterator]() : Iterable<[string, Ast.Value]> {
+    [Symbol.iterator]() : IterableIterator<[string, Ast.Value]> {
         return this.store[Symbol.iterator]();
     }
     set(key : string, value : Ast.Value) : void {
@@ -94,7 +94,7 @@ function checkAndAddSlot(bag : SlotBag, filter : Ast.BooleanExpression) : SlotBa
     assert(bag instanceof SlotBag);
     if (!(filter instanceof Ast.AtomBooleanExpression))
         return null;
-    const arg = bag.schema.getArgument(filter.name);
+    const arg = bag.schema!.getArgument(filter.name);
     if (!arg || arg.is_input)
         return null;
     const ptype = arg.type;

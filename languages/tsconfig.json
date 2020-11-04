@@ -10,7 +10,7 @@
         "esModuleInterop": true,
         "moduleResolution": "node",
         "resolveJsonModule": true,
-        "strict": false,
+        "strict": true,
         "noUnusedLocals": true,
         "outDir": "../languages-dist",
         "rootDir": ".",

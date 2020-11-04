@@ -24,29 +24,25 @@ import { Ast, Type } from 'thingtalk';
 
 import * as C from '../../ast_manip';
 import * as D from '../../dialogue_acts';
+import * as S from '../../state_manip';
 
 // import thingpedia info
 import _tpLoader from '../../load-thingpedia';
 
-coref_action_phrase = {}
-contextual_action_phrase = {}
-list_coref_action_phrase = {}
+coref_action_phrase : Ast.Invocation = {}
+contextual_action_phrase : Ast.Invocation = {}
+list_coref_action_phrase : Ast.Invocation = {}
 
 for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
     // coref to one object (for recommendation)
-    coref_action_phrase = {
+    coref_action_phrase : Ast.Invocation = {
         ( action:thingpedia_action 'it'
         | action:thingpedia_action 'this'
         | action:thingpedia_action 'that'
-
-        | action:thingpedia_get_command 'it'
-        | action:thingpedia_get_command 'this'
-        | action:thingpedia_get_command 'that'
-
         ) [-> pname] => {
-            if (!action.isInvocation)
+            if (!(action instanceof Ast.InvocationAction))
                 return null;
-            const type = action.schema.getArgType(pname);
+            const type = action.schema!.getArgType(pname);
             if (!type || !(type instanceof Type.Entity))
                 return null;
             const replaced = C.replacePlaceholderWithUndefined(action, pname, typestr);
@@ -55,12 +51,37 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
             return replaced.invocation;
         };
 
-        ( action:thingpedia_action noun:the_base_noun_phrase
-        | action:thingpedia_get_command noun:the_base_noun_phrase
+        ( action:thingpedia_get_command 'it'
+        | action:thingpedia_get_command 'this'
+        | action:thingpedia_get_command 'that'
         ) [-> pname] => {
-            if (!action.isInvocation)
+            if (!(action instanceof Ast.InvocationTable))
                 return null;
-            const type = action.schema.getArgType(pname);
+            const type = action.schema!.getArgType(pname);
+            if (!type || !(type instanceof Type.Entity))
+                return null;
+            const replaced = C.replacePlaceholderWithUndefined(action, pname, typestr);
+            if (replaced === null)
+                return null;
+            return replaced.invocation;
+        };
+
+        action:thingpedia_action noun:the_base_noun_phrase [-> pname] => {
+            if (!(action instanceof Ast.InvocationAction))
+                return null;
+            const type = action.schema!.getArgType(pname);
+            if (!type || !(type instanceof Type.Entity) || type.type !== noun)
+                return null;
+            const replaced = C.replacePlaceholderWithUndefined(action, pname, typestr);
+            if (replaced === null)
+                return null;
+            return replaced.invocation;
+        };
+
+        action:thingpedia_get_command noun:the_base_noun_phrase [-> pname] => {
+            if (!(action instanceof Ast.InvocationTable))
+                return null;
+            const type = action.schema!.getArgType(pname);
             if (!type || !(type instanceof Type.Entity) || type.type !== noun)
                 return null;
             const replaced = C.replacePlaceholderWithUndefined(action, pname, typestr);
@@ -76,15 +97,26 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
         | action:thingpedia_action 'either of them'
         | action:thingpedia_action 'any of them'
         | action:thingpedia_action 'any one of them'
+        ) [-> pname] => {
+            if (!(action instanceof Ast.InvocationAction))
+                return null;
+            const type = action.schema!.getArgType(pname);
+            if (!type || !(type instanceof Type.Entity))
+                return null;
+            const replaced = C.replacePlaceholderWithUndefined(action, pname, typestr);
+            if (replaced === null)
+                return null;
+            return replaced.invocation;
+        };
 
-        | action:thingpedia_get_command 'either one'
+        ( action:thingpedia_get_command 'either one'
         | action:thingpedia_get_command 'either of them'
         | action:thingpedia_get_command 'any of them'
         | action:thingpedia_get_command 'any one of them'
         ) [-> pname] => {
-            if (!action.isInvocation)
+            if (!(action instanceof Ast.InvocationTable))
                 return null;
-            const type = action.schema.getArgType(pname);
+            const type = action.schema!.getArgType(pname);
             if (!type || !(type instanceof Type.Entity))
                 return null;
             const replaced = C.replacePlaceholderWithUndefined(action, pname, typestr);
@@ -96,13 +128,20 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
 
     // operate on an object by name - this rule is only available after the first turn
     contextual_action_phrase = {
-        ( action:thingpedia_action name:constant_name
-        | action:thingpedia_get_command name:constant_name
-        ) [-> pname { isConstant: true }] => {
-            if (!action.isInvocation)
+        action:thingpedia_action name:constant_name [-> pname { isConstant: true }] => {
+            if (!(action instanceof Ast.InvocationAction))
                 return null;
             const newAction = C.replacePlaceholderWithConstant(action, pname, name);
-            if (newAction === null || !(newAction instanceof Ast.Action.Invocation))
+            if (newAction === null)
+                return null;
+            return newAction.invocation;
+        };
+
+        action:thingpedia_get_command name:constant_name [-> pname { isConstant: true }] => {
+            if (!(action instanceof Ast.InvocationTable))
+                return null;
+            const newAction = C.replacePlaceholderWithConstant(action, pname, name);
+            if (newAction === null)
                 return null;
             return newAction.invocation;
         };
@@ -122,7 +161,7 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
 
 // proposals/recommendations from the agent
 
-action_coref_recommendation = {
+action_coref_recommendation : Ast.Invocation = {
     ( 'would you like to' action:coref_action_phrase '?' [priority=1]
     | 'would you like me to' action:coref_action_phrase ' for you ?' [priority=1]
     ) if complete => {
@@ -132,7 +171,7 @@ action_coref_recommendation = {
     };
 }
 
-action_coref_list_proposal = {
+action_coref_list_proposal : Ast.Invocation = {
     'would you like to' action:list_coref_action_phrase '?' if complete [priority=1] => {
         if (action.in_params.some((ip) => !ip.value.isUndefined))
             return null;
@@ -142,7 +181,7 @@ action_coref_list_proposal = {
 
 // sentences from the user
 
-coref_action_command = {
+coref_action_command : Ast.Invocation = {
     ctx:ctx_with_action base:coref_action_phrase if complete
         => D.contextualAction(ctx, base);
     ctx:ctx_without_action base:coref_action_phrase => base;
@@ -152,7 +191,7 @@ coref_action_command = {
     ) => C.addInvocationInputParam(action, param);
 }
 
-action_by_name_command = {
+action_by_name_command : Ast.Invocation = {
     ctx:ctx_incomplete_action base:contextual_action_phrase if complete
         => D.contextualAction(ctx, base);
     ctx:ctx_without_action base:contextual_action_phrase => base;
@@ -163,14 +202,14 @@ action_by_name_command = {
 }
 
 // an action command that continues an existing action command (used for slot-filling)
-action_continuation_command = {
+action_continuation_command : Ast.Invocation = {
     ( ctx:ctx_incomplete_action base:coref_action_phrase
     | ctx:ctx_incomplete_action base:contextual_action_phrase
     ) if complete => D.contextualAction(ctx, base);
     ( ctx:ctx_incomplete_action base:thingpedia_action
     | ctx:ctx_incomplete_action base:thingpedia_get_command
     ) if complete => {
-        if (!base.isInvocation)
+        if (!(base instanceof Ast.InvocationTable) && !(base instanceof Ast.InvocationAction))
             return null;
         return D.contextualAction(ctx, base.invocation);
     };
@@ -180,16 +219,16 @@ action_continuation_command = {
     ) => C.addInvocationInputParam(action, param);
 }
 
-continuation_query = {
+continuation_query : Ast.Invocation = {
     ctx:ctx_incomplete_action base:complete_table => {
-        if (!base.isInvocation)
+        if (!(base instanceof Ast.InvocationTable))
             return null;
         return D.contextualAction(ctx, base.invocation);
     };
 }
 
 // sentences from the agent
-action_description_phrase = {
+action_description_phrase : Ast.Invocation = {
     coref_action_phrase;
     action:thingpedia_action if complete => action.invocation;
 

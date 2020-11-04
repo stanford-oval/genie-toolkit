@@ -277,7 +277,10 @@ export async function execute(args) {
     const [functionBlackList, deviceBlackList, functionHighValueList, functionWhiteList, deviceWhiteList] =
         await parseSamplingControlFile(args.sampling_control);
 
-    const tpClient = new Tp.FileClient(args.locale, args.thingpedia, null);
+    const tpClient = new Tp.FileClient({
+        locale: args.locale,
+        thingpedia: args.thingpedia
+    });
     const schemaRetriever = new ThingTalk.SchemaRetriever(tpClient, null, !args.debug);
 
     const options = {

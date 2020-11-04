@@ -1,0 +1,107 @@
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+
+
+export enum MessageType {
+    // from user
+    COMMAND = 'command',
+
+    // from agent
+    TEXT = 'text',
+    PICTURE = 'picture',
+    CHOICE = 'choice',
+    LINK = 'link',
+    BUTTON = 'button',
+    RDL = 'rdl',
+    RESULT = 'result'
+}
+
+interface TextMessage {
+    id ?: number;
+    type : MessageType.TEXT;
+    text : string;
+    icon : string|null;
+}
+
+interface CommandMessage {
+    id ?: number;
+    type : MessageType.COMMAND;
+    command : string;
+    json ?: string;
+}
+
+interface PictureMessage {
+    id ?: number;
+    type : MessageType.PICTURE;
+    url : string;
+    icon : string|null;
+}
+
+export interface RDL {
+    displayTitle : string;
+    displayText ?: string;
+    webCallback : string;
+    callback ?: string;
+}
+
+interface RDLMessage {
+    id ?: number;
+    type : MessageType.RDL;
+    rdl : RDL;
+    icon : string|null;
+}
+
+interface ChoiceMessage {
+    id ?: number;
+    type : MessageType.CHOICE;
+    idx : number;
+    title : string;
+}
+
+interface LinkMessage {
+    id ?: number;
+    type : MessageType.LINK;
+    url : string;
+    title : string;
+}
+
+interface ButtonMessage {
+    id ?: number;
+    type : MessageType.BUTTON;
+    json : string;
+    title : string;
+}
+
+interface ResultMessage {
+    id ?: number;
+    type : MessageType.RESULT;
+    text : string;
+    result : unknown;
+    icon : string|null;
+}
+
+export type Message = TextMessage
+    | CommandMessage
+    | PictureMessage
+    | RDLMessage
+    | ChoiceMessage
+    | LinkMessage
+    | ButtonMessage
+    | ResultMessage;

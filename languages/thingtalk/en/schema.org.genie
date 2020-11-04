@@ -18,9 +18,11 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 
+import { Ast, } from 'thingtalk';
+
 import * as C from '../ast_manip';
 
-schema_with_filtered_table_join = {
+schema_with_filtered_table_join : Ast.Table = {
     // get-predicate form of join
     table:with_filtered_table ('with' | 'having' | 'that has' | 'that have' | 'which has' | 'which have') get_predicate_table:with_filtered_table
         => C.addGetPredicateJoin(table, get_predicate_table, null);
@@ -39,7 +41,7 @@ schema_with_filtered_table_join = {
         => C.addArrayJoin(lhs, rhs);
 }
 
-schema_have_filtered_table_join = {
+schema_have_filtered_table_join : Ast.Table = {
     // get-predicate form of join
     table:verb_filtered_table ('and' | 'and have' | 'and also' | 'and in addition' | 'but also') get_predicate_table:with_filtered_table
         => C.addGetPredicateJoin(table, get_predicate_table, null);

@@ -48,6 +48,21 @@ function makeFilter(loader : ThingpediaLoader,
                     pname : Ast.Value,
                     op : string,
                     value : Ast.Value,
+                    negate ?: false) : Ast.AtomBooleanExpression|null;
+function makeFilter(loader : ThingpediaLoader,
+                    pname : Ast.Value,
+                    op : string,
+                    value : Ast.Value,
+                    negate : true) : Ast.NotBooleanExpression|null;
+function makeFilter(loader : ThingpediaLoader,
+                    pname : Ast.Value,
+                    op : string,
+                    value : Ast.Value,
+                    negate : boolean) : Ast.AtomBooleanExpression|Ast.NotBooleanExpression|null;
+function makeFilter(loader : ThingpediaLoader,
+                    pname : Ast.Value,
+                    op : string,
+                    value : Ast.Value,
                     negate = false) : Ast.BooleanExpression|null {
     assert(pname instanceof Ast.Value.VarRef);
     const vtype = value.getType();
@@ -140,7 +155,7 @@ function isTimeEntity(type : Type) : boolean {
     return false;
 }
 
-function interrogativePronoun(type : Type) : string {
+function interrogativePronoun(type : Type) : 'who'|'where'|'when'|'what' {
     if (isHumanEntity(type))
         return 'who';
     if (isLocationEntity(type))

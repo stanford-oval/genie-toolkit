@@ -65,7 +65,7 @@ export default class DefaultLanguagePack {
      * This is a low-level method called by {@link DefaultLanguagePack#detokenizeSentence}.
      * It can be used to detokenize one token at a time.
      */
-    detokenize(sentence : string, prevtoken : string, token : string) : string {
+    detokenize(sentence : string, prevtoken : string|null, token : string) : string {
         if (sentence && !this._NO_SPACE_TOKENS.has(token))
             sentence += ' ';
         sentence += token;

@@ -18,6 +18,8 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import { Ast, } from 'thingtalk';
+
 // import the combinator library
 import * as C from '../ast_manip';
 
@@ -36,7 +38,7 @@ import './schema.org.genie';
 import './commands.genie';
 import './stream_tables.genie';
 
-$root = {
+$root : Ast.Input = {
     p:thingpedia_program if complete => C.adjustDefaultParameters(p);
 
     ?timer stmt:timer_rule [weight=0.2] => C.makeProgram(stmt);

@@ -18,18 +18,20 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 
+import { Ast, } from 'thingtalk';
+
 import * as C from '../ast_manip';
 
 // import thingpedia info
 import _tpLoader from '../load-thingpedia';
 
 // an empty string for the table
-who_complete_table = {
+who_complete_table : Ast.Table = {
     thingpedia_who_question if complete;
 }
 
 
-who_with_filtered_table = {
+who_with_filtered_table : Ast.Table = {
     // no filter
     !always_filter who_complete_table;
 
@@ -44,20 +46,20 @@ who_with_filtered_table = {
     who_two_clean_filter_table;
 }
 
-who_one_with_filter_table = {}
-who_one_which_filter_table = {}
-who_one_clean_filter_table = {}
-who_two_with_filter_table = {}
-who_two_which_filter_table = {}
-who_two_clean_filter_table = {}
+who_one_with_filter_table : Ast.Table = {}
+who_one_which_filter_table : Ast.Table = {}
+who_one_clean_filter_table : Ast.Table = {}
+who_two_with_filter_table : Ast.Table = {}
+who_two_which_filter_table : Ast.Table = {}
+who_two_clean_filter_table : Ast.Table = {}
 
 if (!_tpLoader.flags.nofilter) {
-    who_one_with_filter_table = {
+    who_one_with_filter_table : Ast.Table = {
         table:thingpedia_who_question ('with' | 'having') filter:with_filter => C.addFilter(table, filter);
         table:thingpedia_who_question ('with' | 'having') filter:npp_filter => C.addFilter(table, filter);
     }
 
-    who_one_which_filter_table = {
+    who_one_which_filter_table : Ast.Table = {
         table:thingpedia_who_question ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
         table:thingpedia_who_question ('which' | 'that') filter:avp_filter => C.addFilter(table, filter);
         table:thingpedia_who_question ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
@@ -66,12 +68,12 @@ if (!_tpLoader.flags.nofilter) {
         table:thingpedia_who_question ('which' | 'that') ('is' | 'are') filter:preposition_filter => C.addFilter(table, filter);
     }
 
-    who_one_clean_filter_table = {
+    who_one_clean_filter_table : Ast.Table = {
         table:thingpedia_who_question filter:pvp_filter => C.addFilter(table, filter);
         table:thingpedia_who_question filter:preposition_filter => C.addFilter(table, filter);
     }
 
-    who_two_with_filter_table = {
+    who_two_with_filter_table : Ast.Table = {
         table:who_one_with_filter_table 'and' filter:with_filter => C.addFilter(table, filter);
         table:who_one_which_filter_table ('and having' | 'and with' | ', with') filter:with_filter => C.addFilter(table, filter);
         table:who_one_clean_filter_table ('with' | 'having') filter:with_filter => C.addFilter(table, filter);
@@ -81,7 +83,7 @@ if (!_tpLoader.flags.nofilter) {
         table:who_one_clean_filter_table ('with' | 'having') filter:npp_filter => C.addFilter(table, filter);
     }
 
-    who_two_which_filter_table = {
+    who_two_which_filter_table : Ast.Table = {
         table:who_one_with_filter_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
         table:who_one_with_filter_table ('which' | 'that') filter:avp_filter => C.addFilter(table, filter);
         table:who_one_with_filter_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
@@ -104,14 +106,14 @@ if (!_tpLoader.flags.nofilter) {
         table:who_one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:preposition_filter => C.addFilter(table, filter);
     }
 
-    who_two_clean_filter_table = {
+    who_two_clean_filter_table : Ast.Table = {
         table:who_one_clean_filter_table ('and'|'') filter:pvp_filter => C.addFilter(table, filter);
         table:who_one_clean_filter_table ('and'|'') filter:preposition_filter => C.addFilter(table, filter);
     }
 }
 
 
-who_verb_filtered_table = {
+who_verb_filtered_table : Ast.Table = {
     // one filter
     who_one_be_filter_table;
     who_one_have_filter_table;
@@ -123,16 +125,16 @@ who_verb_filtered_table = {
     who_two_verb_filter_table;
 }
 
-who_one_be_filter_table = {}
-who_one_have_filter_table = {}
-who_one_verb_filter_table = {}
-who_two_be_filter_table = {}
-who_two_have_filter_table = {}
-who_two_verb_filter_table = {}
-whose_filtered_table = {}
+who_one_be_filter_table : Ast.Table = {}
+who_one_have_filter_table : Ast.Table = {}
+who_one_verb_filter_table : Ast.Table = {}
+who_two_be_filter_table : Ast.Table = {}
+who_two_have_filter_table : Ast.Table = {}
+who_two_verb_filter_table : Ast.Table = {}
+whose_filtered_table : Ast.Table = {}
 
 if (!_tpLoader.flags.nofilter) {
-    who_one_be_filter_table = {
+    who_one_be_filter_table : Ast.Table = {
         ?turking table:who_complete_table ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
         table:who_complete_table ('is' | 'are') filter:pvp_filter => C.addFilter(table, filter);
         table:who_complete_table ('is' | 'are') filter:preposition_filter => C.addFilter(table, filter);
@@ -143,16 +145,16 @@ if (!_tpLoader.flags.nofilter) {
         !turking table:who_complete_table ('is' | 'are') ('' | 'a' | 'the' | 'an') filter:npv_filter => C.addFilter(table, filter);
     }
 
-    who_one_have_filter_table = {
+    who_one_have_filter_table : Ast.Table = {
         table:who_complete_table ('get' | 'have' | 'gets' | 'has') filter:with_filter => C.addFilter(table, filter);
         table:who_complete_table ('get' | 'have' | 'gets' | 'has') filter:npp_filter => C.addFilter(table, filter);
     }
 
-    who_one_verb_filter_table = {
+    who_one_verb_filter_table : Ast.Table = {
         table:who_complete_table filter:avp_filter => C.addFilter(table, filter);
     }
 
-    who_two_be_filter_table = {
+    who_two_be_filter_table : Ast.Table = {
         table:who_one_be_filter_table 'and' filter:npi_filter => C.addFilter(table, filter);
         table:who_one_be_filter_table 'and' filter:pvp_filter => C.addFilter(table, filter);
         table:who_one_be_filter_table 'and' filter:preposition_filter => C.addFilter(table, filter);
@@ -172,7 +174,7 @@ if (!_tpLoader.flags.nofilter) {
         table:who_one_verb_filter_table 'and' ('is' | 'are') filter:npv_filter => C.addFilter(table, filter);
     }
 
-    who_two_have_filter_table = {
+    who_two_have_filter_table : Ast.Table = {
         table:who_one_be_filter_table 'and' ('get' | 'have' | 'gets' | 'has') filter:with_filter => C.addFilter(table, filter);
         table:who_one_have_filter_table 'and' filter:with_filter => C.addFilter(table, filter);
         table:who_one_verb_filter_table 'and' ('get' | 'have' | 'gets' | 'has') filter:with_filter => C.addFilter(table, filter);
@@ -182,13 +184,13 @@ if (!_tpLoader.flags.nofilter) {
         table:who_one_verb_filter_table 'and' ('get' | 'have' | 'gets' | 'has') filter:npp_filter => C.addFilter(table, filter);
     }
 
-    who_two_verb_filter_table = {
+    who_two_verb_filter_table : Ast.Table = {
         table:who_one_be_filter_table 'and' filter:avp_filter => C.addFilter(table, filter);
         table:who_one_have_filter_table 'and' filter:avp_filter => C.addFilter(table, filter);
         table:who_one_verb_filter_table 'and' filter:avp_filter => C.addFilter(table, filter);
     }
 
-    whose_filtered_table = {
+    whose_filtered_table : Ast.Table = {
         table:who_complete_table filter:whose_npp_filter => C.addFilter(table, filter);
     }
 
