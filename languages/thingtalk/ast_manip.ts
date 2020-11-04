@@ -52,26 +52,27 @@ function makeMonthDateRange(year : number|null, month : number|null) : [Ast.Valu
     ];
 }
 
+class GetFunctionVisitor extends Ast.NodeVisitor {
+    names : string[] = [];
+    functions : Ast.FunctionDef[] = [];
+
+    visitInvocation(invocation : Ast.Invocation) {
+        this.names.push((invocation.selector as Ast.DeviceSelector).kind + ':' + invocation.channel);
+        this.functions.push(invocation.schema as Ast.FunctionDef);
+        return true;
+    }
+}
+
 function getFunctionNames(ast : Ast.Node) : string[] {
-    const functions : string[] = [];
-    ast.visit(new class extends Ast.NodeVisitor {
-        visitInvocation(invocation : Ast.Invocation) {
-            functions.push((invocation.selector as Ast.DeviceSelector).kind + ':' + invocation.channel);
-            return true;
-        }
-    });
-    return functions;
+    const visitor = new GetFunctionVisitor();
+    ast.visit(visitor);
+    return visitor.names;
 }
 
 function getFunctions(ast : Ast.Node) : Ast.FunctionDef[] {
-    const functions : Ast.FunctionDef[] = [];
-    ast.visit(new class extends Ast.NodeVisitor {
-        visitInvocation(invocation : Ast.Invocation) {
-            functions.push(invocation.schema as Ast.FunctionDef);
-            return true;
-        }
-    });
-    return functions;
+    const visitor = new GetFunctionVisitor();
+    ast.visit(visitor);
+    return visitor.functions;
 }
 
 function isSelfJoinStream(stream : Ast.Stream) : boolean {
@@ -561,6 +562,16 @@ function makeSortedTable(table : Ast.Table, pname : string, direction = 'desc') 
     return new Ast.Table.Sort(null, table, pname, direction, table.schema);
 }
 
+class HasIDFilterVisitor extends Ast.NodeVisitor {
+    hasIDFilter = false;
+
+    visitAtomBooleanExpression(expr : Ast.AtomBooleanExpression) {
+        if (expr.name === 'id' && expr.operator === '==')
+            this.hasIDFilter = true;
+        return true;
+    }
+}
+
 function checkValidQuery(table : Ast.Table) : boolean {
     // check that the query does not include "id ==" (it should be "id =~")
     // this check is only applied at the first turn (or first turn of a new domain)
@@ -568,16 +579,9 @@ function checkValidQuery(table : Ast.Table) : boolean {
     if (!filterTable)
         return true;
 
-    let hasIDFilter = false;
-    filterTable.filter.visit(new class extends Ast.NodeVisitor {
-        visitAtomBooleanExpression(expr : Ast.AtomBooleanExpression) {
-            if (expr.name === 'id' && expr.operator === '==')
-                hasIDFilter = true;
-            return true;
-        }
-    });
-
-    return !hasIDFilter;
+    const visitor = new HasIDFilterVisitor();
+    filterTable.filter.visit(visitor);
+    return !visitor.hasIDFilter;
 }
 
 function makeProgram(rule : Ast.ExecutableStatement) : Ast.Program|null {
@@ -1785,24 +1789,31 @@ function hasArgumentOfType(invocation : Ast.Invocation, type : Type) : boolean {
     return false;
 }
 
-function filterUsesParam(filter : Ast.BooleanExpression, pname : string) : boolean {
-    let used = false;
-    filter.visit(new class extends Ast.NodeVisitor {
-        visitExternalBooleanExpression() {
-            // do not recurse
-            return false;
-        }
-        visitValue() {
-            // do not recurse
-            return false;
-        }
+class UsesParamVisitor extends Ast.NodeVisitor {
+    used = false;
+    constructor(private pname : string) {
+        super();
+    }
 
-        visitAtomBooleanExpression(atom : Ast.AtomBooleanExpression) {
-            used = used || pname === atom.name;
-            return true;
-        }
-    });
-    return used;
+    visitExternalBooleanExpression() {
+        // do not recurse
+        return false;
+    }
+    visitValue() {
+        // do not recurse
+        return false;
+    }
+
+    visitAtomBooleanExpression(atom : Ast.AtomBooleanExpression) {
+        this.used = this.used || this.pname === atom.name;
+        return true;
+    }
+}
+
+function filterUsesParam(filter : Ast.BooleanExpression, pname : string) : boolean {
+    const visitor = new UsesParamVisitor(pname);
+    filter.visit(visitor);
+    return visitor.used;
 }
 
 interface AddInputParamsOptions {
@@ -1945,34 +1956,40 @@ function findFilterTable(root : Ast.Table) : Ast.FilteredTable|null {
     return table;
 }
 
+class GetInvocationVisitor extends Ast.NodeVisitor {
+    invocation : Ast.Invocation|undefined = undefined;
+
+    visitInvocation(inv : Ast.Invocation) : boolean {
+        this.invocation = inv;
+        return false; // no need to recurse
+    }
+}
+
 function getInvocation(historyItem : Ast.DialogueHistoryItem) : Ast.Invocation {
     assert(historyItem instanceof Ast.DialogueHistoryItem);
 
-    let invocation : Ast.Invocation|undefined = undefined;
-    historyItem.visit(new class extends Ast.NodeVisitor {
-        visitInvocation(inv : Ast.Invocation) : boolean {
-            invocation = inv;
-            return false; // no need to recurse
-        }
-    });
-    assert(invocation);
-    return invocation;
+    const visitor = new GetInvocationVisitor();
+    historyItem.visit(visitor);
+    assert(visitor.invocation);
+    return visitor.invocation;
+}
+
+class AdjustDefaultParametersVisitor extends Ast.NodeVisitor {
+    visitInvocation(invocation : Ast.Invocation) : boolean {
+        invocation.in_params = invocation.in_params.filter((ip) => {
+            const arg = invocation.schema!.getArgument(ip.name);
+            assert(arg && arg.is_input);
+            const _default = arg.impl_annotations.default;
+            if (_default && ip.value.equals(_default))
+                return false;
+            return true;
+        });
+        return false;
+    }
 }
 
 function adjustDefaultParameters<T extends Ast.Node>(stmt : T) : T {
-    stmt.visit(new class extends Ast.NodeVisitor {
-        visitInvocation(invocation : Ast.Invocation) : boolean {
-            invocation.in_params = invocation.in_params.filter((ip) => {
-                const arg = invocation.schema!.getArgument(ip.name);
-                assert(arg && arg.is_input);
-                const _default = arg.impl_annotations.default;
-                if (_default && ip.value.equals(_default))
-                    return false;
-                return true;
-            });
-            return false;
-        }
-    });
+    stmt.visit(new AdjustDefaultParametersVisitor());
     return stmt;
 }
 

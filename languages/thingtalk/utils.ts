@@ -254,42 +254,45 @@ function isSameFunction(fndef1 : Ast.ExpressionSignature,
         fndef1.name === fndef2.name;
 }
 
-function isExecutable(stmt : Ast.Statement) : boolean {
-    let hasUndefined = false;
-    const visitor = new class extends Ast.NodeVisitor {
-        visitInvocation(invocation : Ast.Invocation) {
-            const schema = invocation.schema;
-            assert(schema instanceof Ast.FunctionDef);
-            const requireEither = schema.getAnnotation<string[][]>('require_either');
-            if (requireEither) {
-                const params = new Set;
-                for (const in_param of invocation.in_params)
-                    params.add(in_param.name);
+class HasUndefinedVisitor extends Ast.NodeVisitor {
+    hasUndefined = false;
 
-                for (const requirement of requireEither) {
-                    let satisfied = false;
-                    for (const option of requirement) {
-                        if (params.has(option)) {
-                            satisfied = true;
-                            break;
-                        }
+    visitInvocation(invocation : Ast.Invocation) {
+        const schema = invocation.schema;
+        assert(schema instanceof Ast.FunctionDef);
+        const requireEither = schema.getAnnotation<string[][]>('require_either');
+        if (requireEither) {
+            const params = new Set;
+            for (const in_param of invocation.in_params)
+                params.add(in_param.name);
+
+            for (const requirement of requireEither) {
+                let satisfied = false;
+                for (const option of requirement) {
+                    if (params.has(option)) {
+                        satisfied = true;
+                        break;
                     }
-                    if (!satisfied)
-                        hasUndefined = true;
                 }
+                if (!satisfied)
+                    this.hasUndefined = true;
             }
-
-            return true;
         }
 
-        visitValue(value : Ast.Value) {
-            if (value.isUndefined)
-                hasUndefined = true;
-            return true;
-        }
-    };
+        return true;
+    }
+
+    visitValue(value : Ast.Value) {
+        if (value.isUndefined)
+            this.hasUndefined = true;
+        return true;
+    }
+}
+
+function isExecutable(stmt : Ast.Statement) : boolean {
+    const visitor = new HasUndefinedVisitor();
     stmt.visit(visitor);
-    return !hasUndefined;
+    return !visitor.hasUndefined;
 }
 
 /**
