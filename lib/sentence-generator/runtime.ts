@@ -36,14 +36,17 @@ const LogLevel = {
     // log each non-empty non terminal
     GENERATION: 2,
 
+    // log each non-empty non terminal, and additional verbose information
+    VERBOSE_GENERATION: 3,
+
     // log all templates before generation
-    DUMP_TEMPLATES: 3,
+    DUMP_TEMPLATES: 4,
 
     // log information derived from the templates (such as the distance from the root)
-    DUMP_DERIVED: 4,
+    DUMP_DERIVED: 5,
 
     // log a lot of very redundant information during generation (can cause slowdowns)
-    EVERYTHING: 5
+    EVERYTHING: 6
 };
 
 class Placeholder {
