@@ -206,7 +206,8 @@ function actionErrorChangeParam(ctx : ContextInfo, answer : Ast.Value|Ast.InputP
     const action = C.getInvocation(ctx.current!);
     if (!action)
         return null;
-    const clone = action.clone();
+    // shallow clone
+    const clone = new Ast.Invocation(null, action.selector, action.channel, action.in_params.slice(), action.schema);
     setOrAddInvocationParam(clone, answer.name, answer.value);
     return replaceAction(ctx, 'execute', clone, 'accepted');
 }

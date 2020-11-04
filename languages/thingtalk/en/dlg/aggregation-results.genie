@@ -26,12 +26,12 @@ import * as D from '../../dialogue_acts';
 import * as S from '../../state_manip';
 
 count_aggregation_reply_suffix : S.ContextInfo = {
-    ctx:ctx_with_table_result base:base_table ('like that' | 'with those characteristics')
+    ctx:ctx_with_aggregation_result base:base_table ('like that' | 'with those characteristics')
         => D.makeCountAggregationReplySuffix(ctx, base, false);
 
-    ctx:ctx_with_table_result table:one_with_filter_table [priority=10]
+    ctx:ctx_with_aggregation_result table:one_with_filter_table [priority=10]
         => D.makeCountAggregationReplySuffix(ctx, table, true);
-    ctx:ctx_with_table_result table:two_with_filter_table [priority=10]
+    ctx:ctx_with_aggregation_result table:two_with_filter_table [priority=10]
         => D.makeCountAggregationReplySuffix(ctx, table, true);
 }
 
@@ -50,6 +50,6 @@ agg_operator_for_reply : 'min'|'max'|'avg'|'sum' = {
 }
 
 other_aggregation_reply : S.AgentReplyRecord = {
-    ctx:ctx_with_table_result 'the' op:agg_operator_for_reply p:out_param_Any 'is' c:constant_Any
+    ctx:ctx_with_aggregation_result 'the' op:agg_operator_for_reply p:out_param_Any 'is' c:constant_Any
         => D.makeOtherAggregationReply(ctx, op, p, c);
 }       

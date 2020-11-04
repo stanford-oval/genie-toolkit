@@ -884,6 +884,8 @@ function getContextTags(ctx : ContextInfo) : string[] {
     tags.push('ctx_with_result');
     if (ctx.resultInfo.isTable)
         tags.push('ctx_with_table_result');
+    if (ctx.resultInfo.isAggregation)
+        tags.push('ctx_with_aggregation_result');
 
     if (ctxCanHaveRelatedQuestion(ctx))
         tags.push('ctx_for_related_question');
