@@ -1660,7 +1660,7 @@ function expandRule(charts : Charts,
 
     // make an estimate of the number of times we'll need to call the semantic function
     // to get the target pruning size
-    const targetSemanticFunctionCalls = targetPruningSize / estimatedPruneFactor;
+    const targetSemanticFunctionCalls = Math.min(targetPruningSize / estimatedPruneFactor, EXPONENTIAL_PRUNE_SIZE);
 
     //console.log('expand $' + nonterminal + ' -> ' + expansion.join('') + ' : actual ' + actualGenSize);
 
