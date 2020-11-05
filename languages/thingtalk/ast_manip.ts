@@ -316,8 +316,8 @@ function makeEdgeFilterStream(proj : Ast.Table, op : string, value : Ast.Value) 
         return null;
     if (!proj.schema!.is_monitorable || proj.schema!.is_list)
         return null;
-    const outParams = Object.keys(proj.table.schema!.out);
-    if (outParams.length === 1 && _loader.flags.turking)
+    const numOutParams = countOutputParams(proj.table.schema!);
+    if (numOutParams === 1 && _loader.flags.turking)
         return null;
 
     return new Ast.Stream.EdgeFilter(null, new Ast.Stream.Monitor(null, proj.table, null, proj.table.schema), f, proj.table.schema);
@@ -455,6 +455,15 @@ function isEqualityFilteredOnParameter(table : Ast.Table, pname : string) : bool
     return false;
 }
 
+function countOutputParams(schema : Ast.ExpressionSignature) : number {
+    let num = 0;
+    for (const arg of schema.iterateArguments()) {
+        if (!arg.is_input)
+            num++;
+    }
+    return num;
+}
+
 function makeSingleFieldProjection(ftype : 'table', ptype : Type|null, table : Ast.Table, pname : string) : Ast.ProjectionTable|null;
 function makeSingleFieldProjection(ftype : 'stream', ptype : Type|null, table : Ast.Table, pname : string) : Ast.ProjectionStream|null;
 function makeSingleFieldProjection(ftype : 'table'|'stream', ptype : Type|null, table : Ast.Table, pname : string) {
@@ -465,8 +474,8 @@ function makeSingleFieldProjection(ftype : 'table'|'stream', ptype : Type|null, 
     if (!table.schema!.out[pname])
         return null;
 
-    const outParams = Object.keys(table.schema!.out);
-    if (outParams.length === 1)
+    const numOutParams = countOutputParams(table.schema!);
+    if (numOutParams === 1)
         return table;
 
     if (ptype && !Type.isAssignable(table.schema!.out[pname], ptype))
@@ -1350,7 +1359,8 @@ function sayProjection(maybeProj : Ast.Table|null) : Ast.Command|null {
         if (proj.args.length === 1 && proj.args[0] === 'picture_url')
             return null;
         // if the function only contains one parameter, do not generate projection for it
-        if (Object.keys(proj.table.schema!.out).length === 1)
+        const numOutParams = countOutputParams(proj.table.schema!);
+        if (numOutParams === 1)
             return null;
         if (!_loader.flags.projection)
             return null;

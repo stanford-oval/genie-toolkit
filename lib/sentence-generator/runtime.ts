@@ -293,7 +293,7 @@ class Derivation<ValueType> {
                 newContext = Context.meet(newContext, child.context);
                 newPriority += child.priority;
                 values.push(child.value);
-                sentence = List.concat(sentence, child.sentence);
+                sentence = List.join(sentence, child.sentence);
             }
         }
 
@@ -324,11 +324,11 @@ function simpleCombine<ArgTypes extends unknown[], ResultType>(semanticAction : 
             if (flag.startsWith('!')) {
                 const sub = flag.substring(1);
                 assert(sub === 'complete'); // add more flags here if necessary
-                if (result[sub])
+                if (result.complete)
                     return null;
             } else {
                 assert(flag === 'complete'); // add more flags here if necessary
-                if (!result[flag])
+                if (!result.complete)
                     return null;
             }
         }
