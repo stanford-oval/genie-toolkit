@@ -95,18 +95,18 @@ export default class GenieEntityRetriever extends NNSyntax.EntityRetriever {
         // only if `alwaysAllowStrings` is set
         const entityTokens = this._tokenizer.tokenize(entityString).rawTokens;
 
+        const found = this._allowNonConsecutive ?
+            this._sentenceContainsNonConsecutive(entityTokens) :
+            this._sentenceContains(entityTokens);
+        if (found)
+            return entityTokens.join(' ');
+
         if (this._ignoreSentence) {
             if (ignoreNotFound)
                 return undefined; // check the entities in the bag first
             else
                 return entityTokens.join(' ');
         }
-
-        const found = this._allowNonConsecutive ?
-            this._sentenceContainsNonConsecutive(entityTokens) :
-            this._sentenceContains(entityTokens);
-        if (found)
-            return entityTokens.join(' ');
 
         if (this._useHeuristics) {
             if (entityType === 'LOCATION') {
