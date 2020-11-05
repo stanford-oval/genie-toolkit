@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -23,26 +23,53 @@ import * as Tp from 'thingpedia';
 
 import FileParameterProvider from './file_parameter_provider';
 
+interface EntityRecord {
+    type : string;
+    value : string;
+    canonical : string;
+    name : string;
+}
+
+interface EntityLookupResult {
+    meta : {
+        name : string;
+        is_well_known : boolean|number;
+        has_ner_support : boolean|number;
+    };
+    data : EntityRecord[];
+}
+
+interface FileClientArgs {
+    thingpedia : string;
+    locale : string;
+    entities ?: string;
+    dataset ?: string;
+    parameter_datasets : string;
+}
+
 /**
  * A subclass of {@link thingpedia}.FileClient that supports
  * looking up entities by value using the file parameter provider.
  */
 export default class FileThingpediaClient extends Tp.FileClient {
-    constructor(options) {
+    private _cachedEntities : Map<string, EntityRecord[]>;
+    private _provider : FileParameterProvider;
+
+    constructor(options : FileClientArgs) {
         super(options);
 
         this._cachedEntities = new Map;
         this._provider = new FileParameterProvider(options.parameter_datasets, options.locale);
     }
 
-    async lookupEntity(entityType, searchTerm) {
+    async lookupEntity(entityType : string, searchTerm : string) : Promise<EntityLookupResult> {
         // ignore search term, return everything
-        let result = this._cachedEntities.get(entityType);
-        if (result)
-            return result;
+        const cached = this._cachedEntities.get(entityType);
+        if (cached)
+            return { data: cached, meta: { name: entityType, is_well_known: false, has_ner_support: true } };
 
-        result = await this._provider.getEntity(entityType);
+        const result = await this._provider.getEntity(entityType);
         this._cachedEntities.set(entityType, result);
-        return result;
+        return { data: result, meta: { "name": entityType, is_well_known: false, has_ner_support: true } };
     }
 }
