@@ -172,6 +172,8 @@ interface Constant {
 
 type Charts = Array<Array<ReservoirSampler<any>>>;
 
+const INFINITY = 1<<30; // integer infinity
+
 /**
  * Low-level class that generates sentences and associated logical forms,
  * given a grammar expressed as Genie template files.
@@ -457,7 +459,7 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
     private _computeDistanceFromRoot() {
         // fill the array so it dense
         for (let i = 0; i < this._nonTermList.length; i++)
-            this._minDistanceFromRoot.push(1<<29); // integer infinity
+            this._minDistanceFromRoot.push(INFINITY);
         assert(this._nonTermList.length === this._minDistanceFromRoot.length);
 
         const queue : Array<[number, number]> = [];
@@ -791,7 +793,7 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
             const targetPruningSize = Math.ceil(this._options.targetPruningSize * POWERS[depth]);
             charts[depth] = [];
             for (let index = 0; index < this._nonTermList.length; index++)
-                charts[depth][index] = new ReservoirSampler(Infinity, this._options.rng);
+                charts[depth][index] = new ReservoirSampler(INFINITY, this._options.rng);
             assert(charts[depth].length === this._nonTermList.length);
 
             if (this._contextual && depth === 0) {
@@ -813,7 +815,7 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
                         continue;
 
                     try {
-                        expandRule(charts, depth, index, rule, this._averagePruningFactor, Infinity, this._options, this._nonTermList, (derivation) => {
+                        expandRule(charts, depth, index, rule, this._averagePruningFactor, INFINITY, this._options, this._nonTermList, (derivation) => {
                             if (derivation === null)
                                 return;
                             queue.push(derivation);
@@ -987,7 +989,7 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
                 // the chart for context symbols is never pruned, but we use
                 // a ReservoirSampler nonetheless to keep the types manageable
                 if (this._contextual && depth === 0 && this.hasContext(this._nonTermList[index]))
-                    charts[depth][index] = new ReservoirSampler(Infinity, this._options.rng);
+                    charts[depth][index] = new ReservoirSampler(INFINITY, this._options.rng);
                 else if (!this._contextual || this._nonTermHasContext[index])
                     charts[depth][index] = new ReservoirSampler(Math.ceil(targetPruningSize), this._options.rng);
                 else
