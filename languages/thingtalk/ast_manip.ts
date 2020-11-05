@@ -1058,6 +1058,15 @@ function makeGetPredicate(proj : Ast.Table, op : string, value : Ast.Value, nega
     return new Ast.BooleanExpression.External(null, selector, channel, proj.table.invocation.in_params, filter, proj.table.invocation.schema);
 }
 
+function combineDefaultProjection(one : string[] = [], two : string[] = []) {
+    const combined = new Set<string>();
+    for (const oneel of one)
+        combined.add(oneel);
+    for (const twoel of two)
+        combined.add(twoel);
+    return Array.from(combined);
+}
+
 // perform a join with parameter passing
 function mergeSchemas(functionType : 'query'|'action'|'stream',
                       lhsSchema : Ast.ExpressionSignature,
@@ -1085,8 +1094,8 @@ function mergeSchemas(functionType : 'query'|'action'|'stream',
         is_list: lhsSchema.is_list || rhsSchema.is_list,
         is_monitorable: lhsSchema.is_monitorable && rhsSchema.is_monitorable,
         require_filter: lhsSchema.require_filter || rhsSchema.require_filter,
-        default_projection: [...new Set<string>(lhsSchema.default_projection!.concat(rhsSchema.default_projection || []))],
-        minimal_projection: [...new Set<string>(lhsSchema.minimal_projection!.concat(rhsSchema.minimal_projection || []))],
+        default_projection: combineDefaultProjection(lhsSchema.default_projection, rhsSchema.default_projection),
+        minimal_projection: combineDefaultProjection(lhsSchema.minimal_projection, rhsSchema.minimal_projection),
         no_filter: lhsSchema.no_filter && rhsSchema.no_filter
     });
 }
