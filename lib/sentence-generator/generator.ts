@@ -1301,7 +1301,10 @@ function expandRuleExhaustive(charts : Charts,
         console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : worst case ${sizeEstimate.worstCaseGenSize}, expect ${Math.round(sizeEstimate.estimatedGenSize)}`);
 
     const estimatedPruneFactor = sizeEstimate.estimatedPruneFactor;
-    const choices : DerivationChildOrChoice[] = new Array<DerivationChildOrChoice>(expansion.length);
+    const choices : DerivationChildOrChoice[] = [];
+    // fill and size the array
+    for (let i = 0; i < expansion.length; i++)
+        choices.push('');
     let actualGenSize = 0;
     let prunedGenSize = 0;
     let coinProbability = basicCoinProbability;
@@ -1407,6 +1410,8 @@ function expandRuleSample(charts : Charts,
 
     assert(depth > 0);
 
+    const expansionLenght = expansion.length;
+
     // we take N samples from all the possible enumerations
     //
     // a valid sample must contain at least one derivation from depth = D-1
@@ -1426,9 +1431,13 @@ function expandRuleSample(charts : Charts,
     // depth == 0 and the pivot business does not make sense
     if (depth === 1) {
         let actualGenSize = 0, prunedGenSize = 0;
-        const choices : Array<DerivationChild<any>> = new Array<DerivationChild<any>>(expansion.length);
+        const choices : Array<DerivationChild<any>> = [];
+        // fill and size the array
+        for (let i = 0; i < expansionLenght; i++)
+            choices.push('');
+
         for (let sampleIdx = 0; sampleIdx < targetSemanticFunctionCalls; sampleIdx++) {
-            for (let i = 0; i < expansion.length; i++) {
+            for (let i = 0; i < expansionLenght; i++) {
                 const currentExpansion = expansion[i];
                 if (!(currentExpansion instanceof NonTerminal))
                     choices[i] = currentExpansion instanceof Choice ? currentExpansion.choose(rng) : currentExpansion;
@@ -1454,18 +1463,19 @@ function expandRuleSample(charts : Charts,
     // all charts for depth < D
     // (this is used to choose which depth to sample from, for the non-pivot)
 
-    const ltDSize : number[][] = new Array(expansion.length);
-    for (let i = 0; i < expansion.length; i++) {
+    const ltDSize : number[][] = [];
+    for (let i = 0; i < expansionLenght; i++) {
         const currentExpansion = expansion[i];
         if (currentExpansion instanceof NonTerminal) {
             const nonTermIndex = currentExpansion.index;
 
-            ltDSize[i] = new Array(depth);
-            ltDSize[i][0] = charts[0][nonTermIndex].length;
+            const ourLtDSize = [];
+            ourLtDSize.push(charts[0][nonTermIndex].length);
             for (let j = 1; j < depth; j++)
-                ltDSize[i][j] = ltDSize[i][j-1] + charts[j][nonTermIndex].length;
+                ourLtDSize.push(ourLtDSize[j-1] + charts[j][nonTermIndex].length);
+            ltDSize.push(ourLtDSize);
         } else {
-            ltDSize[i] = [1];
+            ltDSize.push([1]);
         }
         // the last element of the cumsum is the total size of the non-terminal
         // if this size is 0, the worst case expansion size of this rule
@@ -1482,29 +1492,33 @@ function expandRuleSample(charts : Charts,
     // times the total number of expansions to the right
     // aka the cumprod of ltDSize[>i][depth-1]
 
-    const leftCumProd : number[] = new Array(expansion.length);
-    for (let i = 0; i < expansion.length; i++) {
+    const leftCumProd : number[] = [];
+    for (let i = 0; i < expansionLenght; i++) {
         if (expansion[i] instanceof NonTerminal) {
             if (i === 0)
-                leftCumProd[i] = ltDSize[i][depth-2];
+                leftCumProd.push(ltDSize[i][depth-2]);
             else
-                leftCumProd[i] = leftCumProd[i-1] * ltDSize[i][depth-2];
+                leftCumProd.push(leftCumProd[i-1] * ltDSize[i][depth-2]);
         } else {
             if (i === 0)
-                leftCumProd[i] = 1;
+                leftCumProd.push(1);
             else
-                leftCumProd[i] = leftCumProd[i-1];
+                leftCumProd.push(leftCumProd[i-1]);
         }
     }
-    const rightCumProd : number[] = new Array(expansion.length);
-    for (let i = expansion.length-1; i >= 0; i--) {
+    const rightCumProd : number[] = [];
+    for (let i = 0; i < expansionLenght; i++)
+        rightCumProd[i] = 0;
+    // for efficiency, we need to ensure rightCumProd is a packed array
+    // but we want to fill it from the end, so we first fill it with 0
+    for (let i = expansionLenght-1; i >= 0; i--) {
         if (expansion[i] instanceof NonTerminal) {
-            if (i === expansion.length-1)
+            if (i === expansionLenght-1)
                 rightCumProd[i] = ltDSize[i][depth-1];
             else
                 rightCumProd[i] = rightCumProd[i+1] * ltDSize[i][depth-1];
         } else {
-            if (i === expansion.length-1)
+            if (i === expansionLenght-1)
                 rightCumProd[i] = 1;
             else
                 rightCumProd[i] = rightCumProd[i+1];
@@ -1512,33 +1526,36 @@ function expandRuleSample(charts : Charts,
     }
 
     // compute the probability that an element is a pivot
-    const pivotProbabilityCumsum : number[] = new Array(expansion.length);
+    const pivotProbabilityCumsum : number[] = [];
 
-    for (let i = 0; i < expansion.length; i++) {
+    for (let i = 0; i < expansionLenght; i++) {
         const currentExpansion = expansion[i];
         if (currentExpansion instanceof NonTerminal) {
             const left = i > 0 ? leftCumProd[i-1] : 1;
-            const right = i < expansion.length-1 ? rightCumProd[i+1] : 1;
+            const right = i < expansionLenght-1 ? rightCumProd[i+1] : 1;
             const self = charts[depth-1][currentExpansion.index].length;
             const pivotProbability = left * self * right;
 
             if (i === 0)
-                pivotProbabilityCumsum[i] = pivotProbability;
+                pivotProbabilityCumsum.push(pivotProbability);
             else
-                pivotProbabilityCumsum[i] = pivotProbabilityCumsum[i-1] + pivotProbability;
+                pivotProbabilityCumsum.push(pivotProbabilityCumsum[i-1] + pivotProbability);
         } else {
             // a terminal token can never be the pivot (because it only gets
             // generated at depth 0)
             if (i === 0)
-                pivotProbabilityCumsum[i] = 0;
+                pivotProbabilityCumsum.push(0);
             else
-                pivotProbabilityCumsum[i] = pivotProbabilityCumsum[i-1];
+                pivotProbabilityCumsum.push(pivotProbabilityCumsum[i-1]);
         }
     }
 
     // now make the samples
     let actualGenSize = 0, prunedGenSize = 0;
     const choices : Array<DerivationChild<any>> = new Array<DerivationChild<any>>(expansion.length);
+    // fill and size the array
+    for (let i = 0; i < expansionLenght; i++)
+        choices.push('');
     let newContext : Context|null = null;
 
     outerloop:
@@ -1548,7 +1565,7 @@ function expandRuleSample(charts : Charts,
         // choose the pivot
         const pivotIdx = categoricalPrecomputed(pivotProbabilityCumsum, pivotProbabilityCumsum.length, rng);
 
-        for (let i = 0; i < expansion.length; i++) {
+        for (let i = 0; i < expansionLenght; i++) {
             const currentExpansion = expansion[i];
             if (i === pivotIdx) {
                 if (!(currentExpansion instanceof NonTerminal))

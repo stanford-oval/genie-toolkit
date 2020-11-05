@@ -36,6 +36,12 @@ export default abstract class List<T> {
         return result;
     }
 
+    static join<T>(l1 : List<T>, l2 : List<T>) : List<T> {
+        if (l1 === List.Nil)
+            return l2;
+        return new Concat<T>(l1, l2);
+    }
+
     static singleton<T>(el : T) : List<T> {
         return new Cons<T>(el, List.Nil);
     }
