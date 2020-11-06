@@ -995,6 +995,55 @@ export class ThingpediaLoader {
             span,
             {}
         ));
+
+        for (const arg of q.iterateArguments()) {
+            let op = '==';
+            let vtype : Type[] = [arg.type];
+            const slotOperator = arg.getImplementationAnnotation<string>('slot_operator');
+            if (slotOperator) {
+                op = slotOperator;
+            } else {
+                if (arg.type instanceof Type.Array) {
+                    vtype = [arg.type.elem as Type];
+                    op = 'contains';
+                } else if (arg.type.isRecurrentTimeSpecification) {
+                    vtype = [Type.Date, Type.Time];
+                    op = 'contains';
+                }
+            }
+
+            for (const type of vtype) {
+                const args : { [key : string] : Type } = {};
+                args[`p_${arg.name}`] = type;
+                const filter = new Ast.BooleanExpression.Atom(null, arg.name, op, new Ast.Value.VarRef(`p_${arg.name}`));
+                for (let canonical of arg.metadata.canonical.reverse_property || arg.metadata.canonical.npi || []) {
+                    if (!canonical.includes('#'))
+                        canonical += ' #';
+                    await this._loadTemplate(new Ast.Example(
+                        null,
+                        -1,
+                        'query',
+                        args,
+                        new Ast.Table.Filter(null, table, filter, table.schema),
+                        [canonical.replace('#', `\${p_${arg.name}:no-undefined}`)],
+                        [canonical.replace('#', `\${p_${arg.name}:no-undefined}`)],
+                        {}
+                    ));
+                }
+                if ('implicit_identity' in arg.metadata.canonical || ANNOTATION_RENAME.implicit_identity in arg.metadata.canonical) {
+                    await this._loadTemplate(new Ast.Example(
+                        null,
+                        -1,
+                        'query',
+                        args,
+                        new Ast.Table.Filter(null, table, filter, table.schema),
+                        [`\${p_${arg.name}:no-undefined}`],
+                        [`\${p_${arg.name}:no-undefined}`],
+                        {}
+                    ));
+                }
+            }
+        }
     }
 
     private async _loadFunction(functionDef : Ast.FunctionDef) {
