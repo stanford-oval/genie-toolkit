@@ -206,7 +206,10 @@ export async function importGenie(filename : string,
     // try loading compiled js first
     let target : 'js'|'ts' = 'js';
     try {
-        return (await import(filename + '.' + target)).default;
+        if (filename.endsWith('.js'))
+            return (await import(filename)).default;
+        else
+            return (await import(filename + '.' + target)).default;
     } catch(e) {
         if (e.code !== 'MODULE_NOT_FOUND')
             throw e;
