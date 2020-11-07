@@ -101,13 +101,6 @@ export default class GenieEntityRetriever extends NNSyntax.EntityRetriever {
         if (found)
             return entityTokens.join(' ');
 
-        if (this._ignoreSentence) {
-            if (ignoreNotFound)
-                return undefined; // check the entities in the bag first
-            else
-                return entityTokens.join(' ');
-        }
-
         if (this._useHeuristics) {
             if (entityType === 'LOCATION') {
                 // HACK to support paraphrasing
@@ -131,6 +124,13 @@ export default class GenieEntityRetriever extends NNSyntax.EntityRetriever {
             // this is used for certain cases of MultiWOZ where we need to predict normalized
             // strings or we fail to find results in database
             if (entityPlural && this._sentenceContains(entityPlural.split(' ')))
+                return entityTokens.join(' ');
+        }
+
+        if (this._ignoreSentence) {
+            if (ignoreNotFound)
+                return undefined; // check the entities in the bag first
+            else
                 return entityTokens.join(' ');
         }
 
