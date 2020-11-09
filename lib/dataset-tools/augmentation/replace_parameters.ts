@@ -660,10 +660,13 @@ export default class ParameterReplacer {
 
         const entities : ThingTalk.NNSyntax.EntityMap = {};
         // replace all entities with SLOT_*, which allows us to pass a VarRef instead of a real value
-        const replaced = this._replaceWithSlot(code, entities);
+        const replaced_code = this._replaceWithSlot(code, entities);
+        const replaced_context = this._replaceWithSlot(context, entities);
 
-        const program = ThingTalk.NNSyntax.fromNN(replaced, entities);
-        await program.typecheck(this._schemas, true);
+        const target_program = ThingTalk.NNSyntax.fromNN(replaced_code, entities);
+        const context_program = ThingTalk.NNSyntax.fromNN(replaced_context, entities);
+        await target_program.typecheck(this._schemas, true);
+        await context_program.typecheck(this._schemas, true);
 
         function isEntity(value : ConstantValue) {
             if (value instanceof Ast.VarRefValue && value.name.startsWith(`__const_`)) {
@@ -678,7 +681,8 @@ export default class ParameterReplacer {
             }
         }
 
-        for (const slot of program.iterateSlots2()) {
+        // Go over the context first so that target overwrites these values for common slots
+        for (const slot of context_program.iterateSlots2()) {
             if (slot instanceof Ast.Selector)
                 continue;
 
@@ -688,7 +692,7 @@ export default class ParameterReplacer {
                     // ignore this parameter, it probably comes from a
                     // bookkeeping answer QUOTED_STRING_0 which we don't need to worry about
                     // because it would be never generated anyway
-                    assert(program.isBookkeeping);
+                    assert(context_program.isBookkeeping);
                     continue;
                 }
                 if (slot.type.isLocation && !this._replaceLocations)
@@ -702,6 +706,33 @@ export default class ParameterReplacer {
                 }
             }
         }
+
+        // Now go over the target
+        for (const slot of target_program.iterateSlots2()) {
+            if (slot instanceof Ast.Selector)
+                continue;
+
+            const value = slot.get() as ConstantValue;
+            if (isEntity(value)) {
+                if (slot.type.isAny) {
+                    // ignore this parameter, it probably comes from a
+                    // bookkeeping answer QUOTED_STRING_0 which we don't need to worry about
+                    // because it would be never generated anyway
+                    assert(target_program.isBookkeeping);
+                    continue;
+                }
+                if (slot.type.isLocation && !this._replaceLocations)
+                    continue;
+                if ((slot.type.isNumber || slot.type.isMeasure) && !this._replaceNumbers)
+                    continue;
+
+                if (isReplaceType(slot.type)) {
+                    assert(isReplaceToken(value.token!));
+                    parameters.set(value.token!, slot);
+                }
+            }
+        }
+
 
         for (const token of parameters.keys()) {
             // parameters that are present:
