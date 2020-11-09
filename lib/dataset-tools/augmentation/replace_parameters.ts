@@ -658,16 +658,6 @@ export default class ParameterReplacer {
                 sentenceEntities.add(token);
         }
 
-        const entities : ThingTalk.NNSyntax.EntityMap = {};
-        // replace all entities with SLOT_*, which allows us to pass a VarRef instead of a real value
-        const replaced_code = this._replaceWithSlot(code, entities);
-        const replaced_context = this._replaceWithSlot(context, entities);
-
-        const target_program = ThingTalk.NNSyntax.fromNN(replaced_code, entities);
-        const context_program = ThingTalk.NNSyntax.fromNN(replaced_context, entities);
-        await target_program.typecheck(this._schemas, true);
-        await context_program.typecheck(this._schemas, true);
-
         function isEntity(value : ConstantValue) {
             if (value instanceof Ast.VarRefValue && value.name.startsWith(`__const_`)) {
                 // this is the correct type refinement, but for some reason without
@@ -681,28 +671,41 @@ export default class ParameterReplacer {
             }
         }
 
-        // Go over the context first so that target overwrites these values for common slots
-        for (const slot of context_program.iterateSlots2()) {
-            if (slot instanceof Ast.Selector)
+        const entities : ThingTalk.NNSyntax.EntityMap = {};
+        // replace all entities with SLOT_*, which allows us to pass a VarRef instead of a real value
+        const replaced_code = this._replaceWithSlot(code, entities);
+        const target_program = ThingTalk.NNSyntax.fromNN(replaced_code, entities);
+        await target_program.typecheck(this._schemas, true);
+        
+        if (context != null && context.length > 0) {
+            // So this is a dialogue, has context and we can safely process the context
+            const replaced_context = this._replaceWithSlot(context, entities);
+            const context_program = ThingTalk.NNSyntax.fromNN(replaced_context, entities);
+            await context_program.typecheck(this._schemas, true);
+            
+            // Go over the context first so that target overwrites these values for common slots
+            for (const slot of context_program.iterateSlots2()) {
+                if (slot instanceof Ast.Selector)
                 continue;
-
-            const value = slot.get() as ConstantValue;
-            if (isEntity(value)) {
-                if (slot.type.isAny) {
-                    // ignore this parameter, it probably comes from a
-                    // bookkeeping answer QUOTED_STRING_0 which we don't need to worry about
-                    // because it would be never generated anyway
-                    assert(context_program.isBookkeeping);
+                
+                const value = slot.get() as ConstantValue;
+                if (isEntity(value)) {
+                    if (slot.type.isAny) {
+                        // ignore this parameter, it probably comes from a
+                        // bookkeeping answer QUOTED_STRING_0 which we don't need to worry about
+                        // because it would be never generated anyway
+                        assert(context_program.isBookkeeping);
+                        continue;
+                    }
+                    if (slot.type.isLocation && !this._replaceLocations)
                     continue;
-                }
-                if (slot.type.isLocation && !this._replaceLocations)
+                    if ((slot.type.isNumber || slot.type.isMeasure) && !this._replaceNumbers)
                     continue;
-                if ((slot.type.isNumber || slot.type.isMeasure) && !this._replaceNumbers)
-                    continue;
-
-                if (isReplaceType(slot.type)) {
-                    assert(isReplaceToken(value.token!));
-                    parameters.set(value.token!, slot);
+                    
+                    if (isReplaceType(slot.type)) {
+                        assert(isReplaceToken(value.token!));
+                        parameters.set(value.token!, slot);
+                    }
                 }
             }
         }
@@ -732,7 +735,6 @@ export default class ParameterReplacer {
                 }
             }
         }
-
 
         for (const token of parameters.keys()) {
             // parameters that are present:
