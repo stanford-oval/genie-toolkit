@@ -677,7 +677,7 @@ export default class ParameterReplacer {
         const target_program = ThingTalk.NNSyntax.fromNN(replaced_code, entities);
         await target_program.typecheck(this._schemas, true);
         
-        if (context != null && context.length > 0) {
+        if (context.length !== 0) {
             // So this is a dialogue, has context and we can safely process the context
             const replaced_context = this._replaceWithSlot(context, entities);
             const context_program = ThingTalk.NNSyntax.fromNN(replaced_context, entities);
