@@ -41,9 +41,17 @@ try {
 } catch(e) {
     if (e.code !== 'MODULE_NOT_FOUND')
         throw e;
-    // if that fails, try the location relative to our source directory
-    // (in case we're running with ts-node)
-     TEMPLATE_FILE_PATH = require.resolve('../../languages-dist/thingtalk/en/dialogue.genie');
+    try {
+        // if that fails, try the location relative to our source directory
+        // (in case we're running with ts-node)
+        TEMPLATE_FILE_PATH = require.resolve('../../languages-dist/thingtalk/en/dialogue.genie');
+    } catch(e) {
+        if (e.code !== 'MODULE_NOT_FOUND')
+            throw e;
+        // if that still fails, we're probably in the "compile-template" call
+        // in a clean build, so set ourselves empty (it will not matter)
+        TEMPLATE_FILE_PATH = '';
+    }
 }
 
 function arrayEqual<T>(a : T[], b : T[]) : boolean {
