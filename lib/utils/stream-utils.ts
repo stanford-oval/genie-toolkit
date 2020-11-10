@@ -230,7 +230,7 @@ class CountStream<T> extends Stream.Duplex {
         consumed = this._i;
         if (consumed % 100 === 0)
             this.emit('progress', consumed/this._N);
-        if (this._buffer.length === 0) {
+        if (this._i === this._buffer.length) {
             this.emit('progress', 1);
             this.push(null);
         }
