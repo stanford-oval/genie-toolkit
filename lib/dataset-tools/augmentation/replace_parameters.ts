@@ -313,15 +313,11 @@ export default class ParameterReplacer {
     }
 
     private _getSlotArg(slot : Ast.AbstractSlot) : Ast.ArgumentDef|null {
-        const prim = slot.primitive;
-        if (prim === null)
-            return null;
-
         if (slot.tag === 'attribute.name')
             return null;
 
         let pname;
-        if (slot.tag.startsWith('in_param.'))
+        if (slot.tag.startsWith('in_param.') || slot.tag.startsWith('result.'))
             pname = slot.tag.split('.')[1];
         else if (slot.tag.startsWith('filter.'))
             pname = slot.tag.split('.')[2];
@@ -329,6 +325,7 @@ export default class ParameterReplacer {
             throw new Error(`Unrecognized slot tag ${slot.tag}`);
 
         let arg = slot.arg;
+        const prim = slot.primitive;
         if (!arg && prim && prim.schema && pname)
             arg = prim.schema.getArgument(pname)!;
         if (!arg) {
@@ -677,7 +674,7 @@ export default class ParameterReplacer {
         const target_program = ThingTalk.NNSyntax.fromNN(replaced_code, entities);
         await target_program.typecheck(this._schemas, true);
         
-        if (context.length !== 0) {
+        if (context.length !== 0 && context[0] !== 'null') {
             // So this is a dialogue, has context and we can safely process the context
             const replaced_context = this._replaceWithSlot(context, entities);
             const context_program = ThingTalk.NNSyntax.fromNN(replaced_context, entities);
