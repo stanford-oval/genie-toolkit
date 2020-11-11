@@ -48,7 +48,7 @@ dist: $(wildcard $(sources)) $(generated) tsconfig.json
 	# all with "npm link", "yarn link", or symlinks in general
 	# removing the "node/" prefix works though, because then
 	# the module is resolved as a standard module in nodejs
-	find dist/ -name \*.d.ts | xargs sed -i 's|from "node/|from "|g'
+	find dist/ -name \*.d.ts | xargs sed -i -e 's|from "node/|from "|g'
 	# copy the BERT script to the build folder
 	mkdir -p dist/tool/autoqa/lib
 	cp tool/autoqa/lib/bert-canonical-annotator.py dist/tool/autoqa/lib
