@@ -84,8 +84,8 @@ interface CanonicalForm {
     pvp ?: string|string[];
     apv ?: string|string[];
 
-    base_projection ?: string;
-    projection_pronoun ?: string;
+    base_projection ?: string|string[];
+    projection_pronoun ?: string|string[];
 
     npv ?: boolean;
     implicit_identity ?: boolean;
@@ -644,6 +644,8 @@ export class ThingpediaLoader {
                 for (const form of annotarray) {
                     // always have what question for projection if base available
                     if (canonical.base_projection) {
+                        if (typeof canonical.base_projection === 'string')
+                            canonical.base_projection = [canonical.base_projection];
                         for (const base of canonical.base_projection) {
                             this._addProjections(pname, 'what', cat, base, form);
                             this._addProjections(pname, 'which', cat, base, form);
@@ -653,6 +655,8 @@ export class ThingpediaLoader {
                     // add non-what question when applicable
                     // `base` is no longer need for non-what question, thus leave as empty string
                     if (canonical.projection_pronoun) {
+                        if (typeof canonical.projection_pronoun === 'string')
+                            canonical.projection_pronoun = [canonical.projection_pronoun];
                         for (const pronoun of canonical.projection_pronoun)
                             this._addProjections(pname, pronoun, cat, '', form);
 
