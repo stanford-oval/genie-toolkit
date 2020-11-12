@@ -130,11 +130,19 @@ const GENERAL_TYPO = {
     // star
     "4 star":"4", "4 stars":"4", "0 star rarting":"none",
     // others
-    "y":"yes", "any":"dontcare", "n":"no", "does not care":"dontcare", "not men":"none", "not":"none", "not mentioned":"none",
-    '':"none", "not mendtioned":"none", "3 .":"3", "does not":"no", "fun":"none", "art":"none",
+    "y":"yes", "any":"dontcare", "n":"no", "does not care":"dontcare",
+    "not men":"none", "not":"none", "not mentioned":"none",
+    '':"none", "not mendtioned":"none",
+    "3 .":"3", "does not":"no", "fun":"none", "art":"none",
 
     // new typos
-    "el shaddia guesthouse": "el shaddai"
+    "el shaddia guesthouse": "el shaddai",
+    "not given":"none",
+    "thur": "thursday",
+    "sundaymonday": "sunday|monday",
+    "mondaythursday": "monday|thursday",
+    "fridaytuesday": "friday|tuesday",
+    "cheapmoderate": "cheap|moderate"
 };
 function fixGeneralLabelError(key, value) {
     if (value in GENERAL_TYPO)
@@ -158,6 +166,12 @@ function fixGeneralLabelError(key, value) {
     if (key === 'hotel-price-range' && value === '$100')
         return 'none';
 
+    if ((key === 'hotel-book-day' || key === 'restaurant-book-day') && value === 'w')
+        return 'wednesday';
+
+    if ((key === 'hotel-book-day' || key === 'restaurant-book-day') && value === 'w')
+        return 'wednesday';
+
     if (/area/.test(key)) {
         if (value === 'no') return "north";
         if (value === "we") return "west";
@@ -168,6 +182,9 @@ function fixGeneralLabelError(key, value) {
 }
 
 function parseTime(v) {
+    if (v.indexOf('|') >= 0)
+        v = v.substring(0, v.indexOf('|'));
+
     if (/^[0-9]+:[0-9]+/.test(v)) {
         let [hour, minute, second] = v.split(':');
         hour = parseInt(hour);
@@ -207,6 +224,8 @@ function getStatementDomain(stmt) {
     else
         return stmt.actions[0].schema.class.name;
 }
+
+const USE_MANUAL_AGENT_ANNOTATION = false;
 
 class Converter extends stream.Readable {
     constructor(args) {
@@ -291,7 +310,7 @@ class Converter extends stream.Readable {
         const parsedAgent = await this._parseUtterance(context, this._agentParser, agentUtterance, 'agent');
 
         let agentTarget;
-        if (parsedAgent.length === 0) {
+        if (parsedAgent.length === 0 || !(parsedAgent[0] instanceof Ast.DialogueState)) {
             // oops, bad
             agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_invalid', null, []);
         } else {
@@ -303,22 +322,24 @@ class Converter extends stream.Readable {
             agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_invalid', null, []);
         }
 
-        // add some heuristics using the "system_acts" annotation
-        const requestedSlots = turn.system_acts.filter((act) => typeof act === 'string');
-        if (requestedSlots.length > 0) {
-            if (requestedSlots.some((slot) => SEARCH_SLOTS_FOR_SYSTEM.has(slot))) {
-                if (contextInfo.current && contextInfo.current.results.results.length === 0)
-                    agentTarget.dialogueAct = 'sys_empty_search_question';
-                else
-                    agentTarget.dialogueAct = 'sys_search_question';
-            } else {
-                if (contextInfo.current && contextInfo.current.error)
-                    agentTarget.dialogueAct = 'sys_action_error_question';
-                else
-                    agentTarget.dialogueAct = 'sys_slot_fill';
-            }
+        if (USE_MANUAL_AGENT_ANNOTATION) {
+            // add some heuristics using the "system_acts" annotation
+            const requestedSlots = turn.system_acts.filter((act) => typeof act === 'string');
+            if (requestedSlots.length > 0) {
+                if (requestedSlots.some((slot) => SEARCH_SLOTS_FOR_SYSTEM.has(slot))) {
+                    if (contextInfo.current && contextInfo.current.results.results.length === 0)
+                        agentTarget.dialogueAct = 'sys_empty_search_question';
+                    else
+                        agentTarget.dialogueAct = 'sys_search_question';
+                } else {
+                    if (contextInfo.current && contextInfo.current.error)
+                        agentTarget.dialogueAct = 'sys_action_error_question';
+                    else
+                        agentTarget.dialogueAct = 'sys_slot_fill';
+                }
 
-            agentTarget.dialogueActParam = requestedSlots.map((slot) => REQUESTED_SLOT_MAP[slot] || slot);
+                agentTarget.dialogueActParam = requestedSlots.map((slot) => REQUESTED_SLOT_MAP[slot] || slot);
+            }
         }
 
         if (agentTarget.history.length === 0 && contextInfo.next)
@@ -446,6 +467,18 @@ class Converter extends stream.Readable {
                             new Ast.Value.Enum('hotel'),
                             new Ast.Value.Enum('guest_house')
                         ])));
+                    } else if (/^(centre|south|north|east|west)\|(centre|south|north|east|west)$/.test(value) && (key === 'restaurant-area' || key === 'attraction-area' || key === 'hotel-area')) {
+                        const [, first, second] = /^(centre|south|north|east|west)\|(centre|south|north|east|west)$/.exec(value);
+                        filterClauses.push(new Ast.BooleanExpression.Atom(null, 'area', 'in_array', new Ast.Value.Array([
+                            new Ast.Value.Enum(first),
+                            new Ast.Value.Enum(second)
+                        ])));
+                    } else if (/^(cheap|moderate|expensive)\|(cheap|moderate|expensive)$/.test(value) && (key === 'restaurant-price-range' || key === 'attraction-price-range' || key === 'hotel-price-range')) {
+                        const [, first, second] = /^(cheap|moderate|expensive)\|(cheap|moderate|expensive)$/.exec(value);
+                        filterClauses.push(new Ast.BooleanExpression.Atom(null, 'price_range', 'in_array', new Ast.Value.Array([
+                            new Ast.Value.Enum(first),
+                            new Ast.Value.Enum(second)
+                        ])));
                     } else {
                         if (param === 'internet' || param === 'parking')
                             ttValue = new Ast.Value.Boolean(value !== 'no');
@@ -503,6 +536,9 @@ class Converter extends stream.Readable {
                         // ignore
                         continue;
                     }
+
+                    if (value.indexOf('|') >= 0)
+                        value = value.substring(0, value.indexOf('|'));
 
                     let ttValue;
                     if (param === 'leave_at' || param === 'arrive_by' || param === 'book_time')
