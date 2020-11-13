@@ -30,7 +30,7 @@ import * as Utils from '../../utils/misc-utils';
 import { EntityMap } from '../../utils/entity-utils';
 import * as I18n from '../../i18n';
 import { EntityRecord, getBestEntityMatch } from '../../dialogue-agent/entity-linking/entity-finder';
-import { stripOutTypeAnnotations, normalizeKeywordParams } from './eval_utils';
+import { stripOutTypeAnnotations } from './eval_utils';
 import * as TargetLanguages from '../../languages';
 import { ParserClient, PredictionResult } from '../../prediction/parserclient';
 import { ParsedDialogue, DialogueTurn } from '../parsers';
@@ -370,7 +370,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
         }
 
         // do some light syntactic normalization
-        const choiceString : string = normalizeKeywordParams(Array.from(stripOutTypeAnnotations(choice))).join(' ');
+        const choiceString : string = Array.from(stripOutTypeAnnotations(choice)).join(' ');
 
         // do the actual normalization, using the full ThingTalk algorithm
         // we pass "ignoreSentence: true", which means strings are tokenized and then put in the
@@ -389,6 +389,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
             console.error(targetCode);
             console.error(normalized);
             console.error(choice);
+            console.error(choiceString);
             throw new Error('Normalization Error');
         }
 
