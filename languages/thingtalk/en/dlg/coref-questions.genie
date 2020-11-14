@@ -102,6 +102,47 @@ simple_user_search_question : Array<[string, Type|null]> = {
             return null;
         return params.map((pname) => [pname, null]);
     };
+
+    // boolean projection
+    ( ('can you tell me' | '') 'does' 'it' 'have' param:npp_boolean_projection '?'
+    | ('can you tell me' | '') 'is' 'there' param:npp_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'it' 'has' param:npp_boolean_projection ('first' | '') '.'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'there' 'is' param:npp_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'does' 'it' param:avp_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'it' param:avp_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'is' 'it' param:pvp_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'it' 'is' param:pvp_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'is' 'it' param:preposition_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'it' 'is' param:preposition_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'is' 'it' param:npi_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'it' 'is' param:npi_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'is' 'it' param:npv_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'it' 'is' param:npv_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'is' 'it' param:apv_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'it' 'is' param:apv_boolean_projection ('first' | '') '.'
+    ) => {
+        return [[param.name, null]];
+    };
+
+    ( ('can you tell me' | '') 'does' 'the' base:base_table 'have' param:npp_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'the' base:base_table 'has' param:npp_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'does' 'the' base:base_table param:avp_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'the' base:base_table param:avp_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'is' 'the' base:base_table param:pvp_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'the' base:base_table 'is' param:pvp_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'is' 'the' base:base_table param:preposition_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'the' base:base_table 'is' param:preposition_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'is' 'the' base:base_table param:npi_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'the' base:base_table 'is' param:npi_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'is' 'the' base:base_table param:npv_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'the' base:base_table 'is' param:npv_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'is' 'the' base:base_table param:apv_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'the' base:base_table 'is' param:apv_boolean_projection ('first' | '') '.'
+    ) => {
+        if (!base.schema!.out[param.name])
+            return null;
+        return [[param.name, null]];
+    };
 }
 
 for (let pname in _tpLoader.projections) {
@@ -190,6 +231,28 @@ simple_user_search_question_for_list : Array<[string, Type|null]> = {
     ) => {
         if (param.name === 'id')
             return null;
+        return [[param.name, null]];
+    };
+
+
+    // boolean projection
+    ( ('can you tell me' | '') 'do' 'they' 'have' param:npp_boolean_projection '?'
+    | ('can you tell me' | '') 'are' 'there' param:npp_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'they' 'have' param:npp_boolean_projection ('first' | '') '.'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'there' 'are' param:npp_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'do' 'they' param:avp_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'they' param:avp_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'are' 'they' param:pvp_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'they' 'are' param:pvp_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'are' 'they' param:preposition_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'they' 'are' param:preposition_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'are' 'they' param:npi_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'they' 'are' param:npi_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'are' 'they' param:npv_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'they' 'are' param:npv_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'are' 'they' param:apv_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'they' 'are' param:apv_boolean_projection ('first' | '') '.'
+    ) => {
         return [[param.name, null]];
     };
 }
