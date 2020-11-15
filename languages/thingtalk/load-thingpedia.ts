@@ -997,30 +997,42 @@ export class ThingpediaLoader {
         ));
 
         for (const arg of q.iterateArguments()) {
+            if (typeof arg.metadata.canonical === 'string' || Array.isArray(arg.metadata.canonical))
+                continue;
+
             let op = '==';
             let vtype : Type[] = [arg.type];
-            const slotOperator = arg.getImplementationAnnotation<string>('slot_operator');
-            if (slotOperator) {
-                op = slotOperator;
-            } else {
-                if (arg.type instanceof Type.Array) {
-                    vtype = [arg.type.elem as Type];
-                    if (arg.type.elem === Type.String)
-                        op = 'contains~';
-                    else
+            if (arg.direction === Ast.ArgDirection.OUT) {
+                const slotOperator = arg.getImplementationAnnotation<string>('slot_operator');
+                if (slotOperator) {
+                    op = slotOperator;
+                } else {
+                    if (arg.type instanceof Type.Array) {
+                        vtype = [arg.type.elem as Type];
+                        if (arg.type.elem === Type.String)
+                            op = 'contains~';
+                        else
+                            op = 'contains';
+                    } else if (arg.type.isRecurrentTimeSpecification) {
+                        vtype = [Type.Date, Type.Time];
                         op = 'contains';
-                } else if (arg.type.isRecurrentTimeSpecification) {
-                    vtype = [Type.Date, Type.Time];
-                    op = 'contains';
-                } else if (arg.type === Type.String) {
-                    op = '=~';
+                    } else if (arg.type === Type.String) {
+                        op = '=~';
+                    }
                 }
             }
-
             for (const type of vtype) {
-                const args : { [key : string] : Type } = {};
+                const args : Record<string, Type> = {};
                 args[`p_${arg.name}`] = type;
-                const filter = new Ast.BooleanExpression.Atom(null, arg.name, op, new Ast.Value.VarRef(`p_${arg.name}`));
+                let ast;
+                if (arg.direction === Ast.ArgDirection.OUT) {
+                    const filter = new Ast.BooleanExpression.Atom(null, arg.name, op, new Ast.Value.VarRef(`p_${arg.name}`));
+                    ast = new Ast.Table.Filter(null, table, filter, table.schema);
+                } else {
+                    const inparams = [new Ast.InputParam(null, arg.name, new Ast.Value.VarRef(`p_${arg.name}`))];
+                    ast = table.clone();
+                    ast.invocation.in_params = inparams;
+                }
                 for (let canonical of arg.metadata.canonical.reverse_property || arg.metadata.canonical.npi || []) {
                     if (!canonical.includes('#'))
                         canonical += ' #';
@@ -1029,7 +1041,7 @@ export class ThingpediaLoader {
                         -1,
                         'query',
                         args,
-                        new Ast.Table.Filter(null, table, filter, table.schema),
+                        ast,
                         [canonical.replace('#', `\${p_${arg.name}:no-undefined}`)],
                         [canonical.replace('#', `\${p_${arg.name}:no-undefined}`)],
                         {}
@@ -1041,7 +1053,7 @@ export class ThingpediaLoader {
                         -1,
                         'query',
                         args,
-                        new Ast.Table.Filter(null, table, filter, table.schema),
+                        ast,
                         [`\${p_${arg.name}:no-undefined}`],
                         [`\${p_${arg.name}:no-undefined}`],
                         {}
