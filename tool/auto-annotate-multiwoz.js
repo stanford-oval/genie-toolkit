@@ -225,7 +225,7 @@ function getStatementDomain(stmt) {
         return stmt.actions[0].schema.class.name;
 }
 
-const USE_MANUAL_AGENT_ANNOTATION = false;
+const USE_MANUAL_AGENT_ANNOTATION = true;
 
 class Converter extends stream.Readable {
     constructor(args) {
@@ -235,6 +235,7 @@ class Converter extends stream.Readable {
         this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, true);
         this._userParser = ParserClient.get(args.user_nlu_server, 'en-US');
         this._agentParser = ParserClient.get(args.agent_nlu_server, 'en-US');
+        this._useExisting = args.use_existing;
 
         this._target = TargetLanguages.get('thingtalk');
         this._simulatorOverrides = new Map;
@@ -322,7 +323,7 @@ class Converter extends stream.Readable {
             agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_invalid', null, []);
         }
 
-        if (USE_MANUAL_AGENT_ANNOTATION) {
+        if (this._useExisting && USE_MANUAL_AGENT_ANNOTATION) {
             // add some heuristics using the "system_acts" annotation
             const requestedSlots = turn.system_acts.filter((act) => typeof act === 'string');
             if (requestedSlots.length > 0) {
@@ -368,6 +369,20 @@ class Converter extends stream.Readable {
     }
 
     async _doUserTurn(context, contextInfo, turn, userUtterance, slotBag, actionDomains) {
+        if (!this._useExisting) {
+            // pure self-training:
+            const parsedUser = await this._parseUtterance(context, this._userParser, userUtterance, 'user');
+
+            let userTarget;
+            if (parsedUser.length === 0) {
+                // oops, bad
+                userTarget = new Ast.DialogueState(null, POLICY_NAME, 'invalid', null, []);
+            } else {
+                userTarget = parsedUser[0];
+            }
+            return userTarget;
+        }
+
         const allSlots = new Map;
 
         for (let slot of turn.belief_state) {
@@ -791,6 +806,18 @@ export function initArgparse(subparsers) {
         required: false,
         action: 'store_true',
         help: 'Only translate multi-domain dialogues'
+    });
+    parser.add_argument('--use-existing', {
+        required: false,
+        action: 'store_true',
+        default: true,
+        help: 'Use existing annotations'
+    });
+    parser.add_argument('--no-use-existing', {
+        required: false,
+        action: 'store_false',
+        dest: 'use_existing',
+        help: 'Do not use existing annotations'
     });
     parser.add_argument('input_file', {
         help: 'Input dialog file'
