@@ -1005,10 +1005,15 @@ export class ThingpediaLoader {
             } else {
                 if (arg.type instanceof Type.Array) {
                     vtype = [arg.type.elem as Type];
-                    op = 'contains';
+                    if (arg.type.elem === Type.String)
+                        op = 'contains~';
+                    else
+                        op = 'contains';
                 } else if (arg.type.isRecurrentTimeSpecification) {
                     vtype = [Type.Date, Type.Time];
                     op = 'contains';
+                } else if (arg.type === Type.String) {
+                    op = '=~';
                 }
             }
 
