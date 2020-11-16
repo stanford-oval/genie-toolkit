@@ -85,7 +85,11 @@ const REQUESTED_SLOT_MAP = {
     leave: 'leave_at',
     arrive: 'arrive_by',
     depart: 'departure',
-    dest: 'destination'
+    dest: 'destination',
+    people: 'book_people',
+    time: 'book_time',
+    stay: 'book_stay',
+    day: 'book_day'
 };
 
 // copied from trade-dst
@@ -333,7 +337,7 @@ class Converter extends stream.Readable {
                     else
                         agentTarget.dialogueAct = 'sys_search_question';
                 } else {
-                    if (contextInfo.current && contextInfo.current.error)
+                    if (contextInfo.current && contextInfo.current.results.error)
                         agentTarget.dialogueAct = 'sys_action_error_question';
                     else
                         agentTarget.dialogueAct = 'sys_slot_fill';
