@@ -151,7 +151,6 @@ for (let pname in _tpLoader.projections) {
             for (let [pronoun, base, pvp] of _tpLoader.projections[pname][cat]) {
                 simple_user_search_question : Array<[string, Type|null]> = ( ('can you tell me' | '') #(pronoun) #(base) ('is'|'was'|'are'|'were') 'it' #(pvp) '?'
                 | 'i would like to' ('know' | 'see') #(pronoun) #(base) 'it' ('is'|'was'|'are'|'were') #(pvp) ('first' | '') '.'
-                | 'i would like to' ('know' | 'see') 'the' #(base) ('that'|'which'|'') 'it' ('is'|'was'|'are'|'were') #(pvp) ('first' | '') '.'
                 ) => {
                     if (pname === 'id')
                         return null;
@@ -160,7 +159,6 @@ for (let pname in _tpLoader.projections) {
 
                 simple_user_search_question : Array<[string, Type|null]> = ( ('can you tell me' | '') #(pronoun) #(base) ('is'|'was'|'are'|'were') 'the' base:base_table #(pvp) '?'
                 | 'i would like to' ('know' | 'see') #(pronoun) #(base) 'the' base:base_table ('is'|'was'|'are'|'were') #(pvp) ('first' | '') '.'
-                | 'i would like to' ('know' | 'see') 'the' #(base) ('that'|'which'|'') 'the' base:base_table ('is'|'was'|'are'|'were') #(pvp) ('first' | '') '.'
                 ) => {
                     if (!base.schema!.out[pname])
                         return null;
@@ -168,13 +166,27 @@ for (let pname in _tpLoader.projections) {
                         return null;
                     return [[pname, null]];
                 };
+
+                if (base) {
+                    simple_user_search_question : Array<[string, Type|null]> = 'i would like to' ('know' | 'see') 'the' #(base) ('that'|'which'|'') 'it' ('is'|'was'|'are'|'were') #(pvp) ('first' | '') '.' => {
+                        if (pname === 'id')
+                            return null;
+                        return [[pname, null]];
+                    };
+                    simple_user_search_question : Array<[string, Type|null]> = 'i would like to' ('know' | 'see') 'the' #(base) ('that'|'which'|'') 'the' base:base_table ('is'|'was'|'are'|'were') #(pvp) ('first' | '') '.' => {
+                        if (!base.schema!.out[pname])
+                            return null;
+                        if (pname === 'id')
+                            return null;
+                        return [[pname, null]];
+                    };
+                }
             }
         }
         if (cat === 'avp') {
             for (let [pronoun, base, verb] of _tpLoader.projections[pname][cat]) {
                 simple_user_search_question : Array<[string, Type|null]> = ( ('can you tell me' | '') #(pronoun) #(base) ('do'|'does'|'did') 'it' #(verb) '?'
                 | 'i would like to' ('know' | 'see') #(pronoun) #(base) 'it' #(verb) ('first' | '') '.'
-                | 'i would like to' ('know' | 'see') 'the' #(base) ('that'|'which'|'') 'it' #(verb) ('first' | '') '.'
                 ) => {
                     if (pname === 'id')
                         return null;
@@ -183,7 +195,6 @@ for (let pname in _tpLoader.projections) {
 
                 simple_user_search_question : Array<[string, Type|null]> = ( ('can you tell me' | '') #(pronoun) #(base) ('do'|'does'|'did') 'the' base:base_table #(verb) '?'
                 | 'i would like to' ('know' | 'see') #(pronoun) #(base) 'the' base:base_table #(verb) ('first' | '') '.'
-                | 'i would like to' ('know' | 'see') 'the' #(base) ('that'|'which'|'') 'the' base:base_table #(verb) ('first' | '') '.'
                 ) => {
                     if (!base.schema!.out[pname])
                         return null;
@@ -191,13 +202,27 @@ for (let pname in _tpLoader.projections) {
                         return null;
                     return [[pname, null]];
                 };
+
+                if (base) {
+                    simple_user_search_question : Array<[string, Type|null]> = 'i would like to' ('know' | 'see') 'the' #(base) ('that'|'which'|'') 'it' #(verb) ('first' | '') '.' => {
+                        if (pname === 'id')
+                            return null;
+                        return [[pname, null]];
+                    };
+                    simple_user_search_question : Array<[string, Type|null]> = 'i would like to' ('know' | 'see') 'the' #(base) ('that'|'which'|'') 'the' base:base_table #(verb) ('first' | '') '.' => {
+                        if (!base.schema!.out[pname])
+                            return null;
+                        if (pname === 'id')
+                            return null;
+                        return [[pname, null]];
+                    };
+                }
             }
         }
         if (cat === 'reverse_verb') {
             for (let [pronoun, base, verb] of _tpLoader.projections[pname][cat]) {
                 simple_user_search_question : Array<[string, Type|null]> = ( ('can you tell me' | '') #(pronoun) #(base) #(verb) 'it'  '?'
                 | 'i would like to' ('know' | 'see') #(pronoun) #(base) #(verb) 'it' ('first' | '') '.'
-                | 'i would like to' ('know' | 'see') #(base) ('that'|'which'|'') #(verb) 'it' ('first' | '') '.'
                 ) => {
                     if (pname === 'id')
                         return null;
@@ -206,7 +231,6 @@ for (let pname in _tpLoader.projections) {
 
                 simple_user_search_question : Array<[string, Type|null]> = ( ('can you tell me' | '') #(pronoun) #(base) #(verb) 'the' base:base_table  '?'
                 | 'i would like to' ('know' | 'see') #(pronoun) #(base) #(verb) 'the' base:base_table ('first' | '') '.'
-                | 'i would like to' ('know' | 'see') #(base) ('that'|'which'|'') #(verb) 'the' base:base_table ('first' | '') '.'
                 ) => {
                     if (!base.schema!.out[pname])
                         return null;
@@ -214,6 +238,21 @@ for (let pname in _tpLoader.projections) {
                         return null;
                     return [[pname, null]];
                 };
+
+                if (base) {
+                    simple_user_search_question : Array<[string, Type|null]> = 'i would like to' ('know' | 'see') 'the' #(base) ('that'|'which'|'') #(verb) 'it' ('first' | '') '.' => {
+                        if (pname === 'id')
+                            return null;
+                        return [[pname, null]];
+                    };
+                    simple_user_search_question : Array<[string, Type|null]> = 'i would like to' ('know' | 'see') 'the' #(base) ('that'|'which'|'') #(verb) 'the' base:base_table ('first' | '') '.' => {
+                        if (!base.schema!.out[pname])
+                            return null;
+                        if (pname === 'id')
+                            return null;
+                        return [[pname, null]];
+                    };
+                }
             }
         }
     }
