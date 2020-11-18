@@ -104,22 +104,22 @@ simple_user_search_question : Array<[string, Type|null]> = {
     };
 
     // boolean projection
-    ( ('can you tell me' | '') 'does' 'it' 'have' param:npp_boolean_projection '?'
+    ( ('can you tell me' | '') 'does' ('it' | 'this' | 'that') 'have' param:npp_boolean_projection '?'
     | ('can you tell me' | '') 'is' 'there' param:npp_boolean_projection '?'
-    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'it' 'has' param:npp_boolean_projection ('first' | '') '.'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') ('it' | 'this' | 'that') 'has' param:npp_boolean_projection ('first' | '') '.'
     | 'i would like to' ('know' | 'see') ('if' | 'whether') 'there' 'is' param:npp_boolean_projection ('first' | '') '.'
-    | ('can you tell me' | '') 'does' 'it' param:avp_boolean_projection '?'
-    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'it' param:avp_boolean_projection ('first' | '') '.'
-    | ('can you tell me' | '') 'is' 'it' param:pvp_boolean_projection '?'
-    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'it' 'is' param:pvp_boolean_projection ('first' | '') '.'
-    | ('can you tell me' | '') 'is' 'it' param:preposition_boolean_projection '?'
-    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'it' 'is' param:preposition_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'does' ('it' | 'this' | 'that') param:avp_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') ('it' | 'this' | 'that') param:avp_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'is' ('it' | 'this' | 'that') param:pvp_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') ('it' | 'this' | 'that') 'is' param:pvp_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'is' ('it' | 'this' | 'that') param:preposition_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') ('it' | 'this' | 'that') 'is' param:preposition_boolean_projection ('first' | '') '.'
     | ('can you tell me' | '') 'is' 'it' param:npi_boolean_projection '?'
-    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'it' 'is' param:npi_boolean_projection ('first' | '') '.'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') ('it' | 'this' | 'that') 'is' param:npi_boolean_projection ('first' | '') '.'
     | ('can you tell me' | '') 'is' 'it' param:npv_boolean_projection '?'
-    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'it' 'is' param:npv_boolean_projection ('first' | '') '.'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') ('it' | 'this' | 'that') 'is' param:npv_boolean_projection ('first' | '') '.'
     | ('can you tell me' | '') 'is' 'it' param:apv_boolean_projection '?'
-    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'it' 'is' param:apv_boolean_projection ('first' | '') '.'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') ('it' | 'this' | 'that') 'is' param:apv_boolean_projection ('first' | '') '.'
     ) => {
         return [[param.name, null]];
     };
@@ -149,8 +149,8 @@ for (let pname in _tpLoader.projections) {
     for (let cat in _tpLoader.projections[pname]) {
         if (cat === 'pvp' || cat === 'preposition') {
             for (let [pronoun, base, pvp] of _tpLoader.projections[pname][cat]) {
-                simple_user_search_question : Array<[string, Type|null]> = ( ('can you tell me' | '') #(pronoun) #(base) ('is'|'was'|'are'|'were') 'it' #(pvp) '?'
-                | 'i would like to' ('know' | 'see') #(pronoun) #(base) 'it' ('is'|'was'|'are'|'were') #(pvp) ('first' | '') '.'
+                simple_user_search_question : Array<[string, Type|null]> = ( ('can you tell me' | '') #(pronoun) #(base) ('is'|'was'|'are'|'were') ('it' | 'this' | 'that') #(pvp) '?'
+                | 'i would like to' ('know' | 'see') #(pronoun) #(base) ('it' | 'this' | 'that') ('is'|'was'|'are'|'were') #(pvp) ('first' | '') '.'
                 ) => {
                     if (pname === 'id')
                         return null;
@@ -168,7 +168,7 @@ for (let pname in _tpLoader.projections) {
                 };
 
                 if (base) {
-                    simple_user_search_question : Array<[string, Type|null]> = 'i would like to' ('know' | 'see') 'the' #(base) ('that'|'which'|'') 'it' ('is'|'was'|'are'|'were') #(pvp) ('first' | '') '.' => {
+                    simple_user_search_question : Array<[string, Type|null]> = 'i would like to' ('know' | 'see') 'the' #(base) ('that'|'which'|'') ('it' | 'this' | 'that') ('is'|'was'|'are'|'were') #(pvp) ('first' | '') '.' => {
                         if (pname === 'id')
                             return null;
                         return [[pname, null]];
@@ -185,8 +185,8 @@ for (let pname in _tpLoader.projections) {
         }
         if (cat === 'avp') {
             for (let [pronoun, base, verb] of _tpLoader.projections[pname][cat]) {
-                simple_user_search_question : Array<[string, Type|null]> = ( ('can you tell me' | '') #(pronoun) #(base) ('do'|'does'|'did') 'it' #(verb) '?'
-                | 'i would like to' ('know' | 'see') #(pronoun) #(base) 'it' #(verb) ('first' | '') '.'
+                simple_user_search_question : Array<[string, Type|null]> = ( ('can you tell me' | '') #(pronoun) #(base) ('do'|'does'|'did') ('it' | 'this' | 'that') #(verb) '?'
+                | 'i would like to' ('know' | 'see') #(pronoun) #(base) ('it' | 'this' | 'that') #(verb) ('first' | '') '.'
                 ) => {
                     if (pname === 'id')
                         return null;
@@ -204,7 +204,7 @@ for (let pname in _tpLoader.projections) {
                 };
 
                 if (base) {
-                    simple_user_search_question : Array<[string, Type|null]> = 'i would like to' ('know' | 'see') 'the' #(base) ('that'|'which'|'') 'it' #(verb) ('first' | '') '.' => {
+                    simple_user_search_question : Array<[string, Type|null]> = 'i would like to' ('know' | 'see') 'the' #(base) ('that'|'which'|'') ('it' | 'this' | 'that') #(verb) ('first' | '') '.' => {
                         if (pname === 'id')
                             return null;
                         return [[pname, null]];
@@ -221,8 +221,8 @@ for (let pname in _tpLoader.projections) {
         }
         if (cat === 'reverse_verb') {
             for (let [pronoun, base, verb] of _tpLoader.projections[pname][cat]) {
-                simple_user_search_question : Array<[string, Type|null]> = ( ('can you tell me' | '') #(pronoun) #(base) #(verb) 'it'  '?'
-                | 'i would like to' ('know' | 'see') #(pronoun) #(base) #(verb) 'it' ('first' | '') '.'
+                simple_user_search_question : Array<[string, Type|null]> = ( ('can you tell me' | '') #(pronoun) #(base) #(verb) ('it' | 'this' | 'that')  '?'
+                | 'i would like to' ('know' | 'see') #(pronoun) #(base) #(verb) ('it' | 'this' | 'that') ('first' | '') '.'
                 ) => {
                     if (pname === 'id')
                         return null;
@@ -240,7 +240,7 @@ for (let pname in _tpLoader.projections) {
                 };
 
                 if (base) {
-                    simple_user_search_question : Array<[string, Type|null]> = 'i would like to' ('know' | 'see') 'the' #(base) ('that'|'which'|'') #(verb) 'it' ('first' | '') '.' => {
+                    simple_user_search_question : Array<[string, Type|null]> = 'i would like to' ('know' | 'see') 'the' #(base) ('that'|'which'|'') #(verb) ('it' | 'this' | 'that') ('first' | '') '.' => {
                         if (pname === 'id')
                             return null;
                         return [[pname, null]];
@@ -275,22 +275,22 @@ simple_user_search_question_for_list : Array<[string, Type|null]> = {
 
 
     // boolean projection
-    ( ('can you tell me' | '') 'do' 'they' 'have' param:npp_boolean_projection '?'
+    ( ('can you tell me' | '') 'do' ('they' | 'these' | 'those') 'have' param:npp_boolean_projection '?'
     | ('can you tell me' | '') 'are' 'there' param:npp_boolean_projection '?'
-    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'they' 'have' param:npp_boolean_projection ('first' | '') '.'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') ('they' | 'these' | 'those') 'have' param:npp_boolean_projection ('first' | '') '.'
     | 'i would like to' ('know' | 'see') ('if' | 'whether') 'there' 'are' param:npp_boolean_projection ('first' | '') '.'
-    | ('can you tell me' | '') 'do' 'they' param:avp_boolean_projection '?'
-    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'they' param:avp_boolean_projection ('first' | '') '.'
-    | ('can you tell me' | '') 'are' 'they' param:pvp_boolean_projection '?'
-    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'they' 'are' param:pvp_boolean_projection ('first' | '') '.'
-    | ('can you tell me' | '') 'are' 'they' param:preposition_boolean_projection '?'
-    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'they' 'are' param:preposition_boolean_projection ('first' | '') '.'
-    | ('can you tell me' | '') 'are' 'they' param:npi_boolean_projection '?'
-    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'they' 'are' param:npi_boolean_projection ('first' | '') '.'
-    | ('can you tell me' | '') 'are' 'they' param:npv_boolean_projection '?'
-    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'they' 'are' param:npv_boolean_projection ('first' | '') '.'
-    | ('can you tell me' | '') 'are' 'they' param:apv_boolean_projection '?'
-    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'they' 'are' param:apv_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'do' ('they' | 'these' | 'those') param:avp_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') ('they' | 'these' | 'those') param:avp_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'are' ('they' | 'these' | 'those') param:pvp_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') ('they' | 'these' | 'those') 'are' param:pvp_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'are' ('they' | 'these' | 'those') param:preposition_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') ('they' | 'these' | 'those') 'are' param:preposition_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'are' ('they' | 'these' | 'those') param:npi_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') ('they' | 'these' | 'those') 'are' param:npi_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'are' ('they' | 'these' | 'those') param:npv_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') ('they' | 'these' | 'those') 'are' param:npv_boolean_projection ('first' | '') '.'
+    | ('can you tell me' | '') 'are' ('they' | 'these' | 'those') param:apv_boolean_projection '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') ('they' | 'these' | 'those') 'are' param:apv_boolean_projection ('first' | '') '.'
     ) => {
         return [[param.name, null]];
     };
@@ -298,8 +298,8 @@ simple_user_search_question_for_list : Array<[string, Type|null]> = {
 
 boolean_user_search_question : Array<[string, Type|null]> = {
     // question in boolean
-    ( 'does' ('that' | 'it') 'have' param:npp_filter '?'
-    | 'does' ('that' | 'it') param:avp_filter '?'
+    ( 'does' ('that' | 'it' | 'this') 'have' param:npp_filter '?'
+    | 'does' ('that' | 'it' | 'this') param:avp_filter '?'
     ) => {
         if (!(param instanceof Ast.AtomBooleanExpression)) {
             assert(param instanceof Ast.AndBooleanExpression);
@@ -316,20 +316,20 @@ boolean_user_search_question : Array<[string, Type|null]> = {
         return [[param.name, param.operator === 'contains' ? new Type.Array(param.value.getType()) : param.value.getType()]];
     };
 
-    ( 'is' ('it' | 'that') 'a' param:apv_filter base:base_table '?'
-    | 'is that' base:base_table param:apv_filter '?'
+    ( 'is' ('that' | 'it' | 'this') 'a' param:apv_filter base:base_table '?'
+    | 'is' ('the' | 'this' | 'that') base:base_table param:apv_filter '?'
 
-    | 'is' ('it' | 'that') 'a' base:base_table param:pvp_filter '?'
-    | 'is that' base:base_table param:pvp_filter '?'
+    | 'is' ('that' | 'it' | 'this') 'a' base:base_table param:pvp_filter '?'
+    | 'is' ('the' | 'this' | 'that') base:base_table param:pvp_filter '?'
 
-    | 'is' ('it' | 'that') 'a' base:base_table param:preposition_filter '?'
-    | 'is that' base:base_table param:preposition_filter '?'
+    | 'is' ('that' | 'it' | 'this') 'a' base:base_table param:preposition_filter '?'
+    | 'is' ('the' | 'this' | 'that') base:base_table param:preposition_filter '?'
 
-    | 'is' ('it' | 'that') 'a' base:base_table ('that' | 'which') param:avp_filter '?'
-    | 'does that' base:base_table param:avp_filter '?'
+    | 'is' ('that' | 'it' | 'this') 'a' base:base_table ('that' | 'which') param:avp_filter '?'
+    | 'does' ('the' | 'this' | 'that') base:base_table param:avp_filter '?'
 
-    | 'is' ('it' | 'that') 'a' base:base_table ('that has' | 'with') param:npp_filter '?'
-    | 'does that' base:base_table 'have' param:npp_filter '?'
+    | 'is' ('that' | 'it' | 'this') 'a' base:base_table ('that has' | 'with') param:npp_filter '?'
+    | 'does' ('the' | 'this' | 'that') base:base_table 'have' param:npp_filter '?'
     ) => {
         if (!C.checkFilter(base, param))
             return null;
@@ -353,8 +353,10 @@ boolean_user_search_question : Array<[string, Type|null]> = {
 
 boolean_user_search_question_for_list : Array<[string, Type|null]> = {
     // question in boolean
-    ( ('does either of them' | 'does any of them' | 'do they') 'have' param:npp_filter '?'
-    | ('does either of them' | 'does any of them' | 'do they') param:avp_filter '?'
+    ( ('does either of' | 'does any of') ('them' | 'these' | 'those') 'have' param:npp_filter '?'
+    | 'do' 'they' 'have' param:npp_filter '?'
+    | ('does either of' | 'does any of') ('them' | 'these' | 'those') param:avp_filter '?'
+    | 'do they' param:avp_filter '?'
     ) => {
         if (!(param instanceof Ast.AtomBooleanExpression)) {
             assert(param instanceof Ast.AndBooleanExpression);
@@ -371,20 +373,25 @@ boolean_user_search_question_for_list : Array<[string, Type|null]> = {
         return [[param.name, param.operator === 'contains' ? new Type.Array(param.value.getType()) : param.value.getType()]];
     };
 
-    ( ('is either of them' | 'is any of them' | 'are they') 'a' param:apv_filter base:base_table '?'
-    | 'are those' base:base_table param:apv_filter '?'
+    ( ('is either of' | 'is any of')  ('them' | 'these' | 'those') 'a' param:apv_filter base:base_table '?'
+    | 'are they' param:apv_filter base:base_table '?'
+    | 'are' ('the' | 'these' | 'those') base:base_table param:apv_filter '?'
 
-    | ('is either of them' | 'is any of them' | 'are they') 'a' base:base_table param:pvp_filter '?'
-    | 'are those' base:base_table param:pvp_filter '?'
+    | ('is either of' | 'is any of')  ('them' | 'these' | 'those') 'a' base:base_table param:pvp_filter '?'
+    | 'are they' base:base_table param:pvp_filter '?'
+    | 'are' ('the' | 'these' | 'those') base:base_table param:pvp_filter '?'
 
-    | ('is either of them' | 'is any of them' | 'are they')  'a' base:base_table param:preposition_filter '?'
-    | 'are those' base:base_table param:preposition_filter '?'
+    | ('is either of' | 'is any of')  ('them' | 'these' | 'those')  'a' base:base_table param:preposition_filter '?'
+    | 'are they' base:base_table param:preposition_filter '?'
+    | 'are' ('the' | 'these' | 'those') base:base_table param:preposition_filter '?'
 
-    | ('is either of them' | 'is any of them' | 'are they')  'a' base:base_table ('that' | 'which') param:avp_filter '?'
-    | 'do those' base:base_table param:avp_filter '?'
+    | ('is either of' | 'is any of')  ('them' | 'these' | 'those')  'a' base:base_table ('that' | 'which') param:avp_filter '?'
+    | 'are they' base:base_table ('that' | 'which') param:avp_filter '?'
+    | 'do' ('the' | 'these' | 'those') base:base_table param:avp_filter '?'
 
-    | ('is either of them' | 'is any of them' | 'are they')  'a' base:base_table ('that has' | 'with') param:npp_filter '?'
-    | 'do those' base:base_table 'have' param:npp_filter '?'
+    | ('is either of' | 'is any of')  ('them' | 'these' | 'those')  'a' base:base_table ('that has' | 'with') param:npp_filter '?'
+    | 'are they' base:base_table ('that has' | 'with') param:npp_filter '?'
+    | 'do' ('the' | 'these' | 'those') base:base_table 'have' param:npp_filter '?'
     ) => {
         if (!C.checkFilter(base, param))
             return null;
