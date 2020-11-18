@@ -32,7 +32,8 @@ class @uk.ac.cam.multiwoz.Attraction
                          default="adjective",
                          base=["attraction type", "type", "type of attraction"],
                          property=["type #"],
-                         adjective=["#"]
+                         adjective=["#"],
+                         reverse_property=['#']
                        }],
                        out phone : Entity(tt:phone_number)
                         #[filterable=false]
