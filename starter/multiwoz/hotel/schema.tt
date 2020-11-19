@@ -26,7 +26,7 @@ class @uk.ac.cam.multiwoz.Hotel
                                   "around the #", "around the # area", "around the # part of town",
                                   "in the # of cambridge", "in # cambridge"],
                      projection_pronoun=["where", "which part of town", "which area", "which part of cambridge"],
-                     verb_projection=["locate"],
+                     passive_verb_projection=["located"],
                      preposition_projection=["in", "at"]
                    }],
                    out price_range : Enum(cheap, moderate, expensive)
