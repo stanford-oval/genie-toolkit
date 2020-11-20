@@ -302,7 +302,8 @@ class Converter extends stream.Readable {
         for (let idx = 0; idx < state.history.length; idx ++) {
             const item = state.history[idx];
             if (item.results === null) {
-                next = item;
+                if (item.confirm === 'accepted')
+                    next = item;
                 break;
             }
             current = item;
@@ -346,6 +347,13 @@ class Converter extends stream.Readable {
                 agentTarget.dialogueActParam = requestedSlots.map((slot) => REQUESTED_SLOT_MAP[slot] || slot);
             }
         }
+        
+        // adjust to ensure the agent doesn't produce new complete statements
+        agentTarget.history = agentTarget.history.filter((item) => {
+            if (item.confirm === 'confirmed')
+                return false;
+            return !item.isExecutable() || item.confirm === 'proposed';
+        });
 
         if (agentTarget.history.length === 0 && contextInfo.next)
             agentTarget.history.push(contextInfo.next.clone());
@@ -381,9 +389,23 @@ class Converter extends stream.Readable {
             if (parsedUser.length === 0) {
                 // oops, bad
                 userTarget = new Ast.DialogueState(null, POLICY_NAME, 'invalid', null, []);
+                if (contextInfo.next)
+                    userTarget.history.push(contextInfo.next.clone());
             } else {
                 userTarget = parsedUser[0];
             }
+            // ensure that executable statements come first
+            userTarget.history.sort((a, b) => {
+                const aexec = a.isExecutable();
+                const bexec = b.isExecutable();
+                if (aexec === bexec)
+                    return 0;
+                if (aexec)
+                    return -1;
+                else
+                    return 1;
+            });
+            
             return userTarget;
         }
 
