@@ -202,6 +202,8 @@ function prepareContextForPrediction(context : Ast.DialogueState|null, forTarget
     // append the unconfirmed/unexecuted results
     for (; i < context.history.length; i++) {
         const item = context.history[i];
+        if (item.results !== null)
+            console.error(context);
         assert(item.results === null);
 
         // about this assertion:
