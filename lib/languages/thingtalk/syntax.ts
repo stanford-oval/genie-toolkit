@@ -108,21 +108,14 @@ export function serializePrediction(prediction : Ast.Input,
                                     entities : EntityMap,
                                     forTarget : 'user'|'agent',
                                     options : SerializeOptions) : string[] {
-    if (forTarget === 'user') {
-        const entityRetriever = new GenieEntityRetriever(sentence, entities, {
-            locale: options.locale!,
-            allowNonConsecutive: true,
-            useHeuristics: true,
-            alwaysAllowStrings: true,
-            ignoreSentence: options.ignoreSentence || false,
-        });
-        return NNSyntax.toNN(prediction, sentence, entityRetriever, {
-            typeAnnotations: false
-        });
-    } else {
-        return NNSyntax.toNN(prediction, sentence, entities, {
-            allocateEntities: true,
-            typeAnnotations: false
-        });
-    }
+    const entityRetriever = new GenieEntityRetriever(sentence, entities, {
+        locale: options.locale!,
+        allowNonConsecutive: true,
+        useHeuristics: true,
+        alwaysAllowStrings: true,
+        ignoreSentence: options.ignoreSentence || false,
+    });
+    return NNSyntax.toNN(prediction, sentence, entityRetriever, {
+        typeAnnotations: false
+    });
 }
