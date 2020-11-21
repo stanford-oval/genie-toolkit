@@ -105,11 +105,11 @@ class DialogueToTurnStream extends Stream.Transform {
         const [contextCode, contextEntities] = this._target.serializeNormalized(agentContext);
 
         const agentTarget = await this._target.parse(turn.agent_target!, this._options) as any;
-        const agentCode = await this._target.serializePrediction(agentTarget, [''], contextEntities, 'agent', {
-            locale: this._locale
-        });
 
         const { tokens, } = this._preprocess(turn.agent!, contextEntities);
+        const agentCode = await this._target.serializePrediction(agentTarget, tokens, contextEntities, 'agent', {
+            locale: this._locale
+        });
 
         if (this._dedupe) {
             const key = this._getDedupeKey(contextCode, tokens);
