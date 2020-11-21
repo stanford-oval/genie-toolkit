@@ -189,6 +189,10 @@ function isFilterCompatibleWithResult(topResult, filter) {
     }
 }
 
+function prettyprintStmt(stmt) {
+    return new ThingTalk.Ast.Program(null, [], [], [stmt]).prettyprint();
+}
+
 
 class DialogueAnalyzer extends Stream.Transform {
     constructor(options) {
@@ -406,8 +410,9 @@ class DialogueAnalyzer extends Stream.Transform {
                 current = item;
             }
         }
+
         if (current !== null && userTarget.dialogueAct === 'execute' &&
-            (userTarget.history.length === 0 || userTarget.history[0].stmt.prettyprint() === current.stmt.prettyprint()))
+            (userTarget.history.length === 0 || prettyprintStmt(userTarget.history[0].stmt) === prettyprintStmt(current.stmt)))
             return 'reissue_identical';
         if (userTarget.dialogueAct === 'insist')
             return 'insist';
@@ -422,7 +427,8 @@ class DialogueAnalyzer extends Stream.Transform {
         }
 
         const currentDomain = context && context.history.length > 0 ? this._getDomain(context.history[context.history.length-1]) : null;
-        if (currentDomain && userTargetDomain && currentDomain !== userTargetDomain)
+        if (currentDomain && userTargetDomain && currentDomain !== userTargetDomain &&
+            !['sys_anything_else', 'sys_action_success', 'sys_action_error'].includes(context.dialogueAct))
             return 'unexpected_domain_switch';
 
         if (current !== null  && current.stmt.actions[0].isInvocation) {
@@ -433,8 +439,8 @@ class DialogueAnalyzer extends Stream.Transform {
                 return 'query_after_action';
         }
 
-        if (userTarget.history.length >= 2 && (next === null || next.stmt.prettyprint() !== userTarget.history[1].stmt.prettyprint()) &&
-            context !== null  && !['sys_search_question', 'sys_generic_search_question'].includes(context.dialogueAct))
+        if (userTarget.history.length >= 2 && (next === null || prettyprintStmt(next.stmt) !== prettyprintStmt(userTarget.history[1].stmt)) &&
+            context !== null  && !['sys_search_question', 'sys_generic_search_question', 'sys_anything_else', 'sys_action_success', 'sys_action_error'].includes(context.dialogueAct))
             return 'query_plus_action_refinement';
 
         if (userTarget.history.length === 1) {
