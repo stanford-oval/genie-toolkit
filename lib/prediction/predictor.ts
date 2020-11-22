@@ -298,7 +298,7 @@ export default class Predictor {
         return worker;
     }
 
-    predict(context : string, question = DEFAULT_QUESTION, answer ?: string, task = 'almond', example_id ?: string) {
+    private _doPredict(context : string, question : string, answer : string|undefined, task : string, example_id : string|undefined) {
         // first pick a worker that is free
         for (const worker of this._workers) {
             if (worker.ok && !worker.busy)
@@ -313,5 +313,18 @@ export default class Predictor {
 
         // failing that, spawn a new worker
         return this._startWorker().request(task, context, question, answer, example_id);
+    }
+
+    async predict(context : string, question = DEFAULT_QUESTION, answer ?: string, task = 'almond', example_id ?: string) {
+        let retryCount = 0;
+        for (;;) {
+            retryCount ++;
+            try {
+                return await this._doPredict(context, question, answer, task, example_id);
+            } catch(e) {
+                if (retryCount >= 2)
+                    throw e;
+            }
+        }
     }
 }
