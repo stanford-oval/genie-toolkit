@@ -147,6 +147,11 @@ class Worker extends events.EventEmitter {
     private _failAll(error : Error) {
         for (const { reject } of this._requests.values())
             reject(error);
+        for (const ex of this._minibatch)
+            ex.reject(error);
+        this._minibatch = [];
+        this._minibatchTask = '';
+        this._minibatchStartTime = 0;
         this._requests.clear();
     }
 
