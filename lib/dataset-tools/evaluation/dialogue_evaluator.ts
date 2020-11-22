@@ -66,7 +66,7 @@ export interface ExampleEvaluationResult {
 }
 export type EvaluationResult = ExampleEvaluationResult & { total : number, turns : number };
 
-const MINIBATCH_SIZE = 100;
+const MINIBATCH_SIZE = 30;
 
 class DialogueEvaluatorStream extends Stream.Transform {
     private _parser : ParserClient;
