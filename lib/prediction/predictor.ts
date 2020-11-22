@@ -37,7 +37,7 @@ interface Request {
     reject(err : Error) : void;
 }
 
-const MINIBATCH_SIZE = 16;
+const MINIBATCH_SIZE = 50;
 const MAX_LATENCY = 100; // milliseconds
 interface Example {
     context : string;
