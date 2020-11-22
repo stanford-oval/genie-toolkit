@@ -38,7 +38,7 @@ interface Request {
 }
 
 const MINIBATCH_SIZE = 100;
-const MAX_LATENCY = 100; // milliseconds
+const MAX_LATENCY = 1000; // milliseconds
 interface Example {
     context : string;
     question : string;
@@ -159,7 +159,7 @@ class Worker extends events.EventEmitter {
         this._minibatchTask = '';
         this._minibatchStartTime = 0;
 
-        //console.error(`minibatch: ${minibatch.length} instances`);
+        console.error(`minibatch: ${minibatch.length} instances`);
 
         const request = {
             resolve(candidates : PredictionCandidate[][]) {
