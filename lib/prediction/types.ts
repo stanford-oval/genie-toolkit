@@ -28,6 +28,7 @@ export interface ParseOptions {
     choices ?: string[];
     tokenized ?: boolean;
     skip_typechecking ?: boolean;
+    example_id ?: string;
 }
 
 export interface PredictionCandidate {

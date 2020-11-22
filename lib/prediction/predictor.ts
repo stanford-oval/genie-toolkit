@@ -130,7 +130,7 @@ class Worker extends events.EventEmitter {
         this._requests.clear();
     }
 
-    request(task : string, context : string, question : string, answer ?: string) : Promise<PredictionCandidate[]> {
+    request(task : string, context : string, question : string, answer ?: string, example_id ?: string) : Promise<PredictionCandidate[]> {
         const id = this._nextId ++;
 
         let resolve ! : (data : PredictionCandidate[]) => void,
@@ -143,7 +143,7 @@ class Worker extends events.EventEmitter {
 
         assert(typeof context === 'string');
         assert(typeof question === 'string');
-        this._stream!.write({ id, context, question, answer, task });
+        this._stream!.write({ id, context, question, answer, task, example_id });
         return promise;
     }
 }
@@ -220,20 +220,20 @@ export default class Predictor {
         return worker;
     }
 
-    predict(context : string, question = DEFAULT_QUESTION, answer ?: string, task = 'almond') {
+    predict(context : string, question = DEFAULT_QUESTION, answer ?: string, task = 'almond', example_id ?: string) {
         // first pick a worker that is free
         for (const worker of this._workers) {
             if (worker.ok && !worker.busy)
-                return worker.request(task, context, question, answer);
+                return worker.request(task, context, question, answer, example_id);
         }
 
         // failing that, pick any worker that is alive
         for (const worker of this._workers) {
             if (worker.ok)
-                return worker.request(task, context, question, answer);
+                return worker.request(task, context, question, answer, example_id);
         }
 
         // failing that, spawn a new worker
-        return this._startWorker().request(task, context, question, answer);
+        return this._startWorker().request(task, context, question, answer, example_id);
     }
 }

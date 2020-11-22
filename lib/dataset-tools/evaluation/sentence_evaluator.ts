@@ -282,7 +282,8 @@ class SentenceEvaluator {
                 const parsed : PredictionResult = await this._parser.sendUtterance(this._preprocessed, contextCode, contextEntities, {
                     answer: answer,
                     tokenized: this._tokenized,
-                    skip_typechecking: true
+                    skip_typechecking: true,
+                    example_id: this._id
                 });
                 if (!entities)
                     entities = parsed.entities;
