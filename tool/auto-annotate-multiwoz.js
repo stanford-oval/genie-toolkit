@@ -268,7 +268,7 @@ class Converter extends stream.Readable {
         await this._agentParser.start();
     }
 
-    async _parseUtterance(context, parser, utterance, forSide) {
+    async _parseUtterance(context, parser, utterance, forSide, example_id) {
         let contextCode, contextEntities;
         if (context !== null) {
             context = this._target.prepareContextForPrediction(context, forSide);
@@ -280,7 +280,8 @@ class Converter extends stream.Readable {
 
         const parsed = await parser.sendUtterance(utterance, contextCode, contextEntities, {
             tokenized: false,
-            skip_typechecking: true
+            skip_typechecking: true,
+            example_id
         });
         return (await Promise.all(parsed.candidates.map(async (cand) => {
             try {
@@ -312,8 +313,8 @@ class Converter extends stream.Readable {
         return { current, next };
     }
 
-    async _doAgentTurn(context, contextInfo, turn, agentUtterance) {
-        const parsedAgent = await this._parseUtterance(context, this._agentParser, agentUtterance, 'agent');
+    async _doAgentTurn(context, contextInfo, turn, agentUtterance, exampleId) {
+        const parsedAgent = await this._parseUtterance(context, this._agentParser, agentUtterance, 'agent', exampleId);
 
         let agentTarget;
         if (parsedAgent.length === 0 || !(parsedAgent[0] instanceof Ast.DialogueState)) {
@@ -380,10 +381,10 @@ class Converter extends stream.Readable {
         //value.display = resolved.display;
     }
 
-    async _doUserTurn(context, contextInfo, turn, userUtterance, slotBag, actionDomains) {
+    async _doUserTurn(context, contextInfo, turn, userUtterance, slotBag, actionDomains, exampleId) {
         if (!this._useExisting) {
             // pure self-training:
-            const parsedUser = await this._parseUtterance(context, this._userParser, userUtterance, 'user');
+            const parsedUser = await this._parseUtterance(context, this._userParser, userUtterance, 'user', exampleId);
 
             let userTarget;
             if (parsedUser.length === 0) {
@@ -446,7 +447,7 @@ class Converter extends stream.Readable {
         if (newSearchSlots.size === 0 && newActionSlots.size === 0) {
             // no slot given at this turn
             // parse the utterance and hope for the best...
-            const parsedUser = await this._parseUtterance(context, this._userParser, userUtterance, 'user');
+            const parsedUser = await this._parseUtterance(context, this._userParser, userUtterance, 'user', exampleId);
 
             let userTarget;
             if (parsedUser.length === 0) {
@@ -713,6 +714,7 @@ class Converter extends stream.Readable {
         for (let idx = 0; idx < dlg.dialogue.length; idx++) {
             const turn = dlg.dialogue[idx];
             this._findTrainName(turn);
+            const turnId = id + '/' + idx;
 
             try {
                 let contextCode = '', agentUtterance = '', agentTargetCode = '';
@@ -751,7 +753,7 @@ class Converter extends stream.Readable {
                     contextCode = context.prettyprint();
 
                     // do the agent
-                    const agentTarget = await this._doAgentTurn(context, contextInfo, turn, agentUtterance);
+                    const agentTarget = await this._doAgentTurn(context, contextInfo, turn, agentUtterance, turnId);
                     const oldContext = context;
                     context = this._target.computeNewState(context, agentTarget, 'agent');
                     const prediction = this._target.computePrediction(oldContext, context, 'agent');
@@ -759,7 +761,7 @@ class Converter extends stream.Readable {
                 }
 
                 const userUtterance = undoTradePreprocessing(turn.transcript);
-                const userTarget = await this._doUserTurn(context, contextInfo, turn, userUtterance, slotBag, actionDomains);
+                const userTarget = await this._doUserTurn(context, contextInfo, turn, userUtterance, slotBag, actionDomains, turnId);
                 const oldContext = context;
                 context = this._target.computeNewState(context, userTarget, 'user');
                 const prediction = this._target.computePrediction(oldContext, context, 'user');

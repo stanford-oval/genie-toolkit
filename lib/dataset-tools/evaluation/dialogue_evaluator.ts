@@ -334,7 +334,8 @@ class DialogueEvaluatorStream extends Stream.Transform {
 
         const parsed : PredictionResult = await this._parser.sendUtterance(tokens.join(' '), contextCode, contextEntities, {
             tokenized: true,
-            skip_typechecking: true
+            skip_typechecking: true,
+            example_id: id + '/' + turnIndex,
         });
 
         const predictions = parsed.candidates

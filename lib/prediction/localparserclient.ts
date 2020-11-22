@@ -190,9 +190,9 @@ export default class LocalParserClient {
 
                 let candidates;
                 if (contextCode)
-                    candidates = await this._predictor.predict(contextCode.join(' '), tokens.join(' '), answer, NLU_TASK);
+                    candidates = await this._predictor.predict(contextCode.join(' '), tokens.join(' '), answer, NLU_TASK, options.example_id);
                 else
-                    candidates = await this._predictor.predict(tokens.join(' '), undefined, answer, SEMANTIC_PARSING_TASK);
+                    candidates = await this._predictor.predict(tokens.join(' '), undefined, answer, SEMANTIC_PARSING_TASK, options.example_id);
                 result = candidates.map((c) => {
                     return {
                         code: c.answer.split(' '),
