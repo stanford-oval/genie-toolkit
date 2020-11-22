@@ -108,7 +108,9 @@ class Worker extends events.EventEmitter {
             this._hadError = true;
             this.emit('error', e);
         });
-        this._child.on('exit', () => {
+        this._child.on('exit', (code, signal) => {
+            //console.error(`Child exited with code ${code}, signal ${signal}`);
+
             this._failAll(new Error(`Worker died`));
             this._child = null;
             this.emit('exit');
@@ -141,6 +143,9 @@ class Worker extends events.EventEmitter {
                 }));
             }
             this._requests.delete(msg.id);
+
+            if (this._minibatch.length > 0 && this._requests.size === 0)
+                this._flushRequest();
         });
     }
 
@@ -178,6 +183,7 @@ class Worker extends events.EventEmitter {
             }
         };
         this._requests.set(id, request);
+        //console.error(`${this._requests.size} pending requests`);
 
         this._stream!.write({ id, task, instances: minibatch.map((ex) => {
             return {
@@ -196,7 +202,7 @@ class Worker extends events.EventEmitter {
         this._minibatchStartTime = now;
 
         setTimeout(() => {
-            if (this._minibatch.length > 0)
+            if (this._minibatch.length > 0 && this._requests.size === 0)
                 this._flushRequest();
         }, MAX_LATENCY);
     }
@@ -206,7 +212,7 @@ class Worker extends events.EventEmitter {
         if (this._minibatch.length === 0) {
             this._startRequest(ex, task, now);
         } else if (this._minibatchTask === task &&
-            (now - this._minibatchStartTime < MAX_LATENCY) &&
+            ((now - this._minibatchStartTime < MAX_LATENCY) || this._requests.size > 0) &&
             this._minibatch.length < MINIBATCH_SIZE) {
             this._minibatch.push(ex);
         } else {
