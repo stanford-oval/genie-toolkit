@@ -798,11 +798,11 @@ class Converter extends stream.Readable {
         this._n = 0;
         this._N = data.length;
         for (let i = 0; i < data.length; ) {
-            // run 100 dialogues in parallel
+            // run 5000 dialogues in parallel
             // Predictor will split the minibatch if necessary
             const promises = [];
 
-            for (; i < data.length && promises.length < 1000; i++) {
+            for (; i < data.length && promises.length < 5000; i++) {
                 if (this._onlyMultidomain && data[i].domains.length === 1)
                     continue;
 
