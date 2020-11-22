@@ -254,6 +254,9 @@ class Converter extends stream.Readable {
         this._database = new MultiJSONDatabase(args.database_file);
         simulatorOptions.database = this._database;
         this._simulator = this._target.createSimulator(simulatorOptions);
+
+        this._n = 0;
+        this._N = 0;
     }
 
     _read() {}
@@ -786,16 +789,27 @@ class Converter extends stream.Readable {
             }
         }
 
-        return { id, turns };
+        this.push({ id, turns });
+        this._n++;
+        this.emit('progress', this._n/this._N);
     }
 
     async run(data) {
-        for (let i = 0; i < data.length; i++) {
-            if (this._onlyMultidomain && data[i].domains.length === 1)
-                continue;
+        this._n = 0;
+        this._N = data.length;
+        for (let i = 0; i < data.length; ) {
+            // run 100 dialogues in parallel
+            // Predictor will split the minibatch if necessary
+            const promises = [];
 
-            this.push(await this._doDialogue(data[i]));
-            this.emit('progress', i/data.length);
+            for (; i < data.length && promises.length < 100; i++) {
+                if (this._onlyMultidomain && data[i].domains.length === 1)
+                    continue;
+
+                promises.push(this._doDialogue(data[i]));
+            }
+
+            await Promise.all(promises);
         }
 
         this.emit('progress', 1);

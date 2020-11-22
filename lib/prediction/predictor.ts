@@ -33,6 +33,18 @@ interface PredictionCandidate {
 }
 
 interface Request {
+    resolve(data : PredictionCandidate[][]) : void;
+    reject(err : Error) : void;
+}
+
+const MINIBATCH_SIZE = 16;
+const MAX_LATENCY = 100; // milliseconds
+interface Example {
+    context : string;
+    question : string;
+    answer ?: string;
+    example_id ?: string;
+
     resolve(data : PredictionCandidate[]) : void;
     reject(err : Error) : void;
 }
@@ -45,6 +57,10 @@ class Worker extends events.EventEmitter {
     private _nextId : 0;
     private _requests : Map<number, Request>;
     private _modeldir : string;
+
+    private _minibatchTask = '';
+    private _minibatch : Example[] = [];
+    private _minibatchStartTime = 0;
 
     constructor(id : string, modeldir : string) {
         super();
@@ -111,14 +127,18 @@ class Worker extends events.EventEmitter {
                 return;
             if (msg.error) {
                 req.reject(new Error(msg.error));
-            } else if (msg.candidates) {
-                req.resolve(msg.candidates);
             } else {
-                // no beam search, hence only one candidate, and fixed score
-                req.resolve([{
-                    answer: msg.answer,
-                    score: 1
-                }]);
+                req.resolve(msg.instances.map((instance : any) : PredictionCandidate[] => {
+                    if (instance.candidates) {
+                        return instance.candidates;
+                    } else {
+                        // no beam search, hence only one candidate, and fixed score
+                        return [{
+                            answer: instance.answer,
+                            score: 1
+                        }];
+                    }
+                }));
             }
             this._requests.delete(msg.id);
         });
@@ -130,8 +150,69 @@ class Worker extends events.EventEmitter {
         this._requests.clear();
     }
 
-    request(task : string, context : string, question : string, answer ?: string, example_id ?: string) : Promise<PredictionCandidate[]> {
+    private _flushRequest() {
         const id = this._nextId ++;
+
+        const minibatch = this._minibatch;
+        const task = this._minibatchTask;
+        this._minibatch = [];
+        this._minibatchTask = '';
+        this._minibatchStartTime = 0;
+
+        //console.error(`minibatch: ${minibatch.length} instances`);
+
+        const request = {
+            resolve(candidates : PredictionCandidate[][]) {
+                assert(candidates.length === minibatch.length);
+                for (let i = 0; i < minibatch.length; i++)
+                    minibatch[i].resolve(candidates[i]);
+            },
+            reject(err : Error) {
+                for (let i = 0; i < minibatch.length; i++)
+                    minibatch[i].reject(err);
+            }
+        };
+        this._requests.set(id, request);
+
+        this._stream!.write({ id, task, instances: minibatch.map((ex) => {
+            return {
+                context: ex.context,
+                question: ex.question,
+                answer: ex.answer,
+                example_id: ex.example_id
+            };
+        }) });
+    }
+
+    private _startRequest(ex : Example, task : string, now : number) {
+        assert(this._minibatch.length === 0);
+        this._minibatch.push(ex);
+        this._minibatchTask = task;
+        this._minibatchStartTime = now;
+
+        setTimeout(() => {
+            if (this._minibatch.length > 0)
+                this._flushRequest();
+        }, MAX_LATENCY);
+    }
+
+    private _addRequest(ex : Example, task : string) {
+        const now = Date.now();
+        if (this._minibatch.length === 0) {
+            this._startRequest(ex, task, now);
+        } else if (this._minibatchTask === task &&
+            (now - this._minibatchStartTime < MAX_LATENCY) &&
+            this._minibatch.length < MINIBATCH_SIZE) {
+            this._minibatch.push(ex);
+        } else {
+            this._flushRequest();
+            this._startRequest(ex, task, now);
+        }
+    }
+
+    request(task : string, context : string, question : string, answer ?: string, example_id ?: string) : Promise<PredictionCandidate[]> {
+        assert(typeof context === 'string');
+        assert(typeof question === 'string');
 
         let resolve ! : (data : PredictionCandidate[]) => void,
             reject ! : (err : Error) => void;
@@ -139,11 +220,8 @@ class Worker extends events.EventEmitter {
             resolve = _resolve;
             reject = _reject;
         });
-        this._requests.set(id, { resolve, reject });
+        this._addRequest({ context, question, answer, resolve, reject }, task);
 
-        assert(typeof context === 'string');
-        assert(typeof question === 'string');
-        this._stream!.write({ id, context, question, answer, task, example_id });
         return promise;
     }
 }
