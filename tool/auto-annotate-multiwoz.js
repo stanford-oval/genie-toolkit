@@ -802,7 +802,7 @@ class Converter extends stream.Readable {
             // Predictor will split the minibatch if necessary
             const promises = [];
 
-            for (; i < data.length && promises.length < 100; i++) {
+            for (; i < data.length && promises.length < 1000; i++) {
                 if (this._onlyMultidomain && data[i].domains.length === 1)
                     continue;
 
