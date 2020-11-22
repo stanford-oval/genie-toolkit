@@ -366,6 +366,8 @@ class DialogueAnalyzer extends Stream.Transform {
             USER_STATE_MUST_HAVE_PARAM.has(userTarget.dialogueAct) !== (userTarget.dialogueActParam !== null))
             return 'unrepresentable';
 
+        if (agentCheck === 'unrepresentable')
+            return 'unrepresentable_agent_state';
         if (['unrepresentable', 'unexpected_proposed', 'multi_param_slot_fill'].includes(agentCheck))
             return 'unknown_agent_state';
 
