@@ -240,6 +240,7 @@ class Converter extends stream.Readable {
         this._userParser = ParserClient.get(args.user_nlu_server, 'en-US');
         this._agentParser = ParserClient.get(args.agent_nlu_server, 'en-US');
         this._useExisting = args.use_existing;
+        this._maxTurn = args.max_turn;
 
         this._target = TargetLanguages.get('thingtalk');
         this._simulatorOverrides = new Map;
@@ -719,6 +720,9 @@ class Converter extends stream.Readable {
             this._findTrainName(turn);
             const turnId = id + '/' + idx;
 
+            if (this._maxTurn && idx >= this._maxTurn)
+                break;
+
             try {
                 let contextCode = '', agentUtterance = '', agentTargetCode = '';
                 if (context !== null) {
@@ -860,6 +864,10 @@ export function initArgparse(subparsers) {
         action: 'store_false',
         dest: 'use_existing',
         help: 'Do not use existing annotations'
+    });
+    parser.add_argument('--max-turn', {
+        required: false,
+        help: 'Stop at the given turn when selftraining'
     });
     parser.add_argument('input_file', {
         help: 'Input dialog file'
