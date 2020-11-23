@@ -66,8 +66,6 @@ export interface ExampleEvaluationResult {
 }
 export type EvaluationResult = ExampleEvaluationResult & { total : number, turns : number };
 
-const MINIBATCH_SIZE = 30;
-
 class DialogueEvaluatorStream extends Stream.Transform {
     private _parser : ParserClient;
     private _tpClient : Tp.BaseClient;
@@ -79,7 +77,6 @@ class DialogueEvaluatorStream extends Stream.Transform {
     private _tokenized : boolean;
     private _database : SimulationDatabase|undefined;
     private _cachedEntityMatches : Map<string, EntityRecord>;
-    private _minibatch : Array<Promise<ExampleEvaluationResult>>;
 
     constructor(parser : ParserClient,
                 options : DialogueEvaluatorOptions) {
@@ -100,8 +97,6 @@ class DialogueEvaluatorStream extends Stream.Transform {
         this._database = options.database;
 
         this._cachedEntityMatches = new Map;
-
-        this._minibatch = [];
     }
 
     private async _preprocess(sentence : string, contextEntities : EntityMap) {
@@ -478,17 +473,8 @@ class DialogueEvaluatorStream extends Stream.Transform {
         return ret;
     }
 
-    private async _pushDialogue(dialog : ParsedDialogue) {
-        this._minibatch.push(this._evaluate(dialog));
-        if (this._minibatch.length >= MINIBATCH_SIZE) {
-            for (const res of await Promise.all(this._minibatch))
-                this.push(res);
-            this._minibatch = [];
-        }
-    }
-
-    _transform(dialog : ParsedDialogue, encoding : BufferEncoding, callback : (err : Error|null) => void) {
-        this._pushDialogue(dialog).then((result) => callback(null), (err) => callback(err));
+    _transform(dialog : ParsedDialogue, encoding : BufferEncoding, callback : (err : Error|null, res ?: ExampleEvaluationResult) => void) {
+        this._evaluate(dialog).then((result) => callback(null, result), (err) => callback(err));
     }
 
     _flush(callback : () => void) {
