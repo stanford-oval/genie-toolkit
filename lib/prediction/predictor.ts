@@ -38,7 +38,7 @@ interface Request {
 }
 
 const MINIBATCH_SIZE = 30;
-const MAX_LATENCY = 1000; // milliseconds
+const MAX_LATENCY = 50; // milliseconds
 interface Example {
     context : string;
     question : string;
