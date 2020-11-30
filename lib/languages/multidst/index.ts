@@ -22,7 +22,7 @@
 import * as Ast from './ast';
 import type { EntityMap } from '../../utils/entity-utils';
 
-export async function parse(code : string|string[], entities ?: EntityMap, options ?: unknown) : Promise<Ast.DialogState> {
+export async function parse(code : string|string[], options ?: unknown) : Promise<Ast.DialogState> {
     const dialoguestate = new Ast.DialogState;
 
     let parserState = 'intent';
@@ -137,7 +137,7 @@ export function parsePrediction(code : string|string[], entities : EntityMap, op
 export function parsePrediction(code : string|string[], entities : EntityMap, options : unknown, strict ?: boolean) : Promise<Ast.DialogState|null>;
 export async function parsePrediction(code : string|string[], entities : EntityMap, options : unknown, strict = false) : Promise<Ast.DialogState|null> {
     try {
-        return parse(code, entities, options);
+        return parse(code, options);
     } catch(e) {
         if (strict)
             throw e;
@@ -206,6 +206,11 @@ export function computePrediction(oldState : Ast.DialogState|null, newState : As
     return newState;
 }
 
+export function computeNewState(oldState : Ast.DialogState|null, prediction : Ast.DialogState, forTarget : 'user'|'agent') : Ast.DialogState {
+    // always predict newState a-new
+    return prediction;
+}
+
 export function serializePrediction(prediction : Ast.DialogState, sentence : string[], entities : EntityMap, forTarget : 'user'|'agent') : string[] {
     if (forTarget === 'user')
         return prediction.prettyprint().split(' ');
@@ -230,4 +235,8 @@ class StateValidator {
 
 export function createStateValidator(policyManifest ?: string) : StateValidator {
     return new StateValidator();
+}
+
+export function prepareContextForPrediction(ctx : Ast.DialogState) {
+    return ctx;
 }

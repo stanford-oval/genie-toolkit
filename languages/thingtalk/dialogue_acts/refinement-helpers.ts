@@ -266,6 +266,29 @@ function queryRefinement(ctxTable : Ast.Table,
     return cloneTable;
 }
 
+class GetParamsVisitor extends Ast.NodeVisitor {
+    params = new Set<string>();
+
+    visitAtomBooleanExpression(atom : Ast.AtomBooleanExpression) {
+        if (atom.name === 'id' && atom.operator === '==')
+            return false;
+        this.params.add(atom.name);
+        return false;
+    }
+    visitDontCareBooleanExpression(atom : Ast.DontCareBooleanExpression) {
+        this.params.add(atom.name);
+        return false;
+    }
+    visitExternalBooleanExpression() {
+        return false;
+    }
+}
+
+function getParamsInFilter(filter : Ast.BooleanExpression) {
+    const visitor = new GetParamsVisitor();
+    filter.visit(visitor);
+    return visitor.params;
+}
 
 function refineFilterToAnswerQuestion(ctxFilter : Ast.BooleanExpression,
                                       refinedFilter : Ast.BooleanExpression) {
@@ -277,25 +300,6 @@ function refineFilterToAnswerQuestion(ctxFilter : Ast.BooleanExpression,
     // furthermore, "id ==" filters are removed from the refined filter, so a user
     // can choose a restaurant for a while then change their mind
 
-    function getParamsInFilter(filter : Ast.BooleanExpression) {
-        const params = new Set<string>();
-        filter.visit(new class extends Ast.NodeVisitor {
-            visitAtomBooleanExpression(atom : Ast.AtomBooleanExpression) {
-                if (atom.name === 'id' && atom.operator === '==')
-                    return false;
-                params.add(atom.name);
-                return false;
-            }
-            visitDontCareBooleanExpression(atom : Ast.DontCareBooleanExpression) {
-                params.add(atom.name);
-                return false;
-            }
-            visitExternalBooleanExpression() {
-                return false;
-            }
-        });
-        return params;
-    }
     if (setsIntersect(getParamsInFilter(ctxFilter),  getParamsInFilter(refinedFilter)))
         return null;
 
@@ -362,6 +366,32 @@ function refineFilterToAnswerQuestionOrChangeFilter(ctxFilter : Ast.BooleanExpre
     return new Ast.BooleanExpression.And(null, [...newCtxClauses, refinedFilter]).optimize();
 }
 
+class IsGoodFilterForChangeFilterVisitor extends Ast.NodeVisitor {
+    good = true;
+    constructor(private refinedFilter : Ast.BooleanExpression) {
+        super();
+    }
+
+    visitExternalBooleanExpression() {
+        // do not recurse
+        // get rid of get-predicates in the context, regardless
+        this.good = false;
+        return false;
+    }
+    visitValue() {
+        // do not recurse
+        return false;
+    }
+
+    visitAtomBooleanExpression(atom : Ast.AtomBooleanExpression) {
+        this.good = this.good && !C.filterUsesParam(this.refinedFilter, atom.name);
+        return true;
+    }
+    visitDontCareBooleanExpression(atom : Ast.DontCareBooleanExpression) {
+        this.good = this.good && !C.filterUsesParam(this.refinedFilter, atom.name);
+        return true;
+    }
+}
 
 function refineFilterToChangeFilter(ctxFilter : Ast.BooleanExpression,
                                     refinedFilter : Ast.BooleanExpression) {
@@ -392,30 +422,11 @@ function refineFilterToChangeFilter(ctxFilter : Ast.BooleanExpression,
             return null;
     }
 
+    const visitor = new IsGoodFilterForChangeFilterVisitor(refinedFilter);
     const ctxClauses = (ctxFilter instanceof Ast.AndBooleanExpression ? ctxFilter.operands : [ctxFilter]).filter((clause) => {
-        let good = true;
-        clause.visit(new class extends Ast.NodeVisitor {
-             visitExternalBooleanExpression() {
-                // do not recurse
-                // get rid of get-predicates in the context, regardless
-                good = false;
-                return false;
-            }
-            visitValue() {
-                // do not recurse
-                return false;
-            }
-
-            visitAtomBooleanExpression(atom : Ast.AtomBooleanExpression) {
-                good = good && !C.filterUsesParam(refinedFilter, atom.name);
-                return true;
-            }
-            visitDontCareBooleanExpression(atom : Ast.DontCareBooleanExpression) {
-                good = good && !C.filterUsesParam(refinedFilter, atom.name);
-                return true;
-            }
-        });
-        return good;
+        visitor.good = true;
+        clause.visit(visitor);
+        return visitor.good;
     });
 
     return new Ast.BooleanExpression.And(null, [...ctxClauses, refinedFilter]).optimize();

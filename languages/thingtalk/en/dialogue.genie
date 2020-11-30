@@ -67,6 +67,7 @@ context : S.ContextInfo = {
     ctx_multidomain,
     ctx_with_result,
     ctx_with_table_result,
+    ctx_with_aggregation_result,
     ctx_with_action,
     ctx_without_action,
     ctx_with_result_and_action,

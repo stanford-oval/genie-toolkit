@@ -95,13 +95,6 @@ export default class GenieEntityRetriever extends NNSyntax.EntityRetriever {
         // only if `alwaysAllowStrings` is set
         const entityTokens = this._tokenizer.tokenize(entityString).rawTokens;
 
-        if (this._ignoreSentence) {
-            if (ignoreNotFound)
-                return undefined; // check the entities in the bag first
-            else
-                return entityTokens.join(' ');
-        }
-
         const found = this._allowNonConsecutive ?
             this._sentenceContainsNonConsecutive(entityTokens) :
             this._sentenceContains(entityTokens);
@@ -134,11 +127,18 @@ export default class GenieEntityRetriever extends NNSyntax.EntityRetriever {
                 return entityTokens.join(' ');
         }
 
+        if (this._ignoreSentence) {
+            if (ignoreNotFound)
+                return undefined; // check the entities in the bag first
+            else
+                return entityTokens.join(' ');
+        }
+
         // if we get here, we have not found the entity...
 
         // to accommodate certain MultiWOZ misannotations, we allow the neural network
         // to hallucinate entities entirely
-        if (!ignoreNotFound && this._alwaysAllowStrings && entityType === 'QUOTED_STRING')
+        if (!ignoreNotFound && this._alwaysAllowStrings)
             return entityTokens.join(' ');
 
         return undefined;

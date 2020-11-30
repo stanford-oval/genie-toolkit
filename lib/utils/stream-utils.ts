@@ -202,12 +202,14 @@ function chain(streams : Stream.Readable[], options : ChainStreamOptions) : Chai
 class CountStream<T> extends Stream.Duplex {
     private _buffer : T[];
     private _N : number;
+    private _i : number;
     private _reading : boolean;
 
     constructor() {
         super({ objectMode: true });
 
         this._buffer = [];
+        this._i = 0;
         this._N = 0;
         this._reading = false;
     }
@@ -219,15 +221,16 @@ class CountStream<T> extends Stream.Duplex {
     }
 
     private _pushSome() {
-        while (this._buffer.length > 0 && this.push(this._buffer.shift())) {
-            const consumed = this._N - this._buffer.length;
+        let consumed : number;
+        while (this._i < this._buffer.length && this.push(this._buffer[this._i++])) {
+            consumed = this._i;
             if (consumed % 100 === 0)
                 this.emit('progress', consumed/this._N);
         }
-        const consumed = this._N - this._buffer.length;
+        consumed = this._i;
         if (consumed % 100 === 0)
             this.emit('progress', consumed/this._N);
-        if (this._buffer.length === 0) {
+        if (this._i === this._buffer.length) {
             this.emit('progress', 1);
             this.push(null);
         }

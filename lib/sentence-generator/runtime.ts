@@ -36,14 +36,17 @@ const LogLevel = {
     // log each non-empty non terminal
     GENERATION: 2,
 
+    // log each non-empty non terminal, and additional verbose information
+    VERBOSE_GENERATION: 3,
+
     // log all templates before generation
-    DUMP_TEMPLATES: 3,
+    DUMP_TEMPLATES: 4,
 
     // log information derived from the templates (such as the distance from the root)
-    DUMP_DERIVED: 4,
+    DUMP_DERIVED: 5,
 
     // log a lot of very redundant information during generation (can cause slowdowns)
-    EVERYTHING: 5
+    EVERYTHING: 6
 };
 
 class Placeholder {
@@ -290,7 +293,7 @@ class Derivation<ValueType> {
                 newContext = Context.meet(newContext, child.context);
                 newPriority += child.priority;
                 values.push(child.value);
-                sentence = List.concat(sentence, child.sentence);
+                sentence = List.join(sentence, child.sentence);
             }
         }
 
@@ -321,11 +324,11 @@ function simpleCombine<ArgTypes extends unknown[], ResultType>(semanticAction : 
             if (flag.startsWith('!')) {
                 const sub = flag.substring(1);
                 assert(sub === 'complete'); // add more flags here if necessary
-                if (result[sub])
+                if (result.complete)
                     return null;
             } else {
                 assert(flag === 'complete'); // add more flags here if necessary
-                if (!result[flag])
+                if (!result.complete)
                     return null;
             }
         }

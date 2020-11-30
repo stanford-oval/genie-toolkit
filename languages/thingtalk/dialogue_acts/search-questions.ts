@@ -110,25 +110,32 @@ function makeSearchQuestion(ctx : ContextInfo, questions : string[]) {
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_search_question', questions));
 }
 
+class AnswersQuestionVisitor extends Ast.NodeVisitor {
+    answersQuestion = false;
+    constructor(private questions : string[]) {
+        super();
+    }
+
+    visitAtomBooleanExpression(atom : Ast.AtomBooleanExpression) {
+        if (this.questions.some((q) => q === atom.name))
+            this.answersQuestion = true;
+        return true;
+    }
+    visitDontCareBooleanExpression(atom : Ast.DontCareBooleanExpression) {
+        if (this.questions.some((q) => q === atom.name))
+            this.answersQuestion = true;
+        return true;
+    }
+}
+
 /**
  * Check if the table filters on the parameters `questions` (effectively providing a constraint on question)
  */
 function isQueryAnswerValidForQuestion(table : Ast.Table, questions : string[]) {
     assert(Array.isArray(questions));
-    let answersQuestion = false;
-    table.visit(new class extends Ast.NodeVisitor {
-        visitAtomBooleanExpression(atom : Ast.AtomBooleanExpression) {
-            if (questions.some((q) => q === atom.name))
-                answersQuestion = true;
-            return true;
-        }
-        visitDontCareBooleanExpression(atom : Ast.DontCareBooleanExpression) {
-            if (questions.some((q) => q === atom.name))
-                answersQuestion = true;
-            return true;
-        }
-    });
-    return answersQuestion;
+    const visitor = new AnswersQuestionVisitor(questions);
+    table.visit(visitor);
+    return visitor.answersQuestion;
 }
 
 function preciseSearchQuestionAnswer(ctx : ContextInfo, [answerTable, answerAction, _bool] : [Ast.Table, Ast.Invocation|null, boolean]) {
