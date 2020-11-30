@@ -69,4 +69,7 @@ do_test([
     ('./test_timers'),
     ('./test_trie'),
     //('./test_wikidata_utils'),
+    ('./test_wikidata_utils'),
+    ('./test_infix_to_suffix'),
+    ('./test_pos_nfa')
 ]);
