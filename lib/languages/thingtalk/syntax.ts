@@ -27,12 +27,12 @@ import GenieEntityRetriever from './entity-retriever';
 import type { EntityMap } from '../../utils/entity-utils';
 
 export interface ParseOptions {
-    thingpediaClient : Tp.BaseClient;
+    thingpediaClient : Tp.BaseClient|null;
     schemaRetriever ?: SchemaRetriever;
 }
 
 export async function parse(code : string, options : ParseOptions) : Promise<Ast.Input> {
-    const tpClient = options.thingpediaClient;
+    const tpClient = options.thingpediaClient!;
     if (!options.schemaRetriever)
         options.schemaRetriever = new SchemaRetriever(tpClient, null, true);
 
@@ -44,7 +44,7 @@ export async function parse(code : string, options : ParseOptions) : Promise<Ast
 export function parsePrediction(code : string|string[], entities : EntityMap, options : ParseOptions, strict : true) : Promise<Ast.Input>;
 export function parsePrediction(code : string|string[], entities : EntityMap, options : ParseOptions, strict ?: boolean) : Promise<Ast.Input|null>;
 export async function parsePrediction(code : string|string[], entities : EntityMap, options : ParseOptions, strict = false) : Promise<Ast.Input|null> {
-    const tpClient = options.thingpediaClient;
+    const tpClient = options.thingpediaClient!;
     if (!options.schemaRetriever)
         options.schemaRetriever = new SchemaRetriever(tpClient, null, true);
 

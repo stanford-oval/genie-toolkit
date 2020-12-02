@@ -129,7 +129,7 @@ export type EvaluationResult = {
 }
 
 class SentenceEvaluator {
-    private _parser : ParserClient;
+    private _parser : ParserClient|null;
     private _options : SentenceEvaluatorOptions;
     private _locale : string;
     private _tokenized : boolean;
@@ -145,7 +145,7 @@ class SentenceEvaluator {
     private _targetPrograms : string[];
     private _predictions : string[][]|undefined;
 
-    constructor(parser : ParserClient,
+    constructor(parser : ParserClient|null,
                 options : SentenceEvaluatorOptions,
                 tokenizer : I18n.BaseTokenizer,
                 target : TargetLanguages.TargetLanguage,
@@ -279,7 +279,7 @@ class SentenceEvaluator {
                 let answer = undefined;
                 if (this._oracle)
                     answer = firstTargetCode;
-                const parsed : PredictionResult = await this._parser.sendUtterance(this._preprocessed, contextCode, contextEntities, {
+                const parsed : PredictionResult = await this._parser!.sendUtterance(this._preprocessed, contextCode, contextEntities, {
                     answer: answer,
                     tokenized: this._tokenized,
                     skip_typechecking: true,
@@ -405,13 +405,13 @@ class SentenceEvaluator {
     }
 }
 
-class SentenceEvaluatorStream extends Stream.Transform {
-    private _parser : ParserClient;
+export class SentenceEvaluatorStream extends Stream.Transform {
+    private _parser : ParserClient|null;
     private _options : SentenceEvaluatorOptions;
     private _tokenizer : I18n.BaseTokenizer;
     private _target : TargetLanguages.TargetLanguage;
 
-    constructor(parser : ParserClient, options : SentenceEvaluatorOptions) {
+    constructor(parser : ParserClient|null, options : SentenceEvaluatorOptions) {
         super({ objectMode: true });
 
         this._parser = parser;
@@ -438,7 +438,7 @@ interface CollectSentenceStatisticsOptions {
 
 const KEYS : Array<'ok' | 'ok_without_param' | 'ok_function' | 'ok_device' | 'ok_num_function' | 'ok_syntax'> = ['ok', 'ok_without_param', 'ok_function', 'ok_device', 'ok_num_function', 'ok_syntax'];
 
-class CollectSentenceStatistics extends Stream.Writable {
+export class CollectSentenceStatistics extends Stream.Writable {
     private _minComplexity : number;
     private _maxComplexity : number;
     private _splitByDevice : boolean;
@@ -604,14 +604,9 @@ class CollectSentenceStatistics extends Stream.Writable {
     }
 
     read() {
-        return new Promise((resolve, reject) => {
+        return new Promise<Record<string, EvaluationResult>>((resolve, reject) => {
             this.on('finish', () => resolve(this._buffer));
             this.on('error', reject);
         });
     }
 }
-
-export {
-    SentenceEvaluatorStream,
-    CollectSentenceStatistics,
-};

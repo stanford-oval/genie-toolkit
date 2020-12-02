@@ -23,6 +23,7 @@
 import Stream from 'stream';
 
 import { shuffle } from '../../utils/random';
+import { MTurkParaphraseExample } from './validator';
 
 function quickGetFunctions(code : string) : [string[], string[]] {
     const devices : string[] = [];
@@ -48,8 +49,7 @@ function subset<T>(array1 : T[], array2 : T[]) : boolean {
 }
 
 // generate a fake paraphrase with same device(s) but different functions
-// FIXME what's this type???
-function fakeParaphrase(batch : any[], targetCode : string) : string {
+function fakeParaphrase(batch : MTurkParaphraseExample[], targetCode : string) : string {
     const [devices, functions] = quickGetFunctions(targetCode);
 
     for (const candidate of batch) {
@@ -81,7 +81,7 @@ interface ValidationHITCreatorOptions {
 }
 
 export default class ValidationHITCreator extends Stream.Transform {
-    private _batch : MTurkValidationExample[];
+    private _batch : MTurkParaphraseExample[];
     private _i : number;
     private _buffer : Record<string, string|number>;
 
@@ -90,7 +90,7 @@ export default class ValidationHITCreator extends Stream.Transform {
     private _sentencesPerTask : number;
     private _rng : () => number;
 
-    constructor(batch : MTurkValidationExample[],
+    constructor(batch : MTurkParaphraseExample[],
                 options : ValidationHITCreatorOptions) {
         super({
             readableObjectMode: true,

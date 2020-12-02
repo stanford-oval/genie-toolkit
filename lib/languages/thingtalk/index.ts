@@ -65,7 +65,7 @@ function validateState(state : Ast.DialogueState, forTarget : 'user'|'agent') : 
 export function createSimulator(options : SimulationDialogueAgentOptions) : SimulationDialogueAgent {
     const tpClient = options.thingpediaClient;
     if (!options.schemaRetriever)
-        options.schemaRetriever = new SchemaRetriever(tpClient, null, true);
+        options.schemaRetriever = new SchemaRetriever(tpClient!, null, true);
     return new SimulationDialogueAgent(options);
 }
 

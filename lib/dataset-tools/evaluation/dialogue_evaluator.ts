@@ -42,7 +42,7 @@ interface SimulationDatabase {
 }
 
 interface DialogueEvaluatorOptions {
-    thingpediaClient : Tp.BaseClient;
+    thingpediaClient : Tp.BaseClient|null;
     locale : string;
     targetLanguage : string;
     tokenized : boolean;
@@ -64,13 +64,17 @@ export interface ExampleEvaluationResult {
     ok_progress : number;
     ok_progress_slot : number;
 }
-export type EvaluationResult = ExampleEvaluationResult & { total : number, turns : number };
+export type EvaluationResult = ExampleEvaluationResult & {
+    total : number,
+    turns : number,
+    [key : string] : number
+};
 
 const MINIBATCH_SIZE = 100;
 
 class DialogueEvaluatorStream extends Stream.Transform {
     private _parser : ParserClient;
-    private _tpClient : Tp.BaseClient;
+    private _tpClient : Tp.BaseClient|null;
     private _tokenizer : I18n.BaseTokenizer;
     private _target : TargetLanguages.ThingTalkTarget;
     private _options : DialogueEvaluatorOptions;
@@ -175,7 +179,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
         }
 
         // resolve as regular Thingpedia entity
-        const candidates = await this._tpClient.lookupEntity(value.type, value.display);
+        const candidates = await this._tpClient!.lookupEntity(value.type, value.display);
         resolved = getBestEntityMatch(value.display, value.type, candidates.data);
         this._cachedEntityMatches.set(cacheKey, resolved);
         return resolved;
@@ -538,7 +542,7 @@ class CollectDialogueStatistics extends Stream.Writable {
     }
 
     read() {
-        return new Promise((resolve, reject) => {
+        return new Promise<EvaluationResult>((resolve, reject) => {
             this.on('finish', () => resolve(this._buffer));
             this.on('error', reject);
         });

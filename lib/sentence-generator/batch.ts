@@ -432,7 +432,7 @@ interface DialogueGeneratorOptions {
     maxDepth : number;
 
     // simulator options
-    thingpediaClient : Tp.BaseClient;
+    thingpediaClient ?: Tp.BaseClient;
     database ?: SimulationDatabase;
 
     // options passed to the templates

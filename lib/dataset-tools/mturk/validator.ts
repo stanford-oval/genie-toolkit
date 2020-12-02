@@ -41,7 +41,7 @@ export interface MTurkParaphraseExample {
     context_preprocessed ?: string;
 }
 
-interface Statistics {
+export interface Statistics {
     good : number;
     no_idea : number;
     values : number;
@@ -181,7 +181,7 @@ class ParaphraseValidator {
 
 type ValidationCountMap = Map<string, {
     same_count : number,
-    different_count : number
+    diff_count : number
 }>;
 
 interface ParaphraseValidatorFilterOptions {

@@ -34,7 +34,7 @@ import ValueCategory from '../value-category';
 
 export interface SimulationDialogueAgentOptions {
     schemaRetriever ?: SchemaRetriever;
-    thingpediaClient : Tp.BaseClient;
+    thingpediaClient ?: Tp.BaseClient;
     locale : string;
     rng : () => number;
     database ?: SimulationDatabase;
@@ -69,7 +69,7 @@ export default class SimulationDialogueAgent extends AbstractDialogueAgent<Thing
             overrides: options.overrides
         });
 
-        this._thingpedia = options.thingpediaClient;
+        this._thingpedia = options.thingpediaClient!;
         this._rng = options.rng;
         this._database = options.database;
         this._interactive = options.interactive;
