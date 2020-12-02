@@ -1,6 +1,7 @@
 branches:
   except:
   - "/^wip/"
+  - "/^dependabot/"
 language: node_js
 node_js: '10'
 dist: xenial
