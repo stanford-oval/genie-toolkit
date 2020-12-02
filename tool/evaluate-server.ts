@@ -22,7 +22,6 @@ import * as argparse from 'argparse';
 import * as Tp from 'thingpedia';
 import * as fs from 'fs';
 
-import { AVAILABLE_LANGUAGES } from '../lib/languages';
 import { DatasetParser } from '../lib/dataset-tools/parsers';
 import { SentenceEvaluatorStream, CollectSentenceStatistics } from '../lib/dataset-tools/evaluation/sentence_evaluator';
 import * as ParserClient from '../lib/prediction/parserclient';
@@ -75,7 +74,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('-t', '--target-language', {
         required: false,
         default: 'thingtalk',
-        choices: AVAILABLE_LANGUAGES,
+        choices: ['thingtalk', 'dlgthingtalk'],
         help: `The programming language to generate`
     });
     parser.add_argument('--contextual', {

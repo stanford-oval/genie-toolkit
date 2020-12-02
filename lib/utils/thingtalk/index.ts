@@ -31,6 +31,10 @@ import { computeNewState, computePrediction, prepareContextForPrediction } from 
 import { extractConstants, createConstants } from './constants';
 import { ParseOptions, parse, parsePrediction, serialize, serializeNormalized, serializePrediction } from './syntax';
 
+export type Input = Ast.Input;
+export type DialogueState = Ast.DialogueState;
+export type Simulator = SimulationDialogueAgent;
+
 export {
     ParseOptions,
     parse,

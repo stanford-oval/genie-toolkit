@@ -31,9 +31,9 @@ import { EntityMap } from '../../utils/entity-utils';
 import * as I18n from '../../i18n';
 import { EntityRecord, getBestEntityMatch } from '../../dialogue-agent/entity-linking/entity-finder';
 import { stripOutTypeAnnotations } from './eval_utils';
-import * as TargetLanguages from '../../languages';
 import { ParserClient, PredictionResult } from '../../prediction/parserclient';
 import { ParsedDialogue, DialogueTurn } from '../parsers';
+import * as ThingTalkUtils from '../../utils/thingtalk';
 
 // FIXME move this to a shared place with the simulation code
 interface SimulationDatabase {
@@ -76,7 +76,6 @@ class DialogueEvaluatorStream extends Stream.Transform {
     private _parser : ParserClient;
     private _tpClient : Tp.BaseClient|null;
     private _tokenizer : I18n.BaseTokenizer;
-    private _target : TargetLanguages.ThingTalkTarget;
     private _options : DialogueEvaluatorOptions;
     private _locale : string;
     private _debug : boolean;
@@ -92,10 +91,6 @@ class DialogueEvaluatorStream extends Stream.Transform {
         this._parser = parser;
         this._tpClient = options.thingpediaClient;
         this._tokenizer = I18n.get(options.locale).getTokenizer();
-
-        // other languages are not supported yet
-        assert(options.targetLanguage === 'thingtalk');
-        this._target = TargetLanguages.get(options.targetLanguage);
 
         this._options = options;
         this._locale = options.locale;
@@ -311,20 +306,20 @@ class DialogueEvaluatorStream extends Stream.Transform {
         let context, contextCode, contextEntities;
         if (turnIndex > 0) {
             if (turn.intermediate_context) {
-                context = await this._target.parse(turn.intermediate_context, this._options);
+                context = await ThingTalkUtils.parse(turn.intermediate_context, this._options);
                 assert(context instanceof Ast.DialogueState);
             } else {
-                context = await this._target.parse(turn.context!, this._options);
+                context = await ThingTalkUtils.parse(turn.context!, this._options);
                 assert(context instanceof Ast.DialogueState);
                 // apply the agent prediction to the context to get the state of the dialogue before
                 // the user speaks
-                const agentPrediction = await this._target.parse(turn.agent_target!, this._options);
+                const agentPrediction = await ThingTalkUtils.parse(turn.agent_target!, this._options);
                 assert(agentPrediction instanceof Ast.DialogueState);
-                context = this._target.computeNewState(context, agentPrediction, 'agent');
+                context = ThingTalkUtils.computeNewState(context, agentPrediction, 'agent');
             }
 
-            const userContext = this._target.prepareContextForPrediction(context, 'user');
-            [contextCode, contextEntities] = this._target.serializeNormalized(userContext);
+            const userContext = ThingTalkUtils.prepareContextForPrediction(context, 'user');
+            [contextCode, contextEntities] = ThingTalkUtils.serializeNormalized(userContext);
         } else {
             context = null;
             contextCode = ['null'];
@@ -332,12 +327,12 @@ class DialogueEvaluatorStream extends Stream.Transform {
         }
 
         const { tokens, entities } = await this._preprocess(turn.user, contextEntities);
-        const goldUserTarget = await this._target.parse(turn.user_target, this._options);
+        const goldUserTarget = await ThingTalkUtils.parse(turn.user_target, this._options);
         assert(goldUserTarget instanceof Ast.DialogueState);
-        const goldUserState = this._target.computeNewState(context, goldUserTarget, 'user');
+        const goldUserState = ThingTalkUtils.computeNewState(context, goldUserTarget, 'user');
         const goldSlots = await this._extractSlots(goldUserState);
 
-        const targetCode = this._target.serializePrediction(goldUserTarget, tokens, entities, 'user', {
+        const targetCode = ThingTalkUtils.serializePrediction(goldUserTarget, tokens, entities, 'user', {
            locale: this._locale,
         }).join(' ');
 
@@ -362,7 +357,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
         // first check if the program parses and typechecks (no hope otherwise)
         let predictedUserTarget : Ast.Input;
         try {
-            predictedUserTarget = await this._target.parsePrediction(choice, entities, this._options, true);
+            predictedUserTarget = await ThingTalkUtils.parsePrediction(choice, entities, this._options, true);
             assert(predictedUserTarget instanceof Ast.DialogueState);
         } catch(e) {
             if (this._debug)
@@ -370,7 +365,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
             return 'wrong_syntax';
         }
 
-        const predictedUserState = this._target.computeNewState(context, predictedUserTarget, 'user');
+        const predictedUserState = ThingTalkUtils.computeNewState(context, predictedUserTarget, 'user');
         let predictedSlots;
         try {
             predictedSlots = await this._extractSlots(predictedUserState);
@@ -386,7 +381,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
         // we pass "ignoreSentence: true", which means strings are tokenized and then put in the
         // program regardless of what the sentence contains (because the neural network might
         // get creative in copying, and we don't want to crash here)
-        const normalized = this._target.serializePrediction(predictedUserTarget, tokens, entities, 'user', {
+        const normalized = ThingTalkUtils.serializePrediction(predictedUserTarget, tokens, entities, 'user', {
            locale: this._locale,
            ignoreSentence: true
         }).join(' ');

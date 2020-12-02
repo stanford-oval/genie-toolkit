@@ -27,7 +27,7 @@ import * as fs from 'fs';
 import seedrandom from 'seedrandom';
 
 import * as StreamUtils from '../lib/utils/stream-utils';
-import * as TargetLanguages from '../lib/languages';
+import * as ThingTalkUtils from '../lib/utils/thingtalk';
 import { DialogueParser } from '../lib/dataset-tools/parsers';
 
 import { maybeCreateReadStream, readAllLines } from './lib/argutils';
@@ -203,7 +203,6 @@ class DialogueAnalyzer extends Stream.Transform {
 
         this._options = options;
         this._debug = options.debug;
-        this._target = TargetLanguages.get('thingtalk');
 
         this._simulatorOverrides = new Map;
         const simulatorOptions = {
@@ -215,12 +214,12 @@ class DialogueAnalyzer extends Stream.Transform {
             database: this._database
         };
 
-        this._simulator = this._target.createSimulator(simulatorOptions);
+        this._simulator = ThingTalkUtils.createSimulator(simulatorOptions);
     }
 
     async _checkAgentTurn(turn, userCheck, previousTurn) {
-        const context = await this._target.parse(turn.context, this._options);
-        const agentTarget = await this._target.parse(turn.agent_target, this._options);
+        const context = await ThingTalkUtils.parse(turn.context, this._options);
+        const agentTarget = await ThingTalkUtils.parse(turn.agent_target, this._options);
 
         if (!SYSTEM_DIALOGUE_ACTS.has(agentTarget.dialogueAct) ||
             SYSTEM_STATE_MUST_HAVE_PARAM.has(agentTarget.dialogueAct) !== (agentTarget.dialogueActParam !== null) ||
@@ -239,7 +238,7 @@ class DialogueAnalyzer extends Stream.Transform {
         if (context.dialogueAct === 'end')
             return 'after_end';
 
-        const previousUserTarget = await this._target.parse(previousTurn.user_target, this._options);
+        const previousUserTarget = await ThingTalkUtils.parse(previousTurn.user_target, this._options);
         if (previousUserTarget.history.length > 0) {
             const userLast = previousUserTarget[previousUserTarget.history.length-1];
             const contextLast = context[context.history.length-1];
@@ -352,15 +351,15 @@ class DialogueAnalyzer extends Stream.Transform {
     async _checkUserTurn(turn, agentCheck) {
         let context = null;
         if (turn.intermediate_context) {
-            context = await this._target.parse(turn.intermediate_context, this._options);
+            context = await ThingTalkUtils.parse(turn.intermediate_context, this._options);
         } else if (turn.context){
-            context = await this._target.parse(turn.context, this._options);
+            context = await ThingTalkUtils.parse(turn.context, this._options);
             // apply the agent prediction to the context to get the state of the dialogue before
             // the user speaks
-            const agentPrediction = await this._target.parse(turn.agent_target, this._options);
-            context = this._target.computeNewState(context, agentPrediction);
+            const agentPrediction = await ThingTalkUtils.parse(turn.agent_target, this._options);
+            context = ThingTalkUtils.computeNewState(context, agentPrediction);
         }
-        const userTarget = await this._target.parse(turn.user_target, this._options);
+        const userTarget = await ThingTalkUtils.parse(turn.user_target, this._options);
 
         if (!USER_DIALOGUE_ACTS.has(userTarget.dialogueAct) ||
             USER_STATE_MUST_HAVE_PARAM.has(userTarget.dialogueAct) !== (userTarget.dialogueActParam !== null))

@@ -24,7 +24,6 @@ import JSONStream from 'JSONStream';
 import * as Tp from 'thingpedia';
 import seedrandom from 'seedrandom';
 
-import { AVAILABLE_LANGUAGES } from '../lib/languages';
 import { DialogueGenerator } from '../lib/sentence-generator/batch';
 import * as StreamUtils from '../lib/utils/stream-utils';
 import { DialogueSerializer } from '../lib/dataset-tools/parsers';
@@ -74,7 +73,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('-t', '--target-language', {
         required: false,
         default: 'thingtalk',
-        choices: AVAILABLE_LANGUAGES,
+        choices: ['thingtalk', 'dlgthingtalk'],
         help: `The programming language to generate`
     });
     parser.add_argument('--thingpedia', {

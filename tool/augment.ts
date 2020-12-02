@@ -24,7 +24,6 @@ import * as argparse from 'argparse';
 
 import { DatasetParser, DatasetStringifier } from '../lib/dataset-tools/parsers';
 import parallelize from '../lib/utils/parallelize';
-import { AVAILABLE_LANGUAGES } from '../lib/languages';
 
 import * as StreamUtils from '../lib/utils/stream-utils';
 import { maybeCreateReadStream, readAllLines } from './lib/argutils';
@@ -51,7 +50,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('-t', '--target-language', {
         required: false,
         default: 'thingtalk',
-        choices: AVAILABLE_LANGUAGES,
+        choices: ['thingtalk', 'dlgthingtalk'],
         help: `The programming language to generate`
     });
     parser.add_argument('--thingpedia', {

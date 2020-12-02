@@ -27,7 +27,7 @@ import seedrandom from 'seedrandom';
 import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
 
-import * as TargetLanguages from '../lib/languages';
+import * as ThingTalkUtils from '../lib/utils/thingtalk';
 import * as StreamUtils from '../lib/utils/stream-utils';
 import { EntityMap } from '../lib/utils/entity-utils';
 import * as ParserClient from '../lib/prediction/parserclient';
@@ -70,7 +70,6 @@ class Annotator extends events.EventEmitter {
     private _schemas : ThingTalk.SchemaRetriever;
     private _userParser : ParserClient.ParserClient;
     private _agentParser : ParserClient.ParserClient;
-    private _target : TargetLanguages.ThingTalkTarget;
     private _simulator : SimulationDialogueAgent;
     private _simulatorOverrides : Map<string, string>;
     private _database : MultiJSONDatabase|undefined;
@@ -109,7 +108,6 @@ class Annotator extends events.EventEmitter {
         this._schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
         this._userParser = ParserClient.get(options.user_nlu_server, options.locale);
         this._agentParser = ParserClient.get(options.agent_nlu_server, options.locale);
-        this._target = TargetLanguages.get(options.target_language) as TargetLanguages.ThingTalkTarget;
 
         this._simulatorOverrides = new Map;
         const simulatorOptions : SimulationDialogueAgentOptions = {
@@ -125,7 +123,7 @@ class Annotator extends events.EventEmitter {
             simulatorOptions.database = this._database;
         }
 
-        this._simulator = this._target.createSimulator(simulatorOptions);
+        this._simulator = ThingTalkUtils.createSimulator(simulatorOptions);
 
         this._state = 'loading';
 
@@ -284,8 +282,8 @@ class Annotator extends events.EventEmitter {
         }
 
         const oldContext = this._context;
-        this._context = this._target.computeNewState(this._context, program, this._dialogueState);
-        const prediction = this._target.computePrediction(oldContext, this._context, this._dialogueState);
+        this._context = ThingTalkUtils.computeNewState(this._context, program, this._dialogueState);
+        const prediction = ThingTalkUtils.computePrediction(oldContext, this._context, this._dialogueState);
         this._outputTurn![this._currentKey!] = prediction.prettyprint();
         this._nextUtterance();
     }
@@ -321,8 +319,8 @@ class Annotator extends events.EventEmitter {
 
         const program = this._candidates![i];
         const oldContext = this._context;
-        this._context = this._target.computeNewState(this._context, program, this._dialogueState);
-        const prediction = this._target.computePrediction(oldContext, this._context, this._dialogueState);
+        this._context = ThingTalkUtils.computeNewState(this._context, program, this._dialogueState);
+        const prediction = ThingTalkUtils.computePrediction(oldContext, this._context, this._dialogueState);
         this._outputTurn![this._currentKey!] = prediction.prettyprint();
         this._nextUtterance();
     }
@@ -554,8 +552,8 @@ class Annotator extends events.EventEmitter {
 
         let contextCode, contextEntities;
         if (this._context !== null) {
-            const context = this._target.prepareContextForPrediction(this._context, this._dialogueState);
-            [contextCode, contextEntities] = this._target.serializeNormalized(context);
+            const context = ThingTalkUtils.prepareContextForPrediction(this._context, this._dialogueState);
+            [contextCode, contextEntities] = ThingTalkUtils.serializeNormalized(context);
         } else {
             contextCode = ['null'];
             contextEntities = {};
@@ -638,7 +636,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('-t', '--target-language', {
         required: false,
         default: 'thingtalk',
-        choices: TargetLanguages.AVAILABLE_LANGUAGES,
+        choices: ['thingtalk', 'dlgthingtalk'],
         help: `The programming language to generate`
     });
     parser.add_argument('--database-file', {

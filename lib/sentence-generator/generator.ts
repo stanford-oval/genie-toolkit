@@ -31,7 +31,7 @@ import {
     categoricalPrecomputed
 } from '../utils/random';
 import PriorityQueue from '../utils/priority_queue';
-import * as TargetLanguages from '../languages';
+import * as ThingTalkUtils from '../utils/thingtalk';
 
 import List from './list';
 import * as SentenceGeneratorRuntime from './runtime';
@@ -133,7 +133,6 @@ type ContextInitializer<ContextType> = (previousTurn : ContextType, functionTabl
 
 interface GenericSentenceGeneratorOptions {
     locale : string;
-    targetLanguage ?: string;
     templateFiles : string[];
     flags : { [key : string] : boolean };
     rootSymbol ?: string;
@@ -182,8 +181,6 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
     private _templateFiles : string[];
     private _langPack : I18n.LanguagePack;
 
-    private _target : TargetLanguages.TargetLanguage;
-
     private _options : SentenceGeneratorOptions<ContextType>;
     private _contextual : boolean;
 
@@ -215,7 +212,6 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
         this._templateFiles = options.templateFiles;
         this._langPack = I18n.get(options.locale);
 
-        this._target = TargetLanguages.get(options.targetLanguage);
         this._options = options;
         this._contextual = options.contextual;
 
@@ -336,7 +332,7 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
         this._constantMap.put(token, symbolId);
 
         attributes.forConstant = true;
-        for (const constant of this._target.createConstants(token, type, this._options.maxConstants || DEFAULT_MAX_CONSTANTS)) {
+        for (const constant of ThingTalkUtils.createConstants(token, type, this._options.maxConstants || DEFAULT_MAX_CONSTANTS)) {
             const sentencepiece = constant.display;
             const combiner = () => new Derivation(constant.value, List.singleton(sentencepiece), null, attributes.priority || 0);
             this._addRuleInternal(symbolId, [sentencepiece], combiner, attributes);

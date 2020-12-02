@@ -23,7 +23,6 @@ import * as fs from 'fs';
 import csvparse from 'csv-parse';
 import Stream from 'stream';
 
-import { AVAILABLE_LANGUAGES } from '../lib/languages';
 import { DatasetParser } from '../lib/dataset-tools/parsers';
 import { SentenceEvaluatorStream, CollectSentenceStatistics } from '../lib/dataset-tools/evaluation/sentence_evaluator';
 import * as StreamUtils from '../lib/utils/stream-utils';
@@ -59,7 +58,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('-t', '--target-language', {
         required: false,
         default: 'thingtalk',
-        choices: AVAILABLE_LANGUAGES,
+        choices: ['thingtalk', 'dlgthingtalk'],
         help: `The programming language to generate`
     });
     parser.add_argument('--contextual', {

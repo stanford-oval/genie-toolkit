@@ -21,7 +21,6 @@
 import * as argparse from 'argparse';
 import * as fs from 'fs';
 
-import { AVAILABLE_LANGUAGES } from '../lib/languages';
 import { KEYS, DialogueEvaluatorStream, CollectDialogueStatistics } from '../lib/dataset-tools/evaluation/dialogue_evaluator';
 import { DialogueParser } from '../lib/dataset-tools/parsers';
 import { maybeCreateReadStream, readAllLines } from './lib/argutils';
@@ -74,7 +73,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('-t', '--target-language', {
         required: false,
         default: 'thingtalk',
-        choices: AVAILABLE_LANGUAGES,
+        choices: ['thingtalk', 'dlgthingtalk'],
         help: `The programming language to generate`
     });
     parser.add_argument('--debug', {

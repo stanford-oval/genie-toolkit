@@ -25,7 +25,6 @@ import * as Tp from 'thingpedia';
 
 import { BasicSentenceGenerator } from '../lib/sentence-generator/batch';
 import { DatasetStringifier } from '../lib/dataset-tools/parsers';
-import { AVAILABLE_LANGUAGES } from '../lib/languages';
 import ProgressBar from './lib/progress_bar';
 import { ActionSetFlag } from './lib/argutils';
 
@@ -46,7 +45,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('-t', '--target-language', {
         required: false,
         default: 'thingtalk',
-        choices: AVAILABLE_LANGUAGES,
+        choices: ['thingtalk', 'dlgthingtalk'],
         help: `The programming language to generate`
     });
     parser.add_argument('--thingpedia', {

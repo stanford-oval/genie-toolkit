@@ -34,7 +34,7 @@ import * as StreamUtils from '../lib/utils/stream-utils';
 import MultiJSONDatabase from './lib/multi_json_database';
 import ProgressBar from './lib/progress_bar';
 import { getBestEntityMatch } from '../lib/dialogue-agent/entity-linking/entity-finder';
-import * as TargetLanguages from '../lib/languages';
+import * as ThingTalkUtils from '../lib/utils/thingtalk';
 
 function undoTradePreprocessing(sentence) {
     return sentence.replace(/ -(ly|s)/g, '$1').replace(/\b24:([0-9]{2})\b/g, '00:$1');
@@ -242,7 +242,6 @@ class Converter extends stream.Readable {
         this._useExisting = args.use_existing;
         this._maxTurn = args.max_turn;
 
-        this._target = TargetLanguages.get('thingtalk');
         this._simulatorOverrides = new Map;
         const simulatorOptions = {
             rng: seedrandom.alea('almond is awesome'),
@@ -254,7 +253,7 @@ class Converter extends stream.Readable {
         };
         this._database = new MultiJSONDatabase(args.database_file);
         simulatorOptions.database = this._database;
-        this._simulator = this._target.createSimulator(simulatorOptions);
+        this._simulator = ThingTalkUtils.createSimulator(simulatorOptions);
 
         this._n = 0;
         this._N = 0;
@@ -275,8 +274,8 @@ class Converter extends stream.Readable {
     async _parseUtterance(context, parser, utterance, forSide, example_id) {
         let contextCode, contextEntities;
         if (context !== null) {
-            context = this._target.prepareContextForPrediction(context, forSide);
-            [contextCode, contextEntities] = this._target.serializeNormalized(context);
+            context = ThingTalkUtils.prepareContextForPrediction(context, forSide);
+            [contextCode, contextEntities] = ThingTalkUtils.serializeNormalized(context);
         } else {
             contextCode = ['null'];
             contextEntities = {};
@@ -352,7 +351,7 @@ class Converter extends stream.Readable {
                 agentTarget.dialogueActParam = requestedSlots.map((slot) => REQUESTED_SLOT_MAP[slot] || slot);
             }
         }
-        
+
         // adjust to ensure the agent doesn't produce new complete statements
         agentTarget.history = agentTarget.history.filter((item) => {
             if (item.confirm === 'confirmed')
@@ -410,7 +409,7 @@ class Converter extends stream.Readable {
                 else
                     return 1;
             });
-            
+
             return userTarget;
         }
 
@@ -762,16 +761,16 @@ class Converter extends stream.Readable {
                     // do the agent
                     const agentTarget = await this._doAgentTurn(context, contextInfo, turn, agentUtterance, turnId);
                     const oldContext = context;
-                    context = this._target.computeNewState(context, agentTarget, 'agent');
-                    const prediction = this._target.computePrediction(oldContext, context, 'agent');
+                    context = ThingTalkUtils.computeNewState(context, agentTarget, 'agent');
+                    const prediction = ThingTalkUtils.computePrediction(oldContext, context, 'agent');
                     agentTargetCode = prediction.prettyprint();
                 }
 
                 const userUtterance = undoTradePreprocessing(turn.transcript);
                 const userTarget = await this._doUserTurn(context, contextInfo, turn, userUtterance, slotBag, actionDomains, turnId);
                 const oldContext = context;
-                context = this._target.computeNewState(context, userTarget, 'user');
-                const prediction = this._target.computePrediction(oldContext, context, 'user');
+                context = ThingTalkUtils.computeNewState(context, userTarget, 'user');
+                const prediction = ThingTalkUtils.computePrediction(oldContext, context, 'user');
                 const userTargetCode = prediction.prettyprint();
 
                 turns.push({

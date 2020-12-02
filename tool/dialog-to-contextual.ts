@@ -18,12 +18,13 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import assert from 'assert';
+import * as ThingTalk from 'thingtalk';
 import * as argparse from 'argparse';
 import * as Tp from 'thingpedia';
 import Stream from 'stream';
 import * as fs from 'fs';
 
-import * as TargetLanguages from '../lib/languages';
 import {
     DatasetStringifier,
     DialogueParser,
@@ -34,6 +35,7 @@ import * as StreamUtils from '../lib/utils/stream-utils';
 import * as Utils from '../lib/utils/misc-utils';
 import { EntityMap } from '../lib/utils/entity-utils';
 import * as I18n from '../lib/i18n';
+import * as ThingTalkUtils from '../lib/utils/thingtalk';
 
 import ProgressBar from './lib/progress_bar';
 import { maybeCreateReadStream, readAllLines } from './lib/argutils';
@@ -44,7 +46,6 @@ interface DialogueToTurnStreamOptions {
     side : string;
     flags : string;
     idPrefix : string;
-    targetLanguage : string;
     deduplicate : boolean;
     tokenized : boolean;
     thingpediaClient : Tp.BaseClient;
@@ -56,7 +57,6 @@ class DialogueToTurnStream extends Stream.Transform {
     private _side : string;
     private _flags : string;
     private _idPrefix : string;
-    private _target : TargetLanguages.TargetLanguage;
     private _dedupe : Set<string>|undefined;
     private _tokenized : boolean;
     private _tokenizer : I18n.BaseTokenizer|null;
@@ -70,7 +70,6 @@ class DialogueToTurnStream extends Stream.Transform {
         this._side = options.side;
         this._flags = options.flags;
         this._idPrefix = options.idPrefix;
-        this._target = TargetLanguages.get(options.targetLanguage);
         this._dedupe = options.deduplicate ? new Set : undefined;
 
         this._tokenized = options.tokenized;
@@ -100,14 +99,16 @@ class DialogueToTurnStream extends Stream.Transform {
         if (i === 0)
             return;
 
-        const context = await this._target.parse(turn.context!, this._options) as any;
-        const agentContext = this._target.prepareContextForPrediction(context, 'agent') as any;
-        const [contextCode, contextEntities] = this._target.serializeNormalized(agentContext);
+        const context = await ThingTalkUtils.parse(turn.context!, this._options);
+        assert(context instanceof ThingTalk.Ast.DialogueState);
+        const agentContext = ThingTalkUtils.prepareContextForPrediction(context, 'agent');
+        const [contextCode, contextEntities] = ThingTalkUtils.serializeNormalized(agentContext);
 
-        const agentTarget = await this._target.parse(turn.agent_target!, this._options) as any;
+        const agentTarget = await ThingTalkUtils.parse(turn.agent_target!, this._options);
+        assert(agentTarget instanceof ThingTalk.Ast.DialogueState);
 
         const { tokens, } = this._preprocess(turn.agent!, contextEntities);
-        const agentCode = await this._target.serializePrediction(agentTarget, tokens, contextEntities, 'agent', {
+        const agentCode = await ThingTalkUtils.serializePrediction(agentTarget, tokens, contextEntities, 'agent', {
             locale: this._locale
         });
 
@@ -135,17 +136,20 @@ class DialogueToTurnStream extends Stream.Transform {
             // (this occurs only when annotating multiwoz data, when the agent chooses to complete
             // an action with incomplete information, choosing the value spontaneously)
             if (turn.intermediate_context) {
-                context = await this._target.parse(turn.intermediate_context, this._options) as any;
+                context = await ThingTalkUtils.parse(turn.intermediate_context, this._options);
+                assert(context instanceof ThingTalk.Ast.DialogueState);
             } else {
-                context = await this._target.parse(turn.context!, this._options) as any;
+                context = await ThingTalkUtils.parse(turn.context!, this._options);
+                assert(context instanceof ThingTalk.Ast.DialogueState);
                 // apply the agent prediction to the context to get the state of the dialogue before
                 // the user speaks
-                const agentPrediction = await this._target.parse(turn.agent_target!, this._options) as any;
-                context = this._target.computeNewState(context, agentPrediction, 'agent');
+                const agentPrediction = await ThingTalkUtils.parse(turn.agent_target!, this._options);
+                assert(agentPrediction instanceof ThingTalk.Ast.DialogueState);
+                context = ThingTalkUtils.computeNewState(context, agentPrediction, 'agent');
             }
 
-            const userContext = this._target.prepareContextForPrediction(context, 'user') as any;
-            [contextCode, contextEntities] = this._target.serializeNormalized(userContext);
+            const userContext = ThingTalkUtils.prepareContextForPrediction(context, 'user');
+            [contextCode, contextEntities] = ThingTalkUtils.serializeNormalized(userContext);
         } else {
             context = null;
             contextCode = ['null'];
@@ -153,8 +157,9 @@ class DialogueToTurnStream extends Stream.Transform {
         }
 
         const { tokens, entities } = this._preprocess(turn.user, contextEntities);
-        const userTarget = await this._target.parse(turn.user_target, this._options) as any;
-        const code = await this._target.serializePrediction(userTarget, tokens, entities, 'user', {
+        const userTarget = await ThingTalkUtils.parse(turn.user_target, this._options);
+        assert(userTarget instanceof ThingTalk.Ast.DialogueState);
+        const code = await ThingTalkUtils.serializePrediction(userTarget, tokens, entities, 'user', {
             locale: this._locale
         });
 
@@ -231,7 +236,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('-t', '--target-language', {
         required: false,
         default: 'thingtalk',
-        choices: TargetLanguages.AVAILABLE_LANGUAGES,
+        choices: ['thingtalk', 'dlgthingtalk'],
         help: `The programming language to generate`
     });
     parser.add_argument('--side', {
@@ -288,7 +293,6 @@ export async function execute(args : any) {
         .pipe(counter)
         .pipe(new DialogueToTurnStream({
             locale: args.locale,
-            targetLanguage: args.target_language,
             thingpediaClient: tpClient!,
             flags: args.flags,
             idPrefix: args.id_prefix,

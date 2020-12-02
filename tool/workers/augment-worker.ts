@@ -36,7 +36,6 @@ export default async function worker(args : any, shard : string) {
         rng: seedrandom.alea(args.random_seed + ':' + shard),
         locale: args.locale,
         paramLocale: args.param_locale,
-        targetLanguage: args.target_language,
         debug: args.debug,
 
         quotedProbability: args.quoted_fraction,

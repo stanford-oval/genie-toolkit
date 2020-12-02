@@ -30,7 +30,7 @@ import * as StreamUtils from '../lib/utils/stream-utils';
 import { getBestEntityMatch } from '../lib/dialogue-agent/entity-linking/entity-finder';
 import * as Utils from '../lib/utils/misc-utils';
 import * as I18n from '../lib/i18n';
-import * as TargetLanguages from '../lib/languages';
+import * as ThingTalkUtils from '../lib/utils/thingtalk';
 import { DialogueParser } from '../lib/dataset-tools/parsers';
 
 import { maybeCreateReadStream, readAllLines } from './lib/argutils';
@@ -50,7 +50,6 @@ class DialogueToDSTStream extends Stream.Transform {
 
         this._options = options;
         this._debug = options.debug;
-        this._target = TargetLanguages.get('thingtalk');
 
         this._cachedEntityMatches = new Map;
     }
@@ -214,17 +213,17 @@ class DialogueToDSTStream extends Stream.Transform {
         let context, contextCode, contextEntities;
         if (turnIndex > 0) {
             if (turn.intermediate_context) {
-                context = await this._target.parse(turn.intermediate_context, this._options);
+                context = await ThingTalkUtils.parse(turn.intermediate_context, this._options);
             } else {
-                context = await this._target.parse(turn.context, this._options);
+                context = await ThingTalkUtils.parse(turn.context, this._options);
                 // apply the agent prediction to the context to get the state of the dialogue before
                 // the user speaks
-                const agentPrediction = await this._target.parse(turn.agent_target, this._options);
-                context = this._target.computeNewState(context, agentPrediction);
+                const agentPrediction = await ThingTalkUtils.parse(turn.agent_target, this._options);
+                context = ThingTalkUtils.computeNewState(context, agentPrediction);
             }
 
-            const userContext = this._target.prepareContextForPrediction(context, 'user');
-            [contextCode, contextEntities] = this._target.serializeNormalized(userContext);
+            const userContext = ThingTalkUtils.prepareContextForPrediction(context, 'user');
+            [contextCode, contextEntities] = ThingTalkUtils.serializeNormalized(userContext);
         } else {
             context = null;
             contextCode = ['null'];
@@ -232,8 +231,8 @@ class DialogueToDSTStream extends Stream.Transform {
         }
 
         const { tokens, entities } = this._preprocess(turn.user, contextEntities);
-        const goldUserTarget = await this._target.parse(turn.user_target, this._options);
-        const goldUserState = this._target.computeNewState(context, goldUserTarget);
+        const goldUserTarget = await ThingTalkUtils.parse(turn.user_target, this._options);
+        const goldUserState = ThingTalkUtils.computeNewState(context, goldUserTarget);
         const goldSlots = this._extractSlots(goldUserState);
 
         const parsed = await this._parser.sendUtterance(tokens.join(' '), contextCode, contextEntities, {
@@ -252,14 +251,14 @@ class DialogueToDSTStream extends Stream.Transform {
 
         let predictedUserTarget;
         try {
-            predictedUserTarget = await this._target.parsePrediction(choice, entities, this._options);
+            predictedUserTarget = await ThingTalkUtils.parsePrediction(choice, entities, this._options);
         } catch(e) {
             return [goldSlots, []];
         }
         if (predictedUserTarget === null)
             return [goldSlots, []];
 
-        const predictedUserState = this._target.computeNewState(context, predictedUserTarget);
+        const predictedUserState = ThingTalkUtils.computeNewState(context, predictedUserTarget);
         let predictedSlots;
         try {
             predictedSlots = this._extractSlots(predictedUserState);
