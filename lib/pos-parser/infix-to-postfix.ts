@@ -47,7 +47,7 @@ function addConcatenationOp(template : string[]) : string[] {
         added.push(current);
         if (['|', '('].includes(current))
             continue;
-        if (specialTokens.includes(next) && next !== '(')
+        if (specialTokens.includes(next) && next !== '(' && next !== '.')
             continue;
         added.push('_');
     }
@@ -66,7 +66,7 @@ function infixToPostfix(template : string[]) : string[] {
             while (top(stack) !== '(')
                 postfix.push(stack.pop()!);
             stack.pop();
-        } else if (specialTokens.includes(token)) {
+        } else if (specialTokens.includes(token) && token !== '.') {
             while (top(stack)! in priorityMap
                 && priorityMap[top(stack)!] >= priorityMap[token])
                 postfix.push(stack.pop()!);

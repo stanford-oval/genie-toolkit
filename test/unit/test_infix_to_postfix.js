@@ -25,7 +25,9 @@ const TEST_CASES = [
     ['a b', 'a b _'],
     ['a * b', 'a * b _'],
     ['a * | b c', 'a * b c _ |'],
-    ['( a * | b ) c', 'a * b | c _']
+    ['( a * | b ) c', 'a * b | c _'],
+    ['a b *', 'a b * _'],
+    ['a . *', 'a . * _']
 ];
 
 function main() {
