@@ -50,7 +50,7 @@ function extract(key : string, str : unknown) {
 
 async function main() {
     const code = (await pfs.readFile(process.argv[2])).toString();
-    const parsed = ThingTalk.Grammar.parse(code);
+    const parsed = ThingTalk.Syntax.parse(code);
     assert(parsed instanceof ThingTalk.Ast.Library);
 
     for (const _class of parsed.classes) {

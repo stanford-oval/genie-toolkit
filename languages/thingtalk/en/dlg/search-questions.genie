@@ -166,7 +166,7 @@ search_question : string[] = {
 }
 
 
-verbose_search_answer : Ast.Table = {
+verbose_search_answer : Ast.Expression = {
     // complete answer, like "I am looking for a bla restaurant"
     generic_preamble_for_answer ('a' | 'the') query:answer_noun_phrase => query;
 
@@ -174,7 +174,7 @@ verbose_search_answer : Ast.Table = {
     generic_preamble_for_answer query:anything_phrase => query;
 }
 
-verbose_search_answer_with_action : [Ast.Table, Ast.Invocation] = {
+verbose_search_answer_with_action : [Ast.Expression, Ast.Invocation] = {
     // complete answer with another action phrase, like "I am looking for a bla restaurant. I will need to book it for 3 people."
     query:verbose_search_answer ('.' | ',') generic_preamble_for_action action:coref_action_command => {
         // check that one of the parameters of action has the right type to param pass into the action
@@ -197,7 +197,7 @@ verbose_search_answer_with_action : [Ast.Table, Ast.Invocation] = {
     };
 }
 
-precise_search_question_answer : [Ast.Table, Ast.Invocation|null, boolean] = {
+precise_search_question_answer : [Ast.Expression, Ast.Invocation|null, boolean] = {
     table:verbose_search_answer => [table, null, false];
     ('yes' | 'yes ,' | '') table:verbose_search_answer => [table, null, true];
     table_action:verbose_search_answer_with_action => [...table_action, false];

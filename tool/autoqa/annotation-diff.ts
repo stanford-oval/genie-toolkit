@@ -25,7 +25,7 @@ import * as util from 'util';
 import * as ThingTalk from 'thingtalk';
 
 async function loadClassDef(thingpedia : string) : Promise<ThingTalk.Ast.ClassDef> {
-    const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
+    const library = ThingTalk.Syntax.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
     assert(library instanceof ThingTalk.Ast.Library && library.classes.length === 1);
     return library.classes[0];
 }

@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -18,15 +18,14 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
+import * as argparse from 'argparse';
 import assert from 'assert';
 import * as fs from 'fs';
 import util from 'util';
 import stream from 'stream';
 import seedrandom from 'seedrandom';
 import * as Tp from 'thingpedia';
-import * as ThingTalk from 'thingtalk';
-const Ast = ThingTalk.Ast;
+import { Ast, SchemaRetriever } from 'thingtalk';
 
 import * as ParserClient from '../lib/prediction/parserclient';
 import { DialogueSerializer } from '../lib/dataset-tools/parsers';
@@ -36,7 +35,7 @@ import ProgressBar from './lib/progress_bar';
 import { getBestEntityMatch } from '../lib/dialogue-agent/entity-linking/entity-finder';
 import * as ThingTalkUtils from '../lib/utils/thingtalk';
 
-function undoTradePreprocessing(sentence) {
+function undoTradePreprocessing(sentence : string) : string {
     return sentence.replace(/ -(ly|s)/g, '$1').replace(/\b24:([0-9]{2})\b/g, '00:$1');
 }
 
@@ -79,7 +78,7 @@ const SEARCH_SLOTS_FOR_SYSTEM = new Set([
     'stars',
 ]);
 
-const REQUESTED_SLOT_MAP = {
+const REQUESTED_SLOT_MAP : Record<string, string> = {
     price: 'price_range',
     wifi: 'internet',
     leave: 'leave_at',
@@ -112,7 +111,7 @@ const REQUESTED_SLOT_MAP = {
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-const GENERAL_TYPO = {
+const GENERAL_TYPO : Record<string, string> = {
     // type
     "guesthouse":"guest house", "guesthouses":"guest house", "guest":"guest house", "mutiple sports":"multiple sports",
     "sports":"multiple sports", "mutliple sports":"multiple sports","swimmingpool":"swimming pool", "concerthall":"concert hall",
@@ -148,7 +147,7 @@ const GENERAL_TYPO = {
     "fridaytuesday": "friday|tuesday",
     "cheapmoderate": "cheap|moderate"
 };
-function fixGeneralLabelError(key, value) {
+function fixGeneralLabelError(key : string, value : string) : string {
     if (value in GENERAL_TYPO)
         value = GENERAL_TYPO[value];
 
@@ -185,18 +184,19 @@ function fixGeneralLabelError(key, value) {
     return value;
 }
 
-function parseTime(v) {
+function parseTime(v : string) : Ast.TimeValue {
     if (v.indexOf('|') >= 0)
         v = v.substring(0, v.indexOf('|'));
 
     if (/^[0-9]+:[0-9]+/.test(v)) {
-        let [hour, minute, second] = v.split(':');
-        hour = parseInt(hour);
-        minute = parseInt(minute);
-        if (second === undefined)
+        const [hourstr, minutestr, secondstr] = v.split(':');
+        let hour = parseInt(hourstr);
+        const minute = parseInt(minutestr);
+        let second;
+        if (secondstr === undefined)
             second = 0;
         else
-            second = parseInt(second);
+            second = parseInt(secondstr);
         if (hour === 24)
             hour = 0;
         return new Ast.Value.Time(new Ast.Time.Absolute(hour, minute, second));
@@ -222,34 +222,78 @@ function parseTime(v) {
     return new Ast.Value.Time(new Ast.Time.Absolute(0, 0, 0));
 }
 
-function getStatementDomain(stmt) {
-    if (stmt.table)
-        return stmt.table.schema.class.name;
-    else
-        return stmt.actions[0].schema.class.name;
+function getStatementDomain(stmt : Ast.ExpressionStatement) : string {
+    return stmt.last.schema!.class!.name;
 }
 
 const USE_MANUAL_AGENT_ANNOTATION = true;
 
+interface ConverterOptions {
+    locale : string;
+    thingpedia : string;
+    database_file : string;
+    user_nlu_server : string;
+    agent_nlu_server : string;
+    only_multidomain : boolean;
+    use_existing : boolean;
+    max_turn : number|undefined;
+}
+
+interface MultiWOZTurn {
+    transcript : string;
+    system_transcript : string;
+    belief_state : Array<{
+        act : 'inform',
+        slots : [ [string, string] ]
+    }>;
+    system_acts : unknown[];
+}
+
+interface MultiWOZDialogue {
+    dialogue_idx : string;
+    domains : string[];
+    dialogue : MultiWOZTurn[];
+}
+
+interface ContextInfo {
+    current : Ast.DialogueHistoryItem|null;
+    next : Ast.DialogueHistoryItem|null;
+}
+
 class Converter extends stream.Readable {
-    constructor(args) {
+    private _tpClient : Tp.BaseClient;
+    private _schemas : SchemaRetriever;
+    private _userParser : ParserClient.ParserClient;
+    private _agentParser : ParserClient.ParserClient;
+    private _simulatorOverrides : Map<string, string>;
+    private _database : MultiJSONDatabase;
+    private _simulator : ThingTalkUtils.Simulator;
+
+    private _onlyMultidomain : boolean;
+    private _useExisting : boolean;
+    private _maxTurn : number|undefined;
+
+    private _n : number;
+    private _N : number;
+
+    constructor(args : ConverterOptions) {
         super({ objectMode: true });
         this._onlyMultidomain = args.only_multidomain;
         this._tpClient = new Tp.FileClient(args);
-        this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, true);
+        this._schemas = new SchemaRetriever(this._tpClient, null, true);
         this._userParser = ParserClient.get(args.user_nlu_server, 'en-US');
         this._agentParser = ParserClient.get(args.agent_nlu_server, 'en-US');
         this._useExisting = args.use_existing;
         this._maxTurn = args.max_turn;
 
         this._simulatorOverrides = new Map;
-        const simulatorOptions = {
+        const simulatorOptions : ThingTalkUtils.SimulatorOptions = {
             rng: seedrandom.alea('almond is awesome'),
             locale: 'en-US',
             thingpediaClient: this._tpClient,
             schemaRetriever: this._schemas,
-            forceEntityResolution: true,
-            overrides: this._simulatorOverrides
+            overrides: this._simulatorOverrides,
+            interactive: false
         };
         this._database = new MultiJSONDatabase(args.database_file);
         simulatorOptions.database = this._database;
@@ -271,7 +315,11 @@ class Converter extends stream.Readable {
         await this._agentParser.start();
     }
 
-    async _parseUtterance(context, parser, utterance, forSide, example_id) {
+    private async _parseUtterance(context : Ast.DialogueState|null,
+                                  parser : ParserClient.ParserClient,
+                                  utterance : string,
+                                  forSide : 'agent'|'user',
+                                  example_id : string) : Promise<Ast.DialogueState[]> {
         let contextCode, contextEntities;
         if (context !== null) {
             context = ThingTalkUtils.prepareContextForPrediction(context, forSide);
@@ -286,23 +334,15 @@ class Converter extends stream.Readable {
             skip_typechecking: true,
             example_id
         });
-        return (await Promise.all(parsed.candidates.map(async (cand) => {
-            try {
-                const program = ThingTalk.NNSyntax.fromNN(cand.code, parsed.entities);
-                await program.typecheck(this._schemas);
-
-                // convert the program to NN syntax once, which will force the program to be syntactically normalized
-                // (and therefore rearrange slot-fill by name rather than Thingpedia order)
-                ThingTalk.NNSyntax.toNN(program, '', {}, { allocateEntities: true });
-                return program;
-            } catch(e) {
-                return null;
-            }
-        }))).filter((c) => c !== null);
+        return ThingTalkUtils.parseAllPredictions(parsed.candidates, parsed.entities, {
+            thingpediaClient: this._tpClient,
+            schemaRetriever: this._schemas
+        }) as Promise<Ast.DialogueState[]>;
     }
 
-    async _getContextInfo(state) {
-        let next = null, current = null;
+    private _getContextInfo(state : Ast.DialogueState) : ContextInfo {
+        let next : Ast.DialogueHistoryItem|null = null,
+            current : Ast.DialogueHistoryItem|null = null;
         for (let idx = 0; idx < state.history.length; idx ++) {
             const item = state.history[idx];
             if (item.results === null) {
@@ -316,7 +356,11 @@ class Converter extends stream.Readable {
         return { current, next };
     }
 
-    async _doAgentTurn(context, contextInfo, turn, agentUtterance, exampleId) {
+    private async _doAgentTurn(context : Ast.DialogueState,
+                               contextInfo : ContextInfo,
+                               turn : MultiWOZTurn,
+                               agentUtterance : string,
+                               exampleId : string) : Promise<Ast.DialogueState> {
         const parsedAgent = await this._parseUtterance(context, this._agentParser, agentUtterance, 'agent', exampleId);
 
         let agentTarget;
@@ -334,15 +378,15 @@ class Converter extends stream.Readable {
 
         if (this._useExisting && USE_MANUAL_AGENT_ANNOTATION) {
             // add some heuristics using the "system_acts" annotation
-            const requestedSlots = turn.system_acts.filter((act) => typeof act === 'string');
+            const requestedSlots : string[] = turn.system_acts.filter((act) : act is string => typeof act === 'string');
             if (requestedSlots.length > 0) {
                 if (requestedSlots.some((slot) => SEARCH_SLOTS_FOR_SYSTEM.has(slot))) {
-                    if (contextInfo.current && contextInfo.current.results.results.length === 0)
+                    if (contextInfo.current && contextInfo.current.results!.results.length === 0)
                         agentTarget.dialogueAct = 'sys_empty_search_question';
                     else
                         agentTarget.dialogueAct = 'sys_search_question';
                 } else {
-                    if (contextInfo.current && contextInfo.current.results.error)
+                    if (contextInfo.current && contextInfo.current.results!.error)
                         agentTarget.dialogueAct = 'sys_action_error_question';
                     else
                         agentTarget.dialogueAct = 'sys_slot_fill';
@@ -365,18 +409,19 @@ class Converter extends stream.Readable {
         return agentTarget;
     }
 
-    _getIDs(type) {
-        return this._database.get(type).map((entry) => {
+    private _getIDs(type : string) {
+        return this._database.get(type)!.map((entry) => {
+            const id : any = entry.id;
             return {
-                value: entry.id.value,
-                name: entry.id.display,
-                canonical: entry.id.display
+                value: id.value,
+                name: id.display,
+                canonical: id.display
             };
         });
     }
 
-    _resolveEntity(value) {
-        const resolved = getBestEntityMatch(value.display, value.type, this._getIDs(value.type));
+    private _resolveEntity(value : Ast.EntityValue) {
+        const resolved = getBestEntityMatch(value.display!, value.type, this._getIDs(value.type));
         value.value = resolved.value;
 
         // do not override the display field, it should match the sentence instead
@@ -384,7 +429,13 @@ class Converter extends stream.Readable {
         //value.display = resolved.display;
     }
 
-    async _doUserTurn(context, contextInfo, turn, userUtterance, slotBag, actionDomains, exampleId) {
+    private async _doUserTurn(context : Ast.DialogueState|null,
+                              contextInfo : ContextInfo,
+                              turn : MultiWOZTurn,
+                              userUtterance : string,
+                              slotBag : Map<string, string>,
+                              actionDomains : Set<string>,
+                              exampleId : string) : Promise<Ast.DialogueState> {
         if (!this._useExisting) {
             // pure self-training:
             const parsedUser = await this._parseUtterance(context, this._userParser, userUtterance, 'user', exampleId);
@@ -413,9 +464,9 @@ class Converter extends stream.Readable {
             return userTarget;
         }
 
-        const allSlots = new Map;
+        const allSlots = new Map<string, string>();
 
-        for (let slot of turn.belief_state) {
+        for (const slot of turn.belief_state) {
             assert(slot.act === 'inform');
 
             let [key, value] = slot.slots[0];
@@ -432,10 +483,10 @@ class Converter extends stream.Readable {
             allSlots.set(key, value);
         }
 
-        const newSearchSlots = new Map;
-        const newActionSlots = new Map;
-        let domain = undefined;
-        for (let [key, value] of allSlots) {
+        const newSearchSlots = new Map<string, string>();
+        const newActionSlots = new Map<string, string>();
+        let domain = 'empty';
+        for (const [key, value] of allSlots) {
             if (slotBag.get(key) !== value) {
                 slotBag.set(key, value);
                 domain = key.split('-')[0];
@@ -472,25 +523,25 @@ class Converter extends stream.Readable {
             const queryname = domain[0].toUpperCase() + domain.substring(1);
             const action = queryname === 'Restaurant' ? 'make_reservation' : 'make_booking';
             const tpClass = 'uk.ac.cam.multiwoz.' + queryname;
-            const selector = new Ast.Selector.Device(null, tpClass, null, null);
+            const selector = new Ast.DeviceSelector(null, tpClass, null, null);
 
             // if the only new search slot is name, and we'll be executing the action for this
             // domain, we move the name to an action slot instead
             if (actionDomains.has(domain) && contextInfo.current && getStatementDomain(contextInfo.current.stmt) === domain) {
                 const searchKeys = Array.from(newSearchSlots.keys());
                 if (searchKeys.length === 1 && searchKeys[0].endsWith('name')) {
-                    newActionSlots.set(searchKeys[0], newSearchSlots.get(searchKeys[0]));
+                    newActionSlots.set(searchKeys[0], newSearchSlots.get(searchKeys[0])!);
                     newSearchSlots.delete(searchKeys[0]);
                 }
             }
 
             if (newSearchSlots.size && domain !== 'taxi') {
-                const invocationTable = new Ast.Table.Invocation(null,
+                const invocationTable = new Ast.InvocationExpression(null,
                     new Ast.Invocation(null, selector, queryname, [], null),
                     null);
 
                 const filterClauses = [];
-                for (let [key, value] of slotBag) {
+                for (const [key, value] of slotBag) {
                     if (!key.startsWith(domain))
                         continue;
                     if (!SEARCH_SLOTS.has(key))
@@ -513,13 +564,13 @@ class Converter extends stream.Readable {
                             new Ast.Value.Enum('guest_house')
                         ])));
                     } else if (/^(centre|south|north|east|west)\|(centre|south|north|east|west)$/.test(value) && (key === 'restaurant-area' || key === 'attraction-area' || key === 'hotel-area')) {
-                        const [, first, second] = /^(centre|south|north|east|west)\|(centre|south|north|east|west)$/.exec(value);
+                        const [, first, second] = /^(centre|south|north|east|west)\|(centre|south|north|east|west)$/.exec(value)!;
                         filterClauses.push(new Ast.BooleanExpression.Atom(null, 'area', 'in_array', new Ast.Value.Array([
                             new Ast.Value.Enum(first),
                             new Ast.Value.Enum(second)
                         ])));
                     } else if (/^(cheap|moderate|expensive)\|(cheap|moderate|expensive)$/.test(value) && (key === 'restaurant-price-range' || key === 'attraction-price-range' || key === 'hotel-price-range')) {
-                        const [, first, second] = /^(cheap|moderate|expensive)\|(cheap|moderate|expensive)$/.exec(value);
+                        const [, first, second] = /^(cheap|moderate|expensive)\|(cheap|moderate|expensive)$/.exec(value)!;
                         filterClauses.push(new Ast.BooleanExpression.Atom(null, 'price_range', 'in_array', new Ast.Value.Array([
                             new Ast.Value.Enum(first),
                             new Ast.Value.Enum(second)
@@ -537,7 +588,7 @@ class Converter extends stream.Readable {
                             ttValue = new Ast.Value.Enum(value.replace(/\s+/g, '_'));
                         else
                             ttValue = new Ast.Value.String(value);
-                        if (ttValue.isEntity)
+                        if (ttValue instanceof Ast.EntityValue)
                             this._resolveEntity(ttValue);
 
                         let op = '==';
@@ -552,17 +603,17 @@ class Converter extends stream.Readable {
                     }
                 }
 
-                const filterTable = new Ast.Table.Filter(null, invocationTable,
+                const filterTable = new Ast.FilterExpression(null, invocationTable,
                     new Ast.BooleanExpression.And(null, filterClauses), null);
 
-                const tableStmt = new Ast.Statement.Command(null, filterTable, [new Ast.Action.Notify(null, 'notify', null)]);
+                const tableStmt = new Ast.ExpressionStatement(null, filterTable);
                 newItems.push(new Ast.DialogueHistoryItem(null, tableStmt, null, 'accepted'));
             }
 
             if (newActionSlots.size && domain !== 'attraction') {
                 const invocation = new Ast.Invocation(null, selector, action, [], null);
 
-                for (let [key, value] of slotBag) {
+                for (const [key, initvalue] of slotBag) {
                     if (!key.startsWith(domain))
                         continue;
                     if (SEARCH_SLOTS.has(key) && !key.endsWith('name'))
@@ -576,6 +627,7 @@ class Converter extends stream.Readable {
                     if (param === 'leaveat')
                         param = 'leave_at';
 
+                    let value = initvalue;
                     if (value === 'dontcare') {
                         // ???
                         // ignore
@@ -596,13 +648,13 @@ class Converter extends stream.Readable {
                         ttValue = new Ast.Value.Entity(null, tpClass + ':' + queryname, value);
                     else
                         ttValue = new Ast.Value.String(value);
-                    if (ttValue.isEntity)
+                    if (ttValue instanceof Ast.EntityValue)
                         this._resolveEntity(ttValue);
 
                     invocation.in_params.push(new Ast.InputParam(null, param, ttValue));
                 }
 
-                const actionStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, invocation, null)]);
+                const actionStmt = new Ast.ExpressionStatement(null, new Ast.InvocationExpression(null, invocation, null));
                 newItems.push(new Ast.DialogueHistoryItem(null, actionStmt, null, 'accepted'));
             } else if (contextInfo.next) {
                 newItems.push(contextInfo.next.clone());
@@ -614,53 +666,11 @@ class Converter extends stream.Readable {
         }
     }
 
-    _findName(names, value) {
-        for (let i = 0; i < names.length; i++) {
-            let name = names[i];
-            if (value.value === name.value && value.type === name.type)
-                return i;
-        }
-        return -1;
-    }
+    private _getActionDomains(dlg : MultiWOZDialogue) {
+        const domains = new Set<string>();
 
-    _extractNames(dlg) {
-        const names = [];
-
-        for (let turn of dlg.dialogue) {
-            for (let slot of turn.belief_state) {
-                assert(slot.act === 'inform');
-
-                let [key, value] = slot.slots[0];
-                assert(typeof key === 'string');
-                assert(typeof value === 'string');
-
-                key = key.replace(/ /g, '-').replace(/pricerange/, 'price-range');
-                value = fixGeneralLabelError(key, value);
-                if (value === 'none' || value === 'dontcare')
-                    continue;
-                if (!key.endsWith('-name'))
-                    continue;
-
-                const domain = key.split('-')[0];
-                const queryname = domain[0].toUpperCase() + domain.substring(1);
-                const tpClass = 'uk.ac.cam.multiwoz.' + queryname;
-
-                const ttValue = new Ast.Value.Entity(null, tpClass + ':' + queryname, value);
-                this._resolveEntity(ttValue);
-                const index = this._findName(names, ttValue);
-                if (index < 0)
-                    names.push(ttValue);
-            }
-        }
-
-        return names;
-    }
-
-    _getActionDomains(dlg) {
-        const domains = new Set;
-
-        for (let turn of dlg.dialogue) {
-            for (let slot of turn.belief_state) {
+        for (const turn of dlg.dialogue) {
+            for (const slot of turn.belief_state) {
                 assert(slot.act === 'inform');
 
                 let [key, value] = slot.slots[0];
@@ -682,10 +692,10 @@ class Converter extends stream.Readable {
         return domains;
     }
 
-    _findTrainName(turn) {
+    private _findTrainName(turn : MultiWOZTurn) {
         let name = undefined;
-        for (let utterance of [turn.system_transcript, turn.transcript]) {
-            for (let token of utterance.split(' ')) {
+        for (const utterance of [turn.system_transcript, turn.transcript]) {
+            for (const token of utterance.split(' ')) {
                 if (/^tr[0-9]+$/i.test(token))
                     name = token;
             }
@@ -694,25 +704,26 @@ class Converter extends stream.Readable {
             turn.belief_state.push({ slots: [ [ 'train-name', name ] ], act: 'inform' });
     }
 
-    _extractSimulatorOverrides(utterance) {
+    private _extractSimulatorOverrides(utterance : string) {
         const car = /\b(black|white|red|yellow|blue|grey) (toyota|skoda|bmw|honda|ford|audi|lexus|volvo|volkswagen|tesla)\b/.exec(utterance);
         if (car)
             this._simulatorOverrides.set('car', car[0]);
 
-        for (let token of utterance.split(' ')) {
+        for (const token of utterance.split(' ')) {
             // a reference number is an 8 character token containing both letters and numbers
             if (token.length === 8 && /[a-z]/.test(token) && /[0-9]/.test(token))
                 this._simulatorOverrides.set('reference_number', token);
         }
     }
 
-    async _doDialogue(dlg) {
+    private async _doDialogue(dlg : MultiWOZDialogue) {
         const id = dlg.dialogue_idx;
 
         const actionDomains = this._getActionDomains(dlg);
 
-        let context = null, contextInfo = { current: null, next: null },
-            simulatorState = undefined, slotBag = new Map;
+        let context : Ast.DialogueState|null = null, contextInfo : ContextInfo = { current: null, next: null },
+            simulatorState : any = undefined;
+        const slotBag = new Map<string, string>();
         const turns = [];
         for (let idx = 0; idx < dlg.dialogue.length; idx++) {
             const turn = dlg.dialogue[idx];
@@ -733,19 +744,24 @@ class Converter extends stream.Readable {
                     // "execute" the context
                     [context, simulatorState] = await this._simulator.execute(context, simulatorState);
 
-                    for (let item of context.history) {
+                    for (const item of context.history) {
                         if (item.results === null)
                             continue;
 
                         if (item.results.results.length === 0)
                             continue;
 
-                        let firstResult = item.results.results[0];
+                        const firstResult = item.results.results[0];
                         if (!firstResult.value.id)
                             continue;
                         item.results.results.sort((one, two) => {
-                            const onerank = agentUtterance.toLowerCase().indexOf(one.value.id.display.toLowerCase());
-                            const tworank = agentUtterance.toLowerCase().indexOf(two.value.id.display.toLowerCase());
+                            const idone = one.value.id;
+                            const idtwo = two.value.id;
+                            if (!(idone instanceof Ast.EntityValue) ||
+                                !(idtwo instanceof Ast.EntityValue))
+                                return 0;
+                            const onerank = agentUtterance.toLowerCase().indexOf(idone.display!.toLowerCase());
+                            const tworank = agentUtterance.toLowerCase().indexOf(idtwo.display!.toLowerCase());
                             if (onerank === tworank)
                                 return 0;
                             if (onerank === -1)
@@ -797,7 +813,7 @@ class Converter extends stream.Readable {
         this.emit('progress', this._n/this._N);
     }
 
-    async run(data) {
+    async run(data : MultiWOZDialogue[]) {
         this._n = 0;
         this._N = data.length;
         for (let i = 0; i < data.length; ) {
@@ -820,7 +836,7 @@ class Converter extends stream.Readable {
     }
 }
 
-export function initArgparse(subparsers) {
+export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('auto-annotate-multiwoz', {
         add_help: true,
         description: `Heuristically convert multiwoz annotations to ThingTalk.`
@@ -873,7 +889,7 @@ export function initArgparse(subparsers) {
     });
 }
 
-export async function execute(args) {
+export async function execute(args : any) {
     const data = JSON.parse(await util.promisify(fs.readFile)(args.input_file, { encoding: 'utf8' }));
 
     const converter = new Converter(args);

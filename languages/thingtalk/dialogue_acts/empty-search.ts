@@ -47,7 +47,7 @@ import {
 // - some form of "yes"
 // - some form of "no" followed by another search refinement
 
-type EmptySearch = [Ast.Table|null, Ast.VarRefValue|null];
+type EmptySearch = [Ast.Expression|null, Ast.VarRefValue|null];
 
 /**
  * Agent dialogue act: a search command returned no result.
@@ -80,12 +80,11 @@ function makeEmptySearchError(ctx : ContextInfo, [base, question] : EmptySearch)
 function isGoodEmptySearchQuestion(ctx : ContextInfo, question : string) {
     assert(typeof question === 'string');
     const currentStmt = ctx.current!.stmt;
-    assert(currentStmt instanceof Ast.Command);
-    const currentTable = currentStmt.table!;
+    const currentTable = currentStmt.expression;
     if (!isValidSearchQuestion(currentTable, [question]))
         return false;
 
-    const ctxFilterTable = C.findFilterTable(currentTable);
+    const ctxFilterTable = C.findFilterExpression(currentTable);
     if (!ctxFilterTable || !C.filterUsesParam(ctxFilterTable.filter, question))
         return false;
 
@@ -94,8 +93,7 @@ function isGoodEmptySearchQuestion(ctx : ContextInfo, question : string) {
 
 function emptySearchChangePhraseCommon(ctx : ContextInfo, newFilter : Ast.BooleanExpression) {
     const currentStmt = ctx.current!.stmt;
-    assert(currentStmt instanceof Ast.Command);
-    const currentTable = currentStmt.table!;
+    const currentTable = currentStmt.expression;
     const newTable = queryRefinement(currentTable, newFilter, refineFilterToChangeFilter, null);
     if (newTable === null)
         return null;
@@ -108,8 +106,8 @@ function emptySearchChangePhraseCommon(ctx : ContextInfo, newFilter : Ast.Boolea
  * The "precise" variant explicitly contains a reference to a table, which must be the same
  * as the context.
  */
-function preciseEmptySearchChangeRequest(ctx : ContextInfo, phrase : Ast.Table) {
-    if (!(phrase instanceof Ast.FilteredTable))
+function preciseEmptySearchChangeRequest(ctx : ContextInfo, phrase : Ast.Expression) {
+    if (!(phrase instanceof Ast.FilterExpression))
         return null;
     const [, param] = ctx.aux as EmptySearch;
     if (!C.isSameFunction(ctx.currentTableSchema!, phrase.schema!))

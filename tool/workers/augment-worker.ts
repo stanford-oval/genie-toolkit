@@ -38,6 +38,7 @@ export default async function worker(args : any, shard : string) {
         paramLocale: args.param_locale,
         debug: args.debug,
 
+        includeQuotedExample: false,
         quotedProbability: args.quoted_fraction,
         untypedStringProbability: args.untyped_string_probability,
         maxSpanLength: args.max_span_length,

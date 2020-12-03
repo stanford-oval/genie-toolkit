@@ -50,8 +50,8 @@
     "sqlite3": "^5.0.0",
     "stemmer": "^1.0.5",
     "string-interp": "^0.3.1",
-    "thingpedia": "github:stanford-oval/thingpedia-api#next",
-    "thingtalk": "github:stanford-oval/thingtalk#next",
+    "thingpedia": "github:stanford-oval/thingpedia-api#wip/typescript3",
+    "thingtalk": "github:stanford-oval/thingtalk#wip/typescript5",
     "thingtalk-units": "^0.2.0",
     "uuid": "^8.2.0",
     "ws": "^7.4.0"

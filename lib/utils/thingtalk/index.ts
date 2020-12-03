@@ -29,20 +29,14 @@ import { Ast, SchemaRetriever } from 'thingtalk';
 import SimulationDialogueAgent, { SimulationDialogueAgentOptions } from '../../dialogue-agent/simulator/simulation_dialogue_agent';
 import { computeNewState, computePrediction, prepareContextForPrediction } from '../../dialogue-agent/dialogue_state_utils';
 import { extractConstants, createConstants } from './constants';
-import { ParseOptions, parse, parsePrediction, serialize, serializeNormalized, serializePrediction } from './syntax';
+export * from './syntax';
 
 export type Input = Ast.Input;
 export type DialogueState = Ast.DialogueState;
 export type Simulator = SimulationDialogueAgent;
+export type SimulatorOptions = SimulationDialogueAgentOptions;
 
 export {
-    ParseOptions,
-    parse,
-    parsePrediction,
-    serialize,
-    serializeNormalized,
-    serializePrediction,
-
     extractConstants,
     createConstants,
 

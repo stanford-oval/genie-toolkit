@@ -76,8 +76,7 @@ function recommendationSearchQuestionReply(ctx : ContextInfo, questions : Array<
         return null;
 
     const currentStmt = ctx.current!.stmt;
-    assert(currentStmt instanceof Ast.Command);
-    const currentTable = currentStmt.table!;
+    const currentTable = currentStmt.expression;
     const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', topResult.value.id);
     const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion,
         questions.map(([qname, qtype]) => qname));
@@ -92,8 +91,7 @@ function learnMoreSearchQuestionReply(ctx : ContextInfo, questions : Array<[stri
         return null;
 
     const currentStmt = ctx.current!.stmt;
-    assert(currentStmt instanceof Ast.Command);
-    const currentTable = currentStmt.table!;
+    const currentTable = currentStmt.expression;
     const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', topResult.value.id);
     const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion,
         questions.map(([qname, qtype]) => qname));
@@ -107,8 +105,7 @@ function displayResultSearchQuestionReply(ctx : ContextInfo, questions : Array<[
         return null;
 
     const currentStmt = ctx.current!.stmt;
-    assert(currentStmt instanceof Ast.Command);
-    const currentTable = currentStmt.table!;
+    const currentTable = currentStmt.expression;
     const newTable = queryRefinement(currentTable, null, refineFilterToAnswerQuestion,
         questions.map(([qname, qtype]) => qname));
     if (newTable === null)
@@ -151,8 +148,7 @@ function listProposalSearchQuestionReply(ctx : ContextInfo, [name, questions] : 
         return null;
 
     const currentStmt = ctx.current!.stmt;
-    assert(currentStmt instanceof Ast.Command);
-    const currentTable = currentStmt.table!;
+    const currentTable = currentStmt.expression;
     let newTable;
     if (name !== null) {
         const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', name);
@@ -168,14 +164,13 @@ function listProposalSearchQuestionReply(ctx : ContextInfo, [name, questions] : 
     return addQuery(ctx, 'execute', newTable, 'accepted');
 }
 
-function corefConstant(ctx : ContextInfo, base : Ast.Table, param : Ast.VarRefValue) {
+function corefConstant(ctx : ContextInfo, base : Ast.Expression, param : Ast.VarRefValue) {
     const previous = ctx.previousDomain;
     assert(previous);
     if (!previous.results || previous.results.results.length === 0)
         return null;
     const ctxStmt = previous.stmt;
-    assert(ctxStmt instanceof Ast.Command);
-    const ctxSchema = ctxStmt.table ? ctxStmt.table.schema! : ctxStmt.actions[0].schema!;
+    const ctxSchema = ctxStmt.expression.schema!;
     if (!(ctxSchema instanceof Ast.FunctionDef) || !ctxSchema.class) // FIXME not sure how this happens...
         return null;
     if (ctxSchema.class.name !== base.schema!.class!.name)

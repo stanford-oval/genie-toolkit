@@ -31,69 +31,70 @@ import {
 } from '../state_manip';
 import {
     isFilterCompatibleWithInfo,
-    isSimpleFilterTable
+    isSimpleFilterExpression
 } from './common';
 import { SlotBag } from '../slot_bag';
 
-type UnaryTable = Ast.SortedTable
-    | Ast.IndexTable
-    | Ast.SlicedTable
-    | Ast.ProjectionTable
-    | Ast.ComputeTable
-    | Ast.AliasTable;
+type UnaryExpression = Ast.SortExpression
+    | Ast.MonitorExpression
+    | Ast.IndexExpression
+    | Ast.SliceExpression
+    | Ast.ProjectionExpression
+    | Ast.AliasExpression;
 
 /**
- * Find the filter table in the context.
+ * Find the filter expression in the context.
  *
- * Like findFilterTable, but if we don't have one, make it up right before the invocation.
+ * Like findFilterExpression, but if we don't have one, make it up right before the invocation.
  *
  * Returns [root, filterTable]
  */
-function findOrMakeFilterTable(root : Ast.Table) : [Ast.Table|null, Ast.FilteredTable|null] {
-    let table = root;
-    let holder : Ast.JoinTable|UnaryTable|null = null;
-    while (!(table instanceof Ast.FilteredTable)) {
+function findOrMakeFilterExpression(root : Ast.ChainExpression) : Ast.FilterExpression|null {
+    let expr : Ast.Expression = root;
+    let holder : Ast.ChainExpression|UnaryExpression|null = null;
+    while (!(expr instanceof Ast.FilterExpression)) {
         // do not touch these with filters
-        if (table.isAggregation ||
-            table.isVarRef)
-            return [null, null];
+        if (expr instanceof Ast.AggregationExpression ||
+            expr instanceof Ast.FunctionCallExpression)
+            return null;
 
         // go inside these
-        if (table instanceof Ast.SortedTable ||
-            table instanceof Ast.IndexTable ||
-            table instanceof Ast.SlicedTable ||
-            table instanceof Ast.ProjectionTable ||
-            table instanceof Ast.ComputeTable ||
-            table instanceof Ast.AliasTable) {
-            holder = table;
-            table = table.table;
+        if (expr instanceof Ast.SortExpression ||
+            expr instanceof Ast.MonitorExpression ||
+            expr instanceof Ast.IndexExpression ||
+            expr instanceof Ast.SliceExpression ||
+            expr instanceof Ast.ProjectionExpression ||
+            expr instanceof Ast.AliasExpression) {
+            holder = expr;
+            expr = expr.expression;
             continue;
         }
 
-        if (table instanceof Ast.JoinTable) {
-            holder = table;
-            // go right on join, always
-            table = table.rhs;
+        if (expr instanceof Ast.ChainExpression) {
+            holder = expr;
+            // go right on join, but don't go into the action
+            const maybeExpr = expr.lastQuery;
+            if (!maybeExpr)
+                return null;
+            expr = maybeExpr;
             continue;
         }
 
-        assert(table instanceof Ast.InvocationTable);
+        assert(expr instanceof Ast.InvocationExpression);
         // if we get here, there is no filter table at all
         // make up one
-        const newFilterTable = new Ast.Table.Filter(null, table, Ast.BooleanExpression.True, table.schema);
-        if (holder === null) {
-            assert(table === root);
-            return [newFilterTable, newFilterTable];
-        } else if (holder instanceof Ast.JoinTable) {
-            holder.rhs = newFilterTable;
-            return [root, newFilterTable];
+        const newFilterTable = new Ast.FilterExpression(null, expr, Ast.BooleanExpression.True, expr.schema);
+        assert(holder !== null);
+        if (holder instanceof Ast.ChainExpression) {
+            holder.setLastQuery(newFilterTable);
+            return newFilterTable;
         } else {
-            holder.table = newFilterTable;
-            return [root, newFilterTable];
+            holder.expression = newFilterTable;
+            return newFilterTable;
         }
     }
 
-    return [root, table];
+    return expr;
 }
 
 
@@ -171,61 +172,58 @@ function filterToSlots(filter : Ast.BooleanExpression) : Record<string, SlotBool
 
 type RefineFilterCallback = (old : Ast.BooleanExpression, new_ : Ast.BooleanExpression) => Ast.BooleanExpression|null;
 
-function queryRefinement(ctxTable : Ast.Table,
+function queryRefinement(ctxExpression : Ast.ChainExpression,
                          newFilter : Ast.BooleanExpression|null,
                          refineFilter : RefineFilterCallback|null,
-                         newProjection : string[]|null) : Ast.Table|null {
-    let cloneTable = ctxTable.clone();
+                         newProjection : string[]|null) : Ast.Expression|null {
+    const cloneExpression = ctxExpression.clone();
 
     let refinedFilter : Ast.BooleanExpression;
     if (newFilter !== null) {
         assert(refineFilter);
-        const [newCloneTable, filterTable] = findOrMakeFilterTable(cloneTable);
+        const filterExpression = findOrMakeFilterExpression(cloneExpression);
         //if (ctxFilterTable === null)
         //    return null;
-        assert(newCloneTable && filterTable);
-        cloneTable = newCloneTable;
+        assert(filterExpression);
 
         // TODO we need to push down the filter, if possible
-        if (!isSimpleFilterTable(filterTable))
+        if (!isSimpleFilterExpression(filterExpression))
             return null;
 
-        const newRefinedFilter = refineFilter(filterTable.filter, newFilter);
+        const newRefinedFilter = refineFilter(filterExpression.filter, newFilter);
         if (newRefinedFilter === null)
             return null;
         refinedFilter = newRefinedFilter;
-        filterTable.filter = refinedFilter;
+        filterExpression.filter = refinedFilter;
     }
 
+    // a projection always applies to the last element in the chain
+    // (which must be a query, not an action)
+    let last = cloneExpression.last;
     if (newProjection) {
-        // if we have a new projection, we remove the projection entirely and replace it
-        // with the new one
-
-        if (cloneTable instanceof Ast.ProjectionTable)
-            cloneTable = cloneTable.table;
+        // if we have a new projection, we first remove the existing one
+        if (last instanceof Ast.ProjectionExpression)
+            last = last.expression;
         // there should be no projection of projection (will be optimized)
-        assert(!(cloneTable instanceof Ast.ProjectionTable));
+        assert(!(last instanceof Ast.ProjectionExpression));
 
-        // remove a compute table as well (top-level compute is a sort of projection)
-        if (cloneTable instanceof Ast.ComputeTable)
-            cloneTable = cloneTable.table;
-
-        // still no projection here...
-        assert(!(cloneTable instanceof Ast.ProjectionTable));
-
-        cloneTable = new Ast.Table.Projection(null, cloneTable, newProjection,
-            C.resolveProjection(newProjection, cloneTable.schema!));
+        cloneExpression.last = new Ast.ProjectionExpression(null, last, newProjection, [], [],
+            C.resolveProjection(last.schema!, newProjection));
     } else {
         // otherwise, we remove all fields from the projection that were mentioned in the
         // filter
 
-        let oldProjection : string[]|undefined;
-        if (cloneTable instanceof Ast.ProjectionTable) {
-            oldProjection = cloneTable.args;
-            cloneTable = cloneTable.table;
+        let oldProjection : string[] = [];
+        let oldComputation : Ast.Value[] = [];
+        let oldAliases : Array<string|null> = [];
+        if (last instanceof Ast.ProjectionExpression) {
+            oldProjection = last.args;
+            oldComputation = last.computations;
+            oldAliases = last.aliases;
+            last = last.expression;
         }
         // there should be no projection of projection (will be optimized)
-        assert(!(cloneTable instanceof Ast.ProjectionTable));
+        assert(!(last instanceof Ast.ProjectionExpression));
 
         // either one of newProjection or newFilter must be provided
         assert(newFilter !== null);
@@ -233,18 +231,8 @@ function queryRefinement(ctxTable : Ast.Table,
         if (oldProjection) {
             const newProjection = oldProjection.filter((pname) => !C.filterUsesParam(refinedFilter, pname));
 
-            // if we removed the projection of the compute field, remove the projection entirely
-            if (cloneTable instanceof Ast.ComputeTable) {
-                assert(cloneTable.expression instanceof Ast.Value.Computation);
-                const field = cloneTable.expression.op;
-                if (!newProjection.includes(field))
-                    cloneTable = cloneTable.table;
-
-                // there should still be no projection of projection (will be optimized)
-                assert(!(cloneTable instanceof Ast.ProjectionTable));
-            }
-
-            // if the projection is now empty, we don't add
+            // if the projection is now empty, we don't add it
+            //
             // the projection will be empty if
             // 1. the user asks a question
             // 2. the agent answers that question
@@ -257,13 +245,13 @@ function queryRefinement(ctxTable : Ast.Table,
             // we will keep the projection
 
             if (newProjection.length > 0) {
-                cloneTable = new Ast.Table.Projection(null, cloneTable, newProjection,
-                    C.resolveProjection(newProjection, cloneTable.schema!));
+                cloneExpression.last = new Ast.ProjectionExpression(null, last, newProjection,
+                    oldComputation, oldAliases, C.resolveProjection(last.schema!, newProjection));
             }
         }
     }
 
-    return cloneTable;
+    return cloneExpression;
 }
 
 class GetParamsVisitor extends Ast.NodeVisitor {
@@ -437,33 +425,32 @@ function refineFilterToChangeFilter(ctxFilter : Ast.BooleanExpression,
  * proposal), the user replies with a search.
  */
 function proposalReply(ctx : ContextInfo,
-                       request : Ast.Table,
+                       request : Ast.Expression,
                        refinementFunction : RefineFilterCallback) {
     if (!C.isSameFunction(ctx.currentFunctionSchema!, request.schema!))
         return null;
 
     // TODO we need to push down the filter, if possible
-    if (!isSimpleFilterTable(request))
+    if (!isSimpleFilterExpression(request))
         return null;
 
     const currentStmt = ctx.current!.stmt;
-    assert(currentStmt instanceof Ast.Command);
-    const currentTable = currentStmt.table!;
-    const newTable = queryRefinement(currentTable, request.filter, refinementFunction, null);
+    const currentExpression = currentStmt.expression!;
+    const newTable = queryRefinement(currentExpression, request.filter, refinementFunction, null);
     if (newTable === null)
         return null;
 
     return addQuery(ctx, 'execute', newTable, 'accepted');
 }
 
-function isValidNegativePreambleForInfo(info : SlotBag, preamble : Ast.FilteredTable) : boolean {
+function isValidNegativePreambleForInfo(info : SlotBag, preamble : Ast.FilterExpression) : boolean {
     // the preamble must match the info provided
     // (and we will negate it later)
     return isFilterCompatibleWithInfo(info, preamble.filter);
 }
 
-function combinePreambleAndRequest(preamble : Ast.FilteredTable|null,
-                                   request : Ast.FilteredTable|null,
+function combinePreambleAndRequest(preamble : Ast.FilterExpression|null,
+                                   request : Ast.FilterExpression|null,
                                    info : SlotBag|null,
                                    proposalType : Type) {
     if (preamble !== null) {
@@ -479,15 +466,15 @@ function combinePreambleAndRequest(preamble : Ast.FilteredTable|null,
             return null;
 
         // convert the preamble into a request by negating it, then add the new request
-        request = new Ast.FilteredTable(null, request.table, new Ast.BooleanExpression.And(null, [
+        request = new Ast.FilterExpression(null, request.expression, new Ast.BooleanExpression.And(null, [
             new Ast.BooleanExpression.Not(null, preamble.filter),
             request.filter
         ]), request.schema);
     } else if (preamble !== null) {
         // convert the preamble into a request by negating it
         // shallow clone
-        assert(preamble instanceof Ast.FilteredTable);
-        request = new Ast.Table.Filter(null, preamble.table, preamble.filter, preamble.schema);
+        assert(preamble instanceof Ast.FilterExpression);
+        request = new Ast.FilterExpression(null, preamble.expression, preamble.filter, preamble.schema);
         request.filter = new Ast.BooleanExpression.Not(null, request.filter);
     }
     assert(request !== null);
@@ -501,7 +488,7 @@ function combinePreambleAndRequest(preamble : Ast.FilteredTable|null,
 }
 
 export {
-    findOrMakeFilterTable,
+    findOrMakeFilterExpression,
     queryRefinement,
     refineFilterToAnswerQuestion,
     refineFilterToAnswerQuestionOrChangeFilter,

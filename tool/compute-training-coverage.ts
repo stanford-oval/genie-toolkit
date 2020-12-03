@@ -27,16 +27,16 @@ import * as Utils from '../lib/utils/misc-utils';
 import { requoteProgram } from '../lib/dataset-tools/requoting';
 import { readAllLines } from './lib/argutils';
 import { DatasetParser } from '../lib/dataset-tools/parsers';
+import * as ThingTalkUtils from '../lib/utils/thingtalk';
 
-async function normalize(preprocessed : string, target_code : string, schemas : ThingTalk.SchemaRetriever) : Promise<string> {
+async function normalize(preprocessed : string, target_code : string, tpClient : Tp.BaseClient, schemas : ThingTalk.SchemaRetriever) : Promise<string> {
     const entities = Utils.makeDummyEntities(preprocessed);
     const sequence = target_code.split(' ');
-    const parsed = ThingTalk.NNSyntax.fromNN(sequence, entities);
-    await parsed.typecheck(schemas, false);
-    const normalized = ThingTalk.NNSyntax.toNN(parsed, preprocessed.split(' '), {}, {
-        allocateEntities: true,
-        typeAnnotations: false
-    });
+    const parsed = await ThingTalkUtils.parsePrediction(sequence, entities, {
+        thingpediaClient: tpClient,
+        schemaRetriever: schemas
+    }, true);
+    const normalized = ThingTalkUtils.serializeNormalized(parsed);
     return normalized.join(' ');
 }
 
@@ -77,7 +77,7 @@ export async function execute(args : any) {
     const training = await readAllLines([args.training_set])
         .pipe(new DatasetParser({ preserveId: true }));
     for await (const line of training) {
-        const normalized = await normalize(line.preprocessed, line.target_code, schemas);
+        const normalized = await normalize(line.preprocessed, line.target_code, tpClient, schemas);
         const requoted = Array.from(requoteProgram(normalized)).join(' ');
         trainingPrograms.set(requoted, (trainingPrograms.get(requoted) || 0) + 1);
         trainingSize += 1;
@@ -96,7 +96,7 @@ export async function execute(args : any) {
         let covered = false;
         let requoted = '';
         for (const thingtalk of candidates) {
-            const normalized = await normalize(line.preprocessed, thingtalk, schemas);
+            const normalized = await normalize(line.preprocessed, thingtalk, tpClient, schemas);
             requoted = Array.from(requoteProgram(normalized)).join(' ');
             if (trainingPrograms.has(requoted)) {
                 covered = true;

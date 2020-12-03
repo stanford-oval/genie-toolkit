@@ -107,8 +107,8 @@ class DialogueToTurnStream extends Stream.Transform {
         const agentTarget = await ThingTalkUtils.parse(turn.agent_target!, this._options);
         assert(agentTarget instanceof ThingTalk.Ast.DialogueState);
 
-        const { tokens, } = this._preprocess(turn.agent!, contextEntities);
-        const agentCode = await ThingTalkUtils.serializePrediction(agentTarget, tokens, contextEntities, 'agent', {
+        const { tokens, entities } = this._preprocess(turn.agent!, contextEntities);
+        const agentCode = await ThingTalkUtils.serializePrediction(agentTarget, tokens, entities, {
             locale: this._locale
         });
 
@@ -159,7 +159,7 @@ class DialogueToTurnStream extends Stream.Transform {
         const { tokens, entities } = this._preprocess(turn.user, contextEntities);
         const userTarget = await ThingTalkUtils.parse(turn.user_target, this._options);
         assert(userTarget instanceof ThingTalk.Ast.DialogueState);
-        const code = await ThingTalkUtils.serializePrediction(userTarget, tokens, entities, 'user', {
+        const code = await ThingTalkUtils.serializePrediction(userTarget, tokens, entities, {
             locale: this._locale
         });
 

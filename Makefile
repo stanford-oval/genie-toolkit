@@ -22,10 +22,9 @@ sources = \
 languages = en
 
 bundled_templates := \
-	languages/thingtalk/en/dialogue.genie \
-	languages/thingtalk/en/thingtalk.genie \
-	languages/thingtalk/en/contextual.genie \
 	languages/thingtalk/en/basic.genie \
+	languages/thingtalk/en/thingtalk.genie \
+	languages/thingtalk/en/dialogue.genie \
 	languages/thingtalk/en/sempre.genie
 
 built_bundled_templates := $(addsuffix .ts,$(bundled_templates))

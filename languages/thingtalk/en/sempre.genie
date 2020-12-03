@@ -29,7 +29,7 @@ import _tpLoader from '../load-thingpedia';
 import '../common.genie';
 import './constants.genie';
 
-table : Ast.Table = thingpedia_query if complete;
+table : Ast.Expression = thingpedia_query if complete;
 
 filter : Ast.BooleanExpression = {
     'whose' p:out_param_Any 'is' v:constant_Any => C.makeFilter(p, v.getType().isString ? '=~' : '==', v);
@@ -49,7 +49,7 @@ filter : Ast.BooleanExpression = {
     'that has' ('more than' | 'at least') v:constant_Number p:out_param_Any => C.makeAggregateFilter(p, 'count', '*', '>=', v);
 }
 
-filtered_table : Ast.Table = {
+filtered_table : Ast.Expression = {
     t:table f:filter => C.addFilter(t, f);
     t:filtered_table 'and' f:filter => C.addFilter(t, f);
 
@@ -124,8 +124,8 @@ filtered_table : Ast.Table = {
         newSchema.minimal_projection = [];
         if (newSchema instanceof Ast.FunctionDef)
             newSchema.annotations.minimal_projection = new Ast.Value.Array([]);
-        const agg = new Ast.Table.Aggregation(null, table, '*', 'count', null, newSchema);
-        return new Ast.Table.Projection(null, agg, ['count'], newSchema);
+        const agg = new Ast.AggregationExpression(null, table, '*', 'count', newSchema);
+        return new Ast.ProjectionExpression(null, agg, ['count'], [], [], newSchema);
     };
 
     // sum & avg
@@ -141,8 +141,8 @@ filtered_table : Ast.Table = {
         newSchema.minimal_projection = [];
         if (newSchema instanceof Ast.FunctionDef)
             newSchema.annotations.minimal_projection = new Ast.Value.Array([]);
-        const agg = new Ast.Table.Aggregation(null, t, p.name, 'sum', null, newSchema);
-        return new Ast.Table.Projection(null, agg, [p.name], newSchema);
+        const agg = new Ast.AggregationExpression(null, t, p.name, 'sum', newSchema);
+        return new Ast.ProjectionExpression(null, agg, [p.name], [], [], newSchema);
     };
     ( 'average' p:out_param_Numeric 'of' t:table
     | 'average' p:out_param_Numeric 'of' t:filtered_table ) => {
@@ -156,8 +156,8 @@ filtered_table : Ast.Table = {
         newSchema.minimal_projection = [];
         if (newSchema instanceof Ast.FunctionDef)
             newSchema.annotations.minimal_projection = new Ast.Value.Array([]);
-        const agg = new Ast.Table.Aggregation(null, t, p.name, 'avg', null, newSchema);
-        return new Ast.Table.Projection(null, agg, [p.name], newSchema);
+        const agg = new Ast.AggregationExpression(null, t, p.name, 'avg', newSchema);
+        return new Ast.ProjectionExpression(null, agg, [p.name], [], [], newSchema);
     };
 }
 

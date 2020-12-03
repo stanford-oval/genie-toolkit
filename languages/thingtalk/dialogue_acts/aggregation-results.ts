@@ -18,7 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import assert from 'assert';
 import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
@@ -29,7 +28,7 @@ import {
     makeSimpleState,
 } from '../state_manip';
 
-function makeCountAggregationReplySuffix(ctx : ContextInfo, table : Ast.Table, mustFilter : boolean) {
+function makeCountAggregationReplySuffix(ctx : ContextInfo, table : Ast.Expression, mustFilter : boolean) {
     if (!ctx.resultInfo!.isAggregation)
         return null;
     const results = ctx.results;
@@ -37,17 +36,16 @@ function makeCountAggregationReplySuffix(ctx : ContextInfo, table : Ast.Table, m
         return null;
 
     const currentStmt = ctx.current!.stmt;
-    assert(currentStmt instanceof Ast.Command);
-    const currentTable = currentStmt.table!;
-    if (!(currentTable instanceof Ast.AggregationTable) ||
+    const currentTable = currentStmt.lastQuery!;
+    if (!(currentTable instanceof Ast.AggregationExpression) ||
         currentTable.operator !== 'count' || currentTable.field !== '*')
         return null;
     if (!C.isSameFunction(table.schema!, ctx.currentTableSchema!))
         return null;
-    if (mustFilter && !(table instanceof Ast.FilteredTable))
+    if (mustFilter && !(table instanceof Ast.FilterExpression))
         return null;
-    if (table instanceof Ast.FilteredTable) {
-        const filterTable = C.findFilterTable(currentTable);
+    if (table instanceof Ast.FilterExpression) {
+        const filterTable = C.findFilterExpression(currentTable);
         if (!filterTable)
             return null;
         if (!table.filter.equals(filterTable.filter))
@@ -70,9 +68,8 @@ function makeOtherAggregationReply(ctx : ContextInfo, op : string, param : Ast.V
     if (!results || results.length !== 1 || !results[0].value[param.name])
         return null;
     const currentStmt = ctx.current!.stmt;
-    assert(currentStmt instanceof Ast.Command);
-    const currentTable = currentStmt.table!;
-    if (!(currentTable instanceof Ast.AggregationTable) ||
+    const currentTable = currentStmt.lastQuery!;
+    if (!(currentTable instanceof Ast.AggregationExpression) ||
         currentTable.operator !== op || currentTable.field !== param.name)
         return null;
     if (!value.equals(results[0].value[param.name]))

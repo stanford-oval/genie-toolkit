@@ -231,21 +231,21 @@ export default class ExecWrapper extends ExecEnvironment {
 
         const results = await device.query(query, this);
 
-        function recursivelyComputeOutputType(table : Ast.Table) : string {
-            if (table instanceof Ast.InvocationTable)
-                return device.kind + ':' + table.invocation.channel;
-            if (table instanceof Ast.JoinTable)
-                return recursivelyComputeOutputType(table.lhs) + '+' + recursivelyComputeOutputType(table.rhs);
-            if (table instanceof Ast.AggregationTable)
-                return table.operator + '(' + recursivelyComputeOutputType(table.table) + ')';
-            if ('table' in table) // projection, index, slice, history, sequence, compute
-                return recursivelyComputeOutputType((table as { table : Ast.Table }).table);
+        function recursivelyComputeOutputType(expr : Ast.Expression) : string {
+            if (expr instanceof Ast.InvocationExpression)
+                return device.kind + ':' + expr.invocation.channel;
+            if (expr instanceof Ast.ChainExpression)
+                return expr.expressions.map(recursivelyComputeOutputType).join('+');
+            if (expr instanceof Ast.AggregationExpression)
+                return expr.operator + '(' + recursivelyComputeOutputType(expr.expression) + ')';
+            if ('expression' in expr) // projection, index, slice
+                return recursivelyComputeOutputType((expr as ({ expression : Ast.Expression } & Ast.Expression)).expression);
 
-            throw new TypeError('Invalid query table ' + table);
+            throw new TypeError('Invalid query expression ' + expr);
         }
-        const command = query.rules[0];
-        assert(command instanceof Ast.Command);
-        const outputType = recursivelyComputeOutputType(command.table!);
+        const command = query.statements[0];
+        assert(command instanceof Ast.ExpressionStatement);
+        const outputType = recursivelyComputeOutputType(command.expression);
 
         for (const result of results)
             yield [outputType, result];

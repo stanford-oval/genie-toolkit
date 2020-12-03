@@ -442,7 +442,7 @@ class @org.thingpedia.weather
                               property=[],
                               preposition=["in #", "at #", "around #", "for location #", "for #"]
                             }]
-                            #[default=$context.location.current_location],
+                            #[default=$location.current_location],
                             in opt date: Date
                             #_[canonical={
                               default="preposition",
@@ -472,7 +472,7 @@ class @org.thingpedia.weather
                             property=[],
                             preposition=["in #", "at #", "around #", "for location #", "for #"]
                          }]
-                         #[default=$context.location.current_location],
+                         #[default=$location.current_location],
                          in opt date: Date
                          #_[canonical={
                             default="preposition",
@@ -501,7 +501,7 @@ class @org.thingpedia.weather
                               property=[],
                               preposition=["in #", "at #", "around #", "for location #", "for #"]
                             }]
-                            #[default=$context.location.current_location],
+                            #[default=$location.current_location],
                             out temperature: Measure(C)
                             #_[canonical="temperature"]
                             // from the coldest artic to the death valley, in one filter

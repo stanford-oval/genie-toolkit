@@ -26,187 +26,179 @@ import * as C from '../ast_manip';
 // import thingpedia info
 import _tpLoader from '../load-thingpedia';
 
-forward_get_do_command : Ast.Command = {
-    ('get' | 'take' | 'retrieve')  table:if_filtered_table ('and then' | 'then') action:thingpedia_action if !complete => new Ast.Statement.Command(null, table, [action]);
-    table:complete_get_command ('and then' | 'then' | ',') action:thingpedia_action if !complete => new Ast.Statement.Command(null, table, [action]);
-    'after' ('you get' | 'taking' | 'getting' | 'retrieving') table:with_filtered_table action:thingpedia_action if !complete => new Ast.Statement.Command(null, table, [action]);
-    ('get' | 'take' | 'retrieve') table:with_filtered_table ('and then' | 'then') action:thingpedia_action if !complete => new Ast.Statement.Command(null, table, [action]);
+forward_get_do_command : Ast.ChainExpression = {
+    ( ('get' | 'take' | 'retrieve')  table:if_filtered_table ('and then' | 'then') action:thingpedia_action
+    | table:complete_get_command ('and then' | 'then' | ',') action:thingpedia_action
+    | 'after' ('you get' | 'taking' | 'getting' | 'retrieving') table:with_filtered_table action:thingpedia_action
+    | ('get' | 'take' | 'retrieve') table:with_filtered_table ('and then' | 'then') action:thingpedia_action
+    ) if !complete => new Ast.ChainExpression(null, [table, action], C.resolveChain(table.schema!, action.schema!));
 
     // use X to do Y would be good sometimes but it gets confusing quickly
-    //['${(get|use)} ${with_filtered_table} to ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Statement.Command(null, table, [action])))]
+    //['${(get|use)} ${with_filtered_table} to ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Command(null, table, [action])))]
 }
 
-complete_forward_get_do_command : Ast.Command = {
-    forward_get_do_command if complete;
+complete_forward_get_do_command : Ast.ExpressionStatement = {
+    cmd:forward_get_do_command if complete => new Ast.ExpressionStatement(null, cmd);
 
     !turking command:complete_forward_get_do_command ('with the same' | 'with identical' | 'using the same') joinArg:out_param_Any => {
-        const action = command.actions[0];
-        assert(action instanceof Ast.InvocationAction);
+        const action = command.last;
+        assert(action instanceof Ast.InvocationExpression);
+        const table = command.lastQuery!;
 
         let actiontype = action.schema!.inReq[joinArg.name];
         if (!actiontype)
             return null;
         if (action.invocation.in_params.some((p) => p.name === joinArg.name))
             return null;
-        let commandtype = command.table!.schema!.out[joinArg.name];
+        let commandtype = table.schema!.out[joinArg.name];
         if (!commandtype || !Type.isAssignable(commandtype, actiontype))
             return null;
 
         let clone = action.clone();
         clone.invocation.in_params.push(new Ast.InputParam(null, joinArg.name, joinArg));
-        return new Ast.Statement.Command(null, command.table, [clone]);
+        return new Ast.ExpressionStatement(null, new Ast.ChainExpression(null, [table, clone], C.resolveChain(table.schema!, clone.schema!)));
     };
 }
 
-backward_get_do_command : Ast.Command = {
+backward_get_do_command : Ast.ChainExpression = {
     action:thingpedia_action 'after' ('getting' | 'taking' | 'you get' | 'you retrieve') table:with_filtered_table if !complete
-        => new Ast.Statement.Command(null, table, [action]);
+        => new Ast.ChainExpression(null, [table, action], C.resolveChain(table.schema!, action.schema!));
 }
 
-complete_get_do_command : Ast.Command = {
+complete_get_do_command : Ast.ExpressionStatement = {
     complete_forward_get_do_command;
-    !turking backward_get_do_command if complete;
-    action_replace_param_with_table if complete;
+    !turking cmd:backward_get_do_command if complete => new Ast.ExpressionStatement(null, cmd);
+    cmd:action_replace_param_with_table if complete => new Ast.ExpressionStatement(null, cmd);
 }
 
-forward_when_do_rule : Ast.Rule = {
+forward_when_do_rule : Ast.ChainExpression = {
     // pp from when to do (optional)
-    stream:stream action:thingpedia_action ('' | '.') => new Ast.Statement.Rule(null, stream, [action]);
+    stream:stream action:thingpedia_action ('' | '.') => new Ast.ChainExpression(null, [stream, action], C.resolveChain(stream.schema!, action.schema!));
 
     // pp from when to do (required)
     // this is because "monitor X and then Y" makes sense only if X flows into Y
     ('monitor' | 'watch') table:with_filtered_table ('and then' | 'then') action:thingpedia_action ('' | '.') if !complete => {
         if (!table.schema!.is_monitorable)
             return null;
-        return new Ast.Statement.Rule(null, new Ast.Stream.Monitor(null, table, null, table.schema), [action]);
+        return new Ast.ChainExpression(null, [new Ast.MonitorExpression(null, table, null, table.schema), action],
+            C.resolveChain(table.schema!, action.schema!));
     };
     !turking ('monitor' | 'watch') proj:projection_Any ('and then' | 'then') action:thingpedia_action ('' | '.') if !complete => {
         if (!proj.schema!.is_monitorable)
             return null;
-        let stream;
-        if (proj instanceof Ast.ProjectionTable) {
-            if (proj.args && proj.args[0] === 'picture_url')
-                return null;
-            let outParams = Object.keys(proj.table.schema!.out);
-            if (outParams.length === 1 && _tpLoader.flags.turking)
-                return null;
-            if (outParams.length === 1)
-                stream = C.tableToStream(proj.table, null);
-            else
-                stream = C.tableToStream(proj.table, proj.args);
-        } else {
-            stream = C.tableToStream(proj, null);
-        }
+        const stream = C.tableToStream(proj);
         if (!stream)
             return null;
-        return new Ast.Statement.Rule(null, stream, [action]);
+        return new Ast.ChainExpression(null, [stream, action], C.resolveChain(stream.schema!, action.schema!));
     };
 
     'check for new' table:complete_table ('and then' | 'then') action:thingpedia_action ('' | '.') if !complete => {
         if (!table.schema!.is_monitorable)
             return null;
-        return new Ast.Statement.Rule(null, new Ast.Stream.Monitor(null, table, null, table.schema), [action]);
+        return new Ast.ChainExpression(null, [new Ast.MonitorExpression(null, table, null, table.schema), action],
+            C.resolveChain(table.schema!, action.schema!));
     };
 }
 
-complete_forward_when_do_rule : Ast.Rule = {
-    forward_when_do_rule if complete;
+complete_forward_when_do_rule : Ast.ExpressionStatement = {
+    cmd:forward_when_do_rule if complete => new Ast.ExpressionStatement(null, cmd);
 
     !turking rule:complete_forward_when_do_rule ('with the same' | 'with identical' | 'using the same') joinArg:out_param_Any => {
         //if (rule.actions.length !== 1 || rule.actions[0].selector.isBuiltin)
         //    throw new TypeError('???');
-        const action = rule.actions[0];
-        assert(action instanceof Ast.InvocationAction);
+        const action = rule.last;
+        assert(action instanceof Ast.InvocationExpression);
+        const stream = rule.lastQuery!;
         let actiontype = action.schema!.inReq[joinArg.name];
         if (!actiontype)
             return null;
         if (action.invocation.in_params.some((p) => p.name === joinArg.name))
             return null;
 
-        let commandtype = rule.stream.schema!.out[joinArg.name];
+        let commandtype = stream.schema!.out[joinArg.name];
         if (!commandtype || !Type.isAssignable(commandtype, actiontype))
             return null;
-        if (joinArg.isEvent && (rule.stream.isTimer || rule.stream.isAtTimer))
+        if (joinArg.isEvent && (stream instanceof Ast.FunctionCallExpression)) // timer
             return null;
 
         let clone = action.clone();
         clone.invocation.in_params.push(new Ast.InputParam(null, joinArg.name, joinArg));
-        return new Ast.Statement.Rule(null, rule.stream, [clone]);
+        return new Ast.ExpressionStatement(null, new Ast.ChainExpression(null, [stream, action], C.resolveChain(stream.schema!, action.schema!)));
     };
 }
 
-backward_when_do_rule : Ast.Rule = {
-    action:thingpedia_action stream:stream ('' | '.') => new Ast.Statement.Rule(null, stream, [action]);
+backward_when_do_rule : Ast.ChainExpression = {
+    action:thingpedia_action stream:stream ('' | '.')
+        => new Ast.ChainExpression(null, [stream, action], C.resolveChain(stream.schema!, action.schema!));
 
     action:thingpedia_action 'after checking for new' table:complete_table ('' | '.') if !complete => {
         if (!table.schema!.is_monitorable)
             return null;
-        return new Ast.Statement.Rule(null, new Ast.Stream.Monitor(null, table, null, table.schema), [action]);
+        return new Ast.ChainExpression(null, [new Ast.MonitorExpression(null, table, null, table.schema), action],
+            C.resolveChain(table.schema!, action.schema!));
     };
 }
-complete_when_do_rule : Ast.Rule = {
+complete_when_do_rule : Ast.ExpressionStatement = {
     complete_forward_when_do_rule;
-    backward_when_do_rule if complete;
+    cmd:backward_when_do_rule if complete => new Ast.ExpressionStatement(null, cmd);
 
-    !turking ('auto' | 'automatically' | 'continuously') stmt:action_replace_param_with_stream if complete => stmt;
-    ?turking 'automatically' stmt:action_replace_param_with_stream if complete => stmt;
+    !turking ('auto' | 'automatically' | 'continuously') stmt:action_replace_param_with_stream if complete => new Ast.ExpressionStatement(null, stmt);
+    ?turking 'automatically' stmt:action_replace_param_with_stream if complete => new Ast.ExpressionStatement(null, stmt);
 }
 
-when_get_stream : Ast.JoinStream = {
+when_get_stream : Ast.ChainExpression = {
     // pp from when to get (optional)
-    // NOTE: the schema is not quite right but it's ok because the stream is complete
-    // and the table is what we care about
-    stream:stream table:thingpedia_get_command => C.checkNotSelfJoinStream(new Ast.Stream.Join(null, stream, table, [], table.schema));
+    stream:stream table:thingpedia_get_command => C.checkNotSelfJoinStream(new Ast.ChainExpression(null, [stream, table], table.schema));
     ( stream:stream imperative_verb_for_search table:thingpedia_query
     | stream:stream generic_verb_for_search table:thingpedia_query
-    ) => C.checkNotSelfJoinStream(new Ast.Stream.Join(null, stream, table, [], table.schema));
+    ) => C.checkNotSelfJoinStream(new Ast.ChainExpression(null, [stream, table], table.schema));
     ( stream:stream imperative_verb_for_search ('' | 'what is') proj:projection_Any
     | stream:stream generic_verb_for_search ('' | 'what is') proj:projection_Any
     ) => {
-        if (proj instanceof Ast.ProjectionTable) {
+        if (proj instanceof Ast.ProjectionExpression) {
             if (!_tpLoader.flags.projection)
                 return null;
             if (proj.args[0] === 'picture_url')
                 return null;
-            let outParams = Object.keys(proj.table.schema!.out);
+            let outParams = Object.keys(proj.expression.schema!.out);
             if (outParams.length === 1)
                 return null;
         }
-        return C.checkNotSelfJoinStream(new Ast.Stream.Join(null, stream, proj, [], proj.schema));
+        return C.checkNotSelfJoinStream(new Ast.ChainExpression(null, [stream, proj], proj.schema));
     };
 
-    table:thingpedia_get_command stream:stream => C.checkNotSelfJoinStream(new Ast.Stream.Join(null, stream, table, [], table.schema));
+    table:thingpedia_get_command stream:stream => C.checkNotSelfJoinStream(new Ast.ChainExpression(null, [stream, table], table.schema));
     ( imperative_verb_for_search table:thingpedia_query stream:stream
     | generic_verb_for_search table:thingpedia_query stream:stream
     | generic_preamble_for_answer table:thingpedia_query stream:stream
-    ) => C.checkNotSelfJoinStream(new Ast.Stream.Join(null, stream, table, [], table.schema));
+    ) => C.checkNotSelfJoinStream(new Ast.ChainExpression(null, [stream, table], table.schema));
 
     ( imperative_verb_for_search proj:projection_Any stream:stream
     | generic_verb_for_search proj:projection_Any stream:stream
     | generic_preamble_for_answer proj:projection_Any stream:stream
     ) => {
-        if (proj instanceof Ast.ProjectionTable) {
+        if (proj instanceof Ast.ProjectionExpression) {
             if (!_tpLoader.flags.projection)
                 return null;
             if (proj.args[0] === 'picture_url')
                 return null;
-            let outParams = Object.keys(proj.table.schema!.out);
+            let outParams = Object.keys(proj.expression.schema!.out);
             if (outParams.length === 1)
                 return null;
         }
-        return C.checkNotSelfJoinStream(new Ast.Stream.Join(null, stream, proj, [], proj.schema));
+        return C.checkNotSelfJoinStream(new Ast.ChainExpression(null, [stream, proj], proj.schema));
     };
 }
-complete_when_get_stream : Ast.JoinStream = {
-    when_get_stream if complete;
+complete_when_get_stream : Ast.ExpressionStatement = {
+    stream:when_get_stream if complete => new Ast.ExpressionStatement(null, stream);
 }
 
-when_get_do_rule : Ast.Rule = {
-    stream:stream command:complete_get_do_command => C.combineStreamCommand(stream, command);
-    command:complete_get_do_command stream:stream => C.combineStreamCommand(stream, command);
+when_get_do_rule : Ast.ExpressionStatement = {
+    stream:stream command:complete_get_do_command => C.combineStreamCommand(stream, command.expression);
+    command:complete_get_do_command stream:stream => C.combineStreamCommand(stream, command.expression);
 }
 
-timer_rule : Ast.Rule = {
+timer_rule : Ast.ExpressionStatement = {
     // timer => get => notify
     (
           timer:timer table:complete_get_command
@@ -214,17 +206,17 @@ timer_rule : Ast.Rule = {
         | generic_verb_for_search table:complete_table timer:timer
         | timer:timer ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') table:complete_table
         | ('tell me' | 'give me' | 'show me' | 'present' | 'retrieve' | 'pull up') table:complete_table timer:timer
-    ) => new Ast.Statement.Rule(null, new Ast.Stream.Join(null, timer, table, [], table.schema), [C.notifyAction()]);
+    ) => new Ast.ExpressionStatement(null, new Ast.ChainExpression(null, [timer, table], table.schema));
     // timer => do
     (
           timer:timer action:thingpedia_action
         | generic_preamble_for_action action:thingpedia_action timer:timer
-    ) if complete => new Ast.Statement.Rule(null, timer, [action]);
+    ) if complete => new Ast.ExpressionStatement(null, new Ast.ChainExpression(null, [timer, action], action.schema!));
     // timer => get => do
     !primonly (
           timer:timer command:complete_get_do_command
         | command:complete_get_do_command timer:timer
-    ) => new Ast.Statement.Rule(null, new Ast.Stream.Join(null, timer, command.table!, [], command.table!.schema), command.actions);
+    ) => new Ast.ExpressionStatement(null, new Ast.ChainExpression(null, ([timer] as Ast.Expression[]).concat(command.expression.expressions), command.expression.schema));
 }
 
 generic_preamble_for_answer : string = {
@@ -302,30 +294,30 @@ generic_article : string = {
     'the list of all';
 }
 
-search_command : Ast.Command = {
+search_command : Ast.ExpressionStatement = {
     (
           table:complete_get_command
         | 'get' generic_article table:with_filtered_table
         | generic_preamble_for_answer generic_article table:with_filtered_table
         | generic_verb_for_search generic_article table:with_filtered_table
         | generic_preamble_for_action generic_verb_for_search generic_article table:with_filtered_table
-    ) => new Ast.Statement.Command(null, table, [C.notifyAction()]);
+    ) => new Ast.ExpressionStatement(null, table);
     ( 'please' | '') ('list' | 'enumerate') table:with_filtered_table => {
         if (!table.schema!.is_list)
             return null;
-        return new Ast.Statement.Command(null, table, [C.notifyAction()]);
+        return new Ast.ExpressionStatement(null, table);
     };
 
     // now => get join get => notify
     ( generic_preamble_for_answer generic_article table:with_filtered_table
     | generic_verb_for_search generic_article table:with_filtered_table
     | generic_preamble_for_action generic_verb_for_search generic_article table:with_filtered_table
-    ) => new Ast.Statement.Command(null, table, [C.notifyAction()]);
+    ) => new Ast.ExpressionStatement(null, table);
 
     // now => get => notify (argmin, argmax)
     ( generic_preamble_for_answer 'the' table:with_arg_min_max_table
     | generic_verb_for_search 'the' table:with_arg_min_max_table
-    ) => new Ast.Statement.Command(null, table, [C.notifyAction()]);
+    ) => new Ast.ExpressionStatement(null, table);
 
     // now => get => say(...)
     (
@@ -340,7 +332,7 @@ search_command : Ast.Command = {
     ) => C.sayProjection(proj);
 }
 
-complete_question : Ast.Command = {
+complete_question : Ast.ExpressionStatement = {
     (
           ('what' | 'which') table:verb_filtered_table '?'
         | ('what' | 'which') table:one_be_filter_table '?'
@@ -356,7 +348,7 @@ complete_question : Ast.Command = {
         | ('what' | 'which') ('are' | 'is') ('the' | '') table:two_with_filter_table '?'
         | ('what' | 'which') ('are' | 'is') ('the' | '') table:two_which_filter_table '?'
         | ('what' | 'which') ('are' | 'is') ('the' | '') table:two_clean_filter_table '?'
-    ) => new Ast.Statement.Command(null, table, [C.notifyAction()]);
+    ) => new Ast.ExpressionStatement(null, table);
 
 
     (
@@ -368,19 +360,19 @@ complete_question : Ast.Command = {
         | ('is' | 'are') 'there' ('any' | '') table:two_with_filter_table '?'
         | ('is' | 'are') 'there' ('any' | '') table:two_which_filter_table '?'
         | ('is' | 'are') 'there' ('any' | '') table:two_clean_filter_table '?'
-    ) => new Ast.Statement.Command(null, table, [C.notifyAction()]);
+    ) => new Ast.ExpressionStatement(null, table);
 
     // now => get join get => notify
     (
           ('what' | 'which') ('are' | 'is') ('the' | '') table:with_filtered_table_join
         | ('what' | 'which') table:have_filtered_table_join
-    ) => new Ast.Statement.Command(null, table, [C.notifyAction()]);
+    ) => new Ast.ExpressionStatement(null, table);
 
     // now => get => notify (argmin, argmax)
     (
           ('what' | 'which') 'is the' table:with_arg_min_max_table '?'
         | ('which' | 'what') table:have_arg_min_max_table '?'
-    ) => new Ast.Statement.Command(null, table, [C.notifyAction()]);
+    ) => new Ast.ExpressionStatement(null, table);
 
     // now => get => notify (who questions)
     !turking (
@@ -399,7 +391,7 @@ complete_question : Ast.Command = {
         | ('who is the person' | 'who is the one' | 'who is the individual') table:who_two_which_filter_table '?'
         | ('who is the person' | 'who is the one' | 'who is the individual') table:who_two_clean_filter_table '?'
         | 'whose' table:whose_filtered_table '?'
-    ) => new Ast.Statement.Command(null, table, [C.notifyAction()]);
+    ) => new Ast.ExpressionStatement(null, table);
     ?turking (
           'who' table:who_verb_filtered_table '?'
         | 'who' table:who_one_be_filter_table '?'
@@ -409,19 +401,19 @@ complete_question : Ast.Command = {
         | 'who' table:who_two_have_filter_table '?'
         | 'who' table:who_two_verb_filter_table '?'
         | 'whose' table:whose_filtered_table '?'
-    ) => new Ast.Statement.Command(null, table, [C.notifyAction()]);
+    ) => new Ast.ExpressionStatement(null, table);
 
-    table:compute_question => new Ast.Statement.Command(null, table, [C.notifyAction()]);
-    table:where_question => new Ast.Statement.Command(null, table, [C.notifyAction()]);
+    table:compute_question => new Ast.ExpressionStatement(null, table);
+    table:where_question => new Ast.ExpressionStatement(null, table);
 }
 
-projection_question : Ast.Command = {
+projection_question : Ast.ExpressionStatement = {
     ( 'what is' proj:projection_Any '?'
     | 'what is' proj:pair_projection '?' [weight=0.1]
     | 'who is' proj:projection_Entity__tt__username '?'
     | 'who is' proj:projection_Entity__tt__email_address '?'
     ) => {
-        if (proj instanceof Ast.Table.Projection && proj.schema!.getArgType(proj.args[0]) instanceof Type.Array)
+        if (proj instanceof Ast.ProjectionExpression && proj.schema!.getArgType(proj.args[0]) instanceof Type.Array)
             return null;
         return C.sayProjection(proj);
     };
@@ -430,7 +422,7 @@ projection_question : Ast.Command = {
     | 'who are' proj:projection_Entity__tt__username '?'
     | 'who are' proj:projection_Entity__tt__email_address '?'
     ) => {
-        if (proj instanceof Ast.Table.Projection && !(proj.schema!.getArgType(proj.args[0]) instanceof Type.Array))
+        if (proj instanceof Ast.ProjectionExpression && !(proj.schema!.getArgType(proj.args[0]) instanceof Type.Array))
             return null;
         return C.sayProjection(proj);
     };
@@ -448,7 +440,7 @@ projection_question : Ast.Command = {
     proj:boolean_projection '?' => C.sayProjection(proj);
 }
 
-explicit_when_condition : Ast.Stream = {
+explicit_when_condition : Ast.Expression = {
     ('if' | 'when') filter:if_filter 'in' table:complete_table => {
         if (C.hasGetPredicate(filter))
             return null;
@@ -459,7 +451,7 @@ explicit_when_condition : Ast.Stream = {
         const withFilter = C.addFilter(table, filter, { ifFilter: true });
         if (!withFilter)
             return null;
-        return C.tableToStream(withFilter, null);
+        return C.tableToStream(withFilter);
     };
 
     ('if' | 'when') filter:edge_filter 'in' table:complete_table => {
@@ -470,44 +462,30 @@ explicit_when_condition : Ast.Stream = {
         const withFilter = C.addFilter(table, filter, { ifFilter: true });
         if (!withFilter)
             return null;
-        return C.tableToStream(withFilter, null);
+        return C.tableToStream(withFilter);
     };
 }
 
-when_command : Ast.Rule = {
+when_command : Ast.ExpressionStatement = {
     // when => notify
 
     (
          'notify me' stream:stream
        | ('alert me' | 'inform me' | 'let me know' | 'i get notified' | 'i get alerted') stream:stream
        | 'send me' ('a message' | 'an alert' | 'a notification' | 'a pop up notification' | 'a popup notification') stream:stream
-    ) => new Ast.Statement.Rule(null, stream, [C.notifyAction()]);
+    ) => new Ast.ExpressionStatement(null, stream);
 
     !turking ('let me know' | 'notify me') ('of' | 'about') ('changes' | 'updates') 'in' proj:projection_Any => {
-        if (!proj.schema!.is_monitorable)
+        const stream = C.tableToStream(proj);
+        if (!stream)
             return null;
-        if (proj instanceof Ast.Table.Projection) {
-            let outParams = Object.keys(proj.table.schema!.out);
-            if (outParams.length === 1 && _tpLoader.flags.turking)
-                return null;
-            // note that we intentionally don't use tableToStream here, because we don't want to introduce edge filters
-            return new Ast.Statement.Rule(null, new Ast.Stream.Monitor(null, proj.table, null, proj.table.schema), [C.notifyAction()]);
-        } else {
-            return new Ast.Statement.Rule(null, new Ast.Stream.Monitor(null, proj, null, proj.schema), [C.notifyAction()]);
-        }
+        return new Ast.ExpressionStatement(null, stream);
     };
-    !nofilter ('alert me' | 'tell me' | 'notify me' | 'let me know') stream:explicit_when_condition =>
-        new Ast.Statement.Rule(null, stream, [C.notifyAction()]);
+    !nofilter ('alert me' | 'tell me' | 'notify me' | 'let me know') stream:explicit_when_condition
+        => new Ast.ExpressionStatement(null, stream);
 
     // when => get => notify
-
-    !primonly stream:complete_when_get_stream => {
-        assert(stream instanceof Ast.JoinStream, `unexpected stream in when_get, found ${stream}`);
-        if (stream.table instanceof Ast.ProjectionTable)
-            return new Ast.Statement.Rule(null, new Ast.Stream.Join(null, stream.stream, stream.table.table, stream.in_params, stream.schema), [C.notifyAction()]);
-        else
-            return new Ast.Statement.Rule(null, stream, [C.notifyAction()]);
-    };
+    !primonly complete_when_get_stream;
 
     // when => do
     !primonly complete_when_do_rule;
@@ -516,36 +494,17 @@ when_command : Ast.Rule = {
     ?triple_commands when_get_do_rule;
 }
 
-monitor_command : Ast.Rule = {
+monitor_command : Ast.ExpressionStatement = {
     // when => notify
 
-    ('monitor' | 'watch') table:with_filtered_table => {
-        if (!table.schema!.is_monitorable)
-            return null;
-        return new Ast.Statement.Rule(null, new Ast.Stream.Monitor(null, table, null, table.schema), [C.notifyAction()]);
-    };
-    !turking ('monitor' | 'watch') proj:projection_Any => {
-        if (!proj.schema!.is_monitorable)
-            return null;
-        let stream;
-        if (proj instanceof Ast.Table.Projection) {
-            let outParams = Object.keys(proj.table.schema!.out);
-            if (outParams.length === 1 && _tpLoader.flags.turking)
-                return null;
-            stream = C.tableToStream(proj.table, proj.args);
-        } else {
-            stream = C.tableToStream(proj, null);
-        }
+    ( ('monitor' | 'watch') table:with_filtered_table
+    | ('monitor' | 'watch') table:projection_Any
+    | ('let me know' | 'notify me') ('of' | 'about') ('changes' | 'updates') 'in' table:if_filtered_table
+    ) => {
+        const stream = C.tableToStream(table);
         if (!stream)
             return null;
-        return new Ast.Statement.Rule(null, stream, [C.notifyAction()]);
-
-    };
-    ('let me know' | 'notify me') ('of' | 'about') ('changes' | 'updates') 'in' table:if_filtered_table => {
-        let stream = C.tableToStream(table, null);
-        if (!stream)
-            return null;
-        return new Ast.Statement.Rule(null, stream, [C.notifyAction()]);
+        return new Ast.ExpressionStatement(null, stream);
     };
     !nofilter ('monitor' | 'watch') table:complete_table 'and' ('alert me' | 'notify me' | 'inform me' | 'warn me') ('if' | 'when') filter:if_filter => {
         if (C.hasGetPredicate(filter))
@@ -555,51 +514,56 @@ monitor_command : Ast.Rule = {
         const withFilter = C.addFilter(table, filter);
         if (!withFilter)
             return null;
-        let stream = C.tableToStream(withFilter, null);
+        const stream = C.tableToStream(withFilter);
         if (!stream)
             return null;
-        return new Ast.Statement.Rule(null, stream, [C.notifyAction()]);
+        return new Ast.ExpressionStatement(null, stream);
     };
 }
 
-complete_action : Ast.Command = {
-    action:thingpedia_action if complete =>
-        new Ast.Statement.Command(null, null, [action]);
-    action_replace_param_with_table if complete;
+complete_action : Ast.ExpressionStatement = {
+    action:thingpedia_action if complete
+        => new Ast.ExpressionStatement(null, action);
+    action:action_replace_param_with_table if complete
+        => new Ast.ExpressionStatement(null, action);
 
     ( command:complete_action param:preposition_input_param
     | command:complete_action ('with' | 'having') param:npp_input_param
     ) => {
-        const newAction = C.addActionInputParam(command.actions[0], param);
+        const newAction = C.addActionInputParam(command.expression, param);
         if (newAction === null)
             return null;
-        assert(newAction instanceof Ast.Action.Invocation);
-        return new Ast.Statement.Command(null, command.table, [newAction]);
+        return new Ast.ExpressionStatement(null, newAction);
     };
 }
 
-say_command : Ast.Command = {}
+say_command : Ast.ExpressionStatement = {}
 
 if (_tpLoader.standardSchemas.say) {
-    timer_rule : Ast.Rule = {
-        'send me a reminder' stream:timer => new Ast.Statement.Rule(null, stream, [C.builtinSayAction()!]);
-        'send me' ('a message' | 'an alert' | 'a notification' | 'a reminder' | 'a popup notification') stream:timer ('saying' | 'with the text') constant:constant_String => new Ast.Statement.Rule(null, stream, [C.builtinSayAction(constant)!]);
+    timer_rule : Ast.ExpressionStatement = {
+        'send me a reminder' stream:timer
+            => new Ast.ExpressionStatement(null, new Ast.ChainExpression(null, [stream, C.builtinSayAction()!], C.resolveChain(stream.schema!, _tpLoader.standardSchemas.say!)));
+        'send me' ('a message' | 'an alert' | 'a notification' | 'a reminder' | 'a popup notification') stream:timer ('saying' | 'with the text') constant:constant_String
+            => new Ast.ExpressionStatement(null, new Ast.ChainExpression(null, [stream, C.builtinSayAction(constant)!], C.resolveChain(stream.schema!, _tpLoader.standardSchemas.say!)));
     }
 
-    when_command : Ast.Rule = {
+    when_command : Ast.ExpressionStatement = {
         !turking {
             (
                   'alert me' stream:stream ('saying' | 'with the text') constant:constant_String
                 | 'show' ('the notification' | 'the message' | 'a popup notification that says' | 'a popup containing') constant:constant_String stream:stream
-             ) => new Ast.Statement.Rule(null, stream, [C.builtinSayAction(constant)!]);
+             ) => {
+                const chain = new Ast.ChainExpression(null, [stream, C.builtinSayAction(constant)!], C.resolveChain(stream.schema!, _tpLoader.standardSchemas.say!));
+                return new Ast.ExpressionStatement(null, chain);
+            };
         }
     }
 
-    say_command : Ast.Command = {
+    say_command : Ast.ExpressionStatement = {
         (
               'say' c:constant_String
             | 'send me a message saying' c:constant_String
             | 'show a popup that says' c:constant_String
-        ) => new Ast.Statement.Command(null, null, [C.builtinSayAction(c)!]);
+        ) => new Ast.ExpressionStatement(null, C.builtinSayAction(c)!);
     }
 }

@@ -54,7 +54,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
 export async function execute(args : any) {
     const rng = seedrandom.alea(args.random_seed);
 
-    const parsed = ThingTalk.Grammar.parse(await pfs.readFile(args.input_file, { encoding: 'utf8' }));
+    const parsed = ThingTalk.Syntax.parse(await pfs.readFile(args.input_file, { encoding: 'utf8' }));
     assert(parsed instanceof ThingTalk.Ast.Library);
     parsed.classes = parsed.classes.filter(() => coin(args.fraction, rng));
 

@@ -40,7 +40,7 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
         | action:thingpedia_action 'this'
         | action:thingpedia_action 'that'
         ) [-> pname] => {
-            if (!(action instanceof Ast.InvocationAction))
+            if (!(action instanceof Ast.InvocationExpression))
                 return null;
             const type = action.schema!.getArgType(pname);
             if (!type || !(type instanceof Type.Entity))
@@ -55,7 +55,7 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
         | action:thingpedia_get_command 'this'
         | action:thingpedia_get_command 'that'
         ) [-> pname] => {
-            if (!(action instanceof Ast.InvocationTable))
+            if (!(action instanceof Ast.InvocationExpression))
                 return null;
             const type = action.schema!.getArgType(pname);
             if (!type || !(type instanceof Type.Entity))
@@ -67,7 +67,7 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
         };
 
         action:thingpedia_action noun:the_base_noun_phrase [-> pname] => {
-            if (!(action instanceof Ast.InvocationAction))
+            if (!(action instanceof Ast.InvocationExpression))
                 return null;
             const type = action.schema!.getArgType(pname);
             if (!type || !(type instanceof Type.Entity) || type.type !== noun)
@@ -79,7 +79,7 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
         };
 
         action:thingpedia_get_command noun:the_base_noun_phrase [-> pname] => {
-            if (!(action instanceof Ast.InvocationTable))
+            if (!(action instanceof Ast.InvocationExpression))
                 return null;
             const type = action.schema!.getArgType(pname);
             if (!type || !(type instanceof Type.Entity) || type.type !== noun)
@@ -98,7 +98,7 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
         | action:thingpedia_action 'any of them'
         | action:thingpedia_action 'any one of them'
         ) [-> pname] => {
-            if (!(action instanceof Ast.InvocationAction))
+            if (!(action instanceof Ast.InvocationExpression))
                 return null;
             const type = action.schema!.getArgType(pname);
             if (!type || !(type instanceof Type.Entity))
@@ -114,7 +114,7 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
         | action:thingpedia_get_command 'any of them'
         | action:thingpedia_get_command 'any one of them'
         ) [-> pname] => {
-            if (!(action instanceof Ast.InvocationTable))
+            if (!(action instanceof Ast.InvocationExpression))
                 return null;
             const type = action.schema!.getArgType(pname);
             if (!type || !(type instanceof Type.Entity))
@@ -129,7 +129,7 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
     // operate on an object by name - this rule is only available after the first turn
     contextual_action_phrase = {
         action:thingpedia_action name:constant_name [-> pname { isConstant: true }] => {
-            if (!(action instanceof Ast.InvocationAction))
+            if (!(action instanceof Ast.InvocationExpression))
                 return null;
             const newAction = C.replacePlaceholderWithConstant(action, pname, name);
             if (newAction === null)
@@ -138,7 +138,7 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
         };
 
         action:thingpedia_get_command name:constant_name [-> pname { isConstant: true }] => {
-            if (!(action instanceof Ast.InvocationTable))
+            if (!(action instanceof Ast.InvocationExpression))
                 return null;
             const newAction = C.replacePlaceholderWithConstant(action, pname, name);
             if (newAction === null)
@@ -209,7 +209,7 @@ action_continuation_command : Ast.Invocation = {
     ( ctx:ctx_incomplete_action base:thingpedia_action
     | ctx:ctx_incomplete_action base:thingpedia_get_command
     ) if complete => {
-        if (!(base instanceof Ast.InvocationTable) && !(base instanceof Ast.InvocationAction))
+        if (!(base instanceof Ast.InvocationExpression))
             return null;
         return D.contextualAction(ctx, base.invocation);
     };
@@ -221,7 +221,7 @@ action_continuation_command : Ast.Invocation = {
 
 continuation_query : Ast.Invocation = {
     ctx:ctx_incomplete_action base:complete_table => {
-        if (!(base instanceof Ast.InvocationTable))
+        if (!(base instanceof Ast.InvocationExpression))
             return null;
         return D.contextualAction(ctx, base.invocation);
     };
@@ -230,7 +230,11 @@ continuation_query : Ast.Invocation = {
 // sentences from the agent
 action_description_phrase : Ast.Invocation = {
     coref_action_phrase;
-    action:thingpedia_action if complete => action.invocation;
+    action:thingpedia_action if complete => {
+        if (!(action instanceof Ast.InvocationExpression))
+            return null;
+        return action.invocation;
+    };
 
     ( action:action_description_phrase param:preposition_input_param
     | action:action_description_phrase ('with' | 'having') param:npp_input_param

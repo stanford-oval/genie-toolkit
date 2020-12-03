@@ -495,7 +495,7 @@ export class ParaphrasingRejecter extends Stream.Transform {
 
         const validated = (await Promise.all(minibatch.map((paraobj) => {
             return this._validate(paraobj);
-        }))).filter((paraobj) => paraobj !== null) as ParsedParaphrase[];
+        }))).filter(<T>(c : T) : c is Exclude<T, null> => c !== null);
 
         if (validated.length < this._sentencesPerTask * this._paraphrasesPerSentence - 2) {
             row['Approve'] = '';

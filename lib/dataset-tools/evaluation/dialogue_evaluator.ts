@@ -332,7 +332,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
         const goldUserState = ThingTalkUtils.computeNewState(context, goldUserTarget, 'user');
         const goldSlots = await this._extractSlots(goldUserState);
 
-        const targetCode = ThingTalkUtils.serializePrediction(goldUserTarget, tokens, entities, 'user', {
+        const targetCode = ThingTalkUtils.serializePrediction(goldUserTarget, tokens, entities, {
            locale: this._locale,
         }).join(' ');
 
@@ -381,7 +381,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
         // we pass "ignoreSentence: true", which means strings are tokenized and then put in the
         // program regardless of what the sentence contains (because the neural network might
         // get creative in copying, and we don't want to crash here)
-        const normalized = ThingTalkUtils.serializePrediction(predictedUserTarget, tokens, entities, 'user', {
+        const normalized = ThingTalkUtils.serializePrediction(predictedUserTarget, tokens, entities, {
            locale: this._locale,
            ignoreSentence: true
         }).join(' ');

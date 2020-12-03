@@ -19,7 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-import { NNSyntax } from 'thingtalk';
+import { Syntax } from 'thingtalk';
 
 import * as I18n from '../../i18n';
 
@@ -31,7 +31,7 @@ interface EntityRetrieverOptions {
     ignoreSentence : boolean;
 }
 
-export default class GenieEntityRetriever extends NNSyntax.EntityRetriever {
+export default class GenieEntityRetriever extends Syntax.EntityRetriever {
     private _locale : string;
     private _langPack : I18n.LanguagePack;
     private _tokenizer : I18n.BaseTokenizer;
@@ -41,7 +41,7 @@ export default class GenieEntityRetriever extends NNSyntax.EntityRetriever {
     private _ignoreSentence : boolean;
 
     constructor(sentence : string[],
-                entities : NNSyntax.EntityMap,
+                entities : Syntax.EntityMap,
                 options : EntityRetrieverOptions) {
         super(sentence, entities);
 
@@ -84,7 +84,7 @@ export default class GenieEntityRetriever extends NNSyntax.EntityRetriever {
         return recursiveHelper(0, 0);
     }
 
-    protected _findEntityFromSentence(entityType : string, entityString : string, ignoreNotFound : boolean) : string|undefined {
+    protected _findEntityFromSentence(entityType : string, entityString : string, ignoreNotFound : boolean) : string[]|undefined {
         // use the raw tokens, rather than the preprocessed tokens
         // the difference is NUMBER/TIME/etc are shown in numeric form
         // if those tokens are present in the entity name we have a bug
@@ -99,7 +99,7 @@ export default class GenieEntityRetriever extends NNSyntax.EntityRetriever {
             this._sentenceContainsNonConsecutive(entityTokens) :
             this._sentenceContains(entityTokens);
         if (found)
-            return entityTokens.join(' ');
+            return entityTokens;
 
         if (this._useHeuristics) {
             if (entityType === 'LOCATION') {
@@ -108,13 +108,13 @@ export default class GenieEntityRetriever extends NNSyntax.EntityRetriever {
                 if (entityString.indexOf(',') >= 0) {
                     const entityNoComma = this._tokenizer.tokenize(entityString.replace(/,/g, '')).rawTokens;
                     if (this._sentenceContains(entityNoComma))
-                        return entityNoComma.join(' ');
+                        return entityNoComma;
                 }
 
                 if (entityString === 'los angeles , california' && this._sentenceContains(['los', 'angeles']))
-                    return 'los angeles';
+                    return ['los', 'angeles'];
                 if (entityString === 'palo alto , california' && this._sentenceContains(['palo', 'alto']))
-                    return 'palo alto';
+                    return ['palo', 'alto'];
             }
 
             // "pluralize" the entity and try again
@@ -124,14 +124,14 @@ export default class GenieEntityRetriever extends NNSyntax.EntityRetriever {
             // this is used for certain cases of MultiWOZ where we need to predict normalized
             // strings or we fail to find results in database
             if (entityPlural && this._sentenceContains(entityPlural.split(' ')))
-                return entityTokens.join(' ');
+                return entityTokens;
         }
 
         if (this._ignoreSentence) {
             if (ignoreNotFound)
                 return undefined; // check the entities in the bag first
             else
-                return entityTokens.join(' ');
+                return entityTokens;
         }
 
         // if we get here, we have not found the entity...
@@ -139,7 +139,7 @@ export default class GenieEntityRetriever extends NNSyntax.EntityRetriever {
         // to accommodate certain MultiWOZ misannotations, we allow the neural network
         // to hallucinate entities entirely
         if (!ignoreNotFound && this._alwaysAllowStrings)
-            return entityTokens.join(' ');
+            return entityTokens;
 
         return undefined;
     }

@@ -19,10 +19,10 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
-import { NNSyntax } from 'thingtalk';
+import { Syntax } from 'thingtalk';
 
-export type AnyEntity = NNSyntax.AnyEntity;
-export type EntityMap = NNSyntax.EntityMap;
+export type AnyEntity = Syntax.AnyEntity;
+export type EntityMap = Syntax.EntityMap;
 
 const MAX_SMALL_INTEGER = 12;
 
@@ -48,13 +48,13 @@ function namedString(key : string, idx : number) : string {
     return `str:${key}::${idx}:`;
 }
 
-function makeDummyMeasure(entity : string) : NNSyntax.MeasureEntity {
+function makeDummyMeasure(entity : string) : Syntax.MeasureEntity {
     const match = /^MEASURE_([A-Za-z]+)_([0-9]+)$/.exec(entity);
     assert(match);
     return { unit: match[1], value: 2.0 + parseInt(match[2]) };
 }
 
-function parseDate(form : Date|NNSyntax.DateEntity) : Date {
+function parseDate(form : Date|Syntax.DateEntity) : Date {
     if (form instanceof Date)
         return form;
 
@@ -89,8 +89,8 @@ function entitiesEqual(type : string, one : AnyEntity, two : AnyEntity) : boolea
     if (!one || !two)
         return false;
     if (type.startsWith('GENERIC_ENTITY_')) {
-        const eone = one as NNSyntax.GenericEntity;
-        const etwo = two as NNSyntax.GenericEntity;
+        const eone = one as Syntax.GenericEntity;
+        const etwo = two as Syntax.GenericEntity;
 
         if (!eone.value && !etwo.value)
             return eone.display === etwo.display;
@@ -99,34 +99,34 @@ function entitiesEqual(type : string, one : AnyEntity, two : AnyEntity) : boolea
 
     if (type.startsWith('MEASURE_') ||
         type === 'DURATION') {
-        const eone = one as NNSyntax.MeasureEntity;
-        const etwo = two as NNSyntax.MeasureEntity;
+        const eone = one as Syntax.MeasureEntity;
+        const etwo = two as Syntax.MeasureEntity;
         return eone.value === etwo.value && eone.unit === etwo.unit;
     }
 
     switch (type) {
     case 'CURRENCY': {
-        const eone = one as NNSyntax.MeasureEntity;
-        const etwo = two as NNSyntax.MeasureEntity;
+        const eone = one as Syntax.MeasureEntity;
+        const etwo = two as Syntax.MeasureEntity;
         return eone.value === etwo.value && eone.unit === etwo.unit;
     }
     case 'TIME': {
-        const eone = one as NNSyntax.TimeEntity;
-        const etwo = two as NNSyntax.TimeEntity;
+        const eone = one as Syntax.TimeEntity;
+        const etwo = two as Syntax.TimeEntity;
         return eone.hour === etwo.hour &&
             eone.minute === etwo.minute &&
             (eone.second || 0) === (etwo.second || 0);
     }
     case 'DATE':
         if (!(one instanceof Date))
-            one = parseDate(one as NNSyntax.DateEntity);
+            one = parseDate(one as Syntax.DateEntity);
         if (!(two instanceof Date))
-            two = parseDate(two as NNSyntax.DateEntity);
+            two = parseDate(two as Syntax.DateEntity);
 
         return +one === +two;
     case 'LOCATION': {
-        const eone = one as NNSyntax.LocationEntity;
-        const etwo = two as NNSyntax.LocationEntity;
+        const eone = one as Syntax.LocationEntity;
+        const etwo = two as Syntax.LocationEntity;
         if (isNaN(eone.latitude) && isNaN(etwo.latitude) && isNaN(eone.longitude) && isNaN(etwo.longitude))
             return eone.display === etwo.display;
         return Math.abs(eone.latitude - etwo.latitude) < 0.01 &&

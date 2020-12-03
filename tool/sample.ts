@@ -302,7 +302,7 @@ export async function execute(args : any) {
 
     readAllLines(args.input_file)
         .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true }))
-        .pipe(new SentenceSampler(schemaRetriever, constants, options))
+        .pipe(new SentenceSampler(tpClient, schemaRetriever, constants, options))
         .pipe(csvstringify({ header: true, delimiter: '\t' }))
         .pipe(args.output);
 

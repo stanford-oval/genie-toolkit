@@ -28,10 +28,7 @@ import * as seedrandom from 'seedrandom';
 import { BasicSentenceGenerator, DialogueGenerator } from '../../lib/sentence-generator/batch';
 import { makeDummyEntities } from '../../lib/utils/misc-utils';
 
-import * as ThingTalk from 'thingtalk';
-const Grammar = ThingTalk.Grammar;
-const NNSyntax = ThingTalk.NNSyntax;
-const SchemaRetriever = ThingTalk.SchemaRetriever;
+import { Syntax, SchemaRetriever } from 'thingtalk';
 
 import _tpClient from './mock_schema_delegate';
 const _schemaRetriever = new SchemaRetriever(_tpClient, null, true);
@@ -41,7 +38,7 @@ async function processOne(id, sentence, code) {
 
     try {
         const entities = makeDummyEntities(sentence);
-        const program = NNSyntax.fromNN(code.split(' '), (token) => {
+        const program = Syntax.parse(code.split(' '), Syntax.SyntaxType.Tokenized, (token) => {
             return assignedEntities[token] = entities[token];
         });
         await program.typecheck(_schemaRetriever);
@@ -121,7 +118,7 @@ async function tryTypecheck(code) {
     if (!code)
         return;
     try {
-        await Grammar.parseAndTypecheck(code, _schemaRetriever);
+        await Syntax.parse(code).typecheck(_schemaRetriever);
     } catch(e) {
         console.error(code);
         throw e;

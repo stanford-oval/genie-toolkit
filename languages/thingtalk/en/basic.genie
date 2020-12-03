@@ -28,14 +28,14 @@ import _tpLoader from '../load-thingpedia';
 
 {
 function special(specialType : string) {
-    return new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.Special(null, specialType));
+    return new Ast.ControlCommand(null, new Ast.SpecialControlIntent(null, specialType));
 }
 }
 
 import '../common.genie';
 import './constants.genie';
 
-bookkeeping : Ast.Bookkeeping = {
+bookkeeping : Ast.ControlCommand = {
     'debug' => special('debug');
 
     ('cancel'
@@ -49,7 +49,7 @@ bookkeeping : Ast.Bookkeeping = {
     | 'close'
     ) => special('stop');
 
-    c:constant_Any => new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.Answer(null, c));
+    c:constant_Any => new Ast.ControlCommand(null, new Ast.AnswerControlIntent(null, c));
 }
 
 $root : Ast.Input = {
@@ -57,9 +57,9 @@ $root : Ast.Input = {
 
     ( 'get' query:thingpedia_query
     | query:thingpedia_get_command
-    ) if complete => C.makeProgram(new Ast.Statement.Command(null, query, [C.notifyAction()]));
+    ) if complete => C.makeProgram(new Ast.ExpressionStatement(null, query));
 
-    action:thingpedia_action if complete => C.makeProgram(new Ast.Statement.Command(null, null, [action]));
+    action:thingpedia_action if complete => C.makeProgram(new Ast.ExpressionStatement(null, action));
 
-    'notify me' stream:thingpedia_stream if complete => C.makeProgram(new Ast.Statement.Rule(null, stream, [C.notifyAction()]));
+    'notify me' stream:thingpedia_stream if complete => C.makeProgram(new Ast.ExpressionStatement(null, stream));
 }

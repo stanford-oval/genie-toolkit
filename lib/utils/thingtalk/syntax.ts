@@ -22,45 +22,66 @@
 import assert from 'assert';
 import * as Tp from 'thingpedia';
 
-import { Ast, SchemaRetriever, Grammar, NNSyntax } from 'thingtalk';
+import { Ast, SchemaRetriever, Syntax } from 'thingtalk';
 import GenieEntityRetriever from './entity-retriever';
-import type { EntityMap } from '../../utils/entity-utils';
 
 export interface ParseOptions {
     thingpediaClient : Tp.BaseClient|null;
     schemaRetriever ?: SchemaRetriever;
+    loadMetadata ?: boolean;
 }
 
-export async function parse(code : string, options : ParseOptions) : Promise<Ast.Input> {
-    const tpClient = options.thingpediaClient!;
-    if (!options.schemaRetriever)
-        options.schemaRetriever = new SchemaRetriever(tpClient, null, true);
+export async function parse(code : string, schemas : SchemaRetriever) : Promise<Ast.Input>;
+export async function parse(code : string, options : ParseOptions) : Promise<Ast.Input>;
+export async function parse(code : string, options : SchemaRetriever|ParseOptions) : Promise<Ast.Input> {
+    let schemas : SchemaRetriever;
+    let loadMetadata : boolean;
+    if (options instanceof SchemaRetriever) {
+        schemas = options;
+        loadMetadata = false;
+    } else {
+        const tpClient = options.thingpediaClient!;
+        if (!options.schemaRetriever)
+            options.schemaRetriever = new SchemaRetriever(tpClient, null, true);
+        schemas = options.schemaRetriever;
+        loadMetadata = options.loadMetadata||false;
+    }
 
     assert(code);
-    const state = await Grammar.parseAndTypecheck(code, options.schemaRetriever, false);
-    return state;
+    let parsed : Ast.Input;
+    try {
+        // first try parsing using normal syntax
+        parsed = Syntax.parse(code);
+    } catch(e) {
+        // if that fails, try with legacy syntax
+        if (e.name !== 'SyntaxError')
+            throw e;
+        parsed = Syntax.parse(code, Syntax.SyntaxType.Legacy);
+    }
+    return parsed.typecheck(schemas, loadMetadata);
 }
 
-export function parsePrediction(code : string|string[], entities : EntityMap, options : ParseOptions, strict : true) : Promise<Ast.Input>;
-export function parsePrediction(code : string|string[], entities : EntityMap, options : ParseOptions, strict ?: boolean) : Promise<Ast.Input|null>;
-export async function parsePrediction(code : string|string[], entities : EntityMap, options : ParseOptions, strict = false) : Promise<Ast.Input|null> {
+export function parsePrediction(code : string|string[], entities : Syntax.EntityMap|Syntax.EntityResolver, options : ParseOptions, strict : true) : Promise<Ast.Input>;
+export function parsePrediction(code : string|string[], entities : Syntax.EntityMap|Syntax.EntityResolver, options : ParseOptions, strict ?: boolean) : Promise<Ast.Input|null>;
+export async function parsePrediction(code : string|string[], entities : Syntax.EntityMap|Syntax.EntityResolver, options : ParseOptions, strict = false) : Promise<Ast.Input|null> {
     const tpClient = options.thingpediaClient!;
     if (!options.schemaRetriever)
         options.schemaRetriever = new SchemaRetriever(tpClient, null, true);
 
     const schemas = options.schemaRetriever;
     try {
-        if (typeof code === 'string')
-            code = code.split(' ');
-        const state = NNSyntax.fromNN(code, entities).optimize();
-        if (!state)
-            return null;
-        await state.typecheck(schemas, true);
-
-        // convert the program to NN syntax once, which will force the program to be syntactically normalized
-        // (and therefore rearrange slot-fill by name rather than Thingpedia order)
-        NNSyntax.toNN(state, [], {}, { allocateEntities: true });
-        return state;
+        let parsed : Ast.Input;
+        try {
+            // first try parsing using normal tokenized syntax
+            parsed = Syntax.parse(code, Syntax.SyntaxType.Tokenized, entities);
+        } catch(e) {
+            // if that fails, try with legacy NN syntax
+            if (e.name !== 'SyntaxError')
+                throw e;
+            parsed = Syntax.parse(code, Syntax.SyntaxType.LegacyNN, entities);
+        }
+        await parsed.typecheck(schemas, options.loadMetadata);
+        return parsed;
     } catch(e) {
         if (strict)
             throw e;
@@ -68,54 +89,54 @@ export async function parsePrediction(code : string|string[], entities : EntityM
     }
 }
 
-interface SerializeOptions {
-    allocateEntities ?: boolean;
-    typeAnnotations ?: boolean;
-    locale ?: string;
-    ignoreSentence ?: boolean;
+interface PredictionCandidate {
+    code : string[];
 }
 
-export function serializeNormalized(program : Ast.Input|null, entities : EntityMap = {}, options : SerializeOptions = {}) : [string[], EntityMap] {
-    if (program === null)
-        return [['null'], {}];
-
-    options.allocateEntities = true;
-    options.typeAnnotations = false;
-    const code : string[] = NNSyntax.toNN(program, [], entities, options);
-    return [code, entities];
+function notNull<T>(x : T) : x is Exclude<T, null> {
+    return x !== null;
 }
 
-export function serialize(ast : Ast.Input, sentence : string[], entities : EntityMap) : string[] {
-    const clone = {};
-    Object.assign(clone, entities);
-
-    const sequence : string[] = NNSyntax.toNN(ast, sentence, clone);
-    //ThingTalk.NNSyntax.fromNN(sequence, {});
-
-    if (sequence.some((t) => t.endsWith(':undefined')))
-        throw new TypeError(`Generated undefined type`);
-
-    return sequence;
+export async function parseAllPredictions(candidates : PredictionCandidate[], entities : Syntax.EntityMap, options : ParseOptions) : Promise<Ast.Input[]> {
+    return (await Promise.all(candidates.map((cand) => {
+        return parsePrediction(cand.code, entities, options, true);
+    }))).filter(notNull);
 }
 
 /**
- * Convert the prediction to a sequence of tokens to predict.
- *
- * This is same as {@link serialize} but we apply certain dialogue-specific heuristics.
+ * Convert a program or dialogue state to a normalized sequence of tokens, suitable
+ * to input to the neural network as context.
  */
-export function serializePrediction(prediction : Ast.Input,
-                                    sentence : string[],
-                                    entities : EntityMap,
-                                    forTarget : 'user'|'agent',
+export function serializeNormalized(program : Ast.Input|null, entities : Syntax.EntityMap = {}) : [string[], Syntax.EntityMap] {
+    if (program === null)
+        return [['null'], {}];
+
+    const allocator = new Syntax.SequentialEntityAllocator(entities);
+    const code : string[] = Syntax.serialize(program, Syntax.SyntaxType.Tokenized, allocator);
+    return [code, entities];
+}
+
+interface SerializeOptions {
+    locale : string;
+    ignoreSentence ?: boolean;
+    compatibility ?: string;
+}
+
+/**
+ * Convert a program or dialogue state to a sequence of tokens to predict.
+ */
+export function serializePrediction(program : Ast.Input,
+                                    sentence : string|string[],
+                                    entities : Syntax.EntityMap,
                                     options : SerializeOptions) : string[] {
-    const entityRetriever = new GenieEntityRetriever(sentence, entities, {
+    const entityRetriever = new GenieEntityRetriever(typeof sentence === 'string' ? sentence.split(' ') : sentence, entities, {
         locale: options.locale!,
         allowNonConsecutive: true,
         useHeuristics: true,
         alwaysAllowStrings: true,
         ignoreSentence: options.ignoreSentence || false,
     });
-    return NNSyntax.toNN(prediction, sentence, entityRetriever, {
-        typeAnnotations: false
+    return Syntax.serialize(program, Syntax.SyntaxType.Tokenized, entityRetriever, {
+        compatibility: options.compatibility
     });
 }

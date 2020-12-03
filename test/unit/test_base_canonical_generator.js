@@ -25,7 +25,7 @@ const Type = ThingTalk.Type;
 
 import baseCanonical from '../../tool/autoqa/lib/base-canonical-generator';
 
-const library = ThingTalk.Grammar.parse(`
+const library = ThingTalk.Syntax.parse(`
     class @foo {
         query test1(out from_location: Location, 
                     out to_location: Location);

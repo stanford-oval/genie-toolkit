@@ -196,7 +196,7 @@ export default class DialogueLoop {
         if (intent instanceof UserInput.Program) {
             // convert thingtalk programs to dialogue states so we can use "\t" without too much typing
             const prediction = new Ast.DialogueState(null, 'org.thingpedia.dialogue.transaction', 'execute', null, []);
-            for (const stmt of intent.program.rules) {
+            for (const stmt of intent.program.statements) {
                 if (stmt instanceof Ast.Assignment)
                     throw new Error(`Unsupported: assignment statement`);
                 prediction.history.push(new Ast.DialogueHistoryItem(null, stmt, null, 'accepted'));
@@ -229,7 +229,7 @@ export default class DialogueLoop {
             this.debug(policyPrediction.prettyprint());
 
             const context = prepareContextForPrediction(oldState, 'agent');
-            await this.conversation.setContext(context, { allocateEntities: true, typeAnnotations: false });
+            await this.conversation.setContext(context);
 
             utterance = await this.conversation.generateAnswer(policyPrediction);
         } else {
@@ -405,7 +405,7 @@ export default class DialogueLoop {
             throw new TypeError();
         this.expecting = expected;
         const context = prepareContextForPrediction(this._dialogueState, 'user');
-        this.conversation.setContext(context, { typeAnnotations: false });
+        this.conversation.setContext(context);
         this.conversation.expect(expected);
     }
 

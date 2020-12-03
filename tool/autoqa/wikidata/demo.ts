@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -18,22 +18,29 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 
+import * as argparse from 'argparse';
 import * as readline from 'readline';
 import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
 
 import * as ParserClient from '../../../lib/prediction/parserclient';
+import * as ThingTalkUtils from '../../../lib/utils/thingtalk';
 
 import { wikidataQuery } from './utils';
 
 class CommandLineHandler {
-    constructor(rl, options) {
+    private _rl : readline.Interface;
+    private _tpClient : Tp.BaseClient;
+    private _schemas : ThingTalk.SchemaRetriever;
+    private _parser : ParserClient.ParserClient;
+
+    constructor(rl : readline.Interface, options : { locale : string, server : string, thingpedia : string }) {
         this._rl = rl;
         this._rl.on('line', this._onLine.bind(this));
         this._rl.on('SIGINT', this._quit.bind(this));
 
-        const tpClient = new Tp.FileClient(options);
-        this._schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
+        this._tpClient = new Tp.FileClient(options);
+        this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, true);
         this._parser = ParserClient.get(options.server, 'en-US');
     }
 
@@ -42,14 +49,13 @@ class CommandLineHandler {
         this._rl.prompt();
     }
 
-    async _quit() {
+    private async _quit() {
         console.log('Bye\n');
         await this._parser.stop();
-        this._engine.stop();
         this._rl.close();
     }
 
-    async _parseCommand(line) {
+    private async _parseCommand(line : string) {
         const parsed = await this._parser.sendUtterance(line, /* context */ undefined, /* contextEntities */ {}, {
             tokenized: false,
             skip_typechecking: true
@@ -58,15 +64,16 @@ class CommandLineHandler {
             console.log('Failed to parse the query. Please try something different');
             return;
         }
-        const code = parsed.candidates[0].code;
-        let program;
-        try {
-            program = ThingTalk.NNSyntax.fromNN(code, parsed.entities);
-            await program.typecheck(this._schemas);
+        const candidates = await ThingTalkUtils.parseAllPredictions(parsed.candidates, parsed.entities, {
+            thingpediaClient: this._tpClient,
+            schemaRetriever: this._schemas
+        });
+        const program = candidates[0];
+        if (program && program instanceof ThingTalk.Ast.Program) {
             console.log(`ThingTalk: ${program.prettyprint()}`);
-        } catch(e) {
-            console.log(`The model failed to make a prediction that is syntax correct, please try something else`);
-            console.error(`Prediction: ${code.join(' ')}`);
+        } else {
+            console.log(`The model failed to make a prediction that is syntactically correct, please try something else`);
+            console.error(`Prediction: ${parsed.candidates[0].code.join(' ')}`);
             return;
         }
 
@@ -76,7 +83,7 @@ class CommandLineHandler {
             console.log(`Querying Wikidata Server... (this may take up to 30 seconds)`);
             const results = await wikidataQuery(sparql);
             console.log(`Answer:`);
-            for (let result of results)
+            for (const result of results)
                 console.log(result);
         } catch(e) {
             if (e.code)
@@ -87,13 +94,13 @@ class CommandLineHandler {
 
     }
 
-    async _onLine(line) {
+    private async _onLine(line : string) {
         await this._parseCommand(line);
         this._rl.prompt();
     }
 }
 
-export function initArgparse(subparsers) {
+export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('wikidata-demo', {
         add_help: true,
         description: "Demo a Wikidata skill."
@@ -113,8 +120,9 @@ export function initArgparse(subparsers) {
     });
 }
 
-export async function execute(args) {
+export async function execute(args : any) {
     const options = {
+        locale: args.locale,
         thingpedia: args.manifest,
         server: args.model
     };

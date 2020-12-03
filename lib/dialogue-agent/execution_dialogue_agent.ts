@@ -182,10 +182,10 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
     private async _constructEntityQuery(kind : string, query : string, entityDisplay : string) {
         const schema = await this._schemas.getSchemaAndNames(kind, 'query', query);
         const filter = new Ast.BooleanExpression.Atom(null, 'id', '=~', new Ast.Value.String(entityDisplay));
-        const invocation = (new Ast.Invocation(null, new Ast.Selector.Device(null, kind, null, null), query, [], schema));
-        const invocationTable = new Ast.Table.Invocation(null, invocation, schema);
-        const filteredTable = new Ast.Table.Filter(null, invocationTable, filter, schema);
-        return new Ast.Statement.Command(null, filteredTable, [Ast.Action.notifyAction()]);
+        const invocation = (new Ast.Invocation(null, new Ast.DeviceSelector(null, kind, null, null), query, [], schema));
+        const invocationTable = new Ast.InvocationExpression(null, invocation, schema);
+        const filteredTable = new Ast.FilterExpression(null, invocationTable, filter, schema);
+        return new Ast.ExpressionStatement(null, filteredTable);
     }
 
     protected async lookupEntityCandidates(entityType : string,

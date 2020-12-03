@@ -30,9 +30,7 @@ import DatasetAugmenter from '../../lib/dataset-tools/augmentation';
 import * as Utils from '../../lib/utils/misc-utils';
 import FileParameterProvider from '../../tool/lib/file_parameter_provider';
 
-import * as ThingTalk from 'thingtalk';
-const NNSyntax = ThingTalk.NNSyntax;
-const SchemaRetriever = ThingTalk.SchemaRetriever;
+import { Syntax, SchemaRetriever } from 'thingtalk';
 
 import _tpClient from './mock_schema_delegate';
 const _schemaRetriever = new SchemaRetriever(_tpClient, null, true);
@@ -40,7 +38,7 @@ const _schemaRetriever = new SchemaRetriever(_tpClient, null, true);
 async function processOne(id, preprocessed, code) {
     const entities = Utils.makeDummyEntities(preprocessed);
 
-    const program = NNSyntax.fromNN(code.split(' '), entities);
+    const program = Syntax.parse(code.split(' '), Syntax.SyntaxType.Tokenized, entities);
     await program.typecheck(_schemaRetriever);
 }
 

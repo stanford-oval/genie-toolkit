@@ -226,7 +226,7 @@ class SentenceEvaluator {
         const firstTargetCode = this._targetPrograms[0];
         try {
             const parsed = await ThingTalkUtils.parsePrediction(firstTargetCode, entities, this._options, true);
-            normalizedTargetCode.push(ThingTalkUtils.serializePrediction(parsed!, tokens, entities, 'user', {
+            normalizedTargetCode.push(ThingTalkUtils.serializePrediction(parsed!, tokens, entities, {
                locale: this._locale,
             }).join(' '));
         } catch(e) {
@@ -247,7 +247,7 @@ class SentenceEvaluator {
         for (let i = 1; i < this._targetPrograms.length; i++) {
             try {
                 const parsed = await ThingTalkUtils.parsePrediction(this._targetPrograms[i], entities, this._options);
-                normalizedTargetCode.push(ThingTalkUtils.serializePrediction(parsed!, tokens, entities, 'user', {
+                normalizedTargetCode.push(ThingTalkUtils.serializePrediction(parsed!, tokens, entities, {
                    locale: this._locale,
                 }).join(' '));
             } catch(e) {
@@ -322,7 +322,7 @@ class SentenceEvaluator {
             // we pass "ignoreSentence: true", which means strings are tokenized and then put in the
             // program regardless of what the sentence contains (because the neural network might
             // get creative in copying, and we don't want to crash here)
-            const normalized = ThingTalkUtils.serializePrediction(parsed, tokens, entities, 'user', {
+            const normalized = ThingTalkUtils.serializePrediction(parsed, tokens, entities, {
                locale: this._locale,
                ignoreSentence: true
             });

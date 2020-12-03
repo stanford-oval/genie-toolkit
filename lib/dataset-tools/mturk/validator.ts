@@ -22,11 +22,12 @@
 
 import Stream from 'stream';
 
-import { Ast, Grammar, NNSyntax, SchemaRetriever } from 'thingtalk';
+import { Ast, SchemaRetriever } from 'thingtalk';
 
 import * as I18n from '../../i18n';
 import * as Utils from '../../utils/misc-utils';
 import { EntityMap } from '../../utils/entity-utils';
+import * as ThingTalkUtils from '../../utils/thingtalk';
 
 export interface MTurkParaphraseExample {
     id : string;
@@ -50,6 +51,7 @@ export interface Statistics {
 }
 
 class ParaphraseValidator {
+    private _locale : string;
     private _schemas : SchemaRetriever;
     private _tokenizer : I18n.BaseTokenizer;
     private _noIdea : string[];
@@ -74,6 +76,7 @@ class ParaphraseValidator {
                 row : MTurkParaphraseExample,
                 counter : Statistics,
                 debug : boolean) {
+        this._locale = locale;
         this._schemas = schemaRetriever;
         this._tokenizer = tokenizer;
         this._noIdea = langPack.NO_IDEA;
@@ -87,15 +90,15 @@ class ParaphraseValidator {
     }
 
     async clean() {
-        this.ast = await Grammar.parseAndTypecheck(this.target_code, this._schemas);
+        this.ast = await ThingTalkUtils.parse(this.target_code, this._schemas);
 
         this.paraphrase = this.paraphrase.replace(/([.?])(["”])/g, '$2$1');
         const tokenized = this._tokenizer.tokenize(this.paraphrase);
 
         if (this.context && this.context !== 'null') {
-            const context = await Grammar.parseAndTypecheck(this.context, this._schemas);
+            const context = await ThingTalkUtils.parse(this.context, this._schemas);
             const contextEntities = {};
-            this.context_preprocessed = NNSyntax.toNN(context, [''], contextEntities, { allocateEntities: true });
+            [this.context_preprocessed,] = ThingTalkUtils.serializeNormalized(context, contextEntities);
             Utils.renumberEntities(tokenized, contextEntities);
         } else {
             this.context_preprocessed = ['null'];
@@ -131,9 +134,9 @@ class ParaphraseValidator {
         // try to conver to NN syntax
         // this will automatically trigger entity assignment in ThingTalk
         try {
-            const clone : EntityMap = {};
-            Object.assign(clone, this.entities);
-            const target_code = NNSyntax.toNN(this.ast!, this.preprocessed, clone);
+            const target_code = ThingTalkUtils.serializePrediction(this.ast!, this.preprocessed, this.entities, {
+                locale: this._locale
+            });
             this.target_preprocessed = target_code;
 
             let inString = false;

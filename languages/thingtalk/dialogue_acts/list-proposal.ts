@@ -134,8 +134,7 @@ function positiveListProposalReply(ctx : ContextInfo, [name, acceptedAction, mus
             return null;
 
         const currentStmt = ctx.current!.stmt;
-        assert(currentStmt instanceof Ast.Command);
-        const currentTable = currentStmt.table!;
+        const currentTable = currentStmt.expression;
         const namefilter = new Ast.BooleanExpression.Atom(null, 'id', '==', name);
         const newTable = queryRefinement(currentTable, namefilter, (one, two) => new Ast.BooleanExpression.And(null, [one, two]), null);
         if (newTable === null)
@@ -184,9 +183,9 @@ function positiveListProposalReplyActionByName(ctx : ContextInfo, action : Ast.I
     return positiveListProposalReply(ctx, [name, acceptedAction, false]);
 }
 
-function negativeListProposalReply(ctx : ContextInfo, [preamble, request] : [Ast.Table|null, Ast.Table|null]) {
-    if (!((preamble === null || preamble instanceof Ast.FilteredTable) &&
-          (request === null || request instanceof Ast.FilteredTable)))
+function negativeListProposalReply(ctx : ContextInfo, [preamble, request] : [Ast.Expression|null, Ast.Expression|null]) {
+    if (!((preamble === null || preamble instanceof Ast.FilterExpression) &&
+          (request === null || request instanceof Ast.FilterExpression)))
         return null;
 
     const proposal = ctx.aux as ListProposal;
@@ -217,8 +216,7 @@ function listProposalLearnMoreReply(ctx : ContextInfo, name : Ast.EntityValue) {
         return null;
 
     const currentStmt = ctx.current!.stmt;
-    assert(currentStmt instanceof Ast.Command);
-    const currentTable = currentStmt.table!;
+    const currentTable = currentStmt.expression;
     const namefilter = new Ast.BooleanExpression.Atom(null, 'id', '==', name);
     const newTable = queryRefinement(currentTable, namefilter, (one, two) => new Ast.BooleanExpression.And(null, [one, two]), null);
     if (newTable === null)

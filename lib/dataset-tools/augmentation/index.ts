@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -18,14 +18,60 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 import Stream from 'stream';
+import { SchemaRetriever } from 'thingtalk';
+import * as Tp from 'thingpedia';
 
 import ParameterReplacer from './replace_parameters';
 import SingleDeviceAugmenter from './single_device_augmenter';
 
+import { SentenceExample } from '../parsers';
+
+interface DatasetAugmenterOptions {
+    locale : string;
+    paramLocale : string;
+    rng : () => number;
+    debug : boolean;
+
+    singleDeviceExpandFactor : number;
+    quotedProbability : number;
+    untypedStringProbability : number;
+    maxSpanLength : number;
+    syntheticExpandFactor : number;
+    noQuoteExpandFactor : number;
+    paraphrasingExpandFactor : number;
+
+    includeQuotedExample : boolean;
+    replaceLocations : boolean;
+    replaceNumbers : boolean;
+    cleanParameters : boolean;
+    requotable : boolean;
+
+    samplingType : 'random' | 'uniform' | 'default';
+    subsetParamSet : [number, number];
+    numAttempts : number;
+}
+
+interface ParameterRecord {
+    preprocessed : string;
+    weight : number;
+}
+interface ParameterProvider {
+    get(type : 'entity'|'string', key : string) : Promise<ParameterRecord[]>;
+}
+
 export default class DatasetAugmenter extends Stream.Transform {
-    constructor(schemaRetriever, constProvider, thingpediaClient, options) {
+    private _options : DatasetAugmenterOptions;
+    private _rng : () => number;
+    private _includeQuotedExample : boolean;
+
+    private _singledevice : SingleDeviceAugmenter;
+    private _paramReplacer : ParameterReplacer;
+
+    constructor(schemaRetriever : SchemaRetriever,
+                constProvider : ParameterProvider,
+                thingpediaClient : Tp.BaseClient,
+                options : DatasetAugmenterOptions) {
         super({
             readableObjectMode: true,
             writableObjectMode: true,
@@ -38,12 +84,12 @@ export default class DatasetAugmenter extends Stream.Transform {
         this._singledevice = new SingleDeviceAugmenter(options.locale,
             thingpediaClient, options.singleDeviceExpandFactor, this._rng);
 
-        this._constProvider = constProvider;
-        this._schemas = schemaRetriever;
-        this._paramReplacer = new ParameterReplacer(this._schemas, this._constProvider, {
-            locale: options.locale,
+        this._paramReplacer = new ParameterReplacer({
+            thingpediaClient: thingpediaClient,
+            schemaRetriever: schemaRetriever,
+            constProvider: constProvider,
+
             paramLocale: options.paramLocale,
-            targetLanguage: options.targetLanguage,
             rng: this._rng,
             addFlag: true,
             quotedProbability: this._options.quotedProbability,
@@ -64,7 +110,7 @@ export default class DatasetAugmenter extends Stream.Transform {
 
     }
 
-    async _process(ex) {
+    private async _process(ex : SentenceExample) {
         if (ex.flags.eval)
             return [ex];
 
@@ -75,19 +121,19 @@ export default class DatasetAugmenter extends Stream.Transform {
         const singledeviceexs = await this._singledevice.process(ex);
         if (this._includeQuotedExample)
             output.push(...singledeviceexs);
-        for (let singledeviceex of singledeviceexs)
+        for (const singledeviceex of singledeviceexs)
             output.push(...await this._paramReplacer.process(singledeviceex));
 
         return output;
     }
 
-    _flush(callback) {
+    _flush(callback : () => void) {
         process.nextTick(callback);
     }
 
-    _transform(inex, encoding, callback) {
+    _transform(inex : SentenceExample, encoding : BufferEncoding, callback : (err ?: Error|null) => void) {
         this._process(inex).then((output) => {
-            for (let ex of output)
+            for (const ex of output)
                 this.push(ex);
             callback();
         }, (err) => {

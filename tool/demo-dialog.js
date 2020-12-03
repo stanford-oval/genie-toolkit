@@ -54,7 +54,8 @@ class DialogAgent extends events.EventEmitter {
 
         this._targetOptions = {
             thingpediaClient: tpClient,
-            schemaRetriever: this._schemas
+            schemaRetriever: this._schemas,
+            loadMetadata: true
         };
 
         const simulatorOptions = {

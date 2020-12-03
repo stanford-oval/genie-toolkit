@@ -129,7 +129,7 @@ async function testSimpleGet(engine, icon = null) {
 }
 
 async function testGetGet(engine, icon = null) {
-    const app = await engine.createApp('now => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) join @org.thingpedia.builtin.test.dup_data() on (data_in=data) => notify;',
+    const app = await engine.createApp('now => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => @org.thingpedia.builtin.test.dup_data(data_in=data) => notify;',
         { icon: icon, name: 'some app', description: 'some app description' });
     // when we get here, the app might or might not have started already
     // to be sure, we iterate its mainOutput
@@ -210,7 +210,7 @@ function testWhen(engine, conversation) {
         };
         engine.assistant.addNotificationOutput(delegate);
 
-        engine.createApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+        engine.createApp('monitor(@org.thingpedia.builtin.test.get_data(count=2, size=10byte)) => notify;',
             { icon: 'org.foo', uniqueId: 'uuid-foo-' + conversation, name: 'some app', description: 'some app description' }).then(async (app) => {
             await collectOutputs(app);
             assert.strictEqual(app.icon, 'org.foo');
@@ -256,7 +256,7 @@ function testWhenErrorInit(engine) {
         };
         engine.assistant.addNotificationOutput(delegate);
 
-        engine.createApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+        engine.createApp('monitor(@org.thingpedia.builtin.test.get_data(count=2, size=10byte)) => notify;',
             { icon: 'org.foo', uniqueId: 'uuid-when-error', name: 'some app', description: 'some app description' }).then((app) => {
             assert.strictEqual(app.icon, 'org.foo');
             assert.strictEqual(app.uniqueId, 'uuid-when-error');
@@ -348,7 +348,7 @@ function testWhenErrorAsync(engine) {
         };
         engine.assistant.addNotificationOutput(delegate);
 
-        engine.createApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+        engine.createApp('monitor(@org.thingpedia.builtin.test.get_data(count=2, size=10byte)) => notify;',
             { icon: 'org.foo', uniqueId: 'uuid-when-error-async', name: 'some app', description: 'some app description' }).then((app) => {
             assert.strictEqual(app.icon, 'org.foo');
             assert.strictEqual(app.uniqueId, 'uuid-when-error-async');
@@ -384,7 +384,7 @@ function drainTestWhen(engine) {
         };
         engine.assistant.addNotificationOutput(delegate);
 
-        engine.createApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+        engine.createApp('monitor(@org.thingpedia.builtin.test.get_data(count=2, size=10byte)) => notify;',
             { icon: 'org.foo', uniqueId: 'uuid-foo-when-restart', name: 'some app', description: 'some app description' }).then(async (app) => {
             assert.strictEqual(app.icon, 'org.foo');
             assert.strictEqual(app.uniqueId, 'uuid-foo-when-restart');
@@ -436,7 +436,7 @@ async function testWhenRestart(engine) {
             };
             engine.assistant.addNotificationOutput(delegate);
 
-            engine.createApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+            engine.createApp('monitor(@org.thingpedia.builtin.test.get_data(count=2, size=10byte)) => notify;',
                 { icon: 'org.foo', uniqueId: 'uuid-foo-when-restart', name: 'some app', description: 'some app description' }).then((app) => {
                 assert.strictEqual(app.icon, 'org.foo');
                 assert.strictEqual(app.uniqueId, 'uuid-foo-when-restart');
@@ -491,7 +491,7 @@ function testWhenGet(engine, conversation) {
         };
         engine.assistant.addNotificationOutput(delegate);
 
-        engine.createApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) join @org.thingpedia.builtin.test.dup_data() on (data_in=data) => notify;',
+        engine.createApp('monitor(@org.thingpedia.builtin.test.get_data(count=2, size=10byte)) => @org.thingpedia.builtin.test.dup_data(data_in=data) => notify;',
             { icon: 'org.foo', uniqueId: 'uuid-when-get', name: 'some app', description: 'some app description' }).then((app) => {
             assert.strictEqual(app.icon, 'org.foo');
             assert.strictEqual(app.uniqueId, 'uuid-when-get');
@@ -539,7 +539,7 @@ function testTimer(engine, conversation) {
         };
         engine.assistant.addNotificationOutput(delegate);
 
-        engine.createApp('timer(base=makeDate(),interval=2s) join @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+        engine.createApp('timer(base=$now,interval=2s) => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
             { icon: 'org.foo', uniqueId: 'uuid-timer-foo', name: 'some app', description: 'some app description' }).then((app) => {
             assert.strictEqual(app.icon, 'org.foo');
             assert.strictEqual(app.uniqueId, 'uuid-timer-foo');
@@ -562,7 +562,7 @@ async function testAtTimer(engine, conversation) {
     };
     engine.assistant.addNotificationOutput(delegate);
 
-    const app = await engine.createApp(`attimer(time=makeTime(${now.getHours()+2},${now.getMinutes()})) join @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;`,
+    const app = await engine.createApp(`attimer(time=[new Time(${now.getHours()+2},${now.getMinutes()})]) => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;`,
         { icon: 'org.foo', uniqueId: 'uuid-attimer-foo', name: 'some app', description: 'some app description' });
     assert.strictEqual(app.icon, 'org.foo');
     assert.strictEqual(app.uniqueId, 'uuid-attimer-foo');
@@ -619,7 +619,7 @@ async function testGetSequence(engine, icon = null) {
 async function testGetGetSequence(engine, icon = null) {
     // if you join a table with itself, with no param passing, you will get the same
     // result twice (ie, the table is static during the query)
-    const app = await engine.createApp('now => @org.thingpedia.builtin.test.next_sequence() join @org.thingpedia.builtin.test.next_sequence() => notify;',
+    const app = await engine.createApp('now => @org.thingpedia.builtin.test.next_sequence() => @org.thingpedia.builtin.test.next_sequence() => notify;',
         { icon , name: 'some app', description: 'some app description' });
     // when we get here, the app might or might not have started already
     // to be sure, we iterate its mainOutput
@@ -674,7 +674,7 @@ function testTimerSequence(engine, conversation) {
         };
         engine.assistant.addNotificationOutput(delegate);
 
-        engine.createApp('timer(base=makeDate(),interval=2s) join @org.thingpedia.builtin.test.next_sequence() => notify;',
+        engine.createApp('timer(base=new Date(),interval=2s) => @org.thingpedia.builtin.test.next_sequence() => notify;',
             { icon: 'org.foo', uniqueId: 'uuid-timer-sequence', name: 'some app', description: 'some app description' }).then((app) => {
             assert.strictEqual(app.icon, 'org.foo');
             assert.strictEqual(app.uniqueId, 'uuid-timer-sequence');

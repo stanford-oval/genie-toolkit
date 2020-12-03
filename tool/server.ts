@@ -29,15 +29,15 @@ import * as ThingTalk from 'thingtalk';
 
 import * as Utils from '../lib/utils/misc-utils';
 import { EntityMap } from '../lib/utils/entity-utils';
-import Predictor from '../lib/prediction/predictor';
+import LocalParserClient from '../lib/prediction/localparserclient';
 import * as I18n from '../lib/i18n';
 
 interface Backend {
     schemas : ThingTalk.SchemaRetriever;
     i18n : I18n.LanguagePack;
     tokenizer : I18n.BaseTokenizer;
-    nlu : Predictor;
-    nlg ?: Predictor;
+    nlu : LocalParserClient;
+    nlg ?: LocalParserClient;
 }
 
 declare global {
@@ -52,11 +52,6 @@ declare global {
 function learn(req : express.Request, res : express.Response) {
     res.status(501).json({ error: 'Learning is not available with this Genie server' });
 }
-
-const SEMANTIC_PARSING_TASK = 'almond';
-const NLU_TASK = 'almond_dialogue_nlu';
-const NLG_TASK = 'almond_dialogue_nlg';
-const NLG_QUESTION = 'what should the agent say ?';
 
 interface TokenizeData {
     q : string;
@@ -78,46 +73,6 @@ async function tokenize(params : Record<string, string>, data : TokenizeData, re
     res.json(tokenized);
 }
 
-async function runNLUPrediction(backend : Backend,
-                                tokens : string[],
-                                entities : EntityMap,
-                                context : string[]|undefined,
-                                limit : number|undefined,
-                                skipTypechecking : boolean) {
-    let candidates;
-    if (context === undefined)
-        candidates = await backend.nlu.predict(tokens.join(' '), undefined, SEMANTIC_PARSING_TASK);
-    else
-        candidates = await backend.nlu.predict(context.join(' '), tokens.join(' '), NLU_TASK);
-
-    if (skipTypechecking) {
-        return candidates.map((c) => {
-            return {
-                code: c.answer.split(' '),
-                score: c.score
-            };
-       }).slice(0, limit);
-    }
-
-    candidates = await Promise.all(candidates.map(async (c) => {
-        try {
-            const parsed = ThingTalk.NNSyntax.fromNN(c.answer.split(' '), entities);
-            await parsed.typecheck(backend.schemas, false);
-            return {
-                code: c.answer.split(' '),
-                score: c.score
-            };
-        } catch(e) {
-            console.error(e);
-            return null;
-        }
-    }));
-
-    candidates = candidates.filter((c) => c !== null);
-
-    return candidates.slice(0, limit);
-}
-
 interface QueryNLUData {
     q : string;
     store ?: string;
@@ -131,7 +86,7 @@ interface QueryNLUData {
     tokenized ?: boolean;
     skip_typechecking ?: boolean;
     developer_key ?: string;
-};
+}
 const QUERY_PARAMS = {
     q: 'string',
     store: '?string',
@@ -150,9 +105,7 @@ const QUERY_PARAMS = {
 async function queryNLU(params : Record<string, string>,
                         data : QueryNLUData,
                         res : express.Response) {
-    const query = data.q;
     const thingtalk_version = data.thingtalk_version;
-    const isTokenized = !!data.tokenized;
     const app = res.app;
 
     if (thingtalk_version !== ThingTalk.version) {
@@ -172,63 +125,15 @@ async function queryNLU(params : Record<string, string>,
         other: 0
     };
 
-    let tokenized : I18n.TokenizerResult;
-    if (isTokenized) {
-        tokenized = {
-            tokens: query.split(' '),
-            rawTokens: [],
-            entities: {},
-        };
-        if (data.entities) {
-            // safety against weird properties
-            for (let key of Object.getOwnPropertyNames(data.entities)) {
-                if (/^(.+)_([0-9]+)$/.test(key))
-                    tokenized.entities[key] = data.entities[key];
-            }
-        }
-    } else {
-        tokenized = await app.backend.tokenizer.tokenize(query);
-        if (data.entities)
-            Utils.renumberEntities(tokenized, data.entities);
-    }
-
-    const tokens = tokenized.tokens;
-    let result;
-    if (tokens.length === 0) {
-        result = [{
-            code: ['bookkeeping', 'special', 'special:failed'],
-            score: 'Infinity'
-        }];
-    } else {
-        result = await runNLUPrediction(app.backend, tokens, tokenized.entities,
-                                        data.context ? data.context.split(' ') : undefined,
-                                        data.limit ? parseInt(data.limit) : 5,
-                                        !!data.skip_typechecking);
-    }
+    const result = await res.app.backend.nlu.sendUtterance(data.q,
+        data.context ? data.context.split(' ') : undefined, data.entities, data);
 
     res.json({
-         candidates: result,
-         tokens: tokens,
-         entities: tokenized.entities,
+         candidates: result.candidates,
+         tokens: result.tokens,
+         entities: result.entities,
          intent
     });
-}
-
-async function runNLGPrediction(backend : Backend,
-                                context : string,
-                                entities : EntityMap,
-                                targetAct : string,
-                                limit : number|undefined) {
-    let candidates = await backend.nlg!.predict(context + ' ' + targetAct, NLG_QUESTION, NLG_TASK);
-
-    candidates = candidates.slice(0, limit);
-
-    candidates = candidates.map((cand) => {
-        cand.answer = backend.i18n.postprocessNLG(cand.answer, entities);
-        return cand;
-    });
-
-    return candidates;
 }
 
 interface QueryNLGData {
@@ -236,7 +141,7 @@ interface QueryNLGData {
     entities : EntityMap;
     target : string;
     limit ?: string;
-};
+}
 const NLG_PARAMS = {
     context: 'string',
     entities: 'object',
@@ -254,11 +159,10 @@ async function queryNLG(params : Record<string, string>,
         return;
     }
 
-    const result = await runNLGPrediction(app.backend, data.context, data.entities, data.target,
-                                          data.limit ? parseInt(data.limit) : 5);
-
+    const result = await res.app.backend.nlg!.generateUtterance(
+        data.context.split(' '), data.entities, data.target.split(' '));
     res.json({
-         candidates: result,
+         candidates: result.slice(0, data.limit ? parseInt(data.limit) : undefined),
     });
 }
 
@@ -311,11 +215,11 @@ export async function execute(args : any) {
         schemas,
         i18n,
         tokenizer: i18n.getTokenizer(),
-        nlu: new Predictor('nlu', args.nlu_model, 1)
+        nlu: new LocalParserClient(args.nlu_model, args.locale, undefined, tpClient)
     };
     app.backend.nlu.start();
     if (args.nlg_model && args.nlg_model !== args.nlu_model) {
-        app.backend.nlg = new Predictor('nlg', args.nlg_model, 1);
+        app.backend.nlg = new LocalParserClient(args.nlg_model, args.locale, undefined, tpClient);
         app.backend.nlg.start();
     } else {
         app.backend.nlg = app.backend.nlu;

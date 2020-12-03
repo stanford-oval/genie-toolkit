@@ -41,7 +41,7 @@ interface MeasureEntity {
     value : number;
 }
 
-// this is a subset of NNSyntax.AnyEntity containing only the entities that
+// this is a subset of Syntax.AnyEntity containing only the entities that
 // can be extracted from tokenization
 export type AnyEntity =
     MeasureEntity |

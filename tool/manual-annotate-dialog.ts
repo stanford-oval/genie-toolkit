@@ -32,10 +32,6 @@ import * as StreamUtils from '../lib/utils/stream-utils';
 import { EntityMap } from '../lib/utils/entity-utils';
 import * as ParserClient from '../lib/prediction/parserclient';
 import {
-    default as SimulationDialogueAgent,
-    SimulationDialogueAgentOptions
-} from '../lib/dialogue-agent/simulator/simulation_dialogue_agent';
-import {
     DialogueParser,
     DialogueSerializer,
     ParsedDialogue,
@@ -67,10 +63,12 @@ class Annotator extends events.EventEmitter {
     private _editMode : boolean;
     private _onlyIds : Set<string>|undefined;
     private _maxTurns : number|undefined;
+    private _locale : string;
+    private _tpClient : Tp.BaseClient;
     private _schemas : ThingTalk.SchemaRetriever;
     private _userParser : ParserClient.ParserClient;
     private _agentParser : ParserClient.ParserClient;
-    private _simulator : SimulationDialogueAgent;
+    private _simulator : ThingTalkUtils.Simulator;
     private _simulatorOverrides : Map<string, string>;
     private _database : MultiJSONDatabase|undefined;
 
@@ -104,16 +102,17 @@ class Annotator extends events.EventEmitter {
             this._onlyIds = undefined;
         this._maxTurns = options.max_turns;
 
-        const tpClient = new Tp.FileClient(options);
-        this._schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
+        this._locale = options.locale;
+        this._tpClient = new Tp.FileClient(options);
+        this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, true);
         this._userParser = ParserClient.get(options.user_nlu_server, options.locale);
         this._agentParser = ParserClient.get(options.agent_nlu_server, options.locale);
 
         this._simulatorOverrides = new Map;
-        const simulatorOptions : SimulationDialogueAgentOptions = {
+        const simulatorOptions : ThingTalkUtils.SimulatorOptions = {
             rng: seedrandom.alea('almond is awesome'),
             locale: options.locale,
-            thingpediaClient: tpClient,
+            thingpediaClient: this._tpClient,
             schemaRetriever: this._schemas,
             overrides: this._simulatorOverrides,
             interactive: true
@@ -268,12 +267,13 @@ class Annotator extends events.EventEmitter {
     private async _learnThingTalk(code : string) {
         let program;
         try {
-            program = await ThingTalk.Grammar.parseAndTypecheck(code, this._schemas);
+            program = await ThingTalkUtils.parse(code, this._schemas);
             assert(program instanceof ThingTalk.Ast.DialogueState);
 
-            const clone = {};
-            Object.assign(clone, this._entities);
-            ThingTalk.NNSyntax.toNN(program, this._preprocessed!.split(' '), clone, { allocateEntities: false });
+            // check that the entities are correct by serializing the program once
+            ThingTalkUtils.serializePrediction(program, this._preprocessed!, this._entities!, {
+                locale: this._locale
+            }).join(' ');
         } catch(e) {
             console.log(`${e.name}: ${e.message}`);
             this._rl.setPrompt('TT: ');
@@ -304,7 +304,7 @@ class Annotator extends events.EventEmitter {
         }
         this._state = 'code';
         this._rl.setPrompt('TT: ');
-        this._rl.write(program.prettyprint(true).replace(/\n/g, ' '));
+        this._rl.write(program.prettyprint().replace(/\n/g, ' '));
         this._rl.prompt();
     }
 
@@ -495,7 +495,7 @@ class Annotator extends events.EventEmitter {
 
         let ctxOverride;
         try {
-            ctxOverride = await ThingTalk.Grammar.parseAndTypecheck(firstLine + '\n' + this._contextOverride, this._schemas);
+            ctxOverride = await ThingTalkUtils.parse(firstLine + '\n' + this._contextOverride, this._schemas);
             assert(ctxOverride instanceof ThingTalk.Ast.DialogueState);
         } catch(e) {
             console.log(`${e.name}: ${e.message}`);
@@ -568,19 +568,10 @@ class Annotator extends events.EventEmitter {
         this._state = 'top3';
         this._preprocessed = parsed.tokens.join(' ');
         this._entities = parsed.entities;
-        const candidates = (await Promise.all(parsed.candidates.map(async (cand) => {
-            try {
-                const program = ThingTalk.NNSyntax.fromNN(cand.code, parsed.entities);
-                await program.typecheck(this._schemas, false);
-
-                // convert the program to NN syntax once, which will force the program to be syntactically normalized
-                // (and therefore rearrange slot-fill by name rather than Thingpedia order)
-                ThingTalk.NNSyntax.toNN(program, [''], {}, { allocateEntities: true });
-                return program;
-            } catch(e) {
-                return null;
-            }
-        }))).filter((c) => c !== null) as ThingTalk.Ast.DialogueState[];
+        const candidates = await ThingTalkUtils.parseAllPredictions(parsed.candidates, parsed.entities, {
+            thingpediaClient: this._tpClient,
+            schemaRetriever: this._schemas
+        }) as ThingTalk.Ast.DialogueState[];
         this._candidates = candidates;
 
         if (this._hasExistingAnnotations) {
@@ -588,7 +579,7 @@ class Annotator extends events.EventEmitter {
             const existing = currentTurn[this._currentKey!];
             if (existing) {
                 try {
-                    const program = await ThingTalk.Grammar.parseAndTypecheck(existing, this._schemas, false);
+                    const program = await ThingTalkUtils.parse(existing, this._schemas);
                     assert(program instanceof ThingTalk.Ast.DialogueState);
                     candidates.unshift(program);
                 } catch(e) {

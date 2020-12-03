@@ -136,7 +136,7 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         if (!dataset)
             dataset = this.engine.thingpedia.getAllExamples();
 
-        const parsed = await TT.Grammar.parseAndTypecheck(await dataset, this.engine.schemas, false);
+        const parsed = await TT.Syntax.parse(await dataset).typecheck(this.engine.schemas, false);
         assert(parsed instanceof TT.Ast.Library);
 
         return parsed.datasets[0].examples.map((ex) => {

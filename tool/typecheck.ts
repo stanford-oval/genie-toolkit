@@ -31,6 +31,7 @@ import { maybeCreateReadStream, readAllLines } from './lib/argutils';
 import * as StreamUtils from '../lib/utils/stream-utils';
 import * as Utils from '../lib/utils/misc-utils';
 import { EntityMap } from '../lib/utils/entity-utils';
+import * as ThingTalkUtils from '../lib/utils/thingtalk';
 
 interface CacheEntry {
     from : string;
@@ -67,6 +68,8 @@ class CacheSerializer extends Stream.Transform {
 }
 
 class TypecheckStream extends Stream.Transform {
+    private _locale : string;
+    private _tpClient : Tp.BaseClient;
     private _schemas : ThingTalk.SchemaRetriever;
     private _cache : Map<string, CacheEntry>;
     private _cacheOut : Stream.Writable|undefined;
@@ -78,13 +81,16 @@ class TypecheckStream extends Stream.Transform {
     private _entities : EntityMap|undefined;
     private _resolve : ((res : boolean) => void)|undefined;
 
-    constructor(schemas : ThingTalk.SchemaRetriever,
+    constructor(tpClient : Tp.BaseClient,
+                schemas : ThingTalk.SchemaRetriever,
                 cache : Map<string, CacheEntry>,
                 cacheOut : Stream.Writable|undefined,
                 droppedOut : Stream.Writable,
-                args : { interactive : boolean }) {
+                args : { interactive : boolean, locale : string }) {
         super({ objectMode: true });
 
+        this._locale = args.locale;
+        this._tpClient = tpClient;
         this._schemas = schemas;
         this._cache = cache;
         this._cacheOut = cacheOut;
@@ -160,11 +166,10 @@ class TypecheckStream extends Stream.Transform {
 
     async _learn(line : string) {
         try {
-            const program = await ThingTalk.Grammar.parseAndTypecheck(line, this._schemas, false);
-
-            const clone = {};
-            Object.assign(clone, this._entities);
-            const code = ThingTalk.NNSyntax.toNN(program, this._current!.preprocessed.split(' '), clone).join(' ');
+            const program = await ThingTalkUtils.parse(line, this._schemas);
+            const code = ThingTalkUtils.serializePrediction(program, this._current!.preprocessed, this._entities!, {
+                locale: this._locale
+            }).join(' ');
 
             this._doCache(code);
             this._current!.target_code = code;
@@ -187,14 +192,15 @@ class TypecheckStream extends Stream.Transform {
         this._entities = Utils.makeDummyEntities(ex.preprocessed);
         let program : ThingTalk.Ast.Input|undefined;
         try {
-            program = ThingTalk.NNSyntax.fromNN(String(ex.target_code).split(' '), this._entities);
+            program = await ThingTalkUtils.parsePrediction(String(ex.target_code).split(' '), this._entities, {
+                thingpediaClient: this._tpClient,
+                schemaRetriever: this._schemas,
+            }, true);
 
-            await program.typecheck(this._schemas, false);
-
-            // run toNN to verify all the strings/entities are correct
-            const clone = {};
-            Object.assign(clone, this._entities);
-            ThingTalk.NNSyntax.toNN(program, this._current!.preprocessed.split(' '), clone);
+            // serialize once to verify all the strings/entities are correct
+            ThingTalkUtils.serializePrediction(program!, this._current!.preprocessed, this._entities, {
+                locale: this._locale
+            });
 
             this.push(ex);
             return;
@@ -263,6 +269,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         required: true,
         help: "Location where to save sentences that were dropped",
         type: fs.createWriteStream
+    });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en-US',
+        help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
     });
     parser.add_argument('--thingpedia', {
         required: true,
@@ -334,7 +345,7 @@ export async function execute(args : any) {
 
     readAllLines(args.input_file)
         .pipe(new DatasetParser({ contextual: args.contextual }))
-        .pipe(new TypecheckStream(schemas, cache, cacheOut, droppedOut, args))
+        .pipe(new TypecheckStream(tpClient, schemas, cache, cacheOut, droppedOut, args))
         .pipe(new DatasetStringifier())
         .pipe(args.output);
 

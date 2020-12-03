@@ -56,6 +56,7 @@ interface BasicGeneratorOptions {
  */
 class BasicSentenceGenerator extends stream.Readable {
     private _idPrefix : string;
+    private _locale : string;
     private _langPack : I18n.LanguagePack;
     private _rng : () => number;
     private _generator : SentenceGenerator<undefined, ThingTalkUtils.Input>;
@@ -65,6 +66,7 @@ class BasicSentenceGenerator extends stream.Readable {
     constructor(options : BasicGeneratorOptions) {
         super({ objectMode: true });
         this._idPrefix = options.idPrefix || '';
+        this._locale = options.locale;
         this._langPack = I18n.get(options.locale);
         this._rng = options.rng;
         this._generator = new SentenceGenerator({
@@ -124,11 +126,9 @@ class BasicSentenceGenerator extends stream.Readable {
 
         let sequence;
         try {
-            sequence = ThingTalkUtils.serialize(program, [], tokenized.entities);
-            //ThingTalk.NNSyntax.fromNN(sequence, {});
-
-            if (sequence.some((t) => t.endsWith(':undefined')))
-                throw new TypeError(`Generated undefined type`);
+            sequence = ThingTalkUtils.serializePrediction(program, [], tokenized.entities, {
+                locale: this._locale
+            });
         } catch(e) {
             console.error(preprocessed);
             console.error(String(program));

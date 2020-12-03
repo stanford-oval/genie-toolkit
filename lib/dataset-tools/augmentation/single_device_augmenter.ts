@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -18,38 +18,51 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 import assert from 'assert';
+import * as Tp from 'thingpedia';
 
 import * as I18n from '../../i18n';
 import { choose } from '../../utils/random';
 
 import { getDevices } from '../requoting';
 
+import { SentenceFlags, SentenceExample } from '../parsers';
+
 /**
   Augmentation pass that adds "ask ..." prefixes to single-device commands.
 */
 export default class SingleDeviceAugmenter {
-    constructor(locale, thingpediaClient, expandFactor, rng) {
+    private _tpClient : Tp.BaseClient;
+    private _deviceNames : Map<string, string>;
+    private _init : Promise<void>;
+    private _templates : Array<[string, RegExp|null]>;
+    private _expandFactor : number;
+    private _rng : () => number;
+
+    constructor(locale : string,
+                thingpediaClient : Tp.BaseClient,
+                expandFactor : number,
+                rng : () => number) {
         assert(typeof expandFactor === 'number');
         assert(expandFactor > 0);
         this._tpClient = thingpediaClient;
-
-        this._deviceNames = new Map;
-        this._init = (async () => {
-            const names = await this._tpClient.getAllDeviceNames();
-
-            for (let row of names)
-                this._deviceNames.set(row.kind, row.kind_canonical);
-        })();
-
         this._templates = I18n.get(locale).SINGLE_DEVICE_TEMPLATES;
 
         this._expandFactor = Math.min(expandFactor, this._templates.length);
         this._rng = rng;
+
+        this._deviceNames = new Map;
+        this._init = this._doInit();
     }
 
-    async process(ex) {
+    private async _doInit() {
+        const names = await this._tpClient.getAllDeviceNames();
+
+        for (const row of names)
+            this._deviceNames.set(row.kind, row.kind_canonical);
+    }
+
+    async process(ex : SentenceExample) : Promise<SentenceExample[]> {
         await this._init;
 
         if (this._expandFactor < 1)
@@ -83,10 +96,9 @@ export default class SingleDeviceAugmenter {
                     return word;
             }).join(' ');
 
-            let flags = {};
+            const flags : SentenceFlags = {};
             if (ex.flags)
                 Object.assign(flags, ex.flags);
-            flags.exact = false;
             flags.augmented = true;
             return {
                 id: ex.id,

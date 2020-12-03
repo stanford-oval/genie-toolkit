@@ -74,11 +74,11 @@ export class ThingTalkSimulatorState {
         });
     }
 
-     async compile(stmt : Ast.Rule|Ast.Command, cache : Map<string, CompiledProgram>) : Promise<CompiledProgram> {
+     async compile(stmt : Ast.ExpressionStatement, cache : Map<string, CompiledProgram>) : Promise<CompiledProgram> {
         const clone = stmt.clone();
 
         const program = new Ast.Program(null, [], [], [clone]);
-        const cacheKey = program.prettyprint(true);
+        const cacheKey = program.prettyprint();
         //console.error(cacheKey);
 
         let compiled = cache.get(cacheKey);
@@ -93,18 +93,18 @@ export class ThingTalkSimulatorState {
             cache.set(cacheKey, compiled);
         } catch(e) {
             console.error(`Failed to compile program: ` + e.message);
-            console.error(program.prettyprint(true));
+            console.error(program.prettyprint());
             throw e;
         }
         return compiled;
     }
 
-    async simulate(stmt : Ast.Rule|Ast.Command, compiled : CompiledProgram) : Promise<Ast.DialogueHistoryResultList> {
+    async simulate(stmt : Ast.ExpressionStatement, compiled : CompiledProgram) : Promise<Ast.DialogueHistoryResultList> {
         const results : Ast.DialogueHistoryResultItem[] = [];
         let error : Ast.Value|null = null;
         const generator = new ResultGenerator(this._rng, this._overrides);
         for (const slot of stmt.iterateSlots2()) {
-            if (slot instanceof Ast.Selector)
+            if (slot instanceof Ast.DeviceSelector)
                 continue;
             generator.addCandidate(slot.get());
         }
@@ -117,7 +117,7 @@ export class ThingTalkSimulatorState {
             if (!(err instanceof SimulatedError)) {
                 console.error(`Failed to execute program`);
                 console.error(msg, err);
-                console.error(new Ast.Program(null, [], [], [stmt]).prettyprint(true));
+                console.error(new Ast.Program(null, [], [], [stmt]).prettyprint());
                 process.exit(1);
                 return;
             }
@@ -132,7 +132,7 @@ export class ThingTalkSimulatorState {
             await compiled.command(this._execEnv);
         } catch(e) {
             console.error(`Failed to execute program: ` + e.message);
-            console.error(new Ast.Program(null, [], [], [stmt]).prettyprint(true));
+            console.error(new Ast.Program(null, [], [], [stmt]).prettyprint());
             throw e;
         }
 
@@ -250,11 +250,9 @@ export default class ThingTalkStatementSimulator {
         this.cache = new Map;
     }
 
-    async executeStatement(stmt : Ast.Rule|Ast.Command,
+    async executeStatement(stmt : Ast.ExpressionStatement,
                            execState : ThingTalkSimulatorState) : Promise<[Ast.DialogueHistoryResultList, ThingTalkSimulatorState]> {
-        assert(stmt instanceof Ast.Statement.Command || stmt instanceof Ast.Statement.Rule);
-
-        if (stmt instanceof Ast.Statement.Rule) {
+        if (stmt.stream) {
             // nothing to do, this always returns nothing
             return [new Ast.DialogueHistoryResultList(null, [],
                 new Ast.Value.Number(0), false, null), execState];

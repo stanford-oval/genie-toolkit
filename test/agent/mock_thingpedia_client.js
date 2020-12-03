@@ -238,7 +238,7 @@ export default class MockThingpediaClient extends Tp.BaseClient {
     async getAllDeviceNames() {
         await this._ensureLoaded();
 
-        const parsed = ThingTalk.Grammar.parse(this._devices);
+        const parsed = ThingTalk.Syntax.parse(this._devices);
         let names = [];
         for (let classDef of parsed.classes) {
             names.push({

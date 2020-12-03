@@ -26,12 +26,12 @@ import csvparse from 'csv-parse';
 import csvstringify from 'csv-stringify';
 import * as readline from 'readline';
 import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
 
 import * as ParserClient from '../lib/prediction/parserclient';
 import { SentenceExample, DatasetStringifier } from '../lib/dataset-tools/parsers';
 import { EntityMap } from '../lib/utils/entity-utils';
-
-import * as ThingTalk from 'thingtalk';
+import * as ThingTalkUtils from '../lib/utils/thingtalk';
 
 function waitFinish(stream : stream.Writable) {
     return new Promise((resolve, reject) => {
@@ -61,8 +61,10 @@ interface DroppedExample {
 
 class Trainer extends events.EventEmitter {
     private _rl : readline.Interface;
+    private _tpClient : Tp.BaseClient;
     private _schemas : ThingTalk.SchemaRetriever;
     private _parser : ParserClient.ParserClient;
+    private _locale : string;
 
     private _nextLine : Iterator<string>;
 
@@ -80,8 +82,9 @@ class Trainer extends events.EventEmitter {
 
         this._rl = rl;
 
-        const tpClient = new Tp.FileClient(options);
-        this._schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
+        this._locale = options.locale;
+        this._tpClient = new Tp.FileClient(options);
+        this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, true);
         this._parser = ParserClient.get(options.server, 'en-US');
 
         this._nextLine = lines[Symbol.iterator]();
@@ -145,9 +148,9 @@ class Trainer extends events.EventEmitter {
     private async _learnProgram(program : ThingTalk.Ast.Input) {
         let targetCode;
         try {
-            const clone = {};
-            Object.assign(clone, this._entities);
-            targetCode = ThingTalk.NNSyntax.toNN(program, this._preprocessed!.split(' '), clone).join(' ');
+            targetCode = ThingTalkUtils.serializePrediction(program, this._preprocessed!, this._entities!, {
+                locale: this._locale
+            }).join(' ');
         } catch(e) {
             console.log(`${e.name}: ${e.message}`);
             this._rl.setPrompt('TT: ');
@@ -167,7 +170,7 @@ class Trainer extends events.EventEmitter {
     private async _learnThingTalk(code : string) {
         let program;
         try {
-            program = await ThingTalk.Grammar.parseAndTypecheck(code, this._schemas);
+            program = await ThingTalkUtils.parse(code, this._schemas);
         } catch(e) {
             console.log(`${e.name}: ${e.message}`);
             this._rl.setPrompt('TT: ');
@@ -188,7 +191,7 @@ class Trainer extends events.EventEmitter {
         const program = this._candidates![i];
         this._state = 'code';
         this._rl.setPrompt('TT: ');
-        this._rl.write(program.prettyprint(true));
+        this._rl.write(program.prettyprint());
         this._rl.prompt();
     }
 
@@ -244,8 +247,10 @@ class Trainer extends events.EventEmitter {
 
         if (oldTargetCode) {
             try {
-                const program = ThingTalk.NNSyntax.fromNN(oldTargetCode.split(' '), parsed.entities);
-                await program.typecheck(this._schemas, false);
+                await ThingTalkUtils.parsePrediction(oldTargetCode.split(' '), parsed.entities, {
+                    thingpediaClient: this._tpClient,
+                    schemaRetriever: this._schemas
+                }, true);
             } catch(e) {
                 console.log(`Sentence ${id}'s existing code is incorrect: ${e}`); //'
                 oldTargetCode = undefined;
@@ -259,16 +264,10 @@ class Trainer extends events.EventEmitter {
         this._comment = comment;
         this._preprocessed = parsed.tokens.join(' ');
         this._entities = parsed.entities;
-        const candidates = (await Promise.all(parsed.candidates.map(async (cand) => {
-            try {
-                const program = ThingTalk.NNSyntax.fromNN(cand.code, parsed.entities);
-                await program.typecheck(this._schemas, false);
-                return program;
-            } catch(e) {
-                console.error(e);
-                return null;
-            }
-        }))).filter((c) => c !== null) as ThingTalk.Ast.Input[];
+        const candidates = await ThingTalkUtils.parseAllPredictions(parsed.candidates, parsed.entities, {
+            thingpediaClient: this._tpClient,
+            schemaRetriever: this._schemas
+        });
         this._candidates = candidates;
 
         console.log(`Sentence #${this._serial+1} (${this._id}): ${utterance}`);

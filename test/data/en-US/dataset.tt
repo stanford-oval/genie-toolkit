@@ -1,5 +1,5 @@
 dataset @org.thingpedia.everything language "en" {
-    program (p_hashtag : Entity(tt:hashtag)) := monitor(@com.twitter.home_timeline()), contains(hashtags, p_hashtag) => @com.twitter.retweet(tweet_id=tweet_id)
+    program (p_hashtag : Entity(tt:hashtag)) := monitor(@com.twitter.home_timeline(), contains(hashtags, p_hashtag)) => @com.twitter.retweet(tweet_id=tweet_id)
     #[id=-1]
     #_[preprocessed=["autoretweet tweets with $p_hashtag", "autoretweet $p_hashtag"]];
 
@@ -19,11 +19,11 @@ dataset @org.thingpedia.everything language "en" {
     #[id=3]
     #_[preprocessed=["images matching ${p_query}", "${p_query:const} images"]];
 
-    query (p_query : String) := sort title asc of @com.bing.image_search(query=p_query)
+    query (p_query : String) := sort(title asc of @com.bing.image_search(query=p_query))
     #[id=3]
     #_[preprocessed=["images matching ${p_query} sorted by title", "${p_query:const} images sorted by title"]];
 
-    query (p_query : String) := aggregate count of @com.bing.image_search(query=p_query)
+    query (p_query : String) := count(@com.bing.image_search(query=p_query))
     #[id=4]
     #_[preprocessed=["the number of images that match ${p_query}", "the count of images that match ${p_query:const}"]];
 

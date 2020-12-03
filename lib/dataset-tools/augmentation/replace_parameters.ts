@@ -22,17 +22,29 @@
 
 import assert from 'assert';
 
+import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
-import { Ast, Type } from 'thingtalk';
+import { Ast, Type, Syntax } from 'thingtalk';
 
 import { coin, uniform } from '../../utils/random';
 import binarySearch from '../../utils/binary_search';
 import * as I18n from '../../i18n';
-import { makeDummyEntity, sampleString } from '../../utils/misc-utils';
+import { sampleString } from '../../utils/misc-utils';
+import { makeDummyEntity, EntityMap } from '../../utils/entity-utils';
+import * as ThingTalkUtils from '../../utils/thingtalk';
 import { SentenceExample, SentenceFlags } from '../parsers';
 
 function isReplaceToken(tok : string) : boolean {
     return /^(?:GENERIC_ENTITY_|LOCATION_|NUMBER_|QUOTED_STRING_|HASHTAG_|USERNAME_)/.test(tok);
+}
+
+const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+function isUnitName(token : string) {
+    if (token.startsWith('unit:'))
+        return true;
+
+    return (IDENTIFIER.test(token) && !Syntax.KEYWORDS.has(token) && !Syntax.CONTEXTUAL_KEYWORDS.has(token)) || token === 'in' || token === 'min';
 }
 
 const NON_REPLACEABLE_ENTITIES = ['tt:url', 'tt:email_address',
@@ -42,6 +54,7 @@ function isReplaceType(type : Type) {
     return type.isLocation || type.isString || type.isNumber || type.isMeasure ||
         (type instanceof Type.Entity && NON_REPLACEABLE_ENTITIES.indexOf(type.type) < 0);
 }
+
 
 function unescape(symbol : string) : string {
     return symbol.replace(/_([0-9a-fA-Z]{2}|_)/g, (match, ch) => {
@@ -218,6 +231,10 @@ function _default<T>(v : T|undefined, def : T) : T {
 }
 
 interface ParameterReplacerOptions {
+    thingpediaClient : Tp.BaseClient;
+    schemaRetriever : ThingTalk.SchemaRetriever;
+    constProvider : ParameterProvider;
+
     paramLocale : string;
     rng : () => number;
     debug ?: boolean;
@@ -247,6 +264,7 @@ interface ReplacementRecord {
 type ConstantValue = Ast.Value & { token ?: string };
 
 export default class ParameterReplacer {
+    private _tpClient : Tp.BaseClient;
     private _schemas : ThingTalk.SchemaRetriever;
     private _loader : ValueListLoader;
     private _rng : () => number;
@@ -269,11 +287,10 @@ export default class ParameterReplacer {
 
     private _warned : Set<string>;
 
-    constructor(schemas : ThingTalk.SchemaRetriever,
-                constProvider : ParameterProvider,
-                options : ParameterReplacerOptions) {
-        this._schemas = schemas;
-        this._loader = new ValueListLoader(constProvider, options.samplingType, options.subsetParamSet, options.rng);
+    constructor(options : ParameterReplacerOptions) {
+        this._tpClient = options.thingpediaClient;
+        this._schemas = options.schemaRetriever;
+        this._loader = new ValueListLoader(options.constProvider, options.samplingType, options.subsetParamSet, options.rng);
         this._rng = options.rng;
         this._addFlag = _default(options.addFlag, false);
         this._paramLangPack = I18n.get(options.paramLocale);
@@ -576,10 +593,12 @@ export default class ParameterReplacer {
         const output : string[] = [];
         for (const token of program) {
             if (replacements.has(token)) {
+                const string = replacements.get(token)!.programValue;
+
                 if (token.startsWith('LOCATION_'))
-                    output.push('location:');
-                if (token.startsWith('NUMBER_'))
-                    output.push(replacements.get(token)!.programValue);
+                    output.push('new', 'Location', '(', '"', string, '"', ')');
+                else if (token.startsWith('NUMBER_'))
+                    output.push(string);
                 else
                     output.push('"', replacements.get(token)!.programValue, '"');
                 if (token.startsWith('HASHTAG_'))
@@ -598,7 +617,7 @@ export default class ParameterReplacer {
         return output;
     }
 
-    private _replaceWithSlot(code : string[], entities : ThingTalk.NNSyntax.EntityMap) {
+    private _replaceWithSlot(code : string[], entities : EntityMap) {
         let counter = 0;
         let inDate = false;
         const out = [];
@@ -621,8 +640,10 @@ export default class ParameterReplacer {
                     return code < 16 ? '_0' + code.toString(16) : '_' + code.toString(16);
                 });
                 escaped += '_' + number;
-                if (i < code.length - 1 && code[i+1].startsWith('unit:')) {
-                    escaped = escaped + '__' + code[i+1].substring('unit:'.length);
+                if (i < code.length - 1 && token.startsWith('NUMBER_') &&
+                    isUnitName(code[i+1])) {
+                    const next = code[i+1];
+                    escaped = escaped + '__' + (next.startsWith('unit:') ? next.substring('unit:'.length) : next);
                     i++;
                 }
 
@@ -668,22 +689,28 @@ export default class ParameterReplacer {
             }
         }
 
-        const entities : ThingTalk.NNSyntax.EntityMap = {};
+        const entities : EntityMap = {};
         // replace all entities with SLOT_*, which allows us to pass a VarRef instead of a real value
-        const replaced_code = this._replaceWithSlot(code, entities);
-        const target_program = ThingTalk.NNSyntax.fromNN(replaced_code, entities);
-        await target_program.typecheck(this._schemas, true);
+        const replacedCode = this._replaceWithSlot(code, entities);
+        const targetProgram = await ThingTalkUtils.parsePrediction(replacedCode, entities, {
+            thingpediaClient: this._tpClient,
+            schemaRetriever: this._schemas,
+            loadMetadata: true
+        }, true);
         
         if (context.length !== 0 && context[0] !== 'null') {
             // So this is a dialogue, has context and we can safely process the context
-            const replaced_context = this._replaceWithSlot(context, entities);
-            const context_program = ThingTalk.NNSyntax.fromNN(replaced_context, entities);
-            await context_program.typecheck(this._schemas, true);
+            const replacedContext = this._replaceWithSlot(context, entities);
+            const contextProgram = await ThingTalkUtils.parsePrediction(replacedContext, entities, {
+                thingpediaClient: this._tpClient,
+                schemaRetriever: this._schemas,
+                loadMetadata: true
+            }, true);
             
             // Go over the context first so that target overwrites these values for common slots
-            for (const slot of context_program.iterateSlots2()) {
-                if (slot instanceof Ast.Selector)
-                continue;
+            for (const slot of contextProgram.iterateSlots2()) {
+                if (slot instanceof Ast.DeviceSelector)
+                    continue;
                 
                 const value = slot.get() as ConstantValue;
                 if (isEntity(value)) {
@@ -691,7 +718,7 @@ export default class ParameterReplacer {
                         // ignore this parameter, it probably comes from a
                         // bookkeeping answer QUOTED_STRING_0 which we don't need to worry about
                         // because it would be never generated anyway
-                        assert(context_program.isBookkeeping);
+                        assert(contextProgram instanceof Ast.ControlCommand);
                         continue;
                     }
                     if (slot.type.isLocation && !this._replaceLocations)
@@ -708,8 +735,8 @@ export default class ParameterReplacer {
         }
 
         // Now go over the target
-        for (const slot of target_program.iterateSlots2()) {
-            if (slot instanceof Ast.Selector)
+        for (const slot of targetProgram.iterateSlots2()) {
+            if (slot instanceof Ast.DeviceSelector)
                 continue;
 
             const value = slot.get() as ConstantValue;
@@ -718,7 +745,7 @@ export default class ParameterReplacer {
                     // ignore this parameter, it probably comes from a
                     // bookkeeping answer QUOTED_STRING_0 which we don't need to worry about
                     // because it would be never generated anyway
-                    assert(target_program.isBookkeeping);
+                    assert(targetProgram instanceof Ast.ControlCommand);
                     continue;
                 }
                 if (slot.type.isLocation && !this._replaceLocations)
