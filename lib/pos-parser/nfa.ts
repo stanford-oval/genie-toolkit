@@ -21,6 +21,10 @@
 import assert from "assert";
 import { infixToPostfix } from "./infix-to-postfix";
 
+import EnglishLanguagePack from '../../lib/i18n/american-english';
+import EnglishTokenizer from '../../lib/i18n/tokenizer/english';
+import { TokenizerResult } from '../i18n';
+
 class State {
     isEnd : boolean;
     transitions : Record<string, State[]>;
@@ -43,27 +47,113 @@ class State {
     }
 }
 
+interface Token {
+    token : string,
+    pos : string|undefined
+}
+
+function arrayMatch(a : string[], b : string[]) : number {
+    return a.findIndex((element, i) => {
+        for (let j = 0; j < b.length; j++) {
+            if (i + j > a.length - 1)
+                return false;
+            if (a[i + j] !== b[j])
+                return false;
+        }
+        return true;
+    });
+}
+
+function arrayMatchCount(a : string[], b : string[]) : number {
+    let count = 0;
+    for (let i = 0; i < a.length - b.length + 1; i++) {
+        let match = true;
+        for (let j = 0; j < b.length; j++) {
+            if (a[i + j] !== b[j])
+                match = false;
+        }
+        if (match)
+            count += 1;
+    }
+    return count;
+}
+
 export class NFA {
     start : State;
     end : State;
+    private languagePack : EnglishLanguagePack;
+    private tokenizer : EnglishTokenizer;
 
     constructor(start ?: State, end ?: State) {
         this.start = start || new State(false);
         this.end = end || new State(true);
+        this.languagePack = new EnglishLanguagePack();
+        this.tokenizer = this.languagePack.getTokenizer();
     }
 
-    match(expression : string[]) : boolean {
-        let current : State[] = NFA._getClosure(this.start);
+    private preprocess(utterance : string, domainCanonicals : string[], value : string) : Token[] {
+        const tokenized : TokenizerResult = this.tokenizer.tokenize(utterance);
+        const tokens = tokenized.rawTokens;
+        const posTags : Array<string|undefined> = this.languagePack.posTag(tokenized.rawTokens);
 
-        for (const token of expression) {
+        // replace value with special token $value
+        if (arrayMatchCount(tokens, value.split(' ')) !== 1)
+            return [];
+        const valueIndex = arrayMatch(tokens, value.split(' '));
+        posTags[valueIndex] = undefined;
+        posTags.splice(valueIndex, value.split(' ').length - 1);
+        tokens[valueIndex] = '$value';
+        tokens.splice(valueIndex, value.split(' ').length - 1);
+
+        // replace domain canonical with special token $domain
+        let domainCanonical : string;
+        let matchCount = 0;
+        for (const canonical of domainCanonicals) {
+            const count : number = arrayMatchCount(tokens, canonical.split(' '));
+            if (count > 0)
+                domainCanonical = canonical;
+            matchCount += count;
+        }
+        if (matchCount !== 1)
+            return [];
+        const domainCanonicalIndex : number = arrayMatch(tokens, domainCanonical!.split(' '));
+        posTags[domainCanonicalIndex] = undefined;
+        posTags.splice(domainCanonicalIndex, value.split(' ').length - 1);
+        tokens[domainCanonicalIndex] = '$domain';
+        tokens.splice(domainCanonicalIndex, value.split(' ').length - 1);
+
+        return Array.from(tokens.keys()).map((i) => {
+            return { token : tokens[i], pos : posTags[i] };
+        });
+    }
+
+    match(utterance : string, domainCanonical : string[], value : string) : boolean {
+        const preprocessed = this.preprocess(utterance, domainCanonical, value);
+        if (preprocessed.length === 0)
+            return false;
+
+        let current : State[] = NFA.getClosure(this.start);
+
+        for (const token of preprocessed) {
             if (current.length === 0)
                 return false;
 
             const next : Set<State> = new Set();
             for (const state of current) {
-                if (token in state.transitions) {
-                    for (const nextState of state.transitions[token])
-                        NFA._getClosure(nextState).forEach(next.add, next);
+                // token match
+                if (token.token in state.transitions) {
+                    for (const nextState of state.transitions[token.token])
+                        NFA.getClosure(nextState).forEach(next.add, next);
+                }
+                // part-of-speech tag match
+                if (token.pos && token.pos in state.transitions) {
+                    for (const nextState of state.transitions[token.pos])
+                        NFA.getClosure(nextState).forEach(next.add, next);
+                }
+                // wild card match
+                if ('.' in state.transitions) {
+                    for (const nextState of state.transitions['.'])
+                        NFA.getClosure(nextState).forEach(next.add, next)
                 }
             }
             current = Array.from(next);
@@ -72,7 +162,7 @@ export class NFA {
         return current.some((state : State) => state.isEnd);
     }
 
-    static _getClosure(state : State) : State[] {
+    private static getClosure(state : State) : State[] {
         const visited = [state];
         const stack = [state];
         while (stack.length) {
@@ -130,7 +220,7 @@ function closure(a : NFA) : NFA {
     return new NFA(start, end);
 }
 
-function toNFA(template : string[]) {
+function toNFA(template : string[]) : NFA {
     template = infixToPostfix(template);
     const stack : NFA[] = [];
 
@@ -152,7 +242,7 @@ function toNFA(template : string[]) {
     }
 
     assert(stack.length === 1);
-    return stack.pop();
+    return stack.pop()!;
 }
 
 export {

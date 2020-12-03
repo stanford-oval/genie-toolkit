@@ -22,17 +22,25 @@ import assert from 'assert';
 import { toNFA } from '../../lib/pos-parser/nfa';
 
 const TEST_CASES = [
-    ['a | b', ['a', 'b'], ['ab', '']],
-    ['a * | b c ( d | f )', ['a a', 'b c d'], ['a c d', 'b c d f']]
+    [
+        '( show me | find me | find | search for ) a $value $domain', ['restaurant', 'diner'], 'chinese',
+        ['Show me a Chinese restaurant', 'search for a Chinese diner'],
+        ['search me a Chinese restaurant']
+    ],
+    [
+        '( show me | find me | find | search for ) a $domain that ( VBP | VBD | VBZ ) . * $value . *', ['restaurant', 'diner'], 'chinese',
+        ['Show me a restaurant that serves Chinese food', 'search for a diner that serve good traditional Chinese style food'],
+        ['Show me a restaurant that Chinese food is served']
+    ]
 ];
 
 function main() {
-    for (const [template, matchExamples, unmatchExamples] of TEST_CASES) {
+    for (const [template, domainCanonicals, value, matchExamples, unmatchExamples] of TEST_CASES) {
         const nfa = toNFA(template.split(' '));
         for (const example of matchExamples)
-            assert(nfa.match(example.split(' ')));
+            assert(nfa.match(example, domainCanonicals, value));
         for (const example of unmatchExamples)
-            assert(!nfa.match(example.split(' ')));
+            assert(!nfa.match(example, domainCanonicals, value));
     }
 }
 
