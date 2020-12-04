@@ -23,8 +23,6 @@ import { promises as pfs } from 'fs';
 import assert from 'assert';
 
 function stringEscape(str : string) {
-    if (str === null || str === undefined)
-        return 'null';
     return '"' + str.replace(/(["\\])/g, '\\$1').replace(/\n/g, '\\n') + '"';
     // the following comment fixes broken syntax highlighting in GtkSourceView
     //]/
