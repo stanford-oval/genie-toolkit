@@ -24,7 +24,7 @@ import Stream from 'stream';
 
 import * as Utils from '../../utils/misc-utils';
 import { requoteProgram, getFunctions, getDevices } from '../requoting';
-import { stripOutTypeAnnotations, normalizeKeywordParams } from './eval_utils';
+import { stripOutTypeAnnotations } from './eval_utils';
 import * as I18n from '../../i18n';
 import * as TargetLanguages from '../../languages';
 import { ParserClient, PredictionResult } from '../../prediction/parserclient';
@@ -282,7 +282,8 @@ class SentenceEvaluator {
                 const parsed : PredictionResult = await this._parser.sendUtterance(this._preprocessed, contextCode, contextEntities, {
                     answer: answer,
                     tokenized: this._tokenized,
-                    skip_typechecking: true
+                    skip_typechecking: true,
+                    example_id: this._id
                 });
                 if (!entities)
                     entities = parsed.entities;
@@ -320,7 +321,7 @@ class SentenceEvaluator {
             ok_syntax = true;
 
             // do some light syntactic normalization
-            const beamString = normalizeKeywordParams(Array.from(stripOutTypeAnnotations(beam))).join(' ');
+            const beamString = Array.from(stripOutTypeAnnotations(beam)).join(' ');
 
             // do the actual normalization, using the full ThingTalk algorithm
             // we pass "ignoreSentence: true", which means strings are tokenized and then put in the

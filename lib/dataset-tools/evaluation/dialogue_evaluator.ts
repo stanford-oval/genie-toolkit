@@ -30,7 +30,7 @@ import * as Utils from '../../utils/misc-utils';
 import { EntityMap } from '../../utils/entity-utils';
 import * as I18n from '../../i18n';
 import { EntityRecord, getBestEntityMatch } from '../../dialogue-agent/entity-linking/entity-finder';
-import { stripOutTypeAnnotations, normalizeKeywordParams } from './eval_utils';
+import { stripOutTypeAnnotations } from './eval_utils';
 import * as TargetLanguages from '../../languages';
 import { ParserClient, PredictionResult } from '../../prediction/parserclient';
 import { ParsedDialogue, DialogueTurn } from '../parsers';
@@ -66,6 +66,8 @@ export interface ExampleEvaluationResult {
 }
 export type EvaluationResult = ExampleEvaluationResult & { total : number, turns : number };
 
+const MINIBATCH_SIZE = 100;
+
 class DialogueEvaluatorStream extends Stream.Transform {
     private _parser : ParserClient;
     private _tpClient : Tp.BaseClient;
@@ -77,6 +79,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
     private _tokenized : boolean;
     private _database : SimulationDatabase|undefined;
     private _cachedEntityMatches : Map<string, EntityRecord>;
+    private _minibatch : Array<Promise<ExampleEvaluationResult>>;
 
     constructor(parser : ParserClient,
                 options : DialogueEvaluatorOptions) {
@@ -97,6 +100,8 @@ class DialogueEvaluatorStream extends Stream.Transform {
         this._database = options.database;
 
         this._cachedEntityMatches = new Map;
+
+        this._minibatch = [];
     }
 
     private async _preprocess(sentence : string, contextEntities : EntityMap) {
@@ -334,7 +339,8 @@ class DialogueEvaluatorStream extends Stream.Transform {
 
         const parsed : PredictionResult = await this._parser.sendUtterance(tokens.join(' '), contextCode, contextEntities, {
             tokenized: true,
-            skip_typechecking: true
+            skip_typechecking: true,
+            example_id: id + '/' + turnIndex,
         });
 
         const predictions = parsed.candidates
@@ -370,7 +376,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
         }
 
         // do some light syntactic normalization
-        const choiceString : string = normalizeKeywordParams(Array.from(stripOutTypeAnnotations(choice))).join(' ');
+        const choiceString : string = Array.from(stripOutTypeAnnotations(choice)).join(' ');
 
         // do the actual normalization, using the full ThingTalk algorithm
         // we pass "ignoreSentence: true", which means strings are tokenized and then put in the
@@ -389,6 +395,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
             console.error(targetCode);
             console.error(normalized);
             console.error(choice);
+            console.error(choiceString);
             throw new Error('Normalization Error');
         }
 
@@ -471,12 +478,24 @@ class DialogueEvaluatorStream extends Stream.Transform {
         return ret;
     }
 
-    _transform(dialog : ParsedDialogue, encoding : BufferEncoding, callback : (err : Error|null, res ?: ExampleEvaluationResult) => void) {
-        this._evaluate(dialog).then((result) => callback(null, result), (err) => callback(err));
+    private async _flushMinibatch() {
+        for (const res of await Promise.all(this._minibatch))
+            this.push(res);
+        this._minibatch = [];
     }
 
-    _flush(callback : () => void) {
-        process.nextTick(callback);
+    private async _pushDialogue(dialog : ParsedDialogue) {
+        this._minibatch.push(this._evaluate(dialog));
+        if (this._minibatch.length >= MINIBATCH_SIZE)
+            await this._flushMinibatch();
+    }
+
+    _transform(dialog : ParsedDialogue, encoding : BufferEncoding, callback : (err : Error|null) => void) {
+        this._pushDialogue(dialog).then(() => callback(null), (err) => callback(err));
+    }
+
+    _flush(callback : (err : Error|null) => void) {
+        this._flushMinibatch().then(() => callback(null), (err) => callback(err));
     }
 }
 

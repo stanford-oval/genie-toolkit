@@ -816,8 +816,7 @@ export function initArgparse(subparsers) {
     });
     parser.add_argument('--url', {
         required: false,
-        // FIXME: replace it with a link with fixed version number 9.0 (couldn't find one currently)
-        default: 'https://schema.org/version/latest/schemaorg-current-http.jsonld',
+        default: 'https://raw.githubusercontent.com/schemaorg/schemaorg/main/data/releases/9.0/schemaorg-current-http.jsonld',
         help: 'The schema.org URL to retrieve the definitions from.'
     });
     parser.add_argument('--domain', {

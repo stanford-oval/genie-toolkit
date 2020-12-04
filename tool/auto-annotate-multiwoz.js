@@ -85,7 +85,11 @@ const REQUESTED_SLOT_MAP = {
     leave: 'leave_at',
     arrive: 'arrive_by',
     depart: 'departure',
-    dest: 'destination'
+    dest: 'destination',
+    people: 'book_people',
+    time: 'book_time',
+    stay: 'book_stay',
+    day: 'book_day'
 };
 
 // copied from trade-dst
@@ -130,11 +134,19 @@ const GENERAL_TYPO = {
     // star
     "4 star":"4", "4 stars":"4", "0 star rarting":"none",
     // others
-    "y":"yes", "any":"dontcare", "n":"no", "does not care":"dontcare", "not men":"none", "not":"none", "not mentioned":"none",
-    '':"none", "not mendtioned":"none", "3 .":"3", "does not":"no", "fun":"none", "art":"none",
+    "y":"yes", "any":"dontcare", "n":"no", "does not care":"dontcare",
+    "not men":"none", "not":"none", "not mentioned":"none",
+    '':"none", "not mendtioned":"none",
+    "3 .":"3", "does not":"no", "fun":"none", "art":"none",
 
     // new typos
-    "el shaddia guesthouse": "el shaddai"
+    "el shaddia guesthouse": "el shaddai",
+    "not given":"none",
+    "thur": "thursday",
+    "sundaymonday": "sunday|monday",
+    "mondaythursday": "monday|thursday",
+    "fridaytuesday": "friday|tuesday",
+    "cheapmoderate": "cheap|moderate"
 };
 function fixGeneralLabelError(key, value) {
     if (value in GENERAL_TYPO)
@@ -158,6 +170,12 @@ function fixGeneralLabelError(key, value) {
     if (key === 'hotel-price-range' && value === '$100')
         return 'none';
 
+    if ((key === 'hotel-book-day' || key === 'restaurant-book-day') && value === 'w')
+        return 'wednesday';
+
+    if ((key === 'hotel-book-day' || key === 'restaurant-book-day') && value === 'w')
+        return 'wednesday';
+
     if (/area/.test(key)) {
         if (value === 'no') return "north";
         if (value === "we") return "west";
@@ -168,6 +186,9 @@ function fixGeneralLabelError(key, value) {
 }
 
 function parseTime(v) {
+    if (v.indexOf('|') >= 0)
+        v = v.substring(0, v.indexOf('|'));
+
     if (/^[0-9]+:[0-9]+/.test(v)) {
         let [hour, minute, second] = v.split(':');
         hour = parseInt(hour);
@@ -208,6 +229,8 @@ function getStatementDomain(stmt) {
         return stmt.actions[0].schema.class.name;
 }
 
+const USE_MANUAL_AGENT_ANNOTATION = true;
+
 class Converter extends stream.Readable {
     constructor(args) {
         super({ objectMode: true });
@@ -216,6 +239,8 @@ class Converter extends stream.Readable {
         this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, true);
         this._userParser = ParserClient.get(args.user_nlu_server, 'en-US');
         this._agentParser = ParserClient.get(args.agent_nlu_server, 'en-US');
+        this._useExisting = args.use_existing;
+        this._maxTurn = args.max_turn;
 
         this._target = TargetLanguages.get('thingtalk');
         this._simulatorOverrides = new Map;
@@ -230,6 +255,9 @@ class Converter extends stream.Readable {
         this._database = new MultiJSONDatabase(args.database_file);
         simulatorOptions.database = this._database;
         this._simulator = this._target.createSimulator(simulatorOptions);
+
+        this._n = 0;
+        this._N = 0;
     }
 
     _read() {}
@@ -244,7 +272,7 @@ class Converter extends stream.Readable {
         await this._agentParser.start();
     }
 
-    async _parseUtterance(context, parser, utterance, forSide) {
+    async _parseUtterance(context, parser, utterance, forSide, example_id) {
         let contextCode, contextEntities;
         if (context !== null) {
             context = this._target.prepareContextForPrediction(context, forSide);
@@ -256,7 +284,8 @@ class Converter extends stream.Readable {
 
         const parsed = await parser.sendUtterance(utterance, contextCode, contextEntities, {
             tokenized: false,
-            skip_typechecking: true
+            skip_typechecking: true,
+            example_id
         });
         return (await Promise.all(parsed.candidates.map(async (cand) => {
             try {
@@ -278,7 +307,8 @@ class Converter extends stream.Readable {
         for (let idx = 0; idx < state.history.length; idx ++) {
             const item = state.history[idx];
             if (item.results === null) {
-                next = item;
+                if (item.confirm === 'accepted')
+                    next = item;
                 break;
             }
             current = item;
@@ -287,11 +317,11 @@ class Converter extends stream.Readable {
         return { current, next };
     }
 
-    async _doAgentTurn(context, contextInfo, turn, agentUtterance) {
-        const parsedAgent = await this._parseUtterance(context, this._agentParser, agentUtterance, 'agent');
+    async _doAgentTurn(context, contextInfo, turn, agentUtterance, exampleId) {
+        const parsedAgent = await this._parseUtterance(context, this._agentParser, agentUtterance, 'agent', exampleId);
 
         let agentTarget;
-        if (parsedAgent.length === 0) {
+        if (parsedAgent.length === 0 || !(parsedAgent[0] instanceof Ast.DialogueState)) {
             // oops, bad
             agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_invalid', null, []);
         } else {
@@ -303,23 +333,32 @@ class Converter extends stream.Readable {
             agentTarget = new Ast.DialogueState(null, POLICY_NAME, 'sys_invalid', null, []);
         }
 
-        // add some heuristics using the "system_acts" annotation
-        const requestedSlots = turn.system_acts.filter((act) => typeof act === 'string');
-        if (requestedSlots.length > 0) {
-            if (requestedSlots.some((slot) => SEARCH_SLOTS_FOR_SYSTEM.has(slot))) {
-                if (contextInfo.current && contextInfo.current.results.results.length === 0)
-                    agentTarget.dialogueAct = 'sys_empty_search_question';
-                else
-                    agentTarget.dialogueAct = 'sys_search_question';
-            } else {
-                if (contextInfo.current && contextInfo.current.error)
-                    agentTarget.dialogueAct = 'sys_action_error_question';
-                else
-                    agentTarget.dialogueAct = 'sys_slot_fill';
-            }
+        if (this._useExisting && USE_MANUAL_AGENT_ANNOTATION) {
+            // add some heuristics using the "system_acts" annotation
+            const requestedSlots = turn.system_acts.filter((act) => typeof act === 'string');
+            if (requestedSlots.length > 0) {
+                if (requestedSlots.some((slot) => SEARCH_SLOTS_FOR_SYSTEM.has(slot))) {
+                    if (contextInfo.current && contextInfo.current.results.results.length === 0)
+                        agentTarget.dialogueAct = 'sys_empty_search_question';
+                    else
+                        agentTarget.dialogueAct = 'sys_search_question';
+                } else {
+                    if (contextInfo.current && contextInfo.current.results.error)
+                        agentTarget.dialogueAct = 'sys_action_error_question';
+                    else
+                        agentTarget.dialogueAct = 'sys_slot_fill';
+                }
 
-            agentTarget.dialogueActParam = requestedSlots.map((slot) => REQUESTED_SLOT_MAP[slot] || slot);
+                agentTarget.dialogueActParam = requestedSlots.map((slot) => REQUESTED_SLOT_MAP[slot] || slot);
+            }
         }
+        
+        // adjust to ensure the agent doesn't produce new complete statements
+        agentTarget.history = agentTarget.history.filter((item) => {
+            if (item.confirm === 'confirmed')
+                return false;
+            return !item.isExecutable() || item.confirm === 'proposed';
+        });
 
         if (agentTarget.history.length === 0 && contextInfo.next)
             agentTarget.history.push(contextInfo.next.clone());
@@ -346,7 +385,35 @@ class Converter extends stream.Readable {
         //value.display = resolved.display;
     }
 
-    async _doUserTurn(context, contextInfo, turn, userUtterance, slotBag, actionDomains) {
+    async _doUserTurn(context, contextInfo, turn, userUtterance, slotBag, actionDomains, exampleId) {
+        if (!this._useExisting) {
+            // pure self-training:
+            const parsedUser = await this._parseUtterance(context, this._userParser, userUtterance, 'user', exampleId);
+
+            let userTarget;
+            if (parsedUser.length === 0) {
+                // oops, bad
+                userTarget = new Ast.DialogueState(null, POLICY_NAME, 'invalid', null, []);
+                if (contextInfo.next)
+                    userTarget.history.push(contextInfo.next.clone());
+            } else {
+                userTarget = parsedUser[0];
+            }
+            // ensure that executable statements come first
+            userTarget.history.sort((a, b) => {
+                const aexec = a.isExecutable();
+                const bexec = b.isExecutable();
+                if (aexec === bexec)
+                    return 0;
+                if (aexec)
+                    return -1;
+                else
+                    return 1;
+            });
+            
+            return userTarget;
+        }
+
         const allSlots = new Map;
 
         for (let slot of turn.belief_state) {
@@ -384,7 +451,7 @@ class Converter extends stream.Readable {
         if (newSearchSlots.size === 0 && newActionSlots.size === 0) {
             // no slot given at this turn
             // parse the utterance and hope for the best...
-            const parsedUser = await this._parseUtterance(context, this._userParser, userUtterance, 'user');
+            const parsedUser = await this._parseUtterance(context, this._userParser, userUtterance, 'user', exampleId);
 
             let userTarget;
             if (parsedUser.length === 0) {
@@ -446,6 +513,18 @@ class Converter extends stream.Readable {
                             new Ast.Value.Enum('hotel'),
                             new Ast.Value.Enum('guest_house')
                         ])));
+                    } else if (/^(centre|south|north|east|west)\|(centre|south|north|east|west)$/.test(value) && (key === 'restaurant-area' || key === 'attraction-area' || key === 'hotel-area')) {
+                        const [, first, second] = /^(centre|south|north|east|west)\|(centre|south|north|east|west)$/.exec(value);
+                        filterClauses.push(new Ast.BooleanExpression.Atom(null, 'area', 'in_array', new Ast.Value.Array([
+                            new Ast.Value.Enum(first),
+                            new Ast.Value.Enum(second)
+                        ])));
+                    } else if (/^(cheap|moderate|expensive)\|(cheap|moderate|expensive)$/.test(value) && (key === 'restaurant-price-range' || key === 'attraction-price-range' || key === 'hotel-price-range')) {
+                        const [, first, second] = /^(cheap|moderate|expensive)\|(cheap|moderate|expensive)$/.exec(value);
+                        filterClauses.push(new Ast.BooleanExpression.Atom(null, 'price_range', 'in_array', new Ast.Value.Array([
+                            new Ast.Value.Enum(first),
+                            new Ast.Value.Enum(second)
+                        ])));
                     } else {
                         if (param === 'internet' || param === 'parking')
                             ttValue = new Ast.Value.Boolean(value !== 'no');
@@ -503,6 +582,9 @@ class Converter extends stream.Readable {
                         // ignore
                         continue;
                     }
+
+                    if (value.indexOf('|') >= 0)
+                        value = value.substring(0, value.indexOf('|'));
 
                     let ttValue;
                     if (param === 'leave_at' || param === 'arrive_by' || param === 'book_time')
@@ -636,6 +718,10 @@ class Converter extends stream.Readable {
         for (let idx = 0; idx < dlg.dialogue.length; idx++) {
             const turn = dlg.dialogue[idx];
             this._findTrainName(turn);
+            const turnId = id + '/' + idx;
+
+            if (this._maxTurn && idx >= this._maxTurn)
+                break;
 
             try {
                 let contextCode = '', agentUtterance = '', agentTargetCode = '';
@@ -674,7 +760,7 @@ class Converter extends stream.Readable {
                     contextCode = context.prettyprint();
 
                     // do the agent
-                    const agentTarget = await this._doAgentTurn(context, contextInfo, turn, agentUtterance);
+                    const agentTarget = await this._doAgentTurn(context, contextInfo, turn, agentUtterance, turnId);
                     const oldContext = context;
                     context = this._target.computeNewState(context, agentTarget, 'agent');
                     const prediction = this._target.computePrediction(oldContext, context, 'agent');
@@ -682,7 +768,7 @@ class Converter extends stream.Readable {
                 }
 
                 const userUtterance = undoTradePreprocessing(turn.transcript);
-                const userTarget = await this._doUserTurn(context, contextInfo, turn, userUtterance, slotBag, actionDomains);
+                const userTarget = await this._doUserTurn(context, contextInfo, turn, userUtterance, slotBag, actionDomains, turnId);
                 const oldContext = context;
                 context = this._target.computeNewState(context, userTarget, 'user');
                 const prediction = this._target.computePrediction(oldContext, context, 'user');
@@ -707,16 +793,27 @@ class Converter extends stream.Readable {
             }
         }
 
-        return { id, turns };
+        this.push({ id, turns });
+        this._n++;
+        this.emit('progress', this._n/this._N);
     }
 
     async run(data) {
-        for (let i = 0; i < data.length; i++) {
-            if (this._onlyMultidomain && data[i].domains.length === 1)
-                continue;
+        this._n = 0;
+        this._N = data.length;
+        for (let i = 0; i < data.length; ) {
+            // run 100 dialogues in parallel
+            // Predictor will split the minibatch if necessary
+            const promises = [];
 
-            this.push(await this._doDialogue(data[i]));
-            this.emit('progress', i/data.length);
+            for (; i < data.length && promises.length < 1000; i++) {
+                if (this._onlyMultidomain && data[i].domains.length === 1)
+                    continue;
+
+                promises.push(this._doDialogue(data[i]));
+            }
+
+            await Promise.all(promises);
         }
 
         this.emit('progress', 1);
@@ -755,6 +852,22 @@ export function initArgparse(subparsers) {
         required: false,
         action: 'store_true',
         help: 'Only translate multi-domain dialogues'
+    });
+    parser.add_argument('--use-existing', {
+        required: false,
+        action: 'store_true',
+        default: true,
+        help: 'Use existing annotations'
+    });
+    parser.add_argument('--no-use-existing', {
+        required: false,
+        action: 'store_false',
+        dest: 'use_existing',
+        help: 'Do not use existing annotations'
+    });
+    parser.add_argument('--max-turn', {
+        required: false,
+        help: 'Stop at the given turn when selftraining'
     });
     parser.add_argument('input_file', {
         help: 'Input dialog file'
