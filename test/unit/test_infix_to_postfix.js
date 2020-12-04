@@ -22,12 +22,19 @@ import assert from 'assert';
 import { infixToPostfix } from '../../lib/pos-parser/infix-to-postfix';
 
 const TEST_CASES = [
+    // basics (concat, closure, union)
     ['a b', 'a b _'],
     ['a * b', 'a * b _'],
     ['a * | b c', 'a * b c _ |'],
     ['( a * | b ) c', 'a * b | c _'],
     ['a b *', 'a b * _'],
-    ['a . *', 'a . * _']
+
+    // wild card
+    ['a . *', 'a . * _'],
+
+    // capturing group
+    ['a [ b ]', 'a [ b ] _'],
+    ['a [ . * c ]', 'a [ . * _ c ] _']
 ];
 
 function main() {

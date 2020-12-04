@@ -23,6 +23,8 @@ const specialTokens = [
     '*', // closure operator
     '|', // union operator
     '.', // wildcard character
+    '[', // capturing group
+    ']', // capturing group
     '(',
     ')'
 ];
@@ -66,7 +68,7 @@ function infixToPostfix(template : string[]) : string[] {
             while (top(stack) !== '(')
                 postfix.push(stack.pop()!);
             stack.pop();
-        } else if (specialTokens.includes(token) && token !== '.') {
+        } else if (specialTokens.includes(token) && token !== '.' && token !== '[' && token !== ']') {
             while (top(stack)! in priorityMap
                 && priorityMap[top(stack)!] >= priorityMap[token])
                 postfix.push(stack.pop()!);

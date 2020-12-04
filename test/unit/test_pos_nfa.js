@@ -23,24 +23,29 @@ import { toNFA } from '../../lib/pos-parser/nfa';
 
 const TEST_CASES = [
     [
-        '( show me | find me | find | search for ) a $value $domain', ['restaurant', 'diner'], 'chinese',
-        ['Show me a Chinese restaurant', 'search for a Chinese diner'],
-        ['search me a Chinese restaurant']
+        '( show me | find me | find | search for ) a [ $value ] $domain', ['restaurant', 'diner'], 'chinese',
+        [
+            ['Show me a Chinese restaurant', '$value'],
+            ['search for a Chinese diner', '$value'],
+            ['search me a Chinese restaurant', null],
+        ]
     ],
     [
-        '( show me | find me | find | search for ) a $domain that ( VBP | VBD | VBZ ) . * $value . *', ['restaurant', 'diner'], 'chinese',
-        ['Show me a restaurant that serves Chinese food', 'search for a diner that serve good traditional Chinese style food'],
-        ['Show me a restaurant that Chinese food is served']
+        '( show me | find me | find | search for ) a $domain that [ ( VBP | VBD | VBZ ) . * $value . * ]', ['restaurant', 'diner'], 'chinese',
+        [
+            ['Show me a restaurant that serves Chinese food', 'serves $value food'],
+            ['search for a diner that serves good traditional Chinese style food', 'serves good traditional $value style food'],
+            ['Show me a restaurant that Chinese food is served', null],
+        ]
     ]
 ];
 
 function main() {
-    for (const [template, domainCanonicals, value, matchExamples, unmatchExamples] of TEST_CASES) {
+    for (const [template, domainCanonicals, value, examples] of TEST_CASES) {
         const nfa = toNFA(template.split(' '));
-        for (const example of matchExamples)
-            assert(nfa.match(example, domainCanonicals, value));
-        for (const example of unmatchExamples)
-            assert(!nfa.match(example, domainCanonicals, value));
+        for (const [utterance, match] of examples)
+            //console.log(utterance, nfa.match(utterance, domainCanonicals, value));
+            assert.strictEqual(match, nfa.match(utterance, domainCanonicals, value));
     }
 }
 

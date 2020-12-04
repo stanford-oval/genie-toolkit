@@ -25,25 +25,36 @@ import EnglishLanguagePack from '../../lib/i18n/american-english';
 import EnglishTokenizer from '../../lib/i18n/tokenizer/english';
 import { TokenizerResult } from '../i18n';
 
+interface Transition {
+    token : string;
+    from : State;
+    to : State;
+    capturing : boolean;
+}
+
+let stateCounter = 0;
+
 class State {
+    id : number;
     isEnd : boolean;
-    transitions : Record<string, State[]>;
+    transitions : Record<string, Transition[]>;
 
     constructor(isEnd = false) {
+        this.id = stateCounter++;
         this.isEnd = isEnd;
         this.transitions = {};
     }
 
-    addTransition(token : string, to : State) {
+    addTransition(token : string, to : State, capturing = false) {
         if (this.isEnd) {
             // order matters: if it's a self-loop, `isEnd` remains true
             this.isEnd = false;
             to.isEnd = true;
         }
         if (token in this.transitions)
-            this.transitions[token].push(to);
+            this.transitions[token].push({ token, from: this, to, capturing });
         else
-            this.transitions[token] = [to];
+            this.transitions[token] = [{ token, from: this, to, capturing }];
     }
 }
 
@@ -127,39 +138,51 @@ export class NFA {
         });
     }
 
-    match(utterance : string, domainCanonical : string[], value : string) : boolean {
+    match(utterance : string, domainCanonical : string[], value : string) : string|null {
         const preprocessed = this.preprocess(utterance, domainCanonical, value);
         if (preprocessed.length === 0)
-            return false;
+            return null;
 
+        // `history` records capturing tokens to reach to each state, where key is the state id
+        // this is find since there is no back loop
+        const history : Record<number, string[]> = {};
         let current : State[] = NFA.getClosure(this.start);
+        let next : Set<State>;
+
+        // given a transition, add possible states to `next`, and update history for each state
+        function addToNext(token : Token, transition : Transition) {
+            NFA.getClosure(transition.to).forEach((to) => {
+                if (transition.capturing)
+                    history[to.id] = [...(history[transition.from.id] || []), token.token];
+                else
+                    history[to.id] = [...(history[transition.from.id] || [])];
+                next.add(to);
+            });
+        }
 
         for (const token of preprocessed) {
             if (current.length === 0)
-                return false;
+                return null;
 
-            const next : Set<State> = new Set();
+            next = new Set();
             for (const state of current) {
                 // token match
-                if (token.token in state.transitions) {
-                    for (const nextState of state.transitions[token.token])
-                        NFA.getClosure(nextState).forEach(next.add, next);
-                }
+                if (token.token in state.transitions)
+                    state.transitions[token.token].forEach(addToNext.bind(null, token));
                 // part-of-speech tag match
-                if (token.pos && token.pos in state.transitions) {
-                    for (const nextState of state.transitions[token.pos])
-                        NFA.getClosure(nextState).forEach(next.add, next);
-                }
+                if (token.pos && token.pos in state.transitions)
+                    state.transitions[token.pos].forEach(addToNext.bind(null, token));
                 // wild card match
-                if ('.' in state.transitions) {
-                    for (const nextState of state.transitions['.'])
-                        NFA.getClosure(nextState).forEach(next.add, next)
-                }
+                if ('.' in state.transitions)
+                    state.transitions['.'].forEach(addToNext.bind(null, token));
             }
             current = Array.from(next);
         }
 
-        return current.some((state : State) => state.isEnd);
+        const match = current.find((state : State) => state.isEnd);
+        if (match)
+            return history[match.id].join(' ');
+        return null;
     }
 
     private static getClosure(state : State) : State[] {
@@ -168,10 +191,10 @@ export class NFA {
         while (stack.length) {
             const state : State = stack.pop()!;
             if ('ε' in state.transitions) {
-                for (const s of state.transitions['ε']) {
-                    if (!visited.includes(s)) {
-                        visited.push(s);
-                        stack.push(s);
+                for (const transition of state.transitions['ε']) {
+                    if (!visited.includes(transition.to)) {
+                        visited.push(transition.to);
+                        stack.push(transition.to);
                     }
                 }
             }
@@ -180,11 +203,11 @@ export class NFA {
     }
 }
 
-function edge(token : string) : NFA {
+function edge(token : string, capturing = false) : NFA {
     const start = new State(false);
     const end = new State(true);
 
-    start.addTransition(token, end);
+    start.addTransition(token, end, capturing);
     return new NFA(start, end);
 }
 
@@ -224,8 +247,13 @@ function toNFA(template : string[]) : NFA {
     template = infixToPostfix(template);
     const stack : NFA[] = [];
 
+    let capturing = false;
     for (const token of template) {
-        if (token === '_') { // concat
+        if (token === '[') {
+            capturing = true;
+        } else if (token === ']') {
+            capturing = false;
+        } else if (token === '_') { // concat
             const b : NFA = stack.pop()!;
             const a : NFA = stack.pop()!;
             stack.push(concat(a, b));
@@ -237,7 +265,7 @@ function toNFA(template : string[]) : NFA {
             const a : NFA = stack.pop()!;
             stack.push(closure(a));
         } else {
-            stack.push(edge(token));
+            stack.push(edge(token, capturing));
         }
     }
 
