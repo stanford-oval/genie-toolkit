@@ -94,12 +94,28 @@ function findSubstring(sequence, substring, spansBySentencePos, allowOverlapping
         return [-1, false];
 }
 
+function getEntityType(entityMarker) {
+    switch (entityMarker) {
+    case '^^tt:hashtag':
+        return 'HASHTAG';
+    case '^^tt:username':
+        return 'USERNAME';
+    case '^^tt:phone_number':
+        return 'PHONE_NUMBER';
+    default:
+        return 'GENERIC_ENTITY_' + entityMarker.substring(2);
+    }
+}
 
 function findSpanType(program, begin_index, end_index, requote_numbers, string_number) {
     let spanType;
-    if (begin_index > 1 && program[begin_index-2] === 'location:') {
+    if (program[begin_index-2] === 'location:' ||
+        program[begin_index-3] === 'Location') { // new Location ( " ..., in new syntax
         spanType = 'LOCATION';
-
+    } else if ((program[end_index+1] || '').startsWith('^^')) {
+        spanType = getEntityType(program[end_index+1]);
+    } else if ((program[begin_index-3] || '').startsWith('^^') && program[begin_index-4] === 'null') { // null ^^com.foo ( " ..., in new syntax
+        spanType = getEntityType(program[begin_index-3]);
     } else if (doReplaceNumbers(program[begin_index], requote_numbers)
         && !(program[end_index+1].startsWith('^^'))){
         // catch purely numeric postal_codes or phone_numbers
@@ -107,29 +123,15 @@ function findSpanType(program, begin_index, end_index, requote_numbers, string_n
             spanType = 'QUOTED_STRING';
         else
             spanType = 'NUMBER';
-    } else if (end_index === program.length - 1 || !program[end_index+1].startsWith('^^')) {
-        spanType = 'QUOTED_STRING';
     } else {
-        switch (program[end_index+1]) {
-        case '^^tt:hashtag':
-            spanType = 'HASHTAG';
-            break;
-        case '^^tt:username':
-            spanType = 'USERNAME';
-            break;
-        case '^^tt:phone_number':
-            spanType = 'PHONE_NUMBER';
-            break;
-        default:
-            spanType = 'GENERIC_ENTITY_' + program[end_index+1].substring(2);
-        }
+        spanType = 'QUOTED_STRING';
     }
     return spanType;
 }
 
 
 function createProgram(program, spansByProgramPos, entityRemap, requote_numbers, ignoredProgramSpans) {
-    let in_string = false;
+    let in_string = false, in_location = false, in_entity = false;
     let newProgram = [];
     let programSpanIndex = 0;
 
@@ -150,9 +152,31 @@ function createProgram(program, spansByProgramPos, entityRemap, requote_numbers,
         }
         if (in_string)
             continue;
-        if (token === 'location:' || token.startsWith('^^')) {
+        // handle "new Location ( ... )" in new syntax
+        if ((token === 'new' && program[i+1] === 'Location' &&
+             program[i+3] === '"') ||
+            (token === 'Location' && program[i+2] === '"'))
             continue;
-        } else if (ENTITY_MATCH_REGEX.test(token)) {
+        // handle "null ^^com.foo ( ... )" in new syntax
+        if (token === 'null' && (program[i+1] || '').startsWith('^^'))
+            continue;
+        if (token === '(' && program[i-1] === 'Location' && program[i+1] === '"') {
+            in_location = true;
+            continue;
+        }
+        if (token === '(' && program[i-2] === 'null' && program[i-1].startsWith('^^')) {
+            in_entity = true;
+            continue;
+        }
+        if (token === ')' && (in_location || in_entity)) {
+            in_location = false;
+            in_entity = false;
+            continue;
+        }
+        if (token === 'location:' || token.startsWith('^^'))
+            continue;
+
+        if (ENTITY_MATCH_REGEX.test(token)) {
             assert(entityRemap[token]);
             newProgram.push(entityRemap[token]);
         } else if (doReplaceNumbers(token, requote_numbers)){
