@@ -7,7 +7,7 @@ S2000024750	anyone is allowed to enable nba news if my location is not home	"$po
   true : now => @org.thingpedia.builtin.thingengine.builtin.configure filter any(@org.thingpedia.builtin.thingengine.builtin.get_gps() filter !(location == $location.home)) && device == ""com.nba""^^tt:device;
 }"
 S2000043793	@charlie has my permission to setup tumblr blog if my location is not here	"$policy {
-  source == ""charlie""^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter any(@org.thingpedia.builtin.thingengine.builtin.get_gps() filter !(location == $location.current_location)) && device == ""com.tumblr.blog""^^tt:device;
+  $source == ""charlie""^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter any(@org.thingpedia.builtin.thingengine.builtin.get_gps() filter !(location == $location.current_location)) && device == ""com.tumblr.blog""^^tt:device;
 }"
 S4000514968	setup cryptonator when techcrunch news updates	"monitor(@com.techcrunch.news()) => @org.thingpedia.builtin.thingengine.builtin.configure(device=""com.cryptonator""^^tt:device);"
 S4000444881	get sticky notes when ars technica publishes a new article	monitor(@com.arstechnica.index()) => @org.thingpedia.friendhub.stickynotes.list_posts();
