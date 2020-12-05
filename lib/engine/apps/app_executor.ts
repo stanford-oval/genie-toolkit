@@ -22,7 +22,7 @@ import assert from 'assert';
 import * as events from 'events';
 import AsyncQueue from 'consumer-queue';
 
-import { Grammar as AppGrammar, Compiler as AppCompiler, Ast } from 'thingtalk';
+import { Syntax, Compiler as AppCompiler, Ast } from 'thingtalk';
 import RuleExecutor from './rule_executor';
 import { ChannelState } from '../db/channel';
 
@@ -194,7 +194,7 @@ export default class AppExecutor extends events.EventEmitter {
         this.rules = [];
 
         try {
-            const ast = AppGrammar.parse(code);
+            const ast = Syntax.parse(code);
             assert(ast instanceof Ast.Program);
             this._ast = ast;
             this._error = null;

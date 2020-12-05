@@ -51,18 +51,18 @@ system_generic_proposal : S.AgentReplyRecord = {
     ) => D.makeRefinementProposal(ctx, proposal);
 }
 
-negative_proposal_request : Ast.Table = {
+negative_proposal_request : Ast.Expression = {
     counterproposal_preamble ('a' | 'any') request:answer_noun_phrase '.' => request;
     counterproposal_preamble request:anything_phrase '.' => request;
 }
 
-negative_proposal_answer_preamble : Ast.Table = {
+negative_proposal_answer_preamble : Ast.Expression = {
     ( ('no ,' | 'no' | '') ('i am not in the mood for a' | 'i do not like' | 'i do not want') phrase:answer_noun_phrase
     | ('no ,' | 'no' | '') ('i am not in the mood for a' | 'i do not like' | 'i do not want') phrase:anything_phrase
     ) => phrase;
 }
 
-negative_proposal_reply : [Ast.Table|null, Ast.Table|null] = {
+negative_proposal_reply : [Ast.Expression|null, Ast.Expression|null] = {
     ('no ,' | 'no' | '') request:negative_proposal_request => [null, request];
     preamble:negative_proposal_answer_preamble => [preamble, null];
     preamble:negative_proposal_answer_preamble request:negative_proposal_request => [preamble, request];

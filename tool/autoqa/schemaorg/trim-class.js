@@ -37,8 +37,8 @@ import {
 import { titleCase, DEFAULT_ENTITIES } from '../lib/utils';
 
 async function loadClassDef(thingpedia) {
-    const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
-    assert(library.isLibrary && library.classes.length === 1);
+    const library = ThingTalk.Syntax.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
+    assert(library instanceof ThingTalk.Ast.Library && library.classes.length === 1);
     return library.classes[0];
 }
 

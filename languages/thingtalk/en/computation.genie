@@ -34,7 +34,7 @@ projection_Measure_m = {}
 compute_question = {}
 with_arg_min_max_table = {}
 
-projection_Measure_m : Ast.Table = {
+projection_Measure_m : Ast.Expression = {
     !turking {
         ( 'the distance' ('of' | 'to') table:with_filtered_table ('from here' | '')
         | 'the distance' ('of' | 'to') 'the' table:with_arg_min_max_table ('from here' | ''))=> {
@@ -43,7 +43,7 @@ projection_Measure_m : Ast.Table = {
 
             if (!table.schema!.out.geo || !table.schema!.out.geo.isLocation)
                 return null;
-            return C.makeComputeProjExpression(table, 'distance', [new Ast.Value.VarRef('geo'), HERE], new Type.Measure('m'));
+            return C.makeComputeExpression(table, 'distance', [new Ast.Value.VarRef('geo'), HERE], new Type.Measure('m'));
         };
 
         // these form sentences like "tell me how far X is", which is grammatical but
@@ -53,7 +53,7 @@ projection_Measure_m : Ast.Table = {
         ) => {
             if (!table.schema!.out.geo || !table.schema!.out.geo.isLocation)
                 return null;
-            return C.makeComputeProjExpression(table, 'distance', [new Ast.Value.VarRef('geo'), HERE], new Type.Measure('m'));
+            return C.makeComputeExpression(table, 'distance', [new Ast.Value.VarRef('geo'), HERE], new Type.Measure('m'));
         };
 
         ( 'the distance' ('of' | 'to') table:with_filtered_table 'from' place:constant_Location
@@ -63,7 +63,7 @@ projection_Measure_m : Ast.Table = {
         ) => {
             if (!table.schema!.out.geo || !table.schema!.out.geo.isLocation)
                 return null;
-            return C.makeComputeProjExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], new Type.Measure('m'));
+            return C.makeComputeExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], new Type.Measure('m'));
         };
 
         ( 'how' ('far' | 'near' | 'close') 'from' place:constant_Location table:with_filtered_table 'is'
@@ -73,12 +73,12 @@ projection_Measure_m : Ast.Table = {
         ) => {
             if (!table.schema!.out.geo || table.schema!.out.geo.isLocation)
                 return null;
-            return C.makeComputeProjExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], new Type.Measure('m'));
+            return C.makeComputeExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], new Type.Measure('m'));
         };
     }
 }
 
-projection_Number : Ast.Table = {
+projection_Number : Ast.Expression = {
     !turking {
         ( 'the number of' p:out_param_Array__Any ('of' | 'in' | 'in the') table:with_filtered_table
         | 'the number of' p:out_param_Array__Any ('of' | 'in') 'the' table:with_arg_min_max_table ) => {
@@ -87,7 +87,7 @@ projection_Number : Ast.Table = {
             const conflictParam = C.hasConflictParam(table, p.name, 'count');
             if (conflictParam)
                 return C.makeProjection(table, conflictParam);
-            return C.makeAggComputeProjExpression(table, 'count', null, p, Type.Number);
+            return C.makeAggComputeExpression(table, 'count', null, p, Type.Number);
         };
 
         ( 'the number of' p:out_param_Array__Any 'with' filter:with_filter ('of' | 'in' | 'in the') table:with_filtered_table
@@ -101,7 +101,7 @@ projection_Number : Ast.Table = {
             const list = C.makeListExpression(p, filter);
             if (!list)
                 return null;
-            return C.makeAggComputeProjExpression(table, 'count', null, list, Type.Number);
+            return C.makeAggComputeExpression(table, 'count', null, list, Type.Number);
         };
 
         ( 'the number of' p:out_param_ArrayCount ('of' | 'in' | 'in the') table:with_filtered_table
@@ -113,14 +113,14 @@ projection_Number : Ast.Table = {
     }
 }
 
-compute_question : Ast.Table = {
+compute_question : Ast.Expression = {
     !turking {
         ( 'how' ('far' | 'near' | 'close') ('is' | 'are') table:with_filtered_table ('from here' | '') ('?'|'')
         | 'how' ('far' | 'near' | 'close') ('is' | 'are') 'the' table:with_arg_min_max_table ('from here' | '') ('?'|'')
         )=> {
             if (!table.schema!.out.geo || !table.schema!.out.geo.isLocation)
                 return null;
-            return C.makeComputeProjExpression(table, 'distance', [new Ast.Value.VarRef('geo'), HERE], new Type.Measure('m'));
+            return C.makeComputeExpression(table, 'distance', [new Ast.Value.VarRef('geo'), HERE], new Type.Measure('m'));
         };
 
         ( 'how' ('far' | 'near' | 'close') ('is' | 'are') table:with_filtered_table ('from' | 'to') place:constant_Location ('?'|'')
@@ -128,7 +128,7 @@ compute_question : Ast.Table = {
         ) => {
             if (!table.schema!.out.geo || !table.schema!.out.geo.isLocation)
                 return null;
-            return C.makeComputeProjExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], new Type.Measure('m'));
+            return C.makeComputeExpression(table, 'distance', [new Ast.Value.VarRef('geo'), place], new Type.Measure('m'));
         };
 
         ( 'how many' p:out_param_ArrayCount ('does' | 'do') table:with_filtered_table 'have ?'
@@ -157,7 +157,7 @@ compute_question : Ast.Table = {
             const conflictParam = C.hasConflictParam(table, p.name, 'count');
             if (conflictParam)
                 return C.makeProjection(table, conflictParam);
-            return C.makeAggComputeProjExpression(table, 'count', null, p, Type.Number);
+            return C.makeAggComputeExpression(table, 'count', null, p, Type.Number);
         };
 
         !dialogues {
@@ -178,7 +178,7 @@ compute_question : Ast.Table = {
             const list = C.makeListExpression(p, filter);
             if (!list)
                 return null;
-            return C.makeAggComputeProjExpression(table, 'count', null, list, Type.Number);
+            return C.makeAggComputeExpression(table, 'count', null, list, Type.Number);
         };
         }
 
@@ -191,8 +191,8 @@ compute_question : Ast.Table = {
                 return null;
             const newSchema = table.schema!.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT)
                 .addArguments([new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'count', Type.Number)]);
-            const agg = new Ast.Table.Aggregation(null, table, '*', 'count', null, newSchema);
-            return new Ast.Table.Projection(null, agg, ['count'], newSchema);
+            const agg = new Ast.AggregationExpression(null, table, '*', 'count', newSchema);
+            return new Ast.ProjectionExpression(null, agg, ['count'], [], [], newSchema);
         };
 
 
@@ -205,14 +205,14 @@ compute_question : Ast.Table = {
                 return null;
 
             const newSchema = table.schema!.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
-            const agg = new Ast.Table.Aggregation(null, table, p.name, 'sum', null, newSchema);
-            return new Ast.Table.Projection(null, agg, [p.name], newSchema);
+            const agg = new Ast.AggregationExpression(null, table, p.name, 'sum', newSchema);
+            return new Ast.ProjectionExpression(null, agg, [p.name], [], [], newSchema);
         };
         }
     }
 }
 
-with_arg_min_max_table : Ast.Table = {
+with_arg_min_max_table : Ast.Expression = {
     !turking {
         ('nearest' | 'closest') table:complete_table ('' | 'from here' | 'to here' | 'to me')  => {
             if (!table.schema!.out.geo || !table.schema!.out.geo.isLocation)

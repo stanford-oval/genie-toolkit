@@ -71,7 +71,7 @@ class MockAppExecutor {
         console.log('MOCK: App ' + options.name + ' with code ' + this.code + ' loaded');
 
         this._program = program;
-        assert(this._program.rules.length === 1);
+        assert(this._program.statements.length === 1);
         this.mainOutput = new QueueOutputDelegate();
     }
 
@@ -84,7 +84,7 @@ class MockAppExecutor {
         const overrides = new Map;
         const generator = new ResultGenerator(this._rng, overrides);
         for (let slot of this._program.iterateSlots2()) {
-            if (slot instanceof Ast.Selector)
+            if (slot instanceof Ast.DeviceSelector)
                 continue;
             generator.addCandidate(slot.get());
         }

@@ -19,10 +19,12 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
-
 import * as ThingTalk from 'thingtalk';
 
+import * as ThingTalkUtils from '../utils/thingtalk';
+
 import type DialogueLoop from './dialogue-loop';
+
 
 const SLOT_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_]+))?})/;
 function normalizeSlot(t : string) : string {
@@ -80,27 +82,31 @@ export function loadOneExample(ex : ThingTalk.Ast.Example) {
         slots.push(name);
     }
 
-    const code = ThingTalk.NNSyntax.toNN(newprogram, [], {});
+    const entities = {};
+    const code = ThingTalkUtils.serializeNormalized(newprogram, entities);
     let monitorable;
     if (ex.type === 'stream')
         monitorable = true;
     else if (ex.type === 'action')
         monitorable = false;
     else if (ex.type === 'query')
-        monitorable = (ex.value as ThingTalk.Ast.Table).schema!.is_monitorable;
+        monitorable = ex.value.schema!.is_monitorable;
     else
         monitorable = false;
     return { utterance: ex.utterances[0],
              type: ex.type,
              monitorable: monitorable,
              target: {
-                example_id: ex.id, code: code, entities: {}, slotTypes: slotTypes, slots: slots } };
+                example_id: ex.id, code, entities, slotTypes, slots } };
 }
 
 export async function loadExamples(dataset : string,
                                    schemaRetriever : ThingTalk.SchemaRetriever,
                                    maxCount : number) {
-    const parsed = await ThingTalk.Grammar.parseAndTypecheck(dataset, schemaRetriever);
+    // use ThingTalkUtils instead of ThingTalk.Syntax so we transparently
+    // fallback to old syntax in case we're talking to an old Thingpedia
+    // with unported dataset.tt
+    const parsed = await ThingTalkUtils.parse(dataset, schemaRetriever);
     assert(parsed instanceof ThingTalk.Ast.Library);
     const parsedDataset = parsed.datasets[0];
 

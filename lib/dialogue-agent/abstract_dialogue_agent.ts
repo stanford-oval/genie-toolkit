@@ -29,15 +29,6 @@ import { collectDisambiguationHints, getBestEntityMatch, EntityRecord } from './
 import * as Helpers from './helpers';
 import ValueCategory from './value-category';
 
-// FIXME should add this to Ast.Selector...
-function getDeviceAttribute(selector : Ast.DeviceSelector, name : string) : Ast.InputParam|undefined {
-    for (const attr of selector.attributes) {
-        if (attr.name === name)
-            return attr;
-    }
-    return undefined;
-}
-
 interface AbstractDialogueAgentOptions {
     locale : string;
     timezone : string;
@@ -45,7 +36,7 @@ interface AbstractDialogueAgentOptions {
 }
 
 interface AbstractStatementExecutor<PrivateStateType> {
-    executeStatement(stmt : Ast.Rule|Ast.Command, privateState : PrivateStateType|undefined) : Promise<[Ast.DialogueHistoryResultList, PrivateStateType]>;
+    executeStatement(stmt : Ast.ExpressionStatement, privateState : PrivateStateType|undefined) : Promise<[Ast.DialogueHistoryResultList, PrivateStateType]>;
 }
 
 export interface DisambiguationHints {
@@ -142,7 +133,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
 
             for (const slot of item.stmt.iterateSlots2()) {
                 if (slot instanceof Ast.DeviceSelector)
-                    devices.set(slot.kind, [slot.id, getDeviceAttribute(slot, 'name')]);
+                    devices.set(slot.kind, [slot.id, slot.getAttribute('name')]);
             }
 
             for (const result of results.results)
@@ -164,7 +155,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * @param {thingtalk.Ast.Statement} stmt - the statement to prepare
      * @param {any} hints - hints to use to resolve any ambiguity
      */
-    protected async _prepareForExecution(stmt : Ast.Rule|Ast.Command, hints : DisambiguationHints) : Promise<void> {
+    protected async _prepareForExecution(stmt : Ast.ExpressionStatement, hints : DisambiguationHints) : Promise<void> {
         // FIXME this method can cause a few questions that
         // bypass the neural network, which is not great
         //
@@ -194,13 +185,10 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         });
 
         for (const slot of stmt.iterateSlots2()) {
-            if (slot instanceof Ast.Selector) {
-                if (!(slot instanceof Ast.DeviceSelector))
-                    continue;
+            if (slot instanceof Ast.DeviceSelector)
                 await this._chooseDevice(slot, hints);
-            } else {
+            else
                 await this._concretizeValue(slot, hints);
-            }
         }
     }
 
@@ -227,7 +215,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
             return;
 
         const kind = selector.kind;
-        const name = getDeviceAttribute(selector, 'name');
+        const name = selector.getAttribute('name');
         if (hints.devices.has(kind)) {
             // if we have already selected a device for this kind in the context, reuse what
             // we chose before without asking again

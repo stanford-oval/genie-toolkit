@@ -76,8 +76,7 @@ function splitParams(utterance : string) : Array<string|string[]> {
 
 function tokenizeExample(tokenizer : I18n.BaseTokenizer,
                          utterance : string,
-                         id : number,
-                         language : number) : string {
+                         id : number) : string {
     let replaced = '';
     const params : Array<[string, string]> = [];
 

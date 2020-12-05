@@ -284,6 +284,9 @@ function loadSimulationValue(schema : Ast.FunctionDef,
                              type : Type,
                              value : unknown,
                              keyPrefix : string) : unknown {
+    if (value === null || value === undefined)
+        return undefined;
+
     if (type instanceof Type.Array)
         return (value as unknown[]).map((v) => loadSimulationValue(schema, type.elem as Type, v, keyPrefix));
 

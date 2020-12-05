@@ -30,7 +30,7 @@ export type ParserClient = RemoteParserClient | LocalParserClient;
 
 export function get(url = URL,
                     locale : string,
-                    platform : Tp.BasePlatform,
+                    platform ?: Tp.BasePlatform,
                     exactmatcher ?: ExactMatcher,
                     tpClient ?: Tp.BaseClient,
                     options ?: LocalParserOptions) : ParserClient {

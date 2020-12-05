@@ -63,9 +63,9 @@ function makeActionRecommendation(ctx : ContextInfo, action : Ast.Invocation) {
     const results = ctx.results;
     assert(results && results.length > 0);
     const currentStmt = ctx.current!.stmt;
-    assert(currentStmt instanceof Ast.Command);
-    const currentTable = currentStmt.table;
-    if (currentTable && currentTable instanceof Ast.SlicedTable && currentTable.limit.toJS() !== 1)
+    const currentTable = currentStmt.expression;
+    const last = currentTable.last;
+    if (last instanceof Ast.SliceExpression && last.limit.toJS() !== 1)
         return null;
 
     const topResult = results[0];
@@ -84,7 +84,7 @@ function makeActionRecommendation(ctx : ContextInfo, action : Ast.Invocation) {
     return null;
 }
 
-function makeArgMinMaxRecommendation(ctx : ContextInfo, name : Ast.Value, base : Ast.Table, param : Ast.VarRefValue, direction : 'asc'|'desc') {
+function makeArgMinMaxRecommendation(ctx : ContextInfo, name : Ast.Value, base : Ast.Expression, param : Ast.VarRefValue, direction : 'asc'|'desc') {
     const resultInfo = ctx.resultInfo!;
     if (!resultInfo.argMinMaxField)
         return null;
@@ -101,9 +101,9 @@ function makeRecommendation(ctx : ContextInfo, name : Ast.Value) {
     const results = ctx.results;
     assert(results && results.length > 0);
     const currentStmt = ctx.current!.stmt;
-    assert(currentStmt instanceof Ast.Command);
-    const currentTable = currentStmt.table;
-    if (currentTable && currentTable instanceof Ast.SlicedTable && currentTable.limit.toJS() !== 1)
+    const currentTable = currentStmt.expression;
+    const last = currentTable.last;
+    if (last instanceof Ast.SliceExpression && last.limit.toJS() !== 1)
         return null;
 
     const topResult = results[0];
@@ -119,9 +119,9 @@ function makeThingpediaRecommendation(ctx : ContextInfo, info : SlotBag) {
     const results = ctx.results;
     assert(results && results.length > 0);
     const currentStmt = ctx.current!.stmt;
-    assert(currentStmt instanceof Ast.Command);
-    const currentTable = currentStmt.table;
-    if (currentTable && currentTable instanceof Ast.SlicedTable && currentTable.limit.toJS() !== 1)
+    const currentTable = currentStmt.expression;
+    const last = currentTable.last;
+    if (last instanceof Ast.SliceExpression && last.limit.toJS() !== 1)
         return null;
 
     const topResult = results[0];
@@ -246,9 +246,9 @@ function makeDisplayResultReply(ctx : ContextInfo, proposal : Recommendation) {
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_display_result', null), proposal, null, options);
 }
 
-function negativeRecommendationReply(ctx : ContextInfo, [preamble, request] : [Ast.Table|null, Ast.Table|null]) {
-    if (!((preamble === null || preamble instanceof Ast.FilteredTable) &&
-          (request === null || request instanceof Ast.FilteredTable)))
+function negativeRecommendationReply(ctx : ContextInfo, [preamble, request] : [Ast.Expression|null, Ast.Expression|null]) {
+    if (!((preamble === null || preamble instanceof Ast.FilterExpression) &&
+          (request === null || request instanceof Ast.FilterExpression)))
         return null;
 
     const proposal = ctx.aux;

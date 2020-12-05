@@ -38,17 +38,16 @@ import {
 } from './refinement-helpers';
 import {
     isValidSearchQuestion,
-    isSimpleFilterTable,
+    isSimpleFilterExpression,
     addParametersFromContext
 } from './common';
 
 function isGoodSearchQuestion(ctx : ContextInfo, questions : string[]) {
     const currentStmt = ctx.current!.stmt;
-    assert(currentStmt instanceof Ast.Command);
-    if (!isValidSearchQuestion(currentStmt.table!, questions))
+    if (!isValidSearchQuestion(currentStmt.lastQuery!, questions))
         return false;
 
-    const ctxFilterTable = C.findFilterTable(currentStmt.table!);
+    const ctxFilterTable = C.findFilterExpression(currentStmt.expression);
     if (!ctxFilterTable)
         return false;
     for (const q of questions) {
@@ -102,8 +101,7 @@ function makeSearchQuestion(ctx : ContextInfo, questions : string[]) {
 
     if (questions.length === 1) {
         const currentStmt = ctx.current!.stmt;
-        assert(currentStmt instanceof Ast.Command);
-        const type = currentStmt.table!.schema!.getArgument(questions[0])!.type;
+        const type = currentStmt.lastQuery!.schema!.getArgument(questions[0])!.type;
         return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_search_question', questions), null, type);
     }
 
@@ -131,18 +129,18 @@ class AnswersQuestionVisitor extends Ast.NodeVisitor {
 /**
  * Check if the table filters on the parameters `questions` (effectively providing a constraint on question)
  */
-function isQueryAnswerValidForQuestion(table : Ast.Table, questions : string[]) {
+function isQueryAnswerValidForQuestion(table : Ast.Expression, questions : string[]) {
     assert(Array.isArray(questions));
     const visitor = new AnswersQuestionVisitor(questions);
     table.visit(visitor);
     return visitor.answersQuestion;
 }
 
-function preciseSearchQuestionAnswer(ctx : ContextInfo, [answerTable, answerAction, _bool] : [Ast.Table, Ast.Invocation|null, boolean]) {
+function preciseSearchQuestionAnswer(ctx : ContextInfo, [answerTable, answerAction, _bool] : [Ast.Expression, Ast.Invocation|null, boolean]) {
     const questions = ctx.state.dialogueActParam;
     if (questions !== null && !isQueryAnswerValidForQuestion(answerTable, questions))
         return null;
-    if (!(answerTable instanceof Ast.FilteredTable))
+    if (!(answerTable instanceof Ast.FilterExpression))
         return null;
 
     const answerFunctions = C.getFunctionNames(answerTable);
@@ -151,13 +149,12 @@ function preciseSearchQuestionAnswer(ctx : ContextInfo, [answerTable, answerActi
     if (answerFunctions[0] !== ctx.currentFunction)
         return null;
     const currentStmt = ctx.current!.stmt;
-    assert(currentStmt instanceof Ast.Command);
-    const currentTable = currentStmt.table!;
+    const currentTable = currentStmt.expression;
     if (!isValidSearchQuestion(currentTable, questions || []))
         return null;
 
     // TODO we need to push down the filter, if possible
-    if (!isSimpleFilterTable(answerTable))
+    if (!isSimpleFilterExpression(answerTable))
         return null;
 
     if (answerAction !== null) {
@@ -232,8 +229,7 @@ function impreciseSearchQuestionAnswer(ctx : ContextInfo, answer : Ast.BooleanEx
     }
 
     const currentStmt = ctx.current!.stmt;
-    assert(currentStmt instanceof Ast.Command);
-    const currentTable = currentStmt.table!;
+    const currentTable = currentStmt.expression;
     if (!C.checkFilter(currentTable, answerFilter))
         return null;
 

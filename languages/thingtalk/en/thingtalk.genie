@@ -39,7 +39,7 @@ import './commands.genie';
 import './stream_tables.genie';
 
 $root : Ast.Input = {
-    p:thingpedia_program if complete => C.adjustDefaultParameters(p);
+    p:thingpedia_program if complete => C.makeProgram(new Ast.ExpressionStatement(null, p));
 
     ?timer stmt:timer_rule [weight=0.2] => C.makeProgram(stmt);
     !nostream {
@@ -57,14 +57,11 @@ $root : Ast.Input = {
     | generic_preamble_for_action stmt:complete_action
 
       // now => get => do
-    | generic_preamble_for_action stmt:complete_forward_get_do_command [weight=0.1]
+    | generic_preamble_for_action stmt:complete_get_do_command [weight=0.1]
 
     | stmt:search_command
     | stmt:complete_question [weight=0.1]
     | stmt:projection_question [weight=0.1]
     ) => C.makeProgram(stmt);
-
-    !turking generic_preamble_for_action stmt:backward_get_do_command if complete [weight=0.1]
-        => C.makeProgram(stmt);
 }
 

@@ -150,9 +150,9 @@ function isInfoPhraseCompatibleWithResult(topResult : Ast.DialogueHistoryResultI
  * This checks two things: that all parameters are valid output parameters of the table,
  * and all parameters are filterable.
  */
-function isValidSearchQuestion(table : Ast.Table, questions : string[]) {
+function isValidSearchQuestion(expr : Ast.Expression, questions : string[]) {
     for (const q of questions) {
-        const arg = table.schema!.getArgument(q);
+        const arg = expr.schema!.getArgument(q);
         if (!arg || arg.is_input)
             return false;
         if (arg.getAnnotation('filterable') === false)
@@ -202,10 +202,8 @@ function findChainParam(topResult : Ast.DialogueHistoryResultItem, action : Ast.
     return chainParam;
 }
 
-function isSimpleFilterTable(table : Ast.Table) : table is Ast.FilteredTable {
-    return table instanceof Ast.FilteredTable &&
-        ((table.table instanceof Ast.ComputeTable && table.table.table instanceof Ast.InvocationTable)
-         || table.table instanceof Ast.InvocationTable);
+export function isSimpleFilterExpression(table : Ast.Expression) : table is Ast.FilterExpression {
+    return table instanceof Ast.FilterExpression && table.expression instanceof Ast.InvocationExpression;
 }
 
 export {
@@ -213,7 +211,6 @@ export {
     isFilterCompatibleWithResult,
     isInfoPhraseCompatibleWithResult,
     isValidSearchQuestion,
-    isSimpleFilterTable,
     findChainParam,
     addParametersFromContext,
 };

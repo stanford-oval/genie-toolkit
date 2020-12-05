@@ -70,25 +70,31 @@ function invertDirection(dir : 'asc'|'desc') : 'asc'|'desc' {
         return 'asc';
 }
 
-function getTableArgMinMax(table : Ast.Table) : [string, string]|null {
-    while (table instanceof Ast.Table.Projection || table instanceof Ast.Table.Compute)
-        table = table.table;
+function getSortName(value : Ast.Value) : string {
+    if (value instanceof Ast.VarRefValue)
+        return value.name;
+    return C.getScalarExpressionName(value);
+}
+
+function getTableArgMinMax(table : Ast.Expression) : [string, string]|null {
+    while (table instanceof Ast.ProjectionExpression)
+        table = table.expression;
 
     // either an index of a sort, where the index is exactly 1 or -1
     // or a slice of a sort, with a base of 1 or -1, and a limit of 1
     // (both are equivalent and get normalized, but sometimes we don't run the normalization)
-    if (table instanceof Ast.Table.Index && table.table instanceof Ast.Table.Sort && table.indices.length === 1) {
+    if (table instanceof Ast.IndexExpression && table.expression instanceof Ast.SortExpression && table.indices.length === 1) {
         const index = table.indices[0];
         if (index instanceof Ast.Value.Number &&
             (index.value === 1 || index.value === -1))
-            return [table.table.field, index.value === -1 ? invertDirection(table.table.direction) : table.table.direction];
+            return [getSortName(table.expression.value), index.value === -1 ? invertDirection(table.expression.direction) : table.expression.direction];
     }
 
-    if (table instanceof Ast.Table.Slice && table.table instanceof Ast.Table.Sort) {
+    if (table instanceof Ast.SliceExpression && table.expression instanceof Ast.SortExpression) {
         const { base, limit } = table;
         if (base instanceof Ast.Value.Number && (base.value === 1 || base.value === -1) &&
             limit instanceof Ast.Value.Number && limit.value === 1)
-        return [table.table.field, base.value === -1 ? invertDirection(table.table.direction) : table.table.direction];
+        return [getSortName(table.expression.value), base.value === -1 ? invertDirection(table.expression.direction) : table.expression.direction];
     }
 
     return null;
@@ -112,19 +118,20 @@ export class ResultInfo {
         assert(item.results !== null);
 
         const stmt = item.stmt;
-        assert(stmt instanceof Ast.Command);
-        this.isTable = !!(stmt.table && stmt.actions.every((a) => a.isNotify));
+        assert(stmt.stream === null);
+        this.isTable = stmt.last.schema!.functionType === 'query';
 
         if (this.isTable) {
-            const table = stmt.table!;
-            // if there is a compute at top-level, there is a projection too
-            assert(!table.isCompute);
-            this.isQuestion = !!(table.isProjection || table.isCompute || table.isIndex || table.isAggregation);
-            this.isAggregation = !!table.isAggregation;
+            const table = stmt.lastQuery!;
+            this.isQuestion = !!(table instanceof Ast.ProjectionExpression
+                || table instanceof Ast.IndexExpression
+                || table instanceof Ast.AggregationExpression);
+            this.isAggregation = table instanceof Ast.AggregationExpression;
             this.isList = table.schema!.is_list;
             this.argMinMaxField = getTableArgMinMax(table);
             assert(this.argMinMaxField === null || this.isQuestion);
-            this.projection = table instanceof Ast.Table.Projection ? table.args.slice() : null;
+            this.projection = table instanceof Ast.ProjectionExpression ?
+                C.getProjectionArguments(table) : null;
             if (this.projection)
                 this.projection.sort();
         } else {
@@ -155,9 +162,8 @@ export class NextStatementInfo {
                 resultInfo : ResultInfo|null,
                 nextItem : Ast.DialogueHistoryItem) {
         const nextstmt = nextItem.stmt;
-        assert(nextstmt instanceof Ast.Command);
 
-        this.isAction = !nextstmt.table;
+        this.isAction = !nextstmt.lastQuery;
 
         this.chainParameter = null;
         this.chainParameterFilled = false;
@@ -166,20 +172,18 @@ export class NextStatementInfo {
         if (!this.isAction)
             return;
 
-        assert(nextItem.stmt.actions.length === 1);
-        const action = nextItem.stmt.actions[0];
-        assert(action instanceof Ast.InvocationAction);
+        assert(nextItem.stmt.expression.expressions.length === 1);
+        const action = nextItem.stmt.first;
+        assert(action instanceof Ast.InvocationExpression);
 
         if (!currentItem || !resultInfo || !resultInfo.isTable)
             return;
         const currentstmt = currentItem.stmt;
-        assert(currentstmt instanceof Ast.Command);
-        const tableschema = currentstmt.table!.schema!;
+        const tableschema = currentstmt.expression.schema!;
         const idType = tableschema.getArgType('id');
         if (!idType)
             return;
 
-        assert(action instanceof Ast.Action.Invocation);
         const invocation = action.invocation;
         const actionschema = invocation.schema!;
         for (const arg of actionschema.iterateArguments()) {
@@ -260,7 +264,7 @@ export class ContextInfo {
     }
 
     toString() : string {
-        return `ContextInfo(${this.state.prettyprint(true)})`;
+        return `ContextInfo(${this.state.prettyprint()})`;
     }
 
     get results() {
@@ -331,9 +335,9 @@ function getContextInfo(state : Ast.DialogueState) : ContextInfo {
         currentFunction = functions[functions.length-1];
 
         const stmt = item.stmt;
-        assert(stmt instanceof Ast.Command);
-        if (stmt.table) {
-            const tablefunctions = C.getFunctions(stmt.table);
+        const lastQuery = stmt.lastQuery;
+        if (lastQuery) {
+            const tablefunctions = C.getFunctions(lastQuery);
             currentTableFunction = tablefunctions[tablefunctions.length-1];
         }
         currentItemIdx = idx;
@@ -363,15 +367,14 @@ function isUserAskingResultQuestion(ctx : ContextInfo) : boolean {
         return false;
 
     const currentStmt = ctx.current!.stmt;
-    assert(currentStmt instanceof Ast.Command);
-    const currentTable = currentStmt.table;
+    const currentTable = currentStmt.lastQuery;
     if (!currentTable)
         return false;
-    if (currentTable instanceof Ast.ProjectionTable && currentTable.table.isCompute)
+    if (currentTable instanceof Ast.ProjectionExpression && currentTable.computations.length > 0)
         return true;
 
     if (ctx.currentIdx === 0) {
-        const filterTable = C.findFilterTable(currentTable);
+        const filterTable = C.findFilterExpression(currentStmt.expression);
         if (!filterTable)
             return false;
         return C.filterUsesParam(filterTable.filter, 'id');
@@ -546,22 +549,15 @@ function addActionParam(ctx : ContextInfo,
                 in_params.push(new Ast.InputParam(null, arg.name, new Ast.Value.Undefined(true)));
         }
 
-        let newStmt;
         const newInvocation = new Ast.Invocation(null,
             action.selector,
             action.channel,
             in_params,
             schema
         );
-        if (schema.functionType === 'action') {
-            newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null,
-                newInvocation, schema.removeArgument(pname)
-            )]);
-        } else {
-            newStmt = new Ast.Statement.Command(null, new Ast.Table.Invocation(null,
-                newInvocation, schema.removeArgument(pname)),
-                [C.notifyAction()]);
-        }
+        const newStmt = new Ast.ExpressionStatement(null, new Ast.InvocationExpression(null,
+            newInvocation, schema.removeArgument(pname)
+        ));
         newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
     }
 
@@ -572,7 +568,7 @@ function replaceAction(ctx : ContextInfo,
                        dialogueAct : string,
                        action : Ast.Invocation,
                        confirm : 'accepted' | 'proposed' | 'confirmed') : Ast.DialogueState {
-    const newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, action, action.schema)]);
+    const newStmt = new Ast.ExpressionStatement(null, new Ast.InvocationExpression(null, action, action.schema));
     const newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
 
     return addNewItem(ctx, dialogueAct, null, confirm, newHistoryItem);
@@ -608,22 +604,15 @@ function addAction(ctx : ContextInfo,
     }
 
     if (!newHistoryItem) {
-        let newStmt;
         const newInvocation = new Ast.Invocation(null,
             action.selector,
             action.channel,
             [],
             action.schema
         );
-        if (action.schema!.functionType === 'action') {
-            newStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null,
-                newInvocation, action.schema
-            )]);
-        } else {
-            newStmt = new Ast.Statement.Command(null, new Ast.Table.Invocation(null,
-                newInvocation, action.schema),
-                [C.notifyAction()]);
-        }
+        const newStmt = new Ast.ExpressionStatement(null, new Ast.InvocationExpression(null,
+            newInvocation, action.schema
+        ));
         newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
     }
 
@@ -632,10 +621,10 @@ function addAction(ctx : ContextInfo,
 
 function addQuery(ctx : ContextInfo,
                   dialogueAct : string,
-                  newTable : Ast.Table,
+                  newTable : Ast.Expression,
                   confirm : 'accepted' | 'proposed') : Ast.DialogueState {
     newTable = C.adjustDefaultParameters(newTable);
-    const newStmt = new Ast.Statement.Command(null, newTable, [C.notifyAction()]);
+    const newStmt = new Ast.ExpressionStatement(null, newTable);
     const newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
 
     // add the new history item right after the current one, and remove all proposed elements
@@ -656,15 +645,15 @@ function addQuery(ctx : ContextInfo,
 
 function addQueryAndAction(ctx : ContextInfo,
                            dialogueAct : string,
-                           newTable : Ast.Table,
+                           newTable : Ast.Expression,
                            newAction : Ast.Invocation,
                            confirm : 'accepted' | 'proposed') : Ast.DialogueState {
-    const newTableStmt = new Ast.Statement.Command(null, newTable, [C.notifyAction()]);
+    const newTableStmt = new Ast.ExpressionStatement(null, newTable);
     const newTableHistoryItem = new Ast.DialogueHistoryItem(null, newTableStmt, null, confirm);
 
     // add the new table history item right after the current one, and replace everything after that
 
-    const newActionStmt = new Ast.Statement.Command(null, null, [new Ast.Action.Invocation(null, newAction, newAction.schema)]);
+    const newActionStmt = new Ast.ExpressionStatement(null, new Ast.InvocationExpression(null, newAction, newAction.schema));
     const newActionHistoryItem = new Ast.DialogueHistoryItem(null, newActionStmt, null, confirm);
 
     return addNewItem(ctx, dialogueAct, null, confirm, newTableHistoryItem, newActionHistoryItem);
@@ -853,8 +842,8 @@ function tagContextForAgent(ctx : ContextInfo) : string[] {
 
 function ctxCanHaveRelatedQuestion(ctx : ContextInfo) : boolean {
     const currentStmt = ctx.current!.stmt;
-    assert(currentStmt instanceof Ast.Command);
-    const currentTable = currentStmt.table;
+    assert(currentStmt.stream === null);
+    const currentTable = currentStmt.lastQuery;
     if (!currentTable)
         return false;
     if (!(currentTable.schema instanceof Ast.FunctionDef)) // FIXME ExpressionSignature that is not a FunctionDef - not sure how it happens...

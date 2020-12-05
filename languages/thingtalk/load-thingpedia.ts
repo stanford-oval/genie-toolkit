@@ -25,7 +25,7 @@ import assert from 'assert';
 import {
     Ast,
     Type,
-    Grammar,
+    Syntax,
     SchemaRetriever
 } from 'thingtalk';
 import * as Units from 'thingtalk-units';
@@ -757,12 +757,9 @@ export class ThingpediaLoader {
                 this.projections[pname][posCategory].push([pronoun, base, verb]);
         }
         this.projections[pname][posCategory].push([pronoun, base, canonical.replace(/\|/g, ' ')]);
-
-
     }
 
-    // FIXME we mess with Ast.Program to add a .schema property and that does not quite go smooth with typescript
-    private async _loadTemplate(ex : any) {
+    private async _loadTemplate(ex : Ast.Example) {
         // return grammar rules added
         const rules = [];
 
@@ -777,78 +774,53 @@ export class ThingpediaLoader {
         // ignore builtin actions:
         // debug_log is not interesting, say is special and we handle differently, configure/discover are not
         // composable
-        if (ex.type === 'action' && ex.value.invocation.selector.kind === 'org.thingpedia.builtin.thingengine.builtin') {
-            if (this._options.flags.turking)
+        if (ex.value instanceof Ast.InvocationExpression && ex.value.invocation.selector.kind === 'org.thingpedia.builtin.thingengine.builtin') {
+            if (this._options.flags.turking && ex.type === 'action')
                 return [];
             if (!this._options.flags.configure_actions && (ex.value.invocation.channel === 'configure' || ex.value.invocation.channel === 'discover'))
                 return [];
             if (ex.value.invocation.channel === 'say')
                 return [];
         }
-        if (ex.type === 'stream' && (ex.value.isTimer || ex.value.isAtTimer))
+        if (ex.value instanceof Ast.FunctionCallExpression) // timers
             return [];
-        if (this._options.flags.nofilter && (ex.value.isFilter || ex.value.isEdgeFilter || (ex.value.isMonitor && ex.value.table.isFilter)))
+        if (this._options.flags.nofilter && (ex.value instanceof Ast.FilterExpression ||
+            (ex.value instanceof Ast.MonitorExpression && ex.value.expression instanceof Ast.FilterExpression)))
             return [];
 
         // ignore optional input parameters
         // if you care about optional, write a lambda template
         // that fills in the optionals
 
-        if (ex.type === 'program') {
-            // make up a fake expression signature that we attach to this program
-            // FIXME we really should not need this mess...
+        for (const pname in ex.args) {
+            const ptype = ex.args[pname];
 
-            const args = [];
-            for (const pname in ex.args) {
-                const ptype = ex.args[pname];
-                // FIXME use the annotation (or find the info in thingpedia)
-                const pcanonical = clean(pname);
-                args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.IN_REQ, pname, ptype, {
-                    nl: { canonical: pcanonical },
-                    impl: {}
-                }));
-
-                this.params.in.set(pname + '+' + ptype, [pname, [typeToStringSafe(ptype), pcanonical]]);
-                this._recordType(ptype);
+            //console.log('pname', pname);
+            if (!(pname in ex.value.schema!.inReq)) {
+                // somewhat of a hack, we declare the argument for the value,
+                // because later we will muck with schema only
+                ex.value.schema = ex.value.schema!.addArguments([new Ast.ArgumentDef(
+                    null,
+                    Ast.ArgDirection.IN_REQ,
+                    pname,
+                    ptype,
+                    {
+                        nl: {
+                            canonical: clean(pname)
+                        },
+                        impl: {}
+                    }
+                )]);
             }
+            const pcanonical = ex.value.schema!.getArgCanonical(pname)!;
 
-            ex.value.schema = new Ast.ExpressionSignature(null, 'action', null /* class */, [] /* extends */, args, {
-                is_list: false,
-                is_monitorable: false,
-                default_projection: [],
-                minimal_projection: []
-            });
-        } else {
-            for (const pname in ex.args) {
-                const ptype = ex.args[pname];
-
-                //console.log('pname', pname);
-                if (!(pname in ex.value.schema.inReq)) {
-                    // somewhat of a hack, we declare the argument for the value,
-                    // because later we will muck with schema only
-                    ex.value.schema = ex.value.schema.addArguments([new Ast.ArgumentDef(
-                        null,
-                        Ast.ArgDirection.IN_REQ,
-                        pname,
-                        ptype,
-                        {
-                            nl: {
-                                canonical: clean(pname)
-                            },
-                            impl: {}
-                        }
-                    )]);
-                }
-                const pcanonical = ex.value.schema.getArgCanonical(pname);
-
-                this.params.in.set(pname + '+' + ptype, [pname, [typeToStringSafe(ptype), pcanonical]]);
-                this._recordType(ptype);
-            }
+            this.params.in.set(pname + '+' + ptype, [pname, [typeToStringSafe(ptype), pcanonical]]);
+            this._recordType(ptype);
         }
 
         if (ex.type === 'query') {
             if (Object.keys(ex.args).length === 0 && ex.value.schema!.hasArgument('id')) {
-                const type = ex.value.schema!.getArgument('id').type;
+                const type = ex.value.schema!.getArgument('id')!.type;
                 if (isHumanEntity(type)) {
                     const grammarCat = 'thingpedia_who_question';
                     this._grammar.addRule(grammarCat, [''], this._runtime.simpleCombine(() => ex.value));
@@ -913,7 +885,7 @@ export class ThingpediaLoader {
     }
 
     private async _makeExampleFromQuery(q : Ast.FunctionDef) {
-        const device = new Ast.Selector.Device(null, q.class!.name, null, null);
+        const device = new Ast.DeviceSelector(null, q.class!.name, null, null);
         const invocation = new Ast.Invocation(null, device, q.name, [], q);
 
         const canonical : string[] = q.canonical ?
@@ -927,7 +899,7 @@ export class ThingpediaLoader {
         }
 
         const functionName = q.class!.name + ':' + q.name;
-        const table = new Ast.Table.Invocation(null, invocation, q);
+        const table = new Ast.InvocationExpression(null, invocation, q);
 
         let shortCanonical = q.metadata.canonical_short || canonical;
         if (!Array.isArray(shortCanonical))
@@ -978,7 +950,7 @@ export class ThingpediaLoader {
             -1,
             'query',
             { p_id: id.type },
-            new Ast.Table.Filter(null, table, idfilter, schemaClone),
+            new Ast.FilterExpression(null, table, idfilter, schemaClone),
             [`\${p_id:no-undefined}`],
             [`\${p_id:no-undefined}`],
             {}
@@ -994,7 +966,7 @@ export class ThingpediaLoader {
             -1,
             'query',
             { p_name: Type.String },
-            new Ast.Table.Filter(null, table, namefilter, table.schema),
+            new Ast.FilterExpression(null, table, namefilter, table.schema),
             span,
             span,
             {}
@@ -1031,7 +1003,7 @@ export class ThingpediaLoader {
                 let ast;
                 if (arg.direction === Ast.ArgDirection.OUT) {
                     const filter = new Ast.BooleanExpression.Atom(null, arg.name, op, new Ast.Value.VarRef(`p_${arg.name}`));
-                    ast = new Ast.Table.Filter(null, table, filter, table.schema);
+                    ast = new Ast.FilterExpression(null, table, filter, table.schema);
                 } else {
                     const inparams = [new Ast.InputParam(null, arg.name, new Ast.Value.VarRef(`p_${arg.name}`))];
                     ast = table.clone();
@@ -1232,14 +1204,33 @@ export class ThingpediaLoader {
         let datasets;
         if (this._options.onlyDevices) {
             datasets = await Promise.all(devices.map(async (d) => {
-                const parsed = Grammar.parse(await this._getDataset(d));
+                let parsed;
+                const dataset = await this._getDataset(d);
+                try {
+                    parsed = Syntax.parse(dataset);
+                } catch(e) {
+                    if (e.name !== 'SyntaxError')
+                        throw e;
+                    // try parsing using legacy syntax too in case we're talking
+                    // to an old Thingpedia that has not been migrated
+                    parsed = Syntax.parse(dataset, Syntax.SyntaxType.Legacy);
+                }
                 assert(parsed instanceof Ast.Library);
                 return parsed.datasets[0];
             }));
             datasets = datasets.filter((d) => !!d);
         } else {
             const code = await this._tpClient.getAllExamples();
-            const parsed = Grammar.parse(code);
+            let parsed;
+            try {
+                parsed = Syntax.parse(code);
+            } catch(e) {
+                if (e.name !== 'SyntaxError')
+                    throw e;
+                // try parsing using legacy syntax too in case we're talking
+                // to an old Thingpedia that has not been migrated
+                parsed = Syntax.parse(code, Syntax.SyntaxType.Legacy);
+            }
             assert(parsed instanceof Ast.Library);
             datasets = parsed.datasets;
         }

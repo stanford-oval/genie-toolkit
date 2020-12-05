@@ -21,7 +21,7 @@
 import { Ast, } from 'thingtalk';
 import * as D from '../../dialogue_acts';
 
-initial_command : Ast.Rule|Ast.Command = {
+initial_command : Ast.ExpressionStatement = {
     // now => say
     say_command [weight=0.1];
 
@@ -31,7 +31,6 @@ initial_command : Ast.Rule|Ast.Command = {
 
     // now => get => do
     generic_preamble_for_action action:complete_forward_get_do_command [weight=0.1] => action;
-    !turking generic_preamble_for_action action:backward_get_do_command if complete [weight=0.1] => action;
 
     search_command [weight=2];
     complete_question [weight=0.5];
@@ -55,12 +54,6 @@ initial_command : Ast.Rule|Ast.Command = {
         when_command [weight=0.1];
     }
 
-    prog:thingpedia_program if complete => {
-        if (prog.rules.length !== 1)
-            return null;
-        const rule = prog.rules[0];
-        if (rule instanceof Ast.Assignment)
-            return null;
-        return rule;
-    };
+    prog:thingpedia_program if complete
+        => new Ast.ExpressionStatement(null, prog);
 }

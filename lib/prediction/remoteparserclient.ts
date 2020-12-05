@@ -54,9 +54,9 @@ interface QueryArguments {
 export default class RemoteParserClient {
     private _locale : string;
     private _baseUrl : string;
-    private _platform : Tp.BasePlatform;
+    private _platform : Tp.BasePlatform|undefined;
 
-    constructor(baseUrl : string, locale : string, platform : Tp.BasePlatform) {
+    constructor(baseUrl : string, locale : string, platform ?: Tp.BasePlatform) {
         this._locale = locale;
         this._baseUrl = baseUrl + '/' + this._locale;
         this._platform = platform;
@@ -127,9 +127,9 @@ export default class RemoteParserClient {
                             contextEntities : EntityMap,
                             targetAct : string[]) : Promise<GenerationResult[]> {
         const data = {
-            context: contextCode,
+            context: contextCode.join(' '),
             entities: contextEntities,
-            target: targetAct
+            target: targetAct.join(' ')
         };
         const response = await Tp.Helpers.Http.post(`${this._baseUrl}/answer`, JSON.stringify(data), {
             dataContentType: 'application/json' //'

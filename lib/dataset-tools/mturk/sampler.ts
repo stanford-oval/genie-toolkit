@@ -21,13 +21,15 @@
 
 import Stream from 'stream';
 
-import { Ast, NNSyntax, SchemaRetriever } from 'thingtalk';
+import * as Tp from 'thingpedia';
+import { SchemaRetriever } from 'thingtalk';
 
 import { coin, uniform, choose } from '../../utils/random';
 import { entityTypeToTTType, makeLookupKeys } from './sample-utils';
 import * as I18n from '../../i18n';
 import { SentenceExample } from '../parsers';
-import { AnyEntity, EntityMap } from '../../utils/entity-utils';
+import { AnyEntity } from '../../utils/entity-utils';
+import * as ThingTalkUtils from '../../utils/thingtalk';
 
 class UnassignableEntity extends Error {}
 class SkippedEntity extends Error {}
@@ -70,6 +72,7 @@ interface SampleResult {
 }
 
 class SentenceProcessor {
+    private _tpClient : Tp.BaseClient;
     private _schemaRetriever : SchemaRetriever;
     private _constants : Record<string, Constant[]>;
     private _allContexts : Map<string, string[]>;
@@ -91,11 +94,13 @@ class SentenceProcessor {
     private _assignedEntities : Record<string, { value : AnyEntity, display : string }>;
     private _usedValues : Set<string>;
 
-    constructor(schemaRetriever : SchemaRetriever,
+    constructor(tpClient : Tp.BaseClient,
+                schemaRetriever : SchemaRetriever,
                 constants : Record<string, Constant[]>,
                 detokenizer : (sentence : string, prevtoken : string|null, token : string) => string,
                 options : SentenceProcessorOptions,
                 input : SentenceExample) {
+        this._tpClient = tpClient;
         this._schemaRetriever = schemaRetriever;
         this._constants = constants;
         this._allContexts = options.contexts || new Map;
@@ -283,9 +288,12 @@ class SentenceProcessor {
             }
 
             try {
-                context = NNSyntax.fromNN(this._context.split(' '), ((entity : string, param : string|null, functionname : string|null, unit : string|null) =>
-                    this._entityRetriever(entity, param, functionname, unit, { forContext: true })) as unknown as EntityMap /* FIXME */);
-                //await context.typecheck(this._schemaRetriever, false);
+                const entityResolver = ((entity : string, param : string|null, functionname : string|null, unit : string|null) =>
+                    this._entityRetriever(entity, param, functionname, unit, { forContext: true }));
+                context = await ThingTalkUtils.parsePrediction(this._context.split(' '), entityResolver, {
+                    thingpediaClient: this._tpClient,
+                    schemaRetriever: this._schemaRetriever
+                }, true);
             } catch(e) {
                 if (e instanceof SkippedEntity)
                     return null;
@@ -299,9 +307,12 @@ class SentenceProcessor {
 
         let program;
         try {
-            program = NNSyntax.fromNN(tokens, ((entity : string, param : string|null, functionname : string|null, unit : string|null) =>
-                this._entityRetriever(entity, param, functionname, unit, { forContext: false })) as unknown as EntityMap /* FIXME */);
-            await program.typecheck(this._schemaRetriever, false);
+            const entityResolver = ((entity : string, param : string|null, functionname : string|null, unit : string|null) =>
+                    this._entityRetriever(entity, param, functionname, unit, { forContext: false }));
+            program = await ThingTalkUtils.parsePrediction(tokens, entityResolver, {
+                thingpediaClient: this._tpClient,
+                schemaRetriever: this._schemaRetriever
+            }, true);
         } catch(e) {
             if (e instanceof SkippedEntity)
                 return null;
@@ -330,7 +341,8 @@ class SentenceProcessor {
             prevtoken = token;
         }
 
-        let context_utterance = '', assistant_action = '';
+        let context_utterance = '';
+        const assistant_action = ''; // FIXME
         if (context !== null) {
             let prevtoken = null;
             const choices = this._allContexts.get(this._context!)!;
@@ -346,21 +358,6 @@ class SentenceProcessor {
                 context_utterance = this._detokenizer(context_utterance, prevtoken, token);
                 prevtoken = token;
             }
-
-            for (const [, slot] of context.iterateSlots()) {
-                if (slot instanceof Ast.Selector)
-                    continue;
-                if (slot.value.isUndefined) {
-                    assistant_action = 'slot-fill:' + slot.name;
-                    break;
-                }
-            }
-            if (assistant_action === '') {
-                if (context instanceof Ast.Program && context.rules.every((r) => r instanceof Ast.Command && r.actions.every((a) => a instanceof Ast.NotifyAction)))
-                    assistant_action = 'result';
-                else
-                    assistant_action = 'confirm';
-            }
         }
 
         // remove flags
@@ -371,7 +368,7 @@ class SentenceProcessor {
         const obj : SampleResult = {
             id: this._id,
             utterance: sentence,
-            target_code: program.prettyprint(true),
+            target_code: program.prettyprint(),
             depth: depth,
             sentence_length,
             num_functions,
@@ -382,7 +379,7 @@ class SentenceProcessor {
             function_signature,
         };
         if (context !== null) {
-            obj.context = context.prettyprint(true);
+            obj.context = context.prettyprint();
             obj.context_utterance = context_utterance;
             obj.assistant_action = assistant_action;
         }
@@ -588,6 +585,7 @@ interface SampledExample {
 }
 
 export default class SentenceSampler extends Stream.Transform {
+    private _tpClient : Tp.BaseClient;
     private _schemaRetriever : SchemaRetriever;
     private _constants : Record<string, Constant[]>;
     private _options : SentenceSamplerOptions;
@@ -595,7 +593,8 @@ export default class SentenceSampler extends Stream.Transform {
     private _samplingState : any;
     private _detokenizer : (sentence : string, prevtoken : string|null, token : string) => string
 
-    constructor(schemaRetriever : SchemaRetriever,
+    constructor(tpClient : Tp.BaseClient,
+                schemaRetriever : SchemaRetriever,
                 constants : Record<string, Constant[]>,
                 options : SentenceSamplerOptions) {
         super({
@@ -603,6 +602,7 @@ export default class SentenceSampler extends Stream.Transform {
             writableObjectMode: true,
         });
         this._constants = constants;
+        this._tpClient = tpClient;
         this._schemaRetriever = schemaRetriever;
 
         this._options = options;
@@ -618,7 +618,7 @@ export default class SentenceSampler extends Stream.Transform {
     }
 
     private async _run(input : SentenceExample) {
-        const processor = new SentenceProcessor(this._schemaRetriever, this._constants, this._detokenizer, this._options, input);
+        const processor = new SentenceProcessor(this._tpClient, this._schemaRetriever, this._constants, this._detokenizer, this._options, input);
 
         const result = await processor.process();
         if (result === null)

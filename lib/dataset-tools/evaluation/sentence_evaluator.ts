@@ -26,7 +26,7 @@ import * as Utils from '../../utils/misc-utils';
 import { requoteProgram, getFunctions, getDevices } from '../requoting';
 import { stripOutTypeAnnotations } from './eval_utils';
 import * as I18n from '../../i18n';
-import * as TargetLanguages from '../../languages';
+import * as ThingTalkUtils from '../../utils/thingtalk';
 import { ParserClient, PredictionResult } from '../../prediction/parserclient';
 import { SentenceExample } from '../parsers';
 
@@ -80,7 +80,7 @@ type SentenceEvaluatorOptions = {
     tokenized ?: boolean;
     oracle ?: boolean;
     complexityMetric ?: keyof typeof COMPLEXITY_METRICS;
-} & TargetLanguages.ParseOptions;
+} & ThingTalkUtils.ParseOptions;
 
 export interface ExampleEvaluationResult {
     id : string;
@@ -129,14 +129,13 @@ export type EvaluationResult = {
 }
 
 class SentenceEvaluator {
-    private _parser : ParserClient;
+    private _parser : ParserClient|null;
     private _options : SentenceEvaluatorOptions;
     private _locale : string;
     private _tokenized : boolean;
     private _debug : boolean;
     private _oracle : boolean;
     private _tokenizer : I18n.BaseTokenizer;
-    private _target : TargetLanguages.TargetLanguage;
     private _computeComplexity : ((id : string, code : string) => number)|undefined;
 
     private _id : string;
@@ -145,10 +144,9 @@ class SentenceEvaluator {
     private _targetPrograms : string[];
     private _predictions : string[][]|undefined;
 
-    constructor(parser : ParserClient,
+    constructor(parser : ParserClient|null,
                 options : SentenceEvaluatorOptions,
                 tokenizer : I18n.BaseTokenizer,
-                target : TargetLanguages.TargetLanguage,
                 ex : SentenceExample) {
         this._parser = parser;
 
@@ -158,7 +156,6 @@ class SentenceEvaluator {
         this._debug = options.debug;
         this._oracle = !!options.oracle;
         this._tokenizer = tokenizer;
-        this._target = target;
 
         if (options.complexityMetric)
             this._computeComplexity = COMPLEXITY_METRICS[options.complexityMetric];
@@ -228,10 +225,8 @@ class SentenceEvaluator {
         const normalizedTargetCode = [];
         const firstTargetCode = this._targetPrograms[0];
         try {
-            const parsed = await this._target.parsePrediction(firstTargetCode, entities, this._options, true);
-            // "parsed" here has the right type because it came from the right parser call
-            // but we cannot prove it to the typechecker
-            normalizedTargetCode.push(this._target.serializePrediction(parsed as any, tokens, entities, 'user', {
+            const parsed = await ThingTalkUtils.parsePrediction(firstTargetCode, entities, this._options, true);
+            normalizedTargetCode.push(ThingTalkUtils.serializePrediction(parsed!, tokens, entities, {
                locale: this._locale,
             }).join(' '));
         } catch(e) {
@@ -251,8 +246,8 @@ class SentenceEvaluator {
         // normalized other target codes
         for (let i = 1; i < this._targetPrograms.length; i++) {
             try {
-                const parsed = await this._target.parsePrediction(this._targetPrograms[i], entities, this._options);
-                normalizedTargetCode.push(this._target.serializePrediction(parsed as any, tokens, entities, 'user', {
+                const parsed = await ThingTalkUtils.parsePrediction(this._targetPrograms[i], entities, this._options);
+                normalizedTargetCode.push(ThingTalkUtils.serializePrediction(parsed!, tokens, entities, {
                    locale: this._locale,
                 }).join(' '));
             } catch(e) {
@@ -279,7 +274,7 @@ class SentenceEvaluator {
                 let answer = undefined;
                 if (this._oracle)
                     answer = firstTargetCode;
-                const parsed : PredictionResult = await this._parser.sendUtterance(this._preprocessed, contextCode, contextEntities, {
+                const parsed : PredictionResult = await this._parser!.sendUtterance(this._preprocessed, contextCode, contextEntities, {
                     answer: answer,
                     tokenized: this._tokenized,
                     skip_typechecking: true,
@@ -302,7 +297,7 @@ class SentenceEvaluator {
             const target = normalizedTargetCode[0];
 
             // first check if the program parses and typechecks (no hope otherwise)
-            const parsed = await this._target.parsePrediction(beam, entities, this._options);
+            const parsed = await ThingTalkUtils.parsePrediction(beam, entities, this._options);
             if (!parsed) {
                 // push the previous result, so the stats
                 // stay cumulative along the beam
@@ -327,7 +322,7 @@ class SentenceEvaluator {
             // we pass "ignoreSentence: true", which means strings are tokenized and then put in the
             // program regardless of what the sentence contains (because the neural network might
             // get creative in copying, and we don't want to crash here)
-            const normalized = this._target.serializePrediction(parsed as any, tokens, entities, 'user', {
+            const normalized = ThingTalkUtils.serializePrediction(parsed, tokens, entities, {
                locale: this._locale,
                ignoreSentence: true
             });
@@ -405,23 +400,21 @@ class SentenceEvaluator {
     }
 }
 
-class SentenceEvaluatorStream extends Stream.Transform {
-    private _parser : ParserClient;
+export class SentenceEvaluatorStream extends Stream.Transform {
+    private _parser : ParserClient|null;
     private _options : SentenceEvaluatorOptions;
     private _tokenizer : I18n.BaseTokenizer;
-    private _target : TargetLanguages.TargetLanguage;
 
-    constructor(parser : ParserClient, options : SentenceEvaluatorOptions) {
+    constructor(parser : ParserClient|null, options : SentenceEvaluatorOptions) {
         super({ objectMode: true });
 
         this._parser = parser;
         this._options = options;
         this._tokenizer = I18n.get(options.locale).getTokenizer();
-        this._target = TargetLanguages.get(options.targetLanguage);
     }
 
     _transform(ex : SentenceExample, encoding : BufferEncoding, callback : (err : Error|null, res ?: ExampleEvaluationResult) => void) {
-        const evaluator = new SentenceEvaluator(this._parser, this._options, this._tokenizer, this._target, ex);
+        const evaluator = new SentenceEvaluator(this._parser, this._options, this._tokenizer, ex);
         evaluator.evaluate().then((result) => callback(null, result), (err) => callback(err));
     }
 
@@ -438,7 +431,7 @@ interface CollectSentenceStatisticsOptions {
 
 const KEYS : Array<'ok' | 'ok_without_param' | 'ok_function' | 'ok_device' | 'ok_num_function' | 'ok_syntax'> = ['ok', 'ok_without_param', 'ok_function', 'ok_device', 'ok_num_function', 'ok_syntax'];
 
-class CollectSentenceStatistics extends Stream.Writable {
+export class CollectSentenceStatistics extends Stream.Writable {
     private _minComplexity : number;
     private _maxComplexity : number;
     private _splitByDevice : boolean;
@@ -604,14 +597,9 @@ class CollectSentenceStatistics extends Stream.Writable {
     }
 
     read() {
-        return new Promise((resolve, reject) => {
+        return new Promise<Record<string, EvaluationResult>>((resolve, reject) => {
             this.on('finish', () => resolve(this._buffer));
             this.on('error', reject);
         });
     }
 }
-
-export {
-    SentenceEvaluatorStream,
-    CollectSentenceStatistics,
-};

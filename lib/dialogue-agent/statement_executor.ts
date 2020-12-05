@@ -18,9 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-import assert from 'assert';
-
 import { Ast, Type, Builtin, SchemaRetriever } from 'thingtalk';
 
 import type Engine from '../engine';
@@ -180,9 +177,7 @@ export default class InferenceStatementExecutor {
         return [false, errorCode, errorMessage];
     }
 
-    async executeStatement(stmt : Ast.Command|Ast.Rule) : Promise<[Ast.DialogueHistoryResultList, undefined]> {
-        assert(stmt instanceof Ast.Statement.Command || stmt instanceof Ast.Statement.Rule);
-
+    async executeStatement(stmt : Ast.ExpressionStatement) : Promise<[Ast.DialogueHistoryResultList, undefined]> {
         const program = new Ast.Program(null, [], [], [stmt]);
         const app = await this._engine.createApp(program);
         const results : Ast.DialogueHistoryResultItem[] = [];

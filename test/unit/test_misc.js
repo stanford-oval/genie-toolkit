@@ -57,7 +57,7 @@ async function testGetIcon() {
     const schemas = new ThingTalk.SchemaRetriever(_mockThingpediaClient, null, true);
 
     for (let [code, expected] of TEST_CASES) {
-        const program = await ThingTalk.Grammar.parseAndTypecheck(code, schemas, false);
+        const program = await ThingTalk.Syntax.parse(code).typecheck(schemas, false);
 
         const icon = getProgramIcon(program);
         assert.strictEqual(icon, expected);

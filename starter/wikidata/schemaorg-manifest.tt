@@ -699,7 +699,7 @@ class @org.schema.Restaurant
                                         out character: Entity(org.schema.Restaurant:Person) #_[canonical={default="property",base=["character"],reverse_verb=["charactered"]}] #[org_schema_type="Person"],
                                         out sourceOrganization: Entity(org.schema.Restaurant:Organization) #_[canonical={default="property",base=["source organization"]}] #[org_schema_type="Organization"],
                                         out audience: Array(Entity(org.schema.Restaurant:Audience)) #_[canonical={default="property",base=["audiences"]}] #[org_schema_type="Audience"],
-                                        out abstract: Array(String) #_[canonical={default="passive_verb",passive_verb=["abstract"],base=["abstract"]}] #[org_schema_type="Text"] #[string_values="org.schema.Restaurant:CreativeWork_abstract"],
+                                        out abstract_: Array(String) #_[canonical={default="passive_verb",passive_verb=["abstract"],base=["abstract"]}] #[org_schema_type="Text"] #[string_values="org.schema.Restaurant:CreativeWork_abstract"],
                                         out materialExtent: Number #_[canonical={default="property",base=["material extent"]}] #[org_schema_type="QuantitativeValue"],
                                         out conditionsOfAccess: String #_[canonical={default="property",base=["conditions of access"]}] #[org_schema_type="Text"] #[string_values="org.schema.Restaurant:CreativeWork_conditionsOfAccess"],
                                         out video: Entity(org.schema:VideoObject) #_[canonical={default="property",base=["video"]}] #[org_schema_type="VideoObject"],
@@ -2848,7 +2848,7 @@ class @org.schema.Restaurant
                                         out step: Array(String) #_[canonical={default="property",base=["steps"]}] #[org_schema_type="Text"] #[string_values="org.schema.Restaurant:HowTo_step"],
                                         out supply: Array(String) #_[canonical={default="property",base=["supplies"]}] #[org_schema_type="Text"] #[string_values="org.schema.Restaurant:HowTo_supply"],
                                         out tool: Array(String) #_[canonical={default="property",base=["tools"]}] #[org_schema_type="Text"] #[string_values="org.schema.Restaurant:HowTo_tool"],
-                                        out yield: Number #_[canonical={default="property",base=["yield"]}] #[org_schema_type="QuantitativeValue"],
+                                        out yield_: Number #_[canonical={default="property",base=["yield"]}] #[org_schema_type="QuantitativeValue"],
                                         out performTime: Measure(ms) #_[canonical={default="property",base=["perform time"]}] #[org_schema_type="Duration"],
                                         out estimatedCost: Currency #_[canonical={default="passive_verb",passive_verb=["estimated cost"],base=["estimated cost"]}] #[org_schema_type="MonetaryAmount"],
                                         out totalTime: Measure(ms) #_[canonical={verb=["takes #", "requires #", "needs #", "uses #", "consumes #"],base=["total time", "time in total", "time to make"]}] #[org_schema_type="Duration"])
@@ -3158,7 +3158,7 @@ class @org.schema.Restaurant
 
   list query Observation extends Intangible(out id: Entity(org.schema.Restaurant:Observation) #_[canonical={base=["name"],passive_verb=["called", "named"]}] #[unique=true] #[filterable=true],
                                             out name: String #[org_schema_type="Text"] #[filterable=true] #[string_values="org.schema.Restaurant:Observation_name"],
-                                            out measuredValue: Any #_[canonical={default="passive_verb",passive_verb=["measured"],base=["measured"]}] #[org_schema_type="DataType"],
+                                            out measuredValue: String #_[canonical={default="passive_verb",passive_verb=["measured"],base=["measured"]}] #[org_schema_type="DataType"],
                                             out observedNode: Entity(org.schema.Restaurant:StatisticalPopulation) #_[canonical={default="verb",verb=["observed # node"],base=["node"]}] #[org_schema_type="StatisticalPopulation"],
                                             out marginOfError: Array(Date) #_[canonical={default="property",base=["margin of errors"]}] #[org_schema_type="DateTime"],
                                             out measuredProperty: Entity(org.schema.Restaurant:Property) #_[canonical={default="passive_verb",passive_verb=["measured property"],base=["measured property"]}] #[org_schema_type="Property"],

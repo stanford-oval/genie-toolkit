@@ -233,8 +233,8 @@ class SchemaProcessor {
 
         // load schema.org manifest if available
         if (this._schemaorgManifest) {
-            const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(this._schemaorgManifest, { encoding: 'utf8' }));
-            assert(library.isLibrary && library.classes.length === 1);
+            const library = ThingTalk.Syntax.parse(await util.promisify(fs.readFile)(this._schemaorgManifest, { encoding: 'utf8' }));
+            assert(library instanceof ThingTalk.Ast.Library && library.classes.length === 1);
             const classDef = library.classes[0];
 
             for (let fn in classDef.queries) {
@@ -293,8 +293,8 @@ class SchemaProcessor {
         }
 
         const imports = [
-            new Ast.ImportStmt.Mixin(null, ['loader'], 'org.thingpedia.v2', []),
-            new Ast.ImportStmt.Mixin(null, ['config'], 'org.thingpedia.config.none', [])
+            new Ast.MixinImportStmt(null, ['loader'], 'org.thingpedia.v2', []),
+            new Ast.MixinImportStmt(null, ['config'], 'org.thingpedia.config.none', [])
         ];
 
         const classdef = new Ast.ClassDef(null, 'org.wikidata', null,

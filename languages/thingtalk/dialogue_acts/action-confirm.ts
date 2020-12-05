@@ -37,8 +37,6 @@ import {
 
 function makeActionConfirmationPhrase(ctx : ContextInfo, action : Ast.Invocation) {
     const ctxInvocation = C.getInvocation(ctx.next!);
-    if (ctxInvocation.selector.isBuiltin)
-        return null;
     if (!C.isSameFunction(ctxInvocation.schema!, action.schema!))
         return null;
 

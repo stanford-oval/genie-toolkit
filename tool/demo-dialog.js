@@ -25,11 +25,11 @@ import * as events from 'events';
 import path from 'path';
 import * as Tp from 'thingpedia';
 
-import * as TargetLanguages from '../lib/languages';
 import * as ParserClient from '../lib/prediction/parserclient';
 import * as I18n from '../lib/i18n';
 import MultiJSONDatabase from './lib/multi_json_database';
 import SentenceGenerator from '../lib/sentence-generator/generator';
+import * as ThingTalkUtils from '../lib/utils/thingtalk';
 
 import * as ThingTalk from 'thingtalk';
 
@@ -52,10 +52,10 @@ class DialogAgent extends events.EventEmitter {
         this._state = 'loading';
         this._serial = 0;
 
-        this._target = TargetLanguages.get(options.target_language);
         this._targetOptions = {
             thingpediaClient: tpClient,
-            schemaRetriever: this._schemas
+            schemaRetriever: this._schemas,
+            loadMetadata: true
         };
 
         const simulatorOptions = {
@@ -69,7 +69,7 @@ class DialogAgent extends events.EventEmitter {
             simulatorOptions.database = this._database;
         }
 
-        this._simulator = this._target.createSimulator(simulatorOptions);
+        this._simulator = ThingTalkUtils.createSimulator(simulatorOptions);
         this._simulatorState = undefined;
 
         if (!USE_NEURAL_POLICY) {
@@ -189,7 +189,7 @@ class DialogAgent extends events.EventEmitter {
 
     async _getProgramPrediction(candidates, entities, prefix) {
         candidates = (await Promise.all(candidates.map(async (cand) => {
-            const parsed = await this._target.parsePrediction(cand.code, entities, this._targetOptions);
+            const parsed = await ThingTalkUtils.parsePrediction(cand.code, entities, this._targetOptions);
             if (parsed === null)
                 return null;
             return [parsed, cand.code];
@@ -201,7 +201,7 @@ class DialogAgent extends events.EventEmitter {
         const prediction = candidates[0];
         if (this._debug)
             this._print(prediction[0].prettyprint(), prefix);
-        return [this._target.computeNewState(this._context, prediction[0]), prediction[1]];
+        return [ThingTalkUtils.computeNewState(this._context, prediction[0]), prediction[1]];
     }
 
     _print(code, prefix) {
@@ -212,8 +212,8 @@ class DialogAgent extends events.EventEmitter {
     _setContext(context, forTarget) {
         this._context = context;
         if (context !== null) {
-            context = this._target.prepareContextForPrediction(context, forTarget);
-            [this._contextCode, this._contextEntities] = this._target.serializeNormalized(context);
+            context = ThingTalkUtils.prepareContextForPrediction(context, forTarget);
+            [this._contextCode, this._contextEntities] = ThingTalkUtils.serializeNormalized(context);
         } else {
             this._contextCode = ['null'];
             this._contextEntities = {};
@@ -302,7 +302,7 @@ export function initArgparse(subparsers) {
     parser.add_argument('-t', '--target-language', {
         required: false,
         default: 'thingtalk',
-        choices: TargetLanguages.AVAILABLE_LANGUAGES,
+        choices: ['thingtalk', 'dlgthingtalk'],
         help: `The programming language to generate`
     });
     parser.add_argument('--database-file', {

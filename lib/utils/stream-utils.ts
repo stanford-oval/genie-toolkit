@@ -117,7 +117,7 @@ class ArrayStream<T> extends Stream.Readable implements Stream.Readable {
 }
 
 interface ChainStreamOptions extends Stream.ReadableOptions {
-    separator : string|Buffer;
+    separator ?: string|Buffer;
 }
 
 interface InternalReadableStream extends Stream.Readable {
@@ -129,7 +129,7 @@ interface InternalReadableStream extends Stream.Readable {
 
 class ChainStream extends Stream.Readable implements Stream.Readable {
     private _chain : Stream.Readable[];
-    private _separator : string|Buffer;
+    private _separator ?: string|Buffer;
     private _i : number;
 
     constructor(chain : Stream.Readable[], options : ChainStreamOptions) {

@@ -327,31 +327,6 @@ function normalizeConfirmAnnotation(fndef : Ast.FunctionDef) : 'confirm' | 'disp
     return value;
 }
 
-export function isUnaryTableToTableOp(table : Ast.Table) : boolean {
-    return table.isFilter ||
-        table.isProjection ||
-        table.isCompute ||
-        table.isAlias ||
-        table.isSort ||
-        table.isIndex ||
-        table.isSlice ||
-        table.isAggregation;
-}
-export function isUnaryStreamToTableOp(table : Ast.Table) : boolean {
-    return false;
-}
-export function isUnaryStreamToStreamOp(stream : Ast.Stream) : boolean {
-    return stream.isEdgeNew ||
-        stream.isEdgeFilter ||
-        stream.isFilter ||
-        stream.isProjection ||
-        stream.isCompute ||
-        stream.isAlias;
-}
-export function isUnaryTableToStreamOp(stream : Ast.Stream) : boolean {
-    return stream.isMonitor;
-}
-
 export {
     clean,
 

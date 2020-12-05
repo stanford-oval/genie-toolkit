@@ -52,16 +52,16 @@ function checkSearchResultPreamble(ctx : ContextInfo, base : string, num : Ast.V
  * Agent act: the agent proposes to execute a different query statement (a refinement of
  * the current query).
  */
-function makeRefinementProposal(ctx : ContextInfo, proposal : Ast.Table) {
+function makeRefinementProposal(ctx : ContextInfo, proposal : Ast.Expression) {
     // this if() can be false only with weird primitive templates
-    if (!(proposal instanceof Ast.FilteredTable && proposal.table instanceof Ast.InvocationTable))
+    if (!(proposal instanceof Ast.FilterExpression && proposal.expression instanceof Ast.InvocationExpression))
         return null;
     if (!C.isSameFunction(ctx.currentFunctionSchema!, proposal.schema!))
         return null;
 
     const currentStmt = ctx.current!.stmt;
-    assert(currentStmt instanceof Ast.Command);
-    const ctxFilterTable = C.findFilterTable(currentStmt.table!);
+    assert(currentStmt.stream === null);
+    const ctxFilterTable = C.findFilterExpression(currentStmt.expression);
     if (ctxFilterTable === null)
         return null;
 
@@ -73,14 +73,14 @@ function makeRefinementProposal(ctx : ContextInfo, proposal : Ast.Table) {
     return makeAgentReply(ctx, sysState, proposal);
 }
 
-function negativeProposalReply(ctx : ContextInfo, [preamble, request] : [Ast.Table|null, Ast.Table|null]) {
+function negativeProposalReply(ctx : ContextInfo, [preamble, request] : [Ast.Expression|null, Ast.Expression|null]) {
     // discard if we have a preamble, because it's too complicated to check if the preamble is meaningful
     if (preamble !== null)
         return null;
-    if (!(request instanceof Ast.FilteredTable))
+    if (!(request instanceof Ast.FilterExpression))
         return null;
 
-    const proposal = ctx.aux as Ast.FilteredTable;
+    const proposal = ctx.aux as Ast.FilterExpression;
     if (!C.isSameFunction(ctx.currentFunctionSchema!, request.schema!))
         return null;
     const refined = refineFilterToChangeFilter(proposal.filter, request.filter);
@@ -91,7 +91,7 @@ function negativeProposalReply(ctx : ContextInfo, [preamble, request] : [Ast.Tab
 }
 
 function positiveProposalReply(ctx : ContextInfo) {
-    const proposal = ctx.aux as Ast.FilteredTable;
+    const proposal = ctx.aux as Ast.FilterExpression;
     return proposalReply(ctx, proposal, refineFilterToAnswerQuestion);
 }
 

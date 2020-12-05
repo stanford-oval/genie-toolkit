@@ -27,7 +27,7 @@ import ValueCategory from './value-category';
 import { CancellationError } from './errors';
 import * as I18n from '../i18n';
 import SentenceGenerator from '../sentence-generator/generator';
-import * as TargetLanguages from '../languages';
+import * as ThingTalkUtils from '../utils/thingtalk';
 import type DialogueLoop from './dialogue-loop';
 import type Conversation from './conversation';
 
@@ -77,7 +77,6 @@ type ContextInitializer = (previousTurn : Ast.DialogueState|null, functionTable 
 
 interface GeneratorOptions {
     locale : string;
-    targetLanguage ?: string;
     templateFiles : string[];
     flags : { [key : string] : boolean };
     rootSymbol ?: string;
@@ -127,7 +126,6 @@ export default class DialoguePolicy {
 
     private async _initializeGenerator(forDevices : string[]) {
         console.log('Initializing dialogue policy for devices: ' + forDevices.join(', '));
-        const target = TargetLanguages.get('thingtalk');
 
         this._generatorOptions = {
             contextual: true,
@@ -141,7 +139,6 @@ export default class DialoguePolicy {
             rng: this._rng,
             locale: this._locale,
             templateFiles: [TEMPLATE_FILE_PATH],
-            targetLanguage: 'thingtalk',
             thingpediaClient: this._thingpedia,
             schemaRetriever: this._schemas,
             onlyDevices: forDevices,
@@ -153,7 +150,7 @@ export default class DialoguePolicy {
             contextInitializer(state, functionTable) {
                 // ask the target language to extract the constants from the context
                 if (state !== null) {
-                    const constants = target.extractConstants(state);
+                    const constants = ThingTalkUtils.extractConstants(state);
                     sentenceGenerator.addConstantsFromContext(constants);
                 }
                 const tagger = functionTable.get('context')!;

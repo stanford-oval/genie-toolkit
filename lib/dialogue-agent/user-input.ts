@@ -18,11 +18,12 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-import { Ast, Grammar, NNSyntax, Type, SchemaRetriever } from 'thingtalk';
+import * as Tp from 'thingpedia';
+import { Ast, Type, SchemaRetriever } from 'thingtalk';
 
 import ValueCategory from './value-category';
 import { EntityMap } from '../utils/entity-utils';
+import * as ThingTalkUtils from '../utils/thingtalk';
 
 export interface PlatformData {
     contacts ?: Array<{
@@ -39,7 +40,7 @@ export interface PreparsedCommand {
     slotTypes ?: Record<string, string>;
 }
 
-function parseSpecial(intent : Ast.SpecialBookkeepingIntent, context : { platformData : PlatformData }) {
+function parseSpecial(intent : Ast.SpecialControlIntent, context : { platformData : PlatformData }) {
     switch (intent.type) {
     case 'yes':
         return new UserInput.Answer(new Ast.Value.Boolean(true), context.platformData);
@@ -62,12 +63,12 @@ class UserInput {
     }
 
     static fromThingTalk(thingtalk : Ast.Input, context : { platformData : PlatformData }) : UserInput {
-        if (thingtalk instanceof Ast.Bookkeeping) {
-            if (thingtalk.intent instanceof Ast.SpecialBookkeepingIntent)
+        if (thingtalk instanceof Ast.ControlCommand) {
+            if (thingtalk.intent instanceof Ast.SpecialControlIntent)
                 return parseSpecial(thingtalk.intent, context);
-            else if (thingtalk.intent instanceof Ast.AnswerBookkeepingIntent)
+            else if (thingtalk.intent instanceof Ast.AnswerControlIntent)
                 return new UserInput.Answer(thingtalk.intent.value, context.platformData);
-            else if (thingtalk.intent instanceof Ast.ChoiceBookkeepingIntent)
+            else if (thingtalk.intent instanceof Ast.ChoiceControlIntent)
                 return new UserInput.MultipleChoiceAnswer(thingtalk.intent.value, context.platformData);
             else
                 throw new TypeError(`Unrecognized bookkeeping intent`);
@@ -81,10 +82,16 @@ class UserInput {
     }
 
     static async parse(json : { program : string }|PreparsedCommand,
+                       thingpediaClient : Tp.BaseClient,
                        schemaRetriever : SchemaRetriever,
                        context : { platformData : PlatformData }) : Promise<UserInput> {
-        if ('program' in json)
-            return UserInput.fromThingTalk(await Grammar.parseAndTypecheck(json.program, schemaRetriever, true), context);
+        if ('program' in json) {
+            return UserInput.fromThingTalk(await ThingTalkUtils.parse(json.program, {
+                thingpediaClient,
+                schemaRetriever,
+                loadMetadata: true
+            }), context);
+        }
 
         const { code, entities } = json;
         for (const name in entities) {
@@ -96,14 +103,12 @@ class UserInput {
             }
         }
 
-        const thingtalk = NNSyntax.fromNN(code, entities);
-        await thingtalk.typecheck(schemaRetriever, true);
+        const thingtalk = await ThingTalkUtils.parsePrediction(code, entities, {
+            thingpediaClient,
+            schemaRetriever,
+            loadMetadata: true
+        }, true);
         return UserInput.fromThingTalk(thingtalk, context);
-    }
-
-    static async parseThingTalk(code : string, schemaRetriever : SchemaRetriever,
-                                context : { platformData : PlatformData }) : Promise<UserInput> {
-        return UserInput.fromThingTalk(await Grammar.parseAndTypecheck(code, schemaRetriever, true), context);
     }
 }
 

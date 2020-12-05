@@ -31,8 +31,8 @@ import { parseConstantFile } from '../lib/constant-file';
 import AnnotationGenerator from './lib/annotation-generator';
 
 async function loadClassDefs(thingpedia) {
-    const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
-    assert(library.isLibrary);
+    const library = ThingTalk.Syntax.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
+    assert(library instanceof ThingTalk.Ast.Library);
     return library.classes;
 }
 

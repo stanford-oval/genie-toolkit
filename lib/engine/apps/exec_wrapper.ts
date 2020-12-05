@@ -65,6 +65,19 @@ interface TriggerLike {
     stop() : void;
 }
 
+function recursivelyComputeOutputType(kind : string, expr : Ast.Expression) : string {
+    if (expr instanceof Ast.InvocationExpression)
+        return kind + ':' + expr.invocation.channel;
+    if (expr instanceof Ast.ChainExpression)
+        return expr.expressions.map((exp) => recursivelyComputeOutputType(kind, exp)).join('+');
+    if (expr instanceof Ast.AggregationExpression)
+        return expr.operator + '(' + recursivelyComputeOutputType(kind, expr.expression) + ')';
+    if ('expression' in expr) // projection, index, slice
+        return recursivelyComputeOutputType(kind, (expr as ({ expression : Ast.Expression } & Ast.Expression)).expression);
+
+    throw new TypeError('Invalid query expression ' + expr);
+}
+
 /**
  * Wrap a ThingTalk statement and provide access to the Engine.
  *
@@ -222,33 +235,16 @@ export default class ExecWrapper extends ExecEnvironment {
     }
 
     async *invokeDBQuery(kind : string, attrs : Record<string, string>, query : Ast.Program) : AsyncIterable<[string, Record<string, unknown>]> {
-        assert(attrs.id);
-        const device = this.engine.devices.getDevice(attrs.id);
-        if (!device)
-            return;
+        const devices = this._getDevices(kind, attrs) as any[]; // FIXME
 
-        assert(device.hasKind(kind));
+        const command = query.statements[0];
+        assert(command instanceof Ast.ExpressionStatement);
 
-        const results = await device.query(query, this);
-
-        function recursivelyComputeOutputType(table : Ast.Table) : string {
-            if (table instanceof Ast.InvocationTable)
-                return device.kind + ':' + table.invocation.channel;
-            if (table instanceof Ast.JoinTable)
-                return recursivelyComputeOutputType(table.lhs) + '+' + recursivelyComputeOutputType(table.rhs);
-            if (table instanceof Ast.AggregationTable)
-                return table.operator + '(' + recursivelyComputeOutputType(table.table) + ')';
-            if ('table' in table) // projection, index, slice, history, sequence, compute
-                return recursivelyComputeOutputType((table as { table : Ast.Table }).table);
-
-            throw new TypeError('Invalid query table ' + table);
+        for (const device of devices) {
+            const outputType = recursivelyComputeOutputType(device.kind, command.expression);
+            for await (const result of device.query(query, this))
+                yield [outputType, result];
         }
-        const command = query.rules[0];
-        assert(command instanceof Ast.Command);
-        const outputType = recursivelyComputeOutputType(command.table!);
-
-        for (const result of results)
-            yield [outputType, result];
     }
 
     readState(stateId : number) {

@@ -31,34 +31,34 @@ import {
     addNewItem,
 } from '../state_manip';
 import {
-    findOrMakeFilterTable
+    findOrMakeFilterExpression
 } from './refinement-helpers';
 
-function tableUsesIDFilter(table : Ast.Table) {
-    const filterTable = C.findFilterTable(table);
-    if (!filterTable)
+function expressionUsesIDFilter(expr : Ast.Expression) {
+    const filterExpression = C.findFilterExpression(expr);
+    if (!filterExpression)
         return false;
 
-    return C.filterUsesParam(filterTable.filter, 'id');
+    return C.filterUsesParam(filterExpression.filter, 'id');
 }
 
-function adjustStatementsForInitialRequest(stmt : Ast.ExecutableStatement) {
+function adjustStatementsForInitialRequest(stmt : Ast.ExpressionStatement) {
     // TODO implement rules (streams)
-    if (!(stmt instanceof Ast.Command))
+    if (stmt.stream)
         return null;
 
-    if (stmt.table && !C.checkValidQuery(stmt.table))
+    if (!C.checkValidQuery(stmt.expression))
         return null;
 
-    const newStatements : Ast.Command[] = [];
-    if (stmt.table && stmt.actions.some((a) => !a.isNotify)) {
+    const newStatements : Ast.ExpressionStatement[] = [];
+    if (stmt.expression.expressions.length > 1) {
         // query + action
         // split into two statements, one getting the data, and the other using it
 
-        assert(stmt.actions.length === 1);
-        const action = stmt.actions[0];
-        assert(action instanceof Ast.InvocationAction);
-        assert(action.invocation.selector instanceof Ast.DeviceSelector);
+        assert(stmt.expression.expressions.length === 2);
+        const table = stmt.expression.expressions[0];
+        const action = stmt.expression.expressions[1];
+        assert(action instanceof Ast.InvocationExpression);
         const confirm = C.normalizeConfirmAnnotation(action.invocation.schema as Ast.FunctionDef);
 
         // if confirm === auto, we leave the compound command as is, but add the [1] clause
@@ -66,14 +66,15 @@ function adjustStatementsForInitialRequest(stmt : Ast.ExecutableStatement) {
         // otherwise, we split the compound command
         if (confirm === 'auto') {
             let newTable;
-            if (tableUsesIDFilter(stmt.table) && !stmt.table.isIndex && !stmt.table.isSlice)
-                newTable = new Ast.Table.Index(null, stmt.table, [new Ast.Value.Number(1)], stmt.table.schema);
+            if (expressionUsesIDFilter(table) && !(table instanceof Ast.IndexExpression) &&
+                !(table instanceof Ast.SliceExpression))
+                newTable = new Ast.IndexExpression(null, table, [new Ast.Value.Number(1)], table.schema);
             else
-                newTable = stmt.table;
-            const compoundStmt = new Ast.Statement.Command(null, newTable, stmt.actions);
+                newTable = table;
+            const compoundStmt = new Ast.ExpressionStatement(null, new Ast.ChainExpression(null, [newTable, action], action.schema));
             newStatements.push(compoundStmt);
         } else {
-            const queryStmt = new Ast.Statement.Command(null, stmt.table, [C.notifyAction()]);
+            const queryStmt = new Ast.ExpressionStatement(null, table);
             newStatements.push(queryStmt);
 
             const newAction = action.clone();
@@ -94,17 +95,15 @@ function adjustStatementsForInitialRequest(stmt : Ast.ExecutableStatement) {
                 // FIXME we need a new ThingTalk value type...
                 in_param.value = new Ast.Value.Undefined(true);
             }
-            const actionStmt = new Ast.Statement.Command(null, null, [newAction]);
+            const actionStmt = new Ast.ExpressionStatement(null, newAction);
             newStatements.push(actionStmt);
         }
-    } else if (!stmt.table) {
+    } else if (stmt.first.schema!.functionType === 'action') {
         // action only
         // add a query, if the action refers to an ID entity
 
-        assert(stmt.actions.length === 1);
-        const action = stmt.actions[0];
-        assert(action instanceof Ast.InvocationAction);
-        assert(action.invocation.selector instanceof Ast.DeviceSelector);
+        const action = stmt.first;
+        assert(action instanceof Ast.InvocationExpression);
 
         // for "confirm=auto", the query is added to a compound command
         // and for "confirm=display_result", the query is added as a separate statement
@@ -143,11 +142,11 @@ function adjustStatementsForInitialRequest(stmt : Ast.ExecutableStatement) {
 
         const confirm = C.normalizeConfirmAnnotation(action.invocation.schema as Ast.FunctionDef);
         // shallow clone
-        const clone = new Ast.Action.Invocation(null, new Ast.Invocation(null,
+        const clone = new Ast.InvocationExpression(null, new Ast.Invocation(null,
             action.invocation.selector, action.invocation.channel,
             action.invocation.in_params.slice(), action.invocation.schema), action.schema);
 
-        let newTable : Ast.Table|null = null;
+        let newTable : Ast.Expression|null = null;
         for (const param of clone.invocation.in_params) {
             const type = clone.invocation.schema!.getArgType(param.name);
             if (!(type instanceof Type.Entity) || !_loader.idQueries.has(type.type))
@@ -159,9 +158,9 @@ function adjustStatementsForInitialRequest(stmt : Ast.ExecutableStatement) {
             assert(newTable === null);
 
             const query = _loader.idQueries.get(type.type)!;
-            newTable = new Ast.Table.Invocation(null,
+            newTable = new Ast.InvocationExpression(null,
                     new Ast.Invocation(null,
-                        new Ast.Selector.Device(null, query.class!.name, null, null),
+                        new Ast.DeviceSelector(null, query.class!.name, null, null),
                         query.name,
                         [],
                         query),
@@ -170,12 +169,13 @@ function adjustStatementsForInitialRequest(stmt : Ast.ExecutableStatement) {
             if (confirm === 'auto')
                 param.value = new Ast.Value.VarRef('id');
         }
+        assert(newTable);
 
         if (confirm === 'auto') {
-            newStatements.push(new Ast.Statement.Command(null, newTable, [clone]));
+            newStatements.push(new Ast.ExpressionStatement(null, new Ast.ChainExpression(null, [newTable, clone], clone.schema)));
         } else {
-            newStatements.push(new Ast.Statement.Command(null, newTable, [C.notifyAction()]));
-            newStatements.push(new Ast.Statement.Command(null, null, [clone]));
+            newStatements.push(new Ast.ExpressionStatement(null, newTable));
+            newStatements.push(new Ast.ExpressionStatement(null, clone));
         }
     } else {
         newStatements.push(stmt);
@@ -184,7 +184,7 @@ function adjustStatementsForInitialRequest(stmt : Ast.ExecutableStatement) {
     return newStatements.map(C.adjustDefaultParameters);
 }
 
-function initialRequest(stmt : Ast.ExecutableStatement) {
+function initialRequest(stmt : Ast.ExpressionStatement) {
     const newStatements = adjustStatementsForInitialRequest(stmt);
     if (newStatements === null)
         return null;
@@ -193,18 +193,15 @@ function initialRequest(stmt : Ast.ExecutableStatement) {
     return new Ast.DialogueState(null, 'org.thingpedia.dialogue.transaction', 'execute', null, history);
 }
 
-function getStatementDevice(stmt : Ast.Command) {
-    if (stmt.table)
-        return stmt.table.schema!.class!.name;
-    else
-        return stmt.actions[0].schema!.class!.name;
+function getStatementDevice(stmt : Ast.ExpressionStatement) {
+    return stmt.last.schema!.class!.name;
 }
 
-function startNewRequest(ctx : ContextInfo, stmt : Ast.ExecutableStatement) {
-    if (!(stmt instanceof Ast.Command))
+function startNewRequest(ctx : ContextInfo, stmt : Ast.ExpressionStatement) {
+    if (stmt.stream)
         return null;
 
-    if (_loader.flags.strict_multidomain && getStatementDevice(ctx.current!.stmt as Ast.Command) === getStatementDevice(stmt))
+    if (_loader.flags.strict_multidomain && getStatementDevice(ctx.current!.stmt) === getStatementDevice(stmt))
         return null;
 
     const newStatements = adjustStatementsForInitialRequest(stmt);
@@ -215,29 +212,29 @@ function startNewRequest(ctx : ContextInfo, stmt : Ast.ExecutableStatement) {
     return addNewItem(ctx, 'execute', null, 'accepted', ...newItems);
 }
 
-function addInitialDontCare(stmt : Ast.ExecutableStatement, dontcare : Ast.DontCareBooleanExpression) {
-    if (!(stmt instanceof Ast.Command) || !stmt.table)
+function addInitialDontCare(stmt : Ast.ExpressionStatement, dontcare : Ast.DontCareBooleanExpression) : Ast.ExpressionStatement|null {
+    const table = stmt.lastQuery;
+    if (!table)
         return null;
 
-    const arg = stmt.table.schema!.getArgument(dontcare.name);
+    const arg = table.schema!.getArgument(dontcare.name);
     if (!arg || arg.is_input)
         return null;
     if (arg.getAnnotation<boolean>('filterable') === false)
         return null;
-    if (!stmt.table.schema!.is_list)
+    if (!table.schema!.is_list)
         return null;
 
     const clone = stmt.clone();
-    const [cloneTable, filterTable] = findOrMakeFilterTable(clone.table!);
-    assert(filterTable);
-    if (!filterTable.table.isInvocation)
-        return null;
-    clone.table = cloneTable;
-
-    if (C.filterUsesParam(filterTable.filter, dontcare.name))
+    const filterExpression = findOrMakeFilterExpression(clone.expression);
+    assert(filterExpression);
+    if (!(filterExpression.expression instanceof Ast.InvocationExpression))
         return null;
 
-    filterTable.filter = new Ast.BooleanExpression.And(null, [filterTable.filter, dontcare]).optimize();
+    if (C.filterUsesParam(filterExpression.filter, dontcare.name))
+        return null;
+
+    filterExpression.filter = new Ast.BooleanExpression.And(null, [filterExpression.filter, dontcare]).optimize();
     return clone;
 }
 

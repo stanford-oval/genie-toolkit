@@ -62,7 +62,6 @@ const subcommands : { [key : string] : SubCommand } = {
     'server': require('./server'),
     'assistant': require('./assistant'),
 
-    'dataset': require('./dataset'),
     'subsample-thingpedia': require('./subsample-thingpedia'),
     'preprocess-string-dataset': require('./preprocess-string-dataset'),
 
@@ -85,7 +84,6 @@ const subcommands : { [key : string] : SubCommand } = {
 
     'auto-annotate': require('./autoqa/auto-annotate'),
     'make-string-datasets': require('./autoqa/make-string-datasets'),
-    'canonical-diffchecker': require('./canonical-diffchecker'),
 
     'auto-annotate-multiwoz': require('./auto-annotate-multiwoz'),
     'extract-predicted-slots': require('./extract-predicted-slots'),

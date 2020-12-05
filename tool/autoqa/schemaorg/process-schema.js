@@ -21,9 +21,7 @@
 
 import { Inflectors } from 'en-inflectors';
 import * as Tp from 'thingpedia';
-import * as ThingTalk from 'thingtalk';
-const Type = ThingTalk.Type;
-const Ast = ThingTalk.Ast;
+import { Type, Syntax, Ast } from 'thingtalk';
 import * as fs from 'fs';
 import util from 'util';
 
@@ -86,13 +84,6 @@ function getIncludes(includes) {
     else
         return [getId(includes['@id'])];
 }
-
-const KEYWORDS = [
-    'let', 'now', 'new', 'as', 'of', 'in', 'out', 'req', 'opt', 'notify', 'return',
-    'join', 'edge', 'monitor', 'class', 'extends', 'mixin', 'this', 'import', 'null',
-    'enum', 'aggregate', 'dataset', 'oninput', 'sort', 'asc', 'desc', 'bookkeeping',
-    'compute', 'true', 'false'
-];
 
 function getItemType(typename, typeHierarchy) {
     // use conventions on the typename to convert an array type to its element type
@@ -309,7 +300,7 @@ class SchemaProcessor {
         recursiveCollectProperties(startingTypename);
 
         let anyfield = false;
-        for (let [propertyname, propertydef] of allproperties) {
+        for (const [propertyname, propertydef] of allproperties) {
             const [schemaOrgType, ttType] = this.getBestPropertyType(propertyname, propertydef, typeHierarchy);
             if (!ttType)
                 continue;
@@ -343,7 +334,8 @@ class SchemaProcessor {
                 annotation['drop'] = new Ast.Value.Boolean(true);
             }
 
-            fields[propertyname] = new Ast.ArgumentDef(null, undefined, propertyname, ttType, {
+            const adjustedname = Syntax.KEYWORDS.has(propertyname) ? propertyname + '_' : propertyname;
+            fields[adjustedname] = new Ast.ArgumentDef(null, null, adjustedname, ttType, {
                 nl: metadata,
                 impl: annotation
             });
@@ -697,14 +689,11 @@ class SchemaProcessor {
             }
 
             this._hasGeo = 'geo' in typedef.properties;
-            for (let propertyname in typedef.properties) {
+            for (const propertyname in typedef.properties) {
                 const propertydef = typedef.properties[propertyname];
                 const [schemaOrgType, type] = this.getBestPropertyType(propertyname, propertydef, typeHierarchy);
                 if (!type)
                     continue;
-
-                if (KEYWORDS.includes(propertyname))
-                    propertyname = '_' + propertyname;
 
                 const metadata = {};
                 const annotation = keepAnnotation ? {
@@ -726,7 +715,8 @@ class SchemaProcessor {
                 else if (propertyname.endsWith('Count'))
                     metadata.counted_object = [ this._langPack.pluralize(clean(propertyname.slice(0, -'Count'.length)))];
 
-                const arg = new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, propertyname, type, {
+                const adjustedname = Syntax.KEYWORDS.has(propertyname) ? propertyname + '_' : propertyname;
+                const arg = new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, adjustedname, type, {
                     nl: metadata,
                     impl: annotation
                 });
@@ -734,9 +724,6 @@ class SchemaProcessor {
 
                 args.push(arg);
             }
-
-            if (KEYWORDS.includes(typename))
-                typename = '_' + typename;
 
             let query_canonical;
             if (this._manual && typename in MANUAL_TABLE_CANONICAL_OVERRIDE)
@@ -766,8 +753,8 @@ class SchemaProcessor {
         }
 
         const imports = [
-            new Ast.ImportStmt.Mixin(null, ['loader'], 'org.thingpedia.v2', []),
-            new Ast.ImportStmt.Mixin(null, ['config'], 'org.thingpedia.config.none', [])
+            new Ast.MixinImportStmt(null, ['loader'], 'org.thingpedia.v2', []),
+            new Ast.MixinImportStmt(null, ['config'], 'org.thingpedia.config.none', [])
         ];
 
         const entities = this._entities.map((entityType) => {

@@ -28,25 +28,21 @@ import {
     addQuery,
 } from '../state_manip';
 import {
-    findOrMakeFilterTable,
+    findOrMakeFilterExpression,
     refineFilterToAnswerQuestion,
 } from './refinement-helpers';
 
-function relatedQuestion(ctx : ContextInfo, stmt : Ast.ExecutableStatement) {
+function relatedQuestion(ctx : ContextInfo, stmt : Ast.ExpressionStatement) {
     const currentStmt = ctx.current!.stmt;
-    assert(currentStmt instanceof Ast.Command);
-    const currentTable = currentStmt.table!;
+    const currentTable = currentStmt.expression;
 
-    if (!(stmt instanceof Ast.Command) || !stmt.table)
+    if (stmt.last.schema!.functionType === 'action')
         return null;
-    if (stmt.actions.some((a) => !a.isNotify))
-        return null;
-    let newTable = stmt.table;
-    const newSchema = newTable.schema;
+    const newSchema = stmt.expression.schema;
     if (!(newSchema instanceof Ast.FunctionDef))
         return null;
 
-    if (C.isSameFunction(currentTable.schema!, newTable.schema!))
+    if (C.isSameFunction(currentTable.schema!, newSchema))
         return null;
 
     const currentSchema = currentTable.schema;
@@ -57,17 +53,17 @@ function relatedQuestion(ctx : ContextInfo, stmt : Ast.ExecutableStatement) {
     if (!related || !related.includes(functionName))
         return null;
 
-    if (!C.checkValidQuery(stmt.table))
+    if (!C.checkValidQuery(stmt.expression))
         return null;
 
-    const [newTableTmp, newFilterTable] = findOrMakeFilterTable(newTable.clone());
+    const newTable = stmt.expression.clone();
+    const newFilterTable = findOrMakeFilterExpression(newTable);
     if (newFilterTable === null)
         return null;
-    newTable = newTableTmp!;
-    if (!(newFilterTable.table instanceof Ast.InvocationTable))
+    if (!(newFilterTable.expression instanceof Ast.InvocationExpression))
         return null;
 
-    const ctxFilterTable = C.findFilterTable(currentTable);
+    const ctxFilterTable = C.findFilterExpression(currentTable);
 
     if (ctxFilterTable) {
         const newFilter = refineFilterToAnswerQuestion(ctxFilterTable.filter, newFilterTable.filter);

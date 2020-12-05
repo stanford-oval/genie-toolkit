@@ -25,6 +25,7 @@ import * as Utils from '../utils/misc-utils';
 import * as I18n from '../i18n';
 import editDistance from '../utils/edit-distance';
 import { EntityMap, renumberEntities } from '../utils/entity-utils';
+import * as ThingTalkUtils from '../utils/thingtalk';
 
 import Predictor from './predictor';
 import {
@@ -110,17 +111,19 @@ export default class LocalParserClient {
         return newCode;
     }
 
-    private _applyPostHeuristics(programs : string[][], contextCode : string[]|undefined) {
+    private _applyPostHeuristics(programs : PredictionCandidate[], contextCode : string[]|undefined) {
         // only work on contextual
         if (!contextCode)
             return;
 
         if (contextCode[0] === '$dialogue' &&
-            contextCode[1] === '@org.thingpedia.dialogue.transaction.sys_anything_else') {
+            contextCode[1] === '@org.thingpedia.dialogue.transaction' &&
+            contextCode[3] === 'sys_anything_else') {
             for (const prog of programs) {
-                if (prog[0] === '$dialogue' &&
-                    prog[1] === '@org.thingpedia.dialogue.transaction.cancel')
-                    prog[1] = '@org.thingpedia.dialogue.transaction.end';
+                if (prog.code[0] === '$dialogue' &&
+                    prog.code[1] === '@org.thingpedia.dialogue.transaction' &&
+                    prog.code[3] === 'cancel')
+                    prog.code[3] = 'end';
             }
         }
     }
@@ -155,20 +158,20 @@ export default class LocalParserClient {
 
         if (tokens.length === 0) {
             result = [{
-                code: ['bookkeeping', 'special', 'special:failed'],
+                code: ['$failed', ';'],
                 score: 'Infinity'
             }];
         } else if (tokens.length === 1 && (/^[A-Z]/.test(tokens[0]) || tokens[0] === '1' || tokens[0] === '0')) {
             // if the whole input is just an entity, return that as an answer
             result = [{
-                code: ['bookkeeping', 'answer', tokens[0]],
+                code: ['$answer', '(', tokens[0], ')', ';'],
                 score: 'Infinity'
             }];
         } else if (options.expect === 'MultipleChoice') {
             const choices = await Promise.all((options.choices || []).map((choice) => this._tokenizer.tokenize(choice)));
             result = choices.map((choice, i) => {
                 return {
-                    code: ['bookkeeping', 'choice', String(i)],
+                    code: ['$choice', '(', String(i), ')', ';'],
                     score: -editDistance(tokens, choice.tokens)
                 };
             });
@@ -181,7 +184,7 @@ export default class LocalParserClient {
         if (result === null) {
             if (options.expect === 'Location') {
                 result = [{
-                    code: ['bookkeeping', 'answer', 'location:', '"', ...tokens, '"'],
+                    code: ['$answer', '(', 'new', 'Location', '(', '"', ...tokens, '"', ')', ')', ';'],
                     score: 1
                 }];
             } else {
@@ -206,27 +209,29 @@ export default class LocalParserClient {
         if (exact !== null)
             result2 = exact.map((code) : PredictionCandidate => ({ code, score: 'Infinity' })).concat(result2);
 
+        this._applyPostHeuristics(result2, contextCode);
+
         if (!options.skip_typechecking) {
             const schemas = new ThingTalk.SchemaRetriever(this._tpClient!, null, true);
 
             result2 = (await Promise.all(result2.map(async (c) => {
-                try {
-                    const parsed = ThingTalk.NNSyntax.fromNN(c.code, entities);
-                    await parsed.typecheck(schemas, false);
+                const parsed = await ThingTalkUtils.parsePrediction(c.code, entities, {
+                    thingpediaClient: this._tpClient,
+                    schemaRetriever: schemas
+                });
+
+                if (parsed) {
                     return {
-                        code: c.code,
+                        code: ThingTalkUtils.serializePrediction(parsed, tokens, entities, {
+                            locale: this._locale,
+                            compatibility: options.thingtalk_version
+                        }),
                         score: c.score
                     };
-                } catch(e) {
+                } else {
                     return null;
                 }
-            }))).filter((c) => c !== null) as PredictionCandidate[];
-
-            const programs = result2.map((r) => r.code);
-
-            this._applyPostHeuristics(programs, contextCode);
-            if (options.thingtalk_version)
-                ThingTalk.NNSyntax.applyCompatibility(this._locale, programs, entities, options.thingtalk_version);
+            }))).filter(<T>(c : T) : c is Exclude<T, null> => c !== null);
         }
 
         return {

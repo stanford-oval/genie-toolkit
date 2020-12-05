@@ -55,8 +55,8 @@ function normalizeConfirmAnnotation(fndef : Ast.FunctionDef) : 'confirm'|'displa
     return value;
 }
 
-function shouldAutoConfirmStatement(stmt : Ast.Rule | Ast.Command) : boolean {
-    if (stmt instanceof Ast.Rule)
+function shouldAutoConfirmStatement(stmt : Ast.ExpressionStatement) : boolean {
+    if (stmt.stream)
         return false;
 
     let needsConfirm = false;

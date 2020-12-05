@@ -32,6 +32,7 @@ import ValueCategory from './value-category';
 import DialogueLoop from './dialogue-loop';
 import { MessageType, Message, RDL } from './protocol';
 import { EntityMap } from '../utils/entity-utils';
+import * as ThingTalkUtils from '../utils/thingtalk';
 import type Engine from '../engine';
 
 const DummyStatistics = {
@@ -73,9 +74,7 @@ interface ConversationDelegate {
 }
 
 interface SetContextOptions {
-    typeAnnotations ?: boolean;
     explicitStrings ?: boolean;
-    allocateEntities ?: boolean;
 }
 
 interface ResultLike {
@@ -288,17 +287,13 @@ export default class Conversation extends events.EventEmitter {
                 entities: {}
             };
         } else {
-            const entities = {};
-            options.allocateEntities = true;
-            const code = ThingTalk.NNSyntax.toNN(context, [''], entities, options);
+            const [code, entities] = ThingTalkUtils.serializeNormalized(context);
             this._context = { code, entities };
         }
     }
 
     async generateAnswer(policyPrediction : ThingTalk.Ast.DialogueState) : Promise<string> {
-        const targetAct = ThingTalk.NNSyntax.toNN(policyPrediction, [''], this._context.entities, {
-            allocateEntities: true
-        });
+        const [targetAct,] = ThingTalkUtils.serializeNormalized(policyPrediction, this._context.entities);
         const result = await this._nlg.generateUtterance(this._context.code, this._context.entities, targetAct);
         return result[0].answer;
     }
@@ -315,7 +310,8 @@ export default class Conversation extends events.EventEmitter {
         const candidates = await Promise.all(analyzed.candidates.map(async (candidate, beamposition) => {
             let parsed;
             try {
-                parsed = await UserInput.parse({ code: candidate.code, entities: analyzed.entities }, this.schemas, this._getContext(command, platformData));
+                parsed = await UserInput.parse({ code: candidate.code, entities: analyzed.entities },
+                    this.thingpedia, this.schemas, this._getContext(command, platformData));
             } catch(e) {
                 // Likely, a type error in the ThingTalk code; not a big deal, but we still log it
                 console.log(`Failed to parse beam ${beamposition}: ${e.message}`);
@@ -326,7 +322,7 @@ export default class Conversation extends events.EventEmitter {
                     return null;
             }
             return { target: parsed, score: candidate.score };
-        })).then((candidates) => candidates.filter((c) => c !== null)) as PredictionCandidate[];
+        })).then((candidates) => candidates.filter(<T>(c : T) : c is Exclude<T, null> => c !== null));
 
         // here we used to do a complex heuristic dance of probabilities and confidence scores
         // we do none of that, because Almond-NNParser does not give us useful scores
@@ -464,21 +460,22 @@ export default class Conversation extends events.EventEmitter {
         }
 
         return this._errorWrap(async () => {
-            const intent = await UserInput.parse(root, this.schemas, this._getContext(null, platformData));
+            const intent = await UserInput.parse(root, this.thingpedia, this.schemas,
+                this._getContext(null, platformData));
             return this._doHandleCommand(intent, null, [], true);
         }, platformData);
     }
 
-    async handleThingTalk(thingtalk : string, platformData : PlatformData = {}) : Promise<void> {
+    async handleThingTalk(program : string, platformData : PlatformData = {}) : Promise<void> {
         this.stats.hit('sabrina-thingtalk-command');
         this.emit('active');
         this._resetInactivityTimeout();
-        await this._addMessage({ type: MessageType.COMMAND, command: '\\t ' + thingtalk });
+        await this._addMessage({ type: MessageType.COMMAND, command: '\\t ' + program });
         if (this._debug)
             console.log('Received ThingTalk program');
 
         return this._errorWrap(async () => {
-            const intent = await UserInput.parseThingTalk(thingtalk, this.schemas, this._getContext(null, platformData));
+            const intent = await UserInput.parse({ program }, this.thingpedia, this.schemas, this._getContext(null, platformData));
             return this._doHandleCommand(intent, null, [], true);
         }, platformData);
     }
