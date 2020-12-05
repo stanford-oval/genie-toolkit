@@ -44,7 +44,15 @@ function isUnitName(token : string) {
     if (token.startsWith('unit:'))
         return true;
 
-    return (IDENTIFIER.test(token) && !Syntax.KEYWORDS.has(token) && !Syntax.CONTEXTUAL_KEYWORDS.has(token)) || token === 'in' || token === 'min';
+    // normally, a unit name is just an identifier (ie, it matches the identifier
+    // grammar and is not a keyword)
+    // but!
+    // - "in" (inches) is a reserved word (for..in)
+    // - "min" (minutes) is a contextual keyword (aggregate)
+    // - "and" / "or" are keywords in legacy NN syntax
+
+    return (IDENTIFIER.test(token) && !Syntax.KEYWORDS.has(token) && !Syntax.CONTEXTUAL_KEYWORDS.has(token) &&
+        token !== 'and' && token !== 'or') || token === 'in' || token === 'min';
 }
 
 const NON_REPLACEABLE_ENTITIES = ['tt:url', 'tt:email_address',
@@ -338,7 +346,10 @@ export default class ParameterReplacer {
             pname = slot.tag.split('.')[1];
         else if (slot.tag.startsWith('filter.'))
             pname = slot.tag.split('.')[2];
-        else if (!(slot.tag.startsWith('compute.') || slot.tag.startsWith('compute_filter.') || slot.tag === 'slice.limit')) // other slots should have the right number
+        else if (!(slot.tag.startsWith('computations.') ||
+            slot.tag.startsWith('sort.') ||
+            slot.tag.startsWith('compute_filter.') ||
+            slot.tag === 'slice.limit')) // other slots should have the right number
             throw new Error(`Unrecognized slot tag ${slot.tag}`);
 
         let arg = slot.arg;

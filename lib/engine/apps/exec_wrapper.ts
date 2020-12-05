@@ -65,6 +65,19 @@ interface TriggerLike {
     stop() : void;
 }
 
+function recursivelyComputeOutputType(kind : string, expr : Ast.Expression) : string {
+    if (expr instanceof Ast.InvocationExpression)
+        return kind + ':' + expr.invocation.channel;
+    if (expr instanceof Ast.ChainExpression)
+        return expr.expressions.map((exp) => recursivelyComputeOutputType(kind, exp)).join('+');
+    if (expr instanceof Ast.AggregationExpression)
+        return expr.operator + '(' + recursivelyComputeOutputType(kind, expr.expression) + ')';
+    if ('expression' in expr) // projection, index, slice
+        return recursivelyComputeOutputType(kind, (expr as ({ expression : Ast.Expression } & Ast.Expression)).expression);
+
+    throw new TypeError('Invalid query expression ' + expr);
+}
+
 /**
  * Wrap a ThingTalk statement and provide access to the Engine.
  *
@@ -222,33 +235,16 @@ export default class ExecWrapper extends ExecEnvironment {
     }
 
     async *invokeDBQuery(kind : string, attrs : Record<string, string>, query : Ast.Program) : AsyncIterable<[string, Record<string, unknown>]> {
-        assert(attrs.id);
-        const device = this.engine.devices.getDevice(attrs.id);
-        if (!device)
-            return;
+        const devices = this._getDevices(kind, attrs) as any[]; // FIXME
 
-        assert(device.hasKind(kind));
-
-        const results = await device.query(query, this);
-
-        function recursivelyComputeOutputType(expr : Ast.Expression) : string {
-            if (expr instanceof Ast.InvocationExpression)
-                return device.kind + ':' + expr.invocation.channel;
-            if (expr instanceof Ast.ChainExpression)
-                return expr.expressions.map(recursivelyComputeOutputType).join('+');
-            if (expr instanceof Ast.AggregationExpression)
-                return expr.operator + '(' + recursivelyComputeOutputType(expr.expression) + ')';
-            if ('expression' in expr) // projection, index, slice
-                return recursivelyComputeOutputType((expr as ({ expression : Ast.Expression } & Ast.Expression)).expression);
-
-            throw new TypeError('Invalid query expression ' + expr);
-        }
         const command = query.statements[0];
         assert(command instanceof Ast.ExpressionStatement);
-        const outputType = recursivelyComputeOutputType(command.expression);
 
-        for (const result of results)
-            yield [outputType, result];
+        for (const device of devices) {
+            const outputType = recursivelyComputeOutputType(device.kind, command.expression);
+            for await (const result of device.query(query, this))
+                yield [outputType, result];
+        }
     }
 
     readState(stateId : number) {

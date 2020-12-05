@@ -52,11 +52,19 @@ export async function parse(code : string, options : SchemaRetriever|ParseOption
     try {
         // first try parsing using normal syntax
         parsed = Syntax.parse(code);
-    } catch(e) {
+    } catch(e1) {
         // if that fails, try with legacy syntax
-        if (e.name !== 'SyntaxError')
-            throw e;
-        parsed = Syntax.parse(code, Syntax.SyntaxType.Legacy);
+        if (e1.name !== 'SyntaxError')
+            throw e1;
+        try {
+            parsed = Syntax.parse(code, Syntax.SyntaxType.Legacy);
+        } catch(e2) {
+            if (e2.name !== 'SyntaxError')
+                throw e2;
+
+            console.error(code);
+            throw e1; // use the first error not the second in case both fail
+        }
     }
     return parsed.typecheck(schemas, loadMetadata);
 }
@@ -74,11 +82,19 @@ export async function parsePrediction(code : string|string[], entities : Syntax.
         try {
             // first try parsing using normal tokenized syntax
             parsed = Syntax.parse(code, Syntax.SyntaxType.Tokenized, entities);
-        } catch(e) {
+        } catch(e1) {
             // if that fails, try with legacy NN syntax
-            if (e.name !== 'SyntaxError')
-                throw e;
-            parsed = Syntax.parse(code, Syntax.SyntaxType.LegacyNN, entities);
+            if (e1.name !== 'SyntaxError')
+                throw e1;
+            try {
+                parsed = Syntax.parse(code, Syntax.SyntaxType.LegacyNN, entities);
+            } catch(e2) {
+                if (e2.name !== 'SyntaxError')
+                    throw e2;
+
+                console.error(code);
+                throw e1; // use the first error not the second in case both fail
+            }
         }
         await parsed.typecheck(schemas, options.loadMetadata);
         return parsed;

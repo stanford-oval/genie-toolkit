@@ -32,7 +32,7 @@ const BUILTIN_TYPEMAP = {
     Boolean: Type.Boolean,
     DateTime: Type.Date,
     Date: Type.Date,
-    DataType: Type.Any,
+    DataType: Type.String, // for lack of a better type
     URL: new Type.Entity('tt:url'),
     ImageObject: new Type.Entity('tt:picture'),
     Barcode: new Type.Entity('tt:picture'),
@@ -45,7 +45,7 @@ const BUILTIN_TYPEMAP = {
     GeoCoordinates: Type.Location,
     MonetaryAmount: Type.Currency,
 
-    QuantitativeValue: Type.Any
+    QuantitativeValue: Type.String // for lack of a better type
 };
 
 

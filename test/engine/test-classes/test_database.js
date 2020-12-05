@@ -18,7 +18,7 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 
-
+import { Ast } from 'thingtalk';
 import * as Tp from 'thingpedia';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -33,12 +33,13 @@ export default class TestDatabaseDevice extends Tp.BaseDevice {
     }
 
     query(query) {
-        const table = query.rules[0].table;
-        if (table.isInvocation)
-            return [{ foo: ':-)' }];
-        if (table.isJoin)
+        const table = query.statements[0].expression;
+        if (table.expressions.length > 1)
             return [{ foo: ':-)', bar: '(-:' }];
-        if (table.isAggregation)
+        const first = table.first;
+        if (first instanceof Ast.InvocationExpression)
+            return [{ foo: ':-)' }];
+        if (first instanceof Ast.AggregationExpression)
             return [{ count: 1 }];
         return [];
     }
