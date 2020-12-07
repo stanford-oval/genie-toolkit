@@ -197,11 +197,9 @@ class TypecheckStream extends Stream.Transform {
                 schemaRetriever: this._schemas,
             }, true);
 
-            // serialize once to verify all the strings/entities are correct
-            ThingTalkUtils.serializePrediction(program!, this._current!.preprocessed, this._entities, {
+            ex.target_code = ThingTalkUtils.serializePrediction(program!, this._current!.preprocessed, this._entities, {
                 locale: this._locale
-            });
-
+            }).join(' ');
             this.push(ex);
             return;
         } catch(e) {
