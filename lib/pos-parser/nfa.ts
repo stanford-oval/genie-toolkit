@@ -103,9 +103,14 @@ export class NFA {
     }
 
     private preprocess(utterance : string, domainCanonicals : string[], value : string) : Token[] {
+        // remove punctuation at the end
+        utterance = utterance.replace(/[.,?!;]\s*$/g, '');
+
         const tokenized : TokenizerResult = this.tokenizer.tokenize(utterance);
         const tokens = tokenized.rawTokens;
         const posTags : Array<string|undefined> = this.languagePack.posTag(tokenized.rawTokens);
+
+
 
         // replace value with special token $value
         if (arrayMatchCount(tokens, value.split(' ')) !== 1)
@@ -116,10 +121,17 @@ export class NFA {
         tokens[valueIndex] = '$value';
         tokens.splice(valueIndex, value.split(' ').length - 1);
 
+        // expand domain canonicals to include plurals
+        const domainCanonicalsExpanded : Set<string> = new Set();
+        for (const canonical of domainCanonicals) {
+            domainCanonicalsExpanded.add(canonical);
+            domainCanonicalsExpanded.add(this.languagePack.pluralize(canonical));
+        }
+
         // replace domain canonical with special token $domain
         let domainCanonical : string;
         let matchCount = 0;
-        for (const canonical of domainCanonicals) {
+        for (const canonical of domainCanonicalsExpanded) {
             const count : number = arrayMatchCount(tokens, canonical.split(' '));
             if (count > 0)
                 domainCanonical = canonical;

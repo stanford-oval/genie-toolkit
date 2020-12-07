@@ -23,18 +23,20 @@ import { toNFA } from '../../lib/pos-parser/nfa';
 
 const TEST_CASES = [
     [
-        '( show me | find me | find | search for ) a [ $value ] $domain', ['restaurant', 'diner'], 'chinese',
+        '( show me | find me | find | search for ) ( a | ε ) [ $value ] $domain', ['restaurant', 'diner'], 'chinese',
         [
             ['Show me a Chinese restaurant', '$value'],
             ['search for a Chinese diner', '$value'],
+            ['find me Chinese restaurants', '$value'],
             ['search me a Chinese restaurant', null],
         ]
     ],
     [
-        '( show me | find me | find | search for ) a $domain that [ ( VBP | VBD | VBZ ) . * $value . * ]', ['restaurant', 'diner'], 'chinese',
+        '( show me | find me | find | search for ) ( a | ε ) $domain that [ ( VBP | VBD | VBZ ) . * $value . * ]', ['restaurant', 'diner'], 'chinese',
         [
             ['Show me a restaurant that serves Chinese food', 'serves $value food'],
             ['search for a diner that serves good traditional Chinese style food', 'serves good traditional $value style food'],
+            ['find me diners that serve chinese dishes.', 'serve $value dishes'],
             ['Show me a restaurant that Chinese food is served', null],
         ]
     ]
@@ -44,7 +46,6 @@ function main() {
     for (const [template, domainCanonicals, value, examples] of TEST_CASES) {
         const nfa = toNFA(template.split(' '));
         for (const [utterance, match] of examples)
-            //console.log(utterance, nfa.match(utterance, domainCanonicals, value));
             assert.strictEqual(match, nfa.match(utterance, domainCanonicals, value));
     }
 }
