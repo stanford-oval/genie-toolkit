@@ -86,5 +86,6 @@ function infixToPostfix(template : string[]) : string[] {
 
 
 export {
+    specialTokens,
     infixToPostfix
 };

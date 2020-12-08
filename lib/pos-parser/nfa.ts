@@ -19,7 +19,7 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 
 import assert from "assert";
-import { infixToPostfix } from "./infix-to-postfix";
+import { infixToPostfix, specialTokens } from "./infix-to-postfix";
 
 import EnglishLanguagePack from '../../lib/i18n/american-english';
 import EnglishTokenizer from '../../lib/i18n/tokenizer/english';
@@ -286,5 +286,6 @@ function toNFA(template : string[]) : NFA {
 }
 
 export {
+    specialTokens,
     toNFA
 };
