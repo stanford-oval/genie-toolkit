@@ -23,6 +23,7 @@ import { infixToPostfix } from '../../lib/pos-parser/infix-to-postfix';
 
 const TEST_CASES = [
     // basics (concat, closure, union)
+    ['a', 'a'],
     ['a b', 'a b _'],
     ['a * b', 'a * b _'],
     ['a * | b c', 'a * b c _ |'],
@@ -33,8 +34,13 @@ const TEST_CASES = [
     ['a . *', 'a . * _'],
 
     // capturing group
-    ['a [ b ]', 'a [ b ] _'],
-    ['a [ . * c ]', 'a [ . * _ c ] _']
+    ['a [ b ]', 'a [ b _ ]'],
+    ['a [ . * c ]', 'a [ . * _ c _ ]'],
+    ['[ a ]', '[ a ]'],
+    ['. * [ a ]', '. * [ a _ ]'],
+    ['. * [ a ] . *', '. * [ a _ ] . * _'],
+    ['[ . * ] a', '[ . * ] a _'],
+    ['[ . * a ]', '[ . * a _ ]']
 ];
 
 function main() {

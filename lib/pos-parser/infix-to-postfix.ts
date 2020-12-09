@@ -33,6 +33,8 @@ const priorityMap : Record<string, number> = {
     '|': 0,
     '_': 1,
     '*': 2,
+    '[': 0,
+    ']': 0
 };
 
 function top(stack : string[]) : string|null {
@@ -47,9 +49,9 @@ function addConcatenationOp(template : string[]) : string[] {
         const current = template[i];
         const next = template[i+1];
         added.push(current);
-        if (['|', '('].includes(current))
+        if (['|', '(', '['].includes(current))
             continue;
-        if (specialTokens.includes(next) && next !== '(' && next !== '.')
+        if (['|', '*', ']', ')'].includes(next))
             continue;
         added.push('_');
     }
@@ -68,11 +70,14 @@ function infixToPostfix(template : string[]) : string[] {
             while (top(stack) !== '(')
                 postfix.push(stack.pop()!);
             stack.pop();
-        } else if (specialTokens.includes(token) && token !== '.' && token !== '[' && token !== ']') {
-            while (top(stack)! in priorityMap
+        } else if (specialTokens.includes(token) && !['.', '['].includes(token)) {
+            while (stack.length > 0 && top(stack)! in priorityMap
                 && priorityMap[top(stack)!] >= priorityMap[token])
                 postfix.push(stack.pop()!);
-            stack.push(token);
+            if (token === ']')
+                postfix.push(token);
+            else
+                stack.push(token);
         } else {
             postfix.push(token);
         }
