@@ -23,7 +23,7 @@ import { toNFA } from '../../lib/pos-parser/nfa';
 
 const TEST_CASES = [
     [
-        '( show me | find me | find | search for ) ( a | ε ) [ $value ] $domain', ['restaurant', 'diner'], 'chinese',
+        '( show me | find me | find | search for ) ( a | ε ) [ . * $value . * ] $domain', ['restaurant', 'diner'], 'chinese',
         [
             ['Show me a Chinese restaurant', '$value'],
             ['search for a Chinese diner', '$value'],
@@ -45,8 +45,8 @@ const TEST_CASES = [
 function main() {
     for (const [template, domainCanonicals, value, examples] of TEST_CASES) {
         const nfa = toNFA(template.split(' '));
-        for (const [utterance, match] of examples)
-            assert.strictEqual(match, nfa.match(utterance, domainCanonicals, value));
+        for (const [utterance, expectedMatch] of examples)
+            assert.strictEqual(nfa.match(utterance, domainCanonicals, value), expectedMatch);
     }
 }
 

@@ -46,11 +46,6 @@ class State {
     }
 
     addTransition(token : string, to : State, capturing = false) {
-        if (this.isEnd) {
-            // order matters: if it's a self-loop, `isEnd` remains true
-            this.isEnd = false;
-            to.isEnd = true;
-        }
         if (token in this.transitions)
             this.transitions[token].push({ token, from: this, to, capturing });
         else
@@ -110,16 +105,14 @@ export class NFA {
         const tokens = tokenized.rawTokens;
         const posTags : Array<string|undefined> = this.languagePack.posTag(tokenized.rawTokens);
 
-
-
         // replace value with special token $value
         if (arrayMatchCount(tokens, value.split(' ')) !== 1)
             return [];
         const valueIndex = arrayMatch(tokens, value.split(' '));
-        posTags[valueIndex] = undefined;
-        posTags.splice(valueIndex, value.split(' ').length - 1);
+        posTags[valueIndex] = 'NN';
+        posTags.splice(valueIndex + 1, value.split(' ').length - 1);
         tokens[valueIndex] = '$value';
-        tokens.splice(valueIndex, value.split(' ').length - 1);
+        tokens.splice(valueIndex + 1, value.split(' ').length - 1);
 
         // expand domain canonicals to include plurals
         const domainCanonicalsExpanded : Set<string> = new Set();
@@ -137,13 +130,15 @@ export class NFA {
                 domainCanonical = canonical;
             matchCount += count;
         }
-        if (matchCount !== 1)
+        if (matchCount > 1)
             return [];
-        const domainCanonicalIndex : number = arrayMatch(tokens, domainCanonical!.split(' '));
-        posTags[domainCanonicalIndex] = undefined;
-        posTags.splice(domainCanonicalIndex, value.split(' ').length - 1);
-        tokens[domainCanonicalIndex] = '$domain';
-        tokens.splice(domainCanonicalIndex, value.split(' ').length - 1);
+        if (matchCount !== 0) {
+            const domainCanonicalIndex : number = arrayMatch(tokens, domainCanonical!.split(' '));
+            posTags[domainCanonicalIndex] = 'NN';
+            posTags.splice(domainCanonicalIndex + 1, domainCanonical!.split(' ').length - 1);
+            tokens[domainCanonicalIndex] = '$domain';
+            tokens.splice(domainCanonicalIndex + 1, domainCanonical!.split(' ').length - 1);
+        }
 
         return Array.from(tokens.keys()).map((i) => {
             return { token : tokens[i], pos : posTags[i] };
@@ -159,42 +154,72 @@ export class NFA {
         // this is find since there is no back loop
         const history : Record<number, string[]> = {};
         let current : State[] = NFA.getClosure(this.start);
-        let next : Set<State>;
-
-        // given a transition, add possible states to `next`, and update history for each state
-        function addToNext(token : Token, transition : Transition) {
-            NFA.getClosure(transition.to).forEach((to) => {
-                if (transition.capturing)
-                    history[to.id] = [...(history[transition.from.id] || []), token.token];
-                else
-                    history[to.id] = [...(history[transition.from.id] || [])];
-                next.add(to);
-            });
-        }
 
         for (const token of preprocessed) {
             if (current.length === 0)
                 return null;
 
-            next = new Set();
+
+            const transitions : Transition[] = [];
             for (const state of current) {
                 // token match
                 if (token.token in state.transitions)
-                    state.transitions[token.token].forEach(addToNext.bind(null, token));
+                    state.transitions[token.token].forEach((t) => transitions.push(t));
                 // part-of-speech tag match
                 if (token.pos && token.pos in state.transitions)
-                    state.transitions[token.pos].forEach(addToNext.bind(null, token));
-                // wild card match
-                if ('.' in state.transitions)
-                    state.transitions['.'].forEach(addToNext.bind(null, token));
+                    state.transitions[token.pos].forEach((t) => transitions.push(t));
             }
-            current = Array.from(next);
+
+            // wild card match, apply only when no token/pos match found
+            if (transitions.length === 0) {
+                for (const state of current) {
+
+                    if ('.' in state.transitions)
+                        state.transitions['.'].forEach((t) => transitions.push(t));
+                }
+            }
+
+            // reset current states and update history
+            current = [];
+            const historyUpdated : Set<number> = new Set();
+            const historyBeforeUpdate : Record<number, string[]> = {};
+            for (const transition of transitions) {
+                NFA.getClosure(transition.to).forEach((to) => {
+                    if (historyUpdated.has(to.id))
+                        return;
+                    current.push(to);
+                    historyBeforeUpdate[to.id] = history[to.id];
+                    if (transition.capturing)
+                        history[to.id] = [...(historyBeforeUpdate[transition.from.id] || history[transition.from.id] || []), token.token];
+                    else
+                        history[to.id] = [...(historyBeforeUpdate[transition.from.id] || history[transition.from.id] || [])];
+                    historyUpdated.add(to.id);
+                });
+            }
         }
 
         const match = current.find((state : State) => state.isEnd);
         if (match)
             return history[match.id].join(' ');
         return null;
+    }
+
+    print() {
+        const visited = [this.start];
+        const stack = [this.start];
+        while (stack.length) {
+            const state : State = stack.pop()!;
+            console.log(`${state.id} ${state.isEnd ? '(end)' : ''}`);
+            for (const token in state.transitions) {
+                for (const transition of state.transitions[token]) {
+                    if (!visited.includes(transition.to)) {
+                        visited.push(transition.to);
+                        stack.push(transition.to);
+                    }
+                }
+                console.log(`\t${token}: ${state.transitions[token].map((t) => t.to.id)}`);
+            }
+        }
     }
 
     private static getClosure(state : State) : State[] {
@@ -233,12 +258,16 @@ function union(a : NFA, b : NFA) : NFA {
     a.end.addTransition('ε', end);
     b.end.addTransition('ε', end);
 
+    a.end.isEnd = false;
+    b.end.isEnd = false;
+
     return new NFA(start, end);
 }
 
 
 function concat(a : NFA, b : NFA) : NFA {
     a.end.addTransition('ε', b.start);
+    a.end.isEnd = false;
     return new NFA(a.start, b.end);
 }
 
@@ -251,6 +280,8 @@ function closure(a : NFA) : NFA {
 
     a.end.addTransition('ε', a.start);
     a.end.addTransition('ε', end);
+
+    a.end.isEnd = false;
 
     return new NFA(start, end);
 }

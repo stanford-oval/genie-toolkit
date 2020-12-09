@@ -287,12 +287,15 @@ export default class AnnotationExtractor {
 
     _extractOneCanonical(canonical, paraphrase, value, query_canonical) {
         paraphrase = paraphrase.toLowerCase();
-        value = this.tokenizer.tokenize(value).tokens.join(' ');
+        value = this.tokenizer.tokenize(value).rawTokens.join(' ');
 
-        const match = this.parser.match('query', paraphrase, [query_canonical], value);
-        if (match) {
-            canonical[match.pos] = canonical[match.pos] || [];
-            canonical[match.pos].push(match.canonical.replace('$value', '#'));
+        const annotations = this.parser.match('query', paraphrase, [query_canonical], value);
+        if (annotations) {
+            for (const annotation of annotations) {
+                canonical[annotation.pos] = canonical[annotation.pos] || [];
+                canonical[annotation.pos].push(annotation.canonical.replace('$value', '#'));
+            }
         }
     }
+
 }

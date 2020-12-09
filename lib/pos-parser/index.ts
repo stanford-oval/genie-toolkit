@@ -41,10 +41,6 @@ const queryTemplates : Record<string, string[]> = {
         `${find} ${a} $domain ${that} ${has} [ .* $value .* ${noun} ]`,
         `${who} ${has} [ .* $value .* ${noun} ]`
     ],
-    'verb': [
-        `${find} ${a} $domain that [ ${verb} .* $value .* ]`,
-        `${who} ${verb} [ .* value .* ]`,
-    ],
     'passive_verb': [
         `${find} ${a} $domain [ ${passiveVerb} .* $value .* ]`,
         `${find} ${a} $domain ${that} ${is} [ ${passiveVerb} .* $value .* ]`,
@@ -57,6 +53,15 @@ const queryTemplates : Record<string, string[]> = {
         `${who} ${is} [ ${preposition} .* $value .* ]`,
         `who's [ ${preposition} .* $value .* ]`
     ],
+    // `is`, `does` are also verbs, so we try match templates in the following order
+    // (1) passive verb and preposition
+    // (2) reverse verb (e.g., who does $value $verb?)
+    // (3) regular verb
+    'verb': [
+        `${who} ${does} [ $value .* ]`, // some verbs are tagged as noun, so no ${verb} requirement after $value
+        `${find} ${a} $domain ${that} [ ${verb} .* $value .* ]`,
+        `${who} [ ${verb} .* $value .* ]`,
+    ],
     'adjective' : [
         `${find} ${a} [ .* $value .* ] $domain`
     ],
@@ -64,9 +69,6 @@ const queryTemplates : Record<string, string[]> = {
         `${find} ${a} [ .* ${noun} ]`,
         `${who} ${is} [ .* ${noun} ]`,
         `who's [ .* ${noun} ]`
-    ],
-    'reverse_verb_projection': [
-        `${who} ${does} $value [ .* ]`
     ]
 };
 
@@ -106,17 +108,24 @@ export default class PosParser {
         }
     }
 
-    match(type : 'query'|'action', utterance : string, domainCanonicals : string[], value : string) : Annotation|null {
+    match(type : 'query'|'action', utterance : string, domainCanonicals : string[], value : string) : Annotation[] {
         if (type === 'query') {
             for (const pos in this.queryTemplates) {
                 for (const template of this.queryTemplates[pos]) {
                     const match = template.match(utterance, domainCanonicals, value);
-                    if (match && match.split(' ').length - 1 < MAX_LENGTH)
-                        return { pos, canonical: match };
+                    if (match && match.split(' ').length - 1 < MAX_LENGTH) {
+                        if (pos === 'verb' && match.startsWith('$value ')) {
+                            return [
+                                { pos, canonical: match },
+                                { pos: 'reverse_verb_projection', canonical: match.replace('$value ', '') }
+                            ];
+                        }
+                        return [{ pos, canonical: match }];
+                    }
                 }
             }
         }
-        return null;
+        return [];
     }
 }
 
