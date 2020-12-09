@@ -61,8 +61,6 @@ export async function parse(code : string, options : SchemaRetriever|ParseOption
         } catch(e2) {
             if (e2.name !== 'SyntaxError')
                 throw e2;
-
-            console.error(code);
             throw e1; // use the first error not the second in case both fail
         }
     }
@@ -91,8 +89,6 @@ export async function parsePrediction(code : string|string[], entities : Syntax.
             } catch(e2) {
                 if (e2.name !== 'SyntaxError')
                     throw e2;
-
-                console.error(code);
                 throw e1; // use the first error not the second in case both fail
             }
         }
