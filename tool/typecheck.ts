@@ -87,7 +87,7 @@ class TypecheckStream extends Stream.Transform {
                 cache : Map<string, CacheEntry>,
                 cacheOut : Stream.Writable|undefined,
                 droppedOut : Stream.Writable,
-                args : { interactive : boolean, strict: boolean, locale : string }) {
+                args : { interactive : boolean, strict : boolean, locale : string }) {
         super({ objectMode: true });
 
         this._locale = args.locale;
