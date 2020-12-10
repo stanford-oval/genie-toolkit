@@ -21,7 +21,8 @@
 import * as argparse from 'argparse';
 import express from 'express';
 import bodyParser from 'body-parser';
-import logger from 'morgan';
+// FIXME
+//import logger from 'morgan';
 import errorhandler from 'errorhandler';
 import qv from 'query-validation';
 import * as Tp from 'thingpedia';
@@ -230,7 +231,7 @@ export async function execute(args : any) {
     app.set('port', args.port);
     app.use(bodyParser.json());
     app.use(bodyParser.urlencoded({ extended: true }));
-    app.use(logger('dev'));
+    //app.use(logger('dev'));
 
     app.use((req, res, next) => {
         res.set('Access-Control-Allow-Origin', '*');
