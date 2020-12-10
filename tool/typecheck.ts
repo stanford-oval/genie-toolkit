@@ -75,6 +75,7 @@ class TypecheckStream extends Stream.Transform {
     private _cacheOut : Stream.Writable|undefined;
     private _droppedOut : Stream.Writable;
     private _interactive : boolean;
+    private _strict : boolean;
     private _rl ?: readline.Interface;
 
     private _current : SentenceExample|undefined;
@@ -86,7 +87,7 @@ class TypecheckStream extends Stream.Transform {
                 cache : Map<string, CacheEntry>,
                 cacheOut : Stream.Writable|undefined,
                 droppedOut : Stream.Writable,
-                args : { interactive : boolean, locale : string }) {
+                args : { interactive : boolean, strict: boolean, locale : string }) {
         super({ objectMode: true });
 
         this._locale = args.locale;
@@ -102,7 +103,7 @@ class TypecheckStream extends Stream.Transform {
             this._rl.setPrompt('$ ');
             this._rl.on('line', (line) => this._onLine(line));
         }
-
+        this._strict = args.strict;
 
         this._current = undefined;
         this._entities = undefined;
@@ -197,14 +198,15 @@ class TypecheckStream extends Stream.Transform {
                 schemaRetriever: this._schemas,
             }, true);
 
-            // serialize once to verify all the strings/entities are correct
-            ThingTalkUtils.serializePrediction(program!, this._current!.preprocessed, this._entities, {
+            ex.target_code = ThingTalkUtils.serializePrediction(program!, this._current!.preprocessed, this._entities, {
                 locale: this._locale
-            });
-
+            }).join(' ');
             this.push(ex);
             return;
         } catch(e) {
+            if (this._strict)
+                throw e;
+
             if (this._cache.has(String(ex.target_code))) {
                 const cached = this._cache.get(String(ex.target_code))!;
                 if (cached.to === 'null') {
@@ -296,7 +298,16 @@ export function initArgparse(subparsers : argparse.SubParser) {
         action: 'store_false',
         dest: 'interactive',
         help: 'Fix problems automatically with no interaction.',
+    });
+    parser.add_argument('--strict', {
+        action: 'store_true',
+        help: 'Abort on any error.',
         default: false
+    });
+    parser.add_argument('--no-strict', {
+        action: 'store_false',
+        dest: 'strict',
+        help: 'Silently ignore errors.',
     });
     parser.add_argument('input_file', {
         nargs: '+',

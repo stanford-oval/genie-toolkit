@@ -608,6 +608,8 @@ export default class ParameterReplacer {
 
                 if (token.startsWith('LOCATION_'))
                     output.push('new', 'Location', '(', '"', string, '"', ')');
+                else if (token.startsWith('GENERIC_ENTITY_'))
+                    output.push('null', '^^' + token.substring('GENERIC_ENTITY_'.length, token.length-2), '(', '"', string, '"', ')');
                 else if (token.startsWith('NUMBER_'))
                     output.push(string);
                 else
@@ -618,8 +620,6 @@ export default class ParameterReplacer {
                     output.push('^^tt:username');
                 else if (token.startsWith('PHONE_NUMBER_'))
                     output.push('^^tt:phone_number');
-                else if (token.startsWith('GENERIC_ENTITY_'))
-                    output.push('^^' + token.substring('GENERIC_ENTITY_'.length, token.length-2));
             } else {
                 assert(!token.startsWith('SLOT_'));
                 output.push(token);

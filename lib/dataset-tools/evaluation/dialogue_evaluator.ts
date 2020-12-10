@@ -143,8 +143,9 @@ class DialogueEvaluatorStream extends Stream.Transform {
             return { value: value.value!, name: value.display||'', canonical: value.value! };
         }
 
-        assert(value.display);
-        const cacheKey = value.type + '/' + value.value + '/' + value.display;
+        const searchKey = value.display||value.value;
+        assert(searchKey);
+        const cacheKey = value.type + '/' + value.value + '/' + searchKey;
         let resolved = this._cachedEntityMatches.get(cacheKey);
         if (resolved)
             return resolved;
@@ -168,14 +169,14 @@ class DialogueEvaluatorStream extends Stream.Transform {
                 }
             }
             if (!resolved)
-                resolved = getBestEntityMatch(value.display, value.type, ids);
+                resolved = getBestEntityMatch(searchKey, value.type, ids);
             this._cachedEntityMatches.set(cacheKey, resolved);
             return resolved;
         }
 
         // resolve as regular Thingpedia entity
-        const candidates = await this._tpClient!.lookupEntity(value.type, value.display);
-        resolved = getBestEntityMatch(value.display, value.type, candidates.data);
+        const candidates = await this._tpClient!.lookupEntity(value.type, searchKey);
+        resolved = getBestEntityMatch(searchKey, value.type, candidates.data);
         this._cachedEntityMatches.set(cacheKey, resolved);
         return resolved;
     }
@@ -393,7 +394,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
             console.error('NORMALIZATION ERROR');
             console.error(targetCode);
             console.error(normalized);
-            console.error(choice);
+            console.error(choice.join(' '));
             console.error(choiceString);
             throw new Error('Normalization Error');
         }
