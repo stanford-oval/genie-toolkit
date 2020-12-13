@@ -70,6 +70,6 @@ do_test([
     ('./test_trie'),
     //('./test_wikidata_utils'),
     ('./test_wikidata_utils'),
-    ('./test_infix_to_suffix'),
+    ('./test_infix_to_postfix'),
     ('./test_pos_nfa')
 ]);
