@@ -84,6 +84,31 @@ function arrayMatchCount(a : string[], b : string[]) : number {
     return count;
 }
 
+function posMatch(current : Token, next : Token|null, transitions : Record<string, Transition[]>) {
+    if (!current.pos)
+        return false;
+
+    // do not match part-of-speech for special token "$domain"
+    // "$value", on the other hand, is allowed (used in reverse_property templates)
+    if (current.token === '$domain')
+        return false;
+
+    if (!(current.pos in transitions))
+        return false;
+
+    if (current.pos === 'IN' && current.token === 'with')
+        return false;
+
+    if (current.pos.startsWith('V')) {
+        if (['has', 'have', 'had'].includes(current.token))
+            return next && ['VBN', 'VBG'].includes(next.pos!);
+        if (['is', 'are', 'was', 'were'].includes(current.token))
+            return false;
+    }
+
+    return true;
+}
+
 export class NFA {
     start : State;
     end : State;
@@ -155,7 +180,9 @@ export class NFA {
         const history : Record<number, string[]> = {};
         let current : State[] = NFA.getClosure(this.start);
 
-        for (const token of preprocessed) {
+        for (let i = 0; i < preprocessed.length; i++) {
+            const token = preprocessed[i];
+            const nextToken = i === preprocessed.length - 1 ? null : preprocessed[i+1];
             if (current.length === 0)
                 return null;
 
@@ -166,8 +193,8 @@ export class NFA {
                 if (token.token in state.transitions)
                     state.transitions[token.token].forEach((t) => transitions.push(t));
                 // part-of-speech tag match
-                if (token.pos && token.pos in state.transitions)
-                    state.transitions[token.pos].forEach((t) => transitions.push(t));
+                if (posMatch(token, nextToken, state.transitions))
+                    state.transitions[token.pos!].forEach((t) => transitions.push(t));
             }
 
             // wild card match, apply only when no token/pos match found

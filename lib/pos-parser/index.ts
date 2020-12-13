@@ -39,7 +39,7 @@ const queryTemplates : Record<string, string[]> = {
     'property': [
         `${find} ${a} $domain with [ .* $value .* ${noun} ]`,
         `${find} ${a} $domain ${that} ${has} [ .* $value .* ${noun} ]`,
-        `${who} ${has} [ .* $value .* ${noun} ]`
+        `${who} ${has} [ .* $value .* ]`
     ],
     'passive_verb': [
         `${find} ${a} $domain [ ${passiveVerb} .* $value .* ]`,
@@ -53,23 +53,20 @@ const queryTemplates : Record<string, string[]> = {
         `${who} ${is} [ ${preposition} .* $value .* ]`,
         `who's [ ${preposition} .* $value .* ]`
     ],
-    // `is`, `does` are also verbs, so we try match templates in the following order
-    // (1) passive verb and preposition
-    // (2) reverse verb (e.g., who does $value $verb?)
-    // (3) regular verb
     'verb': [
         `${who} ${does} [ $value .* ]`, // some verbs are tagged as noun, so no ${verb} requirement after $value
         `${find} ${a} $domain ${that} [ ${verb} .* $value .* ]`,
         `${who} [ ${verb} .* $value .* ]`,
     ],
-    'adjective' : [
-        `${find} ${a} [ .* $value .* ] $domain`
-    ],
     'reverse_property' : [
         `${find} ${a} [ .* ${noun} ]`,
         `${who} ${is} [ .* ${noun} ]`,
         `who's [ .* ${noun} ]`
-    ]
+    ],
+    'adjective' : [
+        `${find} ${a} [ .* $value .* ] $domain`,
+        `${who} ${is} [ .* $value .* ]`
+    ],
 };
 
 interface Annotation {
