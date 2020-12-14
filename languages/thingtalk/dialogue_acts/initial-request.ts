@@ -141,10 +141,7 @@ function adjustStatementsForInitialRequest(stmt : Ast.ExpressionStatement) {
         }
 
         const confirm = C.normalizeConfirmAnnotation(action.invocation.schema as Ast.FunctionDef);
-        // shallow clone
-        const clone = new Ast.InvocationExpression(null, new Ast.Invocation(null,
-            action.invocation.selector, action.invocation.channel,
-            action.invocation.in_params.slice(), action.invocation.schema), action.schema);
+        const clone = action.clone();
 
         let newTable : Ast.Expression|null = null;
         for (const param of clone.invocation.in_params) {
