@@ -33,7 +33,7 @@ import type AppExecutor from './apps/app_executor';
 
 import AssistantDispatcher from '../dialogue-agent/dispatcher';
 
-import Config from './config';
+import * as Config from '../config';
 
 import * as sqlite from './db/sqlite';
 
