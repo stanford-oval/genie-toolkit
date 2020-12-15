@@ -221,7 +221,7 @@ export default class Conversation extends events.EventEmitter {
         return this._history;
     }
 
-    notify(appId : string, icon : string|null, outputType : string, outputValue : unknown) {
+    notify(appId : string, icon : string|null, outputType : string, outputValue : Record<string, unknown>) {
         return this._loop.dispatchNotify(appId, icon, outputType, outputValue);
     }
 

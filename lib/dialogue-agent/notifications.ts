@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -18,13 +18,19 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 import * as Helpers from './helpers';
 
-async function showNotification(dlg, appId, icon, outputType, outputValue, lastApp) {
+import type DialogueLoop from './dialogue-loop';
+
+async function showNotification(dlg : DialogueLoop,
+                                appId : string,
+                                icon : string|null,
+                                outputType : string,
+                                outputValue : Record<string, unknown>,
+                                lastApp : string|undefined) {
     let app;
     if (appId !== undefined)
-        app = dlg.manager.apps.getApp(appId);
+        app = dlg.conversation.apps.getApp(appId);
     else
         app = undefined;
 
@@ -36,7 +42,7 @@ async function showNotification(dlg, appId, icon, outputType, outputValue, lastA
     if (!Array.isArray(messages))
         messages = [messages];
 
-    let notifyOne = async (message) => {
+    const notifyOne = async (message : any) => {
         if (typeof message === 'string')
             message = { type: 'text', text: message };
 
@@ -55,35 +61,39 @@ async function showNotification(dlg, appId, icon, outputType, outputValue, lastA
         } else if (message.type === 'button') {
             await dlg.replyButton(message.text, message.json);
         } else if (message.type === 'program') {
-            const loaded = Helpers.loadOneExample(dlg, message.program);
-            await dlg.replyButton(Helpers.presentExample(dlg, loaded.utterance), loaded.target);
+            const loaded = Helpers.loadOneExample(message.program);
+            if (loaded)
+                await dlg.replyButton(Helpers.presentExample(dlg, loaded.utterance), JSON.stringify(loaded.target));
         } else {
             await dlg.replyResult(message, icon);
         }
     };
     if (app !== undefined && app.isRunning && appId !== lastApp &&
-        (messages.length === 1 && (typeof messages[0] === 'string' || messages[0].type === 'text'))) {
-        const msg = typeof messages[0] === 'string' ? messages[0] : messages[0].text;
+        (messages.length === 1 && typeof messages[0] === 'string')) {
         await dlg.replyInterp(dlg._("Notification from ${app}: ${message}"), {
             app: app.name,
-            message: msg
+            message: messages[0]
         }, icon);
     } else {
         if (app !== undefined && app.isRunning && appId !== lastApp)
             await dlg.replyInterp(dlg._("Notification from ${app}"), { app: app.name }, icon);
-        for (let msg of messages)
+        for (const msg of messages)
             await notifyOne(msg);
     }
 }
 
-async function showError(dlg, appId, icon, error, lastApp) {
+async function showError(dlg : DialogueLoop,
+                         appId : string,
+                         icon : string|null,
+                         error : Error,
+                         lastApp : string|undefined) {
     let app;
     if (appId !== undefined)
-        app = dlg.manager.apps.getApp(appId);
+        app = dlg.conversation.apps.getApp(appId);
     else
         app = undefined;
 
-    let errorMessage = Helpers.formatError(dlg, error);
+    const errorMessage = Helpers.formatError(dlg, error);
     console.log('Error from ' + appId, error);
 
     if (app !== undefined && app.isRunning)

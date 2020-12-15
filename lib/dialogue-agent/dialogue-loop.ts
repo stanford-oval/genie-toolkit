@@ -502,7 +502,7 @@ export default class DialogueLoop {
         return this._notifyQueue.hasWaiter();
     }
 
-    dispatchNotify(appId : string, icon : string|null, outputType : string, outputValue : unknown) {
+    dispatchNotify(appId : string, icon : string|null, outputType : string, outputValue : Record<string, unknown>) {
         const item = new QueueItem.Notification(appId, icon, outputType, outputValue);
         this._pushQueueItem(item);
     }
