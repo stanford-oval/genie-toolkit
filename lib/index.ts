@@ -47,6 +47,7 @@ import * as I18n from './i18n';
 import parallelize from './utils/parallelize';
 import * as EntityUtils from './utils/entity-utils';
 import * as IpAddressUtils from './engine/util/ip_address';
+import * as ThingTalkUtils from './utils/thingtalk';
 
 import SpeechHandler from './speech/speech_handler';
 import AssistantEngine from './engine';
@@ -103,6 +104,7 @@ export {
     parallelize,
     EntityUtils,
     IpAddressUtils,
+    ThingTalkUtils,
 
     // dialogue agent
     SpeechHandler,
