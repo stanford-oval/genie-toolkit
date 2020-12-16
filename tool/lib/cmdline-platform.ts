@@ -100,6 +100,7 @@ export default class Platform extends Tp.BasePlatform {
         this._timezone = process.env.TZ || '';
 
         this._filesDir = homedir;
+        safeMkdirSync(this._filesDir);
         this._cacheDir = path.resolve(homedir, 'cache');
         safeMkdirSync(this._cacheDir);
         this._prefs = new Tp.Helpers.FilePreferences(this._filesDir + '/prefs.db');
