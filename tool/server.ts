@@ -216,11 +216,11 @@ export async function execute(args : any) {
         schemas,
         i18n,
         tokenizer: i18n.getTokenizer(),
-        nlu: new LocalParserClient(args.nlu_model, args.locale, undefined, tpClient)
+        nlu: new LocalParserClient(args.nlu_model, args.locale, undefined, undefined, tpClient)
     };
     app.backend.nlu.start();
     if (args.nlg_model && args.nlg_model !== args.nlu_model) {
-        app.backend.nlg = new LocalParserClient(args.nlg_model, args.locale, undefined, tpClient);
+        app.backend.nlg = new LocalParserClient(args.nlg_model, args.locale, undefined, undefined, tpClient);
         app.backend.nlg.start();
     } else {
         app.backend.nlg = app.backend.nlu;

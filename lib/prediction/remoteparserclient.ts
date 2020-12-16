@@ -26,9 +26,12 @@ import qs from 'qs';
 import { EntityMap } from '../utils/entity-utils';
 import {
     ParseOptions,
+    PredictionCandidate,
     PredictionResult,
     GenerationResult,
+    ExactMatcher,
 } from './types';
+import ExactMatcherBuilder from './exactbuilder';
 
 interface OnlineLearnArguments {
     q : string;
@@ -55,14 +58,33 @@ export default class RemoteParserClient {
     private _locale : string;
     private _baseUrl : string;
     private _platform : Tp.BasePlatform|undefined;
+    private _tpClient : Tp.BaseClient|undefined;
+    private _exactmatcher : ExactMatcher|undefined;
 
-    constructor(baseUrl : string, locale : string, platform ?: Tp.BasePlatform) {
+    constructor(baseUrl : string, locale : string,
+                platform ?: Tp.BasePlatform,
+                tpClient ?: Tp.BaseClient) {
         this._locale = locale;
         this._baseUrl = baseUrl + '/' + this._locale;
         this._platform = platform;
+        this._tpClient = tpClient;
     }
 
     async start() {
+        if (!this._platform || !this._tpClient)
+            return;
+
+        const prefs = this._platform.getSharedPreferences();
+        const developerDir = prefs.get('developer-dir') as string|string[];
+        if (!developerDir)
+            return;
+        const builder = new ExactMatcherBuilder({
+            locale: this._locale,
+            cachedir: this._platform.getCacheDir(),
+            developerdir: Array.isArray(developerDir) ? developerDir : [developerDir],
+            thingpediaClient: this._tpClient,
+        });
+        this._exactmatcher = await builder.load();
     }
     async stop() {
     }
@@ -119,6 +141,11 @@ export default class RemoteParserClient {
 
         if (parsed.error)
             throw new Error('Error received from NLP server: ' + parsed.error);
+        if (this._exactmatcher && data.expect !== 'MultipleChoice') {
+            const exact = this._exactmatcher.get(parsed.tokens);
+            if (exact)
+                parsed.candidates = exact.map((code) : PredictionCandidate => ({ code, score: 'Infinity' })).concat(parsed.candidates);
+        }
 
         return parsed;
     }
