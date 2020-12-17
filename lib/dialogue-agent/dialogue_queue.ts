@@ -41,7 +41,7 @@ namespace QueueItem {
         constructor(public appId : string,
                     public icon : string|null,
                     public outputType : string,
-                    public outputValue : unknown) {
+                    public outputValue : Record<string, unknown>) {
             super();
         }
 

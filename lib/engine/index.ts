@@ -33,7 +33,7 @@ import type AppExecutor from './apps/app_executor';
 
 import AssistantDispatcher from '../dialogue-agent/dispatcher';
 
-import Config from './config';
+import * as Config from '../config';
 
 import * as sqlite from './db/sqlite';
 
@@ -105,6 +105,20 @@ interface AssistantEngineOptions {
     cloudSyncUrl ?: string;
     nluModelUrl ?: string;
     thingpediaUrl ?: string;
+}
+
+interface CreateAppOptions {
+    uniqueId ?: string;
+    name ?: string;
+    description ?: string;
+    icon ?: string;
+    conversation ?: string;
+}
+
+interface AppResult {
+    raw : Record<string, unknown>;
+    type : string;
+    formatted : ThingTalk.Formatter.FormattedChunk[];
 }
 
 /**
@@ -513,13 +527,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * @param {string} [options.conversation] - the ID of the conversation associated with the new app
      * @return {AppExecutor} the newly created program
      */
-    async createApp(programOrString : ThingTalk.Ast.Program|string, options ?: {
-            uniqueId ?: string;
-            name ?: string;
-            description ?: string;
-            icon ?: string;
-            conversation ?: string;
-        }) : Promise<AppExecutor> {
+    async createApp(programOrString : ThingTalk.Ast.Program|string, options ?: CreateAppOptions) : Promise<AppExecutor> {
         let program : ThingTalk.Ast.Program;
         if (typeof programOrString === 'string') {
             const parsed = await ThingTalk.Syntax.parse(programOrString).typecheck(this.schemas, true);
@@ -529,6 +537,46 @@ export default class AssistantEngine extends Tp.BaseEngine {
             program = programOrString;
         }
         return this._appdb.createApp(program, options);
+    }
+
+    /**
+     * Create a new ThingTalk app, and execute it to compute all results.
+     *
+     * This is a convenience wrapper over {@link Engine#createApp} that also
+     * iterates the results of the app and formats them.
+     *
+     * @param {string|external:thingtalk.Ast.Program} program - the ThingTalk code to execute,
+     *        or the parsed ThingTalk program (AST)
+     * @param {Object} options
+     * @param {string} [options.uniqueId] - the ID to assign to the new app
+     * @param {string} [options.name] - the name of the new app
+     * @param {string} [options.description] - the human-readable description of the code
+     *        being executed
+     * @param {string} [options.icon] - the icon of the new app (as a Thingpedia class ID)
+     * @param {string} [options.conversation] - the ID of the conversation associated with the new app
+     */
+    async createAppAndReturnResults(programOrString : ThingTalk.Ast.Program|string, options ?: CreateAppOptions) {
+        const app = await this.createApp(programOrString, options);
+        const results : AppResult[] = [];
+        const errors : Error[] = [];
+
+        const formatter = new ThingTalk.Formatter(this._platform.locale, this._platform.timezone, this._schemas);
+        for await (const value of app.mainOutput) {
+            if (value instanceof Error) {
+                errors.push(value);
+            } else {
+                const messages = await formatter.formatForType(value.outputType, value.outputValue, 'messages');
+                results.push({ raw: value.outputValue, type: value.outputType, formatted: messages });
+            }
+        }
+
+        return {
+            uniqueId: app.uniqueId!,
+            description: app.description,
+            code: app.code,
+            icon: app.icon ? Config.THINGPEDIA_URL + '/api/devices/icon/' + app.icon : app.icon,
+            results, errors
+        };
     }
 
     /**

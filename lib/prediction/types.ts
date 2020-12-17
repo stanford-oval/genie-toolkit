@@ -20,6 +20,10 @@
 
 import { EntityMap } from '../utils/entity-utils';
 
+export interface ExactMatcher {
+    get(tokens : string[]) : string[][]|null;
+}
+
 export interface ParseOptions {
     thingtalk_version ?: string;
     store ?: string;

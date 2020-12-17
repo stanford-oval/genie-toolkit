@@ -94,14 +94,7 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
     protected async tryConfigureDevice(kind : string) : Promise<DeviceInfo> {
         const factories = await this._thingpedia.getDeviceSetup([kind]);
         const factory = factories[kind];
-        if (!factory) {
-            // something funky happened or thingpedia did not recognize the kind
-            this._dlg.icon = null;
-            await this._dlg.fail();
-            throw new CancellationError(); // cancel the dialogue if we failed to set up a device
-        }
-
-        if (factory.type === 'none') {
+        if (factory && factory.type === 'none') {
             const device = await this._engine.createDevice({ kind: factory.kind });
             return this._engine.getDeviceInfo(device.uniqueId!);
         } else {

@@ -42,11 +42,14 @@ async function do_test(array) {
 do_test([
     ('./test_array_set'),
     ('./test_augment'),
+    ('./test_bart_canonical_extractor'),
     ('./test_base_canonical_generator'),
     ('./test_bert_canonical_generator'),
+    ('./test_btrie'),
     ('./test_engine_protocol'),
     ('./test_entities'),
     ('./test_entity_match'),
+    ('./test_exact_matcher'),
     ('./test_helpers'),
     ('./test_i18n_chinese'),
     ('./test_ip_address'),
@@ -63,5 +66,6 @@ do_test([
     ('./test_stream_utils'),
     ('./test_timed_reference'),
     ('./test_timers'),
+    ('./test_trie'),
     ('./test_wikidata_utils'),
 ]);

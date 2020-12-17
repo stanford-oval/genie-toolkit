@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -19,7 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-function findSubstring(sequence, substring) {
+function findSubstring(sequence : string[], substring : string[]) : number {
     for (let i = 0; i < sequence.length - substring.length + 1; i++) {
         let found = true;
         for (let j = 0; j < substring.length; j++) {
@@ -36,7 +36,7 @@ function findSubstring(sequence, substring) {
 
 const ENTITY_MATCH_REGEX = /^([A-Z].*)_[0-9]+$/;
 
-function getEntityType(entityMarker) {
+function getEntityType(entityMarker : string) : string {
     switch (entityMarker) {
     case '^^tt:hashtag':
         return 'HASHTAG';
@@ -49,7 +49,7 @@ function getEntityType(entityMarker) {
     }
 }
 
-function findSpanType(program, begin_index, end_index) {
+function findSpanType(program : string[], begin_index : number, end_index : number) : [string, number] {
     let spanType;
     if (program[begin_index-2] === 'location:') {
         spanType = 'LOCATION';
@@ -68,32 +68,32 @@ function findSpanType(program, begin_index, end_index) {
     return [spanType, end_index];
 }
 
-function* requoteSentence(id, sentence, program) {
-    sentence = sentence.split(' ');
-    program = program.split(' ');
+function* requoteSentence(id : string, sentencestr : string, programstr : string) : IterableIterator<string> {
+    const sentence = sentencestr.split(' ');
+    const program = programstr.split(' ');
 
-    const spans = [];
+    const spans : Array<[number, number, string]> = [];
     let in_string = false;
-    let begin_index = null;
-    let end_index = null;
+    let begin_index : number|null = null;
+    let end_index : number|null = null;
     for (let i = 0; i < program.length; i++) {
-        let token = program[i];
+        const token = program[i];
         if (token === '"') {
             in_string = !in_string;
             if (in_string) {
                 begin_index = i+1;
             } else {
                 end_index = i;
-                const substring = program.slice(begin_index, end_index);
+                const substring = program.slice(begin_index!, end_index);
                 const idx = findSubstring(sentence, substring);
                 if (idx < 0)
                     throw new Error(`Cannot find span ${substring.join(' ')} in sentence id ${id}`);
 
                 const spanBegin = idx;
-                const spanEnd = idx+end_index-begin_index;
+                const spanEnd = idx+end_index-begin_index!;
 
                 let spanType;
-                [spanType, end_index] = findSpanType(program, begin_index, end_index);
+                [spanType, end_index] = findSpanType(program, begin_index!, end_index);
                 spans.push([spanBegin, spanEnd, spanType]);
                 i = end_index;
             }
@@ -102,7 +102,7 @@ function* requoteSentence(id, sentence, program) {
 
     if (spans.length === 0) {
         for (let i = 0; i < sentence.length; i++) {
-            let word = sentence[i];
+            const word = sentence[i];
             // if the current word is a QUOTED_STRING, HASHTAG, ENTITY or GENERIC_ENTITY_, remove the last _<id> part
             const entityMatch = ENTITY_MATCH_REGEX.exec(word);
             if (entityMatch !== null)
@@ -127,9 +127,9 @@ function* requoteSentence(id, sentence, program) {
         return 0;
     });
     let current_span_idx = 0;
-    let current_span = spans[0];
+    let current_span : [number,number,string]|null = spans[0];
     for (let i = 0; i < sentence.length; i++) {
-        let word = sentence[i];
+        const word = sentence[i];
         if (current_span === null || i < current_span[0]) {
             // if the current word is a QUOTED_STRING, HASHTAG, ENTITY or GENERIC_ENTITY_, remove the last _<id> part
             //
@@ -162,12 +162,12 @@ function* requoteSentence(id, sentence, program) {
     }
 }
 
-function* requoteProgram(program) {
+function* requoteProgram(program : string|string[]) : IterableIterator<string> {
     if (typeof program === 'string')
         program = program.split(' ');
 
     let inString = false;
-    let begin_index;
+    let begin_index = 0;
     for (let i = 0; i < program.length; i++) {
         const token = program[i];
 
@@ -205,12 +205,42 @@ function* requoteProgram(program) {
     }
 }
 
-function* getFunctions(program, ignored = []) {
+function* getFunctions(program : string|string[], ignored : string[] = []) : IterableIterator<string> {
     if (typeof program === 'string')
         program = program.split(' ');
     let inString = false;
     let isDialoguePolicy = false;
-    for (let token of program) {
+
+    for (let i = 0; i < program.length; i++) {
+        const token = program[i];
+        if (token === '"') {
+            inString = !inString;
+        } else if (!inString && token.startsWith('$dialogue')) {
+            isDialoguePolicy = true;
+        } else if (!inString && token.startsWith('@')) {
+            if (isDialoguePolicy) {
+                isDialoguePolicy = false;
+                continue; // discard. It's the policy, not a function
+            }
+            if (program[i+1] === '.') {
+                const functionName = program[i+2];
+                const fn = token + '.' + functionName;
+                if (ignored.includes(fn))
+                    continue;
+                yield fn;
+            }
+        }
+    }
+}
+
+function* getDevices(program : string|string[], ignored : string[] = []) : IterableIterator<string> {
+    if (typeof program === 'string')
+        program = program.split(' ');
+    let inString = false;
+    let isDialoguePolicy = false;
+
+    for (let i = 0; i < program.length; i++) {
+        const token = program[i];
         if (token === '"') {
             inString = !inString;
         } else if (!inString && token.startsWith('$dialogue')) {
@@ -224,13 +254,6 @@ function* getFunctions(program, ignored = []) {
                 continue;
             yield token;
         }
-    }
-}
-
-function* getDevices(program, ignored) {
-    for (let fn of getFunctions(program, ignored)) {
-        let dot = fn.lastIndexOf('.');
-        yield fn.substring(0, dot);
     }
 }
 

@@ -400,10 +400,13 @@ class SentenceEvaluator {
     }
 }
 
+const MINIBATCH_SIZE = 100;
+
 export class SentenceEvaluatorStream extends Stream.Transform {
     private _parser : ParserClient|null;
     private _options : SentenceEvaluatorOptions;
     private _tokenizer : I18n.BaseTokenizer;
+    private _minibatch : Array<Promise<ExampleEvaluationResult|undefined>>;
 
     constructor(parser : ParserClient|null, options : SentenceEvaluatorOptions) {
         super({ objectMode: true });
@@ -411,15 +414,35 @@ export class SentenceEvaluatorStream extends Stream.Transform {
         this._parser = parser;
         this._options = options;
         this._tokenizer = I18n.get(options.locale).getTokenizer();
+
+        this._minibatch = [];
     }
 
-    _transform(ex : SentenceExample, encoding : BufferEncoding, callback : (err : Error|null, res ?: ExampleEvaluationResult) => void) {
+    private _evaluate(ex : SentenceExample) {
         const evaluator = new SentenceEvaluator(this._parser, this._options, this._tokenizer, ex);
-        evaluator.evaluate().then((result) => callback(null, result), (err) => callback(err));
+        return evaluator.evaluate();
     }
 
-    _flush(callback : () => void) {
-        process.nextTick(callback);
+    private async _flushMinibatch() {
+        for (const res of await Promise.all(this._minibatch)) {
+            if (res)
+                this.push(res);
+        }
+        this._minibatch = [];
+    }
+
+    private async _pushExample(ex : SentenceExample) {
+        this._minibatch.push(this._evaluate(ex));
+        if (this._minibatch.length >= MINIBATCH_SIZE)
+            await this._flushMinibatch();
+    }
+
+    _transform(ex : SentenceExample, encoding : BufferEncoding, callback : (err : Error|null) => void) {
+        this._pushExample(ex).then(() => callback(null), (err) => callback(err));
+    }
+
+    _flush(callback : (err : Error|null) => void) {
+        this._flushMinibatch().then(() => callback(null), (err) => callback(err));
     }
 }
 

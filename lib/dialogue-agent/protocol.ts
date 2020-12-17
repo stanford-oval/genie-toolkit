@@ -44,7 +44,7 @@ interface CommandMessage {
     id ?: number;
     type : MessageType.COMMAND;
     command : string;
-    json ?: string;
+    json ?: any;
 }
 
 interface PictureMessage {

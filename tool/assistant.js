@@ -235,6 +235,7 @@ export function initArgparse(subparsers) {
     });
     parser.add_argument('--thingpedia-dir', {
         required: false,
+        nargs: '+',
         help: 'Path to a directory containing Thingpedia device definitions (overrides --thingpedia-url).'
     });
     parser.add_argument('--nlu-server', {
@@ -251,7 +252,8 @@ export function initArgparse(subparsers) {
 export async function execute(args) {
     const platform = new Platform(path.resolve(args.workdir), args.locale, args.thingpediaUrl);
     const prefs = platform.getSharedPreferences();
-    prefs.set('developer-dir', args.thingpedia_dir);
+    if (args.thingpedia_dir && args.thingpedia_dir.length)
+        prefs.set('developer-dir', args.thingpedia_dir);
     prefs.set('experimental-use-neural-nlg', !!args.nlg_server);
     const engine = new Engine(platform);
 

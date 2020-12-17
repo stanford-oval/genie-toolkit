@@ -28,21 +28,19 @@ import { EntityMap, renumberEntities } from '../utils/entity-utils';
 import * as ThingTalkUtils from '../utils/thingtalk';
 
 import Predictor from './predictor';
+import ExactMatcherBuilder from './exactbuilder';
 import {
     ParseOptions,
     PredictionCandidate,
     PredictionResult,
     GenerationResult,
+    ExactMatcher
 } from './types';
 
 const SEMANTIC_PARSING_TASK = 'almond';
 const NLU_TASK = 'almond_dialogue_nlu';
 const NLG_TASK = 'almond_dialogue_nlg';
 const NLG_QUESTION = 'what should the agent say ?';
-
-export interface ExactMatcher {
-    get(tokens : string[]) : string[][]|null;
-}
 
 export interface LocalParserOptions {
     id ?: string;
@@ -64,12 +62,14 @@ export default class LocalParserClient {
     private _langPack : I18n.LanguagePack;
     private _tokenizer : I18n.BaseTokenizer;
     private _predictor : Predictor;
+    private _platform : Tp.BasePlatform|undefined;
     private _exactmatcher : ExactMatcher|undefined;
     private _tpClient : Tp.BaseClient|null;
 
     constructor(modeldir : string,
                 locale : string,
-                exactmatcher ?: ExactMatcher,
+                platform : Tp.BasePlatform|undefined,
+                exactmatcher : ExactMatcher|undefined,
                 tpClient : Tp.BaseClient|null = null,
                 options : LocalParserOptions = {}) {
         this._locale = locale;
@@ -82,10 +82,32 @@ export default class LocalParserClient {
     }
 
     async start() : Promise<void> {
-        await this._predictor.start();
+        await Promise.all([
+            this._predictor.start(),
+            this._startExactMatcher()
+        ]);
     }
     async stop() : Promise<void> {
         await this._predictor.stop();
+    }
+
+    private async _startExactMatcher() {
+        if (this._exactmatcher)
+            return;
+        if (!this._platform || !this._tpClient)
+            return;
+
+        const prefs = this._platform.getSharedPreferences();
+        const developerDir = prefs.get('developer-dir') as string|string[];
+        if (!developerDir)
+            return;
+        const builder = new ExactMatcherBuilder({
+            locale: this._locale,
+            cachedir: this._platform.getCacheDir(),
+            developerdir: Array.isArray(developerDir) ? developerDir : [developerDir],
+            thingpediaClient: this._tpClient,
+        });
+        this._exactmatcher = await builder.load();
     }
 
     private _applyPreHeuristics(contextCode : string[]) : string[] {

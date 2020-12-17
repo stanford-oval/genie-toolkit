@@ -21,7 +21,8 @@
 import * as Tp from 'thingpedia';
 
 import RemoteParserClient from './remoteparserclient';
-import LocalParserClient, { ExactMatcher, LocalParserOptions } from './localparserclient';
+import LocalParserClient, { LocalParserOptions } from './localparserclient';
+import { ExactMatcher } from './types';
 export * from './types';
 
 const URL = 'https://almond-nl.stanford.edu';
@@ -35,7 +36,7 @@ export function get(url = URL,
                     tpClient ?: Tp.BaseClient,
                     options ?: LocalParserOptions) : ParserClient {
     if (url.startsWith('file://'))
-        return new LocalParserClient(url.substring('file://'.length), locale, exactmatcher, tpClient, options);
+        return new LocalParserClient(url.substring('file://'.length), locale, platform, exactmatcher, tpClient, options);
     else
-        return new RemoteParserClient(url, locale, platform);
+        return new RemoteParserClient(url, locale, platform, tpClient);
 }

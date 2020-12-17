@@ -42,12 +42,12 @@ const DummyStatistics = {
 
 const DEFAULT_CONVERSATION_TTL = 600000; // 10 minutes
 
-interface AssistantUser {
+export interface AssistantUser {
     id : string;
     account : string;
 }
 
-interface ConversationOptions {
+export interface ConversationOptions {
     nluServerUrl ?: string;
     nlgServerUrl ?: string;
     anonymous ?: boolean;
@@ -56,6 +56,7 @@ interface ConversationOptions {
     inactivityTimeout ?: number;
     contextResetTimeout ?: number;
     showWelcome ?: boolean;
+    deleteWhenInactive ?: boolean;
 }
 
 interface Statistics {
@@ -67,7 +68,7 @@ interface Context {
     entities : EntityMap;
 }
 
-interface ConversationDelegate {
+export interface ConversationDelegate {
     setHypothesis(hyp : string) : void;
     setExpected(expect : string|null, ctx : Context) : void;
     addMessage(msg : Message) : Promise<void>;
@@ -220,7 +221,7 @@ export default class Conversation extends events.EventEmitter {
         return this._history;
     }
 
-    notify(appId : string, icon : string|null, outputType : string, outputValue : unknown) {
+    notify(appId : string, icon : string|null, outputType : string, outputValue : Record<string, unknown>) {
         return this._loop.dispatchNotify(appId, icon, outputType, outputValue);
     }
 
@@ -444,13 +445,13 @@ export default class Conversation extends events.EventEmitter {
         }, platformData);
     }
 
-    async handleParsedCommand(root : any, title : string, platformData : PlatformData = {}) : Promise<void> {
+    async handleParsedCommand(root : any, title ?: string, platformData : PlatformData = {}) : Promise<void> {
         this.stats.hit('sabrina-parsed-command');
         this.emit('active');
         this._resetInactivityTimeout();
         if (typeof root === 'string')
             root = JSON.parse(root);
-        await this._addMessage({ type: MessageType.COMMAND, command: title, json: root });
+        await this._addMessage({ type: MessageType.COMMAND, command: title || '\\r ' + JSON.stringify(root), json: root });
         if (this._debug)
             console.log('Received pre-parsed assistant command');
         if (root.example_id) {
