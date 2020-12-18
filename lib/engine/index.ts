@@ -574,7 +574,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
             uniqueId: app.uniqueId!,
             description: app.description,
             code: app.code,
-            icon: app.icon ? Config.THINGPEDIA_URL + '/api/devices/icon/' + app.icon : app.icon,
+            icon: app.icon,
             results, errors
         };
     }
