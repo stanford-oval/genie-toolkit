@@ -1,7 +1,7 @@
 0	give me the names of people who have had more than NUMBER_0 employers ?	@org.schema.Person . Person ( ) filter count ( worksFor ) >= NUMBER_0 ;
-1	what is the city with people that have more than NUMBER_0 college degrees ?	[ address.addressLocality ] of @org.schema.Person . Person ( ) filter count ( alumniOf ) >= NUMBER_0 ;
+1	what is the city with people that have more than NUMBER_0 college degrees ?	[ address . addressLocality ] of @org.schema.Person . Person ( ) filter count ( alumniOf ) >= NUMBER_0 ;
 3	give me the names of people who went to more than one university and have more than one award ?	@org.schema.Person . Person ( ) filter count ( alumniOf ) >= 1 && count ( award ) >= 1 ;
-4	give me the name of the person that works at google with the most awards ?	sort ( count desc of ( [ * , count ( award ) ] of @org.schema.Person . Person ( ) ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " google " ) ) ) [ 1 ] ;
+4	give me the name of the person that works at google with the most awards ?	sort ( count ( award ) desc of @org.schema.Person . Person ( ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " google " ) ) ) [ 1 ] ;
 5	show me all people from los angeles who work for google .	@org.schema.Person . Person ( ) filter address . addressLocality =~ " los angeles " && contains ( worksFor , null ^^org.schema.Person:Organization ( " google " ) ) ;
 6	list names of those who have worked for both apple and samsung .	@org.schema.Person . Person ( ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " apple " ) ) && contains ( worksFor , null ^^org.schema.Person:Organization ( " samsung " ) ) ;
 7	show me all those who went to harvard with at least 1 award .	@org.schema.Person . Person ( ) filter contains ( alumniOf , null ^^org.schema.Person:Organization ( " harvard " ) ) && count ( award ) >= 1 ;
@@ -21,7 +21,7 @@
 23	are there any people who worked for both apple and netscape ?	@org.schema.Person . Person ( ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " netscape " ) ) && contains ( worksFor , null ^^org.schema.Person:Organization ( " apple " ) ) ;
 24	find me someone who lives in seattle and went to mit .	@org.schema.Person . Person ( ) filter address . addressLocality =~ " seattle " && contains ( alumniOf , null ^^org.schema.Person:Organization ( " mit " ) ) ;
 25	what 's the name of the worker living in chicago ?	@org.schema.Person . Person ( ) filter address . addressLocality =~ " chicago " ;
-26	which worker has won the most awards in seattle ?	( [ * , count ( award ) ] of sort ( count ( award ) desc of @org.schema.Person . Person ( ) filter address . addressLocality =~ " seattle " ) ) [ 1 ] ;
+26	which worker has won the most awards in seattle ?	sort ( count ( award ) desc of @org.schema.Person . Person ( ) filter address . addressLocality =~ " seattle " ) [ 1 ] ;
 30	i need an employee that lives in new york and went to stanford .	@org.schema.Person . Person ( ) filter address . addressLocality =~ " new york " && contains ( alumniOf , null ^^org.schema.Person:Organization ( " stanford " ) ) ;
 31	i 'm looking for an employee at apple that went to harvard .	@org.schema.Person . Person ( ) filter contains ( alumniOf , null ^^org.schema.Person:Organization ( " harvard " ) ) && contains ( worksFor , null ^^org.schema.Person:Organization ( " apple " ) ) ;
 32	show me someone that has worked for tesla and microsoft .	@org.schema.Person . Person ( ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " microsoft " ) ) && contains ( worksFor , null ^^org.schema.Person:Organization ( " tesla " ) ) ;
@@ -73,7 +73,7 @@
 88	who has worked at more than NUMBER_0 companies and lives in sacramento , california ?	@org.schema.Person . Person ( ) filter address . addressLocality =~ " sacramento " && count ( worksFor ) >= NUMBER_0 ;
 89	name someone who went to california institute of the arts and has won a webby award .	@org.schema.Person . Person ( ) filter contains ( alumniOf , null ^^org.schema.Person:Organization ( " california institute of the arts " ) ) && contains~ ( award , " webby " ) ;
 91	who works for hotmail that was an alumni of tsu ?	@org.schema.Person . Person ( ) filter contains ( alumniOf , null ^^org.schema.Person:Organization ( " tsu " ) ) && contains ( worksFor , null ^^org.schema.Person:Organization ( " hotmail " ) ) ;
-92	who from google has won the most awards and are from georgia ?	( [ * , count ( award ) ] of sort ( count ( award ) desc of @org.schema.Person . Person ( ) filter contains ( alumniOf , null ^^org.schema.Person:Organization ( " georgia " ) ) && contains ( worksFor , null ^^org.schema.Person:Organization ( " google " ) ) ) ) [ 1 ] ;
+92	who from google has won the most awards and are from georgia ?	sort ( count ( award ) desc of @org.schema.Person . Person ( ) filter contains ( alumniOf , null ^^org.schema.Person:Organization ( " georgia " ) ) && contains ( worksFor , null ^^org.schema.Person:Organization ( " google " ) ) ) [ 1 ] ;
 94	who at google has won more than NUMBER_0 awards ?	@org.schema.Person . Person ( ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " google " ) ) && count ( award ) >= NUMBER_0 ;
 96	search for people that worked at samsung and ibm .	@org.schema.Person . Person ( ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " samsung " ) ) && contains ( worksFor , null ^^org.schema.Person:Organization ( " ibm " ) ) ;
 97	search for people that attended NUMBER_0 different colleges and won at least NUMBER_1 awards .	@org.schema.Person . Person ( ) filter count ( alumniOf ) == NUMBER_0 && count ( award ) >= NUMBER_1 ;
@@ -134,7 +134,7 @@
 163	find me who went to harvard and won a pulitzer prize .	@org.schema.Person . Person ( ) filter contains ( alumniOf , null ^^org.schema.Person:Organization ( " harvard " ) ) && contains~ ( award , " pulitzer prize " ) ;
 164	find me an employee that worked for at & t and lives in houston .	@org.schema.Person . Person ( ) filter address . addressLocality =~ " houston " && contains ( worksFor , null ^^org.schema.Person:Organization ( " at & t " ) ) ;
 170	how many winners of the mcarthur grant work for apple ?	count ( @org.schema.Person . Person ( ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " apple " ) ) && contains~ ( award , " mcarthur grant " ) ) ;
-173	where do most of facebook 's employees live ?	[ address.addressLocality ] of @org.schema.Person . Person ( ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " facebook " ) ) ;
+173	where do most of facebook 's employees live ?	[ address . addressLocality ] of @org.schema.Person . Person ( ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " facebook " ) ) ;
 174	how many uc berkley graduates have won a nobel prize ?	count ( @org.schema.Person . Person ( ) filter contains ( alumniOf , null ^^org.schema.Person:Organization ( " uc berkley " ) ) && contains~ ( award , " nobel prize " ) ) ;
 175	give me a list of people in st . louis working at monsanto .	@org.schema.Person . Person ( ) filter address . addressLocality =~ " st . louis " && contains ( worksFor , null ^^org.schema.Person:Organization ( " monsanto " ) ) ;
 177	i need to see all the students at yale who have received full ride scholarships .	@org.schema.Person . Person ( ) filter contains ( alumniOf , null ^^org.schema.Person:Organization ( " yale " ) ) && contains~ ( award , " full ride scholarships " ) ;
@@ -250,7 +250,7 @@ rerun1f100	find someone who works at amazon	@org.schema.Person . Person ( ) filt
 rerun2f73	find a facebook employee that went to penn state	@org.schema.Person . Person ( ) filter contains ( alumniOf , null ^^org.schema.Person:Organization ( " penn state " ) ) && contains ( worksFor , null ^^org.schema.Person:Organization ( " facebook " ) ) ;
 rerun1f26	who lives in seattle ?	@org.schema.Person . Person ( ) filter address . addressLocality =~ " seattle " ;
 rerun1f179	show mw a person who has worked more then NUMBER_0 jobs .	@org.schema.Person . Person ( ) filter count ( worksFor ) >= NUMBER_0 ;
-rerun2f159	who has the most awards at google ?	( [ * , count ( award ) ] of sort ( count ( award ) desc of @org.schema.Person . Person ( ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " google " ) ) ) ) [ 1 ] ;
+rerun2f159	who has the most awards at google ?	sort ( count ( award ) desc of @org.schema.Person . Person ( ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " google " ) ) ) [ 1 ] ;
 rerun1f15	who is living in seattle ?	@org.schema.Person . Person ( ) filter address . addressLocality =~ " seattle " ;
 rerun1f182	find a amazon employee .	@org.schema.Person . Person ( ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " amazon " ) ) ;
 rerun2f163	i would like to know who went to penn state and is employed at instagram .	@org.schema.Person . Person ( ) filter contains ( alumniOf , null ^^org.schema.Person:Organization ( " penn state " ) ) && contains ( worksFor , null ^^org.schema.Person:Organization ( " instagram " ) ) ;
@@ -288,7 +288,7 @@ rerun2f53	who has gone to usc and works for general motors ?	@org.schema.Person 
 rerun2f23	what people have won the pulitzer prize and went to stanford	@org.schema.Person . Person ( ) filter contains ( alumniOf , null ^^org.schema.Person:Organization ( " stanford " ) ) && contains~ ( award , " pulitzer prize " ) ;
 rerun2f141	find a twitter employee that went to new york university .	@org.schema.Person . Person ( ) filter contains ( alumniOf , null ^^org.schema.Person:Organization ( " new york university " ) ) && contains ( worksFor , null ^^org.schema.Person:Organization ( " twitter " ) ) ;
 rerun2f105	who won the golden globe and lives in california .	@org.schema.Person . Person ( ) filter address . addressLocality =~ " california " && contains~ ( award , " golden globe " ) ;
-rerun2f85	show me the number of awards for employees at google .	[ * , count ( award ) ] of @org.schema.Person . Person ( ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " google " ) ) ;
+rerun2f85	show me the number of awards for employees at google .	[ count ( award ) ] of @org.schema.Person . Person ( ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " google " ) ) ;
 rerun1f71	who went to yale ?	@org.schema.Person . Person ( ) filter contains ( alumniOf , null ^^org.schema.Person:Organization ( " yale " ) ) ;
 rerun1f46	who has received a bright futures scholarship ?	@org.schema.Person . Person ( ) filter contains~ ( award , " bright futures scholarship " ) ;
 rerun1f138	who has been on the dean 's list ?	@org.schema.Person . Person ( ) filter contains~ ( award , " dean 's list " ) ;
@@ -345,7 +345,7 @@ rerun2f185	who works at google and has won multiple awards ?	@org.schema.Person 
 64	are there people in jamaica who speak italian	@org.schema.Person . Person ( ) filter address . addressLocality =~ " jamaica " && contains ( knowsLanguage , null ^^tt:iso_lang_code ( " italian " ) ) ;
 71	what languages does this person speak ?	[ knowsLanguage ] of @org.schema.Person . Person ( ) ;
 74	what is this person 's email address ?	[ email ] of @org.schema.Person . Person ( ) ;
-75	which person speaks the most languages ?	( [ * , count ( knowsLanguage ) ] of sort ( count ( knowsLanguage ) desc of @org.schema.Person . Person ( ) ) ) [ 1 ] ;
+75	which person speaks the most languages ?	sort ( count ( knowsLanguage ) desc of @org.schema.Person . Person ( ) ) [ 1 ] ;
 79	what 's the telephone numbers of people that speak latvian ?	[ telephone ] of @org.schema.Person . Person ( ) filter contains ( knowsLanguage , null ^^tt:iso_lang_code ( " latvian " ) ) ;
 81	what is the person 's job title at the work location ?	[ jobTitle ] of @org.schema.Person . Person ( ) ;
 82	what email and phone can the person be reached at ?	[ email , telephone ] of @org.schema.Person . Person ( ) ;
@@ -357,7 +357,7 @@ rerun2f185	who works at google and has won multiple awards ?	@org.schema.Person 
 94	who is the ceo of dupont ?	@org.schema.Person . Person ( ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " dupont " ) ) && jobTitle =~ " ceo " ;
 95	show all engineers working for microsoft	@org.schema.Person . Person ( ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " microsoft " ) ) && jobTitle =~ " engineers " ;
 98	list all it support workers in dallas	@org.schema.Person . Person ( ) filter address . addressLocality =~ " dallas " && jobTitle =~ " it support " ;
-68	how many languages do employees of microsoft speak on average ?	avg ( count of ( [ * , count ( knowsLanguage ) ] of @org.schema.Person . Person ( ) ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " microsoft " ) ) ) ;
+68	how many languages do employees of microsoft speak on average ?	avg ( count of [ count ( knowsLanguage ) ] of @org.schema.Person . Person ( ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " microsoft " ) ) ) ;
 100	find me people who have worked for boeing as sales managers .	@org.schema.Person . Person ( ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " boeing " ) ) && jobTitle =~ " sales managers " ;
 103	get me the names of people who speak german and work for apple .	@org.schema.Person . Person ( ) filter contains ( knowsLanguage , null ^^tt:iso_lang_code ( " german " ) ) && contains ( worksFor , null ^^org.schema.Person:Organization ( " apple " ) ) ;
 106	what language does djimon hounsou speak ?	[ knowsLanguage ] of @org.schema.Person . Person ( ) filter id =~ " djimon hounsou " ;
@@ -386,7 +386,7 @@ rerun2f185	who works at google and has won multiple awards ?	@org.schema.Person 
 168	what is gerald ryan 's phone number ?	[ telephone ] of @org.schema.Person . Person ( ) filter id =~ " gerald ryan " ;
 173	please show me all candidates who speak english and spanish .	@org.schema.Person . Person ( ) filter contains ( knowsLanguage , null ^^tt:iso_lang_code ( " english " ) ) && contains ( knowsLanguage , null ^^tt:iso_lang_code ( " spanish " ) ) ;
 176	show me the profile photo of all the people who speak more than 10 languages .	[ image ] of @org.schema.Person . Person ( ) filter count ( knowsLanguage ) >= 10 ;
-182	which artist speaks the most languages ?	( [ * , count ( knowsLanguage ) ] of sort ( count ( knowsLanguage ) desc of @org.schema.Person . Person ( ) filter jobTitle =~ " artist " ) ) [ 1 ] ;
+182	which artist speaks the most languages ?	sort ( count ( knowsLanguage ) desc of @org.schema.Person . Person ( ) filter jobTitle =~ " artist " ) [ 1 ] ;
 186	people in ethiopa who speak english	@org.schema.Person . Person ( ) filter address . addressLocality =~ " ethiopa " && contains ( knowsLanguage , null ^^tt:iso_lang_code ( " english " ) ) ;
 190	who is the ceo of ford motor company ?	@org.schema.Person . Person ( ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " ford motor company " ) ) && jobTitle =~ " ceo " ;
 192	what languages does koh dong-jin speak ?	[ knowsLanguage ] of @org.schema.Person . Person ( ) filter id =~ " koh dong-jin " ;
@@ -394,7 +394,7 @@ rerun2f185	who works at google and has won multiple awards ?	@org.schema.Person 
 196	can you tell me the job title of stephanie johnson ?	[ jobTitle ] of @org.schema.Person . Person ( ) filter id =~ " stephanie johnson " ;
 75	what awards has brad pitt won ?	[ award ] of @org.schema.Person . Person ( ) filter id =~ " brad pitt " ;
 76	what does brad pitt look like ?	[ image ] of @org.schema.Person . Person ( ) ;
-77	where does jeff bezos live ?	[ address.addressLocality ] of @org.schema.Person . Person ( ) filter id =~ " jeff bezos " ;
+77	where does jeff bezos live ?	[ address . addressLocality ] of @org.schema.Person . Person ( ) filter id =~ " jeff bezos " ;
 78	what languages does jeff bezos speak ?	[ knowsLanguage ] of @org.schema.Person . Person ( ) filter id =~ " jeff bezos " ;
 79	what languages does yoko ono speak ?	[ knowsLanguage ] of @org.schema.Person . Person ( ) filter id =~ " yoko ono " ;
 80	show me a profile image of bill gates .	[ image ] of @org.schema.Person . Person ( ) filter id =~ " bill gates " ;
@@ -417,8 +417,8 @@ rerun2f185	who works at google and has won multiple awards ?	@org.schema.Person 
 98	look up someone who lives in new york , but works in new jersey .	@org.schema.Person . Person ( ) filter address . addressLocality =~ " new york " && workLocation == new Location ( " new jersey " ) ;
 99	can you find an individual that went to harvard and ended up at skylar capital ?	@org.schema.Person . Person ( ) filter contains ( alumniOf , null ^^org.schema.Person:Organization ( " harvard " ) ) && contains ( worksFor , null ^^org.schema.Person:Organization ( " skylar capital " ) ) ;
 101	does my ethics professor speak thai ?	@org.schema.Person . Person ( ) filter contains ( knowsLanguage , null ^^tt:iso_lang_code ( " thai " ) ) && jobTitle =~ " ethics professor " ;
-105	who in the database holds the most awards ?	( [ * , count ( award ) ] of sort ( count ( award ) desc of @org.schema.Person . Person ( ) ) ) [ 1 ] ;
-106	what is leonardo dicaprio 's home address ?	[ address.addressLocality ] of @org.schema.Person . Person ( ) filter id =~ " leonardo dicaprio " ;
+105	who in the database holds the most awards ?	sort ( count ( award ) desc of @org.schema.Person . Person ( ) ) [ 1 ] ;
+106	what is leonardo dicaprio 's home address ?	[ address . addressLocality ] of @org.schema.Person . Person ( ) filter id =~ " leonardo dicaprio " ;
 107	which college did mitch mcconnell graduate from ?	[ alumniOf ] of @org.schema.Person . Person ( ) filter id =~ " mitch mcconnell " ;
 108	give me a list of all the companies tim cook has worked for .	[ worksFor ] of @org.schema.Person . Person ( ) filter id =~ " tim cook " ;
 109	which languages does shantanu narayen speak ?	[ knowsLanguage ] of @org.schema.Person . Person ( ) filter id =~ " shantanu narayen " ;
@@ -432,7 +432,7 @@ rerun2f185	who works at google and has won multiple awards ?	@org.schema.Person 
 117	what college did mark zuckerberg go to ?	[ alumniOf ] of @org.schema.Person . Person ( ) filter id =~ " mark zuckerberg " ;
 118	what job does tim cook have at apple ?	[ jobTitle ] of @org.schema.Person . Person ( ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " apple " ) ) && id =~ " tim cook " ;
 119	what company does warren buffett run ?	[ worksFor ] of @org.schema.Person . Person ( ) filter id =~ " warren buffett " ;
-120	which city does george clooney live ?	[ address.addressLocality ] of @org.schema.Person . Person ( ) filter id =~ " george clooney " ;
+120	which city does george clooney live ?	[ address . addressLocality ] of @org.schema.Person . Person ( ) filter id =~ " george clooney " ;
 121	what awards has george clooney won ?	[ award ] of @org.schema.Person . Person ( ) filter id =~ " george clooney " ;
 122	how many languages does george clooney speak ?	[ count ( knowsLanguage ) ] of @org.schema.Person . Person ( ) filter id =~ " george clooney " ;
 123	show me a picture of george clooney .	[ image ] of @org.schema.Person . Person ( ) filter id =~ " george clooney " ;
@@ -447,23 +447,23 @@ rerun2f185	who works at google and has won multiple awards ?	@org.schema.Person 
 133	who is the current ceo for disney ?	@org.schema.Person . Person ( ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " disney " ) ) && jobTitle =~ " ceo " ;
 135	what languages does jimmy carter speak ?	[ knowsLanguage ] of @org.schema.Person . Person ( ) filter id =~ " jimmy carter " ;
 136	which awards has jimmy carter won ?	[ award ] of @org.schema.Person . Person ( ) filter id =~ " jimmy carter " ;
-137	what city does jimmy carter reside in ?	[ address.addressLocality ] of @org.schema.Person . Person ( ) filter id =~ " jimmy carter " ;
+137	what city does jimmy carter reside in ?	[ address . addressLocality ] of @org.schema.Person . Person ( ) filter id =~ " jimmy carter " ;
 138	what is jimmy carter 's email address ?	[ email ] of @org.schema.Person . Person ( ) filter id =~ " jimmy carter " ;
 139	where did jimmy carter graduate from ?	[ alumniOf ] of @org.schema.Person . Person ( ) filter id =~ " jimmy carter " ;
 140	what college did bill gates attend ?	[ alumniOf ] of @org.schema.Person . Person ( ) filter id =~ " bill gates " ;
-141	what city does oprah winfrey live in ?	[ address.addressLocality ] of @org.schema.Person . Person ( ) filter id =~ " oprah winfrey " ;
+141	what city does oprah winfrey live in ?	[ address . addressLocality ] of @org.schema.Person . Person ( ) filter id =~ " oprah winfrey " ;
 142	find me an image of jamie fox .	[ image ] of @org.schema.Person . Person ( ) filter id =~ " jamie fox " ;
 143	does elon musk still work at tesla ?	@org.schema.Person . Person ( ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " tesla " ) ) && id =~ " elon musk " ;
 144	what company does hillary clinton work for	[ worksFor ] of @org.schema.Person . Person ( ) filter id =~ " hillary clinton " ;
 146	find me all the people with the title manager that work at amazon .	@org.schema.Person . Person ( ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " amazon " ) ) && jobTitle =~ " manager " ;
 147	give me the name of all the people that work at google who graduated from ucla .	@org.schema.Person . Person ( ) filter contains ( alumniOf , null ^^org.schema.Person:Organization ( " ucla " ) ) && contains ( worksFor , null ^^org.schema.Person:Organization ( " google " ) ) ;
-149	what is the job title of the people with the most emmy awards .	[ jobTitle ] of ( [ * , count ( award filter value =~ " emmy " ) ] of sort ( count ( award filter value =~ " emmy " ) desc of @org.schema.Person . Person ( ) ) ) [ 1 ] ;
+149	what is the job title of the people with the most emmy awards .	[ jobTitle ] of sort ( count ( award filter value =~ " emmy " ) desc of @org.schema.Person . Person ( ) ) [ 1 ] ;
 150	who graduated from penn state and speaks swahili ?	@org.schema.Person . Person ( ) filter contains ( alumniOf , null ^^org.schema.Person:Organization ( " penn state " ) ) && contains ( knowsLanguage , null ^^tt:iso_lang_code ( " swahili " ) ) ;
 151	where did john mckenzie go to school ?	[ alumniOf ] of @org.schema.Person . Person ( ) filter id =~ " john mckenzie " ;
 152	what are the names of the harvard graduates who work for morgan stanley ?	@org.schema.Person . Person ( ) filter contains ( alumniOf , null ^^org.schema.Person:Organization ( " harvard " ) ) && contains ( worksFor , null ^^org.schema.Person:Organization ( " morgan stanley " ) ) ;
 153	who works at the new york times and has won a pulitzer prize ?	@org.schema.Person . Person ( ) filter contains ( worksFor , null ^^org.schema.Person:Organization ( " new york times " ) ) && contains~ ( award , " pulitzer prize " ) ;
 154	show me a picture of maureen dowd .	[ image ] of @org.schema.Person . Person ( ) filter id =~ " maureen dowd " ;
-156	in what city does this person reside ?	[ address.addressLocality ] of @org.schema.Person . Person ( ) ;
+156	in what city does this person reside ?	[ address . addressLocality ] of @org.schema.Person . Person ( ) ;
 158	what company does this person work for ?	[ worksFor ] of @org.schema.Person . Person ( ) ;
 159	what is this person 's offical job title ?	[ jobTitle ] of @org.schema.Person . Person ( ) ;
 160	where does the person who speaks spanish and french work ?	[ worksFor ] of @org.schema.Person . Person ( ) filter contains ( knowsLanguage , null ^^tt:iso_lang_code ( " french " ) ) && contains ( knowsLanguage , null ^^tt:iso_lang_code ( " spanish " ) ) ;
@@ -478,7 +478,7 @@ rerun2f185	who works at google and has won multiple awards ?	@org.schema.Person 
 170	what image do they have for their profile ?	[ image ] of @org.schema.Person . Person ( ) ;
 172	what 's the phone number available for contact ?	[ telephone ] of @org.schema.Person . Person ( ) ;
 173	what school did they graduate from ?	[ alumniOf ] of @org.schema.Person . Person ( ) ;
-175	where does bill gates live ?	[ address.addressLocality ] of @org.schema.Person . Person ( ) filter id =~ " bill gates " ;
+175	where does bill gates live ?	[ address . addressLocality ] of @org.schema.Person . Person ( ) filter id =~ " bill gates " ;
 176	can i get the fax number for anthony fauci ?	[ faxNumber ] of @org.schema.Person . Person ( ) filter id =~ " anthony fauci " ;
 177	show me the image of a person who speaks swedish	[ image ] of @org.schema.Person . Person ( ) filter contains ( knowsLanguage , null ^^tt:iso_lang_code ( " swedish " ) ) ;
 178	show people who went to stanford and work at google	@org.schema.Person . Person ( ) filter contains ( alumniOf , null ^^org.schema.Person:Organization ( " stanford " ) ) && contains ( worksFor , null ^^org.schema.Person:Organization ( " google " ) ) ;
@@ -492,7 +492,7 @@ rerun2f185	who works at google and has won multiple awards ?	@org.schema.Person 
 187	show me the linked in profile for elon musk	[ url ] of @org.schema.Person . Person ( ) filter id =~ " elon musk " ;
 188	where is bill gates office located ?	[ workLocation ] of @org.schema.Person . Person ( ) filter id =~ " bill gates " ;
 189	find email and telephone number for john smith	[ email , telephone ] of @org.schema.Person . Person ( ) filter id =~ " john smith " ;
-190	where is this person located	[ address.addressLocality ] of @org.schema.Person . Person ( ) ;
+190	where is this person located	[ address . addressLocality ] of @org.schema.Person . Person ( ) ;
 191	is this person multi-lingual	[ knowsLanguage ] of @org.schema.Person . Person ( ) ;
 192	where does this person work	[ worksFor ] of @org.schema.Person . Person ( ) ;
 193	find me an email address	[ email ] of @org.schema.Person . Person ( ) ;

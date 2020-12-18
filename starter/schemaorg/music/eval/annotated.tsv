@@ -27,7 +27,7 @@
 147	what album features the song my sharona ?	[ inAlbum ] of @org.schema.Music . MusicRecording ( ) filter id =~ " my sharona " ;
 148	find hey jude by the beatles	@org.schema.Music . MusicRecording ( ) filter byArtist == null ^^org.schema.Music:Person ( " beatles " ) && id =~ " hey jude " ;
 149	which artist released the album blonde on blonde ?	[ byArtist ] of @org.schema.Music . MusicAlbum ( ) filter id =~ " blonde on blonde " ;
-155	which album contains don't wan na miss a thing by aerosmith ?	[ inAlbum ] of @org.schema.Music . MusicRecording ( ) filter byArtist == null ^^org.schema.Music:Person ( " aerosmith " ) && id =~ " do n 't wan na miss a thing " ;
+155	which album contains don't wanna miss a thing by aerosmith ?	[ inAlbum ] of @org.schema.Music . MusicRecording ( ) filter byArtist == null ^^org.schema.Music:Person ( " aerosmith " ) && id =~ " don't wanna miss a thing " ;
 159	what is the url to taylor swift 's , shake it off ?	[ url ] of @org.schema.Music . MusicRecording ( ) filter byArtist == null ^^org.schema.Music:Person ( " taylor swift " ) && id =~ " shake it off " ;
 162	what album is the song hello by adele in ?	[ inAlbum ] of @org.schema.Music . MusicRecording ( ) filter byArtist == null ^^org.schema.Music:Person ( " adele " ) && id =~ " hello " ;
 163	who sings the song chandelier ?	[ byArtist ] of @org.schema.Music . MusicRecording ( ) filter id =~ " chandelier " ;
@@ -89,7 +89,7 @@
 250	find me the album that has the song stupid love and who sang it .	[ byArtist , inAlbum ] of @org.schema.Music . MusicRecording ( ) filter id =~ " stupid love " ;
 251	can you tell me who sang the song born to run and what album it was on ?	[ byArtist , inAlbum ] of @org.schema.Music . MusicRecording ( ) filter id =~ " born to run " ;
 255	who sang the song yeah and what album is it on ?	[ byArtist , inAlbum ] of @org.schema.Music . MusicRecording ( ) filter id =~ " yeah " ;
-256	can you link me to the song ain't no easy way out and tell me the artist ?	[ byArtist , url ] of @org.schema.Music . MusicRecording ( ) filter id =~ " ai n 't no easy way out " ;
+256	can you link me to the song ain't no easy way out and tell me the artist ?	[ byArtist , url ] of @org.schema.Music . MusicRecording ( ) filter id =~ " ain't no easy way out " ;
 259	who sang the song barracuda ?	[ byArtist ] of @org.schema.Music . MusicRecording ( ) filter id =~ " barracuda " ;
 260	give me an album with a song with the name sunshine .	[ inAlbum ] of @org.schema.Music . MusicRecording ( ) filter id =~ " sunshine " ;
 265	pleases search for wonderwall by oasis .	@org.schema.Music . MusicRecording ( ) filter byArtist == null ^^org.schema.Music:Person ( " oasis " ) && id =~ " wonderwall " ;
