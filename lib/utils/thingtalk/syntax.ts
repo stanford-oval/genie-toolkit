@@ -111,7 +111,7 @@ function notNull<T>(x : T) : x is Exclude<T, null> {
 
 export async function parseAllPredictions(candidates : PredictionCandidate[], entities : Syntax.EntityMap, options : ParseOptions) : Promise<Ast.Input[]> {
     return (await Promise.all(candidates.map((cand) => {
-        return parsePrediction(cand.code, entities, options, true);
+        return parsePrediction(cand.code, entities, options, false);
     }))).filter(notNull);
 }
 
@@ -145,7 +145,7 @@ export function serializePrediction(program : Ast.Input,
         locale: options.locale!,
         allowNonConsecutive: true,
         useHeuristics: true,
-        alwaysAllowStrings: true,
+        alwaysAllowStrings: false,
         ignoreSentence: options.ignoreSentence || false,
     });
     return Syntax.serialize(program, Syntax.SyntaxType.Tokenized, entityRetriever, {

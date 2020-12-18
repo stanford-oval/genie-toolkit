@@ -25,7 +25,7 @@ process.on('unhandledRejection', (up) => { throw up; });
 process.env.TEST_MODE = '1';
 
 // require everything, to get a complete view of code coverage
-require('../../lib/index');
+import '../../lib/index';
 
 
 async function do_test(array) {
@@ -67,5 +67,5 @@ do_test([
     ('./test_timed_reference'),
     ('./test_timers'),
     ('./test_trie'),
-    ('./test_wikidata_utils'),
+    //('./test_wikidata_utils'),
 ]);

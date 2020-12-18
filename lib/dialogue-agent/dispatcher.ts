@@ -32,8 +32,6 @@ import { Message } from './protocol';
 
 import type Engine from '../engine';
 
-import * as Config from '../config';
-
 interface NotificationDelegate {
     notify(data : {
         appId : string;
@@ -162,7 +160,7 @@ export default class Assistant extends events.EventEmitter {
             for (const out of this._outputs.values()) {
                 promises.push(out.notify({
                     appId: appId,
-                    icon: icon ? Config.THINGPEDIA_URL + '/api/devices/icon/' + icon : null,
+                    icon: icon,
                     raw: outputValue,
                     type: outputType,
                     formatted: messages
@@ -180,7 +178,7 @@ export default class Assistant extends events.EventEmitter {
         for (const out of this._outputs.values()) {
             promises.push(out.notifyError({
                 appId: appId,
-                icon: icon ? Config.THINGPEDIA_URL + '/api/devices/icon/' + icon : null,
+                icon: icon,
                 error: error
             }));
         }

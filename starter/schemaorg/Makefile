@@ -127,7 +127,7 @@ emptydataset.tt:
 	$(genie) sample-constants -o $@ --parameter-datasets $*/parameter-datasets.tsv --thingpedia $*/schema.trimmed.tt --devices $($(*)_class_name)
 	cat $(geniedir)/data/en-US/constants.tsv >> $@
 
-%/manifest.tt: %/constants.tsv %/schema.trimmed.tt %/parameter-datasets.tsv models/paraphraser-bart-large-speedup-megabatch-5m common-words.txt
+%/manifest.tt: %/constants.tsv %/schema.trimmed.tt %/parameter-datasets.tsv $(if $(findstring bart,$(annotation)),models/paraphraser-bart-large-speedup-megabatch-5m,) common-words.txt
 	$(genie) auto-annotate -o $@.tmp --constants $*/constants.tsv --thingpedia $*/schema.trimmed.tt --functions $($(*)_white_list) $(annotate_flags) --parameter-datasets $*/parameter-datasets.tsv --dataset schemaorg
 	mv $@.tmp $@
 

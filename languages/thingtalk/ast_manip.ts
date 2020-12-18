@@ -1055,6 +1055,10 @@ export function resolveChain(...expressions : Ast.ExpressionSignature[]) : Ast.E
 }
 
 function filterTableJoin(into : Ast.Expression, filteredTable : Ast.Expression|null) : Ast.Expression|null {
+    // FIXME joins need to use subqueries not chains, otherwise parameters won't be available
+    return null;
+
+    /*
     if (filteredTable === null)
         return null;
     if (!(filteredTable instanceof Ast.FilterExpression))
@@ -1079,9 +1083,14 @@ function filterTableJoin(into : Ast.Expression, filteredTable : Ast.Expression|n
         passign.name, '==', new Ast.Value.VarRef('id')
     );
     return new Ast.FilterExpression(null, join, filter, newSchema);
+    */
 }
 
 function arrayFilterTableJoin(into : Ast.Expression, filteredTable : Ast.Expression|null) : Ast.Expression|null {
+    // FIXME joins need to use subqueries not chains, otherwise parameters won't be available
+    return null;
+
+    /*
     if (filteredTable === null)
         return null;
     if (!(filteredTable instanceof Ast.FilterExpression))
@@ -1106,6 +1115,7 @@ function arrayFilterTableJoin(into : Ast.Expression, filteredTable : Ast.Express
         passign.name, 'contains', new Ast.Value.VarRef('id')
     );
     return new Ast.FilterExpression(null, join, filter, newSchema);
+    */
 }
 
 function actionReplaceParamWith(into : Ast.Expression, pname : string, projection : Ast.ProjectionExpression) : Ast.Expression|null {
@@ -1385,6 +1395,10 @@ function addGetPredicateJoin(table : Ast.Expression,
 }
 
 function addArrayJoin(lhs : Ast.Expression, rhs : Ast.Expression) : Ast.Expression|null {
+    // FIXME joins need to use subqueries not chains, otherwise parameters won't be available
+    return null;
+
+    /*
     if (!(lhs instanceof Ast.FilterExpression))
         return null;
 
@@ -1412,6 +1426,7 @@ function addArrayJoin(lhs : Ast.Expression, rhs : Ast.Expression) : Ast.Expressi
         new Ast.ChainExpression(null, [lhs, rhs], newSchema),
         new Ast.BooleanExpression.Atom(null, 'id', (lhsArg.type.isArray ? 'in_array' : '=='), new Ast.Value.VarRef(lhsArg.name)),
         newSchema);
+    */
 }
 
 function makeComputeExpression(table : Ast.Expression,

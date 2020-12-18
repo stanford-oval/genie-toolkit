@@ -22,7 +22,7 @@ import assert from 'assert';
 
 import GrowableBuffer from './growable_buffer';
 import { WILDCARD } from './trie';
-export { WILDCARD }
+export { WILDCARD };
 
 const FILE_HEADER_LENGTH = 6;
 
@@ -32,7 +32,7 @@ enum NodeType {
     COMPACT = 3,
     INTERMEDIATE = 4,
     NODE_TYPE_MAX = 4
-};
+}
 enum NodeFlags {
     NONE = 0,
     WILDCARD = 8,

@@ -118,9 +118,9 @@ function testRequotePrograms() {
 }
 
 const FUNCTION_TEST_CASES = [
-    ['now => @com.twitter.post param:status:String = " hello world "', '@com.twitter.post'],
-    ['$dialogue @org.thingpedia.dialogue.transaction.execute ; now => @foo.bar.baz param:status:String = QUOTED_STRING_0 => notify() ;', '@foo.bar.baz'],
-    ['$dialogue @dialogue.policy.execute ; now => @foo.bar.baz param:status:String = " $dialogue string " => notify() ; now => @baz.bar.foo param:location:Location ', '@foo.bar.baz @baz.bar.foo']
+    ['@com.twitter . post ( status = " hello world " ) ;', '@com.twitter.post'],
+    ['$dialogue @org.thingpedia.dialogue.transaction . execute ; @foo.bar . baz ( status = QUOTED_STRING_0 ) ;', '@foo.bar.baz'],
+    ['$dialogue @dialogue.policy . execute ; @foo.bar . baz ( status = " $dialogue string " ) ; @baz.bar . foo ( location ) ;', '@foo.bar.baz @baz.bar.foo']
 ];
 
 function testGetFunctions() {
@@ -133,10 +133,9 @@ function testGetFunctions() {
 }
 
 const DEVICE_TEST_CASES = [
-    ['now => @com.twitter.post param:status:String = " hello world "', '@com.twitter'],
-    ['$dialogue @org.thingpedia.dialogue.transaction.execute; now => @foo.bar.baz param:status:String = QUOTED_STRING_0 => notify();', '@foo.bar'],
-    ['$dialogue @dialogue.policy.execute ; now => @foo.bar.baz param:status:String = " $dialogue string " => notify() ; now => @baz.bar.foo param:location:Location ', '@foo.bar @baz.bar'],
-    ['$dialogue @dialogue.policy.execute ; now => @foo.bar.boo ; now => @baz.bar.foo param:status:String = " status string " ; now => @foo.bar.baz ', '@foo.bar @baz.bar @foo.bar']
+    ['@com.twitter . post ( status = " hello world " ) ;', '@com.twitter'],
+    ['$dialogue @org.thingpedia.dialogue.transaction . execute ; @foo.bar . baz ( status = QUOTED_STRING_0 ) ;', '@foo.bar'],
+    ['$dialogue @dialogue.policy . execute ; @foo.bar . baz ( status = " $dialogue string " ) ; @baz.bar . foo ( location ) ;', '@foo.bar @baz.bar']
 ];
 
 function testGetDevices() {

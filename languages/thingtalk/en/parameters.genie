@@ -355,12 +355,13 @@ for (let [pname, [typestr, pcanonical]] of _tpLoader.params.in.values()) {
 
         // replace $-placeholders with projection-based parameter passing
 
-        table_join_replace_placeholder : Ast.ChainExpression = {
+        // FIXME
+        /*table_join_replace_placeholder : Ast.ChainExpression = {
             ( q:thingpedia_query p:with_filtered_table
             | q:thingpedia_query p:with_arg_min_max_table
             | q:thingpedia_query p:complete_table
             ) [-> pname] => C.actionReplaceParamWithTable(q, pname, p);
-        }
+        }*/
         action_replace_param_with_table : Ast.ChainExpression = {
             ( a:thingpedia_action p:with_filtered_table
             | a:thingpedia_action p:with_arg_min_max_table
@@ -395,8 +396,9 @@ for (let [pname, [typestr, pcanonical]] of _tpLoader.params.in.values()) {
                 return null;
             };
         } else {
-            table_join_replace_placeholder : Ast.ChainExpression = q:thingpedia_query p:$('projection_' + typestr) [-> pname]
-                => C.actionReplaceParamWithTable(q, pname, p);
+            // FIXME
+            //table_join_replace_placeholder : Ast.ChainExpression = q:thingpedia_query p:$('projection_' + typestr) [-> pname]
+            //    => C.actionReplaceParamWithTable(q, pname, p);
             action_replace_param_with_table : Ast.ChainExpression = a:thingpedia_action p:$('projection_' + typestr) [-> pname]
                 => C.actionReplaceParamWithTable(a, pname, p);
             action_replace_param_with_stream : Ast.ChainExpression = a:thingpedia_action p:$('stream_projection_' + typestr) [-> pname]
