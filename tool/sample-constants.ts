@@ -25,7 +25,7 @@ import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
 
 import * as StreamUtils from '../lib/utils/stream-utils';
-import ConstantSampler from './lib/constants-sampler';
+import ConstantSampler from '../lib/dataset-tools/mturk/constants-sampler';
 import FileParameterProvider from './lib/file_parameter_provider';
 
 
