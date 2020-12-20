@@ -70,27 +70,14 @@ template_deps = \
 
 evalflags ?=
 
-train_iterations ?= 120000
+train_iterations ?= 50000
 train_save_every ?= 2000
 train_log_every ?= 100
 train_nlu_flags ?= \
-	--train_iterations $(train_iterations) \
-	--dimension 768 \
-	--transformer_hidden 768 \
-	--trainable_decoder_embeddings 50 \
-	--encoder_embeddings=bert-base-uncased \
-	--decoder_embeddings= \
-	--seq2seq_encoder=Identity \
-	--rnn_layers 1 \
-	--transformer_heads 12 \
-	--transformer_layers 0 \
-	--rnn_zero_state=average \
-	--train_encoder_embeddings \
-	--transformer_lr_multiply 0.1 \
-	--train_batch_tokens 2000 \
-	--val_batch_size 64 \
-	--append_question_to_context_too \
-	--almond_preprocess_context
+	--model TransformerSeq2Seq \
+	--pretrained_model facebook/bart-large \
+	--gradient_accumulation_steps 20 \
+	--preprocess_special_tokens
 custom_train_nlu_flags ?=
 
 all: datadir
@@ -220,6 +207,7 @@ train-user: datadir
 	  --cache datadir/.cache \
 	  --train_tasks almond_dialogue_nlu \
 	  --preserve_case \
+	  --train_iterations $(train_iterations) \
 	  --save_every $(train_save_every) \
 	  --log_every $(train_log_every) \
 	  --val_every $(train_save_every) \
