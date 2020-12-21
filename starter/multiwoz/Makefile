@@ -73,9 +73,10 @@ evalflags ?=
 train_iterations ?= 50000
 train_save_every ?= 2000
 train_log_every ?= 100
+train_pretrained_model ?= facebook/bart-large
 train_nlu_flags ?= \
 	--model TransformerSeq2Seq \
-	--pretrained_model facebook/bart-large \
+	--pretrained_model $(train_pretrained_model) \
 	--gradient_accumulation_steps 20 \
 	--preprocess_special_tokens
 custom_train_nlu_flags ?=
