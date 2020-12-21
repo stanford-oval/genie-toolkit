@@ -128,6 +128,29 @@ async function testSimpleGet(engine, icon = null) {
     }]);
 }
 
+async function testSimpleGet2(engine, icon = null) {
+    const output = await engine.createAppAndReturnResults('now => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+        { icon: icon, uniqueId: 'app-foo-get' });
+    // when we get here, the app might or might not have started already
+    // to be sure, we iterate its mainOutput
+
+    console.log(output);
+    assert.deepStrictEqual(output, {
+        uniqueId: 'app-foo-get',
+        description: 'get generate 10 byte of fake data with count equal to 2 and then notify you',
+        code: '@org.thingpedia.builtin.test.get_data(count=2, size=10byte);',
+        icon: 'org.thingpedia.builtin.test',
+        results:
+           [ { raw: { data: '!!!!!!!!!!', count: 2, size: 10 },
+               type: 'org.thingpedia.builtin.test:get_data',
+               formatted: ['!!!!!!!!!!'] },
+             { raw: { data: '""""""""""', count: 2, size: 10 },
+               type: 'org.thingpedia.builtin.test:get_data',
+               formatted: ['""""""""""'] } ],
+        errors: []
+    });
+}
+
 async function testGetGet(engine, icon = null) {
     const app = await engine.createApp('now => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => @org.thingpedia.builtin.test.dup_data(data_in=data) => notify;',
         { icon: icon, name: 'some app', description: 'some app description' });
@@ -736,6 +759,7 @@ export default async function testApps(engine) {
     await testDoError(engine);
     await testDoSay(engine);
     await testSimpleGet(engine);
+    await testSimpleGet2(engine);
     await testSimpleGet(engine, 'org.foo');
     await testGetGet(engine);
     await testGetError(engine, 'org.foo');

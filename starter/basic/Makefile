@@ -43,27 +43,14 @@ generate_flags = --target-pruning-size $(target_pruning_size) $(foreach v,$(synt
 evalflags ?=
 
 model ?= 1
-train_iterations ?= 100000
+train_iterations ?= 50000
 train_save_every ?= 2000
 train_log_every ?= 100
 train_nlu_flags ?= \
-	--train_iterations=$(train_iterations) \
-	--dimension=768 \
-	--transformer_hidden=768 \
-	--transformer_layers=0 \
-	--rnn_layers=2 \
-	--seq2seq_encoder=Identity \
-	--rnn_zero_state=average \
-	--context_embeddings=bert-base-uncased@0 \
-	--question_embeddings=bert-base-uncased@1 \
-	--trainable_encoder_embeddings=0 \
-	--trainable_decoder_embeddings=25 \
-	--train_context_embeddings \
-	--train_context_embeddings_after=80000 \
-	--decoder_embeddings= \
-	--transformer_lr_multiply=0.5 \
-	--train_batch_tokens=4000 \
-	--val_batch_size=128
+	--model TransformerLSTM \
+	--pretrained_model bert-base-cased \
+	--trainable_decoder_embeddings 50 \
+	--override_question .
 custom_train_nlu_flags ?=
 
 memsize := $(shell echo $$(($$(grep MemTotal /proc/meminfo | sed 's/[^0-9]//g')/1000-2500)))
@@ -136,6 +123,7 @@ train: datadir
 	  --cache datadir/.cache \
 	  --train_tasks almond \
 	  --preserve_case \
+	  --train_iterations $(train_iterations) \
 	  --save_every $(train_save_every) \
 	  --log_every $(train_log_every) \
 	  --val_every $(train_save_every) \

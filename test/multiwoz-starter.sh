@@ -4,7 +4,7 @@
 
 . $(dirname $0)/common.sh
 do_setup
-trap on_error ERR INT TERM
+#trap on_error ERR INT TERM
 
 # copy over the starting code
 cp -r $srcdir/starter/multiwoz/* .
@@ -18,8 +18,9 @@ EOF
 make experiment=multidomain subdatasets=1 max_turns=3 target_pruning_size=10 datadir
 
 # train a model (for a few iterations)
-make experiment=multidomain model=small train_iterations=30 train_save_every=10 \
-  train_log_every=5 train-user
+make experiment=multidomain model=small train_iterations=4 train_save_every=2 \
+  train_log_every=2 custom_train_nlu_flags="--train_batch_tokens 100 --val_batch_size 100" \
+  train_pretrained_model=sshleifer/bart-tiny-random train-user
 
 # get some sample data to test with
 cat > restaurant/eval/annotated.txt <<'EOF'
@@ -57,7 +58,7 @@ UT: $dialogue @org.thingpedia.dialogue.transaction.execute; now => @uk.ac.cam.mu
 EOF
 
 # evaluate
-sed -i 's/multidomain_eval_models =/multidomain_eval_models = small/' Makefile
+sed -i 's/multidomain_eval_nlu_models =/multidomain_eval_nlu_models = small/' Makefile
 make experiment=multidomain eval_set=eval evaluate
 
 rm -fr $workdir

@@ -70,27 +70,15 @@ template_deps = \
 
 evalflags ?=
 
-train_iterations ?= 120000
+train_iterations ?= 50000
 train_save_every ?= 2000
 train_log_every ?= 100
+train_pretrained_model ?= facebook/bart-large
 train_nlu_flags ?= \
-	--train_iterations $(train_iterations) \
-	--dimension 768 \
-	--transformer_hidden 768 \
-	--trainable_decoder_embeddings 50 \
-	--encoder_embeddings=bert-base-uncased \
-	--decoder_embeddings= \
-	--seq2seq_encoder=Identity \
-	--rnn_layers 1 \
-	--transformer_heads 12 \
-	--transformer_layers 0 \
-	--rnn_zero_state=average \
-	--train_encoder_embeddings \
-	--transformer_lr_multiply 0.1 \
-	--train_batch_tokens 2000 \
-	--val_batch_size 64 \
-	--append_question_to_context_too \
-	--almond_preprocess_context
+	--model TransformerSeq2Seq \
+	--pretrained_model $(train_pretrained_model) \
+	--gradient_accumulation_steps 20 \
+	--preprocess_special_tokens
 custom_train_nlu_flags ?=
 
 all: datadir
@@ -220,6 +208,7 @@ train-user: datadir
 	  --cache datadir/.cache \
 	  --train_tasks almond_dialogue_nlu \
 	  --preserve_case \
+	  --train_iterations $(train_iterations) \
 	  --save_every $(train_save_every) \
 	  --log_every $(train_log_every) \
 	  --val_every $(train_save_every) \
@@ -228,10 +217,10 @@ train-user: datadir
 	  $(train_nlu_flags) \
 	  $(custom_train_nlu_flags)
 
-evaluate: $(foreach v,$($(experiment)_$(eval_set)_nlu_models),$(experiment)/$(eval_set)/$(v).nlu.results) $(foreach v,$($(experiment)_$(eval_set)_nlu_models),$(experiment)/$(eval_set)/$(v).dialogue.results)
+evaluate: $(foreach v,$($(experiment)_$(eval_set)_nlu_models),$(experiment)/$(eval_set)/$(v).dialogue.results)
 	for f in $^ ; do echo $$f ; cat $$f ; done
 
-$(experiment)/$(eval_set)/%.dialogue.results: $(experiment)/models/%/best.pth $(experiment)/$(eval_set)/annotated.txt $(experiment)/schema.tt
+$(experiment)/$(eval_set)/%.dialogue.results: $(experiment)/models/%/best.pth $(experiment)/$(eval_set)/annotated.txt $(experiment)/schema.tt shared-parameter-datasets.tsv
 	mkdir -p $(experiment)/$(eval_set)/$(dir $*)
 	$(genie) evaluate-dialog \
 	  --url "file://$(abspath $(dir $<))" \
@@ -239,6 +228,7 @@ $(experiment)/$(eval_set)/%.dialogue.results: $(experiment)/models/%/best.pth $(
 	  --target-language thingtalk \
 	  $(experiment)/$(eval_set)/annotated.txt \
 	  --database-file $(experiment)/database-map.tsv \
+	  --parameter-datasets shared-parameter-datasets.tsv \
 	  --debug --csv-prefix $(eval_set) --csv $(evalflags) \
 	  -o $@.tmp | tee $(experiment)/$(eval_set)/$*.dialogue.debug
 	mv $@.tmp $@

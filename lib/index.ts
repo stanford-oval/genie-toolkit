@@ -19,9 +19,6 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import { BasicSentenceGenerator, DialogueGenerator } from './sentence-generator/batch';
-import SentenceSampler from './dataset-tools/mturk/sampler';
-import { ParaphraseValidator, ParaphraseValidatorFilter } from './dataset-tools/mturk/validator';
-import ValidationHITCreator from './dataset-tools/mturk/paraphrase-validation';
 
 import DatasetAugmenter from './dataset-tools/augmentation';
 import {
@@ -31,16 +28,10 @@ import {
     DialogueSerializer
 } from './dataset-tools/parsers';
 import DatasetSplitter from './dataset-tools/splitter';
-import {
-    SentenceEvaluatorStream,
-    CollectSentenceStatistics,
-} from './dataset-tools/evaluation/sentence_evaluator';
-import {
-    DialogueEvaluatorStream,
-    CollectDialogueStatistics
-} from './dataset-tools/evaluation/dialogue_evaluator';
 
+import * as MTurk from './dataset-tools/mturk';
 import * as Training from './training';
+import * as Evaluation from './dataset-tools/evaluation';
 import * as ParserClient from './prediction/parserclient';
 
 import * as I18n from './i18n';
@@ -54,30 +45,6 @@ import AssistantEngine from './engine';
 
 import SentenceGenerator from './sentence-generator/generator';
 import * as SentenceGeneratorRuntime from './sentence-generator/runtime';
-
-/**
- * Classes related to MTurk paraphrasing.
- *
- * @namespace
- */
-const MTurk = {
-    SentenceSampler,
-    ParaphraseValidator,
-    ParaphraseValidatorFilter,
-    ValidationHITCreator
-};
-
-/**
- * Classes related to evaluation of a model.
- *
- * @namespace
- */
-const Evaluation = {
-    SentenceEvaluatorStream,
-    CollectSentenceStatistics,
-    DialogueEvaluatorStream,
-    CollectDialogueStatistics
-};
 
 export {
     // sentence generation

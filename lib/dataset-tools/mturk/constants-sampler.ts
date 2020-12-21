@@ -20,9 +20,9 @@
 
 import { Type, SchemaRetriever } from 'thingtalk';
 
-import { choose } from '../../lib/utils/random';
-import { sampleString } from '../../lib/utils/misc-utils';
-import * as I18n from '../../lib/i18n';
+import { choose } from '../../utils/random';
+import { sampleString } from '../../utils/misc-utils';
+import * as I18n from '../../i18n';
 
 function getEntityType(type : Type) : string|null {
     if (type instanceof Type.Entity)
