@@ -13,7 +13,7 @@ jobs:
     -
       name: "Unit Tests"
       install:
-      - pyenv global 3.6.7
+      - pyenv global 3.7.1
       - pip install --user torch transformers
       - travis_retry npm ci
       script:
@@ -44,7 +44,7 @@ jobs:
     -
       name: "Starter Code Tests (Basic)"
       install:
-      - pyenv global 3.6.7
+      - pyenv global 3.7.1
       - ./travis/install-starter-deps.sh
       - travis_retry npm ci
       script: npx nyc ./test/basic-starter.sh
@@ -52,14 +52,14 @@ jobs:
     -
       name: "Starter Code Tests (Schema.org)"
       install:
-      - pyenv global 3.6.7
+      - pyenv global 3.7.1
       - ./travis/install-starter-deps.sh
       - travis_retry npm ci
       script: npx nyc ./test/schemaorg-starter.sh
       after_success: npm run coverage
     - name: "Starter Code Tests (Wikidata)"
       install:
-      - pyenv global 3.6.7
+      - pyenv global 3.7.1
       - ./travis/install-starter-deps.sh
       - travis_retry npm ci
       script: npx nyc ./test/wikidata-starter.sh
@@ -67,7 +67,7 @@ jobs:
     -
       name: "Starter Code Tests (MultiWOZ)"
       install:
-      - pyenv global 3.6.7
+      - pyenv global 3.7.1
       - ./travis/install-starter-deps.sh
       - travis_retry npm ci
       script: npx nyc ./test/multiwoz-starter.sh
