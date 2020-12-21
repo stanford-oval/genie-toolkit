@@ -822,7 +822,7 @@ export default class ParameterReplacer {
                     const newSentence = (await this._replaceTokensInSentence(example.id, sentence, parameters, replacements)).join(' ');
                     const newPrograms : string[] = [];
                     for (const program of programs)
-                        newPrograms.push(await this._replaceTokensInProgram(program, replacements).join(' '));
+                        newPrograms.push(this._replaceTokensInProgram(program, replacements).join(' '));
                     let newFlags : SentenceFlags;
 
                     if (this._addFlag) {

@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -24,11 +24,13 @@ import Stream from 'stream';
 import { coin } from '../utils/random';
 import { requoteSentence, requoteProgram, getFunctions } from './requoting';
 
-function filterForDevices(set, code) {
-    for (let token of code.split(' ')) {
+import { SentenceFlags, SentenceExample } from './parsers';
+
+function filterForDevices(set : Set<string>, code : string) : boolean {
+    for (const token of code.split(' ')) {
         if (token.startsWith('@')) {
-            let split = token.substring(1).split('.');
-            let kind = split.slice(0, split.length-1).join('.');
+            const split = token.substring(1).split('.');
+            const kind = split.slice(0, split.length-1).join('.');
             if (!set.has(kind))
                 return false;
         }
@@ -36,37 +38,67 @@ function filterForDevices(set, code) {
     return true;
 }
 
-function join(iterable) {
+function join<T>(iterable : Iterable<T>) : string {
     return Array.from(iterable).join(' ');
 }
 
-const SPLIT_STRATEGIES = {
-    id: () => undefined,
-    'raw-sentence': (id, sentence) => sentence,
-    sentence: (id, sentence, program) => join(requoteSentence(id, sentence, program)),
-    spotify: (id, sentence, program) => join(requoteSentence(id, sentence, program)),
-    aggregate: (id, sentence, program) => {
+export const SPLIT_STRATEGIES = {
+    id: (id : string) => id,
+    'raw-sentence': (id : string, sentence : string) => sentence,
+    sentence: (id : string, sentence : string, program : string) => join(requoteSentence(id, sentence, program)),
+    spotify: (id : string, sentence : string, program : string) => join(requoteSentence(id, sentence, program)),
+    aggregate: (id : string, sentence : string, program : string) => {
         if (program.split(' ').indexOf('aggregate') < 0)
             return ':train';
         return join(requoteSentence(id, sentence, program));
     },
-    program: (id, sentence, program) => join(requoteProgram(program)),
-    combination: (id, sentence, program) => {
+    program: (id : string, sentence : string, program : string) => join(requoteProgram(program)),
+    combination: (id : string, sentence : string, program : string) => {
         const functions = Array.from(getFunctions(program));
         if (functions.length <= 1)
             return ':train';
         else
             return functions.join(' ');
     },
-    'context-and-program': (id, sentence, program, context) => context + ' ' + program
+    'context-and-program': (id : string, sentence : string, program : string, context ?: string) => context + ' ' + program
 };
 
+interface DatasetSplitterOptions {
+    locale : string;
+    rng : () => number;
+
+    evalProbability : number;
+    forDevices ?: string[];
+    evalOnSynthetic : boolean;
+    useEvalFlag : boolean;
+    splitStrategy ?: keyof typeof SPLIT_STRATEGIES;
+
+    train : Stream.Writable;
+    eval : Stream.Writable;
+    test ?: Stream.Writable;
+}
+
 export default class DatasetSplitter extends Stream.Writable {
-    constructor(options) {
+    private _rng : () => number;
+    private _evalProbability : number;
+    private _forDevices : Set<string>;
+    private _evalOnSynthetic : boolean;
+    private _useEvalFlag : boolean;
+
+    private _train : Stream.Writable;
+    private _eval : Stream.Writable;
+    private _test : Stream.Writable|undefined;
+
+    private _splitStrategy : (id : string, sentence : string, program : string, context ?: string) => string;
+    private _dedupedevtestMakeKey : ((splitKey : string, id : string, sentence : string, program : string, context ?: string) => string)|undefined;
+    private _devtestset : Set<string>;
+    private _dedupeddevtestset : Set<string>;
+    private _trainset : Set<string>;
+
+    constructor(options : DatasetSplitterOptions) {
         super({ objectMode: true });
 
         this._rng = options.rng;
-        this._locale = options.locale;
         this._evalOnSynthetic = options.evalOnSynthetic;
         this._useEvalFlag = options.useEvalFlag;
 
@@ -91,7 +123,7 @@ export default class DatasetSplitter extends Stream.Writable {
         this._trainset.add(':train');
     }
 
-    _final(callback) {
+    _final(callback : () => void) {
         this._train.end();
         this._eval.end();
         if (this._test)
@@ -112,7 +144,7 @@ export default class DatasetSplitter extends Stream.Writable {
       (E flag in TSV format), otherwise all other sentences are potentially included
       in the evaluation sets.
      */
-    _isFlaggedForEval(flags) {
+    private _isFlaggedForEval(flags : SentenceFlags) {
         if (!this._evalOnSynthetic && (flags.synthetic || flags.augmented))
             return false;
 
@@ -122,11 +154,20 @@ export default class DatasetSplitter extends Stream.Writable {
             return true;
     }
 
-    _write(row, encoding, callback) {
-        if (this._forDevices.size > 0 && !filterForDevices(this._forDevices, row.target_code)) {
-            callback();
+    private async _doWriteLower(stream : Stream.Writable, row : SentenceExample) {
+        await new Promise<void>((resolve, reject) => {
+            stream.write(row, (err) => {
+                if (err)
+                    reject(err);
+                else
+                    resolve();
+            });
+        });
+    }
+
+    private async _handleOne(row : { id : string, flags : SentenceFlags, preprocessed : string, target_code : string, context ?: string }) {
+        if (this._forDevices.size > 0 && !filterForDevices(this._forDevices, row.target_code))
             return;
-        }
 
         const splitKey = this._splitStrategy(row.id, row.preprocessed, row.target_code, row.context);
         const flags = row.flags || {};
@@ -134,48 +175,68 @@ export default class DatasetSplitter extends Stream.Writable {
         //console.log(flags, splitKey, this._devtestset);
 
         if (!this._isFlaggedForEval(flags)) {
-            if (splitKey !== undefined && this._devtestset.has(splitKey)) {
-                callback();
+            if (splitKey !== undefined && this._devtestset.has(splitKey))
                 return;
-            }
-            this._train.write(row, callback);
+            await this._doWriteLower(this._train, row);
         } else {
             if (splitKey !== undefined && this._devtestset.has(splitKey)) {
                 if (this._dedupedevtestMakeKey) {
                     const dedupeKey = this._dedupedevtestMakeKey(splitKey, row.id, row.preprocessed, row.target_code);
-                    if (this._dedupeddevtestset.has(dedupeKey)) {
-                        callback();
+                    if (this._dedupeddevtestset.has(dedupeKey))
                         return;
-                    }
                     this._dedupeddevtestset.add(dedupeKey);
                 }
                 if (this._test && coin(0.5, this._rng))
-                    this._test.write(row, callback);
+                    await this._doWriteLower(this._test, row);
                 else
-                    this._eval.write(row, callback);
+                    await this._doWriteLower(this._eval, row);
             } else if (splitKey !== undefined && this._trainset.has(splitKey)) {
-                this._train.write(row, callback);
+                await this._doWriteLower(this._train, row);
             } else if (coin(this._evalProbability, this._rng)) {
                 if (this._dedupedevtestMakeKey) {
                     const dedupeKey = this._dedupedevtestMakeKey(splitKey, row.id, row.preprocessed, row.target_code);
-                    if (this._dedupeddevtestset.has(dedupeKey)) {
-                        callback();
+                    if (this._dedupeddevtestset.has(dedupeKey))
                         return;
-                    }
                     this._dedupeddevtestset.add(dedupeKey);
                 }
                 if (this._test && coin(0.5, this._rng))
-                    this._test.write(row, callback);
+                    await this._doWriteLower(this._test, row);
                 else
-                    this._eval.write(row, callback);
+                    await this._doWriteLower(this._eval, row);
                 if (splitKey !== undefined)
                     this._devtestset.add(splitKey);
             } else {
-                this._train.write(row, callback);
+                await this._doWriteLower(this._train, row);
                 if (splitKey !== undefined)
                     this._trainset.add(splitKey);
             }
         }
     }
+
+    private async _handleMany(row : SentenceExample) {
+        if (typeof row.target_code === 'string') {
+            await this._handleOne({
+                id: row.id,
+                flags: row.flags,
+                preprocessed: row.preprocessed,
+                target_code: row.target_code,
+                context: row.context
+            });
+            return;
+        }
+
+        for (const code of row.target_code) {
+            await this._handleOne({
+                id: row.id,
+                flags: row.flags,
+                preprocessed: row.preprocessed,
+                target_code: code,
+                context: row.context
+            });
+        }
+    }
+
+    _write(row : SentenceExample, encoding : BufferEncoding, callback : (err ?: Error) => void) {
+        this._handleMany(row).then(() => callback(), (err) => callback(err));
+    }
 }
-module.exports.SPLIT_STRATEGIES = Object.keys(SPLIT_STRATEGIES);
