@@ -882,11 +882,27 @@ function addFilter(table : Ast.Expression,
     if (!table.schema!.is_list && !options.ifFilter)
         return null;
 
-    if (table instanceof Ast.ProjectionExpression) {
+    // go inside these to add a filter, so we can attach a filter to a primitive
+    // template that uses some of these expressions
+    //
+    // note: optimize() will take care of projection and sort, but not index
+    // and slice, because index of a filter is different than filter of a index
+    // the semantics in natural language are always of index of a filter!
+    if (table instanceof Ast.ProjectionExpression ||
+        table instanceof Ast.SortExpression ||
+        table instanceof Ast.IndexExpression ||
+        table instanceof Ast.SliceExpression) {
         const added = addFilter(table.expression, filter);
         if (added === null)
             return null;
-        return new Ast.ProjectionExpression(null, added, table.args, table.computations, table.aliases, table.schema);
+        if (table instanceof Ast.ProjectionExpression)
+            return new Ast.ProjectionExpression(null, added, table.args, table.computations, table.aliases, table.schema);
+        else if (table instanceof Ast.SortExpression)
+            return new Ast.SortExpression(null, added, table.value, table.direction, table.schema);
+        else if (table instanceof Ast.IndexExpression)
+            return new Ast.IndexExpression(null, added, table.indices, table.schema);
+        else
+            return new Ast.SliceExpression(null, added, table.base, table.limit, table.schema);
     }
 
     if (table instanceof Ast.FilterExpression) {
