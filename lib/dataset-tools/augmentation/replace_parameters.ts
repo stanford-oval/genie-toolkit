@@ -38,6 +38,10 @@ function isReplaceToken(tok : string) : boolean {
     return /^(?:GENERIC_ENTITY_|LOCATION_|NUMBER_|QUOTED_STRING_|HASHTAG_|USERNAME_)/.test(tok);
 }
 
+function tokenCanAppearInSentence(token : string) {
+    return /^(?:QUOTED_STRING|HASHTAG|USERNAME|NUMBER)_/.test(token);
+}
+
 const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*$/;
 
 function isUnitName(token : string) {
@@ -63,6 +67,18 @@ function isReplaceType(type : Type) {
         (type instanceof Type.Entity && NON_REPLACEABLE_ENTITIES.indexOf(type.type) < 0);
 }
 
+function isEntity(value : ConstantValue) {
+    if (value instanceof Ast.VarRefValue && value.name.startsWith(`__const_`)) {
+        // this is the correct type refinement, but for some reason without
+        // the explicit assignment value is typed "Ast.VarRefValue" instead
+        const cvalue : Ast.VarRefValue & ConstantValue = value;
+        if (!cvalue.token)
+            cvalue.token = constantToNN(cvalue.name);
+        return true;
+    } else {
+        return false;
+    }
+}
 
 function unescape(symbol : string) : string {
     return symbol.replace(/_([0-9a-fA-Z]{2}|_)/g, (match, ch) => {
@@ -488,7 +504,7 @@ export default class ParameterReplacer {
         return { sentenceValue, programValue };
     }
 
-    private async _sampleParam(slot : Ast.AbstractSlot, replacedValuesSet : Set<string>) : Promise<ReplacementRecord|null> {
+    private async _getValueListForSlot(slot : Ast.AbstractSlot) : Promise<[ValueList, Ast.ArgumentDef|null, Type, string]> {
         const arg = this._getSlotArg(slot);
         let valueListKey = this._getParamListKey(slot, arg);
         const fallbackKey = this._getFallbackParamListKey(slot);
@@ -517,11 +533,53 @@ export default class ParameterReplacer {
                 operator = '==';
         }
 
+        return [valueList, arg, slot.type, operator];
+    }
+
+    private async _getValueListForToken(token : string) : Promise<[ValueList, Type, string]> {
+        let type, valueListKey : ['string' | 'entity', string], fallbackKey;
+        if (token.startsWith('LOCATION_')) {
+            valueListKey = ['string', 'tt:location'];
+            fallbackKey = 'tt:location';
+            type = Type.Location;
+        } else if (token.startsWith('GENERIC_ENTITY_')) {
+            const match = /^GENERIC_ENTITY_(.*)_[0-9]+$/.exec(token)!;
+            valueListKey = ['entity', match[1]];
+            fallbackKey = 'tt:short_free_text';
+            type = new Type.Entity(match[1]);
+        } else {
+            valueListKey = ['string', 'tt:short_free_text'];
+            fallbackKey = 'tt:short_free_text';
+            type = Type.String;
+        }
+        if (valueListKey[0] === 'string' && valueListKey[1] !== fallbackKey &&
+            coin(this._untypedStringProbability, this._rng))
+            valueListKey = ['string', fallbackKey];
+
+        let valueList = await this._loader.get(valueListKey);
+        if (valueList.size === 0) {
+            if (this._debug)
+                this._warn('novalue:token:' + token, `Found no values for ${token}, falling back to ${fallbackKey}`);
+
+            valueList = await this._loader.get(['string', fallbackKey]);
+            if (valueList.size === 0)
+                throw new Error(`Fallback value list is empty: missing required parameter list ${fallbackKey} for ${token}`);
+        }
+
+        return [valueList, type, '='];
+    }
+
+    private _sampleParam(key : string,
+                         arg : Ast.ArgumentDef|null,
+                         valueList : ValueList,
+                         type : Type,
+                         operator : string,
+                         replacedValuesSet : Set<string>) : ReplacementRecord|null {
         let attempts = this._numAttempts;
         while (attempts > 0) {
             const sampled = valueList.sample(this._rng).toLowerCase();
             let words = sampled.split(' ');
-            words = Array.from(resampleIgnorableAndAbbreviations(this._paramLangPack, slot.type, words, this._rng));
+            words = Array.from(resampleIgnorableAndAbbreviations(this._paramLangPack, type, words, this._rng));
 
             if (this._cleanParameters &&
                 (/[,?!.'\-_]/.test(sampled) || ['1', '2', '3'].includes(sampled)) &&
@@ -564,7 +622,7 @@ export default class ParameterReplacer {
 
             return this._transformValue(sampled, sampled, arg);
         }
-        this._warn(`failreplace:${slot.tag}:${slot.type}`, `Could not replace ${valueListKey} even after ${this._numAttempts} attempts for slot ${slot}`);
+        this._warn(`failreplace:${key}`, `Could not replace ${key} even after ${this._numAttempts}`);
         return null;
     }
 
@@ -581,12 +639,25 @@ export default class ParameterReplacer {
             if (replacements.has(token)) {
                 output.push(replacements.get(token)!.sentenceValue);
             } else if (isReplaceToken(token)) {
-                if (!parameters.has(token)) {
-                    // ignore this: we might have decided not to replace the parameter
-                    output.push(token);
-                    continue;
+                let key, arg = null, valueList, type, operator;
+                const slot = parameters.get(token);
+                if (slot) {
+                    key = `${slot.tag}:${slot.type}`;
+                    [valueList, arg, type, operator] = await this._getValueListForSlot(slot);
+                } else {
+                    if (tokenCanAppearInSentence(token)) {
+                        // ignore this: we might have decided not to replace the parameter
+                        output.push(token);
+                        continue;
+                    } else {
+                        // this is probably a token that appears in the sentence but not
+                        // in the program (this happens with boolean questions)
+                        // try to replace it anyway without slot information
+                        key = token;
+                        [valueList, type, operator] = await this._getValueListForToken(token);
+                    }
                 }
-                const replace = await this._sampleParam(parameters.get(token)!, replacedValueSet);
+                const replace = this._sampleParam(key, arg, valueList, type, operator, replacedValueSet);
                 if (!replace) {
                     output.push(token);
                 } else {
@@ -687,19 +758,6 @@ export default class ParameterReplacer {
                 sentenceEntities.add(token);
         }
 
-        function isEntity(value : ConstantValue) {
-            if (value instanceof Ast.VarRefValue && value.name.startsWith(`__const_`)) {
-                // this is the correct type refinement, but for some reason without
-                // the explicit assignment value is typed "Ast.VarRefValue" instead
-                const cvalue : Ast.VarRefValue & ConstantValue = value;
-                if (!cvalue.token)
-                    cvalue.token = constantToNN(cvalue.name);
-                return true;
-            } else {
-                return false;
-            }
-        }
-
         const entities : EntityMap = {};
         // replace all entities with SLOT_*, which allows us to pass a VarRef instead of a real value
         const replacedCode = this._replaceWithSlot(code, entities);
@@ -782,7 +840,7 @@ export default class ParameterReplacer {
                 continue;
             }
 
-            if (/^(QUOTED_STRING|HASHTAG|USERNAME)_/.test(token)) {
+            if (tokenCanAppearInSentence(token)) {
                 // with some probability, we leave the parameter quoted
                 // this ensures that some sentences are trained with quotes too
                 // which is useful because quoted sentences are more reliable
