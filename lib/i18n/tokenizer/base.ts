@@ -188,9 +188,12 @@ export default class BaseTokenizer {
         //
         // XXX: we might want to extend this to all of Unicode Alphabetic characters, which includes all languages
         // and then exclude ideographic characters separately
-        // update: Included Arabic_chars and Persian_supplements
 
-        this._addDefinition('LETTER', /[_a-z\u00C0-\u00D6\u00D8\u00F6\u00F8-\u01BA\u01BB\u01BC-\u01BF\u01C0-\u01C3\u01C4-\u0293\u0294\u0295\u02AF\u02EE\u0300-\u036f\u0600-\u06ff\uFB50–\uFDFF]/);
+        // updates:
+        // Included Arabic_chars and Persian_supplements
+        // Included some of the German characters
+
+        this._addDefinition('LETTER', /[_a-z\u00C0-\u00D6\u00D8\u00F6\u00F8-\u01BA\u01BB\u01BC-\u01BF\u01C0-\u01C3\u01C4-\u0293\u0294\u0295\u02AF\u02EE\u0300-\u036f\u0600-\u06ff\uFB50–\uFDFF\u00DF\u00E4\u00FC\u00C4\u00D6\u00DC]/);
 
         // words
         // note that we do not split hyphens ever
@@ -199,7 +202,9 @@ export default class BaseTokenizer {
         // numbers are considered part of a word if preceded by a letter
         // if a word ends with hyphen followed by a number, the hyphen is considered part of the word: e.g., top-50 -> top- 50
         // if a word ends with hyphen, the hyphen is not considered part of the word: e.g., Twitter- -> Twitter -
-        this._addDefinition('WORD', /(?:-?{LETTER}[0-9۰-۹]*)+(?:-?(?=[0-9۰-۹]))?/);
+        // updates:
+        // ... except for -lrb- and -rrb-
+        this._addDefinition('WORD', /(?:-lrb-|-rrb-|-?{LETTER}[0-9۰-۹]*)+(?:-?(?=[0-9۰-۹]))?/);
         // identifiers (tokens with at least an ASCI letter, but also - _ or a number)
         this._addDefinition('IDENT', /[a-z][a-z0-9_-]+|[0-9_-]+[a-z][a-z0-9_-]+/);
     }
