@@ -246,7 +246,8 @@ export default class LocalParserClient {
                     return {
                         code: ThingTalkUtils.serializePrediction(parsed, tokens, entities, {
                             locale: this._locale,
-                            compatibility: options.thingtalk_version
+                            compatibility: options.thingtalk_version,
+                            ignoreSentence: true
                         }),
                         score: c.score
                     };
