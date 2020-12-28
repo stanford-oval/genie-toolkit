@@ -51,10 +51,10 @@ function compareScore(a : PredictionCandidate, b : PredictionCandidate) : number
     if (a.score === b.score)
         return 0;
     if (a.score === 'Infinity')
-        return 1;
-    if (b.score === 'Infinity')
         return -1;
-    return a.score - b.score;
+    if (b.score === 'Infinity')
+        return 1;
+    return b.score - a.score;
 }
 
 export default class LocalParserClient {
