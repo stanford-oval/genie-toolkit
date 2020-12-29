@@ -399,29 +399,29 @@ class @com.github
 class @com.xkcd
 #_[canonical="xkcd"] {
   monitorable query get_comic(in opt number: Number #_[prompt="What Xkcd comic do you want?"] #_[canonical="number"],
-                              out title: String #_[canonical="title"] #[string_values="com.xkcd:title"],
+                              out title: String #_[canonical="title"],
                               out picture_url: Entity(tt:picture) #_[canonical="picture url"],
                               out link: Entity(tt:url) #_[canonical="link"],
-                              out alt_text: String #_[canonical="alt text"] #[string_values="com.xkcd:alt_text"])
+                              out alt_text: String #_[canonical="alt text"])
   #_[canonical="xkcd comic"]
   #_[confirmation="an Xkcd comic"]
-  #[confirm=false];
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}"}, {type="picture",url="${picture_url}"}, {type="text",text="${alt_text}"}]];
 
   query random_comic(out number: Number #_[canonical="number"],
-                     out title: String #_[canonical="title"] #[string_values="com.xkcd:title"],
+                     out title: String #_[canonical="title"],
                      out picture_url: Entity(tt:picture) #_[canonical="picture url"],
                      out link: Entity(tt:url) #_[canonical="link"],
-                     out alt_text: String #_[canonical="alt text"] #[string_values="com.xkcd:alt_text"])
+                     out alt_text: String #_[canonical="alt text"])
   #_[canonical="random xkcd comic"]
   #_[confirmation="a random Xkcd comic"]
-  #[confirm=false];
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}"}, {type="picture",url="${picture_url}"}, {type="text",text="${alt_text}"}]];
 
-  monitorable list query what_if(out title: String #_[canonical="title"] #[string_values="com.xkcd:what_if_title"],
+  monitorable list query what_if(out title: String #_[canonical="title"],
                                  out link: Entity(tt:url) #_[canonical="link"],
                                  out updated_time: Date #_[canonical="updated time"])
   #_[canonical="xkcd what if blog posts"]
   #_[confirmation="Xkcd's What If blog posts"]
-  #[confirm=false];
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}"}]];
 }
 class @com.uber
 #_[canonical="uber"] {
@@ -1405,12 +1405,11 @@ class @com.nest.security_camera
                                   out picture_url: Entity(tt:picture) #_[canonical="picture url"])
   #_[canonical="current event on nest security camera"]
   #_[confirmation="the current event detected on your Nest security camera"]
-  #[confirm=false];
+  #_[formatted=[{type="code",code="function(argMap, hint, formatter) {\n    var timeString = formatter.dateAndTimeToString(argMap.start_time);\n\n    var title;\n    if (argMap.has_person)\n        title = `Person detected on your camera at ${timeString}`;\n    else if (argMap.has_sound && argMap.has_motion)\n        title = `Sound and motion detected on your camera at ${timeString}`;\n    else if (argMap.has_sound)\n        title = `Sound detected on your camera at ${timeString}`;\n    else if (argMap.has_motion)\n        title = `Motion detected on your camera at ${timeString}`;\n    else\n        title = `Something detected on your camera at ${timeString}`;\n    return title;\n}"}, {type="picture",url="${picture_url}"}]];
 
   action set_power(in req power: Enum(on,off) #_[prompt="Do you want to turn your camera on or off?"] #_[canonical="power"])
   #_[canonical="set power on nest security camera"]
-  #_[confirmation="turn $power your Nest security camera"]
-  #[confirm=true];
+  #_[confirmation="turn $power your Nest security camera"];
 }
 class @com.nest.thermostat
 #_[canonical="nest thermostat"] {
@@ -1995,7 +1994,13 @@ class @com.mapquest
   #[confirm=false];
 }
 class @com.wikicfp
-#_[canonical="wikicfp"] {
+#_[name="WikiCFP"]
+#_[description="Keep updated with paper submission deadlines"]
+#[version=15]
+#[package_version=15] {
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+
   monitorable list query search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
                                 out abbr: String #_[canonical="abbreviation"],
                                 out name: String #_[canonical="name"],
@@ -2004,9 +2009,9 @@ class @com.wikicfp
                                 out city: String #_[canonical="city"],
                                 out deadline: Date #_[canonical="deadline"],
                                 out link: Entity(tt:url) #_[canonical="link"])
-  #_[canonical="events from wikicfp"]
+  #_[canonical="get events from wikicfp"]
   #_[confirmation="information of $query on wikicfp"]
-  #[confirm=false];
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${name} (${abbr})",displayText="Where: ${city},\nWhen: ${start:date} - ${end:date},\nDeadline: ${deadline:date}."}]];
 }
 class @rest.kanye
 #_[canonical="kanye rest"] {
@@ -2128,4 +2133,271 @@ class @org.thingpedia.friendhub.stickynotes
   #_[canonical="post on sticky notes"]
   #_[confirmation="Add $post to sticky notes"]
   #[confirm=true];
+}
+class @org.wikidata
+#_[name="Wikidata for domain Q515"]
+#_[description="Natural language dialogues over Wikidata knowledge base."] {
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+
+  list query city(out id: Entity(org.wikidata:city)
+                  #_[canonical={
+                    base=["name"],
+                    passive_verb=["named", "called"]
+                  }]
+                  #[unique=true],
+                  out inception: Date
+                  #_[canonical={
+                    default="property",
+                    base=["inception", "foundation", "formation", "introduction", "date of establishment", "date of founding", "establishment date", "founding date", "commencement date", "construction date", "creation date", "date commenced", "date constructed", "date created", "date formed", "date founded", "date incorporated", "date of commencement", "date of creation", "date of foundation", "date of foundation or creation", "date of incorporation", "dedication date", "first issue", "formation date", "foundation / creation date", "foundation date", "incorporation date", "launch date", "time of foundation or creation", "time of inception", "year commenced", "year created", "year established", "year founded", "year incorporated", "year written"],
+                    passive_verb=["formed in", "introduced", "created", "built", "completed", "constructed", "created on date", "established", "established on date", "formed at", "formed on date", "founded", "founded on date", "inaugurated", "incorporated", "incorporated on date", "inititated", "written on date", "launched"],
+                    verb=["commenced on date"]
+                  }]
+                  #[wikidata_id="P571"],
+                  out named_after: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["named after", "toponym", "eponym", "named for", "linked with"],
+                    base=["etymology", "name after", "namesake"],
+                    reverse_property=["named in honor of", "# named in honor", "# 's named in honor"]
+                  }]
+                  #[wikidata_id="P138"]
+                  #[string_values="org.wikidata:city_named_after"],
+                  out continent: Enum(Africa,SouthAmerica,Europe,Asia,NorthAmerica,Antarctica,Oceania,Americas,Australia,Eurasia,CentralAmerica,AustraliaAndOceania,Caribbean,Tamriel,Faerun,KaraTur,Westeros,NorthernAmericaAndMexico)
+                  #_[canonical={
+                    default="property",
+                    base=["continent"]
+                  }]
+                  #[wikidata_id="P30"],
+                  out country: Entity(org.wikidata:country)
+                  #_[canonical={
+                    default="property",
+                    base=["country", "state", "land", "sovereign state", "host country"]
+                  }]
+                  #[wikidata_id="P17"],
+                  out capital_of: String
+                  #_[canonical={
+                    default="reverse_property",
+                    reverse_property=["capital of", "# capital", "# 's capital", "county seat of", "# county seat", "# 's county seat"],
+                    base=["county seat for"]
+                  }]
+                  #[wikidata_id="P1376"]
+                  #[string_values="org.wikidata:city_capital_of"],
+                  out located_in_the_administrative_territorial_entity: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["located in the administrative territorial entity", "based in", "in", "in administrative unit", "in the administrative unit", "located in", "located in administrative unit", "located in the administrative territorial entity", "located in the administrative unit", "located in the territorial entity"],
+                    base=["city", "town", "locality", "administrative territorial entity", "region", "state", "indian reservation", "location (administrative territorial entity)"],
+                    verb=["happens in"],
+                    reverse_property=["in administrative unit", "in the administrative region of", "in the administrative unit", "in the arrondissement of", "in the borough of", "in the city of", "in the commune of", "in the county of", "in the department of", "in the district of", "in the indian reservation of", "in the indian reserve of", "in the local government area of", "in the municipality of", "in the parish of", "in the prefecture of", "in the principal area of", "in the province of", "in the region of", "in the rural city of", "in the settlement of", "in the shire of", "in the state of", "in the territory of", "in the town of", "in the village of", "in the voivodeship of", "in the ward of"]
+                  }]
+                  #[wikidata_id="P131"]
+                  #[string_values="org.wikidata:city_located_in_the_administrative_territorial_entity"],
+                  out located_in_or_next_to_body_of_water: Array(String)
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["located in or next to body of water", "located next to body of water", "located on body of water", "on", "on", "on", "on"],
+                    base=["bays", "lakes", "seas", "body of water", "loc (water)", "next to lakes", "oceans", "on bays", "on harbour", "on lakes", "on rivers"],
+                    reverse_property=["on coast of", "# on coast", "# 's on coast", "on shore of", "# on shore", "# 's on shore", "on the coast of", "# on the coast", "# 's on the coast", "on the shore of", "# on the shore", "# 's on the shore"]
+                  }]
+                  #[wikidata_id="P206"]
+                  #[string_values="org.wikidata:city_located_in_or_next_to_body_of_water"],
+                  out coordinate_location: Location
+                  #_[canonical={
+                    default="property",
+                    base=["coordinate location", "position", "location", "co-ordinate location", "coordinate location", "geo", "geographic coordinate", "geographical coordinates", "gps coordinate", "gps coordinates", "gps location", "latitude", "location on earth", "location on map", "longitude", "point on a map", "point on earth", "point on the globe"],
+                    passive_verb=["geolocation", "co-ords", "coords", "geocoordinates", "geotag", "gps", "gps co-ordinate", "gps co-ordinates", "wgs 84", "wgs-84", "wgs84"],
+                    verb=["co-ordinates", "coordinates"]
+                  }]
+                  #[wikidata_id="P625"],
+                  out head_of_government: Entity(org.wikidata:human)
+                  #_[canonical={
+                    default="property",
+                    base=["head of government", "president", "chancellor", "mayor", "prime minister", "governor", "premier", "first minister", "executive power headed by", "government headed by", "head of national government"]
+                  }]
+                  #[wikidata_id="P6"],
+                  out population: Number
+                  #_[canonical={
+                    default="property",
+                    base=["population", "human population", "inhabitants"]
+                  }]
+                  #[wikidata_id="P1082"],
+                  out water_as_percent_of_area: Number
+                  #_[canonical={
+                    default="property",
+                    base=["water as percent of area", "percent of area that is water"],
+                    passive_verb=["h₂ o%"]
+                  }]
+                  #[wikidata_id="P2927"],
+                  out elevation_above_sea_level: Measure(m)
+                  #_[canonical={
+                    default="property",
+                    base=["elevation above sea level", "altitude", "height", "elevation", "elevation above mean sea level"],
+                    passive_verb=["masl", "amsl", "easl", "mamsl"]
+                  }]
+                  #[wikidata_id="P2044"],
+                  out located_in_time_zone: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["located in time zone", "timezone", "tz"],
+                    base=["time zone", "time"]
+                  }]
+                  #[wikidata_id="P421"]
+                  #[string_values="org.wikidata:city_located_in_time_zone"],
+                  out twinned_administrative_body: Array(Entity(org.wikidata:city))
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["twinned administrative bodies"],
+                    base=["twin towns", "partner cities", "partner towns", "sister cities", "sister towns", "twin cities", "twin cities"]
+                  }]
+                  #[wikidata_id="P190"],
+                  out shares_border_with: Array(Entity(org.wikidata:city))
+                  #_[canonical={
+                    default="property",
+                    base=["shares border with", "borders", "borders"],
+                    passive_verb=["adjacent to", "bordered by", "next to"]
+                  }]
+                  #[wikidata_id="P47"],
+                  out area: Measure(m2)
+                  #_[canonical={
+                    default="property",
+                    base=["area", "size", "surface", "surface area", "acreage", "total area"]
+                  }]
+                  #[wikidata_id="P2046"],
+                  out postal_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["postal code", "pin code", "post code", "postal index number", "zip code"],
+                    passive_verb=["postcode", "zip+4", "zipcode"]
+                  }]
+                  #[wikidata_id="P281"]
+                  #[string_values="org.wikidata:city_postal_code"],
+                  out official_website: Entity(tt:url)
+                  #_[canonical={
+                    default="property",
+                    base=["official website", "site", "web site", "home page", "home page (official)", "homepage (official)", "official homepage", "official page", "official site", "official url", "official web site", "url (official)", "url official", "web address", "website (official)", "www site (official)", "site (official)", "site official", "website official"],
+                    passive_verb=["website", "homepage"]
+                  }]
+                  #[wikidata_id="P856"],
+                  out flag_image: Array(Entity(tt:picture))
+                  #_[canonical={
+                    default="property",
+                    base=["flag images", "image flags", "image of flags"]
+                  }]
+                  #[wikidata_id="P41"],
+                  out number_of_households: Number
+                  #_[canonical={
+                    default="property",
+                    base=["number of households", "dwellings", "households"]
+                  }]
+                  #[wikidata_id="P1538"],
+                  out image: Array(Entity(tt:picture))
+                  #_[canonical={
+                    default="property",
+                    base=["images", "graphs", "illustrations", "screen capture", "still", "portraits", "photos", "pictures", "commons images", "image capture", "image of exterior", "image on commons", "image on wikimedia commons"],
+                    passive_verb=["screenshot", "drawing", "img"]
+                  }]
+                  #[wikidata_id="P18"],
+                  out highest_point: String
+                  #_[canonical={
+                    default="property",
+                    base=["highest point", "summit", "pinnacle", "highest peak", "zenith", "elevation of highest point"],
+                    passive_verb=["extreme point highest"]
+                  }]
+                  #[wikidata_id="P610"]
+                  #[string_values="org.wikidata:city_highest_point"],
+                  out language_used: Entity(tt:iso_lang_code)
+                  #_[canonical={
+                    default="property",
+                    base=["language used", "languages used"],
+                    passive_verb=["working language", "working languages"]
+                  }]
+                  #[wikidata_id="P2936"])
+  #_[canonical="city"]
+  #_[confirmation="city"]
+  #[wikidata_subject="Q515"]
+  #[required_properties=[]]
+  #[handle_thingtalk=true]
+  #[minimal_projection=["id"]];
+}
+class @com.yelp
+#_[name="Yelp"]
+#_[description="Search restaurants on Yelp"]
+#_[canonical="yelp"]
+{
+  list query restaurant(out id: Entity(com.yelp:restaurant)
+                        #[conflict_filter=["cuisines", "price_range"]]
+                        #[unique=true]
+                        #[string_values="gov.data:restaurant_names"]
+                        #_[canonical={
+                          default="property",
+                          base=["name"],
+                          property=[]
+                        }],
+                        out image_url: Entity(tt:picture)
+                        #[genie=false]
+                        #_[canonical={
+                          base=["picture", "image", "photo"]
+                        }],
+                        out link: Entity(tt:url)
+                        #[genie=false]
+                        #_[canonical="link"],
+                        out cuisines: Array(Entity(com.yelp:restaurant_cuisine))
+                        #[conflict_filter=["id"]]
+                        #_[canonical={
+                          default="property",
+                          base=["cuisines", "types of cuisine", "food", "types of food"],
+                          property=["# food", "# cuisine"],
+                          adjective=["#"],
+                          verb=["serves # cuisine", "serves # food", "offer # cuisine", "offer # food", "serves", "offers"]
+                        }],
+                        out price : Enum(cheap, moderate, expensive, luxury)
+                        #[conflict_filter=["id"]]
+                        #_[canonical={
+                          default="adjective",
+                          base=["price range", "price"],
+                          property=[],
+                          adjective=["#", "# -ly priced"]
+                          // FIXME
+                          /*adjective_enum={ expensive=["upscale"] }*/
+                        }],
+                        out rating: Number
+                        #_[canonical={
+                          default="passive_verb",
+                          base=["rating", "average rating"],
+                          passive_verb=["rated # star"],
+                          adjective=["# star"],
+                          npp=["rating", "# star rating"]
+                        }],
+                        out reviewCount: Number
+                        #_[canonical="review count"],
+                        out geo: Location
+                        #_[canonical={
+                          default="preposition",
+                          base=["address", "location"],
+                          preposition=["near #", "in #", "around #"]
+                        }],
+                        out phone: Entity(tt:phone_number)
+                        #_[canonical={
+                          default="base",
+                          base=["phone number", "telephone"]
+                        }],
+                        out openingHours: RecurrentTimeSpecification
+                        #_[canonical={
+                          default="base",
+                          base=["opening hours"]
+                        }])
+  #_[canonical="restaurant"]
+  #_[confirmation="restaurants on Yelp"]
+  #[minimal_projection=["id"]]
+  #[default_projection=["id", "link", "rating", "cuisines", "geo", "image_url"]]
+  #_[formatted=[{
+    type="rdl",
+    displayTitle="${name}",
+    webCallback="${link}",
+    displayText="Rating: ${rating}\nCuisines: ${cuisines}\nAddress: ${geo}",
+    pictureUrl="${image_url}"
+  }]]
+  #[doc="search for restaurants on Yelp"]
+  #[confirm=false];
 }

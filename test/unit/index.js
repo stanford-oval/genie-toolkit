@@ -50,6 +50,8 @@ do_test([
     ('./test_entities'),
     ('./test_entity_match'),
     ('./test_exact_matcher'),
+    ('./test_formatter'),
+    ('./test_formatter_api'),
     ('./test_helpers'),
     ('./test_i18n_chinese'),
     ('./test_ip_address'),

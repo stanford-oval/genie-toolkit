@@ -25,6 +25,7 @@ import * as ThingTalk from 'thingtalk';
 import { Ast, Type, ExecEnvironment, SchemaRetriever } from 'thingtalk';
 
 import { coin, uniform, randint } from '../../utils/random';
+import { Formatter } from '../card-output/formatter';
 
 import { SimulationDatabase } from './statement_simulator';
 
@@ -321,6 +322,7 @@ function loadSimulationValue(schema : Ast.FunctionDef,
 }
 
 class SimulationExecEnvironment extends ExecEnvironment {
+    format : Formatter;
     private _schemas : SchemaRetriever;
     private _database : SimulationDatabase|undefined;
     private _rng : () => number;
@@ -335,7 +337,8 @@ class SimulationExecEnvironment extends ExecEnvironment {
                 schemas : SchemaRetriever,
                 database : SimulationDatabase|undefined,
                 { rng, simulateErrors = true } : { rng : () => number, simulateErrors ?: boolean }) {
-        super(locale, 'America/Los_Angeles', schemas);
+        super();
+        this.format = new Formatter(locale, 'America/Los_Angeles', schemas, (x) => x);
         this._execCache = [];
 
         this._schemas = schemas;
@@ -566,6 +569,10 @@ class SimulationExecEnvironment extends ExecEnvironment {
             this._execCache.push([functionKey, params, list]);
         for (const el of list)
             yield el;
+    }
+
+    async formatEvent(outputType : string, output : Record<string, unknown>, hint : string) : Promise<string> {
+        return String(await this.format.formatForType(outputType, output, hint));
     }
 }
 

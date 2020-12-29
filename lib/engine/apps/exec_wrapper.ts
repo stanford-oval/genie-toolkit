@@ -27,6 +27,7 @@ import TriggerRunner from './trigger_runner';
 
 import { Timer, AtTimer } from './timers';
 import DeviceView from '../devices/device_view';
+import { Formatter } from '../../dialogue-agent/card-output/formatter';
 
 import type AppExecutor from './app_executor';
 import type Engine from '../index';
@@ -89,6 +90,7 @@ function recursivelyComputeOutputType(kind : string, expr : Ast.Expression) : st
 export default class ExecWrapper extends ExecEnvironment {
     engine : Engine;
     app : AppExecutor;
+    format : Formatter;
 
     private _programId : ThingTalk.Builtin.Entity;
     private _outputDelegate : OutputDelegate;
@@ -98,8 +100,10 @@ export default class ExecWrapper extends ExecEnvironment {
     private _hooks : Array<() => void|Promise<void>>;
 
     constructor(engine : Engine, app : AppExecutor, output : OutputDelegate) {
-        super(engine.platform.locale, engine.platform.timezone, engine.schemas,
-            engine.platform.getCapability('gettext')!);
+        super();
+
+        this.format = new Formatter(engine.platform.locale, engine.platform.timezone,
+            engine.schemas, engine._);
         this.engine = engine;
         this.app = app;
         this._programId = new ThingTalk.Builtin.Entity(this.app.uniqueId!, null);
@@ -293,5 +297,9 @@ export default class ExecWrapper extends ExecEnvironment {
 
     async output(outputType : string, outputValues : Record<string, unknown>) : Promise<void> {
         await this._outputDelegate.output(outputType, outputValues);
+    }
+
+    async formatEvent(outputType : string, output : Record<string, unknown>, hint : string) : Promise<string> {
+        return String(await this.format.formatForType(outputType, output, hint));
     }
 }

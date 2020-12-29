@@ -21,7 +21,6 @@
 
 import assert from 'assert';
 import * as events from 'events';
-import * as ThingTalk from 'thingtalk';
 
 import Conversation, {
     AssistantUser,
@@ -29,6 +28,7 @@ import Conversation, {
     ConversationOptions
 } from './conversation';
 import { Message } from './protocol';
+import { Formatter, FormattedChunk } from './card-output/formatter';
 
 import type Engine from '../engine';
 
@@ -38,7 +38,7 @@ interface NotificationDelegate {
         icon : string|null;
         raw : Record<string, unknown>;
         type : string;
-        formatted : ThingTalk.Formatter.FormattedChunk[]
+        formatted : FormattedChunk[]
     }) : Promise<void>;
 
     notifyError(data : {
@@ -99,7 +99,7 @@ type ConverseInput = {
 
 export default class Assistant extends events.EventEmitter {
     private _engine : Engine;
-    private _formatter : ThingTalk.Formatter;
+    private _formatter : Formatter;
     private _nluModelUrl : string|undefined;
 
     private _outputs : Set<NotificationDelegate>;
@@ -110,7 +110,8 @@ export default class Assistant extends events.EventEmitter {
         super();
 
         this._engine = engine;
-        this._formatter = new ThingTalk.Formatter(engine.platform.locale, engine.platform.timezone, engine.schemas);
+        this._formatter = new Formatter(engine.platform.locale, engine.platform.timezone,
+            engine.schemas, engine._);
         this._nluModelUrl = nluModelUrl;
         this._outputs = new Set;
         this._conversations = new Map;
