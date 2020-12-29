@@ -29,14 +29,6 @@ const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
 
 const formatter = new Formatter('en-US', 'America/Los_Angeles', schemaRetriever, (x) => x);
 
-function simpleFormatFunction(argMap, hint, formatter) {
-    return argMap.v1 + ' ' + argMap.v2;
-}
-
-function complexFormatFunction(argMap, hint, formatter) {
-    return [argMap.v1 + ' ' + argMap.v2, argMap.v3];
-}
-
 export default function main() {
     let date = new Date(2018, 4, 23, 21, 18, 0);
     let date2 = new Date(2018, 12, 7, 10, 30, 0);
@@ -123,28 +115,6 @@ export default function main() {
         v3: [date, date2],
         v4: [0.42, 0.84],
     }), [ 'lol and cat 69.8 and 107.6 5/23/2018, 9:18:00 PM and 1/7/2019, 10:30:00 AM 2018-05-24T04:18:00.000Z and 2019-01-07T18:30:00.000Z 42 and 84' ]);
-
-    assert.deepStrictEqual(formatter.format([simpleFormatFunction], {
-        v1: 'one',
-        v2: 'two'
-    }), [ 'one two' ]);
-
-    assert.deepStrictEqual(formatter.format([{ type: 'code', code: simpleFormatFunction.toString() }], {
-        v1: 'one',
-        v2: 'two'
-    }), [ 'one two' ]);
-
-    assert.deepStrictEqual(formatter.format([complexFormatFunction, '${v3} ${v1}'], {
-        v1: 'one',
-        v2: 'two',
-        v3: 'three'
-    }), [ 'one two', 'three', 'three one' ]);
-
-    assert.deepStrictEqual(formatter.format([{ type: 'code', code: complexFormatFunction.toString() }, '${v3} ${v1}'], {
-        v1: 'one',
-        v2: 'two',
-        v3: 'three'
-    }), [ 'one two', 'three', 'three one'  ]);
 
     const [pic, rdl, bad] = formatter.format([
         { type: 'picture', url: '${v1}'},

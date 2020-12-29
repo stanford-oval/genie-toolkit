@@ -18,8 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import assert from 'assert';
-import * as vm from 'vm';
 import interpolate from 'string-interp';
 import { Type, Ast, SchemaRetriever, Builtin } from 'thingtalk';
 
@@ -31,10 +29,6 @@ import {
     FormattedObjectClass,
     isNull
 } from './format_objects';
-
-function compileCode(code : string) : FormatFunction {
-    return vm.runInNewContext(code);
-}
 
 function isPlainObject(value : unknown) : value is Record<string, unknown> {
     return typeof value === 'object' && value !== null &&
@@ -94,18 +88,12 @@ const OUTPUT_PARAM_IMPORTANCE_BY_TYPE : { [key : string] : number } = {
 
 type PlainObject = { [key : string] : unknown };
 
-interface FunctionSpec {
-    type : 'code';
-    code : string;
-}
 interface TextSpec {
     type : 'text';
     text : string;
 }
 
-type FormatFunction = (value : PlainObject, hint : string, formatter : InstanceType<typeof interpolate.Formatter>) => FormatSpecChunk|FormatSpecChunk[];
-
-type FormatSpecChunk = string | FormattedObjectSpec | TextSpec | FunctionSpec | FormatFunction;
+type FormatSpecChunk = string | FormattedObjectSpec | TextSpec;
 export type FormatSpec = FormatSpecChunk[];
 export type FormattedChunk = string | FormattedObject;
 
@@ -471,31 +459,6 @@ export class Formatter extends interpolate.Formatter {
         }
     }
 
-    private _toFormatObjects(codeResult : FormatSpecChunk|FormatSpecChunk[]) : Array<FormattedChunk|null> {
-        let chunks : FormatSpecChunk[];
-        if (!Array.isArray(codeResult))
-            chunks = [codeResult];
-        else
-            chunks = codeResult;
-        return chunks.map((r) => {
-            assert(typeof r !== 'function');
-            if (r === null || typeof r !== 'object')
-                return r;
-            if (r.type === 'text')
-                return r.text;
-
-            const formatType = FORMAT_TYPES[r.type as keyof typeof FORMAT_TYPES] as FormattedObjectClass;
-            if (!formatType) {
-                console.log(`WARNING: unrecognized format type ${r.type}`);
-                return null;
-            }
-            const obj = new formatType(r as FormattedObjectSpec);
-            if (!obj.isValid())
-                return null;
-            return obj;
-        });
-    }
-
     format(formatspec : FormatSpecChunk[],
            argMap : PlainObject,
            hint : 'string') : string;
@@ -510,8 +473,6 @@ export class Formatter extends interpolate.Formatter {
            hint : string) : string|FormattedChunk[] {
 
         const formatted : Array<Array<FormattedChunk|null>|FormattedChunk|null> = formatspec.map((f : FormatSpecChunk, i : number) : Array<FormattedChunk|null>|FormattedChunk|null => {
-            if (typeof f === 'function')
-                return this._toFormatObjects(f(argMap, hint, this));
             if (typeof f === 'string')
                 return this._replaceInString(f, argMap);
             if (f === null)
@@ -520,11 +481,6 @@ export class Formatter extends interpolate.Formatter {
                 return String(f);
             if (f.type === 'text')
                 return this._replaceInString(f.text, argMap);
-            if (f.type === 'code') {
-                const compiled = compileCode('(' + f.code + ')');
-                formatspec[i] = compiled;
-                return this._toFormatObjects(compiled(argMap, hint, this));
-            }
 
             const formatType = FORMAT_TYPES[f.type as keyof typeof FORMAT_TYPES] as FormattedObjectClass;
             if (!formatType) {

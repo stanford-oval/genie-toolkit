@@ -90,78 +90,6 @@ some alt text`,
     'Current weather for [Latitude: 37 deg, Longitude: -113 deg]: sunny, temperature 21 C, wind speed 5 m/s, humidity 60%, cloudiness 0%, fog 0%.'
     ],
 
-
-    ['com.nest.security_camera:current_event', {
-        start_time: new Date(2018, 4, 24, 11, 4, 0),
-        has_person: false,
-        has_motion: false,
-        has_sound: false,
-        picture_url: 'http://example.com/security-camera.jpg'
-    }, null,
-    [ 'Something detected on your camera at 5/24/2018, 11:04:00 AM',
-      { type: 'picture',
-        url: 'http://example.com/security-camera.jpg' } ]
-    ],
-
-    ['com.nest.security_camera:current_event', {
-        start_time: new Date(2018, 4, 24, 11, 4, 0),
-        has_person: false,
-        has_motion: false,
-        has_sound: false,
-        picture_url: 'http://example.com/security-camera.jpg'
-    }, 'string',
-    `Something detected on your camera at 5/24/2018, 11:04:00 AM
-Picture: http://example.com/security-camera.jpg`
-    ],
-
-    ['com.nest.security_camera:current_event', {
-        start_time: new Date(2018, 4, 24, 11, 4, 0),
-        has_person: true,
-        has_motion: false,
-        has_sound: false,
-        picture_url: 'http://example.com/security-camera.jpg'
-    }, null,
-    [ 'Person detected on your camera at 5/24/2018, 11:04:00 AM',
-      { type: 'picture',
-        url: 'http://example.com/security-camera.jpg' } ]
-    ],
-
-    ['com.nest.security_camera:current_event', {
-        start_time: new Date(2018, 4, 24, 11, 4, 0),
-        has_person: true,
-        has_motion: true,
-        has_sound: false,
-        picture_url: 'http://example.com/security-camera.jpg'
-    }, null,
-    [ 'Person detected on your camera at 5/24/2018, 11:04:00 AM',
-      { type: 'picture',
-        url: 'http://example.com/security-camera.jpg' } ]
-    ],
-
-    ['com.nest.security_camera:current_event', {
-        start_time: new Date(2018, 4, 24, 11, 4, 0),
-        has_person: false,
-        has_motion: true,
-        has_sound: false,
-        picture_url: 'http://example.com/security-camera.jpg'
-    }, null,
-    [ 'Motion detected on your camera at 5/24/2018, 11:04:00 AM',
-      { type: 'picture',
-        url: 'http://example.com/security-camera.jpg' } ]
-    ],
-
-    ['com.nest.security_camera:current_event', {
-        start_time: new Date(2018, 4, 24, 11, 4, 0),
-        has_person: false,
-        has_motion: false,
-        has_sound: true,
-        picture_url: 'http://example.com/security-camera.jpg'
-    }, null,
-    [ 'Sound detected on your camera at 5/24/2018, 11:04:00 AM',
-      { type: 'picture',
-        url: 'http://example.com/security-camera.jpg' } ]
-    ],
-
     ['org.thingpedia.builtin.thingengine.builtin:get_time',
       {time: new Date(2018, 4, 24, 11, 4, 0) }, null,
     [ 'Current time is 11:04:00 AM PDT.' ]
@@ -249,17 +177,6 @@ Picture: http://example.com/security-camera.jpg`
             icon: undefined,
         }, null,
         [ ]
-    ],
-
-    // when picture_url is undefined, do not output picture
-    ['com.nest.security_camera:current_event', {
-        start_time: new Date(2018, 4, 24, 11, 4, 0),
-        has_person: false,
-        has_motion: false,
-        has_sound: false,
-        picture_url: undefined
-    }, null,
-        [ 'Something detected on your camera at 5/24/2018, 11:04:00 AM' ]
     ],
 
     // when displayTitle and displayText are missing, only return a link
