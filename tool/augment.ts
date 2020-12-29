@@ -149,8 +149,9 @@ export function initArgparse(subparsers : argparse.SubParser) {
         default: false
     });
     parser.add_argument('--sampling-type', {
-        choices: ['default', 'uniform', 'random'],
-        help: 'Random strategy assigns random weights to parameters instead of reading from file',
+        choices: ['default', 'random', 'uniform', 'sequential'],
+        help: 'Random/ Uniform strategy assigns random/ uniform weights to parameters instead of reading from file ' +
+            'sequential is deterministic sampling. It starts from the beginning and picks the first one that passes all sample filterings',
         default: false
     });
     parser.add_argument('--subset-param-set', {
