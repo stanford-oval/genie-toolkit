@@ -28,7 +28,7 @@ import Conversation, {
     ConversationOptions
 } from './conversation';
 import { Message } from './protocol';
-import { Formatter, FormattedChunk } from './card-output/formatter';
+import TextFormatter, { FormattedChunk } from './card-output/text-formatter';
 
 import type Engine from '../engine';
 
@@ -99,7 +99,7 @@ type ConverseInput = {
 
 export default class Assistant extends events.EventEmitter {
     private _engine : Engine;
-    private _formatter : Formatter;
+    private _formatter : TextFormatter;
     private _nluModelUrl : string|undefined;
 
     private _outputs : Set<NotificationDelegate>;
@@ -110,7 +110,7 @@ export default class Assistant extends events.EventEmitter {
         super();
 
         this._engine = engine;
-        this._formatter = new Formatter(engine.platform.locale, engine.platform.timezone,
+        this._formatter = new TextFormatter(engine.platform.locale, engine.platform.timezone,
             engine.schemas, engine._);
         this._nluModelUrl = nluModelUrl;
         this._outputs = new Set;

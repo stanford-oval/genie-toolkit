@@ -27,7 +27,7 @@ import TriggerRunner from './trigger_runner';
 
 import { Timer, AtTimer } from './timers';
 import DeviceView from '../devices/device_view';
-import { Formatter } from '../../dialogue-agent/card-output/formatter';
+import TextFormatter from '../../dialogue-agent/card-output/text-formatter';
 
 import type AppExecutor from './app_executor';
 import type Engine from '../index';
@@ -90,7 +90,7 @@ function recursivelyComputeOutputType(kind : string, expr : Ast.Expression) : st
 export default class ExecWrapper extends ExecEnvironment {
     engine : Engine;
     app : AppExecutor;
-    format : Formatter;
+    format : TextFormatter;
 
     private _programId : ThingTalk.Builtin.Entity;
     private _outputDelegate : OutputDelegate;
@@ -102,7 +102,7 @@ export default class ExecWrapper extends ExecEnvironment {
     constructor(engine : Engine, app : AppExecutor, output : OutputDelegate) {
         super();
 
-        this.format = new Formatter(engine.platform.locale, engine.platform.timezone,
+        this.format = new TextFormatter(engine.platform.locale, engine.platform.timezone,
             engine.schemas, engine._);
         this.engine = engine;
         this.app = app;

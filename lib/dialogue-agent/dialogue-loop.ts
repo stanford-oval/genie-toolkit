@@ -41,7 +41,7 @@ import DialoguePolicy from './dialogue_policy';
 import type Conversation from './conversation';
 import type Engine from '../engine';
 import { RDL } from './protocol';
-import { Formatter } from './card-output/formatter';
+import TextFormatter from './card-output/text-formatter';
 
 import ExecutionDialogueAgent from './execution_dialogue_agent';
 
@@ -58,7 +58,7 @@ interface ResultLike {
 export default class DialogueLoop {
     conversation : Conversation;
     engine : Engine;
-    formatter : Formatter;
+    formatter : TextFormatter;
 
     private _userInputQueue : AsyncQueue<UserInput>;
     private _notifyQueue : AsyncQueue<QueueItem>;
@@ -87,7 +87,7 @@ export default class DialogueLoop {
         this.conversation = conversation;
         this.engine = engine;
         this._prefs = engine.platform.getSharedPreferences();
-        this.formatter = new Formatter(engine.platform.locale, engine.platform.timezone, engine.schemas, engine._);
+        this.formatter = new TextFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas, engine._);
         this.icon = null;
         this.expecting = null;
         this.platformData = {};

@@ -1,6 +1,6 @@
 // -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingTalk
+// This file is part of Genie
 //
 // Copyright 2018-2020 The Board of Trustees of the Leland Stanford Junior University
 //
@@ -26,9 +26,9 @@ import {
     FORMAT_TYPES,
     FormattedObjectSpec,
     FormattedObject,
-    FormattedObjectClass,
-    isNull
 } from './format_objects';
+
+import CardFormatter from './card-formatter';
 
 function isPlainObject(value : unknown) : value is Record<string, unknown> {
     return typeof value === 'object' && value !== null &&
@@ -76,17 +76,7 @@ const OUTPUT_PARAM_IMPORTANCE_BY_TYPE : { [key : string] : number } = {
     'Entity(instagram:media_id)': -20
 };
 
-/**
- * Namespace for format objects.
- *
- * Classes in this namespace are not accessible directly, but objects
- * of this classes are returned by {@link Formatter} methods.
- *
- * @name FormatObjects
- * @namespace
- */
-
-type PlainObject = { [key : string] : unknown };
+type PlainObject = Record<string, unknown>;
 
 interface TextSpec {
     type : 'text';
@@ -103,28 +93,38 @@ interface InternalFormattedChunk {
     importance : number;
 }
 
+// FIXME this should be replaced with a call to the state machine with
+// appropriate parameters to force a notification message
 /**
  * An object that is able to convert structured ThingTalk results
- * into something suitable for display to the user.
+ * into a textual representation suitable to send as a notification
+ * or a message.
+ *
+ * This is used to implement `$result` in ThingTalk.
  */
-export class Formatter extends interpolate.Formatter {
+export default class TextFormatter {
+    private _locale : string;
+    private _timezone : string;
     private _schemas : SchemaRetriever;
     private _interp : (template : string, args : any) => string;
     private _ : (key : string) => string;
+    private _cardFormatter : CardFormatter;
 
     /**
      * Construct a new formatter.
      *
-     * @param {string} locale - the user's locale, as a BCP47 tag
-     * @param {string} timezone - the user's timezone, as a string in the IANA timezone database (e.g. America/Los_Angeles, Europe/Rome)
-     * @param {SchemaRetriever} schemaRetriever - the interface to access Thingpedia for formatting information
-     * @param {Gettext} [gettext] - gettext instance; this is optional if {@link I18n.init} has been called
+     * @param locale - the user's locale, as a BCP47 tag
+     * @param timezone - the user's timezone, as a string in the IANA timezone database (e.g. America/Los_Angeles, Europe/Rome)
+     * @param schemaRetriever - the interface to access Thingpedia for formatting information
+     * @param gettext - gettext function
      */
     constructor(locale : string,
                 timezone : string,
                 schemaRetriever : SchemaRetriever,
                 gettext : (x : string) => string) {
-        super(locale, timezone);
+        this._locale = locale;
+        this._timezone = timezone;
+        this._cardFormatter = new CardFormatter(locale, timezone, schemaRetriever, gettext);
         this._schemas = schemaRetriever;
         this._interp = (string, args) => interpolate(string, args, { locale, timezone })||'';
         this._ = gettext;
@@ -168,20 +168,6 @@ export class Formatter extends interpolate.Formatter {
                 return canonical;
         }
         return clean(key);
-    }
-
-    _replaceInString(str : unknown, argMap : PlainObject) : string|null {
-        if (typeof str !== 'string')
-            return null;
-
-        const replaced = interpolate(str, argMap, {
-            locale: this._locale,
-            timezone: this._timezone,
-            nullReplacement: this._("N/A")
-        });
-        if (replaced === undefined)
-            return null;
-        return replaced;
     }
 
     private async _getFunctionDef(outputType : string|null) : Promise<Ast.FunctionDef|null> {
@@ -425,10 +411,13 @@ export class Formatter extends interpolate.Formatter {
     async formatForType(outputType : string,
                         outputValue : PlainObject,
                         hint : string) : Promise<string|FormattedChunk[]> {
-        // apply masquerading for @remote.receive
-        // outputValue[0..2] are the input parameters (principal, programId and flow)
-        // outputValue[3] is the real underlying output type, and outputValue.slice(4)
-        // is the real data
+
+        const cards = await this._cardFormatter.formatForType(outputType, outputValue, false);
+        if (cards.length !== 0)
+            return this._applyHint(cards, hint);
+
+        // apply the fallbacks if we did not produce any output
+
         if (outputType === 'org.thingpedia.builtin.thingengine.remote:receive')
             outputType = String(outputValue.__kindChannel);
 
@@ -445,105 +434,38 @@ export class Formatter extends interpolate.Formatter {
         if (aggregation !== null)
             return this._formatAggregation(outputValue, aggregation[1], aggregation[2]);
 
-        const [kind, function_name] = outputType.split(':');
-        const metadata = (await this._schemas.getFormatMetadata(kind, function_name)) as FormatSpecChunk[];
-        if (metadata.length) {
-            const formatted = this.format(metadata, outputValue, hint);
-            // if formatting returned nothing (due to killing all elements from the format spec)
-            // this is likely a projection, so we use the fallback to format something
-            if (!formatted || formatted.length === 0)
-                return this._applyHint(await this._formatFallback(outputValue, outputType), hint);
-            return formatted;
-        } else {
-            return this._applyHint(await this._formatFallback(outputValue, outputType), hint);
-        }
+        return this._applyHint(await this._formatFallback(outputValue, outputType), hint);
     }
 
-    format(formatspec : FormatSpecChunk[],
-           argMap : PlainObject,
-           hint : 'string') : string;
-    format(formatspec : FormatSpecChunk[],
-           argMap : PlainObject,
-           hint : 'messages') : FormattedChunk[];
-    format(formatspec : FormatSpecChunk[],
-           argMap : PlainObject,
-           hint : string) : string|FormattedChunk[];
-    format(formatspec : FormatSpecChunk[],
-           argMap : PlainObject,
-           hint : string) : string|FormattedChunk[] {
-
-        const formatted : Array<Array<FormattedChunk|null>|FormattedChunk|null> = formatspec.map((f : FormatSpecChunk, i : number) : Array<FormattedChunk|null>|FormattedChunk|null => {
-            if (typeof f === 'string')
-                return this._replaceInString(f, argMap);
-            if (f === null)
-                return null;
-            if (typeof f !== 'object')
-                return String(f);
-            if (f.type === 'text')
-                return this._replaceInString(f.text, argMap);
-
-            const formatType = FORMAT_TYPES[f.type as keyof typeof FORMAT_TYPES] as FormattedObjectClass;
-            if (!formatType) {
-                console.log(`WARNING: unrecognized format type ${f.type}`);
-                return null;
-            }
-            const obj = new formatType(f);
-            obj.replaceParameters(this, argMap);
-
-            if (!obj.isValid())
-                return null;
-
-            return obj;
-        });
-        return this._applyHint(formatted, hint);
-    }
-
-    private _normalize(formatted : Array<Array<FormattedChunk|null>|FormattedChunk|null>) : FormattedChunk[] {
-        // filter out null/undefined in the array
-        const filtered = formatted.filter((formatted) => !isNull(formatted)) as Array<FormattedChunk[]|FormattedChunk>;
-        // flatten formatted (returning array in function causes nested array)
-        const empty : FormattedChunk[] = [];
-        return empty.concat(...filtered);
-    }
-
-    private _applyHint(formatted : Array<Array<FormattedChunk|null>|FormattedChunk|null>, hint : 'string') : string;
-    private _applyHint(formatted : Array<Array<FormattedChunk|null>|FormattedChunk|null>, hint : 'messages') : FormattedChunk[];
-    private _applyHint(formatted : Array<Array<FormattedChunk|null>|FormattedChunk|null>, hint : string) : string|FormattedChunk[];
-    private _applyHint(formatted : Array<Array<FormattedChunk|null>|FormattedChunk|null>, hint : string) : string|FormattedChunk[] {
-        const normalized = this._normalize(formatted);
-
+    private _applyHint(formatted : FormattedChunk[], hint : 'string') : string;
+    private _applyHint(formatted : FormattedChunk[], hint : 'messages') : FormattedChunk[];
+    private _applyHint(formatted : FormattedChunk[], hint : string) : string|FormattedChunk[];
+    private _applyHint(formatted : FormattedChunk[], hint : string) : string|FormattedChunk[] {
         if (hint === 'string') {
-            return normalized.map((x) => {
+            return formatted.map((x) => {
                 if (typeof x !== 'object')
-                    return this.anyToString(x);
+                    return this._anyToString(x);
                 return x.toLocaleString(this._locale);
             }).join('\n');
         } else {
-            return normalized;
+            return formatted;
         }
     }
 
-    anyToString(o : unknown) : string {
+    private _anyToString(o : unknown) : string {
         if (Array.isArray(o))
-            return (o.map(this.anyToString, this).join(', '));
+            return (o.map(this._anyToString, this).join(', '));
         else if (Builtin.Location.isLocation(o))
-            return this.locationToString(o);
+            return this._locationToString(o);
         else if (typeof o === 'number')
             return (Math.floor(o) === o ? o.toFixed(0) : o.toFixed(3));
         else if (o instanceof Date)
-            return this.dateAndTimeToString(o);
+            return this._cardFormatter.dateAndTimeToString(o);
         else
             return String(o);
     }
 
-    /**
-     * Convert a location to a string.
-     *
-     * @param {Builtin.Location} loc - the location to display
-     * @return {string} the formatted location
-     * @deprecated Use {@link Builtin.Location#toLocaleString} instead.
-     */
-    locationToString(loc : Builtin.LocationLike) : string {
+    private _locationToString(loc : Builtin.LocationLike) : string {
         return new Builtin.Location(loc.y, loc.x, loc.display).toLocaleString(this._locale);
     }
 }

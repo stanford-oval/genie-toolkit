@@ -32,7 +32,7 @@ import AppRunner from './apps/runner';
 import type AppExecutor from './apps/app_executor';
 
 import AssistantDispatcher from '../dialogue-agent/dispatcher';
-import { Formatter, FormattedChunk } from '../dialogue-agent/card-output/formatter';
+import TextFormatter, { FormattedChunk } from '../dialogue-agent/card-output/text-formatter';
 
 import * as Config from '../config';
 
@@ -569,7 +569,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
         const results : AppResult[] = [];
         const errors : Error[] = [];
 
-        const formatter = new Formatter(this._platform.locale, this._platform.timezone, this._schemas, this._);
+        const formatter = new TextFormatter(this._platform.locale, this._platform.timezone, this._schemas, this._);
         for await (const value of app.mainOutput) {
             if (value instanceof Error) {
                 errors.push(value);

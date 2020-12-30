@@ -25,7 +25,7 @@ import * as ThingTalk from 'thingtalk';
 import { Ast, Type, ExecEnvironment, SchemaRetriever } from 'thingtalk';
 
 import { coin, uniform, randint } from '../../utils/random';
-import { Formatter } from '../card-output/formatter';
+import TextFormatter from '../card-output/text-formatter';
 
 import { SimulationDatabase } from './statement_simulator';
 
@@ -322,7 +322,7 @@ function loadSimulationValue(schema : Ast.FunctionDef,
 }
 
 class SimulationExecEnvironment extends ExecEnvironment {
-    format : Formatter;
+    format : TextFormatter;
     private _schemas : SchemaRetriever;
     private _database : SimulationDatabase|undefined;
     private _rng : () => number;
@@ -338,7 +338,7 @@ class SimulationExecEnvironment extends ExecEnvironment {
                 database : SimulationDatabase|undefined,
                 { rng, simulateErrors = true } : { rng : () => number, simulateErrors ?: boolean }) {
         super();
-        this.format = new Formatter(locale, 'America/Los_Angeles', schemas, (x) => x);
+        this.format = new TextFormatter(locale, 'America/Los_Angeles', schemas, (x) => x);
         this._execCache = [];
 
         this._schemas = schemas;

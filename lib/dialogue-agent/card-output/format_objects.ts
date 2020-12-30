@@ -1,8 +1,8 @@
 // -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ThingTalk
+// This file is part of Genie
 //
-// Copyright 2019 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2019-2020 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 import interpolate from 'string-interp';
 import { Builtin } from 'thingtalk';
 
-import type { Formatter } from './formatter';
+import type CardFormatter from './card-formatter';
 type PlainObject = { [key : string] : unknown };
 type GenericFormatSpec = { [key : string] : string|null };
 
@@ -37,6 +37,16 @@ export function isNull(value : unknown) : boolean {
         return true;
     return false;
 }
+
+/**
+ * Namespace for format objects.
+ *
+ * Classes in this namespace are not accessible directly, but objects
+ * of this classes are returned by {@link Formatter} methods.
+ *
+ * @name FormatObjects
+ * @namespace
+ */
 
 /**
  * The base class of all formatting objects.
@@ -81,12 +91,12 @@ export abstract class FormattedObject {
      * @param {Formatter} formatter - the formatter to use for replacement
      * @param {Object.<string,any>} argMap - the structured ThingTalk result with the values to substitute
      */
-    replaceParameters(formatter : Formatter, argMap : PlainObject) : void {
+    replaceParameters(formatter : CardFormatter, argMap : PlainObject) : void {
         for (const key in this) {
             if (key === 'type')
                 continue;
 
-            (this as unknown as GenericFormatSpec)[key] = formatter._replaceInString((this as unknown as GenericFormatSpec)[key], argMap);
+            (this as unknown as GenericFormatSpec)[key] = formatter.replaceInString((this as unknown as GenericFormatSpec)[key], argMap);
         }
     }
 }
@@ -202,7 +212,7 @@ class RDL extends FormattedObject implements RDLSpec {
         this.pictureUrl = spec.pictureUrl;
     }
 
-    replaceParameters(formatter : Formatter, argMap : PlainObject) : void {
+    replaceParameters(formatter : CardFormatter, argMap : PlainObject) : void {
         super.replaceParameters(formatter, argMap);
         if (!this.webCallback && this.callback)
             this.webCallback = this.callback;
@@ -279,7 +289,7 @@ class MapFO extends FormattedObject implements MapFOSpec {
         this.display = spec.display;
     }
 
-    replaceParameters(formatter : Formatter, argMap : PlainObject) : void {
+    replaceParameters(formatter : CardFormatter, argMap : PlainObject) : void {
         super.replaceParameters(formatter, argMap);
         this.lat = Number(this.lat);
         this.lon = Number(this.lon);

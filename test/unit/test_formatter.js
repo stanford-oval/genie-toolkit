@@ -21,7 +21,7 @@
 import assert from 'assert';
 import { SchemaRetriever, Builtin } from 'thingtalk';
 
-import { Formatter } from '../../lib/dialogue-agent/card-output/formatter';
+import TextFormatter from '../../lib/dialogue-agent/card-output/text-formatter';
 
 import _mockSchemaDelegate from './mock_schema_delegate';
 const schemaRetriever = new SchemaRetriever(_mockSchemaDelegate, null, true);
@@ -218,7 +218,7 @@ some alt text`,
     ],
 ];
 
-const formatter = new Formatter('en-US', 'America/Los_Angeles', schemaRetriever, (x) => x);
+const formatter = new TextFormatter('en-US', 'America/Los_Angeles', schemaRetriever, (x) => x);
 
 async function test(i) {
     console.log('Test Case #' + (i+1));
