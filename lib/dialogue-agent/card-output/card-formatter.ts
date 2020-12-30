@@ -79,7 +79,7 @@ export default class CardFormatter extends interpolate.Formatter {
         return replaced;
     }
 
-    async formatForType(outputType : string, outputValue : PlainObject, removeText = false) : Promise<FormattedChunk[]> {
+    async formatForType(outputType : string, outputValue : PlainObject, options : { removeText : boolean }) : Promise<FormattedChunk[]> {
         // apply masquerading for @remote.receive
         if (outputType === 'org.thingpedia.builtin.thingengine.remote:receive')
             outputType = String(outputValue.__kindChannel);
@@ -112,7 +112,7 @@ export default class CardFormatter extends interpolate.Formatter {
                 //
                 // FIXME text in #_[formatted] should be always removed and we should always use the
                 // state machine and #_[result] to form the output text
-                if (removeText)
+                if (options.removeText)
                     return null;
                 else
                     return this.replaceInString(f.text, outputValue);

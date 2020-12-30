@@ -345,9 +345,9 @@ class MinibatchDialogueGenerator {
                     dlg.execState);
 
                 if (this._maybeAddPartialDialog(newDialogue)) {
-                    const [newContext, newExecState] = await this._simulator.execute(userState, dlg.execState);
-                    newDialogue.context = newContext;
-                    newDialogue.execState = newExecState;
+                    const { newDialogueState, newExecutorState } = await this._simulator.execute(userState, dlg.execState);
+                    newDialogue.context = newDialogueState;
+                    newDialogue.execState = newExecutorState;
                 }
             }
         }

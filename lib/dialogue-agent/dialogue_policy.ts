@@ -70,6 +70,7 @@ export interface AgentReplyRecord {
     expect : Type|null,
     end : boolean;
     raw : boolean;
+    numResults : number;
 }
 
 type FunctionTable = Map<string, (...args : any[]) => any>;
@@ -206,7 +207,7 @@ export default class DialoguePolicy {
         return derivation;
     }
 
-    async chooseAction(state : Ast.DialogueState|null) : Promise<[Ast.DialogueState, ValueCategory|null, string]> {
+    async chooseAction(state : Ast.DialogueState|null) : Promise<[Ast.DialogueState, ValueCategory|null, string, number]> {
         await this._ensureGeneratorForState(state);
         const derivation = this._generateDerivation(state);
         if (derivation === undefined) {
@@ -228,6 +229,6 @@ export default class DialoguePolicy {
         if (expect === ValueCategory.RawString && !derivation.value.raw)
             expect = ValueCategory.Command;
 
-        return [derivation.value.state, expect, sentence];
+        return [derivation.value.state, expect, sentence, derivation.value.numResults];
     }
 }

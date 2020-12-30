@@ -970,3 +970,41 @@ class @com.icanhazdadjoke
   #[doc="get a joke"]
   #[url="https://icanhazdadjoke.com/"];
 }
+class @com.thecatapi
+#_[canonical="the cat api"] {
+  entity image_id #[has_ner=false];
+
+  query get(out id: Entity(com.thecatapi:image_id) #_[canonical="id"],
+            out picture_url: Entity(tt:picture) #_[canonical="picture url"],
+            out link: Entity(tt:url) #_[canonical="link"])
+  #_[canonical="cat picture"]
+  #_[confirmation="cat pictures"]
+  #_[result=["here is your cat picture", "here is a cat picture for you"]]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${link}",pictureUrl="${picture_url}"}]]
+  #[confirm=false];
+}
+class @com.xkcd
+#_[canonical="xkcd"] {
+  entity comic;
+
+  monitorable list query comic(out id: Entity(com.xkcd:comic) #_[canonical="title"],
+                               out release_date : Date #_[canonical={
+                                 base=["release date"],
+                                 adjective_argmax=["latest"],
+                                 adjective_argmin=["earliest"]
+                               }],
+                               out picture_url: Entity(tt:picture) #_[canonical="picture url"],
+                               out link: Entity(tt:url) #_[canonical="link"],
+                               out alt_text: String #_[canonical="alt text"])
+  #_[canonical=["xkcd comic"]]
+  #_[confirmation="an Xkcd comic"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${id}", pictureUrl="${picture_url}", displayText="${alt_text}"}]];
+
+  query random_comic(out id: Entity(com.xkcd:comic) #_[canonical="number"],
+                     out picture_url: Entity(tt:picture) #_[canonical="picture url"],
+                     out link: Entity(tt:url) #_[canonical="link"],
+                     out alt_text: String #_[canonical="alt text"])
+  #_[canonical="random xkcd comic"]
+  #_[confirmation="a random Xkcd comic"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${id}", pictureUrl="${picture_url}", displayText="${alt_text}"}]];
+}

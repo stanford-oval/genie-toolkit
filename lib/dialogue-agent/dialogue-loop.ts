@@ -34,16 +34,16 @@ import UserInput, { PlatformData } from './user-input';
 import { CancellationError } from './errors';
 
 import * as Helpers from './helpers';
-import { showNotification, showError } from './notifications';
-import { getFallbackExamples } from './fallback';
 import { computeNewState, prepareContextForPrediction } from './dialogue_state_utils';
 import DialoguePolicy from './dialogue_policy';
 import type Conversation from './conversation';
 import type Engine from '../engine';
-import { RDL } from './protocol';
 import TextFormatter from './card-output/text-formatter';
+import CardFormatter, { FormattedChunk } from './card-output/card-formatter';
 
 import ExecutionDialogueAgent from './execution_dialogue_agent';
+
+const ENABLE_SUGGESTIONS = false;
 
 // TODO: load the policy.yaml file instead
 const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
@@ -51,14 +51,11 @@ const TERMINAL_STATES = [
     'sys_end', 'sys_action_success'
 ];
 
-interface ResultLike {
-    toLocaleString(locale ?: string) : string;
-}
-
 export default class DialogueLoop {
     conversation : Conversation;
     engine : Engine;
-    formatter : TextFormatter;
+    private _textFormatter : TextFormatter;
+    private _cardFormatter : CardFormatter;
 
     private _userInputQueue : AsyncQueue<UserInput>;
     private _notifyQueue : AsyncQueue<QueueItem>;
@@ -87,7 +84,8 @@ export default class DialogueLoop {
         this.conversation = conversation;
         this.engine = engine;
         this._prefs = engine.platform.getSharedPreferences();
-        this.formatter = new TextFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas, engine._);
+        this._textFormatter = new TextFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas, engine._);
+        this._cardFormatter = new CardFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas, engine._);
         this.icon = null;
         this.expecting = null;
         this.platformData = {};
@@ -164,6 +162,24 @@ export default class DialogueLoop {
         }
     }
 
+    private async _getFallbackExamples(command : string) {
+        const dataset = await this.conversation.thingpedia.getExamplesByKey(command);
+        const examples = ENABLE_SUGGESTIONS ? await Helpers.loadExamples(dataset, this.conversation.schemas, 5) : [];
+
+        if (examples.length === 0) {
+            await this.reply(this._("Sorry, I did not understand that."));
+            return;
+        }
+
+        this.conversation.stats.hit('sabrina-fallback-buttons');
+
+        // don't sort the examples, they come already sorted from Thingpedia
+
+        await this.reply(this._("Sorry, I did not understand that. Try the following instead:"));
+        for (const ex of examples)
+            this.replyButton(Helpers.presentExample(this, ex.utterance), JSON.stringify(ex.target));
+    }
+
     private async _computePrediction(intent : UserInput) : Promise<ThingTalk.Ast.DialogueState|null> {
         // handle all intents generated internally and by the UI:
         //
@@ -173,7 +189,7 @@ export default class DialogueLoop {
         // - Debug when the user clicks/types "debug"
         // - WakeUp when the user says the wake word and nothing else
         if (intent instanceof UserInput.Failed) {
-            await getFallbackExamples(this, intent.utterance);
+            await this._getFallbackExamples(intent.utterance);
             return null;
         }
         if (intent instanceof UserInput.Unsupported) {
@@ -218,12 +234,12 @@ export default class DialogueLoop {
         return this._prefs.get('experimental-use-neural-nlg') as boolean;
     }
 
-    private async _doAgentReply() {
+    private async _doAgentReply() : Promise<[ValueCategory|null, number]> {
         const oldState = this._dialogueState;
 
-        let expect, utterance;
+        let expect, utterance, numResults;
         if (this._useNeuralNLG()) {
-            [this._dialogueState, expect] = await this._policy.chooseAction(this._dialogueState);
+            [this._dialogueState, expect, , numResults] = await this._policy.chooseAction(this._dialogueState);
 
             const policyPrediction = computeNewState(oldState, this._dialogueState, 'agent');
             this.debug(`Agent act:`);
@@ -234,7 +250,7 @@ export default class DialogueLoop {
 
             utterance = await this.conversation.generateAnswer(policyPrediction);
         } else {
-            [this._dialogueState, expect, utterance] = await this._policy.chooseAction(this._dialogueState);
+            [this._dialogueState, expect, utterance, numResults] = await this._policy.chooseAction(this._dialogueState);
         }
 
         this.icon = getProgramIcon(this._dialogueState!);
@@ -243,7 +259,7 @@ export default class DialogueLoop {
             throw new CancellationError();
 
         await this.setExpected(expect);
-        return expect;
+        return [expect, numResults];
     }
 
     private async _handleUserInput(intent : UserInput) {
@@ -260,11 +276,21 @@ export default class DialogueLoop {
             //this.debug(`Before execution:`);
             //this.debug(this._dialogueState.prettyprint());
 
-            [this._dialogueState, this._executorState] = await this._agent.execute(this._dialogueState, this._executorState);
+            const { newDialogueState, newExecutorState, newResults } = await this._agent.execute(this._dialogueState, this._executorState);
+            this._dialogueState = newDialogueState;
+            this._executorState = newExecutorState;
             this.debug(`Execution state:`);
             this.debug(this._dialogueState!.prettyprint());
 
-            const expect = await this._doAgentReply();
+            const [expect, numResults] = await this._doAgentReply();
+
+            for (const [outputType, outputValue] of newResults.slice(0, numResults)) {
+                const formatted = await this._cardFormatter.formatForType(outputType, outputValue, { removeText: true });
+
+                for (const card of formatted)
+                    await this.replyCard(card);
+            }
+
             if (expect === null)
                 return;
 
@@ -272,12 +298,55 @@ export default class DialogueLoop {
         }
     }
 
+    private async _showNotification(appId : string,
+                                    icon : string|null,
+                                    outputType : string,
+                                    outputValue : Record<string, unknown>) {
+        let app;
+        if (appId !== undefined)
+            app = this.conversation.apps.getApp(appId);
+        else
+            app = undefined;
+
+        const messages = await this._textFormatter.formatForType(outputType, outputValue, 'messages');
+        if (app !== undefined && app.isRunning && appId !== this._lastNotificationApp &&
+            (messages.length === 1 && typeof messages[0] === 'string')) {
+            await this.replyInterp(this._("Notification from ${app}: ${message}"), {
+                app: app.name,
+                message: messages[0]
+            }, icon);
+        } else {
+            if (app !== undefined && app.isRunning && appId !== this._lastNotificationApp)
+                await this.replyInterp(this._("Notification from ${app}"), { app: app.name }, icon);
+            for (const msg of messages)
+                await this.replyCard(msg, icon);
+        }
+    }
+
+    private async _showAsyncError(appId : string,
+                                  icon : string|null,
+                                  error : Error) {
+        let app;
+        if (appId !== undefined)
+            app = this.conversation.apps.getApp(appId);
+        else
+            app = undefined;
+
+        const errorMessage = Helpers.formatError(this, error);
+        console.log('Error from ' + appId, error);
+
+        if (app !== undefined && app.isRunning)
+            await this.replyInterp(this._("${app} had an error: ${error}."), { app: app.name, error: errorMessage }, icon);
+        else
+            await this.replyInterp(this._("Sorry, that did not work: ${error}."), { error: errorMessage }, icon);
+    }
+
     private async _handleAPICall(call : QueueItem) {
         if (call instanceof QueueItem.Notification) {
-            await showNotification(this, call.appId, call.icon, call.outputType, call.outputValue, this._lastNotificationApp);
+            await this._showNotification(call.appId, call.icon, call.outputType, call.outputValue);
             this._lastNotificationApp = call.appId;
         } else if (call instanceof QueueItem.Error) {
-            await showError(this, call.appId, call.icon, call.error, this._lastNotificationApp);
+            await this._showAsyncError(call.appId, call.icon, call.error);
             this._lastNotificationApp = call.appId;
         }
     }
@@ -464,9 +533,21 @@ export default class DialogueLoop {
         return true;
     }
 
-    async replyRDL(rdl : RDL, icon ?: string|null) {
-        await this.conversation.sendRDL(rdl, icon || this.icon);
-        return true;
+    async replyCard(message : FormattedChunk, icon ?: string|null) {
+        if (typeof message === 'string') {
+            await this.reply(message, icon);
+        } else if (message.type === 'picture') {
+            if (message.url === undefined)
+                return;
+            await this.conversation.sendPicture(message.url, icon || this.icon);
+        } else if (message.type === 'rdl') {
+            await this.conversation.sendRDL(message, icon || this.icon);
+        } else if (message.type === 'button') {
+            const loaded = await Helpers.loadSuggestedProgram(message.code, this.conversation.schemas);
+            await this.replyButton(message.title, JSON.stringify(loaded));
+        } else {
+            await this.conversation.sendResult(message, icon || this.icon);
+        }
     }
 
     async replyChoice(idx : number, title : string) {
@@ -479,23 +560,8 @@ export default class DialogueLoop {
         return true;
     }
 
-    async replySpecial(text : string, special : string) {
-        const json = { code: ['bookkeeping', 'special', 'special:' + special], entities: {} };
-        return this.replyButton(text, JSON.stringify(json));
-    }
-
-    async replyPicture(url : string, icon ?: string|null) {
-        await this.conversation.sendPicture(url, icon || this.icon);
-        return true;
-    }
-
     async replyLink(title : string, url : string) {
         await this.conversation.sendLink(title, url);
-        return true;
-    }
-
-    async replyResult(message : ResultLike, icon ?: string|null) {
-        await this.conversation.sendResult(message, icon || this.icon);
         return true;
     }
 

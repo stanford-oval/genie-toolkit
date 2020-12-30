@@ -224,7 +224,9 @@ function combineDisplayResult(proposal : Recommendation, newInfo : SlotBag) {
 
 function makeRecommendationReply(ctx : ContextInfo, proposal : Recommendation) {
     const { topResult, action, hasLearnMore } = proposal;
-    const options : AgentReplyOptions = {};
+    const options : AgentReplyOptions = {
+        numResults: 1
+    };
     if (action || hasLearnMore)
         options.end = false;
     if (action === null) {
@@ -240,7 +242,9 @@ function makeRecommendationReply(ctx : ContextInfo, proposal : Recommendation) {
 
 function makeDisplayResultReply(ctx : ContextInfo, proposal : Recommendation) {
     const { action, hasAnythingElse } = proposal;
-    const options : AgentReplyOptions = {};
+    const options : AgentReplyOptions = {
+        numResults: 1
+    };
     if (action || hasAnythingElse)
         options.end = false;
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_display_result', null), proposal, null, options);

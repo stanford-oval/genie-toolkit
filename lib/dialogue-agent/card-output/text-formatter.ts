@@ -412,7 +412,7 @@ export default class TextFormatter {
                         outputValue : PlainObject,
                         hint : string) : Promise<string|FormattedChunk[]> {
 
-        const cards = await this._cardFormatter.formatForType(outputType, outputValue, false);
+        const cards = await this._cardFormatter.formatForType(outputType, outputValue, { removeText: false });
         if (cards.length !== 0)
             return this._applyHint(cards, hint);
 

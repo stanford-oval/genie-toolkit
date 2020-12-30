@@ -416,7 +416,9 @@ class Annotator extends events.EventEmitter {
             this._extractSimulatorOverrides(currentTurn.agent!);
 
             // "execute" the context
-            [this._context, this._simulatorState] = await this._simulator.execute(this._context!, this._simulatorState);
+            const { newDialogueState, newExecutorState } = await this._simulator.execute(this._context!, this._simulatorState);
+            this._context = newDialogueState;
+            this._simulatorState = newExecutorState;
 
             // sort all results based on the presence of the name in the agent utterance
             for (const item of this._context!.history) {
@@ -471,7 +473,10 @@ class Annotator extends events.EventEmitter {
 
             let anyChange = true;
             while (anyChange) {
-                [this._context, this._simulatorState, anyChange] = await this._simulator.execute(this._context!, this._simulatorState);
+                const { newDialogueState, newExecutorState, anyChange: newAnyChange } = await this._simulator.execute(this._context!, this._simulatorState);
+                this._context = newDialogueState;
+                this._simulatorState = newExecutorState;
+                anyChange = newAnyChange;
                 if (anyChange)
                     this._outputTurn!.intermediate_context = this._context!.prettyprint();
             }

@@ -53,10 +53,8 @@ export function isNull(value : unknown) : boolean {
  *
  * Formatting objects are created from spec objects provided in the `#_[formatted]`
  * function annotation.
- *
- * @alias FormatObjects~FormattedObject
  */
-export abstract class FormattedObject {
+export abstract class BaseFormattedObject {
     /**
      * A string identifying the type of this formatted object.
      */
@@ -121,7 +119,7 @@ interface PictureSpec {
  * @alias FormatObjects~Picture
  * @extends FormatObjects~FormattedObject
  */
-class Picture extends FormattedObject implements PictureSpec {
+class Picture extends BaseFormattedObject implements PictureSpec {
     type : 'picture';
     url : string;
 
@@ -174,7 +172,7 @@ interface RDLSpec {
  * @alias FormatObjects~RDL
  * @extends FormatObjects~FormattedObject
  */
-class RDL extends FormattedObject implements RDLSpec {
+class RDL extends BaseFormattedObject implements RDLSpec {
     type : 'rdl';
     callback : string|undefined;
     webCallback : string;
@@ -260,7 +258,7 @@ interface MapFOSpec {
  * @alias FormatObjects~MapFO
  * @extends FormatObjects~FormattedObject
  */
-class MapFO extends FormattedObject implements MapFOSpec {
+class MapFO extends BaseFormattedObject implements MapFOSpec {
     type : 'map';
     lat : number;
     lon : number;
@@ -318,7 +316,7 @@ interface SoundEffectSpec {
  * @alias FormatObjects~SoundEffect
  * @extends FormatObjects~FormattedObject
 */
-class SoundEffect extends FormattedObject implements SoundEffectSpec {
+class SoundEffect extends BaseFormattedObject implements SoundEffectSpec {
     type : 'sound';
     name : string;
 
@@ -365,7 +363,7 @@ interface MediaSpec {
  * @alias FormatObjects~Media
  * @extends FormatObjects~FormattedObject
 */
-class Media extends FormattedObject implements MediaSpec {
+class Media extends BaseFormattedObject implements MediaSpec {
     type : 'media';
     url : string;
 
@@ -404,6 +402,53 @@ class Media extends FormattedObject implements MediaSpec {
     }
 }
 
+interface ButtonSpec {
+    type : 'button';
+    title : string;
+    code : string;
+}
+
+/**
+ * A button that maps to a specific ThingTalk program, suggested to the user.
+*/
+class Button extends BaseFormattedObject implements ButtonSpec {
+    type : 'button';
+    title : string;
+    code : string;
+
+    /**
+     * Construct a new button object.
+     *
+     * @param {Object} spec
+     * @param {string} spec.title - the title of the button to show to the user
+     * @param {string} spec.code - the associated ThingTalk code (which can be a control command or a program)
+     */
+    constructor(spec : ButtonSpec) {
+        super();
+
+        /**
+         * A string identifying the type of this formatted object. Always the value `media`.
+         *
+         * @readonly
+         * @type {string}
+         */
+        this.type = 'button';
+        this.title = spec.title;
+        this.code = spec.code;
+    }
+
+    isValid() : boolean {
+        return !isNull(this.title) && !isNull(this.code);
+    }
+
+    toLocaleString(locale : string) : string {
+        const [_, localestr] = localeCompat(locale);
+        return interpolate(_("Suggestion: ${title}"), {
+            title: this.title
+        }, { locale: localestr })||'';
+    }
+}
+
 export interface FormattedObjectClass {
     new (obj : FormattedObjectSpec) : FormattedObject;
 }
@@ -414,6 +459,7 @@ export const FORMAT_TYPES = {
     'map': MapFO,
     'sound': SoundEffect,
     'media': Media,
+    'button': Button,
 };
 
 export type FormattedObjectSpec =
@@ -421,4 +467,13 @@ export type FormattedObjectSpec =
     RDLSpec |
     MapFOSpec |
     SoundEffectSpec |
-    MediaSpec;
+    MediaSpec |
+    ButtonSpec;
+
+export type FormattedObject =
+    Picture |
+    RDL |
+    MapFO |
+    SoundEffect |
+    Media |
+    Button;

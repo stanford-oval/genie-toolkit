@@ -742,7 +742,9 @@ class Converter extends stream.Readable {
                     this._extractSimulatorOverrides(agentUtterance);
 
                     // "execute" the context
-                    [context, simulatorState] = await this._simulator.execute(context, simulatorState);
+                    const { newDialogueState, newExecutorState } = await this._simulator.execute(context, simulatorState);
+                    context = newDialogueState;
+                    simulatorState = newExecutorState;
 
                     for (const item of context.history) {
                         if (item.results === null)
