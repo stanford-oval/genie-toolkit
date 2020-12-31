@@ -89,6 +89,10 @@ recommendation_info_action_pair : [SlotBag, Ast.Invocation|null] = {
 user_question_answer_begin : D.Recommendation = {
     ctx:ctx_with_result_question proposal:constant_name
         => D.makeRecommendation(ctx, proposal);
+
+    // to support Xkcd (which uses a numeric "ID" property), we allow any type of constant
+    ?inference ctx:ctx_with_result_question proposal:constant_Any
+        => D.makeRecommendation(ctx, proposal);
 }
 
 direct_user_question_answer : D.Recommendation = {
@@ -158,6 +162,7 @@ system_recommendation : D.Recommendation = {
         => D.checkActionForRecommendation(proposal, action);
 
     // recommendations after a search
+    // with additional info
     ( proposal:question_system_recommendation_short '?' 'it is a' info:result_info_phrase '.'
     | proposal:action_recommendation '?' 'it is a' info:result_info_phrase '.'
     | proposal:actionable_system_recommendation_short '.' 'it is a' info:result_info_phrase '.'
@@ -165,6 +170,13 @@ system_recommendation : D.Recommendation = {
     | proposal:action_recommendation ', which is a' info:result_info_phrase '?'
     | proposal:actionable_system_recommendation_short ', which is a' info:result_info_phrase '.'
     ) => D.checkRecommendation(proposal, info);
+
+    // recommendations after a search
+    // no additional info
+    ( proposal:question_system_recommendation_short '?'
+    | proposal:action_recommendation '?'
+    | proposal:actionable_system_recommendation_short '.'
+    ) => proposal;
 
     // long-form answers to a single question
     proposal:user_question_answer_begin 'is a' info:result_info_phrase '.'

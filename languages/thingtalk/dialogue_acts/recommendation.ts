@@ -125,9 +125,6 @@ function makeThingpediaRecommendation(ctx : ContextInfo, info : SlotBag) {
         return null;
 
     const topResult = results[0];
-    if (!topResult.value.id)
-        return null;
-
     if (!isInfoPhraseCompatibleWithResult(topResult, info))
         return null;
 
