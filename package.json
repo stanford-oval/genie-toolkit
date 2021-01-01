@@ -30,7 +30,7 @@
     "node-gettext": "^3.0.0",
     "q": "^1.5.0",
     "qs": "^6.7.0",
-    "query-validation": "^0.1.0",
+    "query-validation": "^0.2.0",
     "seedrandom": "^3.0.0",
     "sockaddr": "^1.0.1",
     "sqlite3": "^5.0.0",
