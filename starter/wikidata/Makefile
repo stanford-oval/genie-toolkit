@@ -154,7 +154,7 @@ shared-parameter-datasets.tsv:
 	  wget --no-verbose https://almond-static.stanford.edu/test-data/wikidata-parameter-datasets/$*.tar.xz ; \
 	  tar -C . -xvf $*.tar.xz ; \
 	else \
-	  sed 's|shared-parameter-datasets/|../shared-parameter-datasets/|g' shared-parameter-datasets.tsv > $@ ; \
+	  sed -e "s|$(echo -e '\t')shared-parameter-datasets|$(echo -e '\t')../shared-parameter-datasets|g" shared-parameter-datasets.tsv > $@ ; \
 	  $(genie) wikidata-make-string-datasets --manifest $@.local -d $*/parameter-datasets --thingpedia $*/wikidata.tt; \
 	  cat $@.local >> $@; \
 	  rm $@.local; \
