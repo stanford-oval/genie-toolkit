@@ -48,6 +48,32 @@ function clean(name : string) : string {
     return name.replace(/_/g, ' ').trim().replace(/([^A-Z ])([A-Z])/g, '$1 $2').toLowerCase();
 }
 
+export function cleanKind(kind : string) : string {
+    // thingengine.phone -> phone
+    if (kind.startsWith('org.thingpedia.builtin.thingengine.'))
+        kind = kind.substr('org.thingpedia.builtin.thingengine.'.length);
+    // org.thingpedia.builtin.omlet -> omlet
+    if (kind.startsWith('org.thingpedia.builtin.'))
+        kind = kind.substr('org.thingpedia.builtin.'.length);
+    // org.thingpedia.iot.switch -> switch
+    if (kind.startsWith('org.thingpedia.iot.'))
+        kind = kind.substr('org.thingpedia.iot.'.length);
+    // org.thingpedia.weather -> weather
+    if (kind.startsWith('org.thingpedia.'))
+        kind = kind.substr('org.thingpedia.'.length);
+    // com.xkcd -> xkcd
+    if (kind.startsWith('com.'))
+        kind = kind.substr('com.'.length);
+    if (kind.startsWith('gov.'))
+        kind = kind.substr('gov.'.length);
+    if (kind.startsWith('org.'))
+        kind = kind.substr('org.'.length);
+    if (kind.startsWith('uk.co.'))
+        kind = kind.substr('uk.co.'.length);
+    kind = kind.replace(/[.-]/g, ' ');
+    return clean(kind);
+}
+
 const PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})/;
 
 function* split(pattern : string, regexp : RegExp|string) : Generator<string|string[], void> {

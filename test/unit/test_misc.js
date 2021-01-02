@@ -27,21 +27,21 @@ import assert from 'assert';
 import * as ThingTalk from 'thingtalk';
 import _mockThingpediaClient from './mock_schema_delegate';
 
-import * as Helpers from '../../lib/dialogue-agent/helpers';
+import { cleanKind } from '../../lib/utils/misc-utils';
 import { getProgramIcon } from '../../lib/utils/icons';
 
 function testCleanKind() {
-    assert.strictEqual(Helpers.cleanKind('uk.co.thedogapi'), 'Thedogapi');
-    assert.strictEqual(Helpers.cleanKind('org.thingpedia.weather'), 'Weather');
-    assert.strictEqual(Helpers.cleanKind('com.bing'), 'Bing');
-    assert.strictEqual(Helpers.cleanKind('gov.nasa'), 'Nasa');
-    assert.strictEqual(Helpers.cleanKind('org.thingpedia.builtin.test'), 'Test');
-    assert.strictEqual(Helpers.cleanKind('org.thingpedia.builtin.thingengine.phone'), 'Phone');
-    assert.strictEqual(Helpers.cleanKind('org.coinbin'), 'Coinbin');
+    assert.strictEqual(cleanKind('uk.co.thedogapi'), 'thedogapi');
+    assert.strictEqual(cleanKind('org.thingpedia.weather'), 'weather');
+    assert.strictEqual(cleanKind('com.bing'), 'bing');
+    assert.strictEqual(cleanKind('gov.nasa'), 'nasa');
+    assert.strictEqual(cleanKind('org.thingpedia.builtin.test'), 'test');
+    assert.strictEqual(cleanKind('org.thingpedia.builtin.thingengine.phone'), 'phone');
+    assert.strictEqual(cleanKind('org.coinbin'), 'coinbin');
 
-    assert.strictEqual(Helpers.cleanKind('com.made.up'), 'Made Up');
-    assert.strictEqual(Helpers.cleanKind('com.two-words'), 'Two Words');
-    assert.strictEqual(Helpers.cleanKind('org.under_score'), 'Under Score');
+    assert.strictEqual(cleanKind('com.made.up'), 'made up');
+    assert.strictEqual(cleanKind('com.two-words'), 'two words');
+    assert.strictEqual(cleanKind('org.under_score'), 'under score');
 }
 
 async function testGetIcon() {

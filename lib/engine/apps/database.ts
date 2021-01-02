@@ -24,6 +24,7 @@ import * as uuid from 'uuid';
 import * as ThingTalk from 'thingtalk';
 
 import { getProgramIcon } from '../../utils/icons';
+import { Describer, getProgramName } from '../../utils/thingtalk/describe';
 
 import AppSql from '../db/app';
 import AppExecutor from './app_executor';
@@ -113,8 +114,8 @@ export default class AppDatabase extends events.EventEmitter {
         const uniqueId = options.uniqueId || 'uuid-' + uuid.v4();
 
         const gettext = this._platform.getCapability('gettext')!;
-        const describer = new ThingTalk.Describe.Describer(gettext, this._platform.locale, this._platform.timezone);
-        const name = options.name || ThingTalk.Describe.getProgramName(gettext, program);
+        const describer = new Describer(gettext, this._platform.locale, this._platform.timezone);
+        const name = options.name || getProgramName(program);
         delete options.name;
         const description = options.description || describer.describeProgram(program);
         delete options.description;

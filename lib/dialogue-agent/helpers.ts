@@ -37,10 +37,6 @@ function normalizeSlot(t : string) : string {
     return '$' + (param1 || param2);
 }
 
-function capitalize(str : string) : string {
-    return (str[0].toUpperCase() + str.substr(1)).replace(/[.\-_]([a-z])/g, (whole, char) => ' ' + char.toUpperCase()).replace(/[.\-_]/g, '');
-}
-
 export function formatError(dlg : DialogueLoop, error : Error|string) {
     if (typeof error === 'string')
         return error;
@@ -134,26 +130,4 @@ export async function loadExamples(dataset : string,
 export function presentExampleList(dlg : DialogueLoop,
                                    examples : Array<{ utterance : string, target : string }>) {
 
-}
-
-export function cleanKind(kind : string) : string {
-    if (kind.startsWith('org.thingpedia.builtin.thingengine.'))
-        kind = kind.substr('org.thingpedia.builtin.thingengine.'.length);
-    // org.thingpedia.builtin.omlet -> omlet
-    if (kind.startsWith('org.thingpedia.builtin.'))
-        kind = kind.substr('org.thingpedia.builtin.'.length);
-    // org.thingpedia.weather -> weather
-    if (kind.startsWith('org.thingpedia.'))
-        kind = kind.substr('org.thingpedia.'.length);
-    // com.xkcd -> xkcd
-    if (kind.startsWith('com.'))
-        kind = kind.substr('com.'.length);
-    if (kind.startsWith('gov.'))
-        kind = kind.substr('gov.'.length);
-    if (kind.startsWith('org.'))
-        kind = kind.substr('org.'.length);
-    if (kind.startsWith('uk.co.'))
-        kind = kind.substr('uk.co.'.length);
-
-    return capitalize(kind);
 }

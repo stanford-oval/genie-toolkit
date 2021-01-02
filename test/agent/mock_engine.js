@@ -20,12 +20,12 @@
 
 
 import assert from 'assert';
-import * as ThingTalk from 'thingtalk';
-const Ast = ThingTalk.Ast;
+import { Ast, Compiler, SchemaRetriever } from 'thingtalk';
 import Gettext from 'node-gettext';
 import * as uuid from 'uuid';
 import AsyncQueue from 'consumer-queue';
 
+import { getProgramName } from '../../lib/utils/thingtalk/describe';
 import { MockPlatform } from '../unit/mock_utils';
 import {
     ResultGenerator,
@@ -76,7 +76,7 @@ class MockAppExecutor {
     }
 
     async compile() {
-        const compiler = new ThingTalk.Compiler(this._schemas);
+        const compiler = new Compiler(this._schemas);
         this._compiled = await compiler.compileCode(this.code);
     }
 
@@ -131,7 +131,7 @@ class MockAppDatabase {
         if (!options.uniqueId)
             options.uniqueId = uuid.v4();
         if (!options.name)
-            options.name = ThingTalk.Describe.getProgramName(this._gettext, program);
+            options.name = getProgramName(program);
         options.rng = this._rng;
         const app = new MockAppExecutor(this._simulator, this._schemas, program, options);
         this._apps[options.uniqueId] = app;
@@ -420,7 +420,7 @@ function toDeviceInfo(d) {
 
 export function createMockEngine(thingpedia, rng, database) {
     const platform = new TestPlatform();
-    const schemas = new ThingTalk.SchemaRetriever(thingpedia, null, true);
+    const schemas = new SchemaRetriever(thingpedia, null, true);
 
     let gettext = platform.getCapability('gettext');
     const engine = {
