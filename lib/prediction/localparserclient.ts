@@ -51,10 +51,10 @@ function compareScore(a : PredictionCandidate, b : PredictionCandidate) : number
     if (a.score === b.score)
         return 0;
     if (a.score === 'Infinity')
-        return 1;
-    if (b.score === 'Infinity')
         return -1;
-    return a.score - b.score;
+    if (b.score === 'Infinity')
+        return 1;
+    return b.score - a.score;
 }
 
 export default class LocalParserClient {
@@ -246,7 +246,8 @@ export default class LocalParserClient {
                     return {
                         code: ThingTalkUtils.serializePrediction(parsed, tokens, entities, {
                             locale: this._locale,
-                            compatibility: options.thingtalk_version
+                            compatibility: options.thingtalk_version,
+                            ignoreSentence: true
                         }),
                         score: c.score
                     };
