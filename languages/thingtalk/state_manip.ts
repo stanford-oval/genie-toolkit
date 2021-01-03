@@ -56,9 +56,7 @@ function arraySubset<T>(small : T[], big : T[]) : boolean {
 // in the templates
 // templates can be combined though
 
-const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
-
-const INITIAL_CONTEXT_INFO = {};
+export const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
 
 const LARGE_RESULT_THRESHOLD = 50;
 function isLargeResultSet(result : Ast.DialogueHistoryResultList) : boolean {
@@ -210,6 +208,8 @@ export class NextStatementInfo {
 }
 
 export class ContextInfo {
+    contextTable : SentenceGeneratorTypes.ContextTable;
+
     state : Ast.DialogueState;
     currentFunctionSchema : Ast.FunctionDef|null;
     currentFunction : string|null;
@@ -224,7 +224,8 @@ export class ContextInfo {
     nextInfo : NextStatementInfo|null;
     aux : any;
 
-    constructor(state : Ast.DialogueState,
+    constructor(contextTable : SentenceGeneratorTypes.ContextTable,
+                state : Ast.DialogueState,
                 currentTableSchema : Ast.FunctionDef|null,
                 currentFunctionSchema : Ast.FunctionDef|null,
                 resultInfo : ResultInfo|null,
@@ -234,6 +235,7 @@ export class ContextInfo {
                 nextFunctionSchema : Ast.FunctionDef|null,
                 nextInfo : NextStatementInfo|null,
                 aux : any = null) {
+        this.contextTable = contextTable;
         this.state = state;
 
         assert(currentFunctionSchema === null || currentFunctionSchema instanceof Ast.FunctionDef);
@@ -294,17 +296,26 @@ export class ContextInfo {
     }
 
     clone() {
-        return new ContextInfo(this.state.clone(),
+        return new ContextInfo(
+            this.contextTable,
+            this.state.clone(),
             this.currentTableSchema,
             this.currentFunctionSchema,
             this.resultInfo,
             this.previousDomainIdx, this.currentIdx,
             this.nextIdx, this.nextFunctionSchema, this.nextInfo,
-            this.aux);
+            this.aux
+        );
     }
 }
 
-function getContextInfo(state : Ast.DialogueState) : ContextInfo {
+export function initialContextInfo(contextTable : SentenceGeneratorTypes.ContextTable) {
+    return new ContextInfo(contextTable,
+        new Ast.DialogueState(null, POLICY_NAME, 'sys_init', [], []),
+        null, null, null, null, null, null, null, null);
+}
+
+export function getContextInfo(state : Ast.DialogueState, contextTable : SentenceGeneratorTypes.ContextTable) : ContextInfo {
     let nextItemIdx = null, nextInfo = null, currentFunction = null, currentTableFunction = null,
         nextFunction = null, currentDevice = null, currentResultInfo = null,
         previousDomainItemIdx = null, currentItemIdx = null;
@@ -352,11 +363,11 @@ function getContextInfo(state : Ast.DialogueState) : ContextInfo {
     if (previousDomainItemIdx !== null)
         assert(currentItemIdx !== null && previousDomainItemIdx <= currentItemIdx);
 
-    return new ContextInfo(state, currentTableFunction, currentFunction, currentResultInfo,
+    return new ContextInfo(contextTable, state, currentTableFunction, currentFunction, currentResultInfo,
         previousDomainItemIdx, currentItemIdx, nextItemIdx, nextFunction, nextInfo);
 }
 
-function isUserAskingResultQuestion(ctx : ContextInfo) : boolean {
+export function isUserAskingResultQuestion(ctx : ContextInfo) : boolean {
     // is the user asking a question about the result (or a specific element), or refining a search?
     // we say it's a question if the user is asking a projection question, and it's not the first turn,
     // and the projection was different at the previous turn
@@ -439,9 +450,6 @@ function makeSimpleState(ctx : ContextInfo,
     // proposed ones
 
     const newState = new Ast.DialogueState(null, POLICY_NAME, dialogueAct, dialogueActParam, []);
-    if (ctx === INITIAL_CONTEXT_INFO)
-        return newState;
-
     for (let i = 0; i < ctx.state.history.length; i++) {
         if (ctx.state.history[i].confirm === 'proposed')
             break;
@@ -661,6 +669,10 @@ function addQueryAndAction(ctx : ContextInfo,
     return addNewItem(ctx, dialogueAct, null, confirm, newTableHistoryItem, newActionHistoryItem);
 }
 
+export function makeContextPhrase(symbol : number, value : ContextInfo, utterance = '', priority = 0) : SentenceGeneratorTypes.ContextPhrase {
+    return { symbol, utterance, value, priority };
+}
+
 export interface AgentReplyOptions {
     end ?: boolean;
     raw ?: boolean;
@@ -681,24 +693,26 @@ function makeAgentReply(ctx : ContextInfo,
                         aux : unknown = null,
                         expectedType : ThingTalk.Type|null = null,
                         options : AgentReplyOptions = {}) : AgentReplyRecord {
+    const contextTable = ctx.contextTable;
+
     assert(state instanceof Ast.DialogueState);
     assert(state.dialogueAct.startsWith('sys_'));
     assert(expectedType === null || expectedType instanceof ThingTalk.Type);
 
-    const newContext = getContextInfo(state);
+    const newContext = getContextInfo(state, contextTable);
     // set the auxiliary information, which is used by the semantic functions of the user
     // to see if the continuation is compatible with the specific reply from the agent
     newContext.aux = aux;
 
     let mainTag;
     if (state.dialogueAct === 'sys_generic_search_question')
-        mainTag = 'ctx_sys_search_question';
+        mainTag = contextTable.ctx_sys_search_question;
     else if (state.dialogueAct.endsWith('_question') && state.dialogueAct !== 'sys_search_question')
-        mainTag = 'ctx_' + state.dialogueAct.substring(0, state.dialogueAct.length - '_question'.length);
+        mainTag = contextTable['ctx_' + state.dialogueAct.substring(0, state.dialogueAct.length - '_question'.length)];
     else if (state.dialogueAct.startsWith('sys_recommend_') && state.dialogueAct !== 'sys_recommend_one')
-        mainTag = 'ctx_sys_recommend_many';
+        mainTag = contextTable.ctx_sys_recommend_many;
     else
-        mainTag = 'ctx_' + state.dialogueAct;
+        mainTag = contextTable['ctx_' + state.dialogueAct];
 
     // if true, the interaction is done and the agent should stop listening
     // these dialogue acts are considered to "end" the conversation:
@@ -716,7 +730,11 @@ function makeAgentReply(ctx : ContextInfo,
     return {
         state,
         context: newContext,
-        tags: ['ctx_sys_any', mainTag, ...getContextTags(newContext)],
+        contextPhrases: [
+            makeContextPhrase(ctx.contextTable.ctx_sys_any, newContext),
+            makeContextPhrase(mainTag, newContext),
+            ...getContextPhrases(newContext)
+        ],
         expect: expectedType,
 
         end: end,
@@ -742,30 +760,32 @@ function actionShouldHaveResult(ctx : ContextInfo) : boolean {
     return Object.keys(schema.out).length > 0;
 }
 
-function tagContextForAgent(ctx : ContextInfo) : string[] {
+export function tagContextForAgent(ctx : ContextInfo) : number[] {
+    const contextTable = ctx.contextTable;
+
     switch (ctx.state.dialogueAct){
     case 'end':
         // no continuations are possible after explicit "end" (which means the user said
         // "no thanks" after the agent asked "is there anything else I can do for you")
         // but we still tag the context to generate something in inference mode
-        return ['ctx_end'];
+        return [contextTable.ctx_end];
 
     case 'greet':
         assert(ctx.state.history.length === 0, `expected empty history for greet`);
-        return ['ctx_greet'];
+        return [contextTable.ctx_greet];
 
     case 'reinit':
-        return ['ctx_reinit'];
+        return [contextTable.ctx_reinit];
 
     case 'cancel':
-        return ['ctx_cancel'];
+        return [contextTable.ctx_cancel];
 
     case 'action_question':
-        return ['ctx_completed_action_success'];
+        return [contextTable.ctx_completed_action_success];
 
     case 'learn_more':
         assert(ctx.results);
-        return ['ctx_learn_more'];
+        return [contextTable.ctx_learn_more];
 
     case 'execute':
     case 'ask_recommend':
@@ -775,9 +795,9 @@ function tagContextForAgent(ctx : ContextInfo) : string[] {
                 // we don't need to fill any parameter from the current query
 
                 if (ctx.nextInfo.isComplete)
-                    return ['ctx_confirm_action'];
+                    return [contextTable.ctx_confirm_action];
                 else
-                    return ['ctx_incomplete_action_after_search'];
+                    return [contextTable.ctx_incomplete_action_after_search];
             }
         }
 
@@ -785,52 +805,52 @@ function tagContextForAgent(ctx : ContextInfo) : string[] {
         assert(ctx.resultInfo, `expected result info`);
         if (!ctx.resultInfo.isTable) {
             if (ctx.resultInfo.hasError)
-                return ['ctx_completed_action_error'];
+                return [contextTable.ctx_completed_action_error];
             else if (ctx.resultInfo.hasEmptyResult && actionShouldHaveResult(ctx))
-                return ['ctx_empty_search_command'];
+                return [contextTable.ctx_empty_search_command];
             else
-                return ['ctx_completed_action_success'];
+                return [contextTable.ctx_completed_action_success];
         }
 
         if (ctx.resultInfo.hasEmptyResult) {
             // note: aggregation cannot be empty (it would be zero)
-            return ['ctx_empty_search_command'];
+            return [contextTable.ctx_empty_search_command];
         }
 
         if (!ctx.resultInfo.isList) {
-            return ['ctx_display_nonlist_result'];
+            return [contextTable.ctx_display_nonlist_result];
         } else if (ctx.resultInfo.isQuestion) {
             if (ctx.resultInfo.isAggregation) {
                 // "how many restaurants nearby have more than 500 reviews?"
-                return ['ctx_aggregation_question'];
+                return [contextTable.ctx_aggregation_question];
             } else if (ctx.resultInfo.argMinMaxField !== null) {
                 // these are treated as single result questions, but
                 // the context is tagged as ctx_with_result_argminmax instead of
                 // ctx_with_result_noquestion
                 // so the answer is worded differently
-                return ['ctx_single_result_search_command', 'ctx_complete_search_command'];
+                return [contextTable.ctx_single_result_search_command, contextTable.ctx_complete_search_command];
             } else if (ctx.resultInfo.hasSingleResult) {
                 // "what is the rating of Terun?"
                 // FIXME if we want to answer differently, we need to change this one
-                return ['ctx_single_result_search_command', 'ctx_complete_search_command'];
+                return [contextTable.ctx_single_result_search_command, contextTable.ctx_complete_search_command];
             } else if (ctx.resultInfo.hasLargeResult) {
                 // "what's the food and price range of restaurants nearby?"
                 // we treat these the same as "find restaurants nearby", but we make sure
                 // that the necessary fields are computed
-                return ['ctx_search_command', 'ctx_complete_search_command'];
+                return [contextTable.ctx_search_command, contextTable.ctx_complete_search_command];
             } else {
                 // "what's the food and price range of restaurants nearby?"
                 // we treat these the same as "find restaurants nearby", but we make sure
                 // that the necessary fields are computed
-                return ['ctx_complete_search_command'];
+                return [contextTable.ctx_complete_search_command];
             }
         } else {
             if (ctx.resultInfo.hasSingleResult) // we can recommend
-                return ['ctx_single_result_search_command', 'ctx_complete_search_command'];
+                return [contextTable.ctx_single_result_search_command, contextTable.ctx_complete_search_command];
             else if (ctx.resultInfo.hasLargeResult && ctx.state.dialogueAct !== 'ask_recommend') // we can refine
-                return ['ctx_search_command', 'ctx_complete_search_command'];
+                return [contextTable.ctx_search_command, contextTable.ctx_complete_search_command];
             else
-                return ['ctx_complete_search_command'];
+                return [contextTable.ctx_complete_search_command];
         }
 
     default:
@@ -850,59 +870,53 @@ function ctxCanHaveRelatedQuestion(ctx : ContextInfo) : boolean {
     return !!(related && related.length);
 }
 
-function getContextTags(ctx : ContextInfo) : string[] {
-    const tags : string[] = [];
+export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.ContextPhrase[] {
+    const contextTable = ctx.contextTable;
+
+    const phrases : SentenceGeneratorTypes.ContextPhrase[] = [];
     if (ctx.isMultiDomain)
-        tags.push('ctx_multidomain');
+        phrases.push(makeContextPhrase(contextTable.ctx_multidomain, ctx));
 
     if (ctx.nextInfo !== null) {
-        tags.push('ctx_with_action');
+        phrases.push(makeContextPhrase(contextTable.ctx_with_action, ctx));
 
         if (!ctx.nextInfo.isComplete)
-            tags.push('ctx_incomplete_action');
+            phrases.push(makeContextPhrase(contextTable.ctx_incomplete_action, ctx));
     } else {
         if (ctx.resultInfo && ctx.resultInfo.isTable)
-            tags.push('ctx_without_action');
+            phrases.push(makeContextPhrase(contextTable.ctx_without_action, ctx));
     }
     if (!ctx.resultInfo || ctx.resultInfo.hasEmptyResult)
-        return tags;
+        return phrases;
 
     assert(ctx.results && ctx.results.length > 0);
-    tags.push('ctx_with_result');
+    phrases.push(makeContextPhrase(contextTable.ctx_with_result, ctx));
     if (ctx.resultInfo.isTable)
-        tags.push('ctx_with_table_result');
+        phrases.push(makeContextPhrase(contextTable.ctx_with_table_result, ctx));
     if (ctx.resultInfo.isAggregation)
-        tags.push('ctx_with_aggregation_result');
+        phrases.push(makeContextPhrase(contextTable.ctx_with_aggregation_result, ctx));
 
     if (ctxCanHaveRelatedQuestion(ctx))
-        tags.push('ctx_for_related_question');
+        phrases.push(makeContextPhrase(contextTable.ctx_for_related_question, ctx));
     if (isUserAskingResultQuestion(ctx)) {
-        tags.push('ctx_with_result_question');
+        phrases.push(makeContextPhrase(contextTable.ctx_with_result_question, ctx));
     } else {
         if (ctx.resultInfo.argMinMaxField)
-            tags.push('ctx_with_result_argminmax');
+            phrases.push(makeContextPhrase(contextTable.ctx_with_result_argminmax, ctx));
         else
-            tags.push('ctx_with_result_noquestion');
+            phrases.push(makeContextPhrase(contextTable.ctx_with_result_noquestion, ctx));
         if (ctx.nextInfo)
-            tags.push('ctx_with_result_and_action');
+            phrases.push(makeContextPhrase(contextTable.ctx_with_result_and_action, ctx));
 
         if (ctx.resultInfo.projection === null)
-            tags.push('ctx_without_projection');
+            phrases.push(makeContextPhrase(contextTable.ctx_without_projection, ctx));
     }
-    return tags;
+    return phrases;
 }
 
 export {
-    POLICY_NAME,
-    INITIAL_CONTEXT_INFO,
     makeAgentReply,
     setEndBit,
-
-    // compute derived information of the state
-    getContextInfo,
-    getContextTags,
-    tagContextForAgent,
-    isUserAskingResultQuestion,
 
     // manipulate states to create new states
     sortByName,

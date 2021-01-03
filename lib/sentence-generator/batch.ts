@@ -32,7 +32,10 @@ import * as ThingTalkUtils from '../utils/thingtalk';
 import SentenceGenerator, {
     SentenceGeneratorOptions,
 } from './generator';
-import { AgentReplyRecord } from './types';
+import {
+    ContextPhrase,
+    AgentReplyRecord
+} from './types';
 import { Derivation } from './runtime';
 
 interface BasicGeneratorOptions {
@@ -168,7 +171,7 @@ class PartialDialogue {
 interface AgentTurn {
     dlg : PartialDialogue;
     context : unknown;
-    tags : string[];
+    contextPhrases : ContextPhrase[];
     utterance : string|null;
     state : any|null;
     target : string|null;
@@ -280,7 +283,7 @@ class MinibatchDialogueGenerator {
             this._stateValidator.validateAgent(state);
             const utterance = this._postprocessSentence(derivation, state, 'agent');
 
-            const dlg = derivation.context!.priv;
+            const dlg = derivation.context!.value;
             assert(dlg instanceof PartialDialogue);
             const prediction = ThingTalkUtils.computePrediction(dlg.context, state, 'agent');
             const target = prediction.prettyprint();
@@ -288,7 +291,7 @@ class MinibatchDialogueGenerator {
             agentTurns.push({
                 dlg,
                 context: derivation.value.context,
-                tags: derivation.value.tags,
+                contextPhrases: derivation.value.contextPhrases,
                 utterance,
                 state,
                 target
@@ -308,7 +311,7 @@ class MinibatchDialogueGenerator {
             this._stateValidator.validateUser(state);
             const utterance = this._postprocessSentence(derivation, state, 'user');
 
-            const agentTurn = derivation.context!.priv as AgentTurn;
+            const agentTurn = derivation.context!.value as AgentTurn;
             const dlg = agentTurn.dlg;
             assert(dlg instanceof PartialDialogue);
             assert(dlg === this._emptyDialogue || agentTurn.state);
@@ -366,7 +369,7 @@ class MinibatchDialogueGenerator {
             agentTurns = [{
                 dlg: this._emptyDialogue,
                 context: null,
-                tags: [],
+                contextPhrases: [],
                 utterance: '',
                 state: null,
                 target: null,
@@ -457,7 +460,7 @@ class DialogueGenerator extends stream.Readable {
 
         this._langPack = I18n.get(options.locale);
 
-        const agentOptions : SentenceGeneratorOptions<PartialDialogue> = {
+        const agentOptions : SentenceGeneratorOptions<PartialDialogue, AgentReplyRecord<ThingTalkUtils.DialogueState>> = {
             locale: options.locale,
             templateFiles: options.templateFiles,
             rootSymbol: '$agent',
@@ -472,16 +475,15 @@ class DialogueGenerator extends stream.Readable {
             onlyDevices: options.onlyDevices,
             whiteList: options.whiteList,
 
-            contextInitializer: (partialDialogue : PartialDialogue, functionTable) => {
-                const tagger = functionTable.get('context')!;
-                return tagger(partialDialogue.context);
+            contextInitializer: (partialDialogue : PartialDialogue, functionTable, contextTable) => {
+                return functionTable.context!(partialDialogue.context, contextTable);
             }
         };
         Object.assign(agentOptions.flags, options.flags);
         agentOptions.flags.for_agent = true;
         this._agentGenerator = new SentenceGenerator<PartialDialogue, AgentReplyRecord<ThingTalkUtils.DialogueState>>(agentOptions);
 
-        const userOptions : SentenceGeneratorOptions<AgentTurn> = {
+        const userOptions : SentenceGeneratorOptions<AgentTurn, ThingTalkUtils.DialogueState> = {
             locale: options.locale,
             templateFiles: options.templateFiles,
             rootSymbol: '$user',
@@ -496,13 +498,12 @@ class DialogueGenerator extends stream.Readable {
             onlyDevices: options.onlyDevices,
             whiteList: options.whiteList,
 
-            contextInitializer: (agentTurn : AgentTurn, functionTable) => {
+            contextInitializer: (agentTurn : AgentTurn, functionTable, contextTable) => {
                 if (agentTurn.context === null) {
                     // first turn
-                    const tagger = functionTable.get('context')!;
-                    return tagger(null);
+                    return functionTable.context!(null, contextTable);
                 } else {
-                    return [agentTurn.tags, agentTurn.context];
+                    return agentTurn.contextPhrases;
                 }
             }
         };

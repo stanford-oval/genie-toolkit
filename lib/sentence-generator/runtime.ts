@@ -69,18 +69,15 @@ class Placeholder {
  * The "context" in this definition roughly corresponds to a dialogue context
  * (either a C: state, or a more general notion) but it need not be.
  *
- * "priv" is a value associated with the context that is only meaningful to the API caller
- * (DialogueGenerator). "info" is a value associated with the context that is meaningful
- * to the semantic function.
- * See {@link Grammar#_initializeContexts} for a longer explanation.
+ * "value" is a value associated with the context that is only meaningful to the API caller
+ * (DialogueGenerator).
  */
 class Context {
-    constructor(public priv : unknown,
-                public info : unknown) {
+    constructor(public value : unknown) {
     }
 
     toString() : string {
-        return `CTX[${this.info}]`;
+        return `CTX[${this.value}]`;
     }
 
     static compatible(c1 : Context|null, c2 : Context|null) : boolean {
@@ -94,7 +91,7 @@ class Context {
     }
 }
 
-export type DerivationChild<T> = string | Context | Placeholder | Derivation<T>;
+export type DerivationChild<T> = string | Placeholder | Derivation<T>;
 
 export type SemanticAction<ArgType extends unknown[], ReturnType> = (...args : ArgType) => ReturnType|null;
 
@@ -278,17 +275,10 @@ class Derivation<ValueType> {
         let newPriority = rulePriority;
 
         for (const child of children) {
-            // does not go into the input sentence
-            if (child instanceof Context) {
-                newContext = child;
-                values.push(child.info);
-                continue;
-            }
-
             if (typeof child === 'string' || child instanceof Placeholder) { // terminal
                 values.push(undefined);
                 sentence = List.append(sentence, child);
-            } else if (child instanceof Derivation) {
+            } else {
                 assert(Context.compatible(newContext, child.context));
                 newContext = Context.meet(newContext, child.context);
                 newPriority += child.priority;

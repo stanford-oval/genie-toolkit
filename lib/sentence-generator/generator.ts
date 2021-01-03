@@ -46,6 +46,11 @@ import {
     CombinerAction,
     DerivationChild,
 } from './runtime';
+import {
+    ContextPhrase,
+    ContextTable,
+    ContextFunction,
+} from './types';
 import { importGenie } from './compiler';
 
 type RuleExpansionChunk = string | Choice | Placeholder | NonTerminal;
@@ -127,9 +132,13 @@ for (let i = 7; i < 20; i++)
 const EXPONENTIAL_PRUNE_SIZE = 500000000;
 const MAX_SAMPLE_SIZE = 1000000;
 
-type FunctionTable = Map<string, (...args : any[]) => any>;
+interface FunctionTable<StateType> {
+    answer ?: (state : StateType, value : unknown, contextTable : ContextTable) => StateType|null;
+    context ?: ContextFunction<StateType>;
 
-type ContextInitializer<ContextType> = (previousTurn : ContextType, functionTable : FunctionTable) => [string[], unknown]|null;
+    [key : string] : ((...args : any[]) => any)|undefined;
+}
+type ContextInitializer<ContextType, StateType> = (previousTurn : ContextType, functionTable : FunctionTable<StateType>, contextTable : ContextTable) => ContextPhrase[]|null;
 
 interface GenericSentenceGeneratorOptions {
     locale : string;
@@ -154,22 +163,22 @@ interface BasicSentenceGeneratorOptions {
     contextInitializer ?: undefined;
 }
 
-interface ContextualSentenceGeneratorOptions<ContextType> {
+interface ContextualSentenceGeneratorOptions<ContextType, StateType> {
     contextual : true;
     rootSymbol ?: string;
-    contextInitializer : ContextInitializer<ContextType>;
+    contextInitializer : ContextInitializer<ContextType, StateType>;
 }
 
-export type SentenceGeneratorOptions<ContextType> =
+export type SentenceGeneratorOptions<ContextType, RootOutputType> =
     GenericSentenceGeneratorOptions &
-    (BasicSentenceGeneratorOptions | ContextualSentenceGeneratorOptions<ContextType>);
+    (BasicSentenceGeneratorOptions | ContextualSentenceGeneratorOptions<ContextType, RootOutputType>);
 
 interface Constant {
     display : string;
     value : unknown;
 }
 
-type Charts = Array<Array<ReservoirSampler<any>>>;
+type Charts = Array<Array<ReservoirSampler<Derivation<any>>>>;
 
 const INFINITY = 1<<30; // integer infinity
 
@@ -177,23 +186,23 @@ const INFINITY = 1<<30; // integer infinity
  * Low-level class that generates sentences and associated logical forms,
  * given a grammar expressed as Genie template files.
  */
-export default class SentenceGenerator<ContextType, RootOutputType> extends events.EventEmitter {
+export default class SentenceGenerator<ContextType, StateType, RootOutputType = StateType> extends events.EventEmitter {
     private _templateFiles : string[];
     private _langPack : I18n.LanguagePack;
 
-    private _options : SentenceGeneratorOptions<ContextType>;
+    private _options : SentenceGeneratorOptions<ContextType, StateType>;
     private _contextual : boolean;
 
     private _nonTermTable : Map<string, number>;
     private _nonTermList : string[];
     private _rules : Array<Array<Rule<any[], any>>>;
-    private _contextTable : Map<string, number>;
-    private _functionTable : FunctionTable;
+    private _contextTable : Record<string, number>;
+    private _functionTable : FunctionTable<StateType>;
 
     private _rootSymbol : string;
     private _rootIndex : number;
 
-    private _contextInitializer : ContextInitializer<ContextType>|undefined;
+    private _contextInitializer : ContextInitializer<ContextType, StateType>|undefined;
 
     private _constantMap : MultiMap<string, number>;
 
@@ -206,7 +215,7 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
 
     private _progress : number;
 
-    constructor(options : SentenceGeneratorOptions<ContextType>) {
+    constructor(options : SentenceGeneratorOptions<ContextType, StateType>) {
         super();
 
         this._templateFiles = options.templateFiles;
@@ -219,8 +228,8 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
         this._nonTermList = [];
         this._rules = [];
 
-        this._contextTable = new Map;
-        this._functionTable = new Map;
+        this._contextTable = {};
+        this._functionTable = {};
 
         this._rootSymbol = options.rootSymbol || '$root';
         this._rootIndex = this._internalDeclareSymbol(this._rootSymbol);
@@ -257,7 +266,11 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
     }
 
     hasContext(symbol : string) : boolean {
-        return this._contextTable.has(symbol);
+        return Object.prototype.hasOwnProperty.call(this._contextTable, symbol);
+    }
+
+    get contextTable() : ContextTable {
+        return this._contextTable;
     }
 
     private _internalDeclareSymbol(symbol : string) : number {
@@ -272,9 +285,9 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
     declareFunction(name : string, fn : (...args : any[]) => any) : void {
         if (this._finalized)
             throw new GenieTypeError(`Grammar was finalized, cannot declare more functions`);
-        if (this._functionTable.has(name))
+        if (Object.prototype.hasOwnProperty.call(this._functionTable, name))
             throw new GenieTypeError(`Function ${name} already declared`);
-        this._functionTable.set(name, fn);
+        this._functionTable[name] = fn;
     }
 
     declareContext(context : string) : void {
@@ -289,7 +302,7 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
 
         // declare also as a non-terminal
         const index = this._internalDeclareSymbol(context);
-        this._contextTable.set(context, index);
+        this._contextTable[context] = index;
     }
 
     declareSymbol(symbol : string) : void {
@@ -352,7 +365,7 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
     }
 
     private _typecheck() {
-        if (this._contextual && !this._functionTable.has('context'))
+        if (this._contextual && !this._functionTable.context)
             throw new GenieTypeError(`Missing "context" function for contextual grammar`);
 
         for (let nonTermIndex = 0; nonTermIndex < this._nonTermList.length; nonTermIndex++) {
@@ -360,31 +373,14 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
             const rules = this._rules[nonTermIndex];
 
             for (const rule of rules) {
-                let first = true;
-                let hasContext = false;
-
                 for (const expansion of rule.expansion) {
                     if (expansion instanceof NonTerminal) {
-                        if (this.hasContext(expansion.symbol)) {
-                            if (!first)
-                                throw new GenieTypeError(`Context symbol ${expansion.symbol} must be first in expansion of ${nonTerm}`);
-                            hasContext = true;
-                            first = false;
-                            expansion.index = this._nonTermTable.get(expansion.symbol)!;
-                            continue;
-                        }
-
                         const index = this._nonTermTable.get(expansion.symbol);
                         if (index === undefined)
                             throw new Error(`Non-terminal ${expansion.symbol} undefined, referenced by ${nonTerm}`);
                         expansion.index = index;
                     }
-
-                    first = false;
                 }
-
-                if (hasContext && rule.expansion.length === 1)
-                    throw new GenieTypeError(`Rule with context must have an additional component in expansion of ${nonTerm}`);
             }
         }
     }
@@ -395,6 +391,9 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
         this._nonTermHasContext = [];
         for (let nonTermIndex = 0; nonTermIndex < this._nonTermList.length; nonTermIndex++)
             this._nonTermHasContext.push(false);
+
+        for (const index of Object.values(this._contextTable))
+            this._nonTermHasContext[index] = true;
 
         let anyChange = true;
         while (anyChange) {
@@ -420,18 +419,12 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
                         break;
                     }
 
-                    const first = rule.expansion[0];
-                    if (first instanceof NonTerminal && this.hasContext(first.symbol)) {
-                        rule.hasContext = true;
-                    } else {
-                        for (const expansion of rule.expansion) {
-                            if (expansion instanceof NonTerminal && this._nonTermHasContext[expansion.index]) {
-                                rule.hasContext = true;
-                                break;
-                            }
+                    for (const expansion of rule.expansion) {
+                        if (expansion instanceof NonTerminal && this._nonTermHasContext[expansion.index]) {
+                            rule.hasContext = true;
+                            break;
                         }
                     }
-
                     if (rule.hasContext) {
                         this._nonTermHasContext[nonTermIndex] = true;
                         anyChange = true;
@@ -459,7 +452,7 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
         assert(this._nonTermList.length === this._minDistanceFromRoot.length);
 
         const queue : Array<[number, number]> = [];
-        for (const index of this._contextTable.values())
+        for (const index of Object.values(this._contextTable))
             this._minDistanceFromRoot[index] = 0;
         this._minDistanceFromRoot[this._rootIndex] = 0;
         queue.push([this._rootIndex, 0]);
@@ -681,26 +674,21 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
                     if (rule.enabled)
                         continue;
 
-                    const first = rule.expansion[0];
-                    if (first instanceof NonTerminal && this.hasContext(first.symbol)) {
-                        // first terminal is a context
-
-                        if (charts[0][first.index].length > 0) {
-                            // we have at least one element: enable this rule
-                            if (this._options.debug >= LogLevel.EVERYTHING)
-                                console.log(`enabling rule NT[${this._nonTermList[index]}] -> ${rule.expansion.join(' ')}`);
-                            rule.enabled = true;
-                            anyChange = true;
-
-                            for (const expansion of rule.expansion) {
-                                if (expansion instanceof NonTerminal)
-                                    nonTermEnabled[expansion.index] = true;
+                    let good = true;
+                    for (const expansion of rule.expansion) {
+                        if (expansion instanceof NonTerminal && this.hasContext(expansion.symbol)) {
+                            // this terminal is a context
+                            // disable the rule if the context is empty
+                            if (charts[0][expansion.index].length === 0) {
+                                good = false;
+                                break;
                             }
-                        } else {
-                            // else do nothing, rule stays disabled
                         }
-                    } else {
-                        // enable this rule unconditionally
+                    }
+
+                    if (good) {
+                        // all contexts are non-empty, or we don't have a context at all
+                        // enable this rule
                         if (this._options.debug >= LogLevel.EVERYTHING)
                             console.log(`enabling rule NT[${this._nonTermList[index]}] -> ${rule.expansion.join(' ')}`);
                         rule.enabled = true;
@@ -715,10 +703,10 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
         }
     }
 
-    invokeFunction(name : string, ...args : any[]) : any {
+    invokeFunction<K extends keyof FunctionTable<StateType>>(name : K, ...args : Parameters<NonNullable<FunctionTable<StateType>[K]>>) : ReturnType<NonNullable<FunctionTable<StateType>[K]>> {
         //if (!this._functionTable.has(name))
         //    return null;
-        return this._functionTable.get(name)!(...args);
+        return this._functionTable[name]!(...args);
     }
 
     addConstantsFromContext(constants : { [key : string] : Constant[] }) : void {
@@ -793,7 +781,7 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
             assert(charts[depth].length === this._nonTermList.length);
 
             if (this._contextual && depth === 0) {
-                this._initializeContexts([context], charts, depth);
+                this._initializeContexts([context], charts);
                 this._disableUnreachableRules(charts);
                 this._disableRulesForConstants();
             }
@@ -894,30 +882,23 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
      *   including information that is not representable in a ThingTalk dialogue state.
      */
     private _initializeContexts(contextInputs : ContextType[],
-                                charts : Charts,
-                                depth : number) : void {
+                                charts : Charts) : void {
         for (const ctxIn of contextInputs) {
             try {
-                const result = this._contextInitializer!(ctxIn, this._functionTable);
+                const result = this._contextInitializer!(ctxIn, this._functionTable, this._contextTable);
                 if (result !== null) {
-                    const [tags, info] = result;
-                    const ctx = new Context(ctxIn, info);
-                    for (const tag of tags) {
-                        const index = this._contextTable.get(tag);
-                        assert(index !== undefined, `Invalid context tag ${tag}`);
-                        charts[depth][index].add(ctx);
+                    const ctx = new Context(ctxIn);
+                    for (const phrase of result) {
+                        const index = phrase.symbol;
+                        assert(index >= 0 && index <= this._nonTermTable.size, `Invalid context number ${index}`);
+                        const sentence = phrase.utterance ? List.singleton(phrase.utterance) : List.Nil;
+                        const derivation = new Derivation(phrase.value, sentence, ctx, phrase.priority || 0);
+                        charts[0][index].add(derivation);
                     }
                 }
             } catch(e) {
                 console.error(ctxIn);
                 throw e;
-            }
-        }
-
-        if (this._options.debug >= LogLevel.GENERATION) {
-            for (const index of this._contextTable.values()) {
-                if (charts[depth][index].length > 0)
-                    console.log(`stats: size(charts[${depth}][${this._nonTermList[index]}]) = ${charts[depth][index].length}`);
             }
         }
     }
@@ -994,7 +975,7 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
             assert(charts[depth].length === this._nonTermList.length);
 
             if (this._contextual && depth === 0)
-                this._initializeContexts(contextInputs, charts, depth);
+                this._initializeContexts(contextInputs, charts);
 
             // compute estimates of how many things we will produce at this depth
             const [initialEstimatedTotal, estimatedPerRule] = this._estimateDepthSize(charts, depth, firstGeneration);

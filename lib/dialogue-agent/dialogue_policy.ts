@@ -26,7 +26,7 @@ import { Ast, SchemaRetriever } from 'thingtalk';
 import ValueCategory from './value-category';
 import { CancellationError } from './errors';
 import * as I18n from '../i18n';
-import SentenceGenerator from '../sentence-generator/generator';
+import SentenceGenerator, { SentenceGeneratorOptions } from '../sentence-generator/generator';
 import { AgentReplyRecord } from '../sentence-generator/types';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import type DialogueLoop from './dialogue-loop';
@@ -65,10 +65,7 @@ function arrayEqual<T>(a : T[], b : T[]) : boolean {
     return true;
 }
 
-type FunctionTable = Map<string, (...args : any[]) => any>;
-type ContextInitializer = (previousTurn : Ast.DialogueState|null, functionTable : FunctionTable) => [string[], unknown]|null;
-
-interface GeneratorOptions {
+/*interface GeneratorOptions {
     locale : string;
     templateFiles : string[];
     flags : { [key : string] : boolean };
@@ -86,7 +83,7 @@ interface GeneratorOptions {
 
     contextual : true;
     contextInitializer : ContextInitializer;
-}
+}*/
 
 export default class DialoguePolicy {
     private _dlg : DialogueLoop;
@@ -96,9 +93,9 @@ export default class DialoguePolicy {
     private _langPack : I18n.LanguagePack;
     private _rng : () => number;
 
-    private _sentenceGenerator : SentenceGenerator<Ast.DialogueState|null, AgentReplyRecord<Ast.DialogueState>>|null;
+    private _sentenceGenerator : SentenceGenerator<Ast.DialogueState|null, Ast.DialogueState, AgentReplyRecord<Ast.DialogueState>>|null;
     private _generatorDevices : string[]|null;
-    private _generatorOptions : GeneratorOptions|undefined;
+    private _generatorOptions : SentenceGeneratorOptions<Ast.DialogueState|null, Ast.DialogueState>|undefined;
 
     constructor(dlg : DialogueLoop,
                 conversation : Conversation) {
@@ -140,17 +137,16 @@ export default class DialoguePolicy {
             targetPruningSize: TARGET_PRUNING_SIZES[0],
             debug: this._dlg.hasDebug ? 2 : 1,
 
-            contextInitializer(state, functionTable) {
+            contextInitializer(state, functionTable, contextTable) {
                 // ask the target language to extract the constants from the context
                 if (state !== null) {
                     const constants = ThingTalkUtils.extractConstants(state);
                     sentenceGenerator.addConstantsFromContext(constants);
                 }
-                const tagger = functionTable.get('context')!;
-                return tagger(state);
+                return functionTable.context!(state, contextTable);
             }
         };
-        const sentenceGenerator = new SentenceGenerator<Ast.DialogueState|null, AgentReplyRecord<Ast.DialogueState>>(this._generatorOptions!);
+        const sentenceGenerator = new SentenceGenerator<Ast.DialogueState|null, Ast.DialogueState, AgentReplyRecord<Ast.DialogueState>>(this._generatorOptions!);
         this._sentenceGenerator = sentenceGenerator;
         this._generatorDevices = forDevices;
         await this._sentenceGenerator.initialize();
@@ -182,7 +178,7 @@ export default class DialoguePolicy {
         if (state === null)
             return null;
         await this._ensureGeneratorForState(state);
-        return this._sentenceGenerator!.invokeFunction('answer', state, value);
+        return this._sentenceGenerator!.invokeFunction('answer', state, value, this._sentenceGenerator!.contextTable);
     }
 
     private _generateDerivation(state : Ast.DialogueState|null) {

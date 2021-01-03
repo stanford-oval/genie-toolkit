@@ -20,11 +20,22 @@
 
 import { Type } from 'thingtalk';
 
+export interface ContextPhrase {
+    symbol : number;
+    utterance : string;
+    value : unknown;
+    priority ?: number;
+}
+
+export type ContextTable = Record<string, number>;
+
+export type ContextFunction<StateType> = (state : StateType|null, contextSymbols : ContextTable) => ContextPhrase[]|null;
+
 export interface AgentReplyRecord<StateType> {
-    state : StateType,
-    context : any,
-    tags : string[],
-    expect : Type|null,
+    state : StateType;
+    context : any;
+    contextPhrases : ContextPhrase[];
+    expect : Type|null;
     end : boolean;
     raw : boolean;
     numResults : number;

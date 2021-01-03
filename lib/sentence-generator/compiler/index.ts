@@ -202,7 +202,7 @@ interface GrammarOptions {
 type CompiledTemplate = (runtime : typeof SentenceGeneratorRuntime,
                          options : GrammarOptions,
                          langPack : I18n.LanguagePack,
-                         grammar : SentenceGenerator<any, any>) => Promise<void>;
+                         grammar : SentenceGenerator<any, any, any>) => Promise<void>;
 
 export async function importGenie(filename : string,
                                   searchPath = '.') : Promise<CompiledTemplate> {
