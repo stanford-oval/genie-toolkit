@@ -22,6 +22,8 @@
 import assert from 'assert';
 import * as ThingTalk from 'thingtalk';
 import { Ast, } from 'thingtalk';
+import { SentenceGeneratorTypes } from 'genie-toolkit';
+export type AgentReplyRecord = SentenceGeneratorTypes.AgentReplyRecord<Ast.DialogueState>;
 
 import * as C from './ast_manip';
 import { isExecutable } from './utils';
@@ -663,16 +665,6 @@ export interface AgentReplyOptions {
     end ?: boolean;
     raw ?: boolean;
     numResults ?: number;
-}
-
-export interface AgentReplyRecord {
-    state : Ast.DialogueState,
-    context : ContextInfo,
-    tags : string[],
-    expect : ThingTalk.Type|null,
-    end : boolean;
-    raw : boolean;
-    numResults : number;
 }
 
 /**

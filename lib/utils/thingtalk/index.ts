@@ -29,6 +29,7 @@ import { Ast, SchemaRetriever } from 'thingtalk';
 import SimulationDialogueAgent, { SimulationDialogueAgentOptions } from '../../dialogue-agent/simulator/simulation_dialogue_agent';
 import { computeNewState, computePrediction, prepareContextForPrediction } from '../../dialogue-agent/dialogue_state_utils';
 import { extractConstants, createConstants } from './constants';
+export * from './describe';
 export * from './syntax';
 
 export type Input = Ast.Input;

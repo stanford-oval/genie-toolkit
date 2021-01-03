@@ -21,12 +21,13 @@
 
 import assert from 'assert';
 import * as Tp from 'thingpedia';
-import { Ast, Type, SchemaRetriever } from 'thingtalk';
+import { Ast, SchemaRetriever } from 'thingtalk';
 
 import ValueCategory from './value-category';
 import { CancellationError } from './errors';
 import * as I18n from '../i18n';
 import SentenceGenerator from '../sentence-generator/generator';
+import { AgentReplyRecord } from '../sentence-generator/types';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import type DialogueLoop from './dialogue-loop';
 import type Conversation from './conversation';
@@ -64,15 +65,6 @@ function arrayEqual<T>(a : T[], b : T[]) : boolean {
     return true;
 }
 
-export interface AgentReplyRecord {
-    state : Ast.DialogueState,
-    tags : string[],
-    expect : Type|null,
-    end : boolean;
-    raw : boolean;
-    numResults : number;
-}
-
 type FunctionTable = Map<string, (...args : any[]) => any>;
 type ContextInitializer = (previousTurn : Ast.DialogueState|null, functionTable : FunctionTable) => [string[], unknown]|null;
 
@@ -104,7 +96,7 @@ export default class DialoguePolicy {
     private _langPack : I18n.LanguagePack;
     private _rng : () => number;
 
-    private _sentenceGenerator : SentenceGenerator<Ast.DialogueState|null, AgentReplyRecord>|null;
+    private _sentenceGenerator : SentenceGenerator<Ast.DialogueState|null, AgentReplyRecord<Ast.DialogueState>>|null;
     private _generatorDevices : string[]|null;
     private _generatorOptions : GeneratorOptions|undefined;
 
@@ -158,7 +150,7 @@ export default class DialoguePolicy {
                 return tagger(state);
             }
         };
-        const sentenceGenerator = new SentenceGenerator<Ast.DialogueState|null, AgentReplyRecord>(this._generatorOptions!);
+        const sentenceGenerator = new SentenceGenerator<Ast.DialogueState|null, AgentReplyRecord<Ast.DialogueState>>(this._generatorOptions!);
         this._sentenceGenerator = sentenceGenerator;
         this._generatorDevices = forDevices;
         await this._sentenceGenerator.initialize();

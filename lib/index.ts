@@ -47,6 +47,7 @@ import AssistantEngine from './engine';
 
 import SentenceGenerator from './sentence-generator/generator';
 import * as SentenceGeneratorRuntime from './sentence-generator/runtime';
+import * as SentenceGeneratorTypes from './sentence-generator/types';
 
 export {
     // sentence generation
@@ -54,6 +55,7 @@ export {
     DialogueGenerator,
     SentenceGenerator,
     SentenceGeneratorRuntime,
+    SentenceGeneratorTypes,
 
     // dataset manipulation
     DatasetParser,
