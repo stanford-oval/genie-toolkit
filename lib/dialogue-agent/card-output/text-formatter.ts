@@ -30,8 +30,8 @@ import {
 
 import CardFormatter from './card-formatter';
 
-function isPlainObject(value : unknown) : value is Record<string, unknown> {
-    return typeof value === 'object' && value !== null &&
+function isPlainObject(value : NonNullable<unknown>) : value is Record<string, unknown> {
+    return typeof value === 'object' &&
         (Object.getPrototypeOf(value) === null ||
          Object.getPrototypeOf(value) === Object.prototype);
 }
