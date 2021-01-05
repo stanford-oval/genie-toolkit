@@ -121,6 +121,26 @@ function isZipcode(word : string) : boolean {
     return true;
 }
 
+// words that fail the usual vowel rule
+//
+// (the correct way to handle this would be a pronounciation dictionary
+// but that's too heavy handed)
+const INDEFINITE_ARTICLE_EXCEPTIONS = new Set([
+    // starts with semi-wovel:
+    'user', 'university', 'unique',
+
+    // pronounced letter by letter
+    'xkcd'
+]);
+
+function indefiniteArticle(word : string) {
+    let startsWithVowel = /^[aeiou]/.test(word);
+    if (INDEFINITE_ARTICLE_EXCEPTIONS.has(word))
+        startsWithVowel = !startsWithVowel;
+
+    return startsWithVowel ? 'an' : 'a';
+}
+
 /**
  * Implementation of a language pack for English, primarily optimized for
  * American English.
@@ -136,6 +156,9 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
 
     postprocessSynthetic(sentence : string, program : any, rng : () => number, forTarget = 'user') : string {
         assert(rng);
+        // normalize spaces
+        sentence = sentence.replace(/\s+/g, ' ');
+
         if (program.isProgram && program.principal !== null)
             sentence = replaceMeMy(sentence);
 
@@ -178,7 +201,11 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
 
         sentence = sentence.replace(/\b([a-z]+) -ly\b/g, '$1ly');
 
-        sentence = sentence.replace(/\ba (?!one )(?=[aeiou])\b/g, 'an ');
+        sentence = sentence.replace(/\ba ([a-z]+)\b/g, (_, word) => {
+            if (word === 'one')
+                return 'one';
+            return indefiniteArticle(word) + ' ' + word;
+        });
 
         sentence = sentence.replace(/\bnew (their|my|the|a)\b/, '$1 new');
 
@@ -200,7 +227,7 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
         });
         sentence = sentence.replace(/\b(it(?: 's| is)) an? ([a-z]+)\b/, (_, pre, word) => {
             const inflected = new Inflectors(word).toSingular();
-            return pre + ' ' + inflected;
+            return pre + ' ' + indefiniteArticle(inflected) + ' ' + inflected;
         });
         sentence = sentence.replace(/\b(they(?: 're| are) [a-zA-Z' ]+?) (which|that) is\b/, '$1 $2 are');
         sentence = sentence.replace(/\b(they(?: 're| are) [a-zA-Z' ]+?) (which|that) has\b/, '$1 $2 have');
