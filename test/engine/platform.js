@@ -157,6 +157,10 @@ class Platform extends Tp.BasePlatform {
         this._gettext.setLocale(this._locale);
         this._timezone = 'America/Los_Angeles';
         this._prefs = new MemoryPreferences();
+
+        // set a fix device ID for cloud sync
+        this._prefs.set('cloud-sync-device-id', 'abcdef0123456789');
+
         this._cacheDir = getUserCacheDir() + '/almond-test';
         safeMkdirSync(this._cacheDir);
         try {

@@ -22,11 +22,11 @@
 import * as ThingTalk from 'thingtalk';
 
 export default async function testHTTPClient(engine) {
-    await ThingTalk.Syntax.parse('now => @com.xkcd.get_comic() => notify;').typecheck(engine.schemas, false);
+    await ThingTalk.Syntax.parse('now => @com.xkcd.comic() => notify;').typecheck(engine.schemas, false);
 
     // do it again, to check that it is cached
-    await ThingTalk.Syntax.parse('now => @com.xkcd.get_comic() => notify;').typecheck(engine.schemas, false);
+    await ThingTalk.Syntax.parse('now => @com.xkcd.comic() => notify;').typecheck(engine.schemas, false);
 
     // now with metas
-    await ThingTalk.Syntax.parse('now => @com.xkcd.get_comic() => notify;').typecheck(engine.schemas, true);
+    await ThingTalk.Syntax.parse('now => @com.xkcd.comic() => notify;').typecheck(engine.schemas, true);
 }
