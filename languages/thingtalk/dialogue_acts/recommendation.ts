@@ -315,7 +315,7 @@ function recommendationCancelReply(ctx : ContextInfo, valid : boolean) {
 function recommendationLearnMoreReply(ctx : ContextInfo, name : Ast.Value|null) {
     const proposal = ctx.aux as Recommendation;
     const { topResult, } = proposal;
-    if (name !== null && !topResult.value.id.equals(name))
+    if (name !== null && (!topResult.value.id || !topResult.value.id.equals(name)))
         return null;
     return makeSimpleState(ctx, 'learn_more', null);
 }
