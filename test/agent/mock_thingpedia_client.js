@@ -206,7 +206,11 @@ export default class MockThingpediaClient extends Tp.BaseClient {
     }
 
     getDeviceCode(kind) {
-        return util.promisify(fs.readFile)(path.resolve(path.dirname(module.filename), kind + '.tt'), { encoding: 'utf8' });
+        const parsed = ThingTalk.Syntax.parse(this._devices);
+        const found = parsed.classes.find((classDef) => classDef.kind === kind);
+        if (!found)
+            throw new Error('Not Found');
+        return found.prettyprint();
     }
 
     getDeviceList(klass, page, page_size) {

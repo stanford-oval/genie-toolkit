@@ -125,9 +125,6 @@ function makeThingpediaRecommendation(ctx : ContextInfo, info : SlotBag) {
         return null;
 
     const topResult = results[0];
-    if (!topResult.value.id)
-        return null;
-
     if (!isInfoPhraseCompatibleWithResult(topResult, info))
         return null;
 
@@ -224,7 +221,9 @@ function combineDisplayResult(proposal : Recommendation, newInfo : SlotBag) {
 
 function makeRecommendationReply(ctx : ContextInfo, proposal : Recommendation) {
     const { topResult, action, hasLearnMore } = proposal;
-    const options : AgentReplyOptions = {};
+    const options : AgentReplyOptions = {
+        numResults: 1
+    };
     if (action || hasLearnMore)
         options.end = false;
     if (action === null) {
@@ -240,7 +239,9 @@ function makeRecommendationReply(ctx : ContextInfo, proposal : Recommendation) {
 
 function makeDisplayResultReply(ctx : ContextInfo, proposal : Recommendation) {
     const { action, hasAnythingElse } = proposal;
-    const options : AgentReplyOptions = {};
+    const options : AgentReplyOptions = {
+        numResults: 1
+    };
     if (action || hasAnythingElse)
         options.end = false;
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_display_result', null), proposal, null, options);
@@ -314,7 +315,7 @@ function recommendationCancelReply(ctx : ContextInfo, valid : boolean) {
 function recommendationLearnMoreReply(ctx : ContextInfo, name : Ast.Value|null) {
     const proposal = ctx.aux as Recommendation;
     const { topResult, } = proposal;
-    if (name !== null && !topResult.value.id.equals(name))
+    if (name !== null && (!topResult.value.id || !topResult.value.id.equals(name)))
         return null;
     return makeSimpleState(ctx, 'learn_more', null);
 }

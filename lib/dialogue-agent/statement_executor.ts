@@ -33,6 +33,8 @@ interface ErrorWithCode {
     code ?: string;
 }
 
+type RawExecutionResult = Array<[string, Record<string, unknown>]>;
+
 /**
  * Run the dialogue, executing ThingTalk and invoking the policy at the
  * right time.
@@ -149,7 +151,9 @@ export default class InferenceStatementExecutor {
         return new Ast.Value.Object(result);
     }
 
-    private async _iterateResults(app : AppExecutor, into : Ast.DialogueHistoryResultItem[]) : Promise<[boolean, string|undefined, string|undefined]> {
+    private async _iterateResults(app : AppExecutor,
+                                  into : Ast.DialogueHistoryResultItem[],
+                                  intoRaw : RawExecutionResult) : Promise<[boolean, string|undefined, string|undefined]> {
         let count = 0;
         if (app === null)
             return [false, undefined, undefined];
@@ -169,6 +173,7 @@ export default class InferenceStatementExecutor {
             } else {
                 const mapped = await this._mapResult(value.outputType, value.outputValue);
                 into.push(new Ast.DialogueHistoryResultItem(null, mapped, value.outputValue));
+                intoRaw.push([value.outputType, value.outputValue]);
                 count ++;
             }
         }
@@ -177,16 +182,17 @@ export default class InferenceStatementExecutor {
         return [false, errorCode, errorMessage];
     }
 
-    async executeStatement(stmt : Ast.ExpressionStatement) : Promise<[Ast.DialogueHistoryResultList, undefined]> {
+    async executeStatement(stmt : Ast.ExpressionStatement) : Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, undefined]> {
         const program = new Ast.Program(null, [], [], [stmt]);
         const app = await this._engine.createApp(program);
         const results : Ast.DialogueHistoryResultItem[] = [];
-        const [more, errorCode, errorMessage] = await this._iterateResults(app, results);
+        const rawResults : RawExecutionResult = [];
+        const [more, errorCode, errorMessage] = await this._iterateResults(app, results, rawResults);
 
         const resultList = new Ast.DialogueHistoryResultList(null, results.slice(0, PAGE_SIZE),
             new Ast.Value.Number(results.length), more,
             (errorCode ? new Ast.Value.Enum(errorCode) :
              (errorMessage ? new Ast.Value.String(errorMessage) : null)));
-        return [resultList, undefined];
+        return [resultList, rawResults, undefined];
     }
 }

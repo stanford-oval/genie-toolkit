@@ -32,12 +32,21 @@ import AppRunner from './apps/runner';
 import type AppExecutor from './apps/app_executor';
 
 import AssistantDispatcher from '../dialogue-agent/dispatcher';
+import TextFormatter, { FormattedChunk } from '../dialogue-agent/card-output/text-formatter';
 
 import * as Config from '../config';
 
 import * as sqlite from './db/sqlite';
 
-const DEFAULT_GETTEXT = {
+interface MiniGettext {
+    locale : string;
+    dgettext(domain : string, msg : string) : string;
+    dngettext(domain : string, msg : string, msgp : string, n : number) : string;
+    dpgettext(domain : string, ctx : string, msg : string) : string;
+}
+
+const DEFAULT_GETTEXT : MiniGettext = {
+    locale : 'en-US',
     dgettext: (domain : string, msg : string) => msg,
     dngettext: (domain : string, msg : string, msgp : string, n : number) => (n === 1 ? msg : msgp),
     dpgettext: (domain : string, ctx : string, msg : string) => msg,
@@ -118,7 +127,7 @@ interface CreateAppOptions {
 interface AppResult {
     raw : Record<string, unknown>;
     type : string;
-    formatted : ThingTalk.Formatter.FormattedChunk[];
+    formatted : FormattedChunk[];
 }
 
 /**
@@ -131,7 +140,7 @@ interface AppResult {
  * @extends external:thingpedia.BaseEngine
  */
 export default class AssistantEngine extends Tp.BaseEngine {
-    gettext : (x : string) => string;
+    gettext : MiniGettext;
     _ : (x : string) => string;
     ngettext : (x : string, x1 : string, n : number) => string;
     pgettext : (ctx : string, x : string) => string;
@@ -159,7 +168,8 @@ export default class AssistantEngine extends Tp.BaseEngine {
 
         // init gettext
         const gettext = this.platform.getCapability('gettext') || DEFAULT_GETTEXT;
-        this.gettext = function(string) {
+        this.gettext = gettext;
+        this._ = function(string) {
             return gettext.dgettext('genie-toolkit', string);
         };
         this.ngettext = function(msg, msgplural, count) {
@@ -168,7 +178,6 @@ export default class AssistantEngine extends Tp.BaseEngine {
         this.pgettext = function(msgctx, msg) {
             return gettext.dpgettext('genie-toolkit', msgctx, msg);
         };
-        this._ = this.gettext;
 
         // tiers and devices are always enabled
         this._tiers = new TierManager(platform, options.cloudSyncUrl || Config.THINGENGINE_URL);
@@ -560,7 +569,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
         const results : AppResult[] = [];
         const errors : Error[] = [];
 
-        const formatter = new ThingTalk.Formatter(this._platform.locale, this._platform.timezone, this._schemas);
+        const formatter = new TextFormatter(this._platform.locale, this._platform.timezone, this._schemas, this._);
         for await (const value of app.mainOutput) {
             if (value instanceof Error) {
                 errors.push(value);

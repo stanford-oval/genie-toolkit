@@ -35,8 +35,10 @@ interface AbstractDialogueAgentOptions {
     debug : boolean;
 }
 
+type RawExecutionResult = Array<[string, Record<string, unknown>]>;
 interface AbstractStatementExecutor<PrivateStateType> {
-    executeStatement(stmt : Ast.ExpressionStatement, privateState : PrivateStateType|undefined) : Promise<[Ast.DialogueHistoryResultList, PrivateStateType]>;
+    executeStatement(stmt : Ast.ExpressionStatement, privateState : PrivateStateType|undefined) :
+        Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, PrivateStateType]>;
 }
 
 export interface DisambiguationHints {
@@ -49,6 +51,13 @@ export interface DeviceInfo {
     kind : string;
     uniqueId : string;
     name : string;
+}
+
+interface ExecutionResult<PrivateStateType> {
+    newDialogueState : Ast.DialogueState;
+    newExecutorState : PrivateStateType|undefined;
+    newResults : Array<[string, Record<string, unknown>]>;
+    anyChange : boolean;
 }
 
 /**
@@ -89,10 +98,11 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * @param {any} privateState - additional state carried by the dialogue agent (per dialogue)
      * @return {Ast.DialogueState} - the new state, with information about the returned query or action
      */
-    async execute(state : Ast.DialogueState, privateState : PrivateStateType|undefined) : Promise<[Ast.DialogueState, PrivateStateType|undefined, boolean]> {
+    async execute(state : Ast.DialogueState, privateState : PrivateStateType|undefined) : Promise<ExecutionResult<PrivateStateType>> {
         let anyChange = false;
         let clone = state;
 
+        const newResults : RawExecutionResult = [];
         const hints = this._collectDisambiguationHintsForState(state);
         for (let i = 0; i < clone.history.length; i++) {
             if (clone.history[i].results !== null)
@@ -114,10 +124,13 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
                 continue;
             assert(clone.history[i].isExecutable());
 
-            [clone.history[i].results, privateState] = await this.executor.executeStatement(clone.history[i].stmt, privateState);
+            const [newResultList, newRawResult, newPrivateState] = await this.executor.executeStatement(clone.history[i].stmt, privateState);
+            clone.history[i].results = newResultList;
+            newResults.push(...newRawResult);
+            privateState = newPrivateState;
         }
 
-        return [clone, privateState, anyChange];
+        return { newDialogueState: clone, newExecutorState: privateState, newResults, anyChange };
     }
 
     private _collectDisambiguationHintsForState(state : Ast.DialogueState) {

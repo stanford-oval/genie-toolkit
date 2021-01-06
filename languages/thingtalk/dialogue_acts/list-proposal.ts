@@ -94,7 +94,9 @@ function addActionToListProposal(nameList : NameList, action : Ast.Invocation) :
 
 function makeListProposalReply(ctx : ContextInfo, proposal : ListProposal) {
     const [results, /*info*/, action, hasLearnMore] = proposal;
-    const options : AgentReplyOptions = {};
+    const options : AgentReplyOptions = {
+        numResults: results.length
+    };
     if (action || hasLearnMore)
         options.end = false;
     const dialogueAct = results.length === 2 ? 'sys_recommend_two' : 'sys_recommend_three';

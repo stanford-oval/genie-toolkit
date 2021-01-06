@@ -662,6 +662,7 @@ function addQueryAndAction(ctx : ContextInfo,
 export interface AgentReplyOptions {
     end ?: boolean;
     raw ?: boolean;
+    numResults ?: number;
 }
 
 export interface AgentReplyRecord {
@@ -671,6 +672,7 @@ export interface AgentReplyRecord {
     expect : ThingTalk.Type|null,
     end : boolean;
     raw : boolean;
+    numResults : number;
 }
 
 /**
@@ -728,7 +730,11 @@ function makeAgentReply(ctx : ContextInfo,
         end: end,
         // if true, enter raw mode for this user's turn
         // (this is used for slot filling free-form strings)
-        raw: !!options.raw
+        raw: !!options.raw,
+
+        // the number of results we're describing at this turn
+        // (this affects the number of result cards to show)
+        numResults: options.numResults || 0,
     };
 }
 

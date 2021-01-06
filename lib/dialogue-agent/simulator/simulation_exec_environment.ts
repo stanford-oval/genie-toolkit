@@ -25,6 +25,7 @@ import * as ThingTalk from 'thingtalk';
 import { Ast, Type, ExecEnvironment, SchemaRetriever } from 'thingtalk';
 
 import { coin, uniform, randint } from '../../utils/random';
+import TextFormatter from '../card-output/text-formatter';
 
 import { SimulationDatabase } from './statement_simulator';
 
@@ -91,7 +92,7 @@ class ResultGenerator {
         }
     }
 
-    generate(schema : Ast.FunctionDef, params : Record<string, unknown>, index : number) {
+    generate(schema : Ast.ExpressionSignature, params : Record<string, unknown>, index : number) {
         const result : Record<string, unknown> = {};
         Object.assign(result, params);
         for (const arg of schema.iterateArguments()) {
@@ -320,7 +321,21 @@ function loadSimulationValue(schema : Ast.FunctionDef,
     return value;
 }
 
+function recursivelyComputeOutputType(kind : string, expr : Ast.Expression) : string {
+    if (expr instanceof Ast.InvocationExpression)
+        return kind + ':' + expr.invocation.channel;
+    if (expr instanceof Ast.ChainExpression)
+        return expr.expressions.map((exp) => recursivelyComputeOutputType(kind, exp)).join('+');
+    if (expr instanceof Ast.AggregationExpression)
+        return expr.operator + '(' + recursivelyComputeOutputType(kind, expr.expression) + ')';
+    if ('expression' in expr) // projection, index, slice
+        return recursivelyComputeOutputType(kind, (expr as ({ expression : Ast.Expression } & Ast.Expression)).expression);
+
+    throw new TypeError('Invalid query expression ' + expr);
+}
+
 class SimulationExecEnvironment extends ExecEnvironment {
+    format : TextFormatter;
     private _schemas : SchemaRetriever;
     private _database : SimulationDatabase|undefined;
     private _rng : () => number;
@@ -335,7 +350,8 @@ class SimulationExecEnvironment extends ExecEnvironment {
                 schemas : SchemaRetriever,
                 database : SimulationDatabase|undefined,
                 { rng, simulateErrors = true } : { rng : () => number, simulateErrors ?: boolean }) {
-        super(locale, 'America/Los_Angeles', schemas);
+        super();
+        this.format = new TextFormatter(locale, 'America/Los_Angeles', schemas, (x) => x);
         this._execCache = [];
 
         this._schemas = schemas;
@@ -566,6 +582,26 @@ class SimulationExecEnvironment extends ExecEnvironment {
             this._execCache.push([functionKey, params, list]);
         for (const el of list)
             yield el;
+    }
+
+    async *invokeDBQuery(kind : string,
+                         attrs : Record<string, string>,
+                         query : Ast.Program) : AsyncIterable<[string, Record<string, unknown>]> {
+        assert.strictEqual(query.statements.length, 1);
+        const command = query.statements[0];
+        assert(command instanceof Ast.ExpressionStatement);
+
+        const schema = command.expression.schema;
+        assert(schema);
+
+        const numResults = randint(50, 100, this._rng);
+        const outputType = recursivelyComputeOutputType(kind, command.expression);
+        for (let i = 0; i < numResults; i++)
+            yield [outputType, this.generator!.generate(schema, {}, i)];
+    }
+
+    async formatEvent(outputType : string, output : Record<string, unknown>, hint : string) : Promise<string> {
+        return String(await this.format.formatForType(outputType, output, hint));
     }
 }
 

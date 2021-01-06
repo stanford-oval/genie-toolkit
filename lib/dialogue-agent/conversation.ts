@@ -130,8 +130,8 @@ export default class Conversation extends events.EventEmitter {
 
         this._conversationId = conversationId;
         this._locale = this._engine.platform.locale;
-        this._gettext = this._engine.platform.getCapability('gettext')!;
-        this._ = this._engine.gettext;
+        this._gettext = this._engine.gettext as Gettext; // FIXME
+        this._ = this._engine._;
 
         const stats = this._engine.platform.getCapability('statistics');
         if (stats === null)
