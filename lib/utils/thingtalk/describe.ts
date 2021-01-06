@@ -44,19 +44,29 @@ const NEW_ANNOTATION_RENAME : { [key : string] : string } = {
 
 type ScopeMap = Record<string, string>;
 
+export enum Direction {
+    FROM_USER,
+    FROM_AGENT
+}
+
 export class Describer {
     private _ : (x : string) => string;
     locale : string;
     timezone : string|undefined;
 
+    private _direction : Direction;
     private _format : InstanceType<typeof interpolate.Formatter>; // FIXME
     private _interp : (x : string, args : Record<string, unknown>) => string;
 
-    constructor(gettext : Gettext, locale : string = gettext.locale, timezone ?: string) {
+    constructor(gettext : Gettext,
+                locale : string = gettext.locale,
+                timezone ?: string,
+                direction = Direction.FROM_AGENT) {
         this._ = gettext.dgettext.bind(gettext, 'genie-toolkit');
         this.locale = locale;
         this.timezone = timezone;
 
+        this._direction = direction;
         this._format = new interpolate.Formatter(locale, timezone);
         this._interp = (string, args) => interpolate(string, args, { locale, timezone })||'';
     }
@@ -189,7 +199,7 @@ export class Describer {
 
     // internal API that returns an array or number in some cases (so string-interp can do
     // better formatting than we can)
-    private _describeArg(arg : Ast.Value, scope : ScopeMap = {}) : unknown {
+    private _describeArg(arg : Ast.Value, scope : ScopeMap = {}, skipThePrefix = false) : unknown {
         if (arg instanceof Ast.ArrayValue)
             return arg.value.map((v) => this._describeArg(v, scope));
         // for Number, we return the actual value, so the sentence can do plural selection
@@ -202,6 +212,8 @@ export class Describer {
                 name = scope[arg.name];
             else
                 name = clean(arg.name);
+            if (skipThePrefix)
+                return name;
             return this._interp(this._("the ${name}"), { name });
         }
         if (arg instanceof Ast.ComputationValue) {
@@ -493,7 +505,7 @@ export class Describer {
                     return this.describeFilter(expr.filter, schema, scope, { location: this._("my location") });
                 }
 
-                const primdesc = this.describePrimitive(expr, scope, []);
+                const primdesc = this.describePrimitive(expr, scope);
 
                 if (expr.filter instanceof Ast.AtomBooleanExpression) {
                     // common case
@@ -544,28 +556,16 @@ export class Describer {
         return undefined;
     }
 
-    describePrimitive(obj : Ast.Invocation|Ast.ExternalBooleanExpression,
-                      scope ?: ScopeMap,
-                      extraInParams : Ast.InputParam[] = []) : string {
-        const kind = obj.selector.kind;
-        const channel = obj.channel;
+    describePrimitive(obj : Ast.Invocation|Ast.ExternalBooleanExpression|Ast.FunctionCallExpression,
+                      scope ?: ScopeMap) : string {
         const schema = obj.schema;
         assert(schema instanceof Ast.FunctionDef);
 
         const argMap = new Map;
+        let confirm = schema.confirmation!;
 
-        let confirm;
-        if (kind === 'remote' || kind.startsWith('__dyn')) {
-            // special case internal sending/receiving
-            if (channel === 'send')
-                confirm = this._("send it to $__principal");
-            else if (channel === 'receive')
-                confirm = this._("you receive something from $__principal");
-            else
-                throw TypeError('Invalid @remote channel ' + channel);
-        } else {
-            confirm = schema.confirmation!;
-
+        if (obj instanceof Ast.Invocation ||
+            obj instanceof Ast.ExternalBooleanExpression) {
             const cleanKind = schema.class ? schema.class.canonical : clean(obj.selector.kind);
 
             let selector;
@@ -583,13 +583,14 @@ export class Describer {
 
             argMap.set('__device', selector);
         }
-        for (const inParam of obj.in_params.concat(extraInParams)) {
+
+        for (const inParam of obj.in_params) {
             const argname = inParam.name;
 
             // explicitly set the argument to ____ if it is optional but $undefined
             // but leave it unspecified (js undefined) if it is required and $undefined
             //
-            // this allows to use confirmation:
+            // this allows to use a phrase of the form:
             // "get xkcd ${?number ${number}}"
             // to map
             // @com.xkcd.get_comic(number=$undefined)
@@ -615,7 +616,7 @@ export class Describer {
         })||'';
 
         let firstExtra = true;
-        for (const inParam of obj.in_params.concat(extraInParams)) {
+        for (const inParam of obj.in_params) {
             const argname = inParam.name;
             if (usedArgs.has(argname))
                 continue;
@@ -623,8 +624,6 @@ export class Describer {
             const value = this._describeArg(inParam.value, scope);
 
             if (argname.startsWith('__'))
-                continue;
-            if (kind === 'remote' || kind.startsWith('__dyn'))
                 continue;
             if (inParam.value.isUndefined && schema.isArgRequired(argname))
                 continue;
@@ -643,38 +642,37 @@ export class Describer {
         if (index instanceof Ast.NumberValue) {
             if (index.value < 0) {
                 return this._interp(this._("${index:ordinal: \
-                    =1 {the last ${table}}\
-                    =2 {the second to last ${table}}\
-                    one {the ${index}st last ${table}}\
-                    two {the ${index}nd last ${table}}\
-                    few {the ${index}rd last ${table}}\
-                    other {the ${index}th last ${table}}\
-                }"), { index: -index.value, table: tabledesc });
+                    =1 {the last ${query}}\
+                    =2 {the second to last ${query}}\
+                    one {the ${index}st last ${query}}\
+                    two {the ${index}nd last ${query}}\
+                    few {the ${index}rd last ${query}}\
+                    other {the ${index}th last ${query}}\
+                }"), { index: -index.value, query: tabledesc });
             } else {
                 return this._interp(this._("${index:ordinal: \
-                    =1 {the first ${table}}\
-                    =2 {the second ${table}}\
-                    =3 {the third ${table}}\
-                    one {the ${index}st ${table}}\
-                    two {the ${index}nd ${table}}\
-                    few {the ${index}rd ${table}}\
-                    other {the ${index}th ${table}}\
-                }"), { index: index.value, table: tabledesc});
+                    =1 {the first ${query}}\
+                    =2 {the second ${query}}\
+                    =3 {the third ${query}}\
+                    one {the ${index}st ${query}}\
+                    two {the ${index}nd ${query}}\
+                    few {the ${index}rd ${query}}\
+                    other {the ${index}th ${query}}\
+                }"), { index: index.value, query: tabledesc});
             }
         } else {
-            return this._interp(this._("the ${table} with index ${index}"), {
+            return this._interp(this._("the ${query} with index ${index}"), {
                 index: this._describeArg(index),
-                table: tabledesc
+                query: tabledesc
             });
         }
     }
 
-    private _describeFilteredTable(table : Ast.FilteredTable,
-                                   extraInParams : Ast.InputParam[]) : string {
-        const inner = this.describeTable(table.table, extraInParams);
+    private _describeFilteredTable(table : Ast.FilterExpression) : string {
+        const inner = this.describeTable(table.expression);
         if (!table.schema!.is_list) {
-            return this._interp(this._("${table} such that ${filter}"), {
-                table: inner,
+            return this._interp(this._("${query} such that ${filter}"), {
+                query: inner,
                 filter: this.describeFilter(table.filter, table.schema)
             });
         }
@@ -799,8 +797,8 @@ export class Describer {
         }
 
         if (otherClauses.length > 0) {
-            return this._interp(this._("${table} such that ${filter}"), {
-                table: tabledesc,
+            return this._interp(this._("${query} such that ${filter}"), {
+                query: tabledesc,
                 filter: this.describeFilter(new Ast.BooleanExpression.And(null, otherClauses).optimize(), table.schema)
             });
         } else {
@@ -808,269 +806,275 @@ export class Describer {
         }
     }
 
-    describeTable(table : Ast.Table, extraInParams : Ast.InputParam[] = []) : string {
-        if (table instanceof Ast.VarRefTable) {
-            return clean(table.name);
-        } else if (table instanceof Ast.InvocationTable) {
-            return this.describePrimitive(table.invocation, {}, extraInParams);
-        } else if (table instanceof Ast.FilteredTable) {
-            return this._describeFilteredTable(table, extraInParams);
-        } else if (table instanceof Ast.ProjectionTable) {
-            return this._interp(this._("the ${param} of ${table}"), {
-                table: this.describeTable(table.table, extraInParams),
-                param: this.__describeArgList(table.args, table.schema!)
+    describeTable(table : Ast.Expression) : string {
+        if (table instanceof Ast.FunctionCallExpression) {
+            return this.describePrimitive(table);
+        } else if (table instanceof Ast.InvocationExpression) {
+            return this.describePrimitive(table.invocation, {});
+        } else if (table instanceof Ast.FilterExpression) {
+            return this._describeFilteredTable(table);
+        } else if (table instanceof Ast.ProjectionExpression) {
+            return this._interp(this._("the ${param} of ${query}"), {
+                query: this.describeTable(table.expression),
+                param: this.__describeArgList(table.args, table.computations, table.schema!)
             });
-        } else if (table instanceof Ast.ComputeTable) {
-            return this._interp(this._("${table} and ${expression}"), {
-                table: this.describeTable(table.table, extraInParams),
-                expression: this._describeArg(table.expression)
-            });
-        } else if (table instanceof Ast.AliasTable) {
-            return this.describeTable(table.table, extraInParams);
-        } else if (table instanceof Ast.AggregationTable) {
+        } else if (table instanceof Ast.AliasExpression) {
+            return this.describeTable(table.expression);
+        } else if (table instanceof Ast.AggregationExpression) {
             if (table.field === '*') {
-                return this._interp(this._("the number of ${table}"), {
-                    table: this.describeTable(table.table, extraInParams)
+                return this._interp(this._("the number of ${query}"), {
+                    query: this.describeTable(table.expression)
                 });
             }
 
             let desc;
             switch (table.operator) {
             case 'avg':
-                desc = this._("the average ${param} in ${table}");
+                desc = this._("the average ${param} in ${query}");
                 break;
             case 'min':
-                desc = this._("the minimum ${param} in ${table}");
+                desc = this._("the minimum ${param} in ${query}");
                 break;
             case 'max':
-                desc = this._("the maximum ${param} in ${table}");
+                desc = this._("the maximum ${param} in ${query}");
                 break;
             case 'sum':
-                desc = this._("the sum of the ${param} in ${table}");
+                desc = this._("the sum of the ${param} in ${query}");
                 break;
             case 'count':
-                desc = this._("the number of ${param}s in ${table}");
+                desc = this._("the number of ${param}s in ${query}");
                 break;
             default:
                 throw new TypeError(`Invalid aggregation ${table.operator}`);
             }
             return this._interp(desc, {
                 param: table.schema!.getArgCanonical(table.field),
-                table: this.describeTable(table.table, extraInParams)
+                query: this.describeTable(table.expression)
             });
 
         // recognize argmin/argmax
-        } else if (table instanceof Ast.IndexTable && table.indices.length === 1 && table.indices[0] instanceof Ast.NumberValue &&
-            table.table instanceof Ast.SortedTable &&
+        } else if (table instanceof Ast.IndexExpression && table.indices.length === 1 && table.indices[0] instanceof Ast.NumberValue &&
+            table.expression instanceof Ast.SortExpression &&
             (table.indices[0].toJS() === 1 || table.indices[0].toJS() === -1)) {
             const index = table.indices[0] as Ast.NumberValue;
 
-            if ((index.value === 1 && table.table.direction === 'asc') ||
-                (index.value === -1 && table.table.direction === 'desc')) {
-                return this._interp(this._("the ${table} with the minimum ${param}"), {
-                    table: this.describeTable(table.table.table, extraInParams),
-                    param: table.schema!.getArgCanonical(table.table.field)
+            if ((index.value === 1 && table.expression.direction === 'asc') ||
+                (index.value === -1 && table.expression.direction === 'desc')) {
+                return this._interp(this._("the ${query} with the minimum ${param}"), {
+                    query: this.describeTable(table.expression.expression),
+                    param: this._describeArg(table.expression.value, {}, true)
                 });
             } else {
-                return this._interp(this._("the ${table} with the maximum ${param}"), {
-                    table: this.describeTable(table.table.table, extraInParams),
-                    param: table.schema!.getArgCanonical(table.table.field)
+                return this._interp(this._("the ${query} with the maximum ${param}"), {
+                    query: this.describeTable(table.expression.expression),
+                    param: this._describeArg(table.expression.value, {}, true)
                 });
             }
 
         // recognize argmin/argmax top K
-        } else if (table instanceof Ast.SlicedTable && table.table instanceof Ast.SortedTable && table.base instanceof Ast.NumberValue &&
+        } else if (table instanceof Ast.SliceExpression && table.expression instanceof Ast.SortExpression &&
+            table.base instanceof Ast.NumberValue &&
             (table.base.value === 1 || table.base.value === -1)) {
-                if ((table.base.value === 1 && table.table.direction === 'asc') ||
-                    (table.base.value === -1 && table.table.direction === 'desc')) {
-                return this._interp(this._("the ${limit} ${table} with the minimum ${param}"), {
+                if ((table.base.value === 1 && table.expression.direction === 'asc') ||
+                    (table.base.value === -1 && table.expression.direction === 'desc')) {
+                return this._interp(this._("the ${limit} ${query} with the minimum ${param}"), {
                     limit: this._describeArg(table.limit),
-                    table: this.describeTable(table.table.table, extraInParams),
-                    param: table.schema!.getArgCanonical(table.table.field)
+                    query: this.describeTable(table.expression.expression),
+                    param: this._describeArg(table.expression.value, {}, true)
                 });
             } else {
-                return this._interp(this._("the ${limit} ${table} with the maximum ${param}"), {
+                return this._interp(this._("the ${limit} ${query} with the maximum ${param}"), {
                     limit: this._describeArg(table.limit),
-                    table: this.describeTable(table.table.table, extraInParams),
-                    param: table.schema!.getArgCanonical(table.table.field)
+                    query: this.describeTable(table.expression.expression),
+                    param: this._describeArg(table.expression.value, {}, true)
                 });
             }
-        } else if (table instanceof Ast.SortedTable) {
+        } else if (table instanceof Ast.SortExpression) {
             if (table.direction === 'asc') {
-                return this._interp(this._("the ${table} sorted by increasing ${param}"), {
-                    table: this.describeTable(table.table, extraInParams),
-                    param: table.schema!.getArgCanonical(table.field)
+                return this._interp(this._("the ${query} sorted by increasing ${param}"), {
+                    query: this.describeTable(table.expression),
+                    param: this._describeArg(table.value, {}, true)
                 });
             } else {
-                return this._interp(this._("the ${table} sorted by decreasing ${param}"), {
-                    table: this.describeTable(table.table, extraInParams),
-                    param: table.schema!.getArgCanonical(table.field)
+                return this._interp(this._("the ${query} sorted by decreasing ${param}"), {
+                    query: this.describeTable(table.expression),
+                    param: this._describeArg(table.value, {}, true)
                 });
             }
-        } else if (table instanceof Ast.IndexTable && table.indices.length === 1) {
+        } else if (table instanceof Ast.IndexExpression && table.indices.length === 1) {
             return this._describeIndex(table.indices[0],
-                this.describeTable(table.table, extraInParams));
-        } else if (table instanceof Ast.IndexTable) {
+                this.describeTable(table.expression));
+        } else if (table instanceof Ast.IndexExpression) {
             return this._interp(this._("${indices.length:plural:\
-                one {element ${indices} of the ${table}}\
-                other {elements ${indices} of the ${table}}\
+                one {element ${indices} of the ${query}}\
+                other {elements ${indices} of the ${query}}\
             }"), {
                 indices: this._describeArg(new Ast.Value.Array(table.indices)),
-                table: this.describeTable(table.table, extraInParams),
+                query: this.describeTable(table.expression),
             });
-        } else if (table instanceof Ast.SlicedTable) {
+        } else if (table instanceof Ast.SliceExpression) {
             return this._interp(this._("${base:plural:\
-                =1 {the first ${limit} ${table}}\
-                =-1 {the last ${limit} ${table}}\
-                other {${limit} elements starting from ${base} of the ${table}}\
+                =1 {the first ${limit} ${query}}\
+                =-1 {the last ${limit} ${query}}\
+                other {${limit} elements starting from ${base} of the ${query}}\
             }"), {
                 limit: this._describeArg(table.limit),
                 base: this._describeArg(table.base),
-                table: this.describeTable(table.table, extraInParams),
+                query: this.describeTable(table.expression),
             });
-        } else if (table instanceof Ast.JoinTable) {
-            const lhsParams = extraInParams.filter((p) => p.name in table.lhs.schema!.inReq || p.name in table.lhs.schema!.inOpt);
-            const rhsParams = extraInParams.filter((p) => p.name in table.rhs.schema!.inReq || p.name in table.rhs.schema!.inOpt);
-
-            return this._interp(this._("${lhs} and ${rhs}"), {
-                lhs: this.describeTable(table.lhs, lhsParams),
-                rhs: this.describeTable(table.rhs, rhsParams.concat(table.in_params))
-            });
+        } else if (table instanceof Ast.ChainExpression) {
+            return this._format.listToString(table.expressions.map((t) => this.describeTable(t)));
         } else {
-            throw new TypeError();
+            throw new TypeError(`Unexpected query ${table.prettyprint()}`);
         }
     }
 
-    private __describeArgList(args : string[], schema : Ast.ExpressionSignature) {
-        return args.map((argname) => schema.getArgCanonical(argname));
+    private __describeArgList(args : string[],
+                              computations : Ast.Value[],
+                              schema : Ast.ExpressionSignature) {
+        return args.map((argname) : unknown => schema.getArgCanonical(argname))
+            .concat(computations.map((c) => this._describeArg(c)));
     }
 
-    describeStream(stream : Ast.Stream) : string {
-        if (stream instanceof Ast.VarRefStream) {
-            return clean(stream.name);
-        } else if (stream instanceof Ast.TimerStream) {
-            return this._interp(this._("${frequency:plural:\
-                =1 {every ${interval}}\
-                =2 {twice every ${interval}}\
-                other {${frequency} times every ${interval}}\
-            }${? starting ${base}}"), {
-                frequency: stream.frequency !== null ? this._describeArg(stream.frequency) : 1,
-                interval: this._describeArg(stream.interval),
-                base: stream.base instanceof Ast.DateValue && stream.base.value === null ? null : this._describeArg(stream.base)
-            });
-        } else if (stream instanceof Ast.AtTimerStream) {
-            return this._interp(this._("every day at ${times}${? until ${expiration}}"), {
-                times: stream.time.map((t) => this._describeArg(t)),
-                expiration: stream.expiration_date !== null ? this._describeArg(stream.expiration_date) : null
-            });
-        } else if (stream instanceof Ast.MonitorStream) {
-            if (stream.table instanceof Ast.FilteredTable) {
+    private _describeTimer(stream : Ast.FunctionCallExpression) {
+        const frequency = stream.in_params.find((ip) => ip.name === 'frequency');
+        const interval = stream.in_params.find((ip) => ip.name === 'interval');
+        const base = stream.in_params.find((ip) => ip.name === 'base');
+
+        return this._interp(this._("${frequency:plural:\
+            =1 {every ${interval}}\
+            =2 {twice every ${interval}}\
+            other {${frequency} times every ${interval}}\
+        }${? starting ${base}}"), {
+            frequency: frequency ? this._describeArg(frequency.value) : 1,
+            interval: this._describeArg(interval ? interval.value : new Ast.Value.Undefined()),
+            base: base && base.value instanceof Ast.DateValue && base.value.value === null ? null :
+                this._describeArg(base ? base.value : new Ast.Value.Undefined())
+        });
+    }
+
+    private _describeAtTimer(stream : Ast.FunctionCallExpression) {
+        const time = stream.in_params.find((ip) => ip.name === 'time');
+        const expiration_date = stream.in_params.find((ip) => ip.name === 'expiration_date');
+
+        return this._interp(this._("every day at ${time}${? until ${expiration}}"), {
+            time: this._describeArg(time ? time.value : new Ast.Value.Undefined()),
+            expiration: expiration_date ? this._describeArg(expiration_date.value) : null
+        });
+    }
+
+    describeStream(stream : Ast.Expression) : string {
+        if (stream instanceof Ast.FunctionCallExpression) {
+            if (stream.name === 'timer')
+                return this._describeTimer(stream);
+            else if (stream.name === 'attimer')
+                return this._describeAtTimer(stream);
+            else
+                return this.describePrimitive(stream);
+        } else if (stream instanceof Ast.MonitorExpression) {
+            if (stream.expression instanceof Ast.FilterExpression) {
                 // flip monitor of filter to filter of monitor
+                // FIXME is this the right thing to do? not sure
                 return this._interp(this._("${is_list:select:\
                     true {when ${table} change if ${filter}}\
                     false {when ${table} changes if ${filter}}\
                 }"), {
-                    is_list: stream.table.schema!.is_list,
-                    table: this.describeTable(stream.table.table, []),
-                    filter: this.describeFilter(stream.table.filter, stream.table.schema)
+                    is_list: stream.expression.schema!.is_list,
+                    table: this.describeTable(stream.expression.expression),
+                    filter: this.describeFilter(stream.expression.filter, stream.expression.schema)
                 });
             } else {
                 return this._interp(this._("${is_list:select:\
                     true {when ${table} change}\
                     false {when ${table} changes}\
                 }"), {
-                    is_list: stream.table.schema!.is_list,
-                    table: this.describeTable(stream.table, []),
+                    is_list: stream.expression.schema!.is_list,
+                    table: this.describeTable(stream.expression),
                 });
             }
-        } else if (stream instanceof Ast.EdgeNewStream) {
-            // XXX weird
-            return this._interp(this._("${stream} and the result changes"), {
-                stream: this.describeStream(stream.stream)
-            });
-        } else if (stream instanceof Ast.EdgeFilterStream) {
+        } else if (stream instanceof Ast.FilterExpression) {
             return this._interp(this._("${stream} and it becomes true that ${filter}"), {
-                stream: this.describeStream(stream.stream),
+                stream: this.describeStream(stream.expression),
                 filter: this.describeFilter(stream.filter, stream.schema)
             });
-        } else if (stream instanceof Ast.FilteredStream) {
-            return this._interp(this._("${stream} and ${filter}"), {
-                stream: this.describeStream(stream.stream),
-                filter: this.describeFilter(stream.filter, stream.schema)
+        } else if (stream instanceof Ast.ProjectionExpression) {
+            // FIXME should flip projection of a monitor and push down to a table
+            // (only when describing)
+            return this._interp(this._("${stream}, the ${param}"), {
+                stream: this.describeStream(stream.expression),
+                param: this.__describeArgList(stream.args, stream.computations, stream.schema!),
             });
-        } else if (stream instanceof Ast.ProjectionStream) {
-            return this._interp(this._("the ${param} of ${stream}"), {
-                stream: this.describeStream(stream.stream),
-                param: this.__describeArgList(stream.args, stream.schema!),
-            });
-        } else if (stream instanceof Ast.ComputeStream) {
-            return this._interp(this._("${stream} and ${expression}"), {
-                stream: this.describeStream(stream.stream),
-                expression: this._describeArg(stream.expression)
-            });
-        } else if (stream instanceof Ast.AliasStream) {
-            return this.describeStream(stream.stream);
-        } else if (stream instanceof Ast.JoinStream) {
-            return this._interp(this._("${stream}, get ${table}"), {
-                stream: this.describeStream(stream.stream),
-                table: this.describeTable(stream.table, stream.in_params)
-            });
+        } else if (stream instanceof Ast.AliasExpression) {
+            return this.describeStream(stream.expression);
         } else {
-            throw new TypeError();
+            throw new TypeError(`Unexpected stream ${stream.prettyprint()}`);
         }
     }
 
-    private _describeNotifyAction(action : Ast.NotifyAction) {
-        return this._("notify you");
-    }
-
-    private _describeAction(action : Ast.Action) {
-        if (action instanceof Ast.VarRefAction)
+    describeAction(action : Ast.Expression) {
+        if (action instanceof Ast.FunctionCallExpression)
             return clean(action.name);
-        else if (action instanceof Ast.InvocationAction)
+        else if (action instanceof Ast.InvocationExpression)
             return this.describePrimitive(action.invocation);
-        else if (action instanceof Ast.NotifyAction)
-            return this._describeNotifyAction(action);
         else
-            throw new TypeError();
+            throw new TypeError(`Unexpected action ${action.prettyprint()}`);
     }
 
-    private _describeActionList(actions : Ast.Action[]) {
-        return actions.map((a) => this._describeAction(a));
+    private _describeExpression(exp : Ast.Expression) {
+        if (exp.schema!.functionType === 'query')
+            return this._interp(this._("get ${query}"), { query: this.describeTable(exp) });
+        else
+            return this.describeAction(exp);
     }
 
-    private _describeRule(r : Ast.Rule|Ast.Command) {
-        if (r instanceof Ast.Rule) {
-            if (r.stream instanceof Ast.JoinStream) {
-                return this._interp(this._("do the following: ${stream}, and then ${actions}"), {
-                    stream: this.describeStream(r.stream),
-                    actions: this._describeActionList(r.actions),
+    describeExpressionStatement(r : Ast.ExpressionStatement) {
+        const expressions = r.expression.expressions;
+
+        const stream = r.stream;
+        if (stream) {
+            if (expressions.length > 2) {
+                const descriptions = expressions.slice(1).map((exp) => this._describeExpression(exp));
+
+                return this._interp(this._("do the following: ${stream}, ${queries}, and then ${action}"), {
+                    stream: this.describeStream(stream),
+                    queries: descriptions.slice(0, descriptions.length-1),
+                    action: descriptions[descriptions.length-1],
+                });
+            } else if (expressions.length === 2) {
+                return this._interp(this._("${action} ${stream}"), {
+                    stream: this.describeStream(stream),
+                    action: this._describeExpression(expressions[1]),
                 });
             } else {
-                return this._interp(this._("${actions} ${stream}"), {
-                    stream: this.describeStream(r.stream),
-                    actions: this._describeActionList(r.actions),
+                return this._interp(this._direction === Direction.FROM_AGENT ? this._("notify you ${stream}") : this._("notify me ${stream}"), {
+                    stream: this.describeStream(stream),
                 });
             }
-        } else if (r.table !== null) {
-            return this._interp(this._("get ${table} and then ${actions}"), {
-                table: this.describeTable(r.table, []),
-                actions: this._describeActionList(r.actions)
+        } else if (expressions.length > 2) {
+            const descriptions = expressions.map((exp) => this._describeExpression(exp));
+            return this._interp(this._("${queries}, and then ${action}"), {
+                queries: descriptions.slice(0, descriptions.length-1),
+                action: descriptions[descriptions.length-1]
+            });
+        } else if (expressions.length === 2) {
+            return this._interp(this._("${query} and then ${action}"), {
+                query: this._describeExpression(expressions[0]),
+                action: this._describeExpression(expressions[1])
             });
         } else {
-            return this._describeActionList(r.actions);
+            return this._describeExpression(expressions[0]);
         }
     }
 
     private _describeAssignment(d : Ast.Assignment) {
         let valuedesc;
-        const value = d.value.toLegacy();
-        if (value instanceof Ast.Table)
-            valuedesc = this.describeTable(value, []);
-        else if (value instanceof Ast.Stream)
+        const value = d.value;
+        if (value.schema!.functionType === 'query')
+            valuedesc = this.describeTable(value);
+        else if (value.schema!.functionType === 'stream')
             valuedesc = this.describeStream(value);
-        else if (value instanceof Ast.Action)
-            valuedesc = this._describeAction(value);
+        else if (value.schema!.functionType === 'action')
+            valuedesc = this.describeAction(value);
 
         return this._interp(this._("let ${name} be ${value}"), {
             name: clean(d.name),
@@ -1083,7 +1087,7 @@ export class Describer {
             if (r instanceof Ast.Assignment)
                 return this._describeAssignment(r);
             else
-                return this._describeRule(r.toLegacy());
+                return this.describeExpressionStatement(r);
         }).join('; ');
         if (program.principal) {
             return this._interp(this._("tell ${principal}: ${command}"), {
