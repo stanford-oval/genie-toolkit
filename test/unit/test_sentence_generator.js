@@ -138,6 +138,7 @@ async function doTestDialogue(filename) {
     const options = {
         rng: seedrandom.alea('almond is awesome'),
         locale: 'en-US',
+        policyFile: path.resolve(path.dirname(module.filename), '../../languages/thingtalk/policy.yaml'),
         templateFiles: [filename],
         targetLanguage: 'thingtalk',
         thingpediaClient: _tpClient,
