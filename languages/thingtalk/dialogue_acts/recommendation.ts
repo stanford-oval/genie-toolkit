@@ -254,7 +254,7 @@ function negativeRecommendationReply(ctx : ContextInfo, [preamble, request] : [A
 
     const proposal = ctx.aux;
     const { topResult, info, } = proposal;
-    const proposalType = topResult.value.id.getType();
+    const proposalType = topResult.value.id ? topResult.value.id.getType() : null;
     request = combinePreambleAndRequest(preamble, request, info, proposalType);
     if (request === null)
         return null;
@@ -264,6 +264,10 @@ function negativeRecommendationReply(ctx : ContextInfo, [preamble, request] : [A
 function positiveRecommendationReply(ctx : ContextInfo, acceptedAction : Ast.Invocation|null, name : Ast.Value|null) {
     const proposal = ctx.aux as Recommendation;
     const { topResult, action: actionProposal } = proposal;
+
+    // FIXME this should be allowed when we can parameter-pass by non-ID
+    if (!topResult.value.id)
+        return null;
 
     if (acceptedAction === null) {
         // if the user did not give an action earlier, and no action

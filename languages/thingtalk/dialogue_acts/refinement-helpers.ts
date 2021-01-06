@@ -452,7 +452,7 @@ function isValidNegativePreambleForInfo(info : SlotBag, preamble : Ast.FilterExp
 function combinePreambleAndRequest(preamble : Ast.FilterExpression|null,
                                    request : Ast.FilterExpression|null,
                                    info : SlotBag|null,
-                                   proposalType : Type) {
+                                   proposalType : Type|null) {
     if (preamble !== null) {
         if (info === null || !isValidNegativePreambleForInfo(info, preamble))
             return null;
@@ -479,10 +479,11 @@ function combinePreambleAndRequest(preamble : Ast.FilterExpression|null,
     }
     assert(request !== null);
 
-    const idType = request.schema!.getArgType('id');
-
-    if (!idType || !idType.equals(proposalType))
-        return null;
+    if (proposalType) {
+        const idType = request.schema!.getArgType('id');
+        if (!idType || !idType.equals(proposalType))
+            return null;
+    }
 
     return request;
 }
