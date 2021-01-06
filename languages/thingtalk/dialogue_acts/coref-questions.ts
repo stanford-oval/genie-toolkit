@@ -60,6 +60,8 @@ function areQuestionsValidForContext(ctx : ContextInfo, questions : Array<[strin
 function recommendationSearchQuestionReply(ctx : ContextInfo, questions : Array<[string, Type|null]>) {
     const proposal = ctx.aux as Recommendation;
     const { topResult, info, } = proposal;
+    if (!topResult.value.id)
+        return null;
     if (info !== null) {
         for (const [pname, ptype] of questions) {
             if (info.has(pname))
