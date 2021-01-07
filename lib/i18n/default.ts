@@ -54,7 +54,7 @@ export default class DefaultLanguagePack {
      * grammar/readability issues that are too inconvenient to prevent
      * using the templates.
      */
-    postprocessSynthetic(sentence : string, program : unknown, rng : () => number, forTarget : 'user'|'agent') : string {
+    postprocessSynthetic(sentence : string, program : unknown, rng : (() => number)|null, forTarget : 'user'|'agent') : string {
         return sentence;
     }
 

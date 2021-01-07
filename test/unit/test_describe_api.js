@@ -47,8 +47,8 @@ async function testDescribeArg() {
         [new Ast.Value.Boolean(true), 'true'],
         [new Ast.Value.Boolean(false), 'false'],
 
-        [new Ast.Value.String('some string'), `“some string”`],
-        [new Ast.Value.String('some string with "'), `“some string with "”`], //"
+        [new Ast.Value.String('some string'), `some string`],
+        [new Ast.Value.String('some string with "'), `some string with "`], //"
 
         [new Ast.Value.Measure(21, 'C'), `21 C`],
         [new Ast.Value.Measure(21, 'kmph'), `21 kmph`],
@@ -68,8 +68,8 @@ async function testDescribeArg() {
         [new Ast.Value.Currency(1000.995, 'usd'), '$1,001.00'],
         [new Ast.Value.Currency(1000, 'eur'), '€1,000.00'],
 
-        [new Ast.Value.Location(new Ast.Location.Relative('home')), `at home`],
-        [new Ast.Value.Location(new Ast.Location.Relative('work')), `at work`],
+        [new Ast.Value.Location(new Ast.Location.Relative('home')), `home`],
+        [new Ast.Value.Location(new Ast.Location.Relative('work')), `work`],
         [new Ast.Value.Location(new Ast.Location.Relative('current_location')), `here`],
         [new Ast.Value.Location(new Ast.Location.Absolute(0, 0, 'North Pole')), `North Pole`],
         [new Ast.Value.Location(new Ast.Location.Absolute(0, 0, null)), `[Latitude: 0 deg, Longitude: 0 deg]`],

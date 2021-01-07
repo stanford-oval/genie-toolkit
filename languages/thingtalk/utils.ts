@@ -452,7 +452,6 @@ export {
     clean,
 
     split,
-    splitParams,
     tokenizeExample,
 
     isExecutable,
