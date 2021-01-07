@@ -418,12 +418,13 @@ export class Describer {
         } else {
             args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'value', type, {}));
         }
-        const localschema = new Ast.ExpressionSignature(null, 'query', null, [], args, {});
+        const localschema = new Ast.FunctionDef(null, 'query', null, '', [], {
+            is_list: false, is_monitorable: false }, args);
         return localschema;
     }
 
     private _describeAtomFilter(expr : Ast.AtomBooleanExpression|Ast.ComputeBooleanExpression,
-                                schema : Ast.ExpressionSignature|null,
+                                schema : Ast.FunctionDef|null,
                                 scope : ScopeMap,
                                 negate : boolean,
                                 canonical_overwrite : ScopeMap = {}) {
@@ -455,7 +456,7 @@ export class Describer {
     }
 
     describeFilter(expr : Ast.BooleanExpression,
-                   schema : Ast.ExpressionSignature|null = null,
+                   schema : Ast.FunctionDef|null = null,
                    scope : ScopeMap = {},
                    canonical_overwrite : ScopeMap = {}) : string {
         const recursiveHelper = (expr : Ast.BooleanExpression) : string => {
@@ -931,7 +932,7 @@ export class Describer {
 
     private __describeArgList(args : string[],
                               computations : Ast.Value[],
-                              schema : Ast.ExpressionSignature) {
+                              schema : Ast.FunctionDef) {
         return args.map((argname) : unknown => schema.getArgCanonical(argname))
             .concat(computations.map((c) => this._describeArg(c)));
     }

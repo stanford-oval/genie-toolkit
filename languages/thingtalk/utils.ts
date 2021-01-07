@@ -243,11 +243,8 @@ function tokenizeExample(tokenizer : I18n.BaseTokenizer,
     return preprocessed;
 }
 
-function isSameFunction(fndef1 : Ast.ExpressionSignature,
-                        fndef2 : Ast.ExpressionSignature) : boolean {
-    if (!(fndef1 instanceof Ast.FunctionDef) ||
-        !(fndef2 instanceof Ast.FunctionDef)) // a join
-        return false;
+function isSameFunction(fndef1 : Ast.FunctionDef,
+                        fndef2 : Ast.FunctionDef) : boolean {
     if (!fndef1.class || !fndef2.class)
         return false;
     return fndef1.class.name === fndef2.class.name &&

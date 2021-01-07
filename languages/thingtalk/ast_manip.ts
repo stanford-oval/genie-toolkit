@@ -334,10 +334,10 @@ export function getProjectionArguments(table : Ast.ProjectionExpression) : strin
     return table.args.concat(getComputationNames(table.computations, table.aliases));
 }
 
-function resolveProjection(schema : Ast.ExpressionSignature,
+function resolveProjection(schema : Ast.FunctionDef,
                            args : string[],
                            computations : Ast.Value[] = [],
-                           aliases : Array<string|null> = []) : Ast.ExpressionSignature {
+                           aliases : Array<string|null> = []) : Ast.FunctionDef {
     assert(args.length >= 1 || computations.length > 0);
 
     const argset = new Set(args);
@@ -766,7 +766,7 @@ function checkFilter(table : Ast.Expression, filter : Ast.BooleanExpression) : b
     throw new Error(`Unexpected filter type ${filter}`);
 }
 
-function* iterateFilters(table : Ast.Expression) : Generator<[Ast.ExpressionSignature, Ast.BooleanExpression], void> {
+function* iterateFilters(table : Ast.Expression) : Generator<[Ast.FunctionDef, Ast.BooleanExpression], void> {
     if (table instanceof Ast.InvocationExpression ||
         table instanceof Ast.FunctionCallExpression)
         return;
@@ -1055,7 +1055,7 @@ function makeGetPredicate(proj : Ast.Expression, op : string, value : Ast.Value,
     return new Ast.BooleanExpression.External(null, selector, channel, proj.expression.invocation.in_params, filter, proj.expression.invocation.schema);
 }
 
-export function resolveChain(...expressions : Ast.ExpressionSignature[]) : Ast.ExpressionSignature {
+export function resolveChain(...expressions : Ast.FunctionDef[]) : Ast.FunctionDef {
     // the schema of a chain is just the schema of the last function in
     // the chain, nothing special about it - no joins, no merging, no
     // nothing
