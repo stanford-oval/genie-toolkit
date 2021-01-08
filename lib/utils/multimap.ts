@@ -69,7 +69,7 @@ export default class MultiMap<K, V> {
         });
     }
 
-    get(key : K) : V[] {
+    get(key : K) : readonly V[] {
         return this._storage.get(key) || [];
     }
 

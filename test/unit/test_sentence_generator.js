@@ -85,7 +85,7 @@ async function doTestBasic(filename) {
         },
         targetPruningSize: 20,
         maxDepth: 8,
-        debug: true
+        debug: 2
     };
 
     const generator = new BasicSentenceGenerator(options);
@@ -163,7 +163,7 @@ async function doTestDialogue(filename) {
         maxTurns: 3,
         minibatchSize: 300,
         numMinibatches: 1,
-        debug: 1
+        debug: 2
     };
 
     const generator = new DialogueGenerator(options);

@@ -266,7 +266,7 @@ class MinibatchDialogueGenerator {
         return utterance;
     }
 
-    private _generateAgent(partials : PartialDialogue[]) : AgentTurn[] {
+    private _generateAgent(partials : readonly PartialDialogue[]) : AgentTurn[] {
         const agentTurns : AgentTurn[] = [];
         this._agentGenerator.generate(partials, (depth : number, derivation : Derivation<AgentReplyRecord<ThingTalkUtils.DialogueState>>) => {
             // derivation.dlg is the PartialDialogue that is being continued
