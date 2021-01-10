@@ -45,10 +45,12 @@ import {
     Derivation,
     NonTerminal,
     CombinerAction,
-    DerivationKeyValue,
     DerivationChild,
+    KeyFunction,
 } from './runtime';
 import {
+    DerivationKeyValue,
+    RuleAttributes,
     ContextPhrase,
     ContextTable,
     ContextFunction,
@@ -56,16 +58,6 @@ import {
 import { importGenie } from './compiler';
 
 type RuleExpansionChunk = string | Choice | Placeholder | NonTerminal;
-
-interface RuleAttributes {
-    weight ?: number;
-    priority ?: number;
-    repeat ?: boolean;
-    forConstant ?: boolean;
-    temporary ?: boolean;
-    identity ?: boolean;
-    expandchoice ?: boolean;
-}
 
 class Rule<ArgTypes extends unknown[], ReturnType> {
     number : number;
@@ -273,8 +265,15 @@ class Chart {
                 added = true;
             }
 
-            for (const indexName in derivation.key)
-                this._indices[indexName].put(derivation.key[indexName], derivation);
+            for (const indexName in derivation.key) {
+                let index = this._indices[indexName];
+                if (!index)
+                    this._indices[indexName] = index = new HashMultiMap<DerivationKeyValue, Derivation<any>>();
+
+                const keyValue = derivation.key[indexName];
+                assert(keyValue !== undefined);
+                index.put(keyValue, derivation);
+            }
         }
 
         assert.strictEqual(this.size, sizeBefore + +added);
@@ -475,7 +474,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
 
     private _contextInitializer : ContextInitializer<ContextType, StateType>|undefined;
 
-    private _constantMap : MultiMap<string, number>;
+    private _constantMap : MultiMap<string, [number, KeyFunction<any>]>;
 
     private _finalized : boolean;
     private _averagePruningFactor : number[][];
@@ -605,7 +604,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
         this._rules[symbolId].push(new Rule<any[], any>(rulenumber, expansion, combiner as CombinerAction<any[], any>, attributes));
     }
 
-    addConstants(symbol : string, token : string, type : any, attributes : RuleAttributes = {}) : void {
+    addConstants(symbol : string, token : string, type : any, keyFunction : KeyFunction<any>, attributes : RuleAttributes = {}) : void {
         if (this._finalized)
             throw new GenieTypeError(`Grammar was finalized, cannot add more rules`);
         // ignore $user when loading the agent templates and vice-versa
@@ -613,12 +612,12 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
             return;
 
         const symbolId = this._lookupNonTerminal(symbol);
-        this._constantMap.put(token, symbolId);
+        this._constantMap.put(token, [symbolId, keyFunction]);
 
         attributes.forConstant = true;
         for (const constant of ThingTalkUtils.createConstants(token, type, this._options.maxConstants || DEFAULT_MAX_CONSTANTS)) {
             const sentencepiece = constant.display;
-            const combiner = () => new Derivation({}, constant.value, List.singleton(sentencepiece), null, attributes.priority || 0);
+            const combiner = () => new Derivation(keyFunction(constant.value), constant.value, List.singleton(sentencepiece), null, attributes.priority || 0);
             this._addRuleInternal(symbolId, [sentencepiece], combiner, attributes);
         }
     }
@@ -990,9 +989,9 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
         };
 
         for (const token in constants) {
-            for (const symbolId of this._constantMap.get(token)) {
+            for (const [symbolId, keyFunction] of this._constantMap.get(token)) {
                 for (const constant of constants[token]) {
-                    const combiner = () => new Derivation({}, constant.value, List.singleton(constant.display), null, attributes.priority);
+                    const combiner = () => new Derivation(keyFunction(constant.value), constant.value, List.singleton(constant.display), null, attributes.priority);
                     this._addRuleInternal(symbolId, [constant.display], combiner, attributes);
                     if (this._options.debug >= LogLevel.EVERYTHING)
                         console.log(`added temporary rule NT[${this._nonTermList[symbolId]}] -> ${constant.display}`);
@@ -1164,7 +1163,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
                         const index = phrase.symbol;
                         assert(index >= 0 && index <= this._nonTermTable.size, `Invalid context number ${index}`);
                         const sentence = phrase.utterance ? List.singleton(phrase.utterance) : List.Nil;
-                        const derivation = new Derivation({}, phrase.value, sentence, ctx, phrase.priority || 0);
+                        const derivation = new Derivation(phrase.key, phrase.value, sentence, ctx, phrase.priority || 0);
                         charts.add(index, 0, derivation);
                     }
                 }

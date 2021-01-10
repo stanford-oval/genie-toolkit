@@ -48,6 +48,9 @@ export class Compiler {
     // map a non-terminal to its type declaration, if any
     private _typeMap = new Map<string, string>();
 
+    // map a type to its key function, if any
+    private _keyFnMap = new Map<string, string>();
+
     constructor(target : 'js' | 'ts') {
         this._target = target;
     }
@@ -96,7 +99,22 @@ export class Compiler {
                     return;
                 }
                 if (existing !== stmt.type)
-                    throw new TypeError(`Invalid conflicting type annotation for non-terminal ${symbol}`);
+                    throw new TypeError(`Invalid conflicting type annotation for non-terminal ${symbol}, have ${existing} want ${stmt.type}`);
+            }
+
+            visitKeyFunctionDeclaration(stmt : metaast.KeyFunctionDeclarationStmt) {
+                for (let [type, keyfn] of stmt.decls) {
+                    type = type.trim();
+                    keyfn = keyfn.trim();
+
+                    const existing = self._keyFnMap.get(type);
+                    if (!existing) {
+                        self._keyFnMap.set(type, keyfn);
+                        continue;
+                    }
+                    if (existing !== keyfn)
+                        throw new TypeError(`Invalid conflicting key function declaration for type ${type}`);
+                }
             }
         });
 
@@ -113,22 +131,30 @@ export class Compiler {
                     return;
                 const symbol = node.category.name;
                 const type = self._typeMap.get(symbol);
-                if (type)
+                if (type) {
                     node.type = type;
+                    node.keyfn = self._keyFnMap.get(type.trim()) || 'undefined';
+                }
+                if (node.constraint && node.keyfn === 'undefined')
+                    console.log(`WARNING: missing key function for type ${node.type}, which is used in constraint for non-terminal ${symbol}`);
             }
 
             // also assign a type to every non-terminal declaration, if
             // it doesn't have one already
             visitNonTerminalStmt(stmt : metaast.NonTerminalStmt) {
-                if (stmt.type)
+                if (stmt.type) {
+                    stmt.keyfn = self._keyFnMap.get(stmt.type.trim()) || 'undefined';
                     return;
+                }
                 if (!(stmt.name instanceof metaast.IdentifierNTR))
                     return;
                 const symbol = stmt.name.name;
 
                 const existing = self._typeMap.get(symbol);
-                if (existing)
+                if (existing) {
                     stmt.type = existing;
+                    stmt.keyfn = self._keyFnMap.get(existing.trim()) || 'undefined';
+                }
             }
         });
     }

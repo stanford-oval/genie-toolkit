@@ -23,9 +23,10 @@ import assert from 'assert';
 
 import List from './list';
 import { uniform } from '../utils/random';
-import { Hashable } from '../utils/hashmap';
 
 export { importGenie as import } from './compiler';
+
+import { DerivationKeyValue, DerivationKey } from './types';
 
 const LogLevel = {
     NONE: 0,
@@ -105,17 +106,6 @@ class Context {
             return c1;
     }
 }
-
-export type DerivationKeyValue = string|number|boolean|Hashable<unknown>;
-
-/**
- * A compound key used to efficiently index compatible keys.
- *
- * This is a record of index names and hashable keys.
- * The generation algorithm keeps track of an index (hash table) for
- * every known index name.
- */
-export type DerivationKey = Record<string, DerivationKeyValue>;
 
 export type DerivationSentenceItem = string | Placeholder;
 
@@ -341,9 +331,9 @@ function dummyKeyFunction(x : unknown) : DerivationKey {
 
 function simpleCombine<ArgTypes extends unknown[], ResultType>(semanticAction : SemanticAction<ArgTypes, ResultType>,
                                                                flag ?: string|null,
-                                                               topLevel = false) : CombinerAction<ArgTypes, ResultType> {
+                                                               keyFunction : KeyFunction<ResultType> = dummyKeyFunction) : CombinerAction<ArgTypes, ResultType> {
     return function(children : DerivationChildTuple<ArgTypes>, rulePriority : number) : Derivation<ResultType>|null {
-        const result = Derivation.combine(children, semanticAction, dummyKeyFunction, rulePriority);
+        const result = Derivation.combine(children, semanticAction, keyFunction, rulePriority);
         if (result === null)
             return null;
         if (flag) {
@@ -364,31 +354,48 @@ function simpleCombine<ArgTypes extends unknown[], ResultType>(semanticAction : 
 
 function combineReplacePlaceholder<FirstType, SecondType, ResultType>(pname : string,
                                                                       semanticAction : SemanticAction<[FirstType, SecondType], ResultType>,
-                                                                      options : ReplacePlaceholderOptions) : CombinerAction<[FirstType, SecondType], ResultType> {
+                                                                      options : ReplacePlaceholderOptions,
+                                                                      keyFunction : KeyFunction<ResultType> = dummyKeyFunction) : CombinerAction<[FirstType, SecondType], ResultType> {
     const f : CombinerAction<[FirstType, SecondType], ResultType> = function([c1, c2] : [DerivationChild<FirstType>, DerivationChild<SecondType>], rulePriority : number) {
         assert(c1 instanceof Derivation);
         assert(!(c2 instanceof Placeholder) && !(c2 instanceof Context));
-        return c1.replacePlaceholder(pname, c2, semanticAction, dummyKeyFunction, options, rulePriority);
+        return c1.replacePlaceholder(pname, c2, semanticAction, keyFunction, options, rulePriority);
     };
     f.isReplacePlaceholder = true;
     return f;
 }
 
+/**
+ * Equality of key compared to another non-terminal.
+ *
+ * The values are [our index name, the 0-based position of the other non-terminal, the other index name].
+ */
+type RelativeKeyConstraint = [string, number, string];
+
+/**
+ * Equality of key compared to a constant value.
+ *
+ * The constraint store [our index name, the comparison value].
+ */
+type ConstantKeyConstraint = [string, DerivationKeyValue];
+
 class NonTerminal {
     symbol : string;
     index : number;
 
-    // equality of key compared to another non-terminal
-    // the values are [our index name, the 0-based position of the other non-terminal, the other index name]
-    relativeKeyConstraint : [string, number, string]|undefined = undefined;
+    relativeKeyConstraint : RelativeKeyConstraint|undefined = undefined;
+    constantKeyConstraint : ConstantKeyConstraint|undefined = undefined;
 
-    // equality of key compared to a constant value
-    // the constraint store [our index name, the comparison value]
-    constantKeyConstraint : [string, DerivationKeyValue]|undefined = undefined;
-
-    constructor(symbol : string) {
+    constructor(symbol : string, constraint : RelativeKeyConstraint|ConstantKeyConstraint|undefined = undefined) {
         this.symbol = symbol;
         this.index = -1;
+
+        if (constraint) {
+            if (constraint.length === 3)
+                this.relativeKeyConstraint = constraint;
+            else
+                this.constantKeyConstraint = constraint;
+        }
     }
 
     toString() : string {

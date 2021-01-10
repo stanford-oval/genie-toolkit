@@ -20,11 +20,35 @@
 
 import { Type } from 'thingtalk';
 
+import { Hashable } from '../utils/hashmap';
+
+export interface RuleAttributes {
+    weight ?: number;
+    priority ?: number;
+    repeat ?: boolean;
+    forConstant ?: boolean;
+    temporary ?: boolean;
+    identity ?: boolean;
+    expandchoice ?: boolean;
+}
+
+export type DerivationKeyValue = string|number|boolean|null|Hashable<unknown>;
+
+/**
+ * A compound key used to efficiently index compatible keys.
+ *
+ * This is a record of index names and hashable keys.
+ * The generation algorithm keeps track of an index (hash table) for
+ * every known index name.
+ */
+export type DerivationKey = Record<string, DerivationKeyValue>;
+
 export interface ContextPhrase {
     symbol : number;
     utterance : string;
     value : unknown;
     priority ?: number;
+    key : DerivationKey;
 }
 
 export type ContextTable = Record<string, number>;
