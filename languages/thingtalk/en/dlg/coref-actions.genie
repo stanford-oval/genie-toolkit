@@ -33,19 +33,19 @@ coref_action_phrase : Ast.Invocation = {}
 contextual_action_phrase : Ast.Invocation = {}
 list_coref_action_phrase : Ast.Invocation = {}
 
-for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
+for (let [pslot, typestr] of _tpLoader.params.in.values()) {
     // coref to one object (for recommendation)
     coref_action_phrase : Ast.Invocation = {
         ( action:thingpedia_action 'it'
         | action:thingpedia_action 'this'
         | action:thingpedia_action 'that'
-        ) [-> pname] => {
+        ) [-> (pslot.name)] => {
             if (!(action instanceof Ast.InvocationExpression))
                 return null;
-            const type = action.schema!.getArgType(pname);
+            const type = action.schema!.getArgType(pslot.name);
             if (!type || !(type instanceof Type.Entity))
                 return null;
-            const replaced = C.replacePlaceholderWithUndefined(action, pname, typestr);
+            const replaced = C.replacePlaceholderWithUndefined(action, pslot, typestr);
             if (replaced === null)
                 return null;
             return replaced.invocation;
@@ -54,37 +54,37 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
         ( action:thingpedia_get_command 'it'
         | action:thingpedia_get_command 'this'
         | action:thingpedia_get_command 'that'
-        ) [-> pname] => {
+        ) [-> (pslot.name)] => {
             if (!(action instanceof Ast.InvocationExpression))
                 return null;
-            const type = action.schema!.getArgType(pname);
+            const type = action.schema!.getArgType(pslot.name);
             if (!type || !(type instanceof Type.Entity))
                 return null;
-            const replaced = C.replacePlaceholderWithUndefined(action, pname, typestr);
+            const replaced = C.replacePlaceholderWithUndefined(action, pslot, typestr);
             if (replaced === null)
                 return null;
             return replaced.invocation;
         };
 
-        action:thingpedia_action noun:the_base_noun_phrase [-> pname] => {
+        action:thingpedia_action noun:the_base_noun_phrase [-> (pslot.name)] => {
             if (!(action instanceof Ast.InvocationExpression))
                 return null;
-            const type = action.schema!.getArgType(pname);
-            if (!type || !(type instanceof Type.Entity) || type.type !== noun)
+            const type = action.schema!.getArgType(pslot.name);
+            if (!type || !(type instanceof Type.Entity) || !C.isEntityOfFunction(type, noun))
                 return null;
-            const replaced = C.replacePlaceholderWithUndefined(action, pname, typestr);
+            const replaced = C.replacePlaceholderWithUndefined(action, pslot, typestr);
             if (replaced === null)
                 return null;
             return replaced.invocation;
         };
 
-        action:thingpedia_get_command noun:the_base_noun_phrase [-> pname] => {
+        action:thingpedia_get_command noun:the_base_noun_phrase [-> (pslot.name)] => {
             if (!(action instanceof Ast.InvocationExpression))
                 return null;
-            const type = action.schema!.getArgType(pname);
-            if (!type || !(type instanceof Type.Entity) || type.type !== noun)
+            const type = action.schema!.getArgType(pslot.name);
+            if (!type || !(type instanceof Type.Entity) || !C.isEntityOfFunction(type, noun))
                 return null;
-            const replaced = C.replacePlaceholderWithUndefined(action, pname, typestr);
+            const replaced = C.replacePlaceholderWithUndefined(action, pslot, typestr);
             if (replaced === null)
                 return null;
             return replaced.invocation;
@@ -97,13 +97,13 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
         | action:thingpedia_action 'either of them'
         | action:thingpedia_action 'any of them'
         | action:thingpedia_action 'any one of them'
-        ) [-> pname] => {
+        ) [-> (pslot.name)] => {
             if (!(action instanceof Ast.InvocationExpression))
                 return null;
-            const type = action.schema!.getArgType(pname);
+            const type = action.schema!.getArgType(pslot.name);
             if (!type || !(type instanceof Type.Entity))
                 return null;
-            const replaced = C.replacePlaceholderWithUndefined(action, pname, typestr);
+            const replaced = C.replacePlaceholderWithUndefined(action, pslot, typestr);
             if (replaced === null)
                 return null;
             return replaced.invocation;
@@ -113,13 +113,13 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
         | action:thingpedia_get_command 'either of them'
         | action:thingpedia_get_command 'any of them'
         | action:thingpedia_get_command 'any one of them'
-        ) [-> pname] => {
+        ) [-> (pslot.name)] => {
             if (!(action instanceof Ast.InvocationExpression))
                 return null;
-            const type = action.schema!.getArgType(pname);
+            const type = action.schema!.getArgType(pslot.name);
             if (!type || !(type instanceof Type.Entity))
                 return null;
-            const replaced = C.replacePlaceholderWithUndefined(action, pname, typestr);
+            const replaced = C.replacePlaceholderWithUndefined(action, pslot, typestr);
             if (replaced === null)
                 return null;
             return replaced.invocation;
@@ -128,19 +128,19 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
 
     // operate on an object by name - this rule is only available after the first turn
     contextual_action_phrase = {
-        action:thingpedia_action name:constant_name [-> pname { isConstant: true }] => {
+        action:thingpedia_action name:constant_name [-> (pslot.name) { isConstant: true }] => {
             if (!(action instanceof Ast.InvocationExpression))
                 return null;
-            const newAction = C.replacePlaceholderWithConstant(action, pname, name);
+            const newAction = C.replacePlaceholderWithConstant(action, pslot, name);
             if (newAction === null)
                 return null;
             return newAction.invocation;
         };
 
-        action:thingpedia_get_command name:constant_name [-> pname { isConstant: true }] => {
+        action:thingpedia_get_command name:constant_name [-> (pslot.name) { isConstant: true }] => {
             if (!(action instanceof Ast.InvocationExpression))
                 return null;
-            const newAction = C.replacePlaceholderWithConstant(action, pname, name);
+            const newAction = C.replacePlaceholderWithConstant(action, pslot, name);
             if (newAction === null)
                 return null;
             return newAction.invocation;
@@ -149,13 +149,13 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
 
     // add the rules for constant parameters too
     coref_action_phrase = {
-        a:coref_action_phrase v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(a, pname, v);
+        a:coref_action_phrase v:$('constant_' + typestr) [-> (pslot.name) { isConstant: true }] => C.replacePlaceholderWithConstant(a, pslot, v);
     }
     contextual_action_phrase = {
-        a:contextual_action_phrase v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(a, pname, v);
+        a:contextual_action_phrase v:$('constant_' + typestr) [-> (pslot.name) { isConstant: true }] => C.replacePlaceholderWithConstant(a, pslot, v);
     }
     list_coref_action_phrase = {
-        a:list_coref_action_phrase v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(a, pname, v);
+        a:list_coref_action_phrase v:$('constant_' + typestr) [-> (pslot.name) { isConstant: true }] => C.replacePlaceholderWithConstant(a, pslot, v);
     }
 }
 

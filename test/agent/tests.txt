@@ -101,7 +101,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), price == enum(expensive) => notify;
 
-A: I have Evvia Estiatorio, NOLA Restaurant & Bar and Tamarine Restaurant. All of them are expensive restaurants.
+A: I have found Evvia Estiatorio, NOLA Restaurant & Bar and Tamarine Restaurant. They're expensives restaurants.
 A: rdl: Evvia Estiatorio https://www.yelp.com/biz/evvia-estiatorio-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: NOLA Restaurant & Bar https://www.yelp.com/biz/nola-restaurant-and-bar-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Tamarine Restaurant https://www.yelp.com/biz/tamarine-restaurant-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
@@ -118,7 +118,7 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
 # U: No thanks, goodbye
 #U: \t $dialogue @org.thingpedia.dialogue.transaction.end;
 
-A: Alright, bye!
+A: Alright, good bye!
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -128,7 +128,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
 
-A: The current weather in Palo Alto, California is sunny. The temperature is 15.6 C and the humidity is 91.3 %.
+A: The weather in Palo Alto, California is sunny.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.weather . current ( location = LOCATION_0 ) #[ results = [ { location = LOCATION_0 , temperature = MEASURE_C_0 , wind_speed = MEASURE_mps_0 , humidity = NUMBER_0 , cloudiness = NUMBER_1 , fog = 0 , status = enum sunny , icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":15.6},"MEASURE_mps_0":{"unit":"mps","value":3.4},"NUMBER_0":91.3,"NUMBER_1":4.7,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
 A: >> expecting = null
 
@@ -153,7 +153,7 @@ A: >> expecting = location
 # let's use the location picker!
 U: \t bookkeeping(answer(new Location(37.442156, -122.1634471, "Palo Alto, California")));
 
-A: The current weather in Palo Alto, California is sunny. The temperature is 15.6 C and the humidity is 91.3 %.
+A: The weather in Palo Alto, California is sunny.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.weather . current ( location = LOCATION_0 ) #[ results = [ { location = LOCATION_0 , temperature = MEASURE_C_0 , wind_speed = MEASURE_mps_0 , humidity = NUMBER_0 , cloudiness = NUMBER_1 , fog = 0 , status = enum sunny , icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":15.6},"MEASURE_mps_0":{"unit":"mps","value":3.4},"NUMBER_0":91.3,"NUMBER_1":4.7,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
 A: >> expecting = null
 
@@ -243,7 +243,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), contains(cuisines, null^^com.yelp:restaurant_cuisine("italian")) => notify;
 
-A: I have found Patxi's Pizza, Cafe Borrone or Osteria Toscana. All of them are restaurant having Italian food that is moderate.
+A: I see Patxi's Pizza, Cafe Borrone or Osteria Toscana. All of them are restaurant having Italian food that is moderate.
 A: rdl: Patxi's Pizza https://www.yelp.com/biz/patxis-pizza-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Cafe Borrone https://www.yelp.com/biz/cafe-borrone-menlo-park?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Osteria Toscana https://www.yelp.com/biz/osteria-toscana-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
@@ -275,7 +275,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), contains(cuisines, null^^com.yelp:restaurant_cuisine("italian")) => notify;
 
-A: I have found Patxi's Pizza, Cafe Borrone or Osteria Toscana. All of them are restaurant having Italian food that is moderate.
+A: I see Patxi's Pizza, Cafe Borrone or Osteria Toscana. All of them are restaurant having Italian food that is moderate.
 A: rdl: Patxi's Pizza https://www.yelp.com/biz/patxis-pizza-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Cafe Borrone https://www.yelp.com/biz/cafe-borrone-menlo-park?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Osteria Toscana https://www.yelp.com/biz/osteria-toscana-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
@@ -290,7 +290,7 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
 
 # "no thanks", but intercepted by the exact match
 #U: \r bookkeeping special special:no
-A: Alright, good bye!
+A: Alright, bye!
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -423,7 +423,7 @@ U: \r bookkeeping special special:no
 # no thanks
 #U: \r bookkeeping special special:no
 
-A: Alright, good bye!
+A: Alright, bye!
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -440,7 +440,7 @@ A: >> expecting = command
 # yes please
 U: \r bookkeeping special special:yes
 
-A: I played Nice For What on Spotify on str:ENTITY_com.spotify:device::43:.
+A: I played Nice For What on Spotify on str:ENTITY_com.spotify:device::20:.
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -464,7 +464,7 @@ U: \r bookkeeping special special:no
 # no thanks
 #U: \r bookkeeping special special:no
 
-A: Alright, good bye!
+A: Alright, bye!
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -494,7 +494,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => [release_date] of (@com.spotify.song(), id =~ "Nice For What") => notify;
 
-A: Nice For What is a song from 6/28/2018. Would you like to play it on Spotify?
+A: Nice For What is a song released in 6/28/2018. Would you like to play it on Spotify?
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; [ release_date ] of @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . song ( ) filter id =~ QUOTED_STRING_0 #[ results = [ { id = GENERIC_ENTITY_com.spotify:song_0 , release_date = DATE_0 } ] ] ; @com.spotify . play_song ( song = GENERIC_ENTITY_com.spotify:song_0 ) #[ confirm = enum proposed ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"Nice For What","GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:3CA9pLiwRIGtUBiMjbZmRw","display":"Nice For What"},"DATE_0":"2018-06-29T00:00:00.000Z"}
 A: >> expecting = command
 
@@ -505,7 +505,7 @@ A: >> expecting = command
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => [release_date] of (@com.spotify.song(), id =~ "hello") => notify;
 
-A: Hello? is a song from 5/24/2018. Would you like to play it on Spotify?
+A: Hello? is a song released in 5/24/2018. Would you like to play it on Spotify?
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; [ release_date ] of @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . song ( ) filter id =~ QUOTED_STRING_0 #[ results = [ { id = GENERIC_ENTITY_com.spotify:song_0 , release_date = DATE_0 } ] ] #[ count = 11 ] ; @com.spotify . play_song ( song = GENERIC_ENTITY_com.spotify:song_0 ) #[ confirm = enum proposed ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"hello","GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:7qwt4xUIqQWCu1DJf96g2k","display":"Hello?"},"DATE_0":"2018-05-25T00:00:00.000Z"}
 A: >> expecting = command
 
@@ -527,7 +527,7 @@ A: >> expecting = command
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => [release_date] of (@com.spotify.album(), id =~ "the wall") => notify;
 
-A: The Wall is an album from 11/29/1979.
+A: The Wall is a music collections from 11/29/1979.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; [ release_date ] of @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . album ( ) filter id =~ QUOTED_STRING_0 #[ results = [ { id = GENERIC_ENTITY_com.spotify:album_0 , release_date = DATE_0 } ] ] #[ count = 4 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"the wall","GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:5Dbax7G8SWrP9xyzkOvy2F","display":"The Wall"},"DATE_0":"1979-11-30T00:00:00.000Z"}
 A: >> expecting = null
 
@@ -537,14 +537,14 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => [release_date] of (@com.spotify.album(), id =~ "the wall") => notify;
 
-A: The Wall is an album from 11/29/1979.
+A: The Wall is a music collections from 11/29/1979.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; [ release_date ] of @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . album ( ) filter id =~ QUOTED_STRING_0 #[ results = [ { id = GENERIC_ENTITY_com.spotify:album_0 , release_date = DATE_0 } ] ] #[ count = 4 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"the wall","GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:5Dbax7G8SWrP9xyzkOvy2F","display":"The Wall"},"DATE_0":"1979-11-30T00:00:00.000Z"}
 A: >> expecting = null
 
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
 
-A: The current weather in Palo Alto, California is sunny. The temperature is 15.6 C and the humidity is 91.3 %.
+A: The weather in Palo Alto, California is sunny.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; [ release_date ] of @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . album ( ) filter id =~ QUOTED_STRING_0 #[ results = [ { id = GENERIC_ENTITY_com.spotify:album_0 , release_date = DATE_0 } ] ] #[ count = 4 ] ; @org.thingpedia.weather . current ( location = LOCATION_0 ) #[ results = [ { location = LOCATION_0 , temperature = MEASURE_C_0 , wind_speed = MEASURE_mps_0 , humidity = NUMBER_0 , cloudiness = NUMBER_1 , fog = 0 , status = enum sunny , icon = PICTURE_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"the wall","GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:5Dbax7G8SWrP9xyzkOvy2F","display":"The Wall"},"DATE_0":"1979-11-30T00:00:00.000Z","LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":15.6},"MEASURE_mps_0":{"unit":"mps","value":3.4},"NUMBER_0":91.3,"NUMBER_1":4.7,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
 A: >> expecting = null
 
@@ -582,7 +582,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (sort popularity desc of @com.spotify.song())[1] => notify;
 
-A: The most popular song is ROCKSTAR (feat. Roddy Ricch). It is a song by DaBaby from 4/16/2020. Would you like to play it on Spotify?
+A: The most popular song is ROCKSTAR (feat. Roddy Ricch). It is a song by DaBaby in the album BLAME IT ON BABY. Would you like to play it on Spotify?
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; sort ( popularity desc of @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . song ( ) ) [ 1 ] #[ results = [ { id = GENERIC_ENTITY_com.spotify:song_0 , artists = [ GENERIC_ENTITY_com.spotify:artist_0 , GENERIC_ENTITY_com.spotify:artist_1 ] , album = GENERIC_ENTITY_com.spotify:album_0 , genres = [ QUOTED_STRING_0 , QUOTED_STRING_1 ] , release_date = DATE_0 , popularity = NUMBER_0 , energy = NUMBER_1 , danceability = NUMBER_2 } ] ] ; @com.spotify . play_song ( song = GENERIC_ENTITY_com.spotify:song_0 ) #[ confirm = enum proposed ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:7ytR5pFWmSjzHJIeQkgog4","display":"ROCKSTAR (feat. Roddy Ricch)"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"spotify:artist:4r63FhuTkUYltbVAg5TQnk","display":"DaBaby"},"GENERIC_ENTITY_com.spotify:artist_1":{"value":"spotify:artist:757aE44tKEUQEqRuT6GnEB","display":"Roddy Ricch"},"GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:623PL2MBg50Br5dLXC9E9e","display":"BLAME IT ON BABY"},"QUOTED_STRING_0":"north carolina hip hop","QUOTED_STRING_1":"rap","DATE_0":"2020-04-17T00:00:00.000Z","NUMBER_0":100,"NUMBER_1":69,"NUMBER_2":74}
 A: >> expecting = command
 
@@ -637,7 +637,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.xkcd.comic();
 
-A: I see str:ENTITY_com.xkcd:comic::0: or str:ENTITY_com.xkcd:comic::1:. They're xkcds comic having release date 1/20/2018.
+A: I have str:ENTITY_com.xkcd:comic::0: or str:ENTITY_com.xkcd:comic::1:. All of them are xkcd comic having release date 1/20/2018.
 A: rdl: str:ENTITY_com.xkcd:comic::0: str:ENTITY_tt:url::37:
 A: rdl: str:ENTITY_com.xkcd:comic::1: str:ENTITY_tt:url::31:
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_two ; @com.xkcd ( id = GENERIC_ENTITY_tt:device_id_0 ) . comic ( ) #[ results = [ { id = GENERIC_ENTITY_com.xkcd:comic_0 , release_date = DATE_0 , picture_url = PICTURE_0 , link = URL_0 , alt_text = QUOTED_STRING_0 } ] ] #[ count = NUMBER_0 ] #[ more = true ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.xkcd-10","display":"Some Device 10"},"GENERIC_ENTITY_com.xkcd:comic_0":{"value":"str:ENTITY_com.xkcd:comic::0:","display":null},"DATE_0":"2018-01-20T08:00:00.000Z","PICTURE_0":"str:ENTITY_tt:picture::9:","URL_0":"str:ENTITY_tt:url::37:","QUOTED_STRING_0":"Some Device 10","NUMBER_0":50}
@@ -650,7 +650,7 @@ A: >> expecting = command
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: sort(release_date desc of @com.xkcd.comic())[1];
 
-A: The latest xkcd comic is str:ENTITY_com.xkcd:comic::29:. It is an xkcd comic with alt text str:QUOTED_STRING::13: and release date 8/28/2020.
+A: The latest xkcd comic is str:ENTITY_com.xkcd:comic::29:. It is an xkcd comic with release date 8/28/2020 and alt text str:QUOTED_STRING::13:.
 A: rdl: str:ENTITY_com.xkcd:comic::29: str:ENTITY_tt:url::45:
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; sort ( release_date desc of @com.xkcd ( id = GENERIC_ENTITY_tt:device_id_0 ) . comic ( ) ) [ 1 ] #[ results = [ { id = GENERIC_ENTITY_com.xkcd:comic_0 , release_date = DATE_0 , picture_url = PICTURE_0 , link = URL_0 , alt_text = QUOTED_STRING_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.xkcd-10","display":"Some Device 10"},"GENERIC_ENTITY_com.xkcd:comic_0":{"value":"str:ENTITY_com.xkcd:comic::29:","display":null},"DATE_0":"2020-08-28T07:00:00.000Z","PICTURE_0":"str:ENTITY_tt:picture::3:","URL_0":"str:ENTITY_tt:url::45:","QUOTED_STRING_0":"str:QUOTED_STRING::13:"}
 A: >> expecting = null

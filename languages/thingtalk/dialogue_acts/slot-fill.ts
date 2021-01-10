@@ -35,18 +35,19 @@ import {
 } from '../state_manip';
 
 
-function isGoodSlotFillQuestion(ctx : ContextInfo, questions : string[]) {
+function isGoodSlotFillQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
     const action = C.getInvocation(ctx.next!);
     assert(action instanceof Ast.Invocation);
     for (const q of questions) {
-        assert(typeof q === 'string');
-        if (q === ctx.nextInfo!.chainParameter)
+        if (!C.isSameFunction(q.schema, action.schema!))
             return false;
-        const arg = action.schema!.getArgument(q);
+        if (q.name === ctx.nextInfo!.chainParameter)
+            return false;
+        const arg = action.schema!.getArgument(q.name);
         if (!arg || !arg.is_input)
             return false;
         for (const in_param of action.in_params) {
-            if (in_param.name === q && !in_param.value.isUndefined)
+            if (in_param.name === q.name && !in_param.value.isUndefined)
                 return false;
         }
     }
@@ -74,20 +75,20 @@ function useRawModeForSlotFill(arg : Ast.ArgumentDef) {
 }
 
 
-function makeSlotFillQuestion(ctx : ContextInfo, questions : string[]) {
+function makeSlotFillQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
     if (!isGoodSlotFillQuestion(ctx, questions))
         return null;
 
     assert(questions.length > 0);
     if (questions.length === 1) {
         const action = C.getInvocation(ctx.next!);
-        const arg = action.schema!.getArgument(questions[0])!;
+        const arg = action.schema!.getArgument(questions[0].name)!;
         const type = arg.type;
 
         const raw = useRawModeForSlotFill(arg);
-        return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_slot_fill', questions), null, type, { raw });
+        return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_slot_fill', questions.map((q) => q.name)), null, type, { raw });
     }
-    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_slot_fill', questions));
+    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_slot_fill', questions.map((q) => q.name)));
 }
 
 /**
@@ -136,36 +137,45 @@ function preciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Invocation) {
     return addNewItem(ctx, 'execute', null, 'accepted', clone);
 }
 
-function impreciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.InputParam|Ast.Value) {
+function impreciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Value|C.InputParamSlot) {
     const questions = ctx.state.dialogueActParam;
     assert(Array.isArray(questions));
     if (questions.length !== 1)
         return null;
 
-    if (answer instanceof Ast.InputParam) {
-        const ipAnswer = answer;
-        if (!questions.some((q) => q === ipAnswer.name))
-            return null;
-    } else {
+    let ipslot : C.InputParamSlot;
+    if (answer instanceof Ast.Value) {
         assert(questions.length === 1);
-        assert(answer instanceof Ast.Value);
-        answer = new Ast.InputParam(null, questions[0], answer);
+
+        const ptype = ctx.nextFunctionSchema!.getArgType(questions[0])!;
+        if (!ptype.equals(answer.getType()))
+            return null;
+        ipslot = {
+            schema: ctx.nextFunctionSchema!,
+            ptype: ptype,
+            ast: new Ast.InputParam(null, questions[0], answer)
+        };
+    } else {
+        ipslot = answer;
+        if (!questions.some((q) => q === ipslot.ast.name))
+            return null;
+        if (!C.isSameFunction(answer.schema, ctx.nextFunctionSchema!))
+            return null;
     }
 
     assert(ctx.next && ctx.nextInfo);
-    assert(answer instanceof Ast.InputParam);
-    if (answer.name === ctx.nextInfo.chainParameter)
+    if (ipslot.ast.name === ctx.nextInfo.chainParameter)
         return null;
 
     const clone = ctx.next.clone();
     clone.confirm = 'accepted';
     clone.results = null;
     const newAction = C.getInvocation(clone);
-    if (!C.checkInvocationInputParam(newAction, answer))
+    if (!C.checkInvocationInputParam(newAction, ipslot))
         return null;
 
     // modify in place
-    setOrAddInvocationParam(newAction, answer.name, answer.value);
+    setOrAddInvocationParam(newAction, ipslot.ast.name, ipslot.ast.value);
     return addNewItem(ctx, 'execute', null, 'accepted', clone);
 }
 

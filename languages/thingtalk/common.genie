@@ -39,9 +39,9 @@ thingpedia_action : Ast.Expression = {}
 thingpedia_program : Ast.Expression = {}
 thingpedia_who_question : Ast.Expression = {}
 
-thingpedia_search_question : Ast.VarRefValue = {}
-thingpedia_slot_fill_question : string = {}
-thingpedia_user_question : Array<[string, Type]> = {}
+thingpedia_search_question : C.ParamSlot = {}
+thingpedia_slot_fill_question : C.ParamSlot = {}
+thingpedia_user_question : C.ParamSlot[] = {}
 
 thingpedia_result : SlotBag = {}
 thingpedia_action_past : Ast.Expression = {}
@@ -49,7 +49,7 @@ thingpedia_error_message : ({ code : string, bag : SlotBag }) = {}
 
 coref_constant : Ast.Value = {}
 
-out_param_Numeric : Ast.VarRefValue = {
+out_param_Numeric : C.ParamSlot = {
     out_param_Number;
     out_param_Currency;
     out_param_Measure_ms;
@@ -62,32 +62,32 @@ out_param_Numeric : Ast.VarRefValue = {
     out_param_Measure_mps;
 }
 
-out_param_Any : Ast.VarRefValue = {}
-out_param_Array__Any : Ast.VarRefValue = {}
-out_param_ArrayCount : Ast.VarRefValue = {}
-out_param_npp = {}
-out_param_npi = {}
-out_param_avp = {}
-out_param_pvp = {}
-out_param_npv = {}
-out_param_apv = {}
-out_param_String   : Ast.VarRefValue = {}
-out_param_Number   : Ast.VarRefValue = {}
-out_param_Currency : Ast.VarRefValue = {}
-out_param_Time     : Ast.VarRefValue = {}
-out_param_Date     : Ast.VarRefValue = {}
-out_param_Location : Ast.VarRefValue = {}
-out_param_Measure_ms   : Ast.VarRefValue = {}
-out_param_Measure_byte : Ast.VarRefValue = {}
-out_param_Measure_kg   : Ast.VarRefValue = {}
-out_param_Measure_C    : Ast.VarRefValue = {}
-out_param_Measure_m    : Ast.VarRefValue = {}
-out_param_Measure_m2   : Ast.VarRefValue = {}
-out_param_Measure_m3   : Ast.VarRefValue = {}
-out_param_Measure_mps  : Ast.VarRefValue = {}
-out_param_RecurrentTimeSpecification : Ast.VarRefValue = {}
+out_param_Any : C.ParamSlot = {}
+out_param_Array__Any : C.ParamSlot = {}
+out_param_ArrayCount : C.ParamSlot = {}
+out_param_npp : C.ParamSlot = {}
+out_param_npi : C.ParamSlot = {}
+out_param_avp : C.ParamSlot = {}
+out_param_pvp : C.ParamSlot = {}
+out_param_npv : C.ParamSlot = {}
+out_param_apv : C.ParamSlot = {}
+out_param_String   : C.ParamSlot = {}
+out_param_Number   : C.ParamSlot = {}
+out_param_Currency : C.ParamSlot = {}
+out_param_Time     : C.ParamSlot = {}
+out_param_Date     : C.ParamSlot = {}
+out_param_Location : C.ParamSlot = {}
+out_param_Measure_ms   : C.ParamSlot = {}
+out_param_Measure_byte : C.ParamSlot = {}
+out_param_Measure_kg   : C.ParamSlot = {}
+out_param_Measure_C    : C.ParamSlot = {}
+out_param_Measure_m    : C.ParamSlot = {}
+out_param_Measure_m2   : C.ParamSlot = {}
+out_param_Measure_m3   : C.ParamSlot = {}
+out_param_Measure_mps  : C.ParamSlot = {}
+out_param_RecurrentTimeSpecification : C.ParamSlot = {}
 
-out_param_Array__Numeric : Ast.VarRefValue = {
+out_param_Array__Numeric : C.ParamSlot = {
     out_param_Array__Number;
     out_param_Array__Currency;
     out_param_Array__Measure_ms;
@@ -100,23 +100,23 @@ out_param_Array__Numeric : Ast.VarRefValue = {
     out_param_Array__Measure_mps;
 }
 
-out_param_Array__String   : Ast.VarRefValue = {}
-out_param_Array__Number   : Ast.VarRefValue = {}
-out_param_Array__Currency : Ast.VarRefValue = {}
-out_param_Array__Time     : Ast.VarRefValue = {}
-out_param_Array__Date     : Ast.VarRefValue = {}
-out_param_Array__Location : Ast.VarRefValue = {}
-out_param_Array__Measure_ms   : Ast.VarRefValue = {}
-out_param_Array__Measure_byte : Ast.VarRefValue = {}
-out_param_Array__Measure_kg   : Ast.VarRefValue = {}
-out_param_Array__Measure_C    : Ast.VarRefValue = {}
-out_param_Array__Measure_m    : Ast.VarRefValue = {}
-out_param_Array__Measure_m2   : Ast.VarRefValue = {}
-out_param_Array__Measure_m3   : Ast.VarRefValue = {}
-out_param_Array__Measure_mps   : Ast.VarRefValue= {}
-out_param_Array__Compound : Ast.VarRefValue = {}  // used for aggregate filter only
+out_param_Array__String   : C.ParamSlot = {}
+out_param_Array__Number   : C.ParamSlot = {}
+out_param_Array__Currency : C.ParamSlot = {}
+out_param_Array__Time     : C.ParamSlot = {}
+out_param_Array__Date     : C.ParamSlot = {}
+out_param_Array__Location : C.ParamSlot = {}
+out_param_Array__Measure_ms   : C.ParamSlot = {}
+out_param_Array__Measure_byte : C.ParamSlot = {}
+out_param_Array__Measure_kg   : C.ParamSlot = {}
+out_param_Array__Measure_C    : C.ParamSlot = {}
+out_param_Array__Measure_m    : C.ParamSlot = {}
+out_param_Array__Measure_m2   : C.ParamSlot = {}
+out_param_Array__Measure_m3   : C.ParamSlot = {}
+out_param_Array__Measure_mps   : C.ParamSlot = {}
+out_param_Array__Compound : C.ParamSlot = {}  // used for aggregate filter only
 
-input_param : string = {}
+input_param : C.ParamSlot = {}
 
 // helper prefix for "and" filters
 // English overrides this to add "both" as well
@@ -128,80 +128,80 @@ both_prefix : string = {
 // nnp: Noun-Phrase parameter for Property of the subject
 // e.g.: "name", "date of birth"
 
-npp_filter : Ast.BooleanExpression = {}
-npp_input_param : Ast.InputParam = {}
-npp_argminmax : [Ast.VarRefValue, 'asc'|'desc'] = {}
-coref_npp_filter : Ast.BooleanExpression = {}
-coref_npp_input_param : Ast.InputParam = {}
-npp_boolean_projection = {}
+npp_filter : C.FilterSlot = {}
+npp_input_param : C.InputParamSlot = {}
+npp_argminmax : [C.ParamSlot, 'asc'|'desc'] = {}
+coref_npp_filter : C.FilterSlot = {}
+coref_npp_input_param : C.InputParamSlot = {}
+npp_boolean_projection : C.ParamSlot = {}
 
 // filters & input parameters on npi parameters
 // npi: Noun-phrase parameter for Identity of the subejct
 // e.g.: "owner of <company>", "student in <university>"
-npi_filter : Ast.BooleanExpression = {}
-npi_input_param : Ast.InputParam = {}
-npi_argminmax : [Ast.VarRefValue, 'asc'|'desc'] = {}
-coref_npi_filter : Ast.BooleanExpression = {}
-coref_npi_input_param : Ast.InputParam = {}
-npi_boolean_projection = {}
+npi_filter : C.FilterSlot = {}
+npi_input_param : C.InputParamSlot = {}
+npi_argminmax : [C.ParamSlot, 'asc'|'desc'] = {}
+coref_npi_filter : C.FilterSlot = {}
+coref_npi_input_param : C.InputParamSlot = {}
+npi_boolean_projection : C.ParamSlot = {}
 
 // filters & input parameters on pvp parameters
 // pvp: Passive-Verb Phrase parameter
 // e.g.: "called <nickname>", "born on <date>"
-pvp_filter : Ast.BooleanExpression = {}
-pvp_input_param : Ast.InputParam = {}
-pvp_argminmax : [Ast.VarRefValue, 'asc'|'desc'] = {}
-coref_pvp_filter : Ast.BooleanExpression = {}
-coref_pvp_input_param : Ast.InputParam = {}
-pvp_boolean_projection = {}
+pvp_filter : C.FilterSlot = {}
+pvp_input_param : C.InputParamSlot = {}
+pvp_argminmax : [C.ParamSlot, 'asc'|'desc'] = {}
+coref_pvp_filter : C.FilterSlot = {}
+coref_pvp_input_param : C.InputParamSlot = {}
+pvp_boolean_projection : C.ParamSlot = {}
 
 // filters & input parameters on prep parameters
 // prep: preposition parameter
 // e.g.: "at <time>", "in <area>"
-preposition_filter : Ast.BooleanExpression = {}
-preposition_input_param : Ast.InputParam = {}
-preposition_argminmax : [Ast.VarRefValue, 'asc'|'desc'] = {}
-coref_preposition_filter : Ast.BooleanExpression = {}
-coref_preposition_input_param : Ast.InputParam = {}
-preposition_boolean_projection = {}
+preposition_filter : C.FilterSlot = {}
+preposition_input_param : C.InputParamSlot = {}
+preposition_argminmax : [C.ParamSlot, 'asc'|'desc'] = {}
+coref_preposition_filter : C.FilterSlot = {}
+coref_preposition_input_param : C.InputParamSlot = {}
+preposition_boolean_projection : C.ParamSlot = {}
 
 // filters & input parameters on avp parameters
 // avp: Active-Verb Phrase parameter
 // e.g.: "owns <company>", "studied in <university>"
-avp_filter : Ast.BooleanExpression = {}
-avp_input_param : Ast.InputParam = {}
-avp_argminmax : [Ast.VarRefValue, 'asc'|'desc'] = {}
-coref_avp_filter : Ast.BooleanExpression = {}
-coref_avp_input_param : Ast.InputParam = {}
-avp_boolean_projection = {}
+avp_filter : C.FilterSlot = {}
+avp_input_param : C.InputParamSlot = {}
+avp_argminmax : [C.ParamSlot, 'asc'|'desc'] = {}
+coref_avp_filter : C.FilterSlot = {}
+coref_avp_input_param : C.InputParamSlot = {}
+avp_boolean_projection : C.ParamSlot = {}
 
 // filters & input parameters on npv parameters
 // npv: implicit parameter with Noun-Phrase Value, i.e., the parameter itself will not appear in the sentence
 // e.g.: "Bob is a PhD", the parameter `academic_degree` is implicit, and should be inferred by the value "PhD"
-npv_filter : Ast.BooleanExpression = {}
-npv_input_param : Ast.InputParam = {}
-npv_argminmax : [Ast.VarRefValue, 'asc'|'desc'] = {}
-coref_npv_filter : Ast.BooleanExpression = {}
-coref_npv_input_param : Ast.InputParam = {}
-npv_boolean_projection = {}
+npv_filter : C.FilterSlot = {}
+npv_input_param : C.InputParamSlot = {}
+npv_argminmax : [C.ParamSlot, 'asc'|'desc'] = {}
+coref_npv_filter : C.FilterSlot = {}
+coref_npv_input_param : C.InputParamSlot = {}
+npv_boolean_projection : C.ParamSlot = {}
 
 // filters & input parameters on apv parameter
 // apv: implicit parameter with Adjective-Phrase Value (similar to npv, but in adjective form)
 // e.g.: "Bob is left-handed"
-apv_filter : Ast.BooleanExpression = {}
-apv_input_param : Ast.InputParam = {}
-apv_argminmax : [Ast.VarRefValue, 'asc'|'desc'] = {}
-coref_apv_filter : Ast.BooleanExpression = {}
-coref_apv_input_param : Ast.InputParam = {}
-apv_boolean_projection = {}
+apv_filter : C.FilterSlot = {}
+apv_input_param : C.InputParamSlot = {}
+apv_argminmax : [C.ParamSlot, 'asc'|'desc'] = {}
+coref_apv_filter : C.FilterSlot = {}
+coref_apv_input_param : C.InputParamSlot = {}
+apv_boolean_projection : C.ParamSlot = {}
 
 // filters & input parameters on reverese_verb parameter
-// reverese verb: verb-phrase parameter where value is the subject of the verb phrase
-// e.g., "moveis that Bob directed"
-reverse_verb_filter : Ast.BooleanExpression = {}
-apv_input_param : Ast.InputParam = {}
-coref_reverse_verb_filter : Ast.BooleanExpression = {}
-coref_reverse_verb_input_param : Ast.InputParam = {}
+// reverse verb: verb-phrase parameter where value is the subject of the verb phrase
+// e.g., "movies that Bob directed"
+reverse_verb_filter : C.FilterSlot = {}
+reverse_verb_input_param : C.InputParamSlot = {}
+coref_reverse_verb_filter : C.FilterSlot = {}
+coref_reverse_verb_input_param : C.InputParamSlot = {}
 
 // projections
 question_projection_table = {}
@@ -211,7 +211,7 @@ command_projection_table = {}
 constant_name : Ast.EntityValue = {}
 
 base_table : Ast.InvocationExpression = {}
-base_noun_phrase : string = {}
+base_noun_phrase : Ast.FunctionDef = {}
 generic_anything_noun_phrase : Ast.InvocationExpression = {}
 generic_base_noun_phrase : Ast.InvocationExpression = {}
 
@@ -224,64 +224,61 @@ await _tpLoader.init($runtime, $grammar, $locale, $options);
 projection_Entity__tt__username : Ast.Expression = {}
 projection_Entity__tt__email_address : Ast.Expression = {}
 
-for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
+for (let [pslot, typestr] of _tpLoader.params.in.values()) {
     thingpedia_stream : Ast.Expression = {
-        s:thingpedia_stream v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(s, pname, v);
+        s:thingpedia_stream v:$('constant_' + typestr) [-> (pslot.name) { isConstant: true }] => C.replacePlaceholderWithConstant(s, pslot, v);
     }
 
     thingpedia_query : Ast.Expression = {
-        q:thingpedia_query v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(q, pname, v);
+        q:thingpedia_query v:$('constant_' + typestr) [-> (pslot.name) { isConstant: true }] => C.replacePlaceholderWithConstant(q, pslot, v);
     }
 
     thingpedia_get_command : Ast.Expression = {
-        q:thingpedia_get_command v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(q, pname, v);
+        q:thingpedia_get_command v:$('constant_' + typestr) [-> (pslot.name) { isConstant: true }] => C.replacePlaceholderWithConstant(q, pslot, v);
     }
 
     thingpedia_action : Ast.Expression = {
-        a:thingpedia_action v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(a, pname, v);
+        a:thingpedia_action v:$('constant_' + typestr) [-> (pslot.name) { isConstant: true }] => C.replacePlaceholderWithConstant(a, pslot, v);
     }
 
     thingpedia_action_past : Ast.Expression = {
-        a:thingpedia_action_past v:$('constant_' + typestr) [-> pname { isConstant: true }] [priority=0.5] => C.replacePlaceholderWithConstant(a, pname, v);
+        a:thingpedia_action_past v:$('constant_' + typestr) [-> (pslot.name) { isConstant: true }] [priority=0.5] => C.replacePlaceholderWithConstant(a, pslot, v);
     }
 
     thingpedia_error_message : ({ code : string, bag : SlotBag }) = {
-        msg:thingpedia_error_message v:$('constant_' + typestr) [-> pname { isConstant: true }] [priority=0.5] => C.replaceErrorMessagePlaceholder(msg, pname, v);
+        msg:thingpedia_error_message v:$('constant_' + typestr) [-> (pslot.name) { isConstant: true }] [priority=0.5] => C.replaceErrorMessagePlaceholder(msg, pslot, v);
     }
 
     thingpedia_program : Ast.Expression = {
-        p:thingpedia_program v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(p, pname, v);
+        p:thingpedia_program v:$('constant_' + typestr) [-> (pslot.name) { isConstant: true }] => C.replacePlaceholderWithConstant(p, pslot, v);
     }
 
     // don't parameter pass booleans or enums, as that rarely makes sense
     if (typestr !== 'Boolean' && !typestr.startsWith('Enum__')) {
-        if (pname !== 'count' && pname !== 'p_count') {
+        if (pslot.name !== 'count' && pslot.name !== 'p_count') {
             if ($options.flags.undefined_filter) {
                 // replace $-placeholders with "some X" where X is based on parameter type
-                thingpedia_query : Ast.Expression = q:thingpedia_query $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(q, pname, typestr);
+                thingpedia_query : Ast.Expression = q:thingpedia_query $('placeholder_' + typestr) [-> (pslot.name) { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(q, pslot, typestr);
 
-                thingpedia_get_command : Ast.Expression = q:thingpedia_get_command $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(q, pname, typestr);
+                thingpedia_get_command : Ast.Expression = q:thingpedia_get_command $('placeholder_' + typestr) [-> (pslot.name) { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(q, pslot, typestr);
 
-                thingpedia_stream : Ast.Expression = s:thingpedia_stream $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(s, pname, typestr);
+                thingpedia_stream : Ast.Expression = s:thingpedia_stream $('placeholder_' + typestr) [-> (pslot.name) { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(s, pslot, typestr);
 
-                thingpedia_action : Ast.Expression = a:thingpedia_action $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(a, pname, typestr);
+                thingpedia_action : Ast.Expression = a:thingpedia_action $('placeholder_' + typestr) [-> (pslot.name) { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(a, pslot, typestr);
 
-                thingpedia_program : Ast.Expression = p:thingpedia_program $('placeholder_' + typestr) [-> pname { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(p, pname, typestr);
+                thingpedia_program : Ast.Expression = p:thingpedia_program $('placeholder_' + typestr) [-> (pslot.name) { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(p, pslot, typestr);
             }
         }
     }
 }
 
-for (let [pname, typestr] of _tpLoader.params.out.values()) {
-    if (typestr !== null) {
-        thingpedia_result : SlotBag = {
-            bag:thingpedia_result v:$('constant_name') [-> pname { isConstant: true }] [priority=0.1] => C.replaceSlotBagPlaceholder(bag, pname, v);
-            bag:thingpedia_result v:$('constant_' + typestr) [-> pname { isConstant: true }] [priority=0.1] => C.replaceSlotBagPlaceholder(bag, pname, v);
-        }
+for (const pslot of _tpLoader.params.all) {
+    thingpedia_result : SlotBag = {
+        bag:thingpedia_result v:$('constant_Any') [-> (pslot.name) { isConstant: true }] [priority=0.1] => C.replaceSlotBagPlaceholder(bag, pslot, v);
     }
 }

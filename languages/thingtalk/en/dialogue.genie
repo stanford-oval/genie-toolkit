@@ -19,9 +19,10 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
-import { Ast, Type } from 'thingtalk';
+import { Ast, } from 'thingtalk';
 import { SentenceGeneratorTypes } from 'genie-toolkit';
 
+import * as C from '../ast_manip';
 import * as S from '../state_manip';
 import * as D from '../dialogue_acts';
 

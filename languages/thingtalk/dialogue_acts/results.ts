@@ -21,6 +21,7 @@
 
 import assert from 'assert';
 
+import * as C from '../ast_manip';
 import {
     ContextInfo
 } from '../state_manip';
@@ -32,7 +33,7 @@ import {
 
 function checkInfoPhrase(ctx : ContextInfo, info : SlotBag) {
     if (info.schema !== null) {
-        if (ctx.currentFunction !== info.schema.class!.name + ':' + info.schema.name)
+        if (!C.isSameFunction(ctx.currentFunctionSchema!, info.schema))
             return null;
     }
 

@@ -23,7 +23,7 @@ import assert from 'assert';
 
 import { Ast, Type } from 'thingtalk';
 
-import { isSameFunction } from './utils';
+import { FilterSlot, isSameFunction } from './utils';
 
 class SlotBag {
     schema : Ast.FunctionDef|null;
@@ -90,35 +90,37 @@ class SlotBag {
     }
 }
 
-function checkAndAddSlot(bag : SlotBag, filter : Ast.BooleanExpression) : SlotBag|null {
+function checkAndAddSlot(bag : SlotBag, filter : FilterSlot) : SlotBag|null {
     assert(bag instanceof SlotBag);
-    if (!(filter instanceof Ast.AtomBooleanExpression))
+    if (!(filter.ast instanceof Ast.AtomBooleanExpression))
         return null;
-    const arg = bag.schema!.getArgument(filter.name);
+    const schema = bag.schema!;
+    if (!isSameFunction(schema, filter.schema))
+        return null;
+    const arg = schema!.getArgument(filter.ast.name);
     if (!arg || arg.is_input)
         return null;
     const ptype = arg.type;
-    if (!ptype)
-        return null;
-    const vtype = filter.value.getType();
-    if (filter.operator === 'contains' || filter.operator === 'contains~') {
+    assert(ptype.equals(filter.ptype));
+    const vtype = filter.ast.value.getType();
+    if (filter.ast.operator === 'contains' || filter.ast.operator === 'contains~') {
         if (!ptype.equals(new Type.Array(vtype)))
             return null;
         const clone = bag.clone();
-        if (clone.has(filter.name))
+        if (clone.has(filter.ast.name))
             return null;
         else
-            clone.set(filter.name, new Ast.Value.Array([filter.value]));
+            clone.set(filter.ast.name, new Ast.Value.Array([filter.ast.value]));
         return clone;
     } else {
-        if (filter.operator !== '==' && filter.operator !== '=~')
+        if (filter.ast.operator !== '==' && filter.ast.operator !== '=~')
             return null;
         if (!ptype.equals(vtype))
             return null;
-        if (bag.has(filter.name))
+        if (bag.has(filter.ast.name))
             return null;
         const clone = bag.clone();
-        clone.set(filter.name, filter.value);
+        clone.set(filter.ast.name, filter.ast.value);
         return clone;
     }
 }

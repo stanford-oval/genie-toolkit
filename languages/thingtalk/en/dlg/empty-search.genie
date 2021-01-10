@@ -28,14 +28,16 @@
 
 import { Ast, } from 'thingtalk';
 
-empty_search_error : [Ast.InvocationExpression|null, Ast.VarRefValue|null] = {
+import * as C from '../../ast_manip';
+
+empty_search_error : [Ast.InvocationExpression|null, C.ParamSlot|null] = {
     sorry_preamble ('there are no' | 'i cannot find any') base:base_table ('matching your request' | 'with those characteristics' | 'like that')
     '.' => [base, null];
 
     !inference {
         sorry_preamble ('there are no' | 'i cannot find any') base:base_table ('matching your request' | 'with those characteristics' | 'like that')
         '.' 'would you like' ('a different' | 'another') p:out_param_Any '?' [priority=1] => {
-            if (!base.schema!.hasArgument(p.name))
+            if (!C.isSameFunction(base.schema!, p.schema))
                 return null;
             if (p.name === 'id')
                 return null;
@@ -58,7 +60,7 @@ precise_empty_search_change_request : Ast.Expression = {
     ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('do you have' | 'can you find' | 'is there' | 'how about') 'a' phrase:answer_noun_phrase '?' => phrase;
     ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('do you have' | 'can you find' | 'is there' | 'how about') phrase:anything_phrase '?' => phrase;
 }
-imprecise_empty_search_change_request : Ast.Value|Ast.BooleanExpression = {
+imprecise_empty_search_change_request : Ast.Value|C.FilterSlot = {
     ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('do you have' | 'can you find' | 'is there' | 'how about') answer:imprecise_search_answer_phrase '?'
         => answer;
 }

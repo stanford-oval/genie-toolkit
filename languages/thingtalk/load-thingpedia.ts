@@ -33,8 +33,10 @@ import type * as Genie from 'genie-toolkit';
 import type * as Tp from 'thingpedia';
 
 import {
+    ParamSlot,
     clean,
     typeToStringSafe,
+    makeInputParamSlot,
     makeFilter,
     makeAndFilter,
     makeDateRangeFilter,
@@ -115,14 +117,17 @@ export class ThingpediaLoader {
         readonly id : Set<string>;
     };
     params ! : {
-        readonly in : Map<string, [string, [string, string]]>;
-        readonly out : Map<string, [string, string]>;
+        readonly in : Map<string, [ParamSlot, string, string]>;
+        readonly all : ParamSlot[];
     };
-    projections ! : {
-        [pname : string] : {
-            [cat : string] : Array<[string, string, string]>;
-        };
-    };
+    projections ! : Array<{
+        pname : string;
+        pslot : ParamSlot;
+        category : string;
+        pronoun : string;
+        base : string;
+        canonical : string;
+    }>;
     idQueries ! : Map<string, Ast.FunctionDef>;
     compoundArrays ! : { [key : string] : InstanceType<typeof Type.Compound> };
     globalWhiteList ! : string[]|null;
@@ -158,9 +163,9 @@ export class ThingpediaLoader {
         };
         this.params = {
             in: new Map,
-            out: new Map,
+            all: [],
         };
-        this.projections = {};
+        this.projections = [];
         this.idQueries = new Map;
         this.compoundArrays = {};
         if (this._options.whiteList)
@@ -237,30 +242,26 @@ export class ThingpediaLoader {
         return typestr;
     }
 
-    private _addOutParam(functionName : string,
-                         pname : string,
-                         type : Type,
+    private _addOutParam(pslot : ParamSlot,
                          typestr : string,
                          canonical : string) {
-        this._grammar.addRule('out_param_' + typestr, [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
+        this._grammar.addRule('out_param_' + typestr, [canonical], this._runtime.simpleCombine(() => pslot));
 
-        if (type.isArray)
-            this._grammar.addRule('out_param_Array__Any', [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
+        if (pslot.type.isArray)
+            this._grammar.addRule('out_param_Array__Any', [canonical], this._runtime.simpleCombine(() => pslot));
 
-        this._grammar.addRule('out_param_Any', [canonical], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
+        this._grammar.addRule('out_param_Any', [canonical], this._runtime.simpleCombine(() => pslot));
     }
 
-    private _recordInputParam(functionName : string, arg : Ast.ArgumentDef) {
+    private _recordInputParam(schema : Ast.FunctionDef, arg : Ast.ArgumentDef) {
         const pname = arg.name;
         const ptype = arg.type;
-        const key = pname + '+' + ptype;
         const typestr = this._recordType(ptype);
         if (!typestr)
             return;
-        // FIXME match functionName
-        //if (this.params.out.has(key))
-        //    return;
-        this.params.out.set(key, [pname, typestr]);
+        const pslot : ParamSlot = { schema, name: pname, type: ptype,
+            filterable: false, ast: new Ast.Value.VarRef(pname) };
+        this.params.all.push(pslot);
 
         // compound types are handled by recursing into their fields through iterateArguments()
         // except FIXME that probably won't work? we need to create a record object...
@@ -276,14 +277,7 @@ export class ThingpediaLoader {
                 if (form.endsWith('?'))
                     form = form.substring(0, form.length-1).trim();
 
-                // HACK: we should record the function name always, not just at inference time
-                if (this._options.flags.inference) {
-                    this._grammar.addRule('thingpedia_slot_fill_question', [form], this._runtime.simpleCombine(() => {
-                        return { functionName, name: pname };
-                    }));
-                } else {
-                    this._grammar.addRule('thingpedia_slot_fill_question', [form], this._runtime.simpleCombine(() => pname));
-                }
+                this._grammar.addRule('thingpedia_slot_fill_question', [form], this._runtime.simpleCombine(() => pslot));
             }
         }
 
@@ -330,7 +324,7 @@ export class ThingpediaLoader {
 
             if (cat === 'npv') {
                 // implicit identity does not make sense for input parameters
-                throw new TypeError(`Invalid annotation #_[canonical.implicit_identity=${annotvalue}] for ${functionName}`);
+                throw new TypeError(`Invalid annotation #_[canonical.implicit_identity=${annotvalue}] for ${schema.qualifiedName}`);
             }
 
             if (!Array.isArray(annotvalue))
@@ -344,7 +338,7 @@ export class ThingpediaLoader {
 
             for (const form of annotvalue) {
                 if (cat === 'base') {
-                    this._grammar.addRule('input_param', [form], this._runtime.simpleCombine(() => pname), attributes);
+                    this._grammar.addRule('input_param', [form], this._runtime.simpleCombine(() => pslot), attributes);
                 } else {
                     let [before, after] = form.split('#');
                     before = (before || '').trim();
@@ -364,8 +358,8 @@ export class ThingpediaLoader {
                         expansion = ['', constant, ''];
                         corefexpansion = ['', corefconst, ''];
                     }
-                    this._grammar.addRule(cat + '_input_param', expansion, this._runtime.simpleCombine((_1, value : Ast.Value, _2) => new Ast.InputParam(null, pname, value)), attributes);
-                    this._grammar.addRule('coref_' + cat + '_input_param', corefexpansion, this._runtime.simpleCombine((_1, value : Ast.Value, _2) => new Ast.InputParam(null, pname, value)), attributes);
+                    this._grammar.addRule(cat + '_input_param', expansion, this._runtime.simpleCombine((_1, value : Ast.Value, _2) => makeInputParamSlot(pslot, value)), attributes);
+                    this._grammar.addRule('coref_' + cat + '_input_param', corefexpansion, this._runtime.simpleCombine((_1, value : Ast.Value, _2) => makeInputParamSlot(pslot, value)), attributes);
                 }
 
                 if (this._options.flags.inference)
@@ -374,13 +368,12 @@ export class ThingpediaLoader {
         }
     }
 
-    private _recordBooleanOutputParam(functionName : string, arg : Ast.ArgumentDef) {
+    private _recordBooleanOutputParam(pslot : ParamSlot, arg : Ast.ArgumentDef) {
         const pname = arg.name;
         const ptype = arg.type;
         const typestr = this._recordType(ptype);
         if (!typestr)
             return;
-        const pvar = new Ast.Value.VarRef(pname);
 
         let canonical;
 
@@ -400,14 +393,14 @@ export class ThingpediaLoader {
                 annotvalue = [annotvalue];
             if (key === 'base') {
                 for (const form of annotvalue)
-                    this._addOutParam(functionName, pname, ptype, typestr, form.trim());
+                    this._addOutParam(pslot, typestr, form.trim());
 
                 continue;
             }
 
             const match = /^([a-zA-Z_]+)_(true|false)$/.exec(key);
             if (match === null) {
-                console.error(`Invalid canonical key ${key} for boolean output parameter ${functionName}:${arg.name}`);
+                console.error(`Invalid canonical key ${key} for boolean output parameter ${pslot.schema.qualifiedName}:${arg.name}`);
                 continue;
             }
             let cat = match[1];
@@ -424,8 +417,8 @@ export class ThingpediaLoader {
                 attributes.priority += 1;
 
             for (const form of annotvalue) {
-                this._grammar.addRule(cat + '_filter', [form], this._runtime.simpleCombine(() => makeFilter(this, pvar, '==', value, false)), attributes);
-                this._grammar.addRule(cat + '_boolean_projection', [form], this._runtime.simpleCombine(() => new Ast.Value.VarRef(pname)));
+                this._grammar.addRule(cat + '_filter', [form], this._runtime.simpleCombine(() => makeFilter(pslot, '==', value, false)), attributes);
+                this._grammar.addRule(cat + '_boolean_projection', [form], this._runtime.simpleCombine(() => pslot));
 
                 if (this._options.flags.inference)
                     break;
@@ -434,19 +427,17 @@ export class ThingpediaLoader {
         }
     }
 
-    private _recordOutputParam(functionName : string, arg : Ast.ArgumentDef) {
+    private _recordOutputParam(schema : Ast.FunctionDef, arg : Ast.ArgumentDef) {
         const pname = arg.name;
         const ptype = arg.type;
-        const key = pname + '+' + ptype;
         const typestr = this._recordType(ptype);
         if (!typestr)
             return;
-        // FIXME match functionName
-        //if (this.params.out.has(key))
-        //    return;
-        this.params.out.set(key, [pname, typestr]);
 
-        const pvar = new Ast.Value.VarRef(pname);
+        const filterable = arg.getImplementationAnnotation<boolean>('filterable') ?? true;
+        const pslot : ParamSlot = { schema, name: pname, type: ptype,
+            filterable, ast: new Ast.Value.VarRef(pname) };
+        this.params.all.push(pslot);
 
         if (ptype.isCompound)
             return;
@@ -457,7 +448,7 @@ export class ThingpediaLoader {
                 prompt = [prompt];
 
             for (const form of prompt)
-                this._grammar.addRule('thingpedia_search_question', [form], this._runtime.simpleCombine(() => pvar));
+                this._grammar.addRule('thingpedia_search_question', [form], this._runtime.simpleCombine(() => pslot));
         }
         if (arg.metadata.question) {
             let question = arg.metadata.question;
@@ -465,11 +456,11 @@ export class ThingpediaLoader {
                 question = [question];
 
             for (const form of question)
-                this._grammar.addRule('thingpedia_user_question', [form], this._runtime.simpleCombine(() => [[pname, ptype]]));
+                this._grammar.addRule('thingpedia_user_question', [form], this._runtime.simpleCombine(() => [pslot]));
         }
 
         if (ptype.isBoolean) {
-            this._recordBooleanOutputParam(functionName, arg);
+            this._recordBooleanOutputParam(pslot, arg);
             return;
         }
 
@@ -477,7 +468,7 @@ export class ThingpediaLoader {
             this.compoundArrays[pname] = ptype.elem;
             for (const field in ptype.elem.fields) {
                 const arg = ptype.elem.fields[field];
-                this._recordOutputParam(functionName, arg);
+                this._recordOutputParam(schema, arg);
             }
         }
 
@@ -485,7 +476,7 @@ export class ThingpediaLoader {
             const forms = Array.isArray(arg.metadata.counted_object) ?
                 arg.metadata.counted_object : [arg.metadata.counted_object];
             for (const form of forms)
-                this._grammar.addRule('out_param_ArrayCount', [form], this._runtime.simpleCombine(() => pvar));
+                this._grammar.addRule('out_param_ArrayCount', [form], this._runtime.simpleCombine(() => pslot));
         }
 
         let canonical;
@@ -528,17 +519,15 @@ export class ThingpediaLoader {
             canUseBothForm = true;
 
         for (const type of vtypes)
-            this._recordOutputParamByType(functionName, pname, ptype, op, type, canonical, canUseBothForm);
+            this._recordOutputParamByType(pslot, op, type, canonical, canUseBothForm);
     }
 
-    private _recordOutputParamByType(functionName : string,
-                                     pname : string,
-                                     ptype : Type,
+    private _recordOutputParamByType(pslot : ParamSlot,
                                      op : string,
                                      vtype : Type,
                                      canonical : CanonicalForm,
                                      canUseBothForm : boolean) {
-        const pvar = new Ast.Value.VarRef(pname);
+        const ptype = pslot.type;
         const typestr = this._recordType(ptype);
         if (!typestr)
             return;
@@ -588,11 +577,11 @@ export class ThingpediaLoader {
 
             if (cat === 'npv') {
                 if (typeof annotvalue !== 'boolean')
-                    throw new TypeError(`Invalid annotation #_[canonical.implicit_identity=${annotvalue}] for ${functionName}`);
+                    throw new TypeError(`Invalid annotation #_[canonical.implicit_identity=${annotvalue}] for ${pslot.schema.qualifiedName}`);
                 if (annotvalue) {
                     const expansion = [constant];
-                    this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value : Ast.Value) => makeFilter(this, pvar, op, value, false)), attributes);
-                    this._grammar.addRule('coref_' + cat + '_filter', [corefconst], this._runtime.simpleCombine((value : Ast.Value) => makeFilter(this, pvar, op, value, false)), attributes);
+                    this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((value : Ast.Value) => makeFilter(pslot, op, value, false)), attributes);
+                    this._grammar.addRule('coref_' + cat + '_filter', [corefconst], this._runtime.simpleCombine((value : Ast.Value) => makeFilter(pslot, op, value, false)), attributes);
                 }
                 continue;
             }
@@ -607,7 +596,7 @@ export class ThingpediaLoader {
                         formarray = forms;
                     const value = new Ast.Value.Enum(enumerand);
                     for (const form of formarray)
-                        this._grammar.addRule(cat + '_filter', [form], this._runtime.simpleCombine(() => makeFilter(this, pvar, op, value, false)), attributes);
+                        this._grammar.addRule(cat + '_filter', [form], this._runtime.simpleCombine(() => makeFilter(pslot, op, value, false)), attributes);
                 }
             } else if (argMinMax) {
                 let annotarray : string[];
@@ -619,19 +608,13 @@ export class ThingpediaLoader {
                 }
 
                 for (const form of annotarray) {
-                    this._grammar.addRule(cat + '_argminmax', [form], this._runtime.simpleCombine(() => [pvar, argMinMax]), attributes);
+                    this._grammar.addRule(cat + '_argminmax', [form], this._runtime.simpleCombine(() => [pslot, argMinMax]), attributes);
                     if (this._options.flags.inference)
                         break;
                 }
             } else if (isProjection) {
                 if (cat === 'base')
                     continue;
-
-                // FIXME: if two params with the same name have different interrogative pronouns, this approach is problematic...
-                if (!(pname in this.projections))
-                    this.projections[pname] = {};
-                if (!(cat in this.projections[pname]))
-                    this.projections[pname][cat] = [];
 
                 let annotarray : string[];
                 if (!Array.isArray(annotvalue)) {
@@ -647,8 +630,8 @@ export class ThingpediaLoader {
                         if (typeof canonical.base_projection === 'string')
                             canonical.base_projection = [canonical.base_projection];
                         for (const base of canonical.base_projection) {
-                            this._addProjections(pname, 'what', cat, base, form);
-                            this._addProjections(pname, 'which', cat, base, form);
+                            this._addProjections(pslot, 'what', cat, base, form);
+                            this._addProjections(pslot, 'which', cat, base, form);
                         }
                     }
 
@@ -658,7 +641,7 @@ export class ThingpediaLoader {
                         if (typeof canonical.projection_pronoun === 'string')
                             canonical.projection_pronoun = [canonical.projection_pronoun];
                         for (const pronoun of canonical.projection_pronoun)
-                            this._addProjections(pname, pronoun, cat, '', form);
+                            this._addProjections(pslot, pronoun, cat, '', form);
 
                     } else {
                         const pronounType = interrogativePronoun(ptype);
@@ -670,7 +653,7 @@ export class ThingpediaLoader {
                             };
                             assert(pronounType in pronouns);
                             for (const pronoun of pronouns[pronounType])
-                                this._addProjections(pname, pronoun, cat, '', form);
+                                this._addProjections(pslot, pronoun, cat, '', form);
                         }
                     }
 
@@ -689,16 +672,16 @@ export class ThingpediaLoader {
 
                 for (const form of annotarray) {
                     if (cat === 'base') {
-                        this._addOutParam(functionName, pname, ptype, typestr, form.trim());
+                        this._addOutParam(pslot, typestr, form.trim());
                         if (!canonical.npp && !canonical.property) {
                             const expansion = [form, constant];
-                            this._grammar.addRule('npp_filter', expansion, this._runtime.simpleCombine((_, value : Ast.Value) => makeFilter(this, pvar, op, value, false)));
+                            this._grammar.addRule('npp_filter', expansion, this._runtime.simpleCombine((_, value : Ast.Value) => makeFilter(pslot, op, value, false)));
                             const corefexpansion = [form, corefconst];
-                            this._grammar.addRule('coref_npp_filter', corefexpansion, this._runtime.simpleCombine((_, value : Ast.Value) => makeFilter(this, pvar, op, value, false)), attributes);
+                            this._grammar.addRule('coref_npp_filter', corefexpansion, this._runtime.simpleCombine((_, value : Ast.Value) => makeFilter(pslot, op, value, false)), attributes);
 
                             if (canUseBothForm) {
                                 const pairexpansion = [form, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
-                                this._grammar.addRule('npp_filter', pairexpansion, this._runtime.simpleCombine((_1, _2, values : Ast.Value[]) => makeAndFilter(this, pvar, op, values, false)), attributes);
+                                this._grammar.addRule('npp_filter', pairexpansion, this._runtime.simpleCombine((_1, _2, values : [Ast.Value, Ast.Value]) => makeAndFilter(pslot, op, values, false)), attributes);
                             }
                         }
                     } else {
@@ -732,12 +715,12 @@ export class ThingpediaLoader {
                             pairexpansion = ['', new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), ''];
                             daterangeexpansion = ['', new this._runtime.NonTerminal('constant_date_range'), ''];
                         }
-                        this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((_1, value : Ast.Value, _2) => makeFilter(this, pvar, op, value, false)), attributes);
-                        this._grammar.addRule('coref_' + cat + '_filter', corefexpansion, this._runtime.simpleCombine((_1, value : Ast.Value, _2) => makeFilter(this, pvar, op, value, false)), attributes);
+                        this._grammar.addRule(cat + '_filter', expansion, this._runtime.simpleCombine((_1, value : Ast.Value, _2) => makeFilter(pslot, op, value, false)), attributes);
+                        this._grammar.addRule('coref_' + cat + '_filter', corefexpansion, this._runtime.simpleCombine((_1, value : Ast.Value, _2) => makeFilter(pslot, op, value, false)), attributes);
                         if (canUseBothForm)
-                            this._grammar.addRule(cat + '_filter', pairexpansion, this._runtime.simpleCombine((_1, _2, values : Ast.Value[], _3) => makeAndFilter(this, pvar, op, values, false)), attributes);
+                            this._grammar.addRule(cat + '_filter', pairexpansion, this._runtime.simpleCombine((_1, _2, values : [Ast.Value, Ast.Value], _3) => makeAndFilter(pslot, op, values, false)), attributes);
                         if (ptype.isDate)
-                            this._grammar.addRule(cat + '_filter', daterangeexpansion, this._runtime.simpleCombine((_1, values : Ast.Value[], _2) => makeDateRangeFilter(this, pvar, values)), attributes);
+                            this._grammar.addRule(cat + '_filter', daterangeexpansion, this._runtime.simpleCombine((_1, values : [Ast.Value, Ast.Value], _2) => makeDateRangeFilter(pslot, values)), attributes);
                     }
 
                     if (this._options.flags.inference)
@@ -747,16 +730,38 @@ export class ThingpediaLoader {
         }
     }
 
-    private _addProjections(pname : string, pronoun : string, posCategory : string, base : string, canonical : string) {
+    private _addProjections(pslot : ParamSlot, pronoun : string, posCategory : string, base : string, canonical : string) {
         if (canonical.includes('|')) {
             const [verb, prep] = canonical.split('|').map((span) => span.trim());
-            this.projections[pname][posCategory].push([`${prep} ${pronoun}`, base, verb]);
+            this.projections.push({
+                pname: pslot.name,
+                pslot,
+                category: posCategory,
+                pronoun: `${prep} ${pronoun}`,
+                base,
+                canonical: verb
+            });
 
             // for when question, we can drop the prep entirely
-            if (pronoun === 'when' || pronoun === 'what time')
-                this.projections[pname][posCategory].push([pronoun, base, verb]);
+            if (pronoun === 'when' || pronoun === 'what time') {
+                this.projections.push({
+                    pname: pslot.name,
+                    pslot,
+                    category: posCategory,
+                    pronoun: pronoun,
+                    base,
+                    canonical: verb
+                });
+            }
         }
-        this.projections[pname][posCategory].push([pronoun, base, canonical.replace(/\|/g, ' ')]);
+        this.projections.push({
+            pname: pslot.name,
+            pslot,
+            category: posCategory,
+            pronoun,
+            base,
+            canonical: canonical.replace(/\|/g, ' ')
+        });
     }
 
     private async _loadTemplate(ex : Ast.Example) {
@@ -812,9 +817,15 @@ export class ThingpediaLoader {
                     }
                 )]);
             }
-            const pcanonical = ex.value.schema!.getArgCanonical(pname)!;
 
-            this.params.in.set(pname + '+' + ptype, [pname, [typeToStringSafe(ptype), pcanonical]]);
+            const arg = ex.value.schema!.getArgument(pname)!;
+            const pcanonical = arg.canonical;
+            const filterable = arg.getImplementationAnnotation<boolean>('filterable') ?? true;
+
+            const pslot : ParamSlot = { schema: ex.value.schema!, name: pname, type: arg.type,
+                filterable, ast: new Ast.Value.VarRef(pname) };
+            this.params.in.set(pslot.schema.qualifiedName + ':' + pname,
+                [pslot, typeToStringSafe(ptype), pcanonical]);
             this._recordType(ptype);
         }
 
@@ -898,7 +909,6 @@ export class ThingpediaLoader {
                 canonical.push(pluralized);
         }
 
-        const functionName = q.class!.name + ':' + q.name;
         const table = new Ast.InvocationExpression(null, invocation, q);
 
         let shortCanonical = q.metadata.canonical_short || canonical;
@@ -906,7 +916,7 @@ export class ThingpediaLoader {
             shortCanonical = [shortCanonical];
         for (const form of shortCanonical) {
             this._grammar.addRule('base_table', [form], this._runtime.simpleCombine(() => table));
-            this._grammar.addRule('base_noun_phrase', [form], this._runtime.simpleCombine(() => functionName));
+            this._grammar.addRule('base_noun_phrase', [form], this._runtime.simpleCombine(() => q));
         }
 
         // FIXME English words should not be here
@@ -1043,19 +1053,19 @@ export class ThingpediaLoader {
         if (this.globalWhiteList && !this.globalWhiteList.includes(functionDef.name))
             return;
 
-        const functionName = functionDef.class!.kind + ':' + functionDef.name;
         for (const arg of functionDef.iterateArguments()) {
             if (arg.is_input)
-                this._recordInputParam(functionName, arg);
+                this._recordInputParam(functionDef, arg);
             else
-                this._recordOutputParam(functionName, arg);
+                this._recordOutputParam(functionDef, arg);
         }
 
         if (functionDef.functionType === 'query') {
             if (functionDef.is_list && functionDef.hasArgument('id')) {
                 const idarg = functionDef.getArgument('id')!;
-                if (idarg.type instanceof Type.Entity && idarg.type.type === functionName) {
-                    this.idQueries.set(functionName, functionDef);
+                const functionEntityType = functionDef.class!.kind + ':' + functionDef.name;
+                if (idarg.type instanceof Type.Entity && idarg.type.type === functionEntityType) {
+                    this.idQueries.set(functionEntityType, functionDef);
                     this._idTypes.add(typeToStringSafe(idarg.type));
                 }
             }
@@ -1086,9 +1096,19 @@ export class ThingpediaLoader {
                         const [, param1, param2,] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk)!;
                         const pname = param1 || param2;
                         assert(pname);
-                        const ptype = functionDef.getArgType(pname)!;
-                        const pcanonical = functionDef.getArgCanonical(pname)!;
-                        this.params.in.set(pname + '+' + ptype, [pname, [typeToStringSafe(ptype), pcanonical]]);
+                        const arg = functionDef.getArgument(pname)!;
+                        const ptype = arg.type;
+                        const pcanonical = arg.canonical;
+
+                        const pslot : ParamSlot = {
+                            schema: functionDef,
+                            name: pname,
+                            type: ptype,
+                            filterable: arg.getImplementationAnnotation<boolean>('filterable') ?? false,
+                            ast: new Ast.Value.VarRef(pname)
+                        };
+                        this.params.in.set(pslot.schema.qualifiedName + ':' + pname,
+                            [pslot, typeToStringSafe(ptype), pcanonical]);
                         this._recordType(ptype);
                     }
                 }

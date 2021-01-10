@@ -18,9 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-import assert from 'assert';
-
 import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
@@ -47,7 +44,7 @@ import {
 // - some form of "yes"
 // - some form of "no" followed by another search refinement
 
-type EmptySearch = [Ast.Expression|null, Ast.VarRefValue|null];
+type EmptySearch = [Ast.Expression|null, C.ParamSlot|null];
 
 /**
  * Agent dialogue act: a search command returned no result.
@@ -59,10 +56,12 @@ type EmptySearch = [Ast.Expression|null, Ast.VarRefValue|null];
 function makeEmptySearchError(ctx : ContextInfo, [base, question] : EmptySearch) {
     if (base !== null && !C.isSameFunction(base.schema!, ctx.currentTableSchema!))
         return null;
+    if (question !== null && !C.isSameFunction(ctx.currentFunctionSchema!, question.schema))
+        return null;
 
     let type, state;
     if (question !== null) {
-        if (!isGoodEmptySearchQuestion(ctx, question.name))
+        if (!isGoodEmptySearchQuestion(ctx, question))
             return null;
 
         const arg = ctx.currentTableSchema!.getArgument(question.name);
@@ -77,15 +76,14 @@ function makeEmptySearchError(ctx : ContextInfo, [base, question] : EmptySearch)
     return makeAgentReply(ctx, state, [base, question], type);
 }
 
-function isGoodEmptySearchQuestion(ctx : ContextInfo, question : string) {
-    assert(typeof question === 'string');
+function isGoodEmptySearchQuestion(ctx : ContextInfo, question : C.ParamSlot) {
     const currentStmt = ctx.current!.stmt;
     const currentTable = currentStmt.expression;
     if (!isValidSearchQuestion(currentTable, [question]))
         return false;
 
     const ctxFilterTable = C.findFilterExpression(currentTable);
-    if (!ctxFilterTable || !C.filterUsesParam(ctxFilterTable.filter, question))
+    if (!ctxFilterTable || !C.filterUsesParam(ctxFilterTable.filter, question.name))
         return false;
 
     return true;
@@ -124,12 +122,12 @@ function preciseEmptySearchChangeRequest(ctx : ContextInfo, phrase : Ast.Express
  * The "imprecise" variant only contains a value and optionally a parameter name.
  * The table is inferred from the context.
  */
-function impreciseEmptySearchChangeRequest(ctx : ContextInfo, answer : Ast.Value|Ast.BooleanExpression) {
+function impreciseEmptySearchChangeRequest(ctx : ContextInfo, answer : Ast.Value|C.FilterSlot) {
     const [base, param] = ctx.aux as EmptySearch;
     // because we're imprecise, we're only valid if the agent asked a specific question
     if (base === null || param === null)
         return null;
-    let answerFilter : Ast.BooleanExpression|null;
+    let answerFilter : C.FilterSlot|null;
     if (answer instanceof Ast.Value)
         answerFilter = C.makeFilter(param, '==', answer);
     else

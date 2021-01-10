@@ -84,11 +84,13 @@ function makeActionRecommendation(ctx : ContextInfo, action : Ast.Invocation) {
     return null;
 }
 
-function makeArgMinMaxRecommendation(ctx : ContextInfo, name : Ast.Value, base : Ast.Expression, param : Ast.VarRefValue, direction : 'asc'|'desc') {
+function makeArgMinMaxRecommendation(ctx : ContextInfo, name : Ast.Value, base : Ast.Expression, param : C.ParamSlot, direction : 'asc'|'desc') {
     const resultInfo = ctx.resultInfo!;
     if (!resultInfo.argMinMaxField)
         return null;
     if (!C.isSameFunction(base.schema!, ctx.currentFunctionSchema!))
+        return null;
+    if (!C.isSameFunction(param.schema, ctx.currentFunctionSchema!))
         return null;
     if (direction !== resultInfo.argMinMaxField[1] ||
         param.name !== resultInfo.argMinMaxField[0])
@@ -165,7 +167,7 @@ function checkActionForRecommendation({ topResult, info, action: nextAction } : 
 }
 
 // make a recommendation that looks like an answer, that is, "so and so is a ..."
-function makeAnswerStyleRecommendation({ topResult, ctx, action } : Recommendation, filter : Ast.BooleanExpression) {
+function makeAnswerStyleRecommendation({ topResult, ctx, action } : Recommendation, filter : C.FilterSlot) {
     if (!ctx)
         return null;
     let info : SlotBag|null = new SlotBag(ctx.currentFunctionSchema);
@@ -186,6 +188,8 @@ function makeDisplayResult(ctx : ContextInfo, info : SlotBag) {
     const topResult = results[0];
 
     if (ctx.currentFunctionSchema!.is_list)
+        return null;
+    if (!C.isSameFunction(ctx.currentFunctionSchema!, info.schema!))
         return null;
     if (!isInfoPhraseCompatibleWithResult(topResult, info))
         return null;

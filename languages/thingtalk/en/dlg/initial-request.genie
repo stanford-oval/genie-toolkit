@@ -19,6 +19,8 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import { Ast, } from 'thingtalk';
+
+import * as C from '../../ast_manip';
 import * as D from '../../dialogue_acts';
 
 initial_command : Ast.ExpressionStatement = {

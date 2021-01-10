@@ -48,7 +48,7 @@ function relatedQuestion(ctx : ContextInfo, stmt : Ast.ExpressionStatement) {
     const currentSchema = currentTable.schema;
     assert(currentSchema instanceof Ast.FunctionDef);
 
-    const functionName = newSchema.class!.kind + ':' + newSchema.name;
+    const functionName = newSchema.qualifiedName;
     const related = currentSchema.getAnnotation<string[]>('related');
     if (!related || !related.includes(functionName))
         return null;

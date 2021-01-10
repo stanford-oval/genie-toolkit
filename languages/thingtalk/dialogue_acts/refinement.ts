@@ -35,8 +35,8 @@ import {
 } from './refinement-helpers';
 
 
-function checkSearchResultPreamble(ctx : ContextInfo, base : string, num : Ast.Value|null, more : boolean) {
-    if (base !== ctx.currentFunction)
+function checkSearchResultPreamble(ctx : ContextInfo, base : Ast.FunctionDef, num : Ast.Value|null, more : boolean) {
+    if (!C.isSameFunction(base, ctx.currentFunctionSchema!))
         return null;
     if (num !== null) {
         if (!num.equals(ctx.current!.results!.count))

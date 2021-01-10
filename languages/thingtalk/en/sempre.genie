@@ -31,7 +31,7 @@ import './constants.genie';
 
 table : Ast.Expression = thingpedia_query if complete;
 
-filter : Ast.BooleanExpression = {
+filter : C.FilterSlot = {
     'whose' p:out_param_Any 'is' v:constant_Any => C.makeFilter(p, v.getType().isString ? '=~' : '==', v);
     'whose' p:out_param_Any 'is not' v:constant_Any =>  C.makeFilter(p, v.getType().isString ? '=~' : '==', v, true);
     'whose' p:out_param_Array__Any 'is' v:constant_Any => C.makeFilter(p, 'contains', v);
@@ -111,7 +111,7 @@ filtered_table : Ast.Expression = {
     | p:out_param_Array__Any 'of' table:filtered_table ) => {
         if (p.name === 'id')
             return null;
-        return C.makeSingleFieldProjection('table', null, table, p.name);
+        return C.makeSingleFieldProjection('table', null, table, p);
     };
 
     // count

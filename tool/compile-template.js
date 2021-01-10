@@ -32,6 +32,14 @@ export function initArgparse(subparsers) {
     });
 }
 
-export function execute(args) {
-    compile(args.input_file);
+export async function execute(args) {
+    try {
+        await compile(args.input_file);
+    } catch(e) {
+        if (e.name !== 'SyntaxError')
+            throw e;
+
+        console.error(`Syntax error in ${e.fileName} at line ${e.location.start.line}: ${e.message}`);
+        process.exit(1);
+    }
 }

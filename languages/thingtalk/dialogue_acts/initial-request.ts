@@ -209,12 +209,15 @@ function startNewRequest(ctx : ContextInfo, stmt : Ast.ExpressionStatement) {
     return addNewItem(ctx, 'execute', null, 'accepted', ...newItems);
 }
 
-function addInitialDontCare(stmt : Ast.ExpressionStatement, dontcare : Ast.DontCareBooleanExpression) : Ast.ExpressionStatement|null {
+function addInitialDontCare(stmt : Ast.ExpressionStatement, dontcare : C.FilterSlot) : Ast.ExpressionStatement|null {
     const table = stmt.lastQuery;
     if (!table)
         return null;
+    if (!C.isSameFunction(table.schema!, dontcare.schema))
+        return null;
 
-    const arg = table.schema!.getArgument(dontcare.name);
+    assert(dontcare.ast instanceof Ast.DontCareBooleanExpression);
+    const arg = table.schema!.getArgument(dontcare.ast.name);
     if (!arg || arg.is_input)
         return null;
     if (arg.getAnnotation<boolean>('filterable') === false)
@@ -228,10 +231,10 @@ function addInitialDontCare(stmt : Ast.ExpressionStatement, dontcare : Ast.DontC
     if (!(filterExpression.expression instanceof Ast.InvocationExpression))
         return null;
 
-    if (C.filterUsesParam(filterExpression.filter, dontcare.name))
+    if (C.filterUsesParam(filterExpression.filter, dontcare.ast.name))
         return null;
 
-    filterExpression.filter = new Ast.BooleanExpression.And(null, [filterExpression.filter, dontcare]).optimize();
+    filterExpression.filter = new Ast.BooleanExpression.And(null, [filterExpression.filter, dontcare.ast]).optimize();
     return clone;
 }
 

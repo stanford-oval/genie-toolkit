@@ -244,7 +244,7 @@ export class ContextInfo {
             this.currentFunction = null;
         } else {
             this.currentFunctionSchema = currentFunctionSchema;
-            this.currentFunction = currentFunctionSchema.class!.name + ':' + currentFunctionSchema.name;
+            this.currentFunction = currentFunctionSchema.qualifiedName;
         }
         assert(currentTableSchema === null || currentTableSchema instanceof Ast.FunctionDef);
         this.currentTableSchema = currentTableSchema;
@@ -260,7 +260,7 @@ export class ContextInfo {
             this.nextFunction = null;
         } else {
             this.nextFunctionSchema = nextFunctionSchema;
-            this.nextFunction = nextFunctionSchema.class!.name + ':' + nextFunctionSchema.name;
+            this.nextFunction = nextFunctionSchema.qualifiedName;
         }
         this.nextIdx = nextIdx;
         this.nextInfo = nextInfo;

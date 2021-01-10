@@ -68,7 +68,7 @@ single_stream_projection_Entity__tt__picture : Ast.Expression = !nostream 'new' 
 };
 
 
-the_out_param_Numeric : Ast.VarRefValue = {
+the_out_param_Numeric : C.ParamSlot = {
     'the' p:out_param_Numeric => p;
     !inference {
         !turking {
@@ -77,7 +77,7 @@ the_out_param_Numeric : Ast.VarRefValue = {
         }
     }
 }
-the_out_param_Array__Any : Ast.VarRefValue = {
+the_out_param_Array__Any : C.ParamSlot = {
     'the' p:out_param_Array__Any => p;
     !inference {
         !turking {
@@ -87,16 +87,20 @@ the_out_param_Array__Any : Ast.VarRefValue = {
     }
 }
 
-the_out_param_pair : [Ast.VarRefValue, Ast.VarRefValue] = {
+the_out_param_pair : [C.ParamSlot, C.ParamSlot] = {
     'the' p1:out_param_Any 'and' p2:out_param_Any => {
-        if (p1.name !== p2.name)
-            return [p1, p2];
-        return null;
+        if (!C.isSameFunction(p1.schema, p2.schema))
+            return null;
+        if (p1.name === p2.name)
+            return null;
+        return [p1, p2];
     };
 }
 
-the_out_param_triple : [Ast.VarRefValue, Ast.VarRefValue, Ast.VarRefValue] = {
+the_out_param_triple : [C.ParamSlot, C.ParamSlot, C.ParamSlot] = {
     'the' p1:out_param_Any ',' p2:out_param_Any (',' | '') 'and' p3:out_param_Any => {
+        if (!C.isSameFunction(p1.schema, p2.schema) || !C.isSameFunction(p1.schema, p3.schema))
+            return null;
         if (p1.name === p2.name || p1.name === p3.name || p2.name === p3.name)
             return null;
         return [p1, p2, p3];
@@ -116,61 +120,53 @@ where_question : Ast.Expression = {
 }
 
 boolean_projection : Ast.Expression = {
-    'does' ('the' | '' | 'any') table:with_filtered_table 'have' p:npp_boolean_projection => C.makeSingleFieldProjection('table', Type.Boolean, table, p.name);
-    'does' ('the' | '' | 'any') table:with_filtered_table p:avp_boolean_projection => C.makeSingleFieldProjection('table', Type.Boolean, table, p.name);
-    'is' ('the' | '') table:with_filtered_table p:pvp_boolean_projection => C.makeSingleFieldProjection('table', Type.Boolean, table, p.name);
-    'is' ('the' | '') table:with_filtered_table p:preposition_boolean_projection => C.makeSingleFieldProjection('table', Type.Boolean, table, p.name);
-    'is' ('the' | '') table:with_filtered_table p:npi_boolean_projection => C.makeSingleFieldProjection('table', Type.Boolean, table, p.name);
-    'is' ('the' | '') table:with_filtered_table p:npv_boolean_projection => C.makeSingleFieldProjection('table', Type.Boolean, table, p.name);
-    'is' ('the' | '') table:with_filtered_table p:apv_boolean_projection => C.makeSingleFieldProjection('table', Type.Boolean, table, p.name);
+    'does' ('the' | '' | 'any') table:with_filtered_table 'have' p:npp_boolean_projection => C.makeSingleFieldProjection('table', Type.Boolean, table, p);
+    'does' ('the' | '' | 'any') table:with_filtered_table p:avp_boolean_projection => C.makeSingleFieldProjection('table', Type.Boolean, table, p);
+    'is' ('the' | '') table:with_filtered_table p:pvp_boolean_projection => C.makeSingleFieldProjection('table', Type.Boolean, table, p);
+    'is' ('the' | '') table:with_filtered_table p:preposition_boolean_projection => C.makeSingleFieldProjection('table', Type.Boolean, table, p);
+    'is' ('the' | '') table:with_filtered_table p:npi_boolean_projection => C.makeSingleFieldProjection('table', Type.Boolean, table, p);
+    'is' ('the' | '') table:with_filtered_table p:npv_boolean_projection => C.makeSingleFieldProjection('table', Type.Boolean, table, p);
+    'is' ('the' | '') table:with_filtered_table p:apv_boolean_projection => C.makeSingleFieldProjection('table', Type.Boolean, table, p);
 }
 
-for (let pname in _tpLoader.projections) {
-    for (let cat in _tpLoader.projections[pname]) {
-        if (cat === 'pvp' || cat === 'preposition') {
-            for (let [pronoun, base, pvp] of _tpLoader.projections[pname][cat]) {
-                question_projection_table : Ast.Expression = #(pronoun) #(base) ('is'|'was'|'are'|'were') ('the' | '') table:with_filtered_table #(pvp) =>
-                    C.makeSingleFieldProjection('table', null, table, pname);
-                question_projection_table : Ast.Expression = #(pronoun) #(base) ('is'|'was'|'are'|'were') ('the' | '') table:with_arg_min_max_table #(pvp) =>
-                    C.makeSingleFieldProjection('table', null, table, pname);
+for (const proj of _tpLoader.projections) {
+    if (proj.category === 'pvp' || proj.category === 'preposition') {
+        question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('is'|'was'|'are'|'were') ('the' | '') table:with_filtered_table #(proj.canonical) =>
+            C.makeSingleFieldProjection('table', null, table, proj.pslot);
+        question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('is'|'was'|'are'|'were') ('the' | '') table:with_arg_min_max_table #(proj.canonical) =>
+            C.makeSingleFieldProjection('table', null, table, proj.pslot);
 
-                if (base) {
-                    command_projection_table : Ast.Expression = #(base) ('that'|'which'|'') ('the' | '') table:with_filtered_table ('is'|'was'|'are'|'were') #(pvp) =>
-                        C.makeSingleFieldProjection('table', null, table, pname);
-                    command_projection_table : Ast.Expression = #(base) ('that'|'which'|'') ('the' | '') table:with_arg_min_max_table ('is'|'was'|'are'|'were') #(pvp) =>
-                        C.makeSingleFieldProjection('table', null, table, pname);
-                }
-            }
+        if (proj.base) {
+            command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') ('the' | '') table:with_filtered_table ('is'|'was'|'are'|'were') #(proj.canonical) =>
+                C.makeSingleFieldProjection('table', null, table, proj.pslot);
+            command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') ('the' | '') table:with_arg_min_max_table ('is'|'was'|'are'|'were') #(proj.canonical) =>
+                C.makeSingleFieldProjection('table', null, table, proj.pslot);
         }
-        if (cat === 'avp') {
-            for (let [pronoun, base, verb] of _tpLoader.projections[pname][cat]) {
-                question_projection_table : Ast.Expression = #(pronoun) #(base) ('do'|'does'|'did') ('the' | '') table:with_filtered_table #(verb) =>
-                    C.makeSingleFieldProjection('table', null, table, pname);
-                question_projection_table : Ast.Expression = #(pronoun) #(base) ('do'|'does'|'did') ('the' | '') table:with_arg_min_max_table #(verb) =>
-                    C.makeSingleFieldProjection('table', null, table, pname);
+    }
+    if (proj.category === 'avp') {
+        question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('do'|'does'|'did') ('the' | '') table:with_filtered_table #(proj.canonical) =>
+            C.makeSingleFieldProjection('table', null, table, proj.pslot);
+        question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('do'|'does'|'did') ('the' | '') table:with_arg_min_max_table #(proj.canonical) =>
+            C.makeSingleFieldProjection('table', null, table, proj.pslot);
 
-                if (base) {
-                    command_projection_table : Ast.Expression = #(base) ('that'|'which'|'') ('the' | '') table:with_filtered_table #(verb) =>
-                        C.makeSingleFieldProjection('table', null, table, pname);
-                    command_projection_table : Ast.Expression = #(base) ('that'|'which'|'') ('the' | '') table:with_arg_min_max_table #(verb) =>
-                        C.makeSingleFieldProjection('table', null, table, pname);
-                }
-            }
+        if (proj.base) {
+            command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') ('the' | '') table:with_filtered_table #(proj.canonical) =>
+                C.makeSingleFieldProjection('table', null, table, proj.pslot);
+            command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') ('the' | '') table:with_arg_min_max_table #(proj.canonical) =>
+                C.makeSingleFieldProjection('table', null, table, proj.pslot);
         }
-        if (cat === 'reverse_verb') {
-            for (let [pronoun, base, verb] of _tpLoader.projections[pname][cat]) {
-                question_projection_table : Ast.Expression = #(pronoun) #(base) #(verb) ('the' | '') table:with_filtered_table  =>
-                    C.makeSingleFieldProjection('table', null, table, pname);
-                question_projection_table : Ast.Expression = #(pronoun) #(base) #(verb) ('the' | '') table:with_arg_min_max_table  =>
-                    C.makeSingleFieldProjection('table', null, table, pname);
+    }
+    if (proj.category === 'reverse_verb') {
+        question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) #(proj.canonical) ('the' | '') table:with_filtered_table  =>
+            C.makeSingleFieldProjection('table', null, table, proj.pslot);
+        question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) #(proj.canonical) ('the' | '') table:with_arg_min_max_table  =>
+            C.makeSingleFieldProjection('table', null, table, proj.pslot);
 
-                if (base) {
-                    command_projection_table : Ast.Expression = #(base) ('that'|'which'|'') #(verb) ('the' | '') table:with_filtered_table =>
-                        C.makeSingleFieldProjection('table', null, table, pname);
-                    command_projection_table : Ast.Expression = #(base) ('that'|'which'|'') #(verb) ('the' | '') table:with_arg_min_max_table =>
-                        C.makeSingleFieldProjection('table', null, table, pname);
-                }
-            }
+        if (proj.base) {
+            command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') #(proj.canonical) ('the' | '') table:with_filtered_table =>
+                C.makeSingleFieldProjection('table', null, table, proj.pslot);
+            command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') #(proj.canonical) ('the' | '') table:with_arg_min_max_table =>
+                C.makeSingleFieldProjection('table', null, table, proj.pslot);
         }
     }
 }
@@ -190,17 +186,17 @@ for (let [typestr, type] of _tpLoader.types.all) {
         }
 
         $('projection_' + typestr) : Ast.Expression = outParam:$('the_out_param_' + typestr) 'of' table:with_filtered_table =>
-            C.makeSingleFieldProjection('table', type, table, outParam.name);
+            C.makeSingleFieldProjection('table', type, table, outParam);
         $('projection_' + typestr) : Ast.Expression = outParam:$('the_out_param_' + typestr) 'of the' table:with_arg_min_max_table =>
-            C.makeSingleFieldProjection('table', type, table, outParam.name);
+            C.makeSingleFieldProjection('table', type, table, outParam);
         $('verb_projection_' + typestr) : Ast.Expression = outParam:$('out_param_' + typestr) ('do' | 'does') ('the' | '') table:with_filtered_table 'have' =>
-            C.makeSingleFieldProjection('table', type, table, outParam.name);
+            C.makeSingleFieldProjection('table', type, table, outParam);
         $('verb_projection_' + typestr) : Ast.Expression = outParam:$('out_param_' + typestr) ('do' | 'does') ('the' | '') table:with_arg_min_max_table 'have' =>
-            C.makeSingleFieldProjection('table', type, table, outParam.name);
+            C.makeSingleFieldProjection('table', type, table, outParam);
         $('stream_projection_' + typestr) : Ast.Expression = !nostream outParam:$('the_out_param_' + typestr) 'of new' table:with_filtered_table =>
-            C.makeSingleFieldProjection('stream', type, table, outParam.name);
+            C.makeSingleFieldProjection('stream', type, table, outParam);
         $('stream_projection_' + typestr) : Ast.Expression = !nostream outParam:$('the_out_param_' + typestr) 'of the new' table:with_arg_min_max_table =>
-            C.makeSingleFieldProjection('stream', type, table, outParam.name);
+            C.makeSingleFieldProjection('stream', type, table, outParam);
 
         projection_Any = $('projection_' + typestr);
         verb_projection_Any = $('verb_projection_' + typestr);
@@ -310,46 +306,46 @@ placeholder_Entity__tt__url : Ast.UndefinedValue = {
     'some link' => new Ast.Value.Undefined(true);
 }
 
-for (let [pname, [typestr, pcanonical]] of _tpLoader.params.in.values()) {
+for (let [pslot, typestr, pcanonical] of _tpLoader.params.in.values()) {
     if (typestr.startsWith('Enum__')) {
         // replace $-placeholders with "some X" where X is based on parameter name
-        if (pname !== 'power' && pname !== 'state' && pname !== 'p_power' && pname !== 'p_state') {
-            thingpedia_query : Ast.Expression = q:thingpedia_query #('a certain ' + pcanonical) [-> pname { isUndefined: true }] =>
-                C.replacePlaceholderWithUndefined(q, pname, typestr);
+        if (pslot.name !== 'power' && pslot.name !== 'state' && pslot.name !== 'p_power' && pslot.name !== 'p_state') {
+            thingpedia_query : Ast.Expression = q:thingpedia_query #('a certain ' + pcanonical) [-> (pslot.name) { isUndefined: true }] =>
+                C.replacePlaceholderWithUndefined(q, pslot, typestr);
 
-            thingpedia_get_command : Ast.Expression = q:thingpedia_get_command #('a certain ' + pcanonical) [-> pname { isUndefined: true }] =>
-                C.replacePlaceholderWithUndefined(q, pname, typestr);
+            thingpedia_get_command : Ast.Expression = q:thingpedia_get_command #('a certain ' + pcanonical) [-> (pslot.name) { isUndefined: true }] =>
+                C.replacePlaceholderWithUndefined(q, pslot, typestr);
 
-            thingpedia_stream : Ast.Expression = s:thingpedia_stream #('a certain ' + pcanonical) [-> pname { isUndefined: true }] =>
-                C.replacePlaceholderWithUndefined(s, pname, typestr);
+            thingpedia_stream : Ast.Expression = s:thingpedia_stream #('a certain ' + pcanonical) [-> (pslot.name) { isUndefined: true }] =>
+                C.replacePlaceholderWithUndefined(s, pslot, typestr);
 
-            thingpedia_action : Ast.Expression = a:thingpedia_action #('a certain ' + pcanonical) [-> pname { isUndefined: true }] =>
-                C.replacePlaceholderWithUndefined(a, pname, typestr);
+            thingpedia_action : Ast.Expression = a:thingpedia_action #('a certain ' + pcanonical) [-> (pslot.name) { isUndefined: true }] =>
+                C.replacePlaceholderWithUndefined(a, pslot, typestr);
 
-            thingpedia_program : Ast.Expression = p:thingpedia_program #('a certain ' + pcanonical) [-> pname { isUndefined: true }] =>
-                C.replacePlaceholderWithUndefined(p, pname, typestr);
+            thingpedia_program : Ast.Expression = p:thingpedia_program #('a certain ' + pcanonical) [-> (pslot.name) { isUndefined: true }] =>
+                C.replacePlaceholderWithUndefined(p, pslot, typestr);
         }
     }
 
     // don't parameter pass booleans or enums, as that rarely makes sense
     if (typestr !== 'Boolean' && !typestr.startsWith('Enum__')) {
-        if (pname !== 'count' && pname !== 'p_count') {
+        if (pslot.name !== 'count' && pslot.name !== 'p_count') {
             if (_tpLoader.flags.undefined_filter) {
                 // replace $-placeholders with "some X" where X is based on parameter name
-                thingpedia_query : Ast.Expression = q:thingpedia_query #('some ' + pcanonical) [-> pname { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(q, pname, typestr);
+                thingpedia_query : Ast.Expression = q:thingpedia_query #('some ' + pcanonical) [-> (pslot.name) { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(q, pslot, typestr);
 
-                thingpedia_get_command : Ast.Expression = q:thingpedia_get_command #('some ' + pcanonical) [-> pname { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(q, pname, typestr);
+                thingpedia_get_command : Ast.Expression = q:thingpedia_get_command #('some ' + pcanonical) [-> (pslot.name) { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(q, pslot, typestr);
 
-                thingpedia_stream : Ast.Expression = s:thingpedia_stream #('some ' + pcanonical) [-> pname { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(s, pname, typestr);
+                thingpedia_stream : Ast.Expression = s:thingpedia_stream #('some ' + pcanonical) [-> (pslot.name) { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(s, pslot, typestr);
 
-                thingpedia_action : Ast.Expression = a:thingpedia_action #('some ' + pcanonical) [-> pname { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(a, pname, typestr);
+                thingpedia_action : Ast.Expression = a:thingpedia_action #('some ' + pcanonical) [-> (pslot.name) { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(a, pslot, typestr);
 
-                thingpedia_program : Ast.Expression = p:thingpedia_program #('some ' + pcanonical) [-> pname { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(p, pname, typestr);
+                thingpedia_program : Ast.Expression = p:thingpedia_program #('some ' + pcanonical) [-> (pslot.name) { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(p, pslot, typestr);
             }
         }
 
@@ -366,32 +362,32 @@ for (let [pname, [typestr, pcanonical]] of _tpLoader.params.in.values()) {
             ( a:thingpedia_action p:with_filtered_table
             | a:thingpedia_action p:with_arg_min_max_table
             | a:thingpedia_action p:complete_table
-            ) [-> pname] => C.actionReplaceParamWithTable(a, pname, p);
+            ) [-> (pslot.name)] => C.actionReplaceParamWithTable(a, pslot, p);
         }
-        action_replace_param_with_stream : Ast.ChainExpression = a:thingpedia_action p:$('single_stream_projection_' + typestr) [-> pname]
-            => C.actionReplaceParamWithStream(a, pname, p);
+        action_replace_param_with_stream : Ast.ChainExpression = a:thingpedia_action p:$('single_stream_projection_' + typestr) [-> (pslot.name)]
+            => C.actionReplaceParamWithStream(a, pslot, p);
 
         if (_tpLoader.types.id.has(typestr)) {
-            forward_get_do_command : Ast.ChainExpression = command:forward_get_do_command ('it' | 'that' | 'them') [-> pname] => {
+            forward_get_do_command : Ast.ChainExpression = command:forward_get_do_command ('it' | 'that' | 'them') [-> (pslot.name)] => {
                 for (let joinArg in command.first.schema!.out) {
                     if (typestr === C.typeToStringSafe(command.first.schema!.out[joinArg]))
-                        return C.addParameterPassing(command, pname, new Ast.Value.VarRef(joinArg));
+                        return C.addParameterPassing(command, pslot, new Ast.Value.VarRef(joinArg));
                 }
                 return null;
             };
 
-            forward_when_do_rule : Ast.ChainExpression = rule:forward_when_do_rule ('it' | 'that' | 'them') [-> pname] => {
+            forward_when_do_rule : Ast.ChainExpression = rule:forward_when_do_rule ('it' | 'that' | 'them') [-> (pslot.name)] => {
                 for (let joinArg in rule.first.schema!.out) {
                     if (typestr === C.typeToStringSafe(rule.first.schema!.out[joinArg]))
-                        return C.addParameterPassing(rule, pname, new Ast.Value.VarRef(joinArg));
+                        return C.addParameterPassing(rule, pslot, new Ast.Value.VarRef(joinArg));
                 }
                 return null;
             };
 
-            when_get_stream : Ast.ChainExpression = stream:when_get_stream ('it' | 'that' | 'them') [-> pname] => {
+            when_get_stream : Ast.ChainExpression = stream:when_get_stream ('it' | 'that' | 'them') [-> (pslot.name)] => {
                 for (let joinArg in stream.first.schema!.out) {
                     if (typestr === C.typeToStringSafe(stream.first.schema!.out[joinArg]))
-                        return C.addParameterPassing(stream, pname, new Ast.Value.VarRef(joinArg));
+                        return C.addParameterPassing(stream, pslot, new Ast.Value.VarRef(joinArg));
                 }
                 return null;
             };
@@ -399,34 +395,34 @@ for (let [pname, [typestr, pcanonical]] of _tpLoader.params.in.values()) {
             // FIXME
             //table_join_replace_placeholder : Ast.ChainExpression = q:thingpedia_query p:$('projection_' + typestr) [-> pname]
             //    => C.actionReplaceParamWithTable(q, pname, p);
-            action_replace_param_with_table : Ast.ChainExpression = a:thingpedia_action p:$('projection_' + typestr) [-> pname]
-                => C.actionReplaceParamWithTable(a, pname, p);
-            action_replace_param_with_stream : Ast.ChainExpression = a:thingpedia_action p:$('stream_projection_' + typestr) [-> pname]
-                => C.actionReplaceParamWithStream(a, pname, p);
+            action_replace_param_with_table : Ast.ChainExpression = a:thingpedia_action p:$('projection_' + typestr) [-> (pslot.name)]
+                => C.actionReplaceParamWithTable(a, pslot, p);
+            action_replace_param_with_stream : Ast.ChainExpression = a:thingpedia_action p:$('stream_projection_' + typestr) [-> (pslot.name)]
+                => C.actionReplaceParamWithStream(a, pslot, p);
 
-            forward_get_do_command : Ast.ChainExpression = !turking command:forward_get_do_command p:$('the_out_param_' + typestr) [-> pname]
-                => C.addParameterPassing(command, pname, p);
-            backward_get_do_command : Ast.ChainExpression = !turking command:backward_get_do_command p:$('the_out_param_' + typestr) [-> pname]
-                => C.addParameterPassing(command, pname, p);
-            forward_when_do_rule : Ast.ChainExpression = !turking rule:forward_when_do_rule p:$('the_out_param_' + typestr) [-> pname]
-                => C.addParameterPassing(rule, pname, p);
-            backward_when_do_rule : Ast.ChainExpression = !turking rule:backward_when_do_rule p:$('the_out_param_' + typestr) [-> pname]
-                => C.addParameterPassing(rule, pname, p);
-            when_get_stream : Ast.ChainExpression = !turking stream:when_get_stream p:$('the_out_param_' + typestr) [-> pname]
-                => C.addParameterPassing(stream, pname, p);
+            forward_get_do_command : Ast.ChainExpression = !turking command:forward_get_do_command p:$('the_out_param_' + typestr) [-> (pslot.name)]
+                => C.addParameterPassing(command, pslot, p.ast);
+            backward_get_do_command : Ast.ChainExpression = !turking command:backward_get_do_command p:$('the_out_param_' + typestr) [-> (pslot.name)]
+                => C.addParameterPassing(command, pslot, p.ast);
+            forward_when_do_rule : Ast.ChainExpression = !turking rule:forward_when_do_rule p:$('the_out_param_' + typestr) [-> (pslot.name)]
+                => C.addParameterPassing(rule, pslot, p.ast);
+            backward_when_do_rule : Ast.ChainExpression = !turking rule:backward_when_do_rule p:$('the_out_param_' + typestr) [-> (pslot.name)]
+                => C.addParameterPassing(rule, pslot, p.ast);
+            when_get_stream : Ast.ChainExpression = !turking stream:when_get_stream p:$('the_out_param_' + typestr) [-> (pslot.name)]
+                => C.addParameterPassing(stream, pslot, p.ast);
         }
 
-        if (pname === 'p_picture_url') {
-            forward_get_do_command : Ast.ChainExpression = command:forward_get_do_command ('it' | 'that' | 'them') [-> pname]
-                => C.addParameterPassing(command, pname, new Ast.Value.VarRef('picture_url'));
-            forward_when_do_rule : Ast.ChainExpression = rule:forward_when_do_rule ('it' | 'that' | 'them') [-> pname]
-                => C.addParameterPassing(rule, pname, new Ast.Value.VarRef('picture_url'));
-            when_get_stream : Ast.ChainExpression = stream:when_get_stream ('it' | 'that' | 'them') [-> pname]
-                => C.addParameterPassing(stream, pname, new Ast.Value.VarRef('picture_url'));
+        if (pslot.name === 'p_picture_url') {
+            forward_get_do_command : Ast.ChainExpression = command:forward_get_do_command ('it' | 'that' | 'them') [-> (pslot.name)]
+                => C.addParameterPassing(command, pslot, new Ast.Value.VarRef('picture_url'));
+            forward_when_do_rule : Ast.ChainExpression = rule:forward_when_do_rule ('it' | 'that' | 'them') [-> (pslot.name)]
+                => C.addParameterPassing(rule, pslot, new Ast.Value.VarRef('picture_url'));
+            when_get_stream : Ast.ChainExpression = stream:when_get_stream ('it' | 'that' | 'them') [-> (pslot.name)]
+                => C.addParameterPassing(stream, pslot, new Ast.Value.VarRef('picture_url'));
         }
 
-        if (typestr === 'String' && ['p_body', 'p_message', 'p_caption', 'p_status', 'p_text'].indexOf(pname) >= 0) {
-            forward_get_do_command : Ast.ChainExpression = command:forward_get_do_command ('it' | 'that' | 'them') [-> pname] => {
+        if (typestr === 'String' && ['p_body', 'p_message', 'p_caption', 'p_status', 'p_text'].indexOf(pslot.name) >= 0) {
+            forward_get_do_command : Ast.ChainExpression = command:forward_get_do_command ('it' | 'that' | 'them') [-> (pslot.name)] => {
                 for (let pname in command.first.schema!.out) {
                     if (pname === 'picture_url')
                         return null;
@@ -434,10 +430,10 @@ for (let [pname, [typestr, pcanonical]] of _tpLoader.params.in.values()) {
                     if (_tpLoader.types.id.has(C.typeToStringSafe(ptype)))
                         return null;
                 }
-                return C.addParameterPassing(command, pname, new Ast.Value.Event(null));
+                return C.addParameterPassing(command, pslot, new Ast.Value.Event(null));
             };
 
-            forward_when_do_rule : Ast.ChainExpression = rule:forward_when_do_rule ('it' | 'that' | 'them') [-> pname] => {
+            forward_when_do_rule : Ast.ChainExpression = rule:forward_when_do_rule ('it' | 'that' | 'them') [-> (pslot.name)] => {
                 for (let pname in rule.first.schema!.out) {
                     if (pname === 'picture_url')
                         return null;
@@ -445,10 +441,10 @@ for (let [pname, [typestr, pcanonical]] of _tpLoader.params.in.values()) {
                     if (_tpLoader.types.id.has(C.typeToStringSafe(ptype)))
                         return null;
                 }
-                return C.addParameterPassing(rule, pname, new Ast.Value.Event(null));
+                return C.addParameterPassing(rule, pslot, new Ast.Value.Event(null));
             };
 
-            when_get_stream : Ast.ChainExpression = stream:when_get_stream ('it' | 'that' | 'them') [-> pname] => {
+            when_get_stream : Ast.ChainExpression = stream:when_get_stream ('it' | 'that' | 'them') [-> (pslot.name)] => {
                 for (let pname in stream.first.schema!.out) {
                     if (pname === 'picture_url')
                         return null;
@@ -456,7 +452,7 @@ for (let [pname, [typestr, pcanonical]] of _tpLoader.params.in.values()) {
                     if (_tpLoader.types.id.has(C.typeToStringSafe(ptype)))
                         return null;
                 }
-                return C.addParameterPassing(stream, pname, new Ast.Value.Event(null));
+                return C.addParameterPassing(stream, pslot, new Ast.Value.Event(null));
             };
         }
     }

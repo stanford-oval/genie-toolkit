@@ -25,10 +25,41 @@ import { Ast, Type } from 'thingtalk';
 import * as Units from 'thingtalk-units';
 
 import { typeToStringSafe, isSameFunction, normalizeConfirmAnnotation } from './utils';
-import * as Utils from './utils';
+import {
+    ParamSlot,
+    FilterValueSlot,
+    FilterSlot,
+    InputParamSlot,
+    DomainIndependentFilterSlot,
+
+    makeInputParamSlot,
+    makeFilter,
+    makeDomainIndependentFilter,
+    makeAndFilter,
+    makeDateRangeFilter,
+} from './utils';
+export {
+    ParamSlot,
+    FilterValueSlot,
+    FilterSlot,
+    InputParamSlot,
+    DomainIndependentFilterSlot,
+
+    makeInputParamSlot,
+    makeFilter,
+    makeDomainIndependentFilter,
+    makeAndFilter,
+    makeDateRangeFilter,
+};
 import { SlotBag } from './slot_bag';
 
 import _loader from './load-thingpedia';
+
+export function isEntityOfFunction(type : InstanceType<typeof Type.Entity>, schema : Ast.FunctionDef) {
+    if (!schema.class)
+        return false;
+    return type.type === schema.class.name + ':' + schema.name;
+}
 
 function makeDate(base : Ast.Value|Date|Ast.DateEdge|Ast.DatePiece|Ast.WeekDayDate|null, operator : '+'|'-', offset : Ast.Value|null) : Ast.Value {
     if (!(base instanceof Ast.Value))
@@ -67,7 +98,7 @@ class GetFunctionVisitor extends Ast.NodeVisitor {
     functions : Ast.FunctionDef[] = [];
 
     visitInvocation(invocation : Ast.Invocation) {
-        this.names.push((invocation.selector as Ast.DeviceSelector).kind + ':' + invocation.channel);
+        this.names.push(invocation.selector.kind + '.' + invocation.channel);
         this.functions.push(invocation.schema as Ast.FunctionDef);
         return true;
     }
@@ -107,6 +138,7 @@ function checkNotSelfJoinStream<T extends Ast.Expression>(stream : T) : T|null {
 
 function betaReduce<T extends PlaceholderReplaceable>(ast : T, pname : string, value : Ast.Value) : T|null {
     const clone = ast.clone() as T;
+    assert(value instanceof Ast.Value);
 
     let found = false;
     for (const slot of clone.iterateSlots2({})) {
@@ -145,105 +177,118 @@ function betaReduce<T extends PlaceholderReplaceable>(ast : T, pname : string, v
     return clone;
 }
 
-function makeFilter(param : Ast.VarRefValue, op : string, value : Ast.Value, negate ?: false) : Ast.AtomBooleanExpression|null;
-function makeFilter(param : Ast.VarRefValue, op : string, value : Ast.Value, negate : true) : Ast.NotBooleanExpression|null;
-function makeFilter(param : Ast.VarRefValue, op : string, value : Ast.Value, negate : boolean) : Ast.BooleanExpression|null;
-function makeFilter(param : Ast.VarRefValue, op : string, value : Ast.Value, negate = false) : Ast.BooleanExpression|null {
-    return Utils.makeFilter(_loader, param, op, value, negate);
+export function makeDontCareFilter(slot : ParamSlot) : FilterSlot {
+    return { schema: slot.schema, ptype : slot.type, ast: new Ast.BooleanExpression.DontCare(null, slot.name) };
 }
 
-function makeAndFilter(param : Ast.VarRefValue, op : string, values : Ast.Value[], negate = false) : Ast.BooleanExpression|null {
-    return Utils.makeAndFilter(_loader, param, op, values, negate);
-}
-
-function makeDateRangeFilter(param : Ast.VarRefValue, values : Ast.Value[]) {
-    return Utils.makeDateRangeFilter(_loader, param, values);
-}
-
-function makeOrFilter(param : Ast.VarRefValue, op : string, values : Ast.Value[], negate = false) : Ast.BooleanExpression|null {
+function makeOrFilter(slot : ParamSlot, op : string, values : [Ast.Value, Ast.Value], negate = false) : FilterSlot|null {
     if (values.length !== 2)
         return null;
     if (values[0].equals(values[1]))
         return null;
-    const operands  = values.map((v) => makeFilter(param, op, v, negate));
-    if (operands.includes(null))
+    const operands = [
+        makeFilter(slot, op, values[0], negate),
+        makeFilter(slot, op, values[1], negate)
+    ] as const;
+    if (operands[0] === null || operands[1] === null)
         return null;
-    const f = new Ast.BooleanExpression.Or(null, operands);
+    let ast = new Ast.BooleanExpression.Or(null, [operands[0].ast, operands[1].ast]);
     if (negate)
-        return new Ast.BooleanExpression.Not(null, f);
-    return f;
+        ast = new Ast.BooleanExpression.Not(null, ast);
+    return { schema: slot.schema, ptype : slot.type, ast };
 }
 
-function makeButFilter(param : Ast.VarRefValue, op : string, values : Ast.Value[]) : Ast.BooleanExpression|null {
+function makeButFilter(slot : ParamSlot, op : string, values : [Ast.Value, Ast.Value]) : FilterSlot|null {
     if (values.length !== 2)
         return null;
     if (values[0].equals(values[1]))
         return null;
     const operands  = [
-        makeFilter(param, op, values[0]),
-        makeFilter(param, op, values[1], true)
-    ];
-    if (operands.includes(null))
+        makeFilter(slot, op, values[0]),
+        makeFilter(slot, op, values[1], true)
+    ] as const;
+    if (operands[0] === null || operands[1] === null)
         return null;
-    return new Ast.BooleanExpression.And(null, operands);
+    const ast = new Ast.BooleanExpression.And(null, [operands[0].ast, operands[1].ast]);
+    return { schema: slot.schema, ptype : slot.type, ast };
 }
 
-function makeListExpression(param : Ast.VarRefValue, filter : Ast.BooleanExpression) : Ast.FilterValue|null {
+function makeListExpression(param : ParamSlot, filter : FilterSlot) : FilterValueSlot|null {
+    if (!isSameFunction(param.schema, filter.schema))
+        return null;
     // TODO: handle more complicated filters
     if (!(filter instanceof Ast.AtomBooleanExpression))
         return null;
-    if (filter.name === 'value') {
-        if (_loader.params.out.has(`${param.name}+Array(Compound)`))
-            return null;
-    } else {
-        if (!(param.name in _loader.compoundArrays))
-            return null;
-        const type = _loader.compoundArrays[param.name];
-        if (!(filter.name in type.fields))
-            return null;
-    }
-    const vtype = filter.value.getType();
-    if (!_loader.params.out.has(`${filter.name}+${vtype}`))
-        return null;
-    return new Ast.Value.Filter(param, filter);
+    // TODO check that the filter is valid inside this compound array...
+    return null;
+    //return { schema: param.schema, ast: new Ast.Value.Filter(param, filter) };
 }
 
-function makeAggregateFilter(param : Ast.VarRefValue,
+function normalizeFilter(filter : Ast.ComputeBooleanExpression, schema : Ast.FunctionDef) : FilterSlot|null {
+    if (filter.lhs instanceof Ast.ComputationValue &&
+        filter.lhs.op === 'count' &&
+        filter.lhs.operands.length === 1) {
+        const op1 = filter.lhs.operands[0];
+        assert(op1 instanceof Ast.VarRefValue);
+        const name = op1.name;
+        const canonical = schema!.getArgCanonical(name);
+        if (!canonical)
+            return null;
+        for (const p of schema!.iterateArguments()) {
+            if (p.name === name + 'Count' ||
+                p.canonical === canonical + ' count' ||
+                p.canonical === canonical.slice(0,-1) + ' count')
+                return { schema, ptype: schema.getArgType(p.name)!, ast: new Ast.BooleanExpression.Atom(null, p.name, filter.operator, filter.rhs) };
+        }
+    }
+
+    return { schema, ptype: filter.lhs.getType(), ast: filter };
+}
+
+function makeAggregateFilter(param : ParamSlot,
                              aggregationOp : string,
-                             field : string|null,
+                             field : ParamSlot|'*'|null,
                              op : string,
-                             value : Ast.Value) : Ast.BooleanExpression|null {
+                             value : Ast.Value) : FilterSlot|null {
     if (aggregationOp === 'count') {
         if (!value.getType().isNumber)
             return null;
         assert(field === null || field === '*');
-        const agg = new Ast.Value.Computation(aggregationOp, [param],
+        const agg = new Ast.Value.Computation(aggregationOp, [param.ast],
             [new Type.Array('x'), Type.Number], Type.Number);
-        return new Ast.BooleanExpression.Compute(null, agg, op, value);
+        return normalizeFilter(new Ast.BooleanExpression.Compute(null, agg, op, value), param.schema);
     } else if (['sum', 'avg', 'max', 'min'].includes(aggregationOp)) {
         const vtype = value.getType();
-        if (field) {
-            if (!_loader.params.out.has(`${field}+${vtype}`))
+        const ptype = param.type;
+        assert(field !== '*');
+        if (field !== null) {
+            if (!isSameFunction(param.schema, field.schema))
                 return null;
-        } else {
-            if (!_loader.params.out.has(`${param.name}+Array(${vtype})`))
+            if (!(ptype instanceof Type.Array))
+                return null;
+            const eltype = ptype.elem;
+            if (!(eltype instanceof Type.Compound))
+                return null;
+            if (!(field.name in eltype.fields))
                 return null;
         }
         const agg = new Ast.Value.Computation(aggregationOp, [
-            field ? new Ast.Value.ArrayField(param, field) : param
+            field ? new Ast.Value.ArrayField(param.ast, field.name) : param.ast
         ], [new Type.Array(vtype), vtype], vtype);
-        return new Ast.BooleanExpression.Compute(null, agg, op, value);
+        return normalizeFilter(new Ast.BooleanExpression.Compute(null, agg, op, value), param.schema);
     }
     return null;
 }
 
-function makeAggregateFilterWithFilter(param : Ast.VarRefValue,
-                                       filter : Ast.BooleanExpression|null,
+function makeAggregateFilterWithFilter(param : ParamSlot,
+                                       filter : FilterSlot|null,
                                        aggregationOp : string,
-                                       field : string|null,
+                                       field : ParamSlot|'*'|null,
                                        op : string,
-                                       value : Ast.Value) : Ast.BooleanExpression|null {
+                                       value : Ast.Value) : FilterSlot|null {
     if (filter === null)
+        return null;
+    if (!isSameFunction(param.schema, filter.schema))
         return null;
     const list = makeListExpression(param, filter);
     if (!list)
@@ -251,22 +296,28 @@ function makeAggregateFilterWithFilter(param : Ast.VarRefValue,
     if (aggregationOp === 'count') {
         if (!value.getType().isNumber)
             return null;
-        assert(field === null);
-        const agg = new Ast.Value.Computation(aggregationOp, [list], [new Type.Array('x'), Type.Number], Type.Number);
-        return new Ast.BooleanExpression.Compute(null, agg, op, value);
+        assert(field === '*');
+        const agg = new Ast.Value.Computation(aggregationOp, [list.ast], [new Type.Array('x'), Type.Number], Type.Number);
+        return normalizeFilter(new Ast.BooleanExpression.Compute(null, agg, op, value), param.schema);
     } else if (['sum', 'avg', 'max', 'min'].includes(aggregationOp)) {
         const vtype = value.getType();
-        if (field) {
-            if (!_loader.params.out.has(`${field}+${vtype}`))
+        const ptype = param.type;
+        assert(field !== '*');
+        if (field !== null) {
+            if (!isSameFunction(param.schema, field.schema))
                 return null;
-        } else {
-            if (!_loader.params.out.has(`${param.name}+Array(${vtype})`))
+            if (!(ptype instanceof Type.Array))
+                return null;
+            const eltype = ptype.elem;
+            if (!(eltype instanceof Type.Compound))
+                return null;
+            if (!(field.name in eltype.fields))
                 return null;
         }
         const agg = new Ast.Value.Computation(aggregationOp, [
-            field ? new Ast.Value.ArrayField(list, field) : list
+            field ? new Ast.Value.ArrayField(param.ast, field.name) : param.ast
         ], [new Type.Array(vtype), vtype], vtype);
-        return new Ast.BooleanExpression.Compute(null, agg, op, value);
+        return normalizeFilter(new Ast.BooleanExpression.Compute(null, agg, op, value), param.schema);
     }
     return null;
 }
@@ -278,7 +329,11 @@ function makeEdgeFilterStream(proj : Ast.Expression, op : string, value : Ast.Va
 
     const args = getProjectionArguments(proj);
     assert(args.length > 0);
-    const f = new Ast.BooleanExpression.Atom(null, args[0], op, value);
+    const f = {
+        schema: proj.schema!,
+        ptype: proj.schema!.getArgType(args[0])!,
+        ast: new Ast.BooleanExpression.Atom(null, args[0], op, value)
+    };
     if (!checkFilter(proj.expression, f))
         return null;
     if (!proj.schema!.is_monitorable || proj.schema!.is_list)
@@ -287,7 +342,7 @@ function makeEdgeFilterStream(proj : Ast.Expression, op : string, value : Ast.Va
     if (outParams.length === 1 && _loader.flags.turking)
         return null;
 
-    return new Ast.FilterExpression(null, new Ast.MonitorExpression(null, proj.expression, null, proj.expression.schema), f, proj.expression.schema);
+    return new Ast.FilterExpression(null, new Ast.MonitorExpression(null, proj.expression, null, proj.expression.schema), f.ast, proj.expression.schema);
 }
 
 function addUnit(unit : string, num : Ast.VarRefValue | Ast.NumberValue) : Ast.Value {
@@ -472,19 +527,27 @@ function isEqualityFilteredOnParameter(table : Ast.Expression, pname : string) :
     return false;
 }
 
-function makeSingleFieldProjection(ftype : 'table'|'stream', ptype : Type|null, table : Ast.Expression, pname : string) : Ast.Expression|null {
+function makeSingleFieldProjection(ftype : 'table'|'stream', ptype : Type|null, table : Ast.Expression, param : ParamSlot|'geo') : Ast.Expression|null {
     assert(table);
     assert(ftype === 'table' || ftype === 'stream');
-    assert(typeof pname === 'string');
 
-    if (!table.schema!.out[pname])
+    let pname;
+    if (param === 'geo') {
+        pname = 'geo';
+    } else {
+        if (!isSameFunction(table.schema!, param.schema))
+            return null;
+        pname = param.name;
+    }
+    const arg = table.schema!.getArgument(pname);
+    if (!arg || arg.is_input)
         return null;
 
     const outParams = Object.keys(table.schema!.out);
     if (outParams.length === 1)
         return table;
 
-    if (ptype && !Type.isAssignable(table.schema!.out[pname], ptype))
+    if (ptype && !Type.isAssignable(arg.type, ptype))
         return null;
 
     if (ftype === 'table') {
@@ -501,15 +564,14 @@ function makeSingleFieldProjection(ftype : 'table'|'stream', ptype : Type|null, 
     }
 }
 
-function makeMultiFieldProjection(ftype : 'table'|'stream', table : Ast.Expression, outParams : Ast.VarRefValue[]) : Ast.Expression|null {
+function makeMultiFieldProjection(ftype : 'table'|'stream', table : Ast.Expression, outParams : ParamSlot[]) : Ast.Expression|null {
     const names = [];
     for (const outParam of outParams) {
+        if (!isSameFunction(table.schema!, outParam.schema))
+            return null;
         const name = outParam.name;
-        if (_loader.flags.schema_org) {
-            if (name === 'id')
-                return null;
-        }
-        if (!table.schema!.out[name])
+        const arg = table.schema!.getArgument(name);
+        if (!arg || arg.is_input)
             return null;
 
         if (ftype === 'table') {
@@ -731,7 +793,7 @@ function checkAtomFilter(table : Ast.Expression, filter : Ast.AtomBooleanExpress
     return true;
 }
 
-function checkFilter(table : Ast.Expression, filter : Ast.BooleanExpression) : boolean {
+function internalCheckFilter(table : Ast.Expression, filter : Ast.BooleanExpression) : boolean {
     while (table instanceof Ast.ProjectionExpression)
         table = table.expression;
 
@@ -742,7 +804,7 @@ function checkFilter(table : Ast.Expression, filter : Ast.BooleanExpression) : b
     if (filter instanceof Ast.AndBooleanExpression ||
         filter instanceof Ast.OrBooleanExpression) {
         for (const operands of filter.operands) {
-            if (!checkFilter(table, operands))
+            if (!internalCheckFilter(table, operands))
                 return false;
         }
         return true;
@@ -764,6 +826,12 @@ function checkFilter(table : Ast.Expression, filter : Ast.BooleanExpression) : b
     }
 
     throw new Error(`Unexpected filter type ${filter}`);
+}
+
+function checkFilter(table : Ast.Expression, filter : FilterSlot|DomainIndependentFilterSlot) : boolean {
+    if (filter.schema !== null && !isSameFunction(table.schema!, filter.schema))
+        return false;
+    return internalCheckFilter(table, filter.ast);
 }
 
 function* iterateFilters(table : Ast.Expression) : Generator<[Ast.FunctionDef, Ast.BooleanExpression], void> {
@@ -836,43 +904,13 @@ function checkFilterUniqueness(table : Ast.Expression, filter : Ast.BooleanExpre
     return arg.unique;
 }
 
-function normalizeFilter(table : Ast.Expression, filter : Ast.BooleanExpression) : Ast.BooleanExpression|null {
-    if (filter instanceof Ast.ComputeBooleanExpression &&
-        filter.lhs instanceof Ast.ComputationValue &&
-        filter.lhs.op === 'count' &&
-        filter.lhs.operands.length === 1) {
-        const op1 = filter.lhs.operands[0];
-        assert(op1 instanceof Ast.VarRefValue);
-        const name = op1.name;
-        const canonical = table.schema!.getArgCanonical(name);
-        if (!canonical)
-            return null;
-        for (const p of table.schema!.iterateArguments()) {
-            if (p.name === name + 'Count' ||
-                p.canonical === canonical + ' count' ||
-                p.canonical === canonical.slice(0,-1) + ' count')
-                return new Ast.BooleanExpression.Atom(null, p.name, filter.operator, filter.rhs);
-        }
-    }
-
-    return filter;
-}
-
 interface AddFilterOptions {
     ifFilter ?: boolean;
 }
 
-function addFilter(table : Ast.Expression,
-                   filter : Ast.BooleanExpression,
-                   options : AddFilterOptions = {}) : Ast.Expression|null {
-    const normalized = normalizeFilter(table, filter);
-    if (!normalized)
-        return null;
-    filter = normalized;
-
-    if (!checkFilter(table, filter))
-        return null;
-
+function addFilterInternal(table : Ast.Expression,
+                           filter : Ast.BooleanExpression,
+                           options : AddFilterOptions) : Ast.Expression|null {
     // when an "unique" parameter has been used in the table
     if (table.schema!.no_filter)
         return null;
@@ -892,7 +930,7 @@ function addFilter(table : Ast.Expression,
         table instanceof Ast.SortExpression ||
         table instanceof Ast.IndexExpression ||
         table instanceof Ast.SliceExpression) {
-        const added = addFilter(table.expression, filter);
+        const added = addFilterInternal(table.expression, filter, options);
         if (added === null)
             return null;
         if (table instanceof Ast.ProjectionExpression)
@@ -956,6 +994,15 @@ function addFilter(table : Ast.Expression,
     return new Ast.FilterExpression(null, table, filter, schema);
 }
 
+function addFilter(table : Ast.Expression,
+                   filter : FilterSlot|DomainIndependentFilterSlot,
+                   options : AddFilterOptions = {}) : Ast.Expression|null {
+    if (!checkFilter(table, filter))
+        return null;
+
+    return addFilterInternal(table, filter.ast, options);
+}
+
 function tableToStream(table : Ast.Expression) : Ast.Expression|null {
     if (!table.schema!.is_monitorable)
         return null;
@@ -998,7 +1045,7 @@ function builtinSayAction(pname ?: Ast.Value|string) : Ast.InvocationExpression|
     }
 }
 
-function locationGetPredicate(loc : Ast.Value, negate = false) : Ast.ExternalBooleanExpression|null {
+function locationGetPredicate(loc : Ast.Value, negate = false) : DomainIndependentFilterSlot|null {
     if (!_loader.standardSchemas.get_gps)
         return null;
 
@@ -1006,11 +1053,12 @@ function locationGetPredicate(loc : Ast.Value, negate = false) : Ast.ExternalBoo
     if (negate)
         filter = new Ast.BooleanExpression.Not(null, filter);
 
-    return new Ast.BooleanExpression.External(null, new Ast.DeviceSelector(null, 'org.thingpedia.builtin.thingengine.builtin',null,null),'get_gps', [], filter,
-        _loader.standardSchemas.get_gps);
+    return { schema: null, ptype: null,
+        ast: new Ast.BooleanExpression.External(null, new Ast.DeviceSelector(null, 'org.thingpedia.builtin.thingengine.builtin',null,null),'get_gps', [], filter,
+            _loader.standardSchemas.get_gps) };
 }
 
-function timeGetPredicate(low : Ast.Value|null, high : Ast.Value|null) : Ast.ExternalBooleanExpression|null {
+function timeGetPredicate(low : Ast.Value|null, high : Ast.Value|null) : DomainIndependentFilterSlot|null {
     if (!_loader.standardSchemas.get_time)
         return null;
 
@@ -1021,8 +1069,9 @@ function timeGetPredicate(low : Ast.Value|null, high : Ast.Value|null) : Ast.Ext
     if (high)
         operands.push(new Ast.BooleanExpression.Atom(null, 'time', '<=', high));
     const filter = new Ast.BooleanExpression.And(null, operands);
-    return new Ast.BooleanExpression.External(null, new Ast.DeviceSelector(null, 'org.thingpedia.builtin.thingengine.builtin',null,null),'get_time', [], filter,
-        _loader.standardSchemas.get_time);
+    return { schema: null, ptype: null,
+        ast: new Ast.BooleanExpression.External(null, new Ast.DeviceSelector(null, 'org.thingpedia.builtin.thingengine.builtin',null,null),'get_time', [], filter,
+            _loader.standardSchemas.get_time) };
 }
 
 function hasGetPredicate(filter : Ast.BooleanExpression) : boolean {
@@ -1038,7 +1087,7 @@ function hasGetPredicate(filter : Ast.BooleanExpression) : boolean {
     return filter instanceof Ast.ExternalBooleanExpression;
 }
 
-function makeGetPredicate(proj : Ast.Expression, op : string, value : Ast.Value, negate = false) : Ast.ExternalBooleanExpression|null {
+function makeGetPredicate(proj : Ast.Expression, op : string, value : Ast.Value, negate = false) : DomainIndependentFilterSlot|null {
     if (!(proj instanceof Ast.ProjectionExpression) || proj.args.length === 0)
         return null;
     if (!(proj.expression instanceof Ast.InvocationExpression))
@@ -1052,7 +1101,8 @@ function makeGetPredicate(proj : Ast.Expression, op : string, value : Ast.Value,
     const schema = proj.expression.invocation.schema!;
     if (!schema.out[arg].equals(value.getType()))
         return null;
-    return new Ast.BooleanExpression.External(null, selector, channel, proj.expression.invocation.in_params, filter, proj.expression.invocation.schema);
+    return { schema: null, ptype: null,
+        ast: new Ast.BooleanExpression.External(null, selector, channel, proj.expression.invocation.in_params, filter, proj.expression.invocation.schema) };
 }
 
 export function resolveChain(...expressions : Ast.FunctionDef[]) : Ast.FunctionDef {
@@ -1153,10 +1203,12 @@ function actionReplaceParamWith(into : Ast.Expression, pname : string, projectio
     return betaReduce(into, pname, replacement);
 }
 
-function actionReplaceParamWithTable(into : Ast.Expression, pname : string, what : Ast.Expression|null) : Ast.ChainExpression|null {
+function actionReplaceParamWithTable(into : Ast.Expression, pname : ParamSlot, what : Ast.Expression|null) : Ast.ChainExpression|null {
     if (what === null)
         return null;
-    const intotype = into.schema!.inReq[pname];
+    if (!isSameFunction(into.schema!, pname.schema))
+        return null;
+    const intotype = into.schema!.inReq[pname.name];
     if (!intotype)
         return null;
     let projection : Ast.ProjectionExpression;
@@ -1173,31 +1225,35 @@ function actionReplaceParamWithTable(into : Ast.Expression, pname : string, what
     }
     if (projection.args.length !== 1)
         throw new TypeError('???');
-    const reduced = actionReplaceParamWith(into, pname, projection);
+    const reduced = actionReplaceParamWith(into, pname.name, projection);
     if (reduced === null)
         return null;
     return new Ast.ChainExpression(null, [projection.expression, reduced], resolveChain(projection.expression.schema!, reduced.schema!));
 }
 
-function actionReplaceParamWithStream(into : Ast.Expression, pname : string, projection : Ast.Expression) : Ast.ChainExpression|null {
+function actionReplaceParamWithStream(into : Ast.Expression, pname : ParamSlot, projection : Ast.Expression) : Ast.ChainExpression|null {
+    if (!isSameFunction(into.schema!, pname.schema))
+        return null;
     if (projection === null)
         return null;
     if (!(projection instanceof Ast.ProjectionExpression) || !projection.expression || projection.args.length !== 1)
         return null;
-    const reduced = actionReplaceParamWith(into, pname, projection);
+    const reduced = actionReplaceParamWith(into, pname.name, projection);
     if (reduced === null)
         return null;
     return new Ast.ChainExpression(null, [projection.expression, reduced], resolveChain(projection.expression.schema!, reduced.schema!));
 }
 
-export function addParameterPassing(command : Ast.ChainExpression, pname : string, joinArg : Ast.VarRefValue|Ast.EventValue) : Ast.ChainExpression|null {
+export function addParameterPassing(command : Ast.ChainExpression, pname : ParamSlot, joinArg : Ast.VarRefValue|Ast.EventValue) : Ast.ChainExpression|null {
     //if (command.actions.length !== 1 || command.actions[0].selector.isBuiltin)
     //    throw new TypeError('???');
     const expressions = command.expressions;
     assert(expressions.length >= 2);
     const last = expressions[expressions.length-1];
+    if (!isSameFunction(last.schema!, pname.schema))
+        return null;
     const beforelast = expressions[expressions.length-2];
-    const actiontype = last.schema!.inReq[pname];
+    const actiontype = last.schema!.inReq[pname.name];
     if (!actiontype)
         return null;
     if (_loader.flags.dialogues && joinArg.name !== 'id')
@@ -1206,10 +1262,34 @@ export function addParameterPassing(command : Ast.ChainExpression, pname : strin
     if (!commandtype || !commandtype.equals(actiontype))
         return null;
 
-    const reduced = betaReduce(last, pname, joinArg);
+    const reduced = betaReduce(last, pname.name, joinArg);
     if (reduced === null)
         return null;
     return new Ast.ChainExpression(null, expressions.slice(0, expressions.length-1).concat([reduced]), command.schema);
+}
+
+export function addSameNameParameterPassing(command : Ast.ExpressionStatement, joinArg : ParamSlot) : Ast.ExpressionStatement|null {
+    const action = command.last;
+    assert(action instanceof Ast.InvocationExpression);
+    const table = command.lastQuery!;
+    if (!isSameFunction(action.schema!, joinArg.schema))
+        return null;
+
+    const actiontype = action.schema!.inReq[joinArg.name];
+    if (!actiontype)
+        return null;
+    if (action.invocation.in_params.some((p) => p.name === joinArg.name))
+        return null;
+    const commandtype = table.schema!.out[joinArg.name];
+    if (!commandtype || !Type.isAssignable(commandtype, actiontype))
+        return null;
+    // FIXME
+    //if (joinArg.isEvent && (stream instanceof Ast.FunctionCallExpression)) // timer
+    //    return null;
+
+    const clone = action.clone();
+    clone.invocation.in_params.push(new Ast.InputParam(null, joinArg.name, new Ast.Value.VarRef(joinArg.name)));
+    return new Ast.ExpressionStatement(null, new Ast.ChainExpression(null, [table, clone], resolveChain(table.schema!, clone.schema!)));
 }
 
 function isConstantAssignable(value : Ast.Value, ptype : Type) : boolean {
@@ -1228,21 +1308,25 @@ function isConstantAssignable(value : Ast.Value, ptype : Type) : boolean {
 
 type PlaceholderReplaceable = Ast.Expression|Ast.Invocation;
 
-function replacePlaceholderWithConstant<T extends PlaceholderReplaceable>(lhs : T, pname : string, value : Ast.Value) : T|null {
-    const ptype = lhs.schema!.inReq[pname];
+function replacePlaceholderWithConstant<T extends PlaceholderReplaceable>(lhs : T, param : ParamSlot, value : Ast.Value) : T|null {
+    if (!isSameFunction(lhs.schema!, param.schema))
+        return null;
+    const ptype = lhs.schema!.inReq[param.name];
     if (!isConstantAssignable(value, ptype))
         return null;
     if (ptype instanceof Type.Enum && ptype.entries!.indexOf(value.toJS() as string) < 0)
         return null;
-    return betaReduce(lhs, pname, value);
+    return betaReduce(lhs, param.name, value);
 }
 
-function replacePlaceholderWithUndefined<T extends PlaceholderReplaceable>(lhs : T, pname : string, typestr : string) : T|null {
-    if (!lhs.schema!.inReq[pname])
+function replacePlaceholderWithUndefined<T extends PlaceholderReplaceable>(lhs : T, param : ParamSlot, typestr : string) : T|null {
+    if (!isSameFunction(lhs.schema!, param.schema))
         return null;
-    if (typestr !== typeToStringSafe(lhs.schema!.inReq[pname]))
+    if (!lhs.schema!.inReq[param.name])
         return null;
-    return betaReduce(lhs, pname, new Ast.Value.Undefined(true));
+    if (typestr !== typeToStringSafe(lhs.schema!.inReq[param.name]))
+        return null;
+    return betaReduce(lhs, param.name, new Ast.Value.Undefined(true));
 }
 
 function sayProjection(maybeProj : Ast.Expression|null) : Ast.ExpressionStatement|null {
@@ -1350,7 +1434,7 @@ function addReverseGetPredicateJoin(table : Ast.Expression,
     );
     if (negate)
         get_predicate = new Ast.BooleanExpression.Not(null, get_predicate);
-    return addFilter(table, get_predicate);
+    return addFilterInternal(table, get_predicate, {});
 }
 
 function addGetPredicateJoin(table : Ast.Expression,
@@ -1389,12 +1473,15 @@ function addGetPredicateJoin(table : Ast.Expression,
 
     const idFilter = maybeGetIdFilter(get_predicate_table.filter);
     if (idFilter) {
+        if (idFilter.isString)
+            return null;
+
         let newAtom = new Ast.BooleanExpression.Atom(null, lhsArg.name,
             lhsArg.type.isArray ? 'contains': '==', idFilter);
         if (negate)
             newAtom = new Ast.BooleanExpression.Not(null, newAtom);
 
-        return addFilter(table, newAtom);
+        return addFilterInternal(table, newAtom, {});
     }
 
     let newAtom = new Ast.BooleanExpression.Atom(null, 'id', (lhsArg.type.isArray ? 'in_array' : '=='), new Ast.Value.VarRef(lhsArg.name));
@@ -1407,7 +1494,7 @@ function addGetPredicateJoin(table : Ast.Expression,
         new Ast.BooleanExpression.And(null, [get_predicate_table.filter, newAtom]),
         get_predicate_table.expression.invocation.schema
     );
-    return addFilter(table, get_predicate);
+    return addFilterInternal(table, get_predicate, {});
 }
 
 function addArrayJoin(lhs : Ast.Expression, rhs : Ast.Expression) : Ast.Expression|null {
@@ -1457,7 +1544,7 @@ function makeComputeExpression(table : Ast.Expression,
 }
 
 function makeComputeFilterExpression(table : Ast.Expression,
-                                     operation : string,
+                                     operation : 'distance',
                                      operands : Ast.Value[],
                                      resultType : Type,
                                      filterOp : string,
@@ -1471,9 +1558,11 @@ function makeComputeFilterExpression(table : Ast.Expression,
         expression.overload = [Type.Location, Type.Location, new Type.Measure('m')];
         expression.type = new Type.Measure('m');
     }
-    const filter = new Ast.BooleanExpression.Compute(null, expression, filterOp, filterValue);
-    if (!filter)
-        return null;
+    const filter = {
+        schema: null,
+        ptype: expression.type,
+        ast: new Ast.BooleanExpression.Compute(null, expression, filterOp, filterValue)
+    };
     return addFilter(table, filter);
 }
 
@@ -1519,23 +1608,21 @@ function makeComputeArgMinMaxExpression(table : Ast.Expression,
 function makeAggComputeValue(table : Ast.Expression,
                              operation : string,
                              field : string|null,
-                             list : Ast.Value,
+                             slot : ParamSlot|FilterValueSlot,
                              resultType : Type) : Ast.Value|null {
+    if (!isSameFunction(table.schema!, slot.schema))
+        return null;
     if (hasUniqueFilter(table))
         return null;
-    let name;
-    assert(list instanceof Ast.VarRefValue || list instanceof Ast.FilterValue);
+    const list = slot.ast;
     if (list instanceof Ast.VarRefValue) {
-        name = list.name;
-    } else {
-        assert(list.value instanceof Ast.VarRefValue);
-        name = list.value.name;
-    }
-    assert(typeof name === 'string');
-    const canonical = table.schema!.getArgCanonical(name)!;
-    for (const p of table.schema!.iterateArguments()) {
-        if (p.name === name + 'Count' || p.canonical === canonical + 'count' || p.canonical === canonical.slice(0,-1) + ' count')
-            return new Ast.Value.VarRef(p.name);
+        const name = list.name;
+        assert(typeof name === 'string');
+        const canonical = table.schema!.getArgCanonical(name)!;
+        for (const p of table.schema!.iterateArguments()) {
+            if (p.name === name + 'Count' || p.canonical === canonical + 'count' || p.canonical === canonical.slice(0,-1) + ' count')
+                return new Ast.Value.VarRef(p.name);
+        }
     }
     const expression = new Ast.Value.Computation(operation, [field ? new Ast.Value.ArrayField(list, field) : list]);
     if (operation === 'count') {
@@ -1551,7 +1638,7 @@ function makeAggComputeValue(table : Ast.Expression,
 function makeAggComputeExpression(table : Ast.Expression,
                                   operation : string,
                                   field : string|null,
-                                  list : Ast.Value,
+                                  list : ParamSlot|FilterValueSlot,
                                   resultType : Type) : Ast.Expression|null {
     const value = makeAggComputeValue(table, operation, field, list, resultType);
     if (!value)
@@ -1565,7 +1652,7 @@ function makeAggComputeExpression(table : Ast.Expression,
 function makeAggComputeArgMinMaxExpression(table : Ast.Expression,
                                            operation : string,
                                            field : string|null,
-                                           list : Ast.Value,
+                                           list : ParamSlot|FilterValueSlot,
                                            resultType : Type,
                                            direction : 'asc'|'desc' = 'desc') : Ast.Expression|null {
     const value = makeAggComputeValue(table, operation, field, list, resultType);
@@ -1618,16 +1705,18 @@ interface AddInputParamsOptions {
 }
 
 function checkInvocationInputParam(invocation : Ast.Invocation,
-                                   param : Ast.InputParam,
+                                   param : InputParamSlot,
                                    options : AddInputParamsOptions = {}) : boolean {
     assert(invocation instanceof Ast.Invocation);
-    const arg = invocation.schema!.getArgument(param.name);
-    if (!arg || (!arg.is_input && !options.allowOutput) || !isConstantAssignable(param.value, arg.type))
+    const arg = invocation.schema!.getArgument(param.ast.name);
+    if (!arg || (!arg.is_input && !options.allowOutput) || !isConstantAssignable(param.ast.value, arg.type))
+        return false;
+    if (!isSameFunction(invocation.schema!, param.schema))
         return false;
 
     if (arg.type.isNumber || arg.type.isMeasure) {
         // __const varref, likely
-        if (!param.value.isNumber && !param.value.isMeasure)
+        if (!param.ast.value.isNumber && !param.ast.value.isMeasure)
             return false;
 
         let min = -Infinity;
@@ -1639,7 +1728,7 @@ function checkInvocationInputParam(invocation : Ast.Invocation,
         if (maxArg !== undefined)
             max = maxArg;
 
-        const value = param.value.toJS() as number;
+        const value = param.ast.value.toJS() as number;
         if (value < min || value > max)
             return false;
     }
@@ -1648,27 +1737,27 @@ function checkInvocationInputParam(invocation : Ast.Invocation,
 }
 
 function addInvocationInputParam(invocation : Ast.Invocation,
-                                 param : Ast.InputParam,
+                                 param : InputParamSlot,
                                  options ?: AddInputParamsOptions) : Ast.Invocation|null {
     if (!checkInvocationInputParam(invocation, param, options))
         return null;
 
     const clone = invocation.clone();
     for (const existing of clone.in_params) {
-        if (existing.name === param.name) {
+        if (existing.name === param.ast.name) {
             if (existing.value.isUndefined) {
-                existing.value = param.value;
+                existing.value = param.ast.value;
                 return clone;
             } else {
                 return null;
             }
         }
     }
-    clone.in_params.push(param);
+    clone.in_params.push(param.ast);
     return clone;
 }
 
-function addActionInputParam(action : Ast.Expression, param : Ast.InputParam) : Ast.Expression|null {
+function addActionInputParam(action : Ast.Expression, param : InputParamSlot) : Ast.Expression|null {
     if (action instanceof Ast.ChainExpression) {
         const added = addActionInputParam(action.last, param);
         if (!added)
@@ -1685,10 +1774,12 @@ function addActionInputParam(action : Ast.Expression, param : Ast.InputParam) : 
     return new Ast.InvocationExpression(null, newInvocation, action.schema!);
 }
 
-function replaceSlotBagPlaceholder(bag : SlotBag, pname : string, value : Ast.Value) : SlotBag|null {
+function replaceSlotBagPlaceholder(bag : SlotBag, pslot : ParamSlot, value : Ast.Value) : SlotBag|null {
     if (!value.isConstant())
         return null;
-    let ptype = bag.schema!.getArgType(pname);
+    if (!isSameFunction(pslot.schema, bag.schema!))
+        return null;
+    let ptype = bag.schema!.getArgType(pslot.name);
     if (!ptype)
         return null;
     if (ptype instanceof Type.Array)
@@ -1696,10 +1787,10 @@ function replaceSlotBagPlaceholder(bag : SlotBag, pname : string, value : Ast.Va
     const vtype = value.getType();
     if (!ptype.equals(vtype))
         return null;
-    if (bag.has(pname))
+    if (bag.has(pslot.name))
         return null;
     const clone = bag.clone();
-    clone.set(pname, value);
+    clone.set(pslot.name, value);
     return clone;
 }
 
@@ -1709,7 +1800,7 @@ export interface ErrorMessage {
 }
 
 function replaceErrorMessagePlaceholder(msg : ErrorMessage,
-                                        pname : string,
+                                        pname : ParamSlot,
                                         value : Ast.Value) : ErrorMessage|null {
     const newbag = replaceSlotBagPlaceholder(msg.bag, pname, value);
     if (newbag === null)
@@ -1839,11 +1930,8 @@ export {
 
     // filters
     hasUniqueFilter,
-    makeFilter,
-    makeAndFilter,
     makeOrFilter,
     makeButFilter,
-    makeDateRangeFilter,
     makeAggregateFilter,
     makeAggregateFilterWithFilter,
     checkFilter,

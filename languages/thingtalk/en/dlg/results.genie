@@ -23,6 +23,7 @@
 import assert from 'assert';
 import { Ast, } from 'thingtalk';
 
+import * as C from '../../ast_manip';
 import * as D from '../../dialogue_acts';
 import * as S from '../../state_manip';
 import { SlotBag, checkAndAddSlot } from '../../slot_bag';
@@ -91,10 +92,9 @@ direct_result_info_phrase : SlotBag = {
 
 one_param_direct_result_info_phrase : SlotBag = {
     'the' param:out_param_Any 'is' v:constant_Any => {
-        const vtype = v.getType();
-        if (!_tpLoader.params.out.has(param.name + '+' + vtype))
+        if (!param.type.equals(v.getType()))
             return null;
-        const bag = new SlotBag(null);
+        const bag = new SlotBag(param.schema);
         bag.set(param.name, v);
         return bag;
     };

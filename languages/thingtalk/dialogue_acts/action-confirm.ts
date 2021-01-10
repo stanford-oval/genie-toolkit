@@ -74,7 +74,7 @@ function actionConfirmRejectPhrase(ctx : ContextInfo) {
     return makeSimpleState(clone, 'cancel', null);
 }
 
-function actionConfirmChangeParam(ctx : ContextInfo, answer : Ast.Value|Ast.InputParam) {
+function actionConfirmChangeParam(ctx : ContextInfo, answer : Ast.Value|C.InputParamSlot) {
     if (!ctx.next)
         return null;
     const action = C.getInvocation(ctx.next);
@@ -84,12 +84,12 @@ function actionConfirmChangeParam(ctx : ContextInfo, answer : Ast.Value|Ast.Inpu
         return null;
 
     // don't accept in params that don't apply to this specific action
-    const arg = ctx.nextFunctionSchema!.getArgument(answer.name);
-    if (!arg || !arg.is_input || !arg.type.equals(answer.value.getType()))
+    const arg = ctx.nextFunctionSchema!.getArgument(answer.ast.name);
+    if (!arg || !arg.is_input || !arg.type.equals(answer.ast.value.getType()))
         return null;
 
     const clone = action.clone();
-    setOrAddInvocationParam(clone, answer.name, answer.value);
+    setOrAddInvocationParam(clone, answer.ast.name, answer.ast.value);
     return replaceAction(ctx, 'execute', clone, 'confirmed');
 }
 

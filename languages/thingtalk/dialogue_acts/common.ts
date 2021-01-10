@@ -23,6 +23,7 @@ import assert from 'assert';
 
 import { Ast, } from 'thingtalk';
 
+import * as C from '../ast_manip';
 import { arraySubset } from '../array_utils';
 import {
     setOrAddInvocationParam,
@@ -150,9 +151,11 @@ function isInfoPhraseCompatibleWithResult(topResult : Ast.DialogueHistoryResultI
  * This checks two things: that all parameters are valid output parameters of the table,
  * and all parameters are filterable.
  */
-function isValidSearchQuestion(expr : Ast.Expression, questions : string[]) {
+function isValidSearchQuestion(expr : Ast.Expression, questions : C.ParamSlot[]) {
     for (const q of questions) {
-        const arg = expr.schema!.getArgument(q);
+        if (!C.isSameFunction(q.schema, expr.schema!))
+            return false;
+        const arg = expr.schema!.getArgument(q.name);
         if (!arg || arg.is_input)
             return false;
         if (arg.getAnnotation('filterable') === false)

@@ -20,35 +20,36 @@
 
 // Coref question templates: questions about the current result, referred by coreference ("it", "that", "the restaurant")
 
-import assert from 'assert';
-import { Ast, Type } from 'thingtalk';
+import { Ast } from 'thingtalk';
 
 import * as C from '../../ast_manip';
+import * as D from '../../dialogue_acts';
 
 // import thingpedia info
 import _tpLoader from '../../load-thingpedia';
 
 // questions with "it"/"that" -- coreference on a single result
 
-// this is the almost the same as a plain out_param_list, but we drop the wrapper
-// VarRef and return a list of strings
-out_param_list_for_coref_question : string[] = {
+out_param_list_for_coref_question : C.ParamSlot[] = {
     p1:out_param_Any 'and' p2:out_param_Any => {
-        if (p1.name === 'id' || p2.name === 'id' || p1.name === p2.name)
+        if (p1.name === 'id' || p2.name === 'id' || p1.name === p2.name ||
+            !C.isSameFunction(p1.schema, p2.schema))
             return null;
-        return [p1.name, p2.name];
+        return [p1, p2];
     };
 
-    p1:out_param_Any ',' p2:out_param_Any (',' | '') 'and' p3:out_param_Any=> {
+    p1:out_param_Any ',' p2:out_param_Any (',' | '') 'and' p3:out_param_Any => {
         if (p1.name === 'id' || p2.name === 'id' || p3.name === 'id')
             return null;
         if (p1.name === p2.name || p2.name === p3.name || p1.name === p3.name)
             return null;
-        return [p1.name, p2.name, p3.name];
+        if (!C.isSameFunction(p1.schema, p2.schema) || !C.isSameFunction(p1.schema, p3.schema))
+            return null;
+        return [p1, p2, p3];
     };
 }
 
-simple_user_search_question : Array<[string, Type|null]> = {
+simple_user_search_question : C.ParamSlot[] = {
     // straight up questions
     ( ('can you tell me' | '') 'what is' ('the' | 'its') param:out_param_Any '?'
     | 'can you tell me' ('the' | 'its') param:out_param_Any '?'
@@ -59,7 +60,7 @@ simple_user_search_question : Array<[string, Type|null]> = {
     ) => {
         if (param.name === 'id')
             return null;
-        return [[param.name, null]];
+        return [param];
     };
 
     ( ('can you tell me' | '') 'what' ('is' | 'are') ('the' | 'its') params:out_param_list_for_coref_question '?'
@@ -67,7 +68,7 @@ simple_user_search_question : Array<[string, Type|null]> = {
     | 'i would like to' ('know' | 'see') ('the' | 'its') params:out_param_list_for_coref_question ('first' | '') '.'
     | 'i need' ('the' | 'its') params:out_param_list_for_coref_question ('first' | '') '.'
     | 'i just need' ('the' | 'its') params:out_param_list_for_coref_question '.'
-    ) => params.map((pname) => [pname, null]);
+    ) => params;
 
     ( ('can you tell me' | '') 'what is' 'the' param:out_param_Any 'of the' base:base_table '?'
     | 'can you tell me' 'the' param:out_param_Any 'of the' base:base_table '?'
@@ -80,11 +81,11 @@ simple_user_search_question : Array<[string, Type|null]> = {
     | 'i would like to' ('know' | 'see') 'the' base:base_table '\'s' param:out_param_Any ('first' | '') '.'
     | 'i just need' ('the' | 'its') 'the' base:base_table '\'s' param:out_param_Any '.'
     ) => {
-        if (!base.schema!.out[param.name])
+        if (!C.isSameFunction(base.schema!, param.schema))
             return null;
         if (param.name === 'id')
             return null;
-        return [[param.name, null]];
+        return [param];
     };
 
     ( ('can you tell me' | '') 'what' ('is' | 'are') 'the' params:out_param_list_for_coref_question 'of the' base:base_table '?'
@@ -98,9 +99,9 @@ simple_user_search_question : Array<[string, Type|null]> = {
     | 'i would like to' ('know' | 'see') 'the' base:base_table '\'s' params:out_param_list_for_coref_question ('first' | '') '.'
     | 'i just need' ('the' | 'its') 'the' base:base_table '\'s' params:out_param_list_for_coref_question '.'
     ) => {
-        if (!params.every((pname) => !!base.schema!.out[pname]))
+        if (!params.every((p) => C.isSameFunction(base.schema!, p.schema)))
             return null;
-        return params.map((pname) => [pname, null]);
+        return params;
     };
 
     // boolean projection
@@ -121,7 +122,7 @@ simple_user_search_question : Array<[string, Type|null]> = {
     | ('can you tell me' | '') 'is' 'it' param:apv_boolean_projection '?'
     | 'i would like to' ('know' | 'see') ('if' | 'whether') ('it' | 'this' | 'that') 'is' param:apv_boolean_projection ('first' | '') '.'
     ) => {
-        return [[param.name, null]];
+        return [param];
     };
 
     ( ('can you tell me' | '') 'does' 'the' base:base_table 'have' param:npp_boolean_projection '?'
@@ -139,126 +140,118 @@ simple_user_search_question : Array<[string, Type|null]> = {
     | ('can you tell me' | '') 'is' 'the' base:base_table param:apv_boolean_projection '?'
     | 'i would like to' ('know' | 'see') ('if' | 'whether') 'the' base:base_table 'is' param:apv_boolean_projection ('first' | '') '.'
     ) => {
-        if (!base.schema!.out[param.name])
+        if (!C.isSameFunction(base.schema!, param.schema))
             return null;
-        return [[param.name, null]];
+        return [param];
     };
 }
 
-for (let pname in _tpLoader.projections) {
-    for (let cat in _tpLoader.projections[pname]) {
-        if (cat === 'pvp' || cat === 'preposition') {
-            for (let [pronoun, base, pvp] of _tpLoader.projections[pname][cat]) {
-                simple_user_search_question : Array<[string, Type|null]> = ( ('can you tell me' | '') #(pronoun) #(base) ('is'|'was'|'are'|'were') ('it' | 'this' | 'that') #(pvp) '?'
-                | 'i would like to' ('know' | 'see') #(pronoun) #(base) ('it' | 'this' | 'that') ('is'|'was'|'are'|'were') #(pvp) ('first' | '') '.'
-                ) => {
-                    if (pname === 'id')
-                        return null;
-                    return [[pname, null]];
-                };
+for (const proj of _tpLoader.projections) {
+    if (proj.category === 'pvp' || proj.category === 'preposition') {
+        simple_user_search_question : C.ParamSlot[] = ( ('can you tell me' | '') #(proj.pronoun) #(proj.base) ('is'|'was'|'are'|'were') ('it' | 'this' | 'that') #(proj.canonical) '?'
+        | 'i would like to' ('know' | 'see') #(proj.pronoun) #(proj.base) ('it' | 'this' | 'that') ('is'|'was'|'are'|'were') #(proj.canonical) ('first' | '') '.'
+        ) => {
+            if (proj.pname === 'id')
+                return null;
+            return [proj.pslot];
+        };
 
-                simple_user_search_question : Array<[string, Type|null]> = ( ('can you tell me' | '') #(pronoun) #(base) ('is'|'was'|'are'|'were') 'the' base:base_table #(pvp) '?'
-                | 'i would like to' ('know' | 'see') #(pronoun) #(base) 'the' base:base_table ('is'|'was'|'are'|'were') #(pvp) ('first' | '') '.'
-                ) => {
-                    if (!base.schema!.out[pname])
-                        return null;
-                    if (pname === 'id')
-                        return null;
-                    return [[pname, null]];
-                };
+        simple_user_search_question : C.ParamSlot[] = ( ('can you tell me' | '') #(proj.pronoun) #(proj.base) ('is'|'was'|'are'|'were') 'the' base:base_table #(proj.canonical) '?'
+        | 'i would like to' ('know' | 'see') #(proj.pronoun) #(proj.base) 'the' base:base_table ('is'|'was'|'are'|'were') #(proj.canonical) ('first' | '') '.'
+        ) => {
+            if (!C.isSameFunction(base.schema!, proj.pslot.schema))
+                return null;
+            if (proj.pname === 'id')
+                return null;
+            return [proj.pslot];
+        };
 
-                if (base) {
-                    simple_user_search_question : Array<[string, Type|null]> = 'i would like to' ('know' | 'see') 'the' #(base) ('that'|'which'|'') ('it' | 'this' | 'that') ('is'|'was'|'are'|'were') #(pvp) ('first' | '') '.' => {
-                        if (pname === 'id')
-                            return null;
-                        return [[pname, null]];
-                    };
-                    simple_user_search_question : Array<[string, Type|null]> = 'i would like to' ('know' | 'see') 'the' #(base) ('that'|'which'|'') 'the' base:base_table ('is'|'was'|'are'|'were') #(pvp) ('first' | '') '.' => {
-                        if (!base.schema!.out[pname])
-                            return null;
-                        if (pname === 'id')
-                            return null;
-                        return [[pname, null]];
-                    };
-                }
-            }
+        if (proj.base) {
+            simple_user_search_question : C.ParamSlot[] = 'i would like to' ('know' | 'see') 'the' #(proj.base) ('that'|'which'|'') ('it' | 'this' | 'that') ('is'|'was'|'are'|'were') #(proj.canonical) ('first' | '') '.' => {
+                if (proj.pname === 'id')
+                    return null;
+                return [proj.pslot];
+            };
+            simple_user_search_question : C.ParamSlot[] = 'i would like to' ('know' | 'see') 'the' #(proj.base) ('that'|'which'|'') 'the' base:base_table ('is'|'was'|'are'|'were') #(proj.canonical) ('first' | '') '.' => {
+                if (!C.isSameFunction(base.schema!, proj.pslot.schema))
+                    return null;
+                if (proj.pname === 'id')
+                    return null;
+                return [proj.pslot];
+            };
         }
-        if (cat === 'avp') {
-            for (let [pronoun, base, verb] of _tpLoader.projections[pname][cat]) {
-                simple_user_search_question : Array<[string, Type|null]> = ( ('can you tell me' | '') #(pronoun) #(base) ('do'|'does'|'did') ('it' | 'this' | 'that') #(verb) '?'
-                | 'i would like to' ('know' | 'see') #(pronoun) #(base) ('it' | 'this' | 'that') #(verb) ('first' | '') '.'
-                ) => {
-                    if (pname === 'id')
-                        return null;
-                    return [[pname, null]];
-                };
+    }
+    if (proj.category === 'avp') {
+        simple_user_search_question : C.ParamSlot[] = ( ('can you tell me' | '') #(proj.pronoun) #(proj.base) ('do'|'does'|'did') ('it' | 'this' | 'that') #(proj.canonical) '?'
+        | 'i would like to' ('know' | 'see') #(proj.pronoun) #(proj.base) ('it' | 'this' | 'that') #(proj.canonical) ('first' | '') '.'
+        ) => {
+            if (proj.pname === 'id')
+                return null;
+            return [proj.pslot];
+        };
 
-                simple_user_search_question : Array<[string, Type|null]> = ( ('can you tell me' | '') #(pronoun) #(base) ('do'|'does'|'did') 'the' base:base_table #(verb) '?'
-                | 'i would like to' ('know' | 'see') #(pronoun) #(base) 'the' base:base_table #(verb) ('first' | '') '.'
-                ) => {
-                    if (!base.schema!.out[pname])
-                        return null;
-                    if (pname === 'id')
-                        return null;
-                    return [[pname, null]];
-                };
+        simple_user_search_question : C.ParamSlot[] = ( ('can you tell me' | '') #(proj.pronoun) #(proj.base) ('do'|'does'|'did') 'the' base:base_table #(proj.canonical) '?'
+        | 'i would like to' ('know' | 'see') #(proj.pronoun) #(proj.base) 'the' base:base_table #(proj.canonical) ('first' | '') '.'
+        ) => {
+            if (!C.isSameFunction(base.schema!, proj.pslot.schema))
+                return null;
+            if (proj.pname === 'id')
+                return null;
+            return [proj.pslot];
+        };
 
-                if (base) {
-                    simple_user_search_question : Array<[string, Type|null]> = 'i would like to' ('know' | 'see') 'the' #(base) ('that'|'which'|'') ('it' | 'this' | 'that') #(verb) ('first' | '') '.' => {
-                        if (pname === 'id')
-                            return null;
-                        return [[pname, null]];
-                    };
-                    simple_user_search_question : Array<[string, Type|null]> = 'i would like to' ('know' | 'see') 'the' #(base) ('that'|'which'|'') 'the' base:base_table #(verb) ('first' | '') '.' => {
-                        if (!base.schema!.out[pname])
-                            return null;
-                        if (pname === 'id')
-                            return null;
-                        return [[pname, null]];
-                    };
-                }
-            }
+        if (proj.base) {
+            simple_user_search_question : C.ParamSlot[] = 'i would like to' ('know' | 'see') 'the' #(proj.base) ('that'|'which'|'') ('it' | 'this' | 'that') #(proj.canonical) ('first' | '') '.' => {
+                if (proj.pname === 'id')
+                    return null;
+                return [proj.pslot];
+            };
+            simple_user_search_question : C.ParamSlot[] = 'i would like to' ('know' | 'see') 'the' #(proj.base) ('that'|'which'|'') 'the' base:base_table #(proj.canonical) ('first' | '') '.' => {
+                if (!C.isSameFunction(base.schema!, proj.pslot.schema))
+                    return null;
+                if (proj.pname === 'id')
+                    return null;
+                return [proj.pslot];
+            };
         }
-        if (cat === 'reverse_verb') {
-            for (let [pronoun, base, verb] of _tpLoader.projections[pname][cat]) {
-                simple_user_search_question : Array<[string, Type|null]> = ( ('can you tell me' | '') #(pronoun) #(base) #(verb) ('it' | 'this' | 'that')  '?'
-                | 'i would like to' ('know' | 'see') #(pronoun) #(base) #(verb) ('it' | 'this' | 'that') ('first' | '') '.'
-                ) => {
-                    if (pname === 'id')
-                        return null;
-                    return [[pname, null]];
-                };
+    }
+    if (proj.category === 'reverse_verb') {
+        simple_user_search_question : C.ParamSlot[] = ( ('can you tell me' | '') #(proj.pronoun) #(proj.base) #(proj.canonical) ('it' | 'this' | 'that')  '?'
+        | 'i would like to' ('know' | 'see') #(proj.pronoun) #(proj.base) #(proj.canonical) ('it' | 'this' | 'that') ('first' | '') '.'
+        ) => {
+            if (proj.pname === 'id')
+                return null;
+            return [proj.pslot];
+        };
 
-                simple_user_search_question : Array<[string, Type|null]> = ( ('can you tell me' | '') #(pronoun) #(base) #(verb) 'the' base:base_table  '?'
-                | 'i would like to' ('know' | 'see') #(pronoun) #(base) #(verb) 'the' base:base_table ('first' | '') '.'
-                ) => {
-                    if (!base.schema!.out[pname])
-                        return null;
-                    if (pname === 'id')
-                        return null;
-                    return [[pname, null]];
-                };
+        simple_user_search_question : C.ParamSlot[] = ( ('can you tell me' | '') #(proj.pronoun) #(proj.base) #(proj.canonical) 'the' base:base_table  '?'
+        | 'i would like to' ('know' | 'see') #(proj.pronoun) #(proj.base) #(proj.canonical) 'the' base:base_table ('first' | '') '.'
+        ) => {
+            if (!C.isSameFunction(base.schema!, proj.pslot.schema))
+                return null;
+            if (proj.pname === 'id')
+                return null;
+            return [proj.pslot];
+        };
 
-                if (base) {
-                    simple_user_search_question : Array<[string, Type|null]> = 'i would like to' ('know' | 'see') 'the' #(base) ('that'|'which'|'') #(verb) ('it' | 'this' | 'that') ('first' | '') '.' => {
-                        if (pname === 'id')
-                            return null;
-                        return [[pname, null]];
-                    };
-                    simple_user_search_question : Array<[string, Type|null]> = 'i would like to' ('know' | 'see') 'the' #(base) ('that'|'which'|'') #(verb) 'the' base:base_table ('first' | '') '.' => {
-                        if (!base.schema!.out[pname])
-                            return null;
-                        if (pname === 'id')
-                            return null;
-                        return [[pname, null]];
-                    };
-                }
-            }
+        if (proj.base) {
+            simple_user_search_question : C.ParamSlot[] = 'i would like to' ('know' | 'see') 'the' #(proj.base) ('that'|'which'|'') #(proj.canonical) ('it' | 'this' | 'that') ('first' | '') '.' => {
+                if (proj.pname === 'id')
+                    return null;
+                return [proj.pslot];
+            };
+            simple_user_search_question : C.ParamSlot[] = 'i would like to' ('know' | 'see') 'the' #(proj.base) ('that'|'which'|'') #(proj.canonical) 'the' base:base_table ('first' | '') '.' => {
+                if (!C.isSameFunction(base.schema!, proj.pslot.schema))
+                    return null;
+                if (proj.pname === 'id')
+                    return null;
+                return [proj.pslot];
+            };
         }
     }
 }
 
-simple_user_search_question_for_list : Array<[string, Type|null]> = {
+simple_user_search_question_for_list : C.ParamSlot[] = {
     // straight up questions
     ( ('can you tell me' | '') 'what are' ('the' | 'their') param:out_param_Any '?'
     | 'can you tell me' ('the' | 'their') param:out_param_Any '?'
@@ -270,7 +263,7 @@ simple_user_search_question_for_list : Array<[string, Type|null]> = {
     ) => {
         if (param.name === 'id')
             return null;
-        return [[param.name, null]];
+        return [param];
     };
 
 
@@ -292,29 +285,15 @@ simple_user_search_question_for_list : Array<[string, Type|null]> = {
     | ('can you tell me' | '') 'are' ('they' | 'these' | 'those') param:apv_boolean_projection '?'
     | 'i would like to' ('know' | 'see') ('if' | 'whether') ('they' | 'these' | 'those') 'are' param:apv_boolean_projection ('first' | '') '.'
     ) => {
-        return [[param.name, null]];
+        return [param];
     };
 }
 
-boolean_user_search_question : Array<[string, Type|null]> = {
+boolean_user_search_question : C.ParamSlot[] = {
     // question in boolean
     ( 'does' ('that' | 'it' | 'this') 'have' param:npp_filter '?'
     | 'does' ('that' | 'it' | 'this') param:avp_filter '?'
-    ) => {
-        if (!(param instanceof Ast.AtomBooleanExpression)) {
-            assert(param instanceof Ast.AndBooleanExpression);
-            assert(param.operands.length === 2);
-            const [op1, op2] = [param.operands[0], param.operands[1]];
-            assert(op1 instanceof Ast.AtomBooleanExpression);
-            assert(op2 instanceof Ast.AtomBooleanExpression);
-            assert(op1.name === op2.name &&
-                   op1.value.getType().equals(op2.value.getType()));
-            return [[op1.name, op1.value.getType()]];
-        }
-        if (param.name === 'id')
-            return null;
-        return [[param.name, param.operator === 'contains' ? new Type.Array(param.value.getType()) : param.value.getType()]];
-    };
+    ) => D.booleanQuestion(null, param);
 
     ( 'is' ('that' | 'it' | 'this') 'a' param:apv_filter base:base_table '?'
     | 'is' ('the' | 'this' | 'that') base:base_table param:apv_filter '?'
@@ -331,47 +310,19 @@ boolean_user_search_question : Array<[string, Type|null]> = {
     | 'is' ('that' | 'it' | 'this') 'a' base:base_table ('that has' | 'with') param:npp_filter '?'
     | 'does' ('the' | 'this' | 'that') base:base_table 'have' param:npp_filter '?'
     ) => {
-        if (!C.checkFilter(base, param))
-            return null;
         if (!base.schema!.is_list)
             return null;
-        if (!(param instanceof Ast.AtomBooleanExpression)) {
-            assert(param instanceof Ast.AndBooleanExpression);
-            assert(param.operands.length === 2);
-            const [op1, op2] = [param.operands[0], param.operands[1]];
-            assert(op1 instanceof Ast.AtomBooleanExpression);
-            assert(op2 instanceof Ast.AtomBooleanExpression);
-            assert(op1.name === op2.name &&
-                   op1.value.getType().equals(op2.value.getType()));
-            return [[op1.name, op1.value.getType()]];
-        }
-        if (param.name === 'id')
-            return null;
-        return [[param.name, param.operator === 'contains' ? new Type.Array(param.value.getType()) : param.value.getType()]];
+        return D.booleanQuestion(base, param);
     };
 }
 
-boolean_user_search_question_for_list : Array<[string, Type|null]> = {
+boolean_user_search_question_for_list : C.ParamSlot[] = {
     // question in boolean
     ( ('does either of' | 'does any of') ('them' | 'these' | 'those') 'have' param:npp_filter '?'
     | 'do' 'they' 'have' param:npp_filter '?'
     | ('does either of' | 'does any of') ('them' | 'these' | 'those') param:avp_filter '?'
     | 'do they' param:avp_filter '?'
-    ) => {
-        if (!(param instanceof Ast.AtomBooleanExpression)) {
-            assert(param instanceof Ast.AndBooleanExpression);
-            assert(param.operands.length === 2);
-            const [op1, op2] = [param.operands[0], param.operands[1]];
-            assert(op1 instanceof Ast.AtomBooleanExpression);
-            assert(op2 instanceof Ast.AtomBooleanExpression);
-            assert(op1.name === op2.name &&
-                   op1.value.getType().equals(op2.value.getType()));
-            return [[op1.name, op1.value.getType()]];
-        }
-        if (param.name === 'id')
-            return null;
-        return [[param.name, param.operator === 'contains' ? new Type.Array(param.value.getType()) : param.value.getType()]];
-    };
+    ) => D.booleanQuestion(null, param);
 
     ( ('is either of' | 'is any of')  ('them' | 'these' | 'those') 'a' param:apv_filter base:base_table '?'
     | 'are they' param:apv_filter base:base_table '?'
@@ -392,28 +343,12 @@ boolean_user_search_question_for_list : Array<[string, Type|null]> = {
     | ('is either of' | 'is any of')  ('them' | 'these' | 'those')  'a' base:base_table ('that has' | 'with') param:npp_filter '?'
     | 'are they' base:base_table ('that has' | 'with') param:npp_filter '?'
     | 'do' ('the' | 'these' | 'those') base:base_table 'have' param:npp_filter '?'
-    ) => {
-        if (!C.checkFilter(base, param))
-            return null;
-        if (!(param instanceof Ast.AtomBooleanExpression)) {
-            assert(param instanceof Ast.AndBooleanExpression);
-            assert(param.operands.length === 2);
-            const [op1, op2] = [param.operands[0], param.operands[1]];
-            assert(op1 instanceof Ast.AtomBooleanExpression);
-            assert(op2 instanceof Ast.AtomBooleanExpression);
-            assert(op1.name === op2.name &&
-                   op1.value.getType().equals(op2.value.getType()));
-            return [[op1.name, op1.value.getType()]];
-        }
-        if (param.name === 'id')
-            return null;
-        return [[param.name, param.operator === 'contains' ? new Type.Array(param.value.getType()) : param.value.getType()]];
-    };
+    ) => D.booleanQuestion(base, param);
 }
 
 // questions by name (when in an list)
 
-user_search_question_with_name : [Ast.EntityValue, Array<[string, Type|null]>] = {
+user_search_question_with_name : [Ast.EntityValue, C.ParamSlot[]] = {
     // straight up questions
     ( ('can you tell me' | '') 'what is' name:constant_name '\'s' param:out_param_Any '?'
     | ('can you tell me' | '') 'what is' 'the' param:out_param_Any 'of' name:constant_name '?'
@@ -424,7 +359,7 @@ user_search_question_with_name : [Ast.EntityValue, Array<[string, Type|null]>] =
     ) => {
         if (param.name === 'id')
             return null;
-        return [name, [[param.name, null]]];
+        return [name, [param]];
     };
 
     // straight up questions
@@ -435,11 +370,11 @@ user_search_question_with_name : [Ast.EntityValue, Array<[string, Type|null]>] =
     | 'i would like to' ('know' | 'see') name:constant_name '\'s' params:out_param_list_for_coref_question ('first' | '') '.'
     | 'i would like to' ('know' | 'see') 'the' params:out_param_list_for_coref_question 'of' name:constant_name ('first' | '') '.'
     ) => {
-        return [name, params.map((pname) => [pname, null])];
+        return [name, params];
     };
 }
 
-boolean_user_search_question_with_name : [Ast.EntityValue, Array<[string, Type|null]>] = {
+boolean_user_search_question_with_name : [Ast.EntityValue, C.ParamSlot[]] = {
     // question in boolean
     ( 'does' name:constant_name 'have' param:npp_filter '?'
     | 'does' name:constant_name param:avp_filter '?'
@@ -447,19 +382,13 @@ boolean_user_search_question_with_name : [Ast.EntityValue, Array<[string, Type|n
     | 'is' name:constant_name param:pvp_filter '?'
     | 'is' name:constant_name param:preposition_filter '?'
     ) => {
-        if (!(param instanceof Ast.AtomBooleanExpression)) {
-            assert(param instanceof Ast.AndBooleanExpression);
-            assert(param.operands.length === 2);
-            const [op1, op2] = [param.operands[0], param.operands[1]];
-            assert(op1 instanceof Ast.AtomBooleanExpression);
-            assert(op2 instanceof Ast.AtomBooleanExpression);
-            assert(op1.name === op2.name &&
-                   op1.value.getType().equals(op2.value.getType()));
-            return [name, [[op1.name, op1.value.getType()]]];
-        }
-        if (param.name === 'id')
+        const idArg = param.schema.getArgument('id');
+        if (!idArg || !idArg.type.equals(name.getType()))
             return null;
-        return [name, [[param.name, param.operator === 'contains' ? new Type.Array(param.value.getType()) : param.value.getType()]]];
+        const questions = D.booleanQuestion(null, param);
+        if (!questions)
+            return null;
+        return [name, questions];
     };
 
     ( 'is' name:constant_name 'a' param:apv_filter base:base_table '?'
@@ -468,34 +397,23 @@ boolean_user_search_question_with_name : [Ast.EntityValue, Array<[string, Type|n
     | 'is' name:constant_name 'a' base:base_table ('that' | 'which') param:avp_filter '?'
     | 'is' name:constant_name 'a' base:base_table ('that has' | 'with') param:npp_filter '?'
     ) => {
-        if (!C.checkFilter(base, param))
-            return null;
-        const idArg = base.schema!.getArgument('id');
+        const idArg = param.schema.getArgument('id');
         if (!idArg || !idArg.type.equals(name.getType()))
             return null;
-        if (!(param instanceof Ast.AtomBooleanExpression)) {
-            assert(param instanceof Ast.AndBooleanExpression);
-            assert(param.operands.length === 2);
-            const [op1, op2] = [param.operands[0], param.operands[1]];
-            assert(op1 instanceof Ast.AtomBooleanExpression);
-            assert(op2 instanceof Ast.AtomBooleanExpression);
-            assert(op1.name === op2.name &&
-                   op1.value.getType().equals(op2.value.getType()));
-            return [name, [[op1.name, op1.value.getType()]]];
-        }
-        if (param.name === 'id')
+        const questions = D.booleanQuestion(base, param);
+        if (!questions)
             return null;
-        return [name, [[param.name, param.operator === 'contains' ? new Type.Array(param.value.getType()) : param.value.getType()]]];
+        return [name, questions];
     };
 }
 
-user_search_question : Array<[string, Type|null]> = {
+user_search_question : C.ParamSlot[] = {
     ('no ,' | '') questions:simple_user_search_question => questions;
     ('no ,' | '') questions:thingpedia_user_question '?' [weight=0.3] => questions;
     questions:boolean_user_search_question => questions;
 }
 
-user_search_question_for_list : [Ast.EntityValue|null, Array<[string, Type|null]>] = {
+user_search_question_for_list : [Ast.EntityValue|null, C.ParamSlot[]] = {
     questions:simple_user_search_question => [null, questions];
     questions:simple_user_search_question_for_list => [null, questions];
     questions:boolean_user_search_question_for_list => [null, questions];

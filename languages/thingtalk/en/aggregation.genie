@@ -20,6 +20,8 @@
 
 import { Ast, Type } from 'thingtalk';
 
+import * as C from '../ast_manip';
+
 projection_Number : Ast.Expression = {
     ?aggregation 'the' ('number' | 'total number' | 'count') 'of' ('' | 'the' | 'this' | 'that') t:complete_table => {
         if (!t.schema!.is_list)

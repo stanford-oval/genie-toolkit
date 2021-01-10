@@ -18,7 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import assert from 'assert';
 import { Ast, Type } from 'thingtalk';
 
 import * as C from '../ast_manip';
@@ -40,24 +39,8 @@ forward_get_do_command : Ast.ChainExpression = {
 complete_forward_get_do_command : Ast.ExpressionStatement = {
     cmd:forward_get_do_command if complete => new Ast.ExpressionStatement(null, cmd);
 
-    !turking command:complete_forward_get_do_command ('with the same' | 'with identical' | 'using the same') joinArg:out_param_Any => {
-        const action = command.last;
-        assert(action instanceof Ast.InvocationExpression);
-        const table = command.lastQuery!;
-
-        let actiontype = action.schema!.inReq[joinArg.name];
-        if (!actiontype)
-            return null;
-        if (action.invocation.in_params.some((p) => p.name === joinArg.name))
-            return null;
-        let commandtype = table.schema!.out[joinArg.name];
-        if (!commandtype || !Type.isAssignable(commandtype, actiontype))
-            return null;
-
-        let clone = action.clone();
-        clone.invocation.in_params.push(new Ast.InputParam(null, joinArg.name, joinArg));
-        return new Ast.ExpressionStatement(null, new Ast.ChainExpression(null, [table, clone], C.resolveChain(table.schema!, clone.schema!)));
-    };
+    !turking command:complete_forward_get_do_command ('with the same' | 'with identical' | 'using the same') joinArg:out_param_Any
+        => C.addSameNameParameterPassing(command, joinArg);
 }
 
 backward_get_do_command : Ast.ChainExpression = {
@@ -103,28 +86,8 @@ forward_when_do_rule : Ast.ChainExpression = {
 complete_forward_when_do_rule : Ast.ExpressionStatement = {
     cmd:forward_when_do_rule if complete => new Ast.ExpressionStatement(null, cmd);
 
-    !turking rule:complete_forward_when_do_rule ('with the same' | 'with identical' | 'using the same') joinArg:out_param_Any => {
-        //if (rule.actions.length !== 1 || rule.actions[0].selector.isBuiltin)
-        //    throw new TypeError('???');
-        const action = rule.last;
-        assert(action instanceof Ast.InvocationExpression);
-        const stream = rule.lastQuery!;
-        let actiontype = action.schema!.inReq[joinArg.name];
-        if (!actiontype)
-            return null;
-        if (action.invocation.in_params.some((p) => p.name === joinArg.name))
-            return null;
-
-        let commandtype = stream.schema!.out[joinArg.name];
-        if (!commandtype || !Type.isAssignable(commandtype, actiontype))
-            return null;
-        if (joinArg.isEvent && (stream instanceof Ast.FunctionCallExpression)) // timer
-            return null;
-
-        let clone = action.clone();
-        clone.invocation.in_params.push(new Ast.InputParam(null, joinArg.name, joinArg));
-        return new Ast.ExpressionStatement(null, new Ast.ChainExpression(null, [stream, action], C.resolveChain(stream.schema!, action.schema!)));
-    };
+    !turking rule:complete_forward_when_do_rule ('with the same' | 'with identical' | 'using the same') joinArg:out_param_Any
+        => C.addSameNameParameterPassing(rule, joinArg);
 }
 
 backward_when_do_rule : Ast.ChainExpression = {
@@ -442,7 +405,7 @@ projection_question : Ast.ExpressionStatement = {
 
 explicit_when_condition : Ast.Expression = {
     ('if' | 'when') filter:if_filter 'in' table:complete_table => {
-        if (C.hasGetPredicate(filter))
+        if (C.hasGetPredicate(filter.ast))
             return null;
         if (!table.schema!.is_monitorable)
             return null;
@@ -455,7 +418,7 @@ explicit_when_condition : Ast.Expression = {
     };
 
     ('if' | 'when') filter:edge_filter 'in' table:complete_table => {
-        if (C.hasGetPredicate(filter))
+        if (C.hasGetPredicate(filter.ast))
             return null;
         if (!table.schema!.is_monitorable || table.schema!.is_list)
             return null;
@@ -507,7 +470,7 @@ monitor_command : Ast.ExpressionStatement = {
         return new Ast.ExpressionStatement(null, stream);
     };
     !nofilter ('monitor' | 'watch') table:complete_table 'and' ('alert me' | 'notify me' | 'inform me' | 'warn me') ('if' | 'when') filter:if_filter => {
-        if (C.hasGetPredicate(filter))
+        if (C.hasGetPredicate(filter.ast))
             return null;
         if (table.schema!.is_list || !table.schema!.is_monitorable)
             return null;

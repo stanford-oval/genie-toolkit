@@ -21,6 +21,8 @@
 // Shared templates and utilities, mostly collecting actual phrases or groups of phrases
 // rather than complex logic
 
+import { Ast, } from 'thingtalk';
+
 counterproposal_preamble : string = {
     'i was thinking more of';
     'i would like';
@@ -31,7 +33,7 @@ counterproposal_preamble : string = {
     'that does not sound great , do you have';
 }
 
-the_base_noun_phrase : string = {
+the_base_noun_phrase : Ast.FunctionDef = {
     ( 'the' noun:base_noun_phrase
     | 'that' noun:base_noun_phrase
     ) => noun;

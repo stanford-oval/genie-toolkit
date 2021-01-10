@@ -117,7 +117,7 @@ proposal_info_action_pair : [SlotBag, Ast.Invocation|null] = {
 }
 
 actionable_system_display_result_short : D.Recommendation = {
-    ctx:ctx_with_result info:thingpedia_result '.' if complete [priority=10]
+    ctx:ctx_with_result info:thingpedia_result '.' if complete [priority=5]
         => D.makeDisplayResult(ctx, info);
 }
 
@@ -125,7 +125,9 @@ actionable_system_display_result_short : D.Recommendation = {
 system_nonlist_result : D.Recommendation = {
     actionable_system_display_result_short;
 
-    ctx:ctx_with_result info:direct_result_info_phrase
+    ctx:ctx_with_result_noquestion info:direct_result_info_phrase
+        => D.makeDisplayResult(ctx, info);
+    ctx:ctx_with_result_question info:direct_result_info_phrase [priority=10]
         => D.makeDisplayResult(ctx, info);
     phrase:actionable_system_display_result_short extra:direct_result_info_phrase
         => D.combineDisplayResult(phrase, extra);

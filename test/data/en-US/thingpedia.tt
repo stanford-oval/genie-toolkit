@@ -1154,7 +1154,7 @@ class @com.wunderlist
   list query get_lists(out id: Number #_[canonical="id"],
                        out title: String #_[canonical="title"],
                        out created_at: Date #_[canonical="created at"])
-  #_[canonical="get lists on Wunderlist"]
+  #_[canonical="lists on wunderlist"]
   #_[confirmation="your Wunderlist lists"]
   #_[formatted=[{type="text",text="${title} created on ${created_at}"}]]
   #[confirm=false];

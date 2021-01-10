@@ -33,16 +33,16 @@ import { SlotBag } from '../../slot_bag';
 // import thingpedia info
 import _tpLoader from '../../load-thingpedia';
 
-for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
+for (let [pslot, typestr] of _tpLoader.params.in.values()) {
     thingpedia_action_past : Ast.Expression = {
         ( action:thingpedia_action_past 'it' [priority=-0.01]
         | action:thingpedia_action_past 'this' [priority=-0.01]
         | action:thingpedia_action_past 'that' [priority=-0.01]
-        ) [-> pname] => {
-            const type = action.schema!.getArgType(pname);
+        ) [-> (pslot.name)] => {
+            const type = action.schema!.getArgType(pslot.name);
             if (!type || !type.isEntity)
                 return null;
-            return C.replacePlaceholderWithUndefined(action, pname, typestr);
+            return C.replacePlaceholderWithUndefined(action, pslot, typestr);
         };
     }
 }
@@ -63,9 +63,11 @@ complete_past_action_phrase : Ast.Invocation = {
     ( action:complete_past_action_phrase param:preposition_filter [priority=0.1]
     | action:complete_past_action_phrase ('with' | 'having') param:npp_filter [priority=0.1]
     ) => {
-        if (!(param instanceof Ast.AtomBooleanExpression))
+        if (!(param.ast instanceof Ast.AtomBooleanExpression))
             return null;
-        return C.addInvocationInputParam(action, new Ast.InputParam(null, param.name, param.value), { allowOutput: true });
+        const ipslot = { schema: param.schema, ptype: param.ptype,
+            ast: new Ast.InputParam(null, param.ast.name, param.ast.value) };
+        return C.addInvocationInputParam(action, ipslot, { allowOutput: true });
     };
 }
 
@@ -120,7 +122,7 @@ long_action_error_message : S.ContextInfo = {
         => D.checkActionErrorMessage(ctx, action);
 }
 
-one_param_try_different_param_question : string[] = {
+one_param_try_different_param_question : C.ParamSlot[] = {
     ( 'would you like to try a different' p:input_param '?'
     | 'would you like a different' p:input_param '?'
     | 'shall i try another' p:input_param '?'
@@ -130,7 +132,7 @@ one_param_try_different_param_question : string[] = {
     };
 }
 
-two_param_try_different_param_question : string[] = {
+two_param_try_different_param_question : C.ParamSlot[] = {
     ( 'would you like to try a different' p1:input_param 'or' p2:input_param '?'
     | 'would you like a different' p1:input_param 'or' p2:input_param '?'
     | 'shall i try another' p1:input_param 'or' p2:input_param '?'

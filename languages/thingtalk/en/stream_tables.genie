@@ -326,7 +326,7 @@ two_verb_filter_table : Ast.Expression = {
     !nofilter table:one_verb_filter_table 'and' filter:avp_filter => C.addFilter(table, filter);
 }
 
-generic_argminmax : [Ast.VarRefValue, 'asc'|'desc'] = {
+generic_argminmax : [C.ParamSlot, 'asc'|'desc'] = {
     ('maximum' | 'highest') p:out_param_Number => [p, 'desc'];
     ('minimum' | 'lowest') p:out_param_Number => [p, 'asc'];
 

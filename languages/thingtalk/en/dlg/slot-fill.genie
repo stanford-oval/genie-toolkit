@@ -26,48 +26,31 @@
 
 import { Ast, } from 'thingtalk';
 
-import * as S from '../../state_manip';
+import * as C from '../../ast_manip';
 
-one_param_slot_fill_question : string[] = {
-    !inference {
-        ( p:thingpedia_slot_fill_question '?' [priority=0.1]
-        | 'what' p:input_param prefer_question_phrase '?'
-        ) => [p];
-    }
-
-    ?inference {
-        'what' p:input_param prefer_question_phrase '?' => [p];
-
-        // HACK: at inference time, we add the function ID to the thingpedia_slot_fill_question
-        // value and check against the current context
-        ctx:ctx_incomplete_action_after_search p:thingpedia_slot_fill_question '?' [priority=0.1] => {
-            // we cannot quite typecheck such a HACK unfortunately...
-            const actualp = p as unknown as { functionName : string, name : string };
-
-            if (ctx.nextFunction !== actualp.functionName)
-                return null;
-            return [actualp.name];
-        };
-    }
+one_param_slot_fill_question : C.ParamSlot[] = {
+    ( p:thingpedia_slot_fill_question '?' [priority=0.1]
+    | 'what' p:input_param prefer_question_phrase '?'
+    ) => [p];
 }
 
-two_param_slot_fill_question : string[] = {
+two_param_slot_fill_question : C.ParamSlot[] = {
     ( 'what' p1:input_param 'and' p2:input_param prefer_question_phrase '?'
     | p1:thingpedia_slot_fill_question 'and' 'what' p2:input_param prefer_question_phrase '?'
     | 'what' p1:input_param prefer_question_phrase 'and' p2:thingpedia_slot_fill_question '?'
     ) => {
-        if (p1 === p2)
+        if (p1.name === p2.name || !C.isSameFunction(p1.schema, p2.schema))
             return null;
         return [p1, p2];
     };
 }
 
-slot_fill_question : string[] = {
+slot_fill_question : C.ParamSlot[] = {
     one_param_slot_fill_question [priority=0.1];
     !inference two_param_slot_fill_question;
 }
 
-imprecise_slot_fill_answer_phrase : Ast.Value|Ast.InputParam = {
+imprecise_slot_fill_answer_phrase : Ast.Value|C.InputParamSlot = {
     ( slot:constant_Any
     | slot:npp_input_param
     | slot:apv_input_param
@@ -76,7 +59,7 @@ imprecise_slot_fill_answer_phrase : Ast.Value|Ast.InputParam = {
     ) => slot;
 }
 
-imprecise_slot_fill_coref_answer : Ast.Value|Ast.InputParam = {
+imprecise_slot_fill_coref_answer : Ast.Value|C.InputParamSlot = {
     ( slot:coref_constant
     | slot:coref_npp_input_param
     | slot:coref_apv_input_param
@@ -85,7 +68,7 @@ imprecise_slot_fill_coref_answer : Ast.Value|Ast.InputParam = {
     ) => slot;
 }
 
-imprecise_slot_fill_answer : Ast.Value|Ast.InputParam = {
+imprecise_slot_fill_answer : Ast.Value|C.InputParamSlot = {
     ans:imprecise_slot_fill_answer_phrase ('please' | '') '.' => ans;
     generic_preamble_for_answer ans:imprecise_slot_fill_answer_phrase '.' => ans;
 

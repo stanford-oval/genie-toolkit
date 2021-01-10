@@ -21,8 +21,9 @@
 
 import assert from 'assert';
 
-import { Ast, Type } from 'thingtalk';
+import { Ast, } from 'thingtalk';
 
+import * as C from '../ast_manip';
 import {
     ContextInfo,
     addQuery,
@@ -35,7 +36,7 @@ import type { Recommendation } from './recommendation';
 import type { ListProposal } from './list-proposal';
 
 
-function areQuestionsValidForContext(ctx : ContextInfo, questions : Array<[string, Type|null]>) {
+function areQuestionsValidForContext(ctx : ContextInfo, questions : C.ParamSlot[]) {
     if (ctx.resultInfo!.isAggregation)
         return null;
 
@@ -45,32 +46,25 @@ function areQuestionsValidForContext(ctx : ContextInfo, questions : Array<[strin
     if (Object.keys(schema.out).length === 1)
         return null;
 
-    for (const [qname, qtype] of questions) {
-        assert(typeof qname === 'string');
-        assert(qtype === null || qtype instanceof Type);
-        const arg = schema.getArgument(qname);
-        if (!arg || arg.is_input)
+    for (const q of questions) {
+        if (!C.isSameFunction(schema, q.schema))
             return false;
-        if (qtype !== null && !arg.type.equals(qtype))
+        const arg = schema.getArgument(q.name);
+        if (!arg || arg.is_input)
             return false;
     }
     return true;
 }
 
-function recommendationSearchQuestionReply(ctx : ContextInfo, questions : Array<[string, Type|null]>) {
+function recommendationSearchQuestionReply(ctx : ContextInfo, questions : C.ParamSlot[]) {
     const proposal = ctx.aux as Recommendation;
     const { topResult, info, } = proposal;
     if (!topResult.value.id)
         return null;
     if (info !== null) {
-        for (const [pname, ptype] of questions) {
-            if (info.has(pname))
+        for (const q of questions) {
+            if (info.has(q.name))
                 return null;
-                const arg = info.schema!.getArgument(pname);
-                if (!arg)
-                    return null;
-                if (ptype !== null && !arg.type.equals(ptype))
-                    return null;
         }
     }
 
@@ -81,13 +75,13 @@ function recommendationSearchQuestionReply(ctx : ContextInfo, questions : Array<
     const currentTable = currentStmt.expression;
     const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', topResult.value.id);
     const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion,
-        questions.map(([qname, qtype]) => qname));
+        questions.map((q) => q.name));
     if (newTable === null)
         return null;
     return addQuery(ctx, 'execute', newTable, 'accepted');
 }
 
-function learnMoreSearchQuestionReply(ctx : ContextInfo, questions : Array<[string, Type|null]>) {
+function learnMoreSearchQuestionReply(ctx : ContextInfo, questions : C.ParamSlot[]) {
     const topResult = ctx.results![0];
     if (!areQuestionsValidForContext(ctx, questions))
         return null;
@@ -96,26 +90,26 @@ function learnMoreSearchQuestionReply(ctx : ContextInfo, questions : Array<[stri
     const currentTable = currentStmt.expression;
     const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', topResult.value.id);
     const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion,
-        questions.map(([qname, qtype]) => qname));
+        questions.map((q) => q.name));
     if (newTable === null)
         return null;
     return addQuery(ctx, 'execute', newTable, 'accepted');
 }
 
-function displayResultSearchQuestionReply(ctx : ContextInfo, questions : Array<[string, Type|null]>) {
+function displayResultSearchQuestionReply(ctx : ContextInfo, questions : C.ParamSlot[]) {
     if (!areQuestionsValidForContext(ctx, questions))
         return null;
 
     const currentStmt = ctx.current!.stmt;
     const currentTable = currentStmt.expression;
     const newTable = queryRefinement(currentTable, null, refineFilterToAnswerQuestion,
-        questions.map(([qname, qtype]) => qname));
+        questions.map((q) => q.name));
     if (newTable === null)
         return null;
     return addQuery(ctx, 'execute', newTable, 'accepted');
 }
 
-function listProposalSearchQuestionReply(ctx : ContextInfo, [name, questions] : [Ast.Value|null, Array<[string, Type|null]>]) {
+function listProposalSearchQuestionReply(ctx : ContextInfo, [name, questions] : [Ast.Value|null, C.ParamSlot[]]) {
     const proposal = ctx.aux as ListProposal;
     const [results, info] = proposal;
 
@@ -134,14 +128,8 @@ function listProposalSearchQuestionReply(ctx : ContextInfo, [name, questions] : 
     }
 
     if (info !== null) {
-        for (const [pname, type] of questions) {
-            assert(typeof pname === 'string');
-            if (info.has(pname))
-                return null;
-            const arg = info.schema!.getArgument(pname);
-            if (!arg)
-                return null;
-            if (type !== null && !arg.type.equals(type))
+        for (const q of questions) {
+            if (info.has(q.name))
                 return null;
         }
     }
@@ -155,10 +143,10 @@ function listProposalSearchQuestionReply(ctx : ContextInfo, [name, questions] : 
     if (name !== null) {
         const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', name);
         newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion,
-            questions.map(([qname, qtype]) => qname));
+            questions.map((q) => q.name));
     } else {
         newTable = queryRefinement(currentTable, null, null,
-            questions.map(([qname, qtype]) => qname));
+            questions.map((q) => q.name));
     }
     if (newTable === null)
         return null;
@@ -166,16 +154,18 @@ function listProposalSearchQuestionReply(ctx : ContextInfo, [name, questions] : 
     return addQuery(ctx, 'execute', newTable, 'accepted');
 }
 
-function corefConstant(ctx : ContextInfo, base : Ast.Expression, param : Ast.VarRefValue) {
+function corefConstant(ctx : ContextInfo, base : Ast.Expression, param : C.ParamSlot) {
     const previous = ctx.previousDomain;
     assert(previous);
     if (!previous.results || previous.results.results.length === 0)
         return null;
     const ctxStmt = previous.stmt;
     const ctxSchema = ctxStmt.expression.schema!;
-    if (!(ctxSchema instanceof Ast.FunctionDef) || !ctxSchema.class) // FIXME not sure how this happens...
+    if (!ctxSchema.class) // FIXME not sure how this happens...
         return null;
     if (ctxSchema.class.name !== base.schema!.class!.name)
+        return null;
+    if (!C.isSameFunction(ctxSchema, param.schema))
         return null;
     const result = previous.results.results[0];
     if (!result.value[param.name])
@@ -183,10 +173,44 @@ function corefConstant(ctx : ContextInfo, base : Ast.Expression, param : Ast.Var
     return result.value[param.name];
 }
 
+function booleanQuestion(base : Ast.Expression|null, slot : C.FilterSlot) : C.ParamSlot[]|null {
+    if (base !== null) {
+        if (!C.isSameFunction(base.schema!, slot.schema))
+            return null;
+    }
+
+    const ast = slot.ast;
+    if (!(ast instanceof Ast.AtomBooleanExpression)) {
+        assert(ast instanceof Ast.AndBooleanExpression);
+        assert(ast.operands.length === 2);
+        const [op1, op2] = [ast.operands[0], ast.operands[1]];
+        assert(op1 instanceof Ast.AtomBooleanExpression);
+        assert(op2 instanceof Ast.AtomBooleanExpression);
+        assert(op1.name === op2.name);
+        return [{
+            schema: slot.schema,
+            type: slot.ptype,
+            filterable: slot.schema.getArgument(op1.name)!.getImplementationAnnotation<boolean>('filterable') ?? true,
+            name: op1.name,
+            ast: new Ast.Value.VarRef(op1.name)
+        }];
+    }
+    if (ast.name === 'id')
+        return null;
+    return [{
+        schema: slot.schema,
+        type: slot.ptype,
+        filterable: slot.schema.getArgument(ast.name)!.getImplementationAnnotation<boolean>('filterable') ?? true,
+        name: ast.name,
+        ast: new Ast.Value.VarRef(ast.name),
+    }];
+}
+
 export {
     recommendationSearchQuestionReply,
     displayResultSearchQuestionReply,
     learnMoreSearchQuestionReply,
     listProposalSearchQuestionReply,
-    corefConstant
+    corefConstant,
+    booleanQuestion
 };

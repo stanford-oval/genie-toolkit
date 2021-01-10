@@ -21,7 +21,7 @@
 
 import assert from 'assert';
 
-import { Ast, Type } from 'thingtalk';
+import { Ast } from 'thingtalk';
 
 import * as C from '../ast_manip';
 
@@ -172,10 +172,12 @@ function checkActionErrorMessage(ctx : ContextInfo, action : Ast.Invocation) {
     return ctx;
 }
 
-function makeActionErrorPhrase(ctx : ContextInfo, questions : string[]) {
+function makeActionErrorPhrase(ctx : ContextInfo, questions : C.ParamSlot[]) {
     const schema = ctx.currentFunctionSchema!;
     for (const q of questions) {
-        const arg = schema.getArgument(q);
+        if (!C.isSameFunction(schema, q.schema))
+            return null;
+        const arg = schema.getArgument(q.name);
         if (!arg || !arg.is_input)
             return null;
     }
@@ -185,42 +187,51 @@ function makeActionErrorPhrase(ctx : ContextInfo, questions : string[]) {
         return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_error', null));
 
     if (questions.length === 1) {
-        const type = schema.getArgType(questions[0])!;
-        return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_error_question', questions), null, type);
+        const type = schema.getArgType(questions[0].name)!;
+        return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_error_question', questions.map((q) => q.name)), null, type);
     }
-    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_error_question', questions));
+    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_error_question', questions.map((q) => q.name)));
 }
 
-function actionErrorChangeParam(ctx : ContextInfo, answer : Ast.Value|Ast.InputParam) {
+function actionErrorChangeParam(ctx : ContextInfo, answer : Ast.Value|C.InputParamSlot) {
     const schema = ctx.currentFunctionSchema!;
     const questions = ctx.state.dialogueActParam || [];
+    let ipslot : C.InputParamSlot;
     if (answer instanceof Ast.Value) {
         if (questions.length !== 1)
             return null;
-        answer = new Ast.InputParam(null, questions[0], answer);
+        const arg = schema.getArgument(questions[0]);
+        if (!arg || !arg.is_input || !arg.type.equals(answer.getType()))
+            return null;
+        ipslot = {
+            schema,
+            ptype: answer.getType(),
+            ast: new Ast.InputParam(null, questions[0], answer)
+        };
+    } else {
+        ipslot = answer;
+        if (!C.isSameFunction(ipslot.schema, schema))
+            return null;
     }
-    const arg = schema.getArgument(answer.name);
-    if (!arg || !arg.is_input || !arg.type.equals(answer.value.getType()))
-        return null;
 
     const action = C.getInvocation(ctx.current!);
     if (!action)
         return null;
     // shallow clone
     const clone = action.clone();
-    setOrAddInvocationParam(clone, answer.name, answer.value);
+    setOrAddInvocationParam(clone, ipslot.ast.name, ipslot.ast.value);
     return replaceAction(ctx, 'execute', clone, 'accepted');
 }
 
-function actionSuccessQuestion(ctx : ContextInfo, questions : Array<[string, Type|null]>) {
-    for (const [qname, qtype] of questions) {
-        const arg = ctx.currentFunctionSchema!.getArgument(qname);
+function actionSuccessQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
+    for (const q of questions) {
+        if (!C.isSameFunction(q.schema, ctx.currentFunctionSchema!))
+            return null;
+        const arg = ctx.currentFunctionSchema!.getArgument(q.name);
         if (!arg || arg.is_input)
             return null;
-        if (qtype !== null && !qtype.equals(arg.type))
-            return null;
     }
-    return makeSimpleState(ctx, 'action_question', questions.map(([qname, qtype]) => qname));
+    return makeSimpleState(ctx, 'action_question', questions.map((q) => q.name));
 }
 
 export {
