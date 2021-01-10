@@ -19,6 +19,7 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import assert from 'assert';
 import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
@@ -48,7 +49,7 @@ get_predicate_filter : C.DomainIndependentFilterSlot = {
 if_filter : C.FilterSlot|C.DomainIndependentFilterSlot = {
     get_predicate_filter;
 
-    'the' p:out_param_Any ('is' | 'is exactly' | 'is equal to') x:constant_Any        => {
+    'the' p:out_param_Any ('is' | 'is exactly' | 'is equal to') x:constant_Any => {
         if (x.getType().isString)
             return C.makeFilter(p, '=~', x);
         else
@@ -181,17 +182,15 @@ either_filter : C.FilterSlot = {
 }
 
 range : [Ast.Value, Ast.Value] = {
-    'between' v1:constant_Numeric 'and' v2:constant_Numeric => {
-        if (!v1.getType().equals(v2.getType()))
-            return null;
-        if (v1.equals(v2)) // can happen with constants (now, 0, 1, etc.)
+    'between' v1:constant_Numeric 'and' v2:constant_Numeric with { type = v1.type } => {
+        assert(v1.getType().equals(v2.getType()));
+        if (v1.equals(v2))
             return null;
         return [v1, v2];
     };
-    'in the range from' v1:constant_Numeric 'to' v2:constant_Numeric => {
-        if (!v1.getType().equals(v2.getType()))
-            return null;
-        if (v1.equals(v2)) // can happen with constants (now, 0, 1, etc.)
+    'in the range from' v1:constant_Numeric 'to' v2:constant_Numeric with { type = v1.type } => {
+        assert(v1.getType().equals(v2.getType()));
+        if (v1.equals(v2))
             return null;
         return [v1, v2];
     };

@@ -94,7 +94,7 @@ backward_when_do_rule : Ast.ChainExpression = {
     action:thingpedia_action stream:stream ('' | '.')
         => new Ast.ChainExpression(null, [stream, action], C.resolveChain(stream.schema!, action.schema!));
 
-    action:thingpedia_action 'after checking for new' table:complete_table ('' | '.') if !complete => {
+    action:thingpedia_action 'after checking for new' table:complete_table with { is_monitorable = true } ('' | '.') if !complete => {
         if (!table.schema!.is_monitorable)
             return null;
         return new Ast.ChainExpression(null, [new Ast.MonitorExpression(null, table, null, table.schema), action],
@@ -404,7 +404,7 @@ projection_question : Ast.ExpressionStatement = {
 }
 
 explicit_when_condition : Ast.Expression = {
-    ('if' | 'when') filter:if_filter 'in' table:complete_table => {
+    ('if' | 'when') filter:if_filter 'in' table:complete_table with { is_monitorable = true } => {
         if (C.hasGetPredicate(filter.ast))
             return null;
         if (!table.schema!.is_monitorable)
@@ -417,7 +417,7 @@ explicit_when_condition : Ast.Expression = {
         return C.tableToStream(withFilter);
     };
 
-    ('if' | 'when') filter:edge_filter 'in' table:complete_table => {
+    ('if' | 'when') filter:edge_filter 'in' table:complete_table with { is_monitorable = true } => {
         if (C.hasGetPredicate(filter.ast))
             return null;
         if (!table.schema!.is_monitorable || table.schema!.is_list)
@@ -438,7 +438,7 @@ when_command : Ast.ExpressionStatement = {
        | 'send me' ('a message' | 'an alert' | 'a notification' | 'a pop up notification' | 'a popup notification') stream:stream
     ) => new Ast.ExpressionStatement(null, stream);
 
-    !turking ('let me know' | 'notify me') ('of' | 'about') ('changes' | 'updates') 'in' proj:projection_Any => {
+    !turking ('let me know' | 'notify me') ('of' | 'about') ('changes' | 'updates') 'in' proj:projection_Any with { is_monitorable = true } => {
         const stream = C.tableToStream(proj);
         if (!stream)
             return null;
@@ -460,28 +460,34 @@ when_command : Ast.ExpressionStatement = {
 monitor_command : Ast.ExpressionStatement = {
     // when => notify
 
-    ( ('monitor' | 'watch') table:with_filtered_table
-    | ('monitor' | 'watch') table:projection_Any
-    | ('let me know' | 'notify me') ('of' | 'about') ('changes' | 'updates') 'in' table:if_filtered_table
+    ( ('monitor' | 'watch') table:with_filtered_table with { is_monitorable = true }
+    | ('monitor' | 'watch') table:projection_Any with { is_monitorable = true }
+    | ('let me know' | 'notify me') ('of' | 'about') ('changes' | 'updates') 'in' table:if_filtered_table with { is_monitorable = true }
     ) => {
         const stream = C.tableToStream(table);
         if (!stream)
             return null;
         return new Ast.ExpressionStatement(null, stream);
     };
-    !nofilter ('monitor' | 'watch') table:complete_table 'and' ('alert me' | 'notify me' | 'inform me' | 'warn me') ('if' | 'when') filter:if_filter => {
-        if (C.hasGetPredicate(filter.ast))
-            return null;
-        if (table.schema!.is_list || !table.schema!.is_monitorable)
-            return null;
-        const withFilter = C.addFilter(table, filter);
-        if (!withFilter)
-            return null;
-        const stream = C.tableToStream(withFilter);
-        if (!stream)
-            return null;
-        return new Ast.ExpressionStatement(null, stream);
-    };
+    !nofilter {
+        ( ('monitor' | 'watch') table:complete_table with { is_monitorable = true }
+           'and' ('alert me' | 'notify me' | 'inform me' | 'warn me') ('if' | 'when') filter:if_filter with { functionName = table.functionName }
+        | ('monitor' | 'watch') table:complete_table with { is_monitorable = true }
+           'and' ('alert me' | 'notify me' | 'inform me' | 'warn me') ('if' | 'when') filter:if_filter with { functionName = null }
+        ) => {
+            if (C.hasGetPredicate(filter.ast))
+                return null;
+            if (table.schema!.is_list || !table.schema!.is_monitorable)
+                return null;
+            const withFilter = C.addFilter(table, filter);
+            if (!withFilter)
+                return null;
+            const stream = C.tableToStream(withFilter);
+            if (!stream)
+                return null;
+            return new Ast.ExpressionStatement(null, stream);
+        };
+    }
 }
 
 complete_action : Ast.ExpressionStatement = {
@@ -490,8 +496,8 @@ complete_action : Ast.ExpressionStatement = {
     action:action_replace_param_with_table if complete
         => new Ast.ExpressionStatement(null, action);
 
-    ( command:complete_action param:preposition_input_param
-    | command:complete_action ('with' | 'having') param:npp_input_param
+    ( command:complete_action param:preposition_input_param with { functionName = command.functionName }
+    | command:complete_action ('with' | 'having') param:npp_input_param with { functionName = command.functionName }
     ) => {
         const newAction = C.addActionInputParam(command.expression, param);
         if (newAction === null)

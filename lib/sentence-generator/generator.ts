@@ -233,6 +233,7 @@ class Chart {
      * Retrieve all derivations for a given key.
      */
     forKey(indexName : string, key : DerivationKeyValue) : ReadonlyArray<Derivation<any>> {
+        assert(key !== undefined);
         const map = this._indices[indexName];
         if (!map)
             return [];
@@ -246,6 +247,7 @@ class Chart {
     }
 
     chooseForKey(indexName : string, key : DerivationKeyValue) : Derivation<any>|undefined {
+        assert(key !== undefined);
         const map = this._indices[indexName];
         if (!map)
             return undefined;
@@ -1485,6 +1487,7 @@ function getKeyConstraint(choices : DerivationChildOrChoice[],
         const otherChoice = choices[otherNonTerminal];
         assert(otherChoice instanceof Derivation);
         const keyValue = otherChoice.key[otherIndexName];
+        assert(keyValue !== undefined);
         return [ourIndexName, keyValue];
     } else if (nonTerm.constantKeyConstraint) {
         return nonTerm.constantKeyConstraint;

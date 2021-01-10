@@ -18,7 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 import assert from 'assert';
 
 import { Ast, Type } from 'thingtalk';
@@ -51,9 +50,16 @@ export {
     makeAndFilter,
     makeDateRangeFilter,
 };
+export * from './keyfns';
 import { SlotBag } from './slot_bag';
 
 import _loader from './load-thingpedia';
+
+export type ArgMinMax = [ParamSlot, 'asc'|'desc'];
+export interface ErrorMessage {
+    code : string;
+    bag : SlotBag;
+}
 
 export function isEntityOfFunction(type : InstanceType<typeof Type.Entity>, schema : Ast.FunctionDef) {
     if (!schema.class)

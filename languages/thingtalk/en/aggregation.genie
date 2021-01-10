@@ -18,16 +18,17 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import assert from 'assert';
 import { Ast, Type } from 'thingtalk';
 
 import * as C from '../ast_manip';
 
 projection_Number : Ast.Expression = {
-    ?aggregation 'the' ('number' | 'total number' | 'count') 'of' ('' | 'the' | 'this' | 'that') t:complete_table => {
-        if (!t.schema!.is_list)
-            return null;
+    ?aggregation 'the' ('number' | 'total number' | 'count') 'of' ('' | 'the' | 'this' | 'that') t:complete_table with { is_list = true } => {
+        assert(t.schema!.is_list);
         const newSchema = t.schema!.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT)
             .addArguments([new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, 'count', Type.Number)]);
+        newSchema.is_list = false;
         const agg = new Ast.AggregationExpression(null, t, '*', 'count', newSchema);
         return new Ast.ProjectionExpression(null, agg, ['count'], [], [], newSchema);
     };
@@ -35,56 +36,67 @@ projection_Number : Ast.Expression = {
 
 projection_Any : Ast.Expression = {
     ?aggregation {
-    !schema_org 'the' 'total' p:out_param_Numeric 'of' ('' | 'the' | 'this' | 'that') t:complete_table => {
+    q:thingpedia_query if complete => {
+        if (!(q instanceof Ast.AggregationExpression))
+            return null;
+        return q;
+    };
+
+    !schema_org 'the' 'total' p:out_param_Numeric 'of' ('' | 'the' | 'this' | 'that') t:complete_table with { functionName = p.functionName } => {
         if (!t.schema!.out[p.name] || !t.schema!.out[p.name].isNumeric())
             return null;
         if (!t.schema!.is_list)
             return null;
 
         const newSchema = t.schema!.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
+        newSchema.is_list = false;
         const agg = new Ast.AggregationExpression(null, t, p.name, 'sum', newSchema);
         return new Ast.ProjectionExpression(null, agg, [p.name], [], [], newSchema);
     };
 
-    !turking 'the' ('average' | 'mean') p:out_param_Numeric 'of' ('' | 'the' | 'this' | 'that') t:complete_table => {
+    !turking 'the' ('average' | 'mean') p:out_param_Numeric 'of' ('' | 'the' | 'this' | 'that') t:complete_table with { functionName = p.functionName } => {
         if (!t.schema!.out[p.name] || !t.schema!.out[p.name].isNumeric())
             return null;
         if (!t.schema!.is_list)
             return null;
 
         const newSchema = t.schema!.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
+        newSchema.is_list = false;
         const agg = new Ast.AggregationExpression(null, t, p.name, 'avg', newSchema);
         return new Ast.ProjectionExpression(null, agg, [p.name], [], [], newSchema);
     };
-    ?turking 'the' 'average' p:out_param_Numeric 'of' ('' | 'the' | 'this' | 'that') t:complete_table => {
+    ?turking 'the' 'average' p:out_param_Numeric 'of' ('' | 'the' | 'this' | 'that') t:complete_table with { functionName = p.functionName } => {
         if (!t.schema!.out[p.name] || !t.schema!.out[p.name].isNumeric())
             return null;
         if (!t.schema!.is_list)
             return null;
 
         const newSchema = t.schema!.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
+        newSchema.is_list = false;
         const agg = new Ast.AggregationExpression(null, t, p.name, 'avg', newSchema);
         return new Ast.ProjectionExpression(null, agg, [p.name], [], [], newSchema);
     };
 
-    'the' ('minimum' | 'lowest') p:out_param_Numeric 'of' ('' | 'the' | 'this' | 'that') t:complete_table => {
+    'the' ('minimum' | 'lowest') p:out_param_Numeric 'of' ('' | 'the' | 'this' | 'that') t:complete_table with { functionName = p.functionName } => {
         if (!t.schema!.out[p.name] || !t.schema!.out[p.name].isNumeric())
             return null;
         if (!t.schema!.is_list)
             return null;
 
         const newSchema = t.schema!.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
+        newSchema.is_list = false;
         const agg = new Ast.AggregationExpression(null, t, p.name, 'min', newSchema);
         return new Ast.ProjectionExpression(null, agg, [p.name], [], [], newSchema);
     };
 
-    'the' ('maximum' | 'highest') p:out_param_Numeric 'of' ('' | 'the' | 'this' | 'that') t:complete_table => {
+    'the' ('maximum' | 'highest') p:out_param_Numeric 'of' ('' | 'the' | 'this' | 'that') t:complete_table with { functionName = p.functionName } => {
         if (!t.schema!.out[p.name] || !t.schema!.out[p.name].isNumeric())
             return null;
         if (!t.schema!.is_list)
             return null;
 
         const newSchema = t.schema!.filterArguments((arg) => arg.direction !== Ast.ArgDirection.OUT || arg.name === p.name);
+        newSchema.is_list = false;
         const agg = new Ast.AggregationExpression(null, t, p.name, 'max', newSchema);
         return new Ast.ProjectionExpression(null, agg, [p.name], [], [], newSchema);
     };

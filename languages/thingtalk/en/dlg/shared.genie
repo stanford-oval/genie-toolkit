@@ -23,6 +23,8 @@
 
 import { Ast, } from 'thingtalk';
 
+import * as C from '../../ast_manip';
+
 counterproposal_preamble : string = {
     'i was thinking more of';
     'i would like';

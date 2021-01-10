@@ -55,60 +55,60 @@ who_two_clean_filter_table : Ast.Expression = {}
 
 if (!_tpLoader.flags.nofilter) {
     who_one_with_filter_table : Ast.Expression = {
-        table:thingpedia_who_question ('with' | 'having') filter:with_filter => C.addFilter(table, filter);
-        table:thingpedia_who_question ('with' | 'having') filter:npp_filter => C.addFilter(table, filter);
+        table:thingpedia_who_question ('with' | 'having') filter:with_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:thingpedia_who_question ('with' | 'having') filter:npp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
     }
 
     who_one_which_filter_table : Ast.Expression = {
-        table:thingpedia_who_question ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
-        table:thingpedia_who_question ('which' | 'that') filter:avp_filter => C.addFilter(table, filter);
-        table:thingpedia_who_question ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
-        table:thingpedia_who_question ('which' | 'that') ('is' | 'are') filter:npv_filter => C.addFilter(table, filter);
-        table:thingpedia_who_question ('which' | 'that') ('is' | 'are') filter:pvp_filter => C.addFilter(table, filter);
-        table:thingpedia_who_question ('which' | 'that') ('is' | 'are') filter:preposition_filter => C.addFilter(table, filter);
+        table:thingpedia_who_question ('which' | 'that') ('is' | 'are') filter:npi_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:thingpedia_who_question ('which' | 'that') filter:avp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:thingpedia_who_question ('which' | 'that') ('is' | 'are') filter:apv_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:thingpedia_who_question ('which' | 'that') ('is' | 'are') filter:npv_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:thingpedia_who_question ('which' | 'that') ('is' | 'are') filter:pvp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:thingpedia_who_question ('which' | 'that') ('is' | 'are') filter:preposition_filter with { functionName = table.functionName } => C.addFilter(table, filter);
     }
 
     who_one_clean_filter_table : Ast.Expression = {
-        table:thingpedia_who_question filter:pvp_filter => C.addFilter(table, filter);
-        table:thingpedia_who_question filter:preposition_filter => C.addFilter(table, filter);
+        table:thingpedia_who_question filter:pvp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:thingpedia_who_question filter:preposition_filter with { functionName = table.functionName } => C.addFilter(table, filter);
     }
 
     who_two_with_filter_table : Ast.Expression = {
-        table:who_one_with_filter_table 'and' filter:with_filter => C.addFilter(table, filter);
-        table:who_one_which_filter_table ('and having' | 'and with' | ', with') filter:with_filter => C.addFilter(table, filter);
-        table:who_one_clean_filter_table ('with' | 'having') filter:with_filter => C.addFilter(table, filter);
+        table:who_one_with_filter_table 'and' filter:with_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_which_filter_table ('and having' | 'and with' | ', with') filter:with_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_clean_filter_table ('with' | 'having') filter:with_filter with { functionName = table.functionName } => C.addFilter(table, filter);
 
-        table:who_one_with_filter_table 'and' filter:npp_filter => C.addFilter(table, filter);
-        table:who_one_which_filter_table ('and having' | 'and with' | ', with') filter:npp_filter => C.addFilter(table, filter);
-        table:who_one_clean_filter_table ('with' | 'having') filter:npp_filter => C.addFilter(table, filter);
+        table:who_one_with_filter_table 'and' filter:npp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_which_filter_table ('and having' | 'and with' | ', with') filter:npp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_clean_filter_table ('with' | 'having') filter:npp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
     }
 
     who_two_which_filter_table : Ast.Expression = {
-        table:who_one_with_filter_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
-        table:who_one_with_filter_table ('which' | 'that') filter:avp_filter => C.addFilter(table, filter);
-        table:who_one_with_filter_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
-        table:who_one_with_filter_table ('which' | 'that') ('is' | 'are') filter:npv_filter => C.addFilter(table, filter);
-        table:who_one_with_filter_table ('which' | 'that') ('is' | 'are') filter:pvp_filter => C.addFilter(table, filter);
-        table:who_one_with_filter_table ('which' | 'that') ('is' | 'are') filter:preposition_filter => C.addFilter(table, filter);
+        table:who_one_with_filter_table ('which' | 'that') ('is' | 'are') filter:npi_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_with_filter_table ('which' | 'that') filter:avp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_with_filter_table ('which' | 'that') ('is' | 'are') filter:apv_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_with_filter_table ('which' | 'that') ('is' | 'are') filter:npv_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_with_filter_table ('which' | 'that') ('is' | 'are') filter:pvp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_with_filter_table ('which' | 'that') ('is' | 'are') filter:preposition_filter with { functionName = table.functionName } => C.addFilter(table, filter);
 
-        table:who_one_which_filter_table 'and' ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
-        table:who_one_which_filter_table 'and' filter:avp_filter => C.addFilter(table, filter);
-        table:who_one_which_filter_table 'and' ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
-        table:who_one_which_filter_table 'and' ('is' | 'are') filter:npv_filter => C.addFilter(table, filter);
-        table:who_one_which_filter_table 'and' ('is' | 'are') filter:pvp_filter => C.addFilter(table, filter);
-        table:who_one_which_filter_table 'and' ('is' | 'are') filter:preposition_filter => C.addFilter(table, filter);
+        table:who_one_which_filter_table 'and' ('is' | 'are') filter:npi_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_which_filter_table 'and' filter:avp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_which_filter_table 'and' ('is' | 'are') filter:apv_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_which_filter_table 'and' ('is' | 'are') filter:npv_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_which_filter_table 'and' ('is' | 'are') filter:pvp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_which_filter_table 'and' ('is' | 'are') filter:preposition_filter with { functionName = table.functionName } => C.addFilter(table, filter);
 
-        table:who_one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
-        table:who_one_clean_filter_table ('which' | 'that') filter:avp_filter => C.addFilter(table, filter);
-        table:who_one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(table, filter);
-        table:who_one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:npv_filter => C.addFilter(table, filter);
-        table:who_one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:pvp_filter => C.addFilter(table, filter);
-        table:who_one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:preposition_filter => C.addFilter(table, filter);
+        table:who_one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:npi_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_clean_filter_table ('which' | 'that') filter:avp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:apv_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:npv_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:pvp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_clean_filter_table ('which' | 'that') ('is' | 'are') filter:preposition_filter with { functionName = table.functionName } => C.addFilter(table, filter);
     }
 
     who_two_clean_filter_table : Ast.Expression = {
-        table:who_one_clean_filter_table ('and'|'') filter:pvp_filter => C.addFilter(table, filter);
-        table:who_one_clean_filter_table ('and'|'') filter:preposition_filter => C.addFilter(table, filter);
+        table:who_one_clean_filter_table ('and'|'') filter:pvp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_clean_filter_table ('and'|'') filter:preposition_filter with { functionName = table.functionName } => C.addFilter(table, filter);
     }
 }
 
@@ -135,63 +135,63 @@ whose_filtered_table : Ast.Expression = {}
 
 if (!_tpLoader.flags.nofilter) {
     who_one_be_filter_table : Ast.Expression = {
-        ?turking table:who_complete_table ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
-        table:who_complete_table ('is' | 'are') filter:pvp_filter => C.addFilter(table, filter);
-        table:who_complete_table ('is' | 'are') filter:preposition_filter => C.addFilter(table, filter);
-        table:who_complete_table ('is' | 'are') filter:apv_filter  => C.addFilter(table, filter);
-        ?turking table:who_complete_table ('is' | 'are') filter:npv_filter => C.addFilter(table, filter);
+        ?turking table:who_complete_table ('is' | 'are') filter:npi_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_complete_table ('is' | 'are') filter:pvp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_complete_table ('is' | 'are') filter:preposition_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_complete_table ('is' | 'are') filter:apv_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        ?turking table:who_complete_table ('is' | 'are') filter:npv_filter with { functionName = table.functionName } => C.addFilter(table, filter);
 
-        !turking table:who_complete_table ('is' | 'are') ('' | 'a' | 'the' | 'an') filter:npi_filter => C.addFilter(table, filter);
-        !turking table:who_complete_table ('is' | 'are') ('' | 'a' | 'the' | 'an') filter:npv_filter => C.addFilter(table, filter);
+        !turking table:who_complete_table ('is' | 'are') ('' | 'a' | 'the' | 'an') filter:npi_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        !turking table:who_complete_table ('is' | 'are') ('' | 'a' | 'the' | 'an') filter:npv_filter with { functionName = table.functionName } => C.addFilter(table, filter);
     }
 
     who_one_have_filter_table : Ast.Expression = {
-        table:who_complete_table ('get' | 'have' | 'gets' | 'has') filter:with_filter => C.addFilter(table, filter);
-        table:who_complete_table ('get' | 'have' | 'gets' | 'has') filter:npp_filter => C.addFilter(table, filter);
+        table:who_complete_table ('get' | 'have' | 'gets' | 'has') filter:with_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_complete_table ('get' | 'have' | 'gets' | 'has') filter:npp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
     }
 
     who_one_verb_filter_table : Ast.Expression = {
-        table:who_complete_table filter:avp_filter => C.addFilter(table, filter);
+        table:who_complete_table filter:avp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
     }
 
     who_two_be_filter_table : Ast.Expression = {
-        table:who_one_be_filter_table 'and' filter:npi_filter => C.addFilter(table, filter);
-        table:who_one_be_filter_table 'and' filter:pvp_filter => C.addFilter(table, filter);
-        table:who_one_be_filter_table 'and' filter:preposition_filter => C.addFilter(table, filter);
-        table:who_one_be_filter_table 'and' filter:apv_filter  => C.addFilter(table, filter);
-        table:who_one_be_filter_table 'and' filter:npv_filter => C.addFilter(table, filter);
+        table:who_one_be_filter_table 'and' filter:npi_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_be_filter_table 'and' filter:pvp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_be_filter_table 'and' filter:preposition_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_be_filter_table 'and' filter:apv_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_be_filter_table 'and' filter:npv_filter with { functionName = table.functionName } => C.addFilter(table, filter);
 
-        table:who_one_have_filter_table 'and' ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
-        table:who_one_have_filter_table 'and' ('is' | 'are') filter:pvp_filter => C.addFilter(table, filter);
-        table:who_one_have_filter_table 'and' ('is' | 'are') filter:preposition_filter => C.addFilter(table, filter);
-        table:who_one_have_filter_table 'and' ('is' | 'are') filter:apv_filter  => C.addFilter(table, filter);
-        table:who_one_have_filter_table 'and' ('is' | 'are') filter:npv_filter => C.addFilter(table, filter);
+        table:who_one_have_filter_table 'and' ('is' | 'are') filter:npi_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_have_filter_table 'and' ('is' | 'are') filter:pvp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_have_filter_table 'and' ('is' | 'are') filter:preposition_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_have_filter_table 'and' ('is' | 'are') filter:apv_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_have_filter_table 'and' ('is' | 'are') filter:npv_filter with { functionName = table.functionName } => C.addFilter(table, filter);
 
-        table:who_one_verb_filter_table 'and' ('is' | 'are') filter:npi_filter => C.addFilter(table, filter);
-        table:who_one_verb_filter_table 'and' ('is' | 'are') filter:pvp_filter => C.addFilter(table, filter);
-        table:who_one_verb_filter_table 'and' ('is' | 'are') filter:preposition_filter => C.addFilter(table, filter);
-        table:who_one_verb_filter_table 'and' ('is' | 'are') filter:apv_filter  => C.addFilter(table, filter);
-        table:who_one_verb_filter_table 'and' ('is' | 'are') filter:npv_filter => C.addFilter(table, filter);
+        table:who_one_verb_filter_table 'and' ('is' | 'are') filter:npi_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_verb_filter_table 'and' ('is' | 'are') filter:pvp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_verb_filter_table 'and' ('is' | 'are') filter:preposition_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_verb_filter_table 'and' ('is' | 'are') filter:apv_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_verb_filter_table 'and' ('is' | 'are') filter:npv_filter with { functionName = table.functionName } => C.addFilter(table, filter);
     }
 
     who_two_have_filter_table : Ast.Expression = {
-        table:who_one_be_filter_table 'and' ('get' | 'have' | 'gets' | 'has') filter:with_filter => C.addFilter(table, filter);
-        table:who_one_have_filter_table 'and' filter:with_filter => C.addFilter(table, filter);
-        table:who_one_verb_filter_table 'and' ('get' | 'have' | 'gets' | 'has') filter:with_filter => C.addFilter(table, filter);
+        table:who_one_be_filter_table 'and' ('get' | 'have' | 'gets' | 'has') filter:with_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_have_filter_table 'and' filter:with_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_verb_filter_table 'and' ('get' | 'have' | 'gets' | 'has') filter:with_filter with { functionName = table.functionName } => C.addFilter(table, filter);
 
-        table:who_one_be_filter_table 'and' ('get' | 'have' | 'gets' | 'has') filter:npp_filter => C.addFilter(table, filter);
-        table:who_one_have_filter_table 'and' filter:npp_filter => C.addFilter(table, filter);
-        table:who_one_verb_filter_table 'and' ('get' | 'have' | 'gets' | 'has') filter:npp_filter => C.addFilter(table, filter);
+        table:who_one_be_filter_table 'and' ('get' | 'have' | 'gets' | 'has') filter:npp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_have_filter_table 'and' filter:npp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_verb_filter_table 'and' ('get' | 'have' | 'gets' | 'has') filter:npp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
     }
 
     who_two_verb_filter_table : Ast.Expression = {
-        table:who_one_be_filter_table 'and' filter:avp_filter => C.addFilter(table, filter);
-        table:who_one_have_filter_table 'and' filter:avp_filter => C.addFilter(table, filter);
-        table:who_one_verb_filter_table 'and' filter:avp_filter => C.addFilter(table, filter);
+        table:who_one_be_filter_table 'and' filter:avp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_have_filter_table 'and' filter:avp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+        table:who_one_verb_filter_table 'and' filter:avp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
     }
 
     whose_filtered_table : Ast.Expression = {
-        table:who_complete_table filter:whose_npp_filter => C.addFilter(table, filter);
+        table:who_complete_table filter:whose_npp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
     }
 
 }

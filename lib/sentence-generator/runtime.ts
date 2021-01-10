@@ -330,10 +330,10 @@ function dummyKeyFunction(x : unknown) : DerivationKey {
 // produces a new derivation
 
 function simpleCombine<ArgTypes extends unknown[], ResultType>(semanticAction : SemanticAction<ArgTypes, ResultType>,
-                                                               flag ?: string|null,
-                                                               keyFunction : KeyFunction<ResultType> = dummyKeyFunction) : CombinerAction<ArgTypes, ResultType> {
+                                                               flag : string|null,
+                                                               keyFunction : KeyFunction<ResultType>|undefined) : CombinerAction<ArgTypes, ResultType> {
     return function(children : DerivationChildTuple<ArgTypes>, rulePriority : number) : Derivation<ResultType>|null {
-        const result = Derivation.combine(children, semanticAction, keyFunction, rulePriority);
+        const result = Derivation.combine(children, semanticAction, keyFunction||dummyKeyFunction, rulePriority);
         if (result === null)
             return null;
         if (flag) {
@@ -355,11 +355,11 @@ function simpleCombine<ArgTypes extends unknown[], ResultType>(semanticAction : 
 function combineReplacePlaceholder<FirstType, SecondType, ResultType>(pname : string,
                                                                       semanticAction : SemanticAction<[FirstType, SecondType], ResultType>,
                                                                       options : ReplacePlaceholderOptions,
-                                                                      keyFunction : KeyFunction<ResultType> = dummyKeyFunction) : CombinerAction<[FirstType, SecondType], ResultType> {
+                                                                      keyFunction : KeyFunction<ResultType>|undefined) : CombinerAction<[FirstType, SecondType], ResultType> {
     const f : CombinerAction<[FirstType, SecondType], ResultType> = function([c1, c2] : [DerivationChild<FirstType>, DerivationChild<SecondType>], rulePriority : number) {
         assert(c1 instanceof Derivation);
         assert(!(c2 instanceof Placeholder) && !(c2 instanceof Context));
-        return c1.replacePlaceholder(pname, c2, semanticAction, keyFunction, options, rulePriority);
+        return c1.replacePlaceholder(pname, c2, semanticAction, keyFunction||dummyKeyFunction, options, rulePriority);
     };
     f.isReplacePlaceholder = true;
     return f;
