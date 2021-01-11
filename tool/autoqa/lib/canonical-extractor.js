@@ -25,17 +25,8 @@ import * as util from 'util';
 import * as child_process from 'child_process';
 import stemmer from 'stemmer';
 
-import EnglishLanguagePack from '../../../lib/i18n/american-english';
-
-const VALUE_MAP = {
-    "1": ["one"],
-    "2": ["two"],
-    "3": ["three"],
-    "4": ["four"],
-    "feb 14 2017": ["february 14 2017", "february 14, 2017", "feb 14, 2017", "14 february 2017", "14 february, 2017", "14 feb 2017", "14 feb, 2017"],
-    "may 4th, 2016": ["may 4 2016", "may 4, 2016", "may 4th 2016", "4th may 2016", "4th may, 2016", "4 may 2016", "4 may, 2016"],
-    "august 2nd 2017": ["august 2, 2017", "august 2 2017", "august 2nd, 2017", "2 august 2017", "2nd august 2017", "2 august, 2017", "2nd august, 2017"]
-};
+import PosParser from '../../../lib/pos-parser';
+import EnglishTokenizer from '../../../lib/i18n/tokenizer/english';
 
 export default class AnnotationExtractor {
     constructor(klass, queries, model, options) {
@@ -43,7 +34,8 @@ export default class AnnotationExtractor {
         this.model = model;
         this.queries = queries;
         this.options = options;
-        this._langPack = new EnglishLanguagePack();
+        this.parser = new PosParser();
+        this.tokenizer = new EnglishTokenizer();
 
         this._input = [];
         this._output = [];
@@ -290,125 +282,20 @@ export default class AnnotationExtractor {
         }
 
         for (let paraphrase of paraphrases)
-            this._extractOneCanonical(canonical, origin, paraphrase, value, query_canonical);
+            this._extractOneCanonical(canonical, paraphrase, value, query_canonical);
     }
 
-    _hasValue(paraphrase, value) {
-        // find exact match
-        if (paraphrase.includes(value))
-            return value;
-
-        // find similar
-        if (value in VALUE_MAP) {
-            for (let alternative of VALUE_MAP[value]) {
-                if (paraphrase.includes(alternative))
-                    return alternative;
-            }
-        }
-
-        const pluralized = this._langPack.pluralize(value);
-        if (paraphrase.includes(pluralized))
-            return pluralized;
-
-        return false;
-    }
-
-    _extractOneCanonical(canonical, origin, paraphrase, value, query_canonical) {
-        origin = origin.toLowerCase();
+    _extractOneCanonical(canonical, paraphrase, value, query_canonical) {
         paraphrase = paraphrase.toLowerCase();
-        value = value.toLowerCase();
-        value = this._hasValue(paraphrase, value);
+        value = this.tokenizer.tokenize(value).rawTokens.join(' ');
 
-        if (!value)
-            return;
-
-        if (paraphrase.endsWith('.') || paraphrase.endsWith('?') || paraphrase.endsWith('!'))
-            paraphrase = paraphrase.slice(0, -1);
-
-        const pluralized_query_canonical = this._langPack.pluralize(query_canonical);
-        let tags = this._langPack.posTag(paraphrase.split(' '));
-
-        let prefixes = [];
-        if (origin.startsWith('who ')) {
-            prefixes.push('who ');
-            prefixes.push('who\'s ');
-        } if (origin.startsWith('which ')) {
-            let standard_prefix = origin.slice(0, origin.indexOf(query_canonical) + query_canonical.length + 1);
-            prefixes.push(standard_prefix);
-            prefixes.push(standard_prefix.replace('which ', 'what '));
-            prefixes.push(standard_prefix.replace(query_canonical, pluralized_query_canonical));
-            prefixes.push(standard_prefix.replace(query_canonical, pluralized_query_canonical).replace('which ', 'what '));
-        } else {
-            let standard_prefix = origin.slice(0, origin.indexOf(query_canonical) + query_canonical.length + 1);
-            prefixes.push(standard_prefix);
-            let to_replace = origin.includes(`a ${query_canonical}`) ? `a ${query_canonical}` : query_canonical;
-            const query_canonical_alternatives = [
-                `${pluralized_query_canonical}`,
-                `some ${pluralized_query_canonical}`,
-                `all ${pluralized_query_canonical}`,
-                `any ${query_canonical}`,
-                `any ${pluralized_query_canonical}`,
-                `an ${query_canonical}`,
-                `the ${query_canonical}`
-            ];
-            for (let alternative of query_canonical_alternatives)
-                prefixes.push(standard_prefix.replace(to_replace, alternative));
-        }
-
-        if (paraphrase.startsWith('show me ') && paraphrase.endsWith(query_canonical)) {
-            const clause = paraphrase.slice('show me '.length, -query_canonical.length - 1);
-            if ((clause.startsWith('a ') || clause.startsWith('an ') || clause.startsWith('the ')) && clause.split(' ').length <= 3) {
-                canonical['adjective'] = canonical['adjective'] || [];
-                canonical['adjective'].push(clause.slice(clause.indexOf(' ') + 1).replace(value, '#'));
+        const annotations = this.parser.match('query', paraphrase, [query_canonical], value);
+        if (annotations) {
+            for (const annotation of annotations) {
+                canonical[annotation.pos] = canonical[annotation.pos] || [];
+                canonical[annotation.pos].push(annotation.canonical.replace('$value', '#'));
             }
-            return;
-        }
-
-        for (let prefix of new Set(prefixes)) {
-            if (!paraphrase.startsWith(prefix))
-                continue;
-
-            let clause = paraphrase.slice(prefix.length);
-            let length = prefix.trim().split(' ').length;
-
-            if (prefix === 'who\'s'
-                || clause.startsWith('is ') || clause.startsWith('are ')
-                || clause.startsWith('was ') || clause.startsWith('were ')) {
-                if (clause.startsWith('is ') || clause.startsWith('are ')
-                    || clause.startsWith('was ') || clause.startsWith('are ')) {
-                    clause = clause.slice(clause.indexOf(' ') + 1);
-                    length += 1;
-                }
-                if ((clause.startsWith('a ') || clause.startsWith('an ') || clause.startsWith('the ')) &&
-                    ['NN', 'NNS', 'NNP', 'NNPS'].includes(tags[length + 1])) {
-                    canonical['reverse_property'] = canonical['reverse_property'] || [];
-                    canonical['reverse_property'].push(clause.replace(value, '#'));
-                } else if (['VBN', 'VBG', 'JJ'].includes(tags[length])) {
-                    canonical['passive_verb'] = canonical['passive_verb'] || [];
-                    canonical['passive_verb'].push(clause.replace(value, '#'));
-                } else if (['IN', 'TO'].includes(tags[length])) {
-                    canonical['preposition'] = canonical['preposition'] || [];
-                    canonical['preposition'].push(clause.replace(value, '#'));
-                }
-            } else if (clause.startsWith('with ') || clause.startsWith('has ') || clause.startsWith('have ')) {
-                canonical['property'] = canonical['property'] || [];
-                canonical['property'].push(clause.slice(clause.indexOf(' ') + 1).replace(value, '#'));
-            } else if ((clause.startsWith('that ') || clause.startsWith('who ')) && ['VBP', 'VBZ', 'VBD'].includes(tags[length + 1])) {
-                canonical['verb'] = canonical['verb'] || [];
-                canonical['verb'].push(clause.slice(clause.indexOf(' ') + 1).replace(value, '#'));
-            } else if ((clause.startsWith('do ') || clause.startsWith(`does ${value}`) || clause.startsWith(`did ${value}`))) {
-                canonical['verb'] = canonical['verb'] || [];
-                canonical['reverse_verb_projection'] = canonical['reverse_verb_projection'] || [];
-                canonical['verb'].push(clause.slice(clause.indexOf(' ') + 1).replace(value, '#'));
-                canonical['reverse_verb_projection'].push(clause.slice(clause.indexOf(' ') + 1).replace(value, '').trim());
-            } else if (['VBN', 'VBG', 'JJ'].includes(tags[length])) {
-                canonical['passive_verb'] = canonical['passive_verb'] || [];
-                canonical['passive_verb'].push(clause.replace(value, '#'));
-            } else if (['VBP', 'VBZ', 'VBD'].includes(tags[length])) {
-                canonical['verb'] = canonical['verb'] || [];
-                canonical['verb'].push(clause.replace(value, '#'));
-            }
-            break;
         }
     }
+
 }

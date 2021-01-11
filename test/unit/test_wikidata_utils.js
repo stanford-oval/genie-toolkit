@@ -33,9 +33,7 @@ const TEST_CASES_PROPERTY_LABELS = [
 
 const TEST_CASES_PROPERTY_LIST = [
     ['Q5', ['P18', 'P19', 'P20', 'P21', 'P3373']],
-    ['Q515', ['P17', 'P18', 'P31', 'P41', 'P47', 'P4290']
-
-    ]
+    ['Q515', ['P17', 'P18', 'P31', 'P41', 'P47']]
 ];
 
 async function main() {
