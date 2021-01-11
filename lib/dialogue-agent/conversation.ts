@@ -488,6 +488,19 @@ export default class Conversation extends events.EventEmitter {
         return this._addMessage({ type: MessageType.LINK, url, title });
     }
 
+    sendNewProgram(program : {
+        uniqueId : string;
+        name : string;
+        code : string;
+        results : Array<Record<string, unknown>>;
+        errors : string[];
+        icon : string|null;
+    }) {
+        if (this._debug)
+            console.log('Almond executed new program: '+ program.uniqueId);
+        return this._addMessage({ type: MessageType.NEW_PROGRAM, ...program });
+    }
+
     private get _lastDialogue() {
         if (this._log.length === 0)
             return null;

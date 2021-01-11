@@ -23,6 +23,11 @@ import { Ast, Type, Builtin, SchemaRetriever } from 'thingtalk';
 import type Engine from '../engine';
 import type AppExecutor from '../engine/apps/app_executor';
 
+import type {
+    NewProgramRecord,
+    RawExecutionResult
+} from './abstract_dialogue_agent';
+
 // above MORE_SIZE, we set the "more" bit
 const MORE_SIZE = 50;
 // above PAGE_SIZE, we set the count but don't actually show the full list of results
@@ -32,8 +37,6 @@ interface ErrorWithCode {
     message : string;
     code ?: string;
 }
-
-type RawExecutionResult = Array<[string, Record<string, unknown>]>;
 
 /**
  * Run the dialogue, executing ThingTalk and invoking the policy at the
@@ -182,7 +185,7 @@ export default class InferenceStatementExecutor {
         return [false, errorCode, errorMessage];
     }
 
-    async executeStatement(stmt : Ast.ExpressionStatement) : Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, undefined]> {
+    async executeStatement(stmt : Ast.ExpressionStatement) : Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, NewProgramRecord, undefined]> {
         const program = new Ast.Program(null, [], [], [stmt]);
         const app = await this._engine.createApp(program);
         const results : Ast.DialogueHistoryResultItem[] = [];
@@ -193,6 +196,14 @@ export default class InferenceStatementExecutor {
             new Ast.Value.Number(results.length), more,
             (errorCode ? new Ast.Value.Enum(errorCode) :
              (errorMessage ? new Ast.Value.String(errorMessage) : null)));
-        return [resultList, rawResults, undefined];
+        const newProgramRecord = {
+            uniqueId: app.uniqueId!,
+            name: app.name,
+            code: program.prettyprint(),
+            results: rawResults.map((r) => r[1]),
+            errors: errorCode ? [errorCode] : errorMessage ? [errorMessage] : [],
+            icon: app.icon
+        };
+        return [resultList, rawResults, newProgramRecord, undefined];
     }
 }
