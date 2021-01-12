@@ -24,7 +24,7 @@ import bodyParser from 'body-parser';
 // FIXME
 //import logger from 'morgan';
 import errorhandler from 'errorhandler';
-import qv from 'query-validation';
+import * as qv from 'query-validation';
 import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
 
@@ -106,13 +106,8 @@ const QUERY_PARAMS = {
 async function queryNLU(params : Record<string, string>,
                         data : QueryNLUData,
                         res : express.Response) {
-    const thingtalk_version = data.thingtalk_version;
     const app = res.app;
 
-    if (thingtalk_version !== ThingTalk.version) {
-        res.status(400).json({ error: 'Invalid ThingTalk version' });
-        return;
-    }
     if (params.locale !== app.args.locale) {
         res.status(400).json({ error: 'Unsupported language' });
         return;
