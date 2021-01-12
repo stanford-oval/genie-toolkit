@@ -113,23 +113,9 @@ async function queryNLU(params : Record<string, string>,
         return;
     }
 
-    // emulate the frontend classifier for API compatibility
-    const intent = {
-        question: 0,
-        command: 1,
-        chatty: 0,
-        other: 0
-    };
-
     const result = await res.app.backend.nlu.sendUtterance(data.q,
         data.context ? data.context.split(' ') : undefined, data.entities, data);
-
-    res.json({
-         candidates: result.candidates,
-         tokens: result.tokens,
-         entities: result.entities,
-         intent
-    });
+    res.json(result);
 }
 
 interface QueryNLGData {

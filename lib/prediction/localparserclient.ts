@@ -18,6 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import assert from 'assert';
 import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
 
@@ -179,6 +180,11 @@ export default class LocalParserClient {
 
         let result : PredictionCandidate[]|null = null;
         let exact : string[][]|null = null;
+        const intent = {
+            command: 1,
+            other: 0,
+            ignore: 0
+        };
 
         if (tokens.length === 0) {
             result = [{
@@ -206,27 +212,26 @@ export default class LocalParserClient {
         }
 
         if (result === null) {
-            if (options.expect === 'Location') {
-                result = [{
-                    code: ['$answer', '(', 'new', 'Location', '(', '"', ...tokens, '"', ')', ')', ';'],
-                    score: 1
-                }];
-            } else {
-                if (contextCode)
-                    contextCode = this._applyPreHeuristics(contextCode);
+            if (contextCode)
+                contextCode = this._applyPreHeuristics(contextCode);
 
-                let candidates;
-                if (contextCode)
-                    candidates = await this._predictor.predict(contextCode.join(' '), tokens.join(' '), answer, NLU_TASK, options.example_id);
-                else
-                    candidates = await this._predictor.predict(tokens.join(' '), undefined, answer, SEMANTIC_PARSING_TASK, options.example_id);
-                result = candidates.map((c) => {
-                    return {
-                        code: c.answer.split(' '),
-                        score: c.score
-                    };
-               });
-            }
+            let candidates;
+            if (contextCode)
+                candidates = await this._predictor.predict(contextCode.join(' '), tokens.join(' '), answer, NLU_TASK, options.example_id);
+            else
+                candidates = await this._predictor.predict(tokens.join(' '), undefined, answer, SEMANTIC_PARSING_TASK, options.example_id);
+            assert(candidates.length > 0);
+
+            result = candidates.map((c) => {
+                return {
+                    code: c.answer.split(' '),
+                    score: c.score.confidence ?? 1
+                };
+            });
+
+            intent.ignore = candidates[0].score.ignore ?? 0;
+            intent.command = (candidates[0].score.in_domain ?? 1) * (1 - intent.ignore);
+            intent.other = 1 - intent.ignore - intent.command;
         }
 
         let result2 = result!; // guaranteed not null
@@ -263,18 +268,18 @@ export default class LocalParserClient {
             result: 'ok',
             tokens: tokens,
             candidates: result2,
-            entities: entities
+            entities: entities,
+            intent
         };
     }
 
     async generateUtterance(contextCode : string[], contextEntities : EntityMap, targetAct : string[]) : Promise<GenerationResult[]> {
-        let candidates = await this._predictor.predict(contextCode.join(' ') + ' ' + targetAct.join(' '), NLG_QUESTION, undefined, NLG_TASK);
-        candidates = candidates.map((cand) => {
+        const candidates = await this._predictor.predict(contextCode.join(' ') + ' ' + targetAct.join(' '), NLG_QUESTION, undefined, NLG_TASK);
+        return candidates.map((cand) => {
             return {
                 answer: this._langPack.postprocessNLG(cand.answer, contextEntities),
-                score: cand.score
+                score: cand.score.confidence ?? 1
             };
         });
-        return candidates;
     }
 }

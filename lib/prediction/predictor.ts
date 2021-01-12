@@ -27,13 +27,13 @@ import JsonDatagramSocket from '../utils/json_datagram_socket';
 
 const DEFAULT_QUESTION = 'translate from english to thingtalk';
 
-interface PredictionCandidate {
+export interface RawPredictionCandidate {
     answer : string;
-    score : number;
+    score : Record<string, number>;
 }
 
 interface Request {
-    resolve(data : PredictionCandidate[][]) : void;
+    resolve(data : RawPredictionCandidate[][]) : void;
     reject(err : Error) : void;
 }
 
@@ -46,7 +46,7 @@ interface Example {
     answer ?: string;
     example_id ?: string;
 
-    resolve(data : PredictionCandidate[]) : void;
+    resolve(data : RawPredictionCandidate[]) : void;
     reject(err : Error) : void;
 }
 
@@ -114,14 +114,16 @@ class LocalWorker extends events.EventEmitter {
             if (msg.error) {
                 req.reject(new Error(msg.error));
             } else {
-                req.resolve(msg.instances.map((instance : any) : PredictionCandidate[] => {
+                req.resolve(msg.instances.map((instance : any) : RawPredictionCandidate[] => {
                     if (instance.candidates) {
                         return instance.candidates;
                     } else {
-                        // no beam search, hence only one candidate, and fixed score
+                        // no beam search, hence only one candidate
+                        // the score might present or not, depending on whether
+                        // we calibrate or not
                         return [{
                             answer: instance.answer,
-                            score: 1
+                            score: instance.score || {}
                         }];
                     }
                 }));
@@ -136,7 +138,7 @@ class LocalWorker extends events.EventEmitter {
         this._requests.clear();
     }
 
-    request(task : string, minibatch : Example[]) : Promise<PredictionCandidate[][]> {
+    request(task : string, minibatch : Example[]) : Promise<RawPredictionCandidate[][]> {
         const id = this._nextId ++;
 
         return new Promise((resolve, reject) => {
@@ -164,23 +166,21 @@ class RemoteWorker extends events.EventEmitter {
     start() {}
     stop() {}
 
-    async request(task : string, minibatch : Example[]) : Promise<PredictionCandidate[][]> {
+    async request(task : string, minibatch : Example[]) : Promise<RawPredictionCandidate[][]> {
         const response = await Tp.Helpers.Http.post(this._url, JSON.stringify({
-            id: 0, // should be ignored
             task,
             instances: minibatch
         }), { dataContentType: 'application/json', accept: 'application/json' });
-        const parsed = JSON.parse(response);
-        // TODO: this needs to be updated when genienlp kfserver is fixed to avoid
-        // double wrapping in JSON
-        return JSON.parse(parsed.predictions).instances.map((instance : any) : PredictionCandidate[] => {
+        return JSON.parse(response).predictions.map((instance : any) : RawPredictionCandidate[] => {
             if (instance.candidates) {
                 return instance.candidates;
             } else {
-                // no beam search, hence only one candidate, and fixed score
+                // no beam search, hence only one candidate
+                // the score might present or not, depending on whether
+                // we calibrate or not
                 return [{
                     answer: instance.answer,
-                    score: 1
+                    score: instance.score || {}
                 }];
             }
         });
@@ -254,7 +254,7 @@ export default class Predictor {
         }
     }
 
-    predict(context : string, question = DEFAULT_QUESTION, answer ?: string, task = 'almond', example_id ?: string) : Promise<PredictionCandidate[]> {
+    predict(context : string, question = DEFAULT_QUESTION, answer ?: string, task = 'almond', example_id ?: string) : Promise<RawPredictionCandidate[]> {
         assert(typeof context === 'string');
         assert(typeof question === 'string');
 
@@ -262,9 +262,9 @@ export default class Predictor {
         if (!this._worker)
             this.start();
 
-        let resolve ! : (data : PredictionCandidate[]) => void,
+        let resolve ! : (data : RawPredictionCandidate[]) => void,
             reject ! : (err : Error) => void;
-        const promise = new Promise<PredictionCandidate[]>((_resolve, _reject) => {
+        const promise = new Promise<RawPredictionCandidate[]>((_resolve, _reject) => {
             resolve = _resolve;
             reject = _reject;
         });

@@ -40,11 +40,22 @@ export interface PredictionCandidate {
     score : number|'Infinity';
 }
 
+// this type matches the NLP web API exactly, including some
+// odd aspects around "intent"
 export interface PredictionResult {
     result : 'ok';
     tokens : string[];
     entities : EntityMap;
     candidates : PredictionCandidate[];
+
+    // the server's best guess of whether this is a command (in-domain),
+    // an out of domain command (could be a new function, web question, or
+    // chatty sentence), or should be ignored altogether
+    intent : {
+        command : number;
+        other : number;
+        ignore : number;
+    }
 }
 
 export interface GenerationResult {
