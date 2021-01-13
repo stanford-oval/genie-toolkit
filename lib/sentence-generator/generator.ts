@@ -126,6 +126,9 @@ for (let i = 7; i < 20; i++)
 const EXPONENTIAL_PRUNE_SIZE = 500000000;
 const MAX_SAMPLE_SIZE = 1000000;
 
+// the automatically added derivation key considering the context
+const CONTEXT_KEY_NAME = '$context';
+
 interface FunctionTable<StateType> {
     answer ?: (state : StateType, value : unknown, contextTable : ContextTable) => StateType|null;
     context ?: ContextFunction<StateType>;
@@ -203,7 +206,9 @@ class Chart {
 
     constructor(targetSize : number, rng : () => number) {
         this._store = new ReservoirSampler(targetSize, rng);
-        this._indices = {};
+        this._indices = {
+            [CONTEXT_KEY_NAME]: new HashMultiMap<DerivationKeyValue, Derivation<any>>()
+        };
         this._rng = rng;
     }
 
@@ -261,6 +266,7 @@ class Chart {
             if (dropped !== undefined) {
                 for (const indexName in dropped.key)
                     this._indices[indexName].deleteValue(dropped.key[indexName], dropped);
+                this._indices[CONTEXT_KEY_NAME].deleteValue(dropped.context, dropped);
             } else {
                 added = true;
             }
@@ -274,6 +280,7 @@ class Chart {
                 assert(keyValue !== undefined);
                 index.put(keyValue, derivation);
             }
+            this._indices[CONTEXT_KEY_NAME].put(derivation.context, derivation);
         }
 
         assert.strictEqual(this.size, sizeBefore + +added);
@@ -1486,6 +1493,11 @@ function getKeyConstraint(choices : DerivationChildOrChoice[],
     }
 }
 
+function* iterchain<T>(iter1 : Iterable<T>, iter2 : Iterable<T>) : Iterable<T> {
+    yield* iter1;
+    yield* iter2;
+}
+
 function expandRuleExhaustive(charts : ChartTable,
                               depth : number,
                               maxdepth : number,
@@ -1604,18 +1616,37 @@ function expandRuleExhaustive(charts : ChartTable,
                         candidates = charts.getAtDepthForKey(currentExpansion.index,
                                                              fixeddepth,
                                                              indexName, keyValue);
+                    } else if (context !== null) {
+                        // if we have chosen a context, either pick something with
+                        // no context or something with the same context
+                        candidates = iterchain(charts.getAtDepthForKey(currentExpansion.index,
+                                                                       fixeddepth,
+                                                                       CONTEXT_KEY_NAME, null),
+                                               charts.getAtDepthForKey(currentExpansion.index,
+                                                                       fixeddepth,
+                                                                       CONTEXT_KEY_NAME, context));
                     } else {
                         candidates = charts.getAtDepth(currentExpansion.index, fixeddepth);
                     }
                 } else {
+                    const upToDepth = k > pivotIdx ? maxdepth : maxdepth-1;
+
                     if (constraint) {
                         const [indexName, keyValue] = constraint;
                         candidates = charts.getUpToDepthForKey(currentExpansion.index,
-                                                               k > pivotIdx ? maxdepth : maxdepth-1,
+                                                               upToDepth,
                                                                indexName, keyValue);
+                    } else if (context !== null) {
+                        // if we have chosen a context, either pick something with
+                        // no context or something with the same context
+                        candidates = iterchain(charts.getUpToDepthForKey(currentExpansion.index,
+                                                                         upToDepth,
+                                                                         CONTEXT_KEY_NAME, null),
+                                               charts.getUpToDepthForKey(currentExpansion.index,
+                                                                         upToDepth,
+                                                                         CONTEXT_KEY_NAME, context));
                     } else {
-                        candidates = charts.getUpToDepth(currentExpansion.index,
-                                                         k > pivotIdx ? maxdepth : maxdepth-1);
+                        candidates = charts.getUpToDepth(currentExpansion.index, upToDepth);
                     }
                 }
 
@@ -1688,6 +1719,7 @@ function expandRuleSample(charts : ChartTable,
 
         outerloop:
         for (let sampleIdx = 0; sampleIdx < targetSemanticFunctionCalls; sampleIdx++) {
+            let newContext : Context|null = null;
             for (let i = 0; i < expansionLenght; i++) {
                 const currentExpansion = expansion[i];
                 if (currentExpansion instanceof NonTerminal) {
@@ -1697,12 +1729,23 @@ function expandRuleSample(charts : ChartTable,
                     if (constraint) {
                         const [indexName, keyValue] = constraint;
                         choice = charts.chooseAtDepthForKey(currentExpansion.index, 0, indexName, keyValue);
+                    } else if (newContext !== null) {
+                        // try with no context first, then try with the same context
+                        // this is not exactly correct sampling wise, but we don't
+                        // have a lot of mixed non-terminals (in fact, I can't think
+                        // of any) so it's mostly good enough
+                        choice = charts.chooseAtDepthForKey(currentExpansion.index, 0, CONTEXT_KEY_NAME, null);
+                        if (!choice)
+                            choice = charts.chooseAtDepthForKey(currentExpansion.index, 0, CONTEXT_KEY_NAME, newContext);
                     } else {
                         choice = charts.chooseAtDepth(currentExpansion.index, 0);
                     }
                     if (!choice) // no compatible derivation with these keys
                         continue outerloop;
                     choices[i] = choice;
+                    if (!Context.compatible(newContext, choice.context))
+                        continue outerloop;
+                    newContext = Context.meet(newContext, choice.context);
                 } else {
                     choices[i] = currentExpansion instanceof Choice ? currentExpansion.choose(rng) : currentExpansion;
                 }
@@ -1797,11 +1840,10 @@ function expandRuleSample(charts : ChartTable,
     // fill and size the array
     for (let i = 0; i < expansionLenght; i++)
         choices.push('');
-    let newContext : Context|null = null;
 
     outerloop:
     for (let sampleIdx = 0; sampleIdx < targetSemanticFunctionCalls; sampleIdx++) {
-        newContext = null;
+        let newContext : Context|null = null;
 
         // choose the pivot
         const pivotIdx = categoricalPrecomputed(pivotProbabilityCumsum, pivotProbabilityCumsum.length, rng);
@@ -1819,19 +1861,16 @@ function expandRuleSample(charts : ChartTable,
                     const [indexName, keyValue] = constraint;
                     choice = charts.chooseAtDepthForKey(currentExpansion.index, depth-1,
                                                         indexName, keyValue);
+                } else if (newContext !== null) {
+                    // try with no context first, then try with the same context
+                    // (see above for longer explanation)
+                    choice = charts.chooseAtDepthForKey(currentExpansion.index, depth-1, CONTEXT_KEY_NAME, null);
+                    if (!choice)
+                        choice = charts.chooseAtDepthForKey(currentExpansion.index, depth-1, CONTEXT_KEY_NAME, newContext);
                 } else {
                     choice = charts.chooseAtDepth(currentExpansion.index, depth-1);
                 }
 
-                if (!choice && !constraint) {
-                    // uh oh!
-                    console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')}`);
-                    console.log(`pivotIdx = ${pivotIdx}`);
-                    console.log(`leftCumProd =`, leftCumProd);
-                    console.log(`rightCumProd =`, rightCumProd);
-                    console.log(`pivotProbabilityCumsum =`, pivotProbabilityCumsum);
-                    throw new Error(`Unexpected empty chart for pivot`);
-                }
                 if (!choice) // no compatible derivation with these keys
                     continue outerloop;
                 choices[i] = choice;
@@ -1845,19 +1884,14 @@ function expandRuleSample(charts : ChartTable,
                         const [indexName, keyValue] = constraint;
                         choice = charts.chooseUpToDepthForKey(currentExpansion.index, maxdepth,
                                                               indexName, keyValue);
+                    } else if (newContext !== null) {
+                        // try with no context first, then try with the same context
+                    // (see above for longer explanation)
+                        choice = charts.chooseUpToDepthForKey(currentExpansion.index, maxdepth, CONTEXT_KEY_NAME, null);
+                        if (!choice)
+                            choice = charts.chooseUpToDepthForKey(currentExpansion.index, maxdepth, CONTEXT_KEY_NAME, newContext);
                     } else {
                         choice = charts.chooseUpToDepth(currentExpansion.index, maxdepth);
-                    }
-                    if (!choice && !constraint) {
-                        // uh oh!
-                        console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')}`);
-                        console.log(`pivotIdx = ${pivotIdx}`);
-                        console.log(`currentIdx = ${i}`);
-                        console.log(`maxdepth = ${maxdepth}`);
-                        console.log(`leftCumProd =`, leftCumProd);
-                        console.log(`rightCumProd =`, rightCumProd);
-                        console.log(`pivotProbabilityCumsum =`, pivotProbabilityCumsum);
-                        throw new Error(`Unexpected empty chart for non-pivot`);
                     }
                     if (!choice) // no compatible derivation with these keys
                         continue outerloop;
@@ -1868,11 +1902,7 @@ function expandRuleSample(charts : ChartTable,
             }
 
             const chosen = choices[i];
-            if (chosen instanceof Context) {
-                if (!Context.compatible(newContext, chosen))
-                    continue outerloop;
-                newContext = chosen;
-            } else if (chosen instanceof Derivation) {
+            if (chosen instanceof Derivation) {
                 if (!Context.compatible(newContext, chosen.context))
                     continue outerloop;
                 newContext = Context.meet(newContext, chosen.context);
