@@ -40,7 +40,7 @@ function areQuestionsValidForContext(ctx : ContextInfo, questions : C.ParamSlot[
     if (ctx.resultInfo!.isAggregation)
         return null;
 
-    const schema = ctx.currentFunctionSchema!;
+    const schema = ctx.currentFunction!;
 
     // if the function only contains one parameter, do not generate projection for it
     if (Object.keys(schema.out).length === 1)

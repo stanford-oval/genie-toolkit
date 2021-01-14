@@ -33,22 +33,22 @@ import * as D from '../../dialogue_acts';
 import * as S from '../../state_manip';
 
 search_result_preamble : S.ContextInfo = {
-    ctx:ctx_search_command ('there are' | 'i can see' | 'i have found' | 'i can recommend') ('many' | 'several') base:base_noun_phrase
+    ctx:ctx_search_command ('there are' | 'i can see' | 'i have found' | 'i can recommend') ('many' | 'several') base:base_noun_phrase with { functionName = ctx.currentFunction }
         ('matching your request' | 'matching your constraints' | 'with those characteristics' | 'like that' | '') '.'
         => D.checkSearchResultPreamble(ctx, base, null, false);
 
-    ctx:ctx_search_command ('there are' | 'i have found' | 'i have' | 'i can see') num:constant_Number base:base_noun_phrase
+    ctx:ctx_search_command ('there are' | 'i have found' | 'i have' | 'i can see') num:constant_Number with { value = ctx.resultLength } base:base_noun_phrase with { functionName = ctx.currentFunction }
         ('in my database' | 'like that') '.'
         => D.checkSearchResultPreamble(ctx, base, num, false);
 }
 
 system_generic_proposal : S.AgentReplyRecord = {
-    ( ctx:ctx_search_command ('are you looking for a' | 'how about a' | 'how about the') proposal:answer_noun_phrase '?'
-    | ctx:ctx_search_command ('are you looking for' | 'how about') proposal:anything_phrase '?'
+    ( ctx:ctx_search_command ('are you looking for a' | 'how about a' | 'how about the') proposal:answer_noun_phrase with { functionName = ctx.currentFunction } '?'
+    | ctx:ctx_search_command ('are you looking for' | 'how about') proposal:anything_phrase with { functionName = ctx.currentFunction } '?'
     ) => D.makeRefinementProposal(ctx, proposal);
 
-    ( ctx:search_result_preamble ('are you looking for a' | 'how about a' | 'how about the') proposal:answer_noun_phrase '?'
-    | ctx:search_result_preamble ('are you looking for' | 'how about' | 'how about') proposal:anything_phrase '?'
+    ( ctx:search_result_preamble ('are you looking for a' | 'how about a' | 'how about the') proposal:answer_noun_phrase with { functionName = ctx.currentFunction } '?'
+    | ctx:search_result_preamble ('are you looking for' | 'how about' | 'how about') proposal:anything_phrase with { functionName = ctx.currentFunction } '?'
     ) => D.makeRefinementProposal(ctx, proposal);
 }
 

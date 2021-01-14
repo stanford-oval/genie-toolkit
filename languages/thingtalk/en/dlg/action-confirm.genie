@@ -24,13 +24,14 @@
 
 import { Ast, } from 'thingtalk';
 
+import * as C from '../../ast_manip';
 import * as D from '../../dialogue_acts';
 import * as S from '../../state_manip';
 
 action_confirm_phrase : S.AgentReplyRecord = {
-    ( ctx:ctx_confirm_action 'ok , do you want me to' action:action_description_phrase '?'
+    ( ctx:ctx_confirm_action 'ok , do you want me to' action:action_description_phrase with { functionName = ctx.nextFunction } '?'
     | ctx:ctx_confirm_action 'ok ,' ('i am going to ' | 'you want to' | 'you would like to')
-        action:action_description_phrase '.' ('do you confirm' | 'is that it' | 'is that correct' |
+        action:action_description_phrase with { functionName = ctx.nextFunction } '.' ('do you confirm' | 'is that it' | 'is that correct' |
         'is that right') '?'
     ) => D.makeActionConfirmationPhrase(ctx, action);
 }

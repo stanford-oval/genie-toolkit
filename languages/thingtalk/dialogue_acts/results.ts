@@ -33,7 +33,7 @@ import {
 
 function checkInfoPhrase(ctx : ContextInfo, info : SlotBag) {
     if (info.schema !== null) {
-        if (!C.isSameFunction(ctx.currentFunctionSchema!, info.schema))
+        if (!C.isSameFunction(ctx.currentFunction!, info.schema))
             return null;
     }
 
@@ -72,7 +72,7 @@ function checkInfoPhrase(ctx : ContextInfo, info : SlotBag) {
             return info;
 
         const clone = info.clone();
-        clone.schema = ctx.currentFunctionSchema;
+        clone.schema = ctx.currentFunction;
         return clone;
     } else {
         return null;

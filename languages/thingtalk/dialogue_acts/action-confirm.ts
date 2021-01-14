@@ -84,7 +84,7 @@ function actionConfirmChangeParam(ctx : ContextInfo, answer : Ast.Value|C.InputP
         return null;
 
     // don't accept in params that don't apply to this specific action
-    const arg = ctx.nextFunctionSchema!.getArgument(answer.ast.name);
+    const arg = ctx.nextFunction!.getArgument(answer.ast.name);
     if (!arg || !arg.is_input || !arg.type.equals(answer.ast.value.getType()))
         return null;
 

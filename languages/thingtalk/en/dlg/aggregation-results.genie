@@ -27,12 +27,12 @@ import * as D from '../../dialogue_acts';
 import * as S from '../../state_manip';
 
 count_aggregation_reply_suffix : S.ContextInfo = {
-    ctx:ctx_with_aggregation_result base:base_table ('like that' | 'with those characteristics')
+    ctx:ctx_with_aggregation_result base:base_table with { functionName = ctx.currentFunction } ('like that' | 'with those characteristics')
         => D.makeCountAggregationReplySuffix(ctx, base, false);
 
-    ctx:ctx_with_aggregation_result table:one_with_filter_table [priority=10]
+    ctx:ctx_with_aggregation_result table:one_with_filter_table with { functionName = ctx.currentFunction } [priority=10]
         => D.makeCountAggregationReplySuffix(ctx, table, true);
-    ctx:ctx_with_aggregation_result table:two_with_filter_table [priority=10]
+    ctx:ctx_with_aggregation_result table:two_with_filter_table with { functionName = ctx.currentFunction } [priority=10]
         => D.makeCountAggregationReplySuffix(ctx, table, true);
 }
 

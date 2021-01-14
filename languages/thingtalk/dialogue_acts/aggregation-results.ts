@@ -40,7 +40,7 @@ function makeCountAggregationReplySuffix(ctx : ContextInfo, table : Ast.Expressi
     if (!(currentTable instanceof Ast.AggregationExpression) ||
         currentTable.operator !== 'count' || currentTable.field !== '*')
         return null;
-    if (!C.isSameFunction(table.schema!, ctx.currentTableSchema!))
+    if (!C.isSameFunction(table.schema!, ctx.currentTableFunction!))
         return null;
     if (mustFilter && !(table instanceof Ast.FilterExpression))
         return null;

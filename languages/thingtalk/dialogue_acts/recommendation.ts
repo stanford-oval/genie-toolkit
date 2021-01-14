@@ -88,9 +88,9 @@ function makeArgMinMaxRecommendation(ctx : ContextInfo, name : Ast.Value, base :
     const resultInfo = ctx.resultInfo!;
     if (!resultInfo.argMinMaxField)
         return null;
-    if (!C.isSameFunction(base.schema!, ctx.currentFunctionSchema!))
+    if (!C.isSameFunction(base.schema!, ctx.currentFunction!))
         return null;
-    if (!C.isSameFunction(param.schema, ctx.currentFunctionSchema!))
+    if (!C.isSameFunction(param.schema, ctx.currentFunction!))
         return null;
     if (direction !== resultInfo.argMinMaxField[1] ||
         param.name !== resultInfo.argMinMaxField[0])
@@ -170,7 +170,7 @@ function checkActionForRecommendation({ topResult, info, action: nextAction } : 
 function makeAnswerStyleRecommendation({ topResult, ctx, action } : Recommendation, filter : C.FilterSlot) {
     if (!ctx)
         return null;
-    let info : SlotBag|null = new SlotBag(ctx.currentFunctionSchema);
+    let info : SlotBag|null = new SlotBag(ctx.currentFunction);
     info = checkAndAddSlot(info, filter);
     if (info === null)
         return null;
@@ -187,9 +187,9 @@ function makeDisplayResult(ctx : ContextInfo, info : SlotBag) {
     assert(results && results.length > 0);
     const topResult = results[0];
 
-    if (ctx.currentFunctionSchema!.is_list)
+    if (ctx.currentFunction!.is_list)
         return null;
-    if (!C.isSameFunction(ctx.currentFunctionSchema!, info.schema!))
+    if (!C.isSameFunction(ctx.currentFunction!, info.schema!))
         return null;
     if (!isInfoPhraseCompatibleWithResult(topResult, info))
         return null;
@@ -331,7 +331,7 @@ function recommendationLearnMoreReply(ctx : ContextInfo, name : Ast.Value|null) 
 function repeatCommandReply(ctx : ContextInfo) {
     if (ctx.next)
         return null;
-    if (ctx.currentFunctionSchema!.is_monitorable)
+    if (ctx.currentFunction!.is_monitorable)
         return null;
 
     const clone = ctx.current!.clone();

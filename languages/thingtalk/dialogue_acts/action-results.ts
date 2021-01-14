@@ -37,6 +37,14 @@ import {
     isInfoPhraseCompatibleWithResult
 } from './common';
 
+export type ActionSuccessPhraseWithResult = [Ast.Invocation|null, SlotBag];
+
+export function actionSuccessPhraseWithResultKeyFn([invocation, bag] : ActionSuccessPhraseWithResult) {
+    return {
+        functionName: bag.schema!.qualifiedName
+    };
+}
+
 function makeThingpediaActionSuccessPhrase(ctx : ContextInfo, info : SlotBag) {
     const results = ctx.results;
     if (!results || results.length !== 1)
@@ -131,7 +139,7 @@ export interface ErrorMessage {
 }
 
 function checkThingpediaErrorMessage(ctx : ContextInfo, msg : ErrorMessage) {
-    if (!C.isSameFunction(ctx.currentFunctionSchema!, msg.bag.schema!))
+    if (!C.isSameFunction(ctx.currentFunction!, msg.bag.schema!))
         return null;
     const error = ctx.error;
     if (!(error instanceof Ast.EnumValue) || error.value !== msg.code)
@@ -149,7 +157,7 @@ function checkThingpediaErrorMessage(ctx : ContextInfo, msg : ErrorMessage) {
 function checkActionErrorMessage(ctx : ContextInfo, action : Ast.Invocation) {
     // check the action is the same we actually executed, and all the parameters we're mentioning
     // match the actual parameters of the action
-    if (!C.isSameFunction(ctx.currentFunctionSchema!, action.schema!))
+    if (!C.isSameFunction(ctx.currentFunction!, action.schema!))
         return null;
     const ctxInvocation = C.getInvocation(ctx.current!);
     for (const newParam of action.in_params) {
@@ -173,7 +181,7 @@ function checkActionErrorMessage(ctx : ContextInfo, action : Ast.Invocation) {
 }
 
 function makeActionErrorPhrase(ctx : ContextInfo, questions : C.ParamSlot[]) {
-    const schema = ctx.currentFunctionSchema!;
+    const schema = ctx.currentFunction!;
     for (const q of questions) {
         if (!C.isSameFunction(schema, q.schema))
             return null;
@@ -194,7 +202,7 @@ function makeActionErrorPhrase(ctx : ContextInfo, questions : C.ParamSlot[]) {
 }
 
 function actionErrorChangeParam(ctx : ContextInfo, answer : Ast.Value|C.InputParamSlot) {
-    const schema = ctx.currentFunctionSchema!;
+    const schema = ctx.currentFunction!;
     const questions = ctx.state.dialogueActParam || [];
     let ipslot : C.InputParamSlot;
     if (answer instanceof Ast.Value) {
@@ -225,9 +233,9 @@ function actionErrorChangeParam(ctx : ContextInfo, answer : Ast.Value|C.InputPar
 
 function actionSuccessQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
     for (const q of questions) {
-        if (!C.isSameFunction(q.schema, ctx.currentFunctionSchema!))
+        if (!C.isSameFunction(q.schema, ctx.currentFunction!))
             return null;
-        const arg = ctx.currentFunctionSchema!.getArgument(q.name);
+        const arg = ctx.currentFunction!.getArgument(q.name);
         if (!arg || arg.is_input)
             return null;
     }

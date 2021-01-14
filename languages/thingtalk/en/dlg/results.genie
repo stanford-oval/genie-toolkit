@@ -34,12 +34,12 @@ import _tpLoader from '../../load-thingpedia';
 // names of objects in the result
 
 result_name_pair : D.NameList = {
-    ctx:ctx_with_result n1:constant_name ',' n2:constant_name => {
+    ctx:ctx_with_result n1:constant_name with { value = ctx.id0 } ',' n2:constant_name with { value = ctx.id1 } => {
         const results = ctx.results;
         assert(results && results.length > 0);
         if (results.length < 2)
             return null;
-        if (!ctx.resultInfo!.hasID)
+        if (ctx.resultInfo!.idType === null)
             return null;
 
         const r1 = results[0];
@@ -51,12 +51,12 @@ result_name_pair : D.NameList = {
 }
 
 result_name_list : D.NameList = {
-    ctx:ctx_with_result n1:constant_name ('and' | 'or') n2:constant_name [priority=2] => {
+    ctx:ctx_with_result n1:constant_name with { value = ctx.id0 } ('and' | 'or') n2:constant_name with { value = ctx.id1 } [priority=2] => {
         const results = ctx.results;
         assert(results && results.length > 0);
         if (results.length < 2)
             return null;
-        if (!ctx.resultInfo!.hasID)
+        if (ctx.resultInfo!.idType === null)
             return null;
 
         const r1 = results[0];
@@ -66,13 +66,13 @@ result_name_list : D.NameList = {
         return { ctx, results: results.slice(0, 2) };
     };
 
-    pair:result_name_pair ('and' | 'or') n3:constant_name [priority=3] => {
+    pair:result_name_pair ('and' | 'or') n3:constant_name with { value = pair.id2 } [priority=3] => {
         const ctx = pair.ctx;
         const results = ctx.results;
         assert(results && results.length > 0);
         if (results.length < 3)
             return null;
-        if (!ctx.resultInfo!.hasID)
+        if (ctx.resultInfo!.idType === null)
             return null;
         const r3 = results[2];
         if (!r3.value.id.equals(n3))
@@ -91,7 +91,7 @@ direct_result_info_phrase : SlotBag = {
 }
 
 one_param_direct_result_info_phrase : SlotBag = {
-    'the' param:out_param_Any 'is' v:constant_Any => {
+    'the' param:out_param_Any 'is' v:constant_Any with { type = param.type } => {
         if (!param.type.equals(v.getType()))
             return null;
         const bag = new SlotBag(param.schema);
@@ -107,11 +107,17 @@ one_param_direct_result_info_phrase : SlotBag = {
 }
 
 two_param_direct_result_info_phrase : SlotBag = {
-    b1:one_param_direct_result_info_phrase 'and' b2:one_param_direct_result_info_phrase => SlotBag.merge(b1, b2);
+    // account for nulls when merging
+    b1:one_param_direct_result_info_phrase 'and' b2:one_param_direct_result_info_phrase with { functionName = b1.functionName } => SlotBag.merge(b1, b2);
+    b1:one_param_direct_result_info_phrase with { functionName = null } 'and' b2:one_param_direct_result_info_phrase => SlotBag.merge(b1, b2);
+    b1:one_param_direct_result_info_phrase 'and' b2:one_param_direct_result_info_phrase with { functionName = null } => SlotBag.merge(b1, b2);
 }
 
 three_param_direct_result_info_phrase : SlotBag = {
-    b1:one_param_direct_result_info_phrase ',' b2:two_param_direct_result_info_phrase => SlotBag.merge(b1, b2);
+    // account for nulls when merging
+    // b2 cannot be null because null only occurs for the phrase "the distance is X"
+    b1:one_param_direct_result_info_phrase ',' b2:two_param_direct_result_info_phrase with { functionName = b1.functionName } => SlotBag.merge(b1, b2);
+    b1:one_param_direct_result_info_phrase with { functionName = null } ',' b2:two_param_direct_result_info_phrase => SlotBag.merge(b1, b2);
 }
 
 // a noun phrase of the form "a restaurant in Cambridge that serves X"
@@ -122,17 +128,17 @@ result_info_phrase : SlotBag = {
     // only "and" and "contains"
     // and furthermore, if the context is a projection, all projected fields must
     // appear as filters
-    ctx:ctx_with_result table:one_with_info_phrase [weight=0.33*2, priority=1] => D.checkInfoPhrase(ctx, table);
-    ctx:ctx_with_result table:one_which_info_phrase [weight=0.33*2, priority=1] => D.checkInfoPhrase(ctx, table);
-    ctx:ctx_with_result table:one_clean_info_phrase [weight=0.33*2, priority=1] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:one_with_info_phrase with { functionName = ctx.currentFunction } [weight=0.33*2, priority=1] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:one_which_info_phrase with { functionName = ctx.currentFunction } [weight=0.33*2, priority=1] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:one_clean_info_phrase with { functionName = ctx.currentFunction } [weight=0.33*2, priority=1] => D.checkInfoPhrase(ctx, table);
 
-    ctx:ctx_with_result table:two_with_info_phrase [weight=0.33, priority=2] => D.checkInfoPhrase(ctx, table);
-    ctx:ctx_with_result table:two_which_info_phrase [weight=0.33, priority=2] => D.checkInfoPhrase(ctx, table);
-    ctx:ctx_with_result table:two_clean_info_phrase [weight=0.33, priority=2] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:two_with_info_phrase with { functionName = ctx.currentFunction } [weight=0.33, priority=2] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:two_which_info_phrase with { functionName = ctx.currentFunction } [weight=0.33, priority=2] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:two_clean_info_phrase with { functionName = ctx.currentFunction } [weight=0.33, priority=2] => D.checkInfoPhrase(ctx, table);
 
-    ctx:ctx_with_result table:three_with_info_phrase [weight=0.33*0.5, priority=-1] => D.checkInfoPhrase(ctx, table);
-    ctx:ctx_with_result table:three_which_info_phrase [weight=0.33*0.5, priority=-1] => D.checkInfoPhrase(ctx, table);
-    ctx:ctx_with_result table:three_clean_info_phrase [weight=0.33*0.5, priority=-1] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:three_with_info_phrase with { functionName = ctx.currentFunction } [weight=0.33*0.5, priority=-1] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:three_which_info_phrase with { functionName = ctx.currentFunction } [weight=0.33*0.5, priority=-1] => D.checkInfoPhrase(ctx, table);
+    ctx:ctx_with_result table:three_clean_info_phrase with { functionName = ctx.currentFunction } [weight=0.33*0.5, priority=-1] => D.checkInfoPhrase(ctx, table);
 }
 
 base_slot_bag : SlotBag = {
@@ -143,81 +149,81 @@ base_slot_bag : SlotBag = {
 }
 
 one_with_info_phrase : SlotBag = {
-    table:base_slot_bag ('with' | 'having') filter:npp_filter => checkAndAddSlot(table, filter);
+    table:base_slot_bag ('with' | 'having') filter:npp_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
 }
 
 one_which_info_phrase : SlotBag = {
-    table:base_slot_bag ('which' | 'that') ('is' | 'are') filter:npi_filter => checkAndAddSlot(table, filter);
-    table:base_slot_bag ('which' | 'that') filter:avp_filter => checkAndAddSlot(table, filter);
-    table:base_slot_bag ('which' | 'that') ('is' | 'are') filter:apv_filter [priority=-0.1] => checkAndAddSlot(table, filter);
-    table:base_slot_bag ('which' | 'that') ('is' | 'are') filter:npv_filter => checkAndAddSlot(table, filter);
+    table:base_slot_bag ('which' | 'that') ('is' | 'are') filter:npi_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
+    table:base_slot_bag ('which' | 'that') filter:avp_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
+    table:base_slot_bag ('which' | 'that') ('is' | 'are') filter:apv_filter with { functionName = table.functionName } [priority=-0.1] => checkAndAddSlot(table, filter);
+    table:base_slot_bag ('which' | 'that') ('is' | 'are') filter:npv_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
 }
 
 one_clean_info_phrase : SlotBag = {
-    filter:apv_filter table:base_slot_bag => checkAndAddSlot(table, filter);
-    table:base_slot_bag filter:pvp_filter => checkAndAddSlot(table, filter);
-    table:base_slot_bag filter:preposition_filter => checkAndAddSlot(table, filter);
+    filter:apv_filter table:base_slot_bag with { functionName = filter.functionName } => checkAndAddSlot(table, filter);
+    table:base_slot_bag filter:pvp_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
+    table:base_slot_bag filter:preposition_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
 }
 
 two_with_info_phrase : SlotBag = {
-    table:one_with_info_phrase 'and' filter:npp_filter => checkAndAddSlot(table, filter);
-    table:one_which_info_phrase ('and having' | 'and with' | ', with') filter:npp_filter => checkAndAddSlot(table, filter);
-    table:one_clean_info_phrase ('with' | 'having') filter:npp_filter => checkAndAddSlot(table, filter);
+    table:one_with_info_phrase 'and' filter:npp_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
+    table:one_which_info_phrase ('and having' | 'and with' | ', with') filter:npp_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase ('with' | 'having') filter:npp_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
 
-    filter:apv_filter table:one_with_info_phrase => checkAndAddSlot(table, filter);
+    filter:apv_filter table:one_with_info_phrase with { functionName = filter.functionName } => checkAndAddSlot(table, filter);
 }
 
 two_which_info_phrase : SlotBag = {
-    table:one_with_info_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => checkAndAddSlot(table, filter);
-    table:one_with_info_phrase ('which' | 'that') filter:avp_filter => checkAndAddSlot(table, filter);
-    table:one_with_info_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter [priority=-0.1] => checkAndAddSlot(table, filter);
-    table:one_with_info_phrase ('which' | 'that') ('is' | 'are') filter:npv_filter => checkAndAddSlot(table, filter);
+    table:one_with_info_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
+    table:one_with_info_phrase ('which' | 'that') filter:avp_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
+    table:one_with_info_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter with { functionName = table.functionName } [priority=-0.1] => checkAndAddSlot(table, filter);
+    table:one_with_info_phrase ('which' | 'that') ('is' | 'are') filter:npv_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
 
-    table:one_which_info_phrase 'and' ('is' | 'are') filter:npi_filter => checkAndAddSlot(table, filter);
-    table:one_which_info_phrase 'and' filter:avp_filter => checkAndAddSlot(table, filter);
-    table:one_which_info_phrase 'and' ('is' | 'are') filter:apv_filter [priority=-0.1] => checkAndAddSlot(table, filter);
-    table:one_which_info_phrase 'and' ('is' | 'are') filter:npv_filter => checkAndAddSlot(table, filter);
+    table:one_which_info_phrase 'and' ('is' | 'are') filter:npi_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
+    table:one_which_info_phrase 'and' filter:avp_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
+    table:one_which_info_phrase 'and' ('is' | 'are') filter:apv_filter with { functionName = table.functionName } [priority=-0.1] => checkAndAddSlot(table, filter);
+    table:one_which_info_phrase 'and' ('is' | 'are') filter:npv_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
 
-    table:one_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => checkAndAddSlot(table, filter);
-    table:one_clean_info_phrase ('which' | 'that') filter:avp_filter => checkAndAddSlot(table, filter);
-    table:one_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter [priority=-0.1] => checkAndAddSlot(table, filter);
-    table:one_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:npv_filter => checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase ('which' | 'that') filter:avp_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter with { functionName = table.functionName } [priority=-0.1] => checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:npv_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
 
-    filter:apv_filter table:one_which_info_phrase => checkAndAddSlot(table, filter);
+    filter:apv_filter table:one_which_info_phrase with { functionName = filter.functionName } => checkAndAddSlot(table, filter);
 }
 
 two_clean_info_phrase : SlotBag = {
-    filter:apv_filter table:one_clean_info_phrase => checkAndAddSlot(table, filter);
-    table:one_clean_info_phrase filter:pvp_filter => checkAndAddSlot(table, filter);
-    table:one_clean_info_phrase filter:preposition_filter => checkAndAddSlot(table, filter);
+    filter:apv_filter table:one_clean_info_phrase with { functionName = filter.functionName } => checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase filter:pvp_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
+    table:one_clean_info_phrase filter:preposition_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
 }
 
 three_with_info_phrase : SlotBag = {
-    table:two_with_info_phrase 'and' filter:npp_filter => checkAndAddSlot(table, filter);
-    table:two_which_info_phrase ('and having' | 'and with' | ', with') filter:npp_filter => checkAndAddSlot(table, filter);
-    table:two_clean_info_phrase ('with' | 'having') filter:npp_filter => checkAndAddSlot(table, filter);
+    table:two_with_info_phrase 'and' filter:npp_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
+    table:two_which_info_phrase ('and having' | 'and with' | ', with') filter:npp_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
+    table:two_clean_info_phrase ('with' | 'having') filter:npp_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
 
-    filter:apv_filter table:two_with_info_phrase => checkAndAddSlot(table, filter);
+    filter:apv_filter table:two_with_info_phrase with { functionName = filter.functionName } => checkAndAddSlot(table, filter);
 }
 
 three_which_info_phrase : SlotBag = {
-    table:two_with_info_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => checkAndAddSlot(table, filter);
-    table:two_with_info_phrase ('which' | 'that') filter:avp_filter => checkAndAddSlot(table, filter);
-    table:two_with_info_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter => checkAndAddSlot(table, filter);
+    table:two_with_info_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
+    table:two_with_info_phrase ('which' | 'that') filter:avp_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
+    table:two_with_info_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
 
-    table:two_which_info_phrase 'and' ('is' | 'are') filter:npi_filter => checkAndAddSlot(table, filter);
-    table:two_which_info_phrase 'and' filter:avp_filter => checkAndAddSlot(table, filter);
-    table:two_which_info_phrase 'and' ('is' | 'are') filter:apv_filter => checkAndAddSlot(table, filter);
+    table:two_which_info_phrase 'and' ('is' | 'are') filter:npi_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
+    table:two_which_info_phrase 'and' filter:avp_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
+    table:two_which_info_phrase 'and' ('is' | 'are') filter:apv_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
 
-    table:two_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => checkAndAddSlot(table, filter);
-    table:two_clean_info_phrase ('which' | 'that') filter:avp_filter => checkAndAddSlot(table, filter);
-    table:two_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter => checkAndAddSlot(table, filter);
+    table:two_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
+    table:two_clean_info_phrase ('which' | 'that') filter:avp_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
+    table:two_clean_info_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
 
-    filter:apv_filter table:two_which_info_phrase => checkAndAddSlot(table, filter);
+    filter:apv_filter table:two_which_info_phrase with { functionName = filter.functionName } => checkAndAddSlot(table, filter);
 }
 
 three_clean_info_phrase : SlotBag = {
-    filter:apv_filter table:two_clean_info_phrase => checkAndAddSlot(table, filter);
-    table:two_clean_info_phrase filter:pvp_filter => checkAndAddSlot(table, filter);
-    table:two_clean_info_phrase filter:preposition_filter => checkAndAddSlot(table, filter);
+    filter:apv_filter table:two_clean_info_phrase with { functionName = filter.functionName } => checkAndAddSlot(table, filter);
+    table:two_clean_info_phrase filter:pvp_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
+    table:two_clean_info_phrase filter:preposition_filter with { functionName = table.functionName } => checkAndAddSlot(table, filter);
 }

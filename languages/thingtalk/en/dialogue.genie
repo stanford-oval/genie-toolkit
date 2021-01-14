@@ -26,6 +26,13 @@ import * as C from '../ast_manip';
 import * as S from '../state_manip';
 import * as D from '../dialogue_acts';
 
+// Declare key functions for contextual stuff
+keyfn = {
+    S.ContextInfo : S.contextKeyFn,
+    D.ActionSuccessPhraseWithResult : D.actionSuccessPhraseWithResultKeyFn,
+    D.NameList : D.nameListKeyFn,
+    D.ListProposal : D.listProposalKeyFn,
+}
 
 import '../common.genie';
 // basic ThingTalk functionality
@@ -138,7 +145,9 @@ function context(state : Ast.DialogueState, contextTable : SentenceGeneratorType
     assert(state instanceof Ast.DialogueState, `expected a dialogue state Ast node`);
     if (state.policy !== S.POLICY_NAME)
         return null;
+    (global as any).enableBreakpoint = true;
     const ctx = S.getContextInfo(state, contextTable);
+    (global as any).enableBreakpoint = false;
     // get the main context tags for this context (the abstract state, in paper terminology)
     const tags = S.tagContextForAgent(ctx);
 

@@ -52,7 +52,28 @@ export interface NameList {
     ctx : ContextInfo;
     results : Ast.DialogueHistoryResultItem[];
 }
+
+export function nameListKeyFn(list : NameList) {
+    const schema = list.ctx.currentFunction!;
+    return {
+        functionName: schema.qualifiedName,
+        idType: schema.getArgType('id')!,
+
+        id0: list.ctx.key.id0,
+        id1: list.ctx.key.id1,
+        id2: list.ctx.key.id2,
+    };
+}
+
 export type ListProposal = [Ast.DialogueHistoryResultItem[], SlotBag|null, Ast.Invocation|null, boolean];
+
+export function listProposalKeyFn([results, info, action, hasLearnMore] : ListProposal) {
+    return {
+        idType: results[0].value.id.getType(),
+        queryName: info ? info.schema!.qualifiedName : null,
+        actionName: action ? action.schema!.qualifiedName : null,
+    };
+}
 
 function checkListProposal(nameList : NameList, info : SlotBag|null, hasLearnMore : boolean) : ListProposal|null {
     const { ctx, results } = nameList;

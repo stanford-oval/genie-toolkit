@@ -54,9 +54,9 @@ type EmptySearch = [Ast.Expression|null, C.ParamSlot|null];
  * @param question - a search question used in the reply
  */
 function makeEmptySearchError(ctx : ContextInfo, [base, question] : EmptySearch) {
-    if (base !== null && !C.isSameFunction(base.schema!, ctx.currentTableSchema!))
+    if (base !== null && !C.isSameFunction(base.schema!, ctx.currentTableFunction!))
         return null;
-    if (question !== null && !C.isSameFunction(ctx.currentFunctionSchema!, question.schema))
+    if (question !== null && !C.isSameFunction(ctx.currentTableFunction!, question.schema))
         return null;
 
     let type, state;
@@ -64,7 +64,7 @@ function makeEmptySearchError(ctx : ContextInfo, [base, question] : EmptySearch)
         if (!isGoodEmptySearchQuestion(ctx, question))
             return null;
 
-        const arg = ctx.currentTableSchema!.getArgument(question.name);
+        const arg = ctx.currentTableFunction!.getArgument(question.name);
         if (!arg)
             return null;
         type = arg.type;
@@ -108,7 +108,7 @@ function preciseEmptySearchChangeRequest(ctx : ContextInfo, phrase : Ast.Express
     if (!(phrase instanceof Ast.FilterExpression))
         return null;
     const [, param] = ctx.aux as EmptySearch;
-    if (!C.isSameFunction(ctx.currentTableSchema!, phrase.schema!))
+    if (!C.isSameFunction(ctx.currentTableFunction!, phrase.schema!))
         return null;
     if (param !== null && !C.filterUsesParam(phrase.filter, param.name))
         return null;

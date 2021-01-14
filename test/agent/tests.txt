@@ -49,7 +49,7 @@ A: >> expecting = null
 # U: Thank you, goodbye
 U: \t $dialogue @org.thingpedia.dialogue.transaction.end;
 
-A: Alright, good bye!
+A: Alright, bye!
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -101,7 +101,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), price == enum(expensive) => notify;
 
-A: I have found Evvia Estiatorio, NOLA Restaurant & Bar and Tamarine Restaurant. They're expensives restaurants.
+A: I have found Evvia Estiatorio, NOLA Restaurant & Bar or Tamarine Restaurant. All of them are expensive restaurants.
 A: rdl: Evvia Estiatorio https://www.yelp.com/biz/evvia-estiatorio-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: NOLA Restaurant & Bar https://www.yelp.com/biz/nola-restaurant-and-bar-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Tamarine Restaurant https://www.yelp.com/biz/tamarine-restaurant-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
@@ -243,7 +243,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), contains(cuisines, null^^com.yelp:restaurant_cuisine("italian")) => notify;
 
-A: I see Patxi's Pizza, Cafe Borrone or Osteria Toscana. All of them are restaurant having Italian food that is moderate.
+A: I have found Patxi's Pizza, Cafe Borrone and Osteria Toscana. All of them are restaurant having Italian food which is moderate.
 A: rdl: Patxi's Pizza https://www.yelp.com/biz/patxis-pizza-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Cafe Borrone https://www.yelp.com/biz/cafe-borrone-menlo-park?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Osteria Toscana https://www.yelp.com/biz/osteria-toscana-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
@@ -275,7 +275,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), contains(cuisines, null^^com.yelp:restaurant_cuisine("italian")) => notify;
 
-A: I see Patxi's Pizza, Cafe Borrone or Osteria Toscana. All of them are restaurant having Italian food that is moderate.
+A: I have found Patxi's Pizza, Cafe Borrone and Osteria Toscana. All of them are restaurant having Italian food which is moderate.
 A: rdl: Patxi's Pizza https://www.yelp.com/biz/patxis-pizza-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Cafe Borrone https://www.yelp.com/biz/cafe-borrone-menlo-park?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Osteria Toscana https://www.yelp.com/biz/osteria-toscana-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
@@ -290,7 +290,7 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
 
 # "no thanks", but intercepted by the exact match
 #U: \r bookkeeping special special:no
-A: Alright, bye!
+A: Alright, good bye!
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -423,7 +423,7 @@ U: \r bookkeeping special special:no
 # no thanks
 #U: \r bookkeeping special special:no
 
-A: Alright, bye!
+A: Alright, good bye!
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -440,7 +440,7 @@ A: >> expecting = command
 # yes please
 U: \r bookkeeping special special:yes
 
-A: I played Nice For What on Spotify on str:ENTITY_com.spotify:device::20:.
+A: I played Nice For What on Spotify on str:ENTITY_com.spotify:device::33:.
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -464,7 +464,7 @@ U: \r bookkeeping special special:no
 # no thanks
 #U: \r bookkeeping special special:no
 
-A: Alright, bye!
+A: Alright, good bye!
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -637,7 +637,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.xkcd.comic();
 
-A: I have str:ENTITY_com.xkcd:comic::0: or str:ENTITY_com.xkcd:comic::1:. All of them are xkcd comic having release date 1/20/2018.
+A: I see str:ENTITY_com.xkcd:comic::0: and str:ENTITY_com.xkcd:comic::1:. All of them are xkcd comic having release date 1/20/2018.
 A: rdl: str:ENTITY_com.xkcd:comic::0: str:ENTITY_tt:url::37:
 A: rdl: str:ENTITY_com.xkcd:comic::1: str:ENTITY_tt:url::31:
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_two ; @com.xkcd ( id = GENERIC_ENTITY_tt:device_id_0 ) . comic ( ) #[ results = [ { id = GENERIC_ENTITY_com.xkcd:comic_0 , release_date = DATE_0 , picture_url = PICTURE_0 , link = URL_0 , alt_text = QUOTED_STRING_0 } ] ] #[ count = NUMBER_0 ] #[ more = true ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.xkcd-10","display":"Some Device 10"},"GENERIC_ENTITY_com.xkcd:comic_0":{"value":"str:ENTITY_com.xkcd:comic::0:","display":null},"DATE_0":"2018-01-20T08:00:00.000Z","PICTURE_0":"str:ENTITY_tt:picture::9:","URL_0":"str:ENTITY_tt:url::37:","QUOTED_STRING_0":"Some Device 10","NUMBER_0":50}
@@ -650,7 +650,7 @@ A: >> expecting = command
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: sort(release_date desc of @com.xkcd.comic())[1];
 
-A: The latest xkcd comic is str:ENTITY_com.xkcd:comic::29:. It is an xkcd comic with release date 8/28/2020 and alt text str:QUOTED_STRING::13:.
+A: The latest xkcd comic is str:ENTITY_com.xkcd:comic::29:. It is an xkcd comic having release date 8/28/2020 and alt text str:QUOTED_STRING::13:.
 A: rdl: str:ENTITY_com.xkcd:comic::29: str:ENTITY_tt:url::45:
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; sort ( release_date desc of @com.xkcd ( id = GENERIC_ENTITY_tt:device_id_0 ) . comic ( ) ) [ 1 ] #[ results = [ { id = GENERIC_ENTITY_com.xkcd:comic_0 , release_date = DATE_0 , picture_url = PICTURE_0 , link = URL_0 , alt_text = QUOTED_STRING_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.xkcd-10","display":"Some Device 10"},"GENERIC_ENTITY_com.xkcd:comic_0":{"value":"str:ENTITY_com.xkcd:comic::29:","display":null},"DATE_0":"2020-08-28T07:00:00.000Z","PICTURE_0":"str:ENTITY_tt:picture::3:","URL_0":"str:ENTITY_tt:url::45:","QUOTED_STRING_0":"str:QUOTED_STRING::13:"}
 A: >> expecting = null

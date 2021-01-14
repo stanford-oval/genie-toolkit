@@ -35,9 +35,9 @@ one_param_slot_fill_question : C.ParamSlot[] = {
 }
 
 two_param_slot_fill_question : C.ParamSlot[] = {
-    ( 'what' p1:input_param 'and' p2:input_param prefer_question_phrase '?'
-    | p1:thingpedia_slot_fill_question 'and' 'what' p2:input_param prefer_question_phrase '?'
-    | 'what' p1:input_param prefer_question_phrase 'and' p2:thingpedia_slot_fill_question '?'
+    ( 'what' p1:input_param 'and' p2:input_param with { functionName = p1.functionName } prefer_question_phrase '?'
+    | p1:thingpedia_slot_fill_question 'and' 'what' p2:input_param with { functionName = p1.functionName } prefer_question_phrase '?'
+    | 'what' p1:input_param prefer_question_phrase 'and' p2:thingpedia_slot_fill_question with { functionName = p1.functionName } '?'
     ) => {
         if (p1.name === p2.name || !C.isSameFunction(p1.schema, p2.schema))
             return null;

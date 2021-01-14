@@ -64,9 +64,9 @@ function checkFilterPairForDisjunctiveQuestion(ctx : ContextInfo,
         return null;
     if (!(f2.ast instanceof Ast.AtomBooleanExpression))
         return null;
-    if (!ctx.currentFunctionSchema!.is_list)
+    if (!ctx.currentFunction!.is_list)
         return null;
-    if (!C.isSameFunction(ctx.currentFunctionSchema!, f1.schema))
+    if (!C.isSameFunction(ctx.currentFunction!, f1.schema))
         return null;
     if (!C.isSameFunction(f1.schema, f2.schema))
         return null;
@@ -167,10 +167,7 @@ function preciseSearchQuestionAnswer(ctx : ContextInfo, [answerTable, answerActi
     if (!(answerTable instanceof Ast.FilterExpression))
         return null;
 
-    const answerFunctions = C.getFunctionNames(answerTable);
-    if (answerFunctions.length !== 1)
-        return null;
-    if (answerFunctions[0] !== ctx.currentFunction)
+    if (!C.isSameFunction(answerTable.schema!, ctx.currentFunction!))
         return null;
     const currentStmt = ctx.current!.stmt;
     const currentTable = currentStmt.expression;
@@ -180,11 +177,9 @@ function preciseSearchQuestionAnswer(ctx : ContextInfo, [answerTable, answerActi
         return null;
 
     if (answerAction !== null) {
-        const answerFunctions = C.getFunctionNames(answerAction);
-        assert(answerFunctions.length === 1);
         assert(answerAction instanceof Ast.Invocation);
         if (ctx.nextFunction !== null) {
-            if (answerFunctions[0] !== ctx.nextFunction)
+            if (!C.isSameFunction(answerAction.schema!, ctx.nextFunction!))
                 return null;
 
             // check that we don't fill the chain parameter through this path:
@@ -218,16 +213,16 @@ function impreciseSearchQuestionAnswer(ctx : ContextInfo, answer : C.FilterSlot|
     let answerFilter : C.FilterSlot;
     if (answer === 'dontcare') {
         answerFilter = {
-            schema: ctx.currentFunctionSchema!,
-            ptype: ctx.currentFunctionSchema!.getArgType(questions[0])!,
+            schema: ctx.currentFunction!,
+            ptype: ctx.currentFunction!.getArgType(questions[0])!,
             ast: new Ast.BooleanExpression.DontCare(null, questions[0])
         };
     } else if (answer instanceof Ast.Value) {
         assert(questions.length === 1);
         assert(answer instanceof Ast.Value);
 
-        const arg = ctx.currentFunctionSchema!.getArgument(questions[0])!;
-        const pslot = { schema: ctx.currentFunctionSchema!,
+        const arg = ctx.currentFunction!.getArgument(questions[0])!;
+        const pslot = { schema: ctx.currentFunction!,
             type: arg.type,
             filterable: arg.getImplementationAnnotation<boolean>('filterable') ?? true,
             name: questions[0],

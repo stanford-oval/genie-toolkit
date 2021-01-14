@@ -39,37 +39,33 @@ import { SlotBag } from '../../slot_bag';
 import _tpLoader from '../../load-thingpedia';
 
 question_system_recommendation_short : D.Recommendation = {
-    ctx:ctx_with_result_and_action 'how about' proposal:constant_name
+    ctx:ctx_with_result_and_action 'how about' proposal:constant_name with { value = ctx.id0 }
         => D.makeRecommendation(ctx, proposal);
 }
 
 action_recommendation : D.Recommendation = {
-    ctx:ctx_with_result_and_action ('would you like to' | 'would you like me to') action:contextual_action_phrase if complete [weight=0.1]
+    ctx:ctx_with_result_and_action ('would you like to' | 'would you like me to') action:contextual_action_phrase with { functionName = ctx.nextFunction } if complete [weight=0.1]
         => D.makeActionRecommendation(ctx, action);
 }
 
 actionable_system_recommendation_short : D.Recommendation = {
-    ctx:ctx_with_result_noquestion proposal:thingpedia_result if complete [priority=2]
+    ctx:ctx_with_result_noquestion proposal:thingpedia_result with { functionName = ctx.currentFunction } if complete [priority=2]
         => D.makeThingpediaRecommendation(ctx, proposal);
-    ctx:ctx_with_result_noquestion proposal:thingpedia_result if complete [priority=2]
+    ctx:ctx_with_result_noquestion proposal:thingpedia_result with { functionName = ctx.currentFunction } if complete [priority=2]
         => D.makeThingpediaRecommendation(ctx, proposal);
 
-    ( ctx:ctx_with_result_and_action 'i' ('recommend' | 'suggest') proposal:constant_name
-    | ctx:ctx_with_result_noquestion ('i see' | 'i have' | 'i have found' | 'i have one , it is') proposal:constant_name
-    | ctx:ctx_with_result_argminmax 'the answer is' proposal:constant_name
+    ( ctx:ctx_with_result_and_action 'i' ('recommend' | 'suggest') proposal:constant_name with { value = ctx.id0 }
+    | ctx:ctx_with_result_noquestion ('i see' | 'i have' | 'i have found' | 'i have one , it is') proposal:constant_name with { value = ctx.id0 }
+    | ctx:ctx_with_result_argminmax 'the answer is' proposal:constant_name with { value = ctx.id0 }
     ) => D.makeRecommendation(ctx, proposal);
 
-    // these are tagged with ?inference because they use a lot of non-terminals in a single templates
-    // which makes them too slow at training time
-    ?inference {
-        ctx:ctx_with_result_argminmax 'the' base:base_table 'with the highest' param:out_param_Any 'is' proposal:constant_name [priority=1]
-            => D.makeArgMinMaxRecommendation(ctx, proposal, base, param, 'desc');
-        ctx:ctx_with_result_argminmax 'the' base:base_table 'with the lowest' param:out_param_Any 'is' proposal:constant_name [priority=1]
-            => D.makeArgMinMaxRecommendation(ctx, proposal, base, param, 'asc');
+    ctx:ctx_with_result_argminmax 'the' base:base_table with { functionName = ctx.currentFunction } 'with the highest' param:out_param_Any with { functionName = ctx.currentFunction } 'is' proposal:constant_name with { value = ctx.id0 } [priority=1]
+        => D.makeArgMinMaxRecommendation(ctx, proposal, base, param, 'desc');
+    ctx:ctx_with_result_argminmax 'the' base:base_table with { functionName = ctx.currentFunction } 'with the lowest' param:out_param_Any 'is' proposal:constant_name with { value = ctx.id0 } [priority=1]
+        => D.makeArgMinMaxRecommendation(ctx, proposal, base, param, 'asc');
 
-        ctx:ctx_with_result_argminmax 'the' argminmax:apv_argminmax base:base_table 'is' proposal:constant_name [priority=2]
-            => D.makeArgMinMaxRecommendation(ctx, proposal, base, argminmax[0], argminmax[1]);
-    }
+    ctx:ctx_with_result_argminmax 'the' argminmax:apv_argminmax with { functionName = ctx.currentFunction } base:base_table with { functionName = ctx.currentFunction } 'is' proposal:constant_name with { value = ctx.id0 } [priority=2]
+        => D.makeArgMinMaxRecommendation(ctx, proposal, base, argminmax[0], argminmax[1]);
 }
 
 recommendation_info_action_pair : [SlotBag, Ast.Invocation|null] = {
@@ -87,13 +83,16 @@ recommendation_info_action_pair : [SlotBag, Ast.Invocation|null] = {
 }
 
 user_question_answer_begin : D.Recommendation = {
-    ctx:ctx_with_result_question proposal:constant_name
+    ctx:ctx_with_result_question proposal:constant_name with { value = ctx.id0 }
         => D.makeRecommendation(ctx, proposal);
 
     // to support Xkcd (which uses a numeric "ID" property), we allow any type of constant
     ?inference ctx:ctx_with_result_question proposal:constant_Any
         => D.makeRecommendation(ctx, proposal);
 }
+
+// note: most of the following combine non-terminals that are already depending
+// on the context, so we don't need an additional constraint here
 
 direct_user_question_answer : D.Recommendation = {
     ctx:ctx_with_result_question info:direct_result_info_phrase
@@ -117,7 +116,7 @@ proposal_info_action_pair : [SlotBag, Ast.Invocation|null] = {
 }
 
 actionable_system_display_result_short : D.Recommendation = {
-    ctx:ctx_with_result info:thingpedia_result '.' if complete [priority=5]
+    ctx:ctx_with_result info:thingpedia_result with { functionName = ctx.currentFunction } '.' if complete [priority=5]
         => D.makeDisplayResult(ctx, info);
 }
 

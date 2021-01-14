@@ -111,10 +111,7 @@ function preciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Invocation) {
     assert(questions);
     if (!isSlotFillAnswerValidForQuestion(answer, questions))
         return null;
-
-    const answerFunctions = C.getFunctionNames(answer);
-    assert(answerFunctions.length === 1);
-    if (answerFunctions[0] !== ctx.nextFunction)
+    if (!C.isSameFunction(answer.schema!, ctx.nextFunction!))
         return null;
     assert(answer instanceof Ast.Invocation);
     assert(ctx.next && ctx.nextInfo);
@@ -147,11 +144,11 @@ function impreciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Value|C.InputPa
     if (answer instanceof Ast.Value) {
         assert(questions.length === 1);
 
-        const ptype = ctx.nextFunctionSchema!.getArgType(questions[0])!;
+        const ptype = ctx.nextFunction!.getArgType(questions[0])!;
         if (!ptype.equals(answer.getType()))
             return null;
         ipslot = {
-            schema: ctx.nextFunctionSchema!,
+            schema: ctx.nextFunction!,
             ptype: ptype,
             ast: new Ast.InputParam(null, questions[0], answer)
         };
@@ -159,7 +156,7 @@ function impreciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Value|C.InputPa
         ipslot = answer;
         if (!questions.some((q) => q === ipslot.ast.name))
             return null;
-        if (!C.isSameFunction(answer.schema, ctx.nextFunctionSchema!))
+        if (!C.isSameFunction(answer.schema, ctx.nextFunction!))
             return null;
     }
 

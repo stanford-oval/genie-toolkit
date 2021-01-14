@@ -20,6 +20,7 @@
 
 // Coref question templates: questions about the current result, referred by coreference ("it", "that", "the restaurant")
 
+import assert from 'assert';
 import { Ast } from 'thingtalk';
 
 import * as C from '../../ast_manip';
@@ -31,20 +32,20 @@ import _tpLoader from '../../load-thingpedia';
 // questions with "it"/"that" -- coreference on a single result
 
 out_param_list_for_coref_question : C.ParamSlot[] = {
-    p1:out_param_Any 'and' p2:out_param_Any => {
-        if (p1.name === 'id' || p2.name === 'id' || p1.name === p2.name ||
-            !C.isSameFunction(p1.schema, p2.schema))
+    p1:out_param_Any 'and' p2:out_param_Any with { functionName = p1.functionName } => {
+        if (p1.name === 'id' || p2.name === 'id' || p1.name === p2.name)
             return null;
+        assert(C.isSameFunction(p1.schema, p2.schema));
         return [p1, p2];
     };
 
-    p1:out_param_Any ',' p2:out_param_Any (',' | '') 'and' p3:out_param_Any => {
+    p1:out_param_Any ',' p2:out_param_Any with { functionName = p1.functionName } (',' | '') 'and' p3:out_param_Any with { functionName = p1.functionName } => {
         if (p1.name === 'id' || p2.name === 'id' || p3.name === 'id')
             return null;
         if (p1.name === p2.name || p2.name === p3.name || p1.name === p3.name)
             return null;
-        if (!C.isSameFunction(p1.schema, p2.schema) || !C.isSameFunction(p1.schema, p3.schema))
-            return null;
+        assert(C.isSameFunction(p1.schema, p2.schema));
+        assert(C.isSameFunction(p1.schema, p3.schema));
         return [p1, p2, p3];
     };
 }
@@ -70,34 +71,33 @@ simple_user_search_question : C.ParamSlot[] = {
     | 'i just need' ('the' | 'its') params:out_param_list_for_coref_question '.'
     ) => params;
 
-    ( ('can you tell me' | '') 'what is' 'the' param:out_param_Any 'of the' base:base_table '?'
-    | 'can you tell me' 'the' param:out_param_Any 'of the' base:base_table '?'
-    | ('can you tell me' | '') 'what' param:out_param_Any 'does the' base:base_table 'have ?'
-    | 'i would like to' ('know' | 'see') 'the' param:out_param_Any 'of the' base:base_table ('first' | '') '.'
-    | 'i just need' ('the' | 'its') 'the' param:out_param_Any 'of the' base:base_table '.'
+    ( ('can you tell me' | '') 'what is' 'the' param:out_param_Any 'of the' base:base_table with { functionName = param.functionName } '?'
+    | 'can you tell me' 'the' param:out_param_Any 'of the' base:base_table with { functionName = param.functionName } '?'
+    | ('can you tell me' | '') 'what' param:out_param_Any 'does the' base:base_table with { functionName = param.functionName } 'have ?'
+    | 'i would like to' ('know' | 'see') 'the' param:out_param_Any 'of the' base:base_table with { functionName = param.functionName } ('first' | '') '.'
+    | 'i just need' ('the' | 'its') 'the' param:out_param_Any 'of the' base:base_table with { functionName = param.functionName } '.'
 
-    | ('can you tell me' | '') 'what is' 'the' base:base_table '\'s' param:out_param_Any '?'
-    | 'can you tell me' 'the' base:base_table '\'s' param:out_param_Any '?'
-    | 'i would like to' ('know' | 'see') 'the' base:base_table '\'s' param:out_param_Any ('first' | '') '.'
-    | 'i just need' ('the' | 'its') 'the' base:base_table '\'s' param:out_param_Any '.'
+    | ('can you tell me' | '') 'what is' 'the' base:base_table '\'s' param:out_param_Any with { functionName = base.functionName } '?'
+    | 'can you tell me' 'the' base:base_table '\'s' param:out_param_Any with { functionName = base.functionName } '?'
+    | 'i would like to' ('know' | 'see') 'the' base:base_table '\'s' param:out_param_Any with { functionName = base.functionName } ('first' | '') '.'
+    | 'i just need' ('the' | 'its') 'the' base:base_table '\'s' param:out_param_Any with { functionName = base.functionName } '.'
     ) => {
-        if (!C.isSameFunction(base.schema!, param.schema))
-            return null;
+        assert(C.isSameFunction(base.schema!, param.schema));
         if (param.name === 'id')
             return null;
         return [param];
     };
 
-    ( ('can you tell me' | '') 'what' ('is' | 'are') 'the' params:out_param_list_for_coref_question 'of the' base:base_table '?'
-    | 'can you tell me' 'the' params:out_param_list_for_coref_question 'of the' base:base_table '?'
-    | ('can you tell me' | '') 'what' params:out_param_list_for_coref_question 'does the' base:base_table 'have ?'
-    | 'i would like to' ('know' | 'see') 'the' params:out_param_list_for_coref_question 'of the' base:base_table ('first' | '') '.'
-    | 'i just need' ('the' | 'its') 'the' params:out_param_list_for_coref_question 'of the' base:base_table '.'
+    ( ('can you tell me' | '') 'what' ('is' | 'are') 'the' params:out_param_list_for_coref_question 'of the' base:base_table with { functionName = params.functionName } '?'
+    | 'can you tell me' 'the' params:out_param_list_for_coref_question 'of the' base:base_table with { functionName = params.functionName } '?'
+    | ('can you tell me' | '') 'what' params:out_param_list_for_coref_question 'does the' base:base_table with { functionName = params.functionName } 'have ?'
+    | 'i would like to' ('know' | 'see') 'the' params:out_param_list_for_coref_question 'of the' base:base_table with { functionName = params.functionName } ('first' | '') '.'
+    | 'i just need' ('the' | 'its') 'the' params:out_param_list_for_coref_question 'of the' base:base_table with { functionName = params.functionName } '.'
 
-    | ('can you tell me' | '') 'what is' 'the' base:base_table '\'s' params:out_param_list_for_coref_question '?'
-    | 'can you tell me' 'the' base:base_table '\'s' params:out_param_list_for_coref_question '?'
-    | 'i would like to' ('know' | 'see') 'the' base:base_table '\'s' params:out_param_list_for_coref_question ('first' | '') '.'
-    | 'i just need' ('the' | 'its') 'the' base:base_table '\'s' params:out_param_list_for_coref_question '.'
+    | ('can you tell me' | '') 'what is' 'the' base:base_table '\'s' params:out_param_list_for_coref_question with { functionName = base.functionName } '?'
+    | 'can you tell me' 'the' base:base_table '\'s' params:out_param_list_for_coref_question with { functionName = base.functionName } '?'
+    | 'i would like to' ('know' | 'see') 'the' base:base_table '\'s' params:out_param_list_for_coref_question with { functionName = base.functionName } ('first' | '') '.'
+    | 'i just need' ('the' | 'its') 'the' base:base_table '\'s' params:out_param_list_for_coref_question with { functionName = base.functionName } '.'
     ) => {
         if (!params.every((p) => C.isSameFunction(base.schema!, p.schema)))
             return null;
@@ -125,23 +125,22 @@ simple_user_search_question : C.ParamSlot[] = {
         return [param];
     };
 
-    ( ('can you tell me' | '') 'does' 'the' base:base_table 'have' param:npp_boolean_projection '?'
-    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'the' base:base_table 'has' param:npp_boolean_projection ('first' | '') '.'
-    | ('can you tell me' | '') 'does' 'the' base:base_table param:avp_boolean_projection '?'
-    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'the' base:base_table param:avp_boolean_projection ('first' | '') '.'
-    | ('can you tell me' | '') 'is' 'the' base:base_table param:pvp_boolean_projection '?'
-    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'the' base:base_table 'is' param:pvp_boolean_projection ('first' | '') '.'
-    | ('can you tell me' | '') 'is' 'the' base:base_table param:preposition_boolean_projection '?'
-    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'the' base:base_table 'is' param:preposition_boolean_projection ('first' | '') '.'
-    | ('can you tell me' | '') 'is' 'the' base:base_table param:npi_boolean_projection '?'
-    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'the' base:base_table 'is' param:npi_boolean_projection ('first' | '') '.'
-    | ('can you tell me' | '') 'is' 'the' base:base_table param:npv_boolean_projection '?'
-    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'the' base:base_table 'is' param:npv_boolean_projection ('first' | '') '.'
-    | ('can you tell me' | '') 'is' 'the' base:base_table param:apv_boolean_projection '?'
-    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'the' base:base_table 'is' param:apv_boolean_projection ('first' | '') '.'
+    ( ('can you tell me' | '') 'does' 'the' base:base_table 'have' param:npp_boolean_projection with { functionName = base.functionName } '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'the' base:base_table 'has' param:npp_boolean_projection with { functionName = base.functionName } ('first' | '') '.'
+    | ('can you tell me' | '') 'does' 'the' base:base_table param:avp_boolean_projection with { functionName = base.functionName } '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'the' base:base_table param:avp_boolean_projection with { functionName = base.functionName } ('first' | '') '.'
+    | ('can you tell me' | '') 'is' 'the' base:base_table param:pvp_boolean_projection with { functionName = base.functionName } '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'the' base:base_table 'is' param:pvp_boolean_projection with { functionName = base.functionName } ('first' | '') '.'
+    | ('can you tell me' | '') 'is' 'the' base:base_table param:preposition_boolean_projection with { functionName = base.functionName } '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'the' base:base_table 'is' param:preposition_boolean_projection with { functionName = base.functionName } ('first' | '') '.'
+    | ('can you tell me' | '') 'is' 'the' base:base_table param:npi_boolean_projection with { functionName = base.functionName } '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'the' base:base_table 'is' param:npi_boolean_projection with { functionName = base.functionName } ('first' | '') '.'
+    | ('can you tell me' | '') 'is' 'the' base:base_table param:npv_boolean_projection with { functionName = base.functionName } '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'the' base:base_table 'is' param:npv_boolean_projection with { functionName = base.functionName } ('first' | '') '.'
+    | ('can you tell me' | '') 'is' 'the' base:base_table param:apv_boolean_projection with { functionName = base.functionName } '?'
+    | 'i would like to' ('know' | 'see') ('if' | 'whether') 'the' base:base_table 'is' param:apv_boolean_projection with { functionName = base.functionName } ('first' | '') '.'
     ) => {
-        if (!C.isSameFunction(base.schema!, param.schema))
-            return null;
+        assert(C.isSameFunction(base.schema!, param.schema));
         return [param];
     };
 }
@@ -157,7 +156,7 @@ for (const proj of _tpLoader.projections) {
         };
 
         simple_user_search_question : C.ParamSlot[] = ( ('can you tell me' | '') #(proj.pronoun) #(proj.base) ('is'|'was'|'are'|'were') 'the' base:base_table #(proj.canonical) '?'
-        | 'i would like to' ('know' | 'see') #(proj.pronoun) #(proj.base) 'the' base:base_table ('is'|'was'|'are'|'were') #(proj.canonical) ('first' | '') '.'
+        | 'i would like to' ('know' | 'see') #(proj.pronoun) #(proj.base) 'the' base:base_table with { functionName = (proj.pslot.schema.qualifiedName) } ('is'|'was'|'are'|'were') #(proj.canonical) ('first' | '') '.'
         ) => {
             if (!C.isSameFunction(base.schema!, proj.pslot.schema))
                 return null;
@@ -172,7 +171,7 @@ for (const proj of _tpLoader.projections) {
                     return null;
                 return [proj.pslot];
             };
-            simple_user_search_question : C.ParamSlot[] = 'i would like to' ('know' | 'see') 'the' #(proj.base) ('that'|'which'|'') 'the' base:base_table ('is'|'was'|'are'|'were') #(proj.canonical) ('first' | '') '.' => {
+            simple_user_search_question : C.ParamSlot[] = 'i would like to' ('know' | 'see') 'the' #(proj.base) ('that'|'which'|'') 'the' base:base_table with { functionName = (proj.pslot.schema.qualifiedName) } ('is'|'was'|'are'|'were') #(proj.canonical) ('first' | '') '.' => {
                 if (!C.isSameFunction(base.schema!, proj.pslot.schema))
                     return null;
                 if (proj.pname === 'id')
@@ -190,7 +189,7 @@ for (const proj of _tpLoader.projections) {
             return [proj.pslot];
         };
 
-        simple_user_search_question : C.ParamSlot[] = ( ('can you tell me' | '') #(proj.pronoun) #(proj.base) ('do'|'does'|'did') 'the' base:base_table #(proj.canonical) '?'
+        simple_user_search_question : C.ParamSlot[] = ( ('can you tell me' | '') #(proj.pronoun) #(proj.base) ('do'|'does'|'did') 'the' base:base_table with { functionName = (proj.pslot.schema.qualifiedName) } #(proj.canonical) '?'
         | 'i would like to' ('know' | 'see') #(proj.pronoun) #(proj.base) 'the' base:base_table #(proj.canonical) ('first' | '') '.'
         ) => {
             if (!C.isSameFunction(base.schema!, proj.pslot.schema))
@@ -206,7 +205,7 @@ for (const proj of _tpLoader.projections) {
                     return null;
                 return [proj.pslot];
             };
-            simple_user_search_question : C.ParamSlot[] = 'i would like to' ('know' | 'see') 'the' #(proj.base) ('that'|'which'|'') 'the' base:base_table #(proj.canonical) ('first' | '') '.' => {
+            simple_user_search_question : C.ParamSlot[] = 'i would like to' ('know' | 'see') 'the' #(proj.base) ('that'|'which'|'') 'the' base:base_table with { functionName = (proj.pslot.schema.qualifiedName) } #(proj.canonical) ('first' | '') '.' => {
                 if (!C.isSameFunction(base.schema!, proj.pslot.schema))
                     return null;
                 if (proj.pname === 'id')
@@ -224,7 +223,7 @@ for (const proj of _tpLoader.projections) {
             return [proj.pslot];
         };
 
-        simple_user_search_question : C.ParamSlot[] = ( ('can you tell me' | '') #(proj.pronoun) #(proj.base) #(proj.canonical) 'the' base:base_table  '?'
+        simple_user_search_question : C.ParamSlot[] = ( ('can you tell me' | '') #(proj.pronoun) #(proj.base) #(proj.canonical) 'the' base:base_table with { functionName = (proj.pslot.schema.qualifiedName) } '?'
         | 'i would like to' ('know' | 'see') #(proj.pronoun) #(proj.base) #(proj.canonical) 'the' base:base_table ('first' | '') '.'
         ) => {
             if (!C.isSameFunction(base.schema!, proj.pslot.schema))
@@ -240,7 +239,7 @@ for (const proj of _tpLoader.projections) {
                     return null;
                 return [proj.pslot];
             };
-            simple_user_search_question : C.ParamSlot[] = 'i would like to' ('know' | 'see') 'the' #(proj.base) ('that'|'which'|'') #(proj.canonical) 'the' base:base_table ('first' | '') '.' => {
+            simple_user_search_question : C.ParamSlot[] = 'i would like to' ('know' | 'see') 'the' #(proj.base) ('that'|'which'|'') #(proj.canonical) 'the' base:base_table with { functionName = (proj.pslot.schema.qualifiedName) } ('first' | '') '.' => {
                 if (!C.isSameFunction(base.schema!, proj.pslot.schema))
                     return null;
                 if (proj.pname === 'id')
@@ -295,20 +294,20 @@ boolean_user_search_question : C.ParamSlot[] = {
     | 'does' ('that' | 'it' | 'this') param:avp_filter '?'
     ) => D.booleanQuestion(null, param);
 
-    ( 'is' ('that' | 'it' | 'this') 'a' param:apv_filter base:base_table '?'
-    | 'is' ('the' | 'this' | 'that') base:base_table param:apv_filter '?'
+    ( 'is' ('that' | 'it' | 'this') 'a' param:apv_filter base:base_table with { functionName = param.functionName } '?'
+    | 'is' ('the' | 'this' | 'that') base:base_table with { is_list = true } param:apv_filter with { functionName = base.functionName } '?'
 
-    | 'is' ('that' | 'it' | 'this') 'a' base:base_table param:pvp_filter '?'
-    | 'is' ('the' | 'this' | 'that') base:base_table param:pvp_filter '?'
+    | 'is' ('that' | 'it' | 'this') 'a' base:base_table with { is_list = true } param:pvp_filter with { functionName = base.functionName } '?'
+    | 'is' ('the' | 'this' | 'that') base:base_table with { is_list = true } param:pvp_filter with { functionName = base.functionName } '?'
 
-    | 'is' ('that' | 'it' | 'this') 'a' base:base_table param:preposition_filter '?'
-    | 'is' ('the' | 'this' | 'that') base:base_table param:preposition_filter '?'
+    | 'is' ('that' | 'it' | 'this') 'a' base:base_table with { is_list = true } param:preposition_filter with { functionName = base.functionName } '?'
+    | 'is' ('the' | 'this' | 'that') base:base_table with { is_list = true } param:preposition_filter with { functionName = base.functionName } '?'
 
-    | 'is' ('that' | 'it' | 'this') 'a' base:base_table ('that' | 'which') param:avp_filter '?'
-    | 'does' ('the' | 'this' | 'that') base:base_table param:avp_filter '?'
+    | 'is' ('that' | 'it' | 'this') 'a' base:base_table with { is_list = true } ('that' | 'which') param:avp_filter with { functionName = base.functionName } '?'
+    | 'does' ('the' | 'this' | 'that') base:base_table with { is_list = true } param:avp_filter with { functionName = base.functionName } '?'
 
-    | 'is' ('that' | 'it' | 'this') 'a' base:base_table ('that has' | 'with') param:npp_filter '?'
-    | 'does' ('the' | 'this' | 'that') base:base_table 'have' param:npp_filter '?'
+    | 'is' ('that' | 'it' | 'this') 'a' base:base_table with { is_list = true } ('that has' | 'with') param:npp_filter with { functionName = base.functionName } '?'
+    | 'does' ('the' | 'this' | 'that') base:base_table with { is_list = true } 'have' param:npp_filter with { functionName = base.functionName } '?'
     ) => {
         if (!base.schema!.is_list)
             return null;
@@ -324,25 +323,25 @@ boolean_user_search_question_for_list : C.ParamSlot[] = {
     | 'do they' param:avp_filter '?'
     ) => D.booleanQuestion(null, param);
 
-    ( ('is either of' | 'is any of')  ('them' | 'these' | 'those') 'a' param:apv_filter base:base_table '?'
-    | 'are they' param:apv_filter base:base_table '?'
-    | 'are' ('the' | 'these' | 'those') base:base_table param:apv_filter '?'
+    ( ('is either of' | 'is any of')  ('them' | 'these' | 'those') 'a' param:apv_filter base:base_table with { functionName = param.functionName } '?'
+    | 'are they' param:apv_filter base:base_table with { functionName = param.functionName } '?'
+    | 'are' ('the' | 'these' | 'those') base:base_table param:apv_filter with { functionName = base.functionName } '?'
 
-    | ('is either of' | 'is any of')  ('them' | 'these' | 'those') 'a' base:base_table param:pvp_filter '?'
-    | 'are they' base:base_table param:pvp_filter '?'
-    | 'are' ('the' | 'these' | 'those') base:base_table param:pvp_filter '?'
+    | ('is either of' | 'is any of')  ('them' | 'these' | 'those') 'a' base:base_table param:pvp_filter with { functionName = base.functionName } '?'
+    | 'are they' base:base_table param:pvp_filter with { functionName = base.functionName } '?'
+    | 'are' ('the' | 'these' | 'those') base:base_table param:pvp_filter with { functionName = base.functionName } '?'
 
-    | ('is either of' | 'is any of')  ('them' | 'these' | 'those')  'a' base:base_table param:preposition_filter '?'
-    | 'are they' base:base_table param:preposition_filter '?'
-    | 'are' ('the' | 'these' | 'those') base:base_table param:preposition_filter '?'
+    | ('is either of' | 'is any of')  ('them' | 'these' | 'those')  'a' base:base_table param:preposition_filter with { functionName = base.functionName } '?'
+    | 'are they' base:base_table param:preposition_filter with { functionName = base.functionName } '?'
+    | 'are' ('the' | 'these' | 'those') base:base_table param:preposition_filter with { functionName = base.functionName } '?'
 
-    | ('is either of' | 'is any of')  ('them' | 'these' | 'those')  'a' base:base_table ('that' | 'which') param:avp_filter '?'
-    | 'are they' base:base_table ('that' | 'which') param:avp_filter '?'
-    | 'do' ('the' | 'these' | 'those') base:base_table param:avp_filter '?'
+    | ('is either of' | 'is any of')  ('them' | 'these' | 'those')  'a' base:base_table ('that' | 'which') param:avp_filter with { functionName = base.functionName } '?'
+    | 'are they' base:base_table ('that' | 'which') param:avp_filter with { functionName = base.functionName } '?'
+    | 'do' ('the' | 'these' | 'those') base:base_table param:avp_filter with { functionName = base.functionName } '?'
 
-    | ('is either of' | 'is any of')  ('them' | 'these' | 'those')  'a' base:base_table ('that has' | 'with') param:npp_filter '?'
-    | 'are they' base:base_table ('that has' | 'with') param:npp_filter '?'
-    | 'do' ('the' | 'these' | 'those') base:base_table 'have' param:npp_filter '?'
+    | ('is either of' | 'is any of')  ('them' | 'these' | 'those')  'a' base:base_table ('that has' | 'with') param:npp_filter with { functionName = base.functionName } '?'
+    | 'are they' base:base_table ('that has' | 'with') param:npp_filter with { functionName = base.functionName } '?'
+    | 'do' ('the' | 'these' | 'those') base:base_table 'have' param:npp_filter with { functionName = base.functionName } '?'
     ) => D.booleanQuestion(base, param);
 }
 
@@ -350,12 +349,12 @@ boolean_user_search_question_for_list : C.ParamSlot[] = {
 
 user_search_question_with_name : [Ast.EntityValue, C.ParamSlot[]] = {
     // straight up questions
-    ( ('can you tell me' | '') 'what is' name:constant_name '\'s' param:out_param_Any '?'
-    | ('can you tell me' | '') 'what is' 'the' param:out_param_Any 'of' name:constant_name '?'
-    | 'can you tell me' name:constant_name '\'s' param:out_param_Any '?'
-    | 'can you tell me' 'the' param:out_param_Any 'of' name:constant_name '?'
-    | 'i would like to' ('know' | 'see') name:constant_name '\'s' param:out_param_Any ('first' | '') '.'
-    | 'i would like to' ('know' | 'see') 'the' param:out_param_Any 'of' name:constant_name ('first' | '') '.'
+    ( ('can you tell me' | '') 'what is' name:constant_name '\'s' param:out_param_Any with { associatedIdType = name.type } '?'
+    | ('can you tell me' | '') 'what is' 'the' param:out_param_Any 'of' name:constant_name with { type = param.associatedIdType } '?'
+    | 'can you tell me' name:constant_name '\'s' param:out_param_Any with { associatedIdType = name.type } '?'
+    | 'can you tell me' 'the' param:out_param_Any 'of' name:constant_name with { type = param.associatedIdType } '?'
+    | 'i would like to' ('know' | 'see') name:constant_name '\'s' param:out_param_Any with { associatedIdType = name.type } ('first' | '') '.'
+    | 'i would like to' ('know' | 'see') 'the' param:out_param_Any 'of' name:constant_name with { type = param.associatedIdType } ('first' | '') '.'
     ) => {
         if (param.name === 'id')
             return null;
@@ -363,12 +362,12 @@ user_search_question_with_name : [Ast.EntityValue, C.ParamSlot[]] = {
     };
 
     // straight up questions
-    ( ('can you tell me' | '') 'what is' name:constant_name '\'s' params:out_param_list_for_coref_question '?'
-    | ('can you tell me' | '') 'what is' 'the' params:out_param_list_for_coref_question 'of' name:constant_name '?'
-    | 'can you tell me' name:constant_name '\'s' params:out_param_list_for_coref_question '?'
-    | 'can you tell me' 'the' params:out_param_list_for_coref_question 'of' name:constant_name '?'
-    | 'i would like to' ('know' | 'see') name:constant_name '\'s' params:out_param_list_for_coref_question ('first' | '') '.'
-    | 'i would like to' ('know' | 'see') 'the' params:out_param_list_for_coref_question 'of' name:constant_name ('first' | '') '.'
+    ( ('can you tell me' | '') 'what is' name:constant_name '\'s' params:out_param_list_for_coref_question with { associatedIdType = name.type } '?'
+    | ('can you tell me' | '') 'what is' 'the' params:out_param_list_for_coref_question 'of' name:constant_name with { type = params.associatedIdType } '?'
+    | 'can you tell me' name:constant_name '\'s' params:out_param_list_for_coref_question with { associatedIdType = name.type }  '?'
+    | 'can you tell me' 'the' params:out_param_list_for_coref_question 'of' name:constant_name with { type = params.associatedIdType } '?'
+    | 'i would like to' ('know' | 'see') name:constant_name '\'s' params:out_param_list_for_coref_question with { associatedIdType = name.type } ('first' | '') '.'
+    | 'i would like to' ('know' | 'see') 'the' params:out_param_list_for_coref_question 'of' name:constant_name with { type = params.associatedIdType } ('first' | '') '.'
     ) => {
         return [name, params];
     };
@@ -376,11 +375,11 @@ user_search_question_with_name : [Ast.EntityValue, C.ParamSlot[]] = {
 
 boolean_user_search_question_with_name : [Ast.EntityValue, C.ParamSlot[]] = {
     // question in boolean
-    ( 'does' name:constant_name 'have' param:npp_filter '?'
-    | 'does' name:constant_name param:avp_filter '?'
-    | 'is' name:constant_name param:apv_filter '?'
-    | 'is' name:constant_name param:pvp_filter '?'
-    | 'is' name:constant_name param:preposition_filter '?'
+    ( 'does' name:constant_name 'have' param:npp_filter with { associatedIdType = name.type } '?'
+    | 'does' name:constant_name param:avp_filter with { associatedIdType = name.type } '?'
+    | 'is' name:constant_name param:apv_filter with { associatedIdType = name.type } '?'
+    | 'is' name:constant_name param:pvp_filter with { associatedIdType = name.type } '?'
+    | 'is' name:constant_name param:preposition_filter with { associatedIdType = name.type } '?'
     ) => {
         const idArg = param.schema.getArgument('id');
         if (!idArg || !idArg.type.equals(name.getType()))
@@ -391,11 +390,11 @@ boolean_user_search_question_with_name : [Ast.EntityValue, C.ParamSlot[]] = {
         return [name, questions];
     };
 
-    ( 'is' name:constant_name 'a' param:apv_filter base:base_table '?'
-    | 'is' name:constant_name 'a' base:base_table param:pvp_filter '?'
-    | 'is' name:constant_name 'a' base:base_table param:preposition_filter '?'
-    | 'is' name:constant_name 'a' base:base_table ('that' | 'which') param:avp_filter '?'
-    | 'is' name:constant_name 'a' base:base_table ('that has' | 'with') param:npp_filter '?'
+    ( 'is' name:constant_name 'a' param:apv_filter with { associatedIdType = name.type } base:base_table with { functionName = param.functionName } '?'
+    | 'is' name:constant_name 'a' base:base_table with { idType = name.type } param:pvp_filter with { functionName = base.functionName } '?'
+    | 'is' name:constant_name 'a' base:base_table with { idType = name.type } param:preposition_filter with { functionName = base.functionName } '?'
+    | 'is' name:constant_name 'a' base:base_table with { idType = name.type } ('that' | 'which') param:avp_filter with { functionName = base.functionName } '?'
+    | 'is' name:constant_name 'a' base:base_table with { idType = name.type } ('that has' | 'with') param:npp_filter with { functionName = base.functionName } '?'
     ) => {
         const idArg = param.schema.getArgument('id');
         if (!idArg || !idArg.type.equals(name.getType()))

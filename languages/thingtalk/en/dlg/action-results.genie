@@ -22,6 +22,7 @@
 // Either the action was successful, and we're done, or
 // the action failed, and we give the user an option to try again
 
+import assert from 'assert';
 import { Ast, } from 'thingtalk';
 
 import * as C from '../../ast_manip';
@@ -56,12 +57,12 @@ complete_past_action_phrase : Ast.Invocation = {
         return action.invocation;
     };
 
-    ( action:complete_past_action_phrase param:preposition_input_param [priority=0.1]
-    | action:complete_past_action_phrase ('with' | 'having') param:npp_input_param [priority=0.1]
+    ( action:complete_past_action_phrase param:preposition_input_param with { functionName = action.functionName } [priority=0.1]
+    | action:complete_past_action_phrase ('with' | 'having') param:npp_input_param with { functionName = action.functionName } [priority=0.1]
     ) => C.addInvocationInputParam(action, param);
 
-    ( action:complete_past_action_phrase param:preposition_filter [priority=0.1]
-    | action:complete_past_action_phrase ('with' | 'having') param:npp_filter [priority=0.1]
+    ( action:complete_past_action_phrase param:preposition_filter with { functionName = action.functionName } [priority=0.1]
+    | action:complete_past_action_phrase ('with' | 'having') param:npp_filter with { functionName = action.functionName } [priority=0.1]
     ) => {
         if (!(param.ast instanceof Ast.AtomBooleanExpression))
             return null;
@@ -76,19 +77,19 @@ generic_action_success_phrase : string = {
     'consider your request done !';
 }
 
-action_success_phrase_with_result : [Ast.Invocation|null, SlotBag] = {
+action_success_phrase_with_result : D.ActionSuccessPhraseWithResult = {
     generic_action_success_phrase '.' result:direct_result_info_phrase [priority=1]
         => [null, result];
 
-    'i' action:complete_past_action_phrase '.' result:direct_result_info_phrase [priority=2]
+    'i' action:complete_past_action_phrase '.' result:direct_result_info_phrase with { functionName = action.functionName } [priority=2]
         => [action, result];
 }
 
 action_success_phrase : S.AgentReplyRecord = {
-    ctx:ctx_completed_action_success generic_excitement_phrase result:thingpedia_result '.' if complete [priority=5]
+    ctx:ctx_completed_action_success generic_excitement_phrase result:thingpedia_result with { functionName = ctx.currentFunction } '.' if complete [priority=5]
         => D.makeThingpediaActionSuccessPhrase(ctx, result);
 
-    ctx:ctx_completed_action_success generic_excitement_phrase 'i' action:complete_past_action_phrase '.' [priority=2]
+    ctx:ctx_completed_action_success generic_excitement_phrase 'i' action:complete_past_action_phrase with { functionName = ctx.currentFunction } '.' [priority=2]
         => D.makeCompleteActionSuccessPhrase(ctx, action, null);
 
     ctx:ctx_completed_action_success generic_excitement_phrase phrase:action_success_phrase_with_result => {
@@ -133,11 +134,12 @@ one_param_try_different_param_question : C.ParamSlot[] = {
 }
 
 two_param_try_different_param_question : C.ParamSlot[] = {
-    ( 'would you like to try a different' p1:input_param 'or' p2:input_param '?'
-    | 'would you like a different' p1:input_param 'or' p2:input_param '?'
-    | 'shall i try another' p1:input_param 'or' p2:input_param '?'
-    | 'how about for another' p1:input_param 'or' p2:input_param '?'
+    ( 'would you like to try a different' p1:input_param 'or' p2:input_param with { functionName = p1.functionName } '?'
+    | 'would you like a different' p1:input_param 'or' p2:input_param with { functionName = p1.functionName } '?'
+    | 'shall i try another' p1:input_param 'or' p2:input_param with { functionName = p1.functionName } '?'
+    | 'how about for another' p1:input_param 'or' p2:input_param with { functionName = p1.functionName } '?'
     ) => {
+        assert(C.isSameFunction(p1.schema, p2.schema));
         if (p1 === p2)
             return null;
         return [p1, p2];

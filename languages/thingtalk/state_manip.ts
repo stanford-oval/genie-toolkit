@@ -21,7 +21,7 @@
 
 import assert from 'assert';
 import * as ThingTalk from 'thingtalk';
-import { Ast, } from 'thingtalk';
+import { Ast, Type } from 'thingtalk';
 import { SentenceGeneratorTypes } from 'genie-toolkit';
 export type AgentReplyRecord = SentenceGeneratorTypes.AgentReplyRecord<Ast.DialogueState>;
 
@@ -111,7 +111,7 @@ export class ResultInfo {
     hasEmptyResult : boolean;
     hasSingleResult : boolean;
     hasLargeResult : boolean;
-    hasID : boolean;
+    idType : Type|null;
 
     constructor(state : Ast.DialogueState,
                 item : Ast.DialogueHistoryItem) {
@@ -147,8 +147,9 @@ export class ResultInfo {
         this.hasEmptyResult = item.results.results.length === 0;
         this.hasSingleResult = item.results.results.length === 1;
         this.hasLargeResult = isLargeResultSet(item.results);
-        this.hasID = item.results.results.length > 0 &&
-            !!item.results.results[0].value.id;
+
+        const id = stmt.last.schema!.getArgument('id');
+        this.idType = id && !id.is_input ? id.type : null;
     }
 }
 
@@ -178,6 +179,7 @@ export class NextStatementInfo {
 
         if (!currentItem || !resultInfo || !resultInfo.isTable)
             return;
+
         const currentstmt = currentItem.stmt;
         const tableschema = currentstmt.expression.schema!;
         const idType = tableschema.getArgType('id');
@@ -207,22 +209,53 @@ export class NextStatementInfo {
     }
 }
 
+function toID(value : Ast.Value|undefined) {
+    if (value === undefined)
+        return null;
+    const jsValue = value.toJS();
+    if (typeof jsValue === 'number')
+        return jsValue;
+    else if (jsValue === null || jsValue === undefined)
+        return null;
+    else
+        return String(jsValue);
+}
+
 export class ContextInfo {
     contextTable : SentenceGeneratorTypes.ContextTable;
 
     state : Ast.DialogueState;
-    currentFunctionSchema : Ast.FunctionDef|null;
-    currentFunction : string|null;
-    currentTableSchema : Ast.FunctionDef|null;
+    currentFunction : Ast.FunctionDef|null;
+    currentTableFunction : Ast.FunctionDef|null;
     resultInfo : ResultInfo|null;
     isMultiDomain : boolean;
     previousDomainIdx : number|null;
     currentIdx : number|null;
-    nextFunctionSchema : Ast.FunctionDef|null;
-    nextFunction : string|null;
+    nextFunction : Ast.FunctionDef|null;
     nextIdx : number|null;
     nextInfo : NextStatementInfo|null;
     aux : any;
+
+    key : {
+        currentFunction : string|null;
+        nextFunction : string|null;
+        currentTableFunction : string|null;
+
+        // type of ID parameter of current result
+        // this is usually the same as currentFunction, but can be null
+        // the current function doesn't return an ID, and can be different
+        // if the current function is not the primary query for this ID type
+        // it is used to match names and contexts
+        idType : Type|null;
+
+        // IDs of the top 3 results (entity values or numeric IDs)
+        id0 : string|number|null;
+        id1 : string|number|null;
+        id2 : string|number|null;
+
+        // number of results
+        resultLength : number;
+    };
 
     constructor(contextTable : SentenceGeneratorTypes.ContextTable,
                 state : Ast.DialogueState,
@@ -239,15 +272,9 @@ export class ContextInfo {
         this.state = state;
 
         assert(currentFunctionSchema === null || currentFunctionSchema instanceof Ast.FunctionDef);
-        if (currentFunctionSchema === null) {
-            this.currentFunctionSchema = null;
-            this.currentFunction = null;
-        } else {
-            this.currentFunctionSchema = currentFunctionSchema;
-            this.currentFunction = currentFunctionSchema.qualifiedName;
-        }
+        this.currentFunction = currentFunctionSchema;
         assert(currentTableSchema === null || currentTableSchema instanceof Ast.FunctionDef);
-        this.currentTableSchema = currentTableSchema;
+        this.currentTableFunction = currentTableSchema;
 
         this.resultInfo = resultInfo;
         this.isMultiDomain = previousDomainIdx !== null;
@@ -255,16 +282,34 @@ export class ContextInfo {
         this.currentIdx = currentIdx;
 
         assert(nextFunctionSchema === null || nextFunctionSchema instanceof Ast.FunctionDef);
-        if (nextFunctionSchema === null) {
-            this.nextFunctionSchema = null;
-            this.nextFunction = null;
-        } else {
-            this.nextFunctionSchema = nextFunctionSchema;
-            this.nextFunction = nextFunctionSchema.qualifiedName;
-        }
+        this.nextFunction = nextFunctionSchema;
         this.nextIdx = nextIdx;
         this.nextInfo = nextInfo;
         this.aux = aux;
+
+        this.key = {
+            currentFunction: this.currentFunction ? this.currentFunction.qualifiedName : null,
+            nextFunction: this.nextFunction ? this.nextFunction.qualifiedName : null,
+            currentTableFunction: this.currentTableFunction ? this.currentTableFunction.qualifiedName : null,
+
+            idType: null,
+            id0: null,
+            id1: null,
+            id2: null,
+            resultLength: 0
+        };
+        if (this.resultInfo) {
+            this.key.idType = this.resultInfo.idType;
+
+            const results = this.results!;
+            this.key.resultLength = results.length;
+            if (results.length > 0)
+                this.key.id0 = toID(results[0].value.id);
+            if (results.length > 1)
+                this.key.id1 = toID(results[1].value.id);
+            if (results.length > 2)
+                this.key.id2 = toID(results[2].value.id);
+        }
     }
 
     toString() : string {
@@ -299,14 +344,18 @@ export class ContextInfo {
         return new ContextInfo(
             this.contextTable,
             this.state.clone(),
-            this.currentTableSchema,
-            this.currentFunctionSchema,
+            this.currentTableFunction,
+            this.currentFunction,
             this.resultInfo,
             this.previousDomainIdx, this.currentIdx,
-            this.nextIdx, this.nextFunctionSchema, this.nextInfo,
+            this.nextIdx, this.nextFunction, this.nextInfo,
             this.aux
         );
     }
+}
+
+export function contextKeyFn(ctx : ContextInfo) {
+    return ctx.key;
 }
 
 export function initialContextInfo(contextTable : SentenceGeneratorTypes.ContextTable) {
@@ -670,7 +719,7 @@ function addQueryAndAction(ctx : ContextInfo,
 }
 
 export function makeContextPhrase(symbol : number, value : ContextInfo, utterance = '', priority = 0) : SentenceGeneratorTypes.ContextPhrase {
-    return { symbol, utterance, value, priority };
+    return { symbol, utterance, value, priority, key: value.key };
 }
 
 export interface AgentReplyOptions {
@@ -756,7 +805,7 @@ function setEndBit(reply : AgentReplyRecord, value : boolean) : AgentReplyRecord
 }
 
 function actionShouldHaveResult(ctx : ContextInfo) : boolean {
-    const schema = ctx.currentFunctionSchema!;
+    const schema = ctx.currentFunction!;
     return Object.keys(schema.out).length > 0;
 }
 

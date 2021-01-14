@@ -427,7 +427,7 @@ function refineFilterToChangeFilter(ctxFilter : Ast.BooleanExpression,
 function proposalReply(ctx : ContextInfo,
                        request : Ast.Expression,
                        refinementFunction : RefineFilterCallback) {
-    if (!C.isSameFunction(ctx.currentFunctionSchema!, request.schema!))
+    if (!C.isSameFunction(ctx.currentFunction!, request.schema!))
         return null;
 
     // TODO we need to push down the filter, if possible

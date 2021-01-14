@@ -34,8 +34,8 @@ import * as S from '../../state_manip';
 import _tpLoader from '../../load-thingpedia';
 
 one_param_direct_search_question : C.ParamSlot[] = {
-    ( 'what' p:out_param_Any prefer_question_phrase '?'
-    | p:thingpedia_search_question '?'
+    ( 'what' p:out_param_Any with { filterable = true } prefer_question_phrase '?'
+    | p:thingpedia_search_question with { filterable = true } '?'
     ) => {
         if (p.name === 'id')
             return null;
@@ -50,9 +50,9 @@ one_param_direct_search_question_with_preamble : C.ParamSlot[] = {
 }
 
 two_param_direct_search_question : C.ParamSlot[] = {
-    ( 'what' p1:out_param_Any 'and' p2:out_param_Any prefer_question_phrase '?'
-    | p1:thingpedia_search_question 'and' 'what' p2:out_param_Any prefer_question_phrase '?'
-    | 'what' p1:out_param_Any prefer_question_phrase 'and' p2:thingpedia_search_question '?'
+    ( 'what' p1:out_param_Any with { filterable = true } 'and' p2:out_param_Any with { functionName = p1.functionName } prefer_question_phrase '?'
+    | p1:thingpedia_search_question with { filterable = true } 'and' 'what' p2:out_param_Any with { functionName = p1.functionName } prefer_question_phrase '?'
+    | 'what' p1:out_param_Any with { filterable = true } prefer_question_phrase 'and' p2:thingpedia_search_question with { functionName = p1.functionName } '?'
     ) => {
         if (!C.isSameFunction(p1.schema, p2.schema))
             return null;
@@ -65,12 +65,12 @@ two_param_direct_search_question : C.ParamSlot[] = {
 }
 
 one_param_yesno_direct_search_question : C.ParamSlot[] = {
-    ( 'any preference of' p:out_param_Any '?'
-    | 'do you have a specific' p:out_param_Any 'in mind?'
-    | 'do you have a preference of' p:out_param_Any '?'
-    | 'do you have a preferred' p:out_param_Any '?'
-    | 'are you looking for a specific' p:out_param_Any '?'
-    | 'are you interested in a specific' p:out_param_Any '?'
+    ( 'any preference of' p:out_param_Any with { filterable = true } '?'
+    | 'do you have a specific' p:out_param_Any with { filterable = true } 'in mind?'
+    | 'do you have a preference of' p:out_param_Any with { filterable = true } '?'
+    | 'do you have a preferred' p:out_param_Any with { filterable = true } '?'
+    | 'are you looking for a specific' p:out_param_Any with { filterable = true } '?'
+    | 'are you interested in a specific' p:out_param_Any with { filterable = true } '?'
     ) => {
         if (p.name === 'id')
             return null;
@@ -85,12 +85,12 @@ one_param_yesno_direct_search_question_with_preamble : C.ParamSlot[] = {
 }
 
 two_param_yesno_direct_search_question : C.ParamSlot[] = {
-    ( 'any preference of' p1:out_param_Any 'or' p2:out_param_Any '?'
-    | 'do you have a specific' p1:out_param_Any 'or' p2:out_param_Any 'in mind?'
-    | 'do you have a preference of' p1:out_param_Any 'or' p2:out_param_Any '?'
-    | 'do you have a preferred' p1:out_param_Any 'or' p2:out_param_Any '?'
-    | 'are you looking for a specific' p1:out_param_Any 'or' p2:out_param_Any '?'
-    | 'are you interested in a specific' p1:out_param_Any 'or' p2:out_param_Any '?'
+    ( 'any preference of' p1:out_param_Any with { filterable = true } 'or' p2:out_param_Any with { functionName = p1.functionName } '?'
+    | 'do you have a specific' p1:out_param_Any with { filterable = true } 'or' p2:out_param_Any with { functionName = p1.functionName } 'in mind?'
+    | 'do you have a preference of' p1:out_param_Any with { filterable = true } 'or' p2:out_param_Any with { functionName = p1.functionName } '?'
+    | 'do you have a preferred' p1:out_param_Any with { filterable = true } 'or' p2:out_param_Any with { functionName = p1.functionName } '?'
+    | 'are you looking for a specific' p1:out_param_Any with { filterable = true } 'or' p2:out_param_Any with { functionName = p1.functionName } '?'
+    | 'are you interested in a specific' p1:out_param_Any with { filterable = true } 'or' p2:out_param_Any with { functionName = p1.functionName } '?'
     ) => {
         if (!C.isSameFunction(p1.schema, p2.schema))
             return null;
@@ -103,25 +103,25 @@ two_param_yesno_direct_search_question : C.ParamSlot[] = {
 }
 
 question_npp_filter_pair : C.ParamSlot = {
-    ctx:ctx_with_result_noquestion f1:npp_filter 'or' f2:npp_filter =>
+    ctx:ctx_with_result_noquestion f1:npp_filter with { functionName = ctx.currentFunction } 'or' f2:npp_filter with { functionName = ctx.currentFunction } =>
         D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
-    ctx:ctx_with_result_noquestion f1:npp_filter 'or' c:constant_Any =>
+    ctx:ctx_with_result_noquestion f1:npp_filter with { functionName = ctx.currentFunction } 'or' c:constant_Any with { type = f1.type } =>
         D.checkFilterPairForDisjunctiveQuestionWithConstant(ctx, f1, c);
 }
 question_apv_filter_pair : C.ParamSlot = {
-    ctx:ctx_with_result_noquestion f1:apv_filter 'or' f2:apv_filter =>
+    ctx:ctx_with_result_noquestion f1:apv_filter with { functionName = ctx.currentFunction } 'or' f2:apv_filter with { functionName = ctx.currentFunction } =>
         D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
 }
 question_avp_filter_pair : C.ParamSlot = {
-    ctx:ctx_with_result_noquestion f1:avp_filter 'or' c:constant_Any =>
+    ctx:ctx_with_result_noquestion f1:avp_filter with { functionName = ctx.currentFunction } 'or' c:constant_Any with { type = f1.type } =>
         D.checkFilterPairForDisjunctiveQuestionWithConstant(ctx, f1, c);
 }
 question_preposition_filter_pair : C.ParamSlot = {
-    ctx:ctx_with_result_noquestion f1:preposition_filter 'or' f2:preposition_filter =>
+    ctx:ctx_with_result_noquestion f1:preposition_filter with { functionName = ctx.currentFunction } 'or' f2:preposition_filter with { functionName = ctx.currentFunction } =>
         D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
 }
 question_pvp_filter_pair : C.ParamSlot = {
-    ctx:ctx_with_result_noquestion f1:pvp_filter 'or' f2:pvp_filter =>
+    ctx:ctx_with_result_noquestion f1:pvp_filter with { functionName = ctx.currentFunction } 'or' f2:pvp_filter with { functionName = ctx.currentFunction } =>
         D.checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
 }
 
@@ -134,11 +134,11 @@ disjunctive_search_question : C.ParamSlot[] = {
     ) => [question];
 
     // FIXME we need to check that the base table matches the current domain
-    ( ('are you looking for' | 'would you like' | 'do you need') 'a' table:base_table ('with' | 'that has') question:question_npp_filter_pair '?'
-    | ('are you looking for' | 'would you like' | 'do you need') 'a' question:question_apv_filter_pair table:base_table '?'
-    | ('are you looking for' | 'would you like' | 'do you need') 'a' table:base_table question:question_pvp_filter_pair '?'
-    | ('are you looking for' | 'would you like' | 'do you need') 'a' table:base_table question:question_preposition_filter_pair '?'
-    | ('are you looking for' | 'would you like' | 'do you need') 'a' table:base_table 'that' question:question_avp_filter_pair '?'
+    ( ('are you looking for' | 'would you like' | 'do you need') 'a' table:base_table ('with' | 'that has') question:question_npp_filter_pair with { functionName = table.functionName } '?'
+    | ('are you looking for' | 'would you like' | 'do you need') 'a' question:question_apv_filter_pair table:base_table with { functionName = question.functionName } '?'
+    | ('are you looking for' | 'would you like' | 'do you need') 'a' table:base_table question:question_pvp_filter_pair with { functionName = table.functionName } '?'
+    | ('are you looking for' | 'would you like' | 'do you need') 'a' table:base_table question:question_preposition_filter_pair with { functionName = table.functionName } '?'
+    | ('are you looking for' | 'would you like' | 'do you need') 'a' table:base_table 'that' question:question_avp_filter_pair with { functionName = table.functionName } '?'
     ) => {
         if (!C.isSameFunction(table.schema!, question.schema))
             return null;
@@ -228,12 +228,12 @@ specific_dontcare_phrase : C.FilterSlot = {
 }
 
 coref_constant : Ast.Value = {
-    ( ctx:ctx_multidomain ('the' | 'the same') base:base_table '\'s' param:out_param_Any '.'
-    | ctx:ctx_multidomain generic_preamble_for_answer ('the' | 'the same') base:base_table '\'s' param:out_param_Any '.'
-    | ctx:ctx_multidomain 'the same' param:out_param_Any 'as' 'the' base:base_table '.'
-    | ctx:ctx_multidomain generic_preamble_for_answer 'the same' param:out_param_Any 'as' 'the' base:base_table  '.'
-    | ctx:ctx_multidomain ('the same as the' | 'the') param:out_param_Any 'of' 'the' base:base_table '.'
-    | ctx:ctx_multidomain generic_preamble_for_answer ('the same as the' | 'the') param:out_param_Any 'of' 'the' base:base_table  '.'
+    ( ctx:ctx_multidomain ('the' | 'the same') base:base_table '\'s' param:out_param_Any with { functionName = base.functionName } '.'
+    | ctx:ctx_multidomain generic_preamble_for_answer ('the' | 'the same') base:base_table '\'s' param:out_param_Any with { functionName = base.functionName } '.'
+    | ctx:ctx_multidomain 'the same' param:out_param_Any 'as' 'the' base:base_table with { functionName = param.functionName } '.'
+    | ctx:ctx_multidomain generic_preamble_for_answer 'the same' param:out_param_Any 'as' 'the' base:base_table with { functionName = param.functionName } '.'
+    | ctx:ctx_multidomain ('the same as the' | 'the') param:out_param_Any 'of' 'the' base:base_table with { functionName = param.functionName } '.'
+    | ctx:ctx_multidomain generic_preamble_for_answer ('the same as the' | 'the') param:out_param_Any 'of' 'the' base:base_table with { functionName = param.functionName } '.'
     ) => D.corefConstant(ctx, base, param);
 }
 

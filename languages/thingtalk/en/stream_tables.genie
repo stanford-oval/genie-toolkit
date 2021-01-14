@@ -284,28 +284,31 @@ anything_phrase : Ast.Expression = {
 }
 
 anything_with_filter_phrase : Ast.Expression = {
-    ('any' | 'some') phrase:generic_base_noun_phrase ('with' | 'having') filter:npp_filter => C.addFilter(phrase, filter);
-    phrase:generic_anything_noun_phrase ('with' | 'having') filter:npp_filter => C.addFilter(phrase, filter);
+    ( ('any' | 'some') phrase:generic_base_noun_phrase ('with' | 'having') filter:npp_filter with { functionName = phrase.functionName }
+    | phrase:generic_anything_noun_phrase ('with' | 'having') filter:npp_filter with { functionName = phrase.functionName }
+    ) => C.addFilter(phrase, filter);
 }
 
 anything_which_filter_phrase : Ast.Expression = {
-    ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') ('has' | 'have') filter:npp_filter => C.addFilter(phrase, filter);
-    ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(phrase, filter);
-    ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') filter:avp_filter => C.addFilter(phrase, filter);
-    ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(phrase, filter);
-    phrase:generic_anything_noun_phrase ('which' | 'that') ('has' | 'have') filter:npp_filter => C.addFilter(phrase, filter);
-    phrase:generic_anything_noun_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter => C.addFilter(phrase, filter);
-    phrase:generic_anything_noun_phrase ('which' | 'that') filter:avp_filter => C.addFilter(phrase, filter);
-    phrase:generic_anything_noun_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter => C.addFilter(phrase, filter);
+    ( ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') ('has' | 'have') filter:npp_filter with { functionName = phrase.functionName }
+    | ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter with { functionName = phrase.functionName }
+    | ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') filter:avp_filter with { functionName = phrase.functionName }
+    | ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter with { functionName = phrase.functionName }
+    | phrase:generic_anything_noun_phrase ('which' | 'that') ('has' | 'have') filter:npp_filter with { functionName = phrase.functionName }
+    | phrase:generic_anything_noun_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter with { functionName = phrase.functionName }
+    | phrase:generic_anything_noun_phrase ('which' | 'that') filter:avp_filter with { functionName = phrase.functionName }
+    | phrase:generic_anything_noun_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter with { functionName = phrase.functionName }
+    ) => C.addFilter(phrase, filter);
 }
 
 anything_clean_filter_phrase : Ast.Expression = {
-    ('any' | 'some') filter:apv_filter phrase:generic_base_noun_phrase => C.addFilter(phrase, filter);
-    ('any' | 'some') phrase:generic_base_noun_phrase filter:pvp_filter => C.addFilter(phrase, filter);
-    ('any' | 'some') phrase:generic_base_noun_phrase filter:preposition_filter => C.addFilter(phrase, filter);
-    phrase:generic_anything_noun_phrase filter:apv_filter => C.addFilter(phrase, filter);
-    phrase:generic_anything_noun_phrase filter:pvp_filter => C.addFilter(phrase, filter);
-    phrase:generic_anything_noun_phrase filter:preposition_filter => C.addFilter(phrase, filter);
+    ( ('any' | 'some') filter:apv_filter phrase:generic_base_noun_phrase with { functionName = filter.functionName }
+    | ('any' | 'some') phrase:generic_base_noun_phrase filter:pvp_filter with { functionName = phrase.functionName }
+    | ('any' | 'some') phrase:generic_base_noun_phrase filter:preposition_filter with { functionName = phrase.functionName }
+    | phrase:generic_anything_noun_phrase filter:apv_filter with { functionName = phrase.functionName }
+    | phrase:generic_anything_noun_phrase filter:pvp_filter with { functionName = phrase.functionName }
+    | phrase:generic_anything_noun_phrase filter:preposition_filter with { functionName = phrase.functionName }
+    ) => C.addFilter(phrase, filter);
 }
 
 // verb filter:

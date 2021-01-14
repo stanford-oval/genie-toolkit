@@ -50,10 +50,10 @@ system_list_proposal : D.ListProposal = {
             => D.checkListProposal(name_list, null, true);
     }
 
-    ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' ('they' | 'all of them') 'are' info:result_info_phrase '.' [priority=2]
+    ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' ('they' | 'all of them') 'are' info:result_info_phrase with { functionName = name_list.functionName } '.' [priority=2]
         => D.checkListProposal(name_list, info, true);
 
-    ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' 'both are' info:result_info_phrase '.' => {
+    ('i see' | 'i have' | 'i have found') name_list:result_name_list '.' 'both are' info:result_info_phrase with { functionName = name_list.functionName } '.' => {
         if (name_list.results.length !== 2)
             return null;
         return D.checkListProposal(name_list, info, true);

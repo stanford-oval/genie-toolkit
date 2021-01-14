@@ -36,7 +36,7 @@ import {
 
 
 function checkSearchResultPreamble(ctx : ContextInfo, base : Ast.FunctionDef, num : Ast.Value|null, more : boolean) {
-    if (!C.isSameFunction(base, ctx.currentFunctionSchema!))
+    if (!C.isSameFunction(base, ctx.currentFunction!))
         return null;
     if (num !== null) {
         if (!num.equals(ctx.current!.results!.count))
@@ -56,7 +56,7 @@ function makeRefinementProposal(ctx : ContextInfo, proposal : Ast.Expression) {
     // this if() can be false only with weird primitive templates
     if (!(proposal instanceof Ast.FilterExpression && proposal.expression instanceof Ast.InvocationExpression))
         return null;
-    if (!C.isSameFunction(ctx.currentFunctionSchema!, proposal.schema!))
+    if (!C.isSameFunction(ctx.currentFunction!, proposal.schema!))
         return null;
 
     const currentStmt = ctx.current!.stmt;
@@ -81,7 +81,7 @@ function negativeProposalReply(ctx : ContextInfo, [preamble, request] : [Ast.Exp
         return null;
 
     const proposal = ctx.aux as Ast.FilterExpression;
-    if (!C.isSameFunction(ctx.currentFunctionSchema!, request.schema!))
+    if (!C.isSameFunction(ctx.currentFunction!, request.schema!))
         return null;
     const refined = refineFilterToChangeFilter(proposal.filter, request.filter);
     if (refined === null)

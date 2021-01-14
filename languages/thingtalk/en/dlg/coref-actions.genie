@@ -182,45 +182,45 @@ action_coref_list_proposal : Ast.Invocation = {
 // sentences from the user
 
 coref_action_command : Ast.Invocation = {
-    ctx:ctx_with_action base:coref_action_phrase if complete
+    ctx:ctx_with_action base:coref_action_phrase with { functionName = ctx.nextFunction } if complete
         => D.contextualAction(ctx, base);
     ctx:ctx_without_action base:coref_action_phrase => base;
 
-    ( action:coref_action_command param:preposition_input_param
-    | action:coref_action_command ('with' | 'having') param:npp_input_param
+    ( action:coref_action_command param:preposition_input_param with { functionName = action.functionName }
+    | action:coref_action_command ('with' | 'having') param:npp_input_param with { functionName = action.functionName }
     ) => C.addInvocationInputParam(action, param);
 }
 
 action_by_name_command : Ast.Invocation = {
-    ctx:ctx_incomplete_action base:contextual_action_phrase if complete
+    ctx:ctx_incomplete_action base:contextual_action_phrase with { functionName = ctx.nextFunction } if complete
         => D.contextualAction(ctx, base);
     ctx:ctx_without_action base:contextual_action_phrase => base;
 
-    ( action:action_by_name_command param:preposition_input_param
-    | action:action_by_name_command ('with' | 'having') param:npp_input_param
+    ( action:action_by_name_command param:preposition_input_param with { functionName = action.functionName }
+    | action:action_by_name_command ('with' | 'having') param:npp_input_param with { functionName = action.functionName }
     ) => C.addInvocationInputParam(action, param);
 }
 
 // an action command that continues an existing action command (used for slot-filling)
 action_continuation_command : Ast.Invocation = {
-    ( ctx:ctx_incomplete_action base:coref_action_phrase
-    | ctx:ctx_incomplete_action base:contextual_action_phrase
+    ( ctx:ctx_incomplete_action base:coref_action_phrase with { functionName = ctx.nextFunction }
+    | ctx:ctx_incomplete_action base:contextual_action_phrase with { functionName = ctx.nextFunction }
     ) if complete => D.contextualAction(ctx, base);
-    ( ctx:ctx_incomplete_action base:thingpedia_action
-    | ctx:ctx_incomplete_action base:thingpedia_get_command
+    ( ctx:ctx_incomplete_action base:thingpedia_action with { functionName = ctx.nextFunction }
+    | ctx:ctx_incomplete_action base:thingpedia_get_command with { functionName = ctx.nextFunction }
     ) if complete => {
         if (!(base instanceof Ast.InvocationExpression))
             return null;
         return D.contextualAction(ctx, base.invocation);
     };
 
-    ( action:action_continuation_command param:preposition_input_param
-    | action:action_continuation_command ('with' | 'having') param:npp_input_param
+    ( action:action_continuation_command param:preposition_input_param with { functionName = action.functionName }
+    | action:action_continuation_command ('with' | 'having') param:npp_input_param with { functionName = action.functionName }
     ) => C.addInvocationInputParam(action, param);
 }
 
 continuation_query : Ast.Invocation = {
-    ctx:ctx_incomplete_action base:complete_table => {
+    ctx:ctx_incomplete_action base:complete_table with { functionName = ctx.nextFunction } => {
         if (!(base instanceof Ast.InvocationExpression))
             return null;
         return D.contextualAction(ctx, base.invocation);
@@ -236,7 +236,7 @@ action_description_phrase : Ast.Invocation = {
         return action.invocation;
     };
 
-    ( action:action_description_phrase param:preposition_input_param
-    | action:action_description_phrase ('with' | 'having') param:npp_input_param
+    ( action:action_description_phrase param:preposition_input_param with { functionName = action.functionName }
+    | action:action_description_phrase ('with' | 'having') param:npp_input_param with { functionName = action.functionName }
     ) => C.addInvocationInputParam(action, param);
 }
