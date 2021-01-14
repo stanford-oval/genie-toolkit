@@ -134,10 +134,9 @@ async function testSimpleGet2(engine, icon = null) {
     // when we get here, the app might or might not have started already
     // to be sure, we iterate its mainOutput
 
-    console.log(output);
     assert.deepStrictEqual(output, {
         uniqueId: 'app-foo-get',
-        description: 'get generate 10 byte of fake data with count equal to 2 and then notify you',
+        description: 'get generate 10 byte of fake data with count equal to 2',
         code: '@org.thingpedia.builtin.test.get_data(count=2, size=10byte);',
         icon: 'org.thingpedia.builtin.test',
         results:
