@@ -121,7 +121,7 @@ when_get_stream : Ast.ChainExpression = {
         if (proj instanceof Ast.ProjectionExpression) {
             if (!_tpLoader.flags.projection)
                 return null;
-            if (proj.args[0] === 'picture_url')
+            if (proj.args[0] === 'picture_url' || proj.args[0] === '$event')
                 return null;
             let outParams = Object.keys(proj.expression.schema!.out);
             if (outParams.length === 1)
@@ -143,7 +143,7 @@ when_get_stream : Ast.ChainExpression = {
         if (proj instanceof Ast.ProjectionExpression) {
             if (!_tpLoader.flags.projection)
                 return null;
-            if (proj.args[0] === 'picture_url')
+            if (proj.args[0] === 'picture_url' || proj.args[0] === '$event')
                 return null;
             let outParams = Object.keys(proj.expression.schema!.out);
             if (outParams.length === 1)
@@ -373,8 +373,8 @@ complete_question : Ast.ExpressionStatement = {
 projection_question : Ast.ExpressionStatement = {
     ( 'what is' proj:projection_Any '?'
     | 'what is' proj:pair_projection '?' [weight=0.1]
-    | 'who is' proj:projection_Entity__tt__username '?'
-    | 'who is' proj:projection_Entity__tt__email_address '?'
+    | 'who is' proj:projection_Any with { projectionType = (new Type.Entity('tt:username')) } '?'
+    | 'who is' proj:projection_Any with { projectionType = (new Type.Entity('tt:email_address')) } '?'
     ) => {
         if (proj instanceof Ast.ProjectionExpression && proj.schema!.getArgType(proj.args[0]) instanceof Type.Array)
             return null;
@@ -382,8 +382,8 @@ projection_question : Ast.ExpressionStatement = {
     };
     ( 'what are' proj:projection_Any '?'
     | 'what are' proj:pair_projection '?' [weight=0.1]
-    | 'who are' proj:projection_Entity__tt__username '?'
-    | 'who are' proj:projection_Entity__tt__email_address '?'
+    | 'who are' proj:projection_Any with { projectionType = (new Type.Entity('tt:username')) } '?'
+    | 'who are' proj:projection_Any with { projectionType = (new Type.Entity('tt:email_address')) } '?'
     ) => {
         if (proj instanceof Ast.ProjectionExpression && !(proj.schema!.getArgType(proj.args[0]) instanceof Type.Array))
             return null;

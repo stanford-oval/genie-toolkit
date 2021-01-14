@@ -110,15 +110,10 @@ export class ThingpediaLoader {
     private _tpClient ! : Tp.BaseClient;
     private _langPack ! : Genie.I18n.LanguagePack;
     private _options ! : GrammarOptions;
-    private _allTypes ! : Map<string, Type>;
-    private _idTypes ! : Set<string>;
     private _entities ! : Record<string, { has_ner_support : boolean }>;
-    types ! : {
-        readonly all : Map<string, Type>;
-        readonly id : Set<string>;
-    };
+    types ! : Map<string, Type>;
     params ! : {
-        readonly in : Map<string, [ParamSlot, string, string]>;
+        readonly in : Map<string, [ParamSlot, string]>;
         readonly all : ParamSlot[];
     };
     projections ! : Array<{
@@ -155,13 +150,8 @@ export class ThingpediaLoader {
 
         this._options = options;
 
-        this._allTypes = new Map;
-        this._idTypes = new Set;
         this._entities = {};
-        this.types = {
-            all: this._allTypes,
-            id: this._idTypes,
-        };
+        this.types = new Map;
         this.params = {
             in: new Map,
             all: [],
@@ -196,6 +186,12 @@ export class ThingpediaLoader {
         return this._options.flags;
     }
 
+    isIDType(type : Type) {
+        if (!(type instanceof Type.Entity))
+            return false;
+        return this.idQueries.has(type.type);
+    }
+
     private _addRule<ArgTypes extends unknown[], ResultType>(nonTerm : string,
                                                              parts : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal|Genie.SentenceGeneratorRuntime.Placeholder>,
                                                              semanticAction : (...args : ArgTypes) => ResultType|null,
@@ -223,17 +219,20 @@ export class ThingpediaLoader {
         if (type instanceof Type.Array)
             this._recordType(type.elem as Type);
         const typestr = typeToStringSafe(type);
-        if (this._allTypes.has(typestr))
+        if (this.types.has(typestr)) {
+            if (type.isArray)
+                return 'Any';
             return typestr;
-        this._allTypes.set(typestr, type);
+        }
+        this.types.set(typestr, type);
 
-        this._grammar.declareSymbol('out_param_' + typestr);
         if (type.isRecurrentTimeSpecification)
             return typestr;
+        if (type.isArray)
+            return 'Any';
 
-        this._grammar.declareSymbol('placeholder_' + typestr);
         if (!this._grammar.hasSymbol('constant_' + typestr)) {
-            if (!type.isEnum && !type.isEntity && !type.isArray)
+            if (!type.isEnum && !type.isEntity)
                 throw new Error('Missing definition for type ' + typestr);
             this._grammar.declareSymbol('constant_' + typestr);
             this._addRule<Ast.Value[], Ast.Value>('constant_Any', [new this._runtime.NonTerminal('constant_' + typestr)],
@@ -251,22 +250,22 @@ export class ThingpediaLoader {
         return typestr;
     }
 
-    private _addOutParam(pslot : ParamSlot,
-                         typestr : string,
-                         canonical : string) {
-        this._addRule('out_param_' + typestr, [canonical], () => pslot, keyfns.paramKeyFn);
-
-        if (pslot.type.isArray)
-            this._addRule('out_param_Array__Any', [canonical], () => pslot, keyfns.paramKeyFn);
-
+    private _addOutParam(pslot : ParamSlot, canonical : string) {
         this._addRule('out_param_Any', [canonical], () => pslot, keyfns.paramKeyFn);
+
+        if (pslot.type instanceof Type.Array) {
+            this._addRule('out_param_Array__Any', [canonical], () => pslot, keyfns.paramKeyFn);
+            const elem = pslot.type.elem as Type;
+            if (elem instanceof Type.Compound)
+                this._addRule('out_param_Array__Compound', [canonical], () => pslot, keyfns.paramKeyFn);
+        }
     }
 
     private _recordInputParam(schema : Ast.FunctionDef, arg : Ast.ArgumentDef) {
         const pname = arg.name;
         const ptype = arg.type;
-        const typestr = this._recordType(ptype);
-        if (!typestr)
+        const ptypestr = this._recordType(ptype);
+        if (!ptypestr)
             return;
         const pslot : ParamSlot = { schema, name: pname, type: ptype,
             filterable: false, ast: new Ast.Value.VarRef(pname) };
@@ -314,7 +313,7 @@ export class ThingpediaLoader {
             canonical = arg.metadata.canonical;
 
         const corefconst = new this._runtime.NonTerminal('coref_constant');
-        const constant = new this._runtime.NonTerminal('constant_' + typestr);
+        const constant = new this._runtime.NonTerminal('constant_' + ptypestr);
         for (let cat in canonical) {
             if (cat === 'default')
                 continue;
@@ -380,8 +379,7 @@ export class ThingpediaLoader {
     private _recordBooleanOutputParam(pslot : ParamSlot, arg : Ast.ArgumentDef) {
         const pname = arg.name;
         const ptype = arg.type;
-        const typestr = this._recordType(ptype);
-        if (!typestr)
+        if (!this._recordType(ptype))
             return;
 
         let canonical;
@@ -402,7 +400,7 @@ export class ThingpediaLoader {
                 annotvalue = [annotvalue];
             if (key === 'base') {
                 for (const form of annotvalue)
-                    this._addOutParam(pslot, typestr, form.trim());
+                    this._addOutParam(pslot, form.trim());
 
                 continue;
             }
@@ -439,8 +437,7 @@ export class ThingpediaLoader {
     private _recordOutputParam(schema : Ast.FunctionDef, arg : Ast.ArgumentDef) {
         const pname = arg.name;
         const ptype = arg.type;
-        const typestr = this._recordType(ptype);
-        if (!typestr)
+        if (!this._recordType(ptype))
             return;
 
         const filterable = arg.getImplementationAnnotation<boolean>('filterable') ?? true;
@@ -537,11 +534,10 @@ export class ThingpediaLoader {
                                      canonical : CanonicalForm,
                                      canUseBothForm : boolean) {
         const ptype = pslot.type;
-        const typestr = this._recordType(ptype);
-        if (!typestr)
+        if (!this._recordType(ptype))
             return;
         const vtypestr = this._recordType(vtype);
-        if (vtypestr === null)
+        if (!vtypestr)
             return;
 
         const constant = new this._runtime.NonTerminal('constant_' + vtypestr);
@@ -683,7 +679,7 @@ export class ThingpediaLoader {
 
                 for (const form of annotarray) {
                     if (cat === 'base') {
-                        this._addOutParam(pslot, typestr, form.trim());
+                        this._addOutParam(pslot, form.trim());
                         if (!canonical.npp && !canonical.property) {
                             const expansion = [form, constant];
                             this._addRule('npp_filter', expansion, (_, value : Ast.Value) => makeFilter(pslot, op, value, false), keyfns.filterKeyFn);
@@ -836,7 +832,7 @@ export class ThingpediaLoader {
             const pslot : ParamSlot = { schema: ex.value.schema!, name: pname, type: arg.type,
                 filterable, ast: new Ast.Value.VarRef(pname) };
             this.params.in.set(pslot.schema.qualifiedName + ':' + pname,
-                [pslot, typeToStringSafe(ptype), pcanonical]);
+                [pslot, pcanonical]);
             this._recordType(ptype);
         }
 
@@ -1080,10 +1076,8 @@ export class ThingpediaLoader {
             if (functionDef.is_list && functionDef.hasArgument('id')) {
                 const idarg = functionDef.getArgument('id')!;
                 const functionEntityType = functionDef.class!.kind + ':' + functionDef.name;
-                if (idarg.type instanceof Type.Entity && idarg.type.type === functionEntityType) {
+                if (idarg.type instanceof Type.Entity && idarg.type.type === functionEntityType)
                     this.idQueries.set(functionEntityType, functionDef);
-                    this._idTypes.add(typeToStringSafe(idarg.type));
-                }
             }
 
             await this._makeExampleFromQuery(functionDef);
@@ -1124,7 +1118,7 @@ export class ThingpediaLoader {
                             ast: new Ast.Value.VarRef(pname)
                         };
                         this.params.in.set(pslot.schema.qualifiedName + ':' + pname,
-                            [pslot, typeToStringSafe(ptype), pcanonical]);
+                            [pslot, pcanonical]);
                         this._recordType(ptype);
                     }
                 }
@@ -1177,11 +1171,11 @@ export class ThingpediaLoader {
     private _addEntityConstants() {
         for (const entityType in this._entities) {
             const ttType = new Type.Entity(entityType);
-            const typestr = typeToStringSafe(ttType);
             const { has_ner_support } = this._entities[entityType];
+            const typestr = this._recordType(ttType);
 
             if (has_ner_support) {
-                if (this._idTypes.has(typestr)) {
+                if (this.idQueries.has(entityType)) {
                     if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
                         console.log('Loaded entity ' + entityType + ' as id entity');
                 } else {
@@ -1189,7 +1183,6 @@ export class ThingpediaLoader {
                         console.log('Loaded entity ' + entityType + ' as generic entity');
                 }
 
-                this._grammar.declareSymbol('constant_' + typestr);
                 this._grammar.addConstants('constant_' + typestr, 'GENERIC_ENTITY_' + entityType, ttType,
                     keyfns.entityValueKeyFn);
             } else {

@@ -25,6 +25,7 @@ import * as Units from 'thingtalk-units';
 
 import { typeToStringSafe, isSameFunction, normalizeConfirmAnnotation } from './utils';
 import {
+    Placeholder,
     ParamSlot,
     FilterValueSlot,
     FilterSlot,
@@ -38,6 +39,7 @@ import {
     makeDateRangeFilter,
 } from './utils';
 export {
+    Placeholder,
     ParamSlot,
     FilterValueSlot,
     FilterSlot,
@@ -332,6 +334,8 @@ function makeAggregateFilterWithFilter(param : ParamSlot,
 function makeEdgeFilterStream(proj : Ast.Expression, op : string, value : Ast.Value) : Ast.Expression|null {
     if (!(proj instanceof Ast.ProjectionExpression))
         return null;
+    if (proj.args[0] === '$event')
+        return null;
 
     const args = getProjectionArguments(proj);
     assert(args.length > 0);
@@ -431,94 +435,61 @@ function makeProjection(table : Ast.Expression, pname : string) : Ast.Projection
     return new Ast.ProjectionExpression(null, table, [pname], [], [], resolveProjection(table.schema!, [pname]));
 }
 
-function makeEventTableProjection(table : Ast.Expression) : Ast.ProjectionExpression|null {
+export function getDefaultParameterPassing(schema : Ast.FunctionDef) : string {
+    // if there is only one parameter, that's the one
+    const outParams = Object.keys(schema.out);
+    if (outParams.length === 1)
+        return outParams[0];
+
+    // if there is an ID, we pick that one
+    // first check "id", then check any out argument of ID type
+    // (the latter is deprecated and for compatibility only)
+    const id = schema.getArgument('id');
+    if (id && !id.is_input)
+        return 'id';
+    for (const param of outParams) {
+        if (_loader.isIDType(schema.out[param]))
+            return param;
+    }
+
+    // if there is a picture, we pick that one
+    const picture_url = schema.getArgument('picture_url');
+    if (picture_url && !picture_url.is_input)
+        return 'picture_url';
+
+    // failing everything, return a string representation of the table
+    return '$event';
+}
+
+export function makeTypeBasedTableProjection(table : Ast.Expression, intotype : Type = Type.Any) : Ast.ProjectionExpression|null {
     if (table instanceof Ast.ProjectionExpression)
         return null;
 
-    const outParams = Object.keys(table.schema!.out);
-    if (outParams.length === 1 && table.schema!.out[outParams[0]].isString)
-        return makeProjection(table, outParams[0]);
-
-    for (const pname in table.schema!.out) {
-        if (pname === 'picture_url')
+    const pname = getDefaultParameterPassing(table.schema!);
+    if (pname === '$event') {
+        if (!Type.isAssignable(Type.String, intotype))
             return null;
-        const ptype = table.schema!.out[pname];
-        if (_loader.types.id.has(typeToStringSafe(ptype)))
-            return null;
-    }
-    // FIXME this is bogus on various levels, because $event is not an argument
-    // because the schema is not modified correctly...
-    return new Ast.ProjectionExpression(null, table, ['$event'], [], [], table.schema);
-}
-
-function makeEventStreamProjection(table : Ast.Expression) : Ast.ProjectionExpression|null {
-    if (!table.schema!.is_monitorable)
-        return null;
-    const outParams = Object.keys(table.schema!.out);
-    if (outParams.length === 1 && table.schema!.out[outParams[0]].isString)
-        return makeProjection(new Ast.MonitorExpression(null, table, null, table.schema), outParams[0]);
-
-    for (const pname in table.schema!.out) {
-        if (pname === 'picture_url')
-            return null;
-        const ptype = table.schema!.out[pname];
-        if (_loader.types.id.has(typeToStringSafe(ptype)))
-            return null;
-    }
-    return new Ast.ProjectionExpression(null, new Ast.MonitorExpression(null, table, null, table.schema), ['$event'], [], [], table.schema);
-}
-
-function makeTypeBasedTableProjection(table : Ast.Expression, ptype : Type, ptypestr = typeToStringSafe(ptype)) : Ast.ProjectionExpression|null {
-    if (table instanceof Ast.ProjectionExpression)
-        return null;
-
-    if (_loader.types.id.has(ptypestr)) {
-        for (const pname in table.schema!.out) {
-            if (table.schema!.out[pname].equals(ptype))
-                return makeProjection(table, pname);
-        }
-        return null;
+        // FIXME this is bogus on various levels, because $event is not an argument
+        // because the schema is not modified correctly...
+        return new Ast.ProjectionExpression(null, table, ['$event'], [], [], table.schema);
     } else {
-        assert(!ptype.isString && !(ptype instanceof Type.Entity && ptype.type === 'tt:picture'));
-
-        const idArg = table.schema!.getArgument('id');
-        if (idArg && idArg.type.equals(ptype))
-            return makeProjection(table, 'id');
-
-        const outParams = Object.keys(table.schema!.out);
-        if (outParams.length !== 1)
+        if (!Type.isAssignable(table.schema!.getArgType(pname)!, intotype))
             return null;
-        const outType = table.schema!.getArgType(outParams[0]);
-        if (!outType || !ptype.equals(outType))
-            return null;
-        return makeProjection(table, outParams[0]);
+        return makeProjection(table, pname);
     }
 }
 
-function makeTypeBasedStreamProjection(table : Ast.Expression, ptype : Type, ptypestr : string) : Ast.ProjectionExpression|null {
+export function makeTypeBasedStreamProjection(table : Ast.Expression) : Ast.ProjectionExpression|null {
     if (table instanceof Ast.ProjectionExpression)
         return null;
     if (!table.schema!.is_monitorable)
         return null;
-    if (_loader.types.id.has(ptypestr)) {
-        for (const pname in table.schema!.out) {
-            if (table.schema!.out[pname].equals(ptype))
-                return makeProjection(new Ast.MonitorExpression(null, table, null, table.schema), pname);
-        }
-        return null;
-    } else {
-        const idArg = table.schema!.getArgument('id');
-        if (idArg && idArg.type.equals(ptype))
-            return makeProjection(new Ast.MonitorExpression(null, table, null, table.schema), 'id');
 
-        const outParams = Object.keys(table.schema!.out);
-        if (outParams.length !== 1)
-            return null;
-        const outType = table.schema!.getArgType(outParams[0]);
-        if (!outType || !ptype.equals(outType))
-            return null;
-        return makeProjection(new Ast.MonitorExpression(null, table, null, table.schema), outParams[0]);
-    }
+    const pname = getDefaultParameterPassing(table.schema!);
+    if (pname === '$event')
+        return null;
+
+    return makeProjection(new Ast.MonitorExpression(null, table, null, table.schema), pname);
 }
 
 function isEqualityFilteredOnParameter(table : Ast.Expression, pname : string) : boolean {
@@ -1022,6 +993,9 @@ function tableToStream(table : Ast.Expression) : Ast.Expression|null {
     if (table instanceof Ast.ProjectionExpression && table.computations.length === 0) {
         projArg = table.args;
         table = table.expression;
+
+        if (projArg[0] === '$event')
+            return null;
     }
 
     let stream;
@@ -1099,6 +1073,8 @@ function makeGetPredicate(proj : Ast.Expression, op : string, value : Ast.Value,
     if (!(proj.expression instanceof Ast.InvocationExpression))
         return null;
     const arg = proj.args[0];
+    if (arg === '$event')
+        return null;
     let filter = new Ast.BooleanExpression.Atom(null, arg, op, value);
     if (negate)
         filter = new Ast.BooleanExpression.Not(null, filter);
@@ -1325,12 +1301,11 @@ function replacePlaceholderWithConstant<T extends PlaceholderReplaceable>(lhs : 
     return betaReduce(lhs, param.name, value);
 }
 
-function replacePlaceholderWithUndefined<T extends PlaceholderReplaceable>(lhs : T, param : ParamSlot, typestr : string) : T|null {
+function replacePlaceholderWithUndefined<T extends PlaceholderReplaceable>(lhs : T, param : ParamSlot) : T|null {
     if (!isSameFunction(lhs.schema!, param.schema))
         return null;
-    if (!lhs.schema!.inReq[param.name])
-        return null;
-    if (typestr !== typeToStringSafe(lhs.schema!.inReq[param.name]))
+    const type = lhs.schema!.inReq[param.name];
+    if (!type || !type.equals(param.type))
         return null;
     return betaReduce(lhs, param.name, new Ast.Value.Undefined(true));
 }
@@ -1344,6 +1319,8 @@ function sayProjection(maybeProj : Ast.Expression|null) : Ast.ExpressionStatemen
         const proj : Ast.ProjectionExpression = maybeProj;
         assert(proj.args.length > 0 || proj.computations.length > 0);
         if (proj.args.length === 1 && proj.args[0] === 'picture_url')
+            return null;
+        if (proj.args.length === 1 && proj.args[0] === '$event')
             return null;
         // if the function only contains one parameter, do not generate projection for it
         if (proj.computations.length === 0 && Object.keys(proj.expression.schema!.out).length === 1)
@@ -1954,10 +1931,6 @@ export {
     // projections
     resolveProjection,
     makeProjection,
-    makeEventTableProjection,
-    makeEventStreamProjection,
-    makeTypeBasedTableProjection,
-    makeTypeBasedStreamProjection,
     makeSingleFieldProjection,
     makeMultiFieldProjection,
     sayProjection,

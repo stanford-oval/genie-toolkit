@@ -150,6 +150,8 @@ class ResultGenerator {
             return uniform(type.entries!, this._rng);
         if (type instanceof Type.Entity)
             return new ThingTalk.Builtin.Entity(this._generateString('ENTITY_' + type.type, repeatable), null);
+        if (type === Type.RecurrentTimeSpecification) // TODO
+            return []; // empty list of recurrent time rules
 
         throw new TypeError(`Invalid constant of type ${type}`);
     }

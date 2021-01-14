@@ -23,6 +23,7 @@ import { Ast, Type } from 'thingtalk';
 
 import type { SlotBag } from './slot_bag';
 import type {
+    Placeholder,
     ParamSlot,
     FilterSlot,
     DomainIndependentFilterSlot,
@@ -31,6 +32,10 @@ import type {
 
 // Key functions: given the result of a semantic function, compute
 // a set of keys to speed-up derivation matching
+
+export function placeholderKeyFn(pl : Placeholder) {
+    return { type: pl.type, is_numeric: pl.type.isNumeric() };
+}
 
 export function valueKeyFn(value : Ast.Value) {
     const type = value.getType();
@@ -54,8 +59,12 @@ export function numberValueKeyFn(value : Ast.NumberValue) {
 export function filterKeyFn(slot : FilterSlot|DomainIndependentFilterSlot) {
     const schema = slot.schema;
     const id = schema?.getArgument('id');
-    return { functionName: schema ? schema.qualifiedName : null, type: slot.ptype,
-        associatedIdType: id && !id.is_input ? id.type : null };
+    return {
+        functionName: schema ? schema.qualifiedName : null,
+        type: slot.ptype,
+        is_numeric: slot.ptype ? slot.ptype.isNumeric() : false,
+        associatedIdType: id && !id.is_input ? id.type : null
+    };
 }
 
 export function inputParamKeyFn(slot : InputParamSlot) {
@@ -64,9 +73,15 @@ export function inputParamKeyFn(slot : InputParamSlot) {
 
 export function paramKeyFn(slot : ParamSlot) {
     const id = slot.schema.getArgument('id');
-    return { functionName: slot.schema.qualifiedName, type: slot.type,
+    return {
+        functionName: slot.schema.qualifiedName,
+        type: slot.type,
+        is_numeric: slot.type.isNumeric(),
+        elem: slot.type instanceof Type.Array ? slot.type.elem as Type : null,
+        is_numeric_elem: slot.type instanceof Type.Array ? (slot.type.elem as Type).isNumeric() : false,
         associatedIdType: id && !id.is_input ? id.type : null,
-        filterable: slot.filterable };
+        filterable: slot.filterable
+    };
 }
 
 export function paramArrayKeyFn(slots : ParamSlot[]) {
@@ -90,6 +105,8 @@ export function expressionKeyFn(expr : Ast.Expression) {
 
     let isEventProjection = false;
     let projectionType = null;
+    if (expr instanceof Ast.MonitorExpression)
+        expr = expr.expression;
     if (expr instanceof Ast.ProjectionExpression) {
         if (expr.args.length === 1 && expr.computations.length === 0) {
             isEventProjection = expr.args[0] === '$event';

@@ -524,9 +524,11 @@ export class ConstantNonTerminalConstraint extends NonTerminalConstraint {
         if (ourKeyFn === 'undefined')
             console.error(`WARNING: key function is not set in constraint {${this.indexName} = ${this.valueCode}}, cannot check correctness statically`);
         const ourTypeConstraint = ourKeyFn === 'undefined' ? '' :
-            ` as keyof ReturnType<typeof ${ourKeyFn}>`;
+            ` as (${stringEscape(this.indexName)} extends keyof ReturnType<typeof ${ourKeyFn}> ? string : void)`;
+        const constantTypeConstraint = ourKeyFn === 'undefined' ? '' :
+            ` as ReturnType<typeof ${ourKeyFn}>[${stringEscape(this.indexName)}]`;
 
-        return `[${stringEscape(this.indexName)}${ourTypeConstraint}, (${this.valueCode})]`;
+        return `[${stringEscape(this.indexName)}${ourTypeConstraint}, (${this.valueCode})${constantTypeConstraint}]`;
     }
 }
 NonTerminalConstraint.Constant = ConstantNonTerminalConstraint;

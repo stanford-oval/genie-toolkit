@@ -29,6 +29,10 @@ import type { I18n } from 'genie-toolkit';
 // but they also add the function name, so we don't mix parameters
 // across functions with the same name
 
+export interface Placeholder {
+    type : Type;
+}
+
 export interface ParamSlot {
     schema : Ast.FunctionDef;
     name : string;
@@ -111,6 +115,7 @@ function makeFilter(slot : ParamSlot,
     // XXX url filters?
     if (ptype instanceof Type.Entity && ptype.type === 'tt:url')
         return null;
+
     if (op === 'contains') {
         if (ptype === Type.RecurrentTimeSpecification) {
             if (!(vtype.isTime || vtype.isDate))
@@ -118,16 +123,31 @@ function makeFilter(slot : ParamSlot,
         } else {
             if (!(ptype instanceof Type.Array))
                 return null;
-            if (!vtype.equals(ptype.elem as Type))
+
+            const elem = ptype.elem as Type;
+            if ((vtype.isEnum && elem.isEnum) || (vtype.isEntity && elem.isEntity)) {
+                if (!Type.isAssignable(vtype, elem))
+                    return null;
+            } else if (!ptype.equals(elem)) {
                 return null;
+            }
         }
         if (vtype.isString)
             op = 'contains~';
-    } else {
-        // note: no implicit cast of time/date, and no implicit cast of string/entity
-        // (not sure this is exactly the right thing to do with username vs email/phone)
-        if (!ptype.equals(vtype))
+    } else if (op === 'in_array') {
+        if (vtype.equals(new Type.Array(Type.String)) && ptype.isEntity)
+            op = 'in_array~';
+        else if (!vtype.equals(new Type.Array(ptype)))
             return null;
+    } else {
+        // note: we need to use "isAssignable" instead of "equals" here
+        // to handle enums and entities correctly
+        if ((vtype.isEnum && ptype.isEnum) || (vtype.isEntity && ptype.isEntity)) {
+            if (!Type.isAssignable(vtype, ptype))
+                return null;
+        } else if (!ptype.equals(vtype)) {
+            return null;
+        }
 
         if (op === '==' && vtype.isString)
             op = '=~';

@@ -19,7 +19,7 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import { Ast, } from 'thingtalk';
+import { Ast, Type } from 'thingtalk';
 
 import * as C from '../ast_manip';
 
@@ -390,41 +390,41 @@ two_verb_filter_table : Ast.Expression = {
 }
 
 generic_argminmax : C.ArgMinMax = {
-    ('maximum' | 'highest') p:out_param_Number => [p, 'desc'];
-    ('minimum' | 'lowest') p:out_param_Number => [p, 'asc'];
+    ('maximum' | 'highest') p:out_param_Any with { type = (Type.Number) } => [p, 'desc'];
+    ('minimum' | 'lowest') p:out_param_Any with { type = (Type.Number) } => [p, 'asc'];
 
-    ('most costly' | 'most expensive' | 'maximum') p:out_param_Currency => [p, 'desc'];
-    ('least costly'| 'cheapest' | 'minimum') p:out_param_Currency => [p, 'asc'];
+    ('most costly' | 'most expensive' | 'maximum') p:out_param_Any with { type = (Type.Currency) } => [p, 'desc'];
+    ('least costly'| 'cheapest' | 'minimum') p:out_param_Any with { type = (Type.Currency) } => [p, 'asc'];
 
-    ('longest' | 'most lasting') p:out_param_Measure_ms => [p, 'desc'];
-    'shortest' p:out_param_Measure_ms => [p, 'asc'];
+    ('longest' | 'most lasting') p:out_param_Any with { type = (new Type.Measure('ms')) } => [p, 'desc'];
+    'shortest' p:out_param_Any with { type = (new Type.Measure('ms')) } => [p, 'asc'];
 
-    ('maximum' | 'largest') p:out_param_Measure_byte => [p, 'desc'];
-    ('minimum' | 'smallest') p:out_param_Measure_byte => [p, 'asc'];
+    ('maximum' | 'largest') p:out_param_Any with { type = (new Type.Measure('byte')) } => [p, 'desc'];
+    ('minimum' | 'smallest') p:out_param_Any with { type = (new Type.Measure('byte')) } => [p, 'asc'];
 
-    ('heaviest' | 'largest' | 'maximum') p:out_param_Measure_kg => [p, 'desc'];
-    ('lightest' | 'smallest' | 'minimum') p:out_param_Measure_kg => [p, 'asc'];
+    ('heaviest' | 'largest' | 'maximum') p:out_param_Any with { type = (new Type.Measure('kg')) } => [p, 'desc'];
+    ('lightest' | 'smallest' | 'minimum') p:out_param_Any with { type = (new Type.Measure('kg')) } => [p, 'asc'];
 
-    ('hottest' | 'highest' | 'maximum') p:out_param_Measure_C => [p, 'desc'];
-    ('coolest' | 'lowest' | 'minimum') p:out_param_Measure_C => [p, 'asc'];
+    ('hottest' | 'highest' | 'maximum') p:out_param_Any with { type = (new Type.Measure('C')) } => [p, 'desc'];
+    ('coolest' | 'lowest' | 'minimum') p:out_param_Any with { type = (new Type.Measure('C')) } => [p, 'asc'];
 
-    ('farthest' | 'most distant' | 'longest') p:out_param_Measure_m => [p, 'desc'];
-    ('nearest' | 'closest' | 'shortest') p:out_param_Measure_m => [p, 'asc'];
+    ('farthest' | 'most distant' | 'longest') p:out_param_Any with { type = (new Type.Measure('m')) } => [p, 'desc'];
+    ('nearest' | 'closest' | 'shortest') p:out_param_Any with { type = (new Type.Measure('m')) } => [p, 'asc'];
 
-    ('largest' | 'biggest') p:out_param_Measure_m2 => [p, 'desc'];
-    'smallest' p:out_param_Measure_m2 => [p, 'asc'];
+    ('largest' | 'biggest') p:out_param_Any with { type = (new Type.Measure('m2')) } => [p, 'desc'];
+    'smallest' p:out_param_Any with { type = (new Type.Measure('m2')) } => [p, 'asc'];
 
-    ('largest' | 'biggest') p:out_param_Measure_m3 => [p, 'desc'];
-    'smallest' p:out_param_Measure_m3 => [p, 'asc'];
+    ('largest' | 'biggest') p:out_param_Any with { type = (new Type.Measure('m3')) } => [p, 'desc'];
+    'smallest' p:out_param_Any with { type = (new Type.Measure('m3')) } => [p, 'asc'];
 
-    ('fastest' | 'quickest' | 'speediest') p:out_param_Measure_mps => [p, 'desc'];
-    ('slowest' | 'most slowly') p:out_param_Measure_mps => [p, 'asc'];
+    ('fastest' | 'quickest' | 'speediest') p:out_param_Any with { type = (new Type.Measure('mps')) } => [p, 'desc'];
+    ('slowest' | 'most slowly') p:out_param_Any with { type = (new Type.Measure('mps')) } => [p, 'asc'];
 
-    ('latest'| 'most recent') p:out_param_Date => [p, 'desc'];
-    ('earliest' | 'soonest') p:out_param_Date => [p, 'asc'];
+    ('latest'| 'most recent') p:out_param_Any with { type = (Type.Date) } => [p, 'desc'];
+    ('earliest' | 'soonest') p:out_param_Any with { type = (Type.Date) } => [p, 'asc'];
 
-    ('latest'| 'most recent') p:out_param_Time => [p, 'desc'];
-    ('earliest' | 'soonest') p:out_param_Time => [p, 'asc'];
+    ('latest'| 'most recent') p:out_param_Any with { type = (Type.Time) } => [p, 'desc'];
+    ('earliest' | 'soonest') p:out_param_Any with { type = (Type.Time) } => [p, 'asc'];
 }
 
 // arg min max
@@ -556,8 +556,8 @@ have_arg_min_max_table : Ast.Expression = {
 
 edge_stream : Ast.Expression = {
     !turking ('when' | 'if') 'the' p:projection_Any ('becomes' | 'becomes equal to') x:constant_Any => C.makeEdgeFilterStream(p, '==', x);
-    ('when' | 'if') 'the' p:projection_Numeric ('becomes greater than' | 'becomes higher than' | 'goes above' | 'increases above') x:constant_Numeric => C.makeEdgeFilterStream(p, '>=', x);
-    ('when' | 'if') 'the' p:projection_Numeric ('becomes smaller than' | 'becomes lower than' | 'goes below' | 'decreases below') x:constant_Numeric => C.makeEdgeFilterStream(p, '<=', x);
+    ('when' | 'if') 'the' p:projection_Any ('becomes greater than' | 'becomes higher than' | 'goes above' | 'increases above') x:constant_Numeric with { type = p.projectionType } => C.makeEdgeFilterStream(p, '>=', x);
+    ('when' | 'if') 'the' p:projection_Any ('becomes smaller than' | 'becomes lower than' | 'goes below' | 'decreases below') x:constant_Numeric with { type = p.projectionType } => C.makeEdgeFilterStream(p, '<=', x);
 }
 
 stream : Ast.Expression = {

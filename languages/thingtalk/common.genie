@@ -18,7 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import { Ast, } from 'thingtalk';
+import { Ast, Type } from 'thingtalk';
 
 // import the combinator library
 import * as C from './ast_manip';
@@ -30,6 +30,7 @@ import './common-constants.genie';
 
 // Declare key functions for non-contextual stuff
 keyfn = {
+    C.Placeholder : C.placeholderKeyFn,
     Ast.Value : C.valueKeyFn,
     Ast.LocationValue : C.valueKeyFn,
     Ast.NumberValue : C.numberValueKeyFn,
@@ -72,22 +73,11 @@ thingpedia_action_past : Ast.Expression = {}
 thingpedia_error_message : C.ErrorMessage = {}
 
 coref_constant : Ast.Value = {}
-
-out_param_Numeric : C.ParamSlot = {
-    out_param_Number;
-    out_param_Currency;
-    out_param_Measure_ms;
-    out_param_Measure_byte;
-    out_param_Measure_kg;
-    out_param_Measure_C;
-    out_param_Measure_m;
-    out_param_Measure_m2;
-    out_param_Measure_m3;
-    out_param_Measure_mps;
-}
+placeholder : C.Placeholder = {}
 
 out_param_Any : C.ParamSlot = {}
 out_param_Array__Any : C.ParamSlot = {}
+out_param_Array__Compound : C.ParamSlot = {}
 out_param_ArrayCount : C.ParamSlot = {}
 out_param_npp : C.ParamSlot = {}
 out_param_npi : C.ParamSlot = {}
@@ -95,50 +85,6 @@ out_param_avp : C.ParamSlot = {}
 out_param_pvp : C.ParamSlot = {}
 out_param_npv : C.ParamSlot = {}
 out_param_apv : C.ParamSlot = {}
-out_param_String   : C.ParamSlot = {}
-out_param_Number   : C.ParamSlot = {}
-out_param_Currency : C.ParamSlot = {}
-out_param_Time     : C.ParamSlot = {}
-out_param_Date     : C.ParamSlot = {}
-out_param_Location : C.ParamSlot = {}
-out_param_Measure_ms   : C.ParamSlot = {}
-out_param_Measure_byte : C.ParamSlot = {}
-out_param_Measure_kg   : C.ParamSlot = {}
-out_param_Measure_C    : C.ParamSlot = {}
-out_param_Measure_m    : C.ParamSlot = {}
-out_param_Measure_m2   : C.ParamSlot = {}
-out_param_Measure_m3   : C.ParamSlot = {}
-out_param_Measure_mps  : C.ParamSlot = {}
-out_param_RecurrentTimeSpecification : C.ParamSlot = {}
-
-out_param_Array__Numeric : C.ParamSlot = {
-    out_param_Array__Number;
-    out_param_Array__Currency;
-    out_param_Array__Measure_ms;
-    out_param_Array__Measure_byte;
-    out_param_Array__Measure_kg;
-    out_param_Array__Measure_C;
-    out_param_Array__Measure_m;
-    out_param_Array__Measure_m2;
-    out_param_Array__Measure_m3;
-    out_param_Array__Measure_mps;
-}
-
-out_param_Array__String   : C.ParamSlot = {}
-out_param_Array__Number   : C.ParamSlot = {}
-out_param_Array__Currency : C.ParamSlot = {}
-out_param_Array__Time     : C.ParamSlot = {}
-out_param_Array__Date     : C.ParamSlot = {}
-out_param_Array__Location : C.ParamSlot = {}
-out_param_Array__Measure_ms   : C.ParamSlot = {}
-out_param_Array__Measure_byte : C.ParamSlot = {}
-out_param_Array__Measure_kg   : C.ParamSlot = {}
-out_param_Array__Measure_C    : C.ParamSlot = {}
-out_param_Array__Measure_m    : C.ParamSlot = {}
-out_param_Array__Measure_m2   : C.ParamSlot = {}
-out_param_Array__Measure_m3   : C.ParamSlot = {}
-out_param_Array__Measure_mps   : C.ParamSlot = {}
-out_param_Array__Compound : C.ParamSlot = {}  // used for aggregate filter only
 
 input_param : C.ParamSlot = {}
 
@@ -248,54 +194,54 @@ await _tpLoader.init($runtime, $grammar, $locale, $options);
 projection_Entity__tt__username : Ast.Expression = {}
 projection_Entity__tt__email_address : Ast.Expression = {}
 
-for (let [pslot, typestr] of _tpLoader.params.in.values()) {
+for (const [pslot,] of _tpLoader.params.in.values()) {
     thingpedia_stream : Ast.Expression = {
-        s:thingpedia_stream v:$('constant_' + typestr) [-> (pslot.name) { isConstant: true }] => C.replacePlaceholderWithConstant(s, pslot, v);
+        s:thingpedia_stream v:constant_Any with { type = (pslot.type) } [-> (pslot.name) { isConstant: true }] => C.replacePlaceholderWithConstant(s, pslot, v);
     }
 
     thingpedia_query : Ast.Expression = {
-        q:thingpedia_query v:$('constant_' + typestr) [-> (pslot.name) { isConstant: true }] => C.replacePlaceholderWithConstant(q, pslot, v);
+        q:thingpedia_query v:constant_Any with { type = (pslot.type) } [-> (pslot.name) { isConstant: true }] => C.replacePlaceholderWithConstant(q, pslot, v);
     }
 
     thingpedia_get_command : Ast.Expression = {
-        q:thingpedia_get_command v:$('constant_' + typestr) [-> (pslot.name) { isConstant: true }] => C.replacePlaceholderWithConstant(q, pslot, v);
+        q:thingpedia_get_command v:constant_Any with { type = (pslot.type) } [-> (pslot.name) { isConstant: true }] => C.replacePlaceholderWithConstant(q, pslot, v);
     }
 
     thingpedia_action : Ast.Expression = {
-        a:thingpedia_action v:$('constant_' + typestr) [-> (pslot.name) { isConstant: true }] => C.replacePlaceholderWithConstant(a, pslot, v);
+        a:thingpedia_action v:constant_Any with { type = (pslot.type) } [-> (pslot.name) { isConstant: true }] => C.replacePlaceholderWithConstant(a, pslot, v);
     }
 
     thingpedia_action_past : Ast.Expression = {
-        a:thingpedia_action_past v:$('constant_' + typestr) [-> (pslot.name) { isConstant: true }] [priority=0.5] => C.replacePlaceholderWithConstant(a, pslot, v);
+        a:thingpedia_action_past v:constant_Any with { type = (pslot.type) } [-> (pslot.name) { isConstant: true }] [priority=0.5] => C.replacePlaceholderWithConstant(a, pslot, v);
     }
 
     thingpedia_error_message : C.ErrorMessage = {
-        msg:thingpedia_error_message v:$('constant_' + typestr) [-> (pslot.name) { isConstant: true }] [priority=0.5] => C.replaceErrorMessagePlaceholder(msg, pslot, v);
+        msg:thingpedia_error_message v:constant_Any with { type = (pslot.type) } [-> (pslot.name) { isConstant: true }] [priority=0.5] => C.replaceErrorMessagePlaceholder(msg, pslot, v);
     }
 
     thingpedia_program : Ast.Expression = {
-        p:thingpedia_program v:$('constant_' + typestr) [-> (pslot.name) { isConstant: true }] => C.replacePlaceholderWithConstant(p, pslot, v);
+        p:thingpedia_program v:constant_Any with { type = (pslot.type) } [-> (pslot.name) { isConstant: true }] => C.replacePlaceholderWithConstant(p, pslot, v);
     }
 
-    // don't parameter pass booleans or enums, as that rarely makes sense
-    if (typestr !== 'Boolean' && !typestr.startsWith('Enum__')) {
+    // don't use placeholders for booleans or enums, as that rarely makes sense
+    if (pslot.type !== Type.Boolean && !pslot.type.isEnum) {
         if (pslot.name !== 'count' && pslot.name !== 'p_count') {
             if ($options.flags.undefined_filter) {
                 // replace $-placeholders with "some X" where X is based on parameter type
-                thingpedia_query : Ast.Expression = q:thingpedia_query $('placeholder_' + typestr) [-> (pslot.name) { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(q, pslot, typestr);
+                thingpedia_query : Ast.Expression = q:thingpedia_query placeholder with { type = (pslot.type) } [-> (pslot.name) { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(q, pslot);
 
-                thingpedia_get_command : Ast.Expression = q:thingpedia_get_command $('placeholder_' + typestr) [-> (pslot.name) { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(q, pslot, typestr);
+                thingpedia_get_command : Ast.Expression = q:thingpedia_get_command placeholder with { type = (pslot.type) } [-> (pslot.name) { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(q, pslot);
 
-                thingpedia_stream : Ast.Expression = s:thingpedia_stream $('placeholder_' + typestr) [-> (pslot.name) { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(s, pslot, typestr);
+                thingpedia_stream : Ast.Expression = s:thingpedia_stream placeholder with { type = (pslot.type) } [-> (pslot.name) { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(s, pslot);
 
-                thingpedia_action : Ast.Expression = a:thingpedia_action $('placeholder_' + typestr) [-> (pslot.name) { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(a, pslot, typestr);
+                thingpedia_action : Ast.Expression = a:thingpedia_action placeholder with { type = (pslot.type) } [-> (pslot.name) { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(a, pslot);
 
-                thingpedia_program : Ast.Expression = p:thingpedia_program $('placeholder_' + typestr) [-> (pslot.name) { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(p, pslot, typestr);
+                thingpedia_program : Ast.Expression = p:thingpedia_program placeholder with { type = (pslot.type) } [-> (pslot.name) { isUndefined: true }] =>
+                    C.replacePlaceholderWithUndefined(p, pslot);
             }
         }
     }
@@ -303,6 +249,6 @@ for (let [pslot, typestr] of _tpLoader.params.in.values()) {
 
 for (const pslot of _tpLoader.params.all) {
     thingpedia_result : SlotBag = {
-        bag:thingpedia_result v:$('constant_Any') [-> (pslot.name) { isConstant: true }] [priority=0.1] => C.replaceSlotBagPlaceholder(bag, pslot, v);
+        bag:thingpedia_result v:constant_Any with { type = (pslot.type) } [-> (pslot.name) { isConstant: true }] [priority=0.1] => C.replaceSlotBagPlaceholder(bag, pslot, v);
     }
 }

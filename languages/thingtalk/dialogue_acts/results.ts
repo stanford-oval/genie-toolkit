@@ -66,17 +66,15 @@ function checkInfoPhrase(ctx : ContextInfo, info : SlotBag) {
             break;
         }
     }
-
-    if (good) {
-        if (info.schema !== null)
-            return info;
-
-        const clone = info.clone();
-        clone.schema = ctx.currentFunction;
-        return clone;
-    } else {
+    if (!good)
         return null;
-    }
+
+    if (info.schema !== null)
+        return info;
+
+    const clone = info.clone();
+    clone.schema = ctx.currentFunction;
+    return clone;
 }
 
 export {

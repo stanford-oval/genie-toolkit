@@ -34,7 +34,7 @@ import { SlotBag } from '../../slot_bag';
 // import thingpedia info
 import _tpLoader from '../../load-thingpedia';
 
-for (let [pslot, typestr] of _tpLoader.params.in.values()) {
+for (let [pslot,] of _tpLoader.params.in.values()) {
     thingpedia_action_past : Ast.Expression = {
         ( action:thingpedia_action_past 'it' [priority=-0.01]
         | action:thingpedia_action_past 'this' [priority=-0.01]
@@ -43,7 +43,7 @@ for (let [pslot, typestr] of _tpLoader.params.in.values()) {
             const type = action.schema!.getArgType(pslot.name);
             if (!type || !type.isEntity)
                 return null;
-            return C.replacePlaceholderWithUndefined(action, pslot, typestr);
+            return C.replacePlaceholderWithUndefined(action, pslot);
         };
     }
 }

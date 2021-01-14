@@ -42,7 +42,7 @@ projection_Any : Ast.Expression = {
         return q;
     };
 
-    !schema_org 'the' 'total' p:out_param_Numeric 'of' ('' | 'the' | 'this' | 'that') t:complete_table with { functionName = p.functionName } => {
+    !schema_org 'the' 'total' p:out_param_Any with { is_numeric = true } 'of' ('' | 'the' | 'this' | 'that') t:complete_table with { functionName = p.functionName } => {
         if (!t.schema!.out[p.name] || !t.schema!.out[p.name].isNumeric())
             return null;
         if (!t.schema!.is_list)
@@ -54,7 +54,7 @@ projection_Any : Ast.Expression = {
         return new Ast.ProjectionExpression(null, agg, [p.name], [], [], newSchema);
     };
 
-    !turking 'the' ('average' | 'mean') p:out_param_Numeric 'of' ('' | 'the' | 'this' | 'that') t:complete_table with { functionName = p.functionName } => {
+    !turking 'the' ('average' | 'mean') p:out_param_Any with { is_numeric = true } 'of' ('' | 'the' | 'this' | 'that') t:complete_table with { functionName = p.functionName } => {
         if (!t.schema!.out[p.name] || !t.schema!.out[p.name].isNumeric())
             return null;
         if (!t.schema!.is_list)
@@ -65,7 +65,7 @@ projection_Any : Ast.Expression = {
         const agg = new Ast.AggregationExpression(null, t, p.name, 'avg', newSchema);
         return new Ast.ProjectionExpression(null, agg, [p.name], [], [], newSchema);
     };
-    ?turking 'the' 'average' p:out_param_Numeric 'of' ('' | 'the' | 'this' | 'that') t:complete_table with { functionName = p.functionName } => {
+    ?turking 'the' 'average' p:out_param_Any with { is_numeric = true } 'of' ('' | 'the' | 'this' | 'that') t:complete_table with { functionName = p.functionName } => {
         if (!t.schema!.out[p.name] || !t.schema!.out[p.name].isNumeric())
             return null;
         if (!t.schema!.is_list)
@@ -77,7 +77,7 @@ projection_Any : Ast.Expression = {
         return new Ast.ProjectionExpression(null, agg, [p.name], [], [], newSchema);
     };
 
-    'the' ('minimum' | 'lowest') p:out_param_Numeric 'of' ('' | 'the' | 'this' | 'that') t:complete_table with { functionName = p.functionName } => {
+    'the' ('minimum' | 'lowest') p:out_param_Any with { is_numeric = true } 'of' ('' | 'the' | 'this' | 'that') t:complete_table with { functionName = p.functionName } => {
         if (!t.schema!.out[p.name] || !t.schema!.out[p.name].isNumeric())
             return null;
         if (!t.schema!.is_list)
@@ -89,7 +89,7 @@ projection_Any : Ast.Expression = {
         return new Ast.ProjectionExpression(null, agg, [p.name], [], [], newSchema);
     };
 
-    'the' ('maximum' | 'highest') p:out_param_Numeric 'of' ('' | 'the' | 'this' | 'that') t:complete_table with { functionName = p.functionName } => {
+    'the' ('maximum' | 'highest') p:out_param_Any with { is_numeric = true } 'of' ('' | 'the' | 'this' | 'that') t:complete_table with { functionName = p.functionName } => {
         if (!t.schema!.out[p.name] || !t.schema!.out[p.name].isNumeric())
             return null;
         if (!t.schema!.is_list)

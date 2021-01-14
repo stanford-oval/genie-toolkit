@@ -32,15 +32,15 @@ import './constants.genie';
 table : Ast.Expression = thingpedia_query if complete;
 
 filter : C.FilterSlot = {
-    'whose' p:out_param_Any 'is' v:constant_Any => C.makeFilter(p, v.getType().isString ? '=~' : '==', v);
-    'whose' p:out_param_Any 'is not' v:constant_Any =>  C.makeFilter(p, v.getType().isString ? '=~' : '==', v, true);
+    'whose' p:out_param_Any 'is' v:constant_Any => C.makeFilter(p, '==', v);
+    'whose' p:out_param_Any 'is not' v:constant_Any =>  C.makeFilter(p, '==', v, true);
     'whose' p:out_param_Array__Any 'is' v:constant_Any => C.makeFilter(p, 'contains', v);
     'whose' p:out_param_Array__Any 'is not' v:constant_Any =>  C.makeFilter(p, 'contains', v, true);
-    'whose' p:out_param_Numeric ('is samller than' | 'at most') v:constant_Numeric => C.makeFilter(p, '<=', v);
-    'whose' p:out_param_Numeric ('is larger than' | 'at least')  v:constant_Numeric => C.makeFilter(p, '>=', v);
+    'whose' p:out_param_Any with { is_numeric = true } ('is samller than' | 'at most') v:constant_Numeric => C.makeFilter(p, '<=', v);
+    'whose' p:out_param_Any with { is_numeric = true } ('is larger than' | 'at least')  v:constant_Numeric => C.makeFilter(p, '>=', v);
 
-    'that' p:out_param_avp v:constant_Any =>  C.makeFilter(p, v.getType().isString ? '=~' : '==', v);
-    'that not' p:out_param_avp v:constant_Any => C.makeFilter(p, v.getType().isString ? '=~' : '==', v, true);
+    'that' p:out_param_avp v:constant_Any =>  C.makeFilter(p, '==', v);
+    'that not' p:out_param_avp v:constant_Any => C.makeFilter(p, '==', v, true);
     'that' p:out_param_avp v:constant_Any =>  C.makeFilter(p, 'contains', v);
     'that not' p:out_param_avp v:constant_Any => C.makeFilter(p, 'contains', v, true);
 
@@ -79,10 +79,10 @@ filtered_table : Ast.Expression = {
     };
 
     // arg minmax
-    ( table:table 'that has the smallest' p:out_param_Numeric
-    | table:filtered_table 'that has the smallest' p:out_param_Numeric ) => C.makeArgMaxMinTable(table, p.name, 'asc');
-    ( table:table 'that has the largest' p:out_param_Numeric
-    | table:filtered_table 'that has the largest' p:out_param_Numeric ) => C.makeArgMaxMinTable(table, p.name, 'desc');
+    ( table:table 'that has the smallest' p:out_param_Any with { is_numeric = true }
+    | table:filtered_table 'that has the smallest' p:out_param_Any with { is_numeric = true } ) => C.makeArgMaxMinTable(table, p.name, 'asc');
+    ( table:table 'that has the largest' p:out_param_Any with { is_numeric = true }
+    | table:filtered_table 'that has the largest' p:out_param_Any with { is_numeric = true } ) => C.makeArgMaxMinTable(table, p.name, 'desc');
 
     // arg minmax on count
     ( table:table 'that has the least number of' p:out_param_Array__Any
@@ -129,8 +129,8 @@ filtered_table : Ast.Expression = {
     };
 
     // sum & avg
-    ( 'total' p:out_param_Numeric 'of' t:table
-    | 'total' p:out_param_Numeric 'of' t:filtered_table ) => {
+    ( 'total' p:out_param_Any with { is_numeric = true } 'of' t:table
+    | 'total' p:out_param_Any with { is_numeric = true } 'of' t:filtered_table ) => {
         const schema = t.schema!;
         if (!schema.out[p.name] || !schema.out[p.name].isNumeric())
             return null;
@@ -144,8 +144,8 @@ filtered_table : Ast.Expression = {
         const agg = new Ast.AggregationExpression(null, t, p.name, 'sum', newSchema);
         return new Ast.ProjectionExpression(null, agg, [p.name], [], [], newSchema);
     };
-    ( 'average' p:out_param_Numeric 'of' t:table
-    | 'average' p:out_param_Numeric 'of' t:filtered_table ) => {
+    ( 'average' p:out_param_Any with { is_numeric = true } 'of' t:table
+    | 'average' p:out_param_Any with { is_numeric = true } 'of' t:filtered_table ) => {
         const schema = t.schema!;
         if (!schema.out[p.name] || !schema.out[p.name].isNumeric())
             return null;

@@ -33,7 +33,7 @@ coref_action_phrase : Ast.Invocation = {}
 contextual_action_phrase : Ast.Invocation = {}
 list_coref_action_phrase : Ast.Invocation = {}
 
-for (let [pslot, typestr] of _tpLoader.params.in.values()) {
+for (let [pslot,] of _tpLoader.params.in.values()) {
     // coref to one object (for recommendation)
     coref_action_phrase : Ast.Invocation = {
         ( action:thingpedia_action 'it'
@@ -45,7 +45,7 @@ for (let [pslot, typestr] of _tpLoader.params.in.values()) {
             const type = action.schema!.getArgType(pslot.name);
             if (!type || !(type instanceof Type.Entity))
                 return null;
-            const replaced = C.replacePlaceholderWithUndefined(action, pslot, typestr);
+            const replaced = C.replacePlaceholderWithUndefined(action, pslot);
             if (replaced === null)
                 return null;
             return replaced.invocation;
@@ -60,7 +60,7 @@ for (let [pslot, typestr] of _tpLoader.params.in.values()) {
             const type = action.schema!.getArgType(pslot.name);
             if (!type || !(type instanceof Type.Entity))
                 return null;
-            const replaced = C.replacePlaceholderWithUndefined(action, pslot, typestr);
+            const replaced = C.replacePlaceholderWithUndefined(action, pslot);
             if (replaced === null)
                 return null;
             return replaced.invocation;
@@ -72,7 +72,7 @@ for (let [pslot, typestr] of _tpLoader.params.in.values()) {
             const type = action.schema!.getArgType(pslot.name);
             if (!type || !(type instanceof Type.Entity) || !C.isEntityOfFunction(type, noun))
                 return null;
-            const replaced = C.replacePlaceholderWithUndefined(action, pslot, typestr);
+            const replaced = C.replacePlaceholderWithUndefined(action, pslot);
             if (replaced === null)
                 return null;
             return replaced.invocation;
@@ -84,7 +84,7 @@ for (let [pslot, typestr] of _tpLoader.params.in.values()) {
             const type = action.schema!.getArgType(pslot.name);
             if (!type || !(type instanceof Type.Entity) || !C.isEntityOfFunction(type, noun))
                 return null;
-            const replaced = C.replacePlaceholderWithUndefined(action, pslot, typestr);
+            const replaced = C.replacePlaceholderWithUndefined(action, pslot);
             if (replaced === null)
                 return null;
             return replaced.invocation;
@@ -103,7 +103,7 @@ for (let [pslot, typestr] of _tpLoader.params.in.values()) {
             const type = action.schema!.getArgType(pslot.name);
             if (!type || !(type instanceof Type.Entity))
                 return null;
-            const replaced = C.replacePlaceholderWithUndefined(action, pslot, typestr);
+            const replaced = C.replacePlaceholderWithUndefined(action, pslot);
             if (replaced === null)
                 return null;
             return replaced.invocation;
@@ -119,7 +119,7 @@ for (let [pslot, typestr] of _tpLoader.params.in.values()) {
             const type = action.schema!.getArgType(pslot.name);
             if (!type || !(type instanceof Type.Entity))
                 return null;
-            const replaced = C.replacePlaceholderWithUndefined(action, pslot, typestr);
+            const replaced = C.replacePlaceholderWithUndefined(action, pslot);
             if (replaced === null)
                 return null;
             return replaced.invocation;
@@ -149,13 +149,13 @@ for (let [pslot, typestr] of _tpLoader.params.in.values()) {
 
     // add the rules for constant parameters too
     coref_action_phrase = {
-        a:coref_action_phrase v:$('constant_' + typestr) [-> (pslot.name) { isConstant: true }] => C.replacePlaceholderWithConstant(a, pslot, v);
+        a:coref_action_phrase v:constant_Any with { type = (pslot.type) } [-> (pslot.name) { isConstant: true }] => C.replacePlaceholderWithConstant(a, pslot, v);
     }
     contextual_action_phrase = {
-        a:contextual_action_phrase v:$('constant_' + typestr) [-> (pslot.name) { isConstant: true }] => C.replacePlaceholderWithConstant(a, pslot, v);
+        a:contextual_action_phrase v:constant_Any with { type = (pslot.type) } [-> (pslot.name) { isConstant: true }] => C.replacePlaceholderWithConstant(a, pslot, v);
     }
     list_coref_action_phrase = {
-        a:list_coref_action_phrase v:$('constant_' + typestr) [-> (pslot.name) { isConstant: true }] => C.replacePlaceholderWithConstant(a, pslot, v);
+        a:list_coref_action_phrase v:constant_Any with { type = (pslot.type) } [-> (pslot.name) { isConstant: true }] => C.replacePlaceholderWithConstant(a, pslot, v);
     }
 }
 

@@ -190,8 +190,8 @@ compute_question : Ast.Expression = {
         };
 
 
-        !schema_org ( 'how many' p:out_param_Numeric 'are' ('in' | 'in the') table:with_filtered_table with { functionName = p.functionName } '?'
-        | 'how many' p:out_param_Numeric ('do' | 'does') table:with_filtered_table with { functionName = p.functionName } 'have ?'
+        !schema_org ( 'how many' p:out_param_Any with { is_numeric = true } 'are' ('in' | 'in the') table:with_filtered_table with { functionName = p.functionName } '?'
+        | 'how many' p:out_param_Any with { is_numeric = true } ('do' | 'does') table:with_filtered_table with { functionName = p.functionName } 'have ?'
         ) => {
             if (!table.schema!.out[p.name] || !table.schema!.out[p.name].isNumeric())
                 return null;

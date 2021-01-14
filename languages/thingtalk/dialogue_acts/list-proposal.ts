@@ -94,6 +94,7 @@ function checkListProposal(nameList : NameList, info : SlotBag|null, hasLearnMor
             return null;
     }
 
+
     const action = ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next!) : null;
     return [results, info, action, hasLearnMore];
 }

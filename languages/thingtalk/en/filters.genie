@@ -20,7 +20,7 @@
 //         Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
-import { Ast, } from 'thingtalk';
+import { Ast, Type } from 'thingtalk';
 
 import * as C from '../ast_manip';
 
@@ -49,68 +49,70 @@ get_predicate_filter : C.DomainIndependentFilterSlot = {
 if_filter : C.FilterSlot|C.DomainIndependentFilterSlot = {
     get_predicate_filter;
 
-    'the' p:out_param_Any ('is' | 'is exactly' | 'is equal to') x:constant_Any => {
-        if (x.getType().isString)
-            return C.makeFilter(p, '=~', x);
-        else
-            return C.makeFilter(p, '==', x);
-    };
-    'the' p:out_param_Any ('is not' | 'is n\'t' | 'is different than') x:constant_Any => {
-        if (x.getType().isString)
-            return C.makeFilter(p, '=~', x, true);
-        else
-            return C.makeFilter(p, '==', x, true);
-    };
+    // note: we cannot apply a type constraint here because type equality would not
+    // work with enums (which have incomplete type at the Ast.Value) and entities
+    // makeFilter has the right logic to check types
+    'the' p:out_param_Any ('is' | 'is exactly' | 'is equal to') x:constant_Any => C.makeFilter(p, '==', x);
+    'the' p:out_param_Any ('is' | 'is exactly' | 'is equal to') x:constant_Any => C.makeFilter(p, '==', x);
+
+    'the' p:out_param_Any ('is not' | 'is n\'t' | 'is different than') x:constant_Any with { type = p.type } => C.makeFilter(p, '==', x, true);
 
     //p:the_out_param_Numeric 'is' ('greater' | 'higher' | 'bigger' | 'more' | 'at least' | 'not less than') x:constant_Numeric => C.makeFilter(p, '>=', x);
     //p:the_out_param_Numeric 'is' ('smaller' | 'lower' | 'less' | 'at most' | 'not more than') x:constant_Numeric             => C.makeFilter(p, '<=', x);
 
-    p:out_param_Number 'is' ('greater than' | 'higher than' | 'larger than' | 'more than' | 'at least' | 'not less than') x:constant_Number => C.makeFilter(p, '>=', x);
-    p:out_param_Number 'is' ('smaller than' | 'lower than' | 'less than' | 'at most' | 'not more than') x:constant_Number  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (Type.Number) } 'is' ('greater than' | 'higher than' | 'larger than' | 'more than' | 'at least' | 'not less than') x:constant_Number => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (Type.Number) } 'is' ('smaller than' | 'lower than' | 'less than' | 'at most' | 'not more than') x:constant_Number  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Currency 'is' ('more expensive' | 'more costly' | 'more') 'than' x:constant_Currency => C.makeFilter(p, '>=', x);
-    p:out_param_Currency 'is' ('less expensive' | 'cheaper' | 'less') 'than' x:constant_Currency  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (Type.Currency) } 'is' ('more expensive' | 'more costly' | 'more') 'than' x:constant_Currency => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (Type.Currency) } 'is' ('less expensive' | 'cheaper' | 'less') 'than' x:constant_Currency  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_ms 'is' ('longer than' | 'no shorter than') x:constant_Measure_ms => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_ms 'is' ('no longer than' | 'shorter than') x:constant_Measure_ms  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (new Type.Measure('ms')) } 'is' ('longer than' | 'no shorter than') x:constant_Measure_ms => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('ms')) } 'is' ('no longer than' | 'shorter than') x:constant_Measure_ms  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_byte 'is' ('larger' | 'more' | 'no smaller'| 'no less') 'than' x:constant_Measure_byte => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_byte 'is' ('smaller' | 'less' | 'no larger' | 'no more') 'than' x:constant_Measure_byte  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (new Type.Measure('byte')) } 'is' ('larger' | 'more' | 'no smaller'| 'no less') 'than' x:constant_Measure_byte => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('byte')) } 'is' ('smaller' | 'less' | 'no larger' | 'no more') 'than' x:constant_Measure_byte  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_kg 'is' ('heavier' | 'larger') 'than' x:constant_Measure_kg => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_kg 'is' ('lighter' | 'smaller') 'than' x:constant_Measure_kg  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (new Type.Measure('kg')) } 'is' ('heavier' | 'larger') 'than' x:constant_Measure_kg => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('kg')) } 'is' ('lighter' | 'smaller') 'than' x:constant_Measure_kg  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_C 'is' ('hotter' | 'higher') 'than' x:constant_Measure_C => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_C 'is' ('cooler' | 'colder' | 'lower') 'than' x:constant_Measure_C  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (new Type.Measure('C')) } 'is' ('hotter' | 'higher') 'than' x:constant_Measure_C => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('C')) } 'is' ('cooler' | 'colder' | 'lower') 'than' x:constant_Measure_C  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_m 'is' ('farther' | 'more distant' | 'longer') 'than' x:constant_Measure_m => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_m 'is' ('nearer' | 'closer' | 'shorter' | 'no longer' | 'no farther') 'than' x:constant_Measure_m  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (new Type.Measure('m')) } 'is' ('farther' | 'more distant' | 'longer') 'than' x:constant_Measure_m => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('m')) } 'is' ('nearer' | 'closer' | 'shorter' | 'no longer' | 'no farther') 'than' x:constant_Measure_m  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_m2 'is' ('larger' | 'bigger' | 'no smaller') 'than' x:constant_Measure_m2 => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_m2 'is' ('smaller' | 'no larger' | 'no bigger') 'than' x:constant_Measure_m2  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (new Type.Measure('m2')) } 'is' ('larger' | 'bigger' | 'no smaller') 'than' x:constant_Measure_m2 => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('m2')) } 'is' ('smaller' | 'no larger' | 'no bigger') 'than' x:constant_Measure_m2  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_m3 'is' ('larger' | 'bigger' | 'no smaller') 'than' x:constant_Measure_m3 => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_m3 'is' ('smaller' | 'no larger' | 'no bigger') 'than' x:constant_Measure_m3  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (new Type.Measure('m3')) } 'is' ('larger' | 'bigger' | 'no smaller') 'than' x:constant_Measure_m3 => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('m3')) } 'is' ('smaller' | 'no larger' | 'no bigger') 'than' x:constant_Measure_m3  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_mps 'is' ('faster' | 'quicker' | 'speedier') 'than' x:constant_Measure_mps => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_mps 'is' ('slower' | 'more slowly') 'than' x:constant_Measure_mps  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (new Type.Measure('mps')) } 'is' ('faster' | 'quicker' | 'speedier') 'than' x:constant_Measure_mps => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('mps')) } 'is' ('slower' | 'more slowly') 'than' x:constant_Measure_mps  => C.makeFilter(p, '<=', x);
 
     !turking {
-        p:out_param_Date 'is' ('after' | 'later than') x:constant_Date => C.makeFilter(p, '>=', x);
-        p:out_param_Date 'is' ('before' | 'earlier than' | 'sooner than') x:constant_Date => C.makeFilter(p, '<=', x);
-        p:out_param_Time 'is' ('after' | 'later than') x:constant_Time => C.makeFilter(p, '>=', x);
-        p:out_param_Time 'is' ('before' | 'earlier than' | 'sooner than') x:constant_Time => C.makeFilter(p, '<=', x);
+        p:out_param_Any with { type = (Type.Date) } 'is' ('after' | 'later than') x:constant_Date => C.makeFilter(p, '>=', x);
+        p:out_param_Any with { type = (Type.Date) } 'is' ('before' | 'earlier than' | 'sooner than') x:constant_Date => C.makeFilter(p, '<=', x);
+        p:out_param_Any with { type = (Type.Time) } 'is' ('after' | 'later than') x:constant_Time => C.makeFilter(p, '>=', x);
+        p:out_param_Any with { type = (Type.Time) } 'is' ('before' | 'earlier than' | 'sooner than') x:constant_Time => C.makeFilter(p, '<=', x);
     }
 
-    // there are too few arrays, so keep both
-    p:the_out_param_Array__Any 'contain' x:constant_Any => C.makeFilter(p, 'contains', x);
-    p:the_out_param_Array__Any 'do not contain' x:constant_Any => C.makeFilter(p, 'contains', x, true);
-    p:the_out_param_Array__Any 'include' x:constant_Any => C.makeFilter(p, 'contains', x);
-    p:the_out_param_Array__Any 'do not include' x:constant_Any => C.makeFilter(p, 'contains', x, true);
+    // three variants: regular containment, string containment, recurrent time spec containment
+    // we cannot apply a type constraint on the regular containment because type equality would not
+    // work with enums (which have incomplete type at the Ast.Value) and entities
+    // makeFilter has the right logic to check types
+    'the' p:out_param_Array__Any ('contain' | 'include')  x:constant_Any => C.makeFilter(p, 'contains', x);
+    'the' p:out_param_Array__Any 'do not' ('contain' | 'include')  x:constant_Any => C.makeFilter(p, 'contains', x, true);
 
-    p:the_out_param_String ('contains' | 'includes') x:constant_String => C.makeFilter(p, '=~', x);
-    p:the_out_param_String 'does not' ('contain' | 'include') x:constant_String => C.makeFilter(p, '=~', x, true);
-    x:constant_String 'is in' p:the_out_param_String => C.makeFilter(p, '=~', x);
+    'the' p:out_param_Any with { type = (Type.String) } ('contains' | 'includes') x:constant_String => C.makeFilter(p, '=~', x);
+    'the' p:out_param_Any with { type = (Type.String) } 'does not' ('contain' | 'include') x:constant_String => C.makeFilter(p, '=~', x, true);
+
+    'the' p:out_param_Any with { type = (Type.RecurrentTimeSpecification) } ('contains' | 'includes') x:constant_Date => C.makeFilter(p, '=~', x);
+    'the' p:out_param_Any with { type = (Type.RecurrentTimeSpecification) } 'does not' ('contain' | 'include') x:constant_Date => C.makeFilter(p, '=~', x, true);
+    'the' p:out_param_Any with { type = (Type.RecurrentTimeSpecification) } ('contains' | 'includes') x:constant_Time => C.makeFilter(p, '=~', x);
+    'the' p:out_param_Any with { type = (Type.RecurrentTimeSpecification) } 'does not' ('contain' | 'include') x:constant_Time => C.makeFilter(p, '=~', x, true);
+
+    x:constant_String 'is in' p:the_out_param_Any with { type = (Type.String) } => C.makeFilter(p, '=~', x);
 
     !turking {
         ?range_filters range_filter;
@@ -124,44 +126,47 @@ edge_filter : C.FilterSlot = {
     //p:the_out_param_Numeric ('is now greater than' | 'becomes greater than' | 'becomes higher than' | 'goes above' | 'increases above' | 'goes over' | 'rises above') x:constant_Numeric => C.makeFilter(p, '>=', x);
     //p:the_out_param_Numeric ('is now smaller than' | 'becomes smaller than' | 'becomes lower than' | 'goes below' | 'decreases below' | 'goes under') x:constant_Numeric => C.makeFilter(p, '<=', x);
 
-    p:out_param_Number ('is now' | 'becomes' | 'goes') ('greater than' | 'higher than' | 'larger than' | 'more than' | 'at least' | 'not less than') x:constant_Number => C.makeFilter(p, '>=', x);
-    p:out_param_Number ('is now' | 'becomes' | 'goes') ('smaller than' | 'lower than' | 'less than' | 'at most' | 'not more than') x:constant_Number  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (Type.Number) } ('is now' | 'becomes' | 'goes') ('greater than' | 'higher than' | 'larger than' | 'more than' | 'at least' | 'not less than') x:constant_Number => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (Type.Number) } ('is now' | 'becomes' | 'goes') ('smaller than' | 'lower than' | 'less than' | 'at most' | 'not more than') x:constant_Number  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Currency ('is now' | 'becomes' | 'goes') ('more expensive' | 'more costly' | 'more') 'than' x:constant_Currency => C.makeFilter(p, '>=', x);
-    p:out_param_Currency ('is now' | 'becomes' | 'goes') ('less expensive' | 'cheaper' | 'less') 'than' x:constant_Currency  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (Type.Currency) } ('is now' | 'becomes' | 'goes') ('more expensive' | 'more costly' | 'more') 'than' x:constant_Currency => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (Type.Currency) } ('is now' | 'becomes' | 'goes') ('less expensive' | 'cheaper' | 'less') 'than' x:constant_Currency  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_ms ('is now' | 'becomes' | 'goes') 'longer than' x:constant_Measure_ms => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_ms ('is now' | 'becomes' | 'goes') 'shorter than' x:constant_Measure_ms  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (new Type.Measure('ms')) } ('is now' | 'becomes' | 'goes') 'longer than' x:constant_Measure_ms => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('ms')) } ('is now' | 'becomes' | 'goes') 'shorter than' x:constant_Measure_ms  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_byte ('is now' | 'becomes' | 'goes') ('larger' | 'more') 'than' x:constant_Measure_byte => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_byte ('is now' | 'becomes' | 'goes') ('smaller' | 'less') 'than' x:constant_Measure_byte  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (new Type.Measure('byte')) } ('is now' | 'becomes' | 'goes') ('larger' | 'more') 'than' x:constant_Measure_byte => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('byte')) } ('is now' | 'becomes' | 'goes') ('smaller' | 'less') 'than' x:constant_Measure_byte  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_kg ('is now' | 'becomes' | 'goes') ('heavier' | 'larger') 'than' x:constant_Measure_kg => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_kg ('is now' | 'becomes' | 'goes') ('lighter' | 'smaller') 'than' x:constant_Measure_kg  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (new Type.Measure('kg')) } ('is now' | 'becomes' | 'goes') ('heavier' | 'larger') 'than' x:constant_Measure_kg => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('kg')) } ('is now' | 'becomes' | 'goes') ('lighter' | 'smaller') 'than' x:constant_Measure_kg  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_C ('is now' | 'becomes' | 'goes') ('hotter' | 'higher') 'than' x:constant_Measure_C => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_C ('is now' | 'becomes' | 'goes') ('cooler' | 'colder' | 'lower') 'than' x:constant_Measure_C  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (new Type.Measure('C')) } ('is now' | 'becomes' | 'goes') ('hotter' | 'higher') 'than' x:constant_Measure_C => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('C')) } ('is now' | 'becomes' | 'goes') ('cooler' | 'colder' | 'lower') 'than' x:constant_Measure_C  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_m ('is now' | 'becomes' | 'goes') ('farther' | 'more distant' | 'longer') 'than' x:constant_Measure_m => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_m ('is now' | 'becomes' | 'goes') ('nearer' | 'closer' | 'shorter') 'than' x:constant_Measure_m  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (new Type.Measure('m')) } ('is now' | 'becomes' | 'goes') ('farther' | 'more distant' | 'longer') 'than' x:constant_Measure_m => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('m')) } ('is now' | 'becomes' | 'goes') ('nearer' | 'closer' | 'shorter') 'than' x:constant_Measure_m  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_m2 ('is now' | 'becomes' | 'goes') ('bigger' | 'larger') 'than' x:constant_Measure_m2 => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_m2 ('is now' | 'becomes' | 'goes') 'smaller' 'than' x:constant_Measure_m2  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (new Type.Measure('m2')) } ('is now' | 'becomes' | 'goes') ('bigger' | 'larger') 'than' x:constant_Measure_m2 => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('m2')) } ('is now' | 'becomes' | 'goes') 'smaller' 'than' x:constant_Measure_m2  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_m3 ('is now' | 'becomes' | 'goes') ('bigger' | 'larger') 'than' x:constant_Measure_m3 => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_m3 ('is now' | 'becomes' | 'goes') 'smaller' 'than' x:constant_Measure_m3  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (new Type.Measure('m3')) } ('is now' | 'becomes' | 'goes') ('bigger' | 'larger') 'than' x:constant_Measure_m3 => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('m3')) } ('is now' | 'becomes' | 'goes') 'smaller' 'than' x:constant_Measure_m3  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_mps ('is now' | 'becomes' | 'goes') ('faster' | 'quicker' | 'speedier') 'than' x:constant_Measure_mps => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_mps ('is now' | 'becomes' | 'goes') ('slower' | 'more slowly') 'than' x:constant_Measure_mps  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (new Type.Measure('mps')) } ('is now' | 'becomes' | 'goes') ('faster' | 'quicker' | 'speedier') 'than' x:constant_Measure_mps => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('mps')) } ('is now' | 'becomes' | 'goes') ('slower' | 'more slowly') 'than' x:constant_Measure_mps  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Date ('is now' | 'becomes' | 'goes') ('after' | 'later than') x:constant_Date => C.makeFilter(p, '>=', x);
-    p:out_param_Date ('is now' | 'becomes' | 'goes') ('before' | 'earlier than' | 'sooner than') x:constant_Date => C.makeFilter(p, '<=', x);
-    p:out_param_Time ('is now' | 'becomes' | 'goes') ('after' | 'later than') x:constant_Time => C.makeFilter(p, '>=', x);
-    p:out_param_Time ('is now' | 'becomes' | 'goes') ('before' | 'earlier than' | 'sooner than') x:constant_Time => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (Type.Date) } ('is now' | 'becomes' | 'goes') ('after' | 'later than') x:constant_Date => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (Type.Date) } ('is now' | 'becomes' | 'goes') ('before' | 'earlier than' | 'sooner than') x:constant_Date => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (Type.Time) } ('is now' | 'becomes' | 'goes') ('after' | 'later than') x:constant_Time => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (Type.Time) } ('is now' | 'becomes' | 'goes') ('before' | 'earlier than' | 'sooner than') x:constant_Time => C.makeFilter(p, '<=', x);
 }
 
 either_filter : C.FilterSlot = {
-    'the' param:out_param_Any ('is' | 'is equal to' | 'is one of' | 'is either') pair:constant_or_pairs => {
+    // to account for "id in_array~ string", make two variants of this one
+    ( 'the' param:out_param_Any ('is' | 'is equal to' | 'is one of' | 'is either') pair:constant_or_pairs with { type = param.type }
+    | 'the' param:out_param_Any ('is' | 'is equal to' | 'is one of' | 'is either') pair:constant_or_pairs with { type = (Type.String) }
+    ) => {
         // param is a Value.VarRef
         //console.log('param: ' + param.name);
         const [v1, v2] = pair;
@@ -170,7 +175,7 @@ either_filter : C.FilterSlot = {
             return null;
         return C.makeFilter(param, 'in_array', new Ast.Value.Array([v1, v2]));
     };
-    'the' param:out_param_Any 'is' ('not' | 'neither') pair:constant_nor_pairs => {
+    'the' param:out_param_Any 'is' ('not' | 'neither') pair:constant_nor_pairs with { type = param.type } => {
         // param is a Value.VarRef
         //console.log('param: ' + param.name);
         const [v1, v2] = pair;
@@ -196,7 +201,7 @@ range : [Ast.Value, Ast.Value] = {
     };
 }
 range_filter : C.FilterSlot = {
-    param:the_out_param_Numeric 'is' range:range => {
+    'the' param:out_param_Any with { is_numeric = true } 'is' range:range with { type = param.type } => {
         const [v1, v2] = range;
         const f1 = C.makeFilter(param, '>=', v1);
         const f2 = C.makeFilter(param, '<=', v2);
@@ -208,139 +213,143 @@ range_filter : C.FilterSlot = {
 }
 
 with_filter : C.FilterSlot = {
-    p:out_param_Any 'equal to' x:constant_Any => C.makeFilter(p, '==', x);
-    !turking p:out_param_String ('containing' | 'including') x:constant_String => C.makeFilter(p, '=~', x);
-    !turking x:constant_String ('in the' | 'in its' | 'in their') p:out_param_String => C.makeFilter(p, '=~', x);
-    ?schema_org p:out_param_String ('being' | 'containing' ) x:constant_String => C.makeFilter(p, '=~', x);
-    ?schema_org x:constant_String ('as' | 'in the' ) p:out_param_String => C.makeFilter(p, '=~', x);
+    // note: we cannot apply a type constraint here because type equality would not
+    // work with enums (which have incomplete type at the Ast.Value) and entities
+    // makeFilter has the right logic to check types
+    'the' p:out_param_Any 'equal to' x:constant_Any => C.makeFilter(p, '==', x);
+    'the' p:out_param_Any 'equal to' x:constant_Any => C.makeFilter(p, '==', x);
+
+    !turking 'the' p:out_param_Any with { type = (Type.String) } ('containing' | 'including') x:constant_String => C.makeFilter(p, '=~', x);
+    !turking x:constant_String ('in the' | 'in its' | 'in their') p:out_param_Any with { type = (Type.String) } => C.makeFilter(p, '=~', x);
+    ?schema_org 'the' p:out_param_Any with { type = (Type.String) } ('being' | 'containing' ) x:constant_String => C.makeFilter(p, '=~', x);
+    ?schema_org x:constant_String ('as' | 'in the' ) p:out_param_Any with { type = (Type.String) } => C.makeFilter(p, '=~', x);
 
     // context reference filters
-    p:out_param_String 'equal to' x:constant_String_ContextRef => C.makeFilter(p, '=~', x);
-    !turking p:out_param_String ('containing' | 'including') x:constant_String_ContextRef => C.makeFilter(p, '=~', x);
-    !turking x:constant_String_ContextRef ('in the' | 'in its' | 'in their') p:out_param_String => C.makeFilter(p, '=~', x);
-    ?schema_org p:out_param_String ('being' | 'containing' ) x:constant_String_ContextRef => C.makeFilter(p, '=~', x);
-    ?schema_org x:constant_String_ContextRef ('as' | 'in the' ) p:out_param_String => C.makeFilter(p, '=~', x);
+    'the' p:out_param_Any with { type = (Type.String) } 'equal to' x:constant_String_ContextRef => C.makeFilter(p, '=~', x);
+    !turking 'the' p:out_param_Any with { type = (Type.String) } ('containing' | 'including') x:constant_String_ContextRef => C.makeFilter(p, '=~', x);
+    !turking x:constant_String_ContextRef ('in the' | 'in its' | 'in their') p:out_param_Any with { type = (Type.String) } => C.makeFilter(p, '=~', x);
+    ?schema_org 'the' p:out_param_Any with { type = (Type.String) } ('being' | 'containing' ) x:constant_String_ContextRef => C.makeFilter(p, '=~', x);
+    ?schema_org x:constant_String_ContextRef ('as' | 'in the' ) p:out_param_Any with { type = (Type.String) } => C.makeFilter(p, '=~', x);
 
     // substring and
-    !turking p:out_param_String 'containing both' x:constant_String 'and' y:constant_String => C.makeAndFilter(p, '=~', [x, y]);
-    !turking p:the_out_param_String 'containing neither' x:constant_String 'nor' y:constant_String => C.makeAndFilter(p, '=~', [x, y], true);
-    !turking 'both' x:constant_String 'and' y:constant_String 'in' p:the_out_param_String => C.makeAndFilter(p, '=~', [x, y]);
+    !turking 'the' p:out_param_Any with { type = (Type.String) } 'containing both' x:constant_String 'and' y:constant_String => C.makeAndFilter(p, '=~', [x, y]);
+    !turking 'the' p:out_param_Any with { type = (Type.String) } 'containing neither' x:constant_String 'nor' y:constant_String => C.makeAndFilter(p, '=~', [x, y], true);
+    !turking 'both' x:constant_String 'and' y:constant_String 'in' p:the_out_param_Any with { type = (Type.String) } => C.makeAndFilter(p, '=~', [x, y]);
 
     // substring or
-    !turking p:the_out_param_String 'containing either' x:constant_String 'or' y:constant_String => C.makeOrFilter(p, '=~', [x, y]);
-    !turking 'either' x:constant_String 'or' y:constant_String 'in' p:the_out_param_String => C.makeOrFilter(p, '=~', [x, y]);
+    !turking 'the' p:out_param_Any with { type = (Type.String) } 'containing either' x:constant_String 'or' y:constant_String => C.makeOrFilter(p, '=~', [x, y]);
+    !turking 'either' x:constant_String 'or' y:constant_String 'in' p:the_out_param_Any with { type = (Type.String) } => C.makeOrFilter(p, '=~', [x, y]);
 
     // substring but
-    !turking p:the_out_param_String ('containing' | 'including') x:constant_String ('but not'| 'without' | 'but no') y:constant_String => C.makeButFilter(p, '=~', [x, y]);
+    !turking 'the' p:out_param_Any with { type = (Type.String) } ('containing' | 'including') x:constant_String ('but not'| 'without' | 'but no') y:constant_String => C.makeButFilter(p, '=~', [x, y]);
 
     //p:out_param_Numeric ('higher' | 'larger' | 'bigger') 'than' x:constant_Numeric => C.makeFilter(p, '>=', x);
     //p:out_param_Numeric ('smaller' | 'lower') 'than' x:constant_Numeric => C.makeFilter(p, '<=', x);
-    p:out_param_Number ('greater than' | 'higher than' | 'larger than' | 'more than' | 'at least' | 'not less than') x:constant_Number => C.makeFilter(p, '>=', x);
-    p:out_param_Number ('smaller than' | 'lower than' | 'less than' | 'at most' | 'not more than') x:constant_Number  => C.makeFilter(p, '<=', x);
-    x:constant_Number ('or more' | 'or higher' | 'or greater' | 'or above') p:out_param_Number => C.makeFilter(p, '>=', x);
-    x:constant_Number ('or less' | 'or lower' | 'or below') p:out_param_Number => C.makeFilter(p, '<=', x);
-    !turking 'over' x:constant_Number p:out_param_Number => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (Type.Number) } ('greater than' | 'higher than' | 'larger than' | 'more than' | 'at least' | 'not less than') x:constant_Number => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (Type.Number) } ('smaller than' | 'lower than' | 'less than' | 'at most' | 'not more than') x:constant_Number  => C.makeFilter(p, '<=', x);
+    x:constant_Number ('or more' | 'or higher' | 'or greater' | 'or above') 'the' p:out_param_Any with { type = (Type.Number) } => C.makeFilter(p, '>=', x);
+    x:constant_Number ('or less' | 'or lower' | 'or below') 'the' p:out_param_Any with { type = (Type.Number) } => C.makeFilter(p, '<=', x);
+    !turking 'over' x:constant_Number p:out_param_Any with { type = (Type.Number) } => C.makeFilter(p, '>=', x);
 
-    p:out_param_Currency ('more expensive' | 'more costly' | 'more') 'than' x:constant_Currency => C.makeFilter(p, '>=', x);
-    p:out_param_Currency ('less expensive' | 'cheaper' | 'less') 'than' x:constant_Currency  => C.makeFilter(p, '<=', x);
-    x:constant_Currency ('or more' | 'or above') p:out_param_Currency => C.makeFilter(p, '>=', x);
-    x:constant_Currency ('or less' | 'or cheaper' | 'or below') p:out_param_Currency => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (Type.Currency) } ('more expensive' | 'more costly' | 'more') 'than' x:constant_Currency => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (Type.Currency) } ('less expensive' | 'cheaper' | 'less') 'than' x:constant_Currency  => C.makeFilter(p, '<=', x);
+    x:constant_Currency ('or more' | 'or above') 'the' p:out_param_Any with { type = (Type.Currency) } => C.makeFilter(p, '>=', x);
+    x:constant_Currency ('or less' | 'or cheaper' | 'or below') 'the' p:out_param_Any with { type = (Type.Currency) } => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_ms 'longer than' x:constant_Measure_ms => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_ms 'shorter than' x:constant_Measure_ms  => C.makeFilter(p, '<=', x);
-    x:constant_Measure_ms ('or longer' | 'or more' ) p:out_param_Measure_ms => C.makeFilter(p, '>=', x);
-    x:constant_Measure_ms ('or shorter' | 'or less' ) p:out_param_Measure_ms => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (new Type.Measure('ms')) } 'longer than' x:constant_Measure_ms => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('ms')) } 'shorter than' x:constant_Measure_ms  => C.makeFilter(p, '<=', x);
+    x:constant_Measure_ms ('or longer' | 'or more' ) 'the' p:out_param_Any with { type = (new Type.Measure('ms')) } => C.makeFilter(p, '>=', x);
+    x:constant_Measure_ms ('or shorter' | 'or less' ) 'the' p:out_param_Any with { type = (new Type.Measure('ms')) } => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_byte ('larger' | 'more') 'than' x:constant_Measure_byte => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_byte ('smaller' | 'less') 'than' x:constant_Measure_byte  => C.makeFilter(p, '<=', x);
-    x:constant_Measure_byte ('or larger' | 'or more' ) p:out_param_Measure_byte => C.makeFilter(p, '>=', x);
-    x:constant_Measure_byte ('or smaller' | 'or less' ) p:out_param_Measure_byte => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (new Type.Measure('byte')) } ('larger' | 'more') 'than' x:constant_Measure_byte => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('byte')) } ('smaller' | 'less') 'than' x:constant_Measure_byte  => C.makeFilter(p, '<=', x);
+    x:constant_Measure_byte ('or larger' | 'or more' ) 'the' p:out_param_Any with { type = (new Type.Measure('byte')) } => C.makeFilter(p, '>=', x);
+    x:constant_Measure_byte ('or smaller' | 'or less' ) 'the' p:out_param_Any with { type = (new Type.Measure('byte')) } => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_kg ('heavier' | 'larger') 'than' x:constant_Measure_kg => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_kg ('lighter' | 'smaller') 'than' x:constant_Measure_kg  => C.makeFilter(p, '<=', x);
-    x:constant_Measure_kg 'or more'  p:out_param_Measure_kg => C.makeFilter(p, '>=', x);
-    x:constant_Measure_kg 'or less' p:out_param_Measure_kg => C.makeFilter(p, '<=', x);
-    !turking 'over' x:constant_Measure_kg p:out_param_Measure_kg => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('kg')) } ('heavier' | 'larger') 'than' x:constant_Measure_kg => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('kg')) } ('lighter' | 'smaller') 'than' x:constant_Measure_kg  => C.makeFilter(p, '<=', x);
+    x:constant_Measure_kg 'or more' 'the' p:out_param_Any with { type = (new Type.Measure('kg')) } => C.makeFilter(p, '>=', x);
+    x:constant_Measure_kg 'or less' 'the' p:out_param_Any with { type = (new Type.Measure('kg')) } => C.makeFilter(p, '<=', x);
+    !turking 'over' x:constant_Measure_kg p:out_param_Any with { type = (new Type.Measure('kg')) } => C.makeFilter(p, '>=', x);
 
-    p:out_param_Measure_C ('hotter' | 'higher') 'than' x:constant_Measure_C => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_C ('cooler' | 'colder' | 'lower') 'than' x:constant_Measure_C  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (new Type.Measure('C')) } ('hotter' | 'higher') 'than' x:constant_Measure_C => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('C')) } ('cooler' | 'colder' | 'lower') 'than' x:constant_Measure_C  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_m ('farther' | 'more distant' | 'longer') 'than' x:constant_Measure_m => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_m ('nearer' | 'closer' | 'shorter') 'than' x:constant_Measure_m  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (new Type.Measure('m')) } ('farther' | 'more distant' | 'longer') 'than' x:constant_Measure_m => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('m')) } ('nearer' | 'closer' | 'shorter') 'than' x:constant_Measure_m  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_m2 ('larger' | 'bigger') 'than' x:constant_Measure_m2 => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_m2 'smaller' 'than' x:constant_Measure_m2  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (new Type.Measure('m2')) } ('larger' | 'bigger') 'than' x:constant_Measure_m2 => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('m2')) } 'smaller' 'than' x:constant_Measure_m2  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_m3 ('larger' | 'bigger') 'than' x:constant_Measure_m3 => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_m3 'smaller' 'than' x:constant_Measure_m3  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (new Type.Measure('m3')) } ('larger' | 'bigger') 'than' x:constant_Measure_m3 => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('m3')) } 'smaller' 'than' x:constant_Measure_m3  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Measure_mps ('faster' | 'quicker' | 'speedier') 'than' x:constant_Measure_mps => C.makeFilter(p, '>=', x);
-    p:out_param_Measure_mps ('slower' | 'more slowly') 'than' x:constant_Measure_mps  => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (new Type.Measure('mps')) } ('faster' | 'quicker' | 'speedier') 'than' x:constant_Measure_mps => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (new Type.Measure('mps')) } ('slower' | 'more slowly') 'than' x:constant_Measure_mps  => C.makeFilter(p, '<=', x);
 
-    p:out_param_Date ('after' | 'later than') x:constant_Date => C.makeFilter(p, '>=', x);
-    p:out_param_Date ('before' | 'earlier than' | 'sooner than') x:constant_Date => C.makeFilter(p, '<=', x);
-    p:out_param_Time ('after' | 'later than') x:constant_Time => C.makeFilter(p, '>=', x);
-    p:out_param_Time ('before' | 'earlier than' | 'sooner than') x:constant_Time => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (Type.Date) } ('after' | 'later than') x:constant_Date => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (Type.Date) } ('before' | 'earlier than' | 'sooner than') x:constant_Date => C.makeFilter(p, '<=', x);
+    p:out_param_Any with { type = (Type.Time) } ('after' | 'later than') x:constant_Time => C.makeFilter(p, '>=', x);
+    p:out_param_Any with { type = (Type.Time) } ('before' | 'earlier than' | 'sooner than') x:constant_Time => C.makeFilter(p, '<=', x);
 
     //('higher' | 'larger' | 'bigger') p:out_param_Numeric 'than' x:constant_Numeric => C.makeFilter(p, '>=', x);
     //('smaller' | 'lower') p:out_param_Numeric 'than' x:constant_Numeric => C.makeFilter(p, '<=', x);
-    ('greater' | 'higher' | 'larger' | 'more' ) p:out_param_Number 'than' x:constant_Number => C.makeFilter(p, '>=', x);
-    ('smaller' | 'lower' | 'less') p:out_param_Number 'than' x:constant_Number  => C.makeFilter(p, '<=', x);
+    ('greater' | 'higher' | 'larger' | 'more' ) p:out_param_Any with { type = (Type.Number) } 'than' x:constant_Number => C.makeFilter(p, '>=', x);
+    ('smaller' | 'lower' | 'less') p:out_param_Any with { type = (Type.Number) } 'than' x:constant_Number  => C.makeFilter(p, '<=', x);
 
-    ('more expensive' | 'more costly' | 'more') p:out_param_Currency 'than' x:constant_Currency => C.makeFilter(p, '>=', x);
-    ('less expensive' | 'cheaper' | 'less') p:out_param_Currency 'than' x:constant_Currency  => C.makeFilter(p, '<=', x);
+    ('more expensive' | 'more costly' | 'more') p:out_param_Any with { type = (Type.Currency) } 'than' x:constant_Currency => C.makeFilter(p, '>=', x);
+    ('less expensive' | 'cheaper' | 'less') p:out_param_Any with { type = (Type.Currency) } 'than' x:constant_Currency  => C.makeFilter(p, '<=', x);
 
-    'longer' p:out_param_Measure_ms 'than' x:constant_Measure_ms => C.makeFilter(p, '>=', x);
-    'shorter' p:out_param_Measure_ms 'than' x:constant_Measure_ms  => C.makeFilter(p, '<=', x);
+    'longer' p:out_param_Any with { type = (new Type.Measure('ms')) } 'than' x:constant_Measure_ms => C.makeFilter(p, '>=', x);
+    'shorter' p:out_param_Any with { type = (new Type.Measure('ms')) } 'than' x:constant_Measure_ms  => C.makeFilter(p, '<=', x);
 
-    ('larger' | 'more') p:out_param_Measure_byte 'than' x:constant_Measure_byte => C.makeFilter(p, '>=', x);
-    ('smaller' | 'less') p:out_param_Measure_byte 'than' x:constant_Measure_byte  => C.makeFilter(p, '<=', x);
+    ('larger' | 'more') p:out_param_Any with { type = (new Type.Measure('byte')) } 'than' x:constant_Measure_byte => C.makeFilter(p, '>=', x);
+    ('smaller' | 'less') p:out_param_Any with { type = (new Type.Measure('byte')) } 'than' x:constant_Measure_byte  => C.makeFilter(p, '<=', x);
 
-    ('heavier' | 'larger') p:out_param_Measure_kg 'than' x:constant_Measure_kg => C.makeFilter(p, '>=', x);
-    ('lighter' | 'smaller') p:out_param_Measure_kg 'than' x:constant_Measure_kg  => C.makeFilter(p, '<=', x);
+    ('heavier' | 'larger') p:out_param_Any with { type = (new Type.Measure('kg')) } 'than' x:constant_Measure_kg => C.makeFilter(p, '>=', x);
+    ('lighter' | 'smaller') p:out_param_Any with { type = (new Type.Measure('kg')) } 'than' x:constant_Measure_kg  => C.makeFilter(p, '<=', x);
 
-    ('hotter' | 'higher') p:out_param_Measure_C 'than' x:constant_Measure_C => C.makeFilter(p, '>=', x);
-    ('cooler' | 'colder' | 'lower') p:out_param_Measure_C 'than' x:constant_Measure_C  => C.makeFilter(p, '<=', x);
+    ('hotter' | 'higher') p:out_param_Any with { type = (new Type.Measure('C')) } 'than' x:constant_Measure_C => C.makeFilter(p, '>=', x);
+    ('cooler' | 'colder' | 'lower') p:out_param_Any with { type = (new Type.Measure('C')) } 'than' x:constant_Measure_C  => C.makeFilter(p, '<=', x);
 
-    ('farther' | 'more distant' | 'longer') p:out_param_Measure_m 'than' x:constant_Measure_m => C.makeFilter(p, '>=', x);
-    ('nearer' | 'closer' | 'shorter') p:out_param_Measure_m 'than' x:constant_Measure_m  => C.makeFilter(p, '<=', x);
+    ('farther' | 'more distant' | 'longer') p:out_param_Any with { type = (new Type.Measure('m')) } 'than' x:constant_Measure_m => C.makeFilter(p, '>=', x);
+    ('nearer' | 'closer' | 'shorter') p:out_param_Any with { type = (new Type.Measure('m')) } 'than' x:constant_Measure_m  => C.makeFilter(p, '<=', x);
 
-    ('bigger' | 'larger' ) p:out_param_Measure_m2 'than' x:constant_Measure_m2 => C.makeFilter(p, '>=', x);
-    'smaller' p:out_param_Measure_m2 'than' x:constant_Measure_m2  => C.makeFilter(p, '<=', x);
+    ('bigger' | 'larger' ) p:out_param_Any with { type = (new Type.Measure('m2')) } 'than' x:constant_Measure_m2 => C.makeFilter(p, '>=', x);
+    'smaller' p:out_param_Any with { type = (new Type.Measure('m2')) } 'than' x:constant_Measure_m2  => C.makeFilter(p, '<=', x);
 
-    ('bigger' | 'larger' ) p:out_param_Measure_m3 'than' x:constant_Measure_m3 => C.makeFilter(p, '>=', x);
-    'smaller' p:out_param_Measure_m3 'than' x:constant_Measure_m3  => C.makeFilter(p, '<=', x);
+    ('bigger' | 'larger' ) p:out_param_Any with { type = (new Type.Measure('m3')) } 'than' x:constant_Measure_m3 => C.makeFilter(p, '>=', x);
+    'smaller' p:out_param_Any with { type = (new Type.Measure('m3')) } 'than' x:constant_Measure_m3  => C.makeFilter(p, '<=', x);
 
-    ('faster' | 'quicker' | 'speedier') p:out_param_Measure_mps 'than' x:constant_Measure_mps => C.makeFilter(p, '>=', x);
-    ('slower' | 'more slowly') p:out_param_Measure_mps 'than' x:constant_Measure_mps  => C.makeFilter(p, '<=', x);
+    ('faster' | 'quicker' | 'speedier') p:out_param_Any with { type = (new Type.Measure('mps')) } 'than' x:constant_Measure_mps => C.makeFilter(p, '>=', x);
+    ('slower' | 'more slowly') p:out_param_Any with { type = (new Type.Measure('mps')) } 'than' x:constant_Measure_mps  => C.makeFilter(p, '<=', x);
 
-    'later' p:out_param_Date 'than' x:constant_Date => C.makeFilter(p, '>=', x);
-    ('earlier' | 'sooner') p:out_param_Date 'than' x:constant_Date => C.makeFilter(p, '<=', x);
-    'later' p:out_param_Time 'than' x:constant_Time => C.makeFilter(p, '>=', x);
-    ('earlier' | 'sooner') p:out_param_Time 'than' x:constant_Time => C.makeFilter(p, '<=', x);
+    'later' p:out_param_Any with { type = (Type.Date) } 'than' x:constant_Date => C.makeFilter(p, '>=', x);
+    ('earlier' | 'sooner') p:out_param_Any with { type = (Type.Date) } 'than' x:constant_Date => C.makeFilter(p, '<=', x);
+    'later' p:out_param_Any with { type = (Type.Time) } 'than' x:constant_Time => C.makeFilter(p, '>=', x);
+    ('earlier' | 'sooner') p:out_param_Any with { type = (Type.Time) } 'than' x:constant_Time => C.makeFilter(p, '<=', x);
 
     !turking {
         ?range_filters f:range_with_filter => f;
-        'no' param:out_param_Number => C.makeFilter(param, '==', new Ast.Value.Number(0));
-        'zero' param:out_param_Number => C.makeFilter(param, '==', new Ast.Value.Number(0));
+        'no' param:out_param_Any with { type = (Type.Number) } => C.makeFilter(param, '==', new Ast.Value.Number(0));
+        'zero' param:out_param_Any with { type = (Type.Number) } => C.makeFilter(param, '==', new Ast.Value.Number(0));
     }
 
     // array
-    // there are too few arrays, so keep both
     p:out_param_Array__Any 'containing' x:constant_Any => C.makeFilter(p, 'contains', x);
     p:out_param_Array__Any 'containing no' x:constant_Any => C.makeFilter(p, 'contains', x, true);
-    x:constant_Any 'in' p:the_out_param_Array__Any => C.makeFilter(p, 'contains', x);
+    x:constant_Any 'in' 'the' p:out_param_Array__Any => C.makeFilter(p, 'contains', x);
 
     // array contain and
-    !turking p:out_param_Array__Any 'containing' both_prefix pair:constant_pairs => C.makeAndFilter(p, 'contains', pair);
-    !turking both_prefix pair:constant_pairs 'in' p:the_out_param_Array__Any => C.makeAndFilter(p, 'contains', pair);
+    !turking p:out_param_Array__Any 'containing' both_prefix pair:constant_pairs with { type = p.elem } => C.makeAndFilter(p, 'contains', pair);
+    !turking both_prefix pair:constant_pairs 'in' 'the' p:out_param_Array__Any with { elem = pair.type } => C.makeAndFilter(p, 'contains', pair);
 
     // array contain or
-    p:out_param_Array__Any 'containing either' pair:constant_or_pairs => C.makeOrFilter(p, 'contains', pair);
-    'either' pair:constant_or_pairs 'in' p:the_out_param_Array__Any => C.makeOrFilter(p, 'contains', pair);
+    p:out_param_Array__Any 'containing either' pair:constant_or_pairs with { type = p.elem } => C.makeOrFilter(p, 'contains', pair);
+    'either' pair:constant_or_pairs 'in' 'the' p:out_param_Array__Any with { elem = pair.type } => C.makeOrFilter(p, 'contains', pair);
 
     // array but
-    !turking p:out_param_String ('containing' | 'including') x:constant_String ('but not'| 'without' | 'but no') y:constant_String => C.makeButFilter(p, 'contains', [x, y]);
+    !turking p:out_param_Any with { type = (Type.Any) } ('containing' | 'including') x:constant_String ('but not'| 'without' | 'but no') y:constant_String => C.makeButFilter(p, 'contains', [x, y]);
 
     // aggregate filters - count
     !turking ('no' | 'zero') p:out_param_Array__Any => C.makeAggregateFilter(p, 'count', '*', '==', new Ast.Value.Number(0));
@@ -349,22 +358,22 @@ with_filter : C.FilterSlot = {
     !turking ('no' | 'zero') p:out_param_ArrayCount => C.makeFilter(p, '==', new Ast.Value.Number(0));
     x:constant_Number p:out_param_ArrayCount => C.makeFilter(p, '==', x);
 
-    !turking ('no' | 'zero') p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('lower than' | 'below') x:constant_Numeric => {
+    !turking ('no' | 'zero') p:out_param_Array__Compound ('with' | 'having') f:out_param_Any with { is_numeric = true } ('lower than' | 'below') x:constant_Numeric with { type = f.type } => {
         const filter =  C.makeFilter(f, '<=', x);
         return C.makeAggregateFilterWithFilter(p, filter, 'count', '*', '==', new Ast.Value.Number(0));
     };
-    !turking ('no' | 'zero') p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('greater than' | 'above') x:constant_Numeric => {
+    !turking ('no' | 'zero') p:out_param_Array__Compound ('with' | 'having') f:out_param_Any with { is_numeric = true } ('greater than' | 'above') x:constant_Numeric with { type = f.type } => {
         const filter = C.makeFilter(f, '>=', x);
         return C.makeAggregateFilterWithFilter(p, filter, 'count', '*', '==', new Ast.Value.Number(0));
     };
 
-    p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('greater than' | 'above') x:constant_Numeric => {
+    p:out_param_Array__Compound ('with' | 'having') f:out_param_Any with { is_numeric = true } ('greater than' | 'above') x:constant_Numeric with { type = f.type } => {
         const filter = C.makeFilter(f, '<=', x);
         return C.makeAggregateFilterWithFilter(p, filter, 'count', '*', '>=', new Ast.Value.Number(1));
 
     };
 
-    p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('lower than' | 'below') x:constant_Numeric => {
+    p:out_param_Array__Compound ('with' | 'having') f:out_param_Any with { is_numeric = true } ('lower than' | 'below') x:constant_Numeric with { type = f.type } => {
         const filter = C.makeFilter(f, '>=', x);
         return C.makeAggregateFilterWithFilter(p, filter, 'count', '*', '>=', new Ast.Value.Number(1));
     };
@@ -373,7 +382,7 @@ with_filter : C.FilterSlot = {
         return C.makeAggregateFilterWithFilter(p, f, 'count', '*', '>=', new Ast.Value.Number(1));
     };
 
-    v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('greater than' | 'above') x:constant_Numeric => {
+    v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Any with { is_numeric = true } ('greater than' | 'above') x:constant_Numeric with { type = f.type } => {
         const filter = C.makeFilter(f, '<=', x);
         return C.makeAggregateFilterWithFilter(p, filter, 'count', '*', '==', v);
     };
@@ -384,64 +393,64 @@ with_filter : C.FilterSlot = {
     ('fewer than' | 'at most' | 'no more than') x:constant_Number p:out_param_ArrayCount => C.makeFilter(p, '<=', x);
 
     // do not merge
-    'no more than' v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('lower than' | 'below') x:constant_Numeric => {
+    'no more than' v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Any with { is_numeric = true } ('lower than' | 'below') x:constant_Numeric with { type = f.type } => {
         const filter = C.makeFilter(f, '<=', x);
         return C.makeAggregateFilterWithFilter(p, filter, 'count', '*', '<=', v);
     };
-    'at most' v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('lower than' | 'below') x:constant_Numeric => {
+    'at most' v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Any with { is_numeric = true } ('lower than' | 'below') x:constant_Numeric with { type = f.type } => {
         const filter = C.makeFilter(f, '<=', x);
         return C.makeAggregateFilterWithFilter(p, filter, 'count', '*', '<=', v);
     };
-    'fewer than' v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('lower than' | 'below') x:constant_Numeric => {
+    'fewer than' v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Any with { is_numeric = true } ('lower than' | 'below') x:constant_Numeric with { type = f.type } => {
         const filter = C.makeFilter(f, '<=', x);
         return C.makeAggregateFilterWithFilter(p, filter, 'count', '*', '<=', v);
     };
 
     // do not merge
-    'more than' v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('greater than' | 'above') x:constant_Numeric => {
+    'more than' v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Any with { is_numeric = true } ('greater than' | 'above') x:constant_Numeric with { type = f.type } => {
         const filter = C.makeFilter(f, '>=', x);
         return C.makeAggregateFilterWithFilter(p, filter, 'count', '*', '>=', v);
     };
-    'at least' v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Numeric ('greater than' | 'above') x:constant_Numeric => {
+    'at least' v:constant_Number p:out_param_Array__Compound ('with' | 'having') f:out_param_Any with { is_numeric = true } ('greater than' | 'above') x:constant_Numeric with { type = f.type } => {
         const filter = C.makeFilter(f, '>=', x);
         return C.makeAggregateFilterWithFilter(p, filter, 'count', '*', '>=', v);
     };
 
     // aggregate filters - sum
-    ('total' | 'sum') p:out_param_Array__Numeric ('of' | 'being' ) x:constant_Numeric => C.makeAggregateFilter(p, 'sum', null, '==', x);
-    ('total' | 'sum') p:out_param_Array__Numeric ('greater than' | 'more than' | 'above' ) x:constant_Numeric => C.makeAggregateFilter(p, 'sum', null, '>=', x);
-    ('total' | 'sum') p:out_param_Array__Numeric ('lower than' | 'less than' | 'below' ) x:constant_Numeric => C.makeAggregateFilter(p, 'sum', null, '<=', x);
+    ('total' | 'sum') p:out_param_Array__Any with { is_numeric_elem = true } ('of' | 'being' ) x:constant_Numeric with { type = p.elem } => C.makeAggregateFilter(p, 'sum', null, '==', x);
+    ('total' | 'sum') p:out_param_Array__Any with { is_numeric_elem = true } ('greater than' | 'more than' | 'above' ) x:constant_Numeric with { type = p.elem } => C.makeAggregateFilter(p, 'sum', null, '>=', x);
+    ('total' | 'sum') p:out_param_Array__Any with { is_numeric_elem = true } ('lower than' | 'less than' | 'below' ) x:constant_Numeric with { type = p.elem } => C.makeAggregateFilter(p, 'sum', null, '<=', x);
 
-    !turking ('total' | 'sum') f:out_param_Numeric 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter(p, 'sum', f, '==', x);
-    !turking ('total' | 'sum') f:out_param_Numeric 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter(p, 'sum', f, '>=', x);
-    !turking ('total' | 'sum') f:out_param_Numeric 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter(p, 'sum', f, '>=', x);
+    !turking ('total' | 'sum') f:out_param_Any with { is_numeric = true } 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric with { type = f.type } => C.makeAggregateFilter(p, 'sum', f, '==', x);
+    !turking ('total' | 'sum') f:out_param_Any with { is_numeric = true } 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric with { type = f.type } => C.makeAggregateFilter(p, 'sum', f, '>=', x);
+    !turking ('total' | 'sum') f:out_param_Any with { is_numeric = true } 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric with { type = f.type } => C.makeAggregateFilter(p, 'sum', f, '>=', x);
 
     // aggregate filters - avg
-    'average' p:out_param_Array__Numeric ('of' | 'being' ) x:constant_Numeric => C.makeAggregateFilter(p, 'avg', null, '==', x);
-    'average' p:out_param_Array__Numeric ('greater than' | 'more than' | 'above') x:constant_Numeric => C.makeAggregateFilter(p, 'avg', null, '>=', x);
-    'average' p:out_param_Array__Numeric ('lower than' | 'less than' | 'below') x:constant_Numeric => C.makeAggregateFilter(p, 'avg', null, '<=', x);
+    'average' p:out_param_Array__Any with { is_numeric_elem = true } ('of' | 'being' ) x:constant_Numeric with { type = p.elem } => C.makeAggregateFilter(p, 'avg', null, '==', x);
+    'average' p:out_param_Array__Any with { is_numeric_elem = true } ('greater than' | 'more than' | 'above') x:constant_Numeric with { type = p.elem } => C.makeAggregateFilter(p, 'avg', null, '>=', x);
+    'average' p:out_param_Array__Any with { is_numeric_elem = true } ('lower than' | 'less than' | 'below') x:constant_Numeric with { type = p.elem } => C.makeAggregateFilter(p, 'avg', null, '<=', x);
 
-    !turking 'average' f:out_param_Numeric 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter(p, 'avg', f, '==', x);
-    !turking 'average' f:out_param_Numeric 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter(p, 'avg', f, '>=', x);
-    !turking 'average' f:out_param_Numeric 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter(p, 'avg', f, '>=', x);
+    !turking 'average' f:out_param_Any with { is_numeric = true } 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric with { type = f.type } => C.makeAggregateFilter(p, 'avg', f, '==', x);
+    !turking 'average' f:out_param_Any with { is_numeric = true } 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric with { type = f.type } => C.makeAggregateFilter(p, 'avg', f, '>=', x);
+    !turking 'average' f:out_param_Any with { is_numeric = true } 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric with { type = f.type } => C.makeAggregateFilter(p, 'avg', f, '>=', x);
 
     // aggregate filters - max
-    ('maximum' | 'highest') p:out_param_Array__Numeric ('of' | 'being' ) x:constant_Numeric => C.makeAggregateFilter(p, 'max', null, '==', x);
-    ('maximum' | 'highest') p:out_param_Array__Numeric ('greater than' | 'more than' | 'above') x:constant_Numeric => C.makeAggregateFilter(p, 'max', null, '>=', x);
-    ('maximum' | 'highest') p:out_param_Array__Numeric ('lower than' | 'less than' | 'below') x:constant_Numeric => C.makeAggregateFilter(p, 'max', null, '<=', x);
+    ('maximum' | 'highest') p:out_param_Array__Any with { is_numeric_elem = true } ('of' | 'being' ) x:constant_Numeric with { type = p.elem } => C.makeAggregateFilter(p, 'max', null, '==', x);
+    ('maximum' | 'highest') p:out_param_Array__Any with { is_numeric_elem = true } ('greater than' | 'more than' | 'above') x:constant_Numeric with { type = p.elem } => C.makeAggregateFilter(p, 'max', null, '>=', x);
+    ('maximum' | 'highest') p:out_param_Array__Any with { is_numeric_elem = true } ('lower than' | 'less than' | 'below') x:constant_Numeric with { type = p.elem } => C.makeAggregateFilter(p, 'max', null, '<=', x);
 
-    !turking ('maximum' | 'highest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter(p, 'max', f, '==', x);
-    !turking ('maximum' | 'highest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter(p, 'max', f, '>=', x);
-    !turking ('maximum' | 'highest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter(p, 'max', f, '>=', x);
+    !turking ('maximum' | 'highest') f:out_param_Any with { is_numeric = true } 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric with { type = f.type } => C.makeAggregateFilter(p, 'max', f, '==', x);
+    !turking ('maximum' | 'highest') f:out_param_Any with { is_numeric = true } 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric with { type = f.type } => C.makeAggregateFilter(p, 'max', f, '>=', x);
+    !turking ('maximum' | 'highest') f:out_param_Any with { is_numeric = true } 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric with { type = f.type } => C.makeAggregateFilter(p, 'max', f, '>=', x);
 
     // aggregate filters - min
-    ('minimum' | 'lowest') p:out_param_Array__Numeric ('of' | 'being' ) x:constant_Numeric => C.makeAggregateFilter(p, 'min', null, '==', x);
-    ('minimum' | 'lowest') p:out_param_Array__Numeric ('greater than' | 'more than' | 'above') x:constant_Numeric => C.makeAggregateFilter(p, 'min', null, '>=', x);
-    ('minimum' | 'lowest') p:out_param_Array__Numeric ('lower than' | 'less than' | 'below') x:constant_Numeric => C.makeAggregateFilter(p, 'min', null, '<=', x);
+    ('minimum' | 'lowest') p:out_param_Array__Any with { is_numeric_elem = true } ('of' | 'being' ) x:constant_Numeric with { type = p.elem } => C.makeAggregateFilter(p, 'min', null, '==', x);
+    ('minimum' | 'lowest') p:out_param_Array__Any with { is_numeric_elem = true } ('greater than' | 'more than' | 'above') x:constant_Numeric with { type = p.elem } => C.makeAggregateFilter(p, 'min', null, '>=', x);
+    ('minimum' | 'lowest') p:out_param_Array__Any with { is_numeric_elem = true } ('lower than' | 'less than' | 'below') x:constant_Numeric with { type = p.elem } => C.makeAggregateFilter(p, 'min', null, '<=', x);
 
-    !turking ('minimum' | 'lowest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric => C.makeAggregateFilter(p, 'min', f, '==', x);
-    !turking ('minimum' | 'lowest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric => C.makeAggregateFilter(p, 'min', f, '>=', x);
-    !turking ('minimum' | 'lowest') f:out_param_Numeric 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric => C.makeAggregateFilter(p, 'min', f, '>=', x);
+    !turking ('minimum' | 'lowest') f:out_param_Any with { is_numeric = true } 'of' p:out_param_Array__Compound ('of' | 'being') x:constant_Numeric with { type = f.type } => C.makeAggregateFilter(p, 'min', f, '==', x);
+    !turking ('minimum' | 'lowest') f:out_param_Any with { is_numeric = true } 'of' p:out_param_Array__Compound ('greater than' | 'more than' | 'higher than') x:constant_Numeric with { type = f.type } => C.makeAggregateFilter(p, 'min', f, '>=', x);
+    !turking ('minimum' | 'lowest') f:out_param_Any with { is_numeric = true } 'of' p:out_param_Array__Compound ('smaller than' | 'less than' | 'lower than') x:constant_Numeric with { type = f.type } => C.makeAggregateFilter(p, 'min', f, '>=', x);
 }
 
 // XXX ? what's going on here? fname is entirely unused?
@@ -473,7 +482,7 @@ for (let pname in _tpLoader.compoundArrays) {
 
 
 range_with_filter : C.FilterSlot = {
-    param:out_param_Numeric range:range => {
+    param:out_param_Any with { is_numeric = true } range:range => {
         const [v1, v2] = range;
         const f1 = C.makeFilter(param, '>=', v1);
         const f2 = C.makeFilter(param, '<=', v2);
