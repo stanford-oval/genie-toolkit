@@ -45,6 +45,7 @@ export class Compiler {
 
     private _files = new Map<string, metaast.Grammar>();
 
+    private _nonTerm = new Set<string>();
     // map a non-terminal to its type declaration, if any
     private _typeMap = new Map<string, string>();
 
@@ -80,6 +81,8 @@ export class Compiler {
             }
 
             visitContextStmt(stmt : metaast.ContextStmt) {
+                for (const symbol of stmt.names)
+                    self._nonTerm.add(symbol);
                 if (!stmt.type)
                     return;
                 for (const symbol of stmt.names)
@@ -87,11 +90,11 @@ export class Compiler {
             }
 
             visitNonTerminalStmt(stmt : metaast.NonTerminalStmt) {
+                const symbol = stmt.name;
+                self._nonTerm.add(symbol);
+
                 if (stmt.type === undefined || stmt.type === 'any')
                     return;
-                if (!(stmt.name instanceof metaast.IdentifierNTR))
-                    return;
-                const symbol = stmt.name.name;
 
                 const existing = self._typeMap.get(symbol);
                 if (!existing || existing === 'any') {
@@ -127,9 +130,10 @@ export class Compiler {
         this.visit(new class extends metaast.NodeVisitor {
             // assign a type to every usage of a non-terminal
             visitNonTerminalRuleHead(node : metaast.NonTerminalRuleHead) {
-                if (!(node.category instanceof metaast.IdentifierNTR))
-                    return;
-                const symbol = node.category.name;
+                const symbol = node.category;
+                if (!self._nonTerm.has(symbol))
+                    throw new TypeError(`Undeclared non-terminal ${symbol}`);
+
                 const type = self._typeMap.get(symbol);
                 if (type) {
                     node.type = type;
@@ -146,9 +150,7 @@ export class Compiler {
                     stmt.keyfn = self._keyFnMap.get(stmt.type.trim()) || 'undefined';
                     return;
                 }
-                if (!(stmt.name instanceof metaast.IdentifierNTR))
-                    return;
-                const symbol = stmt.name.name;
+                const symbol = stmt.name;
 
                 const existing = self._typeMap.get(symbol);
                 if (existing) {
