@@ -33,7 +33,7 @@ import type DialogueLoop from './dialogue-loop';
 import type Conversation from './conversation';
 
 const MAX_DEPTH = 7;
-const TARGET_PRUNING_SIZES = [25, 50, 100];
+const TARGET_PRUNING_SIZES = [50, 100];
 
 let TEMPLATE_FILE_PATH : string;
 try {
