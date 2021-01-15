@@ -28,6 +28,11 @@ export class NodeVisitor {
     visitContextStmt(stmt : ContextStmt) {}
     visitNonTerminalStmt(stmt : NonTerminalStmt) {}
 
+    visitExpansionRule(stmt : Expansion) {}
+    visitConstantsRule(stmt : Constants) {}
+    visitConditionRule(stmt : Condition) {}
+    visitReplacementRule(stmt : Replacement) {}
+
     visitNonTerminalRuleHead(node : RuleHeadPart) {}
 }
 
@@ -132,7 +137,7 @@ export class ComputedNTR extends NonTerminalRef {
 NonTerminalRef.Computed = ComputedNTR;
 
 export class NonTerminalStmt extends Statement {
-    constructor(public name : NonTerminalRef,
+    constructor(public name : IdentifierNTR|ComputedNTR,
                 public type : string|undefined,
                 public rules : Rule[]) {
         super();
@@ -287,7 +292,9 @@ export class Constants extends Rule {
         super();
     }
 
-    visit(visitor : NodeVisitor) {}
+    visit(visitor : NodeVisitor) {
+        visitor.visitConstantsRule(this);
+    }
 
     codegen(nonTerminal : NonTerminalRef, prefix = '', type ?: string) : string {
         return `${prefix}$grammar.addConstants(${nonTerminal.codegen()}, ${stringEscape(this.token)}, ${this.typeCode}, ${this.attrs.codegen()});\n`;
@@ -310,6 +317,43 @@ function makeBodyLambda(head : RuleHeadPart[],
     return `(${bodyArgs.join(', ')}) : (${type})|null => ${body}`;
 }
 
+
+function getTranslationKey(expansion : RuleHeadPart[]) : [string, string, boolean] {
+    let str = '';
+    let comment = '';
+    let positionalIdx = 0;
+    let needsComment = false;
+
+    for (const part of expansion) {
+        if (str)
+            str += ' ';
+        if (comment)
+            comment += ' ';
+        if (part instanceof StringLiteralRuleHead) {
+            str += part.value;
+            comment += part.value;
+        } else if (part instanceof ComputedStringLiteralRuleHead) {
+            str += '${' + String(positionalIdx++) + '}';
+            comment += '${' + part.code + '}';
+            needsComment = true;
+        } else if (part instanceof NonTerminalRuleHead && part.category instanceof IdentifierNTR) {
+            str += '${' + part.category.name + '}';
+            comment += '${' + part.category.name + '}';
+        } else if (part instanceof NonTerminalRuleHead && part.category instanceof ComputedNTR) {
+            str += '${' + String(positionalIdx++) + '}';
+            comment += '${' + part.category.code + '}';
+            needsComment = true;
+        } else if (part instanceof ChoiceRuleHead) {
+            str += '{' + part.values.join('|') + '}';
+            comment += '{' + part.values.join('|') + '}';
+        } else {
+            throw new TypeError();
+        }
+    }
+
+    return [str, comment, needsComment];
+}
+
 export class Expansion extends Rule {
     constructor(public head : RuleHeadPart[],
                 public bodyCode : string,
@@ -320,8 +364,13 @@ export class Expansion extends Rule {
     }
 
     visit(visitor : NodeVisitor) {
+        visitor.visitExpansionRule(this);
         for (const head of this.head)
             head.visit(visitor);
+    }
+
+    getTranslationKey() {
+        return getTranslationKey(this.head);
     }
 
     codegen(nonTerminal : NonTerminalRef, prefix = '', type ?: string) : string {
@@ -339,6 +388,7 @@ export class Condition extends Rule {
     }
 
     visit(visitor : NodeVisitor) {
+        visitor.visitConditionRule(this);
         for (const rule of this.rules)
             rule.visit(visitor);
     }
@@ -368,8 +418,13 @@ export class Replacement extends Rule {
     }
 
     visit(visitor : NodeVisitor) {
+        visitor.visitReplacementRule(this);
         for (const head of this.head)
             head.visit(visitor);
+    }
+
+    getTranslationKey() {
+        return getTranslationKey(this.head);
     }
 
     codegen(nonTerminal : NonTerminalRef, prefix = '', type ?: string) : string {

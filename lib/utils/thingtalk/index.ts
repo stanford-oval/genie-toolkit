@@ -29,6 +29,7 @@ import { Ast, SchemaRetriever } from 'thingtalk';
 import SimulationDialogueAgent, { SimulationDialogueAgentOptions } from '../../dialogue-agent/simulator/simulation_dialogue_agent';
 import { computeNewState, computePrediction, prepareContextForPrediction } from '../../dialogue-agent/dialogue_state_utils';
 import { extractConstants, createConstants } from './constants';
+export * from './describe';
 export * from './syntax';
 
 export type Input = Ast.Input;
@@ -109,7 +110,7 @@ class StateValidator {
         if (!this._policy)
             return;
         assert.strictEqual(state.policy, this._policy.name);
-        assert(this._policy.dialogueActs.user.has(state.dialogueAct));
+        assert(this._policy.dialogueActs.user.has(state.dialogueAct), `Invalid user dialogue act ${state.dialogueAct}`);
         // if and only if
         assert((state.dialogueActParam !== null) === (this._policy.dialogueActs.withParam.has(state.dialogueAct)));
     }
@@ -120,8 +121,7 @@ class StateValidator {
         if (!this._policy)
             return;
         assert.strictEqual(state.policy, this._policy.name);
-        assert(this._policy.dialogueActs.user.has(state.dialogueAct));
-        assert(state.dialogueAct !== this._policy.terminalAct);
+        assert(this._policy.dialogueActs.agent.has(state.dialogueAct), `Invalid agent dialogue act ${state.dialogueAct}`);
         // if and only if
         assert((state.dialogueActParam !== null) === (this._policy.dialogueActs.withParam.has(state.dialogueAct)));
     }

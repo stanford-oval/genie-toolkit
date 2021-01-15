@@ -40,7 +40,7 @@ const COMPILER_OPTIONS : ts.CompilerOptions = {
     strict: false,
 };
 
-class Compiler {
+export class Compiler {
     private _target : 'js' | 'ts';
 
     private _files = new Map<string, metaast.Grammar>();
@@ -106,7 +106,7 @@ class Compiler {
 
     private _assignAllTypes() {
         const self = this;
-        const visitor = new class extends metaast.NodeVisitor {
+        this.visit(new class extends metaast.NodeVisitor {
             // assign a type to every usage of a non-terminal
             visitNonTerminalRuleHead(node : metaast.NonTerminalRuleHead) {
                 if (!(node.category instanceof metaast.IdentifierNTR))
@@ -130,19 +130,24 @@ class Compiler {
                 if (existing)
                     stmt.type = existing;
             }
-        };
+        });
+    }
 
+    visit(visitor : metaast.NodeVisitor) {
         for (const parsed of this._files.values())
             parsed.visit(visitor);
     }
 
-    async process(filename : string) : Promise<void> {
+    async parse(filename : string) {
         // load all template files and extract all the type annotations
         await this._loadFile(filename);
 
         // assign the type annotations to all the uses of the non-terminals
         this._assignAllTypes();
+    }
 
+    async process(filename : string) : Promise<void> {
+        await this.parse(filename);
         await this._outputAllFiles();
     }
 

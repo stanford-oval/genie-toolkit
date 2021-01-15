@@ -466,6 +466,6 @@ export default class TextFormatter {
     }
 
     private _locationToString(loc : Builtin.LocationLike) : string {
-        return new Builtin.Location(loc.y, loc.x, loc.display).toLocaleString(this._locale);
+        return new Builtin.Location(loc.y, loc.x, loc.display).toLocaleString();
     }
 }

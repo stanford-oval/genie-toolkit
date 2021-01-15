@@ -18,15 +18,14 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+process.on('unhandledRejection', (up) => { throw up; });
+
 import * as ThingTalk from 'thingtalk';
 import { promises as pfs } from 'fs';
 import assert from 'assert';
 
-function stringEscape(str : string) {
-    return '"' + str.replace(/(["\\])/g, '\\$1').replace(/\n/g, '\\n') + '"';
-    // the following comment fixes broken syntax highlighting in GtkSourceView
-    //]/
-}
+import { stringEscape } from '../lib/utils/escaping';
+
 
 function extract(key : string, str : unknown) {
     if (typeof str === 'string') {

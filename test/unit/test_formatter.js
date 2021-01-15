@@ -87,7 +87,7 @@ some alt text`,
           status: 'sunny',
           icon: 'http://example.com/sunny.png'
         }, 'string',
-    'Current weather for [Latitude: 37 deg, Longitude: -113 deg]: sunny, temperature 21 C, wind speed 5 m/s, humidity 60%, cloudiness 0%, fog 0%.'
+    'Current weather for [Latitude: 37.00000 deg, Longitude: -113.00000 deg]: sunny, temperature 21 C, wind speed 5 m/s, humidity 60%, cloudiness 0%, fog 0%.'
     ],
 
     ['org.thingpedia.builtin.thingengine.builtin:get_time',

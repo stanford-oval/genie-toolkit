@@ -92,7 +92,7 @@ class ResultGenerator {
         }
     }
 
-    generate(schema : Ast.ExpressionSignature, params : Record<string, unknown>, index : number) {
+    generate(schema : Ast.FunctionDef, params : Record<string, unknown>, index : number) {
         const result : Record<string, unknown> = {};
         Object.assign(result, params);
         for (const arg of schema.iterateArguments()) {

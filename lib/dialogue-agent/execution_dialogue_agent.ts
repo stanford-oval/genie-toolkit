@@ -26,10 +26,10 @@ import { Ast, Type } from 'thingtalk';
 import type Engine from '../engine';
 import type { DeviceInfo } from '../engine';
 
+import { cleanKind } from '../utils/misc-utils';
 import ValueCategory from './value-category';
 import StatementExecutor from './statement_executor';
 import { CancellationError } from './errors';
-import * as Helpers from './helpers';
 import type DialogueLoop from './dialogue-loop';
 import { EntityRecord } from './entity-linking/entity-finder';
 import { Contact } from './entity-linking/contact_search';
@@ -83,7 +83,7 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         if (type === 'device') {
             question = this._dlg.interpolate(this._("You have multiple ${?“${name}” }${device} devices. Which one do you want to use?"), {
                 name,
-                device: Helpers.cleanKind(hint!)
+                device: cleanKind(hint!)
             })!;
         } else {
             question = this._dlg.interpolate(this._("Multiple contacts match “${name}”. Who do you mean?"), { name })!;

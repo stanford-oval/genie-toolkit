@@ -32,6 +32,7 @@ import * as ThingTalkUtils from '../utils/thingtalk';
 import SentenceGenerator, {
     SentenceGeneratorOptions,
 } from './generator';
+import { AgentReplyRecord } from './types';
 import { Derivation } from './runtime';
 
 interface BasicGeneratorOptions {
@@ -184,12 +185,6 @@ interface Continuation {
     newTurn : DialogueTurn;
 }
 
-interface AgentResult<StateType> {
-    state : StateType;
-    context : any;
-    tags : string[];
-}
-
 const FACTORS = [50, 75, 75, 100];
 
 /**
@@ -198,7 +193,7 @@ const FACTORS = [50, 75, 75, 100];
  * This object is created afresh for every minibatch.
  */
 class MinibatchDialogueGenerator {
-    private _agentGenerator : SentenceGenerator<PartialDialogue, AgentResult<ThingTalkUtils.DialogueState>>;
+    private _agentGenerator : SentenceGenerator<PartialDialogue, AgentReplyRecord<ThingTalkUtils.DialogueState>>;
     private _userGenerator : SentenceGenerator<AgentTurn, ThingTalkUtils.DialogueState>;
     private _langPack : I18n.LanguagePack;
     private _simulator : ThingTalkUtils.Simulator;
@@ -216,7 +211,7 @@ class MinibatchDialogueGenerator {
     private _emptyDialogue : PartialDialogue;
     private _completeDialogues : Array<ReservoirSampler<Dialogue>>;
 
-    constructor(agentGenerator : SentenceGenerator<PartialDialogue, AgentTurn>,
+    constructor(agentGenerator : SentenceGenerator<PartialDialogue, AgentReplyRecord<ThingTalkUtils.DialogueState>>,
                 userGenerator : SentenceGenerator<AgentTurn, ThingTalkUtils.DialogueState>,
                 langPack : I18n.LanguagePack,
                 simulator : ThingTalkUtils.Simulator,
@@ -270,7 +265,7 @@ class MinibatchDialogueGenerator {
 
     private _generateAgent(partials : PartialDialogue[]) : AgentTurn[] {
         const agentTurns : AgentTurn[] = [];
-        this._agentGenerator.generate(partials, (depth : number, derivation : Derivation<AgentResult<ThingTalkUtils.DialogueState>>) => {
+        this._agentGenerator.generate(partials, (depth : number, derivation : Derivation<AgentReplyRecord<ThingTalkUtils.DialogueState>>) => {
             // derivation.dlg is the PartialDialogue that is being continued
             // derivation.value is the object returned by the root semantic function, with:
             // - state (the thingtalk state)
@@ -279,7 +274,7 @@ class MinibatchDialogueGenerator {
             // - other properties only relevant to inference time we don't care about
 
             // set the turn of the agent
-            let state = derivation.value.state as any;
+            let state = derivation.value.state;
             state = state.optimize();
             assert(state !== null); // not-null even after optimize
             this._stateValidator.validateAgent(state);
@@ -442,7 +437,7 @@ class DialogueGenerator extends stream.Readable {
     private _idPrefix : string;
     private _debug : number;
     private _langPack : I18n.LanguagePack;
-    private _agentGenerator : SentenceGenerator<PartialDialogue, AgentTurn>;
+    private _agentGenerator : SentenceGenerator<PartialDialogue, AgentReplyRecord<ThingTalkUtils.DialogueState>>;
     private _userGenerator : SentenceGenerator<AgentTurn, ThingTalkUtils.DialogueState>;
     private _stateValidator : StateValidator;
     private _simulator : ThingTalkUtils.Simulator;
@@ -484,7 +479,7 @@ class DialogueGenerator extends stream.Readable {
         };
         Object.assign(agentOptions.flags, options.flags);
         agentOptions.flags.for_agent = true;
-        this._agentGenerator = new SentenceGenerator<PartialDialogue, AgentTurn>(agentOptions);
+        this._agentGenerator = new SentenceGenerator<PartialDialogue, AgentReplyRecord<ThingTalkUtils.DialogueState>>(agentOptions);
 
         const userOptions : SentenceGeneratorOptions<AgentTurn> = {
             locale: options.locale,

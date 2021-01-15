@@ -22,11 +22,11 @@
 import assert from 'assert';
 import { Ast, Type, SchemaRetriever } from 'thingtalk';
 
+import { cleanKind } from '../utils/misc-utils';
 import { shouldAutoConfirmStatement } from './dialogue_state_utils';
 import { contactSearch, Contact } from './entity-linking/contact_search';
 import { collectDisambiguationHints, getBestEntityMatch, EntityRecord } from './entity-linking/entity-finder';
 
-import * as Helpers from './helpers';
 import ValueCategory from './value-category';
 
 interface AbstractDialogueAgentOptions {
@@ -287,8 +287,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         try {
             const classDef = await this._schemas.getFullMeta(value.value!);
 
-            value.display = classDef.metadata.thingpedia_name || classDef.metadata.canonical ||
-                Helpers.cleanKind(value.value!);
+            value.display = classDef.metadata.thingpedia_name || classDef.metadata.canonical || cleanKind(value.value!);
         } catch(e) {
             /* ignore if the device does not exist, it might be a constant of the form
                "str:ENTITY_tt:device::" */

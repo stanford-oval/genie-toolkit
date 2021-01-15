@@ -1,0 +1,23 @@
+class @com.bing
+#_[canonical="ricerca bing"] {
+  monitorable list query image_search(in req query: String #_[prompt="Cosa vuoi cercare?"] #_[canonical="query"],
+                                      out title: String #_[canonical="titolo"],
+                                      out picture_url: Entity(tt:picture) #_[canonical="immagine"],
+                                      out link: Entity(tt:url) #_[canonical="link"],
+                                      out width: Number #_[prompt="Che larghezza stai cercando (in pixel)?"] #_[canonical="larghezza"],
+                                      out height: Number #_[prompt="Che altezza stai cercando (in pixel)?"] #_[canonical="altezza"])
+  #_[canonical="cerca immagini su bing"]
+  #_[confirmation="immagini che corrispondono a $query su Bing"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}"}, {type="picture",url="${picture_url}"}]]
+  #[confirm=false];
+
+  monitorable list query web_search(in req query: String #_[prompt="Cosa vuoi cercare?"] #_[canonical="query"],
+                                    out title: String #_[canonical="titolo"],
+                                    out description: String #_[canonical="descrizione"],
+                                    out link: Entity(tt:url) #_[canonical="link"])
+  #_[canonical="ricerca web su bing"]
+  #_[confirmation="siti web che corrispondono a $query su Bing"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}",displayText="${description}"}]]
+  #[confirm=false];
+}
+
