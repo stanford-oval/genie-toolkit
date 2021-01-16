@@ -49,9 +49,9 @@ action_recommendation : D.Recommendation = {
 }
 
 actionable_system_recommendation_short : D.Recommendation = {
-    ctx:ctx_with_result_noquestion proposal:thingpedia_result with { functionName = ctx.currentFunction } if complete [priority=2]
+    ctx:ctx_with_result_noquestion proposal:thingpedia_result with { functionName = ctx.currentFunction } [priority=2]
         => D.makeThingpediaRecommendation(ctx, proposal);
-    ctx:ctx_with_result_noquestion proposal:thingpedia_result with { functionName = ctx.currentFunction } if complete [priority=2]
+    ctx:ctx_with_result_noquestion proposal:thingpedia_result with { functionName = ctx.currentFunction } [priority=2]
         => D.makeThingpediaRecommendation(ctx, proposal);
 
     ( ctx:ctx_with_result_and_action 'i' ('recommend' | 'suggest') proposal:constant_name with { value = ctx.id0 }
@@ -116,7 +116,7 @@ proposal_info_action_pair : [D.ResultPhrase, Ast.Invocation|null] = {
 }
 
 actionable_system_display_result_short : D.Recommendation = {
-    ctx:ctx_with_result info:thingpedia_result with { functionName = ctx.currentFunction } '.' if complete [priority=5]
+    ctx:ctx_with_result info:thingpedia_result with { functionName = ctx.currentFunction } '.' [priority=5]
         => D.makeDisplayResult(ctx, info);
 }
 

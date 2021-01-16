@@ -34,6 +34,7 @@ import type * as Tp from 'thingpedia';
 
 import {
     ParamSlot,
+    ErrorMessage,
     clean,
     typeToStringSafe,
     makeInputParamSlot,
@@ -42,10 +43,14 @@ import {
     makeDateRangeFilter,
     isHumanEntity,
     interrogativePronoun,
-    tokenizeExample
+    tokenizeExample,
 } from './utils';
-import { SlotBag } from './slot_bag';
+import {
+    replaceSlotBagPlaceholders,
+    replaceErrorMessagePlaceholders,
+} from './primitive_templates';
 import * as keyfns from './keyfns';
+import { SlotBag } from './slot_bag';
 
 function identity<T>(x : T) : T {
     return x;
@@ -235,7 +240,7 @@ export class ThingpediaLoader {
             if (!type.isEnum && !type.isEntity)
                 throw new Error('Missing definition for type ' + typestr);
             this._grammar.declareSymbol('constant_' + typestr);
-            this._addRule<Ast.Value[], Ast.Value>('constant_Any', [new this._runtime.NonTerminal('constant_' + typestr)],
+            this._addRule<Ast.Value[], Ast.Value>('constant_Any', [this._getConstantNT(type)],
                 identity, keyfns.valueKeyFn);
 
             if (type instanceof Type.Enum) {
@@ -259,6 +264,17 @@ export class ThingpediaLoader {
             if (elem instanceof Type.Compound)
                 this._addRule('out_param_Array__Compound', [canonical], () => pslot, keyfns.paramKeyFn);
         }
+    }
+
+    private _getConstantNT(type : Type, mustBeTrueConstant = false) {
+        const typestr = typeToStringSafe(type);
+
+        // mustBeTrueConstant indicates that we really need just a constant literal
+        // as oppposed to some relative constant like "today" or "here"
+        if (mustBeTrueConstant)
+            return new this._runtime.NonTerminal('constant_' + typestr, ['is_constant', true]);
+        else
+            return new this._runtime.NonTerminal('constant_' + typestr);
     }
 
     private _recordInputParam(schema : Ast.FunctionDef, arg : Ast.ArgumentDef) {
@@ -313,7 +329,7 @@ export class ThingpediaLoader {
             canonical = arg.metadata.canonical;
 
         const corefconst = new this._runtime.NonTerminal('coref_constant');
-        const constant = new this._runtime.NonTerminal('constant_' + ptypestr);
+        const constant = this._getConstantNT(ptype);
         for (let cat in canonical) {
             if (cat === 'default')
                 continue;
@@ -540,7 +556,7 @@ export class ThingpediaLoader {
         if (!vtypestr)
             return;
 
-        const constant = new this._runtime.NonTerminal('constant_' + vtypestr);
+        const constant = this._getConstantNT(vtype);
         const corefconst = new this._runtime.NonTerminal('coref_constant');
         for (let cat in canonical) {
             if (cat === 'default' || cat === 'projection_pronoun')
@@ -1090,51 +1106,80 @@ export class ThingpediaLoader {
     }
 
     private async _loadCustomErrorMessages(functionDef : Ast.FunctionDef) {
+        const bag = new SlotBag(functionDef);
+
         for (const code in functionDef.metadata.on_error) {
             let messages = functionDef.metadata.on_error[code];
             if (!Array.isArray(messages))
                 messages = [messages];
 
             for (const msg of messages) {
-                const bag = new SlotBag(functionDef);
-
                 const chunks = msg.trim().split(' ');
+                const expansion : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal> = [];
+                const names : Array<string|null> = [];
+
                 for (const chunk of chunks) {
                     if (chunk === '')
                         continue;
                     if (chunk.startsWith('$') && chunk !== '$$') {
                         const [, param1, param2,] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk)!;
-                        const pname = param1 || param2;
-                        assert(pname);
-                        const arg = functionDef.getArgument(pname)!;
-                        const ptype = arg.type;
-                        const pcanonical = arg.canonical;
+                        const param = param1 || param2;
+                        assert(param);
+                        // TODO use opt
 
-                        const pslot : ParamSlot = {
-                            schema: functionDef,
-                            name: pname,
-                            type: ptype,
-                            filterable: arg.getImplementationAnnotation<boolean>('filterable') ?? false,
-                            ast: new Ast.Value.VarRef(pname)
-                        };
-                        this.params.in.set(pslot.schema.qualifiedName + ':' + pname,
-                            [pslot, pcanonical]);
-                        this._recordType(ptype);
+                        const arg = functionDef.getArgument(param);
+                        if (!arg)
+                            throw new Error(`Invalid placeholder \${param} in #_[on_error] annotation for @${functionDef.qualifiedName}`);
+
+                        assert(this._recordType(arg.type));
+                        expansion.push(this._getConstantNT(arg.type, true));
+                        names.push(param);
+                    } else {
+                        expansion.push(chunk);
+                        names.push(null);
                     }
                 }
 
-                this._addPrimitiveTemplate('thingpedia_error_message', msg, { code, bag }, keyfns.errorMessageKeyFn);
+                this._addRule<Ast.Value[], ErrorMessage>('thingpedia_error_message', expansion, (...args) => replaceErrorMessagePlaceholders({ code, bag }, names, args), keyfns.errorMessageKeyFn);
             }
         }
     }
 
     private async _loadCustomResultString(functionDef : Ast.FunctionDef) {
+        const bag = new SlotBag(functionDef);
+
         let resultstring = functionDef.metadata.result;
         if (!Array.isArray(resultstring))
             resultstring = [resultstring];
+        for (const form of resultstring) {
+            const chunks = form.trim().split(' ');
+            const expansion : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal> = [];
+            const names : Array<string|null> = [];
 
-        for (const form of resultstring)
-            this._addPrimitiveTemplate('thingpedia_result', form, new SlotBag(functionDef), keyfns.slotBagKeyFn);
+            for (const chunk of chunks) {
+                if (chunk === '')
+                    continue;
+                if (chunk.startsWith('$') && chunk !== '$$') {
+                    const [, param1, param2,] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk)!;
+                    const param = param1 || param2;
+                    assert(param);
+                    // TODO use opt
+
+                    const arg = functionDef.getArgument(param);
+                    if (!arg)
+                        throw new Error(`Invalid placeholder \${param} in #_[result] annotation for @${functionDef.qualifiedName}`);
+
+                    assert(this._recordType(arg.type));
+                    expansion.push(this._getConstantNT(arg.type, true));
+                    names.push(param);
+                } else {
+                    expansion.push(chunk);
+                    names.push(null);
+                }
+            }
+
+            this._addRule<Ast.Value[], SlotBag>('thingpedia_result', expansion, (...args) => replaceSlotBagPlaceholders(bag, names, args), keyfns.slotBagKeyFn);
+        }
     }
 
     private async _loadDevice(kind : string) {

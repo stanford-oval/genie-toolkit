@@ -26,6 +26,7 @@ import * as Units from 'thingtalk-units';
 import { typeToStringSafe, isSameFunction, normalizeConfirmAnnotation } from './utils';
 import {
     Placeholder,
+    ErrorMessage,
     ParamSlot,
     FilterValueSlot,
     FilterSlot,
@@ -40,6 +41,7 @@ import {
 } from './utils';
 export {
     Placeholder,
+    ErrorMessage,
     ParamSlot,
     FilterValueSlot,
     FilterSlot,
@@ -53,15 +55,10 @@ export {
     makeDateRangeFilter,
 };
 export * from './keyfns';
-import { SlotBag } from './slot_bag';
 
 import _loader from './load-thingpedia';
 
 export type ArgMinMax = [ParamSlot, 'asc'|'desc'];
-export interface ErrorMessage {
-    code : string;
-    bag : SlotBag;
-}
 
 export function isEntityOfFunction(type : InstanceType<typeof Type.Entity>, schema : Ast.FunctionDef) {
     if (!schema.class)
@@ -1757,40 +1754,6 @@ function addActionInputParam(action : Ast.Expression, param : InputParamSlot) : 
     return new Ast.InvocationExpression(null, newInvocation, action.schema!);
 }
 
-function replaceSlotBagPlaceholder(bag : SlotBag, pslot : ParamSlot, value : Ast.Value) : SlotBag|null {
-    if (!value.isConstant())
-        return null;
-    if (!isSameFunction(pslot.schema, bag.schema!))
-        return null;
-    let ptype = bag.schema!.getArgType(pslot.name);
-    if (!ptype)
-        return null;
-    if (ptype instanceof Type.Array)
-        ptype = ptype.elem as Type;
-    const vtype = value.getType();
-    if (!ptype.equals(vtype))
-        return null;
-    if (bag.has(pslot.name))
-        return null;
-    const clone = bag.clone();
-    clone.set(pslot.name, value);
-    return clone;
-}
-
-export interface ErrorMessage {
-    code : string;
-    bag : SlotBag;
-}
-
-function replaceErrorMessagePlaceholder(msg : ErrorMessage,
-                                        pname : ParamSlot,
-                                        value : Ast.Value) : ErrorMessage|null {
-    const newbag = replaceSlotBagPlaceholder(msg.bag, pname, value);
-    if (newbag === null)
-        return null;
-    return { code: msg.code, bag: newbag };
-}
-
 /**
  * Find the filter expression in the context.
  *
@@ -1908,8 +1871,6 @@ export {
     checkInvocationInputParam,
     addInvocationInputParam,
     addActionInputParam,
-    replaceSlotBagPlaceholder,
-    replaceErrorMessagePlaceholder,
 
     // filters
     hasUniqueFilter,

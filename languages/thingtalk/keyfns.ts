@@ -24,6 +24,7 @@ import { Ast, Type } from 'thingtalk';
 import type { SlotBag } from './slot_bag';
 import type {
     Placeholder,
+    ErrorMessage,
     ParamSlot,
     FilterSlot,
     DomainIndependentFilterSlot,
@@ -39,7 +40,7 @@ export function placeholderKeyFn(pl : Placeholder) {
 
 export function valueKeyFn(value : Ast.Value) {
     const type = value.getType();
-    return { type, is_numeric: type.isNumeric() };
+    return { type, is_numeric: type.isNumeric(), is_constant: value.isConstant() };
 }
 
 export function valueArrayKeyFn(values : Ast.Value[]) {
@@ -153,7 +154,7 @@ export function slotBagKeyFn(expr : SlotBag) {
     };
 }
 
-export function errorMessageKeyFn(msg : { code : string; bag : SlotBag }) {
+export function errorMessageKeyFn(msg : ErrorMessage) {
     return {
         functionName: msg.bag.schema ? msg.bag.schema.qualifiedName : null,
     };

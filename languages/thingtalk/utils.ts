@@ -24,6 +24,8 @@ import assert from 'assert';
 import { Ast, Type } from 'thingtalk';
 import type { I18n } from 'genie-toolkit';
 
+import type { SlotBag } from './slot_bag';
+
 // slot objects to track filters, input and output parameters
 // these objects are similar to the Ast node they wrap
 // but they also add the function name, so we don't mix parameters
@@ -31,6 +33,11 @@ import type { I18n } from 'genie-toolkit';
 
 export interface Placeholder {
     type : Type;
+}
+
+export interface ErrorMessage {
+    code : string;
+    bag : SlotBag;
 }
 
 export interface ParamSlot {

@@ -1839,7 +1839,7 @@ function expandRuleSample(charts : ChartTable,
 
     // now make the samples
     let actualGenSize = 0, prunedGenSize = 0;
-    const choices : Array<DerivationChild<any>> = new Array<DerivationChild<any>>(expansion.length);
+    const choices : Array<DerivationChild<any>> = [];
     // fill and size the array
     for (let i = 0; i < expansionLenght; i++)
         choices.push('');
