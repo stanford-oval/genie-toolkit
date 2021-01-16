@@ -195,8 +195,9 @@ async function main() {
     await doTestBasic(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/basic.genie'));
     await doTestBasic(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/thingtalk.genie'));
     await doTestDialogue(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/dialogue.genie'));
-    // run again with just yelp, as way to check certain paths that don't come up otherwise
-    await doTestDialogue(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/dialogue.genie'), ['com.yelp']);
+    // run again with just yelp weather and spotify, as way to check certain paths that don't come up otherwise
+    await doTestDialogue(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/dialogue.genie'),
+    ['com.yelp', 'org.thingpedia.weather', 'com.spotify2']);
 }
 export default main;
 if (!module.parent)
