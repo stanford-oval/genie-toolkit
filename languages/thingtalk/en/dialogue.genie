@@ -31,7 +31,9 @@ keyfn = {
     S.ContextInfo : S.contextKeyFn,
     D.ActionSuccessPhraseWithResult : D.actionSuccessPhraseWithResultKeyFn,
     D.NameList : D.nameListKeyFn,
+    D.Recommendation : D.recommendationKeyFn,
     D.ListProposal : D.listProposalKeyFn,
+    D.ResultPhrase : D.resultPhraseKeyFn,
 }
 
 import '../common.genie';

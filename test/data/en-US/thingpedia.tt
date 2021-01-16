@@ -2138,6 +2138,8 @@ class @org.wikidata
   import loader from @org.thingpedia.v2();
   import config from @org.thingpedia.config.none();
 
+  entity city;
+
   list query city(out id: Entity(org.wikidata:city)
                   #_[canonical={
                     base=["name"],
@@ -2323,6 +2325,8 @@ class @com.yelp
 #_[description="Search restaurants on Yelp"]
 #_[canonical="yelp"]
 {
+  entity restaurant;
+
   list query restaurant(out id: Entity(com.yelp:restaurant)
                         #[conflict_filter=["cuisines", "price_range"]]
                         #[unique=true]

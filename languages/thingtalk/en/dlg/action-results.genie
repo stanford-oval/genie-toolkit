@@ -79,10 +79,10 @@ generic_action_success_phrase : string = {
 
 action_success_phrase_with_result : D.ActionSuccessPhraseWithResult = {
     generic_action_success_phrase '.' result:direct_result_info_phrase [priority=1]
-        => [null, result];
+        => [null, result.info];
 
     'i' action:complete_past_action_phrase '.' result:direct_result_info_phrase with { functionName = action.functionName } [priority=2]
-        => [action, result];
+        => [action, result.info];
 }
 
 action_success_phrase : S.AgentReplyRecord = {

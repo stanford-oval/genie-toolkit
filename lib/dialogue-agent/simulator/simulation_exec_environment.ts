@@ -150,8 +150,19 @@ class ResultGenerator {
             return uniform(type.entries!, this._rng);
         if (type instanceof Type.Entity)
             return new ThingTalk.Builtin.Entity(this._generateString('ENTITY_' + type.type, repeatable), null);
-        if (type === Type.RecurrentTimeSpecification) // TODO
-            return []; // empty list of recurrent time rules
+        if (type === Type.RecurrentTimeSpecification) {
+            // TODO
+            return [new ThingTalk.Builtin.RecurrentTimeRule({
+                beginTime: new ThingTalk.Builtin.Time(0,0),
+                endTime: new ThingTalk.Builtin.Time(24,0),
+                interval: 86400000,
+                frequency: 1,
+                dayOfWeek: null,
+                beginDate: null,
+                endDate: null,
+                subtract: false
+            })];
+        }
 
         throw new TypeError(`Invalid constant of type ${type}`);
     }

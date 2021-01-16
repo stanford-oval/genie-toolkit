@@ -128,19 +128,27 @@ function isFilterCompatibleWithResult(topResult : Ast.DialogueHistoryResultItem,
     }
 }
 
+export function isSlotCompatibleWithResult(topResult : Ast.DialogueHistoryResultItem,
+                                           pname : string, infoValue : Ast.Value) {
+    const resultValue = topResult.value[pname];
+    if (!resultValue)
+        return false;
+
+    if (resultValue instanceof Ast.ArrayValue && infoValue instanceof Ast.ArrayValue) {
+        if (!arraySubset(infoValue.value, resultValue.value))
+            return false;
+    } else {
+        if (!resultValue.equals(infoValue))
+            return false;
+    }
+
+    return true;
+}
+
 function isInfoPhraseCompatibleWithResult(topResult : Ast.DialogueHistoryResultItem, info : SlotBag) {
     for (const [pname, infoValue] of info) {
-        const resultValue = topResult.value[pname];
-        if (!resultValue)
+        if (!isSlotCompatibleWithResult(topResult, pname, infoValue))
             return false;
-
-        if (resultValue instanceof Ast.ArrayValue && infoValue instanceof Ast.ArrayValue) {
-            if (!arraySubset(infoValue.value, resultValue.value))
-                return false;
-        } else {
-            if (!resultValue.equals(infoValue))
-                return false;
-        }
     }
     return true;
 }

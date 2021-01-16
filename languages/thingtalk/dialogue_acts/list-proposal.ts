@@ -85,6 +85,16 @@ function checkListProposal(nameList : NameList, info : SlotBag|null, hasLearnMor
         if (!idType || !idType.equals(resultType))
             return null;
 
+        // check that the filter uses the right set of parameters
+        const resultInfo = ctx.resultInfo!;
+        if (resultInfo.projection !== null) {
+            // check that all projected names are present
+            for (const name of resultInfo.projection) {
+                if (!info.has(name))
+                    return null;
+            }
+        }
+
         for (const result of results) {
             if (!isInfoPhraseCompatibleWithResult(result, info))
                 return null;

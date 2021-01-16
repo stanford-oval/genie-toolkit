@@ -134,7 +134,7 @@ async function processDialogue(dlg) {
 }
 
 
-async function doTestDialogue(filename) {
+async function doTestDialogue(filename, onlyDevices = null) {
     const options = {
         rng: seedrandom.alea('almond is awesome'),
         locale: 'en-US',
@@ -158,7 +158,8 @@ async function doTestDialogue(filename) {
             notablejoin: true,
             nostream: true
         },
-        targetPruningSize: 15,
+        onlyDevices,
+        targetPruningSize: 25,
         maxDepth: 9,
         maxTurns: 3,
         minibatchSize: 300,
@@ -194,6 +195,8 @@ async function main() {
     await doTestBasic(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/basic.genie'));
     await doTestBasic(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/thingtalk.genie'));
     await doTestDialogue(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/dialogue.genie'));
+    // run again with just yelp, as way to check certain paths that don't come up otherwise
+    await doTestDialogue(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/dialogue.genie'), ['com.yelp']);
 }
 export default main;
 if (!module.parent)

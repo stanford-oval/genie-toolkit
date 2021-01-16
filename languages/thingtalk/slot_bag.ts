@@ -21,9 +21,9 @@
 
 import assert from 'assert';
 
-import { Ast, Type } from 'thingtalk';
+import { Ast, } from 'thingtalk';
 
-import { FilterSlot, isSameFunction } from './utils';
+import { isSameFunction } from './utils';
 
 class SlotBag {
     schema : Ast.FunctionDef|null;
@@ -90,43 +90,6 @@ class SlotBag {
     }
 }
 
-function checkAndAddSlot(bag : SlotBag, filter : FilterSlot) : SlotBag|null {
-    assert(bag instanceof SlotBag);
-    if (!(filter.ast instanceof Ast.AtomBooleanExpression))
-        return null;
-    const schema = bag.schema!;
-    if (!isSameFunction(schema, filter.schema))
-        return null;
-    const arg = schema!.getArgument(filter.ast.name);
-    if (!arg || arg.is_input)
-        return null;
-    const ptype = arg.type;
-    assert(ptype.equals(filter.ptype));
-    const vtype = filter.ast.value.getType();
-    if (filter.ast.operator === 'contains' || filter.ast.operator === 'contains~') {
-        if (!ptype.equals(new Type.Array(vtype)))
-            return null;
-        const clone = bag.clone();
-        if (clone.has(filter.ast.name))
-            return null;
-        else
-            clone.set(filter.ast.name, new Ast.Value.Array([filter.ast.value]));
-        return clone;
-    } else {
-        if (filter.ast.operator !== '==' && filter.ast.operator !== '=~')
-            return null;
-        if (!ptype.equals(vtype))
-            return null;
-        if (bag.has(filter.ast.name))
-            return null;
-        const clone = bag.clone();
-        clone.set(filter.ast.name, filter.ast.value);
-        return clone;
-    }
-}
-
-
 export {
     SlotBag,
-    checkAndAddSlot,
 };
