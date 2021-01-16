@@ -36,7 +36,7 @@ projection_Number : Ast.Expression = {
 
 projection_Any : Ast.Expression = {
     ?aggregation {
-    q:thingpedia_query if complete => {
+    q:thingpedia_complete_query => {
         if (!(q instanceof Ast.AggregationExpression))
             return null;
         return q;

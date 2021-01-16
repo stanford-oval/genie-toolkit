@@ -230,7 +230,7 @@ continuation_query : Ast.Invocation = {
 // sentences from the agent
 action_description_phrase : Ast.Invocation = {
     coref_action_phrase;
-    action:thingpedia_action if complete => {
+    action:thingpedia_complete_action => {
         if (!(action instanceof Ast.InvocationExpression))
             return null;
         return action.invocation;

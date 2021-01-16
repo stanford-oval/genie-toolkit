@@ -163,7 +163,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (@com.spotify.song(), id =~ ("despacito"))[1] => @com.spotify.play_song(song=id);
 
-A: I played Despacito on Spotify for you on str:ENTITY_com.spotify:device::36:.
+A: I played Despacito on Spotify on str:ENTITY_com.spotify:device::36:.
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -173,7 +173,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (@com.spotify.song(), contains(artists, null^^com.spotify:artist("ariana grande")))[1] => @com.spotify.play_song(song=id);
 
-A: I played 7 rings on Spotify for you on str:ENTITY_com.spotify:device::36:.
+A: I played 7 rings on Spotify on str:ENTITY_com.spotify:device::36:.
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -299,7 +299,7 @@ A: >> expecting = null
 # repeat this song
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.spotify.player_repeat(repeat=enum(track));
-A: I repeated this song for you.
+A: I repeated this song.
 A: >> context = null // {}
 A: >> expecting = null
 

@@ -29,7 +29,7 @@ import _tpLoader from '../load-thingpedia';
 import '../common.genie';
 import './constants.genie';
 
-table : Ast.Expression = thingpedia_query if complete;
+table : Ast.Expression = thingpedia_complete_query;
 
 filter : C.FilterSlot = {
     'whose' p:out_param_Any 'is' v:constant_Any => C.makeFilter(p, '==', v);

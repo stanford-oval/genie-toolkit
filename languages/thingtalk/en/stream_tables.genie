@@ -27,14 +27,14 @@ import * as C from '../ast_manip';
 import _tpLoader from '../load-thingpedia';
 
 complete_table : Ast.Expression = {
-    q:thingpedia_query if complete => {
+    q:thingpedia_complete_query => {
         if (q instanceof Ast.AggregationExpression)
             return null;
         return q;
     };
 
     !notablejoin table_join_replace_placeholder if complete;
-    //filter:apv_filter q:thingpedia_query if complete => C.addFilter(q, filter);
+    //filter:apv_filter q:thingpedia_complete_query => C.addFilter(q, filter);
 
     ( table:complete_table param:preposition_input_param with { functionName = table.functionName }
     | table:complete_table ('with' | 'having') param:npp_input_param with { functionName = table.functionName }
@@ -44,7 +44,7 @@ complete_table : Ast.Expression = {
 }
 
 complete_get_command : Ast.Expression = {
-    thingpedia_get_command if complete;
+    thingpedia_complete_get_command;
 }
 
 // if filter: if it rains (used for stream only)
@@ -561,7 +561,7 @@ edge_stream : Ast.Expression = {
 }
 
 stream : Ast.Expression = {
-    thingpedia_stream if complete;
+    thingpedia_complete_stream;
     !turking {
         ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:with_filtered_table with { is_monitorable = true } ('change' | 'update') => C.tableToStream(table);
     }

@@ -172,9 +172,9 @@ timer_rule : Ast.ExpressionStatement = {
     ) => new Ast.ExpressionStatement(null, new Ast.ChainExpression(null, [timer, table], table.schema));
     // timer => do
     (
-          timer:timer action:thingpedia_action
-        | generic_preamble_for_action action:thingpedia_action timer:timer
-    ) if complete => new Ast.ExpressionStatement(null, new Ast.ChainExpression(null, [timer, action], action.schema!));
+          timer:timer action:thingpedia_complete_action
+        | generic_preamble_for_action action:thingpedia_complete_action timer:timer
+    ) => new Ast.ExpressionStatement(null, new Ast.ChainExpression(null, [timer, action], action.schema!));
     // timer => get => do
     !primonly (
           timer:timer command:complete_get_do_command
@@ -491,7 +491,7 @@ monitor_command : Ast.ExpressionStatement = {
 }
 
 complete_action : Ast.ExpressionStatement = {
-    action:thingpedia_action if complete
+    action:thingpedia_complete_action
         => new Ast.ExpressionStatement(null, action);
     action:action_replace_param_with_table if complete
         => new Ast.ExpressionStatement(null, action);

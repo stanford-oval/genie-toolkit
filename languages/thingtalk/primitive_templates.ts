@@ -50,3 +50,56 @@ export function replaceErrorMessagePlaceholders(msg : ErrorMessage, names : Arra
         return null;
     return { code: msg.code, bag: newBag };
 }
+
+function betaReduceMany(ast : Ast.Expression, replacements : Record<string, Ast.Value>) : Ast.Expression|null {
+    const clone = ast.clone();
+
+    for (const slot of clone.iterateSlots2({})) {
+        if (slot instanceof Ast.DeviceSelector)
+            continue;
+
+        const varref = slot.get();
+        if (varref instanceof Ast.VarRefValue) {
+            const pname = varref.name;
+            if (!(pname in replacements))
+                continue;
+            if (pname in slot.scope) {
+                // if the parameter is in scope of the slot, it means we're in a filter and the same parameter name
+                // is returned by the stream/table, which shadows the example/declaration parameter we're
+                // trying to replace, hence we ignore this slot
+                continue;
+            }
+
+            const replacement = replacements[pname];
+            assert(replacement instanceof Ast.Value);
+
+            // no parameter passing or undefined into device attributes
+            if ((replacement.isUndefined || (replacement instanceof Ast.VarRefValue && !replacement.name.startsWith('__const')))
+                && slot.tag.startsWith('attribute.'))
+                return null;
+
+            slot.set(replacement);
+        }
+    }
+    return clone;
+}
+
+export function replacePrimitiveTemplatePlaceholdersWithConstants(ex : Ast.Example,
+                                                                  names : Array<string|null>,
+                                                                  args : Ast.Value[]) : Ast.Expression|null {
+    const replacements : Record<string, Ast.Value> = {};
+
+    assert(names.length === args.length);
+    for (let i = 0; i < names.length; i++) {
+        const name = names[i];
+        const value = args[i];
+
+        if (name === null)
+            continue;
+
+        assert(value.getType().equals(ex.args[name]));
+        replacements[name] = value;
+    }
+
+    return betaReduceMany(ex.value, replacements);
+}

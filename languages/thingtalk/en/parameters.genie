@@ -229,49 +229,9 @@ placeholder : C.Placeholder = {
     'some link' => ({ type: new Type.Entity('tt:url') });
 }
 
-for (let [pslot, pcanonical] of _tpLoader.params.in.values()) {
-    if (pslot.type.isEnum) {
-        // replace $-placeholders with "some X" where X is based on parameter name
-        if (pslot.name !== 'power' && pslot.name !== 'state' && pslot.name !== 'p_power' && pslot.name !== 'p_state') {
-            thingpedia_query : Ast.Expression = q:thingpedia_query #('a certain ' + pcanonical) [-> (pslot.name) { isUndefined: true }] =>
-                C.replacePlaceholderWithUndefined(q, pslot);
-
-            thingpedia_get_command : Ast.Expression = q:thingpedia_get_command #('a certain ' + pcanonical) [-> (pslot.name) { isUndefined: true }] =>
-                C.replacePlaceholderWithUndefined(q, pslot);
-
-            thingpedia_stream : Ast.Expression = s:thingpedia_stream #('a certain ' + pcanonical) [-> (pslot.name) { isUndefined: true }] =>
-                C.replacePlaceholderWithUndefined(s, pslot);
-
-            thingpedia_action : Ast.Expression = a:thingpedia_action #('a certain ' + pcanonical) [-> (pslot.name) { isUndefined: true }] =>
-                C.replacePlaceholderWithUndefined(a, pslot);
-
-            thingpedia_program : Ast.Expression = p:thingpedia_program #('a certain ' + pcanonical) [-> (pslot.name) { isUndefined: true }] =>
-                C.replacePlaceholderWithUndefined(p, pslot);
-        }
-    }
-
+for (let [pslot,] of _tpLoader.params.in.values()) {
     // don't parameter pass booleans or enums, as that rarely makes sense
     if (pslot.type !== Type.Boolean && !pslot.type.isEnum) {
-        if (pslot.name !== 'count' && pslot.name !== 'p_count') {
-            if (_tpLoader.flags.undefined_filter) {
-                // replace $-placeholders with "some X" where X is based on parameter name
-                thingpedia_query : Ast.Expression = q:thingpedia_query #('some ' + pcanonical) [-> (pslot.name) { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(q, pslot);
-
-                thingpedia_get_command : Ast.Expression = q:thingpedia_get_command #('some ' + pcanonical) [-> (pslot.name) { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(q, pslot);
-
-                thingpedia_stream : Ast.Expression = s:thingpedia_stream #('some ' + pcanonical) [-> (pslot.name) { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(s, pslot);
-
-                thingpedia_action : Ast.Expression = a:thingpedia_action #('some ' + pcanonical) [-> (pslot.name) { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(a, pslot);
-
-                thingpedia_program : Ast.Expression = p:thingpedia_program #('some ' + pcanonical) [-> (pslot.name) { isUndefined: true }] =>
-                    C.replacePlaceholderWithUndefined(p, pslot);
-            }
-        }
-
         // replace $-placeholders with projection-based parameter passing
 
         // FIXME

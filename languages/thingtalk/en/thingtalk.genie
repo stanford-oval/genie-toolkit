@@ -39,7 +39,7 @@ import './commands.genie';
 import './stream_tables.genie';
 
 $root : Ast.Input = {
-    p:thingpedia_program if complete => C.makeProgram(new Ast.ExpressionStatement(null, p));
+    p:thingpedia_complete_program => C.makeProgram(new Ast.ExpressionStatement(null, p));
 
     ?timer stmt:timer_rule [weight=0.2] => C.makeProgram(stmt);
     !nostream {

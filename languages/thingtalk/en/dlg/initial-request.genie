@@ -56,6 +56,6 @@ initial_command : Ast.ExpressionStatement = {
         when_command [weight=0.1];
     }
 
-    prog:thingpedia_program if complete
+    prog:thingpedia_complete_program
         => new Ast.ExpressionStatement(null, prog);
 }

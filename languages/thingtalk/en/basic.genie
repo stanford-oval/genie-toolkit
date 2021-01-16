@@ -55,11 +55,11 @@ bookkeeping : Ast.ControlCommand = {
 $root : Ast.Input = {
     bookkeeping;
 
-    ( 'get' query:thingpedia_query
-    | query:thingpedia_get_command
-    ) if complete => C.makeProgram(new Ast.ExpressionStatement(null, query));
+    ( 'get' query:thingpedia_complete_query
+    | query:thingpedia_complete_get_command
+    ) => C.makeProgram(new Ast.ExpressionStatement(null, query));
 
-    action:thingpedia_action if complete => C.makeProgram(new Ast.ExpressionStatement(null, action));
+    action:thingpedia_complete_action => C.makeProgram(new Ast.ExpressionStatement(null, action));
 
-    'notify me' stream:thingpedia_stream if complete => C.makeProgram(new Ast.ExpressionStatement(null, stream));
+    'notify me' stream:thingpedia_complete_stream => C.makeProgram(new Ast.ExpressionStatement(null, stream));
 }

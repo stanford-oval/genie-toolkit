@@ -27,7 +27,7 @@ import _tpLoader from '../load-thingpedia';
 
 // an empty string for the table
 who_complete_table : Ast.Expression = {
-    thingpedia_who_question if complete;
+    thingpedia_who_question;
 }
 
 

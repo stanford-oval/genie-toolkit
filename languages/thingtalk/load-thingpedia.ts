@@ -48,6 +48,7 @@ import {
 import {
     replaceSlotBagPlaceholders,
     replaceErrorMessagePlaceholders,
+    replacePrimitiveTemplatePlaceholdersWithConstants,
 } from './primitive_templates';
 import * as keyfns from './keyfns';
 import { SlotBag } from './slot_bag';
@@ -107,6 +108,8 @@ interface GrammarOptions {
     onlyDevices ?: string[];
     whiteList ?: string;
 }
+
+type PrimitiveTemplateType = 'action'|'action_past'|'query'|'get_command'|'stream'|'program';
 
 export class ThingpediaLoader {
     private _runtime ! : typeof Genie.SentenceGeneratorRuntime;
@@ -266,13 +269,15 @@ export class ThingpediaLoader {
         }
     }
 
-    private _getConstantNT(type : Type, mustBeTrueConstant = false) {
+    private _getConstantNT(type : Type, { mustBeTrueConstant = false, strictTypeCheck = false } = {}) {
         const typestr = typeToStringSafe(type);
 
         // mustBeTrueConstant indicates that we really need just a constant literal
         // as oppposed to some relative constant like "today" or "here"
         if (mustBeTrueConstant)
             return new this._runtime.NonTerminal('constant_' + typestr, ['is_constant', true]);
+        else if (strictTypeCheck && typestr === 'Any')
+            return new this._runtime.NonTerminal('constant_' + typestr, ['type', type]);
         else
             return new this._runtime.NonTerminal('constant_' + typestr);
     }
@@ -788,15 +793,12 @@ export class ThingpediaLoader {
     }
 
     private async _loadTemplate(ex : Ast.Example) {
-        // return grammar rules added
-        const rules = [];
-
         try {
             await ex.typecheck(this._schemas, true);
         } catch(e) {
             if (!e.message.startsWith('Invalid kind '))
                 console.error(`Failed to load example ${ex.id}: ${e.message}`);
-            return [];
+            return;
         }
 
         // ignore builtin actions:
@@ -804,17 +806,17 @@ export class ThingpediaLoader {
         // composable
         if (ex.value instanceof Ast.InvocationExpression && ex.value.invocation.selector.kind === 'org.thingpedia.builtin.thingengine.builtin') {
             if (this._options.flags.turking && ex.type === 'action')
-                return [];
+                return;
             if (!this._options.flags.configure_actions && (ex.value.invocation.channel === 'configure' || ex.value.invocation.channel === 'discover'))
-                return [];
+                return;
             if (ex.value.invocation.channel === 'say')
-                return [];
+                return;
         }
         if (ex.value instanceof Ast.FunctionCallExpression) // timers
-            return [];
+            return;
         if (this._options.flags.nofilter && (ex.value instanceof Ast.FilterExpression ||
             (ex.value instanceof Ast.MonitorExpression && ex.value.expression instanceof Ast.FilterExpression)))
-            return [];
+            return;
 
         // ignore optional input parameters
         // if you care about optional, write a lambda template
@@ -849,16 +851,15 @@ export class ThingpediaLoader {
                 filterable, ast: new Ast.Value.VarRef(pname) };
             this.params.in.set(pslot.schema.qualifiedName + ':' + pname,
                 [pslot, pcanonical]);
+
             this._recordType(ptype);
         }
 
         if (ex.type === 'query') {
             if (Object.keys(ex.args).length === 0 && ex.value.schema!.hasArgument('id')) {
                 const type = ex.value.schema!.getArgument('id')!.type;
-                if (isHumanEntity(type)) {
-                    const grammarCat = 'thingpedia_who_question';
-                    this._addRule(grammarCat, [''], () => ex.value, keyfns.expressionKeyFn);
-                }
+                if (isHumanEntity(type))
+                    this._addRule('thingpedia_who_question', [''], () => ex.value, keyfns.expressionKeyFn);
             }
         }
 
@@ -869,11 +870,11 @@ export class ThingpediaLoader {
         }
 
         for (let preprocessed of ex.preprocessed) {
-            let grammarCat = 'thingpedia_' + ex.type;
+            let grammarCat : PrimitiveTemplateType = ex.type as 'stream'|'query'|'action'|'program';
 
-            if (grammarCat === 'thingpedia_query' && preprocessed[0] === ',') {
+            if (grammarCat === 'query' && preprocessed[0] === ',') {
                 preprocessed = preprocessed.substring(1).trim();
-                grammarCat = 'thingpedia_get_command';
+                grammarCat = 'get_command';
             }
 
             if (this._options.debug >= this._runtime.LogLevel.INFO && preprocessed[0].startsWith(','))
@@ -882,27 +883,73 @@ export class ThingpediaLoader {
             if (this._options.flags.for_agent)
                 preprocessed = this._langPack.toAgentSideUtterance(preprocessed);
 
-            const chunks = this._addPrimitiveTemplate(grammarCat, preprocessed, ex.value, keyfns.expressionKeyFn);
-            rules.push({ category: grammarCat, expansion: chunks, example: ex });
-
-            if (grammarCat === 'thingpedia_action') {
+            this._addPrimitiveTemplate(grammarCat, preprocessed, ex);
+            if (grammarCat === 'action') {
                 const pastform = this._langPack.toVerbPast(preprocessed);
                 if (pastform)
-                    this._addPrimitiveTemplate('thingpedia_action_past', pastform, ex.value, keyfns.expressionKeyFn);
+                    this._addPrimitiveTemplate('action_past', pastform, ex);
             }
 
             if (this._options.flags.inference)
                 break;
         }
-        return rules;
     }
 
-    private _addPrimitiveTemplate<T>(grammarCat : string,
-                                     preprocessed : string,
-                                     value : T,
-                                     keyFunction : (value : T) => Genie.SentenceGeneratorTypes.DerivationKey)
-                                     : Array<string|Genie.SentenceGeneratorRuntime.Placeholder> {
+    private _addPrimitiveTemplate(grammarCat : PrimitiveTemplateType,
+                                  preprocessed : string,
+                                  example : Ast.Example) {
         const chunks = preprocessed.trim().split(' ');
+
+        // ease migration by generating the old templates still
+        if (grammarCat !== 'action_past' && grammarCat !== 'program')
+            this._addOldStylePrimitiveTemplate(grammarCat, chunks, example.value);
+
+        // template #1: just constants and/or undefined
+        this._addConstantOrUndefinedPrimitiveTemplate(grammarCat, chunks, example);
+    }
+
+    private _addConstantOrUndefinedPrimitiveTemplate(grammarCat : PrimitiveTemplateType,
+                                                     chunks : string[],
+                                                     example : Ast.Example) {
+        const expansion : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal> = [];
+        const names : Array<string|null> = [];
+
+        for (const chunk of chunks) {
+            if (chunk === '')
+                continue;
+            if (chunk.startsWith('$') && chunk !== '$$') {
+                const [, param1, param2, opt] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk)!;
+                const param = param1 || param2;
+                assert(param);
+
+                const type = example.args[param];
+                if (!type)
+                    throw new Error(`Invalid placeholder \${param} in primitive template`);
+
+                // don't use placeholders for booleans or enums, as that rarely makes sense
+                const canUseUndefined = grammarCat !== 'action_past' && opt !== 'no-undefined' &&
+                    !type.isEnum && !type.isBoolean;
+
+                const nonTerm = canUseUndefined ? new this._runtime.NonTerminal('constant_or_undefined', ['type', type])
+                    : this._getConstantNT(type, { strictTypeCheck: true });
+
+                expansion.push(nonTerm);
+                names.push(param);
+            } else {
+                expansion.push(chunk);
+                names.push(null);
+            }
+        }
+
+        this._addRule<Ast.Value[], Ast.Expression>('thingpedia_complete_' + grammarCat, expansion,
+            (...args) => replacePrimitiveTemplatePlaceholdersWithConstants(example, names, args),
+            keyfns.expressionKeyFn);
+        return chunks;
+    }
+
+    private _addOldStylePrimitiveTemplate(grammarCat : 'action'|'action_past'|'query'|'get_command'|'stream'|'program',
+                                          chunks : string[],
+                                          value : Ast.Expression) {
         const expansion : Array<string|Genie.SentenceGeneratorRuntime.Placeholder> = [];
 
         for (const chunk of chunks) {
@@ -918,7 +965,7 @@ export class ThingpediaLoader {
             }
         }
 
-        this._addRule(grammarCat, expansion, () => value, keyFunction);
+        this._addRule('thingpedia_' + grammarCat, expansion, () => value, keyfns.expressionKeyFn);
         return chunks;
     }
 
@@ -1132,7 +1179,7 @@ export class ThingpediaLoader {
                             throw new Error(`Invalid placeholder \${param} in #_[on_error] annotation for @${functionDef.qualifiedName}`);
 
                         assert(this._recordType(arg.type));
-                        expansion.push(this._getConstantNT(arg.type, true));
+                        expansion.push(this._getConstantNT(arg.type, { mustBeTrueConstant: true }));
                         names.push(param);
                     } else {
                         expansion.push(chunk);
@@ -1170,7 +1217,7 @@ export class ThingpediaLoader {
                         throw new Error(`Invalid placeholder \${param} in #_[result] annotation for @${functionDef.qualifiedName}`);
 
                     assert(this._recordType(arg.type));
-                    expansion.push(this._getConstantNT(arg.type, true));
+                    expansion.push(this._getConstantNT(arg.type, { mustBeTrueConstant: true }));
                     names.push(param);
                 } else {
                     expansion.push(chunk);

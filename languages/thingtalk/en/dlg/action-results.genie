@@ -34,24 +34,10 @@ import { SlotBag } from '../../slot_bag';
 // import thingpedia info
 import _tpLoader from '../../load-thingpedia';
 
-for (let [pslot,] of _tpLoader.params.in.values()) {
-    thingpedia_action_past : Ast.Expression = {
-        ( action:thingpedia_action_past 'it' [priority=-0.01]
-        | action:thingpedia_action_past 'this' [priority=-0.01]
-        | action:thingpedia_action_past 'that' [priority=-0.01]
-        ) [-> (pslot.name)] => {
-            const type = action.schema!.getArgType(pslot.name);
-            if (!type || !type.isEntity)
-                return null;
-            return C.replacePlaceholderWithUndefined(action, pslot);
-        };
-    }
-}
-
 complete_past_action_phrase : Ast.Invocation = {
-    ( action:thingpedia_action_past
-    | action:thingpedia_action_past 'for you'
-    ) if complete => {
+    ( action:thingpedia_complete_action_past
+    | action:thingpedia_complete_action_past 'for you'
+    ) => {
         if (!(action instanceof Ast.InvocationExpression))
             return null;
         return action.invocation;
