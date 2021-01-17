@@ -23,7 +23,7 @@ import { Ast, } from 'thingtalk';
 import * as C from '../../ast_manip';
 import * as D from '../../dialogue_acts';
 
-initial_command : Ast.ExpressionStatement = {
+initial_command : Ast.Expression = {
     // now => say
     say_command [weight=0.1];
 
@@ -32,7 +32,7 @@ initial_command : Ast.ExpressionStatement = {
     generic_preamble_for_action action:complete_action => action;
 
     // now => get => do
-    generic_preamble_for_action action:complete_forward_get_do_command [weight=0.1] => action;
+    generic_preamble_for_action action:forward_get_do_command [weight=0.1] => action;
 
     search_command [weight=2];
     complete_question [weight=0.5];
@@ -41,7 +41,7 @@ initial_command : Ast.ExpressionStatement = {
     ( stmt:search_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
     | stmt:complete_action ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
     | generic_preamble_for_action stmt:complete_action ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
-    | generic_preamble_for_action stmt:complete_forward_get_do_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
+    | generic_preamble_for_action stmt:forward_get_do_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
     ) => D.addInitialDontCare(stmt, dontcare);
 
     // TODO
@@ -56,6 +56,5 @@ initial_command : Ast.ExpressionStatement = {
         when_command [weight=0.1];
     }
 
-    prog:thingpedia_complete_program
-        => new Ast.ExpressionStatement(null, prog);
+    thingpedia_complete_program;
 }

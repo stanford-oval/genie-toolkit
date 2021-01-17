@@ -33,7 +33,7 @@ complete_table : Ast.Expression = {
         return q;
     };
 
-    !notablejoin table_join_replace_placeholder if complete;
+    !notablejoin table_join_replace_placeholder;
     //filter:apv_filter q:thingpedia_complete_query => C.addFilter(q, filter);
 
     ( table:complete_table param:preposition_input_param with { functionName = table.functionName }
@@ -45,6 +45,10 @@ complete_table : Ast.Expression = {
 
 complete_get_command : Ast.Expression = {
     thingpedia_complete_get_command;
+
+    ( table:complete_get_command param:preposition_input_param with { functionName = table.functionName }
+    | table:complete_table ('with' | 'having') param:npp_input_param with { functionName = table.functionName }
+    ) => C.addActionInputParam(table, param);
 }
 
 // if filter: if it rains (used for stream only)

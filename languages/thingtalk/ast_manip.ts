@@ -23,7 +23,6 @@ import assert from 'assert';
 import { Ast, Type } from 'thingtalk';
 import * as Units from 'thingtalk-units';
 
-import { typeToStringSafe, isSameFunction, normalizeConfirmAnnotation } from './utils';
 import {
     Placeholder,
     ErrorMessage,
@@ -32,12 +31,17 @@ import {
     FilterSlot,
     InputParamSlot,
     DomainIndependentFilterSlot,
+    ExpressionWithCoreference,
 
     makeInputParamSlot,
     makeFilter,
     makeDomainIndependentFilter,
     makeAndFilter,
     makeDateRangeFilter,
+
+    typeToStringSafe,
+    isSameFunction,
+    normalizeConfirmAnnotation
 } from './utils';
 export {
     Placeholder,
@@ -47,6 +51,7 @@ export {
     FilterSlot,
     InputParamSlot,
     DomainIndependentFilterSlot,
+    ExpressionWithCoreference,
 
     makeInputParamSlot,
     makeFilter,
@@ -135,50 +140,37 @@ function isSelfJoinStream(stream : Ast.Expression) : boolean {
     return false;
 }
 
-function checkNotSelfJoinStream<T extends Ast.Expression>(stream : T) : T|null {
-    if (isSelfJoinStream(stream))
-        return null;
-    return stream;
-}
-
-function betaReduce<T extends PlaceholderReplaceable>(ast : T, pname : string, value : Ast.Value) : T|null {
+export function betaReduceMany<T extends Ast.Expression|Ast.Invocation>(ast : T, replacements : Record<string, Ast.Value>) : T|null {
     const clone = ast.clone() as T;
-    assert(value instanceof Ast.Value);
 
-    let found = false;
     for (const slot of clone.iterateSlots2({})) {
         if (slot instanceof Ast.DeviceSelector)
             continue;
 
-        if (pname in slot.scope) {
-            // if the parameter is in scope of the slot, it means we're in a filter and the same parameter name
-            // is returned by the stream/table, which shadows the example/declaration parameter we're
-            // trying to replace, hence we ignore this slot
-            continue;
-        }
-
         const varref = slot.get();
-        if (varref instanceof Ast.VarRefValue && varref.name === pname) {
+        if (varref instanceof Ast.VarRefValue) {
+            const pname = varref.name;
+            if (!(pname in replacements))
+                continue;
+            if (pname in slot.scope) {
+                // if the parameter is in scope of the slot, it means we're in a filter and the same parameter name
+                // is returned by the stream/table, which shadows the example/declaration parameter we're
+                // trying to replace, hence we ignore this slot
+                continue;
+            }
+
+            const replacement = replacements[pname];
+            assert(replacement instanceof Ast.Value);
+
             // no parameter passing or undefined into device attributes
-            if ((value.isUndefined || (value instanceof Ast.VarRefValue && !value.name.startsWith('__const')))
+            if ((replacement.isUndefined || replacement instanceof Ast.EventValue
+                || (replacement instanceof Ast.VarRefValue && !replacement.name.startsWith('__const')))
                 && slot.tag.startsWith('attribute.'))
                 return null;
 
-            slot.set(value);
-            found = true;
+            slot.set(replacement);
         }
     }
-
-    if (found) {
-        // the parameter should not be in the schema for the table/stream, but sentence-generator/index.js
-        // messes with the schema ands adds it there (to do quick checks of parameter passing), so here
-        // we remove it again
-        clone.schema = ast.schema!.removeArgument(pname);
-    } else {
-        // in case schema was not copied by .clone() (eg if ast is a Program, which does not normally have a .schema)
-        clone.schema = ast.schema;
-    }
-
     return clone;
 }
 
@@ -432,7 +424,11 @@ function makeProjection(table : Ast.Expression, pname : string) : Ast.Projection
     return new Ast.ProjectionExpression(null, table, [pname], [], [], resolveProjection(table.schema!, [pname]));
 }
 
-export function getDefaultParameterPassing(schema : Ast.FunctionDef) : string {
+/**
+ * Compute the parameter passing to use from a table if a parameter name is
+ * not spefified explicitly.
+ */
+export function getImplicitParameterPassing(schema : Ast.FunctionDef) : string {
     // if there is only one parameter, that's the one
     const outParams = Object.keys(schema.out);
     if (outParams.length === 1)
@@ -462,7 +458,7 @@ export function makeTypeBasedTableProjection(table : Ast.Expression, intotype : 
     if (table instanceof Ast.ProjectionExpression)
         return null;
 
-    const pname = getDefaultParameterPassing(table.schema!);
+    const pname = getImplicitParameterPassing(table.schema!);
     if (pname === '$event') {
         if (!Type.isAssignable(Type.String, intotype))
             return null;
@@ -482,7 +478,7 @@ export function makeTypeBasedStreamProjection(table : Ast.Expression) : Ast.Proj
     if (!table.schema!.is_monitorable)
         return null;
 
-    const pname = getDefaultParameterPassing(table.schema!);
+    const pname = getImplicitParameterPassing(table.schema!);
     if (pname === '$event')
         return null;
 
@@ -633,22 +629,42 @@ function checkValidQuery(table : Ast.Expression) : boolean {
     return !visitor.hasIDFilter;
 }
 
-function makeProgram(rule : Ast.ExecutableStatement) : Ast.Program|null {
-    assert(rule instanceof Ast.Statement);
-    assert(!(rule instanceof Ast.Assignment));
-
-    if (!checkValidQuery(rule.expression))
-        return null;
-    if (rule.stream && _loader.flags.nostream)
-        return null;
-    return adjustDefaultParameters(new Ast.Program(null, [], [], [rule]));
+export function toChainExpression(expr : Ast.Expression) {
+    if (expr instanceof Ast.ChainExpression)
+        return expr;
+    else
+        return new Ast.ChainExpression(null, [expr], expr.schema);
 }
 
-function combineStreamCommand(stream : Ast.Expression, command : Ast.ChainExpression) : Ast.ExpressionStatement|null {
-    const join = new Ast.ChainExpression(null, [stream].concat(command.expressions), resolveChain(stream.schema!, command.schema!));
+function makeProgram(rule : Ast.Expression) : Ast.Program|null {
+    if (!checkValidQuery(rule))
+        return null;
+    const chain = toChainExpression(rule);
+    if (chain.first.schema!.functionType === 'stream' && _loader.flags.nostream)
+        return null;
+    return adjustDefaultParameters(new Ast.Program(null, [], [], [new Ast.ExpressionStatement(null, chain)]));
+}
+
+function combineStreamCommand(stream : Ast.Expression, command : Ast.ChainExpression) : Ast.ChainExpression|null {
+    const join = makeChainExpression(stream, command);
     if (isSelfJoinStream(join))
         return null;
-    return new Ast.ExpressionStatement(null, join);
+    return join;
+}
+
+export function combineStreamQuery(stream : Ast.Expression, table : Ast.Expression) : Ast.ChainExpression|null {
+    if (table instanceof Ast.ProjectionExpression) {
+        if (!_loader.flags.projection)
+            return null;
+        if (table.args[0] === 'picture_url' || table.args[0] === '$event')
+            return null;
+        const outParams = Object.keys(table.expression.schema!.out);
+        if (outParams.length === 1)
+            return null;
+    }
+    if (isSameFunction(stream.schema!, table.schema!))
+        return null;
+    return new Ast.ChainExpression(null, [stream, table], table.schema);
 }
 
 function checkComputeFilter(table : Ast.Expression, filter : Ast.ComputeBooleanExpression) : boolean {
@@ -1084,7 +1100,7 @@ function makeGetPredicate(proj : Ast.Expression, op : string, value : Ast.Value,
         ast: new Ast.BooleanExpression.External(null, selector, channel, proj.expression.invocation.in_params, filter, proj.expression.invocation.schema) };
 }
 
-export function resolveChain(...expressions : Ast.FunctionDef[]) : Ast.FunctionDef {
+export function resolveChain(expressions : Ast.Expression[]) : Ast.FunctionDef {
     // the schema of a chain is just the schema of the last function in
     // the chain, nothing special about it - no joins, no merging, no
     // nothing
@@ -1092,9 +1108,9 @@ export function resolveChain(...expressions : Ast.FunctionDef[]) : Ast.FunctionD
 
     // except the schema is monitorable if the _every_ schema is monitorable
     // and the schema is a list if _any_ schema is a list
-    const clone = last.clone();
-    clone.is_list = expressions.some((exp) => exp.is_list);
-    clone.is_monitorable = expressions.every((exp) => exp.is_monitorable);
+    const clone = last.schema!.clone();
+    clone.is_list = expressions.some((exp) => exp.schema!.is_list);
+    clone.is_monitorable = expressions.every((exp) => exp.schema!.is_monitorable);
 
     return clone;
 }
@@ -1163,95 +1179,81 @@ function arrayFilterTableJoin(into : Ast.Expression, filteredTable : Ast.Express
     */
 }
 
-function actionReplaceParamWith(into : Ast.Expression, pname : string, projection : Ast.ProjectionExpression) : Ast.Expression|null {
-    const joinArg = projection.args[0];
-    if (joinArg === '$event' && ['p_body', 'p_message', 'p_caption', 'p_status'].indexOf(pname) < 0)
-        return null;
-    if (_loader.flags.dialogues) {
-        if (joinArg !== 'id')
-            return null;
-        if (projection instanceof Ast.ProjectionExpression && projection.expression instanceof Ast.InvocationExpression)
-            return null;
-    }
-    const ptype = joinArg === '$event' ? Type.String : projection.schema!.out[joinArg];
-    const intotype = into.schema!.inReq[pname];
-    if (!intotype || !ptype.equals(intotype))
-        return null;
+export function makeChainExpression(first : Ast.Expression, second : Ast.Expression) {
+    // flatten chains and compute the schema
+    const expressions : Ast.Expression[] = [];
+    if (first instanceof Ast.ChainExpression)
+        expressions.push(...first.expressions);
+    else
+        expressions.push(first);
+    if (second instanceof Ast.ChainExpression)
+        expressions.push(...second.expressions);
+    else
+        expressions.push(second);
 
-    const replacement = joinArg === '$event' ? new Ast.Value.Event(null) : new Ast.Value.VarRef(joinArg);
-    return betaReduce(into, pname, replacement);
+    return new Ast.ChainExpression(null, expressions, resolveChain(expressions));
 }
 
-function actionReplaceParamWithTable(into : Ast.Expression, pname : ParamSlot, what : Ast.Expression|null) : Ast.ChainExpression|null {
-    if (what === null)
+export function addParameterPassing(first : Ast.Expression, second : ExpressionWithCoreference) : Ast.ChainExpression|null {
+    // no self-joins
+    if (isSameFunction(first.schema!, second.expression.schema!))
         return null;
-    if (!isSameFunction(into.schema!, pname.schema))
-        return null;
-    const intotype = into.schema!.inReq[pname.name];
-    if (!intotype)
-        return null;
-    let projection : Ast.ProjectionExpression;
-    if (!(what instanceof Ast.ProjectionExpression)) {
-        if (intotype.isString || (intotype instanceof Type.Entity && intotype.type === 'tt:picture'))
+
+    if (second.slot !== null) {
+        // specific parameter passing
+        if (!isSameFunction(second.slot.schema, first.schema!))
             return null;
 
-        const maybeProjection = makeTypeBasedTableProjection(what, intotype);
-        if (maybeProjection === null)
+        // all we need to do is to check compatibility, the rest follows
+        // (we need to check both function and type in case of projections/aggregations
+        // or in case the parameter is a nested parameter of a compound type
+        const lhsType = first.schema!.getArgType(second.slot.name);
+        if (!lhsType || !lhsType.equals(second.type))
             return null;
-        projection = maybeProjection;
+
+        return makeChainExpression(first, second.expression);
     } else {
-        projection = what;
+        // implicit parameter passing, or param passing by projection
+        assert(second.pname);
+
+        let lhsName, lhsType;
+        let table = first;
+        if (table instanceof Ast.MonitorExpression)
+            table = table.expression;
+        if (table instanceof Ast.ProjectionExpression) {
+            const args = getProjectionArguments(table);
+            assert(args.length > 0);
+            if (args.length > 1)
+                return null;
+            lhsName = args[0];
+            lhsType = table.schema!.getArgType(lhsName);
+        } else {
+            lhsName = getImplicitParameterPassing(table.schema!);
+            if (lhsName === '$event')
+                lhsType = Type.String;
+            else
+                lhsType = table.schema!.getArgType(lhsName);
+        }
+        assert(lhsType);
+        if (!lhsType.equals(second.type))
+            return null;
+        const joinArg = lhsName === '$event' ? new Ast.Value.Event(null) : new Ast.Value.VarRef(lhsName);
+
+        const reduced = betaReduceMany(second.expression, { [second.pname]: joinArg });
+        if (reduced === null)
+            return null;
+        return makeChainExpression(first, reduced);
     }
-    if (projection.args.length !== 1)
-        throw new TypeError('???');
-    const reduced = actionReplaceParamWith(into, pname.name, projection);
-    if (reduced === null)
-        return null;
-    return new Ast.ChainExpression(null, [projection.expression, reduced], resolveChain(projection.expression.schema!, reduced.schema!));
 }
 
-function actionReplaceParamWithStream(into : Ast.Expression, pname : ParamSlot, projection : Ast.Expression) : Ast.ChainExpression|null {
-    if (!isSameFunction(into.schema!, pname.schema))
-        return null;
-    if (projection === null)
-        return null;
-    if (!(projection instanceof Ast.ProjectionExpression) || !projection.expression || projection.args.length !== 1)
-        return null;
-    const reduced = actionReplaceParamWith(into, pname.name, projection);
-    if (reduced === null)
-        return null;
-    return new Ast.ChainExpression(null, [projection.expression, reduced], resolveChain(projection.expression.schema!, reduced.schema!));
-}
-
-export function addParameterPassing(command : Ast.ChainExpression, pname : ParamSlot, joinArg : Ast.VarRefValue|Ast.EventValue) : Ast.ChainExpression|null {
-    //if (command.actions.length !== 1 || command.actions[0].selector.isBuiltin)
-    //    throw new TypeError('???');
-    const expressions = command.expressions;
-    assert(expressions.length >= 2);
-    const last = expressions[expressions.length-1];
-    if (!isSameFunction(last.schema!, pname.schema))
-        return null;
-    const beforelast = expressions[expressions.length-2];
-    const actiontype = last.schema!.inReq[pname.name];
-    if (!actiontype)
-        return null;
-    if (_loader.flags.dialogues && joinArg.name !== 'id')
-        return null;
-    const commandtype = joinArg instanceof Ast.EventValue ? Type.String : beforelast.schema!.out[joinArg.name];
-    if (!commandtype || !commandtype.equals(actiontype))
-        return null;
-
-    const reduced = betaReduce(last, pname.name, joinArg);
-    if (reduced === null)
-        return null;
-    return new Ast.ChainExpression(null, expressions.slice(0, expressions.length-1).concat([reduced]), command.schema);
-}
-
-export function addSameNameParameterPassing(command : Ast.ExpressionStatement, joinArg : ParamSlot) : Ast.ExpressionStatement|null {
-    const action = command.last;
+export function addSameNameParameterPassing(chain : Ast.ChainExpression, joinArg : ParamSlot) : Ast.ChainExpression|null {
+    const action = chain.last;
     assert(action instanceof Ast.InvocationExpression);
-    const table = command.lastQuery!;
+    const table = chain.lastQuery!;
     if (!isSameFunction(action.schema!, joinArg.schema))
+        return null;
+    // prevent self-joins
+    if (isSameFunction(action.schema!, table.schema!))
         return null;
 
     const actiontype = action.schema!.inReq[joinArg.name];
@@ -1268,7 +1270,10 @@ export function addSameNameParameterPassing(command : Ast.ExpressionStatement, j
 
     const clone = action.clone();
     clone.invocation.in_params.push(new Ast.InputParam(null, joinArg.name, new Ast.Value.VarRef(joinArg.name)));
-    return new Ast.ExpressionStatement(null, new Ast.ChainExpression(null, [table, clone], resolveChain(table.schema!, clone.schema!)));
+
+    const newExpressions = chain.expressions.slice(0, chain.expressions.length-1);
+    newExpressions.push(clone);
+    return new Ast.ChainExpression(null, newExpressions, resolveChain(newExpressions));
 }
 
 function isConstantAssignable(value : Ast.Value, ptype : Type) : boolean {
@@ -1285,29 +1290,11 @@ function isConstantAssignable(value : Ast.Value, ptype : Type) : boolean {
     return true;
 }
 
-type PlaceholderReplaceable = Ast.Expression|Ast.Invocation;
-
-function replacePlaceholderWithConstant<T extends PlaceholderReplaceable>(lhs : T, param : ParamSlot, value : Ast.Value) : T|null {
-    if (!isSameFunction(lhs.schema!, param.schema))
-        return null;
-    const ptype = lhs.schema!.inReq[param.name];
-    if (!isConstantAssignable(value, ptype))
-        return null;
-    if (ptype instanceof Type.Enum && ptype.entries!.indexOf(value.toJS() as string) < 0)
-        return null;
-    return betaReduce(lhs, param.name, value);
+export function replacePlaceholderWithUndefined<T extends Ast.Expression|Ast.Invocation>(lhs : T, param : string) : T|null {
+    return betaReduceMany(lhs, { [param]: new Ast.Value.Undefined(true) });
 }
 
-function replacePlaceholderWithUndefined<T extends PlaceholderReplaceable>(lhs : T, param : ParamSlot) : T|null {
-    if (!isSameFunction(lhs.schema!, param.schema))
-        return null;
-    const type = lhs.schema!.inReq[param.name];
-    if (!type || !type.equals(param.type))
-        return null;
-    return betaReduce(lhs, param.name, new Ast.Value.Undefined(true));
-}
-
-function sayProjection(maybeProj : Ast.Expression|null) : Ast.ExpressionStatement|null {
+function sayProjection(maybeProj : Ast.Expression|null) : Ast.Expression|null {
     if (maybeProj === null)
         return null;
 
@@ -1335,7 +1322,7 @@ function sayProjection(maybeProj : Ast.Expression|null) : Ast.ExpressionStatemen
             maybeProj.args = newArgs;
         }
     }
-    return new Ast.ExpressionStatement(null, maybeProj);
+    return maybeProj;
 }
 
 function sayProjectionProgram(proj : Ast.Expression|null) : Ast.Program|null {
@@ -1858,16 +1845,7 @@ export {
     makeProgram,
     combineStreamCommand,
 
-    checkNotSelfJoinStream,
-
-    // low-level helpers
-    betaReduce,
-
-    // placeholder replacement
-    replacePlaceholderWithConstant,
-    replacePlaceholderWithUndefined,
-    actionReplaceParamWithTable,
-    actionReplaceParamWithStream,
+    // input parameters
     checkInvocationInputParam,
     addInvocationInputParam,
     addActionInputParam,

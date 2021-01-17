@@ -38,10 +38,11 @@ keyfn = {
 
 import '../common.genie';
 // basic ThingTalk functionality
+import './shared.genie';
 import './constants.genie';
 import './timers.genie';
 import './filters.genie';
-import './parameters.genie';
+import './projections.genie';
 import './aggregation.genie';
 import './computation.genie';
 import './who_questions.genie';

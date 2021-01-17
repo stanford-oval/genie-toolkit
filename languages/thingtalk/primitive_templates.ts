@@ -23,6 +23,8 @@ import { Ast, Type } from 'thingtalk';
 
 import {
     ErrorMessage,
+    ParamSlot,
+    ExpressionWithCoreference,
 } from './utils';
 import { SlotBag } from './slot_bag';
 
@@ -59,39 +61,6 @@ export function replaceErrorMessagePlaceholders(msg : ErrorMessage, names : Arra
     return { code: msg.code, bag: newBag };
 }
 
-function betaReduceMany(ast : Ast.Expression, replacements : Record<string, Ast.Value>) : Ast.Expression|null {
-    const clone = ast.clone();
-
-    for (const slot of clone.iterateSlots2({})) {
-        if (slot instanceof Ast.DeviceSelector)
-            continue;
-
-        const varref = slot.get();
-        if (varref instanceof Ast.VarRefValue) {
-            const pname = varref.name;
-            if (!(pname in replacements))
-                continue;
-            if (pname in slot.scope) {
-                // if the parameter is in scope of the slot, it means we're in a filter and the same parameter name
-                // is returned by the stream/table, which shadows the example/declaration parameter we're
-                // trying to replace, hence we ignore this slot
-                continue;
-            }
-
-            const replacement = replacements[pname];
-            assert(replacement instanceof Ast.Value);
-
-            // no parameter passing or undefined into device attributes
-            if ((replacement.isUndefined || (replacement instanceof Ast.VarRefValue && !replacement.name.startsWith('__const')))
-                && slot.tag.startsWith('attribute.'))
-                return null;
-
-            slot.set(replacement);
-        }
-    }
-    return clone;
-}
-
 export function replacePlaceholdersWithConstants(ex : Ast.Example,
                                                  names : Array<string|null>,
                                                  args : Ast.Value[]) : Ast.Expression|null {
@@ -109,7 +78,7 @@ export function replacePlaceholdersWithConstants(ex : Ast.Example,
         replacements[name] = value;
     }
 
-    return betaReduceMany(ex.value, replacements);
+    return C.betaReduceMany(ex.value, replacements);
 }
 
 export function replacePlaceholderWithTableOrStream(ex : Ast.Example,
@@ -159,9 +128,68 @@ export function replacePlaceholderWithTableOrStream(ex : Ast.Example,
         }
     }
 
-    const reduced = betaReduceMany(ex.value, replacements);
+    const reduced = C.betaReduceMany(ex.value, replacements);
     if (!reduced)
         return null;
 
-    return new Ast.ChainExpression(null, [projection.expression, reduced], C.resolveChain(projection.expression.schema!, reduced.schema!));
+    return C.makeChainExpression(projection.expression, reduced);
+}
+
+export function replacePlaceholderWithCoreference(ex : Ast.Example,
+                                                  names : Array<string|null>,
+                                                  corefParamIdx : number,
+                                                  args : Array<Ast.Value|Ast.Expression|ParamSlot|string|undefined>) : ExpressionWithCoreference|null {
+
+    // first perform some checks, then replace the parameters, and then finally construct
+    // the expression with coreference
+
+    // what kind of coreference are we performing
+    const pname = names[corefParamIdx];
+    assert(pname);
+    const corefArg = args[corefParamIdx];
+    let corefReplacement : Ast.Value|null = null;
+    let corefSlot : ParamSlot|null = null;
+    if (corefArg === undefined || typeof corefArg === 'string') {
+        // generic coreference ("it", "this", etc.)
+    } else if (corefArg instanceof Ast.Expression) {
+        // table based coreference ("book the restaurant")
+        const idArg = corefArg.schema!.getArgument('id');
+        if (!idArg || !idArg.type.equals(ex.args[pname]))
+            return null;
+    } else {
+        // param based coreference ("post the caption")
+        const slot = corefArg as ParamSlot;
+        if (!slot.type.equals(ex.args[pname]))
+            return null;
+        corefReplacement = new Ast.Value.VarRef(slot.name);
+        corefSlot = slot;
+    }
+
+    const replacements : Record<string, Ast.Value> = {};
+    assert(names.length === args.length);
+    for (let i = 0; i < names.length; i++) {
+        const name = names[i];
+        if (name === null)
+            continue;
+
+        if (i === corefParamIdx) {
+            if (corefReplacement !== null)
+                replacements[name] = corefReplacement;
+        } else {
+            const value = args[i] as Ast.Value;
+            assert(value.getType().equals(ex.args[name]));
+            replacements[name] = value;
+        }
+    }
+
+    const reduced = C.betaReduceMany(ex.value, replacements);
+    if (!reduced)
+        return null;
+
+    return {
+        expression: reduced,
+        type: ex.args[pname],
+        slot: corefSlot,
+        pname: corefSlot ? null : pname
+    };
 }

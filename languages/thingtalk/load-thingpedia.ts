@@ -35,6 +35,7 @@ import type * as Tp from 'thingpedia';
 import {
     ParamSlot,
     ErrorMessage,
+    ExpressionWithCoreference,
     clean,
     typeToStringSafe,
     makeInputParamSlot,
@@ -50,6 +51,7 @@ import {
     replaceErrorMessagePlaceholders,
     replacePlaceholdersWithConstants,
     replacePlaceholderWithTableOrStream,
+    replacePlaceholderWithCoreference,
 } from './primitive_templates';
 import * as keyfns from './keyfns';
 import { SlotBag } from './slot_bag';
@@ -121,10 +123,7 @@ export class ThingpediaLoader {
     private _options ! : GrammarOptions;
     private _entities ! : Record<string, { has_ner_support : boolean }>;
     types ! : Map<string, Type>;
-    params ! : {
-        readonly in : Map<string, [ParamSlot, string]>;
-        readonly all : ParamSlot[];
-    };
+    params ! : ParamSlot[];
     projections ! : Array<{
         pname : string;
         pslot : ParamSlot;
@@ -161,10 +160,7 @@ export class ThingpediaLoader {
 
         this._entities = {};
         this.types = new Map;
-        this.params = {
-            in: new Map,
-            all: [],
-        };
+        this.params = [];
         this.projections = [];
         this.idQueries = new Map;
         this.compoundArrays = {};
@@ -291,7 +287,7 @@ export class ThingpediaLoader {
             return;
         const pslot : ParamSlot = { schema, name: pname, type: ptype,
             filterable: false, ast: new Ast.Value.VarRef(pname) };
-        this.params.all.push(pslot);
+        this.params.push(pslot);
 
         // compound types are handled by recursing into their fields through iterateArguments()
         // except FIXME that probably won't work? we need to create a record object...
@@ -465,7 +461,7 @@ export class ThingpediaLoader {
         const filterable = arg.getImplementationAnnotation<boolean>('filterable') ?? true;
         const pslot : ParamSlot = { schema, name: pname, type: ptype,
             filterable, ast: new Ast.Value.VarRef(pname) };
-        this.params.all.push(pslot);
+        this.params.push(pslot);
 
         if (ptype.isCompound)
             return;
@@ -819,40 +815,8 @@ export class ThingpediaLoader {
             (ex.value instanceof Ast.MonitorExpression && ex.value.expression instanceof Ast.FilterExpression)))
             return;
 
-        // ignore optional input parameters
-        // if you care about optional, write a lambda template
-        // that fills in the optionals
-
         for (const pname in ex.args) {
             const ptype = ex.args[pname];
-
-            //console.log('pname', pname);
-            if (!(pname in ex.value.schema!.inReq)) {
-                // somewhat of a hack, we declare the argument for the value,
-                // because later we will muck with schema only
-                ex.value.schema = ex.value.schema!.addArguments([new Ast.ArgumentDef(
-                    null,
-                    Ast.ArgDirection.IN_REQ,
-                    pname,
-                    ptype,
-                    {
-                        nl: {
-                            canonical: clean(pname)
-                        },
-                        impl: {}
-                    }
-                )]);
-            }
-
-            const arg = ex.value.schema!.getArgument(pname)!;
-            const pcanonical = arg.canonical;
-            const filterable = arg.getImplementationAnnotation<boolean>('filterable') ?? true;
-
-            const pslot : ParamSlot = { schema: ex.value.schema!, name: pname, type: arg.type,
-                filterable, ast: new Ast.Value.VarRef(pname) };
-            this.params.in.set(pslot.schema.qualifiedName + ':' + pname,
-                [pslot, pcanonical]);
-
             this._recordType(ptype);
         }
 
@@ -901,32 +865,11 @@ export class ThingpediaLoader {
                                   example : Ast.Example) {
         const chunks = preprocessed.trim().split(' ');
 
-        // ease migration by generating the old templates still
-        if (grammarCat !== 'action_past' && grammarCat !== 'program')
-            this._addOldStylePrimitiveTemplate(grammarCat, chunks, example.value);
-
-        // template #1: just constants and/or undefined
-        this._addConstantOrUndefinedPrimitiveTemplate(grammarCat, chunks, example);
-
-        // template #2: replace placeholders with whole queries or streams
-        // TODO: enable this for table joins with param passing
-        if (grammarCat === 'action')
-            this._addPlaceholderReplacementJoinPrimitiveTemplate(grammarCat, chunks, example);
-    }
-
-    /**
-     * Convert a primitive template into a regular template that performs
-     * a join with parameter passing by replacing exactly one placeholder
-     * with a whole query or stream, and replacing the other placeholders with constants
-     * or undefined.
-     */
-    private _addPlaceholderReplacementJoinPrimitiveTemplate(grammarCat : 'action'|'query'|'get_command',
-                                                            chunks : string[],
-                                                            example : Ast.Example) {
-        const exParams = Object.keys(example.args);
-
+        // compute the basic expansion, and compute the names used in the primitive
+        // template for each non-terminal
         const expansion : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal> = [];
         const names : Array<string|null> = [];
+        const options : string[] = [];
 
         for (const chunk of chunks) {
             if (chunk === '')
@@ -941,18 +884,45 @@ export class ThingpediaLoader {
                     throw new Error(`Invalid placeholder \${param} in primitive template`);
 
                 // don't use placeholders for booleans or enums, as that rarely makes sense
-                const canUseUndefined = opt !== 'no-undefined' && !type.isEnum && !type.isBoolean;
+                const canUseUndefined = grammarCat !== 'action_past' && opt !== 'no-undefined' &&
+                    !type.isEnum && !type.isBoolean;
 
                 const nonTerm = canUseUndefined ? new this._runtime.NonTerminal('constant_or_undefined', ['type', type])
                     : this._getConstantNT(type, { strictTypeCheck: true });
 
                 expansion.push(nonTerm);
                 names.push(param);
+                options.push(opt || '');
             } else {
                 expansion.push(chunk);
                 names.push(null);
+                options.push('');
             }
         }
+
+        // template #1: just constants and/or undefined
+        this._addConstantOrUndefinedPrimitiveTemplate(grammarCat, expansion, names, example);
+
+        // template #2: replace placeholders with whole queries or streams
+        // TODO: enable this for table joins with param passing
+        if (grammarCat === 'action')
+            this._addPlaceholderReplacementJoinPrimitiveTemplate(grammarCat, expansion, names, options, example);
+
+        // template #3: coreferences
+        if (grammarCat !== 'action_past' && grammarCat !== 'program')
+            this._addCoreferencePrimitiveTemplate(grammarCat, expansion, names, options, example);
+    }
+
+    /**
+     * Convert a primitive template into a regular template that introduces a
+     * coreference.
+     */
+    private _addCoreferencePrimitiveTemplate(grammarCat : 'stream'|'action'|'query'|'get_command',
+                                             expansion : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal>,
+                                             names : Array<string|null>,
+                                             options : string[],
+                                             example : Ast.Example) {
+        const exParams = Object.keys(example.args);
 
         // generate one rule for each possible parameter
         // in each rule, choose a different parameter to be replaced with a table
@@ -960,6 +930,61 @@ export class ThingpediaLoader {
         for (const tableParam of exParams) {
             const paramIdx = names.indexOf(tableParam);
             assert(paramIdx >= 0);
+
+            const option = options[paramIdx];
+            if (option === 'const') // no coreference if parameter uses :const in the placeholder
+                continue;
+
+            for (const corefSource of ['same_sentence', 'context', 'list_context']) {
+                if (corefSource === 'same_sentence' && grammarCat === 'stream')
+                    continue;
+
+                for (const fromNonTermName of [corefSource + '_coref', 'base_table', 'the_out_param_Any']) {
+                    if (corefSource === 'list_context' && fromNonTermName !== corefSource + '_coref')
+                        continue;
+
+                    let fromNonTerm;
+                    if (fromNonTermName === 'out_param_Any')
+                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, ['type', example.args[tableParam]]);
+                    else if (fromNonTermName === 'base_table')
+                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, ['idType', example.args[tableParam]]);
+                    else
+                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName);
+
+                    const clone = expansion.slice();
+                    clone[paramIdx] = fromNonTerm;
+
+                    this._addRule<Array<Ast.Value|Ast.Expression|ParamSlot|string>, ExpressionWithCoreference>(grammarCat + '_coref_' + corefSource, clone,
+                        (...args) => replacePlaceholderWithCoreference(example, names, paramIdx, args),
+                        keyfns.expressionWithCoreferenceKeyFn);
+                }
+            }
+        }
+    }
+
+    /**
+     * Convert a primitive template into a regular template that performs
+     * a join with parameter passing by replacing exactly one placeholder
+     * with a whole query or stream, and replacing the other placeholders with constants
+     * or undefined.
+     */
+    private _addPlaceholderReplacementJoinPrimitiveTemplate(grammarCat : 'action'|'query'|'get_command',
+                                                            expansion : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal>,
+                                                            names : Array<string|null>,
+                                                            options : string[],
+                                                            example : Ast.Example) {
+        const exParams = Object.keys(example.args);
+
+        // generate one rule for each possible parameter
+        // in each rule, choose a different parameter to be replaced with a table
+        // and the rest is constant or undefined
+        for (const tableParam of exParams) {
+            const paramIdx = names.indexOf(tableParam);
+            assert(paramIdx >= 0);
+
+            const option = options[paramIdx];
+            if (option === 'const') // no parameter passing if parameter uses :const in the placeholder
+                continue;
 
             for (const fromNonTermName of ['with_filtered_table', 'with_arg_min_max_table', 'projection_Any', 'stream_projection_Any']) {
                 if (grammarCat === 'query' && fromNonTermName === 'stream_projection_Any') // TODO
@@ -994,62 +1019,12 @@ export class ThingpediaLoader {
      * only constants and undefined.
      */
     private _addConstantOrUndefinedPrimitiveTemplate(grammarCat : PrimitiveTemplateType,
-                                                     chunks : string[],
+                                                     expansion : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal>,
+                                                     names : Array<string|null>,
                                                      example : Ast.Example) {
-        const expansion : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal> = [];
-        const names : Array<string|null> = [];
-
-        for (const chunk of chunks) {
-            if (chunk === '')
-                continue;
-            if (chunk.startsWith('$') && chunk !== '$$') {
-                const [, param1, param2, opt] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk)!;
-                const param = param1 || param2;
-                assert(param);
-
-                const type = example.args[param];
-                if (!type)
-                    throw new Error(`Invalid placeholder \${param} in primitive template`);
-
-                // don't use placeholders for booleans or enums, as that rarely makes sense
-                const canUseUndefined = grammarCat !== 'action_past' && opt !== 'no-undefined' &&
-                    !type.isEnum && !type.isBoolean;
-
-                const nonTerm = canUseUndefined ? new this._runtime.NonTerminal('constant_or_undefined', ['type', type])
-                    : this._getConstantNT(type, { strictTypeCheck: true });
-
-                expansion.push(nonTerm);
-                names.push(param);
-            } else {
-                expansion.push(chunk);
-                names.push(null);
-            }
-        }
-
         this._addRule<Ast.Value[], Ast.Expression>('thingpedia_complete_' + grammarCat, expansion,
             (...args) => replacePlaceholdersWithConstants(example, names, args),
             keyfns.expressionKeyFn);
-    }
-
-    private _addOldStylePrimitiveTemplate(grammarCat : 'action'|'query'|'get_command'|'stream'|'program',
-                                          chunks : string[],
-                                          value : Ast.Expression) {
-        const expansion : Array<string|Genie.SentenceGeneratorRuntime.Placeholder> = [];
-
-        for (const chunk of chunks) {
-            if (chunk === '')
-                continue;
-            if (chunk.startsWith('$') && chunk !== '$$') {
-                const [, param1, param2, opt] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk)!;
-                const param = param1 || param2;
-                assert(param);
-                expansion.push(new this._runtime.Placeholder(param, opt));
-            } else {
-                expansion.push(chunk);
-            }
-        }
-
-        this._addRule('thingpedia_' + grammarCat, expansion, () => value, keyfns.expressionKeyFn);
     }
 
     private async _makeExampleFromQuery(q : Ast.FunctionDef) {

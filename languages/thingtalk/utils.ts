@@ -2,7 +2,7 @@
 //
 // This file is part of Genie
 //
-// Copyright 2019-2020 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2019-2021 The Board of Trustees of the Leland Stanford Junior University
 //           2019 National Taiwan University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -31,8 +31,52 @@ import type { SlotBag } from './slot_bag';
 // but they also add the function name, so we don't mix parameters
 // across functions with the same name
 
+/**
+ * A placeholder of the form "something", "some person", etc.
+ */
 export interface Placeholder {
     type : Type;
+}
+
+/**
+ * A phrase that includes a coreference, such as "post this on twitter",
+ * "post the caption on twitter", "book it on yelp", "book the restaurant on yelp"
+ */
+export interface ExpressionWithCoreference {
+    // the actual expression
+    // for "post this", "book it" and "book the restaurant", it will be something like:
+    // ```
+    // @com.twitter.post(status=p_status);
+    // ```
+    // (i.e., `p_status` is still present from the primitive template
+    // and can be replaced with other things)
+    //
+    // for "post the caption", it will be something like:
+    // ```
+    // @com.twitter.post(status=caption);
+    // ```
+    // i.e. `p_status` has been replaced already and no further replacement
+    // is necessary
+    //
+    // note that this allows "book the restaurant" to be matched with a query
+    // that is not `@com.yelp.restaurant()`, as long as the type matches
+    // whereas "post the caption" must be matched with the query where the
+    // word "caption" comes from, not just any query that uses the parameter
+    // `caption`
+    expression : Ast.Expression;
+
+    // the type of the parameter where the coreference is used
+    type : Type;
+
+    // the parameter that was used to make the coreference, if any
+    // this is null for "post this" and "book the restaurant",
+    // and not null for "post the caption"
+    slot : ParamSlot|null;
+
+    // the parameter that needs to be replaced with the coreference
+    // this is not-null for "post this" and "book the restaurant",
+    // and null for "post the caption"
+    pname : string|null;
 }
 
 export interface ErrorMessage {

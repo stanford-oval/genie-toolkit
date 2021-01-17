@@ -27,10 +27,11 @@ import * as C from '../ast_manip';
 import _tpLoader from '../load-thingpedia';
 
 import '../common.genie';
+import './shared.genie';
 import './constants.genie';
 import './timers.genie';
 import './filters.genie';
-import './parameters.genie';
+import './projections.genie';
 import './aggregation.genie';
 import './computation.genie';
 import './who_questions.genie';
@@ -39,7 +40,7 @@ import './commands.genie';
 import './stream_tables.genie';
 
 $root : Ast.Input = {
-    p:thingpedia_complete_program => C.makeProgram(new Ast.ExpressionStatement(null, p));
+    p:thingpedia_complete_program => C.makeProgram(p);
 
     ?timer stmt:timer_rule [weight=0.2] => C.makeProgram(stmt);
     !nostream {
@@ -57,7 +58,8 @@ $root : Ast.Input = {
     | generic_preamble_for_action stmt:complete_action
 
       // now => get => do
-    | generic_preamble_for_action stmt:complete_get_do_command [weight=0.1]
+    | generic_preamble_for_action stmt:forward_get_do_command
+    | stmt:backward_get_do_command [weight=0.1]
 
     | stmt:search_command
     | stmt:complete_question [weight=0.1]

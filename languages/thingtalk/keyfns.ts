@@ -24,12 +24,16 @@ import { Ast, Type } from 'thingtalk';
 import type { SlotBag } from './slot_bag';
 import type {
     Placeholder,
+    ExpressionWithCoreference,
     ErrorMessage,
     ParamSlot,
     FilterSlot,
     DomainIndependentFilterSlot,
-    InputParamSlot
+    InputParamSlot,
 } from './utils';
+import {
+    getImplicitParameterPassing
+} from './ast_manip';
 
 // Key functions: given the result of a semantic function, compute
 // a set of keys to speed-up derivation matching
@@ -106,6 +110,7 @@ export function expressionKeyFn(expr : Ast.Expression) {
 
     let isEventProjection = false;
     let projectionType = null;
+    let implicitParamPassingType = null;
     if (expr instanceof Ast.MonitorExpression)
         expr = expr.expression;
     if (expr instanceof Ast.ProjectionExpression) {
@@ -118,6 +123,12 @@ export function expressionKeyFn(expr : Ast.Expression) {
         } else if (expr.computations.length === 1 && expr.args.length === 0) {
             projectionType = expr.computations[0].getType();
         }
+    } else {
+        const paramPassing = getImplicitParameterPassing(expr.schema!);
+        if (paramPassing === '$event')
+            implicitParamPassingType = Type.String;
+        else
+            implicitParamPassingType = schema.getArgType(paramPassing)!;
     }
     assert(projectionType !== undefined);
 
@@ -128,6 +139,7 @@ export function expressionKeyFn(expr : Ast.Expression) {
         has_geo: !!(geo && geo.type === Type.Location),
         projectionType,
         isEventProjection,
+        implicitParamPassingType,
         idType: id && !id.is_input ? id.type : null
     };
 }
@@ -167,4 +179,19 @@ export function expressionStatementKeyFn(expr : Ast.ExpressionStatement) {
 
 export function argMinMaxKeyFn(argminmax : [ParamSlot, 'asc' | 'desc']) {
     return paramKeyFn(argminmax[0]);
+}
+
+export function expressionWithCoreferenceKeyFn(coref : ExpressionWithCoreference) {
+    const schema = coref.expression.schema!;
+    const id = schema.getArgument('id');
+
+    return {
+        // standard expression keys
+        functionName: schema.qualifiedName,
+        idType: id && !id.is_input ? id.type : null,
+
+        // coref specific keys
+        corefType: coref.type,
+        corefFunctionName: coref.slot ? coref.slot.schema.qualifiedName : null,
+    };
 }

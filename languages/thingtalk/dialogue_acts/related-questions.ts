@@ -32,16 +32,13 @@ import {
     refineFilterToAnswerQuestion,
 } from './refinement-helpers';
 
-function relatedQuestion(ctx : ContextInfo, stmt : Ast.ExpressionStatement) {
+function relatedQuestion(ctx : ContextInfo, expr : Ast.Expression) {
     const currentStmt = ctx.current!.stmt;
     const currentTable = currentStmt.expression;
 
-    if (stmt.last.schema!.functionType === 'action')
+    if (expr.schema!.functionType !== 'query')
         return null;
-    const newSchema = stmt.expression.schema;
-    if (!(newSchema instanceof Ast.FunctionDef))
-        return null;
-
+    const newSchema = expr.schema!;
     if (C.isSameFunction(currentTable.schema!, newSchema))
         return null;
 
@@ -53,10 +50,10 @@ function relatedQuestion(ctx : ContextInfo, stmt : Ast.ExpressionStatement) {
     if (!related || !related.includes(functionName))
         return null;
 
-    if (!C.checkValidQuery(stmt.expression))
+    if (!C.checkValidQuery(expr))
         return null;
 
-    const newTable = stmt.expression.clone();
+    const newTable = C.toChainExpression(expr.clone());
     const newFilterTable = findOrMakeFilterExpression(newTable);
     if (newFilterTable === null)
         return null;
