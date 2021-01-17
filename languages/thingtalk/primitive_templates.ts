@@ -19,10 +19,18 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
-import { Ast, } from 'thingtalk';
+import { Ast, Type } from 'thingtalk';
 
-import { ErrorMessage } from './utils';
+import {
+    ErrorMessage,
+} from './utils';
 import { SlotBag } from './slot_bag';
+
+// note: this is a circular import: ast_manip imports load-thingpedia that
+// loads this file
+// this should be ok because we don't use anything from this module during
+// the initial module run (we just define functions), but care is necessary
+import * as C from './ast_manip';
 
 // Semantic functions for primitive templates
 
@@ -84,9 +92,9 @@ function betaReduceMany(ast : Ast.Expression, replacements : Record<string, Ast.
     return clone;
 }
 
-export function replacePrimitiveTemplatePlaceholdersWithConstants(ex : Ast.Example,
-                                                                  names : Array<string|null>,
-                                                                  args : Ast.Value[]) : Ast.Expression|null {
+export function replacePlaceholdersWithConstants(ex : Ast.Example,
+                                                 names : Array<string|null>,
+                                                 args : Ast.Value[]) : Ast.Expression|null {
     const replacements : Record<string, Ast.Value> = {};
 
     assert(names.length === args.length);
@@ -102,4 +110,58 @@ export function replacePrimitiveTemplatePlaceholdersWithConstants(ex : Ast.Examp
     }
 
     return betaReduceMany(ex.value, replacements);
+}
+
+export function replacePlaceholderWithTableOrStream(ex : Ast.Example,
+                                                    names : Array<string|null>,
+                                                    tableParamIdx : number,
+                                                    args : Array<Ast.Value|Ast.Expression>) : Ast.ChainExpression|null {
+    // first check the table, then replace the parameters, and then finally construct the chain expression
+    const table = args[tableParamIdx];
+    assert(table instanceof Ast.Expression);
+
+    const intoname = names[tableParamIdx];
+    assert(typeof intoname === 'string');
+    const intotype = ex.args[intoname];
+    assert(intotype);
+    let projection : Ast.ProjectionExpression;
+    if (!(table instanceof Ast.ProjectionExpression)) {
+        const maybeProjection = C.makeTypeBasedTableProjection(table, intotype);
+        if (maybeProjection === null)
+            return null;
+        projection = maybeProjection;
+    } else {
+        projection = table;
+    }
+    assert(projection.args.length === 1);
+
+    const joinArg = projection.args[0];
+    if (joinArg === '$event' && ['p_body', 'p_message', 'p_caption', 'p_status'].indexOf(intoname) < 0)
+        return null;
+    const joinType = joinArg === '$event' ? Type.String : projection.schema!.getArgType(joinArg)!;
+    if (!joinType.equals(intotype))
+        return null;
+
+    const replacements : Record<string, Ast.Value> = {};
+    assert(names.length === args.length);
+    for (let i = 0; i < names.length; i++) {
+        const name = names[i];
+        if (name === null)
+            continue;
+
+        if (i === tableParamIdx) {
+            const value = joinArg === '$event' ? new Ast.Value.Event(null) : new Ast.Value.VarRef(joinArg);
+            replacements[name] = value;
+        } else {
+            const value = args[i] as Ast.Value;
+            assert(value.getType().equals(ex.args[name]));
+            replacements[name] = value;
+        }
+    }
+
+    const reduced = betaReduceMany(ex.value, replacements);
+    if (!reduced)
+        return null;
+
+    return new Ast.ChainExpression(null, [projection.expression, reduced], C.resolveChain(projection.expression.schema!, reduced.schema!));
 }

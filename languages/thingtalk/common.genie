@@ -38,6 +38,7 @@ keyfn = {
     Ast.Value[] : C.valueArrayKeyFn,
     Ast.Expression : C.expressionKeyFn,
     Ast.InvocationExpression : C.expressionKeyFn,
+    Ast.ChainExpression : C.expressionKeyFn,
     Ast.Invocation : C.invocationKeyFn,
     Ast.ExpressionStatement : C.expressionStatementKeyFn,
     Ast.FunctionDef : C.functionDefKeyFn,
@@ -86,6 +87,16 @@ constant_or_undefined : Ast.Value = {
         return v;
     };
 }
+
+// joins can be produced directly by replacing into primitive templates,
+// hence we declare the associated non-terminals here
+table_join_replace_placeholder : Ast.ChainExpression = {}
+action_replace_param_with_table : Ast.ChainExpression = {}
+action_replace_param_with_stream : Ast.ChainExpression = {}
+with_filtered_table : Ast.Expression = {}
+with_arg_min_max_table : Ast.Expression = {}
+projection_Any : Ast.Expression = {}
+stream_projection_Any : Ast.Expression = {}
 
 out_param_Any : C.ParamSlot = {}
 out_param_Array__Any : C.ParamSlot = {}
@@ -200,11 +211,6 @@ generic_base_noun_phrase : Ast.InvocationExpression = {}
 {
 await _tpLoader.init($runtime, $grammar, $locale, $options);
 }
-
-// empty defaults for certain parameter types in case we don't have devices with
-// those parameters
-projection_Entity__tt__username : Ast.Expression = {}
-projection_Entity__tt__email_address : Ast.Expression = {}
 
 for (const [pslot,] of _tpLoader.params.in.values()) {
     thingpedia_stream : Ast.Expression = {

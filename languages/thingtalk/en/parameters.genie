@@ -130,8 +130,6 @@ projection_Any : Ast.Expression = {
     | 'the' outParam:out_param_Any 'of the' table:with_arg_min_max_table with { functionName = outParam.functionName }
     ) =>
         C.makeSingleFieldProjection('table', null, table, outParam);
-
-    table:with_filtered_table => C.makeTypeBasedTableProjection(table);
 }
 
 verb_projection_Any : Ast.Expression = {
@@ -234,22 +232,6 @@ for (let [pslot,] of _tpLoader.params.in.values()) {
     if (pslot.type !== Type.Boolean && !pslot.type.isEnum) {
         // replace $-placeholders with projection-based parameter passing
 
-        // FIXME
-        /*table_join_replace_placeholder : Ast.ChainExpression = {
-            ( q:thingpedia_query p:with_filtered_table
-            | q:thingpedia_query p:with_arg_min_max_table
-            | q:thingpedia_query p:complete_table
-            ) [-> pname] => C.actionReplaceParamWithTable(q, pname, p);
-        }*/
-        action_replace_param_with_table : Ast.ChainExpression = {
-            ( a:thingpedia_action p:with_filtered_table
-            | a:thingpedia_action p:with_arg_min_max_table
-            | a:thingpedia_action p:complete_table
-            ) [-> (pslot.name)] => C.actionReplaceParamWithTable(a, pslot, p);
-        }
-        action_replace_param_with_stream : Ast.ChainExpression = a:thingpedia_action p:stream_projection_Any [-> (pslot.name)]
-            => C.actionReplaceParamWithStream(a, pslot, p);
-
         if (_tpLoader.isIDType(pslot.type)) {
             forward_get_do_command : Ast.ChainExpression = command:forward_get_do_command ('it' | 'that' | 'them') [-> (pslot.name)] => {
                 for (let joinArg in command.first.schema!.out) {
@@ -275,14 +257,6 @@ for (let [pslot,] of _tpLoader.params.in.values()) {
                 return null;
             };
         } else {
-            // FIXME
-            //table_join_replace_placeholder : Ast.ChainExpression = q:thingpedia_query p:projection_Any [-> pname]
-            //    => C.actionReplaceParamWithTable(q, pname, p);
-            action_replace_param_with_table : Ast.ChainExpression = a:thingpedia_action p:projection_Any with { projectionType = (pslot.type) } [-> (pslot.name)]
-                => C.actionReplaceParamWithTable(a, pslot, p);
-            action_replace_param_with_stream : Ast.ChainExpression = a:thingpedia_action p:stream_projection_Any with { projectionType = (pslot.type) } [-> (pslot.name)]
-                => C.actionReplaceParamWithStream(a, pslot, p);
-
             forward_get_do_command : Ast.ChainExpression = !turking command:forward_get_do_command p:the_out_param_Any with { type = (pslot.type) } [-> (pslot.name)]
                 => C.addParameterPassing(command, pslot, p.ast);
             backward_get_do_command : Ast.ChainExpression = !turking command:backward_get_do_command p:the_out_param_Any with { type = (pslot.type) } [-> (pslot.name)]

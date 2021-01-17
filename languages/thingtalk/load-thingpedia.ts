@@ -48,7 +48,8 @@ import {
 import {
     replaceSlotBagPlaceholders,
     replaceErrorMessagePlaceholders,
-    replacePrimitiveTemplatePlaceholdersWithConstants,
+    replacePlaceholdersWithConstants,
+    replacePlaceholderWithTableOrStream,
 } from './primitive_templates';
 import * as keyfns from './keyfns';
 import { SlotBag } from './slot_bag';
@@ -906,8 +907,92 @@ export class ThingpediaLoader {
 
         // template #1: just constants and/or undefined
         this._addConstantOrUndefinedPrimitiveTemplate(grammarCat, chunks, example);
+
+        // template #2: replace placeholders with whole queries or streams
+        // TODO: enable this for table joins with param passing
+        if (grammarCat === 'action')
+            this._addPlaceholderReplacementJoinPrimitiveTemplate(grammarCat, chunks, example);
     }
 
+    /**
+     * Convert a primitive template into a regular template that performs
+     * a join with parameter passing by replacing exactly one placeholder
+     * with a whole query or stream, and replacing the other placeholders with constants
+     * or undefined.
+     */
+    private _addPlaceholderReplacementJoinPrimitiveTemplate(grammarCat : 'action'|'query'|'get_command',
+                                                            chunks : string[],
+                                                            example : Ast.Example) {
+        const exParams = Object.keys(example.args);
+
+        const expansion : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal> = [];
+        const names : Array<string|null> = [];
+
+        for (const chunk of chunks) {
+            if (chunk === '')
+                continue;
+            if (chunk.startsWith('$') && chunk !== '$$') {
+                const [, param1, param2, opt] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk)!;
+                const param = param1 || param2;
+                assert(param);
+
+                const type = example.args[param];
+                if (!type)
+                    throw new Error(`Invalid placeholder \${param} in primitive template`);
+
+                // don't use placeholders for booleans or enums, as that rarely makes sense
+                const canUseUndefined = opt !== 'no-undefined' && !type.isEnum && !type.isBoolean;
+
+                const nonTerm = canUseUndefined ? new this._runtime.NonTerminal('constant_or_undefined', ['type', type])
+                    : this._getConstantNT(type, { strictTypeCheck: true });
+
+                expansion.push(nonTerm);
+                names.push(param);
+            } else {
+                expansion.push(chunk);
+                names.push(null);
+            }
+        }
+
+        // generate one rule for each possible parameter
+        // in each rule, choose a different parameter to be replaced with a table
+        // and the rest is constant or undefined
+        for (const tableParam of exParams) {
+            const paramIdx = names.indexOf(tableParam);
+            assert(paramIdx >= 0);
+
+            for (const fromNonTermName of ['with_filtered_table', 'with_arg_min_max_table', 'projection_Any', 'stream_projection_Any']) {
+                if (grammarCat === 'query' && fromNonTermName === 'stream_projection_Any') // TODO
+                    continue;
+
+                let fromNonTerm;
+                if (fromNonTermName === 'projection_Any' || fromNonTermName === 'stream_projection_Any')
+                    fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, ['projectionType', example.args[tableParam]]);
+                else
+                    fromNonTerm = new this._runtime.NonTerminal(fromNonTermName);
+
+                const clone = expansion.slice();
+                clone[paramIdx] = fromNonTerm;
+
+                let intoNonTerm;
+                if (grammarCat === 'query')
+                    intoNonTerm = 'table_join_replace_placeholder';
+                else if (fromNonTermName === 'stream_projection_Any')
+                    intoNonTerm = 'action_replace_param_with_stream';
+                else
+                    intoNonTerm = 'action_replace_param_with_table';
+
+                this._addRule<Array<Ast.Value|Ast.Expression>, Ast.ChainExpression>(intoNonTerm, clone,
+                    (...args) => replacePlaceholderWithTableOrStream(example, names, paramIdx, args),
+                    keyfns.expressionKeyFn);
+            }
+        }
+    }
+
+    /**
+     * Convert a primitive template into a regular template that uses
+     * only constants and undefined.
+     */
     private _addConstantOrUndefinedPrimitiveTemplate(grammarCat : PrimitiveTemplateType,
                                                      chunks : string[],
                                                      example : Ast.Example) {
@@ -942,12 +1027,11 @@ export class ThingpediaLoader {
         }
 
         this._addRule<Ast.Value[], Ast.Expression>('thingpedia_complete_' + grammarCat, expansion,
-            (...args) => replacePrimitiveTemplatePlaceholdersWithConstants(example, names, args),
+            (...args) => replacePlaceholdersWithConstants(example, names, args),
             keyfns.expressionKeyFn);
-        return chunks;
     }
 
-    private _addOldStylePrimitiveTemplate(grammarCat : 'action'|'action_past'|'query'|'get_command'|'stream'|'program',
+    private _addOldStylePrimitiveTemplate(grammarCat : 'action'|'query'|'get_command'|'stream'|'program',
                                           chunks : string[],
                                           value : Ast.Expression) {
         const expansion : Array<string|Genie.SentenceGeneratorRuntime.Placeholder> = [];
@@ -966,7 +1050,6 @@ export class ThingpediaLoader {
         }
 
         this._addRule('thingpedia_' + grammarCat, expansion, () => value, keyfns.expressionKeyFn);
-        return chunks;
     }
 
     private async _makeExampleFromQuery(q : Ast.FunctionDef) {

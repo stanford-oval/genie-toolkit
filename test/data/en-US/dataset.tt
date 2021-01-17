@@ -11,6 +11,10 @@ dataset @org.thingpedia.everything {
     #[id=1]
     #_[preprocessed=["tweet ${p_status}", "post ${p_status} on twitter"]];
 
+    action (p_caption : String, p_picture_url : Entity(tt:picture)) := @com.twitter.post_picture(caption=p_caption, picture_url=p_picture_url)
+    #[id=1.5]
+    #_[preprocessed=["tweet ${p_picture_url} with caption ${p_caption}"]];
+
     query (p_query : String) := @com.bing.web_search(query=p_query)
     #[id=2]
     #_[preprocessed=["websites matching ${p_query}", "${p_query:const} websites", "${p_query:const} on bing"]];
