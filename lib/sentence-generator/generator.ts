@@ -668,7 +668,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
                     if (expansion instanceof NonTerminal) {
                         const index = this._nonTermTable.get(expansion.symbol);
                         if (index === undefined)
-                            throw new Error(`Non-terminal ${expansion.symbol} undefined, referenced by ${nonTerm}`);
+                            throw new Error(`Non-terminal ${expansion.symbol} undefined, in ${nonTerm} = ${rule.expansion.join(' ')}`);
                         expansion.index = index;
                     }
                 }

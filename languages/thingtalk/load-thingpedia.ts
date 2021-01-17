@@ -267,7 +267,7 @@ export class ThingpediaLoader {
     }
 
     private _getConstantNT(type : Type, { mustBeTrueConstant = false, strictTypeCheck = false } = {}) {
-        const typestr = typeToStringSafe(type);
+        const typestr = this._recordType(type)!;
 
         // mustBeTrueConstant indicates that we really need just a constant literal
         // as oppposed to some relative constant like "today" or "here"

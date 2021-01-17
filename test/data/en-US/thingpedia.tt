@@ -1269,7 +1269,7 @@ class @com.foxnews
                              out url: Entity(tt:url) #_[canonical="url"],
                              out author: String #_[canonical="author"] #[string_values="tt:person_full_name"],
                              out description: String #_[canonical="description"] #[string_values="tt:news_description"])
-  #_[canonical="headlines from Fox News"]
+  #_[canonical="headlines from fox news"]
   #_[confirmation="headlines from Fox News"]
   #[confirm=false];
 }
