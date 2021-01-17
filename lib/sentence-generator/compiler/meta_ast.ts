@@ -32,7 +32,6 @@ export class NodeVisitor {
     visitExpansionRule(stmt : Expansion) {}
     visitConstantsRule(stmt : Constants) {}
     visitConditionRule(stmt : Condition) {}
-    visitReplacementRule(stmt : Replacement) {}
 
     visitNonTerminalRuleHead(node : RuleHeadPart) {}
 }
@@ -270,7 +269,6 @@ export abstract class Rule {
     static Constants : typeof Constants;
     static Expansion : typeof Expansion;
     static Condition : typeof Condition;
-    static Replacement : typeof Replacement;
 
     abstract codegen(nonTerminal : string, prefix : string, type : string, keyfn : string) : string;
     abstract visit(visitor : NodeVisitor) : void;
@@ -344,7 +342,6 @@ function getTranslationKey(expansion : RuleHeadPart[]) : [string, string, boolea
 export class Expansion extends Rule {
     constructor(public head : RuleHeadPart[],
                 public bodyCode : string,
-                public conditionCode : string|null,
                 public attrs : RuleAttributes) {
         super();
         assert(Array.isArray(head));
@@ -363,7 +360,7 @@ export class Expansion extends Rule {
     codegen(nonTerminal : string, prefix = '', type : string, keyfn : string) : string {
         const expanderCode = makeBodyLambda(this.head, this.bodyCode, type);
 
-        return `${prefix}$grammar.addRule(${stringEscape(nonTerminal)}, [${this.head.map((h, i) => h.codegen(this.head, i)).join(', ')}], $runtime.simpleCombine((${expanderCode}), ${this.conditionCode ? stringEscape(this.conditionCode) : 'null'}, ${keyfn}), ${this.attrs.codegen()});\n`;
+        return `${prefix}$grammar.addRule(${stringEscape(nonTerminal)}, [${this.head.map((h, i) => h.codegen(this.head, i)).join(', ')}], (${expanderCode}), ${keyfn}, ${this.attrs.codegen()});\n`;
     }
 }
 Rule.Expansion = Expansion;
@@ -394,33 +391,6 @@ export class Condition extends Rule {
     }
 }
 Rule.Condition = Condition;
-
-export class Replacement extends Rule {
-    constructor(public head : RuleHeadPart[],
-                public placeholder : string,
-                public bodyCode : string,
-                public optionCode : string,
-                public attrs : RuleAttributes) {
-        super();
-    }
-
-    visit(visitor : NodeVisitor) {
-        visitor.visitReplacementRule(this);
-        for (const head of this.head)
-            head.visit(visitor);
-    }
-
-    getTranslationKey() {
-        return getTranslationKey(this.head);
-    }
-
-    codegen(nonTerminal : string, prefix = '', type : string, keyfn : string) : string {
-        const expanderCode = makeBodyLambda(this.head, this.bodyCode, type);
-
-        return (`${prefix}$grammar.addRule(${stringEscape(nonTerminal)}, [${this.head.map((h, i) => h.codegen(this.head, i)).join(', ')}], $runtime.combineReplacePlaceholder(${this.placeholder}, (${expanderCode}), ${this.optionCode}, ${keyfn}), ${this.attrs.codegen()});\n`);
-    }
-}
-Rule.Replacement = Replacement;
 
 export abstract class NonTerminalConstraint {
     static Constant : typeof ConstantNonTerminalConstraint;

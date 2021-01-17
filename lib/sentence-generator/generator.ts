@@ -40,15 +40,15 @@ import {
     LogLevel,
 
     Choice,
-    Placeholder,
     Context,
     Derivation,
     NonTerminal,
-    CombinerAction,
     DerivationChild,
-    KeyFunction,
+    DerivationChildTuple,
 } from './runtime';
 import {
+    SemanticAction,
+    KeyFunction,
     DerivationKeyValue,
     RuleAttributes,
     ContextPhrase,
@@ -57,12 +57,17 @@ import {
 } from './types';
 import { importGenie } from './compiler';
 
-type RuleExpansionChunk = string | Choice | Placeholder | NonTerminal;
+type RuleExpansionChunk = string | Choice | NonTerminal;
+
+function dummyKeyFunction() {
+    return {};
+}
 
 class Rule<ArgTypes extends unknown[], ReturnType> {
     number : number;
     expansion : RuleExpansionChunk[];
-    combiner : CombinerAction<ArgTypes, ReturnType>;
+    semanticAction : SemanticAction<ArgTypes, ReturnType>;
+    keyFunction : KeyFunction<ReturnType>;
 
     weight : number;
     priority : number;
@@ -77,13 +82,15 @@ class Rule<ArgTypes extends unknown[], ReturnType> {
 
     constructor(number : number,
                 expansion : RuleExpansionChunk[],
-                combiner : CombinerAction<ArgTypes, ReturnType>,
+                semanticAction : SemanticAction<ArgTypes, ReturnType>,
+                keyFunction : KeyFunction<ReturnType> = dummyKeyFunction,
                 { weight = 1, priority = 0, repeat = false, forConstant = false, temporary = false,
                   identity = false, expandchoice = true } : RuleAttributes) {
         this.number = number;
         this.expansion = expansion;
         assert(this.expansion.length > 0);
-        this.combiner = combiner;
+        this.semanticAction = semanticAction;
+        this.keyFunction = keyFunction;
 
         // attributes
         this.weight = weight;
@@ -99,6 +106,10 @@ class Rule<ArgTypes extends unknown[], ReturnType> {
         this.hasContext = false;
         this.enabled = true;
         assert(this.weight > 0);
+    }
+
+    apply(children : DerivationChildTuple<ArgTypes>) : Derivation<ReturnType>|null {
+        return Derivation.combine(children, this.semanticAction, this.keyFunction, this.priority);
     }
 }
 
@@ -607,10 +618,11 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
 
     private _addRuleInternal<ArgTypes extends unknown[], ResultType>(symbolId : number,
                                                                      expansion : RuleExpansionChunk[],
-                                                                     combiner : CombinerAction<ArgTypes, ResultType>,
+                                                                     semanticAction : SemanticAction<ArgTypes, ResultType>,
+                                                                     keyFunction : KeyFunction<ResultType>|undefined,
                                                                      attributes : RuleAttributes = {}) {
         const rulenumber = this._rules[symbolId].length;
-        this._rules[symbolId].push(new Rule<any[], any>(rulenumber, expansion, combiner as CombinerAction<any[], any>, attributes));
+        this._rules[symbolId].push(new Rule(rulenumber, expansion, semanticAction, keyFunction, attributes));
     }
 
     addConstants(symbol : string, token : string, type : any, keyFunction : KeyFunction<any>, attributes : RuleAttributes = {}) : void {
@@ -626,21 +638,21 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
         attributes.forConstant = true;
         for (const constant of ThingTalkUtils.createConstants(token, type, this._options.maxConstants || DEFAULT_MAX_CONSTANTS)) {
             const sentencepiece = constant.display;
-            const combiner = () => new Derivation(keyFunction(constant.value), constant.value, List.singleton(sentencepiece), null, attributes.priority || 0);
-            this._addRuleInternal(symbolId, [sentencepiece], combiner, attributes);
+            this._addRuleInternal(symbolId, [sentencepiece], () => constant.value, keyFunction, attributes);
         }
     }
 
     addRule<ArgTypes extends unknown[], ResultType>(symbol : string,
                                                     expansion : RuleExpansionChunk[],
-                                                    combiner : CombinerAction<ArgTypes, ResultType>,
+                                                    semanticAction : SemanticAction<ArgTypes, ResultType>,
+                                                    keyFunction : KeyFunction<ResultType>|undefined,
                                                     attributes : RuleAttributes = {}) : void {
         if (this._finalized)
             throw new GenieTypeError(`Grammar was finalized, cannot add more rules`);
         // ignore $user when loading the agent templates and vice-versa
         if (symbol.startsWith('$') && symbol !== this._rootSymbol)
             return;
-        this._addRuleInternal(this._lookupNonTerminal(symbol), expansion, combiner, attributes);
+        this._addRuleInternal(this._lookupNonTerminal(symbol), expansion, semanticAction, keyFunction, attributes);
     }
 
     private _typecheck() {
@@ -1000,8 +1012,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
         for (const token in constants) {
             for (const [symbolId, keyFunction] of this._constantMap.get(token)) {
                 for (const constant of constants[token]) {
-                    const combiner = () => new Derivation(keyFunction(constant.value), constant.value, List.singleton(constant.display), null, attributes.priority);
-                    this._addRuleInternal(symbolId, [constant.display], combiner, attributes);
+                    this._addRuleInternal(symbolId, [constant.display], () => constant.value, keyFunction, attributes);
                     if (this._options.debug >= LogLevel.EVERYTHING)
                         console.log(`added temporary rule NT[${this._nonTermList[symbolId]}] -> ${constant.display}`);
                 }
@@ -1515,8 +1526,7 @@ function expandRuleExhaustive(charts : ChartTable,
     // for each piece of the expansion, we take turn and use
     // depth-1 of that, depth' < depth-1 of anything before, and
     // depth' <= depth-1 of anything after
-    // terminals and placeholders are treated as having only
-    // 0 productions
+    // terminals are treated as having only 0 productions
     //
     // this means the order in which we generate is
     // (d-1, 0, 0, ..., 0)
@@ -1565,7 +1575,6 @@ function expandRuleExhaustive(charts : ChartTable,
 
     const rng = options.rng;
     const expansion = rule.expansion;
-    const combiner = rule.combiner;
 
     if (maxdepth < depth-1 && options.debug >= LogLevel.INFO)
         console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : reduced max depth to avoid exponential behavior`);
@@ -1588,7 +1597,7 @@ function expandRuleExhaustive(charts : ChartTable,
                 //console.log('combine: ' + choices.join(' ++ '));
                 //console.log('depths: ' + depths);
                 if (!(coinProbability < 1.0) || coin(coinProbability, rng)) {
-                    const v = combiner(assignChoices(choices, rng), rule.priority);
+                    const v = rule.apply(assignChoices(choices, rng));
                     if (v !== null) {
                         actualGenSize ++;
                         if (actualGenSize < targetPruningSize / 2 &&
@@ -1657,8 +1666,6 @@ function expandRuleExhaustive(charts : ChartTable,
                     if (!Context.compatible(context, candidate.context))
                         continue;
                     const newContext = Context.meet(context, candidate.context);
-                    if (combiner.isReplacePlaceholder && k === 0 && !candidate.hasPlaceholders())
-                        continue;
                     choices[k] = candidate;
                     //depths[k] = fixeddepth;
                     recursiveHelper(k+1, newContext);
@@ -1687,7 +1694,6 @@ function expandRuleSample(charts : ChartTable,
                           emit : (value : Derivation<any>) => void) : [number, number] {
     const rng = options.rng;
     const expansion = rule.expansion;
-    const combiner = rule.combiner;
 
     // this is an approximate, sampling-based version of the above algorithm,
     // which does not require enumerating anything
@@ -1754,7 +1760,7 @@ function expandRuleSample(charts : ChartTable,
                 }
             }
 
-            const v = combiner(choices, rule.priority);
+            const v = rule.apply(choices);
             if (v !== null) {
                 actualGenSize ++;
                 emit(v);
@@ -1909,12 +1915,10 @@ function expandRuleSample(charts : ChartTable,
                 if (!Context.compatible(newContext, chosen.context))
                     continue outerloop;
                 newContext = Context.meet(newContext, chosen.context);
-                if (combiner.isReplacePlaceholder && i === 0 && !chosen.hasPlaceholders())
-                    continue outerloop;
             }
         }
 
-        const v = combiner(choices, rule.priority);
+        const v = rule.apply(choices);
         if (v !== null) {
             actualGenSize ++;
             emit(v);
@@ -1938,12 +1942,11 @@ function expandRule(charts : ChartTable,
     const rng = options.rng;
 
     const expansion = rule.expansion;
-    const combiner = rule.combiner;
     const anyNonTerm = expansion.some((x) => x instanceof NonTerminal);
 
     if (!anyNonTerm) {
         if (depth === 0) {
-            const deriv = combiner(assignChoices(expansion, rng), rule.priority);
+            const deriv = rule.apply(assignChoices(expansion as DerivationChildOrChoice[], rng));
             if (deriv !== null)
                 emit(deriv);
         }

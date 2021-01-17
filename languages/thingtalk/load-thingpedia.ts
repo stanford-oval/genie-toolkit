@@ -198,11 +198,11 @@ export class ThingpediaLoader {
     }
 
     private _addRule<ArgTypes extends unknown[], ResultType>(nonTerm : string,
-                                                             parts : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal|Genie.SentenceGeneratorRuntime.Placeholder>,
+                                                             parts : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal>,
                                                              semanticAction : (...args : ArgTypes) => ResultType|null,
                                                              keyFunction : (value : ResultType) => Genie.SentenceGeneratorTypes.DerivationKey,
                                                              attributes : Genie.SentenceGeneratorTypes.RuleAttributes = {}) {
-        this._grammar.addRule(nonTerm, parts, this._runtime.simpleCombine(semanticAction, null, keyFunction), attributes);
+        this._grammar.addRule(nonTerm, parts, semanticAction, keyFunction, attributes);
     }
 
     private async _tryGetStandard(kind : string,

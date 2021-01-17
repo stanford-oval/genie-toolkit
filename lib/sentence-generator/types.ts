@@ -43,6 +43,9 @@ export type DerivationKeyValue = string|number|boolean|null|Hashable<unknown>;
  */
 export type DerivationKey = Record<string, DerivationKeyValue>;
 
+export type SemanticAction<ArgType extends unknown[], ReturnType> = (...args : ArgType) => ReturnType|null;
+export type KeyFunction<ValueType> = (value : ValueType) => DerivationKey;
+
 export interface ContextPhrase {
     symbol : number;
     utterance : string;
