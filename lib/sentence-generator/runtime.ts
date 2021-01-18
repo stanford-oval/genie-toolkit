@@ -105,9 +105,10 @@ export type DerivationChild<T> = string | Derivation<T>;
 
 export type DerivationChildTuple<ArgTypes extends unknown[]> = { [K in keyof ArgTypes] : DerivationChild<ArgTypes[K]> };
 
-// A Derivation represents a sentence, possibly with placeholders,
-// and a value, possibly with unspecified input parameters, that
-// was computed at a certain point in the derivation tree
+/**
+ * A Derivation represents a sentence fragment and an intermediate value
+ * that were computed at some point during the generation process.
+ */
 class Derivation<ValueType> {
     readonly key : DerivationKey;
     readonly value : ValueType;

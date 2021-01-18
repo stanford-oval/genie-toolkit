@@ -69,6 +69,7 @@ do_test([
     ('./test_requote'),
     ('./test_sentence_generator'),
     ('./test_stream_utils'),
+    ('./test_template_string'),
     ('./test_timed_reference'),
     ('./test_timers'),
     ('./test_trie'),
