@@ -128,12 +128,12 @@ const DEPTH_PROGRESS_MULTIPLIERS = [
 // size multiplied by this factor
 const NON_CONTEXTUAL_PRUNING_SIZE_MULTIPLIER = 3;
 
-// powers grow by 2 until depth 6, then go down by 0.8
+// powers grow by 2 until depth 4, then go down by 0.8
 const POWERS = [1];
-for (let i = 1; i < 7; i++)
+for (let i = 1; i < 5; i++)
     POWERS[i] = 2 * POWERS[i-1];
-for (let i = 7; i < 20; i++)
-    POWERS[i] = 0.8 * POWERS[i-1];
+for (let i = 5; i < 20; i++)
+    POWERS[i] = 0.9 * POWERS[i-1];
 const EXPONENTIAL_PRUNE_SIZE = 500000000;
 const MAX_SAMPLE_SIZE = 1000000;
 
