@@ -544,9 +544,25 @@ export default class ParameterReplacer {
             type = Type.Location;
         } else if (token.startsWith('GENERIC_ENTITY_')) {
             const match = /^GENERIC_ENTITY_(.*)_[0-9]+$/.exec(token)!;
-            valueListKey = ['entity', match[1]];
-            fallbackKey = 'tt:short_free_text';
             type = new Type.Entity(match[1]);
+            const [kind, name] = match[1].split(':');
+            // try looking up the function in Thingpedia and looking at the
+            // #[string_values] of the `id` parameter
+            valueListKey = ['entity', match[1]];
+            if (kind !== 'tt') {
+                try {
+                    const fnDef = await this._schemas.getMeta(kind, 'query', name);
+                    const id = fnDef.getArgument('id');
+                    if (id && id.type.equals(type)) {
+                        const stringValues = id.getImplementationAnnotation<string>('string_values');
+                        if (stringValues)
+                            valueListKey = ['string', stringValues];
+                    }
+                } catch(e) {
+                    // ignore
+                }
+            }
+            fallbackKey = 'tt:short_free_text';
         } else {
             valueListKey = ['string', 'tt:short_free_text'];
             fallbackKey = 'tt:short_free_text';
