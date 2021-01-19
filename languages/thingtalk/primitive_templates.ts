@@ -161,6 +161,8 @@ export function replacePlaceholderWithCoreference(ex : Ast.Example,
         const slot = corefArg as ParamSlot;
         if (!slot.type.equals(ex.args[pname]))
             return null;
+        if (slot.name === 'id') // do not make a reference to "the name"
+            return null;
         corefReplacement = new Ast.Value.VarRef(slot.name);
         corefSlot = slot;
     }
