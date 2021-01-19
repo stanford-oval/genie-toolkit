@@ -1727,7 +1727,7 @@ function expandRuleSample(charts : ChartTable,
             choices.push('');
 
         outerloop:
-        for (let sampleIdx = 0; sampleIdx < targetSemanticFunctionCalls; sampleIdx++) {
+        for (let sampleIdx = 0; sampleIdx < targetSemanticFunctionCalls && actualGenSize < targetPruningSize; sampleIdx++) {
             let newContext : Context|null = null;
             for (let i = 0; i < expansionLenght; i++) {
                 const currentExpansion = expansion[i];
@@ -1851,7 +1851,7 @@ function expandRuleSample(charts : ChartTable,
         choices.push('');
 
     outerloop:
-    for (let sampleIdx = 0; sampleIdx < targetSemanticFunctionCalls; sampleIdx++) {
+    for (let sampleIdx = 0; sampleIdx < targetSemanticFunctionCalls && actualGenSize < targetPruningSize; sampleIdx++) {
         let newContext : Context|null = null;
 
         // choose the pivot

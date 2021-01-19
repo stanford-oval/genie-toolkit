@@ -35,6 +35,17 @@ import {
 import type { Recommendation } from './recommendation';
 import type { ListProposal } from './list-proposal';
 
+export type UserSearchQuestionForList = [Ast.EntityValue|null, C.ParamSlot[]];
+
+export function userSearchQuestionForListKeyFn([name, questions] : UserSearchQuestionForList) {
+    if (questions.length === 0)
+        return { idType: null, functionName: null };
+
+    return {
+        idType: name ? name.getType() : null,
+        functionName: questions[0].schema.qualifiedName
+    };
+}
 
 function areQuestionsValidForContext(ctx : ContextInfo, questions : C.ParamSlot[]) {
     if (ctx.resultInfo!.isAggregation)

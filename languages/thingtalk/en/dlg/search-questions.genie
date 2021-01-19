@@ -199,7 +199,7 @@ verbose_search_answer_with_action : [Ast.Expression, Ast.Invocation] = {
     };
 }
 
-precise_search_question_answer : [Ast.Expression, Ast.Invocation|null, boolean] = {
+precise_search_question_answer : D.PreciseSearchQuestionAnswer = {
     table:verbose_search_answer => [table, null, false];
     ('yes' | 'yes ,' | '') table:verbose_search_answer => [table, null, true];
     table_action:verbose_search_answer_with_action => [...table_action, false];

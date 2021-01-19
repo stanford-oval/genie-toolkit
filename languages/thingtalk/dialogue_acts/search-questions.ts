@@ -42,6 +42,15 @@ import {
     addParametersFromContext
 } from './common';
 
+export type PreciseSearchQuestionAnswer = [Ast.Expression, Ast.Invocation|null, boolean];
+
+export function preciseSearchQuestionAnswerKeyFn([table, action, hasYes] : PreciseSearchQuestionAnswer) {
+    return {
+        functionName: table.schema!.qualifiedName,
+        actionFunctionName: action ? action.schema!.qualifiedName : null
+    };
+}
+
 function isGoodSearchQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
     const currentStmt = ctx.current!.stmt;
     if (!isValidSearchQuestion(currentStmt.lastQuery!, questions))

@@ -34,6 +34,18 @@ import {
     proposalReply
 } from './refinement-helpers';
 
+export type NegativeProposalReply = [Ast.Expression|null, Ast.Expression|null];
+
+export function negativeProposalReplyKeyFn([preamble, request] : NegativeProposalReply) {
+    assert(preamble || request);
+
+    if (preamble && request)
+        assert(C.isSameFunction(preamble.schema!, request.schema!));
+
+    return {
+        functionName: preamble ? preamble.schema!.qualifiedName : request!.schema!.qualifiedName
+    };
+}
 
 function checkSearchResultPreamble(ctx : ContextInfo, base : Ast.FunctionDef, num : Ast.Value|null, more : boolean) {
     if (!C.isSameFunction(base, ctx.currentFunction!))

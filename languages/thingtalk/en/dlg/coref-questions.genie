@@ -412,7 +412,7 @@ user_search_question : C.ParamSlot[] = {
     questions:boolean_user_search_question => questions;
 }
 
-user_search_question_for_list : [Ast.EntityValue|null, C.ParamSlot[]] = {
+user_search_question_for_list : D.UserSearchQuestionForList = {
     questions:simple_user_search_question => [null, questions];
     questions:simple_user_search_question_for_list => [null, questions];
     questions:boolean_user_search_question_for_list => [null, questions];

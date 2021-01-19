@@ -63,8 +63,9 @@ negative_proposal_answer_preamble : Ast.Expression = {
     ) => phrase;
 }
 
-negative_proposal_reply : [Ast.Expression|null, Ast.Expression|null] = {
+negative_proposal_reply : D.NegativeProposalReply = {
     ('no ,' | 'no' | '') request:negative_proposal_request => [null, request];
+
     preamble:negative_proposal_answer_preamble => [preamble, null];
-    preamble:negative_proposal_answer_preamble request:negative_proposal_request => [preamble, request];
+    preamble:negative_proposal_answer_preamble request:negative_proposal_request with { functionName = preamble.functionName } => [preamble, request];
 }
