@@ -994,7 +994,7 @@ export class ThingpediaLoader {
                 if (fromNonTermName === 'projection_Any' || fromNonTermName === 'stream_projection_Any')
                     fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, ['projectionType', example.args[tableParam]]);
                 else
-                    fromNonTerm = new this._runtime.NonTerminal(fromNonTermName);
+                    fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, ['implicitParamPassingType', example.args[tableParam]]);
 
                 const clone = expansion.slice();
                 clone[paramIdx] = fromNonTerm;
