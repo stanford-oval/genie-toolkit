@@ -2001,14 +2001,15 @@ function expandRule(charts : ChartTable,
 
     if (actualGenSize + prunedGenSize === 0)
         return;
-    const newEstimatedPruneFactor = actualGenSize / (actualGenSize + prunedGenSize);
-    if (options.debug >= LogLevel.VERBOSE_GENERATION && newEstimatedPruneFactor < 0.2)
-        console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : semantic function only accepted ${(newEstimatedPruneFactor*100).toFixed(1)}% of derivations`);
+    const semanticFunctionPruneFactor = actualGenSize / prunedGenSize;
+    if (options.debug >= LogLevel.VERBOSE_GENERATION && semanticFunctionPruneFactor < 0.2)
+        console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : semantic function only accepted ${(semanticFunctionPruneFactor*100).toFixed(1)}% of derivations`);
 
     const elapsed = Date.now() - now;
     if (options.debug >= LogLevel.INFO && elapsed >= 10000)
         console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : took ${(elapsed/1000).toFixed(2)} seconds using ${strategy}`);
 
+    const newEstimatedPruneFactor = actualGenSize / worstCaseGenSize;
     const movingAverageOfPruneFactor = (0.01 * estimatedPruneFactor + newEstimatedPruneFactor) / (1.01);
     averagePruningFactor[nonTermIndex][rule.number] = movingAverageOfPruneFactor;
 }
