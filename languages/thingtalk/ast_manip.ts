@@ -1819,6 +1819,14 @@ function adjustDefaultParameters<T extends Ast.Node>(stmt : T) : T {
     return stmt;
 }
 
+export function expressionUsesIDFilter(expr : Ast.Expression) {
+    const filterExpression = findFilterExpression(expr);
+    if (!filterExpression)
+        return false;
+
+    return filterUsesParam(filterExpression.filter, 'id');
+}
+
 export {
     // helpers
     typeToStringSafe,

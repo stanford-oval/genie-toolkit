@@ -91,11 +91,36 @@ function isGoodEmptySearchQuestion(ctx : ContextInfo, question : C.ParamSlot) {
 
 function emptySearchChangePhraseCommon(ctx : ContextInfo, newFilter : Ast.BooleanExpression) {
     const currentStmt = ctx.current!.stmt;
-    const currentTable = currentStmt.expression;
-    const newTable = queryRefinement(currentTable, newFilter, refineFilterToChangeFilter, null);
-    if (newTable === null)
+    const currentExpression = currentStmt.expression;
+    let currentTable = currentExpression.last;
+    let currentAction = null;
+    if (currentTable.schema!.functionType === 'action') {
+        currentAction = currentTable;
+        currentTable = currentExpression.expressions[currentExpression.expressions.length-1];
+    }
+
+    const newExpression = queryRefinement(currentExpression, newFilter, refineFilterToChangeFilter, null);
+    if (newExpression === null)
         return null;
-    return addQuery(ctx, 'execute', newTable, 'accepted');
+
+    if (currentAction) {
+        const confirm = C.normalizeConfirmAnnotation(currentAction.schema!);
+
+        // if the current statement was a compound command, and confirm === auto,
+        // we need to add the [1] clause to the query if necessary, and preserve
+        // the compound command
+        // otherwise, we'll issue just the table part of the query
+        //
+        // this mirrors what initial_request does
+        if (confirm === 'auto') {
+            const newTable = newExpression.lastQuery!;
+
+            if (C.expressionUsesIDFilter(newTable) && !(newTable instanceof Ast.IndexExpression) &&
+                !(newTable instanceof Ast.SliceExpression))
+                newExpression.setLastQuery(new Ast.IndexExpression(null, newTable, [new Ast.Value.Number(1)], newTable.schema));
+        }
+    } // XXX: do we want to remove any sort/index otherwise?
+    return addQuery(ctx, 'execute', newExpression, 'accepted');
 }
 
 /**

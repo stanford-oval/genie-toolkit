@@ -34,14 +34,6 @@ import {
     findOrMakeFilterExpression
 } from './refinement-helpers';
 
-function expressionUsesIDFilter(expr : Ast.Expression) {
-    const filterExpression = C.findFilterExpression(expr);
-    if (!filterExpression)
-        return false;
-
-    return C.filterUsesParam(filterExpression.filter, 'id');
-}
-
 function adjustStatementsForInitialRequest(expr : Ast.ChainExpression) {
     // TODO implement rules (streams)
     if (expr.first.schema!.functionType === 'stream')
@@ -66,7 +58,7 @@ function adjustStatementsForInitialRequest(expr : Ast.ChainExpression) {
         // otherwise, we split the compound command
         if (confirm === 'auto') {
             let newTable;
-            if (expressionUsesIDFilter(table) && !(table instanceof Ast.IndexExpression) &&
+            if (C.expressionUsesIDFilter(table) && !(table instanceof Ast.IndexExpression) &&
                 !(table instanceof Ast.SliceExpression))
                 newTable = new Ast.IndexExpression(null, table, [new Ast.Value.Number(1)], table.schema);
             else
