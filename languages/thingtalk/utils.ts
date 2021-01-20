@@ -179,7 +179,7 @@ function makeFilter(slot : ParamSlot,
             if ((vtype.isEnum && elem.isEnum) || (vtype.isEntity && elem.isEntity)) {
                 if (!Type.isAssignable(vtype, elem))
                     return null;
-            } else if (!ptype.equals(elem)) {
+            } else if (!elem.equals(vtype)) {
                 return null;
             }
         }
