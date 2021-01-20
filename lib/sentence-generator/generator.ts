@@ -80,6 +80,16 @@ class Rule<ArgTypes extends unknown[], ReturnType> {
     hasContext : boolean;
     enabled : boolean;
 
+    // initialize prune factor estimates to 0.2
+    // so we don't start pruning until we have a good estimate
+    //
+    // we keep two factors: one divides by the worst case (used by
+    // progress calculation and by the sampling-based algorithm), and the
+    // other divides by the number of semantic function calls (used
+    // by the enumerative algorithm)
+    averagePruningFactor = 0.2;
+    averageSemanticFunctionPruningFactor = 0.2;
+
     constructor(number : number,
                 expansion : RuleExpansionChunk[],
                 semanticAction : SemanticAction<ArgTypes, ReturnType>,
@@ -497,7 +507,6 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
     private _constantMap : MultiMap<string, [number, KeyFunction<any>]>;
 
     private _finalized : boolean;
-    private _averagePruningFactor : number[][];
     private _minDistanceFromRoot : number[];
     private _nonTermHasContext : boolean[];
 
@@ -530,7 +539,6 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
         this._constantMap = new MultiMap;
 
         this._finalized = false;
-        this._averagePruningFactor = [];
         this._minDistanceFromRoot = [];
         this._nonTermHasContext = [];
 
@@ -882,16 +890,9 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
         if (!this._options.flags.inference)
             this._optimizeConstLikeNonTerminals();
 
-        for (let index = 0; index < this._nonTermList.length; index++) {
-            const prunefactors : number[] = [];
-            this._averagePruningFactor.push(prunefactors);
-
-            for (const rule of this._rules[index]) {
-                // initialize prune factor estimates to 0.2
-                // so we don't start pruning until we have a good estimate
-                prunefactors.push(0.2);
-
-                if (this._options.debug >= LogLevel.DUMP_TEMPLATES)
+        if (this._options.debug >= LogLevel.DUMP_TEMPLATES) {
+            for (let index = 0; index < this._nonTermList.length; index++) {
+                for (const rule of this._rules[index])
                     console.log(`rule NT[${this._nonTermList[index]}] -> ${rule.expansion.join(' ')}`);
             }
         }
@@ -912,7 +913,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
             ruleEstimates[index] = estimates;
             estimates.length = rules.length;
             for (const rule of rules) {
-                let { estimatedGenSize, } = estimateRuleSize(charts, depth, index, rule, this._averagePruningFactor);
+                let { estimatedGenSize, } = estimateRuleSize(charts, depth, index, rule);
 
                 const ruleTargetSize = this._getRuleTarget(rule, index, depth, firstGeneration);
                 estimatedGenSize = Math.min(Math.round(estimatedGenSize), ruleTargetSize);
@@ -1090,7 +1091,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
                         continue;
 
                     try {
-                        expandRule(charts, depth, index, rule, this._averagePruningFactor, INFINITY, this._options, this._nonTermList, (derivation) => {
+                        expandRule(charts, depth, index, rule, INFINITY, this._options, this._nonTermList, (derivation) => {
                             if (derivation === null)
                                 return;
                             queue.push(derivation);
@@ -1303,7 +1304,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
                     const sampler = new ReservoirSampler(ruleTarget, this._options.rng);
 
                     try {
-                        expandRule(charts, depth, index, rule, this._averagePruningFactor, ruleTarget, this._options, this._nonTermList, (derivation) => {
+                        expandRule(charts, depth, index, rule, ruleTarget, this._options, this._nonTermList, (derivation) => {
                             if (derivation === null)
                                 return;
                             //let key = `$${nonterminal} -> ${derivation}`;
@@ -1452,14 +1453,12 @@ interface RuleSizeEstimate {
     reducedWorstCaseGenSize : number;
     maxdepth : number;
     estimatedGenSize : number;
-    estimatedPruneFactor : number;
 }
 
 function estimateRuleSize(charts : ChartTable,
                           depth : number,
                           nonTermIndex : number,
-                          rule : Rule<unknown[], unknown>,
-                          averagePruningFactor : number[][]) : RuleSizeEstimate {
+                          rule : Rule<unknown[], unknown>) {
     // first compute how many things we expect to produce in the worst case
     let maxdepth = depth-1;
     const worstCaseGenSize = computeWorstCaseGenSize(charts, depth, rule, maxdepth);
@@ -1475,9 +1474,8 @@ function estimateRuleSize(charts : ChartTable,
     if (maxdepth < 0 || reducedWorstCaseGenSize === 0)
         return { maxdepth, worstCaseGenSize, reducedWorstCaseGenSize, estimatedGenSize: 0, estimatedPruneFactor: 1 };
 
-    const estimatedPruneFactor = averagePruningFactor[nonTermIndex][rule.number];
-    const estimatedGenSize = worstCaseGenSize * estimatedPruneFactor;
-    return { maxdepth, worstCaseGenSize, reducedWorstCaseGenSize, estimatedGenSize, estimatedPruneFactor } ;
+    const estimatedGenSize = worstCaseGenSize * rule.averagePruningFactor;
+    return { maxdepth, worstCaseGenSize, reducedWorstCaseGenSize, estimatedGenSize } ;
 }
 
 interface ExpandOptions {
@@ -1515,7 +1513,6 @@ function* iterchain<T>(iter1 : Iterable<T>, iter2 : Iterable<T>) : Iterable<T> {
 function expandRuleExhaustive(charts : ChartTable,
                               depth : number,
                               maxdepth : number,
-                              basicCoinProbability : number,
                               nonTermIndex : number,
                               rule : Rule<any[], any>,
                               sizeEstimate : RuleSizeEstimate,
@@ -1582,13 +1579,20 @@ function expandRuleExhaustive(charts : ChartTable,
     if (options.debug >= LogLevel.EVERYTHING)
         console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : worst case ${sizeEstimate.worstCaseGenSize}, expect ${Math.round(sizeEstimate.estimatedGenSize)}`);
 
-    const estimatedPruneFactor = sizeEstimate.estimatedPruneFactor;
+    const estimatedPruneFactor = rule.averageSemanticFunctionPruningFactor;
     const choices : DerivationChildOrChoice[] = [];
     // fill and size the array
     for (let i = 0; i < expansion.length; i++)
         choices.push('');
     let actualGenSize = 0;
     let prunedGenSize = 0;
+
+    // to avoid spending too much time calling the combiner for things we'll prune later,
+    // we randomly sample out of all possible combinations about as many as we estimate
+    // we'll need to fill the reservoir
+    const targetSemanticFunctionCalls = sizeEstimate.estimatedGenSize / rule.averageSemanticFunctionPruningFactor;
+    const basicCoinProbability = Math.min(1, targetPruningSize / targetSemanticFunctionCalls);
+
     let coinProbability = basicCoinProbability;
     for (let pivotIdx = 0; pivotIdx < expansion.length; pivotIdx++) {
         const fixeddepth = depth-1;
@@ -1934,7 +1938,6 @@ function expandRule(charts : ChartTable,
                     depth : number,
                     nonTermIndex : number,
                     rule : Rule<any[], any>,
-                    averagePruningFactor : number[][],
                     targetPruningSize : number,
                     options : ExpandOptions,
                     nonTermList : string[],
@@ -1956,8 +1959,8 @@ function expandRule(charts : ChartTable,
         return;
 
     const sizeEstimate =
-        estimateRuleSize(charts, depth, nonTermIndex, rule, averagePruningFactor);
-    const { maxdepth, worstCaseGenSize, estimatedGenSize, estimatedPruneFactor } = sizeEstimate;
+        estimateRuleSize(charts, depth, nonTermIndex, rule);
+    const { maxdepth, worstCaseGenSize } = sizeEstimate;
 
     if (options.debug >= LogLevel.EVERYTHING)
         console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : worst case estimate ${worstCaseGenSize}`);
@@ -1966,25 +1969,20 @@ function expandRule(charts : ChartTable,
 
     const now = Date.now();
 
-    // to avoid spending too much time calling the combiner for things we'll prune later,
-    // we randomly sample out of all possible combinations about as many as we estimate
-    // we'll need to fill the reservoir
-    const coinProbability = Math.min(1, targetPruningSize / estimatedGenSize);
-
     // make an estimate of the number of times we'll need to call the semantic function
     // to get the target pruning size
-    const targetSemanticFunctionCalls = Math.min(targetPruningSize / estimatedPruneFactor, EXPONENTIAL_PRUNE_SIZE);
+    const targetSemanticFunctionCalls = Math.min(targetPruningSize / rule.averagePruningFactor, EXPONENTIAL_PRUNE_SIZE);
 
     //console.log('expand $' + nonterminal + ' -> ' + expansion.join('') + ' : actual ' + actualGenSize);
 
     let actualGenSize, prunedGenSize;
     let strategy;
-    if (sizeEstimate.maxdepth === depth-1 && (coinProbability >= 1 || targetSemanticFunctionCalls >= worstCaseGenSize * 0.8)) {
+    if (sizeEstimate.maxdepth === depth-1 && targetSemanticFunctionCalls >= worstCaseGenSize * 0.8) {
         if (options.debug >= LogLevel.EVERYTHING)
             console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : using recursive expansion`);
 
         // use the exhaustive algorithm if we expect to we'll be close to exhaustive anyway
-        [actualGenSize, prunedGenSize] = expandRuleExhaustive(charts, depth, maxdepth, coinProbability,
+        [actualGenSize, prunedGenSize] = expandRuleExhaustive(charts, depth, maxdepth,
             nonTermIndex, rule, sizeEstimate, targetPruningSize,
             options, nonTermList, emit);
         strategy = 'enumeration';
@@ -2001,14 +1999,19 @@ function expandRule(charts : ChartTable,
 
     if (actualGenSize + prunedGenSize === 0)
         return;
-    const newEstimatedPruneFactor = actualGenSize / (actualGenSize + prunedGenSize);
-    if (options.debug >= LogLevel.VERBOSE_GENERATION && newEstimatedPruneFactor < 0.2)
-        console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : semantic function only accepted ${(newEstimatedPruneFactor*100).toFixed(1)}% of derivations`);
+    const semanticFunctionPruneFactor = actualGenSize / (actualGenSize+prunedGenSize);
+    if (options.debug >= LogLevel.VERBOSE_GENERATION && semanticFunctionPruneFactor < 0.2)
+        console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : semantic function only accepted ${(semanticFunctionPruneFactor*100).toFixed(1)}% of derivations`);
 
     const elapsed = Date.now() - now;
     if (options.debug >= LogLevel.INFO && elapsed >= 10000)
         console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : took ${(elapsed/1000).toFixed(2)} seconds using ${strategy}`);
 
-    const movingAverageOfPruneFactor = (0.01 * estimatedPruneFactor + newEstimatedPruneFactor) / (1.01);
-    averagePruningFactor[nonTermIndex][rule.number] = movingAverageOfPruneFactor;
+    const newEstimatedPruneFactor = actualGenSize / worstCaseGenSize;
+    const movingAverageOfPruneFactor = (0.01 * rule.averagePruningFactor + newEstimatedPruneFactor) / (1.01);
+    rule.averagePruningFactor = movingAverageOfPruneFactor;
+
+    const newEstimatedSemanticPruneFactor = actualGenSize / (actualGenSize+prunedGenSize);
+    const movingAverageOfSemanticPruneFactor = (0.01 * rule.averageSemanticFunctionPruningFactor + newEstimatedSemanticPruneFactor) / (1.01);
+    rule.averageSemanticFunctionPruningFactor = movingAverageOfSemanticPruneFactor;
 }
