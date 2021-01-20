@@ -99,6 +99,8 @@ function learnMoreSearchQuestionReply(ctx : ContextInfo, questions : C.ParamSlot
 
     const currentStmt = ctx.current!.stmt;
     const currentTable = currentStmt.expression;
+    if (!topResult.value.id)
+        return null;
     const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', topResult.value.id);
     const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion,
         questions.map((q) => q.name));
