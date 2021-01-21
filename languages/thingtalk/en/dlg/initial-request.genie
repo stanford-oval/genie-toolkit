@@ -38,11 +38,13 @@ initial_command : Ast.Expression = {
     complete_question [weight=0.5];
     projection_question [weight=0.1];
 
-    ( stmt:search_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
-    | stmt:complete_action ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
-    | generic_preamble_for_action stmt:complete_action ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
-    | generic_preamble_for_action stmt:forward_get_do_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
-    ) => D.addInitialDontCare(stmt, dontcare);
+    ?dontcare {
+        ( stmt:search_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
+        | stmt:complete_action ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
+        | generic_preamble_for_action stmt:complete_action ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
+        | generic_preamble_for_action stmt:forward_get_do_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
+        ) => D.addInitialDontCare(stmt, dontcare);
+    }
 
     // TODO
     /*

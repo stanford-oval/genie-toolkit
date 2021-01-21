@@ -265,7 +265,10 @@ imprecise_search_answer : Ast.Value|C.FilterSlot = {
 imprecise_search_question_answer : Ast.Value|C.FilterSlot|'dontcare' = {
     imprecise_search_answer;
     imprecise_search_coref_answer;
-    generic_dontcare_phrase [weight=0.1] => 'dontcare';
-    no_dontcare_phrase [weight=0.1] => 'dontcare';
-    specific_dontcare_phrase;
+
+    ?dontcare {
+        generic_dontcare_phrase [weight=0.1] => 'dontcare';
+        no_dontcare_phrase [weight=0.1] => 'dontcare';
+        specific_dontcare_phrase;
+    }
 }
