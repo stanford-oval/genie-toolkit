@@ -24,13 +24,10 @@ import * as Tp from 'thingpedia';
 import { Ast, SchemaRetriever } from 'thingtalk';
 
 import ValueCategory from './value-category';
-import { CancellationError } from './errors';
 import * as I18n from '../i18n';
 import SentenceGenerator from '../sentence-generator/generator';
 import { AgentReplyRecord } from '../sentence-generator/types';
 import * as ThingTalkUtils from '../utils/thingtalk';
-import type DialogueLoop from './dialogue-loop';
-import type Conversation from './conversation';
 
 const MAX_DEPTH = 7;
 const TARGET_PRUNING_SIZES = [25, 50, 100];
@@ -88,29 +85,36 @@ interface GeneratorOptions {
     contextInitializer : ContextInitializer;
 }
 
+interface DialoguePolicyOptions {
+    thingpedia : Tp.BaseClient;
+    schemas : SchemaRetriever;
+    locale : string;
+
+    rng : () => number;
+    debug : boolean;
+}
+
 export default class DialoguePolicy {
-    private _dlg : DialogueLoop;
     private _thingpedia : Tp.BaseClient;
     private _schemas : SchemaRetriever;
     private _locale : string;
     private _langPack : I18n.LanguagePack;
     private _rng : () => number;
+    private _debug : boolean;
 
     private _sentenceGenerator : SentenceGenerator<Ast.DialogueState|null, AgentReplyRecord<Ast.DialogueState>>|null;
     private _generatorDevices : string[]|null;
     private _generatorOptions : GeneratorOptions|undefined;
 
-    constructor(dlg : DialogueLoop,
-                conversation : Conversation) {
-        this._dlg = dlg;
+    constructor(options : DialoguePolicyOptions) {
+        this._thingpedia = options.thingpedia;
+        this._schemas = options.schemas;
+        this._locale = options.locale;
+        this._langPack = I18n.get(options.locale);
 
-        this._thingpedia = conversation.thingpedia;
-        this._schemas = conversation.schemas;
-        this._locale = conversation.locale;
-        this._langPack = I18n.get(conversation.locale);
-
-        this._rng = conversation.rng;
+        this._rng = options.rng;
         assert(this._rng);
+        this._debug = options.debug;
 
         this._sentenceGenerator = null;
         this._generatorDevices = null;
@@ -138,7 +142,7 @@ export default class DialoguePolicy {
             maxDepth: MAX_DEPTH,
             maxConstants: 5,
             targetPruningSize: TARGET_PRUNING_SIZES[0],
-            debug: this._dlg.hasDebug ? 2 : 1,
+            debug: this._debug ? 2 : 1,
 
             contextInitializer(state, functionTable) {
                 // ask the target language to extract the constants from the context
@@ -199,13 +203,11 @@ export default class DialoguePolicy {
         return derivation;
     }
 
-    async chooseAction(state : Ast.DialogueState|null) : Promise<[Ast.DialogueState, ValueCategory|null, string, number]> {
+    async chooseAction(state : Ast.DialogueState|null) : Promise<[Ast.DialogueState, ValueCategory|null, string, number]|undefined> {
         await this._ensureGeneratorForState(state);
         const derivation = this._generateDerivation(state);
-        if (derivation === undefined) {
-            await this._dlg.fail();
-            throw new CancellationError();
-        }
+        if (derivation === undefined)
+            return derivation;
 
         let sentence = derivation.toString();
         sentence = this._langPack.postprocessSynthetic(sentence, derivation.value.state, this._rng, 'agent');

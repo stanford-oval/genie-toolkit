@@ -90,7 +90,7 @@ export default class Platform extends Tp.BasePlatform {
 
     // Initialize the platform code
     // Will be called before instantiating the engine
-    constructor(homedir : string, locale : string, thingpediaUrl : string) {
+    constructor(homedir : string|undefined, locale : string, thingpediaUrl : string) {
         super();
 
         this._locale = locale;
@@ -99,10 +99,19 @@ export default class Platform extends Tp.BasePlatform {
 
         this._timezone = process.env.TZ || '';
 
-        this._filesDir = homedir;
-        safeMkdirSync(this._filesDir);
-        this._cacheDir = path.resolve(homedir, 'cache');
-        safeMkdirSync(this._cacheDir);
+        if (homedir) {
+            this._filesDir = path.resolve(homedir);
+            safeMkdirSync(this._filesDir);
+            this._cacheDir = path.resolve(homedir, 'cache');
+            safeMkdirSync(this._cacheDir);
+        } else {
+            this._filesDir = path.resolve(os.homedir(), '.config/genie-toolkit');
+            safeMkdirSync(path.resolve(os.homedir(), '.config'));
+            safeMkdirSync(this._filesDir);
+            this._cacheDir = path.resolve(os.homedir(), '.cache/genie-toolkit');
+            safeMkdirSync(path.resolve(os.homedir(), '.cache'));
+            safeMkdirSync(this._cacheDir);
+        }
         this._prefs = new Tp.Helpers.FilePreferences(this._filesDir + '/prefs.db');
 
         this._tpClient = new Tp.HttpClient(this, thingpediaUrl);
