@@ -54,17 +54,8 @@ function adjustStatementsForInitialRequest(loader : ThingpediaLoader,
         assert(action instanceof Ast.InvocationExpression);
         const confirm = loader.ttUtils.normalizeConfirmAnnotation(action.invocation.schema!);
 
-        // if confirm === auto, we leave the compound command as is, but add the [1] clause
-        // to the query if necessary
-        // otherwise, we split the compound command
         if (confirm === 'auto') {
-            let newTable;
-            if (C.expressionUsesIDFilter(table) && !(table instanceof Ast.IndexExpression) &&
-                !(table instanceof Ast.SliceExpression))
-                newTable = new Ast.IndexExpression(null, table, [new Ast.Value.Number(1)], table.schema);
-            else
-                newTable = table;
-            const compoundStmt = new Ast.ExpressionStatement(null, new Ast.ChainExpression(null, [newTable, action], action.schema));
+            const compoundStmt = new Ast.ExpressionStatement(null, expr);
             newStatements.push(compoundStmt);
         } else {
             const queryStmt = new Ast.ExpressionStatement(null, table);

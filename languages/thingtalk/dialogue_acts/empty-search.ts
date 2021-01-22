@@ -21,7 +21,6 @@
 import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
-import ThingpediaLoader from '../load-thingpedia';
 
 import {
     ContextInfo,
@@ -90,39 +89,15 @@ function isGoodEmptySearchQuestion(ctx : ContextInfo, question : C.ParamSlot) {
     return true;
 }
 
-function emptySearchChangePhraseCommon(loader : ThingpediaLoader,
-                                       ctx : ContextInfo,
+function emptySearchChangePhraseCommon(ctx : ContextInfo,
                                        newFilter : Ast.BooleanExpression) {
     const currentStmt = ctx.current!.stmt;
     const currentExpression = currentStmt.expression;
-    let currentTable = currentExpression.last;
-    let currentAction = null;
-    if (currentTable.schema!.functionType === 'action') {
-        currentAction = currentTable;
-        currentTable = currentExpression.expressions[currentExpression.expressions.length-1];
-    }
-
     const newExpression = queryRefinement(currentExpression, newFilter, refineFilterToChangeFilter, null);
     if (newExpression === null)
         return null;
 
-    if (currentAction) {
-        const confirm = loader.ttUtils.normalizeConfirmAnnotation(currentAction.schema!);
-
-        // if the current statement was a compound command, and confirm === auto,
-        // we need to add the [1] clause to the query if necessary, and preserve
-        // the compound command
-        // otherwise, we'll issue just the table part of the query
-        //
-        // this mirrors what initial_request does
-        if (confirm === 'auto') {
-            const newTable = newExpression.lastQuery!;
-
-            if (C.expressionUsesIDFilter(newTable) && !(newTable instanceof Ast.IndexExpression) &&
-                !(newTable instanceof Ast.SliceExpression))
-                newExpression.setLastQuery(new Ast.IndexExpression(null, newTable, [new Ast.Value.Number(1)], newTable.schema));
-        }
-    } // XXX: do we want to remove any sort/index otherwise?
+    // XXX: do we want to remove any sort/index?
     return addQuery(ctx, 'execute', newExpression, 'accepted');
 }
 
@@ -132,8 +107,7 @@ function emptySearchChangePhraseCommon(loader : ThingpediaLoader,
  * The "precise" variant explicitly contains a reference to a table, which must be the same
  * as the context.
  */
-function preciseEmptySearchChangeRequest(loader : ThingpediaLoader,
-                                         ctx : ContextInfo,
+function preciseEmptySearchChangeRequest(ctx : ContextInfo,
                                          phrase : Ast.Expression) {
     if (!(phrase instanceof Ast.FilterExpression))
         return null;
@@ -143,7 +117,7 @@ function preciseEmptySearchChangeRequest(loader : ThingpediaLoader,
     if (param !== null && !C.filterUsesParam(phrase.filter, param.name))
         return null;
 
-    return emptySearchChangePhraseCommon(loader, ctx, phrase.filter);
+    return emptySearchChangePhraseCommon(ctx, phrase.filter);
 }
 
 /**
@@ -152,8 +126,7 @@ function preciseEmptySearchChangeRequest(loader : ThingpediaLoader,
  * The "imprecise" variant only contains a value and optionally a parameter name.
  * The table is inferred from the context.
  */
-function impreciseEmptySearchChangeRequest(loader : ThingpediaLoader,
-                                           ctx : ContextInfo,
+function impreciseEmptySearchChangeRequest(ctx : ContextInfo,
                                            answer : Ast.Value|C.FilterSlot) {
     const [base, param] = ctx.aux as EmptySearch;
     // because we're imprecise, we're only valid if the agent asked a specific question
@@ -161,7 +134,7 @@ function impreciseEmptySearchChangeRequest(loader : ThingpediaLoader,
         return null;
     let answerFilter : C.FilterSlot|null;
     if (answer instanceof Ast.Value)
-        answerFilter = C.makeFilter(loader, param, '==', answer);
+        answerFilter = C.makeFilter(ctx.loader, param, '==', answer);
     else
         answerFilter = answer;
     if (answerFilter === null || !(answerFilter instanceof Ast.AtomBooleanExpression))
@@ -171,7 +144,7 @@ function impreciseEmptySearchChangeRequest(loader : ThingpediaLoader,
     if (!C.checkFilter(base, answerFilter))
         return null;
 
-    return emptySearchChangePhraseCommon(loader, ctx, answerFilter);
+    return emptySearchChangePhraseCommon(ctx, answerFilter);
 }
 
 export {
