@@ -18,7 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import mmap from 'mmap-io';
 import { promises as pfs } from 'fs';
 
 import Trie, { WILDCARD } from '../utils/trie';
@@ -86,19 +85,26 @@ export default class ExactMatcher {
     }
 
     async load(filename : string) {
-        const fd = await pfs.open(filename, 'r');
-        const stats = await fd.stat();
+        let buffer;
+        try {
+            const mmap = (await import('mmap-io')).default;
+            const fd = await pfs.open(filename, 'r');
+            const stats = await fd.stat();
+            buffer = mmap.map(Math.ceil(stats.size / mmap.PAGESIZE) * mmap.PAGESIZE,
+                mmap.PROT_READ, mmap.MAP_SHARED | mmap.MAP_POPULATE, fd.fd, 0, mmap.MADV_RANDOM);
 
-        const buffer = mmap.map(Math.ceil(stats.size / mmap.PAGESIZE) * mmap.PAGESIZE,
-            mmap.PROT_READ, mmap.MAP_SHARED | mmap.MAP_POPULATE, fd.fd, 0, mmap.MADV_RANDOM);
+            // we created the mapping, so we can close the file and remove it - the kernel
+            // keeps a reference to it
+            // at the next load, we'll overwrite _btrie, which will cause the buffer to go unreferenced
+            // later, the GC will release buffer, unmap it, and _only then_ will the file actually be
+            // closed and deleted
+            await fd.close();
+        } catch(e) {
+            if (e.code !== 'MODULE_NOT_FOUND')
+                throw e;
+            buffer = await pfs.readFile(filename);
+        }
         this._btrie = new BTrie(buffer);
-
-        // we created the mapping, so we can close the file and remove it - the kernel
-        // keeps a reference to it
-        // at the next load, we'll overwrite _btrie, which will cause the buffer to go unreferenced
-        // later, the GC will release buffer, unmap it, and _only then_ will the file actually be
-        // closed and deleted
-        await fd.close();
 
         // assume that the binary file contains all modifications made afterwards, and clear the trie
         this._createTrie();
