@@ -888,7 +888,7 @@ export class ThingpediaLoader {
 
                 // don't use placeholders for booleans or enums, as that rarely makes sense
                 const canUseUndefined = grammarCat !== 'action_past' && opt !== 'no-undefined' &&
-                    !type.isEnum && !type.isBoolean;
+                    opt !== 'const' && !type.isEnum && !type.isBoolean;
 
                 const nonTerm = canUseUndefined ? new this._runtime.NonTerminal('constant_or_undefined', ['type', type])
                     : this._getConstantNT(type, { strictTypeCheck: true });
