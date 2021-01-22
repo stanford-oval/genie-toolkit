@@ -78,7 +78,6 @@ list_context_coref = {}
 coref_constant : Ast.Value = {}
 placeholder : C.Placeholder = {}
 constant_or_undefined : Ast.Value = {
-    constant_Any;
     pl:placeholder => {
         const v = new Ast.Value.Undefined(true);
         // override getType() so we can do type-checks

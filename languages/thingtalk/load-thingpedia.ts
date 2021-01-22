@@ -236,6 +236,9 @@ export class ThingpediaLoader {
         if (type.isArray)
             return 'Any';
 
+        this._addRule<Ast.Value[], Ast.Value>('constant_or_undefined', [this._getConstantNT(type)],
+            identity, keyfns.valueKeyFn);
+
         if (!this._grammar.hasSymbol('constant_' + typestr)) {
             if (!type.isEnum && !type.isEntity)
                 throw new Error('Missing definition for type ' + typestr);
