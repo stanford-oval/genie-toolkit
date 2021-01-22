@@ -942,14 +942,14 @@ export class ThingpediaLoader {
                 if (corefSource === 'same_sentence' && grammarCat === 'stream')
                     continue;
 
-                for (const fromNonTermName of [corefSource + '_coref', 'base_table', 'the_out_param_Any']) {
+                for (const fromNonTermName of [corefSource + '_coref', 'the_base_table', 'the_out_param_Any']) {
                     if (corefSource === 'list_context' && fromNonTermName !== corefSource + '_coref')
                         continue;
 
                     let fromNonTerm;
                     if (fromNonTermName === 'out_param_Any')
                         fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, ['type', example.args[tableParam]]);
-                    else if (fromNonTermName === 'base_table')
+                    else if (fromNonTermName === 'the_base_table')
                         fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, ['idType', example.args[tableParam]]);
                     else
                         fromNonTerm = new this._runtime.NonTerminal(fromNonTermName);

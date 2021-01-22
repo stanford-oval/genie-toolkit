@@ -18,6 +18,9 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import { Ast, } from 'thingtalk';
+
+import * as C from '../ast_manip';
 
 // Phrases and other snippets that are used from other templates
 
@@ -39,4 +42,8 @@ list_context_coref = {
     'either of them';
     'any of them';
     'any one of them';
+}
+
+the_base_table : Ast.InvocationExpression = {
+    'the' table:base_table => table;
 }

@@ -217,6 +217,7 @@ command_projection_table = {}
 
 constant_name : Ast.EntityValue = {}
 
+the_base_table : Ast.InvocationExpression = {}
 base_table : Ast.InvocationExpression = {}
 base_noun_phrase : Ast.FunctionDef = {}
 generic_anything_noun_phrase : Ast.InvocationExpression = {}
