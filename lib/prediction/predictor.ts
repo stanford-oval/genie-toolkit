@@ -24,6 +24,7 @@ import * as events from 'events';
 import * as child_process from 'child_process';
 
 import JsonDatagramSocket from '../utils/json_datagram_socket';
+import HttpEmitter from '../utils/http_emitter';
 
 const DEFAULT_QUESTION = 'translate from english to thingtalk';
 
@@ -51,9 +52,10 @@ interface Example {
 
 class Worker extends events.EventEmitter {
     id : string;
+    private _inference_name : string;
     private _child : child_process.ChildProcess|null;
     private _hadError : boolean;
-    private _stream : JsonDatagramSocket|null;
+    private _stream : JsonDatagramSocket|HttpEmitter|null;
     private _nextId : 0;
     private _requests : Map<number, Request>;
     private _modeldir : string;
@@ -62,10 +64,12 @@ class Worker extends events.EventEmitter {
     private _minibatch : Example[] = [];
     private _minibatchStartTime = 0;
 
-    constructor(id : string, modeldir : string) {
+    constructor(id : string, modeldir : string, inference_name : string) {
         super();
 
         this.id = id;
+        this._inference_name = inference_name;
+
         this._child = null;
         this._hadError = false;
         this._stream = null;
@@ -90,34 +94,46 @@ class Worker extends events.EventEmitter {
     }
 
     start() {
-        const args = [
-            'server',
-            '--stdin',
-            '--path', this._modeldir,
-        ];
-        if (process.env.GENIENLP_EMBEDDINGS)
-            args.push('--embeddings', process.env.GENIENLP_EMBEDDINGS);
-        if (process.env.GENIENLP_DATABASE)
-            args.push('--database', process.env.GENIENLP_DATABASE);
+        if (process.env.USE_KF_SERVING_INFERENCE) {
+            if (!process.env.INFERENCE_INGRESS) {
+                throw new Error("INFERENCE_INGRESS env must be set");
+            }
+            if (!process.env.INFERENCE_DOMAIN) {
+                throw new Error("INFERENCE_DOMAIN env must be set");
+            }
+            const url = `http://${process.env.INFERENCE_INGRESS}/v1/models/${this._inference_name}:predict`
+            const host = `${this._inference_name}.${process.env.INFERENCE_DOMAIN}`
+            console.log(`using kfserving inference service: ${url}, host: ${host}`);
+            this._stream = new HttpEmitter(url, host);
+	} else {
+            const args = [
+                'server',
+                '--stdin',
+                '--path', this._modeldir,
+            ];
+            if (process.env.GENIENLP_EMBEDDINGS)
+                args.push('--embeddings', process.env.GENIENLP_EMBEDDINGS);
+            if (process.env.GENIENLP_DATABASE)
+                args.push('--database', process.env.GENIENLP_DATABASE);
 
-        this._child = child_process.spawn('genienlp', args, {
-            stdio: ['pipe', 'pipe', 'inherit']
-        });
-        this._child.on('error', (e) => {
-            this._failAll(e);
-            this._hadError = true;
-            this.emit('error', e);
-        });
-        this._child.on('exit', (code, signal) => {
-            //console.error(`Child exited with code ${code}, signal ${signal}`);
+            this._child = child_process.spawn('genienlp', args, {
+                stdio: ['pipe', 'pipe', 'inherit']
+            });
+            this._child.on('error', (e) => {
+                this._failAll(e);
+                this._hadError = true;
+                this.emit('error', e);
+            });
+            this._child.on('exit', (code, signal) => {
+                //console.error(`Child exited with code ${code}, signal ${signal}`);
 
-            this._failAll(new Error(`Worker died`));
-            this._child = null;
-            this.emit('exit');
-        });
+                this._failAll(new Error(`Worker died`));
+                this._child = null;
+                this.emit('exit');
+            });
 
-        this._stream = new JsonDatagramSocket(this._child.stdout!, this._child.stdin!, 'utf8');
-
+            this._stream = new JsonDatagramSocket(this._child.stdout!, this._child.stdin!, 'utf8');
+        }
         this._stream.on('error', (e) => {
             this._failAll(e);
             this._hadError = true;
@@ -192,7 +208,12 @@ class Worker extends events.EventEmitter {
                 answer: ex.answer,
                 example_id: ex.example_id
             };
-        }) });
+        }) }, (err : Error | undefined | null) => {
+            if (err) {
+                console.error(err);
+                request.reject(err);
+            }
+        });
     }
 
     private _startRequest(ex : Example, task : string, now : number) {
@@ -282,7 +303,8 @@ export default class Predictor {
     }
 
     private _startWorker() {
-        const worker = new Worker(`${this.id}/${this._nextId++}`, this._modeldir);
+        const inference_name = this.id.replace(/\W/g, '');
+        const worker = new Worker(`${this.id}/${this._nextId++}`, this._modeldir, inference_name);
         worker.on('error', (err) => {
             console.error(`Worker ${worker.id} had an error: ${err.message}`);
             worker.stop();
