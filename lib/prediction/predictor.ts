@@ -54,9 +54,9 @@ interface Example {
 
 class Worker extends events.EventEmitter {
     id : string;
-    private _kf_inference_name : string;
-    private _kf_inference_ingress ?: string;
-    private _kf_inference_domain ?: string;
+    private _kfInferenceName : string;
+    private _kfInferenceIngress ?: string;
+    private _kfInferenceDomain ?: string;
     private _child : child_process.ChildProcess|null;
     private _hadError : boolean;
     private _stream : JsonDatagramSocket|HttpEmitter|null;
@@ -69,13 +69,13 @@ class Worker extends events.EventEmitter {
     private _minibatchStartTime = 0;
 
     constructor(id : string, modeldir : string,
-                kf_inference_name : string, kf_inference_ingress ?: string, kf_inference_domain ?: string) {
+                kfInferenceName : string, kfInferenceIngress ?: string, kfInferenceDomain ?: string) {
         super();
 
         this.id = id;
-        this._kf_inference_name = kf_inference_name;
-        this._kf_inference_ingress = kf_inference_ingress;
-        this._kf_inference_domain = kf_inference_domain;
+        this._kfInferenceName = kfInferenceName;
+        this._kfInferenceIngress = kfInferenceIngress;
+        this._kfInferenceDomain = kfInferenceDomain;
 
         this._child = null;
         this._hadError = false;
@@ -101,12 +101,12 @@ class Worker extends events.EventEmitter {
     }
 
     start() {
-        if (this._kf_inference_ingress && this._kf_inference_domain) {
-            const url = `http://${this._kf_inference_ingress}/v1/models/${this._kf_inference_name}:predict`
-            const host = `${this._kf_inference_name}.${this._kf_inference_domain}`
+        if (this._kfInferenceIngress && this._kfInferenceDomain) {
+            const url = `http://${this._kfInferenceIngress}/v1/models/${this._kfInferenceName}:predict`
+            const host = `${this._kfInferenceName}.${this._kfInferenceDomain}`
             console.log(`using kfserving inference service: ${url}, host: ${host}`);
             this._stream = new HttpEmitter(url, host);
-	} else {
+        } else {
             const args = [
                 'server',
                 '--stdin',
@@ -306,9 +306,9 @@ export default class Predictor {
     }
 
     private _startWorker() {
-        const kf_inference_name = this.id.replace(/\W/g, '');
+        const kfInferenceName = this.id.replace(/\W/g, '');
         const worker = new Worker(`${this.id}/${this._nextId++}`, this._modeldir,
-            kf_inference_name, this._options.kf_inference_ingress, this._options.kf_inference_domain);
+            kfInferenceName, this._options.kfInferenceIngress, this._options.kfInferenceDomain);
         worker.on('error', (err) => {
             console.error(`Worker ${worker.id} had an error: ${err.message}`);
             worker.stop();

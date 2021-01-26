@@ -45,8 +45,8 @@ const NLG_QUESTION = 'what should the agent say ?';
 export interface LocalParserOptions {
     id ?: string;
     nprocesses ?: number;
-    kf_inference_ingress ?: string;
-    kf_inference_domain ?: string;
+    kfInferenceIngress ?: string;
+    kfInferenceDomain ?: string;
 }
 
 function compareScore(a : PredictionCandidate, b : PredictionCandidate) : number {
