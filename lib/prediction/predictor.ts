@@ -26,6 +26,8 @@ import * as child_process from 'child_process';
 import JsonDatagramSocket from '../utils/json_datagram_socket';
 import HttpEmitter from '../utils/http_emitter';
 
+import { LocalParserOptions } from './localparserclient';
+
 const DEFAULT_QUESTION = 'translate from english to thingtalk';
 
 interface PredictionCandidate {
@@ -52,7 +54,9 @@ interface Example {
 
 class Worker extends events.EventEmitter {
     id : string;
-    private _inference_name : string;
+    private _kf_inference_name : string;
+    private _kf_inference_ingress ?: string;
+    private _kf_inference_domain ?: string;
     private _child : child_process.ChildProcess|null;
     private _hadError : boolean;
     private _stream : JsonDatagramSocket|HttpEmitter|null;
@@ -64,11 +68,14 @@ class Worker extends events.EventEmitter {
     private _minibatch : Example[] = [];
     private _minibatchStartTime = 0;
 
-    constructor(id : string, modeldir : string, inference_name : string) {
+    constructor(id : string, modeldir : string,
+                kf_inference_name : string, kf_inference_ingress ?: string, kf_inference_domain ?: string) {
         super();
 
         this.id = id;
-        this._inference_name = inference_name;
+        this._kf_inference_name = kf_inference_name;
+        this._kf_inference_ingress = kf_inference_ingress;
+        this._kf_inference_domain = kf_inference_domain;
 
         this._child = null;
         this._hadError = false;
@@ -94,15 +101,9 @@ class Worker extends events.EventEmitter {
     }
 
     start() {
-        if (process.env.USE_KF_SERVING_INFERENCE) {
-            if (!process.env.INFERENCE_INGRESS) {
-                throw new Error("INFERENCE_INGRESS env must be set");
-            }
-            if (!process.env.INFERENCE_DOMAIN) {
-                throw new Error("INFERENCE_DOMAIN env must be set");
-            }
-            const url = `http://${process.env.INFERENCE_INGRESS}/v1/models/${this._inference_name}:predict`
-            const host = `${this._inference_name}.${process.env.INFERENCE_DOMAIN}`
+        if (this._kf_inference_ingress && this._kf_inference_domain) {
+            const url = `http://${this._kf_inference_ingress}/v1/models/${this._kf_inference_name}:predict`
+            const host = `${this._kf_inference_name}.${this._kf_inference_domain}`
             console.log(`using kfserving inference service: ${url}, host: ${host}`);
             this._stream = new HttpEmitter(url, host);
 	} else {
@@ -260,16 +261,18 @@ class Worker extends events.EventEmitter {
 
 export default class Predictor {
     id : string;
+    private _options : LocalParserOptions;
     private _nWorkers : number;
     private _modeldir : string;
     private _nextId : number;
     private _workers : Set<Worker>;
     private _stopped : boolean;
 
-    constructor(id : string, modeldir : string, nWorkers = 1) {
-        this._nWorkers = nWorkers;
+    constructor(modeldir : string, options : LocalParserOptions) {
+        this._options = options;
+        this.id = options.id || 'local';
+        this._nWorkers = options.nprocesses || 1;
 
-        this.id = id;
         this._modeldir = modeldir;
         this._nextId = 0;
         this._workers = new Set;
@@ -303,8 +306,9 @@ export default class Predictor {
     }
 
     private _startWorker() {
-        const inference_name = this.id.replace(/\W/g, '');
-        const worker = new Worker(`${this.id}/${this._nextId++}`, this._modeldir, inference_name);
+        const kf_inference_name = this.id.replace(/\W/g, '');
+        const worker = new Worker(`${this.id}/${this._nextId++}`, this._modeldir,
+            kf_inference_name, this._options.kf_inference_ingress, this._options.kf_inference_domain);
         worker.on('error', (err) => {
             console.error(`Worker ${worker.id} had an error: ${err.message}`);
             worker.stop();
