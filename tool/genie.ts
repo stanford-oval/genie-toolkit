@@ -35,6 +35,7 @@ const subcommands : { [key : string] : SubCommand } = {
     'generate': require('./generate'),
     'generate-dialogs': require('./generate-dialogs'),
     'dialog-to-contextual': require('./dialog-to-contextual'),
+    'simulate-dialogs': require('./simulate-dialogs'),
 
     'sample': require('./sample'),
     'mturk-make-paraphrase-hits': require('./mturk-make-paraphrase-hits'),
