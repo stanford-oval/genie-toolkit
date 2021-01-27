@@ -37,13 +37,10 @@ export default class HttpEmitter extends events.EventEmitter {
             extraHeaders: {'Host': this._host}
         }).then((res) => {
             const parsed = JSON.parse(res);
-            if (parsed.predictions) {
+            if (parsed.predictions)
                 this.emit('data', JSON.parse(parsed.predictions));
-            } else {
-                if (callback) {
-                    callback(new Error(`Unexpected http response: ${res}`));
-                }
-            }
+            else if (callback)
+                callback(new Error(`Unexpected http response: ${res}`));
         }, callback);
     }
 }

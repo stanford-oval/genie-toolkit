@@ -102,8 +102,8 @@ class Worker extends events.EventEmitter {
 
     start() {
         if (this._kfInferenceIngress && this._kfInferenceDomain) {
-            const url = `http://${this._kfInferenceIngress}/v1/models/${this._kfInferenceName}:predict`
-            const host = `${this._kfInferenceName}.${this._kfInferenceDomain}`
+            const url = `http://${this._kfInferenceIngress}/v1/models/${this._kfInferenceName}:predict`;
+            const host = `${this._kfInferenceName}.${this._kfInferenceDomain}`;
             console.log(`using kfserving inference service: ${url}, host: ${host}`);
             this._stream = new HttpEmitter(url, host);
         } else {
