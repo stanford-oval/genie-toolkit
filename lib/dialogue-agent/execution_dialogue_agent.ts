@@ -20,7 +20,6 @@
 
 import assert from 'assert';
 import * as Tp from 'thingpedia';
-import * as ThingTalk from 'thingtalk';
 import { Ast, Type } from 'thingtalk';
 
 import type Engine from '../engine';
@@ -30,13 +29,44 @@ import { cleanKind } from '../utils/misc-utils';
 import ValueCategory from './value-category';
 import StatementExecutor from './statement_executor';
 import { CancellationError } from './errors';
-import type DialogueLoop from './dialogue-loop';
 import { EntityRecord } from './entity-linking/entity-finder';
 import { Contact } from './entity-linking/contact_search';
+import { PlatformData } from './user-input';
 
 import AbstractDialogueAgent, {
     DisambiguationHints,
 } from './abstract_dialogue_agent';
+
+/**
+ * The interface that the {@link ExecutionDialogueAgent} uses to communicate
+ * with outside.
+ *
+ * In some code paths, {@link ExecutionDialogueAgent} needs to send messages
+ * to the user or ask questions, in the middle of preparing for execution
+ * and outside of the normal dialogue loop.
+ *
+ * It does so by calling this interface, which for the normal assistant is
+ * implemented by {@link DialogueLoop}.
+ *
+ * TODO: This interface has some ugly inversion of control where the outside
+ * code that drives the dialogue gets called synchronously by this code.
+ * We should refactor all of this.
+ */
+export interface AbstractDialogueLoop {
+    icon : string|null;
+    platformData : PlatformData;
+    isAnonymous : boolean;
+    _ : (x : string) => string;
+
+    reply(msg : string) : Promise<void>;
+    replyLink(title : string, link : string) : Promise<void>;
+    interpolate(msg : string, args : Record<string, unknown>) : string;
+    replyInterp(msg : string, args : Record<string, unknown>) : Promise<void>;
+    ask(expected : ValueCategory,
+        question : string,
+        args ?: Record<string, unknown>) : Promise<Ast.Value>;
+    askChoices(question : string, choices : string[]) : Promise<number>;
+}
 
 /**
  * The execution time dialogue agent.
@@ -47,10 +77,10 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
     private _engine : Engine;
     private _thingpedia : Tp.BaseClient;
     private _platform : Tp.BasePlatform;
-    private _dlg : DialogueLoop;
+    private _dlg : AbstractDialogueLoop;
     private _executor : StatementExecutor;
 
-    constructor(engine : Engine, dlg : DialogueLoop, debug : boolean) {
+    constructor(engine : Engine, dlg : AbstractDialogueLoop, debug : boolean) {
         super(engine.schemas, {
             debug: debug,
             locale: engine.platform.locale,
@@ -304,11 +334,11 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
             }
             case '$context.location.home':
             case '$context.location.work':
-                value = this._tryGetStoredVariable(ThingTalk.Type.Location, variable);
+                value = this._tryGetStoredVariable(Type.Location, variable);
                 break;
             case '$context.time.morning':
             case '$context.time.evening':
-                value = this._tryGetStoredVariable(ThingTalk.Type.Time, variable);
+                value = this._tryGetStoredVariable(Type.Time, variable);
                 break;
             default:
                 throw new TypeError('Invalid variable ' + variable);

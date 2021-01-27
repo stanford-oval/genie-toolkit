@@ -35,6 +35,7 @@ const subcommands : { [key : string] : SubCommand } = {
     'generate': require('./generate'),
     'generate-dialogs': require('./generate-dialogs'),
     'dialog-to-contextual': require('./dialog-to-contextual'),
+    'simulate-dialogs': require('./simulate-dialogs'),
 
     'sample': require('./sample'),
     'mturk-make-paraphrase-hits': require('./mturk-make-paraphrase-hits'),
@@ -57,8 +58,8 @@ const subcommands : { [key : string] : SubCommand } = {
     'evaluate-file': require('./evaluate-file'),
     'manual-annotate': require('./manual-annotate'),
     'manual-annotate-dialog': require('./manual-annotate-dialog'),
+    'interactive-annotate': require('./interactive-annotate'),
     'evaluate-dialog': require('./evaluate-dialog'),
-    'demo-dialog': require('./demo-dialog'),
     'server': require('./server'),
     'assistant': require('./assistant'),
 
@@ -80,7 +81,7 @@ const subcommands : { [key : string] : SubCommand } = {
     'wikidata-download-data': require('./autoqa/wikidata/download-data'),
     'wikidata-label-retriever': require('./autoqa/wikidata/label-retriever'),
     'wikidata-make-string-datasets': require('./autoqa/wikidata/make-string-datasets'),
-    'wikidata-demo': require('./autoqa/wikidata/demo.js'),
+    'wikidata-demo': require('./autoqa/wikidata/demo'),
 
     'auto-annotate': require('./autoqa/auto-annotate'),
     'make-string-datasets': require('./autoqa/make-string-datasets'),

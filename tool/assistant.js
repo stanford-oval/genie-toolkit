@@ -19,14 +19,13 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-import path from 'path';
 import * as readline from 'readline';
 
 import Engine from '../lib/engine';
 import Platform from './lib/cmdline-platform';
 
-const THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
-const NL_SERVER_URL = 'https://almond-nl.stanford.edu';
+const THINGPEDIA_URL = 'https://almond-dev.stanford.edu/thingpedia';
+const NL_SERVER_URL = 'https://nlp-staging.almond.stanford.edu';
 
 class LocalUser {
     constructor() {
@@ -220,8 +219,7 @@ export function initArgparse(subparsers) {
     });
     parser.add_argument('--workdir', {
         required: false,
-        default: process.cwd(),
-        help: 'Directory where to store the assistant database and other files (defaults to the current working directory).'
+        help: 'Directory where to store the assistant database and other files (defaults to the ~/.config/genie-toolkit).'
     });
     parser.add_argument('-l', '--locale', {
         required: false,
@@ -250,7 +248,7 @@ export function initArgparse(subparsers) {
 }
 
 export async function execute(args) {
-    const platform = new Platform(path.resolve(args.workdir), args.locale, args.thingpediaUrl);
+    const platform = new Platform(args.workdir, args.locale, args.thingpediaUrl);
     const prefs = platform.getSharedPreferences();
     if (args.thingpedia_dir && args.thingpedia_dir.length)
         prefs.set('developer-dir', args.thingpedia_dir);

@@ -34,7 +34,7 @@ import UserInput, { PlatformData } from './user-input';
 import { CancellationError } from './errors';
 
 import * as Helpers from './helpers';
-import { computeNewState, prepareContextForPrediction } from './dialogue_state_utils';
+import { computePrediction, computeNewState, prepareContextForPrediction } from './dialogue_state_utils';
 import DialoguePolicy from './dialogue_policy';
 import type Conversation from './conversation';
 import type Engine from '../engine';
@@ -94,7 +94,13 @@ export default class DialogueLoop {
         this._mgrPromise = null;
 
         this._agent = new ExecutionDialogueAgent(engine, this, debug);
-        this._policy = new DialoguePolicy(this, conversation);
+        this._policy = new DialoguePolicy({
+            thingpedia: conversation.thingpedia,
+            schemas: conversation.schemas,
+            locale: conversation.locale,
+            rng: conversation.rng,
+            debug : this._debug
+        });
         this._dialogueState = null; // thingtalk dialogue state
         this._executorState = undefined; // private object managed by DialogueExecutor
         this._lastNotificationApp = undefined;
@@ -203,7 +209,7 @@ export default class DialogueLoop {
                 await this.fail();
                 return null;
             }
-            return handled;
+            return computePrediction(this._dialogueState, handled, 'user');
         }
         if (intent instanceof UserInput.MultipleChoiceAnswer) {
             await this.fail();
@@ -237,9 +243,15 @@ export default class DialogueLoop {
     private async _doAgentReply() : Promise<[ValueCategory|null, number]> {
         const oldState = this._dialogueState;
 
+        const policyResult = await this._policy.chooseAction(this._dialogueState);
+        if (!policyResult) {
+            await this.fail();
+            throw new CancellationError();
+        }
+
         let expect, utterance, numResults;
         if (this._useNeuralNLG()) {
-            [this._dialogueState, expect, , numResults] = await this._policy.chooseAction(this._dialogueState);
+            [this._dialogueState, expect, , numResults] = policyResult;
 
             const policyPrediction = computeNewState(oldState, this._dialogueState, 'agent');
             this.debug(`Agent act:`);
@@ -250,7 +262,7 @@ export default class DialogueLoop {
 
             utterance = await this.conversation.generateAnswer(policyPrediction);
         } else {
-            [this._dialogueState, expect, utterance, numResults] = await this._policy.chooseAction(this._dialogueState);
+            [this._dialogueState, expect, utterance, numResults] = policyResult;
         }
 
         this.icon = getProgramIcon(this._dialogueState!);
@@ -530,7 +542,6 @@ export default class DialogueLoop {
 
     async reply(msg : string, icon ?: string|null) {
         await this.conversation.sendReply(msg, icon || this.icon);
-        return true;
     }
 
     async replyCard(message : FormattedChunk, icon ?: string|null) {
@@ -552,17 +563,14 @@ export default class DialogueLoop {
 
     async replyChoice(idx : number, title : string) {
         await this.conversation.sendChoice(idx, title);
-        return true;
     }
 
     async replyButton(text : string, json : string) {
         await this.conversation.sendButton(text, json);
-        return true;
     }
 
     async replyLink(title : string, url : string) {
         await this.conversation.sendLink(title, url);
-        return true;
     }
 
     private _isInDefaultState() : boolean {

@@ -260,8 +260,8 @@ class Annotator extends events.EventEmitter {
         await this._agentParser.start();
     }
     async stop() {
-        await this._userParser.start();
-        await this._agentParser.start();
+        await this._userParser.stop();
+        await this._agentParser.stop();
     }
 
     private async _learnThingTalk(code : string) {
