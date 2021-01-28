@@ -44,6 +44,8 @@ const NLG_QUESTION = 'what should the agent say ?';
 
 export interface LocalParserOptions {
     id ?: string;
+    minibatchSize ?: number;
+    maxLatency ?: number;
 }
 
 function compareScore(a : PredictionCandidate, b : PredictionCandidate) : number {
@@ -74,7 +76,7 @@ export default class LocalParserClient {
         this._locale = locale;
         this._langPack = I18n.get(locale);
         this._tokenizer = this._langPack.getTokenizer();
-        this._predictor = new Predictor(modeldir);
+        this._predictor = new Predictor(modeldir, options);
 
         this._exactmatcher = exactmatcher;
         this._tpClient = tpClient;

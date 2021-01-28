@@ -37,8 +37,9 @@ interface Request {
     reject(err : Error) : void;
 }
 
-const MINIBATCH_SIZE = 30;
-const MAX_LATENCY = 50; // milliseconds
+const DEFAULT_MINIBATCH_SIZE = 30;
+const DEFAULT_MAX_LATENCY = 50; // milliseconds
+
 interface Example {
     context : string;
     question : string;
@@ -170,6 +171,8 @@ class RemoteWorker extends events.EventEmitter {
             instances: minibatch
         }), { dataContentType: 'application/json', accept: 'application/json' });
         const parsed = JSON.parse(response);
+        // TODO: this needs to be updated when genienlp kfserver is fixed to avoid
+        // double wrapping in JSON
         return JSON.parse(parsed.predictions).instances.map((instance : any) : PredictionCandidate[] => {
             if (instance.candidates) {
                 return instance.candidates;
@@ -185,17 +188,23 @@ class RemoteWorker extends events.EventEmitter {
 }
 
 export default class Predictor {
-    private _modeldir : string;
+    private _modelurl : string;
     private _worker : LocalWorker|RemoteWorker|null;
     private _stopped : boolean;
+
+    private _minibatchSize : number;
+    private _maxLatency : number;
 
     private _minibatchTask = '';
     private _minibatch : Example[] = [];
     private _minibatchStartTime = 0;
 
-    constructor(modeldir : string) {
-        this._modeldir = modeldir;
+    constructor(modelurl : string, { minibatchSize = DEFAULT_MINIBATCH_SIZE, maxLatency = DEFAULT_MAX_LATENCY }) {
+        this._modelurl = modelurl;
         this._worker = null;
+
+        this._minibatchSize = minibatchSize;
+        this._maxLatency = maxLatency;
 
         this._stopped = false;
     }
@@ -228,7 +237,7 @@ export default class Predictor {
         setTimeout(() => {
             if (this._minibatch.length > 0)
                 this._flushRequest();
-        }, MAX_LATENCY);
+        }, this._maxLatency);
     }
 
     private _addRequest(ex : Example, task : string) {
@@ -236,8 +245,8 @@ export default class Predictor {
         if (this._minibatch.length === 0) {
             this._startRequest(ex, task, now);
         } else if (this._minibatchTask === task &&
-            (now - this._minibatchStartTime < MAX_LATENCY) &&
-            this._minibatch.length < MINIBATCH_SIZE) {
+            (now - this._minibatchStartTime < this._maxLatency) &&
+            this._minibatch.length < this._minibatchSize) {
             this._minibatch.push(ex);
         } else {
             this._flushRequest();
@@ -266,11 +275,11 @@ export default class Predictor {
 
     start() {
         let worker : RemoteWorker|LocalWorker;
-        if (/^kf\+https?:/.test(this._modeldir)) {
-            worker = new RemoteWorker(this._modeldir.substring('kf+'.length));
+        if (/^kf\+https?:/.test(this._modelurl)) {
+            worker = new RemoteWorker(this._modelurl.substring('kf+'.length));
         } else {
-            assert(this._modeldir.startsWith('file://'));
-            worker = new LocalWorker(this._modeldir.substring('file://'.length));
+            assert(this._modelurl.startsWith('file://'));
+            worker = new LocalWorker(this._modelurl.substring('file://'.length));
         }
 
         worker.on('error', (error : Error) => {
