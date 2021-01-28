@@ -21,7 +21,7 @@
 
 import assert from 'assert';
 
-import { Ast, Type } from 'thingtalk';
+import { Ast, } from 'thingtalk';
 
 import { isSameFunction } from './utils';
 
@@ -90,41 +90,6 @@ class SlotBag {
     }
 }
 
-function checkAndAddSlot(bag : SlotBag, filter : Ast.BooleanExpression) : SlotBag|null {
-    assert(bag instanceof SlotBag);
-    if (!(filter instanceof Ast.AtomBooleanExpression))
-        return null;
-    const arg = bag.schema!.getArgument(filter.name);
-    if (!arg || arg.is_input)
-        return null;
-    const ptype = arg.type;
-    if (!ptype)
-        return null;
-    const vtype = filter.value.getType();
-    if (filter.operator === 'contains' || filter.operator === 'contains~') {
-        if (!ptype.equals(new Type.Array(vtype)))
-            return null;
-        const clone = bag.clone();
-        if (clone.has(filter.name))
-            return null;
-        else
-            clone.set(filter.name, new Ast.Value.Array([filter.value]));
-        return clone;
-    } else {
-        if (filter.operator !== '==' && filter.operator !== '=~')
-            return null;
-        if (!ptype.equals(vtype))
-            return null;
-        if (bag.has(filter.name))
-            return null;
-        const clone = bag.clone();
-        clone.set(filter.name, filter.value);
-        return clone;
-    }
-}
-
-
 export {
     SlotBag,
-    checkAndAddSlot,
 };

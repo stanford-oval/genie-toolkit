@@ -27,11 +27,11 @@ export class NodeVisitor {
 
     visitContextStmt(stmt : ContextStmt) {}
     visitNonTerminalStmt(stmt : NonTerminalStmt) {}
+    visitKeyFunctionDeclaration(stmt : KeyFunctionDeclarationStmt) {}
 
     visitExpansionRule(stmt : Expansion) {}
     visitConstantsRule(stmt : Constants) {}
     visitConditionRule(stmt : Condition) {}
-    visitReplacementRule(stmt : Replacement) {}
 
     visitNonTerminalRuleHead(node : RuleHeadPart) {}
 }
@@ -76,6 +76,7 @@ export abstract class Statement {
     static ForLoop : typeof ForLoop;
     static If : typeof IfStmt;
     static Import : typeof Import;
+    static KeyFunctionDeclaration : typeof KeyFunctionDeclarationStmt;
 
     abstract codegen(prefix ?: string) : string;
     abstract visit(visitor : NodeVisitor) : void;
@@ -107,37 +108,26 @@ export class JSImportStmt extends Statement {
 }
 Statement.JSImportStmt = JSImportStmt;
 
-export abstract class NonTerminalRef {
-    static Identifier : typeof IdentifierNTR;
-    static Computed : typeof ComputedNTR;
-
-    abstract codegen() : string;
-}
-
-export class IdentifierNTR extends NonTerminalRef {
-    constructor(public name : string) {
+export class KeyFunctionDeclarationStmt extends Statement {
+    constructor(public decls : Array<[string, string]>) {
         super();
     }
 
     codegen() : string {
-        return stringEscape(this.name);
-    }
-}
-NonTerminalRef.Identifier = IdentifierNTR;
-
-export class ComputedNTR extends NonTerminalRef {
-    constructor(public code : string) {
-        super();
+        return ''; // this is a type declaration processed by the compiler,
+                   // it generates no code
     }
 
-    codegen() : string {
-        return this.code;
+    visit(visitor : NodeVisitor) {
+        visitor.visitKeyFunctionDeclaration(this);
     }
 }
-NonTerminalRef.Computed = ComputedNTR;
+Statement.KeyFunctionDeclaration = KeyFunctionDeclarationStmt;
 
 export class NonTerminalStmt extends Statement {
-    constructor(public name : IdentifierNTR|ComputedNTR,
+    keyfn = 'undefined';
+
+    constructor(public name : string,
                 public type : string|undefined,
                 public rules : Rule[]) {
         super();
@@ -151,9 +141,9 @@ export class NonTerminalStmt extends Statement {
 
     codegen(prefix = '') : string {
         let buffer = '';
-        buffer += (`${prefix}$grammar.declareSymbol(${this.name.codegen()});\n`);
+        buffer += (`${prefix}$grammar.declareSymbol(${stringEscape(this.name)});\n`);
         for (const rule of this.rules)
-            buffer += rule.codegen(this.name, prefix, this.type);
+            buffer += rule.codegen(this.name, prefix, this.type || 'any', this.keyfn);
         return buffer;
     }
 }
@@ -279,9 +269,8 @@ export abstract class Rule {
     static Constants : typeof Constants;
     static Expansion : typeof Expansion;
     static Condition : typeof Condition;
-    static Replacement : typeof Replacement;
 
-    abstract codegen(nonTerminal : NonTerminalRef, prefix ?: string, type ?: string) : string;
+    abstract codegen(nonTerminal : string, prefix : string, type : string, keyfn : string) : string;
     abstract visit(visitor : NodeVisitor) : void;
 }
 
@@ -296,8 +285,8 @@ export class Constants extends Rule {
         visitor.visitConstantsRule(this);
     }
 
-    codegen(nonTerminal : NonTerminalRef, prefix = '', type ?: string) : string {
-        return `${prefix}$grammar.addConstants(${nonTerminal.codegen()}, ${stringEscape(this.token)}, ${this.typeCode}, ${this.attrs.codegen()});\n`;
+    codegen(nonTerminal : string, prefix = '', type : string, keyfn : string) : string {
+        return `${prefix}$grammar.addConstants(${stringEscape(nonTerminal)}, ${stringEscape(this.token)}, ${this.typeCode}, ${keyfn}, ${this.attrs.codegen()});\n`;
     }
 }
 Rule.Constants = Constants;
@@ -336,13 +325,9 @@ function getTranslationKey(expansion : RuleHeadPart[]) : [string, string, boolea
             str += '${' + String(positionalIdx++) + '}';
             comment += '${' + part.code + '}';
             needsComment = true;
-        } else if (part instanceof NonTerminalRuleHead && part.category instanceof IdentifierNTR) {
-            str += '${' + part.category.name + '}';
-            comment += '${' + part.category.name + '}';
-        } else if (part instanceof NonTerminalRuleHead && part.category instanceof ComputedNTR) {
-            str += '${' + String(positionalIdx++) + '}';
-            comment += '${' + part.category.code + '}';
-            needsComment = true;
+        } else if (part instanceof NonTerminalRuleHead) {
+            str += '${' + part.category + '}';
+            comment += '${' + part.category + '}';
         } else if (part instanceof ChoiceRuleHead) {
             str += '{' + part.values.join('|') + '}';
             comment += '{' + part.values.join('|') + '}';
@@ -357,7 +342,6 @@ function getTranslationKey(expansion : RuleHeadPart[]) : [string, string, boolea
 export class Expansion extends Rule {
     constructor(public head : RuleHeadPart[],
                 public bodyCode : string,
-                public conditionCode : string|null,
                 public attrs : RuleAttributes) {
         super();
         assert(Array.isArray(head));
@@ -373,10 +357,10 @@ export class Expansion extends Rule {
         return getTranslationKey(this.head);
     }
 
-    codegen(nonTerminal : NonTerminalRef, prefix = '', type ?: string) : string {
+    codegen(nonTerminal : string, prefix = '', type : string, keyfn : string) : string {
         const expanderCode = makeBodyLambda(this.head, this.bodyCode, type);
 
-        return `${prefix}$grammar.addRule(${nonTerminal.codegen()}, [${this.head.map((h) => h.codegen()).join(', ')}], $runtime.simpleCombine((${expanderCode}), ${this.conditionCode ? stringEscape(this.conditionCode) : 'null'}, ${nonTerminal instanceof IdentifierNTR && nonTerminal.name === '$root'}), ${this.attrs.codegen()});\n`;
+        return `${prefix}$grammar.addRule(${stringEscape(nonTerminal)}, [${this.head.map((h, i) => h.codegen(this.head, i)).join(', ')}], (${expanderCode}), ${keyfn}, ${this.attrs.codegen()});\n`;
     }
 }
 Rule.Expansion = Expansion;
@@ -393,7 +377,7 @@ export class Condition extends Rule {
             rule.visit(visitor);
     }
 
-    codegen(nonTerminal : NonTerminalRef, prefix = '', type ?: string) : string {
+    codegen(nonTerminal : string, prefix : string, type : string, keyfn : string) : string {
         const flag = this.flag.startsWith('?') ?
             `$options.flags.${this.flag.substring(1)}` :
             `!$options.flags.${this.flag.substring(1)}`;
@@ -401,39 +385,82 @@ export class Condition extends Rule {
         let buffer = '';
         buffer += (`${prefix}if (${flag}) {\n`);
         for (const rule of this.rules)
-            buffer += rule.codegen(nonTerminal, prefix + '    ', type);
+            buffer += rule.codegen(nonTerminal, prefix + '    ', type, keyfn);
         buffer += (`${prefix}}\n`);
         return buffer;
     }
 }
 Rule.Condition = Condition;
 
-export class Replacement extends Rule {
-    constructor(public head : RuleHeadPart[],
-                public placeholder : string,
-                public bodyCode : string,
-                public optionCode : string,
-                public attrs : RuleAttributes) {
+export abstract class NonTerminalConstraint {
+    static Constant : typeof ConstantNonTerminalConstraint;
+    static Equality : typeof EqualityNonTerminalConstraint;
+
+    abstract codegen(allParts : RuleHeadPart[], ourKeyFn : string, ourIndex : number) : string;
+}
+
+export class EqualityNonTerminalConstraint extends NonTerminalConstraint {
+    constructor(public ourIndexName : string,
+                public nonTermRef : string,
+                public theirIndexName : string) {
         super();
     }
 
-    visit(visitor : NodeVisitor) {
-        visitor.visitReplacementRule(this);
-        for (const head of this.head)
-            head.visit(visitor);
-    }
+    codegen(allParts : RuleHeadPart[], ourKeyFn : string, ourIndex : number) {
+        if (ourKeyFn === 'undefined')
+            console.error(`WARNING: key function is not set in constraint {${this.ourIndexName} = ${this.nonTermRef}.${this.theirIndexName}}, cannot check correctness statically`);
+        const ourTypeConstraint = ourKeyFn === 'undefined' ? '' :
+            ` as (${stringEscape(this.ourIndexName)} extends keyof ReturnType<typeof ${ourKeyFn}> ? string : void)`;
 
-    getTranslationKey() {
-        return getTranslationKey(this.head);
-    }
+        let nonTermIndex, theirKeyFn;
+        if (/^[0-9]+/.test(this.nonTermRef)) {
+            nonTermIndex = parseInt(this.nonTermRef, 10);
+            assert(allParts[nonTermIndex]);
 
-    codegen(nonTerminal : NonTerminalRef, prefix = '', type ?: string) : string {
-        const expanderCode = makeBodyLambda(this.head, this.bodyCode, type);
+            theirKeyFn = allParts[nonTermIndex];
+        } else {
+            for (let i = 0; i < allParts.length; i++) {
+                const part = allParts[i];
+                if (part instanceof NonTerminalRuleHead &&
+                    part.name === this.nonTermRef) {
+                    nonTermIndex = i;
+                    theirKeyFn = part.keyfn;
+                    break;
+                }
+            }
+            if (nonTermIndex === undefined)
+                throw new Error(`Invalid non-terminal backreference to ${this.nonTermRef} for equality constraint of ${allParts[ourIndex]} (alias not found)`);
+            if (nonTermIndex >= ourIndex)
+                throw new Error(`Invalid non-terminal backreference to ${this.nonTermRef} for equality constraint of ${allParts[ourIndex]} (alias must precede usage)`);
+        }
+        if (theirKeyFn === 'undefined')
+            console.error(`WARNING: key function is not set in constraint {${this.ourIndexName} = ${this.nonTermRef}.${this.theirIndexName}}, cannot check correctness statically`);
+        const theirTypeConstraint = theirKeyFn === 'undefined' ? '' :
+            ` as (${stringEscape(this.theirIndexName)} extends keyof ReturnType<typeof ${theirKeyFn}> ? string : void)`;
 
-        return (`${prefix}$grammar.addRule(${nonTerminal.codegen()}, [${this.head.map((h) => h.codegen()).join(', ')}], $runtime.combineReplacePlaceholder(${this.placeholder}, (${expanderCode}), ${this.optionCode}), ${this.attrs.codegen()});\n`);
+        return `[${stringEscape(this.ourIndexName)}${ourTypeConstraint}, ${nonTermIndex}, ${stringEscape(this.theirIndexName)}${theirTypeConstraint}]`;
     }
 }
-Rule.Replacement = Replacement;
+NonTerminalConstraint.Equality = EqualityNonTerminalConstraint;
+
+export class ConstantNonTerminalConstraint extends NonTerminalConstraint {
+    constructor(public indexName : string,
+                public valueCode : string) {
+        super();
+    }
+
+    codegen(allParts : RuleHeadPart[], ourKeyFn : string) {
+        if (ourKeyFn === 'undefined')
+            console.error(`WARNING: key function is not set in constraint {${this.indexName} = ${this.valueCode}}, cannot check correctness statically`);
+        const ourTypeConstraint = ourKeyFn === 'undefined' ? '' :
+            ` as (${stringEscape(this.indexName)} extends keyof ReturnType<typeof ${ourKeyFn}> ? string : void)`;
+        const constantTypeConstraint = ourKeyFn === 'undefined' ? '' :
+            ` as ReturnType<typeof ${ourKeyFn}>[${stringEscape(this.indexName)}]`;
+
+        return `[${stringEscape(this.indexName)}${ourTypeConstraint}, (${this.valueCode})${constantTypeConstraint}]`;
+    }
+}
+NonTerminalConstraint.Constant = ConstantNonTerminalConstraint;
 
 export abstract class RuleHeadPart {
     static NonTerminal : typeof NonTerminalRuleHead;
@@ -442,24 +469,30 @@ export abstract class RuleHeadPart {
     static Choice : typeof ChoiceRuleHead;
 
     abstract type : string;
-    abstract codegen() : string;
+    abstract codegen(allParts : RuleHeadPart[], index : number) : string;
     abstract visit(visitor : NodeVisitor) : void;
 }
 
 export class NonTerminalRuleHead extends RuleHeadPart {
     type = 'any';
+    keyfn = 'undefined';
 
     constructor(public name : string|null,
-                public category : NonTerminalRef) {
+                public category : string,
+                public constraint : NonTerminalConstraint|null) {
         super();
+    }
+
+    toString() {
+        return `${this.name} : NT[${this.category}]`;
     }
 
     visit(visitor : NodeVisitor) {
         visitor.visitNonTerminalRuleHead(this);
     }
 
-    codegen() : string {
-        return `new $runtime.NonTerminal(${this.category.codegen()})`;
+    codegen(allParts : RuleHeadPart[], index : number) : string {
+        return `new $runtime.NonTerminal(${stringEscape(this.category)}, ${this.constraint ? this.constraint.codegen(allParts, this.keyfn, index) : 'undefined'})`;
     }
 }
 RuleHeadPart.NonTerminal = NonTerminalRuleHead;

@@ -25,7 +25,7 @@ import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
 
-import { SlotBag, checkAndAddSlot } from '../slot_bag';
+import { SlotBag } from '../slot_bag';
 import {
     AgentReplyOptions,
     ContextInfo,
@@ -44,17 +44,23 @@ import {
     proposalReply
 } from './refinement-helpers';
 import {
-    checkInfoPhrase
+    addSlotToBag,
 } from './results';
 
 
 export interface Recommendation {
-    ctx ?: ContextInfo;
+    ctx : ContextInfo;
     topResult : Ast.DialogueHistoryResultItem;
     info : SlotBag|null;
     action : Ast.Invocation|null;
-    hasLearnMore ?: boolean;
-    hasAnythingElse ?: boolean;
+    hasLearnMore : boolean;
+    hasAnythingElse : boolean;
+}
+
+export function recommendationKeyFn(rec : Recommendation) {
+    return {
+        functionName: rec.ctx.currentFunction!.qualifiedName
+    };
 }
 
 function makeActionRecommendation(ctx : ContextInfo, action : Ast.Invocation) {
@@ -78,17 +84,19 @@ function makeActionRecommendation(ctx : ContextInfo, action : Ast.Invocation) {
 
     for (const param of action.in_params) {
         if (param.value.equals(id))
-            return { topResult, info: null, action };
+            return { ctx, topResult, info: null, action, hasLearnMore: false, hasAnythingElse: false };
     }
 
     return null;
 }
 
-function makeArgMinMaxRecommendation(ctx : ContextInfo, name : Ast.Value, base : Ast.Expression, param : Ast.VarRefValue, direction : 'asc'|'desc') {
+function makeArgMinMaxRecommendation(ctx : ContextInfo, name : Ast.Value, base : Ast.Expression, param : C.ParamSlot, direction : 'asc'|'desc') {
     const resultInfo = ctx.resultInfo!;
     if (!resultInfo.argMinMaxField)
         return null;
-    if (!C.isSameFunction(base.schema!, ctx.currentFunctionSchema!))
+    if (!C.isSameFunction(base.schema!, ctx.currentFunction!))
+        return null;
+    if (!C.isSameFunction(param.schema, ctx.currentFunction!))
         return null;
     if (direction !== resultInfo.argMinMaxField[1] ||
         param.name !== resultInfo.argMinMaxField[0])
@@ -112,7 +120,13 @@ function makeRecommendation(ctx : ContextInfo, name : Ast.Value) {
     if (!id || !id.equals(name))
         return null;
 
-    return { topResult, ctx, info: null, action: ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next!) : null };
+    return {
+        ctx, topResult,
+        info: null,
+        action: ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next!) : null,
+        hasLearnMore: false,
+        hasAnythingElse: false
+    };
 }
 
 function makeThingpediaRecommendation(ctx : ContextInfo, info : SlotBag) {
@@ -128,72 +142,99 @@ function makeThingpediaRecommendation(ctx : ContextInfo, info : SlotBag) {
     if (!isInfoPhraseCompatibleWithResult(topResult, info))
         return null;
 
-    return { topResult, ctx, info, action: ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next!) : null };
+    return {
+        ctx, topResult,
+        info,
+        action: ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next!) : null,
+        hasLearnMore: false,
+        hasAnythingElse: false
+    };
 }
 
-
-function checkRecommendation({ topResult, action: nextAction } : Recommendation, info : SlotBag) {
-    assert(info instanceof SlotBag);
-    if (!topResult.value.id)
+function checkRecommendation(rec : Recommendation, info : SlotBag) {
+    if (!isInfoPhraseCompatibleWithResult(rec.topResult, info))
         return null;
 
-    const resultType = topResult.value.id.getType();
-    const idType = info.schema!.getArgType('id')!;
-    if (!idType || !idType.equals(resultType))
-        return null;
+    // check that the filter uses the right set of parameters
+    const resultInfo = rec.ctx.resultInfo!;
+    if (resultInfo.projection !== null) {
+        // check that all projected names are present
+        for (const name of resultInfo.projection) {
+            if (!info.has(name))
+                return null;
+        }
+    }
 
-    if (!isInfoPhraseCompatibleWithResult(topResult, info))
-        return null;
-
-    return { topResult, info, action: nextAction };
+    return {
+        ctx: rec.ctx, topResult: rec.topResult,
+        info,
+        action: rec.action,
+        hasLearnMore: rec.hasLearnMore,
+        hasAnythingElse: rec.hasAnythingElse
+    };
 }
 
-function checkActionForRecommendation({ topResult, info, action: nextAction } : Recommendation, action : Ast.Invocation) {
-    if (!topResult.value.id)
+function checkActionForRecommendation(rec : Recommendation, action : Ast.Invocation) {
+    if (!rec.topResult.value.id)
         return null;
-    const resultType = topResult.value.id.getType();
+    const resultType = rec.topResult.value.id.getType();
 
-    if (nextAction !== null) {
-        if (!C.isSameFunction(nextAction.schema!, action.schema!))
+    if (rec.action !== null) {
+        if (!C.isSameFunction(rec.action.schema!, action.schema!))
             return null;
     }
 
     if (!C.hasArgumentOfType(action, resultType))
         return null;
 
-    return { topResult, info, action };
+    return {
+        ctx: rec.ctx, topResult: rec.topResult,
+        info: rec.info,
+        action,
+        hasLearnMore: rec.hasLearnMore,
+        hasAnythingElse: rec.hasAnythingElse
+    };
 }
 
 // make a recommendation that looks like an answer, that is, "so and so is a ..."
-function makeAnswerStyleRecommendation({ topResult, ctx, action } : Recommendation, filter : Ast.BooleanExpression) {
-    if (!ctx)
-        return null;
-    let info : SlotBag|null = new SlotBag(ctx.currentFunctionSchema);
-    info = checkAndAddSlot(info, filter);
-    if (info === null)
-        return null;
-    info = checkInfoPhrase(ctx, info);
-    if (info === null)
+function makeAnswerStyleRecommendation(rec : Recommendation, filter : C.FilterSlot) {
+    assert(C.isSameFunction(rec.ctx.currentFunction!, filter.schema));
+    const added = addSlotToBag(new SlotBag(rec.ctx.currentFunction), filter);
+    if (!added)
         return null;
 
-    return checkRecommendation({ topResult, action, info: null }, info);
+    return checkRecommendation(rec, added[0]);
 }
 
+export function recommendationSetLearnMore(rec : Recommendation) {
+    return {
+        ctx: rec.ctx, topResult: rec.topResult,
+        info: rec.info,
+        // reset the action to null if the agent explicitly asks to "learn more"
+        action: null,
+        hasLearnMore: true,
+        hasAnythingElse: rec.hasAnythingElse
+    };
+}
 
 function makeDisplayResult(ctx : ContextInfo, info : SlotBag) {
     const results = ctx.results;
     assert(results && results.length > 0);
     const topResult = results[0];
 
-    if (ctx.currentFunctionSchema!.is_list)
+    if (ctx.currentFunction!.is_list)
+        return null;
+    if (!C.isSameFunction(ctx.currentFunction!, info.schema!))
         return null;
     if (!isInfoPhraseCompatibleWithResult(topResult, info))
         return null;
-    const newInfo = checkInfoPhrase(ctx, info);
-    if (newInfo === null)
-        return null;
-
-    return { topResult, ctx, info: newInfo, action: ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next!) : null, hasAnythingElse: false };
+    return {
+        ctx, topResult,
+        info,
+        action: ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next!) : null,
+        hasLearnMore: false,
+        hasAnythingElse: false
+    };
 }
 
 function combineDisplayResult(proposal : Recommendation, newInfo : SlotBag) {
@@ -212,9 +253,10 @@ function combineDisplayResult(proposal : Recommendation, newInfo : SlotBag) {
     const newProposal : Recommendation = {
         ctx: proposal.ctx,
         topResult: proposal.topResult,
-        hasAnythingElse: proposal.hasAnythingElse,
-        action: proposal.action,
         info: maybeNewInfo,
+        action: proposal.action,
+        hasLearnMore: false,
+        hasAnythingElse: proposal.hasAnythingElse,
     };
     return newProposal;
 }
@@ -327,7 +369,7 @@ function recommendationLearnMoreReply(ctx : ContextInfo, name : Ast.Value|null) 
 function repeatCommandReply(ctx : ContextInfo) {
     if (ctx.next)
         return null;
-    if (ctx.currentFunctionSchema!.is_monitorable)
+    if (ctx.currentFunction!.is_monitorable)
         return null;
 
     const clone = ctx.current!.clone();

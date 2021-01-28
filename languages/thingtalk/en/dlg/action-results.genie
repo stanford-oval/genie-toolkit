@@ -22,6 +22,7 @@
 // Either the action was successful, and we're done, or
 // the action failed, and we give the user an option to try again
 
+import assert from 'assert';
 import { Ast, } from 'thingtalk';
 
 import * as C from '../../ast_manip';
@@ -33,39 +34,27 @@ import { SlotBag } from '../../slot_bag';
 // import thingpedia info
 import _tpLoader from '../../load-thingpedia';
 
-for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
-    thingpedia_action_past : Ast.Expression = {
-        ( action:thingpedia_action_past 'it' [priority=-0.01]
-        | action:thingpedia_action_past 'this' [priority=-0.01]
-        | action:thingpedia_action_past 'that' [priority=-0.01]
-        ) [-> pname] => {
-            const type = action.schema!.getArgType(pname);
-            if (!type || !type.isEntity)
-                return null;
-            return C.replacePlaceholderWithUndefined(action, pname, typestr);
-        };
-    }
-}
-
 complete_past_action_phrase : Ast.Invocation = {
-    ( action:thingpedia_action_past
-    | action:thingpedia_action_past 'for you'
-    ) if complete => {
+    ( action:thingpedia_complete_action_past
+    | action:thingpedia_complete_action_past 'for you'
+    ) => {
         if (!(action instanceof Ast.InvocationExpression))
             return null;
         return action.invocation;
     };
 
-    ( action:complete_past_action_phrase param:preposition_input_param [priority=0.1]
-    | action:complete_past_action_phrase ('with' | 'having') param:npp_input_param [priority=0.1]
+    ( action:complete_past_action_phrase param:preposition_input_param with { functionName = action.functionName } [priority=0.1]
+    | action:complete_past_action_phrase ('with' | 'having') param:npp_input_param with { functionName = action.functionName } [priority=0.1]
     ) => C.addInvocationInputParam(action, param);
 
-    ( action:complete_past_action_phrase param:preposition_filter [priority=0.1]
-    | action:complete_past_action_phrase ('with' | 'having') param:npp_filter [priority=0.1]
+    ( action:complete_past_action_phrase param:preposition_filter with { functionName = action.functionName } [priority=0.1]
+    | action:complete_past_action_phrase ('with' | 'having') param:npp_filter with { functionName = action.functionName } [priority=0.1]
     ) => {
-        if (!(param instanceof Ast.AtomBooleanExpression))
+        if (!(param.ast instanceof Ast.AtomBooleanExpression))
             return null;
-        return C.addInvocationInputParam(action, new Ast.InputParam(null, param.name, param.value), { allowOutput: true });
+        const ipslot = { schema: param.schema, ptype: param.ptype,
+            ast: new Ast.InputParam(null, param.ast.name, param.ast.value) };
+        return C.addInvocationInputParam(action, ipslot, { allowOutput: true });
     };
 }
 
@@ -74,19 +63,19 @@ generic_action_success_phrase : string = {
     'consider your request done !';
 }
 
-action_success_phrase_with_result : [Ast.Invocation|null, SlotBag] = {
+action_success_phrase_with_result : D.ActionSuccessPhraseWithResult = {
     generic_action_success_phrase '.' result:direct_result_info_phrase [priority=1]
-        => [null, result];
+        => [null, result.info];
 
-    'i' action:complete_past_action_phrase '.' result:direct_result_info_phrase [priority=2]
-        => [action, result];
+    'i' action:complete_past_action_phrase '.' result:direct_result_info_phrase with { functionName = action.functionName } [priority=2]
+        => [action, result.info];
 }
 
 action_success_phrase : S.AgentReplyRecord = {
-    ctx:ctx_completed_action_success generic_excitement_phrase result:thingpedia_result '.' if complete [priority=5]
+    ctx:ctx_completed_action_success generic_excitement_phrase result:thingpedia_result with { functionName = ctx.currentFunction } '.' [priority=5]
         => D.makeThingpediaActionSuccessPhrase(ctx, result);
 
-    ctx:ctx_completed_action_success generic_excitement_phrase 'i' action:complete_past_action_phrase '.' [priority=2]
+    ctx:ctx_completed_action_success generic_excitement_phrase 'i' action:complete_past_action_phrase with { functionName = ctx.currentFunction } '.' [priority=2]
         => D.makeCompleteActionSuccessPhrase(ctx, action, null);
 
     ctx:ctx_completed_action_success generic_excitement_phrase phrase:action_success_phrase_with_result => {
@@ -103,7 +92,7 @@ action_success_phrase : S.AgentReplyRecord = {
 }
 
 short_action_error_message : S.ContextInfo = {
-    ctx:ctx_completed_action_error msg:thingpedia_error_message if complete
+    ctx:ctx_completed_action_error msg:thingpedia_error_message
         => D.checkThingpediaErrorMessage(ctx, msg);
 
     ctx:ctx_completed_action_error msg:constant_String => {
@@ -120,7 +109,7 @@ long_action_error_message : S.ContextInfo = {
         => D.checkActionErrorMessage(ctx, action);
 }
 
-one_param_try_different_param_question : string[] = {
+one_param_try_different_param_question : C.ParamSlot[] = {
     ( 'would you like to try a different' p:input_param '?'
     | 'would you like a different' p:input_param '?'
     | 'shall i try another' p:input_param '?'
@@ -130,12 +119,13 @@ one_param_try_different_param_question : string[] = {
     };
 }
 
-two_param_try_different_param_question : string[] = {
-    ( 'would you like to try a different' p1:input_param 'or' p2:input_param '?'
-    | 'would you like a different' p1:input_param 'or' p2:input_param '?'
-    | 'shall i try another' p1:input_param 'or' p2:input_param '?'
-    | 'how about for another' p1:input_param 'or' p2:input_param '?'
+two_param_try_different_param_question : C.ParamSlot[] = {
+    ( 'would you like to try a different' p1:input_param 'or' p2:input_param with { functionName = p1.functionName } '?'
+    | 'would you like a different' p1:input_param 'or' p2:input_param with { functionName = p1.functionName } '?'
+    | 'shall i try another' p1:input_param 'or' p2:input_param with { functionName = p1.functionName } '?'
+    | 'how about for another' p1:input_param 'or' p2:input_param with { functionName = p1.functionName } '?'
     ) => {
+        assert(C.isSameFunction(p1.schema, p2.schema));
         if (p1 === p2)
             return null;
         return [p1, p2];

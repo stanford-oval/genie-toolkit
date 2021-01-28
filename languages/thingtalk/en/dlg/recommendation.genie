@@ -39,55 +39,51 @@ import { SlotBag } from '../../slot_bag';
 import _tpLoader from '../../load-thingpedia';
 
 question_system_recommendation_short : D.Recommendation = {
-    ctx:ctx_with_result_and_action 'how about' proposal:constant_name
+    ctx:ctx_with_result_and_action 'how about' proposal:constant_name with { value = ctx.id0 }
         => D.makeRecommendation(ctx, proposal);
 }
 
 action_recommendation : D.Recommendation = {
-    ctx:ctx_with_result_and_action ('would you like to' | 'would you like me to') action:contextual_action_phrase if complete [weight=0.1]
+    ctx:ctx_with_result_and_action ('would you like to' | 'would you like me to') action:contextual_action_phrase with { functionName = ctx.nextFunction } [weight=0.1]
         => D.makeActionRecommendation(ctx, action);
 }
 
 actionable_system_recommendation_short : D.Recommendation = {
-    ctx:ctx_with_result_noquestion proposal:thingpedia_result if complete [priority=2]
+    ctx:ctx_with_result_noquestion proposal:thingpedia_result with { functionName = ctx.currentFunction } [priority=2]
         => D.makeThingpediaRecommendation(ctx, proposal);
-    ctx:ctx_with_result_noquestion proposal:thingpedia_result if complete [priority=2]
+    ctx:ctx_with_result_noquestion proposal:thingpedia_result with { functionName = ctx.currentFunction } [priority=2]
         => D.makeThingpediaRecommendation(ctx, proposal);
 
-    ( ctx:ctx_with_result_and_action 'i' ('recommend' | 'suggest') proposal:constant_name
-    | ctx:ctx_with_result_noquestion ('i see' | 'i have' | 'i have found' | 'i have one , it is') proposal:constant_name
-    | ctx:ctx_with_result_argminmax 'the answer is' proposal:constant_name
+    ( ctx:ctx_with_result_and_action 'i' ('recommend' | 'suggest') proposal:constant_name with { value = ctx.id0 }
+    | ctx:ctx_with_result_noquestion ('i see' | 'i have' | 'i have found' | 'i have one , it is') proposal:constant_name with { value = ctx.id0 }
+    | ctx:ctx_with_result_argminmax 'the answer is' proposal:constant_name with { value = ctx.id0 }
     ) => D.makeRecommendation(ctx, proposal);
 
-    // these are tagged with ?inference because they use a lot of non-terminals in a single templates
-    // which makes them too slow at training time
-    ?inference {
-        ctx:ctx_with_result_argminmax 'the' base:base_table 'with the highest' param:out_param_Any 'is' proposal:constant_name [priority=1]
-            => D.makeArgMinMaxRecommendation(ctx, proposal, base, param, 'desc');
-        ctx:ctx_with_result_argminmax 'the' base:base_table 'with the lowest' param:out_param_Any 'is' proposal:constant_name [priority=1]
-            => D.makeArgMinMaxRecommendation(ctx, proposal, base, param, 'asc');
+    ctx:ctx_with_result_argminmax 'the' base:base_table with { functionName = ctx.currentFunction } 'with the highest' param:out_param_Any with { functionName = ctx.currentFunction } 'is' proposal:constant_name with { value = ctx.id0 } [priority=1]
+        => D.makeArgMinMaxRecommendation(ctx, proposal, base, param, 'desc');
+    ctx:ctx_with_result_argminmax 'the' base:base_table with { functionName = ctx.currentFunction } 'with the lowest' param:out_param_Any 'is' proposal:constant_name with { value = ctx.id0 } [priority=1]
+        => D.makeArgMinMaxRecommendation(ctx, proposal, base, param, 'asc');
 
-        ctx:ctx_with_result_argminmax 'the' argminmax:apv_argminmax base:base_table 'is' proposal:constant_name [priority=2]
-            => D.makeArgMinMaxRecommendation(ctx, proposal, base, argminmax[0], argminmax[1]);
-    }
+    ctx:ctx_with_result_argminmax 'the' argminmax:apv_argminmax with { functionName = ctx.currentFunction } base:base_table with { functionName = ctx.currentFunction } 'is' proposal:constant_name with { value = ctx.id0 } [priority=2]
+        => D.makeArgMinMaxRecommendation(ctx, proposal, base, argminmax[0], argminmax[1]);
 }
 
-recommendation_info_action_pair : [SlotBag, Ast.Invocation|null] = {
-    'is a' info:result_info_phrase '.' action:action_coref_recommendation [weight=0.8] => {
-        const resultType = info.schema!.getArgType('id');
+recommendation_info_action_pair : [D.ResultPhrase, Ast.Invocation|null] = {
+    'is a' res:result_info_phrase '.' action:action_coref_recommendation [weight=0.8] => {
+        const resultType = res.info.schema!.getArgType('id');
 
         if (!resultType || !C.hasArgumentOfType(action, resultType))
             return null;
-        return [info, action];
+        return [res, action];
     };
 
-    'is a' info:result_info_phrase '.' learn_more_offer [weight=0.2] => {
-        return [info, null];
+    'is a' res:result_info_phrase '.' learn_more_offer [weight=0.2] => {
+        return [res, null];
     };
 }
 
 user_question_answer_begin : D.Recommendation = {
-    ctx:ctx_with_result_question proposal:constant_name
+    ctx:ctx_with_result_question proposal:constant_name with { value = ctx.id0 }
         => D.makeRecommendation(ctx, proposal);
 
     // to support Xkcd (which uses a numeric "ID" property), we allow any type of constant
@@ -95,29 +91,32 @@ user_question_answer_begin : D.Recommendation = {
         => D.makeRecommendation(ctx, proposal);
 }
 
+// note: most of the following combine non-terminals that are already depending
+// on the context, so we don't need an additional constraint here
+
 direct_user_question_answer : D.Recommendation = {
-    ctx:ctx_with_result_question info:direct_result_info_phrase
-        => D.makeThingpediaRecommendation(ctx, info);
+    res:direct_result_info_phrase
+        => D.makeThingpediaRecommendation(res.ctx, res.info);
 }
 
-proposal_info_action_pair : [SlotBag, Ast.Invocation|null] = {
-    'is a' info:result_info_phrase '.' action:action_coref_recommendation [weight=0.8] => {
-        const resultType = info.schema!.getArgType('id');
+proposal_info_action_pair : [D.ResultPhrase, Ast.Invocation|null] = {
+    'is a' res:result_info_phrase '.' action:action_coref_recommendation [weight=0.8] => {
+        const resultType = res.info.schema!.getArgType('id');
 
         if (!resultType || !C.hasArgumentOfType(action, resultType))
             return null;
-        return [info, action];
+        return [res, action];
     };
 
     !inference {
-        'is a' info:result_info_phrase '.' learn_more_offer [weight=0.2] => {
-            return [info, null];
+        'is a' res:result_info_phrase '.' learn_more_offer [weight=0.2] => {
+            return [res, null];
         };
     }
 }
 
 actionable_system_display_result_short : D.Recommendation = {
-    ctx:ctx_with_result info:thingpedia_result '.' if complete [priority=10]
+    ctx:ctx_with_result info:thingpedia_result with { functionName = ctx.currentFunction } '.' [priority=5]
         => D.makeDisplayResult(ctx, info);
 }
 
@@ -125,10 +124,12 @@ actionable_system_display_result_short : D.Recommendation = {
 system_nonlist_result : D.Recommendation = {
     actionable_system_display_result_short;
 
-    ctx:ctx_with_result info:direct_result_info_phrase
-        => D.makeDisplayResult(ctx, info);
+    ctx:ctx_with_result_noquestion res:direct_result_info_phrase
+        => D.makeDisplayResult(ctx, res.info);
+    ctx:ctx_with_result_question res:direct_result_info_phrase [priority=10]
+        => D.makeDisplayResult(ctx, res.info);
     phrase:actionable_system_display_result_short extra:direct_result_info_phrase
-        => D.combineDisplayResult(phrase, extra);
+        => D.combineDisplayResult(phrase, extra.info);
 
     // TODO: offer an action on the result (needs non-ID parameter passing to be useful)
     //proposal:actionable_system_display_result_short action:action_coref_recommendation
@@ -151,11 +152,8 @@ system_recommendation : D.Recommendation = {
     | ctx_with_action proposal:actionable_system_recommendation_short '.'
     ) => proposal;
 
-    ctx_with_action proposal:actionable_system_recommendation_short '.' learn_more_offer => {
-        // reset the action to null if the agent explicitly asks to "learn more"
-        const { topResult, info } = proposal;
-        return { hasLearnMore: true, topResult, info, action: null };
-    };
+    ctx_with_action proposal:actionable_system_recommendation_short '.' learn_more_offer
+        => D.recommendationSetLearnMore(proposal);
 
     ctx_without_projection proposal:action_recommendation => proposal;
     ctx_without_projection proposal:actionable_system_recommendation_short action:action_coref_recommendation
@@ -163,13 +161,13 @@ system_recommendation : D.Recommendation = {
 
     // recommendations after a search
     // with additional info
-    ( proposal:question_system_recommendation_short '?' 'it is a' info:result_info_phrase '.'
-    | proposal:action_recommendation '?' 'it is a' info:result_info_phrase '.'
-    | proposal:actionable_system_recommendation_short '.' 'it is a' info:result_info_phrase '.'
-    | proposal:question_system_recommendation_short ', which is a' info:result_info_phrase '?'
-    | proposal:action_recommendation ', which is a' info:result_info_phrase '?'
-    | proposal:actionable_system_recommendation_short ', which is a' info:result_info_phrase '.'
-    ) => D.checkRecommendation(proposal, info);
+    ( proposal:question_system_recommendation_short '?' 'it is a' res:result_info_phrase '.'
+    | proposal:action_recommendation '?' 'it is a' res:result_info_phrase '.'
+    | proposal:actionable_system_recommendation_short '.' 'it is a' res:result_info_phrase '.'
+    | proposal:question_system_recommendation_short ', which is a' res:result_info_phrase '?'
+    | proposal:action_recommendation ', which is a' res:result_info_phrase '?'
+    | proposal:actionable_system_recommendation_short ', which is a' res:result_info_phrase '.'
+    ) => D.checkRecommendation(proposal, res.info);
 
     // recommendations after a search
     // no additional info
@@ -179,14 +177,14 @@ system_recommendation : D.Recommendation = {
     ) => proposal;
 
     // long-form answers to a single question
-    proposal:user_question_answer_begin 'is a' info:result_info_phrase '.'
-        => D.checkRecommendation(proposal, info);
+    proposal:user_question_answer_begin 'is a' res:result_info_phrase '.'
+        => D.checkRecommendation(proposal, res.info);
 
     // short answers to a single question
-    ( proposal:user_question_answer_begin filter:avp_filter '.'
-    | proposal:user_question_answer_begin 'is' filter:pvp_filter '.'
-    | proposal:user_question_answer_begin 'is' filter:apv_filter '.'
-    | proposal:user_question_answer_begin 'has' filter:npp_filter '.'
+    ( proposal:user_question_answer_begin filter:avp_filter with { functionName = proposal.functionName } '.'
+    | proposal:user_question_answer_begin 'is' filter:pvp_filter with { functionName = proposal.functionName } '.'
+    | proposal:user_question_answer_begin 'is' filter:apv_filter with { functionName = proposal.functionName } '.'
+    | proposal:user_question_answer_begin 'has' filter:npp_filter with { functionName = proposal.functionName } '.'
     ) => D.makeAnswerStyleRecommendation(proposal, filter);
 
     // even shorter answers to single questions
@@ -196,14 +194,12 @@ system_recommendation : D.Recommendation = {
     ( proposal:actionable_system_recommendation_short '. it' pair:proposal_info_action_pair [weight=2]
     | proposal:user_question_answer_begin pair:proposal_info_action_pair [weight=2]
     ) => {
-        const [info, action] = pair;
-        const maybeProposal = D.checkRecommendation(proposal, info);
+        const [res, action] = pair;
+        const maybeProposal = D.checkRecommendation(proposal, res.info);
         if (maybeProposal === null)
             return null;
-        const { topResult, } = maybeProposal;
-        // reset the action to null if the agent explicitly asks to "learn more"
         if (action === null)
-            return { hasLearnMore: true, topResult, info, action: null };
+            return D.recommendationSetLearnMore(maybeProposal);
         return D.checkActionForRecommendation(maybeProposal, action);
     };
 }

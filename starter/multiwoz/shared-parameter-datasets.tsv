@@ -10,3 +10,4 @@ string	en-US	uk.ac.cam.multiwoz.Hotel:name	shared-parameter-datasets/uk.ac.cam.m
 string	en-US	uk.ac.cam.multiwoz.Taxi:destination	shared-parameter-datasets/uk.ac.cam.multiwoz.Taxi:destination.tsv
 string	en-US	uk.ac.cam.multiwoz.Taxi:departure	shared-parameter-datasets/uk.ac.cam.multiwoz.Taxi:departure.tsv
 string	en-US	uk.ac.cam.multiwoz.Taxi:car	shared-parameter-datasets/uk.ac.cam.multiwoz.Taxi:car.tsv
+string	en-US	tt:short_free_text	shared-parameter-datasets/tt:short_free_text.tsv

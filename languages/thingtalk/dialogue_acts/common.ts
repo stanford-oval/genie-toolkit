@@ -23,6 +23,7 @@ import assert from 'assert';
 
 import { Ast, } from 'thingtalk';
 
+import * as C from '../ast_manip';
 import { arraySubset } from '../array_utils';
 import {
     setOrAddInvocationParam,
@@ -127,19 +128,27 @@ function isFilterCompatibleWithResult(topResult : Ast.DialogueHistoryResultItem,
     }
 }
 
+export function isSlotCompatibleWithResult(topResult : Ast.DialogueHistoryResultItem,
+                                           pname : string, infoValue : Ast.Value) {
+    const resultValue = topResult.value[pname];
+    if (!resultValue)
+        return false;
+
+    if (resultValue instanceof Ast.ArrayValue && infoValue instanceof Ast.ArrayValue) {
+        if (!arraySubset(infoValue.value, resultValue.value))
+            return false;
+    } else {
+        if (!resultValue.equals(infoValue))
+            return false;
+    }
+
+    return true;
+}
+
 function isInfoPhraseCompatibleWithResult(topResult : Ast.DialogueHistoryResultItem, info : SlotBag) {
     for (const [pname, infoValue] of info) {
-        const resultValue = topResult.value[pname];
-        if (!resultValue)
+        if (!isSlotCompatibleWithResult(topResult, pname, infoValue))
             return false;
-
-        if (resultValue instanceof Ast.ArrayValue && infoValue instanceof Ast.ArrayValue) {
-            if (!arraySubset(infoValue.value, resultValue.value))
-                return false;
-        } else {
-            if (!resultValue.equals(infoValue))
-                return false;
-        }
     }
     return true;
 }
@@ -150,9 +159,11 @@ function isInfoPhraseCompatibleWithResult(topResult : Ast.DialogueHistoryResultI
  * This checks two things: that all parameters are valid output parameters of the table,
  * and all parameters are filterable.
  */
-function isValidSearchQuestion(expr : Ast.Expression, questions : string[]) {
+function isValidSearchQuestion(expr : Ast.Expression, questions : C.ParamSlot[]) {
     for (const q of questions) {
-        const arg = expr.schema!.getArgument(q);
+        if (!C.isSameFunction(q.schema, expr.schema!))
+            return false;
+        const arg = expr.schema!.getArgument(q.name);
         if (!arg || arg.is_input)
             return false;
         if (arg.getAnnotation('filterable') === false)

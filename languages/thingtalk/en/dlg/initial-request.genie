@@ -19,9 +19,11 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import { Ast, } from 'thingtalk';
+
+import * as C from '../../ast_manip';
 import * as D from '../../dialogue_acts';
 
-initial_command : Ast.ExpressionStatement = {
+initial_command : Ast.Expression = {
     // now => say
     say_command [weight=0.1];
 
@@ -30,23 +32,23 @@ initial_command : Ast.ExpressionStatement = {
     generic_preamble_for_action action:complete_action => action;
 
     // now => get => do
-    generic_preamble_for_action action:complete_forward_get_do_command [weight=0.1] => action;
+    generic_preamble_for_action action:forward_get_do_command [weight=0.1] => action;
 
     search_command [weight=2];
     complete_question [weight=0.5];
     projection_question [weight=0.1];
 
-    ( stmt:search_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
-    | stmt:complete_action ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
-    | generic_preamble_for_action stmt:complete_action ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
-    | generic_preamble_for_action stmt:complete_forward_get_do_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
-    ) => D.addInitialDontCare(stmt, dontcare);
+    ?dontcare {
+        ( stmt:search_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
+        | stmt:complete_action ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
+        | generic_preamble_for_action stmt:complete_action ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
+        | generic_preamble_for_action stmt:forward_get_do_command ('.' | ',') dontcare:specific_dontcare_phrase [weight=0.1]
+        ) => D.addInitialDontCare(stmt, dontcare);
+    }
 
     // TODO
-    /*
-    ?remote_commands remote_command [weight=0.1];
-    ?policies policy_command [weight=0.2];
-    */
+    // ?remote_commands remote_command [weight=0.1];
+    // ?policies policy_command [weight=0.2];
 
     ?timer stmt:timer_rule [weight=0.2] => stmt;
     !nostream {
@@ -54,6 +56,5 @@ initial_command : Ast.ExpressionStatement = {
         when_command [weight=0.1];
     }
 
-    prog:thingpedia_program if complete
-        => new Ast.ExpressionStatement(null, prog);
+    thingpedia_complete_program;
 }

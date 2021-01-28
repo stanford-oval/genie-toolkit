@@ -40,7 +40,7 @@ function makeCountAggregationReplySuffix(ctx : ContextInfo, table : Ast.Expressi
     if (!(currentTable instanceof Ast.AggregationExpression) ||
         currentTable.operator !== 'count' || currentTable.field !== '*')
         return null;
-    if (!C.isSameFunction(table.schema!, ctx.currentTableSchema!))
+    if (!C.isSameFunction(table.schema!, ctx.currentTableFunction!))
         return null;
     if (mustFilter && !(table instanceof Ast.FilterExpression))
         return null;
@@ -61,7 +61,7 @@ function makeCountAggregationReply(ctx : ContextInfo, num : Ast.Value) {
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_display_result', null));
 }
 
-function makeOtherAggregationReply(ctx : ContextInfo, op : string, param : Ast.VarRefValue, value : Ast.Value) {
+function makeOtherAggregationReply(ctx : ContextInfo, op : string, param : C.ParamSlot, value : Ast.Value) {
     if (!ctx.resultInfo!.isAggregation)
         return null;
     const results = ctx.results;
@@ -70,7 +70,9 @@ function makeOtherAggregationReply(ctx : ContextInfo, op : string, param : Ast.V
     const currentStmt = ctx.current!.stmt;
     const currentTable = currentStmt.lastQuery!;
     if (!(currentTable instanceof Ast.AggregationExpression) ||
-        currentTable.operator !== op || currentTable.field !== param.name)
+        currentTable.operator !== op ||
+        !C.isSameFunction(currentTable.schema!, param.schema) ||
+        currentTable.field !== param.name)
         return null;
     if (!value.equals(results[0].value[param.name]))
         return null;

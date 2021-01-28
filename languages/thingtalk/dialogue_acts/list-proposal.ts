@@ -52,7 +52,28 @@ export interface NameList {
     ctx : ContextInfo;
     results : Ast.DialogueHistoryResultItem[];
 }
+
+export function nameListKeyFn(list : NameList) {
+    const schema = list.ctx.currentFunction!;
+    return {
+        functionName: schema.qualifiedName,
+        idType: schema.getArgType('id')!,
+
+        id0: list.ctx.key.id0,
+        id1: list.ctx.key.id1,
+        id2: list.ctx.key.id2,
+    };
+}
+
 export type ListProposal = [Ast.DialogueHistoryResultItem[], SlotBag|null, Ast.Invocation|null, boolean];
+
+export function listProposalKeyFn([results, info, action, hasLearnMore] : ListProposal) {
+    return {
+        idType: results[0].value.id.getType(),
+        queryName: info ? info.schema!.qualifiedName : null,
+        actionName: action ? action.schema!.qualifiedName : null,
+    };
+}
 
 function checkListProposal(nameList : NameList, info : SlotBag|null, hasLearnMore : boolean) : ListProposal|null {
     const { ctx, results } = nameList;
@@ -64,6 +85,16 @@ function checkListProposal(nameList : NameList, info : SlotBag|null, hasLearnMor
         if (!idType || !idType.equals(resultType))
             return null;
 
+        // check that the filter uses the right set of parameters
+        const resultInfo = ctx.resultInfo!;
+        if (resultInfo.projection !== null) {
+            // check that all projected names are present
+            for (const name of resultInfo.projection) {
+                if (!info.has(name))
+                    return null;
+            }
+        }
+
         for (const result of results) {
             if (!isInfoPhraseCompatibleWithResult(result, info))
                 return null;
@@ -72,6 +103,7 @@ function checkListProposal(nameList : NameList, info : SlotBag|null, hasLearnMor
         if (ctx.resultInfo!.projection !== null)
             return null;
     }
+
 
     const action = ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next!) : null;
     return [results, info, action, hasLearnMore];

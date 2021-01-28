@@ -53,7 +53,7 @@ function choose<T>(from : T[], n : number, rng : () => number = Math.random) : T
 function coin(prob : number, rng : () => number) : boolean {
     return rng() <= prob;
 }
-function uniform<T>(array : T[], rng : () => number) : T {
+function uniform<T>(array : readonly T[], rng : () => number) : T {
     return array[Math.floor(rng() * array.length)];
 }
 function categorical(weights : number[], rng : () => number) : number {
@@ -126,7 +126,7 @@ class ReservoirSampler<T> {
         return this._counter;
     }
 
-    get sampled() : T[] {
+    get sampled() : readonly T[] {
         return this._reservoir;
     }
 

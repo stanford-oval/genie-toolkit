@@ -18,9 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-import assert from 'assert';
-
 import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
@@ -47,7 +44,7 @@ import {
 // - some form of "yes"
 // - some form of "no" followed by another search refinement
 
-type EmptySearch = [Ast.Expression|null, Ast.VarRefValue|null];
+type EmptySearch = [Ast.Expression|null, C.ParamSlot|null];
 
 /**
  * Agent dialogue act: a search command returned no result.
@@ -57,15 +54,17 @@ type EmptySearch = [Ast.Expression|null, Ast.VarRefValue|null];
  * @param question - a search question used in the reply
  */
 function makeEmptySearchError(ctx : ContextInfo, [base, question] : EmptySearch) {
-    if (base !== null && !C.isSameFunction(base.schema!, ctx.currentTableSchema!))
+    if (base !== null && !C.isSameFunction(base.schema!, ctx.currentTableFunction!))
+        return null;
+    if (question !== null && !C.isSameFunction(ctx.currentTableFunction!, question.schema))
         return null;
 
     let type, state;
     if (question !== null) {
-        if (!isGoodEmptySearchQuestion(ctx, question.name))
+        if (!isGoodEmptySearchQuestion(ctx, question))
             return null;
 
-        const arg = ctx.currentTableSchema!.getArgument(question.name);
+        const arg = ctx.currentTableFunction!.getArgument(question.name);
         if (!arg)
             return null;
         type = arg.type;
@@ -77,15 +76,14 @@ function makeEmptySearchError(ctx : ContextInfo, [base, question] : EmptySearch)
     return makeAgentReply(ctx, state, [base, question], type);
 }
 
-function isGoodEmptySearchQuestion(ctx : ContextInfo, question : string) {
-    assert(typeof question === 'string');
+function isGoodEmptySearchQuestion(ctx : ContextInfo, question : C.ParamSlot) {
     const currentStmt = ctx.current!.stmt;
     const currentTable = currentStmt.expression;
     if (!isValidSearchQuestion(currentTable, [question]))
         return false;
 
     const ctxFilterTable = C.findFilterExpression(currentTable);
-    if (!ctxFilterTable || !C.filterUsesParam(ctxFilterTable.filter, question))
+    if (!ctxFilterTable || !C.filterUsesParam(ctxFilterTable.filter, question.name))
         return false;
 
     return true;
@@ -93,11 +91,36 @@ function isGoodEmptySearchQuestion(ctx : ContextInfo, question : string) {
 
 function emptySearchChangePhraseCommon(ctx : ContextInfo, newFilter : Ast.BooleanExpression) {
     const currentStmt = ctx.current!.stmt;
-    const currentTable = currentStmt.expression;
-    const newTable = queryRefinement(currentTable, newFilter, refineFilterToChangeFilter, null);
-    if (newTable === null)
+    const currentExpression = currentStmt.expression;
+    let currentTable = currentExpression.last;
+    let currentAction = null;
+    if (currentTable.schema!.functionType === 'action') {
+        currentAction = currentTable;
+        currentTable = currentExpression.expressions[currentExpression.expressions.length-1];
+    }
+
+    const newExpression = queryRefinement(currentExpression, newFilter, refineFilterToChangeFilter, null);
+    if (newExpression === null)
         return null;
-    return addQuery(ctx, 'execute', newTable, 'accepted');
+
+    if (currentAction) {
+        const confirm = C.normalizeConfirmAnnotation(currentAction.schema!);
+
+        // if the current statement was a compound command, and confirm === auto,
+        // we need to add the [1] clause to the query if necessary, and preserve
+        // the compound command
+        // otherwise, we'll issue just the table part of the query
+        //
+        // this mirrors what initial_request does
+        if (confirm === 'auto') {
+            const newTable = newExpression.lastQuery!;
+
+            if (C.expressionUsesIDFilter(newTable) && !(newTable instanceof Ast.IndexExpression) &&
+                !(newTable instanceof Ast.SliceExpression))
+                newExpression.setLastQuery(new Ast.IndexExpression(null, newTable, [new Ast.Value.Number(1)], newTable.schema));
+        }
+    } // XXX: do we want to remove any sort/index otherwise?
+    return addQuery(ctx, 'execute', newExpression, 'accepted');
 }
 
 /**
@@ -110,7 +133,7 @@ function preciseEmptySearchChangeRequest(ctx : ContextInfo, phrase : Ast.Express
     if (!(phrase instanceof Ast.FilterExpression))
         return null;
     const [, param] = ctx.aux as EmptySearch;
-    if (!C.isSameFunction(ctx.currentTableSchema!, phrase.schema!))
+    if (!C.isSameFunction(ctx.currentTableFunction!, phrase.schema!))
         return null;
     if (param !== null && !C.filterUsesParam(phrase.filter, param.name))
         return null;
@@ -124,12 +147,12 @@ function preciseEmptySearchChangeRequest(ctx : ContextInfo, phrase : Ast.Express
  * The "imprecise" variant only contains a value and optionally a parameter name.
  * The table is inferred from the context.
  */
-function impreciseEmptySearchChangeRequest(ctx : ContextInfo, answer : Ast.Value|Ast.BooleanExpression) {
+function impreciseEmptySearchChangeRequest(ctx : ContextInfo, answer : Ast.Value|C.FilterSlot) {
     const [base, param] = ctx.aux as EmptySearch;
     // because we're imprecise, we're only valid if the agent asked a specific question
     if (base === null || param === null)
         return null;
-    let answerFilter : Ast.BooleanExpression|null;
+    let answerFilter : C.FilterSlot|null;
     if (answer instanceof Ast.Value)
         answerFilter = C.makeFilter(param, '==', answer);
     else

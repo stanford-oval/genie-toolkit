@@ -45,8 +45,12 @@ export class Compiler {
 
     private _files = new Map<string, metaast.Grammar>();
 
+    private _nonTerm = new Set<string>();
     // map a non-terminal to its type declaration, if any
     private _typeMap = new Map<string, string>();
+
+    // map a type to its key function, if any
+    private _keyFnMap = new Map<string, string>();
 
     constructor(target : 'js' | 'ts') {
         this._target = target;
@@ -77,6 +81,8 @@ export class Compiler {
             }
 
             visitContextStmt(stmt : metaast.ContextStmt) {
+                for (const symbol of stmt.names)
+                    self._nonTerm.add(symbol);
                 if (!stmt.type)
                     return;
                 for (const symbol of stmt.names)
@@ -84,11 +90,11 @@ export class Compiler {
             }
 
             visitNonTerminalStmt(stmt : metaast.NonTerminalStmt) {
+                const symbol = stmt.name;
+                self._nonTerm.add(symbol);
+
                 if (stmt.type === undefined || stmt.type === 'any')
                     return;
-                if (!(stmt.name instanceof metaast.IdentifierNTR))
-                    return;
-                const symbol = stmt.name.name;
 
                 const existing = self._typeMap.get(symbol);
                 if (!existing || existing === 'any') {
@@ -96,7 +102,22 @@ export class Compiler {
                     return;
                 }
                 if (existing !== stmt.type)
-                    throw new TypeError(`Invalid conflicting type annotation for non-terminal ${symbol}`);
+                    throw new TypeError(`Invalid conflicting type annotation for non-terminal ${symbol}, have ${existing} want ${stmt.type}`);
+            }
+
+            visitKeyFunctionDeclaration(stmt : metaast.KeyFunctionDeclarationStmt) {
+                for (let [type, keyfn] of stmt.decls) {
+                    type = type.trim();
+                    keyfn = keyfn.trim();
+
+                    const existing = self._keyFnMap.get(type);
+                    if (!existing) {
+                        self._keyFnMap.set(type, keyfn);
+                        continue;
+                    }
+                    if (existing !== keyfn)
+                        throw new TypeError(`Invalid conflicting key function declaration for type ${type}`);
+                }
             }
         });
 
@@ -109,26 +130,33 @@ export class Compiler {
         this.visit(new class extends metaast.NodeVisitor {
             // assign a type to every usage of a non-terminal
             visitNonTerminalRuleHead(node : metaast.NonTerminalRuleHead) {
-                if (!(node.category instanceof metaast.IdentifierNTR))
-                    return;
-                const symbol = node.category.name;
+                const symbol = node.category;
+                if (!self._nonTerm.has(symbol))
+                    throw new TypeError(`Undeclared non-terminal ${symbol}`);
+
                 const type = self._typeMap.get(symbol);
-                if (type)
+                if (type) {
                     node.type = type;
+                    node.keyfn = self._keyFnMap.get(type.trim()) || 'undefined';
+                }
+                if (node.constraint && node.keyfn === 'undefined')
+                    console.log(`WARNING: missing key function for type ${node.type}, which is used in constraint for non-terminal ${symbol}`);
             }
 
             // also assign a type to every non-terminal declaration, if
             // it doesn't have one already
             visitNonTerminalStmt(stmt : metaast.NonTerminalStmt) {
-                if (stmt.type)
+                if (stmt.type) {
+                    stmt.keyfn = self._keyFnMap.get(stmt.type.trim()) || 'undefined';
                     return;
-                if (!(stmt.name instanceof metaast.IdentifierNTR))
-                    return;
-                const symbol = stmt.name.name;
+                }
+                const symbol = stmt.name;
 
                 const existing = self._typeMap.get(symbol);
-                if (existing)
+                if (existing) {
                     stmt.type = existing;
+                    stmt.keyfn = self._keyFnMap.get(existing.trim()) || 'undefined';
+                }
             }
         });
     }
@@ -202,7 +230,7 @@ interface GrammarOptions {
 type CompiledTemplate = (runtime : typeof SentenceGeneratorRuntime,
                          options : GrammarOptions,
                          langPack : I18n.LanguagePack,
-                         grammar : SentenceGenerator<any, any>) => Promise<void>;
+                         grammar : SentenceGenerator<any, any, any>) => Promise<void>;
 
 export async function importGenie(filename : string,
                                   searchPath = '.') : Promise<CompiledTemplate> {

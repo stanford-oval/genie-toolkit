@@ -2,7 +2,7 @@
 //
 // This file is part of Genie
 //
-// Copyright 2019-2020 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2019-2021 The Board of Trustees of the Leland Stanford Junior University
 //           2019 National Taiwan University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,7 +23,101 @@
 import assert from 'assert';
 import { Ast, Type } from 'thingtalk';
 import type { I18n } from 'genie-toolkit';
-import type { ThingpediaLoader } from './load-thingpedia';
+
+import type { SlotBag } from './slot_bag';
+
+// slot objects to track filters, input and output parameters
+// these objects are similar to the Ast node they wrap
+// but they also add the function name, so we don't mix parameters
+// across functions with the same name
+
+/**
+ * A placeholder of the form "something", "some person", etc.
+ */
+export interface Placeholder {
+    type : Type;
+}
+
+/**
+ * A phrase that includes a coreference, such as "post this on twitter",
+ * "post the caption on twitter", "book it on yelp", "book the restaurant on yelp"
+ */
+export interface ExpressionWithCoreference {
+    // the actual expression
+    // for "post this", "book it" and "book the restaurant", it will be something like:
+    // ```
+    // @com.twitter.post(status=p_status);
+    // ```
+    // (i.e., `p_status` is still present from the primitive template
+    // and can be replaced with other things)
+    //
+    // for "post the caption", it will be something like:
+    // ```
+    // @com.twitter.post(status=caption);
+    // ```
+    // i.e. `p_status` has been replaced already and no further replacement
+    // is necessary
+    //
+    // note that this allows "book the restaurant" to be matched with a query
+    // that is not `@com.yelp.restaurant()`, as long as the type matches
+    // whereas "post the caption" must be matched with the query where the
+    // word "caption" comes from, not just any query that uses the parameter
+    // `caption`
+    expression : Ast.Expression;
+
+    // the type of the parameter where the coreference is used
+    type : Type;
+
+    // the parameter that was used to make the coreference, if any
+    // this is null for "post this" and "book the restaurant",
+    // and not null for "post the caption"
+    slot : ParamSlot|null;
+
+    // the parameter that needs to be replaced with the coreference
+    // this is not-null for "post this" and "book the restaurant",
+    // and null for "post the caption"
+    pname : string|null;
+}
+
+export interface ErrorMessage {
+    code : string;
+    bag : SlotBag;
+}
+
+export interface ParamSlot {
+    schema : Ast.FunctionDef;
+    name : string;
+    type : Type;
+    filterable : boolean;
+    ast : Ast.VarRefValue;
+}
+
+// used by filters of the form "the number of <compound param> that have <filter> in <table>"
+export interface FilterValueSlot {
+    schema : Ast.FunctionDef;
+    name : string;
+    ast : Ast.FilterValue;
+}
+
+export interface FilterSlot {
+    schema : Ast.FunctionDef;
+    ptype : Type;
+    ast : Ast.BooleanExpression;
+}
+
+// a filter not tied to a specific function
+// this is used for certain domain-independent templates like "nearby"
+export interface DomainIndependentFilterSlot {
+    schema : null;
+    ptype : Type|null;
+    ast : Ast.BooleanExpression;
+}
+
+export interface InputParamSlot {
+    schema : Ast.FunctionDef;
+    ptype : Type;
+    ast : Ast.InputParam;
+}
 
 function typeToStringSafe(type : Type) : string {
     if (type instanceof Type.Array)
@@ -44,81 +138,110 @@ function clean(name : string) : string {
     return name.replace(/_/g, ' ').replace(/([^A-Z ])([A-Z])/g, '$1 $2').toLowerCase();
 }
 
-function makeFilter(loader : ThingpediaLoader,
-                    pname : Ast.Value,
-                    op : string,
-                    value : Ast.Value,
-                    negate ?: false) : Ast.AtomBooleanExpression|null;
-function makeFilter(loader : ThingpediaLoader,
-                    pname : Ast.Value,
-                    op : string,
-                    value : Ast.Value,
-                    negate : true) : Ast.NotBooleanExpression|null;
-function makeFilter(loader : ThingpediaLoader,
-                    pname : Ast.Value,
-                    op : string,
-                    value : Ast.Value,
-                    negate : boolean) : Ast.AtomBooleanExpression|Ast.NotBooleanExpression|null;
-function makeFilter(loader : ThingpediaLoader,
-                    pname : Ast.Value,
-                    op : string,
-                    value : Ast.Value,
-                    negate = false) : Ast.BooleanExpression|null {
-    assert(pname instanceof Ast.Value.VarRef);
+export function makeInputParamSlot(slot : ParamSlot,
+                                   value : Ast.Value) : InputParamSlot|null {
     const vtype = value.getType();
-    let ptype = vtype;
-    if (ptype instanceof Type.Entity && ptype.type === 'tt:url')
-        return null;
-    if (op === 'contains') {
-        if (loader.params.out.has(pname.name + '+' + Type.RecurrentTimeSpecification) && (vtype.isTime || vtype.isDate))
-            ptype = Type.RecurrentTimeSpecification;
-        else
-            ptype = new Type.Array(vtype);
-        if (vtype.isString)
-            op = 'contains~';
-    } else if (op === '==' && vtype.isString) {
-        op = '=~';
-    }
-    if (!loader.params.out.has(pname.name + '+' + ptype) && pname.name !== 'id')
+    const ptype = slot.type;
+
+    if (!Type.isAssignable(ptype, vtype))
         return null;
 
-    const f = new Ast.BooleanExpression.Atom(null, pname.name, op, value);
-    if (negate)
-        return new Ast.BooleanExpression.Not(null, f);
-    else
-        return f;
+    return { schema: slot.schema, ptype : slot.type,
+        ast: new Ast.InputParam(null, slot.name, value) };
 }
 
-function makeAndFilter(loader : ThingpediaLoader,
-                       param : Ast.Value,
+export function makeDomainIndependentFilter(pname : string,
+                                            op : string,
+                                            value : Ast.Value) : DomainIndependentFilterSlot {
+    return { schema: null, ptype: value.getType(),
+        ast: new Ast.AtomBooleanExpression(null, pname, op, value, null) };
+}
+
+function makeFilter(slot : ParamSlot,
+                    op : string,
+                    value : Ast.Value,
+                    negate = false) : FilterSlot|null {
+    const vtype = value.getType();
+    const ptype = slot.type;
+    // XXX url filters?
+    if (ptype instanceof Type.Entity && ptype.type === 'tt:url')
+        return null;
+
+    if (op === 'contains') {
+        if (ptype === Type.RecurrentTimeSpecification) {
+            if (!(vtype.isTime || vtype.isDate))
+                return null;
+        } else {
+            if (!(ptype instanceof Type.Array))
+                return null;
+
+            const elem = ptype.elem as Type;
+            if ((vtype.isEnum && elem.isEnum) || (vtype.isEntity && elem.isEntity)) {
+                if (!Type.isAssignable(vtype, elem))
+                    return null;
+            } else if (!elem.equals(vtype)) {
+                return null;
+            }
+        }
+        if (vtype.isString)
+            op = 'contains~';
+    } else if (op === 'in_array') {
+        if (vtype.equals(new Type.Array(Type.String)) && ptype.isEntity)
+            op = 'in_array~';
+        else if (!vtype.equals(new Type.Array(ptype)))
+            return null;
+    } else {
+        // note: we need to use "isAssignable" instead of "equals" here
+        // to handle enums and entities correctly
+        if ((vtype.isEnum && ptype.isEnum) || (vtype.isEntity && ptype.isEntity)) {
+            if (!Type.isAssignable(vtype, ptype))
+                return null;
+        } else if (!ptype.equals(vtype)) {
+            return null;
+        }
+
+        if (op === '==' && vtype.isString)
+            op = '=~';
+    }
+
+    let ast = new Ast.BooleanExpression.Atom(null, slot.name, op, value);
+    if (negate)
+        ast = new Ast.BooleanExpression.Not(null, ast);
+    return { schema: slot.schema, ptype, ast };
+}
+
+function makeAndFilter(slot : ParamSlot,
                        op : string,
-                       values : Ast.Value[],
-                       negate=false) : Ast.BooleanExpression|null {
+                       values : [Ast.Value, Ast.Value],
+                       negate=false) : FilterSlot|null {
     if (values.length !== 2)
         return null;
     if (values[0].equals(values[1]))
         return null;
-    const operands  = values.map((v) => makeFilter(loader, param, op, v));
-    if (operands.includes(null))
+    const operands = [
+        makeFilter(slot, op, values[0]),
+        makeFilter(slot, op, values[1])
+    ];
+    if (operands[0] === null || operands[1] === null)
         return null;
-    const f = new Ast.BooleanExpression.And(null, operands);
+    let ast = new Ast.BooleanExpression.And(null, [operands[0].ast, operands[1].ast]);
     if (negate)
-        return new Ast.BooleanExpression.Not(null, f);
-    return f;
+        ast = new Ast.BooleanExpression.Not(null, ast);
+    return { schema: slot.schema, ptype: slot.type, ast };
 }
 
-function makeDateRangeFilter(loader : ThingpediaLoader,
-                             param : Ast.Value,
-                             values : Ast.Value[]) : Ast.BooleanExpression|null {
+function makeDateRangeFilter(slot : ParamSlot,
+                             values : Ast.Value[]) : FilterSlot|null {
     if (values.length !== 2)
         return null;
     const operands = [
-        makeFilter(loader, param, '>=', values[0]),
-        makeFilter(loader, param, '<=', values[1])
-    ];
-    if (operands.includes(null))
+        makeFilter(slot, '>=', values[0]),
+        makeFilter(slot, '<=', values[1])
+    ] as const;
+    if (operands[0] === null || operands[1] === null)
         return null;
-    return new Ast.BooleanExpression.And(null, operands);
+    const ast = new Ast.BooleanExpression.And(null, [operands[0].ast, operands[1].ast]);
+    return { schema: slot.schema, ptype: slot.type, ast };
 }
 
 function isHumanEntity(type : Type|string) : boolean {
@@ -245,10 +368,11 @@ function tokenizeExample(tokenizer : I18n.BaseTokenizer,
 
 function isSameFunction(fndef1 : Ast.FunctionDef,
                         fndef2 : Ast.FunctionDef) : boolean {
-    if (!fndef1.class || !fndef2.class)
-        return false;
-    return fndef1.class.name === fndef2.class.name &&
-        fndef1.name === fndef2.name;
+    assert(fndef1);
+    assert(fndef2);
+    if (fndef1 === fndef2)
+        return true;
+    return fndef1.qualifiedName === fndef2.qualifiedName;
 }
 
 class HasUndefinedVisitor extends Ast.NodeVisitor {

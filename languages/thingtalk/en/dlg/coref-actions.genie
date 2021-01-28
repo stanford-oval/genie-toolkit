@@ -20,7 +20,7 @@
 
 // Coref actions: actions that operate on the current result, referred by coreference ("it", "that", "the restaurant")
 
-import { Ast, Type } from 'thingtalk';
+import { Ast, } from 'thingtalk';
 
 import * as C from '../../ast_manip';
 import * as D from '../../dialogue_acts';
@@ -29,134 +29,38 @@ import * as S from '../../state_manip';
 // import thingpedia info
 import _tpLoader from '../../load-thingpedia';
 
-coref_action_phrase : Ast.Invocation = {}
-contextual_action_phrase : Ast.Invocation = {}
-list_coref_action_phrase : Ast.Invocation = {}
+coref_action_phrase : Ast.Invocation = {
+    ( action:action_coref_context
+    | action:get_command_coref_context
+    ) => {
+        if (!(action.expression instanceof Ast.InvocationExpression))
+            return null;
+        if (action.slot !== null || !_tpLoader.isIDType(action.type)) // TODO: non-id parameter passing
+            return null;
+        return C.replacePlaceholderWithUndefined(action.expression.invocation, action.pname!);
+    };
+}
 
-for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
-    // coref to one object (for recommendation)
-    coref_action_phrase : Ast.Invocation = {
-        ( action:thingpedia_action 'it'
-        | action:thingpedia_action 'this'
-        | action:thingpedia_action 'that'
-        ) [-> pname] => {
-            if (!(action instanceof Ast.InvocationExpression))
-                return null;
-            const type = action.schema!.getArgType(pname);
-            if (!type || !(type instanceof Type.Entity))
-                return null;
-            const replaced = C.replacePlaceholderWithUndefined(action, pname, typestr);
-            if (replaced === null)
-                return null;
-            return replaced.invocation;
-        };
+list_coref_action_phrase : Ast.Invocation = {
+    ( action:action_coref_list_context
+    | action:get_command_coref_list_context
+    ) => {
+        if (!(action.expression instanceof Ast.InvocationExpression))
+            return null;
+        if (action.slot !== null || !_tpLoader.isIDType(action.type)) // TODO: non-id parameter passing
+            return null;
+        return C.replacePlaceholderWithUndefined(action.expression.invocation, action.pname!);
+    };
+}
 
-        ( action:thingpedia_get_command 'it'
-        | action:thingpedia_get_command 'this'
-        | action:thingpedia_get_command 'that'
-        ) [-> pname] => {
-            if (!(action instanceof Ast.InvocationExpression))
-                return null;
-            const type = action.schema!.getArgType(pname);
-            if (!type || !(type instanceof Type.Entity))
-                return null;
-            const replaced = C.replacePlaceholderWithUndefined(action, pname, typestr);
-            if (replaced === null)
-                return null;
-            return replaced.invocation;
-        };
-
-        action:thingpedia_action noun:the_base_noun_phrase [-> pname] => {
-            if (!(action instanceof Ast.InvocationExpression))
-                return null;
-            const type = action.schema!.getArgType(pname);
-            if (!type || !(type instanceof Type.Entity) || type.type !== noun)
-                return null;
-            const replaced = C.replacePlaceholderWithUndefined(action, pname, typestr);
-            if (replaced === null)
-                return null;
-            return replaced.invocation;
-        };
-
-        action:thingpedia_get_command noun:the_base_noun_phrase [-> pname] => {
-            if (!(action instanceof Ast.InvocationExpression))
-                return null;
-            const type = action.schema!.getArgType(pname);
-            if (!type || !(type instanceof Type.Entity) || type.type !== noun)
-                return null;
-            const replaced = C.replacePlaceholderWithUndefined(action, pname, typestr);
-            if (replaced === null)
-                return null;
-            return replaced.invocation;
-        };
-    }
-
-    // coref to a list (for list proposal)
-    list_coref_action_phrase = {
-        ( action:thingpedia_action 'either one'
-        | action:thingpedia_action 'either of them'
-        | action:thingpedia_action 'any of them'
-        | action:thingpedia_action 'any one of them'
-        ) [-> pname] => {
-            if (!(action instanceof Ast.InvocationExpression))
-                return null;
-            const type = action.schema!.getArgType(pname);
-            if (!type || !(type instanceof Type.Entity))
-                return null;
-            const replaced = C.replacePlaceholderWithUndefined(action, pname, typestr);
-            if (replaced === null)
-                return null;
-            return replaced.invocation;
-        };
-
-        ( action:thingpedia_get_command 'either one'
-        | action:thingpedia_get_command 'either of them'
-        | action:thingpedia_get_command 'any of them'
-        | action:thingpedia_get_command 'any one of them'
-        ) [-> pname] => {
-            if (!(action instanceof Ast.InvocationExpression))
-                return null;
-            const type = action.schema!.getArgType(pname);
-            if (!type || !(type instanceof Type.Entity))
-                return null;
-            const replaced = C.replacePlaceholderWithUndefined(action, pname, typestr);
-            if (replaced === null)
-                return null;
-            return replaced.invocation;
-        };
-    }
-
-    // operate on an object by name - this rule is only available after the first turn
-    contextual_action_phrase = {
-        action:thingpedia_action name:constant_name [-> pname { isConstant: true }] => {
-            if (!(action instanceof Ast.InvocationExpression))
-                return null;
-            const newAction = C.replacePlaceholderWithConstant(action, pname, name);
-            if (newAction === null)
-                return null;
-            return newAction.invocation;
-        };
-
-        action:thingpedia_get_command name:constant_name [-> pname { isConstant: true }] => {
-            if (!(action instanceof Ast.InvocationExpression))
-                return null;
-            const newAction = C.replacePlaceholderWithConstant(action, pname, name);
-            if (newAction === null)
-                return null;
-            return newAction.invocation;
-        };
-    }
-
-    // add the rules for constant parameters too
-    coref_action_phrase = {
-        a:coref_action_phrase v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(a, pname, v);
-    }
-    contextual_action_phrase = {
-        a:contextual_action_phrase v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(a, pname, v);
-    }
-    list_coref_action_phrase = {
-        a:list_coref_action_phrase v:$('constant_' + typestr) [-> pname { isConstant: true }] => C.replacePlaceholderWithConstant(a, pname, v);
-    }
+contextual_action_phrase : Ast.Invocation = {
+    ( action:complete_action
+    | action:complete_get_command
+    ) => {
+        if (!(action instanceof Ast.InvocationExpression))
+            return null;
+        return action.invocation;
+    };
 }
 
 // proposals/recommendations from the agent
@@ -164,7 +68,7 @@ for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
 action_coref_recommendation : Ast.Invocation = {
     ( 'would you like to' action:coref_action_phrase '?' [priority=1]
     | 'would you like me to' action:coref_action_phrase ' for you ?' [priority=1]
-    ) if complete => {
+    ) => {
         if (action.in_params.some((ip) => !ip.value.isUndefined))
             return null;
         return action;
@@ -172,7 +76,7 @@ action_coref_recommendation : Ast.Invocation = {
 }
 
 action_coref_list_proposal : Ast.Invocation = {
-    'would you like to' action:list_coref_action_phrase '?' if complete [priority=1] => {
+    'would you like to' action:list_coref_action_phrase '?' [priority=1] => {
         if (action.in_params.some((ip) => !ip.value.isUndefined))
             return null;
         return action;
@@ -182,45 +86,38 @@ action_coref_list_proposal : Ast.Invocation = {
 // sentences from the user
 
 coref_action_command : Ast.Invocation = {
-    ctx:ctx_with_action base:coref_action_phrase if complete
+    ctx:ctx_with_action base:coref_action_phrase with { functionName = ctx.nextFunction }
         => D.contextualAction(ctx, base);
     ctx:ctx_without_action base:coref_action_phrase => base;
 
-    ( action:coref_action_command param:preposition_input_param
-    | action:coref_action_command ('with' | 'having') param:npp_input_param
+    ( action:coref_action_command param:preposition_input_param with { functionName = action.functionName }
+    | action:coref_action_command ('with' | 'having') param:npp_input_param with { functionName = action.functionName }
     ) => C.addInvocationInputParam(action, param);
 }
 
 action_by_name_command : Ast.Invocation = {
-    ctx:ctx_incomplete_action base:contextual_action_phrase if complete
+    ctx:ctx_incomplete_action base:contextual_action_phrase with { functionName = ctx.nextFunction }
         => D.contextualAction(ctx, base);
     ctx:ctx_without_action base:contextual_action_phrase => base;
 
-    ( action:action_by_name_command param:preposition_input_param
-    | action:action_by_name_command ('with' | 'having') param:npp_input_param
+    ( action:action_by_name_command param:preposition_input_param with { functionName = action.functionName }
+    | action:action_by_name_command ('with' | 'having') param:npp_input_param with { functionName = action.functionName }
     ) => C.addInvocationInputParam(action, param);
 }
 
 // an action command that continues an existing action command (used for slot-filling)
 action_continuation_command : Ast.Invocation = {
-    ( ctx:ctx_incomplete_action base:coref_action_phrase
-    | ctx:ctx_incomplete_action base:contextual_action_phrase
-    ) if complete => D.contextualAction(ctx, base);
-    ( ctx:ctx_incomplete_action base:thingpedia_action
-    | ctx:ctx_incomplete_action base:thingpedia_get_command
-    ) if complete => {
-        if (!(base instanceof Ast.InvocationExpression))
-            return null;
-        return D.contextualAction(ctx, base.invocation);
-    };
+    ( ctx:ctx_incomplete_action base:coref_action_phrase with { functionName = ctx.nextFunction }
+    | ctx:ctx_incomplete_action base:contextual_action_phrase with { functionName = ctx.nextFunction }
+    ) => D.contextualAction(ctx, base);
 
-    ( action:action_continuation_command param:preposition_input_param
-    | action:action_continuation_command ('with' | 'having') param:npp_input_param
+    ( action:action_continuation_command param:preposition_input_param with { functionName = action.functionName }
+    | action:action_continuation_command ('with' | 'having') param:npp_input_param with { functionName = action.functionName }
     ) => C.addInvocationInputParam(action, param);
 }
 
 continuation_query : Ast.Invocation = {
-    ctx:ctx_incomplete_action base:complete_table => {
+    ctx:ctx_incomplete_action base:complete_table with { functionName = ctx.nextFunction } => {
         if (!(base instanceof Ast.InvocationExpression))
             return null;
         return D.contextualAction(ctx, base.invocation);
@@ -230,13 +127,13 @@ continuation_query : Ast.Invocation = {
 // sentences from the agent
 action_description_phrase : Ast.Invocation = {
     coref_action_phrase;
-    action:thingpedia_action if complete => {
+    action:thingpedia_complete_action => {
         if (!(action instanceof Ast.InvocationExpression))
             return null;
         return action.invocation;
     };
 
-    ( action:action_description_phrase param:preposition_input_param
-    | action:action_description_phrase ('with' | 'having') param:npp_input_param
+    ( action:action_description_phrase param:preposition_input_param with { functionName = action.functionName }
+    | action:action_description_phrase ('with' | 'having') param:npp_input_param with { functionName = action.functionName }
     ) => C.addInvocationInputParam(action, param);
 }

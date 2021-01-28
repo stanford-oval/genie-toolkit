@@ -20,6 +20,8 @@
 
 import { Ast, Type } from 'thingtalk';
 
+import * as C from './ast_manip';
+
 {
 const MAX_SMALL_INTEGER = 12;
 }
@@ -27,7 +29,7 @@ const MAX_SMALL_INTEGER = 12;
 for (let i = 0; i <= MAX_SMALL_INTEGER; i++)
     constant_Number : Ast.NumberValue = #(String(i)) => new Ast.Value.Number(i);
 
-constant_String                    : Ast.StringValue = const(QUOTED_STRING, Type.String);
+constant_String                    : Ast.Value = const(QUOTED_STRING, Type.String);
 
 constant_Entity__tt__url           : Ast.EntityValue = const(URL, new Type.Entity('tt:url'));
 
@@ -38,7 +40,7 @@ constant_Entity__tt__email_address : Ast.EntityValue = const(EMAIL_ADDRESS, new 
 constant_Entity__tt__path_name     : Ast.EntityValue = const(PATH_NAME, new Type.Entity('tt:path_name'));
 
 constant_Number   : Ast.NumberValue = const(NUMBER, Type.Number);
-constant_Currency : Ast.CurrencyValue = const(CURRENCY, Type.Currency);
+constant_Currency : Ast.Value = const(CURRENCY, Type.Currency);
 constant_Time     : Ast.Value = const(TIME, Type.Time);
 constant_Date     : Ast.Value = const(DATE, Type.Date);
 constant_Location : Ast.LocationValue = const(LOCATION, Type.Location);
@@ -47,8 +49,8 @@ constant_Entity__tt__picture  : Ast.EntityValue = {}
 constant_Entity__tt__function : Ast.EntityValue = {}
 constant_Entity__tt__program  : Ast.EntityValue = {}
 constant_Entity__tt__device   : Ast.EntityValue = {}
-constant_Boolean : Ast.BooleanValue = {}
-constant_RecurrentTimeSpecification : Ast.RecurrentTimeSpecificationValue = {}
+constant_Boolean : Ast.Value = {}
+constant_RecurrentTimeSpecification : Ast.Value = {}
 
 constant_Measure_ms : Ast.Value = {
     ?inference const(MEASURE_ms, new Type.Measure('ms'));
@@ -143,7 +145,7 @@ constant_Any : Ast.Value = {
         constant_Boolean;
     }
 }
-constant_Numeric = {
+constant_Numeric : Ast.Value = {
     constant_Number;
     constant_Currency;
     constant_Measure_ms;

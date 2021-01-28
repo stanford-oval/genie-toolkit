@@ -175,7 +175,7 @@ type RefineFilterCallback = (old : Ast.BooleanExpression, new_ : Ast.BooleanExpr
 function queryRefinement(ctxExpression : Ast.ChainExpression,
                          newFilter : Ast.BooleanExpression|null,
                          refineFilter : RefineFilterCallback|null,
-                         newProjection : string[]|null) : Ast.Expression|null {
+                         newProjection : string[]|null) : Ast.ChainExpression|null {
     const cloneExpression = ctxExpression.clone();
 
     let refinedFilter : Ast.BooleanExpression;
@@ -427,7 +427,7 @@ function refineFilterToChangeFilter(ctxFilter : Ast.BooleanExpression,
 function proposalReply(ctx : ContextInfo,
                        request : Ast.Expression,
                        refinementFunction : RefineFilterCallback) {
-    if (!C.isSameFunction(ctx.currentFunctionSchema!, request.schema!))
+    if (!C.isSameFunction(ctx.currentFunction!, request.schema!))
         return null;
 
     // TODO we need to push down the filter, if possible

@@ -31,6 +31,7 @@ import {
     categoricalPrecomputed
 } from '../utils/random';
 import PriorityQueue from '../utils/priority_queue';
+import { HashMultiMap } from '../utils/hashmap';
 import * as ThingTalkUtils from '../utils/thingtalk';
 
 import List from './list';
@@ -39,31 +40,34 @@ import {
     LogLevel,
 
     Choice,
-    Placeholder,
     Context,
     Derivation,
     NonTerminal,
-    CombinerAction,
     DerivationChild,
+    DerivationChildTuple,
 } from './runtime';
+import {
+    SemanticAction,
+    KeyFunction,
+    DerivationKeyValue,
+    RuleAttributes,
+    ContextPhrase,
+    ContextTable,
+    ContextFunction,
+} from './types';
 import { importGenie } from './compiler';
 
-type RuleExpansionChunk = string | Choice | Placeholder | NonTerminal;
+type RuleExpansionChunk = string | Choice | NonTerminal;
 
-interface RuleAttributes {
-    weight ?: number;
-    priority ?: number;
-    repeat ?: boolean;
-    forConstant ?: boolean;
-    temporary ?: boolean;
-    identity ?: boolean;
-    expandchoice ?: boolean;
+function dummyKeyFunction() {
+    return {};
 }
 
 class Rule<ArgTypes extends unknown[], ReturnType> {
     number : number;
     expansion : RuleExpansionChunk[];
-    combiner : CombinerAction<ArgTypes, ReturnType>;
+    semanticAction : SemanticAction<ArgTypes, ReturnType>;
+    keyFunction : KeyFunction<ReturnType>;
 
     weight : number;
     priority : number;
@@ -78,13 +82,15 @@ class Rule<ArgTypes extends unknown[], ReturnType> {
 
     constructor(number : number,
                 expansion : RuleExpansionChunk[],
-                combiner : CombinerAction<ArgTypes, ReturnType>,
+                semanticAction : SemanticAction<ArgTypes, ReturnType>,
+                keyFunction : KeyFunction<ReturnType> = dummyKeyFunction,
                 { weight = 1, priority = 0, repeat = false, forConstant = false, temporary = false,
                   identity = false, expandchoice = true } : RuleAttributes) {
         this.number = number;
         this.expansion = expansion;
         assert(this.expansion.length > 0);
-        this.combiner = combiner;
+        this.semanticAction = semanticAction;
+        this.keyFunction = keyFunction;
 
         // attributes
         this.weight = weight;
@@ -100,6 +106,10 @@ class Rule<ArgTypes extends unknown[], ReturnType> {
         this.hasContext = false;
         this.enabled = true;
         assert(this.weight > 0);
+    }
+
+    apply(children : DerivationChildTuple<ArgTypes>) : Derivation<ReturnType>|null {
+        return Derivation.combine(children, this.semanticAction, this.keyFunction, this.priority);
     }
 }
 
@@ -118,18 +128,25 @@ const DEPTH_PROGRESS_MULTIPLIERS = [
 // size multiplied by this factor
 const NON_CONTEXTUAL_PRUNING_SIZE_MULTIPLIER = 3;
 
-// powers grow by 2 until depth 6, then go down by 0.8
+// powers grow by 2 until depth 5, then go down by 0.8
 const POWERS = [1];
-for (let i = 1; i < 7; i++)
+for (let i = 1; i < 6; i++)
     POWERS[i] = 2 * POWERS[i-1];
-for (let i = 7; i < 20; i++)
+for (let i = 6; i < 20; i++)
     POWERS[i] = 0.8 * POWERS[i-1];
 const EXPONENTIAL_PRUNE_SIZE = 500000000;
 const MAX_SAMPLE_SIZE = 1000000;
 
-type FunctionTable = Map<string, (...args : any[]) => any>;
+// the automatically added derivation key considering the context
+const CONTEXT_KEY_NAME = '$context';
 
-type ContextInitializer<ContextType> = (previousTurn : ContextType, functionTable : FunctionTable) => [string[], unknown]|null;
+interface FunctionTable<StateType> {
+    answer ?: (state : StateType, value : unknown, contextTable : ContextTable) => StateType|null;
+    context ?: ContextFunction<StateType>;
+
+    [key : string] : ((...args : any[]) => any)|undefined;
+}
+type ContextInitializer<ContextType, StateType> = (previousTurn : ContextType, functionTable : FunctionTable<StateType>, contextTable : ContextTable) => ContextPhrase[]|null;
 
 interface GenericSentenceGeneratorOptions {
     locale : string;
@@ -154,22 +171,304 @@ interface BasicSentenceGeneratorOptions {
     contextInitializer ?: undefined;
 }
 
-interface ContextualSentenceGeneratorOptions<ContextType> {
+interface ContextualSentenceGeneratorOptions<ContextType, StateType> {
     contextual : true;
     rootSymbol ?: string;
-    contextInitializer : ContextInitializer<ContextType>;
+    contextInitializer : ContextInitializer<ContextType, StateType>;
 }
 
-export type SentenceGeneratorOptions<ContextType> =
+export type SentenceGeneratorOptions<ContextType, RootOutputType> =
     GenericSentenceGeneratorOptions &
-    (BasicSentenceGeneratorOptions | ContextualSentenceGeneratorOptions<ContextType>);
+    (BasicSentenceGeneratorOptions | ContextualSentenceGeneratorOptions<ContextType, RootOutputType>);
 
 interface Constant {
     display : string;
     value : unknown;
 }
 
-type Charts = Array<Array<ReservoirSampler<any>>>;
+/**
+ * An index (in the DB sense) that keeps track of all derivations compatible
+ * with the given key.
+ */
+type DerivationIndex = HashMultiMap<DerivationKeyValue, Derivation<any>>;
+
+/**
+ * The result of expanding a single rule, at a single depth.
+ *
+ * This is semantically a list of derivations, up to a configurable size.
+ * Derivations exceeding the size are pruned.
+ *
+ * This class adds the logic to keep track of compatible derivations (based on
+ * the indices computed by the semantic functions) and sample them efficiently.
+ */
+class Chart {
+    /**
+     * All the derivations in this chart.
+     */
+    private _store : ReservoirSampler<Derivation<any>>;
+
+    /**
+     * A map from index name to the index (hash table) mapping a certain
+     * key to a list of derivations.
+     */
+    private _indices : Record<string, DerivationIndex>;
+
+    private _rng : () => number;
+
+    constructor(targetSize : number, rng : () => number) {
+        this._store = new ReservoirSampler(targetSize, rng);
+        this._indices = {
+            [CONTEXT_KEY_NAME]: new HashMultiMap<DerivationKeyValue, Derivation<any>>()
+        };
+        this._rng = rng;
+    }
+
+    get size() {
+        return this._store.length;
+    }
+
+    reset() {
+        this._store.reset();
+        for (const indexName in this._indices)
+            this._indices[indexName].clear();
+    }
+
+    /**
+     * Iterate all derivations, regardless of key.
+     */
+    [Symbol.iterator]() : Iterator<Derivation<any>> {
+        return this._store[Symbol.iterator]();
+    }
+
+    /**
+     * Retrieve all derivations for a given key.
+     */
+    forKey(indexName : string, key : DerivationKeyValue) : ReadonlyArray<Derivation<any>> {
+        assert(key !== undefined);
+        const map = this._indices[indexName];
+        if (!map)
+            return [];
+        return map.get(key);
+    }
+
+    choose() : Derivation<any>|undefined {
+        if (this._store.length === 0)
+            return undefined;
+        return uniform(this._store.sampled, this._rng);
+    }
+
+    chooseForKey(indexName : string, key : DerivationKeyValue) : Derivation<any>|undefined {
+        assert(key !== undefined);
+        const map = this._indices[indexName];
+        if (!map)
+            return undefined;
+        const samples = map.get(key);
+        if (!samples.length)
+            return undefined;
+        return uniform(samples, this._rng);
+    }
+
+    add(derivation : Derivation<any>) {
+        const sizeBefore = this.size;
+
+        const dropped = this._store.add(derivation);
+        let added = false;
+        if (dropped !== derivation) {
+            // we maybe dropped one, and we definitely added derivation
+
+            if (dropped !== undefined) {
+                for (const indexName in dropped.key)
+                    this._indices[indexName].deleteValue(dropped.key[indexName], dropped);
+                this._indices[CONTEXT_KEY_NAME].deleteValue(dropped.context, dropped);
+            } else {
+                added = true;
+            }
+
+            for (const indexName in derivation.key) {
+                let index = this._indices[indexName];
+                if (!index)
+                    this._indices[indexName] = index = new HashMultiMap<DerivationKeyValue, Derivation<any>>();
+
+                const keyValue = derivation.key[indexName];
+                assert(keyValue !== undefined);
+                index.put(keyValue, derivation);
+            }
+            this._indices[CONTEXT_KEY_NAME].put(derivation.context, derivation);
+        }
+
+        assert.strictEqual(this.size, sizeBefore + +added);
+        return added;
+    }
+}
+
+/**
+ * All the charts.
+ *
+ * This object stores all the intermediate derivations generated up to a certain
+ * point of the algorithm.
+ *
+ * This is semantically a 2D array indexed by non-terminal and depth, but it
+ * also keeps track of cumulative sizes
+ */
+class ChartTable {
+    private store : Array<Chart|undefined>; // indexed by non-terminal first and depth second
+    private _cumSize : number[]; // indexed by non-terminal first and depth second
+    private _maxDepth : number;
+    private _nonTermList : string[];
+    private _currentDepth : number;
+
+    private _rng : () => number;
+
+    constructor(nonTermList : string[],
+                maxDepth : number,
+                rng : () => number) {
+        this.store = [];
+        this._currentDepth = -1;
+        this._cumSize = [];
+        this._maxDepth = maxDepth;
+        this._nonTermList = nonTermList;
+
+        this._rng = rng;
+
+        // maxDepth is inclusive, hence the +1 here and elsewhere
+        for (let i = 0; i < this._nonTermList.length; i++) {
+            for (let j = 0; j < maxDepth+1; j++)
+                this.store.push(undefined);
+        }
+
+        for (let i = 0; i < this._nonTermList.length; i++) {
+            for (let j = 0; j < maxDepth+1; j++)
+                this._cumSize.push(0);
+        }
+    }
+
+    init(nonTermIndex : number, depth : number, targetSize : number) {
+        assert(depth === this._currentDepth);
+        this.store[nonTermIndex * (this._maxDepth+1) + depth] =
+            new Chart(targetSize, this._rng);
+    }
+
+    initShared(from : ChartTable,
+               nonTermIndex : number, depth : number) {
+        assert(depth === this._currentDepth);
+        const existing = this.store[nonTermIndex * (this._maxDepth+1) + depth];
+        if (existing) {
+            // remove the existing size from the count if we have one
+            this._cumSize[nonTermIndex * (this._maxDepth+1) + depth] -= existing.size;
+        }
+
+        const newChart = from.store[nonTermIndex * (this._maxDepth+1) + depth];
+        assert(newChart);
+        this.store[nonTermIndex * (this._maxDepth+1) + depth] = newChart;
+        // add the new chart to the cumsum
+        this._cumSize[nonTermIndex * (this._maxDepth+1) + depth] += newChart.size;
+    }
+
+    increaseDepth() {
+        this._currentDepth ++;
+        if (this._currentDepth === 0)
+            return;
+        assert(this._currentDepth <= this._maxDepth);
+
+        // init the cumsum array at the current depth with the cumsum
+        // element at the previous depth
+        for (let nonTermIndex = 0; nonTermIndex < this._nonTermList.length; nonTermIndex++) {
+            this._cumSize[nonTermIndex * (this._maxDepth+1) + this._currentDepth] =
+                this._cumSize[nonTermIndex * (this._maxDepth+1) + this._currentDepth-1];
+        }
+    }
+
+    private _getChart(nonTermIndex : number, depth : number) {
+        assert(nonTermIndex <= this._nonTermList.length);
+        assert(depth <= this._maxDepth);
+        return this.store[nonTermIndex * (this._maxDepth+1) + depth]!;
+    }
+
+    reset(nonTermIndex : number, depth : number) {
+        this._getChart(nonTermIndex, depth).reset();
+    }
+
+    getSizeAtDepth(nonTermIndex : number, depth : number) {
+        const ret = this._getChart(nonTermIndex, depth).size;
+        //console.log(`getSizeAtDepth(${this._nonTermList[nonTermIndex]}, ${depth}) = ${ret}`);
+        return ret;
+    }
+
+    getSizeUpToDepth(nonTermIndex : number, upToDepth : number) {
+        assert(nonTermIndex <= this._nonTermList.length);
+        assert(upToDepth <= this._maxDepth);
+        return this._cumSize[nonTermIndex * (this._maxDepth+1) + upToDepth];
+    }
+
+    getAtDepth(nonTermIndex : number, depth : number) : Iterable<Derivation<any>> {
+        return this._getChart(nonTermIndex, depth);
+    }
+
+    *getUpToDepth(nonTermIndex : number, upToDepth : number) : Iterable<Derivation<any>> {
+        for (let depth = 0; depth <= upToDepth; depth++)
+            yield* this._getChart(nonTermIndex, depth);
+    }
+
+    getAtDepthForKey(nonTermIndex : number, depth : number,
+                     indexName : string, key : DerivationKeyValue) : Iterable<Derivation<any>> {
+        return this._getChart(nonTermIndex, depth).forKey(indexName, key);
+    }
+
+    *getUpToDepthForKey(nonTermIndex : number, upToDepth : number,
+                        indexName : string, key : DerivationKeyValue) : Iterable<Derivation<any>> {
+        for (let depth = 0; depth <= upToDepth; depth++)
+            yield* this._getChart(nonTermIndex, depth).forKey(indexName, key);
+    }
+
+    chooseAtDepth(nonTermIndex : number, depth : number) : Derivation<any>|undefined {
+        return this._getChart(nonTermIndex, depth).choose();
+    }
+
+    chooseAtDepthForKey(nonTermIndex : number, depth : number,
+                        indexName : string, key : DerivationKeyValue) : Derivation<any>|undefined {
+        return this._getChart(nonTermIndex, depth).chooseForKey(indexName, key);
+    }
+
+    chooseUpToDepth(nonTermIndex : number, upToDepth : number) : Derivation<any>|undefined {
+        const depthSizes = this._cumSize.slice(nonTermIndex * (this._maxDepth+1),
+                                               nonTermIndex * (this._maxDepth+1) + (upToDepth+1));
+        assert(depthSizes.length === upToDepth+1);
+        if (depthSizes[upToDepth] === 0)
+            return undefined;
+        const chosenDepth = categoricalPrecomputed(depthSizes, depthSizes.length, this._rng);
+        return this.chooseAtDepth(nonTermIndex, chosenDepth);
+    }
+
+    chooseUpToDepthForKey(nonTermIndex : number, upToDepth : number,
+                          indexName : string, key : DerivationKeyValue) : Derivation<any>|undefined {
+        const cumDepthSizes : number[] = [];
+        const subcharts = [];
+
+        for (let depth = 0; depth <= upToDepth; depth++) {
+            const chart = this._getChart(nonTermIndex, depth);
+            const forKey = chart.forKey(indexName, key);
+            cumDepthSizes.push(depth === 0 ? forKey.length : cumDepthSizes[depth-1] + forKey.length);
+            subcharts.push(forKey);
+        }
+        assert(cumDepthSizes.length === upToDepth+1);
+        if (cumDepthSizes[upToDepth] === 0)
+            return undefined;
+
+        const chosenDepth = categoricalPrecomputed(cumDepthSizes, cumDepthSizes.length, this._rng);
+        assert(subcharts[chosenDepth].length > 0);
+        return uniform(subcharts[chosenDepth], this._rng);
+    }
+
+    add(nonTermIndex : number, depth : number, derivation : Derivation<any>) {
+        //console.log(`add(${this._nonTermList[nonTermIndex]}, ${depth})`);
+        assert(depth === this._currentDepth);
+        this._currentDepth = depth;
+
+        const added = this._getChart(nonTermIndex, depth).add(derivation);
+        if (added)
+            this._cumSize[nonTermIndex * (this._maxDepth+1) + depth]++;
+    }
+}
 
 const INFINITY = 1<<30; // integer infinity
 
@@ -177,36 +476,36 @@ const INFINITY = 1<<30; // integer infinity
  * Low-level class that generates sentences and associated logical forms,
  * given a grammar expressed as Genie template files.
  */
-export default class SentenceGenerator<ContextType, RootOutputType> extends events.EventEmitter {
+export default class SentenceGenerator<ContextType, StateType, RootOutputType = StateType> extends events.EventEmitter {
     private _templateFiles : string[];
     private _langPack : I18n.LanguagePack;
 
-    private _options : SentenceGeneratorOptions<ContextType>;
+    private _options : SentenceGeneratorOptions<ContextType, StateType>;
     private _contextual : boolean;
 
     private _nonTermTable : Map<string, number>;
     private _nonTermList : string[];
     private _rules : Array<Array<Rule<any[], any>>>;
-    private _contextTable : Map<string, number>;
-    private _functionTable : FunctionTable;
+    private _contextTable : Record<string, number>;
+    private _functionTable : FunctionTable<StateType>;
 
     private _rootSymbol : string;
     private _rootIndex : number;
 
-    private _contextInitializer : ContextInitializer<ContextType>|undefined;
+    private _contextInitializer : ContextInitializer<ContextType, StateType>|undefined;
 
-    private _constantMap : MultiMap<string, number>;
+    private _constantMap : MultiMap<string, [number, KeyFunction<any>]>;
 
     private _finalized : boolean;
     private _averagePruningFactor : number[][];
     private _minDistanceFromRoot : number[];
     private _nonTermHasContext : boolean[];
 
-    private _charts : Charts;
+    private _charts : ChartTable|undefined;
 
     private _progress : number;
 
-    constructor(options : SentenceGeneratorOptions<ContextType>) {
+    constructor(options : SentenceGeneratorOptions<ContextType, StateType>) {
         super();
 
         this._templateFiles = options.templateFiles;
@@ -219,8 +518,8 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
         this._nonTermList = [];
         this._rules = [];
 
-        this._contextTable = new Map;
-        this._functionTable = new Map;
+        this._contextTable = {};
+        this._functionTable = {};
 
         this._rootSymbol = options.rootSymbol || '$root';
         this._rootIndex = this._internalDeclareSymbol(this._rootSymbol);
@@ -235,7 +534,7 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
         this._minDistanceFromRoot = [];
         this._nonTermHasContext = [];
 
-        this._charts = [];
+        this._charts = undefined;
 
         this._progress = 0;
     }
@@ -257,7 +556,11 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
     }
 
     hasContext(symbol : string) : boolean {
-        return this._contextTable.has(symbol);
+        return Object.prototype.hasOwnProperty.call(this._contextTable, symbol);
+    }
+
+    get contextTable() : ContextTable {
+        return this._contextTable;
     }
 
     private _internalDeclareSymbol(symbol : string) : number {
@@ -272,9 +575,9 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
     declareFunction(name : string, fn : (...args : any[]) => any) : void {
         if (this._finalized)
             throw new GenieTypeError(`Grammar was finalized, cannot declare more functions`);
-        if (this._functionTable.has(name))
+        if (Object.prototype.hasOwnProperty.call(this._functionTable, name))
             throw new GenieTypeError(`Function ${name} already declared`);
-        this._functionTable.set(name, fn);
+        this._functionTable[name] = fn;
     }
 
     declareContext(context : string) : void {
@@ -289,7 +592,7 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
 
         // declare also as a non-terminal
         const index = this._internalDeclareSymbol(context);
-        this._contextTable.set(context, index);
+        this._contextTable[context] = index;
     }
 
     declareSymbol(symbol : string) : void {
@@ -315,13 +618,14 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
 
     private _addRuleInternal<ArgTypes extends unknown[], ResultType>(symbolId : number,
                                                                      expansion : RuleExpansionChunk[],
-                                                                     combiner : CombinerAction<ArgTypes, ResultType>,
+                                                                     semanticAction : SemanticAction<ArgTypes, ResultType>,
+                                                                     keyFunction : KeyFunction<ResultType>|undefined,
                                                                      attributes : RuleAttributes = {}) {
         const rulenumber = this._rules[symbolId].length;
-        this._rules[symbolId].push(new Rule<any[], any>(rulenumber, expansion, combiner as CombinerAction<any[], any>, attributes));
+        this._rules[symbolId].push(new Rule(rulenumber, expansion, semanticAction, keyFunction, attributes));
     }
 
-    addConstants(symbol : string, token : string, type : any, attributes : RuleAttributes = {}) : void {
+    addConstants(symbol : string, token : string, type : any, keyFunction : KeyFunction<any>, attributes : RuleAttributes = {}) : void {
         if (this._finalized)
             throw new GenieTypeError(`Grammar was finalized, cannot add more rules`);
         // ignore $user when loading the agent templates and vice-versa
@@ -329,30 +633,30 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
             return;
 
         const symbolId = this._lookupNonTerminal(symbol);
-        this._constantMap.put(token, symbolId);
+        this._constantMap.put(token, [symbolId, keyFunction]);
 
         attributes.forConstant = true;
         for (const constant of ThingTalkUtils.createConstants(token, type, this._options.maxConstants || DEFAULT_MAX_CONSTANTS)) {
             const sentencepiece = constant.display;
-            const combiner = () => new Derivation(constant.value, List.singleton(sentencepiece), null, attributes.priority || 0);
-            this._addRuleInternal(symbolId, [sentencepiece], combiner, attributes);
+            this._addRuleInternal(symbolId, [sentencepiece], () => constant.value, keyFunction, attributes);
         }
     }
 
     addRule<ArgTypes extends unknown[], ResultType>(symbol : string,
                                                     expansion : RuleExpansionChunk[],
-                                                    combiner : CombinerAction<ArgTypes, ResultType>,
+                                                    semanticAction : SemanticAction<ArgTypes, ResultType>,
+                                                    keyFunction : KeyFunction<ResultType>|undefined,
                                                     attributes : RuleAttributes = {}) : void {
         if (this._finalized)
             throw new GenieTypeError(`Grammar was finalized, cannot add more rules`);
         // ignore $user when loading the agent templates and vice-versa
         if (symbol.startsWith('$') && symbol !== this._rootSymbol)
             return;
-        this._addRuleInternal(this._lookupNonTerminal(symbol), expansion, combiner, attributes);
+        this._addRuleInternal(this._lookupNonTerminal(symbol), expansion, semanticAction, keyFunction, attributes);
     }
 
     private _typecheck() {
-        if (this._contextual && !this._functionTable.has('context'))
+        if (this._contextual && !this._functionTable.context)
             throw new GenieTypeError(`Missing "context" function for contextual grammar`);
 
         for (let nonTermIndex = 0; nonTermIndex < this._nonTermList.length; nonTermIndex++) {
@@ -360,31 +664,14 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
             const rules = this._rules[nonTermIndex];
 
             for (const rule of rules) {
-                let first = true;
-                let hasContext = false;
-
                 for (const expansion of rule.expansion) {
                     if (expansion instanceof NonTerminal) {
-                        if (this.hasContext(expansion.symbol)) {
-                            if (!first)
-                                throw new GenieTypeError(`Context symbol ${expansion.symbol} must be first in expansion of ${nonTerm}`);
-                            hasContext = true;
-                            first = false;
-                            expansion.index = this._nonTermTable.get(expansion.symbol)!;
-                            continue;
-                        }
-
                         const index = this._nonTermTable.get(expansion.symbol);
                         if (index === undefined)
-                            throw new Error(`Non-terminal ${expansion.symbol} undefined, referenced by ${nonTerm}`);
+                            throw new Error(`Non-terminal ${expansion.symbol} undefined, in ${nonTerm} = ${rule.expansion.join(' ')}`);
                         expansion.index = index;
                     }
-
-                    first = false;
                 }
-
-                if (hasContext && rule.expansion.length === 1)
-                    throw new GenieTypeError(`Rule with context must have an additional component in expansion of ${nonTerm}`);
             }
         }
     }
@@ -395,6 +682,9 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
         this._nonTermHasContext = [];
         for (let nonTermIndex = 0; nonTermIndex < this._nonTermList.length; nonTermIndex++)
             this._nonTermHasContext.push(false);
+
+        for (const index of Object.values(this._contextTable))
+            this._nonTermHasContext[index] = true;
 
         let anyChange = true;
         while (anyChange) {
@@ -420,18 +710,12 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
                         break;
                     }
 
-                    const first = rule.expansion[0];
-                    if (first instanceof NonTerminal && this.hasContext(first.symbol)) {
-                        rule.hasContext = true;
-                    } else {
-                        for (const expansion of rule.expansion) {
-                            if (expansion instanceof NonTerminal && this._nonTermHasContext[expansion.index]) {
-                                rule.hasContext = true;
-                                break;
-                            }
+                    for (const expansion of rule.expansion) {
+                        if (expansion instanceof NonTerminal && this._nonTermHasContext[expansion.index]) {
+                            rule.hasContext = true;
+                            break;
                         }
                     }
-
                     if (rule.hasContext) {
                         this._nonTermHasContext[nonTermIndex] = true;
                         anyChange = true;
@@ -459,7 +743,7 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
         assert(this._nonTermList.length === this._minDistanceFromRoot.length);
 
         const queue : Array<[number, number]> = [];
-        for (const index of this._contextTable.values())
+        for (const index of Object.values(this._contextTable))
             this._minDistanceFromRoot[index] = 0;
         this._minDistanceFromRoot[this._rootIndex] = 0;
         queue.push([this._rootIndex, 0]);
@@ -615,7 +899,7 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
         this._computeDistanceFromRoot();
     }
 
-    private _estimateDepthSize(charts : Charts, depth : number, firstGeneration : boolean) : [number, number[][]] {
+    private _estimateDepthSize(charts : ChartTable, depth : number, firstGeneration : boolean) : [number, number[][]] {
         const ruleEstimates = [];
         let estimate = 0;
         for (let index = 0; index < this._nonTermList.length; index++) {
@@ -646,7 +930,7 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
         }
     }
 
-    private _disableUnreachableRules(charts : Charts) : void {
+    private _disableUnreachableRules(charts : ChartTable) : void {
         // disable all rules that use contexts that are empty
 
         // iteratively propagate disabling the rules
@@ -681,26 +965,21 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
                     if (rule.enabled)
                         continue;
 
-                    const first = rule.expansion[0];
-                    if (first instanceof NonTerminal && this.hasContext(first.symbol)) {
-                        // first terminal is a context
-
-                        if (charts[0][first.index].length > 0) {
-                            // we have at least one element: enable this rule
-                            if (this._options.debug >= LogLevel.EVERYTHING)
-                                console.log(`enabling rule NT[${this._nonTermList[index]}] -> ${rule.expansion.join(' ')}`);
-                            rule.enabled = true;
-                            anyChange = true;
-
-                            for (const expansion of rule.expansion) {
-                                if (expansion instanceof NonTerminal)
-                                    nonTermEnabled[expansion.index] = true;
+                    let good = true;
+                    for (const expansion of rule.expansion) {
+                        if (expansion instanceof NonTerminal && this.hasContext(expansion.symbol)) {
+                            // this terminal is a context
+                            // disable the rule if the context is empty
+                            if (charts.getSizeAtDepth(expansion.index, 0) === 0) {
+                                good = false;
+                                break;
                             }
-                        } else {
-                            // else do nothing, rule stays disabled
                         }
-                    } else {
-                        // enable this rule unconditionally
+                    }
+
+                    if (good) {
+                        // all contexts are non-empty, or we don't have a context at all
+                        // enable this rule
                         if (this._options.debug >= LogLevel.EVERYTHING)
                             console.log(`enabling rule NT[${this._nonTermList[index]}] -> ${rule.expansion.join(' ')}`);
                         rule.enabled = true;
@@ -715,10 +994,10 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
         }
     }
 
-    invokeFunction(name : string, ...args : any[]) : any {
+    invokeFunction<K extends keyof FunctionTable<StateType>>(name : K, ...args : Parameters<NonNullable<FunctionTable<StateType>[K]>>) : ReturnType<NonNullable<FunctionTable<StateType>[K]>> {
         //if (!this._functionTable.has(name))
         //    return null;
-        return this._functionTable.get(name)!(...args);
+        return this._functionTable[name]!(...args);
     }
 
     addConstantsFromContext(constants : { [key : string] : Constant[] }) : void {
@@ -731,10 +1010,9 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
         };
 
         for (const token in constants) {
-            for (const symbolId of this._constantMap.get(token)) {
+            for (const [symbolId, keyFunction] of this._constantMap.get(token)) {
                 for (const constant of constants[token]) {
-                    const combiner = () => new Derivation(constant.value, List.singleton(constant.display), null, attributes.priority);
-                    this._addRuleInternal(symbolId, [constant.display], combiner, attributes);
+                    this._addRuleInternal(symbolId, [constant.display], () => constant.value, keyFunction, attributes);
                     if (this._options.debug >= LogLevel.EVERYTHING)
                         console.log(`added temporary rule NT[${this._nonTermList[symbolId]}] -> ${constant.display}`);
                 }
@@ -779,7 +1057,9 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
 
         const rootSampler = new PriorityQueue<Derivation<RootOutputType>>();
 
-        const charts : Charts = [];
+        const charts : ChartTable = new ChartTable(this._nonTermList,
+                                                   this._options.maxDepth,
+                                                   this._options.rng);
 
         for (let depth = 0; depth <= this._options.maxDepth; depth++) {
             if (this._options.debug >= LogLevel.INFO)
@@ -787,13 +1067,12 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
             const depthbegin = Date.now();
 
             const targetPruningSize = Math.ceil(this._options.targetPruningSize * POWERS[depth]);
-            charts[depth] = [];
+            charts.increaseDepth();
             for (let index = 0; index < this._nonTermList.length; index++)
-                charts[depth][index] = new ReservoirSampler(INFINITY, this._options.rng);
-            assert(charts[depth].length === this._nonTermList.length);
+                charts.init(index, depth, INFINITY);
 
             if (this._contextual && depth === 0) {
-                this._initializeContexts([context], charts, depth);
+                this._initializeContexts([context], charts);
                 this._disableUnreachableRules(charts);
                 this._disableRulesForConstants();
             }
@@ -822,7 +1101,7 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
                     }
                 }
 
-                const initialSize = charts[depth][index].length;
+                const initialSize = charts.getSizeAtDepth(index, depth);
                 nonTermSize = Math.min(queue.size, targetPruningSize);
                 for (let i = 0; i < nonTermSize; i++) {
                     const derivation = queue.pop();
@@ -830,10 +1109,10 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
                     if (isRoot)
                         rootSampler.push(derivation);
                     else
-                        charts[depth][index].add(derivation);
+                        charts.add(index, depth, derivation);
                 }
                 nonTermSize += initialSize;
-                assert(isRoot || charts[depth][index].length === nonTermSize);
+                assert(isRoot || charts.getSizeAtDepth(index, depth) === nonTermSize);
                 if (this._options.debug >= LogLevel.GENERATION && nonTermSize > 0)
                     console.log(`stats: size(charts[${depth}][${this._nonTermList[index]}]) = ${nonTermSize}`);
             }
@@ -893,31 +1172,24 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
      * - The templates can pass arbitrary information from the agent turns to the user turns,
      *   including information that is not representable in a ThingTalk dialogue state.
      */
-    private _initializeContexts(contextInputs : ContextType[],
-                                charts : Charts,
-                                depth : number) : void {
+    private _initializeContexts(contextInputs : readonly ContextType[],
+                                charts : ChartTable) : void {
         for (const ctxIn of contextInputs) {
             try {
-                const result = this._contextInitializer!(ctxIn, this._functionTable);
+                const result = this._contextInitializer!(ctxIn, this._functionTable, this._contextTable);
                 if (result !== null) {
-                    const [tags, info] = result;
-                    const ctx = new Context(ctxIn, info);
-                    for (const tag of tags) {
-                        const index = this._contextTable.get(tag);
-                        assert(index !== undefined, `Invalid context tag ${tag}`);
-                        charts[depth][index].add(ctx);
+                    const ctx = new Context(ctxIn);
+                    for (const phrase of result) {
+                        const index = phrase.symbol;
+                        assert(index >= 0 && index <= this._nonTermTable.size, `Invalid context number ${index}`);
+                        const sentence = phrase.utterance ? List.singleton(phrase.utterance) : List.Nil;
+                        const derivation = new Derivation(phrase.key, phrase.value, sentence, ctx, phrase.priority || 0);
+                        charts.add(index, 0, derivation);
                     }
                 }
             } catch(e) {
                 console.error(ctxIn);
                 throw e;
-            }
-        }
-
-        if (this._options.debug >= LogLevel.GENERATION) {
-            for (const index of this._contextTable.values()) {
-                if (charts[depth][index].length > 0)
-                    console.log(`stats: size(charts[${depth}][${this._nonTermList[index]}]) = ${charts[depth][index].length}`);
             }
         }
     }
@@ -928,7 +1200,7 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
      * This method is optimized for batch generation, and will cache intermediate generations
      * that do not depend on the context between subsequent calls.
      */
-    generate(contextInputs : ContextType[],
+    generate(contextInputs : readonly ContextType[],
              callback : (depth : number, derivation : Derivation<RootOutputType>) => void) : void {
         this.finalize();
 
@@ -950,18 +1222,18 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
 
         let firstGeneration = true;
         if (this._contextual) {
-            if (this._charts.length === 0) {
-                this._charts = [];
+            if (!this._charts) {
+                this._charts = new ChartTable(this._nonTermList,
+                                              this._options.maxDepth,
+                                              this._options.rng);
                 for (let depth = 0; depth <= this._options.maxDepth; depth++) {
+                    this._charts.increaseDepth();
+
                     // multiply non-contextual non-terminals by a factor
                     const targetPruningSize = NON_CONTEXTUAL_PRUNING_SIZE_MULTIPLIER * this._options.targetPruningSize * POWERS[depth];
-
-                    this._charts[depth] = [];
                     for (let index = 0; index < this._nonTermList.length; index++) {
                         if (!this._nonTermHasContext[index])
-                            this._charts[depth][index] = new ReservoirSampler(Math.ceil(targetPruningSize), this._options.rng);
-                        else
-                            this._charts[depth][index] = new ReservoirSampler(0, this._options.rng); // keep the array dense, this value will never be used
+                            this._charts.init(index, depth, Math.ceil(targetPruningSize));
                     }
                 }
 
@@ -971,30 +1243,31 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
             }
         }
 
-        const charts : Charts = [];
+        const charts : ChartTable = new ChartTable(this._nonTermList,
+                                                   this._options.maxDepth,
+                                                   this._options.rng);
         for (let depth = 0; depth <= this._options.maxDepth; depth++) {
             if (this._options.debug >= LogLevel.INFO)
                 console.log(`--- DEPTH ${depth}`);
             const depthbegin = Date.now();
 
+            charts.increaseDepth();
             const targetPruningSize = this._options.targetPruningSize * POWERS[depth];
-            charts[depth] = [];
             for (let index = 0; index < this._nonTermList.length; index++) {
                 // use the shared chart if we can, otherwise make a fresh one
 
-                // the chart for context symbols is never pruned, but we use
-                // a ReservoirSampler nonetheless to keep the types manageable
+                // the chart for context symbols is never pruned, so we set size
+                // to a large number (integer, to avoid floating point computations)
                 if (this._contextual && depth === 0 && this.hasContext(this._nonTermList[index]))
-                    charts[depth][index] = new ReservoirSampler(INFINITY, this._options.rng);
+                    charts.init(index, depth, INFINITY);
                 else if (!this._contextual || this._nonTermHasContext[index])
-                    charts[depth][index] = new ReservoirSampler(Math.ceil(targetPruningSize), this._options.rng);
+                    charts.init(index, depth, Math.ceil(targetPruningSize));
                 else
-                    charts[depth][index] = this._charts[depth][index];
+                    charts.initShared(this._charts!, index, depth);
             }
-            assert(charts[depth].length === this._nonTermList.length);
 
             if (this._contextual && depth === 0)
-                this._initializeContexts(contextInputs, charts, depth);
+                this._initializeContexts(contextInputs, charts);
 
             // compute estimates of how many things we will produce at this depth
             const [initialEstimatedTotal, estimatedPerRule] = this._estimateDepthSize(charts, depth, firstGeneration);
@@ -1062,10 +1335,7 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
                     // if this rule hasn't hit the target, duplicate all the outputs until we hit exactly the target
                     let output : Iterable<any> = sampler;
                     if (rule.repeat && sampler.length > 0 && sampler.length < ruleTarget) {
-                        const lengthbefore = sampler.length;
                         const array = Array.from(sampler);
-                        const lengthafter = sampler.length;
-                        assert(lengthbefore === lengthafter);
                         for (let i = sampler.length; i < ruleTarget; i++)
                             array.push(uniform(array, this._options.rng));
                         output = array;
@@ -1093,16 +1363,14 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
                     this.emit('progress', this._progress);
 
                     for (const derivation of output)
-                        charts[depth][index].add(derivation);
+                        charts.add(index, depth, derivation);
                 }
-                nonTermSize = charts[depth][index].length;
+                nonTermSize = charts.getSizeAtDepth(index, depth);
                 if (isRoot) {
-                    for (const derivation of charts[depth][index])
+                    for (const derivation of charts.getAtDepth(index, depth))
                         callback(depth, derivation);
 
-                    const chart = charts[depth][index];
-                    assert(chart instanceof ReservoirSampler);
-                    chart.reset();
+                    charts.reset(index, depth);
                 }
 
                 if (this._options.debug >= LogLevel.GENERATION && nonTermSize > 0)
@@ -1123,7 +1391,7 @@ export default class SentenceGenerator<ContextType, RootOutputType> extends even
     }
 }
 
-function computeWorstCaseGenSize(charts : Charts,
+function computeWorstCaseGenSize(charts : ChartTable,
                                  depth : number,
                                  rule : Rule<unknown[], unknown>,
                                  maxdepth : number) : number {
@@ -1135,7 +1403,7 @@ function computeWorstCaseGenSize(charts : Charts,
         return 0;
 
     let worstCaseGenSize = 0;
-    for (let i = 0; i < expansion.length; i++) {
+    for (let pivotIdx = 0; pivotIdx < expansion.length; pivotIdx++) {
         const fixeddepth = depth-1;
 
         /*worstCaseGenSize += (function recursiveHelper(k) {
@@ -1162,21 +1430,20 @@ function computeWorstCaseGenSize(charts : Charts,
 
         for (let k = expansion.length - 1; k >= 0; k--) {
             const currentExpansion = expansion[k];
-            if (k === i) {
+            if (k === pivotIdx) {
                 if (currentExpansion instanceof NonTerminal)
-                    tmp = charts[fixeddepth][currentExpansion.index].length * tmp;
+                    tmp *= charts.getSizeAtDepth(currentExpansion.index, fixeddepth);
                 else
                     tmp = 0;
             } else if (currentExpansion instanceof NonTerminal) {
-                let sum = 0;
-                for (let j = 0; j <= (k > i ? maxdepth : maxdepth-1); j++)
-                    sum += charts[j][currentExpansion.index].length * tmp;
-                tmp = sum;
+                tmp *= charts.getSizeUpToDepth(currentExpansion.index,
+                                               k > pivotIdx ? maxdepth : maxdepth-1);
             }
         }
 
         worstCaseGenSize += tmp;
     }
+
     return worstCaseGenSize;
 }
 
@@ -1188,7 +1455,7 @@ interface RuleSizeEstimate {
     estimatedPruneFactor : number;
 }
 
-function estimateRuleSize(charts : Charts,
+function estimateRuleSize(charts : ChartTable,
                           depth : number,
                           nonTermIndex : number,
                           rule : Rule<unknown[], unknown>,
@@ -1224,7 +1491,28 @@ function assignChoices(choices : DerivationChildOrChoice[], rng : () => number) 
     return choices.map((c) => c instanceof Choice ? c.choose(rng) : c);
 }
 
-function expandRuleExhaustive(charts : Charts,
+function getKeyConstraint(choices : DerivationChildOrChoice[],
+                          nonTerm : NonTerminal) : [string, DerivationKeyValue]|null {
+    if (nonTerm.relativeKeyConstraint) {
+        const [ourIndexName, otherNonTerminal, otherIndexName] = nonTerm.relativeKeyConstraint;
+        const otherChoice = choices[otherNonTerminal];
+        assert(otherChoice instanceof Derivation);
+        const keyValue = otherChoice.key[otherIndexName];
+        assert(keyValue !== undefined);
+        return [ourIndexName, keyValue];
+    } else if (nonTerm.constantKeyConstraint) {
+        return nonTerm.constantKeyConstraint;
+    } else {
+        return null;
+    }
+}
+
+function* iterchain<T>(iter1 : Iterable<T>, iter2 : Iterable<T>) : Iterable<T> {
+    yield* iter1;
+    yield* iter2;
+}
+
+function expandRuleExhaustive(charts : ChartTable,
                               depth : number,
                               maxdepth : number,
                               basicCoinProbability : number,
@@ -1238,8 +1526,7 @@ function expandRuleExhaustive(charts : Charts,
     // for each piece of the expansion, we take turn and use
     // depth-1 of that, depth' < depth-1 of anything before, and
     // depth' <= depth-1 of anything after
-    // terminals and placeholders are treated as having only
-    // 0 productions
+    // terminals are treated as having only 0 productions
     //
     // this means the order in which we generate is
     // (d-1, 0, 0, ..., 0)
@@ -1288,7 +1575,6 @@ function expandRuleExhaustive(charts : Charts,
 
     const rng = options.rng;
     const expansion = rule.expansion;
-    const combiner = rule.combiner;
 
     if (maxdepth < depth-1 && options.debug >= LogLevel.INFO)
         console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : reduced max depth to avoid exponential behavior`);
@@ -1304,14 +1590,14 @@ function expandRuleExhaustive(charts : Charts,
     let actualGenSize = 0;
     let prunedGenSize = 0;
     let coinProbability = basicCoinProbability;
-    for (let i = 0; i < expansion.length; i++) {
+    for (let pivotIdx = 0; pivotIdx < expansion.length; pivotIdx++) {
         const fixeddepth = depth-1;
         (function recursiveHelper(k : number, context : Context|null) {
             if (k === expansion.length) {
                 //console.log('combine: ' + choices.join(' ++ '));
                 //console.log('depths: ' + depths);
                 if (!(coinProbability < 1.0) || coin(coinProbability, rng)) {
-                    const v = combiner(assignChoices(choices, rng), rule.priority);
+                    const v = rule.apply(assignChoices(choices, rng));
                     if (v !== null) {
                         actualGenSize ++;
                         if (actualGenSize < targetPruningSize / 2 &&
@@ -1333,53 +1619,62 @@ function expandRuleExhaustive(charts : Charts,
                 return;
             }
             const currentExpansion = expansion[k];
-            if (k === i) {
-                if (currentExpansion instanceof NonTerminal) {
-                    for (const candidate of charts[fixeddepth][currentExpansion.index]) {
-                        let newContext;
-                        if (candidate instanceof Context) {
-                            if (!Context.compatible(context, candidate))
-                                continue;
-                            newContext = candidate;
-                        } else {
-                            assert(candidate instanceof Derivation);
-                            if (!Context.compatible(context, candidate.context))
-                                continue;
-                            newContext = Context.meet(context, candidate.context);
-                            if (combiner.isReplacePlaceholder && k === 0 && !candidate.hasPlaceholders())
-                                continue;
-                        }
-                        choices[k] = candidate;
-                        //depths[k] = fixeddepth;
-                        recursiveHelper(k+1, newContext);
+            if (currentExpansion instanceof NonTerminal) {
+                let candidates;
+                const constraint = getKeyConstraint(choices, currentExpansion);
+                if (k === pivotIdx) {
+                    if (constraint) {
+                        const [indexName, keyValue] = constraint;
+                        candidates = charts.getAtDepthForKey(currentExpansion.index,
+                                                             fixeddepth,
+                                                             indexName, keyValue);
+                    } else if (context !== null) {
+                        // if we have chosen a context, either pick something with
+                        // no context or something with the same context
+                        candidates = iterchain(charts.getAtDepthForKey(currentExpansion.index,
+                                                                       fixeddepth,
+                                                                       CONTEXT_KEY_NAME, null),
+                                               charts.getAtDepthForKey(currentExpansion.index,
+                                                                       fixeddepth,
+                                                                       CONTEXT_KEY_NAME, context));
+                    } else {
+                        candidates = charts.getAtDepth(currentExpansion.index, fixeddepth);
+                    }
+                } else {
+                    const upToDepth = k > pivotIdx ? maxdepth : maxdepth-1;
+
+                    if (constraint) {
+                        const [indexName, keyValue] = constraint;
+                        candidates = charts.getUpToDepthForKey(currentExpansion.index,
+                                                               upToDepth,
+                                                               indexName, keyValue);
+                    } else if (context !== null) {
+                        // if we have chosen a context, either pick something with
+                        // no context or something with the same context
+                        candidates = iterchain(charts.getUpToDepthForKey(currentExpansion.index,
+                                                                         upToDepth,
+                                                                         CONTEXT_KEY_NAME, null),
+                                               charts.getUpToDepthForKey(currentExpansion.index,
+                                                                         upToDepth,
+                                                                         CONTEXT_KEY_NAME, context));
+                    } else {
+                        candidates = charts.getUpToDepth(currentExpansion.index, upToDepth);
                     }
                 }
-                return;
-            }
-            if (currentExpansion instanceof NonTerminal) {
-                for (let j = 0; j <= (k > i ? maxdepth : maxdepth-1); j++) {
-                    for (const candidate of charts[j][currentExpansion.index]) {
-                        let newContext;
-                        if (candidate instanceof Context) {
-                            if (!Context.compatible(context, candidate))
-                                continue;
-                            newContext = candidate;
-                        } else {
-                            assert(candidate instanceof Derivation);
-                            if (!Context.compatible(context, candidate.context))
-                                continue;
-                            newContext = Context.meet(context, candidate.context);
-                            if (combiner.isReplacePlaceholder && k === 0 && !candidate.hasPlaceholders())
-                                continue;
-                        }
-                        choices[k] = candidate;
-                        //depths[k] = j;
-                        recursiveHelper(k+1, newContext);
-                    }
+
+                for (const candidate of candidates) {
+                    if (!Context.compatible(context, candidate.context))
+                        continue;
+                    const newContext = Context.meet(context, candidate.context);
+                    choices[k] = candidate;
+                    //depths[k] = fixeddepth;
+                    recursiveHelper(k+1, newContext);
                 }
             } else {
-                choices[k] = currentExpansion;
-                recursiveHelper(k+1, context);
+                if (k !== pivotIdx) {
+                    choices[k] = currentExpansion;
+                    recursiveHelper(k+1, context);
+                }
             }
         })(0, null);
     }
@@ -1387,7 +1682,7 @@ function expandRuleExhaustive(charts : Charts,
     return [actualGenSize, prunedGenSize];
 }
 
-function expandRuleSample(charts : Charts,
+function expandRuleSample(charts : ChartTable,
                           depth : number,
                           nonTermIndex : number,
                           rule : Rule<any[], any>,
@@ -1399,7 +1694,6 @@ function expandRuleSample(charts : Charts,
                           emit : (value : Derivation<any>) => void) : [number, number] {
     const rng = options.rng;
     const expansion = rule.expansion;
-    const combiner = rule.combiner;
 
     // this is an approximate, sampling-based version of the above algorithm,
     // which does not require enumerating anything
@@ -1432,16 +1726,41 @@ function expandRuleSample(charts : Charts,
         for (let i = 0; i < expansionLenght; i++)
             choices.push('');
 
-        for (let sampleIdx = 0; sampleIdx < targetSemanticFunctionCalls; sampleIdx++) {
+        outerloop:
+        for (let sampleIdx = 0; sampleIdx < targetSemanticFunctionCalls && actualGenSize < targetPruningSize; sampleIdx++) {
+            let newContext : Context|null = null;
             for (let i = 0; i < expansionLenght; i++) {
                 const currentExpansion = expansion[i];
-                if (!(currentExpansion instanceof NonTerminal))
+                if (currentExpansion instanceof NonTerminal) {
+                    // apply the key constraint if we have it
+                    const constraint = getKeyConstraint(choices, currentExpansion);
+                    let choice;
+                    if (constraint) {
+                        const [indexName, keyValue] = constraint;
+                        choice = charts.chooseAtDepthForKey(currentExpansion.index, 0, indexName, keyValue);
+                    } else if (newContext !== null) {
+                        // try with no context first, then try with the same context
+                        // this is not exactly correct sampling wise, but we don't
+                        // have a lot of mixed non-terminals (in fact, I can't think
+                        // of any) so it's mostly good enough
+                        choice = charts.chooseAtDepthForKey(currentExpansion.index, 0, CONTEXT_KEY_NAME, null);
+                        if (!choice)
+                            choice = charts.chooseAtDepthForKey(currentExpansion.index, 0, CONTEXT_KEY_NAME, newContext);
+                    } else {
+                        choice = charts.chooseAtDepth(currentExpansion.index, 0);
+                    }
+                    if (!choice) // no compatible derivation with these keys
+                        continue outerloop;
+                    choices[i] = choice;
+                    if (!Context.compatible(newContext, choice.context))
+                        continue outerloop;
+                    newContext = Context.meet(newContext, choice.context);
+                } else {
                     choices[i] = currentExpansion instanceof Choice ? currentExpansion.choose(rng) : currentExpansion;
-                else
-                    choices[i] = uniform(charts[0][currentExpansion.index].sampled, rng);
+                }
             }
 
-            const v = combiner(choices, rule.priority);
+            const v = rule.apply(choices);
             if (v !== null) {
                 actualGenSize ++;
                 emit(v);
@@ -1455,46 +1774,23 @@ function expandRuleSample(charts : Charts,
 
     // now do the actual pivot dance
 
-    // for each non-terminal in the rule expansion, compute the cumsum size of
-    // all charts for depth < D
-    // (this is used to choose which depth to sample from, for the non-pivot)
-
-    const ltDSize : number[][] = [];
-    for (let i = 0; i < expansionLenght; i++) {
-        const currentExpansion = expansion[i];
-        if (currentExpansion instanceof NonTerminal) {
-            const nonTermIndex = currentExpansion.index;
-
-            const ourLtDSize = [];
-            ourLtDSize.push(charts[0][nonTermIndex].length);
-            for (let j = 1; j < depth; j++)
-                ourLtDSize.push(ourLtDSize[j-1] + charts[j][nonTermIndex].length);
-            ltDSize.push(ourLtDSize);
-        } else {
-            ltDSize.push([1]);
-        }
-        // the last element of the cumsum is the total size of the non-terminal
-        // if this size is 0, the worst case expansion size of this rule
-        // is also 0 and we don't even hit this function
-        assert(ltDSize[i][ltDSize[i].length-1] > 0);
-    }
-
     // the probability of being pivot is the number of expansions
     // that this non-terminal would be pivot for
     //
     // which compute that as the total number of expansions to the
-    // left, aka the cumprod of ltDSize[<i][depth-2]
+    // left, aka the cumprod of the total size up to depth-2 of <i
     // times the depth-1 size of the current non terminal
     // times the total number of expansions to the right
-    // aka the cumprod of ltDSize[>i][depth-1]
+    // aka the cumprod of the total size up to depth-1 of >i
 
     const leftCumProd : number[] = [];
     for (let i = 0; i < expansionLenght; i++) {
-        if (expansion[i] instanceof NonTerminal) {
+        const exp = expansion[i];
+        if (exp instanceof NonTerminal) {
             if (i === 0)
-                leftCumProd.push(ltDSize[i][depth-2]);
+                leftCumProd.push(charts.getSizeUpToDepth(exp.index, depth-2));
             else
-                leftCumProd.push(leftCumProd[i-1] * ltDSize[i][depth-2]);
+                leftCumProd.push(leftCumProd[i-1] * charts.getSizeUpToDepth(exp.index, depth-2));
         } else {
             if (i === 0)
                 leftCumProd.push(1);
@@ -1503,16 +1799,17 @@ function expandRuleSample(charts : Charts,
         }
     }
     const rightCumProd : number[] = [];
-    for (let i = 0; i < expansionLenght; i++)
-        rightCumProd[i] = 0;
     // for efficiency, we need to ensure rightCumProd is a packed array
     // but we want to fill it from the end, so we first fill it with 0
+    for (let i = 0; i < expansionLenght; i++)
+        rightCumProd[i] = 0;
     for (let i = expansionLenght-1; i >= 0; i--) {
-        if (expansion[i] instanceof NonTerminal) {
+        const exp = expansion[i];
+        if (exp instanceof NonTerminal) {
             if (i === expansionLenght-1)
-                rightCumProd[i] = ltDSize[i][depth-1];
+                rightCumProd[i] = charts.getSizeUpToDepth(exp.index, depth-1);
             else
-                rightCumProd[i] = rightCumProd[i+1] * ltDSize[i][depth-1];
+                rightCumProd[i] = rightCumProd[i+1] * charts.getSizeUpToDepth(exp.index, depth-1);
         } else {
             if (i === expansionLenght-1)
                 rightCumProd[i] = 1;
@@ -1529,7 +1826,7 @@ function expandRuleSample(charts : Charts,
         if (currentExpansion instanceof NonTerminal) {
             const left = i > 0 ? leftCumProd[i-1] : 1;
             const right = i < expansionLenght-1 ? rightCumProd[i+1] : 1;
-            const self = charts[depth-1][currentExpansion.index].length;
+            const self = charts.getSizeAtDepth(currentExpansion.index, depth-1);
             const pivotProbability = left * self * right;
 
             if (i === 0)
@@ -1548,15 +1845,14 @@ function expandRuleSample(charts : Charts,
 
     // now make the samples
     let actualGenSize = 0, prunedGenSize = 0;
-    const choices : Array<DerivationChild<any>> = new Array<DerivationChild<any>>(expansion.length);
+    const choices : Array<DerivationChild<any>> = [];
     // fill and size the array
     for (let i = 0; i < expansionLenght; i++)
         choices.push('');
-    let newContext : Context|null = null;
 
     outerloop:
-    for (let sampleIdx = 0; sampleIdx < targetSemanticFunctionCalls; sampleIdx++) {
-        newContext = null;
+    for (let sampleIdx = 0; sampleIdx < targetSemanticFunctionCalls && actualGenSize < targetPruningSize; sampleIdx++) {
+        let newContext : Context|null = null;
 
         // choose the pivot
         const pivotIdx = categoricalPrecomputed(pivotProbabilityCumsum, pivotProbabilityCumsum.length, rng);
@@ -1567,59 +1863,62 @@ function expandRuleSample(charts : Charts,
                 if (!(currentExpansion instanceof NonTerminal))
                     continue outerloop;
 
-                const from = charts[depth-1][currentExpansion.index].sampled;
-                if (from.length === 0) {
-                    // uh oh!
-                    console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')}`);
-                    console.log(`pivotIdx = ${pivotIdx}`);
-                    console.log(`ltDSize =`, ltDSize);
-                    console.log(`leftCumProd =`, leftCumProd);
-                    console.log(`rightCumProd =`, rightCumProd);
-                    console.log(`pivotProbabilityCumsum =`, pivotProbabilityCumsum);
-                    throw new Error(`Unexpected empty chart for pivot`);
-                }
-                choices[i] = uniform(from, rng);
-            } else {
-                if (!(currentExpansion instanceof NonTerminal)) {
-                    choices[i] = currentExpansion instanceof Choice ? currentExpansion.choose(rng) : currentExpansion;
-
+                // apply the key constraint if we have it
+                const constraint = getKeyConstraint(choices, currentExpansion);
+                let choice;
+                if (constraint) {
+                    const [indexName, keyValue] = constraint;
+                    choice = charts.chooseAtDepthForKey(currentExpansion.index, depth-1,
+                                                        indexName, keyValue);
+                } else if (newContext !== null) {
+                    // try with no context first, then try with the same context
+                    // (see above for longer explanation)
+                    choice = charts.chooseAtDepthForKey(currentExpansion.index, depth-1, CONTEXT_KEY_NAME, null);
+                    if (!choice)
+                        choice = charts.chooseAtDepthForKey(currentExpansion.index, depth-1, CONTEXT_KEY_NAME, newContext);
                 } else {
+                    choice = charts.chooseAtDepth(currentExpansion.index, depth-1);
+                }
+
+                if (!choice) // no compatible derivation with these keys
+                    continue outerloop;
+                choices[i] = choice;
+            } else {
+                if (currentExpansion instanceof NonTerminal) {
                     const maxdepth = i < pivotIdx ? depth-2 : depth-1;
 
-                    const chosenDepth = categoricalPrecomputed(ltDSize[i], maxdepth+1, rng);
-                    const from = charts[chosenDepth][currentExpansion.index].sampled;
-                    if (from.length === 0) {
-                        // uh oh!
-                        console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')}`);
-                        console.log(`pivotIdx = ${pivotIdx}`);
-                        console.log(`currentIdx = ${i}`);
-                        console.log(`maxdepth = ${maxdepth}`);
-                        console.log(`chosenDepth = ${chosenDepth}`);
-                        console.log(`ltDSize =`, ltDSize);
-                        console.log(`leftCumProd =`, leftCumProd);
-                        console.log(`rightCumProd =`, rightCumProd);
-                        console.log(`pivotProbabilityCumsum =`, pivotProbabilityCumsum);
-                        throw new Error(`Unexpected empty chart for non-pivot`);
+                    const constraint = getKeyConstraint(choices, currentExpansion);
+                    let choice;
+                    if (constraint) {
+                        const [indexName, keyValue] = constraint;
+                        choice = charts.chooseUpToDepthForKey(currentExpansion.index, maxdepth,
+                                                              indexName, keyValue);
+                    } else if (newContext !== null) {
+                        // try with no context first, then try with the same context
+                    // (see above for longer explanation)
+                        choice = charts.chooseUpToDepthForKey(currentExpansion.index, maxdepth, CONTEXT_KEY_NAME, null);
+                        if (!choice)
+                            choice = charts.chooseUpToDepthForKey(currentExpansion.index, maxdepth, CONTEXT_KEY_NAME, newContext);
+                    } else {
+                        choice = charts.chooseUpToDepth(currentExpansion.index, maxdepth);
                     }
-                    choices[i] = uniform(from, rng);
+                    if (!choice) // no compatible derivation with these keys
+                        continue outerloop;
+                    choices[i] = choice;
+                } else {
+                    choices[i] = currentExpansion instanceof Choice ? currentExpansion.choose(rng) : currentExpansion;
                 }
             }
 
             const chosen = choices[i];
-            if (chosen instanceof Context) {
-                if (!Context.compatible(newContext, chosen))
-                    continue outerloop;
-                newContext = chosen;
-            } else if (chosen instanceof Derivation) {
+            if (chosen instanceof Derivation) {
                 if (!Context.compatible(newContext, chosen.context))
                     continue outerloop;
                 newContext = Context.meet(newContext, chosen.context);
-                if (combiner.isReplacePlaceholder && i === 0 && !chosen.hasPlaceholders())
-                    continue outerloop;
             }
         }
 
-        const v = combiner(choices, rule.priority);
+        const v = rule.apply(choices);
         if (v !== null) {
             actualGenSize ++;
             emit(v);
@@ -1631,7 +1930,7 @@ function expandRuleSample(charts : Charts,
     return [actualGenSize, prunedGenSize];
 }
 
-function expandRule(charts : Charts,
+function expandRule(charts : ChartTable,
                     depth : number,
                     nonTermIndex : number,
                     rule : Rule<any[], any>,
@@ -1643,12 +1942,11 @@ function expandRule(charts : Charts,
     const rng = options.rng;
 
     const expansion = rule.expansion;
-    const combiner = rule.combiner;
     const anyNonTerm = expansion.some((x) => x instanceof NonTerminal);
 
     if (!anyNonTerm) {
         if (depth === 0) {
-            const deriv = combiner(assignChoices(expansion, rng), rule.priority);
+            const deriv = rule.apply(assignChoices(expansion as DerivationChildOrChoice[], rng));
             if (deriv !== null)
                 emit(deriv);
         }
@@ -1657,12 +1955,12 @@ function expandRule(charts : Charts,
     if (depth === 0)
         return;
 
-    //
-
     const sizeEstimate =
         estimateRuleSize(charts, depth, nonTermIndex, rule, averagePruningFactor);
     const { maxdepth, worstCaseGenSize, estimatedGenSize, estimatedPruneFactor } = sizeEstimate;
 
+    if (options.debug >= LogLevel.EVERYTHING)
+        console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : worst case estimate ${worstCaseGenSize}`);
     if (worstCaseGenSize === 0)
         return;
 
