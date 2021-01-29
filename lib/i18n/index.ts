@@ -20,7 +20,7 @@
 
 
 import DefaultLanguagePack from './default';
-import AmericanEnglish from './american-english';
+import English from './english';
 import Italian from './italian';
 import Persian from './persian';
 import Arabic from './arabic';
@@ -40,12 +40,11 @@ export { BaseTokenizer, TokenizerResult };
 export type LanguagePack = DefaultLanguagePack;
 
 interface LPClass {
-    new() : LanguagePack;
+    new(locale : string) : LanguagePack;
 }
 
 const _classes : { [locale : string] : LPClass } = {
-    // all English is American English, cause 'Murrica
-    'en': AmericanEnglish,
+    'en': English,
 
     'it': Italian,
 
@@ -81,13 +80,13 @@ export function get(locale : string) : LanguagePack {
     for (let i = chunks.length; i >= 1; i--) {
         const candidate = chunks.slice(0, i).join('-');
         if (candidate in _classes) {
-            const instance = new (_classes[candidate])();
+            const instance = new (_classes[candidate])(locale);
             _instances.set(locale, instance);
             return instance;
         }
     }
     console.error(`Locale ${locale} is not fully supported.`);
-    const instance = new DefaultLanguagePack();
+    const instance = new DefaultLanguagePack(locale);
     _instances.set(locale, instance);
     return instance;
 }

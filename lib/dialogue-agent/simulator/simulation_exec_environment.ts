@@ -364,7 +364,7 @@ class SimulationExecEnvironment extends ExecEnvironment {
                 database : SimulationDatabase|undefined,
                 { rng, simulateErrors = true } : { rng : () => number, simulateErrors ?: boolean }) {
         super();
-        this.format = new TextFormatter(locale, 'America/Los_Angeles', schemas, (x) => x);
+        this.format = new TextFormatter(locale, 'America/Los_Angeles', schemas);
         this._execCache = [];
 
         this._schemas = schemas;

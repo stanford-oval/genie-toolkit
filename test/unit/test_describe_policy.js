@@ -259,18 +259,12 @@ let TEST_CASES = [
     'Anyone is allowed to read articles published in the world news section of the wall street journal if the updated is after 30 min before now.'],
 ];
 
-const gettext = {
-    locale: 'en-US',
-    dgettext: (domain, msgid) => msgid,
-    dngettext: (domain, msgid, msgid_plural, n) => n === 1 ? msgid : msgid_plural,
-};
-
 async function test(i) {
     console.log('Test Case #' + (i+1));
     const [code, expected] = TEST_CASES[i];
     const langPack = I18n.get('en-US');
 
-    const describer = new Describer(gettext, 'en-US', 'America/Los_Angeles');
+    const describer = new Describer('en-US', 'America/Los_Angeles');
     const prog = await Syntax.parse(code, Syntax.SyntaxType.Legacy).typecheck(schemaRetriever, true);
     try {
         assert(prog.isPermissionRule);

@@ -21,6 +21,7 @@
 import interpolate from 'string-interp';
 import { SchemaRetriever } from 'thingtalk';
 
+import * as I18n from '../../i18n';
 import {
     FORMAT_TYPES,
     FormattedObjectSpec,
@@ -54,15 +55,13 @@ export default class CardFormatter extends interpolate.Formatter {
      * @param locale - the user's locale, as a BCP47 tag
      * @param timezone - the user's timezone, as a string in the IANA timezone database (e.g. America/Los_Angeles, Europe/Rome)
      * @param schemaRetriever - the interface to access Thingpedia for formatting information
-     * @param gettext - gettext function
      */
     constructor(locale : string,
                 timezone : string,
-                schemaRetriever : SchemaRetriever,
-                gettext : (x : string) => string) {
+                schemaRetriever : SchemaRetriever) {
         super(locale, timezone);
         this._schemas = schemaRetriever;
-        this._ = gettext;
+        this._ = I18n.get(locale).gettext;
     }
 
     replaceInString(str : unknown, argMap : PlainObject) : string|null {

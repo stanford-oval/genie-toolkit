@@ -85,8 +85,8 @@ export default class DialogueLoop {
         this.conversation = conversation;
         this.engine = engine;
         this._prefs = engine.platform.getSharedPreferences();
-        this._textFormatter = new TextFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas, engine._);
-        this._cardFormatter = new CardFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas, engine._);
+        this._textFormatter = new TextFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas);
+        this._cardFormatter = new CardFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas);
         this.icon = null;
         this.expecting = null;
         this.platformData = {};

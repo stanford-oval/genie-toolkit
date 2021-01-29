@@ -361,12 +361,6 @@ const TEST_CASES = [
     'Wsj'],
 ];
 
-const gettext = {
-    locale: 'en-US',
-    dgettext: (domain, msgid) => msgid,
-    dngettext: (domain, msgid, msgid_plural, n) => n === 1 ? msgid : msgid_plural,
-};
-
 async function test(i) {
     console.log('Test Case #' + (i+1));
     let [code, expected, expectedname] = TEST_CASES[i];
@@ -376,7 +370,7 @@ async function test(i) {
     let failed = false;
     try {
         const prog = await Syntax.parse(code).typecheck(schemaRetriever, true);
-        const describer = new Describer(gettext, 'en-US', 'America/Los_Angeles');
+        const describer = new Describer('en-US', 'America/Los_Angeles');
         // retrieve the relevant primitive templates
         const kinds = new Set();
         for (const [, prim] of prog.iteratePrimitives(false))

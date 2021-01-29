@@ -18,6 +18,12 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import assert from 'assert';
+import * as fs from 'fs';
+import * as path from 'path';
+import Gettext from 'node-gettext';
+import * as gettextParser from 'gettext-parser';
+
 import BaseTokenizer from './tokenizer/base';
 
 /**
@@ -37,6 +43,50 @@ export default class DefaultLanguagePack {
     ABBREVIATIONS ! : any;
 
     protected _tokenizer : BaseTokenizer|undefined;
+
+    /**
+     * The actual locale string to use, which can be a subvariant of
+     * the language implementing this language pack.
+     */
+    readonly locale : string;
+
+    private _gt : Gettext;
+    gettext : (x : string) => string;
+    // do not use ngettext, use ICU syntax `${foo:plural:one{}other{}}` instead
+
+    constructor(locale : string) {
+        this.locale = locale;
+
+        this._gt = new Gettext();
+        this._gt.setLocale(locale);
+        this.gettext = this._gt.dgettext.bind(this._gt, 'genie-toolkit');
+
+        if (!/^en(-|$)/.test(locale))
+            this._loadTranslations();
+    }
+
+    private _loadTranslations() {
+        const modir = path.resolve(path.dirname(module.filename), '../../po');
+        assert(fs.existsSync(modir));
+
+        const split = this.locale.split(/[-_.@]/);
+        let mo = modir + '/' + split.join('_') + '.mo';
+
+        while (!fs.existsSync(mo) && split.length) {
+            split.pop();
+            mo = modir + '/' + split.join('_') + '.mo';
+        }
+        if (split.length === 0) {
+            console.error(`No translations found for locale ${this.locale}`);
+            return;
+        }
+        try {
+            const loaded = gettextParser.mo.parse(fs.readFileSync(mo), 'utf-8');
+            this._gt.addTranslations(this.locale, 'genie-toolkit', loaded);
+        } catch(e) {
+            console.log(`Failed to load translations for ${this.locale}: ${e.message}`);
+        }
+    }
 
     /**
      * Return an instance of the tokenizer used by this language.

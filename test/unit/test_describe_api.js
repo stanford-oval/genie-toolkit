@@ -23,16 +23,10 @@ import assert from 'assert';
 import { Ast }  from 'thingtalk';
 import { Describer } from '../../lib/utils/thingtalk/describe';
 
-const gettext = {
-    locale: 'en-US',
-    dgettext: (domain, msgid) => msgid,
-    dngettext: (domain, msgid, msgid_plural, n) => n === 1 ? msgid : msgid_plural,
-};
-
 async function testDescribeArg() {
-    const describer = new Describer(gettext, 'en-US', 'America/Los_Angeles');
-    const describer2 = new Describer(gettext, 'en-US', 'Asia/Tokyo');
-    const describer3 = new Describer(gettext, 'en-US', 'Pacific/Honolulu');
+    const describer = new Describer('en-US', 'America/Los_Angeles');
+    const describer2 = new Describer('en-US', 'Asia/Tokyo');
+    const describer3 = new Describer('en-US', 'Pacific/Honolulu');
     // we would like to test i18n here too but
     // travis's nodejs does not have full-icu so Intl is
     // broken (also on Android)

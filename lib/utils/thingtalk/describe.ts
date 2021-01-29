@@ -20,7 +20,6 @@
 
 import assert from 'assert';
 import interpolate from 'string-interp';
-import type Gettext from 'node-gettext';
 import { Ast, Type, Builtin } from 'thingtalk';
 
 import * as I18n from '../../i18n';
@@ -73,12 +72,9 @@ export class Describer {
 
     private _datasets : Map<string, Ast.Dataset> = new Map;
 
-    constructor(gettext : Gettext,
-                locale : string = gettext.locale,
-                timezone ?: string,
-                direction = Direction.FROM_USER) {
+    constructor(locale : string, timezone : string, direction = Direction.FROM_USER) {
         this._langPack = I18n.get(locale);
-        this._ = gettext.dgettext.bind(gettext, 'genie-toolkit');
+        this._ = this._langPack.gettext;
         this.locale = locale;
         this.timezone = timezone;
 
