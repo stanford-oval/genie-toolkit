@@ -35,8 +35,8 @@ export function get(url = URL,
                     exactmatcher ?: ExactMatcher,
                     tpClient ?: Tp.BaseClient,
                     options ?: LocalParserOptions) : ParserClient {
-    if (url.startsWith('file://'))
-        return new LocalParserClient(url.substring('file://'.length), locale, platform, exactmatcher, tpClient, options);
+    if (url.startsWith('file://') || /^kf\+https?:/.test(url))
+        return new LocalParserClient(url, locale, platform, exactmatcher, tpClient, options);
     else
         return new RemoteParserClient(url, locale, platform, tpClient);
 }
