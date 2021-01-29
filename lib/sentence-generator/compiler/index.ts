@@ -25,7 +25,9 @@ import * as ts from 'typescript';
 import * as metagrammar from './grammar';
 import * as metaast from './meta_ast';
 
+import type * as ThingTalkUtils from '../../utils/thingtalk';
 import type * as SentenceGeneratorRuntime from '../runtime';
+import type { GrammarOptions } from '../types';
 import type * as I18n from '../../i18n';
 import type SentenceGenerator from '../generator';
 
@@ -220,14 +222,8 @@ export function compile(filename : string) : Promise<void> {
     return new Compiler('ts').process(filename);
 }
 
-interface GrammarOptions {
-    flags : { [flag : string] : boolean };
-    debug : number;
-    onlyDevices ?: string[];
-    whiteList ?: string;
-}
-
 type CompiledTemplate = (runtime : typeof SentenceGeneratorRuntime,
+                         ttUtils : typeof ThingTalkUtils,
                          options : GrammarOptions,
                          langPack : I18n.LanguagePack,
                          grammar : SentenceGenerator<any, any, any>) => Promise<void>;

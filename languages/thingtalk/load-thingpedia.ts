@@ -36,7 +36,6 @@ import {
     ParamSlot,
     ErrorMessage,
     ExpressionWithCoreference,
-    clean,
     typeToStringSafe,
     makeInputParamSlot,
     makeFilter,
@@ -44,7 +43,6 @@ import {
     makeDateRangeFilter,
     isHumanEntity,
     interrogativePronoun,
-    tokenizeExample,
 } from './utils';
 import {
     replaceSlotBagPlaceholders,
@@ -103,24 +101,16 @@ interface CanonicalForm {
     implicit_identity ?: boolean;
 }
 
-interface GrammarOptions {
-    thingpediaClient : Tp.BaseClient;
-    schemaRetriever ?: SchemaRetriever;
-    flags : { [key : string] : boolean };
-    debug : number;
-    onlyDevices ?: string[];
-    whiteList ?: string;
-}
-
 type PrimitiveTemplateType = 'action'|'action_past'|'query'|'get_command'|'stream'|'program';
 
 export class ThingpediaLoader {
     private _runtime ! : typeof Genie.SentenceGeneratorRuntime;
+    private _ttUtils ! : typeof Genie.ThingTalkUtils;
     private _grammar ! : Genie.SentenceGenerator<any, Ast.Input>;
     private _schemas ! : SchemaRetriever;
     private _tpClient ! : Tp.BaseClient;
     private _langPack ! : Genie.I18n.LanguagePack;
-    private _options ! : GrammarOptions;
+    private _options ! : Genie.SentenceGeneratorTypes.GrammarOptions;
     private _entities ! : Record<string, { has_ner_support : boolean }>;
     types ! : Map<string, Type>;
     params ! : ParamSlot[];
@@ -142,10 +132,12 @@ export class ThingpediaLoader {
     };
 
     async init(runtime : typeof Genie.SentenceGeneratorRuntime,
+               ttUtils : typeof Genie.ThingTalkUtils,
                grammar : Genie.SentenceGenerator<any, Ast.Input>,
                langPack : Genie.I18n.LanguagePack,
-               options : GrammarOptions) : Promise<void> {
+               options : Genie.SentenceGeneratorTypes.GrammarOptions) : Promise<void> {
         this._runtime = runtime;
+        this._ttUtils = ttUtils;
         this._grammar = grammar;
         this._langPack = langPack;
 
@@ -185,6 +177,10 @@ export class ThingpediaLoader {
             this._recordType(new Type.Measure(unit));
 
         await this._loadMetadata();
+    }
+
+    get ttUtils() {
+        return this._ttUtils;
     }
 
     get flags() {
@@ -250,7 +246,7 @@ export class ThingpediaLoader {
                 for (const entry of type.entries!) {
                     const value = new Ast.Value.Enum(entry);
                     value.getType = function() { return type; };
-                    this._addRule('constant_' + typestr, [clean(entry)],
+                    this._addRule('constant_' + typestr, [this._ttUtils.clean(entry)],
                         () => value, keyfns.valueKeyFn);
                 }
             }
@@ -327,7 +323,7 @@ export class ThingpediaLoader {
         let canonical;
 
         if (!arg.metadata.canonical)
-            canonical = { base: [clean(pname)] };
+            canonical = { base: [this._ttUtils.clean(pname)] };
         else if (typeof arg.metadata.canonical === 'string')
             canonical = { base: [arg.metadata.canonical] };
         else
@@ -406,7 +402,7 @@ export class ThingpediaLoader {
         let canonical;
 
         if (!arg.metadata.canonical)
-            canonical = { base: [clean(pname)] };
+            canonical = { base: [this._ttUtils.clean(pname)] };
         else if (typeof arg.metadata.canonical === 'string')
             canonical = { base: [arg.metadata.canonical] };
         else
@@ -509,7 +505,7 @@ export class ThingpediaLoader {
         let canonical;
 
         if (!arg.metadata.canonical)
-            canonical = { base: [clean(pname)] };
+            canonical = { base: [this._ttUtils.clean(pname)] };
         else if (typeof arg.metadata.canonical === 'string')
             canonical = { base: [arg.metadata.canonical] };
         else if (Array.isArray(arg.metadata.canonical))
@@ -834,7 +830,7 @@ export class ThingpediaLoader {
         if (!ex.preprocessed || ex.preprocessed.length === 0) {
             // preprocess here...
             const tokenizer = this._langPack.getTokenizer();
-            ex.preprocessed = ex.utterances.map((utterance : string) => tokenizeExample(tokenizer, utterance, ex.id));
+            ex.preprocessed = ex.utterances.map((utterance : string) => this._ttUtils.tokenizeExample(tokenizer, utterance, ex.id));
         }
 
         for (let preprocessed of ex.preprocessed) {
@@ -848,7 +844,7 @@ export class ThingpediaLoader {
             if (this._options.debug >= this._runtime.LogLevel.INFO && preprocessed[0].startsWith(','))
                 console.log(`WARNING: template ${ex.id} starts with , but is not a query`);
 
-            if (this._options.flags.for_agent)
+            if (this._options.forSide === 'agent')
                 preprocessed = this._langPack.toAgentSideUtterance(preprocessed);
 
             this._addPrimitiveTemplate(grammarCat, preprocessed, ex);
@@ -1036,7 +1032,7 @@ export class ThingpediaLoader {
 
         const canonical : string[] = q.canonical ?
             (Array.isArray(q.canonical) ? q.canonical : [q.canonical]) :
-            [clean(q.name)];
+            [this._ttUtils.clean(q.name)];
 
         for (const form of canonical) {
             const pluralized = this._langPack.pluralize(form);

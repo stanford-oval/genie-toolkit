@@ -24,6 +24,7 @@ import assert from 'assert';
 import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
+import _loader from '../load-thingpedia';
 
 import {
     AgentReplyOptions,
@@ -182,7 +183,7 @@ function positiveListProposalReply(ctx : ContextInfo, [name, acceptedAction, mus
         // do not consider a phrase of the form "play X" to be "accepting the action by name"
         // if the action auto-confirms, because the user is likely playing something else
         if (acceptedAction && name) {
-            const confirm = C.normalizeConfirmAnnotation(acceptedAction.schema as Ast.FunctionDef);
+            const confirm = _loader.ttUtils.normalizeConfirmAnnotation(acceptedAction.schema as Ast.FunctionDef);
             if (confirm === 'auto')
                 return null;
         }

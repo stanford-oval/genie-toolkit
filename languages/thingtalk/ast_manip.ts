@@ -41,7 +41,6 @@ import {
 
     typeToStringSafe,
     isSameFunction,
-    normalizeConfirmAnnotation
 } from './utils';
 export {
     Placeholder,
@@ -1837,7 +1836,6 @@ export {
     getFunctionNames,
     getFunctions,
     getInvocation,
-    normalizeConfirmAnnotation,
     adjustDefaultParameters,
 
     // constants

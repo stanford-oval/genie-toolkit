@@ -26,7 +26,6 @@ import { SentenceGeneratorTypes } from 'genie-toolkit';
 export type AgentReplyRecord = SentenceGeneratorTypes.AgentReplyRecord<Ast.DialogueState>;
 
 import * as C from './ast_manip';
-import { isExecutable } from './utils';
 
 // NOTE: this version of arraySubset uses ===
 // the one in array_utils uses .equals()
@@ -168,7 +167,7 @@ export class NextStatementInfo {
 
         this.chainParameter = null;
         this.chainParameterFilled = false;
-        this.isComplete = isExecutable(nextstmt);
+        this.isComplete = nextItem.isExecutable();
 
         if (!this.isAction)
             return;

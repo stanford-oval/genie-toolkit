@@ -21,6 +21,7 @@
 import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
+import _loader from '../load-thingpedia';
 
 import {
     ContextInfo,
@@ -104,7 +105,7 @@ function emptySearchChangePhraseCommon(ctx : ContextInfo, newFilter : Ast.Boolea
         return null;
 
     if (currentAction) {
-        const confirm = C.normalizeConfirmAnnotation(currentAction.schema!);
+        const confirm = _loader.ttUtils.normalizeConfirmAnnotation(currentAction.schema!);
 
         // if the current statement was a compound command, and confirm === auto,
         // we need to add the [1] clause to the query if necessary, and preserve

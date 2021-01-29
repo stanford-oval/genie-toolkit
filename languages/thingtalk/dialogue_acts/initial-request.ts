@@ -51,7 +51,7 @@ function adjustStatementsForInitialRequest(expr : Ast.ChainExpression) {
         const table = expr.expressions[0];
         const action = expr.expressions[1];
         assert(action instanceof Ast.InvocationExpression);
-        const confirm = C.normalizeConfirmAnnotation(action.invocation.schema!);
+        const confirm = _loader.ttUtils.normalizeConfirmAnnotation(action.invocation.schema!);
 
         // if confirm === auto, we leave the compound command as is, but add the [1] clause
         // to the query if necessary
@@ -132,7 +132,7 @@ function adjustStatementsForInitialRequest(expr : Ast.ChainExpression) {
             return newStatements.map(C.adjustDefaultParameters);
         }
 
-        const confirm = C.normalizeConfirmAnnotation(action.invocation.schema!);
+        const confirm = _loader.ttUtils.normalizeConfirmAnnotation(action.invocation.schema!);
         const clone = action.clone();
 
         let newTable : Ast.Expression|null = null;

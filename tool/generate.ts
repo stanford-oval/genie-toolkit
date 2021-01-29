@@ -49,7 +49,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: `The programming language to generate`
     });
     parser.add_argument('--thingpedia', {
-        required: false,
+        required: true,
         help: 'Path to ThingTalk file containing class definitions.'
     });
     parser.add_argument('--entities', {
@@ -57,7 +57,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: 'Path to JSON file containing entity type definitions.'
     });
     parser.add_argument('--dataset', {
-        required: false,
+        required: true,
         help: 'Path to file containing primitive templates, in ThingTalk syntax.'
     });
     parser.add_argument('--template', {
@@ -128,9 +128,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
 }
 
 export async function execute(args : any) {
-    let tpClient : Tp.FileClient|undefined = undefined;
-    if (args.thingpedia)
-        tpClient = new Tp.FileClient(args);
+    const tpClient = new Tp.FileClient(args);
     const options = {
         rng: seedrandom.alea(args.random_seed),
         locale: args.locale,

@@ -224,5 +224,5 @@ generic_anything_noun_phrase : Ast.InvocationExpression = {}
 generic_base_noun_phrase : Ast.InvocationExpression = {}
 
 {
-await _tpLoader.init($runtime, $grammar, $locale, $options);
+await _tpLoader.init($runtime, $ttUtils, $grammar, $locale, $options);
 }

@@ -50,7 +50,7 @@ interface BasicGeneratorOptions {
     rng : () => number;
 
     // options passed to the templates
-    thingpediaClient ?: Tp.BaseClient;
+    thingpediaClient : Tp.BaseClient;
     onlyDevices ?: string[];
     whiteList ?: string;
 }
@@ -76,6 +76,7 @@ class BasicSentenceGenerator extends stream.Readable {
         this._generator = new SentenceGenerator({
             locale: options.locale,
             templateFiles: options.templateFiles,
+            forSide: 'user',
             contextual: false,
             flags: options.flags,
             targetPruningSize: options.targetPruningSize,
@@ -422,7 +423,7 @@ interface DialogueGeneratorOptions {
     maxDepth : number;
 
     // simulator options
-    thingpediaClient ?: Tp.BaseClient;
+    thingpediaClient : Tp.BaseClient;
     database ?: SimulationDatabase;
 
     // options passed to the templates
@@ -464,8 +465,9 @@ class DialogueGenerator extends stream.Readable {
             locale: options.locale,
             templateFiles: options.templateFiles,
             rootSymbol: '$agent',
+            forSide: 'agent',
             contextual: true,
-            flags: {},
+            flags: options.flags,
             targetPruningSize: options.targetPruningSize,
             maxDepth: options.maxDepth,
             maxConstants: options.maxConstants || 5,
@@ -479,16 +481,15 @@ class DialogueGenerator extends stream.Readable {
                 return functionTable.context!(partialDialogue.context, contextTable);
             }
         };
-        Object.assign(agentOptions.flags, options.flags);
-        agentOptions.flags.for_agent = true;
         this._agentGenerator = new SentenceGenerator<PartialDialogue, AgentReplyRecord<ThingTalkUtils.DialogueState>>(agentOptions);
 
         const userOptions : SentenceGeneratorOptions<AgentTurn, ThingTalkUtils.DialogueState> = {
             locale: options.locale,
             templateFiles: options.templateFiles,
             rootSymbol: '$user',
+            forSide: 'user',
             contextual: true,
-            flags: {},
+            flags: options.flags,
             targetPruningSize: options.targetPruningSize,
             maxDepth: options.maxDepth,
             maxConstants: options.maxConstants || 5,
@@ -507,8 +508,6 @@ class DialogueGenerator extends stream.Readable {
                 }
             }
         };
-        Object.assign(userOptions.flags, options.flags);
-        userOptions.flags.for_user = true;
         this._userGenerator = new SentenceGenerator<AgentTurn, ThingTalkUtils.DialogueState>(userOptions);
 
         this._stateValidator = ThingTalkUtils.createStateValidator(options.policyFile);

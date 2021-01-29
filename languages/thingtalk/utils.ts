@@ -22,7 +22,6 @@
 
 import assert from 'assert';
 import { Ast, Type } from 'thingtalk';
-import type { I18n } from 'genie-toolkit';
 
 import type { SlotBag } from './slot_bag';
 
@@ -130,12 +129,6 @@ function typeToStringSafe(type : Type) : string {
         return 'Enum__' + type.entries!.join('__');
     else
         return String(type);
-}
-
-function clean(name : string) : string {
-    if (/^[vwgp]_/.test(name))
-        name = name.substr(2);
-    return name.replace(/_/g, ' ').replace(/([^A-Z ])([A-Z])/g, '$1 $2').toLowerCase();
 }
 
 export function makeInputParamSlot(slot : ParamSlot,
@@ -290,82 +283,6 @@ function interrogativePronoun(type : Type) : 'who'|'where'|'when'|'what' {
     return 'what';
 }
 
-const PARAM_REGEX = /\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})/;
-
-function* split(pattern : string, regexp : RegExp|string) : Generator<string|string[], void> {
-    // a split that preserves capturing parenthesis
-
-    const clone = new RegExp(regexp, 'g');
-    let match = clone.exec(pattern);
-
-    let i = 0;
-    while (match !== null) {
-        if (match.index > i)
-            yield pattern.substring(i, match.index);
-        yield match;
-        i = clone.lastIndex;
-        match = clone.exec(pattern);
-    }
-    if (i < pattern.length)
-        yield pattern.substring(i, pattern.length);
-}
-
-function splitParams(utterance : string) : Array<string|string[]> {
-    return Array.from(split(utterance, PARAM_REGEX));
-}
-
-function tokenizeExample(tokenizer : I18n.BaseTokenizer,
-                         utterance : string,
-                         id : number) : string {
-    let replaced = '';
-    const params : Array<[string, string]> = [];
-
-    for (const chunk of splitParams(utterance.trim())) {
-        if (chunk === '')
-            continue;
-        if (typeof chunk === 'string') {
-            replaced += chunk;
-            continue;
-        }
-
-        const [match, param1, param2, opt] = chunk;
-        if (match === '$$') {
-            replaced += '$';
-            continue;
-        }
-        const param = param1 || param2;
-        replaced += ' ____ ';
-        params.push([param, opt]);
-    }
-
-    const tokenized = tokenizer.tokenize(replaced);
-    const tokens = tokenized.tokens;
-    const entities = tokenized.entities;
-
-    if (Object.keys(entities).length > 0)
-        throw new Error(`Error in Example ${id}: Cannot have entities in the utterance`);
-
-    let preprocessed = '';
-    let first = true;
-    for (let token of tokens) {
-        if (token === '____') {
-            const [param, opt] = params.shift()!;
-            if (opt)
-                token = '${' + param + ':' + opt + '}';
-            else
-                token = '${' + param + '}';
-        } else if (token === '$') {
-            token = '$$';
-        }
-        if (!first)
-            preprocessed += ' ';
-        preprocessed += token;
-        first = false;
-    }
-
-    return preprocessed;
-}
-
 function isSameFunction(fndef1 : Ast.FunctionDef,
                         fndef2 : Ast.FunctionDef) : boolean {
     assert(fndef1);
@@ -375,88 +292,7 @@ function isSameFunction(fndef1 : Ast.FunctionDef,
     return fndef1.qualifiedName === fndef2.qualifiedName;
 }
 
-class HasUndefinedVisitor extends Ast.NodeVisitor {
-    hasUndefined = false;
-
-    visitInvocation(invocation : Ast.Invocation) {
-        const schema = invocation.schema;
-        assert(schema instanceof Ast.FunctionDef);
-        const requireEither = schema.getAnnotation<string[][]>('require_either');
-        if (requireEither) {
-            const params = new Set;
-            for (const in_param of invocation.in_params)
-                params.add(in_param.name);
-
-            for (const requirement of requireEither) {
-                let satisfied = false;
-                for (const option of requirement) {
-                    if (params.has(option)) {
-                        satisfied = true;
-                        break;
-                    }
-                }
-                if (!satisfied)
-                    this.hasUndefined = true;
-            }
-        }
-
-        return true;
-    }
-
-    visitValue(value : Ast.Value) {
-        if (value.isUndefined)
-            this.hasUndefined = true;
-        return true;
-    }
-}
-
-function isExecutable(stmt : Ast.Statement) : boolean {
-    const visitor = new HasUndefinedVisitor();
-    stmt.visit(visitor);
-    return !visitor.hasUndefined;
-}
-
-/**
- * Normalize the #[confirm] annotation.
- *
- * #[confirm] is a three-state enum annotation with values:
- * - #[confirm=enum(confirm)]: must confirm explicitly with all parameters before the
- *   function is called (using a statement with #[confirm=enum(confirmed)] annotation)
- * - #[confirm=enum(display_result)]: the result of any query that feeds into the parameters
- *   of this function should be displayed before the function is executed; this is encoded
- *   by splitting any compound statement into two statements, executed sequentially
- * - #[confirm=enum(auto)]: the function can be called without explicit confirmation, even
- *   if some of the parameters are coming from other functions; this is the only #[confirm]
- *   that allows the function to be called multiple times in a single statement
- *
- * For legacy/ease of development reasons, if unspecified #[confirm] defaults to "confirm"
- * for actions (full confirmation before executing side effects) and "display_result" for
- * queries (splitting table joins into two statements).
- *
- * Also, #[confirm] can be specified as a boolean: "true" means "confirm" and "false" means
- * "display_result".
- */
-function normalizeConfirmAnnotation(fndef : Ast.FunctionDef) : 'confirm' | 'display_result' | 'auto' {
-    const value = fndef.getAnnotation('confirm');
-    if (value === undefined) // unspecified
-        return fndef.functionType === 'action' ? 'confirm' : 'display_result';
-
-    if (typeof value === 'boolean')
-        return value ? 'confirm' : 'display_result';
-
-    assert(value === 'confirm' || value === 'display_result' || value === 'auto');
-    return value;
-}
-
 export {
-    clean,
-
-    split,
-    tokenizeExample,
-
-    isExecutable,
-    normalizeConfirmAnnotation,
-
     isSameFunction,
 
     typeToStringSafe,

@@ -124,11 +124,11 @@ export default class DialoguePolicy {
         this._generatorOptions = {
             contextual: true,
             rootSymbol: '$agent',
+            forSide: 'agent',
             flags: {
                 // FIXME
                 dialogues: true,
                 inference: true,
-                for_agent: true
             },
             rng: this._rng,
             locale: this._locale,

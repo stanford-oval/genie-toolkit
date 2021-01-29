@@ -18,7 +18,8 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import { Type } from 'thingtalk';
+import * as Tp from 'thingpedia';
+import { Type, SchemaRetriever } from 'thingtalk';
 
 import { Hashable } from '../utils/hashmap';
 
@@ -66,4 +67,15 @@ export interface AgentReplyRecord<StateType> {
     end : boolean;
     raw : boolean;
     numResults : number;
+}
+
+// options passed to the templates
+export interface GrammarOptions {
+    thingpediaClient : Tp.BaseClient;
+    schemaRetriever ?: SchemaRetriever;
+    forSide : 'user'|'agent';
+    flags : { [key : string] : boolean };
+    onlyDevices ?: string[];
+    whiteList ?: string;
+    debug : number;
 }

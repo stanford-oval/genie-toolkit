@@ -23,7 +23,7 @@ import assert from 'assert';
 import { Ast, Type, SchemaRetriever } from 'thingtalk';
 
 import { cleanKind } from '../utils/misc-utils';
-import { shouldAutoConfirmStatement } from './dialogue_state_utils';
+import { shouldAutoConfirmStatement } from '../utils/thingtalk';
 import { contactSearch, Contact } from './entity-linking/contact_search';
 import { collectDisambiguationHints, getBestEntityMatch, EntityRecord } from './entity-linking/entity-finder';
 
