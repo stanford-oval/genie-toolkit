@@ -2,5 +2,6 @@ class @org.thingpedia.builtin.thingengine.test_platform {
 	import loader from @org.thingpedia.builtin();
 	import config from @org.thingpedia.config.builtin();
 
-	query foo(out lol: String);
+	query foo(out lol: String)
+	#_[canonical="foo"];
 }

@@ -568,7 +568,7 @@ class @org.thingpedia.weather
                             in opt date: Date
                             #_[canonical={
                               default="preposition",
-                              default=["date"],
+                              base=["date"],
                               preposition=["on #"]
                             }],
                             out sunrise_time: Time
@@ -598,7 +598,7 @@ class @org.thingpedia.weather
                          in opt date: Date
                          #_[canonical={
                             default="preposition",
-                            default=["date"],
+                            base=["date"],
                             preposition=["on #"]
                          }],
                          out phase: Enum(new_moon,waxing_crescent,first_quarter,waxing_gibbous,full_moon,waning_gibbous,third_quarter,waning_crescent)
@@ -840,7 +840,6 @@ class @org.thingpedia.builtin.thingengine.builtin
   #[doc="log a message in the developer logs"]
   #[confirm=false];
 
-/*
   action configure(in req device: Entity(tt:device) #_[prompt="What device do you want to configure?"])
   #_[canonical="configure"]
   #_[confirmation="configure a new $device"]
@@ -854,7 +853,6 @@ class @org.thingpedia.builtin.thingengine.builtin
   #_[confirmation_remote="search for new devices on $__person's Almond"]
   #[doc="start interactive discovery for new devices"]
   #[confirm=false];
-*/
 }
 
 class @light-bulb

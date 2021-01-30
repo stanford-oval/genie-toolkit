@@ -98,6 +98,9 @@ export function replacePlaceholderWithTableOrStream(ex : Ast.Example,
         projection = maybeProjection;
     } else {
         projection = table;
+        // FIXME we should make up a projection based on what parameter is actually passed
+        if (projection.args.length !== 1)
+            return null;
     }
     assert(projection.args.length === 1);
 

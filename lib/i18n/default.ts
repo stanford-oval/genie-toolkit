@@ -66,8 +66,14 @@ export default class DefaultLanguagePack {
     }
 
     private _loadTranslations() {
-        const modir = path.resolve(path.dirname(module.filename), '../../po');
-        assert(fs.existsSync(modir));
+        // try the path relative to our build location first (in dist/lib/dialogue-agent)
+        let modir = path.resolve(path.dirname(module.filename), '../../../po');
+        if (!fs.existsSync(modir)) {
+            // if that fails, try the path relative to our source location
+            // (running with ts-node)
+            modir = path.resolve(path.dirname(module.filename), '../../po');
+            assert(fs.existsSync(modir));
+        }
 
         const split = this.locale.split(/[-_.@]/);
         let mo = modir + '/' + split.join('_') + '.mo';

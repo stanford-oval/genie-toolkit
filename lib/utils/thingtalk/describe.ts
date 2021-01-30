@@ -760,6 +760,8 @@ export class Describer {
 
         // add the fallback example, with the score it would have as a score
         let canonical = forSchema.metadata.canonical;
+        if (!canonical)
+            canonical = clean(forSchema.name);
         if (Array.isArray(canonical))
             canonical = canonical[0];
         if (forSchema.functionType === 'query' && forSchema.is_list) {
@@ -899,7 +901,7 @@ export class Describer {
                     adjective {${input_param} ${table}} \
                     passive_verb {${invocation} ${input_param}} \
                     preposition {${invocation} ${input_param}} \
-                }"), { canonical_key: canonical.default, invocation: confirm, input_param });
+                }"), { canonical_key, invocation: confirm, input_param });
             }
         }
 
