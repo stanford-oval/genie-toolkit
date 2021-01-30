@@ -24,6 +24,7 @@
 import { Ast, } from 'thingtalk';
 
 import * as C from '../../ast_manip';
+import ThingpediaLoader from '../../load-thingpedia';
 
 counterproposal_preamble : string = {
     'i was thinking more of';

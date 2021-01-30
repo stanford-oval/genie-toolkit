@@ -103,24 +103,24 @@ interface CanonicalForm {
 
 type PrimitiveTemplateType = 'action'|'action_past'|'query'|'get_command'|'stream'|'program';
 
-export class ThingpediaLoader {
-    private _runtime ! : typeof Genie.SentenceGeneratorRuntime;
-    private _ttUtils ! : typeof Genie.ThingTalkUtils;
-    private _grammar ! : Genie.SentenceGenerator<any, Ast.Input>;
-    private _schemas ! : SchemaRetriever;
-    private _tpClient ! : Tp.BaseClient;
-    private _langPack ! : Genie.I18n.LanguagePack;
-    private _options ! : Genie.SentenceGeneratorTypes.GrammarOptions;
-    private _describer ! : Genie.ThingTalkUtils.Describer;
+export default class ThingpediaLoader {
+    private _runtime : typeof Genie.SentenceGeneratorRuntime;
+    private _ttUtils : typeof Genie.ThingTalkUtils;
+    private _grammar : Genie.SentenceGenerator<any, Ast.Input>;
+    private _schemas : SchemaRetriever;
+    private _tpClient : Tp.BaseClient;
+    private _langPack : Genie.I18n.LanguagePack;
+    private _options : Genie.SentenceGeneratorTypes.GrammarOptions;
+    private _describer : Genie.ThingTalkUtils.Describer;
 
-    private _entities ! : Record<string, { has_ner_support : boolean }>
+    private _entities : Record<string, { has_ner_support : boolean }>
     // cached annotations extracted from Thingpedia, for use at inference time
-    private _errorMessages ! : Map<string, Record<string, string[]>>;
-    private _resultStrings ! : Map<string, string[]>;
+    private _errorMessages : Map<string, Record<string, string[]>>;
+    private _resultStrings : Map<string, string[]>;
 
-    types ! : Map<string, Type>;
-    params ! : ParamSlot[];
-    projections ! : Array<{
+    types : Map<string, Type>;
+    params : ParamSlot[];
+    projections : Array<{
         pname : string;
         pslot : ParamSlot;
         category : string;
@@ -128,20 +128,20 @@ export class ThingpediaLoader {
         base : string;
         canonical : string;
     }>;
-    idQueries ! : Map<string, Ast.FunctionDef>;
-    compoundArrays ! : { [key : string] : InstanceType<typeof Type.Compound> };
-    globalWhiteList ! : string[]|null;
-    standardSchemas ! : {
+    idQueries : Map<string, Ast.FunctionDef>;
+    compoundArrays : { [key : string] : InstanceType<typeof Type.Compound> };
+    globalWhiteList : string[]|null;
+    standardSchemas : {
         say : Ast.FunctionDef|null;
         get_gps : Ast.FunctionDef|null;
         get_time : Ast.FunctionDef|null;
     };
 
-    async init(runtime : typeof Genie.SentenceGeneratorRuntime,
-               ttUtils : typeof Genie.ThingTalkUtils,
-               grammar : Genie.SentenceGenerator<any, Ast.Input>,
-               langPack : Genie.I18n.LanguagePack,
-               options : Genie.SentenceGeneratorTypes.GrammarOptions) : Promise<void> {
+    constructor(runtime : typeof Genie.SentenceGeneratorRuntime,
+                ttUtils : typeof Genie.ThingTalkUtils,
+                grammar : Genie.SentenceGenerator<any, Ast.Input>,
+                langPack : Genie.I18n.LanguagePack,
+                options : Genie.SentenceGeneratorTypes.GrammarOptions) {
         this._runtime = runtime;
         this._ttUtils = ttUtils;
         this._grammar = grammar;
@@ -170,13 +170,10 @@ export class ThingpediaLoader {
         this.idQueries = new Map;
         this.compoundArrays = {};
 
-        const [say, get_gps, get_time] = await Promise.all([
-            this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'action', 'say'),
-            this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'query', 'get_gps'),
-            this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'query', 'get_time')
-        ]);
-        this.standardSchemas = { say, get_gps, get_time };
+        this.standardSchemas = { say: null, get_gps: null, get_time: null };
+    }
 
+    async init() {
         // make sure that these types are always available, regardless of which templates we have
         this._recordType(Type.String);
         this._recordType(Type.Date);
@@ -184,6 +181,13 @@ export class ThingpediaLoader {
         this._recordType(Type.Number);
         for (const unit of Units.BaseUnits)
             this._recordType(new Type.Measure(unit));
+
+        const [say, get_gps, get_time] = await Promise.all([
+            this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'action', 'say'),
+            this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'query', 'get_gps'),
+            this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'query', 'get_time')
+        ]);
+        this.standardSchemas = { say, get_gps, get_time };
 
         await this._loadMetadata();
     }
@@ -1454,5 +1458,3 @@ export class ThingpediaLoader {
             await this._loadDataset(dataset);
     }
 }
-
-export default new ThingpediaLoader();

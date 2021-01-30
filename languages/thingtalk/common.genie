@@ -22,7 +22,7 @@ import { Ast, } from 'thingtalk';
 
 // import the combinator library
 import * as C from './ast_manip';
-import _tpLoader from './load-thingpedia';
+import ThingpediaLoader from './load-thingpedia';
 
 import './common-constants.genie';
 
@@ -228,7 +228,3 @@ base_table : Ast.InvocationExpression = {}
 base_noun_phrase : Ast.FunctionDef = {}
 generic_anything_noun_phrase : Ast.InvocationExpression = {}
 generic_base_noun_phrase : Ast.InvocationExpression = {}
-
-{
-await _tpLoader.init($runtime, $ttUtils, $grammar, $locale, $options);
-}

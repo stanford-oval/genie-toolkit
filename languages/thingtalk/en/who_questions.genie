@@ -21,9 +21,7 @@
 import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
-
-// import thingpedia info
-import _tpLoader from '../load-thingpedia';
+import ThingpediaLoader from '../load-thingpedia';
 
 // an empty string for the table
 who_complete_table : Ast.Expression = {
@@ -53,7 +51,7 @@ who_two_with_filter_table : Ast.Expression = {}
 who_two_which_filter_table : Ast.Expression = {}
 who_two_clean_filter_table : Ast.Expression = {}
 
-if (!_tpLoader.flags.nofilter) {
+if (!$loader.flags.nofilter) {
     who_one_with_filter_table : Ast.Expression = {
         table:thingpedia_who_question ('with' | 'having') filter:with_filter with { functionName = table.functionName } => C.addFilter(table, filter);
         table:thingpedia_who_question ('with' | 'having') filter:npp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
@@ -133,7 +131,7 @@ who_two_have_filter_table : Ast.Expression = {}
 who_two_verb_filter_table : Ast.Expression = {}
 whose_filtered_table : Ast.Expression = {}
 
-if (!_tpLoader.flags.nofilter) {
+if (!$loader.flags.nofilter) {
     who_one_be_filter_table : Ast.Expression = {
         ?turking table:who_complete_table ('is' | 'are') filter:npi_filter with { functionName = table.functionName } => C.addFilter(table, filter);
         table:who_complete_table ('is' | 'are') filter:pvp_filter with { functionName = table.functionName } => C.addFilter(table, filter);

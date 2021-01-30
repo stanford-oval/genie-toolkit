@@ -28,7 +28,7 @@ export type AgentReplyRecord = SentenceGeneratorTypes.AgentReplyRecord<Ast.Dialo
 import * as C from './ast_manip';
 import * as keyfns from './keyfns';
 import { SlotBag } from './slot_bag';
-import _loader from './load-thingpedia';
+import ThingpediaLoader from './load-thingpedia';
 
 // NOTE: this version of arraySubset uses ===
 // the one in array_utils uses .equals()
@@ -224,6 +224,7 @@ function toID(value : Ast.Value|undefined) {
 }
 
 export class ContextInfo {
+    loader : ThingpediaLoader;
     contextTable : SentenceGeneratorTypes.ContextTable;
 
     state : Ast.DialogueState;
@@ -259,7 +260,8 @@ export class ContextInfo {
         resultLength : number;
     };
 
-    constructor(contextTable : SentenceGeneratorTypes.ContextTable,
+    constructor(loader : ThingpediaLoader,
+                contextTable : SentenceGeneratorTypes.ContextTable,
                 state : Ast.DialogueState,
                 currentTableSchema : Ast.FunctionDef|null,
                 currentFunctionSchema : Ast.FunctionDef|null,
@@ -270,6 +272,7 @@ export class ContextInfo {
                 nextFunctionSchema : Ast.FunctionDef|null,
                 nextInfo : NextStatementInfo|null,
                 aux : any = null) {
+        this.loader = loader;
         this.contextTable = contextTable;
         this.state = state;
 
@@ -344,6 +347,7 @@ export class ContextInfo {
 
     clone() {
         return new ContextInfo(
+            this.loader,
             this.contextTable,
             this.state.clone(),
             this.currentTableFunction,
@@ -360,13 +364,15 @@ export function contextKeyFn(ctx : ContextInfo) {
     return ctx.key;
 }
 
-export function initialContextInfo(contextTable : SentenceGeneratorTypes.ContextTable) {
-    return new ContextInfo(contextTable,
+export function initialContextInfo(loader : ThingpediaLoader, contextTable : SentenceGeneratorTypes.ContextTable) {
+    return new ContextInfo(loader, contextTable,
         new Ast.DialogueState(null, POLICY_NAME, 'sys_init', [], []),
         null, null, null, null, null, null, null, null);
 }
 
-export function getContextInfo(state : Ast.DialogueState, contextTable : SentenceGeneratorTypes.ContextTable) : ContextInfo {
+export function getContextInfo(loader : ThingpediaLoader,
+                               state : Ast.DialogueState,
+                               contextTable : SentenceGeneratorTypes.ContextTable) : ContextInfo {
     let nextItemIdx = null, nextInfo = null, currentFunction = null, currentTableFunction = null,
         nextFunction = null, currentDevice = null, currentResultInfo = null,
         previousDomainItemIdx = null, currentItemIdx = null;
@@ -414,7 +420,7 @@ export function getContextInfo(state : Ast.DialogueState, contextTable : Sentenc
     if (previousDomainItemIdx !== null)
         assert(currentItemIdx !== null && previousDomainItemIdx <= currentItemIdx);
 
-    return new ContextInfo(contextTable, state, currentTableFunction, currentFunction, currentResultInfo,
+    return new ContextInfo(loader, contextTable, state, currentTableFunction, currentFunction, currentResultInfo,
         previousDomainItemIdx, currentItemIdx, nextItemIdx, nextFunction, nextInfo);
 }
 
@@ -753,7 +759,7 @@ function makeAgentReply(ctx : ContextInfo,
     assert(state.dialogueAct.startsWith('sys_'));
     assert(expectedType === null || expectedType instanceof ThingTalk.Type);
 
-    const newContext = getContextInfo(state, contextTable);
+    const newContext = getContextInfo(ctx.loader, state, contextTable);
     // set the auxiliary information, which is used by the semantic functions of the user
     // to see if the continuation is compatible with the specific reply from the agent
     newContext.aux = aux;
@@ -924,12 +930,13 @@ function ctxCanHaveRelatedQuestion(ctx : ContextInfo) : boolean {
     return !!(related && related.length);
 }
 
-function makeErrorContextPhrase(ctx : ContextInfo, error : Ast.EnumValue) {
+function makeErrorContextPhrase(ctx : ContextInfo,
+                                error : Ast.EnumValue) {
     const contextTable = ctx.contextTable;
-    const describer = _loader.describer;
+    const describer = ctx.loader.describer;
 
     const currentFunction = ctx.currentFunction!;
-    const phrases = _loader.getErrorMessages(currentFunction.qualifiedName)[error.value];
+    const phrases = ctx.loader.getErrorMessages(currentFunction.qualifiedName)[error.value];
     if (!phrases)
         return null;
 
@@ -976,12 +983,13 @@ function makeErrorContextPhrase(ctx : ContextInfo, error : Ast.EnumValue) {
     return null;
 }
 
-function makeResultContextPhrase(ctx : ContextInfo, result : Ast.DialogueHistoryResultItem) {
+function makeResultContextPhrase(ctx : ContextInfo,
+                                 result : Ast.DialogueHistoryResultItem) {
     const contextTable = ctx.contextTable;
-    const describer = _loader.describer;
+    const describer = ctx.loader.describer;
 
     const currentFunction = ctx.currentFunction!;
-    const phrases = _loader.getResultStrings(currentFunction.qualifiedName);
+    const phrases = ctx.loader.getResultStrings(currentFunction.qualifiedName);
 
     // try all phrases, find the first that we can replace correctly
     for (const candidate of phrases) {
@@ -1020,7 +1028,7 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
     const contextTable = ctx.contextTable;
 
     const phrases : SentenceGeneratorTypes.ContextPhrase[] = [];
-    const describer = _loader.describer;
+    const describer = ctx.loader.describer;
 
     // make phrases that describe the current and next action
     // these are used by the agent to form confirmations

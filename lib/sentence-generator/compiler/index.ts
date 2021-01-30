@@ -226,7 +226,8 @@ type CompiledTemplate = (runtime : typeof SentenceGeneratorRuntime,
                          ttUtils : typeof ThingTalkUtils,
                          options : GrammarOptions,
                          langPack : I18n.LanguagePack,
-                         grammar : SentenceGenerator<any, any, any>) => Promise<void>;
+                         grammar : SentenceGenerator<any, any, any>,
+                         loader ?: any) => Promise<void>;
 
 export async function importGenie(filename : string,
                                   searchPath = '.') : Promise<CompiledTemplate> {

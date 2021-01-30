@@ -21,6 +21,7 @@
 import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
+import ThingpediaLoader from '../load-thingpedia';
 
 // Phrases and other snippets that are used from other templates
 

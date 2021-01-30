@@ -28,11 +28,9 @@ import { Ast, } from 'thingtalk';
 import * as C from '../../ast_manip';
 import * as D from '../../dialogue_acts';
 import * as S from '../../state_manip';
+import ThingpediaLoader from '../../load-thingpedia';
 
 import { SlotBag } from '../../slot_bag';
-
-// import thingpedia info
-import _tpLoader from '../../load-thingpedia';
 
 complete_past_action_phrase : Ast.Expression = {
     // using a constant

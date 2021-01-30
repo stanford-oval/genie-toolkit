@@ -30,6 +30,7 @@ import { Ast, } from 'thingtalk';
 
 import * as C from '../../ast_manip';
 import * as D from '../../dialogue_acts';
+import ThingpediaLoader from '../../load-thingpedia';
 
 // a "list proposal" consists of the first few results of the current query,
 // together with informative results about them, an offer to learn more, or an offer for an action

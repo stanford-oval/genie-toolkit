@@ -24,6 +24,7 @@
 
 import * as D from '../../dialogue_acts';
 import * as S from '../../state_manip';
+import ThingpediaLoader from '../../load-thingpedia';
 
 action_confirm_phrase : S.AgentReplyRecord = {
     ( 'ok , do you want me to' ctx:ctx_next_statement '?'

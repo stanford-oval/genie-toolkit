@@ -25,6 +25,16 @@ import { SentenceGeneratorTypes } from 'genie-toolkit';
 import * as C from '../ast_manip';
 import * as S from '../state_manip';
 import * as D from '../dialogue_acts';
+import ThingpediaLoader from '../load-thingpedia';
+
+// Initialize the Thingpedia loader before doing anything else
+{
+$loader = new ThingpediaLoader($runtime, $ttUtils, $grammar, $locale, $options);
+}
+import '../common.genie';
+{
+await $loader.init();
+}
 
 // Declare key functions for contextual stuff
 keyfn = {
@@ -39,7 +49,6 @@ keyfn = {
     D.NegativeProposalReply : D.negativeProposalReplyKeyFn,
 }
 
-import '../common.genie';
 // basic ThingTalk functionality
 import './shared.genie';
 import './constants.genie';
@@ -160,13 +169,13 @@ context : C.ErrorMessage = {
 // those phrases are mapped to the context non-terminals defined above
 function context(state : Ast.DialogueState, contextTable : SentenceGeneratorTypes.ContextTable) : SentenceGeneratorTypes.ContextPhrase[]|null {
     if (state === null)
-        return [S.makeContextPhrase(contextTable.ctx_init, S.initialContextInfo(contextTable))];
+        return [S.makeContextPhrase(contextTable.ctx_init, S.initialContextInfo($loader, contextTable))];
 
     assert(state instanceof Ast.DialogueState, `expected a dialogue state Ast node`);
     if (state.policy !== S.POLICY_NAME)
         return null;
     (global as any).enableBreakpoint = true;
-    const ctx = S.getContextInfo(state, contextTable);
+    const ctx = S.getContextInfo($loader, state, contextTable);
     (global as any).enableBreakpoint = false;
     // get the main context tags for this context (the abstract state, in paper terminology)
     const tags = S.tagContextForAgent(ctx);
@@ -179,7 +188,7 @@ function context(state : Ast.DialogueState, contextTable : SentenceGeneratorType
 
 // handle answers generated from the UI
 function answer(state : Ast.DialogueState, answer : Ast.Value, contextTable : SentenceGeneratorTypes.ContextTable) : Ast.DialogueState|null {
-    const ctx = S.getContextInfo(state, contextTable);
+    const ctx = S.getContextInfo($loader, state, contextTable);
 
     // if the agent proposed something and the user says "yes", we accept the proposal
     if (state.history[state.history.length-1].confirm === 'proposed' &&
@@ -306,7 +315,7 @@ $user : Ast.DialogueState = {
     ( ctx:ctx_init stmt:initial_command [weight=0.5]
     | ctx:ctx_init greeting stmt:initial_command [weight=0.5]
     | ctx:ctx_sys_greet stmt:initial_command
-    ) => D.initialRequest(stmt);
+    ) => D.initialRequest($loader, stmt);
 
     // do you need anything else?
     ( ctx:ctx_sys_anything_else no_thanks_phrase ('goodbye !' | '') [weight=0.01]
@@ -316,7 +325,7 @@ $user : Ast.DialogueState = {
     ?anything_else {
         ( ctx:ctx_sys_anything_else stmt:initial_command
         | ctx:ctx_sys_anything_else yes_please_phrase stmt:initial_command
-        ) => D.startNewRequest(ctx, stmt);
+        ) => D.startNewRequest($loader, ctx, stmt);
 
         ctx:ctx_sys_anything_else yes_please_phrase
             => S.makeSimpleState(ctx, 'reinit', null);
@@ -344,7 +353,7 @@ $user : Ast.DialogueState = {
     | ctx:ctx_sys_action_success yes_please_phrase stmt:initial_command
     | ctx:ctx_sys_display_result stmt:initial_command
     | ctx:ctx_sys_display_result yes_please_phrase stmt:initial_command
-    ) => D.startNewRequest(ctx, stmt);
+    ) => D.startNewRequest($loader, ctx, stmt);
 
     ( ctx:ctx_sys_action_error no_thanks_phrase
     | ctx:ctx_sys_action_error nevermind_phrase
@@ -355,9 +364,9 @@ $user : Ast.DialogueState = {
 
     // empty search errors
     ctx:ctx_sys_empty_search req:precise_empty_search_change_request with { functionName = ctx.currentTableFunction }
-        => D.preciseEmptySearchChangeRequest(ctx, req);
+        => D.preciseEmptySearchChangeRequest($loader, ctx, req);
     ctx:ctx_sys_empty_search req:imprecise_empty_search_change_request
-        => D.impreciseEmptySearchChangeRequest(ctx, req);
+        => D.impreciseEmptySearchChangeRequest($loader, ctx, req);
 
     // search questions
     ctx:ctx_sys_search_question answer:precise_search_question_answer with { functionName = ctx.currentFunction }
@@ -385,11 +394,11 @@ $user : Ast.DialogueState = {
 
     // accepting recommendations
     ctx:ctx_sys_recommend_one accept_phrase [weight=0.7]
-        => D.positiveRecommendationReply(ctx, null, null);
+        => D.positiveRecommendationReply($loader, ctx, null, null);
     ctx:ctx_sys_recommend_one acceptedAction:recommendation_accept_phrase_with_action [weight=0.7]
-        => D.positiveRecommendationReply(ctx, acceptedAction, null);
+        => D.positiveRecommendationReply($loader, ctx, acceptedAction, null);
     ctx:ctx_sys_recommend_one name:recommendation_accept_phrase_by_name [weight=0.7]
-        => D.positiveRecommendationReply(ctx, name[1], name[0]);
+        => D.positiveRecommendationReply($loader, ctx, name[1], name[0]);
 
     // accepting recommendation to learn more
     ( ctx:ctx_sys_recommend_one tell_me_more_phrase [weight=0.5]
@@ -428,9 +437,9 @@ $user : Ast.DialogueState = {
 
     // accepting list proposals
     ctx:ctx_sys_recommend_many reply:positive_list_proposal_reply [weight=10 * 0.7]
-        => D.positiveListProposalReply(ctx, reply);
+        => D.positiveListProposalReply($loader, ctx, reply);
     ctx:ctx_sys_recommend_many action:list_proposal_accept_phrase_with_action_by_name [weight=10 * 0.7]
-        => D.positiveListProposalReplyActionByName(ctx, action);
+        => D.positiveListProposalReplyActionByName($loader, ctx, action);
 
     // accepting list proposal to learn more
     ctx:ctx_sys_recommend_many name:list_proposal_tell_me_more
