@@ -1227,7 +1227,8 @@ export class ThingpediaLoader {
             if (!Array.isArray(messages))
                 messages = [messages];
 
-            for (const msg of messages) {
+            for (let i = 0; i < messages.length; i++) {
+                const msg = messages[i];
                 const chunks = msg.trim().split(' ');
                 const expansion : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal> = [];
                 const names : Array<string|null> = [];
@@ -1254,7 +1255,10 @@ export class ThingpediaLoader {
                     }
                 }
 
-                this._addRule<Ast.Value[], ErrorMessage>('thingpedia_error_message', expansion, (...args) => replaceErrorMessagePlaceholders({ code, bag }, names, args), keyfns.errorMessageKeyFn);
+                // give a small priority boost to each phrase, depending on the order
+                // in which they are given
+                const attributes = { priority: (messages.length-i) * 0.1 };
+                this._addRule<Ast.Value[], ErrorMessage>('thingpedia_error_message', expansion, (...args) => replaceErrorMessagePlaceholders({ code, bag }, names, args), keyfns.errorMessageKeyFn, attributes);
             }
         }
     }
@@ -1265,7 +1269,8 @@ export class ThingpediaLoader {
         let resultstring = functionDef.metadata.result;
         if (!Array.isArray(resultstring))
             resultstring = [resultstring];
-        for (const form of resultstring) {
+        for (let i = 0; i < resultstring.length; i++) {
+            const form = resultstring[i];
             const chunks = form.trim().split(' ');
             const expansion : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal> = [];
             const names : Array<string|null> = [];
@@ -1292,7 +1297,11 @@ export class ThingpediaLoader {
                 }
             }
 
-            this._addRule<Ast.Value[], SlotBag>('thingpedia_result', expansion, (...args) => replaceSlotBagPlaceholders(bag, names, args), keyfns.slotBagKeyFn);
+            // give a small priority boost to each phrase, depending on the order
+            // in which they are given
+            const attributes = { priority: (resultstring.length-i) * 0.1 };
+            this._addRule<Ast.Value[], SlotBag>('thingpedia_result', expansion, (...args) => replaceSlotBagPlaceholders(bag, names, args),
+                keyfns.slotBagKeyFn, attributes);
         }
     }
 
