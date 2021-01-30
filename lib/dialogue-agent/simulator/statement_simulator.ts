@@ -48,6 +48,7 @@ export interface SimulationDatabase {
 
 interface SimulatorOptions {
     locale : string;
+    timezone : string|undefined;
     schemaRetriever : SchemaRetriever;
     rng : () => number;
     database ?: SimulationDatabase;
@@ -72,7 +73,7 @@ export class ThingTalkSimulatorState {
         this._database = options.database;
         this._overrides = options.overrides || new Map;
 
-        this._execEnv = new SimulationExecEnvironment(this._locale, this._schemas, this._database, {
+        this._execEnv = new SimulationExecEnvironment(this._locale, options.timezone, this._schemas, this._database, {
             rng: this._rng
         });
     }

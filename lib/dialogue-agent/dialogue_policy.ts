@@ -86,6 +86,7 @@ interface DialoguePolicyOptions {
     thingpedia : Tp.BaseClient;
     schemas : SchemaRetriever;
     locale : string;
+    timezone : string|undefined;
 
     rng : () => number;
     debug : boolean;
@@ -95,6 +96,7 @@ export default class DialoguePolicy {
     private _thingpedia : Tp.BaseClient;
     private _schemas : SchemaRetriever;
     private _locale : string;
+    private _timezone : string|undefined;
     private _langPack : I18n.LanguagePack;
     private _rng : () => number;
     private _debug : boolean;
@@ -107,6 +109,7 @@ export default class DialoguePolicy {
         this._thingpedia = options.thingpedia;
         this._schemas = options.schemas;
         this._locale = options.locale;
+        this._timezone = options.timezone;
         this._langPack = I18n.get(options.locale);
 
         this._rng = options.rng;
@@ -132,6 +135,7 @@ export default class DialoguePolicy {
             },
             rng: this._rng,
             locale: this._locale,
+            timezone: this._timezone,
             templateFiles: [TEMPLATE_FILE_PATH],
             thingpediaClient: this._thingpedia,
             schemaRetriever: this._schemas,

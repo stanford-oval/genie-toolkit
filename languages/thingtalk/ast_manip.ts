@@ -1723,9 +1723,10 @@ function addInvocationInputParam(invocation : Ast.Invocation,
     return clone;
 }
 
-function addActionInputParam(action : Ast.Expression, param : InputParamSlot) : Ast.Expression|null {
+function addActionInputParam(action : Ast.Expression, param : InputParamSlot,
+                             options ?: AddInputParamsOptions) : Ast.Expression|null {
     if (action instanceof Ast.ChainExpression) {
-        const added = addActionInputParam(action.last, param);
+        const added = addActionInputParam(action.last, param, options);
         if (!added)
             return null;
         const clone = new Ast.ChainExpression(null, action.expressions.slice(0, action.expressions.length-1).concat([added]), added.schema!);
@@ -1733,7 +1734,7 @@ function addActionInputParam(action : Ast.Expression, param : InputParamSlot) : 
     }
     if (!(action instanceof Ast.InvocationExpression))
         return null;
-    const newInvocation = addInvocationInputParam(action.invocation, param);
+    const newInvocation = addInvocationInputParam(action.invocation, param, options);
     if (newInvocation === null)
         return null;
 

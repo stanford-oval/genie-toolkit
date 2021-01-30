@@ -44,6 +44,7 @@ interface BasicGeneratorOptions {
     maxConstants ?: number;
     idPrefix ?: string;
     locale : string;
+    timezone : string|undefined;
     templateFiles : string[];
     flags : { [key : string] : boolean };
     debug : number;
@@ -75,6 +76,7 @@ class BasicSentenceGenerator extends stream.Readable {
         this._rng = options.rng;
         this._generator = new SentenceGenerator({
             locale: options.locale,
+            timezone: options.timezone,
             templateFiles: options.templateFiles,
             forSide: 'user',
             contextual: false,
@@ -407,6 +409,7 @@ interface SimulationDatabase {
 
 interface DialogueGeneratorOptions {
     locale : string;
+    timezone : string|undefined;
     minibatchSize : number;
     numMinibatches : number;
     idPrefix ?: string;
@@ -463,6 +466,7 @@ class DialogueGenerator extends stream.Readable {
 
         const agentOptions : SentenceGeneratorOptions<PartialDialogue, AgentReplyRecord<ThingTalkUtils.DialogueState>> = {
             locale: options.locale,
+            timezone: options.timezone,
             templateFiles: options.templateFiles,
             rootSymbol: '$agent',
             forSide: 'agent',
@@ -485,6 +489,7 @@ class DialogueGenerator extends stream.Readable {
 
         const userOptions : SentenceGeneratorOptions<AgentTurn, ThingTalkUtils.DialogueState> = {
             locale: options.locale,
+            timezone: options.timezone,
             templateFiles: options.templateFiles,
             rootSymbol: '$user',
             forSide: 'user',
@@ -515,6 +520,7 @@ class DialogueGenerator extends stream.Readable {
         this._initialized = false;
         this._simulator = ThingTalkUtils.createSimulator({
             locale: options.locale,
+            timezone: options.timezone,
             thingpediaClient: options.thingpediaClient,
             database: options.database,
             rng: options.rng,

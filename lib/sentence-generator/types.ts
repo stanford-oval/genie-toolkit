@@ -78,4 +78,5 @@ export interface GrammarOptions {
     onlyDevices ?: string[];
     whiteList ?: string;
     debug : number;
+    timezone : string|undefined;
 }

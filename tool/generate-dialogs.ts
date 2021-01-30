@@ -58,6 +58,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         default: 'en-US',
         help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
     });
+    parser.add_argument('--timezone', {
+        required: false,
+        default: undefined,
+        help: `Timezone to use to print dates and times (defaults to the current timezone).`
+    });
     parser.add_argument('-f', '--output-format', {
         required: false,
         default: 'txt-only',
@@ -157,6 +162,7 @@ export async function execute(args : any) {
     const options = {
         rng: seedrandom.alea(args.random_seed),
         locale: args.locale,
+        timezone: args.timezone,
         flags: args.flags || {},
         templateFiles: args.template,
         targetLanguage: args.target_language,

@@ -232,7 +232,7 @@ function negativeListProposalReply(ctx : ContextInfo, [preamble, request] : [Ast
     return proposalReply(ctx, request, refineFilterToAnswerQuestionOrChangeFilter);
 }
 
-function listProposalLearnMoreReply(ctx : ContextInfo, name : Ast.EntityValue) {
+function listProposalLearnMoreReply(ctx : ContextInfo, name : Ast.Value) {
     // note: a learn more from a list proposal is different than a learn_more from a recommendation
     // in a recommendation, there is no change to the program, and the agent replies "what would
     // you like to know"

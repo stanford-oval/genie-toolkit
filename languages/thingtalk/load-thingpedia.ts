@@ -112,6 +112,7 @@ export class ThingpediaLoader {
     private _langPack ! : Genie.I18n.LanguagePack;
     private _options ! : Genie.SentenceGeneratorTypes.GrammarOptions;
     private _entities ! : Record<string, { has_ner_support : boolean }>;
+    private _describer ! : Genie.ThingTalkUtils.Describer;
     types ! : Map<string, Type>;
     params ! : ParamSlot[];
     projections ! : Array<{
@@ -140,6 +141,7 @@ export class ThingpediaLoader {
         this._ttUtils = ttUtils;
         this._grammar = grammar;
         this._langPack = langPack;
+        this._describer = new ttUtils.Describer(langPack.locale, options.timezone, options.forSide);
 
         this._tpClient = options.thingpediaClient;
         if (!options.schemaRetriever) {
@@ -185,6 +187,10 @@ export class ThingpediaLoader {
 
     get flags() {
         return this._options.flags;
+    }
+
+    get describer() {
+        return this._describer;
     }
 
     isIDType(type : Type) {
@@ -904,7 +910,7 @@ export class ThingpediaLoader {
 
         // template #2: replace placeholders with whole queries or streams
         // TODO: enable this for table joins with param passing
-        if (grammarCat === 'action')
+        if (grammarCat === 'action' || (this._options.flags.dialogues && grammarCat === 'action_past'))
             this._addPlaceholderReplacementJoinPrimitiveTemplate(grammarCat, expansion, names, options, example);
 
         // template #3: coreferences
@@ -967,12 +973,16 @@ export class ThingpediaLoader {
      * with a whole query or stream, and replacing the other placeholders with constants
      * or undefined.
      */
-    private _addPlaceholderReplacementJoinPrimitiveTemplate(grammarCat : 'action'|'query'|'get_command',
+    private _addPlaceholderReplacementJoinPrimitiveTemplate(grammarCat : 'action'|'query'|'get_command'|'action_past',
                                                             expansion : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal>,
                                                             names : Array<string|null>,
                                                             options : string[],
                                                             example : Ast.Example) {
         const exParams = Object.keys(example.args);
+
+        const fromNonTermNames =
+            grammarCat === 'action_past' ? ['ctx_current_query'] :
+            ['with_filtered_table', 'with_arg_min_max_table', 'projection_Any', 'stream_projection_Any'];
 
         // generate one rule for each possible parameter
         // in each rule, choose a different parameter to be replaced with a table
@@ -985,12 +995,14 @@ export class ThingpediaLoader {
             if (option === 'const') // no parameter passing if parameter uses :const in the placeholder
                 continue;
 
-            for (const fromNonTermName of ['with_filtered_table', 'with_arg_min_max_table', 'projection_Any', 'stream_projection_Any']) {
+            for (const fromNonTermName of fromNonTermNames) {
                 if (grammarCat === 'query' && fromNonTermName === 'stream_projection_Any') // TODO
                     continue;
 
                 let fromNonTerm;
-                if (fromNonTermName === 'projection_Any' || fromNonTermName === 'stream_projection_Any')
+                if (fromNonTermName === 'ctx_current_query')
+                    fromNonTerm = new this._runtime.NonTerminal(fromNonTermName);
+                else if (fromNonTermName === 'projection_Any' || fromNonTermName === 'stream_projection_Any')
                     fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, ['projectionType', example.args[tableParam]]);
                 else
                     fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, ['implicitParamPassingType', example.args[tableParam]]);
@@ -999,7 +1011,9 @@ export class ThingpediaLoader {
                 clone[paramIdx] = fromNonTerm;
 
                 let intoNonTerm;
-                if (grammarCat === 'query')
+                if (grammarCat === 'action_past')
+                    intoNonTerm = 'thingpedia_complete_join_action_past';
+                else if (grammarCat === 'query')
                     intoNonTerm = 'table_join_replace_placeholder';
                 else if (fromNonTermName === 'stream_projection_Any')
                     intoNonTerm = 'action_replace_param_with_stream';
@@ -1084,7 +1098,7 @@ export class ThingpediaLoader {
         schemaClone.is_list = false;
         schemaClone.no_filter = true;
         this._grammar.addConstants('constant_name', 'GENERIC_ENTITY_' + idType.type, idType,
-            keyfns.entityValueKeyFn);
+            keyfns.entityOrNumberValueKeyFn);
 
         const idfilter = new Ast.BooleanExpression.Atom(null, 'id', '==', new Ast.Value.VarRef('p_id'));
         await this._loadTemplate(new Ast.Example(
@@ -1329,7 +1343,7 @@ export class ThingpediaLoader {
                 }
 
                 this._grammar.addConstants('constant_' + typestr, 'GENERIC_ENTITY_' + entityType, ttType,
-                    keyfns.entityValueKeyFn);
+                    keyfns.entityOrNumberValueKeyFn);
             } else {
                 if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
                     console.log('Loaded entity ' + entityType + ' as non-constant entity');
@@ -1356,10 +1370,6 @@ export class ThingpediaLoader {
         return devices.map((d) => d.kind);
     }
 
-    private async _getDataset(kind : string) {
-        return this._tpClient.getExamplesByKinds([kind]);
-    }
-
     private async _loadMetadata() {
         const entityTypes = await this._tpClient.getAllEntityTypes();
 
@@ -1379,21 +1389,10 @@ export class ThingpediaLoader {
         let datasets;
         if (this._options.onlyDevices) {
             datasets = await Promise.all(devices.map(async (d) => {
-                let parsed;
-                const dataset = await this._getDataset(d);
-                try {
-                    parsed = Syntax.parse(dataset);
-                } catch(e) {
-                    if (e.name !== 'SyntaxError')
-                        throw e;
-                    // try parsing using legacy syntax too in case we're talking
-                    // to an old Thingpedia that has not been migrated
-                    parsed = Syntax.parse(dataset, Syntax.SyntaxType.Legacy);
-                }
-                assert(parsed instanceof Ast.Library);
-                return parsed.datasets[0];
+                const dataset = await this._schemas.getExamplesByKind(d);
+                this._describer.setDataset(d, dataset);
+                return dataset;
             }));
-            datasets = datasets.filter((d) => !!d);
         } else {
             const code = await this._tpClient.getAllExamples();
             let parsed;
@@ -1408,6 +1407,7 @@ export class ThingpediaLoader {
             }
             assert(parsed instanceof Ast.Library);
             datasets = parsed.datasets;
+            this._describer.setFullDataset(datasets);
         }
 
         if (this._options.debug >= this._runtime.LogLevel.INFO) {

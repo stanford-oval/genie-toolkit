@@ -347,7 +347,7 @@ boolean_user_search_question_for_list : C.ParamSlot[] = {
 
 // questions by name (when in an list)
 
-user_search_question_with_name : [Ast.EntityValue, C.ParamSlot[]] = {
+user_search_question_with_name : [Ast.EntityValue|Ast.NumberValue, C.ParamSlot[]] = {
     // straight up questions
     ( ('can you tell me' | '') 'what is' name:constant_name '\'s' param:out_param_Any with { associatedIdType = name.type } '?'
     | ('can you tell me' | '') 'what is' 'the' param:out_param_Any 'of' name:constant_name with { type = param.associatedIdType } '?'
@@ -373,7 +373,7 @@ user_search_question_with_name : [Ast.EntityValue, C.ParamSlot[]] = {
     };
 }
 
-boolean_user_search_question_with_name : [Ast.EntityValue, C.ParamSlot[]] = {
+boolean_user_search_question_with_name : [Ast.EntityValue|Ast.NumberValue, C.ParamSlot[]] = {
     // question in boolean
     ( 'does' name:constant_name 'have' param:npp_filter with { associatedIdType = name.type } '?'
     | 'does' name:constant_name param:avp_filter with { associatedIdType = name.type } '?'

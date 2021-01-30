@@ -34,18 +34,26 @@ import { SlotBag } from '../../slot_bag';
 // import thingpedia info
 import _tpLoader from '../../load-thingpedia';
 
-complete_past_action_phrase : Ast.Invocation = {
+complete_past_action_phrase : Ast.Expression = {
+    // using a constant
     ( action:thingpedia_complete_action_past
     | action:thingpedia_complete_action_past 'for you'
     ) => {
+        // check against weird primitive templates, because
+        // later we don't check the query
         if (!(action instanceof Ast.InvocationExpression))
             return null;
-        return action.invocation;
+        return action;
     };
+
+    // using a join
+    ( action:thingpedia_complete_join_action_past
+    | action:thingpedia_complete_join_action_past 'for you'
+    ) => action;
 
     ( action:complete_past_action_phrase param:preposition_input_param with { functionName = action.functionName } [priority=0.1]
     | action:complete_past_action_phrase ('with' | 'having') param:npp_input_param with { functionName = action.functionName } [priority=0.1]
-    ) => C.addInvocationInputParam(action, param);
+    ) => C.addActionInputParam(action, param);
 
     ( action:complete_past_action_phrase param:preposition_filter with { functionName = action.functionName } [priority=0.1]
     | action:complete_past_action_phrase ('with' | 'having') param:npp_filter with { functionName = action.functionName } [priority=0.1]
@@ -54,7 +62,7 @@ complete_past_action_phrase : Ast.Invocation = {
             return null;
         const ipslot = { schema: param.schema, ptype: param.ptype,
             ast: new Ast.InputParam(null, param.ast.name, param.ast.value) };
-        return C.addInvocationInputParam(action, ipslot, { allowOutput: true });
+        return C.addActionInputParam(action, ipslot, { allowOutput: true });
     };
 }
 

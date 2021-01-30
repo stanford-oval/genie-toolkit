@@ -26,6 +26,8 @@ import { SentenceGeneratorTypes } from 'genie-toolkit';
 export type AgentReplyRecord = SentenceGeneratorTypes.AgentReplyRecord<Ast.DialogueState>;
 
 import * as C from './ast_manip';
+import * as keyfns from './keyfns';
+import _loader from './load-thingpedia';
 
 // NOTE: this version of arraySubset uses ===
 // the one in array_utils uses .equals()
@@ -720,6 +722,9 @@ function addQueryAndAction(ctx : ContextInfo,
 export function makeContextPhrase(symbol : number, value : ContextInfo, utterance = '', priority = 0) : SentenceGeneratorTypes.ContextPhrase {
     return { symbol, utterance, value, priority, key: value.key };
 }
+export function makeExpressionContextPhrase(symbol : number, value : Ast.Expression, utterance : string, priority = 0) : SentenceGeneratorTypes.ContextPhrase {
+    return { symbol, utterance, value, priority, key: keyfns.expressionKeyFn(value) };
+}
 
 export interface AgentReplyOptions {
     end ?: boolean;
@@ -922,6 +927,38 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
     const contextTable = ctx.contextTable;
 
     const phrases : SentenceGeneratorTypes.ContextPhrase[] = [];
+    const describer = _loader.describer;
+
+    // make phrases that describe the current and next action
+    // these are used by the agent to form confirmations
+    const current = ctx.current;
+    if (current) {
+        const lastQuery = current.stmt.lastQuery;
+        if (lastQuery) {
+            phrases.push(makeExpressionContextPhrase(contextTable.ctx_current_query, lastQuery,
+                                                     describer.describeQuery(lastQuery)));
+        }
+    }
+
+    const next = ctx.next;
+    if (next) {
+        phrases.push(makeContextPhrase(contextTable.ctx_next_statement, ctx,
+                                       describer.describeExpressionStatement(next.stmt)));
+
+        const lastQuery = next.stmt.lastQuery;
+        if (lastQuery) {
+            phrases.push(makeExpressionContextPhrase(contextTable.ctx_next_query, lastQuery,
+                                                     describer.describeQuery(lastQuery)));
+        }
+
+        const action = next.stmt.last;
+        if (action.schema!.functionType === 'action') {
+            assert(action instanceof Ast.InvocationExpression);
+            phrases.push(makeExpressionContextPhrase(contextTable.ctx_next_action, action,
+                                                     describer.describePrimitive(action.invocation)));
+        }
+    }
+
     if (ctx.isMultiDomain)
         phrases.push(makeContextPhrase(contextTable.ctx_multidomain, ctx));
 

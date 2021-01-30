@@ -105,7 +105,7 @@ interface InternalFormattedChunk {
  */
 export default class TextFormatter {
     private _locale : string;
-    private _timezone : string;
+    private _timezone : string|undefined;
     private _schemas : SchemaRetriever;
     private _interp : (template : string, args : any) => string;
     private _ : (key : string) => string;
@@ -119,7 +119,7 @@ export default class TextFormatter {
      * @param schemaRetriever - the interface to access Thingpedia for formatting information
      */
     constructor(locale : string,
-                timezone : string,
+                timezone : string|undefined,
                 schemaRetriever : SchemaRetriever) {
         this._locale = locale;
         this._timezone = timezone;

@@ -63,16 +63,16 @@ system_list_proposal : D.ListProposal = {
     }
 }
 
-generic_list_proposal_accept_phrase : Ast.EntityValue = {
+generic_list_proposal_accept_phrase : Ast.EntityValue|Ast.NumberValue = {
     ('ok' | 'yeah' | '') ('i like' | 'i am interested in' | 'i am intrigued by') name:constant_name '.' => name;
     ('ok' | 'yeah' | '') name:constant_name 'sounds' ('good' | 'really good' | 'nice' | 'interesting') '.' => name;
 }
 
-list_proposal_accept_phrase_must_have_action : Ast.EntityValue = {
+list_proposal_accept_phrase_must_have_action : Ast.EntityValue|Ast.NumberValue = {
     ('ok' | 'yeah' | '') ('i will go' | 'i will take' | 'i am good for') name:constant_name '.' => name;
 }
 
-list_proposal_accept_phrase_with_action : [Ast.EntityValue, Ast.Invocation, boolean] = {
+list_proposal_accept_phrase_with_action : [Ast.EntityValue|Ast.NumberValue, Ast.Invocation, boolean] = {
     name:generic_list_proposal_accept_phrase generic_preamble_for_action action:coref_action_command => [name, action, false];
     name:list_proposal_accept_phrase_must_have_action generic_preamble_for_action action:coref_action_command => [name, action, false];
 }
@@ -81,13 +81,13 @@ list_proposal_accept_phrase_with_action_by_name : Ast.Invocation = {
     ('ok' | 'yeah' | '') generic_preamble_for_action action:action_by_name_command => action;
 }
 
-list_proposal_tell_me_more : Ast.EntityValue = {
+list_proposal_tell_me_more : Ast.EntityValue|Ast.NumberValue = {
     ('ok' | 'yeah' | '') 'can you tell me more about' name:constant_name '?' => name;
     ('ok' | 'yeah' | '') ('i like' | 'i am interested in' | 'i am intrigued by') name:constant_name '.' tell_me_more_phrase => name;
     ('ok' | 'yeah' | '') name:constant_name 'sounds' ('good' | 'really good' | 'nice' | 'interesting') '.' tell_me_more_phrase => name;
 }
 
-positive_list_proposal_reply : [Ast.EntityValue, Ast.Invocation|null, boolean] = {
+positive_list_proposal_reply : [Ast.EntityValue|Ast.NumberValue, Ast.Invocation|null, boolean] = {
     name:generic_list_proposal_accept_phrase => [name, null, false];
     name:list_proposal_accept_phrase_must_have_action => [name, null, true];
     accept:list_proposal_accept_phrase_with_action => accept;

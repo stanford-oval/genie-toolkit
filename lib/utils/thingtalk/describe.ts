@@ -45,11 +45,6 @@ const NEW_ANNOTATION_RENAME : { [key : string] : string } = {
 
 type ScopeMap = Record<string, string>;
 
-export enum Direction {
-    FROM_USER,
-    FROM_AGENT
-}
-
 interface LocationLike {
     lat : number;
     lon : number;
@@ -66,13 +61,13 @@ export class Describer {
     timezone : string|undefined;
 
     private _langPack : I18n.LanguagePack;
-    private _direction : Direction;
+    private _direction : 'user'|'agent';
     private _format : InstanceType<typeof interpolate.Formatter>; // FIXME
     private _interp : (x : string, args : Record<string, InterpChunk|InterpChunk[]>) => string;
 
     private _datasets : Map<string, Ast.Dataset> = new Map;
 
-    constructor(locale : string, timezone : string, direction = Direction.FROM_USER) {
+    constructor(locale : string, timezone : string|undefined, direction : 'user'|'agent' = 'user') {
         this._langPack = I18n.get(locale);
         this._ = this._langPack.gettext;
         this.locale = locale;
@@ -85,6 +80,35 @@ export class Describer {
 
     setDataset(kind : string, dataset : Ast.Dataset) {
         this._datasets.set(kind, dataset);
+    }
+
+    setFullDataset(datasets : Ast.Dataset[]) {
+
+        // flatten all examples in all datasets, and then split again by device
+        // split the dataset into multiple datasets for each kind
+        // to have a faster lookup when we describe a specific program later
+
+        const examples = new Map<string, Ast.Example[]>();
+
+        for (const dataset of datasets) {
+            for (const example of dataset.examples) {
+                const devices = new Set<string>();
+                for (const [, prim] of example.iteratePrimitives(false))
+                    devices.add(prim.selector.kind);
+                for (const device of devices) {
+                    const list = examples.get(device);
+                    if (list)
+                        list.push(example);
+                    else
+                        examples.set(device, [example]);
+                }
+            }
+        }
+
+        for (const [kind, list] of examples) {
+            const newDataset = new Ast.Dataset(null, kind, list);
+            this._datasets.set(kind, newDataset);
+        }
     }
 
     private _displayLocation(loc : Ast.Location) {
@@ -769,7 +793,7 @@ export class Describer {
         else
             confirm = this._findBestExampleUtterance(obj.selector.kind, obj.channel, obj.selector, obj.in_params, obj.schema!);
 
-        if (this._direction === Direction.FROM_AGENT)
+        if (this._direction === 'agent')
             confirm = this._langPack.toAgentSideUtterance(confirm);
 
         if (obj instanceof Ast.Invocation ||
@@ -913,7 +937,7 @@ export class Describer {
     }
 
     private _describeFilteredTable(table : Ast.FilterExpression) : string {
-        const inner = this.describeTable(table.expression);
+        const inner = this.describeQuery(table.expression);
         if (!table.schema!.is_list) {
             return this._interp(this._("${query} such that ${filter}"), {
                 query: inner,
@@ -1050,7 +1074,7 @@ export class Describer {
         }
     }
 
-    describeTable(table : Ast.Expression) : string {
+    describeQuery(table : Ast.Expression) : string {
         if (table instanceof Ast.FunctionCallExpression) {
             return this.describePrimitive(table);
         } else if (table instanceof Ast.InvocationExpression) {
@@ -1059,15 +1083,15 @@ export class Describer {
             return this._describeFilteredTable(table);
         } else if (table instanceof Ast.ProjectionExpression) {
             return this._interp(this._("the ${param} of ${query}"), {
-                query: this.describeTable(table.expression),
+                query: this.describeQuery(table.expression),
                 param: this.__describeArgList(table.args, table.computations, table.schema!)
             });
         } else if (table instanceof Ast.AliasExpression) {
-            return this.describeTable(table.expression);
+            return this.describeQuery(table.expression);
         } else if (table instanceof Ast.AggregationExpression) {
             if (table.field === '*') {
                 return this._interp(this._("the number of ${query}"), {
-                    query: this.describeTable(table.expression)
+                    query: this.describeQuery(table.expression)
                 });
             }
 
@@ -1093,7 +1117,7 @@ export class Describer {
             }
             return this._interp(desc, {
                 param: table.schema!.getArgCanonical(table.field),
-                query: this.describeTable(table.expression)
+                query: this.describeQuery(table.expression)
             });
 
         // recognize argmin/argmax
@@ -1105,12 +1129,12 @@ export class Describer {
             if ((index.value === 1 && table.expression.direction === 'asc') ||
                 (index.value === -1 && table.expression.direction === 'desc')) {
                 return this._interp(this._("the ${query} with the minimum ${param}"), {
-                    query: this.describeTable(table.expression.expression),
+                    query: this.describeQuery(table.expression.expression),
                     param: this._describeArg(table.expression.value, {}, true)
                 });
             } else {
                 return this._interp(this._("the ${query} with the maximum ${param}"), {
-                    query: this.describeTable(table.expression.expression),
+                    query: this.describeQuery(table.expression.expression),
                     param: this._describeArg(table.expression.value, {}, true)
                 });
             }
@@ -1123,38 +1147,38 @@ export class Describer {
                     (table.base.value === -1 && table.expression.direction === 'desc')) {
                 return this._interp(this._("the ${limit} ${query} with the minimum ${param}"), {
                     limit: this._describeArg(table.limit),
-                    query: this.describeTable(table.expression.expression),
+                    query: this.describeQuery(table.expression.expression),
                     param: this._describeArg(table.expression.value, {}, true)
                 });
             } else {
                 return this._interp(this._("the ${limit} ${query} with the maximum ${param}"), {
                     limit: this._describeArg(table.limit),
-                    query: this.describeTable(table.expression.expression),
+                    query: this.describeQuery(table.expression.expression),
                     param: this._describeArg(table.expression.value, {}, true)
                 });
             }
         } else if (table instanceof Ast.SortExpression) {
             if (table.direction === 'asc') {
                 return this._interp(this._("the ${query} sorted by increasing ${param}"), {
-                    query: this.describeTable(table.expression),
+                    query: this.describeQuery(table.expression),
                     param: this._describeArg(table.value, {}, true)
                 });
             } else {
                 return this._interp(this._("the ${query} sorted by decreasing ${param}"), {
-                    query: this.describeTable(table.expression),
+                    query: this.describeQuery(table.expression),
                     param: this._describeArg(table.value, {}, true)
                 });
             }
         } else if (table instanceof Ast.IndexExpression && table.indices.length === 1) {
             return this._describeIndex(table.indices[0],
-                this.describeTable(table.expression));
+                this.describeQuery(table.expression));
         } else if (table instanceof Ast.IndexExpression) {
             return this._interp(this._("${indices.length:plural:\
                 one {element ${indices} of the ${query}}\
                 other {elements ${indices} of the ${query}}\
             }"), {
                 indices: this._describeArg(new Ast.Value.Array(table.indices)),
-                query: this.describeTable(table.expression),
+                query: this.describeQuery(table.expression),
             });
         } else if (table instanceof Ast.SliceExpression) {
             return this._interp(this._("${base:plural:\
@@ -1164,10 +1188,10 @@ export class Describer {
             }"), {
                 limit: this._describeArg(table.limit),
                 base: this._describeArg(table.base),
-                query: this.describeTable(table.expression),
+                query: this.describeQuery(table.expression),
             });
         } else if (table instanceof Ast.ChainExpression) {
-            return this._format.listToString(table.expressions.map((t) => this.describeTable(t)));
+            return this._format.listToString(table.expressions.map((t) => this.describeQuery(t)));
         } else {
             throw new TypeError(`Unexpected query ${table.prettyprint()}`);
         }
@@ -1240,7 +1264,7 @@ export class Describer {
                     false {when the ${table} changes if ${filter}}\
                 }"), {
                     is_list: stream.expression.schema!.is_list,
-                    table: this.describeTable(stream.expression.expression),
+                    table: this.describeQuery(stream.expression.expression),
                     filter: this.describeFilter(stream.expression.filter, stream.expression.schema)
                 });
             } else {
@@ -1249,7 +1273,7 @@ export class Describer {
                     false {when the ${table} changes}\
                 }"), {
                     is_list: stream.expression.schema!.is_list,
-                    table: this.describeTable(stream.expression),
+                    table: this.describeQuery(stream.expression),
                 });
             }
         } else if (stream instanceof Ast.FilterExpression) {
@@ -1283,9 +1307,9 @@ export class Describer {
     private _describeExpression(exp : Ast.Expression) {
         if (exp.schema!.functionType === 'query') {
             if (exp.schema!.is_list)
-                return this._interp(this._("get ${query}"), { query: this.describeTable(exp) });
+                return this._interp(this._("get ${query}"), { query: this.describeQuery(exp) });
             else
-                return this._interp(this._("get the ${query}"), { query: this.describeTable(exp) });
+                return this._interp(this._("get the ${query}"), { query: this.describeQuery(exp) });
         } else {
             return this.describeAction(exp);
         }
@@ -1310,7 +1334,7 @@ export class Describer {
                     action: this._describeExpression(expressions[1]),
                 });
             } else {
-                return this._interp(this._direction === Direction.FROM_AGENT ? this._("notify you ${stream}") : this._("notify me ${stream}"), {
+                return this._interp(this._direction === 'agent' ? this._("notify you ${stream}") : this._("notify me ${stream}"), {
                     stream: this.describeStream(stream),
                 });
             }
@@ -1334,7 +1358,7 @@ export class Describer {
         let valuedesc : string;
         const value = d.value;
         if (value.schema!.functionType === 'query')
-            valuedesc = this.describeTable(value);
+            valuedesc = this.describeQuery(value);
         else if (value.schema!.functionType === 'stream')
             valuedesc = this.describeStream(value);
         else
@@ -1395,7 +1419,7 @@ export class Describer {
             let confirm = this._findBestExampleUtterance(kind, permissionFunction.channel, null, pseudoInParams,
                 permissionFunction.schema!);
 
-            if (this._direction === Direction.FROM_AGENT)
+            if (this._direction === 'agent')
                 confirm = this._langPack.toAgentSideUtterance(confirm);
 
             confirm = interpolate(confirm, (param) => {

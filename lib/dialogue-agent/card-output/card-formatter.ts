@@ -57,7 +57,7 @@ export default class CardFormatter extends interpolate.Formatter {
      * @param schemaRetriever - the interface to access Thingpedia for formatting information
      */
     constructor(locale : string,
-                timezone : string,
+                timezone : string|undefined,
                 schemaRetriever : SchemaRetriever) {
         super(locale, timezone);
         this._schemas = schemaRetriever;

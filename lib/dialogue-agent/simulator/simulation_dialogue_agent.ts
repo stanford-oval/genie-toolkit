@@ -36,6 +36,7 @@ export interface SimulationDialogueAgentOptions {
     schemaRetriever ?: SchemaRetriever;
     thingpediaClient ?: Tp.BaseClient;
     locale : string;
+    timezone : string|undefined;
     rng : () => number;
     database ?: SimulationDatabase;
     overrides ?: Map<string, string>;
@@ -63,6 +64,7 @@ export default class SimulationDialogueAgent extends AbstractDialogueAgent<Thing
         });
         this._executor = new StatementSimulator({
             locale: options.locale,
+            timezone: options.timezone,
             schemaRetriever: options.schemaRetriever!,
             rng: options.rng,
             database: options.database,

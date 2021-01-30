@@ -208,7 +208,7 @@ recommendation_accept_phrase_with_action : Ast.Invocation = {
     accept_phrase generic_preamble_for_action action:coref_action_command => action;
 }
 
-recommendation_accept_phrase_by_name : [Ast.EntityValue, Ast.Invocation|null] = {
+recommendation_accept_phrase_by_name : [Ast.EntityValue|Ast.NumberValue, Ast.Invocation|null] = {
     name:generic_list_proposal_accept_phrase => [name, null];
     name:list_proposal_accept_phrase_must_have_action => [name, null];
     accept:list_proposal_accept_phrase_with_action => [accept[0], accept[1]];

@@ -132,6 +132,7 @@ export async function execute(args : any) {
     const options = {
         rng: seedrandom.alea(args.random_seed),
         locale: args.locale,
+        timezone: undefined,
         flags: args.flags || {},
         templateFiles: args.template,
         targetLanguage: args.target_language,

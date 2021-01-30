@@ -92,6 +92,10 @@ context : S.ContextInfo = {
     ctx_without_projection,
     ctx_for_related_question,
 
+    // phrases that describe the current context
+    // (some are later because they use a different type)
+    ctx_next_statement,
+
     // abstract result states (used to interpret user utterances)
     // these should be returned by S.tagContextForAgent()
     ctx_greet,
@@ -137,7 +141,11 @@ context : S.ContextInfo = {
     ctx_sys_search_question,
     ctx_sys_slot_fill
 };
-
+context : Ast.Expression = {
+    ctx_current_query,
+    ctx_next_query,
+    ctx_next_action
+};
 
 // map a concrete dialogue state (produced by the simulation or the neural network)
 // to an abstract dialogue state defined in the state machine, and extract
@@ -258,7 +266,7 @@ $agent : S.AgentReplyRecord = {
     ) => reply;
 
     // confirming an action
-    action_confirm_phrase;
+    ctx:ctx_confirm_action reply:action_confirm_phrase => reply;
 
     // empty search error
     ctx:ctx_empty_search_command error:empty_search_error

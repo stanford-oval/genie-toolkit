@@ -99,6 +99,7 @@ export default class DialogueLoop {
             thingpedia: conversation.thingpedia,
             schemas: conversation.schemas,
             locale: conversation.locale,
+            timezone: engine.platform.timezone,
             rng: conversation.rng,
             debug : this._debug
         });
