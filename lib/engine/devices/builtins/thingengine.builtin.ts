@@ -26,6 +26,8 @@ import * as stream from 'stream';
 import Engine from '../../index';
 import ExecWrapper, { CompiledQueryHints } from '../../apps/exec_wrapper';
 
+import FAQ from './faq.json';
+
 // A placeholder object for builtin triggers/queries/actions that
 // don't have any better place to live, such as those related to
 // time
@@ -165,6 +167,14 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
                 program: new Tp.Value.Entity(ex.prettyprint(), ex.utterances[0])
             };
         });
+    }
+
+    do_faq_reply({ question } : { question : string }) {
+        const replies = (FAQ as Record<string, string[]>)[question];
+        if (process.env.TEST_MODE)
+            return { reply: replies[0] };
+        else
+            return { reply: replies[Math.floor(Math.random()*replies.length)] };
     }
 
     do_debug_log(args : { message : string }) {

@@ -654,3 +654,16 @@ A: The latest xkcd comic is str:ENTITY_com.xkcd:comic::29:. It is an xkcd comic 
 A: rdl: str:ENTITY_com.xkcd:comic::29: str:ENTITY_tt:url::45:
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; sort ( release_date desc of @com.xkcd ( id = GENERIC_ENTITY_tt:device_id_0 ) . comic ( ) ) [ 1 ] #[ results = [ { id = GENERIC_ENTITY_com.xkcd:comic_0 , release_date = DATE_0 , picture_url = PICTURE_0 , link = URL_0 , alt_text = QUOTED_STRING_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.xkcd-10","display":"Some Device 10"},"GENERIC_ENTITY_com.xkcd:comic_0":{"value":"str:ENTITY_com.xkcd:comic::29:","display":null},"DATE_0":"2020-08-28T07:00:00.000Z","PICTURE_0":"str:ENTITY_tt:picture::3:","URL_0":"str:ENTITY_tt:url::45:","QUOTED_STRING_0":"str:QUOTED_STRING::13:"}
 A: >> expecting = null
+
+====
+# 44-faq-about-almond
+
+# Who are you?
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_identity);
+
+# FIXME the simulator doesn't actually call the API so this is useless
+# we need the scenario tests from thingpedia-common-devices
+A: Str:QUOTED_STRING::42:.
+A: >> context = null // {}
+A: >> expecting = null

@@ -31,9 +31,13 @@ built_bundled_templates := $(addsuffix .ts,$(bundled_templates))
 
 generated := \
 	$(patsubst %.po,%.mo,$(wildcard po/*.po)) \
-	$(patsubst data/builtins/%/manifest.tt,lib/engine/devices/builtins/%.tt.json,$(wildcard data/builtins/*/*.tt)) \
+	data/builtins/thingengine.builtin/dataset.tt \
 	lib/engine/db/schema.json \
-	lib/sentence-generator/compiler/grammar.js
+	lib/sentence-generator/compiler/grammar.js \
+	lib/engine/devices/builtins/test.tt.json \
+	lib/engine/devices/builtins/thingengine.tt.json \
+	lib/engine/devices/builtins/thingengine.builtin.tt.json \
+	lib/engine/devices/builtins/faq.json
 
 $(built_bundled_templates) : languages/*/*.genie languages/*/*/*.genie languages/*/*/*/*.genie lib/sentence-generator/compiler/*.ts lib/sentence-generator/compiler/grammar.js
 	node ./dist/tool/genie.js compile-template $(patsubst %.genie.ts,%.genie,$@)
@@ -71,6 +75,9 @@ bundle/%.zip: languages-dist
 lib/engine/devices/builtins/%.tt.json : data/builtins/%/manifest.tt
 	node -e 'console.log(JSON.stringify(require("fs").readFileSync(process.argv[1]).toString("utf8")))' $< > $@.tmp
 	mv $@.tmp $@
+
+data/builtins/thingengine.builtin/dataset.tt data/builtins/thingengine.builtin/manifest.tt lib/engine/devices/builtins/faq.json &: data/builtins/thingengine.builtin/dataset.tt.in data/builtins/thingengine.builtin/manifest.tt.in data/builtins/thingengine.builtin/faq.yaml
+	ts-node data/builtins/thingengine.builtin/merge-faq
 
 %.mo : %.po
 	msgfmt $< -o $@
