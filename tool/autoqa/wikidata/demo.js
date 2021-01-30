@@ -64,7 +64,7 @@ class CommandLineHandler {
             program = ThingTalk.NNSyntax.fromNN(code, parsed.entities);
             await program.typecheck(this._schemas);
             console.log(`ThingTalk: ${program.prettyprint()}`);
-        } catch (e) {
+        } catch(e) {
             console.log(`The model failed to make a prediction that is syntax correct, please try something else`);
             console.error(`Prediction: ${code.join(' ')}`);
             return;

@@ -45,6 +45,21 @@ const {
     MANUAL_PROPERTY_CANONICAL_OVERRIDE
 } = require('./manual-annotations');
 
+function argnameFromLabel(label) {
+    return snakecase(label)
+        .replace(/'/g, '') // remove apostrophe
+        .replace(/,/g, '') // remove comma
+        .replace(/_\/_/g, '_or_') // replace slash by or
+        .replace(/[(|)]/g, '') // replace parentheses
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // remove accent
+}
+
+function getElementType(type) {
+    if (type.isArray)
+        return getElementType(type.elem);
+    return type;
+}
+
 async function retrieveProperties(domain, properties) {
     let list = properties.includes('default') ? await getPropertyList(domain) : [];
     for (let property of properties) {
