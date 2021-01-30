@@ -128,7 +128,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
 
-A: The current weather in Palo Alto, California is sunny.
+A: The current weather in Palo Alto, California is sunny. The temperature is 15.6 C and the humidity is 91.3 %.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.weather . current ( location = LOCATION_0 ) #[ results = [ { location = LOCATION_0 , temperature = MEASURE_C_0 , wind_speed = MEASURE_mps_0 , humidity = NUMBER_0 , cloudiness = NUMBER_1 , fog = 0 , status = enum sunny , icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":15.6},"MEASURE_mps_0":{"unit":"mps","value":3.4},"NUMBER_0":91.3,"NUMBER_1":4.7,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
 A: >> expecting = null
 
@@ -153,7 +153,7 @@ A: >> expecting = location
 # let's use the location picker!
 U: \t bookkeeping(answer(new Location(37.442156, -122.1634471, "Palo Alto, California")));
 
-A: The current weather in Palo Alto, California is sunny.
+A: The current weather in Palo Alto, California is sunny. The temperature is 15.6 C and the humidity is 91.3 %.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.weather . current ( location = LOCATION_0 ) #[ results = [ { location = LOCATION_0 , temperature = MEASURE_C_0 , wind_speed = MEASURE_mps_0 , humidity = NUMBER_0 , cloudiness = NUMBER_1 , fog = 0 , status = enum sunny , icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":15.6},"MEASURE_mps_0":{"unit":"mps","value":3.4},"NUMBER_0":91.3,"NUMBER_1":4.7,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
 A: >> expecting = null
 
@@ -544,7 +544,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
 
-A: The current weather in Palo Alto, California is sunny.
+A: The current weather in Palo Alto, California is sunny. The temperature is 15.6 C and the humidity is 91.3 %.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; [ release_date ] of @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . album ( ) filter id =~ QUOTED_STRING_0 #[ results = [ { id = GENERIC_ENTITY_com.spotify:album_0 , release_date = DATE_0 } ] ] #[ count = 4 ] ; @org.thingpedia.weather . current ( location = LOCATION_0 ) #[ results = [ { location = LOCATION_0 , temperature = MEASURE_C_0 , wind_speed = MEASURE_mps_0 , humidity = NUMBER_0 , cloudiness = NUMBER_1 , fog = 0 , status = enum sunny , icon = PICTURE_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"the wall","GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:5Dbax7G8SWrP9xyzkOvy2F","display":"The Wall"},"DATE_0":"1979-11-30T00:00:00.000Z","LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":15.6},"MEASURE_mps_0":{"unit":"mps","value":3.4},"NUMBER_0":91.3,"NUMBER_1":4.7,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
 A: >> expecting = null
 
@@ -637,12 +637,10 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.xkcd.comic();
 
-A: I have found 20, 451 and 20.
+A: I found xkcd 20. It is an xkcd comic from 1/20/2018 titled Some Device 10.
 A: rdl: Some Device 10 str:ENTITY_tt:url::1:
-A: rdl: str:QUOTED_STRING::49: str:ENTITY_tt:url::28:
-A: rdl: Some Device 10 str:ENTITY_tt:url::14:
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_three ; @com.xkcd ( id = GENERIC_ENTITY_tt:device_id_0 ) . comic ( ) #[ results = [ { id = NUMBER_0 , title = QUOTED_STRING_0 , release_date = DATE_0 , picture_url = PICTURE_0 , link = URL_0 , alt_text = QUOTED_STRING_0 } ] ] #[ count = NUMBER_1 ] #[ more = true ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.xkcd-10","display":"Some Device 10"},"NUMBER_0":20,"QUOTED_STRING_0":"Some Device 10","DATE_0":"2018-01-20T08:00:00.000Z","PICTURE_0":"str:ENTITY_tt:picture::14:","URL_0":"str:ENTITY_tt:url::1:","NUMBER_1":50}
-A: >> expecting = command
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; @com.xkcd ( id = GENERIC_ENTITY_tt:device_id_0 ) . comic ( ) #[ results = [ { id = NUMBER_0 , title = QUOTED_STRING_0 , release_date = DATE_0 , picture_url = PICTURE_0 , link = URL_0 , alt_text = QUOTED_STRING_0 } ] ] #[ count = NUMBER_1 ] #[ more = true ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.xkcd-10","display":"Some Device 10"},"NUMBER_0":20,"QUOTED_STRING_0":"Some Device 10","DATE_0":"2018-01-20T08:00:00.000Z","PICTURE_0":"str:ENTITY_tt:picture::14:","URL_0":"str:ENTITY_tt:url::1:","NUMBER_1":50}
+A: >> expecting = null
 
 ====
 # 43-xkcd-latest

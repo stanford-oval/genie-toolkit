@@ -111,8 +111,13 @@ export class ThingpediaLoader {
     private _tpClient ! : Tp.BaseClient;
     private _langPack ! : Genie.I18n.LanguagePack;
     private _options ! : Genie.SentenceGeneratorTypes.GrammarOptions;
-    private _entities ! : Record<string, { has_ner_support : boolean }>;
     private _describer ! : Genie.ThingTalkUtils.Describer;
+
+    private _entities ! : Record<string, { has_ner_support : boolean }>
+    // cached annotations extracted from Thingpedia, for use at inference time
+    private _errorMessages ! : Map<string, Record<string, string[]>>;
+    private _resultStrings ! : Map<string, string[]>;
+
     types ! : Map<string, Type>;
     params ! : ParamSlot[];
     projections ! : Array<{
@@ -151,17 +156,19 @@ export class ThingpediaLoader {
         this._schemas = options.schemaRetriever!;
 
         this._options = options;
+        if (this._options.whiteList)
+            this.globalWhiteList = this._options.whiteList.split(',');
+        else
+            this.globalWhiteList = null;
 
         this._entities = {};
+        this._errorMessages = new Map;
+        this._resultStrings = new Map;
         this.types = new Map;
         this.params = [];
         this.projections = [];
         this.idQueries = new Map;
         this.compoundArrays = {};
-        if (this._options.whiteList)
-            this.globalWhiteList = this._options.whiteList.split(',');
-        else
-            this.globalWhiteList = null;
 
         const [say, get_gps, get_time] = await Promise.all([
             this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'action', 'say'),
@@ -197,6 +204,13 @@ export class ThingpediaLoader {
         if (!(type instanceof Type.Entity))
             return false;
         return this.idQueries.has(type.type);
+    }
+
+    getResultStrings(functionName : string) : string[] {
+        return this._resultStrings.get(functionName) || [];
+    }
+    getErrorMessages(functionName : string) : Record<string, string[]> {
+        return this._errorMessages.get(functionName) || {};
     }
 
     private _addRule<ArgTypes extends unknown[], ResultType>(nonTerm : string,
@@ -1222,10 +1236,13 @@ export class ThingpediaLoader {
     private async _loadCustomErrorMessages(functionDef : Ast.FunctionDef) {
         const bag = new SlotBag(functionDef);
 
+        const normalized : Record<string, string[]> = {};
+        this._errorMessages.set(functionDef.qualifiedName, normalized);
         for (const code in functionDef.metadata.on_error) {
             let messages = functionDef.metadata.on_error[code];
             if (!Array.isArray(messages))
                 messages = [messages];
+            normalized[code] = messages;
 
             for (let i = 0; i < messages.length; i++) {
                 const msg = messages[i];
@@ -1269,8 +1286,11 @@ export class ThingpediaLoader {
         let resultstring = functionDef.metadata.result;
         if (!Array.isArray(resultstring))
             resultstring = [resultstring];
+
+        this._resultStrings.set(functionDef.qualifiedName, resultstring);
         for (let i = 0; i < resultstring.length; i++) {
             const form = resultstring[i];
+
             const chunks = form.trim().split(' ');
             const expansion : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal> = [];
             const names : Array<string|null> = [];

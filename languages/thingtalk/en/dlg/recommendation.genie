@@ -49,10 +49,21 @@ action_recommendation : D.Recommendation = {
 }
 
 actionable_system_recommendation_short : D.Recommendation = {
-    ctx:ctx_with_result_noquestion proposal:thingpedia_result with { functionName = ctx.currentFunction } [priority=2]
-        => D.makeThingpediaRecommendation(ctx, proposal);
-    ctx:ctx_with_result_noquestion proposal:thingpedia_result with { functionName = ctx.currentFunction } [priority=2]
-        => D.makeThingpediaRecommendation(ctx, proposal);
+    // for Thingpedia phrases (#_[result]), at inference time we pick the top one and replace it
+    // directly using a context phrase
+    // at training time we generate all possible phrases and match
+    ?inference {
+        ctx:ctx_with_result_noquestion proposal:ctx_thingpedia_result [priority=2]
+            => D.makeThingpediaRecommendation(ctx, proposal);
+        ctx:ctx_with_result_noquestion proposal:ctx_thingpedia_result [priority=2]
+            => D.makeThingpediaRecommendation(ctx, proposal);
+    }
+    !inference {
+        ctx:ctx_with_result_noquestion proposal:thingpedia_result with { functionName = ctx.currentFunction } [priority=2]
+            => D.makeThingpediaRecommendation(ctx, proposal);
+        ctx:ctx_with_result_noquestion proposal:thingpedia_result with { functionName = ctx.currentFunction } [priority=2]
+            => D.makeThingpediaRecommendation(ctx, proposal);
+    }
 
     ( ctx:ctx_with_result_and_action 'i' ('recommend' | 'suggest') proposal:constant_name with { value = ctx.id0 }
     | ctx:ctx_with_result_noquestion ('i see' | 'i have' | 'i have found' | 'i have one , it is') proposal:constant_name with { value = ctx.id0 }
@@ -116,8 +127,15 @@ proposal_info_action_pair : [D.ResultPhrase, Ast.Invocation|null] = {
 }
 
 actionable_system_display_result_short : D.Recommendation = {
-    ctx:ctx_with_result info:thingpedia_result with { functionName = ctx.currentFunction } '.' [priority=5]
-        => D.makeDisplayResult(ctx, info);
+    // for Thingpedia phrases (#_[result]), at inference time we pick the top one and replace it
+    // directly using a context phrase
+    // at training time we generate all possible phrases and match
+    ?inference
+        ctx:ctx_with_result info:ctx_thingpedia_result '.' [priority=5]
+            => D.makeDisplayResult(ctx, info);
+    !inference
+        ctx:ctx_with_result info:thingpedia_result with { functionName = ctx.currentFunction } '.' [priority=5]
+            => D.makeDisplayResult(ctx, info);
 }
 
 // a non-list result

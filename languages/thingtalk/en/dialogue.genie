@@ -146,6 +146,12 @@ context : Ast.Expression = {
     ctx_next_query,
     ctx_next_action
 };
+context : SlotBag = {
+    ctx_thingpedia_result
+};
+context : C.ErrorMessage = {
+    ctx_thingpedia_error_message
+};
 
 // map a concrete dialogue state (produced by the simulation or the neural network)
 // to an abstract dialogue state defined in the state machine, and extract

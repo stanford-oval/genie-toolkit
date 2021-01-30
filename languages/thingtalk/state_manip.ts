@@ -27,6 +27,7 @@ export type AgentReplyRecord = SentenceGeneratorTypes.AgentReplyRecord<Ast.Dialo
 
 import * as C from './ast_manip';
 import * as keyfns from './keyfns';
+import { SlotBag } from './slot_bag';
 import _loader from './load-thingpedia';
 
 // NOTE: this version of arraySubset uses ===
@@ -923,6 +924,98 @@ function ctxCanHaveRelatedQuestion(ctx : ContextInfo) : boolean {
     return !!(related && related.length);
 }
 
+function makeErrorContextPhrase(ctx : ContextInfo, error : Ast.EnumValue) {
+    const contextTable = ctx.contextTable;
+    const describer = _loader.describer;
+
+    const currentFunction = ctx.currentFunction!;
+    const phrases = _loader.getErrorMessages(currentFunction.qualifiedName)[error.value];
+    if (!phrases)
+        return null;
+
+    const action = C.getInvocation(ctx.current!);
+
+    // try all phrases, find the first that we can replace correctly
+    for (const candidate of phrases) {
+        const bag = new SlotBag(currentFunction);
+
+        let utterance = '';
+        let good = true;
+        for (const chunk of candidate.split(' ')) {
+            if (chunk.startsWith('$') && chunk !== '$$') {
+                const [, param1, param2,] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk)!;
+                const param = param1 || param2;
+                assert(param);
+                // TODO use opt
+
+                let found = null;
+                for (const in_param of action.in_params) {
+                    if (in_param.name === param) {
+                        found = in_param.value;
+                        break;
+                    }
+                }
+                if (!found) {
+                    good = false;
+                    break;
+                }
+                utterance += ' ' + describer.describeArg(found);
+                bag.set(param, found);
+            } else {
+                utterance += ' ' + chunk;
+            }
+        }
+        utterance = utterance.trim();
+
+        if (good) {
+            const value : C.ErrorMessage = { code: error.value, bag };
+            return { symbol: contextTable.ctx_thingpedia_error_message, utterance, value, priority: 0, key: keyfns.errorMessageKeyFn(value) };
+        }
+    }
+
+    return null;
+}
+
+function makeResultContextPhrase(ctx : ContextInfo, result : Ast.DialogueHistoryResultItem) {
+    const contextTable = ctx.contextTable;
+    const describer = _loader.describer;
+
+    const currentFunction = ctx.currentFunction!;
+    const phrases = _loader.getResultStrings(currentFunction.qualifiedName);
+
+    // try all phrases, find the first that we can replace correctly
+    for (const candidate of phrases) {
+        const bag = new SlotBag(currentFunction);
+
+        let utterance = '';
+        let good = true;
+        for (const chunk of candidate.split(' ')) {
+            if (chunk.startsWith('$') && chunk !== '$$') {
+                const [, param1, param2,] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk)!;
+                const param = param1 || param2;
+                assert(param);
+                // TODO use opt
+
+                const value = result.value[param];
+                if (!value) {
+                    good = false;
+                    break;
+                }
+                utterance += ' ' + describer.describeArg(value);
+                bag.set(param, value);
+            } else {
+                utterance += ' ' + chunk;
+            }
+        }
+        utterance = utterance.trim();
+
+        if (good)
+            return { symbol: contextTable.ctx_thingpedia_result, utterance, value: bag, priority: 0, key: keyfns.slotBagKeyFn(bag) };
+    }
+
+    return null;
+}
+
 export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.ContextPhrase[] {
     const contextTable = ctx.contextTable;
 
@@ -937,6 +1030,20 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
         if (lastQuery) {
             phrases.push(makeExpressionContextPhrase(contextTable.ctx_current_query, lastQuery,
                                                      describer.describeQuery(lastQuery)));
+        }
+
+        if (current.results!.error instanceof Ast.EnumValue) {
+            const phrase = makeErrorContextPhrase(ctx, current.results!.error);
+            if (phrase)
+                phrases.push(phrase);
+        } else {
+            const results = current.results!.results;
+            if (results.length > 0) {
+                const topResult = results[0];
+                const phrase = makeResultContextPhrase(ctx, topResult);
+                if (phrase)
+                    phrases.push(phrase);
+            }
         }
     }
 
