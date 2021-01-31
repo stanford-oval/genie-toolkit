@@ -20,7 +20,7 @@
 
 
 import assert from 'assert';
-import { Ast, Type, SchemaRetriever } from 'thingtalk';
+import { Ast, SchemaRetriever } from 'thingtalk';
 
 import { cleanKind } from '../utils/misc-utils';
 import { shouldAutoConfirmStatement } from './dialogue_state_utils';
@@ -308,12 +308,6 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
 
     private async _concretizeValue(slot : Ast.AbstractSlot, hints : DisambiguationHints) : Promise<void> {
         let value = slot.get();
-        const ptype = slot.type;
-
-        if (value instanceof Ast.EntityValue && (value.type === 'tt:username' || value.type === 'tt:contact_name')
-            && ptype instanceof Type.Entity && ptype.type !== value.type)
-            slot.set(await contactSearch(this, ptype, value.value!));
-            // continue resolving in case the new type is tt:contact
 
         // default units (e.g. defaultTemperature) will be concretized
         // according to the user's preferences or locale
@@ -330,7 +324,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         } else if (value instanceof Ast.EntityValue && value.value === null) {
             if (value.type === 'tt:email_address' || value.type === 'tt:phone_number' ||
                 value.type === 'tt:contact') {
-                slot.set(await contactSearch(this, ptype, value.display!));
+                slot.set(await contactSearch(this, value.type, value.display!));
             } else {
                 const candidates = (hints.idEntities ? hints.idEntities.get(value.type) : undefined)
                     || await this.lookupEntityCandidates(value.type, value.display!, hints);

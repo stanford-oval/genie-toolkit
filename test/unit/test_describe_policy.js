@@ -63,14 +63,14 @@ let TEST_CASES = [
     ['true : @com.bing.web_search => @com.twitter.*',
      'anyone is allowed to read websites matching any query on Bing and then use it to perform any action on your Twitter'],
 
-    ['source == "mom"^^tt:username : now => @com.twitter.post',
-     '@mom is allowed to tweet any status'],
+    ['source == null^^tt:contact("mom") : now => @com.twitter.post',
+     'mom is allowed to tweet any status'],
 
-    ['group_member(source, "family"^^tt:contact_group_name) : now => @com.twitter.post',
-     'anyone in the @family group is allowed to tweet any status'],
+    ['group_member(source, null^^tt:contact_group("family")) : now => @com.twitter.post',
+     'anyone in the family group is allowed to tweet any status'],
 
-    ['source == "mom"^^tt:username || source == "dad"^^tt:username : now => @com.twitter.post',
-     'if the requester is equal to @mom or the requester is equal to @dad, the requester is allowed to tweet any status'],
+    ['source == null^^tt:contact("mom") || source == null^^tt:contact("dad") : now => @com.twitter.post',
+     'if the requester is equal to mom or the requester is equal to dad, the requester is allowed to tweet any status'],
 
     ['true : now => @com.twitter.post, status == "foo"',
      'anyone is allowed to tweet “foo”'],
