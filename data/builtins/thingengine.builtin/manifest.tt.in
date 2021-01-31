@@ -87,6 +87,7 @@ class @org.thingpedia.builtin.thingengine.builtin
   #[doc="get a uniform random integer between `low` and `high`"]
   #[confirm=false];
 
+  /*
   monitorable list query device(out id : Entity(tt:device)
                                 #_[canonical={
                                    base=["name"],
@@ -132,6 +133,7 @@ class @org.thingpedia.builtin.thingengine.builtin
   #_[formatted=[{type="text",text="${program}"}]]
   #[doc="retrieve the list of supported commands for the given device"]
   #[confirm=false];
+  */
 
   action open_url(in req url: Entity(tt:url)
                   #_[prompt=["what url do you want to open", "what do you want to open"]]
@@ -163,6 +165,17 @@ class @org.thingpedia.builtin.thingengine.builtin
   #_[canonical=["log a message", "record a message", "write a message in the logs"]]
   #_[confirmation="write $message in the developer logs"]
   #[doc="log a message in the developer logs"]
+  #[confirm=false];
+
+  action faq_reply(in req question: Enum(__faq__)
+                   #_[prompt="what do you would like to know"]
+                   #_[canonical="message"],
+                   out reply: String
+                   #_[canonical=["reply", "answer"]])
+  #_[result="${reply}"]
+  #_[canonical="ask question about almond"]
+  #_[confirmation="reply to $question"]
+  #[doc="asks a question about Almond"]
   #[confirm=false];
 
 /*

@@ -24,6 +24,8 @@ po/*.json
 
 *.tgz
 *.tt.json
+data/builtins/thingengine.builtin/*.tt
+lib/engine/devices/builtins/faq.json
 
 workdir*
 genienlp/
