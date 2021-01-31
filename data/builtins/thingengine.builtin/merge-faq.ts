@@ -26,7 +26,28 @@ import { promises as pfs } from 'fs';
 import * as path from 'path';
 import { Syntax, Ast, Type } from 'thingtalk';
 
-import { split } from '../../../lib/utils/misc-utils';
+// FIXME in some build configurations, importing { split } from misc-utils
+// fails with error "TypeError: lib/utils/misc-utils.js: Emit skipped"
+// because the file is not in the same build directory
+// so we duplicate it here
+
+function* split(pattern : string, regexp : RegExp|string) : Generator<string|string[], void> {
+    // a split that preserves capturing parenthesis
+
+    const clone = new RegExp(regexp, 'g');
+    let match = clone.exec(pattern);
+
+    let i = 0;
+    while (match !== null) {
+        if (match.index > i)
+            yield pattern.substring(i, match.index);
+        yield match;
+        i = clone.lastIndex;
+        match = clone.exec(pattern);
+    }
+    if (i < pattern.length)
+        yield pattern.substring(i, pattern.length);
+}
 
 function expandChoices(utterances : string[]) : string[] {
     const expanded : string[] = [];
