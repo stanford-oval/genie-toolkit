@@ -652,9 +652,9 @@ cross-spawn@^7.0.0, cross-spawn@^7.0.2:
     which "^2.0.1"
 
 csv-parse@^4.4.5:
-  version "4.14.1"
-  resolved "https://registry.yarnpkg.com/csv-parse/-/csv-parse-4.14.1.tgz#b6b3736508fb94682fa6d450fe1755237221d291"
-  integrity sha512-4wmcO7QbWtDAncGFaBwlWFPhEN4Akr64IbM4zvDwEOFekI8blLc04Nw7XjQjtSNy+3AUAgBgtUa9nWo5Cq89Xg==
+  version "4.15.0"
+  resolved "https://registry.yarnpkg.com/csv-parse/-/csv-parse-4.15.0.tgz#d86d447e88d5f9a539e8768874f89a8d86d8fd78"
+  integrity sha512-y2wGeU/ybvUlyw6F+eanM6lxxE4JthCuHuaoTgPXdw6ImmfYXqtP0nrCLqd6Ew/a0FgPEz36y5HznI0W5oJ+cg==
 
 csv-stringify@^5.3.0:
   version "5.5.3"
