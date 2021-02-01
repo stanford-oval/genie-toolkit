@@ -51,10 +51,11 @@ genie-??????
 !test/data/thingpedia.tt
 !test/thingpedia.tt
 
-!starter/wikidata294/city/augmented.tsv
-!starter/wikidata294/city/constants.tsv
-!starter/wikidata294/city/parameter-datasets.tsv
-!starter/wikidata294/country/augmented.tsv
-!starter/wikidata294/country/constants.tsv
-!starter/wikidata294/country/parameter-datasets.tsv
+!starter/wikidata294/*/eval-synthetic/annotated.tsv
+!starter/wikidata294/*/eval-synthetic-autoqa/annotated.tsv
+!starter/wikidata294/*/eval-synthetic-baseline/annotated.tsv
+!starter/wikidata294/*/augmented.tsv
+!starter/wikidata294/*/constants.tsv
+!starter/wikidata294/*/parameter-datasets.tsv
+
 
