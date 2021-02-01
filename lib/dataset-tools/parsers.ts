@@ -163,6 +163,8 @@ class DatasetParser extends Stream.Transform {
     }
 }
 
+export enum THUMBS { UP, DOWN }
+
 export interface DialogueTurn {
     context : string|null;
     agent : string|null;
@@ -170,6 +172,8 @@ export interface DialogueTurn {
     intermediate_context : string|null;
     user : string;
     user_target : string;
+    rate ?: THUMBS;
+    comment ?: string;
 }
 
 export interface DialogueExample {
@@ -212,6 +216,11 @@ class DialogueSerializer extends Stream.Transform {
                     this._pushMany(this._prefixLines(turn.agent_target!, 'AT: '));
                 if (this._annotations && turn.intermediate_context)
                     this._pushMany(this._prefixLines(turn.intermediate_context, 'C: '));
+
+                if (turn.rate !== undefined)
+                    this._pushMany(this._prefixLines(turn.rate === THUMBS.UP ? '👍' : '👎', '#! '));
+                if (turn.comment)
+                    this._pushMany(this._prefixLines(turn.comment, '# '));
             }
             this.push('U: ' + turn.user + '\n');
             if (this._annotations)
@@ -266,7 +275,7 @@ class DialogueParser extends Stream.Transform {
             if (/^(R)?(P)?(C)?(S)?(E)?$/.test(this._id))
                 this._id = '_' + this._id;
         }
-        if (!line || line.startsWith('#')) {
+        if (!line) {
             callback();
             return;
         }
@@ -303,6 +312,7 @@ class DialogueParser extends Stream.Transform {
             intermediate_context: '',
             user: '',
             user_target: '',
+            comment: ''
         };
 
         // first turn starts with the user
@@ -316,13 +326,14 @@ class DialogueParser extends Stream.Transform {
                 intermediate_context: '',
                 user: '',
                 user_target: '',
+                comment: ''
             };
         }
 
         let currentKey : keyof DialogueTurn|null = null;
         let text = '';
         for (const line of lines) {
-            let key, newText;
+            let key : keyof DialogueTurn, newText;
             if (line.startsWith('A: ')) {
                 key = 'agent';
                 newText = line.substring(3).trim().normalize('NFKD');
@@ -338,12 +349,28 @@ class DialogueParser extends Stream.Transform {
             } else if (line.startsWith('C: ')) {
                 key = 'context';
                 newText = line.substring(3).normalize('NFKD');
+            } else if (line.startsWith('#! ')) {
+                key = 'rate';
+                newText = line.substring(3);
+            } else if (line.startsWith('#')) {
+                key = 'comment';
+                newText = line.substring(1).normalize('NFKD');
             } else {
                 throw new Error(`malformed line ${line}, expected to start with C:, U:, A:, AT: or UT:`);
             }
 
+            if (key === 'rate') {
+                currentTurn.rate = newText === '👍' ? THUMBS.UP : THUMBS.DOWN;
+                continue;
+            }
+            if (key === 'comment') {
+                currentTurn.comment += newText + '\n';
+                continue;
+            }
+
             if (currentKey === 'intermediate_context' && key === 'context')
                 key = 'intermediate_context';
+
             if (currentKey !== null && currentKey !== key) {
                 assert(text);
                 currentTurn[currentKey] = text.trim().normalize('NFKD');
