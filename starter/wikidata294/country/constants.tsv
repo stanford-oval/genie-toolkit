@@ -1,0 +1,1332 @@
+param:@org.wikidata.country:id:Entity(org.wikidata:country)	United States of America	Q30
+param:@org.wikidata.country:id:Entity(org.wikidata:country)	Greece	Q41
+param:@org.wikidata.country:id:Entity(org.wikidata:country)	Saudi Arabia	Q851
+param:@org.wikidata.country:id:Entity(org.wikidata:country)	Argentina	Q414
+param:@org.wikidata.country:id:Entity(org.wikidata:country)	Bolivia	Q750
+param:@org.wikidata.country:id:Entity(org.wikidata:country)	Italy	Q38
+param:@org.wikidata.country:id:Entity(org.wikidata:country)	Khmer Republic	Q1054184
+param:@org.wikidata.country:id:Entity(org.wikidata:country)	Saar Protectorate	Q310293
+param:@org.wikidata.country:id:Entity(org.wikidata:country)	Syria	Q858
+param:@org.wikidata.country:id:Entity(org.wikidata:country)	Chile	Q298
+param:@org.wikidata.country:id:String	Q30
+param:@org.wikidata.country:id:String	Q41
+param:@org.wikidata.country:id:String	Q851
+param:@org.wikidata.country:id:String	Q414
+param:@org.wikidata.country:id:String	Q750
+param:@org.wikidata.country:id:String	Q38
+param:@org.wikidata.country:id:String	Q1054184
+param:@org.wikidata.country:id:String	Q310293
+param:@org.wikidata.country:id:String	Q858
+param:@org.wikidata.country:id:String	Q298
+param:@org.wikidata.country:founded_by:Entity(org.wikidata:human)	Walter Scheel	Q2571
+param:@org.wikidata.country:founded_by:Entity(org.wikidata:human)	Jorge Sampaio	Q156780
+param:@org.wikidata.country:founded_by:Entity(org.wikidata:human)	Michael the Archangel	Q45581
+param:@org.wikidata.country:founded_by:Entity(org.wikidata:human)	Soong Ching-ling	Q17132
+param:@org.wikidata.country:founded_by:Entity(org.wikidata:human)	Roman Herzog	Q2563
+param:@org.wikidata.country:founded_by:Entity(org.wikidata:human)	Ezer Weizman	Q128911
+param:@org.wikidata.country:founded_by:Entity(org.wikidata:human)	Luiz Inácio Lula da Silva	Q37181
+param:@org.wikidata.country:founded_by:Entity(org.wikidata:human)	Yitzhak Navon	Q311583
+param:@org.wikidata.country:founded_by:Entity(org.wikidata:human)	Esmon Saimon	Q5398549
+param:@org.wikidata.country:founded_by:Entity(org.wikidata:human)	Fernando Collor de Mello	Q236503
+param:@org.wikidata.country:topics_main_wikimedia_portal:Entity(org.wikidata:topics_main_wikimedia_portal)	Portal:Angola	Q11302861
+param:@org.wikidata.country:topics_main_wikimedia_portal:Entity(org.wikidata:topics_main_wikimedia_portal)	Portal:People's Republic of China	Q13365337
+param:@org.wikidata.country:topics_main_wikimedia_portal:Entity(org.wikidata:topics_main_wikimedia_portal)	Portal:Portugal	Q10815313
+param:@org.wikidata.country:topics_main_wikimedia_portal:Entity(org.wikidata:topics_main_wikimedia_portal)	Portal:Germany	Q3802786
+param:@org.wikidata.country:topics_main_wikimedia_portal:Entity(org.wikidata:topics_main_wikimedia_portal)	Portal:Belgium	Q3247091
+param:@org.wikidata.country:topics_main_wikimedia_portal:Entity(org.wikidata:topics_main_wikimedia_portal)	Portal:Brazil	Q6062964
+param:@org.wikidata.country:topics_main_wikimedia_portal:Entity(org.wikidata:topics_main_wikimedia_portal)	Portal:Chile	Q10499987
+param:@org.wikidata.country:topics_main_wikimedia_portal:Entity(org.wikidata:topics_main_wikimedia_portal)	Portal:Vanuatu	Q14616317
+param:@org.wikidata.country:topics_main_wikimedia_portal:Entity(org.wikidata:topics_main_wikimedia_portal)	Portal:Malta	Q11256685
+param:@org.wikidata.country:topics_main_wikimedia_portal:Entity(org.wikidata:topics_main_wikimedia_portal)	Portal:Israel	Q8252866
+param:@org.wikidata.country:central_bank:Entity(org.wikidata:central_bank)	Bank of Thailand	Q806706
+param:@org.wikidata.country:central_bank:Entity(org.wikidata:central_bank)	Banco de Portugal	Q378372
+param:@org.wikidata.country:central_bank:Entity(org.wikidata:central_bank)	People’s Bank of China	Q249203
+param:@org.wikidata.country:central_bank:Entity(org.wikidata:central_bank)	Central Bank of Chile	Q2631674
+param:@org.wikidata.country:central_bank:Entity(org.wikidata:central_bank)	Central Bank of Bahrain	Q571182
+param:@org.wikidata.country:central_bank:Entity(org.wikidata:central_bank)	Bank of Israel	Q244411
+param:@org.wikidata.country:central_bank:Entity(org.wikidata:central_bank)	Central Bank of Brazil	Q806186
+param:@org.wikidata.country:central_bank:Entity(org.wikidata:central_bank)	National Bank of Tajikistan	Q4314981
+param:@org.wikidata.country:central_bank:Entity(org.wikidata:central_bank)	National Bank of Belgium	Q685918
+param:@org.wikidata.country:central_bank:Entity(org.wikidata:central_bank)	National Bank of Angola	Q31211
+param:@org.wikidata.country:office_held_by_head_of_government:String	Q208487
+param:@org.wikidata.country:office_held_by_head_of_government:String	Q58150
+param:@org.wikidata.country:office_held_by_head_of_government:String	Q1723031
+param:@org.wikidata.country:office_held_by_head_of_government:String	Q30101519
+param:@org.wikidata.country:office_held_by_head_of_government:String	Q1029958
+param:@org.wikidata.country:office_held_by_head_of_government:String	Q4122271
+param:@org.wikidata.country:office_held_by_head_of_government:String	Q152814
+param:@org.wikidata.country:office_held_by_head_of_government:String	Q12376089
+param:@org.wikidata.country:office_held_by_head_of_government:String	Q846091
+param:@org.wikidata.country:office_held_by_head_of_government:String	Q778651
+param:@org.wikidata.country:kunstindeks_danmark_artist_id:String	14253
+param:@org.wikidata.country:kunstindeks_danmark_artist_id:String	14042
+param:@org.wikidata.country:territory_claimed_by:Entity(org.wikidata:human)	Walter Scheel	Q2571
+param:@org.wikidata.country:territory_claimed_by:Entity(org.wikidata:human)	Jorge Sampaio	Q156780
+param:@org.wikidata.country:territory_claimed_by:Entity(org.wikidata:human)	Michael the Archangel	Q45581
+param:@org.wikidata.country:territory_claimed_by:Entity(org.wikidata:human)	Soong Ching-ling	Q17132
+param:@org.wikidata.country:territory_claimed_by:Entity(org.wikidata:human)	Roman Herzog	Q2563
+param:@org.wikidata.country:territory_claimed_by:Entity(org.wikidata:human)	Ezer Weizman	Q128911
+param:@org.wikidata.country:territory_claimed_by:Entity(org.wikidata:human)	Luiz Inácio Lula da Silva	Q37181
+param:@org.wikidata.country:territory_claimed_by:Entity(org.wikidata:human)	Yitzhak Navon	Q311583
+param:@org.wikidata.country:territory_claimed_by:Entity(org.wikidata:human)	Esmon Saimon	Q5398549
+param:@org.wikidata.country:territory_claimed_by:Entity(org.wikidata:human)	Fernando Collor de Mello	Q236503
+param:@org.wikidata.country:official_name:String	Kingdom of Belgium
+param:@org.wikidata.country:official_name:String	Federal Republic
+param:@org.wikidata.country:official_name:String	Republic of Malta
+param:@org.wikidata.country:official_name:String	Malta
+param:@org.wikidata.country:official_name:String	Republic of Vanuatu
+param:@org.wikidata.country:official_name:String	Vanuatu
+param:@org.wikidata.country:official_name:String	Republic of Angola
+param:@org.wikidata.country:official_name:String	Sierra Leone
+param:@org.wikidata.country:official_name:String	Sudan
+param:@org.wikidata.country:dharma_drum_buddhist_college_place_id:String	PL000000049622
+param:@org.wikidata.country:described_by_source:Entity(org.wikidata:described_by_source)	Brockhaus and Efron Encyclopedic Dictionary	Q602358
+param:@org.wikidata.country:described_by_source:Entity(org.wikidata:described_by_source)	Catholic Encyclopedia	Q302556
+param:@org.wikidata.country:described_by_source:Entity(org.wikidata:described_by_source)	Sytin Military Encyclopedia	Q4114391
+param:@org.wikidata.country:described_by_source:Entity(org.wikidata:described_by_source)	Ottův slovník naučný	Q2041543
+param:@org.wikidata.country:described_by_source:Entity(org.wikidata:described_by_source)	Brockhaus and Efron Encyclopedic Dictionary	Q602358
+param:@org.wikidata.country:described_by_source:Entity(org.wikidata:described_by_source)	Orthodox Theological Encyclopedia	Q19211082
+param:@org.wikidata.country:described_by_source:Entity(org.wikidata:described_by_source)	Sytin Military Encyclopedia	Q4114391
+param:@org.wikidata.country:described_by_source:Entity(org.wikidata:described_by_source)	Armenian Soviet Encyclopedia	Q2657718
+param:@org.wikidata.country:described_by_source:Entity(org.wikidata:described_by_source)	Granat Encyclopedic Dictionary	Q4532138
+param:@org.wikidata.country:described_by_source:Entity(org.wikidata:described_by_source)	Small Brockhaus and Efron Encyclopedic Dictionary	Q19180675
+param:@org.wikidata.country:nickname:String	Land of Smiles
+param:@org.wikidata.country:participant_in:Entity(org.wikidata:event)	BASIC countries	Q795464
+param:@org.wikidata.country:participant_in:Entity(org.wikidata:event)	Group of Five	Q2720495
+param:@org.wikidata.country:participant_in:Entity(org.wikidata:event)	China-CELAC Forum	Q83493046
+param:@org.wikidata.country:participant_in:Entity(org.wikidata:event)	BASIC countries	Q795464
+param:@org.wikidata.country:participant_in:Entity(org.wikidata:event)	G4 nations	Q838116
+param:@org.wikidata.country:participant_in:Entity(org.wikidata:event)	G4 nations	Q838116
+param:@org.wikidata.country:participant_in:Entity(org.wikidata:event)	Battle of the Lys	Q1088364
+param:@org.wikidata.country:participant_in:Entity(org.wikidata:event)	South American dreadnought race	Q9538
+param:@org.wikidata.country:participant_in:Entity(org.wikidata:event)	South American dreadnought race	Q9538
+param:@org.wikidata.country:participant_in:Entity(org.wikidata:event)	War of Attrition	Q322607
+param:@org.wikidata.country:replaces:Entity(org.wikidata:replaces)	German Reich	Q1206012
+param:@org.wikidata.country:replaces:Entity(org.wikidata:replaces)	Mandatory Palestine	Q193714
+param:@org.wikidata.country:replaces:Entity(org.wikidata:replaces)	German Democratic Republic	Q16957
+param:@org.wikidata.country:replaces:Entity(org.wikidata:replaces)	Trizone	Q569998
+param:@org.wikidata.country:replaces:Entity(org.wikidata:replaces)	Portuguese Empire	Q200464
+param:@org.wikidata.country:replaces:Entity(org.wikidata:replaces)	State of Malta	Q7603765
+param:@org.wikidata.country:replaces:Entity(org.wikidata:replaces)	German Reich	Q1206012
+param:@org.wikidata.country:replaces:Entity(org.wikidata:replaces)	Tajik Soviet Socialist Republic	Q199711
+param:@org.wikidata.country:replaces:Entity(org.wikidata:replaces)	Inner Mongolian People's Republic	Q4120908
+param:@org.wikidata.country:replaces:Entity(org.wikidata:replaces)	United Kingdom of the Netherlands	Q15864
+param:@org.wikidata.country:motto_text:String	By Right
+param:@org.wikidata.country:motto_text:String	Unity and Justice
+param:@org.wikidata.country:motto_text:String	In God
+param:@org.wikidata.country:motto_text:String	Unity makes strength
+param:@org.wikidata.country:motto_text:String	China Like Never
+param:@org.wikidata.country:motto_text:String	Truly Mediterranean
+param:@org.wikidata.country:motto_text:String	The place
+param:@org.wikidata.country:motto_text:String	Simply Beautiful
+param:@org.wikidata.country:motto_text:String	All are welcome
+param:@org.wikidata.country:motto_text:String	Simply inspiring
+param:@org.wikidata.country:named_after:Entity(org.wikidata:named_after)	Germania	Q62646
+param:@org.wikidata.country:named_after:Entity(org.wikidata:named_after)	mutism	Q671776
+param:@org.wikidata.country:named_after:Entity(org.wikidata:named_after)	Gallia Belgica	Q206443
+param:@org.wikidata.country:named_after:Entity(org.wikidata:named_after)	Caesalpinia echinata	Q216469
+param:@org.wikidata.country:named_after:Entity(org.wikidata:named_after)	theodisk	Q291495
+param:@org.wikidata.country:named_after:Entity(org.wikidata:named_after)	Prussia	Q38872
+param:@org.wikidata.country:named_after:Entity(org.wikidata:named_after)	foreigner	Q473741
+param:@org.wikidata.country:named_after:Entity(org.wikidata:named_after)	Land of Israel	Q155321
+param:@org.wikidata.country:named_after:Entity(org.wikidata:named_after)	Alamanni	Q132990
+param:@org.wikidata.country:named_after:Entity(org.wikidata:named_after)	Saxons	Q101985
+param:@org.wikidata.country:partially_coincident_with:Entity(org.wikidata:partially_coincident_with)	Palestine	Q23792
+param:@org.wikidata.country:demonym:String	Israeli
+param:@org.wikidata.country:demonym:String	Laotians
+param:@org.wikidata.country:demonym:String	Maltese
+param:@org.wikidata.country:demonym:String	Bahraini
+param:@org.wikidata.country:demonym:String	Lao
+param:@org.wikidata.country:demonym:String	Belgian
+param:@org.wikidata.country:demonym:String	Laotian
+param:@org.wikidata.country:demonym:String	Emirian
+param:@org.wikidata.country:demonym:String	Chinese
+param:@org.wikidata.country:demonym:String	Chilean
+param:@org.wikidata.country:cantic_id:String	a10958964
+param:@org.wikidata.country:topics_main_template:Entity(org.wikidata:topics_main_template)	Template:China topics	Q8005471
+param:@org.wikidata.country:topics_main_template:Entity(org.wikidata:topics_main_template)	Template:Israel topics	Q10563945
+param:@org.wikidata.country:native_label:String	Republic of Vanuatu
+param:@org.wikidata.country:native_label:String	Republic of Sierra
+param:@org.wikidata.country:short_name:String	China
+param:@org.wikidata.country:short_name:String	PRC
+param:@org.wikidata.country:category_for_people_born_here:Entity(org.wikidata:category_for_people_born_here)	Category:Births in Thailand	Q9493410
+param:@org.wikidata.country:category_for_people_born_here:Entity(org.wikidata:category_for_people_born_here)	Category:Births in Belgium	Q7463296
+param:@org.wikidata.country:category_for_people_born_here:Entity(org.wikidata:category_for_people_born_here)	Category:Births in Portugal	Q7463339
+param:@org.wikidata.country:category_for_people_born_here:Entity(org.wikidata:category_for_people_born_here)	Category:Births in Germany	Q7463306
+param:@org.wikidata.country:category_for_people_born_here:Entity(org.wikidata:category_for_people_born_here)	Category:Births in China	Q7463297
+param:@org.wikidata.country:category_for_people_born_here:Entity(org.wikidata:category_for_people_born_here)	Category:Births in Chile	Q8079029
+param:@org.wikidata.country:category_for_people_born_here:Entity(org.wikidata:category_for_people_born_here)	Category:Births in Brazil	Q9517416
+param:@org.wikidata.country:category_for_people_born_here:Entity(org.wikidata:category_for_people_born_here)	Category:Births in Mali	Q8062566
+param:@org.wikidata.country:category_for_people_born_here:Entity(org.wikidata:category_for_people_born_here)	Category:Births in Tajikistan	Q8074639
+param:@org.wikidata.country:category_for_people_born_here:Entity(org.wikidata:category_for_people_born_here)	Category:Births in the United Arab Emirates	Q8066361
+param:@org.wikidata.country:category_for_people_who_died_here:Entity(org.wikidata:category_for_people_who_died_here)	Category:Deaths in Laos	Q8365521
+param:@org.wikidata.country:category_for_people_who_died_here:Entity(org.wikidata:category_for_people_who_died_here)	Category:Deaths in Portugal	Q7482564
+param:@org.wikidata.country:category_for_people_who_died_here:Entity(org.wikidata:category_for_people_who_died_here)	Category:Deaths in China	Q6482558
+param:@org.wikidata.country:category_for_people_who_died_here:Entity(org.wikidata:category_for_people_who_died_here)	Category:Deaths in Chile	Q8365403
+param:@org.wikidata.country:category_for_people_who_died_here:Entity(org.wikidata:category_for_people_who_died_here)	Category:Deaths in Malta	Q7482591
+param:@org.wikidata.country:category_for_people_who_died_here:Entity(org.wikidata:category_for_people_who_died_here)	Category:Deaths in Israel	Q6334664
+param:@org.wikidata.country:category_for_people_who_died_here:Entity(org.wikidata:category_for_people_who_died_here)	Category:Deaths in Tajikistan	Q8365651
+param:@org.wikidata.country:category_for_people_who_died_here:Entity(org.wikidata:category_for_people_who_died_here)	Category:Deaths in Germany	Q6430198
+param:@org.wikidata.country:category_for_people_who_died_here:Entity(org.wikidata:category_for_people_who_died_here)	Category:Deaths in Brazil	Q7482631
+param:@org.wikidata.country:category_for_people_who_died_here:Entity(org.wikidata:category_for_people_who_died_here)	Category:Deaths in Belgium	Q8366417
+param:@org.wikidata.country:contains_administrative_territorial_entity:Entity(org.wikidata:contains_administrative_territorial_entity)	Malampa	Q740656
+param:@org.wikidata.country:contains_administrative_territorial_entity:Entity(org.wikidata:contains_administrative_territorial_entity)	Gansu	Q42392
+param:@org.wikidata.country:contains_administrative_territorial_entity:Entity(org.wikidata:contains_administrative_territorial_entity)	Central District	Q188785
+param:@org.wikidata.country:contains_administrative_territorial_entity:Entity(org.wikidata:contains_administrative_territorial_entity)	Xiangkhouang Province	Q465947
+param:@org.wikidata.country:contains_administrative_territorial_entity:Entity(org.wikidata:contains_administrative_territorial_entity)	Minas Gerais	Q39109
+param:@org.wikidata.country:contains_administrative_territorial_entity:Entity(org.wikidata:contains_administrative_territorial_entity)	Shaanxi	Q47974
+param:@org.wikidata.country:contains_administrative_territorial_entity:Entity(org.wikidata:contains_administrative_territorial_entity)	Mato Grosso do Sul	Q43319
+param:@org.wikidata.country:contains_administrative_territorial_entity:Entity(org.wikidata:contains_administrative_territorial_entity)	Attapeu Province	Q503004
+param:@org.wikidata.country:contains_administrative_territorial_entity:Entity(org.wikidata:contains_administrative_territorial_entity)	Araucanía Region	Q2176
+param:@org.wikidata.country:contains_administrative_territorial_entity:Entity(org.wikidata:contains_administrative_territorial_entity)	Central Governorate	Q856539
+param:@org.wikidata.country:jewish_encyclopedia_id_russian_:String	10489
+param:@org.wikidata.country:jewish_encyclopedia_id_russian_:String	13287
+param:@org.wikidata.country:jewish_encyclopedia_id_russian_:String	12104
+param:@org.wikidata.country:jewish_encyclopedia_id_russian_:String	11122
+param:@org.wikidata.country:jewish_encyclopedia_id_russian_:String	14687
+param:@org.wikidata.country:jewish_encyclopedia_id_russian_:String	11730
+param:@org.wikidata.country:motto:Entity(org.wikidata:motto)	Unity makes strength	Q1308013
+param:@org.wikidata.country:motto:Entity(org.wikidata:motto)	Order and Progress	Q1077885
+param:@org.wikidata.country:follows:Entity(org.wikidata:follows)	Kingdom of Portugal	Q45670
+param:@org.wikidata.country:follows:Entity(org.wikidata:follows)	Empire of Brazil	Q217230
+param:@org.wikidata.country:follows:Entity(org.wikidata:follows)	Colonial Brazil	Q2088324
+param:@org.wikidata.country:follows:Entity(org.wikidata:follows)	New Hebrides	Q752431
+param:@org.wikidata.country:follows:Entity(org.wikidata:follows)	Siam	Q1081620
+param:@org.wikidata.country:follows:Entity(org.wikidata:follows)	Colony of Sierra Leone	Q15240191
+param:@org.wikidata.country:has_quality:Entity(org.wikidata:has_quality)	free country	Q3174312
+param:@org.wikidata.country:has_quality:Entity(org.wikidata:has_quality)	free country	Q3174312
+param:@org.wikidata.country:has_quality:Entity(org.wikidata:has_quality)	not-free country	Q47185282
+param:@org.wikidata.country:has_quality:Entity(org.wikidata:has_quality)	not-free country	Q47185282
+param:@org.wikidata.country:has_quality:Entity(org.wikidata:has_quality)	free country	Q3174312
+param:@org.wikidata.country:has_quality:Entity(org.wikidata:has_quality)	free country	Q3174312
+param:@org.wikidata.country:has_quality:Entity(org.wikidata:has_quality)	not-free country	Q47185282
+param:@org.wikidata.country:has_quality:Entity(org.wikidata:has_quality)	free country	Q3174312
+param:@org.wikidata.country:has_quality:Entity(org.wikidata:has_quality)	Jewish and democratic state	Q2614401
+param:@org.wikidata.country:has_quality:Entity(org.wikidata:has_quality)	partly free country	Q47185145
+param:@org.wikidata.country:hashtag:String	Deutschland
+param:@org.wikidata.country:flag:String	Q128812
+param:@org.wikidata.country:flag:String	Q82194
+param:@org.wikidata.country:flag:String	Q185285
+param:@org.wikidata.country:flag:String	Q134885
+param:@org.wikidata.country:flag:String	Q131469
+param:@org.wikidata.country:flag:String	Q131147
+param:@org.wikidata.country:flag:String	Q160872
+param:@org.wikidata.country:flag:String	Q12990
+param:@org.wikidata.country:flag:String	Q134247
+param:@org.wikidata.country:flag:String	Q48160
+param:@org.wikidata.country:award_received:Entity(org.wikidata:award)	George Cross	Q1143510
+param:@org.wikidata.country:country:Entity(org.wikidata:country)	United States of America	Q30
+param:@org.wikidata.country:country:Entity(org.wikidata:country)	Greece	Q41
+param:@org.wikidata.country:country:Entity(org.wikidata:country)	Saudi Arabia	Q851
+param:@org.wikidata.country:country:Entity(org.wikidata:country)	Argentina	Q414
+param:@org.wikidata.country:country:Entity(org.wikidata:country)	Bolivia	Q750
+param:@org.wikidata.country:country:Entity(org.wikidata:country)	Italy	Q38
+param:@org.wikidata.country:country:Entity(org.wikidata:country)	Khmer Republic	Q1054184
+param:@org.wikidata.country:country:Entity(org.wikidata:country)	Saar Protectorate	Q310293
+param:@org.wikidata.country:country:Entity(org.wikidata:country)	Syria	Q858
+param:@org.wikidata.country:country:Entity(org.wikidata:country)	Chile	Q298
+param:@org.wikidata.country:ethnic_group:Entity(org.wikidata:ethnic_group)	Han Chinese people	Q42740
+param:@org.wikidata.country:ethnic_group:Entity(org.wikidata:ethnic_group)	Fur people	Q1124032
+param:@org.wikidata.country:ethnic_group:Entity(org.wikidata:ethnic_group)	Mongols in China	Q1187403
+param:@org.wikidata.country:ethnic_group:Entity(org.wikidata:ethnic_group)	Zhuang people	Q36692
+param:@org.wikidata.country:ethnic_group:Entity(org.wikidata:ethnic_group)	Hui people	Q183573
+param:@org.wikidata.country:ethnic_group:Entity(org.wikidata:ethnic_group)	Miao	Q209959
+param:@org.wikidata.country:ethnic_group:Entity(org.wikidata:ethnic_group)	Yi people	Q461282
+param:@org.wikidata.country:ethnic_group:Entity(org.wikidata:ethnic_group)	Tibetan people	Q187985
+param:@org.wikidata.country:ethnic_group:Entity(org.wikidata:ethnic_group)	Koreans in China	Q715978
+param:@org.wikidata.country:ethnic_group:Entity(org.wikidata:ethnic_group)	Bouyei people	Q673161
+param:@org.wikidata.country:category_for_films_shot_at_this_location:Entity(org.wikidata:category_for_films_shot_at_this_location)	Category:Films shot in Malta	Q7140647
+param:@org.wikidata.country:category_for_films_shot_at_this_location:Entity(org.wikidata:category_for_films_shot_at_this_location)	Category:Films shot in Chile	Q6296749
+param:@org.wikidata.country:category_for_films_shot_at_this_location:Entity(org.wikidata:category_for_films_shot_at_this_location)	Category:Films shot in Tajikistan	Q31962737
+param:@org.wikidata.country:category_for_films_shot_at_this_location:Entity(org.wikidata:category_for_films_shot_at_this_location)	Category:Films shot in Brazil	Q7140311
+param:@org.wikidata.country:category_for_films_shot_at_this_location:Entity(org.wikidata:category_for_films_shot_at_this_location)	Category:Films shot in Bahrain	Q6839391
+param:@org.wikidata.country:category_for_films_shot_at_this_location:Entity(org.wikidata:category_for_films_shot_at_this_location)	Category:Films shot in Vanuatu	Q8458230
+param:@org.wikidata.country:category_for_films_shot_at_this_location:Entity(org.wikidata:category_for_films_shot_at_this_location)	Category:Films shot in Portugal	Q7521968
+param:@org.wikidata.country:category_for_films_shot_at_this_location:Entity(org.wikidata:category_for_films_shot_at_this_location)	Category:Films shot in Germany	Q7237249
+param:@org.wikidata.country:category_for_films_shot_at_this_location:Entity(org.wikidata:category_for_films_shot_at_this_location)	Category:Films shot in China	Q7521902
+param:@org.wikidata.country:category_for_films_shot_at_this_location:Entity(org.wikidata:category_for_films_shot_at_this_location)	Category:Films shot in Angola	Q19363034
+param:@org.wikidata.country:category_of_people_buried_here:Entity(org.wikidata:category_of_people_buried_here)	Category:Burials in Belgium	Q7974978
+param:@org.wikidata.country:category_of_people_buried_here:Entity(org.wikidata:category_of_people_buried_here)	Category:Burials in Portugal	Q6369955
+param:@org.wikidata.country:category_of_people_buried_here:Entity(org.wikidata:category_of_people_buried_here)	Category:Burials in Brazil	Q8328528
+param:@org.wikidata.country:category_of_people_buried_here:Entity(org.wikidata:category_of_people_buried_here)	Category:Burials in Germany	Q9385337
+param:@org.wikidata.country:category_of_people_buried_here:Entity(org.wikidata:category_of_people_buried_here)	Category:Burials in Malta	Q8328667
+param:@org.wikidata.country:category_of_people_buried_here:Entity(org.wikidata:category_of_people_buried_here)	Category:Burials in Chile	Q7978785
+param:@org.wikidata.country:category_of_people_buried_here:Entity(org.wikidata:category_of_people_buried_here)	Category:Burials in Israel	Q7976029
+param:@org.wikidata.country:category_of_people_buried_here:Entity(org.wikidata:category_of_people_buried_here)	Category:Burials in Thailand	Q25213770
+param:@org.wikidata.country:category_of_people_buried_here:Entity(org.wikidata:category_of_people_buried_here)	Category:Burials in Sierra Leone	Q8328772
+param:@org.wikidata.country:canadiana_authorities_id:String	0000D8369
+param:@org.wikidata.country:category_of_associated_people:Entity(org.wikidata:category_of_associated_people)	Category:Laotian people	Q6992946
+param:@org.wikidata.country:category_of_associated_people:Entity(org.wikidata:category_of_associated_people)	Category:Chinese people	Q7062091
+param:@org.wikidata.country:category_of_associated_people:Entity(org.wikidata:category_of_associated_people)	Category:Bahraini people	Q6993487
+param:@org.wikidata.country:category_of_associated_people:Entity(org.wikidata:category_of_associated_people)	Category:Chilean people	Q7087819
+param:@org.wikidata.country:category_of_associated_people:Entity(org.wikidata:category_of_associated_people)	Category:Maltese people	Q7074448
+param:@org.wikidata.country:category_of_associated_people:Entity(org.wikidata:category_of_associated_people)	Category:Emirati people	Q6994126
+param:@org.wikidata.country:category_of_associated_people:Entity(org.wikidata:category_of_associated_people)	Category:Israeli people	Q7030723
+param:@org.wikidata.country:category_of_associated_people:Entity(org.wikidata:category_of_associated_people)	Category:Vanuatuan people	Q7087623
+param:@org.wikidata.country:category_of_associated_people:Entity(org.wikidata:category_of_associated_people)	Category:Portuguese people	Q7062223
+param:@org.wikidata.country:category_of_associated_people:Entity(org.wikidata:category_of_associated_people)	Category:Thai people	Q7031648
+param:@org.wikidata.country:global_anabaptist_mennonite_encyclopedia_online_id:String	Belgium
+param:@org.wikidata.country:global_anabaptist_mennonite_encyclopedia_online_id:String	Brazil
+param:@org.wikidata.country:global_anabaptist_mennonite_encyclopedia_online_id:String	Germany
+param:@org.wikidata.country:global_anabaptist_mennonite_encyclopedia_online_id:String	Israel
+param:@org.wikidata.country:global_anabaptist_mennonite_encyclopedia_online_id:String	Laos
+param:@org.wikidata.country:global_anabaptist_mennonite_encyclopedia_online_id:String	Thailand
+param:@org.wikidata.country:global_anabaptist_mennonite_encyclopedia_online_id:String	Angola
+param:@org.wikidata.country:owner_of:Entity(org.wikidata:owner_of)	The Fall of the Rebel Angels	Q594406
+param:@org.wikidata.country:owner_of:Entity(org.wikidata:owner_of)	bpost	Q740553
+param:@org.wikidata.country:owner_of:Entity(org.wikidata:owner_of)	Royal Greenhouses of Laeken	Q1644661
+param:@org.wikidata.country:owner_of:Entity(org.wikidata:owner_of)	Monument voor de intergeallieerden	Q2697443
+param:@org.wikidata.country:owner_of:Entity(org.wikidata:owner_of)	Hôtel d'Espie	Q3145723
+param:@org.wikidata.country:owner_of:Entity(org.wikidata:owner_of)	Belfius	Q1956014
+param:@org.wikidata.country:owner_of:Entity(org.wikidata:owner_of)	Proximus	Q2005282
+param:@org.wikidata.country:owner_of:Entity(org.wikidata:owner_of)	Infrabel	Q536120
+param:@org.wikidata.country:owner_of:Entity(org.wikidata:owner_of)	Fort Manoel	Q1366489
+param:@org.wikidata.country:owner_of:Entity(org.wikidata:owner_of)	Fort St Angelo	Q2207146
+param:@org.wikidata.country:different_from:Entity(org.wikidata:different_from)	China	Q29520
+param:@org.wikidata.country:different_from:Entity(org.wikidata:different_from)	Germany	Q1350565
+param:@org.wikidata.country:different_from:Entity(org.wikidata:different_from)	Israel	Q234180
+param:@org.wikidata.country:different_from:Entity(org.wikidata:different_from)	Sudanese Republic	Q3456487
+param:@org.wikidata.country:different_from:Entity(org.wikidata:different_from)	Sedan	Q1414409
+param:@org.wikidata.country:office_held_by_head_of_state:Entity(org.wikidata:office_held_by_head_of_state)	President of Laos	Q904139
+param:@org.wikidata.country:office_held_by_head_of_state:Entity(org.wikidata:office_held_by_head_of_state)	president of Germany	Q25223
+param:@org.wikidata.country:office_held_by_head_of_state:Entity(org.wikidata:office_held_by_head_of_state)	President of Brazil	Q5176750
+param:@org.wikidata.country:office_held_by_head_of_state:Entity(org.wikidata:office_held_by_head_of_state)	Monarchy of Belgium	Q13592862
+param:@org.wikidata.country:office_held_by_head_of_state:Entity(org.wikidata:office_held_by_head_of_state)	President of Malta	Q796593
+param:@org.wikidata.country:office_held_by_head_of_state:Entity(org.wikidata:office_held_by_head_of_state)	President of Portugal	Q322459
+param:@org.wikidata.country:office_held_by_head_of_state:Entity(org.wikidata:office_held_by_head_of_state)	President of Israel	Q327948
+param:@org.wikidata.country:office_held_by_head_of_state:Entity(org.wikidata:office_held_by_head_of_state)	president of Tajikistan	Q1044136
+param:@org.wikidata.country:office_held_by_head_of_state:Entity(org.wikidata:office_held_by_head_of_state)	President of Vanuatu	Q878217
+param:@org.wikidata.country:office_held_by_head_of_state:Entity(org.wikidata:office_held_by_head_of_state)	King of Thailand	Q27330121
+param:@org.wikidata.country:digital_atlas_of_the_roman_empire_id:String	25440
+param:@org.wikidata.country:legislative_body:Entity(org.wikidata:legislative_body)	National Assembly of Bahrain	Q3242616
+param:@org.wikidata.country:legislative_body:Entity(org.wikidata:legislative_body)	Parliament of Vanuatu	Q764201
+param:@org.wikidata.country:legislative_body:Entity(org.wikidata:legislative_body)	National Congress of Brasil	Q949699
+param:@org.wikidata.country:legislative_body:Entity(org.wikidata:legislative_body)	Parliament of Malta	Q1817866
+param:@org.wikidata.country:legislative_body:Entity(org.wikidata:legislative_body)	National Congress of Chile	Q1968468
+param:@org.wikidata.country:legislative_body:Entity(org.wikidata:legislative_body)	Belgian Federal Parliament	Q1137059
+param:@org.wikidata.country:legislative_body:Entity(org.wikidata:legislative_body)	National People's Congress of the People's Republic of China	Q19211
+param:@org.wikidata.country:legislative_body:Entity(org.wikidata:legislative_body)	Federal National Council	Q1479761
+param:@org.wikidata.country:legislative_body:Entity(org.wikidata:legislative_body)	Bundestag of Germany	Q154797
+param:@org.wikidata.country:legislative_body:Entity(org.wikidata:legislative_body)	Bundesrat	Q146138
+param:@org.wikidata.country:located_in_or_next_to_body_of_water:String	Jordan River
+param:@org.wikidata.country:located_in_or_next_to_body_of_water:String	Mediterranean Sea
+param:@org.wikidata.country:located_in_or_next_to_body_of_water:String	Baltic Sea
+param:@org.wikidata.country:located_in_or_next_to_body_of_water:String	Pacific Ocean
+param:@org.wikidata.country:located_in_or_next_to_body_of_water:String	Dead Sea
+param:@org.wikidata.country:located_in_or_next_to_body_of_water:String	Sea of Galilee
+param:@org.wikidata.country:located_in_or_next_to_body_of_water:String	Gulf of Aqaba
+param:@org.wikidata.country:located_in_or_next_to_body_of_water:String	North Sea
+param:@org.wikidata.country:located_in_or_next_to_body_of_water:String	Mediterranean Sea
+param:@org.wikidata.country:located_in_or_next_to_body_of_water:String	Levantine Sea
+param:@org.wikidata.country:executive_body:String	Q2578249
+param:@org.wikidata.country:executive_body:String	Q16850120
+param:@org.wikidata.country:executive_body:String	Q59261
+param:@org.wikidata.country:executive_body:String	Q390947
+param:@org.wikidata.country:executive_body:String	Q5440531
+param:@org.wikidata.country:executive_body:String	Q1005903
+param:@org.wikidata.country:executive_body:String	Q313827
+param:@org.wikidata.country:executive_body:String	Q29077203
+param:@org.wikidata.country:executive_body:String	Q5589242
+param:@org.wikidata.country:executive_body:String	Q873675
+param:@org.wikidata.country:foursquare_venue_id:String	5c2cabf59cadd9002bc0c090
+param:@org.wikidata.country:highest_judicial_authority:String	Q1755321
+param:@org.wikidata.country:highest_judicial_authority:String	Q1230309
+param:@org.wikidata.country:highest_judicial_authority:String	Q1761425
+param:@org.wikidata.country:highest_judicial_authority:String	Q691994
+param:@org.wikidata.country:highest_judicial_authority:String	Q2682024
+param:@org.wikidata.country:highest_judicial_authority:String	Q519138
+param:@org.wikidata.country:highest_judicial_authority:String	Q56025
+param:@org.wikidata.country:highest_judicial_authority:String	Q399798
+param:@org.wikidata.country:history_of_topic:String	Q2696109
+param:@org.wikidata.country:history_of_topic:String	Q927301
+param:@org.wikidata.country:history_of_topic:String	Q862552
+param:@org.wikidata.country:history_of_topic:String	Q243842
+param:@org.wikidata.country:history_of_topic:String	Q2477564
+param:@org.wikidata.country:history_of_topic:String	Q472967
+param:@org.wikidata.country:history_of_topic:String	Q379391
+param:@org.wikidata.country:history_of_topic:String	Q7790
+param:@org.wikidata.country:history_of_topic:String	Q1349896
+param:@org.wikidata.country:history_of_topic:String	Q246643
+param:@org.wikidata.country:commons_category:String	Portugal
+param:@org.wikidata.country:commons_category:String	Thailand
+param:@org.wikidata.country:commons_category:String	Bahrain
+param:@org.wikidata.country:commons_category:String	Brazil
+param:@org.wikidata.country:commons_category:String	Malta
+param:@org.wikidata.country:commons_category:String	Laos
+param:@org.wikidata.country:commons_category:String	Belgium
+param:@org.wikidata.country:commons_category:String	United Arab Emirates
+param:@org.wikidata.country:commons_category:String	Israel
+param:@org.wikidata.country:commons_category:String	Vanuatu
+param:@org.wikidata.country:twitter_username:String	govbr
+param:@org.wikidata.country:twitter_username:String	Israel
+param:@org.wikidata.country:twitter_username:String	IsraelArabic
+param:@org.wikidata.country:twitter_username:String	IsraelHebrew
+param:@org.wikidata.country:official_symbol:String	Q130201
+param:@org.wikidata.country:official_symbol:String	Q25247
+param:@org.wikidata.country:official_symbol:String	Q133006
+param:@org.wikidata.country:official_symbol:String	Q161117
+param:@org.wikidata.country:official_symbol:String	Q2141912
+param:@org.wikidata.country:instagram_username:String	stateofisrael
+param:@org.wikidata.country:licence_plate_code:String	RCH
+param:@org.wikidata.country:licence_plate_code:String	BRN
+param:@org.wikidata.country:licence_plate_code:String	LAO
+param:@org.wikidata.country:licence_plate_code:String	UAE
+param:@org.wikidata.country:licence_plate_code:String	RMM
+param:@org.wikidata.country:licence_plate_code:String	WAL
+param:@org.wikidata.country:coat_of_arms:String	Q233996
+param:@org.wikidata.country:coat_of_arms:String	Q459704
+param:@org.wikidata.country:coat_of_arms:String	Q201112
+param:@org.wikidata.country:coat_of_arms:String	Q188320
+param:@org.wikidata.country:coat_of_arms:String	Q188294
+param:@org.wikidata.country:coat_of_arms:String	Q199614
+param:@org.wikidata.country:coat_of_arms:String	Q200195
+param:@org.wikidata.country:coat_of_arms:String	Q207288
+param:@org.wikidata.country:coat_of_arms:String	Q133018
+param:@org.wikidata.country:coat_of_arms:String	Q184991
+param:@org.wikidata.country:nalt_id:String	14354
+param:@org.wikidata.country:nalt_id:String	15494
+param:@org.wikidata.country:nalt_id:String	24927
+param:@org.wikidata.country:nalt_id:String	15535
+param:@org.wikidata.country:nalt_id:String	47909
+param:@org.wikidata.country:nalt_id:String	47162
+param:@org.wikidata.country:nalt_id:String	51292
+param:@org.wikidata.country:nalt_id:String	41535
+param:@org.wikidata.country:studied_by:String	Q1721024
+param:@org.wikidata.country:facebook_id:String	IsraeliVibe
+param:@org.wikidata.country:culture:String	Q2623557
+param:@org.wikidata.country:culture:String	Q2717920
+param:@org.wikidata.country:culture:String	Q645917
+param:@org.wikidata.country:culture:String	Q1979615
+param:@org.wikidata.country:culture:String	Q2580474
+param:@org.wikidata.country:culture:String	Q385334
+param:@org.wikidata.country:culture:String	Q1347711
+param:@org.wikidata.country:culture:String	Q5193658
+param:@org.wikidata.country:culture:String	Q792363
+param:@org.wikidata.country:culture:String	Q2366577
+param:@org.wikidata.country:geography_of_topic:String	Q777664
+param:@org.wikidata.country:geography_of_topic:String	Q1115035
+param:@org.wikidata.country:geography_of_topic:String	Q429135
+param:@org.wikidata.country:geography_of_topic:String	Q839778
+param:@org.wikidata.country:geography_of_topic:String	Q1771875
+param:@org.wikidata.country:geography_of_topic:String	Q154124
+param:@org.wikidata.country:geography_of_topic:String	Q1763897
+param:@org.wikidata.country:geography_of_topic:String	Q1317938
+param:@org.wikidata.country:geography_of_topic:String	Q2303563
+param:@org.wikidata.country:geography_of_topic:String	Q2734883
+param:@org.wikidata.country:production_statistics:String	Q1621080
+param:@org.wikidata.country:subclass_of:String	Q465613
+param:@org.wikidata.country:emergency_phone_number:String	Q25648823
+param:@org.wikidata.country:emergency_phone_number:String	Q1061257
+param:@org.wikidata.country:emergency_phone_number:String	Q25648849
+param:@org.wikidata.country:emergency_phone_number:String	Q2807090
+param:@org.wikidata.country:emergency_phone_number:String	Q25648804
+param:@org.wikidata.country:emergency_phone_number:String	Q25648834
+param:@org.wikidata.country:emergency_phone_number:String	Q25648813
+param:@org.wikidata.country:emergency_phone_number:String	Q25648847
+param:@org.wikidata.country:emergency_phone_number:String	Q25648881
+param:@org.wikidata.country:emergency_phone_number:String	Q25648876
+param:@org.wikidata.country:electrical_plug_type:String	Q1123613
+param:@org.wikidata.country:electrical_plug_type:String	Q1378312
+param:@org.wikidata.country:electrical_plug_type:String	Q1378312
+param:@org.wikidata.country:electrical_plug_type:String	Q1528507
+param:@org.wikidata.country:electrical_plug_type:String	Q1528507
+param:@org.wikidata.country:electrical_plug_type:String	Q1378312
+param:@org.wikidata.country:electrical_plug_type:String	Q2335536
+param:@org.wikidata.country:electrical_plug_type:String	Q1378312
+param:@org.wikidata.country:electrical_plug_type:String	Q1378312
+param:@org.wikidata.country:electrical_plug_type:String	Q2335539
+param:@org.wikidata.country:language_used:Entity(tt:iso_lang_code)	Sangkong	Q2945610
+param:@org.wikidata.country:language_used:Entity(tt:iso_lang_code)	Western Bru	Q16113806
+param:@org.wikidata.country:language_used:Entity(tt:iso_lang_code)	Lachi	Q6583606
+param:@org.wikidata.country:language_used:Entity(tt:iso_lang_code)	Pa Di	Q3359940
+param:@org.wikidata.country:language_used:Entity(tt:iso_lang_code)	Wusa Nasu	Q12953334
+param:@org.wikidata.country:language_used:Entity(tt:iso_lang_code)	Ache Yi language	Q10949828
+param:@org.wikidata.country:language_used:Entity(tt:iso_lang_code)	U	Q953082
+param:@org.wikidata.country:language_used:Entity(tt:iso_lang_code)	Northern Qiandong Miao	Q3138832
+param:@org.wikidata.country:language_used:Entity(tt:iso_lang_code)	Bonan	Q32983
+param:@org.wikidata.country:language_used:Entity(tt:iso_lang_code)	Southern Guiyang Hmong	Q12953553
+param:@org.wikidata.country:youtube_channel_id:String	UCt6Fq64J2rTswe4uhZtxNtg
+param:@org.wikidata.country:library_of_congress_authority_id:String	n79118921
+param:@org.wikidata.country:library_of_congress_authority_id:String	n80049716
+param:@org.wikidata.country:library_of_congress_authority_id:String	n79091151
+param:@org.wikidata.country:library_of_congress_authority_id:String	n79061242
+param:@org.wikidata.country:library_of_congress_authority_id:String	n79128015
+param:@org.wikidata.country:library_of_congress_authority_id:String	n79145770
+param:@org.wikidata.country:library_of_congress_authority_id:String	n79059683
+param:@org.wikidata.country:library_of_congress_authority_id:String	n80128712
+param:@org.wikidata.country:library_of_congress_authority_id:String	n81088147
+param:@org.wikidata.country:library_of_congress_authority_id:String	n80125931
+param:@org.wikidata.country:coextensive_with:Entity(org.wikidata:coextensive_with)	Germany	Q1350565
+param:@org.wikidata.country:head_of_state:Entity(org.wikidata:human)	Walter Scheel	Q2571
+param:@org.wikidata.country:head_of_state:Entity(org.wikidata:human)	Jorge Sampaio	Q156780
+param:@org.wikidata.country:head_of_state:Entity(org.wikidata:human)	Michael the Archangel	Q45581
+param:@org.wikidata.country:head_of_state:Entity(org.wikidata:human)	Soong Ching-ling	Q17132
+param:@org.wikidata.country:head_of_state:Entity(org.wikidata:human)	Roman Herzog	Q2563
+param:@org.wikidata.country:head_of_state:Entity(org.wikidata:human)	Ezer Weizman	Q128911
+param:@org.wikidata.country:head_of_state:Entity(org.wikidata:human)	Luiz Inácio Lula da Silva	Q37181
+param:@org.wikidata.country:head_of_state:Entity(org.wikidata:human)	Yitzhak Navon	Q311583
+param:@org.wikidata.country:head_of_state:Entity(org.wikidata:human)	Esmon Saimon	Q5398549
+param:@org.wikidata.country:head_of_state:Entity(org.wikidata:human)	Fernando Collor de Mello	Q236503
+param:@org.wikidata.country:capital:Entity(org.wikidata:city)	Freetown	Q3780
+param:@org.wikidata.country:capital:Entity(org.wikidata:city)	Lisbon	Q597
+param:@org.wikidata.country:capital:Entity(org.wikidata:city)	Brussels	Q239
+param:@org.wikidata.country:capital:Entity(org.wikidata:city)	Brasília	Q2844
+param:@org.wikidata.country:capital:Entity(org.wikidata:city)	Rio de Janeiro	Q8678
+param:@org.wikidata.country:capital:Entity(org.wikidata:city)	Beijing	Q956
+param:@org.wikidata.country:capital:Entity(org.wikidata:city)	Bonn	Q586
+param:@org.wikidata.country:capital:Entity(org.wikidata:city)	Berlin	Q64
+param:@org.wikidata.country:capital:Entity(org.wikidata:city)	Santiago	Q2887
+param:@org.wikidata.country:capital:Entity(org.wikidata:city)	Valletta	Q23800
+param:@org.wikidata.country:part_of:String	Union tax
+param:@org.wikidata.country:part_of:String	Latin America
+param:@org.wikidata.country:part_of:String	Western Europe
+param:@org.wikidata.country:part_of:String	Europe
+param:@org.wikidata.country:part_of:String	Low Countries
+param:@org.wikidata.country:part_of:String	Southern Cone
+param:@org.wikidata.country:part_of:String	European Union
+param:@org.wikidata.country:part_of:String	East Asia
+param:@org.wikidata.country:part_of:String	Southwestern Europe
+param:@org.wikidata.country:part_of:String	Middle East
+param:@org.wikidata.country:official_language:Entity(tt:iso_lang_code)	Sangkong	Q2945610
+param:@org.wikidata.country:official_language:Entity(tt:iso_lang_code)	Western Bru	Q16113806
+param:@org.wikidata.country:official_language:Entity(tt:iso_lang_code)	Lachi	Q6583606
+param:@org.wikidata.country:official_language:Entity(tt:iso_lang_code)	Pa Di	Q3359940
+param:@org.wikidata.country:official_language:Entity(tt:iso_lang_code)	Wusa Nasu	Q12953334
+param:@org.wikidata.country:official_language:Entity(tt:iso_lang_code)	Ache Yi language	Q10949828
+param:@org.wikidata.country:official_language:Entity(tt:iso_lang_code)	U	Q953082
+param:@org.wikidata.country:official_language:Entity(tt:iso_lang_code)	Northern Qiandong Miao	Q3138832
+param:@org.wikidata.country:official_language:Entity(tt:iso_lang_code)	Bonan	Q32983
+param:@org.wikidata.country:official_language:Entity(tt:iso_lang_code)	Southern Guiyang Hmong	Q12953553
+param:@org.wikidata.country:currency:Entity(org.wikidata:currency)	Vanuatu vatus	Q207523
+param:@org.wikidata.country:currency:Entity(org.wikidata:currency)	renminbi	Q39099
+param:@org.wikidata.country:currency:Entity(org.wikidata:currency)	euro	Q4916
+param:@org.wikidata.country:currency:Entity(org.wikidata:currency)	cruzeiro	Q8351983
+param:@org.wikidata.country:currency:Entity(org.wikidata:currency)	cruzeiro	Q10261894
+param:@org.wikidata.country:currency:Entity(org.wikidata:currency)	Chilean peso	Q200050
+param:@org.wikidata.country:currency:Entity(org.wikidata:currency)	Brazilian cruzeiro real	Q831578
+param:@org.wikidata.country:currency:Entity(org.wikidata:currency)	Palestine pound	Q3973271
+param:@org.wikidata.country:currency:Entity(org.wikidata:currency)	cruzeiro	Q10261896
+param:@org.wikidata.country:currency:Entity(org.wikidata:currency)	euro	Q4916
+param:@org.wikidata.country:patron_saint:Entity(org.wikidata:human)	Walter Scheel	Q2571
+param:@org.wikidata.country:patron_saint:Entity(org.wikidata:human)	Jorge Sampaio	Q156780
+param:@org.wikidata.country:patron_saint:Entity(org.wikidata:human)	Michael the Archangel	Q45581
+param:@org.wikidata.country:patron_saint:Entity(org.wikidata:human)	Soong Ching-ling	Q17132
+param:@org.wikidata.country:patron_saint:Entity(org.wikidata:human)	Roman Herzog	Q2563
+param:@org.wikidata.country:patron_saint:Entity(org.wikidata:human)	Ezer Weizman	Q128911
+param:@org.wikidata.country:patron_saint:Entity(org.wikidata:human)	Luiz Inácio Lula da Silva	Q37181
+param:@org.wikidata.country:patron_saint:Entity(org.wikidata:human)	Yitzhak Navon	Q311583
+param:@org.wikidata.country:patron_saint:Entity(org.wikidata:human)	Esmon Saimon	Q5398549
+param:@org.wikidata.country:patron_saint:Entity(org.wikidata:human)	Fernando Collor de Mello	Q236503
+param:@org.wikidata.country:ted_topic_id:String	china
+param:@org.wikidata.country:ted_topic_id:String	Brazil
+param:@org.wikidata.country:located_in_time_zone:Entity(org.wikidata:located_in_time_zone)	Central European Time Zone	Q56640598
+param:@org.wikidata.country:located_in_time_zone:Entity(org.wikidata:located_in_time_zone)	UTC+01:00	Q6655
+param:@org.wikidata.country:located_in_time_zone:Entity(org.wikidata:located_in_time_zone)	UTC+01:00	Q6655
+param:@org.wikidata.country:located_in_time_zone:Entity(org.wikidata:located_in_time_zone)	UTC+02:00	Q6723
+param:@org.wikidata.country:located_in_time_zone:Entity(org.wikidata:located_in_time_zone)	Central European Summer Time	Q207020
+param:@org.wikidata.country:located_in_time_zone:Entity(org.wikidata:located_in_time_zone)	Western European Time	Q843589
+param:@org.wikidata.country:located_in_time_zone:Entity(org.wikidata:located_in_time_zone)	UTC+08:00	Q6985
+param:@org.wikidata.country:located_in_time_zone:Entity(org.wikidata:located_in_time_zone)	Central European Time	Q25989
+param:@org.wikidata.country:located_in_time_zone:Entity(org.wikidata:located_in_time_zone)	UTC+02:00	Q6723
+param:@org.wikidata.country:located_in_time_zone:Entity(org.wikidata:located_in_time_zone)	Central European Time	Q25989
+param:@org.wikidata.country:foundational_text:Entity(org.wikidata:foundational_text)	Israeli Declaration of Independence	Q223732
+param:@org.wikidata.country:said_to_be_the_same_as:Entity(org.wikidata:said_to_be_the_same_as)	Maltese Islands	Q3803158
+param:@org.wikidata.country:cinii_author_id_books_:String	DA13697137
+param:@org.wikidata.country:drainage_basin:Entity(org.wikidata:drainage_basin)	Danube basin	Q12046593
+param:@org.wikidata.country:drainage_basin:Entity(org.wikidata:drainage_basin)	Oder Basin	Q9210293
+param:@org.wikidata.country:drainage_basin:Entity(org.wikidata:drainage_basin)	Rhine basin	Q1434368
+param:@org.wikidata.country:drainage_basin:Entity(org.wikidata:drainage_basin)	Elbe Basin	Q12046596
+param:@org.wikidata.country:drainage_basin:Entity(org.wikidata:drainage_basin)	Weser Basin	Q29017011
+param:@org.wikidata.country:bvmc_person_id:String	32785
+param:@org.wikidata.country:member_of:Entity(org.wikidata:member_of)	Bay of Bengal Initiative for Multi-Sectoral Technical and Economic Cooperation	Q795985
+param:@org.wikidata.country:member_of:Entity(org.wikidata:member_of)	African Union – United Nations Hybrid Operation in Darfur	Q384535
+param:@org.wikidata.country:member_of:Entity(org.wikidata:member_of)	Universal Postal Union	Q17495
+param:@org.wikidata.country:member_of:Entity(org.wikidata:member_of)	Organisation for Economic Cooperation and Development	Q41550
+param:@org.wikidata.country:member_of:Entity(org.wikidata:member_of)	International Finance Corporation	Q656801
+param:@org.wikidata.country:member_of:Entity(org.wikidata:member_of)	G4 nations	Q838116
+param:@org.wikidata.country:member_of:Entity(org.wikidata:member_of)	European Payments Union	Q1377612
+param:@org.wikidata.country:member_of:Entity(org.wikidata:member_of)	European Union	Q458
+param:@org.wikidata.country:member_of:Entity(org.wikidata:member_of)	International Centre for Settlement of Investment Disputes	Q899770
+param:@org.wikidata.country:member_of:Entity(org.wikidata:member_of)	G20	Q19771
+param:@org.wikidata.country:shares_border_with:Entity(org.wikidata:country)	United States of America	Q30
+param:@org.wikidata.country:shares_border_with:Entity(org.wikidata:country)	Greece	Q41
+param:@org.wikidata.country:shares_border_with:Entity(org.wikidata:country)	Saudi Arabia	Q851
+param:@org.wikidata.country:shares_border_with:Entity(org.wikidata:country)	Argentina	Q414
+param:@org.wikidata.country:shares_border_with:Entity(org.wikidata:country)	Bolivia	Q750
+param:@org.wikidata.country:shares_border_with:Entity(org.wikidata:country)	Italy	Q38
+param:@org.wikidata.country:shares_border_with:Entity(org.wikidata:country)	Khmer Republic	Q1054184
+param:@org.wikidata.country:shares_border_with:Entity(org.wikidata:country)	Saar Protectorate	Q310293
+param:@org.wikidata.country:shares_border_with:Entity(org.wikidata:country)	Syria	Q858
+param:@org.wikidata.country:shares_border_with:Entity(org.wikidata:country)	Chile	Q298
+param:@org.wikidata.country:on_focus_list_of_wikimedia_project:String	Q5460604
+param:@org.wikidata.country:on_focus_list_of_wikimedia_project:String	Q54439832
+param:@org.wikidata.country:on_focus_list_of_wikimedia_project:String	Q54439832
+param:@org.wikidata.country:on_focus_list_of_wikimedia_project:String	Q5460604
+param:@org.wikidata.country:on_focus_list_of_wikimedia_project:String	Q54439832
+param:@org.wikidata.country:on_focus_list_of_wikimedia_project:String	Q5460604
+param:@org.wikidata.country:on_focus_list_of_wikimedia_project:String	Q54439832
+param:@org.wikidata.country:on_focus_list_of_wikimedia_project:String	Q54439832
+param:@org.wikidata.country:on_focus_list_of_wikimedia_project:String	Q54439832
+param:@org.wikidata.country:on_focus_list_of_wikimedia_project:String	Q5460604
+param:@org.wikidata.country:wikimedia_outline:String	Q7112415
+param:@org.wikidata.country:wikimedia_outline:String	Q7112346
+param:@org.wikidata.country:wikimedia_outline:String	Q7112200
+param:@org.wikidata.country:wikimedia_outline:String	Q7112209
+param:@org.wikidata.country:wikimedia_outline:String	Q7112271
+param:@org.wikidata.country:wikimedia_outline:String	Q7112348
+param:@org.wikidata.country:wikimedia_outline:String	Q7112196
+param:@org.wikidata.country:wikimedia_outline:String	Q7112227
+param:@org.wikidata.country:wikimedia_outline:String	Q7112226
+param:@org.wikidata.country:wikimedia_outline:String	Q7112329
+param:@org.wikidata.country:iso_3166_1_alpha_3_code:String	MLT
+param:@org.wikidata.country:iso_3166_1_alpha_3_code:String	VUT
+param:@org.wikidata.country:iso_3166_1_alpha_3_code:String	CHL
+param:@org.wikidata.country:iso_3166_1_alpha_3_code:String	ISR
+param:@org.wikidata.country:iso_3166_1_alpha_3_code:String	BRA
+param:@org.wikidata.country:iso_3166_1_alpha_3_code:String	ARE
+param:@org.wikidata.country:iso_3166_1_alpha_3_code:String	DEU
+param:@org.wikidata.country:iso_3166_1_alpha_3_code:String	CHN
+param:@org.wikidata.country:iso_3166_1_alpha_3_code:String	TJK
+param:@org.wikidata.country:iso_3166_1_alpha_3_code:String	BHR
+param:@org.wikidata.country:has_part:String	Q234
+param:@org.wikidata.country:has_part:String	Q231
+param:@org.wikidata.country:has_part:String	Q240
+param:@org.wikidata.country:has_part:String	Q9331
+param:@org.wikidata.country:has_part:String	Q89959
+param:@org.wikidata.country:has_part:String	Q90027
+param:@org.wikidata.country:has_part:String	Q2915956
+param:@org.wikidata.country:has_part:String	Q2914565
+param:@org.wikidata.country:has_part:String	Q3032141
+param:@org.wikidata.country:diplomatic_relation:Entity(org.wikidata:country)	United States of America	Q30
+param:@org.wikidata.country:diplomatic_relation:Entity(org.wikidata:country)	Greece	Q41
+param:@org.wikidata.country:diplomatic_relation:Entity(org.wikidata:country)	Saudi Arabia	Q851
+param:@org.wikidata.country:diplomatic_relation:Entity(org.wikidata:country)	Argentina	Q414
+param:@org.wikidata.country:diplomatic_relation:Entity(org.wikidata:country)	Bolivia	Q750
+param:@org.wikidata.country:diplomatic_relation:Entity(org.wikidata:country)	Italy	Q38
+param:@org.wikidata.country:diplomatic_relation:Entity(org.wikidata:country)	Khmer Republic	Q1054184
+param:@org.wikidata.country:diplomatic_relation:Entity(org.wikidata:country)	Saar Protectorate	Q310293
+param:@org.wikidata.country:diplomatic_relation:Entity(org.wikidata:country)	Syria	Q858
+param:@org.wikidata.country:diplomatic_relation:Entity(org.wikidata:country)	Chile	Q298
+param:@org.wikidata.country:railway_traffic_side:Entity(org.wikidata:railway_traffic_side)	left	Q13196750
+param:@org.wikidata.country:railway_traffic_side:Entity(org.wikidata:railway_traffic_side)	left	Q13196750
+param:@org.wikidata.country:railway_traffic_side:Entity(org.wikidata:railway_traffic_side)	left	Q13196750
+param:@org.wikidata.country:railway_traffic_side:Entity(org.wikidata:railway_traffic_side)	right	Q14565199
+param:@org.wikidata.country:railway_traffic_side:Entity(org.wikidata:railway_traffic_side)	left	Q13196750
+param:@org.wikidata.country:railway_traffic_side:Entity(org.wikidata:railway_traffic_side)	right	Q14565199
+param:@org.wikidata.country:railway_traffic_side:Entity(org.wikidata:railway_traffic_side)	left	Q13196750
+param:@org.wikidata.country:railway_traffic_side:Entity(org.wikidata:railway_traffic_side)	right	Q14565199
+param:@org.wikidata.country:railway_traffic_side:Entity(org.wikidata:railway_traffic_side)	left	Q13196750
+param:@org.wikidata.country:head_of_government:Entity(org.wikidata:human)	Walter Scheel	Q2571
+param:@org.wikidata.country:head_of_government:Entity(org.wikidata:human)	Jorge Sampaio	Q156780
+param:@org.wikidata.country:head_of_government:Entity(org.wikidata:human)	Michael the Archangel	Q45581
+param:@org.wikidata.country:head_of_government:Entity(org.wikidata:human)	Soong Ching-ling	Q17132
+param:@org.wikidata.country:head_of_government:Entity(org.wikidata:human)	Roman Herzog	Q2563
+param:@org.wikidata.country:head_of_government:Entity(org.wikidata:human)	Ezer Weizman	Q128911
+param:@org.wikidata.country:head_of_government:Entity(org.wikidata:human)	Luiz Inácio Lula da Silva	Q37181
+param:@org.wikidata.country:head_of_government:Entity(org.wikidata:human)	Yitzhak Navon	Q311583
+param:@org.wikidata.country:head_of_government:Entity(org.wikidata:human)	Esmon Saimon	Q5398549
+param:@org.wikidata.country:head_of_government:Entity(org.wikidata:human)	Fernando Collor de Mello	Q236503
+param:@org.wikidata.country:discoverer_or_inventor:Entity(org.wikidata:human)	Walter Scheel	Q2571
+param:@org.wikidata.country:discoverer_or_inventor:Entity(org.wikidata:human)	Jorge Sampaio	Q156780
+param:@org.wikidata.country:discoverer_or_inventor:Entity(org.wikidata:human)	Michael the Archangel	Q45581
+param:@org.wikidata.country:discoverer_or_inventor:Entity(org.wikidata:human)	Soong Ching-ling	Q17132
+param:@org.wikidata.country:discoverer_or_inventor:Entity(org.wikidata:human)	Roman Herzog	Q2563
+param:@org.wikidata.country:discoverer_or_inventor:Entity(org.wikidata:human)	Ezer Weizman	Q128911
+param:@org.wikidata.country:discoverer_or_inventor:Entity(org.wikidata:human)	Luiz Inácio Lula da Silva	Q37181
+param:@org.wikidata.country:discoverer_or_inventor:Entity(org.wikidata:human)	Yitzhak Navon	Q311583
+param:@org.wikidata.country:discoverer_or_inventor:Entity(org.wikidata:human)	Esmon Saimon	Q5398549
+param:@org.wikidata.country:discoverer_or_inventor:Entity(org.wikidata:human)	Fernando Collor de Mello	Q236503
+param:@org.wikidata.country:maintained_by_wikiproject:String	Q14455339
+param:@org.wikidata.country:maintained_by_wikiproject:String	Q11142608
+param:@org.wikidata.country:maintained_by_wikiproject:String	Q11134020
+param:@org.wikidata.country:maintained_by_wikiproject:String	Q6871603
+param:@org.wikidata.country:maintained_by_wikiproject:String	Q10781185
+param:@org.wikidata.country:maintained_by_wikiproject:String	Q15060233
+param:@org.wikidata.country:top_level_internet_domain:String	Q42026
+param:@org.wikidata.country:top_level_internet_domain:String	Q38900
+param:@org.wikidata.country:top_level_internet_domain:String	Q39773
+param:@org.wikidata.country:top_level_internet_domain:String	Q11837483
+param:@org.wikidata.country:top_level_internet_domain:String	Q39889
+param:@org.wikidata.country:top_level_internet_domain:String	Q37251
+param:@org.wikidata.country:top_level_internet_domain:String	Q11837308
+param:@org.wikidata.country:top_level_internet_domain:String	Q39885
+param:@org.wikidata.country:top_level_internet_domain:String	Q41856
+param:@org.wikidata.country:top_level_internet_domain:String	Q39993
+param:@org.wikidata.country:itu_letter_code:String	SDN
+param:@org.wikidata.country:itu_letter_code:String	BEL
+param:@org.wikidata.country:itu_letter_code:String	POR
+param:@org.wikidata.country:itu_letter_code:String	CHN
+param:@org.wikidata.country:itu_letter_code:String	MLT
+param:@org.wikidata.country:itu_letter_code:String	CHL
+param:@org.wikidata.country:itu_letter_code:String	BHR
+param:@org.wikidata.country:itu_letter_code:String	VUT
+param:@org.wikidata.country:itu_letter_code:String	ISR
+param:@org.wikidata.country:itu_letter_code:String	LAO
+param:@org.wikidata.country:category_for_maps:String	Q55692012
+param:@org.wikidata.country:category_for_maps:String	Q8607310
+param:@org.wikidata.country:category_for_maps:String	Q8607339
+param:@org.wikidata.country:category_for_maps:String	Q8607377
+param:@org.wikidata.country:category_for_maps:String	Q84036194
+param:@org.wikidata.country:category_for_maps:String	Q84082016
+param:@org.wikidata.country:category_for_maps:String	Q84091737
+param:@org.wikidata.country:category_for_maps:String	Q83976808
+param:@org.wikidata.country:category_for_maps:String	Q22094557
+param:@org.wikidata.country:category_for_maps:String	Q8607396
+param:@org.wikidata.country:significant_event:String	Q2307326
+param:@org.wikidata.country:significant_event:String	Q274811
+param:@org.wikidata.country:significant_event:String	Q159644
+param:@org.wikidata.country:significant_event:String	Q1160895
+param:@org.wikidata.country:significant_event:String	Q5086
+param:@org.wikidata.country:significant_event:String	Q672112
+param:@org.wikidata.country:significant_event:String	Q512451
+param:@org.wikidata.country:significant_event:String	Q223933
+param:@org.wikidata.country:significant_event:String	Q1201
+param:@org.wikidata.country:significant_event:String	Q8438
+param:@org.wikidata.country:public_holiday:String	Q40317
+param:@org.wikidata.country:public_holiday:String	Q38964
+param:@org.wikidata.country:public_holiday:String	Q19809
+param:@org.wikidata.country:public_holiday:String	Q10382660
+param:@org.wikidata.country:public_holiday:String	Q1033140
+param:@org.wikidata.country:public_holiday:String	Q157582
+param:@org.wikidata.country:public_holiday:String	Q2086665
+param:@org.wikidata.country:public_holiday:String	Q19809
+param:@org.wikidata.country:public_holiday:String	Q14942952
+param:@org.wikidata.country:public_holiday:String	Q132994
+param:@org.wikidata.country:open_data_portal:String	Q63413946
+param:@org.wikidata.country:open_data_portal:String	Q97020160
+param:@org.wikidata.country:open_data_portal:String	Q59273239
+param:@org.wikidata.country:open_data_portal:String	Q61171716
+param:@org.wikidata.country:open_data_portal:String	Q15614605
+param:@org.wikidata.country:open_data_portal:String	Q97012118
+param:@org.wikidata.country:open_data_portal:String	Q97001450
+param:@org.wikidata.country:open_data_portal:String	Q97119126
+param:@org.wikidata.country:open_data_portal:String	Q97097258
+param:@org.wikidata.country:open_data_portal:String	Q97061964
+param:@org.wikidata.country:anthem:Entity(org.wikidata:song)	March of the Volunteers	Q156136
+param:@org.wikidata.country:anthem:Entity(org.wikidata:song)	National anthem of Tajikistan	Q191802
+param:@org.wikidata.country:anthem:Entity(org.wikidata:song)	Das Lied der Deutschen	Q44042
+param:@org.wikidata.country:anthem:Entity(org.wikidata:song)	Brazilian National Anthem	Q134654
+param:@org.wikidata.country:anthem:Entity(org.wikidata:song)	National Anthem of Chile	Q484161
+param:@org.wikidata.country:anthem:Entity(org.wikidata:song)	L-Innu Malti	Q192792
+param:@org.wikidata.country:anthem:Entity(org.wikidata:song)	Yumi, Yumi	Q272751
+param:@org.wikidata.country:anthem:Entity(org.wikidata:song)	A Portuguesa	Q161049
+param:@org.wikidata.country:anthem:Entity(org.wikidata:song)	The Brabançonne	Q161539
+param:@org.wikidata.country:anthem:Entity(org.wikidata:song)	Ishy Bilady	Q423807
+param:@org.wikidata.country:topics_main_category:Entity(org.wikidata:topics_main_category)	Category:Laos	Q7084421
+param:@org.wikidata.country:topics_main_category:Entity(org.wikidata:topics_main_category)	Category:Bahrain	Q7009036
+param:@org.wikidata.country:topics_main_category:Entity(org.wikidata:topics_main_category)	Category:Belgium	Q4366768
+param:@org.wikidata.country:topics_main_category:Entity(org.wikidata:topics_main_category)	Category:Germany	Q1410828
+param:@org.wikidata.country:topics_main_category:Entity(org.wikidata:topics_main_category)	Category:Israel	Q1411497
+param:@org.wikidata.country:topics_main_category:Entity(org.wikidata:topics_main_category)	Category:Vanuatu	Q7069239
+param:@org.wikidata.country:topics_main_category:Entity(org.wikidata:topics_main_category)	Category:United Arab Emirates	Q7088124
+param:@org.wikidata.country:topics_main_category:Entity(org.wikidata:topics_main_category)	Category:Malta	Q4368434
+param:@org.wikidata.country:topics_main_category:Entity(org.wikidata:topics_main_category)	Category:People's Republic of China	Q7435401
+param:@org.wikidata.country:topics_main_category:Entity(org.wikidata:topics_main_category)	Category:Tajikistan	Q7087305
+param:@org.wikidata.country:main_regulatory_text:Entity(org.wikidata:main_regulatory_text)	Constitution of Belgium	Q633629
+param:@org.wikidata.country:main_regulatory_text:Entity(org.wikidata:main_regulatory_text)	Constitution of Brazil	Q2386422
+param:@org.wikidata.country:statoids_id:String	uml
+param:@org.wikidata.country:statoids_id:String	ubr
+param:@org.wikidata.country:statoids_id:String	ucn
+param:@org.wikidata.country:statoids_id:String	umt
+param:@org.wikidata.country:statoids_id:String	upt
+param:@org.wikidata.country:statoids_id:String	ude
+param:@org.wikidata.country:statoids_id:String	ubh
+param:@org.wikidata.country:statoids_id:String	uvu
+param:@org.wikidata.country:statoids_id:String	ucl
+param:@org.wikidata.country:statoids_id:String	uil
+param:@org.wikidata.country:encyclopdia_universalis_id:String	laos
+param:@org.wikidata.country:encyclopdia_universalis_id:String	bahrein
+param:@org.wikidata.country:encyclopdia_universalis_id:String	vanuatu
+param:@org.wikidata.country:encyclopdia_universalis_id:String	mali
+param:@org.wikidata.country:encyclopdia_universalis_id:String	israel
+param:@org.wikidata.country:encyclopdia_universalis_id:String	thailande
+param:@org.wikidata.country:encyclopdia_universalis_id:String	portugal
+param:@org.wikidata.country:encyclopdia_universalis_id:String	soudan
+param:@org.wikidata.country:encyclopdia_universalis_id:String	chili
+param:@org.wikidata.country:encyclopdia_universalis_id:String	angola
+param:@org.wikidata.country:nese_id:String	belgien
+param:@org.wikidata.country:nese_id:String	portugal
+param:@org.wikidata.country:nese_id:String	kina
+param:@org.wikidata.country:nese_id:String	brasilien
+param:@org.wikidata.country:nese_id:String	tyskland
+param:@org.wikidata.country:nese_id:String	deutschland
+param:@org.wikidata.country:nese_id:String	malta
+param:@org.wikidata.country:nese_id:String	israel
+param:@org.wikidata.country:nese_id:String	tadzjikistan
+param:@org.wikidata.country:nese_id:String	guyane
+param:@org.wikidata.country:catholic_encyclopedia_id:String	02395a
+param:@org.wikidata.country:catholic_encyclopedia_id:String	12297a
+param:@org.wikidata.country:catholic_encyclopedia_id:String	02745c
+param:@org.wikidata.country:catholic_encyclopedia_id:String	06484b
+param:@org.wikidata.country:catholic_encyclopedia_id:String	09574a
+param:@org.wikidata.country:catholic_encyclopedia_id:String	03660a
+param:@org.wikidata.country:catholic_encyclopedia_id:String	13783a
+param:@org.wikidata.country:treccani_id:String	belgio
+param:@org.wikidata.country:treccani_id:String	portogallo
+param:@org.wikidata.country:treccani_id:String	germania
+param:@org.wikidata.country:treccani_id:String	cile
+param:@org.wikidata.country:treccani_id:String	vanuatu
+param:@org.wikidata.country:treccani_id:String	israele
+param:@org.wikidata.country:treccani_id:String	mali
+param:@org.wikidata.country:quora_topic_id:String	China
+param:@org.wikidata.country:quora_topic_id:String	Laos
+param:@org.wikidata.country:quora_topic_id:String	Germany
+param:@org.wikidata.country:quora_topic_id:String	Malta
+param:@org.wikidata.country:quora_topic_id:String	Belge
+param:@org.wikidata.country:quora_topic_id:String	Belgium
+param:@org.wikidata.country:quora_topic_id:String	Vanuatu
+param:@org.wikidata.country:quora_topic_id:String	Chile
+param:@org.wikidata.country:quora_topic_id:String	Tajikistan
+param:@org.wikidata.country:quora_topic_id:String	Portugal
+param:@org.wikidata.country:insee_countries_and_foreign_territories_code:String	99139
+param:@org.wikidata.country:insee_countries_and_foreign_territories_code:String	99416
+param:@org.wikidata.country:insee_countries_and_foreign_territories_code:String	99109
+param:@org.wikidata.country:insee_countries_and_foreign_territories_code:String	99219
+param:@org.wikidata.country:insee_countries_and_foreign_territories_code:String	99417
+param:@org.wikidata.country:insee_countries_and_foreign_territories_code:String	99144
+param:@org.wikidata.country:insee_countries_and_foreign_territories_code:String	99207
+param:@org.wikidata.country:insee_countries_and_foreign_territories_code:String	99249
+param:@org.wikidata.country:insee_countries_and_foreign_territories_code:String	99241
+param:@org.wikidata.country:insee_countries_and_foreign_territories_code:String	99216
+param:@org.wikidata.country:omni_topic_id:String	7d1b9bd5a7bbcd3ad1deab9f8ec023532aae0ab0
+param:@org.wikidata.country:dagens_nyheter_topic_id:String	belgien
+param:@org.wikidata.country:dagens_nyheter_topic_id:String	portugal
+param:@org.wikidata.country:dagens_nyheter_topic_id:String	kina
+param:@org.wikidata.country:dagens_nyheter_topic_id:String	brasilien
+param:@org.wikidata.country:dagens_nyheter_topic_id:String	tyskland
+param:@org.wikidata.country:dagens_nyheter_topic_id:String	chile
+param:@org.wikidata.country:dagens_nyheter_topic_id:String	israel
+param:@org.wikidata.country:dagens_nyheter_topic_id:String	thailand
+param:@org.wikidata.country:unesco_thesaurus_id:String	concept815
+param:@org.wikidata.country:unesco_thesaurus_id:String	concept904
+param:@org.wikidata.country:unesco_thesaurus_id:String	concept842
+param:@org.wikidata.country:unesco_thesaurus_id:String	concept881
+param:@org.wikidata.country:unesco_thesaurus_id:String	concept919
+param:@org.wikidata.country:unesco_thesaurus_id:String	concept914
+param:@org.wikidata.country:unesco_thesaurus_id:String	concept770
+param:@org.wikidata.country:unesco_thesaurus_id:String	concept690
+param:@org.wikidata.country:unesco_thesaurus_id:String	concept834
+param:@org.wikidata.country:unesco_thesaurus_id:String	concept764
+param:@org.wikidata.country:subreddit:String	portugal
+param:@org.wikidata.country:subreddit:String	Mali
+param:@org.wikidata.country:subreddit:String	China
+param:@org.wikidata.country:subreddit:String	belgium
+param:@org.wikidata.country:subreddit:String	deutschland
+param:@org.wikidata.country:subreddit:String	brasil
+param:@org.wikidata.country:subreddit:String	Germany
+param:@org.wikidata.country:subreddit:String	Bahrain
+param:@org.wikidata.country:subreddit:String	malta
+param:@org.wikidata.country:subreddit:String	chile
+param:@org.wikidata.country:openstreetmap_relation_id:String	52411
+param:@org.wikidata.country:openstreetmap_relation_id:String	59470
+param:@org.wikidata.country:openstreetmap_relation_id:String	51477
+param:@org.wikidata.country:openstreetmap_relation_id:String	49903
+param:@org.wikidata.country:fandom_wiki_id:String	germany
+param:@org.wikidata.country:bhl_creator_id:String	37788
+param:@org.wikidata.country:bashkir_encyclopedia_russian_version_id:String	12825
+param:@org.wikidata.country:pactols_thesaurus_id:String	pcrtVt6JFDVHQg
+param:@org.wikidata.country:pactols_thesaurus_id:String	pcrt8MX4DfGUpg
+param:@org.wikidata.country:pactols_thesaurus_id:String	pcrts0d2hpLGr6
+param:@org.wikidata.country:pactols_thesaurus_id:String	pcrtpIqbjeq5GL
+param:@org.wikidata.country:pactols_thesaurus_id:String	pcrtuQ199qL7Kf
+param:@org.wikidata.country:pactols_thesaurus_id:String	pcrtOUVodanE3h
+param:@org.wikidata.country:pactols_thesaurus_id:String	pcrt0de5vvZOFM
+param:@org.wikidata.country:pactols_thesaurus_id:String	pcrt0z7cVUff6a
+param:@org.wikidata.country:pactols_thesaurus_id:String	pcrt5sVK4yrwZz
+param:@org.wikidata.country:pactols_thesaurus_id:String	pcrtSXtVnWzABE
+param:@org.wikidata.country:treccanis_enciclopedia_italiana_id:String	portogallo
+param:@org.wikidata.country:treccanis_enciclopedia_italiana_id:String	germania
+param:@org.wikidata.country:treccanis_enciclopedia_italiana_id:String	chile
+param:@org.wikidata.country:treccanis_enciclopedia_italiana_id:String	vanuatu
+param:@org.wikidata.country:store_norske_leksikon_id:String	Belgia
+param:@org.wikidata.country:store_norske_leksikon_id:String	Kina
+param:@org.wikidata.country:store_norske_leksikon_id:String	Tyskland
+param:@org.wikidata.country:store_norske_leksikon_id:String	Sudan
+param:@org.wikidata.country:uk_parliament_thesaurus_id:String	13579
+param:@org.wikidata.country:uk_parliament_thesaurus_id:String	11071
+param:@org.wikidata.country:uk_parliament_thesaurus_id:String	13253
+param:@org.wikidata.country:uk_parliament_thesaurus_id:String	10361
+param:@org.wikidata.country:encyclopedia_of_modern_ukraine_id:String	39061
+param:@org.wikidata.country:encyclopedia_of_modern_ukraine_id:String	61423
+param:@org.wikidata.country:encyclopedia_of_modern_ukraine_id:String	41305
+param:@org.wikidata.country:encyclopedia_of_modern_ukraine_id:String	13853
+param:@org.wikidata.country:encyclopedia_of_modern_ukraine_id:String	53209
+param:@org.wikidata.country:encyclopedia_of_modern_ukraine_id:String	61304
+param:@org.wikidata.country:encyclopedia_of_modern_ukraine_id:String	44087
+param:@org.wikidata.country:online_books_page_author_id:String	Belgium
+param:@org.wikidata.country:c_span_organization_id:String	19875
+param:@org.wikidata.country:c_span_organization_id:String	10539
+param:@org.wikidata.country:c_span_organization_id:String	12628
+param:@org.wikidata.country:mesh_descriptor_id:String	D013397
+param:@org.wikidata.country:mesh_descriptor_id:String	D001530
+param:@org.wikidata.country:mesh_descriptor_id:String	D011174
+param:@org.wikidata.country:mesh_descriptor_id:String	D001938
+param:@org.wikidata.country:mesh_descriptor_id:String	D005858
+param:@org.wikidata.country:mesh_descriptor_id:String	D008319
+param:@org.wikidata.country:mesh_descriptor_id:String	D002677
+param:@org.wikidata.country:mesh_descriptor_id:String	D001445
+param:@org.wikidata.country:mesh_descriptor_id:String	D009514
+param:@org.wikidata.country:mesh_descriptor_id:String	D007557
+param:@org.wikidata.country:orthodox_encyclopedia_id:String	77978
+param:@org.wikidata.country:orthodox_encyclopedia_id:String	77712
+param:@org.wikidata.country:brockhaus_enzyklopadie_online_id:String	brasilien
+param:@org.wikidata.country:brockhaus_enzyklopadie_online_id:String	laos
+param:@org.wikidata.country:brockhaus_enzyklopadie_online_id:String	malta
+param:@org.wikidata.country:brockhaus_enzyklopadie_online_id:String	chile
+param:@org.wikidata.country:brockhaus_enzyklopadie_online_id:String	deutschland
+param:@org.wikidata.country:brockhaus_enzyklopadie_online_id:String	belgien
+param:@org.wikidata.country:brockhaus_enzyklopadie_online_id:String	portugal
+param:@org.wikidata.country:brockhaus_enzyklopadie_online_id:String	tadschikistan
+param:@org.wikidata.country:brockhaus_enzyklopadie_online_id:String	bahrain
+param:@org.wikidata.country:brockhaus_enzyklopadie_online_id:String	mali
+param:@org.wikidata.country:ili_id:String	i83817
+param:@org.wikidata.country:ili_id:String	i84145
+param:@org.wikidata.country:ili_id:String	i83329
+param:@org.wikidata.country:ili_id:String	i82954
+param:@org.wikidata.country:ili_id:String	i83906
+param:@org.wikidata.country:ili_id:String	i83322
+param:@org.wikidata.country:ili_id:String	i84777
+param:@org.wikidata.country:ili_id:String	i82726
+param:@org.wikidata.country:ili_id:String	i84071
+param:@org.wikidata.country:ili_id:String	i84179
+param:@org.wikidata.country:civicus_monitor_country_entry:String	bahrain
+param:@org.wikidata.country:civicus_monitor_country_entry:String	philippines
+param:@org.wikidata.country:civicus_monitor_country_entry:String	chile
+param:@org.wikidata.country:civicus_monitor_country_entry:String	china
+param:@org.wikidata.country:civicus_monitor_country_entry:String	belgium
+param:@org.wikidata.country:civicus_monitor_country_entry:String	brazil
+param:@org.wikidata.country:civicus_monitor_country_entry:String	israel
+param:@org.wikidata.country:civicus_monitor_country_entry:String	vanuatu
+param:@org.wikidata.country:civicus_monitor_country_entry:String	germany
+param:@org.wikidata.country:civicus_monitor_country_entry:String	portugal
+param:@org.wikidata.country:google_news_topics_id:String	CAAqJQgKIh9DQkFTRVFvSUwyMHZNRFZ5TkhjU0JYQjBMVUpTS0FBUAE
+param:@org.wikidata.country:google_news_topics_id:String	CAAqJQgKIh9DQkFTRVFvSUwyMHZNREUxWm5JU0JYQjBMVUpTS0FBUAE
+param:@org.wikidata.country:the_encyclopedia_of_science_fiction_id:String	germany
+param:@org.wikidata.country:the_encyclopedia_of_science_fiction_id:String	israel
+param:@org.wikidata.country:geonlp_id:String	NImcn9
+param:@org.wikidata.country:geonlp_id:String	1Lg1I6
+param:@org.wikidata.country:geonlp_id:String	Qau1oO
+param:@org.wikidata.country:geonlp_id:String	lPPMYy
+param:@org.wikidata.country:geonlp_id:String	VwiQvi
+param:@org.wikidata.country:geonlp_id:String	1jGQEW
+param:@org.wikidata.country:geonlp_id:String	4dnQJL
+param:@org.wikidata.country:geonlp_id:String	qiwfYI
+param:@org.wikidata.country:geonlp_id:String	jBZTIK
+param:@org.wikidata.country:geonlp_id:String	egb4Cg
+param:@org.wikidata.country:tasteatlas_id:String	angola
+param:@org.wikidata.country:gynopedia_id:String	Portugal
+param:@org.wikidata.country:gynopedia_id:String	China
+param:@org.wikidata.country:gynopedia_id:String	Brazil
+param:@org.wikidata.country:gynopedia_id:String	Germany
+param:@org.wikidata.country:gynopedia_id:String	Chile
+param:@org.wikidata.country:gynopedia_id:String	Bahrain
+param:@org.wikidata.country:gynopedia_id:String	Israel
+param:@org.wikidata.country:gynopedia_id:String	Laos
+param:@org.wikidata.country:gynopedia_id:String	Thailand
+param:@org.wikidata.country:nuts_code:String	FRA3
+param:@org.wikidata.country:nuts_code:String	FRA30
+param:@org.wikidata.country:nuts_code:String	FR93
+param:@org.wikidata.country:nuts_code:String	FR930
+param:@org.wikidata.country:nuts_code:String	FRY3
+param:@org.wikidata.country:bbc_news_topic_id:String	cd39m6424jwt
+param:@org.wikidata.country:treccanis_dizionario_di_storia_id:String	bahrein
+param:@org.wikidata.country:treccanis_dizionario_di_storia_id:String	germania
+param:@org.wikidata.country:treccanis_dizionario_di_storia_id:String	belgio
+param:@org.wikidata.country:treccanis_dizionario_di_storia_id:String	vanuatu
+param:@org.wikidata.country:treccanis_dizionario_di_storia_id:String	portogallo
+param:@org.wikidata.country:treccanis_dizionario_di_storia_id:String	cina
+param:@org.wikidata.country:treccanis_dizionario_di_storia_id:String	israele
+param:@org.wikidata.country:treccanis_dizionario_di_storia_id:String	malta
+param:@org.wikidata.country:treccanis_dizionario_di_storia_id:String	laos
+param:@org.wikidata.country:treccanis_dizionario_di_storia_id:String	brasile
+param:@org.wikidata.country:jorfsearch_organization_id:String	Q45
+param:@org.wikidata.country:jorfsearch_organization_id:String	Q155
+param:@org.wikidata.country:open_library_id:String	OL17049A
+param:@org.wikidata.country:open_library_id:String	OL66426A
+param:@org.wikidata.country:klexikon_article_id:String	Belgien
+param:@org.wikidata.country:klexikon_article_id:String	Deutschland
+param:@org.wikidata.country:klexikon_article_id:String	Malta
+param:@org.wikidata.country:klexikon_article_id:String	Chile
+param:@org.wikidata.country:klexikon_article_id:String	Portugal
+param:@org.wikidata.country:klexikon_article_id:String	Brasilien
+param:@org.wikidata.country:klexikon_article_id:String	China
+param:@org.wikidata.country:klexikon_article_id:String	Vanuatu
+param:@org.wikidata.country:klexikon_article_id:String	Israel
+param:@org.wikidata.country:de_agostini_id:String	Brasile
+param:@org.wikidata.country:de_agostini_id:String	Malta
+param:@org.wikidata.country:de_agostini_id:String	Cile
+param:@org.wikidata.country:australian_war_memorial_id:String	PL549797
+param:@org.wikidata.country:know_your_meme_id:String	25687
+param:@org.wikidata.country:dr_topic_id:String	brasilien
+param:@org.wikidata.country:dr_topic_id:String	portugal
+param:@org.wikidata.country:dr_topic_id:String	bahrain
+param:@org.wikidata.country:dr_topic_id:String	vanuatu
+param:@org.wikidata.country:dr_topic_id:String	kina
+param:@org.wikidata.country:dr_topic_id:String	tyskland
+param:@org.wikidata.country:dr_topic_id:String	chile
+param:@org.wikidata.country:dr_topic_id:String	israel
+param:@org.wikidata.country:dr_topic_id:String	mali
+param:@org.wikidata.country:dr_topic_id:String	belgien
+param:@org.wikidata.country:nkcr_aut_id:String	ge135889
+param:@org.wikidata.country:nkcr_aut_id:String	ge130488
+param:@org.wikidata.country:nkcr_aut_id:String	ge131070
+param:@org.wikidata.country:nkcr_aut_id:String	ge128735
+param:@org.wikidata.country:nkcr_aut_id:String	ge124250
+param:@org.wikidata.country:nkcr_aut_id:String	ge129942
+param:@org.wikidata.country:nkcr_aut_id:String	ge129766
+param:@org.wikidata.country:nkcr_aut_id:String	ge129403
+param:@org.wikidata.country:nkcr_aut_id:String	ge128817
+param:@org.wikidata.country:nkcr_aut_id:String	ge134605
+param:@org.wikidata.country:world_encyclopedia_of_puppetry_arts_id:String	germany
+param:@org.wikidata.country:world_encyclopedia_of_puppetry_arts_id:String	chile
+param:@org.wikidata.country:world_encyclopedia_of_puppetry_arts_id:String	china
+param:@org.wikidata.country:world_encyclopedia_of_puppetry_arts_id:String	laos
+param:@org.wikidata.country:world_encyclopedia_of_puppetry_arts_id:String	brazil
+param:@org.wikidata.country:world_encyclopedia_of_puppetry_arts_id:String	belgium
+param:@org.wikidata.country:world_encyclopedia_of_puppetry_arts_id:String	portugal
+param:@org.wikidata.country:world_encyclopedia_of_puppetry_arts_id:String	thailand
+param:@org.wikidata.country:world_encyclopedia_of_puppetry_arts_id:String	israel
+param:@org.wikidata.country:world_encyclopedia_of_puppetry_arts_id:String	mali
+param:@org.wikidata.country:tdv_islam_ansiklopedisi_id:String	belcika
+param:@org.wikidata.country:tdv_islam_ansiklopedisi_id:String	almanya
+param:@org.wikidata.country:tdv_islam_ansiklopedisi_id:String	malta
+param:@org.wikidata.country:tdv_islam_ansiklopedisi_id:String	bahreyn
+param:@org.wikidata.country:tdv_islam_ansiklopedisi_id:String	israil
+param:@org.wikidata.country:tdv_islam_ansiklopedisi_id:String	tacikistan
+param:@org.wikidata.country:tdv_islam_ansiklopedisi_id:String	mali
+param:@org.wikidata.country:marine_regions_geographic_identifier_mrgid_:String	17551
+param:@org.wikidata.country:french_vikidia_id:String	Angola
+param:@org.wikidata.country:french_vikidia_id:String	Portugal
+param:@org.wikidata.country:french_vikidia_id:String	Chine
+param:@org.wikidata.country:french_vikidia_id:String	Belgique
+param:@org.wikidata.country:french_vikidia_id:String	Allemagne
+param:@org.wikidata.country:french_vikidia_id:String	Chili
+param:@org.wikidata.country:french_vikidia_id:String	Malte
+param:@org.wikidata.country:french_vikidia_id:String	Laos
+param:@org.wikidata.country:french_vikidia_id:String	Vanuatu
+param:@org.wikidata.country:french_vikidia_id:String	Mali
+param:@org.wikidata.country:orthodoxwiki_id_english_:String	10929
+param:@org.wikidata.country:orthodoxwiki_id_english_:String	18335
+param:@org.wikidata.country:orthodoxwiki_id_english_:String	17582
+param:@org.wikidata.country:italian_vikidia_id:String	Belgio
+param:@org.wikidata.country:italian_vikidia_id:String	Portogallo
+param:@org.wikidata.country:italian_vikidia_id:String	Cina
+param:@org.wikidata.country:italian_vikidia_id:String	Brasile
+param:@org.wikidata.country:italian_vikidia_id:String	Germania
+param:@org.wikidata.country:italian_vikidia_id:String	Cile
+param:@org.wikidata.country:italian_vikidia_id:String	Israele
+param:@org.wikidata.country:spanish_vikidia_id:String	Portugal
+param:@org.wikidata.country:spanish_vikidia_id:String	Alemania
+param:@org.wikidata.country:spanish_vikidia_id:String	Israel
+param:@org.wikidata.country:spanish_vikidia_id:String	Laos
+param:@org.wikidata.country:spanish_vikidia_id:String	Tailandia
+param:@org.wikidata.country:spanish_vikidia_id:String	Chile
+param:@org.wikidata.country:spanish_vikidia_id:String	China
+param:@org.wikidata.country:spanish_vikidia_id:String	Brasil
+param:@org.wikidata.country:spanish_vikidia_id:String	Angola
+param:@org.wikidata.country:english_vikidia_id:String	Belgium
+param:@org.wikidata.country:english_vikidia_id:String	Portugal
+param:@org.wikidata.country:english_vikidia_id:String	China
+param:@org.wikidata.country:english_vikidia_id:String	Brazil
+param:@org.wikidata.country:english_vikidia_id:String	Germany
+param:@org.wikidata.country:english_vikidia_id:String	Malta
+param:@org.wikidata.country:english_vikidia_id:String	Chile
+param:@org.wikidata.country:english_vikidia_id:String	Thailand
+param:@org.wikidata.country:basque_vikidia_id:String	Belgika
+param:@org.wikidata.country:basque_vikidia_id:String	Portugal
+param:@org.wikidata.country:basque_vikidia_id:String	Txina
+param:@org.wikidata.country:basque_vikidia_id:String	Alemania
+param:@org.wikidata.country:basque_vikidia_id:String	Israel
+param:@org.wikidata.country:german_vikidia_id:String	Portugal
+param:@org.wikidata.country:german_vikidia_id:String	Malta
+param:@org.wikidata.country:analysis__policy_observatory_term_id:String	18847
+param:@org.wikidata.country:analysis__policy_observatory_term_id:String	19723
+param:@org.wikidata.country:analysis__policy_observatory_term_id:String	15432
+param:@org.wikidata.country:analysis__policy_observatory_term_id:String	19579
+param:@org.wikidata.country:analysis__policy_observatory_term_id:String	16778
+param:@org.wikidata.country:hrvatska_enciklopedija_id:String	28366
+param:@org.wikidata.country:hrvatska_enciklopedija_id:String	58619
+param:@org.wikidata.country:hrvatska_enciklopedija_id:String	20392
+param:@org.wikidata.country:cab_id:String	45987
+param:@org.wikidata.country:canadiana_ncf_id:String	ncf10191193
+param:@org.wikidata.country:proleksis_enciklopedija_id:String	11670
+param:@org.wikidata.country:proleksis_enciklopedija_id:String	13494
+param:@org.wikidata.country:grove_art_online_id:String	T053573
+param:@org.wikidata.country:grove_art_online_id:String	T007414
+param:@org.wikidata.country:grove_art_online_id:String	T042514
+param:@org.wikidata.country:grove_art_online_id:String	T083063
+param:@org.wikidata.country:grove_art_online_id:String	T011017
+param:@org.wikidata.country:grove_art_online_id:String	T049247
+param:@org.wikidata.country:grove_art_online_id:String	T084160
+param:@org.wikidata.country:grove_art_online_id:String	T016513
+param:@org.wikidata.country:grove_art_online_id:String	T068860
+param:@org.wikidata.country:grove_art_online_id:String	T053518
+param:@org.wikidata.country:kbpedia_id:String	FrenchGuiana
+param:@org.wikidata.country:kbpedia_id:String	Belgium
+param:@org.wikidata.country:kbpedia_id:String	Portugal
+param:@org.wikidata.country:kbpedia_id:String	Brazil
+param:@org.wikidata.country:kbpedia_id:String	Germany
+param:@org.wikidata.country:kbpedia_id:String	Chile
+param:@org.wikidata.country:kbpedia_id:String	Bahrain
+param:@org.wikidata.country:kbpedia_id:String	Vanuatu
+param:@org.wikidata.country:kbpedia_id:String	Israel
+param:@org.wikidata.country:kbpedia_id:String	Laos
+param:@org.wikidata.country:pm20_geo_code:String	A32
+param:@org.wikidata.country:pm20_geo_code:String	B94
+param:@org.wikidata.country:pm20_geo_code:String	E97
+param:@org.wikidata.country:pm20_geo_code:String	A10
+param:@org.wikidata.country:pm20_geo_code:String	E85
+param:@org.wikidata.country:pm20_geo_code:String	C85
+param:@org.wikidata.country:pm20_geo_code:String	C55
+param:@org.wikidata.country:rkd_thesaurus_id:String	24252
+param:@org.wikidata.country:rkd_thesaurus_id:String	24985
+param:@org.wikidata.country:rkd_thesaurus_id:String	24641
+param:@org.wikidata.country:rkd_thesaurus_id:String	44410
+param:@org.wikidata.country:rkd_thesaurus_id:String	24992
+param:@org.wikidata.country:rkd_thesaurus_id:String	24690
+param:@org.wikidata.country:rkd_thesaurus_id:String	24884
+param:@org.wikidata.country:rkd_thesaurus_id:String	16259
+param:@org.wikidata.country:biblioteca_nacional_de_espana_id:String	XX450924
+param:@org.wikidata.country:biblioteca_nacional_de_espana_id:String	XX4908152
+param:@org.wikidata.country:biblioteca_nacional_de_espana_id:String	XX451164
+param:@org.wikidata.country:biblioteca_nacional_de_espana_id:String	XX4575378
+param:@org.wikidata.country:biblioteca_nacional_de_espana_id:String	XX453566
+param:@org.wikidata.country:biblioteca_nacional_de_espana_id:String	XX450836
+param:@org.wikidata.country:biblioteca_nacional_de_espana_id:String	XX453677
+param:@org.wikidata.country:biblioteca_nacional_de_espana_id:String	XX451232
+param:@org.wikidata.country:biblioteca_nacional_de_espana_id:String	XX4575516
+param:@org.wikidata.country:biblioteca_nacional_de_espana_id:String	XX453273
+param:@org.wikidata.country:ioc_country_code:String	BEL
+param:@org.wikidata.country:ioc_country_code:String	ANG
+param:@org.wikidata.country:ioc_country_code:String	POR
+param:@org.wikidata.country:ioc_country_code:String	CHN
+param:@org.wikidata.country:ioc_country_code:String	BRA
+param:@org.wikidata.country:ioc_country_code:String	MLT
+param:@org.wikidata.country:ioc_country_code:String	CHI
+param:@org.wikidata.country:ioc_country_code:String	GER
+param:@org.wikidata.country:ioc_country_code:String	BRN
+param:@org.wikidata.country:ioc_country_code:String	VAN
+# format is <key> <value> [<display>], tab separated
+#
+# <key> can be:
+# - a type
+# - `param:` parameter name `:` type
+# - `param:@` device name `.*:` parameter name `:` type
+# - `param:@` device name `.` function name `:` parameter name `:` type
+# for a given parameter, all keys will be tried in turn, from the most specific
+# to the least specific, stopping at the first key that has at least one entry
+#
+# <value> is the value to use in the program, in simil ThingTalk syntax, while
+# <display> is the string to place in the sentence
+# for certain types, <display> can be omitted to use the default display
+#
+# empty (white-space only) lines and lines starting with # (optionally preceded by space)
+# are ignored
+
+# generic types
+String	X
+String	Y
+String	Z
+Number	2
+Number	4
+Number	3
+#Number	1
+Number	5
+Measure(ms)	4min
+Measure(ms)	16min
+Measure(ms)	20min
+Measure(ms)	1.5h
+Measure(ms)	2h
+Measure(ms)	63s
+Measure(ms)	2day	
+Measure(C)	73F
+Measure(C)	75F
+Measure(C)	80F
+Measure(C)	20C
+Measure(C)	21C
+Measure(C)	17C
+Measure(byte)	300KB
+Measure(byte)	15MB
+Measure(byte)	40MB
+Measure(byte)	2GB
+Measure(byte)	3GB
+Measure(byte)	1.5TB
+Measure(byte)	2TB
+#Measure(kg)	75kg
+#Measure(kg)	81kg
+#Measure(kg)	88kg
+Measure(kg)	5kg
+Measure(kg)	3kg
+#Measure(kg)	150lb
+#Measure(kg)	180lb
+#Measure(kg)	239lb
+Measure(kg)	5oz
+Measure(kg)	12oz
+Measure(kg)	3oz
+Measure(kg)	2lb
+Measure(kg)	3lb
+Measure(kg)	500g
+Measure(kg)	250g
+Measure(m)	800m
+Measure(m)	1500m
+Measure(m)	23km
+Measure(m)	50km
+Measure(m)	30mi
+Measure(m)	200mi
+Measure(m2)	1000ft2
+Measure(m2)	800m2
+Measure(m2)	23km2
+Measure(m2)	50mi2
+Measure(m3)	15m3
+Measure(m3)	800ft3
+Measure(m3)	3l
+Measure(m3)	11gal
+Measure(mps)	70kmph
+Measure(mps)	120kmph
+Measure(mps)	35mph
+Measure(mps)	60mph
+Measure(ms)	2h	two hours
+Measure(ms)	30min	30 minutes
+Measure(ms)	3day	3 days
+Currency	100usd	$100
+Currency	15usd	15 dollars
+Currency	3.5usd	$ 3.50
+Location	40.7590,73.9845	Time Square
+Location	34.0430,118.2673	Staples Center
+Date	2017-02-14T00:00:00-08:00	Feb 14 2017
+Date	2016-05-04T00:00:00-07:00	May 4th, 2016
+Date	2017-08-02T00:00:00-07:00	August 2nd 2017
+Time	07:30:00	7:30 am
+Time	15:00:00	3 pm
+Time	20:30:00	8:30 pm
+
+# entity types
+Entity(tt:email_address)	bob@gmail.com
+Entity(tt:email_address)	alice@gmail.com
+Entity(tt:email_address)	charlie@hotmail.com
+Entity(tt:phone_number)	+16501234567
+Entity(tt:phone_number)	+15551234567
+Entity(tt:phone_number)	+123456789
+Entity(tt:hashtag)	funny
+Entity(tt:hashtag)	cat
+Entity(tt:hashtag)	lol
+Entity(tt:hashtag)	covfefe
+Entity(tt:username)	alice
+Entity(tt:username)	bob
+Entity(tt:username)	charlie
+Entity(tt:url)	http://www.abc.def
+Entity(tt:url)	http://www.google.com	www.google.com
+Entity(tt:url)	http://www.example.com
+Entity(tt:path_name)	images/lol.png
+Entity(tt:path_name)	images/me.png
+Entity(tt:path_name)	documents/work.pdf
+Entity(tt:path_name)	videos/cat.mp4
+Entity(tt:path_name)	school/cs101/hw1.pdf
+Entity(tt:stock_id)	goog	Google
+Entity(tt:stock_id)	aapl	Apple
+Entity(tt:stock_id)	msft	Microsoft
+Entity(tt:stock_id)	wmt	Walmart
+Entity(tt:iso_lang_code)	it	Italian
+Entity(tt:iso_lang_code)	de	German
+Entity(tt:iso_lang_code)	zh	Chinese
+Entity(tt:iso_lang_code)	es	Spanish
+Entity(sportradar:eu_soccer_team)	juv	Juventus
+Entity(sportradar:eu_soccer_team)	bar	Barcelona
+Entity(sportradar:eu_soccer_team)	fcb	Bayer Munich
+Entity(sportradar:eu_soccer_team)	che	Chelsea
+Entity(sportradar:mlb_team)	sf	San Francisco Giants
+Entity(sportradar:mlb_team)	chc	Chicago Cubs
+Entity(sportradar:nba_team)	gsw	Golden State Warriors
+Entity(sportradar:nba_team)	lal	Los Angeles Lakers
+Entity(sportradar:ncaafb_team)	sta	Stanford Cardinals
+Entity(sportradar:ncaafb_team)	cal	California Bears
+Entity(sportradar:ncaambb_team)	stan	Stanford Cardinals
+Entity(sportradar:ncaambb_team)	cal	California Bears
+Entity(sportradar:nfl_team)	sea	Seattle Seahawks
+Entity(sportradar:nfl_team)	sf	San Francisco 49ers
+Entity(sportradar:us_soccer_team)	sje	San Jose Earthquakes
+Entity(sportradar:us_soccer_team)	tor	Toronto FC
+Entity(tt:mime_type)	application/pdf	PDF documents
+Entity(tt:mime_type)	image/jpeg	JPEG pictures
+Entity(tt:mime_type)	application/vnd.openxmlformats-officedocument.wordprocessingml.document	Word documents
+Entity(tt:mime_type)	application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	Excel spreadsheets
+Entity(tt:us_state)	ca	California
+Entity(tt:us_state)	wa	Washington
+Entity(tt:us_state)	ny	New York
+Entity(tt:us_state)	fl	Florida
+Entity(tt:country)	us	United States
+Entity(tt:country)	it	Italy
+Entity(tt:country)	gb	United Kingdom
+Entity(tt:country)	de	Germany
+Entity(gov.nasa:curiosity_rover_camera)	MAST	Mast Camera
+Entity(gov.nasa:curiosity_rover_camera)	FHAZ	Front Hazard Avoidance Camera
+Entity(gov.nasa:curiosity_rover_camera)	MAHLI	Mars Hand Lens Imager
+Entity(imgflip:meme_id)	61520	Futurama Fry
+Entity(imgflip:meme_id)	61546	Brace Yourselves
+Entity(com.instagram:filter)	inkwell	Inkwell
+Entity(com.instagram:filter)	lo-fi	Lo-Fi
+Entity(com.instagram:filter)	sierra	Sierra
+Entity(org.freedesktop:app_id)	inkscape	Inkscape
+Entity(org.freedesktop:app_id)	firefox	Firefox
+Entity(org.freedesktop:app_id)	google-chrome	Google Chrome
+Entity(org.freedesktop:app_id)	emacs	Emacs
+Entity(tt:cryptocurrency_code)	btc	Bitcoin
+Entity(tt:cryptocurrency_code)	xlm	Stellar
+Entity(tt:cryptocurrency_code)	eth	Ethereum
+Entity(tt:cryptocurrency_code)	doge	Dogecoin
+
+# overrides for specific parameters
+param:source_language:Entity(tt:iso_lang_code)	en	English
+param:repo_name:String	android_repository
+param:repo_name:String	twbs/bootstrap
+param:folder_name:String	archive
+param:folder_name:String	school
+param:purpose:String	research project
+param:query:String	super bowl
+param:summary:String	celebration
+param:category:String	sports
+param:from_name:String	bob
+param:sender_name:String	bob
+param:sender_name:String	alice
+param:sender_name:String	charlie
+param:blog_name:String	government secret
+param:description:String	christmas
+param:description:String	wine
+param:description:String	service
+param:organizer:String	stanford
+param:user:String	bob
+param:positions:String	ceo
+param:specialties:String	java
+param:industry:String	music
+param:template:String	wtf
+param:text_top:String	ummm... i have a question...
+param:text_bottom:String	wtf?
+# for icalendar
+param:location:String	conference room 7
+param:location:String	downtown
+param:location:String	bob's house
+
+# overrides for specific function/parameter combinations
+param:@com.spotify.*:song:String	Hey Jude
+param:@com.spotify.*:song:String	California Girls
+param:@com.spotify.*:album:String	Yellow Submarine
+param:@com.spotify.*:album:String	Thriller
+param:@com.spotify.*:playlist:String	my favorite
+param:@com.spotify.*:playlist:String	classics
+param:@com.spotify.*:artist:String	Beatles
+param:@com.spotify.*:artist:String	Taylor Swift
+param:@com.spotify.*:toPlay:String	Hey Jude
+param:@com.spotify.*:toPlay:String	California Girls
+param:@com.spotify.*:toAdd:String	Hey Jude
+param:@com.spotify.*:toAdd:String	California Girls
+param:@com.spotify.*:key:String	A Major
+
+param:cookTime:Measure(ms)	10min	10 minutes
+param:cookTime:Measure(ms)	20min	20 minutes
+param:cookTime:Measure(ms)	5min	5 minutes
+param:prepTime:Measure(ms)	10min	10 minutes
+param:prepTime:Measure(ms)	20min	20 minutes
+param:prepTime:Measure(ms)	5min	5 minutes
+param:totalTime:Measure(ms)	25min	25 minutes
+param:totalTime:Measure(ms)	45min	45 minutes
+param:totalTime:Measure(ms)	20min	20 minutes

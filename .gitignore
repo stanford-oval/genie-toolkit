@@ -50,3 +50,11 @@ genie-??????
 !test/data/fa/*
 !test/data/thingpedia.tt
 !test/thingpedia.tt
+
+!starter/wikidata294/city/augmented.tsv
+!starter/wikidata294/city/constants.tsv
+!starter/wikidata294/city/parameter-datasets.tsv
+!starter/wikidata294/country/augmented.tsv
+!starter/wikidata294/country/constants.tsv
+!starter/wikidata294/country/parameter-datasets.tsv
+

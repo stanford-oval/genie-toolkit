@@ -1,0 +1,2378 @@
+param:@org.wikidata.city:id:Entity(org.wikidata:city)	Bougival	Q399342
+param:@org.wikidata.city:id:Entity(org.wikidata:city)	Texcoco de Mora	Q1141799
+param:@org.wikidata.city:id:Entity(org.wikidata:city)	Kumasi	Q182059
+param:@org.wikidata.city:id:Entity(org.wikidata:city)	Innsbruck	Q1735
+param:@org.wikidata.city:id:Entity(org.wikidata:city)	Dubossary	Q688654
+param:@org.wikidata.city:id:Entity(org.wikidata:city)	Tiffin	Q990934
+param:@org.wikidata.city:id:Entity(org.wikidata:city)	Montego Bay	Q637555
+param:@org.wikidata.city:id:Entity(org.wikidata:city)	Maladziečna	Q201203
+param:@org.wikidata.city:id:Entity(org.wikidata:city)	Vilnius	Q216
+param:@org.wikidata.city:id:Entity(org.wikidata:city)	Oeiras	Q926700
+param:@org.wikidata.city:id:String	Q399342
+param:@org.wikidata.city:id:String	Q1141799
+param:@org.wikidata.city:id:String	Q182059
+param:@org.wikidata.city:id:String	Q1735
+param:@org.wikidata.city:id:String	Q688654
+param:@org.wikidata.city:id:String	Q990934
+param:@org.wikidata.city:id:String	Q637555
+param:@org.wikidata.city:id:String	Q201203
+param:@org.wikidata.city:id:String	Q216
+param:@org.wikidata.city:id:String	Q926700
+param:@org.wikidata.city:donated_by:Entity(org.wikidata:human)	Badri Shoshitaishvili	Q24008058
+param:@org.wikidata.city:donated_by:Entity(org.wikidata:human)	Blaise of Sebaste	Q151967
+param:@org.wikidata.city:donated_by:Entity(org.wikidata:human)	José Antonio Nieto	Q853347
+param:@org.wikidata.city:donated_by:Entity(org.wikidata:human)	Michael the Archangel	Q45581
+param:@org.wikidata.city:donated_by:Entity(org.wikidata:human)	Maria Josep Safont Melchor	Q51078283
+param:@org.wikidata.city:donated_by:Entity(org.wikidata:human)	R. Sampath Raj	Q47044542
+param:@org.wikidata.city:donated_by:Entity(org.wikidata:human)	Saint Dominic	Q44091
+param:@org.wikidata.city:donated_by:Entity(org.wikidata:human)	Pierre Becker	Q16438892
+param:@org.wikidata.city:donated_by:Entity(org.wikidata:human)	José Luis Gimeno Ferrer	Q17278920
+param:@org.wikidata.city:donated_by:Entity(org.wikidata:human)	Alfred Oko Vanderpuije	Q4723552
+param:@org.wikidata.city:native_language:Entity(tt:iso_lang_code)	Spanish	Q1321
+param:@org.wikidata.city:native_language:Entity(tt:iso_lang_code)	Eastern Maninkaka language	Q11002130
+param:@org.wikidata.city:native_language:Entity(tt:iso_lang_code)	Kanakanabu	Q172244
+param:@org.wikidata.city:native_language:Entity(tt:iso_lang_code)	Waima	Q34197
+param:@org.wikidata.city:native_language:Entity(tt:iso_lang_code)	Russian	Q7737
+param:@org.wikidata.city:native_language:Entity(tt:iso_lang_code)	Soqotri	Q13283
+param:@org.wikidata.city:native_language:Entity(tt:iso_lang_code)	Phuan	Q3915665
+param:@org.wikidata.city:native_language:Entity(tt:iso_lang_code)	Mussau-Emira	Q6943093
+param:@org.wikidata.city:native_language:Entity(tt:iso_lang_code)	Rajasthani	Q13196
+param:@org.wikidata.city:native_language:Entity(tt:iso_lang_code)	Gade Lohar	Q12953671
+param:@org.wikidata.city:occupation:Entity(org.wikidata:occupation)	Catholic priest	Q250867
+param:@org.wikidata.city:occupation:Entity(org.wikidata:occupation)	Catholic priest	Q250867
+param:@org.wikidata.city:founded_by:Entity(org.wikidata:human)	Badri Shoshitaishvili	Q24008058
+param:@org.wikidata.city:founded_by:Entity(org.wikidata:human)	Blaise of Sebaste	Q151967
+param:@org.wikidata.city:founded_by:Entity(org.wikidata:human)	José Antonio Nieto	Q853347
+param:@org.wikidata.city:founded_by:Entity(org.wikidata:human)	Michael the Archangel	Q45581
+param:@org.wikidata.city:founded_by:Entity(org.wikidata:human)	Maria Josep Safont Melchor	Q51078283
+param:@org.wikidata.city:founded_by:Entity(org.wikidata:human)	R. Sampath Raj	Q47044542
+param:@org.wikidata.city:founded_by:Entity(org.wikidata:human)	Saint Dominic	Q44091
+param:@org.wikidata.city:founded_by:Entity(org.wikidata:human)	Pierre Becker	Q16438892
+param:@org.wikidata.city:founded_by:Entity(org.wikidata:human)	José Luis Gimeno Ferrer	Q17278920
+param:@org.wikidata.city:founded_by:Entity(org.wikidata:human)	Alfred Oko Vanderpuije	Q4723552
+param:@org.wikidata.city:topics_main_wikimedia_portal:Entity(org.wikidata:topics_main_wikimedia_portal)	Portal:Avignon	Q15649056
+param:@org.wikidata.city:topics_main_wikimedia_portal:Entity(org.wikidata:topics_main_wikimedia_portal)	Tbilisi portal	Q15057713
+param:@org.wikidata.city:topics_main_wikimedia_portal:Entity(org.wikidata:topics_main_wikimedia_portal)	Portal:Burgos	Q56816027
+param:@org.wikidata.city:topics_main_wikimedia_portal:Entity(org.wikidata:topics_main_wikimedia_portal)	Portal:Wrocław	Q15099552
+param:@org.wikidata.city:topics_main_wikimedia_portal:Entity(org.wikidata:topics_main_wikimedia_portal)	Portal:Bytom	Q17566320
+param:@org.wikidata.city:topics_main_wikimedia_portal:Entity(org.wikidata:topics_main_wikimedia_portal)	Portal:Warsaw	Q6891767
+param:@org.wikidata.city:topics_main_wikimedia_portal:Entity(org.wikidata:topics_main_wikimedia_portal)	Portal:Łódź	Q15099364
+param:@org.wikidata.city:topics_main_wikimedia_portal:Entity(org.wikidata:topics_main_wikimedia_portal)	Portal:Cannes	Q15648001
+param:@org.wikidata.city:topics_main_wikimedia_portal:Entity(org.wikidata:topics_main_wikimedia_portal)	Portal:Edmonton	Q11243416
+param:@org.wikidata.city:topics_main_wikimedia_portal:Entity(org.wikidata:topics_main_wikimedia_portal)	Portal:Singapore	Q11379696
+param:@org.wikidata.city:vatican_library_id:String	ADV11719319
+param:@org.wikidata.city:vatican_library_id:String	ADV12291710
+param:@org.wikidata.city:vatican_library_id:String	ADV10038264
+param:@org.wikidata.city:vatican_library_id:String	ADV11696776
+param:@org.wikidata.city:vatican_library_id:String	ADV11604018
+param:@org.wikidata.city:vatican_library_id:String	ADV11358415
+param:@org.wikidata.city:vatican_library_id:String	ADV12312172
+param:@org.wikidata.city:vatican_library_id:String	ADV11886334
+param:@org.wikidata.city:vatican_library_id:String	ADV12652239
+param:@org.wikidata.city:vatican_library_id:String	ADV10041573
+param:@org.wikidata.city:facet_of:Entity(org.wikidata:facet_of)	Józefów	Q985534
+param:@org.wikidata.city:facet_of:Entity(org.wikidata:facet_of)	history of Cadiz	Q2374694
+param:@org.wikidata.city:facet_of:Entity(org.wikidata:facet_of)	Punic Wars	Q124988
+param:@org.wikidata.city:facet_of:Entity(org.wikidata:facet_of)	Machico	Q693243
+param:@org.wikidata.city:facet_of:Entity(org.wikidata:facet_of)	Tour de France	Q33881
+param:@org.wikidata.city:owned_by:Entity(org.wikidata:human)	Badri Shoshitaishvili	Q24008058
+param:@org.wikidata.city:owned_by:Entity(org.wikidata:human)	Blaise of Sebaste	Q151967
+param:@org.wikidata.city:owned_by:Entity(org.wikidata:human)	José Antonio Nieto	Q853347
+param:@org.wikidata.city:owned_by:Entity(org.wikidata:human)	Michael the Archangel	Q45581
+param:@org.wikidata.city:owned_by:Entity(org.wikidata:human)	Maria Josep Safont Melchor	Q51078283
+param:@org.wikidata.city:owned_by:Entity(org.wikidata:human)	R. Sampath Raj	Q47044542
+param:@org.wikidata.city:owned_by:Entity(org.wikidata:human)	Saint Dominic	Q44091
+param:@org.wikidata.city:owned_by:Entity(org.wikidata:human)	Pierre Becker	Q16438892
+param:@org.wikidata.city:owned_by:Entity(org.wikidata:human)	José Luis Gimeno Ferrer	Q17278920
+param:@org.wikidata.city:owned_by:Entity(org.wikidata:human)	Alfred Oko Vanderpuije	Q4723552
+param:@org.wikidata.city:depicted_by:Entity(org.wikidata:depicted_by)	Minnie Gomery Fonds	Q71990266
+param:@org.wikidata.city:depicted_by:Entity(org.wikidata:depicted_by)	Joseph Hadfield Fonds	Q63338189
+param:@org.wikidata.city:depicted_by:Entity(org.wikidata:depicted_by)	Simon McGillivray Fonds	Q63336878
+param:@org.wikidata.city:depicted_by:Entity(org.wikidata:depicted_by)	Samuel Mathewson Baylis Fonds	Q63339847
+param:@org.wikidata.city:depicted_by:Entity(org.wikidata:depicted_by)	Charles Lewis Fonds	Q71990254
+param:@org.wikidata.city:depicted_by:Entity(org.wikidata:depicted_by)	Rakuchū Rakugai Zu	Q11145889
+param:@org.wikidata.city:central_bank:Entity(org.wikidata:central_bank)	Monetary Authority of Singapore	Q2661296
+param:@org.wikidata.city:central_bank:Entity(org.wikidata:central_bank)	Hong Kong Monetary Authority	Q1595286
+param:@org.wikidata.city:office_held_by_head_of_government:String	Q28223500
+param:@org.wikidata.city:office_held_by_head_of_government:String	Q26697967
+param:@org.wikidata.city:office_held_by_head_of_government:String	Q3740505
+param:@org.wikidata.city:office_held_by_head_of_government:String	Q62584046
+param:@org.wikidata.city:office_held_by_head_of_government:String	Q53926063
+param:@org.wikidata.city:office_held_by_head_of_government:String	Q59240754
+param:@org.wikidata.city:office_held_by_head_of_government:String	Q57421922
+param:@org.wikidata.city:office_held_by_head_of_government:String	Q30185
+param:@org.wikidata.city:office_held_by_head_of_government:String	Q26698312
+param:@org.wikidata.city:office_held_by_head_of_government:String	Q20992511
+param:@org.wikidata.city:territory_claimed_by:Entity(org.wikidata:human)	Badri Shoshitaishvili	Q24008058
+param:@org.wikidata.city:territory_claimed_by:Entity(org.wikidata:human)	Blaise of Sebaste	Q151967
+param:@org.wikidata.city:territory_claimed_by:Entity(org.wikidata:human)	José Antonio Nieto	Q853347
+param:@org.wikidata.city:territory_claimed_by:Entity(org.wikidata:human)	Michael the Archangel	Q45581
+param:@org.wikidata.city:territory_claimed_by:Entity(org.wikidata:human)	Maria Josep Safont Melchor	Q51078283
+param:@org.wikidata.city:territory_claimed_by:Entity(org.wikidata:human)	R. Sampath Raj	Q47044542
+param:@org.wikidata.city:territory_claimed_by:Entity(org.wikidata:human)	Saint Dominic	Q44091
+param:@org.wikidata.city:territory_claimed_by:Entity(org.wikidata:human)	Pierre Becker	Q16438892
+param:@org.wikidata.city:territory_claimed_by:Entity(org.wikidata:human)	José Luis Gimeno Ferrer	Q17278920
+param:@org.wikidata.city:territory_claimed_by:Entity(org.wikidata:human)	Alfred Oko Vanderpuije	Q4723552
+param:@org.wikidata.city:described_by_source:Entity(org.wikidata:described_by_source)	Brockhaus and Efron Encyclopedic Dictionary	Q602358
+param:@org.wikidata.city:described_by_source:Entity(org.wikidata:described_by_source)	Sytin Military Encyclopedia	Q4114391
+param:@org.wikidata.city:described_by_source:Entity(org.wikidata:described_by_source)	Ottův slovník naučný	Q2041543
+param:@org.wikidata.city:described_by_source:Entity(org.wikidata:described_by_source)	Brockhaus and Efron Encyclopedic Dictionary	Q602358
+param:@org.wikidata.city:described_by_source:Entity(org.wikidata:described_by_source)	Brockhaus and Efron Encyclopedic Dictionary	Q602358
+param:@org.wikidata.city:described_by_source:Entity(org.wikidata:described_by_source)	Small Brockhaus and Efron Encyclopedic Dictionary	Q19180675
+param:@org.wikidata.city:described_by_source:Entity(org.wikidata:described_by_source)	Brockhaus and Efron Encyclopedic Dictionary	Q602358
+param:@org.wikidata.city:described_by_source:Entity(org.wikidata:described_by_source)	Paulys Realenzyklopädie der klassischen Altertumswissenschaft	Q1138524
+param:@org.wikidata.city:described_by_source:Entity(org.wikidata:described_by_source)	New Encyclopedic Dictionary	Q19190511
+param:@org.wikidata.city:described_by_source:Entity(org.wikidata:described_by_source)	Brockhaus and Efron Encyclopedic Dictionary	Q602358
+param:@org.wikidata.city:participant_in:Entity(org.wikidata:event)	ASEAN cable system	Q4654163
+param:@org.wikidata.city:participant_in:Entity(org.wikidata:event)	Bombing of the Vatican	Q2909620
+param:@org.wikidata.city:participant_in:Entity(org.wikidata:event)	Pyrrhic War	Q596373
+param:@org.wikidata.city:replaces:Entity(org.wikidata:replaces)	Yodo	Q11385260
+param:@org.wikidata.city:replaces:Entity(org.wikidata:replaces)	Miho	Q11609318
+param:@org.wikidata.city:replaces:Entity(org.wikidata:replaces)	Asami	Q11517709
+param:@org.wikidata.city:replaces:Entity(org.wikidata:replaces)	Yamashiro	Q11467704
+param:@org.wikidata.city:replaces:Entity(org.wikidata:replaces)	Kawanaga	Q11478873
+param:@org.wikidata.city:replaces:Entity(org.wikidata:replaces)	Mamejima	Q96676805
+param:@org.wikidata.city:replaces:Entity(org.wikidata:replaces)	Nozaki	Q11645392
+param:@org.wikidata.city:replaces:Entity(org.wikidata:replaces)	Motosoja	Q11388036
+param:@org.wikidata.city:replaces:Entity(org.wikidata:replaces)	Viiala	Q654667
+param:@org.wikidata.city:replaces:Entity(org.wikidata:replaces)	Kamikawabuchi	Q11358958
+param:@org.wikidata.city:nukat_id:String	n96611100
+param:@org.wikidata.city:nukat_id:String	n2009062681
+param:@org.wikidata.city:nukat_id:String	n2008076336
+param:@org.wikidata.city:nukat_id:String	n2020040010
+param:@org.wikidata.city:replaced_by:Entity(org.wikidata:replaced_by)	Metz	Q22690
+param:@org.wikidata.city:replaced_by:Entity(org.wikidata:replaced_by)	Stavanger/Sandnes	Q3355629
+param:@org.wikidata.city:replaced_by:Entity(org.wikidata:replaced_by)	Orkanger/Fannrem	Q2188915
+param:@org.wikidata.city:replaced_by:Entity(org.wikidata:replaced_by)	Porsgrunn/Skien	Q3354033
+param:@org.wikidata.city:replaced_by:Entity(org.wikidata:replaced_by)	Balashikha	Q104557
+param:@org.wikidata.city:replaced_by:Entity(org.wikidata:replaced_by)	Naga	Q2207
+param:@org.wikidata.city:replaced_by:Entity(org.wikidata:replaced_by)	Bois-Colombes	Q212566
+param:@org.wikidata.city:replaced_by:Entity(org.wikidata:replaced_by)	Tainan	Q140631
+param:@org.wikidata.city:replaced_by:Entity(org.wikidata:replaced_by)	Kaliningrad	Q1829
+param:@org.wikidata.city:replaced_by:Entity(org.wikidata:replaced_by)	Marsala	Q481514
+param:@org.wikidata.city:capital_of:Entity(org.wikidata:capital_of)	Ica Province	Q2084696
+param:@org.wikidata.city:capital_of:Entity(org.wikidata:capital_of)	Sardinia	Q1462
+param:@org.wikidata.city:capital_of:Entity(org.wikidata:capital_of)	Vilkamirski County	Q3010865
+param:@org.wikidata.city:capital_of:Entity(org.wikidata:capital_of)	Cortés Department	Q767244
+param:@org.wikidata.city:capital_of:Entity(org.wikidata:capital_of)	Puntarenas Canton	Q2610390
+param:@org.wikidata.city:capital_of:Entity(org.wikidata:capital_of)	Maseru District	Q844921
+param:@org.wikidata.city:capital_of:Entity(org.wikidata:capital_of)	Geraardsbergen	Q499532
+param:@org.wikidata.city:capital_of:Entity(org.wikidata:capital_of)	Alytus District Municipality	Q769940
+param:@org.wikidata.city:capital_of:Entity(org.wikidata:capital_of)	Leonardo Infante	Q1454811
+param:@org.wikidata.city:capital_of:Entity(org.wikidata:capital_of)	German East Africa	Q153963
+param:@org.wikidata.city:named_after:Entity(org.wikidata:named_after)	Saparmurat Niyazov	Q82918
+param:@org.wikidata.city:named_after:Entity(org.wikidata:named_after)	Thomas the Apostle	Q43669
+param:@org.wikidata.city:named_after:Entity(org.wikidata:named_after)	Trujillo	Q324489
+param:@org.wikidata.city:named_after:Entity(org.wikidata:named_after)	John Moresby	Q712425
+param:@org.wikidata.city:named_after:Entity(org.wikidata:named_after)	Robert Burnaby	Q7342509
+param:@org.wikidata.city:named_after:Entity(org.wikidata:named_after)	Alexander the Great	Q8409
+param:@org.wikidata.city:named_after:Entity(org.wikidata:named_after)	Constantine the Great	Q8413
+param:@org.wikidata.city:named_after:Entity(org.wikidata:named_after)	Simón Bolívar	Q8605
+param:@org.wikidata.city:named_after:Entity(org.wikidata:named_after)	Cimmerians	Q192730
+param:@org.wikidata.city:named_after:Entity(org.wikidata:named_after)	Pierre Savorgnan de Brazza	Q319834
+param:@org.wikidata.city:partially_coincident_with:Entity(org.wikidata:partially_coincident_with)	Nisibis	Q14524112
+param:@org.wikidata.city:helveticarchives_id:String	vtls005299250
+param:@org.wikidata.city:helveticarchives_id:String	vtls005487177
+param:@org.wikidata.city:helveticarchives_id:String	vtls005523726
+param:@org.wikidata.city:helveticarchives_id:String	vtls005325019
+param:@org.wikidata.city:helveticarchives_id:String	vtls005350126
+param:@org.wikidata.city:contains_settlement:Entity(org.wikidata:contains_settlement)	Dehesas	Q5801469
+param:@org.wikidata.city:contains_settlement:Entity(org.wikidata:contains_settlement)	Velazco	Q12898068
+param:@org.wikidata.city:contains_settlement:Entity(org.wikidata:contains_settlement)	Constanța	Q16898202
+param:@org.wikidata.city:contains_settlement:Entity(org.wikidata:contains_settlement)	Cerrillo de Maracena	Q5762788
+param:@org.wikidata.city:contains_settlement:Entity(org.wikidata:contains_settlement)	Palazu Mare	Q12137490
+param:@org.wikidata.city:contains_settlement:Entity(org.wikidata:contains_settlement)	Old Delhi	Q3242297
+param:@org.wikidata.city:contains_settlement:Entity(org.wikidata:contains_settlement)	Gibara	Q23796526
+param:@org.wikidata.city:contains_settlement:Entity(org.wikidata:contains_settlement)	Lancha del Genil	Q5969833
+param:@org.wikidata.city:contains_settlement:Entity(org.wikidata:contains_settlement)	Floro Pérez	Q12890680
+param:@org.wikidata.city:contains_settlement:Entity(org.wikidata:contains_settlement)	El Fargue	Q5821932
+param:@org.wikidata.city:languages_spoken_written_or_signed:Entity(tt:iso_lang_code)	Spanish	Q1321
+param:@org.wikidata.city:languages_spoken_written_or_signed:Entity(tt:iso_lang_code)	Eastern Maninkaka language	Q11002130
+param:@org.wikidata.city:languages_spoken_written_or_signed:Entity(tt:iso_lang_code)	Kanakanabu	Q172244
+param:@org.wikidata.city:languages_spoken_written_or_signed:Entity(tt:iso_lang_code)	Waima	Q34197
+param:@org.wikidata.city:languages_spoken_written_or_signed:Entity(tt:iso_lang_code)	Russian	Q7737
+param:@org.wikidata.city:languages_spoken_written_or_signed:Entity(tt:iso_lang_code)	Soqotri	Q13283
+param:@org.wikidata.city:languages_spoken_written_or_signed:Entity(tt:iso_lang_code)	Phuan	Q3915665
+param:@org.wikidata.city:languages_spoken_written_or_signed:Entity(tt:iso_lang_code)	Mussau-Emira	Q6943093
+param:@org.wikidata.city:languages_spoken_written_or_signed:Entity(tt:iso_lang_code)	Rajasthani	Q13196
+param:@org.wikidata.city:languages_spoken_written_or_signed:Entity(tt:iso_lang_code)	Gade Lohar	Q12953671
+param:@org.wikidata.city:cantic_id:String	a11193153
+param:@org.wikidata.city:cantic_id:String	a20008612
+param:@org.wikidata.city:affiliation:Entity(org.wikidata:affiliation)	Warnow-Wasser- und Abwasserverband	Q39667594
+param:@org.wikidata.city:woeid:String	19792
+param:@org.wikidata.city:woeid:String	60941
+param:@org.wikidata.city:woeid:String	80014
+param:@org.wikidata.city:woeid:String	66466
+param:@org.wikidata.city:woeid:String	83123
+param:@org.wikidata.city:woeid:String	18760
+param:@org.wikidata.city:woeid:String	30720
+param:@org.wikidata.city:woeid:String	65725
+param:@org.wikidata.city:woeid:String	15782
+param:@org.wikidata.city:woeid:String	61535
+param:@org.wikidata.city:topics_main_template:Entity(org.wikidata:topics_main_template)	Template:Gramsh div	Q22733781
+param:@org.wikidata.city:topics_main_template:Entity(org.wikidata:topics_main_template)	Template:Chongqing	Q6428409
+param:@org.wikidata.city:topics_main_template:Entity(org.wikidata:topics_main_template)	Template:Miskolc	Q26077813
+param:@org.wikidata.city:topics_main_template:Entity(org.wikidata:topics_main_template)	Template:City of Doboj	Q14386972
+param:@org.wikidata.city:topics_main_template:Entity(org.wikidata:topics_main_template)	Template:Białystok	Q6717350
+param:@org.wikidata.city:topics_main_template:Entity(org.wikidata:topics_main_template)	Template:Brussels municipalities	Q5920875
+param:@org.wikidata.city:topics_main_template:Entity(org.wikidata:topics_main_template)	Template:Shenzhen	Q14387537
+param:@org.wikidata.city:topics_main_template:Entity(org.wikidata:topics_main_template)	Template:Tashkent	Q11007486
+param:@org.wikidata.city:topics_main_template:Entity(org.wikidata:topics_main_template)	Template:Óbuda	Q23458599
+param:@org.wikidata.city:topics_main_template:Entity(org.wikidata:topics_main_template)	Template:Guangzhou	Q14446350
+param:@org.wikidata.city:heritage_designation:Entity(org.wikidata:heritage_designation)	Bien en el Catálogo General del Patrimonio Histórico Andaluz	Q27680146
+param:@org.wikidata.city:heritage_designation:Entity(org.wikidata:heritage_designation)	Bien de Interés Cultural	Q23712
+param:@org.wikidata.city:heritage_designation:Entity(org.wikidata:heritage_designation)	Bien en el Catálogo General del Patrimonio Histórico Andaluz	Q27680146
+param:@org.wikidata.city:heritage_designation:Entity(org.wikidata:heritage_designation)	Tentative World Heritage Site	Q1459900
+param:@org.wikidata.city:heritage_designation:Entity(org.wikidata:heritage_designation)	Bien en el Catálogo General del Patrimonio Histórico Andaluz	Q27680146
+param:@org.wikidata.city:heritage_designation:Entity(org.wikidata:heritage_designation)	Bien en el Catálogo General del Patrimonio Histórico Andaluz	Q27680146
+param:@org.wikidata.city:heritage_designation:Entity(org.wikidata:heritage_designation)	Bien en el Catálogo General del Patrimonio Histórico Andaluz	Q27680146
+param:@org.wikidata.city:heritage_designation:Entity(org.wikidata:heritage_designation)	Bien en el Catálogo General del Patrimonio Histórico Andaluz	Q27680146
+param:@org.wikidata.city:heritage_designation:Entity(org.wikidata:heritage_designation)	Bien en el Catálogo General del Patrimonio Histórico Andaluz	Q27680146
+param:@org.wikidata.city:heritage_designation:Entity(org.wikidata:heritage_designation)	Bien en el Catálogo General del Patrimonio Histórico Andaluz	Q27680146
+param:@org.wikidata.city:present_in_work:Entity(org.wikidata:present_in_work)	Civilization V	Q2385
+param:@org.wikidata.city:present_in_work:Entity(org.wikidata:present_in_work)	Civilization V	Q2385
+param:@org.wikidata.city:present_in_work:Entity(org.wikidata:present_in_work)	Civilization V	Q2385
+param:@org.wikidata.city:present_in_work:Entity(org.wikidata:present_in_work)	Civilization V	Q2385
+param:@org.wikidata.city:present_in_work:Entity(org.wikidata:present_in_work)	Civilization V	Q2385
+param:@org.wikidata.city:present_in_work:Entity(org.wikidata:present_in_work)	Civilization V	Q2385
+param:@org.wikidata.city:present_in_work:Entity(org.wikidata:present_in_work)	Euskal Herriaren historia nafarra (comic book)	Q64992248
+param:@org.wikidata.city:present_in_work:Entity(org.wikidata:present_in_work)	Civilization V	Q2385
+param:@org.wikidata.city:present_in_work:Entity(org.wikidata:present_in_work)	Civilization V	Q2385
+param:@org.wikidata.city:present_in_work:Entity(org.wikidata:present_in_work)	Civilization V	Q2385
+param:@org.wikidata.city:list_of_monuments:Entity(org.wikidata:list_of_monuments)	Cultural monuments in Kladno	Q12052118
+param:@org.wikidata.city:list_of_monuments:Entity(org.wikidata:list_of_monuments)	list of war memorials in Breda	Q4789169
+param:@org.wikidata.city:list_of_monuments:Entity(org.wikidata:list_of_monuments)	Cultural monuments in Chomutov	Q12052054
+param:@org.wikidata.city:list_of_monuments:Entity(org.wikidata:list_of_monuments)	list of protected immovable heritage in the Brussels Capital Region	Q732237
+param:@org.wikidata.city:list_of_monuments:Entity(org.wikidata:list_of_monuments)	list of war memorials in Alkmaar	Q4805267
+param:@org.wikidata.city:list_of_monuments:Entity(org.wikidata:list_of_monuments)	Cultural heritage monuments in Villach	Q1689661
+param:@org.wikidata.city:list_of_monuments:Entity(org.wikidata:list_of_monuments)	list of national monuments in Groningen	Q1982727
+param:@org.wikidata.city:list_of_monuments:Entity(org.wikidata:list_of_monuments)	list of cultural heritage buildings in the city of Feldkirch	Q1855557
+param:@org.wikidata.city:list_of_monuments:Entity(org.wikidata:list_of_monuments)	list of war memorials in Purmerend	Q4527143
+param:@org.wikidata.city:list_of_monuments:Entity(org.wikidata:list_of_monuments)	Rijksmonumenten in Purmerend	Q2119180
+param:@org.wikidata.city:category_for_people_born_here:Entity(org.wikidata:category_for_people_born_here)	Category:Births in Santander, Spain	Q10219515
+param:@org.wikidata.city:category_for_people_born_here:Entity(org.wikidata:category_for_people_born_here)	Category:Births in Athens	Q8044352
+param:@org.wikidata.city:category_for_people_born_here:Entity(org.wikidata:category_for_people_born_here)	Category:Births in Sialkot	Q13336179
+param:@org.wikidata.city:category_for_people_born_here:Entity(org.wikidata:category_for_people_born_here)	Category:Births in Caracas	Q14914963
+param:@org.wikidata.city:category_for_people_born_here:Entity(org.wikidata:category_for_people_born_here)	Category:Births in Zielona Góra	Q8054257
+param:@org.wikidata.city:category_for_people_born_here:Entity(org.wikidata:category_for_people_born_here)	Category:Births in Bratislava	Q9223669
+param:@org.wikidata.city:category_for_people_born_here:Entity(org.wikidata:category_for_people_born_here)	Category:Births in Bethlehem	Q8049425
+param:@org.wikidata.city:category_for_people_born_here:Entity(org.wikidata:category_for_people_born_here)	Category:Births in Prostějov	Q8069132
+param:@org.wikidata.city:category_for_people_born_here:Entity(org.wikidata:category_for_people_born_here)	Category:Births in Kars	Q6381337
+param:@org.wikidata.city:category_for_people_born_here:Entity(org.wikidata:category_for_people_born_here)	Category:Births in Soria	Q9227453
+param:@org.wikidata.city:category_for_people_who_died_here:Entity(org.wikidata:category_for_people_who_died_here)	Category:Deaths in London	Q8365529
+param:@org.wikidata.city:category_for_people_who_died_here:Entity(org.wikidata:category_for_people_who_died_here)	Category:Deaths in Córdoba	Q14331308
+param:@org.wikidata.city:category_for_people_who_died_here:Entity(org.wikidata:category_for_people_who_died_here)	Category:Deaths in Hanoi	Q9218581
+param:@org.wikidata.city:category_for_people_who_died_here:Entity(org.wikidata:category_for_people_who_died_here)	Category:Deaths in Koszalin	Q9218741
+param:@org.wikidata.city:category_for_people_who_died_here:Entity(org.wikidata:category_for_people_who_died_here)	Category:Deaths in Świętochłowice	Q9220461
+param:@org.wikidata.city:category_for_people_who_died_here:Entity(org.wikidata:category_for_people_who_died_here)	Category:Deaths in Košice	Q7917584
+param:@org.wikidata.city:category_for_people_who_died_here:Entity(org.wikidata:category_for_people_who_died_here)	Category:Deaths in Góra Kalwaria	Q18665669
+param:@org.wikidata.city:category_for_people_who_died_here:Entity(org.wikidata:category_for_people_who_died_here)	Category:Deaths in Magdeburg	Q9218988
+param:@org.wikidata.city:category_for_people_who_died_here:Entity(org.wikidata:category_for_people_who_died_here)	Category:Deaths in Indore	Q9218654
+param:@org.wikidata.city:category_for_people_who_died_here:Entity(org.wikidata:category_for_people_who_died_here)	Category:Deaths in Panevėžys	Q14331332
+param:@org.wikidata.city:iata_airport_code:String	ZFR
+param:@org.wikidata.city:iata_airport_code:String	NPY
+param:@org.wikidata.city:iata_airport_code:String	LEJ
+param:@org.wikidata.city:iata_airport_code:String	SRJ
+param:@org.wikidata.city:iata_airport_code:String	LON
+param:@org.wikidata.city:iata_airport_code:String	QSW
+param:@org.wikidata.city:architectural_style:Entity(org.wikidata:architectural_style)	Moorish architecture	Q247492
+param:@org.wikidata.city:architectural_style:Entity(org.wikidata:architectural_style)	Armenian architecture	Q2860299
+param:@org.wikidata.city:architectural_style:Entity(org.wikidata:architectural_style)	Byzantine architecture	Q47591
+param:@org.wikidata.city:architectural_style:Entity(org.wikidata:architectural_style)	Movement moderne	Q11784483
+param:@org.wikidata.city:architectural_style:Entity(org.wikidata:architectural_style)	Art Deco	Q173782
+param:@org.wikidata.city:architectural_style:Entity(org.wikidata:architectural_style)	Mozarabic art and architecture	Q1951304
+param:@org.wikidata.city:architectural_style:Entity(org.wikidata:architectural_style)	ancient Roman architecture	Q223750
+param:@org.wikidata.city:architectural_style:Entity(org.wikidata:architectural_style)	Byzantine architecture	Q47591
+param:@org.wikidata.city:contains_administrative_territorial_entity:Entity(org.wikidata:contains_administrative_territorial_entity)	urban districts of Ho Chi Minh City	Q31495383
+param:@org.wikidata.city:contains_administrative_territorial_entity:Entity(org.wikidata:contains_administrative_territorial_entity)	Lichtenhain	Q1823392
+param:@org.wikidata.city:contains_administrative_territorial_entity:Entity(org.wikidata:contains_administrative_territorial_entity)	Bokel	Q891206
+param:@org.wikidata.city:contains_administrative_territorial_entity:Entity(org.wikidata:contains_administrative_territorial_entity)	Vrahovice	Q1023574
+param:@org.wikidata.city:contains_administrative_territorial_entity:Entity(org.wikidata:contains_administrative_territorial_entity)	Košice II	Q280424
+param:@org.wikidata.city:contains_administrative_territorial_entity:Entity(org.wikidata:contains_administrative_territorial_entity)	Queenhithe	Q1524847
+param:@org.wikidata.city:contains_administrative_territorial_entity:Entity(org.wikidata:contains_administrative_territorial_entity)	Daun Penh District	Q5228039
+param:@org.wikidata.city:contains_administrative_territorial_entity:Entity(org.wikidata:contains_administrative_territorial_entity)	Újezd	Q11085896
+param:@org.wikidata.city:contains_administrative_territorial_entity:Entity(org.wikidata:contains_administrative_territorial_entity)	Rissen	Q1596
+param:@org.wikidata.city:contains_administrative_territorial_entity:Entity(org.wikidata:contains_administrative_territorial_entity)	Podlázky	Q12045912
+param:@org.wikidata.city:name:String	Dubai
+param:@org.wikidata.city:german_regional_key:String	04011
+param:@org.wikidata.city:motto:Entity(org.wikidata:motto)	In hoc signo vinces	Q919962
+param:@org.wikidata.city:hashtag:String	ElPuerto
+param:@org.wikidata.city:hashtag:String	SanFrancisco
+param:@org.wikidata.city:hashtag:String	Sabadell
+param:@org.wikidata.city:hashtag:String	London
+param:@org.wikidata.city:hashtag:String	viborg
+param:@org.wikidata.city:hashtag:String	Sosnowiec
+param:@org.wikidata.city:hashtag:String	Nouakchott
+param:@org.wikidata.city:glottolog_code:String	luan1257
+param:@org.wikidata.city:follows:Entity(org.wikidata:follows)	Kodisjoki	Q425733
+param:@org.wikidata.city:follows:Entity(org.wikidata:follows)	Piikkiö	Q783205
+param:@org.wikidata.city:follows:Entity(org.wikidata:follows)	Hauho	Q1013639
+param:@org.wikidata.city:follows:Entity(org.wikidata:follows)	Kiikala	Q1641643
+param:@org.wikidata.city:follows:Entity(org.wikidata:follows)	New Rome	Q13089982
+param:@org.wikidata.city:follows:Entity(org.wikidata:follows)	Urawa-shuku	Q3552142
+param:@org.wikidata.city:follows:Entity(org.wikidata:follows)	Lohtaja	Q1641609
+param:@org.wikidata.city:follows:Entity(org.wikidata:follows)	Peräseinäjoki	Q2371138
+param:@org.wikidata.city:follows:Entity(org.wikidata:follows)	Mellilä	Q1641630
+param:@org.wikidata.city:follows:Entity(org.wikidata:follows)	Nagu	Q203512
+param:@org.wikidata.city:has_quality:Entity(org.wikidata:has_quality)	partly free country	Q47185145
+param:@org.wikidata.city:followed_by:Entity(org.wikidata:followed_by)	Kaliningrad	Q1829
+param:@org.wikidata.city:followed_by:Entity(org.wikidata:followed_by)	Mänttä-Vilppula	Q1016922
+param:@org.wikidata.city:followed_by:Entity(org.wikidata:followed_by)	Psie Pole	Q1015486
+param:@org.wikidata.city:followed_by:Entity(org.wikidata:followed_by)	Istanbul	Q406
+param:@org.wikidata.city:followed_by:Entity(org.wikidata:followed_by)	Mänttä-Vilppula	Q1016922
+param:@org.wikidata.city:followed_by:Entity(org.wikidata:followed_by)	N'Djamena	Q3659
+param:@org.wikidata.city:followed_by:Entity(org.wikidata:followed_by)	Manisa	Q147089
+param:@org.wikidata.city:followed_by:Entity(org.wikidata:followed_by)	Christiania	Q21711493
+param:@org.wikidata.city:followed_by:Entity(org.wikidata:followed_by)	Saitama	Q134635
+param:@org.wikidata.city:followed_by:Entity(org.wikidata:followed_by)	Okinawa	Q328615
+param:@org.wikidata.city:jewish_encyclopedia_id_russian_:String	11557
+param:@org.wikidata.city:jewish_encyclopedia_id_russian_:String	13024
+param:@org.wikidata.city:jewish_encyclopedia_id_russian_:String	11545
+param:@org.wikidata.city:jewish_encyclopedia_id_russian_:String	12107
+param:@org.wikidata.city:jewish_encyclopedia_id_russian_:String	10438
+param:@org.wikidata.city:jewish_encyclopedia_id_russian_:String	10980
+param:@org.wikidata.city:jewish_encyclopedia_id_russian_:String	13664
+param:@org.wikidata.city:jewish_encyclopedia_id_russian_:String	10850
+param:@org.wikidata.city:jewish_encyclopedia_id_russian_:String	14651
+param:@org.wikidata.city:jewish_encyclopedia_id_russian_:String	10504
+param:@org.wikidata.city:postal_code:String	S2452
+param:@org.wikidata.city:postal_code:String	95014
+param:@org.wikidata.city:postal_code:String	N4K
+param:@org.wikidata.city:postal_code:String	DH1
+param:@org.wikidata.city:postal_code:String	90070
+param:@org.wikidata.city:postal_code:String	97418
+param:@org.wikidata.city:postal_code:String	34150
+param:@org.wikidata.city:postal_code:String	46562
+param:@org.wikidata.city:postal_code:String	BA5
+param:@org.wikidata.city:postal_code:String	34137
+param:@org.wikidata.city:flag:String	Q4487811
+param:@org.wikidata.city:flag:String	Q8141198
+param:@org.wikidata.city:flag:String	Q619799
+param:@org.wikidata.city:flag:String	Q16489468
+param:@org.wikidata.city:flag:String	Q9260207
+param:@org.wikidata.city:flag:String	Q2902319
+param:@org.wikidata.city:flag:String	Q5456748
+param:@org.wikidata.city:flag:String	Q12143496
+param:@org.wikidata.city:flag:String	Q8241633
+param:@org.wikidata.city:flag:String	Q8241807
+param:@org.wikidata.city:award_received:Entity(org.wikidata:award)	Order of the Builders of People's Poland	Q1703174
+param:@org.wikidata.city:award_received:Entity(org.wikidata:award)	Olomouc city award	Q51977426
+param:@org.wikidata.city:award_received:Entity(org.wikidata:award)	European Capital of Culture	Q129372
+param:@org.wikidata.city:award_received:Entity(org.wikidata:award)	Medal of Military Valour	Q850170
+param:@org.wikidata.city:award_received:Entity(org.wikidata:award)	European Capital of Culture	Q129372
+param:@org.wikidata.city:award_received:Entity(org.wikidata:award)	European City of the Reformation	Q20828891
+param:@org.wikidata.city:award_received:Entity(org.wikidata:award)	The Europe Prize	Q1375668
+param:@org.wikidata.city:award_received:Entity(org.wikidata:award)	Hero City	Q159438
+param:@org.wikidata.city:award_received:Entity(org.wikidata:award)	Gold Medal of Military Valour	Q15042072
+param:@org.wikidata.city:award_received:Entity(org.wikidata:award)	Order of the Builders of People's Poland	Q1703174
+param:@org.wikidata.city:country:Entity(org.wikidata:country)	Ottoman Empire	Q12560
+param:@org.wikidata.city:country:Entity(org.wikidata:country)	United Kingdom of Great Britain and Ireland	Q174193
+param:@org.wikidata.city:country:Entity(org.wikidata:country)	Brazil	Q155
+param:@org.wikidata.city:country:Entity(org.wikidata:country)	Denmark-Norway	Q62651
+param:@org.wikidata.city:country:Entity(org.wikidata:country)	Argentina	Q414
+param:@org.wikidata.city:country:Entity(org.wikidata:country)	Spain	Q29
+param:@org.wikidata.city:country:Entity(org.wikidata:country)	United Provinces of Central Italy	Q2268597
+param:@org.wikidata.city:country:Entity(org.wikidata:country)	Netherlands	Q55
+param:@org.wikidata.city:country:Entity(org.wikidata:country)	Slovenia	Q215
+param:@org.wikidata.city:country:Entity(org.wikidata:country)	Brazil	Q155
+param:@org.wikidata.city:viciorg_id:String	11061
+param:@org.wikidata.city:viciorg_id:String	31721
+param:@org.wikidata.city:viciorg_id:String	54861
+param:@org.wikidata.city:viciorg_id:String	21500
+param:@org.wikidata.city:viciorg_id:String	15343
+param:@org.wikidata.city:viciorg_id:String	18833
+param:@org.wikidata.city:viciorg_id:String	21210
+param:@org.wikidata.city:viciorg_id:String	11299
+param:@org.wikidata.city:viciorg_id:String	13218
+param:@org.wikidata.city:viciorg_id:String	28348
+param:@org.wikidata.city:creator:Entity(org.wikidata:human)	Badri Shoshitaishvili	Q24008058
+param:@org.wikidata.city:creator:Entity(org.wikidata:human)	Blaise of Sebaste	Q151967
+param:@org.wikidata.city:creator:Entity(org.wikidata:human)	José Antonio Nieto	Q853347
+param:@org.wikidata.city:creator:Entity(org.wikidata:human)	Michael the Archangel	Q45581
+param:@org.wikidata.city:creator:Entity(org.wikidata:human)	Maria Josep Safont Melchor	Q51078283
+param:@org.wikidata.city:creator:Entity(org.wikidata:human)	R. Sampath Raj	Q47044542
+param:@org.wikidata.city:creator:Entity(org.wikidata:human)	Saint Dominic	Q44091
+param:@org.wikidata.city:creator:Entity(org.wikidata:human)	Pierre Becker	Q16438892
+param:@org.wikidata.city:creator:Entity(org.wikidata:human)	José Luis Gimeno Ferrer	Q17278920
+param:@org.wikidata.city:creator:Entity(org.wikidata:human)	Alfred Oko Vanderpuije	Q4723552
+param:@org.wikidata.city:ethnic_group:Entity(org.wikidata:ethnic_group)	Bosniaks	Q940348
+param:@org.wikidata.city:ethnic_group:Entity(org.wikidata:ethnic_group)	Serbs	Q127885
+param:@org.wikidata.city:ethnic_group:Entity(org.wikidata:ethnic_group)	Aromanians	Q201111
+param:@org.wikidata.city:ethnic_group:Entity(org.wikidata:ethnic_group)	Albanians	Q179248
+param:@org.wikidata.city:ethnic_group:Entity(org.wikidata:ethnic_group)	Romani	Q8060
+param:@org.wikidata.city:ethnic_group:Entity(org.wikidata:ethnic_group)	Turkish people	Q84072
+param:@org.wikidata.city:ethnic_group:Entity(org.wikidata:ethnic_group)	Aromanians	Q201111
+param:@org.wikidata.city:ethnic_group:Entity(org.wikidata:ethnic_group)	Romani	Q8060
+param:@org.wikidata.city:ethnic_group:Entity(org.wikidata:ethnic_group)	Romani	Q8060
+param:@org.wikidata.city:ethnic_group:Entity(org.wikidata:ethnic_group)	Other	Q86630688
+param:@org.wikidata.city:geonames_id:String	99454
+param:@org.wikidata.city:geonames_id:String	64435
+param:@org.wikidata.city:geonames_id:String	90393
+param:@org.wikidata.city:geonames_id:String	54443
+param:@org.wikidata.city:geonames_id:String	80384
+param:@org.wikidata.city:geonames_id:String	64021
+param:@org.wikidata.city:geonames_id:String	78754
+param:@org.wikidata.city:geonames_id:String	73325
+param:@org.wikidata.city:geonames_id:String	98860
+param:@org.wikidata.city:geonames_id:String	92052
+param:@org.wikidata.city:category_for_films_shot_at_this_location:Entity(org.wikidata:category_for_films_shot_at_this_location)	Category:Films shot in Bonn	Q19363050
+param:@org.wikidata.city:category_for_films_shot_at_this_location:Entity(org.wikidata:category_for_films_shot_at_this_location)	Category:Films shot in Florence	Q10218395
+param:@org.wikidata.city:category_for_films_shot_at_this_location:Entity(org.wikidata:category_for_films_shot_at_this_location)	Category:Films shot in Siena	Q10220151
+param:@org.wikidata.city:category_for_films_shot_at_this_location:Entity(org.wikidata:category_for_films_shot_at_this_location)	Category:Films shot in Tiruchirappalli	Q15327869
+param:@org.wikidata.city:category_for_films_shot_at_this_location:Entity(org.wikidata:category_for_films_shot_at_this_location)	Category:Films shot in Rotterdam	Q19359102
+param:@org.wikidata.city:category_for_films_shot_at_this_location:Entity(org.wikidata:category_for_films_shot_at_this_location)	Category:Films shot in Guangzhou	Q16325774
+param:@org.wikidata.city:category_for_films_shot_at_this_location:Entity(org.wikidata:category_for_films_shot_at_this_location)	Category:Films shot in Ağcabədi	Q10043419
+param:@org.wikidata.city:category_for_films_shot_at_this_location:Entity(org.wikidata:category_for_films_shot_at_this_location)	Category:Films shot in New York City	Q6612898
+param:@org.wikidata.city:category_for_films_shot_at_this_location:Entity(org.wikidata:category_for_films_shot_at_this_location)	Category:Films shot in Ibadan	Q16816804
+param:@org.wikidata.city:category_for_films_shot_at_this_location:Entity(org.wikidata:category_for_films_shot_at_this_location)	Category:Films shot in Helsinki	Q20011793
+param:@org.wikidata.city:category_of_people_buried_here:Entity(org.wikidata:category_of_people_buried_here)	Category:Burials in Vatican City	Q8328826
+param:@org.wikidata.city:category_of_people_buried_here:Entity(org.wikidata:category_of_people_buried_here)	Category:Burials in Málaga	Q7976915
+param:@org.wikidata.city:category_of_people_buried_here:Entity(org.wikidata:category_of_people_buried_here)	Category:Burials in Würzburg	Q17141985
+param:@org.wikidata.city:category_of_people_buried_here:Entity(org.wikidata:category_of_people_buried_here)	Category:Burials in Bethlehem	Q8328516
+param:@org.wikidata.city:category_of_people_buried_here:Entity(org.wikidata:category_of_people_buried_here)	Category:Burials in Montevideo	Q8328687
+param:@org.wikidata.city:category_of_people_buried_here:Entity(org.wikidata:category_of_people_buried_here)	Category:Burials in Lahore	Q30695918
+param:@org.wikidata.city:category_of_people_buried_here:Entity(org.wikidata:category_of_people_buried_here)	Category:Burials in Katowice	Q7976248
+param:@org.wikidata.city:category_of_people_buried_here:Entity(org.wikidata:category_of_people_buried_here)	Category:Burials in Halifax, Nova Scotia	Q7975507
+param:@org.wikidata.city:category_of_people_buried_here:Entity(org.wikidata:category_of_people_buried_here)	Category:Burials in Schwerin	Q17143171
+param:@org.wikidata.city:category_of_people_buried_here:Entity(org.wikidata:category_of_people_buried_here)	Category:Burials in Brussels (region)	Q32738539
+param:@org.wikidata.city:nisins_code:String	04000
+param:@org.wikidata.city:nisins_code:String	52011
+param:@org.wikidata.city:nisins_code:String	44021
+param:@org.wikidata.city:nisins_code:String	92094
+param:@org.wikidata.city:nisins_code:String	62063
+param:@org.wikidata.city:nisins_code:String	21015
+param:@org.wikidata.city:nisins_code:String	57081A
+param:@org.wikidata.city:nisins_code:String	21004
+param:@org.wikidata.city:nisins_code:String	73083
+param:@org.wikidata.city:nisins_code:String	24041
+param:@org.wikidata.city:pleiades_id:String	59866
+param:@org.wikidata.city:pleiades_id:String	59972
+param:@org.wikidata.city:pleiades_id:String	89175
+param:@org.wikidata.city:pleiades_id:String	59934
+param:@org.wikidata.city:pleiades_id:String	60099
+param:@org.wikidata.city:pleiades_id:String	59978
+param:@org.wikidata.city:pleiades_id:String	50151
+param:@org.wikidata.city:pleiades_id:String	79299
+param:@org.wikidata.city:pleiades_id:String	60016
+param:@org.wikidata.city:pleiades_id:String	29586
+param:@org.wikidata.city:category_of_associated_people:Entity(org.wikidata:category_of_associated_people)	Category:People from Cumaná	Q8731643
+param:@org.wikidata.city:category_of_associated_people:Entity(org.wikidata:category_of_associated_people)	Category:People from Christchurch	Q7234797
+param:@org.wikidata.city:category_of_associated_people:Entity(org.wikidata:category_of_associated_people)	Category:People from Toledo, Spain	Q6805668
+param:@org.wikidata.city:category_of_associated_people:Entity(org.wikidata:category_of_associated_people)	Category:People from Prijedor	Q9778660
+param:@org.wikidata.city:category_of_associated_people:Entity(org.wikidata:category_of_associated_people)	Category:People from Béjaïa	Q6824744
+param:@org.wikidata.city:category_of_associated_people:Entity(org.wikidata:category_of_associated_people)	Category:People from Plasencia	Q8745920
+param:@org.wikidata.city:category_of_associated_people:Entity(org.wikidata:category_of_associated_people)	Category:People from Matsuyama, Ehime	Q6431005
+param:@org.wikidata.city:category_of_associated_people:Entity(org.wikidata:category_of_associated_people)	Category:People from Hamilton, Ontario	Q8790757
+param:@org.wikidata.city:category_of_associated_people:Entity(org.wikidata:category_of_associated_people)	Category:People from Saint Peter Port	Q32198958
+param:@org.wikidata.city:category_of_associated_people:Entity(org.wikidata:category_of_associated_people)	Category:People from Huambo	Q18701530
+param:@org.wikidata.city:owner_of:Entity(org.wikidata:owner_of)	Elgeseter Line	Q5359982
+param:@org.wikidata.city:owner_of:Entity(org.wikidata:owner_of)	IRT Lenox Avenue Line	Q2372392
+param:@org.wikidata.city:owner_of:Entity(org.wikidata:owner_of)	AaltoAlvari	Q5547490
+param:@org.wikidata.city:owner_of:Entity(org.wikidata:owner_of)	South Campus/Fort Edmonton Park station	Q7566491
+param:@org.wikidata.city:owner_of:Entity(org.wikidata:owner_of)	Rotonda della Madonna del Monte	Q34598751
+param:@org.wikidata.city:owner_of:Entity(org.wikidata:owner_of)	Panathinaikos F.C. New Stadium	Q1113002
+param:@org.wikidata.city:owner_of:Entity(org.wikidata:owner_of)	Estadio Juan Gobán	Q3495669
+param:@org.wikidata.city:owner_of:Entity(org.wikidata:owner_of)	Visit Mallorca Stadi	Q276163
+param:@org.wikidata.city:owner_of:Entity(org.wikidata:owner_of)	Acre Municipal Stadium	Q3525082
+param:@org.wikidata.city:owner_of:Entity(org.wikidata:owner_of)	Neponsit Beach Hospital	Q39060163
+param:@org.wikidata.city:material_used:Entity(org.wikidata:material_used)	sandstone	Q13085
+param:@org.wikidata.city:slovene_cultural_heritage_register_id:String	10007
+param:@org.wikidata.city:slovene_cultural_heritage_register_id:String	15959
+param:@org.wikidata.city:slovene_cultural_heritage_register_id:String	23238
+param:@org.wikidata.city:slovene_cultural_heritage_register_id:String	11477
+param:@org.wikidata.city:slovene_cultural_heritage_register_id:String	15112
+param:@org.wikidata.city:different_from:Entity(org.wikidata:different_from)	Gmina Oborniki Śląskie	Q669807
+param:@org.wikidata.city:different_from:Entity(org.wikidata:different_from)	Gmina Wolin	Q557190
+param:@org.wikidata.city:different_from:Entity(org.wikidata:different_from)	Gmina Jastrowie	Q555453
+param:@org.wikidata.city:different_from:Entity(org.wikidata:different_from)	Belfarsad	Q13156994
+param:@org.wikidata.city:different_from:Entity(org.wikidata:different_from)	Asientos Municipality	Q8206694
+param:@org.wikidata.city:different_from:Entity(org.wikidata:different_from)	Gmina Kobylin	Q555796
+param:@org.wikidata.city:different_from:Entity(org.wikidata:different_from)	Punata Municipality	Q1521120
+param:@org.wikidata.city:different_from:Entity(org.wikidata:different_from)	Gmina Kisielice	Q555831
+param:@org.wikidata.city:different_from:Entity(org.wikidata:different_from)	Gmina Żerków	Q557404
+param:@org.wikidata.city:different_from:Entity(org.wikidata:different_from)	Homa Bay County	Q1625834
+param:@org.wikidata.city:twinned_administrative_body:Entity(org.wikidata:city)	Bougival	Q399342
+param:@org.wikidata.city:twinned_administrative_body:Entity(org.wikidata:city)	Texcoco de Mora	Q1141799
+param:@org.wikidata.city:twinned_administrative_body:Entity(org.wikidata:city)	Kumasi	Q182059
+param:@org.wikidata.city:twinned_administrative_body:Entity(org.wikidata:city)	Innsbruck	Q1735
+param:@org.wikidata.city:twinned_administrative_body:Entity(org.wikidata:city)	Dubossary	Q688654
+param:@org.wikidata.city:twinned_administrative_body:Entity(org.wikidata:city)	Tiffin	Q990934
+param:@org.wikidata.city:twinned_administrative_body:Entity(org.wikidata:city)	Montego Bay	Q637555
+param:@org.wikidata.city:twinned_administrative_body:Entity(org.wikidata:city)	Maladziečna	Q201203
+param:@org.wikidata.city:twinned_administrative_body:Entity(org.wikidata:city)	Vilnius	Q216
+param:@org.wikidata.city:twinned_administrative_body:Entity(org.wikidata:city)	Oeiras	Q926700
+param:@org.wikidata.city:office_held_by_head_of_state:Entity(org.wikidata:office_held_by_head_of_state)	President of Singapore	Q39021
+param:@org.wikidata.city:office_held_by_head_of_state:Entity(org.wikidata:office_held_by_head_of_state)	pope	Q19546
+param:@org.wikidata.city:legislative_body:Entity(org.wikidata:legislative_body)	Municipal Corporation of Sahiwal	Q59240707
+param:@org.wikidata.city:legislative_body:Entity(org.wikidata:legislative_body)	Municipal Corporation of Gujrat	Q59240679
+param:@org.wikidata.city:legislative_body:Entity(org.wikidata:legislative_body)	Hyderabad Municipal Corporation	Q28223529
+param:@org.wikidata.city:legislative_body:Entity(org.wikidata:legislative_body)	Deliberative Council of Neuquén	Q59457140
+param:@org.wikidata.city:legislative_body:Entity(org.wikidata:legislative_body)	Huittinen City Council	Q28720308
+param:@org.wikidata.city:legislative_body:Entity(org.wikidata:legislative_body)	Pieksämäki City Council	Q28723364
+param:@org.wikidata.city:legislative_body:Entity(org.wikidata:legislative_body)	Kannus City Council	Q28720373
+param:@org.wikidata.city:legislative_body:Entity(org.wikidata:legislative_body)	Barrie City Council	Q4863502
+param:@org.wikidata.city:legislative_body:Entity(org.wikidata:legislative_body)	Melbourne City Council	Q56477763
+param:@org.wikidata.city:legislative_body:Entity(org.wikidata:legislative_body)	municipal Chamber of Embu das Artes	Q56450308
+param:@org.wikidata.city:located_in_or_next_to_body_of_water:String	Bass Strait
+param:@org.wikidata.city:located_in_or_next_to_body_of_water:String	Kurram River
+param:@org.wikidata.city:located_in_or_next_to_body_of_water:String	Tomebamba River
+param:@org.wikidata.city:located_in_or_next_to_body_of_water:String	Yangtze
+param:@org.wikidata.city:located_in_or_next_to_body_of_water:String	Ihme
+param:@org.wikidata.city:located_in_or_next_to_body_of_water:String	Pacific Ocean
+param:@org.wikidata.city:located_in_or_next_to_body_of_water:String	Atlantic Ocean
+param:@org.wikidata.city:located_in_or_next_to_body_of_water:String	Pacific Ocean
+param:@org.wikidata.city:located_in_or_next_to_body_of_water:String	Aegean Sea
+param:@org.wikidata.city:located_in_or_next_to_body_of_water:String	Laonong River
+param:@org.wikidata.city:marinetraffic_port_id:String	19578
+param:@org.wikidata.city:commons_category:String	Koper
+param:@org.wikidata.city:commons_category:String	Myitkyina
+param:@org.wikidata.city:commons_category:String	Itu
+param:@org.wikidata.city:commons_category:String	Puerto La Cruz
+param:@org.wikidata.city:commons_category:String	Oberlahnstein
+param:@org.wikidata.city:commons_category:String	Mokolo
+param:@org.wikidata.city:commons_category:String	Brzeg Dolny
+param:@org.wikidata.city:commons_category:String	Dangriga
+param:@org.wikidata.city:executive_body:String	Q7676194
+param:@org.wikidata.city:executive_body:String	Q51833297
+param:@org.wikidata.city:executive_body:String	Q59423881
+param:@org.wikidata.city:executive_body:String	Q59423496
+param:@org.wikidata.city:executive_body:String	Q5589317
+param:@org.wikidata.city:executive_body:String	Q5253776
+param:@org.wikidata.city:executive_body:String	Q59423549
+param:@org.wikidata.city:executive_body:String	Q1094147
+param:@org.wikidata.city:executive_body:String	Q59423518
+param:@org.wikidata.city:executive_body:String	Q10902215
+param:@org.wikidata.city:youtube_video_id:String	uHgbfzNqduc
+param:@org.wikidata.city:highest_judicial_authority:String	Q837636
+param:@org.wikidata.city:party_chief_representative:Entity(org.wikidata:human)	Badri Shoshitaishvili	Q24008058
+param:@org.wikidata.city:party_chief_representative:Entity(org.wikidata:human)	Blaise of Sebaste	Q151967
+param:@org.wikidata.city:party_chief_representative:Entity(org.wikidata:human)	José Antonio Nieto	Q853347
+param:@org.wikidata.city:party_chief_representative:Entity(org.wikidata:human)	Michael the Archangel	Q45581
+param:@org.wikidata.city:party_chief_representative:Entity(org.wikidata:human)	Maria Josep Safont Melchor	Q51078283
+param:@org.wikidata.city:party_chief_representative:Entity(org.wikidata:human)	R. Sampath Raj	Q47044542
+param:@org.wikidata.city:party_chief_representative:Entity(org.wikidata:human)	Saint Dominic	Q44091
+param:@org.wikidata.city:party_chief_representative:Entity(org.wikidata:human)	Pierre Becker	Q16438892
+param:@org.wikidata.city:party_chief_representative:Entity(org.wikidata:human)	José Luis Gimeno Ferrer	Q17278920
+param:@org.wikidata.city:party_chief_representative:Entity(org.wikidata:human)	Alfred Oko Vanderpuije	Q4723552
+param:@org.wikidata.city:history_of_topic:Entity(org.wikidata:history_of_topic)	history of Marrakesh	Q5865439
+param:@org.wikidata.city:history_of_topic:Entity(org.wikidata:history_of_topic)	history of Toledo, Spain	Q5899309
+param:@org.wikidata.city:history_of_topic:Entity(org.wikidata:history_of_topic)	history of Brisbane	Q12012340
+param:@org.wikidata.city:history_of_topic:Entity(org.wikidata:history_of_topic)	history of Alkmaar	Q14906030
+param:@org.wikidata.city:history_of_topic:Entity(org.wikidata:history_of_topic)	history of Perth	Q5865918
+param:@org.wikidata.city:history_of_topic:Entity(org.wikidata:history_of_topic)	history of Montevideo	Q9004162
+param:@org.wikidata.city:history_of_topic:Entity(org.wikidata:history_of_topic)	history of Hong Kong	Q733116
+param:@org.wikidata.city:history_of_topic:Entity(org.wikidata:history_of_topic)	history of Gaza	Q73569
+param:@org.wikidata.city:history_of_topic:Entity(org.wikidata:history_of_topic)	history of Batumi	Q5775251
+param:@org.wikidata.city:history_of_topic:Entity(org.wikidata:history_of_topic)	history of Málaga	Q8921439
+param:@org.wikidata.city:canadiana_authorities_id:String	0004E9595
+param:@org.wikidata.city:licence_plate_code:String	DWL
+param:@org.wikidata.city:licence_plate_code:String	KCH
+param:@org.wikidata.city:licence_plate_code:String	ABH
+param:@org.wikidata.city:licence_plate_code:String	ABH
+param:@org.wikidata.city:licence_plate_code:String	TKI
+param:@org.wikidata.city:licence_plate_code:String	RMI
+param:@org.wikidata.city:licence_plate_code:String	KOS
+param:@org.wikidata.city:licence_plate_code:String	KOS
+param:@org.wikidata.city:licence_plate_code:String	RKR
+param:@org.wikidata.city:licence_plate_code:String	WES
+param:@org.wikidata.city:official_symbol:Entity(org.wikidata:official_symbol)	Cinnamomum camphora	Q158722
+param:@org.wikidata.city:official_symbol:Entity(org.wikidata:official_symbol)	Nerium oleander	Q155833
+param:@org.wikidata.city:official_symbol:Entity(org.wikidata:official_symbol)	Vanda 'Miss Joaquim'	Q2424230
+param:@org.wikidata.city:nlp_id_unique_:String	A23763292
+param:@org.wikidata.city:nlp_id_unique_:String	A12291353
+param:@org.wikidata.city:nlp_id_unique_:String	A25711441
+param:@org.wikidata.city:nlp_id_unique_:String	A38124488
+param:@org.wikidata.city:uses:Entity(org.wikidata:uses)	street number	Q18915527
+param:@org.wikidata.city:uses:Entity(org.wikidata:uses)	street number	Q18915527
+param:@org.wikidata.city:uses:Entity(org.wikidata:uses)	street number	Q18915527
+param:@org.wikidata.city:uses:Entity(org.wikidata:uses)	street number	Q18915527
+param:@org.wikidata.city:uses:Entity(org.wikidata:uses)	street number	Q18915527
+param:@org.wikidata.city:uses:Entity(org.wikidata:uses)	street number	Q18915527
+param:@org.wikidata.city:uses:Entity(org.wikidata:uses)	street number	Q18915527
+param:@org.wikidata.city:uses:Entity(org.wikidata:uses)	street number	Q18915527
+param:@org.wikidata.city:uses:Entity(org.wikidata:uses)	Qwant	Q14657870
+param:@org.wikidata.city:uses:Entity(org.wikidata:uses)	street number	Q18915527
+param:@org.wikidata.city:sipa_id:String	24434
+param:@org.wikidata.city:irish_grid_reference:String	W793666
+param:@org.wikidata.city:irish_grid_reference:String	M004841
+param:@org.wikidata.city:irish_grid_reference:String	H837039
+param:@org.wikidata.city:irish_grid_reference:String	H876455
+param:@org.wikidata.city:irish_grid_reference:String	S506563
+param:@org.wikidata.city:irish_grid_reference:String	J085265
+param:@org.wikidata.city:irish_grid_reference:String	C188267
+param:@org.wikidata.city:irish_grid_reference:String	R282336
+param:@org.wikidata.city:irish_grid_reference:String	V925564
+param:@org.wikidata.city:irish_grid_reference:String	O088754
+param:@org.wikidata.city:time_period:Entity(org.wikidata:time_period)	Ancient Greece	Q11772
+param:@org.wikidata.city:time_period:Entity(org.wikidata:time_period)	Roman Empire	Q2277
+param:@org.wikidata.city:time_period:Entity(org.wikidata:time_period)	classical antiquity	Q486761
+param:@org.wikidata.city:time_period:Entity(org.wikidata:time_period)	Ancient Greece	Q11772
+param:@org.wikidata.city:time_period:Entity(org.wikidata:time_period)	classical antiquity	Q486761
+param:@org.wikidata.city:time_period:Entity(org.wikidata:time_period)	classical antiquity	Q486761
+param:@org.wikidata.city:time_period:Entity(org.wikidata:time_period)	Neolithic	Q36422
+param:@org.wikidata.city:time_period:Entity(org.wikidata:time_period)	Iron Age	Q11764
+param:@org.wikidata.city:time_period:Entity(org.wikidata:time_period)	Ancient Rome	Q1747689
+param:@org.wikidata.city:time_period:Entity(org.wikidata:time_period)	classical antiquity	Q486761
+param:@org.wikidata.city:has_list:Entity(org.wikidata:has_list)	list of cities in ancient Epirus	Q6609822
+param:@org.wikidata.city:bureau_du_patrimoine_de_seine_saint_denis_id:String	001s000
+param:@org.wikidata.city:coat_of_arms:Entity(org.wikidata:coat_of_arms)	Coat of arms of Plzeň	Q9289812
+param:@org.wikidata.city:coat_of_arms:Entity(org.wikidata:coat_of_arms)	coat of arms of Valencia	Q2750915
+param:@org.wikidata.city:coat_of_arms:Entity(org.wikidata:coat_of_arms)	coat of arms of Purmerend	Q2088763
+param:@org.wikidata.city:coat_of_arms:Entity(org.wikidata:coat_of_arms)	coat of arms of Castelló de la Plana	Q20106134
+param:@org.wikidata.city:coat_of_arms:Entity(org.wikidata:coat_of_arms)	Coat of arms of Chișinău	Q21662297
+param:@org.wikidata.city:coat_of_arms:Entity(org.wikidata:coat_of_arms)	coat of arms of Benidorm	Q11919961
+param:@org.wikidata.city:coat_of_arms:Entity(org.wikidata:coat_of_arms)	Coat of arms of Pamplona	Q3456408
+param:@org.wikidata.city:coat_of_arms:Entity(org.wikidata:coat_of_arms)	Coat of arms of Bonn	Q892765
+param:@org.wikidata.city:coat_of_arms:Entity(org.wikidata:coat_of_arms)	Symbols of Málaga	Q6137130
+param:@org.wikidata.city:coat_of_arms:Entity(org.wikidata:coat_of_arms)	Coat of arms of Edmonton	Q5138442
+param:@org.wikidata.city:great_aragonese_encyclopedia_id:String	11929
+param:@org.wikidata.city:post_town:String	NEWRY
+param:@org.wikidata.city:global_anabaptist_mennonite_encyclopedia_online_id:String	Frankfurt am Main
+param:@org.wikidata.city:global_anabaptist_mennonite_encyclopedia_online_id:String	del Sacramento
+param:@org.wikidata.city:global_anabaptist_mennonite_encyclopedia_online_id:String	Mbuji Mayi
+param:@org.wikidata.city:local_dialing_code:String	07384
+param:@org.wikidata.city:local_dialing_code:String	07321
+param:@org.wikidata.city:local_dialing_code:String	08646
+param:@org.wikidata.city:local_dialing_code:String	02621
+param:@org.wikidata.city:local_dialing_code:String	05926
+param:@org.wikidata.city:local_dialing_code:String	07324
+param:@org.wikidata.city:local_dialing_code:String	05309
+param:@org.wikidata.city:local_dialing_code:String	03576
+param:@org.wikidata.city:local_dialing_code:String	23810
+param:@org.wikidata.city:local_dialing_code:String	07386
+param:@org.wikidata.city:koppen_climate_classification:Entity(org.wikidata:koppen_climate_classification)	tropical climate	Q135712
+param:@org.wikidata.city:koppen_climate_classification:Entity(org.wikidata:koppen_climate_classification)	semi-arid climate	Q124196
+param:@org.wikidata.city:koppen_climate_classification:Entity(org.wikidata:koppen_climate_classification)	humid subtropical climate	Q864320
+param:@org.wikidata.city:koppen_climate_classification:Entity(org.wikidata:koppen_climate_classification)	oceanic climate	Q182090
+param:@org.wikidata.city:koppen_climate_classification:Entity(org.wikidata:koppen_climate_classification)	tropical monsoon climate	Q863882
+param:@org.wikidata.city:koppen_climate_classification:Entity(org.wikidata:koppen_climate_classification)	tropical savanna climate	Q113562
+param:@org.wikidata.city:koppen_climate_classification:Entity(org.wikidata:koppen_climate_classification)	humid subtropical climate	Q864320
+param:@org.wikidata.city:koppen_climate_classification:Entity(org.wikidata:koppen_climate_classification)	semi-arid climate	Q124196
+param:@org.wikidata.city:koppen_climate_classification:Entity(org.wikidata:koppen_climate_classification)	humid subtropical climate	Q864320
+param:@org.wikidata.city:koppen_climate_classification:Entity(org.wikidata:koppen_climate_classification)	humid subtropical climate	Q864320
+param:@org.wikidata.city:studied_by:Entity(org.wikidata:studied_by)	Institución de Estudios Complutenses	Q22970016
+param:@org.wikidata.city:studied_by:Entity(org.wikidata:studied_by)	Madrilenian studies	Q29982541
+param:@org.wikidata.city:catholic_hierarchy_diocese_id:String	2e52
+param:@org.wikidata.city:culture:Entity(org.wikidata:culture)	Ancient Rome	Q1747689
+param:@org.wikidata.city:culture:Entity(org.wikidata:culture)	Ancient Egypt	Q11768
+param:@org.wikidata.city:culture:Entity(org.wikidata:culture)	Aurunci	Q777462
+param:@org.wikidata.city:culture:Entity(org.wikidata:culture)	Bronze Age	Q11761
+param:@org.wikidata.city:culture:Entity(org.wikidata:culture)	Phoenicia	Q41642
+param:@org.wikidata.city:culture:Entity(org.wikidata:culture)	Roman Republic	Q17167
+param:@org.wikidata.city:culture:Entity(org.wikidata:culture)	Ancient Rome	Q1747689
+param:@org.wikidata.city:culture:Entity(org.wikidata:culture)	Ancient Rome	Q1747689
+param:@org.wikidata.city:culture:Entity(org.wikidata:culture)	Ancient Egypt	Q11768
+param:@org.wikidata.city:culture:Entity(org.wikidata:culture)	Ancient Egypt	Q11768
+param:@org.wikidata.city:cerl_thesaurus_id:String	cnl00006030
+param:@org.wikidata.city:cerl_thesaurus_id:String	cnl00016163
+param:@org.wikidata.city:geography_of_topic:Entity(org.wikidata:geography_of_topic)	geography of Toronto	Q5535247
+param:@org.wikidata.city:geography_of_topic:Entity(org.wikidata:geography_of_topic)	geography of the Halifax Regional Municipality	Q5535264
+param:@org.wikidata.city:geography_of_topic:Entity(org.wikidata:geography_of_topic)	geography of Beijing	Q5535122
+param:@org.wikidata.city:geography_of_topic:Entity(org.wikidata:geography_of_topic)	geography of Helsinki	Q5535152
+param:@org.wikidata.city:geography_of_topic:Entity(org.wikidata:geography_of_topic)	geography of Ahmedabad	Q5535113
+param:@org.wikidata.city:geography_of_topic:Entity(org.wikidata:geography_of_topic)	geography of Islamabad	Q5535158
+param:@org.wikidata.city:geography_of_topic:Entity(org.wikidata:geography_of_topic)	geography of Kinshasa	Q3123267
+param:@org.wikidata.city:geography_of_topic:Entity(org.wikidata:geography_of_topic)	geography of Kochi	Q5535167
+param:@org.wikidata.city:geography_of_topic:Entity(org.wikidata:geography_of_topic)	geography of Singapore	Q972582
+param:@org.wikidata.city:geography_of_topic:Entity(org.wikidata:geography_of_topic)	geography of New York City	Q645208
+param:@org.wikidata.city:danish_urban_area_code:String	10487
+param:@org.wikidata.city:danish_urban_area_code:String	10002
+param:@org.wikidata.city:danish_urban_area_code:String	18767
+param:@org.wikidata.city:danish_urban_area_code:String	10064
+param:@org.wikidata.city:danish_urban_area_code:String	11196
+param:@org.wikidata.city:danish_urban_area_code:String	10172
+param:@org.wikidata.city:danish_urban_area_code:String	10630
+param:@org.wikidata.city:danish_urban_area_code:String	18442
+param:@org.wikidata.city:danish_urban_area_code:String	10361
+param:@org.wikidata.city:danish_urban_area_code:String	10108
+param:@org.wikidata.city:has_parts_of_the_class:Entity(org.wikidata:has_parts_of_the_class)	canal	Q12284
+param:@org.wikidata.city:has_parts_of_the_class:Entity(org.wikidata:has_parts_of_the_class)	bridge	Q12280
+param:@org.wikidata.city:romanization_of_belarusian_2007_system_:String	Mir
+param:@org.wikidata.city:digital_atlas_of_the_roman_empire_id:String	16789
+param:@org.wikidata.city:digital_atlas_of_the_roman_empire_id:String	42759
+param:@org.wikidata.city:digital_atlas_of_the_roman_empire_id:String	42849
+param:@org.wikidata.city:digital_atlas_of_the_roman_empire_id:String	18954
+param:@org.wikidata.city:digital_atlas_of_the_roman_empire_id:String	22750
+param:@org.wikidata.city:digital_atlas_of_the_roman_empire_id:String	21811
+param:@org.wikidata.city:digital_atlas_of_the_roman_empire_id:String	21662
+param:@org.wikidata.city:digital_atlas_of_the_roman_empire_id:String	21234
+param:@org.wikidata.city:digital_atlas_of_the_roman_empire_id:String	22545
+param:@org.wikidata.city:digital_atlas_of_the_roman_empire_id:String	22658
+param:@org.wikidata.city:country_of_citizenship:Entity(org.wikidata:country_of_citizenship)	Serbia	Q403
+param:@org.wikidata.city:unlocode:String	ITFRR
+param:@org.wikidata.city:unlocode:String	ITNAP
+param:@org.wikidata.city:unlocode:String	ITAGR
+param:@org.wikidata.city:unlocode:String	NOOSL
+param:@org.wikidata.city:unlocode:String	ITBLQ
+param:@org.wikidata.city:unlocode:String	TZMPA
+param:@org.wikidata.city:unlocode:String	ITQSS
+param:@org.wikidata.city:unlocode:String	ARXPD
+param:@org.wikidata.city:unlocode:String	ITVRN
+param:@org.wikidata.city:unlocode:String	ITURB
+param:@org.wikidata.city:connects_with:String	Q911135
+param:@org.wikidata.city:connects_with:String	Q911135
+param:@org.wikidata.city:connects_with:String	Q313410
+param:@org.wikidata.city:connects_with:String	Q751771
+param:@org.wikidata.city:connects_with:String	Q313410
+param:@org.wikidata.city:connects_with:String	Q313410
+param:@org.wikidata.city:connects_with:String	Q313410
+param:@org.wikidata.city:connects_with:String	Q313410
+param:@org.wikidata.city:connects_with:String	Q877647
+param:@org.wikidata.city:connects_with:String	Q911135
+param:@org.wikidata.city:official_number_of_town_quarter:String	XIV
+param:@org.wikidata.city:subclass_of:String	Q23640644
+param:@org.wikidata.city:trismegistos_geo_id:String	11124
+param:@org.wikidata.city:trismegistos_geo_id:String	16484
+param:@org.wikidata.city:trismegistos_geo_id:String	25986
+param:@org.wikidata.city:trismegistos_geo_id:String	14130
+param:@org.wikidata.city:trismegistos_geo_id:String	14349
+param:@org.wikidata.city:trismegistos_geo_id:String	22315
+param:@org.wikidata.city:trismegistos_geo_id:String	38469
+param:@org.wikidata.city:trismegistos_geo_id:String	30013
+param:@org.wikidata.city:trismegistos_geo_id:String	16434
+param:@org.wikidata.city:trismegistos_geo_id:String	14437
+param:@org.wikidata.city:house_publication:String	Q746112
+param:@org.wikidata.city:foursquare_venue_id:String	4c306bad3896e21ed884e590
+param:@org.wikidata.city:foursquare_venue_id:String	4c386d2b0a71c9b6a19340c9
+param:@org.wikidata.city:foursquare_venue_id:String	59df4c9b018cbb3043807275
+param:@org.wikidata.city:foursquare_venue_id:String	4acf58baf964a52028d320e3
+param:@org.wikidata.city:foursquare_venue_id:String	4c7ce48f278eb713773e6d80
+param:@org.wikidata.city:foursquare_venue_id:String	4e18180c52b123a586d34d92
+param:@org.wikidata.city:foursquare_venue_id:String	4b058853f964a5202dbf22e3
+param:@org.wikidata.city:foursquare_venue_id:String	4c5d4d8d2815c928f460b467
+param:@org.wikidata.city:foursquare_venue_id:String	4b8b9fe2f964a520d4a432e3
+param:@org.wikidata.city:foursquare_venue_id:String	4dd8174d1838b8561cf85853
+param:@org.wikidata.city:os_grid_reference:String	NO4030
+param:@org.wikidata.city:os_grid_reference:String	SM755255
+param:@org.wikidata.city:os_grid_reference:String	SJ035743
+param:@org.wikidata.city:os_grid_reference:String	NO115235
+param:@org.wikidata.city:os_grid_reference:String	SH683747
+param:@org.wikidata.city:os_grid_reference:String	SU860048
+param:@org.wikidata.city:os_grid_reference:String	SX919925
+param:@org.wikidata.city:os_grid_reference:String	TL5379
+param:@org.wikidata.city:os_grid_reference:String	NZ274424
+param:@org.wikidata.city:os_grid_reference:String	ST545455
+param:@org.wikidata.city:inegi_locality_id:String	19026
+param:@org.wikidata.city:inegi_locality_id:String	19046
+param:@org.wikidata.city:emergency_phone_number:String	Q25267554
+param:@org.wikidata.city:emergency_phone_number:String	Q3086706
+param:@org.wikidata.city:emergency_phone_number:String	Q3086706
+param:@org.wikidata.city:emergency_phone_number:String	Q1061257
+param:@org.wikidata.city:emergency_phone_number:String	Q11185210
+param:@org.wikidata.city:emergency_phone_number:String	Q25648801
+param:@org.wikidata.city:emergency_phone_number:String	Q25648805
+param:@org.wikidata.city:electrical_plug_type:String	Q1528507
+param:@org.wikidata.city:electrical_plug_type:String	Q1528507
+param:@org.wikidata.city:designed_by:Entity(org.wikidata:human)	Badri Shoshitaishvili	Q24008058
+param:@org.wikidata.city:designed_by:Entity(org.wikidata:human)	Blaise of Sebaste	Q151967
+param:@org.wikidata.city:designed_by:Entity(org.wikidata:human)	José Antonio Nieto	Q853347
+param:@org.wikidata.city:designed_by:Entity(org.wikidata:human)	Michael the Archangel	Q45581
+param:@org.wikidata.city:designed_by:Entity(org.wikidata:human)	Maria Josep Safont Melchor	Q51078283
+param:@org.wikidata.city:designed_by:Entity(org.wikidata:human)	R. Sampath Raj	Q47044542
+param:@org.wikidata.city:designed_by:Entity(org.wikidata:human)	Saint Dominic	Q44091
+param:@org.wikidata.city:designed_by:Entity(org.wikidata:human)	Pierre Becker	Q16438892
+param:@org.wikidata.city:designed_by:Entity(org.wikidata:human)	José Luis Gimeno Ferrer	Q17278920
+param:@org.wikidata.city:designed_by:Entity(org.wikidata:human)	Alfred Oko Vanderpuije	Q4723552
+param:@org.wikidata.city:twitter_username:String	VilleCourbevoie
+param:@org.wikidata.city:twitter_username:String	toledoayto
+param:@org.wikidata.city:twitter_username:String	sinopbel
+param:@org.wikidata.city:twitter_username:String	fethiyebelediye
+param:@org.wikidata.city:twitter_username:String	kutahyabel
+param:@org.wikidata.city:twitter_username:String	bartinbld
+param:@org.wikidata.city:twitter_username:String	ckalebelediye
+param:@org.wikidata.city:twitter_username:String	eskisehirbb
+param:@org.wikidata.city:twitter_username:String	MalatyaBelTr
+param:@org.wikidata.city:twitter_username:String	ManCityCouncil
+param:@org.wikidata.city:instagram_username:String	musbelediyesi49
+param:@org.wikidata.city:instagram_username:String	bartinbelediyesi
+param:@org.wikidata.city:instagram_username:String	prefcampinas
+param:@org.wikidata.city:instagram_username:String	fethiyebelediye
+param:@org.wikidata.city:instagram_username:String	malatyabeltr
+param:@org.wikidata.city:instagram_username:String	bursabuyuksehir
+param:@org.wikidata.city:instagram_username:String	adanabld
+param:@org.wikidata.city:instagram_username:String	rizebelediyesi
+param:@org.wikidata.city:instagram_username:String	samsunbsb
+param:@org.wikidata.city:instagram_username:String	bitlisbelediyesi
+param:@org.wikidata.city:visitor_centre:Entity(org.wikidata:visitor_centre)	Wallonie Belgique Tourisme	Q28841089
+param:@org.wikidata.city:visitor_centre:Entity(org.wikidata:visitor_centre)	Tourismus+Congress GmbH Frankfurt am Main	Q27573527
+param:@org.wikidata.city:visitor_centre:Entity(org.wikidata:visitor_centre)	CMT Cottbus	Q26932635
+param:@org.wikidata.city:visitor_centre:Entity(org.wikidata:visitor_centre)	Stichting Amsterdam Marketing	Q29802443
+param:@org.wikidata.city:visitor_centre:Entity(org.wikidata:visitor_centre)	Egyptian Tourism Authority, Aswan office	Q28132211
+param:@org.wikidata.city:visitor_centre:Entity(org.wikidata:visitor_centre)	Egyptian Tourism Authority, New Valley office	Q28057425
+param:@org.wikidata.city:visitor_centre:Entity(org.wikidata:visitor_centre)	Wallonie Belgique Tourisme	Q28841089
+param:@org.wikidata.city:visitor_centre:Entity(org.wikidata:visitor_centre)	Verkehrsverein Nürnberg e.V.	Q27990949
+param:@org.wikidata.city:visitor_centre:Entity(org.wikidata:visitor_centre)	Avignon Tourist Office	Q24263541
+param:@org.wikidata.city:visitor_centre:Entity(org.wikidata:visitor_centre)	Sabah Tourism Board	Q27910289
+param:@org.wikidata.city:language_used:Entity(tt:iso_lang_code)	Spanish	Q1321
+param:@org.wikidata.city:language_used:Entity(tt:iso_lang_code)	Eastern Maninkaka language	Q11002130
+param:@org.wikidata.city:language_used:Entity(tt:iso_lang_code)	Kanakanabu	Q172244
+param:@org.wikidata.city:language_used:Entity(tt:iso_lang_code)	Waima	Q34197
+param:@org.wikidata.city:language_used:Entity(tt:iso_lang_code)	Russian	Q7737
+param:@org.wikidata.city:language_used:Entity(tt:iso_lang_code)	Soqotri	Q13283
+param:@org.wikidata.city:language_used:Entity(tt:iso_lang_code)	Phuan	Q3915665
+param:@org.wikidata.city:language_used:Entity(tt:iso_lang_code)	Mussau-Emira	Q6943093
+param:@org.wikidata.city:language_used:Entity(tt:iso_lang_code)	Rajasthani	Q13196
+param:@org.wikidata.city:language_used:Entity(tt:iso_lang_code)	Gade Lohar	Q12953671
+param:@org.wikidata.city:nalt_id:String	56512
+param:@org.wikidata.city:permanent_duplicated_item:Entity(org.wikidata:permanent_duplicated_item)	Kaliningrad	Q1829
+param:@org.wikidata.city:permanent_duplicated_item:Entity(org.wikidata:permanent_duplicated_item)	Fukuoka	Q26600
+param:@org.wikidata.city:permanent_duplicated_item:Entity(org.wikidata:permanent_duplicated_item)	Hiroshima	Q34664
+param:@org.wikidata.city:permanent_duplicated_item:Entity(org.wikidata:permanent_duplicated_item)	The Hague	Q36600
+param:@org.wikidata.city:permanent_duplicated_item:Entity(org.wikidata:permanent_duplicated_item)	Ōmihachiman	Q385461
+param:@org.wikidata.city:facebook_id:String	MalatyaBelTr
+param:@org.wikidata.city:facebook_id:String	antalyabuyuksehir
+param:@org.wikidata.city:facebook_id:String	cityofsydney
+param:@org.wikidata.city:facebook_id:String	rizebelediye
+param:@org.wikidata.city:facebook_id:String	eskisehirbb
+param:@org.wikidata.city:facebook_id:String	prefeituradorecife
+param:@org.wikidata.city:facebook_id:String	cityofguelph
+param:@org.wikidata.city:facebook_id:String	ckalebelediye
+param:@org.wikidata.city:facebook_id:String	dagbld
+param:@org.wikidata.city:facebook_id:String	fethiyebelediye
+param:@org.wikidata.city:located_in_protected_area:Entity(org.wikidata:located_in_protected_area)	Pembrokeshire Coast National Park	Q1893297
+param:@org.wikidata.city:located_in_protected_area:Entity(org.wikidata:located_in_protected_area)	Natural and Culturo-Historical Region of Kotor	Q3511938
+param:@org.wikidata.city:located_in_protected_area:Entity(org.wikidata:located_in_protected_area)	Karkonosze National Park	Q621423
+param:@org.wikidata.city:github_username:String	nanterre
+param:@org.wikidata.city:destroyed:Entity(org.wikidata:destroyed)	Muhammad II of Córdoba	Q919257
+param:@org.wikidata.city:destroyed:Entity(org.wikidata:destroyed)	rebellion	Q124734
+param:@org.wikidata.city:destroyed:Entity(org.wikidata:destroyed)	Fitna of al-Andalus	Q3104848
+param:@org.wikidata.city:national_gallery_of_victoria_artist_id:String	15182
+param:@org.wikidata.city:kml_file:Entity(org.wikidata:kml_file)	Template:Attached KML/New York City	Q56876538
+param:@org.wikidata.city:bc_geographical_names_id:String	38681
+param:@org.wikidata.city:bc_geographical_names_id:String	38678
+param:@org.wikidata.city:bc_geographical_names_id:String	38642
+param:@org.wikidata.city:territory_overlaps:Entity(org.wikidata:territory_overlaps)	Estella Oriental	Q2659030
+param:@org.wikidata.city:significant_person:Entity(org.wikidata:human)	Badri Shoshitaishvili	Q24008058
+param:@org.wikidata.city:significant_person:Entity(org.wikidata:human)	Blaise of Sebaste	Q151967
+param:@org.wikidata.city:significant_person:Entity(org.wikidata:human)	José Antonio Nieto	Q853347
+param:@org.wikidata.city:significant_person:Entity(org.wikidata:human)	Michael the Archangel	Q45581
+param:@org.wikidata.city:significant_person:Entity(org.wikidata:human)	Maria Josep Safont Melchor	Q51078283
+param:@org.wikidata.city:significant_person:Entity(org.wikidata:human)	R. Sampath Raj	Q47044542
+param:@org.wikidata.city:significant_person:Entity(org.wikidata:human)	Saint Dominic	Q44091
+param:@org.wikidata.city:significant_person:Entity(org.wikidata:human)	Pierre Becker	Q16438892
+param:@org.wikidata.city:significant_person:Entity(org.wikidata:human)	José Luis Gimeno Ferrer	Q17278920
+param:@org.wikidata.city:significant_person:Entity(org.wikidata:human)	Alfred Oko Vanderpuije	Q4723552
+param:@org.wikidata.city:coextensive_with:Entity(org.wikidata:coextensive_with)	National Capital Territory of Delhi	Q57156500
+param:@org.wikidata.city:coextensive_with:Entity(org.wikidata:coextensive_with)	Tallinn City	Q4450503
+param:@org.wikidata.city:coextensive_with:Entity(org.wikidata:coextensive_with)	Mallawi	Q22929574
+param:@org.wikidata.city:coextensive_with:Entity(org.wikidata:coextensive_with)	Macau Peninsula	Q1334373
+param:@org.wikidata.city:coextensive_with:Entity(org.wikidata:coextensive_with)	San Francisco County	Q13188841
+param:@org.wikidata.city:coextensive_with:Entity(org.wikidata:coextensive_with)	Ilha Comprida	Q22046270
+param:@org.wikidata.city:head_of_state:Entity(org.wikidata:human)	Badri Shoshitaishvili	Q24008058
+param:@org.wikidata.city:head_of_state:Entity(org.wikidata:human)	Blaise of Sebaste	Q151967
+param:@org.wikidata.city:head_of_state:Entity(org.wikidata:human)	José Antonio Nieto	Q853347
+param:@org.wikidata.city:head_of_state:Entity(org.wikidata:human)	Michael the Archangel	Q45581
+param:@org.wikidata.city:head_of_state:Entity(org.wikidata:human)	Maria Josep Safont Melchor	Q51078283
+param:@org.wikidata.city:head_of_state:Entity(org.wikidata:human)	R. Sampath Raj	Q47044542
+param:@org.wikidata.city:head_of_state:Entity(org.wikidata:human)	Saint Dominic	Q44091
+param:@org.wikidata.city:head_of_state:Entity(org.wikidata:human)	Pierre Becker	Q16438892
+param:@org.wikidata.city:head_of_state:Entity(org.wikidata:human)	José Luis Gimeno Ferrer	Q17278920
+param:@org.wikidata.city:head_of_state:Entity(org.wikidata:human)	Alfred Oko Vanderpuije	Q4723552
+param:@org.wikidata.city:subsidiary:Entity(org.wikidata:subsidiary)	7. základní škola a mateřská škola	Q61625170
+param:@org.wikidata.city:subsidiary:Entity(org.wikidata:subsidiary)	2. mateřská škola	Q61624769
+param:@org.wikidata.city:subsidiary:Entity(org.wikidata:subsidiary)	Základní škola	Q61659570
+param:@org.wikidata.city:subsidiary:Entity(org.wikidata:subsidiary)	6. mateřská škola	Q61624897
+param:@org.wikidata.city:subsidiary:Entity(org.wikidata:subsidiary)	Tyršova základní škola a mateřská škola	Q61625192
+param:@org.wikidata.city:subsidiary:Entity(org.wikidata:subsidiary)	10. školní jídelna	Q61625347
+param:@org.wikidata.city:subsidiary:Entity(org.wikidata:subsidiary)	5. mateřská škola	Q61624808
+param:@org.wikidata.city:subsidiary:Entity(org.wikidata:subsidiary)	MŠ Pastelka	Q61659414
+param:@org.wikidata.city:subsidiary:Entity(org.wikidata:subsidiary)	Mateřská škola Motýlek	Q61659419
+param:@org.wikidata.city:subsidiary:Entity(org.wikidata:subsidiary)	4. základní škola	Q61625214
+param:@org.wikidata.city:capital:Entity(org.wikidata:city)	Bougival	Q399342
+param:@org.wikidata.city:capital:Entity(org.wikidata:city)	Texcoco de Mora	Q1141799
+param:@org.wikidata.city:capital:Entity(org.wikidata:city)	Kumasi	Q182059
+param:@org.wikidata.city:capital:Entity(org.wikidata:city)	Innsbruck	Q1735
+param:@org.wikidata.city:capital:Entity(org.wikidata:city)	Dubossary	Q688654
+param:@org.wikidata.city:capital:Entity(org.wikidata:city)	Tiffin	Q990934
+param:@org.wikidata.city:capital:Entity(org.wikidata:city)	Montego Bay	Q637555
+param:@org.wikidata.city:capital:Entity(org.wikidata:city)	Maladziečna	Q201203
+param:@org.wikidata.city:capital:Entity(org.wikidata:city)	Vilnius	Q216
+param:@org.wikidata.city:capital:Entity(org.wikidata:city)	Oeiras	Q926700
+param:@org.wikidata.city:wiki_loves_monuments_id:String	12H5010000
+param:@org.wikidata.city:wiki_loves_monuments_id:String	04L3780000
+param:@org.wikidata.city:wiki_loves_monuments_id:String	05L4070000
+param:@org.wikidata.city:wiki_loves_monuments_id:String	06L4830000
+param:@org.wikidata.city:wiki_loves_monuments_id:String	08H1990000
+param:@org.wikidata.city:wiki_loves_monuments_id:String	09I7260000
+param:@org.wikidata.city:wiki_loves_monuments_id:String	06L4240000
+param:@org.wikidata.city:wiki_loves_monuments_id:String	11L5000000
+param:@org.wikidata.city:wiki_loves_monuments_id:String	05L7360000
+param:@org.wikidata.city:wiki_loves_monuments_id:String	03F7040000
+param:@org.wikidata.city:is_a_list_of:Entity(org.wikidata:is_a_list_of)	city	Q515
+param:@org.wikidata.city:part_of:String	Edmonton Metropolitan
+param:@org.wikidata.city:part_of:String	Vaasa
+param:@org.wikidata.city:part_of:String	de Jerez de
+param:@org.wikidata.city:part_of:String	Vaasa
+param:@org.wikidata.city:part_of:String	Jesuit Missions
+param:@org.wikidata.city:part_of:String	First Suffolk and Middlesex
+param:@org.wikidata.city:part_of:String	Port of Rotterdam
+param:@org.wikidata.city:part_of:String	Vaasa
+param:@org.wikidata.city:part_of:String	Southeast Asia
+param:@org.wikidata.city:part_of:String	Sahelian Chad
+param:@org.wikidata.city:official_language:Entity(tt:iso_lang_code)	Spanish	Q1321
+param:@org.wikidata.city:official_language:Entity(tt:iso_lang_code)	Eastern Maninkaka language	Q11002130
+param:@org.wikidata.city:official_language:Entity(tt:iso_lang_code)	Kanakanabu	Q172244
+param:@org.wikidata.city:official_language:Entity(tt:iso_lang_code)	Waima	Q34197
+param:@org.wikidata.city:official_language:Entity(tt:iso_lang_code)	Russian	Q7737
+param:@org.wikidata.city:official_language:Entity(tt:iso_lang_code)	Soqotri	Q13283
+param:@org.wikidata.city:official_language:Entity(tt:iso_lang_code)	Phuan	Q3915665
+param:@org.wikidata.city:official_language:Entity(tt:iso_lang_code)	Mussau-Emira	Q6943093
+param:@org.wikidata.city:official_language:Entity(tt:iso_lang_code)	Rajasthani	Q13196
+param:@org.wikidata.city:official_language:Entity(tt:iso_lang_code)	Gade Lohar	Q12953671
+param:@org.wikidata.city:currency:Entity(org.wikidata:currency)	Malaysian ringgit	Q163712
+param:@org.wikidata.city:currency:Entity(org.wikidata:currency)	Malaysian ringgit	Q163712
+param:@org.wikidata.city:currency:Entity(org.wikidata:currency)	Syrian pound	Q240468
+param:@org.wikidata.city:currency:Entity(org.wikidata:currency)	Singapore dollar	Q190951
+param:@org.wikidata.city:currency:Entity(org.wikidata:currency)	Hong Kong dollar	Q31015
+param:@org.wikidata.city:currency:Entity(org.wikidata:currency)	euro	Q4916
+param:@org.wikidata.city:currency:Entity(org.wikidata:currency)	euro	Q4916
+param:@org.wikidata.city:currency:Entity(org.wikidata:currency)	Vatican lira	Q183354
+param:@org.wikidata.city:currency:Entity(org.wikidata:currency)	euro	Q4916
+param:@org.wikidata.city:currency:Entity(org.wikidata:currency)	Nicaraguan córdoba	Q207312
+param:@org.wikidata.city:yso_id:String	94487
+param:@org.wikidata.city:yso_id:String	94187
+param:@org.wikidata.city:yso_id:String	94319
+param:@org.wikidata.city:yso_id:String	94463
+param:@org.wikidata.city:yso_id:String	94240
+param:@org.wikidata.city:yso_id:String	94181
+param:@org.wikidata.city:yso_id:String	94143
+param:@org.wikidata.city:yso_id:String	94301
+param:@org.wikidata.city:yso_id:String	94197
+param:@org.wikidata.city:yso_id:String	94137
+param:@org.wikidata.city:position_held:String	Q53926063
+param:@org.wikidata.city:position_held:String	Q611644
+param:@org.wikidata.city:position_held:String	Q611644
+param:@org.wikidata.city:language_of_work_or_name:Entity(tt:iso_lang_code)	Spanish	Q1321
+param:@org.wikidata.city:language_of_work_or_name:Entity(tt:iso_lang_code)	Eastern Maninkaka language	Q11002130
+param:@org.wikidata.city:language_of_work_or_name:Entity(tt:iso_lang_code)	Kanakanabu	Q172244
+param:@org.wikidata.city:language_of_work_or_name:Entity(tt:iso_lang_code)	Waima	Q34197
+param:@org.wikidata.city:language_of_work_or_name:Entity(tt:iso_lang_code)	Russian	Q7737
+param:@org.wikidata.city:language_of_work_or_name:Entity(tt:iso_lang_code)	Soqotri	Q13283
+param:@org.wikidata.city:language_of_work_or_name:Entity(tt:iso_lang_code)	Phuan	Q3915665
+param:@org.wikidata.city:language_of_work_or_name:Entity(tt:iso_lang_code)	Mussau-Emira	Q6943093
+param:@org.wikidata.city:language_of_work_or_name:Entity(tt:iso_lang_code)	Rajasthani	Q13196
+param:@org.wikidata.city:language_of_work_or_name:Entity(tt:iso_lang_code)	Gade Lohar	Q12953671
+param:@org.wikidata.city:chemins_de_memoire_id:String	namur
+param:@org.wikidata.city:patron_saint:Entity(org.wikidata:human)	Badri Shoshitaishvili	Q24008058
+param:@org.wikidata.city:patron_saint:Entity(org.wikidata:human)	Blaise of Sebaste	Q151967
+param:@org.wikidata.city:patron_saint:Entity(org.wikidata:human)	José Antonio Nieto	Q853347
+param:@org.wikidata.city:patron_saint:Entity(org.wikidata:human)	Michael the Archangel	Q45581
+param:@org.wikidata.city:patron_saint:Entity(org.wikidata:human)	Maria Josep Safont Melchor	Q51078283
+param:@org.wikidata.city:patron_saint:Entity(org.wikidata:human)	R. Sampath Raj	Q47044542
+param:@org.wikidata.city:patron_saint:Entity(org.wikidata:human)	Saint Dominic	Q44091
+param:@org.wikidata.city:patron_saint:Entity(org.wikidata:human)	Pierre Becker	Q16438892
+param:@org.wikidata.city:patron_saint:Entity(org.wikidata:human)	José Luis Gimeno Ferrer	Q17278920
+param:@org.wikidata.city:patron_saint:Entity(org.wikidata:human)	Alfred Oko Vanderpuije	Q4723552
+param:@org.wikidata.city:seal_description:Entity(org.wikidata:seal_description)	Symbols of Tokyo	Q2332372
+param:@org.wikidata.city:seal_description:Entity(org.wikidata:seal_description)	Emblem of Hong Kong	Q752790
+param:@org.wikidata.city:seal_description:Entity(org.wikidata:seal_description)	Seal of the City of Kutaisi	Q7440586
+param:@org.wikidata.city:seal_description:Entity(org.wikidata:seal_description)	seal	Q162919
+param:@org.wikidata.city:youtube_channel_id:String	UCdiV5FZ2FYK8g3Sq333yO9Q
+param:@org.wikidata.city:youtube_channel_id:String	UCnQDVTiIQuR1vdBuGTNb55g
+param:@org.wikidata.city:youtube_channel_id:String	UCO32P39JWNXwUXanzskSXqQ
+param:@org.wikidata.city:youtube_channel_id:String	UC7hSzWYm3hdF5rMfkJGF3ng
+param:@org.wikidata.city:youtube_channel_id:String	UCRieNjAkS3RtqD1XJZ0bFqQ
+param:@org.wikidata.city:located_in_time_zone:Entity(org.wikidata:located_in_time_zone)	UTC+05:00	Q6806
+param:@org.wikidata.city:located_in_time_zone:Entity(org.wikidata:located_in_time_zone)	UTC+03:00	Q6760
+param:@org.wikidata.city:located_in_time_zone:Entity(org.wikidata:located_in_time_zone)	UTC+01:00	Q6655
+param:@org.wikidata.city:located_in_time_zone:Entity(org.wikidata:located_in_time_zone)	UTC+04:00	Q6779
+param:@org.wikidata.city:located_in_time_zone:Entity(org.wikidata:located_in_time_zone)	UTC+01:00	Q6655
+param:@org.wikidata.city:located_in_time_zone:Entity(org.wikidata:located_in_time_zone)	UTC+07:00	Q6940
+param:@org.wikidata.city:located_in_time_zone:Entity(org.wikidata:located_in_time_zone)	UTC+02:00	Q6723
+param:@org.wikidata.city:located_in_time_zone:Entity(org.wikidata:located_in_time_zone)	UTC+03:00	Q6760
+param:@org.wikidata.city:located_in_time_zone:Entity(org.wikidata:located_in_time_zone)	UTC+01:00	Q6655
+param:@org.wikidata.city:located_in_time_zone:Entity(org.wikidata:located_in_time_zone)	UTC+01:00	Q6655
+param:@org.wikidata.city:official_app:Entity(org.wikidata:official_app)	Oslo - Official City App	Q37953566
+param:@org.wikidata.city:library_of_congress_authority_id:String	n85137327
+param:@org.wikidata.city:library_of_congress_authority_id:String	nr93011157
+param:@org.wikidata.city:library_of_congress_authority_id:String	n81063325
+param:@org.wikidata.city:library_of_congress_authority_id:String	n85163070
+param:@org.wikidata.city:library_of_congress_authority_id:String	n81129613
+param:@org.wikidata.city:library_of_congress_authority_id:String	n93047168
+param:@org.wikidata.city:library_of_congress_authority_id:String	n88080853
+param:@org.wikidata.city:library_of_congress_authority_id:String	n79151155
+param:@org.wikidata.city:library_of_congress_authority_id:String	n80139498
+param:@org.wikidata.city:library_of_congress_authority_id:String	n81097116
+param:@org.wikidata.city:mountain_range:Entity(org.wikidata:mountain_range)	Prokletije	Q615771
+param:@org.wikidata.city:mountain_range:Entity(org.wikidata:mountain_range)	Andes	Q5456
+param:@org.wikidata.city:mountain_range:Entity(org.wikidata:mountain_range)	Drakensberg	Q183295
+param:@org.wikidata.city:mountain_range:Entity(org.wikidata:mountain_range)	Zagros mountains	Q167021
+param:@org.wikidata.city:mountain_range:Entity(org.wikidata:mountain_range)	Swabian Jura	Q159589
+param:@org.wikidata.city:theatricalia_theatre_id:String	2pz
+param:@org.wikidata.city:theatricalia_theatre_id:String	1pz
+param:@org.wikidata.city:theatricalia_theatre_id:String	2bj
+param:@org.wikidata.city:theatricalia_theatre_id:String	1nc
+param:@org.wikidata.city:theatricalia_theatre_id:String	2rf
+param:@org.wikidata.city:theatricalia_theatre_id:String	2za
+param:@org.wikidata.city:theatricalia_theatre_id:String	1b4
+param:@org.wikidata.city:theatricalia_theatre_id:String	2k0
+param:@org.wikidata.city:theatricalia_theatre_id:String	2rd
+param:@org.wikidata.city:foundational_text:Entity(org.wikidata:foundational_text)	Basic Law of Hong Kong	Q15165
+param:@org.wikidata.city:foundational_text:Entity(org.wikidata:foundational_text)	Lateran Treaty	Q193270
+param:@org.wikidata.city:latvian_toponymic_names_database_id:String	28278
+param:@org.wikidata.city:latvian_toponymic_names_database_id:String	60401
+param:@org.wikidata.city:said_to_be_the_same_as:Entity(org.wikidata:said_to_be_the_same_as)	Kreisfreie Stadt Erfurt	Q32067904
+param:@org.wikidata.city:said_to_be_the_same_as:Entity(org.wikidata:said_to_be_the_same_as)	Big Apple	Q14435
+param:@org.wikidata.city:said_to_be_the_same_as:Entity(org.wikidata:said_to_be_the_same_as)	Buri	Q22064824
+param:@org.wikidata.city:said_to_be_the_same_as:Entity(org.wikidata:said_to_be_the_same_as)	Leipzig	Q2079
+param:@org.wikidata.city:said_to_be_the_same_as:Entity(org.wikidata:said_to_be_the_same_as)	Capão Bonito	Q22064804
+param:@org.wikidata.city:said_to_be_the_same_as:Entity(org.wikidata:said_to_be_the_same_as)	Oslo	Q585
+param:@org.wikidata.city:said_to_be_the_same_as:Entity(org.wikidata:said_to_be_the_same_as)	Sparta	Q5690
+param:@org.wikidata.city:said_to_be_the_same_as:Entity(org.wikidata:said_to_be_the_same_as)	Granada	Q31916723
+param:@org.wikidata.city:said_to_be_the_same_as:Entity(org.wikidata:said_to_be_the_same_as)	Olomouc	Q81137
+param:@org.wikidata.city:said_to_be_the_same_as:Entity(org.wikidata:said_to_be_the_same_as)	Itu	Q6095095
+param:@org.wikidata.city:opposite_of:Entity(org.wikidata:opposite_of)	Christchurch	Q79990
+param:@org.wikidata.city:opposite_of:Entity(org.wikidata:opposite_of)	A Coruña	Q8757
+param:@org.wikidata.city:historical_gazetteer_gov_id:String	COTBUSJO71ES
+param:@org.wikidata.city:historical_gazetteer_gov_id:String	NEUADTJO81HE
+param:@org.wikidata.city:historical_gazetteer_gov_id:String	TRIIERJN39HS
+param:@org.wikidata.city:historical_gazetteer_gov_id:String	WURURGJN49XT
+param:@org.wikidata.city:historical_gazetteer_gov_id:String	ZWEKAUJO61EF
+param:@org.wikidata.city:historical_gazetteer_gov_id:String	ALTINGJN68IF
+param:@org.wikidata.city:historical_gazetteer_gov_id:String	HOHEINJO70BX
+param:@org.wikidata.city:historical_gazetteer_gov_id:String	BORKENJO31KU
+param:@org.wikidata.city:historical_gazetteer_gov_id:String	PEGGAUJO61DE
+param:@org.wikidata.city:historical_gazetteer_gov_id:String	UBAERGJO30BW
+param:@org.wikidata.city:drainage_basin:Entity(org.wikidata:drainage_basin)	Meuse basin	Q2485172
+param:@org.wikidata.city:member_of:Entity(org.wikidata:member_of)	Niedersächsischer Städtetag	Q1988624
+param:@org.wikidata.city:member_of:Entity(org.wikidata:member_of)	Interpol	Q8475
+param:@org.wikidata.city:member_of:Entity(org.wikidata:member_of)	Climate Alliance	Q1768108
+param:@org.wikidata.city:member_of:Entity(org.wikidata:member_of)	Climate Alliance	Q1768108
+param:@org.wikidata.city:member_of:Entity(org.wikidata:member_of)	Climate Alliance	Q1768108
+param:@org.wikidata.city:member_of:Entity(org.wikidata:member_of)	Kommunale Datenverarbeitung Region Stuttgart	Q28936918
+param:@org.wikidata.city:member_of:Entity(org.wikidata:member_of)	Climate Alliance	Q1768108
+param:@org.wikidata.city:member_of:Entity(org.wikidata:member_of)	Commonwealth of Nations	Q7785
+param:@org.wikidata.city:member_of:Entity(org.wikidata:member_of)	Climate Alliance	Q1768108
+param:@org.wikidata.city:member_of:Entity(org.wikidata:member_of)	União das Cidades Capitais Luso-Afro-Américo-Asiáticas	Q4005967
+param:@org.wikidata.city:shares_border_with:Entity(org.wikidata:city)	Bougival	Q399342
+param:@org.wikidata.city:shares_border_with:Entity(org.wikidata:city)	Texcoco de Mora	Q1141799
+param:@org.wikidata.city:shares_border_with:Entity(org.wikidata:city)	Kumasi	Q182059
+param:@org.wikidata.city:shares_border_with:Entity(org.wikidata:city)	Innsbruck	Q1735
+param:@org.wikidata.city:shares_border_with:Entity(org.wikidata:city)	Dubossary	Q688654
+param:@org.wikidata.city:shares_border_with:Entity(org.wikidata:city)	Tiffin	Q990934
+param:@org.wikidata.city:shares_border_with:Entity(org.wikidata:city)	Montego Bay	Q637555
+param:@org.wikidata.city:shares_border_with:Entity(org.wikidata:city)	Maladziečna	Q201203
+param:@org.wikidata.city:shares_border_with:Entity(org.wikidata:city)	Vilnius	Q216
+param:@org.wikidata.city:shares_border_with:Entity(org.wikidata:city)	Oeiras	Q926700
+param:@org.wikidata.city:country_of_origin:String	Q31
+param:@org.wikidata.city:exclave_of:String	Q29
+param:@org.wikidata.city:exclave_of:String	Q649
+param:@org.wikidata.city:on_focus_list_of_wikimedia_project:String	Q5460604
+param:@org.wikidata.city:on_focus_list_of_wikimedia_project:String	Q5460604
+param:@org.wikidata.city:on_focus_list_of_wikimedia_project:String	Q54439832
+param:@org.wikidata.city:on_focus_list_of_wikimedia_project:String	Q5460604
+param:@org.wikidata.city:on_focus_list_of_wikimedia_project:String	Q54439832
+param:@org.wikidata.city:on_focus_list_of_wikimedia_project:String	Q5460604
+param:@org.wikidata.city:on_focus_list_of_wikimedia_project:String	Q57005414
+param:@org.wikidata.city:on_focus_list_of_wikimedia_project:String	Q5460604
+param:@org.wikidata.city:on_focus_list_of_wikimedia_project:String	Q5460604
+param:@org.wikidata.city:on_focus_list_of_wikimedia_project:String	Q5460604
+param:@org.wikidata.city:enclave_within:String	Q1417346
+param:@org.wikidata.city:enclave_within:String	Q166977
+param:@org.wikidata.city:enclave_within:String	Q47034
+param:@org.wikidata.city:enclave_within:String	Q220
+param:@org.wikidata.city:enclave_within:String	Q1661523
+param:@org.wikidata.city:enclave_within:String	Q1118
+param:@org.wikidata.city:enclave_within:String	Q388291
+param:@org.wikidata.city:enclave_within:String	Q9337
+param:@org.wikidata.city:enclave_within:String	Q466031
+param:@org.wikidata.city:enclave_within:String	Q960572
+param:@org.wikidata.city:wikimedia_outline:String	Q48838126
+param:@org.wikidata.city:wikimedia_outline:String	Q7112289
+param:@org.wikidata.city:wikimedia_outline:String	Q48740750
+param:@org.wikidata.city:wikimedia_outline:String	Q7112451
+param:@org.wikidata.city:wikimedia_outline:String	Q28453764
+param:@org.wikidata.city:wikimedia_outline:String	Q7112506
+param:@org.wikidata.city:wikimedia_outline:String	Q48838128
+param:@org.wikidata.city:wikimedia_outline:String	Q48741259
+param:@org.wikidata.city:wikimedia_outline:String	Q48838061
+param:@org.wikidata.city:wikimedia_outline:String	Q28401337
+param:@org.wikidata.city:has_part:String	Q97622665
+param:@org.wikidata.city:has_part:String	Q311849
+param:@org.wikidata.city:has_part:String	Q97622627
+param:@org.wikidata.city:has_part:String	Q97617091
+param:@org.wikidata.city:has_part:String	Q97625587
+param:@org.wikidata.city:has_part:String	Q97630746
+param:@org.wikidata.city:has_part:String	Q97622807
+param:@org.wikidata.city:has_part:String	Q97625596
+param:@org.wikidata.city:has_part:String	Q97622650
+param:@org.wikidata.city:has_part:String	Q97625650
+param:@org.wikidata.city:diplomatic_relation:Entity(org.wikidata:city)	Bougival	Q399342
+param:@org.wikidata.city:diplomatic_relation:Entity(org.wikidata:city)	Texcoco de Mora	Q1141799
+param:@org.wikidata.city:diplomatic_relation:Entity(org.wikidata:city)	Kumasi	Q182059
+param:@org.wikidata.city:diplomatic_relation:Entity(org.wikidata:city)	Innsbruck	Q1735
+param:@org.wikidata.city:diplomatic_relation:Entity(org.wikidata:city)	Dubossary	Q688654
+param:@org.wikidata.city:diplomatic_relation:Entity(org.wikidata:city)	Tiffin	Q990934
+param:@org.wikidata.city:diplomatic_relation:Entity(org.wikidata:city)	Montego Bay	Q637555
+param:@org.wikidata.city:diplomatic_relation:Entity(org.wikidata:city)	Maladziečna	Q201203
+param:@org.wikidata.city:diplomatic_relation:Entity(org.wikidata:city)	Vilnius	Q216
+param:@org.wikidata.city:diplomatic_relation:Entity(org.wikidata:city)	Oeiras	Q926700
+param:@org.wikidata.city:bvmc_person_id:String	70061
+param:@org.wikidata.city:website_account_on:Entity(org.wikidata:website_account_on)	PROMODJ	Q17117201
+param:@org.wikidata.city:head_of_government:Entity(org.wikidata:human)	Badri Shoshitaishvili	Q24008058
+param:@org.wikidata.city:head_of_government:Entity(org.wikidata:human)	Blaise of Sebaste	Q151967
+param:@org.wikidata.city:head_of_government:Entity(org.wikidata:human)	José Antonio Nieto	Q853347
+param:@org.wikidata.city:head_of_government:Entity(org.wikidata:human)	Michael the Archangel	Q45581
+param:@org.wikidata.city:head_of_government:Entity(org.wikidata:human)	Maria Josep Safont Melchor	Q51078283
+param:@org.wikidata.city:head_of_government:Entity(org.wikidata:human)	R. Sampath Raj	Q47044542
+param:@org.wikidata.city:head_of_government:Entity(org.wikidata:human)	Saint Dominic	Q44091
+param:@org.wikidata.city:head_of_government:Entity(org.wikidata:human)	Pierre Becker	Q16438892
+param:@org.wikidata.city:head_of_government:Entity(org.wikidata:human)	José Luis Gimeno Ferrer	Q17278920
+param:@org.wikidata.city:head_of_government:Entity(org.wikidata:human)	Alfred Oko Vanderpuije	Q4723552
+param:@org.wikidata.city:maintained_by_wikiproject:String	Q11211417
+param:@org.wikidata.city:maintained_by_wikiproject:String	Q15884984
+param:@org.wikidata.city:maintained_by_wikiproject:String	Q11036732
+param:@org.wikidata.city:maintained_by_wikiproject:String	Q13341436
+param:@org.wikidata.city:pleiades_category_identifier:String	unlocated
+param:@org.wikidata.city:pleiades_category_identifier:String	settlement
+param:@org.wikidata.city:pleiades_category_identifier:String	settlement
+param:@org.wikidata.city:nomisma_id:String	nuremberg
+param:@org.wikidata.city:nomisma_id:String	acinippo
+param:@org.wikidata.city:nomisma_id:String	byblus
+param:@org.wikidata.city:nomisma_id:String	qustantiniyah
+param:@org.wikidata.city:nomisma_id:String	mytilene
+param:@org.wikidata.city:nomisma_id:String	nakhjuwan
+param:@org.wikidata.city:nomisma_id:String	comana
+param:@org.wikidata.city:nomisma_id:String	toletum
+param:@org.wikidata.city:has_works_in_the_collection:String	Q1464509
+param:@org.wikidata.city:has_works_in_the_collection:String	Q842858
+param:@org.wikidata.city:cultural_heritage_database_in_austria_objektid:String	75050
+param:@org.wikidata.city:iso_3166_1_alpha_3_code:String	SGP
+param:@org.wikidata.city:iso_3166_1_alpha_3_code:String	HKG
+param:@org.wikidata.city:iso_3166_1_alpha_3_code:String	VAT
+param:@org.wikidata.city:diocese:String	Q2089661
+param:@org.wikidata.city:diocese:String	Q877233
+param:@org.wikidata.city:diocese:String	Q1364014
+param:@org.wikidata.city:category_for_the_interior_of_the_item:String	Q86116828
+param:@org.wikidata.city:electoral_district:String	Q12906680
+param:@org.wikidata.city:electoral_district:String	Q15838551
+param:@org.wikidata.city:electoral_district:String	Q12906682
+param:@org.wikidata.city:electoral_district:String	Q15732109
+param:@org.wikidata.city:electoral_district:String	Q12906685
+param:@org.wikidata.city:electoral_district:String	Q20568318
+param:@org.wikidata.city:electoral_district:String	Q12906680
+param:@org.wikidata.city:electoral_district:String	Q12906682
+param:@org.wikidata.city:electoral_district:String	Q12906680
+param:@org.wikidata.city:electoral_district:String	Q12906682
+param:@org.wikidata.city:iranica_id:String	ashkhabad
+param:@org.wikidata.city:iranica_id:String	urgut
+param:@org.wikidata.city:iranica_id:String	allahabad
+param:@org.wikidata.city:iranica_id:String	germanikeia
+param:@org.wikidata.city:cause_of_destruction:String	Q2706283
+param:@org.wikidata.city:itu_letter_code:String	SNG
+param:@org.wikidata.city:top_level_internet_domain:String	Q14848736
+param:@org.wikidata.city:top_level_internet_domain:String	Q41851
+param:@org.wikidata.city:top_level_internet_domain:String	Q41639
+param:@org.wikidata.city:top_level_internet_domain:String	Q42381
+param:@org.wikidata.city:iwm_memorial_id:String	14655
+param:@org.wikidata.city:iwm_memorial_id:String	25700
+param:@org.wikidata.city:category_for_maps:String	Q84092989
+param:@org.wikidata.city:category_for_maps:String	Q84040670
+param:@org.wikidata.city:category_for_maps:String	Q84064966
+param:@org.wikidata.city:category_for_maps:String	Q84069810
+param:@org.wikidata.city:category_for_maps:String	Q84028008
+param:@org.wikidata.city:category_for_maps:String	Q84051247
+param:@org.wikidata.city:category_for_maps:String	Q84039358
+param:@org.wikidata.city:category_for_maps:String	Q84080658
+param:@org.wikidata.city:category_for_maps:String	Q84026708
+param:@org.wikidata.city:category_for_maps:String	Q84036787
+param:@org.wikidata.city:significant_event:String	Q2155032
+param:@org.wikidata.city:significant_event:String	Q164679
+param:@org.wikidata.city:significant_event:String	Q7510079
+param:@org.wikidata.city:significant_event:String	Q16931400
+param:@org.wikidata.city:significant_event:String	Q7509782
+param:@org.wikidata.city:significant_event:String	Q7510105
+param:@org.wikidata.city:significant_event:String	Q3317226
+param:@org.wikidata.city:significant_event:String	Q74836290
+param:@org.wikidata.city:significant_event:String	Q3485858
+param:@org.wikidata.city:significant_event:String	Q28942
+param:@org.wikidata.city:associated_electoral_district:String	Q924832
+param:@org.wikidata.city:associated_electoral_district:String	Q5356235
+param:@org.wikidata.city:associated_electoral_district:String	Q5284494
+param:@org.wikidata.city:associated_electoral_district:String	Q5284497
+param:@org.wikidata.city:associated_electoral_district:String	Q2887271
+param:@org.wikidata.city:associated_electoral_district:String	Q5356234
+param:@org.wikidata.city:associated_electoral_district:String	Q19606533
+param:@org.wikidata.city:associated_electoral_district:String	Q2973687
+param:@org.wikidata.city:associated_electoral_district:String	Q5284497
+param:@org.wikidata.city:associated_electoral_district:String	Q56649108
+param:@org.wikidata.city:historic_county:String	Q183539
+param:@org.wikidata.city:historic_county:String	Q67575442
+param:@org.wikidata.city:historic_county:String	Q23346
+param:@org.wikidata.city:historic_county:String	Q67575442
+param:@org.wikidata.city:historic_county:String	Q189592
+param:@org.wikidata.city:historic_county:String	Q192208
+param:@org.wikidata.city:historic_county:String	Q189592
+param:@org.wikidata.city:historic_county:String	Q163
+param:@org.wikidata.city:historic_county:String	Q30612390
+param:@org.wikidata.city:historic_county:String	Q184594
+param:@org.wikidata.city:authority:String	Q58942669
+param:@org.wikidata.city:authority:String	Q30262990
+param:@org.wikidata.city:authority:String	Q48726994
+param:@org.wikidata.city:authority:String	Q6959016
+param:@org.wikidata.city:authority:String	Q58942597
+param:@org.wikidata.city:authority:String	Q1094147
+param:@org.wikidata.city:authority:String	Q58942797
+param:@org.wikidata.city:authority:String	Q58942501
+param:@org.wikidata.city:authority:String	Q17071753
+param:@org.wikidata.city:authority:String	Q58942604
+param:@org.wikidata.city:tripadvisor_id:String	60763
+param:@org.wikidata.city:connecting_line:String	Q177621
+param:@org.wikidata.city:dedicated_to:String	Q345
+param:@org.wikidata.city:statoids_id:String	usg
+param:@org.wikidata.city:statoids_id:String	uhk
+param:@org.wikidata.city:statoids_id:String	uva
+param:@org.wikidata.city:public_holiday:String	Q47499
+param:@org.wikidata.city:public_holiday:String	Q40317
+param:@org.wikidata.city:public_holiday:String	Q2787
+param:@org.wikidata.city:public_holiday:String	Q186206
+param:@org.wikidata.city:public_holiday:String	Q718778
+param:@org.wikidata.city:public_holiday:String	Q1254268
+param:@org.wikidata.city:public_holiday:String	Q196627
+param:@org.wikidata.city:public_holiday:String	Q209663
+param:@org.wikidata.city:public_holiday:String	Q131772
+param:@org.wikidata.city:public_holiday:String	Q1145566
+param:@org.wikidata.city:vk_username:String	visitlappeenranta
+param:@org.wikidata.city:day_in_year_for_periodic_occurrence:String	Q5429969
+param:@org.wikidata.city:day_in_year_for_periodic_occurrence:String	Q21451634
+param:@org.wikidata.city:architect:Entity(org.wikidata:human)	Badri Shoshitaishvili	Q24008058
+param:@org.wikidata.city:architect:Entity(org.wikidata:human)	Blaise of Sebaste	Q151967
+param:@org.wikidata.city:architect:Entity(org.wikidata:human)	José Antonio Nieto	Q853347
+param:@org.wikidata.city:architect:Entity(org.wikidata:human)	Michael the Archangel	Q45581
+param:@org.wikidata.city:architect:Entity(org.wikidata:human)	Maria Josep Safont Melchor	Q51078283
+param:@org.wikidata.city:architect:Entity(org.wikidata:human)	R. Sampath Raj	Q47044542
+param:@org.wikidata.city:architect:Entity(org.wikidata:human)	Saint Dominic	Q44091
+param:@org.wikidata.city:architect:Entity(org.wikidata:human)	Pierre Becker	Q16438892
+param:@org.wikidata.city:architect:Entity(org.wikidata:human)	José Luis Gimeno Ferrer	Q17278920
+param:@org.wikidata.city:architect:Entity(org.wikidata:human)	Alfred Oko Vanderpuije	Q4723552
+param:@org.wikidata.city:jewishgen_locality_id:String	97489
+param:@org.wikidata.city:open_data_portal:Entity(org.wikidata:open_data_portal)	Bergen City Bike Open Data	Q97025608
+param:@org.wikidata.city:open_data_portal:Entity(org.wikidata:open_data_portal)	Open Data Naples	Q97066117
+param:@org.wikidata.city:open_data_portal:Entity(org.wikidata:open_data_portal)	datasf	Q97101170
+param:@org.wikidata.city:open_data_portal:Entity(org.wikidata:open_data_portal)	Helsinki Region Infoshare	Q96992754
+param:@org.wikidata.city:open_data_portal:Entity(org.wikidata:open_data_portal)	Lamia Open Data	Q97353563
+param:@org.wikidata.city:open_data_portal:Entity(org.wikidata:open_data_portal)	Bangkok open data	Q97317670
+param:@org.wikidata.city:open_data_portal:Entity(org.wikidata:open_data_portal)	Dresden Open Data	Q97290050
+param:@org.wikidata.city:open_data_portal:Entity(org.wikidata:open_data_portal)	city of Perth Open Data Portal	Q97152718
+param:@org.wikidata.city:open_data_portal:Entity(org.wikidata:open_data_portal)	Open Data Kathmandu	Q97062449
+param:@org.wikidata.city:open_data_portal:Entity(org.wikidata:open_data_portal)	Open Data Regina	Q97299334
+param:@org.wikidata.city:datagouvfr_organisation_id:String	5be53f55634f4119ca26ec72
+param:@org.wikidata.city:datagouvfr_organisation_id:String	5b8ffc778b4c413ec36d73f6
+param:@org.wikidata.city:datagouvfr_organisation_id:String	5a61b7a7c751df3fd36ac81a
+param:@org.wikidata.city:datagouvfr_organisation_id:String	5bae3178634f411900549882
+param:@org.wikidata.city:feast_day:Entity(org.wikidata:feast_day)	Narcissus of Girona	Q828609
+param:@org.wikidata.city:anthem:Entity(org.wikidata:song)	Anthem of Úbeda	Q20537967
+param:@org.wikidata.city:anthem:Entity(org.wikidata:song)	Mongaguá, te amo demais	Q19551737
+param:@org.wikidata.city:anthem:Entity(org.wikidata:song)	Salve Ibitinga	Q19552067
+param:@org.wikidata.city:anthem:Entity(org.wikidata:song)	Canción al Nueve de Octubre	Q5031521
+param:@org.wikidata.city:anthem:Entity(org.wikidata:song)	Himno a Burgos	Q11682502
+param:@org.wikidata.city:anthem:Entity(org.wikidata:song)	Onward Singapore	Q209973
+param:@org.wikidata.city:anthem:Entity(org.wikidata:song)	Azuay anthem	Q5898030
+param:@org.wikidata.city:anthem:Entity(org.wikidata:song)	March of the Volunteers	Q156136
+param:@org.wikidata.city:anthem:Entity(org.wikidata:song)	Himno a Tosagua	Q5898109
+param:@org.wikidata.city:anthem:Entity(org.wikidata:song)	Inno e Marcia Pontificale	Q190226
+param:@org.wikidata.city:foods_traditionally_associated:Entity(org.wikidata:foods_traditionally_associated)	hornazo	Q385808
+param:@org.wikidata.city:foods_traditionally_associated:Entity(org.wikidata:foods_traditionally_associated)	chanfaina	Q3666125
+param:@org.wikidata.city:commissioned_by:Entity(org.wikidata:human)	Badri Shoshitaishvili	Q24008058
+param:@org.wikidata.city:commissioned_by:Entity(org.wikidata:human)	Blaise of Sebaste	Q151967
+param:@org.wikidata.city:commissioned_by:Entity(org.wikidata:human)	José Antonio Nieto	Q853347
+param:@org.wikidata.city:commissioned_by:Entity(org.wikidata:human)	Michael the Archangel	Q45581
+param:@org.wikidata.city:commissioned_by:Entity(org.wikidata:human)	Maria Josep Safont Melchor	Q51078283
+param:@org.wikidata.city:commissioned_by:Entity(org.wikidata:human)	R. Sampath Raj	Q47044542
+param:@org.wikidata.city:commissioned_by:Entity(org.wikidata:human)	Saint Dominic	Q44091
+param:@org.wikidata.city:commissioned_by:Entity(org.wikidata:human)	Pierre Becker	Q16438892
+param:@org.wikidata.city:commissioned_by:Entity(org.wikidata:human)	José Luis Gimeno Ferrer	Q17278920
+param:@org.wikidata.city:commissioned_by:Entity(org.wikidata:human)	Alfred Oko Vanderpuije	Q4723552
+param:@org.wikidata.city:encyclopdia_universalis_id:String	trondheim
+param:@org.wikidata.city:encyclopdia_universalis_id:String	johannesburg
+param:@org.wikidata.city:encyclopdia_universalis_id:String	ahmadabad
+param:@org.wikidata.city:encyclopdia_universalis_id:String	goiania
+param:@org.wikidata.city:encyclopdia_universalis_id:String	treves
+param:@org.wikidata.city:encyclopdia_universalis_id:String	safi
+param:@org.wikidata.city:encyclopdia_universalis_id:String	montevideo
+param:@org.wikidata.city:encyclopdia_universalis_id:String	herat
+param:@org.wikidata.city:encyclopdia_universalis_id:String	nagpur
+param:@org.wikidata.city:encyclopdia_universalis_id:String	calgary
+param:@org.wikidata.city:topics_main_category:Entity(org.wikidata:topics_main_category)	Category:Amritsar	Q8249238
+param:@org.wikidata.city:topics_main_category:Entity(org.wikidata:topics_main_category)	Category:Armidale, New South Wales	Q8264259
+param:@org.wikidata.city:topics_main_category:Entity(org.wikidata:topics_main_category)	Category:Seville	Q8733566
+param:@org.wikidata.city:topics_main_category:Entity(org.wikidata:topics_main_category)	Category:Haridwar	Q8505510
+param:@org.wikidata.city:topics_main_category:Entity(org.wikidata:topics_main_category)	Category:Flin Flon	Q15257662
+param:@org.wikidata.city:topics_main_category:Entity(org.wikidata:topics_main_category)	Category:Shamkir	Q19792326
+param:@org.wikidata.city:topics_main_category:Entity(org.wikidata:topics_main_category)	Category:Qus	Q32594509
+param:@org.wikidata.city:topics_main_category:Entity(org.wikidata:topics_main_category)	Category:Nowa Dęba	Q9592477
+param:@org.wikidata.city:topics_main_category:Entity(org.wikidata:topics_main_category)	Category:Engenheiro Coelho	Q32405484
+param:@org.wikidata.city:topics_main_category:Entity(org.wikidata:topics_main_category)	Category:Tarumã (São Paulo)	Q13320855
+param:@org.wikidata.city:has_facility:Entity(org.wikidata:has_facility)	Sanisette	Q3472280
+param:@org.wikidata.city:has_facility:Entity(org.wikidata:has_facility)	Sanisette	Q3472280
+param:@org.wikidata.city:nese_id:String	yaounde
+param:@org.wikidata.city:nese_id:String	rzeszow
+param:@org.wikidata.city:nese_id:String	annaba
+param:@org.wikidata.city:nese_id:String	fayyum
+param:@org.wikidata.city:nese_id:String	ofaqim
+param:@org.wikidata.city:nese_id:String	kanniyakumari
+param:@org.wikidata.city:nese_id:String	nordhorn
+param:@org.wikidata.city:nese_id:String	bologna
+param:@org.wikidata.city:nese_id:String	matadi
+param:@org.wikidata.city:nese_id:String	kielce
+param:@org.wikidata.city:main_regulatory_text:Entity(org.wikidata:main_regulatory_text)	Tōkyō tosei	Q2465336
+param:@org.wikidata.city:main_regulatory_text:Entity(org.wikidata:main_regulatory_text)	Local Autonomy Act	Q2480675
+param:@org.wikidata.city:main_regulatory_text:Entity(org.wikidata:main_regulatory_text)	Basic Law of Hong Kong	Q15165
+param:@org.wikidata.city:main_regulatory_text:Entity(org.wikidata:main_regulatory_text)	Fundamental Law of Vatican City State	Q441709
+param:@org.wikidata.city:catholic_encyclopedia_id:String	03019a
+param:@org.wikidata.city:catholic_encyclopedia_id:String	01380c
+param:@org.wikidata.city:catholic_encyclopedia_id:String	10407a
+param:@org.wikidata.city:catholic_encyclopedia_id:String	04301a
+param:@org.wikidata.city:catholic_encyclopedia_id:String	13450b
+param:@org.wikidata.city:catholic_encyclopedia_id:String	10409b
+param:@org.wikidata.city:catholic_encyclopedia_id:String	14365a
+param:@org.wikidata.city:catholic_encyclopedia_id:String	03021a
+param:@org.wikidata.city:catholic_encyclopedia_id:String	01110b
+param:@org.wikidata.city:catholic_encyclopedia_id:String	09533a
+param:@org.wikidata.city:queensland_place_id:String	13860
+param:@org.wikidata.city:queensland_place_id:String	28641
+param:@org.wikidata.city:queensland_place_id:String	42078
+param:@org.wikidata.city:queensland_place_id:String	47502
+param:@org.wikidata.city:queensland_place_id:String	42316
+param:@org.wikidata.city:queensland_place_id:String	35084
+param:@org.wikidata.city:queensland_place_id:String	46749
+param:@org.wikidata.city:queensland_place_id:String	49069
+param:@org.wikidata.city:queensland_place_id:String	46086
+param:@org.wikidata.city:queensland_place_id:String	23053
+param:@org.wikidata.city:flickr_user_id:String	edinburghcouncil
+param:@org.wikidata.city:patrimonio_inmueble_de_andalucia_id:String	i6005
+param:@org.wikidata.city:patrimonio_inmueble_de_andalucia_id:String	i226247
+param:@org.wikidata.city:patrimonio_inmueble_de_andalucia_id:String	i14835
+param:@org.wikidata.city:patrimonio_inmueble_de_andalucia_id:String	i16348
+param:@org.wikidata.city:patrimonio_inmueble_de_andalucia_id:String	i4342
+param:@org.wikidata.city:patrimonio_inmueble_de_andalucia_id:String	i2603
+param:@org.wikidata.city:patrimonio_inmueble_de_andalucia_id:String	i15841
+param:@org.wikidata.city:patrimonio_inmueble_de_andalucia_id:String	i19893
+param:@org.wikidata.city:patrimonio_inmueble_de_andalucia_id:String	i7700
+param:@org.wikidata.city:patrimonio_inmueble_de_andalucia_id:String	i3238
+param:@org.wikidata.city:treccani_id:String	santos
+param:@org.wikidata.city:treccani_id:String	rimini
+param:@org.wikidata.city:treccani_id:String	malaga
+param:@org.wikidata.city:treccani_id:String	timbuctu
+param:@org.wikidata.city:treccani_id:String	cheyenne
+param:@org.wikidata.city:treccani_id:String	lagos
+param:@org.wikidata.city:treccani_id:String	jullundur
+param:@org.wikidata.city:treccani_id:String	selinunte
+param:@org.wikidata.city:treccani_id:String	groninga
+param:@org.wikidata.city:treccani_id:String	atene
+param:@org.wikidata.city:consolidated_code_of_the_electronic_catalog_of_libraries_of_belarus:String	73700
+param:@org.wikidata.city:littlesis_organization_id:String	42458
+param:@org.wikidata.city:quora_topic_id:String	Linnich
+param:@org.wikidata.city:quora_topic_id:String	Bitola
+param:@org.wikidata.city:quora_topic_id:String	Falesti
+param:@org.wikidata.city:quora_topic_id:String	Ulvila
+param:@org.wikidata.city:quora_topic_id:String	Khenifra
+param:@org.wikidata.city:quora_topic_id:String	Danilovgrad
+param:@org.wikidata.city:quora_topic_id:String	Sjenica
+param:@org.wikidata.city:quora_topic_id:String	BUKOBA
+param:@org.wikidata.city:quora_topic_id:String	Sandvika
+param:@org.wikidata.city:insee_countries_and_foreign_territories_code:String	99325
+param:@org.wikidata.city:insee_countries_and_foreign_territories_code:String	99226
+param:@org.wikidata.city:insee_countries_and_foreign_territories_code:String	99230
+param:@org.wikidata.city:insee_countries_and_foreign_territories_code:String	99129
+param:@org.wikidata.city:imdb_id:String	tt0486495
+param:@org.wikidata.city:vicnames_place_id:String	30473
+param:@org.wikidata.city:omni_topic_id:String	edc8ab4e24ad08fed39fea210a57a707416b7ce5
+param:@org.wikidata.city:omni_topic_id:String	aad90e63b3ca54d8b2ddc8bb4efe6911d5f95804
+param:@org.wikidata.city:omni_topic_id:String	c4efc9e584d776a306868e931eec0b27dadaabd2
+param:@org.wikidata.city:omni_topic_id:String	f7687f0e4867e3e1ed1e7bc63e34dcba7542aa1a
+param:@org.wikidata.city:ringgold_id:String	18146
+param:@org.wikidata.city:ringgold_id:String	13146
+param:@org.wikidata.city:ringgold_id:String	16749
+param:@org.wikidata.city:ringgold_id:String	64470
+param:@org.wikidata.city:ringgold_id:String	37074
+param:@org.wikidata.city:ringgold_id:String	11349
+param:@org.wikidata.city:ringgold_id:String	81945
+param:@org.wikidata.city:ringgold_id:String	95921
+param:@org.wikidata.city:ringgold_id:String	18181
+param:@org.wikidata.city:ringgold_id:String	10001
+param:@org.wikidata.city:dagens_nyheter_topic_id:String	dubai
+param:@org.wikidata.city:dagens_nyheter_topic_id:String	mosul
+param:@org.wikidata.city:dagens_nyheter_topic_id:String	hongkong
+param:@org.wikidata.city:dagens_nyheter_topic_id:String	london
+param:@org.wikidata.city:dagens_nyheter_topic_id:String	calais
+param:@org.wikidata.city:dagens_nyheter_topic_id:String	aleppo
+param:@org.wikidata.city:dagens_nyheter_topic_id:String	kabul
+param:@org.wikidata.city:geographical_names_board_of_nsw_id:String	SXKq
+param:@org.wikidata.city:geographical_names_board_of_nsw_id:String	SXwGwpZTTR
+param:@org.wikidata.city:geographical_names_board_of_nsw_id:String	MaKqwprXGH
+param:@org.wikidata.city:geographical_names_board_of_nsw_id:String	MaKqBKWAuj
+param:@org.wikidata.city:geographical_names_board_of_nsw_id:String	MnIOZxtLSX
+param:@org.wikidata.city:geographical_names_board_of_nsw_id:String	KWKqwpZTGH
+param:@org.wikidata.city:geographical_names_board_of_nsw_id:String	SXKqjzqbMa
+param:@org.wikidata.city:geographical_names_board_of_nsw_id:String	ItckoeWA
+param:@org.wikidata.city:geographical_names_board_of_nsw_id:String	ujjtvqtLJP
+param:@org.wikidata.city:geographical_names_board_of_nsw_id:String	anjtvqxOTR
+param:@org.wikidata.city:eu_vat_number:String	RS100232752
+param:@org.wikidata.city:eu_vat_number:String	ATU37185906
+param:@org.wikidata.city:eu_vat_number:String	PL5252248481
+param:@org.wikidata.city:eu_vat_number:String	IT00297110389
+param:@org.wikidata.city:eu_vat_number:String	EL998082845
+param:@org.wikidata.city:eu_vat_number:String	FI01651163
+param:@org.wikidata.city:eu_vat_number:String	FI01876901
+param:@org.wikidata.city:eu_vat_number:String	CZ00268810
+param:@org.wikidata.city:eu_vat_number:String	IT00856930102
+param:@org.wikidata.city:eu_vat_number:String	HR54382731928
+param:@org.wikidata.city:vision_of_britain_place_id:String	16316
+param:@org.wikidata.city:vision_of_britain_place_id:String	20523
+param:@org.wikidata.city:vision_of_britain_place_id:String	16794
+param:@org.wikidata.city:vision_of_britain_place_id:String	23494
+param:@org.wikidata.city:vision_of_britain_place_id:String	20025
+param:@org.wikidata.city:vision_of_britain_place_id:String	17006
+param:@org.wikidata.city:vision_of_britain_place_id:String	16634
+param:@org.wikidata.city:vision_of_britain_place_id:String	21584
+param:@org.wikidata.city:vision_of_britain_place_id:String	16317
+param:@org.wikidata.city:vision_of_britain_place_id:String	16318
+param:@org.wikidata.city:british_museum_place_id:String	x38481
+param:@org.wikidata.city:british_museum_place_id:String	x39650
+param:@org.wikidata.city:british_museum_place_id:String	x39651
+param:@org.wikidata.city:british_museum_place_id:String	x31985
+param:@org.wikidata.city:insee_municipality_code:String	92025
+param:@org.wikidata.city:insee_municipality_code:String	94028
+param:@org.wikidata.city:insee_municipality_code:String	84007
+param:@org.wikidata.city:insee_municipality_code:String	97422
+param:@org.wikidata.city:insee_municipality_code:String	97209
+param:@org.wikidata.city:insee_municipality_code:String	92026
+param:@org.wikidata.city:insee_municipality_code:String	49007
+param:@org.wikidata.city:insee_municipality_code:String	75025
+param:@org.wikidata.city:insee_municipality_code:String	92063
+param:@org.wikidata.city:insee_municipality_code:String	49099
+param:@org.wikidata.city:openmlol_author_id:String	78369
+param:@org.wikidata.city:merimee_id:String	IA01000022
+param:@org.wikidata.city:merimee_id:String	IA00082273
+param:@org.wikidata.city:merimee_id:String	IA00129795
+param:@org.wikidata.city:merimee_id:String	IA00051412
+param:@org.wikidata.city:merimee_id:String	IA00051411
+param:@org.wikidata.city:merimee_id:String	IA00050058
+param:@org.wikidata.city:merimee_id:String	IA00079457
+param:@org.wikidata.city:merimee_id:String	IA00075724
+param:@org.wikidata.city:merimee_id:String	IA00129794
+param:@org.wikidata.city:merimee_id:String	IA00130540
+param:@org.wikidata.city:inegi_municipality_id:String	19019
+param:@org.wikidata.city:inegi_municipality_id:String	14098
+param:@org.wikidata.city:inegi_municipality_id:String	15014
+param:@org.wikidata.city:inegi_municipality_id:String	30097
+param:@org.wikidata.city:inegi_municipality_id:String	11037
+param:@org.wikidata.city:inegi_municipality_id:String	14039
+param:@org.wikidata.city:inegi_municipality_id:String	17018
+param:@org.wikidata.city:jstor_topic_id:String	bologna
+param:@org.wikidata.city:jstor_topic_id:String	campinas
+param:@org.wikidata.city:jstor_topic_id:String	cairns
+param:@org.wikidata.city:jstor_topic_id:String	tubas
+param:@org.wikidata.city:jstor_topic_id:String	cayenne
+param:@org.wikidata.city:pinterest_username:String	cityofedmonton
+param:@org.wikidata.city:pinterest_username:String	muenchen
+param:@org.wikidata.city:pinterest_username:String	edinburghcc
+param:@org.wikidata.city:open_library_subject_id:String	jerusalem
+param:@org.wikidata.city:unesco_thesaurus_id:String	concept865
+param:@org.wikidata.city:unesco_thesaurus_id:String	concept828
+param:@org.wikidata.city:unesco_thesaurus_id:String	concept829
+param:@org.wikidata.city:digital_valencian_library_author_id:String	13762
+param:@org.wikidata.city:israel_antiquities_authority_id:String	11653
+param:@org.wikidata.city:israel_antiquities_authority_id:String	14881
+param:@org.wikidata.city:israel_antiquities_authority_id:String	11656
+param:@org.wikidata.city:israel_antiquities_authority_id:String	14830
+param:@org.wikidata.city:israel_antiquities_authority_id:String	11662
+param:@org.wikidata.city:israel_antiquities_authority_id:String	11664
+param:@org.wikidata.city:israel_antiquities_authority_id:String	13811
+param:@org.wikidata.city:israel_antiquities_authority_id:String	15455
+param:@org.wikidata.city:israel_antiquities_authority_id:String	15379
+param:@org.wikidata.city:israel_antiquities_authority_id:String	14886
+param:@org.wikidata.city:bdcyl_authority_id:String	19626
+param:@org.wikidata.city:songkick_venue_id:String	76854
+param:@org.wikidata.city:subreddit:String	belfast
+param:@org.wikidata.city:subreddit:String	islamabad
+param:@org.wikidata.city:subreddit:String	Colombo
+param:@org.wikidata.city:subreddit:String	brussels
+param:@org.wikidata.city:subreddit:String	Ljubljana
+param:@org.wikidata.city:subreddit:String	Kaohsiung
+param:@org.wikidata.city:subreddit:String	Groningen
+param:@org.wikidata.city:subreddit:String	DehradunCIty
+param:@org.wikidata.city:subreddit:String	Bratislava
+param:@org.wikidata.city:subreddit:String	shepparton
+param:@org.wikidata.city:australian_statistical_geography_2011_id:String	LGA24600
+param:@org.wikidata.city:australian_statistical_geography_2011_id:String	SSC30212
+param:@org.wikidata.city:australian_statistical_geography_2011_id:String	SSC40461
+param:@org.wikidata.city:australian_statistical_geography_2011_id:String	UCL213003
+param:@org.wikidata.city:australian_statistical_geography_2011_id:String	UCL211002
+param:@org.wikidata.city:australian_statistical_geography_2011_id:String	SSC40583
+param:@org.wikidata.city:australian_statistical_geography_2011_id:String	UCL611001
+param:@org.wikidata.city:australian_statistical_geography_2011_id:String	SSC20270
+param:@org.wikidata.city:australian_statistical_geography_2011_id:String	2R090
+param:@org.wikidata.city:australian_statistical_geography_2011_id:String	UCL512004
+param:@org.wikidata.city:openstreetmap_relation_id:String	42955
+param:@org.wikidata.city:openstreetmap_relation_id:String	44830
+param:@org.wikidata.city:openstreetmap_relation_id:String	62508
+param:@org.wikidata.city:openstreetmap_relation_id:String	62430
+param:@org.wikidata.city:openstreetmap_relation_id:String	62599
+param:@org.wikidata.city:openstreetmap_relation_id:String	51800
+param:@org.wikidata.city:openstreetmap_relation_id:String	56086
+param:@org.wikidata.city:openstreetmap_relation_id:String	62559
+param:@org.wikidata.city:openstreetmap_relation_id:String	62405
+param:@org.wikidata.city:openstreetmap_relation_id:String	62523
+param:@org.wikidata.city:fandom_wiki_id:String	sanfrancisco
+param:@org.wikidata.city:fandom_wiki_id:String	london
+param:@org.wikidata.city:australian_statistical_geography_2016_id:String	SSC22804
+param:@org.wikidata.city:australian_statistical_geography_2016_id:String	SSC11725
+param:@org.wikidata.city:australian_statistical_geography_2016_id:String	SSC20052
+param:@org.wikidata.city:australian_statistical_geography_2016_id:String	SSC40940
+param:@org.wikidata.city:australian_statistical_geography_2016_id:String	SSC11722
+param:@org.wikidata.city:australian_statistical_geography_2016_id:String	SSC12949
+param:@org.wikidata.city:australian_statistical_geography_2016_id:String	SSC22098
+param:@org.wikidata.city:australian_statistical_geography_2016_id:String	1GSYD
+param:@org.wikidata.city:australian_statistical_geography_2016_id:String	SSC20102
+param:@org.wikidata.city:australian_statistical_geography_2016_id:String	SSC10592
+param:@org.wikidata.city:instagram_location_id:String	c1876424
+param:@org.wikidata.city:bashkir_encyclopedia_russian_version_id:String	16799
+param:@org.wikidata.city:pactols_thesaurus_id:String	pcrtAlX1t8dqXl
+param:@org.wikidata.city:pactols_thesaurus_id:String	pcrtzwDcvIX1bf
+param:@org.wikidata.city:pactols_thesaurus_id:String	pcrttqnkJeByoG
+param:@org.wikidata.city:pactols_thesaurus_id:String	pcrt1vxP05HhXx
+param:@org.wikidata.city:pactols_thesaurus_id:String	pcrtdobO9MbyvZ
+param:@org.wikidata.city:pactols_thesaurus_id:String	pcrttehdrgsUnA
+param:@org.wikidata.city:pactols_thesaurus_id:String	pcrtEZmoTxrt7J
+param:@org.wikidata.city:pactols_thesaurus_id:String	pcrtafASbto8SX
+param:@org.wikidata.city:pactols_thesaurus_id:String	pcrtke1pXaNEbq
+param:@org.wikidata.city:pactols_thesaurus_id:String	pcrt0N78e3sZxa
+param:@org.wikidata.city:treccanis_enciclopedia_italiana_id:String	karakorum
+param:@org.wikidata.city:treccanis_enciclopedia_italiana_id:String	megara
+param:@org.wikidata.city:treccanis_enciclopedia_italiana_id:String	germiston
+param:@org.wikidata.city:treccanis_enciclopedia_italiana_id:String	santos
+param:@org.wikidata.city:treccanis_enciclopedia_italiana_id:String	mossul
+param:@org.wikidata.city:treccanis_enciclopedia_italiana_id:String	conia
+param:@org.wikidata.city:treccanis_enciclopedia_italiana_id:String	libreville
+param:@org.wikidata.city:treccanis_enciclopedia_italiana_id:String	assoro
+param:@org.wikidata.city:treccanis_enciclopedia_italiana_id:String	brazzaville
+param:@org.wikidata.city:treccanis_enciclopedia_italiana_id:String	taipei
+param:@org.wikidata.city:store_norske_leksikon_id:String	Matadi
+param:@org.wikidata.city:store_norske_leksikon_id:String	Kaolack
+param:@org.wikidata.city:store_norske_leksikon_id:String	Subotica
+param:@org.wikidata.city:store_norske_leksikon_id:String	Louny
+param:@org.wikidata.city:store_norske_leksikon_id:String	Torino
+param:@org.wikidata.city:store_norske_leksikon_id:String	Tokyo
+param:@org.wikidata.city:store_norske_leksikon_id:String	Warszawa
+param:@org.wikidata.city:store_norske_leksikon_id:String	limbe
+param:@org.wikidata.city:german_district_key:String	03101
+param:@org.wikidata.city:german_district_key:String	09663
+param:@org.wikidata.city:german_district_key:String	15003
+param:@org.wikidata.city:german_district_key:String	16053
+param:@org.wikidata.city:german_district_key:String	05314
+param:@org.wikidata.city:german_district_key:String	07211
+param:@org.wikidata.city:german_district_key:String	06412
+param:@org.wikidata.city:german_district_key:String	04011
+param:@org.wikidata.city:german_district_key:String	14612
+param:@org.wikidata.city:german_district_key:String	12052
+param:@org.wikidata.city:gacs_id:String	28708
+param:@org.wikidata.city:gacs_id:String	32407
+param:@org.wikidata.city:uk_parliament_thesaurus_id:String	11060
+param:@org.wikidata.city:uk_parliament_thesaurus_id:String	11176
+param:@org.wikidata.city:uk_parliament_thesaurus_id:String	35504
+param:@org.wikidata.city:uk_parliament_thesaurus_id:String	12271
+param:@org.wikidata.city:uk_parliament_thesaurus_id:String	11234
+param:@org.wikidata.city:uk_parliament_thesaurus_id:String	11807
+param:@org.wikidata.city:uk_parliament_thesaurus_id:String	13169
+param:@org.wikidata.city:uk_parliament_thesaurus_id:String	13185
+param:@org.wikidata.city:uk_parliament_thesaurus_id:String	12636
+param:@org.wikidata.city:uk_parliament_thesaurus_id:String	13620
+param:@org.wikidata.city:ra_collections_id:String	15982
+param:@org.wikidata.city:ra_collections_id:String	15322
+param:@org.wikidata.city:ra_collections_id:String	15352
+param:@org.wikidata.city:encyclopedia_of_modern_ukraine_id:String	40022
+param:@org.wikidata.city:encyclopedia_of_modern_ukraine_id:String	28538
+param:@org.wikidata.city:encyclopedia_of_modern_ukraine_id:String	40158
+param:@org.wikidata.city:encyclopedia_of_modern_ukraine_id:String	18606
+param:@org.wikidata.city:encyclopedia_of_modern_ukraine_id:String	39090
+param:@org.wikidata.city:encyclopedia_of_modern_ukraine_id:String	39913
+param:@org.wikidata.city:encyclopedia_of_modern_ukraine_id:String	28600
+param:@org.wikidata.city:encyclopedia_of_modern_ukraine_id:String	37617
+param:@org.wikidata.city:encyclopedia_of_modern_ukraine_id:String	20955
+param:@org.wikidata.city:encyclopedia_of_modern_ukraine_id:String	22598
+param:@org.wikidata.city:chgis_id:String	79322
+param:@org.wikidata.city:chgis_id:String	79323
+param:@org.wikidata.city:bvpb_authority_id:String	94770
+param:@org.wikidata.city:uppslagsverket_finland_id:String	Villmanstrand
+param:@org.wikidata.city:uppslagsverket_finland_id:String	Rovaniemi
+param:@org.wikidata.city:uppslagsverket_finland_id:String	Kiuruvesi
+param:@org.wikidata.city:uppslagsverket_finland_id:String	Kotka
+param:@org.wikidata.city:uppslagsverket_finland_id:String	Orimattila
+param:@org.wikidata.city:uppslagsverket_finland_id:String	MaenttaeVilppula
+param:@org.wikidata.city:uppslagsverket_finland_id:String	Tallinn
+param:@org.wikidata.city:uppslagsverket_finland_id:String	Terijoki
+param:@org.wikidata.city:uppslagsverket_finland_id:String	Jyvaeskylae
+param:@org.wikidata.city:uppslagsverket_finland_id:String	Lieksa
+param:@org.wikidata.city:mesh_descriptor_id:String	D009519
+param:@org.wikidata.city:mesh_descriptor_id:String	D000068476
+param:@org.wikidata.city:mesh_descriptor_id:String	D012846
+param:@org.wikidata.city:mesh_descriptor_id:String	D012495
+param:@org.wikidata.city:mesh_descriptor_id:String	D012384
+param:@org.wikidata.city:mesh_descriptor_id:String	D014041
+param:@org.wikidata.city:mesh_descriptor_id:String	D006723
+param:@org.wikidata.city:mesh_descriptor_id:String	D008131
+param:@org.wikidata.city:mesh_descriptor_id:String	D014671
+param:@org.wikidata.city:orthodox_encyclopedia_id:String	63898
+param:@org.wikidata.city:orthodox_encyclopedia_id:String	82721
+param:@org.wikidata.city:orthodox_encyclopedia_id:String	63712
+param:@org.wikidata.city:orthodox_encyclopedia_id:String	62768
+param:@org.wikidata.city:orthodox_encyclopedia_id:String	82160
+param:@org.wikidata.city:brockhaus_enzyklopadie_online_id:String	baalbek
+param:@org.wikidata.city:brockhaus_enzyklopadie_online_id:String	gurgaon
+param:@org.wikidata.city:brockhaus_enzyklopadie_online_id:String	qalat
+param:@org.wikidata.city:brockhaus_enzyklopadie_online_id:String	nara
+param:@org.wikidata.city:brockhaus_enzyklopadie_online_id:String	veria
+param:@org.wikidata.city:brockhaus_enzyklopadie_online_id:String	rawalpindi
+param:@org.wikidata.city:brockhaus_enzyklopadie_online_id:String	stavanger
+param:@org.wikidata.city:brockhaus_enzyklopadie_online_id:String	celje
+param:@org.wikidata.city:brockhaus_enzyklopadie_online_id:String	jinja
+param:@org.wikidata.city:brockhaus_enzyklopadie_online_id:String	singapur
+param:@org.wikidata.city:code_of_household_registration_and_conscription_information_system_taiwan_:String	64000
+param:@org.wikidata.city:code_of_household_registration_and_conscription_information_system_taiwan_:String	10017
+param:@org.wikidata.city:code_of_household_registration_and_conscription_information_system_taiwan_:String	10021
+param:@org.wikidata.city:code_of_household_registration_and_conscription_information_system_taiwan_:String	10018
+param:@org.wikidata.city:code_of_household_registration_and_conscription_information_system_taiwan_:String	10020
+param:@org.wikidata.city:code_of_household_registration_and_conscription_information_system_taiwan_:String	63000
+param:@org.wikidata.city:code_of_household_registration_and_conscription_information_system_taiwan_:String	68000
+param:@org.wikidata.city:code_of_household_registration_and_conscription_information_system_taiwan_:String	67000
+param:@org.wikidata.city:code_of_household_registration_and_conscription_information_system_taiwan_:String	66000
+param:@org.wikidata.city:ili_id:String	i83137
+param:@org.wikidata.city:ili_id:String	i82917
+param:@org.wikidata.city:ili_id:String	i84787
+param:@org.wikidata.city:ili_id:String	i84099
+param:@org.wikidata.city:ili_id:String	i84146
+param:@org.wikidata.city:ili_id:String	i83014
+param:@org.wikidata.city:ili_id:String	i82799
+param:@org.wikidata.city:ili_id:String	i83825
+param:@org.wikidata.city:ili_id:String	i83583
+param:@org.wikidata.city:ili_id:String	i83381
+param:@org.wikidata.city:logainm_id:String	15963
+param:@org.wikidata.city:logainm_id:String	39315
+param:@org.wikidata.city:new_zealand_gazetteer_place_id:String	23532
+param:@org.wikidata.city:new_zealand_gazetteer_place_id:String	21352
+param:@org.wikidata.city:new_zealand_gazetteer_place_id:String	45237
+param:@org.wikidata.city:new_zealand_gazetteer_place_id:String	38867
+param:@org.wikidata.city:new_zealand_gazetteer_place_id:String	15034
+param:@org.wikidata.city:new_zealand_gazetteer_place_id:String	32238
+param:@org.wikidata.city:new_zealand_gazetteer_place_id:String	15829
+param:@org.wikidata.city:new_zealand_gazetteer_place_id:String	55810
+param:@org.wikidata.city:new_zealand_gazetteer_place_id:String	48143
+param:@org.wikidata.city:new_zealand_gazetteer_place_id:String	26940
+param:@org.wikidata.city:civicus_monitor_country_entry:String	singapore
+param:@org.wikidata.city:daum_encyclopedia_id:String	b01g0488a
+param:@org.wikidata.city:daum_encyclopedia_id:String	b24h1784a
+param:@org.wikidata.city:daum_encyclopedia_id:String	b01g3911a
+param:@org.wikidata.city:ebird_hotspot_id:String	L4232385
+param:@org.wikidata.city:google_news_topics_id:String	CAAqIggKIhxDQkFTRHdvSkwyMHZNREUyZGpRMkVnSnFZU2dBUAE
+param:@org.wikidata.city:google_news_topics_id:String	CAAqIQgKIhtDQkFTRGdvSUwyMHZNRFJpYm5nU0FtcGhLQUFQAQ
+param:@org.wikidata.city:google_news_topics_id:String	CAAqIQgKIhtDQkFTRGdvSUwyMHZNRFowTW5RU0FtVnVLQUFQAQ
+param:@org.wikidata.city:google_news_topics_id:String	CAAqIQgKIhtDQkFTRGdvSUwyMHZNRE5vTmpRU0FtcGhLQUFQAQ
+param:@org.wikidata.city:google_news_topics_id:String	CAAqJQgKIh9DQkFTRVFvSUwyMHZNR3N6TTNBU0JXVnVMVWRDS0FBUAE
+param:@org.wikidata.city:google_news_topics_id:String	CAAqIQgKIhtDQkFTRGdvSUwyMHZNRFE1ZDIwU0FtcGhLQUFQAQ
+param:@org.wikidata.city:google_news_topics_id:String	CAAqIggKIhxDQkFTRHdvSkwyMHZNR2R3TldkZkVnSnFZU2dBUAE
+param:@org.wikidata.city:google_news_topics_id:String	CAAqIggKIhxDQkFTRHdvSkwyMHZNR2R3Tld0aUVnSnFZU2dBUAE
+param:@org.wikidata.city:google_news_topics_id:String	CAAqIQgKIhtDQkFTRGdvSUwyMHZNR2N6WTNjU0FtcGhLQUFQAQ
+param:@org.wikidata.city:google_news_topics_id:String	CAAqIggKIhxDQkFTRHdvSkwyMHZNREYzY0cxNEVnSnFZU2dBUAE
+param:@org.wikidata.city:the_encyclopedia_of_science_fiction_id:String	london
+param:@org.wikidata.city:canadian_encyclopedia_article_id:String	nanaimo
+param:@org.wikidata.city:canadian_encyclopedia_article_id:String	martensville
+param:@org.wikidata.city:canadian_encyclopedia_article_id:String	estevan
+param:@org.wikidata.city:canadian_encyclopedia_article_id:String	edmonton
+param:@org.wikidata.city:canadian_encyclopedia_article_id:String	morden
+param:@org.wikidata.city:canadian_encyclopedia_article_id:String	pickering
+param:@org.wikidata.city:canadian_encyclopedia_article_id:String	beaumont
+param:@org.wikidata.city:canadian_encyclopedia_article_id:String	orillia
+param:@org.wikidata.city:canadian_encyclopedia_article_id:String	kingston
+param:@org.wikidata.city:canadian_encyclopedia_article_id:String	jonquiere
+param:@org.wikidata.city:geonlp_id:String	bjAlVY
+param:@org.wikidata.city:geonlp_id:String	zGBooV
+param:@org.wikidata.city:geonlp_id:String	cgLs0u
+param:@org.wikidata.city:geonlp_id:String	O4RWXz
+param:@org.wikidata.city:geonlp_id:String	7cgC9v
+param:@org.wikidata.city:geonlp_id:String	dCtFEw
+param:@org.wikidata.city:geonlp_id:String	ImFI8Q
+param:@org.wikidata.city:geonlp_id:String	Vrfq2y
+param:@org.wikidata.city:geonlp_id:String	UTC826
+param:@org.wikidata.city:geonlp_id:String	cSzORj
+param:@org.wikidata.city:setlistfm_venue_id:String	43d4c30f
+param:@org.wikidata.city:le_monde_id:String	singapour
+param:@org.wikidata.city:archinform_location_id:String	45807
+param:@org.wikidata.city:archinform_location_id:String	45501
+param:@org.wikidata.city:archinform_location_id:String	28913
+param:@org.wikidata.city:archinform_location_id:String	11307
+param:@org.wikidata.city:archinform_location_id:String	17319
+param:@org.wikidata.city:archinform_location_id:String	45177
+param:@org.wikidata.city:archinform_location_id:String	11558
+param:@org.wikidata.city:archinform_location_id:String	13860
+param:@org.wikidata.city:archinform_location_id:String	46348
+param:@org.wikidata.city:archinform_location_id:String	15615
+param:@org.wikidata.city:indian_census_area_code_2011_:String	05572
+param:@org.wikidata.city:indian_census_area_code_2011_:String	05550
+param:@org.wikidata.city:indian_census_area_code_2011_:String	05549
+param:@org.wikidata.city:indian_census_area_code_2011_:String	04495
+param:@org.wikidata.city:petit_fute_site_id:String	v53250
+param:@org.wikidata.city:petit_fute_site_id:String	v53230
+param:@org.wikidata.city:petit_fute_site_id:String	v53255
+param:@org.wikidata.city:dbunico_mibact_id:String	20658
+param:@org.wikidata.city:gynopedia_id:String	Ahmedabad
+param:@org.wikidata.city:gynopedia_id:String	Cotonou
+param:@org.wikidata.city:gynopedia_id:String	Bratislava
+param:@org.wikidata.city:gynopedia_id:String	Conakry
+param:@org.wikidata.city:gynopedia_id:String	Dar es
+param:@org.wikidata.city:gynopedia_id:String	Monrovia
+param:@org.wikidata.city:gynopedia_id:String	Guayaquil
+param:@org.wikidata.city:gynopedia_id:String	Ashgabat
+param:@org.wikidata.city:gynopedia_id:String	Suva
+param:@org.wikidata.city:gynopedia_id:String	Casablanca
+param:@org.wikidata.city:gnis_id:String	58171
+param:@org.wikidata.city:asce_historical_civil_engineering_landmark_id:String	petra
+param:@org.wikidata.city:handbook_of_texas_id:String	hjm21
+param:@org.wikidata.city:handbook_of_texas_id:String	hdp04
+param:@org.wikidata.city:handbook_of_texas_id:String	hvd33
+param:@org.wikidata.city:nuts_code:String	UKJ32
+param:@org.wikidata.city:nuts_code:String	DE422
+param:@org.wikidata.city:nuts_code:String	DE263
+param:@org.wikidata.city:nuts_code:String	BE10
+param:@org.wikidata.city:nuts_code:String	DED21
+param:@org.wikidata.city:nuts_code:String	DE254
+param:@org.wikidata.city:nuts_code:String	NO011
+param:@org.wikidata.city:nuts_code:String	BE1
+param:@org.wikidata.city:nuts_code:String	UKJ31
+param:@org.wikidata.city:nuts_code:String	DE806
+param:@org.wikidata.city:bbc_news_topic_id:String	c9eddyqn66yt
+param:@org.wikidata.city:bbc_news_topic_id:String	cxrlk115y4rt
+param:@org.wikidata.city:bbc_news_topic_id:String	cp7r8vglne2t
+param:@org.wikidata.city:bbc_news_topic_id:String	c51z9eewmwrt
+param:@org.wikidata.city:ysa_id:String	Y94137
+param:@org.wikidata.city:treccanis_dizionario_di_storia_id:String	salerno
+param:@org.wikidata.city:treccanis_dizionario_di_storia_id:String	eleusi
+param:@org.wikidata.city:treccanis_dizionario_di_storia_id:String	parma
+param:@org.wikidata.city:treccanis_dizionario_di_storia_id:String	valladolid
+param:@org.wikidata.city:treccanis_dizionario_di_storia_id:String	bangalore
+param:@org.wikidata.city:treccanis_dizionario_di_storia_id:String	luanda
+param:@org.wikidata.city:treccanis_dizionario_di_storia_id:String	varsavia
+param:@org.wikidata.city:treccanis_dizionario_di_storia_id:String	trento
+param:@org.wikidata.city:treccanis_dizionario_di_storia_id:String	abuja
+param:@org.wikidata.city:treccanis_dizionario_di_storia_id:String	pune
+param:@org.wikidata.city:jorfsearch_organization_id:String	Q237
+param:@org.wikidata.city:amsterdam_code:String	11066
+param:@org.wikidata.city:amsterdam_code:String	10722
+param:@org.wikidata.city:amsterdam_code:String	11010
+param:@org.wikidata.city:amsterdam_code:String	10018
+param:@org.wikidata.city:amsterdam_code:String	10646
+param:@org.wikidata.city:amsterdam_code:String	10357
+param:@org.wikidata.city:amsterdam_code:String	10928
+param:@org.wikidata.city:amsterdam_code:String	11230
+param:@org.wikidata.city:amsterdam_code:String	11110
+param:@org.wikidata.city:image_archive_herder_institute:String	Q701606
+param:@org.wikidata.city:image_archive_herder_institute:String	Q1780
+param:@org.wikidata.city:image_archive_herder_institute:String	Q510827
+param:@org.wikidata.city:image_archive_herder_institute:String	Q986841
+param:@org.wikidata.city:image_archive_herder_institute:String	Q983729
+param:@org.wikidata.city:image_archive_herder_institute:String	Q995865
+param:@org.wikidata.city:image_archive_herder_institute:String	Q1002944
+param:@org.wikidata.city:image_archive_herder_institute:String	Q387307
+param:@org.wikidata.city:image_archive_herder_institute:String	Q988628
+param:@org.wikidata.city:image_archive_herder_institute:String	Q325910
+param:@org.wikidata.city:lokalhistoriewikino_id:String	Oslo
+param:@org.wikidata.city:lokalhistoriewikino_id:String	Sarpsborg
+param:@org.wikidata.city:lokalhistoriewikino_id:String	Skien
+param:@org.wikidata.city:lokalhistoriewikino_id:String	Sandefjord
+param:@org.wikidata.city:lokalhistoriewikino_id:String	Hammerfest
+param:@org.wikidata.city:lokalhistoriewikino_id:String	Alta
+param:@org.wikidata.city:lokalhistoriewikino_id:String	Kristiansand
+param:@org.wikidata.city:lokalhistoriewikino_id:String	Tvedestrand
+param:@org.wikidata.city:lokalhistoriewikino_id:String	Porsgrunn
+param:@org.wikidata.city:brazilian_electoral_unit_id:String	68853
+param:@org.wikidata.city:brazilian_electoral_unit_id:String	69639
+param:@org.wikidata.city:brazilian_electoral_unit_id:String	62995
+param:@org.wikidata.city:brazilian_electoral_unit_id:String	64017
+param:@org.wikidata.city:brazilian_electoral_unit_id:String	53830
+param:@org.wikidata.city:brazilian_electoral_unit_id:String	71838
+param:@org.wikidata.city:brazilian_electoral_unit_id:String	62510
+param:@org.wikidata.city:brazilian_electoral_unit_id:String	69310
+param:@org.wikidata.city:brazilian_electoral_unit_id:String	93734
+param:@org.wikidata.city:brazilian_electoral_unit_id:String	61298
+param:@org.wikidata.city:klexikon_article_id:String	Tirana
+param:@org.wikidata.city:klexikon_article_id:String	Magdeburg
+param:@org.wikidata.city:klexikon_article_id:String	Athen
+param:@org.wikidata.city:klexikon_article_id:String	Oslo
+param:@org.wikidata.city:klexikon_article_id:String	Skopje
+param:@org.wikidata.city:klexikon_article_id:String	Bonn
+param:@org.wikidata.city:klexikon_article_id:String	Bratislava
+param:@org.wikidata.city:klexikon_article_id:String	Hannover
+param:@org.wikidata.city:shanghai_library_place_id:String	15ky6k6p6fzm3ho7
+param:@org.wikidata.city:shanghai_library_place_id:String	b4umrfm8nhwfxq4h
+param:@org.wikidata.city:shanghai_library_place_id:String	bb463g66yltwwge5
+param:@org.wikidata.city:shanghai_library_place_id:String	nph51mdp01yntdso
+param:@org.wikidata.city:shanghai_library_place_id:String	ygp51rc1l346iig4
+param:@org.wikidata.city:de_agostini_id:String	Bolgatanga
+param:@org.wikidata.city:de_agostini_id:String	Qormi
+param:@org.wikidata.city:de_agostini_id:String	Almalyk
+param:@org.wikidata.city:de_agostini_id:String	Kribi
+param:@org.wikidata.city:de_agostini_id:String	Aba
+param:@org.wikidata.city:de_agostini_id:String	Koszalin
+param:@org.wikidata.city:de_agostini_id:String	Ambato
+param:@org.wikidata.city:de_agostini_id:String	Subotica
+param:@org.wikidata.city:australian_war_memorial_id:String	PL503157
+param:@org.wikidata.city:australian_war_memorial_id:String	PL1395
+param:@org.wikidata.city:australian_war_memorial_id:String	PL11
+param:@org.wikidata.city:australian_war_memorial_id:String	PL1031
+param:@org.wikidata.city:australian_war_memorial_id:String	PL1294
+param:@org.wikidata.city:australian_war_memorial_id:String	PL549161
+param:@org.wikidata.city:australian_war_memorial_id:String	PL1300
+param:@org.wikidata.city:australian_war_memorial_id:String	PL552799
+param:@org.wikidata.city:australian_war_memorial_id:String	PL1250
+param:@org.wikidata.city:australian_war_memorial_id:String	PL503478
+param:@org.wikidata.city:ror_id:String	01zkyh967
+param:@org.wikidata.city:ror_id:String	05exk7n54
+param:@org.wikidata.city:ror_id:String	02k6zwz49
+param:@org.wikidata.city:ror_id:String	01gjtys23
+param:@org.wikidata.city:ror_id:String	02t7v8j62
+param:@org.wikidata.city:nwbib_id:String	Q586
+param:@org.wikidata.city:nwbib_id:String	Q7036
+param:@org.wikidata.city:nwbib_id:String	Q14903
+param:@org.wikidata.city:nwbib_id:String	Q453
+param:@org.wikidata.city:nwbib_id:String	Q5276
+param:@org.wikidata.city:nwbib_id:String	Q5398
+param:@org.wikidata.city:nwbib_id:String	Q11043
+param:@org.wikidata.city:nwbib_id:String	Q204966
+param:@org.wikidata.city:nwbib_id:String	Q200122
+param:@org.wikidata.city:nwbib_id:String	Q8856
+param:@org.wikidata.city:chebi_id:String	36737
+param:@org.wikidata.city:dr_topic_id:String	slagelse
+param:@org.wikidata.city:dr_topic_id:String	oslo
+param:@org.wikidata.city:dr_topic_id:String	fredericia
+param:@org.wikidata.city:dr_topic_id:String	kolding
+param:@org.wikidata.city:dr_topic_id:String	athen
+param:@org.wikidata.city:dr_topic_id:String	tallinn
+param:@org.wikidata.city:dr_topic_id:String	holbaek
+param:@org.wikidata.city:dr_topic_id:String	beijing
+param:@org.wikidata.city:dr_topic_id:String	dhaka
+param:@org.wikidata.city:dr_topic_id:String	frankfurt
+param:@org.wikidata.city:nkcr_aut_id:String	ge895187
+param:@org.wikidata.city:nkcr_aut_id:String	ge772813
+param:@org.wikidata.city:nkcr_aut_id:String	ge307675
+param:@org.wikidata.city:nkcr_aut_id:String	ge371046
+param:@org.wikidata.city:nkcr_aut_id:String	ge601768
+param:@org.wikidata.city:nkcr_aut_id:String	xx0092974
+param:@org.wikidata.city:nkcr_aut_id:String	ge128816
+param:@org.wikidata.city:nkcr_aut_id:String	ge551182
+param:@org.wikidata.city:nkcr_aut_id:String	xx0055298
+param:@org.wikidata.city:nkcr_aut_id:String	ge445883
+param:@org.wikidata.city:metro_topic_id:String	plymouth
+param:@org.wikidata.city:cut_code:String	05102
+param:@org.wikidata.city:cut_code:String	08311
+param:@org.wikidata.city:hov_id:String	11106
+param:@org.wikidata.city:hov_id:String	29066
+param:@org.wikidata.city:hov_id:String	14061
+param:@org.wikidata.city:hov_id:String	27052
+param:@org.wikidata.city:munchen_wiki_article_id:String	Pasing
+param:@org.wikidata.city:okato_id:String	46424
+param:@org.wikidata.city:okato_id:String	45272
+param:@org.wikidata.city:okato_id:String	19401
+param:@org.wikidata.city:tdv_islam_ansiklopedisi_id:String	girnata
+param:@org.wikidata.city:tdv_islam_ansiklopedisi_id:String	tilimsan
+param:@org.wikidata.city:tdv_islam_ansiklopedisi_id:String	berbera
+param:@org.wikidata.city:tdv_islam_ansiklopedisi_id:String	manisa
+param:@org.wikidata.city:tdv_islam_ansiklopedisi_id:String	banjul
+param:@org.wikidata.city:tdv_islam_ansiklopedisi_id:String	mombasa
+param:@org.wikidata.city:tdv_islam_ansiklopedisi_id:String	tiflis
+param:@org.wikidata.city:tdv_islam_ansiklopedisi_id:String	kampala
+param:@org.wikidata.city:tdv_islam_ansiklopedisi_id:String	sana
+param:@org.wikidata.city:tdv_islam_ansiklopedisi_id:String	semerkant
+param:@org.wikidata.city:marine_regions_geographic_identifier_mrgid_:String	26240
+param:@org.wikidata.city:dane_code:String	13654
+param:@org.wikidata.city:dane_code:String	05001
+param:@org.wikidata.city:dane_code:String	73001
+param:@org.wikidata.city:dane_code:String	66001
+param:@org.wikidata.city:dane_code:String	08001
+param:@org.wikidata.city:dane_code:String	20001
+param:@org.wikidata.city:dane_code:String	54001
+param:@org.wikidata.city:dane_code:String	76001
+param:@org.wikidata.city:great_encyclopedia_of_navarre_id:String	16184
+param:@org.wikidata.city:great_encyclopedia_of_navarre_id:String	19286
+param:@org.wikidata.city:great_encyclopedia_of_navarre_id:String	19741
+param:@org.wikidata.city:great_encyclopedia_of_navarre_id:String	18416
+param:@org.wikidata.city:great_encyclopedia_of_navarre_id:String	20640
+param:@org.wikidata.city:inaturalist_place_id:String	98459
+param:@org.wikidata.city:inaturalist_place_id:String	29474
+param:@org.wikidata.city:inaturalist_place_id:String	18463
+param:@org.wikidata.city:inaturalist_place_id:String	98425
+param:@org.wikidata.city:inaturalist_place_id:String	98458
+param:@org.wikidata.city:inaturalist_place_id:String	29497
+param:@org.wikidata.city:inaturalist_place_id:String	98478
+param:@org.wikidata.city:inaturalist_place_id:String	29493
+param:@org.wikidata.city:inaturalist_place_id:String	29490
+param:@org.wikidata.city:inaturalist_place_id:String	29480
+param:@org.wikidata.city:ine_municipality_code:String	37274
+param:@org.wikidata.city:ine_municipality_code:String	01059
+param:@org.wikidata.city:ine_municipality_code:String	25120
+param:@org.wikidata.city:ine_municipality_code:String	18087
+param:@org.wikidata.city:ine_municipality_code:String	31097
+param:@org.wikidata.city:ine_municipality_code:String	48078
+param:@org.wikidata.city:ine_municipality_code:String	36057
+param:@org.wikidata.city:ine_municipality_code:String	29015
+param:@org.wikidata.city:ine_municipality_code:String	10148
+param:@org.wikidata.city:ine_municipality_code:String	07040
+param:@org.wikidata.city:swedish_urban_area_code:String	T0656
+param:@org.wikidata.city:swedish_urban_area_code:String	T8372
+param:@org.wikidata.city:swedish_urban_area_code:String	T8724
+param:@org.wikidata.city:atlas_obscura_identifier:String	auroville
+param:@org.wikidata.city:atlas_obscura_identifier:String	veii
+param:@org.wikidata.city:atlas_obscura_identifier:String	kolmanskop
+param:@org.wikidata.city:french_vikidia_id:String	Bangkok
+param:@org.wikidata.city:french_vikidia_id:String	Abomey
+param:@org.wikidata.city:french_vikidia_id:String	Ioannina
+param:@org.wikidata.city:french_vikidia_id:String	Burgos
+param:@org.wikidata.city:french_vikidia_id:String	Skopje
+param:@org.wikidata.city:french_vikidia_id:String	Pampelune
+param:@org.wikidata.city:french_vikidia_id:String	Birmingham
+param:@org.wikidata.city:french_vikidia_id:String	Changwon
+param:@org.wikidata.city:french_vikidia_id:String	Cadix
+param:@org.wikidata.city:french_vikidia_id:String	Caracas
+param:@org.wikidata.city:lau:String	SK506745
+param:@org.wikidata.city:lau:String	SK582000
+param:@org.wikidata.city:lau:String	SK505820
+param:@org.wikidata.city:lau:String	CZ581291
+param:@org.wikidata.city:lau:String	SK508438
+param:@org.wikidata.city:lau:String	IE02404
+param:@org.wikidata.city:lau:String	SK517402
+param:@org.wikidata.city:lau:String	CZ565971
+param:@org.wikidata.city:lau:String	CZ567442
+param:@org.wikidata.city:lau:String	SK500011
+param:@org.wikidata.city:italian_vikidia_id:String	Catania
+param:@org.wikidata.city:italian_vikidia_id:String	Lecce
+param:@org.wikidata.city:italian_vikidia_id:String	Oslo
+param:@org.wikidata.city:italian_vikidia_id:String	Pechino
+param:@org.wikidata.city:italian_vikidia_id:String	Manaus
+param:@org.wikidata.city:italian_vikidia_id:String	Varsavia
+param:@org.wikidata.city:italian_vikidia_id:String	Napoli
+param:@org.wikidata.city:italian_vikidia_id:String	Ferrara
+param:@org.wikidata.city:italian_vikidia_id:String	Valladolid
+param:@org.wikidata.city:italian_vikidia_id:String	Torino
+param:@org.wikidata.city:spanish_vikidia_id:String	Belgrado
+param:@org.wikidata.city:spanish_vikidia_id:String	Helsinki
+param:@org.wikidata.city:spanish_vikidia_id:String	Accra
+param:@org.wikidata.city:spanish_vikidia_id:String	Kinshasa
+param:@org.wikidata.city:spanish_vikidia_id:String	Caracas
+param:@org.wikidata.city:spanish_vikidia_id:String	Oslo
+param:@org.wikidata.city:spanish_vikidia_id:String	Kingston
+param:@org.wikidata.city:spanish_vikidia_id:String	Atenas
+param:@org.wikidata.city:spanish_vikidia_id:String	Bratislava
+param:@org.wikidata.city:english_vikidia_id:String	Kinshasa
+param:@org.wikidata.city:english_vikidia_id:String	Athens
+param:@org.wikidata.city:english_vikidia_id:String	Turin
+param:@org.wikidata.city:english_vikidia_id:String	Calgary
+param:@org.wikidata.city:english_vikidia_id:String	Venice
+param:@org.wikidata.city:english_vikidia_id:String	Amsterdam
+param:@org.wikidata.city:english_vikidia_id:String	Bangkok
+param:@org.wikidata.city:english_vikidia_id:String	Belfast
+param:@org.wikidata.city:english_vikidia_id:String	Madrid
+param:@org.wikidata.city:basque_vikidia_id:String	Damasko
+param:@org.wikidata.city:basque_vikidia_id:String	Delhi
+param:@org.wikidata.city:basque_vikidia_id:String	Bangkok
+param:@org.wikidata.city:basque_vikidia_id:String	Kingston
+param:@org.wikidata.city:basque_vikidia_id:String	Atenas
+param:@org.wikidata.city:basque_vikidia_id:String	Skopje
+param:@org.wikidata.city:basque_vikidia_id:String	Islamabad
+param:@org.wikidata.city:basque_vikidia_id:String	Tbilisi
+param:@org.wikidata.city:basque_vikidia_id:String	Akkra
+param:@org.wikidata.city:beta_masahft_id:String	LOC4644Mattu
+param:@org.wikidata.city:beta_masahft_id:String	LOC2404DabraZ
+param:@org.wikidata.city:beta_masahft_id:String	LOC4637Matamm
+param:@org.wikidata.city:beta_masahft_id:String	LOC4519Mandaf
+param:@org.wikidata.city:beta_masahft_id:String	LOC4024Kassal
+param:@org.wikidata.city:beta_masahft_id:String	LOC5228Qobbo
+param:@org.wikidata.city:beta_masahft_id:String	LOC6401Zabid
+param:@org.wikidata.city:beta_masahft_id:String	LOC3833Hayq
+param:@org.wikidata.city:beta_masahft_id:String	LOC3577Gondar
+param:@org.wikidata.city:beta_masahft_id:String	LOC2482Dambi
+param:@org.wikidata.city:cobis_author_id:String	95a5yja38danygu695b5yc1j68u34dr
+param:@org.wikidata.city:cobis_author_id:String	95a5yja38danygu695b5yc1h6gtk0c0
+param:@org.wikidata.city:cobis_author_id:String	95a5yja38danygu695b5yc1p68u3gd0
+param:@org.wikidata.city:analysis__policy_observatory_term_id:String	19859
+param:@org.wikidata.city:analysis__policy_observatory_term_id:String	16703
+param:@org.wikidata.city:analysis__policy_observatory_term_id:String	13691
+param:@org.wikidata.city:analysis__policy_observatory_term_id:String	14225
+param:@org.wikidata.city:analysis__policy_observatory_term_id:String	11006
+param:@org.wikidata.city:analysis__policy_observatory_term_id:String	34757
+param:@org.wikidata.city:analysis__policy_observatory_term_id:String	39754
+param:@org.wikidata.city:analysis__policy_observatory_term_id:String	72896
+param:@org.wikidata.city:analysis__policy_observatory_term_id:String	13899
+param:@org.wikidata.city:analysis__policy_observatory_term_id:String	74761
+param:@org.wikidata.city:hrvatska_enciklopedija_id:String	10522
+param:@org.wikidata.city:hrvatska_enciklopedija_id:String	11357
+param:@org.wikidata.city:hrvatska_enciklopedija_id:String	58589
+param:@org.wikidata.city:hrvatska_enciklopedija_id:String	10568
+param:@org.wikidata.city:hrvatska_enciklopedija_id:String	11473
+param:@org.wikidata.city:hrvatska_enciklopedija_id:String	25720
+param:@org.wikidata.city:hrvatska_enciklopedija_id:String	10430
+param:@org.wikidata.city:hrvatska_enciklopedija_id:String	10538
+param:@org.wikidata.city:hrvatska_enciklopedija_id:String	10936
+param:@org.wikidata.city:hrvatska_enciklopedija_id:String	10245
+param:@org.wikidata.city:italian_cadastre_code:String	D643
+param:@org.wikidata.city:italian_cadastre_code:String	L378
+param:@org.wikidata.city:italian_cadastre_code:String	G337
+param:@org.wikidata.city:italian_cadastre_code:String	F704
+param:@org.wikidata.city:italian_cadastre_code:String	G535
+param:@org.wikidata.city:italian_cadastre_code:String	B354
+param:@org.wikidata.city:italian_cadastre_code:String	E054
+param:@org.wikidata.city:italian_cadastre_code:String	A944
+param:@org.wikidata.city:italian_cadastre_code:String	G482
+param:@org.wikidata.city:italian_cadastre_code:String	B963
+param:@org.wikidata.city:cgndb_unique_id:String	IACMP
+param:@org.wikidata.city:cgndb_unique_id:String	IAKID
+param:@org.wikidata.city:cgndb_unique_id:String	IADZF
+param:@org.wikidata.city:cgndb_unique_id:String	FAASQ
+param:@org.wikidata.city:cgndb_unique_id:String	FBKKK
+param:@org.wikidata.city:den_store_danske_id:String	Aabenraa
+param:@org.wikidata.city:den_store_danske_id:String	Faaborg
+param:@org.wikidata.city:proleksis_enciklopedija_id:String	53510
+param:@org.wikidata.city:proleksis_enciklopedija_id:String	37604
+param:@org.wikidata.city:proleksis_enciklopedija_id:String	49966
+param:@org.wikidata.city:proleksis_enciklopedija_id:String	35159
+param:@org.wikidata.city:proleksis_enciklopedija_id:String	51598
+param:@org.wikidata.city:siusa_archive_producer_organization_id:String	15220
+param:@org.wikidata.city:gss_code_2011_:String	S19000589
+param:@org.wikidata.city:gss_code_2011_:String	S19000604
+param:@org.wikidata.city:gss_code_2011_:String	E04009888
+param:@org.wikidata.city:gss_code_2011_:String	W04000123
+param:@org.wikidata.city:gss_code_2011_:String	S19000591
+param:@org.wikidata.city:gss_code_2011_:String	E06000043
+param:@org.wikidata.city:gss_code_2011_:String	E09000001
+param:@org.wikidata.city:gss_code_2011_:String	E06000016
+param:@org.wikidata.city:gss_code_2011_:String	S20000473
+param:@org.wikidata.city:gss_code_2011_:String	S20000479
+param:@org.wikidata.city:grove_art_online_id:String	T2216871
+param:@org.wikidata.city:grove_art_online_id:String	T086179
+param:@org.wikidata.city:grove_art_online_id:String	T087461
+param:@org.wikidata.city:grove_art_online_id:String	T083877
+param:@org.wikidata.city:grove_art_online_id:String	T066760
+param:@org.wikidata.city:grove_art_online_id:String	T024266
+param:@org.wikidata.city:grove_art_online_id:String	T007362
+param:@org.wikidata.city:grove_art_online_id:String	T086163
+param:@org.wikidata.city:grove_art_online_id:String	T087501
+param:@org.wikidata.city:grove_art_online_id:String	T053676
+param:@org.wikidata.city:kbpedia_id:String	Soweto
+param:@org.wikidata.city:kbpedia_id:String	SharmElSheikh
+param:@org.wikidata.city:kbpedia_id:String	Comrat
+param:@org.wikidata.city:kbpedia_id:String	Taricha
+param:@org.wikidata.city:kbpedia_id:String	Bologna
+param:@org.wikidata.city:kbpedia_id:String	NewYorkCity
+param:@org.wikidata.city:kbpedia_id:String	Sandakan
+param:@org.wikidata.city:kbpedia_id:String	PortElizabeth
+param:@org.wikidata.city:kbpedia_id:String	Johannesburg
+param:@org.wikidata.city:kbpedia_id:String	CityOfCalgaryCanada
+param:@org.wikidata.city:ehess_id_of_a_french_commune:String	40890
+param:@org.wikidata.city:ehess_id_of_a_french_commune:String	29365
+param:@org.wikidata.city:ehess_id_of_a_french_commune:String	30003
+param:@org.wikidata.city:ehess_id_of_a_french_commune:String	11051
+param:@org.wikidata.city:ehess_id_of_a_french_commune:String	10602
+param:@org.wikidata.city:ehess_id_of_a_french_commune:String	27358
+param:@org.wikidata.city:ehess_id_of_a_french_commune:String	38378
+param:@org.wikidata.city:ehess_id_of_a_french_commune:String	29736
+param:@org.wikidata.city:ehess_id_of_a_french_commune:String	24555
+param:@org.wikidata.city:ehess_id_of_a_french_commune:String	12297
+param:@org.wikidata.city:siruta_code:String	60419
+param:@org.wikidata.city:pm20_geo_code:String	C27
+param:@org.wikidata.city:pm20_geo_code:String	B102
+param:@org.wikidata.city:pm20_geo_code:String	A38
+param:@org.wikidata.city:rkd_thesaurus_id:String	30222
+param:@org.wikidata.city:rkd_thesaurus_id:String	21485
+param:@org.wikidata.city:rkd_thesaurus_id:String	59674
+param:@org.wikidata.city:rkd_thesaurus_id:String	78847
+param:@org.wikidata.city:rkd_thesaurus_id:String	41492
+param:@org.wikidata.city:rkd_thesaurus_id:String	18822
+param:@org.wikidata.city:rkd_thesaurus_id:String	46859
+param:@org.wikidata.city:rkd_thesaurus_id:String	94003
+param:@org.wikidata.city:rkd_thesaurus_id:String	15036
+param:@org.wikidata.city:rkd_thesaurus_id:String	40717
+param:@org.wikidata.city:macedonian_cadastral_municipality_id:String	12093
+param:@org.wikidata.city:macedonian_cadastral_municipality_id:String	15023
+param:@org.wikidata.city:macedonian_cadastral_municipality_id:String	21027
+param:@org.wikidata.city:macedonian_cadastral_municipality_id:String	12090
+param:@org.wikidata.city:macedonian_cadastral_municipality_id:String	11047
+param:@org.wikidata.city:macedonian_cadastral_municipality_id:String	11018
+param:@org.wikidata.city:macedonian_cadastral_municipality_id:String	02804
+param:@org.wikidata.city:macedonian_cadastral_municipality_id:String	24046
+param:@org.wikidata.city:macedonian_cadastral_municipality_id:String	17052
+param:@org.wikidata.city:macedonian_cadastral_municipality_id:String	12092
+param:@org.wikidata.city:jewish_encyclopedia_id:String	14251
+param:@org.wikidata.city:jewish_encyclopedia_id:String	11177
+param:@org.wikidata.city:jewish_encyclopedia_id:String	11752
+param:@org.wikidata.city:jewish_encyclopedia_id:String	11501
+param:@org.wikidata.city:jewish_encyclopedia_id:String	10255
+param:@org.wikidata.city:jewish_encyclopedia_id:String	15035
+param:@org.wikidata.city:jewish_encyclopedia_id:String	11881
+param:@org.wikidata.city:jewish_encyclopedia_id:String	11596
+param:@org.wikidata.city:jewish_encyclopedia_id:String	10883
+param:@org.wikidata.city:jewish_encyclopedia_id:String	14152
+param:@org.wikidata.city:fips_6_4_us_counties_:String	02282
+param:@org.wikidata.city:fips_6_4_us_counties_:String	68190
+param:@org.wikidata.city:fips_10_4_countries_and_regions_:String	PP20
+param:@org.wikidata.city:fips_10_4_countries_and_regions_:String	UKJ8
+param:@org.wikidata.city:fips_10_4_countries_and_regions_:String	IN07
+param:@org.wikidata.city:fips_10_4_countries_and_regions_:String	TD10
+param:@org.wikidata.city:fips_10_4_countries_and_regions_:String	GG63
+param:@org.wikidata.city:fips_10_4_countries_and_regions_:String	TH40
+param:@org.wikidata.city:fips_10_4_countries_and_regions_:String	BF22
+param:@org.wikidata.city:fips_10_4_countries_and_regions_:String	NG08
+param:@org.wikidata.city:fips_10_4_countries_and_regions_:String	UKC7
+param:@org.wikidata.city:fips_10_4_countries_and_regions_:String	KN18
+param:@org.wikidata.city:ksh_code:String	26684
+param:@org.wikidata.city:ksh_code:String	30456
+param:@org.wikidata.city:ksh_code:String	14827
+param:@org.wikidata.city:ksh_code:String	25131
+param:@org.wikidata.city:ksh_code:String	20534
+param:@org.wikidata.city:ksh_code:String	33367
+param:@org.wikidata.city:ksh_code:String	17206
+param:@org.wikidata.city:biblioteca_nacional_de_espana_id:String	XX5544605
+param:@org.wikidata.city:biblioteca_nacional_de_espana_id:String	XX5255118
+param:@org.wikidata.city:biblioteca_nacional_de_espana_id:String	XX451897
+param:@org.wikidata.city:biblioteca_nacional_de_espana_id:String	XX459876
+param:@org.wikidata.city:biblioteca_nacional_de_espana_id:String	XX454534
+param:@org.wikidata.city:biblioteca_nacional_de_espana_id:String	XX452162
+param:@org.wikidata.city:biblioteca_nacional_de_espana_id:String	XX458620
+param:@org.wikidata.city:biblioteca_nacional_de_espana_id:String	XX461023
+param:@org.wikidata.city:biblioteca_nacional_de_espana_id:String	XX6035570
+param:@org.wikidata.city:biblioteca_nacional_de_espana_id:String	XX451855
+param:@org.wikidata.city:austrian_municipality_key:String	40404
+param:@org.wikidata.city:austrian_municipality_key:String	80404
+param:@org.wikidata.city:austrian_municipality_key:String	20201
+param:@org.wikidata.city:austrian_municipality_key:String	40711
+param:@org.wikidata.city:austrian_municipality_key:String	80207
+param:@org.wikidata.city:austrian_municipality_key:String	30201
+param:@org.wikidata.city:austrian_municipality_key:String	70101
+param:@org.wikidata.city:austrian_municipality_key:String	30401
+param:@org.wikidata.city:austrian_municipality_key:String	40301
+param:@org.wikidata.city:austrian_municipality_key:String	30942
+param:@org.wikidata.city:ioc_country_code:String	SIN
+param:@org.wikidata.city:ioc_country_code:String	SGP
+param:@org.wikidata.city:ioc_country_code:String	HKG
+# format is <key> <value> [<display>], tab separated
+#
+# <key> can be:
+# - a type
+# - `param:` parameter name `:` type
+# - `param:@` device name `.*:` parameter name `:` type
+# - `param:@` device name `.` function name `:` parameter name `:` type
+# for a given parameter, all keys will be tried in turn, from the most specific
+# to the least specific, stopping at the first key that has at least one entry
+#
+# <value> is the value to use in the program, in simil ThingTalk syntax, while
+# <display> is the string to place in the sentence
+# for certain types, <display> can be omitted to use the default display
+#
+# empty (white-space only) lines and lines starting with # (optionally preceded by space)
+# are ignored
+
+# generic types
+String	X
+String	Y
+String	Z
+Number	2
+Number	4
+Number	3
+#Number	1
+Number	5
+Measure(ms)	4min
+Measure(ms)	16min
+Measure(ms)	20min
+Measure(ms)	1.5h
+Measure(ms)	2h
+Measure(ms)	63s
+Measure(ms)	2day	
+Measure(C)	73F
+Measure(C)	75F
+Measure(C)	80F
+Measure(C)	20C
+Measure(C)	21C
+Measure(C)	17C
+Measure(byte)	300KB
+Measure(byte)	15MB
+Measure(byte)	40MB
+Measure(byte)	2GB
+Measure(byte)	3GB
+Measure(byte)	1.5TB
+Measure(byte)	2TB
+#Measure(kg)	75kg
+#Measure(kg)	81kg
+#Measure(kg)	88kg
+Measure(kg)	5kg
+Measure(kg)	3kg
+#Measure(kg)	150lb
+#Measure(kg)	180lb
+#Measure(kg)	239lb
+Measure(kg)	5oz
+Measure(kg)	12oz
+Measure(kg)	3oz
+Measure(kg)	2lb
+Measure(kg)	3lb
+Measure(kg)	500g
+Measure(kg)	250g
+Measure(m)	800m
+Measure(m)	1500m
+Measure(m)	23km
+Measure(m)	50km
+Measure(m)	30mi
+Measure(m)	200mi
+Measure(m2)	1000ft2
+Measure(m2)	800m2
+Measure(m2)	23km2
+Measure(m2)	50mi2
+Measure(m3)	15m3
+Measure(m3)	800ft3
+Measure(m3)	3l
+Measure(m3)	11gal
+Measure(mps)	70kmph
+Measure(mps)	120kmph
+Measure(mps)	35mph
+Measure(mps)	60mph
+Measure(ms)	2h	two hours
+Measure(ms)	30min	30 minutes
+Measure(ms)	3day	3 days
+Currency	100usd	$100
+Currency	15usd	15 dollars
+Currency	3.5usd	$ 3.50
+Location	40.7590,73.9845	Time Square
+Location	34.0430,118.2673	Staples Center
+Date	2017-02-14T00:00:00-08:00	Feb 14 2017
+Date	2016-05-04T00:00:00-07:00	May 4th, 2016
+Date	2017-08-02T00:00:00-07:00	August 2nd 2017
+Time	07:30:00	7:30 am
+Time	15:00:00	3 pm
+Time	20:30:00	8:30 pm
+
+# entity types
+Entity(tt:email_address)	bob@gmail.com
+Entity(tt:email_address)	alice@gmail.com
+Entity(tt:email_address)	charlie@hotmail.com
+Entity(tt:phone_number)	+16501234567
+Entity(tt:phone_number)	+15551234567
+Entity(tt:phone_number)	+123456789
+Entity(tt:hashtag)	funny
+Entity(tt:hashtag)	cat
+Entity(tt:hashtag)	lol
+Entity(tt:hashtag)	covfefe
+Entity(tt:username)	alice
+Entity(tt:username)	bob
+Entity(tt:username)	charlie
+Entity(tt:url)	http://www.abc.def
+Entity(tt:url)	http://www.google.com	www.google.com
+Entity(tt:url)	http://www.example.com
+Entity(tt:path_name)	images/lol.png
+Entity(tt:path_name)	images/me.png
+Entity(tt:path_name)	documents/work.pdf
+Entity(tt:path_name)	videos/cat.mp4
+Entity(tt:path_name)	school/cs101/hw1.pdf
+Entity(tt:stock_id)	goog	Google
+Entity(tt:stock_id)	aapl	Apple
+Entity(tt:stock_id)	msft	Microsoft
+Entity(tt:stock_id)	wmt	Walmart
+Entity(tt:iso_lang_code)	it	Italian
+Entity(tt:iso_lang_code)	de	German
+Entity(tt:iso_lang_code)	zh	Chinese
+Entity(tt:iso_lang_code)	es	Spanish
+Entity(sportradar:eu_soccer_team)	juv	Juventus
+Entity(sportradar:eu_soccer_team)	bar	Barcelona
+Entity(sportradar:eu_soccer_team)	fcb	Bayer Munich
+Entity(sportradar:eu_soccer_team)	che	Chelsea
+Entity(sportradar:mlb_team)	sf	San Francisco Giants
+Entity(sportradar:mlb_team)	chc	Chicago Cubs
+Entity(sportradar:nba_team)	gsw	Golden State Warriors
+Entity(sportradar:nba_team)	lal	Los Angeles Lakers
+Entity(sportradar:ncaafb_team)	sta	Stanford Cardinals
+Entity(sportradar:ncaafb_team)	cal	California Bears
+Entity(sportradar:ncaambb_team)	stan	Stanford Cardinals
+Entity(sportradar:ncaambb_team)	cal	California Bears
+Entity(sportradar:nfl_team)	sea	Seattle Seahawks
+Entity(sportradar:nfl_team)	sf	San Francisco 49ers
+Entity(sportradar:us_soccer_team)	sje	San Jose Earthquakes
+Entity(sportradar:us_soccer_team)	tor	Toronto FC
+Entity(tt:mime_type)	application/pdf	PDF documents
+Entity(tt:mime_type)	image/jpeg	JPEG pictures
+Entity(tt:mime_type)	application/vnd.openxmlformats-officedocument.wordprocessingml.document	Word documents
+Entity(tt:mime_type)	application/vnd.openxmlformats-officedocument.spreadsheetml.sheet	Excel spreadsheets
+Entity(tt:us_state)	ca	California
+Entity(tt:us_state)	wa	Washington
+Entity(tt:us_state)	ny	New York
+Entity(tt:us_state)	fl	Florida
+Entity(tt:country)	us	United States
+Entity(tt:country)	it	Italy
+Entity(tt:country)	gb	United Kingdom
+Entity(tt:country)	de	Germany
+Entity(gov.nasa:curiosity_rover_camera)	MAST	Mast Camera
+Entity(gov.nasa:curiosity_rover_camera)	FHAZ	Front Hazard Avoidance Camera
+Entity(gov.nasa:curiosity_rover_camera)	MAHLI	Mars Hand Lens Imager
+Entity(imgflip:meme_id)	61520	Futurama Fry
+Entity(imgflip:meme_id)	61546	Brace Yourselves
+Entity(com.instagram:filter)	inkwell	Inkwell
+Entity(com.instagram:filter)	lo-fi	Lo-Fi
+Entity(com.instagram:filter)	sierra	Sierra
+Entity(org.freedesktop:app_id)	inkscape	Inkscape
+Entity(org.freedesktop:app_id)	firefox	Firefox
+Entity(org.freedesktop:app_id)	google-chrome	Google Chrome
+Entity(org.freedesktop:app_id)	emacs	Emacs
+Entity(tt:cryptocurrency_code)	btc	Bitcoin
+Entity(tt:cryptocurrency_code)	xlm	Stellar
+Entity(tt:cryptocurrency_code)	eth	Ethereum
+Entity(tt:cryptocurrency_code)	doge	Dogecoin
+
+# overrides for specific parameters
+param:source_language:Entity(tt:iso_lang_code)	en	English
+param:repo_name:String	android_repository
+param:repo_name:String	twbs/bootstrap
+param:folder_name:String	archive
+param:folder_name:String	school
+param:purpose:String	research project
+param:query:String	super bowl
+param:summary:String	celebration
+param:category:String	sports
+param:from_name:String	bob
+param:sender_name:String	bob
+param:sender_name:String	alice
+param:sender_name:String	charlie
+param:blog_name:String	government secret
+param:description:String	christmas
+param:description:String	wine
+param:description:String	service
+param:organizer:String	stanford
+param:user:String	bob
+param:positions:String	ceo
+param:specialties:String	java
+param:industry:String	music
+param:template:String	wtf
+param:text_top:String	ummm... i have a question...
+param:text_bottom:String	wtf?
+# for icalendar
+param:location:String	conference room 7
+param:location:String	downtown
+param:location:String	bob's house
+
+# overrides for specific function/parameter combinations
+param:@com.spotify.*:song:String	Hey Jude
+param:@com.spotify.*:song:String	California Girls
+param:@com.spotify.*:album:String	Yellow Submarine
+param:@com.spotify.*:album:String	Thriller
+param:@com.spotify.*:playlist:String	my favorite
+param:@com.spotify.*:playlist:String	classics
+param:@com.spotify.*:artist:String	Beatles
+param:@com.spotify.*:artist:String	Taylor Swift
+param:@com.spotify.*:toPlay:String	Hey Jude
+param:@com.spotify.*:toPlay:String	California Girls
+param:@com.spotify.*:toAdd:String	Hey Jude
+param:@com.spotify.*:toAdd:String	California Girls
+param:@com.spotify.*:key:String	A Major
+
+param:cookTime:Measure(ms)	10min	10 minutes
+param:cookTime:Measure(ms)	20min	20 minutes
+param:cookTime:Measure(ms)	5min	5 minutes
+param:prepTime:Measure(ms)	10min	10 minutes
+param:prepTime:Measure(ms)	20min	20 minutes
+param:prepTime:Measure(ms)	5min	5 minutes
+param:totalTime:Measure(ms)	25min	25 minutes
+param:totalTime:Measure(ms)	45min	45 minutes
+param:totalTime:Measure(ms)	20min	20 minutes
