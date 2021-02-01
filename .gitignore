@@ -57,5 +57,6 @@ genie-??????
 !starter/wikidata294/*/augmented.tsv
 !starter/wikidata294/*/constants.tsv
 !starter/wikidata294/*/parameter-datasets.tsv
+!starter/wikidata294/*/synthetic*.tsv
 
 

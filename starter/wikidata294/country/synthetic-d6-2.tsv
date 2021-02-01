@@ -1,0 +1,112 @@
+S4000000000	search all the country .	now => @org.wikidata.country => notify
+S4000000001	get a list of country .	now => @org.wikidata.country => notify
+S4000000002	i would like to find any country .	now => @org.wikidata.country => notify
+S4000000003	i 'm looking for every country	now => @org.wikidata.country => notify
+S4000000004	get the country	now => @org.wikidata.country => notify
+S4000000005	get the country .	now => @org.wikidata.country => notify
+S4000000006	get the country .	now => @org.wikidata.country => notify
+S4000000007	i 'd like to find any country	now => @org.wikidata.country => notify
+S4000000008	get the country .	now => @org.wikidata.country => notify
+S4000000009	i 'm looking to search every country	now => @org.wikidata.country => notify
+S4000000010	i 'd like to find any country	now => @org.wikidata.country => notify
+S4000000011	i am looking for every country	now => @org.wikidata.country => notify
+S4000000012	i would like to find any country	now => @org.wikidata.country => notify
+S4000000013	i am looking for every country .	now => @org.wikidata.country => notify
+S4000000014	i 'm looking to search every country .	now => @org.wikidata.country => notify
+S4000000015	i 'm looking for every country .	now => @org.wikidata.country => notify
+S5000000016	i would like to search the list of all country that have suicide rate NUMBER_0 .	now => ( @org.wikidata.country ) filter param:suicide_rate:Number == NUMBER_0 => notify
+S5000000017	i 'd like to search the list of all country that have suicide rate NUMBER_0 .	now => ( @org.wikidata.country ) filter param:suicide_rate:Number == NUMBER_0 => notify
+S5000000018	i 'd like to search some country having gini coefficient NUMBER_0	now => ( @org.wikidata.country ) filter param:gini_coefficient:Number == NUMBER_0 => notify
+S5000000019	i would like to search the list of all country that have suicide rate NUMBER_0 .	now => ( @org.wikidata.country ) filter param:suicide_rate:Number == NUMBER_0 => notify
+S5000000020	i want the country with suicide rate NUMBER_0 and the latest inception	now => ( sort param:inception:Date desc of ( ( @org.wikidata.country ) filter param:suicide_rate:Number == NUMBER_0 ) ) [ 1 ] => notify
+S5000000021	search any country treccani id QUOTED_STRING_0	now => ( @org.wikidata.country ) filter param:treccani_id:String =~ QUOTED_STRING_0 => notify
+S5000000022	get an country treccani id QUOTED_STRING_0 .	now => ( @org.wikidata.country ) filter param:treccani_id:String =~ QUOTED_STRING_0 => notify
+S5000000023	get the list of all country maintained by wiki project QUOTED_STRING_0 .	now => ( @org.wikidata.country ) filter param:maintained_by_wikiproject:String =~ QUOTED_STRING_0 => notify
+S5000000024	i am looking to retrieve a list of all country driving side left .	now => ( @org.wikidata.country ) filter param:driving_side:Enum(Left,Right) == enum:Left => notify
+S5000000025	get an country treccani id QUOTED_STRING_0 .	now => ( @org.wikidata.country ) filter param:treccani_id:String =~ QUOTED_STRING_0 => notify
+S5000000026	i would like to search the list of all country that have suicide rate NUMBER_0 .	now => ( @org.wikidata.country ) filter param:suicide_rate:Number == NUMBER_0 => notify
+S5000000027	i want the country with suicide rate NUMBER_0 and the latest inception .	now => ( sort param:inception:Date desc of ( ( @org.wikidata.country ) filter param:suicide_rate:Number == NUMBER_0 ) ) [ 1 ] => notify
+S5000000028	i 'd like to search the list of all country that have suicide rate NUMBER_0 .	now => ( @org.wikidata.country ) filter param:suicide_rate:Number == NUMBER_0 => notify
+S5000000029	i would like to search the list of all country that have suicide rate NUMBER_0 .	now => ( @org.wikidata.country ) filter param:suicide_rate:Number == NUMBER_0 => notify
+S5000000030	i need any country maintained by wiki project QUOTED_STRING_0 .	now => ( @org.wikidata.country ) filter param:maintained_by_wikiproject:String =~ QUOTED_STRING_0 => notify
+S5000000031	search any country treccani id QUOTED_STRING_0	now => ( @org.wikidata.country ) filter param:treccani_id:String =~ QUOTED_STRING_0 => notify
+S5000000032	i 'm looking to retrieve a list of all country driving side left .	now => ( @org.wikidata.country ) filter param:driving_side:Enum(Left,Right) == enum:Left => notify
+S5000000033	are there country that have more slowly speed limit than NUMBER_0 kilometers per hour ?	now => ( @org.wikidata.country ) filter param:speed_limit:Measure(mps) <= NUMBER_0 unit:kmph => notify
+S5000000034	search for a list of all country treccani id QUOTED_STRING_0 .	now => ( @org.wikidata.country ) filter param:treccani_id:String =~ QUOTED_STRING_0 => notify
+S5000000035	i 'd like to search the list of all country that have suicide rate NUMBER_0 .	now => ( @org.wikidata.country ) filter param:suicide_rate:Number == NUMBER_0 => notify
+S5000000036	what country have minimum temperature record NUMBER_0 fahrenheit ?	now => ( @org.wikidata.country ) filter param:minimum_temperature_record:Measure(C) == NUMBER_0 unit:F => notify
+S5000000037	i need to retrieve the country which are QUOTED_STRING_0 's part .	now => ( @org.wikidata.country ) filter param:part_of:Array(String) contains~ QUOTED_STRING_0 => notify
+S5000000038	search any country treccani id QUOTED_STRING_0	now => ( @org.wikidata.country ) filter param:treccani_id:String =~ QUOTED_STRING_0 => notify
+S5000000039	search any country treccani id QUOTED_STRING_0 .	now => ( @org.wikidata.country ) filter param:treccani_id:String =~ QUOTED_STRING_0 => notify
+S5000000040	i want the country with suicide rate NUMBER_0 and the latest inception	now => ( sort param:inception:Date desc of ( ( @org.wikidata.country ) filter param:suicide_rate:Number == NUMBER_0 ) ) [ 1 ] => notify
+S5000000041	i want the country with suicide rate NUMBER_0 and the latest inception .	now => ( sort param:inception:Date desc of ( ( @org.wikidata.country ) filter param:suicide_rate:Number == NUMBER_0 ) ) [ 1 ] => notify
+S5000000042	search for a list of all country treccani id QUOTED_STRING_0 .	now => ( @org.wikidata.country ) filter param:treccani_id:String =~ QUOTED_STRING_0 => notify
+S5000000043	i need to retrieve the country which are QUOTED_STRING_0 's part	now => ( @org.wikidata.country ) filter param:part_of:Array(String) contains~ QUOTED_STRING_0 => notify
+S5000000044	search any country treccani id QUOTED_STRING_0	now => ( @org.wikidata.country ) filter param:treccani_id:String =~ QUOTED_STRING_0 => notify
+S5000000045	i need to retrieve the country which are QUOTED_STRING_0 's part .	now => ( @org.wikidata.country ) filter param:part_of:Array(String) contains~ QUOTED_STRING_0 => notify
+S5000000046	i want the country with suicide rate NUMBER_0 and the latest inception	now => ( sort param:inception:Date desc of ( ( @org.wikidata.country ) filter param:suicide_rate:Number == NUMBER_0 ) ) [ 1 ] => notify
+S5000000047	search any country treccani id QUOTED_STRING_0	now => ( @org.wikidata.country ) filter param:treccani_id:String =~ QUOTED_STRING_0 => notify
+S6000000048	i would like some country with less unemployment rate than NUMBER_0 that have life expectancy longer than NUMBER_0 ms	now => ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) >= NUMBER_0 unit:ms and param:unemployment_rate:Number <= NUMBER_0 => notify
+S6000000049	i 'm looking to search a list of country with life expectancy longer than NUMBER_0 ms	now => ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) >= NUMBER_0 unit:ms => notify
+S6000000050	i need the country that have suicide rate NUMBER_0 , , with maximum temperature record NUMBER_0 degrees .	now => ( @org.wikidata.country ) filter param:maximum_temperature_record:Measure(C) == NUMBER_0 unit:defaultTemperature and param:suicide_rate:Number == NUMBER_0 => notify
+S6000000051	search the country having maximum temperature record NUMBER_0 degrees and the latest inception	now => ( sort param:inception:Date desc of ( ( @org.wikidata.country ) filter param:maximum_temperature_record:Measure(C) == NUMBER_0 unit:defaultTemperature ) ) [ 1 ] => notify
+S6000000052	i need the country treccani id QUOTED_STRING_0 that are QUOTED_STRING_0 's part .	now => ( @org.wikidata.country ) filter param:part_of:Array(String) contains~ QUOTED_STRING_0 and param:treccani_id:String =~ QUOTED_STRING_0 => notify
+S6000000053	tell me the foundational text of the country which has the most slowly speed limit .	now => [ param:foundational_text:Entity(org.wikidata:foundational_text) ] of ( ( sort param:speed_limit:Measure(mps) asc of ( @org.wikidata.country ) ) [ 1 ] ) => notify
+S6000000054	search an country with life expectancy NUMBER_0 seconds	now => ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) == NUMBER_0 unit:s => notify
+S6000000055	i need the country that have life expectancy NUMBER_0 seconds and have the latest inception	now => ( sort param:inception:Date desc of ( ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) == NUMBER_0 unit:s ) ) [ 1 ] => notify
+S6000000056	i 'd like a list of all country having speed limit slower than NUMBER_0 m/s .	now => ( @org.wikidata.country ) filter param:speed_limit:Measure(mps) <= NUMBER_0 unit:mps => notify
+S6000000057	i 'd like some country with less unemployment rate than NUMBER_0 that have life expectancy longer than NUMBER_0 ms	now => ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) >= NUMBER_0 unit:ms and param:unemployment_rate:Number <= NUMBER_0 => notify
+S6000000058	what is country which have time of earliest written record NUMBER_0 seconds before today	now => ( @org.wikidata.country ) filter param:time_of_earliest_written_record:Date == start_of unit:day - NUMBER_0 unit:s => notify
+S6000000059	what are country that have time of earliest written record NUMBER_0 ms before today ?	now => ( @org.wikidata.country ) filter param:time_of_earliest_written_record:Date == start_of unit:day - NUMBER_0 unit:ms => notify
+S6000000060	i need the country that have life expectancy NUMBER_0 seconds and have the latest inception	now => ( sort param:inception:Date desc of ( ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) == NUMBER_0 unit:s ) ) [ 1 ] => notify
+S6000000061	i need the country treccani id QUOTED_STRING_0 that are QUOTED_STRING_0 's part .	now => ( @org.wikidata.country ) filter param:part_of:Array(String) contains~ QUOTED_STRING_0 and param:treccani_id:String =~ QUOTED_STRING_0 => notify
+S6000000062	which country get life expectancy longer than NUMBER_0 ms and inception before NUMBER_0 ms ago ?	now => ( @org.wikidata.country ) filter param:inception:Date <= now - NUMBER_0 unit:ms and param:life_expectancy:Measure(ms) >= NUMBER_0 unit:ms => notify
+S6000000063	i would like to retrieve all country that have suicide rate NUMBER_0 , , with maximum temperature record NUMBER_0 degrees .	now => ( @org.wikidata.country ) filter param:maximum_temperature_record:Measure(C) == NUMBER_0 unit:defaultTemperature and param:suicide_rate:Number == NUMBER_0 => notify
+S6000000064	i want any country treccani id QUOTED_STRING_0 jewish encyclopedia id ( russian) QUOTED_STRING_0	now => ( @org.wikidata.country ) filter param:jewish_encyclopedia_id_russian_:String =~ QUOTED_STRING_0 and param:treccani_id:String =~ QUOTED_STRING_0 => notify
+S6000000065	search the country having maximum temperature record NUMBER_0 degrees and the latest inception	now => ( sort param:inception:Date desc of ( ( @org.wikidata.country ) filter param:maximum_temperature_record:Measure(C) == NUMBER_0 unit:defaultTemperature ) ) [ 1 ] => notify
+S6000000066	search an country with life expectancy NUMBER_0 seconds	now => ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) == NUMBER_0 unit:s => notify
+S6000000067	what are country that have minimum temperature record NUMBER_0 fahrenheit and have time of earliest written record NUMBER_0 ms before today	now => ( @org.wikidata.country ) filter param:minimum_temperature_record:Measure(C) == NUMBER_0 unit:F and param:time_of_earliest_written_record:Date == start_of unit:day - NUMBER_0 unit:ms => notify
+S6000000068	get all the country having speed limit slower than NUMBER_0 m/s	now => ( @org.wikidata.country ) filter param:speed_limit:Measure(mps) <= NUMBER_0 unit:mps => notify
+S6000000069	i am looking to search a list of country with life expectancy longer than NUMBER_0 ms	now => ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) >= NUMBER_0 unit:ms => notify
+S6000000070	i need the country that have life expectancy NUMBER_0 seconds and have the latest inception	now => ( sort param:inception:Date desc of ( ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) == NUMBER_0 unit:s ) ) [ 1 ] => notify
+S6000000071	i need all country with life expectancy NUMBER_0 seconds	now => ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) == NUMBER_0 unit:s => notify
+S6000000072	enumerate country with life expectancy NUMBER_0 seconds .	now => ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) == NUMBER_0 unit:s => notify
+S6000000073	what 's the topic's main wikimedia portal of the country which has the most slowly speed limit	now => [ param:topics_main_wikimedia_portal:Entity(org.wikidata:topics_main_wikimedia_portal) ] of ( ( sort param:speed_limit:Measure(mps) asc of ( @org.wikidata.country ) ) [ 1 ] ) => notify
+S6000000074	enumerate country that have more slowly speed limit than NUMBER_0 kilometers per hour .	now => ( @org.wikidata.country ) filter param:speed_limit:Measure(mps) <= NUMBER_0 unit:kmph => notify
+S6000000075	search the country with life expectancy NUMBER_0 seconds and the most slowly speed limit	now => ( sort param:speed_limit:Measure(mps) asc of ( ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) == NUMBER_0 unit:s ) ) [ 1 ] => notify
+S6000000076	i need the country that have suicide rate NUMBER_0 , , with maximum temperature record NUMBER_0 degrees .	now => ( @org.wikidata.country ) filter param:maximum_temperature_record:Measure(C) == NUMBER_0 unit:defaultTemperature and param:suicide_rate:Number == NUMBER_0 => notify
+S6000000077	i would like a list of all country having speed limit slower than NUMBER_0 m/s	now => ( @org.wikidata.country ) filter param:speed_limit:Measure(mps) <= NUMBER_0 unit:mps => notify
+S6000000078	search the country with life expectancy NUMBER_0 seconds and the most slowly speed limit .	now => ( sort param:speed_limit:Measure(mps) asc of ( ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) == NUMBER_0 unit:s ) ) [ 1 ] => notify
+S6000000079	i 'm looking to search a list of country with life expectancy longer than NUMBER_0 ms .	now => ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) >= NUMBER_0 unit:ms => notify
+S6000000080	enumerate country with life expectancy NUMBER_0 seconds .	now => ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) == NUMBER_0 unit:s => notify
+S6000000081	i 'd like a list of all country having speed limit slower than NUMBER_0 m/s .	now => ( @org.wikidata.country ) filter param:speed_limit:Measure(mps) <= NUMBER_0 unit:mps => notify
+S6000000082	what are the head of governments of country	now => [ param:head_of_government:Array(Entity(org.wikidata:human)) ] of ( @org.wikidata.country ) => notify
+S6000000083	i need the country treccani id QUOTED_STRING_0 that are QUOTED_STRING_0 's part .	now => ( @org.wikidata.country ) filter param:part_of:Array(String) contains~ QUOTED_STRING_0 and param:treccani_id:String =~ QUOTED_STRING_0 => notify
+S6000000084	i want to know the speed limit of country .	now => [ param:speed_limit:Measure(mps) ] of ( @org.wikidata.country ) => notify
+S6000000085	enumerate country with life expectancy NUMBER_0 seconds .	now => ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) == NUMBER_0 unit:s => notify
+S6000000086	what is the motto of country ?	now => [ param:motto:Entity(org.wikidata:motto) ] of ( @org.wikidata.country ) => notify
+S6000000087	i need the country that have life expectancy NUMBER_0 seconds and have the latest inception	now => ( sort param:inception:Date desc of ( ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) == NUMBER_0 unit:s ) ) [ 1 ] => notify
+S6000000088	what is the topic's main wikimedia portal of the country which has the most slowly speed limit	now => [ param:topics_main_wikimedia_portal:Entity(org.wikidata:topics_main_wikimedia_portal) ] of ( ( sort param:speed_limit:Measure(mps) asc of ( @org.wikidata.country ) ) [ 1 ] ) => notify
+S6000000089	i would like a list of all country having speed limit slower than NUMBER_0 m/s .	now => ( @org.wikidata.country ) filter param:speed_limit:Measure(mps) <= NUMBER_0 unit:mps => notify
+S6000000090	i am looking to search a list of country with life expectancy longer than NUMBER_0 ms	now => ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) >= NUMBER_0 unit:ms => notify
+S6000000091	search the country having maximum temperature record NUMBER_0 degrees and the latest inception .	now => ( sort param:inception:Date desc of ( ( @org.wikidata.country ) filter param:maximum_temperature_record:Measure(C) == NUMBER_0 unit:defaultTemperature ) ) [ 1 ] => notify
+S6000000092	i would like some country with less unemployment rate than NUMBER_0 that have life expectancy longer than NUMBER_0 ms .	now => ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) >= NUMBER_0 unit:ms and param:unemployment_rate:Number <= NUMBER_0 => notify
+S6000000093	i 'm looking to search a list of country with life expectancy longer than NUMBER_0 ms	now => ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) >= NUMBER_0 unit:ms => notify
+S6000000094	i need the country that have life expectancy NUMBER_0 seconds and have the latest inception	now => ( sort param:inception:Date desc of ( ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) == NUMBER_0 unit:s ) ) [ 1 ] => notify
+S6000000095	i want any country treccani id QUOTED_STRING_0 jewish encyclopedia id ( russian) QUOTED_STRING_0 .	now => ( @org.wikidata.country ) filter param:jewish_encyclopedia_id_russian_:String =~ QUOTED_STRING_0 and param:treccani_id:String =~ QUOTED_STRING_0 => notify
+S6000000096	i 'd like a list of all country having speed limit slower than NUMBER_0 m/s	now => ( @org.wikidata.country ) filter param:speed_limit:Measure(mps) <= NUMBER_0 unit:mps => notify
+S6000000097	i need the country that have suicide rate NUMBER_0 , , with maximum temperature record NUMBER_0 degrees .	now => ( @org.wikidata.country ) filter param:maximum_temperature_record:Measure(C) == NUMBER_0 unit:defaultTemperature and param:suicide_rate:Number == NUMBER_0 => notify
+S6000000098	i would like a list of all country having speed limit slower than NUMBER_0 m/s	now => ( @org.wikidata.country ) filter param:speed_limit:Measure(mps) <= NUMBER_0 unit:mps => notify
+S6000000099	i 'm looking to search a list of country with life expectancy longer than NUMBER_0 ms .	now => ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) >= NUMBER_0 unit:ms => notify
+S6000000100	i need the country that have suicide rate NUMBER_0 , , with maximum temperature record NUMBER_0 degrees .	now => ( @org.wikidata.country ) filter param:maximum_temperature_record:Measure(C) == NUMBER_0 unit:defaultTemperature and param:suicide_rate:Number == NUMBER_0 => notify
+S6000000101	i am looking to get an country having speed limit slower than NUMBER_0 m/s .	now => ( @org.wikidata.country ) filter param:speed_limit:Measure(mps) <= NUMBER_0 unit:mps => notify
+S6000000102	what are the head of governments of country	now => [ param:head_of_government:Array(Entity(org.wikidata:human)) ] of ( @org.wikidata.country ) => notify
+S6000000103	i want to get every country with less unemployment rate than NUMBER_0 that have life expectancy longer than NUMBER_0 ms	now => ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) >= NUMBER_0 unit:ms and param:unemployment_rate:Number <= NUMBER_0 => notify
+S6000000104	i need the country treccani id QUOTED_STRING_0 that are QUOTED_STRING_0 's part .	now => ( @org.wikidata.country ) filter param:part_of:Array(String) contains~ QUOTED_STRING_0 and param:treccani_id:String =~ QUOTED_STRING_0 => notify
+S6000000105	i need the country that have suicide rate NUMBER_0 , , with maximum temperature record NUMBER_0 degrees	now => ( @org.wikidata.country ) filter param:maximum_temperature_record:Measure(C) == NUMBER_0 unit:defaultTemperature and param:suicide_rate:Number == NUMBER_0 => notify
+S6000000106	please retrieve an country driving side left treccani id QUOTED_STRING_0 .	now => ( @org.wikidata.country ) filter param:driving_side:Enum(Left,Right) == enum:Left and param:treccani_id:String =~ QUOTED_STRING_0 => notify
+S6000000107	search the country having maximum temperature record NUMBER_0 degrees and the latest inception	now => ( sort param:inception:Date desc of ( ( @org.wikidata.country ) filter param:maximum_temperature_record:Measure(C) == NUMBER_0 unit:defaultTemperature ) ) [ 1 ] => notify
+S6000000108	how many short names are there in the country with the most short names	now => [ param:count:Number ] of ( ( sort param:count:Number desc of ( compute count ( param:short_name:Array(String) ) of ( @org.wikidata.country ) ) ) [ 1 ] ) => notify
+S6000000109	is there country that have more slowly speed limit than NUMBER_0 kilometers per hour , with inception before NUMBER_0 ms ago	now => ( @org.wikidata.country ) filter param:inception:Date <= now - NUMBER_0 unit:ms and param:speed_limit:Measure(mps) <= NUMBER_0 unit:kmph => notify
+S6000000110	enumerate country with life expectancy NUMBER_0 seconds .	now => ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) == NUMBER_0 unit:s => notify
+S6000000111	i would like some country with less unemployment rate than NUMBER_0 that have life expectancy longer than NUMBER_0 ms	now => ( @org.wikidata.country ) filter param:life_expectancy:Measure(ms) >= NUMBER_0 unit:ms and param:unemployment_rate:Number <= NUMBER_0 => notify

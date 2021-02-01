@@ -1,0 +1,112 @@
+S4000000000	get any cities	now => @org.wikidata.city => notify
+S4000000001	i need the cities with the highest maximum temperature record	now => ( sort param:maximum_temperature_record:Measure(C) desc of ( @org.wikidata.city ) ) [ 1 ] => notify
+S4000000002	search for some cities .	now => @org.wikidata.city => notify
+S4000000003	i need to retrieve every cities	now => @org.wikidata.city => notify
+S4000000004	is there cities ?	now => @org.wikidata.city => notify
+S4000000005	i need the cities with the highest maximum temperature record	now => ( sort param:maximum_temperature_record:Measure(C) desc of ( @org.wikidata.city ) ) [ 1 ] => notify
+S4000000006	i need the cities with the highest maximum temperature record .	now => ( sort param:maximum_temperature_record:Measure(C) desc of ( @org.wikidata.city ) ) [ 1 ] => notify
+S4000000007	search for some cities .	now => @org.wikidata.city => notify
+S4000000008	search for some cities	now => @org.wikidata.city => notify
+S4000000009	search for some cities .	now => @org.wikidata.city => notify
+S4000000010	search for some cities	now => @org.wikidata.city => notify
+S4000000011	search for some cities	now => @org.wikidata.city => notify
+S4000000012	i need to retrieve every cities .	now => @org.wikidata.city => notify
+S4000000013	enumerate cities	now => @org.wikidata.city => notify
+S4000000014	which cities get density 0 ?	now => ( @org.wikidata.city ) filter param:density:Number == 0 => notify
+S4000000015	i need the cities with the highest maximum temperature record .	now => ( sort param:maximum_temperature_record:Measure(C) desc of ( @org.wikidata.city ) ) [ 1 ] => notify
+S5000000016	i need the cities having flag QUOTED_STRING_0 and the highest maximum temperature record	now => ( sort param:maximum_temperature_record:Measure(C) desc of ( ( @org.wikidata.city ) filter param:flag:String =~ QUOTED_STRING_0 ) ) [ 1 ] => notify
+S5000000017	i 'm looking to get the list of all cities open street map relation id QUOTED_STRING_0	now => ( @org.wikidata.city ) filter param:openstreetmap_relation_id:String =~ QUOTED_STRING_0 => notify
+S5000000018	is there cities dedicated to QUOTED_STRING_0 open street map relation id QUOTED_STRING_0 ?	now => ( @org.wikidata.city ) filter param:dedicated_to:String =~ QUOTED_STRING_0 and param:openstreetmap_relation_id:String =~ QUOTED_STRING_0 => notify
+S5000000019	i am looking to get the list of all cities open street map relation id QUOTED_STRING_0 .	now => ( @org.wikidata.city ) filter param:openstreetmap_relation_id:String =~ QUOTED_STRING_0 => notify
+S5000000020	get every cities with density 0	now => ( @org.wikidata.city ) filter param:density:Number == 0 => notify
+S5000000021	what cities get density 0 and time of discovery or invention today	now => ( @org.wikidata.city ) filter param:density:Number == 0 and param:time_of_discovery_or_invention:Date == start_of unit:day => notify
+S5000000022	i 'd like all the cities that have number of households larger than 0 .	now => ( @org.wikidata.city ) filter param:number_of_households:Number >= 0 => notify
+S5000000023	i need to search for the list of cities with density 0 .	now => ( @org.wikidata.city ) filter param:density:Number == 0 => notify
+S5000000024	please list cities open street map relation id QUOTED_STRING_0 .	now => ( @org.wikidata.city ) filter param:openstreetmap_relation_id:String =~ QUOTED_STRING_0 => notify
+S5000000025	i 'm looking to get the list of all cities open street map relation id QUOTED_STRING_0 .	now => ( @org.wikidata.city ) filter param:openstreetmap_relation_id:String =~ QUOTED_STRING_0 => notify
+S5000000026	please list cities open street map relation id QUOTED_STRING_0 .	now => ( @org.wikidata.city ) filter param:openstreetmap_relation_id:String =~ QUOTED_STRING_0 => notify
+S5000000027	i 'm looking to get the list of all cities open street map relation id QUOTED_STRING_0 .	now => ( @org.wikidata.city ) filter param:openstreetmap_relation_id:String =~ QUOTED_STRING_0 => notify
+S5000000028	i would like all the cities that have number of households larger than 0 .	now => ( @org.wikidata.city ) filter param:number_of_households:Number >= 0 => notify
+S5000000029	find an cities located in or next to body of water QUOTED_STRING_0	now => ( @org.wikidata.city ) filter param:located_in_or_next_to_body_of_water:Array(String) contains~ QUOTED_STRING_0 => notify
+S5000000030	find an cities located in or next to body of water QUOTED_STRING_0	now => ( @org.wikidata.city ) filter param:located_in_or_next_to_body_of_water:Array(String) contains~ QUOTED_STRING_0 => notify
+S5000000031	i 'm looking to get the list of all cities open street map relation id QUOTED_STRING_0	now => ( @org.wikidata.city ) filter param:openstreetmap_relation_id:String =~ QUOTED_STRING_0 => notify
+S5000000032	i need to search for the list of cities with density 0	now => ( @org.wikidata.city ) filter param:density:Number == 0 => notify
+S5000000033	please list cities open street map relation id QUOTED_STRING_0	now => ( @org.wikidata.city ) filter param:openstreetmap_relation_id:String =~ QUOTED_STRING_0 => notify
+S5000000034	get every cities with density 0	now => ( @org.wikidata.city ) filter param:density:Number == 0 => notify
+S5000000035	i am looking to get the list of all cities open street map relation id QUOTED_STRING_0	now => ( @org.wikidata.city ) filter param:openstreetmap_relation_id:String =~ QUOTED_STRING_0 => notify
+S5000000036	get the cities that applies to jurisdiction my office and have the earliest time of earliest written record	now => ( sort param:time_of_earliest_written_record:Date asc of ( ( @org.wikidata.city ) filter param:applies_to_jurisdiction:Location == location:work ) ) [ 1 ] => notify
+S5000000037	i 'm looking to get the list of all cities open street map relation id QUOTED_STRING_0 .	now => ( @org.wikidata.city ) filter param:openstreetmap_relation_id:String =~ QUOTED_STRING_0 => notify
+S5000000038	i need the cities having flag QUOTED_STRING_0 and the highest maximum temperature record .	now => ( sort param:maximum_temperature_record:Measure(C) desc of ( ( @org.wikidata.city ) filter param:flag:String =~ QUOTED_STRING_0 ) ) [ 1 ] => notify
+S5000000039	i 'm looking to get the list of all cities open street map relation id QUOTED_STRING_0	now => ( @org.wikidata.city ) filter param:openstreetmap_relation_id:String =~ QUOTED_STRING_0 => notify
+S5000000040	i need to search for the list of cities with density 0	now => ( @org.wikidata.city ) filter param:density:Number == 0 => notify
+S5000000041	is there cities having lower maximum temperature record than 0 c ?	now => ( @org.wikidata.city ) filter param:maximum_temperature_record:Measure(C) <= 0 unit:C => notify
+S5000000042	find an cities located in or next to body of water QUOTED_STRING_0	now => ( @org.wikidata.city ) filter param:located_in_or_next_to_body_of_water:Array(String) contains~ QUOTED_STRING_0 => notify
+S5000000043	are there cities with maximum temperature record 0 c	now => ( @org.wikidata.city ) filter param:maximum_temperature_record:Measure(C) == 0 unit:C => notify
+S5000000044	i would like all the cities that have number of households larger than 0	now => ( @org.wikidata.city ) filter param:number_of_households:Number >= 0 => notify
+S5000000045	get the cities that applies to jurisdiction my office and have the earliest time of earliest written record	now => ( sort param:time_of_earliest_written_record:Date asc of ( ( @org.wikidata.city ) filter param:applies_to_jurisdiction:Location == location:work ) ) [ 1 ] => notify
+S5000000046	i 'm looking to get the list of all cities open street map relation id QUOTED_STRING_0 .	now => ( @org.wikidata.city ) filter param:openstreetmap_relation_id:String =~ QUOTED_STRING_0 => notify
+S5000000047	get a list of all cities located in or next to body of water QUOTED_STRING_0 .	now => ( @org.wikidata.city ) filter param:located_in_or_next_to_body_of_water:Array(String) contains~ QUOTED_STRING_0 => notify
+S6000000048	search all cities that have time of discovery or invention today	now => ( @org.wikidata.city ) filter param:time_of_discovery_or_invention:Date == start_of unit:day => notify
+S6000000049	please search for all the cities dedicated to QUOTED_STRING_0 with width 0 m .	now => ( @org.wikidata.city ) filter param:dedicated_to:String =~ QUOTED_STRING_0 and param:width:Measure(m) == 0 unit:m => notify
+S6000000050	list cities dedicated to QUOTED_STRING_0 , which have flag QUOTED_STRING_0 .	now => ( @org.wikidata.city ) filter param:dedicated_to:String =~ QUOTED_STRING_0 and param:flag:String =~ QUOTED_STRING_0 => notify
+S6000000051	what cities get service retirement 0 minutes before today ?	now => ( @org.wikidata.city ) filter param:service_retirement:Date == start_of unit:day - 0 unit:min => notify
+S6000000052	i want the list of all cities which have width 0 m	now => ( @org.wikidata.city ) filter param:width:Measure(m) == 0 unit:m => notify
+S6000000053	search all cities that have time of discovery or invention today .	now => ( @org.wikidata.city ) filter param:time_of_discovery_or_invention:Date == start_of unit:day => notify
+S6000000054	i need to get any cities which have maximum temperature record 0 c .	now => ( @org.wikidata.city ) filter param:maximum_temperature_record:Measure(C) == 0 unit:C => notify
+S6000000055	get the list of all cities dedicated to QUOTED_STRING_0 , which have flag QUOTED_STRING_0	now => ( @org.wikidata.city ) filter param:dedicated_to:String =~ QUOTED_STRING_0 and param:flag:String =~ QUOTED_STRING_0 => notify
+S6000000056	i want the list of all cities which have width 0 m	now => ( @org.wikidata.city ) filter param:width:Measure(m) == 0 unit:m => notify
+S6000000057	which architectural style does the cities which has the earliest time of earliest written record have ?	now => [ param:architectural_style:Entity(org.wikidata:architectural_style) ] of ( ( sort param:time_of_earliest_written_record:Date asc of ( @org.wikidata.city ) ) [ 1 ] ) => notify
+S6000000058	retrieve the cities that applies to jurisdiction my office and have number of households larger than 0 and the highest maximum temperature record .	now => ( sort param:maximum_temperature_record:Measure(C) desc of ( ( @org.wikidata.city ) filter param:applies_to_jurisdiction:Location == location:work and param:number_of_households:Number >= 0 ) ) [ 1 ] => notify
+S6000000059	retrieve the cities dedicated to QUOTED_STRING_0 , that have minimum temperature record 0 c and the highest maximum temperature record	now => ( sort param:maximum_temperature_record:Measure(C) desc of ( ( @org.wikidata.city ) filter param:dedicated_to:String =~ QUOTED_STRING_0 and param:minimum_temperature_record:Measure(C) == 0 unit:C ) ) [ 1 ] => notify
+S6000000060	search the cities dedicated to QUOTED_STRING_0 , which have minimum temperature record 0 c and have the highest maximum temperature record .	now => ( sort param:maximum_temperature_record:Measure(C) desc of ( ( @org.wikidata.city ) filter param:dedicated_to:String =~ QUOTED_STRING_0 and param:minimum_temperature_record:Measure(C) == 0 unit:C ) ) [ 1 ] => notify
+S6000000061	please search for all the cities dedicated to QUOTED_STRING_0 with width 0 m	now => ( @org.wikidata.city ) filter param:dedicated_to:String =~ QUOTED_STRING_0 and param:width:Measure(m) == 0 unit:m => notify
+S6000000062	search all cities that have time of discovery or invention today	now => ( @org.wikidata.city ) filter param:time_of_discovery_or_invention:Date == start_of unit:day => notify
+S6000000063	i need the cities open street map relation id QUOTED_STRING_0 with the highest number of occupations .	now => ( sort param:count:Number desc of ( compute count ( param:occupation:Array(Entity(org.wikidata:occupation)) ) of ( ( @org.wikidata.city ) filter param:openstreetmap_relation_id:String =~ QUOTED_STRING_0 ) ) ) [ 1 ] => notify
+S6000000064	i need the cities open street map relation id QUOTED_STRING_0 with the highest number of occupations .	now => ( sort param:count:Number desc of ( compute count ( param:occupation:Array(Entity(org.wikidata:occupation)) ) of ( ( @org.wikidata.city ) filter param:openstreetmap_relation_id:String =~ QUOTED_STRING_0 ) ) ) [ 1 ] => notify
+S6000000065	get a list of cities which have time of earliest written record sooner than today	now => ( @org.wikidata.city ) filter param:time_of_earliest_written_record:Date <= start_of unit:day => notify
+S6000000066	i want all the cities which have maximum temperature record 0 c	now => ( @org.wikidata.city ) filter param:maximum_temperature_record:Measure(C) == 0 unit:C => notify
+S6000000067	please search for all the cities dedicated to QUOTED_STRING_0 with width 0 m .	now => ( @org.wikidata.city ) filter param:dedicated_to:String =~ QUOTED_STRING_0 and param:width:Measure(m) == 0 unit:m => notify
+S6000000068	get the list of all cities dedicated to QUOTED_STRING_0 , which have flag QUOTED_STRING_0 .	now => ( @org.wikidata.city ) filter param:dedicated_to:String =~ QUOTED_STRING_0 and param:flag:String =~ QUOTED_STRING_0 => notify
+S6000000069	is there any cities that have later time of earliest written record than 0 minutes before today	now => ( @org.wikidata.city ) filter param:time_of_earliest_written_record:Date >= start_of unit:day - 0 unit:min => notify
+S6000000070	is there cities with life expectancy longer than 0 minutes and minimum temperature record 0 c	now => ( @org.wikidata.city ) filter param:life_expectancy:Measure(ms) >= 0 unit:min and param:minimum_temperature_record:Measure(C) == 0 unit:C => notify
+S6000000071	i want all the cities which have maximum temperature record 0 c .	now => ( @org.wikidata.city ) filter param:maximum_temperature_record:Measure(C) == 0 unit:C => notify
+S6000000072	search the cities dedicated to QUOTED_STRING_0 , that have minimum temperature record 0 c and the highest maximum temperature record	now => ( sort param:maximum_temperature_record:Measure(C) desc of ( ( @org.wikidata.city ) filter param:dedicated_to:String =~ QUOTED_STRING_0 and param:minimum_temperature_record:Measure(C) == 0 unit:C ) ) [ 1 ] => notify
+S6000000073	search all cities that have time of discovery or invention today .	now => ( @org.wikidata.city ) filter param:time_of_discovery_or_invention:Date == start_of unit:day => notify
+S6000000074	list cities dedicated to QUOTED_STRING_0 , which have flag QUOTED_STRING_0 .	now => ( @org.wikidata.city ) filter param:dedicated_to:String =~ QUOTED_STRING_0 and param:flag:String =~ QUOTED_STRING_0 => notify
+S6000000075	please search for all the cities dedicated to QUOTED_STRING_0 with width 0 m	now => ( @org.wikidata.city ) filter param:dedicated_to:String =~ QUOTED_STRING_0 and param:width:Measure(m) == 0 unit:m => notify
+S6000000076	get all the cities which have width 0 m .	now => ( @org.wikidata.city ) filter param:width:Measure(m) == 0 unit:m => notify
+S6000000077	tell me what is the motto of cities .	now => [ param:motto:Entity(org.wikidata:motto) ] of ( @org.wikidata.city ) => notify
+S6000000078	i would like any cities that have time of discovery or invention today	now => ( @org.wikidata.city ) filter param:time_of_discovery_or_invention:Date == start_of unit:day => notify
+S6000000079	search for the cities that have life expectancy longer than 0 minutes and have the earliest time of earliest written record	now => ( sort param:time_of_earliest_written_record:Date asc of ( ( @org.wikidata.city ) filter param:life_expectancy:Measure(ms) >= 0 unit:min ) ) [ 1 ] => notify
+S6000000080	i want the list of all cities which have width 0 m .	now => ( @org.wikidata.city ) filter param:width:Measure(m) == 0 unit:m => notify
+S6000000081	which are the cities having flag QUOTED_STRING_0 which have time of earliest written record sooner than 0 minutes before today	now => ( @org.wikidata.city ) filter param:flag:String =~ QUOTED_STRING_0 and param:time_of_earliest_written_record:Date <= start_of unit:day - 0 unit:min => notify
+S6000000082	which coat of arms does cities with the highest maximum temperature record have ?	now => [ param:coat_of_arms:Entity(org.wikidata:coat_of_arms) ] of ( ( sort param:maximum_temperature_record:Measure(C) desc of ( @org.wikidata.city ) ) [ 1 ] ) => notify
+S6000000083	what are the position held of the cities which has the earliest time of earliest written record ?	now => [ param:position_held:Array(String) ] of ( ( sort param:time_of_earliest_written_record:Date asc of ( @org.wikidata.city ) ) [ 1 ] ) => notify
+S6000000084	i want all the cities which have maximum temperature record 0 c .	now => ( @org.wikidata.city ) filter param:maximum_temperature_record:Measure(C) == 0 unit:C => notify
+S6000000085	list cities dedicated to QUOTED_STRING_0 , which have flag QUOTED_STRING_0 .	now => ( @org.wikidata.city ) filter param:dedicated_to:String =~ QUOTED_STRING_0 and param:flag:String =~ QUOTED_STRING_0 => notify
+S6000000086	i want all the cities which have maximum temperature record 0 c	now => ( @org.wikidata.city ) filter param:maximum_temperature_record:Measure(C) == 0 unit:C => notify
+S6000000087	list cities dedicated to QUOTED_STRING_0 , which have flag QUOTED_STRING_0	now => ( @org.wikidata.city ) filter param:dedicated_to:String =~ QUOTED_STRING_0 and param:flag:String =~ QUOTED_STRING_0 => notify
+S6000000088	get all the cities which have width 0 m .	now => ( @org.wikidata.city ) filter param:width:Measure(m) == 0 unit:m => notify
+S6000000089	search for the cities that have life expectancy longer than 0 minutes and have the earliest time of earliest written record	now => ( sort param:time_of_earliest_written_record:Date asc of ( ( @org.wikidata.city ) filter param:life_expectancy:Measure(ms) >= 0 unit:min ) ) [ 1 ] => notify
+S6000000090	find the cities with minimum temperature record 0 c .	now => ( @org.wikidata.city ) filter param:minimum_temperature_record:Measure(C) == 0 unit:C => notify
+S6000000091	list cities dedicated to QUOTED_STRING_0 , which have flag QUOTED_STRING_0	now => ( @org.wikidata.city ) filter param:dedicated_to:String =~ QUOTED_STRING_0 and param:flag:String =~ QUOTED_STRING_0 => notify
+S6000000092	what 's the country of the cities with the highest maximum temperature record	now => [ param:country:Entity(org.wikidata:country) ] of ( ( sort param:maximum_temperature_record:Measure(C) desc of ( @org.wikidata.city ) ) [ 1 ] ) => notify
+S6000000093	i want all the cities which have maximum temperature record 0 c	now => ( @org.wikidata.city ) filter param:maximum_temperature_record:Measure(C) == 0 unit:C => notify
+S6000000094	tell me what 's the motto of cities .	now => [ param:motto:Entity(org.wikidata:motto) ] of ( @org.wikidata.city ) => notify
+S6000000095	list cities dedicated to QUOTED_STRING_0 , which have flag QUOTED_STRING_0 .	now => ( @org.wikidata.city ) filter param:dedicated_to:String =~ QUOTED_STRING_0 and param:flag:String =~ QUOTED_STRING_0 => notify
+S6000000096	i need to get any cities which have maximum temperature record 0 c	now => ( @org.wikidata.city ) filter param:maximum_temperature_record:Measure(C) == 0 unit:C => notify
+S6000000097	get all the cities which have width 0 m .	now => ( @org.wikidata.city ) filter param:width:Measure(m) == 0 unit:m => notify
+S6000000098	get all the cities which have width 0 m .	now => ( @org.wikidata.city ) filter param:width:Measure(m) == 0 unit:m => notify
+S6000000099	get a list of cities which have time of earliest written record sooner than today .	now => ( @org.wikidata.city ) filter param:time_of_earliest_written_record:Date <= start_of unit:day => notify
+S6000000100	i want all the cities which have maximum temperature record 0 c	now => ( @org.wikidata.city ) filter param:maximum_temperature_record:Measure(C) == 0 unit:C => notify
+S6000000101	list cities dedicated to QUOTED_STRING_0 , which have flag QUOTED_STRING_0 .	now => ( @org.wikidata.city ) filter param:dedicated_to:String =~ QUOTED_STRING_0 and param:flag:String =~ QUOTED_STRING_0 => notify
+S6000000102	list cities dedicated to QUOTED_STRING_0 , which have flag QUOTED_STRING_0	now => ( @org.wikidata.city ) filter param:dedicated_to:String =~ QUOTED_STRING_0 and param:flag:String =~ QUOTED_STRING_0 => notify
+S6000000103	get a list of cities which have time of earliest written record sooner than today	now => ( @org.wikidata.city ) filter param:time_of_earliest_written_record:Date <= start_of unit:day => notify
+S6000000104	please search for any cities dedicated to QUOTED_STRING_0 , which have flag QUOTED_STRING_0	now => ( @org.wikidata.city ) filter param:dedicated_to:String =~ QUOTED_STRING_0 and param:flag:String =~ QUOTED_STRING_0 => notify
+S6000000105	what 's the native language of the cities with the highest maximum temperature record	now => [ param:native_language:Entity(tt:iso_lang_code) ] of ( ( sort param:maximum_temperature_record:Measure(C) desc of ( @org.wikidata.city ) ) [ 1 ] ) => notify
+S6000000106	i want all the cities which have maximum temperature record 0 c .	now => ( @org.wikidata.city ) filter param:maximum_temperature_record:Measure(C) == 0 unit:C => notify
+S6000000107	get a list of cities which have time of earliest written record sooner than today .	now => ( @org.wikidata.city ) filter param:time_of_earliest_written_record:Date <= start_of unit:day => notify
+S6000000108	tell me what is the motto of cities	now => [ param:motto:Entity(org.wikidata:motto) ] of ( @org.wikidata.city ) => notify
+S6000000109	please search for all the cities dedicated to QUOTED_STRING_0 with width 0 m .	now => ( @org.wikidata.city ) filter param:dedicated_to:String =~ QUOTED_STRING_0 and param:width:Measure(m) == 0 unit:m => notify
+S6000000110	i want the list of all cities which have width 0 m .	now => ( @org.wikidata.city ) filter param:width:Measure(m) == 0 unit:m => notify
+S6000000111	i am looking for all cities with density 0 and lower maximum temperature record than 0 c .	now => ( @org.wikidata.city ) filter param:density:Number == 0 and param:maximum_temperature_record:Measure(C) <= 0 unit:C => notify
