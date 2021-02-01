@@ -1,0 +1,305 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "type": "tt:contact",
+      "name": "Contact Identity",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:contact_name",
+      "name": "Contact Name",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:device",
+      "name": "Device Name",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:email_address",
+      "name": "Email Address",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:flow_token",
+      "name": "Flow Identifier",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:function",
+      "name": "Function Name",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:hashtag",
+      "name": "Hashtag",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:path_name",
+      "name": "Unix Path",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:phone_number",
+      "name": "Phone Number",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:picture",
+      "name": "Picture",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:program",
+      "name": "Program",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:url",
+      "name": "URL",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "tt:username",
+      "name": "Username",
+      "is_well_known": 1,
+      "has_ner_support": 0
+    },
+    {
+      "type": "org.wikidata:country",
+      "name": "Country",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:human",
+      "name": "Founded By",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:topics_main_wikimedia_portal",
+      "name": "Topic's Main Wikimedia Portal",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:central_bank",
+      "name": "Central Bank",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:described_by_source",
+      "name": "Described By Source",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:event",
+      "name": "Participant In",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:replaces",
+      "name": "Replaces",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:named_after",
+      "name": "Named After",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:partially_coincident_with",
+      "name": "Partially Coincident With",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:topics_main_template",
+      "name": "Topic's Main Template",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:category_for_people_born_here",
+      "name": "Category For People Born Here",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:category_for_people_who_died_here",
+      "name": "Category For People Who Died Here",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:contains_administrative_territorial_entity",
+      "name": "Contains Administrative Territorial Entity",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:motto",
+      "name": "Motto",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:follows",
+      "name": "Follows",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:has_quality",
+      "name": "Has Quality",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:award",
+      "name": "Award Received",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:ethnic_group",
+      "name": "Ethnic Group",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:category_for_films_shot_at_this_location",
+      "name": "Category For Films Shot At This Location",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:category_of_people_buried_here",
+      "name": "Category Of People Buried Here",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:category_of_associated_people",
+      "name": "Category Of Associated People",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:owner_of",
+      "name": "Owner Of",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:different_from",
+      "name": "Different From",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:office_held_by_head_of_state",
+      "name": "Office Held By Head Of State",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:legislative_body",
+      "name": "Legislative Body",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:coextensive_with",
+      "name": "Coextensive With",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:city",
+      "name": "Capital",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:currency",
+      "name": "Currency",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:located_in_time_zone",
+      "name": "Located In Time Zone",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:foundational_text",
+      "name": "Foundational Text",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:said_to_be_the_same_as",
+      "name": "Said To Be The Same As",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:drainage_basin",
+      "name": "Drainage Basin",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:member_of",
+      "name": "Member Of",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:railway_traffic_side",
+      "name": "Railway Traffic Side",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:song",
+      "name": "Anthem",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:topics_main_category",
+      "name": "Topic's Main Category",
+      "is_well_known": false,
+      "has_ner_support": true
+    },
+    {
+      "type": "org.wikidata:main_regulatory_text",
+      "name": "Main Regulatory Text",
+      "is_well_known": false,
+      "has_ner_support": true
+    }
+  ]
+}

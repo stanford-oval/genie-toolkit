@@ -1,0 +1,20 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "ASEAN cable system",
+      "name": "Q4654163",
+      "canonical": "asean cable system"
+    },
+    {
+      "value": "Bombing of the Vatican",
+      "name": "Q2909620",
+      "canonical": "bombing of the vatican"
+    },
+    {
+      "value": "Pyrrhic War",
+      "name": "Q596373",
+      "canonical": "pyrrhic war"
+    }
+  ]
+}

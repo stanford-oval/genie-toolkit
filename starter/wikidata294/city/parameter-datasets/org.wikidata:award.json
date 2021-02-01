@@ -1,0 +1,410 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "National urban environment award",
+      "name": "Q18910363",
+      "canonical": "national urban environment award"
+    },
+    {
+      "value": "Gold Medal of Military Valour",
+      "name": "Q15042072",
+      "canonical": "gold medal of military valour"
+    },
+    {
+      "value": "European Green Capital Award",
+      "name": "Q686681",
+      "canonical": "european green capital award"
+    },
+    {
+      "value": "European Capital of Culture",
+      "name": "Q129372",
+      "canonical": "european capital of culture"
+    },
+    {
+      "value": "European Capital of Culture",
+      "name": "Q129372",
+      "canonical": "european capital of culture"
+    },
+    {
+      "value": "Hero of Abkhazia",
+      "name": "Q4137460",
+      "canonical": "hero of abkhazia"
+    },
+    {
+      "value": "Order of Friendship of Peoples",
+      "name": "Q583881",
+      "canonical": "order of friendship of peoples"
+    },
+    {
+      "value": "European City of the Reformation",
+      "name": "Q20828891",
+      "canonical": "european city of the reformation"
+    },
+    {
+      "value": "Alpine Town of the Year",
+      "name": "Q314320",
+      "canonical": "alpine town of the year"
+    },
+    {
+      "value": "Order of the Badge of Honour",
+      "name": "Q960966",
+      "canonical": "order of the badge of honour"
+    },
+    {
+      "value": "Order of the Builders of People's Poland",
+      "name": "Q1703174",
+      "canonical": "order of the builders of people 's poland"
+    },
+    {
+      "value": "European Capital of Culture",
+      "name": "Q129372",
+      "canonical": "european capital of culture"
+    },
+    {
+      "value": "European Capital of Culture",
+      "name": "Q129372",
+      "canonical": "european capital of culture"
+    },
+    {
+      "value": "Medal of Military Valour",
+      "name": "Q850170",
+      "canonical": "medal of military valour"
+    },
+    {
+      "value": "Alpine Town of the Year",
+      "name": "Q314320",
+      "canonical": "alpine town of the year"
+    },
+    {
+      "value": "Fairtrade Town",
+      "name": "Q44136",
+      "canonical": "fairtrade town"
+    },
+    {
+      "value": "Order of Friendship of Peoples",
+      "name": "Q583881",
+      "canonical": "order of friendship of peoples"
+    },
+    {
+      "value": "Order of Friendship of Peoples",
+      "name": "Q583881",
+      "canonical": "order of friendship of peoples"
+    },
+    {
+      "value": "Partisan Cross",
+      "name": "Q1983581",
+      "canonical": "partisan cross"
+    },
+    {
+      "value": "Order of the People's Hero",
+      "name": "Q1262166",
+      "canonical": "order of the people 's hero"
+    },
+    {
+      "value": "Medal of Military Valour",
+      "name": "Q850170",
+      "canonical": "medal of military valour"
+    },
+    {
+      "value": "European City of the Reformation",
+      "name": "Q20828891",
+      "canonical": "european city of the reformation"
+    },
+    {
+      "value": "European Capital of Culture",
+      "name": "Q129372",
+      "canonical": "european capital of culture"
+    },
+    {
+      "value": "Order of the Builders of People's Poland",
+      "name": "Q1703174",
+      "canonical": "order of the builders of people 's poland"
+    },
+    {
+      "value": "Award for Civil Valor",
+      "name": "Q48624307",
+      "canonical": "award for civil valor"
+    },
+    {
+      "value": "Gold Medal of Military Valour",
+      "name": "Q15042072",
+      "canonical": "gold medal of military valour"
+    },
+    {
+      "value": "Medal of Military Valour",
+      "name": "Q850170",
+      "canonical": "medal of military valour"
+    },
+    {
+      "value": "Hero City",
+      "name": "Q159438",
+      "canonical": "hero city"
+    },
+    {
+      "value": "City of Literature",
+      "name": "Q3467764",
+      "canonical": "city of literature"
+    },
+    {
+      "value": "European Capital of Culture",
+      "name": "Q129372",
+      "canonical": "european capital of culture"
+    },
+    {
+      "value": "European Capital of Culture",
+      "name": "Q129372",
+      "canonical": "european capital of culture"
+    },
+    {
+      "value": "Cross of the Warsaw Uprising",
+      "name": "Q4104097",
+      "canonical": "cross of the warsaw uprising"
+    },
+    {
+      "value": "Order of the Builders of People's Poland",
+      "name": "Q1703174",
+      "canonical": "order of the builders of people 's poland"
+    },
+    {
+      "value": "Gold Medal of Military Valour",
+      "name": "Q15042072",
+      "canonical": "gold medal of military valour"
+    },
+    {
+      "value": "Schleudersachse",
+      "name": "Q2239404",
+      "canonical": "schleudersachse"
+    },
+    {
+      "value": "Officer of the Military Order of the Tower and Sword",
+      "name": "Q15042096",
+      "canonical": "officer of the military order of the tower and sword"
+    },
+    {
+      "value": "Medal of Military Valour",
+      "name": "Q850170",
+      "canonical": "medal of military valour"
+    },
+    {
+      "value": "Gold Medal of Military Valour",
+      "name": "Q15042072",
+      "canonical": "gold medal of military valour"
+    },
+    {
+      "value": "Medal of Military Valour",
+      "name": "Q850170",
+      "canonical": "medal of military valour"
+    },
+    {
+      "value": "Gold Medal of Military Valour",
+      "name": "Q15042072",
+      "canonical": "gold medal of military valour"
+    },
+    {
+      "value": "Order of the Red Banner of Labour",
+      "name": "Q478850",
+      "canonical": "order of the red banner of labour"
+    },
+    {
+      "value": "The Europe Prize",
+      "name": "Q1375668",
+      "canonical": "the europe prize"
+    },
+    {
+      "value": "Order of Lenin",
+      "name": "Q185493",
+      "canonical": "order of lenin"
+    },
+    {
+      "value": "Olomouc city award",
+      "name": "Q51977426",
+      "canonical": "olomouc city award"
+    },
+    {
+      "value": "Gold Medal of Military Valour",
+      "name": "Q15042072",
+      "canonical": "gold medal of military valour"
+    },
+    {
+      "value": "European Capital of Culture",
+      "name": "Q129372",
+      "canonical": "european capital of culture"
+    },
+    {
+      "value": "National urban environment award",
+      "name": "Q18910363",
+      "canonical": "national urban environment award"
+    },
+    {
+      "value": "Norsk Form Honours Award",
+      "name": "Q15081040",
+      "canonical": "norsk form honours award"
+    },
+    {
+      "value": "Order of the Red Banner of Labour",
+      "name": "Q478850",
+      "canonical": "order of the red banner of labour"
+    },
+    {
+      "value": "Order of Friendship of Peoples",
+      "name": "Q583881",
+      "canonical": "order of friendship of peoples"
+    },
+    {
+      "value": "Ig Nobel Prize",
+      "name": "Q184253",
+      "canonical": "ig nobel prize"
+    },
+    {
+      "value": "Alpine Town of the Year",
+      "name": "Q314320",
+      "canonical": "alpine town of the year"
+    },
+    {
+      "value": "War Merit Cross (Italy)",
+      "name": "Q1541614",
+      "canonical": "war merit cross ( italy )"
+    },
+    {
+      "value": "Italian Order of Merit for Culture and Art",
+      "name": "Q3638154",
+      "canonical": "italian order of merit for culture and art"
+    },
+    {
+      "value": "Award for Civil Valor",
+      "name": "Q48624307",
+      "canonical": "award for civil valor"
+    },
+    {
+      "value": "Medal of Military Valour",
+      "name": "Q850170",
+      "canonical": "medal of military valour"
+    },
+    {
+      "value": "Medal of Military Valour",
+      "name": "Q850170",
+      "canonical": "medal of military valour"
+    },
+    {
+      "value": "National urban environment award",
+      "name": "Q18910363",
+      "canonical": "national urban environment award"
+    },
+    {
+      "value": "National urban environment award",
+      "name": "Q18910363",
+      "canonical": "national urban environment award"
+    },
+    {
+      "value": "Most Attractive City Award",
+      "name": "Q46996056",
+      "canonical": "most attractive city award"
+    },
+    {
+      "value": "Most Attractive City Award",
+      "name": "Q46996056",
+      "canonical": "most attractive city award"
+    },
+    {
+      "value": "City of Literature",
+      "name": "Q3467764",
+      "canonical": "city of literature"
+    },
+    {
+      "value": "Obec přátelská rodině",
+      "name": "Q10817099",
+      "canonical": "obec přátelská rodině"
+    },
+    {
+      "value": "Order of the Red Banner of Labour",
+      "name": "Q478850",
+      "canonical": "order of the red banner of labour"
+    },
+    {
+      "value": "Gold Medal of Military Valour",
+      "name": "Q15042072",
+      "canonical": "gold medal of military valour"
+    },
+    {
+      "value": "European Capital of Culture",
+      "name": "Q129372",
+      "canonical": "european capital of culture"
+    },
+    {
+      "value": "European Capital of Culture",
+      "name": "Q129372",
+      "canonical": "european capital of culture"
+    },
+    {
+      "value": "Legion of Honour",
+      "name": "Q163700",
+      "canonical": "legion of honour"
+    },
+    {
+      "value": "Wateler Peace Prize",
+      "name": "Q2521339",
+      "canonical": "wateler peace prize"
+    },
+    {
+      "value": "Award for Civil Valor",
+      "name": "Q48624307",
+      "canonical": "award for civil valor"
+    },
+    {
+      "value": "Honorary Member of the Order of Prince Henry",
+      "name": "Q66494271",
+      "canonical": "honorary member of the order of prince henry"
+    },
+    {
+      "value": "Medal of Military Valour",
+      "name": "Q850170",
+      "canonical": "medal of military valour"
+    },
+    {
+      "value": "European Capital of Culture",
+      "name": "Q129372",
+      "canonical": "european capital of culture"
+    },
+    {
+      "value": "Silver Medal of Military Valour",
+      "name": "Q13426499",
+      "canonical": "silver medal of military valour"
+    },
+    {
+      "value": "Gold Medal of Military Valour",
+      "name": "Q15042072",
+      "canonical": "gold medal of military valour"
+    },
+    {
+      "value": "Konrad Adenauer Award",
+      "name": "Q1245979",
+      "canonical": "konrad adenauer award"
+    },
+    {
+      "value": "European Capital of Culture",
+      "name": "Q129372",
+      "canonical": "european capital of culture"
+    },
+    {
+      "value": "European Capital of Culture",
+      "name": "Q129372",
+      "canonical": "european capital of culture"
+    },
+    {
+      "value": "Alpine Town of the Year",
+      "name": "Q314320",
+      "canonical": "alpine town of the year"
+    },
+    {
+      "value": "Order of the Badge of Honour",
+      "name": "Q960966",
+      "canonical": "order of the badge of honour"
+    },
+    {
+      "value": "Honorary Member of the Order of the Colonial Empire",
+      "name": "Q66819338",
+      "canonical": "honorary member of the order of the colonial empire"
+    }
+  ]
+}

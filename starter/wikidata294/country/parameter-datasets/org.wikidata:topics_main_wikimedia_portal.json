@@ -1,0 +1,100 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Portal:Belgium",
+      "name": "Q3247091",
+      "canonical": "portal : belgium"
+    },
+    {
+      "value": "Portal:Portugal",
+      "name": "Q10815313",
+      "canonical": "portal : portugal"
+    },
+    {
+      "value": "Portal:People's Republic of China",
+      "name": "Q13365337",
+      "canonical": "portal : people 's republic of china"
+    },
+    {
+      "value": "Portal:Brazil",
+      "name": "Q6062964",
+      "canonical": "portal : brazil"
+    },
+    {
+      "value": "Portal:Germany",
+      "name": "Q3802786",
+      "canonical": "portal : germany"
+    },
+    {
+      "value": "Portal:Malta",
+      "name": "Q11256685",
+      "canonical": "portal : malta"
+    },
+    {
+      "value": "Portal:Chile",
+      "name": "Q10499987",
+      "canonical": "portal : chile"
+    },
+    {
+      "value": "Portal:Bahrain",
+      "name": "Q14615462",
+      "canonical": "portal : bahrain"
+    },
+    {
+      "value": "Portal:Vanuatu",
+      "name": "Q14616317",
+      "canonical": "portal : vanuatu"
+    },
+    {
+      "value": "Portal:Israel",
+      "name": "Q8252866",
+      "canonical": "portal : israel"
+    },
+    {
+      "value": "Portal:Laos",
+      "name": "Q14616665",
+      "canonical": "portal : laos"
+    },
+    {
+      "value": "Portal:Tajikistan",
+      "name": "Q10951390",
+      "canonical": "portal : tajikistan"
+    },
+    {
+      "value": "Portal:Thailand",
+      "name": "Q14644364",
+      "canonical": "portal : thailand"
+    },
+    {
+      "value": "Portal:United Arab Emirates",
+      "name": "Q14616373",
+      "canonical": "portal : united arab emirates"
+    },
+    {
+      "value": "Portal:Mali",
+      "name": "Q7375021",
+      "canonical": "portal : mali"
+    },
+    {
+      "value": "Portal:Angola",
+      "name": "Q11302861",
+      "canonical": "portal : angola"
+    },
+    {
+      "value": "Portal:Sierra Leone",
+      "name": "Q14616219",
+      "canonical": "portal : sierra leone"
+    },
+    {
+      "value": "Portal:Sudan",
+      "name": "Q11295508",
+      "canonical": "portal : sudan"
+    },
+    {
+      "value": "Portal:French Guiana",
+      "name": "Q11253555",
+      "canonical": "portal : french guiana"
+    }
+  ]
+}

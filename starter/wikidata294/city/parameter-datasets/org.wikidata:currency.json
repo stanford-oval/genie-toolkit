@@ -1,0 +1,55 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Malaysian ringgit",
+      "name": "Q163712",
+      "canonical": "malaysian ringgit"
+    },
+    {
+      "value": "Malaysian ringgit",
+      "name": "Q163712",
+      "canonical": "malaysian ringgit"
+    },
+    {
+      "value": "Syrian pound",
+      "name": "Q240468",
+      "canonical": "syrian pound"
+    },
+    {
+      "value": "Singapore dollar",
+      "name": "Q190951",
+      "canonical": "singapore dollar"
+    },
+    {
+      "value": "Hong Kong dollar",
+      "name": "Q31015",
+      "canonical": "hong kong dollar"
+    },
+    {
+      "value": "euro",
+      "name": "Q4916",
+      "canonical": "euro"
+    },
+    {
+      "value": "euro",
+      "name": "Q4916",
+      "canonical": "euro"
+    },
+    {
+      "value": "Vatican lira",
+      "name": "Q183354",
+      "canonical": "vatican lira"
+    },
+    {
+      "value": "euro",
+      "name": "Q4916",
+      "canonical": "euro"
+    },
+    {
+      "value": "Nicaraguan córdoba",
+      "name": "Q207312",
+      "canonical": "nicaraguan córdoba"
+    }
+  ]
+}

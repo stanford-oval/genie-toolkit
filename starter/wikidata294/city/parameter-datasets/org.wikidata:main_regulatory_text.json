@@ -1,0 +1,25 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Tōkyō tosei",
+      "name": "Q2465336",
+      "canonical": "tōkyō tosei"
+    },
+    {
+      "value": "Local Autonomy Act",
+      "name": "Q2480675",
+      "canonical": "local autonomy act"
+    },
+    {
+      "value": "Basic Law of Hong Kong",
+      "name": "Q15165",
+      "canonical": "basic law of hong kong"
+    },
+    {
+      "value": "Fundamental Law of Vatican City State",
+      "name": "Q441709",
+      "canonical": "fundamental law of vatican city state"
+    }
+  ]
+}

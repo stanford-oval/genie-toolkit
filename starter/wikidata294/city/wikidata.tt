@@ -1,0 +1,3113 @@
+class @org.wikidata
+#_[name="Wikidata for domain Q515"]
+#_[description="Natural language dialogues over Wikidata knowledge base."] {
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+
+  list query city(out id: Entity(org.wikidata:city)
+                  #_[canonical={
+                    base=["name"],
+                    passive_verb=["named", "called"]
+                  }],
+                  out applies_to_jurisdiction: Location
+                  #_[canonical={
+                    default="verb",
+                    verb=["applies to jurisdiction"]
+                  }]
+                  #[wikidata_id="P1001"],
+                  out human_development_index: Number
+                  #_[canonical={
+                    default="property",
+                    base=["human development index"]
+                  }]
+                  #[wikidata_id="P1081"],
+                  out donated_by: Entity(org.wikidata:human)
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["donated by"]
+                  }]
+                  #[wikidata_id="P1028"],
+                  out population: Number
+                  #_[canonical={
+                    default="property",
+                    base=["population"]
+                  }]
+                  #[wikidata_id="P1082"],
+                  out native_language: Entity(tt:iso_lang_code)
+                  #_[canonical={
+                    default="property",
+                    base=["native language"]
+                  }]
+                  #[wikidata_id="P103"],
+                  out occupation: Array(Entity(org.wikidata:occupation))
+                  #_[canonical={
+                    default="property",
+                    base=["occupations"]
+                  }]
+                  #[wikidata_id="P106"],
+                  out gini_coefficient: Number
+                  #_[canonical={
+                    default="property",
+                    base=["gini coefficient"]
+                  }]
+                  #[wikidata_id="P1125"],
+                  out founded_by: Array(Entity(org.wikidata:human))
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["founded by"]
+                  }]
+                  #[wikidata_id="P112"],
+                  out visitors_per_year: Number
+                  #_[canonical={
+                    default="property",
+                    base=["visitors per year"]
+                  }]
+                  #[wikidata_id="P1174"],
+                  out unemployment_rate: Number
+                  #_[canonical={
+                    default="property",
+                    base=["unemployment rate"]
+                  }]
+                  #[wikidata_id="P1198"],
+                  out topics_main_wikimedia_portal: Entity(org.wikidata:topics_main_wikimedia_portal)
+                  #_[canonical={
+                    default="property",
+                    base=["topic's main wikimedia portal"]
+                  }]
+                  #[wikidata_id="P1151"],
+                  out time_of_earliest_written_record: Date
+                  #_[canonical={
+                    default="property",
+                    base=["time of earliest written record"]
+                  }]
+                  #[wikidata_id="P1249"],
+                  out basic_form_of_government: Enum(Dictatorship,Monarchy,Republic,ConstitutionalMonarchy,Federation,Theocracy,SemiPresidentialSystem,PresidentialRegime,Oligarchy,ParliamentarySystem,Autocracy,UnitaryState,AbsoluteMonarchy,RepresentativeDemocracy,FederalRepublic,ElectiveMonarchy,AristocraticRepublic,Condominium,HereditaryMonarchy,SovietRepublic,DirectorialSystem,DualMonarchy,AsymmetricFederalism,ParliamentaryMonarchy,ParliamentaryRepublic,CompositeMonarchy,RepublicanRegimeInFrance)
+                  #_[canonical={
+                    default="property",
+                    base=["basic form of government"]
+                  }]
+                  #[wikidata_id="P122"],
+                  out inflation_rate: Number
+                  #_[canonical={
+                    default="property",
+                    base=["inflation rate"]
+                  }]
+                  #[wikidata_id="P1279"],
+                  out vatican_library_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["vatican library id"]
+                  }]
+                  #[wikidata_id="P1017"]
+                  #[string_values="org.wikidata:vatican_library_id"],
+                  out facet_of: Entity(org.wikidata:facet_of)
+                  #_[canonical={
+                    default="reverse_property",
+                    reverse_property=["facet of", "# facet", "# 's facet"]
+                  }]
+                  #[wikidata_id="P1269"],
+                  out dewey_decimal_classification: String
+                  #_[canonical={
+                    default="property",
+                    base=["dewey decimal classification"]
+                  }]
+                  #[wikidata_id="P1036"]
+                  #[string_values="org.wikidata:dewey_decimal_classification"],
+                  out owned_by: Array(Entity(org.wikidata:human))
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["owned by"]
+                  }]
+                  #[wikidata_id="P127"],
+                  out thailand_central_administrative_unit_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["thailand central administrative unit code"]
+                  }]
+                  #[wikidata_id="P1067"]
+                  #[string_values="org.wikidata:thailand_central_administrative_unit_code"],
+                  out depicted_by: Entity(org.wikidata:depicted_by)
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["depicted by"]
+                  }]
+                  #[wikidata_id="P1299"],
+                  out number_of_representatives_in_an_organizationlegislature_or_won_in_elections: Number
+                  #_[canonical={
+                    default="property",
+                    base=["number of representatives in an organization/legislature or won in elections"]
+                  }]
+                  #[wikidata_id="P1410"],
+                  out central_bank: Entity(org.wikidata:central_bank)
+                  #_[canonical={
+                    default="property",
+                    base=["central bank"]
+                  }]
+                  #[wikidata_id="P1304"],
+                  out located_in_the_administrative_territorial_entity: Location
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["located in the administrative territorial entity"]
+                  }]
+                  #[wikidata_id="P131"],
+                  out office_held_by_head_of_government: String
+                  #_[canonical={
+                    default="property",
+                    base=["office held by head of government"]
+                  }]
+                  #[wikidata_id="P1313"]
+                  #[string_values="org.wikidata:office_held_by_head_of_government"],
+                  out territory_claimed_by: Entity(org.wikidata:human)
+                  #_[canonical={
+                    default="property",
+                    base=["territory claimed by"]
+                  }]
+                  #[wikidata_id="P1336"],
+                  out number_of_households: Number
+                  #_[canonical={
+                    default="property",
+                    base=["number of households"]
+                  }]
+                  #[wikidata_id="P1538"],
+                  out library_of_congress_classification: String
+                  #_[canonical={
+                    default="property",
+                    base=["library of congress classification"]
+                  }]
+                  #[wikidata_id="P1149"]
+                  #[string_values="org.wikidata:library_of_congress_classification"],
+                  out female_population: Number
+                  #_[canonical={
+                    default="property",
+                    base=["female population"]
+                  }]
+                  #[wikidata_id="P1539"],
+                  out described_by_source: Entity(org.wikidata:described_by_source)
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["described by source"]
+                  }]
+                  #[wikidata_id="P1343"],
+                  out participant_in: Array(Entity(org.wikidata:event))
+                  #_[canonical={
+                    default="property",
+                    base=["participant in"]
+                  }]
+                  #[wikidata_id="P1344"],
+                  out male_population: Number
+                  #_[canonical={
+                    default="property",
+                    base=["male population"]
+                  }]
+                  #[wikidata_id="P1540"],
+                  out finnish_municipality_number: String
+                  #_[canonical={
+                    default="property",
+                    base=["finnish municipality number"]
+                  }]
+                  #[wikidata_id="P1203"]
+                  #[string_values="org.wikidata:finnish_municipality_number"],
+                  out replaces: Entity(org.wikidata:replaces)
+                  #_[canonical={
+                    default="verb",
+                    verb=["replaces"]
+                  }]
+                  #[wikidata_id="P1365"],
+                  out nukat_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["nukat id"]
+                  }]
+                  #[wikidata_id="P1207"]
+                  #[string_values="org.wikidata:nukat_id"],
+                  out replaced_by: Entity(org.wikidata:replaced_by)
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["replaced by"]
+                  }]
+                  #[wikidata_id="P1366"],
+                  out capital_of: Entity(org.wikidata:capital_of)
+                  #_[canonical={
+                    default="reverse_property",
+                    reverse_property=["capital of", "# capital", "# 's capital"]
+                  }]
+                  #[wikidata_id="P1376"],
+                  out date_of_official_opening: Date
+                  #_[canonical={
+                    default="property",
+                    base=["date of official opening"]
+                  }]
+                  #[wikidata_id="P1619"],
+                  out named_after: Entity(org.wikidata:named_after)
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["named after"]
+                  }]
+                  #[wikidata_id="P138"],
+                  out partially_coincident_with: Entity(org.wikidata:partially_coincident_with)
+                  #_[canonical={
+                    default="property",
+                    base=["partially coincident with"]
+                  }]
+                  #[wikidata_id="P1382"],
+                  out helveticarchives_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["helvetic archives id"]
+                  }]
+                  #[wikidata_id="P1255"]
+                  #[string_values="org.wikidata:helveticarchives_id"],
+                  out contains_settlement: Entity(org.wikidata:contains_settlement)
+                  #_[canonical={
+                    default="verb",
+                    verb=["contains # settlement"],
+                    base=["settlement"]
+                  }]
+                  #[wikidata_id="P1383"],
+                  out religion: Enum(Islam,Buddhism,Catholicism,Hinduism,Judaism,ShiaIslam,Methodism,Lutheranism,Baptists,Presbyterianism,SunniIslam,EasternOrthodoxy,Anglicanism)
+                  #_[canonical={
+                    default="property",
+                    base=["religion"]
+                  }]
+                  #[wikidata_id="P140"],
+                  out languages_spoken_written_or_signed: Array(Entity(tt:iso_lang_code))
+                  #_[canonical={
+                    default="property",
+                    base=["languages spoken, written or signed"]
+                  }]
+                  #[wikidata_id="P1412"],
+                  out cantic_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["cantic id"]
+                  }]
+                  #[wikidata_id="P1273"]
+                  #[string_values="org.wikidata:cantic_id"],
+                  out length: Measure(m)
+                  #_[canonical={
+                    default="property",
+                    base=["length"]
+                  }]
+                  #[wikidata_id="P2043"],
+                  out affiliation: Entity(org.wikidata:affiliation)
+                  #_[canonical={
+                    default="property",
+                    base=["affiliation"]
+                  }]
+                  #[wikidata_id="P1416"],
+                  out elevation_above_sea_level: Measure(m)
+                  #_[canonical={
+                    default="property",
+                    base=["elevation above sea level"]
+                  }]
+                  #[wikidata_id="P2044"],
+                  out area: Measure(m2)
+                  #_[canonical={
+                    default="property",
+                    base=["area"]
+                  }]
+                  #[wikidata_id="P2046"],
+                  out woeid: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["woeid"]
+                  }]
+                  #[wikidata_id="P1281"]
+                  #[string_values="org.wikidata:woeid"],
+                  out topics_main_template: Entity(org.wikidata:topics_main_template)
+                  #_[canonical={
+                    default="property",
+                    base=["topic's main template"]
+                  }]
+                  #[wikidata_id="P1424"],
+                  out width: Measure(m)
+                  #_[canonical={
+                    default="property",
+                    base=["width"]
+                  }]
+                  #[wikidata_id="P2049"],
+                  out density: Number
+                  #_[canonical={
+                    default="property",
+                    base=["density"]
+                  }]
+                  #[wikidata_id="P2054"],
+                  out heritage_designation: Entity(org.wikidata:heritage_designation)
+                  #_[canonical={
+                    default="property",
+                    base=["heritage designation"]
+                  }]
+                  #[wikidata_id="P1435"],
+                  out present_in_work: Entity(org.wikidata:present_in_work)
+                  #_[canonical={
+                    default="property",
+                    base=["present in work"]
+                  }]
+                  #[wikidata_id="P1441"],
+                  out real_gross_domestic_product_growth_rate: String
+                  #_[canonical={
+                    default="property",
+                    base=["real gross domestic product growth rate"]
+                  }]
+                  #[wikidata_id="P2219"]
+                  #[string_values="org.wikidata:real_gross_domestic_product_growth_rate"],
+                  out list_of_monuments: Entity(org.wikidata:list_of_monuments)
+                  #_[canonical={
+                    default="property",
+                    base=["list of monuments"]
+                  }]
+                  #[wikidata_id="P1456"],
+                  out life_expectancy: Measure(ms)
+                  #_[canonical={
+                    default="property",
+                    base=["life expectancy"]
+                  }]
+                  #[wikidata_id="P2250"],
+                  out category_for_people_born_here: Entity(org.wikidata:category_for_people_born_here)
+                  #_[canonical={
+                    default="property",
+                    base=["category for people born here"]
+                  }]
+                  #[wikidata_id="P1464"],
+                  out category_for_people_who_died_here: Entity(org.wikidata:category_for_people_who_died_here)
+                  #_[canonical={
+                    default="property",
+                    base=["category for people who died here"]
+                  }]
+                  #[wikidata_id="P1465"],
+                  out iata_airport_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["iata airport code"]
+                  }]
+                  #[wikidata_id="P238"]
+                  #[string_values="org.wikidata:iata_airport_code"],
+                  out architectural_style: Entity(org.wikidata:architectural_style)
+                  #_[canonical={
+                    default="property",
+                    base=["architectural style"]
+                  }]
+                  #[wikidata_id="P149"],
+                  out diameter: Measure(m)
+                  #_[canonical={
+                    default="property",
+                    base=["diameter"]
+                  }]
+                  #[wikidata_id="P2386"],
+                  out total_expenditure: Number
+                  #_[canonical={
+                    default="property",
+                    base=["total expenditure"]
+                  }]
+                  #[wikidata_id="P2402"],
+                  out contains_administrative_territorial_entity: Array(Entity(org.wikidata:contains_administrative_territorial_entity))
+                  #_[canonical={
+                    default="verb",
+                    verb=["contains administrative territorial entity"]
+                  }]
+                  #[wikidata_id="P150"],
+                  out name: String
+                  #_[canonical={
+                    default="property",
+                    base=["name"]
+                  }]
+                  #[wikidata_id="P2561"]
+                  #[string_values="org.wikidata:name"],
+                  out german_regional_key: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["german regional key"]
+                  }]
+                  #[wikidata_id="P1388"]
+                  #[string_values="org.wikidata:german_regional_key"],
+                  out motto: Entity(org.wikidata:motto)
+                  #_[canonical={
+                    default="property",
+                    base=["motto"]
+                  }]
+                  #[wikidata_id="P1546"],
+                  out hashtag: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["hashtag"]
+                  }]
+                  #[wikidata_id="P2572"]
+                  #[string_values="org.wikidata:hashtag"],
+                  out glottolog_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["glottolog code"]
+                  }]
+                  #[wikidata_id="P1394"]
+                  #[string_values="org.wikidata:glottolog_code"],
+                  out follows: Entity(org.wikidata:follows)
+                  #_[canonical={
+                    default="verb",
+                    verb=["follows"]
+                  }]
+                  #[wikidata_id="P155"],
+                  out number_of_out_of_school_children: Number
+                  #_[canonical={
+                    default="property",
+                    base=["number of out-of-school children"]
+                  }]
+                  #[wikidata_id="P2573"],
+                  out encyclopdia_britannica_online_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["encyclopædia britannica online id"]
+                  }]
+                  #[wikidata_id="P1417"]
+                  #[string_values="org.wikidata:encyclopdia_britannica_online_id"],
+                  out has_quality: Entity(org.wikidata:has_quality)
+                  #_[canonical={
+                    default="property",
+                    base=["quality"]
+                  }]
+                  #[wikidata_id="P1552"],
+                  out followed_by: Entity(org.wikidata:followed_by)
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["followed by"]
+                  }]
+                  #[wikidata_id="P156"],
+                  out lowest_point: Location
+                  #_[canonical={
+                    default="property",
+                    base=["lowest point"]
+                  }]
+                  #[wikidata_id="P1589"],
+                  out fleet_or_registration_number: String
+                  #_[canonical={
+                    default="property",
+                    base=["fleet or registration number"]
+                  }]
+                  #[wikidata_id="P2802"]
+                  #[string_values="org.wikidata:fleet_or_registration_number"],
+                  out jewish_encyclopedia_id_russian_: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["jewish encyclopedia id ( russian)"]
+                  }]
+                  #[wikidata_id="P1438"]
+                  #[string_values="org.wikidata:jewish_encyclopedia_id_russian_"],
+                  out headquarters_location: Location
+                  #_[canonical={
+                    default="property",
+                    base=["headquarters location"]
+                  }]
+                  #[wikidata_id="P159"],
+                  out driving_side: Enum(Left,Right)
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["driving side"]
+                  }]
+                  #[wikidata_id="P1622"],
+                  out postal_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["postal code"]
+                  }]
+                  #[wikidata_id="P281"]
+                  #[string_values="org.wikidata:postal_code"],
+                  out sports_referencecom_olympic_athlete_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["sports- reference.com olympic athlete id"]
+                  }]
+                  #[wikidata_id="P1447"]
+                  #[string_values="org.wikidata:sports_referencecom_olympic_athlete_id"],
+                  out vat_rate: Number
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["vat-rate"]
+                  }]
+                  #[wikidata_id="P2855"],
+                  out flag: String
+                  #_[canonical={
+                    default="property",
+                    base=["flag"]
+                  }]
+                  #[wikidata_id="P163"]
+                  #[string_values="org.wikidata:flag"],
+                  out mains_voltage: Number
+                  #_[canonical={
+                    default="property",
+                    base=["mains voltage"]
+                  }]
+                  #[wikidata_id="P2884"],
+                  out award_received: Array(Entity(org.wikidata:award))
+                  #_[canonical={
+                    default="property",
+                    base=["award received"]
+                  }]
+                  #[wikidata_id="P166"],
+                  out country: Entity(org.wikidata:country)
+                  #_[canonical={
+                    default="property",
+                    base=["country"]
+                  }]
+                  #[wikidata_id="P17"],
+                  out viciorg_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["vici.org id"]
+                  }]
+                  #[wikidata_id="P1481"]
+                  #[string_values="org.wikidata:viciorg_id"],
+                  out creator: Array(Entity(org.wikidata:human))
+                  #_[canonical={
+                    default="property",
+                    base=["creators"]
+                  }]
+                  #[wikidata_id="P170"],
+                  out ethnic_group: Array(Entity(org.wikidata:ethnic_group))
+                  #_[canonical={
+                    default="property",
+                    base=["ethnic groups"]
+                  }]
+                  #[wikidata_id="P172"],
+                  out geonames_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["geo names id"]
+                  }]
+                  #[wikidata_id="P1566"]
+                  #[string_values="org.wikidata:geonames_id"],
+                  out category_for_films_shot_at_this_location: Entity(org.wikidata:category_for_films_shot_at_this_location)
+                  #_[canonical={
+                    default="property",
+                    base=["category for films shot at this location"]
+                  }]
+                  #[wikidata_id="P1740"],
+                  out water_as_percent_of_area: Number
+                  #_[canonical={
+                    default="property",
+                    base=["water as percent of area"]
+                  }]
+                  #[wikidata_id="P2927"],
+                  out category_of_people_buried_here: Entity(org.wikidata:category_of_people_buried_here)
+                  #_[canonical={
+                    default="property",
+                    base=["category of people buried here"]
+                  }]
+                  #[wikidata_id="P1791"],
+                  out nisins_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["nis/ ins code"]
+                  }]
+                  #[wikidata_id="P1567"]
+                  #[string_values="org.wikidata:nisins_code"],
+                  out age_of_majority: Number
+                  #_[canonical={
+                    default="property",
+                    base=["age of majority"]
+                  }]
+                  #[wikidata_id="P2997"],
+                  out pleiades_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["pleiades id"]
+                  }]
+                  #[wikidata_id="P1584"]
+                  #[string_values="org.wikidata:pleiades_id"],
+                  out category_of_associated_people: Entity(org.wikidata:category_of_associated_people)
+                  #_[canonical={
+                    default="property",
+                    base=["category of associated people"]
+                  }]
+                  #[wikidata_id="P1792"],
+                  out age_of_consent: Number
+                  #_[canonical={
+                    default="property",
+                    base=["age of consent"]
+                  }]
+                  #[wikidata_id="P2999"],
+                  out marriageable_age: Number
+                  #_[canonical={
+                    default="property",
+                    base=["marriageable age"]
+                  }]
+                  #[wikidata_id="P3000"],
+                  out owner_of: Array(Entity(org.wikidata:owner_of))
+                  #_[canonical={
+                    default="reverse_property",
+                    reverse_property=["owner of", "# owner", "# 's owner"]
+                  }]
+                  #[wikidata_id="P1830"],
+                  out material_used: Entity(org.wikidata:material_used)
+                  #_[canonical={
+                    default="property",
+                    base=["material used"]
+                  }]
+                  #[wikidata_id="P186"],
+                  out slovene_cultural_heritage_register_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["slovene cultural heritage register id"]
+                  }]
+                  #[wikidata_id="P1587"]
+                  #[string_values="org.wikidata:slovene_cultural_heritage_register_id"],
+                  out different_from: Entity(org.wikidata:different_from)
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["different from"]
+                  }]
+                  #[wikidata_id="P1889"],
+                  out twinned_administrative_body: Array(Entity(org.wikidata:city))
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["twinned administrative bodies"]
+                  }]
+                  #[wikidata_id="P190"],
+                  out compulsory_education_minimum_age_: Number
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["compulsory education (minimum age)"]
+                  }]
+                  #[wikidata_id="P3270"],
+                  out compulsory_education_maximum_age_: Number
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["compulsory education (maximum age)"]
+                  }]
+                  #[wikidata_id="P3271"],
+                  out office_held_by_head_of_state: Entity(org.wikidata:office_held_by_head_of_state)
+                  #_[canonical={
+                    default="property",
+                    base=["office held by head of state"]
+                  }]
+                  #[wikidata_id="P1906"],
+                  out bbc_things_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["bbc things id"]
+                  }]
+                  #[wikidata_id="P1617"]
+                  #[string_values="org.wikidata:bbc_things_id"],
+                  out legislative_body: Entity(org.wikidata:legislative_body)
+                  #_[canonical={
+                    default="property",
+                    base=["legislative body"]
+                  }]
+                  #[wikidata_id="P194"],
+                  out located_in_or_next_to_body_of_water: Array(String)
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["located in or next to body of water"]
+                  }]
+                  #[wikidata_id="P206"]
+                  #[string_values="org.wikidata:located_in_or_next_to_body_of_water"],
+                  out marinetraffic_port_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["marine traffic port id"]
+                  }]
+                  #[wikidata_id="P1624"]
+                  #[string_values="org.wikidata:marinetraffic_port_id"],
+                  out commons_category: String
+                  #_[canonical={
+                    default="property",
+                    base=["commons category"]
+                  }]
+                  #[wikidata_id="P373"]
+                  #[string_values="org.wikidata:commons_category"],
+                  out executive_body: String
+                  #_[canonical={
+                    default="property",
+                    base=["executive body"]
+                  }]
+                  #[wikidata_id="P208"]
+                  #[string_values="org.wikidata:executive_body"],
+                  out youtube_video_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["you tube video id"]
+                  }]
+                  #[wikidata_id="P1651"]
+                  #[string_values="org.wikidata:youtube_video_id"],
+                  out highest_judicial_authority: String
+                  #_[canonical={
+                    default="property",
+                    base=["highest judicial authority"]
+                  }]
+                  #[wikidata_id="P209"]
+                  #[string_values="org.wikidata:highest_judicial_authority"],
+                  out party_chief_representative: Entity(org.wikidata:human)
+                  #_[canonical={
+                    default="property",
+                    base=["party chief representative"]
+                  }]
+                  #[wikidata_id="P210"],
+                  out suicide_rate: Number
+                  #_[canonical={
+                    default="property",
+                    base=["suicide rate"]
+                  }]
+                  #[wikidata_id="P3864"],
+                  out history_of_topic: Entity(org.wikidata:history_of_topic)
+                  #_[canonical={
+                    default="property",
+                    base=["history of topic"]
+                  }]
+                  #[wikidata_id="P2184"],
+                  out canadiana_authorities_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["canadiana authorities id"]
+                  }]
+                  #[wikidata_id="P1670"]
+                  #[string_values="org.wikidata:canadiana_authorities_id"],
+                  out licence_plate_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["licence plate code"]
+                  }]
+                  #[wikidata_id="P395"]
+                  #[string_values="org.wikidata:licence_plate_code"],
+                  out official_symbol: Entity(org.wikidata:official_symbol)
+                  #_[canonical={
+                    default="property",
+                    base=["official symbol"]
+                  }]
+                  #[wikidata_id="P2238"],
+                  out nlp_id_unique_: String
+                  #_[canonical={
+                    default="property",
+                    base=["nlp id (unique)"]
+                  }]
+                  #[wikidata_id="P1695"]
+                  #[string_values="org.wikidata:nlp_id_unique_"],
+                  out number_of_houses: Number
+                  #_[canonical={
+                    default="property",
+                    base=["number of houses"]
+                  }]
+                  #[wikidata_id="P4080"],
+                  out uses: Entity(org.wikidata:uses)
+                  #_[canonical={
+                    default="verb",
+                    verb=["uses"]
+                  }]
+                  #[wikidata_id="P2283"],
+                  out sipa_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["sipa id"]
+                  }]
+                  #[wikidata_id="P1700"]
+                  #[string_values="org.wikidata:sipa_id"],
+                  out irish_grid_reference: String
+                  #_[canonical={
+                    default="property",
+                    base=["irish grid reference"]
+                  }]
+                  #[wikidata_id="P4091"]
+                  #[string_values="org.wikidata:irish_grid_reference"],
+                  out time_period: Entity(org.wikidata:time_period)
+                  #_[canonical={
+                    default="property",
+                    base=["time period"]
+                  }]
+                  #[wikidata_id="P2348"],
+                  out has_list: Entity(org.wikidata:has_list)
+                  #_[canonical={
+                    default="property",
+                    base=["list"]
+                  }]
+                  #[wikidata_id="P2354"],
+                  out bureau_du_patrimoine_de_seine_saint_denis_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["bureau du patrimoine de seine- saint- denis id"]
+                  }]
+                  #[wikidata_id="P1794"]
+                  #[string_values="org.wikidata:bureau_du_patrimoine_de_seine_saint_denis_id"],
+                  out coat_of_arms: Entity(org.wikidata:coat_of_arms)
+                  #_[canonical={
+                    default="property",
+                    base=["coat of arms"]
+                  }]
+                  #[wikidata_id="P237"],
+                  out great_aragonese_encyclopedia_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["great aragonese encyclopedia id"]
+                  }]
+                  #[wikidata_id="P1807"]
+                  #[string_values="org.wikidata:great_aragonese_encyclopedia_id"],
+                  out post_town: String
+                  #_[canonical={
+                    default="property",
+                    base=["post town"]
+                  }]
+                  #[wikidata_id="P4595"]
+                  #[string_values="org.wikidata:post_town"],
+                  out global_anabaptist_mennonite_encyclopedia_online_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["global anabaptist mennonite encyclopedia online id"]
+                  }]
+                  #[wikidata_id="P1842"]
+                  #[string_values="org.wikidata:global_anabaptist_mennonite_encyclopedia_online_id"],
+                  out local_dialing_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["local dialing code"]
+                  }]
+                  #[wikidata_id="P473"]
+                  #[string_values="org.wikidata:local_dialing_code"],
+                  out koppen_climate_classification: Entity(org.wikidata:koppen_climate_classification)
+                  #_[canonical={
+                    default="property",
+                    base=["köppen climate classification"]
+                  }]
+                  #[wikidata_id="P2564"],
+                  out studied_by: Entity(org.wikidata:studied_by)
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["studied by"]
+                  }]
+                  #[wikidata_id="P2579"],
+                  out total_fertility_rate: Number
+                  #_[canonical={
+                    default="property",
+                    base=["total fertility rate"]
+                  }]
+                  #[wikidata_id="P4841"],
+                  out catholic_hierarchy_diocese_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["catholic hierarchy diocese id"]
+                  }]
+                  #[wikidata_id="P1866"]
+                  #[string_values="org.wikidata:catholic_hierarchy_diocese_id"],
+                  out culture: Entity(org.wikidata:culture)
+                  #_[canonical={
+                    default="property",
+                    base=["culture"]
+                  }]
+                  #[wikidata_id="P2596"],
+                  out unicode_character: String
+                  #_[canonical={
+                    default="property",
+                    base=["unicode character"]
+                  }]
+                  #[wikidata_id="P487"]
+                  #[string_values="org.wikidata:unicode_character"],
+                  out world_heritage_criteria: Enum(MasterpieceOfHumanCreativeGenius,OnDevelopmentsInArchitectureOrTechnology,MonumentalArts,TownPlanningOrLandscapeDesign,UniqueToACulturalTradition,ObjectIllustratesSignificantStageInHumanHistory,TraditionalHumanSettlementOrLandUse,CulturalObjectWithOutstandingUniversalSignificance,NaturalPhenomenaOrAreasOfExceptionalNaturalBeauty,ObjectRepresentsMajorStagesOfEarthsHistory,GeologicalProcesses,ExampleRepresentsSignificantOnGoingEcologicalAndBiologicalProcesses,SignificantNaturalHabitatsForInSituConservationOfBiologicalDiversity)
+                  #_[canonical={
+                    default="property",
+                    base=["world heritage criteria"]
+                  }]
+                  #[wikidata_id="P2614"],
+                  out cerl_thesaurus_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["cerl thesaurus id"]
+                  }]
+                  #[wikidata_id="P1871"]
+                  #[string_values="org.wikidata:cerl_thesaurus_id"],
+                  out vehicles_per_thousand_people: Number
+                  #_[canonical={
+                    default="property",
+                    base=["vehicles per thousand people"]
+                  }]
+                  #[wikidata_id="P5167"],
+                  out geography_of_topic: Entity(org.wikidata:geography_of_topic)
+                  #_[canonical={
+                    default="property",
+                    base=["geography of topic"]
+                  }]
+                  #[wikidata_id="P2633"],
+                  out danish_urban_area_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["danish urban area code"]
+                  }]
+                  #[wikidata_id="P1894"]
+                  #[string_values="org.wikidata:danish_urban_area_code"],
+                  out has_parts_of_the_class: Entity(org.wikidata:has_parts_of_the_class)
+                  #_[canonical={
+                    default="property",
+                    base=["parts of the class"]
+                  }]
+                  #[wikidata_id="P2670"],
+                  out romanization_of_belarusian_2007_system_: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["romanization of belarusian (2007 system)"]
+                  }]
+                  #[wikidata_id="P5412"]
+                  #[string_values="org.wikidata:romanization_of_belarusian_2007_system_"],
+                  out inception: Date
+                  #_[canonical={
+                    default="property",
+                    base=["inception"]
+                  }]
+                  #[wikidata_id="P571"],
+                  out digital_atlas_of_the_roman_empire_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["digital atlas of the roman empire id"]
+                  }]
+                  #[wikidata_id="P1936"]
+                  #[string_values="org.wikidata:digital_atlas_of_the_roman_empire_id"],
+                  out country_of_citizenship: Entity(org.wikidata:country_of_citizenship)
+                  #_[canonical={
+                    default="property",
+                    base=["country of citizenship"]
+                  }]
+                  #[wikidata_id="P27"],
+                  out time_of_discovery_or_invention: Date
+                  #_[canonical={
+                    default="property",
+                    base=["time of discovery or invention"]
+                  }]
+                  #[wikidata_id="P575"],
+                  out dissolved_abolished_or_demolished_date: Date
+                  #_[canonical={
+                    default="property",
+                    base=["dissolved, abolished or demolished date"]
+                  }]
+                  #[wikidata_id="P576"],
+                  out start_time: Date
+                  #_[canonical={
+                    default="property",
+                    base=["start time"]
+                  }]
+                  #[wikidata_id="P580"],
+                  out location: Location
+                  #_[canonical={
+                    default="property",
+                    base=["location"]
+                  }]
+                  #[wikidata_id="P276"],
+                  out unlocode: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["un/ locode"]
+                  }]
+                  #[wikidata_id="P1937"]
+                  #[string_values="org.wikidata:unlocode"],
+                  out end_time: Date
+                  #_[canonical={
+                    default="property",
+                    base=["end time"]
+                  }]
+                  #[wikidata_id="P582"],
+                  out point_in_time: Date
+                  #_[canonical={
+                    default="property",
+                    base=["point in time"]
+                  }]
+                  #[wikidata_id="P585"],
+                  out connects_with: String
+                  #_[canonical={
+                    default="verb",
+                    verb=["connects with"]
+                  }]
+                  #[wikidata_id="P2789"]
+                  #[string_values="org.wikidata:connects_with"],
+                  out mapillary_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["mapillary id"]
+                  }]
+                  #[wikidata_id="P1947"]
+                  #[string_values="org.wikidata:mapillary_id"],
+                  out official_number_of_town_quarter: String
+                  #_[canonical={
+                    default="property",
+                    base=["official number of town quarter"]
+                  }]
+                  #[wikidata_id="P5901"]
+                  #[string_values="org.wikidata:official_number_of_town_quarter"],
+                  out subclass_of: String
+                  #_[canonical={
+                    default="reverse_property",
+                    reverse_property=["subclass of", "# subclass", "# 's subclass"]
+                  }]
+                  #[wikidata_id="P279"]
+                  #[string_values="org.wikidata:subclass_of"],
+                  out trismegistos_geo_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["trismegistos geo id"]
+                  }]
+                  #[wikidata_id="P1958"]
+                  #[string_values="org.wikidata:trismegistos_geo_id"],
+                  out annual_number_of_weddings: Number
+                  #_[canonical={
+                    default="property",
+                    base=["annual number of weddings"]
+                  }]
+                  #[wikidata_id="P5982"],
+                  out house_publication: String
+                  #_[canonical={
+                    default="property",
+                    base=["house publication"]
+                  }]
+                  #[wikidata_id="P2813"]
+                  #[string_values="org.wikidata:house_publication"],
+                  out foursquare_venue_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["foursquare venue id"]
+                  }]
+                  #[wikidata_id="P1968"]
+                  #[string_values="org.wikidata:foursquare_venue_id"],
+                  out os_grid_reference: String
+                  #_[canonical={
+                    default="property",
+                    base=["os grid reference"]
+                  }]
+                  #[wikidata_id="P613"]
+                  #[string_values="org.wikidata:os_grid_reference"],
+                  out writing_system: Enum(ArabicAlphabet,ChineseCharacters,CyrillicScript,GreekAlphabet,Hangul,LatinScript,ArmenianAlphabet,HebrewAlphabet,Devanagari,Kanji)
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["writing system"]
+                  }]
+                  #[wikidata_id="P282"],
+                  out urban_population: Number
+                  #_[canonical={
+                    default="property",
+                    base=["urban population"]
+                  }]
+                  #[wikidata_id="P6343"],
+                  out inegi_locality_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["inegi locality id"]
+                  }]
+                  #[wikidata_id="P1976"]
+                  #[string_values="org.wikidata:inegi_locality_id"],
+                  out emergency_phone_number: String
+                  #_[canonical={
+                    default="property",
+                    base=["emergency phone number"]
+                  }]
+                  #[wikidata_id="P2852"]
+                  #[string_values="org.wikidata:emergency_phone_number"],
+                  out electrical_plug_type: String
+                  #_[canonical={
+                    default="property",
+                    base=["electrical plug type"]
+                  }]
+                  #[wikidata_id="P2853"]
+                  #[string_values="org.wikidata:electrical_plug_type"],
+                  out designed_by: Entity(org.wikidata:human)
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["designed by"]
+                  }]
+                  #[wikidata_id="P287"],
+                  out twitter_username: String
+                  #_[canonical={
+                    default="property",
+                    base=["twitter username"]
+                  }]
+                  #[wikidata_id="P2002"]
+                  #[string_values="org.wikidata:twitter_username"],
+                  out instagram_username: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["instagram username"]
+                  }]
+                  #[wikidata_id="P2003"]
+                  #[string_values="org.wikidata:instagram_username"],
+                  out visitor_centre: Entity(org.wikidata:visitor_centre)
+                  #_[canonical={
+                    default="property",
+                    base=["visitor centre"]
+                  }]
+                  #[wikidata_id="P2872"],
+                  out language_used: Entity(tt:iso_lang_code)
+                  #_[canonical={
+                    default="property",
+                    base=["language used"]
+                  }]
+                  #[wikidata_id="P2936"],
+                  out nalt_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["nalt id"]
+                  }]
+                  #[wikidata_id="P2004"]
+                  #[string_values="org.wikidata:nalt_id"],
+                  out maximum_temperature_record: Measure(C)
+                  #_[canonical={
+                    default="property",
+                    base=["maximum temperature record"]
+                  }]
+                  #[wikidata_id="P6591"],
+                  out permanent_duplicated_item: Entity(org.wikidata:permanent_duplicated_item)
+                  #_[canonical={
+                    default="property",
+                    base=["permanent duplicated item"]
+                  }]
+                  #[wikidata_id="P2959"],
+                  out continent: Enum(Africa,SouthAmerica,Europe,Asia,NorthAmerica,Antarctica,Oceania,Americas,Australia,Eurasia,CentralAmerica,AustraliaAndOceania,Caribbean,Tamriel,Faerun,KaraTur,Westeros,NorthernAmericaAndMexico)
+                  #_[canonical={
+                    default="property",
+                    base=["continent"]
+                  }]
+                  #[wikidata_id="P30"],
+                  out facebook_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["facebook id"]
+                  }]
+                  #[wikidata_id="P2013"]
+                  #[string_values="org.wikidata:facebook_id"],
+                  out literacy_rate: Number
+                  #_[canonical={
+                    default="property",
+                    base=["literacy rate"]
+                  }]
+                  #[wikidata_id="P6897"],
+                  out located_in_protected_area: Entity(org.wikidata:located_in_protected_area)
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["located in protected area"]
+                  }]
+                  #[wikidata_id="P3018"],
+                  out github_username: String
+                  #_[canonical={
+                    default="property",
+                    base=["git hub username"]
+                  }]
+                  #[wikidata_id="P2037"]
+                  #[string_values="org.wikidata:github_username"],
+                  out service_entry: Date
+                  #_[canonical={
+                    default="property",
+                    base=["service entry"]
+                  }]
+                  #[wikidata_id="P729"],
+                  out service_retirement: Date
+                  #_[canonical={
+                    default="property",
+                    base=["service retirement"]
+                  }]
+                  #[wikidata_id="P730"],
+                  out destroyed: Entity(org.wikidata:destroyed)
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["destroyed"]
+                  }]
+                  #[wikidata_id="P3082"],
+                  out national_gallery_of_victoria_artist_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["national gallery of victoria artist id"]
+                  }]
+                  #[wikidata_id="P2041"]
+                  #[string_values="org.wikidata:national_gallery_of_victoria_artist_id"],
+                  out pseudonym: String
+                  #_[canonical={
+                    default="property",
+                    base=["pseudonym"]
+                  }]
+                  #[wikidata_id="P742"]
+                  #[string_values="org.wikidata:pseudonym"],
+                  out kml_file: Entity(org.wikidata:kml_file)
+                  #_[canonical={
+                    default="property",
+                    base=["kml file"]
+                  }]
+                  #[wikidata_id="P3096"],
+                  out bc_geographical_names_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["bc geographical names id"]
+                  }]
+                  #[wikidata_id="P2099"]
+                  #[string_values="org.wikidata:bc_geographical_names_id"],
+                  out instance_of: Enum(Human,Village,Book,House,Film,Taxon,Building,FamilyName,Album,HumanSettlement,Painting,Version,Edition,OrTranslation,Business)
+                  #_[canonical={
+                    default="reverse_property",
+                    reverse_property=["instance of", "# instance", "# 's instance"]
+                  }]
+                  #[wikidata_id="P31"],
+                  out minimum_temperature_record: Measure(C)
+                  #_[canonical={
+                    default="property",
+                    base=["minimum temperature record"]
+                  }]
+                  #[wikidata_id="P7422"],
+                  out bti_governance_index: Number
+                  #_[canonical={
+                    default="property",
+                    base=["bti governance index"]
+                  }]
+                  #[wikidata_id="P8476"],
+                  out territory_overlaps: Entity(org.wikidata:territory_overlaps)
+                  #_[canonical={
+                    default="property",
+                    base=["territory overlaps"]
+                  }]
+                  #[wikidata_id="P3179"],
+                  out bti_status_index: Number
+                  #_[canonical={
+                    default="property",
+                    base=["bti status index"]
+                  }]
+                  #[wikidata_id="P8477"],
+                  out significant_person: Entity(org.wikidata:human)
+                  #_[canonical={
+                    default="property",
+                    base=["significant person"]
+                  }]
+                  #[wikidata_id="P3342"],
+                  out coextensive_with: Entity(org.wikidata:coextensive_with)
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["coextensive with"]
+                  }]
+                  #[wikidata_id="P3403"],
+                  out head_of_state: Entity(org.wikidata:human)
+                  #_[canonical={
+                    default="property",
+                    base=["head of state"]
+                  }]
+                  #[wikidata_id="P35"],
+                  out subsidiary: Entity(org.wikidata:subsidiary)
+                  #_[canonical={
+                    default="property",
+                    base=["subsidiary"]
+                  }]
+                  #[wikidata_id="P355"],
+                  out capital: Entity(org.wikidata:city)
+                  #_[canonical={
+                    default="property",
+                    base=["capital"]
+                  }]
+                  #[wikidata_id="P36"],
+                  out wiki_loves_monuments_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["wiki loves monuments id"]
+                  }]
+                  #[wikidata_id="P2186"]
+                  #[string_values="org.wikidata:wiki_loves_monuments_id"],
+                  out is_a_list_of: Entity(org.wikidata:is_a_list_of)
+                  #_[canonical={
+                    default="reverse_property",
+                    reverse_property=["a list of"]
+                  }]
+                  #[wikidata_id="P360"],
+                  out part_of: Array(String)
+                  #_[canonical={
+                    default="reverse_property",
+                    reverse_property=["part of", "# part", "# 's part"]
+                  }]
+                  #[wikidata_id="P361"]
+                  #[string_values="org.wikidata:part_of"],
+                  out official_language: Array(Entity(tt:iso_lang_code))
+                  #_[canonical={
+                    default="property",
+                    base=["official languages"]
+                  }]
+                  #[wikidata_id="P37"],
+                  out currency: Entity(org.wikidata:currency)
+                  #_[canonical={
+                    default="property",
+                    base=["currency"]
+                  }]
+                  #[wikidata_id="P38"],
+                  out located_in_present_day_administrative_territorial_entity: Location
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["located in present-day administrative territorial entity"]
+                  }]
+                  #[wikidata_id="P3842"],
+                  out yso_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["yso id"]
+                  }]
+                  #[wikidata_id="P2347"]
+                  #[string_values="org.wikidata:yso_id"],
+                  out position_held: Array(String)
+                  #_[canonical={
+                    default="property",
+                    base=["position held"]
+                  }]
+                  #[wikidata_id="P39"]
+                  #[string_values="org.wikidata:position_held"],
+                  out language_of_work_or_name: Entity(tt:iso_lang_code)
+                  #_[canonical={
+                    default="property",
+                    base=["language of work or name"]
+                  }]
+                  #[wikidata_id="P407"],
+                  out chemins_de_memoire_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["chemins de mémoire id"]
+                  }]
+                  #[wikidata_id="P2382"]
+                  #[string_values="org.wikidata:chemins_de_memoire_id"],
+                  out patron_saint: Entity(org.wikidata:human)
+                  #_[canonical={
+                    default="property",
+                    base=["patron saint"]
+                  }]
+                  #[wikidata_id="P417"],
+                  out ballotpedia_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["ballotpedia id"]
+                  }]
+                  #[wikidata_id="P2390"]
+                  #[string_values="org.wikidata:ballotpedia_id"],
+                  out seal_description: Entity(org.wikidata:seal_description)
+                  #_[canonical={
+                    default="property",
+                    base=["seal description"]
+                  }]
+                  #[wikidata_id="P418"],
+                  out youtube_channel_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["you tube channel id"]
+                  }]
+                  #[wikidata_id="P2397"]
+                  #[string_values="org.wikidata:youtube_channel_id"],
+                  out located_in_time_zone: Array(Entity(org.wikidata:located_in_time_zone))
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["located in time zones"]
+                  }]
+                  #[wikidata_id="P421"],
+                  out official_app: Entity(org.wikidata:official_app)
+                  #_[canonical={
+                    default="property",
+                    base=["official app"]
+                  }]
+                  #[wikidata_id="P4290"],
+                  out library_of_congress_authority_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["library of congress authority id"]
+                  }]
+                  #[wikidata_id="P244"]
+                  #[string_values="org.wikidata:library_of_congress_authority_id"],
+                  out mountain_range: Entity(org.wikidata:mountain_range)
+                  #_[canonical={
+                    default="property",
+                    base=["mountain range"]
+                  }]
+                  #[wikidata_id="P4552"],
+                  out theatricalia_theatre_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["theatricalia theatre id"]
+                  }]
+                  #[wikidata_id="P2468"]
+                  #[string_values="org.wikidata:theatricalia_theatre_id"],
+                  out foundational_text: Entity(org.wikidata:foundational_text)
+                  #_[canonical={
+                    default="property",
+                    base=["foundational text"]
+                  }]
+                  #[wikidata_id="P457"],
+                  out latvian_toponymic_names_database_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["latvian toponymic names database id"]
+                  }]
+                  #[wikidata_id="P2496"]
+                  #[string_values="org.wikidata:latvian_toponymic_names_database_id"],
+                  out said_to_be_the_same_as: Entity(org.wikidata:said_to_be_the_same_as)
+                  #_[canonical={
+                    default="verb",
+                    verb=["said to be the same as"]
+                  }]
+                  #[wikidata_id="P460"],
+                  out opposite_of: Entity(org.wikidata:opposite_of)
+                  #_[canonical={
+                    default="reverse_property",
+                    reverse_property=["opposite of", "# opposite", "# 's opposite"]
+                  }]
+                  #[wikidata_id="P461"],
+                  out historical_gazetteer_gov_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["historical gazetteer ( gov) id"]
+                  }]
+                  #[wikidata_id="P2503"]
+                  #[string_values="org.wikidata:historical_gazetteer_gov_id"],
+                  out drainage_basin: Entity(org.wikidata:drainage_basin)
+                  #_[canonical={
+                    default="property",
+                    base=["drainage basin"]
+                  }]
+                  #[wikidata_id="P4614"],
+                  out member_of: Entity(org.wikidata:member_of)
+                  #_[canonical={
+                    default="reverse_property",
+                    reverse_property=["member of", "# member", "# 's member"]
+                  }]
+                  #[wikidata_id="P463"],
+                  out shares_border_with: Array(Entity(org.wikidata:city))
+                  #_[canonical={
+                    default="property",
+                    base=["shares border with"]
+                  }]
+                  #[wikidata_id="P47"],
+                  out archives_at: Location
+                  #_[canonical={
+                    default="property",
+                    base=["archives at"]
+                  }]
+                  #[wikidata_id="P485"],
+                  out country_of_origin: String
+                  #_[canonical={
+                    default="property",
+                    base=["country of origin"]
+                  }]
+                  #[wikidata_id="P495"]
+                  #[string_values="org.wikidata:country_of_origin"],
+                  out exclave_of: String
+                  #_[canonical={
+                    default="reverse_property",
+                    reverse_property=["exclave of", "# exclave", "# 's exclave"]
+                  }]
+                  #[wikidata_id="P500"]
+                  #[string_values="org.wikidata:exclave_of"],
+                  out on_focus_list_of_wikimedia_project: String
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["on focus list of wikimedia project"]
+                  }]
+                  #[wikidata_id="P5008"]
+                  #[string_values="org.wikidata:on_focus_list_of_wikimedia_project"],
+                  out enclave_within: String
+                  #_[canonical={
+                    default="property",
+                    base=["enclave within"]
+                  }]
+                  #[wikidata_id="P501"]
+                  #[string_values="org.wikidata:enclave_within"],
+                  out wikimedia_outline: String
+                  #_[canonical={
+                    default="property",
+                    base=["wikimedia outline"]
+                  }]
+                  #[wikidata_id="P5125"]
+                  #[string_values="org.wikidata:wikimedia_outline"],
+                  out has_part: String
+                  #_[canonical={
+                    default="property",
+                    base=["part"]
+                  }]
+                  #[wikidata_id="P527"]
+                  #[string_values="org.wikidata:has_part"],
+                  out diplomatic_relation: Entity(org.wikidata:city)
+                  #_[canonical={
+                    default="property",
+                    base=["diplomatic relation"]
+                  }]
+                  #[wikidata_id="P530"],
+                  out bvmc_person_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["bvmc person id"]
+                  }]
+                  #[wikidata_id="P2799"]
+                  #[string_values="org.wikidata:bvmc_person_id"],
+                  out website_account_on: Entity(org.wikidata:website_account_on)
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["website account on"]
+                  }]
+                  #[wikidata_id="P553"],
+                  out state_of_conservation: Enum(Renewed,InDanger,DemolishedOrDestroyed,Ruin,Preserved,Unexcavated,PartiallyDestroyed,Disassembled,Abandoned,UnknownPreservationStatus,Restored)
+                  #_[canonical={
+                    default="property",
+                    base=["state of conservation"]
+                  }]
+                  #[wikidata_id="P5816"],
+                  out google_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["google+ id"]
+                  }]
+                  #[wikidata_id="P2847"]
+                  #[string_values="org.wikidata:google_id"],
+                  out head_of_government: Array(Entity(org.wikidata:human))
+                  #_[canonical={
+                    default="property",
+                    base=["head of governments"]
+                  }]
+                  #[wikidata_id="P6"],
+                  out highest_point: Location
+                  #_[canonical={
+                    default="property",
+                    base=["highest point"]
+                  }]
+                  #[wikidata_id="P610"],
+                  out maintained_by_wikiproject: String
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["maintained by wiki project"]
+                  }]
+                  #[wikidata_id="P6104"]
+                  #[string_values="org.wikidata:maintained_by_wikiproject"],
+                  out pleiades_category_identifier: String
+                  #_[canonical={
+                    default="property",
+                    base=["pleiades category identifier"]
+                  }]
+                  #[wikidata_id="P2938"]
+                  #[string_values="org.wikidata:pleiades_category_identifier"],
+                  out nomisma_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["nomisma id"]
+                  }]
+                  #[wikidata_id="P2950"]
+                  #[string_values="org.wikidata:nomisma_id"],
+                  out has_works_in_the_collection: String
+                  #_[canonical={
+                    default="property",
+                    base=["works in the collection"]
+                  }]
+                  #[wikidata_id="P6379"]
+                  #[string_values="org.wikidata:has_works_in_the_collection"],
+                  out sport: Array(Enum(Athletics,Tennis,Volleyball,AssociationFootball,RoadBicycleRacing,Baseball,Basketball,Cricket,RugbyUnion,Badminton,Handball,Swimming,AmericanFootball,IceHockey,AustralianRulesFootball,Rowing,Powerboating,CueSports))
+                  #_[canonical={
+                    default="property",
+                    base=["sports"]
+                  }]
+                  #[wikidata_id="P641"],
+                  out cultural_heritage_database_in_austria_objektid: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["cultural heritage database in austria objekt id"]
+                  }]
+                  #[wikidata_id="P2951"]
+                  #[string_values="org.wikidata:cultural_heritage_database_in_austria_objektid"],
+                  out historical_region: Location
+                  #_[canonical={
+                    default="property",
+                    base=["historical region"]
+                  }]
+                  #[wikidata_id="P6885"],
+                  out iso_3166_1_alpha_2_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["iso 3166-1 alpha-2 code"]
+                  }]
+                  #[wikidata_id="P297"]
+                  #[string_values="org.wikidata:iso_3166_1_alpha_2_code"],
+                  out located_on_terrain_feature: Location
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["located on terrain feature"]
+                  }]
+                  #[wikidata_id="P706"],
+                  out iso_3166_1_alpha_3_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["iso 3166-1 alpha-3 code"]
+                  }]
+                  #[wikidata_id="P298"]
+                  #[string_values="org.wikidata:iso_3166_1_alpha_3_code"],
+                  out diocese: String
+                  #_[canonical={
+                    default="property",
+                    base=["diocese"]
+                  }]
+                  #[wikidata_id="P708"]
+                  #[string_values="org.wikidata:diocese"],
+                  out location_of_formation: Location
+                  #_[canonical={
+                    default="property",
+                    base=["location of formation"]
+                  }]
+                  #[wikidata_id="P740"],
+                  out iso_3166_2_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["iso 3166-2 code"]
+                  }]
+                  #[wikidata_id="P300"]
+                  #[string_values="org.wikidata:iso_3166_2_code"],
+                  out category_for_the_interior_of_the_item: String
+                  #_[canonical={
+                    default="property",
+                    base=["category for the interior of the item"]
+                  }]
+                  #[wikidata_id="P7561"]
+                  #[string_values="org.wikidata:category_for_the_interior_of_the_item"],
+                  out electoral_district: String
+                  #_[canonical={
+                    default="property",
+                    base=["electoral district"]
+                  }]
+                  #[wikidata_id="P768"]
+                  #[string_values="org.wikidata:electoral_district"],
+                  out iranica_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["iranica id"]
+                  }]
+                  #[wikidata_id="P3021"]
+                  #[string_values="org.wikidata:iranica_id"],
+                  out cause_of_destruction: String
+                  #_[canonical={
+                    default="property",
+                    base=["cause of destruction"]
+                  }]
+                  #[wikidata_id="P770"]
+                  #[string_values="org.wikidata:cause_of_destruction"],
+                  out itu_letter_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["itu letter code"]
+                  }]
+                  #[wikidata_id="P3024"]
+                  #[string_values="org.wikidata:itu_letter_code"],
+                  out top_level_internet_domain: String
+                  #_[canonical={
+                    default="property",
+                    base=["top-level internet domain"]
+                  }]
+                  #[wikidata_id="P78"]
+                  #[string_values="org.wikidata:top_level_internet_domain"],
+                  out iwm_memorial_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["iwm memorial id"]
+                  }]
+                  #[wikidata_id="P3038"]
+                  #[string_values="org.wikidata:iwm_memorial_id"],
+                  out category_for_maps: String
+                  #_[canonical={
+                    default="property",
+                    base=["category for maps"]
+                  }]
+                  #[wikidata_id="P7867"]
+                  #[string_values="org.wikidata:category_for_maps"],
+                  out wipo_st3: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["wipo st.3"]
+                  }]
+                  #[wikidata_id="P3068"]
+                  #[string_values="org.wikidata:wipo_st3"],
+                  out significant_event: String
+                  #_[canonical={
+                    default="property",
+                    base=["significant event"]
+                  }]
+                  #[wikidata_id="P793"]
+                  #[string_values="org.wikidata:significant_event"],
+                  out guardian_topic_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["guardian topic id"]
+                  }]
+                  #[wikidata_id="P3106"]
+                  #[string_values="org.wikidata:guardian_topic_id"],
+                  out associated_electoral_district: String
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["associated electoral district"]
+                  }]
+                  #[wikidata_id="P7938"]
+                  #[string_values="org.wikidata:associated_electoral_district"],
+                  out opendomesday_settlement_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["open domesday settlement id"]
+                  }]
+                  #[wikidata_id="P3118"]
+                  #[string_values="org.wikidata:opendomesday_settlement_id"],
+                  out historic_county: String
+                  #_[canonical={
+                    default="property",
+                    base=["historic county"]
+                  }]
+                  #[wikidata_id="P7959"]
+                  #[string_values="org.wikidata:historic_county"],
+                  out authority: String
+                  #_[canonical={
+                    default="property",
+                    base=["authority"]
+                  }]
+                  #[wikidata_id="P797"]
+                  #[string_values="org.wikidata:authority"],
+                  out tripadvisor_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["trip advisor id"]
+                  }]
+                  #[wikidata_id="P3134"]
+                  #[string_values="org.wikidata:tripadvisor_id"],
+                  out connecting_line: String
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["connecting line"]
+                  }]
+                  #[wikidata_id="P81"]
+                  #[string_values="org.wikidata:connecting_line"],
+                  out dedicated_to: String
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["dedicated to"]
+                  }]
+                  #[wikidata_id="P825"]
+                  #[string_values="org.wikidata:dedicated_to"],
+                  out statoids_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["statoids id"]
+                  }]
+                  #[wikidata_id="P3175"]
+                  #[string_values="org.wikidata:statoids_id"],
+                  out public_holiday: String
+                  #_[canonical={
+                    default="property",
+                    base=["public holiday"]
+                  }]
+                  #[wikidata_id="P832"]
+                  #[string_values="org.wikidata:public_holiday"],
+                  out vk_username: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["vk username"]
+                  }]
+                  #[wikidata_id="P3185"]
+                  #[string_values="org.wikidata:vk_username"],
+                  out day_in_year_for_periodic_occurrence: String
+                  #_[canonical={
+                    default="property",
+                    base=["day in year for periodic occurrence"]
+                  }]
+                  #[wikidata_id="P837"]
+                  #[string_values="org.wikidata:day_in_year_for_periodic_occurrence"],
+                  out lastfm_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["last.fm id"]
+                  }]
+                  #[wikidata_id="P3192"]
+                  #[string_values="org.wikidata:lastfm_id"],
+                  out architect: Entity(org.wikidata:human)
+                  #_[canonical={
+                    default="property",
+                    base=["architect"]
+                  }]
+                  #[wikidata_id="P84"],
+                  out jewishgen_locality_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["jewish gen locality id"]
+                  }]
+                  #[wikidata_id="P3198"]
+                  #[string_values="org.wikidata:jewishgen_locality_id"],
+                  out open_data_portal: Entity(org.wikidata:open_data_portal)
+                  #_[canonical={
+                    default="property",
+                    base=["open data portal"]
+                  }]
+                  #[wikidata_id="P8402"],
+                  out datagouvfr_organisation_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["data.gouv.fr organisation id"]
+                  }]
+                  #[wikidata_id="P3206"]
+                  #[string_values="org.wikidata:datagouvfr_organisation_id"],
+                  out feast_day: Entity(org.wikidata:feast_day)
+                  #_[canonical={
+                    default="property",
+                    base=["feast day"]
+                  }]
+                  #[wikidata_id="P841"],
+                  out anthem: Entity(org.wikidata:song)
+                  #_[canonical={
+                    default="property",
+                    base=["anthem"]
+                  }]
+                  #[wikidata_id="P85"],
+                  out indian_census_area_code_2001_: String
+                  #_[canonical={
+                    default="property",
+                    base=["indian census area code (2001)"]
+                  }]
+                  #[wikidata_id="P3213"]
+                  #[string_values="org.wikidata:indian_census_area_code_2001_"],
+                  out foods_traditionally_associated: Entity(org.wikidata:foods_traditionally_associated)
+                  #_[canonical={
+                    default="property",
+                    base=["foods traditionally associated"]
+                  }]
+                  #[wikidata_id="P868"],
+                  out commissioned_by: Entity(org.wikidata:human)
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["commissioned by"]
+                  }]
+                  #[wikidata_id="P88"],
+                  out encyclopdia_universalis_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["encyclopædia universalis id"]
+                  }]
+                  #[wikidata_id="P3219"]
+                  #[string_values="org.wikidata:encyclopdia_universalis_id"],
+                  out topics_main_category: Entity(org.wikidata:topics_main_category)
+                  #_[canonical={
+                    default="property",
+                    base=["topic's main category"]
+                  }]
+                  #[wikidata_id="P910"],
+                  out new_york_times_topic_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["new york times topic id"]
+                  }]
+                  #[wikidata_id="P3221"]
+                  #[string_values="org.wikidata:new_york_times_topic_id"],
+                  out has_facility: Entity(org.wikidata:has_facility)
+                  #_[canonical={
+                    default="property",
+                    base=["facility"]
+                  }]
+                  #[wikidata_id="P912"],
+                  out nese_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["ne.se id"]
+                  }]
+                  #[wikidata_id="P3222"]
+                  #[string_values="org.wikidata:nese_id"],
+                  out main_regulatory_text: Entity(org.wikidata:main_regulatory_text)
+                  #_[canonical={
+                    default="property",
+                    base=["main regulatory text"]
+                  }]
+                  #[wikidata_id="P92"],
+                  out catholic_encyclopedia_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["catholic encyclopedia id"]
+                  }]
+                  #[wikidata_id="P3241"]
+                  #[string_values="org.wikidata:catholic_encyclopedia_id"],
+                  out queensland_place_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["queensland place id"]
+                  }]
+                  #[wikidata_id="P3257"]
+                  #[string_values="org.wikidata:queensland_place_id"],
+                  out flickr_user_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["flickr user id"]
+                  }]
+                  #[wikidata_id="P3267"]
+                  #[string_values="org.wikidata:flickr_user_id"],
+                  out patrimonio_inmueble_de_andalucia_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["patrimonio inmueble de andalucía id"]
+                  }]
+                  #[wikidata_id="P3318"]
+                  #[string_values="org.wikidata:patrimonio_inmueble_de_andalucia_id"],
+                  out treccani_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["treccani id"]
+                  }]
+                  #[wikidata_id="P3365"]
+                  #[string_values="org.wikidata:treccani_id"],
+                  out consolidated_code_of_the_electronic_catalog_of_libraries_of_belarus: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["consolidated code of the electronic catalog of libraries of belarus"]
+                  }]
+                  #[wikidata_id="P3390"]
+                  #[string_values="org.wikidata:consolidated_code_of_the_electronic_catalog_of_libraries_of_belarus"],
+                  out littlesis_organization_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["little sis organization id"]
+                  }]
+                  #[wikidata_id="P3393"]
+                  #[string_values="org.wikidata:littlesis_organization_id"],
+                  out quora_topic_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["quora topic id"]
+                  }]
+                  #[wikidata_id="P3417"]
+                  #[string_values="org.wikidata:quora_topic_id"],
+                  out insee_countries_and_foreign_territories_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["insee countries and foreign territories code"]
+                  }]
+                  #[wikidata_id="P3422"]
+                  #[string_values="org.wikidata:insee_countries_and_foreign_territories_code"],
+                  out imdb_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["imdb id"]
+                  }]
+                  #[wikidata_id="P345"]
+                  #[string_values="org.wikidata:imdb_id"],
+                  out vicnames_place_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["vicnames place id"]
+                  }]
+                  #[wikidata_id="P3472"]
+                  #[string_values="org.wikidata:vicnames_place_id"],
+                  out omni_topic_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["omni topic id"]
+                  }]
+                  #[wikidata_id="P3479"]
+                  #[string_values="org.wikidata:omni_topic_id"],
+                  out ringgold_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["ringgold id"]
+                  }]
+                  #[wikidata_id="P3500"]
+                  #[string_values="org.wikidata:ringgold_id"],
+                  out dagens_nyheter_topic_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["dagens nyheter topic id"]
+                  }]
+                  #[wikidata_id="P3509"]
+                  #[string_values="org.wikidata:dagens_nyheter_topic_id"],
+                  out geographical_names_board_of_nsw_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["geographical names board of nsw id"]
+                  }]
+                  #[wikidata_id="P3517"]
+                  #[string_values="org.wikidata:geographical_names_board_of_nsw_id"],
+                  out cultureel_woordenboek_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["cultureel woordenboek id"]
+                  }]
+                  #[wikidata_id="P3569"]
+                  #[string_values="org.wikidata:cultureel_woordenboek_id"],
+                  out eu_vat_number: String
+                  #_[canonical={
+                    default="property",
+                    base=["eu vat number"]
+                  }]
+                  #[wikidata_id="P3608"]
+                  #[string_values="org.wikidata:eu_vat_number"],
+                  out le_monde_diplomatique_subject_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["le monde diplomatique subject id"]
+                  }]
+                  #[wikidata_id="P3612"]
+                  #[string_values="org.wikidata:le_monde_diplomatique_subject_id"],
+                  out vision_of_britain_place_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["vision of britain place id"]
+                  }]
+                  #[wikidata_id="P3616"]
+                  #[string_values="org.wikidata:vision_of_britain_place_id"],
+                  out british_museum_place_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["british museum place id"]
+                  }]
+                  #[wikidata_id="P3633"]
+                  #[string_values="org.wikidata:british_museum_place_id"],
+                  out kepn_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["kepn id"]
+                  }]
+                  #[wikidata_id="P3639"]
+                  #[string_values="org.wikidata:kepn_id"],
+                  out insee_municipality_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["insee municipality code"]
+                  }]
+                  #[wikidata_id="P374"]
+                  #[string_values="org.wikidata:insee_municipality_code"],
+                  out openmlol_author_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["open mlol author id"]
+                  }]
+                  #[wikidata_id="P3762"]
+                  #[string_values="org.wikidata:openmlol_author_id"],
+                  out merimee_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["mérimée id"]
+                  }]
+                  #[wikidata_id="P380"]
+                  #[string_values="org.wikidata:merimee_id"],
+                  out inegi_municipality_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["inegi municipality id"]
+                  }]
+                  #[wikidata_id="P3801"]
+                  #[string_values="org.wikidata:inegi_municipality_id"],
+                  out jstor_topic_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["jstor topic id"]
+                  }]
+                  #[wikidata_id="P3827"]
+                  #[string_values="org.wikidata:jstor_topic_id"],
+                  out pinterest_username: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["pinterest username"]
+                  }]
+                  #[wikidata_id="P3836"]
+                  #[string_values="org.wikidata:pinterest_username"],
+                  out open_library_subject_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["open library subject id"]
+                  }]
+                  #[wikidata_id="P3847"]
+                  #[string_values="org.wikidata:open_library_subject_id"],
+                  out ishim_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["ishim id"]
+                  }]
+                  #[wikidata_id="P3906"]
+                  #[string_values="org.wikidata:ishim_id"],
+                  out unesco_thesaurus_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["unesco thesaurus id"]
+                  }]
+                  #[wikidata_id="P3916"]
+                  #[string_values="org.wikidata:unesco_thesaurus_id"],
+                  out digital_valencian_library_author_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["digital valencian library author id"]
+                  }]
+                  #[wikidata_id="P3932"]
+                  #[string_values="org.wikidata:digital_valencian_library_author_id"],
+                  out israel_antiquities_authority_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["israel antiquities authority id"]
+                  }]
+                  #[wikidata_id="P3941"]
+                  #[string_values="org.wikidata:israel_antiquities_authority_id"],
+                  out bdcyl_authority_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["bdcyl authority id"]
+                  }]
+                  #[wikidata_id="P3964"]
+                  #[string_values="org.wikidata:bdcyl_authority_id"],
+                  out songkick_venue_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["songkick venue id"]
+                  }]
+                  #[wikidata_id="P3977"]
+                  #[string_values="org.wikidata:songkick_venue_id"],
+                  out subreddit: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["subreddit"]
+                  }]
+                  #[wikidata_id="P3984"]
+                  #[string_values="org.wikidata:subreddit"],
+                  out ssb_urban_settlement_number: String
+                  #_[canonical={
+                    default="property",
+                    base=["ssb urban settlement number"]
+                  }]
+                  #[wikidata_id="P3992"]
+                  #[string_values="org.wikidata:ssb_urban_settlement_number"],
+                  out facebook_id_namenumber: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["facebook id name/number"]
+                  }]
+                  #[wikidata_id="P4003"]
+                  #[string_values="org.wikidata:facebook_id_namenumber"],
+                  out bavarikon_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["bavarikon id"]
+                  }]
+                  #[wikidata_id="P4005"]
+                  #[string_values="org.wikidata:bavarikon_id"],
+                  out australian_statistical_geography_2011_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["australian statistical geography 2011 id"]
+                  }]
+                  #[wikidata_id="P4014"]
+                  #[string_values="org.wikidata:australian_statistical_geography_2011_id"],
+                  out openstreetmap_relation_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["open street map relation id"]
+                  }]
+                  #[wikidata_id="P402"]
+                  #[string_values="org.wikidata:openstreetmap_relation_id"],
+                  out fandom_wiki_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["fandom wiki id"]
+                  }]
+                  #[wikidata_id="P4073"]
+                  #[string_values="org.wikidata:fandom_wiki_id"],
+                  out australian_statistical_geography_2016_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["australian statistical geography 2016 id"]
+                  }]
+                  #[wikidata_id="P4093"]
+                  #[string_values="org.wikidata:australian_statistical_geography_2016_id"],
+                  out michelin_voyages_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["michelin voyages id"]
+                  }]
+                  #[wikidata_id="P4161"]
+                  #[string_values="org.wikidata:michelin_voyages_id"],
+                  out world_heritage_tentative_list_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["world heritage tentative list id"]
+                  }]
+                  #[wikidata_id="P4171"]
+                  #[string_values="org.wikidata:world_heritage_tentative_list_id"],
+                  out instagram_location_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["instagram location id"]
+                  }]
+                  #[wikidata_id="P4173"]
+                  #[string_values="org.wikidata:instagram_location_id"],
+                  out bashkir_encyclopedia_russian_version_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["bashkir encyclopedia ( russian version) id"]
+                  }]
+                  #[wikidata_id="P4211"]
+                  #[string_values="org.wikidata:bashkir_encyclopedia_russian_version_id"],
+                  out pactols_thesaurus_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["pactols thesaurus id"]
+                  }]
+                  #[wikidata_id="P4212"]
+                  #[string_values="org.wikidata:pactols_thesaurus_id"],
+                  out treccanis_enciclopedia_italiana_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["treccani's enciclopedia italiana id"]
+                  }]
+                  #[wikidata_id="P4223"]
+                  #[string_values="org.wikidata:treccanis_enciclopedia_italiana_id"],
+                  out banglapedia_bengali_version_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["banglapedia ( bengali version) id"]
+                  }]
+                  #[wikidata_id="P4254"]
+                  #[string_values="org.wikidata:banglapedia_bengali_version_id"],
+                  out linkedin_company_id: String
+                  #_[canonical={
+                    default="preposition",
+                    preposition=["linked in company id"]
+                  }]
+                  #[wikidata_id="P4264"]
+                  #[string_values="org.wikidata:linkedin_company_id"],
+                  out store_norske_leksikon_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["store norske leksikon id"]
+                  }]
+                  #[wikidata_id="P4342"]
+                  #[string_values="org.wikidata:store_norske_leksikon_id"],
+                  out german_district_key: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["german district key"]
+                  }]
+                  #[wikidata_id="P440"]
+                  #[string_values="org.wikidata:german_district_key"],
+                  out china_administrative_division_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["china administrative division code"]
+                  }]
+                  #[wikidata_id="P442"]
+                  #[string_values="org.wikidata:china_administrative_division_code"],
+                  out gacs_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["gacs id"]
+                  }]
+                  #[wikidata_id="P4427"]
+                  #[string_values="org.wikidata:gacs_id"],
+                  out uk_parliament_thesaurus_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["uk parliament thesaurus id"]
+                  }]
+                  #[wikidata_id="P4527"]
+                  #[string_values="org.wikidata:uk_parliament_thesaurus_id"],
+                  out ra_collections_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["ra collections id"]
+                  }]
+                  #[wikidata_id="P4553"]
+                  #[string_values="org.wikidata:ra_collections_id"],
+                  out encyclopedia_of_modern_ukraine_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["encyclopedia of modern ukraine id"]
+                  }]
+                  #[wikidata_id="P4613"]
+                  #[string_values="org.wikidata:encyclopedia_of_modern_ukraine_id"],
+                  out emlo_location_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["emlo location id"]
+                  }]
+                  #[wikidata_id="P4672"]
+                  #[string_values="org.wikidata:emlo_location_id"],
+                  out google_arts__culture_partner_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["google arts & culture partner id"]
+                  }]
+                  #[wikidata_id="P4702"]
+                  #[string_values="org.wikidata:google_arts__culture_partner_id"],
+                  out chgis_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["chgis id"]
+                  }]
+                  #[wikidata_id="P4711"]
+                  #[string_values="org.wikidata:chgis_id"],
+                  out loc_and_marc_vocabularies_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["lo c and marc vocabularies id"]
+                  }]
+                  #[wikidata_id="P4801"]
+                  #[string_values="org.wikidata:loc_and_marc_vocabularies_id"],
+                  out bvpb_authority_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["bvpb authority id"]
+                  }]
+                  #[wikidata_id="P4802"]
+                  #[string_values="org.wikidata:bvpb_authority_id"],
+                  out uppslagsverket_finland_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["uppslagsverket finland id"]
+                  }]
+                  #[wikidata_id="P4854"]
+                  #[string_values="org.wikidata:uppslagsverket_finland_id"],
+                  out mesh_descriptor_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["me sh descriptor id"]
+                  }]
+                  #[wikidata_id="P486"]
+                  #[string_values="org.wikidata:mesh_descriptor_id"],
+                  out hispania_nostra_red_list_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["hispania nostra red list code"]
+                  }]
+                  #[wikidata_id="P4868"]
+                  #[string_values="org.wikidata:hispania_nostra_red_list_code"],
+                  out orthodox_encyclopedia_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["orthodox encyclopedia id"]
+                  }]
+                  #[wikidata_id="P5002"]
+                  #[string_values="org.wikidata:orthodox_encyclopedia_id"],
+                  out brockhaus_enzyklopadie_online_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["brockhaus enzyklopädie online id"]
+                  }]
+                  #[wikidata_id="P5019"]
+                  #[string_values="org.wikidata:brockhaus_enzyklopadie_online_id"],
+                  out code_of_household_registration_and_conscription_information_system_taiwan_: String
+                  #_[canonical={
+                    default="property",
+                    base=["code of household registration and conscription information system ( taiwan)"]
+                  }]
+                  #[wikidata_id="P5020"]
+                  #[string_values="org.wikidata:code_of_household_registration_and_conscription_information_system_taiwan_"],
+                  out ili_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["ili id"]
+                  }]
+                  #[wikidata_id="P5063"]
+                  #[string_values="org.wikidata:ili_id"],
+                  out logainm_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["logainm id"]
+                  }]
+                  #[wikidata_id="P5097"]
+                  #[string_values="org.wikidata:logainm_id"],
+                  out new_zealand_gazetteer_place_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["new zealand gazetteer place id"]
+                  }]
+                  #[wikidata_id="P5104"]
+                  #[string_values="org.wikidata:new_zealand_gazetteer_place_id"],
+                  out civicus_monitor_country_entry: String
+                  #_[canonical={
+                    default="property",
+                    base=["civicus monitor country entry"]
+                  }]
+                  #[wikidata_id="P5180"]
+                  #[string_values="org.wikidata:civicus_monitor_country_entry"],
+                  out daum_encyclopedia_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["daum encyclopedia id"]
+                  }]
+                  #[wikidata_id="P5184"]
+                  #[string_values="org.wikidata:daum_encyclopedia_id"],
+                  out ebird_hotspot_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["e bird hotspot id"]
+                  }]
+                  #[wikidata_id="P5200"]
+                  #[string_values="org.wikidata:ebird_hotspot_id"],
+                  out or_movement_settlement_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["or movement settlement id"]
+                  }]
+                  #[wikidata_id="P5335"]
+                  #[string_values="org.wikidata:or_movement_settlement_id"],
+                  out google_news_topics_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["google news topics id"]
+                  }]
+                  #[wikidata_id="P5337"]
+                  #[string_values="org.wikidata:google_news_topics_id"],
+                  out the_encyclopedia_of_science_fiction_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["the encyclopedia of science fiction id"]
+                  }]
+                  #[wikidata_id="P5357"]
+                  #[string_values="org.wikidata:the_encyclopedia_of_science_fiction_id"],
+                  out canadian_encyclopedia_article_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["canadian encyclopedia article id"]
+                  }]
+                  #[wikidata_id="P5395"]
+                  #[string_values="org.wikidata:canadian_encyclopedia_article_id"],
+                  out geonlp_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["geo nlp id"]
+                  }]
+                  #[wikidata_id="P5400"]
+                  #[string_values="org.wikidata:geonlp_id"],
+                  out setlistfm_venue_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["setlist.fm venue id"]
+                  }]
+                  #[wikidata_id="P5432"]
+                  #[string_values="org.wikidata:setlistfm_venue_id"],
+                  out le_monde_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["le monde id"]
+                  }]
+                  #[wikidata_id="P5558"]
+                  #[string_values="org.wikidata:le_monde_id"],
+                  out archinform_location_id: String
+                  #_[canonical={
+                    default="verb",
+                    verb=["arch inform location id"]
+                  }]
+                  #[wikidata_id="P5573"]
+                  #[string_values="org.wikidata:archinform_location_id"],
+                  out indian_census_area_code_2011_: String
+                  #_[canonical={
+                    default="property",
+                    base=["indian census area code (2011)"]
+                  }]
+                  #[wikidata_id="P5578"]
+                  #[string_values="org.wikidata:indian_census_area_code_2011_"],
+                  out moroccan_cultural_heritage_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["moroccan cultural heritage id"]
+                  }]
+                  #[wikidata_id="P5694"]
+                  #[string_values="org.wikidata:moroccan_cultural_heritage_id"],
+                  out petit_fute_site_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["petit futé site id"]
+                  }]
+                  #[wikidata_id="P5760"]
+                  #[string_values="org.wikidata:petit_fute_site_id"],
+                  out dbunico_mibact_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["dbunico mibact id"]
+                  }]
+                  #[wikidata_id="P5782"]
+                  #[string_values="org.wikidata:dbunico_mibact_id"],
+                  out gynopedia_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["gynopedia id"]
+                  }]
+                  #[wikidata_id="P5843"]
+                  #[string_values="org.wikidata:gynopedia_id"],
+                  out gnis_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["gnis id"]
+                  }]
+                  #[wikidata_id="P590"]
+                  #[string_values="org.wikidata:gnis_id"],
+                  out asce_historical_civil_engineering_landmark_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["asce historical civil engineering landmark id"]
+                  }]
+                  #[wikidata_id="P5904"]
+                  #[string_values="org.wikidata:asce_historical_civil_engineering_landmark_id"],
+                  out handbook_of_texas_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["handbook of texas id"]
+                  }]
+                  #[wikidata_id="P6015"]
+                  #[string_values="org.wikidata:handbook_of_texas_id"],
+                  out nuts_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["nuts code"]
+                  }]
+                  #[wikidata_id="P605"]
+                  #[string_values="org.wikidata:nuts_code"],
+                  out larousse_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["larousse id"]
+                  }]
+                  #[wikidata_id="P6058"]
+                  #[string_values="org.wikidata:larousse_id"],
+                  out birdlife_international_iba_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["bird life international iba id"]
+                  }]
+                  #[wikidata_id="P6070"]
+                  #[string_values="org.wikidata:birdlife_international_iba_id"],
+                  out bbc_news_topic_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["bbc news topic id"]
+                  }]
+                  #[wikidata_id="P6200"]
+                  #[string_values="org.wikidata:bbc_news_topic_id"],
+                  out fandom_article_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["fandom article id"]
+                  }]
+                  #[wikidata_id="P6262"]
+                  #[string_values="org.wikidata:fandom_article_id"],
+                  out ysa_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["ysa id"]
+                  }]
+                  #[wikidata_id="P6293"]
+                  #[string_values="org.wikidata:ysa_id"],
+                  out treccanis_dizionario_di_storia_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["treccani's dizionario di storia id"]
+                  }]
+                  #[wikidata_id="P6404"]
+                  #[string_values="org.wikidata:treccanis_dizionario_di_storia_id"],
+                  out jorfsearch_organization_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["jorfsearch organization id"]
+                  }]
+                  #[wikidata_id="P6413"]
+                  #[string_values="org.wikidata:jorfsearch_organization_id"],
+                  out amsterdam_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["amsterdam code"]
+                  }]
+                  #[wikidata_id="P6434"]
+                  #[string_values="org.wikidata:amsterdam_code"],
+                  out freebase_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["freebase id"]
+                  }]
+                  #[wikidata_id="P646"]
+                  #[string_values="org.wikidata:freebase_id"],
+                  out den_digitale_byport_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["den digitale byport id"]
+                  }]
+                  #[wikidata_id="P6471"]
+                  #[string_values="org.wikidata:den_digitale_byport_id"],
+                  out image_archive_herder_institute: String
+                  #_[canonical={
+                    default="property",
+                    base=["image archive, herder institute"]
+                  }]
+                  #[wikidata_id="P6482"]
+                  #[string_values="org.wikidata:image_archive_herder_institute"],
+                  out lokalhistoriewikino_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["lokalhistoriewiki.no id"]
+                  }]
+                  #[wikidata_id="P6520"]
+                  #[string_values="org.wikidata:lokalhistoriewikino_id"],
+                  out brazilian_electoral_unit_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["brazilian electoral unit id"]
+                  }]
+                  #[wikidata_id="P6555"]
+                  #[string_values="org.wikidata:brazilian_electoral_unit_id"],
+                  out klexikon_article_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["klexikon article id"]
+                  }]
+                  #[wikidata_id="P6573"]
+                  #[string_values="org.wikidata:klexikon_article_id"],
+                  out japan_search_name_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["japan search name id"]
+                  }]
+                  #[wikidata_id="P6698"]
+                  #[string_values="org.wikidata:japan_search_name_id"],
+                  out shanghai_library_place_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["shanghai library place id"]
+                  }]
+                  #[wikidata_id="P6703"]
+                  #[string_values="org.wikidata:shanghai_library_place_id"],
+                  out de_agostini_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["de agostini id"]
+                  }]
+                  #[wikidata_id="P6706"]
+                  #[string_values="org.wikidata:de_agostini_id"],
+                  out australian_war_memorial_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["australian war memorial id"]
+                  }]
+                  #[wikidata_id="P6713"]
+                  #[string_values="org.wikidata:australian_war_memorial_id"],
+                  out blackpastorg_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["black past.org id"]
+                  }]
+                  #[wikidata_id="P6723"]
+                  #[string_values="org.wikidata:blackpastorg_id"],
+                  out fragdenstaat_public_body_slug: String
+                  #_[canonical={
+                    default="property",
+                    base=["frag den staat public body slug"]
+                  }]
+                  #[wikidata_id="P6744"]
+                  #[string_values="org.wikidata:fragdenstaat_public_body_slug"],
+                  out ror_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["ror id"]
+                  }]
+                  #[wikidata_id="P6782"]
+                  #[string_values="org.wikidata:ror_id"],
+                  out nwbib_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["nwbib id"]
+                  }]
+                  #[wikidata_id="P6814"]
+                  #[string_values="org.wikidata:nwbib_id"],
+                  out chebi_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["ch ebi id"]
+                  }]
+                  #[wikidata_id="P683"]
+                  #[string_values="org.wikidata:chebi_id"],
+                  out indicepa_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["indice pa id"]
+                  }]
+                  #[wikidata_id="P6832"]
+                  #[string_values="org.wikidata:indicepa_id"],
+                  out dr_topic_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["dr topic id"]
+                  }]
+                  #[wikidata_id="P6849"]
+                  #[string_values="org.wikidata:dr_topic_id"],
+                  out niconicopedia_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["nico nico pedia id"]
+                  }]
+                  #[wikidata_id="P6900"]
+                  #[string_values="org.wikidata:niconicopedia_id"],
+                  out nkcr_aut_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["nkcr aut id"]
+                  }]
+                  #[wikidata_id="P691"]
+                  #[string_values="org.wikidata:nkcr_aut_id"],
+                  out metro_topic_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["metro topic id"]
+                  }]
+                  #[wikidata_id="P6922"]
+                  #[string_values="org.wikidata:metro_topic_id"],
+                  out cut_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["cut code"]
+                  }]
+                  #[wikidata_id="P6929"]
+                  #[string_values="org.wikidata:cut_code"],
+                  out world_encyclopedia_of_puppetry_arts_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["world encyclopedia of puppetry arts id"]
+                  }]
+                  #[wikidata_id="P7012"]
+                  #[string_values="org.wikidata:world_encyclopedia_of_puppetry_arts_id"],
+                  out hov_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["hov- id"]
+                  }]
+                  #[wikidata_id="P7046"]
+                  #[string_values="org.wikidata:hov_id"],
+                  out alltrails_trail_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["all trails trail id"]
+                  }]
+                  #[wikidata_id="P7127"]
+                  #[string_values="org.wikidata:alltrails_trail_id"],
+                  out munchen_wiki_article_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["münchen wiki article id"]
+                  }]
+                  #[wikidata_id="P7140"]
+                  #[string_values="org.wikidata:munchen_wiki_article_id"],
+                  out liber_liber_author_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["liber liber author id"]
+                  }]
+                  #[wikidata_id="P7208"]
+                  #[string_values="org.wikidata:liber_liber_author_id"],
+                  out okato_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["okato id"]
+                  }]
+                  #[wikidata_id="P721"]
+                  #[string_values="org.wikidata:okato_id"],
+                  out tdv_islam_ansiklopedisi_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["tdv i̇slam ansiklopedisi id"]
+                  }]
+                  #[wikidata_id="P7314"]
+                  #[string_values="org.wikidata:tdv_islam_ansiklopedisi_id"],
+                  out marine_regions_geographic_identifier_mrgid_: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["marine regions geographic identifier ( mrgid)"]
+                  }]
+                  #[wikidata_id="P7322"]
+                  #[string_values="org.wikidata:marine_regions_geographic_identifier_mrgid_"],
+                  out dane_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["dane code"]
+                  }]
+                  #[wikidata_id="P7325"]
+                  #[string_values="org.wikidata:dane_code"],
+                  out gazetteer_for_scotland_place_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["gazetteer for scotland place id"]
+                  }]
+                  #[wikidata_id="P7350"]
+                  #[string_values="org.wikidata:gazetteer_for_scotland_place_id"],
+                  out great_encyclopedia_of_navarre_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["great encyclopedia of navarre id"]
+                  }]
+                  #[wikidata_id="P7388"]
+                  #[string_values="org.wikidata:great_encyclopedia_of_navarre_id"],
+                  out inaturalist_place_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["i naturalist place id"]
+                  }]
+                  #[wikidata_id="P7471"]
+                  #[string_values="org.wikidata:inaturalist_place_id"],
+                  out joconde_author_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["joconde author id"]
+                  }]
+                  #[wikidata_id="P7711"]
+                  #[string_values="org.wikidata:joconde_author_id"],
+                  out ine_municipality_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["ine municipality code"]
+                  }]
+                  #[wikidata_id="P772"]
+                  #[string_values="org.wikidata:ine_municipality_code"],
+                  out swedish_urban_area_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["swedish urban area code"]
+                  }]
+                  #[wikidata_id="P775"]
+                  #[string_values="org.wikidata:swedish_urban_area_code"],
+                  out atlas_obscura_identifier: String
+                  #_[canonical={
+                    default="property",
+                    base=["atlas obscura identifier"]
+                  }]
+                  #[wikidata_id="P7772"]
+                  #[string_values="org.wikidata:atlas_obscura_identifier"],
+                  out french_vikidia_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["french vikidia id"]
+                  }]
+                  #[wikidata_id="P7818"]
+                  #[string_values="org.wikidata:french_vikidia_id"],
+                  out lau: String
+                  #_[canonical={
+                    default="property",
+                    base=["lau"]
+                  }]
+                  #[wikidata_id="P782"]
+                  #[string_values="org.wikidata:lau"],
+                  out italian_vikidia_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["italian vikidia id"]
+                  }]
+                  #[wikidata_id="P7822"]
+                  #[string_values="org.wikidata:italian_vikidia_id"],
+                  out spanish_vikidia_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["spanish vikidia id"]
+                  }]
+                  #[wikidata_id="P7827"]
+                  #[string_values="org.wikidata:spanish_vikidia_id"],
+                  out english_vikidia_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["english vikidia id"]
+                  }]
+                  #[wikidata_id="P7829"]
+                  #[string_values="org.wikidata:english_vikidia_id"],
+                  out basque_vikidia_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["basque vikidia id"]
+                  }]
+                  #[wikidata_id="P7832"]
+                  #[string_values="org.wikidata:basque_vikidia_id"],
+                  out beta_masahft_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["beta maṣāḥǝft id"]
+                  }]
+                  #[wikidata_id="P7846"]
+                  #[string_values="org.wikidata:beta_masahft_id"],
+                  out worldcat_identities_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["world cat identities id"]
+                  }]
+                  #[wikidata_id="P7859"]
+                  #[string_values="org.wikidata:worldcat_identities_id"],
+                  out cobis_author_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["co bi s author id"]
+                  }]
+                  #[wikidata_id="P7865"]
+                  #[string_values="org.wikidata:cobis_author_id"],
+                  out analysis__policy_observatory_term_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["analysis & policy observatory term id"]
+                  }]
+                  #[wikidata_id="P7870"]
+                  #[string_values="org.wikidata:analysis__policy_observatory_term_id"],
+                  out hrvatska_enciklopedija_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["hrvatska enciklopedija id"]
+                  }]
+                  #[wikidata_id="P7982"]
+                  #[string_values="org.wikidata:hrvatska_enciklopedija_id"],
+                  out ehnet_encyclopedia_of_economic_and_business_history_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["eh. net encyclopedia of economic and business history id"]
+                  }]
+                  #[wikidata_id="P7996"]
+                  #[string_values="org.wikidata:ehnet_encyclopedia_of_economic_and_business_history_id"],
+                  out italian_cadastre_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["italian cadastre code"]
+                  }]
+                  #[wikidata_id="P806"]
+                  #[string_values="org.wikidata:italian_cadastre_code"],
+                  out hasc: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["hasc"]
+                  }]
+                  #[wikidata_id="P8119"]
+                  #[string_values="org.wikidata:hasc"],
+                  out cgndb_unique_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["cgndb unique id"]
+                  }]
+                  #[wikidata_id="P821"]
+                  #[string_values="org.wikidata:cgndb_unique_id"],
+                  out den_store_danske_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["den store danske id"]
+                  }]
+                  #[wikidata_id="P8313"]
+                  #[string_values="org.wikidata:den_store_danske_id"],
+                  out proleksis_enciklopedija_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["proleksis enciklopedija id"]
+                  }]
+                  #[wikidata_id="P8349"]
+                  #[string_values="org.wikidata:proleksis_enciklopedija_id"],
+                  out siusa_archive_producer_organization_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["siusa archive producer organization id"]
+                  }]
+                  #[wikidata_id="P8357"]
+                  #[string_values="org.wikidata:siusa_archive_producer_organization_id"],
+                  out gss_code_2011_: String
+                  #_[canonical={
+                    default="property",
+                    base=["gss code (2011)"]
+                  }]
+                  #[wikidata_id="P836"]
+                  #[string_values="org.wikidata:gss_code_2011_"],
+                  out grove_art_online_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["grove art online id"]
+                  }]
+                  #[wikidata_id="P8406"]
+                  #[string_values="org.wikidata:grove_art_online_id"],
+                  out kbpedia_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["kbpedia id"]
+                  }]
+                  #[wikidata_id="P8408"]
+                  #[string_values="org.wikidata:kbpedia_id"],
+                  out ehess_id_of_a_french_commune: String
+                  #_[canonical={
+                    default="property",
+                    base=["ehess id of a french commune"]
+                  }]
+                  #[wikidata_id="P8422"]
+                  #[string_values="org.wikidata:ehess_id_of_a_french_commune"],
+                  out siruta_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["siruta code"]
+                  }]
+                  #[wikidata_id="P843"]
+                  #[string_values="org.wikidata:siruta_code"],
+                  out osterreichisches_musiklexikon_online_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["österreichisches musiklexikon online id"]
+                  }]
+                  #[wikidata_id="P8432"]
+                  #[string_values="org.wikidata:osterreichisches_musiklexikon_online_id"],
+                  out pm20_geo_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["pm20 geo code"]
+                  }]
+                  #[wikidata_id="P8483"]
+                  #[string_values="org.wikidata:pm20_geo_code"],
+                  out rkd_thesaurus_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["rkd thesaurus id"]
+                  }]
+                  #[wikidata_id="P8519"]
+                  #[string_values="org.wikidata:rkd_thesaurus_id"],
+                  out macedonian_cadastral_municipality_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["macedonian cadastral municipality id"]
+                  }]
+                  #[wikidata_id="P8542"]
+                  #[string_values="org.wikidata:macedonian_cadastral_municipality_id"],
+                  out jewish_encyclopedia_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["jewish encyclopedia id"]
+                  }]
+                  #[wikidata_id="P8590"]
+                  #[string_values="org.wikidata:jewish_encyclopedia_id"],
+                  out mcclintock_and_strong_biblical_cyclopedia_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["mc clintock and strong biblical cyclopedia id"]
+                  }]
+                  #[wikidata_id="P8636"]
+                  #[string_values="org.wikidata:mcclintock_and_strong_biblical_cyclopedia_id"],
+                  out fips_6_4_us_counties_: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["fips 6-4 ( us counties)"]
+                  }]
+                  #[wikidata_id="P882"]
+                  #[string_values="org.wikidata:fips_6_4_us_counties_"],
+                  out fips_10_4_countries_and_regions_: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["fips 10-4 (countries and regions)"]
+                  }]
+                  #[wikidata_id="P901"]
+                  #[string_values="org.wikidata:fips_10_4_countries_and_regions_"],
+                  out ksh_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["ksh code"]
+                  }]
+                  #[wikidata_id="P939"]
+                  #[string_values="org.wikidata:ksh_code"],
+                  out biblioteca_nacional_de_espana_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["biblioteca nacional de españa id"]
+                  }]
+                  #[wikidata_id="P950"]
+                  #[string_values="org.wikidata:biblioteca_nacional_de_espana_id"],
+                  out austrian_municipality_key: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["austrian municipality key"]
+                  }]
+                  #[wikidata_id="P964"]
+                  #[string_values="org.wikidata:austrian_municipality_key"],
+                  out musicbrainz_area_id: String
+                  #_[canonical={
+                    default="property",
+                    base=["music brainz area id"]
+                  }]
+                  #[wikidata_id="P982"]
+                  #[string_values="org.wikidata:musicbrainz_area_id"],
+                  out ioc_country_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["ioc country code"]
+                  }]
+                  #[wikidata_id="P984"]
+                  #[string_values="org.wikidata:ioc_country_code"],
+                  out dmoz_id: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["dmoz id"]
+                  }]
+                  #[wikidata_id="P998"]
+                  #[string_values="org.wikidata:dmoz_id"])
+  #_[canonical="city"]
+  #_[confirmation="city"]
+  #[wikidata_subject="Q515"]
+  #[minimal_projection=["id"]];
+}

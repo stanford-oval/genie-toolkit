@@ -1,0 +1,1320 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Helsinki City Council",
+      "name": "Q4117101",
+      "canonical": "helsinki city council"
+    },
+    {
+      "value": "Edmonton City Council",
+      "name": "Q5339025",
+      "canonical": "edmonton city council"
+    },
+    {
+      "value": "Municipal Board of Asuncion",
+      "name": "Q51839125",
+      "canonical": "municipal board of asuncion"
+    },
+    {
+      "value": "Municipal Chamber of São Luís",
+      "name": "Q53934979",
+      "canonical": "municipal chamber of são luís"
+    },
+    {
+      "value": "Rawalpindi Municipal Corporation",
+      "name": "Q55641548",
+      "canonical": "rawalpindi municipal corporation"
+    },
+    {
+      "value": "Rovaniemi City Council",
+      "name": "Q11891287",
+      "canonical": "rovaniemi city council"
+    },
+    {
+      "value": "Kiuruvesi City Council",
+      "name": "Q28721904",
+      "canonical": "kiuruvesi city council"
+    },
+    {
+      "value": "Hamilton, Ontario City Council",
+      "name": "Q5644769",
+      "canonical": "hamilton , ontario city council"
+    },
+    {
+      "value": "municipal chamber of Taubaté",
+      "name": "Q56450288",
+      "canonical": "municipal chamber of taubaté"
+    },
+    {
+      "value": "Municipal Corporation Multan",
+      "name": "Q58873622",
+      "canonical": "municipal corporation multan"
+    },
+    {
+      "value": "municipal chamber of Ribeirão Preto",
+      "name": "Q56349614",
+      "canonical": "municipal chamber of ribeirão preto"
+    },
+    {
+      "value": "Santo André City Council",
+      "name": "Q56450226",
+      "canonical": "santo andré city council"
+    },
+    {
+      "value": "Kotka City Council",
+      "name": "Q11872866",
+      "canonical": "kotka city council"
+    },
+    {
+      "value": "Ichinomiya City Assembly",
+      "name": "Q30088103",
+      "canonical": "ichinomiya city assembly"
+    },
+    {
+      "value": "Akaa City Council",
+      "name": "Q28673541",
+      "canonical": "akaa city council"
+    },
+    {
+      "value": "Naantali City Council",
+      "name": "Q28722621",
+      "canonical": "naantali city council"
+    },
+    {
+      "value": "Municipal Corporation of Sialkot",
+      "name": "Q59240672",
+      "canonical": "municipal corporation of sialkot"
+    },
+    {
+      "value": "municipal Chamber of Embu das Artes",
+      "name": "Q56450308",
+      "canonical": "municipal chamber of embu das artes"
+    },
+    {
+      "value": "municipal chamber of Diadema",
+      "name": "Q56450257",
+      "canonical": "municipal chamber of diadema"
+    },
+    {
+      "value": "Municipal Corporation of Larkana",
+      "name": "Q59240674",
+      "canonical": "municipal corporation of larkana"
+    },
+    {
+      "value": "Kaarina City Council",
+      "name": "Q28720357",
+      "canonical": "kaarina city council"
+    },
+    {
+      "value": "Forssa City Council",
+      "name": "Q28720184",
+      "canonical": "forssa city council"
+    },
+    {
+      "value": "Municipal Corporation of Sukkar",
+      "name": "Q59240673",
+      "canonical": "municipal corporation of sukkar"
+    },
+    {
+      "value": "Orimattila City Council",
+      "name": "Q28722879",
+      "canonical": "orimattila city council"
+    },
+    {
+      "value": "Mänttä-Vilppula City Council",
+      "name": "Q28722617",
+      "canonical": "mänttä-vilppula city council"
+    },
+    {
+      "value": "New York City Council",
+      "name": "Q645195",
+      "canonical": "new york city council"
+    },
+    {
+      "value": "Parliament of the Brussels-Capital Region",
+      "name": "Q435623",
+      "canonical": "parliament of the brussels-capital region"
+    },
+    {
+      "value": "Delhi Legislative Assembly",
+      "name": "Q5253776",
+      "canonical": "delhi legislative assembly"
+    },
+    {
+      "value": "Bangkok municipal council",
+      "name": "Q13022003",
+      "canonical": "bangkok municipal council"
+    },
+    {
+      "value": "Bologna City Council",
+      "name": "Q50185924",
+      "canonical": "bologna city council"
+    },
+    {
+      "value": "Halifax Regional Council",
+      "name": "Q17107607",
+      "canonical": "halifax regional council"
+    },
+    {
+      "value": "Court of Common Council",
+      "name": "Q42609766",
+      "canonical": "court of common council"
+    },
+    {
+      "value": "Barrie City Council",
+      "name": "Q4863502",
+      "canonical": "barrie city council"
+    },
+    {
+      "value": "Calgary City Council",
+      "name": "Q4145705",
+      "canonical": "calgary city council"
+    },
+    {
+      "value": "Municipal Chamber of Manaus",
+      "name": "Q53935013",
+      "canonical": "municipal chamber of manaus"
+    },
+    {
+      "value": "Deliberative Council of Corrientes",
+      "name": "Q59457142",
+      "canonical": "deliberative council of corrientes"
+    },
+    {
+      "value": "Deliberative Council of Neuquén",
+      "name": "Q59457140",
+      "canonical": "deliberative council of neuquén"
+    },
+    {
+      "value": "Deliberative Council of San Miguel de Tucumán",
+      "name": "Q59457125",
+      "canonical": "deliberative council of san miguel de tucumán"
+    },
+    {
+      "value": "city council of Medellín",
+      "name": "Q51094127",
+      "canonical": "city council of medellín"
+    },
+    {
+      "value": "municipal chamber of Santos",
+      "name": "Q18280688",
+      "canonical": "municipal chamber of santos"
+    },
+    {
+      "value": "Municipal Chamber of Goiânia",
+      "name": "Q53935073",
+      "canonical": "municipal chamber of goiânia"
+    },
+    {
+      "value": "Jyväskylä City Council",
+      "name": "Q11868289",
+      "canonical": "jyväskylä city council"
+    },
+    {
+      "value": "Derry and Strabane District Council",
+      "name": "Q16988669",
+      "canonical": "derry and strabane district council"
+    },
+    {
+      "value": "Municipal Chamber of Campinas",
+      "name": "Q53934977",
+      "canonical": "municipal chamber of campinas"
+    },
+    {
+      "value": "Kaohsiung City Council",
+      "name": "Q6366073",
+      "canonical": "kaohsiung city council"
+    },
+    {
+      "value": "Kemi City Council",
+      "name": "Q11870873",
+      "canonical": "kemi city council"
+    },
+    {
+      "value": "Salo City Council",
+      "name": "Q11892134",
+      "canonical": "salo city council"
+    },
+    {
+      "value": "Municipal Corporation of Sahiwal",
+      "name": "Q59240707",
+      "canonical": "municipal corporation of sahiwal"
+    },
+    {
+      "value": "Lieksa City Council",
+      "name": "Q28722424",
+      "canonical": "lieksa city council"
+    },
+    {
+      "value": "Kristinestad municipal council",
+      "name": "Q28722242",
+      "canonical": "kristinestad municipal council"
+    },
+    {
+      "value": "Nykarleby municipal council",
+      "name": "Q28726737",
+      "canonical": "nykarleby municipal council"
+    },
+    {
+      "value": "municipal Chamber of Taboão da Serra",
+      "name": "Q56450301",
+      "canonical": "municipal chamber of taboão da serra"
+    },
+    {
+      "value": "Municipal Corporation of Sargodha",
+      "name": "Q59240671",
+      "canonical": "municipal corporation of sargodha"
+    },
+    {
+      "value": "Loimaa City Council",
+      "name": "Q28722437",
+      "canonical": "loimaa city council"
+    },
+    {
+      "value": "Virrat City Council",
+      "name": "Q28726752",
+      "canonical": "virrat city council"
+    },
+    {
+      "value": "Kalajoki City Council",
+      "name": "Q28720361",
+      "canonical": "kalajoki city council"
+    },
+    {
+      "value": "municipal Chamber of Sumaré",
+      "name": "Q56450304",
+      "canonical": "municipal chamber of sumaré"
+    },
+    {
+      "value": "Municipal Corporation of Dera Ghazi Khan",
+      "name": "Q59240678",
+      "canonical": "municipal corporation of dera ghazi khan"
+    },
+    {
+      "value": "Pargas municipal council",
+      "name": "Q28723254",
+      "canonical": "pargas municipal council"
+    },
+    {
+      "value": "Hyderabad Municipal Corporation",
+      "name": "Q28223529",
+      "canonical": "hyderabad municipal corporation"
+    },
+    {
+      "value": "Town Council of Laranjal Paulista",
+      "name": "Q95630736",
+      "canonical": "town council of laranjal paulista"
+    },
+    {
+      "value": "Palakollu Municipality",
+      "name": "Q54087037",
+      "canonical": "palakollu municipality"
+    },
+    {
+      "value": "Verona city council",
+      "name": "Q50251292",
+      "canonical": "verona city council"
+    },
+    {
+      "value": "Naples City Council",
+      "name": "Q50190089",
+      "canonical": "naples city council"
+    },
+    {
+      "value": "Kauhajoki City Council",
+      "name": "Q28720381",
+      "canonical": "kauhajoki city council"
+    },
+    {
+      "value": "Seinäjoki City Council",
+      "name": "Q11892835",
+      "canonical": "seinäjoki city council"
+    },
+    {
+      "value": "Vaughan City Council",
+      "name": "Q17029808",
+      "canonical": "vaughan city council"
+    },
+    {
+      "value": "Deliberative Council of Córdoba",
+      "name": "Q59456927",
+      "canonical": "deliberative council of córdoba"
+    },
+    {
+      "value": "Municipal Chamber of Recife",
+      "name": "Q53935043",
+      "canonical": "municipal chamber of recife"
+    },
+    {
+      "value": "Nagano City Council",
+      "name": "Q54824975",
+      "canonical": "nagano city council"
+    },
+    {
+      "value": "municipal council of Carapicuíba",
+      "name": "Q56450262",
+      "canonical": "municipal council of carapicuíba"
+    },
+    {
+      "value": "municipal chamber of Sao Jose dos Campos",
+      "name": "Q30930077",
+      "canonical": "municipal chamber of sao jose dos campos"
+    },
+    {
+      "value": "municipal chamber of Mogi das Cruzes",
+      "name": "Q56450255",
+      "canonical": "municipal chamber of mogi das cruzes"
+    },
+    {
+      "value": "Uusikaupunki City Council",
+      "name": "Q28726738",
+      "canonical": "uusikaupunki city council"
+    },
+    {
+      "value": "Hyvinkää City Council",
+      "name": "Q28720314",
+      "canonical": "hyvinkää city council"
+    },
+    {
+      "value": "Kuusamo City Council",
+      "name": "Q28722389",
+      "canonical": "kuusamo city council"
+    },
+    {
+      "value": "Kauniainen City Council",
+      "name": "Q18659930",
+      "canonical": "kauniainen city council"
+    },
+    {
+      "value": "Ulvila City Council",
+      "name": "Q28726732",
+      "canonical": "ulvila city council"
+    },
+    {
+      "value": "Keelung City Council",
+      "name": "Q10930444",
+      "canonical": "keelung city council"
+    },
+    {
+      "value": "Haapajärvi City Council",
+      "name": "Q28720186",
+      "canonical": "haapajärvi city council"
+    },
+    {
+      "value": "Kitee City Council",
+      "name": "Q28721836",
+      "canonical": "kitee city council"
+    },
+    {
+      "value": "Pieksämäki City Council",
+      "name": "Q28723364",
+      "canonical": "pieksämäki city council"
+    },
+    {
+      "value": "Kemijärvi City Council",
+      "name": "Q28720388",
+      "canonical": "kemijärvi city council"
+    },
+    {
+      "value": "Iisalmi City Council",
+      "name": "Q28720319",
+      "canonical": "iisalmi city council"
+    },
+    {
+      "value": "Viitasaari City Council",
+      "name": "Q28726749",
+      "canonical": "viitasaari city council"
+    },
+    {
+      "value": "Somero City Council",
+      "name": "Q28726706",
+      "canonical": "somero city council"
+    },
+    {
+      "value": "Kannus City Council",
+      "name": "Q28720373",
+      "canonical": "kannus city council"
+    },
+    {
+      "value": "Pyhäjärvi City Council",
+      "name": "Q28723386",
+      "canonical": "pyhäjärvi city council"
+    },
+    {
+      "value": "Melbourne City Council",
+      "name": "Q56477763",
+      "canonical": "melbourne city council"
+    },
+    {
+      "value": "Parliament of Singapore",
+      "name": "Q1517231",
+      "canonical": "parliament of singapore"
+    },
+    {
+      "value": "Dresden City Council",
+      "name": "Q5123134",
+      "canonical": "dresden city council"
+    },
+    {
+      "value": "Assembly of Melilla",
+      "name": "Q2881125",
+      "canonical": "assembly of melilla"
+    },
+    {
+      "value": "Metropolitan Corporation Lahore",
+      "name": "Q58873610",
+      "canonical": "metropolitan corporation lahore"
+    },
+    {
+      "value": "Lahti City Council",
+      "name": "Q11874376",
+      "canonical": "lahti city council"
+    },
+    {
+      "value": "Burlington City Council",
+      "name": "Q4999218",
+      "canonical": "burlington city council"
+    },
+    {
+      "value": "Markham City Council",
+      "name": "Q6770993",
+      "canonical": "markham city council"
+    },
+    {
+      "value": "Brampton City Council",
+      "name": "Q4956221",
+      "canonical": "brampton city council"
+    },
+    {
+      "value": "Deliberative Council of Santiago del Estero",
+      "name": "Q59457169",
+      "canonical": "deliberative council of santiago del estero"
+    },
+    {
+      "value": "Deliberative Council of Rosario",
+      "name": "Q59456928",
+      "canonical": "deliberative council of rosario"
+    },
+    {
+      "value": "city council of Barranquilla",
+      "name": "Q51094137",
+      "canonical": "city council of barranquilla"
+    },
+    {
+      "value": "Huittinen City Council",
+      "name": "Q28720308",
+      "canonical": "huittinen city council"
+    },
+    {
+      "value": "municipal chamber of Rio Branco",
+      "name": "Q56450268",
+      "canonical": "municipal chamber of rio branco"
+    },
+    {
+      "value": "Pori City Council",
+      "name": "Q18661432",
+      "canonical": "pori city council"
+    },
+    {
+      "value": "legislative body of Waterford City and County Council",
+      "name": "Q54931556",
+      "canonical": "legislative body of waterford city and county council"
+    },
+    {
+      "value": "municipal chamber of Campina Grande",
+      "name": "Q56450258",
+      "canonical": "municipal chamber of campina grande"
+    },
+    {
+      "value": "municipal chamber of Uberlandia",
+      "name": "Q56450232",
+      "canonical": "municipal chamber of uberlandia"
+    },
+    {
+      "value": "Hämeenlinna City Council",
+      "name": "Q5477627",
+      "canonical": "hämeenlinna city council"
+    },
+    {
+      "value": "Kokkola City Council",
+      "name": "Q28721948",
+      "canonical": "kokkola city council"
+    },
+    {
+      "value": "Hanko City Council",
+      "name": "Q28720196",
+      "canonical": "hanko city council"
+    },
+    {
+      "value": "municipal council of Anapolis",
+      "name": "Q56450269",
+      "canonical": "municipal council of anapolis"
+    },
+    {
+      "value": "municipal chamber of Bauru",
+      "name": "Q56450270",
+      "canonical": "municipal chamber of bauru"
+    },
+    {
+      "value": "Hsinchu City Council",
+      "name": "Q11084017",
+      "canonical": "hsinchu city council"
+    },
+    {
+      "value": "Chiayi City Council",
+      "name": "Q10924120",
+      "canonical": "chiayi city council"
+    },
+    {
+      "value": "municipal chamber of Mauá",
+      "name": "Q56450253",
+      "canonical": "municipal chamber of mauá"
+    },
+    {
+      "value": "municipal chamber of Vila Velha",
+      "name": "Q56450247",
+      "canonical": "municipal chamber of vila velha"
+    },
+    {
+      "value": "municipal Chamber of Barueri",
+      "name": "Q56450307",
+      "canonical": "municipal chamber of barueri"
+    },
+    {
+      "value": "Savonlinna City Council",
+      "name": "Q28726696",
+      "canonical": "savonlinna city council"
+    },
+    {
+      "value": "Ylivieska City Council",
+      "name": "Q28726755",
+      "canonical": "ylivieska city council"
+    },
+    {
+      "value": "Haapavesi City Council",
+      "name": "Q28720188",
+      "canonical": "haapavesi city council"
+    },
+    {
+      "value": "municipal chamber of Limeira",
+      "name": "Q56450291",
+      "canonical": "municipal chamber of limeira"
+    },
+    {
+      "value": "Kuhmo City Council",
+      "name": "Q28722322",
+      "canonical": "kuhmo city council"
+    },
+    {
+      "value": "Parkano City Council",
+      "name": "Q28723356",
+      "canonical": "parkano city council"
+    },
+    {
+      "value": "Oulainen City Council",
+      "name": "Q18661098",
+      "canonical": "oulainen city council"
+    },
+    {
+      "value": "Kokemäki City Council",
+      "name": "Q28721947",
+      "canonical": "kokemäki city council"
+    },
+    {
+      "value": "Kankaanpää City Council",
+      "name": "Q28720371",
+      "canonical": "kankaanpää city council"
+    },
+    {
+      "value": "Sastamala City Council",
+      "name": "Q28726691",
+      "canonical": "sastamala city council"
+    },
+    {
+      "value": "Cambridge, Ontario City Council",
+      "name": "Q5025328",
+      "canonical": "cambridge , ontario city council"
+    },
+    {
+      "value": "Kaskinen City Council",
+      "name": "Q28720379",
+      "canonical": "kaskinen city council"
+    },
+    {
+      "value": "San Francisco Board of Supervisors",
+      "name": "Q3658756",
+      "canonical": "san francisco board of supervisors"
+    },
+    {
+      "value": "Rome City Council",
+      "name": "Q48617968",
+      "canonical": "rome city council"
+    },
+    {
+      "value": "Turin City Council",
+      "name": "Q50247531",
+      "canonical": "turin city council"
+    },
+    {
+      "value": "Buenos Aires City Legislature",
+      "name": "Q4985519",
+      "canonical": "buenos aires city legislature"
+    },
+    {
+      "value": "Tokyo Metropolitan Assembly",
+      "name": "Q7813951",
+      "canonical": "tokyo metropolitan assembly"
+    },
+    {
+      "value": "Luxembourg communal council",
+      "name": "Q6528155",
+      "canonical": "luxembourg communal council"
+    },
+    {
+      "value": "Palermo city council",
+      "name": "Q50190204",
+      "canonical": "palermo city council"
+    },
+    {
+      "value": "Freetown City Council",
+      "name": "Q17020132",
+      "canonical": "freetown city council"
+    },
+    {
+      "value": "Legislative Council of Hong Kong",
+      "name": "Q19208",
+      "canonical": "legislative council of hong kong"
+    },
+    {
+      "value": "Plenary Session of the Town Council of Sabadell",
+      "name": "Q29131422",
+      "canonical": "plenary session of the town council of sabadell"
+    },
+    {
+      "value": "Municipal Chamber of Fortaleza",
+      "name": "Q53934998",
+      "canonical": "municipal chamber of fortaleza"
+    },
+    {
+      "value": "Zaria legislative council",
+      "name": "Q59523858",
+      "canonical": "zaria legislative council"
+    },
+    {
+      "value": "Kuopio City Council",
+      "name": "Q11873579",
+      "canonical": "kuopio city council"
+    },
+    {
+      "value": "City of Doboj Assembly",
+      "name": "Q47467082",
+      "canonical": "city of doboj assembly"
+    },
+    {
+      "value": "Kumasi Metropolitan Assembly",
+      "name": "Q740294",
+      "canonical": "kumasi metropolitan assembly"
+    },
+    {
+      "value": "municipal chamber of Sao Bernardo do Campo",
+      "name": "Q56450224",
+      "canonical": "municipal chamber of sao bernardo do campo"
+    },
+    {
+      "value": "Quetta Metropolitan Corporation",
+      "name": "Q58873626",
+      "canonical": "quetta metropolitan corporation"
+    },
+    {
+      "value": "Mikkeli City Council",
+      "name": "Q28722607",
+      "canonical": "mikkeli city council"
+    },
+    {
+      "value": "Municipal Board of Ciudad del Este",
+      "name": "Q51839131",
+      "canonical": "municipal board of ciudad del este"
+    },
+    {
+      "value": "municipal chamber of Duque de Caxias",
+      "name": "Q56450222",
+      "canonical": "municipal chamber of duque de caxias"
+    },
+    {
+      "value": "Kajaani City Council",
+      "name": "Q11869078",
+      "canonical": "kajaani city council"
+    },
+    {
+      "value": "Järvenpää City Council",
+      "name": "Q28720355",
+      "canonical": "järvenpää city council"
+    },
+    {
+      "value": "municipal chamber of Uberaba",
+      "name": "Q56450285",
+      "canonical": "municipal chamber of uberaba"
+    },
+    {
+      "value": "Surrey City Council",
+      "name": "Q7646781",
+      "canonical": "surrey city council"
+    },
+    {
+      "value": "Riihimäki City Council",
+      "name": "Q28726681",
+      "canonical": "riihimäki city council"
+    },
+    {
+      "value": "Municipal Chamber of Franca",
+      "name": "Q56450275",
+      "canonical": "municipal chamber of franca"
+    },
+    {
+      "value": "Jämsä City Council",
+      "name": "Q11868327",
+      "canonical": "jämsä city council"
+    },
+    {
+      "value": "Närpes municipal council",
+      "name": "Q28722839",
+      "canonical": "närpes municipal council"
+    },
+    {
+      "value": "Bauchi legislative council",
+      "name": "Q59523669",
+      "canonical": "bauchi legislative council"
+    },
+    {
+      "value": "Heinola City Council",
+      "name": "Q28720301",
+      "canonical": "heinola city council"
+    },
+    {
+      "value": "Municipal Corporation of Gujrat",
+      "name": "Q59240679",
+      "canonical": "municipal corporation of gujrat"
+    },
+    {
+      "value": "council of Brighton and Hove City Council",
+      "name": "Q56006891",
+      "canonical": "council of brighton and hove city council"
+    },
+    {
+      "value": "Okene legislative council",
+      "name": "Q59523807",
+      "canonical": "okene legislative council"
+    },
+    {
+      "value": "Pontifical Commission for Vatican City State",
+      "name": "Q7478146",
+      "canonical": "pontifical commission for vatican city state"
+    },
+    {
+      "value": "Venice City Council",
+      "name": "Q50248378",
+      "canonical": "venice city council"
+    },
+    {
+      "value": "Taipei City Council",
+      "name": "Q7676278",
+      "canonical": "taipei city council"
+    },
+    {
+      "value": "Alajärvi City Council",
+      "name": "Q28673769",
+      "canonical": "alajärvi city council"
+    },
+    {
+      "value": "Alavus City Council",
+      "name": "Q28681182",
+      "canonical": "alavus city council"
+    },
+    {
+      "value": "legislative body of Cork City Council",
+      "name": "Q54931538",
+      "canonical": "legislative body of cork city council"
+    },
+    {
+      "value": "Rauma City Council",
+      "name": "Q28723397",
+      "canonical": "rauma city council"
+    },
+    {
+      "value": "Municipal Chamber of Porto Alegre",
+      "name": "Q53935048",
+      "canonical": "municipal chamber of porto alegre"
+    },
+    {
+      "value": "Nottingham City Council",
+      "name": "Q7063612",
+      "canonical": "nottingham city council"
+    },
+    {
+      "value": "Oulu City Council",
+      "name": "Q18659950",
+      "canonical": "oulu city council"
+    },
+    {
+      "value": "Mississauga City Council",
+      "name": "Q6878950",
+      "canonical": "mississauga city council"
+    },
+    {
+      "value": "Vaasa City Council",
+      "name": "Q23045412",
+      "canonical": "vaasa city council"
+    },
+    {
+      "value": "municipal chamber of Natal",
+      "name": "Q10262911",
+      "canonical": "municipal chamber of natal"
+    },
+    {
+      "value": "municipal chamber of Maceio",
+      "name": "Q56450221",
+      "canonical": "municipal chamber of maceio"
+    },
+    {
+      "value": "Gloucestershire County Council",
+      "name": "Q16839354",
+      "canonical": "gloucestershire county council"
+    },
+    {
+      "value": "Peterborough City Council",
+      "name": "Q6664413",
+      "canonical": "peterborough city council"
+    },
+    {
+      "value": "municipal Chamber of Petrópolis",
+      "name": "Q56450292",
+      "canonical": "municipal chamber of petrópolis"
+    },
+    {
+      "value": "Porvoo City Council",
+      "name": "Q28723374",
+      "canonical": "porvoo city council"
+    },
+    {
+      "value": "Kouvola City Council",
+      "name": "Q28722191",
+      "canonical": "kouvola city council"
+    },
+    {
+      "value": "Lohja City Council",
+      "name": "Q11876160",
+      "canonical": "lohja city council"
+    },
+    {
+      "value": "Municipal Corporation of Bahawalpur",
+      "name": "Q59240669",
+      "canonical": "municipal corporation of bahawalpur"
+    },
+    {
+      "value": "Valkeakoski City Council",
+      "name": "Q28726740",
+      "canonical": "valkeakoski city council"
+    },
+    {
+      "value": "Ubeda City Council",
+      "name": "Q28184452",
+      "canonical": "ubeda city council"
+    },
+    {
+      "value": "Hamina City Council",
+      "name": "Q18658833",
+      "canonical": "hamina city council"
+    },
+    {
+      "value": "Varkaus City Council",
+      "name": "Q28726742",
+      "canonical": "varkaus city council"
+    },
+    {
+      "value": "Ikaalinen City Council",
+      "name": "Q28720324",
+      "canonical": "ikaalinen city council"
+    },
+    {
+      "value": "Keuruu City Council",
+      "name": "Q28721672",
+      "canonical": "keuruu city council"
+    },
+    {
+      "value": "Loviisa City Council",
+      "name": "Q28722527",
+      "canonical": "loviisa city council"
+    },
+    {
+      "value": "Orivesi City Council",
+      "name": "Q28723000",
+      "canonical": "orivesi city council"
+    },
+    {
+      "value": "Saarijärvi City Council",
+      "name": "Q28726689",
+      "canonical": "saarijärvi city council"
+    },
+    {
+      "value": "Harjavalta City Council",
+      "name": "Q28720198",
+      "canonical": "harjavalta city council"
+    },
+    {
+      "value": "Paimio City Council",
+      "name": "Q28723156",
+      "canonical": "paimio city council"
+    },
+    {
+      "value": "Toronto City Council",
+      "name": "Q2444341",
+      "canonical": "toronto city council"
+    },
+    {
+      "value": "City Council of Milan",
+      "name": "Q28228849",
+      "canonical": "city council of milan"
+    },
+    {
+      "value": "Genoa City Council",
+      "name": "Q50189268",
+      "canonical": "genoa city council"
+    },
+    {
+      "value": "Catania City Council",
+      "name": "Q50187717",
+      "canonical": "catania city council"
+    },
+    {
+      "value": "Winnipeg City Council",
+      "name": "Q47489645",
+      "canonical": "winnipeg city council"
+    },
+    {
+      "value": "municipal chamber of Osasco",
+      "name": "Q56450228",
+      "canonical": "municipal chamber of osasco"
+    },
+    {
+      "value": "Municipal Chamber of Curitiba",
+      "name": "Q53935035",
+      "canonical": "municipal chamber of curitiba"
+    },
+    {
+      "value": "Kauhava City Council",
+      "name": "Q18659915",
+      "canonical": "kauhava city council"
+    },
+    {
+      "value": "Kurikka City Council",
+      "name": "Q28722386",
+      "canonical": "kurikka city council"
+    },
+    {
+      "value": "Ähtäri City Council",
+      "name": "Q28726759",
+      "canonical": "ähtäri city council"
+    },
+    {
+      "value": "Municipal Chamber of Rio de Janeiro",
+      "name": "Q6936214",
+      "canonical": "municipal chamber of rio de janeiro"
+    },
+    {
+      "value": "León (City Council)",
+      "name": "Q5714869",
+      "canonical": "león ( city council )"
+    },
+    {
+      "value": "Deliberative Council of Salta",
+      "name": "Q59457126",
+      "canonical": "deliberative council of salta"
+    },
+    {
+      "value": "Municipal Chamber of Belo Horizonte",
+      "name": "Q53935004",
+      "canonical": "municipal chamber of belo horizonte"
+    },
+    {
+      "value": "Deliberative Council of Paraná",
+      "name": "Q59457149",
+      "canonical": "deliberative council of paraná"
+    },
+    {
+      "value": "Deliberative Council of Posadas",
+      "name": "Q59457151",
+      "canonical": "deliberative council of posadas"
+    },
+    {
+      "value": "Espoo City Council",
+      "name": "Q11858804",
+      "canonical": "espoo city council"
+    },
+    {
+      "value": "Kobe City Council",
+      "name": "Q24861225",
+      "canonical": "kobe city council"
+    },
+    {
+      "value": "Taoyuan City Council",
+      "name": "Q11112210",
+      "canonical": "taoyuan city council"
+    },
+    {
+      "value": "Dundee City Council",
+      "name": "Q28528294",
+      "canonical": "dundee city council"
+    },
+    {
+      "value": "Vantaa City Council",
+      "name": "Q18662703",
+      "canonical": "vantaa city council"
+    },
+    {
+      "value": "Tainan City Council",
+      "name": "Q7676191",
+      "canonical": "tainan city council"
+    },
+    {
+      "value": "Faisalabad Municipal Corporation",
+      "name": "Q58873612",
+      "canonical": "faisalabad municipal corporation"
+    },
+    {
+      "value": "municipal chamber of Niteroi",
+      "name": "Q10262910",
+      "canonical": "municipal chamber of niteroi"
+    },
+    {
+      "value": "municipal Chamber of Palmas",
+      "name": "Q56450299",
+      "canonical": "municipal chamber of palmas"
+    },
+    {
+      "value": "City of Lincoln Council",
+      "name": "Q73072583",
+      "canonical": "city of lincoln council"
+    },
+    {
+      "value": "municipal chamber of Sorocaba",
+      "name": "Q10262915",
+      "canonical": "municipal chamber of sorocaba"
+    },
+    {
+      "value": "Nokia City Council",
+      "name": "Q11884676",
+      "canonical": "nokia city council"
+    },
+    {
+      "value": "Imatra City Council",
+      "name": "Q28720329",
+      "canonical": "imatra city council"
+    },
+    {
+      "value": "Municipal Corporation Gujranwala",
+      "name": "Q58873615",
+      "canonical": "municipal corporation gujranwala"
+    },
+    {
+      "value": "Äänekoski City Council",
+      "name": "Q28726760",
+      "canonical": "äänekoski city council"
+    },
+    {
+      "value": "Suonenjoki City Council",
+      "name": "Q28726711",
+      "canonical": "suonenjoki city council"
+    },
+    {
+      "value": "municipal chamber of Guaruja",
+      "name": "Q56450287",
+      "canonical": "municipal chamber of guaruja"
+    },
+    {
+      "value": "municipal chamber of Itaquaquecetuba",
+      "name": "Q56450272",
+      "canonical": "municipal chamber of itaquaquecetuba"
+    },
+    {
+      "value": "Ado Ekiti legislative council",
+      "name": "Q59523641",
+      "canonical": "ado ekiti legislative council"
+    },
+    {
+      "value": "Karkkila City Council",
+      "name": "Q18659879",
+      "canonical": "karkkila city council"
+    },
+    {
+      "value": "Ylöjärvi City Council",
+      "name": "Q28726756",
+      "canonical": "ylöjärvi city council"
+    },
+    {
+      "value": "Raahe City Council",
+      "name": "Q28723392",
+      "canonical": "raahe city council"
+    },
+    {
+      "value": "municipal chamber of Montes Claros",
+      "name": "Q56450261",
+      "canonical": "municipal chamber of montes claros"
+    },
+    {
+      "value": "Laitila City Council",
+      "name": "Q28722396",
+      "canonical": "laitila city council"
+    },
+    {
+      "value": "municipal chamber of Praia Grande",
+      "name": "Q56450289",
+      "canonical": "municipal chamber of praia grande"
+    },
+    {
+      "value": "Katsina legislative council",
+      "name": "Q59523759",
+      "canonical": "katsina legislative council"
+    },
+    {
+      "value": "Jakobstad municipal council",
+      "name": "Q28723366",
+      "canonical": "jakobstad municipal council"
+    },
+    {
+      "value": "Municipal Chamber of São Paulo",
+      "name": "Q6936217",
+      "canonical": "municipal chamber of são paulo"
+    },
+    {
+      "value": "Cambridge City Council",
+      "name": "Q5025388",
+      "canonical": "cambridge city council"
+    },
+    {
+      "value": "Municipality of Jerusalem",
+      "name": "Q2974831",
+      "canonical": "municipality of jerusalem"
+    },
+    {
+      "value": "Florence City Council",
+      "name": "Q50188656",
+      "canonical": "florence city council"
+    },
+    {
+      "value": "Yellowknife City Council",
+      "name": "Q8051956",
+      "canonical": "yellowknife city council"
+    },
+    {
+      "value": "Bari City Council",
+      "name": "Q50182554",
+      "canonical": "bari city council"
+    },
+    {
+      "value": "Deliberative Council of San Salvador de Jujuy",
+      "name": "Q59457171",
+      "canonical": "deliberative council of san salvador de jujuy"
+    },
+    {
+      "value": "city council of Cali",
+      "name": "Q51093881",
+      "canonical": "city council of cali"
+    },
+    {
+      "value": "city council",
+      "name": "Q3154693",
+      "canonical": "city council"
+    },
+    {
+      "value": "London City Council",
+      "name": "Q6670238",
+      "canonical": "london city council"
+    },
+    {
+      "value": "legislative body of Galway City Council",
+      "name": "Q54931557",
+      "canonical": "legislative body of galway city council"
+    },
+    {
+      "value": "legislative body of Limerick City and County Council",
+      "name": "Q54931547",
+      "canonical": "legislative body of limerick city and county council"
+    },
+    {
+      "value": "Lappeenranta City Council",
+      "name": "Q11874680",
+      "canonical": "lappeenranta city council"
+    },
+    {
+      "value": "Municipal Chamber of Guarulhos",
+      "name": "Q53934976",
+      "canonical": "municipal chamber of guarulhos"
+    },
+    {
+      "value": "Joensuu City Council",
+      "name": "Q23045104",
+      "canonical": "joensuu city council"
+    },
+    {
+      "value": "municipal chamber of São José do Rio Preto",
+      "name": "Q56450254",
+      "canonical": "municipal chamber of são josé do rio preto"
+    },
+    {
+      "value": "Tornio City Council",
+      "name": "Q28726727",
+      "canonical": "tornio city council"
+    },
+    {
+      "value": "North Goa Lok Sabha constituency",
+      "name": "Q12416142",
+      "canonical": "north goa lok sabha constituency"
+    },
+    {
+      "value": "Kerava City Council",
+      "name": "Q28721671",
+      "canonical": "kerava city council"
+    },
+    {
+      "value": "Taichung City Council",
+      "name": "Q15899378",
+      "canonical": "taichung city council"
+    },
+    {
+      "value": "municipal chamber of Sao Vicente",
+      "name": "Q10262916",
+      "canonical": "municipal chamber of sao vicente"
+    },
+    {
+      "value": "municipal chamber of Jundiaí",
+      "name": "Q56450259",
+      "canonical": "municipal chamber of jundiaí"
+    },
+    {
+      "value": "Raisio City Council",
+      "name": "Q28723394",
+      "canonical": "raisio city council"
+    },
+    {
+      "value": "Nurmes City Council",
+      "name": "Q28722749",
+      "canonical": "nurmes city council"
+    },
+    {
+      "value": "Pudasjärvi City Council",
+      "name": "Q28723378",
+      "canonical": "pudasjärvi city council"
+    },
+    {
+      "value": "Outokumpu City Council",
+      "name": "Q28723058",
+      "canonical": "outokumpu city council"
+    },
+    {
+      "value": "Nivala City Council",
+      "name": "Q28722650",
+      "canonical": "nivala city council"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Gallia Belgica",
+      "name": "Q206443",
+      "canonical": "gallia belgica"
+    },
+    {
+      "value": "Caesalpinia echinata",
+      "name": "Q216469",
+      "canonical": "caesalpinia echinata"
+    },
+    {
+      "value": "Germania",
+      "name": "Q62646",
+      "canonical": "germania"
+    },
+    {
+      "value": "Alamanni",
+      "name": "Q132990",
+      "canonical": "alamanni"
+    },
+    {
+      "value": "Saxons",
+      "name": "Q101985",
+      "canonical": "saxons"
+    },
+    {
+      "value": "Prussia",
+      "name": "Q38872",
+      "canonical": "prussia"
+    },
+    {
+      "value": "theodisk",
+      "name": "Q291495",
+      "canonical": "theodisk"
+    },
+    {
+      "value": "foreigner",
+      "name": "Q473741",
+      "canonical": "foreigner"
+    },
+    {
+      "value": "mutism",
+      "name": "Q671776",
+      "canonical": "mutism"
+    },
+    {
+      "value": "honey",
+      "name": "Q10987",
+      "canonical": "honey"
+    },
+    {
+      "value": "Land of Israel",
+      "name": "Q155321",
+      "canonical": "land of israel"
+    },
+    {
+      "value": "Mali Empire",
+      "name": "Q184536",
+      "canonical": "mali empire"
+    },
+    {
+      "value": "Lion Mountains",
+      "name": "Q20191018",
+      "canonical": "lion mountains"
+    }
+  ]
+}

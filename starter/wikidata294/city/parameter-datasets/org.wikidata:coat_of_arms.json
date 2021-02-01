@@ -1,0 +1,605 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Coat of arms of Oslo",
+      "name": "Q7440571",
+      "canonical": "coat of arms of oslo"
+    },
+    {
+      "value": "Coat of arms of Bonn",
+      "name": "Q892765",
+      "canonical": "coat of arms of bonn"
+    },
+    {
+      "value": "coat of arms of Groningen",
+      "name": "Q2764050",
+      "canonical": "coat of arms of groningen"
+    },
+    {
+      "value": "coat of arms of Helsinki",
+      "name": "Q2076504",
+      "canonical": "coat of arms of helsinki"
+    },
+    {
+      "value": "Coat of arms of Edmonton",
+      "name": "Q5138442",
+      "canonical": "coat of arms of edmonton"
+    },
+    {
+      "value": "coat of arms of Toledo",
+      "name": "Q5138528",
+      "canonical": "coat of arms of toledo"
+    },
+    {
+      "value": "Coat of arms of Lleida",
+      "name": "Q5138473",
+      "canonical": "coat of arms of lleida"
+    },
+    {
+      "value": "Coat of arms of Košice",
+      "name": "Q2862291",
+      "canonical": "coat of arms of košice"
+    },
+    {
+      "value": "coat of arms of Rotterdam",
+      "name": "Q659441",
+      "canonical": "coat of arms of rotterdam"
+    },
+    {
+      "value": "coat of arms of Kotka",
+      "name": "Q18662604",
+      "canonical": "coat of arms of kotka"
+    },
+    {
+      "value": "Coat of arms of Akaa",
+      "name": "Q2120182",
+      "canonical": "coat of arms of akaa"
+    },
+    {
+      "value": "coat of arms of Benidorm",
+      "name": "Q11919961",
+      "canonical": "coat of arms of benidorm"
+    },
+    {
+      "value": "Coat of arms of Dubossary",
+      "name": "Q11236266",
+      "canonical": "coat of arms of dubossary"
+    },
+    {
+      "value": "Coat of arms of Forssa",
+      "name": "Q2120354",
+      "canonical": "coat of arms of forssa"
+    },
+    {
+      "value": "symbols of Atzeneta del Maestrat",
+      "name": "Q67715147",
+      "canonical": "symbols of atzeneta del maestrat"
+    },
+    {
+      "value": "Łódź coat of arms",
+      "name": "Q6946379",
+      "canonical": "łódź coat of arms"
+    },
+    {
+      "value": "coat of arms of Tallinn",
+      "name": "Q2984477",
+      "canonical": "coat of arms of tallinn"
+    },
+    {
+      "value": "Coat of arms of Bratislava",
+      "name": "Q728795",
+      "canonical": "coat of arms of bratislava"
+    },
+    {
+      "value": "Coat of arms of Granada (Spain)",
+      "name": "Q5838040",
+      "canonical": "coat of arms of granada ( spain )"
+    },
+    {
+      "value": "Symbols of Málaga",
+      "name": "Q6137130",
+      "canonical": "symbols of málaga"
+    },
+    {
+      "value": "Coat of arms of Burgos",
+      "name": "Q5837905",
+      "canonical": "coat of arms of burgos"
+    },
+    {
+      "value": "coat of arms of Purmerend",
+      "name": "Q2088763",
+      "canonical": "coat of arms of purmerend"
+    },
+    {
+      "value": "Coat of arms of Pamplona",
+      "name": "Q3456408",
+      "canonical": "coat of arms of pamplona"
+    },
+    {
+      "value": "coat of arms of Castelló de la Plana",
+      "name": "Q20106134",
+      "canonical": "coat of arms of castelló de la plana"
+    },
+    {
+      "value": "coat of arms of Bălți",
+      "name": "Q12741446",
+      "canonical": "coat of arms of bălți"
+    },
+    {
+      "value": "Lieksan vaakuna",
+      "name": "Q18662608",
+      "canonical": "lieksan vaakuna"
+    },
+    {
+      "value": "coat of arms of Voorburg",
+      "name": "Q19630968",
+      "canonical": "coat of arms of voorburg"
+    },
+    {
+      "value": "Coat of arms of Skopje",
+      "name": "Q1956155",
+      "canonical": "coat of arms of skopje"
+    },
+    {
+      "value": "Coat of arms of Nowy Sącz",
+      "name": "Q5138488",
+      "canonical": "coat of arms of nowy sącz"
+    },
+    {
+      "value": "coat of arms of Utrecht",
+      "name": "Q2031129",
+      "canonical": "coat of arms of utrecht"
+    },
+    {
+      "value": "coat of arms of Wageningen",
+      "name": "Q15883818",
+      "canonical": "coat of arms of wageningen"
+    },
+    {
+      "value": "Coat of arms of Frankfurt",
+      "name": "Q15853640",
+      "canonical": "coat of arms of frankfurt"
+    },
+    {
+      "value": "Coat of arms of Wrocław",
+      "name": "Q1757668",
+      "canonical": "coat of arms of wrocław"
+    },
+    {
+      "value": "Coat of arms of Naples",
+      "name": "Q3973043",
+      "canonical": "coat of arms of naples"
+    },
+    {
+      "value": "Coat of arms of Valladolid",
+      "name": "Q5838379",
+      "canonical": "coat of arms of valladolid"
+    },
+    {
+      "value": "Coat of Arms of Soria",
+      "name": "Q5838323",
+      "canonical": "coat of arms of soria"
+    },
+    {
+      "value": "Coat of arms of Chișinău",
+      "name": "Q21662297",
+      "canonical": "coat of arms of chișinău"
+    },
+    {
+      "value": "Coat of arms of Plzeň",
+      "name": "Q9289812",
+      "canonical": "coat of arms of plzeň"
+    },
+    {
+      "value": "Coat of arms of Alcalá de Henares",
+      "name": "Q21001709",
+      "canonical": "coat of arms of alcalá de henares"
+    },
+    {
+      "value": "Coat of arms of Recife",
+      "name": "Q9666055",
+      "canonical": "coat of arms of recife"
+    },
+    {
+      "value": "coat of arms of Cuenca",
+      "name": "Q5837971",
+      "canonical": "coat of arms of cuenca"
+    },
+    {
+      "value": "Coat of arms of Bar",
+      "name": "Q4136174",
+      "canonical": "coat of arms of bar"
+    },
+    {
+      "value": "Coat of arms of Kotor",
+      "name": "Q4136465",
+      "canonical": "coat of arms of kotor"
+    },
+    {
+      "value": "Coat of arms of Uusikaupunki",
+      "name": "Q18662569",
+      "canonical": "coat of arms of uusikaupunki"
+    },
+    {
+      "value": "Coat of arms of Villena",
+      "name": "Q8778118",
+      "canonical": "coat of arms of villena"
+    },
+    {
+      "value": "Coat of arms of Singapore",
+      "name": "Q131947",
+      "canonical": "coat of arms of singapore"
+    },
+    {
+      "value": "Coat of arms of Katowice",
+      "name": "Q9289402",
+      "canonical": "coat of arms of katowice"
+    },
+    {
+      "value": "coat of arms of Ghent",
+      "name": "Q18286857",
+      "canonical": "coat of arms of ghent"
+    },
+    {
+      "value": "Coat of arms of Dresden",
+      "name": "Q731539",
+      "canonical": "coat of arms of dresden"
+    },
+    {
+      "value": "Coat of arms of Quito",
+      "name": "Q550385",
+      "canonical": "coat of arms of quito"
+    },
+    {
+      "value": "coat of arms of Melilla",
+      "name": "Q1515327",
+      "canonical": "coat of arms of melilla"
+    },
+    {
+      "value": "coat of arms of Jaén",
+      "name": "Q5838073",
+      "canonical": "coat of arms of jaén"
+    },
+    {
+      "value": "coat of arms of Almere",
+      "name": "Q2217645",
+      "canonical": "coat of arms of almere"
+    },
+    {
+      "value": "coat of arms of Hämeenlinna",
+      "name": "Q11864066",
+      "canonical": "coat of arms of hämeenlinna"
+    },
+    {
+      "value": "coat of arms of Ridderkerk",
+      "name": "Q3001119",
+      "canonical": "coat of arms of ridderkerk"
+    },
+    {
+      "value": "Coats of arms of Louny",
+      "name": "Q30253122",
+      "canonical": "coats of arms of louny"
+    },
+    {
+      "value": "coat of arms of Savonlinna",
+      "name": "Q11892700",
+      "canonical": "coat of arms of savonlinna"
+    },
+    {
+      "value": "Coat of arms of Vilnius",
+      "name": "Q964743",
+      "canonical": "coat of arms of vilnius"
+    },
+    {
+      "value": "Coat of arms of Buenos Aires",
+      "name": "Q1439286",
+      "canonical": "coat of arms of buenos aires"
+    },
+    {
+      "value": "Coat of arms of Reykjavík",
+      "name": "Q9289928",
+      "canonical": "coat of arms of reykjavík"
+    },
+    {
+      "value": "Coat of Arms of the City of Braunschweig",
+      "name": "Q2548683",
+      "canonical": "coat of arms of the city of braunschweig"
+    },
+    {
+      "value": "coat of arms of Girona",
+      "name": "Q8777932",
+      "canonical": "coat of arms of girona"
+    },
+    {
+      "value": "Coat of arms of Haarlem",
+      "name": "Q2014433",
+      "canonical": "coat of arms of haarlem"
+    },
+    {
+      "value": "Coat of Sabadell",
+      "name": "Q11920208",
+      "canonical": "coat of sabadell"
+    },
+    {
+      "value": "coat of arms of Badalona",
+      "name": "Q11919930",
+      "canonical": "coat of arms of badalona"
+    },
+    {
+      "value": "coat of arms of Salamanca",
+      "name": "Q5838247",
+      "canonical": "coat of arms of salamanca"
+    },
+    {
+      "value": "Symbols of Tirana",
+      "name": "Q3303528",
+      "canonical": "symbols of tirana"
+    },
+    {
+      "value": "Coat of arms of Auckland",
+      "name": "Q30234264",
+      "canonical": "coat of arms of auckland"
+    },
+    {
+      "value": "Coats of arms of Cartagena",
+      "name": "Q5837921",
+      "canonical": "coats of arms of cartagena"
+    },
+    {
+      "value": "coat of arms of Mikkeli",
+      "name": "Q11882680",
+      "canonical": "coat of arms of mikkeli"
+    },
+    {
+      "value": "coat of arms of Kajaani",
+      "name": "Q11869086",
+      "canonical": "coat of arms of kajaani"
+    },
+    {
+      "value": "Coat of arms of Peterborough, Ontario",
+      "name": "Q5138492",
+      "canonical": "coat of arms of peterborough , ontario"
+    },
+    {
+      "value": "Category:Coats of arms of Mir",
+      "name": "Q89953157",
+      "canonical": "category : coats of arms of mir"
+    },
+    {
+      "value": "Coat of arms of Cusco",
+      "name": "Q66730612",
+      "canonical": "coat of arms of cusco"
+    },
+    {
+      "value": "Coats of arms of the Vatican City",
+      "name": "Q200198",
+      "canonical": "coats of arms of the vatican city"
+    },
+    {
+      "value": "Coats of arms of Gdynia",
+      "name": "Q9289255",
+      "canonical": "coats of arms of gdynia"
+    },
+    {
+      "value": "coat of arms of Delft",
+      "name": "Q2199783",
+      "canonical": "coat of arms of delft"
+    },
+    {
+      "value": "coat of arms of Amsterdam",
+      "name": "Q683829",
+      "canonical": "coat of arms of amsterdam"
+    },
+    {
+      "value": "Coat of arms of Madrid",
+      "name": "Q3775707",
+      "canonical": "coat of arms of madrid"
+    },
+    {
+      "value": "Coat of arms of Alajärvi",
+      "name": "Q2120196",
+      "canonical": "coat of arms of alajärvi"
+    },
+    {
+      "value": "Coat of arms of Alavus",
+      "name": "Q2120214",
+      "canonical": "coat of arms of alavus"
+    },
+    {
+      "value": "Coat of arms of Bilbao",
+      "name": "Q5689218",
+      "canonical": "coat of arms of bilbao"
+    },
+    {
+      "value": "coat of arms of Valencia",
+      "name": "Q2750915",
+      "canonical": "coat of arms of valencia"
+    },
+    {
+      "value": "Coat of arms of Huelva",
+      "name": "Q8777940",
+      "canonical": "coat of arms of huelva"
+    },
+    {
+      "value": "Coat of arms of Trondheim",
+      "name": "Q3740236",
+      "canonical": "coat of arms of trondheim"
+    },
+    {
+      "value": "symbols of Gandia",
+      "name": "Q47170388",
+      "canonical": "symbols of gandia"
+    },
+    {
+      "value": "Coat of arms of Bydgoszcz",
+      "name": "Q11709161",
+      "canonical": "coat of arms of bydgoszcz"
+    },
+    {
+      "value": "Coat of arms of Oulu",
+      "name": "Q18662611",
+      "canonical": "coat of arms of oulu"
+    },
+    {
+      "value": "coat of arms of Sittard",
+      "name": "Q20820537",
+      "canonical": "coat of arms of sittard"
+    },
+    {
+      "value": "Coat of arms of Elbląg",
+      "name": "Q8554838",
+      "canonical": "coat of arms of elbląg"
+    },
+    {
+      "value": "coat of arms of Vaasa",
+      "name": "Q10713248",
+      "canonical": "coat of arms of vaasa"
+    },
+    {
+      "value": "Coats of arms of Lohja",
+      "name": "Q18660605",
+      "canonical": "coats of arms of lohja"
+    },
+    {
+      "value": "Coat of arms of Águas de São Pedro",
+      "name": "Q5138590",
+      "canonical": "coat of arms of águas de são pedro"
+    },
+    {
+      "value": "Coat of arms of Kłodzko",
+      "name": "Q5138465",
+      "canonical": "coat of arms of kłodzko"
+    },
+    {
+      "value": "Coat of arms of Karpacz",
+      "name": "Q8113762",
+      "canonical": "coat of arms of karpacz"
+    },
+    {
+      "value": "Coat of arms of Toronto",
+      "name": "Q919602",
+      "canonical": "coat of arms of toronto"
+    },
+    {
+      "value": "Symbols of Milan",
+      "name": "Q2363861",
+      "canonical": "symbols of milan"
+    },
+    {
+      "value": "Coat of arms of Havana",
+      "name": "Q5138451",
+      "canonical": "coat of arms of havana"
+    },
+    {
+      "value": "Coat of arms of Winnipeg",
+      "name": "Q931911",
+      "canonical": "coat of arms of winnipeg"
+    },
+    {
+      "value": "Coat of arms of Jakarta",
+      "name": "Q10858729",
+      "canonical": "coat of arms of jakarta"
+    },
+    {
+      "value": "coat of arms of Schaerbeek",
+      "name": "Q21857194",
+      "canonical": "coat of arms of schaerbeek"
+    },
+    {
+      "value": "Coat of arms of Espoo",
+      "name": "Q2120333",
+      "canonical": "coat of arms of espoo"
+    },
+    {
+      "value": "Coat of arms of Legnica",
+      "name": "Q8163157",
+      "canonical": "coat of arms of legnica"
+    },
+    {
+      "value": "Coats of arms of Ruda Śląska",
+      "name": "Q1362655",
+      "canonical": "coats of arms of ruda śląska"
+    },
+    {
+      "value": "coat of arms of Lelystad",
+      "name": "Q2485641",
+      "canonical": "coat of arms of lelystad"
+    },
+    {
+      "value": "Coat of arms of Shymkent",
+      "name": "Q96094767",
+      "canonical": "coat of arms of shymkent"
+    },
+    {
+      "value": "Rønne coat of arms",
+      "name": "Q92164047",
+      "canonical": "rønne coat of arms"
+    },
+    {
+      "value": "Rocha Shield",
+      "name": "Q8778022",
+      "canonical": "rocha shield"
+    },
+    {
+      "value": "Coat of arms of Jakobstad",
+      "name": "Q4354504",
+      "canonical": "coat of arms of jakobstad"
+    },
+    {
+      "value": "coat of arms of Rosmalen",
+      "name": "Q29623728",
+      "canonical": "coat of arms of rosmalen"
+    },
+    {
+      "value": "coat of arms of Brussels",
+      "name": "Q3917629",
+      "canonical": "coat of arms of brussels"
+    },
+    {
+      "value": "coat of arms of Szczecin",
+      "name": "Q11709347",
+      "canonical": "coat of arms of szczecin"
+    },
+    {
+      "value": "Emblem of Jerusalem",
+      "name": "Q44521",
+      "canonical": "emblem of jerusalem"
+    },
+    {
+      "value": "Coat of arms of Belgrade",
+      "name": "Q2985568",
+      "canonical": "coat of arms of belgrade"
+    },
+    {
+      "value": "coat of arms of Alicante/Alacant",
+      "name": "Q11119439",
+      "canonical": "coat of arms of alicante / alacant"
+    },
+    {
+      "value": "Coat of arms of Zamora",
+      "name": "Q5838403",
+      "canonical": "coat of arms of zamora"
+    },
+    {
+      "value": "Coat of arms of Podgorica",
+      "name": "Q2341276",
+      "canonical": "coat of arms of podgorica"
+    },
+    {
+      "value": "Coat of arms of Wałbrzych",
+      "name": "Q8272334",
+      "canonical": "coat of arms of wałbrzych"
+    },
+    {
+      "value": "coat of arms of Tongeren",
+      "name": "Q19787541",
+      "canonical": "coat of arms of tongeren"
+    },
+    {
+      "value": "Coat of arms of Coquitlam",
+      "name": "Q5138431",
+      "canonical": "coat of arms of coquitlam"
+    }
+  ]
+}

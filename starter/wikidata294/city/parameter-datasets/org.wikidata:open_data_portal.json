@@ -1,0 +1,425 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Open Data Bonn",
+      "name": "Q63429236",
+      "canonical": "open data bonn"
+    },
+    {
+      "value": "Bonn open data",
+      "name": "Q97145473",
+      "canonical": "bonn open data"
+    },
+    {
+      "value": "Helsinki Region Infoshare",
+      "name": "Q96992754",
+      "canonical": "helsinki region infoshare"
+    },
+    {
+      "value": "Edmonton Open Data",
+      "name": "Q97312712",
+      "canonical": "edmonton open data"
+    },
+    {
+      "value": "City of Victoria Open Data",
+      "name": "Q97014693",
+      "canonical": "city of victoria open data"
+    },
+    {
+      "value": "Belfast Open Data",
+      "name": "Q97064094",
+      "canonical": "belfast open data"
+    },
+    {
+      "value": "Lleida Open Data Portal",
+      "name": "Q97313939",
+      "canonical": "lleida open data portal"
+    },
+    {
+      "value": "Rotterdam Open Data Store",
+      "name": "Q97144643",
+      "canonical": "rotterdam open data store"
+    },
+    {
+      "value": "Lamia Open Data",
+      "name": "Q97353563",
+      "canonical": "lamia open data"
+    },
+    {
+      "value": "Open Data for All New Yorkers",
+      "name": "Q96991743",
+      "canonical": "open data for all new yorkers"
+    },
+    {
+      "value": "Open Data Tallinn",
+      "name": "Q97142689",
+      "canonical": "open data tallinn"
+    },
+    {
+      "value": "Bangkok open data",
+      "name": "Q97317670",
+      "canonical": "bangkok open data"
+    },
+    {
+      "value": "Open data portal Bologna",
+      "name": "Q97026232",
+      "canonical": "open data portal bologna"
+    },
+    {
+      "value": "Halifax open data",
+      "name": "Q97313134",
+      "canonical": "halifax open data"
+    },
+    {
+      "value": "Birmingham city Council Open Data",
+      "name": "Q97142588",
+      "canonical": "birmingham city council open data"
+    },
+    {
+      "value": "Pamplona open data",
+      "name": "Q97317759",
+      "canonical": "pamplona open data"
+    },
+    {
+      "value": "Transparenzportal Bremen",
+      "name": "Q63427136",
+      "canonical": "transparenzportal bremen"
+    },
+    {
+      "value": "Hull City Council open data",
+      "name": "Q97144159",
+      "canonical": "hull city council open data"
+    },
+    {
+      "value": "Norwich City Council Open data",
+      "name": "Q97142585",
+      "canonical": "norwich city council open data"
+    },
+    {
+      "value": "Offene Daten Frankfurt",
+      "name": "Q97126463",
+      "canonical": "offene daten frankfurt"
+    },
+    {
+      "value": "Krakow's city data",
+      "name": "Q97101866",
+      "canonical": "krakow 's city data"
+    },
+    {
+      "value": "Open Data Naples",
+      "name": "Q97066117",
+      "canonical": "open data naples"
+    },
+    {
+      "value": "Rouen open data",
+      "name": "Q97142473",
+      "canonical": "rouen open data"
+    },
+    {
+      "value": "Singapore Open Data",
+      "name": "Q97131149",
+      "canonical": "singapore open data"
+    },
+    {
+      "value": "Dresden Open Data",
+      "name": "Q97290050",
+      "canonical": "dresden open data"
+    },
+    {
+      "value": "OpenData.HRO",
+      "name": "Q59273868",
+      "canonical": "opendata . hro"
+    },
+    {
+      "value": "OpenData.HRO",
+      "name": "Q97299245",
+      "canonical": "opendata . hro"
+    },
+    {
+      "value": "Pisa open data",
+      "name": "Q97124682",
+      "canonical": "pisa open data"
+    },
+    {
+      "value": "City of Cambridge open data",
+      "name": "Q97142564",
+      "canonical": "city of cambridge open data"
+    },
+    {
+      "value": "datasf",
+      "name": "Q97101170",
+      "canonical": "datasf"
+    },
+    {
+      "value": "Vilnius Open Data",
+      "name": "Q97142696",
+      "canonical": "vilnius open data"
+    },
+    {
+      "value": "Open Data Roma",
+      "name": "Q97061858",
+      "canonical": "open data roma"
+    },
+    {
+      "value": "AperTO",
+      "name": "Q97124052",
+      "canonical": "aperto"
+    },
+    {
+      "value": "Buenos Aires Data",
+      "name": "Q97001397",
+      "canonical": "buenos aires data"
+    },
+    {
+      "value": "Buenos Aires Data Portal",
+      "name": "Q97095889",
+      "canonical": "buenos aires data portal"
+    },
+    {
+      "value": "Open Data Portal city Leipzig",
+      "name": "Q97142400",
+      "canonical": "open data portal city leipzig"
+    },
+    {
+      "value": "Open Data Kathmandu",
+      "name": "Q97062449",
+      "canonical": "open data kathmandu"
+    },
+    {
+      "value": "city of Perth Open Data Portal",
+      "name": "Q97152718",
+      "canonical": "city of perth open data portal"
+    },
+    {
+      "value": "Bergen City Bike Open Data",
+      "name": "Q97025608",
+      "canonical": "bergen city bike open data"
+    },
+    {
+      "value": "Auckland Council Open Data Portal",
+      "name": "Q97291704",
+      "canonical": "auckland council open data portal"
+    },
+    {
+      "value": "Angers Loire Metropol Data Catalog",
+      "name": "Q97014640",
+      "canonical": "angers loire metropol data catalog"
+    },
+    {
+      "value": "Exeter data mill",
+      "name": "Q97142483",
+      "canonical": "exeter data mill"
+    },
+    {
+      "value": "city of Windsor open data",
+      "name": "Q97291629",
+      "canonical": "city of windsor open data"
+    },
+    {
+      "value": "London Datastore",
+      "name": "Q63429999",
+      "canonical": "london datastore"
+    },
+    {
+      "value": "Venice Project Center Open Data",
+      "name": "Q97061871",
+      "canonical": "venice project center open data"
+    },
+    {
+      "value": "Data and information Amsterdam",
+      "name": "Q97012030",
+      "canonical": "data and information amsterdam"
+    },
+    {
+      "value": "Innsbruck open data portal",
+      "name": "Q97288946",
+      "canonical": "innsbruck open data portal"
+    },
+    {
+      "value": "Taipei city Open Data",
+      "name": "Q97097401",
+      "canonical": "taipei city open data"
+    },
+    {
+      "value": "Open Data Regina",
+      "name": "Q97299334",
+      "canonical": "open data regina"
+    },
+    {
+      "value": "Portal for publishing open data in Udine",
+      "name": "Q97289452",
+      "canonical": "portal for publishing open data in udine"
+    },
+    {
+      "value": "Madrid Open data portal",
+      "name": "Q97097903",
+      "canonical": "madrid open data portal"
+    },
+    {
+      "value": "Open Data City of Melbourne",
+      "name": "Q97016704",
+      "canonical": "open data city of melbourne"
+    },
+    {
+      "value": "city of Melbourne Open Data",
+      "name": "Q97152943",
+      "canonical": "city of melbourne open data"
+    },
+    {
+      "value": "Bilbao open data",
+      "name": "Q97142459",
+      "canonical": "bilbao open data"
+    },
+    {
+      "value": "Valencia's Tranparency and Open Data Portal",
+      "name": "Q97097937",
+      "canonical": "valencia 's tranparency and open data portal"
+    },
+    {
+      "value": "Argos",
+      "name": "Q47887770",
+      "canonical": "argos"
+    },
+    {
+      "value": "Open Data portal Oulu",
+      "name": "Q97063871",
+      "canonical": "open data portal oulu"
+    },
+    {
+      "value": "Mississauga Open Data Portal",
+      "name": "Q97317126",
+      "canonical": "mississauga open data portal"
+    },
+    {
+      "value": "Gloucester City Council Open data",
+      "name": "Q97142497",
+      "canonical": "gloucester city council open data"
+    },
+    {
+      "value": "Toronto Open Data",
+      "name": "Q7826461",
+      "canonical": "toronto open data"
+    },
+    {
+      "value": "Open Data Milano",
+      "name": "Q96993174",
+      "canonical": "open data milano"
+    },
+    {
+      "value": "Open Data Milano",
+      "name": "Q96993174",
+      "canonical": "open data milano"
+    },
+    {
+      "value": "Open-Data-Portal München",
+      "name": "Q63433887",
+      "canonical": "open-data-portal münchen"
+    },
+    {
+      "value": "Open Data Portal München",
+      "name": "Q97144837",
+      "canonical": "open data portal münchen"
+    },
+    {
+      "value": "Open Data Winnipeg",
+      "name": "Q97147427",
+      "canonical": "open data winnipeg"
+    },
+    {
+      "value": "Fredericton Open Data",
+      "name": "Q97312806",
+      "canonical": "fredericton open data"
+    },
+    {
+      "value": "Jakarta Open Data Portal",
+      "name": "Q62476440",
+      "canonical": "jakarta open data portal"
+    },
+    {
+      "value": "Open Glasgow Data Portal",
+      "name": "Q97024133",
+      "canonical": "open glasgow data portal"
+    },
+    {
+      "value": "Livorno open data",
+      "name": "Q97124582",
+      "canonical": "livorno open data"
+    },
+    {
+      "value": "data.rio",
+      "name": "Q97127243",
+      "canonical": "data . rio"
+    },
+    {
+      "value": "Taoyuan City Open Data Portal",
+      "name": "Q97096992",
+      "canonical": "taoyuan city open data portal"
+    },
+    {
+      "value": "Dundee Open Data Portal",
+      "name": "Q97024014",
+      "canonical": "dundee open data portal"
+    },
+    {
+      "value": "Tainan city Open Data",
+      "name": "Q97097408",
+      "canonical": "tainan city open data"
+    },
+    {
+      "value": "Open Data Corfu",
+      "name": "Q97130490",
+      "canonical": "open data corfu"
+    },
+    {
+      "value": "Newcastle city council Open Data",
+      "name": "Q97142610",
+      "canonical": "newcastle city council open data"
+    },
+    {
+      "value": "Brussels open data portal",
+      "name": "Q97104298",
+      "canonical": "brussels open data portal"
+    },
+    {
+      "value": "Open Data Florence",
+      "name": "Q97290613",
+      "canonical": "open data florence"
+    },
+    {
+      "value": "Open Data city of Ulm",
+      "name": "Q63429448",
+      "canonical": "open data city of ulm"
+    },
+    {
+      "value": "Bari Open Data portal",
+      "name": "Q97024532",
+      "canonical": "bari open data portal"
+    },
+    {
+      "value": "Bandung Open Data Portal",
+      "name": "Q62476553",
+      "canonical": "bandung open data portal"
+    },
+    {
+      "value": "Open data of Terrassa",
+      "name": "Q97011951",
+      "canonical": "open data of terrassa"
+    },
+    {
+      "value": "Open data Bristol",
+      "name": "Q97142484",
+      "canonical": "open data bristol"
+    },
+    {
+      "value": "Taichung city Open Data",
+      "name": "Q97097415",
+      "canonical": "taichung city open data"
+    },
+    {
+      "value": "Open Data Prince George",
+      "name": "Q97299668",
+      "canonical": "open data prince george"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Józefów",
+      "name": "Q985534",
+      "canonical": "józefów"
+    },
+    {
+      "value": "history of Cadiz",
+      "name": "Q2374694",
+      "canonical": "history of cadiz"
+    },
+    {
+      "value": "Punic Wars",
+      "name": "Q124988",
+      "canonical": "punic wars"
+    },
+    {
+      "value": "Machico",
+      "name": "Q693243",
+      "canonical": "machico"
+    },
+    {
+      "value": "Tour de France",
+      "name": "Q33881",
+      "canonical": "tour de france"
+    }
+  ]
+}

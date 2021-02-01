@@ -1,0 +1,95 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Template:Shenzhen",
+      "name": "Q14387537",
+      "canonical": "template : shenzhen"
+    },
+    {
+      "value": "Template:Guangzhou",
+      "name": "Q14446350",
+      "canonical": "template : guangzhou"
+    },
+    {
+      "value": "Template:Brussels municipalities",
+      "name": "Q5920875",
+      "canonical": "template : brussels municipalities"
+    },
+    {
+      "value": "Template:Bratislava",
+      "name": "Q13361087",
+      "canonical": "template : bratislava"
+    },
+    {
+      "value": "Template:Beijing",
+      "name": "Q6428557",
+      "canonical": "template : beijing"
+    },
+    {
+      "value": "Template:Miskolc",
+      "name": "Q26077813",
+      "canonical": "template : miskolc"
+    },
+    {
+      "value": "Template:Białystok",
+      "name": "Q6717350",
+      "canonical": "template : białystok"
+    },
+    {
+      "value": "Template:Chongqing",
+      "name": "Q6428409",
+      "canonical": "template : chongqing"
+    },
+    {
+      "value": "Template:Gramsh div",
+      "name": "Q22733781",
+      "canonical": "template : gramsh div"
+    },
+    {
+      "value": "Template:City of Doboj",
+      "name": "Q14386972",
+      "canonical": "template : city of doboj"
+    },
+    {
+      "value": "Template:VAT",
+      "name": "Q6048132",
+      "canonical": "template : vat"
+    },
+    {
+      "value": "Template:Tashkent",
+      "name": "Q11007486",
+      "canonical": "template : tashkent"
+    },
+    {
+      "value": "Template:Genoa",
+      "name": "Q22871590",
+      "canonical": "template : genoa"
+    },
+    {
+      "value": "Template:Óbuda",
+      "name": "Q23458599",
+      "canonical": "template : óbuda"
+    },
+    {
+      "value": "Template:Jerusalem sidebar",
+      "name": "Q6306295",
+      "canonical": "template : jerusalem sidebar"
+    },
+    {
+      "value": "Template:Jerusalem navbox",
+      "name": "Q44577689",
+      "canonical": "template : jerusalem navbox"
+    },
+    {
+      "value": "Template:Shanghai",
+      "name": "Q6428445",
+      "canonical": "template : shanghai"
+    },
+    {
+      "value": "Template:Podgorica",
+      "name": "Q17334066",
+      "canonical": "template : podgorica"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "President of Singapore",
+      "name": "Q39021",
+      "canonical": "president of singapore"
+    },
+    {
+      "value": "pope",
+      "name": "Q19546",
+      "canonical": "pope"
+    }
+  ]
+}

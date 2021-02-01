@@ -1,0 +1,35 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Kingdom of Portugal",
+      "name": "Q45670",
+      "canonical": "kingdom of portugal"
+    },
+    {
+      "value": "Empire of Brazil",
+      "name": "Q217230",
+      "canonical": "empire of brazil"
+    },
+    {
+      "value": "Colonial Brazil",
+      "name": "Q2088324",
+      "canonical": "colonial brazil"
+    },
+    {
+      "value": "New Hebrides",
+      "name": "Q752431",
+      "canonical": "new hebrides"
+    },
+    {
+      "value": "Siam",
+      "name": "Q1081620",
+      "canonical": "siam"
+    },
+    {
+      "value": "Colony of Sierra Leone",
+      "name": "Q15240191",
+      "canonical": "colony of sierra leone"
+    }
+  ]
+}

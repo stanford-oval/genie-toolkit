@@ -1,0 +1,4800 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Belgium",
+      "name": "Q31",
+      "canonical": "belgium"
+    },
+    {
+      "value": "Portugal",
+      "name": "Q45",
+      "canonical": "portugal"
+    },
+    {
+      "value": "People's Republic of China",
+      "name": "Q148",
+      "canonical": "people 's republic of china"
+    },
+    {
+      "value": "Brazil",
+      "name": "Q155",
+      "canonical": "brazil"
+    },
+    {
+      "value": "Portuguese Empire",
+      "name": "Q200464",
+      "canonical": "portuguese empire"
+    },
+    {
+      "value": "Germany",
+      "name": "Q183",
+      "canonical": "germany"
+    },
+    {
+      "value": "Malta",
+      "name": "Q233",
+      "canonical": "malta"
+    },
+    {
+      "value": "Commonwealth of Nations",
+      "name": "Q7785",
+      "canonical": "commonwealth of nations"
+    },
+    {
+      "value": "Chile",
+      "name": "Q298",
+      "canonical": "chile"
+    },
+    {
+      "value": "Bahrain",
+      "name": "Q398",
+      "canonical": "bahrain"
+    },
+    {
+      "value": "Vanuatu",
+      "name": "Q686",
+      "canonical": "vanuatu"
+    },
+    {
+      "value": "Israel",
+      "name": "Q801",
+      "canonical": "israel"
+    },
+    {
+      "value": "Laos",
+      "name": "Q819",
+      "canonical": "laos"
+    },
+    {
+      "value": "Tajikistan",
+      "name": "Q863",
+      "canonical": "tajikistan"
+    },
+    {
+      "value": "Thailand",
+      "name": "Q869",
+      "canonical": "thailand"
+    },
+    {
+      "value": "United Arab Emirates",
+      "name": "Q878",
+      "canonical": "united arab emirates"
+    },
+    {
+      "value": "Mali",
+      "name": "Q912",
+      "canonical": "mali"
+    },
+    {
+      "value": "Angola",
+      "name": "Q916",
+      "canonical": "angola"
+    },
+    {
+      "value": "Portuguese Empire",
+      "name": "Q200464",
+      "canonical": "portuguese empire"
+    },
+    {
+      "value": "Sierra Leone",
+      "name": "Q1044",
+      "canonical": "sierra leone"
+    },
+    {
+      "value": "Sudan",
+      "name": "Q1049",
+      "canonical": "sudan"
+    },
+    {
+      "value": "France",
+      "name": "Q142",
+      "canonical": "france"
+    },
+    {
+      "value": "Portuguese Empire",
+      "name": "Q200464",
+      "canonical": "portuguese empire"
+    },
+    {
+      "value": "Germany",
+      "name": "Q183",
+      "canonical": "germany"
+    },
+    {
+      "value": "Luxembourg",
+      "name": "Q32",
+      "canonical": "luxembourg"
+    },
+    {
+      "value": "France",
+      "name": "Q142",
+      "canonical": "france"
+    },
+    {
+      "value": "Netherlands",
+      "name": "Q55",
+      "canonical": "netherlands"
+    },
+    {
+      "value": "Kingdom of the Netherlands",
+      "name": "Q29999",
+      "canonical": "kingdom of the netherlands"
+    },
+    {
+      "value": "Spain",
+      "name": "Q29",
+      "canonical": "spain"
+    },
+    {
+      "value": "Castile and León",
+      "name": "Q5739",
+      "canonical": "castile and león"
+    },
+    {
+      "value": "Mongolia",
+      "name": "Q711",
+      "canonical": "mongolia"
+    },
+    {
+      "value": "Kazakhstan",
+      "name": "Q232",
+      "canonical": "kazakhstan"
+    },
+    {
+      "value": "Kyrgyzstan",
+      "name": "Q813",
+      "canonical": "kyrgyzstan"
+    },
+    {
+      "value": "Tajikistan",
+      "name": "Q863",
+      "canonical": "tajikistan"
+    },
+    {
+      "value": "Pakistan",
+      "name": "Q843",
+      "canonical": "pakistan"
+    },
+    {
+      "value": "India",
+      "name": "Q668",
+      "canonical": "india"
+    },
+    {
+      "value": "Nepal",
+      "name": "Q837",
+      "canonical": "nepal"
+    },
+    {
+      "value": "Bhutan",
+      "name": "Q917",
+      "canonical": "bhutan"
+    },
+    {
+      "value": "Myanmar",
+      "name": "Q836",
+      "canonical": "myanmar"
+    },
+    {
+      "value": "Laos",
+      "name": "Q819",
+      "canonical": "laos"
+    },
+    {
+      "value": "Vietnam",
+      "name": "Q881",
+      "canonical": "vietnam"
+    },
+    {
+      "value": "Russia",
+      "name": "Q159",
+      "canonical": "russia"
+    },
+    {
+      "value": "North Korea",
+      "name": "Q423",
+      "canonical": "north korea"
+    },
+    {
+      "value": "Afghanistan",
+      "name": "Q889",
+      "canonical": "afghanistan"
+    },
+    {
+      "value": "South Korea",
+      "name": "Q884",
+      "canonical": "south korea"
+    },
+    {
+      "value": "Japan",
+      "name": "Q17",
+      "canonical": "japan"
+    },
+    {
+      "value": "Soviet Union",
+      "name": "Q15180",
+      "canonical": "soviet union"
+    },
+    {
+      "value": "Taiwan",
+      "name": "Q865",
+      "canonical": "taiwan"
+    },
+    {
+      "value": "Argentina",
+      "name": "Q414",
+      "canonical": "argentina"
+    },
+    {
+      "value": "Bolivia",
+      "name": "Q750",
+      "canonical": "bolivia"
+    },
+    {
+      "value": "French Guiana",
+      "name": "Q3769",
+      "canonical": "french guiana"
+    },
+    {
+      "value": "Guyana",
+      "name": "Q734",
+      "canonical": "guyana"
+    },
+    {
+      "value": "Paraguay",
+      "name": "Q733",
+      "canonical": "paraguay"
+    },
+    {
+      "value": "Peru",
+      "name": "Q419",
+      "canonical": "peru"
+    },
+    {
+      "value": "Suriname",
+      "name": "Q730",
+      "canonical": "suriname"
+    },
+    {
+      "value": "Uruguay",
+      "name": "Q77",
+      "canonical": "uruguay"
+    },
+    {
+      "value": "Venezuela",
+      "name": "Q717",
+      "canonical": "venezuela"
+    },
+    {
+      "value": "Colombia",
+      "name": "Q739",
+      "canonical": "colombia"
+    },
+    {
+      "value": "France",
+      "name": "Q142",
+      "canonical": "france"
+    },
+    {
+      "value": "Gran Colombia",
+      "name": "Q199821",
+      "canonical": "gran colombia"
+    },
+    {
+      "value": "European Union",
+      "name": "Q458",
+      "canonical": "european union"
+    },
+    {
+      "value": "Denmark",
+      "name": "Q35",
+      "canonical": "denmark"
+    },
+    {
+      "value": "Poland",
+      "name": "Q36",
+      "canonical": "poland"
+    },
+    {
+      "value": "Switzerland",
+      "name": "Q39",
+      "canonical": "switzerland"
+    },
+    {
+      "value": "France",
+      "name": "Q142",
+      "canonical": "france"
+    },
+    {
+      "value": "Luxembourg",
+      "name": "Q32",
+      "canonical": "luxembourg"
+    },
+    {
+      "value": "Belgium",
+      "name": "Q31",
+      "canonical": "belgium"
+    },
+    {
+      "value": "Netherlands",
+      "name": "Q55",
+      "canonical": "netherlands"
+    },
+    {
+      "value": "Austria",
+      "name": "Q40",
+      "canonical": "austria"
+    },
+    {
+      "value": "Czech Republic",
+      "name": "Q213",
+      "canonical": "czech republic"
+    },
+    {
+      "value": "Czechoslovakia",
+      "name": "Q33946",
+      "canonical": "czechoslovakia"
+    },
+    {
+      "value": "German Democratic Republic",
+      "name": "Q16957",
+      "canonical": "german democratic republic"
+    },
+    {
+      "value": "Saar Protectorate",
+      "name": "Q310293",
+      "canonical": "saar protectorate"
+    },
+    {
+      "value": "Kingdom of the Netherlands",
+      "name": "Q29999",
+      "canonical": "kingdom of the netherlands"
+    },
+    {
+      "value": "Kingdom of Denmark",
+      "name": "Q756617",
+      "canonical": "kingdom of denmark"
+    },
+    {
+      "value": "Italy",
+      "name": "Q38",
+      "canonical": "italy"
+    },
+    {
+      "value": "Argentina",
+      "name": "Q414",
+      "canonical": "argentina"
+    },
+    {
+      "value": "Bolivia",
+      "name": "Q750",
+      "canonical": "bolivia"
+    },
+    {
+      "value": "Peru",
+      "name": "Q419",
+      "canonical": "peru"
+    },
+    {
+      "value": "Saudi Arabia",
+      "name": "Q851",
+      "canonical": "saudi arabia"
+    },
+    {
+      "value": "Syria",
+      "name": "Q858",
+      "canonical": "syria"
+    },
+    {
+      "value": "Jordan",
+      "name": "Q810",
+      "canonical": "jordan"
+    },
+    {
+      "value": "Egypt",
+      "name": "Q79",
+      "canonical": "egypt"
+    },
+    {
+      "value": "Lebanon",
+      "name": "Q822",
+      "canonical": "lebanon"
+    },
+    {
+      "value": "Palestinian territories",
+      "name": "Q407199",
+      "canonical": "palestinian territories"
+    },
+    {
+      "value": "Cyprus",
+      "name": "Q229",
+      "canonical": "cyprus"
+    },
+    {
+      "value": "Gaza Strip",
+      "name": "Q39760",
+      "canonical": "gaza strip"
+    },
+    {
+      "value": "West Bank",
+      "name": "Q36678",
+      "canonical": "west bank"
+    },
+    {
+      "value": "United Arab Republic",
+      "name": "Q170468",
+      "canonical": "united arab republic"
+    },
+    {
+      "value": "Myanmar",
+      "name": "Q836",
+      "canonical": "myanmar"
+    },
+    {
+      "value": "Cambodia",
+      "name": "Q424",
+      "canonical": "cambodia"
+    },
+    {
+      "value": "People's Republic of China",
+      "name": "Q148",
+      "canonical": "people 's republic of china"
+    },
+    {
+      "value": "Thailand",
+      "name": "Q869",
+      "canonical": "thailand"
+    },
+    {
+      "value": "Vietnam",
+      "name": "Q881",
+      "canonical": "vietnam"
+    },
+    {
+      "value": "Uzbekistan",
+      "name": "Q265",
+      "canonical": "uzbekistan"
+    },
+    {
+      "value": "Kyrgyzstan",
+      "name": "Q813",
+      "canonical": "kyrgyzstan"
+    },
+    {
+      "value": "People's Republic of China",
+      "name": "Q148",
+      "canonical": "people 's republic of china"
+    },
+    {
+      "value": "Afghanistan",
+      "name": "Q889",
+      "canonical": "afghanistan"
+    },
+    {
+      "value": "Laos",
+      "name": "Q819",
+      "canonical": "laos"
+    },
+    {
+      "value": "Cambodia",
+      "name": "Q424",
+      "canonical": "cambodia"
+    },
+    {
+      "value": "Malaysia",
+      "name": "Q833",
+      "canonical": "malaysia"
+    },
+    {
+      "value": "Myanmar",
+      "name": "Q836",
+      "canonical": "myanmar"
+    },
+    {
+      "value": "Khmer Republic",
+      "name": "Q1054184",
+      "canonical": "khmer republic"
+    },
+    {
+      "value": "Oman",
+      "name": "Q842",
+      "canonical": "oman"
+    },
+    {
+      "value": "Saudi Arabia",
+      "name": "Q851",
+      "canonical": "saudi arabia"
+    },
+    {
+      "value": "Algeria",
+      "name": "Q262",
+      "canonical": "algeria"
+    },
+    {
+      "value": "Niger",
+      "name": "Q1032",
+      "canonical": "niger"
+    },
+    {
+      "value": "Burkina Faso",
+      "name": "Q965",
+      "canonical": "burkina faso"
+    },
+    {
+      "value": "Ivory Coast",
+      "name": "Q1008",
+      "canonical": "ivory coast"
+    },
+    {
+      "value": "Guinea",
+      "name": "Q1006",
+      "canonical": "guinea"
+    },
+    {
+      "value": "Senegal",
+      "name": "Q1041",
+      "canonical": "senegal"
+    },
+    {
+      "value": "Mauritania",
+      "name": "Q1025",
+      "canonical": "mauritania"
+    },
+    {
+      "value": "Namibia",
+      "name": "Q1030",
+      "canonical": "namibia"
+    },
+    {
+      "value": "Democratic Republic of the Congo",
+      "name": "Q974",
+      "canonical": "democratic republic of the congo"
+    },
+    {
+      "value": "Zambia",
+      "name": "Q953",
+      "canonical": "zambia"
+    },
+    {
+      "value": "Republic of the Congo",
+      "name": "Q971",
+      "canonical": "republic of the congo"
+    },
+    {
+      "value": "Gabon",
+      "name": "Q1000",
+      "canonical": "gabon"
+    },
+    {
+      "value": "Guinea",
+      "name": "Q1006",
+      "canonical": "guinea"
+    },
+    {
+      "value": "Liberia",
+      "name": "Q1014",
+      "canonical": "liberia"
+    },
+    {
+      "value": "South Sudan",
+      "name": "Q958",
+      "canonical": "south sudan"
+    },
+    {
+      "value": "Chad",
+      "name": "Q657",
+      "canonical": "chad"
+    },
+    {
+      "value": "Central African Republic",
+      "name": "Q929",
+      "canonical": "central african republic"
+    },
+    {
+      "value": "Ethiopia",
+      "name": "Q115",
+      "canonical": "ethiopia"
+    },
+    {
+      "value": "Eritrea",
+      "name": "Q986",
+      "canonical": "eritrea"
+    },
+    {
+      "value": "Egypt",
+      "name": "Q79",
+      "canonical": "egypt"
+    },
+    {
+      "value": "Libya",
+      "name": "Q1016",
+      "canonical": "libya"
+    },
+    {
+      "value": "Kenya",
+      "name": "Q114",
+      "canonical": "kenya"
+    },
+    {
+      "value": "Uganda",
+      "name": "Q1036",
+      "canonical": "uganda"
+    },
+    {
+      "value": "Democratic Republic of the Congo",
+      "name": "Q974",
+      "canonical": "democratic republic of the congo"
+    },
+    {
+      "value": "Bir Tawil",
+      "name": "Q620634",
+      "canonical": "bir tawil"
+    },
+    {
+      "value": "Suriname",
+      "name": "Q730",
+      "canonical": "suriname"
+    },
+    {
+      "value": "Brazil",
+      "name": "Q155",
+      "canonical": "brazil"
+    },
+    {
+      "value": "Luxembourg",
+      "name": "Q32",
+      "canonical": "luxembourg"
+    },
+    {
+      "value": "Italy",
+      "name": "Q38",
+      "canonical": "italy"
+    },
+    {
+      "value": "Germany",
+      "name": "Q183",
+      "canonical": "germany"
+    },
+    {
+      "value": "Liechtenstein",
+      "name": "Q347",
+      "canonical": "liechtenstein"
+    },
+    {
+      "value": "Australia",
+      "name": "Q408",
+      "canonical": "australia"
+    },
+    {
+      "value": "Ukraine",
+      "name": "Q212",
+      "canonical": "ukraine"
+    },
+    {
+      "value": "Kosovo",
+      "name": "Q1246",
+      "canonical": "kosovo"
+    },
+    {
+      "value": "France",
+      "name": "Q142",
+      "canonical": "france"
+    },
+    {
+      "value": "United Kingdom",
+      "name": "Q145",
+      "canonical": "united kingdom"
+    },
+    {
+      "value": "Canada",
+      "name": "Q16",
+      "canonical": "canada"
+    },
+    {
+      "value": "Indonesia",
+      "name": "Q252",
+      "canonical": "indonesia"
+    },
+    {
+      "value": "Denmark",
+      "name": "Q35",
+      "canonical": "denmark"
+    },
+    {
+      "value": "Turkey",
+      "name": "Q43",
+      "canonical": "turkey"
+    },
+    {
+      "value": "Netherlands",
+      "name": "Q55",
+      "canonical": "netherlands"
+    },
+    {
+      "value": "Uruguay",
+      "name": "Q77",
+      "canonical": "uruguay"
+    },
+    {
+      "value": "Malaysia",
+      "name": "Q833",
+      "canonical": "malaysia"
+    },
+    {
+      "value": "Pakistan",
+      "name": "Q843",
+      "canonical": "pakistan"
+    },
+    {
+      "value": "Taiwan",
+      "name": "Q865",
+      "canonical": "taiwan"
+    },
+    {
+      "value": "Mexico",
+      "name": "Q96",
+      "canonical": "mexico"
+    },
+    {
+      "value": "Democratic Republic of the Congo",
+      "name": "Q974",
+      "canonical": "democratic republic of the congo"
+    },
+    {
+      "value": "United States of America",
+      "name": "Q30",
+      "canonical": "united states of america"
+    },
+    {
+      "value": "Russia",
+      "name": "Q159",
+      "canonical": "russia"
+    },
+    {
+      "value": "India",
+      "name": "Q668",
+      "canonical": "india"
+    },
+    {
+      "value": "Greece",
+      "name": "Q41",
+      "canonical": "greece"
+    },
+    {
+      "value": "People's Republic of China",
+      "name": "Q148",
+      "canonical": "people 's republic of china"
+    },
+    {
+      "value": "Georgia",
+      "name": "Q230",
+      "canonical": "georgia"
+    },
+    {
+      "value": "Israel",
+      "name": "Q801",
+      "canonical": "israel"
+    },
+    {
+      "value": "Kingdom of the Netherlands",
+      "name": "Q29999",
+      "canonical": "kingdom of the netherlands"
+    },
+    {
+      "value": "Hungary",
+      "name": "Q28",
+      "canonical": "hungary"
+    },
+    {
+      "value": "North Korea",
+      "name": "Q423",
+      "canonical": "north korea"
+    },
+    {
+      "value": "Italy",
+      "name": "Q38",
+      "canonical": "italy"
+    },
+    {
+      "value": "Brazil",
+      "name": "Q155",
+      "canonical": "brazil"
+    },
+    {
+      "value": "Germany",
+      "name": "Q183",
+      "canonical": "germany"
+    },
+    {
+      "value": "Australia",
+      "name": "Q408",
+      "canonical": "australia"
+    },
+    {
+      "value": "Cape Verde",
+      "name": "Q1011",
+      "canonical": "cape verde"
+    },
+    {
+      "value": "Ukraine",
+      "name": "Q212",
+      "canonical": "ukraine"
+    },
+    {
+      "value": "São Tomé and Príncipe",
+      "name": "Q1039",
+      "canonical": "são tomé and príncipe"
+    },
+    {
+      "value": "United Kingdom",
+      "name": "Q145",
+      "canonical": "united kingdom"
+    },
+    {
+      "value": "Spain",
+      "name": "Q29",
+      "canonical": "spain"
+    },
+    {
+      "value": "Angola",
+      "name": "Q916",
+      "canonical": "angola"
+    },
+    {
+      "value": "Argentina",
+      "name": "Q414",
+      "canonical": "argentina"
+    },
+    {
+      "value": "Bulgaria",
+      "name": "Q219",
+      "canonical": "bulgaria"
+    },
+    {
+      "value": "Denmark",
+      "name": "Q35",
+      "canonical": "denmark"
+    },
+    {
+      "value": "East Timor",
+      "name": "Q574",
+      "canonical": "east timor"
+    },
+    {
+      "value": "Indonesia",
+      "name": "Q252",
+      "canonical": "indonesia"
+    },
+    {
+      "value": "Kosovo",
+      "name": "Q1246",
+      "canonical": "kosovo"
+    },
+    {
+      "value": "Morocco",
+      "name": "Q1028",
+      "canonical": "morocco"
+    },
+    {
+      "value": "Malta",
+      "name": "Q233",
+      "canonical": "malta"
+    },
+    {
+      "value": "Mozambique",
+      "name": "Q1029",
+      "canonical": "mozambique"
+    },
+    {
+      "value": "Uruguay",
+      "name": "Q77",
+      "canonical": "uruguay"
+    },
+    {
+      "value": "Taiwan",
+      "name": "Q865",
+      "canonical": "taiwan"
+    },
+    {
+      "value": "United States of America",
+      "name": "Q30",
+      "canonical": "united states of america"
+    },
+    {
+      "value": "Serbia",
+      "name": "Q403",
+      "canonical": "serbia"
+    },
+    {
+      "value": "Russia",
+      "name": "Q159",
+      "canonical": "russia"
+    },
+    {
+      "value": "Armenia",
+      "name": "Q399",
+      "canonical": "armenia"
+    },
+    {
+      "value": "People's Republic of China",
+      "name": "Q148",
+      "canonical": "people 's republic of china"
+    },
+    {
+      "value": "India",
+      "name": "Q668",
+      "canonical": "india"
+    },
+    {
+      "value": "Japan",
+      "name": "Q17",
+      "canonical": "japan"
+    },
+    {
+      "value": "Bangladesh",
+      "name": "Q902",
+      "canonical": "bangladesh"
+    },
+    {
+      "value": "Canada",
+      "name": "Q16",
+      "canonical": "canada"
+    },
+    {
+      "value": "Hungary",
+      "name": "Q28",
+      "canonical": "hungary"
+    },
+    {
+      "value": "North Korea",
+      "name": "Q423",
+      "canonical": "north korea"
+    },
+    {
+      "value": "United States of America",
+      "name": "Q30",
+      "canonical": "united states of america"
+    },
+    {
+      "value": "Russia",
+      "name": "Q159",
+      "canonical": "russia"
+    },
+    {
+      "value": "Israel",
+      "name": "Q801",
+      "canonical": "israel"
+    },
+    {
+      "value": "Brazil",
+      "name": "Q155",
+      "canonical": "brazil"
+    },
+    {
+      "value": "Italy",
+      "name": "Q38",
+      "canonical": "italy"
+    },
+    {
+      "value": "Germany",
+      "name": "Q183",
+      "canonical": "germany"
+    },
+    {
+      "value": "Cape Verde",
+      "name": "Q1011",
+      "canonical": "cape verde"
+    },
+    {
+      "value": "Niue",
+      "name": "Q34020",
+      "canonical": "niue"
+    },
+    {
+      "value": "Mongolia",
+      "name": "Q711",
+      "canonical": "mongolia"
+    },
+    {
+      "value": "Australia",
+      "name": "Q408",
+      "canonical": "australia"
+    },
+    {
+      "value": "Yemen",
+      "name": "Q805",
+      "canonical": "yemen"
+    },
+    {
+      "value": "Serbia",
+      "name": "Q403",
+      "canonical": "serbia"
+    },
+    {
+      "value": "Singapore",
+      "name": "Q334",
+      "canonical": "singapore"
+    },
+    {
+      "value": "Ukraine",
+      "name": "Q212",
+      "canonical": "ukraine"
+    },
+    {
+      "value": "Saudi Arabia",
+      "name": "Q851",
+      "canonical": "saudi arabia"
+    },
+    {
+      "value": "Syria",
+      "name": "Q858",
+      "canonical": "syria"
+    },
+    {
+      "value": "South Korea",
+      "name": "Q884",
+      "canonical": "south korea"
+    },
+    {
+      "value": "Philippines",
+      "name": "Q928",
+      "canonical": "philippines"
+    },
+    {
+      "value": "Belarus",
+      "name": "Q184",
+      "canonical": "belarus"
+    },
+    {
+      "value": "Japan",
+      "name": "Q17",
+      "canonical": "japan"
+    },
+    {
+      "value": "Turkey",
+      "name": "Q43",
+      "canonical": "turkey"
+    },
+    {
+      "value": "Pakistan",
+      "name": "Q843",
+      "canonical": "pakistan"
+    },
+    {
+      "value": "Bangladesh",
+      "name": "Q902",
+      "canonical": "bangladesh"
+    },
+    {
+      "value": "North Korea",
+      "name": "Q423",
+      "canonical": "north korea"
+    },
+    {
+      "value": "Kazakhstan",
+      "name": "Q232",
+      "canonical": "kazakhstan"
+    },
+    {
+      "value": "India",
+      "name": "Q668",
+      "canonical": "india"
+    },
+    {
+      "value": "Greece",
+      "name": "Q41",
+      "canonical": "greece"
+    },
+    {
+      "value": "Fiji",
+      "name": "Q712",
+      "canonical": "fiji"
+    },
+    {
+      "value": "United Arab Emirates",
+      "name": "Q878",
+      "canonical": "united arab emirates"
+    },
+    {
+      "value": "Austria",
+      "name": "Q40",
+      "canonical": "austria"
+    },
+    {
+      "value": "Equatorial Guinea",
+      "name": "Q983",
+      "canonical": "equatorial guinea"
+    },
+    {
+      "value": "Persian Empire",
+      "name": "Q83311",
+      "canonical": "persian empire"
+    },
+    {
+      "value": "Africa",
+      "name": "Q15",
+      "canonical": "africa"
+    },
+    {
+      "value": "Afghanistan",
+      "name": "Q889",
+      "canonical": "afghanistan"
+    },
+    {
+      "value": "Azerbaijan",
+      "name": "Q227",
+      "canonical": "azerbaijan"
+    },
+    {
+      "value": "Peru",
+      "name": "Q419",
+      "canonical": "peru"
+    },
+    {
+      "value": "European Union",
+      "name": "Q458",
+      "canonical": "european union"
+    },
+    {
+      "value": "Egypt",
+      "name": "Q79",
+      "canonical": "egypt"
+    },
+    {
+      "value": "Zimbabwe",
+      "name": "Q954",
+      "canonical": "zimbabwe"
+    },
+    {
+      "value": "Zambia",
+      "name": "Q953",
+      "canonical": "zambia"
+    },
+    {
+      "value": "Vietnam",
+      "name": "Q881",
+      "canonical": "vietnam"
+    },
+    {
+      "value": "Venezuela",
+      "name": "Q717",
+      "canonical": "venezuela"
+    },
+    {
+      "value": "Vanuatu",
+      "name": "Q686",
+      "canonical": "vanuatu"
+    },
+    {
+      "value": "Uruguay",
+      "name": "Q77",
+      "canonical": "uruguay"
+    },
+    {
+      "value": "United Kingdom",
+      "name": "Q145",
+      "canonical": "united kingdom"
+    },
+    {
+      "value": "Uganda",
+      "name": "Q1036",
+      "canonical": "uganda"
+    },
+    {
+      "value": "Tunisia",
+      "name": "Q948",
+      "canonical": "tunisia"
+    },
+    {
+      "value": "Trinidad and Tobago",
+      "name": "Q754",
+      "canonical": "trinidad and tobago"
+    },
+    {
+      "value": "Tonga",
+      "name": "Q678",
+      "canonical": "tonga"
+    },
+    {
+      "value": "Togo",
+      "name": "Q945",
+      "canonical": "togo"
+    },
+    {
+      "value": "Thailand",
+      "name": "Q869",
+      "canonical": "thailand"
+    },
+    {
+      "value": "Tanzania",
+      "name": "Q924",
+      "canonical": "tanzania"
+    },
+    {
+      "value": "Tajikistan",
+      "name": "Q863",
+      "canonical": "tajikistan"
+    },
+    {
+      "value": "Switzerland",
+      "name": "Q39",
+      "canonical": "switzerland"
+    },
+    {
+      "value": "Sweden",
+      "name": "Q34",
+      "canonical": "sweden"
+    },
+    {
+      "value": "Suriname",
+      "name": "Q730",
+      "canonical": "suriname"
+    },
+    {
+      "value": "Sudan",
+      "name": "Q1049",
+      "canonical": "sudan"
+    },
+    {
+      "value": "Sri Lanka",
+      "name": "Q854",
+      "canonical": "sri lanka"
+    },
+    {
+      "value": "Spain",
+      "name": "Q29",
+      "canonical": "spain"
+    },
+    {
+      "value": "South Sudan",
+      "name": "Q958",
+      "canonical": "south sudan"
+    },
+    {
+      "value": "South Africa",
+      "name": "Q258",
+      "canonical": "south africa"
+    },
+    {
+      "value": "Somalia",
+      "name": "Q1045",
+      "canonical": "somalia"
+    },
+    {
+      "value": "Sierra Leone",
+      "name": "Q1044",
+      "canonical": "sierra leone"
+    },
+    {
+      "value": "Seychelles",
+      "name": "Q1042",
+      "canonical": "seychelles"
+    },
+    {
+      "value": "Senegal",
+      "name": "Q1041",
+      "canonical": "senegal"
+    },
+    {
+      "value": "São Tomé and Príncipe",
+      "name": "Q1039",
+      "canonical": "são tomé and príncipe"
+    },
+    {
+      "value": "Samoa",
+      "name": "Q683",
+      "canonical": "samoa"
+    },
+    {
+      "value": "Rwanda",
+      "name": "Q1037",
+      "canonical": "rwanda"
+    },
+    {
+      "value": "Romania",
+      "name": "Q218",
+      "canonical": "romania"
+    },
+    {
+      "value": "Republic of the Congo",
+      "name": "Q971",
+      "canonical": "republic of the congo"
+    },
+    {
+      "value": "Portugal",
+      "name": "Q45",
+      "canonical": "portugal"
+    },
+    {
+      "value": "Poland",
+      "name": "Q36",
+      "canonical": "poland"
+    },
+    {
+      "value": "Papua New Guinea",
+      "name": "Q691",
+      "canonical": "papua new guinea"
+    },
+    {
+      "value": "Panama",
+      "name": "Q804",
+      "canonical": "panama"
+    },
+    {
+      "value": "State of Palestine",
+      "name": "Q219060",
+      "canonical": "state of palestine"
+    },
+    {
+      "value": "Norway",
+      "name": "Q20",
+      "canonical": "norway"
+    },
+    {
+      "value": "Nigeria",
+      "name": "Q1033",
+      "canonical": "nigeria"
+    },
+    {
+      "value": "New Zealand",
+      "name": "Q664",
+      "canonical": "new zealand"
+    },
+    {
+      "value": "Netherlands",
+      "name": "Q55",
+      "canonical": "netherlands"
+    },
+    {
+      "value": "Nepal",
+      "name": "Q837",
+      "canonical": "nepal"
+    },
+    {
+      "value": "Namibia",
+      "name": "Q1030",
+      "canonical": "namibia"
+    },
+    {
+      "value": "Myanmar",
+      "name": "Q836",
+      "canonical": "myanmar"
+    },
+    {
+      "value": "Mozambique",
+      "name": "Q1029",
+      "canonical": "mozambique"
+    },
+    {
+      "value": "Morocco",
+      "name": "Q1028",
+      "canonical": "morocco"
+    },
+    {
+      "value": "Mexico",
+      "name": "Q96",
+      "canonical": "mexico"
+    },
+    {
+      "value": "Mauritius",
+      "name": "Q1027",
+      "canonical": "mauritius"
+    },
+    {
+      "value": "Mauritania",
+      "name": "Q1025",
+      "canonical": "mauritania"
+    },
+    {
+      "value": "Mali",
+      "name": "Q912",
+      "canonical": "mali"
+    },
+    {
+      "value": "Maldives",
+      "name": "Q826",
+      "canonical": "maldives"
+    },
+    {
+      "value": "Malaysia",
+      "name": "Q833",
+      "canonical": "malaysia"
+    },
+    {
+      "value": "Malawi",
+      "name": "Q1020",
+      "canonical": "malawi"
+    },
+    {
+      "value": "Madagascar",
+      "name": "Q1019",
+      "canonical": "madagascar"
+    },
+    {
+      "value": "Luxembourg",
+      "name": "Q32",
+      "canonical": "luxembourg"
+    },
+    {
+      "value": "Lithuania",
+      "name": "Q37",
+      "canonical": "lithuania"
+    },
+    {
+      "value": "Libya",
+      "name": "Q1016",
+      "canonical": "libya"
+    },
+    {
+      "value": "Liberia",
+      "name": "Q1014",
+      "canonical": "liberia"
+    },
+    {
+      "value": "Laos",
+      "name": "Q819",
+      "canonical": "laos"
+    },
+    {
+      "value": "Kyrgyzstan",
+      "name": "Q813",
+      "canonical": "kyrgyzstan"
+    },
+    {
+      "value": "Kiribati",
+      "name": "Q710",
+      "canonical": "kiribati"
+    },
+    {
+      "value": "Kenya",
+      "name": "Q114",
+      "canonical": "kenya"
+    },
+    {
+      "value": "Jamaica",
+      "name": "Q766",
+      "canonical": "jamaica"
+    },
+    {
+      "value": "Ivory Coast",
+      "name": "Q1008",
+      "canonical": "ivory coast"
+    },
+    {
+      "value": "Ireland",
+      "name": "Q27",
+      "canonical": "ireland"
+    },
+    {
+      "value": "Iraq",
+      "name": "Q796",
+      "canonical": "iraq"
+    },
+    {
+      "value": "Indonesia",
+      "name": "Q252",
+      "canonical": "indonesia"
+    },
+    {
+      "value": "Iceland",
+      "name": "Q189",
+      "canonical": "iceland"
+    },
+    {
+      "value": "Guinea-Bissau",
+      "name": "Q1007",
+      "canonical": "guinea-bissau"
+    },
+    {
+      "value": "Guinea",
+      "name": "Q1006",
+      "canonical": "guinea"
+    },
+    {
+      "value": "Grenada",
+      "name": "Q769",
+      "canonical": "grenada"
+    },
+    {
+      "value": "Ghana",
+      "name": "Q117",
+      "canonical": "ghana"
+    },
+    {
+      "value": "Gabon",
+      "name": "Q1000",
+      "canonical": "gabon"
+    },
+    {
+      "value": "Finland",
+      "name": "Q33",
+      "canonical": "finland"
+    },
+    {
+      "value": "Federated States of Micronesia",
+      "name": "Q702",
+      "canonical": "federated states of micronesia"
+    },
+    {
+      "value": "Eritrea",
+      "name": "Q986",
+      "canonical": "eritrea"
+    },
+    {
+      "value": "Ecuador",
+      "name": "Q736",
+      "canonical": "ecuador"
+    },
+    {
+      "value": "East Timor",
+      "name": "Q574",
+      "canonical": "east timor"
+    },
+    {
+      "value": "Djibouti",
+      "name": "Q977",
+      "canonical": "djibouti"
+    },
+    {
+      "value": "Denmark",
+      "name": "Q35",
+      "canonical": "denmark"
+    },
+    {
+      "value": "Democratic Republic of the Congo",
+      "name": "Q974",
+      "canonical": "democratic republic of the congo"
+    },
+    {
+      "value": "Czech Republic",
+      "name": "Q213",
+      "canonical": "czech republic"
+    },
+    {
+      "value": "Cyprus",
+      "name": "Q229",
+      "canonical": "cyprus"
+    },
+    {
+      "value": "Cuba",
+      "name": "Q241",
+      "canonical": "cuba"
+    },
+    {
+      "value": "Croatia",
+      "name": "Q224",
+      "canonical": "croatia"
+    },
+    {
+      "value": "Comoros",
+      "name": "Q970",
+      "canonical": "comoros"
+    },
+    {
+      "value": "Bhutan",
+      "name": "Q917",
+      "canonical": "bhutan"
+    },
+    {
+      "value": "Albania",
+      "name": "Q222",
+      "canonical": "albania"
+    },
+    {
+      "value": "Algeria",
+      "name": "Q262",
+      "canonical": "algeria"
+    },
+    {
+      "value": "Angola",
+      "name": "Q916",
+      "canonical": "angola"
+    },
+    {
+      "value": "Antigua and Barbuda",
+      "name": "Q781",
+      "canonical": "antigua and barbuda"
+    },
+    {
+      "value": "Argentina",
+      "name": "Q414",
+      "canonical": "argentina"
+    },
+    {
+      "value": "The Bahamas",
+      "name": "Q778",
+      "canonical": "the bahamas"
+    },
+    {
+      "value": "Belgium",
+      "name": "Q31",
+      "canonical": "belgium"
+    },
+    {
+      "value": "Canada",
+      "name": "Q16",
+      "canonical": "canada"
+    },
+    {
+      "value": "Central African Republic",
+      "name": "Q929",
+      "canonical": "central african republic"
+    },
+    {
+      "value": "Benin",
+      "name": "Q962",
+      "canonical": "benin"
+    },
+    {
+      "value": "Cambodia",
+      "name": "Q424",
+      "canonical": "cambodia"
+    },
+    {
+      "value": "Chad",
+      "name": "Q657",
+      "canonical": "chad"
+    },
+    {
+      "value": "Barbados",
+      "name": "Q244",
+      "canonical": "barbados"
+    },
+    {
+      "value": "Bolivia",
+      "name": "Q750",
+      "canonical": "bolivia"
+    },
+    {
+      "value": "Botswana",
+      "name": "Q963",
+      "canonical": "botswana"
+    },
+    {
+      "value": "Bulgaria",
+      "name": "Q219",
+      "canonical": "bulgaria"
+    },
+    {
+      "value": "Burundi",
+      "name": "Q967",
+      "canonical": "burundi"
+    },
+    {
+      "value": "Chile",
+      "name": "Q298",
+      "canonical": "chile"
+    },
+    {
+      "value": "Brunei",
+      "name": "Q921",
+      "canonical": "brunei"
+    },
+    {
+      "value": "Armenia",
+      "name": "Q399",
+      "canonical": "armenia"
+    },
+    {
+      "value": "Kosovo",
+      "name": "Q1246",
+      "canonical": "kosovo"
+    },
+    {
+      "value": "Vatican City",
+      "name": "Q237",
+      "canonical": "vatican city"
+    },
+    {
+      "value": "Hungary",
+      "name": "Q28",
+      "canonical": "hungary"
+    },
+    {
+      "value": "Argentina",
+      "name": "Q414",
+      "canonical": "argentina"
+    },
+    {
+      "value": "South Africa",
+      "name": "Q258",
+      "canonical": "south africa"
+    },
+    {
+      "value": "Germany",
+      "name": "Q183",
+      "canonical": "germany"
+    },
+    {
+      "value": "Angola",
+      "name": "Q916",
+      "canonical": "angola"
+    },
+    {
+      "value": "Armenia",
+      "name": "Q399",
+      "canonical": "armenia"
+    },
+    {
+      "value": "Australia",
+      "name": "Q408",
+      "canonical": "australia"
+    },
+    {
+      "value": "Barbados",
+      "name": "Q244",
+      "canonical": "barbados"
+    },
+    {
+      "value": "Benin",
+      "name": "Q962",
+      "canonical": "benin"
+    },
+    {
+      "value": "Bolivia",
+      "name": "Q750",
+      "canonical": "bolivia"
+    },
+    {
+      "value": "Cape Verde",
+      "name": "Q1011",
+      "canonical": "cape verde"
+    },
+    {
+      "value": "Canada",
+      "name": "Q16",
+      "canonical": "canada"
+    },
+    {
+      "value": "Chile",
+      "name": "Q298",
+      "canonical": "chile"
+    },
+    {
+      "value": "Costa Rica",
+      "name": "Q800",
+      "canonical": "costa rica"
+    },
+    {
+      "value": "Colombia",
+      "name": "Q739",
+      "canonical": "colombia"
+    },
+    {
+      "value": "North Korea",
+      "name": "Q423",
+      "canonical": "north korea"
+    },
+    {
+      "value": "Cuba",
+      "name": "Q241",
+      "canonical": "cuba"
+    },
+    {
+      "value": "Denmark",
+      "name": "Q35",
+      "canonical": "denmark"
+    },
+    {
+      "value": "Egypt",
+      "name": "Q79",
+      "canonical": "egypt"
+    },
+    {
+      "value": "United States of America",
+      "name": "Q30",
+      "canonical": "united states of america"
+    },
+    {
+      "value": "Ecuador",
+      "name": "Q736",
+      "canonical": "ecuador"
+    },
+    {
+      "value": "Spain",
+      "name": "Q29",
+      "canonical": "spain"
+    },
+    {
+      "value": "France",
+      "name": "Q142",
+      "canonical": "france"
+    },
+    {
+      "value": "Equatorial Guinea",
+      "name": "Q983",
+      "canonical": "equatorial guinea"
+    },
+    {
+      "value": "Guyana",
+      "name": "Q734",
+      "canonical": "guyana"
+    },
+    {
+      "value": "Greece",
+      "name": "Q41",
+      "canonical": "greece"
+    },
+    {
+      "value": "Haiti",
+      "name": "Q790",
+      "canonical": "haiti"
+    },
+    {
+      "value": "Honduras",
+      "name": "Q783",
+      "canonical": "honduras"
+    },
+    {
+      "value": "Israel",
+      "name": "Q801",
+      "canonical": "israel"
+    },
+    {
+      "value": "India",
+      "name": "Q668",
+      "canonical": "india"
+    },
+    {
+      "value": "Indonesia",
+      "name": "Q252",
+      "canonical": "indonesia"
+    },
+    {
+      "value": "Iran",
+      "name": "Q794",
+      "canonical": "iran"
+    },
+    {
+      "value": "Iraq",
+      "name": "Q796",
+      "canonical": "iraq"
+    },
+    {
+      "value": "Japan",
+      "name": "Q17",
+      "canonical": "japan"
+    },
+    {
+      "value": "Jamaica",
+      "name": "Q766",
+      "canonical": "jamaica"
+    },
+    {
+      "value": "Mexico",
+      "name": "Q96",
+      "canonical": "mexico"
+    },
+    {
+      "value": "Lebanon",
+      "name": "Q822",
+      "canonical": "lebanon"
+    },
+    {
+      "value": "Mozambique",
+      "name": "Q1029",
+      "canonical": "mozambique"
+    },
+    {
+      "value": "Nigeria",
+      "name": "Q1033",
+      "canonical": "nigeria"
+    },
+    {
+      "value": "State of Palestine",
+      "name": "Q219060",
+      "canonical": "state of palestine"
+    },
+    {
+      "value": "Paraguay",
+      "name": "Q733",
+      "canonical": "paraguay"
+    },
+    {
+      "value": "Pakistan",
+      "name": "Q843",
+      "canonical": "pakistan"
+    },
+    {
+      "value": "Peru",
+      "name": "Q419",
+      "canonical": "peru"
+    },
+    {
+      "value": "Poland",
+      "name": "Q36",
+      "canonical": "poland"
+    },
+    {
+      "value": "Portugal",
+      "name": "Q45",
+      "canonical": "portugal"
+    },
+    {
+      "value": "United Kingdom",
+      "name": "Q145",
+      "canonical": "united kingdom"
+    },
+    {
+      "value": "Czech Republic",
+      "name": "Q213",
+      "canonical": "czech republic"
+    },
+    {
+      "value": "Russia",
+      "name": "Q159",
+      "canonical": "russia"
+    },
+    {
+      "value": "Sudan",
+      "name": "Q1049",
+      "canonical": "sudan"
+    },
+    {
+      "value": "Libya",
+      "name": "Q1016",
+      "canonical": "libya"
+    },
+    {
+      "value": "Serbia",
+      "name": "Q403",
+      "canonical": "serbia"
+    },
+    {
+      "value": "South Sudan",
+      "name": "Q958",
+      "canonical": "south sudan"
+    },
+    {
+      "value": "East Timor",
+      "name": "Q574",
+      "canonical": "east timor"
+    },
+    {
+      "value": "Turkey",
+      "name": "Q43",
+      "canonical": "turkey"
+    },
+    {
+      "value": "Ukraine",
+      "name": "Q212",
+      "canonical": "ukraine"
+    },
+    {
+      "value": "European Union",
+      "name": "Q458",
+      "canonical": "european union"
+    },
+    {
+      "value": "African Union",
+      "name": "Q7159",
+      "canonical": "african union"
+    },
+    {
+      "value": "Uruguay",
+      "name": "Q77",
+      "canonical": "uruguay"
+    },
+    {
+      "value": "Venezuela",
+      "name": "Q717",
+      "canonical": "venezuela"
+    },
+    {
+      "value": "Bhutan",
+      "name": "Q917",
+      "canonical": "bhutan"
+    },
+    {
+      "value": "People's Republic of China",
+      "name": "Q148",
+      "canonical": "people 's republic of china"
+    },
+    {
+      "value": "Italy",
+      "name": "Q38",
+      "canonical": "italy"
+    },
+    {
+      "value": "Belarus",
+      "name": "Q184",
+      "canonical": "belarus"
+    },
+    {
+      "value": "Suriname",
+      "name": "Q730",
+      "canonical": "suriname"
+    },
+    {
+      "value": "Belize",
+      "name": "Q242",
+      "canonical": "belize"
+    },
+    {
+      "value": "Malaysia",
+      "name": "Q833",
+      "canonical": "malaysia"
+    },
+    {
+      "value": "Taiwan",
+      "name": "Q865",
+      "canonical": "taiwan"
+    },
+    {
+      "value": "Philippines",
+      "name": "Q928",
+      "canonical": "philippines"
+    },
+    {
+      "value": "Democratic Republic of the Congo",
+      "name": "Q974",
+      "canonical": "democratic republic of the congo"
+    },
+    {
+      "value": "Sweden",
+      "name": "Q34",
+      "canonical": "sweden"
+    },
+    {
+      "value": "South Korea",
+      "name": "Q884",
+      "canonical": "south korea"
+    },
+    {
+      "value": "Bangladesh",
+      "name": "Q902",
+      "canonical": "bangladesh"
+    },
+    {
+      "value": "Georgia",
+      "name": "Q230",
+      "canonical": "georgia"
+    },
+    {
+      "value": "Kingdom of the Netherlands",
+      "name": "Q29999",
+      "canonical": "kingdom of the netherlands"
+    },
+    {
+      "value": "Zambia",
+      "name": "Q953",
+      "canonical": "zambia"
+    },
+    {
+      "value": "Hungary",
+      "name": "Q28",
+      "canonical": "hungary"
+    },
+    {
+      "value": "United States of America",
+      "name": "Q30",
+      "canonical": "united states of america"
+    },
+    {
+      "value": "Brazil",
+      "name": "Q155",
+      "canonical": "brazil"
+    },
+    {
+      "value": "Israel",
+      "name": "Q801",
+      "canonical": "israel"
+    },
+    {
+      "value": "France",
+      "name": "Q142",
+      "canonical": "france"
+    },
+    {
+      "value": "United Kingdom",
+      "name": "Q145",
+      "canonical": "united kingdom"
+    },
+    {
+      "value": "Italy",
+      "name": "Q38",
+      "canonical": "italy"
+    },
+    {
+      "value": "Switzerland",
+      "name": "Q39",
+      "canonical": "switzerland"
+    },
+    {
+      "value": "Austria",
+      "name": "Q40",
+      "canonical": "austria"
+    },
+    {
+      "value": "Luxembourg",
+      "name": "Q32",
+      "canonical": "luxembourg"
+    },
+    {
+      "value": "Liechtenstein",
+      "name": "Q347",
+      "canonical": "liechtenstein"
+    },
+    {
+      "value": "Belgium",
+      "name": "Q31",
+      "canonical": "belgium"
+    },
+    {
+      "value": "Netherlands",
+      "name": "Q55",
+      "canonical": "netherlands"
+    },
+    {
+      "value": "Poland",
+      "name": "Q36",
+      "canonical": "poland"
+    },
+    {
+      "value": "Czech Republic",
+      "name": "Q213",
+      "canonical": "czech republic"
+    },
+    {
+      "value": "Denmark",
+      "name": "Q35",
+      "canonical": "denmark"
+    },
+    {
+      "value": "Norway",
+      "name": "Q20",
+      "canonical": "norway"
+    },
+    {
+      "value": "Sweden",
+      "name": "Q34",
+      "canonical": "sweden"
+    },
+    {
+      "value": "Finland",
+      "name": "Q33",
+      "canonical": "finland"
+    },
+    {
+      "value": "Russia",
+      "name": "Q159",
+      "canonical": "russia"
+    },
+    {
+      "value": "Slovakia",
+      "name": "Q214",
+      "canonical": "slovakia"
+    },
+    {
+      "value": "Slovenia",
+      "name": "Q215",
+      "canonical": "slovenia"
+    },
+    {
+      "value": "Hungary",
+      "name": "Q28",
+      "canonical": "hungary"
+    },
+    {
+      "value": "Croatia",
+      "name": "Q224",
+      "canonical": "croatia"
+    },
+    {
+      "value": "Serbia",
+      "name": "Q403",
+      "canonical": "serbia"
+    },
+    {
+      "value": "Greece",
+      "name": "Q41",
+      "canonical": "greece"
+    },
+    {
+      "value": "Romania",
+      "name": "Q218",
+      "canonical": "romania"
+    },
+    {
+      "value": "Bulgaria",
+      "name": "Q219",
+      "canonical": "bulgaria"
+    },
+    {
+      "value": "Portugal",
+      "name": "Q45",
+      "canonical": "portugal"
+    },
+    {
+      "value": "Spain",
+      "name": "Q29",
+      "canonical": "spain"
+    },
+    {
+      "value": "Ireland",
+      "name": "Q27",
+      "canonical": "ireland"
+    },
+    {
+      "value": "Albania",
+      "name": "Q222",
+      "canonical": "albania"
+    },
+    {
+      "value": "Iceland",
+      "name": "Q189",
+      "canonical": "iceland"
+    },
+    {
+      "value": "Ukraine",
+      "name": "Q212",
+      "canonical": "ukraine"
+    },
+    {
+      "value": "Turkey",
+      "name": "Q43",
+      "canonical": "turkey"
+    },
+    {
+      "value": "Georgia",
+      "name": "Q230",
+      "canonical": "georgia"
+    },
+    {
+      "value": "Azerbaijan",
+      "name": "Q227",
+      "canonical": "azerbaijan"
+    },
+    {
+      "value": "Jordan",
+      "name": "Q810",
+      "canonical": "jordan"
+    },
+    {
+      "value": "Saudi Arabia",
+      "name": "Q851",
+      "canonical": "saudi arabia"
+    },
+    {
+      "value": "United Arab Emirates",
+      "name": "Q878",
+      "canonical": "united arab emirates"
+    },
+    {
+      "value": "Iraq",
+      "name": "Q796",
+      "canonical": "iraq"
+    },
+    {
+      "value": "Iran",
+      "name": "Q794",
+      "canonical": "iran"
+    },
+    {
+      "value": "Pakistan",
+      "name": "Q843",
+      "canonical": "pakistan"
+    },
+    {
+      "value": "India",
+      "name": "Q668",
+      "canonical": "india"
+    },
+    {
+      "value": "Kazakhstan",
+      "name": "Q232",
+      "canonical": "kazakhstan"
+    },
+    {
+      "value": "Uzbekistan",
+      "name": "Q265",
+      "canonical": "uzbekistan"
+    },
+    {
+      "value": "Afghanistan",
+      "name": "Q889",
+      "canonical": "afghanistan"
+    },
+    {
+      "value": "People's Republic of China",
+      "name": "Q148",
+      "canonical": "people 's republic of china"
+    },
+    {
+      "value": "Mongolia",
+      "name": "Q711",
+      "canonical": "mongolia"
+    },
+    {
+      "value": "South Korea",
+      "name": "Q884",
+      "canonical": "south korea"
+    },
+    {
+      "value": "North Korea",
+      "name": "Q423",
+      "canonical": "north korea"
+    },
+    {
+      "value": "Japan",
+      "name": "Q17",
+      "canonical": "japan"
+    },
+    {
+      "value": "Vietnam",
+      "name": "Q881",
+      "canonical": "vietnam"
+    },
+    {
+      "value": "Indonesia",
+      "name": "Q252",
+      "canonical": "indonesia"
+    },
+    {
+      "value": "Thailand",
+      "name": "Q869",
+      "canonical": "thailand"
+    },
+    {
+      "value": "Bangladesh",
+      "name": "Q902",
+      "canonical": "bangladesh"
+    },
+    {
+      "value": "Australia",
+      "name": "Q408",
+      "canonical": "australia"
+    },
+    {
+      "value": "New Zealand",
+      "name": "Q664",
+      "canonical": "new zealand"
+    },
+    {
+      "value": "Singapore",
+      "name": "Q334",
+      "canonical": "singapore"
+    },
+    {
+      "value": "Malaysia",
+      "name": "Q833",
+      "canonical": "malaysia"
+    },
+    {
+      "value": "Egypt",
+      "name": "Q79",
+      "canonical": "egypt"
+    },
+    {
+      "value": "Libya",
+      "name": "Q1016",
+      "canonical": "libya"
+    },
+    {
+      "value": "Algeria",
+      "name": "Q262",
+      "canonical": "algeria"
+    },
+    {
+      "value": "Tunisia",
+      "name": "Q948",
+      "canonical": "tunisia"
+    },
+    {
+      "value": "Morocco",
+      "name": "Q1028",
+      "canonical": "morocco"
+    },
+    {
+      "value": "Mali",
+      "name": "Q912",
+      "canonical": "mali"
+    },
+    {
+      "value": "Chad",
+      "name": "Q657",
+      "canonical": "chad"
+    },
+    {
+      "value": "Sudan",
+      "name": "Q1049",
+      "canonical": "sudan"
+    },
+    {
+      "value": "South Sudan",
+      "name": "Q958",
+      "canonical": "south sudan"
+    },
+    {
+      "value": "Ethiopia",
+      "name": "Q115",
+      "canonical": "ethiopia"
+    },
+    {
+      "value": "Eritrea",
+      "name": "Q986",
+      "canonical": "eritrea"
+    },
+    {
+      "value": "Somalia",
+      "name": "Q1045",
+      "canonical": "somalia"
+    },
+    {
+      "value": "Kenya",
+      "name": "Q114",
+      "canonical": "kenya"
+    },
+    {
+      "value": "Democratic Republic of the Congo",
+      "name": "Q974",
+      "canonical": "democratic republic of the congo"
+    },
+    {
+      "value": "Republic of the Congo",
+      "name": "Q971",
+      "canonical": "republic of the congo"
+    },
+    {
+      "value": "Central African Republic",
+      "name": "Q929",
+      "canonical": "central african republic"
+    },
+    {
+      "value": "Cameroon",
+      "name": "Q1009",
+      "canonical": "cameroon"
+    },
+    {
+      "value": "Niger",
+      "name": "Q1032",
+      "canonical": "niger"
+    },
+    {
+      "value": "Nigeria",
+      "name": "Q1033",
+      "canonical": "nigeria"
+    },
+    {
+      "value": "Ivory Coast",
+      "name": "Q1008",
+      "canonical": "ivory coast"
+    },
+    {
+      "value": "Guinea",
+      "name": "Q1006",
+      "canonical": "guinea"
+    },
+    {
+      "value": "Guinea-Bissau",
+      "name": "Q1007",
+      "canonical": "guinea-bissau"
+    },
+    {
+      "value": "Senegal",
+      "name": "Q1041",
+      "canonical": "senegal"
+    },
+    {
+      "value": "The Gambia",
+      "name": "Q1005",
+      "canonical": "the gambia"
+    },
+    {
+      "value": "Burkina Faso",
+      "name": "Q965",
+      "canonical": "burkina faso"
+    },
+    {
+      "value": "Benin",
+      "name": "Q962",
+      "canonical": "benin"
+    },
+    {
+      "value": "Togo",
+      "name": "Q945",
+      "canonical": "togo"
+    },
+    {
+      "value": "Ghana",
+      "name": "Q117",
+      "canonical": "ghana"
+    },
+    {
+      "value": "Gabon",
+      "name": "Q1000",
+      "canonical": "gabon"
+    },
+    {
+      "value": "Equatorial Guinea",
+      "name": "Q983",
+      "canonical": "equatorial guinea"
+    },
+    {
+      "value": "Uganda",
+      "name": "Q1036",
+      "canonical": "uganda"
+    },
+    {
+      "value": "Tanzania",
+      "name": "Q924",
+      "canonical": "tanzania"
+    },
+    {
+      "value": "Rwanda",
+      "name": "Q1037",
+      "canonical": "rwanda"
+    },
+    {
+      "value": "Burundi",
+      "name": "Q967",
+      "canonical": "burundi"
+    },
+    {
+      "value": "Zambia",
+      "name": "Q953",
+      "canonical": "zambia"
+    },
+    {
+      "value": "Angola",
+      "name": "Q916",
+      "canonical": "angola"
+    },
+    {
+      "value": "Namibia",
+      "name": "Q1030",
+      "canonical": "namibia"
+    },
+    {
+      "value": "Botswana",
+      "name": "Q963",
+      "canonical": "botswana"
+    },
+    {
+      "value": "Zimbabwe",
+      "name": "Q954",
+      "canonical": "zimbabwe"
+    },
+    {
+      "value": "Mozambique",
+      "name": "Q1029",
+      "canonical": "mozambique"
+    },
+    {
+      "value": "Madagascar",
+      "name": "Q1019",
+      "canonical": "madagascar"
+    },
+    {
+      "value": "South Africa",
+      "name": "Q258",
+      "canonical": "south africa"
+    },
+    {
+      "value": "Canada",
+      "name": "Q16",
+      "canonical": "canada"
+    },
+    {
+      "value": "Mexico",
+      "name": "Q96",
+      "canonical": "mexico"
+    },
+    {
+      "value": "Belize",
+      "name": "Q242",
+      "canonical": "belize"
+    },
+    {
+      "value": "Guatemala",
+      "name": "Q774",
+      "canonical": "guatemala"
+    },
+    {
+      "value": "Honduras",
+      "name": "Q783",
+      "canonical": "honduras"
+    },
+    {
+      "value": "Cuba",
+      "name": "Q241",
+      "canonical": "cuba"
+    },
+    {
+      "value": "Nicaragua",
+      "name": "Q811",
+      "canonical": "nicaragua"
+    },
+    {
+      "value": "Costa Rica",
+      "name": "Q800",
+      "canonical": "costa rica"
+    },
+    {
+      "value": "Panama",
+      "name": "Q804",
+      "canonical": "panama"
+    },
+    {
+      "value": "Dominican Republic",
+      "name": "Q786",
+      "canonical": "dominican republic"
+    },
+    {
+      "value": "Colombia",
+      "name": "Q739",
+      "canonical": "colombia"
+    },
+    {
+      "value": "Venezuela",
+      "name": "Q717",
+      "canonical": "venezuela"
+    },
+    {
+      "value": "Guyana",
+      "name": "Q734",
+      "canonical": "guyana"
+    },
+    {
+      "value": "Suriname",
+      "name": "Q730",
+      "canonical": "suriname"
+    },
+    {
+      "value": "Ecuador",
+      "name": "Q736",
+      "canonical": "ecuador"
+    },
+    {
+      "value": "Peru",
+      "name": "Q419",
+      "canonical": "peru"
+    },
+    {
+      "value": "Bolivia",
+      "name": "Q750",
+      "canonical": "bolivia"
+    },
+    {
+      "value": "Paraguay",
+      "name": "Q733",
+      "canonical": "paraguay"
+    },
+    {
+      "value": "Uruguay",
+      "name": "Q77",
+      "canonical": "uruguay"
+    },
+    {
+      "value": "Argentina",
+      "name": "Q414",
+      "canonical": "argentina"
+    },
+    {
+      "value": "Chile",
+      "name": "Q298",
+      "canonical": "chile"
+    },
+    {
+      "value": "German Democratic Republic",
+      "name": "Q16957",
+      "canonical": "german democratic republic"
+    },
+    {
+      "value": "Andorra",
+      "name": "Q228",
+      "canonical": "andorra"
+    },
+    {
+      "value": "Holy See",
+      "name": "Q159583",
+      "canonical": "holy see"
+    },
+    {
+      "value": "Moldova",
+      "name": "Q217",
+      "canonical": "moldova"
+    },
+    {
+      "value": "Bosnia and Herzegovina",
+      "name": "Q225",
+      "canonical": "bosnia and herzegovina"
+    },
+    {
+      "value": "Monaco",
+      "name": "Q235",
+      "canonical": "monaco"
+    },
+    {
+      "value": "Cyprus",
+      "name": "Q229",
+      "canonical": "cyprus"
+    },
+    {
+      "value": "Malta",
+      "name": "Q233",
+      "canonical": "malta"
+    },
+    {
+      "value": "Belarus",
+      "name": "Q184",
+      "canonical": "belarus"
+    },
+    {
+      "value": "San Marino",
+      "name": "Q238",
+      "canonical": "san marino"
+    },
+    {
+      "value": "Bhutan",
+      "name": "Q917",
+      "canonical": "bhutan"
+    },
+    {
+      "value": "Cape Verde",
+      "name": "Q1011",
+      "canonical": "cape verde"
+    },
+    {
+      "value": "Lesotho",
+      "name": "Q1013",
+      "canonical": "lesotho"
+    },
+    {
+      "value": "Nepal",
+      "name": "Q837",
+      "canonical": "nepal"
+    },
+    {
+      "value": "Taiwan",
+      "name": "Q865",
+      "canonical": "taiwan"
+    },
+    {
+      "value": "Philippines",
+      "name": "Q928",
+      "canonical": "philippines"
+    },
+    {
+      "value": "Montenegro",
+      "name": "Q236",
+      "canonical": "montenegro"
+    },
+    {
+      "value": "Kosovo",
+      "name": "Q1246",
+      "canonical": "kosovo"
+    },
+    {
+      "value": "Armenia",
+      "name": "Q399",
+      "canonical": "armenia"
+    },
+    {
+      "value": "Barbados",
+      "name": "Q244",
+      "canonical": "barbados"
+    },
+    {
+      "value": "Estonia",
+      "name": "Q191",
+      "canonical": "estonia"
+    },
+    {
+      "value": "Brunei",
+      "name": "Q921",
+      "canonical": "brunei"
+    },
+    {
+      "value": "Cambodia",
+      "name": "Q424",
+      "canonical": "cambodia"
+    },
+    {
+      "value": "Bahrain",
+      "name": "Q398",
+      "canonical": "bahrain"
+    },
+    {
+      "value": "The Bahamas",
+      "name": "Q778",
+      "canonical": "the bahamas"
+    },
+    {
+      "value": "Djibouti",
+      "name": "Q977",
+      "canonical": "djibouti"
+    },
+    {
+      "value": "El Salvador",
+      "name": "Q792",
+      "canonical": "el salvador"
+    },
+    {
+      "value": "Fiji",
+      "name": "Q712",
+      "canonical": "fiji"
+    },
+    {
+      "value": "Haiti",
+      "name": "Q790",
+      "canonical": "haiti"
+    },
+    {
+      "value": "Yugoslavia",
+      "name": "Q36704",
+      "canonical": "yugoslavia"
+    },
+    {
+      "value": "Jamaica",
+      "name": "Q766",
+      "canonical": "jamaica"
+    },
+    {
+      "value": "Qatar",
+      "name": "Q846",
+      "canonical": "qatar"
+    },
+    {
+      "value": "Kyrgyzstan",
+      "name": "Q813",
+      "canonical": "kyrgyzstan"
+    },
+    {
+      "value": "Kuwait",
+      "name": "Q817",
+      "canonical": "kuwait"
+    },
+    {
+      "value": "Latvia",
+      "name": "Q211",
+      "canonical": "latvia"
+    },
+    {
+      "value": "Lithuania",
+      "name": "Q37",
+      "canonical": "lithuania"
+    },
+    {
+      "value": "Liberia",
+      "name": "Q1014",
+      "canonical": "liberia"
+    },
+    {
+      "value": "Laos",
+      "name": "Q819",
+      "canonical": "laos"
+    },
+    {
+      "value": "Myanmar",
+      "name": "Q836",
+      "canonical": "myanmar"
+    },
+    {
+      "value": "Federated States of Micronesia",
+      "name": "Q702",
+      "canonical": "federated states of micronesia"
+    },
+    {
+      "value": "North Macedonia",
+      "name": "Q221",
+      "canonical": "north macedonia"
+    },
+    {
+      "value": "Mauritania",
+      "name": "Q1025",
+      "canonical": "mauritania"
+    },
+    {
+      "value": "Mauritius",
+      "name": "Q1027",
+      "canonical": "mauritius"
+    },
+    {
+      "value": "Marshall Islands",
+      "name": "Q709",
+      "canonical": "marshall islands"
+    },
+    {
+      "value": "Malawi",
+      "name": "Q1020",
+      "canonical": "malawi"
+    },
+    {
+      "value": "Maldives",
+      "name": "Q826",
+      "canonical": "maldives"
+    },
+    {
+      "value": "Nauru",
+      "name": "Q697",
+      "canonical": "nauru"
+    },
+    {
+      "value": "East Timor",
+      "name": "Q574",
+      "canonical": "east timor"
+    },
+    {
+      "value": "Oman",
+      "name": "Q842",
+      "canonical": "oman"
+    },
+    {
+      "value": "Palau",
+      "name": "Q695",
+      "canonical": "palau"
+    },
+    {
+      "value": "Papua New Guinea",
+      "name": "Q691",
+      "canonical": "papua new guinea"
+    },
+    {
+      "value": "Eswatini",
+      "name": "Q1050",
+      "canonical": "eswatini"
+    },
+    {
+      "value": "Syria",
+      "name": "Q858",
+      "canonical": "syria"
+    },
+    {
+      "value": "Sri Lanka",
+      "name": "Q854",
+      "canonical": "sri lanka"
+    },
+    {
+      "value": "Sierra Leone",
+      "name": "Q1044",
+      "canonical": "sierra leone"
+    },
+    {
+      "value": "Samoa",
+      "name": "Q683",
+      "canonical": "samoa"
+    },
+    {
+      "value": "Solomon Islands",
+      "name": "Q685",
+      "canonical": "solomon islands"
+    },
+    {
+      "value": "Soviet Union",
+      "name": "Q15180",
+      "canonical": "soviet union"
+    },
+    {
+      "value": "Czechoslovakia",
+      "name": "Q33946",
+      "canonical": "czechoslovakia"
+    },
+    {
+      "value": "Tajikistan",
+      "name": "Q863",
+      "canonical": "tajikistan"
+    },
+    {
+      "value": "Tonga",
+      "name": "Q678",
+      "canonical": "tonga"
+    },
+    {
+      "value": "Trinidad and Tobago",
+      "name": "Q754",
+      "canonical": "trinidad and tobago"
+    },
+    {
+      "value": "Turkmenistan",
+      "name": "Q874",
+      "canonical": "turkmenistan"
+    },
+    {
+      "value": "Vanuatu",
+      "name": "Q686",
+      "canonical": "vanuatu"
+    },
+    {
+      "value": "São Tomé and Príncipe",
+      "name": "Q1039",
+      "canonical": "são tomé and príncipe"
+    },
+    {
+      "value": "Lebanon",
+      "name": "Q822",
+      "canonical": "lebanon"
+    },
+    {
+      "value": "Yemen",
+      "name": "Q805",
+      "canonical": "yemen"
+    },
+    {
+      "value": "Kingdom of the Netherlands",
+      "name": "Q29999",
+      "canonical": "kingdom of the netherlands"
+    },
+    {
+      "value": "German Democratic Republic",
+      "name": "Q16957",
+      "canonical": "german democratic republic"
+    },
+    {
+      "value": "Italy",
+      "name": "Q38",
+      "canonical": "italy"
+    },
+    {
+      "value": "Australia",
+      "name": "Q408",
+      "canonical": "australia"
+    },
+    {
+      "value": "Germany",
+      "name": "Q183",
+      "canonical": "germany"
+    },
+    {
+      "value": "Belarus",
+      "name": "Q184",
+      "canonical": "belarus"
+    },
+    {
+      "value": "Ukraine",
+      "name": "Q212",
+      "canonical": "ukraine"
+    },
+    {
+      "value": "Greece",
+      "name": "Q41",
+      "canonical": "greece"
+    },
+    {
+      "value": "Israel",
+      "name": "Q801",
+      "canonical": "israel"
+    },
+    {
+      "value": "United Kingdom",
+      "name": "Q145",
+      "canonical": "united kingdom"
+    },
+    {
+      "value": "Slovakia",
+      "name": "Q214",
+      "canonical": "slovakia"
+    },
+    {
+      "value": "Cyprus",
+      "name": "Q229",
+      "canonical": "cyprus"
+    },
+    {
+      "value": "Libya",
+      "name": "Q1016",
+      "canonical": "libya"
+    },
+    {
+      "value": "Spain",
+      "name": "Q29",
+      "canonical": "spain"
+    },
+    {
+      "value": "Turkey",
+      "name": "Q43",
+      "canonical": "turkey"
+    },
+    {
+      "value": "Portugal",
+      "name": "Q45",
+      "canonical": "portugal"
+    },
+    {
+      "value": "Pakistan",
+      "name": "Q843",
+      "canonical": "pakistan"
+    },
+    {
+      "value": "Taiwan",
+      "name": "Q865",
+      "canonical": "taiwan"
+    },
+    {
+      "value": "United States of America",
+      "name": "Q30",
+      "canonical": "united states of america"
+    },
+    {
+      "value": "Serbia",
+      "name": "Q403",
+      "canonical": "serbia"
+    },
+    {
+      "value": "Russia",
+      "name": "Q159",
+      "canonical": "russia"
+    },
+    {
+      "value": "India",
+      "name": "Q668",
+      "canonical": "india"
+    },
+    {
+      "value": "Japan",
+      "name": "Q17",
+      "canonical": "japan"
+    },
+    {
+      "value": "North Korea",
+      "name": "Q423",
+      "canonical": "north korea"
+    },
+    {
+      "value": "Italy",
+      "name": "Q38",
+      "canonical": "italy"
+    },
+    {
+      "value": "Brazil",
+      "name": "Q155",
+      "canonical": "brazil"
+    },
+    {
+      "value": "Germany",
+      "name": "Q183",
+      "canonical": "germany"
+    },
+    {
+      "value": "Australia",
+      "name": "Q408",
+      "canonical": "australia"
+    },
+    {
+      "value": "Belarus",
+      "name": "Q184",
+      "canonical": "belarus"
+    },
+    {
+      "value": "Israel",
+      "name": "Q801",
+      "canonical": "israel"
+    },
+    {
+      "value": "Serbia",
+      "name": "Q403",
+      "canonical": "serbia"
+    },
+    {
+      "value": "Trinidad and Tobago",
+      "name": "Q754",
+      "canonical": "trinidad and tobago"
+    },
+    {
+      "value": "Jamaica",
+      "name": "Q766",
+      "canonical": "jamaica"
+    },
+    {
+      "value": "El Salvador",
+      "name": "Q792",
+      "canonical": "el salvador"
+    },
+    {
+      "value": "Costa Rica",
+      "name": "Q800",
+      "canonical": "costa rica"
+    },
+    {
+      "value": "France",
+      "name": "Q142",
+      "canonical": "france"
+    },
+    {
+      "value": "United Kingdom",
+      "name": "Q145",
+      "canonical": "united kingdom"
+    },
+    {
+      "value": "Estonia",
+      "name": "Q191",
+      "canonical": "estonia"
+    },
+    {
+      "value": "Romania",
+      "name": "Q218",
+      "canonical": "romania"
+    },
+    {
+      "value": "Croatia",
+      "name": "Q224",
+      "canonical": "croatia"
+    },
+    {
+      "value": "Cuba",
+      "name": "Q241",
+      "canonical": "cuba"
+    },
+    {
+      "value": "Indonesia",
+      "name": "Q252",
+      "canonical": "indonesia"
+    },
+    {
+      "value": "Spain",
+      "name": "Q29",
+      "canonical": "spain"
+    },
+    {
+      "value": "Austria",
+      "name": "Q40",
+      "canonical": "austria"
+    },
+    {
+      "value": "Argentina",
+      "name": "Q414",
+      "canonical": "argentina"
+    },
+    {
+      "value": "Bolivia",
+      "name": "Q750",
+      "canonical": "bolivia"
+    },
+    {
+      "value": "Finland",
+      "name": "Q33",
+      "canonical": "finland"
+    },
+    {
+      "value": "Denmark",
+      "name": "Q35",
+      "canonical": "denmark"
+    },
+    {
+      "value": "Peru",
+      "name": "Q419",
+      "canonical": "peru"
+    },
+    {
+      "value": "Turkey",
+      "name": "Q43",
+      "canonical": "turkey"
+    },
+    {
+      "value": "Uruguay",
+      "name": "Q77",
+      "canonical": "uruguay"
+    },
+    {
+      "value": "Haiti",
+      "name": "Q790",
+      "canonical": "haiti"
+    },
+    {
+      "value": "Malaysia",
+      "name": "Q833",
+      "canonical": "malaysia"
+    },
+    {
+      "value": "Pakistan",
+      "name": "Q843",
+      "canonical": "pakistan"
+    },
+    {
+      "value": "Taiwan",
+      "name": "Q865",
+      "canonical": "taiwan"
+    },
+    {
+      "value": "Philippines",
+      "name": "Q928",
+      "canonical": "philippines"
+    },
+    {
+      "value": "United States of America",
+      "name": "Q30",
+      "canonical": "united states of america"
+    },
+    {
+      "value": "Russia",
+      "name": "Q159",
+      "canonical": "russia"
+    },
+    {
+      "value": "India",
+      "name": "Q668",
+      "canonical": "india"
+    },
+    {
+      "value": "Greece",
+      "name": "Q41",
+      "canonical": "greece"
+    },
+    {
+      "value": "People's Republic of China",
+      "name": "Q148",
+      "canonical": "people 's republic of china"
+    },
+    {
+      "value": "Bangladesh",
+      "name": "Q902",
+      "canonical": "bangladesh"
+    },
+    {
+      "value": "Mexico",
+      "name": "Q96",
+      "canonical": "mexico"
+    },
+    {
+      "value": "Hungary",
+      "name": "Q28",
+      "canonical": "hungary"
+    },
+    {
+      "value": "North Korea",
+      "name": "Q423",
+      "canonical": "north korea"
+    },
+    {
+      "value": "Yemen",
+      "name": "Q805",
+      "canonical": "yemen"
+    },
+    {
+      "value": "Saudi Arabia",
+      "name": "Q851",
+      "canonical": "saudi arabia"
+    },
+    {
+      "value": "Serbia",
+      "name": "Q403",
+      "canonical": "serbia"
+    },
+    {
+      "value": "United Kingdom",
+      "name": "Q145",
+      "canonical": "united kingdom"
+    },
+    {
+      "value": "Malaysia",
+      "name": "Q833",
+      "canonical": "malaysia"
+    },
+    {
+      "value": "Pakistan",
+      "name": "Q843",
+      "canonical": "pakistan"
+    },
+    {
+      "value": "Taiwan",
+      "name": "Q865",
+      "canonical": "taiwan"
+    },
+    {
+      "value": "United Arab Emirates",
+      "name": "Q878",
+      "canonical": "united arab emirates"
+    },
+    {
+      "value": "United States of America",
+      "name": "Q30",
+      "canonical": "united states of america"
+    },
+    {
+      "value": "Russia",
+      "name": "Q159",
+      "canonical": "russia"
+    },
+    {
+      "value": "Georgia",
+      "name": "Q230",
+      "canonical": "georgia"
+    },
+    {
+      "value": "Germany",
+      "name": "Q183",
+      "canonical": "germany"
+    },
+    {
+      "value": "North Korea",
+      "name": "Q423",
+      "canonical": "north korea"
+    },
+    {
+      "value": "Australia",
+      "name": "Q408",
+      "canonical": "australia"
+    },
+    {
+      "value": "Republic of Abkhazia",
+      "name": "Q31354462",
+      "canonical": "republic of abkhazia"
+    },
+    {
+      "value": "Soviet Union",
+      "name": "Q15180",
+      "canonical": "soviet union"
+    },
+    {
+      "value": "Cuba",
+      "name": "Q241",
+      "canonical": "cuba"
+    },
+    {
+      "value": "France",
+      "name": "Q142",
+      "canonical": "france"
+    },
+    {
+      "value": "Libya",
+      "name": "Q1016",
+      "canonical": "libya"
+    },
+    {
+      "value": "Georgia",
+      "name": "Q230",
+      "canonical": "georgia"
+    },
+    {
+      "value": "Taiwan",
+      "name": "Q865",
+      "canonical": "taiwan"
+    },
+    {
+      "value": "People's Republic of China",
+      "name": "Q148",
+      "canonical": "people 's republic of china"
+    },
+    {
+      "value": "United States of America",
+      "name": "Q30",
+      "canonical": "united states of america"
+    },
+    {
+      "value": "Russia",
+      "name": "Q159",
+      "canonical": "russia"
+    },
+    {
+      "value": "Germany",
+      "name": "Q183",
+      "canonical": "germany"
+    },
+    {
+      "value": "North Korea",
+      "name": "Q423",
+      "canonical": "north korea"
+    },
+    {
+      "value": "United States of America",
+      "name": "Q30",
+      "canonical": "united states of america"
+    },
+    {
+      "value": "Russia",
+      "name": "Q159",
+      "canonical": "russia"
+    },
+    {
+      "value": "Canada",
+      "name": "Q16",
+      "canonical": "canada"
+    },
+    {
+      "value": "People's Republic of China",
+      "name": "Q148",
+      "canonical": "people 's republic of china"
+    },
+    {
+      "value": "Egypt",
+      "name": "Q79",
+      "canonical": "egypt"
+    },
+    {
+      "value": "Iran",
+      "name": "Q794",
+      "canonical": "iran"
+    },
+    {
+      "value": "Jordan",
+      "name": "Q810",
+      "canonical": "jordan"
+    },
+    {
+      "value": "India",
+      "name": "Q668",
+      "canonical": "india"
+    },
+    {
+      "value": "Japan",
+      "name": "Q17",
+      "canonical": "japan"
+    },
+    {
+      "value": "France",
+      "name": "Q142",
+      "canonical": "france"
+    },
+    {
+      "value": "Czech Republic",
+      "name": "Q213",
+      "canonical": "czech republic"
+    },
+    {
+      "value": "United Kingdom",
+      "name": "Q145",
+      "canonical": "united kingdom"
+    },
+    {
+      "value": "Greece",
+      "name": "Q41",
+      "canonical": "greece"
+    },
+    {
+      "value": "Germany",
+      "name": "Q183",
+      "canonical": "germany"
+    },
+    {
+      "value": "Italy",
+      "name": "Q38",
+      "canonical": "italy"
+    },
+    {
+      "value": "Argentina",
+      "name": "Q414",
+      "canonical": "argentina"
+    },
+    {
+      "value": "Australia",
+      "name": "Q408",
+      "canonical": "australia"
+    },
+    {
+      "value": "Turkey",
+      "name": "Q43",
+      "canonical": "turkey"
+    },
+    {
+      "value": "South Korea",
+      "name": "Q884",
+      "canonical": "south korea"
+    },
+    {
+      "value": "Philippines",
+      "name": "Q928",
+      "canonical": "philippines"
+    },
+    {
+      "value": "Cyprus",
+      "name": "Q229",
+      "canonical": "cyprus"
+    },
+    {
+      "value": "Ethiopia",
+      "name": "Q115",
+      "canonical": "ethiopia"
+    },
+    {
+      "value": "Singapore",
+      "name": "Q334",
+      "canonical": "singapore"
+    },
+    {
+      "value": "Holy See",
+      "name": "Q159583",
+      "canonical": "holy see"
+    },
+    {
+      "value": "Brazil",
+      "name": "Q155",
+      "canonical": "brazil"
+    },
+    {
+      "value": "Norway",
+      "name": "Q20",
+      "canonical": "norway"
+    },
+    {
+      "value": "Ukraine",
+      "name": "Q212",
+      "canonical": "ukraine"
+    },
+    {
+      "value": "Belarus",
+      "name": "Q184",
+      "canonical": "belarus"
+    },
+    {
+      "value": "Azerbaijan",
+      "name": "Q227",
+      "canonical": "azerbaijan"
+    },
+    {
+      "value": "Peru",
+      "name": "Q419",
+      "canonical": "peru"
+    },
+    {
+      "value": "Colombia",
+      "name": "Q739",
+      "canonical": "colombia"
+    },
+    {
+      "value": "Austria",
+      "name": "Q40",
+      "canonical": "austria"
+    },
+    {
+      "value": "Qatar",
+      "name": "Q846",
+      "canonical": "qatar"
+    },
+    {
+      "value": "Soviet Union",
+      "name": "Q15180",
+      "canonical": "soviet union"
+    },
+    {
+      "value": "Zimbabwe",
+      "name": "Q954",
+      "canonical": "zimbabwe"
+    },
+    {
+      "value": "Myanmar",
+      "name": "Q836",
+      "canonical": "myanmar"
+    },
+    {
+      "value": "Eritrea",
+      "name": "Q986",
+      "canonical": "eritrea"
+    },
+    {
+      "value": "Netherlands",
+      "name": "Q55",
+      "canonical": "netherlands"
+    },
+    {
+      "value": "Lithuania",
+      "name": "Q37",
+      "canonical": "lithuania"
+    },
+    {
+      "value": "Mexico",
+      "name": "Q96",
+      "canonical": "mexico"
+    },
+    {
+      "value": "Romania",
+      "name": "Q218",
+      "canonical": "romania"
+    },
+    {
+      "value": "Serbia",
+      "name": "Q403",
+      "canonical": "serbia"
+    },
+    {
+      "value": "Malawi",
+      "name": "Q1020",
+      "canonical": "malawi"
+    },
+    {
+      "value": "Mauritania",
+      "name": "Q1025",
+      "canonical": "mauritania"
+    },
+    {
+      "value": "Niger",
+      "name": "Q1032",
+      "canonical": "niger"
+    },
+    {
+      "value": "Finland",
+      "name": "Q33",
+      "canonical": "finland"
+    },
+    {
+      "value": "United Arab Emirates",
+      "name": "Q878",
+      "canonical": "united arab emirates"
+    },
+    {
+      "value": "Tunisia",
+      "name": "Q948",
+      "canonical": "tunisia"
+    },
+    {
+      "value": "Armenia",
+      "name": "Q399",
+      "canonical": "armenia"
+    },
+    {
+      "value": "Angola",
+      "name": "Q916",
+      "canonical": "angola"
+    },
+    {
+      "value": "Chile",
+      "name": "Q298",
+      "canonical": "chile"
+    },
+    {
+      "value": "Uruguay",
+      "name": "Q77",
+      "canonical": "uruguay"
+    },
+    {
+      "value": "Venezuela",
+      "name": "Q717",
+      "canonical": "venezuela"
+    },
+    {
+      "value": "Ireland",
+      "name": "Q27",
+      "canonical": "ireland"
+    },
+    {
+      "value": "North Macedonia",
+      "name": "Q221",
+      "canonical": "north macedonia"
+    },
+    {
+      "value": "Nigeria",
+      "name": "Q1033",
+      "canonical": "nigeria"
+    },
+    {
+      "value": "Namibia",
+      "name": "Q1030",
+      "canonical": "namibia"
+    },
+    {
+      "value": "Papua New Guinea",
+      "name": "Q691",
+      "canonical": "papua new guinea"
+    },
+    {
+      "value": "Malta",
+      "name": "Q233",
+      "canonical": "malta"
+    },
+    {
+      "value": "Switzerland",
+      "name": "Q39",
+      "canonical": "switzerland"
+    },
+    {
+      "value": "Paraguay",
+      "name": "Q733",
+      "canonical": "paraguay"
+    },
+    {
+      "value": "Uganda",
+      "name": "Q1036",
+      "canonical": "uganda"
+    },
+    {
+      "value": "Cambodia",
+      "name": "Q424",
+      "canonical": "cambodia"
+    },
+    {
+      "value": "Haiti",
+      "name": "Q790",
+      "canonical": "haiti"
+    },
+    {
+      "value": "Kurdistan Region",
+      "name": "Q205047",
+      "canonical": "kurdistan region"
+    },
+    {
+      "value": "European Union",
+      "name": "Q458",
+      "canonical": "european union"
+    },
+    {
+      "value": "Cuba",
+      "name": "Q241",
+      "canonical": "cuba"
+    },
+    {
+      "value": "Mali",
+      "name": "Q912",
+      "canonical": "mali"
+    },
+    {
+      "value": "Bolivia",
+      "name": "Q750",
+      "canonical": "bolivia"
+    },
+    {
+      "value": "Nicaragua",
+      "name": "Q811",
+      "canonical": "nicaragua"
+    },
+    {
+      "value": "Georgia",
+      "name": "Q230",
+      "canonical": "georgia"
+    },
+    {
+      "value": "Algeria",
+      "name": "Q262",
+      "canonical": "algeria"
+    },
+    {
+      "value": "Syria",
+      "name": "Q858",
+      "canonical": "syria"
+    },
+    {
+      "value": "Taiwan",
+      "name": "Q865",
+      "canonical": "taiwan"
+    },
+    {
+      "value": "Slovenia",
+      "name": "Q215",
+      "canonical": "slovenia"
+    },
+    {
+      "value": "Zambia",
+      "name": "Q953",
+      "canonical": "zambia"
+    },
+    {
+      "value": "Nepal",
+      "name": "Q837",
+      "canonical": "nepal"
+    },
+    {
+      "value": "Sweden",
+      "name": "Q34",
+      "canonical": "sweden"
+    },
+    {
+      "value": "Poland",
+      "name": "Q36",
+      "canonical": "poland"
+    },
+    {
+      "value": "Belgium",
+      "name": "Q31",
+      "canonical": "belgium"
+    },
+    {
+      "value": "South Africa",
+      "name": "Q258",
+      "canonical": "south africa"
+    },
+    {
+      "value": "Guatemala",
+      "name": "Q774",
+      "canonical": "guatemala"
+    },
+    {
+      "value": "Denmark",
+      "name": "Q35",
+      "canonical": "denmark"
+    },
+    {
+      "value": "German Democratic Republic",
+      "name": "Q16957",
+      "canonical": "german democratic republic"
+    },
+    {
+      "value": "Hungary",
+      "name": "Q28",
+      "canonical": "hungary"
+    },
+    {
+      "value": "Fiji",
+      "name": "Q712",
+      "canonical": "fiji"
+    },
+    {
+      "value": "Australia",
+      "name": "Q408",
+      "canonical": "australia"
+    },
+    {
+      "value": "Saudi Arabia",
+      "name": "Q851",
+      "canonical": "saudi arabia"
+    },
+    {
+      "value": "Malaysia",
+      "name": "Q833",
+      "canonical": "malaysia"
+    },
+    {
+      "value": "Soviet Union",
+      "name": "Q15180",
+      "canonical": "soviet union"
+    },
+    {
+      "value": "Indonesia",
+      "name": "Q252",
+      "canonical": "indonesia"
+    },
+    {
+      "value": "Brunei",
+      "name": "Q921",
+      "canonical": "brunei"
+    },
+    {
+      "value": "Taiwan",
+      "name": "Q865",
+      "canonical": "taiwan"
+    },
+    {
+      "value": "Thailand",
+      "name": "Q869",
+      "canonical": "thailand"
+    },
+    {
+      "value": "Vietnam",
+      "name": "Q881",
+      "canonical": "vietnam"
+    },
+    {
+      "value": "Philippines",
+      "name": "Q928",
+      "canonical": "philippines"
+    },
+    {
+      "value": "United States of America",
+      "name": "Q30",
+      "canonical": "united states of america"
+    },
+    {
+      "value": "Russia",
+      "name": "Q159",
+      "canonical": "russia"
+    },
+    {
+      "value": "People's Republic of China",
+      "name": "Q148",
+      "canonical": "people 's republic of china"
+    },
+    {
+      "value": "Japan",
+      "name": "Q17",
+      "canonical": "japan"
+    },
+    {
+      "value": "Bangladesh",
+      "name": "Q902",
+      "canonical": "bangladesh"
+    },
+    {
+      "value": "India",
+      "name": "Q668",
+      "canonical": "india"
+    },
+    {
+      "value": "Georgia",
+      "name": "Q230",
+      "canonical": "georgia"
+    },
+    {
+      "value": "Germany",
+      "name": "Q183",
+      "canonical": "germany"
+    },
+    {
+      "value": "North Korea",
+      "name": "Q423",
+      "canonical": "north korea"
+    },
+    {
+      "value": "Saudi Arabia",
+      "name": "Q851",
+      "canonical": "saudi arabia"
+    },
+    {
+      "value": "Armenia",
+      "name": "Q399",
+      "canonical": "armenia"
+    },
+    {
+      "value": "Russia",
+      "name": "Q159",
+      "canonical": "russia"
+    },
+    {
+      "value": "Serbia",
+      "name": "Q403",
+      "canonical": "serbia"
+    },
+    {
+      "value": "Uzbekistan",
+      "name": "Q265",
+      "canonical": "uzbekistan"
+    },
+    {
+      "value": "United States of America",
+      "name": "Q30",
+      "canonical": "united states of america"
+    },
+    {
+      "value": "Turkey",
+      "name": "Q43",
+      "canonical": "turkey"
+    },
+    {
+      "value": "Afghanistan",
+      "name": "Q889",
+      "canonical": "afghanistan"
+    },
+    {
+      "value": "Iran",
+      "name": "Q794",
+      "canonical": "iran"
+    },
+    {
+      "value": "Kyrgyzstan",
+      "name": "Q813",
+      "canonical": "kyrgyzstan"
+    },
+    {
+      "value": "Pakistan",
+      "name": "Q843",
+      "canonical": "pakistan"
+    },
+    {
+      "value": "Taiwan",
+      "name": "Q865",
+      "canonical": "taiwan"
+    },
+    {
+      "value": "People's Republic of China",
+      "name": "Q148",
+      "canonical": "people 's republic of china"
+    },
+    {
+      "value": "Greece",
+      "name": "Q41",
+      "canonical": "greece"
+    },
+    {
+      "value": "India",
+      "name": "Q668",
+      "canonical": "india"
+    },
+    {
+      "value": "Bangladesh",
+      "name": "Q902",
+      "canonical": "bangladesh"
+    },
+    {
+      "value": "Germany",
+      "name": "Q183",
+      "canonical": "germany"
+    },
+    {
+      "value": "North Korea",
+      "name": "Q423",
+      "canonical": "north korea"
+    },
+    {
+      "value": "Italy",
+      "name": "Q38",
+      "canonical": "italy"
+    },
+    {
+      "value": "Germany",
+      "name": "Q183",
+      "canonical": "germany"
+    },
+    {
+      "value": "Australia",
+      "name": "Q408",
+      "canonical": "australia"
+    },
+    {
+      "value": "Saudi Arabia",
+      "name": "Q851",
+      "canonical": "saudi arabia"
+    },
+    {
+      "value": "Serbia",
+      "name": "Q403",
+      "canonical": "serbia"
+    },
+    {
+      "value": "Bhutan",
+      "name": "Q917",
+      "canonical": "bhutan"
+    },
+    {
+      "value": "Denmark",
+      "name": "Q35",
+      "canonical": "denmark"
+    },
+    {
+      "value": "France",
+      "name": "Q142",
+      "canonical": "france"
+    },
+    {
+      "value": "Malaysia",
+      "name": "Q833",
+      "canonical": "malaysia"
+    },
+    {
+      "value": "Pakistan",
+      "name": "Q843",
+      "canonical": "pakistan"
+    },
+    {
+      "value": "Philippines",
+      "name": "Q928",
+      "canonical": "philippines"
+    },
+    {
+      "value": "Indonesia",
+      "name": "Q252",
+      "canonical": "indonesia"
+    },
+    {
+      "value": "Laos",
+      "name": "Q819",
+      "canonical": "laos"
+    },
+    {
+      "value": "Taiwan",
+      "name": "Q865",
+      "canonical": "taiwan"
+    },
+    {
+      "value": "Brunei",
+      "name": "Q921",
+      "canonical": "brunei"
+    },
+    {
+      "value": "Cambodia",
+      "name": "Q424",
+      "canonical": "cambodia"
+    },
+    {
+      "value": "Mexico",
+      "name": "Q96",
+      "canonical": "mexico"
+    },
+    {
+      "value": "Singapore",
+      "name": "Q334",
+      "canonical": "singapore"
+    },
+    {
+      "value": "Hong Kong",
+      "name": "Q8646",
+      "canonical": "hong kong"
+    },
+    {
+      "value": "Russia",
+      "name": "Q159",
+      "canonical": "russia"
+    },
+    {
+      "value": "Bangladesh",
+      "name": "Q902",
+      "canonical": "bangladesh"
+    },
+    {
+      "value": "People's Republic of China",
+      "name": "Q148",
+      "canonical": "people 's republic of china"
+    },
+    {
+      "value": "India",
+      "name": "Q668",
+      "canonical": "india"
+    },
+    {
+      "value": "South Korea",
+      "name": "Q884",
+      "canonical": "south korea"
+    },
+    {
+      "value": "Japan",
+      "name": "Q17",
+      "canonical": "japan"
+    },
+    {
+      "value": "North Korea",
+      "name": "Q423",
+      "canonical": "north korea"
+    },
+    {
+      "value": "Romania",
+      "name": "Q218",
+      "canonical": "romania"
+    },
+    {
+      "value": "Canada",
+      "name": "Q16",
+      "canonical": "canada"
+    },
+    {
+      "value": "Germany",
+      "name": "Q183",
+      "canonical": "germany"
+    },
+    {
+      "value": "Australia",
+      "name": "Q408",
+      "canonical": "australia"
+    },
+    {
+      "value": "Yemen",
+      "name": "Q805",
+      "canonical": "yemen"
+    },
+    {
+      "value": "Saudi Arabia",
+      "name": "Q851",
+      "canonical": "saudi arabia"
+    },
+    {
+      "value": "Israel",
+      "name": "Q801",
+      "canonical": "israel"
+    },
+    {
+      "value": "France",
+      "name": "Q142",
+      "canonical": "france"
+    },
+    {
+      "value": "Jordan",
+      "name": "Q810",
+      "canonical": "jordan"
+    },
+    {
+      "value": "People's Republic of China",
+      "name": "Q148",
+      "canonical": "people 's republic of china"
+    },
+    {
+      "value": "United Kingdom",
+      "name": "Q145",
+      "canonical": "united kingdom"
+    },
+    {
+      "value": "Egypt",
+      "name": "Q79",
+      "canonical": "egypt"
+    },
+    {
+      "value": "Afghanistan",
+      "name": "Q889",
+      "canonical": "afghanistan"
+    },
+    {
+      "value": "Algeria",
+      "name": "Q262",
+      "canonical": "algeria"
+    },
+    {
+      "value": "Bahrain",
+      "name": "Q398",
+      "canonical": "bahrain"
+    },
+    {
+      "value": "Denmark",
+      "name": "Q35",
+      "canonical": "denmark"
+    },
+    {
+      "value": "Holy See",
+      "name": "Q159583",
+      "canonical": "holy see"
+    },
+    {
+      "value": "Kosovo",
+      "name": "Q1246",
+      "canonical": "kosovo"
+    },
+    {
+      "value": "Kenya",
+      "name": "Q114",
+      "canonical": "kenya"
+    },
+    {
+      "value": "Kuwait",
+      "name": "Q817",
+      "canonical": "kuwait"
+    },
+    {
+      "value": "Lebanon",
+      "name": "Q822",
+      "canonical": "lebanon"
+    },
+    {
+      "value": "Malaysia",
+      "name": "Q833",
+      "canonical": "malaysia"
+    },
+    {
+      "value": "State of Palestine",
+      "name": "Q219060",
+      "canonical": "state of palestine"
+    },
+    {
+      "value": "Oman",
+      "name": "Q842",
+      "canonical": "oman"
+    },
+    {
+      "value": "Syria",
+      "name": "Q858",
+      "canonical": "syria"
+    },
+    {
+      "value": "Turkey",
+      "name": "Q43",
+      "canonical": "turkey"
+    },
+    {
+      "value": "Pakistan",
+      "name": "Q843",
+      "canonical": "pakistan"
+    },
+    {
+      "value": "Indonesia",
+      "name": "Q252",
+      "canonical": "indonesia"
+    },
+    {
+      "value": "Philippines",
+      "name": "Q928",
+      "canonical": "philippines"
+    },
+    {
+      "value": "Mexico",
+      "name": "Q96",
+      "canonical": "mexico"
+    },
+    {
+      "value": "Taiwan",
+      "name": "Q865",
+      "canonical": "taiwan"
+    },
+    {
+      "value": "Somalia",
+      "name": "Q1045",
+      "canonical": "somalia"
+    },
+    {
+      "value": "India",
+      "name": "Q668",
+      "canonical": "india"
+    },
+    {
+      "value": "Russia",
+      "name": "Q159",
+      "canonical": "russia"
+    },
+    {
+      "value": "Iran",
+      "name": "Q794",
+      "canonical": "iran"
+    },
+    {
+      "value": "Serbia",
+      "name": "Q403",
+      "canonical": "serbia"
+    },
+    {
+      "value": "Bangladesh",
+      "name": "Q902",
+      "canonical": "bangladesh"
+    },
+    {
+      "value": "Georgia",
+      "name": "Q230",
+      "canonical": "georgia"
+    },
+    {
+      "value": "Hungary",
+      "name": "Q28",
+      "canonical": "hungary"
+    },
+    {
+      "value": "Romania",
+      "name": "Q218",
+      "canonical": "romania"
+    },
+    {
+      "value": "North Korea",
+      "name": "Q423",
+      "canonical": "north korea"
+    },
+    {
+      "value": "Germany",
+      "name": "Q183",
+      "canonical": "germany"
+    },
+    {
+      "value": "Morocco",
+      "name": "Q1028",
+      "canonical": "morocco"
+    },
+    {
+      "value": "Mauritania",
+      "name": "Q1025",
+      "canonical": "mauritania"
+    },
+    {
+      "value": "Taiwan",
+      "name": "Q865",
+      "canonical": "taiwan"
+    },
+    {
+      "value": "Canada",
+      "name": "Q16",
+      "canonical": "canada"
+    },
+    {
+      "value": "United States of America",
+      "name": "Q30",
+      "canonical": "united states of america"
+    },
+    {
+      "value": "Russia",
+      "name": "Q159",
+      "canonical": "russia"
+    },
+    {
+      "value": "India",
+      "name": "Q668",
+      "canonical": "india"
+    },
+    {
+      "value": "People's Republic of China",
+      "name": "Q148",
+      "canonical": "people 's republic of china"
+    },
+    {
+      "value": "Bangladesh",
+      "name": "Q902",
+      "canonical": "bangladesh"
+    },
+    {
+      "value": "Israel",
+      "name": "Q801",
+      "canonical": "israel"
+    },
+    {
+      "value": "North Korea",
+      "name": "Q423",
+      "canonical": "north korea"
+    },
+    {
+      "value": "Brazil",
+      "name": "Q155",
+      "canonical": "brazil"
+    },
+    {
+      "value": "Germany",
+      "name": "Q183",
+      "canonical": "germany"
+    },
+    {
+      "value": "Cape Verde",
+      "name": "Q1011",
+      "canonical": "cape verde"
+    },
+    {
+      "value": "Australia",
+      "name": "Q408",
+      "canonical": "australia"
+    },
+    {
+      "value": "Ukraine",
+      "name": "Q212",
+      "canonical": "ukraine"
+    },
+    {
+      "value": "Israel",
+      "name": "Q801",
+      "canonical": "israel"
+    },
+    {
+      "value": "Namibia",
+      "name": "Q1030",
+      "canonical": "namibia"
+    },
+    {
+      "value": "Nigeria",
+      "name": "Q1033",
+      "canonical": "nigeria"
+    },
+    {
+      "value": "France",
+      "name": "Q142",
+      "canonical": "france"
+    },
+    {
+      "value": "Soviet Union",
+      "name": "Q15180",
+      "canonical": "soviet union"
+    },
+    {
+      "value": "Cuba",
+      "name": "Q241",
+      "canonical": "cuba"
+    },
+    {
+      "value": "South Africa",
+      "name": "Q258",
+      "canonical": "south africa"
+    },
+    {
+      "value": "Argentina",
+      "name": "Q414",
+      "canonical": "argentina"
+    },
+    {
+      "value": "Portugal",
+      "name": "Q45",
+      "canonical": "portugal"
+    },
+    {
+      "value": "Taiwan",
+      "name": "Q865",
+      "canonical": "taiwan"
+    },
+    {
+      "value": "Vietnam",
+      "name": "Q881",
+      "canonical": "vietnam"
+    },
+    {
+      "value": "Zimbabwe",
+      "name": "Q954",
+      "canonical": "zimbabwe"
+    },
+    {
+      "value": "Mexico",
+      "name": "Q96",
+      "canonical": "mexico"
+    },
+    {
+      "value": "United States of America",
+      "name": "Q30",
+      "canonical": "united states of america"
+    },
+    {
+      "value": "Serbia",
+      "name": "Q403",
+      "canonical": "serbia"
+    },
+    {
+      "value": "Russia",
+      "name": "Q159",
+      "canonical": "russia"
+    },
+    {
+      "value": "India",
+      "name": "Q668",
+      "canonical": "india"
+    },
+    {
+      "value": "People's Republic of China",
+      "name": "Q148",
+      "canonical": "people 's republic of china"
+    },
+    {
+      "value": "Georgia",
+      "name": "Q230",
+      "canonical": "georgia"
+    },
+    {
+      "value": "Kenya",
+      "name": "Q114",
+      "canonical": "kenya"
+    },
+    {
+      "value": "Zambia",
+      "name": "Q953",
+      "canonical": "zambia"
+    },
+    {
+      "value": "Hungary",
+      "name": "Q28",
+      "canonical": "hungary"
+    },
+    {
+      "value": "North Korea",
+      "name": "Q423",
+      "canonical": "north korea"
+    },
+    {
+      "value": "Liberia",
+      "name": "Q1014",
+      "canonical": "liberia"
+    },
+    {
+      "value": "Taiwan",
+      "name": "Q865",
+      "canonical": "taiwan"
+    },
+    {
+      "value": "United States of America",
+      "name": "Q30",
+      "canonical": "united states of america"
+    },
+    {
+      "value": "People's Republic of China",
+      "name": "Q148",
+      "canonical": "people 's republic of china"
+    },
+    {
+      "value": "Bangladesh",
+      "name": "Q902",
+      "canonical": "bangladesh"
+    },
+    {
+      "value": "Germany",
+      "name": "Q183",
+      "canonical": "germany"
+    },
+    {
+      "value": "Hungary",
+      "name": "Q28",
+      "canonical": "hungary"
+    },
+    {
+      "value": "North Korea",
+      "name": "Q423",
+      "canonical": "north korea"
+    },
+    {
+      "value": "Brazil",
+      "name": "Q155",
+      "canonical": "brazil"
+    },
+    {
+      "value": "Germany",
+      "name": "Q183",
+      "canonical": "germany"
+    },
+    {
+      "value": "Saudi Arabia",
+      "name": "Q851",
+      "canonical": "saudi arabia"
+    },
+    {
+      "value": "Serbia",
+      "name": "Q403",
+      "canonical": "serbia"
+    },
+    {
+      "value": "Morocco",
+      "name": "Q1028",
+      "canonical": "morocco"
+    },
+    {
+      "value": "Pakistan",
+      "name": "Q843",
+      "canonical": "pakistan"
+    },
+    {
+      "value": "Bulgaria",
+      "name": "Q219",
+      "canonical": "bulgaria"
+    },
+    {
+      "value": "Chad",
+      "name": "Q657",
+      "canonical": "chad"
+    },
+    {
+      "value": "Denmark",
+      "name": "Q35",
+      "canonical": "denmark"
+    },
+    {
+      "value": "Egypt",
+      "name": "Q79",
+      "canonical": "egypt"
+    },
+    {
+      "value": "Malaysia",
+      "name": "Q833",
+      "canonical": "malaysia"
+    },
+    {
+      "value": "Norway",
+      "name": "Q20",
+      "canonical": "norway"
+    },
+    {
+      "value": "United Kingdom",
+      "name": "Q145",
+      "canonical": "united kingdom"
+    },
+    {
+      "value": "Turkey",
+      "name": "Q43",
+      "canonical": "turkey"
+    },
+    {
+      "value": "Taiwan",
+      "name": "Q865",
+      "canonical": "taiwan"
+    },
+    {
+      "value": "United States of America",
+      "name": "Q30",
+      "canonical": "united states of america"
+    },
+    {
+      "value": "South Sudan",
+      "name": "Q958",
+      "canonical": "south sudan"
+    },
+    {
+      "value": "Russia",
+      "name": "Q159",
+      "canonical": "russia"
+    },
+    {
+      "value": "People's Republic of China",
+      "name": "Q148",
+      "canonical": "people 's republic of china"
+    },
+    {
+      "value": "Iran",
+      "name": "Q794",
+      "canonical": "iran"
+    },
+    {
+      "value": "Bangladesh",
+      "name": "Q902",
+      "canonical": "bangladesh"
+    },
+    {
+      "value": "Kenya",
+      "name": "Q114",
+      "canonical": "kenya"
+    },
+    {
+      "value": "Hungary",
+      "name": "Q28",
+      "canonical": "hungary"
+    },
+    {
+      "value": "North Korea",
+      "name": "Q423",
+      "canonical": "north korea"
+    }
+  ]
+}

@@ -1,0 +1,255 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Reálné gymnázium a základní škola města Prostějova",
+      "name": "Q12049327",
+      "canonical": "reálné gymnázium a základní škola města prostějova"
+    },
+    {
+      "value": "Masarykova základní škola",
+      "name": "Q61625286",
+      "canonical": "masarykova základní škola"
+    },
+    {
+      "value": "2. mateřská škola",
+      "name": "Q61624769",
+      "canonical": "2 . mateřská škola"
+    },
+    {
+      "value": "5. mateřská škola",
+      "name": "Q61624808",
+      "canonical": "5 . mateřská škola"
+    },
+    {
+      "value": "6. mateřská škola",
+      "name": "Q61624897",
+      "canonical": "6 . mateřská škola"
+    },
+    {
+      "value": "7. mateřská škola",
+      "name": "Q61624971",
+      "canonical": "7 . mateřská škola"
+    },
+    {
+      "value": "Bolevecká základní škola",
+      "name": "Q61625096",
+      "canonical": "bolevecká základní škola"
+    },
+    {
+      "value": "11. základní škola",
+      "name": "Q61625108",
+      "canonical": "11 . základní škola"
+    },
+    {
+      "value": "Benešova základní škola a mateřská škola",
+      "name": "Q61625115",
+      "canonical": "benešova základní škola a mateřská škola"
+    },
+    {
+      "value": "7. základní škola a mateřská škola",
+      "name": "Q61625170",
+      "canonical": "7 . základní škola a mateřská škola"
+    },
+    {
+      "value": "Základní škola a mateřská škola",
+      "name": "Q61625182",
+      "canonical": "základní škola a mateřská škola"
+    },
+    {
+      "value": "Tyršova základní škola a mateřská škola",
+      "name": "Q61625192",
+      "canonical": "tyršova základní škola a mateřská škola"
+    },
+    {
+      "value": "1. základní škola",
+      "name": "Q61625199",
+      "canonical": "1 . základní škola"
+    },
+    {
+      "value": "4. základní škola",
+      "name": "Q61625214",
+      "canonical": "4 . základní škola"
+    },
+    {
+      "value": "10. základní škola",
+      "name": "Q61625228",
+      "canonical": "10 . základní škola"
+    },
+    {
+      "value": "2. základní škola",
+      "name": "Q61625317",
+      "canonical": "2 . základní škola"
+    },
+    {
+      "value": "10. školní jídelna",
+      "name": "Q61625347",
+      "canonical": "10 . školní jídelna"
+    },
+    {
+      "value": "11. školní jídelna",
+      "name": "Q61625356",
+      "canonical": "11 . školní jídelna"
+    },
+    {
+      "value": "Mateřská škola",
+      "name": "Q61659364",
+      "canonical": "mateřská škola"
+    },
+    {
+      "value": "Mateřská škola Srdíčko",
+      "name": "Q61659371",
+      "canonical": "mateřská škola srdíčko"
+    },
+    {
+      "value": "MŠ Pardubice-Ohrazenice",
+      "name": "Q61659397",
+      "canonical": "mš pardubice-ohrazenice"
+    },
+    {
+      "value": "MŠ Pastelka",
+      "name": "Q61659414",
+      "canonical": "mš pastelka"
+    },
+    {
+      "value": "Mateřská škola Motýlek",
+      "name": "Q61659419",
+      "canonical": "mateřská škola motýlek"
+    },
+    {
+      "value": "Mateřská škola Duha Pardubice-Popkovice a Staré Čívice",
+      "name": "Q61659427",
+      "canonical": "mateřská škola duha pardubice-popkovice a staré čívice"
+    },
+    {
+      "value": "Mateřská škola Doubek Pardubice-Svítkov a Lány na Důlku",
+      "name": "Q61659430",
+      "canonical": "mateřská škola doubek pardubice-svítkov a lány na důlku"
+    },
+    {
+      "value": "Mateřská škola Čtyřlístek Pardubice, Národních hrdinů 8",
+      "name": "Q61659504",
+      "canonical": "mateřská škola čtyřlístek pardubice , národních hrdinů 8"
+    },
+    {
+      "value": "Mateřská škola Klubíčko",
+      "name": "Q61659512",
+      "canonical": "mateřská škola klubíčko"
+    },
+    {
+      "value": "MŠ Odborářů",
+      "name": "Q61659517",
+      "canonical": "mš odborářů"
+    },
+    {
+      "value": "MŠ Korálek",
+      "name": "Q61659522",
+      "canonical": "mš korálek"
+    },
+    {
+      "value": "Mateřská škola Zvoneček",
+      "name": "Q61659525",
+      "canonical": "mateřská škola zvoneček"
+    },
+    {
+      "value": "Mateřská škola Kytička Pardubice",
+      "name": "Q61659528",
+      "canonical": "mateřská škola kytička pardubice"
+    },
+    {
+      "value": "MŠ Koníček",
+      "name": "Q61659527",
+      "canonical": "mš koníček"
+    },
+    {
+      "value": "Základní škola",
+      "name": "Q61659570",
+      "canonical": "základní škola"
+    },
+    {
+      "value": "Základní škola Pardubice-Ohrazenice",
+      "name": "Q61659593",
+      "canonical": "základní škola pardubice-ohrazenice"
+    },
+    {
+      "value": "Základní škola a mateřská škola",
+      "name": "Q61659775",
+      "canonical": "základní škola a mateřská škola"
+    },
+    {
+      "value": "Dům dětí a mládeže ALFA",
+      "name": "Q61659858",
+      "canonical": "dům dětí a mládeže alfa"
+    },
+    {
+      "value": "Základní škola Staňkova Pardubice",
+      "name": "Q26197859",
+      "canonical": "základní škola staňkova pardubice"
+    },
+    {
+      "value": "ZŠ s rozšíř. vyučováním cizích jazyků",
+      "name": "Q21757625",
+      "canonical": "zš s rozšíř . vyučováním cizích jazyků"
+    },
+    {
+      "value": "Mateřská škola Čtyřlístek",
+      "name": "Q61650506",
+      "canonical": "mateřská škola čtyřlístek"
+    },
+    {
+      "value": "Mateřská škola Na Kopečku",
+      "name": "Q61650574",
+      "canonical": "mateřská škola na kopečku"
+    },
+    {
+      "value": "Základní škola",
+      "name": "Q61650604",
+      "canonical": "základní škola"
+    },
+    {
+      "value": "ZŠ s rozšíř. vyuč. mat. a přír. předmětů",
+      "name": "Q61650664",
+      "canonical": "zš s rozšíř . vyuč . mat . a přír . předmětů"
+    },
+    {
+      "value": "ZŠ s rozš. vyučov. inf. a výp. techniky",
+      "name": "Q61650922",
+      "canonical": "zš s rozš . vyučov . inf . a výp . techniky"
+    },
+    {
+      "value": "Základní škola Bílá cesta",
+      "name": "Q61650937",
+      "canonical": "základní škola bílá cesta"
+    },
+    {
+      "value": "Základní škola s rozšířenou výukou TV",
+      "name": "Q61650964",
+      "canonical": "základní škola s rozšířenou výukou tv"
+    },
+    {
+      "value": "ZŠ s rozšířenou výukou tělesné výchovy",
+      "name": "Q61650984",
+      "canonical": "zš s rozšířenou výukou tělesné výchovy"
+    },
+    {
+      "value": "Dům dětí a mládeže",
+      "name": "Q61653339",
+      "canonical": "dům dětí a mládeže"
+    },
+    {
+      "value": "Fakultní základní škola",
+      "name": "Q61651376",
+      "canonical": "fakultní základní škola"
+    },
+    {
+      "value": "Dům dětí a mládeže",
+      "name": "Q61656375",
+      "canonical": "dům dětí a mládeže"
+    },
+    {
+      "value": "Dům dětí a mládeže",
+      "name": "Q61638390",
+      "canonical": "dům dětí a mládeže"
+    }
+  ]
+}

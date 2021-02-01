@@ -1,0 +1,45 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Moorish architecture",
+      "name": "Q247492",
+      "canonical": "moorish architecture"
+    },
+    {
+      "value": "Armenian architecture",
+      "name": "Q2860299",
+      "canonical": "armenian architecture"
+    },
+    {
+      "value": "Byzantine architecture",
+      "name": "Q47591",
+      "canonical": "byzantine architecture"
+    },
+    {
+      "value": "Movement moderne",
+      "name": "Q11784483",
+      "canonical": "movement moderne"
+    },
+    {
+      "value": "Art Deco",
+      "name": "Q173782",
+      "canonical": "art deco"
+    },
+    {
+      "value": "Mozarabic art and architecture",
+      "name": "Q1951304",
+      "canonical": "mozarabic art and architecture"
+    },
+    {
+      "value": "ancient Roman architecture",
+      "name": "Q223750",
+      "canonical": "ancient roman architecture"
+    },
+    {
+      "value": "Byzantine architecture",
+      "name": "Q47591",
+      "canonical": "byzantine architecture"
+    }
+  ]
+}

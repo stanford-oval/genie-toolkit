@@ -1,0 +1,340 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "list of municipal monuments in Groningen",
+      "name": "Q3215551",
+      "canonical": "list of municipal monuments in groningen"
+    },
+    {
+      "value": "list of national monuments in Groningen",
+      "name": "Q1982727",
+      "canonical": "list of national monuments in groningen"
+    },
+    {
+      "value": "list of cultural properties in Lugano",
+      "name": "Q14540715",
+      "canonical": "list of cultural properties in lugano"
+    },
+    {
+      "value": "list of war memorials in Rotterdam",
+      "name": "Q4533332",
+      "canonical": "list of war memorials in rotterdam"
+    },
+    {
+      "value": "list of war memorials in Breda",
+      "name": "Q4789169",
+      "canonical": "list of war memorials in breda"
+    },
+    {
+      "value": "Cultural monuments in Chomutov",
+      "name": "Q12052054",
+      "canonical": "cultural monuments in chomutov"
+    },
+    {
+      "value": "list of cultural heritage buildings in the city of Feldkirch",
+      "name": "Q1855557",
+      "canonical": "list of cultural heritage buildings in the city of feldkirch"
+    },
+    {
+      "value": "Cultural heritage monuments in Villach",
+      "name": "Q1689661",
+      "canonical": "cultural heritage monuments in villach"
+    },
+    {
+      "value": "list of war memorials in Alkmaar",
+      "name": "Q4805267",
+      "canonical": "list of war memorials in alkmaar"
+    },
+    {
+      "value": "list of protected immovable heritage in the Brussels Capital Region",
+      "name": "Q732237",
+      "canonical": "list of protected immovable heritage in the brussels capital region"
+    },
+    {
+      "value": "list of cultural heritage monuments in Hanover",
+      "name": "Q1556926",
+      "canonical": "list of cultural heritage monuments in hanover"
+    },
+    {
+      "value": "list of ancient monuments in Bangkok",
+      "name": "Q13019983",
+      "canonical": "list of ancient monuments in bangkok"
+    },
+    {
+      "value": "Scheduled Monuments in Birmingham",
+      "name": "Q17600855",
+      "canonical": "scheduled monuments in birmingham"
+    },
+    {
+      "value": "Rijksmonumenten in Purmerend",
+      "name": "Q2119180",
+      "canonical": "rijksmonumenten in purmerend"
+    },
+    {
+      "value": "list of war memorials in Purmerend",
+      "name": "Q4527143",
+      "canonical": "list of war memorials in purmerend"
+    },
+    {
+      "value": "list of protected heritage sites in Charleroi",
+      "name": "Q2650077",
+      "canonical": "list of protected heritage sites in charleroi"
+    },
+    {
+      "value": "list of listed buildings in Inverness",
+      "name": "Q6626042",
+      "canonical": "list of listed buildings in inverness"
+    },
+    {
+      "value": "Cultural monuments in Mladá Boleslav",
+      "name": "Q12052168",
+      "canonical": "cultural monuments in mladá boleslav"
+    },
+    {
+      "value": "Cultural heritage monuments in Laakirchen",
+      "name": "Q1856740",
+      "canonical": "cultural heritage monuments in laakirchen"
+    },
+    {
+      "value": "Cultural heritage monuments in Michalovce",
+      "name": "Q1477532",
+      "canonical": "cultural heritage monuments in michalovce"
+    },
+    {
+      "value": "Rijksmonumenten in Voorburg",
+      "name": "Q2288965",
+      "canonical": "rijksmonumenten in voorburg"
+    },
+    {
+      "value": "Gemeentelijke monumenten in Voorburg",
+      "name": "Q7478413",
+      "canonical": "gemeentelijke monumenten in voorburg"
+    },
+    {
+      "value": "list of war memorials in Utrecht (municipality)",
+      "name": "Q4843822",
+      "canonical": "list of war memorials in utrecht ( municipality )"
+    },
+    {
+      "value": "Gemeentelijke monumenten in Wageningen",
+      "name": "Q2243982",
+      "canonical": "gemeentelijke monumenten in wageningen"
+    },
+    {
+      "value": "list of war memorials in Wageningen",
+      "name": "Q4532017",
+      "canonical": "list of war memorials in wageningen"
+    },
+    {
+      "value": "list of monuments in Frankfurt (Oder)",
+      "name": "Q1188674",
+      "canonical": "list of monuments in frankfurt ( oder )"
+    },
+    {
+      "value": "list of cultural heritage monuments in Novorossiysk",
+      "name": "Q16724431",
+      "canonical": "list of cultural heritage monuments in novorossiysk"
+    },
+    {
+      "value": "Gemeentelijke monumenten in Bolsward",
+      "name": "Q13754788",
+      "canonical": "gemeentelijke monumenten in bolsward"
+    },
+    {
+      "value": "list of heritage sites in Dresden",
+      "name": "Q1842110",
+      "canonical": "list of heritage sites in dresden"
+    },
+    {
+      "value": "Cultural heritage monuments in Bregenz",
+      "name": "Q1855122",
+      "canonical": "cultural heritage monuments in bregenz"
+    },
+    {
+      "value": "Gemeentelijke monumenten in Tilburg",
+      "name": "Q1822109",
+      "canonical": "gemeentelijke monumenten in tilburg"
+    },
+    {
+      "value": "list of war memorials in Tilburg",
+      "name": "Q4780554",
+      "canonical": "list of war memorials in tilburg"
+    },
+    {
+      "value": "Cultural heritage monuments in St. Pölten",
+      "name": "Q1859013",
+      "canonical": "cultural heritage monuments in st . pölten"
+    },
+    {
+      "value": "list of national monuments in Almere",
+      "name": "Q2363953",
+      "canonical": "list of national monuments in almere"
+    },
+    {
+      "value": "list of war memorials in Almere",
+      "name": "Q4757012",
+      "canonical": "list of war memorials in almere"
+    },
+    {
+      "value": "list of protected heritage sites in Namur",
+      "name": "Q538563",
+      "canonical": "list of protected heritage sites in namur"
+    },
+    {
+      "value": "list of war memorials in Ridderkerk",
+      "name": "Q4791471",
+      "canonical": "list of war memorials in ridderkerk"
+    },
+    {
+      "value": "list of war memorials in Roosendaal",
+      "name": "Q4540695",
+      "canonical": "list of war memorials in roosendaal"
+    },
+    {
+      "value": "Sculptures in Schwerin",
+      "name": "Q1838065",
+      "canonical": "sculptures in schwerin"
+    },
+    {
+      "value": "List of monuments and statues of the city of Brunswick",
+      "name": "Q1838058",
+      "canonical": "list of monuments and statues of the city of brunswick"
+    },
+    {
+      "value": "list of cultural properties in Lucerne",
+      "name": "Q15827852",
+      "canonical": "list of cultural properties in lucerne"
+    },
+    {
+      "value": "list of national monuments in Haarlem",
+      "name": "Q2789051",
+      "canonical": "list of national monuments in haarlem"
+    },
+    {
+      "value": "list of municipal monuments in Haarlem",
+      "name": "Q3942704",
+      "canonical": "list of municipal monuments in haarlem"
+    },
+    {
+      "value": "list of war memorials in Haarlem",
+      "name": "Q13755765",
+      "canonical": "list of war memorials in haarlem"
+    },
+    {
+      "value": "list of monuments of Sabadell",
+      "name": "Q11933082",
+      "canonical": "list of monuments of sabadell"
+    },
+    {
+      "value": "Cultural monuments in Pardubice",
+      "name": "Q12052199",
+      "canonical": "cultural monuments in pardubice"
+    },
+    {
+      "value": "Cultural monuments in Vinohrady (Prague)",
+      "name": "Q12051999",
+      "canonical": "cultural monuments in vinohrady ( prague )"
+    },
+    {
+      "value": "list of war memorials in Delft",
+      "name": "Q4784214",
+      "canonical": "list of war memorials in delft"
+    },
+    {
+      "value": "list of national monuments in Amsterdam",
+      "name": "Q1932609",
+      "canonical": "list of national monuments in amsterdam"
+    },
+    {
+      "value": "list of municipal monuments in Amsterdam",
+      "name": "Q18551914",
+      "canonical": "list of municipal monuments in amsterdam"
+    },
+    {
+      "value": "list of war memorials in Amsterdam",
+      "name": "Q4584501",
+      "canonical": "list of war memorials in amsterdam"
+    },
+    {
+      "value": "list of buildings and structures in Como",
+      "name": "Q22084514",
+      "canonical": "list of buildings and structures in como"
+    },
+    {
+      "value": "Rijksmonumenten in Sittard",
+      "name": "Q2879699",
+      "canonical": "rijksmonumenten in sittard"
+    },
+    {
+      "value": "Cultural heritage monuments in Daugavpils",
+      "name": "Q20565746",
+      "canonical": "cultural heritage monuments in daugavpils"
+    },
+    {
+      "value": "Cultural heritage monuments in Wiener Neustadt",
+      "name": "Q1546433",
+      "canonical": "cultural heritage monuments in wiener neustadt"
+    },
+    {
+      "value": "Cultural monuments in Kladno",
+      "name": "Q12052118",
+      "canonical": "cultural monuments in kladno"
+    },
+    {
+      "value": "Rijksmonumenten in Nijkerk",
+      "name": "Q2198660",
+      "canonical": "rijksmonumenten in nijkerk"
+    },
+    {
+      "value": "list of protected heritage sites in Liège",
+      "name": "Q923616",
+      "canonical": "list of protected heritage sites in liège"
+    },
+    {
+      "value": "list of protected immovable heritage in Schaerbeek",
+      "name": "Q3251975",
+      "canonical": "list of protected immovable heritage in schaerbeek"
+    },
+    {
+      "value": "list of cultural properties in Zug",
+      "name": "Q2761903",
+      "canonical": "list of cultural properties in zug"
+    },
+    {
+      "value": "list of war memorials in Lelystad",
+      "name": "Q13755816",
+      "canonical": "list of war memorials in lelystad"
+    },
+    {
+      "value": "Cultural monuments in Hořice",
+      "name": "Q12052084",
+      "canonical": "cultural monuments in hořice"
+    },
+    {
+      "value": "list of protected immovable heritage in the municipality of Brussels",
+      "name": "Q4528244",
+      "canonical": "list of protected immovable heritage in the municipality of brussels"
+    },
+    {
+      "value": "Cultural monuments in Děčín",
+      "name": "Q12052070",
+      "canonical": "cultural monuments in děčín"
+    },
+    {
+      "value": "Cultural monuments in Řevnice",
+      "name": "Q12052351",
+      "canonical": "cultural monuments in řevnice"
+    },
+    {
+      "value": "Cultural heritage monuments in Weitra",
+      "name": "Q1859692",
+      "canonical": "cultural heritage monuments in weitra"
+    },
+    {
+      "value": "Onroerend erfgoed in Hoegaarden",
+      "name": "Q2194841",
+      "canonical": "onroerend erfgoed in hoegaarden"
+    }
+  ]
+}

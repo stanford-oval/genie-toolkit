@@ -1,0 +1,945 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Macedonians",
+      "name": "Q2436423",
+      "canonical": "macedonians"
+    },
+    {
+      "value": "Albanians",
+      "name": "Q179248",
+      "canonical": "albanians"
+    },
+    {
+      "value": "Turkish people",
+      "name": "Q84072",
+      "canonical": "turkish people"
+    },
+    {
+      "value": "Romani",
+      "name": "Q8060",
+      "canonical": "romani"
+    },
+    {
+      "value": "Aromanians",
+      "name": "Q201111",
+      "canonical": "aromanians"
+    },
+    {
+      "value": "Serbs",
+      "name": "Q127885",
+      "canonical": "serbs"
+    },
+    {
+      "value": "Bosniaks",
+      "name": "Q940348",
+      "canonical": "bosniaks"
+    },
+    {
+      "value": "Other",
+      "name": "Q86630688",
+      "canonical": "other"
+    },
+    {
+      "value": "Macedonians",
+      "name": "Q2436423",
+      "canonical": "macedonians"
+    },
+    {
+      "value": "Albanians",
+      "name": "Q179248",
+      "canonical": "albanians"
+    },
+    {
+      "value": "Turkish people",
+      "name": "Q84072",
+      "canonical": "turkish people"
+    },
+    {
+      "value": "Romani",
+      "name": "Q8060",
+      "canonical": "romani"
+    },
+    {
+      "value": "Aromanians",
+      "name": "Q201111",
+      "canonical": "aromanians"
+    },
+    {
+      "value": "Serbs",
+      "name": "Q127885",
+      "canonical": "serbs"
+    },
+    {
+      "value": "Bosniaks",
+      "name": "Q940348",
+      "canonical": "bosniaks"
+    },
+    {
+      "value": "Other",
+      "name": "Q86630688",
+      "canonical": "other"
+    },
+    {
+      "value": "Macedonians",
+      "name": "Q2436423",
+      "canonical": "macedonians"
+    },
+    {
+      "value": "Albanians",
+      "name": "Q179248",
+      "canonical": "albanians"
+    },
+    {
+      "value": "Turkish people",
+      "name": "Q84072",
+      "canonical": "turkish people"
+    },
+    {
+      "value": "Romani",
+      "name": "Q8060",
+      "canonical": "romani"
+    },
+    {
+      "value": "Aromanians",
+      "name": "Q201111",
+      "canonical": "aromanians"
+    },
+    {
+      "value": "Serbs",
+      "name": "Q127885",
+      "canonical": "serbs"
+    },
+    {
+      "value": "Bosniaks",
+      "name": "Q940348",
+      "canonical": "bosniaks"
+    },
+    {
+      "value": "Other",
+      "name": "Q86630688",
+      "canonical": "other"
+    },
+    {
+      "value": "Macedonians",
+      "name": "Q2436423",
+      "canonical": "macedonians"
+    },
+    {
+      "value": "Albanians",
+      "name": "Q179248",
+      "canonical": "albanians"
+    },
+    {
+      "value": "Turkish people",
+      "name": "Q84072",
+      "canonical": "turkish people"
+    },
+    {
+      "value": "Romani",
+      "name": "Q8060",
+      "canonical": "romani"
+    },
+    {
+      "value": "Aromanians",
+      "name": "Q201111",
+      "canonical": "aromanians"
+    },
+    {
+      "value": "Serbs",
+      "name": "Q127885",
+      "canonical": "serbs"
+    },
+    {
+      "value": "Bosniaks",
+      "name": "Q940348",
+      "canonical": "bosniaks"
+    },
+    {
+      "value": "Other",
+      "name": "Q86630688",
+      "canonical": "other"
+    },
+    {
+      "value": "Macedonians",
+      "name": "Q2436423",
+      "canonical": "macedonians"
+    },
+    {
+      "value": "Albanians",
+      "name": "Q179248",
+      "canonical": "albanians"
+    },
+    {
+      "value": "Turkish people",
+      "name": "Q84072",
+      "canonical": "turkish people"
+    },
+    {
+      "value": "Romani",
+      "name": "Q8060",
+      "canonical": "romani"
+    },
+    {
+      "value": "Aromanians",
+      "name": "Q201111",
+      "canonical": "aromanians"
+    },
+    {
+      "value": "Serbs",
+      "name": "Q127885",
+      "canonical": "serbs"
+    },
+    {
+      "value": "Bosniaks",
+      "name": "Q940348",
+      "canonical": "bosniaks"
+    },
+    {
+      "value": "Other",
+      "name": "Q86630688",
+      "canonical": "other"
+    },
+    {
+      "value": "Macedonians",
+      "name": "Q2436423",
+      "canonical": "macedonians"
+    },
+    {
+      "value": "Albanians",
+      "name": "Q179248",
+      "canonical": "albanians"
+    },
+    {
+      "value": "Turkish people",
+      "name": "Q84072",
+      "canonical": "turkish people"
+    },
+    {
+      "value": "Romani",
+      "name": "Q8060",
+      "canonical": "romani"
+    },
+    {
+      "value": "Aromanians",
+      "name": "Q201111",
+      "canonical": "aromanians"
+    },
+    {
+      "value": "Serbs",
+      "name": "Q127885",
+      "canonical": "serbs"
+    },
+    {
+      "value": "Bosniaks",
+      "name": "Q940348",
+      "canonical": "bosniaks"
+    },
+    {
+      "value": "Other",
+      "name": "Q86630688",
+      "canonical": "other"
+    },
+    {
+      "value": "Macedonians",
+      "name": "Q2436423",
+      "canonical": "macedonians"
+    },
+    {
+      "value": "Albanians",
+      "name": "Q179248",
+      "canonical": "albanians"
+    },
+    {
+      "value": "Turkish people",
+      "name": "Q84072",
+      "canonical": "turkish people"
+    },
+    {
+      "value": "Romani",
+      "name": "Q8060",
+      "canonical": "romani"
+    },
+    {
+      "value": "Aromanians",
+      "name": "Q201111",
+      "canonical": "aromanians"
+    },
+    {
+      "value": "Serbs",
+      "name": "Q127885",
+      "canonical": "serbs"
+    },
+    {
+      "value": "Bosniaks",
+      "name": "Q940348",
+      "canonical": "bosniaks"
+    },
+    {
+      "value": "Other",
+      "name": "Q86630688",
+      "canonical": "other"
+    },
+    {
+      "value": "Macedonians",
+      "name": "Q2436423",
+      "canonical": "macedonians"
+    },
+    {
+      "value": "Albanians",
+      "name": "Q179248",
+      "canonical": "albanians"
+    },
+    {
+      "value": "Turkish people",
+      "name": "Q84072",
+      "canonical": "turkish people"
+    },
+    {
+      "value": "Romani",
+      "name": "Q8060",
+      "canonical": "romani"
+    },
+    {
+      "value": "Aromanians",
+      "name": "Q201111",
+      "canonical": "aromanians"
+    },
+    {
+      "value": "Serbs",
+      "name": "Q127885",
+      "canonical": "serbs"
+    },
+    {
+      "value": "Bosniaks",
+      "name": "Q940348",
+      "canonical": "bosniaks"
+    },
+    {
+      "value": "Other",
+      "name": "Q86630688",
+      "canonical": "other"
+    },
+    {
+      "value": "Macedonians",
+      "name": "Q2436423",
+      "canonical": "macedonians"
+    },
+    {
+      "value": "Albanians",
+      "name": "Q179248",
+      "canonical": "albanians"
+    },
+    {
+      "value": "Turkish people",
+      "name": "Q84072",
+      "canonical": "turkish people"
+    },
+    {
+      "value": "Romani",
+      "name": "Q8060",
+      "canonical": "romani"
+    },
+    {
+      "value": "Aromanians",
+      "name": "Q201111",
+      "canonical": "aromanians"
+    },
+    {
+      "value": "Serbs",
+      "name": "Q127885",
+      "canonical": "serbs"
+    },
+    {
+      "value": "Bosniaks",
+      "name": "Q940348",
+      "canonical": "bosniaks"
+    },
+    {
+      "value": "Other",
+      "name": "Q86630688",
+      "canonical": "other"
+    },
+    {
+      "value": "Macedonians",
+      "name": "Q2436423",
+      "canonical": "macedonians"
+    },
+    {
+      "value": "Albanians",
+      "name": "Q179248",
+      "canonical": "albanians"
+    },
+    {
+      "value": "Turkish people",
+      "name": "Q84072",
+      "canonical": "turkish people"
+    },
+    {
+      "value": "Romani",
+      "name": "Q8060",
+      "canonical": "romani"
+    },
+    {
+      "value": "Aromanians",
+      "name": "Q201111",
+      "canonical": "aromanians"
+    },
+    {
+      "value": "Serbs",
+      "name": "Q127885",
+      "canonical": "serbs"
+    },
+    {
+      "value": "Bosniaks",
+      "name": "Q940348",
+      "canonical": "bosniaks"
+    },
+    {
+      "value": "Other",
+      "name": "Q86630688",
+      "canonical": "other"
+    },
+    {
+      "value": "Macedonians",
+      "name": "Q2436423",
+      "canonical": "macedonians"
+    },
+    {
+      "value": "Albanians",
+      "name": "Q179248",
+      "canonical": "albanians"
+    },
+    {
+      "value": "Turkish people",
+      "name": "Q84072",
+      "canonical": "turkish people"
+    },
+    {
+      "value": "Romani",
+      "name": "Q8060",
+      "canonical": "romani"
+    },
+    {
+      "value": "Aromanians",
+      "name": "Q201111",
+      "canonical": "aromanians"
+    },
+    {
+      "value": "Serbs",
+      "name": "Q127885",
+      "canonical": "serbs"
+    },
+    {
+      "value": "Bosniaks",
+      "name": "Q940348",
+      "canonical": "bosniaks"
+    },
+    {
+      "value": "Other",
+      "name": "Q86630688",
+      "canonical": "other"
+    },
+    {
+      "value": "Chinese Singaporeans",
+      "name": "Q1003039",
+      "canonical": "chinese singaporeans"
+    },
+    {
+      "value": "Malay Singaporeans",
+      "name": "Q6741676",
+      "canonical": "malay singaporeans"
+    },
+    {
+      "value": "Indian Singaporeans",
+      "name": "Q6024146",
+      "canonical": "indian singaporeans"
+    },
+    {
+      "value": "Macedonians",
+      "name": "Q2436423",
+      "canonical": "macedonians"
+    },
+    {
+      "value": "Albanians",
+      "name": "Q179248",
+      "canonical": "albanians"
+    },
+    {
+      "value": "Turkish people",
+      "name": "Q84072",
+      "canonical": "turkish people"
+    },
+    {
+      "value": "Romani",
+      "name": "Q8060",
+      "canonical": "romani"
+    },
+    {
+      "value": "Aromanians",
+      "name": "Q201111",
+      "canonical": "aromanians"
+    },
+    {
+      "value": "Serbs",
+      "name": "Q127885",
+      "canonical": "serbs"
+    },
+    {
+      "value": "Bosniaks",
+      "name": "Q940348",
+      "canonical": "bosniaks"
+    },
+    {
+      "value": "Other",
+      "name": "Q86630688",
+      "canonical": "other"
+    },
+    {
+      "value": "Macedonians",
+      "name": "Q2436423",
+      "canonical": "macedonians"
+    },
+    {
+      "value": "Albanians",
+      "name": "Q179248",
+      "canonical": "albanians"
+    },
+    {
+      "value": "Turkish people",
+      "name": "Q84072",
+      "canonical": "turkish people"
+    },
+    {
+      "value": "Romani",
+      "name": "Q8060",
+      "canonical": "romani"
+    },
+    {
+      "value": "Aromanians",
+      "name": "Q201111",
+      "canonical": "aromanians"
+    },
+    {
+      "value": "Serbs",
+      "name": "Q127885",
+      "canonical": "serbs"
+    },
+    {
+      "value": "Bosniaks",
+      "name": "Q940348",
+      "canonical": "bosniaks"
+    },
+    {
+      "value": "Other",
+      "name": "Q86630688",
+      "canonical": "other"
+    },
+    {
+      "value": "Macedonians",
+      "name": "Q2436423",
+      "canonical": "macedonians"
+    },
+    {
+      "value": "Albanians",
+      "name": "Q179248",
+      "canonical": "albanians"
+    },
+    {
+      "value": "Turkish people",
+      "name": "Q84072",
+      "canonical": "turkish people"
+    },
+    {
+      "value": "Romani",
+      "name": "Q8060",
+      "canonical": "romani"
+    },
+    {
+      "value": "Aromanians",
+      "name": "Q201111",
+      "canonical": "aromanians"
+    },
+    {
+      "value": "Serbs",
+      "name": "Q127885",
+      "canonical": "serbs"
+    },
+    {
+      "value": "Bosniaks",
+      "name": "Q940348",
+      "canonical": "bosniaks"
+    },
+    {
+      "value": "Other",
+      "name": "Q86630688",
+      "canonical": "other"
+    },
+    {
+      "value": "Macedonians",
+      "name": "Q2436423",
+      "canonical": "macedonians"
+    },
+    {
+      "value": "Albanians",
+      "name": "Q179248",
+      "canonical": "albanians"
+    },
+    {
+      "value": "Turkish people",
+      "name": "Q84072",
+      "canonical": "turkish people"
+    },
+    {
+      "value": "Romani",
+      "name": "Q8060",
+      "canonical": "romani"
+    },
+    {
+      "value": "Aromanians",
+      "name": "Q201111",
+      "canonical": "aromanians"
+    },
+    {
+      "value": "Serbs",
+      "name": "Q127885",
+      "canonical": "serbs"
+    },
+    {
+      "value": "Bosniaks",
+      "name": "Q940348",
+      "canonical": "bosniaks"
+    },
+    {
+      "value": "Other",
+      "name": "Q86630688",
+      "canonical": "other"
+    },
+    {
+      "value": "Macedonians",
+      "name": "Q2436423",
+      "canonical": "macedonians"
+    },
+    {
+      "value": "Albanians",
+      "name": "Q179248",
+      "canonical": "albanians"
+    },
+    {
+      "value": "Turkish people",
+      "name": "Q84072",
+      "canonical": "turkish people"
+    },
+    {
+      "value": "Romani",
+      "name": "Q8060",
+      "canonical": "romani"
+    },
+    {
+      "value": "Aromanians",
+      "name": "Q201111",
+      "canonical": "aromanians"
+    },
+    {
+      "value": "Serbs",
+      "name": "Q127885",
+      "canonical": "serbs"
+    },
+    {
+      "value": "Bosniaks",
+      "name": "Q940348",
+      "canonical": "bosniaks"
+    },
+    {
+      "value": "Other",
+      "name": "Q86630688",
+      "canonical": "other"
+    },
+    {
+      "value": "Macedonians",
+      "name": "Q2436423",
+      "canonical": "macedonians"
+    },
+    {
+      "value": "Albanians",
+      "name": "Q179248",
+      "canonical": "albanians"
+    },
+    {
+      "value": "Turkish people",
+      "name": "Q84072",
+      "canonical": "turkish people"
+    },
+    {
+      "value": "Romani",
+      "name": "Q8060",
+      "canonical": "romani"
+    },
+    {
+      "value": "Aromanians",
+      "name": "Q201111",
+      "canonical": "aromanians"
+    },
+    {
+      "value": "Serbs",
+      "name": "Q127885",
+      "canonical": "serbs"
+    },
+    {
+      "value": "Bosniaks",
+      "name": "Q940348",
+      "canonical": "bosniaks"
+    },
+    {
+      "value": "Other",
+      "name": "Q86630688",
+      "canonical": "other"
+    },
+    {
+      "value": "Macedonians",
+      "name": "Q2436423",
+      "canonical": "macedonians"
+    },
+    {
+      "value": "Albanians",
+      "name": "Q179248",
+      "canonical": "albanians"
+    },
+    {
+      "value": "Turkish people",
+      "name": "Q84072",
+      "canonical": "turkish people"
+    },
+    {
+      "value": "Romani",
+      "name": "Q8060",
+      "canonical": "romani"
+    },
+    {
+      "value": "Aromanians",
+      "name": "Q201111",
+      "canonical": "aromanians"
+    },
+    {
+      "value": "Serbs",
+      "name": "Q127885",
+      "canonical": "serbs"
+    },
+    {
+      "value": "Bosniaks",
+      "name": "Q940348",
+      "canonical": "bosniaks"
+    },
+    {
+      "value": "Other",
+      "name": "Q86630688",
+      "canonical": "other"
+    },
+    {
+      "value": "Macedonians",
+      "name": "Q2436423",
+      "canonical": "macedonians"
+    },
+    {
+      "value": "Albanians",
+      "name": "Q179248",
+      "canonical": "albanians"
+    },
+    {
+      "value": "Turkish people",
+      "name": "Q84072",
+      "canonical": "turkish people"
+    },
+    {
+      "value": "Romani",
+      "name": "Q8060",
+      "canonical": "romani"
+    },
+    {
+      "value": "Aromanians",
+      "name": "Q201111",
+      "canonical": "aromanians"
+    },
+    {
+      "value": "Serbs",
+      "name": "Q127885",
+      "canonical": "serbs"
+    },
+    {
+      "value": "Bosniaks",
+      "name": "Q940348",
+      "canonical": "bosniaks"
+    },
+    {
+      "value": "Other",
+      "name": "Q86630688",
+      "canonical": "other"
+    },
+    {
+      "value": "Macedonians",
+      "name": "Q2436423",
+      "canonical": "macedonians"
+    },
+    {
+      "value": "Albanians",
+      "name": "Q179248",
+      "canonical": "albanians"
+    },
+    {
+      "value": "Turkish people",
+      "name": "Q84072",
+      "canonical": "turkish people"
+    },
+    {
+      "value": "Romani",
+      "name": "Q8060",
+      "canonical": "romani"
+    },
+    {
+      "value": "Aromanians",
+      "name": "Q201111",
+      "canonical": "aromanians"
+    },
+    {
+      "value": "Serbs",
+      "name": "Q127885",
+      "canonical": "serbs"
+    },
+    {
+      "value": "Bosniaks",
+      "name": "Q940348",
+      "canonical": "bosniaks"
+    },
+    {
+      "value": "Other",
+      "name": "Q86630688",
+      "canonical": "other"
+    },
+    {
+      "value": "Macedonians",
+      "name": "Q2436423",
+      "canonical": "macedonians"
+    },
+    {
+      "value": "Albanians",
+      "name": "Q179248",
+      "canonical": "albanians"
+    },
+    {
+      "value": "Turkish people",
+      "name": "Q84072",
+      "canonical": "turkish people"
+    },
+    {
+      "value": "Romani",
+      "name": "Q8060",
+      "canonical": "romani"
+    },
+    {
+      "value": "Aromanians",
+      "name": "Q201111",
+      "canonical": "aromanians"
+    },
+    {
+      "value": "Serbs",
+      "name": "Q127885",
+      "canonical": "serbs"
+    },
+    {
+      "value": "Bosniaks",
+      "name": "Q940348",
+      "canonical": "bosniaks"
+    },
+    {
+      "value": "Other",
+      "name": "Q86630688",
+      "canonical": "other"
+    },
+    {
+      "value": "Macedonians",
+      "name": "Q2436423",
+      "canonical": "macedonians"
+    },
+    {
+      "value": "Albanians",
+      "name": "Q179248",
+      "canonical": "albanians"
+    },
+    {
+      "value": "Turkish people",
+      "name": "Q84072",
+      "canonical": "turkish people"
+    },
+    {
+      "value": "Romani",
+      "name": "Q8060",
+      "canonical": "romani"
+    },
+    {
+      "value": "Aromanians",
+      "name": "Q201111",
+      "canonical": "aromanians"
+    },
+    {
+      "value": "Serbs",
+      "name": "Q127885",
+      "canonical": "serbs"
+    },
+    {
+      "value": "Bosniaks",
+      "name": "Q940348",
+      "canonical": "bosniaks"
+    },
+    {
+      "value": "Other",
+      "name": "Q86630688",
+      "canonical": "other"
+    },
+    {
+      "value": "Kurds",
+      "name": "Q12223",
+      "canonical": "kurds"
+    },
+    {
+      "value": "Macedonians",
+      "name": "Q2436423",
+      "canonical": "macedonians"
+    },
+    {
+      "value": "Albanians",
+      "name": "Q179248",
+      "canonical": "albanians"
+    },
+    {
+      "value": "Turkish people",
+      "name": "Q84072",
+      "canonical": "turkish people"
+    },
+    {
+      "value": "Romani",
+      "name": "Q8060",
+      "canonical": "romani"
+    },
+    {
+      "value": "Aromanians",
+      "name": "Q201111",
+      "canonical": "aromanians"
+    },
+    {
+      "value": "Serbs",
+      "name": "Q127885",
+      "canonical": "serbs"
+    },
+    {
+      "value": "Bosniaks",
+      "name": "Q940348",
+      "canonical": "bosniaks"
+    },
+    {
+      "value": "Other",
+      "name": "Q86630688",
+      "canonical": "other"
+    }
+  ]
+}

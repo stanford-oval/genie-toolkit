@@ -1,0 +1,1485 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Flemish Region",
+      "name": "Q9337",
+      "canonical": "flemish region"
+    },
+    {
+      "value": "Brussels-Capital Region",
+      "name": "Q240",
+      "canonical": "brussels-capital region"
+    },
+    {
+      "value": "Flemish Community",
+      "name": "Q9331",
+      "canonical": "flemish community"
+    },
+    {
+      "value": "French Community of Belgium",
+      "name": "Q89959",
+      "canonical": "french community of belgium"
+    },
+    {
+      "value": "German-speaking Community of Belgium",
+      "name": "Q90027",
+      "canonical": "german-speaking community of belgium"
+    },
+    {
+      "value": "Wallonia",
+      "name": "Q231",
+      "canonical": "wallonia"
+    },
+    {
+      "value": "Lisboa",
+      "name": "Q207199",
+      "canonical": "lisboa"
+    },
+    {
+      "value": "Leiria",
+      "name": "Q244512",
+      "canonical": "leiria"
+    },
+    {
+      "value": "Santarém",
+      "name": "Q244510",
+      "canonical": "santarém"
+    },
+    {
+      "value": "Setúbal",
+      "name": "Q274109",
+      "canonical": "setúbal"
+    },
+    {
+      "value": "Beja",
+      "name": "Q321455",
+      "canonical": "beja"
+    },
+    {
+      "value": "Faro",
+      "name": "Q244521",
+      "canonical": "faro"
+    },
+    {
+      "value": "Évora",
+      "name": "Q274118",
+      "canonical": "évora"
+    },
+    {
+      "value": "Portalegre",
+      "name": "Q225189",
+      "canonical": "portalegre"
+    },
+    {
+      "value": "Castelo Branco",
+      "name": "Q273529",
+      "canonical": "castelo branco"
+    },
+    {
+      "value": "Guarda",
+      "name": "Q273533",
+      "canonical": "guarda"
+    },
+    {
+      "value": "Coimbra",
+      "name": "Q244517",
+      "canonical": "coimbra"
+    },
+    {
+      "value": "Aveiro",
+      "name": "Q210527",
+      "canonical": "aveiro"
+    },
+    {
+      "value": "Viseu",
+      "name": "Q273525",
+      "canonical": "viseu"
+    },
+    {
+      "value": "Bragança",
+      "name": "Q373528",
+      "canonical": "bragança"
+    },
+    {
+      "value": "Vila Real",
+      "name": "Q379372",
+      "canonical": "vila real"
+    },
+    {
+      "value": "Porto",
+      "name": "Q322792",
+      "canonical": "porto"
+    },
+    {
+      "value": "Braga",
+      "name": "Q326203",
+      "canonical": "braga"
+    },
+    {
+      "value": "Viana do Castelo",
+      "name": "Q326214",
+      "canonical": "viana do castelo"
+    },
+    {
+      "value": "Madeira",
+      "name": "Q26253",
+      "canonical": "madeira"
+    },
+    {
+      "value": "Azores",
+      "name": "Q25263",
+      "canonical": "azores"
+    },
+    {
+      "value": "Beijing",
+      "name": "Q956",
+      "canonical": "beijing"
+    },
+    {
+      "value": "Tianjin",
+      "name": "Q11736",
+      "canonical": "tianjin"
+    },
+    {
+      "value": "Hebei",
+      "name": "Q21208",
+      "canonical": "hebei"
+    },
+    {
+      "value": "Shanxi",
+      "name": "Q46913",
+      "canonical": "shanxi"
+    },
+    {
+      "value": "Inner Mongolia",
+      "name": "Q41079",
+      "canonical": "inner mongolia"
+    },
+    {
+      "value": "Liaoning",
+      "name": "Q43934",
+      "canonical": "liaoning"
+    },
+    {
+      "value": "Jilin",
+      "name": "Q45208",
+      "canonical": "jilin"
+    },
+    {
+      "value": "Heilongjiang",
+      "name": "Q19206",
+      "canonical": "heilongjiang"
+    },
+    {
+      "value": "Shanghai",
+      "name": "Q8686",
+      "canonical": "shanghai"
+    },
+    {
+      "value": "Jiangsu",
+      "name": "Q16963",
+      "canonical": "jiangsu"
+    },
+    {
+      "value": "Zhejiang",
+      "name": "Q16967",
+      "canonical": "zhejiang"
+    },
+    {
+      "value": "Anhui",
+      "name": "Q40956",
+      "canonical": "anhui"
+    },
+    {
+      "value": "Fujian",
+      "name": "Q41705",
+      "canonical": "fujian"
+    },
+    {
+      "value": "Jiangxi",
+      "name": "Q57052",
+      "canonical": "jiangxi"
+    },
+    {
+      "value": "Shandong",
+      "name": "Q43407",
+      "canonical": "shandong"
+    },
+    {
+      "value": "Henan",
+      "name": "Q43684",
+      "canonical": "henan"
+    },
+    {
+      "value": "Hubei",
+      "name": "Q46862",
+      "canonical": "hubei"
+    },
+    {
+      "value": "Hunan",
+      "name": "Q45761",
+      "canonical": "hunan"
+    },
+    {
+      "value": "Guangdong",
+      "name": "Q15175",
+      "canonical": "guangdong"
+    },
+    {
+      "value": "Guangxi Zhuang Autonomous Region",
+      "name": "Q15176",
+      "canonical": "guangxi zhuang autonomous region"
+    },
+    {
+      "value": "Hainan",
+      "name": "Q42200",
+      "canonical": "hainan"
+    },
+    {
+      "value": "Chongqing",
+      "name": "Q11725",
+      "canonical": "chongqing"
+    },
+    {
+      "value": "Sichuan",
+      "name": "Q19770",
+      "canonical": "sichuan"
+    },
+    {
+      "value": "Guizhou",
+      "name": "Q47097",
+      "canonical": "guizhou"
+    },
+    {
+      "value": "Yunnan",
+      "name": "Q43194",
+      "canonical": "yunnan"
+    },
+    {
+      "value": "Hong Kong",
+      "name": "Q8646",
+      "canonical": "hong kong"
+    },
+    {
+      "value": "Tibet Autonomous Region",
+      "name": "Q17269",
+      "canonical": "tibet autonomous region"
+    },
+    {
+      "value": "Shaanxi",
+      "name": "Q47974",
+      "canonical": "shaanxi"
+    },
+    {
+      "value": "Gansu",
+      "name": "Q42392",
+      "canonical": "gansu"
+    },
+    {
+      "value": "Qinghai",
+      "name": "Q45833",
+      "canonical": "qinghai"
+    },
+    {
+      "value": "Ningxia Hui Autonomous Region",
+      "name": "Q57448",
+      "canonical": "ningxia hui autonomous region"
+    },
+    {
+      "value": "Xinjiang",
+      "name": "Q34800",
+      "canonical": "xinjiang"
+    },
+    {
+      "value": "Macau",
+      "name": "Q14773",
+      "canonical": "macau"
+    },
+    {
+      "value": "Taiwan Province, People's Republic of China",
+      "name": "Q57251",
+      "canonical": "taiwan province , people 's republic of china"
+    },
+    {
+      "value": "Pingyuan Province",
+      "name": "Q1152568",
+      "canonical": "pingyuan province"
+    },
+    {
+      "value": "Acre",
+      "name": "Q40780",
+      "canonical": "acre"
+    },
+    {
+      "value": "Amapá",
+      "name": "Q40130",
+      "canonical": "amapá"
+    },
+    {
+      "value": "Amazonas",
+      "name": "Q40040",
+      "canonical": "amazonas"
+    },
+    {
+      "value": "Pará",
+      "name": "Q39517",
+      "canonical": "pará"
+    },
+    {
+      "value": "Rondônia",
+      "name": "Q43235",
+      "canonical": "rondônia"
+    },
+    {
+      "value": "Roraima",
+      "name": "Q42508",
+      "canonical": "roraima"
+    },
+    {
+      "value": "Tocantins",
+      "name": "Q43695",
+      "canonical": "tocantins"
+    },
+    {
+      "value": "Alagoas",
+      "name": "Q40885",
+      "canonical": "alagoas"
+    },
+    {
+      "value": "Bahia",
+      "name": "Q40430",
+      "canonical": "bahia"
+    },
+    {
+      "value": "Ceará",
+      "name": "Q40123",
+      "canonical": "ceará"
+    },
+    {
+      "value": "Maranhão",
+      "name": "Q42362",
+      "canonical": "maranhão"
+    },
+    {
+      "value": "Paraíba",
+      "name": "Q38088",
+      "canonical": "paraíba"
+    },
+    {
+      "value": "Pernambuco",
+      "name": "Q40942",
+      "canonical": "pernambuco"
+    },
+    {
+      "value": "Piauí",
+      "name": "Q42722",
+      "canonical": "piauí"
+    },
+    {
+      "value": "Rio Grande do Norte",
+      "name": "Q43255",
+      "canonical": "rio grande do norte"
+    },
+    {
+      "value": "Sergipe",
+      "name": "Q43783",
+      "canonical": "sergipe"
+    },
+    {
+      "value": "Goiás",
+      "name": "Q41587",
+      "canonical": "goiás"
+    },
+    {
+      "value": "Mato Grosso",
+      "name": "Q42824",
+      "canonical": "mato grosso"
+    },
+    {
+      "value": "Mato Grosso do Sul",
+      "name": "Q43319",
+      "canonical": "mato grosso do sul"
+    },
+    {
+      "value": "Espírito Santo",
+      "name": "Q43233",
+      "canonical": "espírito santo"
+    },
+    {
+      "value": "Minas Gerais",
+      "name": "Q39109",
+      "canonical": "minas gerais"
+    },
+    {
+      "value": "Rio de Janeiro",
+      "name": "Q41428",
+      "canonical": "rio de janeiro"
+    },
+    {
+      "value": "São Paulo",
+      "name": "Q175",
+      "canonical": "são paulo"
+    },
+    {
+      "value": "Paraná",
+      "name": "Q15499",
+      "canonical": "paraná"
+    },
+    {
+      "value": "Rio Grande do Sul",
+      "name": "Q40030",
+      "canonical": "rio grande do sul"
+    },
+    {
+      "value": "Santa Catarina",
+      "name": "Q41115",
+      "canonical": "santa catarina"
+    },
+    {
+      "value": "Federal District",
+      "name": "Q119158",
+      "canonical": "federal district"
+    },
+    {
+      "value": "Baden-Württemberg",
+      "name": "Q985",
+      "canonical": "baden-württemberg"
+    },
+    {
+      "value": "Bavaria",
+      "name": "Q980",
+      "canonical": "bavaria"
+    },
+    {
+      "value": "Berlin",
+      "name": "Q64",
+      "canonical": "berlin"
+    },
+    {
+      "value": "Free Hanseatic City of Bremen",
+      "name": "Q1209",
+      "canonical": "free hanseatic city of bremen"
+    },
+    {
+      "value": "Hamburg",
+      "name": "Q1055",
+      "canonical": "hamburg"
+    },
+    {
+      "value": "Mecklenburg-Western Pomerania",
+      "name": "Q1196",
+      "canonical": "mecklenburg-western pomerania"
+    },
+    {
+      "value": "Lower Saxony",
+      "name": "Q1197",
+      "canonical": "lower saxony"
+    },
+    {
+      "value": "North Rhine-Westphalia",
+      "name": "Q1198",
+      "canonical": "north rhine-westphalia"
+    },
+    {
+      "value": "Rhineland-Palatinate",
+      "name": "Q1200",
+      "canonical": "rhineland-palatinate"
+    },
+    {
+      "value": "Saarland",
+      "name": "Q1201",
+      "canonical": "saarland"
+    },
+    {
+      "value": "Saxony",
+      "name": "Q1202",
+      "canonical": "saxony"
+    },
+    {
+      "value": "Saxony-Anhalt",
+      "name": "Q1206",
+      "canonical": "saxony-anhalt"
+    },
+    {
+      "value": "Schleswig-Holstein",
+      "name": "Q1194",
+      "canonical": "schleswig-holstein"
+    },
+    {
+      "value": "Thuringia",
+      "name": "Q1205",
+      "canonical": "thuringia"
+    },
+    {
+      "value": "Brandenburg",
+      "name": "Q1208",
+      "canonical": "brandenburg"
+    },
+    {
+      "value": "Hesse",
+      "name": "Q1199",
+      "canonical": "hesse"
+    },
+    {
+      "value": "Gozo",
+      "name": "Q2054290",
+      "canonical": "gozo"
+    },
+    {
+      "value": "Malta Majjistral",
+      "name": "Q1172940",
+      "canonical": "malta majjistral"
+    },
+    {
+      "value": "Malta Xlokk",
+      "name": "Q1172933",
+      "canonical": "malta xlokk"
+    },
+    {
+      "value": "Arica y Parinacota Region",
+      "name": "Q2109",
+      "canonical": "arica y parinacota region"
+    },
+    {
+      "value": "Tarapacá Region",
+      "name": "Q2114",
+      "canonical": "tarapacá region"
+    },
+    {
+      "value": "Antofagasta Region",
+      "name": "Q2118",
+      "canonical": "antofagasta region"
+    },
+    {
+      "value": "Atacama Region",
+      "name": "Q2120",
+      "canonical": "atacama region"
+    },
+    {
+      "value": "Coquimbo Region",
+      "name": "Q2121",
+      "canonical": "coquimbo region"
+    },
+    {
+      "value": "Valparaíso Region",
+      "name": "Q219458",
+      "canonical": "valparaíso region"
+    },
+    {
+      "value": "O'Higgins Region",
+      "name": "Q2133",
+      "canonical": "o 'higgins region"
+    },
+    {
+      "value": "Maule Region",
+      "name": "Q2166",
+      "canonical": "maule region"
+    },
+    {
+      "value": "Biobío Region",
+      "name": "Q2170",
+      "canonical": "biobío region"
+    },
+    {
+      "value": "Araucanía Region",
+      "name": "Q2176",
+      "canonical": "araucanía region"
+    },
+    {
+      "value": "Los Ríos Region",
+      "name": "Q2177",
+      "canonical": "los ríos region"
+    },
+    {
+      "value": "Los Lagos Region",
+      "name": "Q2178",
+      "canonical": "los lagos region"
+    },
+    {
+      "value": "Aysén Region",
+      "name": "Q2181",
+      "canonical": "aysén region"
+    },
+    {
+      "value": "Magellan and the Chilean Antarctic Region",
+      "name": "Q2189",
+      "canonical": "magellan and the chilean antarctic region"
+    },
+    {
+      "value": "Santiago Metropolitan Region",
+      "name": "Q2131",
+      "canonical": "santiago metropolitan region"
+    },
+    {
+      "value": "Ñuble Region",
+      "name": "Q24076693",
+      "canonical": "ñuble region"
+    },
+    {
+      "value": "Capital Governorate",
+      "name": "Q528953",
+      "canonical": "capital governorate"
+    },
+    {
+      "value": "Central Governorate",
+      "name": "Q856539",
+      "canonical": "central governorate"
+    },
+    {
+      "value": "Muharraq Governorate",
+      "name": "Q375630",
+      "canonical": "muharraq governorate"
+    },
+    {
+      "value": "Northern Governorate",
+      "name": "Q840445",
+      "canonical": "northern governorate"
+    },
+    {
+      "value": "Southern Governorate",
+      "name": "Q838532",
+      "canonical": "southern governorate"
+    },
+    {
+      "value": "Malampa",
+      "name": "Q740656",
+      "canonical": "malampa"
+    },
+    {
+      "value": "Penama",
+      "name": "Q836649",
+      "canonical": "penama"
+    },
+    {
+      "value": "Sanma",
+      "name": "Q740640",
+      "canonical": "sanma"
+    },
+    {
+      "value": "Shefa",
+      "name": "Q650617",
+      "canonical": "shefa"
+    },
+    {
+      "value": "Tafea",
+      "name": "Q576417",
+      "canonical": "tafea"
+    },
+    {
+      "value": "Torba",
+      "name": "Q822514",
+      "canonical": "torba"
+    },
+    {
+      "value": "Jerusalem District",
+      "name": "Q192232",
+      "canonical": "jerusalem district"
+    },
+    {
+      "value": "Tel Aviv District",
+      "name": "Q192811",
+      "canonical": "tel aviv district"
+    },
+    {
+      "value": "Central District",
+      "name": "Q188785",
+      "canonical": "central district"
+    },
+    {
+      "value": "Haifa District",
+      "name": "Q185845",
+      "canonical": "haifa district"
+    },
+    {
+      "value": "Northern District",
+      "name": "Q189942",
+      "canonical": "northern district"
+    },
+    {
+      "value": "Southern District",
+      "name": "Q188781",
+      "canonical": "southern district"
+    },
+    {
+      "value": "Judea and Samaria Area",
+      "name": "Q513200",
+      "canonical": "judea and samaria area"
+    },
+    {
+      "value": "Attapeu Province",
+      "name": "Q503004",
+      "canonical": "attapeu province"
+    },
+    {
+      "value": "Bokeo Province",
+      "name": "Q334884",
+      "canonical": "bokeo province"
+    },
+    {
+      "value": "Bolikhamsai Province",
+      "name": "Q2403514",
+      "canonical": "bolikhamsai province"
+    },
+    {
+      "value": "Champasak Province",
+      "name": "Q334888",
+      "canonical": "champasak province"
+    },
+    {
+      "value": "Houaphanh Province",
+      "name": "Q502997",
+      "canonical": "houaphanh province"
+    },
+    {
+      "value": "Khammouane Province",
+      "name": "Q506641",
+      "canonical": "khammouane province"
+    },
+    {
+      "value": "Luang Namtha Province",
+      "name": "Q948691",
+      "canonical": "luang namtha province"
+    },
+    {
+      "value": "Luang Prabang Province",
+      "name": "Q747881",
+      "canonical": "luang prabang province"
+    },
+    {
+      "value": "Oudomxay Province",
+      "name": "Q465961",
+      "canonical": "oudomxay province"
+    },
+    {
+      "value": "Phongsaly Province",
+      "name": "Q334868",
+      "canonical": "phongsaly province"
+    },
+    {
+      "value": "Sainyabuli Province",
+      "name": "Q465929",
+      "canonical": "sainyabuli province"
+    },
+    {
+      "value": "Salavan Province",
+      "name": "Q302656",
+      "canonical": "salavan province"
+    },
+    {
+      "value": "Savannakhet Province",
+      "name": "Q465940",
+      "canonical": "savannakhet province"
+    },
+    {
+      "value": "Sekong Province",
+      "name": "Q585707",
+      "canonical": "sekong province"
+    },
+    {
+      "value": "Vientiane Prefecture",
+      "name": "Q390377",
+      "canonical": "vientiane prefecture"
+    },
+    {
+      "value": "Vientiane Province",
+      "name": "Q720066",
+      "canonical": "vientiane province"
+    },
+    {
+      "value": "Xiangkhouang Province",
+      "name": "Q465947",
+      "canonical": "xiangkhouang province"
+    },
+    {
+      "value": "Xaisomboun",
+      "name": "Q846580",
+      "canonical": "xaisomboun"
+    },
+    {
+      "value": "districts of Republican Subordination",
+      "name": "Q633490",
+      "canonical": "districts of republican subordination"
+    },
+    {
+      "value": "Sughd Province",
+      "name": "Q241582",
+      "canonical": "sughd province"
+    },
+    {
+      "value": "Khatlon Province",
+      "name": "Q633511",
+      "canonical": "khatlon province"
+    },
+    {
+      "value": "Gorno-Badakhshan Autonomous Region",
+      "name": "Q207319",
+      "canonical": "gorno-badakhshan autonomous region"
+    },
+    {
+      "value": "Chiang Mai",
+      "name": "Q233588",
+      "canonical": "chiang mai"
+    },
+    {
+      "value": "Chiang Rai",
+      "name": "Q236419",
+      "canonical": "chiang rai"
+    },
+    {
+      "value": "Lampang",
+      "name": "Q240495",
+      "canonical": "lampang"
+    },
+    {
+      "value": "Lamphun",
+      "name": "Q240540",
+      "canonical": "lamphun"
+    },
+    {
+      "value": "Mae Hong Son",
+      "name": "Q269270",
+      "canonical": "mae hong son"
+    },
+    {
+      "value": "Nan",
+      "name": "Q244698",
+      "canonical": "nan"
+    },
+    {
+      "value": "Phayao",
+      "name": "Q244618",
+      "canonical": "phayao"
+    },
+    {
+      "value": "Phrae",
+      "name": "Q244652",
+      "canonical": "phrae"
+    },
+    {
+      "value": "Uttaradit",
+      "name": "Q273794",
+      "canonical": "uttaradit"
+    },
+    {
+      "value": "Kanchanaburi",
+      "name": "Q275740",
+      "canonical": "kanchanaburi"
+    },
+    {
+      "value": "Phetchaburi",
+      "name": "Q244699",
+      "canonical": "phetchaburi"
+    },
+    {
+      "value": "Prachuap Khiri Khan",
+      "name": "Q244628",
+      "canonical": "prachuap khiri khan"
+    },
+    {
+      "value": "Ratchaburi",
+      "name": "Q335492",
+      "canonical": "ratchaburi"
+    },
+    {
+      "value": "Tak",
+      "name": "Q275758",
+      "canonical": "tak"
+    },
+    {
+      "value": "Amnat Charoen",
+      "name": "Q243791",
+      "canonical": "amnat charoen"
+    },
+    {
+      "value": "Buri Ram",
+      "name": "Q327510",
+      "canonical": "buri ram"
+    },
+    {
+      "value": "Chaiyaphum",
+      "name": "Q275377",
+      "canonical": "chaiyaphum"
+    },
+    {
+      "value": "Kalasin",
+      "name": "Q382144",
+      "canonical": "kalasin"
+    },
+    {
+      "value": "Khon Kaen",
+      "name": "Q327533",
+      "canonical": "khon kaen"
+    },
+    {
+      "value": "Loei",
+      "name": "Q275388",
+      "canonical": "loei"
+    },
+    {
+      "value": "Maha Sarakham",
+      "name": "Q468554",
+      "canonical": "maha sarakham"
+    },
+    {
+      "value": "Mukdahan",
+      "name": "Q335119",
+      "canonical": "mukdahan"
+    },
+    {
+      "value": "Nakhon Phanom",
+      "name": "Q468547",
+      "canonical": "nakhon phanom"
+    },
+    {
+      "value": "Nakhon Ratchasima",
+      "name": "Q271737",
+      "canonical": "nakhon ratchasima"
+    },
+    {
+      "value": "Nong Bua Lam Phu",
+      "name": "Q261241",
+      "canonical": "nong bua lam phu"
+    },
+    {
+      "value": "Nong Khai",
+      "name": "Q327737",
+      "canonical": "nong khai"
+    },
+    {
+      "value": "Roi Et",
+      "name": "Q625463",
+      "canonical": "roi et"
+    },
+    {
+      "value": "Sakon Nakhon",
+      "name": "Q382125",
+      "canonical": "sakon nakhon"
+    },
+    {
+      "value": "Si Sa Ket",
+      "name": "Q380761",
+      "canonical": "si sa ket"
+    },
+    {
+      "value": "Surin",
+      "name": "Q380757",
+      "canonical": "surin"
+    },
+    {
+      "value": "Ubon Ratchathani",
+      "name": "Q629024",
+      "canonical": "ubon ratchathani"
+    },
+    {
+      "value": "Udon Thani",
+      "name": "Q380752",
+      "canonical": "udon thani"
+    },
+    {
+      "value": "Yasothon",
+      "name": "Q506598",
+      "canonical": "yasothon"
+    },
+    {
+      "value": "Bueng Kan",
+      "name": "Q1001862",
+      "canonical": "bueng kan"
+    },
+    {
+      "value": "Ang Thong",
+      "name": "Q243795",
+      "canonical": "ang thong"
+    },
+    {
+      "value": "Phra Nakhon Si Ayutthaya",
+      "name": "Q476222",
+      "canonical": "phra nakhon si ayutthaya"
+    },
+    {
+      "value": "Bangkok",
+      "name": "Q1861",
+      "canonical": "bangkok"
+    },
+    {
+      "value": "Chai Nat",
+      "name": "Q459759",
+      "canonical": "chai nat"
+    },
+    {
+      "value": "Kamphaeng Phet",
+      "name": "Q273807",
+      "canonical": "kamphaeng phet"
+    },
+    {
+      "value": "Lopburi",
+      "name": "Q336122",
+      "canonical": "lopburi"
+    },
+    {
+      "value": "Nakhon Nayok",
+      "name": "Q466212",
+      "canonical": "nakhon nayok"
+    },
+    {
+      "value": "Nakhon Pathom",
+      "name": "Q334841",
+      "canonical": "nakhon pathom"
+    },
+    {
+      "value": "Nakhon Sawan",
+      "name": "Q239844",
+      "canonical": "nakhon sawan"
+    },
+    {
+      "value": "Nonthaburi",
+      "name": "Q242932",
+      "canonical": "nonthaburi"
+    },
+    {
+      "value": "Pathum Thani",
+      "name": "Q459748",
+      "canonical": "pathum thani"
+    },
+    {
+      "value": "Phetchabun",
+      "name": "Q240520",
+      "canonical": "phetchabun"
+    },
+    {
+      "value": "Phichit",
+      "name": "Q237874",
+      "canonical": "phichit"
+    },
+    {
+      "value": "Phitsanulok",
+      "name": "Q275781",
+      "canonical": "phitsanulok"
+    },
+    {
+      "value": "Sukhothai",
+      "name": "Q380764",
+      "canonical": "sukhothai"
+    },
+    {
+      "value": "Samut Prakan",
+      "name": "Q271529",
+      "canonical": "samut prakan"
+    },
+    {
+      "value": "Samut Sakhon",
+      "name": "Q334686",
+      "canonical": "samut sakhon"
+    },
+    {
+      "value": "Samut Songkhram",
+      "name": "Q459742",
+      "canonical": "samut songkhram"
+    },
+    {
+      "value": "Saraburi",
+      "name": "Q337627",
+      "canonical": "saraburi"
+    },
+    {
+      "value": "Sing Buri",
+      "name": "Q334836",
+      "canonical": "sing buri"
+    },
+    {
+      "value": "Suphanburi",
+      "name": "Q272247",
+      "canonical": "suphanburi"
+    },
+    {
+      "value": "Uthai Thani",
+      "name": "Q244649",
+      "canonical": "uthai thani"
+    },
+    {
+      "value": "Chachoengsao",
+      "name": "Q334906",
+      "canonical": "chachoengsao"
+    },
+    {
+      "value": "Chanthaburi",
+      "name": "Q327730",
+      "canonical": "chanthaburi"
+    },
+    {
+      "value": "Chon Buri",
+      "name": "Q207068",
+      "canonical": "chon buri"
+    },
+    {
+      "value": "Prachin Buri",
+      "name": "Q321324",
+      "canonical": "prachin buri"
+    },
+    {
+      "value": "Rayong",
+      "name": "Q335221",
+      "canonical": "rayong"
+    },
+    {
+      "value": "Sa Kaeo",
+      "name": "Q381889",
+      "canonical": "sa kaeo"
+    },
+    {
+      "value": "Trat",
+      "name": "Q241884",
+      "canonical": "trat"
+    },
+    {
+      "value": "Chumphon",
+      "name": "Q244695",
+      "canonical": "chumphon"
+    },
+    {
+      "value": "Krabi",
+      "name": "Q236769",
+      "canonical": "krabi"
+    },
+    {
+      "value": "Nakhon Si Thammarat",
+      "name": "Q244691",
+      "canonical": "nakhon si thammarat"
+    },
+    {
+      "value": "Narathiwat",
+      "name": "Q271442",
+      "canonical": "narathiwat"
+    },
+    {
+      "value": "Pattani",
+      "name": "Q236781",
+      "canonical": "pattani"
+    },
+    {
+      "value": "Phang Nga",
+      "name": "Q273306",
+      "canonical": "phang nga"
+    },
+    {
+      "value": "Phatthalung",
+      "name": "Q243808",
+      "canonical": "phatthalung"
+    },
+    {
+      "value": "Phuket",
+      "name": "Q182565",
+      "canonical": "phuket"
+    },
+    {
+      "value": "Ranong",
+      "name": "Q236802",
+      "canonical": "ranong"
+    },
+    {
+      "value": "Satun",
+      "name": "Q236263",
+      "canonical": "satun"
+    },
+    {
+      "value": "Songkhla",
+      "name": "Q235574",
+      "canonical": "songkhla"
+    },
+    {
+      "value": "Surat Thani",
+      "name": "Q240463",
+      "canonical": "surat thani"
+    },
+    {
+      "value": "Trang",
+      "name": "Q243805",
+      "canonical": "trang"
+    },
+    {
+      "value": "Yala",
+      "name": "Q242977",
+      "canonical": "yala"
+    },
+    {
+      "value": "Emirate of Dubai",
+      "name": "Q613",
+      "canonical": "emirate of dubai"
+    },
+    {
+      "value": "Abu Dhabi Emirate",
+      "name": "Q187712",
+      "canonical": "abu dhabi emirate"
+    },
+    {
+      "value": "Sharjah Emirate",
+      "name": "Q188810",
+      "canonical": "sharjah emirate"
+    },
+    {
+      "value": "Ajman Emirate",
+      "name": "Q159477",
+      "canonical": "ajman emirate"
+    },
+    {
+      "value": "Ras al-Khaimah",
+      "name": "Q170024",
+      "canonical": "ras al-khaimah"
+    },
+    {
+      "value": "Fujairah",
+      "name": "Q4091",
+      "canonical": "fujairah"
+    },
+    {
+      "value": "Umm al-Quwain",
+      "name": "Q175021",
+      "canonical": "umm al-quwain"
+    },
+    {
+      "value": "Kayes Region",
+      "name": "Q332113",
+      "canonical": "kayes region"
+    },
+    {
+      "value": "Koulikoro Region",
+      "name": "Q287789",
+      "canonical": "koulikoro region"
+    },
+    {
+      "value": "Bamako",
+      "name": "Q3703",
+      "canonical": "bamako"
+    },
+    {
+      "value": "Sikasso Region",
+      "name": "Q461298",
+      "canonical": "sikasso region"
+    },
+    {
+      "value": "Ségou Region",
+      "name": "Q656845",
+      "canonical": "ségou region"
+    },
+    {
+      "value": "Mopti Region",
+      "name": "Q214155",
+      "canonical": "mopti region"
+    },
+    {
+      "value": "Tombouctou Region",
+      "name": "Q339462",
+      "canonical": "tombouctou region"
+    },
+    {
+      "value": "Gao Region",
+      "name": "Q332392",
+      "canonical": "gao region"
+    },
+    {
+      "value": "Kidal Region",
+      "name": "Q338988",
+      "canonical": "kidal region"
+    },
+    {
+      "value": "Bengo Province",
+      "name": "Q191299",
+      "canonical": "bengo province"
+    },
+    {
+      "value": "Benguela Province",
+      "name": "Q212786",
+      "canonical": "benguela province"
+    },
+    {
+      "value": "Bié Province",
+      "name": "Q213977",
+      "canonical": "bié province"
+    },
+    {
+      "value": "Cabinda Province",
+      "name": "Q168787",
+      "canonical": "cabinda province"
+    },
+    {
+      "value": "Cuando Cubango Province",
+      "name": "Q215268",
+      "canonical": "cuando cubango province"
+    },
+    {
+      "value": "Cuanza Norte Province",
+      "name": "Q216834",
+      "canonical": "cuanza norte province"
+    },
+    {
+      "value": "Cuanza Sul",
+      "name": "Q216998",
+      "canonical": "cuanza sul"
+    },
+    {
+      "value": "Cunene Province",
+      "name": "Q216987",
+      "canonical": "cunene province"
+    },
+    {
+      "value": "Huambo Province",
+      "name": "Q218848",
+      "canonical": "huambo province"
+    },
+    {
+      "value": "Huíla Province",
+      "name": "Q214572",
+      "canonical": "huíla province"
+    },
+    {
+      "value": "Luanda Province",
+      "name": "Q190066",
+      "canonical": "luanda province"
+    },
+    {
+      "value": "Lunda Norte Province",
+      "name": "Q214221",
+      "canonical": "lunda norte province"
+    },
+    {
+      "value": "Lunda Sul Province",
+      "name": "Q219648",
+      "canonical": "lunda sul province"
+    },
+    {
+      "value": "Malanje Province",
+      "name": "Q219072",
+      "canonical": "malanje province"
+    },
+    {
+      "value": "Namibe Province",
+      "name": "Q216819",
+      "canonical": "namibe province"
+    },
+    {
+      "value": "Moxico Province",
+      "name": "Q173988",
+      "canonical": "moxico province"
+    },
+    {
+      "value": "Uíge Province",
+      "name": "Q216972",
+      "canonical": "uíge province"
+    },
+    {
+      "value": "Zaire Province",
+      "name": "Q196674",
+      "canonical": "zaire province"
+    },
+    {
+      "value": "Northern Province",
+      "name": "Q912359",
+      "canonical": "northern province"
+    },
+    {
+      "value": "Southern Province",
+      "name": "Q772185",
+      "canonical": "southern province"
+    },
+    {
+      "value": "Eastern Province",
+      "name": "Q1050497",
+      "canonical": "eastern province"
+    },
+    {
+      "value": "Western Area",
+      "name": "Q1050475",
+      "canonical": "western area"
+    },
+    {
+      "value": "North West Province",
+      "name": "Q43371075",
+      "canonical": "north west province"
+    },
+    {
+      "value": "Al Jazirah",
+      "name": "Q309469",
+      "canonical": "al jazirah"
+    },
+    {
+      "value": "Al Qadarif",
+      "name": "Q309478",
+      "canonical": "al qadarif"
+    },
+    {
+      "value": "Kassala",
+      "name": "Q954963",
+      "canonical": "kassala"
+    },
+    {
+      "value": "North Darfur",
+      "name": "Q688306",
+      "canonical": "north darfur"
+    },
+    {
+      "value": "South Darfur",
+      "name": "Q838778",
+      "canonical": "south darfur"
+    },
+    {
+      "value": "West Darfur",
+      "name": "Q846331",
+      "canonical": "west darfur"
+    },
+    {
+      "value": "White Nile",
+      "name": "Q311371",
+      "canonical": "white nile"
+    },
+    {
+      "value": "Blue Nile",
+      "name": "Q309489",
+      "canonical": "blue nile"
+    },
+    {
+      "value": "Sennar",
+      "name": "Q865534",
+      "canonical": "sennar"
+    },
+    {
+      "value": "Red Sea",
+      "name": "Q310120",
+      "canonical": "red sea"
+    },
+    {
+      "value": "Khartoum",
+      "name": "Q310385",
+      "canonical": "khartoum"
+    },
+    {
+      "value": "South Kordofan",
+      "name": "Q465490",
+      "canonical": "south kordofan"
+    },
+    {
+      "value": "North Kordofan",
+      "name": "Q864093",
+      "canonical": "north kordofan"
+    },
+    {
+      "value": "Northern",
+      "name": "Q310118",
+      "canonical": "northern"
+    },
+    {
+      "value": "River Nile",
+      "name": "Q849297",
+      "canonical": "river nile"
+    },
+    {
+      "value": "arrondissement of Cayenne",
+      "name": "Q672744",
+      "canonical": "arrondissement of cayenne"
+    },
+    {
+      "value": "arrondissement of Saint-Laurent-du-Maroni",
+      "name": "Q692903",
+      "canonical": "arrondissement of saint-laurent-du-maroni"
+    }
+  ]
+}

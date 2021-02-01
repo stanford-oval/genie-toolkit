@@ -1,0 +1,270 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Christiania",
+      "name": "Q21711493",
+      "canonical": "christiania"
+    },
+    {
+      "value": "Kristiania",
+      "name": "Q2375936",
+      "canonical": "kristiania"
+    },
+    {
+      "value": "Et-Tell",
+      "name": "Q5402334",
+      "canonical": "et-tell"
+    },
+    {
+      "value": "Canavieiras",
+      "name": "Q22063143",
+      "canonical": "canavieiras"
+    },
+    {
+      "value": "Canas",
+      "name": "Q22064808",
+      "canonical": "canas"
+    },
+    {
+      "value": "Olomouc",
+      "name": "Q81137",
+      "canonical": "olomouc"
+    },
+    {
+      "value": "Leipzig",
+      "name": "Q2079",
+      "canonical": "leipzig"
+    },
+    {
+      "value": "Big Apple",
+      "name": "Q14435",
+      "canonical": "big apple"
+    },
+    {
+      "value": "Hannover",
+      "name": "Q32052205",
+      "canonical": "hannover"
+    },
+    {
+      "value": "Granada",
+      "name": "Q31916723",
+      "canonical": "granada"
+    },
+    {
+      "value": "Kreisfreie Stadt Bremen",
+      "name": "Q32067887",
+      "canonical": "kreisfreie stadt bremen"
+    },
+    {
+      "value": "Al Mukalla",
+      "name": "Q20303189",
+      "canonical": "al mukalla"
+    },
+    {
+      "value": "Capão Bonito",
+      "name": "Q22064804",
+      "canonical": "capão bonito"
+    },
+    {
+      "value": "Areias",
+      "name": "Q22064861",
+      "canonical": "areias"
+    },
+    {
+      "value": "Buri",
+      "name": "Q22064824",
+      "canonical": "buri"
+    },
+    {
+      "value": "Christiania",
+      "name": "Q21711493",
+      "canonical": "christiania"
+    },
+    {
+      "value": "Oslo",
+      "name": "Q585",
+      "canonical": "oslo"
+    },
+    {
+      "value": "Olsztyn",
+      "name": "Q82765",
+      "canonical": "olsztyn"
+    },
+    {
+      "value": "Aleksandrów Kujawski",
+      "name": "Q33658826",
+      "canonical": "aleksandrów kujawski"
+    },
+    {
+      "value": "Triyuga",
+      "name": "Q1457919",
+      "canonical": "triyuga"
+    },
+    {
+      "value": "Sparta",
+      "name": "Q5690",
+      "canonical": "sparta"
+    },
+    {
+      "value": "Itu",
+      "name": "Q6095095",
+      "canonical": "itu"
+    },
+    {
+      "value": "Ofra",
+      "name": "Q2597135",
+      "canonical": "ofra"
+    },
+    {
+      "value": "Köthen",
+      "name": "Q1796771",
+      "canonical": "köthen"
+    },
+    {
+      "value": "Annopol-Rachów",
+      "name": "Q4769604",
+      "canonical": "annopol-rachów"
+    },
+    {
+      "value": "Baishan",
+      "name": "Q92348",
+      "canonical": "baishan"
+    },
+    {
+      "value": "Halden",
+      "name": "Q11494262",
+      "canonical": "halden"
+    },
+    {
+      "value": "Erfurt",
+      "name": "Q1729",
+      "canonical": "erfurt"
+    },
+    {
+      "value": "Leipzig",
+      "name": "Q32067937",
+      "canonical": "leipzig"
+    },
+    {
+      "value": "Braunschweig",
+      "name": "Q32067886",
+      "canonical": "braunschweig"
+    },
+    {
+      "value": "Esch-sur-Alzette",
+      "name": "Q20969230",
+      "canonical": "esch-sur-alzette"
+    },
+    {
+      "value": "Allenstein",
+      "name": "Q21979688",
+      "canonical": "allenstein"
+    },
+    {
+      "value": "Santana de Parnaíba",
+      "name": "Q32148980",
+      "canonical": "santana de parnaíba"
+    },
+    {
+      "value": "Bebedouro",
+      "name": "Q22064840",
+      "canonical": "bebedouro"
+    },
+    {
+      "value": "Erfurt",
+      "name": "Q1729",
+      "canonical": "erfurt"
+    },
+    {
+      "value": "Erfurt",
+      "name": "Q31997476",
+      "canonical": "erfurt"
+    },
+    {
+      "value": "Kreisfreie Stadt Erfurt",
+      "name": "Q32067904",
+      "canonical": "kreisfreie stadt erfurt"
+    },
+    {
+      "value": "Point de Galle",
+      "name": "Q27442965",
+      "canonical": "point de galle"
+    },
+    {
+      "value": "temporary capital of Lithuania",
+      "name": "Q1589770",
+      "canonical": "temporary capital of lithuania"
+    },
+    {
+      "value": "Bethel",
+      "name": "Q263912",
+      "canonical": "bethel"
+    },
+    {
+      "value": "Rotenburg an der Wümme",
+      "name": "Q498560",
+      "canonical": "rotenburg an der wümme"
+    },
+    {
+      "value": "Heian-kyō",
+      "name": "Q751907",
+      "canonical": "heian-kyō"
+    },
+    {
+      "value": "Zgërdhesh",
+      "name": "Q16968441",
+      "canonical": "zgërdhesh"
+    },
+    {
+      "value": "Nanjing",
+      "name": "Q16666",
+      "canonical": "nanjing"
+    },
+    {
+      "value": "Tianjing",
+      "name": "Q3528033",
+      "canonical": "tianjing"
+    },
+    {
+      "value": "Zabuthiri Township",
+      "name": "Q8063650",
+      "canonical": "zabuthiri township"
+    },
+    {
+      "value": "Babylon",
+      "name": "Q5684",
+      "canonical": "babylon"
+    },
+    {
+      "value": "Desaguadero, Peru",
+      "name": "Q80359310",
+      "canonical": "desaguadero , peru"
+    },
+    {
+      "value": "Vize, Kırklareli",
+      "name": "Q364021",
+      "canonical": "vize , kırklareli"
+    },
+    {
+      "value": "Oslo",
+      "name": "Q585",
+      "canonical": "oslo"
+    },
+    {
+      "value": "Kristiania",
+      "name": "Q2375936",
+      "canonical": "kristiania"
+    },
+    {
+      "value": "Úbeda",
+      "name": "Q329984",
+      "canonical": "úbeda"
+    },
+    {
+      "value": "Gouda",
+      "name": "Q84125",
+      "canonical": "gouda"
+    }
+  ]
+}

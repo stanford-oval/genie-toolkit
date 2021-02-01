@@ -1,0 +1,15 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Christchurch",
+      "name": "Q79990",
+      "canonical": "christchurch"
+    },
+    {
+      "value": "A Coruña",
+      "name": "Q8757",
+      "canonical": "a coruña"
+    }
+  ]
+}

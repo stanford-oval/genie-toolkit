@@ -1,0 +1,3270 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Sanskrit",
+      "name": "Q11059",
+      "canonical": "sanskrit"
+    },
+    {
+      "value": "Hindi",
+      "name": "Q1568",
+      "canonical": "hindi"
+    },
+    {
+      "value": "Malvi",
+      "name": "Q33413",
+      "canonical": "malvi"
+    },
+    {
+      "value": "Rajasthani",
+      "name": "Q13196",
+      "canonical": "rajasthani"
+    },
+    {
+      "value": "Uzbek",
+      "name": "Q9264",
+      "canonical": "uzbek"
+    },
+    {
+      "value": "Italian",
+      "name": "Q652",
+      "canonical": "italian"
+    },
+    {
+      "value": "Catalan",
+      "name": "Q7026",
+      "canonical": "catalan"
+    },
+    {
+      "value": "French",
+      "name": "Q150",
+      "canonical": "french"
+    },
+    {
+      "value": "Walloon",
+      "name": "Q34219",
+      "canonical": "walloon"
+    },
+    {
+      "value": "Judeo-Yemeni Arabic",
+      "name": "Q56596",
+      "canonical": "judeo-yemeni arabic"
+    },
+    {
+      "value": "Soqotri",
+      "name": "Q13283",
+      "canonical": "soqotri"
+    },
+    {
+      "value": "Maká language",
+      "name": "Q3281043",
+      "canonical": "maká language"
+    },
+    {
+      "value": "Lingala",
+      "name": "Q36217",
+      "canonical": "lingala"
+    },
+    {
+      "value": "Swahili",
+      "name": "Q7838",
+      "canonical": "swahili"
+    },
+    {
+      "value": "Luba-Kasai language",
+      "name": "Q34173",
+      "canonical": "luba-kasai language"
+    },
+    {
+      "value": "Kongo",
+      "name": "Q33702",
+      "canonical": "kongo"
+    },
+    {
+      "value": "East Teke language",
+      "name": "Q2802914",
+      "canonical": "east teke language"
+    },
+    {
+      "value": "Mfinu",
+      "name": "Q35915",
+      "canonical": "mfinu"
+    },
+    {
+      "value": "Kituba (Democratic Republic of Congo) language",
+      "name": "Q63283489",
+      "canonical": "kituba ( democratic republic of congo ) language"
+    },
+    {
+      "value": "Yazgulyam",
+      "name": "Q34186",
+      "canonical": "yazgulyam"
+    },
+    {
+      "value": "Yaghnobi",
+      "name": "Q34247",
+      "canonical": "yaghnobi"
+    },
+    {
+      "value": "Tajik",
+      "name": "Q9260",
+      "canonical": "tajik"
+    },
+    {
+      "value": "Russian",
+      "name": "Q7737",
+      "canonical": "russian"
+    },
+    {
+      "value": "Italian",
+      "name": "Q652",
+      "canonical": "italian"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Shilha",
+      "name": "Q34152",
+      "canonical": "shilha"
+    },
+    {
+      "value": "French",
+      "name": "Q150",
+      "canonical": "french"
+    },
+    {
+      "value": "Walloon",
+      "name": "Q34219",
+      "canonical": "walloon"
+    },
+    {
+      "value": "Dutch",
+      "name": "Q7411",
+      "canonical": "dutch"
+    },
+    {
+      "value": "Belgian Dutch",
+      "name": "Q1404296",
+      "canonical": "belgian dutch"
+    },
+    {
+      "value": "Belgian French",
+      "name": "Q815549",
+      "canonical": "belgian french"
+    },
+    {
+      "value": "Marols",
+      "name": "Q2668371",
+      "canonical": "marols"
+    },
+    {
+      "value": "Western Punjabi",
+      "name": "Q1389492",
+      "canonical": "western punjabi"
+    },
+    {
+      "value": "Bauria",
+      "name": "Q4873579",
+      "canonical": "bauria"
+    },
+    {
+      "value": "Central Tibetan language",
+      "name": "Q5061915",
+      "canonical": "central tibetan language"
+    },
+    {
+      "value": "Mewari",
+      "name": "Q2992857",
+      "canonical": "mewari"
+    },
+    {
+      "value": "Kanjari",
+      "name": "Q12953610",
+      "canonical": "kanjari"
+    },
+    {
+      "value": "Sansi",
+      "name": "Q3309366",
+      "canonical": "sansi"
+    },
+    {
+      "value": "Mala Malasar",
+      "name": "Q6740693",
+      "canonical": "mala malasar"
+    },
+    {
+      "value": "Hindi",
+      "name": "Q1568",
+      "canonical": "hindi"
+    },
+    {
+      "value": "Braj Bhasha",
+      "name": "Q35243",
+      "canonical": "braj bhasha"
+    },
+    {
+      "value": "Maithili",
+      "name": "Q36109",
+      "canonical": "maithili"
+    },
+    {
+      "value": "Sanskrit",
+      "name": "Q11059",
+      "canonical": "sanskrit"
+    },
+    {
+      "value": "Bhojpuri",
+      "name": "Q33268",
+      "canonical": "bhojpuri"
+    },
+    {
+      "value": "Haryanvi",
+      "name": "Q33410",
+      "canonical": "haryanvi"
+    },
+    {
+      "value": "Awadhi",
+      "name": "Q29579",
+      "canonical": "awadhi"
+    },
+    {
+      "value": "Sindhi",
+      "name": "Q33997",
+      "canonical": "sindhi"
+    },
+    {
+      "value": "Tibetan",
+      "name": "Q34271",
+      "canonical": "tibetan"
+    },
+    {
+      "value": "Gade Lohar",
+      "name": "Q12953671",
+      "canonical": "gade lohar"
+    },
+    {
+      "value": "Gaddi language",
+      "name": "Q17455500",
+      "canonical": "gaddi language"
+    },
+    {
+      "value": "Nzema language",
+      "name": "Q36337",
+      "canonical": "nzema language"
+    },
+    {
+      "value": "Ebrié",
+      "name": "Q36644",
+      "canonical": "ebrié"
+    },
+    {
+      "value": "Abure",
+      "name": "Q34767",
+      "canonical": "abure"
+    },
+    {
+      "value": "Blang",
+      "name": "Q4925096",
+      "canonical": "blang"
+    },
+    {
+      "value": "Phuan",
+      "name": "Q3915665",
+      "canonical": "phuan"
+    },
+    {
+      "value": "Thai Sign Language",
+      "name": "Q7709156",
+      "canonical": "thai sign language"
+    },
+    {
+      "value": "Chopi",
+      "name": "Q3437616",
+      "canonical": "chopi"
+    },
+    {
+      "value": "Ronga",
+      "name": "Q2520717",
+      "canonical": "ronga"
+    },
+    {
+      "value": "Mozambican Sign Language",
+      "name": "Q6927809",
+      "canonical": "mozambican sign language"
+    },
+    {
+      "value": "Chagatai",
+      "name": "Q36831",
+      "canonical": "chagatai"
+    },
+    {
+      "value": "'Are'are",
+      "name": "Q5160",
+      "canonical": "'are 'are"
+    },
+    {
+      "value": "Äiwoo language",
+      "name": "Q56742",
+      "canonical": "äiwoo language"
+    },
+    {
+      "value": "Saaroa",
+      "name": "Q716599",
+      "canonical": "saaroa"
+    },
+    {
+      "value": "Kanakanabu",
+      "name": "Q172244",
+      "canonical": "kanakanabu"
+    },
+    {
+      "value": "Rukai",
+      "name": "Q49232",
+      "canonical": "rukai"
+    },
+    {
+      "value": "Bunun",
+      "name": "Q56505",
+      "canonical": "bunun"
+    },
+    {
+      "value": "National language of Republic of China",
+      "name": "Q262828",
+      "canonical": "national language of republic of china"
+    },
+    {
+      "value": "Taiwanese Hokkien",
+      "name": "Q36778",
+      "canonical": "taiwanese hokkien"
+    },
+    {
+      "value": "Sixian dialect",
+      "name": "Q9668261",
+      "canonical": "sixian dialect"
+    },
+    {
+      "value": "Haryanvi",
+      "name": "Q33410",
+      "canonical": "haryanvi"
+    },
+    {
+      "value": "Mewati",
+      "name": "Q2605943",
+      "canonical": "mewati"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Quechua",
+      "name": "Q5218",
+      "canonical": "quechua"
+    },
+    {
+      "value": "Jin Chinese",
+      "name": "Q56479",
+      "canonical": "jin chinese"
+    },
+    {
+      "value": "Manchu",
+      "name": "Q33638",
+      "canonical": "manchu"
+    },
+    {
+      "value": "Tahoua",
+      "name": "Q56390",
+      "canonical": "tahoua"
+    },
+    {
+      "value": "Gourmanchéma",
+      "name": "Q35474",
+      "canonical": "gourmanchéma"
+    },
+    {
+      "value": "Zarma",
+      "name": "Q36990",
+      "canonical": "zarma"
+    },
+    {
+      "value": "Gambian Wolof",
+      "name": "Q12953302",
+      "canonical": "gambian wolof"
+    },
+    {
+      "value": "Mussau-Emira",
+      "name": "Q6943093",
+      "canonical": "mussau-emira"
+    },
+    {
+      "value": "Burum",
+      "name": "Q5000983",
+      "canonical": "burum"
+    },
+    {
+      "value": "Mountain Koiali",
+      "name": "Q6925030",
+      "canonical": "mountain koiali"
+    },
+    {
+      "value": "Koita language",
+      "name": "Q6426363",
+      "canonical": "koita language"
+    },
+    {
+      "value": "Toura language",
+      "name": "Q7829037",
+      "canonical": "toura language"
+    },
+    {
+      "value": "Grass Koiari",
+      "name": "Q12952642",
+      "canonical": "grass koiari"
+    },
+    {
+      "value": "Kwale language",
+      "name": "Q6450052",
+      "canonical": "kwale language"
+    },
+    {
+      "value": "Kuni",
+      "name": "Q6444619",
+      "canonical": "kuni"
+    },
+    {
+      "value": "Yele",
+      "name": "Q36942",
+      "canonical": "yele"
+    },
+    {
+      "value": "Motu",
+      "name": "Q33516",
+      "canonical": "motu"
+    },
+    {
+      "value": "Waima",
+      "name": "Q34197",
+      "canonical": "waima"
+    },
+    {
+      "value": "Maghrebi Arabic",
+      "name": "Q1194795",
+      "canonical": "maghrebi arabic"
+    },
+    {
+      "value": "Ghomara",
+      "name": "Q35315",
+      "canonical": "ghomara"
+    },
+    {
+      "value": "Sorani",
+      "name": "Q36811",
+      "canonical": "sorani"
+    },
+    {
+      "value": "Castellano",
+      "name": "Q15730344",
+      "canonical": "castellano"
+    },
+    {
+      "value": "Osaka Dialect",
+      "name": "Q11441423",
+      "canonical": "osaka dialect"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Singlish",
+      "name": "Q939451",
+      "canonical": "singlish"
+    },
+    {
+      "value": "Standard Chinese",
+      "name": "Q727694",
+      "canonical": "standard chinese"
+    },
+    {
+      "value": "Singapore Sign Language",
+      "name": "Q7512563",
+      "canonical": "singapore sign language"
+    },
+    {
+      "value": "Baba Malay",
+      "name": "Q18642798",
+      "canonical": "baba malay"
+    },
+    {
+      "value": "Tamil",
+      "name": "Q5885",
+      "canonical": "tamil"
+    },
+    {
+      "value": "Mandarin Chinese",
+      "name": "Q9192",
+      "canonical": "mandarin chinese"
+    },
+    {
+      "value": "Southern Min",
+      "name": "Q36495",
+      "canonical": "southern min"
+    },
+    {
+      "value": "Bamako Sign Language",
+      "name": "Q4853284",
+      "canonical": "bamako sign language"
+    },
+    {
+      "value": "Kita Maninka language",
+      "name": "Q3015523",
+      "canonical": "kita maninka language"
+    },
+    {
+      "value": "Eastern Maninkaka language",
+      "name": "Q11002130",
+      "canonical": "eastern maninkaka language"
+    },
+    {
+      "value": "East Teke language",
+      "name": "Q2802914",
+      "canonical": "east teke language"
+    },
+    {
+      "value": "Beembe language",
+      "name": "Q3196320",
+      "canonical": "beembe language"
+    },
+    {
+      "value": "Kituba",
+      "name": "Q35746",
+      "canonical": "kituba"
+    },
+    {
+      "value": "Lingala",
+      "name": "Q36217",
+      "canonical": "lingala"
+    },
+    {
+      "value": "Fuumu",
+      "name": "Q36603",
+      "canonical": "fuumu"
+    },
+    {
+      "value": "Kituba (Congo) language",
+      "name": "Q12953639",
+      "canonical": "kituba ( congo ) language"
+    },
+    {
+      "value": "Western Xiangxi Miao",
+      "name": "Q3307901",
+      "canonical": "western xiangxi miao"
+    },
+    {
+      "value": "Northern Tujia",
+      "name": "Q12953229",
+      "canonical": "northern tujia"
+    },
+    {
+      "value": "Eastern Xiangxi Miao",
+      "name": "Q27431376",
+      "canonical": "eastern xiangxi miao"
+    },
+    {
+      "value": "Romagnol",
+      "name": "Q1641543",
+      "canonical": "romagnol"
+    },
+    {
+      "value": "Atayal",
+      "name": "Q715766",
+      "canonical": "atayal"
+    },
+    {
+      "value": "Saisiyat",
+      "name": "Q716695",
+      "canonical": "saisiyat"
+    },
+    {
+      "value": "Maithili",
+      "name": "Q36109",
+      "canonical": "maithili"
+    },
+    {
+      "value": "Marathi",
+      "name": "Q1571",
+      "canonical": "marathi"
+    },
+    {
+      "value": "Urdu",
+      "name": "Q1617",
+      "canonical": "urdu"
+    },
+    {
+      "value": "Tamil",
+      "name": "Q5885",
+      "canonical": "tamil"
+    },
+    {
+      "value": "Kannada",
+      "name": "Q33673",
+      "canonical": "kannada"
+    },
+    {
+      "value": "Tulu",
+      "name": "Q34251",
+      "canonical": "tulu"
+    },
+    {
+      "value": "Telugu",
+      "name": "Q8097",
+      "canonical": "telugu"
+    },
+    {
+      "value": "Konkani",
+      "name": "Q34239",
+      "canonical": "konkani"
+    },
+    {
+      "value": "Malayalam",
+      "name": "Q36236",
+      "canonical": "malayalam"
+    },
+    {
+      "value": "South Bolivian Quechua",
+      "name": "Q1307730",
+      "canonical": "south bolivian quechua"
+    },
+    {
+      "value": "Santiagueño Quechua",
+      "name": "Q35168",
+      "canonical": "santiagueño quechua"
+    },
+    {
+      "value": "Mapudungun",
+      "name": "Q33730",
+      "canonical": "mapudungun"
+    },
+    {
+      "value": "Lagwan",
+      "name": "Q3502264",
+      "canonical": "lagwan"
+    },
+    {
+      "value": "Malgbe",
+      "name": "Q3502224",
+      "canonical": "malgbe"
+    },
+    {
+      "value": "Maslam",
+      "name": "Q3502273",
+      "canonical": "maslam"
+    },
+    {
+      "value": "Mser",
+      "name": "Q3502347",
+      "canonical": "mser"
+    },
+    {
+      "value": "Musgu",
+      "name": "Q3123545",
+      "canonical": "musgu"
+    },
+    {
+      "value": "Mpade",
+      "name": "Q3280670",
+      "canonical": "mpade"
+    },
+    {
+      "value": "Beraku",
+      "name": "Q56796",
+      "canonical": "beraku"
+    },
+    {
+      "value": "Bagirmi",
+      "name": "Q34903",
+      "canonical": "bagirmi"
+    },
+    {
+      "value": "Chadian Sign Language",
+      "name": "Q10322099",
+      "canonical": "chadian sign language"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Cantonese",
+      "name": "Q9186",
+      "canonical": "cantonese"
+    },
+    {
+      "value": "Standard Chinese",
+      "name": "Q727694",
+      "canonical": "standard chinese"
+    },
+    {
+      "value": "Yue Chinese",
+      "name": "Q7033959",
+      "canonical": "yue chinese"
+    },
+    {
+      "value": "Hong Kong Sign Language",
+      "name": "Q17038844",
+      "canonical": "hong kong sign language"
+    },
+    {
+      "value": "Mandarin Chinese",
+      "name": "Q9192",
+      "canonical": "mandarin chinese"
+    },
+    {
+      "value": "Greek",
+      "name": "Q9129",
+      "canonical": "greek"
+    },
+    {
+      "value": "Pontic Greek",
+      "name": "Q36748",
+      "canonical": "pontic greek"
+    },
+    {
+      "value": "Sorani",
+      "name": "Q36811",
+      "canonical": "sorani"
+    },
+    {
+      "value": "Kurdish",
+      "name": "Q36368",
+      "canonical": "kurdish"
+    },
+    {
+      "value": "Tamil",
+      "name": "Q5885",
+      "canonical": "tamil"
+    },
+    {
+      "value": "Pulaar",
+      "name": "Q1420205",
+      "canonical": "pulaar"
+    },
+    {
+      "value": "Mixifore language",
+      "name": "Q3914478",
+      "canonical": "mixifore language"
+    },
+    {
+      "value": "Jahanka",
+      "name": "Q3913992",
+      "canonical": "jahanka"
+    },
+    {
+      "value": "Bassari",
+      "name": "Q35098",
+      "canonical": "bassari"
+    },
+    {
+      "value": "Badyara",
+      "name": "Q35095",
+      "canonical": "badyara"
+    },
+    {
+      "value": "Pukur language",
+      "name": "Q31172660",
+      "canonical": "pukur language"
+    },
+    {
+      "value": "Landoma",
+      "name": "Q35568",
+      "canonical": "landoma"
+    },
+    {
+      "value": "Yalunka",
+      "name": "Q35524",
+      "canonical": "yalunka"
+    },
+    {
+      "value": "Nalu",
+      "name": "Q36026",
+      "canonical": "nalu"
+    },
+    {
+      "value": "Mbulungish",
+      "name": "Q36003",
+      "canonical": "mbulungish"
+    },
+    {
+      "value": "Wamey",
+      "name": "Q36935",
+      "canonical": "wamey"
+    },
+    {
+      "value": "Baga Kaloum",
+      "name": "Q3502293",
+      "canonical": "baga kaloum"
+    },
+    {
+      "value": "Baga Sobané",
+      "name": "Q3450433",
+      "canonical": "baga sobané"
+    },
+    {
+      "value": "Baga Sitemu",
+      "name": "Q36466",
+      "canonical": "baga sitemu"
+    },
+    {
+      "value": "Baga Manduri",
+      "name": "Q35815",
+      "canonical": "baga manduri"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Italian",
+      "name": "Q652",
+      "canonical": "italian"
+    },
+    {
+      "value": "Latin",
+      "name": "Q397",
+      "canonical": "latin"
+    },
+    {
+      "value": "Eastern Cham",
+      "name": "Q2948019",
+      "canonical": "eastern cham"
+    },
+    {
+      "value": "Western Cham",
+      "name": "Q12645578",
+      "canonical": "western cham"
+    },
+    {
+      "value": "Nung",
+      "name": "Q72695",
+      "canonical": "nung"
+    },
+    {
+      "value": "Ho Chi Minh City Sign Language",
+      "name": "Q16111971",
+      "canonical": "ho chi minh city sign language"
+    },
+    {
+      "value": "Khmer",
+      "name": "Q9205",
+      "canonical": "khmer"
+    },
+    {
+      "value": "Atayal",
+      "name": "Q715766",
+      "canonical": "atayal"
+    },
+    {
+      "value": "Basay",
+      "name": "Q716647",
+      "canonical": "basay"
+    },
+    {
+      "value": "Kavalan",
+      "name": "Q716627",
+      "canonical": "kavalan"
+    },
+    {
+      "value": "Standard Chinese",
+      "name": "Q727694",
+      "canonical": "standard chinese"
+    },
+    {
+      "value": "Bunun",
+      "name": "Q56505",
+      "canonical": "bunun"
+    },
+    {
+      "value": "Mandarin Chinese",
+      "name": "Q9192",
+      "canonical": "mandarin chinese"
+    },
+    {
+      "value": "Ketagalan language",
+      "name": "Q2779411",
+      "canonical": "ketagalan language"
+    },
+    {
+      "value": "French",
+      "name": "Q150",
+      "canonical": "french"
+    },
+    {
+      "value": "Guinean Sign Language",
+      "name": "Q15983937",
+      "canonical": "guinean sign language"
+    },
+    {
+      "value": "Mankanya",
+      "name": "Q35789",
+      "canonical": "mankanya"
+    },
+    {
+      "value": "Papel",
+      "name": "Q36314",
+      "canonical": "papel"
+    },
+    {
+      "value": "Tajik",
+      "name": "Q9260",
+      "canonical": "tajik"
+    },
+    {
+      "value": "Russian",
+      "name": "Q7737",
+      "canonical": "russian"
+    },
+    {
+      "value": "Uzbek",
+      "name": "Q9264",
+      "canonical": "uzbek"
+    },
+    {
+      "value": "Romagnol",
+      "name": "Q1641543",
+      "canonical": "romagnol"
+    },
+    {
+      "value": "Bokmål",
+      "name": "Q25167",
+      "canonical": "bokmål"
+    },
+    {
+      "value": "Nynorsk",
+      "name": "Q25164",
+      "canonical": "nynorsk"
+    },
+    {
+      "value": "Bukhori dialect",
+      "name": "Q56469",
+      "canonical": "bukhori dialect"
+    },
+    {
+      "value": "Lishán Didán",
+      "name": "Q56473",
+      "canonical": "lishán didán"
+    },
+    {
+      "value": "Judeo-Tripolitanian Arabic",
+      "name": "Q56598",
+      "canonical": "judeo-tripolitanian arabic"
+    },
+    {
+      "value": "Irish",
+      "name": "Q9142",
+      "canonical": "irish"
+    },
+    {
+      "value": "Kurmanji",
+      "name": "Q36163",
+      "canonical": "kurmanji"
+    },
+    {
+      "value": "Dungan",
+      "name": "Q33050",
+      "canonical": "dungan"
+    },
+    {
+      "value": "Russian",
+      "name": "Q7737",
+      "canonical": "russian"
+    },
+    {
+      "value": "Uzbek",
+      "name": "Q9264",
+      "canonical": "uzbek"
+    },
+    {
+      "value": "German",
+      "name": "Q188",
+      "canonical": "german"
+    },
+    {
+      "value": "Bavarian",
+      "name": "Q29540",
+      "canonical": "bavarian"
+    },
+    {
+      "value": "Malay trade and creole languages",
+      "name": "Q653415",
+      "canonical": "malay trade and creole languages"
+    },
+    {
+      "value": "Petjo",
+      "name": "Q940486",
+      "canonical": "petjo"
+    },
+    {
+      "value": "Buru",
+      "name": "Q2928650",
+      "canonical": "buru"
+    },
+    {
+      "value": "Fordata",
+      "name": "Q5468035",
+      "canonical": "fordata"
+    },
+    {
+      "value": "Batavian",
+      "name": "Q33014",
+      "canonical": "batavian"
+    },
+    {
+      "value": "Scottish Gaelic",
+      "name": "Q9314",
+      "canonical": "scottish gaelic"
+    },
+    {
+      "value": "Arbëresh",
+      "name": "Q1075302",
+      "canonical": "arbëresh"
+    },
+    {
+      "value": "Eastern Katu",
+      "name": "Q22808951",
+      "canonical": "eastern katu"
+    },
+    {
+      "value": "Atayal",
+      "name": "Q715766",
+      "canonical": "atayal"
+    },
+    {
+      "value": "Siraya",
+      "name": "Q716604",
+      "canonical": "siraya"
+    },
+    {
+      "value": "Southern Min",
+      "name": "Q36495",
+      "canonical": "southern min"
+    },
+    {
+      "value": "Kurmanji",
+      "name": "Q36163",
+      "canonical": "kurmanji"
+    },
+    {
+      "value": "Kurdish",
+      "name": "Q36368",
+      "canonical": "kurdish"
+    },
+    {
+      "value": "Somali",
+      "name": "Q13275",
+      "canonical": "somali"
+    },
+    {
+      "value": "Harari",
+      "name": "Q33626",
+      "canonical": "harari"
+    },
+    {
+      "value": "Khmer",
+      "name": "Q9205",
+      "canonical": "khmer"
+    },
+    {
+      "value": "Tamil",
+      "name": "Q5885",
+      "canonical": "tamil"
+    },
+    {
+      "value": "Kyoto dialect",
+      "name": "Q10350282",
+      "canonical": "kyoto dialect"
+    },
+    {
+      "value": "Russian",
+      "name": "Q7737",
+      "canonical": "russian"
+    },
+    {
+      "value": "Tajik",
+      "name": "Q9260",
+      "canonical": "tajik"
+    },
+    {
+      "value": "Hebrew",
+      "name": "Q9288",
+      "canonical": "hebrew"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Sinte Romani",
+      "name": "Q1793299",
+      "canonical": "sinte romani"
+    },
+    {
+      "value": "Ali",
+      "name": "Q34814",
+      "canonical": "ali"
+    },
+    {
+      "value": "Gobu",
+      "name": "Q7194986",
+      "canonical": "gobu"
+    },
+    {
+      "value": "Yakoma",
+      "name": "Q3571364",
+      "canonical": "yakoma"
+    },
+    {
+      "value": "Kpagua",
+      "name": "Q11137573",
+      "canonical": "kpagua"
+    },
+    {
+      "value": "Wu Chinese",
+      "name": "Q34290",
+      "canonical": "wu chinese"
+    },
+    {
+      "value": "Romagnol",
+      "name": "Q1641543",
+      "canonical": "romagnol"
+    },
+    {
+      "value": "Scottish Gaelic",
+      "name": "Q9314",
+      "canonical": "scottish gaelic"
+    },
+    {
+      "value": "West Flemish",
+      "name": "Q100103",
+      "canonical": "west flemish"
+    },
+    {
+      "value": "Chinese",
+      "name": "Q7850",
+      "canonical": "chinese"
+    },
+    {
+      "value": "Dutch",
+      "name": "Q7411",
+      "canonical": "dutch"
+    },
+    {
+      "value": "Gronings",
+      "name": "Q508854",
+      "canonical": "gronings"
+    },
+    {
+      "value": "Marathi",
+      "name": "Q1571",
+      "canonical": "marathi"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Swedish",
+      "name": "Q9027",
+      "canonical": "swedish"
+    },
+    {
+      "value": "Dutch",
+      "name": "Q7411",
+      "canonical": "dutch"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Dutch",
+      "name": "Q7411",
+      "canonical": "dutch"
+    },
+    {
+      "value": "French",
+      "name": "Q150",
+      "canonical": "french"
+    },
+    {
+      "value": "Italian",
+      "name": "Q652",
+      "canonical": "italian"
+    },
+    {
+      "value": "Chinese",
+      "name": "Q7850",
+      "canonical": "chinese"
+    },
+    {
+      "value": "Kannada",
+      "name": "Q33673",
+      "canonical": "kannada"
+    },
+    {
+      "value": "Hindi",
+      "name": "Q1568",
+      "canonical": "hindi"
+    },
+    {
+      "value": "Hindi",
+      "name": "Q1568",
+      "canonical": "hindi"
+    },
+    {
+      "value": "Magahi",
+      "name": "Q33728",
+      "canonical": "magahi"
+    },
+    {
+      "value": "Bhojpuri",
+      "name": "Q33268",
+      "canonical": "bhojpuri"
+    },
+    {
+      "value": "Maithili",
+      "name": "Q36109",
+      "canonical": "maithili"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Guarani",
+      "name": "Q35876",
+      "canonical": "guarani"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Guarani",
+      "name": "Q35876",
+      "canonical": "guarani"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Hindi",
+      "name": "Q1568",
+      "canonical": "hindi"
+    },
+    {
+      "value": "Odia",
+      "name": "Q33810",
+      "canonical": "odia"
+    },
+    {
+      "value": "Greek",
+      "name": "Q9129",
+      "canonical": "greek"
+    },
+    {
+      "value": "Azerbaijani",
+      "name": "Q9292",
+      "canonical": "azerbaijani"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Mam",
+      "name": "Q33467",
+      "canonical": "mam"
+    },
+    {
+      "value": "K’iche’",
+      "name": "Q36494",
+      "canonical": "k 'iche '"
+    },
+    {
+      "value": "Catalan",
+      "name": "Q7026",
+      "canonical": "catalan"
+    },
+    {
+      "value": "Turkish",
+      "name": "Q256",
+      "canonical": "turkish"
+    },
+    {
+      "value": "Azerbaijani",
+      "name": "Q9292",
+      "canonical": "azerbaijani"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Catalan",
+      "name": "Q7026",
+      "canonical": "catalan"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Uzbek",
+      "name": "Q9264",
+      "canonical": "uzbek"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Guarani",
+      "name": "Q35876",
+      "canonical": "guarani"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Catalan",
+      "name": "Q7026",
+      "canonical": "catalan"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Mari",
+      "name": "Q973685",
+      "canonical": "mari"
+    },
+    {
+      "value": "Russian",
+      "name": "Q7737",
+      "canonical": "russian"
+    },
+    {
+      "value": "Dutch",
+      "name": "Q7411",
+      "canonical": "dutch"
+    },
+    {
+      "value": "French",
+      "name": "Q150",
+      "canonical": "french"
+    },
+    {
+      "value": "Georgian",
+      "name": "Q8108",
+      "canonical": "georgian"
+    },
+    {
+      "value": "Hindi",
+      "name": "Q1568",
+      "canonical": "hindi"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Punjabi",
+      "name": "Q58635",
+      "canonical": "punjabi"
+    },
+    {
+      "value": "Urdu",
+      "name": "Q1617",
+      "canonical": "urdu"
+    },
+    {
+      "value": "Greek",
+      "name": "Q9129",
+      "canonical": "greek"
+    },
+    {
+      "value": "Italian",
+      "name": "Q652",
+      "canonical": "italian"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Basque",
+      "name": "Q8752",
+      "canonical": "basque"
+    },
+    {
+      "value": "Catalan",
+      "name": "Q7026",
+      "canonical": "catalan"
+    },
+    {
+      "value": "Turkmen",
+      "name": "Q9267",
+      "canonical": "turkmen"
+    },
+    {
+      "value": "Turkish",
+      "name": "Q256",
+      "canonical": "turkish"
+    },
+    {
+      "value": "Guarani",
+      "name": "Q35876",
+      "canonical": "guarani"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Polish",
+      "name": "Q809",
+      "canonical": "polish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Guarani",
+      "name": "Q35876",
+      "canonical": "guarani"
+    },
+    {
+      "value": "Azerbaijani",
+      "name": "Q9292",
+      "canonical": "azerbaijani"
+    },
+    {
+      "value": "Turkish",
+      "name": "Q256",
+      "canonical": "turkish"
+    },
+    {
+      "value": "Armenian",
+      "name": "Q8785",
+      "canonical": "armenian"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Marathi",
+      "name": "Q1571",
+      "canonical": "marathi"
+    },
+    {
+      "value": "Bokmål",
+      "name": "Q25167",
+      "canonical": "bokmål"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Malay",
+      "name": "Q9237",
+      "canonical": "malay"
+    },
+    {
+      "value": "Hindi",
+      "name": "Q1568",
+      "canonical": "hindi"
+    },
+    {
+      "value": "Azerbaijani",
+      "name": "Q9292",
+      "canonical": "azerbaijani"
+    },
+    {
+      "value": "Uzbek",
+      "name": "Q9264",
+      "canonical": "uzbek"
+    },
+    {
+      "value": "Marathi",
+      "name": "Q1571",
+      "canonical": "marathi"
+    },
+    {
+      "value": "Basque",
+      "name": "Q8752",
+      "canonical": "basque"
+    },
+    {
+      "value": "Uzbek",
+      "name": "Q9264",
+      "canonical": "uzbek"
+    },
+    {
+      "value": "Marathi",
+      "name": "Q1571",
+      "canonical": "marathi"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Guinea-Bissau Creole",
+      "name": "Q33339",
+      "canonical": "guinea-bissau creole"
+    },
+    {
+      "value": "Guinean Portuguese",
+      "name": "Q5616512",
+      "canonical": "guinean portuguese"
+    },
+    {
+      "value": "Mandjak",
+      "name": "Q35822",
+      "canonical": "mandjak"
+    },
+    {
+      "value": "Mankanya",
+      "name": "Q35789",
+      "canonical": "mankanya"
+    },
+    {
+      "value": "Papel",
+      "name": "Q36314",
+      "canonical": "papel"
+    },
+    {
+      "value": "Basque",
+      "name": "Q8752",
+      "canonical": "basque"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Azerbaijani",
+      "name": "Q9292",
+      "canonical": "azerbaijani"
+    },
+    {
+      "value": "Swedish",
+      "name": "Q9027",
+      "canonical": "swedish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Swedish",
+      "name": "Q9027",
+      "canonical": "swedish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Azerbaijani",
+      "name": "Q9292",
+      "canonical": "azerbaijani"
+    },
+    {
+      "value": "Swedish",
+      "name": "Q9027",
+      "canonical": "swedish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Azerbaijani",
+      "name": "Q9292",
+      "canonical": "azerbaijani"
+    },
+    {
+      "value": "Kyrgyz",
+      "name": "Q9255",
+      "canonical": "kyrgyz"
+    },
+    {
+      "value": "Basque",
+      "name": "Q8752",
+      "canonical": "basque"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Telugu",
+      "name": "Q8097",
+      "canonical": "telugu"
+    },
+    {
+      "value": "Italian",
+      "name": "Q652",
+      "canonical": "italian"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Bengali",
+      "name": "Q9610",
+      "canonical": "bengali"
+    },
+    {
+      "value": "Kannada",
+      "name": "Q33673",
+      "canonical": "kannada"
+    },
+    {
+      "value": "Vietnamese",
+      "name": "Q9199",
+      "canonical": "vietnamese"
+    },
+    {
+      "value": "Italian",
+      "name": "Q652",
+      "canonical": "italian"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Italian",
+      "name": "Q652",
+      "canonical": "italian"
+    },
+    {
+      "value": "Turkish",
+      "name": "Q256",
+      "canonical": "turkish"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Hindi",
+      "name": "Q1568",
+      "canonical": "hindi"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Hindi",
+      "name": "Q1568",
+      "canonical": "hindi"
+    },
+    {
+      "value": "Urdu",
+      "name": "Q1617",
+      "canonical": "urdu"
+    },
+    {
+      "value": "Marathi",
+      "name": "Q1571",
+      "canonical": "marathi"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Swedish",
+      "name": "Q9027",
+      "canonical": "swedish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Uzbek",
+      "name": "Q9264",
+      "canonical": "uzbek"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Lithuanian",
+      "name": "Q9083",
+      "canonical": "lithuanian"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Uzbek",
+      "name": "Q9264",
+      "canonical": "uzbek"
+    },
+    {
+      "value": "Basque",
+      "name": "Q8752",
+      "canonical": "basque"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Azerbaijani",
+      "name": "Q9292",
+      "canonical": "azerbaijani"
+    },
+    {
+      "value": "Etruscan",
+      "name": "Q35726",
+      "canonical": "etruscan"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Telugu",
+      "name": "Q8097",
+      "canonical": "telugu"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Malay",
+      "name": "Q9237",
+      "canonical": "malay"
+    },
+    {
+      "value": "Standard Chinese",
+      "name": "Q727694",
+      "canonical": "standard chinese"
+    },
+    {
+      "value": "Tamil",
+      "name": "Q5885",
+      "canonical": "tamil"
+    },
+    {
+      "value": "Dutch",
+      "name": "Q7411",
+      "canonical": "dutch"
+    },
+    {
+      "value": "Hindi",
+      "name": "Q1568",
+      "canonical": "hindi"
+    },
+    {
+      "value": "Marathi",
+      "name": "Q1571",
+      "canonical": "marathi"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Kichwa",
+      "name": "Q1740805",
+      "canonical": "kichwa"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Tamil",
+      "name": "Q5885",
+      "canonical": "tamil"
+    },
+    {
+      "value": "Italian",
+      "name": "Q652",
+      "canonical": "italian"
+    },
+    {
+      "value": "Italian",
+      "name": "Q652",
+      "canonical": "italian"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Hindi",
+      "name": "Q1568",
+      "canonical": "hindi"
+    },
+    {
+      "value": "Hungarian",
+      "name": "Q9067",
+      "canonical": "hungarian"
+    },
+    {
+      "value": "Malayalam",
+      "name": "Q36236",
+      "canonical": "malayalam"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Swedish",
+      "name": "Q9027",
+      "canonical": "swedish"
+    },
+    {
+      "value": "Hebrew",
+      "name": "Q9288",
+      "canonical": "hebrew"
+    },
+    {
+      "value": "Abkhaz",
+      "name": "Q5111",
+      "canonical": "abkhaz"
+    },
+    {
+      "value": "Russian",
+      "name": "Q7737",
+      "canonical": "russian"
+    },
+    {
+      "value": "Tamil",
+      "name": "Q5885",
+      "canonical": "tamil"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Swedish",
+      "name": "Q9027",
+      "canonical": "swedish"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Mongolian",
+      "name": "Q9246",
+      "canonical": "mongolian"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Guarani",
+      "name": "Q35876",
+      "canonical": "guarani"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Turkmen",
+      "name": "Q9267",
+      "canonical": "turkmen"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Swedish",
+      "name": "Q9027",
+      "canonical": "swedish"
+    },
+    {
+      "value": "Azerbaijani",
+      "name": "Q9292",
+      "canonical": "azerbaijani"
+    },
+    {
+      "value": "Azerbaijani",
+      "name": "Q9292",
+      "canonical": "azerbaijani"
+    },
+    {
+      "value": "Azerbaijani",
+      "name": "Q9292",
+      "canonical": "azerbaijani"
+    },
+    {
+      "value": "Bokmål",
+      "name": "Q25167",
+      "canonical": "bokmål"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Italian",
+      "name": "Q652",
+      "canonical": "italian"
+    },
+    {
+      "value": "Italian",
+      "name": "Q652",
+      "canonical": "italian"
+    },
+    {
+      "value": "Bube",
+      "name": "Q35110",
+      "canonical": "bube"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "German",
+      "name": "Q188",
+      "canonical": "german"
+    },
+    {
+      "value": "written Chinese language",
+      "name": "Q3110592",
+      "canonical": "written chinese language"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Cantonese",
+      "name": "Q9186",
+      "canonical": "cantonese"
+    },
+    {
+      "value": "Standard Chinese",
+      "name": "Q727694",
+      "canonical": "standard chinese"
+    },
+    {
+      "value": "Catalan",
+      "name": "Q7026",
+      "canonical": "catalan"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Italian",
+      "name": "Q652",
+      "canonical": "italian"
+    },
+    {
+      "value": "Greek",
+      "name": "Q9129",
+      "canonical": "greek"
+    },
+    {
+      "value": "Urdu",
+      "name": "Q1617",
+      "canonical": "urdu"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Guarani",
+      "name": "Q35876",
+      "canonical": "guarani"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Bosnian",
+      "name": "Q9303",
+      "canonical": "bosnian"
+    },
+    {
+      "value": "Bashkir",
+      "name": "Q13389",
+      "canonical": "bashkir"
+    },
+    {
+      "value": "Russian",
+      "name": "Q7737",
+      "canonical": "russian"
+    },
+    {
+      "value": "Greek",
+      "name": "Q9129",
+      "canonical": "greek"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Greek",
+      "name": "Q9129",
+      "canonical": "greek"
+    },
+    {
+      "value": "Marathi",
+      "name": "Q1571",
+      "canonical": "marathi"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Portuguese",
+      "name": "Q5146",
+      "canonical": "portuguese"
+    },
+    {
+      "value": "Swahili",
+      "name": "Q7838",
+      "canonical": "swahili"
+    },
+    {
+      "value": "Makonde",
+      "name": "Q35172",
+      "canonical": "makonde"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Tajik",
+      "name": "Q9260",
+      "canonical": "tajik"
+    },
+    {
+      "value": "Basque",
+      "name": "Q8752",
+      "canonical": "basque"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Swedish",
+      "name": "Q9027",
+      "canonical": "swedish"
+    },
+    {
+      "value": "Punjabi",
+      "name": "Q58635",
+      "canonical": "punjabi"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Turkmen",
+      "name": "Q9267",
+      "canonical": "turkmen"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Azerbaijani",
+      "name": "Q9292",
+      "canonical": "azerbaijani"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Azerbaijani",
+      "name": "Q9292",
+      "canonical": "azerbaijani"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Azerbaijani",
+      "name": "Q9292",
+      "canonical": "azerbaijani"
+    },
+    {
+      "value": "K’iche’",
+      "name": "Q36494",
+      "canonical": "k 'iche '"
+    },
+    {
+      "value": "Punic",
+      "name": "Q535958",
+      "canonical": "punic"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Bengali",
+      "name": "Q9610",
+      "canonical": "bengali"
+    },
+    {
+      "value": "Turkmen",
+      "name": "Q9267",
+      "canonical": "turkmen"
+    },
+    {
+      "value": "German",
+      "name": "Q188",
+      "canonical": "german"
+    },
+    {
+      "value": "Italian",
+      "name": "Q652",
+      "canonical": "italian"
+    },
+    {
+      "value": "French",
+      "name": "Q150",
+      "canonical": "french"
+    },
+    {
+      "value": "Latin",
+      "name": "Q397",
+      "canonical": "latin"
+    },
+    {
+      "value": "German",
+      "name": "Q188",
+      "canonical": "german"
+    },
+    {
+      "value": "Swedish",
+      "name": "Q9027",
+      "canonical": "swedish"
+    },
+    {
+      "value": "Chinese",
+      "name": "Q7850",
+      "canonical": "chinese"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Basque",
+      "name": "Q8752",
+      "canonical": "basque"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Catalan",
+      "name": "Q7026",
+      "canonical": "catalan"
+    },
+    {
+      "value": "Catalan",
+      "name": "Q7026",
+      "canonical": "catalan"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Brazilian Portuguese",
+      "name": "Q750553",
+      "canonical": "brazilian portuguese"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Turkish",
+      "name": "Q256",
+      "canonical": "turkish"
+    },
+    {
+      "value": "Turkish",
+      "name": "Q256",
+      "canonical": "turkish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Swedish",
+      "name": "Q9027",
+      "canonical": "swedish"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Swedish",
+      "name": "Q9027",
+      "canonical": "swedish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Turkish",
+      "name": "Q256",
+      "canonical": "turkish"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Turkish",
+      "name": "Q256",
+      "canonical": "turkish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Swedish",
+      "name": "Q9027",
+      "canonical": "swedish"
+    },
+    {
+      "value": "Somali",
+      "name": "Q13275",
+      "canonical": "somali"
+    },
+    {
+      "value": "Swahili",
+      "name": "Q7838",
+      "canonical": "swahili"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Azerbaijani",
+      "name": "Q9292",
+      "canonical": "azerbaijani"
+    },
+    {
+      "value": "Marathi",
+      "name": "Q1571",
+      "canonical": "marathi"
+    },
+    {
+      "value": "Georgian",
+      "name": "Q8108",
+      "canonical": "georgian"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Swedish",
+      "name": "Q9027",
+      "canonical": "swedish"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Hindi",
+      "name": "Q1568",
+      "canonical": "hindi"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "French",
+      "name": "Q150",
+      "canonical": "french"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Azerbaijani",
+      "name": "Q9292",
+      "canonical": "azerbaijani"
+    },
+    {
+      "value": "Hindi",
+      "name": "Q1568",
+      "canonical": "hindi"
+    },
+    {
+      "value": "Kannada",
+      "name": "Q33673",
+      "canonical": "kannada"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Bhojpuri",
+      "name": "Q33268",
+      "canonical": "bhojpuri"
+    },
+    {
+      "value": "Hindi",
+      "name": "Q1568",
+      "canonical": "hindi"
+    },
+    {
+      "value": "Italian",
+      "name": "Q652",
+      "canonical": "italian"
+    },
+    {
+      "value": "Italian",
+      "name": "Q652",
+      "canonical": "italian"
+    },
+    {
+      "value": "Italian",
+      "name": "Q652",
+      "canonical": "italian"
+    },
+    {
+      "value": "French",
+      "name": "Q150",
+      "canonical": "french"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Italian",
+      "name": "Q652",
+      "canonical": "italian"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Swedish",
+      "name": "Q9027",
+      "canonical": "swedish"
+    },
+    {
+      "value": "Swiss Standard German",
+      "name": "Q1366643",
+      "canonical": "swiss standard german"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Scots",
+      "name": "Q14549",
+      "canonical": "scots"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Swedish",
+      "name": "Q9027",
+      "canonical": "swedish"
+    },
+    {
+      "value": "Italian",
+      "name": "Q652",
+      "canonical": "italian"
+    },
+    {
+      "value": "Catalan",
+      "name": "Q7026",
+      "canonical": "catalan"
+    },
+    {
+      "value": "Azerbaijani",
+      "name": "Q9292",
+      "canonical": "azerbaijani"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Turkmen",
+      "name": "Q9267",
+      "canonical": "turkmen"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Polish",
+      "name": "Q809",
+      "canonical": "polish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Azerbaijani",
+      "name": "Q9292",
+      "canonical": "azerbaijani"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Basque",
+      "name": "Q8752",
+      "canonical": "basque"
+    },
+    {
+      "value": "Palauan",
+      "name": "Q33776",
+      "canonical": "palauan"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Uzbek",
+      "name": "Q9264",
+      "canonical": "uzbek"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Azerbaijani",
+      "name": "Q9292",
+      "canonical": "azerbaijani"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Turkish",
+      "name": "Q256",
+      "canonical": "turkish"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Lithuanian",
+      "name": "Q9083",
+      "canonical": "lithuanian"
+    },
+    {
+      "value": "Azerbaijani",
+      "name": "Q9292",
+      "canonical": "azerbaijani"
+    },
+    {
+      "value": "Swedish",
+      "name": "Q9027",
+      "canonical": "swedish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Tamil",
+      "name": "Q5885",
+      "canonical": "tamil"
+    },
+    {
+      "value": "Standard Chinese",
+      "name": "Q727694",
+      "canonical": "standard chinese"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Italian",
+      "name": "Q652",
+      "canonical": "italian"
+    },
+    {
+      "value": "Catalan",
+      "name": "Q7026",
+      "canonical": "catalan"
+    },
+    {
+      "value": "Abkhaz",
+      "name": "Q5111",
+      "canonical": "abkhaz"
+    },
+    {
+      "value": "Russian",
+      "name": "Q7737",
+      "canonical": "russian"
+    },
+    {
+      "value": "Turkish",
+      "name": "Q256",
+      "canonical": "turkish"
+    },
+    {
+      "value": "Hindi",
+      "name": "Q1568",
+      "canonical": "hindi"
+    },
+    {
+      "value": "Polish",
+      "name": "Q809",
+      "canonical": "polish"
+    },
+    {
+      "value": "Malayalam",
+      "name": "Q36236",
+      "canonical": "malayalam"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Turkish",
+      "name": "Q256",
+      "canonical": "turkish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Azerbaijani",
+      "name": "Q9292",
+      "canonical": "azerbaijani"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Thai",
+      "name": "Q9217",
+      "canonical": "thai"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Finnish",
+      "name": "Q1412",
+      "canonical": "finnish"
+    },
+    {
+      "value": "Azerbaijani",
+      "name": "Q9292",
+      "canonical": "azerbaijani"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Macedonian",
+      "name": "Q9296",
+      "canonical": "macedonian"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Azerbaijani",
+      "name": "Q9292",
+      "canonical": "azerbaijani"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    }
+  ]
+}

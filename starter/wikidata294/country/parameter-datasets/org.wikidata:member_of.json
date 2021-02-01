@@ -1,0 +1,2570 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "European Union",
+      "name": "Q458",
+      "canonical": "european union"
+    },
+    {
+      "value": "United Nations",
+      "name": "Q1065",
+      "canonical": "united nations"
+    },
+    {
+      "value": "NATO",
+      "name": "Q7184",
+      "canonical": "nato"
+    },
+    {
+      "value": "Organisation for Economic Cooperation and Development",
+      "name": "Q41550",
+      "canonical": "organisation for economic cooperation and development"
+    },
+    {
+      "value": "Council of Europe",
+      "name": "Q8908",
+      "canonical": "council of europe"
+    },
+    {
+      "value": "Benelux",
+      "name": "Q13116",
+      "canonical": "benelux"
+    },
+    {
+      "value": "European Space Agency",
+      "name": "Q42262",
+      "canonical": "european space agency"
+    },
+    {
+      "value": "World Trade Organization",
+      "name": "Q7825",
+      "canonical": "world trade organization"
+    },
+    {
+      "value": "European Air Transport Command",
+      "name": "Q141720",
+      "canonical": "european air transport command"
+    },
+    {
+      "value": "Belgium–Luxembourg Economic Union",
+      "name": "Q1542735",
+      "canonical": "belgium–luxembourg economic union"
+    },
+    {
+      "value": "Dutch Language Union",
+      "name": "Q152299",
+      "canonical": "dutch language union"
+    },
+    {
+      "value": "European Southern Observatory",
+      "name": "Q151991",
+      "canonical": "european southern observatory"
+    },
+    {
+      "value": "Organization for Security and Co-operation in Europe",
+      "name": "Q81299",
+      "canonical": "organization for security and co-operation in europe"
+    },
+    {
+      "value": "International Bank for Reconstruction and Development",
+      "name": "Q191384",
+      "canonical": "international bank for reconstruction and development"
+    },
+    {
+      "value": "International Development Association",
+      "name": "Q827525",
+      "canonical": "international development association"
+    },
+    {
+      "value": "International Finance Corporation",
+      "name": "Q656801",
+      "canonical": "international finance corporation"
+    },
+    {
+      "value": "Multilateral Investment Guarantee Agency",
+      "name": "Q1043527",
+      "canonical": "multilateral investment guarantee agency"
+    },
+    {
+      "value": "International Centre for Settlement of Investment Disputes",
+      "name": "Q899770",
+      "canonical": "international centre for settlement of investment disputes"
+    },
+    {
+      "value": "African Development Bank",
+      "name": "Q340195",
+      "canonical": "african development bank"
+    },
+    {
+      "value": "Asian Development Bank",
+      "name": "Q188822",
+      "canonical": "asian development bank"
+    },
+    {
+      "value": "Australia Group",
+      "name": "Q782942",
+      "canonical": "australia group"
+    },
+    {
+      "value": "European Coal and Steel Community",
+      "name": "Q161549",
+      "canonical": "european coal and steel community"
+    },
+    {
+      "value": "European Payments Union",
+      "name": "Q1377612",
+      "canonical": "european payments union"
+    },
+    {
+      "value": "Eurocontrol",
+      "name": "Q663492",
+      "canonical": "eurocontrol"
+    },
+    {
+      "value": "Treaty on Open Skies",
+      "name": "Q1928989",
+      "canonical": "treaty on open skies"
+    },
+    {
+      "value": "Missile Technology Control Regime",
+      "name": "Q1072120",
+      "canonical": "missile technology control regime"
+    },
+    {
+      "value": "Interpol",
+      "name": "Q8475",
+      "canonical": "interpol"
+    },
+    {
+      "value": "Nuclear Suppliers Group",
+      "name": "Q1480793",
+      "canonical": "nuclear suppliers group"
+    },
+    {
+      "value": "Organisation for the Prohibition of Chemical Weapons",
+      "name": "Q842490",
+      "canonical": "organisation for the prohibition of chemical weapons"
+    },
+    {
+      "value": "Movement Coordination Centre Europe",
+      "name": "Q3866537",
+      "canonical": "movement coordination centre europe"
+    },
+    {
+      "value": "Organisation for Joint Armament Cooperation",
+      "name": "Q521227",
+      "canonical": "organisation for joint armament cooperation"
+    },
+    {
+      "value": "International Hydrographic Organization",
+      "name": "Q233611",
+      "canonical": "international hydrographic organization"
+    },
+    {
+      "value": "International Energy Agency",
+      "name": "Q826700",
+      "canonical": "international energy agency"
+    },
+    {
+      "value": "UNESCO",
+      "name": "Q7809",
+      "canonical": "unesco"
+    },
+    {
+      "value": "Group on Earth Observations",
+      "name": "Q5611262",
+      "canonical": "group on earth observations"
+    },
+    {
+      "value": "Universal Postal Union",
+      "name": "Q17495",
+      "canonical": "universal postal union"
+    },
+    {
+      "value": "International Telecommunication Union",
+      "name": "Q376150",
+      "canonical": "international telecommunication union"
+    },
+    {
+      "value": "Schengen Area",
+      "name": "Q1969730",
+      "canonical": "schengen area"
+    },
+    {
+      "value": "Global Biodiversity Information Facility",
+      "name": "Q1531570",
+      "canonical": "global biodiversity information facility"
+    },
+    {
+      "value": "Organisation internationale de la Francophonie",
+      "name": "Q134102",
+      "canonical": "organisation internationale de la francophonie"
+    },
+    {
+      "value": "Visa Waiver Program",
+      "name": "Q45177",
+      "canonical": "visa waiver program"
+    },
+    {
+      "value": "World Meteorological Organization",
+      "name": "Q170424",
+      "canonical": "world meteorological organization"
+    },
+    {
+      "value": "World Health Organization",
+      "name": "Q7817",
+      "canonical": "world health organization"
+    },
+    {
+      "value": "European Union",
+      "name": "Q458",
+      "canonical": "european union"
+    },
+    {
+      "value": "United Nations",
+      "name": "Q1065",
+      "canonical": "united nations"
+    },
+    {
+      "value": "NATO",
+      "name": "Q7184",
+      "canonical": "nato"
+    },
+    {
+      "value": "Organisation for Economic Cooperation and Development",
+      "name": "Q41550",
+      "canonical": "organisation for economic cooperation and development"
+    },
+    {
+      "value": "Council of Europe",
+      "name": "Q8908",
+      "canonical": "council of europe"
+    },
+    {
+      "value": "European Space Agency",
+      "name": "Q42262",
+      "canonical": "european space agency"
+    },
+    {
+      "value": "World Trade Organization",
+      "name": "Q7825",
+      "canonical": "world trade organization"
+    },
+    {
+      "value": "European Southern Observatory",
+      "name": "Q151991",
+      "canonical": "european southern observatory"
+    },
+    {
+      "value": "Organization for Security and Co-operation in Europe",
+      "name": "Q81299",
+      "canonical": "organization for security and co-operation in europe"
+    },
+    {
+      "value": "International Bank for Reconstruction and Development",
+      "name": "Q191384",
+      "canonical": "international bank for reconstruction and development"
+    },
+    {
+      "value": "International Development Association",
+      "name": "Q827525",
+      "canonical": "international development association"
+    },
+    {
+      "value": "International Finance Corporation",
+      "name": "Q656801",
+      "canonical": "international finance corporation"
+    },
+    {
+      "value": "Multilateral Investment Guarantee Agency",
+      "name": "Q1043527",
+      "canonical": "multilateral investment guarantee agency"
+    },
+    {
+      "value": "International Centre for Settlement of Investment Disputes",
+      "name": "Q899770",
+      "canonical": "international centre for settlement of investment disputes"
+    },
+    {
+      "value": "African Development Bank",
+      "name": "Q340195",
+      "canonical": "african development bank"
+    },
+    {
+      "value": "Asian Development Bank",
+      "name": "Q188822",
+      "canonical": "asian development bank"
+    },
+    {
+      "value": "Australia Group",
+      "name": "Q782942",
+      "canonical": "australia group"
+    },
+    {
+      "value": "Community of Portuguese Language Countries",
+      "name": "Q182500",
+      "canonical": "community of portuguese language countries"
+    },
+    {
+      "value": "European Payments Union",
+      "name": "Q1377612",
+      "canonical": "european payments union"
+    },
+    {
+      "value": "Eurocontrol",
+      "name": "Q663492",
+      "canonical": "eurocontrol"
+    },
+    {
+      "value": "Treaty on Open Skies",
+      "name": "Q1928989",
+      "canonical": "treaty on open skies"
+    },
+    {
+      "value": "Missile Technology Control Regime",
+      "name": "Q1072120",
+      "canonical": "missile technology control regime"
+    },
+    {
+      "value": "Interpol",
+      "name": "Q8475",
+      "canonical": "interpol"
+    },
+    {
+      "value": "Nuclear Suppliers Group",
+      "name": "Q1480793",
+      "canonical": "nuclear suppliers group"
+    },
+    {
+      "value": "Organisation for the Prohibition of Chemical Weapons",
+      "name": "Q842490",
+      "canonical": "organisation for the prohibition of chemical weapons"
+    },
+    {
+      "value": "Movement Coordination Centre Europe",
+      "name": "Q3866537",
+      "canonical": "movement coordination centre europe"
+    },
+    {
+      "value": "International Hydrographic Organization",
+      "name": "Q233611",
+      "canonical": "international hydrographic organization"
+    },
+    {
+      "value": "International Energy Agency",
+      "name": "Q826700",
+      "canonical": "international energy agency"
+    },
+    {
+      "value": "UNESCO",
+      "name": "Q7809",
+      "canonical": "unesco"
+    },
+    {
+      "value": "Group on Earth Observations",
+      "name": "Q5611262",
+      "canonical": "group on earth observations"
+    },
+    {
+      "value": "Universal Postal Union",
+      "name": "Q17495",
+      "canonical": "universal postal union"
+    },
+    {
+      "value": "International Telecommunication Union",
+      "name": "Q376150",
+      "canonical": "international telecommunication union"
+    },
+    {
+      "value": "Schengen Area",
+      "name": "Q1969730",
+      "canonical": "schengen area"
+    },
+    {
+      "value": "Visa Waiver Program",
+      "name": "Q45177",
+      "canonical": "visa waiver program"
+    },
+    {
+      "value": "International Civil Defence Organisation",
+      "name": "Q162656",
+      "canonical": "international civil defence organisation"
+    },
+    {
+      "value": "World Meteorological Organization",
+      "name": "Q170424",
+      "canonical": "world meteorological organization"
+    },
+    {
+      "value": "World Health Organization",
+      "name": "Q7817",
+      "canonical": "world health organization"
+    },
+    {
+      "value": "United Nations",
+      "name": "Q1065",
+      "canonical": "united nations"
+    },
+    {
+      "value": "World Trade Organization",
+      "name": "Q7825",
+      "canonical": "world trade organization"
+    },
+    {
+      "value": "Shanghai Cooperation Organisation",
+      "name": "Q485207",
+      "canonical": "shanghai cooperation organisation"
+    },
+    {
+      "value": "G20",
+      "name": "Q19771",
+      "canonical": "g20"
+    },
+    {
+      "value": "Asia-Pacific Economic Cooperation",
+      "name": "Q170481",
+      "canonical": "asia-pacific economic cooperation"
+    },
+    {
+      "value": "International Bank for Reconstruction and Development",
+      "name": "Q191384",
+      "canonical": "international bank for reconstruction and development"
+    },
+    {
+      "value": "International Development Association",
+      "name": "Q827525",
+      "canonical": "international development association"
+    },
+    {
+      "value": "International Finance Corporation",
+      "name": "Q656801",
+      "canonical": "international finance corporation"
+    },
+    {
+      "value": "Multilateral Investment Guarantee Agency",
+      "name": "Q1043527",
+      "canonical": "multilateral investment guarantee agency"
+    },
+    {
+      "value": "International Centre for Settlement of Investment Disputes",
+      "name": "Q899770",
+      "canonical": "international centre for settlement of investment disputes"
+    },
+    {
+      "value": "African Development Bank",
+      "name": "Q340195",
+      "canonical": "african development bank"
+    },
+    {
+      "value": "African Union – United Nations Hybrid Operation in Darfur",
+      "name": "Q384535",
+      "canonical": "african union – united nations hybrid operation in darfur"
+    },
+    {
+      "value": "Association of Southeast Asian Nations Regional Forum",
+      "name": "Q7886981",
+      "canonical": "association of southeast asian nations regional forum"
+    },
+    {
+      "value": "Asian Development Bank",
+      "name": "Q188822",
+      "canonical": "asian development bank"
+    },
+    {
+      "value": "BRICS",
+      "name": "Q243630",
+      "canonical": "brics"
+    },
+    {
+      "value": "Caribbean Development Bank",
+      "name": "Q3772571",
+      "canonical": "caribbean development bank"
+    },
+    {
+      "value": "United Nations Security Council",
+      "name": "Q37470",
+      "canonical": "united nations security council"
+    },
+    {
+      "value": "Interpol",
+      "name": "Q8475",
+      "canonical": "interpol"
+    },
+    {
+      "value": "Nuclear Suppliers Group",
+      "name": "Q1480793",
+      "canonical": "nuclear suppliers group"
+    },
+    {
+      "value": "Organisation for the Prohibition of Chemical Weapons",
+      "name": "Q842490",
+      "canonical": "organisation for the prohibition of chemical weapons"
+    },
+    {
+      "value": "International Hydrographic Organization",
+      "name": "Q233611",
+      "canonical": "international hydrographic organization"
+    },
+    {
+      "value": "UNESCO",
+      "name": "Q7809",
+      "canonical": "unesco"
+    },
+    {
+      "value": "Group on Earth Observations",
+      "name": "Q5611262",
+      "canonical": "group on earth observations"
+    },
+    {
+      "value": "Universal Postal Union",
+      "name": "Q17495",
+      "canonical": "universal postal union"
+    },
+    {
+      "value": "International Telecommunication Union",
+      "name": "Q376150",
+      "canonical": "international telecommunication union"
+    },
+    {
+      "value": "International Civil Defence Organisation",
+      "name": "Q162656",
+      "canonical": "international civil defence organisation"
+    },
+    {
+      "value": "World Meteorological Organization",
+      "name": "Q170424",
+      "canonical": "world meteorological organization"
+    },
+    {
+      "value": "World Health Organization",
+      "name": "Q7817",
+      "canonical": "world health organization"
+    },
+    {
+      "value": "United Nations",
+      "name": "Q1065",
+      "canonical": "united nations"
+    },
+    {
+      "value": "Union of South American Nations",
+      "name": "Q4230",
+      "canonical": "union of south american nations"
+    },
+    {
+      "value": "Mercosur",
+      "name": "Q4264",
+      "canonical": "mercosur"
+    },
+    {
+      "value": "World Trade Organization",
+      "name": "Q7825",
+      "canonical": "world trade organization"
+    },
+    {
+      "value": "G20",
+      "name": "Q19771",
+      "canonical": "g20"
+    },
+    {
+      "value": "BRICS",
+      "name": "Q243630",
+      "canonical": "brics"
+    },
+    {
+      "value": "Community of Portuguese Language Countries",
+      "name": "Q182500",
+      "canonical": "community of portuguese language countries"
+    },
+    {
+      "value": "Latin Union",
+      "name": "Q123209",
+      "canonical": "latin union"
+    },
+    {
+      "value": "G4 nations",
+      "name": "Q838116",
+      "canonical": "g4 nations"
+    },
+    {
+      "value": "IBSA Dialogue Forum",
+      "name": "Q1570993",
+      "canonical": "ibsa dialogue forum"
+    },
+    {
+      "value": "G8+5",
+      "name": "Q1484463",
+      "canonical": "g8 5"
+    },
+    {
+      "value": "Community of Latin American and Caribbean States",
+      "name": "Q1045401",
+      "canonical": "community of latin american and caribbean states"
+    },
+    {
+      "value": "Amazon Cooperation Treaty Organization",
+      "name": "Q602399",
+      "canonical": "amazon cooperation treaty organization"
+    },
+    {
+      "value": "Latin American Integration Association",
+      "name": "Q607301",
+      "canonical": "latin american integration association"
+    },
+    {
+      "value": "Latin America - East Asia Cooperation Forum",
+      "name": "Q10283557",
+      "canonical": "latin america - east asia cooperation forum"
+    },
+    {
+      "value": "Summits of the Americas",
+      "name": "Q467938",
+      "canonical": "summits of the americas"
+    },
+    {
+      "value": "Ibero-American Summit",
+      "name": "Q535086",
+      "canonical": "ibero-american summit"
+    },
+    {
+      "value": "Rio Group",
+      "name": "Q943105",
+      "canonical": "rio group"
+    },
+    {
+      "value": "Summit of South American-Arab Countries",
+      "name": "Q2836400",
+      "canonical": "summit of south american-arab countries"
+    },
+    {
+      "value": "South Atlantic Peace and Cooperation Zone",
+      "name": "Q47539",
+      "canonical": "south atlantic peace and cooperation zone"
+    },
+    {
+      "value": "Latin American Economic System",
+      "name": "Q605595",
+      "canonical": "latin american economic system"
+    },
+    {
+      "value": "Latin American Parliament",
+      "name": "Q499151",
+      "canonical": "latin american parliament"
+    },
+    {
+      "value": "Cairns Group",
+      "name": "Q1025959",
+      "canonical": "cairns group"
+    },
+    {
+      "value": "World Health Organization",
+      "name": "Q7817",
+      "canonical": "world health organization"
+    },
+    {
+      "value": "Universal Postal Union",
+      "name": "Q17495",
+      "canonical": "universal postal union"
+    },
+    {
+      "value": "International Criminal Court",
+      "name": "Q47488",
+      "canonical": "international criminal court"
+    },
+    {
+      "value": "Interpol",
+      "name": "Q8475",
+      "canonical": "interpol"
+    },
+    {
+      "value": "Organization of American States",
+      "name": "Q123759",
+      "canonical": "organization of american states"
+    },
+    {
+      "value": "European Southern Observatory",
+      "name": "Q151991",
+      "canonical": "european southern observatory"
+    },
+    {
+      "value": "International Bank for Reconstruction and Development",
+      "name": "Q191384",
+      "canonical": "international bank for reconstruction and development"
+    },
+    {
+      "value": "International Development Association",
+      "name": "Q827525",
+      "canonical": "international development association"
+    },
+    {
+      "value": "International Finance Corporation",
+      "name": "Q656801",
+      "canonical": "international finance corporation"
+    },
+    {
+      "value": "Multilateral Investment Guarantee Agency",
+      "name": "Q1043527",
+      "canonical": "multilateral investment guarantee agency"
+    },
+    {
+      "value": "African Development Bank",
+      "name": "Q340195",
+      "canonical": "african development bank"
+    },
+    {
+      "value": "Agency for the Prohibition of Nuclear Weapons in Latin America and the Caribbean",
+      "name": "Q3369762",
+      "canonical": "agency for the prohibition of nuclear weapons in latin america and the caribbean"
+    },
+    {
+      "value": "Andean Community",
+      "name": "Q471690",
+      "canonical": "andean community"
+    },
+    {
+      "value": "Missile Technology Control Regime",
+      "name": "Q1072120",
+      "canonical": "missile technology control regime"
+    },
+    {
+      "value": "Nuclear Suppliers Group",
+      "name": "Q1480793",
+      "canonical": "nuclear suppliers group"
+    },
+    {
+      "value": "Organisation for the Prohibition of Chemical Weapons",
+      "name": "Q842490",
+      "canonical": "organisation for the prohibition of chemical weapons"
+    },
+    {
+      "value": "UNESCO",
+      "name": "Q7809",
+      "canonical": "unesco"
+    },
+    {
+      "value": "Group on Earth Observations",
+      "name": "Q5611262",
+      "canonical": "group on earth observations"
+    },
+    {
+      "value": "United Nations Security Council",
+      "name": "Q37470",
+      "canonical": "united nations security council"
+    },
+    {
+      "value": "United Nations Security Council",
+      "name": "Q37470",
+      "canonical": "united nations security council"
+    },
+    {
+      "value": "United Nations Security Council",
+      "name": "Q37470",
+      "canonical": "united nations security council"
+    },
+    {
+      "value": "United Nations Security Council",
+      "name": "Q37470",
+      "canonical": "united nations security council"
+    },
+    {
+      "value": "United Nations Security Council",
+      "name": "Q37470",
+      "canonical": "united nations security council"
+    },
+    {
+      "value": "United Nations Security Council",
+      "name": "Q37470",
+      "canonical": "united nations security council"
+    },
+    {
+      "value": "United Nations Security Council",
+      "name": "Q37470",
+      "canonical": "united nations security council"
+    },
+    {
+      "value": "United Nations Security Council",
+      "name": "Q37470",
+      "canonical": "united nations security council"
+    },
+    {
+      "value": "United Nations Security Council",
+      "name": "Q37470",
+      "canonical": "united nations security council"
+    },
+    {
+      "value": "United Nations Security Council",
+      "name": "Q37470",
+      "canonical": "united nations security council"
+    },
+    {
+      "value": "International Telecommunication Union",
+      "name": "Q376150",
+      "canonical": "international telecommunication union"
+    },
+    {
+      "value": "World Meteorological Organization",
+      "name": "Q170424",
+      "canonical": "world meteorological organization"
+    },
+    {
+      "value": "ABC nations",
+      "name": "Q286946",
+      "canonical": "abc nations"
+    },
+    {
+      "value": "World Trade Organization",
+      "name": "Q7825",
+      "canonical": "world trade organization"
+    },
+    {
+      "value": "European Union",
+      "name": "Q458",
+      "canonical": "european union"
+    },
+    {
+      "value": "NATO",
+      "name": "Q7184",
+      "canonical": "nato"
+    },
+    {
+      "value": "Organisation for Economic Cooperation and Development",
+      "name": "Q41550",
+      "canonical": "organisation for economic cooperation and development"
+    },
+    {
+      "value": "Council of Europe",
+      "name": "Q8908",
+      "canonical": "council of europe"
+    },
+    {
+      "value": "G8",
+      "name": "Q37143",
+      "canonical": "g8"
+    },
+    {
+      "value": "European Space Agency",
+      "name": "Q42262",
+      "canonical": "european space agency"
+    },
+    {
+      "value": "World Trade Organization",
+      "name": "Q7825",
+      "canonical": "world trade organization"
+    },
+    {
+      "value": "European Air Transport Command",
+      "name": "Q141720",
+      "canonical": "european air transport command"
+    },
+    {
+      "value": "Weimar Triangle",
+      "name": "Q566397",
+      "canonical": "weimar triangle"
+    },
+    {
+      "value": "Council of the Baltic Sea States",
+      "name": "Q789769",
+      "canonical": "council of the baltic sea states"
+    },
+    {
+      "value": "economic, monetary and social union",
+      "name": "Q2595976",
+      "canonical": "economic , monetary and social union"
+    },
+    {
+      "value": "United Nations",
+      "name": "Q1065",
+      "canonical": "united nations"
+    },
+    {
+      "value": "International Commission for the Protection of the Rhine",
+      "name": "Q1667341",
+      "canonical": "international commission for the protection of the rhine"
+    },
+    {
+      "value": "International Commission for the Protection of the Danube River",
+      "name": "Q699466",
+      "canonical": "international commission for the protection of the danube river"
+    },
+    {
+      "value": "United Nations Framework Convention on Climate Change",
+      "name": "Q208645",
+      "canonical": "united nations framework convention on climate change"
+    },
+    {
+      "value": "General Agreement on Tariffs and Trade",
+      "name": "Q194284",
+      "canonical": "general agreement on tariffs and trade"
+    },
+    {
+      "value": "European Atomic Energy Community",
+      "name": "Q8919",
+      "canonical": "european atomic energy community"
+    },
+    {
+      "value": "Treaty on the Non-Proliferation of Nuclear Weapons",
+      "name": "Q186444",
+      "canonical": "treaty on the non-proliferation of nuclear weapons"
+    },
+    {
+      "value": "Paris Charter",
+      "name": "Q1067802",
+      "canonical": "paris charter"
+    },
+    {
+      "value": "Antarctic Treaty System",
+      "name": "Q182814",
+      "canonical": "antarctic treaty system"
+    },
+    {
+      "value": "European Convention on Human Rights",
+      "name": "Q183191",
+      "canonical": "european convention on human rights"
+    },
+    {
+      "value": "International Telecommunication Union",
+      "name": "Q376150",
+      "canonical": "international telecommunication union"
+    },
+    {
+      "value": "UNESCO",
+      "name": "Q7809",
+      "canonical": "unesco"
+    },
+    {
+      "value": "World Health Organization",
+      "name": "Q7817",
+      "canonical": "world health organization"
+    },
+    {
+      "value": "World Bank",
+      "name": "Q7164",
+      "canonical": "world bank"
+    },
+    {
+      "value": "Universal Postal Union",
+      "name": "Q17495",
+      "canonical": "universal postal union"
+    },
+    {
+      "value": "Berne Convention for the Protection of Literary and Artistic Works",
+      "name": "Q217398",
+      "canonical": "berne convention for the protection of literary and artistic works"
+    },
+    {
+      "value": "World Intellectual Property Organization",
+      "name": "Q177773",
+      "canonical": "world intellectual property organization"
+    },
+    {
+      "value": "International Labour Organization",
+      "name": "Q54129",
+      "canonical": "international labour organization"
+    },
+    {
+      "value": "FAO",
+      "name": "Q82151",
+      "canonical": "fao"
+    },
+    {
+      "value": "International Civil Aviation Organization",
+      "name": "Q125761",
+      "canonical": "international civil aviation organization"
+    },
+    {
+      "value": "International Maritime Organization",
+      "name": "Q201054",
+      "canonical": "international maritime organization"
+    },
+    {
+      "value": "International Monetary Fund",
+      "name": "Q7804",
+      "canonical": "international monetary fund"
+    },
+    {
+      "value": "United Nations Industrial Development Organization",
+      "name": "Q386120",
+      "canonical": "united nations industrial development organization"
+    },
+    {
+      "value": "International Fund for Agricultural Development",
+      "name": "Q689859",
+      "canonical": "international fund for agricultural development"
+    },
+    {
+      "value": "World Meteorological Organization",
+      "name": "Q170424",
+      "canonical": "world meteorological organization"
+    },
+    {
+      "value": "World Tourism Organization",
+      "name": "Q61923",
+      "canonical": "world tourism organization"
+    },
+    {
+      "value": "International Atomic Energy Agency",
+      "name": "Q41984",
+      "canonical": "international atomic energy agency"
+    },
+    {
+      "value": "Comprehensive Nuclear-Test-Ban Treaty Organization",
+      "name": "Q356694",
+      "canonical": "comprehensive nuclear-test-ban treaty organization"
+    },
+    {
+      "value": "Organisation for the Prohibition of Chemical Weapons",
+      "name": "Q842490",
+      "canonical": "organisation for the prohibition of chemical weapons"
+    },
+    {
+      "value": "Convention on the Rights of Persons with Disabilities",
+      "name": "Q1069706",
+      "canonical": "convention on the rights of persons with disabilities"
+    },
+    {
+      "value": "United Nations Convention to Combat Desertification",
+      "name": "Q331520",
+      "canonical": "united nations convention to combat desertification"
+    },
+    {
+      "value": "G20",
+      "name": "Q19771",
+      "canonical": "g20"
+    },
+    {
+      "value": "Western European Union",
+      "name": "Q189946",
+      "canonical": "western european union"
+    },
+    {
+      "value": "European Southern Observatory",
+      "name": "Q151991",
+      "canonical": "european southern observatory"
+    },
+    {
+      "value": "Organization for Security and Co-operation in Europe",
+      "name": "Q81299",
+      "canonical": "organization for security and co-operation in europe"
+    },
+    {
+      "value": "International Bank for Reconstruction and Development",
+      "name": "Q191384",
+      "canonical": "international bank for reconstruction and development"
+    },
+    {
+      "value": "International Development Association",
+      "name": "Q827525",
+      "canonical": "international development association"
+    },
+    {
+      "value": "International Finance Corporation",
+      "name": "Q656801",
+      "canonical": "international finance corporation"
+    },
+    {
+      "value": "Multilateral Investment Guarantee Agency",
+      "name": "Q1043527",
+      "canonical": "multilateral investment guarantee agency"
+    },
+    {
+      "value": "International Centre for Settlement of Investment Disputes",
+      "name": "Q899770",
+      "canonical": "international centre for settlement of investment disputes"
+    },
+    {
+      "value": "African Development Bank",
+      "name": "Q340195",
+      "canonical": "african development bank"
+    },
+    {
+      "value": "African Union – United Nations Hybrid Operation in Darfur",
+      "name": "Q384535",
+      "canonical": "african union – united nations hybrid operation in darfur"
+    },
+    {
+      "value": "Asian Development Bank",
+      "name": "Q188822",
+      "canonical": "asian development bank"
+    },
+    {
+      "value": "Australia Group",
+      "name": "Q782942",
+      "canonical": "australia group"
+    },
+    {
+      "value": "Caribbean Development Bank",
+      "name": "Q3772571",
+      "canonical": "caribbean development bank"
+    },
+    {
+      "value": "European Coal and Steel Community",
+      "name": "Q161549",
+      "canonical": "european coal and steel community"
+    },
+    {
+      "value": "European Payments Union",
+      "name": "Q1377612",
+      "canonical": "european payments union"
+    },
+    {
+      "value": "Eurocontrol",
+      "name": "Q663492",
+      "canonical": "eurocontrol"
+    },
+    {
+      "value": "Treaty on Open Skies",
+      "name": "Q1928989",
+      "canonical": "treaty on open skies"
+    },
+    {
+      "value": "Missile Technology Control Regime",
+      "name": "Q1072120",
+      "canonical": "missile technology control regime"
+    },
+    {
+      "value": "Interpol",
+      "name": "Q8475",
+      "canonical": "interpol"
+    },
+    {
+      "value": "Nuclear Suppliers Group",
+      "name": "Q1480793",
+      "canonical": "nuclear suppliers group"
+    },
+    {
+      "value": "Movement Coordination Centre Europe",
+      "name": "Q3866537",
+      "canonical": "movement coordination centre europe"
+    },
+    {
+      "value": "Organisation for Joint Armament Cooperation",
+      "name": "Q521227",
+      "canonical": "organisation for joint armament cooperation"
+    },
+    {
+      "value": "International Hydrographic Organization",
+      "name": "Q233611",
+      "canonical": "international hydrographic organization"
+    },
+    {
+      "value": "International Energy Agency",
+      "name": "Q826700",
+      "canonical": "international energy agency"
+    },
+    {
+      "value": "Group on Earth Observations",
+      "name": "Q5611262",
+      "canonical": "group on earth observations"
+    },
+    {
+      "value": "Schengen Area",
+      "name": "Q1969730",
+      "canonical": "schengen area"
+    },
+    {
+      "value": "Eurozone",
+      "name": "Q8268",
+      "canonical": "eurozone"
+    },
+    {
+      "value": "IT-Planungsrat",
+      "name": "Q1654951",
+      "canonical": "it-planungsrat"
+    },
+    {
+      "value": "Visa Waiver Program",
+      "name": "Q45177",
+      "canonical": "visa waiver program"
+    },
+    {
+      "value": "United Nations",
+      "name": "Q1065",
+      "canonical": "united nations"
+    },
+    {
+      "value": "European Union",
+      "name": "Q458",
+      "canonical": "european union"
+    },
+    {
+      "value": "United Nations",
+      "name": "Q1065",
+      "canonical": "united nations"
+    },
+    {
+      "value": "Commonwealth of Nations",
+      "name": "Q7785",
+      "canonical": "commonwealth of nations"
+    },
+    {
+      "value": "Council of Europe",
+      "name": "Q8908",
+      "canonical": "council of europe"
+    },
+    {
+      "value": "World Trade Organization",
+      "name": "Q7825",
+      "canonical": "world trade organization"
+    },
+    {
+      "value": "Organization for Security and Co-operation in Europe",
+      "name": "Q81299",
+      "canonical": "organization for security and co-operation in europe"
+    },
+    {
+      "value": "International Bank for Reconstruction and Development",
+      "name": "Q191384",
+      "canonical": "international bank for reconstruction and development"
+    },
+    {
+      "value": "International Finance Corporation",
+      "name": "Q656801",
+      "canonical": "international finance corporation"
+    },
+    {
+      "value": "Multilateral Investment Guarantee Agency",
+      "name": "Q1043527",
+      "canonical": "multilateral investment guarantee agency"
+    },
+    {
+      "value": "International Centre for Settlement of Investment Disputes",
+      "name": "Q899770",
+      "canonical": "international centre for settlement of investment disputes"
+    },
+    {
+      "value": "Australia Group",
+      "name": "Q782942",
+      "canonical": "australia group"
+    },
+    {
+      "value": "Eurocontrol",
+      "name": "Q663492",
+      "canonical": "eurocontrol"
+    },
+    {
+      "value": "Interpol",
+      "name": "Q8475",
+      "canonical": "interpol"
+    },
+    {
+      "value": "Nuclear Suppliers Group",
+      "name": "Q1480793",
+      "canonical": "nuclear suppliers group"
+    },
+    {
+      "value": "Organisation for the Prohibition of Chemical Weapons",
+      "name": "Q842490",
+      "canonical": "organisation for the prohibition of chemical weapons"
+    },
+    {
+      "value": "International Hydrographic Organization",
+      "name": "Q233611",
+      "canonical": "international hydrographic organization"
+    },
+    {
+      "value": "UNESCO",
+      "name": "Q7809",
+      "canonical": "unesco"
+    },
+    {
+      "value": "Group on Earth Observations",
+      "name": "Q5611262",
+      "canonical": "group on earth observations"
+    },
+    {
+      "value": "Universal Postal Union",
+      "name": "Q17495",
+      "canonical": "universal postal union"
+    },
+    {
+      "value": "International Telecommunication Union",
+      "name": "Q376150",
+      "canonical": "international telecommunication union"
+    },
+    {
+      "value": "Schengen Area",
+      "name": "Q1969730",
+      "canonical": "schengen area"
+    },
+    {
+      "value": "Visa Waiver Program",
+      "name": "Q45177",
+      "canonical": "visa waiver program"
+    },
+    {
+      "value": "International Civil Defence Organisation",
+      "name": "Q162656",
+      "canonical": "international civil defence organisation"
+    },
+    {
+      "value": "World Meteorological Organization",
+      "name": "Q170424",
+      "canonical": "world meteorological organization"
+    },
+    {
+      "value": "World Health Organization",
+      "name": "Q7817",
+      "canonical": "world health organization"
+    },
+    {
+      "value": "United Nations",
+      "name": "Q1065",
+      "canonical": "united nations"
+    },
+    {
+      "value": "Union of South American Nations",
+      "name": "Q4230",
+      "canonical": "union of south american nations"
+    },
+    {
+      "value": "Organisation for Economic Cooperation and Development",
+      "name": "Q41550",
+      "canonical": "organisation for economic cooperation and development"
+    },
+    {
+      "value": "World Trade Organization",
+      "name": "Q7825",
+      "canonical": "world trade organization"
+    },
+    {
+      "value": "Asia-Pacific Economic Cooperation",
+      "name": "Q170481",
+      "canonical": "asia-pacific economic cooperation"
+    },
+    {
+      "value": "International Bank for Reconstruction and Development",
+      "name": "Q191384",
+      "canonical": "international bank for reconstruction and development"
+    },
+    {
+      "value": "International Development Association",
+      "name": "Q827525",
+      "canonical": "international development association"
+    },
+    {
+      "value": "International Finance Corporation",
+      "name": "Q656801",
+      "canonical": "international finance corporation"
+    },
+    {
+      "value": "Multilateral Investment Guarantee Agency",
+      "name": "Q1043527",
+      "canonical": "multilateral investment guarantee agency"
+    },
+    {
+      "value": "International Centre for Settlement of Investment Disputes",
+      "name": "Q899770",
+      "canonical": "international centre for settlement of investment disputes"
+    },
+    {
+      "value": "Agency for the Prohibition of Nuclear Weapons in Latin America and the Caribbean",
+      "name": "Q3369762",
+      "canonical": "agency for the prohibition of nuclear weapons in latin america and the caribbean"
+    },
+    {
+      "value": "Andean Community",
+      "name": "Q471690",
+      "canonical": "andean community"
+    },
+    {
+      "value": "Interpol",
+      "name": "Q8475",
+      "canonical": "interpol"
+    },
+    {
+      "value": "Organisation for the Prohibition of Chemical Weapons",
+      "name": "Q842490",
+      "canonical": "organisation for the prohibition of chemical weapons"
+    },
+    {
+      "value": "International Hydrographic Organization",
+      "name": "Q233611",
+      "canonical": "international hydrographic organization"
+    },
+    {
+      "value": "UNESCO",
+      "name": "Q7809",
+      "canonical": "unesco"
+    },
+    {
+      "value": "Group on Earth Observations",
+      "name": "Q5611262",
+      "canonical": "group on earth observations"
+    },
+    {
+      "value": "Universal Postal Union",
+      "name": "Q17495",
+      "canonical": "universal postal union"
+    },
+    {
+      "value": "International Telecommunication Union",
+      "name": "Q376150",
+      "canonical": "international telecommunication union"
+    },
+    {
+      "value": "Carbon Neutrality Coalition",
+      "name": "Q60746147",
+      "canonical": "carbon neutrality coalition"
+    },
+    {
+      "value": "Organization of American States",
+      "name": "Q123759",
+      "canonical": "organization of american states"
+    },
+    {
+      "value": "Visa Waiver Program",
+      "name": "Q45177",
+      "canonical": "visa waiver program"
+    },
+    {
+      "value": "International Civil Defence Organisation",
+      "name": "Q162656",
+      "canonical": "international civil defence organisation"
+    },
+    {
+      "value": "World Meteorological Organization",
+      "name": "Q170424",
+      "canonical": "world meteorological organization"
+    },
+    {
+      "value": "World Health Organization",
+      "name": "Q7817",
+      "canonical": "world health organization"
+    },
+    {
+      "value": "United Nations",
+      "name": "Q1065",
+      "canonical": "united nations"
+    },
+    {
+      "value": "World Trade Organization",
+      "name": "Q7825",
+      "canonical": "world trade organization"
+    },
+    {
+      "value": "Arab League",
+      "name": "Q7172",
+      "canonical": "arab league"
+    },
+    {
+      "value": "Organisation of Islamic Cooperation",
+      "name": "Q47543",
+      "canonical": "organisation of islamic cooperation"
+    },
+    {
+      "value": "International Bank for Reconstruction and Development",
+      "name": "Q191384",
+      "canonical": "international bank for reconstruction and development"
+    },
+    {
+      "value": "International Finance Corporation",
+      "name": "Q656801",
+      "canonical": "international finance corporation"
+    },
+    {
+      "value": "Multilateral Investment Guarantee Agency",
+      "name": "Q1043527",
+      "canonical": "multilateral investment guarantee agency"
+    },
+    {
+      "value": "International Centre for Settlement of Investment Disputes",
+      "name": "Q899770",
+      "canonical": "international centre for settlement of investment disputes"
+    },
+    {
+      "value": "Arab Bank for Economic Development in Africa",
+      "name": "Q4783148",
+      "canonical": "arab bank for economic development in africa"
+    },
+    {
+      "value": "Arab Fund for Economic and Social Development",
+      "name": "Q1137381",
+      "canonical": "arab fund for economic and social development"
+    },
+    {
+      "value": "Arab Monetary Fund",
+      "name": "Q624307",
+      "canonical": "arab monetary fund"
+    },
+    {
+      "value": "Interpol",
+      "name": "Q8475",
+      "canonical": "interpol"
+    },
+    {
+      "value": "Organisation for the Prohibition of Chemical Weapons",
+      "name": "Q842490",
+      "canonical": "organisation for the prohibition of chemical weapons"
+    },
+    {
+      "value": "International Hydrographic Organization",
+      "name": "Q233611",
+      "canonical": "international hydrographic organization"
+    },
+    {
+      "value": "UNESCO",
+      "name": "Q7809",
+      "canonical": "unesco"
+    },
+    {
+      "value": "Group on Earth Observations",
+      "name": "Q5611262",
+      "canonical": "group on earth observations"
+    },
+    {
+      "value": "Cooperation Council for the Arab States of the Gulf",
+      "name": "Q217172",
+      "canonical": "cooperation council for the arab states of the gulf"
+    },
+    {
+      "value": "Universal Postal Union",
+      "name": "Q17495",
+      "canonical": "universal postal union"
+    },
+    {
+      "value": "International Telecommunication Union",
+      "name": "Q376150",
+      "canonical": "international telecommunication union"
+    },
+    {
+      "value": "International Civil Defence Organisation",
+      "name": "Q162656",
+      "canonical": "international civil defence organisation"
+    },
+    {
+      "value": "World Meteorological Organization",
+      "name": "Q170424",
+      "canonical": "world meteorological organization"
+    },
+    {
+      "value": "World Health Organization",
+      "name": "Q7817",
+      "canonical": "world health organization"
+    },
+    {
+      "value": "United Nations",
+      "name": "Q1065",
+      "canonical": "united nations"
+    },
+    {
+      "value": "Commonwealth of Nations",
+      "name": "Q7785",
+      "canonical": "commonwealth of nations"
+    },
+    {
+      "value": "World Trade Organization",
+      "name": "Q7825",
+      "canonical": "world trade organization"
+    },
+    {
+      "value": "International Bank for Reconstruction and Development",
+      "name": "Q191384",
+      "canonical": "international bank for reconstruction and development"
+    },
+    {
+      "value": "International Development Association",
+      "name": "Q827525",
+      "canonical": "international development association"
+    },
+    {
+      "value": "International Finance Corporation",
+      "name": "Q656801",
+      "canonical": "international finance corporation"
+    },
+    {
+      "value": "Multilateral Investment Guarantee Agency",
+      "name": "Q1043527",
+      "canonical": "multilateral investment guarantee agency"
+    },
+    {
+      "value": "Organisation of African, Caribbean and Pacific States",
+      "name": "Q294278",
+      "canonical": "organisation of african , caribbean and pacific states"
+    },
+    {
+      "value": "Alliance of Small Island States",
+      "name": "Q496967",
+      "canonical": "alliance of small island states"
+    },
+    {
+      "value": "Asian Development Bank",
+      "name": "Q188822",
+      "canonical": "asian development bank"
+    },
+    {
+      "value": "Organisation for the Prohibition of Chemical Weapons",
+      "name": "Q842490",
+      "canonical": "organisation for the prohibition of chemical weapons"
+    },
+    {
+      "value": "International Hydrographic Organization",
+      "name": "Q233611",
+      "canonical": "international hydrographic organization"
+    },
+    {
+      "value": "UNESCO",
+      "name": "Q7809",
+      "canonical": "unesco"
+    },
+    {
+      "value": "Universal Postal Union",
+      "name": "Q17495",
+      "canonical": "universal postal union"
+    },
+    {
+      "value": "International Telecommunication Union",
+      "name": "Q376150",
+      "canonical": "international telecommunication union"
+    },
+    {
+      "value": "Organisation internationale de la Francophonie",
+      "name": "Q134102",
+      "canonical": "organisation internationale de la francophonie"
+    },
+    {
+      "value": "World Meteorological Organization",
+      "name": "Q170424",
+      "canonical": "world meteorological organization"
+    },
+    {
+      "value": "World Health Organization",
+      "name": "Q7817",
+      "canonical": "world health organization"
+    },
+    {
+      "value": "United Nations",
+      "name": "Q1065",
+      "canonical": "united nations"
+    },
+    {
+      "value": "Organisation for Economic Cooperation and Development",
+      "name": "Q41550",
+      "canonical": "organisation for economic cooperation and development"
+    },
+    {
+      "value": "World Trade Organization",
+      "name": "Q7825",
+      "canonical": "world trade organization"
+    },
+    {
+      "value": "Union for the Mediterranean",
+      "name": "Q192177",
+      "canonical": "union for the mediterranean"
+    },
+    {
+      "value": "International Bank for Reconstruction and Development",
+      "name": "Q191384",
+      "canonical": "international bank for reconstruction and development"
+    },
+    {
+      "value": "International Development Association",
+      "name": "Q827525",
+      "canonical": "international development association"
+    },
+    {
+      "value": "International Finance Corporation",
+      "name": "Q656801",
+      "canonical": "international finance corporation"
+    },
+    {
+      "value": "Multilateral Investment Guarantee Agency",
+      "name": "Q1043527",
+      "canonical": "multilateral investment guarantee agency"
+    },
+    {
+      "value": "International Centre for Settlement of Investment Disputes",
+      "name": "Q899770",
+      "canonical": "international centre for settlement of investment disputes"
+    },
+    {
+      "value": "CERN",
+      "name": "Q42944",
+      "canonical": "cern"
+    },
+    {
+      "value": "Interpol",
+      "name": "Q8475",
+      "canonical": "interpol"
+    },
+    {
+      "value": "UNESCO",
+      "name": "Q7809",
+      "canonical": "unesco"
+    },
+    {
+      "value": "Group on Earth Observations",
+      "name": "Q5611262",
+      "canonical": "group on earth observations"
+    },
+    {
+      "value": "Universal Postal Union",
+      "name": "Q17495",
+      "canonical": "universal postal union"
+    },
+    {
+      "value": "International Telecommunication Union",
+      "name": "Q376150",
+      "canonical": "international telecommunication union"
+    },
+    {
+      "value": "Eurocontrol",
+      "name": "Q663492",
+      "canonical": "eurocontrol"
+    },
+    {
+      "value": "World Meteorological Organization",
+      "name": "Q170424",
+      "canonical": "world meteorological organization"
+    },
+    {
+      "value": "World Health Organization",
+      "name": "Q7817",
+      "canonical": "world health organization"
+    },
+    {
+      "value": "United Nations",
+      "name": "Q1065",
+      "canonical": "united nations"
+    },
+    {
+      "value": "ASEAN",
+      "name": "Q7768",
+      "canonical": "asean"
+    },
+    {
+      "value": "International Bank for Reconstruction and Development",
+      "name": "Q191384",
+      "canonical": "international bank for reconstruction and development"
+    },
+    {
+      "value": "International Development Association",
+      "name": "Q827525",
+      "canonical": "international development association"
+    },
+    {
+      "value": "International Finance Corporation",
+      "name": "Q656801",
+      "canonical": "international finance corporation"
+    },
+    {
+      "value": "Multilateral Investment Guarantee Agency",
+      "name": "Q1043527",
+      "canonical": "multilateral investment guarantee agency"
+    },
+    {
+      "value": "Association of Southeast Asian Nations Regional Forum",
+      "name": "Q7886981",
+      "canonical": "association of southeast asian nations regional forum"
+    },
+    {
+      "value": "Asian Development Bank",
+      "name": "Q188822",
+      "canonical": "asian development bank"
+    },
+    {
+      "value": "Interpol",
+      "name": "Q8475",
+      "canonical": "interpol"
+    },
+    {
+      "value": "Organisation for the Prohibition of Chemical Weapons",
+      "name": "Q842490",
+      "canonical": "organisation for the prohibition of chemical weapons"
+    },
+    {
+      "value": "UNESCO",
+      "name": "Q7809",
+      "canonical": "unesco"
+    },
+    {
+      "value": "Organisation internationale de la Francophonie",
+      "name": "Q134102",
+      "canonical": "organisation internationale de la francophonie"
+    },
+    {
+      "value": "World Meteorological Organization",
+      "name": "Q170424",
+      "canonical": "world meteorological organization"
+    },
+    {
+      "value": "World Health Organization",
+      "name": "Q7817",
+      "canonical": "world health organization"
+    },
+    {
+      "value": "United Nations",
+      "name": "Q1065",
+      "canonical": "united nations"
+    },
+    {
+      "value": "Shanghai Cooperation Organisation",
+      "name": "Q485207",
+      "canonical": "shanghai cooperation organisation"
+    },
+    {
+      "value": "Central Asian Cooperation Organization",
+      "name": "Q2297670",
+      "canonical": "central asian cooperation organization"
+    },
+    {
+      "value": "Organization for Security and Co-operation in Europe",
+      "name": "Q81299",
+      "canonical": "organization for security and co-operation in europe"
+    },
+    {
+      "value": "Organisation of Islamic Cooperation",
+      "name": "Q47543",
+      "canonical": "organisation of islamic cooperation"
+    },
+    {
+      "value": "International Bank for Reconstruction and Development",
+      "name": "Q191384",
+      "canonical": "international bank for reconstruction and development"
+    },
+    {
+      "value": "International Development Association",
+      "name": "Q827525",
+      "canonical": "international development association"
+    },
+    {
+      "value": "International Finance Corporation",
+      "name": "Q656801",
+      "canonical": "international finance corporation"
+    },
+    {
+      "value": "Multilateral Investment Guarantee Agency",
+      "name": "Q1043527",
+      "canonical": "multilateral investment guarantee agency"
+    },
+    {
+      "value": "Asian Development Bank",
+      "name": "Q188822",
+      "canonical": "asian development bank"
+    },
+    {
+      "value": "Interpol",
+      "name": "Q8475",
+      "canonical": "interpol"
+    },
+    {
+      "value": "Organisation for the Prohibition of Chemical Weapons",
+      "name": "Q842490",
+      "canonical": "organisation for the prohibition of chemical weapons"
+    },
+    {
+      "value": "UNESCO",
+      "name": "Q7809",
+      "canonical": "unesco"
+    },
+    {
+      "value": "Group on Earth Observations",
+      "name": "Q5611262",
+      "canonical": "group on earth observations"
+    },
+    {
+      "value": "Universal Postal Union",
+      "name": "Q17495",
+      "canonical": "universal postal union"
+    },
+    {
+      "value": "International Telecommunication Union",
+      "name": "Q376150",
+      "canonical": "international telecommunication union"
+    },
+    {
+      "value": "International Civil Defence Organisation",
+      "name": "Q162656",
+      "canonical": "international civil defence organisation"
+    },
+    {
+      "value": "World Meteorological Organization",
+      "name": "Q170424",
+      "canonical": "world meteorological organization"
+    },
+    {
+      "value": "World Health Organization",
+      "name": "Q7817",
+      "canonical": "world health organization"
+    },
+    {
+      "value": "Commonwealth of Independent States",
+      "name": "Q7779",
+      "canonical": "commonwealth of independent states"
+    },
+    {
+      "value": "Collective Security Treaty Organisation",
+      "name": "Q318693",
+      "canonical": "collective security treaty organisation"
+    },
+    {
+      "value": "CISFTA",
+      "name": "Q1702783",
+      "canonical": "cisfta"
+    },
+    {
+      "value": "United Nations",
+      "name": "Q1065",
+      "canonical": "united nations"
+    },
+    {
+      "value": "ASEAN",
+      "name": "Q7768",
+      "canonical": "asean"
+    },
+    {
+      "value": "World Trade Organization",
+      "name": "Q7825",
+      "canonical": "world trade organization"
+    },
+    {
+      "value": "Asia-Pacific Economic Cooperation",
+      "name": "Q170481",
+      "canonical": "asia-pacific economic cooperation"
+    },
+    {
+      "value": "International Bank for Reconstruction and Development",
+      "name": "Q191384",
+      "canonical": "international bank for reconstruction and development"
+    },
+    {
+      "value": "International Development Association",
+      "name": "Q827525",
+      "canonical": "international development association"
+    },
+    {
+      "value": "International Finance Corporation",
+      "name": "Q656801",
+      "canonical": "international finance corporation"
+    },
+    {
+      "value": "Multilateral Investment Guarantee Agency",
+      "name": "Q1043527",
+      "canonical": "multilateral investment guarantee agency"
+    },
+    {
+      "value": "African Union – United Nations Hybrid Operation in Darfur",
+      "name": "Q384535",
+      "canonical": "african union – united nations hybrid operation in darfur"
+    },
+    {
+      "value": "Association of Southeast Asian Nations Regional Forum",
+      "name": "Q7886981",
+      "canonical": "association of southeast asian nations regional forum"
+    },
+    {
+      "value": "Asian Development Bank",
+      "name": "Q188822",
+      "canonical": "asian development bank"
+    },
+    {
+      "value": "Bay of Bengal Initiative for Multi-Sectoral Technical and Economic Cooperation",
+      "name": "Q795985",
+      "canonical": "bay of bengal initiative for multi-sectoral technical and economic cooperation"
+    },
+    {
+      "value": "Southeast Asia Treaty Organization",
+      "name": "Q277252",
+      "canonical": "southeast asia treaty organization"
+    },
+    {
+      "value": "Interpol",
+      "name": "Q8475",
+      "canonical": "interpol"
+    },
+    {
+      "value": "Organisation for the Prohibition of Chemical Weapons",
+      "name": "Q842490",
+      "canonical": "organisation for the prohibition of chemical weapons"
+    },
+    {
+      "value": "International Hydrographic Organization",
+      "name": "Q233611",
+      "canonical": "international hydrographic organization"
+    },
+    {
+      "value": "UNESCO",
+      "name": "Q7809",
+      "canonical": "unesco"
+    },
+    {
+      "value": "Group on Earth Observations",
+      "name": "Q5611262",
+      "canonical": "group on earth observations"
+    },
+    {
+      "value": "Universal Postal Union",
+      "name": "Q17495",
+      "canonical": "universal postal union"
+    },
+    {
+      "value": "International Telecommunication Union",
+      "name": "Q376150",
+      "canonical": "international telecommunication union"
+    },
+    {
+      "value": "World Meteorological Organization",
+      "name": "Q170424",
+      "canonical": "world meteorological organization"
+    },
+    {
+      "value": "World Health Organization",
+      "name": "Q7817",
+      "canonical": "world health organization"
+    },
+    {
+      "value": "United Nations",
+      "name": "Q1065",
+      "canonical": "united nations"
+    },
+    {
+      "value": "Arab League",
+      "name": "Q7172",
+      "canonical": "arab league"
+    },
+    {
+      "value": "World Trade Organization",
+      "name": "Q7825",
+      "canonical": "world trade organization"
+    },
+    {
+      "value": "Organisation of Islamic Cooperation",
+      "name": "Q47543",
+      "canonical": "organisation of islamic cooperation"
+    },
+    {
+      "value": "International Bank for Reconstruction and Development",
+      "name": "Q191384",
+      "canonical": "international bank for reconstruction and development"
+    },
+    {
+      "value": "International Development Association",
+      "name": "Q827525",
+      "canonical": "international development association"
+    },
+    {
+      "value": "International Finance Corporation",
+      "name": "Q656801",
+      "canonical": "international finance corporation"
+    },
+    {
+      "value": "Multilateral Investment Guarantee Agency",
+      "name": "Q1043527",
+      "canonical": "multilateral investment guarantee agency"
+    },
+    {
+      "value": "International Centre for Settlement of Investment Disputes",
+      "name": "Q899770",
+      "canonical": "international centre for settlement of investment disputes"
+    },
+    {
+      "value": "African Development Bank",
+      "name": "Q340195",
+      "canonical": "african development bank"
+    },
+    {
+      "value": "Arab Bank for Economic Development in Africa",
+      "name": "Q4783148",
+      "canonical": "arab bank for economic development in africa"
+    },
+    {
+      "value": "Arab Fund for Economic and Social Development",
+      "name": "Q1137381",
+      "canonical": "arab fund for economic and social development"
+    },
+    {
+      "value": "Arab Monetary Fund",
+      "name": "Q624307",
+      "canonical": "arab monetary fund"
+    },
+    {
+      "value": "Interpol",
+      "name": "Q8475",
+      "canonical": "interpol"
+    },
+    {
+      "value": "Organisation for the Prohibition of Chemical Weapons",
+      "name": "Q842490",
+      "canonical": "organisation for the prohibition of chemical weapons"
+    },
+    {
+      "value": "International Hydrographic Organization",
+      "name": "Q233611",
+      "canonical": "international hydrographic organization"
+    },
+    {
+      "value": "UNESCO",
+      "name": "Q7809",
+      "canonical": "unesco"
+    },
+    {
+      "value": "Group on Earth Observations",
+      "name": "Q5611262",
+      "canonical": "group on earth observations"
+    },
+    {
+      "value": "Universal Postal Union",
+      "name": "Q17495",
+      "canonical": "universal postal union"
+    },
+    {
+      "value": "International Telecommunication Union",
+      "name": "Q376150",
+      "canonical": "international telecommunication union"
+    },
+    {
+      "value": "Organization of the Petroleum Exporting Countries",
+      "name": "Q7795",
+      "canonical": "organization of the petroleum exporting countries"
+    },
+    {
+      "value": "International Civil Defence Organisation",
+      "name": "Q162656",
+      "canonical": "international civil defence organisation"
+    },
+    {
+      "value": "World Meteorological Organization",
+      "name": "Q170424",
+      "canonical": "world meteorological organization"
+    },
+    {
+      "value": "World Health Organization",
+      "name": "Q7817",
+      "canonical": "world health organization"
+    },
+    {
+      "value": "United Nations",
+      "name": "Q1065",
+      "canonical": "united nations"
+    },
+    {
+      "value": "African Union",
+      "name": "Q7159",
+      "canonical": "african union"
+    },
+    {
+      "value": "World Trade Organization",
+      "name": "Q7825",
+      "canonical": "world trade organization"
+    },
+    {
+      "value": "Organisation of Islamic Cooperation",
+      "name": "Q47543",
+      "canonical": "organisation of islamic cooperation"
+    },
+    {
+      "value": "International Bank for Reconstruction and Development",
+      "name": "Q191384",
+      "canonical": "international bank for reconstruction and development"
+    },
+    {
+      "value": "International Development Association",
+      "name": "Q827525",
+      "canonical": "international development association"
+    },
+    {
+      "value": "International Finance Corporation",
+      "name": "Q656801",
+      "canonical": "international finance corporation"
+    },
+    {
+      "value": "Multilateral Investment Guarantee Agency",
+      "name": "Q1043527",
+      "canonical": "multilateral investment guarantee agency"
+    },
+    {
+      "value": "International Centre for Settlement of Investment Disputes",
+      "name": "Q899770",
+      "canonical": "international centre for settlement of investment disputes"
+    },
+    {
+      "value": "African Development Bank",
+      "name": "Q340195",
+      "canonical": "african development bank"
+    },
+    {
+      "value": "African Union – United Nations Hybrid Operation in Darfur",
+      "name": "Q384535",
+      "canonical": "african union – united nations hybrid operation in darfur"
+    },
+    {
+      "value": "Organisation of African, Caribbean and Pacific States",
+      "name": "Q294278",
+      "canonical": "organisation of african , caribbean and pacific states"
+    },
+    {
+      "value": "OHADA",
+      "name": "Q2029901",
+      "canonical": "ohada"
+    },
+    {
+      "value": "Interpol",
+      "name": "Q8475",
+      "canonical": "interpol"
+    },
+    {
+      "value": "Organisation for the Prohibition of Chemical Weapons",
+      "name": "Q842490",
+      "canonical": "organisation for the prohibition of chemical weapons"
+    },
+    {
+      "value": "UNESCO",
+      "name": "Q7809",
+      "canonical": "unesco"
+    },
+    {
+      "value": "Group on Earth Observations",
+      "name": "Q5611262",
+      "canonical": "group on earth observations"
+    },
+    {
+      "value": "AFRISTAT",
+      "name": "Q3348506",
+      "canonical": "afristat"
+    },
+    {
+      "value": "Universal Postal Union",
+      "name": "Q17495",
+      "canonical": "universal postal union"
+    },
+    {
+      "value": "International Telecommunication Union",
+      "name": "Q376150",
+      "canonical": "international telecommunication union"
+    },
+    {
+      "value": "Organisation internationale de la Francophonie",
+      "name": "Q134102",
+      "canonical": "organisation internationale de la francophonie"
+    },
+    {
+      "value": "International Civil Defence Organisation",
+      "name": "Q162656",
+      "canonical": "international civil defence organisation"
+    },
+    {
+      "value": "World Meteorological Organization",
+      "name": "Q170424",
+      "canonical": "world meteorological organization"
+    },
+    {
+      "value": "World Health Organization",
+      "name": "Q7817",
+      "canonical": "world health organization"
+    },
+    {
+      "value": "United Nations",
+      "name": "Q1065",
+      "canonical": "united nations"
+    },
+    {
+      "value": "African Union",
+      "name": "Q7159",
+      "canonical": "african union"
+    },
+    {
+      "value": "World Trade Organization",
+      "name": "Q7825",
+      "canonical": "world trade organization"
+    },
+    {
+      "value": "International Bank for Reconstruction and Development",
+      "name": "Q191384",
+      "canonical": "international bank for reconstruction and development"
+    },
+    {
+      "value": "International Development Association",
+      "name": "Q827525",
+      "canonical": "international development association"
+    },
+    {
+      "value": "International Finance Corporation",
+      "name": "Q656801",
+      "canonical": "international finance corporation"
+    },
+    {
+      "value": "Multilateral Investment Guarantee Agency",
+      "name": "Q1043527",
+      "canonical": "multilateral investment guarantee agency"
+    },
+    {
+      "value": "African Development Bank",
+      "name": "Q340195",
+      "canonical": "african development bank"
+    },
+    {
+      "value": "Organisation of African, Caribbean and Pacific States",
+      "name": "Q294278",
+      "canonical": "organisation of african , caribbean and pacific states"
+    },
+    {
+      "value": "Community of Portuguese Language Countries",
+      "name": "Q182500",
+      "canonical": "community of portuguese language countries"
+    },
+    {
+      "value": "Interpol",
+      "name": "Q8475",
+      "canonical": "interpol"
+    },
+    {
+      "value": "Organisation for the Prohibition of Chemical Weapons",
+      "name": "Q842490",
+      "canonical": "organisation for the prohibition of chemical weapons"
+    },
+    {
+      "value": "UNESCO",
+      "name": "Q7809",
+      "canonical": "unesco"
+    },
+    {
+      "value": "Southern African Development Community",
+      "name": "Q816706",
+      "canonical": "southern african development community"
+    },
+    {
+      "value": "Gulf of Guinea Commission",
+      "name": "Q2986587",
+      "canonical": "gulf of guinea commission"
+    },
+    {
+      "value": "Universal Postal Union",
+      "name": "Q17495",
+      "canonical": "universal postal union"
+    },
+    {
+      "value": "International Telecommunication Union",
+      "name": "Q376150",
+      "canonical": "international telecommunication union"
+    },
+    {
+      "value": "Organization of the Petroleum Exporting Countries",
+      "name": "Q7795",
+      "canonical": "organization of the petroleum exporting countries"
+    },
+    {
+      "value": "World Meteorological Organization",
+      "name": "Q170424",
+      "canonical": "world meteorological organization"
+    },
+    {
+      "value": "World Health Organization",
+      "name": "Q7817",
+      "canonical": "world health organization"
+    },
+    {
+      "value": "United Nations",
+      "name": "Q1065",
+      "canonical": "united nations"
+    },
+    {
+      "value": "Commonwealth of Nations",
+      "name": "Q7785",
+      "canonical": "commonwealth of nations"
+    },
+    {
+      "value": "African Union",
+      "name": "Q7159",
+      "canonical": "african union"
+    },
+    {
+      "value": "World Trade Organization",
+      "name": "Q7825",
+      "canonical": "world trade organization"
+    },
+    {
+      "value": "Organisation of Islamic Cooperation",
+      "name": "Q47543",
+      "canonical": "organisation of islamic cooperation"
+    },
+    {
+      "value": "International Bank for Reconstruction and Development",
+      "name": "Q191384",
+      "canonical": "international bank for reconstruction and development"
+    },
+    {
+      "value": "International Development Association",
+      "name": "Q827525",
+      "canonical": "international development association"
+    },
+    {
+      "value": "International Finance Corporation",
+      "name": "Q656801",
+      "canonical": "international finance corporation"
+    },
+    {
+      "value": "Multilateral Investment Guarantee Agency",
+      "name": "Q1043527",
+      "canonical": "multilateral investment guarantee agency"
+    },
+    {
+      "value": "International Centre for Settlement of Investment Disputes",
+      "name": "Q899770",
+      "canonical": "international centre for settlement of investment disputes"
+    },
+    {
+      "value": "African Development Bank",
+      "name": "Q340195",
+      "canonical": "african development bank"
+    },
+    {
+      "value": "African Union – United Nations Hybrid Operation in Darfur",
+      "name": "Q384535",
+      "canonical": "african union – united nations hybrid operation in darfur"
+    },
+    {
+      "value": "Organisation of African, Caribbean and Pacific States",
+      "name": "Q294278",
+      "canonical": "organisation of african , caribbean and pacific states"
+    },
+    {
+      "value": "Interpol",
+      "name": "Q8475",
+      "canonical": "interpol"
+    },
+    {
+      "value": "Organisation for the Prohibition of Chemical Weapons",
+      "name": "Q842490",
+      "canonical": "organisation for the prohibition of chemical weapons"
+    },
+    {
+      "value": "UNESCO",
+      "name": "Q7809",
+      "canonical": "unesco"
+    },
+    {
+      "value": "Universal Postal Union",
+      "name": "Q17495",
+      "canonical": "universal postal union"
+    },
+    {
+      "value": "International Telecommunication Union",
+      "name": "Q376150",
+      "canonical": "international telecommunication union"
+    },
+    {
+      "value": "World Meteorological Organization",
+      "name": "Q170424",
+      "canonical": "world meteorological organization"
+    },
+    {
+      "value": "World Health Organization",
+      "name": "Q7817",
+      "canonical": "world health organization"
+    },
+    {
+      "value": "United Nations",
+      "name": "Q1065",
+      "canonical": "united nations"
+    },
+    {
+      "value": "African Union",
+      "name": "Q7159",
+      "canonical": "african union"
+    },
+    {
+      "value": "Arab League",
+      "name": "Q7172",
+      "canonical": "arab league"
+    },
+    {
+      "value": "Organisation of Islamic Cooperation",
+      "name": "Q47543",
+      "canonical": "organisation of islamic cooperation"
+    },
+    {
+      "value": "International Bank for Reconstruction and Development",
+      "name": "Q191384",
+      "canonical": "international bank for reconstruction and development"
+    },
+    {
+      "value": "International Development Association",
+      "name": "Q827525",
+      "canonical": "international development association"
+    },
+    {
+      "value": "International Finance Corporation",
+      "name": "Q656801",
+      "canonical": "international finance corporation"
+    },
+    {
+      "value": "Multilateral Investment Guarantee Agency",
+      "name": "Q1043527",
+      "canonical": "multilateral investment guarantee agency"
+    },
+    {
+      "value": "International Centre for Settlement of Investment Disputes",
+      "name": "Q899770",
+      "canonical": "international centre for settlement of investment disputes"
+    },
+    {
+      "value": "African Development Bank",
+      "name": "Q340195",
+      "canonical": "african development bank"
+    },
+    {
+      "value": "Organisation of African, Caribbean and Pacific States",
+      "name": "Q294278",
+      "canonical": "organisation of african , caribbean and pacific states"
+    },
+    {
+      "value": "Arab Bank for Economic Development in Africa",
+      "name": "Q4783148",
+      "canonical": "arab bank for economic development in africa"
+    },
+    {
+      "value": "Arab Fund for Economic and Social Development",
+      "name": "Q1137381",
+      "canonical": "arab fund for economic and social development"
+    },
+    {
+      "value": "Arab Monetary Fund",
+      "name": "Q624307",
+      "canonical": "arab monetary fund"
+    },
+    {
+      "value": "Interpol",
+      "name": "Q8475",
+      "canonical": "interpol"
+    },
+    {
+      "value": "Organisation for the Prohibition of Chemical Weapons",
+      "name": "Q842490",
+      "canonical": "organisation for the prohibition of chemical weapons"
+    },
+    {
+      "value": "UNESCO",
+      "name": "Q7809",
+      "canonical": "unesco"
+    },
+    {
+      "value": "Group on Earth Observations",
+      "name": "Q5611262",
+      "canonical": "group on earth observations"
+    },
+    {
+      "value": "Universal Postal Union",
+      "name": "Q17495",
+      "canonical": "universal postal union"
+    },
+    {
+      "value": "International Telecommunication Union",
+      "name": "Q376150",
+      "canonical": "international telecommunication union"
+    },
+    {
+      "value": "International Civil Defence Organisation",
+      "name": "Q162656",
+      "canonical": "international civil defence organisation"
+    },
+    {
+      "value": "World Meteorological Organization",
+      "name": "Q170424",
+      "canonical": "world meteorological organization"
+    },
+    {
+      "value": "World Health Organization",
+      "name": "Q7817",
+      "canonical": "world health organization"
+    }
+  ]
+}

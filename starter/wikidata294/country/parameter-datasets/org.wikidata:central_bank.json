@@ -1,0 +1,80 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "National Bank of Belgium",
+      "name": "Q685918",
+      "canonical": "national bank of belgium"
+    },
+    {
+      "value": "Banco de Portugal",
+      "name": "Q378372",
+      "canonical": "banco de portugal"
+    },
+    {
+      "value": "People’s Bank of China",
+      "name": "Q249203",
+      "canonical": "people 's bank of china"
+    },
+    {
+      "value": "Central Bank of Brazil",
+      "name": "Q806186",
+      "canonical": "central bank of brazil"
+    },
+    {
+      "value": "Central Bank of Chile",
+      "name": "Q2631674",
+      "canonical": "central bank of chile"
+    },
+    {
+      "value": "Central Bank of Bahrain",
+      "name": "Q571182",
+      "canonical": "central bank of bahrain"
+    },
+    {
+      "value": "Reserve Bank of Vanuatu",
+      "name": "Q2601309",
+      "canonical": "reserve bank of vanuatu"
+    },
+    {
+      "value": "Bank of Israel",
+      "name": "Q244411",
+      "canonical": "bank of israel"
+    },
+    {
+      "value": "Bank of the Lao P.D.R.",
+      "name": "Q4077339",
+      "canonical": "bank of the lao p.d.r."
+    },
+    {
+      "value": "National Bank of Tajikistan",
+      "name": "Q4314981",
+      "canonical": "national bank of tajikistan"
+    },
+    {
+      "value": "Bank of Thailand",
+      "name": "Q806706",
+      "canonical": "bank of thailand"
+    },
+    {
+      "value": "Central Bank of the United Arab Emirates",
+      "name": "Q2982584",
+      "canonical": "central bank of the united arab emirates"
+    },
+    {
+      "value": "National Bank of Angola",
+      "name": "Q31211",
+      "canonical": "national bank of angola"
+    },
+    {
+      "value": "Bank of Sierra Leone",
+      "name": "Q806691",
+      "canonical": "bank of sierra leone"
+    },
+    {
+      "value": "Bank of Sudan",
+      "name": "Q190236",
+      "canonical": "bank of sudan"
+    }
+  ]
+}

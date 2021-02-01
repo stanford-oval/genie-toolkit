@@ -1,0 +1,50 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "left",
+      "name": "Q13196750",
+      "canonical": "left"
+    },
+    {
+      "value": "left",
+      "name": "Q13196750",
+      "canonical": "left"
+    },
+    {
+      "value": "left",
+      "name": "Q13196750",
+      "canonical": "left"
+    },
+    {
+      "value": "right",
+      "name": "Q14565199",
+      "canonical": "right"
+    },
+    {
+      "value": "left",
+      "name": "Q13196750",
+      "canonical": "left"
+    },
+    {
+      "value": "right",
+      "name": "Q14565199",
+      "canonical": "right"
+    },
+    {
+      "value": "left",
+      "name": "Q13196750",
+      "canonical": "left"
+    },
+    {
+      "value": "right",
+      "name": "Q14565199",
+      "canonical": "right"
+    },
+    {
+      "value": "left",
+      "name": "Q13196750",
+      "canonical": "left"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Danube basin",
+      "name": "Q12046593",
+      "canonical": "danube basin"
+    },
+    {
+      "value": "Oder Basin",
+      "name": "Q9210293",
+      "canonical": "oder basin"
+    },
+    {
+      "value": "Rhine basin",
+      "name": "Q1434368",
+      "canonical": "rhine basin"
+    },
+    {
+      "value": "Elbe Basin",
+      "name": "Q12046596",
+      "canonical": "elbe basin"
+    },
+    {
+      "value": "Weser Basin",
+      "name": "Q29017011",
+      "canonical": "weser basin"
+    }
+  ]
+}

@@ -1,0 +1,150 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Central European Time",
+      "name": "Q25989",
+      "canonical": "central european time"
+    },
+    {
+      "value": "UTC+01:00",
+      "name": "Q6655",
+      "canonical": "utc 1 : 0"
+    },
+    {
+      "value": "UTC+02:00",
+      "name": "Q6723",
+      "canonical": "utc 2 : 0"
+    },
+    {
+      "value": "Central European Summer Time",
+      "name": "Q207020",
+      "canonical": "central european summer time"
+    },
+    {
+      "value": "Europe/Brussels",
+      "name": "Q5412099",
+      "canonical": "europe / brussels"
+    },
+    {
+      "value": "Western European Time",
+      "name": "Q843589",
+      "canonical": "western european time"
+    },
+    {
+      "value": "Western European Summer Time",
+      "name": "Q7987828",
+      "canonical": "western european summer time"
+    },
+    {
+      "value": "Europe/Lisbon",
+      "name": "Q5412108",
+      "canonical": "europe / lisbon"
+    },
+    {
+      "value": "China Standard Time",
+      "name": "Q1143153",
+      "canonical": "china standard time"
+    },
+    {
+      "value": "UTC+08:00",
+      "name": "Q6985",
+      "canonical": "utc 8 : 0"
+    },
+    {
+      "value": "Central European Time Zone",
+      "name": "Q56640598",
+      "canonical": "central european time zone"
+    },
+    {
+      "value": "UTC+01:00",
+      "name": "Q6655",
+      "canonical": "utc 1 : 0"
+    },
+    {
+      "value": "UTC+02:00",
+      "name": "Q6723",
+      "canonical": "utc 2 : 0"
+    },
+    {
+      "value": "Europe/Berlin",
+      "name": "Q5412096",
+      "canonical": "europe / berlin"
+    },
+    {
+      "value": "Central European Time",
+      "name": "Q25989",
+      "canonical": "central european time"
+    },
+    {
+      "value": "UTC+01:00",
+      "name": "Q6655",
+      "canonical": "utc 1 : 0"
+    },
+    {
+      "value": "UTC+02:00",
+      "name": "Q6723",
+      "canonical": "utc 2 : 0"
+    },
+    {
+      "value": "Europe/Malta",
+      "name": "Q5412115",
+      "canonical": "europe / malta"
+    },
+    {
+      "value": "UTC+03:00",
+      "name": "Q6760",
+      "canonical": "utc 3 : 0"
+    },
+    {
+      "value": "UTC+11:00",
+      "name": "Q7069",
+      "canonical": "utc 11 : 0"
+    },
+    {
+      "value": "Israel time zone",
+      "name": "Q2583609",
+      "canonical": "israel time zone"
+    },
+    {
+      "value": "Israel Summer Time",
+      "name": "Q6087247",
+      "canonical": "israel summer time"
+    },
+    {
+      "value": "UTC+07:00",
+      "name": "Q6940",
+      "canonical": "utc 7 : 0"
+    },
+    {
+      "value": "UTC+05:00",
+      "name": "Q6806",
+      "canonical": "utc 5 : 0"
+    },
+    {
+      "value": "UTC+07:00",
+      "name": "Q6940",
+      "canonical": "utc 7 : 0"
+    },
+    {
+      "value": "UTC+04:00",
+      "name": "Q6779",
+      "canonical": "utc 4 : 0"
+    },
+    {
+      "value": "UTC+01:00",
+      "name": "Q6655",
+      "canonical": "utc 1 : 0"
+    },
+    {
+      "value": "UTC+03:00",
+      "name": "Q6760",
+      "canonical": "utc 3 : 0"
+    },
+    {
+      "value": "UTC+02:00",
+      "name": "Q6723",
+      "canonical": "utc 2 : 0"
+    }
+  ]
+}

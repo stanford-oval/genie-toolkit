@@ -1,0 +1,100 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Category:Belgium",
+      "name": "Q4366768",
+      "canonical": "category : belgium"
+    },
+    {
+      "value": "Category:Portugal",
+      "name": "Q1455963",
+      "canonical": "category : portugal"
+    },
+    {
+      "value": "Category:People's Republic of China",
+      "name": "Q7435401",
+      "canonical": "category : people 's republic of china"
+    },
+    {
+      "value": "Category:Brazil",
+      "name": "Q11279",
+      "canonical": "category : brazil"
+    },
+    {
+      "value": "Category:Germany",
+      "name": "Q1410828",
+      "canonical": "category : germany"
+    },
+    {
+      "value": "Category:Malta",
+      "name": "Q4368434",
+      "canonical": "category : malta"
+    },
+    {
+      "value": "Category:Chile",
+      "name": "Q5610127",
+      "canonical": "category : chile"
+    },
+    {
+      "value": "Category:Bahrain",
+      "name": "Q7009036",
+      "canonical": "category : bahrain"
+    },
+    {
+      "value": "Category:Vanuatu",
+      "name": "Q7069239",
+      "canonical": "category : vanuatu"
+    },
+    {
+      "value": "Category:Israel",
+      "name": "Q1411497",
+      "canonical": "category : israel"
+    },
+    {
+      "value": "Category:Laos",
+      "name": "Q7084421",
+      "canonical": "category : laos"
+    },
+    {
+      "value": "Category:Tajikistan",
+      "name": "Q7087305",
+      "canonical": "category : tajikistan"
+    },
+    {
+      "value": "Category:Thailand",
+      "name": "Q1456388",
+      "canonical": "category : thailand"
+    },
+    {
+      "value": "Category:United Arab Emirates",
+      "name": "Q7088124",
+      "canonical": "category : united arab emirates"
+    },
+    {
+      "value": "Category:Mali",
+      "name": "Q6892714",
+      "canonical": "category : mali"
+    },
+    {
+      "value": "Category:Angola",
+      "name": "Q6882623",
+      "canonical": "category : angola"
+    },
+    {
+      "value": "Category:Sierra Leone",
+      "name": "Q6982918",
+      "canonical": "category : sierra leone"
+    },
+    {
+      "value": "Category:Sudan",
+      "name": "Q1456188",
+      "canonical": "category : sudan"
+    },
+    {
+      "value": "Category:French Guiana",
+      "name": "Q6419595",
+      "canonical": "category : french guiana"
+    }
+  ]
+}

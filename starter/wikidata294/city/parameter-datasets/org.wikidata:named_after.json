@@ -1,0 +1,1430 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Edmonton",
+      "name": "Q1997321",
+      "canonical": "edmonton"
+    },
+    {
+      "value": "Queen Victoria",
+      "name": "Q9439",
+      "canonical": "queen victoria"
+    },
+    {
+      "value": "Queso parmesano",
+      "name": "Q2053682",
+      "canonical": "queso parmesano"
+    },
+    {
+      "value": "Assumption of Mary",
+      "name": "Q162691",
+      "canonical": "assumption of mary"
+    },
+    {
+      "value": "Leopold II of Belgium",
+      "name": "Q12967",
+      "canonical": "leopold ii of belgium"
+    },
+    {
+      "value": "Joseph Stalin",
+      "name": "Q855",
+      "canonical": "joseph stalin"
+    },
+    {
+      "value": "Monday",
+      "name": "Q105",
+      "canonical": "monday"
+    },
+    {
+      "value": "Monday",
+      "name": "Q105",
+      "canonical": "monday"
+    },
+    {
+      "value": "River Farset",
+      "name": "Q1785600",
+      "canonical": "river farset"
+    },
+    {
+      "value": "Constantine the Great",
+      "name": "Q8413",
+      "canonical": "constantine the great"
+    },
+    {
+      "value": "Frederick III of Denmark",
+      "name": "Q157812",
+      "canonical": "frederick iii of denmark"
+    },
+    {
+      "value": "James VII and II",
+      "name": "Q126188",
+      "canonical": "james vii and ii"
+    },
+    {
+      "value": "Thunder Bay",
+      "name": "Q9298873",
+      "canonical": "thunder bay"
+    },
+    {
+      "value": "Kingston upon Thames",
+      "name": "Q2321706",
+      "canonical": "kingston upon thames"
+    },
+    {
+      "value": "Flavia Julia Constantia",
+      "name": "Q238023",
+      "canonical": "flavia julia constantia"
+    },
+    {
+      "value": "George Hamilton",
+      "name": "Q5540186",
+      "canonical": "george hamilton"
+    },
+    {
+      "value": "Andrew the Apostle",
+      "name": "Q43399",
+      "canonical": "andrew the apostle"
+    },
+    {
+      "value": "Robert Burnaby",
+      "name": "Q7342509",
+      "canonical": "robert burnaby"
+    },
+    {
+      "value": "Vladimir Lenin",
+      "name": "Q1394",
+      "canonical": "vladimir lenin"
+    },
+    {
+      "value": "Yakutat Bay",
+      "name": "Q1476323",
+      "canonical": "yakutat bay"
+    },
+    {
+      "value": "North Macedonia",
+      "name": "Q221",
+      "canonical": "north macedonia"
+    },
+    {
+      "value": "Charles Fitzgerald",
+      "name": "Q1064363",
+      "canonical": "charles fitzgerald"
+    },
+    {
+      "value": "Aphrodite",
+      "name": "Q35500",
+      "canonical": "aphrodite"
+    },
+    {
+      "value": "Pedro Juan Caballero",
+      "name": "Q2423126",
+      "canonical": "pedro juan caballero"
+    },
+    {
+      "value": "Francis Xavier",
+      "name": "Q163900",
+      "canonical": "francis xavier"
+    },
+    {
+      "value": "Lekhnath Paudyal",
+      "name": "Q6520614",
+      "canonical": "lekhnath paudyal"
+    },
+    {
+      "value": "Portland Bay",
+      "name": "Q7231877",
+      "canonical": "portland bay"
+    },
+    {
+      "value": "Oswaldo Cruz",
+      "name": "Q979554",
+      "canonical": "oswaldo cruz"
+    },
+    {
+      "value": "Alexander the Great",
+      "name": "Q8409",
+      "canonical": "alexander the great"
+    },
+    {
+      "value": "Stargard Castle",
+      "name": "Q1014057",
+      "canonical": "stargard castle"
+    },
+    {
+      "value": "James VII and II",
+      "name": "Q126188",
+      "canonical": "james vii and ii"
+    },
+    {
+      "value": "York",
+      "name": "Q42462",
+      "canonical": "york"
+    },
+    {
+      "value": "Amsterdam",
+      "name": "Q727",
+      "canonical": "amsterdam"
+    },
+    {
+      "value": "Brussels",
+      "name": "Q239",
+      "canonical": "brussels"
+    },
+    {
+      "value": "Athena",
+      "name": "Q37122",
+      "canonical": "athena"
+    },
+    {
+      "value": "George Montagu-Dunk, 2nd Earl of Halifax",
+      "name": "Q3760605",
+      "canonical": "george montagu-dunk , 2nd earl of halifax"
+    },
+    {
+      "value": "Belize River",
+      "name": "Q815650",
+      "canonical": "belize river"
+    },
+    {
+      "value": "Mopan River",
+      "name": "Q1408983",
+      "canonical": "mopan river"
+    },
+    {
+      "value": "James Monroe",
+      "name": "Q11815",
+      "canonical": "james monroe"
+    },
+    {
+      "value": "Ammon",
+      "name": "Q473433",
+      "canonical": "ammon"
+    },
+    {
+      "value": "Pavel Poltoratskiy",
+      "name": "Q4370884",
+      "canonical": "pavel poltoratskiy"
+    },
+    {
+      "value": "Byzas",
+      "name": "Q863859",
+      "canonical": "byzas"
+    },
+    {
+      "value": "Robert Barrie",
+      "name": "Q7341900",
+      "canonical": "robert barrie"
+    },
+    {
+      "value": "Calgary",
+      "name": "Q5019595",
+      "canonical": "calgary"
+    },
+    {
+      "value": "Cheyennes",
+      "name": "Q322951",
+      "canonical": "cheyennes"
+    },
+    {
+      "value": "Vladimir Lenin",
+      "name": "Q1394",
+      "canonical": "vladimir lenin"
+    },
+    {
+      "value": "Alexandra Feodorovna",
+      "name": "Q57207",
+      "canonical": "alexandra feodorovna"
+    },
+    {
+      "value": "Cimmerians",
+      "name": "Q192730",
+      "canonical": "cimmerians"
+    },
+    {
+      "value": "Übach",
+      "name": "Q330792",
+      "canonical": "übach"
+    },
+    {
+      "value": "Palenberg",
+      "name": "Q2047677",
+      "canonical": "palenberg"
+    },
+    {
+      "value": "Kaduna River",
+      "name": "Q2338605",
+      "canonical": "kaduna river"
+    },
+    {
+      "value": "Henry William St Pierre Bunbury",
+      "name": "Q11708920",
+      "canonical": "henry william st pierre bunbury"
+    },
+    {
+      "value": "Mogontia",
+      "name": "Q3318251",
+      "canonical": "mogontia"
+    },
+    {
+      "value": "Archibald Acheson, 2nd Earl of Gosford",
+      "name": "Q2860082",
+      "canonical": "archibald acheson , 2nd earl of gosford"
+    },
+    {
+      "value": "Saint David",
+      "name": "Q331697",
+      "canonical": "saint david"
+    },
+    {
+      "value": "Kaysone Phomvihane",
+      "name": "Q320100",
+      "canonical": "kaysone phomvihane"
+    },
+    {
+      "value": "Kosovo Field",
+      "name": "Q20988473",
+      "canonical": "kosovo field"
+    },
+    {
+      "value": "Anthony of Padua",
+      "name": "Q167477",
+      "canonical": "anthony of padua"
+    },
+    {
+      "value": "José Enrique Rodó",
+      "name": "Q734054",
+      "canonical": "josé enrique rodó"
+    },
+    {
+      "value": "sugar",
+      "name": "Q11002",
+      "canonical": "sugar"
+    },
+    {
+      "value": "Saint Anne",
+      "name": "Q164294",
+      "canonical": "saint anne"
+    },
+    {
+      "value": "Ivan Panfilov",
+      "name": "Q734851",
+      "canonical": "ivan panfilov"
+    },
+    {
+      "value": "Guru Nanak",
+      "name": "Q83322",
+      "canonical": "guru nanak"
+    },
+    {
+      "value": "Thomas Townshend, 1st Viscount Sydney",
+      "name": "Q332533",
+      "canonical": "thomas townshend , 1st viscount sydney"
+    },
+    {
+      "value": "Thomas the Apostle",
+      "name": "Q43669",
+      "canonical": "thomas the apostle"
+    },
+    {
+      "value": "Joseph Stalin",
+      "name": "Q855",
+      "canonical": "joseph stalin"
+    },
+    {
+      "value": "John Moresby",
+      "name": "Q712425",
+      "canonical": "john moresby"
+    },
+    {
+      "value": "Benjamin Vaughan",
+      "name": "Q4889328",
+      "canonical": "benjamin vaughan"
+    },
+    {
+      "value": "Henares river",
+      "name": "Q16510",
+      "canonical": "henares river"
+    },
+    {
+      "value": "The Lass of Richmond Hill",
+      "name": "Q7745538",
+      "canonical": "the lass of richmond hill"
+    },
+    {
+      "value": "Henry Morton Stanley",
+      "name": "Q171421",
+      "canonical": "henry morton stanley"
+    },
+    {
+      "value": "Lake Maracaibo",
+      "name": "Q182137",
+      "canonical": "lake maracaibo"
+    },
+    {
+      "value": "William Burnie",
+      "name": "Q81513337",
+      "canonical": "william burnie"
+    },
+    {
+      "value": "Blantyre",
+      "name": "Q881708",
+      "canonical": "blantyre"
+    },
+    {
+      "value": "Alexander of Greece",
+      "name": "Q151742",
+      "canonical": "alexander of greece"
+    },
+    {
+      "value": "Joseph",
+      "name": "Q128267",
+      "canonical": "joseph"
+    },
+    {
+      "value": "Jamsetji Tata",
+      "name": "Q320109",
+      "canonical": "jamsetji tata"
+    },
+    {
+      "value": "Horatio Kitchener",
+      "name": "Q216129",
+      "canonical": "horatio kitchener"
+    },
+    {
+      "value": "Launceston",
+      "name": "Q287590",
+      "canonical": "launceston"
+    },
+    {
+      "value": "Victor Emmanuel Largeau",
+      "name": "Q3557290",
+      "canonical": "victor emmanuel largeau"
+    },
+    {
+      "value": "Battle of Waterloo",
+      "name": "Q48314",
+      "canonical": "battle of waterloo"
+    },
+    {
+      "value": "Augustus",
+      "name": "Q1405",
+      "canonical": "augustus"
+    },
+    {
+      "value": "Vindelicia",
+      "name": "Q698597",
+      "canonical": "vindelicia"
+    },
+    {
+      "value": "Walenty Barczewski",
+      "name": "Q613548",
+      "canonical": "walenty barczewski"
+    },
+    {
+      "value": "Naitō-shinjuku",
+      "name": "Q11394514",
+      "canonical": "naitō-shinjuku"
+    },
+    {
+      "value": "Dhamar Ali Yahbur II",
+      "name": "Q12193584",
+      "canonical": "dhamar ali yahbur ii"
+    },
+    {
+      "value": "Charles II of Spain",
+      "name": "Q36174",
+      "canonical": "charles ii of spain"
+    },
+    {
+      "value": "Mount Hagen",
+      "name": "Q1424033",
+      "canonical": "mount hagen"
+    },
+    {
+      "value": "Curt von Hagen",
+      "name": "Q101675",
+      "canonical": "curt von hagen"
+    },
+    {
+      "value": "Trujillo",
+      "name": "Q324489",
+      "canonical": "trujillo"
+    },
+    {
+      "value": "Artur Bernardes",
+      "name": "Q311121",
+      "canonical": "artur bernardes"
+    },
+    {
+      "value": "Thomas the Apostle",
+      "name": "Q43669",
+      "canonical": "thomas the apostle"
+    },
+    {
+      "value": "Sergo Ordzhonikidze",
+      "name": "Q259843",
+      "canonical": "sergo ordzhonikidze"
+    },
+    {
+      "value": "François de Souillac",
+      "name": "Q946767",
+      "canonical": "françois de souillac"
+    },
+    {
+      "value": "Valery Chkalov",
+      "name": "Q498098",
+      "canonical": "valery chkalov"
+    },
+    {
+      "value": "Tomás Armuelles",
+      "name": "Q30610505",
+      "canonical": "tomás armuelles"
+    },
+    {
+      "value": "Qalat",
+      "name": "Q7265965",
+      "canonical": "qalat"
+    },
+    {
+      "value": "Christian IV of Denmark",
+      "name": "Q153586",
+      "canonical": "christian iv of denmark"
+    },
+    {
+      "value": "Joseph Stalin",
+      "name": "Q855",
+      "canonical": "joseph stalin"
+    },
+    {
+      "value": "Veneration of Mary in the Catholic Church",
+      "name": "Q1938795",
+      "canonical": "veneration of mary in the catholic church"
+    },
+    {
+      "value": "Battle of Ayacucho",
+      "name": "Q934157",
+      "canonical": "battle of ayacucho"
+    },
+    {
+      "value": "Jesus",
+      "name": "Q302",
+      "canonical": "jesus"
+    },
+    {
+      "value": "Pierre Savorgnan de Brazza",
+      "name": "Q319834",
+      "canonical": "pierre savorgnan de brazza"
+    },
+    {
+      "value": "Amelanchier alnifolia",
+      "name": "Q164158",
+      "canonical": "amelanchier alnifolia"
+    },
+    {
+      "value": "Emperor Guangzong of Song",
+      "name": "Q7494",
+      "canonical": "emperor guangzong of song"
+    },
+    {
+      "value": "Mérida",
+      "name": "Q14323",
+      "canonical": "mérida"
+    },
+    {
+      "value": "Simón Bolívar",
+      "name": "Q8605",
+      "canonical": "simón bolívar"
+    },
+    {
+      "value": "Brisbane River",
+      "name": "Q905910",
+      "canonical": "brisbane river"
+    },
+    {
+      "value": "John Markham",
+      "name": "Q6246769",
+      "canonical": "john markham"
+    },
+    {
+      "value": "Paul Revere",
+      "name": "Q327071",
+      "canonical": "paul revere"
+    },
+    {
+      "value": "Hippolytus",
+      "name": "Q207113",
+      "canonical": "hippolytus"
+    },
+    {
+      "value": "Almere",
+      "name": "Q1552345",
+      "canonical": "almere"
+    },
+    {
+      "value": "Elisabeth of Bavaria, Queen of Belgium",
+      "name": "Q235186",
+      "canonical": "elisabeth of bavaria , queen of belgium"
+    },
+    {
+      "value": "Patrice Lumumba",
+      "name": "Q161672",
+      "canonical": "patrice lumumba"
+    },
+    {
+      "value": "Stevens Creek",
+      "name": "Q7615466",
+      "canonical": "stevens creek"
+    },
+    {
+      "value": "Tayyareci Fethi Bey",
+      "name": "Q1409120",
+      "canonical": "tayyareci fethi bey"
+    },
+    {
+      "value": "equator",
+      "name": "Q23538",
+      "canonical": "equator"
+    },
+    {
+      "value": "Camille-Aimé Coquilhat",
+      "name": "Q2105121",
+      "canonical": "camille-aimé coquilhat"
+    },
+    {
+      "value": "stone",
+      "name": "Q22731",
+      "canonical": "stone"
+    },
+    {
+      "value": "Castlemaine",
+      "name": "Q3775979",
+      "canonical": "castlemaine"
+    },
+    {
+      "value": "Charles IV",
+      "name": "Q155669",
+      "canonical": "charles iv"
+    },
+    {
+      "value": "St. Marys River",
+      "name": "Q940488",
+      "canonical": "st . marys river"
+    },
+    {
+      "value": "Josiah Flintabbatey Flonatin",
+      "name": "Q99469844",
+      "canonical": "josiah flintabbatey flonatin"
+    },
+    {
+      "value": "Tacuarembó River",
+      "name": "Q799966",
+      "canonical": "tacuarembó river"
+    },
+    {
+      "value": "Calabar River",
+      "name": "Q4786924",
+      "canonical": "calabar river"
+    },
+    {
+      "value": "Elizabeth Macquarie",
+      "name": "Q5363147",
+      "canonical": "elizabeth macquarie"
+    },
+    {
+      "value": "Ferdinand III of Castile",
+      "name": "Q243122",
+      "canonical": "ferdinand iii of castile"
+    },
+    {
+      "value": "Apure River",
+      "name": "Q853315",
+      "canonical": "apure river"
+    },
+    {
+      "value": "Thomas Douglas, 5th Earl of Selkirk",
+      "name": "Q335434",
+      "canonical": "thomas douglas , 5th earl of selkirk"
+    },
+    {
+      "value": "Francisco Álvares Machado",
+      "name": "Q10284570",
+      "canonical": "francisco álvares machado"
+    },
+    {
+      "value": "François Rigail de Lastours",
+      "name": "Q22249192",
+      "canonical": "françois rigail de lastours"
+    },
+    {
+      "value": "Seyitnazar Seydi",
+      "name": "Q4413079",
+      "canonical": "seyitnazar seydi"
+    },
+    {
+      "value": "Abraham Lincoln",
+      "name": "Q91",
+      "canonical": "abraham lincoln"
+    },
+    {
+      "value": "Saparmurat Niyazov",
+      "name": "Q82918",
+      "canonical": "saparmurat niyazov"
+    },
+    {
+      "value": "Francis of Assisi",
+      "name": "Q676555",
+      "canonical": "francis of assisi"
+    },
+    {
+      "value": "Vilnia",
+      "name": "Q661684",
+      "canonical": "vilnia"
+    },
+    {
+      "value": "Perth",
+      "name": "Q203000",
+      "canonical": "perth"
+    },
+    {
+      "value": "Lilongwe River",
+      "name": "Q1825272",
+      "canonical": "lilongwe river"
+    },
+    {
+      "value": "Thessalonike of Macedon",
+      "name": "Q242293",
+      "canonical": "thessalonike of macedon"
+    },
+    {
+      "value": "Saint George",
+      "name": "Q48438",
+      "canonical": "saint george"
+    },
+    {
+      "value": "Fort Schoonenborch",
+      "name": "Q2914125",
+      "canonical": "fort schoonenborch"
+    },
+    {
+      "value": "Tiberius",
+      "name": "Q1407",
+      "canonical": "tiberius"
+    },
+    {
+      "value": "Caesar",
+      "name": "Q188751",
+      "canonical": "caesar"
+    },
+    {
+      "value": "John Quincy",
+      "name": "Q6253686",
+      "canonical": "john quincy"
+    },
+    {
+      "value": "Seine",
+      "name": "Q1471",
+      "canonical": "seine"
+    },
+    {
+      "value": "Michael the Archangel",
+      "name": "Q45581",
+      "canonical": "michael the archangel"
+    },
+    {
+      "value": "Seine",
+      "name": "Q1471",
+      "canonical": "seine"
+    },
+    {
+      "value": "fleur-de-lis",
+      "name": "Q211568",
+      "canonical": "fleur-de-lis"
+    },
+    {
+      "value": "Alfredo Stroessner",
+      "name": "Q152534",
+      "canonical": "alfredo stroessner"
+    },
+    {
+      "value": "east",
+      "name": "Q684",
+      "canonical": "east"
+    },
+    {
+      "value": "Luís Alves de Lima e Silva, Duke of Caxias",
+      "name": "Q712089",
+      "canonical": "luís alves de lima e silva , duke of caxias"
+    },
+    {
+      "value": "Salawat Yulayev",
+      "name": "Q81445",
+      "canonical": "salawat yulayev"
+    },
+    {
+      "value": "Castor",
+      "name": "Q47542",
+      "canonical": "castor"
+    },
+    {
+      "value": "Frank País",
+      "name": "Q981432",
+      "canonical": "frank país"
+    },
+    {
+      "value": "Peter",
+      "name": "Q33923",
+      "canonical": "peter"
+    },
+    {
+      "value": "Paul",
+      "name": "Q9200",
+      "canonical": "paul"
+    },
+    {
+      "value": "asparagus",
+      "name": "Q23041045",
+      "canonical": "asparagus"
+    },
+    {
+      "value": "Prudente de Morais",
+      "name": "Q310230",
+      "canonical": "prudente de morais"
+    },
+    {
+      "value": "Ionia",
+      "name": "Q620874",
+      "canonical": "ionia"
+    },
+    {
+      "value": "Lachlan Macquarie",
+      "name": "Q467694",
+      "canonical": "lachlan macquarie"
+    },
+    {
+      "value": "Henry Bathurst, 3rd Earl Bathurst",
+      "name": "Q335316",
+      "canonical": "henry bathurst , 3rd earl bathurst"
+    },
+    {
+      "value": "William Ewart Gladstone",
+      "name": "Q160852",
+      "canonical": "william ewart gladstone"
+    },
+    {
+      "value": "George Bowen",
+      "name": "Q1392013",
+      "canonical": "george bowen"
+    },
+    {
+      "value": "Cornwall",
+      "name": "Q23148",
+      "canonical": "cornwall"
+    },
+    {
+      "value": "Milan Obrenović II",
+      "name": "Q317561",
+      "canonical": "milan obrenović ii"
+    },
+    {
+      "value": "Charles XIV John of Sweden",
+      "name": "Q52927",
+      "canonical": "charles xiv john of sweden"
+    },
+    {
+      "value": "Saparmurat Niyazov",
+      "name": "Q82918",
+      "canonical": "saparmurat niyazov"
+    },
+    {
+      "value": "Vatican Hill",
+      "name": "Q1053000",
+      "canonical": "vatican hill"
+    },
+    {
+      "value": "Veneti",
+      "name": "Q847760",
+      "canonical": "veneti"
+    },
+    {
+      "value": "causeway",
+      "name": "Q892168",
+      "canonical": "causeway"
+    },
+    {
+      "value": "Amstel",
+      "name": "Q185405",
+      "canonical": "amstel"
+    },
+    {
+      "value": "Inn",
+      "name": "Q14369",
+      "canonical": "inn"
+    },
+    {
+      "value": "Ho Chi Minh",
+      "name": "Q36014",
+      "canonical": "ho chi minh"
+    },
+    {
+      "value": "White Horse Rapids",
+      "name": "Q7994825",
+      "canonical": "white horse rapids"
+    },
+    {
+      "value": "Queen Victoria",
+      "name": "Q9439",
+      "canonical": "queen victoria"
+    },
+    {
+      "value": "Joseph",
+      "name": "Q128267",
+      "canonical": "joseph"
+    },
+    {
+      "value": "William Lamb, 2nd Viscount Melbourne",
+      "name": "Q312567",
+      "canonical": "william lamb , 2nd viscount melbourne"
+    },
+    {
+      "value": "Queen Victoria",
+      "name": "Q9439",
+      "canonical": "queen victoria"
+    },
+    {
+      "value": "Adelaide of Saxe-Meiningen",
+      "name": "Q57645",
+      "canonical": "adelaide of saxe-meiningen"
+    },
+    {
+      "value": "Yarikh",
+      "name": "Q1519326",
+      "canonical": "yarikh"
+    },
+    {
+      "value": "George III of Great Britain",
+      "name": "Q127318",
+      "canonical": "george iii of great britain"
+    },
+    {
+      "value": "Taxus",
+      "name": "Q27355",
+      "canonical": "taxus"
+    },
+    {
+      "value": "Alexander the Great",
+      "name": "Q8409",
+      "canonical": "alexander the great"
+    },
+    {
+      "value": "Mississaugas",
+      "name": "Q950097",
+      "canonical": "mississaugas"
+    },
+    {
+      "value": "Antiochus",
+      "name": "Q579596",
+      "canonical": "antiochus"
+    },
+    {
+      "value": "Opole",
+      "name": "Q11798698",
+      "canonical": "opole"
+    },
+    {
+      "value": "Nicholas I of Russia",
+      "name": "Q130734",
+      "canonical": "nicholas i of russia"
+    },
+    {
+      "value": "House of Vasa",
+      "name": "Q210601",
+      "canonical": "house of vasa"
+    },
+    {
+      "value": "House of Vasa",
+      "name": "Q210601",
+      "canonical": "house of vasa"
+    },
+    {
+      "value": "Vienna",
+      "name": "Q1741",
+      "canonical": "vienna"
+    },
+    {
+      "value": "Christmas",
+      "name": "Q19809",
+      "canonical": "christmas"
+    },
+    {
+      "value": "William Cairns",
+      "name": "Q2578234",
+      "canonical": "william cairns"
+    },
+    {
+      "value": "John Hamilton",
+      "name": "Q76328409",
+      "canonical": "john hamilton"
+    },
+    {
+      "value": "León Viejo",
+      "name": "Q1422898",
+      "canonical": "león viejo"
+    },
+    {
+      "value": "Peter",
+      "name": "Q33923",
+      "canonical": "peter"
+    },
+    {
+      "value": "São Pedro, São Paulo",
+      "name": "Q924342",
+      "canonical": "são pedro , são paulo"
+    },
+    {
+      "value": "Douro",
+      "name": "Q14299",
+      "canonical": "douro"
+    },
+    {
+      "value": "Amphissa",
+      "name": "Q2322495",
+      "canonical": "amphissa"
+    },
+    {
+      "value": "Albert, Prince Consort",
+      "name": "Q152245",
+      "canonical": "albert , prince consort"
+    },
+    {
+      "value": "Prince Rupert of the Rhine",
+      "name": "Q76930",
+      "canonical": "prince rupert of the rhine"
+    },
+    {
+      "value": "Warren Hastings",
+      "name": "Q333994",
+      "canonical": "warren hastings"
+    },
+    {
+      "value": "Kanysh Satpayev",
+      "name": "Q145291",
+      "canonical": "kanysh satpayev"
+    },
+    {
+      "value": "Shapur I",
+      "name": "Q191455",
+      "canonical": "shapur i"
+    },
+    {
+      "value": "Antioch on the Orontes",
+      "name": "Q200441",
+      "canonical": "antioch on the orontes"
+    },
+    {
+      "value": "Tamworth",
+      "name": "Q704864",
+      "canonical": "tamworth"
+    },
+    {
+      "value": "David Livingstone",
+      "name": "Q48373",
+      "canonical": "david livingstone"
+    },
+    {
+      "value": "Neukölln",
+      "name": "Q169492",
+      "canonical": "neukölln"
+    },
+    {
+      "value": "Magtymguly Pyragy",
+      "name": "Q2355095",
+      "canonical": "magtymguly pyragy"
+    },
+    {
+      "value": "Saint Barbara",
+      "name": "Q192816",
+      "canonical": "saint barbara"
+    },
+    {
+      "value": "Fort Rouillé",
+      "name": "Q3078009",
+      "canonical": "fort rouillé"
+    },
+    {
+      "value": "monk",
+      "name": "Q733786",
+      "canonical": "monk"
+    },
+    {
+      "value": "Saint Marinus",
+      "name": "Q544981",
+      "canonical": "saint marinus"
+    },
+    {
+      "value": "Lake Winnipeg",
+      "name": "Q3272",
+      "canonical": "lake winnipeg"
+    },
+    {
+      "value": "Prince Frederick, Duke of York and Albany",
+      "name": "Q213573",
+      "canonical": "prince frederick , duke of york and albany"
+    },
+    {
+      "value": "House of Nassau",
+      "name": "Q646085",
+      "canonical": "house of nassau"
+    },
+    {
+      "value": "Louis XV of France",
+      "name": "Q7738",
+      "canonical": "louis xv of france"
+    },
+    {
+      "value": "pine nut",
+      "name": "Q212933",
+      "canonical": "pine nut"
+    },
+    {
+      "value": "Ivan Danilovich Chernyakhovsky",
+      "name": "Q444979",
+      "canonical": "ivan danilovich chernyakhovsky"
+    },
+    {
+      "value": "Alban",
+      "name": "Q312982",
+      "canonical": "alban"
+    },
+    {
+      "value": "Charles Darwin",
+      "name": "Q1035",
+      "canonical": "charles darwin"
+    },
+    {
+      "value": "Martin of Tours",
+      "name": "Q133704",
+      "canonical": "martin of tours"
+    },
+    {
+      "value": "Joseph Stalin",
+      "name": "Q855",
+      "canonical": "joseph stalin"
+    },
+    {
+      "value": "Carpinus",
+      "name": "Q158513",
+      "canonical": "carpinus"
+    },
+    {
+      "value": "Carpinus",
+      "name": "Q158513",
+      "canonical": "carpinus"
+    },
+    {
+      "value": "William II, Prince of Orange",
+      "name": "Q311455",
+      "canonical": "william ii , prince of orange"
+    },
+    {
+      "value": "Mikhail Vassilyevich Lomonosov",
+      "name": "Q58720",
+      "canonical": "mikhail vassilyevich lomonosov"
+    },
+    {
+      "value": "Cornelis Lely",
+      "name": "Q983342",
+      "canonical": "cornelis lely"
+    },
+    {
+      "value": "Lindum Colonia",
+      "name": "Q1786557",
+      "canonical": "lindum colonia"
+    },
+    {
+      "value": "Marne",
+      "name": "Q41983",
+      "canonical": "marne"
+    },
+    {
+      "value": "Sokoto River",
+      "name": "Q2092438",
+      "canonical": "sokoto river"
+    },
+    {
+      "value": "Laurent Clerc",
+      "name": "Q1808076",
+      "canonical": "laurent clerc"
+    },
+    {
+      "value": "Carlos Manuel de Céspedes",
+      "name": "Q452070",
+      "canonical": "carlos manuel de céspedes"
+    },
+    {
+      "value": "Per Brahe the Younger",
+      "name": "Q472692",
+      "canonical": "per brahe the younger"
+    },
+    {
+      "value": "aluminum",
+      "name": "Q663",
+      "canonical": "aluminum"
+    },
+    {
+      "value": "middle",
+      "name": "Q17525443",
+      "canonical": "middle"
+    },
+    {
+      "value": "plain",
+      "name": "Q160091",
+      "canonical": "plain"
+    },
+    {
+      "value": "capital",
+      "name": "Q5119",
+      "canonical": "capital"
+    },
+    {
+      "value": "Alexander the Great",
+      "name": "Q8409",
+      "canonical": "alexander the great"
+    },
+    {
+      "value": "Francisco de Orellana",
+      "name": "Q207901",
+      "canonical": "francisco de orellana"
+    },
+    {
+      "value": "Holland",
+      "name": "Q102911",
+      "canonical": "holland"
+    },
+    {
+      "value": "Americas",
+      "name": "Q828",
+      "canonical": "americas"
+    },
+    {
+      "value": "Brazil",
+      "name": "Q155",
+      "canonical": "brazil"
+    },
+    {
+      "value": "Francisco Moreno",
+      "name": "Q384568",
+      "canonical": "francisco moreno"
+    },
+    {
+      "value": "Alexander the Great",
+      "name": "Q8409",
+      "canonical": "alexander the great"
+    },
+    {
+      "value": "Lucky Shah Sadar",
+      "name": "Q29344869",
+      "canonical": "lucky shah sadar"
+    },
+    {
+      "value": "Heraclius",
+      "name": "Q41852",
+      "canonical": "heraclius"
+    },
+    {
+      "value": "Onogurs",
+      "name": "Q762453",
+      "canonical": "onogurs"
+    },
+    {
+      "value": "Stephen",
+      "name": "Q161775",
+      "canonical": "stephen"
+    },
+    {
+      "value": "Paul",
+      "name": "Q9200",
+      "canonical": "paul"
+    },
+    {
+      "value": "marsh",
+      "name": "Q30198",
+      "canonical": "marsh"
+    },
+    {
+      "value": "home",
+      "name": "Q7743",
+      "canonical": "home"
+    },
+    {
+      "value": "Shalim",
+      "name": "Q1819356",
+      "canonical": "shalim"
+    },
+    {
+      "value": "Yellowknives",
+      "name": "Q1092654",
+      "canonical": "yellowknives"
+    },
+    {
+      "value": "Charlotte of Mecklenburg-Strelitz",
+      "name": "Q161159",
+      "canonical": "charlotte of mecklenburg-strelitz"
+    },
+    {
+      "value": "Ubangi River",
+      "name": "Q171649",
+      "canonical": "ubangi river"
+    },
+    {
+      "value": "Brixia",
+      "name": "Q3645136",
+      "canonical": "brixia"
+    },
+    {
+      "value": "Alexander Pushkin",
+      "name": "Q7200",
+      "canonical": "alexander pushkin"
+    },
+    {
+      "value": "Saint Dominic",
+      "name": "Q44091",
+      "canonical": "saint dominic"
+    },
+    {
+      "value": "John of Patmos",
+      "name": "Q2733634",
+      "canonical": "john of patmos"
+    },
+    {
+      "value": "Spain",
+      "name": "Q29",
+      "canonical": "spain"
+    },
+    {
+      "value": "port",
+      "name": "Q44782",
+      "canonical": "port"
+    },
+    {
+      "value": "Robert Hobart, 4th Earl of Buckinghamshire",
+      "name": "Q333417",
+      "canonical": "robert hobart , 4th earl of buckinghamshire"
+    },
+    {
+      "value": "Charles Eugène Gabriel de La Croix",
+      "name": "Q573577",
+      "canonical": "charles eugène gabriel de la croix"
+    },
+    {
+      "value": "London",
+      "name": "Q84",
+      "canonical": "london"
+    },
+    {
+      "value": "Theodor Herzl",
+      "name": "Q44003",
+      "canonical": "theodor herzl"
+    },
+    {
+      "value": "Adolf Lüderitz",
+      "name": "Q77340",
+      "canonical": "adolf lüderitz"
+    },
+    {
+      "value": "Constantine the Great",
+      "name": "Q8413",
+      "canonical": "constantine the great"
+    },
+    {
+      "value": "Robert Towns",
+      "name": "Q7350440",
+      "canonical": "robert towns"
+    },
+    {
+      "value": "tungri",
+      "name": "Q2167763",
+      "canonical": "tungri"
+    },
+    {
+      "value": "Horatio Nelson",
+      "name": "Q83235",
+      "canonical": "horatio nelson"
+    },
+    {
+      "value": "Bady Bassitt",
+      "name": "Q15411570",
+      "canonical": "bady bassitt"
+    },
+    {
+      "value": "Thomas Buchanan",
+      "name": "Q3266755",
+      "canonical": "thomas buchanan"
+    },
+    {
+      "value": "Khorloogiin Choibalsan",
+      "name": "Q311488",
+      "canonical": "khorloogiin choibalsan"
+    },
+    {
+      "value": "Lahn",
+      "name": "Q103148",
+      "canonical": "lahn"
+    },
+    {
+      "value": "Andrei Zhdanov",
+      "name": "Q207879",
+      "canonical": "andrei zhdanov"
+    },
+    {
+      "value": "Augustus",
+      "name": "Q1405",
+      "canonical": "augustus"
+    },
+    {
+      "value": "Treveri",
+      "name": "Q322168",
+      "canonical": "treveri"
+    },
+    {
+      "value": "Amsterdam",
+      "name": "Q727",
+      "canonical": "amsterdam"
+    },
+    {
+      "value": "Isa bin Salman Al Khalifa",
+      "name": "Q309650",
+      "canonical": "isa bin salman al khalifa"
+    },
+    {
+      "value": "Gheorghe Râșcanu",
+      "name": "Q28954583",
+      "canonical": "gheorghe râșcanu"
+    },
+    {
+      "value": "Francisco de Paula Mayrink",
+      "name": "Q10285413",
+      "canonical": "francisco de paula mayrink"
+    },
+    {
+      "value": "Adnan al-Malki",
+      "name": "Q4683934",
+      "canonical": "adnan al-malki"
+    },
+    {
+      "value": "Bol'shaya Motovilikha",
+      "name": "Q4091506",
+      "canonical": "bol 'shaya motovilikha"
+    },
+    {
+      "value": "Vyacheslav Molotov",
+      "name": "Q132899",
+      "canonical": "vyacheslav molotov"
+    },
+    {
+      "value": "Norodom Sihanouk",
+      "name": "Q160318",
+      "canonical": "norodom sihanouk"
+    }
+  ]
+}

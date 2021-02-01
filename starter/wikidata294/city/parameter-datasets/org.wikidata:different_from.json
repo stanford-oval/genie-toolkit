@@ -1,0 +1,5265 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "SANAA & Tim Culbert Architect",
+      "name": "Q737536",
+      "canonical": "sanaa & tim culbert architect"
+    },
+    {
+      "value": "sienna",
+      "name": "Q899318",
+      "canonical": "sienna"
+    },
+    {
+      "value": "Libreville",
+      "name": "Q16655654",
+      "canonical": "libreville"
+    },
+    {
+      "value": "Kinshasa",
+      "name": "Q3091458",
+      "canonical": "kinshasa"
+    },
+    {
+      "value": "Toledo",
+      "name": "Q49239",
+      "canonical": "toledo"
+    },
+    {
+      "value": "Belfarsad",
+      "name": "Q13156994",
+      "canonical": "belfarsad"
+    },
+    {
+      "value": "Žilina",
+      "name": "Q394046",
+      "canonical": "žilina"
+    },
+    {
+      "value": "Jarash, Jerusalem",
+      "name": "Q9249682",
+      "canonical": "jarash , jerusalem"
+    },
+    {
+      "value": "Rotterdam",
+      "name": "Q2680952",
+      "canonical": "rotterdam"
+    },
+    {
+      "value": "Gaza",
+      "name": "Q3229367",
+      "canonical": "gaza"
+    },
+    {
+      "value": "Commune of Monaco",
+      "name": "Q3685392",
+      "canonical": "commune of monaco"
+    },
+    {
+      "value": "Fort William H. Seward",
+      "name": "Q5472341",
+      "canonical": "fort william h. seward"
+    },
+    {
+      "value": "Varanasi division",
+      "name": "Q2478439",
+      "canonical": "varanasi division"
+    },
+    {
+      "value": "La Rochelle",
+      "name": "Q901852",
+      "canonical": "la rochelle"
+    },
+    {
+      "value": "city",
+      "name": "Q515",
+      "canonical": "city"
+    },
+    {
+      "value": "Vinto Municipality",
+      "name": "Q1521087",
+      "canonical": "vinto municipality"
+    },
+    {
+      "value": "Gmina Kożuchów",
+      "name": "Q2326226",
+      "canonical": "gmina kożuchów"
+    },
+    {
+      "value": "Zapopan Municipality",
+      "name": "Q2143868",
+      "canonical": "zapopan municipality"
+    },
+    {
+      "value": "Gmina Żarki",
+      "name": "Q554626",
+      "canonical": "gmina żarki"
+    },
+    {
+      "value": "Singida",
+      "name": "Q21447485",
+      "canonical": "singida"
+    },
+    {
+      "value": "Miarinarivo",
+      "name": "Q27573021",
+      "canonical": "miarinarivo"
+    },
+    {
+      "value": "Kruševo",
+      "name": "Q386019",
+      "canonical": "kruševo"
+    },
+    {
+      "value": "Gmina Leśna",
+      "name": "Q2461100",
+      "canonical": "gmina leśna"
+    },
+    {
+      "value": "Gmina Kruszwica",
+      "name": "Q7764069",
+      "canonical": "gmina kruszwica"
+    },
+    {
+      "value": "Abadan",
+      "name": "Q63049",
+      "canonical": "abadan"
+    },
+    {
+      "value": "Malatya",
+      "name": "Q165995",
+      "canonical": "malatya"
+    },
+    {
+      "value": "Cutca",
+      "name": "Q3888907",
+      "canonical": "cutca"
+    },
+    {
+      "value": "Gmina Jastrowie",
+      "name": "Q555453",
+      "canonical": "gmina jastrowie"
+    },
+    {
+      "value": "Laodicea on the Lycus",
+      "name": "Q849709",
+      "canonical": "laodicea on the lycus"
+    },
+    {
+      "value": "Kyrenia Municipality",
+      "name": "Q56241597",
+      "canonical": "kyrenia municipality"
+    },
+    {
+      "value": "Girne Municipality",
+      "name": "Q56341419",
+      "canonical": "girne municipality"
+    },
+    {
+      "value": "Trujillo",
+      "name": "Q992173",
+      "canonical": "trujillo"
+    },
+    {
+      "value": "Vohemar District",
+      "name": "Q3031984",
+      "canonical": "vohemar district"
+    },
+    {
+      "value": "Višegrad Municipality",
+      "name": "Q15615134",
+      "canonical": "višegrad municipality"
+    },
+    {
+      "value": "Nakuru County",
+      "name": "Q1852202",
+      "canonical": "nakuru county"
+    },
+    {
+      "value": "Andrijevica Municipality",
+      "name": "Q2384773",
+      "canonical": "andrijevica municipality"
+    },
+    {
+      "value": "Gmina Ząbkowice Śląskie",
+      "name": "Q2458293",
+      "canonical": "gmina ząbkowice śląskie"
+    },
+    {
+      "value": "Maracaibo",
+      "name": "Q171632",
+      "canonical": "maracaibo"
+    },
+    {
+      "value": "Maariv",
+      "name": "Q257407",
+      "canonical": "maariv"
+    },
+    {
+      "value": "Gmina Nowe Warpno",
+      "name": "Q557276",
+      "canonical": "gmina nowe warpno"
+    },
+    {
+      "value": "Gmina Łobżenica",
+      "name": "Q556240",
+      "canonical": "gmina łobżenica"
+    },
+    {
+      "value": "Sveti Nikole Municipality",
+      "name": "Q2308277",
+      "canonical": "sveti nikole municipality"
+    },
+    {
+      "value": "Gmina Niemcza",
+      "name": "Q7726344",
+      "canonical": "gmina niemcza"
+    },
+    {
+      "value": "Gmina Żerków",
+      "name": "Q557404",
+      "canonical": "gmina żerków"
+    },
+    {
+      "value": "Gmina Tuszyn",
+      "name": "Q1917758",
+      "canonical": "gmina tuszyn"
+    },
+    {
+      "value": "Akaa",
+      "name": "Q11850308",
+      "canonical": "akaa"
+    },
+    {
+      "value": "Ečka",
+      "name": "Q743707",
+      "canonical": "ečka"
+    },
+    {
+      "value": "Marbella",
+      "name": "Q57559439",
+      "canonical": "marbella"
+    },
+    {
+      "value": "Kalat",
+      "name": "Q2581527",
+      "canonical": "kalat"
+    },
+    {
+      "value": "Corella",
+      "name": "Q10459652",
+      "canonical": "corella"
+    },
+    {
+      "value": "Gmina Nowe Skalmierzyce",
+      "name": "Q554026",
+      "canonical": "gmina nowe skalmierzyce"
+    },
+    {
+      "value": "Gmina Resko",
+      "name": "Q557833",
+      "canonical": "gmina resko"
+    },
+    {
+      "value": "Gmina Działoszyce",
+      "name": "Q554342",
+      "canonical": "gmina działoszyce"
+    },
+    {
+      "value": "Antequera",
+      "name": "Q4771308",
+      "canonical": "antequera"
+    },
+    {
+      "value": "Gmina Kleszczele",
+      "name": "Q2293640",
+      "canonical": "gmina kleszczele"
+    },
+    {
+      "value": "Aphrodisias",
+      "name": "Q64699201",
+      "canonical": "aphrodisias"
+    },
+    {
+      "value": "Gmina Milicz",
+      "name": "Q962772",
+      "canonical": "gmina milicz"
+    },
+    {
+      "value": "Gmina Sulęcin",
+      "name": "Q1113241",
+      "canonical": "gmina sulęcin"
+    },
+    {
+      "value": "Ghinda",
+      "name": "Q755935",
+      "canonical": "ghinda"
+    },
+    {
+      "value": "Gmina Krajenka",
+      "name": "Q554622",
+      "canonical": "gmina krajenka"
+    },
+    {
+      "value": "Gmina Janikowo",
+      "name": "Q428194",
+      "canonical": "gmina janikowo"
+    },
+    {
+      "value": "Gmina Drohiczyn",
+      "name": "Q2273114",
+      "canonical": "gmina drohiczyn"
+    },
+    {
+      "value": "Banana",
+      "name": "Q11043804",
+      "canonical": "banana"
+    },
+    {
+      "value": "Villa Vaca Guzmán Municipality",
+      "name": "Q121543",
+      "canonical": "villa vaca guzmán municipality"
+    },
+    {
+      "value": "Gmina Bierutów",
+      "name": "Q947581",
+      "canonical": "gmina bierutów"
+    },
+    {
+      "value": "Gmina Boguchwała",
+      "name": "Q2164092",
+      "canonical": "gmina boguchwała"
+    },
+    {
+      "value": "Gmina Grodzisk Mazowiecki",
+      "name": "Q1933230",
+      "canonical": "gmina grodzisk mazowiecki"
+    },
+    {
+      "value": "Gmina Wołomin",
+      "name": "Q2160529",
+      "canonical": "gmina wołomin"
+    },
+    {
+      "value": "Amparo",
+      "name": "Q2010915",
+      "canonical": "amparo"
+    },
+    {
+      "value": "Gmina Trzcianka",
+      "name": "Q555785",
+      "canonical": "gmina trzcianka"
+    },
+    {
+      "value": "Melissa",
+      "name": "Q830357",
+      "canonical": "melissa"
+    },
+    {
+      "value": "Gmina Nisko",
+      "name": "Q2195305",
+      "canonical": "gmina nisko"
+    },
+    {
+      "value": "Gmina Reszel",
+      "name": "Q554637",
+      "canonical": "gmina reszel"
+    },
+    {
+      "value": "Rossel",
+      "name": "Q315093",
+      "canonical": "rossel"
+    },
+    {
+      "value": "Rossel Island",
+      "name": "Q2002440",
+      "canonical": "rossel island"
+    },
+    {
+      "value": "Rossel",
+      "name": "Q1405791",
+      "canonical": "rossel"
+    },
+    {
+      "value": "Gmina Rogoźno",
+      "name": "Q555560",
+      "canonical": "gmina rogoźno"
+    },
+    {
+      "value": "Gmina Sieraków",
+      "name": "Q554641",
+      "canonical": "gmina sieraków"
+    },
+    {
+      "value": "Gmina Polanów",
+      "name": "Q557097",
+      "canonical": "gmina polanów"
+    },
+    {
+      "value": "Gmina Kisielice",
+      "name": "Q555831",
+      "canonical": "gmina kisielice"
+    },
+    {
+      "value": "Gmina Kobylin",
+      "name": "Q555796",
+      "canonical": "gmina kobylin"
+    },
+    {
+      "value": "Gmina Skaryszew",
+      "name": "Q2324750",
+      "canonical": "gmina skaryszew"
+    },
+    {
+      "value": "Gmina Lipsk",
+      "name": "Q1964991",
+      "canonical": "gmina lipsk"
+    },
+    {
+      "value": "Ereğli",
+      "name": "Q1350067",
+      "canonical": "ereğli"
+    },
+    {
+      "value": "New Helvetia",
+      "name": "Q943879",
+      "canonical": "new helvetia"
+    },
+    {
+      "value": "Yehud (Babylonian province)",
+      "name": "Q16903991",
+      "canonical": "yehud ( babylonian province )"
+    },
+    {
+      "value": "Gmina Prószków",
+      "name": "Q2724338",
+      "canonical": "gmina prószków"
+    },
+    {
+      "value": "Gmina Sompolno",
+      "name": "Q555364",
+      "canonical": "gmina sompolno"
+    },
+    {
+      "value": "Sąpolno",
+      "name": "Q7666990",
+      "canonical": "sąpolno"
+    },
+    {
+      "value": "Gmina Izbica Kujawska",
+      "name": "Q2461294",
+      "canonical": "gmina izbica kujawska"
+    },
+    {
+      "value": "Koidu",
+      "name": "Q10973800",
+      "canonical": "koidu"
+    },
+    {
+      "value": "Gmina Międzybórz",
+      "name": "Q959900",
+      "canonical": "gmina międzybórz"
+    },
+    {
+      "value": "Gmina Strzelno",
+      "name": "Q2347468",
+      "canonical": "gmina strzelno"
+    },
+    {
+      "value": "Gmina Przemków",
+      "name": "Q2459837",
+      "canonical": "gmina przemków"
+    },
+    {
+      "value": "Gmina Ostroróg",
+      "name": "Q554021",
+      "canonical": "gmina ostroróg"
+    },
+    {
+      "value": "Gmina Lwówek",
+      "name": "Q555314",
+      "canonical": "gmina lwówek"
+    },
+    {
+      "value": "Homa Bay County",
+      "name": "Q1625834",
+      "canonical": "homa bay county"
+    },
+    {
+      "value": "Uyuni Municipality",
+      "name": "Q1478014",
+      "canonical": "uyuni municipality"
+    },
+    {
+      "value": "shaman",
+      "name": "Q697405",
+      "canonical": "shaman"
+    },
+    {
+      "value": "Puntofijo Pact",
+      "name": "Q1720550",
+      "canonical": "puntofijo pact"
+    },
+    {
+      "value": "Gmina Nowy Staw",
+      "name": "Q550737",
+      "canonical": "gmina nowy staw"
+    },
+    {
+      "value": "Punata Municipality",
+      "name": "Q1521120",
+      "canonical": "punata municipality"
+    },
+    {
+      "value": "Colcapirhua Municipality",
+      "name": "Q1521197",
+      "canonical": "colcapirhua municipality"
+    },
+    {
+      "value": "Tororo",
+      "name": "Q996416",
+      "canonical": "tororo"
+    },
+    {
+      "value": "Sehnsucht",
+      "name": "Q1892385",
+      "canonical": "sehnsucht"
+    },
+    {
+      "value": "Ščučyn",
+      "name": "Q431779",
+      "canonical": "ščučyn"
+    },
+    {
+      "value": "Szczuczyn",
+      "name": "Q958747",
+      "canonical": "szczuczyn"
+    },
+    {
+      "value": "Szczuczyn",
+      "name": "Q9351138",
+      "canonical": "szczuczyn"
+    },
+    {
+      "value": "Jesús Menéndez",
+      "name": "Q5930428",
+      "canonical": "jesús menéndez"
+    },
+    {
+      "value": "Gmina Miejska Górka",
+      "name": "Q553961",
+      "canonical": "gmina miejska górka"
+    },
+    {
+      "value": "Gmina Nasielsk",
+      "name": "Q2606276",
+      "canonical": "gmina nasielsk"
+    },
+    {
+      "value": "Salminus brasiliensis",
+      "name": "Q311673",
+      "canonical": "salminus brasiliensis"
+    },
+    {
+      "value": "Tulsipur",
+      "name": "Q2543331",
+      "canonical": "tulsipur"
+    },
+    {
+      "value": "Baga Manduri",
+      "name": "Q35815",
+      "canonical": "baga manduri"
+    },
+    {
+      "value": "Lobos",
+      "name": "Q12663837",
+      "canonical": "lobos"
+    },
+    {
+      "value": "Meadow Lake",
+      "name": "Q3853427",
+      "canonical": "meadow lake"
+    },
+    {
+      "value": "Gmina Pruchnik",
+      "name": "Q519530",
+      "canonical": "gmina pruchnik"
+    },
+    {
+      "value": "Modliborzyce, Świętokrzyskie Voivodeship",
+      "name": "Q6889495",
+      "canonical": "modliborzyce , świętokrzyskie voivodeship"
+    },
+    {
+      "value": "Asientos Municipality",
+      "name": "Q8206694",
+      "canonical": "asientos municipality"
+    },
+    {
+      "value": "Asientos",
+      "name": "Q2866633",
+      "canonical": "asientos"
+    },
+    {
+      "value": "Villa de María del Río Seco",
+      "name": "Q958897",
+      "canonical": "villa de maría del río seco"
+    },
+    {
+      "value": "Gmina Rymanów",
+      "name": "Q655124",
+      "canonical": "gmina rymanów"
+    },
+    {
+      "value": "Bijiang District",
+      "name": "Q1130793",
+      "canonical": "bijiang district"
+    },
+    {
+      "value": "Saidpur",
+      "name": "Q1925437",
+      "canonical": "saidpur"
+    },
+    {
+      "value": "Al Zulfi governorate",
+      "name": "Q3543321",
+      "canonical": "al zulfi governorate"
+    },
+    {
+      "value": "Nusajaya",
+      "name": "Q14647553",
+      "canonical": "nusajaya"
+    },
+    {
+      "value": "Gorakhpur, SBS Nagar",
+      "name": "Q27922229",
+      "canonical": "gorakhpur , sbs nagar"
+    },
+    {
+      "value": "Imasgo",
+      "name": "Q81810116",
+      "canonical": "imasgo"
+    },
+    {
+      "value": "Sarpsborg",
+      "name": "Q108025",
+      "canonical": "sarpsborg"
+    },
+    {
+      "value": "Turki",
+      "name": "Q1763658",
+      "canonical": "turki"
+    },
+    {
+      "value": "Brinkmann",
+      "name": "Q917502",
+      "canonical": "brinkmann"
+    },
+    {
+      "value": "Dudelange",
+      "name": "Q16014",
+      "canonical": "dudelange"
+    },
+    {
+      "value": "Brussels",
+      "name": "Q239",
+      "canonical": "brussels"
+    },
+    {
+      "value": "Brussels metropolitan area",
+      "name": "Q9005",
+      "canonical": "brussels metropolitan area"
+    },
+    {
+      "value": "National Capital Territory of Delhi",
+      "name": "Q57156500",
+      "canonical": "national capital territory of delhi"
+    },
+    {
+      "value": "Andijan",
+      "name": "Q487656",
+      "canonical": "andijan"
+    },
+    {
+      "value": "Gmina Wolin",
+      "name": "Q557190",
+      "canonical": "gmina wolin"
+    },
+    {
+      "value": "Boulogne",
+      "name": "Q223965",
+      "canonical": "boulogne"
+    },
+    {
+      "value": "Halifax",
+      "name": "Q826561",
+      "canonical": "halifax"
+    },
+    {
+      "value": "Halifax",
+      "name": "Q1374283",
+      "canonical": "halifax"
+    },
+    {
+      "value": "Birmingham",
+      "name": "Q20986424",
+      "canonical": "birmingham"
+    },
+    {
+      "value": "Maputo Province",
+      "name": "Q379658",
+      "canonical": "maputo province"
+    },
+    {
+      "value": "Grenada",
+      "name": "Q769",
+      "canonical": "grenada"
+    },
+    {
+      "value": "Melaka",
+      "name": "Q185221",
+      "canonical": "melaka"
+    },
+    {
+      "value": "Burgos, Sardinia",
+      "name": "Q390624",
+      "canonical": "burgos , sardinia"
+    },
+    {
+      "value": "Leece",
+      "name": "Q11753644",
+      "canonical": "leece"
+    },
+    {
+      "value": "Nanaimo bar",
+      "name": "Q2885517",
+      "canonical": "nanaimo bar"
+    },
+    {
+      "value": "city",
+      "name": "Q515",
+      "canonical": "city"
+    },
+    {
+      "value": "Belz",
+      "name": "Q156565",
+      "canonical": "belz"
+    },
+    {
+      "value": "Valencia",
+      "name": "Q8818",
+      "canonical": "valencia"
+    },
+    {
+      "value": "Gmina Wieluń",
+      "name": "Q2149743",
+      "canonical": "gmina wieluń"
+    },
+    {
+      "value": "Bengaluru",
+      "name": "Q1355",
+      "canonical": "bengaluru"
+    },
+    {
+      "value": "City of Kingston upon Hull",
+      "name": "Q21885987",
+      "canonical": "city of kingston upon hull"
+    },
+    {
+      "value": "İzmir",
+      "name": "Q35997",
+      "canonical": "i̇zmir"
+    },
+    {
+      "value": "Kičevo Municipality",
+      "name": "Q2018957",
+      "canonical": "kičevo municipality"
+    },
+    {
+      "value": "Samson",
+      "name": "Q214648",
+      "canonical": "samson"
+    },
+    {
+      "value": "list of people from Derry",
+      "name": "Q6632378",
+      "canonical": "list of people from derry"
+    },
+    {
+      "value": "Afikim",
+      "name": "Q383280",
+      "canonical": "afikim"
+    },
+    {
+      "value": "Amasra",
+      "name": "Q455458",
+      "canonical": "amasra"
+    },
+    {
+      "value": "dragon fruit",
+      "name": "Q232755",
+      "canonical": "dragon fruit"
+    },
+    {
+      "value": "Kaohsiung City",
+      "name": "Q13178092",
+      "canonical": "kaohsiung city"
+    },
+    {
+      "value": "Kaohsiung County",
+      "name": "Q219147",
+      "canonical": "kaohsiung county"
+    },
+    {
+      "value": "Kaohsiung City",
+      "name": "Q15910959",
+      "canonical": "kaohsiung city"
+    },
+    {
+      "value": "Maris",
+      "name": "Q1899312",
+      "canonical": "maris"
+    },
+    {
+      "value": "Val-de-Reuil",
+      "name": "Q921780",
+      "canonical": "val-de-reuil"
+    },
+    {
+      "value": "Gmina Grabów nad Prosną",
+      "name": "Q3207413",
+      "canonical": "gmina grabów nad prosną"
+    },
+    {
+      "value": "Thane",
+      "name": "Q4451020",
+      "canonical": "thane"
+    },
+    {
+      "value": "Ramallah",
+      "name": "Q158119",
+      "canonical": "ramallah"
+    },
+    {
+      "value": "Gmina Szczekociny",
+      "name": "Q553546",
+      "canonical": "gmina szczekociny"
+    },
+    {
+      "value": "Buia",
+      "name": "Q303636",
+      "canonical": "buia"
+    },
+    {
+      "value": "Gmina Brzesko",
+      "name": "Q667954",
+      "canonical": "gmina brzesko"
+    },
+    {
+      "value": "Gmina Wieruszów",
+      "name": "Q2316215",
+      "canonical": "gmina wieruszów"
+    },
+    {
+      "value": "Gmina Tuchola",
+      "name": "Q2281135",
+      "canonical": "gmina tuchola"
+    },
+    {
+      "value": "Gmina Drawsko Pomorskie",
+      "name": "Q558827",
+      "canonical": "gmina drawsko pomorskie"
+    },
+    {
+      "value": "Gmina Łasin",
+      "name": "Q944842",
+      "canonical": "gmina łasin"
+    },
+    {
+      "value": "Gmina Łapy",
+      "name": "Q2080964",
+      "canonical": "gmina łapy"
+    },
+    {
+      "value": "Gmina Nowe Miasteczko",
+      "name": "Q2325880",
+      "canonical": "gmina nowe miasteczko"
+    },
+    {
+      "value": "Francheville",
+      "name": "Q231154",
+      "canonical": "francheville"
+    },
+    {
+      "value": "Gmina Dobrzyca",
+      "name": "Q553968",
+      "canonical": "gmina dobrzyca"
+    },
+    {
+      "value": "Gmina Mszczonów",
+      "name": "Q2460337",
+      "canonical": "gmina mszczonów"
+    },
+    {
+      "value": "Kallithea",
+      "name": "Q3564706",
+      "canonical": "kallithea"
+    },
+    {
+      "value": "Gmina Bisztynek",
+      "name": "Q554612",
+      "canonical": "gmina bisztynek"
+    },
+    {
+      "value": "Gmina Lipiany",
+      "name": "Q557538",
+      "canonical": "gmina lipiany"
+    },
+    {
+      "value": "Novais",
+      "name": "Q1956998",
+      "canonical": "novais"
+    },
+    {
+      "value": "Mała Panew",
+      "name": "Q1411894",
+      "canonical": "mała panew"
+    },
+    {
+      "value": "Gmina Ozimek",
+      "name": "Q2246220",
+      "canonical": "gmina ozimek"
+    },
+    {
+      "value": "Pedro de Toledo",
+      "name": "Q3898727",
+      "canonical": "pedro de toledo"
+    },
+    {
+      "value": "Gmina Czarna Białostocka",
+      "name": "Q2081007",
+      "canonical": "gmina czarna białostocka"
+    },
+    {
+      "value": "Gmina Ryn",
+      "name": "Q555340",
+      "canonical": "gmina ryn"
+    },
+    {
+      "value": "Gmina Oborniki",
+      "name": "Q555741",
+      "canonical": "gmina oborniki"
+    },
+    {
+      "value": "Gmina Ostrzeszów",
+      "name": "Q553939",
+      "canonical": "gmina ostrzeszów"
+    },
+    {
+      "value": "Cuba",
+      "name": "Q226157",
+      "canonical": "cuba"
+    },
+    {
+      "value": "Gmina Strzelce Krajeńskie",
+      "name": "Q1885219",
+      "canonical": "gmina strzelce krajeńskie"
+    },
+    {
+      "value": "Gmina Odolanów",
+      "name": "Q554498",
+      "canonical": "gmina odolanów"
+    },
+    {
+      "value": "Pedreira",
+      "name": "Q145070",
+      "canonical": "pedreira"
+    },
+    {
+      "value": "Gmina Biała Piska",
+      "name": "Q554104",
+      "canonical": "gmina biała piska"
+    },
+    {
+      "value": "Oni",
+      "name": "Q730052",
+      "canonical": "oni"
+    },
+    {
+      "value": "Anhembi Convention Center",
+      "name": "Q4764352",
+      "canonical": "anhembi convention center"
+    },
+    {
+      "value": "Chhaya",
+      "name": "Q984802",
+      "canonical": "chhaya"
+    },
+    {
+      "value": "Gmina Sanniki",
+      "name": "Q2324772",
+      "canonical": "gmina sanniki"
+    },
+    {
+      "value": "Gmina Bytom Odrzański",
+      "name": "Q2248472",
+      "canonical": "gmina bytom odrzański"
+    },
+    {
+      "value": "Gmina Wieleń",
+      "name": "Q555771",
+      "canonical": "gmina wieleń"
+    },
+    {
+      "value": "Gmina Drawno",
+      "name": "Q2082600",
+      "canonical": "gmina drawno"
+    },
+    {
+      "value": "Gmina Pasłęk",
+      "name": "Q554531",
+      "canonical": "gmina pasłęk"
+    },
+    {
+      "value": "Gmina Nowogard",
+      "name": "Q557617",
+      "canonical": "gmina nowogard"
+    },
+    {
+      "value": "Gmina Bystrzyca Kłodzka",
+      "name": "Q2463033",
+      "canonical": "gmina bystrzyca kłodzka"
+    },
+    {
+      "value": "Gmina Janów Lubelski",
+      "name": "Q2461321",
+      "canonical": "gmina janów lubelski"
+    },
+    {
+      "value": "Gmina Mirsk",
+      "name": "Q928107",
+      "canonical": "gmina mirsk"
+    },
+    {
+      "value": "Trujillo",
+      "name": "Q214173",
+      "canonical": "trujillo"
+    },
+    {
+      "value": "Gmina Różan",
+      "name": "Q2325171",
+      "canonical": "gmina różan"
+    },
+    {
+      "value": "Gmina Gorzów Śląski",
+      "name": "Q2461427",
+      "canonical": "gmina gorzów śląski"
+    },
+    {
+      "value": "Gmina Małomice",
+      "name": "Q2460497",
+      "canonical": "gmina małomice"
+    },
+    {
+      "value": "Gmina Rydzyna",
+      "name": "Q555779",
+      "canonical": "gmina rydzyna"
+    },
+    {
+      "value": "Gmina Wiązów",
+      "name": "Q2192626",
+      "canonical": "gmina wiązów"
+    },
+    {
+      "value": "Gmina Sędziszów",
+      "name": "Q554663",
+      "canonical": "gmina sędziszów"
+    },
+    {
+      "value": "Gmina Olsztynek",
+      "name": "Q555006",
+      "canonical": "gmina olsztynek"
+    },
+    {
+      "value": "Gmina Syców",
+      "name": "Q2288246",
+      "canonical": "gmina syców"
+    },
+    {
+      "value": "Gmina Poniec",
+      "name": "Q555357",
+      "canonical": "gmina poniec"
+    },
+    {
+      "value": "Gmina Koniecpol",
+      "name": "Q553755",
+      "canonical": "gmina koniecpol"
+    },
+    {
+      "value": "Gmina Sułkowice",
+      "name": "Q2459020",
+      "canonical": "gmina sułkowice"
+    },
+    {
+      "value": "Thisted Municipality",
+      "name": "Q7715809",
+      "canonical": "thisted municipality"
+    },
+    {
+      "value": "Irupana Municipality",
+      "name": "Q1552014",
+      "canonical": "irupana municipality"
+    },
+    {
+      "value": "Tupiza Municipality",
+      "name": "Q1477662",
+      "canonical": "tupiza municipality"
+    },
+    {
+      "value": "Gmina Sulejów",
+      "name": "Q2458939",
+      "canonical": "gmina sulejów"
+    },
+    {
+      "value": "Gmina Głogów Małopolski",
+      "name": "Q664113",
+      "canonical": "gmina głogów małopolski"
+    },
+    {
+      "value": "choir",
+      "name": "Q131186",
+      "canonical": "choir"
+    },
+    {
+      "value": "Kerema",
+      "name": "Q3475969",
+      "canonical": "kerema"
+    },
+    {
+      "value": "Tálknafjarðarhreppur",
+      "name": "Q1798705",
+      "canonical": "tálknafjarðarhreppur"
+    },
+    {
+      "value": "Gmina Kazimierza Wielka",
+      "name": "Q553280",
+      "canonical": "gmina kazimierza wielka"
+    },
+    {
+      "value": "Izra",
+      "name": "Q3564561",
+      "canonical": "izra"
+    },
+    {
+      "value": "Terra Roxa",
+      "name": "Q56052259",
+      "canonical": "terra roxa"
+    },
+    {
+      "value": "Chulumani Municipality",
+      "name": "Q1552034",
+      "canonical": "chulumani municipality"
+    },
+    {
+      "value": "Silao",
+      "name": "Q2288094",
+      "canonical": "silao"
+    },
+    {
+      "value": "Houne District",
+      "name": "Q5913272",
+      "canonical": "houne district"
+    },
+    {
+      "value": "Santa Rosa del Sara Municipality",
+      "name": "Q1108258",
+      "canonical": "santa rosa del sara municipality"
+    },
+    {
+      "value": "Xayabury District",
+      "name": "Q27431603",
+      "canonical": "xayabury district"
+    },
+    {
+      "value": "Kumbo",
+      "name": "Q12492909",
+      "canonical": "kumbo"
+    },
+    {
+      "value": "Barranca",
+      "name": "Q3635158",
+      "canonical": "barranca"
+    },
+    {
+      "value": "La Democracia",
+      "name": "Q610638",
+      "canonical": "la democracia"
+    },
+    {
+      "value": "Al-Tall, Acre",
+      "name": "Q4703274",
+      "canonical": "al-tall , acre"
+    },
+    {
+      "value": "Namanga",
+      "name": "Q6961283",
+      "canonical": "namanga"
+    },
+    {
+      "value": "Zorop language",
+      "name": "Q8074520",
+      "canonical": "zorop language"
+    },
+    {
+      "value": "Tuxpan Municipality",
+      "name": "Q1010971",
+      "canonical": "tuxpan municipality"
+    },
+    {
+      "value": "Orkanger",
+      "name": "Q77656831",
+      "canonical": "orkanger"
+    },
+    {
+      "value": "Fatehpur",
+      "name": "Q1525461",
+      "canonical": "fatehpur"
+    },
+    {
+      "value": "Ken",
+      "name": "Q1361450",
+      "canonical": "ken"
+    },
+    {
+      "value": "Amaravati",
+      "name": "Q2087762",
+      "canonical": "amaravati"
+    },
+    {
+      "value": "Stavanger",
+      "name": "Q25416",
+      "canonical": "stavanger"
+    },
+    {
+      "value": "Furnica",
+      "name": "Q12166422",
+      "canonical": "furnica"
+    },
+    {
+      "value": "list of cities in Italy",
+      "name": "Q102310",
+      "canonical": "list of cities in italy"
+    },
+    {
+      "value": "Utrecht",
+      "name": "Q776",
+      "canonical": "utrecht"
+    },
+    {
+      "value": "Utrecht",
+      "name": "Q39297398",
+      "canonical": "utrecht"
+    },
+    {
+      "value": "Utrecht",
+      "name": "Q3040539",
+      "canonical": "utrecht"
+    },
+    {
+      "value": "Dakka",
+      "name": "Q237060",
+      "canonical": "dakka"
+    },
+    {
+      "value": "Mangalore",
+      "name": "Q127041",
+      "canonical": "mangalore"
+    },
+    {
+      "value": "Frankfurt (Oder)",
+      "name": "Q4024",
+      "canonical": "frankfurt ( oder )"
+    },
+    {
+      "value": "Breslau",
+      "name": "Q446805",
+      "canonical": "breslau"
+    },
+    {
+      "value": "Braslaŭ",
+      "name": "Q628623",
+      "canonical": "braslaŭ"
+    },
+    {
+      "value": "Calgary",
+      "name": "Q36312",
+      "canonical": "calgary"
+    },
+    {
+      "value": "Dar el-Salam",
+      "name": "Q4166337",
+      "canonical": "dar el-salam"
+    },
+    {
+      "value": "Frankfurt am Main",
+      "name": "Q1794",
+      "canonical": "frankfurt am main"
+    },
+    {
+      "value": "Pontedeva",
+      "name": "Q1628449",
+      "canonical": "pontedeva"
+    },
+    {
+      "value": "Municipality of Kostanjevica na Krki",
+      "name": "Q12062190",
+      "canonical": "municipality of kostanjevica na krki"
+    },
+    {
+      "value": "Manchester",
+      "name": "Q21525592",
+      "canonical": "manchester"
+    },
+    {
+      "value": "Bradford",
+      "name": "Q2834810",
+      "canonical": "bradford"
+    },
+    {
+      "value": "Eperjes",
+      "name": "Q511419",
+      "canonical": "eperjes"
+    },
+    {
+      "value": "Ixelles",
+      "name": "Q208713",
+      "canonical": "ixelles"
+    },
+    {
+      "value": "Helsingborg",
+      "name": "Q25411",
+      "canonical": "helsingborg"
+    },
+    {
+      "value": "Gmina Mosina",
+      "name": "Q554185",
+      "canonical": "gmina mosina"
+    },
+    {
+      "value": "Gmina Swarzędz",
+      "name": "Q555077",
+      "canonical": "gmina swarzędz"
+    },
+    {
+      "value": "Gmina Pobiedziska",
+      "name": "Q556588",
+      "canonical": "gmina pobiedziska"
+    },
+    {
+      "value": "City of Southampton",
+      "name": "Q21683230",
+      "canonical": "city of southampton"
+    },
+    {
+      "value": "City of Wolverhampton",
+      "name": "Q21885975",
+      "canonical": "city of wolverhampton"
+    },
+    {
+      "value": "Gmina Lubsko",
+      "name": "Q610419",
+      "canonical": "gmina lubsko"
+    },
+    {
+      "value": "Gostivar Municipality",
+      "name": "Q521112",
+      "canonical": "gostivar municipality"
+    },
+    {
+      "value": "Kavadarci Municipality",
+      "name": "Q1155055",
+      "canonical": "kavadarci municipality"
+    },
+    {
+      "value": "Adamov",
+      "name": "Q21482717",
+      "canonical": "adamov"
+    },
+    {
+      "value": "Maracay",
+      "name": "Q333928",
+      "canonical": "maracay"
+    },
+    {
+      "value": "Alexandroupoli Municipality",
+      "name": "Q6935302",
+      "canonical": "alexandroupoli municipality"
+    },
+    {
+      "value": "Leniș",
+      "name": "Q1128958",
+      "canonical": "leniș"
+    },
+    {
+      "value": "Rotorua",
+      "name": "Q4398679",
+      "canonical": "rotorua"
+    },
+    {
+      "value": "Machala transversa",
+      "name": "Q14869279",
+      "canonical": "machala transversa"
+    },
+    {
+      "value": "Kemer",
+      "name": "Q1023156",
+      "canonical": "kemer"
+    },
+    {
+      "value": "Az-Zubayr",
+      "name": "Q11907436",
+      "canonical": "az-zubayr"
+    },
+    {
+      "value": "Geelong",
+      "name": "Q5529870",
+      "canonical": "geelong"
+    },
+    {
+      "value": "Galle",
+      "name": "Q319366",
+      "canonical": "galle"
+    },
+    {
+      "value": "New Taipei City",
+      "name": "Q244898",
+      "canonical": "new taipei city"
+    },
+    {
+      "value": "Gmina Kargowa",
+      "name": "Q771764",
+      "canonical": "gmina kargowa"
+    },
+    {
+      "value": "Gmina Krynki",
+      "name": "Q2020457",
+      "canonical": "gmina krynki"
+    },
+    {
+      "value": "Gmina Płoty",
+      "name": "Q305715",
+      "canonical": "gmina płoty"
+    },
+    {
+      "value": "Adada",
+      "name": "Q4678350",
+      "canonical": "adada"
+    },
+    {
+      "value": "Gmina Śmigiel",
+      "name": "Q555326",
+      "canonical": "gmina śmigiel"
+    },
+    {
+      "value": "Gmina Sulechów",
+      "name": "Q1974958",
+      "canonical": "gmina sulechów"
+    },
+    {
+      "value": "Parisi",
+      "name": "Q22064578",
+      "canonical": "parisi"
+    },
+    {
+      "value": "Gmina Krobia",
+      "name": "Q553944",
+      "canonical": "gmina krobia"
+    },
+    {
+      "value": "Gmina Ruciane-Nida",
+      "name": "Q554733",
+      "canonical": "gmina ruciane-nida"
+    },
+    {
+      "value": "Gmina Wyszogród",
+      "name": "Q2125870",
+      "canonical": "gmina wyszogród"
+    },
+    {
+      "value": "Maspalomas",
+      "name": "Q28120949",
+      "canonical": "maspalomas"
+    },
+    {
+      "value": "Gmina Nowy Dwór Gdański",
+      "name": "Q551739",
+      "canonical": "gmina nowy dwór gdański"
+    },
+    {
+      "value": "Gmina Koronowo",
+      "name": "Q2012175",
+      "canonical": "gmina koronowo"
+    },
+    {
+      "value": "Gmina Olszyna",
+      "name": "Q2326700",
+      "canonical": "gmina olszyna"
+    },
+    {
+      "value": "Olszyna, Greater Poland Voivodeship",
+      "name": "Q7088709",
+      "canonical": "olszyna , greater poland voivodeship"
+    },
+    {
+      "value": "Araure",
+      "name": "Q2741347",
+      "canonical": "araure"
+    },
+    {
+      "value": "Gmina Kępno",
+      "name": "Q554079",
+      "canonical": "gmina kępno"
+    },
+    {
+      "value": "Gmina Iwonicz-Zdrój",
+      "name": "Q1837250",
+      "canonical": "gmina iwonicz-zdrój"
+    },
+    {
+      "value": "Commune of Muhanga",
+      "name": "Q4400859",
+      "canonical": "commune of muhanga"
+    },
+    {
+      "value": "Asadabad",
+      "name": "Q888926",
+      "canonical": "asadabad"
+    },
+    {
+      "value": "Asadabad",
+      "name": "Q2663257",
+      "canonical": "asadabad"
+    },
+    {
+      "value": "Gmina Głuszyca",
+      "name": "Q2461464",
+      "canonical": "gmina głuszyca"
+    },
+    {
+      "value": "Talara",
+      "name": "Q7678905",
+      "canonical": "talara"
+    },
+    {
+      "value": "Baradero",
+      "name": "Q2318528",
+      "canonical": "baradero"
+    },
+    {
+      "value": "Gmina Kazimierz Dolny",
+      "name": "Q2605904",
+      "canonical": "gmina kazimierz dolny"
+    },
+    {
+      "value": "Gmina Bolków",
+      "name": "Q2461704",
+      "canonical": "gmina bolków"
+    },
+    {
+      "value": "Sumbe",
+      "name": "Q13220056",
+      "canonical": "sumbe"
+    },
+    {
+      "value": "Banu",
+      "name": "Q12080858",
+      "canonical": "banu"
+    },
+    {
+      "value": "Gmina Barczewo",
+      "name": "Q554377",
+      "canonical": "gmina barczewo"
+    },
+    {
+      "value": "Barczewko",
+      "name": "Q807982",
+      "canonical": "barczewko"
+    },
+    {
+      "value": "Barwani",
+      "name": "Q11908634",
+      "canonical": "barwani"
+    },
+    {
+      "value": "Gmina Strzyżów",
+      "name": "Q2309401",
+      "canonical": "gmina strzyżów"
+    },
+    {
+      "value": "Gmina Bieżuń",
+      "name": "Q2302160",
+      "canonical": "gmina bieżuń"
+    },
+    {
+      "value": "Gmina Tykocin",
+      "name": "Q2039533",
+      "canonical": "gmina tykocin"
+    },
+    {
+      "value": "Gmina Krapkowice",
+      "name": "Q2570955",
+      "canonical": "gmina krapkowice"
+    },
+    {
+      "value": "Gmina Andrychów",
+      "name": "Q2467340",
+      "canonical": "gmina andrychów"
+    },
+    {
+      "value": "Gmina Góra Kalwaria",
+      "name": "Q2461285",
+      "canonical": "gmina góra kalwaria"
+    },
+    {
+      "value": "Gmina Prabuty",
+      "name": "Q2324788",
+      "canonical": "gmina prabuty"
+    },
+    {
+      "value": "Gmina Prochowice",
+      "name": "Q2202958",
+      "canonical": "gmina prochowice"
+    },
+    {
+      "value": "Gmina Paczków",
+      "name": "Q923169",
+      "canonical": "gmina paczków"
+    },
+    {
+      "value": "Gmina Dobrzany",
+      "name": "Q557788",
+      "canonical": "gmina dobrzany"
+    },
+    {
+      "value": "Gmina Pełczyce",
+      "name": "Q557283",
+      "canonical": "gmina pełczyce"
+    },
+    {
+      "value": "Gmina Pyzdry",
+      "name": "Q554788",
+      "canonical": "gmina pyzdry"
+    },
+    {
+      "value": "Gmina Otyń",
+      "name": "Q1978523",
+      "canonical": "gmina otyń"
+    },
+    {
+      "value": "Leribe",
+      "name": "Q168564",
+      "canonical": "leribe"
+    },
+    {
+      "value": "Sacaba Municipality",
+      "name": "Q1521148",
+      "canonical": "sacaba municipality"
+    },
+    {
+      "value": "Gmina Międzylesie",
+      "name": "Q2460327",
+      "canonical": "gmina międzylesie"
+    },
+    {
+      "value": "Gmina Mieroszów",
+      "name": "Q668847",
+      "canonical": "gmina mieroszów"
+    },
+    {
+      "value": "Gmina Lądek-Zdrój",
+      "name": "Q950046",
+      "canonical": "gmina lądek-zdrój"
+    },
+    {
+      "value": "Gmina Jeziorany",
+      "name": "Q556562",
+      "canonical": "gmina jeziorany"
+    },
+    {
+      "value": "Gmina Zdzieszowice",
+      "name": "Q2458035",
+      "canonical": "gmina zdzieszowice"
+    },
+    {
+      "value": "Gmina Strumień",
+      "name": "Q555544",
+      "canonical": "gmina strumień"
+    },
+    {
+      "value": "Volchina River",
+      "name": "Q4124255",
+      "canonical": "volchina river"
+    },
+    {
+      "value": "Gmina Drzewica",
+      "name": "Q558997",
+      "canonical": "gmina drzewica"
+    },
+    {
+      "value": "Gmina Jutrosin",
+      "name": "Q556763",
+      "canonical": "gmina jutrosin"
+    },
+    {
+      "value": "Gmina Lubraniec",
+      "name": "Q2605893",
+      "canonical": "gmina lubraniec"
+    },
+    {
+      "value": "Gmina Skarszewy",
+      "name": "Q551711",
+      "canonical": "gmina skarszewy"
+    },
+    {
+      "value": "Gmina Czarne",
+      "name": "Q551703",
+      "canonical": "gmina czarne"
+    },
+    {
+      "value": "Whanganui",
+      "name": "Q97454864",
+      "canonical": "whanganui"
+    },
+    {
+      "value": "Little Wanganui",
+      "name": "Q6652437",
+      "canonical": "little wanganui"
+    },
+    {
+      "value": "Los Cabos Municipality",
+      "name": "Q659516",
+      "canonical": "los cabos municipality"
+    },
+    {
+      "value": "Ras Al Ain",
+      "name": "Q17343090",
+      "canonical": "ras al ain"
+    },
+    {
+      "value": "Heerenveen",
+      "name": "Q574558",
+      "canonical": "heerenveen"
+    },
+    {
+      "value": "Gmina Czerniejewo",
+      "name": "Q555395",
+      "canonical": "gmina czerniejewo"
+    },
+    {
+      "value": "Aiquile Municipality",
+      "name": "Q1521142",
+      "canonical": "aiquile municipality"
+    },
+    {
+      "value": "Rokiškis",
+      "name": "Q12671588",
+      "canonical": "rokiškis"
+    },
+    {
+      "value": "Monte Alto",
+      "name": "Q399441",
+      "canonical": "monte alto"
+    },
+    {
+      "value": "Piedade",
+      "name": "Q945151",
+      "canonical": "piedade"
+    },
+    {
+      "value": "Gmina Łosice",
+      "name": "Q2327638",
+      "canonical": "gmina łosice"
+    },
+    {
+      "value": "Nsanje District",
+      "name": "Q198587",
+      "canonical": "nsanje district"
+    },
+    {
+      "value": "Gmina Pilawa",
+      "name": "Q2325401",
+      "canonical": "gmina pilawa"
+    },
+    {
+      "value": "King Porus",
+      "name": "Q28935",
+      "canonical": "king porus"
+    },
+    {
+      "value": "Porus",
+      "name": "Q21446605",
+      "canonical": "porus"
+    },
+    {
+      "value": "Kajiado County",
+      "name": "Q285072",
+      "canonical": "kajiado county"
+    },
+    {
+      "value": "Gmina Mrozy",
+      "name": "Q2325868",
+      "canonical": "gmina mrozy"
+    },
+    {
+      "value": "Tomoi",
+      "name": "Q2407481",
+      "canonical": "tomoi"
+    },
+    {
+      "value": "Tomis",
+      "name": "Q29383271",
+      "canonical": "tomis"
+    },
+    {
+      "value": "Buka Island",
+      "name": "Q860540",
+      "canonical": "buka island"
+    },
+    {
+      "value": "Dembeni",
+      "name": "Q2087041",
+      "canonical": "dembeni"
+    },
+    {
+      "value": "Wanda",
+      "name": "Q786005",
+      "canonical": "wanda"
+    },
+    {
+      "value": "Kele",
+      "name": "Q14357849",
+      "canonical": "kele"
+    },
+    {
+      "value": "Bolsward",
+      "name": "Q329582",
+      "canonical": "bolsward"
+    },
+    {
+      "value": "Grenaa Municipality",
+      "name": "Q1483426",
+      "canonical": "grenaa municipality"
+    },
+    {
+      "value": "bokeh",
+      "name": "Q328099",
+      "canonical": "bokeh"
+    },
+    {
+      "value": "Lundu",
+      "name": "Q1499839",
+      "canonical": "lundu"
+    },
+    {
+      "value": "Mera",
+      "name": "Q716229",
+      "canonical": "mera"
+    },
+    {
+      "value": "Midway",
+      "name": "Q6843148",
+      "canonical": "midway"
+    },
+    {
+      "value": "holmos",
+      "name": "Q84953422",
+      "canonical": "holmos"
+    },
+    {
+      "value": "province of Iran",
+      "name": "Q1344695",
+      "canonical": "province of iran"
+    },
+    {
+      "value": "Egis Group",
+      "name": "Q3049197",
+      "canonical": "egis group"
+    },
+    {
+      "value": "Kandaga",
+      "name": "Q6361179",
+      "canonical": "kandaga"
+    },
+    {
+      "value": "Ettelbruck",
+      "name": "Q659351",
+      "canonical": "ettelbruck"
+    },
+    {
+      "value": "Kristiansand",
+      "name": "Q2415",
+      "canonical": "kristiansand"
+    },
+    {
+      "value": "Katovice",
+      "name": "Q1088443",
+      "canonical": "katovice"
+    },
+    {
+      "value": "Genk",
+      "name": "Q189692",
+      "canonical": "genk"
+    },
+    {
+      "value": "Rostock District",
+      "name": "Q2898",
+      "canonical": "rostock district"
+    },
+    {
+      "value": "Arusha people",
+      "name": "Q3271270",
+      "canonical": "arusha people"
+    },
+    {
+      "value": "Bethlehem",
+      "name": "Q831332",
+      "canonical": "bethlehem"
+    },
+    {
+      "value": "Tilburg",
+      "name": "Q26430",
+      "canonical": "tilburg"
+    },
+    {
+      "value": "El Perú",
+      "name": "Q532534",
+      "canonical": "el perú"
+    },
+    {
+      "value": "city",
+      "name": "Q515",
+      "canonical": "city"
+    },
+    {
+      "value": "Chengde",
+      "name": "Q58675",
+      "canonical": "chengde"
+    },
+    {
+      "value": "Puntarenas",
+      "name": "Q17309927",
+      "canonical": "puntarenas"
+    },
+    {
+      "value": "Ma'an",
+      "name": "Q3273390",
+      "canonical": "ma 'an"
+    },
+    {
+      "value": "Hubli-Dharwad",
+      "name": "Q1707092",
+      "canonical": "hubli-dharwad"
+    },
+    {
+      "value": "list of Brisbane people",
+      "name": "Q6564729",
+      "canonical": "list of brisbane people"
+    },
+    {
+      "value": "Lismore",
+      "name": "Q1247403",
+      "canonical": "lismore"
+    },
+    {
+      "value": "Lismore",
+      "name": "Q2346724",
+      "canonical": "lismore"
+    },
+    {
+      "value": "Columbo",
+      "name": "Q371207",
+      "canonical": "columbo"
+    },
+    {
+      "value": "Sheffield",
+      "name": "Q12956644",
+      "canonical": "sheffield"
+    },
+    {
+      "value": "Sheffield",
+      "name": "Q62482000",
+      "canonical": "sheffield"
+    },
+    {
+      "value": "Gmina Szamotuły",
+      "name": "Q554060",
+      "canonical": "gmina szamotuły"
+    },
+    {
+      "value": "Gmina Wronki",
+      "name": "Q554919",
+      "canonical": "gmina wronki"
+    },
+    {
+      "value": "Revere",
+      "name": "Q42328",
+      "canonical": "revere"
+    },
+    {
+      "value": "Newcastle upon Tyne",
+      "name": "Q1425428",
+      "canonical": "newcastle upon tyne"
+    },
+    {
+      "value": "Fort Frances",
+      "name": "Q1438546",
+      "canonical": "fort frances"
+    },
+    {
+      "value": "Mariel",
+      "name": "Q16278989",
+      "canonical": "mariel"
+    },
+    {
+      "value": "Zamość, Konin County",
+      "name": "Q8065929",
+      "canonical": "zamość , konin county"
+    },
+    {
+      "value": "Zamość, Kuyavian-Pomeranian Voivodeship",
+      "name": "Q8065930",
+      "canonical": "zamość , kuyavian-pomeranian voivodeship"
+    },
+    {
+      "value": "Zamość, Maków County",
+      "name": "Q8065932",
+      "canonical": "zamość , maków county"
+    },
+    {
+      "value": "Zamość, Nowy Dwór Mazowiecki County",
+      "name": "Q8065933",
+      "canonical": "zamość , nowy dwór mazowiecki county"
+    },
+    {
+      "value": "Zamość, Ostrów Wielkopolski County",
+      "name": "Q8065935",
+      "canonical": "zamość , ostrów wielkopolski county"
+    },
+    {
+      "value": "Zamość, Piotrków County",
+      "name": "Q8065936",
+      "canonical": "zamość , piotrków county"
+    },
+    {
+      "value": "Zamość, Pomeranian Voivodeship",
+      "name": "Q8065938",
+      "canonical": "zamość , pomeranian voivodeship"
+    },
+    {
+      "value": "Zamość, Sierpc County",
+      "name": "Q8065939",
+      "canonical": "zamość , sierpc county"
+    },
+    {
+      "value": "Zamość, Września County",
+      "name": "Q8065940",
+      "canonical": "zamość , września county"
+    },
+    {
+      "value": "Zamość, Wyszków County",
+      "name": "Q8065941",
+      "canonical": "zamość , wyszków county"
+    },
+    {
+      "value": "Zamość, Łask County",
+      "name": "Q8065942",
+      "canonical": "zamość , łask county"
+    },
+    {
+      "value": "Zamość, Ostrołęka County",
+      "name": "Q9386829",
+      "canonical": "zamość , ostrołęka county"
+    },
+    {
+      "value": "Gmina Krzeszowice",
+      "name": "Q2461091",
+      "canonical": "gmina krzeszowice"
+    },
+    {
+      "value": "Gmina Krosno Odrzańskie",
+      "name": "Q2460740",
+      "canonical": "gmina krosno odrzańskie"
+    },
+    {
+      "value": "Gmina Iłowa",
+      "name": "Q1442840",
+      "canonical": "gmina iłowa"
+    },
+    {
+      "value": "Angkor",
+      "name": "Q2397751",
+      "canonical": "angkor"
+    },
+    {
+      "value": "Gmina Zawadzkie",
+      "name": "Q1532954",
+      "canonical": "gmina zawadzkie"
+    },
+    {
+      "value": "Samaria",
+      "name": "Q1294629",
+      "canonical": "samaria"
+    },
+    {
+      "value": "Neftekumsk",
+      "name": "Q172608",
+      "canonical": "neftekumsk"
+    },
+    {
+      "value": "Balbec",
+      "name": "Q2880599",
+      "canonical": "balbec"
+    },
+    {
+      "value": "Hachinohe",
+      "name": "Q11391205",
+      "canonical": "hachinohe"
+    },
+    {
+      "value": "Gautama Buddha",
+      "name": "Q9441",
+      "canonical": "gautama buddha"
+    },
+    {
+      "value": "Häme Castle",
+      "name": "Q1012561",
+      "canonical": "häme castle"
+    },
+    {
+      "value": "Kalundborg Municipality",
+      "name": "Q204976",
+      "canonical": "kalundborg municipality"
+    },
+    {
+      "value": "Hanko Peninsula",
+      "name": "Q1575641",
+      "canonical": "hanko peninsula"
+    },
+    {
+      "value": "Xalapa Municipality",
+      "name": "Q12816823",
+      "canonical": "xalapa municipality"
+    },
+    {
+      "value": "Castlemaine",
+      "name": "Q3775979",
+      "canonical": "castlemaine"
+    },
+    {
+      "value": "Kes",
+      "name": "Q1107814",
+      "canonical": "kes"
+    },
+    {
+      "value": "Miechowo",
+      "name": "Q6843540",
+      "canonical": "miechowo"
+    },
+    {
+      "value": "Miechów, Lower Silesian Voivodeship",
+      "name": "Q6843546",
+      "canonical": "miechów , lower silesian voivodeship"
+    },
+    {
+      "value": "Miechów, Lubusz Voivodeship",
+      "name": "Q6843547",
+      "canonical": "miechów , lubusz voivodeship"
+    },
+    {
+      "value": "Miechów, Masovian Voivodeship",
+      "name": "Q6843549",
+      "canonical": "miechów , masovian voivodeship"
+    },
+    {
+      "value": "Miechów-Kolonia",
+      "name": "Q797980",
+      "canonical": "miechów-kolonia"
+    },
+    {
+      "value": "Gmina Pajęczno",
+      "name": "Q2435961",
+      "canonical": "gmina pajęczno"
+    },
+    {
+      "value": "Gmina Goleniów",
+      "name": "Q557340",
+      "canonical": "gmina goleniów"
+    },
+    {
+      "value": "Gmina Łęczna",
+      "name": "Q2170241",
+      "canonical": "gmina łęczna"
+    },
+    {
+      "value": "Gmina Środa Śląska",
+      "name": "Q2458649",
+      "canonical": "gmina środa śląska"
+    },
+    {
+      "value": "Gmina Świebodzin",
+      "name": "Q773270",
+      "canonical": "gmina świebodzin"
+    },
+    {
+      "value": "Gmina Żelechów",
+      "name": "Q2347653",
+      "canonical": "gmina żelechów"
+    },
+    {
+      "value": "Bendigo",
+      "name": "Q31447285",
+      "canonical": "bendigo"
+    },
+    {
+      "value": "Gmina Kuźnia Raciborska",
+      "name": "Q553587",
+      "canonical": "gmina kuźnia raciborska"
+    },
+    {
+      "value": "Gmina Woźniki",
+      "name": "Q553355",
+      "canonical": "gmina woźniki"
+    },
+    {
+      "value": "Gmina Koziegłowy",
+      "name": "Q553369",
+      "canonical": "gmina koziegłowy"
+    },
+    {
+      "value": "Gmina Międzychód",
+      "name": "Q539469",
+      "canonical": "gmina międzychód"
+    },
+    {
+      "value": "Gmina Dobra, Łobez County",
+      "name": "Q558823",
+      "canonical": "gmina dobra , łobez county"
+    },
+    {
+      "value": "Gmina Trzcińsko-Zdrój",
+      "name": "Q557259",
+      "canonical": "gmina trzcińsko-zdrój"
+    },
+    {
+      "value": "Hannopil",
+      "name": "Q4066768",
+      "canonical": "hannopil"
+    },
+    {
+      "value": "Annopol, Gostynin County",
+      "name": "Q4769594",
+      "canonical": "annopol , gostynin county"
+    },
+    {
+      "value": "Annopol, Chełm County",
+      "name": "Q4769595",
+      "canonical": "annopol , chełm county"
+    },
+    {
+      "value": "Annopol, Grójec County",
+      "name": "Q4769596",
+      "canonical": "annopol , grójec county"
+    },
+    {
+      "value": "Annopol, Hrubieszów County",
+      "name": "Q4769597",
+      "canonical": "annopol , hrubieszów county"
+    },
+    {
+      "value": "Annopol, Kalisz County",
+      "name": "Q4769599",
+      "canonical": "annopol , kalisz county"
+    },
+    {
+      "value": "Annopol, Rawicz County",
+      "name": "Q4769600",
+      "canonical": "annopol , rawicz county"
+    },
+    {
+      "value": "Annopol, Przasnysz County",
+      "name": "Q4769601",
+      "canonical": "annopol , przasnysz county"
+    },
+    {
+      "value": "Annopol, Lubartów County",
+      "name": "Q4769602",
+      "canonical": "annopol , lubartów county"
+    },
+    {
+      "value": "Annopol",
+      "name": "Q4769603",
+      "canonical": "annopol"
+    },
+    {
+      "value": "Mount Isa",
+      "name": "Q85786596",
+      "canonical": "mount isa"
+    },
+    {
+      "value": "Esmeralda, Rio Grande do Sul",
+      "name": "Q1803126",
+      "canonical": "esmeralda , rio grande do sul"
+    },
+    {
+      "value": "Coral Harbour",
+      "name": "Q14206905",
+      "canonical": "coral harbour"
+    },
+    {
+      "value": "Srirangam",
+      "name": "Q2304639",
+      "canonical": "srirangam"
+    },
+    {
+      "value": "Gmina Jedlicze",
+      "name": "Q618534",
+      "canonical": "gmina jedlicze"
+    },
+    {
+      "value": "Merka",
+      "name": "Q56676363",
+      "canonical": "merka"
+    },
+    {
+      "value": "Gmina Głuchołazy",
+      "name": "Q2270163",
+      "canonical": "gmina głuchołazy"
+    },
+    {
+      "value": "Comayagua Department",
+      "name": "Q823443",
+      "canonical": "comayagua department"
+    },
+    {
+      "value": "Shepperton",
+      "name": "Q1545679",
+      "canonical": "shepperton"
+    },
+    {
+      "value": "Wajir County",
+      "name": "Q1852209",
+      "canonical": "wajir county"
+    },
+    {
+      "value": "Gmina Pieniężno",
+      "name": "Q539113",
+      "canonical": "gmina pieniężno"
+    },
+    {
+      "value": "Gmina Końskie",
+      "name": "Q555607",
+      "canonical": "gmina końskie"
+    },
+    {
+      "value": "Dell Axim",
+      "name": "Q388799",
+      "canonical": "dell axim"
+    },
+    {
+      "value": "Chandrapura",
+      "name": "Q858238",
+      "canonical": "chandrapura"
+    },
+    {
+      "value": "Empalme Municipality",
+      "name": "Q1678117",
+      "canonical": "empalme municipality"
+    },
+    {
+      "value": "Gmina Wiślica",
+      "name": "Q554701",
+      "canonical": "gmina wiślica"
+    },
+    {
+      "value": "Gmina Janowiec Wielkopolski",
+      "name": "Q2606253",
+      "canonical": "gmina janowiec wielkopolski"
+    },
+    {
+      "value": "Ščučyn",
+      "name": "Q431779",
+      "canonical": "ščučyn"
+    },
+    {
+      "value": "Szczuczyn",
+      "name": "Q9351138",
+      "canonical": "szczuczyn"
+    },
+    {
+      "value": "Szczucin",
+      "name": "Q1280869",
+      "canonical": "szczucin"
+    },
+    {
+      "value": "Gmina Chocz",
+      "name": "Q553976",
+      "canonical": "gmina chocz"
+    },
+    {
+      "value": "Gmina Brwinów",
+      "name": "Q2328687",
+      "canonical": "gmina brwinów"
+    },
+    {
+      "value": "Gmina Dąbrowa Białostocka",
+      "name": "Q967439",
+      "canonical": "gmina dąbrowa białostocka"
+    },
+    {
+      "value": "Gmina Bojanowo",
+      "name": "Q554563",
+      "canonical": "gmina bojanowo"
+    },
+    {
+      "value": "Gmina Kałuszyn",
+      "name": "Q943786",
+      "canonical": "gmina kałuszyn"
+    },
+    {
+      "value": "Gmina Ińsko",
+      "name": "Q557627",
+      "canonical": "gmina ińsko"
+    },
+    {
+      "value": "Gmina Witnica",
+      "name": "Q587427",
+      "canonical": "gmina witnica"
+    },
+    {
+      "value": "Gmina Połaniec",
+      "name": "Q553287",
+      "canonical": "gmina połaniec"
+    },
+    {
+      "value": "Gmina Orzysz",
+      "name": "Q554115",
+      "canonical": "gmina orzysz"
+    },
+    {
+      "value": "Gmina Kozienice",
+      "name": "Q2460958",
+      "canonical": "gmina kozienice"
+    },
+    {
+      "value": "Gmina Dolsk",
+      "name": "Q555244",
+      "canonical": "gmina dolsk"
+    },
+    {
+      "value": "Gmina Pogorzela",
+      "name": "Q554608",
+      "canonical": "gmina pogorzela"
+    },
+    {
+      "value": "Gmina Dziwnów",
+      "name": "Q557555",
+      "canonical": "gmina dziwnów"
+    },
+    {
+      "value": "Gmina Debrzno",
+      "name": "Q367573",
+      "canonical": "gmina debrzno"
+    },
+    {
+      "value": "Gmina Więcbork",
+      "name": "Q2323147",
+      "canonical": "gmina więcbork"
+    },
+    {
+      "value": "Gmina Brzeg Dolny",
+      "name": "Q2462934",
+      "canonical": "gmina brzeg dolny"
+    },
+    {
+      "value": "Gmina Dobrzyń nad Wisłą",
+      "name": "Q2461621",
+      "canonical": "gmina dobrzyń nad wisłą"
+    },
+    {
+      "value": "Gmina Torzym",
+      "name": "Q2415005",
+      "canonical": "gmina torzym"
+    },
+    {
+      "value": "Gmina Krośniewice",
+      "name": "Q339563",
+      "canonical": "gmina krośniewice"
+    },
+    {
+      "value": "Gmina Szczawnica",
+      "name": "Q2424028",
+      "canonical": "gmina szczawnica"
+    },
+    {
+      "value": "Gmina Zalewo",
+      "name": "Q555568",
+      "canonical": "gmina zalewo"
+    },
+    {
+      "value": "Sastamala",
+      "name": "Q11892530",
+      "canonical": "sastamala"
+    },
+    {
+      "value": "Gmina Kcynia",
+      "name": "Q2461196",
+      "canonical": "gmina kcynia"
+    },
+    {
+      "value": "Gmina Pasym",
+      "name": "Q554070",
+      "canonical": "gmina pasym"
+    },
+    {
+      "value": "Gmina Korfantów",
+      "name": "Q1941067",
+      "canonical": "gmina korfantów"
+    },
+    {
+      "value": "Gmina Nowy Korczyn",
+      "name": "Q555599",
+      "canonical": "gmina nowy korczyn"
+    },
+    {
+      "value": "Municipio de Caranavi",
+      "name": "Q916357",
+      "canonical": "municipio de caranavi"
+    },
+    {
+      "value": "Selkirk",
+      "name": "Q772507",
+      "canonical": "selkirk"
+    },
+    {
+      "value": "Gmina Jelcz-Laskowice",
+      "name": "Q2460963",
+      "canonical": "gmina jelcz-laskowice"
+    },
+    {
+      "value": "Gmina Kunów",
+      "name": "Q553542",
+      "canonical": "gmina kunów"
+    },
+    {
+      "value": "Gmina Orneta",
+      "name": "Q554212",
+      "canonical": "gmina orneta"
+    },
+    {
+      "value": "Gmina Czerwińsk nad Wisłą",
+      "name": "Q1865417",
+      "canonical": "gmina czerwińsk nad wisłą"
+    },
+    {
+      "value": "Gmina Borne Sulinowo",
+      "name": "Q557322",
+      "canonical": "gmina borne sulinowo"
+    },
+    {
+      "value": "Ortahisar",
+      "name": "Q16258125",
+      "canonical": "ortahisar"
+    },
+    {
+      "value": "Gmina Zator",
+      "name": "Q2489244",
+      "canonical": "gmina zator"
+    },
+    {
+      "value": "Gmina Krzywiń",
+      "name": "Q510875",
+      "canonical": "gmina krzywiń"
+    },
+    {
+      "value": "La Banda",
+      "name": "Q10315004",
+      "canonical": "la banda"
+    },
+    {
+      "value": "Gmina Gościno",
+      "name": "Q558737",
+      "canonical": "gmina gościno"
+    },
+    {
+      "value": "Iseyin",
+      "name": "Q49104874",
+      "canonical": "iseyin"
+    },
+    {
+      "value": "Salto Grande Dam",
+      "name": "Q2116393",
+      "canonical": "salto grande dam"
+    },
+    {
+      "value": "Limoncito",
+      "name": "Q3832517",
+      "canonical": "limoncito"
+    },
+    {
+      "value": "San Borja Municipy",
+      "name": "Q685208",
+      "canonical": "san borja municipy"
+    },
+    {
+      "value": "Mizque Municipality",
+      "name": "Q1521176",
+      "canonical": "mizque municipality"
+    },
+    {
+      "value": "Gmina Wasilków",
+      "name": "Q1869738",
+      "canonical": "gmina wasilków"
+    },
+    {
+      "value": "Tombos",
+      "name": "Q1457296",
+      "canonical": "tombos"
+    },
+    {
+      "value": "Sabirabad District",
+      "name": "Q382132",
+      "canonical": "sabirabad district"
+    },
+    {
+      "value": "Narlı",
+      "name": "Q984840",
+      "canonical": "narlı"
+    },
+    {
+      "value": "Tepezalá Municipality",
+      "name": "Q3850537",
+      "canonical": "tepezalá municipality"
+    },
+    {
+      "value": "Majar",
+      "name": "Q12496170",
+      "canonical": "majar"
+    },
+    {
+      "value": "adalimumab",
+      "name": "Q348260",
+      "canonical": "adalimumab"
+    },
+    {
+      "value": "Saraya",
+      "name": "Q3950444",
+      "canonical": "saraya"
+    },
+    {
+      "value": "Ankara",
+      "name": "Q3640",
+      "canonical": "ankara"
+    },
+    {
+      "value": "Ortahisar",
+      "name": "Q1278352",
+      "canonical": "ortahisar"
+    },
+    {
+      "value": "Tremembé",
+      "name": "Q5246937",
+      "canonical": "tremembé"
+    },
+    {
+      "value": "Tremembé people",
+      "name": "Q4418073",
+      "canonical": "tremembé people"
+    },
+    {
+      "value": "Ribeira",
+      "name": "Q405621",
+      "canonical": "ribeira"
+    },
+    {
+      "value": "Savar",
+      "name": "Q3950920",
+      "canonical": "savar"
+    },
+    {
+      "value": "Ivato Airport",
+      "name": "Q670038",
+      "canonical": "ivato airport"
+    },
+    {
+      "value": "San Francisco",
+      "name": "Q316332",
+      "canonical": "san francisco"
+    },
+    {
+      "value": "Gmina Szczebrzeszyn",
+      "name": "Q2458997",
+      "canonical": "gmina szczebrzeszyn"
+    },
+    {
+      "value": "Tokyo",
+      "name": "Q7473516",
+      "canonical": "tokyo"
+    },
+    {
+      "value": "list of people from Reykjavík",
+      "name": "Q1864550",
+      "canonical": "list of people from reykjavík"
+    },
+    {
+      "value": "Luxembourg",
+      "name": "Q1126",
+      "canonical": "luxembourg"
+    },
+    {
+      "value": "Panormus",
+      "name": "Q29788206",
+      "canonical": "panormus"
+    },
+    {
+      "value": "City of Perth",
+      "name": "Q1855330",
+      "canonical": "city of perth"
+    },
+    {
+      "value": "Perth",
+      "name": "Q14229145",
+      "canonical": "perth"
+    },
+    {
+      "value": "Greater Perth",
+      "name": "Q5600710",
+      "canonical": "greater perth"
+    },
+    {
+      "value": "City of Lucerne Constituency",
+      "name": "Q1670385",
+      "canonical": "city of lucerne constituency"
+    },
+    {
+      "value": "Rodas",
+      "name": "Q1619590",
+      "canonical": "rodas"
+    },
+    {
+      "value": "Petra",
+      "name": "Q1519037",
+      "canonical": "petra"
+    },
+    {
+      "value": "Géronne",
+      "name": "Q28500018",
+      "canonical": "géronne"
+    },
+    {
+      "value": "Conjunto Histórico de la Ciudad de Palencia",
+      "name": "Q51770136",
+      "canonical": "conjunto histórico de la ciudad de palencia"
+    },
+    {
+      "value": "Køge Municipality",
+      "name": "Q504664",
+      "canonical": "køge municipality"
+    },
+    {
+      "value": "Uppsala",
+      "name": "Q10710196",
+      "canonical": "uppsala"
+    },
+    {
+      "value": "Haumea",
+      "name": "Q601",
+      "canonical": "haumea"
+    },
+    {
+      "value": "Bergen Municipality",
+      "name": "Q10428388",
+      "canonical": "bergen municipality"
+    },
+    {
+      "value": "Oakland",
+      "name": "Q228113",
+      "canonical": "oakland"
+    },
+    {
+      "value": "Hortaleza",
+      "name": "Q1928529",
+      "canonical": "hortaleza"
+    },
+    {
+      "value": "Phoenicia",
+      "name": "Q41642",
+      "canonical": "phoenicia"
+    },
+    {
+      "value": "Luxor",
+      "name": "Q270477",
+      "canonical": "luxor"
+    },
+    {
+      "value": "Zaria",
+      "name": "Q59681177",
+      "canonical": "zaria"
+    },
+    {
+      "value": "Gmina Solec Kujawski",
+      "name": "Q2458609",
+      "canonical": "gmina solec kujawski"
+    },
+    {
+      "value": "Gmina Jasień",
+      "name": "Q2326563",
+      "canonical": "gmina jasień"
+    },
+    {
+      "value": "Doboj",
+      "name": "Q3033287",
+      "canonical": "doboj"
+    },
+    {
+      "value": "Tuzla",
+      "name": "Q1065953",
+      "canonical": "tuzla"
+    },
+    {
+      "value": "Charnia",
+      "name": "Q134755",
+      "canonical": "charnia"
+    },
+    {
+      "value": "Embu County",
+      "name": "Q1335242",
+      "canonical": "embu county"
+    },
+    {
+      "value": "Kajaani River",
+      "name": "Q1721845",
+      "canonical": "kajaani river"
+    },
+    {
+      "value": "Kingston, Nova Scotia",
+      "name": "Q3197122",
+      "canonical": "kingston , nova scotia"
+    },
+    {
+      "value": "Tepic, Nayarit",
+      "name": "Q2001115",
+      "canonical": "tepic , nayarit"
+    },
+    {
+      "value": "Zomba",
+      "name": "Q576672",
+      "canonical": "zomba"
+    },
+    {
+      "value": "Gmina Strzegom",
+      "name": "Q2339267",
+      "canonical": "gmina strzegom"
+    },
+    {
+      "value": "Saint-Pierre",
+      "name": "Q1017168",
+      "canonical": "saint-pierre"
+    },
+    {
+      "value": "Saint-Pierre",
+      "name": "Q243564",
+      "canonical": "saint-pierre"
+    },
+    {
+      "value": "Saint-Pierre",
+      "name": "Q1430124",
+      "canonical": "saint-pierre"
+    },
+    {
+      "value": "Saint-Pierre",
+      "name": "Q636449",
+      "canonical": "saint-pierre"
+    },
+    {
+      "value": "Saint-Pierre",
+      "name": "Q1225917",
+      "canonical": "saint-pierre"
+    },
+    {
+      "value": "Saint-Pierre",
+      "name": "Q22423",
+      "canonical": "saint-pierre"
+    },
+    {
+      "value": "Saint-Pierre",
+      "name": "Q589980",
+      "canonical": "saint-pierre"
+    },
+    {
+      "value": "Gmina Krynica-Zdrój",
+      "name": "Q1443261",
+      "canonical": "gmina krynica-zdrój"
+    },
+    {
+      "value": "Dieppe",
+      "name": "Q183557",
+      "canonical": "dieppe"
+    },
+    {
+      "value": "Gmina Lewin Brzeski",
+      "name": "Q2461235",
+      "canonical": "gmina lewin brzeski"
+    },
+    {
+      "value": "Niagara-on-the-Lake",
+      "name": "Q448372",
+      "canonical": "niagara-on-the-lake"
+    },
+    {
+      "value": "Bata",
+      "name": "Q791370",
+      "canonical": "bata"
+    },
+    {
+      "value": "Gmina Staszów",
+      "name": "Q553766",
+      "canonical": "gmina staszów"
+    },
+    {
+      "value": "Staszów, Masovian Voivodeship",
+      "name": "Q7602961",
+      "canonical": "staszów , masovian voivodeship"
+    },
+    {
+      "value": "Gmina Kłobuck",
+      "name": "Q553531",
+      "canonical": "gmina kłobuck"
+    },
+    {
+      "value": "Gmina Dąbrowa Tarnowska",
+      "name": "Q2438289",
+      "canonical": "gmina dąbrowa tarnowska"
+    },
+    {
+      "value": "Gmina Ropczyce",
+      "name": "Q2227159",
+      "canonical": "gmina ropczyce"
+    },
+    {
+      "value": "Gmina Łabiszyn",
+      "name": "Q2460662",
+      "canonical": "gmina łabiszyn"
+    },
+    {
+      "value": "Gmina Łochów",
+      "name": "Q2327525",
+      "canonical": "gmina łochów"
+    },
+    {
+      "value": "Gmina Ślesin",
+      "name": "Q554575",
+      "canonical": "gmina ślesin"
+    },
+    {
+      "value": "Françoaldo Sena de Souza",
+      "name": "Q712145",
+      "canonical": "françoaldo sena de souza"
+    },
+    {
+      "value": "Gmina Trzciel",
+      "name": "Q2279971",
+      "canonical": "gmina trzciel"
+    },
+    {
+      "value": "Gmina Nidzica",
+      "name": "Q555543",
+      "canonical": "gmina nidzica"
+    },
+    {
+      "value": "Gmina Praszka",
+      "name": "Q742423",
+      "canonical": "gmina praszka"
+    },
+    {
+      "value": "Gmina Kańczuga",
+      "name": "Q2326213",
+      "canonical": "gmina kańczuga"
+    },
+    {
+      "value": "Negombo",
+      "name": "Q6547353",
+      "canonical": "negombo"
+    },
+    {
+      "value": "Cerro de Pasco",
+      "name": "Q31650241",
+      "canonical": "cerro de pasco"
+    },
+    {
+      "value": "Cerro de Pasco deposit",
+      "name": "Q12152421",
+      "canonical": "cerro de pasco deposit"
+    },
+    {
+      "value": "Gmina Strzelin",
+      "name": "Q2117812",
+      "canonical": "gmina strzelin"
+    },
+    {
+      "value": "Sabaneta",
+      "name": "Q1770717",
+      "canonical": "sabaneta"
+    },
+    {
+      "value": "Sibiti River",
+      "name": "Q1106089",
+      "canonical": "sibiti river"
+    },
+    {
+      "value": "Gmina Piaseczno",
+      "name": "Q2460090",
+      "canonical": "gmina piaseczno"
+    },
+    {
+      "value": "Gmina Połczyn-Zdrój",
+      "name": "Q557797",
+      "canonical": "gmina połczyn-zdrój"
+    },
+    {
+      "value": "Gmina Barlinek",
+      "name": "Q557639",
+      "canonical": "gmina barlinek"
+    },
+    {
+      "value": "Gmina Barwice",
+      "name": "Q558755",
+      "canonical": "gmina barwice"
+    },
+    {
+      "value": "Bauchi",
+      "name": "Q59680995",
+      "canonical": "bauchi"
+    },
+    {
+      "value": "nyala",
+      "name": "Q239032",
+      "canonical": "nyala"
+    },
+    {
+      "value": "Gmina Mońki",
+      "name": "Q2014515",
+      "canonical": "gmina mońki"
+    },
+    {
+      "value": "Gmina Brzeszcze",
+      "name": "Q2144889",
+      "canonical": "gmina brzeszcze"
+    },
+    {
+      "value": "Langley",
+      "name": "Q1805330",
+      "canonical": "langley"
+    },
+    {
+      "value": "Gmina Grodków",
+      "name": "Q2461246",
+      "canonical": "gmina grodków"
+    },
+    {
+      "value": "Gmina Wilamowice",
+      "name": "Q554745",
+      "canonical": "gmina wilamowice"
+    },
+    {
+      "value": "Gmina Olecko",
+      "name": "Q554714",
+      "canonical": "gmina olecko"
+    },
+    {
+      "value": "Gmina Pisz",
+      "name": "Q555052",
+      "canonical": "gmina pisz"
+    },
+    {
+      "value": "Gmina Goniądz",
+      "name": "Q19652390",
+      "canonical": "gmina goniądz"
+    },
+    {
+      "value": "Gmina Konstancin-Jeziorna",
+      "name": "Q583053",
+      "canonical": "gmina konstancin-jeziorna"
+    },
+    {
+      "value": "Nykøbing Mors",
+      "name": "Q1019481",
+      "canonical": "nykøbing mors"
+    },
+    {
+      "value": "Tapachula Municipality",
+      "name": "Q3444131",
+      "canonical": "tapachula municipality"
+    },
+    {
+      "value": "Gmina Karlino",
+      "name": "Q557061",
+      "canonical": "gmina karlino"
+    },
+    {
+      "value": "Gmina Tolkmicko",
+      "name": "Q554180",
+      "canonical": "gmina tolkmicko"
+    },
+    {
+      "value": "Gmina Rzepin",
+      "name": "Q2325072",
+      "canonical": "gmina rzepin"
+    },
+    {
+      "value": "Gmina Radzyń Chełmiński",
+      "name": "Q1815299",
+      "canonical": "gmina radzyń chełmiński"
+    },
+    {
+      "value": "Gmina Chorzele",
+      "name": "Q2328653",
+      "canonical": "gmina chorzele"
+    },
+    {
+      "value": "Gmina Libiąż",
+      "name": "Q2460792",
+      "canonical": "gmina libiąż"
+    },
+    {
+      "value": "Gmina Kłecko",
+      "name": "Q555274",
+      "canonical": "gmina kłecko"
+    },
+    {
+      "value": "Brusy",
+      "name": "Q11355715",
+      "canonical": "brusy"
+    },
+    {
+      "value": "Gmina Brusy",
+      "name": "Q551418",
+      "canonical": "gmina brusy"
+    },
+    {
+      "value": "Gmina Ciechanowiec",
+      "name": "Q2293624",
+      "canonical": "gmina ciechanowiec"
+    },
+    {
+      "value": "Gmina Bychawa",
+      "name": "Q2462980",
+      "canonical": "gmina bychawa"
+    },
+    {
+      "value": "Gmina Węgorzyno",
+      "name": "Q557073",
+      "canonical": "gmina węgorzyno"
+    },
+    {
+      "value": "Gmina Cybinka",
+      "name": "Q374090",
+      "canonical": "gmina cybinka"
+    },
+    {
+      "value": "Quillacollo Municipality",
+      "name": "Q1553258",
+      "canonical": "quillacollo municipality"
+    },
+    {
+      "value": "Gmina Wielichowo",
+      "name": "Q555459",
+      "canonical": "gmina wielichowo"
+    },
+    {
+      "value": "Gmina Ośno Lubuskie",
+      "name": "Q651623",
+      "canonical": "gmina ośno lubuskie"
+    },
+    {
+      "value": "Gmina Lubień Kujawski",
+      "name": "Q634162",
+      "canonical": "gmina lubień kujawski"
+    },
+    {
+      "value": "Ogrodzieniec",
+      "name": "Q425739",
+      "canonical": "ogrodzieniec"
+    },
+    {
+      "value": "Dawson's Creek",
+      "name": "Q461357",
+      "canonical": "dawson 's creek"
+    },
+    {
+      "value": "Coripata Municipality",
+      "name": "Q1303284",
+      "canonical": "coripata municipality"
+    },
+    {
+      "value": "Gmina Korsze",
+      "name": "Q554998",
+      "canonical": "gmina korsze"
+    },
+    {
+      "value": "Yafran District",
+      "name": "Q965665",
+      "canonical": "yafran district"
+    },
+    {
+      "value": "Tiquipaya Municipality",
+      "name": "Q303590",
+      "canonical": "tiquipaya municipality"
+    },
+    {
+      "value": "Gmina Krzyż Wielkopolski",
+      "name": "Q555580",
+      "canonical": "gmina krzyż wielkopolski"
+    },
+    {
+      "value": "Gmina Nowogród Bobrzański",
+      "name": "Q2325774",
+      "canonical": "gmina nowogród bobrzański"
+    },
+    {
+      "value": "Gmina Szczytna",
+      "name": "Q930111",
+      "canonical": "gmina szczytna"
+    },
+    {
+      "value": "Chamba people",
+      "name": "Q1060527",
+      "canonical": "chamba people"
+    },
+    {
+      "value": "Gmina Witkowo",
+      "name": "Q554190",
+      "canonical": "gmina witkowo"
+    },
+    {
+      "value": "Bragado",
+      "name": "Q2451819",
+      "canonical": "bragado"
+    },
+    {
+      "value": "Gmina Kowalewo Pomorskie",
+      "name": "Q2606211",
+      "canonical": "gmina kowalewo pomorskie"
+    },
+    {
+      "value": "Tocuyo River",
+      "name": "Q1602686",
+      "canonical": "tocuyo river"
+    },
+    {
+      "value": "Gmina Tuliszków",
+      "name": "Q555321",
+      "canonical": "gmina tuliszków"
+    },
+    {
+      "value": "Fort William",
+      "name": "Q848909",
+      "canonical": "fort william"
+    },
+    {
+      "value": "Chandala",
+      "name": "Q615468",
+      "canonical": "chandala"
+    },
+    {
+      "value": "Yesik",
+      "name": "Q12712754",
+      "canonical": "yesik"
+    },
+    {
+      "value": "João Ramalho",
+      "name": "Q3889012",
+      "canonical": "joão ramalho"
+    },
+    {
+      "value": "Gmina Suraż",
+      "name": "Q645318",
+      "canonical": "gmina suraż"
+    },
+    {
+      "value": "Gmina Ożarów Mazowiecki",
+      "name": "Q2460067",
+      "canonical": "gmina ożarów mazowiecki"
+    },
+    {
+      "value": "Manikganj District",
+      "name": "Q2024719",
+      "canonical": "manikganj district"
+    },
+    {
+      "value": "Yara International",
+      "name": "Q901886",
+      "canonical": "yara international"
+    },
+    {
+      "value": "San Borja Municipality",
+      "name": "Q2631821",
+      "canonical": "san borja municipality"
+    },
+    {
+      "value": "Gmina Szepietowo",
+      "name": "Q2327649",
+      "canonical": "gmina szepietowo"
+    },
+    {
+      "value": "Sidi Slimane",
+      "name": "Q3483291",
+      "canonical": "sidi slimane"
+    },
+    {
+      "value": "Youssoufia",
+      "name": "Q12195041",
+      "canonical": "youssoufia"
+    },
+    {
+      "value": "Spatha",
+      "name": "Q60870",
+      "canonical": "spatha"
+    },
+    {
+      "value": "Badessa",
+      "name": "Q17330050",
+      "canonical": "badessa"
+    },
+    {
+      "value": "Onoto",
+      "name": "Q2101009",
+      "canonical": "onoto"
+    },
+    {
+      "value": "Michelena",
+      "name": "Q2629942",
+      "canonical": "michelena"
+    },
+    {
+      "value": "Kalfou",
+      "name": "Q1722204",
+      "canonical": "kalfou"
+    },
+    {
+      "value": "Venlo",
+      "name": "Q9777",
+      "canonical": "venlo"
+    },
+    {
+      "value": "Teapa Municipality",
+      "name": "Q2977908",
+      "canonical": "teapa municipality"
+    },
+    {
+      "value": "Navel of the World",
+      "name": "Q15489401",
+      "canonical": "navel of the world"
+    },
+    {
+      "value": "Nahita",
+      "name": "Q30970853",
+      "canonical": "nahita"
+    },
+    {
+      "value": "True Blue",
+      "name": "Q526364",
+      "canonical": "true blue"
+    },
+    {
+      "value": "Diekirch",
+      "name": "Q16050",
+      "canonical": "diekirch"
+    },
+    {
+      "value": "Ávila",
+      "name": "Q15688",
+      "canonical": "ávila"
+    },
+    {
+      "value": "London",
+      "name": "Q92561",
+      "canonical": "london"
+    },
+    {
+      "value": "Greater London",
+      "name": "Q23306",
+      "canonical": "greater london"
+    },
+    {
+      "value": "City of London",
+      "name": "Q23311",
+      "canonical": "city of london"
+    },
+    {
+      "value": "Holy See",
+      "name": "Q159583",
+      "canonical": "holy see"
+    },
+    {
+      "value": "Stockholm Municipality",
+      "name": "Q506250",
+      "canonical": "stockholm municipality"
+    },
+    {
+      "value": "Stockholm City",
+      "name": "Q10680648",
+      "canonical": "stockholm city"
+    },
+    {
+      "value": "Stockholm County",
+      "name": "Q104231",
+      "canonical": "stockholm county"
+    },
+    {
+      "value": "Stockholm urban area",
+      "name": "Q94385",
+      "canonical": "stockholm urban area"
+    },
+    {
+      "value": "Stockholm",
+      "name": "Q976601",
+      "canonical": "stockholm"
+    },
+    {
+      "value": "Stockholm",
+      "name": "Q1787199",
+      "canonical": "stockholm"
+    },
+    {
+      "value": "Stockholm",
+      "name": "Q3447382",
+      "canonical": "stockholm"
+    },
+    {
+      "value": "Stockholm",
+      "name": "Q2839702",
+      "canonical": "stockholm"
+    },
+    {
+      "value": "Stockholm Township",
+      "name": "Q1894234",
+      "canonical": "stockholm township"
+    },
+    {
+      "value": "Portal:Melbourne",
+      "name": "Q28754033",
+      "canonical": "portal : melbourne"
+    },
+    {
+      "value": "Elafos, Pieria",
+      "name": "Q3541077",
+      "canonical": "elafos , pieria"
+    },
+    {
+      "value": "Calais",
+      "name": "Q612696",
+      "canonical": "calais"
+    },
+    {
+      "value": "Calais",
+      "name": "Q3476693",
+      "canonical": "calais"
+    },
+    {
+      "value": "Valencia Province",
+      "name": "Q54939",
+      "canonical": "valencia province"
+    },
+    {
+      "value": "Valencia",
+      "name": "Q54880",
+      "canonical": "valencia"
+    },
+    {
+      "value": "Almere",
+      "name": "Q83178",
+      "canonical": "almere"
+    },
+    {
+      "value": "Mofletta",
+      "name": "Q2777639",
+      "canonical": "mofletta"
+    },
+    {
+      "value": "Lubin",
+      "name": "Q237512",
+      "canonical": "lubin"
+    },
+    {
+      "value": "Portalegre",
+      "name": "Q622819",
+      "canonical": "portalegre"
+    },
+    {
+      "value": "list of people from York",
+      "name": "Q6632874",
+      "canonical": "list of people from york"
+    },
+    {
+      "value": "Oulu",
+      "name": "Q2224475",
+      "canonical": "oulu"
+    },
+    {
+      "value": "Gmina Kórnik",
+      "name": "Q555812",
+      "canonical": "gmina kórnik"
+    },
+    {
+      "value": "Gmina Środa Wielkopolska",
+      "name": "Q554658",
+      "canonical": "gmina środa wielkopolska"
+    },
+    {
+      "value": "Nerwiki",
+      "name": "Q3338375",
+      "canonical": "nerwiki"
+    },
+    {
+      "value": "Nerwik",
+      "name": "Q11790692",
+      "canonical": "nerwik"
+    },
+    {
+      "value": "Gmina Pułtusk",
+      "name": "Q548922",
+      "canonical": "gmina pułtusk"
+    },
+    {
+      "value": "Antioquía",
+      "name": "Q20136560",
+      "canonical": "antioquía"
+    },
+    {
+      "value": "City of Leicester",
+      "name": "Q21683242",
+      "canonical": "city of leicester"
+    },
+    {
+      "value": "Gmina Myszyniec",
+      "name": "Q2509368",
+      "canonical": "gmina myszyniec"
+    },
+    {
+      "value": "Korsholm",
+      "name": "Q1784789",
+      "canonical": "korsholm"
+    },
+    {
+      "value": "Stoke-upon-Trent",
+      "name": "Q727839",
+      "canonical": "stoke-upon-trent"
+    },
+    {
+      "value": "Gmina Zagórów",
+      "name": "Q553991",
+      "canonical": "gmina zagórów"
+    },
+    {
+      "value": "Gmina Zakroczym",
+      "name": "Q2189300",
+      "canonical": "gmina zakroczym"
+    },
+    {
+      "value": "Gmina Międzyzdroje",
+      "name": "Q557346",
+      "canonical": "gmina międzyzdroje"
+    },
+    {
+      "value": "Alania",
+      "name": "Q1771706",
+      "canonical": "alania"
+    },
+    {
+      "value": "Foča-Ustikolina",
+      "name": "Q1267044",
+      "canonical": "foča-ustikolina"
+    },
+    {
+      "value": "Gmina Gryfino",
+      "name": "Q558798",
+      "canonical": "gmina gryfino"
+    },
+    {
+      "value": "City of Sunderland",
+      "name": "Q1280897",
+      "canonical": "city of sunderland"
+    },
+    {
+      "value": "Gmina Zelów",
+      "name": "Q2324134",
+      "canonical": "gmina zelów"
+    },
+    {
+      "value": "Grevenmacher",
+      "name": "Q4132923",
+      "canonical": "grevenmacher"
+    },
+    {
+      "value": "Gmina Lwówek Śląski",
+      "name": "Q2327995",
+      "canonical": "gmina lwówek śląski"
+    },
+    {
+      "value": "Maiduguri",
+      "name": "Q49106133",
+      "canonical": "maiduguri"
+    },
+    {
+      "value": "Tūranga",
+      "name": "Q61748664",
+      "canonical": "tūranga"
+    },
+    {
+      "value": "Gmina Złocieniec",
+      "name": "Q557287",
+      "canonical": "gmina złocieniec"
+    },
+    {
+      "value": "Diriyah  governorate",
+      "name": "Q10729198",
+      "canonical": "diriyah governorate"
+    },
+    {
+      "value": "Gali",
+      "name": "Q236673",
+      "canonical": "gali"
+    },
+    {
+      "value": "Gmina Ćmielów",
+      "name": "Q554667",
+      "canonical": "gmina ćmielów"
+    },
+    {
+      "value": "Gmina Świerzawa",
+      "name": "Q2458724",
+      "canonical": "gmina świerzawa"
+    },
+    {
+      "value": "Gmina Żmigród",
+      "name": "Q2134655",
+      "canonical": "gmina żmigród"
+    },
+    {
+      "value": "Gmina Żychlin",
+      "name": "Q2324145",
+      "canonical": "gmina żychlin"
+    },
+    {
+      "value": "Alvarado",
+      "name": "Q299444",
+      "canonical": "alvarado"
+    },
+    {
+      "value": "Alvarado Municipality",
+      "name": "Q10732346",
+      "canonical": "alvarado municipality"
+    },
+    {
+      "value": "Koudougou Department",
+      "name": "Q6434477",
+      "canonical": "koudougou department"
+    },
+    {
+      "value": "Caimito",
+      "name": "Q738108",
+      "canonical": "caimito"
+    },
+    {
+      "value": "Gmina Serock",
+      "name": "Q928352",
+      "canonical": "gmina serock"
+    },
+    {
+      "value": "Masvingo Province",
+      "name": "Q498351",
+      "canonical": "masvingo province"
+    },
+    {
+      "value": "Gmina Przedbórz",
+      "name": "Q2459647",
+      "canonical": "gmina przedbórz"
+    },
+    {
+      "value": "Rurrenabaque Municipality",
+      "name": "Q1516809",
+      "canonical": "rurrenabaque municipality"
+    },
+    {
+      "value": "Gmina Czerwieńsk",
+      "name": "Q734367",
+      "canonical": "gmina czerwieńsk"
+    },
+    {
+      "value": "Cliza Municipality",
+      "name": "Q1295948",
+      "canonical": "cliza municipality"
+    },
+    {
+      "value": "Beit Lahia",
+      "name": "Q4881452",
+      "canonical": "beit lahia"
+    },
+    {
+      "value": "Gmina Baranów Sandomierski",
+      "name": "Q1837259",
+      "canonical": "gmina baranów sandomierski"
+    },
+    {
+      "value": "Gmina Bełżyce",
+      "name": "Q1936009",
+      "canonical": "gmina bełżyce"
+    },
+    {
+      "value": "Gmina Brok",
+      "name": "Q2358596",
+      "canonical": "gmina brok"
+    },
+    {
+      "value": "Naguanagua",
+      "name": "Q3335118",
+      "canonical": "naguanagua"
+    },
+    {
+      "value": "Gmina Piątek",
+      "name": "Q2345905",
+      "canonical": "gmina piątek"
+    },
+    {
+      "value": "Gmina Mikołajki",
+      "name": "Q555423",
+      "canonical": "gmina mikołajki"
+    },
+    {
+      "value": "Gmina Krotoszyn",
+      "name": "Q555222",
+      "canonical": "gmina krotoszyn"
+    },
+    {
+      "value": "Gmina Poniatowa",
+      "name": "Q1969011",
+      "canonical": "gmina poniatowa"
+    },
+    {
+      "value": "Gmina Prudnik",
+      "name": "Q2051441",
+      "canonical": "gmina prudnik"
+    },
+    {
+      "value": "Gmina Gryfów Śląski",
+      "name": "Q1834512",
+      "canonical": "gmina gryfów śląski"
+    },
+    {
+      "value": "Gmina Glinojeck",
+      "name": "Q2328546",
+      "canonical": "gmina glinojeck"
+    },
+    {
+      "value": "Gmina Nakło nad Notecią",
+      "name": "Q2264652",
+      "canonical": "gmina nakło nad notecią"
+    },
+    {
+      "value": "Gmina Moryń",
+      "name": "Q557304",
+      "canonical": "gmina moryń"
+    },
+    {
+      "value": "Gmina Kalisz Pomorski",
+      "name": "Q557176",
+      "canonical": "gmina kalisz pomorski"
+    },
+    {
+      "value": "Gmina Jaworzyna Śląska",
+      "name": "Q1532931",
+      "canonical": "gmina jaworzyna śląska"
+    },
+    {
+      "value": "Gmina Halinów",
+      "name": "Q607946",
+      "canonical": "gmina halinów"
+    },
+    {
+      "value": "Gmina Szamocin",
+      "name": "Q555480",
+      "canonical": "gmina szamocin"
+    },
+    {
+      "value": "Gmina Miłomłyn",
+      "name": "Q555333",
+      "canonical": "gmina miłomłyn"
+    },
+    {
+      "value": "Gmina Kietrz",
+      "name": "Q2461266",
+      "canonical": "gmina kietrz"
+    },
+    {
+      "value": "Gmina Pakość",
+      "name": "Q2149918",
+      "canonical": "gmina pakość"
+    },
+    {
+      "value": "Huari",
+      "name": "Q2303100",
+      "canonical": "huari"
+    },
+    {
+      "value": "Gmina Trzemeszno",
+      "name": "Q555415",
+      "canonical": "gmina trzemeszno"
+    },
+    {
+      "value": "Gmina Niemodlin",
+      "name": "Q280036",
+      "canonical": "gmina niemodlin"
+    },
+    {
+      "value": "Gmina Dobczyce",
+      "name": "Q976219",
+      "canonical": "gmina dobczyce"
+    },
+    {
+      "value": "Mbombo",
+      "name": "Q2553587",
+      "canonical": "mbombo"
+    },
+    {
+      "value": "Gmina Lubawka",
+      "name": "Q2404424",
+      "canonical": "gmina lubawka"
+    },
+    {
+      "value": "Gmina Twardogóra",
+      "name": "Q2110754",
+      "canonical": "gmina twardogóra"
+    },
+    {
+      "value": "Gmina Czerwionka-Leszczyny",
+      "name": "Q553966",
+      "canonical": "gmina czerwionka-leszczyny"
+    },
+    {
+      "value": "Gmina Młynary",
+      "name": "Q555530",
+      "canonical": "gmina młynary"
+    },
+    {
+      "value": "Nowa Karczma, Nowy Dwór Gdański County",
+      "name": "Q3501144",
+      "canonical": "nowa karczma , nowy dwór gdański county"
+    },
+    {
+      "value": "Gabela",
+      "name": "Q2538666",
+      "canonical": "gabela"
+    },
+    {
+      "value": "Djinet",
+      "name": "Q3033013",
+      "canonical": "djinet"
+    },
+    {
+      "value": "Shinahota Municipality",
+      "name": "Q1585069",
+      "canonical": "shinahota municipality"
+    },
+    {
+      "value": "Paimio Chair",
+      "name": "Q2575568",
+      "canonical": "paimio chair"
+    },
+    {
+      "value": "Thakhek District",
+      "name": "Q7709364",
+      "canonical": "thakhek district"
+    },
+    {
+      "value": "Ciro Redondo",
+      "name": "Q2974219",
+      "canonical": "ciro redondo"
+    },
+    {
+      "value": "El Rosarito",
+      "name": "Q5352059",
+      "canonical": "el rosarito"
+    },
+    {
+      "value": "Gmina Kamień Krajeński",
+      "name": "Q369461",
+      "canonical": "gmina kamień krajeński"
+    },
+    {
+      "value": "Gmina Chociwel",
+      "name": "Q557316",
+      "canonical": "gmina chociwel"
+    },
+    {
+      "value": "Gmina Okonek",
+      "name": "Q302024",
+      "canonical": "gmina okonek"
+    },
+    {
+      "value": "Gmina Miłosław",
+      "name": "Q555237",
+      "canonical": "gmina miłosław"
+    },
+    {
+      "value": "Miłosław",
+      "name": "Q59841756",
+      "canonical": "miłosław"
+    },
+    {
+      "value": "Gmina Wleń",
+      "name": "Q2328035",
+      "canonical": "gmina wleń"
+    },
+    {
+      "value": "Gmina Kosów Lacki",
+      "name": "Q2129424",
+      "canonical": "gmina kosów lacki"
+    },
+    {
+      "value": "Lake Kariba",
+      "name": "Q1047206",
+      "canonical": "lake kariba"
+    },
+    {
+      "value": "Solin",
+      "name": "Q642828",
+      "canonical": "solin"
+    },
+    {
+      "value": "Nkhata Bay District",
+      "name": "Q1051505",
+      "canonical": "nkhata bay district"
+    },
+    {
+      "value": "Gmina Dobre Miasto",
+      "name": "Q555194",
+      "canonical": "gmina dobre miasto"
+    },
+    {
+      "value": "Atlántida Department",
+      "name": "Q622619",
+      "canonical": "atlántida department"
+    },
+    {
+      "value": "Gmina Muszyna",
+      "name": "Q2606201",
+      "canonical": "gmina muszyna"
+    },
+    {
+      "value": "Cajas United Rural",
+      "name": "Q8254971",
+      "canonical": "cajas united rural"
+    },
+    {
+      "value": "restinga",
+      "name": "Q3048983",
+      "canonical": "restinga"
+    },
+    {
+      "value": "Gmina Nowogród",
+      "name": "Q2327502",
+      "canonical": "gmina nowogród"
+    },
+    {
+      "value": "Salto",
+      "name": "Q335506",
+      "canonical": "salto"
+    },
+    {
+      "value": "Gadabay District",
+      "name": "Q330749",
+      "canonical": "gadabay district"
+    },
+    {
+      "value": "Dongou District",
+      "name": "Q5295993",
+      "canonical": "dongou district"
+    },
+    {
+      "value": "Altınoluk",
+      "name": "Q447171",
+      "canonical": "altınoluk"
+    },
+    {
+      "value": "Hala",
+      "name": "Q5404631",
+      "canonical": "hala"
+    },
+    {
+      "value": "Bijapur",
+      "name": "Q3639888",
+      "canonical": "bijapur"
+    },
+    {
+      "value": "القنطرة",
+      "name": "Q3050002",
+      "canonical": "القنطرة"
+    },
+    {
+      "value": "El Kantara",
+      "name": "Q12233739",
+      "canonical": "el kantara"
+    },
+    {
+      "value": "Benoy",
+      "name": "Q17062385",
+      "canonical": "benoy"
+    },
+    {
+      "value": "Utrecht",
+      "name": "Q803",
+      "canonical": "utrecht"
+    },
+    {
+      "value": "Utrecht",
+      "name": "Q776",
+      "canonical": "utrecht"
+    },
+    {
+      "value": "Utrecht",
+      "name": "Q3040539",
+      "canonical": "utrecht"
+    },
+    {
+      "value": "Ålesund",
+      "name": "Q62266",
+      "canonical": "ålesund"
+    },
+    {
+      "value": "Ålesund",
+      "name": "Q26772370",
+      "canonical": "ålesund"
+    },
+    {
+      "value": "Gmina Wąchock",
+      "name": "Q555550",
+      "canonical": "gmina wąchock"
+    },
+    {
+      "value": "Winnipeg, Missouri",
+      "name": "Q27985640",
+      "canonical": "winnipeg , missouri"
+    },
+    {
+      "value": "Glasgow City",
+      "name": "Q55934339",
+      "canonical": "glasgow city"
+    },
+    {
+      "value": "Saint Astius",
+      "name": "Q749500",
+      "canonical": "saint astius"
+    },
+    {
+      "value": "Trebnje Municipality",
+      "name": "Q13378243",
+      "canonical": "trebnje municipality"
+    },
+    {
+      "value": "Pyonggang County",
+      "name": "Q487084",
+      "canonical": "pyonggang county"
+    },
+    {
+      "value": "Plymouth",
+      "name": "Q326295",
+      "canonical": "plymouth"
+    },
+    {
+      "value": "Salford, Oxfordshire",
+      "name": "Q2017916",
+      "canonical": "salford , oxfordshire"
+    },
+    {
+      "value": "Gmina Murowana Goślina",
+      "name": "Q555486",
+      "canonical": "gmina murowana goślina"
+    },
+    {
+      "value": "Gmina Gołańcz",
+      "name": "Q554584",
+      "canonical": "gmina gołańcz"
+    },
+    {
+      "value": "Gmina Nowy Tomyśl",
+      "name": "Q554752",
+      "canonical": "gmina nowy tomyśl"
+    },
+    {
+      "value": "Gmina Września",
+      "name": "Q554802",
+      "canonical": "gmina września"
+    },
+    {
+      "value": "Giza Pyramids",
+      "name": "Q13217298",
+      "canonical": "giza pyramids"
+    },
+    {
+      "value": "Gmina Stryków",
+      "name": "Q2458894",
+      "canonical": "gmina stryków"
+    },
+    {
+      "value": "Stryków, Masovian Voivodeship",
+      "name": "Q7625584",
+      "canonical": "stryków , masovian voivodeship"
+    },
+    {
+      "value": "Taoyuan District",
+      "name": "Q715975",
+      "canonical": "taoyuan district"
+    },
+    {
+      "value": "Gmina Lubomierz",
+      "name": "Q2328022",
+      "canonical": "gmina lubomierz"
+    },
+    {
+      "value": "Gmina Błażowa",
+      "name": "Q2332088",
+      "canonical": "gmina błażowa"
+    },
+    {
+      "value": "Štip Municipality",
+      "name": "Q2423082",
+      "canonical": "štip municipality"
+    },
+    {
+      "value": "Kostrad",
+      "name": "Q129154",
+      "canonical": "kostrad"
+    },
+    {
+      "value": "Gmina Zbąszynek",
+      "name": "Q2001557",
+      "canonical": "gmina zbąszynek"
+    },
+    {
+      "value": "Nokia",
+      "name": "Q1418",
+      "canonical": "nokia"
+    },
+    {
+      "value": "Gmina Opalenica",
+      "name": "Q7768794",
+      "canonical": "gmina opalenica"
+    },
+    {
+      "value": "Napier, Western Cape",
+      "name": "Q676470",
+      "canonical": "napier , western cape"
+    },
+    {
+      "value": "Yamagata",
+      "name": "Q773311",
+      "canonical": "yamagata"
+    },
+    {
+      "value": "Kisumu County",
+      "name": "Q1743809",
+      "canonical": "kisumu county"
+    },
+    {
+      "value": "Cucuta",
+      "name": "Q12115611",
+      "canonical": "cucuta"
+    },
+    {
+      "value": "Bani Walid District",
+      "name": "Q1366684",
+      "canonical": "bani walid district"
+    },
+    {
+      "value": "Gmina Złoczew",
+      "name": "Q2457482",
+      "canonical": "gmina złoczew"
+    },
+    {
+      "value": "Gorkha Beer",
+      "name": "Q256557",
+      "canonical": "gorkha beer"
+    },
+    {
+      "value": "Budapest District III",
+      "name": "Q580770",
+      "canonical": "budapest district iii"
+    },
+    {
+      "value": "Gmina Sępólno Krajeńskie",
+      "name": "Q1880150",
+      "canonical": "gmina sępólno krajeńskie"
+    },
+    {
+      "value": "Gmina Łask",
+      "name": "Q2460673",
+      "canonical": "gmina łask"
+    },
+    {
+      "value": "Gmina Żnin",
+      "name": "Q2204247",
+      "canonical": "gmina żnin"
+    },
+    {
+      "value": "Gmina Świecie",
+      "name": "Q1817381",
+      "canonical": "gmina świecie"
+    },
+    {
+      "value": "Gmina Żuromin",
+      "name": "Q2457988",
+      "canonical": "gmina żuromin"
+    },
+    {
+      "value": "Gmina Wyśmierzyce",
+      "name": "Q2323827",
+      "canonical": "gmina wyśmierzyce"
+    },
+    {
+      "value": "Gmina Pacanów",
+      "name": "Q553728",
+      "canonical": "gmina pacanów"
+    },
+    {
+      "value": "Gmina Wieliczka",
+      "name": "Q2185724",
+      "canonical": "gmina wieliczka"
+    },
+    {
+      "value": "Gmina Bobolice",
+      "name": "Q558732",
+      "canonical": "gmina bobolice"
+    },
+    {
+      "value": "Haripur",
+      "name": "Q3783365",
+      "canonical": "haripur"
+    },
+    {
+      "value": "Gmina Dzierzgoń",
+      "name": "Q550724",
+      "canonical": "gmina dzierzgoń"
+    },
+    {
+      "value": "Gmina Pleszew",
+      "name": "Q555825",
+      "canonical": "gmina pleszew"
+    },
+    {
+      "value": "Gmina Wysoka",
+      "name": "Q555503",
+      "canonical": "gmina wysoka"
+    },
+    {
+      "value": "Gmina Skoki",
+      "name": "Q556772",
+      "canonical": "gmina skoki"
+    },
+    {
+      "value": "Gouloux",
+      "name": "Q1098412",
+      "canonical": "gouloux"
+    },
+    {
+      "value": "Gmina Golczewo",
+      "name": "Q557354",
+      "canonical": "gmina golczewo"
+    },
+    {
+      "value": "Gmina Baborów",
+      "name": "Q2605880",
+      "canonical": "gmina baborów"
+    },
+    {
+      "value": "Gmina Skępe",
+      "name": "Q2458653",
+      "canonical": "gmina skępe"
+    },
+    {
+      "value": "Gmina Stęszew",
+      "name": "Q554797",
+      "canonical": "gmina stęszew"
+    },
+    {
+      "value": "Gmina Jabłonowo Pomorskie",
+      "name": "Q921672",
+      "canonical": "gmina jabłonowo pomorskie"
+    },
+    {
+      "value": "Gmina Knyszyn",
+      "name": "Q1919789",
+      "canonical": "gmina knyszyn"
+    },
+    {
+      "value": "Debar Municipality",
+      "name": "Q1344996",
+      "canonical": "debar municipality"
+    },
+    {
+      "value": "Pingtung County",
+      "name": "Q194989",
+      "canonical": "pingtung county"
+    },
+    {
+      "value": "Gmina Szadek",
+      "name": "Q1971574",
+      "canonical": "gmina szadek"
+    },
+    {
+      "value": "Gothi",
+      "name": "Q1501813",
+      "canonical": "gothi"
+    },
+    {
+      "value": "Gmina Węgorzewo",
+      "name": "Q556286",
+      "canonical": "gmina węgorzewo"
+    },
+    {
+      "value": "Gmina Mrocza",
+      "name": "Q675479",
+      "canonical": "gmina mrocza"
+    },
+    {
+      "value": "Basarabeasca",
+      "name": "Q13377429",
+      "canonical": "basarabeasca"
+    },
+    {
+      "value": "Batallas Municipality",
+      "name": "Q631626",
+      "canonical": "batallas municipality"
+    },
+    {
+      "value": "Dongola",
+      "name": "Q2200873",
+      "canonical": "dongola"
+    },
+    {
+      "value": "Turkestan",
+      "name": "Q6549315",
+      "canonical": "turkestan"
+    },
+    {
+      "value": "Gmina Wolsztyn",
+      "name": "Q556427",
+      "canonical": "gmina wolsztyn"
+    },
+    {
+      "value": "Gmina Biały Bór",
+      "name": "Q557402",
+      "canonical": "gmina biały bór"
+    },
+    {
+      "value": "Orapa",
+      "name": "Q138383",
+      "canonical": "orapa"
+    },
+    {
+      "value": "Orapa diamond mine",
+      "name": "Q859817",
+      "canonical": "orapa diamond mine"
+    },
+    {
+      "value": "Birkerød Municipality",
+      "name": "Q865652",
+      "canonical": "birkerød municipality"
+    },
+    {
+      "value": "Bocas del Toro District",
+      "name": "Q2702428",
+      "canonical": "bocas del toro district"
+    },
+    {
+      "value": "Gmina Lubniewice",
+      "name": "Q2460579",
+      "canonical": "gmina lubniewice"
+    },
+    {
+      "value": "Dédougou Department",
+      "name": "Q376197",
+      "canonical": "dédougou department"
+    },
+    {
+      "value": "Gmina Oborniki Śląskie",
+      "name": "Q669807",
+      "canonical": "gmina oborniki śląskie"
+    },
+    {
+      "value": "Gmina Gołdap",
+      "name": "Q555525",
+      "canonical": "gmina gołdap"
+    },
+    {
+      "value": "Gmina Ciężkowice",
+      "name": "Q782659",
+      "canonical": "gmina ciężkowice"
+    },
+    {
+      "value": "Gmina Brześć Kujawski",
+      "name": "Q2463096",
+      "canonical": "gmina brześć kujawski"
+    },
+    {
+      "value": "Gmina Susz",
+      "name": "Q554940",
+      "canonical": "gmina susz"
+    },
+    {
+      "value": "Gmina Przedecz",
+      "name": "Q556458",
+      "canonical": "gmina przedecz"
+    },
+    {
+      "value": "Gmina Kępice",
+      "name": "Q551469",
+      "canonical": "gmina kępice"
+    },
+    {
+      "value": "Gmina Mirosławiec",
+      "name": "Q557534",
+      "canonical": "gmina mirosławiec"
+    },
+    {
+      "value": "Gmina Recz",
+      "name": "Q557560",
+      "canonical": "gmina recz"
+    },
+    {
+      "value": "Córdoba",
+      "name": "Q20270883",
+      "canonical": "córdoba"
+    },
+    {
+      "value": "Gmina Kamieńsk",
+      "name": "Q2460557",
+      "canonical": "gmina kamieńsk"
+    },
+    {
+      "value": "Gmina Chęciny",
+      "name": "Q553434",
+      "canonical": "gmina chęciny"
+    },
+    {
+      "value": "Gmina Krasnobród",
+      "name": "Q2105536",
+      "canonical": "gmina krasnobród"
+    },
+    {
+      "value": "Gmina Piotrków Kujawski",
+      "name": "Q1829243",
+      "canonical": "gmina piotrków kujawski"
+    },
+    {
+      "value": "Viacha Municipality",
+      "name": "Q1544198",
+      "canonical": "viacha municipality"
+    },
+    {
+      "value": "Gmina Stawiszyn",
+      "name": "Q555401",
+      "canonical": "gmina stawiszyn"
+    },
+    {
+      "value": "Gmina Czchów",
+      "name": "Q955955",
+      "canonical": "gmina czchów"
+    },
+    {
+      "value": "Gmina Lidzbark",
+      "name": "Q304520",
+      "canonical": "gmina lidzbark"
+    },
+    {
+      "value": "Gmina Nekla",
+      "name": "Q554075",
+      "canonical": "gmina nekla"
+    },
+    {
+      "value": "Gmina Borek Wielkopolski",
+      "name": "Q554002",
+      "canonical": "gmina borek wielkopolski"
+    },
+    {
+      "value": "Gmina Drobin",
+      "name": "Q615353",
+      "canonical": "gmina drobin"
+    },
+    {
+      "value": "Gmina Działoszyn",
+      "name": "Q264232",
+      "canonical": "gmina działoszyn"
+    },
+    {
+      "value": "SS Mendi",
+      "name": "Q1920341",
+      "canonical": "ss mendi"
+    },
+    {
+      "value": "Gmina Nowe Miasto nad Pilicą",
+      "name": "Q2191864",
+      "canonical": "gmina nowe miasto nad pilicą"
+    },
+    {
+      "value": "Floru",
+      "name": "Q12165808",
+      "canonical": "floru"
+    },
+    {
+      "value": "Gmina Suchań",
+      "name": "Q558760",
+      "canonical": "gmina suchań"
+    },
+    {
+      "value": "Gmina Chocianów",
+      "name": "Q1994813",
+      "canonical": "gmina chocianów"
+    },
+    {
+      "value": "Gmina Wojnicz",
+      "name": "Q2458395",
+      "canonical": "gmina wojnicz"
+    },
+    {
+      "value": "Gmina Golina",
+      "name": "Q556348",
+      "canonical": "gmina golina"
+    },
+    {
+      "value": "City of Newcastle upon Tyne",
+      "name": "Q21012735",
+      "canonical": "city of newcastle upon tyne"
+    },
+    {
+      "value": "Newcastle",
+      "name": "Q57278",
+      "canonical": "newcastle"
+    },
+    {
+      "value": "Sorata Municipality",
+      "name": "Q1860758",
+      "canonical": "sorata municipality"
+    },
+    {
+      "value": "Gmina Mikstat",
+      "name": "Q554969",
+      "canonical": "gmina mikstat"
+    },
+    {
+      "value": "Achacachi Municipality",
+      "name": "Q1819965",
+      "canonical": "achacachi municipality"
+    },
+    {
+      "value": "Gmina Rakoniewice",
+      "name": "Q555586",
+      "canonical": "gmina rakoniewice"
+    },
+    {
+      "value": "Murray Bridge",
+      "name": "Q736750",
+      "canonical": "murray bridge"
+    },
+    {
+      "value": "Populina",
+      "name": "Q10351619",
+      "canonical": "populina"
+    },
+    {
+      "value": "Conchal",
+      "name": "Q16237925",
+      "canonical": "conchal"
+    },
+    {
+      "value": "Pilar",
+      "name": "Q2013557",
+      "canonical": "pilar"
+    },
+    {
+      "value": "Gália",
+      "name": "Q97342707",
+      "canonical": "gália"
+    },
+    {
+      "value": "Fresnillo plc",
+      "name": "Q3087545",
+      "canonical": "fresnillo plc"
+    },
+    {
+      "value": "Villa Tunari Municipality",
+      "name": "Q1232232",
+      "canonical": "villa tunari municipality"
+    },
+    {
+      "value": "Gmina Supraśl",
+      "name": "Q1857009",
+      "canonical": "gmina supraśl"
+    },
+    {
+      "value": "Khobi",
+      "name": "Q2657626",
+      "canonical": "khobi"
+    },
+    {
+      "value": "Tiraque Municipality",
+      "name": "Q1516831",
+      "canonical": "tiraque municipality"
+    },
+    {
+      "value": "Thyolo District",
+      "name": "Q722515",
+      "canonical": "thyolo district"
+    },
+    {
+      "value": "Florencio Varela",
+      "name": "Q5460859",
+      "canonical": "florencio varela"
+    },
+    {
+      "value": "Caseros",
+      "name": "Q5048425",
+      "canonical": "caseros"
+    },
+    {
+      "value": "Tarata Municipality",
+      "name": "Q659801",
+      "canonical": "tarata municipality"
+    },
+    {
+      "value": "Ndom",
+      "name": "Q16877871",
+      "canonical": "ndom"
+    },
+    {
+      "value": "villa",
+      "name": "Q3950",
+      "canonical": "villa"
+    },
+    {
+      "value": "Sandnes",
+      "name": "Q27587",
+      "canonical": "sandnes"
+    },
+    {
+      "value": "Segontia",
+      "name": "Q29574305",
+      "canonical": "segontia"
+    },
+    {
+      "value": "Heraclia",
+      "name": "Q3133374",
+      "canonical": "heraclia"
+    },
+    {
+      "value": "Bedessa",
+      "name": "Q2893571",
+      "canonical": "bedessa"
+    },
+    {
+      "value": "São Paulo",
+      "name": "Q175",
+      "canonical": "são paulo"
+    },
+    {
+      "value": "Brussels-Capital Region",
+      "name": "Q240",
+      "canonical": "brussels-capital region"
+    },
+    {
+      "value": "Brussels metropolitan area",
+      "name": "Q9005",
+      "canonical": "brussels metropolitan area"
+    },
+    {
+      "value": "list of people of Szczecin",
+      "name": "Q6632982",
+      "canonical": "list of people of szczecin"
+    },
+    {
+      "value": "Panama City",
+      "name": "Q852591",
+      "canonical": "panama city"
+    },
+    {
+      "value": "Belgrade District",
+      "name": "Q2074197",
+      "canonical": "belgrade district"
+    },
+    {
+      "value": "Banjul",
+      "name": "Q3726",
+      "canonical": "banjul"
+    },
+    {
+      "value": "Guadalajara",
+      "name": "Q11953",
+      "canonical": "guadalajara"
+    },
+    {
+      "value": "Dijon",
+      "name": "Q7003",
+      "canonical": "dijon"
+    },
+    {
+      "value": "tarento",
+      "name": "Q2705098",
+      "canonical": "tarento"
+    },
+    {
+      "value": "Ávila",
+      "name": "Q55695431",
+      "canonical": "ávila"
+    },
+    {
+      "value": "Differdange",
+      "name": "Q4844168",
+      "canonical": "differdange"
+    },
+    {
+      "value": "City of Bristol",
+      "name": "Q21693433",
+      "canonical": "city of bristol"
+    },
+    {
+      "value": "City of Edinburgh",
+      "name": "Q2379199",
+      "canonical": "city of edinburgh"
+    },
+    {
+      "value": "Liverpool",
+      "name": "Q21665571",
+      "canonical": "liverpool"
+    },
+    {
+      "value": "Karak District",
+      "name": "Q1114427",
+      "canonical": "karak district"
+    },
+    {
+      "value": "Leeds",
+      "name": "Q774015",
+      "canonical": "leeds"
+    },
+    {
+      "value": "Dunkerque",
+      "name": "Q6398340",
+      "canonical": "dunkerque"
+    },
+    {
+      "value": "Dunkirk",
+      "name": "Q406398",
+      "canonical": "dunkirk"
+    },
+    {
+      "value": "Gmina Czempiń",
+      "name": "Q2328442",
+      "canonical": "gmina czempiń"
+    },
+    {
+      "value": "London",
+      "name": "Q84",
+      "canonical": "london"
+    },
+    {
+      "value": "Oranjestad",
+      "name": "Q246290",
+      "canonical": "oranjestad"
+    },
+    {
+      "value": "Nalu",
+      "name": "Q3335397",
+      "canonical": "nalu"
+    },
+    {
+      "value": "Gmina Morąg",
+      "name": "Q555199",
+      "canonical": "gmina morąg"
+    },
+    {
+      "value": "Zaio",
+      "name": "Q29437225",
+      "canonical": "zaio"
+    },
+    {
+      "value": "Aemona",
+      "name": "Q4687748",
+      "canonical": "aemona"
+    },
+    {
+      "value": "Struga Municipality",
+      "name": "Q749618",
+      "canonical": "struga municipality"
+    },
+    {
+      "value": "Gmina Szprotawa",
+      "name": "Q2603613",
+      "canonical": "gmina szprotawa"
+    },
+    {
+      "value": "Champéry",
+      "name": "Q70099",
+      "canonical": "champéry"
+    },
+    {
+      "value": "Gmina Zbąszyń",
+      "name": "Q554038",
+      "canonical": "gmina zbąszyń"
+    },
+    {
+      "value": "Jellalabad",
+      "name": "Q28930481",
+      "canonical": "jellalabad"
+    },
+    {
+      "value": "City of Carlisle",
+      "name": "Q1094110",
+      "canonical": "city of carlisle"
+    },
+    {
+      "value": "Gmina Ziębice",
+      "name": "Q2190061",
+      "canonical": "gmina ziębice"
+    },
+    {
+      "value": "Trikala, Corinthia",
+      "name": "Q12885459",
+      "canonical": "trikala , corinthia"
+    },
+    {
+      "value": "Gmina Jędrzejów",
+      "name": "Q554427",
+      "canonical": "gmina jędrzejów"
+    },
+    {
+      "value": "Jędrzejów, Opole Voivodeship",
+      "name": "Q11731991",
+      "canonical": "jędrzejów , opole voivodeship"
+    },
+    {
+      "value": "Jędrzejów, Ostrowiec County",
+      "name": "Q6322121",
+      "canonical": "jędrzejów , ostrowiec county"
+    },
+    {
+      "value": "Gmina Rychwał",
+      "name": "Q554633",
+      "canonical": "gmina rychwał"
+    },
+    {
+      "value": "gmina Skawina",
+      "name": "Q7726653",
+      "canonical": "gmina skawina"
+    },
+    {
+      "value": "Afrin River",
+      "name": "Q387842",
+      "canonical": "afrin river"
+    },
+    {
+      "value": "Efrîn Canton",
+      "name": "Q18124518",
+      "canonical": "efrîn canton"
+    },
+    {
+      "value": "Gmina Poddębice",
+      "name": "Q2460044",
+      "canonical": "gmina poddębice"
+    },
+    {
+      "value": "Gmina Węgliniec",
+      "name": "Q2458468",
+      "canonical": "gmina węgliniec"
+    },
+    {
+      "value": "Batina, Draž",
+      "name": "Q810835",
+      "canonical": "batina , draž"
+    },
+    {
+      "value": "Gmina Wolbórz",
+      "name": "Q2458246",
+      "canonical": "gmina wolbórz"
+    },
+    {
+      "value": "Gmina Ścinawa",
+      "name": "Q2376267",
+      "canonical": "gmina ścinawa"
+    },
+    {
+      "value": "Gmina Śrem",
+      "name": "Q555547",
+      "canonical": "gmina śrem"
+    },
+    {
+      "value": "Gmina Żarów",
+      "name": "Q1820173",
+      "canonical": "gmina żarów"
+    },
+    {
+      "value": "Gmina Koluszki",
+      "name": "Q2433211",
+      "canonical": "gmina koluszki"
+    },
+    {
+      "value": "Solan",
+      "name": "Q12718506",
+      "canonical": "solan"
+    },
+    {
+      "value": "Gmina Ujście",
+      "name": "Q555509",
+      "canonical": "gmina ujście"
+    },
+    {
+      "value": "Matagalpa, Matagalpa",
+      "name": "Q3851689",
+      "canonical": "matagalpa , matagalpa"
+    },
+    {
+      "value": "Gmina Lesko",
+      "name": "Q2030445",
+      "canonical": "gmina lesko"
+    },
+    {
+      "value": "Gmina Włoszczowa",
+      "name": "Q554723",
+      "canonical": "gmina włoszczowa"
+    },
+    {
+      "value": "Gmina Choszczno",
+      "name": "Q557662",
+      "canonical": "gmina choszczno"
+    },
+    {
+      "value": "Gmina Brzozów",
+      "name": "Q769298",
+      "canonical": "gmina brzozów"
+    },
+    {
+      "value": "Gmina Cieszanów",
+      "name": "Q1837241",
+      "canonical": "gmina cieszanów"
+    },
+    {
+      "value": "Gmina Aleksandrów Łódzki",
+      "name": "Q2333849",
+      "canonical": "gmina aleksandrów łódzki"
+    },
+    {
+      "value": "Buka Island",
+      "name": "Q860540",
+      "canonical": "buka island"
+    },
+    {
+      "value": "Gmina Czaplinek",
+      "name": "Q557550",
+      "canonical": "gmina czaplinek"
+    },
+    {
+      "value": "Gmina Koźmin Wielkopolski",
+      "name": "Q555230",
+      "canonical": "gmina koźmin wielkopolski"
+    },
+    {
+      "value": "Santa Cruz de Los Taques",
+      "name": "Q3472621",
+      "canonical": "santa cruz de los taques"
+    },
+    {
+      "value": "Gmina Namysłów",
+      "name": "Q7764398",
+      "canonical": "gmina namysłów"
+    },
+    {
+      "value": "Bhutta caste",
+      "name": "Q4902283",
+      "canonical": "bhutta caste"
+    },
+    {
+      "value": "Matamoros Municipality",
+      "name": "Q2450458",
+      "canonical": "matamoros municipality"
+    },
+    {
+      "value": "Janová",
+      "name": "Q1022394",
+      "canonical": "janová"
+    },
+    {
+      "value": "Valandovo Municipality",
+      "name": "Q2018965",
+      "canonical": "valandovo municipality"
+    },
+    {
+      "value": "Gmina Lututów",
+      "name": "Q2422711",
+      "canonical": "gmina lututów"
+    },
+    {
+      "value": "Berovo Municipality",
+      "name": "Q793727",
+      "canonical": "berovo municipality"
+    },
+    {
+      "value": "Doba",
+      "name": "Q644194",
+      "canonical": "doba"
+    },
+    {
+      "value": "Gmina Chodecz",
+      "name": "Q2463026",
+      "canonical": "gmina chodecz"
+    },
+    {
+      "value": "Gmina Sianów",
+      "name": "Q557807",
+      "canonical": "gmina sianów"
+    },
+    {
+      "value": "Gmina Błaszki",
+      "name": "Q2402841",
+      "canonical": "gmina błaszki"
+    },
+    {
+      "value": "Gmina Gąbin",
+      "name": "Q1938793",
+      "canonical": "gmina gąbin"
+    },
+    {
+      "value": "Gmina Kolbuszowa",
+      "name": "Q2461052",
+      "canonical": "gmina kolbuszowa"
+    },
+    {
+      "value": "Gmina Szlichtyngowa",
+      "name": "Q2216341",
+      "canonical": "gmina szlichtyngowa"
+    },
+    {
+      "value": "Gmina Koprzywnica",
+      "name": "Q553693",
+      "canonical": "gmina koprzywnica"
+    },
+    {
+      "value": "Gmina Opoczno",
+      "name": "Q2606220",
+      "canonical": "gmina opoczno"
+    },
+    {
+      "value": "Tina",
+      "name": "Q12163211",
+      "canonical": "tina"
+    },
+    {
+      "value": "Gmina Skwierzyna",
+      "name": "Q2325045",
+      "canonical": "gmina skwierzyna"
+    },
+    {
+      "value": "Kumba",
+      "name": "Q2292282",
+      "canonical": "kumba"
+    },
+    {
+      "value": "Gmina Nowogrodziec",
+      "name": "Q2108865",
+      "canonical": "gmina nowogrodziec"
+    },
+    {
+      "value": "Gmina Wielbark",
+      "name": "Q554167",
+      "canonical": "gmina wielbark"
+    },
+    {
+      "value": "Gmina Szubin",
+      "name": "Q2458791",
+      "canonical": "gmina szubin"
+    },
+    {
+      "value": "Gmina Rabka-Zdrój",
+      "name": "Q2459518",
+      "canonical": "gmina rabka-zdrój"
+    },
+    {
+      "value": "Gmina Sława",
+      "name": "Q2324725",
+      "canonical": "gmina sława"
+    },
+    {
+      "value": "Gmina Krzepice",
+      "name": "Q553535",
+      "canonical": "gmina krzepice"
+    },
+    {
+      "value": "Gmina Miłakowo",
+      "name": "Q555258",
+      "canonical": "gmina miłakowo"
+    },
+    {
+      "value": "Gmina Książ Wielkopolski",
+      "name": "Q555410",
+      "canonical": "gmina książ wielkopolski"
+    },
+    {
+      "value": "Gmina Sępopol",
+      "name": "Q554601",
+      "canonical": "gmina sępopol"
+    },
+    {
+      "value": "Gmina Nowy Wiśnicz",
+      "name": "Q2200093",
+      "canonical": "gmina nowy wiśnicz"
+    },
+    {
+      "value": "Mapiri Municipality",
+      "name": "Q1585050",
+      "canonical": "mapiri municipality"
+    },
+    {
+      "value": "Colquiri Municipality",
+      "name": "Q1544551",
+      "canonical": "colquiri municipality"
+    },
+    {
+      "value": "Gmina Czersk",
+      "name": "Q550713",
+      "canonical": "gmina czersk"
+    },
+    {
+      "value": "Skive Municipality",
+      "name": "Q503108",
+      "canonical": "skive municipality"
+    },
+    {
+      "value": "Tepotzotlán",
+      "name": "Q1905161",
+      "canonical": "tepotzotlán"
+    },
+    {
+      "value": "Gmina Stronie Śląskie",
+      "name": "Q2056071",
+      "canonical": "gmina stronie śląskie"
+    },
+    {
+      "value": "Guayaramerín Municipality",
+      "name": "Q1487963",
+      "canonical": "guayaramerín municipality"
+    },
+    {
+      "value": "Gmina Rudnik nad Sanem",
+      "name": "Q1917797",
+      "canonical": "gmina rudnik nad sanem"
+    },
+    {
+      "value": "Gmina Maków Podhalański",
+      "name": "Q921318",
+      "canonical": "gmina maków podhalański"
+    },
+    {
+      "value": "Gmina Iłża",
+      "name": "Q2461309",
+      "canonical": "gmina iłża"
+    },
+    {
+      "value": "Gmina Kleczew",
+      "name": "Q553982",
+      "canonical": "gmina kleczew"
+    },
+    {
+      "value": "Charagua Municipality",
+      "name": "Q598031",
+      "canonical": "charagua municipality"
+    },
+    {
+      "value": "Monteagudo Municipality",
+      "name": "Q914026",
+      "canonical": "monteagudo municipality"
+    },
+    {
+      "value": "Gmina Tyczyn",
+      "name": "Q978824",
+      "canonical": "gmina tyczyn"
+    },
+    {
+      "value": "Tarabuco Municipality",
+      "name": "Q1860776",
+      "canonical": "tarabuco municipality"
+    },
+    {
+      "value": "Ixiamas Municipality",
+      "name": "Q1544558",
+      "canonical": "ixiamas municipality"
+    },
+    {
+      "value": "Santa María de Nieva",
+      "name": "Q9074119",
+      "canonical": "santa maría de nieva"
+    },
+    {
+      "value": "Los Teques",
+      "name": "Q695631",
+      "canonical": "los teques"
+    },
+    {
+      "value": "Grevenmacher",
+      "name": "Q215826",
+      "canonical": "grevenmacher"
+    },
+    {
+      "value": "Differdange",
+      "name": "Q16012",
+      "canonical": "differdange"
+    },
+    {
+      "value": "Hunza Valley",
+      "name": "Q1196145",
+      "canonical": "hunza valley"
+    },
+    {
+      "value": "Redcliffe",
+      "name": "Q1026184",
+      "canonical": "redcliffe"
+    },
+    {
+      "value": "Mykonos",
+      "name": "Q190210",
+      "canonical": "mykonos"
+    },
+    {
+      "value": "Mykonos Municipality",
+      "name": "Q20379355",
+      "canonical": "mykonos municipality"
+    },
+    {
+      "value": "Al Ghuwariyah",
+      "name": "Q623609",
+      "canonical": "al ghuwariyah"
+    },
+    {
+      "value": "Christiania Islands",
+      "name": "Q5110458",
+      "canonical": "christiania islands"
+    },
+    {
+      "value": "Freetown Christiania",
+      "name": "Q202206",
+      "canonical": "freetown christiania"
+    },
+    {
+      "value": "Tromsø municipality",
+      "name": "Q26087",
+      "canonical": "tromsø municipality"
+    }
+  ]
+}

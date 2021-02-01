@@ -1,0 +1,25 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Symbols of Tokyo",
+      "name": "Q2332372",
+      "canonical": "symbols of tokyo"
+    },
+    {
+      "value": "Emblem of Hong Kong",
+      "name": "Q752790",
+      "canonical": "emblem of hong kong"
+    },
+    {
+      "value": "Seal of the City of Kutaisi",
+      "name": "Q7440586",
+      "canonical": "seal of the city of kutaisi"
+    },
+    {
+      "value": "seal",
+      "name": "Q162919",
+      "canonical": "seal"
+    }
+  ]
+}

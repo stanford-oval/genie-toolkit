@@ -1,0 +1,110 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Brussels",
+      "name": "Q239",
+      "canonical": "brussels"
+    },
+    {
+      "value": "Lisbon",
+      "name": "Q597",
+      "canonical": "lisbon"
+    },
+    {
+      "value": "Beijing",
+      "name": "Q956",
+      "canonical": "beijing"
+    },
+    {
+      "value": "Brasília",
+      "name": "Q2844",
+      "canonical": "brasília"
+    },
+    {
+      "value": "Rio de Janeiro",
+      "name": "Q8678",
+      "canonical": "rio de janeiro"
+    },
+    {
+      "value": "Bonn",
+      "name": "Q586",
+      "canonical": "bonn"
+    },
+    {
+      "value": "Berlin",
+      "name": "Q64",
+      "canonical": "berlin"
+    },
+    {
+      "value": "Valletta",
+      "name": "Q23800",
+      "canonical": "valletta"
+    },
+    {
+      "value": "Santiago",
+      "name": "Q2887",
+      "canonical": "santiago"
+    },
+    {
+      "value": "Manama",
+      "name": "Q3882",
+      "canonical": "manama"
+    },
+    {
+      "value": "Port Vila",
+      "name": "Q37806",
+      "canonical": "port vila"
+    },
+    {
+      "value": "Jerusalem",
+      "name": "Q1218",
+      "canonical": "jerusalem"
+    },
+    {
+      "value": "Vientiane",
+      "name": "Q9326",
+      "canonical": "vientiane"
+    },
+    {
+      "value": "Dushanbe",
+      "name": "Q9365",
+      "canonical": "dushanbe"
+    },
+    {
+      "value": "Bangkok",
+      "name": "Q1861",
+      "canonical": "bangkok"
+    },
+    {
+      "value": "Abu Dhabi",
+      "name": "Q1519",
+      "canonical": "abu dhabi"
+    },
+    {
+      "value": "Bamako",
+      "name": "Q3703",
+      "canonical": "bamako"
+    },
+    {
+      "value": "Luanda",
+      "name": "Q3897",
+      "canonical": "luanda"
+    },
+    {
+      "value": "Freetown",
+      "name": "Q3780",
+      "canonical": "freetown"
+    },
+    {
+      "value": "Khartoum",
+      "name": "Q1963",
+      "canonical": "khartoum"
+    },
+    {
+      "value": "Cayenne",
+      "name": "Q44401",
+      "canonical": "cayenne"
+    }
+  ]
+}

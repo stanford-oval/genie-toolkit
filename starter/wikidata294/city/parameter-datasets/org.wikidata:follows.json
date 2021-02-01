@@ -1,0 +1,695 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Christiania",
+      "name": "Q21711493",
+      "canonical": "christiania"
+    },
+    {
+      "value": "New Rome",
+      "name": "Q13089982",
+      "canonical": "new rome"
+    },
+    {
+      "value": "Rovaniemen maalaiskunta",
+      "name": "Q970512",
+      "canonical": "rovaniemen maalaiskunta"
+    },
+    {
+      "value": "Mazagan",
+      "name": "Q555360",
+      "canonical": "mazagan"
+    },
+    {
+      "value": "Toijala",
+      "name": "Q1850632",
+      "canonical": "toijala"
+    },
+    {
+      "value": "Viiala",
+      "name": "Q654667",
+      "canonical": "viiala"
+    },
+    {
+      "value": "Kylmäkoski",
+      "name": "Q1641581",
+      "canonical": "kylmäkoski"
+    },
+    {
+      "value": "Rymättylä",
+      "name": "Q1641571",
+      "canonical": "rymättylä"
+    },
+    {
+      "value": "Merimasku",
+      "name": "Q1025703",
+      "canonical": "merimasku"
+    },
+    {
+      "value": "Velkua",
+      "name": "Q939276",
+      "canonical": "velkua"
+    },
+    {
+      "value": "Piikkiö",
+      "name": "Q783205",
+      "canonical": "piikkiö"
+    },
+    {
+      "value": "Artjärvi",
+      "name": "Q713559",
+      "canonical": "artjärvi"
+    },
+    {
+      "value": "Mänttä",
+      "name": "Q1001762",
+      "canonical": "mänttä"
+    },
+    {
+      "value": "Mänttä",
+      "name": "Q1001762",
+      "canonical": "mänttä"
+    },
+    {
+      "value": "Vilppula",
+      "name": "Q1264422",
+      "canonical": "vilppula"
+    },
+    {
+      "value": "New Amsterdam",
+      "name": "Q223308",
+      "canonical": "new amsterdam"
+    },
+    {
+      "value": "Province of Brabant",
+      "name": "Q848831",
+      "canonical": "province of brabant"
+    },
+    {
+      "value": "Jyväskylän maalaiskunta",
+      "name": "Q999242",
+      "canonical": "jyväskylän maalaiskunta"
+    },
+    {
+      "value": "Korpilahti",
+      "name": "Q999821",
+      "canonical": "korpilahti"
+    },
+    {
+      "value": "Halikko",
+      "name": "Q1571103",
+      "canonical": "halikko"
+    },
+    {
+      "value": "Kiikala",
+      "name": "Q1641643",
+      "canonical": "kiikala"
+    },
+    {
+      "value": "Kisko",
+      "name": "Q668748",
+      "canonical": "kisko"
+    },
+    {
+      "value": "Kuusjoki",
+      "name": "Q531620",
+      "canonical": "kuusjoki"
+    },
+    {
+      "value": "Muurla",
+      "name": "Q1641664",
+      "canonical": "muurla"
+    },
+    {
+      "value": "Perniö",
+      "name": "Q1641596",
+      "canonical": "perniö"
+    },
+    {
+      "value": "Pertteli",
+      "name": "Q121715",
+      "canonical": "pertteli"
+    },
+    {
+      "value": "Suomusjärvi",
+      "name": "Q1641656",
+      "canonical": "suomusjärvi"
+    },
+    {
+      "value": "Särkisalo",
+      "name": "Q1852674",
+      "canonical": "särkisalo"
+    },
+    {
+      "value": "Loimaan kunta",
+      "name": "Q1500371",
+      "canonical": "loimaan kunta"
+    },
+    {
+      "value": "Alastaro",
+      "name": "Q206601",
+      "canonical": "alastaro"
+    },
+    {
+      "value": "Mellilä",
+      "name": "Q1641630",
+      "canonical": "mellilä"
+    },
+    {
+      "value": "Himanka",
+      "name": "Q1025731",
+      "canonical": "himanka"
+    },
+    {
+      "value": "Pargas",
+      "name": "Q13405837",
+      "canonical": "pargas"
+    },
+    {
+      "value": "Houtskär",
+      "name": "Q1025722",
+      "canonical": "houtskär"
+    },
+    {
+      "value": "Iniö",
+      "name": "Q1025692",
+      "canonical": "iniö"
+    },
+    {
+      "value": "Korpo",
+      "name": "Q305440",
+      "canonical": "korpo"
+    },
+    {
+      "value": "Nagu",
+      "name": "Q203512",
+      "canonical": "nagu"
+    },
+    {
+      "value": "Christiania",
+      "name": "Q21711493",
+      "canonical": "christiania"
+    },
+    {
+      "value": "Peräseinäjoki",
+      "name": "Q2371138",
+      "canonical": "peräseinäjoki"
+    },
+    {
+      "value": "Nurmo",
+      "name": "Q205804",
+      "canonical": "nurmo"
+    },
+    {
+      "value": "Ylistaro",
+      "name": "Q653167",
+      "canonical": "ylistaro"
+    },
+    {
+      "value": "Kullaa",
+      "name": "Q4131730",
+      "canonical": "kullaa"
+    },
+    {
+      "value": "Kesälahti",
+      "name": "Q1002499",
+      "canonical": "kesälahti"
+    },
+    {
+      "value": "Pieksänmaa",
+      "name": "Q1502143",
+      "canonical": "pieksänmaa"
+    },
+    {
+      "value": "Urawa-shuku",
+      "name": "Q3552142",
+      "canonical": "urawa-shuku"
+    },
+    {
+      "value": "Nastola",
+      "name": "Q369576",
+      "canonical": "nastola"
+    },
+    {
+      "value": "Vampula",
+      "name": "Q1234987",
+      "canonical": "vampula"
+    },
+    {
+      "value": "Noormarkku",
+      "name": "Q1641623",
+      "canonical": "noormarkku"
+    },
+    {
+      "value": "Lavia",
+      "name": "Q1009604",
+      "canonical": "lavia"
+    },
+    {
+      "value": "Hauho",
+      "name": "Q1013639",
+      "canonical": "hauho"
+    },
+    {
+      "value": "Kalvola",
+      "name": "Q930181",
+      "canonical": "kalvola"
+    },
+    {
+      "value": "Lammi",
+      "name": "Q1025715",
+      "canonical": "lammi"
+    },
+    {
+      "value": "Renko",
+      "name": "Q1791957",
+      "canonical": "renko"
+    },
+    {
+      "value": "Tuulos",
+      "name": "Q1013612",
+      "canonical": "tuulos"
+    },
+    {
+      "value": "Lohtaja",
+      "name": "Q1641609",
+      "canonical": "lohtaja"
+    },
+    {
+      "value": "Ullava",
+      "name": "Q1851589",
+      "canonical": "ullava"
+    },
+    {
+      "value": "Kälviä",
+      "name": "Q646502",
+      "canonical": "kälviä"
+    },
+    {
+      "value": "Kaarlela",
+      "name": "Q984464",
+      "canonical": "kaarlela"
+    },
+    {
+      "value": "Savonranta",
+      "name": "Q568109",
+      "canonical": "savonranta"
+    },
+    {
+      "value": "Kerimäki",
+      "name": "Q1025740",
+      "canonical": "kerimäki"
+    },
+    {
+      "value": "Punkaharju",
+      "name": "Q428113",
+      "canonical": "punkaharju"
+    },
+    {
+      "value": "Sääminki",
+      "name": "Q988510",
+      "canonical": "sääminki"
+    },
+    {
+      "value": "Fort Lamy",
+      "name": "Q3077739",
+      "canonical": "fort lamy"
+    },
+    {
+      "value": "British Hong Kong",
+      "name": "Q1054923",
+      "canonical": "british hong kong"
+    },
+    {
+      "value": "Arraona",
+      "name": "Q11906658",
+      "canonical": "arraona"
+    },
+    {
+      "value": "Ostra Aros",
+      "name": "Q9393677",
+      "canonical": "ostra aros"
+    },
+    {
+      "value": "Allenstein",
+      "name": "Q21979688",
+      "canonical": "allenstein"
+    },
+    {
+      "value": "Vehmersalmi",
+      "name": "Q2787288",
+      "canonical": "vehmersalmi"
+    },
+    {
+      "value": "Karttula",
+      "name": "Q1734675",
+      "canonical": "karttula"
+    },
+    {
+      "value": "Nilsiä",
+      "name": "Q984856",
+      "canonical": "nilsiä"
+    },
+    {
+      "value": "Maaninka",
+      "name": "Q748064",
+      "canonical": "maaninka"
+    },
+    {
+      "value": "Juankoski",
+      "name": "Q990548",
+      "canonical": "juankoski"
+    },
+    {
+      "value": "Kuopion maalaiskunta",
+      "name": "Q673728",
+      "canonical": "kuopion maalaiskunta"
+    },
+    {
+      "value": "Riistavesi",
+      "name": "Q65034",
+      "canonical": "riistavesi"
+    },
+    {
+      "value": "Qartayannat al-Halfa",
+      "name": "Q6094009",
+      "canonical": "qartayannat al-halfa"
+    },
+    {
+      "value": "Anttola",
+      "name": "Q609922",
+      "canonical": "anttola"
+    },
+    {
+      "value": "Mikkeli Rural Municipality",
+      "name": "Q26221",
+      "canonical": "mikkeli rural municipality"
+    },
+    {
+      "value": "Haukivuori",
+      "name": "Q1589322",
+      "canonical": "haukivuori"
+    },
+    {
+      "value": "Ristiina",
+      "name": "Q1641615",
+      "canonical": "ristiina"
+    },
+    {
+      "value": "Suomenniemi",
+      "name": "Q204707",
+      "canonical": "suomenniemi"
+    },
+    {
+      "value": "Vuolijoki",
+      "name": "Q610490",
+      "canonical": "vuolijoki"
+    },
+    {
+      "value": "Setifis",
+      "name": "Q22948828",
+      "canonical": "setifis"
+    },
+    {
+      "value": "Kuorevesi",
+      "name": "Q1004188",
+      "canonical": "kuorevesi"
+    },
+    {
+      "value": "Längelmäki",
+      "name": "Q1807534",
+      "canonical": "längelmäki"
+    },
+    {
+      "value": "Jämsänkoski",
+      "name": "Q992990",
+      "canonical": "jämsänkoski"
+    },
+    {
+      "value": "Lehtimäki",
+      "name": "Q1641563",
+      "canonical": "lehtimäki"
+    },
+    {
+      "value": "Töysä",
+      "name": "Q6168",
+      "canonical": "töysä"
+    },
+    {
+      "value": "Kodisjoki",
+      "name": "Q425733",
+      "canonical": "kodisjoki"
+    },
+    {
+      "value": "Lappi",
+      "name": "Q1544769",
+      "canonical": "lappi"
+    },
+    {
+      "value": "Eboracum",
+      "name": "Q958954",
+      "canonical": "eboracum"
+    },
+    {
+      "value": "Ylikiiminki",
+      "name": "Q1001613",
+      "canonical": "ylikiiminki"
+    },
+    {
+      "value": "Haukipudas",
+      "name": "Q985443",
+      "canonical": "haukipudas"
+    },
+    {
+      "value": "Kiiminki",
+      "name": "Q992275",
+      "canonical": "kiiminki"
+    },
+    {
+      "value": "Oulunsalo",
+      "name": "Q992356",
+      "canonical": "oulunsalo"
+    },
+    {
+      "value": "Yli-Ii",
+      "name": "Q119845",
+      "canonical": "yli-ii"
+    },
+    {
+      "value": "Antioch on the Orontes",
+      "name": "Q200441",
+      "canonical": "antioch on the orontes"
+    },
+    {
+      "value": "Vähäkyrö",
+      "name": "Q1542740",
+      "canonical": "vähäkyrö"
+    },
+    {
+      "value": "Anjalankoski",
+      "name": "Q551368",
+      "canonical": "anjalankoski"
+    },
+    {
+      "value": "Kuusankoski",
+      "name": "Q985564",
+      "canonical": "kuusankoski"
+    },
+    {
+      "value": "Valkeala",
+      "name": "Q999217",
+      "canonical": "valkeala"
+    },
+    {
+      "value": "Jaala",
+      "name": "Q1011082",
+      "canonical": "jaala"
+    },
+    {
+      "value": "Elimäki",
+      "name": "Q1000113",
+      "canonical": "elimäki"
+    },
+    {
+      "value": "Sammatti",
+      "name": "Q1003678",
+      "canonical": "sammatti"
+    },
+    {
+      "value": "Karjalohja",
+      "name": "Q990572",
+      "canonical": "karjalohja"
+    },
+    {
+      "value": "Nummi-Pusula",
+      "name": "Q990587",
+      "canonical": "nummi-pusula"
+    },
+    {
+      "value": "Vehkalahti",
+      "name": "Q3353433",
+      "canonical": "vehkalahti"
+    },
+    {
+      "value": "Kangaslampi",
+      "name": "Q1580024",
+      "canonical": "kangaslampi"
+    },
+    {
+      "value": "Pernå",
+      "name": "Q1005082",
+      "canonical": "pernå"
+    },
+    {
+      "value": "Ruotsinpyhtää",
+      "name": "Q999193",
+      "canonical": "ruotsinpyhtää"
+    },
+    {
+      "value": "Liljendal",
+      "name": "Q1005071",
+      "canonical": "liljendal"
+    },
+    {
+      "value": "Längelmäki",
+      "name": "Q1807534",
+      "canonical": "längelmäki"
+    },
+    {
+      "value": "Pylkönmäki",
+      "name": "Q200443",
+      "canonical": "pylkönmäki"
+    },
+    {
+      "value": "Alahärmä",
+      "name": "Q575090",
+      "canonical": "alahärmä"
+    },
+    {
+      "value": "Ylihärmä",
+      "name": "Q1562671",
+      "canonical": "ylihärmä"
+    },
+    {
+      "value": "Kortesjärvi",
+      "name": "Q1025741",
+      "canonical": "kortesjärvi"
+    },
+    {
+      "value": "Jurva",
+      "name": "Q1369780",
+      "canonical": "jurva"
+    },
+    {
+      "value": "Jalasjärvi",
+      "name": "Q5988",
+      "canonical": "jalasjärvi"
+    },
+    {
+      "value": "Aquae Sulis",
+      "name": "Q622992",
+      "canonical": "aquae sulis"
+    },
+    {
+      "value": "Sumiainen",
+      "name": "Q246563",
+      "canonical": "sumiainen"
+    },
+    {
+      "value": "Suolahti",
+      "name": "Q1641603",
+      "canonical": "suolahti"
+    },
+    {
+      "value": "Viljakkala",
+      "name": "Q2307308",
+      "canonical": "viljakkala"
+    },
+    {
+      "value": "Kuru",
+      "name": "Q1025732",
+      "canonical": "kuru"
+    },
+    {
+      "value": "Pattijoki",
+      "name": "Q3444921",
+      "canonical": "pattijoki"
+    },
+    {
+      "value": "Vihanti",
+      "name": "Q992240",
+      "canonical": "vihanti"
+    },
+    {
+      "value": "Daphne",
+      "name": "Q3015870",
+      "canonical": "daphne"
+    },
+    {
+      "value": "Tlat Sidi bennour",
+      "name": "Q95579711",
+      "canonical": "tlat sidi bennour"
+    },
+    {
+      "value": "Doukkala",
+      "name": "Q4115905",
+      "canonical": "doukkala"
+    },
+    {
+      "value": "La Baye",
+      "name": "Q3206535",
+      "canonical": "la baye"
+    },
+    {
+      "value": "Epidamnos",
+      "name": "Q3567546",
+      "canonical": "epidamnos"
+    },
+    {
+      "value": "Joutseno",
+      "name": "Q829851",
+      "canonical": "joutseno"
+    },
+    {
+      "value": "Ylämaa",
+      "name": "Q1025734",
+      "canonical": "ylämaa"
+    },
+    {
+      "value": "Kiihtelysvaara",
+      "name": "Q1724211",
+      "canonical": "kiihtelysvaara"
+    },
+    {
+      "value": "Tuupovaara",
+      "name": "Q255065",
+      "canonical": "tuupovaara"
+    },
+    {
+      "value": "Eno",
+      "name": "Q1010490",
+      "canonical": "eno"
+    },
+    {
+      "value": "Pyhäselkä",
+      "name": "Q1025725",
+      "canonical": "pyhäselkä"
+    },
+    {
+      "value": "Luguvalium",
+      "name": "Q1876046",
+      "canonical": "luguvalium"
+    },
+    {
+      "value": "Heronem Trebirorum",
+      "name": "Q52153735",
+      "canonical": "heronem trebirorum"
+    },
+    {
+      "value": "Oslo",
+      "name": "Q585",
+      "canonical": "oslo"
+    }
+  ]
+}

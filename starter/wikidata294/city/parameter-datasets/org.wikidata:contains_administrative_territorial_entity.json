@@ -1,0 +1,6540 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Bad Godesberg",
+      "name": "Q153260",
+      "canonical": "bad godesberg"
+    },
+    {
+      "value": "Beuel",
+      "name": "Q153745",
+      "canonical": "beuel"
+    },
+    {
+      "value": "Bonn (district)",
+      "name": "Q892684",
+      "canonical": "bonn ( district )"
+    },
+    {
+      "value": "Hardtberg",
+      "name": "Q450087",
+      "canonical": "hardtberg"
+    },
+    {
+      "value": "old Sana",
+      "name": "Q12220316",
+      "canonical": "old sana"
+    },
+    {
+      "value": "Shu'aub District",
+      "name": "Q4117252",
+      "canonical": "shu 'aub district"
+    },
+    {
+      "value": "Assafi'yah District",
+      "name": "Q4117279",
+      "canonical": "assafi 'yah district"
+    },
+    {
+      "value": "Az'zal District",
+      "name": "Q4117188",
+      "canonical": "az 'zal district"
+    },
+    {
+      "value": "At Tahrir District",
+      "name": "Q4117257",
+      "canonical": "at tahrir district"
+    },
+    {
+      "value": "As Sabain District",
+      "name": "Q4117333",
+      "canonical": "as sabain district"
+    },
+    {
+      "value": "Al Wahdah District",
+      "name": "Q4117329",
+      "canonical": "al wahdah district"
+    },
+    {
+      "value": "Ma'ain District",
+      "name": "Q4117338",
+      "canonical": "ma 'ain district"
+    },
+    {
+      "value": "Ath'thaorah District",
+      "name": "Q4117271",
+      "canonical": "ath 'thaorah district"
+    },
+    {
+      "value": "Bani Al Harith District",
+      "name": "Q4117305",
+      "canonical": "bani al harith district"
+    },
+    {
+      "value": "Ablekuma Central Constituency",
+      "name": "Q4668084",
+      "canonical": "ablekuma central constituency"
+    },
+    {
+      "value": "Ablekuma North Constituency",
+      "name": "Q4668086",
+      "canonical": "ablekuma north constituency"
+    },
+    {
+      "value": "Ablekuma South Constituency",
+      "name": "Q4668085",
+      "canonical": "ablekuma south constituency"
+    },
+    {
+      "value": "Ashiedu Keteke",
+      "name": "Q34770482",
+      "canonical": "ashiedu keteke"
+    },
+    {
+      "value": "Ayawaso Central Constituency",
+      "name": "Q4831000",
+      "canonical": "ayawaso central constituency"
+    },
+    {
+      "value": "Ayawaso East Constituency",
+      "name": "Q4831001",
+      "canonical": "ayawaso east constituency"
+    },
+    {
+      "value": "Ayawaso West Wuogon Constituency",
+      "name": "Q4831003",
+      "canonical": "ayawaso west wuogon constituency"
+    },
+    {
+      "value": "La Nkwantanang Madina",
+      "name": "Q34855528",
+      "canonical": "la nkwantanang madina"
+    },
+    {
+      "value": "Okaikwei North Constituency",
+      "name": "Q7081731",
+      "canonical": "okaikwei north constituency"
+    },
+    {
+      "value": "Okaikwei South Constituency",
+      "name": "Q7081734",
+      "canonical": "okaikwei south constituency"
+    },
+    {
+      "value": "Korle Klottey Constituency",
+      "name": "Q6432362",
+      "canonical": "korle klottey constituency"
+    },
+    {
+      "value": "Lugano East Subdistrict",
+      "name": "Q1875987",
+      "canonical": "lugano east subdistrict"
+    },
+    {
+      "value": "Circle of Lugano North",
+      "name": "Q15720526",
+      "canonical": "circle of lugano north"
+    },
+    {
+      "value": "Aschendorf",
+      "name": "Q722401",
+      "canonical": "aschendorf"
+    },
+    {
+      "value": "Herbrum",
+      "name": "Q1609489",
+      "canonical": "herbrum"
+    },
+    {
+      "value": "Tunxdorf",
+      "name": "Q314367",
+      "canonical": "tunxdorf"
+    },
+    {
+      "value": "Nenndorf",
+      "name": "Q15122658",
+      "canonical": "nenndorf"
+    },
+    {
+      "value": "Bokel",
+      "name": "Q891206",
+      "canonical": "bokel"
+    },
+    {
+      "value": "Untenende",
+      "name": "Q15060628",
+      "canonical": "untenende"
+    },
+    {
+      "value": "Obenende",
+      "name": "Q1454658",
+      "canonical": "obenende"
+    },
+    {
+      "value": "Raimat",
+      "name": "Q4895422",
+      "canonical": "raimat"
+    },
+    {
+      "value": "Sucs",
+      "name": "Q5689360",
+      "canonical": "sucs"
+    },
+    {
+      "value": "Futian District",
+      "name": "Q572153",
+      "canonical": "futian district"
+    },
+    {
+      "value": "Luohu District",
+      "name": "Q1001376",
+      "canonical": "luohu district"
+    },
+    {
+      "value": "Nanshan District",
+      "name": "Q533836",
+      "canonical": "nanshan district"
+    },
+    {
+      "value": "Yantian District",
+      "name": "Q1001381",
+      "canonical": "yantian district"
+    },
+    {
+      "value": "Bao'an District",
+      "name": "Q807049",
+      "canonical": "bao 'an district"
+    },
+    {
+      "value": "Longgang District",
+      "name": "Q1001406",
+      "canonical": "longgang district"
+    },
+    {
+      "value": "Guangming District",
+      "name": "Q287547",
+      "canonical": "guangming district"
+    },
+    {
+      "value": "Pingshan District",
+      "name": "Q277067",
+      "canonical": "pingshan district"
+    },
+    {
+      "value": "Longhua District",
+      "name": "Q276983",
+      "canonical": "longhua district"
+    },
+    {
+      "value": "Dapeng New District",
+      "name": "Q276982",
+      "canonical": "dapeng new district"
+    },
+    {
+      "value": "Liwan District",
+      "name": "Q590891",
+      "canonical": "liwan district"
+    },
+    {
+      "value": "Yuexiu District",
+      "name": "Q1022928",
+      "canonical": "yuexiu district"
+    },
+    {
+      "value": "Haizhu District",
+      "name": "Q1022913",
+      "canonical": "haizhu district"
+    },
+    {
+      "value": "Tianhe District",
+      "name": "Q917049",
+      "canonical": "tianhe district"
+    },
+    {
+      "value": "Baiyun District",
+      "name": "Q80946",
+      "canonical": "baiyun district"
+    },
+    {
+      "value": "Huangpu District",
+      "name": "Q1023890",
+      "canonical": "huangpu district"
+    },
+    {
+      "value": "Panyu District",
+      "name": "Q948245",
+      "canonical": "panyu district"
+    },
+    {
+      "value": "Huadu District",
+      "name": "Q498004",
+      "canonical": "huadu district"
+    },
+    {
+      "value": "Luogang District",
+      "name": "Q782902",
+      "canonical": "luogang district"
+    },
+    {
+      "value": "Zengcheng District",
+      "name": "Q189529",
+      "canonical": "zengcheng district"
+    },
+    {
+      "value": "Conghua District",
+      "name": "Q1023907",
+      "canonical": "conghua district"
+    },
+    {
+      "value": "Košice I",
+      "name": "Q830995",
+      "canonical": "košice i"
+    },
+    {
+      "value": "Košice II",
+      "name": "Q280424",
+      "canonical": "košice ii"
+    },
+    {
+      "value": "Košice III",
+      "name": "Q548619",
+      "canonical": "košice iii"
+    },
+    {
+      "value": "Košice IV",
+      "name": "Q650575",
+      "canonical": "košice iv"
+    },
+    {
+      "value": "canton of La Rochelle-1",
+      "name": "Q1725651",
+      "canonical": "canton of la rochelle- 1"
+    },
+    {
+      "value": "canton of La Rochelle-2",
+      "name": "Q1725656",
+      "canonical": "canton of la rochelle- 2"
+    },
+    {
+      "value": "canton of La Rochelle-4",
+      "name": "Q1529734",
+      "canonical": "canton of la rochelle- 4"
+    },
+    {
+      "value": "canton of La Rochelle-5",
+      "name": "Q1725667",
+      "canonical": "canton of la rochelle- 5"
+    },
+    {
+      "value": "canton of La Rochelle-6",
+      "name": "Q1725668",
+      "canonical": "canton of la rochelle- 6"
+    },
+    {
+      "value": "canton of La Rochelle-7",
+      "name": "Q1389410",
+      "canonical": "canton of la rochelle- 7"
+    },
+    {
+      "value": "canton of La Rochelle-8",
+      "name": "Q1725669",
+      "canonical": "canton of la rochelle- 8"
+    },
+    {
+      "value": "canton of La Rochelle-9",
+      "name": "Q1725671",
+      "canonical": "canton of la rochelle- 9"
+    },
+    {
+      "value": "Kiryat Borochov",
+      "name": "Q12411700",
+      "canonical": "kiryat borochov"
+    },
+    {
+      "value": "Tel HaShomer",
+      "name": "Q7695569",
+      "canonical": "tel hashomer"
+    },
+    {
+      "value": "Kfar Azar",
+      "name": "Q12408531",
+      "canonical": "kfar azar"
+    },
+    {
+      "value": "Qiryat Krinitzi",
+      "name": "Q25488284",
+      "canonical": "qiryat krinitzi"
+    },
+    {
+      "value": "Ramat Ef'al",
+      "name": "Q7289093",
+      "canonical": "ramat ef 'al"
+    },
+    {
+      "value": "Merom Nave",
+      "name": "Q22037870",
+      "canonical": "merom nave"
+    },
+    {
+      "value": "Diamond Exchange District",
+      "name": "Q2916896",
+      "canonical": "diamond exchange district"
+    },
+    {
+      "value": "Tel Binyamin",
+      "name": "Q47466433",
+      "canonical": "tel binyamin"
+    },
+    {
+      "value": "Rajin-guyok",
+      "name": "Q2128756",
+      "canonical": "rajin-guyok"
+    },
+    {
+      "value": "Sonbong County",
+      "name": "Q1149302",
+      "canonical": "sonbong county"
+    },
+    {
+      "value": "Čechovice",
+      "name": "Q11170442",
+      "canonical": "čechovice"
+    },
+    {
+      "value": "Čechůvky",
+      "name": "Q4501818",
+      "canonical": "čechůvky"
+    },
+    {
+      "value": "Domamyslice",
+      "name": "Q11818704",
+      "canonical": "domamyslice"
+    },
+    {
+      "value": "Krasice",
+      "name": "Q12031426",
+      "canonical": "krasice"
+    },
+    {
+      "value": "Vrahovice",
+      "name": "Q1023574",
+      "canonical": "vrahovice"
+    },
+    {
+      "value": "Žešov",
+      "name": "Q10284156",
+      "canonical": "žešov"
+    },
+    {
+      "value": "Manhattan",
+      "name": "Q11299",
+      "canonical": "manhattan"
+    },
+    {
+      "value": "Brooklyn",
+      "name": "Q18419",
+      "canonical": "brooklyn"
+    },
+    {
+      "value": "Queens",
+      "name": "Q18424",
+      "canonical": "queens"
+    },
+    {
+      "value": "The Bronx",
+      "name": "Q18426",
+      "canonical": "the bronx"
+    },
+    {
+      "value": "Staten Island",
+      "name": "Q18432",
+      "canonical": "staten island"
+    },
+    {
+      "value": "Arrondissement of Brussels-Capital",
+      "name": "Q90870",
+      "canonical": "arrondissement of brussels-capital"
+    },
+    {
+      "value": "Gldani District",
+      "name": "Q37808642",
+      "canonical": "gldani district"
+    },
+    {
+      "value": "Didube district",
+      "name": "Q4153222",
+      "canonical": "didube district"
+    },
+    {
+      "value": "Vake District",
+      "name": "Q37808698",
+      "canonical": "vake district"
+    },
+    {
+      "value": "Isani District",
+      "name": "Q37808721",
+      "canonical": "isani district"
+    },
+    {
+      "value": "Krtsanisi District",
+      "name": "Q37808741",
+      "canonical": "krtsanisi district"
+    },
+    {
+      "value": "Mtatsminda District",
+      "name": "Q21655514",
+      "canonical": "mtatsminda district"
+    },
+    {
+      "value": "Nadzaladevi District",
+      "name": "Q37808793",
+      "canonical": "nadzaladevi district"
+    },
+    {
+      "value": "Saburtalo District",
+      "name": "Q37808823",
+      "canonical": "saburtalo district"
+    },
+    {
+      "value": "Samgori District",
+      "name": "Q37808852",
+      "canonical": "samgori district"
+    },
+    {
+      "value": "Chughureti District",
+      "name": "Q25540500",
+      "canonical": "chughureti district"
+    },
+    {
+      "value": "North West Delhi district",
+      "name": "Q766125",
+      "canonical": "north west delhi district"
+    },
+    {
+      "value": "North East Delhi district",
+      "name": "Q429329",
+      "canonical": "north east delhi district"
+    },
+    {
+      "value": "East Delhi district",
+      "name": "Q107960",
+      "canonical": "east delhi district"
+    },
+    {
+      "value": "South Delhi district",
+      "name": "Q2061938",
+      "canonical": "south delhi district"
+    },
+    {
+      "value": "South West Delhi district",
+      "name": "Q2379189",
+      "canonical": "south west delhi district"
+    },
+    {
+      "value": "West Delhi district",
+      "name": "Q549807",
+      "canonical": "west delhi district"
+    },
+    {
+      "value": "North Delhi district",
+      "name": "Q693367",
+      "canonical": "north delhi district"
+    },
+    {
+      "value": "Central Delhi district",
+      "name": "Q107941",
+      "canonical": "central delhi district"
+    },
+    {
+      "value": "New Delhi",
+      "name": "Q987",
+      "canonical": "new delhi"
+    },
+    {
+      "value": "Hanover-Mitte",
+      "name": "Q883803",
+      "canonical": "hanover-mitte"
+    },
+    {
+      "value": "Vahrenwald-List",
+      "name": "Q915149",
+      "canonical": "vahrenwald-list"
+    },
+    {
+      "value": "Bothfeld-Vahrenheide (Hanover)",
+      "name": "Q894709",
+      "canonical": "bothfeld-vahrenheide ( hanover )"
+    },
+    {
+      "value": "Buchholz-Kleefeld",
+      "name": "Q998471",
+      "canonical": "buchholz-kleefeld"
+    },
+    {
+      "value": "Misburg-Anderten",
+      "name": "Q1938597",
+      "canonical": "misburg-anderten"
+    },
+    {
+      "value": "Kirchrode-Bemerode-Wülferode",
+      "name": "Q1743368",
+      "canonical": "kirchrode-bemerode-wülferode"
+    },
+    {
+      "value": "Südstadt-Bult",
+      "name": "Q2381488",
+      "canonical": "südstadt-bult"
+    },
+    {
+      "value": "Döhren-Wülfel",
+      "name": "Q1271022",
+      "canonical": "döhren-wülfel"
+    },
+    {
+      "value": "Ricklingen",
+      "name": "Q1417763",
+      "canonical": "ricklingen"
+    },
+    {
+      "value": "Linden-Limmer",
+      "name": "Q1826001",
+      "canonical": "linden-limmer"
+    },
+    {
+      "value": "Ahlem-Badenstedt-Davenstedt",
+      "name": "Q400430",
+      "canonical": "ahlem-badenstedt-davenstedt"
+    },
+    {
+      "value": "Herrenhausen",
+      "name": "Q470577",
+      "canonical": "herrenhausen"
+    },
+    {
+      "value": "Nord (district of Hanover)",
+      "name": "Q1997469",
+      "canonical": "nord ( district of hanover )"
+    },
+    {
+      "value": "Old Town",
+      "name": "Q1898406",
+      "canonical": "old town"
+    },
+    {
+      "value": "Nové Mesto",
+      "name": "Q740351",
+      "canonical": "nové mesto"
+    },
+    {
+      "value": "Karlova Ves",
+      "name": "Q1012707",
+      "canonical": "karlova ves"
+    },
+    {
+      "value": "Ružinov",
+      "name": "Q934473",
+      "canonical": "ružinov"
+    },
+    {
+      "value": "Petržalka",
+      "name": "Q1013328",
+      "canonical": "petržalka"
+    },
+    {
+      "value": "Dúbravka",
+      "name": "Q616170",
+      "canonical": "dúbravka"
+    },
+    {
+      "value": "Devín",
+      "name": "Q661046",
+      "canonical": "devín"
+    },
+    {
+      "value": "Devínska Nová Ves",
+      "name": "Q970325",
+      "canonical": "devínska nová ves"
+    },
+    {
+      "value": "Záhorská Bystrica",
+      "name": "Q246755",
+      "canonical": "záhorská bystrica"
+    },
+    {
+      "value": "Lamač",
+      "name": "Q787303",
+      "canonical": "lamač"
+    },
+    {
+      "value": "Rača",
+      "name": "Q1025249",
+      "canonical": "rača"
+    },
+    {
+      "value": "Vajnory",
+      "name": "Q1091778",
+      "canonical": "vajnory"
+    },
+    {
+      "value": "Vrakuňa",
+      "name": "Q1020906",
+      "canonical": "vrakuňa"
+    },
+    {
+      "value": "Podunajské Biskupice",
+      "name": "Q683983",
+      "canonical": "podunajské biskupice"
+    },
+    {
+      "value": "Jarovce",
+      "name": "Q1055697",
+      "canonical": "jarovce"
+    },
+    {
+      "value": "Rusovce",
+      "name": "Q1091791",
+      "canonical": "rusovce"
+    },
+    {
+      "value": "Čunovo",
+      "name": "Q341724",
+      "canonical": "čunovo"
+    },
+    {
+      "value": "Pou Senchey",
+      "name": "Q14847076",
+      "canonical": "pou senchey"
+    },
+    {
+      "value": "Chamkarmon District",
+      "name": "Q5069819",
+      "canonical": "chamkarmon district"
+    },
+    {
+      "value": "Dangkao District",
+      "name": "Q5216178",
+      "canonical": "dangkao district"
+    },
+    {
+      "value": "Daun Penh District",
+      "name": "Q5228039",
+      "canonical": "daun penh district"
+    },
+    {
+      "value": "Meanchey District",
+      "name": "Q6803675",
+      "canonical": "meanchey district"
+    },
+    {
+      "value": "Prampi Makara District",
+      "name": "Q7238280",
+      "canonical": "prampi makara district"
+    },
+    {
+      "value": "Russei Keo District",
+      "name": "Q7381269",
+      "canonical": "russei keo district"
+    },
+    {
+      "value": "Sen Sok District",
+      "name": "Q7449896",
+      "canonical": "sen sok district"
+    },
+    {
+      "value": "Toul Kork District",
+      "name": "Q1884077",
+      "canonical": "toul kork district"
+    },
+    {
+      "value": "Chroy Changvar Section",
+      "name": "Q5114302",
+      "canonical": "chroy changvar section"
+    },
+    {
+      "value": "Borgo Panigale",
+      "name": "Q723340",
+      "canonical": "borgo panigale"
+    },
+    {
+      "value": "Quartiere San Vitale, Bologna",
+      "name": "Q3927192",
+      "canonical": "quartiere san vitale , bologna"
+    },
+    {
+      "value": "Frauenland",
+      "name": "Q1451792",
+      "canonical": "frauenland"
+    },
+    {
+      "value": "Sanderau",
+      "name": "Q1729898",
+      "canonical": "sanderau"
+    },
+    {
+      "value": "Zellerau",
+      "name": "Q187754",
+      "canonical": "zellerau"
+    },
+    {
+      "value": "Heidingsfeld",
+      "name": "Q1594381",
+      "canonical": "heidingsfeld"
+    },
+    {
+      "value": "Lengfeld",
+      "name": "Q1817660",
+      "canonical": "lengfeld"
+    },
+    {
+      "value": "Heuchelhof",
+      "name": "Q1616405",
+      "canonical": "heuchelhof"
+    },
+    {
+      "value": "Grombühl",
+      "name": "Q1547284",
+      "canonical": "grombühl"
+    },
+    {
+      "value": "Versbach",
+      "name": "Q1790772",
+      "canonical": "versbach"
+    },
+    {
+      "value": "Lindleinsmühle",
+      "name": "Q1826236",
+      "canonical": "lindleinsmühle"
+    },
+    {
+      "value": "Rottenbauer",
+      "name": "Q1273570",
+      "canonical": "rottenbauer"
+    },
+    {
+      "value": "Ammerbach",
+      "name": "Q473054",
+      "canonical": "ammerbach"
+    },
+    {
+      "value": "Burgau",
+      "name": "Q248933",
+      "canonical": "burgau"
+    },
+    {
+      "value": "Closewitz",
+      "name": "Q1102507",
+      "canonical": "closewitz"
+    },
+    {
+      "value": "Cospeda",
+      "name": "Q1136224",
+      "canonical": "cospeda"
+    },
+    {
+      "value": "Drackendorf",
+      "name": "Q1254378",
+      "canonical": "drackendorf"
+    },
+    {
+      "value": "Göschwitz",
+      "name": "Q1559614",
+      "canonical": "göschwitz"
+    },
+    {
+      "value": "Ilmnitz",
+      "name": "Q1658990",
+      "canonical": "ilmnitz"
+    },
+    {
+      "value": "Isserstedt",
+      "name": "Q1674784",
+      "canonical": "isserstedt"
+    },
+    {
+      "value": "Jenaprießnitz",
+      "name": "Q1686821",
+      "canonical": "jenaprie ß nitz"
+    },
+    {
+      "value": "Krippendorf",
+      "name": "Q1740275",
+      "canonical": "krippendorf"
+    },
+    {
+      "value": "Kunitz",
+      "name": "Q1553253",
+      "canonical": "kunitz"
+    },
+    {
+      "value": "Laasan",
+      "name": "Q1712727",
+      "canonical": "laasan"
+    },
+    {
+      "value": "Leutra",
+      "name": "Q1582836",
+      "canonical": "leutra"
+    },
+    {
+      "value": "Lichtenhain",
+      "name": "Q1823392",
+      "canonical": "lichtenhain"
+    },
+    {
+      "value": "Lobeda",
+      "name": "Q1867060",
+      "canonical": "lobeda"
+    },
+    {
+      "value": "Löbstedt",
+      "name": "Q1879618",
+      "canonical": "löbstedt"
+    },
+    {
+      "value": "Lützeroda",
+      "name": "Q337736",
+      "canonical": "lützeroda"
+    },
+    {
+      "value": "Maua",
+      "name": "Q1910942",
+      "canonical": "maua"
+    },
+    {
+      "value": "Münchenroda",
+      "name": "Q1242422",
+      "canonical": "münchenroda"
+    },
+    {
+      "value": "Remderoda",
+      "name": "Q2142902",
+      "canonical": "remderoda"
+    },
+    {
+      "value": "Neulobeda",
+      "name": "Q1980852",
+      "canonical": "neulobeda"
+    },
+    {
+      "value": "Vierzehnheiligen",
+      "name": "Q2170286",
+      "canonical": "vierzehnheiligen"
+    },
+    {
+      "value": "Wenigenjena",
+      "name": "Q2559439",
+      "canonical": "wenigenjena"
+    },
+    {
+      "value": "Winzerla",
+      "name": "Q1524920",
+      "canonical": "winzerla"
+    },
+    {
+      "value": "Wöllnitz",
+      "name": "Q1373384",
+      "canonical": "wöllnitz"
+    },
+    {
+      "value": "Ziegenhain",
+      "name": "Q198791",
+      "canonical": "ziegenhain"
+    },
+    {
+      "value": "Zwätzen",
+      "name": "Q245148",
+      "canonical": "zwätzen"
+    },
+    {
+      "value": "Ströbitz",
+      "name": "Q1402877",
+      "canonical": "ströbitz"
+    },
+    {
+      "value": "Branitz",
+      "name": "Q14551273",
+      "canonical": "branitz"
+    },
+    {
+      "value": "Kahren",
+      "name": "Q1721229",
+      "canonical": "kahren"
+    },
+    {
+      "value": "Groß Gaglow",
+      "name": "Q160951",
+      "canonical": "gro ß gaglow"
+    },
+    {
+      "value": "Cunnersdorf",
+      "name": "Q15096983",
+      "canonical": "cunnersdorf"
+    },
+    {
+      "value": "Ehrenberg",
+      "name": "Q15096986",
+      "canonical": "ehrenberg"
+    },
+    {
+      "value": "Goßdorf",
+      "name": "Q15096988",
+      "canonical": "go ß dorf"
+    },
+    {
+      "value": "Lohsdorf",
+      "name": "Q15096990",
+      "canonical": "lohsdorf"
+    },
+    {
+      "value": "Rathewalde",
+      "name": "Q12354399",
+      "canonical": "rathewalde"
+    },
+    {
+      "value": "Ulbersdorf",
+      "name": "Q15096993",
+      "canonical": "ulbersdorf"
+    },
+    {
+      "value": "Waitzdorf",
+      "name": "Q15096994",
+      "canonical": "waitzdorf"
+    },
+    {
+      "value": "Campanillas (District 9)",
+      "name": "Q5027925",
+      "canonical": "campanillas ( district 9 )"
+    },
+    {
+      "value": "Málaga Centro (District 1)",
+      "name": "Q3752658",
+      "canonical": "málaga centro ( district 1 )"
+    },
+    {
+      "value": "Málaga Este (District 2)",
+      "name": "Q5400717",
+      "canonical": "málaga este ( district 2 )"
+    },
+    {
+      "value": "Ciudad Jardín (District 3)",
+      "name": "Q5124151",
+      "canonical": "ciudad jardín ( district 3 )"
+    },
+    {
+      "value": "Bailén-Miraflores (District 4)",
+      "name": "Q4848503",
+      "canonical": "bailén-miraflores ( district 4 )"
+    },
+    {
+      "value": "Palma-Palmilla (District 5)",
+      "name": "Q514275",
+      "canonical": "palma-palmilla ( district 5 )"
+    },
+    {
+      "value": "Cruz de Humilladero (District 6)",
+      "name": "Q974484",
+      "canonical": "cruz de humilladero ( district 6 )"
+    },
+    {
+      "value": "Carretera de Cádiz (District 7)",
+      "name": "Q5046107",
+      "canonical": "carretera de cádiz ( district 7 )"
+    },
+    {
+      "value": "Churriana (District 8)",
+      "name": "Q5118319",
+      "canonical": "churriana ( district 8 )"
+    },
+    {
+      "value": "Puerto de la Torre",
+      "name": "Q7258843",
+      "canonical": "puerto de la torre"
+    },
+    {
+      "value": "Teatinos-Universidad (District 11)",
+      "name": "Q6139553",
+      "canonical": "teatinos-universidad ( district 11 )"
+    },
+    {
+      "value": "Ward of Aldersgate",
+      "name": "Q2337831",
+      "canonical": "ward of aldersgate"
+    },
+    {
+      "value": "Ward of Aldgate",
+      "name": "Q2098078",
+      "canonical": "ward of aldgate"
+    },
+    {
+      "value": "Ward of Portsoken",
+      "name": "Q7232519",
+      "canonical": "ward of portsoken"
+    },
+    {
+      "value": "Ward of Bassishaw",
+      "name": "Q4868164",
+      "canonical": "ward of bassishaw"
+    },
+    {
+      "value": "Ward of Billingsgate",
+      "name": "Q1783406",
+      "canonical": "ward of billingsgate"
+    },
+    {
+      "value": "Ward of Bishopsgate",
+      "name": "Q779444",
+      "canonical": "ward of bishopsgate"
+    },
+    {
+      "value": "Ward of Bread Street",
+      "name": "Q4959146",
+      "canonical": "ward of bread street"
+    },
+    {
+      "value": "Ward of Bridge",
+      "name": "Q4966196",
+      "canonical": "ward of bridge"
+    },
+    {
+      "value": "Ward of Broad Street",
+      "name": "Q4971950",
+      "canonical": "ward of broad street"
+    },
+    {
+      "value": "Ward of Candlewick",
+      "name": "Q5032001",
+      "canonical": "ward of candlewick"
+    },
+    {
+      "value": "Ward of Castle Baynard",
+      "name": "Q5049993",
+      "canonical": "ward of castle baynard"
+    },
+    {
+      "value": "Ward of Cheap",
+      "name": "Q5088843",
+      "canonical": "ward of cheap"
+    },
+    {
+      "value": "Ward of Coleman Street",
+      "name": "Q5143033",
+      "canonical": "ward of coleman street"
+    },
+    {
+      "value": "Ward of Cordwainer",
+      "name": "Q5170081",
+      "canonical": "ward of cordwainer"
+    },
+    {
+      "value": "Ward of Cornhill",
+      "name": "Q1782039",
+      "canonical": "ward of cornhill"
+    },
+    {
+      "value": "Ward of Cripplegate",
+      "name": "Q1619586",
+      "canonical": "ward of cripplegate"
+    },
+    {
+      "value": "Ward of Dowgate",
+      "name": "Q5302683",
+      "canonical": "ward of dowgate"
+    },
+    {
+      "value": "Ward of Farringdon Within",
+      "name": "Q5436292",
+      "canonical": "ward of farringdon within"
+    },
+    {
+      "value": "Ward of Farringdon Without",
+      "name": "Q5436293",
+      "canonical": "ward of farringdon without"
+    },
+    {
+      "value": "Ward of Langbourn",
+      "name": "Q6485756",
+      "canonical": "ward of langbourn"
+    },
+    {
+      "value": "Ward of Lime Street",
+      "name": "Q6549148",
+      "canonical": "ward of lime street"
+    },
+    {
+      "value": "Queenhithe",
+      "name": "Q1524847",
+      "canonical": "queenhithe"
+    },
+    {
+      "value": "Ward of Tower",
+      "name": "Q3535927",
+      "canonical": "ward of tower"
+    },
+    {
+      "value": "Ward of Vintry",
+      "name": "Q7932905",
+      "canonical": "ward of vintry"
+    },
+    {
+      "value": "Ward of Walbrook",
+      "name": "Q1261052",
+      "canonical": "ward of walbrook"
+    },
+    {
+      "value": "Norton Folgate",
+      "name": "Q7060628",
+      "canonical": "norton folgate"
+    },
+    {
+      "value": "Bremen-Mitte",
+      "name": "Q17278534",
+      "canonical": "bremen-mitte"
+    },
+    {
+      "value": "Bremen-Ost",
+      "name": "Q30147400",
+      "canonical": "bremen-ost"
+    },
+    {
+      "value": "Bremen-Süd",
+      "name": "Q30145095",
+      "canonical": "bremen-süd"
+    },
+    {
+      "value": "Bremen-West",
+      "name": "Q30147399",
+      "canonical": "bremen-west"
+    },
+    {
+      "value": "Bremen-Nord",
+      "name": "Q907314",
+      "canonical": "bremen-nord"
+    },
+    {
+      "value": "Naka-ku",
+      "name": "Q63436",
+      "canonical": "naka-ku"
+    },
+    {
+      "value": "Higashi-ku",
+      "name": "Q73724",
+      "canonical": "higashi-ku"
+    },
+    {
+      "value": "Minami-ku",
+      "name": "Q63442",
+      "canonical": "minami-ku"
+    },
+    {
+      "value": "Nishi-ku",
+      "name": "Q73729",
+      "canonical": "nishi-ku"
+    },
+    {
+      "value": "Asaminami-ku",
+      "name": "Q63440",
+      "canonical": "asaminami-ku"
+    },
+    {
+      "value": "Asakita-ku",
+      "name": "Q63444",
+      "canonical": "asakita-ku"
+    },
+    {
+      "value": "Aki-ku",
+      "name": "Q63446",
+      "canonical": "aki-ku"
+    },
+    {
+      "value": "Saeki-ku",
+      "name": "Q73718",
+      "canonical": "saeki-ku"
+    },
+    {
+      "value": "Nanguan District",
+      "name": "Q545587",
+      "canonical": "nanguan district"
+    },
+    {
+      "value": "Kuancheng District",
+      "name": "Q1361975",
+      "canonical": "kuancheng district"
+    },
+    {
+      "value": "Chaoyang District",
+      "name": "Q393444",
+      "canonical": "chaoyang district"
+    },
+    {
+      "value": "Erdao District",
+      "name": "Q1348775",
+      "canonical": "erdao district"
+    },
+    {
+      "value": "Lüyuan District",
+      "name": "Q262521",
+      "canonical": "lüyuan district"
+    },
+    {
+      "value": "Shuangyang District",
+      "name": "Q1361992",
+      "canonical": "shuangyang district"
+    },
+    {
+      "value": "Nong'an County",
+      "name": "Q1205815",
+      "canonical": "nong 'an county"
+    },
+    {
+      "value": "Jiutai",
+      "name": "Q1015907",
+      "canonical": "jiutai"
+    },
+    {
+      "value": "Yushu",
+      "name": "Q1022251",
+      "canonical": "yushu"
+    },
+    {
+      "value": "Dehui",
+      "name": "Q1022278",
+      "canonical": "dehui"
+    },
+    {
+      "value": "Yancheng District",
+      "name": "Q713075",
+      "canonical": "yancheng district"
+    },
+    {
+      "value": "Gushan District",
+      "name": "Q713055",
+      "canonical": "gushan district"
+    },
+    {
+      "value": "Zuoying District",
+      "name": "Q718014",
+      "canonical": "zuoying district"
+    },
+    {
+      "value": "Nanzih District",
+      "name": "Q706758",
+      "canonical": "nanzih district"
+    },
+    {
+      "value": "Sanmin District",
+      "name": "Q713142",
+      "canonical": "sanmin district"
+    },
+    {
+      "value": "Sinsing District",
+      "name": "Q712856",
+      "canonical": "sinsing district"
+    },
+    {
+      "value": "Cianjin District",
+      "name": "Q712944",
+      "canonical": "cianjin district"
+    },
+    {
+      "value": "Lingya District",
+      "name": "Q708103",
+      "canonical": "lingya district"
+    },
+    {
+      "value": "Cianjhen District",
+      "name": "Q712894",
+      "canonical": "cianjhen district"
+    },
+    {
+      "value": "Cijin District",
+      "name": "Q706704",
+      "canonical": "cijin district"
+    },
+    {
+      "value": "Siaogang District",
+      "name": "Q718021",
+      "canonical": "siaogang district"
+    },
+    {
+      "value": "Fengshan District",
+      "name": "Q633500",
+      "canonical": "fengshan district"
+    },
+    {
+      "value": "Linyuan District",
+      "name": "Q708234",
+      "canonical": "linyuan district"
+    },
+    {
+      "value": "Daliao District",
+      "name": "Q713385",
+      "canonical": "daliao district"
+    },
+    {
+      "value": "Dashu District",
+      "name": "Q706696",
+      "canonical": "dashu district"
+    },
+    {
+      "value": "Dashe District",
+      "name": "Q708219",
+      "canonical": "dashe district"
+    },
+    {
+      "value": "Renwu District",
+      "name": "Q708657",
+      "canonical": "renwu district"
+    },
+    {
+      "value": "Niaosong District",
+      "name": "Q708201",
+      "canonical": "niaosong district"
+    },
+    {
+      "value": "Gangshan District",
+      "name": "Q706517",
+      "canonical": "gangshan district"
+    },
+    {
+      "value": "Ciaotou District",
+      "name": "Q708216",
+      "canonical": "ciaotou district"
+    },
+    {
+      "value": "Yanchao District",
+      "name": "Q707836",
+      "canonical": "yanchao district"
+    },
+    {
+      "value": "Tianliao District",
+      "name": "Q708212",
+      "canonical": "tianliao district"
+    },
+    {
+      "value": "Alian District",
+      "name": "Q708264",
+      "canonical": "alian district"
+    },
+    {
+      "value": "Lujhu District",
+      "name": "Q707897",
+      "canonical": "lujhu district"
+    },
+    {
+      "value": "Hunei District",
+      "name": "Q709957",
+      "canonical": "hunei district"
+    },
+    {
+      "value": "Qieding District",
+      "name": "Q713090",
+      "canonical": "qieding district"
+    },
+    {
+      "value": "Yong'an District",
+      "name": "Q708194",
+      "canonical": "yong 'an district"
+    },
+    {
+      "value": "Mituo District",
+      "name": "Q707772",
+      "canonical": "mituo district"
+    },
+    {
+      "value": "Ziguan District",
+      "name": "Q707851",
+      "canonical": "ziguan district"
+    },
+    {
+      "value": "Cishan District",
+      "name": "Q712942",
+      "canonical": "cishan district"
+    },
+    {
+      "value": "Meinong District",
+      "name": "Q706754",
+      "canonical": "meinong district"
+    },
+    {
+      "value": "Liouguei District",
+      "name": "Q712920",
+      "canonical": "liouguei district"
+    },
+    {
+      "value": "Jiasian District",
+      "name": "Q715951",
+      "canonical": "jiasian district"
+    },
+    {
+      "value": "Shanlin District",
+      "name": "Q707749",
+      "canonical": "shanlin district"
+    },
+    {
+      "value": "Neimen District",
+      "name": "Q708258",
+      "canonical": "neimen district"
+    },
+    {
+      "value": "Maolin District",
+      "name": "Q708142",
+      "canonical": "maolin district"
+    },
+    {
+      "value": "Taoyuan District",
+      "name": "Q708252",
+      "canonical": "taoyuan district"
+    },
+    {
+      "value": "Namasia District",
+      "name": "Q708115",
+      "canonical": "namasia district"
+    },
+    {
+      "value": "Bezděčín",
+      "name": "Q11142158",
+      "canonical": "bezděčín"
+    },
+    {
+      "value": "Čejetičky",
+      "name": "Q11170613",
+      "canonical": "čejetičky"
+    },
+    {
+      "value": "Debř",
+      "name": "Q11774507",
+      "canonical": "debř"
+    },
+    {
+      "value": "Jemníky",
+      "name": "Q12024491",
+      "canonical": "jemníky"
+    },
+    {
+      "value": "Michalovice",
+      "name": "Q12036847",
+      "canonical": "michalovice"
+    },
+    {
+      "value": "Mladá Boleslav I",
+      "name": "Q12038289",
+      "canonical": "mladá boleslav i"
+    },
+    {
+      "value": "Mladá Boleslav II",
+      "name": "Q12038290",
+      "canonical": "mladá boleslav ii"
+    },
+    {
+      "value": "Mladá Boleslav III",
+      "name": "Q12038291",
+      "canonical": "mladá boleslav iii"
+    },
+    {
+      "value": "Mladá Boleslav IV",
+      "name": "Q12038292",
+      "canonical": "mladá boleslav iv"
+    },
+    {
+      "value": "Podlázky",
+      "name": "Q12045912",
+      "canonical": "podlázky"
+    },
+    {
+      "value": "Laras",
+      "name": "Q48879155",
+      "canonical": "laras"
+    },
+    {
+      "value": "Maristela",
+      "name": "Q48878950",
+      "canonical": "maristela"
+    },
+    {
+      "value": "Dongcheng District",
+      "name": "Q394681",
+      "canonical": "dongcheng district"
+    },
+    {
+      "value": "Xicheng District",
+      "name": "Q30138",
+      "canonical": "xicheng district"
+    },
+    {
+      "value": "Chaoyang District",
+      "name": "Q394701",
+      "canonical": "chaoyang district"
+    },
+    {
+      "value": "Fengtai District",
+      "name": "Q393831",
+      "canonical": "fengtai district"
+    },
+    {
+      "value": "Shijingshan District",
+      "name": "Q393475",
+      "canonical": "shijingshan district"
+    },
+    {
+      "value": "Haidian District",
+      "name": "Q393454",
+      "canonical": "haidian district"
+    },
+    {
+      "value": "Mentougou District",
+      "name": "Q185584",
+      "canonical": "mentougou district"
+    },
+    {
+      "value": "Fangshan District",
+      "name": "Q393462",
+      "canonical": "fangshan district"
+    },
+    {
+      "value": "Tongzhou District, Beijing",
+      "name": "Q393836",
+      "canonical": "tongzhou district , beijing"
+    },
+    {
+      "value": "Shunyi District",
+      "name": "Q393482",
+      "canonical": "shunyi district"
+    },
+    {
+      "value": "Changping District",
+      "name": "Q393485",
+      "canonical": "changping district"
+    },
+    {
+      "value": "Daxing District",
+      "name": "Q393445",
+      "canonical": "daxing district"
+    },
+    {
+      "value": "Huairou District",
+      "name": "Q121911",
+      "canonical": "huairou district"
+    },
+    {
+      "value": "Pinggu District",
+      "name": "Q393469",
+      "canonical": "pinggu district"
+    },
+    {
+      "value": "Miyun District",
+      "name": "Q1022269",
+      "canonical": "miyun district"
+    },
+    {
+      "value": "Yanqing District",
+      "name": "Q596545",
+      "canonical": "yanqing district"
+    },
+    {
+      "value": "Víctor Manuel (barrio)",
+      "name": "Q16857855",
+      "canonical": "víctor manuel ( barrio )"
+    },
+    {
+      "value": "Rissen",
+      "name": "Q1596",
+      "canonical": "rissen"
+    },
+    {
+      "value": "Sülldorf",
+      "name": "Q1593",
+      "canonical": "sülldorf"
+    },
+    {
+      "value": "Blankenese",
+      "name": "Q1607",
+      "canonical": "blankenese"
+    },
+    {
+      "value": "Iserbrook",
+      "name": "Q1605",
+      "canonical": "iserbrook"
+    },
+    {
+      "value": "Osdorf",
+      "name": "Q1600",
+      "canonical": "osdorf"
+    },
+    {
+      "value": "Nienstedten",
+      "name": "Q1601",
+      "canonical": "nienstedten"
+    },
+    {
+      "value": "Lurup",
+      "name": "Q1602",
+      "canonical": "lurup"
+    },
+    {
+      "value": "Bahrenfeld",
+      "name": "Q1608",
+      "canonical": "bahrenfeld"
+    },
+    {
+      "value": "Groß Flottbek",
+      "name": "Q1606",
+      "canonical": "gro ß flottbek"
+    },
+    {
+      "value": "Othmarschen",
+      "name": "Q1598",
+      "canonical": "othmarschen"
+    },
+    {
+      "value": "Altona-Nord",
+      "name": "Q1587",
+      "canonical": "altona-nord"
+    },
+    {
+      "value": "Altona-Altstadt",
+      "name": "Q1591",
+      "canonical": "altona-altstadt"
+    },
+    {
+      "value": "Eidelstedt",
+      "name": "Q1609",
+      "canonical": "eidelstedt"
+    },
+    {
+      "value": "Ottensen",
+      "name": "Q1597",
+      "canonical": "ottensen"
+    },
+    {
+      "value": "Ottensen",
+      "name": "Q1597",
+      "canonical": "ottensen"
+    },
+    {
+      "value": "Neumühlen",
+      "name": "Q1980940",
+      "canonical": "neumühlen"
+    },
+    {
+      "value": "Neumühlen",
+      "name": "Q1980940",
+      "canonical": "neumühlen"
+    },
+    {
+      "value": "Frankfurt-Innenstadt I",
+      "name": "Q779842",
+      "canonical": "frankfurt-innenstadt i"
+    },
+    {
+      "value": "Frankfurt-Bornheim/Ostend",
+      "name": "Q1444834",
+      "canonical": "frankfurt-bornheim / ostend"
+    },
+    {
+      "value": "Süd",
+      "name": "Q1444863",
+      "canonical": "süd"
+    },
+    {
+      "value": "Frankfurt-West",
+      "name": "Q1444866",
+      "canonical": "frankfurt-west"
+    },
+    {
+      "value": "Frankfurt-ost",
+      "name": "Q1444856",
+      "canonical": "frankfurt-ost"
+    },
+    {
+      "value": "Nieder-Erlenbach",
+      "name": "Q314760",
+      "canonical": "nieder-erlenbach"
+    },
+    {
+      "value": "Kalbach-Riedberg",
+      "name": "Q315209",
+      "canonical": "kalbach-riedberg"
+    },
+    {
+      "value": "Harheim",
+      "name": "Q314895",
+      "canonical": "harheim"
+    },
+    {
+      "value": "Nieder-Eschbach",
+      "name": "Q314199",
+      "canonical": "nieder-eschbach"
+    },
+    {
+      "value": "Bergen-Enkheim",
+      "name": "Q314066",
+      "canonical": "bergen-enkheim"
+    },
+    {
+      "value": "Borough 1 of Verona",
+      "name": "Q17280544",
+      "canonical": "borough 1 of verona"
+    },
+    {
+      "value": "Borough 3 of Verona",
+      "name": "Q17280520",
+      "canonical": "borough 3 of verona"
+    },
+    {
+      "value": "Niamey I",
+      "name": "Q1984544",
+      "canonical": "niamey i"
+    },
+    {
+      "value": "Niamey II",
+      "name": "Q1984541",
+      "canonical": "niamey ii"
+    },
+    {
+      "value": "Niamey III",
+      "name": "Q1650693",
+      "canonical": "niamey iii"
+    },
+    {
+      "value": "Niamey IV",
+      "name": "Q304745",
+      "canonical": "niamey iv"
+    },
+    {
+      "value": "Niamey V",
+      "name": "Q917406",
+      "canonical": "niamey v"
+    },
+    {
+      "value": "Neuberesinchen",
+      "name": "Q11790756",
+      "canonical": "neuberesinchen"
+    },
+    {
+      "value": "Güldendorf",
+      "name": "Q1560084",
+      "canonical": "güldendorf"
+    },
+    {
+      "value": "Lossow",
+      "name": "Q1528937",
+      "canonical": "lossow"
+    },
+    {
+      "value": "Kliestow",
+      "name": "Q878621",
+      "canonical": "kliestow"
+    },
+    {
+      "value": "Booßen",
+      "name": "Q893226",
+      "canonical": "boo ß en"
+    },
+    {
+      "value": "Rosengarten",
+      "name": "Q83131",
+      "canonical": "rosengarten"
+    },
+    {
+      "value": "Pagram",
+      "name": "Q2046272",
+      "canonical": "pagram"
+    },
+    {
+      "value": "Lichtenberg",
+      "name": "Q1276205",
+      "canonical": "lichtenberg"
+    },
+    {
+      "value": "Markendorf",
+      "name": "Q212045",
+      "canonical": "markendorf"
+    },
+    {
+      "value": "Hohenwalde",
+      "name": "Q212118",
+      "canonical": "hohenwalde"
+    },
+    {
+      "value": "Circoscrizione A Centro storico",
+      "name": "Q16761593",
+      "canonical": "circoscrizione a centro storico"
+    },
+    {
+      "value": "Lérez (parroquia)",
+      "name": "Q512126",
+      "canonical": "lérez ( parroquia )"
+    },
+    {
+      "value": "Lourizán",
+      "name": "Q3398493",
+      "canonical": "lourizán"
+    },
+    {
+      "value": "Mourente",
+      "name": "Q3396150",
+      "canonical": "mourente"
+    },
+    {
+      "value": "Salcedo",
+      "name": "Q3396124",
+      "canonical": "salcedo"
+    },
+    {
+      "value": "Bolevec",
+      "name": "Q11225445",
+      "canonical": "bolevec"
+    },
+    {
+      "value": "Božkov",
+      "name": "Q11241487",
+      "canonical": "božkov"
+    },
+    {
+      "value": "Bukovec",
+      "name": "Q11363051",
+      "canonical": "bukovec"
+    },
+    {
+      "value": "Černice",
+      "name": "Q10815864",
+      "canonical": "černice"
+    },
+    {
+      "value": "Dolní Vlkýš",
+      "name": "Q11817600",
+      "canonical": "dolní vlkýš"
+    },
+    {
+      "value": "Doubravka",
+      "name": "Q11823676",
+      "canonical": "doubravka"
+    },
+    {
+      "value": "Doudlevce",
+      "name": "Q11823853",
+      "canonical": "doudlevce"
+    },
+    {
+      "value": "Hradiště",
+      "name": "Q12020593",
+      "canonical": "hradiště"
+    },
+    {
+      "value": "Jižní Předměstí",
+      "name": "Q12025721",
+      "canonical": "jižní předměstí"
+    },
+    {
+      "value": "Koterov",
+      "name": "Q12031162",
+      "canonical": "koterov"
+    },
+    {
+      "value": "Křimice",
+      "name": "Q3356862",
+      "canonical": "křimice"
+    },
+    {
+      "value": "Pilsen 10",
+      "name": "Q2351231",
+      "canonical": "pilsen 10"
+    },
+    {
+      "value": "Nová Hospoda",
+      "name": "Q12041179",
+      "canonical": "nová hospoda"
+    },
+    {
+      "value": "Pilsen 7",
+      "name": "Q2804619",
+      "canonical": "pilsen 7"
+    },
+    {
+      "value": "Radobyčice",
+      "name": "Q12048628",
+      "canonical": "radobyčice"
+    },
+    {
+      "value": "Severní Předměstí",
+      "name": "Q12051556",
+      "canonical": "severní předměstí"
+    },
+    {
+      "value": "Skvrňany",
+      "name": "Q12054598",
+      "canonical": "skvrňany"
+    },
+    {
+      "value": "Újezd",
+      "name": "Q11085896",
+      "canonical": "újezd"
+    },
+    {
+      "value": "Valcha",
+      "name": "Q11870758",
+      "canonical": "valcha"
+    },
+    {
+      "value": "Vnitřní Město",
+      "name": "Q11921135",
+      "canonical": "vnitřní město"
+    },
+    {
+      "value": "Východní Předměstí",
+      "name": "Q11994151",
+      "canonical": "východní předměstí"
+    },
+    {
+      "value": "Qidu District",
+      "name": "Q713087",
+      "canonical": "qidu district"
+    },
+    {
+      "value": "Anle District",
+      "name": "Q707578",
+      "canonical": "anle district"
+    },
+    {
+      "value": "Zhongshan District",
+      "name": "Q707552",
+      "canonical": "zhongshan district"
+    },
+    {
+      "value": "Zhongzheng District",
+      "name": "Q712871",
+      "canonical": "zhongzheng district"
+    },
+    {
+      "value": "Xinyi District",
+      "name": "Q707824",
+      "canonical": "xinyi district"
+    },
+    {
+      "value": "Ren'ai District",
+      "name": "Q707803",
+      "canonical": "ren 'ai district"
+    },
+    {
+      "value": "Nuannuan District",
+      "name": "Q707563",
+      "canonical": "nuannuan district"
+    },
+    {
+      "value": "Shinjuku Ni-chōme",
+      "name": "Q1420043",
+      "canonical": "shinjuku ni-chōme"
+    },
+    {
+      "value": "Carlton",
+      "name": "Q47002",
+      "canonical": "carlton"
+    },
+    {
+      "value": "Carlton North",
+      "name": "Q5043042",
+      "canonical": "carlton north"
+    },
+    {
+      "value": "Docklands",
+      "name": "Q5287226",
+      "canonical": "docklands"
+    },
+    {
+      "value": "East Melbourne",
+      "name": "Q5328965",
+      "canonical": "east melbourne"
+    },
+    {
+      "value": "Flemington",
+      "name": "Q1427991",
+      "canonical": "flemington"
+    },
+    {
+      "value": "Kensington",
+      "name": "Q2608078",
+      "canonical": "kensington"
+    },
+    {
+      "value": "Melbourne",
+      "name": "Q6811747",
+      "canonical": "melbourne"
+    },
+    {
+      "value": "North Melbourne",
+      "name": "Q7056074",
+      "canonical": "north melbourne"
+    },
+    {
+      "value": "Parkville",
+      "name": "Q3427921",
+      "canonical": "parkville"
+    },
+    {
+      "value": "Port Melbourne",
+      "name": "Q1623026",
+      "canonical": "port melbourne"
+    },
+    {
+      "value": "South Wharf",
+      "name": "Q12069696",
+      "canonical": "south wharf"
+    },
+    {
+      "value": "South Yarra",
+      "name": "Q2304617",
+      "canonical": "south yarra"
+    },
+    {
+      "value": "Southbank",
+      "name": "Q1049218",
+      "canonical": "southbank"
+    },
+    {
+      "value": "West Melbourne",
+      "name": "Q12010545",
+      "canonical": "west melbourne"
+    },
+    {
+      "value": "Śródmieście",
+      "name": "Q7095",
+      "canonical": "śródmieście"
+    },
+    {
+      "value": "Białołęka",
+      "name": "Q855983",
+      "canonical": "białołęka"
+    },
+    {
+      "value": "Bemowo",
+      "name": "Q7101",
+      "canonical": "bemowo"
+    },
+    {
+      "value": "Bielany",
+      "name": "Q857304",
+      "canonical": "bielany"
+    },
+    {
+      "value": "Mokotów",
+      "name": "Q1634585",
+      "canonical": "mokotów"
+    },
+    {
+      "value": "Praga-Południe",
+      "name": "Q2107492",
+      "canonical": "praga-południe"
+    },
+    {
+      "value": "Ursynów",
+      "name": "Q1280107",
+      "canonical": "ursynów"
+    },
+    {
+      "value": "Wola",
+      "name": "Q1020136",
+      "canonical": "wola"
+    },
+    {
+      "value": "Targówek",
+      "name": "Q1247360",
+      "canonical": "targówek"
+    },
+    {
+      "value": "Ochota",
+      "name": "Q1017790",
+      "canonical": "ochota"
+    },
+    {
+      "value": "Wawer",
+      "name": "Q7089",
+      "canonical": "wawer"
+    },
+    {
+      "value": "Praga-Północ",
+      "name": "Q2107497",
+      "canonical": "praga-północ"
+    },
+    {
+      "value": "Ursus",
+      "name": "Q1851596",
+      "canonical": "ursus"
+    },
+    {
+      "value": "Żoliborz",
+      "name": "Q127098",
+      "canonical": "żoliborz"
+    },
+    {
+      "value": "Włochy",
+      "name": "Q1671187",
+      "canonical": "włochy"
+    },
+    {
+      "value": "Wilanów",
+      "name": "Q1887504",
+      "canonical": "wilanów"
+    },
+    {
+      "value": "Wesoła",
+      "name": "Q1801709",
+      "canonical": "wesoła"
+    },
+    {
+      "value": "Rembertów",
+      "name": "Q1494474",
+      "canonical": "rembertów"
+    },
+    {
+      "value": "Śródmieście",
+      "name": "Q3502056",
+      "canonical": "śródmieście"
+    },
+    {
+      "value": "Koszutka",
+      "name": "Q478960",
+      "canonical": "koszutka"
+    },
+    {
+      "value": "Bogucice",
+      "name": "Q890679",
+      "canonical": "bogucice"
+    },
+    {
+      "value": "Osiedle Paderewskiego – Muchowiec",
+      "name": "Q7106728",
+      "canonical": "osiedle paderewskiego – muchowiec"
+    },
+    {
+      "value": "Załęże",
+      "name": "Q167941",
+      "canonical": "załęże"
+    },
+    {
+      "value": "Osiedle Witosa",
+      "name": "Q7106745",
+      "canonical": "osiedle witosa"
+    },
+    {
+      "value": "Osiedle Tysiąclecia",
+      "name": "Q1393179",
+      "canonical": "osiedle tysiąclecia"
+    },
+    {
+      "value": "Dąb",
+      "name": "Q1272526",
+      "canonical": "dąb"
+    },
+    {
+      "value": "Wełnowiec",
+      "name": "Q7990425",
+      "canonical": "wełnowiec"
+    },
+    {
+      "value": "Ligota-Panewniki",
+      "name": "Q6546780",
+      "canonical": "ligota-panewniki"
+    },
+    {
+      "value": "Brynów-Osiedle Zgrzebnioka",
+      "name": "Q9180786",
+      "canonical": "brynów-osiedle zgrzebnioka"
+    },
+    {
+      "value": "Załęska Hałda-Brynów",
+      "name": "Q15144339",
+      "canonical": "załęska hałda-brynów"
+    },
+    {
+      "value": "Zawodzie",
+      "name": "Q8067504",
+      "canonical": "zawodzie"
+    },
+    {
+      "value": "Dąbrówka Mała",
+      "name": "Q1272581",
+      "canonical": "dąbrówka mała"
+    },
+    {
+      "value": "Szopienice-Burowiec",
+      "name": "Q15144368",
+      "canonical": "szopienice-burowiec"
+    },
+    {
+      "value": "Janów-Nikiszowiec",
+      "name": "Q378875",
+      "canonical": "janów-nikiszowiec"
+    },
+    {
+      "value": "Giszowiec",
+      "name": "Q956999",
+      "canonical": "giszowiec"
+    },
+    {
+      "value": "Murcki",
+      "name": "Q260340",
+      "canonical": "murcki"
+    },
+    {
+      "value": "Piotrowice-Ochojec",
+      "name": "Q7197110",
+      "canonical": "piotrowice-ochojec"
+    },
+    {
+      "value": "Zarzecze",
+      "name": "Q8066966",
+      "canonical": "zarzecze"
+    },
+    {
+      "value": "Kostuchna",
+      "name": "Q6433600",
+      "canonical": "kostuchna"
+    },
+    {
+      "value": "Podlesie",
+      "name": "Q7206894",
+      "canonical": "podlesie"
+    },
+    {
+      "value": "Altstadt (Dresden)",
+      "name": "Q8885",
+      "canonical": "altstadt ( dresden )"
+    },
+    {
+      "value": "Dresden-Neustadt",
+      "name": "Q383245",
+      "canonical": "dresden-neustadt"
+    },
+    {
+      "value": "Cotta",
+      "name": "Q383195",
+      "canonical": "cotta"
+    },
+    {
+      "value": "Altfranken",
+      "name": "Q8888",
+      "canonical": "altfranken"
+    },
+    {
+      "value": "Cossebaude",
+      "name": "Q1136240",
+      "canonical": "cossebaude"
+    },
+    {
+      "value": "Gompitz",
+      "name": "Q1536933",
+      "canonical": "gompitz"
+    },
+    {
+      "value": "Langebrück",
+      "name": "Q1804939",
+      "canonical": "langebrück"
+    },
+    {
+      "value": "Oberwartha",
+      "name": "Q1674903",
+      "canonical": "oberwartha"
+    },
+    {
+      "value": "Schönborn",
+      "name": "Q2258794",
+      "canonical": "schönborn"
+    },
+    {
+      "value": "Schönfeld-Weißig",
+      "name": "Q8891",
+      "canonical": "schönfeld-wei ß ig"
+    },
+    {
+      "value": "Weixdorf",
+      "name": "Q2556716",
+      "canonical": "weixdorf"
+    },
+    {
+      "value": "Almoshof",
+      "name": "Q474615",
+      "canonical": "almoshof"
+    },
+    {
+      "value": "Boxdorf",
+      "name": "Q895568",
+      "canonical": "boxdorf"
+    },
+    {
+      "value": "Brunn",
+      "name": "Q977244",
+      "canonical": "brunn"
+    },
+    {
+      "value": "Buch",
+      "name": "Q200415",
+      "canonical": "buch"
+    },
+    {
+      "value": "Eibach",
+      "name": "Q1301080",
+      "canonical": "eibach"
+    },
+    {
+      "value": "Erlenstegen",
+      "name": "Q1355579",
+      "canonical": "erlenstegen"
+    },
+    {
+      "value": "Fischbach",
+      "name": "Q1289877",
+      "canonical": "fischbach"
+    },
+    {
+      "value": "Wöhrd",
+      "name": "Q2596359",
+      "canonical": "wöhrd"
+    },
+    {
+      "value": "Gärten hinter der Veste",
+      "name": "Q1558831",
+      "canonical": "gärten hinter der veste"
+    },
+    {
+      "value": "Galgenhof",
+      "name": "Q1492027",
+      "canonical": "galgenhof"
+    },
+    {
+      "value": "Altenfurt",
+      "name": "Q437063",
+      "canonical": "altenfurt"
+    },
+    {
+      "value": "Bleiweiß",
+      "name": "Q883691",
+      "canonical": "bleiwei ß"
+    },
+    {
+      "value": "Buchenbühl",
+      "name": "Q998277",
+      "canonical": "buchenbühl"
+    },
+    {
+      "value": "Doos",
+      "name": "Q1242592",
+      "canonical": "doos"
+    },
+    {
+      "value": "Eberhardshof",
+      "name": "Q1279659",
+      "canonical": "eberhardshof"
+    },
+    {
+      "value": "Eichenlöhlein",
+      "name": "Q1301728",
+      "canonical": "eichenlöhlein"
+    },
+    {
+      "value": "Falkenheim",
+      "name": "Q1394236",
+      "canonical": "falkenheim"
+    },
+    {
+      "value": "Freilandsiedlung",
+      "name": "Q1282321",
+      "canonical": "freilandsiedlung"
+    },
+    {
+      "value": "Gartenstadt",
+      "name": "Q1494690",
+      "canonical": "gartenstadt"
+    },
+    {
+      "value": "Gaulnhofen",
+      "name": "Q1496219",
+      "canonical": "gaulnhofen"
+    },
+    {
+      "value": "Gebersdorf",
+      "name": "Q1496844",
+      "canonical": "gebersdorf"
+    },
+    {
+      "value": "Gerasmühle",
+      "name": "Q1346507",
+      "canonical": "gerasmühle"
+    },
+    {
+      "value": "Gibitzenhof",
+      "name": "Q1522925",
+      "canonical": "gibitzenhof"
+    },
+    {
+      "value": "Gleißbühl",
+      "name": "Q1530673",
+      "canonical": "glei ß bühl"
+    },
+    {
+      "value": "Gleisshammer",
+      "name": "Q569270",
+      "canonical": "gleisshammer"
+    },
+    {
+      "value": "Glockenhof",
+      "name": "Q1265708",
+      "canonical": "glockenhof"
+    },
+    {
+      "value": "Gostenhof",
+      "name": "Q1538632",
+      "canonical": "gostenhof"
+    },
+    {
+      "value": "Greuth",
+      "name": "Q1546096",
+      "canonical": "greuth"
+    },
+    {
+      "value": "Großgründlach",
+      "name": "Q896486",
+      "canonical": "gro ß gründlach"
+    },
+    {
+      "value": "Großreuth bei Schweinau",
+      "name": "Q1549532",
+      "canonical": "gro ß reuth bei schweinau"
+    },
+    {
+      "value": "Commune II",
+      "name": "Q59089652",
+      "canonical": "commune ii"
+    },
+    {
+      "value": "Commune IV",
+      "name": "Q2989404",
+      "canonical": "commune iv"
+    },
+    {
+      "value": "Commune V, Bamako",
+      "name": "Q65074168",
+      "canonical": "commune v , bamako"
+    },
+    {
+      "value": "Commune VI, Bamako",
+      "name": "Q65074169",
+      "canonical": "commune vi , bamako"
+    },
+    {
+      "value": "Wanzhou",
+      "name": "Q713825",
+      "canonical": "wanzhou"
+    },
+    {
+      "value": "Fuling District",
+      "name": "Q553934",
+      "canonical": "fuling district"
+    },
+    {
+      "value": "Yuzhong District",
+      "name": "Q713343",
+      "canonical": "yuzhong district"
+    },
+    {
+      "value": "Dadukou District",
+      "name": "Q713410",
+      "canonical": "dadukou district"
+    },
+    {
+      "value": "Jiangbei District",
+      "name": "Q249712",
+      "canonical": "jiangbei district"
+    },
+    {
+      "value": "Shapingba District",
+      "name": "Q713728",
+      "canonical": "shapingba district"
+    },
+    {
+      "value": "Jiulongpo District",
+      "name": "Q588451",
+      "canonical": "jiulongpo district"
+    },
+    {
+      "value": "Nan'an District",
+      "name": "Q713491",
+      "canonical": "nan 'an district"
+    },
+    {
+      "value": "Beibei District",
+      "name": "Q713547",
+      "canonical": "beibei district"
+    },
+    {
+      "value": "Qijiang District",
+      "name": "Q714216",
+      "canonical": "qijiang district"
+    },
+    {
+      "value": "Dazu District",
+      "name": "Q714314",
+      "canonical": "dazu district"
+    },
+    {
+      "value": "Yubei District",
+      "name": "Q182866",
+      "canonical": "yubei district"
+    },
+    {
+      "value": "Banan District",
+      "name": "Q554491",
+      "canonical": "banan district"
+    },
+    {
+      "value": "Qianjiang District",
+      "name": "Q713946",
+      "canonical": "qianjiang district"
+    },
+    {
+      "value": "Changshou District",
+      "name": "Q713691",
+      "canonical": "changshou district"
+    },
+    {
+      "value": "Jiangjin District",
+      "name": "Q201723",
+      "canonical": "jiangjin district"
+    },
+    {
+      "value": "Hechuan District",
+      "name": "Q714045",
+      "canonical": "hechuan district"
+    },
+    {
+      "value": "Yongchuan District",
+      "name": "Q713989",
+      "canonical": "yongchuan district"
+    },
+    {
+      "value": "Nanchuan District",
+      "name": "Q714170",
+      "canonical": "nanchuan district"
+    },
+    {
+      "value": "Tongnan County",
+      "name": "Q1363494",
+      "canonical": "tongnan county"
+    },
+    {
+      "value": "Tongliang District",
+      "name": "Q1331358",
+      "canonical": "tongliang district"
+    },
+    {
+      "value": "Rongchang District",
+      "name": "Q1331275",
+      "canonical": "rongchang district"
+    },
+    {
+      "value": "Bishan District",
+      "name": "Q596229",
+      "canonical": "bishan district"
+    },
+    {
+      "value": "Liangping District",
+      "name": "Q1362558",
+      "canonical": "liangping district"
+    },
+    {
+      "value": "Chengkou County",
+      "name": "Q1070004",
+      "canonical": "chengkou county"
+    },
+    {
+      "value": "Fengdu County",
+      "name": "Q737865",
+      "canonical": "fengdu county"
+    },
+    {
+      "value": "Dianjiang County",
+      "name": "Q1209039",
+      "canonical": "dianjiang county"
+    },
+    {
+      "value": "Wulong District",
+      "name": "Q1331251",
+      "canonical": "wulong district"
+    },
+    {
+      "value": "Zhong County",
+      "name": "Q197804",
+      "canonical": "zhong county"
+    },
+    {
+      "value": "Kaizhou District",
+      "name": "Q1371311",
+      "canonical": "kaizhou district"
+    },
+    {
+      "value": "Yunyang County",
+      "name": "Q14447",
+      "canonical": "yunyang county"
+    },
+    {
+      "value": "Fengjie County",
+      "name": "Q1362044",
+      "canonical": "fengjie county"
+    },
+    {
+      "value": "Wushan County, Chongqing",
+      "name": "Q1262713",
+      "canonical": "wushan county , chongqing"
+    },
+    {
+      "value": "Wuxi County",
+      "name": "Q1365459",
+      "canonical": "wuxi county"
+    },
+    {
+      "value": "Shizhu Tujia Autonomous County",
+      "name": "Q1378010",
+      "canonical": "shizhu tujia autonomous county"
+    },
+    {
+      "value": "Xiushan Tujia and Miao Autonomous County",
+      "name": "Q1353498",
+      "canonical": "xiushan tujia and miao autonomous county"
+    },
+    {
+      "value": "Youyang Tujia and Miao Autonomous County",
+      "name": "Q1331332",
+      "canonical": "youyang tujia and miao autonomous county"
+    },
+    {
+      "value": "Pengshui Miao and Tujia Autonomous County",
+      "name": "Q1378017",
+      "canonical": "pengshui miao and tujia autonomous county"
+    },
+    {
+      "value": "Jinjiang District",
+      "name": "Q1360027",
+      "canonical": "jinjiang district"
+    },
+    {
+      "value": "Qingyang District",
+      "name": "Q614322",
+      "canonical": "qingyang district"
+    },
+    {
+      "value": "Jinniu District",
+      "name": "Q1360011",
+      "canonical": "jinniu district"
+    },
+    {
+      "value": "Wuhou District",
+      "name": "Q1356056",
+      "canonical": "wuhou district"
+    },
+    {
+      "value": "Chenghua District",
+      "name": "Q30091",
+      "canonical": "chenghua district"
+    },
+    {
+      "value": "Longquanyi District",
+      "name": "Q1356079",
+      "canonical": "longquanyi district"
+    },
+    {
+      "value": "Qingbaijiang District",
+      "name": "Q369371",
+      "canonical": "qingbaijiang district"
+    },
+    {
+      "value": "Xindu District",
+      "name": "Q1027369",
+      "canonical": "xindu district"
+    },
+    {
+      "value": "Wenjiang District",
+      "name": "Q1355972",
+      "canonical": "wenjiang district"
+    },
+    {
+      "value": "Jintang County",
+      "name": "Q1355899",
+      "canonical": "jintang county"
+    },
+    {
+      "value": "Shuangliu District",
+      "name": "Q1339981",
+      "canonical": "shuangliu district"
+    },
+    {
+      "value": "Pidu District",
+      "name": "Q1027358",
+      "canonical": "pidu district"
+    },
+    {
+      "value": "Dayi County",
+      "name": "Q1179111",
+      "canonical": "dayi county"
+    },
+    {
+      "value": "Pujiang County (Sichuan)",
+      "name": "Q1355890",
+      "canonical": "pujiang county ( sichuan )"
+    },
+    {
+      "value": "Xinjin",
+      "name": "Q549700",
+      "canonical": "xinjin"
+    },
+    {
+      "value": "Dujiangyan City",
+      "name": "Q1023900",
+      "canonical": "dujiangyan city"
+    },
+    {
+      "value": "Pengzhou",
+      "name": "Q1360118",
+      "canonical": "pengzhou"
+    },
+    {
+      "value": "Qionglai City",
+      "name": "Q1209143",
+      "canonical": "qionglai city"
+    },
+    {
+      "value": "Chongzhou",
+      "name": "Q1076195",
+      "canonical": "chongzhou"
+    },
+    {
+      "value": "Jianyang, Sichuan",
+      "name": "Q774508",
+      "canonical": "jianyang , sichuan"
+    },
+    {
+      "value": "Échat",
+      "name": "Q3577416",
+      "canonical": "échat"
+    },
+    {
+      "value": "Empalme Graneros (barrio)",
+      "name": "Q5831594",
+      "canonical": "empalme graneros ( barrio )"
+    },
+    {
+      "value": "East District",
+      "name": "Q707815",
+      "canonical": "east district"
+    },
+    {
+      "value": "West District",
+      "name": "Q707524",
+      "canonical": "west district"
+    },
+    {
+      "value": "Bohatice",
+      "name": "Q11217133",
+      "canonical": "bohatice"
+    },
+    {
+      "value": "Cihelny",
+      "name": "Q12016553",
+      "canonical": "cihelny"
+    },
+    {
+      "value": "Čankov",
+      "name": "Q11169398",
+      "canonical": "čankov"
+    },
+    {
+      "value": "Doubí",
+      "name": "Q1251635",
+      "canonical": "doubí"
+    },
+    {
+      "value": "Drahovice",
+      "name": "Q11826539",
+      "canonical": "drahovice"
+    },
+    {
+      "value": "Dvory",
+      "name": "Q11836797",
+      "canonical": "dvory"
+    },
+    {
+      "value": "Hůrky",
+      "name": "Q12021306",
+      "canonical": "hůrky"
+    },
+    {
+      "value": "Olšová Vrata",
+      "name": "Q223248",
+      "canonical": "olšová vrata"
+    },
+    {
+      "value": "Počerny",
+      "name": "Q12046666",
+      "canonical": "počerny"
+    },
+    {
+      "value": "Rosnice",
+      "name": "Q10817499",
+      "canonical": "rosnice"
+    },
+    {
+      "value": "Rybáře",
+      "name": "Q12050450",
+      "canonical": "rybáře"
+    },
+    {
+      "value": "Sedlec",
+      "name": "Q12051216",
+      "canonical": "sedlec"
+    },
+    {
+      "value": "Stará Role",
+      "name": "Q12056151",
+      "canonical": "stará role"
+    },
+    {
+      "value": "Tašovice",
+      "name": "Q12058428",
+      "canonical": "tašovice"
+    },
+    {
+      "value": "Karlovy Vary",
+      "name": "Q56414571",
+      "canonical": "karlovy vary"
+    },
+    {
+      "value": "Nečichy",
+      "name": "Q12040880",
+      "canonical": "nečichy"
+    },
+    {
+      "value": "Brloh",
+      "name": "Q11341351",
+      "canonical": "brloh"
+    },
+    {
+      "value": "Municipio I",
+      "name": "Q550592",
+      "canonical": "municipio i"
+    },
+    {
+      "value": "Municipio II",
+      "name": "Q16494134",
+      "canonical": "municipio ii"
+    },
+    {
+      "value": "Municipio III",
+      "name": "Q16003470",
+      "canonical": "municipio iii"
+    },
+    {
+      "value": "Municipio IV",
+      "name": "Q16003516",
+      "canonical": "municipio iv"
+    },
+    {
+      "value": "Municipio V",
+      "name": "Q16481953",
+      "canonical": "municipio v"
+    },
+    {
+      "value": "Municipio VI",
+      "name": "Q16481961",
+      "canonical": "municipio vi"
+    },
+    {
+      "value": "Municipio VII",
+      "name": "Q16481966",
+      "canonical": "municipio vii"
+    },
+    {
+      "value": "Municipio XV",
+      "name": "Q16482005",
+      "canonical": "municipio xv"
+    },
+    {
+      "value": "Municipio VIII",
+      "name": "Q16495467",
+      "canonical": "municipio viii"
+    },
+    {
+      "value": "Municipio IX",
+      "name": "Q16481947",
+      "canonical": "municipio ix"
+    },
+    {
+      "value": "Municipio X",
+      "name": "Q16481977",
+      "canonical": "municipio x"
+    },
+    {
+      "value": "Municipio XI",
+      "name": "Q16481986",
+      "canonical": "municipio xi"
+    },
+    {
+      "value": "Municipio XII",
+      "name": "Q16481992",
+      "canonical": "municipio xii"
+    },
+    {
+      "value": "Municipio XIII",
+      "name": "Q16481997",
+      "canonical": "municipio xiii"
+    },
+    {
+      "value": "Municipio XIV",
+      "name": "Q16482002",
+      "canonical": "municipio xiv"
+    },
+    {
+      "value": "Comuna 4 (Buenos Aires)",
+      "name": "Q5780369",
+      "canonical": "comuna 4 ( buenos aires )"
+    },
+    {
+      "value": "Comuna 5 (Buenos Aires)",
+      "name": "Q5685958",
+      "canonical": "comuna 5 ( buenos aires )"
+    },
+    {
+      "value": "Comuna 7 (Buenos Aires)",
+      "name": "Q5780392",
+      "canonical": "comuna 7 ( buenos aires )"
+    },
+    {
+      "value": "Comuna 8 (Buenos Aires)",
+      "name": "Q5780399",
+      "canonical": "comuna 8 ( buenos aires )"
+    },
+    {
+      "value": "Comuna 9 (Buenos Aires)",
+      "name": "Q17499403",
+      "canonical": "comuna 9 ( buenos aires )"
+    },
+    {
+      "value": "Comuna 10 (Buenos Aires)",
+      "name": "Q5780312",
+      "canonical": "comuna 10 ( buenos aires )"
+    },
+    {
+      "value": "Comuna 12 (Buenos Aires)",
+      "name": "Q5482069",
+      "canonical": "comuna 12 ( buenos aires )"
+    },
+    {
+      "value": "Comuna 11 (Buenos Aires)",
+      "name": "Q17488660",
+      "canonical": "comuna 11 ( buenos aires )"
+    },
+    {
+      "value": "Comuna 2 (Buenos Aires)",
+      "name": "Q27894563",
+      "canonical": "comuna 2 ( buenos aires )"
+    },
+    {
+      "value": "Adachi-ku",
+      "name": "Q213464",
+      "canonical": "adachi-ku"
+    },
+    {
+      "value": "Arakawa-ku",
+      "name": "Q232624",
+      "canonical": "arakawa-ku"
+    },
+    {
+      "value": "Bunkyō-ku",
+      "name": "Q212713",
+      "canonical": "bunkyō-ku"
+    },
+    {
+      "value": "Chiyoda-ku",
+      "name": "Q214051",
+      "canonical": "chiyoda-ku"
+    },
+    {
+      "value": "Chūō-ku",
+      "name": "Q212704",
+      "canonical": "chūō-ku"
+    },
+    {
+      "value": "Edogawa-ku",
+      "name": "Q214056",
+      "canonical": "edogawa-ku"
+    },
+    {
+      "value": "Itabashi-ku",
+      "name": "Q232635",
+      "canonical": "itabashi-ku"
+    },
+    {
+      "value": "Katsushika-ku",
+      "name": "Q232628",
+      "canonical": "katsushika-ku"
+    },
+    {
+      "value": "Kita-ku",
+      "name": "Q235130",
+      "canonical": "kita-ku"
+    },
+    {
+      "value": "Kōtō-ku",
+      "name": "Q215175",
+      "canonical": "kōtō-ku"
+    },
+    {
+      "value": "Meguro-ku",
+      "name": "Q233903",
+      "canonical": "meguro-ku"
+    },
+    {
+      "value": "Minato",
+      "name": "Q190088",
+      "canonical": "minato"
+    },
+    {
+      "value": "Nakano-ku",
+      "name": "Q234087",
+      "canonical": "nakano-ku"
+    },
+    {
+      "value": "Nerima-ku",
+      "name": "Q232655",
+      "canonical": "nerima-ku"
+    },
+    {
+      "value": "Ōta-ku",
+      "name": "Q217234",
+      "canonical": "ōta-ku"
+    },
+    {
+      "value": "Setagaya-ku",
+      "name": "Q231645",
+      "canonical": "setagaya-ku"
+    },
+    {
+      "value": "Shibuya",
+      "name": "Q193638",
+      "canonical": "shibuya"
+    },
+    {
+      "value": "Shinagawa-ku",
+      "name": "Q233495",
+      "canonical": "shinagawa-ku"
+    },
+    {
+      "value": "Shinjuku-ku",
+      "name": "Q179645",
+      "canonical": "shinjuku-ku"
+    },
+    {
+      "value": "Suginami-ku",
+      "name": "Q232631",
+      "canonical": "suginami-ku"
+    },
+    {
+      "value": "Toshima-ku",
+      "name": "Q236680",
+      "canonical": "toshima-ku"
+    },
+    {
+      "value": "Taitō-ku",
+      "name": "Q232641",
+      "canonical": "taitō-ku"
+    },
+    {
+      "value": "Sumida-ku",
+      "name": "Q235135",
+      "canonical": "sumida-ku"
+    },
+    {
+      "value": "Hachiōji",
+      "name": "Q208863",
+      "canonical": "hachiōji"
+    },
+    {
+      "value": "Tachikawa",
+      "name": "Q269634",
+      "canonical": "tachikawa"
+    },
+    {
+      "value": "Musashino",
+      "name": "Q210661",
+      "canonical": "musashino"
+    },
+    {
+      "value": "Mitaka",
+      "name": "Q242885",
+      "canonical": "mitaka"
+    },
+    {
+      "value": "Ōme",
+      "name": "Q237683",
+      "canonical": "ōme"
+    },
+    {
+      "value": "Fuchū",
+      "name": "Q208818",
+      "canonical": "fuchū"
+    },
+    {
+      "value": "Akishima",
+      "name": "Q212494",
+      "canonical": "akishima"
+    },
+    {
+      "value": "Chōfu",
+      "name": "Q210667",
+      "canonical": "chōfu"
+    },
+    {
+      "value": "Machida",
+      "name": "Q210628",
+      "canonical": "machida"
+    },
+    {
+      "value": "Koganei City",
+      "name": "Q242874",
+      "canonical": "koganei city"
+    },
+    {
+      "value": "Kodaira",
+      "name": "Q213278",
+      "canonical": "kodaira"
+    },
+    {
+      "value": "Hino",
+      "name": "Q236197",
+      "canonical": "hino"
+    },
+    {
+      "value": "Higashimurayama",
+      "name": "Q240489",
+      "canonical": "higashimurayama"
+    },
+    {
+      "value": "Kokubunji",
+      "name": "Q317834",
+      "canonical": "kokubunji"
+    },
+    {
+      "value": "Kunitachi",
+      "name": "Q330007",
+      "canonical": "kunitachi"
+    },
+    {
+      "value": "Fussa",
+      "name": "Q317813",
+      "canonical": "fussa"
+    },
+    {
+      "value": "Komae",
+      "name": "Q86536",
+      "canonical": "komae"
+    },
+    {
+      "value": "Higashiyamato",
+      "name": "Q390788",
+      "canonical": "higashiyamato"
+    },
+    {
+      "value": "Kiyose",
+      "name": "Q329754",
+      "canonical": "kiyose"
+    },
+    {
+      "value": "Higashikurume",
+      "name": "Q317830",
+      "canonical": "higashikurume"
+    },
+    {
+      "value": "Musashimurayama",
+      "name": "Q390806",
+      "canonical": "musashimurayama"
+    },
+    {
+      "value": "Tama",
+      "name": "Q213263",
+      "canonical": "tama"
+    },
+    {
+      "value": "Inagi",
+      "name": "Q317847",
+      "canonical": "inagi"
+    },
+    {
+      "value": "Hamura",
+      "name": "Q270465",
+      "canonical": "hamura"
+    },
+    {
+      "value": "Akiruno",
+      "name": "Q240480",
+      "canonical": "akiruno"
+    },
+    {
+      "value": "Nishitōkyō",
+      "name": "Q242882",
+      "canonical": "nishitōkyō"
+    },
+    {
+      "value": "Mizuho",
+      "name": "Q975797",
+      "canonical": "mizuho"
+    },
+    {
+      "value": "Hinode-machi",
+      "name": "Q1154806",
+      "canonical": "hinode-machi"
+    },
+    {
+      "value": "Hinohara",
+      "name": "Q219576",
+      "canonical": "hinohara"
+    },
+    {
+      "value": "Okutama",
+      "name": "Q598626",
+      "canonical": "okutama"
+    },
+    {
+      "value": "Ōshima",
+      "name": "Q1204507",
+      "canonical": "ōshima"
+    },
+    {
+      "value": "Toshima",
+      "name": "Q1143112",
+      "canonical": "toshima"
+    },
+    {
+      "value": "Niijima",
+      "name": "Q1204534",
+      "canonical": "niijima"
+    },
+    {
+      "value": "Kōzushima",
+      "name": "Q1346527",
+      "canonical": "kōzushima"
+    },
+    {
+      "value": "Miyake",
+      "name": "Q1154797",
+      "canonical": "miyake"
+    },
+    {
+      "value": "Mikurajima",
+      "name": "Q1354993",
+      "canonical": "mikurajima"
+    },
+    {
+      "value": "Aogashima",
+      "name": "Q1196636",
+      "canonical": "aogashima"
+    },
+    {
+      "value": "Ogasawara",
+      "name": "Q1022925",
+      "canonical": "ogasawara"
+    },
+    {
+      "value": "Kōjimachi-ku",
+      "name": "Q11677414",
+      "canonical": "kōjimachi-ku"
+    },
+    {
+      "value": "Kanda-ku",
+      "name": "Q11590562",
+      "canonical": "kanda-ku"
+    },
+    {
+      "value": "Nihonbashi-ku",
+      "name": "Q927789",
+      "canonical": "nihonbashi-ku"
+    },
+    {
+      "value": "Kyōbashi-ku",
+      "name": "Q1795214",
+      "canonical": "kyōbashi-ku"
+    },
+    {
+      "value": "Hōya",
+      "name": "Q1074498",
+      "canonical": "hōya"
+    },
+    {
+      "value": "Tanashi",
+      "name": "Q851236",
+      "canonical": "tanashi"
+    },
+    {
+      "value": "Itsukaichi",
+      "name": "Q852005",
+      "canonical": "itsukaichi"
+    },
+    {
+      "value": "Akigawa",
+      "name": "Q1042029",
+      "canonical": "akigawa"
+    },
+    {
+      "value": "Yugi Village",
+      "name": "Q11577589",
+      "canonical": "yugi village"
+    },
+    {
+      "value": "Sunagawa Town",
+      "name": "Q11587431",
+      "canonical": "sunagawa town"
+    },
+    {
+      "value": "Asakawa",
+      "name": "Q11557102",
+      "canonical": "asakawa"
+    },
+    {
+      "value": "Machida Town",
+      "name": "Q11578331",
+      "canonical": "machida town"
+    },
+    {
+      "value": "Tadao Village",
+      "name": "Q11491339",
+      "canonical": "tadao village"
+    },
+    {
+      "value": "Hachijō, Tokyo",
+      "name": "Q1354815",
+      "canonical": "hachijō , tokyo"
+    },
+    {
+      "value": "Nariki",
+      "name": "Q11495487",
+      "canonical": "nariki"
+    },
+    {
+      "value": "Mita",
+      "name": "Q11356733",
+      "canonical": "mita"
+    },
+    {
+      "value": "Ōme",
+      "name": "Q11662006",
+      "canonical": "ōme"
+    },
+    {
+      "value": "Kasumi Village",
+      "name": "Q11660835",
+      "canonical": "kasumi village"
+    },
+    {
+      "value": "Chōfu Village",
+      "name": "Q11631754",
+      "canonical": "chōfu village"
+    },
+    {
+      "value": "Fuchū Town",
+      "name": "Q11486057",
+      "canonical": "fuchū town"
+    },
+    {
+      "value": "Tama Village",
+      "name": "Q11430992",
+      "canonical": "tama village"
+    },
+    {
+      "value": "Nishifu Village",
+      "name": "Q11628239",
+      "canonical": "nishifu village"
+    },
+    {
+      "value": "Schelfstadt",
+      "name": "Q831989",
+      "canonical": "schelfstadt"
+    },
+    {
+      "value": "Altstadt (Schwerin)",
+      "name": "Q445539",
+      "canonical": "altstadt ( schwerin )"
+    },
+    {
+      "value": "Feldstadt",
+      "name": "Q1402836",
+      "canonical": "feldstadt"
+    },
+    {
+      "value": "Paulsstadt",
+      "name": "Q14912778",
+      "canonical": "paulsstadt"
+    },
+    {
+      "value": "Großer Dreesch",
+      "name": "Q1548663",
+      "canonical": "gro ß er dreesch"
+    },
+    {
+      "value": "Neu Zippendorf",
+      "name": "Q1979199",
+      "canonical": "neu zippendorf"
+    },
+    {
+      "value": "Mueß",
+      "name": "Q1256841",
+      "canonical": "mue ß"
+    },
+    {
+      "value": "Mueßer Holz",
+      "name": "Q1926782",
+      "canonical": "mue ß er holz"
+    },
+    {
+      "value": "Ostorf",
+      "name": "Q15630498",
+      "canonical": "ostorf"
+    },
+    {
+      "value": "Lankow",
+      "name": "Q1805522",
+      "canonical": "lankow"
+    },
+    {
+      "value": "Krebsförden",
+      "name": "Q1787006",
+      "canonical": "krebsförden"
+    },
+    {
+      "value": "Wüstmark",
+      "name": "Q1720559",
+      "canonical": "wüstmark"
+    },
+    {
+      "value": "Göhrener Tannen",
+      "name": "Q996476",
+      "canonical": "göhrener tannen"
+    },
+    {
+      "value": "Friedrichsthal",
+      "name": "Q1281823",
+      "canonical": "friedrichsthal"
+    },
+    {
+      "value": "Sacktannen",
+      "name": "Q1170672",
+      "canonical": "sacktannen"
+    },
+    {
+      "value": "Warnitz (Schwerin)",
+      "name": "Q973171",
+      "canonical": "warnitz ( schwerin )"
+    },
+    {
+      "value": "Zippendorf",
+      "name": "Q205489",
+      "canonical": "zippendorf"
+    },
+    {
+      "value": "Historic center of Palermo",
+      "name": "Q3664893",
+      "canonical": "historic center of palermo"
+    },
+    {
+      "value": "Wabe-Schunter-Beberbach",
+      "name": "Q2538245",
+      "canonical": "wabe-schunter-beberbach"
+    },
+    {
+      "value": "Hondelage",
+      "name": "Q1555199",
+      "canonical": "hondelage"
+    },
+    {
+      "value": "Volkmarode",
+      "name": "Q2531532",
+      "canonical": "volkmarode"
+    },
+    {
+      "value": "Östliches Ringgebiet",
+      "name": "Q307301",
+      "canonical": "östliches ringgebiet"
+    },
+    {
+      "value": "Innenstadt",
+      "name": "Q1663933",
+      "canonical": "innenstadt"
+    },
+    {
+      "value": "Viewegsgarten-Bebelhof",
+      "name": "Q2523899",
+      "canonical": "viewegsgarten-bebelhof"
+    },
+    {
+      "value": "Stöckheim-Leiferde",
+      "name": "Q2360492",
+      "canonical": "stöckheim-leiferde"
+    },
+    {
+      "value": "Heidberg-Melverode",
+      "name": "Q1312777",
+      "canonical": "heidberg-melverode"
+    },
+    {
+      "value": "Südstadt-Rautheim-Mascherode",
+      "name": "Q2381496",
+      "canonical": "südstadt-rautheim-mascherode"
+    },
+    {
+      "value": "Weststadt",
+      "name": "Q1363611",
+      "canonical": "weststadt"
+    },
+    {
+      "value": "Timmerlah-Geitelde-Stiddien",
+      "name": "Q2434791",
+      "canonical": "timmerlah-geitelde-stiddien"
+    },
+    {
+      "value": "Broitzem",
+      "name": "Q925410",
+      "canonical": "broitzem"
+    },
+    {
+      "value": "Rüningen",
+      "name": "Q2203975",
+      "canonical": "rüningen"
+    },
+    {
+      "value": "Westliches Ringgebiet",
+      "name": "Q2565488",
+      "canonical": "westliches ringgebiet"
+    },
+    {
+      "value": "Lehndorf-Watenbüttel",
+      "name": "Q1813224",
+      "canonical": "lehndorf-watenbüttel"
+    },
+    {
+      "value": "Veltenhof-Rühme",
+      "name": "Q2512652",
+      "canonical": "veltenhof-rühme"
+    },
+    {
+      "value": "Wenden-Thune-Harxbüttel",
+      "name": "Q2559072",
+      "canonical": "wenden-thune-harxbüttel"
+    },
+    {
+      "value": "Nordstadt",
+      "name": "Q1998672",
+      "canonical": "nordstadt"
+    },
+    {
+      "value": "Schunteraue",
+      "name": "Q2251895",
+      "canonical": "schunteraue"
+    },
+    {
+      "value": "Bevenrode",
+      "name": "Q851534",
+      "canonical": "bevenrode"
+    },
+    {
+      "value": "Wabe-Schunter",
+      "name": "Q2538226",
+      "canonical": "wabe-schunter"
+    },
+    {
+      "value": "Waggum",
+      "name": "Q965601",
+      "canonical": "waggum"
+    },
+    {
+      "value": "Querum",
+      "name": "Q1648151",
+      "canonical": "querum"
+    },
+    {
+      "value": "Riddagshausen",
+      "name": "Q2151790",
+      "canonical": "riddagshausen"
+    },
+    {
+      "value": "Bienrode-Waggum-Bevenrode",
+      "name": "Q857686",
+      "canonical": "bienrode-waggum-bevenrode"
+    },
+    {
+      "value": "Bienrode",
+      "name": "Q857681",
+      "canonical": "bienrode"
+    },
+    {
+      "value": "Ölper",
+      "name": "Q297218",
+      "canonical": "ölper"
+    },
+    {
+      "value": "Watenbüttel-Ölper-Völkenrode",
+      "name": "Q24325530",
+      "canonical": "watenbüttel-ölper-völkenrode"
+    },
+    {
+      "value": "Veltenhof",
+      "name": "Q22597",
+      "canonical": "veltenhof"
+    },
+    {
+      "value": "historic center of Vicenza",
+      "name": "Q3664901",
+      "canonical": "historic center of vicenza"
+    },
+    {
+      "value": "Islands District",
+      "name": "Q752523",
+      "canonical": "islands district"
+    },
+    {
+      "value": "Kwai Tsing District",
+      "name": "Q877132",
+      "canonical": "kwai tsing district"
+    },
+    {
+      "value": "North District",
+      "name": "Q868032",
+      "canonical": "north district"
+    },
+    {
+      "value": "Sai Kung District",
+      "name": "Q155697",
+      "canonical": "sai kung district"
+    },
+    {
+      "value": "Sha Tin District",
+      "name": "Q15019",
+      "canonical": "sha tin district"
+    },
+    {
+      "value": "Tai Po District",
+      "name": "Q877813",
+      "canonical": "tai po district"
+    },
+    {
+      "value": "Tsuen Wan District",
+      "name": "Q878514",
+      "canonical": "tsuen wan district"
+    },
+    {
+      "value": "Tuen Mun District",
+      "name": "Q986383",
+      "canonical": "tuen mun district"
+    },
+    {
+      "value": "Yuen Long District",
+      "name": "Q871442",
+      "canonical": "yuen long district"
+    },
+    {
+      "value": "Kowloon City District",
+      "name": "Q986415",
+      "canonical": "kowloon city district"
+    },
+    {
+      "value": "Kwun Tong District",
+      "name": "Q875773",
+      "canonical": "kwun tong district"
+    },
+    {
+      "value": "Sham Shui Po District",
+      "name": "Q655626",
+      "canonical": "sham shui po district"
+    },
+    {
+      "value": "Wong Tai Sin District",
+      "name": "Q878503",
+      "canonical": "wong tai sin district"
+    },
+    {
+      "value": "Yau Tsim Mong District",
+      "name": "Q157669",
+      "canonical": "yau tsim mong district"
+    },
+    {
+      "value": "Central and Western District",
+      "name": "Q312485",
+      "canonical": "central and western district"
+    },
+    {
+      "value": "Eastern District",
+      "name": "Q727054",
+      "canonical": "eastern district"
+    },
+    {
+      "value": "Southern District",
+      "name": "Q986431",
+      "canonical": "southern district"
+    },
+    {
+      "value": "Wan Chai District",
+      "name": "Q986434",
+      "canonical": "wan chai district"
+    },
+    {
+      "value": "District 1 of Sabadell",
+      "name": "Q55254720",
+      "canonical": "district 1 of sabadell"
+    },
+    {
+      "value": "District 2 of Sabadell",
+      "name": "Q55254842",
+      "canonical": "district 2 of sabadell"
+    },
+    {
+      "value": "District 3 of Sabadell",
+      "name": "Q55254886",
+      "canonical": "district 3 of sabadell"
+    },
+    {
+      "value": "District 4 of Sabadell",
+      "name": "Q55254921",
+      "canonical": "district 4 of sabadell"
+    },
+    {
+      "value": "District 5 of Sabadell",
+      "name": "Q55254949",
+      "canonical": "district 5 of sabadell"
+    },
+    {
+      "value": "District 6 of Sabadell",
+      "name": "Q55254989",
+      "canonical": "district 6 of sabadell"
+    },
+    {
+      "value": "District 7 of Sabadell",
+      "name": "Q55255032",
+      "canonical": "district 7 of sabadell"
+    },
+    {
+      "value": "Barrio del Oeste",
+      "name": "Q24027263",
+      "canonical": "barrio del oeste"
+    },
+    {
+      "value": "Barrio Chino de Salamanca",
+      "name": "Q5720321",
+      "canonical": "barrio chino de salamanca"
+    },
+    {
+      "value": "Bílé Předměstí",
+      "name": "Q11706565",
+      "canonical": "bílé předměstí"
+    },
+    {
+      "value": "Cihelna",
+      "name": "Q11730919",
+      "canonical": "cihelna"
+    },
+    {
+      "value": "Černá za Bory",
+      "name": "Q11173070",
+      "canonical": "černá za bory"
+    },
+    {
+      "value": "Doubravice",
+      "name": "Q11823471",
+      "canonical": "doubravice"
+    },
+    {
+      "value": "Hostovice",
+      "name": "Q5909492",
+      "canonical": "hostovice"
+    },
+    {
+      "value": "Lány na Důlku",
+      "name": "Q12034527",
+      "canonical": "lány na důlku"
+    },
+    {
+      "value": "Mnětice",
+      "name": "Q12038396",
+      "canonical": "mnětice"
+    },
+    {
+      "value": "Nemošice",
+      "name": "Q12040662",
+      "canonical": "nemošice"
+    },
+    {
+      "value": "Nové Jesenčany",
+      "name": "Q12041316",
+      "canonical": "nové jesenčany"
+    },
+    {
+      "value": "Opočínek",
+      "name": "Q12042813",
+      "canonical": "opočínek"
+    },
+    {
+      "value": "Pardubice-Staré Město",
+      "name": "Q12043807",
+      "canonical": "pardubice-staré město"
+    },
+    {
+      "value": "Pardubičky",
+      "name": "Q12043820",
+      "canonical": "pardubičky"
+    },
+    {
+      "value": "Polabiny",
+      "name": "Q12046166",
+      "canonical": "polabiny"
+    },
+    {
+      "value": "Popkovice",
+      "name": "Q12046376",
+      "canonical": "popkovice"
+    },
+    {
+      "value": "Rosice nad Labem",
+      "name": "Q12049796",
+      "canonical": "rosice nad labem"
+    },
+    {
+      "value": "Semtín",
+      "name": "Q12051379",
+      "canonical": "semtín"
+    },
+    {
+      "value": "Staré Čívice",
+      "name": "Q12056225",
+      "canonical": "staré čívice"
+    },
+    {
+      "value": "Staročernsko",
+      "name": "Q12056123",
+      "canonical": "staročernsko"
+    },
+    {
+      "value": "Studánka",
+      "name": "Q12056764",
+      "canonical": "studánka"
+    },
+    {
+      "value": "Svítkov",
+      "name": "Q12057701",
+      "canonical": "svítkov"
+    },
+    {
+      "value": "Trnová",
+      "name": "Q12059693",
+      "canonical": "trnová"
+    },
+    {
+      "value": "Zámek",
+      "name": "Q10937806",
+      "canonical": "zámek"
+    },
+    {
+      "value": "Zelené Předměstí",
+      "name": "Q10860462",
+      "canonical": "zelené předměstí"
+    },
+    {
+      "value": "Žižín",
+      "name": "Q10296209",
+      "canonical": "žižín"
+    },
+    {
+      "value": "Cabeza de Vaca",
+      "name": "Q12384866",
+      "canonical": "cabeza de vaca"
+    },
+    {
+      "value": "Hudcov",
+      "name": "Q12020875",
+      "canonical": "hudcov"
+    },
+    {
+      "value": "Nová Ves",
+      "name": "Q12041236",
+      "canonical": "nová ves"
+    },
+    {
+      "value": "Prosetice",
+      "name": "Q12047194",
+      "canonical": "prosetice"
+    },
+    {
+      "value": "Řetenice",
+      "name": "Q10513679",
+      "canonical": "řetenice"
+    },
+    {
+      "value": "Sobědruhy",
+      "name": "Q2296550",
+      "canonical": "sobědruhy"
+    },
+    {
+      "value": "Trnovany",
+      "name": "Q12059689",
+      "canonical": "trnovany"
+    },
+    {
+      "value": "Ejisu-Juaben Municipal District",
+      "name": "Q1321974",
+      "canonical": "ejisu-juaben municipal district"
+    },
+    {
+      "value": "Adansi North District",
+      "name": "Q352288",
+      "canonical": "adansi north district"
+    },
+    {
+      "value": "Adansi South District",
+      "name": "Q352285",
+      "canonical": "adansi south district"
+    },
+    {
+      "value": "Afigya-Kwabre District",
+      "name": "Q16250168",
+      "canonical": "afigya-kwabre district"
+    },
+    {
+      "value": "Afigya Sekyere East Constituency",
+      "name": "Q4689244",
+      "canonical": "afigya sekyere east constituency"
+    },
+    {
+      "value": "Ahafo Ano North District",
+      "name": "Q399850",
+      "canonical": "ahafo ano north district"
+    },
+    {
+      "value": "Ahafo Ano South District",
+      "name": "Q399853",
+      "canonical": "ahafo ano south district"
+    },
+    {
+      "value": "Amansie Central District",
+      "name": "Q454450",
+      "canonical": "amansie central district"
+    },
+    {
+      "value": "Amansie West District",
+      "name": "Q425533",
+      "canonical": "amansie west district"
+    },
+    {
+      "value": "Asante Akim North Municipal District",
+      "name": "Q720960",
+      "canonical": "asante akim north municipal district"
+    },
+    {
+      "value": "Asante Akim South District",
+      "name": "Q720966",
+      "canonical": "asante akim south district"
+    },
+    {
+      "value": "Atwima Mponua District",
+      "name": "Q758282",
+      "canonical": "atwima mponua district"
+    },
+    {
+      "value": "Atwima Nwabiagya District",
+      "name": "Q2646829",
+      "canonical": "atwima nwabiagya district"
+    },
+    {
+      "value": "Atwima Kwanwoma District",
+      "name": "Q16733360",
+      "canonical": "atwima kwanwoma district"
+    },
+    {
+      "value": "Botsomtwe District",
+      "name": "Q4948869",
+      "canonical": "botsomtwe district"
+    },
+    {
+      "value": "Bosome Freho District",
+      "name": "Q16255262",
+      "canonical": "bosome freho district"
+    },
+    {
+      "value": "Ejura/Sekyedumase District",
+      "name": "Q688667",
+      "canonical": "ejura / sekyedumase district"
+    },
+    {
+      "value": "Kwabre District",
+      "name": "Q688970",
+      "canonical": "kwabre district"
+    },
+    {
+      "value": "Afram Plains District",
+      "name": "Q383651",
+      "canonical": "afram plains district"
+    },
+    {
+      "value": "Obuasi Municipal District",
+      "name": "Q24698079",
+      "canonical": "obuasi municipal district"
+    },
+    {
+      "value": "Offinso North District",
+      "name": "Q16733969",
+      "canonical": "offinso north district"
+    },
+    {
+      "value": "Sekyere East District",
+      "name": "Q745202",
+      "canonical": "sekyere east district"
+    },
+    {
+      "value": "Montalvão",
+      "name": "Q48878531",
+      "canonical": "montalvão"
+    },
+    {
+      "value": "Ameliópolis",
+      "name": "Q48878517",
+      "canonical": "ameliópolis"
+    },
+    {
+      "value": "Eneida",
+      "name": "Q48878523",
+      "canonical": "eneida"
+    },
+    {
+      "value": "Floresta do Sul",
+      "name": "Q48878526",
+      "canonical": "floresta do sul"
+    },
+    {
+      "value": "Neumühlen",
+      "name": "Q1980940",
+      "canonical": "neumühlen"
+    },
+    {
+      "value": "Ottensen",
+      "name": "Q1597",
+      "canonical": "ottensen"
+    },
+    {
+      "value": "Municipality 1 Venezia-Murano-Burano",
+      "name": "Q3867184",
+      "canonical": "municipality 1 venezia-murano-burano"
+    },
+    {
+      "value": "Municipality Lido-PellestrinaLido-Pellestrina",
+      "name": "Q3867174",
+      "canonical": "municipality lido-pellestrinalido-pellestrina"
+    },
+    {
+      "value": "Municipalità di Chirignago-Zelarino",
+      "name": "Q3867170",
+      "canonical": "municipalità di chirignago-zelarino"
+    },
+    {
+      "value": "Alach",
+      "name": "Q2636318",
+      "canonical": "alach"
+    },
+    {
+      "value": "Altstadt (Erfurt)",
+      "name": "Q1350165",
+      "canonical": "altstadt ( erfurt )"
+    },
+    {
+      "value": "Azmannsdorf",
+      "name": "Q793941",
+      "canonical": "azmannsdorf"
+    },
+    {
+      "value": "Berliner Platz (Erfurt)",
+      "name": "Q821686",
+      "canonical": "berliner platz ( erfurt )"
+    },
+    {
+      "value": "Bindersleben",
+      "name": "Q863631",
+      "canonical": "bindersleben"
+    },
+    {
+      "value": "Bischleben",
+      "name": "Q866089",
+      "canonical": "bischleben"
+    },
+    {
+      "value": "Büßleben",
+      "name": "Q978203",
+      "canonical": "bü ß leben"
+    },
+    {
+      "value": "Daberstedt",
+      "name": "Q1156547",
+      "canonical": "daberstedt"
+    },
+    {
+      "value": "Dittelstedt",
+      "name": "Q1230343",
+      "canonical": "dittelstedt"
+    },
+    {
+      "value": "Egstedt",
+      "name": "Q1299099",
+      "canonical": "egstedt"
+    },
+    {
+      "value": "Ermstedt",
+      "name": "Q1113141",
+      "canonical": "ermstedt"
+    },
+    {
+      "value": "Frienstedt",
+      "name": "Q1464610",
+      "canonical": "frienstedt"
+    },
+    {
+      "value": "Gispersleben",
+      "name": "Q1527635",
+      "canonical": "gispersleben"
+    },
+    {
+      "value": "Gottstedt",
+      "name": "Q1540040",
+      "canonical": "gottstedt"
+    },
+    {
+      "value": "Hochheim (Erfurt)",
+      "name": "Q1350175",
+      "canonical": "hochheim ( erfurt )"
+    },
+    {
+      "value": "Hochstedt",
+      "name": "Q1350176",
+      "canonical": "hochstedt"
+    },
+    {
+      "value": "Hohenwinden",
+      "name": "Q1623852",
+      "canonical": "hohenwinden"
+    },
+    {
+      "value": "Ilversgehofen",
+      "name": "Q1659264",
+      "canonical": "ilversgehofen"
+    },
+    {
+      "value": "Johannesplatz",
+      "name": "Q1698876",
+      "canonical": "johannesplatz"
+    },
+    {
+      "value": "Kerspleben",
+      "name": "Q1739626",
+      "canonical": "kerspleben"
+    },
+    {
+      "value": "Kühnhausen",
+      "name": "Q1350182",
+      "canonical": "kühnhausen"
+    },
+    {
+      "value": "Linderbach",
+      "name": "Q1826157",
+      "canonical": "linderbach"
+    },
+    {
+      "value": "Marbach (Erfurt)",
+      "name": "Q1350178",
+      "canonical": "marbach ( erfurt )"
+    },
+    {
+      "value": "Mittelhausen",
+      "name": "Q1350184",
+      "canonical": "mittelhausen"
+    },
+    {
+      "value": "Möbisburg-Rhoda",
+      "name": "Q1957827",
+      "canonical": "möbisburg-rhoda"
+    },
+    {
+      "value": "Molsdorf",
+      "name": "Q1943736",
+      "canonical": "molsdorf"
+    },
+    {
+      "value": "Niedernissa",
+      "name": "Q1988317",
+      "canonical": "niedernissa"
+    },
+    {
+      "value": "Rieth",
+      "name": "Q2152595",
+      "canonical": "rieth"
+    },
+    {
+      "value": "Roter Berg",
+      "name": "Q1350188",
+      "canonical": "roter berg"
+    },
+    {
+      "value": "Salomonsborn",
+      "name": "Q1373839",
+      "canonical": "salomonsborn"
+    },
+    {
+      "value": "Schaderode",
+      "name": "Q1423602",
+      "canonical": "schaderode"
+    },
+    {
+      "value": "Schmira",
+      "name": "Q2246493",
+      "canonical": "schmira"
+    },
+    {
+      "value": "Schwerborn",
+      "name": "Q2256995",
+      "canonical": "schwerborn"
+    },
+    {
+      "value": "Stotternheim",
+      "name": "Q2352357",
+      "canonical": "stotternheim"
+    },
+    {
+      "value": "Tiefthal",
+      "name": "Q2432026",
+      "canonical": "tiefthal"
+    },
+    {
+      "value": "Töttleben",
+      "name": "Q1783971",
+      "canonical": "töttleben"
+    },
+    {
+      "value": "Urbich",
+      "name": "Q2500335",
+      "canonical": "urbich"
+    },
+    {
+      "value": "Vieselbach",
+      "name": "Q1719800",
+      "canonical": "vieselbach"
+    },
+    {
+      "value": "Wallichen",
+      "name": "Q2542981",
+      "canonical": "wallichen"
+    },
+    {
+      "value": "Waltersleben",
+      "name": "Q2547029",
+      "canonical": "waltersleben"
+    },
+    {
+      "value": "Windischholzhausen",
+      "name": "Q2583607",
+      "canonical": "windischholzhausen"
+    },
+    {
+      "value": "urban districts of Ho Chi Minh City",
+      "name": "Q31495383",
+      "canonical": "urban districts of ho chi minh city"
+    },
+    {
+      "value": "list of rural districts of Vietnam",
+      "name": "Q31543284",
+      "canonical": "list of rural districts of vietnam"
+    },
+    {
+      "value": "Da'an District",
+      "name": "Q252951",
+      "canonical": "da 'an district"
+    },
+    {
+      "value": "Datong District",
+      "name": "Q271060",
+      "canonical": "datong district"
+    },
+    {
+      "value": "Nangang District",
+      "name": "Q271073",
+      "canonical": "nangang district"
+    },
+    {
+      "value": "Neihu District",
+      "name": "Q271094",
+      "canonical": "neihu district"
+    },
+    {
+      "value": "Shilin District",
+      "name": "Q254626",
+      "canonical": "shilin district"
+    },
+    {
+      "value": "Songshan District",
+      "name": "Q271124",
+      "canonical": "songshan district"
+    },
+    {
+      "value": "Wanhua District",
+      "name": "Q271134",
+      "canonical": "wanhua district"
+    },
+    {
+      "value": "Wenshan District",
+      "name": "Q271143",
+      "canonical": "wenshan district"
+    },
+    {
+      "value": "Xinyi District",
+      "name": "Q271151",
+      "canonical": "xinyi district"
+    },
+    {
+      "value": "Zhongshan District",
+      "name": "Q271167",
+      "canonical": "zhongshan district"
+    },
+    {
+      "value": "Zhongzheng District",
+      "name": "Q175581",
+      "canonical": "zhongzheng district"
+    },
+    {
+      "value": "Beitou District",
+      "name": "Q252864",
+      "canonical": "beitou district"
+    },
+    {
+      "value": "Arganzuela",
+      "name": "Q2000929",
+      "canonical": "arganzuela"
+    },
+    {
+      "value": "Centro",
+      "name": "Q1763376",
+      "canonical": "centro"
+    },
+    {
+      "value": "Chamberí",
+      "name": "Q1763370",
+      "canonical": "chamberí"
+    },
+    {
+      "value": "Retiro",
+      "name": "Q2002296",
+      "canonical": "retiro"
+    },
+    {
+      "value": "Latina",
+      "name": "Q794954",
+      "canonical": "latina"
+    },
+    {
+      "value": "Carabanchel",
+      "name": "Q1001991",
+      "canonical": "carabanchel"
+    },
+    {
+      "value": "Usera",
+      "name": "Q953368",
+      "canonical": "usera"
+    },
+    {
+      "value": "Villaverde",
+      "name": "Q919536",
+      "canonical": "villaverde"
+    },
+    {
+      "value": "Villa de Vallecas",
+      "name": "Q1947988",
+      "canonical": "villa de vallecas"
+    },
+    {
+      "value": "Puente de Vallecas",
+      "name": "Q2003054",
+      "canonical": "puente de vallecas"
+    },
+    {
+      "value": "Moratalaz",
+      "name": "Q2076109",
+      "canonical": "moratalaz"
+    },
+    {
+      "value": "Vicálvaro",
+      "name": "Q589403",
+      "canonical": "vicálvaro"
+    },
+    {
+      "value": "Castellana",
+      "name": "Q4781",
+      "canonical": "castellana"
+    },
+    {
+      "value": "Moncloa-Aravaca",
+      "name": "Q2017682",
+      "canonical": "moncloa-aravaca"
+    },
+    {
+      "value": "Fuencarral-El Pardo",
+      "name": "Q656196",
+      "canonical": "fuencarral-el pardo"
+    },
+    {
+      "value": "Ciudad Lineal",
+      "name": "Q1763694",
+      "canonical": "ciudad lineal"
+    },
+    {
+      "value": "Hortaleza",
+      "name": "Q1928529",
+      "canonical": "hortaleza"
+    },
+    {
+      "value": "Makindye Division",
+      "name": "Q6739552",
+      "canonical": "makindye division"
+    },
+    {
+      "value": "Rubaga Division",
+      "name": "Q6695059",
+      "canonical": "rubaga division"
+    },
+    {
+      "value": "Kawempe Division",
+      "name": "Q6379969",
+      "canonical": "kawempe division"
+    },
+    {
+      "value": "Nakawa Division",
+      "name": "Q6960368",
+      "canonical": "nakawa division"
+    },
+    {
+      "value": "Adelaide",
+      "name": "Q1094063",
+      "canonical": "adelaide"
+    },
+    {
+      "value": "Adelaide Hills",
+      "name": "Q353997",
+      "canonical": "adelaide hills"
+    },
+    {
+      "value": "Burnside",
+      "name": "Q1016835",
+      "canonical": "burnside"
+    },
+    {
+      "value": "Campbelltown",
+      "name": "Q1030580",
+      "canonical": "campbelltown"
+    },
+    {
+      "value": "Charles Sturt",
+      "name": "Q1066185",
+      "canonical": "charles sturt"
+    },
+    {
+      "value": "Gawler",
+      "name": "Q1847617",
+      "canonical": "gawler"
+    },
+    {
+      "value": "Holdfast Bay",
+      "name": "Q1624414",
+      "canonical": "holdfast bay"
+    },
+    {
+      "value": "Marion",
+      "name": "Q1812769",
+      "canonical": "marion"
+    },
+    {
+      "value": "Mitcham",
+      "name": "Q1279553",
+      "canonical": "mitcham"
+    },
+    {
+      "value": "Norwood, Payneham and St Peters",
+      "name": "Q905608",
+      "canonical": "norwood , payneham and st peters"
+    },
+    {
+      "value": "Onkaparinga",
+      "name": "Q1812778",
+      "canonical": "onkaparinga"
+    },
+    {
+      "value": "Playford",
+      "name": "Q976355",
+      "canonical": "playford"
+    },
+    {
+      "value": "Port Adelaide Enfield",
+      "name": "Q1533526",
+      "canonical": "port adelaide enfield"
+    },
+    {
+      "value": "Prospect",
+      "name": "Q1537228",
+      "canonical": "prospect"
+    },
+    {
+      "value": "Salisbury",
+      "name": "Q947334",
+      "canonical": "salisbury"
+    },
+    {
+      "value": "Tea Tree Gully",
+      "name": "Q2062776",
+      "canonical": "tea tree gully"
+    },
+    {
+      "value": "Unley",
+      "name": "Q1766439",
+      "canonical": "unley"
+    },
+    {
+      "value": "Walkerville",
+      "name": "Q1521840",
+      "canonical": "walkerville"
+    },
+    {
+      "value": "West Torrens",
+      "name": "Q1813391",
+      "canonical": "west torrens"
+    },
+    {
+      "value": "Viserba",
+      "name": "Q984280",
+      "canonical": "viserba"
+    },
+    {
+      "value": "Biskupice",
+      "name": "Q11688110",
+      "canonical": "biskupice"
+    },
+    {
+      "value": "Makoszowy",
+      "name": "Q727182",
+      "canonical": "makoszowy"
+    },
+    {
+      "value": "Dubí",
+      "name": "Q11834714",
+      "canonical": "dubí"
+    },
+    {
+      "value": "Kročehlavy",
+      "name": "Q3509224",
+      "canonical": "kročehlavy"
+    },
+    {
+      "value": "Rozdělov",
+      "name": "Q12049942",
+      "canonical": "rozdělov"
+    },
+    {
+      "value": "Vrapice",
+      "name": "Q11937953",
+      "canonical": "vrapice"
+    },
+    {
+      "value": "Březhrad",
+      "name": "Q9183701",
+      "canonical": "březhrad"
+    },
+    {
+      "value": "Hradec Králové",
+      "name": "Q10816206",
+      "canonical": "hradec králové"
+    },
+    {
+      "value": "Kukleny",
+      "name": "Q12031853",
+      "canonical": "kukleny"
+    },
+    {
+      "value": "Malšovice",
+      "name": "Q12035177",
+      "canonical": "malšovice"
+    },
+    {
+      "value": "Moravské Předměstí",
+      "name": "Q12038660",
+      "canonical": "moravské předměstí"
+    },
+    {
+      "value": "Nový Hradec Králové",
+      "name": "Q12041392",
+      "canonical": "nový hradec králové"
+    },
+    {
+      "value": "Piletice",
+      "name": "Q12045310",
+      "canonical": "piletice"
+    },
+    {
+      "value": "Plácky",
+      "name": "Q12045689",
+      "canonical": "plácky"
+    },
+    {
+      "value": "Plačice",
+      "name": "Q12045571",
+      "canonical": "plačice"
+    },
+    {
+      "value": "Plotiště nad Labem",
+      "name": "Q12045639",
+      "canonical": "plotiště nad labem"
+    },
+    {
+      "value": "Pouchov",
+      "name": "Q12046542",
+      "canonical": "pouchov"
+    },
+    {
+      "value": "Pražské Předměstí",
+      "name": "Q11826945",
+      "canonical": "pražské předměstí"
+    },
+    {
+      "value": "Roudnička",
+      "name": "Q12049859",
+      "canonical": "roudnička"
+    },
+    {
+      "value": "Rusek",
+      "name": "Q12050369",
+      "canonical": "rusek"
+    },
+    {
+      "value": "Slatina",
+      "name": "Q12054657",
+      "canonical": "slatina"
+    },
+    {
+      "value": "Slezské Předměstí",
+      "name": "Q12054778",
+      "canonical": "slezské předměstí"
+    },
+    {
+      "value": "Svinary",
+      "name": "Q12057605",
+      "canonical": "svinary"
+    },
+    {
+      "value": "Svobodné Dvory",
+      "name": "Q12057651",
+      "canonical": "svobodné dvory"
+    },
+    {
+      "value": "Třebeš",
+      "name": "Q12060270",
+      "canonical": "třebeš"
+    },
+    {
+      "value": "Věkoše",
+      "name": "Q12001206",
+      "canonical": "věkoše"
+    },
+    {
+      "value": "El Donadío",
+      "name": "Q5821766",
+      "canonical": "el donadío"
+    },
+    {
+      "value": "Santa Eulalia",
+      "name": "Q5638858",
+      "canonical": "santa eulalia"
+    },
+    {
+      "value": "Solana de Torralba",
+      "name": "Q6131386",
+      "canonical": "solana de torralba"
+    },
+    {
+      "value": "San Bartolomé",
+      "name": "Q6118453",
+      "canonical": "san bartolomé"
+    },
+    {
+      "value": "Nur Aktobe",
+      "name": "Q20643158",
+      "canonical": "nur aktobe"
+    },
+    {
+      "value": "Villarreal",
+      "name": "Q10391157",
+      "canonical": "villarreal"
+    },
+    {
+      "value": "Langen",
+      "name": "Q512667",
+      "canonical": "langen"
+    },
+    {
+      "value": "Ankelohe",
+      "name": "Q12269631",
+      "canonical": "ankelohe"
+    },
+    {
+      "value": "Bad Bederkesa",
+      "name": "Q509084",
+      "canonical": "bad bederkesa"
+    },
+    {
+      "value": "Debstedt",
+      "name": "Q1181660",
+      "canonical": "debstedt"
+    },
+    {
+      "value": "Drangstedt",
+      "name": "Q627659",
+      "canonical": "drangstedt"
+    },
+    {
+      "value": "Elmlohe",
+      "name": "Q621241",
+      "canonical": "elmlohe"
+    },
+    {
+      "value": "Flögeln",
+      "name": "Q624709",
+      "canonical": "flögeln"
+    },
+    {
+      "value": "Holßel",
+      "name": "Q1625809",
+      "canonical": "hol ß el"
+    },
+    {
+      "value": "Hymendorf",
+      "name": "Q1640635",
+      "canonical": "hymendorf"
+    },
+    {
+      "value": "Imsum",
+      "name": "Q1660531",
+      "canonical": "imsum"
+    },
+    {
+      "value": "Köhlen",
+      "name": "Q514612",
+      "canonical": "köhlen"
+    },
+    {
+      "value": "Kührstedt",
+      "name": "Q624421",
+      "canonical": "kührstedt"
+    },
+    {
+      "value": "Krempel",
+      "name": "Q1787925",
+      "canonical": "krempel"
+    },
+    {
+      "value": "Lintig",
+      "name": "Q509131",
+      "canonical": "lintig"
+    },
+    {
+      "value": "Neuenwalde",
+      "name": "Q1695762",
+      "canonical": "neuenwalde"
+    },
+    {
+      "value": "Ringstedt",
+      "name": "Q623902",
+      "canonical": "ringstedt"
+    },
+    {
+      "value": "Neukölln",
+      "name": "Q169492",
+      "canonical": "neukölln"
+    },
+    {
+      "value": "Britz",
+      "name": "Q428846",
+      "canonical": "britz"
+    },
+    {
+      "value": "Buckow",
+      "name": "Q644410",
+      "canonical": "buckow"
+    },
+    {
+      "value": "Rudow",
+      "name": "Q614664",
+      "canonical": "rudow"
+    },
+    {
+      "value": "Gropiusstadt",
+      "name": "Q677917",
+      "canonical": "gropiusstadt"
+    },
+    {
+      "value": "Bektemir",
+      "name": "Q9652890",
+      "canonical": "bektemir"
+    },
+    {
+      "value": "Chilanzar",
+      "name": "Q2637617",
+      "canonical": "chilanzar"
+    },
+    {
+      "value": "Yashnobod",
+      "name": "Q2908405",
+      "canonical": "yashnobod"
+    },
+    {
+      "value": "Mirobod",
+      "name": "Q6873830",
+      "canonical": "mirobod"
+    },
+    {
+      "value": "Mirzo Ulugbek",
+      "name": "Q6874961",
+      "canonical": "mirzo ulugbek"
+    },
+    {
+      "value": "Sergeli",
+      "name": "Q7453928",
+      "canonical": "sergeli"
+    },
+    {
+      "value": "Shaykhontohur",
+      "name": "Q7491682",
+      "canonical": "shaykhontohur"
+    },
+    {
+      "value": "Almazar (town)",
+      "name": "Q4062707",
+      "canonical": "almazar ( town )"
+    },
+    {
+      "value": "Uchtepa",
+      "name": "Q2877277",
+      "canonical": "uchtepa"
+    },
+    {
+      "value": "Yakkasaray",
+      "name": "Q8047128",
+      "canonical": "yakkasaray"
+    },
+    {
+      "value": "Yunusabad",
+      "name": "Q8061403",
+      "canonical": "yunusabad"
+    },
+    {
+      "value": "Municipio 1 of Milan",
+      "name": "Q2494319",
+      "canonical": "municipio 1 of milan"
+    },
+    {
+      "value": "Municipio 2",
+      "name": "Q2493917",
+      "canonical": "municipio 2"
+    },
+    {
+      "value": "Municipio 3",
+      "name": "Q4024691",
+      "canonical": "municipio 3"
+    },
+    {
+      "value": "Zone 4 of Milan",
+      "name": "Q4024693",
+      "canonical": "zone 4 of milan"
+    },
+    {
+      "value": "Zone 5 of Milan",
+      "name": "Q2648246",
+      "canonical": "zone 5 of milan"
+    },
+    {
+      "value": "Municipio 6 of Milan",
+      "name": "Q4024695",
+      "canonical": "municipio 6 of milan"
+    },
+    {
+      "value": "Zone 7 of Milan",
+      "name": "Q2647784",
+      "canonical": "zone 7 of milan"
+    },
+    {
+      "value": "Zone 8 of Milan",
+      "name": "Q4024696",
+      "canonical": "zone 8 of milan"
+    },
+    {
+      "value": "Zone 9 of Milan",
+      "name": "Q4024698",
+      "canonical": "zone 9 of milan"
+    },
+    {
+      "value": "Altstadt-Lehel",
+      "name": "Q971198",
+      "canonical": "altstadt-lehel"
+    },
+    {
+      "value": "Ludwigsvorstadt-Isarvorstadt",
+      "name": "Q537044",
+      "canonical": "ludwigsvorstadt-isarvorstadt"
+    },
+    {
+      "value": "Maxvorstadt",
+      "name": "Q256012",
+      "canonical": "maxvorstadt"
+    },
+    {
+      "value": "Schwabing-West",
+      "name": "Q252910",
+      "canonical": "schwabing-west"
+    },
+    {
+      "value": "Au-Haidhausen",
+      "name": "Q252058",
+      "canonical": "au-haidhausen"
+    },
+    {
+      "value": "Sendling",
+      "name": "Q262879",
+      "canonical": "sendling"
+    },
+    {
+      "value": "Sendling-Westpark",
+      "name": "Q224635",
+      "canonical": "sendling-westpark"
+    },
+    {
+      "value": "Schwanthalerhöhe",
+      "name": "Q166011",
+      "canonical": "schwanthalerhöhe"
+    },
+    {
+      "value": "Neuhausen-Nymphenburg",
+      "name": "Q266932",
+      "canonical": "neuhausen-nymphenburg"
+    },
+    {
+      "value": "Moosach",
+      "name": "Q263163",
+      "canonical": "moosach"
+    },
+    {
+      "value": "Milbertshofen-Am Hart",
+      "name": "Q251311",
+      "canonical": "milbertshofen-am hart"
+    },
+    {
+      "value": "Schwabing-Freimann",
+      "name": "Q252679",
+      "canonical": "schwabing-freimann"
+    },
+    {
+      "value": "Bogenhausen",
+      "name": "Q329707",
+      "canonical": "bogenhausen"
+    },
+    {
+      "value": "Berg am Laim",
+      "name": "Q533054",
+      "canonical": "berg am laim"
+    },
+    {
+      "value": "Trudering-Riem",
+      "name": "Q538037",
+      "canonical": "trudering-riem"
+    },
+    {
+      "value": "Ramersdorf-Perlach",
+      "name": "Q255291",
+      "canonical": "ramersdorf-perlach"
+    },
+    {
+      "value": "Obergiesing-Fasangarten",
+      "name": "Q254178",
+      "canonical": "obergiesing-fasangarten"
+    },
+    {
+      "value": "Untergiesing-Harlaching",
+      "name": "Q265068",
+      "canonical": "untergiesing-harlaching"
+    },
+    {
+      "value": "Thalkirchen-Obersendling-Forstenried-Fürstenried-Solln",
+      "name": "Q458136",
+      "canonical": "thalkirchen-obersendling-forstenried-fürstenried-solln"
+    },
+    {
+      "value": "Hadern",
+      "name": "Q267364",
+      "canonical": "hadern"
+    },
+    {
+      "value": "Pasing-Obermenzing",
+      "name": "Q255702",
+      "canonical": "pasing-obermenzing"
+    },
+    {
+      "value": "Aubing-Lochhausen-Langwied",
+      "name": "Q533095",
+      "canonical": "aubing-lochhausen-langwied"
+    },
+    {
+      "value": "Allach-Untermenzing",
+      "name": "Q252295",
+      "canonical": "allach-untermenzing"
+    },
+    {
+      "value": "Feldmoching-Hasenbergl",
+      "name": "Q252173",
+      "canonical": "feldmoching-hasenbergl"
+    },
+    {
+      "value": "Laim",
+      "name": "Q259879",
+      "canonical": "laim"
+    },
+    {
+      "value": "Thousand Islands",
+      "name": "Q10107",
+      "canonical": "thousand islands"
+    },
+    {
+      "value": "Central Jakarta",
+      "name": "Q10109",
+      "canonical": "central jakarta"
+    },
+    {
+      "value": "East Jakarta",
+      "name": "Q10111",
+      "canonical": "east jakarta"
+    },
+    {
+      "value": "North Jakarta",
+      "name": "Q10113",
+      "canonical": "north jakarta"
+    },
+    {
+      "value": "South Jakarta",
+      "name": "Q10114",
+      "canonical": "south jakarta"
+    },
+    {
+      "value": "West Jakarta",
+      "name": "Q10116",
+      "canonical": "west jakarta"
+    },
+    {
+      "value": "Copacabana",
+      "name": "Q202730",
+      "canonical": "copacabana"
+    },
+    {
+      "value": "Zona Sul",
+      "name": "Q3375019",
+      "canonical": "zona sul"
+    },
+    {
+      "value": "Avilés",
+      "name": "Q531129",
+      "canonical": "avilés"
+    },
+    {
+      "value": "Corros",
+      "name": "Q1135379",
+      "canonical": "corros"
+    },
+    {
+      "value": "Miranda",
+      "name": "Q987665",
+      "canonical": "miranda"
+    },
+    {
+      "value": "Laviana",
+      "name": "Q987700",
+      "canonical": "laviana"
+    },
+    {
+      "value": "Valliniello / Navarro",
+      "name": "Q987841",
+      "canonical": "valliniello / navarro"
+    },
+    {
+      "value": "Entreviñas",
+      "name": "Q987656",
+      "canonical": "entreviñas"
+    },
+    {
+      "value": "Danwon-gu",
+      "name": "Q50369",
+      "canonical": "danwon-gu"
+    },
+    {
+      "value": "Sangnok-gu",
+      "name": "Q50402",
+      "canonical": "sangnok-gu"
+    },
+    {
+      "value": "Pohjois-Espoo",
+      "name": "Q195736",
+      "canonical": "pohjois-espoo"
+    },
+    {
+      "value": "Vanha-Espoo",
+      "name": "Q196007",
+      "canonical": "vanha-espoo"
+    },
+    {
+      "value": "Suur-Tapiola",
+      "name": "Q195892",
+      "canonical": "suur-tapiola"
+    },
+    {
+      "value": "Suur-Matinkylä",
+      "name": "Q195884",
+      "canonical": "suur-matinkylä"
+    },
+    {
+      "value": "Suur-Leppävaara",
+      "name": "Q195539",
+      "canonical": "suur-leppävaara"
+    },
+    {
+      "value": "Suur-Kauklahti",
+      "name": "Q195749",
+      "canonical": "suur-kauklahti"
+    },
+    {
+      "value": "Suur-Espoonlahti",
+      "name": "Q196098",
+      "canonical": "suur-espoonlahti"
+    },
+    {
+      "value": "Higashinada-ku",
+      "name": "Q277434",
+      "canonical": "higashinada-ku"
+    },
+    {
+      "value": "Nada-ku",
+      "name": "Q1154555",
+      "canonical": "nada-ku"
+    },
+    {
+      "value": "Hyōgo-ku",
+      "name": "Q1078790",
+      "canonical": "hyōgo-ku"
+    },
+    {
+      "value": "Nagata-ku",
+      "name": "Q1078801",
+      "canonical": "nagata-ku"
+    },
+    {
+      "value": "Suma-ku",
+      "name": "Q1155010",
+      "canonical": "suma-ku"
+    },
+    {
+      "value": "Tarumi-ku",
+      "name": "Q1078806",
+      "canonical": "tarumi-ku"
+    },
+    {
+      "value": "Kita-ku",
+      "name": "Q1078814",
+      "canonical": "kita-ku"
+    },
+    {
+      "value": "Chūō-ku",
+      "name": "Q686802",
+      "canonical": "chūō-ku"
+    },
+    {
+      "value": "Nishi-ku",
+      "name": "Q1154552",
+      "canonical": "nishi-ku"
+    },
+    {
+      "value": "Środula",
+      "name": "Q9395874",
+      "canonical": "środula"
+    },
+    {
+      "value": "Zagórze, Sosnowiec",
+      "name": "Q8064579",
+      "canonical": "zagórze , sosnowiec"
+    },
+    {
+      "value": "Sielec, Sosnowiec",
+      "name": "Q9336466",
+      "canonical": "sielec , sosnowiec"
+    },
+    {
+      "value": "Milowice, Sosnowiec",
+      "name": "Q11781308",
+      "canonical": "milowice , sosnowiec"
+    },
+    {
+      "value": "Niwka",
+      "name": "Q11792430",
+      "canonical": "niwka"
+    },
+    {
+      "value": "Maczki, Sosnowiec",
+      "name": "Q11765827",
+      "canonical": "maczki , sosnowiec"
+    },
+    {
+      "value": "Klimontów, Sosnowiec",
+      "name": "Q21177320",
+      "canonical": "klimontów , sosnowiec"
+    },
+    {
+      "value": "Old Sosnowiec",
+      "name": "Q9344352",
+      "canonical": "old sosnowiec"
+    },
+    {
+      "value": "Pogoń (Sosnowiec)",
+      "name": "Q11821040",
+      "canonical": "pogoń ( sosnowiec )"
+    },
+    {
+      "value": "Kazimierz Górniczy",
+      "name": "Q11737902",
+      "canonical": "kazimierz górniczy"
+    },
+    {
+      "value": "Anping District",
+      "name": "Q703607",
+      "canonical": "anping district"
+    },
+    {
+      "value": "Annan District",
+      "name": "Q706749",
+      "canonical": "annan district"
+    },
+    {
+      "value": "East District",
+      "name": "Q710281",
+      "canonical": "east district"
+    },
+    {
+      "value": "West Central District",
+      "name": "Q706699",
+      "canonical": "west central district"
+    },
+    {
+      "value": "South District",
+      "name": "Q710222",
+      "canonical": "south district"
+    },
+    {
+      "value": "North District",
+      "name": "Q710206",
+      "canonical": "north district"
+    },
+    {
+      "value": "Xinying District",
+      "name": "Q701497",
+      "canonical": "xinying district"
+    },
+    {
+      "value": "Yongkang District",
+      "name": "Q706511",
+      "canonical": "yongkang district"
+    },
+    {
+      "value": "Baihe District",
+      "name": "Q709025",
+      "canonical": "baihe district"
+    },
+    {
+      "value": "Jiali District",
+      "name": "Q710023",
+      "canonical": "jiali district"
+    },
+    {
+      "value": "Madou District",
+      "name": "Q706732",
+      "canonical": "madou district"
+    },
+    {
+      "value": "Shanhua District",
+      "name": "Q708672",
+      "canonical": "shanhua district"
+    },
+    {
+      "value": "Sinhua District",
+      "name": "Q1186585",
+      "canonical": "sinhua district"
+    },
+    {
+      "value": "Syuejia District",
+      "name": "Q708188",
+      "canonical": "syuejia district"
+    },
+    {
+      "value": "Yanshuei District",
+      "name": "Q708224",
+      "canonical": "yanshuei district"
+    },
+    {
+      "value": "Anding District",
+      "name": "Q708441",
+      "canonical": "anding district"
+    },
+    {
+      "value": "Danei District",
+      "name": "Q709013",
+      "canonical": "danei district"
+    },
+    {
+      "value": "Beimen District",
+      "name": "Q706308",
+      "canonical": "beimen district"
+    },
+    {
+      "value": "Dongshan District",
+      "name": "Q703924",
+      "canonical": "dongshan district"
+    },
+    {
+      "value": "Guanmiao District",
+      "name": "Q1186591",
+      "canonical": "guanmiao district"
+    },
+    {
+      "value": "Guantian District",
+      "name": "Q709018",
+      "canonical": "guantian district"
+    },
+    {
+      "value": "Gueiren District",
+      "name": "Q708718",
+      "canonical": "gueiren district"
+    },
+    {
+      "value": "Houbi District",
+      "name": "Q709000",
+      "canonical": "houbi district"
+    },
+    {
+      "value": "Jiangjun District",
+      "name": "Q706572",
+      "canonical": "jiangjun district"
+    },
+    {
+      "value": "Lioujia District",
+      "name": "Q708723",
+      "canonical": "lioujia district"
+    },
+    {
+      "value": "Liouying District",
+      "name": "Q708734",
+      "canonical": "liouying district"
+    },
+    {
+      "value": "Longci District",
+      "name": "Q708127",
+      "canonical": "longci district"
+    },
+    {
+      "value": "Nanhua District",
+      "name": "Q708375",
+      "canonical": "nanhua district"
+    },
+    {
+      "value": "Nansi District",
+      "name": "Q708711",
+      "canonical": "nansi district"
+    },
+    {
+      "value": "Cigu District",
+      "name": "Q708677",
+      "canonical": "cigu district"
+    },
+    {
+      "value": "Rende District",
+      "name": "Q708437",
+      "canonical": "rende district"
+    },
+    {
+      "value": "Shanshang District",
+      "name": "Q708701",
+      "canonical": "shanshang district"
+    },
+    {
+      "value": "Xiaying District",
+      "name": "Q708705",
+      "canonical": "xiaying district"
+    },
+    {
+      "value": "Sigang District",
+      "name": "Q709004",
+      "canonical": "sigang district"
+    },
+    {
+      "value": "Sinshih District",
+      "name": "Q706439",
+      "canonical": "sinshih district"
+    },
+    {
+      "value": "Yujing District",
+      "name": "Q708690",
+      "canonical": "yujing district"
+    },
+    {
+      "value": "Zuojhen District",
+      "name": "Q708207",
+      "canonical": "zuojhen district"
+    },
+    {
+      "value": "Brná",
+      "name": "Q266791",
+      "canonical": "brná"
+    },
+    {
+      "value": "Bukov",
+      "name": "Q11362897",
+      "canonical": "bukov"
+    },
+    {
+      "value": "Církvice",
+      "name": "Q11773931",
+      "canonical": "církvice"
+    },
+    {
+      "value": "Habrovice",
+      "name": "Q12018826",
+      "canonical": "habrovice"
+    },
+    {
+      "value": "Hostovice",
+      "name": "Q12020381",
+      "canonical": "hostovice"
+    },
+    {
+      "value": "Klíše",
+      "name": "Q12029599",
+      "canonical": "klíše"
+    },
+    {
+      "value": "Krásné Březno",
+      "name": "Q4238171",
+      "canonical": "krásné březno"
+    },
+    {
+      "value": "Mojžíř",
+      "name": "Q12038499",
+      "canonical": "mojžíř"
+    },
+    {
+      "value": "Neštěmice",
+      "name": "Q12040887",
+      "canonical": "neštěmice"
+    },
+    {
+      "value": "Předlice",
+      "name": "Q12047921",
+      "canonical": "předlice"
+    },
+    {
+      "value": "Sebuzín",
+      "name": "Q11087983",
+      "canonical": "sebuzín"
+    },
+    {
+      "value": "Ústí nad Labem-Severní terasa",
+      "name": "Q11088309",
+      "canonical": "ústí nad labem-severní terasa"
+    },
+    {
+      "value": "Skorotice",
+      "name": "Q12054502",
+      "canonical": "skorotice"
+    },
+    {
+      "value": "Strážky",
+      "name": "Q12056680",
+      "canonical": "strážky"
+    },
+    {
+      "value": "Střekov",
+      "name": "Q13368674",
+      "canonical": "střekov"
+    },
+    {
+      "value": "Svádov",
+      "name": "Q12057681",
+      "canonical": "svádov"
+    },
+    {
+      "value": "Ústí nad Labem-centrum",
+      "name": "Q11088321",
+      "canonical": "ústí nad labem-centrum"
+    },
+    {
+      "value": "Všebořice",
+      "name": "Q12005818",
+      "canonical": "všebořice"
+    },
+    {
+      "value": "Březovice",
+      "name": "Q11706978",
+      "canonical": "březovice"
+    },
+    {
+      "value": "Doubrava (Hořice)",
+      "name": "Q11823252",
+      "canonical": "doubrava ( hořice )"
+    },
+    {
+      "value": "Chlum (Hořice)",
+      "name": "Q11725166",
+      "canonical": "chlum ( hořice )"
+    },
+    {
+      "value": "Chvalina",
+      "name": "Q11730709",
+      "canonical": "chvalina"
+    },
+    {
+      "value": "Libonice",
+      "name": "Q12033354",
+      "canonical": "libonice"
+    },
+    {
+      "value": "Cochabamba",
+      "name": "Q183124",
+      "canonical": "cochabamba"
+    },
+    {
+      "value": "Colcapirhua",
+      "name": "Q1107673",
+      "canonical": "colcapirhua"
+    },
+    {
+      "value": "Quillacollo",
+      "name": "Q1002090",
+      "canonical": "quillacollo"
+    },
+    {
+      "value": "Sacaba",
+      "name": "Q995727",
+      "canonical": "sacaba"
+    },
+    {
+      "value": "Sipe Sipe Municipality",
+      "name": "Q1521101",
+      "canonical": "sipe sipe municipality"
+    },
+    {
+      "value": "Tiquipaya Municipality",
+      "name": "Q303590",
+      "canonical": "tiquipaya municipality"
+    },
+    {
+      "value": "Vinto",
+      "name": "Q125924",
+      "canonical": "vinto"
+    },
+    {
+      "value": "Central Zone of São Paulo",
+      "name": "Q3236252",
+      "canonical": "central zone of são paulo"
+    },
+    {
+      "value": "South-Central Zone",
+      "name": "Q5195889",
+      "canonical": "south-central zone"
+    },
+    {
+      "value": "East Zone of São Paulo",
+      "name": "Q5329735",
+      "canonical": "east zone of são paulo"
+    },
+    {
+      "value": "Northeast Zone",
+      "name": "Q9296727",
+      "canonical": "northeast zone"
+    },
+    {
+      "value": "Northwest Zone",
+      "name": "Q9097778",
+      "canonical": "northwest zone"
+    },
+    {
+      "value": "North Zone of São Paulo",
+      "name": "Q9097780",
+      "canonical": "north zone of são paulo"
+    },
+    {
+      "value": "West Zone of São Paulo",
+      "name": "Q279830",
+      "canonical": "west zone of são paulo"
+    },
+    {
+      "value": "Southeast Zone",
+      "name": "Q5558295",
+      "canonical": "southeast zone"
+    },
+    {
+      "value": "Southwest Zone",
+      "name": "Q10395253",
+      "canonical": "southwest zone"
+    },
+    {
+      "value": "South Zone of São Paulo",
+      "name": "Q9097789",
+      "canonical": "south zone of são paulo"
+    },
+    {
+      "value": "Śródmieście, Szczecin",
+      "name": "Q8082042",
+      "canonical": "śródmieście , szczecin"
+    },
+    {
+      "value": "borough 1 of Florence",
+      "name": "Q3927157",
+      "canonical": "borough 1 of florence"
+    },
+    {
+      "value": "Borough 1 - Campo di Marte - of Florenz",
+      "name": "Q3927159",
+      "canonical": "borough 1 - campo di marte - of florenz"
+    },
+    {
+      "value": "Borough 1 - Rifredi - of Florence",
+      "name": "Q3927162",
+      "canonical": "borough 1 - rifredi - of florence"
+    },
+    {
+      "value": "Borough 4 of Florence - Isolotto/Legnaia",
+      "name": "Q3927161",
+      "canonical": "borough 4 of florence - isolotto / legnaia"
+    },
+    {
+      "value": "Ermingen",
+      "name": "Q1355936",
+      "canonical": "ermingen"
+    },
+    {
+      "value": "Eselsberg",
+      "name": "Q1367467",
+      "canonical": "eselsberg"
+    },
+    {
+      "value": "Gögglingen-Donaustetten",
+      "name": "Q1559217",
+      "canonical": "gögglingen-donaustetten"
+    },
+    {
+      "value": "Jungingen",
+      "name": "Q1713454",
+      "canonical": "jungingen"
+    },
+    {
+      "value": "Lehr",
+      "name": "Q1813353",
+      "canonical": "lehr"
+    },
+    {
+      "value": "Mähringen",
+      "name": "Q972566",
+      "canonical": "mähringen"
+    },
+    {
+      "value": "Wiblingen",
+      "name": "Q2567354",
+      "canonical": "wiblingen"
+    },
+    {
+      "value": "Central borough of Brescia",
+      "name": "Q16751659",
+      "canonical": "central borough of brescia"
+    },
+    {
+      "value": "North borough of Brescia",
+      "name": "Q16965019",
+      "canonical": "north borough of brescia"
+    },
+    {
+      "value": "Huangpu District",
+      "name": "Q660185",
+      "canonical": "huangpu district"
+    },
+    {
+      "value": "Xuhui District",
+      "name": "Q57002",
+      "canonical": "xuhui district"
+    },
+    {
+      "value": "Changning District",
+      "name": "Q660626",
+      "canonical": "changning district"
+    },
+    {
+      "value": "Jing'an District",
+      "name": "Q660789",
+      "canonical": "jing 'an district"
+    },
+    {
+      "value": "Putuo District",
+      "name": "Q660952",
+      "canonical": "putuo district"
+    },
+    {
+      "value": "Hongkou",
+      "name": "Q661364",
+      "canonical": "hongkou"
+    },
+    {
+      "value": "Yangpu District",
+      "name": "Q661533",
+      "canonical": "yangpu district"
+    },
+    {
+      "value": "Minhang District",
+      "name": "Q661695",
+      "canonical": "minhang district"
+    },
+    {
+      "value": "Baoshan District",
+      "name": "Q661828",
+      "canonical": "baoshan district"
+    },
+    {
+      "value": "Jiading District",
+      "name": "Q662101",
+      "canonical": "jiading district"
+    },
+    {
+      "value": "Pudong",
+      "name": "Q125378",
+      "canonical": "pudong"
+    },
+    {
+      "value": "Jinshan District",
+      "name": "Q662241",
+      "canonical": "jinshan district"
+    },
+    {
+      "value": "Songjiang District",
+      "name": "Q662380",
+      "canonical": "songjiang district"
+    },
+    {
+      "value": "Qingpu District",
+      "name": "Q662548",
+      "canonical": "qingpu district"
+    },
+    {
+      "value": "Fengxian District",
+      "name": "Q662694",
+      "canonical": "fengxian district"
+    },
+    {
+      "value": "Chongming District",
+      "name": "Q788812",
+      "canonical": "chongming district"
+    },
+    {
+      "value": "Bandung Kulon",
+      "name": "Q1727617",
+      "canonical": "bandung kulon"
+    },
+    {
+      "value": "Babakanciparay",
+      "name": "Q1727588",
+      "canonical": "babakanciparay"
+    },
+    {
+      "value": "Bojongloa Kaler",
+      "name": "Q1727658",
+      "canonical": "bojongloa kaler"
+    },
+    {
+      "value": "Bojongloa Kidul",
+      "name": "Q1727669",
+      "canonical": "bojongloa kidul"
+    },
+    {
+      "value": "Astanaanyar",
+      "name": "Q1727576",
+      "canonical": "astanaanyar"
+    },
+    {
+      "value": "Regol",
+      "name": "Q1727865",
+      "canonical": "regol"
+    },
+    {
+      "value": "Lengkong",
+      "name": "Q1727820",
+      "canonical": "lengkong"
+    },
+    {
+      "value": "Bandung Kidul",
+      "name": "Q1727602",
+      "canonical": "bandung kidul"
+    },
+    {
+      "value": "Buahbatu",
+      "name": "Q1727683",
+      "canonical": "buahbatu"
+    },
+    {
+      "value": "Rancasari",
+      "name": "Q1727852",
+      "canonical": "rancasari"
+    },
+    {
+      "value": "Gedebage",
+      "name": "Q1727790",
+      "canonical": "gedebage"
+    },
+    {
+      "value": "Cibiru",
+      "name": "Q1727725",
+      "canonical": "cibiru"
+    },
+    {
+      "value": "Panyileukan",
+      "name": "Q1727839",
+      "canonical": "panyileukan"
+    },
+    {
+      "value": "Ujungberung",
+      "name": "Q1727915",
+      "canonical": "ujungberung"
+    },
+    {
+      "value": "Cinambo",
+      "name": "Q1727764",
+      "canonical": "cinambo"
+    },
+    {
+      "value": "Arcamanik",
+      "name": "Q1727562",
+      "canonical": "arcamanik"
+    },
+    {
+      "value": "Antapani",
+      "name": "Q1727541",
+      "canonical": "antapani"
+    },
+    {
+      "value": "Mandalajati",
+      "name": "Q1727831",
+      "canonical": "mandalajati"
+    },
+    {
+      "value": "Kiaracondong",
+      "name": "Q1727807",
+      "canonical": "kiaracondong"
+    },
+    {
+      "value": "Batununggal",
+      "name": "Q1727640",
+      "canonical": "batununggal"
+    },
+    {
+      "value": "Sumurbandung",
+      "name": "Q1727901",
+      "canonical": "sumurbandung"
+    },
+    {
+      "value": "Andir",
+      "name": "Q1727508",
+      "canonical": "andir"
+    },
+    {
+      "value": "Cicendo",
+      "name": "Q1727734",
+      "canonical": "cicendo"
+    },
+    {
+      "value": "Bandung Wetan",
+      "name": "Q1727632",
+      "canonical": "bandung wetan"
+    },
+    {
+      "value": "Cibeunying Kidul",
+      "name": "Q1727712",
+      "canonical": "cibeunying kidul"
+    },
+    {
+      "value": "Cibeunying Kaler",
+      "name": "Q1727698",
+      "canonical": "cibeunying kaler"
+    },
+    {
+      "value": "Coblong",
+      "name": "Q1727781",
+      "canonical": "coblong"
+    },
+    {
+      "value": "Sukajadi",
+      "name": "Q1727877",
+      "canonical": "sukajadi"
+    },
+    {
+      "value": "Sukasari",
+      "name": "Q1727891",
+      "canonical": "sukasari"
+    },
+    {
+      "value": "Cidadap",
+      "name": "Q1727749",
+      "canonical": "cidadap"
+    },
+    {
+      "value": "First Quarter",
+      "name": "Q17310947",
+      "canonical": "first quarter"
+    },
+    {
+      "value": "Second Quarter",
+      "name": "Q18171885",
+      "canonical": "second quarter"
+    },
+    {
+      "value": "Third Quarter",
+      "name": "Q18171886",
+      "canonical": "third quarter"
+    },
+    {
+      "value": "Fourth Quarter",
+      "name": "Q18171887",
+      "canonical": "fourth quarter"
+    },
+    {
+      "value": "Fifth Quarter",
+      "name": "Q18171890",
+      "canonical": "fifth quarter"
+    },
+    {
+      "value": "Sixth Quarter",
+      "name": "Q18171891",
+      "canonical": "sixth quarter"
+    },
+    {
+      "value": "Xuanwu District",
+      "name": "Q589343",
+      "canonical": "xuanwu district"
+    },
+    {
+      "value": "Baixia District",
+      "name": "Q804021",
+      "canonical": "baixia district"
+    },
+    {
+      "value": "Qinhuai District",
+      "name": "Q1337224",
+      "canonical": "qinhuai district"
+    },
+    {
+      "value": "Jianye District",
+      "name": "Q1197696",
+      "canonical": "jianye district"
+    },
+    {
+      "value": "Gulou District, Nanjing",
+      "name": "Q1337456",
+      "canonical": "gulou district , nanjing"
+    },
+    {
+      "value": "Xiaguan Qu",
+      "name": "Q784841",
+      "canonical": "xiaguan qu"
+    },
+    {
+      "value": "Pukou District",
+      "name": "Q761811",
+      "canonical": "pukou district"
+    },
+    {
+      "value": "Qixia District",
+      "name": "Q1337444",
+      "canonical": "qixia district"
+    },
+    {
+      "value": "Yuhuatai District",
+      "name": "Q1197681",
+      "canonical": "yuhuatai district"
+    },
+    {
+      "value": "Jiangning District",
+      "name": "Q1331311",
+      "canonical": "jiangning district"
+    },
+    {
+      "value": "Luhe District",
+      "name": "Q1197761",
+      "canonical": "luhe district"
+    },
+    {
+      "value": "Lishui District",
+      "name": "Q1197700",
+      "canonical": "lishui district"
+    },
+    {
+      "value": "Gaochun District",
+      "name": "Q1337385",
+      "canonical": "gaochun district"
+    },
+    {
+      "value": "Daoli District",
+      "name": "Q1165422",
+      "canonical": "daoli district"
+    },
+    {
+      "value": "Nangang District, Harbin",
+      "name": "Q1348900",
+      "canonical": "nangang district , harbin"
+    },
+    {
+      "value": "Daowai District",
+      "name": "Q1027397",
+      "canonical": "daowai district"
+    },
+    {
+      "value": "Pingfang District",
+      "name": "Q966612",
+      "canonical": "pingfang district"
+    },
+    {
+      "value": "Songbei District",
+      "name": "Q527463",
+      "canonical": "songbei district"
+    },
+    {
+      "value": "Xiangfang District",
+      "name": "Q55196",
+      "canonical": "xiangfang district"
+    },
+    {
+      "value": "Hulan District",
+      "name": "Q1027409",
+      "canonical": "hulan district"
+    },
+    {
+      "value": "Acheng District",
+      "name": "Q145263",
+      "canonical": "acheng district"
+    },
+    {
+      "value": "Yilan County",
+      "name": "Q1027304",
+      "canonical": "yilan county"
+    },
+    {
+      "value": "Fangzheng County",
+      "name": "Q524160",
+      "canonical": "fangzheng county"
+    },
+    {
+      "value": "Bin County, Heilongjiang",
+      "name": "Q863489",
+      "canonical": "bin county , heilongjiang"
+    },
+    {
+      "value": "Bayan County",
+      "name": "Q812096",
+      "canonical": "bayan county"
+    },
+    {
+      "value": "Mulan County",
+      "name": "Q1027430",
+      "canonical": "mulan county"
+    },
+    {
+      "value": "Tonghe County",
+      "name": "Q1027307",
+      "canonical": "tonghe county"
+    },
+    {
+      "value": "Yanshou County",
+      "name": "Q1027311",
+      "canonical": "yanshou county"
+    },
+    {
+      "value": "Shuangcheng District",
+      "name": "Q1000142",
+      "canonical": "shuangcheng district"
+    },
+    {
+      "value": "Shangzhi",
+      "name": "Q1015925",
+      "canonical": "shangzhi"
+    },
+    {
+      "value": "Wuchang",
+      "name": "Q769855",
+      "canonical": "wuchang"
+    },
+    {
+      "value": "Bělidla",
+      "name": "Q9183143",
+      "canonical": "bělidla"
+    },
+    {
+      "value": "Černovír",
+      "name": "Q11171986",
+      "canonical": "černovír"
+    },
+    {
+      "value": "Droždín",
+      "name": "Q9212132",
+      "canonical": "droždín"
+    },
+    {
+      "value": "Hejčín",
+      "name": "Q9287231",
+      "canonical": "hejčín"
+    },
+    {
+      "value": "Hodolany",
+      "name": "Q9293187",
+      "canonical": "hodolany"
+    },
+    {
+      "value": "Holice",
+      "name": "Q9293339",
+      "canonical": "holice"
+    },
+    {
+      "value": "Chomoutov",
+      "name": "Q9190281",
+      "canonical": "chomoutov"
+    },
+    {
+      "value": "Chválkovice",
+      "name": "Q11690422",
+      "canonical": "chválkovice"
+    },
+    {
+      "value": "Klášterní Hradisko",
+      "name": "Q11740378",
+      "canonical": "klášterní hradisko"
+    },
+    {
+      "value": "Lazce",
+      "name": "Q11753356",
+      "canonical": "lazce"
+    },
+    {
+      "value": "Lošov",
+      "name": "Q11762928",
+      "canonical": "lošov"
+    },
+    {
+      "value": "Nedvězí",
+      "name": "Q11790439",
+      "canonical": "nedvězí"
+    },
+    {
+      "value": "Nemilany",
+      "name": "Q3090670",
+      "canonical": "nemilany"
+    },
+    {
+      "value": "Neředín",
+      "name": "Q3500079",
+      "canonical": "neředín"
+    },
+    {
+      "value": "Nová Ulice",
+      "name": "Q11793334",
+      "canonical": "nová ulice"
+    },
+    {
+      "value": "Nové Sady",
+      "name": "Q3090681",
+      "canonical": "nové sady"
+    },
+    {
+      "value": "Nový Svět",
+      "name": "Q3182216",
+      "canonical": "nový svět"
+    },
+    {
+      "value": "Pavlovičky",
+      "name": "Q11813883",
+      "canonical": "pavlovičky"
+    },
+    {
+      "value": "Povel",
+      "name": "Q3182198",
+      "canonical": "povel"
+    },
+    {
+      "value": "Radíkov",
+      "name": "Q9302780",
+      "canonical": "radíkov"
+    },
+    {
+      "value": "Řepčín",
+      "name": "Q9395245",
+      "canonical": "řepčín"
+    },
+    {
+      "value": "Slavonín",
+      "name": "Q9338536",
+      "canonical": "slavonín"
+    },
+    {
+      "value": "Svatý Kopeček",
+      "name": "Q1419130",
+      "canonical": "svatý kopeček"
+    },
+    {
+      "value": "Topolany",
+      "name": "Q9360084",
+      "canonical": "topolany"
+    },
+    {
+      "value": "Týneček",
+      "name": "Q9363826",
+      "canonical": "týneček"
+    },
+    {
+      "value": "Claddagh",
+      "name": "Q2602833",
+      "canonical": "claddagh"
+    },
+    {
+      "value": "Děčín I-Děčín",
+      "name": "Q24817388",
+      "canonical": "děčín i-děčín"
+    },
+    {
+      "value": "Staré Město",
+      "name": "Q12056195",
+      "canonical": "staré město"
+    },
+    {
+      "value": "Nové Město",
+      "name": "Q12041331",
+      "canonical": "nové město"
+    },
+    {
+      "value": "Podmokly",
+      "name": "Q12045917",
+      "canonical": "podmokly"
+    },
+    {
+      "value": "Bynov",
+      "name": "Q11706316",
+      "canonical": "bynov"
+    },
+    {
+      "value": "Letná",
+      "name": "Q12033131",
+      "canonical": "letná"
+    },
+    {
+      "value": "Rozbělesy",
+      "name": "Q12049933",
+      "canonical": "rozbělesy"
+    },
+    {
+      "value": "Bělá",
+      "name": "Q11706790",
+      "canonical": "bělá"
+    },
+    {
+      "value": "Horní Žleb",
+      "name": "Q12020306",
+      "canonical": "horní žleb"
+    },
+    {
+      "value": "Loubí",
+      "name": "Q12033968",
+      "canonical": "loubí"
+    },
+    {
+      "value": "Dolní Žleb",
+      "name": "Q1236242",
+      "canonical": "dolní žleb"
+    },
+    {
+      "value": "Maxičky",
+      "name": "Q12036175",
+      "canonical": "maxičky"
+    },
+    {
+      "value": "Jalůvčí",
+      "name": "Q6335017",
+      "canonical": "jalůvčí"
+    },
+    {
+      "value": "Přípeř",
+      "name": "Q12048207",
+      "canonical": "přípeř"
+    },
+    {
+      "value": "Prostřední Žleb",
+      "name": "Q2113411",
+      "canonical": "prostřední žleb"
+    },
+    {
+      "value": "Horní Oldřichov",
+      "name": "Q12020227",
+      "canonical": "horní oldřichov"
+    },
+    {
+      "value": "Václavov",
+      "name": "Q11986039",
+      "canonical": "václavov"
+    },
+    {
+      "value": "Krásný Studenec",
+      "name": "Q12031792",
+      "canonical": "krásný studenec"
+    },
+    {
+      "value": "Nová Ves",
+      "name": "Q12041212",
+      "canonical": "nová ves"
+    },
+    {
+      "value": "Březiny",
+      "name": "Q11706949",
+      "canonical": "březiny"
+    },
+    {
+      "value": "Folknáře",
+      "name": "Q12016741",
+      "canonical": "folknáře"
+    },
+    {
+      "value": "Boletice nad Labem",
+      "name": "Q11225214",
+      "canonical": "boletice nad labem"
+    },
+    {
+      "value": "Křešice",
+      "name": "Q12032258",
+      "canonical": "křešice"
+    },
+    {
+      "value": "Lesná",
+      "name": "Q12033047",
+      "canonical": "lesná"
+    },
+    {
+      "value": "Kosenbamachi",
+      "name": "Q11458831",
+      "canonical": "kosenbamachi"
+    },
+    {
+      "value": "Kawagoe",
+      "name": "Q11479194",
+      "canonical": "kawagoe"
+    },
+    {
+      "value": "Matsugō",
+      "name": "Q11532293",
+      "canonical": "matsugō"
+    },
+    {
+      "value": "Isanuma",
+      "name": "Q11378890",
+      "canonical": "isanuma"
+    },
+    {
+      "value": "Imaizumi",
+      "name": "Q11377227",
+      "canonical": "imaizumi"
+    },
+    {
+      "value": "Ushiko",
+      "name": "Q11570094",
+      "canonical": "ushiko"
+    },
+    {
+      "value": "Kainuma",
+      "name": "Q11620513",
+      "canonical": "kainuma"
+    },
+    {
+      "value": "Kugedo",
+      "name": "Q11368873",
+      "canonical": "kugedo"
+    },
+    {
+      "value": "Shibui",
+      "name": "Q11561543",
+      "canonical": "shibui"
+    },
+    {
+      "value": "Namiki",
+      "name": "Q11362706",
+      "canonical": "namiki"
+    },
+    {
+      "value": "Minami-Tajima",
+      "name": "Q11408250",
+      "canonical": "minami-tajima"
+    },
+    {
+      "value": "Furuichiba",
+      "name": "Q11411217",
+      "canonical": "furuichiba"
+    },
+    {
+      "value": "Fujikichō",
+      "name": "Q11624098",
+      "canonical": "fujikichō"
+    },
+    {
+      "value": "Ōgigashi",
+      "name": "Q11496846",
+      "canonical": "ōgigashi"
+    },
+    {
+      "value": "Kami-Shingashi",
+      "name": "Q11359058",
+      "canonical": "kami-shingashi"
+    },
+    {
+      "value": "Shimo-Shingashi",
+      "name": "Q11360933",
+      "canonical": "shimo-shingashi"
+    },
+    {
+      "value": "Terao",
+      "name": "Q11457766",
+      "canonical": "terao"
+    },
+    {
+      "value": "Minamidai",
+      "name": "Q11407582",
+      "canonical": "minamidai"
+    },
+    {
+      "value": "Vologda",
+      "name": "Q1957",
+      "canonical": "vologda"
+    },
+    {
+      "value": "Molochnoye",
+      "name": "Q1943710",
+      "canonical": "molochnoye"
+    }
+  ]
+}

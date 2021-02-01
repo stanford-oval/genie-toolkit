@@ -1,0 +1,30 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "China",
+      "name": "Q29520",
+      "canonical": "china"
+    },
+    {
+      "value": "Germany",
+      "name": "Q1350565",
+      "canonical": "germany"
+    },
+    {
+      "value": "Israel",
+      "name": "Q234180",
+      "canonical": "israel"
+    },
+    {
+      "value": "Sudanese Republic",
+      "name": "Q3456487",
+      "canonical": "sudanese republic"
+    },
+    {
+      "value": "Sedan",
+      "name": "Q1414409",
+      "canonical": "sedan"
+    }
+  ]
+}

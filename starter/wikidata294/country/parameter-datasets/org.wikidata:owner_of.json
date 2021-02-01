@@ -1,0 +1,55 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "The Fall of the Rebel Angels",
+      "name": "Q594406",
+      "canonical": "the fall of the rebel angels"
+    },
+    {
+      "value": "bpost",
+      "name": "Q740553",
+      "canonical": "bpost"
+    },
+    {
+      "value": "Royal Greenhouses of Laeken",
+      "name": "Q1644661",
+      "canonical": "royal greenhouses of laeken"
+    },
+    {
+      "value": "Monument voor de intergeallieerden",
+      "name": "Q2697443",
+      "canonical": "monument voor de intergeallieerden"
+    },
+    {
+      "value": "Hôtel d'Espie",
+      "name": "Q3145723",
+      "canonical": "hôtel d 'espie"
+    },
+    {
+      "value": "Belfius",
+      "name": "Q1956014",
+      "canonical": "belfius"
+    },
+    {
+      "value": "Proximus",
+      "name": "Q2005282",
+      "canonical": "proximus"
+    },
+    {
+      "value": "Infrabel",
+      "name": "Q536120",
+      "canonical": "infrabel"
+    },
+    {
+      "value": "Fort Manoel",
+      "name": "Q1366489",
+      "canonical": "fort manoel"
+    },
+    {
+      "value": "Fort St Angelo",
+      "name": "Q2207146",
+      "canonical": "fort st angelo"
+    }
+  ]
+}

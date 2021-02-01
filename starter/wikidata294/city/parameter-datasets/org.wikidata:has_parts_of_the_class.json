@@ -1,0 +1,15 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "canal",
+      "name": "Q12284",
+      "canonical": "canal"
+    },
+    {
+      "value": "bridge",
+      "name": "Q12280",
+      "canonical": "bridge"
+    }
+  ]
+}

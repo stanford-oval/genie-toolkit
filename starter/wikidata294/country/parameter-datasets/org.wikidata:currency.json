@@ -1,0 +1,225 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "euro",
+      "name": "Q4916",
+      "canonical": "euro"
+    },
+    {
+      "value": "Belgian franc",
+      "name": "Q232415",
+      "canonical": "belgian franc"
+    },
+    {
+      "value": "euro",
+      "name": "Q4916",
+      "canonical": "euro"
+    },
+    {
+      "value": "Portuguese escudo",
+      "name": "Q468474",
+      "canonical": "portuguese escudo"
+    },
+    {
+      "value": "renminbi",
+      "name": "Q39099",
+      "canonical": "renminbi"
+    },
+    {
+      "value": "Brazilian real",
+      "name": "Q173117",
+      "canonical": "brazilian real"
+    },
+    {
+      "value": "Brazilian cruzeiro real",
+      "name": "Q831578",
+      "canonical": "brazilian cruzeiro real"
+    },
+    {
+      "value": "cruzeiro",
+      "name": "Q10261896",
+      "canonical": "cruzeiro"
+    },
+    {
+      "value": "Brazilian cruzado novo",
+      "name": "Q1764812",
+      "canonical": "brazilian cruzado novo"
+    },
+    {
+      "value": "Brazilian cruzado",
+      "name": "Q926028",
+      "canonical": "brazilian cruzado"
+    },
+    {
+      "value": "Novo Cruzeiro",
+      "name": "Q44904",
+      "canonical": "novo cruzeiro"
+    },
+    {
+      "value": "cruzeiro",
+      "name": "Q8351983",
+      "canonical": "cruzeiro"
+    },
+    {
+      "value": "Brazilian real",
+      "name": "Q10366257",
+      "canonical": "brazilian real"
+    },
+    {
+      "value": "cruzeiro",
+      "name": "Q10261894",
+      "canonical": "cruzeiro"
+    },
+    {
+      "value": "euro",
+      "name": "Q4916",
+      "canonical": "euro"
+    },
+    {
+      "value": "Deutsche Mark",
+      "name": "Q16068",
+      "canonical": "deutsche mark"
+    },
+    {
+      "value": "euro",
+      "name": "Q4916",
+      "canonical": "euro"
+    },
+    {
+      "value": "Maltese lira",
+      "name": "Q174467",
+      "canonical": "maltese lira"
+    },
+    {
+      "value": "Chilean peso",
+      "name": "Q200050",
+      "canonical": "chilean peso"
+    },
+    {
+      "value": "Unidad de Fomento",
+      "name": "Q1573250",
+      "canonical": "unidad de fomento"
+    },
+    {
+      "value": "Chilean escudo",
+      "name": "Q603071",
+      "canonical": "chilean escudo"
+    },
+    {
+      "value": "Bahraini dinar",
+      "name": "Q201871",
+      "canonical": "bahraini dinar"
+    },
+    {
+      "value": "Gulf rupee",
+      "name": "Q476195",
+      "canonical": "gulf rupee"
+    },
+    {
+      "value": "Vanuatu vatus",
+      "name": "Q207523",
+      "canonical": "vanuatu vatus"
+    },
+    {
+      "value": "Israeli new shekel",
+      "name": "Q131309",
+      "canonical": "israeli new shekel"
+    },
+    {
+      "value": "Old Israeli shekel",
+      "name": "Q2720762",
+      "canonical": "old israeli shekel"
+    },
+    {
+      "value": "Palestine pound",
+      "name": "Q3973271",
+      "canonical": "palestine pound"
+    },
+    {
+      "value": "Israeli lira",
+      "name": "Q1674712",
+      "canonical": "israeli lira"
+    },
+    {
+      "value": "Lao kip",
+      "name": "Q200055",
+      "canonical": "lao kip"
+    },
+    {
+      "value": "Tajikistani somoni",
+      "name": "Q199886",
+      "canonical": "tajikistani somoni"
+    },
+    {
+      "value": "Tajikistani ruble",
+      "name": "Q2423956",
+      "canonical": "tajikistani ruble"
+    },
+    {
+      "value": "Thai baht",
+      "name": "Q177882",
+      "canonical": "thai baht"
+    },
+    {
+      "value": "United Arab Emirates dirham",
+      "name": "Q200294",
+      "canonical": "united arab emirates dirham"
+    },
+    {
+      "value": "West African CFA franc",
+      "name": "Q861690",
+      "canonical": "west african cfa franc"
+    },
+    {
+      "value": "Malian franc",
+      "name": "Q2629054",
+      "canonical": "malian franc"
+    },
+    {
+      "value": "Angolan kwanza",
+      "name": "Q200337",
+      "canonical": "angolan kwanza"
+    },
+    {
+      "value": "Angolan escudo",
+      "name": "Q542236",
+      "canonical": "angolan escudo"
+    },
+    {
+      "value": "Angolan real",
+      "name": "Q542238",
+      "canonical": "angolan real"
+    },
+    {
+      "value": "Angolan angolar",
+      "name": "Q542304",
+      "canonical": "angolan angolar"
+    },
+    {
+      "value": "Sierra Leonean leone",
+      "name": "Q4587",
+      "canonical": "sierra leonean leone"
+    },
+    {
+      "value": "Sudanese pound",
+      "name": "Q271206",
+      "canonical": "sudanese pound"
+    },
+    {
+      "value": "Sudanese dinar",
+      "name": "Q1511773",
+      "canonical": "sudanese dinar"
+    },
+    {
+      "value": "euro",
+      "name": "Q4916",
+      "canonical": "euro"
+    },
+    {
+      "value": "French Guianan franc",
+      "name": "Q114784",
+      "canonical": "french guianan franc"
+    }
+  ]
+}

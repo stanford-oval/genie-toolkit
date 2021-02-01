@@ -1,0 +1,730 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Communist Party of China",
+      "name": "Q17427",
+      "canonical": "communist party of china"
+    },
+    {
+      "value": "David Ben-Gurion",
+      "name": "Q37610",
+      "canonical": "david ben-gurion"
+    },
+    {
+      "value": "Taiwan",
+      "name": "Q865",
+      "canonical": "taiwan"
+    },
+    {
+      "value": "Philippe I of Belgium",
+      "name": "Q155004",
+      "canonical": "philippe i of belgium"
+    },
+    {
+      "value": "Leopold I of Belgium",
+      "name": "Q12971",
+      "canonical": "leopold i of belgium"
+    },
+    {
+      "value": "Leopold II of Belgium",
+      "name": "Q12967",
+      "canonical": "leopold ii of belgium"
+    },
+    {
+      "value": "Albert I of Belgium",
+      "name": "Q55008046",
+      "canonical": "albert i of belgium"
+    },
+    {
+      "value": "Leopold III of Belgium",
+      "name": "Q12973",
+      "canonical": "leopold iii of belgium"
+    },
+    {
+      "value": "Baudouin I of Belgium",
+      "name": "Q12976",
+      "canonical": "baudouin i of belgium"
+    },
+    {
+      "value": "Albert II of Belgium",
+      "name": "Q3911",
+      "canonical": "albert ii of belgium"
+    },
+    {
+      "value": "Prince Charles, Count of Flanders",
+      "name": "Q445553",
+      "canonical": "prince charles , count of flanders"
+    },
+    {
+      "value": "Erasme Louis Surlet de Chokier",
+      "name": "Q1079522",
+      "canonical": "erasme louis surlet de chokier"
+    },
+    {
+      "value": "Aníbal Cavaco Silva",
+      "name": "Q57398",
+      "canonical": "aníbal cavaco silva"
+    },
+    {
+      "value": "Marcelo Rebelo de Sousa",
+      "name": "Q6756617",
+      "canonical": "marcelo rebelo de sousa"
+    },
+    {
+      "value": "Jorge Sampaio",
+      "name": "Q156780",
+      "canonical": "jorge sampaio"
+    },
+    {
+      "value": "Mário Soares",
+      "name": "Q156781",
+      "canonical": "mário soares"
+    },
+    {
+      "value": "Xi Jinping",
+      "name": "Q15031",
+      "canonical": "xi jinping"
+    },
+    {
+      "value": "Hu Jintao",
+      "name": "Q15029",
+      "canonical": "hu jintao"
+    },
+    {
+      "value": "Jiang Zemin",
+      "name": "Q16597",
+      "canonical": "jiang zemin"
+    },
+    {
+      "value": "Yang Shangkun",
+      "name": "Q377935",
+      "canonical": "yang shangkun"
+    },
+    {
+      "value": "Li Xiannian",
+      "name": "Q311413",
+      "canonical": "li xiannian"
+    },
+    {
+      "value": "Ye Jianying",
+      "name": "Q504372",
+      "canonical": "ye jianying"
+    },
+    {
+      "value": "Soong Ching-ling",
+      "name": "Q17132",
+      "canonical": "soong ching-ling"
+    },
+    {
+      "value": "Zhu De",
+      "name": "Q22513",
+      "canonical": "zhu de"
+    },
+    {
+      "value": "Dong Biwu",
+      "name": "Q968038",
+      "canonical": "dong biwu"
+    },
+    {
+      "value": "Liu Shaoqi",
+      "name": "Q16988",
+      "canonical": "liu shaoqi"
+    },
+    {
+      "value": "Mao Zedong",
+      "name": "Q5816",
+      "canonical": "mao zedong"
+    },
+    {
+      "value": "Soong Ching-ling",
+      "name": "Q17132",
+      "canonical": "soong ching-ling"
+    },
+    {
+      "value": "Michel Temer",
+      "name": "Q463533",
+      "canonical": "michel temer"
+    },
+    {
+      "value": "Dilma Rousseff",
+      "name": "Q40722",
+      "canonical": "dilma rousseff"
+    },
+    {
+      "value": "Luiz Inácio Lula da Silva",
+      "name": "Q37181",
+      "canonical": "luiz inácio lula da silva"
+    },
+    {
+      "value": "Fernando Henrique Cardoso",
+      "name": "Q230578",
+      "canonical": "fernando henrique cardoso"
+    },
+    {
+      "value": "Itamar Franco",
+      "name": "Q485946",
+      "canonical": "itamar franco"
+    },
+    {
+      "value": "Fernando Collor de Mello",
+      "name": "Q236503",
+      "canonical": "fernando collor de mello"
+    },
+    {
+      "value": "Jair Bolsonaro",
+      "name": "Q10304982",
+      "canonical": "jair bolsonaro"
+    },
+    {
+      "value": "Joachim Gauck",
+      "name": "Q2538",
+      "canonical": "joachim gauck"
+    },
+    {
+      "value": "Christian Wulff",
+      "name": "Q2540",
+      "canonical": "christian wulff"
+    },
+    {
+      "value": "Horst Köhler",
+      "name": "Q2542",
+      "canonical": "horst köhler"
+    },
+    {
+      "value": "Johannes Rau",
+      "name": "Q2551",
+      "canonical": "johannes rau"
+    },
+    {
+      "value": "Roman Herzog",
+      "name": "Q2563",
+      "canonical": "roman herzog"
+    },
+    {
+      "value": "Richard von Weizsäcker",
+      "name": "Q2567",
+      "canonical": "richard von weizsäcker"
+    },
+    {
+      "value": "Karl Carstens",
+      "name": "Q2569",
+      "canonical": "karl carstens"
+    },
+    {
+      "value": "Walter Scheel",
+      "name": "Q2571",
+      "canonical": "walter scheel"
+    },
+    {
+      "value": "Gustav Heinemann",
+      "name": "Q2573",
+      "canonical": "gustav heinemann"
+    },
+    {
+      "value": "Heinrich Lübke",
+      "name": "Q2582",
+      "canonical": "heinrich lübke"
+    },
+    {
+      "value": "Theodor Heuss",
+      "name": "Q2594",
+      "canonical": "theodor heuss"
+    },
+    {
+      "value": "Frank-Walter Steinmeier",
+      "name": "Q76658",
+      "canonical": "frank-walter steinmeier"
+    },
+    {
+      "value": "Marie Louise Coleiro Preca",
+      "name": "Q6762928",
+      "canonical": "marie louise coleiro preca"
+    },
+    {
+      "value": "George William Vella",
+      "name": "Q1508402",
+      "canonical": "george william vella"
+    },
+    {
+      "value": "Sebastián Piñera",
+      "name": "Q306",
+      "canonical": "sebastián piñera"
+    },
+    {
+      "value": "Hamad bin Isa Al Khalifa",
+      "name": "Q57352",
+      "canonical": "hamad bin isa al khalifa"
+    },
+    {
+      "value": "Baldwin Lonsdale",
+      "name": "Q18117069",
+      "canonical": "baldwin lonsdale"
+    },
+    {
+      "value": "Obed Moses",
+      "name": "Q32060530",
+      "canonical": "obed moses"
+    },
+    {
+      "value": "Esmon Saimon",
+      "name": "Q5398549",
+      "canonical": "esmon saimon"
+    },
+    {
+      "value": "Reuven Rivlin",
+      "name": "Q455854",
+      "canonical": "reuven rivlin"
+    },
+    {
+      "value": "Shimon Peres",
+      "name": "Q57410",
+      "canonical": "shimon peres"
+    },
+    {
+      "value": "Chaim Weizmann",
+      "name": "Q172183",
+      "canonical": "chaim weizmann"
+    },
+    {
+      "value": "Yitzhak Ben-Zvi",
+      "name": "Q128894",
+      "canonical": "yitzhak ben-zvi"
+    },
+    {
+      "value": "Zalman Shazar",
+      "name": "Q299100",
+      "canonical": "zalman shazar"
+    },
+    {
+      "value": "Ephraim Katzir",
+      "name": "Q110330",
+      "canonical": "ephraim katzir"
+    },
+    {
+      "value": "Yitzhak Navon",
+      "name": "Q311583",
+      "canonical": "yitzhak navon"
+    },
+    {
+      "value": "Chaim Herzog",
+      "name": "Q295141",
+      "canonical": "chaim herzog"
+    },
+    {
+      "value": "Ezer Weizman",
+      "name": "Q128911",
+      "canonical": "ezer weizman"
+    },
+    {
+      "value": "Moshe Katsav",
+      "name": "Q181832",
+      "canonical": "moshe katsav"
+    },
+    {
+      "value": "Chaim Weizmann",
+      "name": "Q172183",
+      "canonical": "chaim weizmann"
+    },
+    {
+      "value": "David Ben-Gurion",
+      "name": "Q37610",
+      "canonical": "david ben-gurion"
+    },
+    {
+      "value": "Yosef Sprinzak",
+      "name": "Q974766",
+      "canonical": "yosef sprinzak"
+    },
+    {
+      "value": "Kadish Luz",
+      "name": "Q1720966",
+      "canonical": "kadish luz"
+    },
+    {
+      "value": "Avraham Burg",
+      "name": "Q736237",
+      "canonical": "avraham burg"
+    },
+    {
+      "value": "Dalia Itzik",
+      "name": "Q234190",
+      "canonical": "dalia itzik"
+    },
+    {
+      "value": "Bounnhang Vorachith",
+      "name": "Q470024",
+      "canonical": "bounnhang vorachith"
+    },
+    {
+      "value": "Emomali Rahmon",
+      "name": "Q57366",
+      "canonical": "emomali rahmon"
+    },
+    {
+      "value": "Vajiralongkorn",
+      "name": "Q548733",
+      "canonical": "vajiralongkorn"
+    },
+    {
+      "value": "Khalifa bin Zayed Al Nahyan",
+      "name": "Q1059948",
+      "canonical": "khalifa bin zayed al nahyan"
+    },
+    {
+      "value": "Ibrahim Boubacar Keïta",
+      "name": "Q324108",
+      "canonical": "ibrahim boubacar keïta"
+    },
+    {
+      "value": "João Lourenço",
+      "name": "Q28650390",
+      "canonical": "joão lourenço"
+    },
+    {
+      "value": "Ernest Bai Koroma",
+      "name": "Q57460",
+      "canonical": "ernest bai koroma"
+    },
+    {
+      "value": "Julius Maada Bio",
+      "name": "Q283829",
+      "canonical": "julius maada bio"
+    },
+    {
+      "value": "Omar al-Bashir",
+      "name": "Q57265",
+      "canonical": "omar al-bashir"
+    },
+    {
+      "value": "Ahmed Awad Ibn Auf",
+      "name": "Q22949078",
+      "canonical": "ahmed awad ibn auf"
+    },
+    {
+      "value": "Abdel Fattah al-Burhan",
+      "name": "Q63111184",
+      "canonical": "abdel fattah al-burhan"
+    },
+    {
+      "value": "Joseph",
+      "name": "Q128267",
+      "canonical": "joseph"
+    },
+    {
+      "value": "Saint George",
+      "name": "Q48438",
+      "canonical": "saint george"
+    },
+    {
+      "value": "Our Lady of Aparecida",
+      "name": "Q2469225",
+      "canonical": "our lady of aparecida"
+    },
+    {
+      "value": "Michael the Archangel",
+      "name": "Q45581",
+      "canonical": "michael the archangel"
+    },
+    {
+      "value": "Sophie Wilmès",
+      "name": "Q18434995",
+      "canonical": "sophie wilmès"
+    },
+    {
+      "value": "Charles Michel",
+      "name": "Q950958",
+      "canonical": "charles michel"
+    },
+    {
+      "value": "Pedro Passos Coelho",
+      "name": "Q57615",
+      "canonical": "pedro passos coelho"
+    },
+    {
+      "value": "António Costa",
+      "name": "Q610788",
+      "canonical": "antónio costa"
+    },
+    {
+      "value": "Li Keqiang",
+      "name": "Q18111",
+      "canonical": "li keqiang"
+    },
+    {
+      "value": "Wen Jiabao",
+      "name": "Q16628",
+      "canonical": "wen jiabao"
+    },
+    {
+      "value": "Zhu Rongji",
+      "name": "Q18285",
+      "canonical": "zhu rongji"
+    },
+    {
+      "value": "Li Peng",
+      "name": "Q18301",
+      "canonical": "li peng"
+    },
+    {
+      "value": "Zhao Ziyang",
+      "name": "Q99829",
+      "canonical": "zhao ziyang"
+    },
+    {
+      "value": "Hua Guofeng",
+      "name": "Q41570",
+      "canonical": "hua guofeng"
+    },
+    {
+      "value": "Zhou Enlai",
+      "name": "Q17410",
+      "canonical": "zhou enlai"
+    },
+    {
+      "value": "Jair Bolsonaro",
+      "name": "Q10304982",
+      "canonical": "jair bolsonaro"
+    },
+    {
+      "value": "Michel Temer",
+      "name": "Q463533",
+      "canonical": "michel temer"
+    },
+    {
+      "value": "Angela Merkel",
+      "name": "Q567",
+      "canonical": "angela merkel"
+    },
+    {
+      "value": "Gerhard Schröder",
+      "name": "Q2530",
+      "canonical": "gerhard schröder"
+    },
+    {
+      "value": "Helmut Kohl",
+      "name": "Q2518",
+      "canonical": "helmut kohl"
+    },
+    {
+      "value": "Helmut Schmidt",
+      "name": "Q2516",
+      "canonical": "helmut schmidt"
+    },
+    {
+      "value": "Walter Scheel",
+      "name": "Q2571",
+      "canonical": "walter scheel"
+    },
+    {
+      "value": "Willy Brandt",
+      "name": "Q2514",
+      "canonical": "willy brandt"
+    },
+    {
+      "value": "Kurt Georg Kiesinger",
+      "name": "Q2512",
+      "canonical": "kurt georg kiesinger"
+    },
+    {
+      "value": "Ludwig Erhard",
+      "name": "Q2496",
+      "canonical": "ludwig erhard"
+    },
+    {
+      "value": "Konrad Adenauer",
+      "name": "Q2492",
+      "canonical": "konrad adenauer"
+    },
+    {
+      "value": "Robert Abela",
+      "name": "Q37860840",
+      "canonical": "robert abela"
+    },
+    {
+      "value": "Sebastián Piñera",
+      "name": "Q306",
+      "canonical": "sebastián piñera"
+    },
+    {
+      "value": "Khalifa bin Salman Al Khalifa",
+      "name": "Q57726",
+      "canonical": "khalifa bin salman al khalifa"
+    },
+    {
+      "value": "Charlot Salwai",
+      "name": "Q22696254",
+      "canonical": "charlot salwai"
+    },
+    {
+      "value": "Benjamin Netanyahu",
+      "name": "Q43723",
+      "canonical": "benjamin netanyahu"
+    },
+    {
+      "value": "David Ben-Gurion",
+      "name": "Q37610",
+      "canonical": "david ben-gurion"
+    },
+    {
+      "value": "Moshe Sharett",
+      "name": "Q208477",
+      "canonical": "moshe sharett"
+    },
+    {
+      "value": "David Ben-Gurion",
+      "name": "Q37610",
+      "canonical": "david ben-gurion"
+    },
+    {
+      "value": "Levi Eshkol",
+      "name": "Q191123",
+      "canonical": "levi eshkol"
+    },
+    {
+      "value": "Golda Meir",
+      "name": "Q42992",
+      "canonical": "golda meir"
+    },
+    {
+      "value": "Yitzhak Rabin",
+      "name": "Q34060",
+      "canonical": "yitzhak rabin"
+    },
+    {
+      "value": "Menachem Begin",
+      "name": "Q130873",
+      "canonical": "menachem begin"
+    },
+    {
+      "value": "Yitzhak Shamir",
+      "name": "Q184351",
+      "canonical": "yitzhak shamir"
+    },
+    {
+      "value": "Shimon Peres",
+      "name": "Q57410",
+      "canonical": "shimon peres"
+    },
+    {
+      "value": "Yitzhak Shamir",
+      "name": "Q184351",
+      "canonical": "yitzhak shamir"
+    },
+    {
+      "value": "Yitzhak Rabin",
+      "name": "Q34060",
+      "canonical": "yitzhak rabin"
+    },
+    {
+      "value": "Shimon Peres",
+      "name": "Q57410",
+      "canonical": "shimon peres"
+    },
+    {
+      "value": "Benjamin Netanyahu",
+      "name": "Q43723",
+      "canonical": "benjamin netanyahu"
+    },
+    {
+      "value": "Ehud Barak",
+      "name": "Q125731",
+      "canonical": "ehud barak"
+    },
+    {
+      "value": "Ariel Sharon",
+      "name": "Q60206",
+      "canonical": "ariel sharon"
+    },
+    {
+      "value": "Ehud Olmert",
+      "name": "Q93181",
+      "canonical": "ehud olmert"
+    },
+    {
+      "value": "Thongloun Sisoulith",
+      "name": "Q58323",
+      "canonical": "thongloun sisoulith"
+    },
+    {
+      "value": "Kokhir Rasulzoda",
+      "name": "Q15222839",
+      "canonical": "kokhir rasulzoda"
+    },
+    {
+      "value": "Oqil Oqilov",
+      "name": "Q57754",
+      "canonical": "oqil oqilov"
+    },
+    {
+      "value": "Niwatthamrong Boonsongpaisan",
+      "name": "Q16140300",
+      "canonical": "niwatthamrong boonsongpaisan"
+    },
+    {
+      "value": "Prayut Chan-ocha",
+      "name": "Q2108126",
+      "canonical": "prayut chan-ocha"
+    },
+    {
+      "value": "Mohammed bin Rashid Al Maktoum",
+      "name": "Q57655",
+      "canonical": "mohammed bin rashid al maktoum"
+    },
+    {
+      "value": "Abdoulaye Idrissa Maïga",
+      "name": "Q26845654",
+      "canonical": "abdoulaye idrissa maïga"
+    },
+    {
+      "value": "Soumeylou Boubèye Maïga",
+      "name": "Q2398472",
+      "canonical": "soumeylou boubèye maïga"
+    },
+    {
+      "value": "Boubou Cisse",
+      "name": "Q30005153",
+      "canonical": "boubou cisse"
+    },
+    {
+      "value": "João Lourenço",
+      "name": "Q28650390",
+      "canonical": "joão lourenço"
+    },
+    {
+      "value": "David J. Francis",
+      "name": "Q53863493",
+      "canonical": "david j. francis"
+    },
+    {
+      "value": "Bakri Hassan Saleh",
+      "name": "Q15700032",
+      "canonical": "bakri hassan saleh"
+    },
+    {
+      "value": "Abdalla Hamdok",
+      "name": "Q27654948",
+      "canonical": "abdalla hamdok"
+    },
+    {
+      "value": "Motazz Moussa",
+      "name": "Q56556415",
+      "canonical": "motazz moussa"
+    },
+    {
+      "value": "Mohamed Tahir Ayala",
+      "name": "Q48728938",
+      "canonical": "mohamed tahir ayala"
+    },
+    {
+      "value": "Rodolphe Alexandre",
+      "name": "Q3108632",
+      "canonical": "rodolphe alexandre"
+    },
+    {
+      "value": "Pedro de Sintra",
+      "name": "Q1620277",
+      "canonical": "pedro de sintra"
+    }
+  ]
+}

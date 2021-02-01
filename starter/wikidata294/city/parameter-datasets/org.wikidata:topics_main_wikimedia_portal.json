@@ -1,0 +1,325 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Portal:Oslo",
+      "name": "Q8253792",
+      "canonical": "portal : oslo"
+    },
+    {
+      "value": "Portal:Edmonton",
+      "name": "Q11243416",
+      "canonical": "portal : edmonton"
+    },
+    {
+      "value": "Portal:Guangzhou",
+      "name": "Q14566540",
+      "canonical": "portal : guangzhou"
+    },
+    {
+      "value": "Portal:Johannesburg",
+      "name": "Q56690065",
+      "canonical": "portal : johannesburg"
+    },
+    {
+      "value": "Portal:Hamilton, Ontario",
+      "name": "Q29676525",
+      "canonical": "portal : hamilton , ontario"
+    },
+    {
+      "value": "Portal:New York City",
+      "name": "Q6342720",
+      "canonical": "portal : new york city"
+    },
+    {
+      "value": "Portal:Łódź",
+      "name": "Q15099364",
+      "canonical": "portal : łódź"
+    },
+    {
+      "value": "Tbilisi portal",
+      "name": "Q15057713",
+      "canonical": "tbilisi portal"
+    },
+    {
+      "value": "Portal:Athens",
+      "name": "Q42351397",
+      "canonical": "portal : athens"
+    },
+    {
+      "value": "Portal:Hannover",
+      "name": "Q70488594",
+      "canonical": "portal : hannover"
+    },
+    {
+      "value": "Portal:Burgos",
+      "name": "Q56816027",
+      "canonical": "portal : burgos"
+    },
+    {
+      "value": "Portal:Calgary",
+      "name": "Q15614047",
+      "canonical": "portal : calgary"
+    },
+    {
+      "value": "Portal:Charleroi",
+      "name": "Q17317910",
+      "canonical": "portal : charleroi"
+    },
+    {
+      "value": "Portal:Bytom",
+      "name": "Q17566320",
+      "canonical": "portal : bytom"
+    },
+    {
+      "value": "Portal:Beijing",
+      "name": "Q11379090",
+      "canonical": "portal : beijing"
+    },
+    {
+      "value": "Portal:Dhaka",
+      "name": "Q14601004",
+      "canonical": "portal : dhaka"
+    },
+    {
+      "value": "Portal:Frankfurt",
+      "name": "Q11380369",
+      "canonical": "portal : frankfurt"
+    },
+    {
+      "value": "Portal:Wrocław",
+      "name": "Q15099552",
+      "canonical": "portal : wrocław"
+    },
+    {
+      "value": "Portal:Andorra la Vella",
+      "name": "Q56762198",
+      "canonical": "portal : andorra la vella"
+    },
+    {
+      "value": "Portal:Sydney",
+      "name": "Q28754020",
+      "canonical": "portal : sydney"
+    },
+    {
+      "value": "Portal:Casablanca",
+      "name": "Q13474557",
+      "canonical": "portal : casablanca"
+    },
+    {
+      "value": "Portal:Cannes",
+      "name": "Q15648001",
+      "canonical": "portal : cannes"
+    },
+    {
+      "value": "Portal:Miskolc",
+      "name": "Q14497156",
+      "canonical": "portal : miskolc"
+    },
+    {
+      "value": "Portal:Mogi das Cruzes",
+      "name": "Q28790395",
+      "canonical": "portal : mogi das cruzes"
+    },
+    {
+      "value": "Portal:Warsaw",
+      "name": "Q6891767",
+      "canonical": "portal : warsaw"
+    },
+    {
+      "value": "Portal:Singapore",
+      "name": "Q11379696",
+      "canonical": "portal : singapore"
+    },
+    {
+      "value": "Portal:Algiers",
+      "name": "Q29908338",
+      "canonical": "portal : algiers"
+    },
+    {
+      "value": "Portal:Chongqing",
+      "name": "Q56826844",
+      "canonical": "portal : chongqing"
+    },
+    {
+      "value": "Portal:Brisbane",
+      "name": "Q21854069",
+      "canonical": "portal : brisbane"
+    },
+    {
+      "value": "Portal:San Francisco",
+      "name": "Q11242109",
+      "canonical": "portal : san francisco"
+    },
+    {
+      "value": "Portal:Rome",
+      "name": "Q11381903",
+      "canonical": "portal : rome"
+    },
+    {
+      "value": "Portal:Turin",
+      "name": "Q11381980",
+      "canonical": "portal : turin"
+    },
+    {
+      "value": "Portal:Perth",
+      "name": "Q28754014",
+      "canonical": "portal : perth"
+    },
+    {
+      "value": "Portal:Lucerne",
+      "name": "Q15628604",
+      "canonical": "portal : lucerne"
+    },
+    {
+      "value": "Portal:Hong Kong",
+      "name": "Q7543445",
+      "canonical": "portal : hong kong"
+    },
+    {
+      "value": "Portal:Bergen",
+      "name": "Q28709513",
+      "canonical": "portal : bergen"
+    },
+    {
+      "value": "Portal:Angers",
+      "name": "Q15649976",
+      "canonical": "portal : angers"
+    },
+    {
+      "value": "Portal:Saint-Pierre, Réunion",
+      "name": "Q15643726",
+      "canonical": "portal : saint-pierre , réunion"
+    },
+    {
+      "value": "Portal:Vatican City",
+      "name": "Q7240296",
+      "canonical": "portal : vatican city"
+    },
+    {
+      "value": "Portal:Stockholm",
+      "name": "Q11383555",
+      "canonical": "portal : stockholm"
+    },
+    {
+      "value": "Portal:Melbourne",
+      "name": "Q28754033",
+      "canonical": "portal : melbourne"
+    },
+    {
+      "value": "Portal:Samarkand",
+      "name": "Q24593504",
+      "canonical": "portal : samarkand"
+    },
+    {
+      "value": "Portal:Avignon",
+      "name": "Q15649056",
+      "canonical": "portal : avignon"
+    },
+    {
+      "value": "Portal:Tel Aviv",
+      "name": "Q13634111",
+      "canonical": "portal : tel aviv"
+    },
+    {
+      "value": "Portal:Lublin",
+      "name": "Q17566322",
+      "canonical": "portal : lublin"
+    },
+    {
+      "value": "Portal:Toronto",
+      "name": "Q11243986",
+      "canonical": "portal : toronto"
+    },
+    {
+      "value": "Portal:Munich",
+      "name": "Q11028213",
+      "canonical": "portal : munich"
+    },
+    {
+      "value": "Portal:Winnipeg",
+      "name": "Q15614810",
+      "canonical": "portal : winnipeg"
+    },
+    {
+      "value": "Portal:Liège",
+      "name": "Q15623246",
+      "canonical": "portal : liège"
+    },
+    {
+      "value": "Portal:Berat",
+      "name": "Q56812364",
+      "canonical": "portal : berat"
+    },
+    {
+      "value": "Portal:Cairo",
+      "name": "Q16744247",
+      "canonical": "portal : cairo"
+    },
+    {
+      "value": "Portal:São Paulo (city)",
+      "name": "Q11243202",
+      "canonical": "portal : são paulo ( city )"
+    },
+    {
+      "value": "Portal:Brussels",
+      "name": "Q11380787",
+      "canonical": "portal : brussels"
+    },
+    {
+      "value": "Portal:Szczecin",
+      "name": "Q15099555",
+      "canonical": "portal : szczecin"
+    },
+    {
+      "value": "Portal:Bergamo",
+      "name": "Q56813063",
+      "canonical": "portal : bergamo"
+    },
+    {
+      "value": "Portal:Jerusalem",
+      "name": "Q11379795",
+      "canonical": "portal : jerusalem"
+    },
+    {
+      "value": "Portal:Abu Dhabi",
+      "name": "Q27138221",
+      "canonical": "portal : abu dhabi"
+    },
+    {
+      "value": "Portal:Florence",
+      "name": "Q10991781",
+      "canonical": "portal : florence"
+    },
+    {
+      "value": "Portal:Belgrade",
+      "name": "Q14616659",
+      "canonical": "portal : belgrade"
+    },
+    {
+      "value": "Portal:Shanghai",
+      "name": "Q10984802",
+      "canonical": "portal : shanghai"
+    },
+    {
+      "value": "Portal:Edinburgh",
+      "name": "Q56843460",
+      "canonical": "portal : edinburgh"
+    },
+    {
+      "value": "Portal:Haifa",
+      "name": "Q14554948",
+      "canonical": "portal : haifa"
+    },
+    {
+      "value": "Portal:Dunkirk",
+      "name": "Q15641598",
+      "canonical": "portal : dunkirk"
+    },
+    {
+      "value": "Portal:Chambéry",
+      "name": "Q15651333",
+      "canonical": "portal : chambéry"
+    }
+  ]
+}

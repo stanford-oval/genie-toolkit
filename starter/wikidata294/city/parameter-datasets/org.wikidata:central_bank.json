@@ -1,0 +1,15 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Monetary Authority of Singapore",
+      "name": "Q2661296",
+      "canonical": "monetary authority of singapore"
+    },
+    {
+      "value": "Hong Kong Monetary Authority",
+      "name": "Q1595286",
+      "canonical": "hong kong monetary authority"
+    }
+  ]
+}

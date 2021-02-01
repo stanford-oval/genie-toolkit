@@ -1,0 +1,50 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Category:Burials in Belgium",
+      "name": "Q7974978",
+      "canonical": "category : burials in belgium"
+    },
+    {
+      "value": "Category:Burials in Portugal",
+      "name": "Q6369955",
+      "canonical": "category : burials in portugal"
+    },
+    {
+      "value": "Category:Burials in Brazil",
+      "name": "Q8328528",
+      "canonical": "category : burials in brazil"
+    },
+    {
+      "value": "Category:Burials in Germany",
+      "name": "Q9385337",
+      "canonical": "category : burials in germany"
+    },
+    {
+      "value": "Category:Burials in Malta",
+      "name": "Q8328667",
+      "canonical": "category : burials in malta"
+    },
+    {
+      "value": "Category:Burials in Chile",
+      "name": "Q7978785",
+      "canonical": "category : burials in chile"
+    },
+    {
+      "value": "Category:Burials in Israel",
+      "name": "Q7976029",
+      "canonical": "category : burials in israel"
+    },
+    {
+      "value": "Category:Burials in Thailand",
+      "name": "Q25213770",
+      "canonical": "category : burials in thailand"
+    },
+    {
+      "value": "Category:Burials in Sierra Leone",
+      "name": "Q8328772",
+      "canonical": "category : burials in sierra leone"
+    }
+  ]
+}

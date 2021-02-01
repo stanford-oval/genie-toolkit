@@ -1,0 +1,15 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "hornazo",
+      "name": "Q385808",
+      "canonical": "hornazo"
+    },
+    {
+      "value": "chanfaina",
+      "name": "Q3666125",
+      "canonical": "chanfaina"
+    }
+  ]
+}

@@ -1,0 +1,2430 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Harburg-Wilhelmsburg",
+      "name": "Q515728",
+      "canonical": "harburg-wilhelmsburg"
+    },
+    {
+      "value": "Cape Coast",
+      "name": "Q221283",
+      "canonical": "cape coast"
+    },
+    {
+      "value": "Tulaytula",
+      "name": "Q63256193",
+      "canonical": "tulaytula"
+    },
+    {
+      "value": "Cadro",
+      "name": "Q68401",
+      "canonical": "cadro"
+    },
+    {
+      "value": "Barbengo",
+      "name": "Q664172",
+      "canonical": "barbengo"
+    },
+    {
+      "value": "Valcolla",
+      "name": "Q67967",
+      "canonical": "valcolla"
+    },
+    {
+      "value": "Certara",
+      "name": "Q68776",
+      "canonical": "certara"
+    },
+    {
+      "value": "Cimadera",
+      "name": "Q68007",
+      "canonical": "cimadera"
+    },
+    {
+      "value": "Pambio Noranco",
+      "name": "Q680134",
+      "canonical": "pambio noranco"
+    },
+    {
+      "value": "Brè-Aldesago",
+      "name": "Q1433358",
+      "canonical": "brè-aldesago"
+    },
+    {
+      "value": "Breganzona",
+      "name": "Q644428",
+      "canonical": "breganzona"
+    },
+    {
+      "value": "Bogno",
+      "name": "Q68827",
+      "canonical": "bogno"
+    },
+    {
+      "value": "Cureggia",
+      "name": "Q165889",
+      "canonical": "cureggia"
+    },
+    {
+      "value": "Carabbia",
+      "name": "Q62070",
+      "canonical": "carabbia"
+    },
+    {
+      "value": "Carona",
+      "name": "Q68453",
+      "canonical": "carona"
+    },
+    {
+      "value": "Viganello",
+      "name": "Q693420",
+      "canonical": "viganello"
+    },
+    {
+      "value": "Sonvico",
+      "name": "Q67484",
+      "canonical": "sonvico"
+    },
+    {
+      "value": "Pregassona",
+      "name": "Q682851",
+      "canonical": "pregassona"
+    },
+    {
+      "value": "Castagnola-Cassarate",
+      "name": "Q678128",
+      "canonical": "castagnola-cassarate"
+    },
+    {
+      "value": "Pazzallo",
+      "name": "Q692156",
+      "canonical": "pazzallo"
+    },
+    {
+      "value": "Gandria",
+      "name": "Q601607",
+      "canonical": "gandria"
+    },
+    {
+      "value": "Villa Luganese",
+      "name": "Q668768",
+      "canonical": "villa luganese"
+    },
+    {
+      "value": "Davesco-Soragno",
+      "name": "Q531220",
+      "canonical": "davesco-soragno"
+    },
+    {
+      "value": "Laleu",
+      "name": "Q28040482",
+      "canonical": "laleu"
+    },
+    {
+      "value": "Saint John of Acre",
+      "name": "Q28197137",
+      "canonical": "saint john of acre"
+    },
+    {
+      "value": "Jarisha",
+      "name": "Q2906069",
+      "canonical": "jarisha"
+    },
+    {
+      "value": "Asami",
+      "name": "Q11517709",
+      "canonical": "asami"
+    },
+    {
+      "value": "Oguri",
+      "name": "Q11659244",
+      "canonical": "oguri"
+    },
+    {
+      "value": "Soga",
+      "name": "Q11605670",
+      "canonical": "soga"
+    },
+    {
+      "value": "Dogo",
+      "name": "Q11641711",
+      "canonical": "dogo"
+    },
+    {
+      "value": "Dogo",
+      "name": "Q11641711",
+      "canonical": "dogo"
+    },
+    {
+      "value": "Asami",
+      "name": "Q11517709",
+      "canonical": "asami"
+    },
+    {
+      "value": "Oguri",
+      "name": "Q11659244",
+      "canonical": "oguri"
+    },
+    {
+      "value": "Soga",
+      "name": "Q11605670",
+      "canonical": "soga"
+    },
+    {
+      "value": "Miyuki",
+      "name": "Q11488980",
+      "canonical": "miyuki"
+    },
+    {
+      "value": "Dogoyuno",
+      "name": "Q11641716",
+      "canonical": "dogoyuno"
+    },
+    {
+      "value": "Mitsuhama",
+      "name": "Q11356302",
+      "canonical": "mitsuhama"
+    },
+    {
+      "value": "Wake",
+      "name": "Q17173621",
+      "canonical": "wake"
+    },
+    {
+      "value": "Hisaeda",
+      "name": "Q11369450",
+      "canonical": "hisaeda"
+    },
+    {
+      "value": "Horie",
+      "name": "Q11427538",
+      "canonical": "horie"
+    },
+    {
+      "value": "Shiomi",
+      "name": "Q11565744",
+      "canonical": "shiomi"
+    },
+    {
+      "value": "Mibu",
+      "name": "Q11417034",
+      "canonical": "mibu"
+    },
+    {
+      "value": "Kuwabara",
+      "name": "Q11537456",
+      "canonical": "kuwabara"
+    },
+    {
+      "value": "Dogoyuno",
+      "name": "Q11641716",
+      "canonical": "dogoyuno"
+    },
+    {
+      "value": "Shoseki",
+      "name": "Q11574830",
+      "canonical": "shoseki"
+    },
+    {
+      "value": "Habu",
+      "name": "Q11425871",
+      "canonical": "habu"
+    },
+    {
+      "value": "Gogoshima",
+      "name": "Q11613385",
+      "canonical": "gogoshima"
+    },
+    {
+      "value": "Yodo",
+      "name": "Q11385260",
+      "canonical": "yodo"
+    },
+    {
+      "value": "Kume",
+      "name": "Q11369620",
+      "canonical": "kume"
+    },
+    {
+      "value": "Yuyama",
+      "name": "Q11563513",
+      "canonical": "yuyama"
+    },
+    {
+      "value": "Idai",
+      "name": "Q11379186",
+      "canonical": "idai"
+    },
+    {
+      "value": "Gomyo",
+      "name": "Q11372438",
+      "canonical": "gomyo"
+    },
+    {
+      "value": "Ukena",
+      "name": "Q11558551",
+      "canonical": "ukena"
+    },
+    {
+      "value": "Ono",
+      "name": "Q11464122",
+      "canonical": "ono"
+    },
+    {
+      "value": "Ishii",
+      "name": "Q11584991",
+      "canonical": "ishii"
+    },
+    {
+      "value": "Kutani",
+      "name": "Q11369675",
+      "canonical": "kutani"
+    },
+    {
+      "value": "Hōjō",
+      "name": "Q94789",
+      "canonical": "hōjō"
+    },
+    {
+      "value": "Nakajima",
+      "name": "Q6960172",
+      "canonical": "nakajima"
+    },
+    {
+      "value": "Saika",
+      "name": "Q11659429",
+      "canonical": "saika"
+    },
+    {
+      "value": "Miya",
+      "name": "Q11454936",
+      "canonical": "miya"
+    },
+    {
+      "value": "Wakaura",
+      "name": "Q97031188",
+      "canonical": "wakaura"
+    },
+    {
+      "value": "Narukami",
+      "name": "Q97031298",
+      "canonical": "narukami"
+    },
+    {
+      "value": "Nakanoshima",
+      "name": "Q97031302",
+      "canonical": "nakanoshima"
+    },
+    {
+      "value": "Okamachi",
+      "name": "Q11473741",
+      "canonical": "okamachi"
+    },
+    {
+      "value": "Shikago",
+      "name": "Q11420095",
+      "canonical": "shikago"
+    },
+    {
+      "value": "Saikazaki",
+      "name": "Q11659426",
+      "canonical": "saikazaki"
+    },
+    {
+      "value": "Miyamae",
+      "name": "Q11453370",
+      "canonical": "miyamae"
+    },
+    {
+      "value": "Minato",
+      "name": "Q17176717",
+      "canonical": "minato"
+    },
+    {
+      "value": "Nozaki",
+      "name": "Q11645392",
+      "canonical": "nozaki"
+    },
+    {
+      "value": "Santa",
+      "name": "Q11356731",
+      "canonical": "santa"
+    },
+    {
+      "value": "Kimiidera",
+      "name": "Q11604939",
+      "canonical": "kimiidera"
+    },
+    {
+      "value": "Matsue",
+      "name": "Q11531686",
+      "canonical": "matsue"
+    },
+    {
+      "value": "Kinomoto",
+      "name": "Q11517929",
+      "canonical": "kinomoto"
+    },
+    {
+      "value": "Kishi",
+      "name": "Q11634776",
+      "canonical": "kishi"
+    },
+    {
+      "value": "Kusumi",
+      "name": "Q11541281",
+      "canonical": "kusumi"
+    },
+    {
+      "value": "Nishiwasa",
+      "name": "Q11627422",
+      "canonical": "nishiwasa"
+    },
+    {
+      "value": "Okazaki",
+      "name": "Q11472942",
+      "canonical": "okazaki"
+    },
+    {
+      "value": "Nishiwaki",
+      "name": "Q11629423",
+      "canonical": "nishiwaki"
+    },
+    {
+      "value": "Wasa",
+      "name": "Q11417144",
+      "canonical": "wasa"
+    },
+    {
+      "value": "Yasuhara",
+      "name": "Q11450419",
+      "canonical": "yasuhara"
+    },
+    {
+      "value": "Nishisando",
+      "name": "Q11627859",
+      "canonical": "nishisando"
+    },
+    {
+      "value": "Higashisando",
+      "name": "Q11526724",
+      "canonical": "higashisando"
+    },
+    {
+      "value": "Isao",
+      "name": "Q11516297",
+      "canonical": "isao"
+    },
+    {
+      "value": "Nogawa",
+      "name": "Q11581745",
+      "canonical": "nogawa"
+    },
+    {
+      "value": "Kawanaga",
+      "name": "Q11478873",
+      "canonical": "kawanaga"
+    },
+    {
+      "value": "Kada",
+      "name": "Q11398581",
+      "canonical": "kada"
+    },
+    {
+      "value": "Yamaguchi",
+      "name": "Q11466903",
+      "canonical": "yamaguchi"
+    },
+    {
+      "value": "Kii",
+      "name": "Q11604960",
+      "canonical": "kii"
+    },
+    {
+      "value": "Ogura",
+      "name": "Q17176591",
+      "canonical": "ogura"
+    },
+    {
+      "value": "Haguri",
+      "name": "Q11620811",
+      "canonical": "haguri"
+    },
+    {
+      "value": "Nishinari",
+      "name": "Q11628274",
+      "canonical": "nishinari"
+    },
+    {
+      "value": "Tan'yō",
+      "name": "Q11368704",
+      "canonical": "tan 'yō"
+    },
+    {
+      "value": "Azai",
+      "name": "Q11556970",
+      "canonical": "azai"
+    },
+    {
+      "value": "Kitagata",
+      "name": "Q11401832",
+      "canonical": "kitagata"
+    },
+    {
+      "value": "Yamato",
+      "name": "Q11433543",
+      "canonical": "yamato"
+    },
+    {
+      "value": "Oku",
+      "name": "Q99111916",
+      "canonical": "oku"
+    },
+    {
+      "value": "Hagiwara",
+      "name": "Q11620356",
+      "canonical": "hagiwara"
+    },
+    {
+      "value": "Imaise",
+      "name": "Q11376737",
+      "canonical": "imaise"
+    },
+    {
+      "value": "Chiaki",
+      "name": "Q11405797",
+      "canonical": "chiaki"
+    },
+    {
+      "value": "Bisai",
+      "name": "Q1131089",
+      "canonical": "bisai"
+    },
+    {
+      "value": "Kisogawa",
+      "name": "Q6416838",
+      "canonical": "kisogawa"
+    },
+    {
+      "value": "Toijala",
+      "name": "Q1850632",
+      "canonical": "toijala"
+    },
+    {
+      "value": "Viiala",
+      "name": "Q654667",
+      "canonical": "viiala"
+    },
+    {
+      "value": "Seven Cities of Delhi",
+      "name": "Q12159392",
+      "canonical": "7 cities of delhi"
+    },
+    {
+      "value": "Madinat Gharnāṭah",
+      "name": "Q5115696",
+      "canonical": "madinat gharnāṭah"
+    },
+    {
+      "value": "Pompaelo",
+      "name": "Q16518701",
+      "canonical": "pompaelo"
+    },
+    {
+      "value": "Niho",
+      "name": "Q11376316",
+      "canonical": "niho"
+    },
+    {
+      "value": "Niho",
+      "name": "Q11376316",
+      "canonical": "niho"
+    },
+    {
+      "value": "Yaga",
+      "name": "Q11584263",
+      "canonical": "yaga"
+    },
+    {
+      "value": "Ushita",
+      "name": "Q11570201",
+      "canonical": "ushita"
+    },
+    {
+      "value": "Koi",
+      "name": "Q11479870",
+      "canonical": "koi"
+    },
+    {
+      "value": "Kusatsu",
+      "name": "Q11618189",
+      "canonical": "kusatsu"
+    },
+    {
+      "value": "Furuta",
+      "name": "Q11411504",
+      "canonical": "furuta"
+    },
+    {
+      "value": "Misasa",
+      "name": "Q11356939",
+      "canonical": "misasa"
+    },
+    {
+      "value": "Hesaka",
+      "name": "Q11496266",
+      "canonical": "hesaka"
+    },
+    {
+      "value": "Nakayama",
+      "name": "Q11364201",
+      "canonical": "nakayama"
+    },
+    {
+      "value": "Inokuchi",
+      "name": "Q11373433",
+      "canonical": "inokuchi"
+    },
+    {
+      "value": "Numata",
+      "name": "Q11554600",
+      "canonical": "numata"
+    },
+    {
+      "value": "Asa",
+      "name": "Q11450271",
+      "canonical": "asa"
+    },
+    {
+      "value": "Kabe",
+      "name": "Q11411867",
+      "canonical": "kabe"
+    },
+    {
+      "value": "Gion",
+      "name": "Q11588440",
+      "canonical": "gion"
+    },
+    {
+      "value": "Kōyō",
+      "name": "Q11673193",
+      "canonical": "kōyō"
+    },
+    {
+      "value": "Satō",
+      "name": "Q11383212",
+      "canonical": "satō"
+    },
+    {
+      "value": "Yasufuruichi",
+      "name": "Q11450431",
+      "canonical": "yasufuruichi"
+    },
+    {
+      "value": "Senogawa",
+      "name": "Q11566771",
+      "canonical": "senogawa"
+    },
+    {
+      "value": "Shiraki",
+      "name": "Q11579821",
+      "canonical": "shiraki"
+    },
+    {
+      "value": "Aki",
+      "name": "Q11451217",
+      "canonical": "aki"
+    },
+    {
+      "value": "Kumanoato",
+      "name": "Q11568980",
+      "canonical": "kumanoato"
+    },
+    {
+      "value": "Funakoshi",
+      "name": "Q11614343",
+      "canonical": "funakoshi"
+    },
+    {
+      "value": "Yano",
+      "name": "Q11584412",
+      "canonical": "yano"
+    },
+    {
+      "value": "Itsukaichi",
+      "name": "Q11372425",
+      "canonical": "itsukaichi"
+    },
+    {
+      "value": "Yuki",
+      "name": "Q8060619",
+      "canonical": "yuki"
+    },
+    {
+      "value": "Humberside",
+      "name": "Q1636805",
+      "canonical": "humberside"
+    },
+    {
+      "value": "Heijō-kyō",
+      "name": "Q862509",
+      "canonical": "heijō-kyō"
+    },
+    {
+      "value": "Saho",
+      "name": "Q17175249",
+      "canonical": "saho"
+    },
+    {
+      "value": "Toichi",
+      "name": "Q17173690",
+      "canonical": "toichi"
+    },
+    {
+      "value": "Miato",
+      "name": "Q17173719",
+      "canonical": "miato"
+    },
+    {
+      "value": "Daianji",
+      "name": "Q17173582",
+      "canonical": "daianji"
+    },
+    {
+      "value": "Toichi",
+      "name": "Q17173690",
+      "canonical": "toichi"
+    },
+    {
+      "value": "Heijō",
+      "name": "Q17987589",
+      "canonical": "heijō"
+    },
+    {
+      "value": "Tatsuichi",
+      "name": "Q17173693",
+      "canonical": "tatsuichi"
+    },
+    {
+      "value": "Gokadani",
+      "name": "Q17173816",
+      "canonical": "gokadani"
+    },
+    {
+      "value": "Obitoke",
+      "name": "Q17174268",
+      "canonical": "obitoke"
+    },
+    {
+      "value": "Meiji",
+      "name": "Q17173928",
+      "canonical": "meiji"
+    },
+    {
+      "value": "Tomio",
+      "name": "Q17175345",
+      "canonical": "tomio"
+    },
+    {
+      "value": "Fushimi",
+      "name": "Q17175049",
+      "canonical": "fushimi"
+    },
+    {
+      "value": "Tawara",
+      "name": "Q17174376",
+      "canonical": "tawara"
+    },
+    {
+      "value": "Yagyū",
+      "name": "Q17189525",
+      "canonical": "yagyū"
+    },
+    {
+      "value": "Ōyagyū",
+      "name": "Q17174894",
+      "canonical": "ōyagyū"
+    },
+    {
+      "value": "Higashisato",
+      "name": "Q17173881",
+      "canonical": "higashisato"
+    },
+    {
+      "value": "Sagawa",
+      "name": "Q17173685",
+      "canonical": "sagawa"
+    },
+    {
+      "value": "Tsuge",
+      "name": "Q7849991",
+      "canonical": "tsuge"
+    },
+    {
+      "value": "Tsukigase",
+      "name": "Q7850060",
+      "canonical": "tsukigase"
+    },
+    {
+      "value": "Kaohsiung City",
+      "name": "Q13178092",
+      "canonical": "kaohsiung city"
+    },
+    {
+      "value": "Kaohsiung County",
+      "name": "Q219147",
+      "canonical": "kaohsiung county"
+    },
+    {
+      "value": "Yazur",
+      "name": "Q8050647",
+      "canonical": "yazur"
+    },
+    {
+      "value": "Tōgō",
+      "name": "Q11528529",
+      "canonical": "tōgō"
+    },
+    {
+      "value": "Miho",
+      "name": "Q11609318",
+      "canonical": "miho"
+    },
+    {
+      "value": "Kokufu",
+      "name": "Q6426889",
+      "canonical": "kokufu"
+    },
+    {
+      "value": "Fukube",
+      "name": "Q5507614",
+      "canonical": "fukube"
+    },
+    {
+      "value": "Ketaka",
+      "name": "Q6395299",
+      "canonical": "ketaka"
+    },
+    {
+      "value": "Shikano",
+      "name": "Q7496536",
+      "canonical": "shikano"
+    },
+    {
+      "value": "Aoya",
+      "name": "Q4778824",
+      "canonical": "aoya"
+    },
+    {
+      "value": "Kawahara",
+      "name": "Q11553634",
+      "canonical": "kawahara"
+    },
+    {
+      "value": "Mochigase",
+      "name": "Q6887588",
+      "canonical": "mochigase"
+    },
+    {
+      "value": "Saji",
+      "name": "Q7402638",
+      "canonical": "saji"
+    },
+    {
+      "value": "Kamikawabuchi",
+      "name": "Q11358958",
+      "canonical": "kamikawabuchi"
+    },
+    {
+      "value": "Kaigaya",
+      "name": "Q11536897",
+      "canonical": "kaigaya"
+    },
+    {
+      "value": "Kamikawabuchi",
+      "name": "Q11358958",
+      "canonical": "kamikawabuchi"
+    },
+    {
+      "value": "Shimokawabuchi",
+      "name": "Q11360877",
+      "canonical": "shimokawabuchi"
+    },
+    {
+      "value": "Haga",
+      "name": "Q11615834",
+      "canonical": "haga"
+    },
+    {
+      "value": "Kaigaya",
+      "name": "Q11536897",
+      "canonical": "kaigaya"
+    },
+    {
+      "value": "Azuma",
+      "name": "Q11527290",
+      "canonical": "azuma"
+    },
+    {
+      "value": "Motosoja",
+      "name": "Q11388036",
+      "canonical": "motosoja"
+    },
+    {
+      "value": "Soja",
+      "name": "Q11607698",
+      "canonical": "soja"
+    },
+    {
+      "value": "Minamitachibana",
+      "name": "Q11408021",
+      "canonical": "minamitachibana"
+    },
+    {
+      "value": "Minamitachibana",
+      "name": "Q11408021",
+      "canonical": "minamitachibana"
+    },
+    {
+      "value": "Kiyosato",
+      "name": "Q11561413",
+      "canonical": "kiyosato"
+    },
+    {
+      "value": "Shintakao",
+      "name": "Q446417",
+      "canonical": "shintakao"
+    },
+    {
+      "value": "Kise",
+      "name": "Q11519276",
+      "canonical": "kise"
+    },
+    {
+      "value": "Jonan",
+      "name": "Q11426043",
+      "canonical": "jonan"
+    },
+    {
+      "value": "Jonan",
+      "name": "Q11426043",
+      "canonical": "jonan"
+    },
+    {
+      "value": "Tamamura",
+      "name": "Q1203600",
+      "canonical": "tamamura"
+    },
+    {
+      "value": "Jonan",
+      "name": "Q11426043",
+      "canonical": "jonan"
+    },
+    {
+      "value": "Ōgo",
+      "name": "Q4584127",
+      "canonical": "ōgo"
+    },
+    {
+      "value": "Miyagi",
+      "name": "Q2068514",
+      "canonical": "miyagi"
+    },
+    {
+      "value": "Kasukawa",
+      "name": "Q6374885",
+      "canonical": "kasukawa"
+    },
+    {
+      "value": "Fujimi",
+      "name": "Q1036260",
+      "canonical": "fujimi"
+    },
+    {
+      "value": "Berroea",
+      "name": "Q15712213",
+      "canonical": "berroea"
+    },
+    {
+      "value": "Ōmiya",
+      "name": "Q11434428",
+      "canonical": "ōmiya"
+    },
+    {
+      "value": "Tano",
+      "name": "Q3515247",
+      "canonical": "tano"
+    },
+    {
+      "value": "Sadowara",
+      "name": "Q3461188",
+      "canonical": "sadowara"
+    },
+    {
+      "value": "Takaoka",
+      "name": "Q2749554",
+      "canonical": "takaoka"
+    },
+    {
+      "value": "Kiyotake",
+      "name": "Q1132068",
+      "canonical": "kiyotake"
+    },
+    {
+      "value": "Tomise",
+      "name": "Q11455807",
+      "canonical": "tomise"
+    },
+    {
+      "value": "Kohoku",
+      "name": "Q11563202",
+      "canonical": "kohoku"
+    },
+    {
+      "value": "Fusa",
+      "name": "Q11480759",
+      "canonical": "fusa"
+    },
+    {
+      "value": "Pargas",
+      "name": "Q13405837",
+      "canonical": "pargas"
+    },
+    {
+      "value": "Nagu",
+      "name": "Q203512",
+      "canonical": "nagu"
+    },
+    {
+      "value": "Korpo",
+      "name": "Q305440",
+      "canonical": "korpo"
+    },
+    {
+      "value": "Houtskär",
+      "name": "Q1025722",
+      "canonical": "houtskär"
+    },
+    {
+      "value": "Iniö",
+      "name": "Q1025692",
+      "canonical": "iniö"
+    },
+    {
+      "value": "Khanbaliq",
+      "name": "Q1028086",
+      "canonical": "khanbaliq"
+    },
+    {
+      "value": "Beiping",
+      "name": "Q17579219",
+      "canonical": "beiping"
+    },
+    {
+      "value": "Neapolis",
+      "name": "Q15122630",
+      "canonical": "neapolis"
+    },
+    {
+      "value": "Parthenope",
+      "name": "Q1383830",
+      "canonical": "parthenope"
+    },
+    {
+      "value": "Lucus Augusti",
+      "name": "Q21095150",
+      "canonical": "lucus augusti"
+    },
+    {
+      "value": "Shinshūshin",
+      "name": "Q96621154",
+      "canonical": "shinshūshin"
+    },
+    {
+      "value": "Nakajō",
+      "name": "Q854747",
+      "canonical": "nakajō"
+    },
+    {
+      "value": "Toyono",
+      "name": "Q7830699",
+      "canonical": "toyono"
+    },
+    {
+      "value": "Togakushi",
+      "name": "Q7813035",
+      "canonical": "togakushi"
+    },
+    {
+      "value": "Kinasa",
+      "name": "Q6410398",
+      "canonical": "kinasa"
+    },
+    {
+      "value": "Ōoka",
+      "name": "Q8081673",
+      "canonical": "ōoka"
+    },
+    {
+      "value": "Shinonoi",
+      "name": "Q11603530",
+      "canonical": "shinonoi"
+    },
+    {
+      "value": "Kawanakajima",
+      "name": "Q11477637",
+      "canonical": "kawanakajima"
+    },
+    {
+      "value": "Matsushiro",
+      "name": "Q11529238",
+      "canonical": "matsushiro"
+    },
+    {
+      "value": "Kōhoku",
+      "name": "Q96676378",
+      "canonical": "kōhoku"
+    },
+    {
+      "value": "Shinko",
+      "name": "Q96676377",
+      "canonical": "shinko"
+    },
+    {
+      "value": "Naniai",
+      "name": "Q96676793",
+      "canonical": "naniai"
+    },
+    {
+      "value": "Wakaho",
+      "name": "Q96676794",
+      "canonical": "wakaho"
+    },
+    {
+      "value": "Asahi",
+      "name": "Q96676795",
+      "canonical": "asahi"
+    },
+    {
+      "value": "Furusato",
+      "name": "Q96676796",
+      "canonical": "furusato"
+    },
+    {
+      "value": "Yanagihara",
+      "name": "Q96676797",
+      "canonical": "yanagihara"
+    },
+    {
+      "value": "Wakatsuki",
+      "name": "Q96676798",
+      "canonical": "wakatsuki"
+    },
+    {
+      "value": "Asakawa",
+      "name": "Q96676799",
+      "canonical": "asakawa"
+    },
+    {
+      "value": "Naganuma",
+      "name": "Q96676800",
+      "canonical": "naganuma"
+    },
+    {
+      "value": "Amori",
+      "name": "Q96676801",
+      "canonical": "amori"
+    },
+    {
+      "value": "Otagiri",
+      "name": "Q96676802",
+      "canonical": "otagiri"
+    },
+    {
+      "value": "Imoi",
+      "name": "Q96676804",
+      "canonical": "imoi"
+    },
+    {
+      "value": "Mamejima",
+      "name": "Q96676805",
+      "canonical": "mamejima"
+    },
+    {
+      "value": "Yoshida",
+      "name": "Q96676817",
+      "canonical": "yoshida"
+    },
+    {
+      "value": "Serita",
+      "name": "Q96676807",
+      "canonical": "serita"
+    },
+    {
+      "value": "Miwa",
+      "name": "Q96676808",
+      "canonical": "miwa"
+    },
+    {
+      "value": "Komaki",
+      "name": "Q96676810",
+      "canonical": "komaki"
+    },
+    {
+      "value": "Aikawa",
+      "name": "Q11581996",
+      "canonical": "aikawa"
+    },
+    {
+      "value": "Satogaki",
+      "name": "Q11644583",
+      "canonical": "satogaki"
+    },
+    {
+      "value": "Kokubo",
+      "name": "Q11421007",
+      "canonical": "kokubo"
+    },
+    {
+      "value": "Kugawa",
+      "name": "Q11634652",
+      "canonical": "kugawa"
+    },
+    {
+      "value": "Chizuka",
+      "name": "Q11405430",
+      "canonical": "chizuka"
+    },
+    {
+      "value": "Ōmiya",
+      "name": "Q11434429",
+      "canonical": "ōmiya"
+    },
+    {
+      "value": "Ikeda",
+      "name": "Q11551976",
+      "canonical": "ikeda"
+    },
+    {
+      "value": "Koun",
+      "name": "Q11578008",
+      "canonical": "koun"
+    },
+    {
+      "value": "Nosen",
+      "name": "Q11611981",
+      "canonical": "nosen"
+    },
+    {
+      "value": "Chiyota",
+      "name": "Q11405312",
+      "canonical": "chiyota"
+    },
+    {
+      "value": "Yamashiro",
+      "name": "Q11467704",
+      "canonical": "yamashiro"
+    },
+    {
+      "value": "Sumiyoshi",
+      "name": "Q11381837",
+      "canonical": "sumiyoshi"
+    },
+    {
+      "value": "Asai",
+      "name": "Q11517249",
+      "canonical": "asai"
+    },
+    {
+      "value": "Tamamoro",
+      "name": "Q11572791",
+      "canonical": "tamamoro"
+    },
+    {
+      "value": "Okamada",
+      "name": "Q11439802",
+      "canonical": "okamada"
+    },
+    {
+      "value": "Futagawa",
+      "name": "Q11371538",
+      "canonical": "futagawa"
+    },
+    {
+      "value": "Miyamoto",
+      "name": "Q11454858",
+      "canonical": "miyamoto"
+    },
+    {
+      "value": "Nakamichi",
+      "name": "Q11367223",
+      "canonical": "nakamichi"
+    },
+    {
+      "value": "Kamikuishiki",
+      "name": "Q840444",
+      "canonical": "kamikuishiki"
+    },
+    {
+      "value": "Aika",
+      "name": "Q11595885",
+      "canonical": "aika"
+    },
+    {
+      "value": "Kashima",
+      "name": "Q6374301",
+      "canonical": "kashima"
+    },
+    {
+      "value": "Shimane",
+      "name": "Q7496828",
+      "canonical": "shimane"
+    },
+    {
+      "value": "Mihonoseki",
+      "name": "Q6845336",
+      "canonical": "mihonoseki"
+    },
+    {
+      "value": "Yakumo",
+      "name": "Q8047232",
+      "canonical": "yakumo"
+    },
+    {
+      "value": "Tamayu",
+      "name": "Q3514716",
+      "canonical": "tamayu"
+    },
+    {
+      "value": "Shinji",
+      "name": "Q7497574",
+      "canonical": "shinji"
+    },
+    {
+      "value": "Yatsuka",
+      "name": "Q8050273",
+      "canonical": "yatsuka"
+    },
+    {
+      "value": "Higashiizumo",
+      "name": "Q1132038",
+      "canonical": "higashiizumo"
+    },
+    {
+      "value": "Taihoku Prefecture",
+      "name": "Q697946",
+      "canonical": "taihoku prefecture"
+    },
+    {
+      "value": "Yatabe",
+      "name": "Q11633066",
+      "canonical": "yatabe"
+    },
+    {
+      "value": "Oho",
+      "name": "Q11438359",
+      "canonical": "oho"
+    },
+    {
+      "value": "Toyosato",
+      "name": "Q11634273",
+      "canonical": "toyosato"
+    },
+    {
+      "value": "Sakura",
+      "name": "Q11538105",
+      "canonical": "sakura"
+    },
+    {
+      "value": "Tsukuba",
+      "name": "Q11602887",
+      "canonical": "tsukuba"
+    },
+    {
+      "value": "Kukizaki",
+      "name": "Q11617239",
+      "canonical": "kukizaki"
+    },
+    {
+      "value": "Tainan City",
+      "name": "Q15912096",
+      "canonical": "tainan city"
+    },
+    {
+      "value": "Chungking",
+      "name": "Q46451169",
+      "canonical": "chungking"
+    },
+    {
+      "value": "Verniy",
+      "name": "Q32361660",
+      "canonical": "verniy"
+    },
+    {
+      "value": "Edessa",
+      "name": "Q1190403",
+      "canonical": "edessa"
+    },
+    {
+      "value": "Hachinohe",
+      "name": "Q11391205",
+      "canonical": "hachinohe"
+    },
+    {
+      "value": "Konakano",
+      "name": "Q11458772",
+      "canonical": "konakano"
+    },
+    {
+      "value": "Minato",
+      "name": "Q11563177",
+      "canonical": "minato"
+    },
+    {
+      "value": "Same",
+      "name": "Q11674199",
+      "canonical": "same"
+    },
+    {
+      "value": "Shimonaganawashiro",
+      "name": "Q11361409",
+      "canonical": "shimonaganawashiro"
+    },
+    {
+      "value": "Korekawa",
+      "name": "Q11514203",
+      "canonical": "korekawa"
+    },
+    {
+      "value": "Tate",
+      "name": "Q11666951",
+      "canonical": "tate"
+    },
+    {
+      "value": "Kaminaganawashiro",
+      "name": "Q11360497",
+      "canonical": "kaminaganawashiro"
+    },
+    {
+      "value": "Ichikawa",
+      "name": "Q11480330",
+      "canonical": "ichikawa"
+    },
+    {
+      "value": "Toyosaki",
+      "name": "Q11633572",
+      "canonical": "toyosaki"
+    },
+    {
+      "value": "Ōdate",
+      "name": "Q11441925",
+      "canonical": "ōdate"
+    },
+    {
+      "value": "Nangō",
+      "name": "Q6546806",
+      "canonical": "nangō"
+    },
+    {
+      "value": "La Chapelle",
+      "name": "Q13103683",
+      "canonical": "la chapelle"
+    },
+    {
+      "value": "Vammala",
+      "name": "Q996067",
+      "canonical": "vammala"
+    },
+    {
+      "value": "Mouhijärvi",
+      "name": "Q661269",
+      "canonical": "mouhijärvi"
+    },
+    {
+      "value": "Äetsä",
+      "name": "Q252873",
+      "canonical": "äetsä"
+    },
+    {
+      "value": "Iulia Traducta",
+      "name": "Q2838393",
+      "canonical": "iulia traducta"
+    },
+    {
+      "value": "Borre",
+      "name": "Q1771491",
+      "canonical": "borre"
+    },
+    {
+      "value": "Tokyo Prefecture",
+      "name": "Q1189121",
+      "canonical": "tokyo prefecture"
+    },
+    {
+      "value": "Tokyo City",
+      "name": "Q1207735",
+      "canonical": "tokyo city"
+    },
+    {
+      "value": "Braunschweig",
+      "name": "Q1803098",
+      "canonical": "braunschweig"
+    },
+    {
+      "value": "Fort Lamy",
+      "name": "Q3077739",
+      "canonical": "fort lamy"
+    },
+    {
+      "value": "Littau",
+      "name": "Q688652",
+      "canonical": "littau"
+    },
+    {
+      "value": "Baetulo",
+      "name": "Q8239659",
+      "canonical": "baetulo"
+    },
+    {
+      "value": "Taniyama",
+      "name": "Q11632812",
+      "canonical": "taniyama"
+    },
+    {
+      "value": "Sakurajima",
+      "name": "Q7403212",
+      "canonical": "sakurajima"
+    },
+    {
+      "value": "Yoshida",
+      "name": "Q16965970",
+      "canonical": "yoshida"
+    },
+    {
+      "value": "Matsumoto",
+      "name": "Q6788134",
+      "canonical": "matsumoto"
+    },
+    {
+      "value": "Kōriyama",
+      "name": "Q6455263",
+      "canonical": "kōriyama"
+    },
+    {
+      "value": "Kiire",
+      "name": "Q6406094",
+      "canonical": "kiire"
+    },
+    {
+      "value": "Yoshino",
+      "name": "Q11414468",
+      "canonical": "yoshino"
+    },
+    {
+      "value": "Higashisakurajima",
+      "name": "Q17176949",
+      "canonical": "higashisakurajima"
+    },
+    {
+      "value": "Nakakōriu",
+      "name": "Q11367240",
+      "canonical": "nakakōriu"
+    },
+    {
+      "value": "Nishitakeda",
+      "name": "Q11628924",
+      "canonical": "nishitakeda"
+    },
+    {
+      "value": "Iseki",
+      "name": "Q11379382",
+      "canonical": "iseki"
+    },
+    {
+      "value": "Iseki",
+      "name": "Q11379382",
+      "canonical": "iseki"
+    },
+    {
+      "value": "Iseki",
+      "name": "Q11379382",
+      "canonical": "iseki"
+    },
+    {
+      "value": "Harburg",
+      "name": "Q3489",
+      "canonical": "harburg"
+    },
+    {
+      "value": "Wilhelmsburg",
+      "name": "Q1068",
+      "canonical": "wilhelmsburg"
+    },
+    {
+      "value": "Heimfeld",
+      "name": "Q3500",
+      "canonical": "heimfeld"
+    },
+    {
+      "value": "Wilstorf",
+      "name": "Q3537",
+      "canonical": "wilstorf"
+    },
+    {
+      "value": "Eißendorf",
+      "name": "Q3469",
+      "canonical": "ei ß endorf"
+    },
+    {
+      "value": "Waitemata City",
+      "name": "Q7960498",
+      "canonical": "waitemata city"
+    },
+    {
+      "value": "Londinium",
+      "name": "Q927198",
+      "canonical": "londinium"
+    },
+    {
+      "value": "Papal States",
+      "name": "Q170174",
+      "canonical": "papal states"
+    },
+    {
+      "value": "Hof van Delft",
+      "name": "Q15876388",
+      "canonical": "hof van delft"
+    },
+    {
+      "value": "Taipei",
+      "name": "Q56283112",
+      "canonical": "taipei"
+    },
+    {
+      "value": "Chamartín de la Rosa",
+      "name": "Q3813738",
+      "canonical": "chamartín de la rosa"
+    },
+    {
+      "value": "Canillas",
+      "name": "Q16542489",
+      "canonical": "canillas"
+    },
+    {
+      "value": "Carabanchel Alto",
+      "name": "Q3813766",
+      "canonical": "carabanchel alto"
+    },
+    {
+      "value": "Tiller",
+      "name": "Q1006463",
+      "canonical": "tiller"
+    },
+    {
+      "value": "Byneset",
+      "name": "Q4560616",
+      "canonical": "byneset"
+    },
+    {
+      "value": "Jarisha",
+      "name": "Q2906069",
+      "canonical": "jarisha"
+    },
+    {
+      "value": "Hadrianopolis",
+      "name": "Q11904208",
+      "canonical": "hadrianopolis"
+    },
+    {
+      "value": "Munstergeleen",
+      "name": "Q35007805",
+      "canonical": "munstergeleen"
+    },
+    {
+      "value": "León Viejo",
+      "name": "Q1422898",
+      "canonical": "león viejo"
+    },
+    {
+      "value": "Imazu",
+      "name": "Q11377302",
+      "canonical": "imazu"
+    },
+    {
+      "value": "Shiba",
+      "name": "Q11614662",
+      "canonical": "shiba"
+    },
+    {
+      "value": "Taisha",
+      "name": "Q23985153",
+      "canonical": "taisha"
+    },
+    {
+      "value": "Kōtō",
+      "name": "Q18700149",
+      "canonical": "kōtō"
+    },
+    {
+      "value": "Kawaragi",
+      "name": "Q18700191",
+      "canonical": "kawaragi"
+    },
+    {
+      "value": "Naruo",
+      "name": "Q11675332",
+      "canonical": "naruo"
+    },
+    {
+      "value": "Yamaguchi",
+      "name": "Q11466901",
+      "canonical": "yamaguchi"
+    },
+    {
+      "value": "Shiose",
+      "name": "Q18700089",
+      "canonical": "shiose"
+    },
+    {
+      "value": "Bederkesa",
+      "name": "Q489507",
+      "canonical": "bederkesa"
+    },
+    {
+      "value": "Liao Nanjing",
+      "name": "Q4312918",
+      "canonical": "liao nanjing"
+    },
+    {
+      "value": "Seogyeong",
+      "name": "Q12600789",
+      "canonical": "seogyeong"
+    },
+    {
+      "value": "Kachigawa",
+      "name": "Q11400297",
+      "canonical": "kachigawa"
+    },
+    {
+      "value": "Toriimatsu",
+      "name": "Q11674922",
+      "canonical": "toriimatsu"
+    },
+    {
+      "value": "Shinogi",
+      "name": "Q11603767",
+      "canonical": "shinogi"
+    },
+    {
+      "value": "Takaki",
+      "name": "Q11676377",
+      "canonical": "takaki"
+    },
+    {
+      "value": "Kōzōji",
+      "name": "Q11672778",
+      "canonical": "kōzōji"
+    },
+    {
+      "value": "Sakashita",
+      "name": "Q11424838",
+      "canonical": "sakashita"
+    },
+    {
+      "value": "Minato",
+      "name": "Q18700140",
+      "canonical": "minato"
+    },
+    {
+      "value": "Hayashida",
+      "name": "Q18700216",
+      "canonical": "hayashida"
+    },
+    {
+      "value": "Suma",
+      "name": "Q18700239",
+      "canonical": "suma"
+    },
+    {
+      "value": "Suma",
+      "name": "Q18700239",
+      "canonical": "suma"
+    },
+    {
+      "value": "Nishigō",
+      "name": "Q11629687",
+      "canonical": "nishigō"
+    },
+    {
+      "value": "Nishinada",
+      "name": "Q18700237",
+      "canonical": "nishinada"
+    },
+    {
+      "value": "Rokkō",
+      "name": "Q23985154",
+      "canonical": "rokkō"
+    },
+    {
+      "value": "Tarumi",
+      "name": "Q23985155",
+      "canonical": "tarumi"
+    },
+    {
+      "value": "Yamada",
+      "name": "Q11470446",
+      "canonical": "yamada"
+    },
+    {
+      "value": "Arima",
+      "name": "Q97578417",
+      "canonical": "arima"
+    },
+    {
+      "value": "Arino",
+      "name": "Q18700240",
+      "canonical": "arino"
+    },
+    {
+      "value": "Ikawadani",
+      "name": "Q97578425",
+      "canonical": "ikawadani"
+    },
+    {
+      "value": "Tamatsu",
+      "name": "Q18700208",
+      "canonical": "tamatsu"
+    },
+    {
+      "value": "Hasetani",
+      "name": "Q18700158",
+      "canonical": "hasetani"
+    },
+    {
+      "value": "Hirano",
+      "name": "Q18700169",
+      "canonical": "hirano"
+    },
+    {
+      "value": "Oshibedani",
+      "name": "Q97578428",
+      "canonical": "oshibedani"
+    },
+    {
+      "value": "Kande",
+      "name": "Q18700147",
+      "canonical": "kande"
+    },
+    {
+      "value": "Iwaoka",
+      "name": "Q18700157",
+      "canonical": "iwaoka"
+    },
+    {
+      "value": "Mikage",
+      "name": "Q11489034",
+      "canonical": "mikage"
+    },
+    {
+      "value": "Sumiyoshi",
+      "name": "Q18700218",
+      "canonical": "sumiyoshi"
+    },
+    {
+      "value": "Uozaki",
+      "name": "Q11673968",
+      "canonical": "uozaki"
+    },
+    {
+      "value": "Honjō",
+      "name": "Q11520286",
+      "canonical": "honjō"
+    },
+    {
+      "value": "Motoyama",
+      "name": "Q11520188",
+      "canonical": "motoyama"
+    },
+    {
+      "value": "Hata",
+      "name": "Q18700161",
+      "canonical": "hata"
+    },
+    {
+      "value": "Dōjō",
+      "name": "Q18700214",
+      "canonical": "dōjō"
+    },
+    {
+      "value": "Ozō",
+      "name": "Q11436967",
+      "canonical": "ozō"
+    },
+    {
+      "value": "Nagao",
+      "name": "Q11651872",
+      "canonical": "nagao"
+    },
+    {
+      "value": "Ogo",
+      "name": "Q18700204",
+      "canonical": "ogo"
+    },
+    {
+      "value": "Taoyuan County",
+      "name": "Q25303104",
+      "canonical": "taoyuan county"
+    },
+    {
+      "value": "Tainan County",
+      "name": "Q477601",
+      "canonical": "tainan county"
+    },
+    {
+      "value": "Tainan City",
+      "name": "Q15895448",
+      "canonical": "tainan city"
+    },
+    {
+      "value": "Shiga",
+      "name": "Q17176517",
+      "canonical": "shiga"
+    },
+    {
+      "value": "Zeze",
+      "name": "Q17176487",
+      "canonical": "zeze"
+    },
+    {
+      "value": "Ishiyama",
+      "name": "Q17176795",
+      "canonical": "ishiyama"
+    },
+    {
+      "value": "Sakamoto",
+      "name": "Q17228606",
+      "canonical": "sakamoto"
+    },
+    {
+      "value": "Ogoto",
+      "name": "Q17175075",
+      "canonical": "ogoto"
+    },
+    {
+      "value": "Shimosakamoto",
+      "name": "Q17175735",
+      "canonical": "shimosakamoto"
+    },
+    {
+      "value": "Ōishi",
+      "name": "Q17174391",
+      "canonical": "ōishi"
+    },
+    {
+      "value": "Shimotanakami",
+      "name": "Q17174511",
+      "canonical": "shimotanakami"
+    },
+    {
+      "value": "Katata",
+      "name": "Q11427933",
+      "canonical": "katata"
+    },
+    {
+      "value": "Seta",
+      "name": "Q17176855",
+      "canonical": "seta"
+    },
+    {
+      "value": "Shiga",
+      "name": "Q2278690",
+      "canonical": "shiga"
+    },
+    {
+      "value": "Higashizawa",
+      "name": "Q11527579",
+      "canonical": "higashizawa"
+    },
+    {
+      "value": "Suzukawa",
+      "name": "Q11648391",
+      "canonical": "suzukawa"
+    },
+    {
+      "value": "Chitose",
+      "name": "Q11405662",
+      "canonical": "chitose"
+    },
+    {
+      "value": "Iizuka",
+      "name": "Q11666217",
+      "canonical": "iizuka"
+    },
+    {
+      "value": "Kunugizawa",
+      "name": "Q11540974",
+      "canonical": "kunugizawa"
+    },
+    {
+      "value": "Kanai",
+      "name": "Q11646371",
+      "canonical": "kanai"
+    },
+    {
+      "value": "Ōsato",
+      "name": "Q11439420",
+      "canonical": "ōsato"
+    },
+    {
+      "value": "Dewa",
+      "name": "Q11395792",
+      "canonical": "dewa"
+    },
+    {
+      "value": "Tateyama",
+      "name": "Q11541398",
+      "canonical": "tateyama"
+    },
+    {
+      "value": "Takase",
+      "name": "Q11671953",
+      "canonical": "takase"
+    },
+    {
+      "value": "Meiji",
+      "name": "Q11512362",
+      "canonical": "meiji"
+    },
+    {
+      "value": "Takiyama",
+      "name": "Q11565116",
+      "canonical": "takiyama"
+    },
+    {
+      "value": "Minaminumahara",
+      "name": "Q11408071",
+      "canonical": "minaminumahara"
+    },
+    {
+      "value": "Higashizawa",
+      "name": "Q11527579",
+      "canonical": "higashizawa"
+    },
+    {
+      "value": "Kanai",
+      "name": "Q11646372",
+      "canonical": "kanai"
+    },
+    {
+      "value": "Osone",
+      "name": "Q11435822",
+      "canonical": "osone"
+    },
+    {
+      "value": "Osone",
+      "name": "Q11435822",
+      "canonical": "osone"
+    },
+    {
+      "value": "Yamadera",
+      "name": "Q11467770",
+      "canonical": "yamadera"
+    },
+    {
+      "value": "Zao",
+      "name": "Q11621944",
+      "canonical": "zao"
+    },
+    {
+      "value": "Motosawa",
+      "name": "Q11520498",
+      "canonical": "motosawa"
+    },
+    {
+      "value": "Kashiwakuramonden",
+      "name": "Q11533658",
+      "canonical": "kashiwakuramonden"
+    },
+    {
+      "value": "Murakisawa",
+      "name": "Q11523262",
+      "canonical": "murakisawa"
+    },
+    {
+      "value": "Bolbitine",
+      "name": "Q97649178",
+      "canonical": "bolbitine"
+    },
+    {
+      "value": "Astigi",
+      "name": "Q11907044",
+      "canonical": "astigi"
+    },
+    {
+      "value": "Founding of Milan",
+      "name": "Q3075623",
+      "canonical": "founding of milan"
+    },
+    {
+      "value": "Shanghai Municipality, Republic of China",
+      "name": "Q10867816",
+      "canonical": "shanghai municipality , republic of china"
+    },
+    {
+      "value": "Zancle",
+      "name": "Q9386870",
+      "canonical": "zancle"
+    },
+    {
+      "value": "Messana",
+      "name": "Q4023782",
+      "canonical": "messana"
+    },
+    {
+      "value": "Nanking",
+      "name": "Q10906766",
+      "canonical": "nanking"
+    },
+    {
+      "value": "Nijehove",
+      "name": "Q2758182",
+      "canonical": "nijehove"
+    },
+    {
+      "value": "Hoek",
+      "name": "Q1950031",
+      "canonical": "hoek"
+    },
+    {
+      "value": "Oldehove",
+      "name": "Q2457298",
+      "canonical": "oldehove"
+    },
+    {
+      "value": "Settlement of Sullivans Cove",
+      "name": "Q21416521",
+      "canonical": "settlement of sullivans cove"
+    },
+    {
+      "value": "Rosendaël",
+      "name": "Q3442546",
+      "canonical": "rosendaël"
+    },
+    {
+      "value": "Petite-Synthe",
+      "name": "Q2692224",
+      "canonical": "petite-synthe"
+    },
+    {
+      "value": "Malo-les-Bains",
+      "name": "Q682669",
+      "canonical": "malo-les-bains"
+    },
+    {
+      "value": "Mardyck",
+      "name": "Q1846321",
+      "canonical": "mardyck"
+    },
+    {
+      "value": "Tralleis",
+      "name": "Q462630",
+      "canonical": "tralleis"
+    },
+    {
+      "value": "Elderen",
+      "name": "Q2679420",
+      "canonical": "elderen"
+    },
+    {
+      "value": "Enokuchi",
+      "name": "Q35798083",
+      "canonical": "enokuchi"
+    },
+    {
+      "value": "Asahi",
+      "name": "Q35798091",
+      "canonical": "asahi"
+    },
+    {
+      "value": "Kamoda",
+      "name": "Q35798131",
+      "canonical": "kamoda"
+    },
+    {
+      "value": "Shimoji",
+      "name": "Q35798104",
+      "canonical": "shimoji"
+    },
+    {
+      "value": "Ushioe",
+      "name": "Q35798100",
+      "canonical": "ushioe"
+    },
+    {
+      "value": "Kodakasa",
+      "name": "Q35798113",
+      "canonical": "kodakasa"
+    },
+    {
+      "value": "Hada",
+      "name": "Q35798120",
+      "canonical": "hada"
+    },
+    {
+      "value": "Mikazuki",
+      "name": "Q35798126",
+      "canonical": "mikazuki"
+    },
+    {
+      "value": "Misato",
+      "name": "Q35798052",
+      "canonical": "misato"
+    },
+    {
+      "value": "Godaisan",
+      "name": "Q35798059",
+      "canonical": "godaisan"
+    },
+    {
+      "value": "Takasu",
+      "name": "Q35798722",
+      "canonical": "takasu"
+    },
+    {
+      "value": "Kamoda",
+      "name": "Q35798131",
+      "canonical": "kamoda"
+    },
+    {
+      "value": "Nunoshida",
+      "name": "Q96276167",
+      "canonical": "nunoshida"
+    },
+    {
+      "value": "Ikku",
+      "name": "Q35798139",
+      "canonical": "ikku"
+    },
+    {
+      "value": "Asakura",
+      "name": "Q35798164",
+      "canonical": "asakura"
+    },
+    {
+      "value": "Nagahama",
+      "name": "Q35798235",
+      "canonical": "nagahama"
+    },
+    {
+      "value": "Urado",
+      "name": "Q96276270",
+      "canonical": "urado"
+    },
+    {
+      "value": "Mimase",
+      "name": "Q96276340",
+      "canonical": "mimase"
+    },
+    {
+      "value": "Ōtsu",
+      "name": "Q96276470",
+      "canonical": "ōtsu"
+    },
+    {
+      "value": "Kera",
+      "name": "Q96272849",
+      "canonical": "kera"
+    },
+    {
+      "value": "Tosayama",
+      "name": "Q7827561",
+      "canonical": "tosayama"
+    },
+    {
+      "value": "Kagami",
+      "name": "Q6346341",
+      "canonical": "kagami"
+    },
+    {
+      "value": "Haruno",
+      "name": "Q994833",
+      "canonical": "haruno"
+    },
+    {
+      "value": "Hirookanakano",
+      "name": "Q96249691",
+      "canonical": "hirookanakano"
+    },
+    {
+      "value": "Miyawaki",
+      "name": "Q11455238",
+      "canonical": "miyawaki"
+    },
+    {
+      "value": "Higashihama",
+      "name": "Q11527732",
+      "canonical": "higashihama"
+    },
+    {
+      "value": "Ritsurin",
+      "name": "Q11535999",
+      "canonical": "ritsurin"
+    },
+    {
+      "value": "Ōta",
+      "name": "Q11444323",
+      "canonical": "ōta"
+    },
+    {
+      "value": "Sagita",
+      "name": "Q11676440",
+      "canonical": "sagita"
+    },
+    {
+      "value": "Yashima",
+      "name": "Q11465685",
+      "canonical": "yashima"
+    },
+    {
+      "value": "Kita",
+      "name": "Q11518281",
+      "canonical": "kita"
+    },
+    {
+      "value": "Furutakamatsu",
+      "name": "Q11411768",
+      "canonical": "furutakamatsu"
+    },
+    {
+      "value": "Kozai",
+      "name": "Q11667759",
+      "canonical": "kozai"
+    },
+    {
+      "value": "Busshozan",
+      "name": "Q11377564",
+      "canonical": "busshozan"
+    },
+    {
+      "value": "Ichinomiya",
+      "name": "Q11352587",
+      "canonical": "ichinomiya"
+    },
+    {
+      "value": "Enza",
+      "name": "Q11394780",
+      "canonical": "enza"
+    },
+    {
+      "value": "Kamikasai",
+      "name": "Q11360008",
+      "canonical": "kamikasai"
+    },
+    {
+      "value": "Kawaoka",
+      "name": "Q11478185",
+      "canonical": "kawaoka"
+    },
+    {
+      "value": "Shimokasai",
+      "name": "Q11361265",
+      "canonical": "shimokasai"
+    },
+    {
+      "value": "Tsuruuchi",
+      "name": "Q11487498",
+      "canonical": "tsuruuchi"
+    },
+    {
+      "value": "Tahi",
+      "name": "Q11431021",
+      "canonical": "tahi"
+    },
+    {
+      "value": "Danshi",
+      "name": "Q11544584",
+      "canonical": "danshi"
+    },
+    {
+      "value": "Shiyujima",
+      "name": "Q11659373",
+      "canonical": "shiyujima"
+    },
+    {
+      "value": "Kawazoe",
+      "name": "Q11478920",
+      "canonical": "kawazoe"
+    },
+    {
+      "value": "Hayashi",
+      "name": "Q11533106",
+      "canonical": "hayashi"
+    },
+    {
+      "value": "Maeda",
+      "name": "Q11397614",
+      "canonical": "maeda"
+    },
+    {
+      "value": "Mitani",
+      "name": "Q11357281",
+      "canonical": "mitani"
+    },
+    {
+      "value": "Yamada",
+      "name": "Q11470540",
+      "canonical": "yamada"
+    },
+    {
+      "value": "Shionoe",
+      "name": "Q7497886",
+      "canonical": "shionoe"
+    },
+    {
+      "value": "Kagawa",
+      "name": "Q6346388",
+      "canonical": "kagawa"
+    },
+    {
+      "value": "Kōnan",
+      "name": "Q6455222",
+      "canonical": "kōnan"
+    },
+    {
+      "value": "Aji",
+      "name": "Q4699719",
+      "canonical": "aji"
+    },
+    {
+      "value": "Mure",
+      "name": "Q1953650",
+      "canonical": "mure"
+    },
+    {
+      "value": "Kokubunji",
+      "name": "Q6426885",
+      "canonical": "kokubunji"
+    },
+    {
+      "value": "Taichung County",
+      "name": "Q701682",
+      "canonical": "taichung county"
+    },
+    {
+      "value": "Gießen",
+      "name": "Q3874",
+      "canonical": "gie ß en"
+    },
+    {
+      "value": "Wetzlar",
+      "name": "Q4178",
+      "canonical": "wetzlar"
+    },
+    {
+      "value": "Jiangning County",
+      "name": "Q11134205",
+      "canonical": "jiangning county"
+    }
+  ]
+}

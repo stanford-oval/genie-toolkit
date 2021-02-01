@@ -1,0 +1,880 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Landschaftsverband Rheinland",
+      "name": "Q153468",
+      "canonical": "landschaftsverband rheinland"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Mayors for Peace",
+      "name": "Q747279",
+      "canonical": "mayors for peace"
+    },
+    {
+      "value": "Städtetag Nordrhein-Westfalen",
+      "name": "Q52144567",
+      "canonical": "städtetag nordrhein-westfalen"
+    },
+    {
+      "value": "União das Cidades Capitais Luso-Afro-Américo-Asiáticas",
+      "name": "Q4005967",
+      "canonical": "união das cidades capitais luso-afro-américo-asiáticas"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Mayors for Peace",
+      "name": "Q747279",
+      "canonical": "mayors for peace"
+    },
+    {
+      "value": "Städte- und Gemeindebund Nordrhein-Westfalen",
+      "name": "Q2359812",
+      "canonical": "städte - und gemeindebund nordrhein-westfalen"
+    },
+    {
+      "value": "Lippeverband",
+      "name": "Q1827507",
+      "canonical": "lippeverband"
+    },
+    {
+      "value": "Mayors for Peace",
+      "name": "Q747279",
+      "canonical": "mayors for peace"
+    },
+    {
+      "value": "Städte- und Gemeindebund Nordrhein-Westfalen",
+      "name": "Q2359812",
+      "canonical": "städte - und gemeindebund nordrhein-westfalen"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Niedersächsischer Städtetag",
+      "name": "Q1988624",
+      "canonical": "niedersächsischer städtetag"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Mayors for Peace",
+      "name": "Q747279",
+      "canonical": "mayors for peace"
+    },
+    {
+      "value": "Niedersächsischer Städtetag",
+      "name": "Q1988624",
+      "canonical": "niedersächsischer städtetag"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Lippeverband",
+      "name": "Q1827507",
+      "canonical": "lippeverband"
+    },
+    {
+      "value": "Städte- und Gemeindebund Nordrhein-Westfalen",
+      "name": "Q2359812",
+      "canonical": "städte - und gemeindebund nordrhein-westfalen"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Mayors for Peace",
+      "name": "Q747279",
+      "canonical": "mayors for peace"
+    },
+    {
+      "value": "Niedersächsischer Städtetag",
+      "name": "Q1988624",
+      "canonical": "niedersächsischer städtetag"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Mayors for Peace",
+      "name": "Q747279",
+      "canonical": "mayors for peace"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Mayors for Peace",
+      "name": "Q747279",
+      "canonical": "mayors for peace"
+    },
+    {
+      "value": "Bayerischer Städtetag",
+      "name": "Q812378",
+      "canonical": "bayerischer städtetag"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Mayors for Peace",
+      "name": "Q747279",
+      "canonical": "mayors for peace"
+    },
+    {
+      "value": "Mayors for Peace",
+      "name": "Q747279",
+      "canonical": "mayors for peace"
+    },
+    {
+      "value": "Gemeinde- und Städtebund Thüringen",
+      "name": "Q67174081",
+      "canonical": "gemeinde - und städtebund thüringen"
+    },
+    {
+      "value": "Mayors for Peace",
+      "name": "Q747279",
+      "canonical": "mayors for peace"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Kommunale Datenverarbeitung Region Stuttgart",
+      "name": "Q28936918",
+      "canonical": "kommunale datenverarbeitung region stuttgart"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Zweckverband 4IT",
+      "name": "Q55473342",
+      "canonical": "zweckverband 4 it"
+    },
+    {
+      "value": "Arbeitsgemeinschaft Deutsche Fachwerkstädte",
+      "name": "Q17310341",
+      "canonical": "arbeitsgemeinschaft deutsche fachwerkstädte"
+    },
+    {
+      "value": "Mayors for Peace",
+      "name": "Q747279",
+      "canonical": "mayors for peace"
+    },
+    {
+      "value": "União das Cidades Capitais Luso-Afro-Américo-Asiáticas",
+      "name": "Q4005967",
+      "canonical": "união das cidades capitais luso-afro-américo-asiáticas"
+    },
+    {
+      "value": "Städte- und Gemeindebund Nordrhein-Westfalen",
+      "name": "Q2359812",
+      "canonical": "städte - und gemeindebund nordrhein-westfalen"
+    },
+    {
+      "value": "Städte- und Gemeindebund Nordrhein-Westfalen",
+      "name": "Q2359812",
+      "canonical": "städte - und gemeindebund nordrhein-westfalen"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Städte- und Gemeindebund Nordrhein-Westfalen",
+      "name": "Q2359812",
+      "canonical": "städte - und gemeindebund nordrhein-westfalen"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Hanseatic League",
+      "name": "Q42908",
+      "canonical": "hanseatic league"
+    },
+    {
+      "value": "Mayors for Peace",
+      "name": "Q747279",
+      "canonical": "mayors for peace"
+    },
+    {
+      "value": "Eurotowns network",
+      "name": "Q5413854",
+      "canonical": "eurotowns network"
+    },
+    {
+      "value": "Städte- und Gemeindebund Nordrhein-Westfalen",
+      "name": "Q2359812",
+      "canonical": "städte - und gemeindebund nordrhein-westfalen"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "União das Cidades Capitais Luso-Afro-Américo-Asiáticas",
+      "name": "Q4005967",
+      "canonical": "união das cidades capitais luso-afro-américo-asiáticas"
+    },
+    {
+      "value": "Städteverband Schleswig-Holstein",
+      "name": "Q17326450",
+      "canonical": "städteverband schleswig-holstein"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Guatemala",
+      "name": "Q774",
+      "canonical": "guatemala"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Mayors for Peace",
+      "name": "Q747279",
+      "canonical": "mayors for peace"
+    },
+    {
+      "value": "Hessischer Städtetag",
+      "name": "Q26882604",
+      "canonical": "hessischer städtetag"
+    },
+    {
+      "value": "Landeswohlfahrtsverband Hessen",
+      "name": "Q1802757",
+      "canonical": "landeswohlfahrtsverband hessen"
+    },
+    {
+      "value": "União das Cidades Capitais Luso-Afro-Américo-Asiáticas",
+      "name": "Q4005967",
+      "canonical": "união das cidades capitais luso-afro-américo-asiáticas"
+    },
+    {
+      "value": "Wendish cities",
+      "name": "Q874576",
+      "canonical": "wendish cities"
+    },
+    {
+      "value": "Städte- und Gemeindetag Mecklenburg-Vorpommern",
+      "name": "Q1292296",
+      "canonical": "städte - und gemeindetag mecklenburg-vorpommern"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Städte- und Gemeindebund Nordrhein-Westfalen",
+      "name": "Q2359812",
+      "canonical": "städte - und gemeindebund nordrhein-westfalen"
+    },
+    {
+      "value": "Etruscan Dodecapolis",
+      "name": "Q248137",
+      "canonical": "etruscan dodecapolis"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "United Nations",
+      "name": "Q1065",
+      "canonical": "united nations"
+    },
+    {
+      "value": "Commonwealth of Nations",
+      "name": "Q7785",
+      "canonical": "commonwealth of nations"
+    },
+    {
+      "value": "ASEAN",
+      "name": "Q7768",
+      "canonical": "asean"
+    },
+    {
+      "value": "World Trade Organization",
+      "name": "Q7825",
+      "canonical": "world trade organization"
+    },
+    {
+      "value": "Asia-Pacific Economic Cooperation",
+      "name": "Q170481",
+      "canonical": "asia-pacific economic cooperation"
+    },
+    {
+      "value": "International Bank for Reconstruction and Development",
+      "name": "Q191384",
+      "canonical": "international bank for reconstruction and development"
+    },
+    {
+      "value": "International Development Association",
+      "name": "Q827525",
+      "canonical": "international development association"
+    },
+    {
+      "value": "International Finance Corporation",
+      "name": "Q656801",
+      "canonical": "international finance corporation"
+    },
+    {
+      "value": "Multilateral Investment Guarantee Agency",
+      "name": "Q1043527",
+      "canonical": "multilateral investment guarantee agency"
+    },
+    {
+      "value": "International Centre for Settlement of Investment Disputes",
+      "name": "Q899770",
+      "canonical": "international centre for settlement of investment disputes"
+    },
+    {
+      "value": "Alliance of Small Island States",
+      "name": "Q496967",
+      "canonical": "alliance of small island states"
+    },
+    {
+      "value": "Association of Southeast Asian Nations Regional Forum",
+      "name": "Q7886981",
+      "canonical": "association of southeast asian nations regional forum"
+    },
+    {
+      "value": "Asian Development Bank",
+      "name": "Q188822",
+      "canonical": "asian development bank"
+    },
+    {
+      "value": "Interpol",
+      "name": "Q8475",
+      "canonical": "interpol"
+    },
+    {
+      "value": "Organisation for the Prohibition of Chemical Weapons",
+      "name": "Q842490",
+      "canonical": "organisation for the prohibition of chemical weapons"
+    },
+    {
+      "value": "International Hydrographic Organization",
+      "name": "Q233611",
+      "canonical": "international hydrographic organization"
+    },
+    {
+      "value": "UNESCO",
+      "name": "Q7809",
+      "canonical": "unesco"
+    },
+    {
+      "value": "Universal Postal Union",
+      "name": "Q17495",
+      "canonical": "universal postal union"
+    },
+    {
+      "value": "International Telecommunication Union",
+      "name": "Q376150",
+      "canonical": "international telecommunication union"
+    },
+    {
+      "value": "Visa Waiver Program",
+      "name": "Q45177",
+      "canonical": "visa waiver program"
+    },
+    {
+      "value": "World Meteorological Organization",
+      "name": "Q170424",
+      "canonical": "world meteorological organization"
+    },
+    {
+      "value": "World Health Organization",
+      "name": "Q7817",
+      "canonical": "world health organization"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Mercosur Cities Network",
+      "name": "Q920706",
+      "canonical": "mercosur cities network"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Mayors for Peace",
+      "name": "Q747279",
+      "canonical": "mayors for peace"
+    },
+    {
+      "value": "Kommunaler Sozialverband Sachsen",
+      "name": "Q1780354",
+      "canonical": "kommunaler sozialverband sachsen"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Mayors for Peace",
+      "name": "Q747279",
+      "canonical": "mayors for peace"
+    },
+    {
+      "value": "Bayerischer Städtetag",
+      "name": "Q812378",
+      "canonical": "bayerischer städtetag"
+    },
+    {
+      "value": "Wendish cities",
+      "name": "Q874576",
+      "canonical": "wendish cities"
+    },
+    {
+      "value": "Warnow-Wasser- und Abwasserverband",
+      "name": "Q39667594",
+      "canonical": "warnow-wasser - und abwasserverband"
+    },
+    {
+      "value": "Städte- und Gemeindetag Mecklenburg-Vorpommern",
+      "name": "Q1292296",
+      "canonical": "städte - und gemeindetag mecklenburg-vorpommern"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "União das Cidades Capitais Luso-Afro-Américo-Asiáticas",
+      "name": "Q4005967",
+      "canonical": "união das cidades capitais luso-afro-américo-asiáticas"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Niedersächsischer Städtetag",
+      "name": "Q1988624",
+      "canonical": "niedersächsischer städtetag"
+    },
+    {
+      "value": "Städte- und Gemeindebund Nordrhein-Westfalen",
+      "name": "Q2359812",
+      "canonical": "städte - und gemeindebund nordrhein-westfalen"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Städte- und Gemeindetag Mecklenburg-Vorpommern",
+      "name": "Q1292296",
+      "canonical": "städte - und gemeindetag mecklenburg-vorpommern"
+    },
+    {
+      "value": "Mayors for Peace",
+      "name": "Q747279",
+      "canonical": "mayors for peace"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Mayors for Peace",
+      "name": "Q747279",
+      "canonical": "mayors for peace"
+    },
+    {
+      "value": "Kommunaler Sozialverband Sachsen",
+      "name": "Q1780354",
+      "canonical": "kommunaler sozialverband sachsen"
+    },
+    {
+      "value": "Regionalverband Großraum Braunschweig",
+      "name": "Q231845",
+      "canonical": "regionalverband gro ß raum braunschweig"
+    },
+    {
+      "value": "Arbeitsgemeinschaft Schacht KONRAD e.V.",
+      "name": "Q21888089",
+      "canonical": "arbeitsgemeinschaft schacht konrad e.v."
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Mayors for Peace",
+      "name": "Q747279",
+      "canonical": "mayors for peace"
+    },
+    {
+      "value": "Niedersächsischer Städtetag",
+      "name": "Q1988624",
+      "canonical": "niedersächsischer städtetag"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "KlimaBündnis-Städte Schweiz",
+      "name": "Q1774367",
+      "canonical": "klimabündnis-städte schweiz"
+    },
+    {
+      "value": "Eurotowns network",
+      "name": "Q5413854",
+      "canonical": "eurotowns network"
+    },
+    {
+      "value": "World Trade Organization",
+      "name": "Q7825",
+      "canonical": "world trade organization"
+    },
+    {
+      "value": "Asia-Pacific Economic Cooperation",
+      "name": "Q170481",
+      "canonical": "asia-pacific economic cooperation"
+    },
+    {
+      "value": "Asian Development Bank",
+      "name": "Q188822",
+      "canonical": "asian development bank"
+    },
+    {
+      "value": "World Meteorological Organization",
+      "name": "Q170424",
+      "canonical": "world meteorological organization"
+    },
+    {
+      "value": "World Customs Organization",
+      "name": "Q605326",
+      "canonical": "world customs organization"
+    },
+    {
+      "value": "ICANN",
+      "name": "Q485750",
+      "canonical": "icann"
+    },
+    {
+      "value": "Financial Action Task Force on Money Laundering",
+      "name": "Q681487",
+      "canonical": "financial action task force on money laundering"
+    },
+    {
+      "value": "Egmont Group of Financial Intelligence Units",
+      "name": "Q5348119",
+      "canonical": "egmont group of financial intelligence units"
+    },
+    {
+      "value": "Bank for International Settlements",
+      "name": "Q309195",
+      "canonical": "bank for international settlements"
+    },
+    {
+      "value": "Interpol",
+      "name": "Q8475",
+      "canonical": "interpol"
+    },
+    {
+      "value": "Eurotowns network",
+      "name": "Q5413854",
+      "canonical": "eurotowns network"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "União das Cidades Capitais Luso-Afro-Américo-Asiáticas",
+      "name": "Q4005967",
+      "canonical": "união das cidades capitais luso-afro-américo-asiáticas"
+    },
+    {
+      "value": "Universal Postal Union",
+      "name": "Q17495",
+      "canonical": "universal postal union"
+    },
+    {
+      "value": "Interpol",
+      "name": "Q8475",
+      "canonical": "interpol"
+    },
+    {
+      "value": "Organisation for the Prohibition of Chemical Weapons",
+      "name": "Q842490",
+      "canonical": "organisation for the prohibition of chemical weapons"
+    },
+    {
+      "value": "International Telecommunication Union",
+      "name": "Q376150",
+      "canonical": "international telecommunication union"
+    },
+    {
+      "value": "Mayors for Peace",
+      "name": "Q747279",
+      "canonical": "mayors for peace"
+    },
+    {
+      "value": "Gemeinde- und Städtebund Thüringen",
+      "name": "Q67174081",
+      "canonical": "gemeinde - und städtebund thüringen"
+    },
+    {
+      "value": "União das Cidades Capitais Luso-Afro-Américo-Asiáticas",
+      "name": "Q4005967",
+      "canonical": "união das cidades capitais luso-afro-américo-asiáticas"
+    },
+    {
+      "value": "Eurotowns network",
+      "name": "Q5413854",
+      "canonical": "eurotowns network"
+    },
+    {
+      "value": "Mayors for Peace",
+      "name": "Q747279",
+      "canonical": "mayors for peace"
+    },
+    {
+      "value": "AG Neustadt in Europa",
+      "name": "Q202213",
+      "canonical": "ag neustadt in europa"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Czech Inspiration",
+      "name": "Q11281703",
+      "canonical": "czech inspiration"
+    },
+    {
+      "value": "Federación Española de Municipios y Provincias",
+      "name": "Q3394409",
+      "canonical": "federación española de municipios y provincias"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Mayors for Peace",
+      "name": "Q747279",
+      "canonical": "mayors for peace"
+    },
+    {
+      "value": "Bayerischer Städtetag",
+      "name": "Q812378",
+      "canonical": "bayerischer städtetag"
+    },
+    {
+      "value": "União das Cidades Capitais Luso-Afro-Américo-Asiáticas",
+      "name": "Q4005967",
+      "canonical": "união das cidades capitais luso-afro-américo-asiáticas"
+    },
+    {
+      "value": "União das Cidades Capitais Luso-Afro-Américo-Asiáticas",
+      "name": "Q4005967",
+      "canonical": "união das cidades capitais luso-afro-américo-asiáticas"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Niedersächsischer Städtetag",
+      "name": "Q1988624",
+      "canonical": "niedersächsischer städtetag"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "KlimaBündnis-Städte Schweiz",
+      "name": "Q1774367",
+      "canonical": "klimabündnis-städte schweiz"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "União das Cidades Capitais Luso-Afro-Américo-Asiáticas",
+      "name": "Q4005967",
+      "canonical": "união das cidades capitais luso-afro-américo-asiáticas"
+    },
+    {
+      "value": "Eurotowns network",
+      "name": "Q5413854",
+      "canonical": "eurotowns network"
+    },
+    {
+      "value": "Wendish cities",
+      "name": "Q874576",
+      "canonical": "wendish cities"
+    },
+    {
+      "value": "Kommunale Informationsverarbeitung Reutlingen-Ulm (KIRU)",
+      "name": "Q1780330",
+      "canonical": "kommunale informationsverarbeitung reutlingen-ulm ( kiru )"
+    },
+    {
+      "value": "Eurotowns network",
+      "name": "Q5413854",
+      "canonical": "eurotowns network"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Zweckverband 4IT",
+      "name": "Q55473342",
+      "canonical": "zweckverband 4 it"
+    },
+    {
+      "value": "Mayors for Peace",
+      "name": "Q747279",
+      "canonical": "mayors for peace"
+    },
+    {
+      "value": "Kommunalverband für Jugend und Soziales Baden-Württemberg",
+      "name": "Q1691932",
+      "canonical": "kommunalverband für jugend und soziales baden-württemberg"
+    },
+    {
+      "value": "National Association of Italian Municipalities",
+      "name": "Q3626645",
+      "canonical": "national association of italian municipalities"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "Mayors for Peace",
+      "name": "Q747279",
+      "canonical": "mayors for peace"
+    },
+    {
+      "value": "Niedersächsischer Städtetag",
+      "name": "Q1988624",
+      "canonical": "niedersächsischer städtetag"
+    },
+    {
+      "value": "Climate Alliance",
+      "name": "Q1768108",
+      "canonical": "climate alliance"
+    },
+    {
+      "value": "International Black Sea Club",
+      "name": "Q4288626",
+      "canonical": "international black sea club"
+    },
+    {
+      "value": "União das Cidades Capitais Luso-Afro-Américo-Asiáticas",
+      "name": "Q4005967",
+      "canonical": "união das cidades capitais luso-afro-américo-asiáticas"
+    },
+    {
+      "value": "Bayerischer Städtetag",
+      "name": "Q812378",
+      "canonical": "bayerischer städtetag"
+    }
+  ]
+}

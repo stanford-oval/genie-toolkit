@@ -1,0 +1,15 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Institución de Estudios Complutenses",
+      "name": "Q22970016",
+      "canonical": "institución de estudios complutenses"
+    },
+    {
+      "value": "Madrilenian studies",
+      "name": "Q29982541",
+      "canonical": "madrilenian studies"
+    }
+  ]
+}

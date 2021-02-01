@@ -1,0 +1,915 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Category:Films shot in Oslo",
+      "name": "Q19363141",
+      "canonical": "category : films shot in oslo"
+    },
+    {
+      "value": "Category:Films shot in Bonn",
+      "name": "Q19363050",
+      "canonical": "category : films shot in bonn"
+    },
+    {
+      "value": "Category:Films shot in Caracas",
+      "name": "Q10217625",
+      "canonical": "category : films shot in caracas"
+    },
+    {
+      "value": "Category:Films shot in Helsinki",
+      "name": "Q20011793",
+      "canonical": "category : films shot in helsinki"
+    },
+    {
+      "value": "Category:Films shot in Edmonton",
+      "name": "Q6986499",
+      "canonical": "category : films shot in edmonton"
+    },
+    {
+      "value": "Category:Films shot in Parma",
+      "name": "Q10219485",
+      "canonical": "category : films shot in parma"
+    },
+    {
+      "value": "Category:Films shot in Siena",
+      "name": "Q10220151",
+      "canonical": "category : films shot in siena"
+    },
+    {
+      "value": "Category:Films shot in Potenza",
+      "name": "Q10219605",
+      "canonical": "category : films shot in potenza"
+    },
+    {
+      "value": "Category:Films shot in Toledo",
+      "name": "Q10220359",
+      "canonical": "category : films shot in toledo"
+    },
+    {
+      "value": "Category:Films shot in Belfast",
+      "name": "Q10217309",
+      "canonical": "category : films shot in belfast"
+    },
+    {
+      "value": "Category:Films shot in Cádiz",
+      "name": "Q10217607",
+      "canonical": "category : films shot in cádiz"
+    },
+    {
+      "value": "Category:Films shot in Guangzhou",
+      "name": "Q16325774",
+      "canonical": "category : films shot in guangzhou"
+    },
+    {
+      "value": "Category:Films shot in Rotterdam",
+      "name": "Q19359102",
+      "canonical": "category : films shot in rotterdam"
+    },
+    {
+      "value": "Category:Films shot in Johannesburg",
+      "name": "Q19359209",
+      "canonical": "category : films shot in johannesburg"
+    },
+    {
+      "value": "Category:Films shot in La Rochelle",
+      "name": "Q10218614",
+      "canonical": "category : films shot in la rochelle"
+    },
+    {
+      "value": "Category:Films shot in Hamilton, Ontario",
+      "name": "Q8458112",
+      "canonical": "category : films shot in hamilton , ontario"
+    },
+    {
+      "value": "Category:Films shot in Tarsus",
+      "name": "Q19479281",
+      "canonical": "category : films shot in tarsus"
+    },
+    {
+      "value": "Category:Films shot in Ibadan",
+      "name": "Q16816804",
+      "canonical": "category : films shot in ibadan"
+    },
+    {
+      "value": "Category:Films shot in Tiruchirappalli",
+      "name": "Q15327869",
+      "canonical": "category : films shot in tiruchirappalli"
+    },
+    {
+      "value": "Category:Films shot in Ubatuba",
+      "name": "Q19359111",
+      "canonical": "category : films shot in ubatuba"
+    },
+    {
+      "value": "Category:Films shot in Khachmaz",
+      "name": "Q10232828",
+      "canonical": "category : films shot in khachmaz"
+    },
+    {
+      "value": "Category:Films shot in Ağcabədi",
+      "name": "Q10043419",
+      "canonical": "category : films shot in ağcabədi"
+    },
+    {
+      "value": "Category:Films shot in Xızı",
+      "name": "Q10234540",
+      "canonical": "category : films shot in xızı"
+    },
+    {
+      "value": "Category:Films shot in New York City",
+      "name": "Q6612898",
+      "canonical": "category : films shot in new york city"
+    },
+    {
+      "value": "Category:Films shot in Brussels",
+      "name": "Q10217489",
+      "canonical": "category : films shot in brussels"
+    },
+    {
+      "value": "Category:Films shot in  Łódź",
+      "name": "Q19359219",
+      "canonical": "category : films shot in łódź"
+    },
+    {
+      "value": "Category:Films shot in Ahmedabad",
+      "name": "Q16779785",
+      "canonical": "category : films shot in ahmedabad"
+    },
+    {
+      "value": "Category:Films shot in Delhi",
+      "name": "Q8458080",
+      "canonical": "category : films shot in delhi"
+    },
+    {
+      "value": "Category:Films shot in Athens",
+      "name": "Q17106059",
+      "canonical": "category : films shot in athens"
+    },
+    {
+      "value": "Category:Films shot in Bangkok",
+      "name": "Q7140303",
+      "canonical": "category : films shot in bangkok"
+    },
+    {
+      "value": "Category:Films shot in Bologna",
+      "name": "Q10046992",
+      "canonical": "category : films shot in bologna"
+    },
+    {
+      "value": "Category:Films shot in Caserta",
+      "name": "Q10217702",
+      "canonical": "category : films shot in caserta"
+    },
+    {
+      "value": "Category:Films shot in Lagos",
+      "name": "Q16779860",
+      "canonical": "category : films shot in lagos"
+    },
+    {
+      "value": "Category:Films shot in Granada",
+      "name": "Q19363097",
+      "canonical": "category : films shot in granada"
+    },
+    {
+      "value": "Category:Films set in Málaga",
+      "name": "Q6293848",
+      "canonical": "category : films set in málaga"
+    },
+    {
+      "value": "Category:Films shot in Lecce",
+      "name": "Q10218738",
+      "canonical": "category : films shot in lecce"
+    },
+    {
+      "value": "Category:Films shot in Bremen",
+      "name": "Q19363052",
+      "canonical": "category : films shot in bremen"
+    },
+    {
+      "value": "Category:Films shot in Hiroshima",
+      "name": "Q8458122",
+      "canonical": "category : films shot in hiroshima"
+    },
+    {
+      "value": "Category:Films shot in Calgary",
+      "name": "Q19889714",
+      "canonical": "category : films shot in calgary"
+    },
+    {
+      "value": "Category:Films shot in Manaus",
+      "name": "Q8458153",
+      "canonical": "category : films shot in manaus"
+    },
+    {
+      "value": "Category:Films shot in San Luis (Argentina)",
+      "name": "Q6296771",
+      "canonical": "category : films shot in san luis ( argentina )"
+    },
+    {
+      "value": "Category:Films shot in Konya",
+      "name": "Q19479250",
+      "canonical": "category : films shot in konya"
+    },
+    {
+      "value": "Category:Films shot in Charleroi",
+      "name": "Q19363064",
+      "canonical": "category : films shot in charleroi"
+    },
+    {
+      "value": "Category:Films shot in Acapulco",
+      "name": "Q19363030",
+      "canonical": "category : films shot in acapulco"
+    },
+    {
+      "value": "Category:Films shot in Diyarbakır",
+      "name": "Q19479216",
+      "canonical": "category : films shot in diyarbakır"
+    },
+    {
+      "value": "Category:Films shot in Campinas",
+      "name": "Q17198513",
+      "canonical": "category : films shot in campinas"
+    },
+    {
+      "value": "Category:Films shot in Visakhapatnam",
+      "name": "Q19479263",
+      "canonical": "category : films shot in visakhapatnam"
+    },
+    {
+      "value": "Category:Films shot in Benin City",
+      "name": "Q16779797",
+      "canonical": "category : films shot in benin city"
+    },
+    {
+      "value": "Category:Films shot in Quba",
+      "name": "Q10178858",
+      "canonical": "category : films shot in quba"
+    },
+    {
+      "value": "Category:Films shot in Trieste",
+      "name": "Q10220420",
+      "canonical": "category : films shot in trieste"
+    },
+    {
+      "value": "Category:Films shot in Utrecht",
+      "name": "Q17303746",
+      "canonical": "category : films shot in utrecht"
+    },
+    {
+      "value": "Category:Films shot in Beijing",
+      "name": "Q6548000",
+      "canonical": "category : films shot in beijing"
+    },
+    {
+      "value": "Category:Films shot in Dhaka",
+      "name": "Q19359119",
+      "canonical": "category : films shot in dhaka"
+    },
+    {
+      "value": "Category:Films shot in Islamabad",
+      "name": "Q19359095",
+      "canonical": "category : films shot in islamabad"
+    },
+    {
+      "value": "Category:Films shot in Frankfurt",
+      "name": "Q18403386",
+      "canonical": "category : films shot in frankfurt"
+    },
+    {
+      "value": "Category:Films shot in Verona",
+      "name": "Q10220599",
+      "canonical": "category : films shot in verona"
+    },
+    {
+      "value": "Category:Films shot in Naples",
+      "name": "Q10219284",
+      "canonical": "category : films shot in naples"
+    },
+    {
+      "value": "Category:Films shot in Pescara",
+      "name": "Q59557032",
+      "canonical": "category : films shot in pescara"
+    },
+    {
+      "value": "Category:Films shot in Sydney",
+      "name": "Q7237194",
+      "canonical": "category : films shot in sydney"
+    },
+    {
+      "value": "Category:Films shot in Perugia",
+      "name": "Q10219683",
+      "canonical": "category : films shot in perugia"
+    },
+    {
+      "value": "Category:Films shot in Abuja",
+      "name": "Q16779780",
+      "canonical": "category : films shot in abuja"
+    },
+    {
+      "value": "Category:Films shot in Treviso",
+      "name": "Q10220457",
+      "canonical": "category : films shot in treviso"
+    },
+    {
+      "value": "Category:Films shot in Casablanca",
+      "name": "Q10217698",
+      "canonical": "category : films shot in casablanca"
+    },
+    {
+      "value": "Category:Films shot in Syracuse, Sicily",
+      "name": "Q10220206",
+      "canonical": "category : films shot in syracuse , sicily"
+    },
+    {
+      "value": "Category:Films shot in Manchester",
+      "name": "Q19363126",
+      "canonical": "category : films shot in manchester"
+    },
+    {
+      "value": "Category:Films shot in Cannes",
+      "name": "Q9695900",
+      "canonical": "category : films shot in cannes"
+    },
+    {
+      "value": "Category:Films shot in Bursa",
+      "name": "Q19479213",
+      "canonical": "category : films shot in bursa"
+    },
+    {
+      "value": "Category:Films shot in Córdoba (Argentina)",
+      "name": "Q6296751",
+      "canonical": "category : films shot in córdoba ( argentina )"
+    },
+    {
+      "value": "Category:Films shot in Alcalá de Henares",
+      "name": "Q10217054",
+      "canonical": "category : films shot in alcalá de henares"
+    },
+    {
+      "value": "Category:Films shot in Recife",
+      "name": "Q8458196",
+      "canonical": "category : films shot in recife"
+    },
+    {
+      "value": "Category:Films shot in Mersin",
+      "name": "Q19479265",
+      "canonical": "category : films shot in mersin"
+    },
+    {
+      "value": "Category:Films shot in Bitola",
+      "name": "Q8458044",
+      "canonical": "category : films shot in bitola"
+    },
+    {
+      "value": "Category:Films shot in Kollam",
+      "name": "Q19359084",
+      "canonical": "category : films shot in kollam"
+    },
+    {
+      "value": "Category:Films shot in Warsaw",
+      "name": "Q8458236",
+      "canonical": "category : films shot in warsaw"
+    },
+    {
+      "value": "Category:Films shot in Modena",
+      "name": "Q10219105",
+      "canonical": "category : films shot in modena"
+    },
+    {
+      "value": "Category:Films shot in Singapore",
+      "name": "Q17444207",
+      "canonical": "category : films shot in singapore"
+    },
+    {
+      "value": "Category:Films shot in Ghent",
+      "name": "Q15257524",
+      "canonical": "category : films shot in ghent"
+    },
+    {
+      "value": "Category:Films shot in Nuremberg",
+      "name": "Q18524997",
+      "canonical": "category : films shot in nuremberg"
+    },
+    {
+      "value": "Category:Films shot in Ancona",
+      "name": "Q10217141",
+      "canonical": "category : films shot in ancona"
+    },
+    {
+      "value": "Category:Films shot in Córdoba (Spain)",
+      "name": "Q19363074",
+      "canonical": "category : films shot in córdoba ( spain )"
+    },
+    {
+      "value": "Category:Films shot in Chongqing",
+      "name": "Q8458061",
+      "canonical": "category : films shot in chongqing"
+    },
+    {
+      "value": "Category:Films shot in Lahore",
+      "name": "Q19359098",
+      "canonical": "category : films shot in lahore"
+    },
+    {
+      "value": "Category:Films shot in Ferrara",
+      "name": "Q10218360",
+      "canonical": "category : films shot in ferrara"
+    },
+    {
+      "value": "Category:Films shot in Ravenna",
+      "name": "Q10219757",
+      "canonical": "category : films shot in ravenna"
+    },
+    {
+      "value": "Category:Films shot in Pisa",
+      "name": "Q10219576",
+      "canonical": "category : films shot in pisa"
+    },
+    {
+      "value": "Category:Films shot in Rosario (Argentina)",
+      "name": "Q6296770",
+      "canonical": "category : films shot in rosario ( argentina )"
+    },
+    {
+      "value": "Category:Films shot in Marrakesh",
+      "name": "Q10218915",
+      "canonical": "category : films shot in marrakesh"
+    },
+    {
+      "value": "Category:Films shot in Thrissur",
+      "name": "Q19359090",
+      "canonical": "category : films shot in thrissur"
+    },
+    {
+      "value": "Category:Films shot in Calabar",
+      "name": "Q16779811",
+      "canonical": "category : films shot in calabar"
+    },
+    {
+      "value": "Category:Films shot in Kalbajar",
+      "name": "Q10127409",
+      "canonical": "category : films shot in kalbajar"
+    },
+    {
+      "value": "Category:Films shot in İsmayıllı",
+      "name": "Q10258643",
+      "canonical": "category : films shot in i̇smayıllı"
+    },
+    {
+      "value": "Category:Films shot in San Francisco",
+      "name": "Q7140302",
+      "canonical": "category : films shot in san francisco"
+    },
+    {
+      "value": "Category:Films shot in Rome",
+      "name": "Q6469667",
+      "canonical": "category : films shot in rome"
+    },
+    {
+      "value": "Category:Films shot in Turin",
+      "name": "Q10220482",
+      "canonical": "category : films shot in turin"
+    },
+    {
+      "value": "Category:Films shot in Salerno",
+      "name": "Q10219950",
+      "canonical": "category : films shot in salerno"
+    },
+    {
+      "value": "Category:Films shot in Mumbai",
+      "name": "Q15120845",
+      "canonical": "category : films shot in mumbai"
+    },
+    {
+      "value": "Category:Films shot in Buenos Aires",
+      "name": "Q6296745",
+      "canonical": "category : films shot in buenos aires"
+    },
+    {
+      "value": "Category:Films shot in Leipzig",
+      "name": "Q19363113",
+      "canonical": "category : films shot in leipzig"
+    },
+    {
+      "value": "Category:Films shot in Palermo",
+      "name": "Q10219456",
+      "canonical": "category : films shot in palermo"
+    },
+    {
+      "value": "Category:Films shot in Braunschweig",
+      "name": "Q15257520",
+      "canonical": "category : films shot in braunschweig"
+    },
+    {
+      "value": "Category:Films shot in Novara",
+      "name": "Q17273636",
+      "canonical": "category : films shot in novara"
+    },
+    {
+      "value": "Category:Films shot in Hong Kong",
+      "name": "Q7140824",
+      "canonical": "category : films shot in hong kong"
+    },
+    {
+      "value": "Category:Films shot in Sevilla",
+      "name": "Q10220313",
+      "canonical": "category : films shot in sevilla"
+    },
+    {
+      "value": "Category:Films shot in Agrigento",
+      "name": "Q10217029",
+      "canonical": "category : films shot in agrigento"
+    },
+    {
+      "value": "Category:Films shot in Luleå",
+      "name": "Q16779868",
+      "canonical": "category : films shot in luleå"
+    },
+    {
+      "value": "Category:Films shot in Bergen",
+      "name": "Q19363047",
+      "canonical": "category : films shot in bergen"
+    },
+    {
+      "value": "Category:Films shot in Auckland",
+      "name": "Q19359180",
+      "canonical": "category : films shot in auckland"
+    },
+    {
+      "value": "Category:Films shot in Angers",
+      "name": "Q10217159",
+      "canonical": "category : films shot in angers"
+    },
+    {
+      "value": "Category:Films shot in Fortaleza",
+      "name": "Q8458096",
+      "canonical": "category : films shot in fortaleza"
+    },
+    {
+      "value": "Category:Films shot in Ushuaia",
+      "name": "Q6296774",
+      "canonical": "category : films shot in ushuaia"
+    },
+    {
+      "value": "Category:Films shot in Kayseri",
+      "name": "Q19479242",
+      "canonical": "category : films shot in kayseri"
+    },
+    {
+      "value": "Category:Films shot in Cartagena",
+      "name": "Q10217648",
+      "canonical": "category : films shot in cartagena"
+    },
+    {
+      "value": "Category:Films shot in Kingston, Ontario",
+      "name": "Q8458136",
+      "canonical": "category : films shot in kingston , ontario"
+    },
+    {
+      "value": "Category:Films shot in London",
+      "name": "Q7140807",
+      "canonical": "category : films shot in london"
+    },
+    {
+      "value": "Category:Films shot in Vatican City",
+      "name": "Q10208993",
+      "canonical": "category : films shot in vatican city"
+    },
+    {
+      "value": "Category:Films shot in Venice",
+      "name": "Q7140810",
+      "canonical": "category : films shot in venice"
+    },
+    {
+      "value": "Category:Films shot in Amsterdam",
+      "name": "Q10217113",
+      "canonical": "category : films shot in amsterdam"
+    },
+    {
+      "value": "Category:Films shot in Como",
+      "name": "Q19363070",
+      "canonical": "category : films shot in como"
+    },
+    {
+      "value": "Category:Films shot in Stockholm",
+      "name": "Q16394910",
+      "canonical": "category : films shot in stockholm"
+    },
+    {
+      "value": "Category:Films shot in Taipei",
+      "name": "Q9642965",
+      "canonical": "category : films shot in taipei"
+    },
+    {
+      "value": "Category:Films shot in Madrid",
+      "name": "Q6296763",
+      "canonical": "category : films shot in madrid"
+    },
+    {
+      "value": "Category:Films shot in Melbourne",
+      "name": "Q7522264",
+      "canonical": "category : films shot in melbourne"
+    },
+    {
+      "value": "Category:Films shot in Adelaide",
+      "name": "Q8458024",
+      "canonical": "category : films shot in adelaide"
+    },
+    {
+      "value": "Category:Films shot in Avignon",
+      "name": "Q17163032",
+      "canonical": "category : films shot in avignon"
+    },
+    {
+      "value": "Category:Films shot in Terni",
+      "name": "Q10220334",
+      "canonical": "category : films shot in terni"
+    },
+    {
+      "value": "Category:Films shot in Bilbao",
+      "name": "Q19363049",
+      "canonical": "category : films shot in bilbao"
+    },
+    {
+      "value": "Category:Films shot in Valencia",
+      "name": "Q19363176",
+      "canonical": "category : films shot in valencia"
+    },
+    {
+      "value": "Category:Films shot in Ooty",
+      "name": "Q15327861",
+      "canonical": "category : films shot in ooty"
+    },
+    {
+      "value": "Category:Films shot in Almería",
+      "name": "Q9669110",
+      "canonical": "category : films shot in almería"
+    },
+    {
+      "value": "Category:Films shot in Huelva",
+      "name": "Q10218567",
+      "canonical": "category : films shot in huelva"
+    },
+    {
+      "value": "Category:Films shot in Reggio Emilia",
+      "name": "Q10219772",
+      "canonical": "category : films shot in reggio emilia"
+    },
+    {
+      "value": "Category:Films shot in Rimini",
+      "name": "Q10219816",
+      "canonical": "category : films shot in rimini"
+    },
+    {
+      "value": "Category:Films shot in Prato",
+      "name": "Q17273604",
+      "canonical": "category : films shot in prato"
+    },
+    {
+      "value": "Category:Films shot in Porto Alegre",
+      "name": "Q9696019",
+      "canonical": "category : films shot in porto alegre"
+    },
+    {
+      "value": "Category:Films shot in Nottingham",
+      "name": "Q10219312",
+      "canonical": "category : films shot in nottingham"
+    },
+    {
+      "value": "Category:Films shot in Erzurum",
+      "name": "Q19479224",
+      "canonical": "category : films shot in erzurum"
+    },
+    {
+      "value": "Category:Films shot in Aden",
+      "name": "Q57171800",
+      "canonical": "category : films shot in aden"
+    },
+    {
+      "value": "Category:Films shot in Maceió",
+      "name": "Q19359099",
+      "canonical": "category : films shot in maceió"
+    },
+    {
+      "value": "Category:Films shot in Gloucester",
+      "name": "Q10218447",
+      "canonical": "category : films shot in gloucester"
+    },
+    {
+      "value": "Category:Films shot in Stirling (council area)",
+      "name": "Q8458213",
+      "canonical": "category : films shot in stirling ( council area )"
+    },
+    {
+      "value": "Category:Films shot in Abeokuta",
+      "name": "Q19359120",
+      "canonical": "category : films shot in abeokuta"
+    },
+    {
+      "value": "Category:Films shot in Agdam",
+      "name": "Q10044091",
+      "canonical": "category : films shot in agdam"
+    },
+    {
+      "value": "Category:Films shot in Toronto",
+      "name": "Q7140831",
+      "canonical": "category : films shot in toronto"
+    },
+    {
+      "value": "Category:Films shot in Milan",
+      "name": "Q9159067",
+      "canonical": "category : films shot in milan"
+    },
+    {
+      "value": "Category:Films shot in Genoa",
+      "name": "Q10218508",
+      "canonical": "category : films shot in genoa"
+    },
+    {
+      "value": "Category:Films shot in Havana",
+      "name": "Q8458118",
+      "canonical": "category : films shot in havana"
+    },
+    {
+      "value": "Category:Films shot in Munich",
+      "name": "Q10219166",
+      "canonical": "category : films shot in munich"
+    },
+    {
+      "value": "Category:Films shot in Catania",
+      "name": "Q10217768",
+      "canonical": "category : films shot in catania"
+    },
+    {
+      "value": "Category:Films shot in Winnipeg",
+      "name": "Q6991445",
+      "canonical": "category : films shot in winnipeg"
+    },
+    {
+      "value": "Category:Films shot in Liège",
+      "name": "Q10218768",
+      "canonical": "category : films shot in liège"
+    },
+    {
+      "value": "Category:Films shot in Glasgow",
+      "name": "Q8458102",
+      "canonical": "category : films shot in glasgow"
+    },
+    {
+      "value": "Category:Films shot in Curitiba",
+      "name": "Q15257522",
+      "canonical": "category : films shot in curitiba"
+    },
+    {
+      "value": "Category:Films shot in Livorno",
+      "name": "Q17273637",
+      "canonical": "category : films shot in livorno"
+    },
+    {
+      "value": "Category:Films shot in Rio de Janeiro (city)",
+      "name": "Q6931421",
+      "canonical": "category : films shot in rio de janeiro ( city )"
+    },
+    {
+      "value": "Category:Films shot in Latina, Italy",
+      "name": "Q10218710",
+      "canonical": "category : films shot in latina , italy"
+    },
+    {
+      "value": "Category:Films shot in Paulínia",
+      "name": "Q8458185",
+      "canonical": "category : films shot in paulínia"
+    },
+    {
+      "value": "Category:Films shot in Kobe",
+      "name": "Q16779850",
+      "canonical": "category : films shot in kobe"
+    },
+    {
+      "value": "Category:Films shot in Yevlakh",
+      "name": "Q10239036",
+      "canonical": "category : films shot in yevlakh"
+    },
+    {
+      "value": "Category:Films shot in Madurai",
+      "name": "Q16779873",
+      "canonical": "category : films shot in madurai"
+    },
+    {
+      "value": "Category:Films shot in Cairo",
+      "name": "Q17303594",
+      "canonical": "category : films shot in cairo"
+    },
+    {
+      "value": "Category:Films shot in São Paulo",
+      "name": "Q8458218",
+      "canonical": "category : films shot in são paulo"
+    },
+    {
+      "value": "Category:Films shot in Brussels",
+      "name": "Q10217489",
+      "canonical": "category : films shot in brussels"
+    },
+    {
+      "value": "Category:Films shot in Bergamo",
+      "name": "Q19363045",
+      "canonical": "category : films shot in bergamo"
+    },
+    {
+      "value": "Category:Films shot in Florence",
+      "name": "Q10218395",
+      "canonical": "category : films shot in florence"
+    },
+    {
+      "value": "Category:Films shot in Bari",
+      "name": "Q10217271",
+      "canonical": "category : films shot in bari"
+    },
+    {
+      "value": "Category:Films shot in Belgrade",
+      "name": "Q10217323",
+      "canonical": "category : films shot in belgrade"
+    },
+    {
+      "value": "Category:Films shot in Brescia",
+      "name": "Q10217393",
+      "canonical": "category : films shot in brescia"
+    },
+    {
+      "value": "Category:Films shot in Shanghai",
+      "name": "Q7140799",
+      "canonical": "category : films shot in shanghai"
+    },
+    {
+      "value": "Category:Films shot in Alicante",
+      "name": "Q10217082",
+      "canonical": "category : films shot in alicante"
+    },
+    {
+      "value": "Category:Films shot in Messina",
+      "name": "Q10219040",
+      "canonical": "category : films shot in messina"
+    },
+    {
+      "value": "Category:Films shot in Terrassa",
+      "name": "Q19359212",
+      "canonical": "category : films shot in terrassa"
+    },
+    {
+      "value": "Category:Films shot in Ávila",
+      "name": "Q19363041",
+      "canonical": "category : films shot in ávila"
+    },
+    {
+      "value": "Category:Films shot in Nanjing",
+      "name": "Q19359086",
+      "canonical": "category : films shot in nanjing"
+    },
+    {
+      "value": "Category:Films shot in Bristol",
+      "name": "Q19363053",
+      "canonical": "category : films shot in bristol"
+    },
+    {
+      "value": "Category:Films shot in Edinburgh",
+      "name": "Q8458087",
+      "canonical": "category : films shot in edinburgh"
+    },
+    {
+      "value": "Category:Films shot in Liverpool",
+      "name": "Q11827343",
+      "canonical": "category : films shot in liverpool"
+    },
+    {
+      "value": "Category:Films shot in Dunkirk",
+      "name": "Q10218308",
+      "canonical": "category : films shot in dunkirk"
+    },
+    {
+      "value": "Category:Films shot in Gaziantep",
+      "name": "Q19479226",
+      "canonical": "category : films shot in gaziantep"
+    },
+    {
+      "value": "Category:Films shot in Tijuana",
+      "name": "Q8458222",
+      "canonical": "category : films shot in tijuana"
+    },
+    {
+      "value": "Category:Films shot in Antibes",
+      "name": "Q19363036",
+      "canonical": "category : films shot in antibes"
+    },
+    {
+      "value": "Category:Films shot in Reconquista",
+      "name": "Q13319710",
+      "canonical": "category : films shot in reconquista"
+    },
+    {
+      "value": "Category:Films shot in Qakh",
+      "name": "Q10175932",
+      "canonical": "category : films shot in qakh"
+    }
+  ]
+}

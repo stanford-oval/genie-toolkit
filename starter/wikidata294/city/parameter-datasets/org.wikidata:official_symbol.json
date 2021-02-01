@@ -1,0 +1,20 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Cinnamomum camphora",
+      "name": "Q158722",
+      "canonical": "cinnamomum camphora"
+    },
+    {
+      "value": "Nerium oleander",
+      "name": "Q155833",
+      "canonical": "nerium oleander"
+    },
+    {
+      "value": "Vanda 'Miss Joaquim'",
+      "name": "Q2424230",
+      "canonical": "vanda 'miss joaquim '"
+    }
+  ]
+}

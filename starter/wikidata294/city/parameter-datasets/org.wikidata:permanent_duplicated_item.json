@@ -1,0 +1,30 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Kaliningrad",
+      "name": "Q1829",
+      "canonical": "kaliningrad"
+    },
+    {
+      "value": "Fukuoka",
+      "name": "Q26600",
+      "canonical": "fukuoka"
+    },
+    {
+      "value": "Hiroshima",
+      "name": "Q34664",
+      "canonical": "hiroshima"
+    },
+    {
+      "value": "The Hague",
+      "name": "Q36600",
+      "canonical": "the hague"
+    },
+    {
+      "value": "Ōmihachiman",
+      "name": "Q385461",
+      "canonical": "ōmihachiman"
+    }
+  ]
+}

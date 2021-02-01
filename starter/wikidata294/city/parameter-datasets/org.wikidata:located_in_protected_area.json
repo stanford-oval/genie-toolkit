@@ -1,0 +1,20 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Pembrokeshire Coast National Park",
+      "name": "Q1893297",
+      "canonical": "pembrokeshire coast national park"
+    },
+    {
+      "value": "Natural and Culturo-Historical Region of Kotor",
+      "name": "Q3511938",
+      "canonical": "natural and culturo-historical region of kotor"
+    },
+    {
+      "value": "Karkonosze National Park",
+      "name": "Q621423",
+      "canonical": "karkonosze national park"
+    }
+  ]
+}

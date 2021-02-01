@@ -1,0 +1,35 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "National Capital Territory of Delhi",
+      "name": "Q57156500",
+      "canonical": "national capital territory of delhi"
+    },
+    {
+      "value": "Tallinn City",
+      "name": "Q4450503",
+      "canonical": "tallinn city"
+    },
+    {
+      "value": "Mallawi",
+      "name": "Q22929574",
+      "canonical": "mallawi"
+    },
+    {
+      "value": "Macau Peninsula",
+      "name": "Q1334373",
+      "canonical": "macau peninsula"
+    },
+    {
+      "value": "San Francisco County",
+      "name": "Q13188841",
+      "canonical": "san francisco county"
+    },
+    {
+      "value": "Ilha Comprida",
+      "name": "Q22046270",
+      "canonical": "ilha comprida"
+    }
+  ]
+}

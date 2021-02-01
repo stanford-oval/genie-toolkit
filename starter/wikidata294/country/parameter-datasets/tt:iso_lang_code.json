@@ -1,0 +1,5360 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "West Flemish",
+      "name": "Q100103",
+      "canonical": "west flemish"
+    },
+    {
+      "value": "Limburgish",
+      "name": "Q102172",
+      "canonical": "limburgish"
+    },
+    {
+      "value": "Flemish Sign Language",
+      "name": "Q2107617",
+      "canonical": "flemish sign language"
+    },
+    {
+      "value": "French Belgian Sign Language",
+      "name": "Q3217332",
+      "canonical": "french belgian sign language"
+    },
+    {
+      "value": "Dutch",
+      "name": "Q7411",
+      "canonical": "dutch"
+    },
+    {
+      "value": "Luxembourgish",
+      "name": "Q9051",
+      "canonical": "luxembourgish"
+    },
+    {
+      "value": "German",
+      "name": "Q188",
+      "canonical": "german"
+    },
+    {
+      "value": "French",
+      "name": "Q150",
+      "canonical": "french"
+    },
+    {
+      "value": "Picard",
+      "name": "Q34024",
+      "canonical": "picard"
+    },
+    {
+      "value": "Walloon",
+      "name": "Q34219",
+      "canonical": "walloon"
+    },
+    {
+      "value": "Champenois",
+      "name": "Q430018",
+      "canonical": "champenois"
+    },
+    {
+      "value": "Lorrain",
+      "name": "Q671198",
+      "canonical": "lorrain"
+    },
+    {
+      "value": "Low Dietsch dialects",
+      "name": "Q151156",
+      "canonical": "low dietsch dialects"
+    },
+    {
+      "value": "Flemish",
+      "name": "Q34147",
+      "canonical": "flemish"
+    },
+    {
+      "value": "Belgian Dutch",
+      "name": "Q1404296",
+      "canonical": "belgian dutch"
+    },
+    {
+      "value": "Belgian French",
+      "name": "Q815549",
+      "canonical": "belgian french"
+    },
+    {
+      "value": "Marols",
+      "name": "Q2668371",
+      "canonical": "marols"
+    },
+    {
+      "value": "Yiddish",
+      "name": "Q8641",
+      "canonical": "yiddish"
+    },
+    {
+      "value": "German Sign Language",
+      "name": "Q33282",
+      "canonical": "german sign language"
+    },
+    {
+      "value": "Sinte Romani",
+      "name": "Q1793299",
+      "canonical": "sinte romani"
+    },
+    {
+      "value": "Portuguese",
+      "name": "Q5146",
+      "canonical": "portuguese"
+    },
+    {
+      "value": "Minderico",
+      "name": "Q6863806",
+      "canonical": "minderico"
+    },
+    {
+      "value": "Portuguese Sign Language",
+      "name": "Q3915472",
+      "canonical": "portuguese sign language"
+    },
+    {
+      "value": "Mirandese",
+      "name": "Q13330",
+      "canonical": "mirandese"
+    },
+    {
+      "value": "Galician",
+      "name": "Q9307",
+      "canonical": "galician"
+    },
+    {
+      "value": "Asturian",
+      "name": "Q29507",
+      "canonical": "asturian"
+    },
+    {
+      "value": "Cantonese",
+      "name": "Q9186",
+      "canonical": "cantonese"
+    },
+    {
+      "value": "Buyuan Jinuo",
+      "name": "Q12952528",
+      "canonical": "buyuan jinuo"
+    },
+    {
+      "value": "Youle Jinuo",
+      "name": "Q12952530",
+      "canonical": "youle jinuo"
+    },
+    {
+      "value": "Southern Guiyang Hmong",
+      "name": "Q12953553",
+      "canonical": "southern guiyang hmong"
+    },
+    {
+      "value": "Southern Bai",
+      "name": "Q12952250",
+      "canonical": "southern bai"
+    },
+    {
+      "value": "Central Bai",
+      "name": "Q12628803",
+      "canonical": "central bai"
+    },
+    {
+      "value": "Northern Qiandong Miao",
+      "name": "Q3138832",
+      "canonical": "northern qiandong miao"
+    },
+    {
+      "value": "Baima",
+      "name": "Q674990",
+      "canonical": "baima"
+    },
+    {
+      "value": "Oroqen",
+      "name": "Q1367309",
+      "canonical": "oroqen"
+    },
+    {
+      "value": "Tinani",
+      "name": "Q784502",
+      "canonical": "tinani"
+    },
+    {
+      "value": "Kaduo",
+      "name": "Q769809",
+      "canonical": "kaduo"
+    },
+    {
+      "value": "Rgyalrong languages",
+      "name": "Q832026",
+      "canonical": "rgyalrong languages"
+    },
+    {
+      "value": "Kim Mun",
+      "name": "Q1115317",
+      "canonical": "kim mun"
+    },
+    {
+      "value": "Waxiang Chinese",
+      "name": "Q2252191",
+      "canonical": "waxiang chinese"
+    },
+    {
+      "value": "U",
+      "name": "Q953082",
+      "canonical": "u"
+    },
+    {
+      "value": "Katso",
+      "name": "Q246122",
+      "canonical": "katso"
+    },
+    {
+      "value": "Standard Chinese",
+      "name": "Q727694",
+      "canonical": "standard chinese"
+    },
+    {
+      "value": "Chadong",
+      "name": "Q926742",
+      "canonical": "chadong"
+    },
+    {
+      "value": "Hlai",
+      "name": "Q934738",
+      "canonical": "hlai"
+    },
+    {
+      "value": "Mang",
+      "name": "Q720192",
+      "canonical": "mang"
+    },
+    {
+      "value": "Choyo",
+      "name": "Q3414352",
+      "canonical": "choyo"
+    },
+    {
+      "value": "Sani",
+      "name": "Q1055287",
+      "canonical": "sani"
+    },
+    {
+      "value": "Wutun language",
+      "name": "Q1012917",
+      "canonical": "wutun language"
+    },
+    {
+      "value": "Cun",
+      "name": "Q2475478",
+      "canonical": "cun"
+    },
+    {
+      "value": "Qabiao",
+      "name": "Q3436700",
+      "canonical": "qabiao"
+    },
+    {
+      "value": "A-Hmao",
+      "name": "Q1108934",
+      "canonical": "a-hmao"
+    },
+    {
+      "value": "Muya",
+      "name": "Q2422759",
+      "canonical": "muya"
+    },
+    {
+      "value": "Chinese Sign Language",
+      "name": "Q1094190",
+      "canonical": "chinese sign language"
+    },
+    {
+      "value": "Biao",
+      "name": "Q4902547",
+      "canonical": "biao"
+    },
+    {
+      "value": "Wa",
+      "name": "Q4923414",
+      "canonical": "wa"
+    },
+    {
+      "value": "Iu Mien",
+      "name": "Q2498808",
+      "canonical": "iu mien"
+    },
+    {
+      "value": "Muda",
+      "name": "Q6931494",
+      "canonical": "muda"
+    },
+    {
+      "value": "Min Zhuang language",
+      "name": "Q6862618",
+      "canonical": "min zhuang language"
+    },
+    {
+      "value": "Micha",
+      "name": "Q6827993",
+      "canonical": "micha"
+    },
+    {
+      "value": "Axi language",
+      "name": "Q4830439",
+      "canonical": "axi language"
+    },
+    {
+      "value": "Then language",
+      "name": "Q3442330",
+      "canonical": "then language"
+    },
+    {
+      "value": "Azha",
+      "name": "Q4832486",
+      "canonical": "azha"
+    },
+    {
+      "value": "Moji",
+      "name": "Q6895060",
+      "canonical": "moji"
+    },
+    {
+      "value": "Azhe",
+      "name": "Q4832535",
+      "canonical": "azhe"
+    },
+    {
+      "value": "Tai Ya",
+      "name": "Q3441122",
+      "canonical": "tai ya"
+    },
+    {
+      "value": "Central Tibetan language",
+      "name": "Q5061915",
+      "canonical": "central tibetan language"
+    },
+    {
+      "value": "Muzi",
+      "name": "Q6944445",
+      "canonical": "muzi"
+    },
+    {
+      "value": "She",
+      "name": "Q2605689",
+      "canonical": "she"
+    },
+    {
+      "value": "Pa-Hng",
+      "name": "Q2625410",
+      "canonical": "pa-hng"
+    },
+    {
+      "value": "Blang",
+      "name": "Q4925096",
+      "canonical": "blang"
+    },
+    {
+      "value": "Bumang",
+      "name": "Q4997235",
+      "canonical": "bumang"
+    },
+    {
+      "value": "Yue Chinese",
+      "name": "Q7033959",
+      "canonical": "yue chinese"
+    },
+    {
+      "value": "Biao Min language",
+      "name": "Q3503800",
+      "canonical": "biao min language"
+    },
+    {
+      "value": "Ai-Cham",
+      "name": "Q2827749",
+      "canonical": "ai-cham"
+    },
+    {
+      "value": "Naluo language",
+      "name": "Q6961032",
+      "canonical": "naluo language"
+    },
+    {
+      "value": "Zokhuo",
+      "name": "Q8073523",
+      "canonical": "zokhuo"
+    },
+    {
+      "value": "Dai Zhuang",
+      "name": "Q5209052",
+      "canonical": "dai zhuang"
+    },
+    {
+      "value": "Nong Zhuang",
+      "name": "Q7049385",
+      "canonical": "nong zhuang"
+    },
+    {
+      "value": "Paha language",
+      "name": "Q2879238",
+      "canonical": "paha language"
+    },
+    {
+      "value": "Ong Be language",
+      "name": "Q7093790",
+      "canonical": "ong be language"
+    },
+    {
+      "value": "Bit",
+      "name": "Q2904868",
+      "canonical": "bit"
+    },
+    {
+      "value": "Sangkong",
+      "name": "Q2945610",
+      "canonical": "sangkong"
+    },
+    {
+      "value": "Phupha language",
+      "name": "Q7188378",
+      "canonical": "phupha language"
+    },
+    {
+      "value": "Choni",
+      "name": "Q2964447",
+      "canonical": "choni"
+    },
+    {
+      "value": "Enu",
+      "name": "Q5380858",
+      "canonical": "enu"
+    },
+    {
+      "value": "Zauzou",
+      "name": "Q3616358",
+      "canonical": "zauzou"
+    },
+    {
+      "value": "Pholo",
+      "name": "Q7187103",
+      "canonical": "pholo"
+    },
+    {
+      "value": "Phola language",
+      "name": "Q7187058",
+      "canonical": "phola language"
+    },
+    {
+      "value": "Cao Miao",
+      "name": "Q2936935",
+      "canonical": "cao miao"
+    },
+    {
+      "value": "Ache Yi language",
+      "name": "Q10949828",
+      "canonical": "ache yi language"
+    },
+    {
+      "value": "Hmongic languages",
+      "name": "Q9040772",
+      "canonical": "hmongic languages"
+    },
+    {
+      "value": "Samatao",
+      "name": "Q7408902",
+      "canonical": "samatao"
+    },
+    {
+      "value": "Samei",
+      "name": "Q7409269",
+      "canonical": "samei"
+    },
+    {
+      "value": "Gepo",
+      "name": "Q5548692",
+      "canonical": "gepo"
+    },
+    {
+      "value": "Bugan",
+      "name": "Q3033554",
+      "canonical": "bugan"
+    },
+    {
+      "value": "Gejia",
+      "name": "Q11251864",
+      "canonical": "gejia"
+    },
+    {
+      "value": "Awu Yi language",
+      "name": "Q11163308",
+      "canonical": "awu yi language"
+    },
+    {
+      "value": "Tseku",
+      "name": "Q11159532",
+      "canonical": "tseku"
+    },
+    {
+      "value": "Hlersu",
+      "name": "Q5873537",
+      "canonical": "hlersu"
+    },
+    {
+      "value": "Dzao Min",
+      "name": "Q3042189",
+      "canonical": "dzao min"
+    },
+    {
+      "value": "Guiqiong",
+      "name": "Q3120647",
+      "canonical": "guiqiong"
+    },
+    {
+      "value": "Lavrung language",
+      "name": "Q3118757",
+      "canonical": "lavrung language"
+    },
+    {
+      "value": "Sui",
+      "name": "Q3112388",
+      "canonical": "sui"
+    },
+    {
+      "value": "Sanie",
+      "name": "Q7418287",
+      "canonical": "sanie"
+    },
+    {
+      "value": "Mulam",
+      "name": "Q3092284",
+      "canonical": "mulam"
+    },
+    {
+      "value": "Maonan",
+      "name": "Q3092293",
+      "canonical": "maonan"
+    },
+    {
+      "value": "Hu",
+      "name": "Q3141783",
+      "canonical": "hu"
+    },
+    {
+      "value": "Kangjia",
+      "name": "Q3182570",
+      "canonical": "kangjia"
+    },
+    {
+      "value": "Tai Hongjin",
+      "name": "Q3915716",
+      "canonical": "tai hongjin"
+    },
+    {
+      "value": "Sonaga",
+      "name": "Q7560736",
+      "canonical": "sonaga"
+    },
+    {
+      "value": "Small Flowery Miao",
+      "name": "Q7542773",
+      "canonical": "small flowery miao"
+    },
+    {
+      "value": "Jiamao",
+      "name": "Q3178570",
+      "canonical": "jiamao"
+    },
+    {
+      "value": "Tai Dón",
+      "name": "Q7675751",
+      "canonical": "tai dón"
+    },
+    {
+      "value": "Man Met",
+      "name": "Q3194984",
+      "canonical": "man met"
+    },
+    {
+      "value": "Tholo language",
+      "name": "Q7786695",
+      "canonical": "tholo language"
+    },
+    {
+      "value": "Thopho",
+      "name": "Q7796015",
+      "canonical": "thopho"
+    },
+    {
+      "value": "Lakkja language",
+      "name": "Q3027879",
+      "canonical": "lakkja language"
+    },
+    {
+      "value": "Khlula",
+      "name": "Q6401849",
+      "canonical": "khlula"
+    },
+    {
+      "value": "Aluo",
+      "name": "Q4737539",
+      "canonical": "aluo"
+    },
+    {
+      "value": "Mak",
+      "name": "Q3280623",
+      "canonical": "mak"
+    },
+    {
+      "value": "Kathu",
+      "name": "Q6377155",
+      "canonical": "kathu"
+    },
+    {
+      "value": "Akeu",
+      "name": "Q4700657",
+      "canonical": "akeu"
+    },
+    {
+      "value": "Ersu language",
+      "name": "Q12952417",
+      "canonical": "ersu language"
+    },
+    {
+      "value": "Kon Keu",
+      "name": "Q6428686",
+      "canonical": "kon keu"
+    },
+    {
+      "value": "Kua-nsi",
+      "name": "Q6440952",
+      "canonical": "kua-nsi"
+    },
+    {
+      "value": "Kuan language",
+      "name": "Q6441084",
+      "canonical": "kuan language"
+    },
+    {
+      "value": "Kuamasi",
+      "name": "Q6441074",
+      "canonical": "kuamasi"
+    },
+    {
+      "value": "Chuanqiandian Cluster Miao",
+      "name": "Q3307894",
+      "canonical": "chuanqiandian cluster miao"
+    },
+    {
+      "value": "Southern Mongolian",
+      "name": "Q3320659",
+      "canonical": "southern mongolian"
+    },
+    {
+      "value": "Bolyu",
+      "name": "Q3361723",
+      "canonical": "bolyu"
+    },
+    {
+      "value": "Lashi",
+      "name": "Q6493203",
+      "canonical": "lashi"
+    },
+    {
+      "value": "Lang'e",
+      "name": "Q6485577",
+      "canonical": "lang 'e"
+    },
+    {
+      "value": "Lawu",
+      "name": "Q6505073",
+      "canonical": "lawu"
+    },
+    {
+      "value": "Lamu",
+      "name": "Q6482736",
+      "canonical": "lamu"
+    },
+    {
+      "value": "Lama language",
+      "name": "Q6480756",
+      "canonical": "lama language"
+    },
+    {
+      "value": "Yang Zhuang",
+      "name": "Q8048537",
+      "canonical": "yang zhuang"
+    },
+    {
+      "value": "Yongnan languages",
+      "name": "Q8055032",
+      "canonical": "yongnan languages"
+    },
+    {
+      "value": "Yongbei Zhuang",
+      "name": "Q8054983",
+      "canonical": "yongbei zhuang"
+    },
+    {
+      "value": "Bouyei",
+      "name": "Q35100",
+      "canonical": "bouyei"
+    },
+    {
+      "value": "Luopohe Miao",
+      "name": "Q14468943",
+      "canonical": "luopohe miao"
+    },
+    {
+      "value": "Pa Di",
+      "name": "Q3359940",
+      "canonical": "pa di"
+    },
+    {
+      "value": "Youjiang Zhuang",
+      "name": "Q8057765",
+      "canonical": "youjiang zhuang"
+    },
+    {
+      "value": "Adi",
+      "name": "Q56440",
+      "canonical": "adi"
+    },
+    {
+      "value": "Min Zhong",
+      "name": "Q56435",
+      "canonical": "min zhong"
+    },
+    {
+      "value": "Lolopo",
+      "name": "Q56441",
+      "canonical": "lolopo"
+    },
+    {
+      "value": "Hm Nai language",
+      "name": "Q56452",
+      "canonical": "hm nai language"
+    },
+    {
+      "value": "Idu Mishmi language",
+      "name": "Q56412",
+      "canonical": "idu mishmi language"
+    },
+    {
+      "value": "Nusu",
+      "name": "Q56413",
+      "canonical": "nusu"
+    },
+    {
+      "value": "Lisu",
+      "name": "Q56480",
+      "canonical": "lisu"
+    },
+    {
+      "value": "Jin Chinese",
+      "name": "Q56479",
+      "canonical": "jin chinese"
+    },
+    {
+      "value": "Derung language",
+      "name": "Q56406",
+      "canonical": "derung language"
+    },
+    {
+      "value": "Digaro Mishmi language",
+      "name": "Q56400",
+      "canonical": "digaro mishmi language"
+    },
+    {
+      "value": "Limi",
+      "name": "Q12953327",
+      "canonical": "limi"
+    },
+    {
+      "value": "Tai Dam",
+      "name": "Q56407",
+      "canonical": "tai dam"
+    },
+    {
+      "value": "Eastern Hongshuihe Zhuang",
+      "name": "Q13634282",
+      "canonical": "eastern hongshuihe zhuang"
+    },
+    {
+      "value": "Lachi",
+      "name": "Q6583606",
+      "canonical": "lachi"
+    },
+    {
+      "value": "Zuojiang Zhuang",
+      "name": "Q13848149",
+      "canonical": "zuojiang zhuang"
+    },
+    {
+      "value": "Bu-Nao",
+      "name": "Q56411",
+      "canonical": "bu-nao"
+    },
+    {
+      "value": "Mili",
+      "name": "Q12953329",
+      "canonical": "mili"
+    },
+    {
+      "value": "Amdo Tibetan",
+      "name": "Q56509",
+      "canonical": "amdo tibetan"
+    },
+    {
+      "value": "Groma",
+      "name": "Q56551",
+      "canonical": "groma"
+    },
+    {
+      "value": "Huizhou Chinese",
+      "name": "Q56546",
+      "canonical": "huizhou chinese"
+    },
+    {
+      "value": "Pu-Xian Min",
+      "name": "Q56583",
+      "canonical": "pu-xian min"
+    },
+    {
+      "value": "Northern Qiang",
+      "name": "Q56559",
+      "canonical": "northern qiang"
+    },
+    {
+      "value": "Southern Qiang",
+      "name": "Q56563",
+      "canonical": "southern qiang"
+    },
+    {
+      "value": "Achang",
+      "name": "Q56582",
+      "canonical": "achang"
+    },
+    {
+      "value": "Lavu language",
+      "name": "Q16999095",
+      "canonical": "lavu language"
+    },
+    {
+      "value": "Akha",
+      "name": "Q56643",
+      "canonical": "akha"
+    },
+    {
+      "value": "Khams Tibetan",
+      "name": "Q56601",
+      "canonical": "khams tibetan"
+    },
+    {
+      "value": "E",
+      "name": "Q35386",
+      "canonical": "e"
+    },
+    {
+      "value": "Kam language",
+      "name": "Q35379",
+      "canonical": "kam language"
+    },
+    {
+      "value": "Zaiwa",
+      "name": "Q56594",
+      "canonical": "zaiwa"
+    },
+    {
+      "value": "Laomian",
+      "name": "Q19597674",
+      "canonical": "laomian"
+    },
+    {
+      "value": "Horpa",
+      "name": "Q56854",
+      "canonical": "horpa"
+    },
+    {
+      "value": "Honi",
+      "name": "Q56842",
+      "canonical": "honi"
+    },
+    {
+      "value": "Piyo language",
+      "name": "Q56848",
+      "canonical": "piyo language"
+    },
+    {
+      "value": "Namuyi",
+      "name": "Q56844",
+      "canonical": "namuyi"
+    },
+    {
+      "value": "Pela",
+      "name": "Q57000",
+      "canonical": "pela"
+    },
+    {
+      "value": "Zakhring",
+      "name": "Q56996",
+      "canonical": "zakhring"
+    },
+    {
+      "value": "Chinese",
+      "name": "Q7850",
+      "canonical": "chinese"
+    },
+    {
+      "value": "Lahu",
+      "name": "Q35780",
+      "canonical": "lahu"
+    },
+    {
+      "value": "Lipo",
+      "name": "Q56921",
+      "canonical": "lipo"
+    },
+    {
+      "value": "Hani",
+      "name": "Q56516",
+      "canonical": "hani"
+    },
+    {
+      "value": "Min Dong",
+      "name": "Q36455",
+      "canonical": "min dong"
+    },
+    {
+      "value": "Min Bei",
+      "name": "Q36457",
+      "canonical": "min bei"
+    },
+    {
+      "value": "Mandarin Chinese",
+      "name": "Q9192",
+      "canonical": "mandarin chinese"
+    },
+    {
+      "value": "Vietnamese",
+      "name": "Q9199",
+      "canonical": "vietnamese"
+    },
+    {
+      "value": "Southern Min",
+      "name": "Q36495",
+      "canonical": "southern min"
+    },
+    {
+      "value": "Kyrgyz",
+      "name": "Q9255",
+      "canonical": "kyrgyz"
+    },
+    {
+      "value": "Sherpa",
+      "name": "Q36612",
+      "canonical": "sherpa"
+    },
+    {
+      "value": "Tai Nüa",
+      "name": "Q36556",
+      "canonical": "tai nüa"
+    },
+    {
+      "value": "Kazakh",
+      "name": "Q9252",
+      "canonical": "kazakh"
+    },
+    {
+      "value": "Tai Lü",
+      "name": "Q36948",
+      "canonical": "tai lü"
+    },
+    {
+      "value": "Zhaba",
+      "name": "Q56334",
+      "canonical": "zhaba"
+    },
+    {
+      "value": "Shixing",
+      "name": "Q56337",
+      "canonical": "shixing"
+    },
+    {
+      "value": "Miju language",
+      "name": "Q56332",
+      "canonical": "miju language"
+    },
+    {
+      "value": "Kiong Nai",
+      "name": "Q56325",
+      "canonical": "kiong nai"
+    },
+    {
+      "value": "Younuo language",
+      "name": "Q56299",
+      "canonical": "younuo language"
+    },
+    {
+      "value": "Uyghur",
+      "name": "Q13263",
+      "canonical": "uyghur"
+    },
+    {
+      "value": "Zhuang",
+      "name": "Q13216",
+      "canonical": "zhuang"
+    },
+    {
+      "value": "Xibe",
+      "name": "Q13223",
+      "canonical": "xibe"
+    },
+    {
+      "value": "Tshangla",
+      "name": "Q36840",
+      "canonical": "tshangla"
+    },
+    {
+      "value": "Xiang",
+      "name": "Q13220",
+      "canonical": "xiang"
+    },
+    {
+      "value": "Äynu",
+      "name": "Q27927",
+      "canonical": "äynu"
+    },
+    {
+      "value": "Daur",
+      "name": "Q32430",
+      "canonical": "daur"
+    },
+    {
+      "value": "Santa",
+      "name": "Q32947",
+      "canonical": "santa"
+    },
+    {
+      "value": "Bonan",
+      "name": "Q32983",
+      "canonical": "bonan"
+    },
+    {
+      "value": "Hakka",
+      "name": "Q33375",
+      "canonical": "hakka"
+    },
+    {
+      "value": "Khmu",
+      "name": "Q33335",
+      "canonical": "khmu"
+    },
+    {
+      "value": "Evenki",
+      "name": "Q30004",
+      "canonical": "evenki"
+    },
+    {
+      "value": "Eastern Yugur language",
+      "name": "Q29902",
+      "canonical": "eastern yugur language"
+    },
+    {
+      "value": "Jingpho language",
+      "name": "Q33332",
+      "canonical": "jingpho language"
+    },
+    {
+      "value": "Ili Turki",
+      "name": "Q33627",
+      "canonical": "ili turki"
+    },
+    {
+      "value": "Gan",
+      "name": "Q33475",
+      "canonical": "gan"
+    },
+    {
+      "value": "Manchu",
+      "name": "Q33638",
+      "canonical": "manchu"
+    },
+    {
+      "value": "Sarikoli",
+      "name": "Q33873",
+      "canonical": "sarikoli"
+    },
+    {
+      "value": "Western Yugur language",
+      "name": "Q34224",
+      "canonical": "western yugur language"
+    },
+    {
+      "value": "Tsat",
+      "name": "Q34133",
+      "canonical": "tsat"
+    },
+    {
+      "value": "Nuosu",
+      "name": "Q34235",
+      "canonical": "nuosu"
+    },
+    {
+      "value": "Salar",
+      "name": "Q33963",
+      "canonical": "salar"
+    },
+    {
+      "value": "Monguor",
+      "name": "Q34214",
+      "canonical": "monguor"
+    },
+    {
+      "value": "Tibetan",
+      "name": "Q34271",
+      "canonical": "tibetan"
+    },
+    {
+      "value": "Wu Chinese",
+      "name": "Q34290",
+      "canonical": "wu chinese"
+    },
+    {
+      "value": "Awa",
+      "name": "Q2874642",
+      "canonical": "awa"
+    },
+    {
+      "value": "Langnian Buyang",
+      "name": "Q2929025",
+      "canonical": "langnian buyang"
+    },
+    {
+      "value": "Northern Pumi",
+      "name": "Q3403245",
+      "canonical": "northern pumi"
+    },
+    {
+      "value": "Hmong Njua",
+      "name": "Q3138831",
+      "canonical": "hmong njua"
+    },
+    {
+      "value": "Hmong Daw",
+      "name": "Q3138829",
+      "canonical": "hmong daw"
+    },
+    {
+      "value": "Southern Pumi",
+      "name": "Q3403246",
+      "canonical": "southern pumi"
+    },
+    {
+      "value": "Parauk",
+      "name": "Q3363719",
+      "canonical": "parauk"
+    },
+    {
+      "value": "Western Xiangxi Miao",
+      "name": "Q3307901",
+      "canonical": "western xiangxi miao"
+    },
+    {
+      "value": "Red Gelao",
+      "name": "Q3100264",
+      "canonical": "red gelao"
+    },
+    {
+      "value": "Yerong",
+      "name": "Q3572191",
+      "canonical": "yerong"
+    },
+    {
+      "value": "White Gelao",
+      "name": "Q8843040",
+      "canonical": "white gelao"
+    },
+    {
+      "value": "Biao Mon",
+      "name": "Q8842159",
+      "canonical": "biao mon"
+    },
+    {
+      "value": "Mulao",
+      "name": "Q11092831",
+      "canonical": "mulao"
+    },
+    {
+      "value": "Alugu",
+      "name": "Q12626798",
+      "canonical": "alugu"
+    },
+    {
+      "value": "Southern Tujia",
+      "name": "Q12633994",
+      "canonical": "southern tujia"
+    },
+    {
+      "value": "Panyi Bai",
+      "name": "Q12642165",
+      "canonical": "panyi bai"
+    },
+    {
+      "value": "Southern Lolopo",
+      "name": "Q12633989",
+      "canonical": "southern lolopo"
+    },
+    {
+      "value": "Kyerung",
+      "name": "Q12952691",
+      "canonical": "kyerung"
+    },
+    {
+      "value": "Lopi",
+      "name": "Q12952740",
+      "canonical": "lopi"
+    },
+    {
+      "value": "Wusa Nasu",
+      "name": "Q12953334",
+      "canonical": "wusa nasu"
+    },
+    {
+      "value": "Xishanba Lalo",
+      "name": "Q12953336",
+      "canonical": "xishanba lalo"
+    },
+    {
+      "value": "Nisi language",
+      "name": "Q12953326",
+      "canonical": "nisi language"
+    },
+    {
+      "value": "Dongshanba Lalo",
+      "name": "Q12953333",
+      "canonical": "dongshanba lalo"
+    },
+    {
+      "value": "Northern Tujia",
+      "name": "Q12953229",
+      "canonical": "northern tujia"
+    },
+    {
+      "value": "Eastern Lalu",
+      "name": "Q12953328",
+      "canonical": "eastern lalu"
+    },
+    {
+      "value": "Western Lalu",
+      "name": "Q12953325",
+      "canonical": "western lalu"
+    },
+    {
+      "value": "Central Mashan Hmong",
+      "name": "Q12953561",
+      "canonical": "central mashan hmong"
+    },
+    {
+      "value": "Southern Qiandong Miao",
+      "name": "Q12953562",
+      "canonical": "southern qiandong miao"
+    },
+    {
+      "value": "Northern Mashan Hmong",
+      "name": "Q12953564",
+      "canonical": "northern mashan hmong"
+    },
+    {
+      "value": "Southern Mashan Hmong",
+      "name": "Q12953560",
+      "canonical": "southern mashan hmong"
+    },
+    {
+      "value": "Rumai Palaung",
+      "name": "Q12953797",
+      "canonical": "rumai palaung"
+    },
+    {
+      "value": "Central Huishui Hmong",
+      "name": "Q12953558",
+      "canonical": "central huishui hmong"
+    },
+    {
+      "value": "Eastern Huishui Hmong",
+      "name": "Q12953559",
+      "canonical": "eastern huishui hmong"
+    },
+    {
+      "value": "Southwestern Huishui Hmong",
+      "name": "Q12953565",
+      "canonical": "southwestern huishui hmong"
+    },
+    {
+      "value": "Western Mashan Hmong",
+      "name": "Q12953563",
+      "canonical": "western mashan hmong"
+    },
+    {
+      "value": "Northern Guiyang Hmong",
+      "name": "Q12953554",
+      "canonical": "northern guiyang hmong"
+    },
+    {
+      "value": "Lhomi",
+      "name": "Q14240916",
+      "canonical": "lhomi"
+    },
+    {
+      "value": "A'ou",
+      "name": "Q16109994",
+      "canonical": "a 'ou"
+    },
+    {
+      "value": "E'ma Buyang",
+      "name": "Q16115619",
+      "canonical": "e 'ma buyang"
+    },
+    {
+      "value": "Qau",
+      "name": "Q17284874",
+      "canonical": "qau"
+    },
+    {
+      "value": "Northern Dong",
+      "name": "Q17195499",
+      "canonical": "northern dong"
+    },
+    {
+      "value": "Guibei Zhuang",
+      "name": "Q17651534",
+      "canonical": "guibei zhuang"
+    },
+    {
+      "value": "Liujiang Zhuang",
+      "name": "Q17651540",
+      "canonical": "liujiang zhuang"
+    },
+    {
+      "value": "Guibian Zhuang",
+      "name": "Q17651536",
+      "canonical": "guibian zhuang"
+    },
+    {
+      "value": "Qiubei Zhuang",
+      "name": "Q17651542",
+      "canonical": "qiubei zhuang"
+    },
+    {
+      "value": "Ayizi",
+      "name": "Q20527363",
+      "canonical": "ayizi"
+    },
+    {
+      "value": "China Buriat",
+      "name": "Q20527417",
+      "canonical": "china buriat"
+    },
+    {
+      "value": "Narua",
+      "name": "Q21658869",
+      "canonical": "narua"
+    },
+    {
+      "value": "Northern Nisu",
+      "name": "Q25559454",
+      "canonical": "northern nisu"
+    },
+    {
+      "value": "Wumeng Nasu",
+      "name": "Q25559442",
+      "canonical": "wumeng nasu"
+    },
+    {
+      "value": "Lahu Shi",
+      "name": "Q25559457",
+      "canonical": "lahu shi"
+    },
+    {
+      "value": "Hmong Shua",
+      "name": "Q25559603",
+      "canonical": "hmong shua"
+    },
+    {
+      "value": "Stodse",
+      "name": "Q25559440",
+      "canonical": "stodse"
+    },
+    {
+      "value": "Wuding-Luquan Yi",
+      "name": "Q25559456",
+      "canonical": "wuding-luquan yi"
+    },
+    {
+      "value": "Eastern Nisu",
+      "name": "Q25559419",
+      "canonical": "eastern nisu"
+    },
+    {
+      "value": "Chesu",
+      "name": "Q30334841",
+      "canonical": "chesu"
+    },
+    {
+      "value": "Wunai Bunu",
+      "name": "Q31204090",
+      "canonical": "wunai bunu"
+    },
+    {
+      "value": "Southwestern Guiyang Hmong",
+      "name": "Q27478542",
+      "canonical": "southwestern guiyang hmong"
+    },
+    {
+      "value": "Eastern Xiangxi Miao",
+      "name": "Q27431376",
+      "canonical": "eastern xiangxi miao"
+    },
+    {
+      "value": "Northern Huishui Hmong",
+      "name": "Q27434946",
+      "canonical": "northern huishui hmong"
+    },
+    {
+      "value": "Kemiehua",
+      "name": "Q27144776",
+      "canonical": "kemiehua"
+    },
+    {
+      "value": "Eastern Qiandong Miao",
+      "name": "Q27431369",
+      "canonical": "eastern qiandong miao"
+    },
+    {
+      "value": "Alo Phola",
+      "name": "Q33522157",
+      "canonical": "alo phola"
+    },
+    {
+      "value": "Phala",
+      "name": "Q36211907",
+      "canonical": "phala"
+    },
+    {
+      "value": "Ani Phowa",
+      "name": "Q33590104",
+      "canonical": "ani phowa"
+    },
+    {
+      "value": "Northwestern Nisu language",
+      "name": "Q42310421",
+      "canonical": "northwestern nisu language"
+    },
+    {
+      "value": "Phupa language",
+      "name": "Q48565467",
+      "canonical": "phupa language"
+    },
+    {
+      "value": "Phuza language",
+      "name": "Q48565339",
+      "canonical": "phuza language"
+    },
+    {
+      "value": "Qila Muji",
+      "name": "Q56826369",
+      "canonical": "qila muji"
+    },
+    {
+      "value": "Northern Muji",
+      "name": "Q56751275",
+      "canonical": "northern muji"
+    },
+    {
+      "value": "Southern Muji language",
+      "name": "Q57259564",
+      "canonical": "southern muji language"
+    },
+    {
+      "value": "Southern Nisu language",
+      "name": "Q63284284",
+      "canonical": "southern nisu language"
+    },
+    {
+      "value": "Southwestern Nisu language",
+      "name": "Q63308004",
+      "canonical": "southwestern nisu language"
+    },
+    {
+      "value": "Bokha language",
+      "name": "Q63340714",
+      "canonical": "bokha language"
+    },
+    {
+      "value": "Liuqian Zhuang",
+      "name": "Q63341349",
+      "canonical": "liuqian zhuang"
+    },
+    {
+      "value": "Labo Phowa",
+      "name": "Q63341239",
+      "canonical": "labo phowa"
+    },
+    {
+      "value": "Horned Miao",
+      "name": "Q63213949",
+      "canonical": "horned miao"
+    },
+    {
+      "value": "Hlepho Phowa language",
+      "name": "Q63341181",
+      "canonical": "hlepho phowa language"
+    },
+    {
+      "value": "Lianshan Zhuang",
+      "name": "Q63341346",
+      "canonical": "lianshan zhuang"
+    },
+    {
+      "value": "Phuma language",
+      "name": "Q63341260",
+      "canonical": "phuma language"
+    },
+    {
+      "value": "Central Hongshuihe Zhuang",
+      "name": "Q63341278",
+      "canonical": "central hongshuihe zhuang"
+    },
+    {
+      "value": "Tawang Monpa",
+      "name": "Q36586",
+      "canonical": "tawang monpa"
+    },
+    {
+      "value": "Hunsrik",
+      "name": "Q304049",
+      "canonical": "hunsrik"
+    },
+    {
+      "value": "Kreye",
+      "name": "Q3199686",
+      "canonical": "kreye"
+    },
+    {
+      "value": "Sikiana",
+      "name": "Q3443734",
+      "canonical": "sikiana"
+    },
+    {
+      "value": "Pirahã",
+      "name": "Q33825",
+      "canonical": "pirahã"
+    },
+    {
+      "value": "Canela",
+      "name": "Q2936334",
+      "canonical": "canela"
+    },
+    {
+      "value": "Pará Gavião",
+      "name": "Q3365443",
+      "canonical": "pará gavião"
+    },
+    {
+      "value": "Krikati-Timbira",
+      "name": "Q3199710",
+      "canonical": "krikati-timbira"
+    },
+    {
+      "value": "Wiraféd",
+      "name": "Q12953970",
+      "canonical": "wiraféd"
+    },
+    {
+      "value": "Krahô",
+      "name": "Q3199549",
+      "canonical": "krahô"
+    },
+    {
+      "value": "Uru-eu-wau-wau language",
+      "name": "Q10266012",
+      "canonical": "uru-eu-wau-wau language"
+    },
+    {
+      "value": "Ticuna",
+      "name": "Q1815205",
+      "canonical": "ticuna"
+    },
+    {
+      "value": "Chiquitano",
+      "name": "Q1844993",
+      "canonical": "chiquitano"
+    },
+    {
+      "value": "Fulniô",
+      "name": "Q774441",
+      "canonical": "fulniô"
+    },
+    {
+      "value": "Poyanáwa",
+      "name": "Q3401023",
+      "canonical": "poyanáwa"
+    },
+    {
+      "value": "Maku language of Roraima",
+      "name": "Q2032882",
+      "canonical": "maku language of roraima"
+    },
+    {
+      "value": "Desano",
+      "name": "Q962392",
+      "canonical": "desano"
+    },
+    {
+      "value": "Shiriana language",
+      "name": "Q2028772",
+      "canonical": "shiriana language"
+    },
+    {
+      "value": "Paumarí",
+      "name": "Q389827",
+      "canonical": "paumarí"
+    },
+    {
+      "value": "Nambikwara language",
+      "name": "Q2068190",
+      "canonical": "nambikwara language"
+    },
+    {
+      "value": "Sanumá",
+      "name": "Q251728",
+      "canonical": "sanumá"
+    },
+    {
+      "value": "Jabutí",
+      "name": "Q2060023",
+      "canonical": "jabutí"
+    },
+    {
+      "value": "Munduruku language",
+      "name": "Q746723",
+      "canonical": "munduruku language"
+    },
+    {
+      "value": "Tariana",
+      "name": "Q732726",
+      "canonical": "tariana"
+    },
+    {
+      "value": "Carapana",
+      "name": "Q924405",
+      "canonical": "carapana"
+    },
+    {
+      "value": "Aikanã",
+      "name": "Q3409307",
+      "canonical": "aikanã"
+    },
+    {
+      "value": "Irantxe language",
+      "name": "Q3409301",
+      "canonical": "irantxe language"
+    },
+    {
+      "value": "Brazilian Sign Language",
+      "name": "Q3436689",
+      "canonical": "brazilian sign language"
+    },
+    {
+      "value": "Arikapú",
+      "name": "Q3446640",
+      "canonical": "arikapú"
+    },
+    {
+      "value": "Culina",
+      "name": "Q2475442",
+      "canonical": "culina"
+    },
+    {
+      "value": "Mato Grosso Arára",
+      "name": "Q3446660",
+      "canonical": "mato grosso arára"
+    },
+    {
+      "value": "Ninam",
+      "name": "Q3436586",
+      "canonical": "ninam"
+    },
+    {
+      "value": "Warekena language",
+      "name": "Q1091095",
+      "canonical": "warekena language"
+    },
+    {
+      "value": "Mawé language",
+      "name": "Q6794475",
+      "canonical": "mawé language"
+    },
+    {
+      "value": "Matipuhy",
+      "name": "Q6787588",
+      "canonical": "matipuhy"
+    },
+    {
+      "value": "Katukína",
+      "name": "Q3450636",
+      "canonical": "katukína"
+    },
+    {
+      "value": "Yawalapití",
+      "name": "Q3450709",
+      "canonical": "yawalapití"
+    },
+    {
+      "value": "Yabaâna",
+      "name": "Q3450534",
+      "canonical": "yabaâna"
+    },
+    {
+      "value": "Sabanês language",
+      "name": "Q3460478",
+      "canonical": "sabanês language"
+    },
+    {
+      "value": "Waurá",
+      "name": "Q3450522",
+      "canonical": "waurá"
+    },
+    {
+      "value": "Ofayé",
+      "name": "Q3446691",
+      "canonical": "ofayé"
+    },
+    {
+      "value": "Arikem",
+      "name": "Q3446679",
+      "canonical": "arikem"
+    },
+    {
+      "value": "Kanamarí",
+      "name": "Q3438373",
+      "canonical": "kanamarí"
+    },
+    {
+      "value": "Tuyuca",
+      "name": "Q2520538",
+      "canonical": "tuyuca"
+    },
+    {
+      "value": "Karipúna Creole French language",
+      "name": "Q2523999",
+      "canonical": "karipúna creole french language"
+    },
+    {
+      "value": "Oro Win",
+      "name": "Q3450423",
+      "canonical": "oro win"
+    },
+    {
+      "value": "Cashinahua",
+      "name": "Q2591230",
+      "canonical": "cashinahua"
+    },
+    {
+      "value": "Awetï language",
+      "name": "Q4830038",
+      "canonical": "awetï language"
+    },
+    {
+      "value": "Huamoé language",
+      "name": "Q3441418",
+      "canonical": "huamoé language"
+    },
+    {
+      "value": "Mondé",
+      "name": "Q6898840",
+      "canonical": "mondé"
+    },
+    {
+      "value": "Wapishana",
+      "name": "Q3450493",
+      "canonical": "wapishana"
+    },
+    {
+      "value": "Avá-Canoeiro",
+      "name": "Q4829584",
+      "canonical": "avá-canoeiro"
+    },
+    {
+      "value": "Maritsauá",
+      "name": "Q6765915",
+      "canonical": "maritsauá"
+    },
+    {
+      "value": "Katawixi",
+      "name": "Q3440512",
+      "canonical": "katawixi"
+    },
+    {
+      "value": "Mapidian",
+      "name": "Q6753812",
+      "canonical": "mapidian"
+    },
+    {
+      "value": "Miriti",
+      "name": "Q6873567",
+      "canonical": "miriti"
+    },
+    {
+      "value": "Acroá",
+      "name": "Q2829146",
+      "canonical": "acroá"
+    },
+    {
+      "value": "Apinayé",
+      "name": "Q2858311",
+      "canonical": "apinayé"
+    },
+    {
+      "value": "Apurinã",
+      "name": "Q2859081",
+      "canonical": "apurinã"
+    },
+    {
+      "value": "Amahuaca",
+      "name": "Q2669150",
+      "canonical": "amahuaca"
+    },
+    {
+      "value": "Rikbaktsa",
+      "name": "Q2585357",
+      "canonical": "rikbaktsa"
+    },
+    {
+      "value": "Siriano",
+      "name": "Q3485264",
+      "canonical": "siriano"
+    },
+    {
+      "value": "Ucayali–Yurúa Ashéninka",
+      "name": "Q3501858",
+      "canonical": "ucayali–yurúa ashéninka"
+    },
+    {
+      "value": "Kaingang",
+      "name": "Q2665734",
+      "canonical": "kaingang"
+    },
+    {
+      "value": "Zo'é",
+      "name": "Q8073148",
+      "canonical": "zo 'é"
+    },
+    {
+      "value": "Mehinaku",
+      "name": "Q3501838",
+      "canonical": "mehinaku"
+    },
+    {
+      "value": "Apalaí",
+      "name": "Q2736980",
+      "canonical": "apalaí"
+    },
+    {
+      "value": "Ava Guarani language",
+      "name": "Q2873230",
+      "canonical": "ava guarani language"
+    },
+    {
+      "value": "Suyá",
+      "name": "Q3505859",
+      "canonical": "suyá"
+    },
+    {
+      "value": "Aruáshi language",
+      "name": "Q3507907",
+      "canonical": "aruáshi language"
+    },
+    {
+      "value": "Apiaká",
+      "name": "Q3507941",
+      "canonical": "apiaká"
+    },
+    {
+      "value": "Anambé",
+      "name": "Q3507873",
+      "canonical": "anambé"
+    },
+    {
+      "value": "Wayoró",
+      "name": "Q2875044",
+      "canonical": "wayoró"
+    },
+    {
+      "value": "Atorada",
+      "name": "Q3507932",
+      "canonical": "atorada"
+    },
+    {
+      "value": "Paresí",
+      "name": "Q3504312",
+      "canonical": "paresí"
+    },
+    {
+      "value": "Cinta Larga",
+      "name": "Q5121095",
+      "canonical": "cinta larga"
+    },
+    {
+      "value": "Otuke",
+      "name": "Q7110049",
+      "canonical": "otuke"
+    },
+    {
+      "value": "Tremembé",
+      "name": "Q5246937",
+      "canonical": "tremembé"
+    },
+    {
+      "value": "Waimajã language",
+      "name": "Q2883738",
+      "canonical": "waimajã language"
+    },
+    {
+      "value": "Aurá",
+      "name": "Q3507995",
+      "canonical": "aurá"
+    },
+    {
+      "value": "Amanayé",
+      "name": "Q3508053",
+      "canonical": "amanayé"
+    },
+    {
+      "value": "Agavotaguerra",
+      "name": "Q3508007",
+      "canonical": "agavotaguerra"
+    },
+    {
+      "value": "Matsés",
+      "name": "Q2981620",
+      "canonical": "matsés"
+    },
+    {
+      "value": "Xeta",
+      "name": "Q2980404",
+      "canonical": "xeta"
+    },
+    {
+      "value": "Wajiara language",
+      "name": "Q3573266",
+      "canonical": "wajiara language"
+    },
+    {
+      "value": "Yaminawa language",
+      "name": "Q3026110",
+      "canonical": "yaminawa language"
+    },
+    {
+      "value": "Cubeo",
+      "name": "Q3006705",
+      "canonical": "cubeo"
+    },
+    {
+      "value": "Tuparí",
+      "name": "Q3542217",
+      "canonical": "tuparí"
+    },
+    {
+      "value": "Tucano",
+      "name": "Q3541834",
+      "canonical": "tucano"
+    },
+    {
+      "value": "Turiwára",
+      "name": "Q3542307",
+      "canonical": "turiwára"
+    },
+    {
+      "value": "Purí language",
+      "name": "Q7261687",
+      "canonical": "purí language"
+    },
+    {
+      "value": "Purubora language",
+      "name": "Q7261619",
+      "canonical": "purubora language"
+    },
+    {
+      "value": "Wanano language",
+      "name": "Q3566001",
+      "canonical": "wanano language"
+    },
+    {
+      "value": "Xukuru language",
+      "name": "Q9096758",
+      "canonical": "xukuru language"
+    },
+    {
+      "value": "Karajá",
+      "name": "Q10322066",
+      "canonical": "karajá"
+    },
+    {
+      "value": "Pataxó language",
+      "name": "Q7144304",
+      "canonical": "pataxó language"
+    },
+    {
+      "value": "Pankararú",
+      "name": "Q7131310",
+      "canonical": "pankararú"
+    },
+    {
+      "value": "Ikpeng",
+      "name": "Q9344891",
+      "canonical": "ikpeng"
+    },
+    {
+      "value": "Kambiwá",
+      "name": "Q9006744",
+      "canonical": "kambiwá"
+    },
+    {
+      "value": "Pemon",
+      "name": "Q10729616",
+      "canonical": "pemon"
+    },
+    {
+      "value": "Suruí do Pará language",
+      "name": "Q10322149",
+      "canonical": "suruí do pará language"
+    },
+    {
+      "value": "Gavião of Jiparaná",
+      "name": "Q5528335",
+      "canonical": "gavião of jiparaná"
+    },
+    {
+      "value": "Xerénte",
+      "name": "Q3073436",
+      "canonical": "xerénte"
+    },
+    {
+      "value": "Xakriabá",
+      "name": "Q3073441",
+      "canonical": "xakriabá"
+    },
+    {
+      "value": "Salumá",
+      "name": "Q7406296",
+      "canonical": "salumá"
+    },
+    {
+      "value": "Palikúr",
+      "name": "Q3073448",
+      "canonical": "palikúr"
+    },
+    {
+      "value": "Himarimã",
+      "name": "Q5765127",
+      "canonical": "himarimã"
+    },
+    {
+      "value": "Jamamadí",
+      "name": "Q3053275",
+      "canonical": "jamamadí"
+    },
+    {
+      "value": "Dâw",
+      "name": "Q3042278",
+      "canonical": "dâw"
+    },
+    {
+      "value": "Mẽbêngôkre language",
+      "name": "Q3101212",
+      "canonical": "mẽbêngôkre language"
+    },
+    {
+      "value": "Wayana",
+      "name": "Q5908753",
+      "canonical": "wayana"
+    },
+    {
+      "value": "Zuruahá",
+      "name": "Q3114402",
+      "canonical": "zuruahá"
+    },
+    {
+      "value": "Karitiâna",
+      "name": "Q3112184",
+      "canonical": "karitiâna"
+    },
+    {
+      "value": "Kaiwá",
+      "name": "Q3111883",
+      "canonical": "kaiwá"
+    },
+    {
+      "value": "Ye'kuana language",
+      "name": "Q3082027",
+      "canonical": "ye 'kuana language"
+    },
+    {
+      "value": "Hup language",
+      "name": "Q3143384",
+      "canonical": "hup language"
+    },
+    {
+      "value": "Guajá",
+      "name": "Q3915506",
+      "canonical": "guajá"
+    },
+    {
+      "value": "Amonap language",
+      "name": "Q3915522",
+      "canonical": "amonap language"
+    },
+    {
+      "value": "Mbyá Guaraní",
+      "name": "Q3915584",
+      "canonical": "mbyá guaraní"
+    },
+    {
+      "value": "São Paulo Kaingáng",
+      "name": "Q7665661",
+      "canonical": "são paulo kaingáng"
+    },
+    {
+      "value": "Kamakan",
+      "name": "Q3192316",
+      "canonical": "kamakan"
+    },
+    {
+      "value": "Suruí",
+      "name": "Q7646993",
+      "canonical": "suruí"
+    },
+    {
+      "value": "Kamayurá",
+      "name": "Q3192336",
+      "canonical": "kamayurá"
+    },
+    {
+      "value": "Waninnawa language",
+      "name": "Q3194265",
+      "canonical": "waninnawa language"
+    },
+    {
+      "value": "Jurúna",
+      "name": "Q4023175",
+      "canonical": "jurúna"
+    },
+    {
+      "value": "Kepkiriwát",
+      "name": "Q3195366",
+      "canonical": "kepkiriwát"
+    },
+    {
+      "value": "Karipuna",
+      "name": "Q6371069",
+      "canonical": "karipuna"
+    },
+    {
+      "value": "Xokleng",
+      "name": "Q3027930",
+      "canonical": "xokleng"
+    },
+    {
+      "value": "Korubo",
+      "name": "Q3199022",
+      "canonical": "korubo"
+    },
+    {
+      "value": "Kuruáya",
+      "name": "Q3200633",
+      "canonical": "kuruáya"
+    },
+    {
+      "value": "Kaimbé",
+      "name": "Q6348017",
+      "canonical": "kaimbé"
+    },
+    {
+      "value": "Tapirapé",
+      "name": "Q7684673",
+      "canonical": "tapirapé"
+    },
+    {
+      "value": "Kwaza",
+      "name": "Q3200839",
+      "canonical": "kwaza"
+    },
+    {
+      "value": "Guató",
+      "name": "Q3027940",
+      "canonical": "guató"
+    },
+    {
+      "value": "Wari’ language",
+      "name": "Q3027909",
+      "canonical": "wari ' language"
+    },
+    {
+      "value": "Maxakalí",
+      "name": "Q3029682",
+      "canonical": "maxakalí"
+    },
+    {
+      "value": "Trumai",
+      "name": "Q12294279",
+      "canonical": "trumai"
+    },
+    {
+      "value": "Tingui-Botó language",
+      "name": "Q7808195",
+      "canonical": "tingui-botó language"
+    },
+    {
+      "value": "Kaxararí",
+      "name": "Q6380124",
+      "canonical": "kaxararí"
+    },
+    {
+      "value": "Kayabi language",
+      "name": "Q6380372",
+      "canonical": "kayabi language"
+    },
+    {
+      "value": "Torá",
+      "name": "Q7827518",
+      "canonical": "torá"
+    },
+    {
+      "value": "Macuna",
+      "name": "Q3275059",
+      "canonical": "macuna"
+    },
+    {
+      "value": "Truká",
+      "name": "Q7847648",
+      "canonical": "truká"
+    },
+    {
+      "value": "Makurap language",
+      "name": "Q3281037",
+      "canonical": "makurap language"
+    },
+    {
+      "value": "Mamaindê language",
+      "name": "Q3284890",
+      "canonical": "mamaindê language"
+    },
+    {
+      "value": "Akuntsu",
+      "name": "Q4701960",
+      "canonical": "akuntsu"
+    },
+    {
+      "value": "Karipuna",
+      "name": "Q6371071",
+      "canonical": "karipuna"
+    },
+    {
+      "value": "Kanoê language",
+      "name": "Q4356223",
+      "canonical": "kanoê language"
+    },
+    {
+      "value": "Kapinawá",
+      "name": "Q6366667",
+      "canonical": "kapinawá"
+    },
+    {
+      "value": "Koropó",
+      "name": "Q6432560",
+      "canonical": "koropó"
+    },
+    {
+      "value": "Marúbo",
+      "name": "Q3296011",
+      "canonical": "marúbo"
+    },
+    {
+      "value": "Kulino language",
+      "name": "Q6443027",
+      "canonical": "kulino language"
+    },
+    {
+      "value": "Krenak",
+      "name": "Q6436747",
+      "canonical": "krenak"
+    },
+    {
+      "value": "Tuxináwa",
+      "name": "Q7857204",
+      "canonical": "tuxináwa"
+    },
+    {
+      "value": "Tuxá",
+      "name": "Q7857217",
+      "canonical": "tuxá"
+    },
+    {
+      "value": "Araweté",
+      "name": "Q4784535",
+      "canonical": "araweté"
+    },
+    {
+      "value": "Xocó language",
+      "name": "Q12953620",
+      "canonical": "xocó language"
+    },
+    {
+      "value": "Umotína",
+      "name": "Q7881740",
+      "canonical": "umotína"
+    },
+    {
+      "value": "Uru-Pa-In",
+      "name": "Q7901376",
+      "canonical": "uru-pa-in"
+    },
+    {
+      "value": "Sakirabiá",
+      "name": "Q3304806",
+      "canonical": "sakirabiá"
+    },
+    {
+      "value": "Ka'apor Sign Language",
+      "name": "Q3322101",
+      "canonical": "ka 'apor sign language"
+    },
+    {
+      "value": "Terêna",
+      "name": "Q3314742",
+      "canonical": "terêna"
+    },
+    {
+      "value": "Enawene Nawe language",
+      "name": "Q3307184",
+      "canonical": "enawene nawe language"
+    },
+    {
+      "value": "Matis language",
+      "name": "Q3299145",
+      "canonical": "matis language"
+    },
+    {
+      "value": "Urumi",
+      "name": "Q7901530",
+      "canonical": "urumi"
+    },
+    {
+      "value": "Panara language",
+      "name": "Q3361895",
+      "canonical": "panara language"
+    },
+    {
+      "value": "Yanomamö",
+      "name": "Q8048928",
+      "canonical": "yanomamö"
+    },
+    {
+      "value": "Xingú Asuriní",
+      "name": "Q8044571",
+      "canonical": "xingú asuriní"
+    },
+    {
+      "value": "Wakoná",
+      "name": "Q7961205",
+      "canonical": "wakoná"
+    },
+    {
+      "value": "Nukuini",
+      "name": "Q3346231",
+      "canonical": "nukuini"
+    },
+    {
+      "value": "Oti",
+      "name": "Q3357881",
+      "canonical": "oti"
+    },
+    {
+      "value": "Wasu",
+      "name": "Q7972892",
+      "canonical": "wasu"
+    },
+    {
+      "value": "Wayampi",
+      "name": "Q7975842",
+      "canonical": "wayampi"
+    },
+    {
+      "value": "Urubú-Kaapor",
+      "name": "Q13893353",
+      "canonical": "urubú-kaapor"
+    },
+    {
+      "value": "Waiká language",
+      "name": "Q7960056",
+      "canonical": "waiká language"
+    },
+    {
+      "value": "Nadëb",
+      "name": "Q3335011",
+      "canonical": "nadëb"
+    },
+    {
+      "value": "Cafundó language",
+      "name": "Q3331506",
+      "canonical": "cafundó language"
+    },
+    {
+      "value": "Portuguese",
+      "name": "Q5146",
+      "canonical": "portuguese"
+    },
+    {
+      "value": "Deni language",
+      "name": "Q56562",
+      "canonical": "deni language"
+    },
+    {
+      "value": "Hixkaryana language",
+      "name": "Q56522",
+      "canonical": "hixkaryana language"
+    },
+    {
+      "value": "Potiguára",
+      "name": "Q56722",
+      "canonical": "potiguára"
+    },
+    {
+      "value": "Waiwai",
+      "name": "Q56632",
+      "canonical": "waiwai"
+    },
+    {
+      "value": "Macushi",
+      "name": "Q56633",
+      "canonical": "macushi"
+    },
+    {
+      "value": "Kadiweu",
+      "name": "Q18168288",
+      "canonical": "kadiweu"
+    },
+    {
+      "value": "Arutani",
+      "name": "Q56609",
+      "canonical": "arutani"
+    },
+    {
+      "value": "Ramarama",
+      "name": "Q35539",
+      "canonical": "ramarama"
+    },
+    {
+      "value": "Tiriyó language",
+      "name": "Q56885",
+      "canonical": "tiriyó language"
+    },
+    {
+      "value": "Waimiri-Atroarí language",
+      "name": "Q56865",
+      "canonical": "waimiri-atroarí language"
+    },
+    {
+      "value": "Bakairi language",
+      "name": "Q56846",
+      "canonical": "bakairi language"
+    },
+    {
+      "value": "Pará Arára",
+      "name": "Q56807",
+      "canonical": "pará arára"
+    },
+    {
+      "value": "Yaroamë language",
+      "name": "Q24190396",
+      "canonical": "yaroamë language"
+    },
+    {
+      "value": "Xavante",
+      "name": "Q36962",
+      "canonical": "xavante"
+    },
+    {
+      "value": "Xipaya",
+      "name": "Q13226",
+      "canonical": "xipaya"
+    },
+    {
+      "value": "Low German",
+      "name": "Q25433",
+      "canonical": "low german"
+    },
+    {
+      "value": "Bororo language",
+      "name": "Q32986",
+      "canonical": "bororo language"
+    },
+    {
+      "value": "Tupiniquim",
+      "name": "Q33924",
+      "canonical": "tupiniquim"
+    },
+    {
+      "value": "Nheengatu",
+      "name": "Q34333",
+      "canonical": "nheengatu"
+    },
+    {
+      "value": "Curripaco",
+      "name": "Q2882543",
+      "canonical": "curripaco"
+    },
+    {
+      "value": "Piratapuyo",
+      "name": "Q3389119",
+      "canonical": "piratapuyo"
+    },
+    {
+      "value": "Yuhup",
+      "name": "Q3573115",
+      "canonical": "yuhup"
+    },
+    {
+      "value": "Tembé",
+      "name": "Q10322157",
+      "canonical": "tembé"
+    },
+    {
+      "value": "Arap",
+      "name": "Q9627356",
+      "canonical": "arap"
+    },
+    {
+      "value": "Tenharim",
+      "name": "Q10266010",
+      "canonical": "tenharim"
+    },
+    {
+      "value": "Yawanawa",
+      "name": "Q10322118",
+      "canonical": "yawanawa"
+    },
+    {
+      "value": "Amundava",
+      "name": "Q12626847",
+      "canonical": "amundava"
+    },
+    {
+      "value": "Machinere",
+      "name": "Q12953681",
+      "canonical": "machinere"
+    },
+    {
+      "value": "Júma",
+      "name": "Q12953587",
+      "canonical": "júma"
+    },
+    {
+      "value": "Morerebi",
+      "name": "Q12953749",
+      "canonical": "morerebi"
+    },
+    {
+      "value": "Parakanã",
+      "name": "Q12953804",
+      "canonical": "parakanã"
+    },
+    {
+      "value": "Kaxuiâna",
+      "name": "Q12953626",
+      "canonical": "kaxuiâna"
+    },
+    {
+      "value": "Paranawát",
+      "name": "Q12953806",
+      "canonical": "paranawát"
+    },
+    {
+      "value": "Tapeba",
+      "name": "Q12953908",
+      "canonical": "tapeba"
+    },
+    {
+      "value": "Lakondê",
+      "name": "Q20527166",
+      "canonical": "lakondê"
+    },
+    {
+      "value": "Pankararé",
+      "name": "Q25559779",
+      "canonical": "pankararé"
+    },
+    {
+      "value": "Pokangá",
+      "name": "Q25559704",
+      "canonical": "pokangá"
+    },
+    {
+      "value": "Tocantins Asurini language",
+      "name": "Q32041490",
+      "canonical": "tocantins asurini language"
+    },
+    {
+      "value": "Tukumanféd",
+      "name": "Q42330115",
+      "canonical": "tukumanféd"
+    },
+    {
+      "value": "Kinikinao",
+      "name": "Q53386731",
+      "canonical": "kinikinao"
+    },
+    {
+      "value": "Shanenawa language",
+      "name": "Q61974839",
+      "canonical": "shanenawa language"
+    },
+    {
+      "value": "Ararandewára language",
+      "name": "Q63339949",
+      "canonical": "ararandewára language"
+    },
+    {
+      "value": "Latundê language",
+      "name": "Q63259736",
+      "canonical": "latundê language"
+    },
+    {
+      "value": "Akawaio language",
+      "name": "Q28059",
+      "canonical": "akawaio language"
+    },
+    {
+      "value": "Tawandê language",
+      "name": "Q63340139",
+      "canonical": "tawandê language"
+    },
+    {
+      "value": "Swabian German",
+      "name": "Q327274",
+      "canonical": "swabian german"
+    },
+    {
+      "value": "Swiss German",
+      "name": "Q387066",
+      "canonical": "swiss german"
+    },
+    {
+      "value": "Ripuarian",
+      "name": "Q32145",
+      "canonical": "ripuarian"
+    },
+    {
+      "value": "Saterland Frisian",
+      "name": "Q27154",
+      "canonical": "saterland frisian"
+    },
+    {
+      "value": "Yeniche",
+      "name": "Q1365342",
+      "canonical": "yeniche"
+    },
+    {
+      "value": "Alemannic",
+      "name": "Q131339",
+      "canonical": "alemannic"
+    },
+    {
+      "value": "East Frisian Low Saxon",
+      "name": "Q149208",
+      "canonical": "east frisian low saxon"
+    },
+    {
+      "value": "Upper Saxon German",
+      "name": "Q699284",
+      "canonical": "upper saxon german"
+    },
+    {
+      "value": "Main-Franconian",
+      "name": "Q497345",
+      "canonical": "main-franconian"
+    },
+    {
+      "value": "Westphalian dialects",
+      "name": "Q505655",
+      "canonical": "westphalian dialects"
+    },
+    {
+      "value": "Luxembourgish",
+      "name": "Q9051",
+      "canonical": "luxembourgish"
+    },
+    {
+      "value": "Danish",
+      "name": "Q9035",
+      "canonical": "danish"
+    },
+    {
+      "value": "Lower Sorbian",
+      "name": "Q13286",
+      "canonical": "lower sorbian"
+    },
+    {
+      "value": "Upper Sorbian",
+      "name": "Q13248",
+      "canonical": "upper sorbian"
+    },
+    {
+      "value": "Palatinate German",
+      "name": "Q23014",
+      "canonical": "palatinate german"
+    },
+    {
+      "value": "German",
+      "name": "Q188",
+      "canonical": "german"
+    },
+    {
+      "value": "North Frisian",
+      "name": "Q28224",
+      "canonical": "north frisian"
+    },
+    {
+      "value": "Low German",
+      "name": "Q25433",
+      "canonical": "low german"
+    },
+    {
+      "value": "German Sign Language",
+      "name": "Q33282",
+      "canonical": "german sign language"
+    },
+    {
+      "value": "Western Yiddish",
+      "name": "Q6593714",
+      "canonical": "western yiddish"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Maltese",
+      "name": "Q9166",
+      "canonical": "maltese"
+    },
+    {
+      "value": "Maltese Sign Language",
+      "name": "Q6744816",
+      "canonical": "maltese sign language"
+    },
+    {
+      "value": "Yaghan",
+      "name": "Q531826",
+      "canonical": "yaghan"
+    },
+    {
+      "value": "Kunza",
+      "name": "Q2669181",
+      "canonical": "kunza"
+    },
+    {
+      "value": "Chilean Sign Language",
+      "name": "Q3322112",
+      "canonical": "chilean sign language"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Kawésqar language",
+      "name": "Q56544",
+      "canonical": "kawésqar language"
+    },
+    {
+      "value": "Huilliche",
+      "name": "Q35531",
+      "canonical": "huilliche"
+    },
+    {
+      "value": "Rapa Nui",
+      "name": "Q36746",
+      "canonical": "rapa nui"
+    },
+    {
+      "value": "Mapudungun",
+      "name": "Q33730",
+      "canonical": "mapudungun"
+    },
+    {
+      "value": "Central Aymara",
+      "name": "Q20526610",
+      "canonical": "central aymara"
+    },
+    {
+      "value": "Modern Standard Arabic",
+      "name": "Q56467",
+      "canonical": "modern standard arabic"
+    },
+    {
+      "value": "Bahrani Arabic",
+      "name": "Q56576",
+      "canonical": "bahrani arabic"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Bislama",
+      "name": "Q35452",
+      "canonical": "bislama"
+    },
+    {
+      "value": "French",
+      "name": "Q150",
+      "canonical": "french"
+    },
+    {
+      "value": "Rerep",
+      "name": "Q586907",
+      "canonical": "rerep"
+    },
+    {
+      "value": "Daakaka",
+      "name": "Q1157729",
+      "canonical": "daakaka"
+    },
+    {
+      "value": "Southeast Ambrym",
+      "name": "Q252411",
+      "canonical": "southeast ambrym"
+    },
+    {
+      "value": "North Tanna",
+      "name": "Q957945",
+      "canonical": "north tanna"
+    },
+    {
+      "value": "Aulua",
+      "name": "Q427300",
+      "canonical": "aulua"
+    },
+    {
+      "value": "Erromanga language",
+      "name": "Q426254",
+      "canonical": "erromanga language"
+    },
+    {
+      "value": "Lemerig",
+      "name": "Q2028448",
+      "canonical": "lemerig"
+    },
+    {
+      "value": "Tamambo",
+      "name": "Q1153276",
+      "canonical": "tamambo"
+    },
+    {
+      "value": "Lamenu",
+      "name": "Q740604",
+      "canonical": "lamenu"
+    },
+    {
+      "value": "Vao",
+      "name": "Q2160405",
+      "canonical": "vao"
+    },
+    {
+      "value": "Ninde language",
+      "name": "Q2157452",
+      "canonical": "ninde language"
+    },
+    {
+      "value": "Vinmavis",
+      "name": "Q2157431",
+      "canonical": "vinmavis"
+    },
+    {
+      "value": "Katbol",
+      "name": "Q2157461",
+      "canonical": "katbol"
+    },
+    {
+      "value": "Nahavaq language",
+      "name": "Q2160435",
+      "canonical": "nahavaq language"
+    },
+    {
+      "value": "Malfaxal",
+      "name": "Q2157421",
+      "canonical": "malfaxal"
+    },
+    {
+      "value": "Aneityum",
+      "name": "Q2379113",
+      "canonical": "aneityum"
+    },
+    {
+      "value": "Mwotlap language",
+      "name": "Q2475538",
+      "canonical": "mwotlap language"
+    },
+    {
+      "value": "Tangoa",
+      "name": "Q2410276",
+      "canonical": "tangoa"
+    },
+    {
+      "value": "Bieria",
+      "name": "Q4904607",
+      "canonical": "bieria"
+    },
+    {
+      "value": "Saa language",
+      "name": "Q3460352",
+      "canonical": "saa language"
+    },
+    {
+      "value": "South Efate",
+      "name": "Q3449070",
+      "canonical": "south efate"
+    },
+    {
+      "value": "Mpotovoro",
+      "name": "Q6928305",
+      "canonical": "mpotovoro"
+    },
+    {
+      "value": "Maragus",
+      "name": "Q6754640",
+      "canonical": "maragus"
+    },
+    {
+      "value": "Araki",
+      "name": "Q2699882",
+      "canonical": "araki"
+    },
+    {
+      "value": "Apma",
+      "name": "Q2669188",
+      "canonical": "apma"
+    },
+    {
+      "value": "Akei",
+      "name": "Q2828964",
+      "canonical": "akei"
+    },
+    {
+      "value": "North Ambrym",
+      "name": "Q2842468",
+      "canonical": "north ambrym"
+    },
+    {
+      "value": "West Ambae",
+      "name": "Q2841479",
+      "canonical": "west ambae"
+    },
+    {
+      "value": "East Ambae",
+      "name": "Q2841471",
+      "canonical": "east ambae"
+    },
+    {
+      "value": "Morouas",
+      "name": "Q6913299",
+      "canonical": "morouas"
+    },
+    {
+      "value": "Nasarian",
+      "name": "Q6966614",
+      "canonical": "nasarian"
+    },
+    {
+      "value": "Kiai language",
+      "name": "Q2666835",
+      "canonical": "kiai language"
+    },
+    {
+      "value": "Axamb",
+      "name": "Q2874710",
+      "canonical": "axamb"
+    },
+    {
+      "value": "Southwest Tanna",
+      "name": "Q3504488",
+      "canonical": "southwest tanna"
+    },
+    {
+      "value": "Nokuku",
+      "name": "Q7048122",
+      "canonical": "nokuku"
+    },
+    {
+      "value": "Big Nambas",
+      "name": "Q2902304",
+      "canonical": "big nambas"
+    },
+    {
+      "value": "Bierebo",
+      "name": "Q2902029",
+      "canonical": "bierebo"
+    },
+    {
+      "value": "Orkon language",
+      "name": "Q7102970",
+      "canonical": "orkon language"
+    },
+    {
+      "value": "Baetora",
+      "name": "Q2878874",
+      "canonical": "baetora"
+    },
+    {
+      "value": "Dixon Reef",
+      "name": "Q5284967",
+      "canonical": "dixon reef"
+    },
+    {
+      "value": "Unua",
+      "name": "Q3552042",
+      "canonical": "unua"
+    },
+    {
+      "value": "Vurës",
+      "name": "Q3563857",
+      "canonical": "vurës"
+    },
+    {
+      "value": "Piamatsina",
+      "name": "Q7190040",
+      "canonical": "piamatsina"
+    },
+    {
+      "value": "Vera'a",
+      "name": "Q3555689",
+      "canonical": "vera 'a"
+    },
+    {
+      "value": "North Efate",
+      "name": "Q3580152",
+      "canonical": "north efate"
+    },
+    {
+      "value": "Butmas language",
+      "name": "Q2928942",
+      "canonical": "butmas language"
+    },
+    {
+      "value": "Burmbar",
+      "name": "Q2928522",
+      "canonical": "burmbar"
+    },
+    {
+      "value": "Polonombauk",
+      "name": "Q7225957",
+      "canonical": "polonombauk"
+    },
+    {
+      "value": "Futuna-Aniwa",
+      "name": "Q3064409",
+      "canonical": "futuna-aniwa"
+    },
+    {
+      "value": "Whitesands",
+      "name": "Q3063761",
+      "canonical": "whitesands"
+    },
+    {
+      "value": "Raga language",
+      "name": "Q3063193",
+      "canonical": "raga language"
+    },
+    {
+      "value": "Eton language",
+      "name": "Q3059362",
+      "canonical": "eton language"
+    },
+    {
+      "value": "Dorig language",
+      "name": "Q3037047",
+      "canonical": "dorig language"
+    },
+    {
+      "value": "Emae",
+      "name": "Q3051961",
+      "canonical": "emae"
+    },
+    {
+      "value": "Roria",
+      "name": "Q7366825",
+      "canonical": "roria"
+    },
+    {
+      "value": "Ngen",
+      "name": "Q7489783",
+      "canonical": "ngen"
+    },
+    {
+      "value": "Mavea language",
+      "name": "Q3073532",
+      "canonical": "mavea language"
+    },
+    {
+      "value": "Hiw",
+      "name": "Q3138713",
+      "canonical": "hiw"
+    },
+    {
+      "value": "Tolomako",
+      "name": "Q3130514",
+      "canonical": "tolomako"
+    },
+    {
+      "value": "Paamese language",
+      "name": "Q3130286",
+      "canonical": "paamese language"
+    },
+    {
+      "value": "Sowa",
+      "name": "Q7571843",
+      "canonical": "sowa"
+    },
+    {
+      "value": "Ske language",
+      "name": "Q7534244",
+      "canonical": "ske language"
+    },
+    {
+      "value": "Letemboi",
+      "name": "Q3236886",
+      "canonical": "letemboi"
+    },
+    {
+      "value": "Lingarak",
+      "name": "Q3241515",
+      "canonical": "lingarak"
+    },
+    {
+      "value": "Lewo",
+      "name": "Q3237321",
+      "canonical": "lewo"
+    },
+    {
+      "value": "Lenakel",
+      "name": "Q3229429",
+      "canonical": "lenakel"
+    },
+    {
+      "value": "Lelepa",
+      "name": "Q3229273",
+      "canonical": "lelepa"
+    },
+    {
+      "value": "Lakon",
+      "name": "Q3216494",
+      "canonical": "lakon"
+    },
+    {
+      "value": "Larevat",
+      "name": "Q3217892",
+      "canonical": "larevat"
+    },
+    {
+      "value": "Lehali",
+      "name": "Q3229119",
+      "canonical": "lehali"
+    },
+    {
+      "value": "Repanbitip",
+      "name": "Q7313900",
+      "canonical": "repanbitip"
+    },
+    {
+      "value": "Kwamera",
+      "name": "Q3200806",
+      "canonical": "kwamera"
+    },
+    {
+      "value": "Koro",
+      "name": "Q3198995",
+      "canonical": "koro"
+    },
+    {
+      "value": "Tambotalo",
+      "name": "Q7681065",
+      "canonical": "tambotalo"
+    },
+    {
+      "value": "Tasmate",
+      "name": "Q7687571",
+      "canonical": "tasmate"
+    },
+    {
+      "value": "Baki",
+      "name": "Q11024697",
+      "canonical": "baki"
+    },
+    {
+      "value": "Amblong",
+      "name": "Q11022615",
+      "canonical": "amblong"
+    },
+    {
+      "value": "Lonwolwol",
+      "name": "Q3259216",
+      "canonical": "lonwolwol"
+    },
+    {
+      "value": "Lo-Toga",
+      "name": "Q3257566",
+      "canonical": "lo-toga"
+    },
+    {
+      "value": "Mae",
+      "name": "Q3276286",
+      "canonical": "mae"
+    },
+    {
+      "value": "Peterara language",
+      "name": "Q3276435",
+      "canonical": "peterara language"
+    },
+    {
+      "value": "Löyöp language",
+      "name": "Q3272124",
+      "canonical": "löyöp language"
+    },
+    {
+      "value": "Aore",
+      "name": "Q12627129",
+      "canonical": "aore"
+    },
+    {
+      "value": "Sungwadia language",
+      "name": "Q3293299",
+      "canonical": "sungwadia language"
+    },
+    {
+      "value": "Tutuba",
+      "name": "Q7857052",
+      "canonical": "tutuba"
+    },
+    {
+      "value": "Maskelynes",
+      "name": "Q3297282",
+      "canonical": "maskelynes"
+    },
+    {
+      "value": "Ura language",
+      "name": "Q7899531",
+      "canonical": "ura language"
+    },
+    {
+      "value": "Narango",
+      "name": "Q12952929",
+      "canonical": "narango"
+    },
+    {
+      "value": "Utaha language",
+      "name": "Q7902545",
+      "canonical": "utaha language"
+    },
+    {
+      "value": "Mele-Fila",
+      "name": "Q3305008",
+      "canonical": "mele-fila"
+    },
+    {
+      "value": "Sakao",
+      "name": "Q3298421",
+      "canonical": "sakao"
+    },
+    {
+      "value": "Malua Bay",
+      "name": "Q6744946",
+      "canonical": "malua bay"
+    },
+    {
+      "value": "Malmariv language",
+      "name": "Q6744350",
+      "canonical": "malmariv language"
+    },
+    {
+      "value": "Vunapu",
+      "name": "Q7943647",
+      "canonical": "vunapu"
+    },
+    {
+      "value": "Valpei",
+      "name": "Q7912582",
+      "canonical": "valpei"
+    },
+    {
+      "value": "Mota",
+      "name": "Q3325052",
+      "canonical": "mota"
+    },
+    {
+      "value": "Wusi",
+      "name": "Q8039349",
+      "canonical": "wusi"
+    },
+    {
+      "value": "Port Vato",
+      "name": "Q3398323",
+      "canonical": "port vato"
+    },
+    {
+      "value": "Port Sandwich",
+      "name": "Q3398324",
+      "canonical": "port sandwich"
+    },
+    {
+      "value": "Nume",
+      "name": "Q3346290",
+      "canonical": "nume"
+    },
+    {
+      "value": "Navut",
+      "name": "Q3337327",
+      "canonical": "navut"
+    },
+    {
+      "value": "Nethalp",
+      "name": "Q6680287",
+      "canonical": "nethalp"
+    },
+    {
+      "value": "Makura",
+      "name": "Q3335410",
+      "canonical": "makura"
+    },
+    {
+      "value": "Olrat",
+      "name": "Q3351562",
+      "canonical": "olrat"
+    },
+    {
+      "value": "Maii",
+      "name": "Q6735599",
+      "canonical": "maii"
+    },
+    {
+      "value": "Mwerlap language",
+      "name": "Q3331115",
+      "canonical": "mwerlap language"
+    },
+    {
+      "value": "Wailapa",
+      "name": "Q7960062",
+      "canonical": "wailapa"
+    },
+    {
+      "value": "Litzlitz",
+      "name": "Q6653424",
+      "canonical": "litzlitz"
+    },
+    {
+      "value": "Uripiv",
+      "name": "Q13249",
+      "canonical": "uripiv"
+    },
+    {
+      "value": "Merei",
+      "name": "Q12952843",
+      "canonical": "merei"
+    },
+    {
+      "value": "Modern Standard Arabic",
+      "name": "Q56467",
+      "canonical": "modern standard arabic"
+    },
+    {
+      "value": "Judeo-Moroccan",
+      "name": "Q56595",
+      "canonical": "judeo-moroccan"
+    },
+    {
+      "value": "Hebrew",
+      "name": "Q9288",
+      "canonical": "hebrew"
+    },
+    {
+      "value": "Yevanic",
+      "name": "Q34200",
+      "canonical": "yevanic"
+    },
+    {
+      "value": "Samaritan Hebrew",
+      "name": "Q56502",
+      "canonical": "samaritan hebrew"
+    },
+    {
+      "value": "South Levantine Arabic",
+      "name": "Q55633582",
+      "canonical": "south levantine arabic"
+    },
+    {
+      "value": "Lishana Deni",
+      "name": "Q3436461",
+      "canonical": "lishana deni"
+    },
+    {
+      "value": "Lishanid Noshan",
+      "name": "Q3436467",
+      "canonical": "lishanid noshan"
+    },
+    {
+      "value": "Biblical Hebrew",
+      "name": "Q1982248",
+      "canonical": "biblical hebrew"
+    },
+    {
+      "value": "Al-Sayyid Bedouin Sign Language",
+      "name": "Q2915457",
+      "canonical": "al-sayyid bedouin sign language"
+    },
+    {
+      "value": "Israeli Sign Language",
+      "name": "Q2911863",
+      "canonical": "israeli sign language"
+    },
+    {
+      "value": "Bukhori dialect",
+      "name": "Q56469",
+      "canonical": "bukhori dialect"
+    },
+    {
+      "value": "Lishán Didán",
+      "name": "Q56473",
+      "canonical": "lishán didán"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Judeo-Iraqi Arabic",
+      "name": "Q56599",
+      "canonical": "judeo-iraqi arabic"
+    },
+    {
+      "value": "Judeo-Tripolitanian Arabic",
+      "name": "Q56598",
+      "canonical": "judeo-tripolitanian arabic"
+    },
+    {
+      "value": "Judaeo-Georgian",
+      "name": "Q35737",
+      "canonical": "judaeo-georgian"
+    },
+    {
+      "value": "Judeo-Berber",
+      "name": "Q35854",
+      "canonical": "judeo-berber"
+    },
+    {
+      "value": "Yiddish",
+      "name": "Q8641",
+      "canonical": "yiddish"
+    },
+    {
+      "value": "Judaeo-Spanish",
+      "name": "Q36196",
+      "canonical": "judaeo-spanish"
+    },
+    {
+      "value": "Judeo-Arabic dialects",
+      "name": "Q37733",
+      "canonical": "judeo-arabic dialects"
+    },
+    {
+      "value": "Barzani Jewish Neo-Aramaic",
+      "name": "Q33234",
+      "canonical": "barzani jewish neo-aramaic"
+    },
+    {
+      "value": "Jewish Babylonian Aramaic",
+      "name": "Q33407",
+      "canonical": "jewish babylonian aramaic"
+    },
+    {
+      "value": "Hulaulá",
+      "name": "Q33426",
+      "canonical": "hulaulá"
+    },
+    {
+      "value": "Hmong Njua",
+      "name": "Q3138831",
+      "canonical": "hmong njua"
+    },
+    {
+      "value": "Khua",
+      "name": "Q22970290",
+      "canonical": "khua"
+    },
+    {
+      "value": "Northern Thai",
+      "name": "Q565110",
+      "canonical": "northern thai"
+    },
+    {
+      "value": "Kaduo",
+      "name": "Q769809",
+      "canonical": "kaduo"
+    },
+    {
+      "value": "Iu Mien",
+      "name": "Q2498808",
+      "canonical": "iu mien"
+    },
+    {
+      "value": "Pacoh",
+      "name": "Q3441136",
+      "canonical": "pacoh"
+    },
+    {
+      "value": "Kiorr",
+      "name": "Q3440883",
+      "canonical": "kiorr"
+    },
+    {
+      "value": "Brao",
+      "name": "Q4957737",
+      "canonical": "brao"
+    },
+    {
+      "value": "Alak",
+      "name": "Q2714690",
+      "canonical": "alak"
+    },
+    {
+      "value": "Yoy",
+      "name": "Q3503717",
+      "canonical": "yoy"
+    },
+    {
+      "value": "Arem",
+      "name": "Q3507920",
+      "canonical": "arem"
+    },
+    {
+      "value": "Nyaheun",
+      "name": "Q7070801",
+      "canonical": "nyaheun"
+    },
+    {
+      "value": "Bit",
+      "name": "Q2904868",
+      "canonical": "bit"
+    },
+    {
+      "value": "Chut",
+      "name": "Q2967709",
+      "canonical": "chut"
+    },
+    {
+      "value": "Phu Thai",
+      "name": "Q3626597",
+      "canonical": "phu thai"
+    },
+    {
+      "value": "Phana’ language",
+      "name": "Q7180427",
+      "canonical": "phana ' language"
+    },
+    {
+      "value": "Phunoi",
+      "name": "Q7188361",
+      "canonical": "phunoi"
+    },
+    {
+      "value": "Phai",
+      "name": "Q7180184",
+      "canonical": "phai"
+    },
+    {
+      "value": "Phong language",
+      "name": "Q3914627",
+      "canonical": "phong language"
+    },
+    {
+      "value": "Duan language",
+      "name": "Q3914632",
+      "canonical": "duan language"
+    },
+    {
+      "value": "Jeh",
+      "name": "Q3914636",
+      "canonical": "jeh"
+    },
+    {
+      "value": "Mlabri",
+      "name": "Q3073465",
+      "canonical": "mlabri"
+    },
+    {
+      "value": "Sila",
+      "name": "Q7514021",
+      "canonical": "sila"
+    },
+    {
+      "value": "Tai Daeng",
+      "name": "Q3915207",
+      "canonical": "tai daeng"
+    },
+    {
+      "value": "Jru' language",
+      "name": "Q6298648",
+      "canonical": "jru ' language"
+    },
+    {
+      "value": "Phuan",
+      "name": "Q3915665",
+      "canonical": "phuan"
+    },
+    {
+      "value": "Tai Dón",
+      "name": "Q7675751",
+      "canonical": "tai dón"
+    },
+    {
+      "value": "Tai Do",
+      "name": "Q7675746",
+      "canonical": "tai do"
+    },
+    {
+      "value": "Tai Loi",
+      "name": "Q7675784",
+      "canonical": "tai loi"
+    },
+    {
+      "value": "Tai Pao",
+      "name": "Q7675795",
+      "canonical": "tai pao"
+    },
+    {
+      "value": "Lamet",
+      "name": "Q3216723",
+      "canonical": "lamet"
+    },
+    {
+      "value": "Sapuan",
+      "name": "Q7421168",
+      "canonical": "sapuan"
+    },
+    {
+      "value": "Katu language",
+      "name": "Q6378400",
+      "canonical": "katu language"
+    },
+    {
+      "value": "Mal",
+      "name": "Q3281057",
+      "canonical": "mal"
+    },
+    {
+      "value": "Kang language",
+      "name": "Q6362363",
+      "canonical": "kang language"
+    },
+    {
+      "value": "Kiorr language",
+      "name": "Q6414519",
+      "canonical": "kiorr language"
+    },
+    {
+      "value": "Kuan",
+      "name": "Q6441085",
+      "canonical": "kuan"
+    },
+    {
+      "value": "Laotian sign languages",
+      "name": "Q6488022",
+      "canonical": "laotian sign languages"
+    },
+    {
+      "value": "O’du language",
+      "name": "Q3347428",
+      "canonical": "o 'du language"
+    },
+    {
+      "value": "Maleng",
+      "name": "Q6583562",
+      "canonical": "maleng"
+    },
+    {
+      "value": "Oi language",
+      "name": "Q13593748",
+      "canonical": "oi language"
+    },
+    {
+      "value": "Tai Dam",
+      "name": "Q56407",
+      "canonical": "tai dam"
+    },
+    {
+      "value": "Laopan language",
+      "name": "Q12952711",
+      "canonical": "laopan language"
+    },
+    {
+      "value": "Su' language",
+      "name": "Q16979751",
+      "canonical": "su ' language"
+    },
+    {
+      "value": "Akha",
+      "name": "Q56643",
+      "canonical": "akha"
+    },
+    {
+      "value": "Lahu",
+      "name": "Q35780",
+      "canonical": "lahu"
+    },
+    {
+      "value": "Hani",
+      "name": "Q56516",
+      "canonical": "hani"
+    },
+    {
+      "value": "Lao",
+      "name": "Q9211",
+      "canonical": "lao"
+    },
+    {
+      "value": "Saek",
+      "name": "Q36437",
+      "canonical": "saek"
+    },
+    {
+      "value": "Tai Lü",
+      "name": "Q36948",
+      "canonical": "tai lü"
+    },
+    {
+      "value": "Kuy",
+      "name": "Q56310",
+      "canonical": "kuy"
+    },
+    {
+      "value": "Halang",
+      "name": "Q56307",
+      "canonical": "halang"
+    },
+    {
+      "value": "Khmu",
+      "name": "Q33335",
+      "canonical": "khmu"
+    },
+    {
+      "value": "Ir",
+      "name": "Q3071880",
+      "canonical": "ir"
+    },
+    {
+      "value": "Sô",
+      "name": "Q3082037",
+      "canonical": "sô"
+    },
+    {
+      "value": "Upper Ta'oih",
+      "name": "Q3512660",
+      "canonical": "upper ta 'oih"
+    },
+    {
+      "value": "Bo language",
+      "name": "Q8845514",
+      "canonical": "bo language"
+    },
+    {
+      "value": "Hung",
+      "name": "Q12632753",
+      "canonical": "hung"
+    },
+    {
+      "value": "Ong language",
+      "name": "Q12953787",
+      "canonical": "ong language"
+    },
+    {
+      "value": "Western Bru",
+      "name": "Q16113806",
+      "canonical": "western bru"
+    },
+    {
+      "value": "Eastern Bru",
+      "name": "Q16115463",
+      "canonical": "eastern bru"
+    },
+    {
+      "value": "Kang",
+      "name": "Q25559558",
+      "canonical": "kang"
+    },
+    {
+      "value": "Ngeq",
+      "name": "Q25559548",
+      "canonical": "ngeq"
+    },
+    {
+      "value": "Lower Ta’Oi",
+      "name": "Q25559539",
+      "canonical": "lower ta 'oi"
+    },
+    {
+      "value": "Tareng",
+      "name": "Q25559541",
+      "canonical": "tareng"
+    },
+    {
+      "value": "Tai Long",
+      "name": "Q25559562",
+      "canonical": "tai long"
+    },
+    {
+      "value": "Khuen",
+      "name": "Q27144893",
+      "canonical": "khuen"
+    },
+    {
+      "value": "Talieng",
+      "name": "Q37525108",
+      "canonical": "talieng"
+    },
+    {
+      "value": "Chepya",
+      "name": "Q46603077",
+      "canonical": "chepya"
+    },
+    {
+      "value": "Tajik",
+      "name": "Q9260",
+      "canonical": "tajik"
+    },
+    {
+      "value": "Russian",
+      "name": "Q7737",
+      "canonical": "russian"
+    },
+    {
+      "value": "Parya",
+      "name": "Q1135134",
+      "canonical": "parya"
+    },
+    {
+      "value": "Northern Uzbek",
+      "name": "Q1066766",
+      "canonical": "northern uzbek"
+    },
+    {
+      "value": "Southern Pashto",
+      "name": "Q16112855",
+      "canonical": "southern pashto"
+    },
+    {
+      "value": "Tajiki Arabic",
+      "name": "Q56833",
+      "canonical": "tajiki arabic"
+    },
+    {
+      "value": "Kyrgyz",
+      "name": "Q9255",
+      "canonical": "kyrgyz"
+    },
+    {
+      "value": "Ishkashimi",
+      "name": "Q33419",
+      "canonical": "ishkashimi"
+    },
+    {
+      "value": "Yazgulyam",
+      "name": "Q34186",
+      "canonical": "yazgulyam"
+    },
+    {
+      "value": "Shughni",
+      "name": "Q34053",
+      "canonical": "shughni"
+    },
+    {
+      "value": "Wakhi",
+      "name": "Q34208",
+      "canonical": "wakhi"
+    },
+    {
+      "value": "Yaghnobi",
+      "name": "Q34247",
+      "canonical": "yaghnobi"
+    },
+    {
+      "value": "Thai",
+      "name": "Q9217",
+      "canonical": "thai"
+    },
+    {
+      "value": "Isan language",
+      "name": "Q33417",
+      "canonical": "isan language"
+    },
+    {
+      "value": "Pattani Malay",
+      "name": "Q1199751",
+      "canonical": "pattani malay"
+    },
+    {
+      "value": "Nyah Kur",
+      "name": "Q116849",
+      "canonical": "nyah kur"
+    },
+    {
+      "value": "Northern Thai",
+      "name": "Q565110",
+      "canonical": "northern thai"
+    },
+    {
+      "value": "Urak Lawoi’",
+      "name": "Q2031144",
+      "canonical": "urak lawoi '"
+    },
+    {
+      "value": "Gong",
+      "name": "Q3448919",
+      "canonical": "gong"
+    },
+    {
+      "value": "Mpi",
+      "name": "Q6928276",
+      "canonical": "mpi"
+    },
+    {
+      "value": "Ban Khor Sign Language",
+      "name": "Q3441103",
+      "canonical": "ban khor sign language"
+    },
+    {
+      "value": "Northern Khmer",
+      "name": "Q3502234",
+      "canonical": "northern khmer"
+    },
+    {
+      "value": "Kedah Malay",
+      "name": "Q4925684",
+      "canonical": "kedah malay"
+    },
+    {
+      "value": "Blang",
+      "name": "Q4925096",
+      "canonical": "blang"
+    },
+    {
+      "value": "Yoy",
+      "name": "Q3503717",
+      "canonical": "yoy"
+    },
+    {
+      "value": "Chiangmai Sign Language",
+      "name": "Q5095211",
+      "canonical": "chiangmai sign language"
+    },
+    {
+      "value": "Northern Pwo language",
+      "name": "Q7058885",
+      "canonical": "northern pwo language"
+    },
+    {
+      "value": "Pa'O language",
+      "name": "Q7121294",
+      "canonical": "pa 'o language"
+    },
+    {
+      "value": "Phu Thai",
+      "name": "Q3626597",
+      "canonical": "phu thai"
+    },
+    {
+      "value": "Phrae Pwo language",
+      "name": "Q7187991",
+      "canonical": "phrae pwo language"
+    },
+    {
+      "value": "Phai",
+      "name": "Q7180184",
+      "canonical": "phai"
+    },
+    {
+      "value": "Eastern Pwo",
+      "name": "Q5330390",
+      "canonical": "eastern pwo"
+    },
+    {
+      "value": "Chong",
+      "name": "Q3914630",
+      "canonical": "chong"
+    },
+    {
+      "value": "Mlabri",
+      "name": "Q3073465",
+      "canonical": "mlabri"
+    },
+    {
+      "value": "Mos language",
+      "name": "Q3073453",
+      "canonical": "mos language"
+    },
+    {
+      "value": "Phuan",
+      "name": "Q3915665",
+      "canonical": "phuan"
+    },
+    {
+      "value": "Thai Sign Language",
+      "name": "Q7709156",
+      "canonical": "thai sign language"
+    },
+    {
+      "value": "Thai Song",
+      "name": "Q7709159",
+      "canonical": "thai song"
+    },
+    {
+      "value": "Kensiu",
+      "name": "Q6391529",
+      "canonical": "kensiu"
+    },
+    {
+      "value": "Mal",
+      "name": "Q3281057",
+      "canonical": "mal"
+    },
+    {
+      "value": "Mok",
+      "name": "Q13018559",
+      "canonical": "mok"
+    },
+    {
+      "value": "Yong",
+      "name": "Q8054978",
+      "canonical": "yong"
+    },
+    {
+      "value": "S'gaw Karen",
+      "name": "Q56410",
+      "canonical": "s 'gaw karen"
+    },
+    {
+      "value": "Southern Thai",
+      "name": "Q56508",
+      "canonical": "southern thai"
+    },
+    {
+      "value": "Akha",
+      "name": "Q56643",
+      "canonical": "akha"
+    },
+    {
+      "value": "Bisu",
+      "name": "Q56852",
+      "canonical": "bisu"
+    },
+    {
+      "value": "Shan",
+      "name": "Q56482",
+      "canonical": "shan"
+    },
+    {
+      "value": "Saek",
+      "name": "Q36437",
+      "canonical": "saek"
+    },
+    {
+      "value": "Kuy",
+      "name": "Q56310",
+      "canonical": "kuy"
+    },
+    {
+      "value": "Mon",
+      "name": "Q13349",
+      "canonical": "mon"
+    },
+    {
+      "value": "Khmu",
+      "name": "Q33335",
+      "canonical": "khmu"
+    },
+    {
+      "value": "Thavung",
+      "name": "Q34780",
+      "canonical": "thavung"
+    },
+    {
+      "value": "Nyeu",
+      "name": "Q3033578",
+      "canonical": "nyeu"
+    },
+    {
+      "value": "Moklen",
+      "name": "Q3319380",
+      "canonical": "moklen"
+    },
+    {
+      "value": "Hmong Njua",
+      "name": "Q3138831",
+      "canonical": "hmong njua"
+    },
+    {
+      "value": "Sô",
+      "name": "Q3082037",
+      "canonical": "sô"
+    },
+    {
+      "value": "Western Bru",
+      "name": "Q16113806",
+      "canonical": "western bru"
+    },
+    {
+      "value": "Eastern Lawa",
+      "name": "Q18644464",
+      "canonical": "eastern lawa"
+    },
+    {
+      "value": "Moken",
+      "name": "Q18648701",
+      "canonical": "moken"
+    },
+    {
+      "value": "Western Lawa",
+      "name": "Q18644465",
+      "canonical": "western lawa"
+    },
+    {
+      "value": "Eastern Kayah",
+      "name": "Q25559417",
+      "canonical": "eastern kayah"
+    },
+    {
+      "value": "Nyaw",
+      "name": "Q26425602",
+      "canonical": "nyaw"
+    },
+    {
+      "value": "Gulf Arabic",
+      "name": "Q56385",
+      "canonical": "gulf arabic"
+    },
+    {
+      "value": "Modern Standard Arabic",
+      "name": "Q56467",
+      "canonical": "modern standard arabic"
+    },
+    {
+      "value": "Shihhi Arabic",
+      "name": "Q56571",
+      "canonical": "shihhi arabic"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Maasina Fulfulde",
+      "name": "Q3915322",
+      "canonical": "maasina fulfulde"
+    },
+    {
+      "value": "Tamasheq",
+      "name": "Q4670066",
+      "canonical": "tamasheq"
+    },
+    {
+      "value": "Hassaniya Arabic",
+      "name": "Q56231",
+      "canonical": "hassaniya arabic"
+    },
+    {
+      "value": "French",
+      "name": "Q150",
+      "canonical": "french"
+    },
+    {
+      "value": "Dioula language",
+      "name": "Q32706",
+      "canonical": "dioula language"
+    },
+    {
+      "value": "Bambara",
+      "name": "Q33243",
+      "canonical": "bambara"
+    },
+    {
+      "value": "Pulaar",
+      "name": "Q1420205",
+      "canonical": "pulaar"
+    },
+    {
+      "value": "Dogon languages",
+      "name": "Q1234776",
+      "canonical": "dogon languages"
+    },
+    {
+      "value": "Bamako Sign Language",
+      "name": "Q4853284",
+      "canonical": "bamako sign language"
+    },
+    {
+      "value": "Bankan Tey Dogon",
+      "name": "Q4856243",
+      "canonical": "bankan tey dogon"
+    },
+    {
+      "value": "Ben Tey Dogon",
+      "name": "Q4886561",
+      "canonical": "ben tey dogon"
+    },
+    {
+      "value": "Banka language",
+      "name": "Q3438402",
+      "canonical": "banka language"
+    },
+    {
+      "value": "Bangime",
+      "name": "Q1982696",
+      "canonical": "bangime"
+    },
+    {
+      "value": "Mombo Dogon",
+      "name": "Q6897074",
+      "canonical": "mombo dogon"
+    },
+    {
+      "value": "Budu Dogon",
+      "name": "Q4985178",
+      "canonical": "budu dogon"
+    },
+    {
+      "value": "Nanga Dogon",
+      "name": "Q6963443",
+      "canonical": "nanga dogon"
+    },
+    {
+      "value": "Duleri Dogon",
+      "name": "Q5313387",
+      "canonical": "duleri dogon"
+    },
+    {
+      "value": "Kita Maninka language",
+      "name": "Q3015523",
+      "canonical": "kita maninka language"
+    },
+    {
+      "value": "Pana",
+      "name": "Q7129739",
+      "canonical": "pana"
+    },
+    {
+      "value": "Dogul Dogon",
+      "name": "Q3912880",
+      "canonical": "dogul dogon"
+    },
+    {
+      "value": "Bondum Dogon",
+      "name": "Q3912758",
+      "canonical": "bondum dogon"
+    },
+    {
+      "value": "Jowulu",
+      "name": "Q3914487",
+      "canonical": "jowulu"
+    },
+    {
+      "value": "Jamsai Dogon",
+      "name": "Q3913290",
+      "canonical": "jamsai dogon"
+    },
+    {
+      "value": "Bolon",
+      "name": "Q3913301",
+      "canonical": "bolon"
+    },
+    {
+      "value": "Kalamsé",
+      "name": "Q3914000",
+      "canonical": "kalamsé"
+    },
+    {
+      "value": "Duungooma language",
+      "name": "Q3914880",
+      "canonical": "duungooma language"
+    },
+    {
+      "value": "Toro-tegu Dogon",
+      "name": "Q3913924",
+      "canonical": "toro-tegu dogon"
+    },
+    {
+      "value": "Pular",
+      "name": "Q3915357",
+      "canonical": "pular"
+    },
+    {
+      "value": "Tebul Sign Language",
+      "name": "Q7692090",
+      "canonical": "tebul sign language"
+    },
+    {
+      "value": "Tebul Dogon",
+      "name": "Q7692089",
+      "canonical": "tebul dogon"
+    },
+    {
+      "value": "Tondi Songway Kiini",
+      "name": "Q7820798",
+      "canonical": "tondi songway kiini"
+    },
+    {
+      "value": "Ana Dogon",
+      "name": "Q4750346",
+      "canonical": "ana dogon"
+    },
+    {
+      "value": "Ampari Dogon",
+      "name": "Q4748057",
+      "canonical": "ampari dogon"
+    },
+    {
+      "value": "Yanda Dogon",
+      "name": "Q8048316",
+      "canonical": "yanda dogon"
+    },
+    {
+      "value": "Bomu",
+      "name": "Q35065",
+      "canonical": "bomu"
+    },
+    {
+      "value": "Tahoua",
+      "name": "Q56390",
+      "canonical": "tahoua"
+    },
+    {
+      "value": "Humburi Senni language",
+      "name": "Q35486",
+      "canonical": "humburi senni language"
+    },
+    {
+      "value": "Yalunka",
+      "name": "Q35524",
+      "canonical": "yalunka"
+    },
+    {
+      "value": "Koyraboro Senni",
+      "name": "Q35655",
+      "canonical": "koyraboro senni"
+    },
+    {
+      "value": "Koromfe language",
+      "name": "Q35701",
+      "canonical": "koromfe language"
+    },
+    {
+      "value": "Marka",
+      "name": "Q36030",
+      "canonical": "marka"
+    },
+    {
+      "value": "Mossi",
+      "name": "Q36096",
+      "canonical": "mossi"
+    },
+    {
+      "value": "Sucite language",
+      "name": "Q56787",
+      "canonical": "sucite language"
+    },
+    {
+      "value": "Syenara language",
+      "name": "Q36316",
+      "canonical": "syenara language"
+    },
+    {
+      "value": "Shempire language",
+      "name": "Q36325",
+      "canonical": "shempire language"
+    },
+    {
+      "value": "Minyanka language",
+      "name": "Q36187",
+      "canonical": "minyanka language"
+    },
+    {
+      "value": "Tadaksahak",
+      "name": "Q36568",
+      "canonical": "tadaksahak"
+    },
+    {
+      "value": "Soninke",
+      "name": "Q36660",
+      "canonical": "soninke"
+    },
+    {
+      "value": "Kassonke language",
+      "name": "Q36905",
+      "canonical": "kassonke language"
+    },
+    {
+      "value": "Zarma",
+      "name": "Q36990",
+      "canonical": "zarma"
+    },
+    {
+      "value": "Supyire language",
+      "name": "Q56284",
+      "canonical": "supyire language"
+    },
+    {
+      "value": "Koyra Chiini language",
+      "name": "Q33600",
+      "canonical": "koyra chiini language"
+    },
+    {
+      "value": "Tuareg languages",
+      "name": "Q34065",
+      "canonical": "tuareg languages"
+    },
+    {
+      "value": "Kisamo-Matya",
+      "name": "Q10974879",
+      "canonical": "kisamo-matya"
+    },
+    {
+      "value": "Eastern Maninkaka language",
+      "name": "Q11002130",
+      "canonical": "eastern maninkaka language"
+    },
+    {
+      "value": "Jenaama Bozo",
+      "name": "Q10950633",
+      "canonical": "jenaama bozo"
+    },
+    {
+      "value": "Toro So Dogon",
+      "name": "Q11003311",
+      "canonical": "toro so dogon"
+    },
+    {
+      "value": "Western Maninkakan",
+      "name": "Q11028033",
+      "canonical": "western maninkakan"
+    },
+    {
+      "value": "Tene Kan Dogon",
+      "name": "Q11018863",
+      "canonical": "tene kan dogon"
+    },
+    {
+      "value": "Tomo Kan Dogon",
+      "name": "Q11137719",
+      "canonical": "tomo kan dogon"
+    },
+    {
+      "value": "Kagoro",
+      "name": "Q11159524",
+      "canonical": "kagoro"
+    },
+    {
+      "value": "Hainyaxo Bozo language",
+      "name": "Q11159536",
+      "canonical": "hainyaxo bozo language"
+    },
+    {
+      "value": "Tiemacewe Bozo language",
+      "name": "Q12643582",
+      "canonical": "tiemacewe bozo language"
+    },
+    {
+      "value": "Tiéyaxo Bozo",
+      "name": "Q32860401",
+      "canonical": "tiéyaxo bozo"
+    },
+    {
+      "value": "Tommo So Dogon",
+      "name": "Q47012992",
+      "canonical": "tommo so dogon"
+    },
+    {
+      "value": "Northern Bobo Madaré",
+      "name": "Q35371",
+      "canonical": "northern bobo madaré"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Yauma",
+      "name": "Q2599826",
+      "canonical": "yauma"
+    },
+    {
+      "value": "Kwanyama",
+      "name": "Q1405077",
+      "canonical": "kwanyama"
+    },
+    {
+      "value": "Zemba",
+      "name": "Q1845148",
+      "canonical": "zemba"
+    },
+    {
+      "value": "Kwadi",
+      "name": "Q2364661",
+      "canonical": "kwadi"
+    },
+    {
+      "value": "Chokwe",
+      "name": "Q2422065",
+      "canonical": "chokwe"
+    },
+    {
+      "value": "Mbangala",
+      "name": "Q6799612",
+      "canonical": "mbangala"
+    },
+    {
+      "value": "Mbukushu",
+      "name": "Q2691548",
+      "canonical": "mbukushu"
+    },
+    {
+      "value": "Bolo language",
+      "name": "Q4939959",
+      "canonical": "bolo language"
+    },
+    {
+      "value": "Ndombe",
+      "name": "Q6983792",
+      "canonical": "ndombe"
+    },
+    {
+      "value": "Nsongo",
+      "name": "Q7067577",
+      "canonical": "nsongo"
+    },
+    {
+      "value": "Gciriku language",
+      "name": "Q3780954",
+      "canonical": "gciriku language"
+    },
+    {
+      "value": "Luimbi",
+      "name": "Q10963134",
+      "canonical": "luimbi"
+    },
+    {
+      "value": "Nyengo",
+      "name": "Q7071068",
+      "canonical": "nyengo"
+    },
+    {
+      "value": "Nyaneka",
+      "name": "Q10962298",
+      "canonical": "nyaneka"
+    },
+    {
+      "value": "Mashi",
+      "name": "Q10962737",
+      "canonical": "mashi"
+    },
+    {
+      "value": "Holu",
+      "name": "Q4121133",
+      "canonical": "holu"
+    },
+    {
+      "value": "Nkhumbi",
+      "name": "Q11019169",
+      "canonical": "nkhumbi"
+    },
+    {
+      "value": "Lucazi language",
+      "name": "Q3265143",
+      "canonical": "lucazi language"
+    },
+    {
+      "value": "Sama",
+      "name": "Q6407456",
+      "canonical": "sama"
+    },
+    {
+      "value": "Kuvale language",
+      "name": "Q6448765",
+      "canonical": "kuvale language"
+    },
+    {
+      "value": "Nyemba",
+      "name": "Q3346655",
+      "canonical": "nyemba"
+    },
+    {
+      "value": "Portuguese",
+      "name": "Q5146",
+      "canonical": "portuguese"
+    },
+    {
+      "value": "Yaka language",
+      "name": "Q35588",
+      "canonical": "yaka language"
+    },
+    {
+      "value": "Kimbundu",
+      "name": "Q35891",
+      "canonical": "kimbundu"
+    },
+    {
+      "value": "Kwangali",
+      "name": "Q36334",
+      "canonical": "kwangali"
+    },
+    {
+      "value": "Umbundu",
+      "name": "Q36983",
+      "canonical": "umbundu"
+    },
+    {
+      "value": "Khwe",
+      "name": "Q28305",
+      "canonical": "khwe"
+    },
+    {
+      "value": "Luvale",
+      "name": "Q33597",
+      "canonical": "luvale"
+    },
+    {
+      "value": "Lunda",
+      "name": "Q33607",
+      "canonical": "lunda"
+    },
+    {
+      "value": "Luba-Kasai language",
+      "name": "Q34173",
+      "canonical": "luba-kasai language"
+    },
+    {
+      "value": "Mbunda",
+      "name": "Q34170",
+      "canonical": "mbunda"
+    },
+    {
+      "value": "Mbwela",
+      "name": "Q11004988",
+      "canonical": "mbwela"
+    },
+    {
+      "value": "Kiyombe",
+      "name": "Q10961975",
+      "canonical": "kiyombe"
+    },
+    {
+      "value": "Nkangala",
+      "name": "Q10962292",
+      "canonical": "nkangala"
+    },
+    {
+      "value": "Ngandyera",
+      "name": "Q10961003",
+      "canonical": "ngandyera"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Southern Kissi dialect",
+      "name": "Q11028974",
+      "canonical": "southern kissi dialect"
+    },
+    {
+      "value": "Northern Kissi",
+      "name": "Q19921576",
+      "canonical": "northern kissi"
+    },
+    {
+      "value": "Mende",
+      "name": "Q1478672",
+      "canonical": "mende"
+    },
+    {
+      "value": "Loko",
+      "name": "Q3914912",
+      "canonical": "loko"
+    },
+    {
+      "value": "Sierra Leonean Sign Language",
+      "name": "Q7511448",
+      "canonical": "sierra leonean sign language"
+    },
+    {
+      "value": "Kuranko",
+      "name": "Q3198896",
+      "canonical": "kuranko"
+    },
+    {
+      "value": "Bullom So",
+      "name": "Q35061",
+      "canonical": "bullom so"
+    },
+    {
+      "value": "Bom language",
+      "name": "Q35088",
+      "canonical": "bom language"
+    },
+    {
+      "value": "Yalunka",
+      "name": "Q35524",
+      "canonical": "yalunka"
+    },
+    {
+      "value": "Gola",
+      "name": "Q35482",
+      "canonical": "gola"
+    },
+    {
+      "value": "Kono language",
+      "name": "Q35675",
+      "canonical": "kono language"
+    },
+    {
+      "value": "Krio",
+      "name": "Q35744",
+      "canonical": "krio"
+    },
+    {
+      "value": "Sherbro",
+      "name": "Q36339",
+      "canonical": "sherbro"
+    },
+    {
+      "value": "Temne language",
+      "name": "Q36613",
+      "canonical": "temne language"
+    },
+    {
+      "value": "Vai",
+      "name": "Q36939",
+      "canonical": "vai"
+    },
+    {
+      "value": "Susu",
+      "name": "Q33990",
+      "canonical": "susu"
+    },
+    {
+      "value": "Eastern Maninkaka language",
+      "name": "Q11002130",
+      "canonical": "eastern maninkaka language"
+    },
+    {
+      "value": "East Limba",
+      "name": "Q11034212",
+      "canonical": "east limba"
+    },
+    {
+      "value": "West-Central Limba",
+      "name": "Q32867815",
+      "canonical": "west-central limba"
+    },
+    {
+      "value": "Sudanese Arabic",
+      "name": "Q56573",
+      "canonical": "sudanese arabic"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Tar Gula language",
+      "name": "Q277963",
+      "canonical": "tar gula language"
+    },
+    {
+      "value": "Afitti",
+      "name": "Q3400829",
+      "canonical": "afitti"
+    },
+    {
+      "value": "Tumtum",
+      "name": "Q3407029",
+      "canonical": "tumtum"
+    },
+    {
+      "value": "Kadugli language",
+      "name": "Q3407136",
+      "canonical": "kadugli language"
+    },
+    {
+      "value": "Keiga",
+      "name": "Q3409311",
+      "canonical": "keiga"
+    },
+    {
+      "value": "Gumuz",
+      "name": "Q2396970",
+      "canonical": "gumuz"
+    },
+    {
+      "value": "Sillok language",
+      "name": "Q3450949",
+      "canonical": "sillok language"
+    },
+    {
+      "value": "El Hugeirat",
+      "name": "Q5351410",
+      "canonical": "el hugeirat"
+    },
+    {
+      "value": "Ganza",
+      "name": "Q5521556",
+      "canonical": "ganza"
+    },
+    {
+      "value": "Gule",
+      "name": "Q3120736",
+      "canonical": "gule"
+    },
+    {
+      "value": "Sila language",
+      "name": "Q7514020",
+      "canonical": "sila language"
+    },
+    {
+      "value": "Uduk",
+      "name": "Q3182573",
+      "canonical": "uduk"
+    },
+    {
+      "value": "Yulu",
+      "name": "Q3915595",
+      "canonical": "yulu"
+    },
+    {
+      "value": "Temein",
+      "name": "Q7698064",
+      "canonical": "temein"
+    },
+    {
+      "value": "Kelo",
+      "name": "Q6386412",
+      "canonical": "kelo"
+    },
+    {
+      "value": "Kanga",
+      "name": "Q6362384",
+      "canonical": "kanga"
+    },
+    {
+      "value": "Krongo",
+      "name": "Q6438927",
+      "canonical": "krongo"
+    },
+    {
+      "value": "Wali language",
+      "name": "Q30597440",
+      "canonical": "wali language"
+    },
+    {
+      "value": "Dilling",
+      "name": "Q35152",
+      "canonical": "dilling"
+    },
+    {
+      "value": "Dengebu language",
+      "name": "Q35125",
+      "canonical": "dengebu language"
+    },
+    {
+      "value": "Modern Standard Arabic",
+      "name": "Q56467",
+      "canonical": "modern standard arabic"
+    },
+    {
+      "value": "Molo language",
+      "name": "Q15974357",
+      "canonical": "molo language"
+    },
+    {
+      "value": "Logorik",
+      "name": "Q6667811",
+      "canonical": "logorik"
+    },
+    {
+      "value": "Tulishi",
+      "name": "Q12911106",
+      "canonical": "tulishi"
+    },
+    {
+      "value": "Ghulfan",
+      "name": "Q16885737",
+      "canonical": "ghulfan"
+    },
+    {
+      "value": "Tese",
+      "name": "Q16887296",
+      "canonical": "tese"
+    },
+    {
+      "value": "Masalit",
+      "name": "Q56557",
+      "canonical": "masalit"
+    },
+    {
+      "value": "Dongolawi",
+      "name": "Q55218915",
+      "canonical": "dongolawi"
+    },
+    {
+      "value": "Ingessana language",
+      "name": "Q35338",
+      "canonical": "ingessana language"
+    },
+    {
+      "value": "Komo language",
+      "name": "Q56681",
+      "canonical": "komo language"
+    },
+    {
+      "value": "Kresh language",
+      "name": "Q56674",
+      "canonical": "kresh language"
+    },
+    {
+      "value": "Kadaru",
+      "name": "Q35441",
+      "canonical": "kadaru"
+    },
+    {
+      "value": "Karko",
+      "name": "Q35529",
+      "canonical": "karko"
+    },
+    {
+      "value": "Birgid language",
+      "name": "Q56823",
+      "canonical": "birgid language"
+    },
+    {
+      "value": "Heiban",
+      "name": "Q35523",
+      "canonical": "heiban"
+    },
+    {
+      "value": "Beigo language",
+      "name": "Q56836",
+      "canonical": "beigo language"
+    },
+    {
+      "value": "Tama language",
+      "name": "Q57001",
+      "canonical": "tama language"
+    },
+    {
+      "value": "Laro",
+      "name": "Q35687",
+      "canonical": "laro"
+    },
+    {
+      "value": "Lafofa languages",
+      "name": "Q35711",
+      "canonical": "lafofa languages"
+    },
+    {
+      "value": "Katla",
+      "name": "Q35688",
+      "canonical": "katla"
+    },
+    {
+      "value": "Fungor language",
+      "name": "Q35693",
+      "canonical": "fungor language"
+    },
+    {
+      "value": "Logol",
+      "name": "Q35779",
+      "canonical": "logol"
+    },
+    {
+      "value": "Koalib",
+      "name": "Q35859",
+      "canonical": "koalib"
+    },
+    {
+      "value": "Lumun",
+      "name": "Q35777",
+      "canonical": "lumun"
+    },
+    {
+      "value": "Midob",
+      "name": "Q36007",
+      "canonical": "midob"
+    },
+    {
+      "value": "Otoro",
+      "name": "Q36328",
+      "canonical": "otoro"
+    },
+    {
+      "value": "Nding",
+      "name": "Q36176",
+      "canonical": "nding"
+    },
+    {
+      "value": "Ngile",
+      "name": "Q36329",
+      "canonical": "ngile"
+    },
+    {
+      "value": "Moro",
+      "name": "Q36172",
+      "canonical": "moro"
+    },
+    {
+      "value": "Talodi",
+      "name": "Q36525",
+      "canonical": "talodi"
+    },
+    {
+      "value": "Tegali",
+      "name": "Q36522",
+      "canonical": "tegali"
+    },
+    {
+      "value": "Nobiin",
+      "name": "Q36503",
+      "canonical": "nobiin"
+    },
+    {
+      "value": "Shwai",
+      "name": "Q36527",
+      "canonical": "shwai"
+    },
+    {
+      "value": "Tagoi",
+      "name": "Q36537",
+      "canonical": "tagoi"
+    },
+    {
+      "value": "Tocho",
+      "name": "Q36680",
+      "canonical": "tocho"
+    },
+    {
+      "value": "Torona",
+      "name": "Q36679",
+      "canonical": "torona"
+    },
+    {
+      "value": "Tiro language",
+      "name": "Q36677",
+      "canonical": "tiro language"
+    },
+    {
+      "value": "Tima",
+      "name": "Q36684",
+      "canonical": "tima"
+    },
+    {
+      "value": "Werni language",
+      "name": "Q36971",
+      "canonical": "werni language"
+    },
+    {
+      "value": "Zaghawa",
+      "name": "Q37007",
+      "canonical": "zaghawa"
+    },
+    {
+      "value": "Shatt",
+      "name": "Q56344",
+      "canonical": "shatt"
+    },
+    {
+      "value": "Nyala language",
+      "name": "Q56370",
+      "canonical": "nyala language"
+    },
+    {
+      "value": "Beja",
+      "name": "Q33025",
+      "canonical": "beja"
+    },
+    {
+      "value": "Berta",
+      "name": "Q33178",
+      "canonical": "berta"
+    },
+    {
+      "value": "Fur",
+      "name": "Q33364",
+      "canonical": "fur"
+    },
+    {
+      "value": "Tigre",
+      "name": "Q34129",
+      "canonical": "tigre"
+    },
+    {
+      "value": "Acheron",
+      "name": "Q34769",
+      "canonical": "acheron"
+    },
+    {
+      "value": "Nyimang language",
+      "name": "Q34846",
+      "canonical": "nyimang language"
+    },
+    {
+      "value": "Jumjum",
+      "name": "Q11283696",
+      "canonical": "jumjum"
+    },
+    {
+      "value": "Dair",
+      "name": "Q12952360",
+      "canonical": "dair"
+    },
+    {
+      "value": "Berti",
+      "name": "Q35008",
+      "canonical": "berti"
+    },
+    {
+      "value": "Burun",
+      "name": "Q35040",
+      "canonical": "burun"
+    },
+    {
+      "value": "Guianan Creole",
+      "name": "Q1363072",
+      "canonical": "guianan creole"
+    },
+    {
+      "value": "French",
+      "name": "Q150",
+      "canonical": "french"
+    },
+    {
+      "value": "Arawak",
+      "name": "Q2655664",
+      "canonical": "arawak"
+    },
+    {
+      "value": "Emerillon",
+      "name": "Q3588942",
+      "canonical": "emerillon"
+    },
+    {
+      "value": "Palikúr",
+      "name": "Q3073448",
+      "canonical": "palikúr"
+    },
+    {
+      "value": "Wayana",
+      "name": "Q5908753",
+      "canonical": "wayana"
+    },
+    {
+      "value": "Wayampi",
+      "name": "Q7975842",
+      "canonical": "wayampi"
+    },
+    {
+      "value": "Businenge Tongo",
+      "name": "Q2659044",
+      "canonical": "businenge tongo"
+    },
+    {
+      "value": "Dutch",
+      "name": "Q7411",
+      "canonical": "dutch"
+    },
+    {
+      "value": "French",
+      "name": "Q150",
+      "canonical": "french"
+    },
+    {
+      "value": "German",
+      "name": "Q188",
+      "canonical": "german"
+    },
+    {
+      "value": "Portuguese",
+      "name": "Q5146",
+      "canonical": "portuguese"
+    },
+    {
+      "value": "Mirandese",
+      "name": "Q13330",
+      "canonical": "mirandese"
+    },
+    {
+      "value": "Standard Chinese",
+      "name": "Q727694",
+      "canonical": "standard chinese"
+    },
+    {
+      "value": "Brazilian Sign Language",
+      "name": "Q3436689",
+      "canonical": "brazilian sign language"
+    },
+    {
+      "value": "Portuguese",
+      "name": "Q5146",
+      "canonical": "portuguese"
+    },
+    {
+      "value": "German",
+      "name": "Q188",
+      "canonical": "german"
+    },
+    {
+      "value": "Maltese",
+      "name": "Q9166",
+      "canonical": "maltese"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Spanish",
+      "name": "Q1321",
+      "canonical": "spanish"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Bislama",
+      "name": "Q35452",
+      "canonical": "bislama"
+    },
+    {
+      "value": "French",
+      "name": "Q150",
+      "canonical": "french"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Hebrew",
+      "name": "Q9288",
+      "canonical": "hebrew"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "Lao",
+      "name": "Q9211",
+      "canonical": "lao"
+    },
+    {
+      "value": "Tajik",
+      "name": "Q9260",
+      "canonical": "tajik"
+    },
+    {
+      "value": "Russian",
+      "name": "Q7737",
+      "canonical": "russian"
+    },
+    {
+      "value": "Thai",
+      "name": "Q9217",
+      "canonical": "thai"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "French",
+      "name": "Q150",
+      "canonical": "french"
+    },
+    {
+      "value": "Portuguese",
+      "name": "Q5146",
+      "canonical": "portuguese"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "Arabic",
+      "name": "Q13955",
+      "canonical": "arabic"
+    },
+    {
+      "value": "English",
+      "name": "Q1860",
+      "canonical": "english"
+    },
+    {
+      "value": "French",
+      "name": "Q150",
+      "canonical": "french"
+    }
+  ]
+}

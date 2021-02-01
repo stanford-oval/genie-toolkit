@@ -1,0 +1,115 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "oceanic climate",
+      "name": "Q182090",
+      "canonical": "oceanic climate"
+    },
+    {
+      "value": "humid continental climate",
+      "name": "Q589326",
+      "canonical": "humid continental climate"
+    },
+    {
+      "value": "hot semi-arid climate",
+      "name": "Q23662280",
+      "canonical": "hot semi-arid climate"
+    },
+    {
+      "value": "semi-arid climate",
+      "name": "Q124196",
+      "canonical": "semi-arid climate"
+    },
+    {
+      "value": "Mediterranean climate",
+      "name": "Q13996",
+      "canonical": "mediterranean climate"
+    },
+    {
+      "value": "oceanic climate",
+      "name": "Q182090",
+      "canonical": "oceanic climate"
+    },
+    {
+      "value": "tropical monsoon climate",
+      "name": "Q863882",
+      "canonical": "tropical monsoon climate"
+    },
+    {
+      "value": "humid subtropical climate",
+      "name": "Q864320",
+      "canonical": "humid subtropical climate"
+    },
+    {
+      "value": "humid subtropical climate",
+      "name": "Q864320",
+      "canonical": "humid subtropical climate"
+    },
+    {
+      "value": "humid subtropical climate",
+      "name": "Q864320",
+      "canonical": "humid subtropical climate"
+    },
+    {
+      "value": "tropical savanna climate",
+      "name": "Q113562",
+      "canonical": "tropical savanna climate"
+    },
+    {
+      "value": "humid continental climate",
+      "name": "Q589326",
+      "canonical": "humid continental climate"
+    },
+    {
+      "value": "semi-arid climate",
+      "name": "Q124196",
+      "canonical": "semi-arid climate"
+    },
+    {
+      "value": "tropical climate",
+      "name": "Q135712",
+      "canonical": "tropical climate"
+    },
+    {
+      "value": "humid subtropical climate",
+      "name": "Q864320",
+      "canonical": "humid subtropical climate"
+    },
+    {
+      "value": "hot semi-arid climate",
+      "name": "Q23662280",
+      "canonical": "hot semi-arid climate"
+    },
+    {
+      "value": "tropical savanna climate",
+      "name": "Q113562",
+      "canonical": "tropical savanna climate"
+    },
+    {
+      "value": "tropical savanna climate",
+      "name": "Q113562",
+      "canonical": "tropical savanna climate"
+    },
+    {
+      "value": "tropical monsoon climate",
+      "name": "Q863882",
+      "canonical": "tropical monsoon climate"
+    },
+    {
+      "value": "Doldrums",
+      "name": "Q1722558",
+      "canonical": "doldrums"
+    },
+    {
+      "value": "tropical savanna climate",
+      "name": "Q113562",
+      "canonical": "tropical savanna climate"
+    },
+    {
+      "value": "tropical savanna climate",
+      "name": "Q113562",
+      "canonical": "tropical savanna climate"
+    }
+  ]
+}

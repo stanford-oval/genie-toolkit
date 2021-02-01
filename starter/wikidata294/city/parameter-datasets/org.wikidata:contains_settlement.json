@@ -1,0 +1,575 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Constanța",
+      "name": "Q16898202",
+      "canonical": "constanța"
+    },
+    {
+      "value": "Mamaia",
+      "name": "Q854646",
+      "canonical": "mamaia"
+    },
+    {
+      "value": "Palazu Mare",
+      "name": "Q12137490",
+      "canonical": "palazu mare"
+    },
+    {
+      "value": "Velazco",
+      "name": "Q12898068",
+      "canonical": "velazco"
+    },
+    {
+      "value": "Floro Pérez",
+      "name": "Q12890680",
+      "canonical": "floro pérez"
+    },
+    {
+      "value": "Gibara",
+      "name": "Q23796526",
+      "canonical": "gibara"
+    },
+    {
+      "value": "Old Delhi",
+      "name": "Q3242297",
+      "canonical": "old delhi"
+    },
+    {
+      "value": "Granada",
+      "name": "Q31916723",
+      "canonical": "granada"
+    },
+    {
+      "value": "Cerrillo de Maracena",
+      "name": "Q5762788",
+      "canonical": "cerrillo de maracena"
+    },
+    {
+      "value": "Lancha del Genil",
+      "name": "Q5969833",
+      "canonical": "lancha del genil"
+    },
+    {
+      "value": "El Fargue",
+      "name": "Q5821932",
+      "canonical": "el fargue"
+    },
+    {
+      "value": "Bobadilla",
+      "name": "Q5730865",
+      "canonical": "bobadilla"
+    },
+    {
+      "value": "Burgos",
+      "name": "Q24010572",
+      "canonical": "burgos"
+    },
+    {
+      "value": "Castañares",
+      "name": "Q2941342",
+      "canonical": "castañares"
+    },
+    {
+      "value": "Cortes",
+      "name": "Q5789544",
+      "canonical": "cortes"
+    },
+    {
+      "value": "Cótar",
+      "name": "Q5796945",
+      "canonical": "cótar"
+    },
+    {
+      "value": "Villagonzalo-Arenas",
+      "name": "Q6162631",
+      "canonical": "villagonzalo-arenas"
+    },
+    {
+      "value": "Villalonquéjar",
+      "name": "Q6162682",
+      "canonical": "villalonquéjar"
+    },
+    {
+      "value": "Villatoro",
+      "name": "Q6162990",
+      "canonical": "villatoro"
+    },
+    {
+      "value": "Villayuda",
+      "name": "Q3559081",
+      "canonical": "villayuda"
+    },
+    {
+      "value": "Villímar",
+      "name": "Q6163089",
+      "canonical": "villímar"
+    },
+    {
+      "value": "Villargámar",
+      "name": "Q6162900",
+      "canonical": "villargámar"
+    },
+    {
+      "value": "Gamonal",
+      "name": "Q3095047",
+      "canonical": "gamonal"
+    },
+    {
+      "value": "Purmerend",
+      "name": "Q33474175",
+      "canonical": "purmerend"
+    },
+    {
+      "value": "Vrbovec",
+      "name": "Q1112455",
+      "canonical": "vrbovec"
+    },
+    {
+      "value": "Stráňany",
+      "name": "Q542750",
+      "canonical": "stráňany"
+    },
+    {
+      "value": "Močarany",
+      "name": "Q1178188",
+      "canonical": "močarany"
+    },
+    {
+      "value": "Themaat",
+      "name": "Q1846873",
+      "canonical": "themaat"
+    },
+    {
+      "value": "Stadsdam",
+      "name": "Q2185643",
+      "canonical": "stadsdam"
+    },
+    {
+      "value": "Ockhuizen",
+      "name": "Q2376560",
+      "canonical": "ockhuizen"
+    },
+    {
+      "value": "Vleuten",
+      "name": "Q984079",
+      "canonical": "vleuten"
+    },
+    {
+      "value": "De Meern",
+      "name": "Q3020221",
+      "canonical": "de meern"
+    },
+    {
+      "value": "Haarzuilens",
+      "name": "Q2772913",
+      "canonical": "haarzuilens"
+    },
+    {
+      "value": "Utrecht",
+      "name": "Q39297398",
+      "canonical": "utrecht"
+    },
+    {
+      "value": "Leeuwen",
+      "name": "Q2250423",
+      "canonical": "leeuwen"
+    },
+    {
+      "value": "De Peppeld",
+      "name": "Q2632930",
+      "canonical": "de peppeld"
+    },
+    {
+      "value": "Wageningen-Hoog",
+      "name": "Q2798175",
+      "canonical": "wageningen-hoog"
+    },
+    {
+      "value": "Nude",
+      "name": "Q3131603",
+      "canonical": "nude"
+    },
+    {
+      "value": "Wageningen",
+      "name": "Q33512910",
+      "canonical": "wageningen"
+    },
+    {
+      "value": "Valladolid",
+      "name": "Q31925679",
+      "canonical": "valladolid"
+    },
+    {
+      "value": "Mindszent",
+      "name": "Q16660730",
+      "canonical": "mindszent"
+    },
+    {
+      "value": "Bükkszentlászló",
+      "name": "Q855572",
+      "canonical": "bükkszentlászló"
+    },
+    {
+      "value": "Diósgyőr",
+      "name": "Q584862",
+      "canonical": "diósgyőr"
+    },
+    {
+      "value": "Hejőcsaba",
+      "name": "Q601407",
+      "canonical": "hejőcsaba"
+    },
+    {
+      "value": "Görömböly",
+      "name": "Q595686",
+      "canonical": "görömböly"
+    },
+    {
+      "value": "Hámor",
+      "name": "Q1056952",
+      "canonical": "hámor"
+    },
+    {
+      "value": "Ghent",
+      "name": "Q31590146",
+      "canonical": "ghent"
+    },
+    {
+      "value": "Afsnee",
+      "name": "Q607749",
+      "canonical": "afsnee"
+    },
+    {
+      "value": "Desteldonk",
+      "name": "Q1988333",
+      "canonical": "desteldonk"
+    },
+    {
+      "value": "Drongen",
+      "name": "Q1260195",
+      "canonical": "drongen"
+    },
+    {
+      "value": "Gentbrugge",
+      "name": "Q680916",
+      "canonical": "gentbrugge"
+    },
+    {
+      "value": "Ledeberg",
+      "name": "Q2802143",
+      "canonical": "ledeberg"
+    },
+    {
+      "value": "Mariakerke",
+      "name": "Q1015356",
+      "canonical": "mariakerke"
+    },
+    {
+      "value": "Mendonk",
+      "name": "Q2663811",
+      "canonical": "mendonk"
+    },
+    {
+      "value": "Oostakker",
+      "name": "Q2400293",
+      "canonical": "oostakker"
+    },
+    {
+      "value": "Sint-Amandsberg",
+      "name": "Q2936941",
+      "canonical": "sint-amandsberg"
+    },
+    {
+      "value": "Sint-Denijs-Westrem",
+      "name": "Q2538413",
+      "canonical": "sint-denijs-westrem"
+    },
+    {
+      "value": "Sint-Kruis-Winkel",
+      "name": "Q2149059",
+      "canonical": "sint-kruis-winkel"
+    },
+    {
+      "value": "Wondelgem",
+      "name": "Q2332648",
+      "canonical": "wondelgem"
+    },
+    {
+      "value": "Zwijnaarde",
+      "name": "Q2176982",
+      "canonical": "zwijnaarde"
+    },
+    {
+      "value": "Melilla",
+      "name": "Q23984135",
+      "canonical": "melilla"
+    },
+    {
+      "value": "Bolnes",
+      "name": "Q2039640",
+      "canonical": "bolnes"
+    },
+    {
+      "value": "Zwet",
+      "name": "Q2536220",
+      "canonical": "zwet"
+    },
+    {
+      "value": "Slikkerveer",
+      "name": "Q2587009",
+      "canonical": "slikkerveer"
+    },
+    {
+      "value": "Oostendam",
+      "name": "Q2603031",
+      "canonical": "oostendam"
+    },
+    {
+      "value": "Strevelshoek",
+      "name": "Q2913507",
+      "canonical": "strevelshoek"
+    },
+    {
+      "value": "Rijsoord",
+      "name": "Q3432018",
+      "canonical": "rijsoord"
+    },
+    {
+      "value": "Ridderkerk",
+      "name": "Q33475383",
+      "canonical": "ridderkerk"
+    },
+    {
+      "value": "Sangüesa",
+      "name": "Q24012374",
+      "canonical": "sangüesa"
+    },
+    {
+      "value": "Rocaforte",
+      "name": "Q10750551",
+      "canonical": "rocaforte"
+    },
+    {
+      "value": "Gabarderal",
+      "name": "Q11682024",
+      "canonical": "gabarderal"
+    },
+    {
+      "value": "Tokyo",
+      "name": "Q7473516",
+      "canonical": "tokyo"
+    },
+    {
+      "value": "Paredes de Monte",
+      "name": "Q6061638",
+      "canonical": "paredes de monte"
+    },
+    {
+      "value": "Palencia",
+      "name": "Q56250654",
+      "canonical": "palencia"
+    },
+    {
+      "value": "Sevilla",
+      "name": "Q55893348",
+      "canonical": "sevilla"
+    },
+    {
+      "value": "Zuid-Schalkwijk",
+      "name": "Q2906134",
+      "canonical": "zuid-schalkwijk"
+    },
+    {
+      "value": "Spaarndam-West",
+      "name": "Q2439172",
+      "canonical": "spaarndam-west"
+    },
+    {
+      "value": "Santander",
+      "name": "Q23992498",
+      "canonical": "santander"
+    },
+    {
+      "value": "Gaspar",
+      "name": "Q5526526",
+      "canonical": "gaspar"
+    },
+    {
+      "value": "Abtswoude",
+      "name": "Q1839726",
+      "canonical": "abtswoude"
+    },
+    {
+      "value": "Klein-Delfgauw",
+      "name": "Q3197780",
+      "canonical": "klein-delfgauw"
+    },
+    {
+      "value": "Delft",
+      "name": "Q33432813",
+      "canonical": "delft"
+    },
+    {
+      "value": "Flatåsen",
+      "name": "Q11969200",
+      "canonical": "flatåsen"
+    },
+    {
+      "value": "Kolstad",
+      "name": "Q1648687",
+      "canonical": "kolstad"
+    },
+    {
+      "value": "Kattem",
+      "name": "Q11980429",
+      "canonical": "kattem"
+    },
+    {
+      "value": "Sjetnmarka",
+      "name": "Q12000711",
+      "canonical": "sjetnmarka"
+    },
+    {
+      "value": "Eberg",
+      "name": "Q11966480",
+      "canonical": "eberg"
+    },
+    {
+      "value": "Charlottenlund",
+      "name": "Q1373658",
+      "canonical": "charlottenlund"
+    },
+    {
+      "value": "Rosenborg",
+      "name": "Q4581064",
+      "canonical": "rosenborg"
+    },
+    {
+      "value": "Moholt",
+      "name": "Q11989782",
+      "canonical": "moholt"
+    },
+    {
+      "value": "Lundåsen",
+      "name": "Q11987024",
+      "canonical": "lundåsen"
+    },
+    {
+      "value": "Heimdal",
+      "name": "Q636798",
+      "canonical": "heimdal"
+    },
+    {
+      "value": "Hnidousy",
+      "name": "Q12019842",
+      "canonical": "hnidousy"
+    },
+    {
+      "value": "Motyčín",
+      "name": "Q28974166",
+      "canonical": "motyčín"
+    },
+    {
+      "value": "Guardalavaca",
+      "name": "Q115358",
+      "canonical": "guardalavaca"
+    },
+    {
+      "value": "Banes",
+      "name": "Q23804595",
+      "canonical": "banes"
+    },
+    {
+      "value": "Budov",
+      "name": "Q11360420",
+      "canonical": "budov"
+    },
+    {
+      "value": "Severní Terasa",
+      "name": "Q20851422",
+      "canonical": "severní terasa"
+    },
+    {
+      "value": "Bárcena del Bierzo",
+      "name": "Q5736426",
+      "canonical": "bárcena del bierzo"
+    },
+    {
+      "value": "Bouzas",
+      "name": "Q5732888",
+      "canonical": "bouzas"
+    },
+    {
+      "value": "Campo",
+      "name": "Q2935530",
+      "canonical": "campo"
+    },
+    {
+      "value": "Carracedo de Compludo",
+      "name": "Q5753392",
+      "canonical": "carracedo de compludo"
+    },
+    {
+      "value": "Columbrianos",
+      "name": "Q1112678",
+      "canonical": "columbrianos"
+    },
+    {
+      "value": "Compludo",
+      "name": "Q5156670",
+      "canonical": "compludo"
+    },
+    {
+      "value": "Compostilla",
+      "name": "Q5780116",
+      "canonical": "compostilla"
+    },
+    {
+      "value": "Cuatrovientos",
+      "name": "Q5793423",
+      "canonical": "cuatrovientos"
+    },
+    {
+      "value": "Dehesas",
+      "name": "Q5801469",
+      "canonical": "dehesas"
+    },
+    {
+      "value": "Fuentes Nuevas",
+      "name": "Q3090550",
+      "canonical": "fuentes nuevas"
+    },
+    {
+      "value": "Montes de Valdueza",
+      "name": "Q6022741",
+      "canonical": "montes de valdueza"
+    },
+    {
+      "value": "Čertova Voda",
+      "name": "Q18915895",
+      "canonical": "čertova voda"
+    },
+    {
+      "value": "Aichach",
+      "name": "Q55133909",
+      "canonical": "aichach"
+    },
+    {
+      "value": "Meldert",
+      "name": "Q2803971",
+      "canonical": "meldert"
+    },
+    {
+      "value": "Outgaarden",
+      "name": "Q2889657",
+      "canonical": "outgaarden"
+    },
+    {
+      "value": "Rockland",
+      "name": "Q3437987",
+      "canonical": "rockland"
+    }
+  ]
+}

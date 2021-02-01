@@ -1,0 +1,195 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Han Chinese people",
+      "name": "Q42740",
+      "canonical": "han chinese people"
+    },
+    {
+      "value": "Zhuang people",
+      "name": "Q36692",
+      "canonical": "zhuang people"
+    },
+    {
+      "value": "Mongols in China",
+      "name": "Q1187403",
+      "canonical": "mongols in china"
+    },
+    {
+      "value": "Hui people",
+      "name": "Q183573",
+      "canonical": "hui people"
+    },
+    {
+      "value": "Tibetan people",
+      "name": "Q187985",
+      "canonical": "tibetan people"
+    },
+    {
+      "value": "Uyghur people",
+      "name": "Q46118",
+      "canonical": "uyghur people"
+    },
+    {
+      "value": "Miao",
+      "name": "Q209959",
+      "canonical": "miao"
+    },
+    {
+      "value": "Yi people",
+      "name": "Q461282",
+      "canonical": "yi people"
+    },
+    {
+      "value": "Bouyei people",
+      "name": "Q673161",
+      "canonical": "bouyei people"
+    },
+    {
+      "value": "Koreans in China",
+      "name": "Q715978",
+      "canonical": "koreans in china"
+    },
+    {
+      "value": "Manchu",
+      "name": "Q145665",
+      "canonical": "manchu"
+    },
+    {
+      "value": "Yao people",
+      "name": "Q370868",
+      "canonical": "yao people"
+    },
+    {
+      "value": "Bai people",
+      "name": "Q275453",
+      "canonical": "bai people"
+    },
+    {
+      "value": "Tujia people",
+      "name": "Q588574",
+      "canonical": "tujia people"
+    },
+    {
+      "value": "Hani people",
+      "name": "Q476550",
+      "canonical": "hani people"
+    },
+    {
+      "value": "Kazakhs in China",
+      "name": "Q4208066",
+      "canonical": "kazakhs in china"
+    },
+    {
+      "value": "Hlai people",
+      "name": "Q309381",
+      "canonical": "hlai people"
+    },
+    {
+      "value": "Lisu people",
+      "name": "Q857626",
+      "canonical": "lisu people"
+    },
+    {
+      "value": "Kam people",
+      "name": "Q216096",
+      "canonical": "kam people"
+    },
+    {
+      "value": "White Brazilian",
+      "name": "Q2995285",
+      "canonical": "white brazilian"
+    },
+    {
+      "value": "Pardo Brazilians",
+      "name": "Q2587830",
+      "canonical": "pardo brazilians"
+    },
+    {
+      "value": "Afro-Brazilian",
+      "name": "Q388315",
+      "canonical": "afro-brazilian"
+    },
+    {
+      "value": "Asian Brazilian",
+      "name": "Q3624751",
+      "canonical": "asian brazilian"
+    },
+    {
+      "value": "Indigenous peoples in Brazil",
+      "name": "Q1363781",
+      "canonical": "indigenous peoples in brazil"
+    },
+    {
+      "value": "Germans",
+      "name": "Q42884",
+      "canonical": "germans"
+    },
+    {
+      "value": "Turkish people",
+      "name": "Q84072",
+      "canonical": "turkish people"
+    },
+    {
+      "value": "Thai people",
+      "name": "Q472834",
+      "canonical": "thai people"
+    },
+    {
+      "value": "Burmese in Thailand",
+      "name": "Q25045392",
+      "canonical": "burmese in thailand"
+    },
+    {
+      "value": "Ovimbundu",
+      "name": "Q1257799",
+      "canonical": "ovimbundu"
+    },
+    {
+      "value": "Ambundu",
+      "name": "Q460091",
+      "canonical": "ambundu"
+    },
+    {
+      "value": "Kongo people",
+      "name": "Q640090",
+      "canonical": "kongo people"
+    },
+    {
+      "value": "Mestiço",
+      "name": "Q17073179",
+      "canonical": "mestiço"
+    },
+    {
+      "value": "Europeans",
+      "name": "Q394067",
+      "canonical": "europeans"
+    },
+    {
+      "value": "Sudanese Arabs",
+      "name": "Q4445351",
+      "canonical": "sudanese arabs"
+    },
+    {
+      "value": "Fur people",
+      "name": "Q1124032",
+      "canonical": "fur people"
+    },
+    {
+      "value": "Beja people",
+      "name": "Q813961",
+      "canonical": "beja people"
+    },
+    {
+      "value": "Nuba peoples",
+      "name": "Q1280105",
+      "canonical": "nuba peoples"
+    },
+    {
+      "value": "Fula people",
+      "name": "Q202575",
+      "canonical": "fula people"
+    }
+  ]
+}

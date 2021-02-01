@@ -1,0 +1,4415 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Yrjönkatu Swimming Hall",
+      "name": "Q2601487",
+      "canonical": "yrjönkatu swimming hall"
+    },
+    {
+      "value": "Helen (power company)",
+      "name": "Q3129981",
+      "canonical": "helen ( power company )"
+    },
+    {
+      "value": "Goviniuksen talo",
+      "name": "Q3278765",
+      "canonical": "goviniuksen talo"
+    },
+    {
+      "value": "Port of Helsinki",
+      "name": "Q4357584",
+      "canonical": "port of helsinki"
+    },
+    {
+      "value": "Suursuo Hospital",
+      "name": "Q5393075",
+      "canonical": "suursuo hospital"
+    },
+    {
+      "value": "Eläintarha Stadium",
+      "name": "Q11857642",
+      "canonical": "eläintarha stadium"
+    },
+    {
+      "value": "Lauttasaari water tower",
+      "name": "Q18660515",
+      "canonical": "lauttasaari water tower"
+    },
+    {
+      "value": "Koskela Church",
+      "name": "Q41776698",
+      "canonical": "koskela church"
+    },
+    {
+      "value": "Bolt Arena",
+      "name": "Q1139227",
+      "canonical": "bolt arena"
+    },
+    {
+      "value": "Helsinki City Transport",
+      "name": "Q1433158",
+      "canonical": "helsinki city transport"
+    },
+    {
+      "value": "Helsinki City Museum",
+      "name": "Q2031357",
+      "canonical": "helsinki city museum"
+    },
+    {
+      "value": "Belvedere station",
+      "name": "Q4884859",
+      "canonical": "belvedere station"
+    },
+    {
+      "value": "Century Park station",
+      "name": "Q5063185",
+      "canonical": "century park station"
+    },
+    {
+      "value": "Churchill station",
+      "name": "Q5118152",
+      "canonical": "churchill station"
+    },
+    {
+      "value": "Clareview station",
+      "name": "Q5126912",
+      "canonical": "clareview station"
+    },
+    {
+      "value": "Clarke Stadium",
+      "name": "Q5127504",
+      "canonical": "clarke stadium"
+    },
+    {
+      "value": "Coliseum station",
+      "name": "Q5145762",
+      "canonical": "coliseum station"
+    },
+    {
+      "value": "Connaught Armoury",
+      "name": "Q5161317",
+      "canonical": "connaught armoury"
+    },
+    {
+      "value": "Corona station",
+      "name": "Q5172111",
+      "canonical": "corona station"
+    },
+    {
+      "value": "Edmonton City Hall",
+      "name": "Q5339024",
+      "canonical": "edmonton city hall"
+    },
+    {
+      "value": "Rogers Place",
+      "name": "Q5339036",
+      "canonical": "rogers place"
+    },
+    {
+      "value": "Edmonton Gardens",
+      "name": "Q5339055",
+      "canonical": "edmonton gardens"
+    },
+    {
+      "value": "Grandin station",
+      "name": "Q5595436",
+      "canonical": "grandin station"
+    },
+    {
+      "value": "MacEwan station",
+      "name": "Q6721872",
+      "canonical": "macewan station"
+    },
+    {
+      "value": "NAIT station",
+      "name": "Q6952276",
+      "canonical": "nait station"
+    },
+    {
+      "value": "South Campus/Fort Edmonton Park station",
+      "name": "Q7566491",
+      "canonical": "south campus / fort edmonton park station"
+    },
+    {
+      "value": "Southgate station",
+      "name": "Q7570795",
+      "canonical": "southgate station"
+    },
+    {
+      "value": "Stadium station",
+      "name": "Q7596463",
+      "canonical": "stadium station"
+    },
+    {
+      "value": "RE/MAX Field",
+      "name": "Q7697921",
+      "canonical": "re / max field"
+    },
+    {
+      "value": "University station",
+      "name": "Q7894488",
+      "canonical": "university station"
+    },
+    {
+      "value": "Health Sciences/Jubilee station",
+      "name": "Q14171015",
+      "canonical": "health sciences / jubilee station"
+    },
+    {
+      "value": "Kingsway/Royal Alex station",
+      "name": "Q14171026",
+      "canonical": "kingsway / royal alex station"
+    },
+    {
+      "value": "McKernan/Belgravia station",
+      "name": "Q14171036",
+      "canonical": "mckernan / belgravia station"
+    },
+    {
+      "value": "Bay/Enterprise Square station",
+      "name": "Q14171048",
+      "canonical": "bay / enterprise square station"
+    },
+    {
+      "value": "Central station",
+      "name": "Q14192070",
+      "canonical": "central station"
+    },
+    {
+      "value": "Mill Woods station",
+      "name": "Q28971242",
+      "canonical": "mill woods station"
+    },
+    {
+      "value": "Grey Nuns stop",
+      "name": "Q28971243",
+      "canonical": "grey nuns stop"
+    },
+    {
+      "value": "Davies station",
+      "name": "Q28971246",
+      "canonical": "davies station"
+    },
+    {
+      "value": "Avonmore stop",
+      "name": "Q28971247",
+      "canonical": "avonmore stop"
+    },
+    {
+      "value": "Millbourne/Woodvale stop",
+      "name": "Q28971244",
+      "canonical": "millbourne / woodvale stop"
+    },
+    {
+      "value": "Bonnie Doon stop",
+      "name": "Q28971248",
+      "canonical": "bonnie doon stop"
+    },
+    {
+      "value": "Quarters stop",
+      "name": "Q28971249",
+      "canonical": "quarters stop"
+    },
+    {
+      "value": "Muttart stop",
+      "name": "Q29561303",
+      "canonical": "muttart stop"
+    },
+    {
+      "value": "Holyrood stop",
+      "name": "Q29561393",
+      "canonical": "holyrood stop"
+    },
+    {
+      "value": "Strathearn stop",
+      "name": "Q30644713",
+      "canonical": "strathearn stop"
+    },
+    {
+      "value": "Commonwealth Stadium",
+      "name": "Q130381",
+      "canonical": "commonwealth stadium"
+    },
+    {
+      "value": "Northlands Coliseum",
+      "name": "Q1139489",
+      "canonical": "northlands coliseum"
+    },
+    {
+      "value": "Mill Woods Park",
+      "name": "Q6858447",
+      "canonical": "mill woods park"
+    },
+    {
+      "value": "Muttart Conservatory",
+      "name": "Q6944087",
+      "canonical": "muttart conservatory"
+    },
+    {
+      "value": "Fort Edmonton Park",
+      "name": "Q5471114",
+      "canonical": "fort edmonton park"
+    },
+    {
+      "value": "Royal Athletic Park",
+      "name": "Q1517213",
+      "canonical": "royal athletic park"
+    },
+    {
+      "value": "Save-On-Foods Memorial Centre",
+      "name": "Q3474502",
+      "canonical": "save-on-foods memorial centre"
+    },
+    {
+      "value": "Sergio Lanfranchi Stadium",
+      "name": "Q3495876",
+      "canonical": "sergio lanfranchi stadium"
+    },
+    {
+      "value": "Stadio Sergio Lanfranchi",
+      "name": "Q3496272",
+      "canonical": "stadio sergio lanfranchi"
+    },
+    {
+      "value": "Stadio Ennio Tardini",
+      "name": "Q610546",
+      "canonical": "stadio ennio tardini"
+    },
+    {
+      "value": "Santa Maria della Scala",
+      "name": "Q1279458",
+      "canonical": "santa maria della scala"
+    },
+    {
+      "value": "Fortezza Medicea (Siena)",
+      "name": "Q3748706",
+      "canonical": "fortezza medicea ( siena )"
+    },
+    {
+      "value": "Stadio Artemio Franchi",
+      "name": "Q778098",
+      "canonical": "stadio artemio franchi"
+    },
+    {
+      "value": "Eddy Blackman Stadion",
+      "name": "Q25057548",
+      "canonical": "eddy blackman stadion"
+    },
+    {
+      "value": "André Kamperveen Stadion",
+      "name": "Q516434",
+      "canonical": "andré kamperveen stadion"
+    },
+    {
+      "value": "Stadio Alfredo Viviani",
+      "name": "Q613808",
+      "canonical": "stadio alfredo viviani"
+    },
+    {
+      "value": "Mary Stadium",
+      "name": "Q6780751",
+      "canonical": "mary stadium"
+    },
+    {
+      "value": "Trasporti Pubblici Luganesi",
+      "name": "Q3997783",
+      "canonical": "trasporti pubblici luganesi"
+    },
+    {
+      "value": "Stadtwerke Brühl",
+      "name": "Q1730210",
+      "canonical": "stadtwerke brühl"
+    },
+    {
+      "value": "Visit Mallorca Stadi",
+      "name": "Q276163",
+      "canonical": "visit mallorca stadi"
+    },
+    {
+      "value": "Pamir Stadium",
+      "name": "Q2981137",
+      "canonical": "pamir stadium"
+    },
+    {
+      "value": "Tajikistan National Museum",
+      "name": "Q1962119",
+      "canonical": "tajikistan national museum"
+    },
+    {
+      "value": "National Library of Tajikistan",
+      "name": "Q13201421",
+      "canonical": "national library of tajikistan"
+    },
+    {
+      "value": "Stadio Leonardo Garilli",
+      "name": "Q2093963",
+      "canonical": "stadio leonardo garilli"
+    },
+    {
+      "value": "PalaBanca",
+      "name": "Q3889075",
+      "canonical": "palabanca"
+    },
+    {
+      "value": "Mendizorrotza Stadium",
+      "name": "Q1369390",
+      "canonical": "mendizorrotza stadium"
+    },
+    {
+      "value": "Iradier Arena",
+      "name": "Q6066367",
+      "canonical": "iradier arena"
+    },
+    {
+      "value": "Ogueta fronton",
+      "name": "Q15263517",
+      "canonical": "ogueta fronton"
+    },
+    {
+      "value": "Pavelló Barris Nord",
+      "name": "Q6745183",
+      "canonical": "pavelló barris nord"
+    },
+    {
+      "value": "Estadio Ramón de Carranza",
+      "name": "Q2301915",
+      "canonical": "estadio ramón de carranza"
+    },
+    {
+      "value": "Line 5",
+      "name": "Q862888",
+      "canonical": "line 5"
+    },
+    {
+      "value": "Zhujiang New Town Automated People Mover System",
+      "name": "Q862929",
+      "canonical": "zhujiang new town automated people mover system"
+    },
+    {
+      "value": "Line 3",
+      "name": "Q862941",
+      "canonical": "line 3"
+    },
+    {
+      "value": "Line 8",
+      "name": "Q862965",
+      "canonical": "line 8"
+    },
+    {
+      "value": "Line 4",
+      "name": "Q863422",
+      "canonical": "line 4"
+    },
+    {
+      "value": "Line 2",
+      "name": "Q1047377",
+      "canonical": "line 2"
+    },
+    {
+      "value": "Line 1",
+      "name": "Q1047385",
+      "canonical": "line 1"
+    },
+    {
+      "value": "Guangfo Metro",
+      "name": "Q3272527",
+      "canonical": "guangfo metro"
+    },
+    {
+      "value": "Line 11",
+      "name": "Q6553058",
+      "canonical": "line 11"
+    },
+    {
+      "value": "Line 6",
+      "name": "Q6553140",
+      "canonical": "line 6"
+    },
+    {
+      "value": "Line 7",
+      "name": "Q6553152",
+      "canonical": "line 7"
+    },
+    {
+      "value": "Line 9",
+      "name": "Q6553161",
+      "canonical": "line 9"
+    },
+    {
+      "value": "Haizhu Tram",
+      "name": "Q15906593",
+      "canonical": "haizhu tram"
+    },
+    {
+      "value": "Lokomotíva Stadium",
+      "name": "Q392288",
+      "canonical": "lokomotíva stadium"
+    },
+    {
+      "value": "Ellis Park Stadium",
+      "name": "Q182081",
+      "canonical": "ellis park stadium"
+    },
+    {
+      "value": "Orlando Stadium",
+      "name": "Q1681126",
+      "canonical": "orlando stadium"
+    },
+    {
+      "value": "Cecil Payne Stadium",
+      "name": "Q5056259",
+      "canonical": "cecil payne stadium"
+    },
+    {
+      "value": "Rabie Ridge Stadium",
+      "name": "Q7278721",
+      "canonical": "rabie ridge stadium"
+    },
+    {
+      "value": "Rand Stadium",
+      "name": "Q7291439",
+      "canonical": "rand stadium"
+    },
+    {
+      "value": "Ruimsig Stadium",
+      "name": "Q7378749",
+      "canonical": "ruimsig stadium"
+    },
+    {
+      "value": "NAC Stadion",
+      "name": "Q2042096",
+      "canonical": "nac stadion"
+    },
+    {
+      "value": "Rat Verlegh Stadion",
+      "name": "Q2132300",
+      "canonical": "rat verlegh stadion"
+    },
+    {
+      "value": "NAC stadion Heuvelstraat",
+      "name": "Q6952179",
+      "canonical": "nac stadion heuvelstraat"
+    },
+    {
+      "value": "Stade de l'Unité Maghrébine",
+      "name": "Q3496008",
+      "canonical": "stade de l 'unité maghrébine"
+    },
+    {
+      "value": "Stadionul Farul",
+      "name": "Q2437251",
+      "canonical": "stadionul farul"
+    },
+    {
+      "value": "Hôtel de Ville de La Rochelle",
+      "name": "Q3146153",
+      "canonical": "hôtel de ville de la rochelle"
+    },
+    {
+      "value": "Stade Marcel-Deflandre",
+      "name": "Q3495729",
+      "canonical": "stade marcel-deflandre"
+    },
+    {
+      "value": "Kielce-Obice aerodrome",
+      "name": "Q925659",
+      "canonical": "kielce-obice aerodrome"
+    },
+    {
+      "value": "Kielce City Stadium",
+      "name": "Q2002170",
+      "canonical": "kielce city stadium"
+    },
+    {
+      "value": "Kielce Bus Station",
+      "name": "Q9213271",
+      "canonical": "kielce bus station"
+    },
+    {
+      "value": "Rovaniemen keskuskenttä",
+      "name": "Q4412504",
+      "canonical": "rovaniemen keskuskenttä"
+    },
+    {
+      "value": "Stadion Ruchu",
+      "name": "Q2296082",
+      "canonical": "stadion ruchu"
+    },
+    {
+      "value": "Stadion Miejski",
+      "name": "Q3276819",
+      "canonical": "stadion miejski"
+    },
+    {
+      "value": "Acre Municipal Stadium",
+      "name": "Q3525082",
+      "canonical": "acre municipal stadium"
+    },
+    {
+      "value": "Čair Sports Center",
+      "name": "Q1570192",
+      "canonical": "čair sports center"
+    },
+    {
+      "value": "Stade Ahmed Zabana",
+      "name": "Q3119087",
+      "canonical": "stade ahmed zabana"
+    },
+    {
+      "value": "Stade Habib Bouakeul",
+      "name": "Q3495620",
+      "canonical": "stade habib bouakeul"
+    },
+    {
+      "value": "FirstOntario Centre",
+      "name": "Q1131541",
+      "canonical": "firstontario centre"
+    },
+    {
+      "value": "Vostok Stadium",
+      "name": "Q4126424",
+      "canonical": "vostok stadium"
+    },
+    {
+      "value": "Green Stadium",
+      "name": "Q127871",
+      "canonical": "green stadium"
+    },
+    {
+      "value": "Doha Stadium",
+      "name": "Q2076694",
+      "canonical": "doha stadium"
+    },
+    {
+      "value": "Mbombela Stadium",
+      "name": "Q187087",
+      "canonical": "mbombela stadium"
+    },
+    {
+      "value": "Stade d'Agadir",
+      "name": "Q1579227",
+      "canonical": "stade d 'agadir"
+    },
+    {
+      "value": "Széktói Stadion",
+      "name": "Q637344",
+      "canonical": "széktói stadion"
+    },
+    {
+      "value": "Estádio Bruno José Daniel",
+      "name": "Q3030847",
+      "canonical": "estádio bruno josé daniel"
+    },
+    {
+      "value": "Arto Tolsa Areena",
+      "name": "Q269541",
+      "canonical": "arto tolsa areena"
+    },
+    {
+      "value": "Shaul Garden",
+      "name": "Q12404978",
+      "canonical": "shaul garden"
+    },
+    {
+      "value": "Swangard Stadium",
+      "name": "Q920240",
+      "canonical": "swangard stadium"
+    },
+    {
+      "value": "Bill Copeland Sports Centre",
+      "name": "Q4908564",
+      "canonical": "bill copeland sports centre"
+    },
+    {
+      "value": "Estadio General Francisco Morazán",
+      "name": "Q619348",
+      "canonical": "estadio general francisco morazán"
+    },
+    {
+      "value": "Estadio Olímpico Metropolitano",
+      "name": "Q1369538",
+      "canonical": "estadio olímpico metropolitano"
+    },
+    {
+      "value": "Estadio Mario Camposeco",
+      "name": "Q3495740",
+      "canonical": "estadio mario camposeco"
+    },
+    {
+      "value": "Balbir Singh Juneja Indoor Stadium",
+      "name": "Q24942149",
+      "canonical": "balbir singh juneja indoor stadium"
+    },
+    {
+      "value": "City Stadium",
+      "name": "Q5123442",
+      "canonical": "city stadium"
+    },
+    {
+      "value": "Shani Nushi Sports Hall",
+      "name": "Q24910456",
+      "canonical": "shani nushi sports hall"
+    },
+    {
+      "value": "Munayshy Stadium",
+      "name": "Q588138",
+      "canonical": "munayshy stadium"
+    },
+    {
+      "value": "Shakhtyor Stadium",
+      "name": "Q1074493",
+      "canonical": "shakhtyor stadium"
+    },
+    {
+      "value": "NYC Condom",
+      "name": "Q6956042",
+      "canonical": "nyc condom"
+    },
+    {
+      "value": "Manhattan Cruise Terminal",
+      "name": "Q7013825",
+      "canonical": "manhattan cruise terminal"
+    },
+    {
+      "value": "Nostrand Avenue",
+      "name": "Q7061988",
+      "canonical": "nostrand avenue"
+    },
+    {
+      "value": "Richmond County Bank Ballpark",
+      "name": "Q7330798",
+      "canonical": "richmond county bank ballpark"
+    },
+    {
+      "value": "Rockaway Beach Branch",
+      "name": "Q7354947",
+      "canonical": "rockaway beach branch"
+    },
+    {
+      "value": "South Brooklyn Railway",
+      "name": "Q7566432",
+      "canonical": "south brooklyn railway"
+    },
+    {
+      "value": "Staten Island Cricket Club",
+      "name": "Q7603993",
+      "canonical": "staten island cricket club"
+    },
+    {
+      "value": "IND Culver Line",
+      "name": "Q9286411",
+      "canonical": "ind culver line"
+    },
+    {
+      "value": "Chelsea Recreation Center",
+      "name": "Q14706223",
+      "canonical": "chelsea recreation center"
+    },
+    {
+      "value": "IRT Third Avenue Line",
+      "name": "Q19952439",
+      "canonical": "irt third avenue line"
+    },
+    {
+      "value": "Westchester Avenue",
+      "name": "Q20979444",
+      "canonical": "westchester avenue"
+    },
+    {
+      "value": "Williamsburg Bridge Trolley Terminal",
+      "name": "Q27988146",
+      "canonical": "williamsburg bridge trolley terminal"
+    },
+    {
+      "value": "MV John F. Kennedy",
+      "name": "Q29378914",
+      "canonical": "mv john f. kennedy"
+    },
+    {
+      "value": "Neponsit Beach Hospital",
+      "name": "Q39060163",
+      "canonical": "neponsit beach hospital"
+    },
+    {
+      "value": "Park Avenue",
+      "name": "Q109711",
+      "canonical": "park avenue"
+    },
+    {
+      "value": "Brooklyn–Battery Tunnel",
+      "name": "Q125635",
+      "canonical": "brooklyn–battery tunnel"
+    },
+    {
+      "value": "Carnegie Hall",
+      "name": "Q200959",
+      "canonical": "carnegie hall"
+    },
+    {
+      "value": "LaGuardia Airport",
+      "name": "Q319654",
+      "canonical": "laguardia airport"
+    },
+    {
+      "value": "BMT Sea Beach Line",
+      "name": "Q603656",
+      "canonical": "bmt sea beach line"
+    },
+    {
+      "value": "IRT Dyre Avenue Line",
+      "name": "Q616682",
+      "canonical": "irt dyre avenue line"
+    },
+    {
+      "value": "Yankee Stadium",
+      "name": "Q675214",
+      "canonical": "yankee stadium"
+    },
+    {
+      "value": "Unisphere",
+      "name": "Q717956",
+      "canonical": "unisphere"
+    },
+    {
+      "value": "Archer Avenue Lines",
+      "name": "Q722123",
+      "canonical": "archer avenue lines"
+    },
+    {
+      "value": "BMT Nassau Street Line",
+      "name": "Q928996",
+      "canonical": "bmt nassau street line"
+    },
+    {
+      "value": "Shea Stadium",
+      "name": "Q1056326",
+      "canonical": "shea stadium"
+    },
+    {
+      "value": "IRT New Lots Line",
+      "name": "Q1529995",
+      "canonical": "irt new lots line"
+    },
+    {
+      "value": "IND Crosstown Line",
+      "name": "Q1544645",
+      "canonical": "ind crosstown line"
+    },
+    {
+      "value": "IRT Jerome Avenue Line",
+      "name": "Q1852374",
+      "canonical": "irt jerome avenue line"
+    },
+    {
+      "value": "IND Concourse Line",
+      "name": "Q1970698",
+      "canonical": "ind concourse line"
+    },
+    {
+      "value": "BMT West End Line",
+      "name": "Q1984330",
+      "canonical": "bmt west end line"
+    },
+    {
+      "value": "BMT Brighton Line",
+      "name": "Q1984733",
+      "canonical": "bmt brighton line"
+    },
+    {
+      "value": "BMT Fourth Avenue Line",
+      "name": "Q1985059",
+      "canonical": "bmt fourth avenue line"
+    },
+    {
+      "value": "Second Avenue Subway",
+      "name": "Q2104718",
+      "canonical": "second avenue subway"
+    },
+    {
+      "value": "IRT Nostrand Avenue Line",
+      "name": "Q2241542",
+      "canonical": "irt nostrand avenue line"
+    },
+    {
+      "value": "BMT Astoria Line",
+      "name": "Q2267608",
+      "canonical": "bmt astoria line"
+    },
+    {
+      "value": "IRT Pelham Line",
+      "name": "Q2275055",
+      "canonical": "irt pelham line"
+    },
+    {
+      "value": "IND Fulton Street Line",
+      "name": "Q2332157",
+      "canonical": "ind fulton street line"
+    },
+    {
+      "value": "IRT Broadway – Seventh Avenue Line",
+      "name": "Q2344719",
+      "canonical": "irt broadway – seventh avenue line"
+    },
+    {
+      "value": "BMT Jamaica Line",
+      "name": "Q2355775",
+      "canonical": "bmt jamaica line"
+    },
+    {
+      "value": "IRT Eastern Parkway Line",
+      "name": "Q2371583",
+      "canonical": "irt eastern parkway line"
+    },
+    {
+      "value": "IRT Flushing Line",
+      "name": "Q2372361",
+      "canonical": "irt flushing line"
+    },
+    {
+      "value": "IRT White Plains Road Line",
+      "name": "Q2372377",
+      "canonical": "irt white plains road line"
+    },
+    {
+      "value": "IRT Lenox Avenue Line",
+      "name": "Q2372392",
+      "canonical": "irt lenox avenue line"
+    },
+    {
+      "value": "IND Eighth Avenue Line",
+      "name": "Q2373436",
+      "canonical": "ind 8 avenue line"
+    },
+    {
+      "value": "BMT Canarsie Line",
+      "name": "Q2488186",
+      "canonical": "bmt canarsie line"
+    },
+    {
+      "value": "Interborough Rapid Transit Company",
+      "name": "Q2523955",
+      "canonical": "interborough rapid transit company"
+    },
+    {
+      "value": "IND Queens Boulevard Line",
+      "name": "Q2614126",
+      "canonical": "ind queens boulevard line"
+    },
+    {
+      "value": "IRT Lexington Avenue Line",
+      "name": "Q2620591",
+      "canonical": "irt lexington avenue line"
+    },
+    {
+      "value": "Park Avenue Tunnel",
+      "name": "Q2628830",
+      "canonical": "park avenue tunnel"
+    },
+    {
+      "value": "New York County Courthouse",
+      "name": "Q2790405",
+      "canonical": "new york county courthouse"
+    },
+    {
+      "value": "BMT Broadway Line",
+      "name": "Q2877193",
+      "canonical": "bmt broadway line"
+    },
+    {
+      "value": "7 Subway Extension",
+      "name": "Q2878646",
+      "canonical": "7 subway extension"
+    },
+    {
+      "value": "Brooklyn–Manhattan Transit Corporation",
+      "name": "Q2926164",
+      "canonical": "brooklyn–manhattan transit corporation"
+    },
+    {
+      "value": "IND Sixth Avenue Line",
+      "name": "Q2982124",
+      "canonical": "ind sixth avenue line"
+    },
+    {
+      "value": "Independent Subway System",
+      "name": "Q3097594",
+      "canonical": "independent subway system"
+    },
+    {
+      "value": "BMT Myrtle Avenue Line",
+      "name": "Q4262194",
+      "canonical": "bmt myrtle avenue line"
+    },
+    {
+      "value": "1 Police Plaza",
+      "name": "Q4596012",
+      "canonical": "1 police plaza"
+    },
+    {
+      "value": "American Airlines Theatre",
+      "name": "Q4742962",
+      "canonical": "american airlines theatre"
+    },
+    {
+      "value": "BMT Lexington Avenue Line",
+      "name": "Q4836006",
+      "canonical": "bmt lexington avenue line"
+    },
+    {
+      "value": "Bowling Green – South Ferry Shuttle",
+      "name": "Q4951175",
+      "canonical": "bowling green – south ferry shuttle"
+    },
+    {
+      "value": "BMT Franklin Avenue Line",
+      "name": "Q5254738",
+      "canonical": "bmt franklin avenue line"
+    },
+    {
+      "value": "Fifth Avenue Line",
+      "name": "Q5447476",
+      "canonical": "fifth avenue line"
+    },
+    {
+      "value": "Flushing Meadows Natatorium",
+      "name": "Q5462917",
+      "canonical": "flushing meadows natatorium"
+    },
+    {
+      "value": "Lyric Theatre",
+      "name": "Q5477291",
+      "canonical": "lyric theatre"
+    },
+    {
+      "value": "Fulton Street Line",
+      "name": "Q5508467",
+      "canonical": "fulton street line"
+    },
+    {
+      "value": "IND Rockaway Line",
+      "name": "Q5972266",
+      "canonical": "ind rockaway line"
+    },
+    {
+      "value": "IRT Sixth Avenue Line",
+      "name": "Q5973627",
+      "canonical": "irt sixth avenue line"
+    },
+    {
+      "value": "IRT Second Avenue Line",
+      "name": "Q5973629",
+      "canonical": "irt second avenue line"
+    },
+    {
+      "value": "Liberty Theatre",
+      "name": "Q6541981",
+      "canonical": "liberty theatre"
+    },
+    {
+      "value": "MCU Park",
+      "name": "Q6715011",
+      "canonical": "mcu park"
+    },
+    {
+      "value": "John F. Kennedy International Airport",
+      "name": "Q8685",
+      "canonical": "john f. kennedy international airport"
+    },
+    {
+      "value": "A3 motorway",
+      "name": "Q606055",
+      "canonical": "a3 motorway"
+    },
+    {
+      "value": "A4 motorway",
+      "name": "Q785166",
+      "canonical": "a4 motorway"
+    },
+    {
+      "value": "Château de Trois-Fontaines",
+      "name": "Q2970845",
+      "canonical": "château de trois-fontaines"
+    },
+    {
+      "value": "Stade Félix Houphouët-Boigny",
+      "name": "Q1999706",
+      "canonical": "stade félix houphouët-boigny"
+    },
+    {
+      "value": "Panathinaikos F.C. New Stadium",
+      "name": "Q1113002",
+      "canonical": "panathinaikos f.c. new stadium"
+    },
+    {
+      "value": "MDCC-Arena",
+      "name": "Q473032",
+      "canonical": "mdcc-arena"
+    },
+    {
+      "value": "Ernst Grube Stadium",
+      "name": "Q880967",
+      "canonical": "ernst grube stadium"
+    },
+    {
+      "value": "Ondrej Nepela Arena",
+      "name": "Q203932",
+      "canonical": "ondrej nepela arena"
+    },
+    {
+      "value": "Štadión Pasienky",
+      "name": "Q392305",
+      "canonical": "štadión pasienky"
+    },
+    {
+      "value": "Rajadamnern Stadium",
+      "name": "Q2631915",
+      "canonical": "rajadamnern stadium"
+    },
+    {
+      "value": "Indoor Stadium Huamark",
+      "name": "Q4923737",
+      "canonical": "indoor stadium huamark"
+    },
+    {
+      "value": "Palazzo Bonaccorso",
+      "name": "Q3889680",
+      "canonical": "palazzo bonaccorso"
+    },
+    {
+      "value": "Palazzo Sanguinetti",
+      "name": "Q3890827",
+      "canonical": "palazzo sanguinetti"
+    },
+    {
+      "value": "Arcoveggio Stadium",
+      "name": "Q3967746",
+      "canonical": "arcoveggio stadium"
+    },
+    {
+      "value": "Villa Spada",
+      "name": "Q4012557",
+      "canonical": "villa spada"
+    },
+    {
+      "value": "Garisenda tower",
+      "name": "Q5875446",
+      "canonical": "garisenda tower"
+    },
+    {
+      "value": "Piscina Carmen Longo",
+      "name": "Q28380999",
+      "canonical": "piscina carmen longo"
+    },
+    {
+      "value": "Conserva di Valverde",
+      "name": "Q28667984",
+      "canonical": "conserva di valverde"
+    },
+    {
+      "value": "Torre dell'Orologio",
+      "name": "Q30888017",
+      "canonical": "torre dell 'orologio"
+    },
+    {
+      "value": "Rotonda della Madonna del Monte",
+      "name": "Q34598751",
+      "canonical": "rotonda della madonna del monte"
+    },
+    {
+      "value": "Stadio Renato Dall'Ara",
+      "name": "Q757182",
+      "canonical": "stadio renato dall 'ara"
+    },
+    {
+      "value": "Stadio Alberto Pinto",
+      "name": "Q3967734",
+      "canonical": "stadio alberto pinto"
+    },
+    {
+      "value": "Halifax City Hall",
+      "name": "Q1352771",
+      "canonical": "halifax city hall"
+    },
+    {
+      "value": "Alexander Stadium",
+      "name": "Q2833210",
+      "canonical": "alexander stadium"
+    },
+    {
+      "value": "Trier Arena",
+      "name": "Q641507",
+      "canonical": "trier arena"
+    },
+    {
+      "value": "Moselstadion",
+      "name": "Q883806",
+      "canonical": "moselstadion"
+    },
+    {
+      "value": "Ernst-Abbe-Sportfeld",
+      "name": "Q547985",
+      "canonical": "ernst-abbe-sportfeld"
+    },
+    {
+      "value": "Stadio Briamasco",
+      "name": "Q3967754",
+      "canonical": "stadio briamasco"
+    },
+    {
+      "value": "Palazzo Geremia",
+      "name": "Q27989741",
+      "canonical": "palazzo geremia"
+    },
+    {
+      "value": "Stadio Brianteo",
+      "name": "Q1851616",
+      "canonical": "stadio brianteo"
+    },
+    {
+      "value": "PalaIper",
+      "name": "Q3889131",
+      "canonical": "palaiper"
+    },
+    {
+      "value": "Abanca Balaídos Stadium",
+      "name": "Q1326578",
+      "canonical": "abanca balaídos stadium"
+    },
+    {
+      "value": "Municipal de Barreiro",
+      "name": "Q3393440",
+      "canonical": "municipal de barreiro"
+    },
+    {
+      "value": "Palacio de Deportes de Granada",
+      "name": "Q6594241",
+      "canonical": "palacio de deportes de granada"
+    },
+    {
+      "value": "Estadio Nuevo Los Cármeness",
+      "name": "Q574565",
+      "canonical": "estadio nuevo los cármeness"
+    },
+    {
+      "value": "Palacio Deportes José María Martín Carpena",
+      "name": "Q1668721",
+      "canonical": "palacio deportes josé maría martín carpena"
+    },
+    {
+      "value": "La Rosaleda Stadium",
+      "name": "Q695879",
+      "canonical": "la rosaleda stadium"
+    },
+    {
+      "value": "Polideportivo El Plantío",
+      "name": "Q7209717",
+      "canonical": "polideportivo el plantío"
+    },
+    {
+      "value": "Tychy City Stadium",
+      "name": "Q9341191",
+      "canonical": "tychy city stadium"
+    },
+    {
+      "value": "Estadio Municipal de Bosco",
+      "name": "Q1369475",
+      "canonical": "estadio municipal de bosco"
+    },
+    {
+      "value": "Stadio Via del Mare",
+      "name": "Q684727",
+      "canonical": "stadio via del mare"
+    },
+    {
+      "value": "Nou Estadi Castalia",
+      "name": "Q264581",
+      "canonical": "nou estadi castalia"
+    },
+    {
+      "value": "Dravograd Sports Centre",
+      "name": "Q16632805",
+      "canonical": "dravograd sports centre"
+    },
+    {
+      "value": "Fadil Vokrri Stadium",
+      "name": "Q1550984",
+      "canonical": "fadil vokrri stadium"
+    },
+    {
+      "value": "Estadio Juan Gobán",
+      "name": "Q3495669",
+      "canonical": "estadio juan gobán"
+    },
+    {
+      "value": "Barrie Molson Centre",
+      "name": "Q4863544",
+      "canonical": "barrie molson centre"
+    },
+    {
+      "value": "Barrie Bus Terminal",
+      "name": "Q38250462",
+      "canonical": "barrie bus terminal"
+    },
+    {
+      "value": "Mazda Stadium",
+      "name": "Q1038647",
+      "canonical": "mazda stadium"
+    },
+    {
+      "value": "Hiroshima Sun Plaza",
+      "name": "Q3301914",
+      "canonical": "hiroshima sun plaza"
+    },
+    {
+      "value": "Hiroshima Municipal Stadium",
+      "name": "Q8012748",
+      "canonical": "hiroshima municipal stadium"
+    },
+    {
+      "value": "Scotiabank Saddledome",
+      "name": "Q1140083",
+      "canonical": "scotiabank saddledome"
+    },
+    {
+      "value": "City of Calgary Water Centre",
+      "name": "Q5123611",
+      "canonical": "city of calgary water centre"
+    },
+    {
+      "value": "Repsol Sport Centre",
+      "name": "Q7679567",
+      "canonical": "repsol sport centre"
+    },
+    {
+      "value": "Calgary City Hall",
+      "name": "Q16825253",
+      "canonical": "calgary city hall"
+    },
+    {
+      "value": "Calgary Municipal Building",
+      "name": "Q16850480",
+      "canonical": "calgary municipal building"
+    },
+    {
+      "value": "Mercado Adolpho Lisboa",
+      "name": "Q9294997",
+      "canonical": "mercado adolpho lisboa"
+    },
+    {
+      "value": "Medellín Metro",
+      "name": "Q654751",
+      "canonical": "medellín metro"
+    },
+    {
+      "value": "Atanasio Girardot Sports Complex",
+      "name": "Q963264",
+      "canonical": "atanasio girardot sports complex"
+    },
+    {
+      "value": "Metroplus",
+      "name": "Q6012081",
+      "canonical": "metroplus"
+    },
+    {
+      "value": "Line A",
+      "name": "Q17621067",
+      "canonical": "line a"
+    },
+    {
+      "value": "Ayacucho Tram",
+      "name": "Q18327073",
+      "canonical": "ayacucho tram"
+    },
+    {
+      "value": "Line B",
+      "name": "Q18420098",
+      "canonical": "line b"
+    },
+    {
+      "value": "Line C",
+      "name": "Q25712714",
+      "canonical": "line c"
+    },
+    {
+      "value": "Línea T-A",
+      "name": "Q25859758",
+      "canonical": "línea t-a"
+    },
+    {
+      "value": "Línea L",
+      "name": "Q25900676",
+      "canonical": "línea l"
+    },
+    {
+      "value": "Línea M",
+      "name": "Q25906209",
+      "canonical": "línea m"
+    },
+    {
+      "value": "Línea H",
+      "name": "Q25906310",
+      "canonical": "línea h"
+    },
+    {
+      "value": "Stade du Pays de Charleroi",
+      "name": "Q1147565",
+      "canonical": "stade du pays de charleroi"
+    },
+    {
+      "value": "Dôme",
+      "name": "Q1860014",
+      "canonical": "dôme"
+    },
+    {
+      "value": "Stade de la Neuville",
+      "name": "Q2703824",
+      "canonical": "stade de la neuville"
+    },
+    {
+      "value": "Palais des Beaux Arts de Charleroi",
+      "name": "Q18350783",
+      "canonical": "palais des beaux arts de charleroi"
+    },
+    {
+      "value": "Eden Charleroi",
+      "name": "Q31431808",
+      "canonical": "eden charleroi"
+    },
+    {
+      "value": "Unidad Deportiva Acapulco",
+      "name": "Q4004747",
+      "canonical": "unidad deportiva acapulco"
+    },
+    {
+      "value": "Line 3",
+      "name": "Q6123656",
+      "canonical": "line 3"
+    },
+    {
+      "value": "Line 4",
+      "name": "Q6553125",
+      "canonical": "line 4"
+    },
+    {
+      "value": "Line 1",
+      "name": "Q15913092",
+      "canonical": "line 1"
+    },
+    {
+      "value": "Line 2",
+      "name": "Q15913266",
+      "canonical": "line 2"
+    },
+    {
+      "value": "Line 8",
+      "name": "Q15956288",
+      "canonical": "line 8"
+    },
+    {
+      "value": "Stadium OSiR in Gorzów Wielkopolski",
+      "name": "Q7596496",
+      "canonical": "stadium osir in gorzów wielkopolski"
+    },
+    {
+      "value": "Harju Stadium",
+      "name": "Q2622615",
+      "canonical": "harju stadium"
+    },
+    {
+      "value": "AaltoAlvari",
+      "name": "Q5547490",
+      "canonical": "aaltoalvari"
+    },
+    {
+      "value": "Jyväskylä City Hall",
+      "name": "Q11868285",
+      "canonical": "jyväskylä city hall"
+    },
+    {
+      "value": "Afula Illit Stadium",
+      "name": "Q15178279",
+      "canonical": "afula illit stadium"
+    },
+    {
+      "value": "J. Stephanus Stadium",
+      "name": "Q1676409",
+      "canonical": "j. stephanus stadium"
+    },
+    {
+      "value": "Konoike Athletic Stadium",
+      "name": "Q6429613",
+      "canonical": "konoike athletic stadium"
+    },
+    {
+      "value": "Nara Centennial Hall",
+      "name": "Q6965228",
+      "canonical": "nara centennial hall"
+    },
+    {
+      "value": "Kaohsiung Li De Baseball Stadium",
+      "name": "Q7465277",
+      "canonical": "kaohsiung li de baseball stadium"
+    },
+    {
+      "value": "Stade El Massira",
+      "name": "Q3495576",
+      "canonical": "stade el massira"
+    },
+    {
+      "value": "Městský stadion",
+      "name": "Q933690",
+      "canonical": "městský stadion"
+    },
+    {
+      "value": "Holon Toto Hall",
+      "name": "Q18191649",
+      "canonical": "holon toto hall"
+    },
+    {
+      "value": "Netanya Stadium",
+      "name": "Q1849789",
+      "canonical": "netanya stadium"
+    },
+    {
+      "value": "Sar-Tov Stadium",
+      "name": "Q2911288",
+      "canonical": "sar-tov stadium"
+    },
+    {
+      "value": "Yeshurun Hall",
+      "name": "Q8052910",
+      "canonical": "yeshurun hall"
+    },
+    {
+      "value": "Honneur Stadium",
+      "name": "Q3495963",
+      "canonical": "honneur stadium"
+    },
+    {
+      "value": "Estádio Luís Augusto de Oliveira",
+      "name": "Q1370684",
+      "canonical": "estádio luís augusto de oliveira"
+    },
+    {
+      "value": "Jinpūkaku",
+      "name": "Q6202742",
+      "canonical": "jinpūkaku"
+    },
+    {
+      "value": "Tottori Bank Bird Stadium",
+      "name": "Q7828502",
+      "canonical": "tottori bank bird stadium"
+    },
+    {
+      "value": "Maebashi Athletic Stadium",
+      "name": "Q6729074",
+      "canonical": "maebashi athletic stadium"
+    },
+    {
+      "value": "Salohalli",
+      "name": "Q11892116",
+      "canonical": "salohalli"
+    },
+    {
+      "value": "Kuisebmund Stadium",
+      "name": "Q1700057",
+      "canonical": "kuisebmund stadium"
+    },
+    {
+      "value": "Masan Stadium",
+      "name": "Q6782556",
+      "canonical": "masan stadium"
+    },
+    {
+      "value": "Pavlodar Central Stadium",
+      "name": "Q190789",
+      "canonical": "pavlodar central stadium"
+    },
+    {
+      "value": "Ipurúa Municipal Stadium",
+      "name": "Q3320428",
+      "canonical": "ipurúa municipal stadium"
+    },
+    {
+      "value": "Astelena fronton",
+      "name": "Q3752263",
+      "canonical": "astelena fronton"
+    },
+    {
+      "value": "Stade de l'Unité Africaine",
+      "name": "Q252107",
+      "canonical": "stade de l 'unité africaine"
+    },
+    {
+      "value": "Estádio Bento de Abreu",
+      "name": "Q5401978",
+      "canonical": "estádio bento de abreu"
+    },
+    {
+      "value": "Toše Proeski Arena",
+      "name": "Q1164804",
+      "canonical": "toše proeski arena"
+    },
+    {
+      "value": "Beijing Infrastructure Investment Co., Ltd.",
+      "name": "Q42751778",
+      "canonical": "beijing infrastructure investment co . , ltd."
+    },
+    {
+      "value": "Dominican Monastery",
+      "name": "Q1237975",
+      "canonical": "dominican monastery"
+    },
+    {
+      "value": "Mainova",
+      "name": "Q1885661",
+      "canonical": "mainova"
+    },
+    {
+      "value": "Deutsche Bank Park",
+      "name": "Q157273",
+      "canonical": "deutsche bank park"
+    },
+    {
+      "value": "Palais Thurn und Taxis",
+      "name": "Q282656",
+      "canonical": "palais thurn und taxis"
+    },
+    {
+      "value": "Rhein-Main-Verkehrsverbund",
+      "name": "Q314042",
+      "canonical": "rhein-main-verkehrsverbund"
+    },
+    {
+      "value": "Frankfurter Volksbank Stadion",
+      "name": "Q319774",
+      "canonical": "frankfurter volksbank stadion"
+    },
+    {
+      "value": "Fraport Arena",
+      "name": "Q384017",
+      "canonical": "fraport arena"
+    },
+    {
+      "value": "Fraport",
+      "name": "Q643578",
+      "canonical": "fraport"
+    },
+    {
+      "value": "Stadion Miejski",
+      "name": "Q188706",
+      "canonical": "stadion miejski"
+    },
+    {
+      "value": "Stadio Sant'Elia",
+      "name": "Q754200",
+      "canonical": "stadio sant 'elia"
+    },
+    {
+      "value": "Monumento ai Caduti di tutte le guerre",
+      "name": "Q56598424",
+      "canonical": "monumento ai caduti di tutte le guerre"
+    },
+    {
+      "value": "Monument to the Fallen",
+      "name": "Q56598438",
+      "canonical": "monument to the fallen"
+    },
+    {
+      "value": "Monument to the Autieri",
+      "name": "Q56598495",
+      "canonical": "monument to the autieri"
+    },
+    {
+      "value": "monument to Juliet Capuleti",
+      "name": "Q56598496",
+      "canonical": "monument to juliet capuleti"
+    },
+    {
+      "value": "Monument to Giuseppe Chiot",
+      "name": "Q56598502",
+      "canonical": "monument to giuseppe chiot"
+    },
+    {
+      "value": "Pillar with statue of a lamb",
+      "name": "Q56598506",
+      "canonical": "pillar with statue of a lamb"
+    },
+    {
+      "value": "Monument to Carlo Ederle",
+      "name": "Q56598507",
+      "canonical": "monument to carlo ederle"
+    },
+    {
+      "value": "Monument to Dall'Oca Bianca",
+      "name": "Q56598505",
+      "canonical": "monument to dall 'oca bianca"
+    },
+    {
+      "value": "Monument to Cesare Lombroso",
+      "name": "Q56598510",
+      "canonical": "monument to cesare lombroso"
+    },
+    {
+      "value": "Monument to Daniele Comboni",
+      "name": "Q56598508",
+      "canonical": "monument to daniele comboni"
+    },
+    {
+      "value": "Monument to Umberto I",
+      "name": "Q56598509",
+      "canonical": "monument to umberto i"
+    },
+    {
+      "value": "Piazza Bra",
+      "name": "Q56598512",
+      "canonical": "piazza bra"
+    },
+    {
+      "value": "Casa del Mutilato",
+      "name": "Q56598549",
+      "canonical": "casa del mutilato"
+    },
+    {
+      "value": "Palazzo Bocca Trezza",
+      "name": "Q56627921",
+      "canonical": "palazzo bocca trezza"
+    },
+    {
+      "value": "Villa Muselli Canossa",
+      "name": "Q56627932",
+      "canonical": "villa muselli canossa"
+    },
+    {
+      "value": "Palazzo Da Lisca",
+      "name": "Q56627945",
+      "canonical": "palazzo da lisca"
+    },
+    {
+      "value": "Palazzo Pirelli",
+      "name": "Q56627975",
+      "canonical": "palazzo pirelli"
+    },
+    {
+      "value": "San Giuseppe alla Diga",
+      "name": "Q56627986",
+      "canonical": "san giuseppe alla diga"
+    },
+    {
+      "value": "monumental fountain in piazza Viviani",
+      "name": "Q56628024",
+      "canonical": "monumental fountain in piazza viviani"
+    },
+    {
+      "value": "Monument to Sanmicheli",
+      "name": "Q56628025",
+      "canonical": "monument to sanmicheli"
+    },
+    {
+      "value": "Dogana Vecchia",
+      "name": "Q56628028",
+      "canonical": "dogana vecchia"
+    },
+    {
+      "value": "Tower",
+      "name": "Q56628029",
+      "canonical": "tower"
+    },
+    {
+      "value": "Monument to Aleardo Aleardi",
+      "name": "Q56628044",
+      "canonical": "monument to aleardo aleardi"
+    },
+    {
+      "value": "piazza Santi Apostoli",
+      "name": "Q56641808",
+      "canonical": "piazza santi apostoli"
+    },
+    {
+      "value": "urban squares of Verona",
+      "name": "Q56641837",
+      "canonical": "urban squares of verona"
+    },
+    {
+      "value": "G.B. Cavalcaselle Fresco Museum",
+      "name": "Q3867882",
+      "canonical": "g.b. cavalcaselle fresco museum"
+    },
+    {
+      "value": "Provianda di Santa Marta",
+      "name": "Q3924456",
+      "canonical": "provianda di santa marta"
+    },
+    {
+      "value": "Monument to Paolo Veronese",
+      "name": "Q56598395",
+      "canonical": "monument to paolo veronese"
+    },
+    {
+      "value": "Monument to Carlo Montanari",
+      "name": "Q56598408",
+      "canonical": "monument to carlo montanari"
+    },
+    {
+      "value": "Stadio Marc'Antonio Bentegodi",
+      "name": "Q737093",
+      "canonical": "stadio marc 'antonio bentegodi"
+    },
+    {
+      "value": "Vele di Scampia",
+      "name": "Q956957",
+      "canonical": "vele di scampia"
+    },
+    {
+      "value": "ANM",
+      "name": "Q3601071",
+      "canonical": "anm"
+    },
+    {
+      "value": "PalaBarbuto",
+      "name": "Q3889081",
+      "canonical": "palabarbuto"
+    },
+    {
+      "value": "PalaArgento",
+      "name": "Q3889435",
+      "canonical": "palaargento"
+    },
+    {
+      "value": "Piscina Felice Scandone",
+      "name": "Q3905726",
+      "canonical": "piscina felice scandone"
+    },
+    {
+      "value": "Palace of Capodimonte",
+      "name": "Q4115652",
+      "canonical": "palace of capodimonte"
+    },
+    {
+      "value": "Stadio San Paolo",
+      "name": "Q82709",
+      "canonical": "stadio san paolo"
+    },
+    {
+      "value": "Stadio Renato Curi",
+      "name": "Q94619",
+      "canonical": "stadio renato curi"
+    },
+    {
+      "value": "Prince Moulay Abdellah Stadium",
+      "name": "Q1858169",
+      "canonical": "prince moulay abdellah stadium"
+    },
+    {
+      "value": "Sam Nujoma Stadium",
+      "name": "Q1455247",
+      "canonical": "sam nujoma stadium"
+    },
+    {
+      "value": "Khomasdal Stadium",
+      "name": "Q1740663",
+      "canonical": "khomasdal stadium"
+    },
+    {
+      "value": "Concert Hall Carl Philipp Emanuel Bach",
+      "name": "Q1783675",
+      "canonical": "concert hall carl philipp emanuel bach"
+    },
+    {
+      "value": "Stadtverkehrsgesellschaft Frankfurt (Oder)",
+      "name": "Q2328353",
+      "canonical": "stadtverkehrsgesellschaft frankfurt ( oder )"
+    },
+    {
+      "value": "Ca' da Noal",
+      "name": "Q914005",
+      "canonical": "ca ' da noal"
+    },
+    {
+      "value": "Stadio Comunale di Monigo",
+      "name": "Q1638702",
+      "canonical": "stadio comunale di monigo"
+    },
+    {
+      "value": "Stadio Omobono Tenni",
+      "name": "Q194873",
+      "canonical": "stadio omobono tenni"
+    },
+    {
+      "value": "Seinäjoen keskuskenttä",
+      "name": "Q13425515",
+      "canonical": "seinäjoen keskuskenttä"
+    },
+    {
+      "value": "Stade Mohamed V",
+      "name": "Q1783824",
+      "canonical": "stade mohamed v"
+    },
+    {
+      "value": "Pabellón Polideportivo Pisuerga",
+      "name": "Q2399247",
+      "canonical": "pabellón polideportivo pisuerga"
+    },
+    {
+      "value": "Estadio Nuevo José Zorrilla",
+      "name": "Q151816",
+      "canonical": "estadio nuevo josé zorrilla"
+    },
+    {
+      "value": "Pazo dos Deportes",
+      "name": "Q3392125",
+      "canonical": "pazo dos deportes"
+    },
+    {
+      "value": "Nuevo Estadio Los Pajaritos",
+      "name": "Q1219014",
+      "canonical": "nuevo estadio los pajaritos"
+    },
+    {
+      "value": "Pasarón Stadium",
+      "name": "Q1369479",
+      "canonical": "pasarón stadium"
+    },
+    {
+      "value": "Stadio Vanni Sanna",
+      "name": "Q2272418",
+      "canonical": "stadio vanni sanna"
+    },
+    {
+      "value": "Stade Klébert Picard",
+      "name": "Q3495682",
+      "canonical": "stade klébert picard"
+    },
+    {
+      "value": "National Cycling Centre",
+      "name": "Q15261114",
+      "canonical": "national cycling centre"
+    },
+    {
+      "value": "National Indoor BMX Arena",
+      "name": "Q15261127",
+      "canonical": "national indoor bmx arena"
+    },
+    {
+      "value": "Doosan Arena",
+      "name": "Q2116283",
+      "canonical": "doosan arena"
+    },
+    {
+      "value": "Stade Sheikh Mohamed Laghdaf",
+      "name": "Q2742243",
+      "canonical": "stade sheikh mohamed laghdaf"
+    },
+    {
+      "value": "DVTK Stadion",
+      "name": "Q901017",
+      "canonical": "dvtk stadion"
+    },
+    {
+      "value": "Karagaq Sports Hall",
+      "name": "Q24910464",
+      "canonical": "karagaq sports hall"
+    },
+    {
+      "value": "Shahin Haxhiislami Stadium",
+      "name": "Q7461769",
+      "canonical": "shahin haxhiislami stadium"
+    },
+    {
+      "value": "Grand Stade de Tanger",
+      "name": "Q3107495",
+      "canonical": "grand stade de tanger"
+    },
+    {
+      "value": "Nagano Olympic Stadium",
+      "name": "Q981819",
+      "canonical": "nagano olympic stadium"
+    },
+    {
+      "value": "Nagano Athletic Stadium",
+      "name": "Q6958432",
+      "canonical": "nagano athletic stadium"
+    },
+    {
+      "value": "Minami Nagano Sports Park Stadium",
+      "name": "Q11408700",
+      "canonical": "minami nagano sports park stadium"
+    },
+    {
+      "value": "Savivaldybė Stadium",
+      "name": "Q7428369",
+      "canonical": "savivaldybė stadium"
+    },
+    {
+      "value": "Kitchener Memorial Auditorium Complex",
+      "name": "Q6418047",
+      "canonical": "kitchener memorial auditorium complex"
+    },
+    {
+      "value": "Matsue Athletic Stadium",
+      "name": "Q6788084",
+      "canonical": "matsue athletic stadium"
+    },
+    {
+      "value": "Rotorua International Stadium",
+      "name": "Q474639",
+      "canonical": "rotorua international stadium"
+    },
+    {
+      "value": "Energy Events Centre",
+      "name": "Q5376928",
+      "canonical": "energy events centre"
+    },
+    {
+      "value": "Kardinia Park",
+      "name": "Q3193033",
+      "canonical": "kardinia park"
+    },
+    {
+      "value": "Estadio Nuevo Laredo",
+      "name": "Q1369508",
+      "canonical": "estadio nuevo laredo"
+    },
+    {
+      "value": "Ciudad Deportiva",
+      "name": "Q5124143",
+      "canonical": "ciudad deportiva"
+    },
+    {
+      "value": "Gimnasio Multidisciplinario Nuevo Laredo",
+      "name": "Q5562763",
+      "canonical": "gimnasio multidisciplinario nuevo laredo"
+    },
+    {
+      "value": "Parque la Junta",
+      "name": "Q7139703",
+      "canonical": "parque la junta"
+    },
+    {
+      "value": "NTCA Ground",
+      "name": "Q6955446",
+      "canonical": "ntca ground"
+    },
+    {
+      "value": "Desouk Stadium",
+      "name": "Q5264876",
+      "canonical": "desouk stadium"
+    },
+    {
+      "value": "Estadio Municipal da Malata",
+      "name": "Q3327491",
+      "canonical": "estadio municipal da malata"
+    },
+    {
+      "value": "Estadio Excélsior",
+      "name": "Q3034164",
+      "canonical": "estadio excélsior"
+    },
+    {
+      "value": "City Stadium",
+      "name": "Q5123439",
+      "canonical": "city stadium"
+    },
+    {
+      "value": "Margon Arena",
+      "name": "Q1305139",
+      "canonical": "margon arena"
+    },
+    {
+      "value": "Rudolf-Harbig-Stadion",
+      "name": "Q170154",
+      "canonical": "rudolf-harbig-stadion"
+    },
+    {
+      "value": "Heinz-Steyer-Stadion",
+      "name": "Q470392",
+      "canonical": "heinz-steyer-stadion"
+    },
+    {
+      "value": "Battle of the Amazons",
+      "name": "Q1029173",
+      "canonical": "battle of the amazons"
+    },
+    {
+      "value": "Pilatushaus",
+      "name": "Q1279207",
+      "canonical": "pilatushaus"
+    },
+    {
+      "value": "Stadion Nürnberg",
+      "name": "Q152599",
+      "canonical": "stadion nürnberg"
+    },
+    {
+      "value": "PalaMondolce",
+      "name": "Q3889139",
+      "canonical": "palamondolce"
+    },
+    {
+      "value": "Banca Marche Palace",
+      "name": "Q3889162",
+      "canonical": "banca marche palace"
+    },
+    {
+      "value": "Palaindoor di Ancona",
+      "name": "Q3889342",
+      "canonical": "palaindoor di ancona"
+    },
+    {
+      "value": "Stadio Dorico",
+      "name": "Q3967777",
+      "canonical": "stadio dorico"
+    },
+    {
+      "value": "Stadio del Conero",
+      "name": "Q178107",
+      "canonical": "stadio del conero"
+    },
+    {
+      "value": "Omar Hamadi Stadium",
+      "name": "Q2023039",
+      "canonical": "omar hamadi stadium"
+    },
+    {
+      "value": "Stade Ahmadou Ahidjo",
+      "name": "Q401009",
+      "canonical": "stade ahmadou ahidjo"
+    },
+    {
+      "value": "Stadio Nicola Ceravolo",
+      "name": "Q1059142",
+      "canonical": "stadio nicola ceravolo"
+    },
+    {
+      "value": "Catanzaro funicular",
+      "name": "Q15087553",
+      "canonical": "catanzaro funicular"
+    },
+    {
+      "value": "Estadio Nuevo Arcángel",
+      "name": "Q121879",
+      "canonical": "estadio nuevo arcángel"
+    },
+    {
+      "value": "SaskTel Centre",
+      "name": "Q1139421",
+      "canonical": "sasktel centre"
+    },
+    {
+      "value": "Marr Residence",
+      "name": "Q3944776",
+      "canonical": "marr residence"
+    },
+    {
+      "value": "Stadio Paolo Mazza",
+      "name": "Q1575161",
+      "canonical": "stadio paolo mazza"
+    },
+    {
+      "value": "Bagni Ducali",
+      "name": "Q56702648",
+      "canonical": "bagni ducali"
+    },
+    {
+      "value": "Palaboschetto",
+      "name": "Q56878236",
+      "canonical": "palaboschetto"
+    },
+    {
+      "value": "Castello Estense",
+      "name": "Q1048836",
+      "canonical": "castello estense"
+    },
+    {
+      "value": "Stadio Bruno Benelli",
+      "name": "Q1106531",
+      "canonical": "stadio bruno benelli"
+    },
+    {
+      "value": "PalaCosta",
+      "name": "Q3889101",
+      "canonical": "palacosta"
+    },
+    {
+      "value": "Pala De André",
+      "name": "Q3889104",
+      "canonical": "pala de andré"
+    },
+    {
+      "value": "city walls of Pisa",
+      "name": "Q3328004",
+      "canonical": "city walls of pisa"
+    },
+    {
+      "value": "Cittadella Nuova",
+      "name": "Q3678366",
+      "canonical": "cittadella nuova"
+    },
+    {
+      "value": "Arena Garibaldi – Stadio Romeo Anconetani",
+      "name": "Q115970",
+      "canonical": "arena garibaldi – stadio romeo anconetani"
+    },
+    {
+      "value": "Multiusos Ciudad de Cáceres",
+      "name": "Q6055615",
+      "canonical": "multiusos ciudad de cáceres"
+    },
+    {
+      "value": "Palasport Biella",
+      "name": "Q16585827",
+      "canonical": "palasport biella"
+    },
+    {
+      "value": "Lahti Stadium",
+      "name": "Q952432",
+      "canonical": "lahti stadium"
+    },
+    {
+      "value": "Lahti Sports Center",
+      "name": "Q18662559",
+      "canonical": "lahti sports center"
+    },
+    {
+      "value": "Line 2",
+      "name": "Q4391357",
+      "canonical": "line 2"
+    },
+    {
+      "value": "Line 1",
+      "name": "Q6118988",
+      "canonical": "line 1"
+    },
+    {
+      "value": "Line 3",
+      "name": "Q8985154",
+      "canonical": "line 3"
+    },
+    {
+      "value": "Line 7",
+      "name": "Q11074646",
+      "canonical": "line 7"
+    },
+    {
+      "value": "Line 10",
+      "name": "Q11074644",
+      "canonical": "line 10"
+    },
+    {
+      "value": "Line 4",
+      "name": "Q11074645",
+      "canonical": "line 4"
+    },
+    {
+      "value": "Line 5",
+      "name": "Q22100474",
+      "canonical": "line 5"
+    },
+    {
+      "value": "Line 6",
+      "name": "Q22100481",
+      "canonical": "line 6"
+    },
+    {
+      "value": "Medeo",
+      "name": "Q864796",
+      "canonical": "medeo"
+    },
+    {
+      "value": "Almaty Ice Palace",
+      "name": "Q18125175",
+      "canonical": "almaty ice palace"
+    },
+    {
+      "value": "Almaty Central Stadium",
+      "name": "Q190788",
+      "canonical": "almaty central stadium"
+    },
+    {
+      "value": "Abay Opera House",
+      "name": "Q304839",
+      "canonical": "abay opera house"
+    },
+    {
+      "value": "Markham Pan Am Centre",
+      "name": "Q6771020",
+      "canonical": "markham pan am centre"
+    },
+    {
+      "value": "CAA Centre",
+      "name": "Q2944866",
+      "canonical": "caa centre"
+    },
+    {
+      "value": "Brampton Gateway Terminal",
+      "name": "Q4956236",
+      "canonical": "brampton gateway terminal"
+    },
+    {
+      "value": "Downtown Brampton Terminal",
+      "name": "Q5303377",
+      "canonical": "downtown brampton terminal"
+    },
+    {
+      "value": "Shoppers World Terminal",
+      "name": "Q7501189",
+      "canonical": "shoppers world terminal"
+    },
+    {
+      "value": "Bramalea Terminal",
+      "name": "Q14875090",
+      "canonical": "bramalea terminal"
+    },
+    {
+      "value": "Trinity Common Terminal",
+      "name": "Q19582359",
+      "canonical": "trinity common terminal"
+    },
+    {
+      "value": "Estadio Metropolitano Roberto Meléndez",
+      "name": "Q1369387",
+      "canonical": "estadio metropolitano roberto meléndez"
+    },
+    {
+      "value": "Stade de Marrakech",
+      "name": "Q1578430",
+      "canonical": "stade de marrakech"
+    },
+    {
+      "value": "Stade El Harti",
+      "name": "Q3495581",
+      "canonical": "stade el harti"
+    },
+    {
+      "value": "Skënderbeu Stadium",
+      "name": "Q1336599",
+      "canonical": "skënderbeu stadium"
+    },
+    {
+      "value": "Tamara Nikolla Sports Palace",
+      "name": "Q28224953",
+      "canonical": "tamara nikolla sports palace"
+    },
+    {
+      "value": "Citadel of Namur",
+      "name": "Q2600730",
+      "canonical": "citadel of namur"
+    },
+    {
+      "value": "Chester Storyhouse",
+      "name": "Q26656956",
+      "canonical": "chester storyhouse"
+    },
+    {
+      "value": "Isomäki Areena",
+      "name": "Q1455586",
+      "canonical": "isomäki areena"
+    },
+    {
+      "value": "Pori Stadium",
+      "name": "Q1652779",
+      "canonical": "pori stadium"
+    },
+    {
+      "value": "Finnish Aviation Academy",
+      "name": "Q15195872",
+      "canonical": "finnish aviation academy"
+    },
+    {
+      "value": "HaMoshava Stadium",
+      "name": "Q1129090",
+      "canonical": "hamoshava stadium"
+    },
+    {
+      "value": "Church of Notre-Dame-des-Vertus, Aubervilliers",
+      "name": "Q3580397",
+      "canonical": "church of notre-dame-des-vertus , aubervilliers"
+    },
+    {
+      "value": "Rautatienkatu",
+      "name": "Q11890272",
+      "canonical": "rautatienkatu"
+    },
+    {
+      "value": "Estádio Jonas Duarte",
+      "name": "Q5402063",
+      "canonical": "estádio jonas duarte"
+    },
+    {
+      "value": "Karnei Oren Memorial Field",
+      "name": "Q6372931",
+      "canonical": "karnei oren memorial field"
+    },
+    {
+      "value": "KV Arena",
+      "name": "Q1719185",
+      "canonical": "kv arena"
+    },
+    {
+      "value": "Alytus Stadium",
+      "name": "Q4738800",
+      "canonical": "alytus stadium"
+    },
+    {
+      "value": "Arena Barueri",
+      "name": "Q2860815",
+      "canonical": "arena barueri"
+    },
+    {
+      "value": "Okzhetpes Stadium",
+      "name": "Q606918",
+      "canonical": "okzhetpes stadium"
+    },
+    {
+      "value": "Guelph Central Station",
+      "name": "Q3096597",
+      "canonical": "guelph central station"
+    },
+    {
+      "value": "Old City Hall",
+      "name": "Q7083689",
+      "canonical": "old city hall"
+    },
+    {
+      "value": "Sleeman Centre",
+      "name": "Q7539655",
+      "canonical": "sleeman centre"
+    },
+    {
+      "value": "Kamëz Stadium",
+      "name": "Q6359959",
+      "canonical": "kamëz stadium"
+    },
+    {
+      "value": "Salla Sportive Bathore",
+      "name": "Q16632723",
+      "canonical": "salla sportive bathore"
+    },
+    {
+      "value": "Estadio Carlos Miranda",
+      "name": "Q1161062",
+      "canonical": "estadio carlos miranda"
+    },
+    {
+      "value": "Savonlinna Provincial Museum",
+      "name": "Q18346683",
+      "canonical": "savonlinna provincial museum"
+    },
+    {
+      "value": "Ylivieska Airfield",
+      "name": "Q4347508",
+      "canonical": "ylivieska airfield"
+    },
+    {
+      "value": "Estadio Goyenola",
+      "name": "Q3342661",
+      "canonical": "estadio goyenola"
+    },
+    {
+      "value": "Stadio Nazionale PNF",
+      "name": "Q642958",
+      "canonical": "stadio nazionale pnf"
+    },
+    {
+      "value": "Cornelia metro station",
+      "name": "Q737333",
+      "canonical": "cornelia metro station"
+    },
+    {
+      "value": "Stadio Olimpico del Nuoto",
+      "name": "Q1189119",
+      "canonical": "stadio olimpico del nuoto"
+    },
+    {
+      "value": "Palazzetto dello Sport",
+      "name": "Q2033373",
+      "canonical": "palazzetto dello sport"
+    },
+    {
+      "value": "Teatro General San Martín",
+      "name": "Q7691915",
+      "canonical": "teatro general san martín"
+    },
+    {
+      "value": "Torre del Reformador",
+      "name": "Q1753887",
+      "canonical": "torre del reformador"
+    },
+    {
+      "value": "Guatemala City General Cemetery",
+      "name": "Q19915001",
+      "canonical": "guatemala city general cemetery"
+    },
+    {
+      "value": "Orkuveita Reykjavíkur",
+      "name": "Q3356432",
+      "canonical": "orkuveita reykjavíkur"
+    },
+    {
+      "value": "Kockelscheuer Sport Centre",
+      "name": "Q16632488",
+      "canonical": "kockelscheuer sport centre"
+    },
+    {
+      "value": "Stade Josy Barthel",
+      "name": "Q945298",
+      "canonical": "stade josy barthel"
+    },
+    {
+      "value": "Sportforum Leipzig",
+      "name": "Q1504947",
+      "canonical": "sportforum leipzig"
+    },
+    {
+      "value": "Alfred-Kunze-Sportpark",
+      "name": "Q318721",
+      "canonical": "alfred-kunze-sportpark"
+    },
+    {
+      "value": "Velodromo Paolo Borsellino",
+      "name": "Q4009427",
+      "canonical": "velodromo paolo borsellino"
+    },
+    {
+      "value": "Stadio Renzo Barbera",
+      "name": "Q28500",
+      "canonical": "stadio renzo barbera"
+    },
+    {
+      "value": "Allianz für die Region",
+      "name": "Q22073378",
+      "canonical": "allianz für die region"
+    },
+    {
+      "value": "Eintracht-Stadion",
+      "name": "Q662597",
+      "canonical": "eintracht-stadion"
+    },
+    {
+      "value": "Nuevo Estadio de Malabo",
+      "name": "Q1510743",
+      "canonical": "nuevo estadio de malabo"
+    },
+    {
+      "value": "Stadion Allmend",
+      "name": "Q678554",
+      "canonical": "stadion allmend"
+    },
+    {
+      "value": "Princess Magogo Stadium",
+      "name": "Q7244684",
+      "canonical": "princess magogo stadium"
+    },
+    {
+      "value": "Sugar Ray Xulu Stadium",
+      "name": "Q7634896",
+      "canonical": "sugar ray xulu stadium"
+    },
+    {
+      "value": "Stadio Silvio Piola (Novara)",
+      "name": "Q94583",
+      "canonical": "stadio silvio piola ( novara )"
+    },
+    {
+      "value": "Palazzo del Capitaniato",
+      "name": "Q1115328",
+      "canonical": "palazzo del capitaniato"
+    },
+    {
+      "value": "Palasport Città di Vicenza",
+      "name": "Q3889154",
+      "canonical": "palasport città di vicenza"
+    },
+    {
+      "value": "Palazzo Trissino al Corso",
+      "name": "Q3891016",
+      "canonical": "palazzo trissino al corso"
+    },
+    {
+      "value": "Palazzo Alidosio Conti",
+      "name": "Q18224249",
+      "canonical": "palazzo alidosio conti"
+    },
+    {
+      "value": "Palazzo San Giacomo",
+      "name": "Q21194493",
+      "canonical": "palazzo san giacomo"
+    },
+    {
+      "value": "Stadio Romeo Menti",
+      "name": "Q94612",
+      "canonical": "stadio romeo menti"
+    },
+    {
+      "value": "Estadio Nueva Balastera",
+      "name": "Q1369322",
+      "canonical": "estadio nueva balastera"
+    },
+    {
+      "value": "St. Ildefonso Receiving the Chasuble from the Virgin",
+      "name": "Q925635",
+      "canonical": "st . ildefonso receiving the chasuble from the virgin"
+    },
+    {
+      "value": "Palacio Municipal de Deportes San Pablo",
+      "name": "Q1747710",
+      "canonical": "palacio municipal de deportes san pablo"
+    },
+    {
+      "value": "Verweyhal",
+      "name": "Q2142138",
+      "canonical": "verweyhal"
+    },
+    {
+      "value": "Kaatsbaan",
+      "name": "Q2690882",
+      "canonical": "kaatsbaan"
+    },
+    {
+      "value": "De Adriaan",
+      "name": "Q2763574",
+      "canonical": "de adriaan"
+    },
+    {
+      "value": "Pim Mulier Stadium",
+      "name": "Q3388540",
+      "canonical": "pim mulier stadium"
+    },
+    {
+      "value": "Oudemannenhuis",
+      "name": "Q17201547",
+      "canonical": "oudemannenhuis"
+    },
+    {
+      "value": "Mies de Cozada",
+      "name": "Q15141936",
+      "canonical": "mies de cozada"
+    },
+    {
+      "value": "Campos de Sport de El Sardinero",
+      "name": "Q195391",
+      "canonical": "campos de sport de el sardinero"
+    },
+    {
+      "value": "Estadi de la Nova Creu Alta",
+      "name": "Q1313926",
+      "canonical": "estadi de la nova creu alta"
+    },
+    {
+      "value": "Stadio Esseneto",
+      "name": "Q3967781",
+      "canonical": "stadio esseneto"
+    },
+    {
+      "value": "Estadio Romano",
+      "name": "Q924700",
+      "canonical": "estadio romano"
+    },
+    {
+      "value": "Estadio Carlos Belmonte",
+      "name": "Q1369118",
+      "canonical": "estadio carlos belmonte"
+    },
+    {
+      "value": "Palau Municipal d'Esports de Badalona",
+      "name": "Q1412278",
+      "canonical": "palau municipal d 'esports de badalona"
+    },
+    {
+      "value": "Televisió de Badalona",
+      "name": "Q20054613",
+      "canonical": "televisió de badalona"
+    },
+    {
+      "value": "Clock Tower of Tirana",
+      "name": "Q2474224",
+      "canonical": "clock tower of tirana"
+    },
+    {
+      "value": "National Martyrs Cemetery of Albania",
+      "name": "Q8508918",
+      "canonical": "national martyrs cemetery of albania"
+    },
+    {
+      "value": "Štadión Antona Malatinského",
+      "name": "Q392291",
+      "canonical": "štadión antona malatinského"
+    },
+    {
+      "value": "Krohnsminde",
+      "name": "Q6438785",
+      "canonical": "krohnsminde"
+    },
+    {
+      "value": "Norges Bank",
+      "name": "Q19383459",
+      "canonical": "norges bank"
+    },
+    {
+      "value": "Enteria arena",
+      "name": "Q336755",
+      "canonical": "enteria arena"
+    },
+    {
+      "value": "Letní stadion (Pardubice)",
+      "name": "Q21874589",
+      "canonical": "letní stadion ( pardubice )"
+    },
+    {
+      "value": "MZK Konin",
+      "name": "Q11780260",
+      "canonical": "mzk konin"
+    },
+    {
+      "value": "City Stadium Grudziądz",
+      "name": "Q974444",
+      "canonical": "city stadium grudziądz"
+    },
+    {
+      "value": "Kuopio Football Stadium",
+      "name": "Q545321",
+      "canonical": "kuopio football stadium"
+    },
+    {
+      "value": "Kuopio City Library",
+      "name": "Q11873580",
+      "canonical": "kuopio city library"
+    },
+    {
+      "value": "Puijo tower",
+      "name": "Q15735566",
+      "canonical": "puijo tower"
+    },
+    {
+      "value": "City of Doboj website",
+      "name": "Q47482029",
+      "canonical": "city of doboj website"
+    },
+    {
+      "value": "Stade Raoul-Barrière",
+      "name": "Q3496024",
+      "canonical": "stade raoul-barrière"
+    },
+    {
+      "value": "Perivolia Municipal Stadium",
+      "name": "Q16632714",
+      "canonical": "perivolia municipal stadium"
+    },
+    {
+      "value": "Windsor Stadium",
+      "name": "Q8024707",
+      "canonical": "windsor stadium"
+    },
+    {
+      "value": "Windsor City Hall",
+      "name": "Q18395108",
+      "canonical": "windsor city hall"
+    },
+    {
+      "value": "Windsor International Transit Terminal",
+      "name": "Q20861520",
+      "canonical": "windsor international transit terminal"
+    },
+    {
+      "value": "Stade Akid Lotfi",
+      "name": "Q2990530",
+      "canonical": "stade akid lotfi"
+    },
+    {
+      "value": "Mikkeli Airport",
+      "name": "Q286872",
+      "canonical": "mikkeli airport"
+    },
+    {
+      "value": "Estadio Antonio Oddone Sarubbi",
+      "name": "Q1369069",
+      "canonical": "estadio antonio oddone sarubbi"
+    },
+    {
+      "value": "Zhastar Stadium",
+      "name": "Q8070634",
+      "canonical": "zhastar stadium"
+    },
+    {
+      "value": "Panthessaliko Stadium",
+      "name": "Q930369",
+      "canonical": "panthessaliko stadium"
+    },
+    {
+      "value": "Volos Municipal Stadium",
+      "name": "Q3562133",
+      "canonical": "volos municipal stadium"
+    },
+    {
+      "value": "Haberfeld Stadium",
+      "name": "Q641841",
+      "canonical": "haberfeld stadium"
+    },
+    {
+      "value": "Leon's Centre",
+      "name": "Q6322759",
+      "canonical": "leon 's centre"
+    },
+    {
+      "value": "Stade Mustapha Tchaker",
+      "name": "Q3495789",
+      "canonical": "stade mustapha tchaker"
+    },
+    {
+      "value": "Estadio Municipal de Comodoro Rivadavia",
+      "name": "Q5400411",
+      "canonical": "estadio municipal de comodoro rivadavia"
+    },
+    {
+      "value": "Niagara Falls Transit Terminal",
+      "name": "Q20861516",
+      "canonical": "niagara falls transit terminal"
+    },
+    {
+      "value": "Estadio de Bata",
+      "name": "Q1369679",
+      "canonical": "estadio de bata"
+    },
+    {
+      "value": "Kiryat Shmona Municipal Stadium",
+      "name": "Q6416328",
+      "canonical": "kiryat shmona municipal stadium"
+    },
+    {
+      "value": "Stade Municipal",
+      "name": "Q3496180",
+      "canonical": "stade municipal"
+    },
+    {
+      "value": "Daşoguz Stadium",
+      "name": "Q5243744",
+      "canonical": "daşoguz stadium"
+    },
+    {
+      "value": "Sport toplumy (Daşoguz)",
+      "name": "Q20123149",
+      "canonical": "sport toplumy ( daşoguz )"
+    },
+    {
+      "value": "Türkmenabat Stadium",
+      "name": "Q25247587",
+      "canonical": "türkmenabat stadium"
+    },
+    {
+      "value": "Avangard Stadium",
+      "name": "Q4827654",
+      "canonical": "avangard stadium"
+    },
+    {
+      "value": "Sports Center Rožaje",
+      "name": "Q16632729",
+      "canonical": "sports center rožaje"
+    },
+    {
+      "value": "Estádio Eduardo José Farah",
+      "name": "Q1370694",
+      "canonical": "estádio eduardo josé farah"
+    },
+    {
+      "value": "Credit Union iPlex",
+      "name": "Q5183756",
+      "canonical": "credit union iplex"
+    },
+    {
+      "value": "Estadio Óscar Alberto Quiteño",
+      "name": "Q2382357",
+      "canonical": "estadio óscar alberto quiteño"
+    },
+    {
+      "value": "Peterborough Memorial Centre",
+      "name": "Q1706265",
+      "canonical": "peterborough memorial centre"
+    },
+    {
+      "value": "Peterborough Transit",
+      "name": "Q7178037",
+      "canonical": "peterborough transit"
+    },
+    {
+      "value": "Godthåbhallen",
+      "name": "Q1533937",
+      "canonical": "godthåbhallen"
+    },
+    {
+      "value": "Nuuk Stadium",
+      "name": "Q1635061",
+      "canonical": "nuuk stadium"
+    },
+    {
+      "value": "Port of Ripa Grande and Papal Arsenal",
+      "name": "Q611387",
+      "canonical": "port of ripa grande and papal arsenal"
+    },
+    {
+      "value": "Vatican City railway station",
+      "name": "Q801683",
+      "canonical": "vatican city railway station"
+    },
+    {
+      "value": "Tianmu Baseball Stadium",
+      "name": "Q697170",
+      "canonical": "tianmu baseball stadium"
+    },
+    {
+      "value": "Brandt Centre",
+      "name": "Q898327",
+      "canonical": "brandt centre"
+    },
+    {
+      "value": "Palasport Primo Carnera",
+      "name": "Q3889094",
+      "canonical": "palasport primo carnera"
+    },
+    {
+      "value": "Stadium Moretti",
+      "name": "Q3967846",
+      "canonical": "stadium moretti"
+    },
+    {
+      "value": "Stadio Friuli",
+      "name": "Q640031",
+      "canonical": "stadio friuli"
+    },
+    {
+      "value": "Campo de Fútbol de Vallecas",
+      "name": "Q983806",
+      "canonical": "campo de fútbol de vallecas"
+    },
+    {
+      "value": "Caja Mágica",
+      "name": "Q371585",
+      "canonical": "caja mágica"
+    },
+    {
+      "value": "Stadion ŠRC Zaprešić",
+      "name": "Q3442505",
+      "canonical": "stadion šrc zaprešić"
+    },
+    {
+      "value": "PalaWhirlpool",
+      "name": "Q3392892",
+      "canonical": "palawhirlpool"
+    },
+    {
+      "value": "Palazzo Estense",
+      "name": "Q3890082",
+      "canonical": "palazzo estense"
+    },
+    {
+      "value": "Civic Tower of Varese",
+      "name": "Q19367441",
+      "canonical": "civic tower of varese"
+    },
+    {
+      "value": "Piscina comunale Fausto Fabiano",
+      "name": "Q22617801",
+      "canonical": "piscina comunale fausto fabiano"
+    },
+    {
+      "value": "Stadio Franco Ossola",
+      "name": "Q115532",
+      "canonical": "stadio franco ossola"
+    },
+    {
+      "value": "Avignon Sports Ground",
+      "name": "Q2051970",
+      "canonical": "avignon sports ground"
+    },
+    {
+      "value": "palais des papes d'Avignon - Chapelle Saint Marial",
+      "name": "Q20899071",
+      "canonical": "palais des papes d 'avignon - chapelle saint marial"
+    },
+    {
+      "value": "Stadio Libero Liberati",
+      "name": "Q94649",
+      "canonical": "stadio libero liberati"
+    },
+    {
+      "value": "Deportivo fronton",
+      "name": "Q3754913",
+      "canonical": "deportivo fronton"
+    },
+    {
+      "value": "Beotibar fronton",
+      "name": "Q65556048",
+      "canonical": "beotibar fronton"
+    },
+    {
+      "value": "Estadio de los Juegos Mediterráneos",
+      "name": "Q1130617",
+      "canonical": "estadio de los juegos mediterráneos"
+    },
+    {
+      "value": "Estadio Municipal Juan Rojas",
+      "name": "Q3773347",
+      "canonical": "estadio municipal juan rojas"
+    },
+    {
+      "value": "Estadio Nuevo Colombino",
+      "name": "Q654329",
+      "canonical": "estadio nuevo colombino"
+    },
+    {
+      "value": "Stadio Mirabello",
+      "name": "Q762012",
+      "canonical": "stadio mirabello"
+    },
+    {
+      "value": "PalaBigi",
+      "name": "Q1106481",
+      "canonical": "palabigi"
+    },
+    {
+      "value": "Stadio Romeo Neri",
+      "name": "Q1113302",
+      "canonical": "stadio romeo neri"
+    },
+    {
+      "value": "Enrico Chersoni Stadium",
+      "name": "Q3967779",
+      "canonical": "enrico chersoni stadium"
+    },
+    {
+      "value": "Stadio Lungobisenzio",
+      "name": "Q3967831",
+      "canonical": "stadio lungobisenzio"
+    },
+    {
+      "value": "Leangen Ishall",
+      "name": "Q1607234",
+      "canonical": "leangen ishall"
+    },
+    {
+      "value": "Elgeseter Line",
+      "name": "Q5359982",
+      "canonical": "elgeseter line"
+    },
+    {
+      "value": "Ila Line",
+      "name": "Q5996857",
+      "canonical": "ila line"
+    },
+    {
+      "value": "Lade Line",
+      "name": "Q6469358",
+      "canonical": "lade line"
+    },
+    {
+      "value": "Gråkallen Line",
+      "name": "Q15222207",
+      "canonical": "gråkallen line"
+    },
+    {
+      "value": "Bloomfield Stadium",
+      "name": "Q130150",
+      "canonical": "bloomfield stadium"
+    },
+    {
+      "value": "Drive in Arena",
+      "name": "Q18191321",
+      "canonical": "drive in arena"
+    },
+    {
+      "value": "Sarnia Arena",
+      "name": "Q7424336",
+      "canonical": "sarnia arena"
+    },
+    {
+      "value": "Progressive Auto Sales Arena",
+      "name": "Q14875394",
+      "canonical": "progressive auto sales arena"
+    },
+    {
+      "value": "Rauma shipyard",
+      "name": "Q17334709",
+      "canonical": "rauma shipyard"
+    },
+    {
+      "value": "Stadion Lublinianki",
+      "name": "Q9341144",
+      "canonical": "stadion lublinianki"
+    },
+    {
+      "value": "Arena Lublin",
+      "name": "Q9341160",
+      "canonical": "arena lublin"
+    },
+    {
+      "value": "Zdzisław Krzyszkowiak Stadium",
+      "name": "Q169235",
+      "canonical": "zdzisław krzyszkowiak stadium"
+    },
+    {
+      "value": "Łuczniczka",
+      "name": "Q345530",
+      "canonical": "łuczniczka"
+    },
+    {
+      "value": "Turner Stadium",
+      "name": "Q4875423",
+      "canonical": "turner stadium"
+    },
+    {
+      "value": "Conch Arena",
+      "name": "Q16129970",
+      "canonical": "conch arena"
+    },
+    {
+      "value": "Oulu City Library",
+      "name": "Q620916",
+      "canonical": "oulu city library"
+    },
+    {
+      "value": "Oulu Ice Hall",
+      "name": "Q926373",
+      "canonical": "oulu ice hall"
+    },
+    {
+      "value": "Oulu City Theatre",
+      "name": "Q3662283",
+      "canonical": "oulu city theatre"
+    },
+    {
+      "value": "Castrén Stadium",
+      "name": "Q3663115",
+      "canonical": "castrén stadium"
+    },
+    {
+      "value": "Ahmosuo Airfield",
+      "name": "Q4357886",
+      "canonical": "ahmosuo airfield"
+    },
+    {
+      "value": "Oulun Suomalaisen Yhteiskoulun Lukio",
+      "name": "Q5391306",
+      "canonical": "oulun suomalaisen yhteiskoulun lukio"
+    },
+    {
+      "value": "Turkansaari Church",
+      "name": "Q5410336",
+      "canonical": "turkansaari church"
+    },
+    {
+      "value": "Raatti Stadium",
+      "name": "Q7278440",
+      "canonical": "raatti stadium"
+    },
+    {
+      "value": "Heinäpää Arena",
+      "name": "Q11861984",
+      "canonical": "heinäpää arena"
+    },
+    {
+      "value": "Jatuli",
+      "name": "Q11866232",
+      "canonical": "jatuli"
+    },
+    {
+      "value": "Ouluhalli",
+      "name": "Q11886062",
+      "canonical": "ouluhalli"
+    },
+    {
+      "value": "Oulu Waterworks",
+      "name": "Q11886097",
+      "canonical": "oulu waterworks"
+    },
+    {
+      "value": "Oulu sports hall",
+      "name": "Q11886119",
+      "canonical": "oulu sports hall"
+    },
+    {
+      "value": "Puolivälinkangas water tower",
+      "name": "Q11889112",
+      "canonical": "puolivälinkangas water tower"
+    },
+    {
+      "value": "Raksila Pesäpallo Stadium",
+      "name": "Q11889974",
+      "canonical": "raksila pesäpallo stadium"
+    },
+    {
+      "value": "Teuvo Pakkala School",
+      "name": "Q11897082",
+      "canonical": "teuvo pakkala school"
+    },
+    {
+      "value": "Oulu Music Centre",
+      "name": "Q15720786",
+      "canonical": "oulu music centre"
+    },
+    {
+      "value": "Oulu Swimming Pool",
+      "name": "Q17515968",
+      "canonical": "oulu swimming pool"
+    },
+    {
+      "value": "Oulu Energy",
+      "name": "Q18643976",
+      "canonical": "oulu energy"
+    },
+    {
+      "value": "Kalevankartano",
+      "name": "Q18659788",
+      "canonical": "kalevankartano"
+    },
+    {
+      "value": "Oulu Conservatoire",
+      "name": "Q18660146",
+      "canonical": "oulu conservatoire"
+    },
+    {
+      "value": "Maikkula water tower",
+      "name": "Q18660730",
+      "canonical": "maikkula water tower"
+    },
+    {
+      "value": "Raksila artificial ice rink",
+      "name": "Q18661185",
+      "canonical": "raksila artificial ice rink"
+    },
+    {
+      "value": "Snellman-home",
+      "name": "Q18662035",
+      "canonical": "snellman-home"
+    },
+    {
+      "value": "Ympäristötalo",
+      "name": "Q18663119",
+      "canonical": "ympäristötalo"
+    },
+    {
+      "value": "Oulu Central School",
+      "name": "Q23040239",
+      "canonical": "oulu central school"
+    },
+    {
+      "value": "MotoArena Toruń",
+      "name": "Q782869",
+      "canonical": "motoarena toruń"
+    },
+    {
+      "value": "Paramount Fine Foods Centre",
+      "name": "Q1366612",
+      "canonical": "paramount fine foods centre"
+    },
+    {
+      "value": "Credit Valley Hospital",
+      "name": "Q5183760",
+      "canonical": "credit valley hospital"
+    },
+    {
+      "value": "Dixie Outlet Mall",
+      "name": "Q5284881",
+      "canonical": "dixie outlet mall"
+    },
+    {
+      "value": "Erin Mills Town Centre Bus Terminal",
+      "name": "Q5389194",
+      "canonical": "erin mills town centre bus terminal"
+    },
+    {
+      "value": "Living Arts Centre",
+      "name": "Q6659017",
+      "canonical": "living arts centre"
+    },
+    {
+      "value": "Meadowvale Town Centre Bus Terminal",
+      "name": "Q6803450",
+      "canonical": "meadowvale town centre bus terminal"
+    },
+    {
+      "value": "Mississauga City Centre Transit Terminal",
+      "name": "Q6878952",
+      "canonical": "mississauga city centre transit terminal"
+    },
+    {
+      "value": "Sheridan Centre Bus Terminal",
+      "name": "Q7494878",
+      "canonical": "sheridan centre bus terminal"
+    },
+    {
+      "value": "South Common Centre Bus Terminal",
+      "name": "Q7566883",
+      "canonical": "south common centre bus terminal"
+    },
+    {
+      "value": "Trillium Health Centre",
+      "name": "Q7842042",
+      "canonical": "trillium health centre"
+    },
+    {
+      "value": "Tomken",
+      "name": "Q18563378",
+      "canonical": "tomken"
+    },
+    {
+      "value": "Dixie",
+      "name": "Q18563379",
+      "canonical": "dixie"
+    },
+    {
+      "value": "Central Parkway",
+      "name": "Q18563376",
+      "canonical": "central parkway"
+    },
+    {
+      "value": "Cawthra",
+      "name": "Q18563377",
+      "canonical": "cawthra"
+    },
+    {
+      "value": "Etobicoke Creek",
+      "name": "Q19580660",
+      "canonical": "etobicoke creek"
+    },
+    {
+      "value": "Orbitor",
+      "name": "Q19581584",
+      "canonical": "orbitor"
+    },
+    {
+      "value": "Spectrum",
+      "name": "Q19582140",
+      "canonical": "spectrum"
+    },
+    {
+      "value": "Tahoe",
+      "name": "Q19582226",
+      "canonical": "tahoe"
+    },
+    {
+      "value": "Fez Stadium",
+      "name": "Q1479283",
+      "canonical": "fez stadium"
+    },
+    {
+      "value": "Toropol",
+      "name": "Q9360191",
+      "canonical": "toropol"
+    },
+    {
+      "value": "Newport Stadium",
+      "name": "Q1131365",
+      "canonical": "newport stadium"
+    },
+    {
+      "value": "Ernest Pohl Stadium",
+      "name": "Q606059",
+      "canonical": "ernest pohl stadium"
+    },
+    {
+      "value": "Hietalahti Stadium",
+      "name": "Q1759119",
+      "canonical": "hietalahti stadium"
+    },
+    {
+      "value": "Governor's house",
+      "name": "Q11902290",
+      "canonical": "governor 's house"
+    },
+    {
+      "value": "Palais des Sports Maurice Thorez",
+      "name": "Q14931634",
+      "canonical": "palais des sports maurice thorez"
+    },
+    {
+      "value": "London Road Stadium",
+      "name": "Q1156350",
+      "canonical": "london road stadium"
+    },
+    {
+      "value": "Stade d'Honneur",
+      "name": "Q3495960",
+      "canonical": "stade d 'honneur"
+    },
+    {
+      "value": "Hala sportova",
+      "name": "Q5640983",
+      "canonical": "hala sportova"
+    },
+    {
+      "value": "Saviniemi",
+      "name": "Q1861487",
+      "canonical": "saviniemi"
+    },
+    {
+      "value": "General Motors Centre",
+      "name": "Q5532037",
+      "canonical": "general motors centre"
+    },
+    {
+      "value": "Oshawa Bus Terminal",
+      "name": "Q7106576",
+      "canonical": "oshawa bus terminal"
+    },
+    {
+      "value": "Arena Manawatu",
+      "name": "Q2860827",
+      "canonical": "arena manawatu"
+    },
+    {
+      "value": "Tehtaan kenttä",
+      "name": "Q1262656",
+      "canonical": "tehtaan kenttä"
+    },
+    {
+      "value": "Estadio Armando Maestre Pavajeau",
+      "name": "Q5400098",
+      "canonical": "estadio armando maestre pavajeau"
+    },
+    {
+      "value": "Shakhtyor Stadium",
+      "name": "Q846879",
+      "canonical": "shakhtyor stadium"
+    },
+    {
+      "value": "Estádio Fonte Luminosa",
+      "name": "Q5402040",
+      "canonical": "estádio fonte luminosa"
+    },
+    {
+      "value": "Union Station",
+      "name": "Q511316",
+      "canonical": "union station"
+    },
+    {
+      "value": "Coca-Cola Coliseum",
+      "name": "Q541481",
+      "canonical": "coca-cola coliseum"
+    },
+    {
+      "value": "Exhibition Stadium",
+      "name": "Q1383747",
+      "canonical": "exhibition stadium"
+    },
+    {
+      "value": "Centennial Park Stadium",
+      "name": "Q2944351",
+      "canonical": "centennial park stadium"
+    },
+    {
+      "value": "Ford Performance Centre",
+      "name": "Q2944847",
+      "canonical": "ford performance centre"
+    },
+    {
+      "value": "Esther Shiner Stadium",
+      "name": "Q5401298",
+      "canonical": "esther shiner stadium"
+    },
+    {
+      "value": "Lamport Stadium",
+      "name": "Q6482483",
+      "canonical": "lamport stadium"
+    },
+    {
+      "value": "Rosedale Field",
+      "name": "Q7368166",
+      "canonical": "rosedale field"
+    },
+    {
+      "value": "St. Lawrence Centre for the Arts",
+      "name": "Q7589476",
+      "canonical": "st . lawrence centre for the arts"
+    },
+    {
+      "value": "Ted Reeve Arena",
+      "name": "Q7693649",
+      "canonical": "ted reeve arena"
+    },
+    {
+      "value": "William McBrien Building",
+      "name": "Q8015310",
+      "canonical": "william mcbrien building"
+    },
+    {
+      "value": "Wychwood Barns",
+      "name": "Q8039569",
+      "canonical": "wychwood barns"
+    },
+    {
+      "value": "Milliken Park",
+      "name": "Q52743848",
+      "canonical": "milliken park"
+    },
+    {
+      "value": "L'Amoreaux Park",
+      "name": "Q54343725",
+      "canonical": "l 'amoreaux park"
+    },
+    {
+      "value": "North Bendale Park",
+      "name": "Q56917274",
+      "canonical": "north bendale park"
+    },
+    {
+      "value": "Seven Oaks Park",
+      "name": "Q57528492",
+      "canonical": "7 oaks park"
+    },
+    {
+      "value": "Iroquois Park",
+      "name": "Q57549060",
+      "canonical": "iroquois park"
+    },
+    {
+      "value": "Muirlands Park",
+      "name": "Q57551301",
+      "canonical": "muirlands park"
+    },
+    {
+      "value": "Toronto Transit Commission",
+      "name": "Q17978",
+      "canonical": "toronto transit commission"
+    },
+    {
+      "value": "Palazzo Bianco",
+      "name": "Q1808872",
+      "canonical": "palazzo bianco"
+    },
+    {
+      "value": "Palazzo Rosso",
+      "name": "Q2034331",
+      "canonical": "palazzo rosso"
+    },
+    {
+      "value": "Doge's Palace, Genoa",
+      "name": "Q2047566",
+      "canonical": "doge 's palace , genoa"
+    },
+    {
+      "value": "Albertis Castle",
+      "name": "Q3662403",
+      "canonical": "albertis castle"
+    },
+    {
+      "value": "Forte Crocetta",
+      "name": "Q3748544",
+      "canonical": "forte crocetta"
+    },
+    {
+      "value": "Forte Puin",
+      "name": "Q3748601",
+      "canonical": "forte puin"
+    },
+    {
+      "value": "Forte Tenaglia",
+      "name": "Q3748648",
+      "canonical": "forte tenaglia"
+    },
+    {
+      "value": "villa Centurione Doria",
+      "name": "Q4011948",
+      "canonical": "villa centurione doria"
+    },
+    {
+      "value": "Villa Durazzo-Pallavicini",
+      "name": "Q4011961",
+      "canonical": "villa durazzo-pallavicini"
+    },
+    {
+      "value": "Villa Grimaldi La Fortezza (Genoa)",
+      "name": "Q15845579",
+      "canonical": "villa grimaldi la fortezza ( genoa )"
+    },
+    {
+      "value": "Villa Spinola di San Pietro",
+      "name": "Q15845585",
+      "canonical": "villa spinola di san pietro"
+    },
+    {
+      "value": "Las Paul Klee-Nicolò Barabino",
+      "name": "Q16572448",
+      "canonical": "las paul klee-nicolò barabino"
+    },
+    {
+      "value": "Villa Imperiale Scassi",
+      "name": "Q16621442",
+      "canonical": "villa imperiale scassi"
+    },
+    {
+      "value": "Villa Gruber De Mari",
+      "name": "Q26828180",
+      "canonical": "villa gruber de mari"
+    },
+    {
+      "value": "Villa Croce",
+      "name": "Q50919233",
+      "canonical": "villa croce"
+    },
+    {
+      "value": "Palazzo Doria Tursi (Genoa)",
+      "name": "Q162965",
+      "canonical": "palazzo doria tursi ( genoa )"
+    },
+    {
+      "value": "Stadio Luigi Ferraris",
+      "name": "Q271568",
+      "canonical": "stadio luigi ferraris"
+    },
+    {
+      "value": "Forte Sperone",
+      "name": "Q661321",
+      "canonical": "forte sperone"
+    },
+    {
+      "value": "Stadion Kantrida",
+      "name": "Q1277056",
+      "canonical": "stadion kantrida"
+    },
+    {
+      "value": "Dvorana Mladosti",
+      "name": "Q3507736",
+      "canonical": "dvorana mladosti"
+    },
+    {
+      "value": "Stadion Rujevica",
+      "name": "Q7596332",
+      "canonical": "stadion rujevica"
+    },
+    {
+      "value": "Stadion Krimeja",
+      "name": "Q9341135",
+      "canonical": "stadion krimeja"
+    },
+    {
+      "value": "Forst Kasten",
+      "name": "Q994306",
+      "canonical": "forst kasten"
+    },
+    {
+      "value": "Sumpflegende",
+      "name": "Q2365608",
+      "canonical": "sumpflegende"
+    },
+    {
+      "value": "Saint Christopher",
+      "name": "Q57758914",
+      "canonical": "saint christopher"
+    },
+    {
+      "value": "Olympic Stadium of Munich",
+      "name": "Q131610",
+      "canonical": "olympic stadium of munich"
+    },
+    {
+      "value": "Stadio Angelo Massimino",
+      "name": "Q769462",
+      "canonical": "stadio angelo massimino"
+    },
+    {
+      "value": "St. James Civic Centre",
+      "name": "Q16632352",
+      "canonical": "st . james civic centre"
+    },
+    {
+      "value": "Winnipeg City Routes",
+      "name": "Q24279425",
+      "canonical": "winnipeg city routes"
+    },
+    {
+      "value": "Gelora Bung Karno Stadium",
+      "name": "Q1068044",
+      "canonical": "gelora bung karno stadium"
+    },
+    {
+      "value": "Lebak Bulus Stadium",
+      "name": "Q4810852",
+      "canonical": "lebak bulus stadium"
+    },
+    {
+      "value": "Jakarta BMW Stadium",
+      "name": "Q6124453",
+      "canonical": "jakarta bmw stadium"
+    },
+    {
+      "value": "VIJ Stadium",
+      "name": "Q16632565",
+      "canonical": "vij stadium"
+    },
+    {
+      "value": "Halle aux viandes",
+      "name": "Q2845920",
+      "canonical": "halle aux viandes"
+    },
+    {
+      "value": "Château de Péralta",
+      "name": "Q2970321",
+      "canonical": "château de péralta"
+    },
+    {
+      "value": "Hôtel d'Ansembourg",
+      "name": "Q3145708",
+      "canonical": "hôtel d 'ansembourg"
+    },
+    {
+      "value": "Hôtel de Hayme de Bomal",
+      "name": "Q3145858",
+      "canonical": "hôtel de hayme de bomal"
+    },
+    {
+      "value": "Curtius Palace",
+      "name": "Q3360847",
+      "canonical": "curtius palace"
+    },
+    {
+      "value": "Hôtel Somzé",
+      "name": "Q18785629",
+      "canonical": "hôtel somzé"
+    },
+    {
+      "value": "Hôtel Brahy",
+      "name": "Q18908157",
+      "canonical": "hôtel brahy"
+    },
+    {
+      "value": "Hôtel Sklins",
+      "name": "Q18908162",
+      "canonical": "hôtel sklins"
+    },
+    {
+      "value": "hôtel de Bocholtz",
+      "name": "Q18908160",
+      "canonical": "hôtel de bocholtz"
+    },
+    {
+      "value": "Hôtel de Stockem de Heers",
+      "name": "Q18908164",
+      "canonical": "hôtel de stockem de heers"
+    },
+    {
+      "value": "Cybernetic Light Tower",
+      "name": "Q24935536",
+      "canonical": "cybernetic light tower"
+    },
+    {
+      "value": "Château de Sclessin",
+      "name": "Q47508282",
+      "canonical": "château de sclessin"
+    },
+    {
+      "value": "Fontaine Saint-Jean-Baptiste",
+      "name": "Q58325657",
+      "canonical": "fontaine saint-jean-baptiste"
+    },
+    {
+      "value": "Liège City Hall",
+      "name": "Q679207",
+      "canonical": "liège city hall"
+    },
+    {
+      "value": "Commonwealth Arena and Sir Chris Hoy Velodrome",
+      "name": "Q1337785",
+      "canonical": "commonwealth arena and sir chris hoy velodrome"
+    },
+    {
+      "value": "Glasgow Green Hockey Centre",
+      "name": "Q5566831",
+      "canonical": "glasgow green hockey centre"
+    },
+    {
+      "value": "Stadio Romeo Menti",
+      "name": "Q276784",
+      "canonical": "stadio romeo menti"
+    },
+    {
+      "value": "PalaLivorno",
+      "name": "Q3889130",
+      "canonical": "palalivorno"
+    },
+    {
+      "value": "Stadio Armando Picchi",
+      "name": "Q777535",
+      "canonical": "stadio armando picchi"
+    },
+    {
+      "value": "Stadio Oreste Granillo",
+      "name": "Q1538773",
+      "canonical": "stadio oreste granillo"
+    },
+    {
+      "value": "PalaBotteghelle",
+      "name": "Q3889083",
+      "canonical": "palabotteghelle"
+    },
+    {
+      "value": "PalaCalafiore",
+      "name": "Q3889092",
+      "canonical": "palacalafiore"
+    },
+    {
+      "value": "Jeunesse Arena",
+      "name": "Q1507437",
+      "canonical": "jeunesse arena"
+    },
+    {
+      "value": "Olympic golf course",
+      "name": "Q6617188",
+      "canonical": "olympic golf course"
+    },
+    {
+      "value": "Olympic Tennis Center",
+      "name": "Q7089145",
+      "canonical": "olympic tennis center"
+    },
+    {
+      "value": "Carioca Arena 1",
+      "name": "Q7089149",
+      "canonical": "carioca arena 1"
+    },
+    {
+      "value": "Carioca Arena 2",
+      "name": "Q23589938",
+      "canonical": "carioca arena 2"
+    },
+    {
+      "value": "Carioca Arena 3",
+      "name": "Q23590999",
+      "canonical": "carioca arena 3"
+    },
+    {
+      "value": "Deodoro Stadium",
+      "name": "Q23688674",
+      "canonical": "deodoro stadium"
+    },
+    {
+      "value": "Future Arena",
+      "name": "Q24255536",
+      "canonical": "future arena"
+    },
+    {
+      "value": "Maria Lenk Aquatic Center",
+      "name": "Q64136",
+      "canonical": "maria lenk aquatic center"
+    },
+    {
+      "value": "Pazo dos Deportes de Riazor",
+      "name": "Q11697448",
+      "canonical": "pazo dos deportes de riazor"
+    },
+    {
+      "value": "Estadio Municipal de abanca Riazor",
+      "name": "Q22130",
+      "canonical": "estadio municipal de abanca riazor"
+    },
+    {
+      "value": "Asim Ferhatović Hase Stadium",
+      "name": "Q903860",
+      "canonical": "asim ferhatović hase stadium"
+    },
+    {
+      "value": "Stadion Otoka",
+      "name": "Q1726821",
+      "canonical": "stadion otoka"
+    },
+    {
+      "value": "Stadio Pino Zaccheria",
+      "name": "Q1281897",
+      "canonical": "stadio pino zaccheria"
+    },
+    {
+      "value": "Stadio Degli Ulivi",
+      "name": "Q545329",
+      "canonical": "stadio degli ulivi"
+    },
+    {
+      "value": "Nou Estadi de Tarragona",
+      "name": "Q1462770",
+      "canonical": "nou estadi de tarragona"
+    },
+    {
+      "value": "Palacio de los Deportes de León",
+      "name": "Q7126326",
+      "canonical": "palacio de los deportes de león"
+    },
+    {
+      "value": "Lendava Sports Park",
+      "name": "Q3229439",
+      "canonical": "lendava sports park"
+    },
+    {
+      "value": "Vinarium Tower",
+      "name": "Q20829181",
+      "canonical": "vinarium tower"
+    },
+    {
+      "value": "Estadio Padre Ernesto Martearena",
+      "name": "Q946549",
+      "canonical": "estadio padre ernesto martearena"
+    },
+    {
+      "value": "Estádio Municipal Luís Perissinotto",
+      "name": "Q5402108",
+      "canonical": "estádio municipal luís perissinotto"
+    },
+    {
+      "value": "Tapiola Sports Park",
+      "name": "Q1109809",
+      "canonical": "tapiola sports park"
+    },
+    {
+      "value": "Kobe Green Arena",
+      "name": "Q278004",
+      "canonical": "kobe green arena"
+    },
+    {
+      "value": "Home's Stadium Kobe",
+      "name": "Q494766",
+      "canonical": "home 's stadium kobe"
+    },
+    {
+      "value": "Kobe Sports Park Baseball Stadium",
+      "name": "Q849183",
+      "canonical": "kobe sports park baseball stadium"
+    },
+    {
+      "value": "Kobe Universiade Memorial Stadium",
+      "name": "Q1777875",
+      "canonical": "kobe universiade memorial stadium"
+    },
+    {
+      "value": "World Memorial Hall",
+      "name": "Q8035957",
+      "canonical": "world memorial hall"
+    },
+    {
+      "value": "Pavelló Menorca",
+      "name": "Q1773408",
+      "canonical": "pavelló menorca"
+    },
+    {
+      "value": "Kalisz Arena",
+      "name": "Q11733835",
+      "canonical": "kalisz arena"
+    },
+    {
+      "value": "Hala im. Dolnośląskich Olimpijczyków w Legnicy",
+      "name": "Q9285204",
+      "canonical": "hala im . dolnośląskich olimpijczyków w legnicy"
+    },
+    {
+      "value": "Chatham Memorial Arena",
+      "name": "Q5087680",
+      "canonical": "chatham memorial arena"
+    },
+    {
+      "value": "Energia Areena",
+      "name": "Q5376846",
+      "canonical": "energia areena"
+    },
+    {
+      "value": "Vaskivuori Upper Secondary School",
+      "name": "Q5475287",
+      "canonical": "vaskivuori upper secondary school"
+    },
+    {
+      "value": "Håkansböle manor",
+      "name": "Q10532007",
+      "canonical": "håkansböle manor"
+    },
+    {
+      "value": "Kauniala Hospital",
+      "name": "Q11870555",
+      "canonical": "kauniala hospital"
+    },
+    {
+      "value": "Katrineberg Manor",
+      "name": "Q57248930",
+      "canonical": "katrineberg manor"
+    },
+    {
+      "value": "Gradski stadion",
+      "name": "Q621027",
+      "canonical": "gradski stadion"
+    },
+    {
+      "value": "Tainan Municipal Baseball Stadium",
+      "name": "Q698779",
+      "canonical": "tainan municipal baseball stadium"
+    },
+    {
+      "value": "Ness Ziona Stadium",
+      "name": "Q12404179",
+      "canonical": "ness ziona stadium"
+    },
+    {
+      "value": "Tomori Stadium",
+      "name": "Q3338619",
+      "canonical": "tomori stadium"
+    },
+    {
+      "value": "Lincoln Transport Hub",
+      "name": "Q15242378",
+      "canonical": "lincoln transport hub"
+    },
+    {
+      "value": "NK Čelik Zenica",
+      "name": "Q39290",
+      "canonical": "nk čelik zenica"
+    },
+    {
+      "value": "Bilino Polje",
+      "name": "Q861838",
+      "canonical": "bilino polje"
+    },
+    {
+      "value": "Zenica arena",
+      "name": "Q3441970",
+      "canonical": "zenica arena"
+    },
+    {
+      "value": "Vytautas Stadium",
+      "name": "Q15630705",
+      "canonical": "vytautas stadium"
+    },
+    {
+      "value": "Balkanabat Stadium",
+      "name": "Q3658599",
+      "canonical": "balkanabat stadium"
+    },
+    {
+      "value": "Ojiyama Stadium",
+      "name": "Q7081643",
+      "canonical": "ojiyama stadium"
+    },
+    {
+      "value": "Yamagata City Athletic Stadium",
+      "name": "Q8047619",
+      "canonical": "yamagata city athletic stadium"
+    },
+    {
+      "value": "Ukonniemi stadium",
+      "name": "Q30116284",
+      "canonical": "ukonniemi stadium"
+    },
+    {
+      "value": "Cần Thơ Stadium",
+      "name": "Q10822664",
+      "canonical": "cần thơ stadium"
+    },
+    {
+      "value": "Abbotsford Entertainment & Sports Centre",
+      "name": "Q306716",
+      "canonical": "abbotsford entertainment & sports centre"
+    },
+    {
+      "value": "Kazhimukan Munaitpasov Stadium",
+      "name": "Q798494",
+      "canonical": "kazhimukan munaitpasov stadium"
+    },
+    {
+      "value": "Estadio El Malecón",
+      "name": "Q5400181",
+      "canonical": "estadio el malecón"
+    },
+    {
+      "value": "Estadio Juan Francisco Barraza",
+      "name": "Q3495676",
+      "canonical": "estadio juan francisco barraza"
+    },
+    {
+      "value": "Central stadium of Klaipėda",
+      "name": "Q11137217",
+      "canonical": "central stadium of klaipėda"
+    },
+    {
+      "value": "São Pedro Airport",
+      "name": "Q7665683",
+      "canonical": "são pedro airport"
+    },
+    {
+      "value": "Stade Municipal",
+      "name": "Q96640039",
+      "canonical": "stade municipal"
+    },
+    {
+      "value": "King Baudouin Stadium",
+      "name": "Q622671",
+      "canonical": "king baudouin stadium"
+    },
+    {
+      "value": "Brussels Town Hall",
+      "name": "Q1255327",
+      "canonical": "brussels town hall"
+    },
+    {
+      "value": "King's House",
+      "name": "Q14505682",
+      "canonical": "king 's house"
+    },
+    {
+      "value": "Eurostadium",
+      "name": "Q1879889",
+      "canonical": "eurostadium"
+    },
+    {
+      "value": "Coliseo Polideportivo",
+      "name": "Q5145754",
+      "canonical": "coliseo polideportivo"
+    },
+    {
+      "value": "AMTAB",
+      "name": "Q3601033",
+      "canonical": "amtab"
+    },
+    {
+      "value": "Stadio della Vittoria",
+      "name": "Q3967945",
+      "canonical": "stadio della vittoria"
+    },
+    {
+      "value": "Stadio San Nicola",
+      "name": "Q328698",
+      "canonical": "stadio san nicola"
+    },
+    {
+      "value": "Zemun Stadium",
+      "name": "Q2743782",
+      "canonical": "zemun stadium"
+    },
+    {
+      "value": "Belgrade Bus Station",
+      "name": "Q4882636",
+      "canonical": "belgrade bus station"
+    },
+    {
+      "value": "Boško Buha Theatre",
+      "name": "Q4952968",
+      "canonical": "boško buha theatre"
+    },
+    {
+      "value": "Pionir Ice Hall",
+      "name": "Q7196887",
+      "canonical": "pionir ice hall"
+    },
+    {
+      "value": "Đumrukana",
+      "name": "Q8079891",
+      "canonical": "đumrukana"
+    },
+    {
+      "value": "Štark Arena",
+      "name": "Q33277",
+      "canonical": "štark arena"
+    },
+    {
+      "value": "Aldo Invernici Stadium",
+      "name": "Q3967735",
+      "canonical": "aldo invernici stadium"
+    },
+    {
+      "value": "Stadio Mario Rigamonti",
+      "name": "Q94946",
+      "canonical": "stadio mario rigamonti"
+    },
+    {
+      "value": "Hongkou Football Stadium",
+      "name": "Q201773",
+      "canonical": "hongkou football stadium"
+    },
+    {
+      "value": "Gedebage Stadium",
+      "name": "Q5529669",
+      "canonical": "gedebage stadium"
+    },
+    {
+      "value": "Estadio El Toralín",
+      "name": "Q979112",
+      "canonical": "estadio el toralín"
+    },
+    {
+      "value": "El Molinón-Enrique Castro Quini",
+      "name": "Q929315",
+      "canonical": "el molinón-enrique castro quini"
+    },
+    {
+      "value": "Hipódromo de Las Mestas",
+      "name": "Q5306315",
+      "canonical": "hipódromo de las mestas"
+    },
+    {
+      "value": "Palacio de Deportes de Gijón",
+      "name": "Q7126310",
+      "canonical": "palacio de deportes de gijón"
+    },
+    {
+      "value": "Carlo Zanelli swimming pool",
+      "name": "Q3905725",
+      "canonical": "carlo zanelli swimming pool"
+    },
+    {
+      "value": "Stadio Tullo Morgagni",
+      "name": "Q9341098",
+      "canonical": "stadio tullo morgagni"
+    },
+    {
+      "value": "Stadio Erasmo Iacovone",
+      "name": "Q2541428",
+      "canonical": "stadio erasmo iacovone"
+    },
+    {
+      "value": "Stadio Comunale Giovanni Celeste",
+      "name": "Q3967809",
+      "canonical": "stadio comunale giovanni celeste"
+    },
+    {
+      "value": "Stadio San Filippo",
+      "name": "Q144100",
+      "canonical": "stadio san filippo"
+    },
+    {
+      "value": "Estadio Ruta de la Plata",
+      "name": "Q2445114",
+      "canonical": "estadio ruta de la plata"
+    },
+    {
+      "value": "Domžale Sports Park",
+      "name": "Q1711712",
+      "canonical": "domžale sports park"
+    },
+    {
+      "value": "Rajko Štolfa Stadium",
+      "name": "Q16632802",
+      "canonical": "rajko štolfa stadium"
+    },
+    {
+      "value": "Stadiumi Tefik Jashari",
+      "name": "Q7596514",
+      "canonical": "stadiumi tefik jashari"
+    },
+    {
+      "value": "Morača Sports Center",
+      "name": "Q581727",
+      "canonical": "morača sports center"
+    },
+    {
+      "value": "Podgorica City Stadium",
+      "name": "Q1166175",
+      "canonical": "podgorica city stadium"
+    },
+    {
+      "value": "Kiryat Eliezer Stadium",
+      "name": "Q1550645",
+      "canonical": "kiryat eliezer stadium"
+    },
+    {
+      "value": "Sammy Ofer Stadium",
+      "name": "Q2899864",
+      "canonical": "sammy ofer stadium"
+    },
+    {
+      "value": "Line 3",
+      "name": "Q10921994",
+      "canonical": "line 3"
+    },
+    {
+      "value": "Line 1",
+      "name": "Q10921992",
+      "canonical": "line 1"
+    },
+    {
+      "value": "Lambeau Field",
+      "name": "Q860790",
+      "canonical": "lambeau field"
+    },
+    {
+      "value": "Milwaukee Road Passenger Depot",
+      "name": "Q14714549",
+      "canonical": "milwaukee road passenger depot"
+    },
+    {
+      "value": "Queen Elizabeth II Park",
+      "name": "Q2122562",
+      "canonical": "queen elizabeth ii park"
+    },
+    {
+      "value": "Niko Dovana Stadium",
+      "name": "Q3300718",
+      "canonical": "niko dovana stadium"
+    },
+    {
+      "value": "Ramazan Njala Sports Palace",
+      "name": "Q28224900",
+      "canonical": "ramazan njala sports palace"
+    },
+    {
+      "value": "Labatt Park",
+      "name": "Q6466810",
+      "canonical": "labatt park"
+    },
+    {
+      "value": "Arena Częstochowa",
+      "name": "Q2860812",
+      "canonical": "arena częstochowa"
+    },
+    {
+      "value": "Hala Sportowa Częstochowa",
+      "name": "Q9373107",
+      "canonical": "hala sportowa częstochowa"
+    },
+    {
+      "value": "Gatorade Garden City Complex",
+      "name": "Q5527478",
+      "canonical": "gatorade garden city complex"
+    },
+    {
+      "value": "Meridian Centre",
+      "name": "Q17511683",
+      "canonical": "meridian centre"
+    },
+    {
+      "value": "Jean Bunoz Sports Hall",
+      "name": "Q3469870",
+      "canonical": "jean bunoz sports hall"
+    },
+    {
+      "value": "Château Grimaldi (Antibes)",
+      "name": "Q13398054",
+      "canonical": "château grimaldi ( antibes )"
+    },
+    {
+      "value": "Stade du Hameau",
+      "name": "Q3496084",
+      "canonical": "stade du hameau"
+    },
+    {
+      "value": "Herzliya Municipal Stadium",
+      "name": "Q2907177",
+      "canonical": "herzliya municipal stadium"
+    },
+    {
+      "value": "Théâtre Charles-Dullin",
+      "name": "Q22968449",
+      "canonical": "théâtre charles-dullin"
+    },
+    {
+      "value": "Stadion SRC Mladost",
+      "name": "Q281993",
+      "canonical": "stadion src mladost"
+    },
+    {
+      "value": "Városi Stadion",
+      "name": "Q732646",
+      "canonical": "városi stadion"
+    },
+    {
+      "value": "Yud-Alef Stadium",
+      "name": "Q2909196",
+      "canonical": "yud-alef stadium"
+    },
+    {
+      "value": "Olympic Stadium Adem Jashari",
+      "name": "Q3137585",
+      "canonical": "olympic stadium adem jashari"
+    },
+    {
+      "value": "Riza Lushta Stadium",
+      "name": "Q24911330",
+      "canonical": "riza lushta stadium"
+    },
+    {
+      "value": "Lappeenranta Airport",
+      "name": "Q254039",
+      "canonical": "lappeenranta airport"
+    },
+    {
+      "value": "Kisapuisto",
+      "name": "Q476400",
+      "canonical": "kisapuisto"
+    },
+    {
+      "value": "Kimpinen Sports Centre",
+      "name": "Q6410244",
+      "canonical": "kimpinen sports centre"
+    },
+    {
+      "value": "Mehtimäki Ice Hall",
+      "name": "Q6809898",
+      "canonical": "mehtimäki ice hall"
+    },
+    {
+      "value": "Kirkkokatu",
+      "name": "Q18660054",
+      "canonical": "kirkkokatu"
+    },
+    {
+      "value": "Stade Mohamed Hamlaoui",
+      "name": "Q3107395",
+      "canonical": "stade mohamed hamlaoui"
+    },
+    {
+      "value": "Queens Sports Club",
+      "name": "Q7270821",
+      "canonical": "queens sports club"
+    },
+    {
+      "value": "Përparim Thaçi Stadium",
+      "name": "Q24911326",
+      "canonical": "përparim thaçi stadium"
+    },
+    {
+      "value": "Gradski stadion",
+      "name": "Q3120014",
+      "canonical": "gradski stadion"
+    },
+    {
+      "value": "Estadio Pensativo",
+      "name": "Q3495820",
+      "canonical": "estadio pensativo"
+    },
+    {
+      "value": "Kawagoe Sports Park Athletic Stadium",
+      "name": "Q6379494",
+      "canonical": "kawagoe sports park athletic stadium"
+    },
+    {
+      "value": "Stade Seffouhi",
+      "name": "Q3495874",
+      "canonical": "stade seffouhi"
+    },
+    {
+      "value": "Gany Muratbayev Stadium",
+      "name": "Q1008046",
+      "canonical": "gany muratbayev stadium"
+    },
+    {
+      "value": "Zhetysu Stadium",
+      "name": "Q4179789",
+      "canonical": "zhetysu stadium"
+    },
+    {
+      "value": "CN Centre",
+      "name": "Q5013216",
+      "canonical": "cn centre"
+    },
+    {
+      "value": "City Centre Aquatic Complex",
+      "name": "Q5123075",
+      "canonical": "city centre aquatic complex"
+    },
+    {
+      "value": "Percy Perry Stadium",
+      "name": "Q7167519",
+      "canonical": "percy perry stadium"
+    },
+    {
+      "value": "Central stadium of Jonava",
+      "name": "Q190786",
+      "canonical": "central stadium of jonava"
+    },
+    {
+      "value": "Grundman Stadium",
+      "name": "Q5612096",
+      "canonical": "grundman stadium"
+    }
+  ]
+}

@@ -1,0 +1,4485 @@
+{
+  "result": "ok",
+  "data": [
+    {
+      "value": "Category:Deaths in Oslo",
+      "name": "Q7335828",
+      "canonical": "category : deaths in oslo"
+    },
+    {
+      "value": "Category:Deaths in Bonn",
+      "name": "Q9217734",
+      "canonical": "category : deaths in bonn"
+    },
+    {
+      "value": "Category:Deaths in Caracas",
+      "name": "Q14475786",
+      "canonical": "category : deaths in caracas"
+    },
+    {
+      "value": "Category:Deaths in Helsinki",
+      "name": "Q9914744",
+      "canonical": "category : deaths in helsinki"
+    },
+    {
+      "value": "Category:Deaths in Edmonton",
+      "name": "Q9218295",
+      "canonical": "category : deaths in edmonton"
+    },
+    {
+      "value": "Category:Deaths in Victoria",
+      "name": "Q17142434",
+      "canonical": "category : deaths in victoria"
+    },
+    {
+      "value": "Category:Deaths in Sana‘a",
+      "name": "Q18666977",
+      "canonical": "category : deaths in sana ‘ a"
+    },
+    {
+      "value": "Category:Deaths in Parma",
+      "name": "Q9689084",
+      "canonical": "category : deaths in parma"
+    },
+    {
+      "value": "Category:Deaths in Siena",
+      "name": "Q9690061",
+      "canonical": "category : deaths in siena"
+    },
+    {
+      "value": "Category:Deaths in Asunción",
+      "name": "Q9220633",
+      "canonical": "category : deaths in asunción"
+    },
+    {
+      "value": "Category:Deaths in Paramaribo",
+      "name": "Q18761174",
+      "canonical": "category : deaths in paramaribo"
+    },
+    {
+      "value": "Category:Deaths in Praia",
+      "name": "Q17518357",
+      "canonical": "category : deaths in praia"
+    },
+    {
+      "value": "Category:Deaths in Accra",
+      "name": "Q9220474",
+      "canonical": "category : deaths in accra"
+    },
+    {
+      "value": "Category:Deaths in Porto-Novo",
+      "name": "Q9689243",
+      "canonical": "category : deaths in porto-novo"
+    },
+    {
+      "value": "Category:Deaths in Libreville",
+      "name": "Q9688007",
+      "canonical": "category : deaths in libreville"
+    },
+    {
+      "value": "Category:Deaths in Kinshasa",
+      "name": "Q9218728",
+      "canonical": "category : deaths in kinshasa"
+    },
+    {
+      "value": "Category:Deaths in Lusaka",
+      "name": "Q9688212",
+      "canonical": "category : deaths in lusaka"
+    },
+    {
+      "value": "Category:Deaths in Mary",
+      "name": "Q18666475",
+      "canonical": "category : deaths in mary"
+    },
+    {
+      "value": "Category:Deaths in Toledo, Spain",
+      "name": "Q10064147",
+      "canonical": "category : deaths in toledo , spain"
+    },
+    {
+      "value": "Category:Deaths in Coventry",
+      "name": "Q9218170",
+      "canonical": "category : deaths in coventry"
+    },
+    {
+      "value": "Category:Deaths in Lugano",
+      "name": "Q9218971",
+      "canonical": "category : deaths in lugano"
+    },
+    {
+      "value": "Category:Deaths in Palma",
+      "name": "Q9219412",
+      "canonical": "category : deaths in palma"
+    },
+    {
+      "value": "Category:Deaths in Dushanbe",
+      "name": "Q10077069",
+      "canonical": "category : deaths in dushanbe"
+    },
+    {
+      "value": "Category:Deaths in Belfast",
+      "name": "Q9685748",
+      "canonical": "category : deaths in belfast"
+    },
+    {
+      "value": "Category:Deaths in Ronda",
+      "name": "Q17269948",
+      "canonical": "category : deaths in ronda"
+    },
+    {
+      "value": "Category:Deaths in Piacenza",
+      "name": "Q9219471",
+      "canonical": "category : deaths in piacenza"
+    },
+    {
+      "value": "Category:Deaths in Vitoria-Gasteiz",
+      "name": "Q17162896",
+      "canonical": "category : deaths in vitoria-gasteiz"
+    },
+    {
+      "value": "Category:Deaths in Lleida",
+      "name": "Q9218932",
+      "canonical": "category : deaths in lleida"
+    },
+    {
+      "value": "Category:Deaths in Shenzhen",
+      "name": "Q17487609",
+      "canonical": "category : deaths in shenzhen"
+    },
+    {
+      "value": "Category:Deaths in Cádiz",
+      "name": "Q9217834",
+      "canonical": "category : deaths in cádiz"
+    },
+    {
+      "value": "Category:Deaths in Guangzhou",
+      "name": "Q16959422",
+      "canonical": "category : deaths in guangzhou"
+    },
+    {
+      "value": "Category:Deaths in Constantinople",
+      "name": "Q9218161",
+      "canonical": "category : deaths in constantinople"
+    },
+    {
+      "value": "Category:Deaths in Košice",
+      "name": "Q7917584",
+      "canonical": "category : deaths in košice"
+    },
+    {
+      "value": "Category:Deaths in Nitra",
+      "name": "Q18602810",
+      "canonical": "category : deaths in nitra"
+    },
+    {
+      "value": "Category:Deaths in Kolding",
+      "name": "Q9218740",
+      "canonical": "category : deaths in kolding"
+    },
+    {
+      "value": "Category:Deaths in Rotterdam",
+      "name": "Q9219698",
+      "canonical": "category : deaths in rotterdam"
+    },
+    {
+      "value": "Category:Deaths in Johannesburg",
+      "name": "Q9687654",
+      "canonical": "category : deaths in johannesburg"
+    },
+    {
+      "value": "Category:Deaths in Kingston, Jamaica",
+      "name": "Q9218727",
+      "canonical": "category : deaths in kingston , jamaica"
+    },
+    {
+      "value": "Category:Deaths in Yangon",
+      "name": "Q9220418",
+      "canonical": "category : deaths in yangon"
+    },
+    {
+      "value": "Category:Deaths in Suva",
+      "name": "Q18177005",
+      "canonical": "category : deaths in suva"
+    },
+    {
+      "value": "Category:Deaths in Breda",
+      "name": "Q9686045",
+      "canonical": "category : deaths in breda"
+    },
+    {
+      "value": "Category:Deaths in Świętochłowice",
+      "name": "Q9220461",
+      "canonical": "category : deaths in świętochłowice"
+    },
+    {
+      "value": "Category:Deaths in Gaza",
+      "name": "Q9218448",
+      "canonical": "category : deaths in gaza"
+    },
+    {
+      "value": "Category:Deaths in Middelburg",
+      "name": "Q9219095",
+      "canonical": "category : deaths in middelburg"
+    },
+    {
+      "value": "Category:Deaths in Béjaïa",
+      "name": "Q18663715",
+      "canonical": "category : deaths in béjaïa"
+    },
+    {
+      "value": "Category:Deaths in Indore",
+      "name": "Q9218654",
+      "canonical": "category : deaths in indore"
+    },
+    {
+      "value": "Category:Deaths in Constanța",
+      "name": "Q15081121",
+      "canonical": "category : deaths in constanța"
+    },
+    {
+      "value": "Category:Deaths in Varanasi",
+      "name": "Q17627418",
+      "canonical": "category : deaths in varanasi"
+    },
+    {
+      "value": "Category:Deaths in Patna",
+      "name": "Q17479948",
+      "canonical": "category : deaths in patna"
+    },
+    {
+      "value": "Category:Deaths in La Rochelle",
+      "name": "Q9218783",
+      "canonical": "category : deaths in la rochelle"
+    },
+    {
+      "value": "Category:Deaths in Sopot",
+      "name": "Q9220020",
+      "canonical": "category : deaths in sopot"
+    },
+    {
+      "value": "Category:Deaths in Rawalpindi",
+      "name": "Q14819299",
+      "canonical": "category : deaths in rawalpindi"
+    },
+    {
+      "value": "Category:Deaths in Mostar",
+      "name": "Q14947467",
+      "canonical": "category : deaths in mostar"
+    },
+    {
+      "value": "Category:Deaths in Kielce",
+      "name": "Q18665999",
+      "canonical": "category : deaths in kielce"
+    },
+    {
+      "value": "Category:Deaths in Rovaniemi",
+      "name": "Q18527227",
+      "canonical": "category : deaths in rovaniemi"
+    },
+    {
+      "value": "Category:Deaths in Chorzów",
+      "name": "Q9218048",
+      "canonical": "category : deaths in chorzów"
+    },
+    {
+      "value": "Category:Deaths in Beloretsk",
+      "name": "Q18664460",
+      "canonical": "category : deaths in beloretsk"
+    },
+    {
+      "value": "Category:Deaths in Gliwice",
+      "name": "Q16868083",
+      "canonical": "category : deaths in gliwice"
+    },
+    {
+      "value": "Category:Deaths in Bielsko-Biała",
+      "name": "Q18664482",
+      "canonical": "category : deaths in bielsko-biała"
+    },
+    {
+      "value": "Category:Deaths in Acre",
+      "name": "Q9220485",
+      "canonical": "category : deaths in acre"
+    },
+    {
+      "value": "Category:Deaths in Niš",
+      "name": "Q6929577",
+      "canonical": "category : deaths in niš"
+    },
+    {
+      "value": "Category:Deaths in Oran",
+      "name": "Q9219357",
+      "canonical": "category : deaths in oran"
+    },
+    {
+      "value": "Category:Deaths in Banská Bystrica",
+      "name": "Q15081132",
+      "canonical": "category : deaths in banská bystrica"
+    },
+    {
+      "value": "Category:Deaths in Chomutov",
+      "name": "Q21490827",
+      "canonical": "category : deaths in chomutov"
+    },
+    {
+      "value": "Category:Deaths in Oskemen",
+      "name": "Q9220457",
+      "canonical": "category : deaths in oskemen"
+    },
+    {
+      "value": "Category:Deaths in Subotica",
+      "name": "Q15079114",
+      "canonical": "category : deaths in subotica"
+    },
+    {
+      "value": "Category:Deaths in Agadir",
+      "name": "Q9685136",
+      "canonical": "category : deaths in agadir"
+    },
+    {
+      "value": "Category:Deaths in Kecskemét",
+      "name": "Q18666008",
+      "canonical": "category : deaths in kecskemét"
+    },
+    {
+      "value": "Category:Deaths in Cetinje",
+      "name": "Q9218010",
+      "canonical": "category : deaths in cetinje"
+    },
+    {
+      "value": "Category:Deaths in Ghazni",
+      "name": "Q9218471",
+      "canonical": "category : deaths in ghazni"
+    },
+    {
+      "value": "Category:Deaths in Colombes",
+      "name": "Q16750395",
+      "canonical": "category : deaths in colombes"
+    },
+    {
+      "value": "Category:Deaths in Pavlovsk",
+      "name": "Q16363551",
+      "canonical": "category : deaths in pavlovsk"
+    },
+    {
+      "value": "Category:Deaths in Feldkirch",
+      "name": "Q18324718",
+      "canonical": "category : deaths in feldkirch"
+    },
+    {
+      "value": "Category:Deaths in Cochabamba",
+      "name": "Q16381274",
+      "canonical": "category : deaths in cochabamba"
+    },
+    {
+      "value": "Category:Deaths in Ibadan",
+      "name": "Q18159938",
+      "canonical": "category : deaths in ibadan"
+    },
+    {
+      "value": "Category:Deaths in Mytilene",
+      "name": "Q18857698",
+      "canonical": "category : deaths in mytilene"
+    },
+    {
+      "value": "Category:Deaths in Kotka",
+      "name": "Q18396788",
+      "canonical": "category : deaths in kotka"
+    },
+    {
+      "value": "Category:Deaths in Bender",
+      "name": "Q18247604",
+      "canonical": "category : deaths in bender"
+    },
+    {
+      "value": "Category:Deaths in Ramat Gan",
+      "name": "Q15619687",
+      "canonical": "category : deaths in ramat gan"
+    },
+    {
+      "value": "Category:Deaths in Matsuyama",
+      "name": "Q9219055",
+      "canonical": "category : deaths in matsuyama"
+    },
+    {
+      "value": "Category:Deaths in Chalkida",
+      "name": "Q18754164",
+      "canonical": "category : deaths in chalkida"
+    },
+    {
+      "value": "Category:Deaths in Perth, Scotland",
+      "name": "Q9219456",
+      "canonical": "category : deaths in perth , scotland"
+    },
+    {
+      "value": "Category:Deaths in Lod",
+      "name": "Q18666301",
+      "canonical": "category : deaths in lod"
+    },
+    {
+      "value": "Category:Deaths in Puri",
+      "name": "Q18666861",
+      "canonical": "category : deaths in puri"
+    },
+    {
+      "value": "Category:Deaths in Toluca",
+      "name": "Q9690374",
+      "canonical": "category : deaths in toluca"
+    },
+    {
+      "value": "Category:Deaths in Biała Podlaska",
+      "name": "Q10058681",
+      "canonical": "category : deaths in biała podlaska"
+    },
+    {
+      "value": "Category:Deaths in Ndola",
+      "name": "Q18761077",
+      "canonical": "category : deaths in ndola"
+    },
+    {
+      "value": "Category:Deaths in Nakhchivan",
+      "name": "Q18666575",
+      "canonical": "category : deaths in nakhchivan"
+    },
+    {
+      "value": "Category:Deaths in Holguín",
+      "name": "Q18342758",
+      "canonical": "category : deaths in holguín"
+    },
+    {
+      "value": "Category:Deaths in Maracay",
+      "name": "Q17279433",
+      "canonical": "category : deaths in maracay"
+    },
+    {
+      "value": "Category:Deaths in Burriana",
+      "name": "Q18193343",
+      "canonical": "category : deaths in burriana"
+    },
+    {
+      "value": "Category:Deaths in Prostějov",
+      "name": "Q18761310",
+      "canonical": "category : deaths in prostějov"
+    },
+    {
+      "value": "Category:Deaths in Villach",
+      "name": "Q17163477",
+      "canonical": "category : deaths in villach"
+    },
+    {
+      "value": "Category:Deaths in Marbella",
+      "name": "Q9219021",
+      "canonical": "category : deaths in marbella"
+    },
+    {
+      "value": "Category:Deaths in Atyrau",
+      "name": "Q9685483",
+      "canonical": "category : deaths in atyrau"
+    },
+    {
+      "value": "Category:Deaths in Benidorm",
+      "name": "Q15099854",
+      "canonical": "category : deaths in benidorm"
+    },
+    {
+      "value": "Category:Deaths in Nukus",
+      "name": "Q18666666",
+      "canonical": "category : deaths in nukus"
+    },
+    {
+      "value": "Category:Deaths in Mindelo",
+      "name": "Q9219107",
+      "canonical": "category : deaths in mindelo"
+    },
+    {
+      "value": "Category:Deaths in Ekibastuz",
+      "name": "Q17487126",
+      "canonical": "category : deaths in ekibastuz"
+    },
+    {
+      "value": "Category:Deaths in Kolašin",
+      "name": "Q32397078",
+      "canonical": "category : deaths in kolašin"
+    },
+    {
+      "value": "Category:Deaths in Antequera",
+      "name": "Q15074286",
+      "canonical": "category : deaths in antequera"
+    },
+    {
+      "value": "Category:Deaths in Farah",
+      "name": "Q16742798",
+      "canonical": "category : deaths in farah"
+    },
+    {
+      "value": "Category:Deaths in Dubăsari",
+      "name": "Q18665732",
+      "canonical": "category : deaths in dubăsari"
+    },
+    {
+      "value": "Category:Deaths in Nysa",
+      "name": "Q18761110",
+      "canonical": "category : deaths in nysa"
+    },
+    {
+      "value": "Category:Deaths in Bernal, Argentina",
+      "name": "Q18753962",
+      "canonical": "category : deaths in bernal , argentina"
+    },
+    {
+      "value": "Category:Deaths in Peekskill, New York",
+      "name": "Q9219448",
+      "canonical": "category : deaths in peekskill , new york"
+    },
+    {
+      "value": "Category:Deaths in Panevėžys",
+      "name": "Q14331332",
+      "canonical": "category : deaths in panevėžys"
+    },
+    {
+      "value": "Category:Deaths in Nawa, Syria",
+      "name": "Q32397050",
+      "canonical": "category : deaths in nawa , syria"
+    },
+    {
+      "value": "Category:Deaths in Königsberg",
+      "name": "Q9218749",
+      "canonical": "category : deaths in königsberg"
+    },
+    {
+      "value": "Category:Deaths in New York City",
+      "name": "Q8365583",
+      "canonical": "category : deaths in new york city"
+    },
+    {
+      "value": "Category:Deaths in Brussels-Capital Region",
+      "name": "Q6447289",
+      "canonical": "category : deaths in brussels-capital region"
+    },
+    {
+      "value": "Category:Deaths in Łódź",
+      "name": "Q10061142",
+      "canonical": "category : deaths in łódź"
+    },
+    {
+      "value": "Category:Deaths in Tbilisi",
+      "name": "Q9690263",
+      "canonical": "category : deaths in tbilisi"
+    },
+    {
+      "value": "Category:Deaths in Kranj",
+      "name": "Q15081140",
+      "canonical": "category : deaths in kranj"
+    },
+    {
+      "value": "Category:Deaths in Ahmedabad",
+      "name": "Q18664196",
+      "canonical": "category : deaths in ahmedabad"
+    },
+    {
+      "value": "Category:Deaths in Delhi",
+      "name": "Q9218223",
+      "canonical": "category : deaths in delhi"
+    },
+    {
+      "value": "Category:Deaths in Abidjan",
+      "name": "Q9685112",
+      "canonical": "category : deaths in abidjan"
+    },
+    {
+      "value": "Category:Deaths in Athens",
+      "name": "Q6461950",
+      "canonical": "category : deaths in athens"
+    },
+    {
+      "value": "Category:Deaths in Hannover",
+      "name": "Q9218580",
+      "canonical": "category : deaths in hannover"
+    },
+    {
+      "value": "Category:Deaths in Magdeburg",
+      "name": "Q9218988",
+      "canonical": "category : deaths in magdeburg"
+    },
+    {
+      "value": "Category:Deaths in Tallinn",
+      "name": "Q6510389",
+      "canonical": "category : deaths in tallinn"
+    },
+    {
+      "value": "Category:Deaths in Bratislava",
+      "name": "Q9908403",
+      "canonical": "category : deaths in bratislava"
+    },
+    {
+      "value": "Category:Deaths in Phnom Penh",
+      "name": "Q9219470",
+      "canonical": "category : deaths in phnom penh"
+    },
+    {
+      "value": "Category:Deaths in Bangkok",
+      "name": "Q14331270",
+      "canonical": "category : deaths in bangkok"
+    },
+    {
+      "value": "Category:Deaths in Bologna",
+      "name": "Q9217729",
+      "canonical": "category : deaths in bologna"
+    },
+    {
+      "value": "Category:Deaths in Caserta",
+      "name": "Q9217933",
+      "canonical": "category : deaths in caserta"
+    },
+    {
+      "value": "Category:Deaths in Halifax, Nova Scotia",
+      "name": "Q16914839",
+      "canonical": "category : deaths in halifax , nova scotia"
+    },
+    {
+      "value": "Category:People who died in Birmingham",
+      "name": "Q9217700",
+      "canonical": "category : people who died in birmingham"
+    },
+    {
+      "value": "Category:Deaths in Würzburg",
+      "name": "Q9220416",
+      "canonical": "category : deaths in würzburg"
+    },
+    {
+      "value": "Category:Deaths in Trier",
+      "name": "Q9220211",
+      "canonical": "category : deaths in trier"
+    },
+    {
+      "value": "Category:Deaths in Jena",
+      "name": "Q9218683",
+      "canonical": "category : deaths in jena"
+    },
+    {
+      "value": "Category:Deaths in Cottbus",
+      "name": "Q9218163",
+      "canonical": "category : deaths in cottbus"
+    },
+    {
+      "value": "Category:Deaths in Trento",
+      "name": "Q9220208",
+      "canonical": "category : deaths in trento"
+    },
+    {
+      "value": "Category:Deaths in Monrovia",
+      "name": "Q16014219",
+      "canonical": "category : deaths in monrovia"
+    },
+    {
+      "value": "Category:Deaths in Esslingen am Neckar",
+      "name": "Q17279787",
+      "canonical": "category : deaths in esslingen am neckar"
+    },
+    {
+      "value": "Category:Deaths in Amman",
+      "name": "Q9220555",
+      "canonical": "category : deaths in amman"
+    },
+    {
+      "value": "Category:Deaths in Maputo",
+      "name": "Q9219018",
+      "canonical": "category : deaths in maputo"
+    },
+    {
+      "value": "Category:Deaths in Novo Mesto",
+      "name": "Q18666617",
+      "canonical": "category : deaths in novo mesto"
+    },
+    {
+      "value": "Category:Deaths in Rovinj",
+      "name": "Q9219702",
+      "canonical": "category : deaths in rovinj"
+    },
+    {
+      "value": "Category:Deaths in Monza",
+      "name": "Q9219186",
+      "canonical": "category : deaths in monza"
+    },
+    {
+      "value": "Category:Deaths in Lagos",
+      "name": "Q9218797",
+      "canonical": "category : deaths in lagos"
+    },
+    {
+      "value": "Category:Deaths in Vigo",
+      "name": "Q9220322",
+      "canonical": "category : deaths in vigo"
+    },
+    {
+      "value": "Category:Deaths in Granada",
+      "name": "Q9218523",
+      "canonical": "category : deaths in granada"
+    },
+    {
+      "value": "Category:Deaths in Málaga",
+      "name": "Q9219224",
+      "canonical": "category : deaths in málaga"
+    },
+    {
+      "value": "Category:Deaths in Burgos",
+      "name": "Q9217815",
+      "canonical": "category : deaths in burgos"
+    },
+    {
+      "value": "Category:Deaths in Pamplona",
+      "name": "Q9689061",
+      "canonical": "category : deaths in pamplona"
+    },
+    {
+      "value": "Category:Deaths in Jerez de la Frontera",
+      "name": "Q15074257",
+      "canonical": "category : deaths in jerez de la frontera"
+    },
+    {
+      "value": "Category:Deaths in Lecce",
+      "name": "Q9218861",
+      "canonical": "category : deaths in lecce"
+    },
+    {
+      "value": "Category:Deaths in Granollers",
+      "name": "Q19152602",
+      "canonical": "category : deaths in granollers"
+    },
+    {
+      "value": "Category:Deaths in Gori",
+      "name": "Q18665537",
+      "canonical": "category : deaths in gori"
+    },
+    {
+      "value": "Category:Deaths in Ashgabat",
+      "name": "Q10058406",
+      "canonical": "category : deaths in ashgabat"
+    },
+    {
+      "value": "Category:Deaths in Bremen",
+      "name": "Q9217768",
+      "canonical": "category : deaths in bremen"
+    },
+    {
+      "value": "Category:Deaths in Prishtina",
+      "name": "Q9219580",
+      "canonical": "category : deaths in prishtina"
+    },
+    {
+      "value": "Category:Deaths in Frederikshavn",
+      "name": "Q9218406",
+      "canonical": "category : deaths in frederikshavn"
+    },
+    {
+      "value": "Category:Deaths in Hiroshima",
+      "name": "Q18663852",
+      "canonical": "category : deaths in hiroshima"
+    },
+    {
+      "value": "Category:Deaths in Tarija",
+      "name": "Q18761578",
+      "canonical": "category : deaths in tarija"
+    },
+    {
+      "value": "Category:Deaths in Calgary",
+      "name": "Q9217853",
+      "canonical": "category : deaths in calgary"
+    },
+    {
+      "value": "Category:Deaths in Bălţi",
+      "name": "Q18664487",
+      "canonical": "category : deaths in bălţi"
+    },
+    {
+      "value": "Category:Deaths in Adana",
+      "name": "Q10125777",
+      "canonical": "category : deaths in adana"
+    },
+    {
+      "value": "Category:Deaths in Manaus",
+      "name": "Q18907313",
+      "canonical": "category : deaths in manaus"
+    },
+    {
+      "value": "Category:Deaths in Corrientes",
+      "name": "Q16918854",
+      "canonical": "category : deaths in corrientes"
+    },
+    {
+      "value": "Category:Deaths in Mendoza",
+      "name": "Q9219078",
+      "canonical": "category : deaths in mendoza"
+    },
+    {
+      "value": "Category:Deaths in San Juan, Argentina",
+      "name": "Q18666974",
+      "canonical": "category : deaths in san juan , argentina"
+    },
+    {
+      "value": "Category:Deaths in Herat",
+      "name": "Q9218605",
+      "canonical": "category : deaths in herat"
+    },
+    {
+      "value": "Category:Deaths in Zelenogorsk",
+      "name": "Q18667530",
+      "canonical": "category : deaths in zelenogorsk"
+    },
+    {
+      "value": "Category:Deaths in Medellín",
+      "name": "Q9219062",
+      "canonical": "category : deaths in medellín"
+    },
+    {
+      "value": "Category:Deaths in Valencia, Venezuela",
+      "name": "Q16389556",
+      "canonical": "category : deaths in valencia , venezuela"
+    },
+    {
+      "value": "Category:Deaths in Giugliano in Campania",
+      "name": "Q9218496",
+      "canonical": "category : deaths in giugliano in campania"
+    },
+    {
+      "value": "Category:Deaths in Pogradec",
+      "name": "Q17306457",
+      "canonical": "category : deaths in pogradec"
+    },
+    {
+      "value": "Category:Deaths in Konya",
+      "name": "Q10123673",
+      "canonical": "category : deaths in konya"
+    },
+    {
+      "value": "Category:Deaths in Charleroi",
+      "name": "Q9686405",
+      "canonical": "category : deaths in charleroi"
+    },
+    {
+      "value": "Category:Deaths in Acapulco",
+      "name": "Q9220473",
+      "canonical": "category : deaths in acapulco"
+    },
+    {
+      "value": "Category:Deaths in Santos",
+      "name": "Q9219891",
+      "canonical": "category : deaths in santos"
+    },
+    {
+      "value": "Category:Deaths in Goiânia",
+      "name": "Q18663842",
+      "canonical": "category : deaths in goiânia"
+    },
+    {
+      "value": "Category:Deaths in Diyarbakır",
+      "name": "Q9218243",
+      "canonical": "category : deaths in diyarbakır"
+    },
+    {
+      "value": "Category:Deaths in Changchun",
+      "name": "Q18667755",
+      "canonical": "category : deaths in changchun"
+    },
+    {
+      "value": "Category:Deaths in Bytom",
+      "name": "Q9217824",
+      "canonical": "category : deaths in bytom"
+    },
+    {
+      "value": "Category:Deaths in Gorzów Wielkopolski",
+      "name": "Q18665500",
+      "canonical": "category : deaths in gorzów wielkopolski"
+    },
+    {
+      "value": "Category:Deaths in Kilkenny",
+      "name": "Q15079714",
+      "canonical": "category : deaths in kilkenny"
+    },
+    {
+      "value": "Category:Deaths in Priverno",
+      "name": "Q18761308",
+      "canonical": "category : deaths in priverno"
+    },
+    {
+      "value": "Category:Deaths in Kingston upon Hull",
+      "name": "Q15212004",
+      "canonical": "category : deaths in kingston upon hull"
+    },
+    {
+      "value": "Category:Deaths in İzmit",
+      "name": "Q9220458",
+      "canonical": "category : deaths in i̇zmit"
+    },
+    {
+      "value": "Category:Deaths in Norwich",
+      "name": "Q9219310",
+      "canonical": "category : deaths in norwich"
+    },
+    {
+      "value": "Category:Deaths in Kulob",
+      "name": "Q18666180",
+      "canonical": "category : deaths in kulob"
+    },
+    {
+      "value": "Category:Deaths in Jyväskylä",
+      "name": "Q18523973",
+      "canonical": "category : deaths in jyväskylä"
+    },
+    {
+      "value": "Category:Deaths in Zheleznodorozhny",
+      "name": "Q18667933",
+      "canonical": "category : deaths in zheleznodorozhny"
+    },
+    {
+      "value": "Category:Deaths in Afula",
+      "name": "Q18664187",
+      "canonical": "category : deaths in afula"
+    },
+    {
+      "value": "Category:Deaths in Ramallah",
+      "name": "Q9689405",
+      "canonical": "category : deaths in ramallah"
+    },
+    {
+      "value": "Category:Deaths in Inverness",
+      "name": "Q17485667",
+      "canonical": "category : deaths in inverness"
+    },
+    {
+      "value": "Category:Deaths in Londonderry",
+      "name": "Q9218227",
+      "canonical": "category : deaths in londonderry"
+    },
+    {
+      "value": "Category:Deaths in Amasya",
+      "name": "Q17355744",
+      "canonical": "category : deaths in amasya"
+    },
+    {
+      "value": "Category:Deaths in Campinas",
+      "name": "Q9217871",
+      "canonical": "category : deaths in campinas"
+    },
+    {
+      "value": "Category:Deaths in Durham (England)",
+      "name": "Q18665679",
+      "canonical": "category : deaths in durham ( england )"
+    },
+    {
+      "value": "Category:Deaths in Jelgava",
+      "name": "Q10150745",
+      "canonical": "category : deaths in jelgava"
+    },
+    {
+      "value": "Category:Deaths in Tourcoing",
+      "name": "Q9220198",
+      "canonical": "category : deaths in tourcoing"
+    },
+    {
+      "value": "Category:Deaths in Megara",
+      "name": "Q17486803",
+      "canonical": "category : deaths in megara"
+    },
+    {
+      "value": "Category:Deaths in Mladá Boleslav",
+      "name": "Q18882174",
+      "canonical": "category : deaths in mladá boleslav"
+    },
+    {
+      "value": "Category:Deaths in Netanya",
+      "name": "Q18666588",
+      "canonical": "category : deaths in netanya"
+    },
+    {
+      "value": "Category:Deaths in Rueil-Malmaison",
+      "name": "Q9219709",
+      "canonical": "category : deaths in rueil-malmaison"
+    },
+    {
+      "value": "Category:Deaths in Gyumri",
+      "name": "Q9874185",
+      "canonical": "category : deaths in gyumri"
+    },
+    {
+      "value": "Category:Deaths in Rethymno",
+      "name": "Q18666911",
+      "canonical": "category : deaths in rethymno"
+    },
+    {
+      "value": "Category:Deaths in Ziguinchor",
+      "name": "Q9690940",
+      "canonical": "category : deaths in ziguinchor"
+    },
+    {
+      "value": "Category:Deaths in Chichester",
+      "name": "Q9686470",
+      "canonical": "category : deaths in chichester"
+    },
+    {
+      "value": "Category:Deaths in Motril",
+      "name": "Q15075659",
+      "canonical": "category : deaths in motril"
+    },
+    {
+      "value": "Category:Deaths in Chelmsford",
+      "name": "Q18754718",
+      "canonical": "category : deaths in chelmsford"
+    },
+    {
+      "value": "Category:Deaths in Salo",
+      "name": "Q18527378",
+      "canonical": "category : deaths in salo"
+    },
+    {
+      "value": "Category:Deaths in Akhaltsikhe",
+      "name": "Q18664191",
+      "canonical": "category : deaths in akhaltsikhe"
+    },
+    {
+      "value": "Category:Deaths in Ramla",
+      "name": "Q9219611",
+      "canonical": "category : deaths in ramla"
+    },
+    {
+      "value": "Category:Deaths in Johor Bahru",
+      "name": "Q18758886",
+      "canonical": "category : deaths in johor bahru"
+    },
+    {
+      "value": "Category:Deaths in Qabala",
+      "name": "Q18665345",
+      "canonical": "category : deaths in qabala"
+    },
+    {
+      "value": "Category:Deaths in Tanta",
+      "name": "Q9220109",
+      "canonical": "category : deaths in tanta"
+    },
+    {
+      "value": "Category:Deaths in Żywiec",
+      "name": "Q18809830",
+      "canonical": "category : deaths in żywiec"
+    },
+    {
+      "value": "Category:Deaths in Hadera",
+      "name": "Q18667705",
+      "canonical": "category : deaths in hadera"
+    },
+    {
+      "value": "Category:Deaths in Pavlodar",
+      "name": "Q18666745",
+      "canonical": "category : deaths in pavlodar"
+    },
+    {
+      "value": "Category:Deaths in Eibar",
+      "name": "Q18066518",
+      "canonical": "category : deaths in eibar"
+    },
+    {
+      "value": "Category:Deaths in Estella-Lizarra",
+      "name": "Q9218329",
+      "canonical": "category : deaths in estella-lizarra"
+    },
+    {
+      "value": "Category:Deaths in Olite",
+      "name": "Q15087287",
+      "canonical": "category : deaths in olite"
+    },
+    {
+      "value": "Category:Deaths in Sidi Bel Abbès",
+      "name": "Q9219989",
+      "canonical": "category : deaths in sidi bel abbès"
+    },
+    {
+      "value": "Category:Deaths in Phuntsholing",
+      "name": "Q18666876",
+      "canonical": "category : deaths in phuntsholing"
+    },
+    {
+      "value": "Category:Deaths in Ridder",
+      "name": "Q10206535",
+      "canonical": "category : deaths in ridder"
+    },
+    {
+      "value": "Category:Deaths in Puerto Cabello",
+      "name": "Q16388112",
+      "canonical": "category : deaths in puerto cabello"
+    },
+    {
+      "value": "Category:Deaths in Salamá",
+      "name": "Q18174167",
+      "canonical": "category : deaths in salamá"
+    },
+    {
+      "value": "Category:Deaths in Coro",
+      "name": "Q9218152",
+      "canonical": "category : deaths in coro"
+    },
+    {
+      "value": "Category:Deaths in Mutriku",
+      "name": "Q18761062",
+      "canonical": "category : deaths in mutriku"
+    },
+    {
+      "value": "Category:Deaths in Lisburn",
+      "name": "Q13323249",
+      "canonical": "category : deaths in lisburn"
+    },
+    {
+      "value": "Category:Deaths in Skopje",
+      "name": "Q16334318",
+      "canonical": "category : deaths in skopje"
+    },
+    {
+      "value": "Category:Deaths in Ljubljana",
+      "name": "Q10182092",
+      "canonical": "category : deaths in ljubljana"
+    },
+    {
+      "value": "Category:Deaths in Trieste",
+      "name": "Q9220215",
+      "canonical": "category : deaths in trieste"
+    },
+    {
+      "value": "Category:Deaths in Utrecht",
+      "name": "Q9220249",
+      "canonical": "category : deaths in utrecht"
+    },
+    {
+      "value": "Category:Deaths in Beijing",
+      "name": "Q6482278",
+      "canonical": "category : deaths in beijing"
+    },
+    {
+      "value": "Category:Deaths in Wageningen",
+      "name": "Q17326758",
+      "canonical": "category : deaths in wageningen"
+    },
+    {
+      "value": "Category:Deaths in Montevideo",
+      "name": "Q9986818",
+      "canonical": "category : deaths in montevideo"
+    },
+    {
+      "value": "Category:Deaths in Dhaka",
+      "name": "Q15073664",
+      "canonical": "category : deaths in dhaka"
+    },
+    {
+      "value": "Category:Deaths in Bengaluru",
+      "name": "Q16500099",
+      "canonical": "category : deaths in bengaluru"
+    },
+    {
+      "value": "Category:Deaths in Islamabad",
+      "name": "Q9687607",
+      "canonical": "category : deaths in islamabad"
+    },
+    {
+      "value": "Category:Deaths in Frankfurt",
+      "name": "Q9218400",
+      "canonical": "category : deaths in frankfurt"
+    },
+    {
+      "value": "Category:Deaths in Wrocław",
+      "name": "Q9217772",
+      "canonical": "category : deaths in wrocław"
+    },
+    {
+      "value": "Category:Deaths in Hanoi",
+      "name": "Q9218581",
+      "canonical": "category : deaths in hanoi"
+    },
+    {
+      "value": "Category:Deaths in Andorra la Vella",
+      "name": "Q18664110",
+      "canonical": "category : deaths in andorra la vella"
+    },
+    {
+      "value": "Category:Deaths in Cagliari",
+      "name": "Q9217837",
+      "canonical": "category : deaths in cagliari"
+    },
+    {
+      "value": "Category:Deaths in Dar es Salaam",
+      "name": "Q17486342",
+      "canonical": "category : deaths in dar es salaam"
+    },
+    {
+      "value": "Category:Deaths in Verona",
+      "name": "Q9220297",
+      "canonical": "category : deaths in verona"
+    },
+    {
+      "value": "Category:Deaths in Naples",
+      "name": "Q9219242",
+      "canonical": "category : deaths in naples"
+    },
+    {
+      "value": "Category:Deaths in Pescara",
+      "name": "Q9219459",
+      "canonical": "category : deaths in pescara"
+    },
+    {
+      "value": "Category:Died in Sydney",
+      "name": "Q9220087",
+      "canonical": "category : died in sydney"
+    },
+    {
+      "value": "Category:Deaths in Tegucigalpa",
+      "name": "Q18857343",
+      "canonical": "category : deaths in tegucigalpa"
+    },
+    {
+      "value": "Category:Deaths in Perugia",
+      "name": "Q9219457",
+      "canonical": "category : deaths in perugia"
+    },
+    {
+      "value": "Category:Deaths in Rabat",
+      "name": "Q9219602",
+      "canonical": "category : deaths in rabat"
+    },
+    {
+      "value": "Category:Deaths in Niamey",
+      "name": "Q17457809",
+      "canonical": "category : deaths in niamey"
+    },
+    {
+      "value": "Category:Deaths in Banjul",
+      "name": "Q13323235",
+      "canonical": "category : deaths in banjul"
+    },
+    {
+      "value": "Category:Deaths in Windhoek",
+      "name": "Q17457399",
+      "canonical": "category : deaths in windhoek"
+    },
+    {
+      "value": "Category:Deaths in Frankfurt (Oder)",
+      "name": "Q9218401",
+      "canonical": "category : deaths in frankfurt ( oder )"
+    },
+    {
+      "value": "Category:Deaths in Treviso",
+      "name": "Q9220212",
+      "canonical": "category : deaths in treviso"
+    },
+    {
+      "value": "Category:Deaths in Seinäjoki",
+      "name": "Q18667024",
+      "canonical": "category : deaths in seinäjoki"
+    },
+    {
+      "value": "Category:Deaths in Wismar",
+      "name": "Q9220403",
+      "canonical": "category : deaths in wismar"
+    },
+    {
+      "value": "Category:Deaths in Casablanca",
+      "name": "Q9217925",
+      "canonical": "category : deaths in casablanca"
+    },
+    {
+      "value": "Category:Deaths in Valladolid",
+      "name": "Q9220262",
+      "canonical": "category : deaths in valladolid"
+    },
+    {
+      "value": "Category:Deaths in Cancún",
+      "name": "Q15922966",
+      "canonical": "category : deaths in cancún"
+    },
+    {
+      "value": "Category:Deaths in Thimphu",
+      "name": "Q17781681",
+      "canonical": "category : deaths in thimphu"
+    },
+    {
+      "value": "Category:Deaths in Mysore",
+      "name": "Q17616879",
+      "canonical": "category : deaths in mysore"
+    },
+    {
+      "value": "Category:Deaths in Lugo, Spain",
+      "name": "Q18666320",
+      "canonical": "category : deaths in lugo , spain"
+    },
+    {
+      "value": "Category:Deaths in Soria",
+      "name": "Q9220028",
+      "canonical": "category : deaths in soria"
+    },
+    {
+      "value": "Category:Deaths in Pontevedra",
+      "name": "Q9219529",
+      "canonical": "category : deaths in pontevedra"
+    },
+    {
+      "value": "Category:Deaths in Sassari",
+      "name": "Q9219908",
+      "canonical": "category : deaths in sassari"
+    },
+    {
+      "value": "Category:Deaths in Syracuse, Sicily",
+      "name": "Q9219998",
+      "canonical": "category : deaths in syracuse , sicily"
+    },
+    {
+      "value": "Category:Deaths in Novorossiysk",
+      "name": "Q15795428",
+      "canonical": "category : deaths in novorossiysk"
+    },
+    {
+      "value": "Category:Deaths in Manchester",
+      "name": "Q9912265",
+      "canonical": "category : deaths in manchester"
+    },
+    {
+      "value": "Category:Deaths in Chișinău",
+      "name": "Q14304316",
+      "canonical": "category : deaths in chișinău"
+    },
+    {
+      "value": "Category:Deaths in Bradford",
+      "name": "Q18059090",
+      "canonical": "category : deaths in bradford"
+    },
+    {
+      "value": "Category:Deaths in Batumi",
+      "name": "Q18664352",
+      "canonical": "category : deaths in batumi"
+    },
+    {
+      "value": "Category:Deaths in Prešov",
+      "name": "Q15081135",
+      "canonical": "category : deaths in prešov"
+    },
+    {
+      "value": "Category:Deaths in Helsingør",
+      "name": "Q18758843",
+      "canonical": "category : deaths in helsingør"
+    },
+    {
+      "value": "Category:Deaths in Roubaix",
+      "name": "Q9689593",
+      "canonical": "category : deaths in roubaix"
+    },
+    {
+      "value": "Category:Deaths in Port Moresby",
+      "name": "Q18325949",
+      "canonical": "category : deaths in port moresby"
+    },
+    {
+      "value": "Category:Deaths in Cannes",
+      "name": "Q9910694",
+      "canonical": "category : deaths in cannes"
+    },
+    {
+      "value": "Category:Deaths in Bursa",
+      "name": "Q10060127",
+      "canonical": "category : deaths in bursa"
+    },
+    {
+      "value": "Category:Deaths in Plzeň",
+      "name": "Q18325861",
+      "canonical": "category : deaths in plzeň"
+    },
+    {
+      "value": "Category:Deaths in Guayaquil",
+      "name": "Q9687291",
+      "canonical": "category : deaths in guayaquil"
+    },
+    {
+      "value": "Category:Deaths in Cotonou",
+      "name": "Q18663788",
+      "canonical": "category : deaths in cotonou"
+    },
+    {
+      "value": "Category:Deaths in Córdoba",
+      "name": "Q14331308",
+      "canonical": "category : deaths in córdoba"
+    },
+    {
+      "value": "Category:Deaths in Annaba",
+      "name": "Q9220573",
+      "canonical": "category : deaths in annaba"
+    },
+    {
+      "value": "Category:Deaths in Alcalá de Henares",
+      "name": "Q9220520",
+      "canonical": "category : deaths in alcalá de henares"
+    },
+    {
+      "value": "Category:Deaths in Recife",
+      "name": "Q9219627",
+      "canonical": "category : deaths in recife"
+    },
+    {
+      "value": "Category:Deaths in Santa Ana de los Ríos de Cuenca",
+      "name": "Q18123876",
+      "canonical": "category : deaths in santa ana de los ríos de cuenca"
+    },
+    {
+      "value": "Category:Deaths in Novi Sad",
+      "name": "Q6762319",
+      "canonical": "category : deaths in novi sad"
+    },
+    {
+      "value": "Category:Deaths in Semey",
+      "name": "Q18667027",
+      "canonical": "category : deaths in semey"
+    },
+    {
+      "value": "Category:Deaths in Koszalin",
+      "name": "Q9218741",
+      "canonical": "category : deaths in koszalin"
+    },
+    {
+      "value": "Category:Deaths in Southampton",
+      "name": "Q9220032",
+      "canonical": "category : deaths in southampton"
+    },
+    {
+      "value": "Category:Deaths in Mosul",
+      "name": "Q9219203",
+      "canonical": "category : deaths in mosul"
+    },
+    {
+      "value": "Category:Deaths in Zielona Góra",
+      "name": "Q9220437",
+      "canonical": "category : deaths in zielona góra"
+    },
+    {
+      "value": "Category:Deaths in Puebla",
+      "name": "Q9689310",
+      "canonical": "category : deaths in puebla"
+    },
+    {
+      "value": "Category:Deaths in Tangier",
+      "name": "Q9220107",
+      "canonical": "category : deaths in tangier"
+    },
+    {
+      "value": "Category:Deaths in Wolverhampton",
+      "name": "Q15166099",
+      "canonical": "category : deaths in wolverhampton"
+    },
+    {
+      "value": "Category:Deaths in Kars",
+      "name": "Q10175303",
+      "canonical": "category : deaths in kars"
+    },
+    {
+      "value": "Category:Deaths in Nagano",
+      "name": "Q18663902",
+      "canonical": "category : deaths in nagano"
+    },
+    {
+      "value": "Category:Deaths in Šiauliai",
+      "name": "Q17403802",
+      "canonical": "category : deaths in šiauliai"
+    },
+    {
+      "value": "Category:Deaths in Trenčín",
+      "name": "Q18601188",
+      "canonical": "category : deaths in trenčín"
+    },
+    {
+      "value": "Category:Deaths in Zaqatala",
+      "name": "Q18667505",
+      "canonical": "category : deaths in zaqatala"
+    },
+    {
+      "value": "Category:Deaths in Kfar Saba",
+      "name": "Q18666205",
+      "canonical": "category : deaths in kfar saba"
+    },
+    {
+      "value": "Category:Deaths in Bnei Brak",
+      "name": "Q18664640",
+      "canonical": "category : deaths in bnei brak"
+    },
+    {
+      "value": "Category:Deaths in Bitola",
+      "name": "Q9217709",
+      "canonical": "category : deaths in bitola"
+    },
+    {
+      "value": "Category:Deaths in Kavadarci",
+      "name": "Q10183127",
+      "canonical": "category : deaths in kavadarci"
+    },
+    {
+      "value": "Category:Deaths in Najaf",
+      "name": "Q32644840",
+      "canonical": "category : deaths in najaf"
+    },
+    {
+      "value": "Category:Deaths in Kotor",
+      "name": "Q9217984",
+      "canonical": "category : deaths in kotor"
+    },
+    {
+      "value": "Category:Deaths in Maracaibo",
+      "name": "Q17279421",
+      "canonical": "category : deaths in maracaibo"
+    },
+    {
+      "value": "Category:Deaths in Cholet",
+      "name": "Q9218047",
+      "canonical": "category : deaths in cholet"
+    },
+    {
+      "value": "Category:Deaths in Zugdidi",
+      "name": "Q18665841",
+      "canonical": "category : deaths in zugdidi"
+    },
+    {
+      "value": "Category:Deaths in Safed",
+      "name": "Q18667752",
+      "canonical": "category : deaths in safed"
+    },
+    {
+      "value": "Category:Deaths in Trakai",
+      "name": "Q17399245",
+      "canonical": "category : deaths in trakai"
+    },
+    {
+      "value": "Category:Deaths in Sulaymaniyah",
+      "name": "Q32646533",
+      "canonical": "category : deaths in sulaymaniyah"
+    },
+    {
+      "value": "Category:Deaths in São José dos Campos",
+      "name": "Q9690197",
+      "canonical": "category : deaths in são josé dos campos"
+    },
+    {
+      "value": "Category:Deaths in Kitchener",
+      "name": "Q17142088",
+      "canonical": "category : deaths in kitchener"
+    },
+    {
+      "value": "Category:Deaths in El Puerto de Santa María",
+      "name": "Q15074258",
+      "canonical": "category : deaths in el puerto de santa maría"
+    },
+    {
+      "value": "Category:Deaths in Kraljevo",
+      "name": "Q10023160",
+      "canonical": "category : deaths in kraljevo"
+    },
+    {
+      "value": "Category:Deaths in Uusikaupunki",
+      "name": "Q18527592",
+      "canonical": "category : deaths in uusikaupunki"
+    },
+    {
+      "value": "Category:Deaths in Shillong",
+      "name": "Q31965429",
+      "canonical": "category : deaths in shillong"
+    },
+    {
+      "value": "Category:Deaths in Hyvinkää",
+      "name": "Q9218640",
+      "canonical": "category : deaths in hyvinkää"
+    },
+    {
+      "value": "Category:Deaths in Przemyśl",
+      "name": "Q9219583",
+      "canonical": "category : deaths in przemyśl"
+    },
+    {
+      "value": "Category:Deaths in Mombasa",
+      "name": "Q18325945",
+      "canonical": "category : deaths in mombasa"
+    },
+    {
+      "value": "Category:Deaths in Geelong",
+      "name": "Q9218453",
+      "canonical": "category : deaths in geelong"
+    },
+    {
+      "value": "Category:Deaths in Margilan",
+      "name": "Q18666465",
+      "canonical": "category : deaths in margilan"
+    },
+    {
+      "value": "Category:Deaths in Saint-Louis",
+      "name": "Q9689722",
+      "canonical": "category : deaths in saint-louis"
+    },
+    {
+      "value": "Category:Deaths in Ta'izz",
+      "name": "Q18667572",
+      "canonical": "category : deaths in ta 'izz"
+    },
+    {
+      "value": "Category:Deaths in Grindavík",
+      "name": "Q18758807",
+      "canonical": "category : deaths in grindavík"
+    },
+    {
+      "value": "Category:Deaths in Ferrol",
+      "name": "Q16773657",
+      "canonical": "category : deaths in ferrol"
+    },
+    {
+      "value": "Category:Deaths in Khiva",
+      "name": "Q18667723",
+      "canonical": "category : deaths in khiva"
+    },
+    {
+      "value": "Category:Deaths in Kyzylorda",
+      "name": "Q17488042",
+      "canonical": "category : deaths in kyzylorda"
+    },
+    {
+      "value": "Category:Deaths in Termez",
+      "name": "Q18667602",
+      "canonical": "category : deaths in termez"
+    },
+    {
+      "value": "Category:Deaths in Villena",
+      "name": "Q17398522",
+      "canonical": "category : deaths in villena"
+    },
+    {
+      "value": "Category:Deaths in Iisalmi",
+      "name": "Q18665862",
+      "canonical": "category : deaths in iisalmi"
+    },
+    {
+      "value": "Category:Deaths in Bertioga",
+      "name": "Q32397790",
+      "canonical": "category : deaths in bertioga"
+    },
+    {
+      "value": "Category:Deaths in Góra Kalwaria",
+      "name": "Q18665669",
+      "canonical": "category : deaths in góra kalwaria"
+    },
+    {
+      "value": "Category:Deaths in Pétionville",
+      "name": "Q18761318",
+      "canonical": "category : deaths in pétionville"
+    },
+    {
+      "value": "Category:Deaths in Heerenveen",
+      "name": "Q9218592",
+      "canonical": "category : deaths in heerenveen"
+    },
+    {
+      "value": "Category:Deaths in Lanús",
+      "name": "Q9218819",
+      "canonical": "category : deaths in lanús"
+    },
+    {
+      "value": "Category:Deaths in Worcester",
+      "name": "Q9220412",
+      "canonical": "category : deaths in worcester"
+    },
+    {
+      "value": "Category:Deaths in Rokiškis",
+      "name": "Q17402835",
+      "canonical": "category : deaths in rokiškis"
+    },
+    {
+      "value": "Category:Deaths in Jaú",
+      "name": "Q32398347",
+      "canonical": "category : deaths in jaú"
+    },
+    {
+      "value": "Category:Deaths in Piedade, São Paulo",
+      "name": "Q18761210",
+      "canonical": "category : deaths in piedade , são paulo"
+    },
+    {
+      "value": "Category:Deaths in 's-Hertogenbosch",
+      "name": "Q12981692",
+      "canonical": "category : deaths in 's -hertogenbosch"
+    },
+    {
+      "value": "Category:Deaths in Warsaw",
+      "name": "Q9908710",
+      "canonical": "category : deaths in warsaw"
+    },
+    {
+      "value": "Category:Deaths in Modena",
+      "name": "Q9219120",
+      "canonical": "category : deaths in modena"
+    },
+    {
+      "value": "Category:Deaths in Singapore",
+      "name": "Q7482605",
+      "canonical": "category : deaths in singapore"
+    },
+    {
+      "value": "Category:Deaths in Katowice",
+      "name": "Q9218713",
+      "canonical": "category : deaths in katowice"
+    },
+    {
+      "value": "Category:Deaths in Rzeszów",
+      "name": "Q9219712",
+      "canonical": "category : deaths in rzeszów"
+    },
+    {
+      "value": "Category:Deaths in Białystok",
+      "name": "Q10058774",
+      "canonical": "category : deaths in białystok"
+    },
+    {
+      "value": "Category:Deaths in Busto Arsizio",
+      "name": "Q9217820",
+      "canonical": "category : deaths in busto arsizio"
+    },
+    {
+      "value": "Category:Deaths in Ghent",
+      "name": "Q9218435",
+      "canonical": "category : deaths in ghent"
+    },
+    {
+      "value": "Category:Deaths in La Paz",
+      "name": "Q9218779",
+      "canonical": "category : deaths in la paz"
+    },
+    {
+      "value": "Category:Deaths in Pune",
+      "name": "Q17609951",
+      "canonical": "category : deaths in pune"
+    },
+    {
+      "value": "Category:Deaths in Dresden",
+      "name": "Q9218270",
+      "canonical": "category : deaths in dresden"
+    },
+    {
+      "value": "Category:Deaths in Bregenz",
+      "name": "Q18324714",
+      "canonical": "category : deaths in bregenz"
+    },
+    {
+      "value": "Category:Deaths in Kochi, Kerala",
+      "name": "Q19056378",
+      "canonical": "category : deaths in kochi , kerala"
+    },
+    {
+      "value": "Category:Deaths in Nuremberg",
+      "name": "Q9219306",
+      "canonical": "category : deaths in nuremberg"
+    },
+    {
+      "value": "Category:Deaths in Urbino",
+      "name": "Q9220245",
+      "canonical": "category : deaths in urbino"
+    },
+    {
+      "value": "Category:Deaths in Rostock",
+      "name": "Q14331340",
+      "canonical": "category : deaths in rostock"
+    },
+    {
+      "value": "Category:Deaths in Quito",
+      "name": "Q9219600",
+      "canonical": "category : deaths in quito"
+    },
+    {
+      "value": "Category:Deaths in San Salvador",
+      "name": "Q9219852",
+      "canonical": "category : deaths in san salvador"
+    },
+    {
+      "value": "Category:Deaths in Ancona",
+      "name": "Q9220560",
+      "canonical": "category : deaths in ancona"
+    },
+    {
+      "value": "Category:Deaths in Algiers",
+      "name": "Q9220529",
+      "canonical": "category : deaths in algiers"
+    },
+    {
+      "value": "Category:Deaths in Bamako",
+      "name": "Q9685624",
+      "canonical": "category : deaths in bamako"
+    },
+    {
+      "value": "Category:Deaths in Yaoundé",
+      "name": "Q9220419",
+      "canonical": "category : deaths in yaoundé"
+    },
+    {
+      "value": "Category:Deaths in Brazzaville",
+      "name": "Q15985206",
+      "canonical": "category : deaths in brazzaville"
+    },
+    {
+      "value": "Category:Deaths in Catanzaro",
+      "name": "Q9217983",
+      "canonical": "category : deaths in catanzaro"
+    },
+    {
+      "value": "Category:Deaths in Luanda",
+      "name": "Q9218961",
+      "canonical": "category : deaths in luanda"
+    },
+    {
+      "value": "Category:Deaths in Moroni",
+      "name": "Q17567111",
+      "canonical": "category : deaths in moroni"
+    },
+    {
+      "value": "Category:Deaths in Thebes",
+      "name": "Q18819167",
+      "canonical": "category : deaths in thebes"
+    },
+    {
+      "value": "Category:Deaths in Bethlehem",
+      "name": "Q9217685",
+      "canonical": "category : deaths in bethlehem"
+    },
+    {
+      "value": "Category:Deaths in Melilla",
+      "name": "Q18760508",
+      "canonical": "category : deaths in melilla"
+    },
+    {
+      "value": "Category:Deaths in Vientiane",
+      "name": "Q18761703",
+      "canonical": "category : deaths in vientiane"
+    },
+    {
+      "value": "Category:Deaths in Tilburg",
+      "name": "Q18667610",
+      "canonical": "category : deaths in tilburg"
+    },
+    {
+      "value": "Category:Deaths in Coimbatore",
+      "name": "Q60886476",
+      "canonical": "category : deaths in coimbatore"
+    },
+    {
+      "value": "Category:Deaths in Saskatoon",
+      "name": "Q17149642",
+      "canonical": "category : deaths in saskatoon"
+    },
+    {
+      "value": "Category:Deaths in Chongqing",
+      "name": "Q9686494",
+      "canonical": "category : deaths in chongqing"
+    },
+    {
+      "value": "Category:Death in Lahore",
+      "name": "Q9218799",
+      "canonical": "category : death in lahore"
+    },
+    {
+      "value": "Category:Deaths in Ferrara",
+      "name": "Q9218352",
+      "canonical": "category : deaths in ferrara"
+    },
+    {
+      "value": "Category:Deaths in Ravenna",
+      "name": "Q9219621",
+      "canonical": "category : deaths in ravenna"
+    },
+    {
+      "value": "Category:Deaths in Pisa",
+      "name": "Q9219491",
+      "canonical": "category : deaths in pisa"
+    },
+    {
+      "value": "Category:Deaths in Cáceres",
+      "name": "Q18759602",
+      "canonical": "category : deaths in cáceres"
+    },
+    {
+      "value": "Category:Deaths in Jaén",
+      "name": "Q15075615",
+      "canonical": "category : deaths in jaén"
+    },
+    {
+      "value": "Category:Deaths in Biella",
+      "name": "Q9217694",
+      "canonical": "category : deaths in biella"
+    },
+    {
+      "value": "Category:Deaths in Esbjerg",
+      "name": "Q9218321",
+      "canonical": "category : deaths in esbjerg"
+    },
+    {
+      "value": "Category:Deaths in Roskilde",
+      "name": "Q9219694",
+      "canonical": "category : deaths in roskilde"
+    },
+    {
+      "value": "Category:Deaths in Lahti",
+      "name": "Q9218800",
+      "canonical": "category : deaths in lahti"
+    },
+    {
+      "value": "Category:Deaths in Aswan",
+      "name": "Q17535970",
+      "canonical": "category : deaths in aswan"
+    },
+    {
+      "value": "Category:Deaths in Burlington",
+      "name": "Q18123094",
+      "canonical": "category : deaths in burlington"
+    },
+    {
+      "value": "Category:Deaths in Brisbane",
+      "name": "Q9217783",
+      "canonical": "category : deaths in brisbane"
+    },
+    {
+      "value": "Category:Deaths in Colombo",
+      "name": "Q13323240",
+      "canonical": "category : deaths in colombo"
+    },
+    {
+      "value": "Category:Deaths in Almaty",
+      "name": "Q9220533",
+      "canonical": "category : deaths in almaty"
+    },
+    {
+      "value": "Category:Deaths in Apia",
+      "name": "Q18294623",
+      "canonical": "category : deaths in apia"
+    },
+    {
+      "value": "Category:Deaths in Bloemfontein",
+      "name": "Q12086404",
+      "canonical": "category : deaths in bloemfontein"
+    },
+    {
+      "value": "Category:Deaths in Sheffield",
+      "name": "Q9690044",
+      "canonical": "category : deaths in sheffield"
+    },
+    {
+      "value": "Category:Deaths in Agra",
+      "name": "Q9220497",
+      "canonical": "category : deaths in agra"
+    },
+    {
+      "value": "Category:Deaths in Créteil",
+      "name": "Q9218189",
+      "canonical": "category : deaths in créteil"
+    },
+    {
+      "value": "Category:Deaths in Pereira",
+      "name": "Q17606719",
+      "canonical": "category : deaths in pereira"
+    },
+    {
+      "value": "Category:Deaths in Plano",
+      "name": "Q17133273",
+      "canonical": "category : deaths in plano"
+    },
+    {
+      "value": "Category:Deaths in Rosario",
+      "name": "Q9219689",
+      "canonical": "category : deaths in rosario"
+    },
+    {
+      "value": "Category:Deaths in Colima",
+      "name": "Q9686626",
+      "canonical": "category : deaths in colima"
+    },
+    {
+      "value": "Category:Deaths in Barranquilla",
+      "name": "Q9685683",
+      "canonical": "category : deaths in barranquilla"
+    },
+    {
+      "value": "Category:Deaths in Fort-de-France",
+      "name": "Q18663836",
+      "canonical": "category : deaths in fort-de-france"
+    },
+    {
+      "value": "Category:Deaths in St. Pölten",
+      "name": "Q18594492",
+      "canonical": "category : deaths in st . pölten"
+    },
+    {
+      "value": "Category:Deaths in Almere",
+      "name": "Q18762326",
+      "canonical": "category : deaths in almere"
+    },
+    {
+      "value": "Category:Deaths in Marrakesh",
+      "name": "Q9219035",
+      "canonical": "category : deaths in marrakesh"
+    },
+    {
+      "value": "Category:Deaths in Santiago de Cuba",
+      "name": "Q9219889",
+      "canonical": "category : deaths in santiago de cuba"
+    },
+    {
+      "value": "Category:Deaths in Székesfehérvár",
+      "name": "Q18247347",
+      "canonical": "category : deaths in székesfehérvár"
+    },
+    {
+      "value": "Category:Deaths in Şanlıurfa",
+      "name": "Q9220462",
+      "canonical": "category : deaths in şanlıurfa"
+    },
+    {
+      "value": "Category:Deaths in Namur",
+      "name": "Q9219236",
+      "canonical": "category : deaths in namur"
+    },
+    {
+      "value": "Category:Deaths in Zamość",
+      "name": "Q14331293",
+      "canonical": "category : deaths in zamość"
+    },
+    {
+      "value": "Category:Deaths in Manisa",
+      "name": "Q17362075",
+      "canonical": "category : deaths in manisa"
+    },
+    {
+      "value": "Category:Deaths in Karmiel",
+      "name": "Q18665976",
+      "canonical": "category : deaths in karmiel"
+    },
+    {
+      "value": "Category:Deaths in Kolpino",
+      "name": "Q18666081",
+      "canonical": "category : deaths in kolpino"
+    },
+    {
+      "value": "Category:Deaths in Gitega",
+      "name": "Q9218495",
+      "canonical": "category : deaths in gitega"
+    },
+    {
+      "value": "Category:Deaths in Chester",
+      "name": "Q9218035",
+      "canonical": "category : deaths in chester"
+    },
+    {
+      "value": "Category:Deaths in Esztergom",
+      "name": "Q9218331",
+      "canonical": "category : deaths in esztergom"
+    },
+    {
+      "value": "Category:Deaths in Pori",
+      "name": "Q18526752",
+      "canonical": "category : deaths in pori"
+    },
+    {
+      "value": "Category:Deaths in Poti",
+      "name": "Q18666826",
+      "canonical": "category : deaths in poti"
+    },
+    {
+      "value": "Category:Deaths in Courbevoie",
+      "name": "Q9218165",
+      "canonical": "category : deaths in courbevoie"
+    },
+    {
+      "value": "Category:Deaths in Petah Tikva",
+      "name": "Q18666782",
+      "canonical": "category : deaths in petah tikva"
+    },
+    {
+      "value": "Category:Deaths in Armagh",
+      "name": "Q9220610",
+      "canonical": "category : deaths in armagh"
+    },
+    {
+      "value": "Category:Deaths in Buda",
+      "name": "Q9217803",
+      "canonical": "category : deaths in buda"
+    },
+    {
+      "value": "Category:Deaths in Karakol",
+      "name": "Q18665970",
+      "canonical": "category : deaths in karakol"
+    },
+    {
+      "value": "Category:Deaths in Hämeenlinna",
+      "name": "Q18523990",
+      "canonical": "category : deaths in hämeenlinna"
+    },
+    {
+      "value": "Category:Deaths in Aubervilliers",
+      "name": "Q9220639",
+      "canonical": "category : deaths in aubervilliers"
+    },
+    {
+      "value": "Category:Deaths in Bat Yam",
+      "name": "Q18664342",
+      "canonical": "category : deaths in bat yam"
+    },
+    {
+      "value": "Category:Deaths in Bichvinta",
+      "name": "Q18666799",
+      "canonical": "category : deaths in bichvinta"
+    },
+    {
+      "value": "Category:Deaths in Wadowice",
+      "name": "Q18614906",
+      "canonical": "category : deaths in wadowice"
+    },
+    {
+      "value": "Category:Deaths in Bareilly",
+      "name": "Q44947120",
+      "canonical": "category : deaths in bareilly"
+    },
+    {
+      "value": "Category:Deaths in Ukmergė",
+      "name": "Q17402039",
+      "canonical": "category : deaths in ukmergė"
+    },
+    {
+      "value": "Category:Death in Essaouira",
+      "name": "Q9687017",
+      "canonical": "category : death in essaouira"
+    },
+    {
+      "value": "Category:Deaths in Sieniawa",
+      "name": "Q9219993",
+      "canonical": "category : deaths in sieniawa"
+    },
+    {
+      "value": "Category:Deaths in Karlovy Vary",
+      "name": "Q14331302",
+      "canonical": "category : deaths in karlovy vary"
+    },
+    {
+      "value": "Category:Deaths in Alytus",
+      "name": "Q17399504",
+      "canonical": "category : deaths in alytus"
+    },
+    {
+      "value": "Category:Deaths in Oral",
+      "name": "Q15618512",
+      "canonical": "category : deaths in oral"
+    },
+    {
+      "value": "Category:Deaths in Kokshetau",
+      "name": "Q18666073",
+      "canonical": "category : deaths in kokshetau"
+    },
+    {
+      "value": "Category:Deaths in Bendigo",
+      "name": "Q18159466",
+      "canonical": "category : deaths in bendigo"
+    },
+    {
+      "value": "Category:Deaths in Ani",
+      "name": "Q55906821",
+      "canonical": "category : deaths in ani"
+    },
+    {
+      "value": "Category:Deaths in Louny",
+      "name": "Q9218955",
+      "canonical": "category : deaths in louny"
+    },
+    {
+      "value": "Category:Deaths in Montego Bay",
+      "name": "Q60459012",
+      "canonical": "category : deaths in montego bay"
+    },
+    {
+      "value": "Category:Deaths in Merca",
+      "name": "Q9219083",
+      "canonical": "category : deaths in merca"
+    },
+    {
+      "value": "Category:Deaths in Chios",
+      "name": "Q18954703",
+      "canonical": "category : deaths in chios"
+    },
+    {
+      "value": "Category:Deaths in Prijepolje",
+      "name": "Q18666838",
+      "canonical": "category : deaths in prijepolje"
+    },
+    {
+      "value": "Category:Deaths in Vučitrn",
+      "name": "Q18761733",
+      "canonical": "category : deaths in vučitrn"
+    },
+    {
+      "value": "Category:Deaths in Kankaanpää",
+      "name": "Q18528521",
+      "canonical": "category : deaths in kankaanpää"
+    },
+    {
+      "value": "Category:Deaths in Salyan",
+      "name": "Q10191887",
+      "canonical": "category : deaths in salyan"
+    },
+    {
+      "value": "Category:Deaths in Magnesia on the Maeander",
+      "name": "Q18666433",
+      "canonical": "category : deaths in magnesia on the maeander"
+    },
+    {
+      "value": "Category:Deaths in Kretinga",
+      "name": "Q18666158",
+      "canonical": "category : deaths in kretinga"
+    },
+    {
+      "value": "Category:Deaths in San Francisco",
+      "name": "Q9219819",
+      "canonical": "category : deaths in san francisco"
+    },
+    {
+      "value": "Category:Deaths in Vilnius",
+      "name": "Q9909206",
+      "canonical": "category : deaths in vilnius"
+    },
+    {
+      "value": "Category:Deaths in Rome",
+      "name": "Q9689571",
+      "canonical": "category : deaths in rome"
+    },
+    {
+      "value": "Category:Deaths in Turin",
+      "name": "Q9220183",
+      "canonical": "category : deaths in turin"
+    },
+    {
+      "value": "Category:Deaths in Koper",
+      "name": "Q9217898",
+      "canonical": "category : deaths in koper"
+    },
+    {
+      "value": "Category:Deaths in Salerno",
+      "name": "Q9219789",
+      "canonical": "category : deaths in salerno"
+    },
+    {
+      "value": "Category:Deaths in Mumbai",
+      "name": "Q9219216",
+      "canonical": "category : deaths in mumbai"
+    },
+    {
+      "value": "Category:Deaths in Buenos Aires",
+      "name": "Q9908566",
+      "canonical": "category : deaths in buenos aires"
+    },
+    {
+      "value": "Category:Deaths in Tokyo",
+      "name": "Q9220173",
+      "canonical": "category : deaths in tokyo"
+    },
+    {
+      "value": "Category:Deaths in Guatemala City",
+      "name": "Q9684408",
+      "canonical": "category : deaths in guatemala city"
+    },
+    {
+      "value": "Category:Deaths in Schwerin",
+      "name": "Q9219937",
+      "canonical": "category : deaths in schwerin"
+    },
+    {
+      "value": "Category:Deaths in Reykjavík",
+      "name": "Q10063618",
+      "canonical": "category : deaths in reykjavík"
+    },
+    {
+      "value": "Category:Deaths in Luxembourg City",
+      "name": "Q9218977",
+      "canonical": "category : deaths in luxembourg city"
+    },
+    {
+      "value": "Category:Deaths in Leipzig",
+      "name": "Q9218916",
+      "canonical": "category : deaths in leipzig"
+    },
+    {
+      "value": "Category:Deaths in Palermo",
+      "name": "Q9913365",
+      "canonical": "category : deaths in palermo"
+    },
+    {
+      "value": "Category:Deaths in Braunschweig",
+      "name": "Q14623302",
+      "canonical": "category : deaths in braunschweig"
+    },
+    {
+      "value": "Category:Deaths in Kathmandu",
+      "name": "Q9687708",
+      "canonical": "category : deaths in kathmandu"
+    },
+    {
+      "value": "Category:Deaths in Perth",
+      "name": "Q9219455",
+      "canonical": "category : deaths in perth"
+    },
+    {
+      "value": "Category:Deaths in Asmara",
+      "name": "Q9220623",
+      "canonical": "category : deaths in asmara"
+    },
+    {
+      "value": "Category:Deaths in N'Djamena",
+      "name": "Q18881727",
+      "canonical": "category : deaths in n 'djamena"
+    },
+    {
+      "value": "Category:Deaths in Freetown",
+      "name": "Q15958347",
+      "canonical": "category : deaths in freetown"
+    },
+    {
+      "value": "Category:Deaths in Lilongwe",
+      "name": "Q17485844",
+      "canonical": "category : deaths in lilongwe"
+    },
+    {
+      "value": "Category:Deaths in Lucerne",
+      "name": "Q14331316",
+      "canonical": "category : deaths in lucerne"
+    },
+    {
+      "value": "Category:Deaths in Durban",
+      "name": "Q12086657",
+      "canonical": "category : deaths in durban"
+    },
+    {
+      "value": "Category:Deaths in Novara",
+      "name": "Q9219314",
+      "canonical": "category : deaths in novara"
+    },
+    {
+      "value": "Category:Deaths in Vicenza",
+      "name": "Q9220307",
+      "canonical": "category : deaths in vicenza"
+    },
+    {
+      "value": "Category:Deaths in Girona",
+      "name": "Q9218492",
+      "canonical": "category : deaths in girona"
+    },
+    {
+      "value": "Category:Deaths in Palencia",
+      "name": "Q9219406",
+      "canonical": "category : deaths in palencia"
+    },
+    {
+      "value": "Category:Deaths in Hong Kong",
+      "name": "Q9687484",
+      "canonical": "category : deaths in hong kong"
+    },
+    {
+      "value": "Category:Deaths in Seville",
+      "name": "Q14331347",
+      "canonical": "category : deaths in seville"
+    },
+    {
+      "value": "Category:Died in Roermond",
+      "name": "Q9219673",
+      "canonical": "category : died in roermond"
+    },
+    {
+      "value": "Category:Deaths in Haarlem",
+      "name": "Q9218567",
+      "canonical": "category : deaths in haarlem"
+    },
+    {
+      "value": "Category:Deaths in Santander",
+      "name": "Q9219885",
+      "canonical": "category : deaths in santander"
+    },
+    {
+      "value": "Category:Deaths in Sabadell",
+      "name": "Q19985274",
+      "canonical": "category : deaths in sabadell"
+    },
+    {
+      "value": "Category:Deaths in Villarreal",
+      "name": "Q18193347",
+      "canonical": "category : deaths in villarreal"
+    },
+    {
+      "value": "Category:Deaths in Agrigento",
+      "name": "Q9220498",
+      "canonical": "category : deaths in agrigento"
+    },
+    {
+      "value": "Category:Deaths in Badalona",
+      "name": "Q19960468",
+      "canonical": "category : deaths in badalona"
+    },
+    {
+      "value": "Category:Deaths in Kagoshima",
+      "name": "Q9218694",
+      "canonical": "category : deaths in kagoshima"
+    },
+    {
+      "value": "Category:Deaths in Salamanca",
+      "name": "Q10191446",
+      "canonical": "category : deaths in salamanca"
+    },
+    {
+      "value": "Category:Deaths in Esch-sur-Alzette",
+      "name": "Q18663825",
+      "canonical": "category : deaths in esch-sur-alzette"
+    },
+    {
+      "value": "Category:Deaths in Thessaloniki",
+      "name": "Q10184404",
+      "canonical": "category : deaths in thessaloniki"
+    },
+    {
+      "value": "Category:Deaths in Tirana",
+      "name": "Q9220165",
+      "canonical": "category : deaths in tirana"
+    },
+    {
+      "value": "Category:Deaths in Sønderborg",
+      "name": "Q9220095",
+      "canonical": "category : deaths in sønderborg"
+    },
+    {
+      "value": "Category:Deaths in Uppsala",
+      "name": "Q13422464",
+      "canonical": "category : deaths in uppsala"
+    },
+    {
+      "value": "Category:Deaths in Umeå",
+      "name": "Q18761642",
+      "canonical": "category : deaths in umeå"
+    },
+    {
+      "value": "Category:Deaths in Trnava",
+      "name": "Q9220217",
+      "canonical": "category : deaths in trnava"
+    },
+    {
+      "value": "Category:Deaths in Bergen",
+      "name": "Q7478159",
+      "canonical": "category : deaths in bergen"
+    },
+    {
+      "value": "Category:Deaths in Potosí",
+      "name": "Q18761287",
+      "canonical": "category : deaths in potosí"
+    },
+    {
+      "value": "Category:Deaths in Kuwait City",
+      "name": "Q18857691",
+      "canonical": "category : deaths in kuwait city"
+    },
+    {
+      "value": "Category:Deaths in Bridgetown",
+      "name": "Q18754101",
+      "canonical": "category : deaths in bridgetown"
+    },
+    {
+      "value": "Category:Deaths in Pardubice",
+      "name": "Q18666763",
+      "canonical": "category : deaths in pardubice"
+    },
+    {
+      "value": "Category:Deaths in Auckland",
+      "name": "Q9220642",
+      "canonical": "category : deaths in auckland"
+    },
+    {
+      "value": "Category:Deaths in Angers",
+      "name": "Q9220567",
+      "canonical": "category : deaths in angers"
+    },
+    {
+      "value": "Category:Deaths in Pyatigorsk",
+      "name": "Q10063256",
+      "canonical": "category : deaths in pyatigorsk"
+    },
+    {
+      "value": "Category:Deaths in Fortaleza",
+      "name": "Q20826510",
+      "canonical": "category : deaths in fortaleza"
+    },
+    {
+      "value": "Category:Deaths in Kayseri",
+      "name": "Q9218716",
+      "canonical": "category : deaths in kayseri"
+    },
+    {
+      "value": "Category:Deaths in Quincy, Massachusetts",
+      "name": "Q20964907",
+      "canonical": "category : deaths in quincy , massachusetts"
+    },
+    {
+      "value": "Category:Deaths in Ashkelon",
+      "name": "Q18664227",
+      "canonical": "category : deaths in ashkelon"
+    },
+    {
+      "value": "Category:Deaths in Vitry-sur-Seine",
+      "name": "Q9220355",
+      "canonical": "category : deaths in vitry-sur-seine"
+    },
+    {
+      "value": "Category:Deaths in Salamiyyah",
+      "name": "Q18857715",
+      "canonical": "category : deaths in salamiyyah"
+    },
+    {
+      "value": "Category:Deaths in Monterrey",
+      "name": "Q17164867",
+      "canonical": "category : deaths in monterrey"
+    },
+    {
+      "value": "Category:Deaths in Tyre",
+      "name": "Q9220167",
+      "canonical": "category : deaths in tyre"
+    },
+    {
+      "value": "Category:Deaths in Olsztyn",
+      "name": "Q9219348",
+      "canonical": "category : deaths in olsztyn"
+    },
+    {
+      "value": "Category:Deaths in Ourense",
+      "name": "Q9219391",
+      "canonical": "category : deaths in ourense"
+    },
+    {
+      "value": "Category:Deaths in Płock",
+      "name": "Q18666803",
+      "canonical": "category : deaths in płock"
+    },
+    {
+      "value": "Category:Deaths in Callao",
+      "name": "Q17373777",
+      "canonical": "category : deaths in callao"
+    },
+    {
+      "value": "Category:Deaths in Grudziądz",
+      "name": "Q9218543",
+      "canonical": "category : deaths in grudziądz"
+    },
+    {
+      "value": "Category:Deaths in Stepanakert",
+      "name": "Q18667132",
+      "canonical": "category : deaths in stepanakert"
+    },
+    {
+      "value": "Category:Deaths in Dunedin",
+      "name": "Q18663800",
+      "canonical": "category : deaths in dunedin"
+    },
+    {
+      "value": "Category:Deaths in Exeter",
+      "name": "Q17320523",
+      "canonical": "category : deaths in exeter"
+    },
+    {
+      "value": "Category:Deaths in Teplice",
+      "name": "Q9220134",
+      "canonical": "category : deaths in teplice"
+    },
+    {
+      "value": "Category:Deaths in Kuopio",
+      "name": "Q14331313",
+      "canonical": "category : deaths in kuopio"
+    },
+    {
+      "value": "Category:Deaths in Cartagena, Spain",
+      "name": "Q20639752",
+      "canonical": "category : deaths in cartagena , spain"
+    },
+    {
+      "value": "Category:Deaths in Kragujevac",
+      "name": "Q18663868",
+      "canonical": "category : deaths in kragujevac"
+    },
+    {
+      "value": "Category:Deaths in Doboj",
+      "name": "Q18084468",
+      "canonical": "category : deaths in doboj"
+    },
+    {
+      "value": "Category:Deaths in Kutaisi",
+      "name": "Q18176272",
+      "canonical": "category : deaths in kutaisi"
+    },
+    {
+      "value": "Category:Deaths in Béziers",
+      "name": "Q9217828",
+      "canonical": "category : deaths in béziers"
+    },
+    {
+      "value": "Category:Deaths in Tuzla",
+      "name": "Q18081948",
+      "canonical": "category : deaths in tuzla"
+    },
+    {
+      "value": "Category:Deaths in Omdurman",
+      "name": "Q9219351",
+      "canonical": "category : deaths in omdurman"
+    },
+    {
+      "value": "Category:Deaths in Windsor",
+      "name": "Q17142364",
+      "canonical": "category : deaths in windsor"
+    },
+    {
+      "value": "Category:Deaths in Tlemcen",
+      "name": "Q9690351",
+      "canonical": "category : deaths in tlemcen"
+    },
+    {
+      "value": "Category:Deaths in Quetta",
+      "name": "Q24075234",
+      "canonical": "category : deaths in quetta"
+    },
+    {
+      "value": "Category:Deaths in Mikkeli",
+      "name": "Q18526653",
+      "canonical": "category : deaths in mikkeli"
+    },
+    {
+      "value": "Category:Deaths in Asnières-sur-Seine",
+      "name": "Q9220624",
+      "canonical": "category : deaths in asnières-sur-seine"
+    },
+    {
+      "value": "Category:Deaths in Tripoli",
+      "name": "Q18761623",
+      "canonical": "category : deaths in tripoli"
+    },
+    {
+      "value": "Category:Deaths in Sibay",
+      "name": "Q18667045",
+      "canonical": "category : deaths in sibay"
+    },
+    {
+      "value": "Category:Deaths in Elektrostal",
+      "name": "Q18667858",
+      "canonical": "category : deaths in elektrostal"
+    },
+    {
+      "value": "Category:Deaths in Aktau",
+      "name": "Q17489010",
+      "canonical": "category : deaths in aktau"
+    },
+    {
+      "value": "Category:Deaths in Rishon LeZion",
+      "name": "Q18663928",
+      "canonical": "category : deaths in rishon lezion"
+    },
+    {
+      "value": "Category:Deaths in Kingston, Ontario",
+      "name": "Q17142052",
+      "canonical": "category : deaths in kingston , ontario"
+    },
+    {
+      "value": "Category:Deaths in Järvenpää",
+      "name": "Q15081317",
+      "canonical": "category : deaths in järvenpää"
+    },
+    {
+      "value": "Category:Deaths in Ely",
+      "name": "Q9218307",
+      "canonical": "category : deaths in ely"
+    },
+    {
+      "value": "Category:Deaths in Blida",
+      "name": "Q18663738",
+      "canonical": "category : deaths in blida"
+    },
+    {
+      "value": "Category:Deaths in Bangor",
+      "name": "Q9217615",
+      "canonical": "category : deaths in bangor"
+    },
+    {
+      "value": "Category:Deaths in Deir ez-Zor",
+      "name": "Q32673077",
+      "canonical": "category : deaths in deir ez-zor"
+    },
+    {
+      "value": "Category:Deaths in Sétif",
+      "name": "Q16323048",
+      "canonical": "category : deaths in sétif"
+    },
+    {
+      "value": "Category:Deaths in Matanzas",
+      "name": "Q18342730",
+      "canonical": "category : deaths in matanzas"
+    },
+    {
+      "value": "Category:Deaths in Niagara Falls",
+      "name": "Q18617791",
+      "canonical": "category : deaths in niagara falls"
+    },
+    {
+      "value": "Category:Deaths in Riihimäki",
+      "name": "Q18527199",
+      "canonical": "category : deaths in riihimäki"
+    },
+    {
+      "value": "Category:Deaths in Riobamba",
+      "name": "Q18123888",
+      "canonical": "category : deaths in riobamba"
+    },
+    {
+      "value": "Category:Deaths in Petropavl",
+      "name": "Q17488077",
+      "canonical": "category : deaths in petropavl"
+    },
+    {
+      "value": "Category:Deaths in Palos de la Frontera",
+      "name": "Q17269975",
+      "canonical": "category : deaths in palos de la frontera"
+    },
+    {
+      "value": "Category:Deaths in Puducherry",
+      "name": "Q9219522",
+      "canonical": "category : deaths in puducherry"
+    },
+    {
+      "value": "Category:Deaths in Peterborough (Canada)",
+      "name": "Q18129522",
+      "canonical": "category : deaths in peterborough ( canada )"
+    },
+    {
+      "value": "Category:Deaths in Mostaganem",
+      "name": "Q9219204",
+      "canonical": "category : deaths in mostaganem"
+    },
+    {
+      "value": "Category:Deaths in Soroca",
+      "name": "Q18176226",
+      "canonical": "category : deaths in soroca"
+    },
+    {
+      "value": "Category:Deaths in Manta",
+      "name": "Q18123191",
+      "canonical": "category : deaths in manta"
+    },
+    {
+      "value": "Category:Deaths in Peshawar",
+      "name": "Q15964569",
+      "canonical": "category : deaths in peshawar"
+    },
+    {
+      "value": "Category:Deaths in Telšiai",
+      "name": "Q17403617",
+      "canonical": "category : deaths in telšiai"
+    },
+    {
+      "value": "Category:Deaths in Cusco",
+      "name": "Q9218198",
+      "canonical": "category : deaths in cusco"
+    },
+    {
+      "value": "Category:Deaths in London",
+      "name": "Q8365529",
+      "canonical": "category : deaths in london"
+    },
+    {
+      "value": "Category:Deaths in Vatican City",
+      "name": "Q8365665",
+      "canonical": "category : deaths in vatican city"
+    },
+    {
+      "value": "Category:Deaths in Gdynia",
+      "name": "Q18665409",
+      "canonical": "category : deaths in gdynia"
+    },
+    {
+      "value": "Category:Deaths in Venice",
+      "name": "Q9220286",
+      "canonical": "category : deaths in venice"
+    },
+    {
+      "value": "Category:Deaths in Delft",
+      "name": "Q9218222",
+      "canonical": "category : deaths in delft"
+    },
+    {
+      "value": "Category:Deaths in Amsterdam",
+      "name": "Q6586484",
+      "canonical": "category : deaths in amsterdam"
+    },
+    {
+      "value": "Category:Deaths in Maribor",
+      "name": "Q18172004",
+      "canonical": "category : deaths in maribor"
+    },
+    {
+      "value": "Category:Deaths in Como",
+      "name": "Q9218126",
+      "canonical": "category : deaths in como"
+    },
+    {
+      "value": "Category:Deaths in Erfurt",
+      "name": "Q15068538",
+      "canonical": "category : deaths in erfurt"
+    },
+    {
+      "value": "Category:Deaths in Innsbruck",
+      "name": "Q9218658",
+      "canonical": "category : deaths in innsbruck"
+    },
+    {
+      "value": "Category:Deaths in Stockholm",
+      "name": "Q6456372",
+      "canonical": "category : deaths in stockholm"
+    },
+    {
+      "value": "Category:Deaths in Ho Chi Minh City",
+      "name": "Q9687556",
+      "canonical": "category : deaths in ho chi minh city"
+    },
+    {
+      "value": "Category:Deaths in Taipei",
+      "name": "Q9690235",
+      "canonical": "category : deaths in taipei"
+    },
+    {
+      "value": "Category:Deaths in Regina",
+      "name": "Q9689421",
+      "canonical": "category : deaths in regina"
+    },
+    {
+      "value": "Category:Deaths in Udine",
+      "name": "Q9220237",
+      "canonical": "category : deaths in udine"
+    },
+    {
+      "value": "Category:Deaths in Madrid",
+      "name": "Q9911867",
+      "canonical": "category : deaths in madrid"
+    },
+    {
+      "value": "Category:Deaths in Canberra",
+      "name": "Q9217876",
+      "canonical": "category : deaths in canberra"
+    },
+    {
+      "value": "Category:Deaths in Melbourne",
+      "name": "Q9219071",
+      "canonical": "category : deaths in melbourne"
+    },
+    {
+      "value": "Category:Deaths in Conakry",
+      "name": "Q9686667",
+      "canonical": "category : deaths in conakry"
+    },
+    {
+      "value": "Category:Deaths in Bissau",
+      "name": "Q16058349",
+      "canonical": "category : deaths in bissau"
+    },
+    {
+      "value": "Category:Deaths in Damascus",
+      "name": "Q9218209",
+      "canonical": "category : deaths in damascus"
+    },
+    {
+      "value": "Category:Deaths in Bujumbura",
+      "name": "Q9217809",
+      "canonical": "category : deaths in bujumbura"
+    },
+    {
+      "value": "Category:Deaths in Kampala",
+      "name": "Q9218701",
+      "canonical": "category : deaths in kampala"
+    },
+    {
+      "value": "Category:Deaths in Surat",
+      "name": "Q61033016",
+      "canonical": "category : deaths in surat"
+    },
+    {
+      "value": "Category:Deaths in Adelaide",
+      "name": "Q11239795",
+      "canonical": "category : deaths in adelaide"
+    },
+    {
+      "value": "Category:Deaths in Samarkand",
+      "name": "Q14331341",
+      "canonical": "category : deaths in samarkand"
+    },
+    {
+      "value": "Category:Deaths in Varese",
+      "name": "Q9220275",
+      "canonical": "category : deaths in varese"
+    },
+    {
+      "value": "Category:Deaths in Avignon",
+      "name": "Q9220665",
+      "canonical": "category : deaths in avignon"
+    },
+    {
+      "value": "Category:Deaths in Calais",
+      "name": "Q9217845",
+      "canonical": "category : deaths in calais"
+    },
+    {
+      "value": "Category:Deaths in Antalya",
+      "name": "Q10014831",
+      "canonical": "category : deaths in antalya"
+    },
+    {
+      "value": "Category:Deaths in Terni",
+      "name": "Q9220138",
+      "canonical": "category : deaths in terni"
+    },
+    {
+      "value": "Category:Deaths in Bilbao",
+      "name": "Q9685849",
+      "canonical": "category : deaths in bilbao"
+    },
+    {
+      "value": "Category:Deaths in Valencia, Spain",
+      "name": "Q14331277",
+      "canonical": "category : deaths in valencia , spain"
+    },
+    {
+      "value": "Category:Deaths in Georgetown",
+      "name": "Q18665700",
+      "canonical": "category : deaths in georgetown"
+    },
+    {
+      "value": "Category:Deaths in Huelva",
+      "name": "Q15075635",
+      "canonical": "category : deaths in huelva"
+    },
+    {
+      "value": "Category:Deaths in Reggio Emilia",
+      "name": "Q9219634",
+      "canonical": "category : deaths in reggio emilia"
+    },
+    {
+      "value": "Category:Deaths in Rimini",
+      "name": "Q9219656",
+      "canonical": "category : deaths in rimini"
+    },
+    {
+      "value": "Category:Deaths in Prato",
+      "name": "Q9219570",
+      "canonical": "category : deaths in prato"
+    },
+    {
+      "value": "Category:Deaths in Santa Cruz de Tenerife",
+      "name": "Q9689937",
+      "canonical": "category : deaths in santa cruz de tenerife"
+    },
+    {
+      "value": "Category:Deaths in Molfetta",
+      "name": "Q9219126",
+      "canonical": "category : deaths in molfetta"
+    },
+    {
+      "value": "Category:Deaths in Trondheim",
+      "name": "Q9220220",
+      "canonical": "category : deaths in trondheim"
+    },
+    {
+      "value": "Category:Deaths in Hillerød",
+      "name": "Q18758849",
+      "canonical": "category : deaths in hillerød"
+    },
+    {
+      "value": "Category:Deaths in Gandia",
+      "name": "Q18755980",
+      "canonical": "category : deaths in gandia"
+    },
+    {
+      "value": "Category:Deaths in Tel Aviv",
+      "name": "Q9690272",
+      "canonical": "category : deaths in tel aviv"
+    },
+    {
+      "value": "Category:Deaths in Cork",
+      "name": "Q9218145",
+      "canonical": "category : deaths in cork"
+    },
+    {
+      "value": "Category:Deaths in Rauma",
+      "name": "Q18527061",
+      "canonical": "category : deaths in rauma"
+    },
+    {
+      "value": "Category:Deaths in Lublin",
+      "name": "Q10061394",
+      "canonical": "category : deaths in lublin"
+    },
+    {
+      "value": "Category:Deaths in Porto Alegre",
+      "name": "Q9689247",
+      "canonical": "category : deaths in porto alegre"
+    },
+    {
+      "value": "Category:Deaths in Aleppo",
+      "name": "Q9220525",
+      "canonical": "category : deaths in aleppo"
+    },
+    {
+      "value": "Category:Deaths in Bydgoszcz",
+      "name": "Q10059050",
+      "canonical": "category : deaths in bydgoszcz"
+    },
+    {
+      "value": "Category:Deaths in Nottingham",
+      "name": "Q9688890",
+      "canonical": "category : deaths in nottingham"
+    },
+    {
+      "value": "Category:Deaths in Kingstown",
+      "name": "Q18758906",
+      "canonical": "category : deaths in kingstown"
+    },
+    {
+      "value": "Category:Deaths in Beersheba",
+      "name": "Q18664585",
+      "canonical": "category : deaths in beersheba"
+    },
+    {
+      "value": "Category:Deaths in York",
+      "name": "Q9220423",
+      "canonical": "category : deaths in york"
+    },
+    {
+      "value": "Category:Deaths in Edirne",
+      "name": "Q9218294",
+      "canonical": "category : deaths in edirne"
+    },
+    {
+      "value": "Category:Deaths in Kandahar",
+      "name": "Q32098541",
+      "canonical": "category : deaths in kandahar"
+    },
+    {
+      "value": "Category:Deaths in Oulu",
+      "name": "Q15896362",
+      "canonical": "category : deaths in oulu"
+    },
+    {
+      "value": "Category:Deaths in Osh",
+      "name": "Q18666735",
+      "canonical": "category : deaths in osh"
+    },
+    {
+      "value": "Category:Deaths in Toruń",
+      "name": "Q14539734",
+      "canonical": "category : deaths in toruń"
+    },
+    {
+      "value": "Category:Deaths in Mississauga",
+      "name": "Q13323252",
+      "canonical": "category : deaths in mississauga"
+    },
+    {
+      "value": "Category:Deaths in San Cristóbal de La Laguna",
+      "name": "Q18761412",
+      "canonical": "category : deaths in san cristóbal de la laguna"
+    },
+    {
+      "value": "Category:Deaths in Chihuahua City",
+      "name": "Q9218042",
+      "canonical": "category : deaths in chihuahua city"
+    },
+    {
+      "value": "Category:Deaths in Kanpur",
+      "name": "Q18665961",
+      "canonical": "category : deaths in kanpur"
+    },
+    {
+      "value": "Category:Deaths in Daugavpils",
+      "name": "Q10059832",
+      "canonical": "category : deaths in daugavpils"
+    },
+    {
+      "value": "Category:Deaths in Antakya",
+      "name": "Q9220581",
+      "canonical": "category : deaths in antakya"
+    },
+    {
+      "value": "Category:Deaths in Fes",
+      "name": "Q9218353",
+      "canonical": "category : deaths in fes"
+    },
+    {
+      "value": "Category:Deaths in Leicester",
+      "name": "Q9218871",
+      "canonical": "category : deaths in leicester"
+    },
+    {
+      "value": "Category:Deaths in Zabrze",
+      "name": "Q18667499",
+      "canonical": "category : deaths in zabrze"
+    },
+    {
+      "value": "Category:Deaths in Elbląg",
+      "name": "Q18667882",
+      "canonical": "category : deaths in elbląg"
+    },
+    {
+      "value": "Category:Deaths in Radom",
+      "name": "Q9219605",
+      "canonical": "category : deaths in radom"
+    },
+    {
+      "value": "Category:Deaths in Erzurum",
+      "name": "Q17355689",
+      "canonical": "category : deaths in erzurum"
+    },
+    {
+      "value": "Category:Deaths in Vaasa",
+      "name": "Q18528207",
+      "canonical": "category : deaths in vaasa"
+    },
+    {
+      "value": "Category:Deaths in Wiener Neustadt",
+      "name": "Q9220392",
+      "canonical": "category : deaths in wiener neustadt"
+    },
+    {
+      "value": "Category:Deaths in Shkodër",
+      "name": "Q9219948",
+      "canonical": "category : deaths in shkodër"
+    },
+    {
+      "value": "Category:Deaths in Aden",
+      "name": "Q21682634",
+      "canonical": "category : deaths in aden"
+    },
+    {
+      "value": "Category:Deaths in Stoke-on-Trent",
+      "name": "Q9220064",
+      "canonical": "category : deaths in stoke-on-trent"
+    },
+    {
+      "value": "Category:Deaths in Givatayim",
+      "name": "Q18665459",
+      "canonical": "category : deaths in givatayim"
+    },
+    {
+      "value": "Category:Deaths in Kladno",
+      "name": "Q21809894",
+      "canonical": "category : deaths in kladno"
+    },
+    {
+      "value": "Category:Deaths in Salisbury",
+      "name": "Q9219793",
+      "canonical": "category : deaths in salisbury"
+    },
+    {
+      "value": "Category:Deaths in Herrnhut",
+      "name": "Q18335812",
+      "canonical": "category : deaths in herrnhut"
+    },
+    {
+      "value": "Category:Deaths in Mérida",
+      "name": "Q17164806",
+      "canonical": "category : deaths in mérida"
+    },
+    {
+      "value": "Category:Deaths in Maceió",
+      "name": "Q18663886",
+      "canonical": "category : deaths in maceió"
+    },
+    {
+      "value": "Category:Deaths in Gloucester",
+      "name": "Q9218506",
+      "canonical": "category : deaths in gloucester"
+    },
+    {
+      "value": "Category:Deaths in Nanterre",
+      "name": "Q9688739",
+      "canonical": "category : deaths in nanterre"
+    },
+    {
+      "value": "Category:Deaths in Winchester",
+      "name": "Q9220396",
+      "canonical": "category : deaths in winchester"
+    },
+    {
+      "value": "Category:Deaths in Peterborough",
+      "name": "Q9219463",
+      "canonical": "category : deaths in peterborough"
+    },
+    {
+      "value": "Category:Deaths in Hama",
+      "name": "Q25796313",
+      "canonical": "category : deaths in hama"
+    },
+    {
+      "value": "Category:Deaths in Ischia di Castro",
+      "name": "Q18758874",
+      "canonical": "category : deaths in ischia di castro"
+    },
+    {
+      "value": "Category:Deaths in Wels",
+      "name": "Q9220386",
+      "canonical": "category : deaths in wels"
+    },
+    {
+      "value": "Category:Deaths in Meknes",
+      "name": "Q16993770",
+      "canonical": "category : deaths in meknes"
+    },
+    {
+      "value": "Category:Deaths in Hradec Králové",
+      "name": "Q15070240",
+      "canonical": "category : deaths in hradec králové"
+    },
+    {
+      "value": "Category:Deaths in Stirling",
+      "name": "Q9220060",
+      "canonical": "category : deaths in stirling"
+    },
+    {
+      "value": "Category:Deaths in Ioannina",
+      "name": "Q18667926",
+      "canonical": "category : deaths in ioannina"
+    },
+    {
+      "value": "Category:Deaths in Petrópolis",
+      "name": "Q16739330",
+      "canonical": "category : deaths in petrópolis"
+    },
+    {
+      "value": "Category:Deaths in Cairns",
+      "name": "Q9686198",
+      "canonical": "category : deaths in cairns"
+    },
+    {
+      "value": "Category:Deaths in Aulnay-sous-Bois",
+      "name": "Q9220649",
+      "canonical": "category : deaths in aulnay-sous-bois"
+    },
+    {
+      "value": "Category:Deaths in Porvoo",
+      "name": "Q15081321",
+      "canonical": "category : deaths in porvoo"
+    },
+    {
+      "value": "Category:Deaths in Lancaster",
+      "name": "Q17199568",
+      "canonical": "category : deaths in lancaster"
+    },
+    {
+      "value": "Category:Deaths in Rehovot",
+      "name": "Q9689438",
+      "canonical": "category : deaths in rehovot"
+    },
+    {
+      "value": "Category:Deaths in Palmerston North",
+      "name": "Q16005149",
+      "canonical": "category : deaths in palmerston north"
+    },
+    {
+      "value": "Category:Deaths in Lohja",
+      "name": "Q18666316",
+      "canonical": "category : deaths in lohja"
+    },
+    {
+      "value": "Category:Deaths in Wakefield",
+      "name": "Q9220373",
+      "canonical": "category : deaths in wakefield"
+    },
+    {
+      "value": "Category:Deaths in Guadix",
+      "name": "Q15075652",
+      "canonical": "category : deaths in guadix"
+    },
+    {
+      "value": "Category:Deaths in Kindu",
+      "name": "Q18758905",
+      "canonical": "category : deaths in kindu"
+    },
+    {
+      "value": "Category:Deaths in Valkeakoski",
+      "name": "Q18527622",
+      "canonical": "category : deaths in valkeakoski"
+    },
+    {
+      "value": "Category:Deaths in Úbeda",
+      "name": "Q15078137",
+      "canonical": "category : deaths in úbeda"
+    },
+    {
+      "value": "Category:Deaths in Hamina",
+      "name": "Q18667710",
+      "canonical": "category : deaths in hamina"
+    },
+    {
+      "value": "Category:Deaths in Chittagong",
+      "name": "Q24074150",
+      "canonical": "category : deaths in chittagong"
+    },
+    {
+      "value": "Category:Deaths in Enugu",
+      "name": "Q18161719",
+      "canonical": "category : deaths in enugu"
+    },
+    {
+      "value": "Category:Deaths in Aktobe",
+      "name": "Q18664080",
+      "canonical": "category : deaths in aktobe"
+    },
+    {
+      "value": "Category:Deaths in Karaganda",
+      "name": "Q9687698",
+      "canonical": "category : deaths in karaganda"
+    },
+    {
+      "value": "Category:Deaths in Fergana",
+      "name": "Q18667694",
+      "canonical": "category : deaths in fergana"
+    },
+    {
+      "value": "Category:Deaths in Anykščiai",
+      "name": "Q17403630",
+      "canonical": "category : deaths in anykščiai"
+    },
+    {
+      "value": "Category:Deaths in Agdam",
+      "name": "Q10044069",
+      "canonical": "category : deaths in agdam"
+    },
+    {
+      "value": "Category:Deaths in Varkaus",
+      "name": "Q18533503",
+      "canonical": "category : deaths in varkaus"
+    },
+    {
+      "value": "Category:Deaths in Loviisa",
+      "name": "Q18666299",
+      "canonical": "category : deaths in loviisa"
+    },
+    {
+      "value": "Category:Deaths in Quilmes",
+      "name": "Q9219597",
+      "canonical": "category : deaths in quilmes"
+    },
+    {
+      "value": "Category:Deaths in Kąty Wrocławskie",
+      "name": "Q18758940",
+      "canonical": "category : deaths in kąty wrocławskie"
+    },
+    {
+      "value": "Category:Deaths in Hastings",
+      "name": "Q18667721",
+      "canonical": "category : deaths in hastings"
+    },
+    {
+      "value": "Category:Deaths in Kaunas",
+      "name": "Q9911081",
+      "canonical": "category : deaths in kaunas"
+    },
+    {
+      "value": "Category:Deaths in Toronto",
+      "name": "Q6430176",
+      "canonical": "category : deaths in toronto"
+    },
+    {
+      "value": "Category:Deaths in Tashkent",
+      "name": "Q9220119",
+      "canonical": "category : deaths in tashkent"
+    },
+    {
+      "value": "Category:Deaths in Milan",
+      "name": "Q9219098",
+      "canonical": "category : deaths in milan"
+    },
+    {
+      "value": "Category:Deaths in Padua",
+      "name": "Q9219401",
+      "canonical": "category : deaths in padua"
+    },
+    {
+      "value": "Category:Deaths in Genoa",
+      "name": "Q9218461",
+      "canonical": "category : deaths in genoa"
+    },
+    {
+      "value": "Category:Deaths in Havana",
+      "name": "Q9909418",
+      "canonical": "category : deaths in havana"
+    },
+    {
+      "value": "Category:Dead in Rijeka",
+      "name": "Q9218365",
+      "canonical": "category : dead in rijeka"
+    },
+    {
+      "value": "Category:Deaths in Munich",
+      "name": "Q9219129",
+      "canonical": "category : deaths in munich"
+    },
+    {
+      "value": "Category:Deaths in Catania",
+      "name": "Q9217982",
+      "canonical": "category : deaths in catania"
+    },
+    {
+      "value": "Category:Deaths in Winnipeg",
+      "name": "Q9220400",
+      "canonical": "category : deaths in winnipeg"
+    },
+    {
+      "value": "Category:Deaths in Fredericton",
+      "name": "Q18756548",
+      "canonical": "category : deaths in fredericton"
+    },
+    {
+      "value": "Category:Deaths in Nassau",
+      "name": "Q9688777",
+      "canonical": "category : deaths in nassau"
+    },
+    {
+      "value": "Category:Deaths in Managua",
+      "name": "Q9688292",
+      "canonical": "category : deaths in managua"
+    },
+    {
+      "value": "Category:Deaths in Jakarta",
+      "name": "Q9218474",
+      "canonical": "category : deaths in jakarta"
+    },
+    {
+      "value": "Category:Deaths in Lomé",
+      "name": "Q16270396",
+      "canonical": "category : deaths in lomé"
+    },
+    {
+      "value": "Category:Deaths in Manama",
+      "name": "Q9219006",
+      "canonical": "category : deaths in manama"
+    },
+    {
+      "value": "Category:Deaths in Port Louis",
+      "name": "Q9689216",
+      "canonical": "category : deaths in port louis"
+    },
+    {
+      "value": "Category:Deaths in Liège",
+      "name": "Q9218902",
+      "canonical": "category : deaths in liège"
+    },
+    {
+      "value": "Category:Deaths in Glasgow",
+      "name": "Q9218504",
+      "canonical": "category : deaths in glasgow"
+    },
+    {
+      "value": "Category:Deaths in Curitiba",
+      "name": "Q17373851",
+      "canonical": "category : deaths in curitiba"
+    },
+    {
+      "value": "Category:Deaths in Barquisimeto",
+      "name": "Q17279415",
+      "canonical": "category : deaths in barquisimeto"
+    },
+    {
+      "value": "Category:Deaths in Ähtäri",
+      "name": "Q18667909",
+      "canonical": "category : deaths in ähtäri"
+    },
+    {
+      "value": "Category:Deaths in St Albans",
+      "name": "Q9220050",
+      "canonical": "category : deaths in st albans"
+    },
+    {
+      "value": "Category:Deaths in Poitiers",
+      "name": "Q9219509",
+      "canonical": "category : deaths in poitiers"
+    },
+    {
+      "value": "Category:Deaths in Castellammare di Stabia",
+      "name": "Q9217958",
+      "canonical": "category : deaths in castellammare di stabia"
+    },
+    {
+      "value": "Category:Deaths in Livorno",
+      "name": "Q14914929",
+      "canonical": "category : deaths in livorno"
+    },
+    {
+      "value": "Category:Deaths in Reggio Calabria",
+      "name": "Q9219633",
+      "canonical": "category : deaths in reggio calabria"
+    },
+    {
+      "value": "Category:Deaths in Rio de Janeiro (city)",
+      "name": "Q14539989",
+      "canonical": "category : deaths in rio de janeiro ( city )"
+    },
+    {
+      "value": "Category:Deaths in A Coruña",
+      "name": "Q9218766",
+      "canonical": "category : deaths in a coruña"
+    },
+    {
+      "value": "Category:Deaths in Sarajevo",
+      "name": "Q9219894",
+      "canonical": "category : deaths in sarajevo"
+    },
+    {
+      "value": "Category:Deaths in Darwin",
+      "name": "Q26834174",
+      "canonical": "category : deaths in darwin"
+    },
+    {
+      "value": "Category:Deaths in Schaerbeek / Schaarbeek",
+      "name": "Q9219928",
+      "canonical": "category : deaths in schaerbeek / schaarbeek"
+    },
+    {
+      "value": "Category:Deaths in Latina",
+      "name": "Q9218829",
+      "canonical": "category : deaths in latina"
+    },
+    {
+      "value": "Category:Deaths in Foggia",
+      "name": "Q9218370",
+      "canonical": "category : deaths in foggia"
+    },
+    {
+      "value": "Category:Deaths in Avilés",
+      "name": "Q19961099",
+      "canonical": "category : deaths in avilés"
+    },
+    {
+      "value": "Category:Deaths in Tarragona",
+      "name": "Q9220116",
+      "canonical": "category : deaths in tarragona"
+    },
+    {
+      "value": "Category:Deaths in León",
+      "name": "Q9218897",
+      "canonical": "category : deaths in león"
+    },
+    {
+      "value": "Category:Deaths in Pyongyang",
+      "name": "Q16070843",
+      "canonical": "category : deaths in pyongyang"
+    },
+    {
+      "value": "Category:Deaths in Viborg",
+      "name": "Q19961362",
+      "canonical": "category : deaths in viborg"
+    },
+    {
+      "value": "Category:Deaths in Bath",
+      "name": "Q14454304",
+      "canonical": "category : deaths in bath"
+    },
+    {
+      "value": "Category:Deaths in Martin",
+      "name": "Q9219040",
+      "canonical": "category : deaths in martin"
+    },
+    {
+      "value": "Category:Deaths in Herning",
+      "name": "Q17280617",
+      "canonical": "category : deaths in herning"
+    },
+    {
+      "value": "Category:Deaths in Canterbury",
+      "name": "Q9217890",
+      "canonical": "category : deaths in canterbury"
+    },
+    {
+      "value": "Category:Deaths in Salta",
+      "name": "Q9689848",
+      "canonical": "category : deaths in salta"
+    },
+    {
+      "value": "Category:Deaths in Aberdeen",
+      "name": "Q9685107",
+      "canonical": "category : deaths in aberdeen"
+    },
+    {
+      "value": "Category:Deaths in Benghazi",
+      "name": "Q9217665",
+      "canonical": "category : deaths in benghazi"
+    },
+    {
+      "value": "Category:Deaths in Belo Horizonte",
+      "name": "Q9217661",
+      "canonical": "category : deaths in belo horizonte"
+    },
+    {
+      "value": "Category:Deaths in Plymouth",
+      "name": "Q9219502",
+      "canonical": "category : deaths in plymouth"
+    },
+    {
+      "value": "Category:Deaths in Derby",
+      "name": "Q9218226",
+      "canonical": "category : deaths in derby"
+    },
+    {
+      "value": "Category:Deaths in Espoo",
+      "name": "Q9218324",
+      "canonical": "category : deaths in espoo"
+    },
+    {
+      "value": "Category:Deaths in Port Mahon",
+      "name": "Q18175274",
+      "canonical": "category : deaths in port mahon"
+    },
+    {
+      "value": "Category:Deaths in Kalisz",
+      "name": "Q14331297",
+      "canonical": "category : deaths in kalisz"
+    },
+    {
+      "value": "Category:Deaths in Zug",
+      "name": "Q9220445",
+      "canonical": "category : deaths in zug"
+    },
+    {
+      "value": "Category:Deaths in Tskhinvali",
+      "name": "Q9835869",
+      "canonical": "category : deaths in tskhinvali"
+    },
+    {
+      "value": "Category:Deaths in Giza",
+      "name": "Q9218502",
+      "canonical": "category : deaths in giza"
+    },
+    {
+      "value": "Categoria:Deaths in Corinth",
+      "name": "Q21061154",
+      "canonical": "categoria : deaths in corinth"
+    },
+    {
+      "value": "Category:Deaths in Sosnowiec",
+      "name": "Q32417758",
+      "canonical": "category : deaths in sosnowiec"
+    },
+    {
+      "value": "Category:Deaths in Legnica",
+      "name": "Q9218869",
+      "canonical": "category : deaths in legnica"
+    },
+    {
+      "value": "Category:Deaths in Ruda Śląska",
+      "name": "Q16878976",
+      "canonical": "category : deaths in ruda śląska"
+    },
+    {
+      "value": "Category:Deaths in Dundee",
+      "name": "Q8051858",
+      "canonical": "category : deaths in dundee"
+    },
+    {
+      "value": "Category:Deaths in Vantaa",
+      "name": "Q18527686",
+      "canonical": "category : deaths in vantaa"
+    },
+    {
+      "value": "Category:Deaths in Banja Luka",
+      "name": "Q18082552",
+      "canonical": "category : deaths in banja luka"
+    },
+    {
+      "value": "Category:Deaths in Jelenia Góra",
+      "name": "Q9218682",
+      "canonical": "category : deaths in jelenia góra"
+    },
+    {
+      "value": "Category:Deaths in Tiberias",
+      "name": "Q9220159",
+      "canonical": "category : deaths in tiberias"
+    },
+    {
+      "value": "Category:Deaths in Kronstadt",
+      "name": "Q15144041",
+      "canonical": "category : deaths in kronstadt"
+    },
+    {
+      "value": "Category:Deaths in Ústí nad Labem",
+      "name": "Q18761776",
+      "canonical": "category : deaths in ústí nad labem"
+    },
+    {
+      "value": "Category:Deaths in Lomonosov",
+      "name": "Q18666310",
+      "canonical": "category : deaths in lomonosov"
+    },
+    {
+      "value": "Category:Deaths in Allahabad",
+      "name": "Q17622242",
+      "canonical": "category : deaths in allahabad"
+    },
+    {
+      "value": "Category:Deaths in Alghero",
+      "name": "Q9220530",
+      "canonical": "category : deaths in alghero"
+    },
+    {
+      "value": "Category:Deaths in Budva Municipality",
+      "name": "Q9217806",
+      "canonical": "category : deaths in budva municipality"
+    },
+    {
+      "value": "Category:Deaths in Niterói",
+      "name": "Q9219293",
+      "canonical": "category : deaths in niterói"
+    },
+    {
+      "value": "Category:Deaths in Zenica",
+      "name": "Q18083614",
+      "canonical": "category : deaths in zenica"
+    },
+    {
+      "value": "Category:Deaths in Tétouan",
+      "name": "Q18761638",
+      "canonical": "category : deaths in tétouan"
+    },
+    {
+      "value": "Category:Deaths in Damietta",
+      "name": "Q13463941",
+      "canonical": "category : deaths in damietta"
+    },
+    {
+      "value": "Category:Deaths in Champigny-sur-Marne",
+      "name": "Q9218017",
+      "canonical": "category : deaths in champigny-sur-marne"
+    },
+    {
+      "value": "Category:Deaths in El Alamein",
+      "name": "Q18755091",
+      "canonical": "category : deaths in el alamein"
+    },
+    {
+      "value": "Category:Deaths in Imatra",
+      "name": "Q23540804",
+      "canonical": "category : deaths in imatra"
+    },
+    {
+      "value": "Category:Deaths in Mansoura",
+      "name": "Q32402509",
+      "canonical": "category : deaths in mansoura"
+    },
+    {
+      "value": "Category:Deaths in Madurai",
+      "name": "Q18618664",
+      "canonical": "category : deaths in madurai"
+    },
+    {
+      "value": "Category:Deaths in Chełm",
+      "name": "Q28735107",
+      "canonical": "category : deaths in chełm"
+    },
+    {
+      "value": "Category:Deaths in Raqqa",
+      "name": "Q32661991",
+      "canonical": "category : deaths in raqqa"
+    },
+    {
+      "value": "Category:Deaths in Świdnica",
+      "name": "Q18761778",
+      "canonical": "category : deaths in świdnica"
+    },
+    {
+      "value": "Category:Deaths in Shymkent",
+      "name": "Q17487010",
+      "canonical": "category : deaths in shymkent"
+    },
+    {
+      "value": "Category:Deaths in Andijan",
+      "name": "Q18664107",
+      "canonical": "category : deaths in andijan"
+    },
+    {
+      "value": "Category:Deaths in Hondarribia",
+      "name": "Q16270647",
+      "canonical": "category : deaths in hondarribia"
+    },
+    {
+      "value": "Category:Deaths in Namangan",
+      "name": "Q18666568",
+      "canonical": "category : deaths in namangan"
+    },
+    {
+      "value": "Category:Deaths in Castro Urdiales",
+      "name": "Q18754668",
+      "canonical": "category : deaths in castro urdiales"
+    },
+    {
+      "value": "Category:Deaths in Knyszyn",
+      "name": "Q28475638",
+      "canonical": "category : deaths in knyszyn"
+    },
+    {
+      "value": "Category:Deaths in Klaipėda",
+      "name": "Q17399252",
+      "canonical": "category : deaths in klaipėda"
+    },
+    {
+      "value": "Category:Deaths in Wolsztyn",
+      "name": "Q18665257",
+      "canonical": "category : deaths in wolsztyn"
+    },
+    {
+      "value": "Category:Deaths in Summerside",
+      "name": "Q18881823",
+      "canonical": "category : deaths in summerside"
+    },
+    {
+      "value": "Category:Deaths in Viana",
+      "name": "Q15079910",
+      "canonical": "category : deaths in viana"
+    },
+    {
+      "value": "Category:Deaths in Hořice",
+      "name": "Q19753502",
+      "canonical": "category : deaths in hořice"
+    },
+    {
+      "value": "Category:Deaths in Khojali",
+      "name": "Q10233125",
+      "canonical": "category : deaths in khojali"
+    },
+    {
+      "value": "Category:Deaths in Lloydminster",
+      "name": "Q17149748",
+      "canonical": "category : deaths in lloydminster"
+    },
+    {
+      "value": "Category:Deaths in Nakhichevan-on-Don",
+      "name": "Q18122830",
+      "canonical": "category : deaths in nakhichevan-on-don"
+    },
+    {
+      "value": "Category:Deaths in Newcastle upon Tyne",
+      "name": "Q9688838",
+      "canonical": "category : deaths in newcastle upon tyne"
+    },
+    {
+      "value": "Category:Deaths in Atibaia",
+      "name": "Q17156599",
+      "canonical": "category : deaths in atibaia"
+    },
+    {
+      "value": "Category:Deaths in Supraśl",
+      "name": "Q27980508",
+      "canonical": "category : deaths in supraśl"
+    },
+    {
+      "value": "Category:Deaths in Florencio Varela, Buenos Aires",
+      "name": "Q18755232",
+      "canonical": "category : deaths in florencio varela , buenos aires"
+    },
+    {
+      "value": "Category:Deaths in Balcarce",
+      "name": "Q16946742",
+      "canonical": "category : deaths in balcarce"
+    },
+    {
+      "value": "Category:Deaths in Colón",
+      "name": "Q9218122",
+      "canonical": "category : deaths in colón"
+    },
+    {
+      "value": "Category:Deaths in Cairo",
+      "name": "Q9911026",
+      "canonical": "category : deaths in cairo"
+    },
+    {
+      "value": "Category:Deaths in São Paulo",
+      "name": "Q9914105",
+      "canonical": "category : deaths in são paulo"
+    },
+    {
+      "value": "Category:Deaths in Brussels",
+      "name": "Q32661956",
+      "canonical": "category : deaths in brussels"
+    },
+    {
+      "value": "Category:Deaths in Cambridge",
+      "name": "Q9217862",
+      "canonical": "category : deaths in cambridge"
+    },
+    {
+      "value": "Category:Deaths in Szczecin",
+      "name": "Q9915070",
+      "canonical": "category : deaths in szczecin"
+    },
+    {
+      "value": "Category:Deaths in Bergamo",
+      "name": "Q9217668",
+      "canonical": "category : deaths in bergamo"
+    },
+    {
+      "value": "Category:Deaths in Jerusalem",
+      "name": "Q9687676",
+      "canonical": "category : deaths in jerusalem"
+    },
+    {
+      "value": "Category:Deaths in Chennai",
+      "name": "Q9686444",
+      "canonical": "category : deaths in chennai"
+    },
+    {
+      "value": "Category:Deaths in Abu Dhabi",
+      "name": "Q16222650",
+      "canonical": "category : deaths in abu dhabi"
+    },
+    {
+      "value": "Category:Deaths in Khartoum",
+      "name": "Q9218722",
+      "canonical": "category : deaths in khartoum"
+    },
+    {
+      "value": "Category:Deaths in Florence",
+      "name": "Q9218362",
+      "canonical": "category : deaths in florence"
+    },
+    {
+      "value": "Category:Deaths in Charlottetown",
+      "name": "Q18881553",
+      "canonical": "category : deaths in charlottetown"
+    },
+    {
+      "value": "Category:Deaths in Mogadishu",
+      "name": "Q9219123",
+      "canonical": "category : deaths in mogadishu"
+    },
+    {
+      "value": "Category:Deaths in Skierniewice",
+      "name": "Q9220004",
+      "canonical": "category : deaths in skierniewice"
+    },
+    {
+      "value": "Category:Deaths in Lima",
+      "name": "Q15112014",
+      "canonical": "category : deaths in lima"
+    },
+    {
+      "value": "Category:Deaths in Ulm",
+      "name": "Q9220239",
+      "canonical": "category : deaths in ulm"
+    },
+    {
+      "value": "Category:Deaths in Panama City",
+      "name": "Q9219421",
+      "canonical": "category : deaths in panama city"
+    },
+    {
+      "value": "Category:Deaths in Bari",
+      "name": "Q9217628",
+      "canonical": "category : deaths in bari"
+    },
+    {
+      "value": "Category:Deaths in Nouakchott",
+      "name": "Q17567109",
+      "canonical": "category : deaths in nouakchott"
+    },
+    {
+      "value": "Category:Deaths in Belgrade",
+      "name": "Q6546839",
+      "canonical": "category : deaths in belgrade"
+    },
+    {
+      "value": "Category:Deaths in Bangui",
+      "name": "Q9685642",
+      "canonical": "category : deaths in bangui"
+    },
+    {
+      "value": "Category:Deaths in Harare",
+      "name": "Q9220669",
+      "canonical": "category : deaths in harare"
+    },
+    {
+      "value": "Category:Deaths in Koprivnica",
+      "name": "Q18534375",
+      "canonical": "category : deaths in koprivnica"
+    },
+    {
+      "value": "Category:Bukhara deaths",
+      "name": "Q11253092",
+      "canonical": "category : bukhara deaths"
+    },
+    {
+      "value": "Category:Deaths in Kabul",
+      "name": "Q9687681",
+      "canonical": "category : deaths in kabul"
+    },
+    {
+      "value": "Category:Deaths in Brescia",
+      "name": "Q9686055",
+      "canonical": "category : deaths in brescia"
+    },
+    {
+      "value": "Category:Deaths in Pushkin",
+      "name": "Q14539733",
+      "canonical": "category : deaths in pushkin"
+    },
+    {
+      "value": "Category:Deaths in Shanghai",
+      "name": "Q9219982",
+      "canonical": "category : deaths in shanghai"
+    },
+    {
+      "value": "Category:Died in Coswig",
+      "name": "Q18754936",
+      "canonical": "category : died in coswig"
+    },
+    {
+      "value": "Death in Guadalajara, Mexico",
+      "name": "Q9218545",
+      "canonical": "death in guadalajara , mexico"
+    },
+    {
+      "value": "Category:Deaths in Alicante",
+      "name": "Q9685219",
+      "canonical": "category : deaths in alicante"
+    },
+    {
+      "value": "Category:Deaths in Gijón",
+      "name": "Q9218486",
+      "canonical": "category : deaths in gijón"
+    },
+    {
+      "value": "Category:Deaths in Forlì",
+      "name": "Q9218385",
+      "canonical": "category : deaths in forlì"
+    },
+    {
+      "value": "Category:Deaths in Taranto",
+      "name": "Q9220112",
+      "canonical": "category : deaths in taranto"
+    },
+    {
+      "value": "Category:Deaths in Messina",
+      "name": "Q9219089",
+      "canonical": "category : deaths in messina"
+    },
+    {
+      "value": "Category:Deaths in Badajoz",
+      "name": "Q9685590",
+      "canonical": "category : deaths in badajoz"
+    },
+    {
+      "value": "Category:Deaths in Ávila",
+      "name": "Q9220673",
+      "canonical": "category : deaths in ávila"
+    },
+    {
+      "value": "Category:Deaths in Zamora",
+      "name": "Q9220428",
+      "canonical": "category : deaths in zamora"
+    },
+    {
+      "value": "Category:Deaths in Krško",
+      "name": "Q18758933",
+      "canonical": "category : deaths in krško"
+    },
+    {
+      "value": "Category:Deaths in Sežana",
+      "name": "Q18172286",
+      "canonical": "category : deaths in sežana"
+    },
+    {
+      "value": "Category:Deaths in Nanjing",
+      "name": "Q9219237",
+      "canonical": "category : deaths in nanjing"
+    },
+    {
+      "value": "Category:Deaths in Silkeborg",
+      "name": "Q17280626",
+      "canonical": "category : deaths in silkeborg"
+    },
+    {
+      "value": "Category:Deaths in Swansea",
+      "name": "Q9220086",
+      "canonical": "category : deaths in swansea"
+    },
+    {
+      "value": "Category:Deaths in Bristol",
+      "name": "Q14331276",
+      "canonical": "category : deaths in bristol"
+    },
+    {
+      "value": "Category:Deaths in Edinburgh",
+      "name": "Q9690952",
+      "canonical": "category : deaths in edinburgh"
+    },
+    {
+      "value": "Category:Deaths in Podgorica",
+      "name": "Q17270841",
+      "canonical": "category : deaths in podgorica"
+    },
+    {
+      "value": "Category:Deaths in Liverpool",
+      "name": "Q9218928",
+      "canonical": "category : deaths in liverpool"
+    },
+    {
+      "value": "Category:Deaths in Leeuwarden",
+      "name": "Q9218866",
+      "canonical": "category : deaths in leeuwarden"
+    },
+    {
+      "value": "Category:Deaths in Randers",
+      "name": "Q9219615",
+      "canonical": "category : deaths in randers"
+    },
+    {
+      "value": "Category:Deaths in Santo Domingo",
+      "name": "Q9689672",
+      "canonical": "category : deaths in santo domingo"
+    },
+    {
+      "value": "Category:Deaths in Leeds",
+      "name": "Q9218865",
+      "canonical": "category : deaths in leeds"
+    },
+    {
+      "value": "Category:Deaths in Port of Spain",
+      "name": "Q15979065",
+      "canonical": "category : deaths in port of spain"
+    },
+    {
+      "value": "Category:Deaths in Hobart",
+      "name": "Q9687468",
+      "canonical": "category : deaths in hobart"
+    },
+    {
+      "value": "Category:Deaths in Sokhumi",
+      "name": "Q9220077",
+      "canonical": "category : deaths in sokhumi"
+    },
+    {
+      "value": "Category:Deaths in Świnoujście",
+      "name": "Q18667009",
+      "canonical": "category : deaths in świnoujście"
+    },
+    {
+      "value": "Category:Deaths in Haifa",
+      "name": "Q9218569",
+      "canonical": "category : deaths in haifa"
+    },
+    {
+      "value": "Category:Deaths in Harbin",
+      "name": "Q18667713",
+      "canonical": "category : deaths in harbin"
+    },
+    {
+      "value": "Category:Deaths in Cayenne",
+      "name": "Q9217842",
+      "canonical": "category : deaths in cayenne"
+    },
+    {
+      "value": "Category:Deaths in Trabzon",
+      "name": "Q10208746",
+      "canonical": "category : deaths in trabzon"
+    },
+    {
+      "value": "Category:Deaths in Dunkirk",
+      "name": "Q9218279",
+      "canonical": "category : deaths in dunkirk"
+    },
+    {
+      "value": "Category:Deaths in Green Bay",
+      "name": "Q18015040",
+      "canonical": "category : deaths in green bay"
+    },
+    {
+      "value": "Category:Deaths in Cali",
+      "name": "Q9686226",
+      "canonical": "category : deaths in cali"
+    },
+    {
+      "value": "Category:Deaths in Kluczbork",
+      "name": "Q18666055",
+      "canonical": "category : deaths in kluczbork"
+    },
+    {
+      "value": "Category:Deaths in Christchurch",
+      "name": "Q15940347",
+      "canonical": "category : deaths in christchurch"
+    },
+    {
+      "value": "Category:Deaths in Olomouc",
+      "name": "Q9219346",
+      "canonical": "category : deaths in olomouc"
+    },
+    {
+      "value": "Category:Deaths in Szeged",
+      "name": "Q18241507",
+      "canonical": "category : deaths in szeged"
+    },
+    {
+      "value": "Category:Deaths in Durrës",
+      "name": "Q17305012",
+      "canonical": "category : deaths in durrës"
+    },
+    {
+      "value": "Category:Deaths in Częstochowa",
+      "name": "Q15081345",
+      "canonical": "category : deaths in częstochowa"
+    },
+    {
+      "value": "Category:Deaths in Słupsk",
+      "name": "Q9220097",
+      "canonical": "category : deaths in słupsk"
+    },
+    {
+      "value": "Category:Deaths in St. Catharines",
+      "name": "Q9220049",
+      "canonical": "category : deaths in st . catharines"
+    },
+    {
+      "value": "Category:Deaths in Antibes",
+      "name": "Q9220580",
+      "canonical": "category : deaths in antibes"
+    },
+    {
+      "value": "Category:Deaths in Galway",
+      "name": "Q18337983",
+      "canonical": "category : deaths in galway"
+    },
+    {
+      "value": "Category:Deaths in Pau",
+      "name": "Q9219441",
+      "canonical": "category : deaths in pau"
+    },
+    {
+      "value": "Category:Deaths in Limerick",
+      "name": "Q18339824",
+      "canonical": "category : deaths in limerick"
+    },
+    {
+      "value": "Category:Deaths in Děčín",
+      "name": "Q15081225",
+      "canonical": "category : deaths in děčín"
+    },
+    {
+      "value": "Category:Deaths in Herzliya",
+      "name": "Q18665446",
+      "canonical": "category : deaths in herzliya"
+    },
+    {
+      "value": "Category:Deaths in Struga",
+      "name": "Q18667565",
+      "canonical": "category : deaths in struga"
+    },
+    {
+      "value": "Category:Deaths in Piotrków Trybunalski",
+      "name": "Q18666883",
+      "canonical": "category : deaths in piotrków trybunalski"
+    },
+    {
+      "value": "Category:Deaths in Chambéry",
+      "name": "Q9218014",
+      "canonical": "category : deaths in chambéry"
+    },
+    {
+      "value": "Category:Deaths in Thiruvananthapuram",
+      "name": "Q32395898",
+      "canonical": "category : deaths in thiruvananthapuram"
+    },
+    {
+      "value": "Category:Deaths in Čakovec",
+      "name": "Q18534521",
+      "canonical": "category : deaths in čakovec"
+    },
+    {
+      "value": "Category:Deaths in Hebron",
+      "name": "Q18667720",
+      "canonical": "category : deaths in hebron"
+    },
+    {
+      "value": "Category:Deaths in Nyíregyháza",
+      "name": "Q32369893",
+      "canonical": "category : deaths in nyíregyháza"
+    },
+    {
+      "value": "Category:Deaths in Ashdod",
+      "name": "Q18664223",
+      "canonical": "category : deaths in ashdod"
+    },
+    {
+      "value": "Category:Deaths in Petergof",
+      "name": "Q16326774",
+      "canonical": "category : deaths in petergof"
+    },
+    {
+      "value": "Category:Deaths in Truro",
+      "name": "Q9220223",
+      "canonical": "category : deaths in truro"
+    },
+    {
+      "value": "Category:Deaths in Lappeenranta",
+      "name": "Q18526486",
+      "canonical": "category : deaths in lappeenranta"
+    },
+    {
+      "value": "Category:Deaths in Tobruk",
+      "name": "Q9220170",
+      "canonical": "category : deaths in tobruk"
+    },
+    {
+      "value": "Category:Deaths in Joensuu",
+      "name": "Q18528447",
+      "canonical": "category : deaths in joensuu"
+    },
+    {
+      "value": "Category:Deaths in Constantine",
+      "name": "Q17326313",
+      "canonical": "category : deaths in constantine"
+    },
+    {
+      "value": "Category:Deaths in Kavala",
+      "name": "Q18758899",
+      "canonical": "category : deaths in kavala"
+    },
+    {
+      "value": "Category:Deaths in Tongeren",
+      "name": "Q9690378",
+      "canonical": "category : deaths in tongeren"
+    },
+    {
+      "value": "Category:Deaths in Carlisle",
+      "name": "Q17199224",
+      "canonical": "category : deaths in carlisle"
+    },
+    {
+      "value": "Category:Deaths in Herceg Novi",
+      "name": "Q17277764",
+      "canonical": "category : deaths in herceg novi"
+    },
+    {
+      "value": "Category:Deaths in Bulawayo",
+      "name": "Q16335952",
+      "canonical": "category : deaths in bulawayo"
+    },
+    {
+      "value": "Category:Deaths in Nikšić",
+      "name": "Q17277430",
+      "canonical": "category : deaths in nikšić"
+    },
+    {
+      "value": "Category:Deaths in Bled",
+      "name": "Q18172018",
+      "canonical": "category : deaths in bled"
+    },
+    {
+      "value": "Category:Deaths in Hereford",
+      "name": "Q18663851",
+      "canonical": "category : deaths in hereford"
+    },
+    {
+      "value": "Category:Deaths in Łomża",
+      "name": "Q9220459",
+      "canonical": "category : deaths in łomża"
+    },
+    {
+      "value": "Category:Deaths in Rîbnița",
+      "name": "Q18666948",
+      "canonical": "category : deaths in rîbnița"
+    },
+    {
+      "value": "Category:Deaths in Kerava",
+      "name": "Q18857424",
+      "canonical": "category : deaths in kerava"
+    },
+    {
+      "value": "Category:Deaths in Biskra",
+      "name": "Q9685880",
+      "canonical": "category : deaths in biskra"
+    },
+    {
+      "value": "Category:Deaths in Choibalsan",
+      "name": "Q18667783",
+      "canonical": "category : deaths in choibalsan"
+    },
+    {
+      "value": "Category:Deaths in Batna",
+      "name": "Q9685714",
+      "canonical": "category : deaths in batna"
+    },
+    {
+      "value": "Category:Deaths in Orhei",
+      "name": "Q18666699",
+      "canonical": "category : deaths in orhei"
+    },
+    {
+      "value": "Category:Deaths in Taldykorgan",
+      "name": "Q17488094",
+      "canonical": "category : deaths in taldykorgan"
+    },
+    {
+      "value": "Category:Deaths in Yarim",
+      "name": "Q18756441",
+      "canonical": "category : deaths in yarim"
+    },
+    {
+      "value": "Category:Deaths in Martos",
+      "name": "Q18760485",
+      "canonical": "category : deaths in martos"
+    },
+    {
+      "value": "Category:Deaths in Trzebnica",
+      "name": "Q9220224",
+      "canonical": "category : deaths in trzebnica"
+    },
+    {
+      "value": "Category:Deaths in Jonava",
+      "name": "Q17402310",
+      "canonical": "category : deaths in jonava"
+    },
+    {
+      "value": "Category:Deaths in Resende",
+      "name": "Q18761337",
+      "canonical": "category : deaths in resende"
+    },
+    {
+      "value": "Category:Deaths in Tovuz",
+      "name": "Q32928209",
+      "canonical": "category : deaths in tovuz"
+    },
+    {
+      "value": "Category:Deaths in Marijampolė",
+      "name": "Q17399258",
+      "canonical": "category : deaths in marijampolė"
+    },
+    {
+      "value": "Category:Deaths in Sviyazhsk",
+      "name": "Q18667010",
+      "canonical": "category : deaths in sviyazhsk"
+    },
+    {
+      "value": "Category:Deaths in Zanzibar",
+      "name": "Q17567208",
+      "canonical": "category : deaths in zanzibar"
+    },
+    {
+      "value": "Category:Deaths in Vordingborg",
+      "name": "Q9220370",
+      "canonical": "category : deaths in vordingborg"
+    },
+    {
+      "value": "Category:Deaths in Mykonos",
+      "name": "Q18666503",
+      "canonical": "category : deaths in mykonos"
+    },
+    {
+      "value": "Category:Deaths in Oslo",
+      "name": "Q7335828",
+      "canonical": "category : deaths in oslo"
+    }
+  ]
+}
