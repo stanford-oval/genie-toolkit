@@ -87,6 +87,20 @@ class @org.thingpedia.builtin.thingengine.builtin
   #[doc="get a uniform random integer between `low` and `high`"]
   #[confirm=false];
 
+  query get_name(out name: String
+                 #[string_values="tt:person_first_name"]
+                 #_[canonical=["name"]]
+                 #[filterable=false])
+  #_[canonical=["my name", "user 's name"]]
+  #_[result=["your name is ${name}", "you are ${name}"]]
+  #_[on_error={
+    unset=["i do not know your name yet . would you like to tell me ?",
+           "you have not told me your name yet"],
+  }]
+  #_[confirmation="your name"]
+  #[doc="get the user's preferred name (a setting)"]
+  #[confirm=false];
+
   /*
   monitorable list query device(out id : Entity(tt:device)
                                 #_[canonical={
@@ -178,20 +192,127 @@ class @org.thingpedia.builtin.thingengine.builtin
   #[doc="asks a question about Almond"]
   #[confirm=false];
 
-/*
-  action configure(in req device: Entity(tt:device) #_[prompt="What device do you want to configure?"])
-  #_[canonical="configure"]
+  action configure(in req device: Entity(tt:device) #_[prompt="what device do you want to configure"])
+  #_[canonical=["configure a new skill", "enable a new skill"]]
+  #_[on_error={
+    unsupported_skill=["i do not know ${device} yet",
+                       "${device} is not supported yet"],
+    unsupported_platform=["you need to go to the configure new skill page to enable new skills"],
+  }]
   #_[confirmation="configure a new $device"]
-  #_[confirmation_remote="configure a new $device on $__person's Almond"]
   #[doc="configure a specific device by type"]
   #[confirm=false];
 
+/*
   action discover()
   #_[canonical="discover"]
   #_[confirmation="search for new devices"]
-  #_[confirmation_remote="search for new devices on $__person's Almond"]
   #[doc="start interactive discovery for new devices"]
   #[confirm=false];
 */
-}
 
+  action set_language(in req language : Entity(tt:iso_lang_code)
+                      #_[canonical={
+                        base=["language"],
+                        preposition=["to #"]
+                      }])
+  #_[canonical=["set the language",
+                "change the language",
+                "set the assistant language",
+                "set the language of the assistant"]]
+  #_[on_error={
+    unsupported_language=["${language} is not supported yet",
+                          "i do not support ${language} yet"],
+    unsupported_platform_cloud=["you need to go to the user profile page to change the language"],
+  }]
+  #_[confirmation="set the language to $language"]
+  #[doc="change the assistant language (not supported on all platforms)"]
+  #[confirm=false];
+
+  action set_timezone(in req timezone : Entity(tt:timezone)
+                      #_[canonical={
+                        base=["time zone"],
+                        preposition=["to #"]
+                      }])
+  #_[canonical=["set the time zone",
+                "change the time zone",
+                "set the time zone of the assistant"]]
+  #_[on_error={
+    unsupported_platform=["i cannot change the time zone on this system . use the system settings to change my timezone"],
+    unsupported_platform_cloud=["you need to go to the user profile page to change the time zone"],
+  }]
+  #_[confirmation="set the time zone to $timezone"]
+  #[doc="change the assistant time zone (not supported on all platforms)"]
+  #[confirm=false];
+
+  action set_wake_word(in req word : String
+                       #[string_values="tt:word"]
+                       #_[canonical={
+                         base=["word"],
+                         preposition=["to #"]
+                       }])
+  #_[canonical=["set the name of the assistant",
+                "set the wake word",
+                "set the hot word",
+                "change the wake word",
+                "set the assistant name",
+                "change the assistant name"]]
+  #_[on_error={
+    unsupported=["changing the wake word is not supported yet",
+                 "i do not yet support changing my name"],
+  }]
+  #_[confirmation="set the wake word to $language"]
+  #[doc="change the assistant name (wake word) (not supported yet)"]
+  #[confirm=false];
+
+  action set_voice_output(in req status : Enum(on, off)
+                          #_[canonical={
+                             base=["status", "preference"],
+                             preposition=["to #"],
+                          }])
+  #_[canonical=["change the voice output setting"]]
+  #_[on_error={
+    unsupported=["voice output is not supported on this platform"],
+  }]
+  #_[confirmation="turn ${status} voice output"]
+  #[doc="turn on or off voice output"]
+  #[confirm=false];
+
+  action set_voice_input(in req status : Enum(on, off)
+                          #_[canonical={
+                             base=["status", "preference"],
+                             preposition=["to #"],
+                          }])
+  #_[canonical=["change the voice input setting"]]
+  #_[on_error={
+    unsupported=["voice input is not supported on this platform"],
+  }]
+  #_[confirmation="turn ${status} voice input"]
+  #[doc="turn on or off voice input"]
+  #[confirm=false];
+
+  action set_name(in req name : String
+                  #[string_values="tt:person_first_name"]
+                  #_[canonical={
+                     base=["name"],
+                     preposition=["to #"],
+                  }])
+  #_[canonical=["change my name", "set my name"]]
+  #_[confirmation="change your name to ${name}"]
+  #[doc="change the user's preferred name (a setting)"]
+  #[confirm=false];
+
+  action set_location(in opt type : Enum(current,home,work)
+                      #_[prompt="what type of location would you like to change"]
+                      #[default=enum(current)],
+                      in req location : Location
+                      #_[canonical={
+                        base=["location", "place", "address"],
+                        preposition=["to #", "as #"],
+                      }])
+  #_[canonical=["set my location", "set my address", "remember my location",
+                "configure my location"]]
+  #_[confirmation="change your ${type} location to ${name}"]
+  #[doc="change the user's preferred locations (a setting)"]
+  #[confirm=false];
+}

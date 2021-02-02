@@ -64,6 +64,18 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         return [{ random: Math.round(low + (Math.random() * (high - low))) }];
     }
 
+    get_get_name() {
+        const platform = this.platform;
+        const prefs = platform.getSharedPreferences();
+        const name = prefs.get('user-preferred-name');
+        if (!name) {
+            const err : Error & { code ?: string } = new Error('preferred name is not set yet');
+            err.code = 'unset';
+            throw err;
+        }
+        return [{ name }];
+    }
+
     async get_get_gps() {
         const gps = this.engine.platform.getCapability('gps');
         if (gps === null)
@@ -170,7 +182,10 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
     }
 
     do_faq_reply({ question } : { question : string }) {
-        const replies = (FAQ as Record<string, string[]>)[question];
+        let replies = (FAQ as Record<string, (string[]|Record<string,string[]>)>)[question];
+        if (!Array.isArray(replies))
+            replies = replies[this.platform.type] || replies.default;
+
         if (process.env.TEST_MODE)
             return { reply: replies[0] };
         else
@@ -190,7 +205,21 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         return cap.launchURL(String(url));
     }
 
-    do_configure(args : unknown, env : ExecWrapper) : never {
+    async do_configure({ device } : { device : unknown }) : Promise<never> {
+        const tpClient = this.engine.thingpedia;
+        try {
+            await tpClient.getDeviceCode(String(device));
+        } catch(e) {
+            if (e.code === 404)
+                e.code = 'unsupported_skill';
+            throw e;
+        }
+
+        // TODO restore the ability to configure skills from inside the dialogue
+        const err : Error & { code ?: string } = new Error('not supported');
+        err.code = 'unsupported_platform';
+        throw err;
+
         /*
         var conversation = env.app.getConversation();
         if (!conversation)
@@ -200,7 +229,6 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
             // the error has already been logged by Almond, and the user has been informed
         });
         */
-        throw new Error('not implemented');
     }
     do_discover(args : unknown, env : ExecWrapper) : never {
         /*
@@ -213,5 +241,71 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         });
         */
         throw new Error('not implemented');
+    }
+
+    do_set_language() : never {
+        const err : Error & { code ?: string } = new Error('not supported');
+        if (this.platform.type === 'cloud')
+            err.code = 'unsupported_platform_cloud';
+        else
+            err.code = 'unsupported_language';
+        throw err;
+    }
+
+    do_set_timezone() : never {
+        const err : Error & { code ?: string } = new Error('not supported');
+        // in cloud, the timezone is set in the user DB
+        // in server/gnome, the timezone is the system timezone
+        // either way, no luck
+        if (this.platform.type === 'cloud')
+            err.code = 'unsupported_platform_cloud';
+        else
+            err.code = 'unsupported_platform';
+        throw err;
+    }
+
+    do_set_wake_word() : never {
+        const err : Error & { code ?: string } = new Error('not supported');
+        err.code = 'unsupported';
+        throw err;
+    }
+
+    do_set_voice_output({ status } : { status : 'on'|'off' }) {
+        const platform = this.platform;
+        if (!platform.hasCapability('sound')) {
+            const err : Error & { code ?: string } = new Error('not supported');
+            err.code = 'unsupported';
+            throw err;
+        }
+        const prefs = platform.getSharedPreferences();
+        // TODO this does not quite work because SpeechHandler doesn't listen
+        // to preference changes
+        prefs.set('enable-voice-output', status === 'on');
+    }
+
+    do_set_voice_input({ status } : { status : 'on'|'off' }) {
+        const platform = this.platform;
+        if (!platform.hasCapability('sound')) {
+            const err : Error & { code ?: string } = new Error('not supported');
+            err.code = 'unsupported';
+            throw err;
+        }
+        const prefs = platform.getSharedPreferences();
+        // TODO this does not quite work because SpeechHandler doesn't listen
+        // to preference changes
+        prefs.set('enable-voice-input', status === 'on');
+    }
+
+    do_set_name({ name } : { name : string }) {
+        const platform = this.platform;
+        const prefs = platform.getSharedPreferences();
+        prefs.set('user-preferred-name', name);
+    }
+
+    do_set_location({ type, location } : { type : 'current'|'home'|'work', location : Tp.Value.Location }) {
+        const platform = this.platform;
+        const prefs = platform.getSharedPreferences();
+        prefs.set('context-$context.location.' + (type === 'current' ? 'current_location' : type),
+            new TT.Ast.LocationValue(new TT.Ast.AbsoluteLocation(location.lat, location.lon, location.display)).toJS());
     }
 }

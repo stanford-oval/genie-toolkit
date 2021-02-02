@@ -109,7 +109,7 @@ async function main() {
         const q = faqData[intent].q;
         assert(Array.isArray(q), `Invalid question for ${intent}`);
         const a = faqData[intent].a;
-        assert(Array.isArray(a), `Invalid answer for ${intent}`);
+        assert(typeof a === 'object', `Invalid answer for ${intent}`);
 
         const prog = new Ast.InvocationExpression(null,
             new Ast.Invocation(null,
