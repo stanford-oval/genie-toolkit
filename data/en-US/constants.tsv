@@ -93,9 +93,9 @@ Time	15:00:00	3 pm
 Time	20:30:00	8:30 pm
 
 # entity types
-Entity(tt:email_address)	bob@gmail.com
-Entity(tt:email_address)	alice@gmail.com
-Entity(tt:email_address)	charlie@hotmail.com
+Entity(tt:email_address)	bob@example.com
+Entity(tt:email_address)	alice@example.com
+Entity(tt:email_address)	charlie@example.com
 Entity(tt:phone_number)	+16501234567
 Entity(tt:phone_number)	+15551234567
 Entity(tt:phone_number)	+123456789
@@ -106,6 +106,9 @@ Entity(tt:hashtag)	covfefe
 Entity(tt:username)	alice
 Entity(tt:username)	bob
 Entity(tt:username)	charlie
+Entity(tt:contact)	email:alice@example.com	alice
+Entity(tt:contact)	email:bob@example.com	bob
+Entity(tt:contact)	email:charlie@example.com	charlie
 Entity(tt:url)	http://www.abc.def
 Entity(tt:url)	http://www.google.com	www.google.com
 Entity(tt:url)	http://www.example.com
