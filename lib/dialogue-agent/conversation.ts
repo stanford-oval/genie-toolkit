@@ -19,6 +19,8 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
+import path from "path";
+import fs from "fs";
 import * as events from 'events';
 import interpolate from 'string-interp';
 import type * as Tp from 'thingpedia';
@@ -34,6 +36,8 @@ import { MessageType, Message, RDL } from './protocol';
 import { EntityMap } from '../utils/entity-utils';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import type Engine from '../engine';
+import * as StreamUtils from "../utils/stream-utils";
+import { DialogueSerializer, DialogueTurn } from "../dataset-tools/parsers";
 
 const DummyStatistics = {
     hit() {
@@ -57,6 +61,7 @@ export interface ConversationOptions {
     contextResetTimeout ?: number;
     showWelcome ?: boolean;
     deleteWhenInactive ?: boolean;
+    testMode ?: boolean;
 }
 
 interface Statistics {
@@ -119,6 +124,8 @@ export default class Conversation extends events.EventEmitter {
     private _contextResetTimeout : NodeJS.Timeout|null;
     private _contextResetTimeoutSec : number;
 
+    private _log : DialogueTurn[];
+
     constructor(engine : Engine,
                 conversationId : string,
                 user : AssistantUser,
@@ -169,6 +176,8 @@ export default class Conversation extends events.EventEmitter {
         this._inactivityTimeoutSec = options.inactivityTimeout || DEFAULT_CONVERSATION_TTL;
         this._contextResetTimeout = null;
         this._contextResetTimeoutSec = options.contextResetTimeout || this._inactivityTimeoutSec;
+
+        this._log = [];
     }
 
     get isAnonymous() : boolean {
@@ -213,6 +222,18 @@ export default class Conversation extends events.EventEmitter {
 
     get history() : Message[] {
         return this._history;
+    }
+
+    get inTestMode() : boolean {
+        return !!this._options.testMode;
+    }
+
+    enterTestMode() {
+        this._options.testMode = true;
+    }
+
+    exitTestMode() {
+        this._options.testMode = false;
     }
 
     notify(appId : string, icon : string|null, outputType : string, outputValue : Record<string, unknown>) {
@@ -549,4 +570,45 @@ export default class Conversation extends events.EventEmitter {
             console.log('Almond sends link: '+ url);
         return this._addMessage({ type: MessageType.LINK, url, title });
     }
+
+    appendLog(turn : DialogueTurn) {
+        this._log.push(turn);
+    }
+
+    upvoteLast() {
+        if (this._log.length === 0)
+            throw new Error('No response found to be rated');
+        const last = this._log[this._log.length - 1];
+        last.rate = '👍';
+    }
+
+    downvoteLast() {
+        if (this._log.length === 0)
+            throw new Error('No response found to be rated');
+        const last = this._log[this._log.length - 1];
+        last.rate = '👎';
+    }
+
+    commentLast(comment : string) {
+        if (this._log.length === 0)
+            throw new Error('No response found to be commented');
+        const last = this._log[this._log.length - 1];
+        last.comment = comment;
+    }
+
+    async saveLog() {
+        const dir = this._engine.platform.getWritableDir();
+        const logfile = path.join(dir, this.id + '.txt');
+        const serializer = new DialogueSerializer({ annotations: true });
+
+        const output = fs.createWriteStream(logfile);
+
+        serializer.pipe(output);
+        serializer.write({ id: this.id, turns : this._log });
+        serializer.end();
+
+        await StreamUtils.waitFinish(output);
+    }
+
+
 }

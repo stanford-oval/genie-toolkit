@@ -194,7 +194,9 @@ class DialogueSerializer extends Stream.Transform {
             this.push(v);
     }
 
-    private _prefixLines(text : string, prefix : string) : string[] {
+    private _prefixLines(text : string|null, prefix : string) : string[] {
+        if (!text)
+            return [];
         return text.trim().split('\n').map((line) => prefix + line + '\n');
     }
 
@@ -208,10 +210,10 @@ class DialogueSerializer extends Stream.Transform {
             const turn = dlg.turns[i];
             if (i > 0) {
                 if (this._annotations)
-                    this._pushMany(this._prefixLines(turn.context!, 'C: '));
-                this._pushMany(this._prefixLines(turn.agent!, 'A: '));
+                    this._pushMany(this._prefixLines(turn.context, 'C: '));
+                this._pushMany(this._prefixLines(turn.agent, 'A: '));
                 if (this._annotations)
-                    this._pushMany(this._prefixLines(turn.agent_target!, 'AT: '));
+                    this._pushMany(this._prefixLines(turn.agent_target, 'AT: '));
                 if (this._annotations && turn.intermediate_context)
                     this._pushMany(this._prefixLines(turn.intermediate_context, 'C: '));
 

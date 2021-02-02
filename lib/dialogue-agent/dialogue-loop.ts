@@ -43,6 +43,7 @@ import TextFormatter from './card-output/text-formatter';
 import CardFormatter, { FormattedChunk } from './card-output/card-formatter';
 
 import ExecutionDialogueAgent from './execution_dialogue_agent';
+import { DialogueTurn } from "../dataset-tools/parsers";
 
 const ENABLE_SUGGESTIONS = false;
 
@@ -71,6 +72,7 @@ export default class DialogueLoop {
     private _dialogueState : ThingTalk.Ast.DialogueState|null;
     private _executorState : undefined;
     private _lastNotificationApp : string|undefined;
+    private _currentTurn : DialogueTurn;
 
     private _mgrResolve : (() => void)|null;
     private _mgrPromise : Promise<void>|null;
@@ -103,6 +105,14 @@ export default class DialogueLoop {
             rng: conversation.rng,
             debug : this._debug
         });
+        this._currentTurn = {
+            context : null,
+            agent : null,
+            agent_target : null,
+            intermediate_context : null,
+            user: '',
+            user_target: ''
+        };
         this._dialogueState = null; // thingtalk dialogue state
         this._executorState = undefined; // private object managed by DialogueExecutor
         this._lastNotificationApp = undefined;
@@ -242,7 +252,7 @@ export default class DialogueLoop {
         return this._prefs.get('experimental-use-neural-nlg') as boolean;
     }
 
-    private async _doAgentReply() : Promise<[ValueCategory|null, number]> {
+    private async _doAgentReply() : Promise<[ValueCategory|null, string, number]> {
         const oldState = this._dialogueState;
 
         const policyResult = await this._policy.chooseAction(this._dialogueState);
@@ -269,11 +279,23 @@ export default class DialogueLoop {
 
         this.icon = getProgramIcon(this._dialogueState!);
         await this.reply(utterance);
-        if (expect === null && TERMINAL_STATES.includes(this._dialogueState!.dialogueAct))
-            throw new CancellationError();
 
         await this.setExpected(expect);
-        return [expect, numResults];
+        return [expect, utterance, numResults];
+    }
+
+    private _updateLog() {
+        if (this.conversation.inTestMode) {
+            this.conversation.appendLog(this._currentTurn);
+            this._currentTurn = {
+                context: null,
+                agent: null,
+                agent_target: null,
+                intermediate_context: null,
+                user: '',
+                user_target: ''
+            };
+        }
     }
 
     private async _handleUserInput(intent : UserInput) {
@@ -283,7 +305,13 @@ export default class DialogueLoop {
                 intent = await this.nextIntent();
                 continue;
             }
+
+            this._currentTurn.user = intent.utterance!;
+            this._currentTurn.user_target = prediction.prettyprint();
+            this._updateLog();
+
             this._dialogueState = computeNewState(this._dialogueState, prediction, 'user');
+
             this._checkPolicy(this._dialogueState.policy);
             this.icon = getProgramIcon(this._dialogueState);
 
@@ -296,7 +324,16 @@ export default class DialogueLoop {
             this.debug(`Execution state:`);
             this.debug(this._dialogueState!.prettyprint());
 
-            const [expect, numResults] = await this._doAgentReply();
+            const [expect, utterance, numResults] = await this._doAgentReply();
+
+            this._currentTurn.context = this._dialogueState.prettyprint();
+            this._currentTurn.agent = utterance;
+            this._currentTurn.agent_target = computePrediction(newDialogueState, this._dialogueState, "agent").prettyprint();
+
+            if (expect === null && TERMINAL_STATES.includes(this._dialogueState!.dialogueAct)) {
+                this._updateLog();
+                throw new CancellationError();
+            }
 
             for (const [outputType, outputValue] of newResults.slice(0, numResults)) {
                 const formatted = await this._cardFormatter.formatForType(outputType, outputValue, { removeText: true });

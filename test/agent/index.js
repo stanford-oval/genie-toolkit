@@ -29,7 +29,7 @@ import * as path from 'path';
 import * as yaml from 'js-yaml';
 import * as seedrandom from 'seedrandom';
 
-import { DialogueParser } from '../../lib/dataset-tools/parsers';
+import { DialogueParser } from '../../lib';
 import * as StreamUtils from '../../lib/utils/stream-utils';
 import Conversation from '../../lib/dialogue-agent/conversation';
 
@@ -270,6 +270,7 @@ async function main(onlyIds) {
         anonymous: false,
         rng: rng,
     });
+    conversation.enterTestMode();
     testRunner.conversation = conversation;
     await mockNLU(conversation);
     await conversation.addOutput(delegate);
@@ -289,6 +290,8 @@ Hi, how can I help you?
         await test(testRunner, TEST_CASES[i], i);
     }
 
+    await conversation.saveLog();
+    conversation.exitTestMode();
     console.log('Done');
     process.exit(0);
 }
