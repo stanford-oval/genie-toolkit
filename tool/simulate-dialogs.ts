@@ -36,6 +36,7 @@ import {
     DialogueExample,
 } from '../lib/dataset-tools/parsers';
 import DialoguePolicy from '../lib/dialogue-agent/dialogue_policy';
+import * as ParserClient from '../lib/prediction/parserclient';
 
 import { readAllLines } from './lib/argutils';
 import MultiJSONDatabase from './lib/multi_json_database';
@@ -75,41 +76,81 @@ export function initArgparse(subparsers : argparse.SubParser) {
         type: fs.createReadStream,
         help: 'Input dialog file'
     });
+    parser.add_argument('--nlu-server', {
+        required: false,
+        help: `The URL of the natural language server to parse user utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.
+               If provided, will be used to parse the last user utterance instead of reading the parse from input_file.`
+    });
 }
 
 class SimulatorStream extends Stream.Transform {
     private _simulator : ThingTalkUtils.Simulator;
     private _schemas : ThingTalk.SchemaRetriever;
     private _dialoguePolicy : DialoguePolicy;
+    private _parser : ParserClient.ParserClient | null;
+    private _tpClient : Tp.BaseClient;
 
     constructor(policy : DialoguePolicy,
                 simulator : ThingTalkUtils.Simulator,
-                schemas : ThingTalk.SchemaRetriever) {
+                schemas : ThingTalk.SchemaRetriever,
+                parser: ParserClient.ParserClient | null,
+                tpClient : Tp.BaseClient) {
         super({ objectMode : true });
 
         this._dialoguePolicy = policy;
         this._simulator = simulator;
         this._schemas = schemas;
+        this._parser = parser;
+        this._tpClient = tpClient;
     }
 
     async _run(dlg : ParsedDialogue) : Promise<DialogueExample> {
         const lastTurn = dlg[dlg.length-1];
 
         let state = null;
+        let contextCode, contextEntities;
         if (lastTurn.context) {
             const context = await ThingTalkUtils.parse(lastTurn.context, this._schemas);
             assert(context instanceof ThingTalk.Ast.DialogueState);
             const agentTarget = await ThingTalkUtils.parse(lastTurn.agent_target!, this._schemas);
             assert(agentTarget instanceof ThingTalk.Ast.DialogueState);
             state = ThingTalkUtils.computeNewState(context, agentTarget, 'agent');
+
+            [contextCode, contextEntities] = ThingTalkUtils.serializeNormalized(context);
+        } else {
+            contextCode = ['null'];
+            contextEntities = {};
         }
 
-        const userTarget = await ThingTalkUtils.parse(lastTurn.user_target, this._schemas);
+        let userTarget;
+        if (this._parser !== null) {
+            const parsed = await this._parser.sendUtterance(lastTurn.user, contextCode, contextEntities, {
+                tokenized: false,
+                skip_typechecking: true
+            });
+            
+            const candidates = await ThingTalkUtils.parseAllPredictions(parsed.candidates, parsed.entities, {
+                thingpediaClient: this._tpClient,
+                schemaRetriever: this._schemas,
+                loadMetadata: true
+            }) as ThingTalk.Ast.DialogueState[];
+    
+            if (candidates.length > 0) {
+                userTarget = candidates[0];
+            } else {
+                console.log(`No valid candidate parses for this command; using the gold UT`);
+                userTarget = await ThingTalkUtils.parse(lastTurn.user_target, this._schemas);
+            }
+        } else {
+            userTarget = await ThingTalkUtils.parse(lastTurn.user_target, this._schemas);
+        }
+        console.log('userTarget = ', userTarget)
         assert(userTarget instanceof ThingTalk.Ast.DialogueState);
         state = ThingTalkUtils.computeNewState(state, userTarget, 'user');
 
         const { newDialogueState } = await this._simulator.execute(state, undefined);
         state = newDialogueState;
+
 
         const newTurn : DialogueTurn = {
             context: state.prettyprint(),
@@ -169,11 +210,21 @@ export async function execute(args : any) {
         debug: false
     });
 
+    let parser = null;
+    if (args.nlu_server){
+        parser = ParserClient.get(args.nlu_server, args.locale);
+        await parser.start();
+    }
+
     await StreamUtils.waitFinish(
         readAllLines(args.input_file, '====')
         .pipe(new DialogueParser())
-        .pipe(new SimulatorStream(policy, simulator, schemas))
+        .pipe(new SimulatorStream(policy, simulator, schemas, parser, tpClient))
         .pipe(new DialogueSerializer())
         .pipe(args.output)
     );
+
+    if (parser !== null) {
+        await parser.stop();
+    }
 }
