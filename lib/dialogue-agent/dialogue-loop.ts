@@ -197,7 +197,7 @@ export default class DialogueLoop {
         // - Debug when the user clicks/types "debug"
         // - WakeUp when the user says the wake word and nothing else
         if (intent instanceof UserInput.Failed) {
-            await this._getFallbackExamples(intent.utterance);
+            await this._getFallbackExamples(intent.utterance!);
             return null;
         }
         if (intent instanceof UserInput.Unsupported) {

@@ -312,7 +312,7 @@ export default class Conversation extends events.EventEmitter {
                 console.log(`Failed to parse beam ${beamposition}: ${e.message}`);
 
                 if (this._isUnsupportedError(e))
-                    parsed = new UserInput.Unsupported(platformData);
+                    parsed = new UserInput.Unsupported(command, platformData);
                 else
                     return null;
             }
@@ -342,13 +342,13 @@ export default class Conversation extends events.EventEmitter {
         }
     }
 
-    private async _errorWrap(fn : () => Promise<void>, platformData : PlatformData) : Promise<void> {
+    private async _errorWrap(fn : () => Promise<void>, command : string|null, platformData : PlatformData) : Promise<void> {
         try {
             try {
                 await fn();
             } catch(e) {
                 if (this._isUnsupportedError(e))
-                    await this._doHandleCommand(new UserInput.Unsupported(platformData), null, [], true);
+                    await this._doHandleCommand(new UserInput.Unsupported(command!, platformData), null, [], true);
                 else
                     throw e;
             }
@@ -433,7 +433,7 @@ export default class Conversation extends events.EventEmitter {
                     value = new ThingTalk.Ast.LocationValue(new ThingTalk.Ast.UnresolvedLocation(command));
                 else
                     value = new ThingTalk.Ast.Value.String(command);
-                const intent = new UserInput.Answer(value, platformData);
+                const intent = new UserInput.Answer(value, command, platformData);
                 return this._doHandleCommand(intent, null, [], true);
             }
 
@@ -441,10 +441,11 @@ export default class Conversation extends events.EventEmitter {
             if (postprocess)
                 postprocess(analyzed);
             return this._continueHandleCommand(command, analyzed, platformData);
-        }, platformData);
+        }, command, platformData);
     }
 
     async handleParsedCommand(root : any, title ?: string, platformData : PlatformData = {}) : Promise<void> {
+        const command = `\\r ${typeof root === 'string' ? root : JSON.stringify(root)}`;
         this.stats.hit('sabrina-parsed-command');
         this.emit('active');
         this._resetInactivityTimeout();
@@ -458,26 +459,26 @@ export default class Conversation extends events.EventEmitter {
                 console.error('Failed to record example click: ' + e.message);
             });
         }
-
         return this._errorWrap(async () => {
             const intent = await UserInput.parse(root, this.thingpedia, this.schemas,
-                this._getContext(null, platformData));
+                this._getContext(command, platformData));
             return this._doHandleCommand(intent, null, [], true);
-        }, platformData);
+        }, command, platformData);
     }
 
     async handleThingTalk(program : string, platformData : PlatformData = {}) : Promise<void> {
+        const command = `\\t ${program}`;
         this.stats.hit('sabrina-thingtalk-command');
         this.emit('active');
         this._resetInactivityTimeout();
-        await this._addMessage({ type: MessageType.COMMAND, command: '\\t ' + program });
+        await this._addMessage({ type: MessageType.COMMAND, command });
         if (this._debug)
             console.log('Received ThingTalk program');
 
         return this._errorWrap(async () => {
-            const intent = await UserInput.parse({ program }, this.thingpedia, this.schemas, this._getContext(null, platformData));
+            const intent = await UserInput.parse({ program }, this.thingpedia, this.schemas, this._getContext(command, platformData));
             return this._doHandleCommand(intent, null, [], true);
-        }, platformData);
+        }, command, platformData);
     }
 
     async setHypothesis(hypothesis : string) : Promise<void> {
