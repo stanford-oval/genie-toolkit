@@ -163,8 +163,6 @@ class DatasetParser extends Stream.Transform {
     }
 }
 
-export enum THUMBS { UP, DOWN }
-
 export interface DialogueTurn {
     context : string|null;
     agent : string|null;
@@ -172,7 +170,7 @@ export interface DialogueTurn {
     intermediate_context : string|null;
     user : string;
     user_target : string;
-    rate ?: THUMBS;
+    rate ?: string;
     comment ?: string;
 }
 
@@ -217,8 +215,8 @@ class DialogueSerializer extends Stream.Transform {
                 if (this._annotations && turn.intermediate_context)
                     this._pushMany(this._prefixLines(turn.intermediate_context, 'C: '));
 
-                if (turn.rate !== undefined)
-                    this._pushMany(this._prefixLines(turn.rate === THUMBS.UP ? '👍' : '👎', '#! '));
+                if (turn.rate)
+                    this._pushMany(this._prefixLines(turn.rate, '#! '));
                 if (turn.comment)
                     this._pushMany(this._prefixLines(turn.comment, '# '));
             }
@@ -360,7 +358,8 @@ class DialogueParser extends Stream.Transform {
             }
 
             if (key === 'rate') {
-                currentTurn.rate = newText === '👍' ? THUMBS.UP : THUMBS.DOWN;
+                assert(newText === '👍' || newText === '👎');
+                currentTurn.rate = newText;
                 continue;
             }
             if (key === 'comment') {
