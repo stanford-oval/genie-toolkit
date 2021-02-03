@@ -701,7 +701,7 @@ export class ThingpediaLoader {
                 for (const form of annotarray) {
                     if (cat === 'base') {
                         this._addOutParam(pslot, form.trim());
-                        if (!canonical.npp && !canonical.property) {
+                        if (!canonical.npp && !canonical.property && pslot.schema.is_list) {
                             const expansion = [form, constant];
                             this._addRule('npp_filter', expansion, (_, value : Ast.Value) => makeFilter(pslot, op, value, false), keyfns.filterKeyFn);
                             const corefexpansion = [form, corefconst];
@@ -712,7 +712,7 @@ export class ThingpediaLoader {
                                 this._addRule('npp_filter', pairexpansion, (_1, _2, values : [Ast.Value, Ast.Value]) => makeAndFilter(pslot, op, values, false), keyfns.filterKeyFn, attributes);
                             }
                         }
-                    } else {
+                    } else if (pslot.schema.is_list) {
                         let [before, after] = form.split('#');
                         before = (before || '').trim();
                         after = (after || '').trim();
