@@ -117,7 +117,7 @@ class SimulatorStream extends Stream.Transform {
     }
 
     async _run(dlg : ParsedDialogue) : Promise<void> {
-        console.log('dlg = ', dlg)
+        // console.log('dialogue = ', dlg)
         const lastTurn = dlg[dlg.length-1];
 
         let state = null;
@@ -151,7 +151,7 @@ class SimulatorStream extends Stream.Transform {
             if (candidates.length > 0) {
                 userTarget = candidates[0];
             } else {
-                console.log(`No valid candidate parses for this command; using the gold UT`);
+                console.log(`No valid candidate parses for this command. Top candidate was ${parsed.candidates[0].code.join(' ')}. Using the gold UT`);
                 userTarget = goldUserTarget;
             }
             const normalizedUserTarget : string = ThingTalkUtils.serializePrediction(userTarget, parsed.tokens, parsed.entities, {
