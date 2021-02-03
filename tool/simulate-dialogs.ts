@@ -40,6 +40,7 @@ import * as ParserClient from '../lib/prediction/parserclient';
 
 import { readAllLines } from './lib/argutils';
 import MultiJSONDatabase from './lib/multi_json_database';
+import { PredictionResult } from '../lib/prediction/parserclient';
 
 export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('simulate-dialogs', {
@@ -81,6 +82,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: `The URL of the natural language server to parse user utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.
                If provided, will be used to parse the last user utterance instead of reading the parse from input_file.`
     });
+    parser.add_argument('--output_mistakes_only', {
+        action: 'store_true',
+        help: 'If set and --nlu-server is provided, will only output partial dialogues where a parsing mistake happens.',
+        default: true
+    });
 }
 
 class SimulatorStream extends Stream.Transform {
@@ -89,12 +95,16 @@ class SimulatorStream extends Stream.Transform {
     private _dialoguePolicy : DialoguePolicy;
     private _parser : ParserClient.ParserClient | null;
     private _tpClient : Tp.BaseClient;
+    private _outputMistakesOnly: boolean;
+    private _locale: string;
 
     constructor(policy : DialoguePolicy,
                 simulator : ThingTalkUtils.Simulator,
                 schemas : ThingTalk.SchemaRetriever,
                 parser: ParserClient.ParserClient | null,
-                tpClient : Tp.BaseClient) {
+                tpClient : Tp.BaseClient,
+                outputMistakesOnly : boolean,
+                locale : string) {
         super({ objectMode : true });
 
         this._dialoguePolicy = policy;
@@ -102,9 +112,12 @@ class SimulatorStream extends Stream.Transform {
         this._schemas = schemas;
         this._parser = parser;
         this._tpClient = tpClient;
+        this._outputMistakesOnly = outputMistakesOnly;
+        this._locale = locale;
     }
 
-    async _run(dlg : ParsedDialogue) : Promise<DialogueExample> {
+    async _run(dlg : ParsedDialogue) : Promise<void> {
+        console.log('dlg = ', dlg)
         const lastTurn = dlg[dlg.length-1];
 
         let state = null;
@@ -115,16 +128,16 @@ class SimulatorStream extends Stream.Transform {
             const agentTarget = await ThingTalkUtils.parse(lastTurn.agent_target!, this._schemas);
             assert(agentTarget instanceof ThingTalk.Ast.DialogueState);
             state = ThingTalkUtils.computeNewState(context, agentTarget, 'agent');
-
-            [contextCode, contextEntities] = ThingTalkUtils.serializeNormalized(context);
+            [contextCode, contextEntities] = ThingTalkUtils.serializeNormalized(ThingTalkUtils.prepareContextForPrediction(context, 'user'));
         } else {
             contextCode = ['null'];
             contextEntities = {};
         }
 
-        let userTarget;
+        let userTarget : ThingTalk.Ast.Input;
+        const goldUserTarget = await ThingTalkUtils.parse(lastTurn.user_target, this._schemas);
         if (this._parser !== null) {
-            const parsed = await this._parser.sendUtterance(lastTurn.user, contextCode, contextEntities, {
+            const parsed : PredictionResult = await this._parser.sendUtterance(lastTurn.user, contextCode, contextEntities, {
                 tokenized: false,
                 skip_typechecking: true
             });
@@ -139,18 +152,34 @@ class SimulatorStream extends Stream.Transform {
                 userTarget = candidates[0];
             } else {
                 console.log(`No valid candidate parses for this command; using the gold UT`);
-                userTarget = await ThingTalkUtils.parse(lastTurn.user_target, this._schemas);
+                userTarget = goldUserTarget;
             }
+            const normalizedUserTarget : string = ThingTalkUtils.serializePrediction(userTarget, parsed.tokens, parsed.entities, {
+                locale: this._locale,
+                ignoreSentence: true
+            }).join(' ');
+            const normalizedGoldUserTarget : string = ThingTalkUtils.serializePrediction(goldUserTarget, parsed.tokens, parsed.entities, {
+                locale: this._locale,
+                ignoreSentence: true
+            }).join(' ');
+
+            // console.log('normalizedUserTarget = ', normalizedUserTarget)
+            // console.log('normalizedGoldUserTarget = ', normalizedGoldUserTarget)
+
+            if (normalizedUserTarget === normalizedGoldUserTarget && this._outputMistakesOnly) {
+                // don't push anything
+                return;
+            }
+            dlg[dlg.length-1].user_target = normalizedUserTarget
+            
         } else {
-            userTarget = await ThingTalkUtils.parse(lastTurn.user_target, this._schemas);
+            userTarget = goldUserTarget;
         }
-        console.log('userTarget = ', userTarget)
         assert(userTarget instanceof ThingTalk.Ast.DialogueState);
         state = ThingTalkUtils.computeNewState(state, userTarget, 'user');
 
         const { newDialogueState } = await this._simulator.execute(state, undefined);
         state = newDialogueState;
-
 
         const newTurn : DialogueTurn = {
             context: state.prettyprint(),
@@ -170,14 +199,53 @@ class SimulatorStream extends Stream.Transform {
         newTurn.agent = utterance;
         newTurn.agent_target = prediction.prettyprint();
 
-        return {
+        this.push({
             id: dlg.id,
             turns: dlg.concat([newTurn])
-        };
+        });
     }
 
     _transform(dlg : ParsedDialogue, encoding : BufferEncoding, callback : (err : Error|null, dlg ?: DialogueExample) => void) {
-        this._run(dlg).then((dlg) => callback(null, dlg), callback);
+        this._run(dlg).then(() => callback(null), callback);
+    }
+
+    _flush(callback : () => void) {
+        callback();
+    }
+}
+
+class DialogueToPartialDialoguesStream extends Stream.Transform {
+
+    constructor() {
+        super({ objectMode : true });
+    }
+
+    private copyDialogueTurns(turns : Array<DialogueTurn>) : Array<DialogueTurn> {
+        const copy = new Array<DialogueTurn>();
+        for (let i = 0; i < turns.length; i++) {
+            copy.push({
+                context : turns[i].context,
+                agent : turns[i].agent,
+                agent_target : turns[i].agent_target,
+                intermediate_context : turns[i].intermediate_context,
+                user : turns[i].user,
+                user_target : turns[i].user_target
+            })
+        }
+        return copy;
+    }
+
+    async _run(dlg : ParsedDialogue) : Promise<void> {
+        for (let i = 1; i < dlg.length + 1; i++) {
+            // do a deep copy so that later streams can modify these dialogues
+            let output = this.copyDialogueTurns(dlg.slice(0, i));
+            (output as ParsedDialogue).id = dlg.id + '-turn_' + i;
+            this.push(output);
+        }
+    }
+
+    _transform(dlg : ParsedDialogue, encoding : BufferEncoding, callback : (err : Error|null, dlgs ?: ParsedDialogue) => void) {
+        this._run(dlg).then(() => callback(null), callback);
     }
 
     _flush(callback : () => void) {
@@ -219,7 +287,8 @@ export async function execute(args : any) {
     await StreamUtils.waitFinish(
         readAllLines(args.input_file, '====')
         .pipe(new DialogueParser())
-        .pipe(new SimulatorStream(policy, simulator, schemas, parser, tpClient))
+        .pipe(new DialogueToPartialDialoguesStream())
+        .pipe(new SimulatorStream(policy, simulator, schemas, parser, tpClient, args.output_mistakes_only, args.locale))
         .pipe(new DialogueSerializer())
         .pipe(args.output)
     );
