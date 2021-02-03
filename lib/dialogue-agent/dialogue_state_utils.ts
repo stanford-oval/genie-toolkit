@@ -150,18 +150,8 @@ function computeNewState(state : Ast.DialogueState|null, prediction : Ast.Dialog
         }
     }
 
-    const autoConfirm = forTarget === 'user';
-    // append the prediction items, and set the confirm bit if necessary
-    for (const newItem of prediction.history) {
-        let cloneItem = newItem;
-        if (cloneItem.confirm === 'accepted' && autoConfirm && cloneItem.isExecutable() && shouldAutoConfirmStatement(cloneItem.stmt)) {
-            // shallow clone
-            cloneItem = new Ast.DialogueHistoryItem(null, cloneItem.stmt, cloneItem.results, cloneItem.confirm);
-            cloneItem.confirm = 'confirmed';
-        }
-        clone.history.push(cloneItem);
-    }
-
+    // append the prediction items
+    clone.history.push(...prediction.history);
     return clone;
 }
 
@@ -213,6 +203,16 @@ function prepareContextForPrediction(context : Ast.DialogueState|null, forTarget
         //
         // on the user side, the agent just spoke; the agent never introduces confirmed statements,
         // because statements must be confirmed by the user, so this assertion is also true
+        //
+        // note that there is a tricky edge case here: the user issued a confirmation
+        // (an explicitly confirmed statement) but the agent is making a request
+        // using dlg.ask() in the middle of prepareForExecution()
+        // in that case, this assertion would not be correct
+        // we still leave it here because with the current state machine the above
+        // case cannot happen: the agent will fill all the missing slots before
+        // asking for the final confirmation, and the user will not reply with
+        // a "confirmed" item unless the agent is in sys_confirm_action state
+        // this assertion has caught other problems in the past
         assert(item.confirm !== 'confirmed');
 
         clone.history.push(item);
