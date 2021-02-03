@@ -34,15 +34,14 @@ import {
     ExpressionWithCoreference,
 
     makeInputParamSlot,
-    makeFilter,
     makeDomainIndependentFilter,
-    makeAndFilter,
     makeDateRangeFilter,
 
     typeToStringSafe,
     isSameFunction,
     normalizeConfirmAnnotation
 } from './utils';
+import * as Utils from './utils';
 export {
     Placeholder,
     ErrorMessage,
@@ -54,9 +53,7 @@ export {
     ExpressionWithCoreference,
 
     makeInputParamSlot,
-    makeFilter,
     makeDomainIndependentFilter,
-    makeAndFilter,
     makeDateRangeFilter,
 };
 export * from './keyfns';
@@ -176,6 +173,14 @@ export function betaReduceMany<T extends Ast.Expression|Ast.Invocation>(ast : T,
 
 export function makeDontCareFilter(slot : ParamSlot) : FilterSlot {
     return { schema: slot.schema, ptype : slot.type, ast: new Ast.BooleanExpression.DontCare(null, slot.name) };
+}
+
+export function makeFilter(slot : ParamSlot, op : string, value : Ast.Value, negate = false) : FilterSlot|null {
+    return Utils.makeFilter(slot, op, value, negate, _loader);
+}
+
+export function makeAndFilter(slot : ParamSlot, op : string, values : [Ast.Value, Ast.Value], negate = false) : FilterSlot|null {
+    return Utils.makeAndFilter(slot, op, values, negate, _loader);
 }
 
 function makeOrFilter(slot : ParamSlot, op : string, values : [Ast.Value, Ast.Value], negate = false) : FilterSlot|null {
@@ -460,13 +465,13 @@ export function makeTypeBasedTableProjection(table : Ast.Expression, intotype : 
 
     const pname = getImplicitParameterPassing(table.schema!);
     if (pname === '$event') {
-        if (!Type.isAssignable(Type.String, intotype))
+        if (!Type.isAssignable(Type.String, intotype, {}, _loader.entitySubTypeMap))
             return null;
         // FIXME this is bogus on various levels, because $event is not an argument
         // because the schema is not modified correctly...
         return new Ast.ProjectionExpression(null, table, ['$event'], [], [], table.schema);
     } else {
-        if (!Type.isAssignable(table.schema!.getArgType(pname)!, intotype))
+        if (!Type.isAssignable(table.schema!.getArgType(pname)!, intotype, {}, _loader.entitySubTypeMap))
             return null;
         return makeProjection(table, pname);
     }
@@ -517,7 +522,7 @@ function makeSingleFieldProjection(ftype : 'table'|'stream', ptype : Type|null, 
     if (outParams.length === 1)
         return table;
 
-    if (ptype && !Type.isAssignable(arg.type, ptype))
+    if (ptype && !Type.isAssignable(arg.type, ptype, {}, _loader.entitySubTypeMap))
         return null;
 
     if (ftype === 'table') {
@@ -1262,7 +1267,7 @@ export function addSameNameParameterPassing(chain : Ast.ChainExpression, joinArg
     if (action.invocation.in_params.some((p) => p.name === joinArg.name))
         return null;
     const commandtype = table.schema!.out[joinArg.name];
-    if (!commandtype || !Type.isAssignable(commandtype, actiontype))
+    if (!commandtype || !Type.isAssignable(commandtype, actiontype, {}, _loader.entitySubTypeMap))
         return null;
     // FIXME
     //if (joinArg.isEvent && (stream instanceof Ast.FunctionCallExpression)) // timer
@@ -1280,7 +1285,7 @@ function isConstantAssignable(value : Ast.Value, ptype : Type) : boolean {
     if (!ptype)
         return false;
     const vtype = value.getType();
-    if (!Type.isAssignable(vtype, ptype))
+    if (!Type.isAssignable(vtype, ptype, {}, _loader.entitySubTypeMap))
         return false;
     // prevent mixing date and type (ThingTalk allows it to support certain time get predicates)
     if ((vtype.isDate && ptype.isTime) || (vtype.isTime && ptype.isDate))

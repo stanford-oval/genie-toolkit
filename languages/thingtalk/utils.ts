@@ -26,6 +26,8 @@ import type { I18n } from 'genie-toolkit';
 
 import type { SlotBag } from './slot_bag';
 
+import type ThingpediaLoader from './load-thingpedia';
+
 // slot objects to track filters, input and output parameters
 // these objects are similar to the Ast node they wrap
 // but they also add the function name, so we don't mix parameters
@@ -139,11 +141,12 @@ function clean(name : string) : string {
 }
 
 export function makeInputParamSlot(slot : ParamSlot,
-                                   value : Ast.Value) : InputParamSlot|null {
+                                   value : Ast.Value,
+                                   tpLoader : typeof ThingpediaLoader) : InputParamSlot|null {
     const vtype = value.getType();
     const ptype = slot.type;
 
-    if (!Type.isAssignable(ptype, vtype))
+    if (!Type.isAssignable(ptype, vtype, {}, tpLoader.entitySubTypeMap))
         return null;
 
     return { schema: slot.schema, ptype : slot.type,
@@ -160,7 +163,8 @@ export function makeDomainIndependentFilter(pname : string,
 function makeFilter(slot : ParamSlot,
                     op : string,
                     value : Ast.Value,
-                    negate = false) : FilterSlot|null {
+                    negate : boolean,
+                    tpLoader : typeof ThingpediaLoader) : FilterSlot|null {
     const vtype = value.getType();
     const ptype = slot.type;
     // XXX url filters?
@@ -177,7 +181,7 @@ function makeFilter(slot : ParamSlot,
 
             const elem = ptype.elem as Type;
             if ((vtype.isEnum && elem.isEnum) || (vtype.isEntity && elem.isEntity)) {
-                if (!Type.isAssignable(vtype, elem))
+                if (!Type.isAssignable(vtype, elem, tpLoader.entitySubTypeMap))
                     return null;
             } else if (!elem.equals(vtype)) {
                 return null;
@@ -194,7 +198,7 @@ function makeFilter(slot : ParamSlot,
         // note: we need to use "isAssignable" instead of "equals" here
         // to handle enums and entities correctly
         if ((vtype.isEnum && ptype.isEnum) || (vtype.isEntity && ptype.isEntity)) {
-            if (!Type.isAssignable(vtype, ptype))
+            if (!Type.isAssignable(vtype, ptype, tpLoader.entitySubTypeMap))
                 return null;
         } else if (!ptype.equals(vtype)) {
             return null;
@@ -213,14 +217,15 @@ function makeFilter(slot : ParamSlot,
 function makeAndFilter(slot : ParamSlot,
                        op : string,
                        values : [Ast.Value, Ast.Value],
-                       negate=false) : FilterSlot|null {
+                       negate : boolean,
+                       tpLoader : typeof ThingpediaLoader) : FilterSlot|null {
     if (values.length !== 2)
         return null;
     if (values[0].equals(values[1]))
         return null;
     const operands = [
-        makeFilter(slot, op, values[0]),
-        makeFilter(slot, op, values[1])
+        makeFilter(slot, op, values[0], false, tpLoader),
+        makeFilter(slot, op, values[1], false, tpLoader)
     ];
     if (operands[0] === null || operands[1] === null)
         return null;
@@ -231,12 +236,13 @@ function makeAndFilter(slot : ParamSlot,
 }
 
 function makeDateRangeFilter(slot : ParamSlot,
-                             values : Ast.Value[]) : FilterSlot|null {
+                             values : Ast.Value[],
+                             tpLoader : typeof ThingpediaLoader) : FilterSlot|null {
     if (values.length !== 2)
         return null;
     const operands = [
-        makeFilter(slot, '>=', values[0]),
-        makeFilter(slot, '<=', values[1])
+        makeFilter(slot, '>=', values[0], false, tpLoader),
+        makeFilter(slot, '<=', values[1], false, tpLoader)
     ] as const;
     if (operands[0] === null || operands[1] === null)
         return null;
