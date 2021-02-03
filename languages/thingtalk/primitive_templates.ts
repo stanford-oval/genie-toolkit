@@ -101,6 +101,8 @@ export function replacePlaceholderWithTableOrStream(ex : Ast.Example,
         projection = maybeProjection;
     } else {
         projection = table;
+        if (projection.args[0] === 'id')
+            return null;
     }
     assert(projection.args.length === 1);
 
