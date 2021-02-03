@@ -209,7 +209,7 @@ class DialogueSerializer extends Stream.Transform {
             if (i > 0) {
                 if (this._annotations)
                     this._pushMany(this._prefixLines(turn.context!, 'C: '));
-                this.push('A: ' + turn.agent + '\n');
+                this._pushMany(this._prefixLines(turn.agent!, 'A: '));
                 if (this._annotations)
                     this._pushMany(this._prefixLines(turn.agent_target!, 'AT: '));
                 if (this._annotations && turn.intermediate_context)
@@ -220,7 +220,7 @@ class DialogueSerializer extends Stream.Transform {
                 if (turn.comment)
                     this._pushMany(this._prefixLines(turn.comment, '# '));
             }
-            this.push('U: ' + turn.user + '\n');
+            this._pushMany(this._prefixLines(turn.user, 'U: '));
             if (this._annotations)
                 this._pushMany(this._prefixLines(turn.user_target, 'UT: '));
         }
