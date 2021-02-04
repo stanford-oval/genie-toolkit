@@ -610,5 +610,8 @@ export default class Conversation extends events.EventEmitter {
         await StreamUtils.waitFinish(output);
     }
 
-
+    loadLog() {
+        const dir = this._engine.platform.getWritableDir();
+        return fs.readFileSync(path.join(dir, this.id + '.txt')).toString();
+    }
 }

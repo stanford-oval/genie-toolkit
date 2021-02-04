@@ -226,7 +226,7 @@ async function roundtrip(testRunner, input, expected) {
     else if (input.startsWith('\\r'))
         await conversation.handleParsedCommand({ code: input.substring(2).trim().split(' '), entities: {} });
     else if (input.startsWith('\\t'))
-        await conversation.handleThingTalk(input.substring(2));
+        await conversation.handleThingTalk(input.substring(2).trim());
     else
         await conversation.handleCommand(input);
 
@@ -288,10 +288,20 @@ Hi, how can I help you?
         if (onlyIds.length > 0 && !onlyIds.includes(TEST_CASES[i].id))
             continue;
         await test(testRunner, TEST_CASES[i], i);
+        if (i % 2)
+            conversation.upvoteLast();
+        else
+            conversation.downvoteLast();
+        conversation.commentLast('test');
     }
 
     await conversation.saveLog();
     conversation.exitTestMode();
+
+    const log = conversation.loadLog();
+    const expectedLog = fs.readFileSync(path.resolve(__dirname, './expected-log.txt')).toString();
+    assert(log === expectedLog);
+
     console.log('Done');
     process.exit(0);
 }
