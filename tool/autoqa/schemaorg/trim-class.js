@@ -293,7 +293,7 @@ class SchemaTrimmer {
             let hasNER = false;
             if (name in this._classDef.queries)
                 hasNER = !!this._classDef.queries[name].getImplementationAnnotation('org_schema_has_name');
-            return new Ast.EntityDef(null, name, { impl : { has_ner: new Ast.Value.Boolean(hasNER) }});
+            return new Ast.EntityDef(null, name, null, { impl : { has_ner: new Ast.Value.Boolean(hasNER) }});
         });
     }
 

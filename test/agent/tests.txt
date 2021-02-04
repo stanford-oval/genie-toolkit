@@ -671,3 +671,16 @@ U: \t $yes;
 A: Your request was completed successfully.
 A: >> context = null // {}
 A: >> expecting = null
+
+====
+# 44-faq-about-almond
+
+# Who are you?
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_identity);
+
+# FIXME the simulator doesn't actually call the API so this is useless
+# we need the scenario tests from thingpedia-common-devices
+A: Str:QUOTED_STRING::42:.
+A: >> context = null // {}
+A: >> expecting = null

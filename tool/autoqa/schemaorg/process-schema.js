@@ -759,7 +759,7 @@ class SchemaProcessor {
 
         const entities = this._entities.map((entityType) => {
             const name = entityType.slice(this._prefix.length);
-            return new Ast.EntityDef(null, name, {});
+            return new Ast.EntityDef(null, name, null, {});
         });
 
         const classdef = new Ast.ClassDef(null,
