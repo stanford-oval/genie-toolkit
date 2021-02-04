@@ -163,7 +163,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (@com.spotify.song(), id =~ ("despacito"))[1] => @com.spotify.play_song(song=id);
 
-A: I played Despacito on Spotify on str:ENTITY_com.spotify:device::36:.
+A: I played Despacito on Spotify.
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -173,7 +173,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (@com.spotify.song(), contains(artists, null^^com.spotify:artist("ariana grande")))[1] => @com.spotify.play_song(song=id);
 
-A: I played 7 rings on Spotify on str:ENTITY_com.spotify:device::36:.
+A: I played 7 rings on Spotify.
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -440,7 +440,7 @@ A: >> expecting = command
 # yes please
 U: \r bookkeeping special special:yes
 
-A: I played Nice For What on Spotify on str:ENTITY_com.spotify:device::36:.
+A: I played Nice For What on Spotify.
 A: >> context = null // {}
 A: >> expecting = null
 
