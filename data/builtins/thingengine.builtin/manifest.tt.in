@@ -50,7 +50,7 @@ class @org.thingpedia.builtin.thingengine.builtin
                  #_[canonical=["time"]]
                  #[filterable=false])
   #[result=["it 's ${time}", "the current time is ${time}", "now it 's ${time}"]]
-  #_[canonical=["time", "current time", "time of day"]]
+  #_[canonical=["current time", "time", "time of day"]]
   #_[confirmation="the current time"]
   #_[formatted=[{type="text",text="Current time is ${time:time}."}]]
   #[doc="get the current time"]
@@ -59,7 +59,7 @@ class @org.thingpedia.builtin.thingengine.builtin
   query get_date(out date: Date
                  #_[canonical=["date"]]
                  #[filterable=false])
-  #_[canonical=["date", "current date", "today 's date"]]
+  #_[canonical=["today 's date", "date", "current date"]]
   #_[confirmation="today's date"]
   #_[formatted=[{type="text",text="Today is ${date:date}."}]]
   #[doc="get the current date"]

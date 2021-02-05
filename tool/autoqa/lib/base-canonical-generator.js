@@ -20,7 +20,7 @@
 
 
 import { clean } from '../../../lib/utils/misc-utils';
-import EnglishLanguagePack from '../../../lib/i18n/american-english';
+import EnglishLanguagePack from '../../../lib/i18n/english';
 
 function updateDefault(canonical, type) {
     if (!canonical.default)
@@ -73,7 +73,7 @@ function typeEqual(t1, t2) {
 }
 
 export default function genBaseCanonical(canonical, argname, ptype, functionDef = null) {
-    const languagePack = new EnglishLanguagePack();
+    const languagePack = new EnglishLanguagePack('en-US');
     let [name, tags] = preprocessName(languagePack, argname, ptype);
 
     // e.g., saturatedFatContent

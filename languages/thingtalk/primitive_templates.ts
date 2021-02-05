@@ -28,10 +28,6 @@ import {
 } from './utils';
 import { SlotBag } from './slot_bag';
 
-// note: this is a circular import: ast_manip imports load-thingpedia that
-// loads this file
-// this should be ok because we don't use anything from this module during
-// the initial module run (we just define functions), but care is necessary
 import * as C from './ast_manip';
 import type ThingpediaLoader from './load-thingpedia';
 
@@ -86,10 +82,11 @@ export function replacePlaceholderWithTableOrStream(ex : Ast.Example,
                                                     names : Array<string|null>,
                                                     tableParamIdx : number,
                                                     args : Array<Ast.Value|Ast.Expression>,
-                                                    tpLoader : typeof ThingpediaLoader) : Ast.ChainExpression|null {
+                                                    tpLoader : ThingpediaLoader) : Ast.ChainExpression|null {
     // first check the table, then replace the parameters, and then finally construct the chain expression
     const table = args[tableParamIdx];
     assert(table instanceof Ast.Expression);
+
 
     const intoname = names[tableParamIdx];
     assert(typeof intoname === 'string');
@@ -97,12 +94,15 @@ export function replacePlaceholderWithTableOrStream(ex : Ast.Example,
     assert(intoType);
     let projection : Ast.ProjectionExpression;
     if (!(table instanceof Ast.ProjectionExpression)) {
-        const maybeProjection = C.makeTypeBasedTableProjection(table, intoType);
+        const maybeProjection = C.makeTypeBasedTableProjection(tpLoader, table, intoType);
         if (maybeProjection === null)
             return null;
         projection = maybeProjection;
     } else {
         projection = table;
+        // FIXME we should make up a projection based on what parameter is actually passed
+        if (projection.args.length !== 1)
+            return null;
         if (projection.args[0] === 'id')
             return null;
     }

@@ -28,16 +28,17 @@ import interpolate from 'string-interp';
 import AsyncQueue from 'consumer-queue';
 
 import { getProgramIcon } from '../utils/icons';
+import { computePrediction, computeNewState, prepareContextForPrediction } from '../utils/thingtalk';
+import type Engine from '../engine';
+
 import ValueCategory from './value-category';
 import QueueItem from './dialogue_queue';
 import UserInput, { PlatformData } from './user-input';
 import { CancellationError } from './errors';
 
 import * as Helpers from './helpers';
-import { computePrediction, computeNewState, prepareContextForPrediction } from './dialogue_state_utils';
 import DialoguePolicy from './dialogue_policy';
 import type Conversation from './conversation';
-import type Engine from '../engine';
 import TextFormatter from './card-output/text-formatter';
 import CardFormatter, { FormattedChunk } from './card-output/card-formatter';
 
@@ -84,8 +85,8 @@ export default class DialogueLoop {
         this.conversation = conversation;
         this.engine = engine;
         this._prefs = engine.platform.getSharedPreferences();
-        this._textFormatter = new TextFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas, engine._);
-        this._cardFormatter = new CardFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas, engine._);
+        this._textFormatter = new TextFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas);
+        this._cardFormatter = new CardFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas);
         this.icon = null;
         this.expecting = null;
         this.platformData = {};
@@ -98,6 +99,7 @@ export default class DialogueLoop {
             thingpedia: conversation.thingpedia,
             schemas: conversation.schemas,
             locale: conversation.locale,
+            timezone: engine.platform.timezone,
             rng: conversation.rng,
             debug : this._debug
         });
@@ -482,13 +484,13 @@ export default class DialogueLoop {
         throw new CancellationError();
     }
 
-    setExpected(expected : ValueCategory|null) {
+    setExpected(expected : ValueCategory|null, raw = (expected === ValueCategory.RawString || expected === ValueCategory.Password)) {
         if (expected === undefined)
             throw new TypeError();
         this.expecting = expected;
         const context = prepareContextForPrediction(this._dialogueState, 'user');
         this.conversation.setContext(context);
-        this.conversation.expect(expected);
+        this.conversation.setExpected(expected, raw);
     }
 
     /**
@@ -496,11 +498,14 @@ export default class DialogueLoop {
      *
      * This is a legacy method used for certain scripted interactions.
      */
-    async ask(expected : ValueCategory,
+    async ask(expected : ValueCategory.PhoneNumber|ValueCategory.EmailAddress|ValueCategory.Location|ValueCategory.Time,
               question : string,
               args ?: Record<string, unknown>) : Promise<ThingTalk.Ast.Value> {
         await this.replyInterp(question, args);
-        await this.setExpected(expected);
+        // force the question to occur in raw mode for locations
+        // because otherwise we send it to the parser and the parser will
+        // likely misbehave as it's a state that we've never seen in training
+        await this.setExpected(expected, expected === ValueCategory.Location);
         let intent = await this.nextIntent();
         while (!(intent instanceof UserInput.Answer) || intent.category !== expected) {
             if (intent instanceof UserInput.UICommand)

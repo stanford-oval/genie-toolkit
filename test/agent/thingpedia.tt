@@ -458,7 +458,7 @@ class @org.thingpedia.weather
                             in opt date: Date
                             #_[canonical={
                               default="preposition",
-                              default=["date"],
+                              base=["date"],
                               preposition=["on #"]
                             }],
                             out sunrise_time: Time
@@ -488,7 +488,7 @@ class @org.thingpedia.weather
                          in opt date: Date
                          #_[canonical={
                             default="preposition",
-                            default=["date"],
+                            base=["date"],
                             preposition=["on #"]
                          }],
                          out phase: Enum(new_moon,waxing_crescent,first_quarter,waxing_gibbous,full_moon,waning_gibbous,third_quarter,waning_crescent)
@@ -535,7 +535,7 @@ class @org.thingpedia.weather
                             #_[canonical="fog"]
                             #[min_number=0]
                             #[max_number=100],
-                            out status: Enum(raining,cloudy,sunny,snowy,sleety,drizzling,windy)
+                            out status: Enum(raining,cloudy,sunny,snowy,sleety,drizzling,windy,foggy)
                             #_[canonical="status"],
                             out icon: Entity(tt:picture)
                             #_[canonical="icon"])
@@ -996,27 +996,107 @@ class @com.thecatapi
   #[confirm=false];
 }
 class @com.xkcd
-#_[canonical="xkcd"] {
-  entity comic;
+#_[thingpedia_name="XKCD"]
+#_[thingpedia_description="A webcomic of romance, sarcasm, math, and language."]
+#[license="BSD-3-Clause"]
+#[license_gplcompatible=true]
+#[subcategory="media"]
+{
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
 
-  monitorable list query comic(out id: Entity(com.xkcd:comic) #_[canonical="title"],
-                               out release_date : Date #_[canonical={
-                                 base=["release date"],
-                                 adjective_argmax=["latest"],
-                                 adjective_argmin=["earliest"]
+  monitorable list query comic(out id: Number
+                               #_[canonical={
+                                 base=["number"],
+                                 passive_verb=["number #"]
                                }],
-                               out picture_url: Entity(tt:picture) #_[canonical="picture url"],
-                               out link: Entity(tt:url) #_[canonical="link"],
-                               out alt_text: String #_[canonical="alt text"])
-  #_[canonical=["xkcd comic"]]
+                               out title: String
+                               #_[canonical={
+                                 base=["name", "title"],
+                                 passive_verb=["titled #", "called #"]
+                               }]
+                               #[filterable=false]
+                               #[string_values="com.xkcd:title"],
+                               out release_date : Date
+                               #_[canonical={
+                                 base=["release date", "date"],
+                                 passive_verb=["released on #"],
+                                 preposition=["from #"],
+                                 adjective=["# 's"],
+                                 adjective_argmax=["latest", "most recent"],
+                                 adjective_argmin=["earliest", "oldest"],
+                               }],
+                               out picture_url: Entity(tt:picture)
+                               #_[canonical={
+                                 base=["picture url", "image url"]
+                               }],
+                               out link: Entity(tt:url)
+                               #_[canonical={
+                                 base=["link", "url"]
+                               }],
+                               out alt_text: String
+                               #_[canonical={
+                                 base=["alt text", "alternate text"]
+                               }]
+                               #[filterable=false]
+                               #[string_values="com.xkcd:alt_text"])
+  #_[canonical=["xkcd comic", "xkcd"]]
   #_[confirmation="an Xkcd comic"]
-  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${id}", pictureUrl="${picture_url}", displayText="${alt_text}"}]];
+  #_[result=["i found xkcd ${id}"]]
+  #_[formatted=[{
+     type="rdl",
+     webCallback="${link}",
+     displayTitle="${title}",
+     pictureUrl="${picture_url}",
+     displayText="${alt_text}"
+  }]]
+  #[minimal_projection=["id", "title"]]
+  #[poll_interval=86400000ms]
+  #[doc="retrieve the comic with a given number, or the latest comic"];
 
-  query random_comic(out id: Entity(com.xkcd:comic) #_[canonical="number"],
-                     out picture_url: Entity(tt:picture) #_[canonical="picture url"],
-                     out link: Entity(tt:url) #_[canonical="link"],
-                     out alt_text: String #_[canonical="alt text"])
-  #_[canonical="random xkcd comic"]
+  query random_comic(out id: Number
+                     #_[canonical={
+                       base=["number"],
+                       passive_verb=["number #"]
+                     }],
+                     out title: String
+                     #_[canonical={
+                       base=["name", "title"],
+                       passive_verb=["titled #", "called #"]
+                     }]
+                     #[string_values="com.xkcd:title"],
+                     out release_date : Date
+                     #_[canonical={
+                       base=["release date", "date"],
+                       passive_verb=["released on #"],
+                       preposition=["from #"]
+                     }],
+                     out picture_url: Entity(tt:picture)
+                     #_[canonical={
+                       base=["picture url", "image url"]
+                     }],
+                     out link: Entity(tt:url)
+                     #_[canonical={
+                       base=["link", "url"]
+                     }],
+                     out alt_text: String
+                     #_[canonical={
+                       base=["alt text", "alternate text"]
+                     }]
+                     #[string_values="com.xkcd:alt_text"])
+  #_[canonical=["random xkcd",
+                "random xkcd comic",
+                "xkcd comic at random"]]
   #_[confirmation="a random Xkcd comic"]
-  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${id}", pictureUrl="${picture_url}", displayText="${alt_text}"}]];
+  #_[result=["i found xkcd ${id}", "here is xkcd ${id}"]]
+  #_[formatted=[{
+     type="rdl",
+     webCallback="${link}",
+     displayTitle="${title}",
+     pictureUrl="${picture_url}",
+     displayText="${alt_text}"
+  }]]
+  #[minimal_projection=["id", "title"]]
+  #[doc="retrieve a random xkcd"];
 }
+

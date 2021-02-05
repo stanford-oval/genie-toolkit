@@ -27,7 +27,7 @@ import * as child_process from 'child_process';
 
 import * as utils from '../../../lib/utils/misc-utils';
 import { makeLookupKeys } from '../../../lib/dataset-tools/mturk/sample-utils';
-import EnglishLanguagePack from '../../../lib/i18n/american-english';
+import EnglishLanguagePack from '../../../lib/i18n/english';
 import { clean } from '../../../lib/utils/misc-utils';
 
 import CanonicalExtractor from './canonical-extractor';
@@ -82,7 +82,7 @@ export default class AutoCanonicalGenerator {
             if (manualAnnotations.PROPERTY_CANONICAL_OVERRIDE)
                 this.annotatedProperties = Object.keys(manualAnnotations.PROPERTY_CANONICAL_OVERRIDE);
         }
-        this._langPack = new EnglishLanguagePack();
+        this._langPack = new EnglishLanguagePack('en-US');
     }
 
     async generate() {

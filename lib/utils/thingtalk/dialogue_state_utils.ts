@@ -43,7 +43,7 @@ import { Ast } from 'thingtalk';
  * Also, #[confirm] can be specified as a boolean: "true" means "confirm" and "false" means
  * "display_result".
  */
-function normalizeConfirmAnnotation(fndef : Ast.FunctionDef) : 'confirm'|'display_result'|'auto' {
+export function normalizeConfirmAnnotation(fndef : Ast.FunctionDef) : 'confirm'|'display_result'|'auto' {
     const value = fndef.getAnnotation<boolean|string>('confirm');
     if (value === undefined) // unspecified
         return fndef.functionType === 'action' ? 'confirm' : 'display_result';
@@ -55,7 +55,7 @@ function normalizeConfirmAnnotation(fndef : Ast.FunctionDef) : 'confirm'|'displa
     return value;
 }
 
-function shouldAutoConfirmStatement(stmt : Ast.ExpressionStatement) : boolean {
+export function shouldAutoConfirmStatement(stmt : Ast.ExpressionStatement) : boolean {
     if (stmt.stream)
         return false;
 
@@ -88,7 +88,7 @@ function shouldAutoConfirmStatement(stmt : Ast.ExpressionStatement) : boolean {
  * @param {ThingTalk.Ast.DialogueState} newState - the new state of the dialogue, after the turn
  * @param {string} forTarget - who is speaking now: either `user` or `agent`
  */
-function computePrediction(oldState : Ast.DialogueState|null, newState : Ast.DialogueState, forTarget : 'user'|'agent') : Ast.DialogueState {
+export function computePrediction(oldState : Ast.DialogueState|null, newState : Ast.DialogueState, forTarget : 'user'|'agent') : Ast.DialogueState {
     // note: we used to short-circuit the case where oldState === null
     // and directly return newState
     // this is incorrect: newState will have .confirm === 'confirmed',
@@ -138,7 +138,7 @@ function computePrediction(oldState : Ast.DialogueState|null, newState : Ast.Dia
     return deltaState;
 }
 
-function computeNewState(state : Ast.DialogueState|null, prediction : Ast.DialogueState, forTarget : 'user'|'agent') {
+export function computeNewState(state : Ast.DialogueState|null, prediction : Ast.DialogueState, forTarget : 'user'|'agent') {
     const clone = new Ast.DialogueState(null, prediction.policy, prediction.dialogueAct, prediction.dialogueActParam, []);
 
     // append all history elements that were confirmed
@@ -150,22 +150,12 @@ function computeNewState(state : Ast.DialogueState|null, prediction : Ast.Dialog
         }
     }
 
-    const autoConfirm = forTarget === 'user';
-    // append the prediction items, and set the confirm bit if necessary
-    for (const newItem of prediction.history) {
-        let cloneItem = newItem;
-        if (cloneItem.confirm === 'accepted' && autoConfirm && cloneItem.isExecutable() && shouldAutoConfirmStatement(cloneItem.stmt)) {
-            // shallow clone
-            cloneItem = new Ast.DialogueHistoryItem(null, cloneItem.stmt, cloneItem.results, cloneItem.confirm);
-            cloneItem.confirm = 'confirmed';
-        }
-        clone.history.push(cloneItem);
-    }
-
+    // append the prediction items
+    clone.history.push(...prediction.history);
     return clone;
 }
 
-function prepareContextForPrediction(context : Ast.DialogueState|null, forTarget : 'user'|'agent') : Ast.DialogueState|null {
+export function prepareContextForPrediction(context : Ast.DialogueState|null, forTarget : 'user'|'agent') : Ast.DialogueState|null {
     if (context === null)
         return null;
     const clone = new Ast.DialogueState(null, context.policy, context.dialogueAct, context.dialogueActParam, []);
@@ -213,6 +203,16 @@ function prepareContextForPrediction(context : Ast.DialogueState|null, forTarget
         //
         // on the user side, the agent just spoke; the agent never introduces confirmed statements,
         // because statements must be confirmed by the user, so this assertion is also true
+        //
+        // note that there is a tricky edge case here: the user issued a confirmation
+        // (an explicitly confirmed statement) but the agent is making a request
+        // using dlg.ask() in the middle of prepareForExecution()
+        // in that case, this assertion would not be correct
+        // we still leave it here because with the current state machine the above
+        // case cannot happen: the agent will fill all the missing slots before
+        // asking for the final confirmation, and the user will not reply with
+        // a "confirmed" item unless the agent is in sys_confirm_action state
+        // this assertion has caught other problems in the past
         assert(item.confirm !== 'confirmed');
 
         clone.history.push(item);
@@ -220,11 +220,3 @@ function prepareContextForPrediction(context : Ast.DialogueState|null, forTarget
 
     return clone;
 }
-
-export {
-    shouldAutoConfirmStatement,
-
-    computePrediction,
-    computeNewState,
-    prepareContextForPrediction,
-};

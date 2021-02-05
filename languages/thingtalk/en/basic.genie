@@ -22,9 +22,16 @@ import { Ast, } from 'thingtalk';
 
 // import the combinator library
 import * as C from '../ast_manip';
+import ThingpediaLoader from '../load-thingpedia';
 
-// import thingpedia info
-import _tpLoader from '../load-thingpedia';
+// Initialize the Thingpedia loader before doing anything else
+{
+$loader = new ThingpediaLoader($runtime, $ttUtils, $grammar, $locale, $options);
+}
+import '../common.genie';
+{
+await $loader.init();
+}
 
 {
 function special(specialType : string) {
@@ -32,7 +39,6 @@ function special(specialType : string) {
 }
 }
 
-import '../common.genie';
 import './constants.genie';
 
 bookkeeping : Ast.ControlCommand = {
@@ -57,9 +63,9 @@ $root : Ast.Input = {
 
     ( 'get' query:thingpedia_complete_query
     | query:thingpedia_complete_get_command
-    ) => C.makeProgram(query);
+    ) => C.makeProgram($loader, query);
 
-    action:thingpedia_complete_action => C.makeProgram(action);
+    action:thingpedia_complete_action => C.makeProgram($loader, action);
 
-    'notify me' stream:thingpedia_complete_stream => C.makeProgram(stream);
+    'notify me' stream:thingpedia_complete_stream => C.makeProgram($loader, stream);
 }

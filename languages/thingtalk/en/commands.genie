@@ -21,9 +21,7 @@
 import { Ast, Type } from 'thingtalk';
 
 import * as C from '../ast_manip';
-
-// import thingpedia info
-import _tpLoader from '../load-thingpedia';
+import ThingpediaLoader from '../load-thingpedia';
 
 forward_get_do_command : Ast.ChainExpression = {
     // three forms:
@@ -50,7 +48,7 @@ forward_get_do_command : Ast.ChainExpression = {
     //['${(get|use)} ${with_filtered_table} to ${thingpedia_action}', checkIfIncomplete(simpleCombine((table, action) => new Ast.Command(null, table, [action])))]
 
     !turking command:forward_get_do_command ('with the same' | 'with identical' | 'using the same') joinArg:out_param_Any with { functionName = command.functionName }
-        => C.addSameNameParameterPassing(command, joinArg);
+        => C.addSameNameParameterPassing($loader, command, joinArg);
 }
 
 backward_get_do_command : Ast.ChainExpression = {
@@ -87,7 +85,7 @@ forward_when_do_rule : Ast.ChainExpression = {
     };
 
     !turking rule:forward_when_do_rule ('with the same' | 'with identical' | 'using the same') joinArg:out_param_Any with { functionName = rule.functionName }
-        => C.addSameNameParameterPassing(rule, joinArg);
+        => C.addSameNameParameterPassing($loader, rule, joinArg);
 }
 
 backward_when_do_rule : Ast.ChainExpression = {
@@ -126,7 +124,7 @@ when_get_stream : Ast.ChainExpression = {
     | imperative_verb_for_search table:projection_Any stream:stream
     | generic_verb_for_search table:projection_Any stream:stream
     | generic_preamble_for_answer table:projection_Any stream:stream
-    ) => C.combineStreamQuery(stream, table);
+    ) => C.combineStreamQuery($loader, stream, table);
 
     // pp from when to get
     ( stream:stream table:get_command_coref_same_sentence
@@ -262,12 +260,12 @@ search_command : Ast.Expression = {
           generic_lookup_preamble proj:projection_Any [weight=0.45]
         | ('show me' | 'tell me') 'what is' proj:projection_Any [weight=0.45]
         | generic_lookup_preamble proj:pair_projection [weight=0.1]
-    ) => C.sayProjection(proj);
+    ) => C.sayProjection($loader, proj);
 
     (
           generic_lookup_preamble proj:command_projection_table
         | ('show me' | 'tell me') 'what is the' proj:command_projection_table
-    ) => C.sayProjection(proj);
+    ) => C.sayProjection($loader, proj);
 }
 
 complete_question : Ast.Expression = {
@@ -353,7 +351,7 @@ projection_question : Ast.Expression = {
     ) => {
         if (proj instanceof Ast.ProjectionExpression && proj.schema!.getArgType(proj.args[0]) instanceof Type.Array)
             return null;
-        return C.sayProjection(proj);
+        return C.sayProjection($loader, proj);
     };
     ( 'what are' proj:projection_Any '?'
     | 'what are' proj:pair_projection '?' [weight=0.1]
@@ -362,20 +360,20 @@ projection_question : Ast.Expression = {
     ) => {
         if (proj instanceof Ast.ProjectionExpression && !(proj.schema!.getArgType(proj.args[0]) instanceof Type.Array))
             return null;
-        return C.sayProjection(proj);
+        return C.sayProjection($loader, proj);
     };
-    ('what' | 'which') proj:verb_projection_Any '?' => C.sayProjection(proj);
+    ('what' | 'which') proj:verb_projection_Any '?' => C.sayProjection($loader, proj);
 
-    proj:question_projection_table '?' => C.sayProjection(proj);
+    proj:question_projection_table '?' => C.sayProjection($loader, proj);
 
     // now => get => say(...) (where questions)
     ?turking 'where is the' table:with_filtered_table =>
-        C.sayProjection(C.makeSingleFieldProjection('table', Type.Location, table, 'geo'));
+        C.sayProjection($loader, C.makeSingleFieldProjection($loader, 'table', Type.Location, table, 'geo'));
     !turking 'where' ('is' | 'are') ('' | 'the') table:with_filtered_table =>
-        C.sayProjection(C.makeSingleFieldProjection('table', Type.Location, table, 'geo'));
+        C.sayProjection($loader, C.makeSingleFieldProjection($loader, 'table', Type.Location, table, 'geo'));
 
     // boolean questions
-    proj:boolean_projection '?' => C.sayProjection(proj);
+    proj:boolean_projection '?' => C.sayProjection($loader, proj);
 }
 
 explicit_when_condition : Ast.Expression = {
@@ -384,7 +382,7 @@ explicit_when_condition : Ast.Expression = {
             return null;
         if (!table.schema!.is_monitorable)
             return null;
-        if (_tpLoader.flags.turking && table.schema!.is_list)
+        if ($loader.flags.turking && table.schema!.is_list)
             return null;
         const withFilter = C.addFilter(table, filter, { ifFilter: true });
         if (!withFilter)
@@ -466,17 +464,17 @@ complete_action : Ast.Expression = {
 
     ( command:complete_action param:preposition_input_param with { functionName = command.functionName }
     | command:complete_action ('with' | 'having') param:npp_input_param with { functionName = command.functionName }
-    ) => C.addActionInputParam(command, param);
+    ) => C.addActionInputParam($loader, command, param);
 }
 
 say_command : Ast.Expression = {}
 
-if (_tpLoader.standardSchemas.say) {
+if ($loader.standardSchemas.say) {
     timer_rule : Ast.ChainExpression = {
         'send me a reminder' stream:timer
-            => C.makeChainExpression(stream, C.builtinSayAction()!);
+            => C.makeChainExpression(stream, C.builtinSayAction($loader)!);
         'send me' ('a message' | 'an alert' | 'a notification' | 'a reminder' | 'a popup notification') stream:timer ('saying' | 'with the text') constant:constant_String
-            => C.makeChainExpression(stream, C.builtinSayAction(constant)!);
+            => C.makeChainExpression(stream, C.builtinSayAction($loader, constant)!);
     }
 
     when_command : Ast.Expression = {
@@ -484,7 +482,7 @@ if (_tpLoader.standardSchemas.say) {
             (
                   'alert me' stream:stream ('saying' | 'with the text') constant:constant_String
                 | 'show' ('the notification' | 'the message' | 'a popup notification that says' | 'a popup containing') constant:constant_String stream:stream
-             ) => C.makeChainExpression(stream, C.builtinSayAction(constant)!);
+             ) => C.makeChainExpression(stream, C.builtinSayAction($loader, constant)!);
         }
     }
 
@@ -493,6 +491,6 @@ if (_tpLoader.standardSchemas.say) {
               'say' c:constant_String
             | 'send me a message saying' c:constant_String
             | 'show a popup that says' c:constant_String
-        ) => C.builtinSayAction(c);
+        ) => C.builtinSayAction($loader, c);
     }
 }

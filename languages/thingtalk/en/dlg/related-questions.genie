@@ -30,6 +30,7 @@
 import { Ast, } from 'thingtalk';
 import * as D from '../../dialogue_acts';
 import * as S from '../../state_manip';
+import ThingpediaLoader from '../../load-thingpedia';
 
 related_question : Ast.DialogueState = {
     ctx:ctx_for_related_question stmt:search_command [weight=0.1] => D.relatedQuestion(ctx, stmt);

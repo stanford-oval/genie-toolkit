@@ -36,7 +36,6 @@ import {
     ParamSlot,
     ErrorMessage,
     ExpressionWithCoreference,
-    clean,
     typeToStringSafe,
     makeInputParamSlot,
     makeFilter,
@@ -44,7 +43,6 @@ import {
     makeDateRangeFilter,
     isHumanEntity,
     interrogativePronoun,
-    tokenizeExample,
 } from './utils';
 import {
     replaceSlotBagPlaceholders,
@@ -103,15 +101,6 @@ interface CanonicalForm {
     implicit_identity ?: boolean;
 }
 
-interface GrammarOptions {
-    thingpediaClient : Tp.BaseClient;
-    schemaRetriever ?: SchemaRetriever;
-    flags : { [key : string] : boolean };
-    debug : number;
-    onlyDevices ?: string[];
-    whiteList ?: string;
-}
-
 // FIXME this info needs to be in Thingpedia
 interface ExtendedEntityRecord {
     type : string;
@@ -123,17 +112,24 @@ interface ExtendedEntityRecord {
 
 type PrimitiveTemplateType = 'action'|'action_past'|'query'|'get_command'|'stream'|'program';
 
-export class ThingpediaLoader {
-    private _runtime ! : typeof Genie.SentenceGeneratorRuntime;
-    private _grammar ! : Genie.SentenceGenerator<any, Ast.Input>;
-    private _schemas ! : SchemaRetriever;
-    private _tpClient ! : Tp.BaseClient;
-    private _langPack ! : Genie.I18n.LanguagePack;
-    private _options ! : GrammarOptions;
-    private _entities ! : Record<string, ExtendedEntityRecord>;
-    types ! : Map<string, Type>;
-    params ! : ParamSlot[];
-    projections ! : Array<{
+export default class ThingpediaLoader {
+    private _runtime : typeof Genie.SentenceGeneratorRuntime;
+    private _ttUtils : typeof Genie.ThingTalkUtils;
+    private _grammar : Genie.SentenceGenerator<any, Ast.Input>;
+    private _schemas : SchemaRetriever;
+    private _tpClient : Tp.BaseClient;
+    private _langPack : Genie.I18n.LanguagePack;
+    private _options : Genie.SentenceGeneratorTypes.GrammarOptions;
+    private _describer : Genie.ThingTalkUtils.Describer;
+
+    private _entities : Record<string, ExtendedEntityRecord>
+    // cached annotations extracted from Thingpedia, for use at inference time
+    private _errorMessages : Map<string, Record<string, string[]>>;
+    private _resultStrings : Map<string, string[]>;
+
+    types : Map<string, Type>;
+    params : ParamSlot[];
+    projections : Array<{
         pname : string;
         pslot : ParamSlot;
         category : string;
@@ -141,24 +137,27 @@ export class ThingpediaLoader {
         base : string;
         canonical : string;
     }>;
-    idQueries ! : Map<string, Ast.FunctionDef>;
-    compoundArrays ! : { [key : string] : InstanceType<typeof Type.Compound> };
-    globalWhiteList ! : string[]|null;
-    standardSchemas ! : {
+    idQueries : Map<string, Ast.FunctionDef>;
+    compoundArrays : { [key : string] : InstanceType<typeof Type.Compound> };
+    globalWhiteList : string[]|null;
+    standardSchemas : {
         say : Ast.FunctionDef|null;
         get_gps : Ast.FunctionDef|null;
         get_time : Ast.FunctionDef|null;
     };
-    entitySubTypeMap ! : Record<string, string>;
-    private _subEntityMap ! : Map<string, string[]>;
+    entitySubTypeMap : Record<string, string>;
+    private _subEntityMap : Map<string, string[]>;
 
-    async init(runtime : typeof Genie.SentenceGeneratorRuntime,
-               grammar : Genie.SentenceGenerator<any, Ast.Input>,
-               langPack : Genie.I18n.LanguagePack,
-               options : GrammarOptions) : Promise<void> {
+    constructor(runtime : typeof Genie.SentenceGeneratorRuntime,
+                ttUtils : typeof Genie.ThingTalkUtils,
+                grammar : Genie.SentenceGenerator<any, Ast.Input>,
+                langPack : Genie.I18n.LanguagePack,
+                options : Genie.SentenceGeneratorTypes.GrammarOptions) {
         this._runtime = runtime;
+        this._ttUtils = ttUtils;
         this._grammar = grammar;
         this._langPack = langPack;
+        this._describer = new ttUtils.Describer(langPack.locale, options.timezone, options.forSide);
 
         this._tpClient = options.thingpediaClient;
         if (!options.schemaRetriever) {
@@ -168,8 +167,14 @@ export class ThingpediaLoader {
         this._schemas = options.schemaRetriever!;
 
         this._options = options;
+        if (this._options.whiteList)
+            this.globalWhiteList = this._options.whiteList.split(',');
+        else
+            this.globalWhiteList = null;
 
         this._entities = {};
+        this._errorMessages = new Map;
+        this._resultStrings = new Map;
         this.types = new Map;
         this.params = [];
         this.projections = [];
@@ -177,18 +182,11 @@ export class ThingpediaLoader {
         this.compoundArrays = {};
         this.entitySubTypeMap = {};
         this._subEntityMap = new Map;
-        if (this._options.whiteList)
-            this.globalWhiteList = this._options.whiteList.split(',');
-        else
-            this.globalWhiteList = null;
 
-        const [say, get_gps, get_time] = await Promise.all([
-            this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'action', 'say'),
-            this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'query', 'get_gps'),
-            this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'query', 'get_time')
-        ]);
-        this.standardSchemas = { say, get_gps, get_time };
+        this.standardSchemas = { say: null, get_gps: null, get_time: null };
+    }
 
+    async init() {
         // make sure that these types are always available, regardless of which templates we have
         this._recordType(Type.String);
         this._recordType(Type.Date);
@@ -197,17 +195,39 @@ export class ThingpediaLoader {
         for (const unit of Units.BaseUnits)
             this._recordType(new Type.Measure(unit));
 
+        const [say, get_gps, get_time] = await Promise.all([
+            this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'action', 'say'),
+            this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'query', 'get_gps'),
+            this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'query', 'get_time')
+        ]);
+        this.standardSchemas = { say, get_gps, get_time };
+
         await this._loadMetadata();
+    }
+
+    get ttUtils() {
+        return this._ttUtils;
     }
 
     get flags() {
         return this._options.flags;
     }
 
+    get describer() {
+        return this._describer;
+    }
+
     isIDType(type : Type) {
         if (!(type instanceof Type.Entity))
             return false;
         return this.idQueries.has(type.type);
+    }
+
+    getResultStrings(functionName : string) : string[] {
+        return this._resultStrings.get(functionName) || [];
+    }
+    getErrorMessages(functionName : string) : Record<string, string[]> {
+        return this._errorMessages.get(functionName) || {};
     }
 
     private _addRule<ArgTypes extends unknown[], ResultType>(nonTerm : string,
@@ -263,7 +283,7 @@ export class ThingpediaLoader {
                 for (const entry of type.entries!) {
                     const value = new Ast.Value.Enum(entry);
                     value.getType = function() { return type; };
-                    this._addRule('constant_' + typestr, [clean(entry)],
+                    this._addRule('constant_' + typestr, [this._ttUtils.clean(entry)],
                         () => value, keyfns.valueKeyFn);
                 }
             }
@@ -340,7 +360,7 @@ export class ThingpediaLoader {
         let canonical;
 
         if (!arg.metadata.canonical)
-            canonical = { base: [clean(pname)] };
+            canonical = { base: [this._ttUtils.clean(pname)] };
         else if (typeof arg.metadata.canonical === 'string')
             canonical = { base: [arg.metadata.canonical] };
         else
@@ -419,7 +439,7 @@ export class ThingpediaLoader {
         let canonical;
 
         if (!arg.metadata.canonical)
-            canonical = { base: [clean(pname)] };
+            canonical = { base: [this._ttUtils.clean(pname)] };
         else if (typeof arg.metadata.canonical === 'string')
             canonical = { base: [arg.metadata.canonical] };
         else
@@ -458,7 +478,7 @@ export class ThingpediaLoader {
                 attributes.priority += 1;
 
             for (const form of annotvalue) {
-                this._addRule(cat + '_filter', [form], () => makeFilter(pslot, '==', value, false, this), keyfns.filterKeyFn, attributes);
+                this._addRule(cat + '_filter', [form], () => makeFilter(this, pslot, '==', value, false), keyfns.filterKeyFn, attributes);
                 this._addRule(cat + '_boolean_projection', [form], () => pslot, keyfns.paramKeyFn);
 
                 if (this._options.flags.inference)
@@ -522,7 +542,7 @@ export class ThingpediaLoader {
         let canonical;
 
         if (!arg.metadata.canonical)
-            canonical = { base: [clean(pname)] };
+            canonical = { base: [this._ttUtils.clean(pname)] };
         else if (typeof arg.metadata.canonical === 'string')
             canonical = { base: [arg.metadata.canonical] };
         else if (Array.isArray(arg.metadata.canonical))
@@ -619,8 +639,8 @@ export class ThingpediaLoader {
                     throw new TypeError(`Invalid annotation #_[canonical.implicit_identity=${annotvalue}] for ${pslot.schema.qualifiedName}`);
                 if (annotvalue) {
                     const expansion = [constant];
-                    this._addRule(cat + '_filter', expansion, (value : Ast.Value) => makeFilter(pslot, op, value, false, this), keyfns.filterKeyFn, attributes);
-                    this._addRule('coref_' + cat + '_filter', [corefconst], (value : Ast.Value) => makeFilter(pslot, op, value, false, this), keyfns.filterKeyFn, attributes);
+                    this._addRule(cat + '_filter', expansion, (value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
+                    this._addRule('coref_' + cat + '_filter', [corefconst], (value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
                 }
                 continue;
             }
@@ -635,7 +655,7 @@ export class ThingpediaLoader {
                         formarray = forms;
                     const value = new Ast.Value.Enum(enumerand);
                     for (const form of formarray)
-                        this._addRule(cat + '_filter', [form], () => makeFilter(pslot, op, value, false, this), keyfns.filterKeyFn, attributes);
+                        this._addRule(cat + '_filter', [form], () => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
                 }
             } else if (argMinMax) {
                 let annotarray : string[];
@@ -716,13 +736,13 @@ export class ThingpediaLoader {
                         this._addOutParam(pslot, form.trim());
                         if (!canonical.npp && !canonical.property && pslot.schema.is_list) {
                             const expansion = [form, constant];
-                            this._addRule('npp_filter', expansion, (_, value : Ast.Value) => makeFilter(pslot, op, value, false, this), keyfns.filterKeyFn);
+                            this._addRule('npp_filter', expansion, (_, value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn);
                             const corefexpansion = [form, corefconst];
-                            this._addRule('coref_npp_filter', corefexpansion, (_, value : Ast.Value) => makeFilter(pslot, op, value, false, this), keyfns.filterKeyFn, attributes);
+                            this._addRule('coref_npp_filter', corefexpansion, (_, value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
 
                             if (canUseBothForm) {
                                 const pairexpansion = [form, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
-                                this._addRule('npp_filter', pairexpansion, (_1, _2, values : [Ast.Value, Ast.Value]) => makeAndFilter(pslot, op, values, false, this), keyfns.filterKeyFn, attributes);
+                                this._addRule('npp_filter', pairexpansion, (_1, _2, values : [Ast.Value, Ast.Value]) => makeAndFilter(this, pslot, op, values, false), keyfns.filterKeyFn, attributes);
                             }
                         }
                     } else if (pslot.schema.is_list) {
@@ -756,12 +776,12 @@ export class ThingpediaLoader {
                             pairexpansion = ['', new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), ''];
                             daterangeexpansion = ['', new this._runtime.NonTerminal('constant_date_range'), ''];
                         }
-                        this._addRule(cat + '_filter', expansion, (_1, value : Ast.Value, _2) => makeFilter(pslot, op, value, false, this), keyfns.filterKeyFn, attributes);
-                        this._addRule('coref_' + cat + '_filter', corefexpansion, (_1, value : Ast.Value, _2) => makeFilter(pslot, op, value, false, this), keyfns.filterKeyFn, attributes);
+                        this._addRule(cat + '_filter', expansion, (_1, value : Ast.Value, _2) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
+                        this._addRule('coref_' + cat + '_filter', corefexpansion, (_1, value : Ast.Value, _2) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
                         if (canUseBothForm)
-                            this._addRule(cat + '_filter', pairexpansion, (_1, _2, values : [Ast.Value, Ast.Value], _3) => makeAndFilter(pslot, op, values, false, this), keyfns.filterKeyFn, attributes);
+                            this._addRule(cat + '_filter', pairexpansion, (_1, _2, values : [Ast.Value, Ast.Value], _3) => makeAndFilter(this, pslot, op, values, false), keyfns.filterKeyFn, attributes);
                         if (ptype.isDate)
-                            this._addRule(cat + '_filter', daterangeexpansion, (_1, values : [Ast.Value, Ast.Value], _2) => makeDateRangeFilter(pslot, values, this), keyfns.filterKeyFn, attributes);
+                            this._addRule(cat + '_filter', daterangeexpansion, (_1, values : [Ast.Value, Ast.Value], _2) => makeDateRangeFilter(this, pslot, values), keyfns.filterKeyFn, attributes);
                     }
 
                     if (this._options.flags.inference)
@@ -847,7 +867,7 @@ export class ThingpediaLoader {
         if (!ex.preprocessed || ex.preprocessed.length === 0) {
             // preprocess here...
             const tokenizer = this._langPack.getTokenizer();
-            ex.preprocessed = ex.utterances.map((utterance : string) => tokenizeExample(tokenizer, utterance, ex.id));
+            ex.preprocessed = ex.utterances.map((utterance : string) => this._ttUtils.tokenizeExample(tokenizer, utterance, ex.id));
         }
 
         for (let preprocessed of ex.preprocessed) {
@@ -861,7 +881,7 @@ export class ThingpediaLoader {
             if (this._options.debug >= this._runtime.LogLevel.INFO && preprocessed[0].startsWith(','))
                 console.log(`WARNING: template ${ex.id} starts with , but is not a query`);
 
-            if (this._options.flags.for_agent)
+            if (this._options.forSide === 'agent')
                 preprocessed = this._langPack.toAgentSideUtterance(preprocessed);
 
             this._addPrimitiveTemplate(grammarCat, preprocessed, ex);
@@ -921,7 +941,7 @@ export class ThingpediaLoader {
 
         // template #2: replace placeholders with whole queries or streams
         // TODO: enable this for table joins with param passing
-        if (grammarCat === 'action')
+        if (grammarCat === 'action' || (this._options.flags.dialogues && grammarCat === 'action_past'))
             this._addPlaceholderReplacementJoinPrimitiveTemplate(grammarCat, expansion, names, options, example);
 
         // template #3: coreferences
@@ -984,12 +1004,16 @@ export class ThingpediaLoader {
      * with a whole query or stream, and replacing the other placeholders with constants
      * or undefined.
      */
-    private _addPlaceholderReplacementJoinPrimitiveTemplate(grammarCat : 'action'|'query'|'get_command',
+    private _addPlaceholderReplacementJoinPrimitiveTemplate(grammarCat : 'action'|'query'|'get_command'|'action_past',
                                                             expansion : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal>,
                                                             names : Array<string|null>,
                                                             options : string[],
                                                             example : Ast.Example) {
         const exParams = Object.keys(example.args);
+
+        const fromNonTermNames =
+            grammarCat === 'action_past' ? ['ctx_current_query'] :
+            ['with_filtered_table', 'with_arg_min_max_table', 'projection_Any', 'stream_projection_Any'];
 
         // generate one rule for each possible parameter
         // in each rule, choose a different parameter to be replaced with a table
@@ -1004,23 +1028,26 @@ export class ThingpediaLoader {
 
             const intoType = example.args[tableParam];
 
-            for (const fromNonTermName of ['with_filtered_table', 'with_arg_min_max_table', 'projection_Any', 'stream_projection_Any']) {
+            for (const fromNonTermName of fromNonTermNames) {
                 if (grammarCat === 'query' && fromNonTermName === 'stream_projection_Any') // TODO
                     continue;
 
                 // non-terminal constraints only support equality (because they are mapped
                 // to hashtable) so we expand all possible sub entity to replace into
                 // so we can still replace efficiently
-
                 const fromTypes : Type[] = [intoType];
-                if (intoType instanceof Type.Entity) {
-                    for (const subEntity of this._subEntityMap.get(intoType.type) || [])
-                        fromTypes.push(new Type.Entity(subEntity));
+                if (fromNonTermName !== 'ctx_current_query') {
+                    if (intoType instanceof Type.Entity) {
+                        for (const subEntity of this._subEntityMap.get(intoType.type) || [])
+                            fromTypes.push(new Type.Entity(subEntity));
+                    }
                 }
 
                 for (const fromType of fromTypes) {
                     let fromNonTerm;
-                    if (fromNonTermName === 'projection_Any' || fromNonTermName === 'stream_projection_Any')
+                    if (fromNonTermName === 'ctx_current_query')
+                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName);
+                    else if (fromNonTermName === 'projection_Any' || fromNonTermName === 'stream_projection_Any')
                         fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, ['projectionType', fromType]);
                     else
                         fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, ['implicitParamPassingType', fromType]);
@@ -1029,7 +1056,9 @@ export class ThingpediaLoader {
                     clone[paramIdx] = fromNonTerm;
 
                     let intoNonTerm;
-                    if (grammarCat === 'query')
+                    if (grammarCat === 'action_past')
+                        intoNonTerm = 'thingpedia_complete_join_action_past';
+                    else if (grammarCat === 'query')
                         intoNonTerm = 'table_join_replace_placeholder';
                     else if (fromNonTermName === 'stream_projection_Any')
                         intoNonTerm = 'action_replace_param_with_stream';
@@ -1063,7 +1092,7 @@ export class ThingpediaLoader {
 
         const canonical : string[] = q.canonical ?
             (Array.isArray(q.canonical) ? q.canonical : [q.canonical]) :
-            [clean(q.name)];
+            [this._ttUtils.clean(q.name)];
 
         for (const form of canonical) {
             const pluralized = this._langPack.pluralize(form);
@@ -1115,7 +1144,7 @@ export class ThingpediaLoader {
         schemaClone.is_list = false;
         schemaClone.no_filter = true;
         this._grammar.addConstants('constant_name', 'GENERIC_ENTITY_' + idType.type, idType,
-            keyfns.entityValueKeyFn);
+            keyfns.entityOrNumberValueKeyFn);
 
         let hasParentEntity = false;
         if (entity.subtype_of) {
@@ -1267,12 +1296,16 @@ export class ThingpediaLoader {
     private async _loadCustomErrorMessages(functionDef : Ast.FunctionDef) {
         const bag = new SlotBag(functionDef);
 
+        const normalized : Record<string, string[]> = {};
+        this._errorMessages.set(functionDef.qualifiedName, normalized);
         for (const code in functionDef.metadata.on_error) {
             let messages = functionDef.metadata.on_error[code];
             if (!Array.isArray(messages))
                 messages = [messages];
+            normalized[code] = messages;
 
-            for (const msg of messages) {
+            for (let i = 0; i < messages.length; i++) {
+                const msg = messages[i];
                 const chunks = msg.trim().split(' ');
                 const expansion : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal> = [];
                 const names : Array<string|null> = [];
@@ -1299,7 +1332,10 @@ export class ThingpediaLoader {
                     }
                 }
 
-                this._addRule<Ast.Value[], ErrorMessage>('thingpedia_error_message', expansion, (...args) => replaceErrorMessagePlaceholders({ code, bag }, names, args), keyfns.errorMessageKeyFn);
+                // give a small priority boost to each phrase, depending on the order
+                // in which they are given
+                const attributes = { priority: (messages.length-i) * 0.1 };
+                this._addRule<Ast.Value[], ErrorMessage>('thingpedia_error_message', expansion, (...args) => replaceErrorMessagePlaceholders({ code, bag }, names, args), keyfns.errorMessageKeyFn, attributes);
             }
         }
     }
@@ -1310,7 +1346,11 @@ export class ThingpediaLoader {
         let resultstring = functionDef.metadata.result;
         if (!Array.isArray(resultstring))
             resultstring = [resultstring];
-        for (const form of resultstring) {
+
+        this._resultStrings.set(functionDef.qualifiedName, resultstring);
+        for (let i = 0; i < resultstring.length; i++) {
+            const form = resultstring[i];
+
             const chunks = form.trim().split(' ');
             const expansion : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal> = [];
             const names : Array<string|null> = [];
@@ -1337,7 +1377,11 @@ export class ThingpediaLoader {
                 }
             }
 
-            this._addRule<Ast.Value[], SlotBag>('thingpedia_result', expansion, (...args) => replaceSlotBagPlaceholders(bag, names, args), keyfns.slotBagKeyFn);
+            // give a small priority boost to each phrase, depending on the order
+            // in which they are given
+            const attributes = { priority: (resultstring.length-i) * 0.1 };
+            this._addRule<Ast.Value[], SlotBag>('thingpedia_result', expansion, (...args) => replaceSlotBagPlaceholders(bag, names, args),
+                keyfns.slotBagKeyFn, attributes);
         }
     }
 
@@ -1416,7 +1460,7 @@ export class ThingpediaLoader {
                 }
 
                 this._grammar.addConstants('constant_' + typestr, 'GENERIC_ENTITY_' + entityType, ttType,
-                    keyfns.entityValueKeyFn);
+                    keyfns.entityOrNumberValueKeyFn);
             } else {
                 if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
                     console.log('Loaded entity ' + entityType + ' as non-constant entity');
@@ -1443,10 +1487,6 @@ export class ThingpediaLoader {
         return devices.map((d) => d.kind);
     }
 
-    private async _getDataset(kind : string) {
-        return this._tpClient.getExamplesByKinds([kind]);
-    }
-
     private async _loadMetadata() {
         const entityTypes : ExtendedEntityRecord[] = await this._tpClient.getAllEntityTypes();
 
@@ -1466,21 +1506,10 @@ export class ThingpediaLoader {
         let datasets;
         if (this._options.onlyDevices) {
             datasets = await Promise.all(devices.map(async (d) => {
-                let parsed;
-                const dataset = await this._getDataset(d);
-                try {
-                    parsed = Syntax.parse(dataset);
-                } catch(e) {
-                    if (e.name !== 'SyntaxError')
-                        throw e;
-                    // try parsing using legacy syntax too in case we're talking
-                    // to an old Thingpedia that has not been migrated
-                    parsed = Syntax.parse(dataset, Syntax.SyntaxType.Legacy);
-                }
-                assert(parsed instanceof Ast.Library);
-                return parsed.datasets[0];
+                const dataset = await this._schemas.getExamplesByKind(d);
+                this._describer.setDataset(d, dataset);
+                return dataset;
             }));
-            datasets = datasets.filter((d) => !!d);
         } else {
             const code = await this._tpClient.getAllExamples();
             let parsed;
@@ -1495,6 +1524,7 @@ export class ThingpediaLoader {
             }
             assert(parsed instanceof Ast.Library);
             datasets = parsed.datasets;
+            this._describer.setFullDataset(datasets);
         }
 
         if (this._options.debug >= this._runtime.LogLevel.INFO) {
@@ -1514,5 +1544,3 @@ export class ThingpediaLoader {
             await this._loadDataset(dataset);
     }
 }
-
-export default new ThingpediaLoader();

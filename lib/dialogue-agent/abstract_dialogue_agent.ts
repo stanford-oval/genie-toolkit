@@ -23,7 +23,7 @@ import assert from 'assert';
 import { Ast, SchemaRetriever } from 'thingtalk';
 
 import { cleanKind } from '../utils/misc-utils';
-import { shouldAutoConfirmStatement } from './dialogue_state_utils';
+import { shouldAutoConfirmStatement } from '../utils/thingtalk';
 import { contactSearch, Contact } from './entity-linking/contact_search';
 import { collectDisambiguationHints, getBestEntityMatch, EntityRecord } from './entity-linking/entity-finder';
 
@@ -421,7 +421,8 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * @param {string} name - the name to look up
      * @returns {thingtalk.Ast.Value.Entity} - the entity corresponding to the picked up information
      */
-    async askMissingContact(category : ValueCategory, name : string) : Promise<Ast.EntityValue> {
+    async askMissingContact(category : ValueCategory.EmailAddress|ValueCategory.PhoneNumber|ValueCategory.Contact,
+                            name : string) : Promise<Ast.EntityValue> {
         throw new TypeError('Abstract method');
     }
 

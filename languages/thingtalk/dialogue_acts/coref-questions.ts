@@ -35,7 +35,7 @@ import {
 import type { Recommendation } from './recommendation';
 import type { ListProposal } from './list-proposal';
 
-export type UserSearchQuestionForList = [Ast.EntityValue|null, C.ParamSlot[]];
+export type UserSearchQuestionForList = [Ast.EntityValue|Ast.NumberValue|null, C.ParamSlot[]];
 
 export function userSearchQuestionForListKeyFn([name, questions] : UserSearchQuestionForList) {
     if (questions.length === 0)

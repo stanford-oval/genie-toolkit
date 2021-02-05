@@ -108,7 +108,7 @@ class MockAppDatabase {
         this._rng = rng;
         assert(rng);
         this._database = database;
-        this._simulator = new SimulationExecEnvironment('en-US', this._schemas, this._database, {
+        this._simulator = new SimulationExecEnvironment('en-US', 'America/Los_Angeles', this._schemas, this._database, {
             rng, simulateErrors: false
         });
 

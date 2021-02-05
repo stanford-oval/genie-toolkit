@@ -25,6 +25,7 @@ import * as ThingTalk from 'thingtalk';
 
 import { getProgramIcon } from '../../utils/icons';
 import { Describer, getProgramName } from '../../utils/thingtalk/describe';
+import * as I18n from '../../i18n';
 
 import AppSql from '../db/app';
 import AppExecutor from './app_executor';
@@ -113,11 +114,32 @@ export default class AppDatabase extends events.EventEmitter {
         } = {}) {
         const uniqueId = options.uniqueId || 'uuid-' + uuid.v4();
 
-        const gettext = this._platform.getCapability('gettext')!;
-        const describer = new Describer(gettext, this._platform.locale, this._platform.timezone);
         const name = options.name || getProgramName(program);
         delete options.name;
-        const description = options.description || describer.describeProgram(program);
+
+        let description = options.description;
+        if (!description) {
+            // if we don't have a description already, compute one using
+            // the Describer
+            const describer = new Describer(this._platform.locale, this._platform.timezone);
+
+            // retrieve the relevant primitive templates
+            const kinds = new Set<string>();
+            for (const [, prim] of program.iteratePrimitives(false))
+                kinds.add(prim.selector.kind);
+            for (const kind of kinds)
+                describer.setDataset(kind, await this._engine.schemas.getExamplesByKind(kind));
+
+            description = describer.describeProgram(program);
+
+            // apply the usual postprocessing
+            const langPack = I18n.get(this._platform.locale);
+            // treat it as an agent sentence for purposes of postprocessing
+            // (which disables randomization)
+            // even though it is a user-side sentence (ie, it says "my")
+            description = langPack.postprocessNLG(langPack.postprocessSynthetic(description, program, null, 'agent'), {});
+        }
+
         delete options.description;
         const icon = options.icon || getProgramIcon(program);
         const conversation = options.conversation;

@@ -27,10 +27,14 @@ import * as fs from 'fs';
 import { Ast, SchemaRetriever } from 'thingtalk';
 
 import SimulationDialogueAgent, { SimulationDialogueAgentOptions } from '../../dialogue-agent/simulator/simulation_dialogue_agent';
-import { computeNewState, computePrediction, prepareContextForPrediction } from '../../dialogue-agent/dialogue_state_utils';
 import { extractConstants, createConstants } from './constants';
 export * from './describe';
 export * from './syntax';
+export * from './dialogue_state_utils';
+export * from './example-utils';
+// reexport clean from misc-utils
+import { clean } from '../misc-utils';
+export { clean };
 
 export type Input = Ast.Input;
 export type DialogueState = Ast.DialogueState;
@@ -40,10 +44,6 @@ export type SimulatorOptions = SimulationDialogueAgentOptions;
 export {
     extractConstants,
     createConstants,
-
-    computeNewState,
-    computePrediction,
-    prepareContextForPrediction
 };
 
 function validateState(state : Ast.DialogueState, forTarget : 'user'|'agent') : void {

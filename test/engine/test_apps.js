@@ -45,7 +45,7 @@ async function testSimpleDo(engine) {
     const app = await engine.createApp('now => @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").eat_data(data="some data ");');
 
     assert.strictEqual(app.name, 'Test');
-    assert.strictEqual(app.description, 'consume “some data ”');
+    assert.strictEqual(app.description, 'Eat data on test with data some data.');
 
     // when we get here, the app might or might not have started already
     // to be sure, we iterate its mainOutput
@@ -136,7 +136,7 @@ async function testSimpleGet2(engine, icon = null) {
 
     assert.deepStrictEqual(output, {
         uniqueId: 'app-foo-get',
-        description: 'get generate 10 byte of fake data with count equal to 2',
+        description: 'Get get data on test with count 2 and with size 10 byte.',
         code: '@org.thingpedia.builtin.test.get_data(count=2, size=10byte);',
         icon: 'org.thingpedia.builtin.test',
         results:

@@ -25,9 +25,7 @@ import { Ast } from 'thingtalk';
 
 import * as C from '../../ast_manip';
 import * as D from '../../dialogue_acts';
-
-// import thingpedia info
-import _tpLoader from '../../load-thingpedia';
+import ThingpediaLoader from '../../load-thingpedia';
 
 // questions with "it"/"that" -- coreference on a single result
 
@@ -145,7 +143,7 @@ simple_user_search_question : C.ParamSlot[] = {
     };
 }
 
-for (const proj of _tpLoader.projections) {
+for (const proj of $loader.projections) {
     if (proj.category === 'pvp' || proj.category === 'preposition') {
         simple_user_search_question : C.ParamSlot[] = ( ('can you tell me' | '') #(proj.pronoun) #(proj.base) ('is'|'was'|'are'|'were') ('it' | 'this' | 'that') #(proj.canonical) '?'
         | 'i would like to' ('know' | 'see') #(proj.pronoun) #(proj.base) ('it' | 'this' | 'that') ('is'|'was'|'are'|'were') #(proj.canonical) ('first' | '') '.'
@@ -347,7 +345,7 @@ boolean_user_search_question_for_list : C.ParamSlot[] = {
 
 // questions by name (when in an list)
 
-user_search_question_with_name : [Ast.EntityValue, C.ParamSlot[]] = {
+user_search_question_with_name : [Ast.EntityValue|Ast.NumberValue, C.ParamSlot[]] = {
     // straight up questions
     ( ('can you tell me' | '') 'what is' name:constant_name '\'s' param:out_param_Any with { associatedIdType = name.type } '?'
     | ('can you tell me' | '') 'what is' 'the' param:out_param_Any 'of' name:constant_name with { type = param.associatedIdType } '?'
@@ -373,7 +371,7 @@ user_search_question_with_name : [Ast.EntityValue, C.ParamSlot[]] = {
     };
 }
 
-boolean_user_search_question_with_name : [Ast.EntityValue, C.ParamSlot[]] = {
+boolean_user_search_question_with_name : [Ast.EntityValue|Ast.NumberValue, C.ParamSlot[]] = {
     // question in boolean
     ( 'does' name:constant_name 'have' param:npp_filter with { associatedIdType = name.type } '?'
     | 'does' name:constant_name param:avp_filter with { associatedIdType = name.type } '?'

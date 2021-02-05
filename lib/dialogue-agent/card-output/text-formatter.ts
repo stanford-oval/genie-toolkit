@@ -21,6 +21,7 @@
 import interpolate from 'string-interp';
 import { Type, Ast, SchemaRetriever, Builtin } from 'thingtalk';
 
+import * as I18n from '../../i18n';
 import { clean } from '../../utils/misc-utils';
 import {
     FORMAT_TYPES,
@@ -104,7 +105,7 @@ interface InternalFormattedChunk {
  */
 export default class TextFormatter {
     private _locale : string;
-    private _timezone : string;
+    private _timezone : string|undefined;
     private _schemas : SchemaRetriever;
     private _interp : (template : string, args : any) => string;
     private _ : (key : string) => string;
@@ -116,18 +117,16 @@ export default class TextFormatter {
      * @param locale - the user's locale, as a BCP47 tag
      * @param timezone - the user's timezone, as a string in the IANA timezone database (e.g. America/Los_Angeles, Europe/Rome)
      * @param schemaRetriever - the interface to access Thingpedia for formatting information
-     * @param gettext - gettext function
      */
     constructor(locale : string,
-                timezone : string,
-                schemaRetriever : SchemaRetriever,
-                gettext : (x : string) => string) {
+                timezone : string|undefined,
+                schemaRetriever : SchemaRetriever) {
         this._locale = locale;
         this._timezone = timezone;
-        this._cardFormatter = new CardFormatter(locale, timezone, schemaRetriever, gettext);
+        this._cardFormatter = new CardFormatter(locale, timezone, schemaRetriever);
         this._schemas = schemaRetriever;
         this._interp = (string, args) => interpolate(string, args, { locale, timezone })||'';
-        this._ = gettext;
+        this._ = I18n.get(locale).gettext;
     }
 
     private _displayKey(key : string, functionDef : Ast.FunctionDef|null) : string {

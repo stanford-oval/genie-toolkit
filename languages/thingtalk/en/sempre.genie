@@ -22,27 +22,33 @@ import { Ast, Type } from 'thingtalk';
 
 // import the combinator library
 import * as C from '../ast_manip';
+import ThingpediaLoader from '../load-thingpedia';
 
-// import thingpedia info
-import _tpLoader from '../load-thingpedia';
-
+// Initialize the Thingpedia loader before doing anything else
+{
+$loader = new ThingpediaLoader($runtime, $ttUtils, $grammar, $locale, $options);
+}
 import '../common.genie';
+{
+await $loader.init();
+}
+
 import './constants.genie';
 
 table : Ast.Expression = thingpedia_complete_query;
 
 filter : C.FilterSlot = {
-    'whose' p:out_param_Any 'is' v:constant_Any => C.makeFilter(p, '==', v);
-    'whose' p:out_param_Any 'is not' v:constant_Any =>  C.makeFilter(p, '==', v, true);
-    'whose' p:out_param_Array__Any 'is' v:constant_Any => C.makeFilter(p, 'contains', v);
-    'whose' p:out_param_Array__Any 'is not' v:constant_Any =>  C.makeFilter(p, 'contains', v, true);
-    'whose' p:out_param_Any with { is_numeric = true } ('is samller than' | 'at most') v:constant_Numeric => C.makeFilter(p, '<=', v);
-    'whose' p:out_param_Any with { is_numeric = true } ('is larger than' | 'at least')  v:constant_Numeric => C.makeFilter(p, '>=', v);
+    'whose' p:out_param_Any 'is' v:constant_Any => C.makeFilter($loader, p, '==', v);
+    'whose' p:out_param_Any 'is not' v:constant_Any =>  C.makeFilter($loader, p, '==', v, true);
+    'whose' p:out_param_Array__Any 'is' v:constant_Any => C.makeFilter($loader, p, 'contains', v);
+    'whose' p:out_param_Array__Any 'is not' v:constant_Any =>  C.makeFilter($loader, p, 'contains', v, true);
+    'whose' p:out_param_Any with { is_numeric = true } ('is samller than' | 'at most') v:constant_Numeric => C.makeFilter($loader, p, '<=', v);
+    'whose' p:out_param_Any with { is_numeric = true } ('is larger than' | 'at least')  v:constant_Numeric => C.makeFilter($loader, p, '>=', v);
 
-    'that' p:out_param_avp v:constant_Any =>  C.makeFilter(p, '==', v);
-    'that not' p:out_param_avp v:constant_Any => C.makeFilter(p, '==', v, true);
-    'that' p:out_param_avp v:constant_Any =>  C.makeFilter(p, 'contains', v);
-    'that not' p:out_param_avp v:constant_Any => C.makeFilter(p, 'contains', v, true);
+    'that' p:out_param_avp v:constant_Any =>  C.makeFilter($loader, p, '==', v);
+    'that not' p:out_param_avp v:constant_Any => C.makeFilter($loader, p, '==', v, true);
+    'that' p:out_param_avp v:constant_Any =>  C.makeFilter($loader, p, 'contains', v);
+    'that not' p:out_param_avp v:constant_Any => C.makeFilter($loader, p, 'contains', v, true);
 
     'that has' v:constant_Number p:out_param_Any => C.makeAggregateFilter(p, 'count', '*', '==', v);
     'that has' ('less than' | 'at most') v:constant_Number p:out_param_Any => C.makeAggregateFilter(p, 'count', '*', '<=', v);
@@ -111,7 +117,7 @@ filtered_table : Ast.Expression = {
     | p:out_param_Array__Any 'of' table:filtered_table ) => {
         if (p.name === 'id')
             return null;
-        return C.makeSingleFieldProjection('table', null, table, p);
+        return C.makeSingleFieldProjection($loader, 'table', null, table, p);
     };
 
     // count
@@ -164,15 +170,15 @@ filtered_table : Ast.Expression = {
 
 $root : Ast.Input = {
     t:table => {
-        const proj = C.sayProjection(t);
+        const proj = C.sayProjection($loader, t);
         if (proj)
-            return C.makeProgram(proj);
+            return C.makeProgram($loader, proj);
         return null;
     };
     t:filtered_table => {
-        const filtered = C.sayProjection(t);
+        const filtered = C.sayProjection($loader, t);
         if (filtered)
-            return C.makeProgram(filtered);
+            return C.makeProgram($loader, filtered);
         return null;
     };
 }

@@ -21,6 +21,7 @@
 import interpolate from 'string-interp';
 import { Builtin } from 'thingtalk';
 
+import * as I18n from '../../i18n';
 import type CardFormatter from './card-formatter';
 type PlainObject = { [key : string] : unknown };
 type GenericFormatSpec = { [key : string] : string|null };
@@ -100,12 +101,8 @@ export abstract class BaseFormattedObject {
 }
 
 
-type GettextFunction = (key : string) => string;
-
-function localeCompat(locale : string) : [GettextFunction, string|undefined] {
-    //return [I18n.get(locale).gettext, locale];
-    // FIXME
-    return [(x) => x, locale];
+function localeCompat(locale : string) : [(x : string) => string, string|undefined] {
+    return [I18n.get(locale).gettext, locale];
 }
 
 interface PictureSpec {

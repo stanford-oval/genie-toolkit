@@ -111,7 +111,7 @@ export default class Assistant extends events.EventEmitter {
 
         this._engine = engine;
         this._formatter = new TextFormatter(engine.platform.locale, engine.platform.timezone,
-            engine.schemas, engine._);
+            engine.schemas);
         this._nluModelUrl = nluModelUrl;
         this._outputs = new Set;
         this._conversations = new Map;

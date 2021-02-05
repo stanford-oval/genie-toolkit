@@ -21,6 +21,7 @@
 import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
+import ThingpediaLoader from '../load-thingpedia';
 
 import {
     ContextInfo,
@@ -89,7 +90,9 @@ function isGoodEmptySearchQuestion(ctx : ContextInfo, question : C.ParamSlot) {
     return true;
 }
 
-function emptySearchChangePhraseCommon(ctx : ContextInfo, newFilter : Ast.BooleanExpression) {
+function emptySearchChangePhraseCommon(loader : ThingpediaLoader,
+                                       ctx : ContextInfo,
+                                       newFilter : Ast.BooleanExpression) {
     const currentStmt = ctx.current!.stmt;
     const currentExpression = currentStmt.expression;
     let currentTable = currentExpression.last;
@@ -104,7 +107,7 @@ function emptySearchChangePhraseCommon(ctx : ContextInfo, newFilter : Ast.Boolea
         return null;
 
     if (currentAction) {
-        const confirm = C.normalizeConfirmAnnotation(currentAction.schema!);
+        const confirm = loader.ttUtils.normalizeConfirmAnnotation(currentAction.schema!);
 
         // if the current statement was a compound command, and confirm === auto,
         // we need to add the [1] clause to the query if necessary, and preserve
@@ -129,7 +132,9 @@ function emptySearchChangePhraseCommon(ctx : ContextInfo, newFilter : Ast.Boolea
  * The "precise" variant explicitly contains a reference to a table, which must be the same
  * as the context.
  */
-function preciseEmptySearchChangeRequest(ctx : ContextInfo, phrase : Ast.Expression) {
+function preciseEmptySearchChangeRequest(loader : ThingpediaLoader,
+                                         ctx : ContextInfo,
+                                         phrase : Ast.Expression) {
     if (!(phrase instanceof Ast.FilterExpression))
         return null;
     const [, param] = ctx.aux as EmptySearch;
@@ -138,7 +143,7 @@ function preciseEmptySearchChangeRequest(ctx : ContextInfo, phrase : Ast.Express
     if (param !== null && !C.filterUsesParam(phrase.filter, param.name))
         return null;
 
-    return emptySearchChangePhraseCommon(ctx, phrase.filter);
+    return emptySearchChangePhraseCommon(loader, ctx, phrase.filter);
 }
 
 /**
@@ -147,14 +152,16 @@ function preciseEmptySearchChangeRequest(ctx : ContextInfo, phrase : Ast.Express
  * The "imprecise" variant only contains a value and optionally a parameter name.
  * The table is inferred from the context.
  */
-function impreciseEmptySearchChangeRequest(ctx : ContextInfo, answer : Ast.Value|C.FilterSlot) {
+function impreciseEmptySearchChangeRequest(loader : ThingpediaLoader,
+                                           ctx : ContextInfo,
+                                           answer : Ast.Value|C.FilterSlot) {
     const [base, param] = ctx.aux as EmptySearch;
     // because we're imprecise, we're only valid if the agent asked a specific question
     if (base === null || param === null)
         return null;
     let answerFilter : C.FilterSlot|null;
     if (answer instanceof Ast.Value)
-        answerFilter = C.makeFilter(param, '==', answer);
+        answerFilter = C.makeFilter(loader, param, '==', answer);
     else
         answerFilter = answer;
     if (answerFilter === null || !(answerFilter instanceof Ast.AtomBooleanExpression))
@@ -164,7 +171,7 @@ function impreciseEmptySearchChangeRequest(ctx : ContextInfo, answer : Ast.Value
     if (!C.checkFilter(base, answerFilter))
         return null;
 
-    return emptySearchChangePhraseCommon(ctx, answerFilter);
+    return emptySearchChangePhraseCommon(loader, ctx, answerFilter);
 }
 
 export {

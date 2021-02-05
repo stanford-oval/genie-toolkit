@@ -54,6 +54,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         default: 'en-US',
         help: `BGP 47 locale tag of the natural language being processed (defaults to en-US).`
     });
+    parser.add_argument('--timezone', {
+        required: false,
+        default: undefined,
+        help: `Timezone to use to print dates and times (defaults to the current timezone).`
+    });
     parser.add_argument('--thingpedia', {
         required: true,
         help: 'Path to ThingTalk file containing class definitions.'
@@ -151,6 +156,7 @@ export async function execute(args : any) {
     const simulatorOptions : ThingTalkUtils.SimulatorOptions = {
         rng: seedrandom.alea('almond is awesome'),
         locale: args.locale,
+        timezone: args.timezone,
         thingpediaClient: tpClient,
         schemaRetriever: schemas,
         interactive: true
@@ -165,6 +171,7 @@ export async function execute(args : any) {
         thingpedia: tpClient,
         schemas: schemas,
         locale: args.locale,
+        timezone: args.timezone,
         rng: simulatorOptions.rng,
         debug: false
     });

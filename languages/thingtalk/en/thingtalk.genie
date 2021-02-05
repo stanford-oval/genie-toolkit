@@ -22,11 +22,17 @@ import { Ast, } from 'thingtalk';
 
 // import the combinator library
 import * as C from '../ast_manip';
+import ThingpediaLoader from '../load-thingpedia';
 
-// import thingpedia info
-import _tpLoader from '../load-thingpedia';
-
+// Initialize the Thingpedia loader before doing anything else
+{
+$loader = new ThingpediaLoader($runtime, $ttUtils, $grammar, $locale, $options);
+}
 import '../common.genie';
+{
+await $loader.init();
+}
+
 import './shared.genie';
 import './constants.genie';
 import './timers.genie';
@@ -40,13 +46,13 @@ import './commands.genie';
 import './stream_tables.genie';
 
 $root : Ast.Input = {
-    p:thingpedia_complete_program => C.makeProgram(p);
+    p:thingpedia_complete_program => C.makeProgram($loader, p);
 
-    ?timer stmt:timer_rule [weight=0.2] => C.makeProgram(stmt);
+    ?timer stmt:timer_rule [weight=0.2] => C.makeProgram($loader, stmt);
     !nostream {
         ( stmt:monitor_command [weight=0.2]
         | stmt:when_command [weight=0.2]
-        ) => C.makeProgram(stmt);
+        ) => C.makeProgram($loader, stmt);
     }
 
     (
@@ -64,6 +70,6 @@ $root : Ast.Input = {
     | stmt:search_command
     | stmt:complete_question [weight=0.1]
     | stmt:projection_question [weight=0.1]
-    ) => C.makeProgram(stmt);
+    ) => C.makeProgram($loader, stmt);
 }
 

@@ -24,7 +24,7 @@ import assert from 'assert';
 import { Ast, Type } from 'thingtalk';
 
 import * as C from '../ast_manip';
-import _loader from '../load-thingpedia';
+import ThingpediaLoader from '../load-thingpedia';
 
 import {
     ContextInfo,
@@ -34,7 +34,8 @@ import {
     findOrMakeFilterExpression
 } from './refinement-helpers';
 
-function adjustStatementsForInitialRequest(expr : Ast.ChainExpression) {
+function adjustStatementsForInitialRequest(loader : ThingpediaLoader,
+                                           expr : Ast.ChainExpression) {
     // TODO implement rules (streams)
     if (expr.first.schema!.functionType === 'stream')
         return null;
@@ -51,7 +52,7 @@ function adjustStatementsForInitialRequest(expr : Ast.ChainExpression) {
         const table = expr.expressions[0];
         const action = expr.expressions[1];
         assert(action instanceof Ast.InvocationExpression);
-        const confirm = C.normalizeConfirmAnnotation(action.invocation.schema!);
+        const confirm = loader.ttUtils.normalizeConfirmAnnotation(action.invocation.schema!);
 
         // if confirm === auto, we leave the compound command as is, but add the [1] clause
         // to the query if necessary
@@ -121,7 +122,7 @@ function adjustStatementsForInitialRequest(expr : Ast.ChainExpression) {
         let hasIDArg = false;
         for (const param of action.invocation.in_params) {
             const type = action.invocation.schema!.getArgType(param.name);
-            if (!(type instanceof Type.Entity) || !_loader.idQueries.has(type.type))
+            if (!(type instanceof Type.Entity) || !loader.idQueries.has(type.type))
                 continue;
             hasIDArg = true;
             if (param.value.isEntity)
@@ -132,13 +133,13 @@ function adjustStatementsForInitialRequest(expr : Ast.ChainExpression) {
             return newStatements.map(C.adjustDefaultParameters);
         }
 
-        const confirm = C.normalizeConfirmAnnotation(action.invocation.schema!);
+        const confirm = loader.ttUtils.normalizeConfirmAnnotation(action.invocation.schema!);
         const clone = action.clone();
 
         let newTable : Ast.Expression|null = null;
         for (const param of clone.invocation.in_params) {
             const type = clone.invocation.schema!.getArgType(param.name);
-            if (!(type instanceof Type.Entity) || !_loader.idQueries.has(type.type))
+            if (!(type instanceof Type.Entity) || !loader.idQueries.has(type.type))
                 continue;
             assert(param.value.isUndefined);
 
@@ -146,7 +147,7 @@ function adjustStatementsForInitialRequest(expr : Ast.ChainExpression) {
             // ID type in the same action
             assert(newTable === null);
 
-            const query = _loader.idQueries.get(type.type)!;
+            const query = loader.idQueries.get(type.type)!;
             newTable = new Ast.InvocationExpression(null,
                     new Ast.Invocation(null,
                         new Ast.DeviceSelector(null, query.class!.name, null, null),
@@ -173,8 +174,8 @@ function adjustStatementsForInitialRequest(expr : Ast.ChainExpression) {
     return newStatements.map(C.adjustDefaultParameters);
 }
 
-function initialRequest(stmt : Ast.Expression) {
-    const newStatements = adjustStatementsForInitialRequest(C.toChainExpression(stmt));
+function initialRequest(loader : ThingpediaLoader, stmt : Ast.Expression) {
+    const newStatements = adjustStatementsForInitialRequest(loader, C.toChainExpression(stmt));
     if (newStatements === null)
         return null;
 
@@ -186,15 +187,15 @@ function getStatementDevice(stmt : Ast.ChainExpression) {
     return stmt.last.schema!.class!.name;
 }
 
-function startNewRequest(ctx : ContextInfo, expr : Ast.Expression) {
+function startNewRequest(loader : ThingpediaLoader, ctx : ContextInfo, expr : Ast.Expression) {
     const stmt = C.toChainExpression(expr);
     if (stmt.first.schema!.functionType === 'stream')
         return null;
 
-    if (_loader.flags.strict_multidomain && getStatementDevice(ctx.current!.stmt.expression) === getStatementDevice(stmt))
+    if (loader.flags.strict_multidomain && getStatementDevice(ctx.current!.stmt.expression) === getStatementDevice(stmt))
         return null;
 
-    const newStatements = adjustStatementsForInitialRequest(stmt);
+    const newStatements = adjustStatementsForInitialRequest(loader, stmt);
     if (newStatements === null)
         return null;
 

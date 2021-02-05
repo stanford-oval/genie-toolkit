@@ -29,6 +29,7 @@
 import { Ast, } from 'thingtalk';
 
 import * as C from '../../ast_manip';
+import ThingpediaLoader from '../../load-thingpedia';
 
 empty_search_error : [Ast.InvocationExpression|null, C.ParamSlot|null] = {
     sorry_preamble ('there are no' | 'i cannot find any') base:base_table ('matching your request' | 'with those characteristics' | 'like that')

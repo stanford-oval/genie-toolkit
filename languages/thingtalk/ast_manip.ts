@@ -35,13 +35,13 @@ import {
 
     makeInputParamSlot,
     makeDomainIndependentFilter,
+    makeFilter,
+    makeAndFilter,
     makeDateRangeFilter,
 
     typeToStringSafe,
     isSameFunction,
-    normalizeConfirmAnnotation
 } from './utils';
-import * as Utils from './utils';
 export {
     Placeholder,
     ErrorMessage,
@@ -54,11 +54,13 @@ export {
 
     makeInputParamSlot,
     makeDomainIndependentFilter,
+    makeFilter,
+    makeAndFilter,
     makeDateRangeFilter,
 };
 export * from './keyfns';
 
-import _loader from './load-thingpedia';
+import type ThingpediaLoader from './load-thingpedia';
 
 export type ArgMinMax = [ParamSlot, 'asc'|'desc'];
 
@@ -175,22 +177,18 @@ export function makeDontCareFilter(slot : ParamSlot) : FilterSlot {
     return { schema: slot.schema, ptype : slot.type, ast: new Ast.BooleanExpression.DontCare(null, slot.name) };
 }
 
-export function makeFilter(slot : ParamSlot, op : string, value : Ast.Value, negate = false) : FilterSlot|null {
-    return Utils.makeFilter(slot, op, value, negate, _loader);
-}
-
-export function makeAndFilter(slot : ParamSlot, op : string, values : [Ast.Value, Ast.Value], negate = false) : FilterSlot|null {
-    return Utils.makeAndFilter(slot, op, values, negate, _loader);
-}
-
-function makeOrFilter(slot : ParamSlot, op : string, values : [Ast.Value, Ast.Value], negate = false) : FilterSlot|null {
+function makeOrFilter(tpLoader : ThingpediaLoader,
+                      slot : ParamSlot,
+                      op : string,
+                      values : [Ast.Value, Ast.Value],
+                      negate = false) : FilterSlot|null {
     if (values.length !== 2)
         return null;
     if (values[0].equals(values[1]))
         return null;
     const operands = [
-        makeFilter(slot, op, values[0], negate),
-        makeFilter(slot, op, values[1], negate)
+        makeFilter(tpLoader, slot, op, values[0], negate),
+        makeFilter(tpLoader, slot, op, values[1], negate)
     ] as const;
     if (operands[0] === null || operands[1] === null)
         return null;
@@ -200,14 +198,17 @@ function makeOrFilter(slot : ParamSlot, op : string, values : [Ast.Value, Ast.Va
     return { schema: slot.schema, ptype : slot.type, ast };
 }
 
-function makeButFilter(slot : ParamSlot, op : string, values : [Ast.Value, Ast.Value]) : FilterSlot|null {
+function makeButFilter(tpLoader : ThingpediaLoader,
+                       slot : ParamSlot,
+                       op : string,
+                       values : [Ast.Value, Ast.Value]) : FilterSlot|null {
     if (values.length !== 2)
         return null;
     if (values[0].equals(values[1]))
         return null;
     const operands  = [
-        makeFilter(slot, op, values[0]),
-        makeFilter(slot, op, values[1], true)
+        makeFilter(tpLoader, slot, op, values[0]),
+        makeFilter(tpLoader, slot, op, values[1], true)
     ] as const;
     if (operands[0] === null || operands[1] === null)
         return null;
@@ -325,7 +326,10 @@ function makeAggregateFilterWithFilter(param : ParamSlot,
 }
 
 
-function makeEdgeFilterStream(proj : Ast.Expression, op : string, value : Ast.Value) : Ast.Expression|null {
+function makeEdgeFilterStream(loader : ThingpediaLoader,
+                              proj : Ast.Expression,
+                              op : string,
+                              value : Ast.Value) : Ast.Expression|null {
     if (!(proj instanceof Ast.ProjectionExpression))
         return null;
     if (proj.args[0] === '$event')
@@ -343,7 +347,7 @@ function makeEdgeFilterStream(proj : Ast.Expression, op : string, value : Ast.Va
     if (!proj.schema!.is_monitorable || proj.schema!.is_list)
         return null;
     const outParams = Object.keys(proj.expression.schema!.out);
-    if (outParams.length === 1 && _loader.flags.turking)
+    if (outParams.length === 1 && loader.flags.turking)
         return null;
 
     return new Ast.FilterExpression(null, new Ast.MonitorExpression(null, proj.expression, null, proj.expression.schema), f.ast, proj.expression.schema);
@@ -440,16 +444,9 @@ export function getImplicitParameterPassing(schema : Ast.FunctionDef) : string {
         return outParams[0];
 
     // if there is an ID, we pick that one
-    // first check "id", then check any out argument of ID type
-    // (the latter is deprecated and for compatibility only)
     const id = schema.getArgument('id');
     if (id && !id.is_input)
         return 'id';
-    for (const param of outParams) {
-        if (_loader.isIDType(schema.out[param]))
-            return param;
-    }
-
     // if there is a picture, we pick that one
     const picture_url = schema.getArgument('picture_url');
     if (picture_url && !picture_url.is_input)
@@ -459,19 +456,21 @@ export function getImplicitParameterPassing(schema : Ast.FunctionDef) : string {
     return '$event';
 }
 
-export function makeTypeBasedTableProjection(table : Ast.Expression, intotype : Type = Type.Any) : Ast.ProjectionExpression|null {
+export function makeTypeBasedTableProjection(tpLoader : ThingpediaLoader,
+                                             table : Ast.Expression,
+                                             intotype : Type = Type.Any) : Ast.ProjectionExpression|null {
     if (table instanceof Ast.ProjectionExpression)
         return null;
 
     const pname = getImplicitParameterPassing(table.schema!);
     if (pname === '$event') {
-        if (!Type.isAssignable(Type.String, intotype, {}, _loader.entitySubTypeMap))
+        if (!Type.isAssignable(Type.String, intotype, {}, tpLoader.entitySubTypeMap))
             return null;
         // FIXME this is bogus on various levels, because $event is not an argument
         // because the schema is not modified correctly...
         return new Ast.ProjectionExpression(null, table, ['$event'], [], [], table.schema);
     } else {
-        if (!Type.isAssignable(table.schema!.getArgType(pname)!, intotype, {}, _loader.entitySubTypeMap))
+        if (!Type.isAssignable(table.schema!.getArgType(pname)!, intotype, {}, tpLoader.entitySubTypeMap))
             return null;
         return makeProjection(table, pname);
     }
@@ -502,7 +501,11 @@ function isEqualityFilteredOnParameter(table : Ast.Expression, pname : string) :
     return false;
 }
 
-function makeSingleFieldProjection(ftype : 'table'|'stream', ptype : Type|null, table : Ast.Expression, param : ParamSlot|'geo') : Ast.Expression|null {
+function makeSingleFieldProjection(loader : ThingpediaLoader,
+                                   ftype : 'table'|'stream',
+                                   ptype : Type|null,
+                                   table : Ast.Expression,
+                                   param : ParamSlot|'geo') : Ast.Expression|null {
     assert(table);
     assert(ftype === 'table' || ftype === 'stream');
 
@@ -522,11 +525,11 @@ function makeSingleFieldProjection(ftype : 'table'|'stream', ptype : Type|null, 
     if (outParams.length === 1)
         return table;
 
-    if (ptype && !Type.isAssignable(arg.type, ptype, {}, _loader.entitySubTypeMap))
+    if (ptype && !Type.isAssignable(arg.type, ptype, {}, loader.entitySubTypeMap))
         return null;
 
     if (ftype === 'table') {
-        if (pname === 'picture_url' && _loader.flags.turking)
+        if (pname === 'picture_url' && loader.flags.turking)
             return null;
         if (isEqualityFilteredOnParameter(table, pname))
             return null;
@@ -539,7 +542,10 @@ function makeSingleFieldProjection(ftype : 'table'|'stream', ptype : Type|null, 
     }
 }
 
-function makeMultiFieldProjection(ftype : 'table'|'stream', table : Ast.Expression, outParams : ParamSlot[]) : Ast.Expression|null {
+function makeMultiFieldProjection(loader : ThingpediaLoader,
+                                  ftype : 'table'|'stream',
+                                  table : Ast.Expression,
+                                  outParams : ParamSlot[]) : Ast.Expression|null {
     const names = [];
     for (const outParam of outParams) {
         if (!isSameFunction(table.schema!, outParam.schema))
@@ -550,7 +556,7 @@ function makeMultiFieldProjection(ftype : 'table'|'stream', table : Ast.Expressi
             return null;
 
         if (ftype === 'table') {
-            if (name === 'picture_url' && _loader.flags.turking)
+            if (name === 'picture_url' && loader.flags.turking)
                 return null;
         } else {
             if (!table.schema!.is_monitorable)
@@ -641,11 +647,12 @@ export function toChainExpression(expr : Ast.Expression) {
         return new Ast.ChainExpression(null, [expr], expr.schema);
 }
 
-function makeProgram(rule : Ast.Expression) : Ast.Program|null {
+function makeProgram(loader : ThingpediaLoader,
+                     rule : Ast.Expression) : Ast.Program|null {
     if (!checkValidQuery(rule))
         return null;
     const chain = toChainExpression(rule);
-    if (chain.first.schema!.functionType === 'stream' && _loader.flags.nostream)
+    if (chain.first.schema!.functionType === 'stream' && loader.flags.nostream)
         return null;
     return adjustDefaultParameters(new Ast.Program(null, [], [], [new Ast.ExpressionStatement(null, chain)]));
 }
@@ -657,9 +664,11 @@ function combineStreamCommand(stream : Ast.Expression, command : Ast.ChainExpres
     return join;
 }
 
-export function combineStreamQuery(stream : Ast.Expression, table : Ast.Expression) : Ast.ChainExpression|null {
+export function combineStreamQuery(loader : ThingpediaLoader,
+                                   stream : Ast.Expression,
+                                   table : Ast.Expression) : Ast.ChainExpression|null {
     if (table instanceof Ast.ProjectionExpression) {
-        if (!_loader.flags.projection)
+        if (!loader.flags.projection)
             return null;
         if (table.args[0] === 'picture_url' || table.args[0] === '$event')
             return null;
@@ -1024,27 +1033,29 @@ function tableToStream(table : Ast.Expression) : Ast.Expression|null {
     return stream;
 }
 
-function builtinSayAction(pname ?: Ast.Value|string) : Ast.InvocationExpression|null {
-    if (!_loader.standardSchemas.say)
+function builtinSayAction(loader : ThingpediaLoader,
+                          pname ?: Ast.Value|string) : Ast.InvocationExpression|null {
+    if (!loader.standardSchemas.say)
         return null;
 
     const selector = new Ast.DeviceSelector(null, 'org.thingpedia.builtin.thingengine.builtin', null, null);
     if (pname instanceof Ast.Value) {
         const param = new Ast.InputParam(null, 'message', pname);
-        return new Ast.InvocationExpression(null, new Ast.Invocation(null, selector, 'say', [param], _loader.standardSchemas.say),
-            _loader.standardSchemas.say.removeArgument('message'));
+        return new Ast.InvocationExpression(null, new Ast.Invocation(null, selector, 'say', [param], loader.standardSchemas.say),
+            loader.standardSchemas.say.removeArgument('message'));
     } else if (pname) {
         const param = new Ast.InputParam(null, 'message', new Ast.Value.VarRef(pname));
-        return new Ast.InvocationExpression(null, new Ast.Invocation(null, selector, 'say', [param], _loader.standardSchemas.say),
-            _loader.standardSchemas.say.removeArgument('message'));
+        return new Ast.InvocationExpression(null, new Ast.Invocation(null, selector, 'say', [param], loader.standardSchemas.say),
+            loader.standardSchemas.say.removeArgument('message'));
     } else {
-        return new Ast.InvocationExpression(null, new Ast.Invocation(null, selector, 'say', [], _loader.standardSchemas.say),
-            _loader.standardSchemas.say.removeArgument('message'));
+        return new Ast.InvocationExpression(null, new Ast.Invocation(null, selector, 'say', [], loader.standardSchemas.say),
+            loader.standardSchemas.say.removeArgument('message'));
     }
 }
 
-function locationGetPredicate(loc : Ast.Value, negate = false) : DomainIndependentFilterSlot|null {
-    if (!_loader.standardSchemas.get_gps)
+function locationGetPredicate(loader : ThingpediaLoader,
+                              loc : Ast.Value, negate = false) : DomainIndependentFilterSlot|null {
+    if (!loader.standardSchemas.get_gps)
         return null;
 
     let filter = new Ast.BooleanExpression.Atom(null, 'location', '==', loc);
@@ -1053,11 +1064,12 @@ function locationGetPredicate(loc : Ast.Value, negate = false) : DomainIndepende
 
     return { schema: null, ptype: null,
         ast: new Ast.BooleanExpression.External(null, new Ast.DeviceSelector(null, 'org.thingpedia.builtin.thingengine.builtin',null,null),'get_gps', [], filter,
-            _loader.standardSchemas.get_gps) };
+            loader.standardSchemas.get_gps) };
 }
 
-function timeGetPredicate(low : Ast.Value|null, high : Ast.Value|null) : DomainIndependentFilterSlot|null {
-    if (!_loader.standardSchemas.get_time)
+function timeGetPredicate(loader : ThingpediaLoader,
+                          low : Ast.Value|null, high : Ast.Value|null) : DomainIndependentFilterSlot|null {
+    if (!loader.standardSchemas.get_time)
         return null;
 
     const operands = [];
@@ -1069,7 +1081,7 @@ function timeGetPredicate(low : Ast.Value|null, high : Ast.Value|null) : DomainI
     const filter = new Ast.BooleanExpression.And(null, operands);
     return { schema: null, ptype: null,
         ast: new Ast.BooleanExpression.External(null, new Ast.DeviceSelector(null, 'org.thingpedia.builtin.thingengine.builtin',null,null),'get_time', [], filter,
-            _loader.standardSchemas.get_time) };
+            loader.standardSchemas.get_time) };
 }
 
 function hasGetPredicate(filter : Ast.BooleanExpression) : boolean {
@@ -1199,7 +1211,8 @@ export function makeChainExpression(first : Ast.Expression, second : Ast.Express
     return new Ast.ChainExpression(null, expressions, resolveChain(expressions));
 }
 
-export function addParameterPassing(first : Ast.Expression, second : ExpressionWithCoreference) : Ast.ChainExpression|null {
+export function addParameterPassing(first : Ast.Expression,
+                                    second : ExpressionWithCoreference) : Ast.ChainExpression|null {
     // no self-joins
     if (isSameFunction(first.schema!, second.expression.schema!))
         return null;
@@ -1251,7 +1264,9 @@ export function addParameterPassing(first : Ast.Expression, second : ExpressionW
     }
 }
 
-export function addSameNameParameterPassing(chain : Ast.ChainExpression, joinArg : ParamSlot) : Ast.ChainExpression|null {
+export function addSameNameParameterPassing(loader : ThingpediaLoader,
+                                            chain : Ast.ChainExpression,
+                                            joinArg : ParamSlot) : Ast.ChainExpression|null {
     const action = chain.last;
     assert(action instanceof Ast.InvocationExpression);
     const table = chain.lastQuery!;
@@ -1267,7 +1282,7 @@ export function addSameNameParameterPassing(chain : Ast.ChainExpression, joinArg
     if (action.invocation.in_params.some((p) => p.name === joinArg.name))
         return null;
     const commandtype = table.schema!.out[joinArg.name];
-    if (!commandtype || !Type.isAssignable(commandtype, actiontype, {}, _loader.entitySubTypeMap))
+    if (!commandtype || !Type.isAssignable(commandtype, actiontype, {}, loader.entitySubTypeMap))
         return null;
     // FIXME
     //if (joinArg.isEvent && (stream instanceof Ast.FunctionCallExpression)) // timer
@@ -1281,11 +1296,13 @@ export function addSameNameParameterPassing(chain : Ast.ChainExpression, joinArg
     return new Ast.ChainExpression(null, newExpressions, resolveChain(newExpressions));
 }
 
-function isConstantAssignable(value : Ast.Value, ptype : Type) : boolean {
+function isConstantAssignable(loader : ThingpediaLoader,
+                              value : Ast.Value,
+                              ptype : Type) : boolean {
     if (!ptype)
         return false;
     const vtype = value.getType();
-    if (!Type.isAssignable(vtype, ptype, {}, _loader.entitySubTypeMap))
+    if (!Type.isAssignable(vtype, ptype, {}, loader.entitySubTypeMap))
         return false;
     // prevent mixing date and type (ThingTalk allows it to support certain time get predicates)
     if ((vtype.isDate && ptype.isTime) || (vtype.isTime && ptype.isDate))
@@ -1299,7 +1316,8 @@ export function replacePlaceholderWithUndefined<T extends Ast.Expression|Ast.Inv
     return betaReduceMany(lhs, { [param]: new Ast.Value.Undefined(true) });
 }
 
-function sayProjection(maybeProj : Ast.Expression|null) : Ast.Expression|null {
+function sayProjection(loader : ThingpediaLoader,
+                       maybeProj : Ast.Expression|null) : Ast.Expression|null {
     if (maybeProj === null)
         return null;
 
@@ -1314,7 +1332,7 @@ function sayProjection(maybeProj : Ast.Expression|null) : Ast.Expression|null {
         // if the function only contains one parameter, do not generate projection for it
         if (proj.computations.length === 0 && Object.keys(proj.expression.schema!.out).length === 1)
             return null;
-        if (!_loader.flags.projection)
+        if (!loader.flags.projection)
             return null;
 
         // remove all projection args that are part of the minimal projection
@@ -1328,13 +1346,6 @@ function sayProjection(maybeProj : Ast.Expression|null) : Ast.Expression|null {
         }
     }
     return maybeProj;
-}
-
-function sayProjectionProgram(proj : Ast.Expression|null) : Ast.Program|null {
-    const stmt = sayProjection(proj);
-    if (stmt === null)
-        return null;
-    return makeProgram(stmt);
 }
 
 function hasConflictParam(table : Ast.Expression, pname : string, operation : string) : string|null {
@@ -1676,12 +1687,13 @@ interface AddInputParamsOptions {
     allowOutput ?: boolean;
 }
 
-function checkInvocationInputParam(invocation : Ast.Invocation,
+function checkInvocationInputParam(loader : ThingpediaLoader,
+                                   invocation : Ast.Invocation,
                                    param : InputParamSlot,
                                    options : AddInputParamsOptions = {}) : boolean {
     assert(invocation instanceof Ast.Invocation);
     const arg = invocation.schema!.getArgument(param.ast.name);
-    if (!arg || (!arg.is_input && !options.allowOutput) || !isConstantAssignable(param.ast.value, arg.type))
+    if (!arg || (!arg.is_input && !options.allowOutput) || !isConstantAssignable(loader, param.ast.value, arg.type))
         return false;
     if (!isSameFunction(invocation.schema!, param.schema))
         return false;
@@ -1708,10 +1720,11 @@ function checkInvocationInputParam(invocation : Ast.Invocation,
     return true;
 }
 
-function addInvocationInputParam(invocation : Ast.Invocation,
+function addInvocationInputParam(loader : ThingpediaLoader,
+                                 invocation : Ast.Invocation,
                                  param : InputParamSlot,
                                  options ?: AddInputParamsOptions) : Ast.Invocation|null {
-    if (!checkInvocationInputParam(invocation, param, options))
+    if (!checkInvocationInputParam(loader, invocation, param, options))
         return null;
 
     const clone = invocation.clone();
@@ -1729,9 +1742,12 @@ function addInvocationInputParam(invocation : Ast.Invocation,
     return clone;
 }
 
-function addActionInputParam(action : Ast.Expression, param : InputParamSlot) : Ast.Expression|null {
+function addActionInputParam(loader : ThingpediaLoader,
+                             action : Ast.Expression,
+                             param : InputParamSlot,
+                             options ?: AddInputParamsOptions) : Ast.Expression|null {
     if (action instanceof Ast.ChainExpression) {
-        const added = addActionInputParam(action.last, param);
+        const added = addActionInputParam(loader, action.last, param, options);
         if (!added)
             return null;
         const clone = new Ast.ChainExpression(null, action.expressions.slice(0, action.expressions.length-1).concat([added]), added.schema!);
@@ -1739,7 +1755,7 @@ function addActionInputParam(action : Ast.Expression, param : InputParamSlot) : 
     }
     if (!(action instanceof Ast.InvocationExpression))
         return null;
-    const newInvocation = addInvocationInputParam(action.invocation, param);
+    const newInvocation = addInvocationInputParam(loader, action.invocation, param, options);
     if (newInvocation === null)
         return null;
 
@@ -1842,7 +1858,6 @@ export {
     getFunctionNames,
     getFunctions,
     getInvocation,
-    normalizeConfirmAnnotation,
     adjustDefaultParameters,
 
     // constants
@@ -1886,7 +1901,6 @@ export {
     makeSingleFieldProjection,
     makeMultiFieldProjection,
     sayProjection,
-    sayProjectionProgram,
 
     // streams
     makeEdgeFilterStream,

@@ -25,6 +25,7 @@ import { Ast, } from 'thingtalk';
 import * as C from '../../ast_manip';
 import * as D from '../../dialogue_acts';
 import * as S from '../../state_manip';
+import ThingpediaLoader from '../../load-thingpedia';
 
 count_aggregation_reply_suffix : S.ContextInfo = {
     ctx:ctx_with_aggregation_result base:base_table with { functionName = ctx.currentFunction } ('like that' | 'with those characteristics')
