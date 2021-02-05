@@ -188,7 +188,7 @@ async function mockNLU(conversation) {
                     err.code = command.error.code;
                     throw err;
                 }
-                return { tokens, entities, candidates: command.candidates };
+                return { tokens, entities, candidates: command.candidates, intent: { ignore: 0, command: 1, other: 0 } };
             }
         }
 
