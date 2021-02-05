@@ -29,6 +29,7 @@ import {
 import { SlotBag } from './slot_bag';
 
 import * as C from './ast_manip';
+import type ThingpediaLoader from './load-thingpedia';
 
 // Semantic functions for primitive templates
 
@@ -80,7 +81,8 @@ export function replacePlaceholdersWithConstants(ex : Ast.Example,
 export function replacePlaceholderWithTableOrStream(ex : Ast.Example,
                                                     names : Array<string|null>,
                                                     tableParamIdx : number,
-                                                    args : Array<Ast.Value|Ast.Expression>) : Ast.ChainExpression|null {
+                                                    args : Array<Ast.Value|Ast.Expression>,
+                                                    tpLoader : ThingpediaLoader) : Ast.ChainExpression|null {
     // first check the table, then replace the parameters, and then finally construct the chain expression
     const table = args[tableParamIdx];
     assert(table instanceof Ast.Expression);
@@ -88,11 +90,11 @@ export function replacePlaceholderWithTableOrStream(ex : Ast.Example,
 
     const intoname = names[tableParamIdx];
     assert(typeof intoname === 'string');
-    const intotype = ex.args[intoname];
-    assert(intotype);
+    const intoType = ex.args[intoname];
+    assert(intoType);
     let projection : Ast.ProjectionExpression;
     if (!(table instanceof Ast.ProjectionExpression)) {
-        const maybeProjection = C.makeTypeBasedTableProjection(table, intotype);
+        const maybeProjection = C.makeTypeBasedTableProjection(tpLoader, table, intoType);
         if (maybeProjection === null)
             return null;
         projection = maybeProjection;
@@ -101,6 +103,8 @@ export function replacePlaceholderWithTableOrStream(ex : Ast.Example,
         // FIXME we should make up a projection based on what parameter is actually passed
         if (projection.args.length !== 1)
             return null;
+        if (projection.args[0] === 'id')
+            return null;
     }
     assert(projection.args.length === 1);
 
@@ -108,7 +112,9 @@ export function replacePlaceholderWithTableOrStream(ex : Ast.Example,
     if (joinArg === '$event' && ['p_body', 'p_message', 'p_caption', 'p_status'].indexOf(intoname) < 0)
         return null;
     const joinType = joinArg === '$event' ? Type.String : projection.schema!.getArgType(joinArg)!;
-    if (!joinType.equals(intotype))
+
+    // note: we need to use isAssignable here to get entity inheritance right
+    if (!Type.isAssignable(joinType, intoType, {}, tpLoader.entitySubTypeMap))
         return null;
 
     const replacements : Record<string, Ast.Value> = {};

@@ -168,7 +168,7 @@ function impreciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Value|C.InputPa
     clone.confirm = 'accepted';
     clone.results = null;
     const newAction = C.getInvocation(clone);
-    if (!C.checkInvocationInputParam(newAction, ipslot))
+    if (!C.checkInvocationInputParam(ctx.loader, newAction, ipslot))
         return null;
 
     // modify in place

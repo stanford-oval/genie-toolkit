@@ -38,7 +38,7 @@ complete_table : Ast.Expression = {
     | table:complete_table ('with' | 'having') param:npp_input_param with { functionName = table.functionName }
     | param:apv_input_param table:complete_table with { functionName = param.functionName }
     | table:complete_table param:pvp_input_param with { functionName = table.functionName }
-    ) => C.addActionInputParam(table, param);
+    ) => C.addActionInputParam($loader, table, param);
 }
 
 complete_get_command : Ast.Expression = {
@@ -46,7 +46,7 @@ complete_get_command : Ast.Expression = {
 
     ( table:complete_get_command param:preposition_input_param with { functionName = table.functionName }
     | table:complete_table ('with' | 'having') param:npp_input_param with { functionName = table.functionName }
-    ) => C.addActionInputParam(table, param);
+    ) => C.addActionInputParam($loader, table, param);
 }
 
 // if filter: if it rains (used for stream only)

@@ -119,7 +119,7 @@ export function checkFilterPairForDisjunctiveQuestionWithConstant(ctx : ContextI
         .getImplementationAnnotation<boolean>('filterable') ?? true;
     const pslot = { schema: f1.schema, name: f1.ast.name, type: f1.ptype, filterable,
         ast: new Ast.Value.VarRef(f1.ast.name) };
-    const f2 = C.makeFilter(pslot, f1.ast.operator, c);
+    const f2 = C.makeFilter(ctx.loader, pslot, f1.ast.operator, c);
     if (!f2)
         return null;
     return checkFilterPairForDisjunctiveQuestion(ctx, f1, f2);
@@ -236,7 +236,7 @@ function impreciseSearchQuestionAnswer(ctx : ContextInfo, answer : C.FilterSlot|
             filterable: arg.getImplementationAnnotation<boolean>('filterable') ?? true,
             name: questions[0],
             ast: new Ast.Value.VarRef(questions[0]) };
-        const newFilter = C.makeFilter(pslot, '==', answer);
+        const newFilter = C.makeFilter(ctx.loader, pslot, '==', answer);
         if (newFilter === null)
             return null;
         answerFilter = newFilter;

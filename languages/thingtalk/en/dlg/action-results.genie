@@ -51,7 +51,7 @@ complete_past_action_phrase : Ast.Expression = {
 
     ( action:complete_past_action_phrase param:preposition_input_param with { functionName = action.functionName } [priority=0.1]
     | action:complete_past_action_phrase ('with' | 'having') param:npp_input_param with { functionName = action.functionName } [priority=0.1]
-    ) => C.addActionInputParam(action, param);
+    ) => C.addActionInputParam($loader, action, param);
 
     ( action:complete_past_action_phrase param:preposition_filter with { functionName = action.functionName } [priority=0.1]
     | action:complete_past_action_phrase ('with' | 'having') param:npp_filter with { functionName = action.functionName } [priority=0.1]
@@ -60,7 +60,7 @@ complete_past_action_phrase : Ast.Expression = {
             return null;
         const ipslot = { schema: param.schema, ptype: param.ptype,
             ast: new Ast.InputParam(null, param.ast.name, param.ast.value) };
-        return C.addActionInputParam(action, ipslot, { allowOutput: true });
+        return C.addActionInputParam($loader, action, ipslot, { allowOutput: true });
     };
 }
 

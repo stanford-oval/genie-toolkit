@@ -122,7 +122,8 @@ class GenieTypeError extends Error {
 
 // heuristically collected coefficients of the duration of generating each depth
 const DEPTH_PROGRESS_MULTIPLIERS = [
-    50, 1500, 21000, 1350000, 750000, 400000, 3000000, 3000000, 3000000, 3000000, 3000000
+    50, 1500, 21000, 1350000, 750000, 400000, 3000000, 3000000, 3000000, 3000000, 3000000,
+    3000000, 3000000, 3000000, 3000000, 3000000
 ];
 
 // in contextual (dialogue) generation, non-contextual non terminals have their pruning

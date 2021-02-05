@@ -161,7 +161,7 @@ function impreciseEmptySearchChangeRequest(loader : ThingpediaLoader,
         return null;
     let answerFilter : C.FilterSlot|null;
     if (answer instanceof Ast.Value)
-        answerFilter = C.makeFilter(param, '==', answer);
+        answerFilter = C.makeFilter(loader, param, '==', answer);
     else
         answerFilter = answer;
     if (answerFilter === null || !(answerFilter instanceof Ast.AtomBooleanExpression))

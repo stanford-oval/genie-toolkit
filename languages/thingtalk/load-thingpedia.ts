@@ -101,6 +101,15 @@ interface CanonicalForm {
     implicit_identity ?: boolean;
 }
 
+// FIXME this info needs to be in Thingpedia
+interface ExtendedEntityRecord {
+    type : string;
+    name : string;
+    is_well_known : boolean|number;
+    has_ner_support : boolean|number;
+    subtype_of ?: string|null;
+}
+
 type PrimitiveTemplateType = 'action'|'action_past'|'query'|'get_command'|'stream'|'program';
 
 export default class ThingpediaLoader {
@@ -113,7 +122,7 @@ export default class ThingpediaLoader {
     private _options : Genie.SentenceGeneratorTypes.GrammarOptions;
     private _describer : Genie.ThingTalkUtils.Describer;
 
-    private _entities : Record<string, { has_ner_support : boolean }>
+    private _entities : Record<string, ExtendedEntityRecord>
     // cached annotations extracted from Thingpedia, for use at inference time
     private _errorMessages : Map<string, Record<string, string[]>>;
     private _resultStrings : Map<string, string[]>;
@@ -136,6 +145,8 @@ export default class ThingpediaLoader {
         get_gps : Ast.FunctionDef|null;
         get_time : Ast.FunctionDef|null;
     };
+    entitySubTypeMap : Record<string, string>;
+    private _subEntityMap : Map<string, string[]>;
 
     constructor(runtime : typeof Genie.SentenceGeneratorRuntime,
                 ttUtils : typeof Genie.ThingTalkUtils,
@@ -169,6 +180,8 @@ export default class ThingpediaLoader {
         this.projections = [];
         this.idQueries = new Map;
         this.compoundArrays = {};
+        this.entitySubTypeMap = {};
+        this._subEntityMap = new Map;
 
         this.standardSchemas = { say: null, get_gps: null, get_time: null };
     }
@@ -407,8 +420,8 @@ export default class ThingpediaLoader {
                         expansion = ['', constant, ''];
                         corefexpansion = ['', corefconst, ''];
                     }
-                    this._addRule(cat + '_input_param', expansion, (_1, value : Ast.Value, _2) => makeInputParamSlot(pslot, value), keyfns.inputParamKeyFn, attributes);
-                    this._addRule('coref_' + cat + '_input_param', corefexpansion, (_1, value : Ast.Value, _2) => makeInputParamSlot(pslot, value), keyfns.inputParamKeyFn, attributes);
+                    this._addRule(cat + '_input_param', expansion, (_1, value : Ast.Value, _2) => makeInputParamSlot(pslot, value, this), keyfns.inputParamKeyFn, attributes);
+                    this._addRule('coref_' + cat + '_input_param', corefexpansion, (_1, value : Ast.Value, _2) => makeInputParamSlot(pslot, value, this), keyfns.inputParamKeyFn, attributes);
                 }
 
                 if (this._options.flags.inference)
@@ -465,7 +478,7 @@ export default class ThingpediaLoader {
                 attributes.priority += 1;
 
             for (const form of annotvalue) {
-                this._addRule(cat + '_filter', [form], () => makeFilter(pslot, '==', value, false), keyfns.filterKeyFn, attributes);
+                this._addRule(cat + '_filter', [form], () => makeFilter(this, pslot, '==', value, false), keyfns.filterKeyFn, attributes);
                 this._addRule(cat + '_boolean_projection', [form], () => pslot, keyfns.paramKeyFn);
 
                 if (this._options.flags.inference)
@@ -626,8 +639,8 @@ export default class ThingpediaLoader {
                     throw new TypeError(`Invalid annotation #_[canonical.implicit_identity=${annotvalue}] for ${pslot.schema.qualifiedName}`);
                 if (annotvalue) {
                     const expansion = [constant];
-                    this._addRule(cat + '_filter', expansion, (value : Ast.Value) => makeFilter(pslot, op, value, false), keyfns.filterKeyFn, attributes);
-                    this._addRule('coref_' + cat + '_filter', [corefconst], (value : Ast.Value) => makeFilter(pslot, op, value, false), keyfns.filterKeyFn, attributes);
+                    this._addRule(cat + '_filter', expansion, (value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
+                    this._addRule('coref_' + cat + '_filter', [corefconst], (value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
                 }
                 continue;
             }
@@ -642,7 +655,7 @@ export default class ThingpediaLoader {
                         formarray = forms;
                     const value = new Ast.Value.Enum(enumerand);
                     for (const form of formarray)
-                        this._addRule(cat + '_filter', [form], () => makeFilter(pslot, op, value, false), keyfns.filterKeyFn, attributes);
+                        this._addRule(cat + '_filter', [form], () => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
                 }
             } else if (argMinMax) {
                 let annotarray : string[];
@@ -721,18 +734,18 @@ export default class ThingpediaLoader {
                 for (const form of annotarray) {
                     if (cat === 'base') {
                         this._addOutParam(pslot, form.trim());
-                        if (!canonical.npp && !canonical.property) {
+                        if (!canonical.npp && !canonical.property && pslot.schema.is_list) {
                             const expansion = [form, constant];
-                            this._addRule('npp_filter', expansion, (_, value : Ast.Value) => makeFilter(pslot, op, value, false), keyfns.filterKeyFn);
+                            this._addRule('npp_filter', expansion, (_, value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn);
                             const corefexpansion = [form, corefconst];
-                            this._addRule('coref_npp_filter', corefexpansion, (_, value : Ast.Value) => makeFilter(pslot, op, value, false), keyfns.filterKeyFn, attributes);
+                            this._addRule('coref_npp_filter', corefexpansion, (_, value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
 
                             if (canUseBothForm) {
                                 const pairexpansion = [form, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
-                                this._addRule('npp_filter', pairexpansion, (_1, _2, values : [Ast.Value, Ast.Value]) => makeAndFilter(pslot, op, values, false), keyfns.filterKeyFn, attributes);
+                                this._addRule('npp_filter', pairexpansion, (_1, _2, values : [Ast.Value, Ast.Value]) => makeAndFilter(this, pslot, op, values, false), keyfns.filterKeyFn, attributes);
                             }
                         }
-                    } else {
+                    } else if (pslot.schema.is_list) {
                         let [before, after] = form.split('#');
                         before = (before || '').trim();
                         after = (after || '').trim();
@@ -763,12 +776,12 @@ export default class ThingpediaLoader {
                             pairexpansion = ['', new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), ''];
                             daterangeexpansion = ['', new this._runtime.NonTerminal('constant_date_range'), ''];
                         }
-                        this._addRule(cat + '_filter', expansion, (_1, value : Ast.Value, _2) => makeFilter(pslot, op, value, false), keyfns.filterKeyFn, attributes);
-                        this._addRule('coref_' + cat + '_filter', corefexpansion, (_1, value : Ast.Value, _2) => makeFilter(pslot, op, value, false), keyfns.filterKeyFn, attributes);
+                        this._addRule(cat + '_filter', expansion, (_1, value : Ast.Value, _2) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
+                        this._addRule('coref_' + cat + '_filter', corefexpansion, (_1, value : Ast.Value, _2) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
                         if (canUseBothForm)
-                            this._addRule(cat + '_filter', pairexpansion, (_1, _2, values : [Ast.Value, Ast.Value], _3) => makeAndFilter(pslot, op, values, false), keyfns.filterKeyFn, attributes);
+                            this._addRule(cat + '_filter', pairexpansion, (_1, _2, values : [Ast.Value, Ast.Value], _3) => makeAndFilter(this, pslot, op, values, false), keyfns.filterKeyFn, attributes);
                         if (ptype.isDate)
-                            this._addRule(cat + '_filter', daterangeexpansion, (_1, values : [Ast.Value, Ast.Value], _2) => makeDateRangeFilter(pslot, values), keyfns.filterKeyFn, attributes);
+                            this._addRule(cat + '_filter', daterangeexpansion, (_1, values : [Ast.Value, Ast.Value], _2) => makeDateRangeFilter(this, pslot, values), keyfns.filterKeyFn, attributes);
                     }
 
                     if (this._options.flags.inference)
@@ -1013,34 +1026,49 @@ export default class ThingpediaLoader {
             if (option === 'const') // no parameter passing if parameter uses :const in the placeholder
                 continue;
 
+            const intoType = example.args[tableParam];
+
             for (const fromNonTermName of fromNonTermNames) {
                 if (grammarCat === 'query' && fromNonTermName === 'stream_projection_Any') // TODO
                     continue;
 
-                let fromNonTerm;
-                if (fromNonTermName === 'ctx_current_query')
-                    fromNonTerm = new this._runtime.NonTerminal(fromNonTermName);
-                else if (fromNonTermName === 'projection_Any' || fromNonTermName === 'stream_projection_Any')
-                    fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, ['projectionType', example.args[tableParam]]);
-                else
-                    fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, ['implicitParamPassingType', example.args[tableParam]]);
+                // non-terminal constraints only support equality (because they are mapped
+                // to hashtable) so we expand all possible sub entity to replace into
+                // so we can still replace efficiently
+                const fromTypes : Type[] = [intoType];
+                if (fromNonTermName !== 'ctx_current_query') {
+                    if (intoType instanceof Type.Entity) {
+                        for (const subEntity of this._subEntityMap.get(intoType.type) || [])
+                            fromTypes.push(new Type.Entity(subEntity));
+                    }
+                }
 
-                const clone = expansion.slice();
-                clone[paramIdx] = fromNonTerm;
+                for (const fromType of fromTypes) {
+                    let fromNonTerm;
+                    if (fromNonTermName === 'ctx_current_query')
+                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName);
+                    else if (fromNonTermName === 'projection_Any' || fromNonTermName === 'stream_projection_Any')
+                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, ['projectionType', fromType]);
+                    else
+                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, ['implicitParamPassingType', fromType]);
 
-                let intoNonTerm;
-                if (grammarCat === 'action_past')
-                    intoNonTerm = 'thingpedia_complete_join_action_past';
-                else if (grammarCat === 'query')
-                    intoNonTerm = 'table_join_replace_placeholder';
-                else if (fromNonTermName === 'stream_projection_Any')
-                    intoNonTerm = 'action_replace_param_with_stream';
-                else
-                    intoNonTerm = 'action_replace_param_with_table';
+                    const clone = expansion.slice();
+                    clone[paramIdx] = fromNonTerm;
 
-                this._addRule<Array<Ast.Value|Ast.Expression>, Ast.ChainExpression>(intoNonTerm, clone,
-                    (...args) => replacePlaceholderWithTableOrStream(example, names, paramIdx, args),
-                    keyfns.expressionKeyFn);
+                    let intoNonTerm;
+                    if (grammarCat === 'action_past')
+                        intoNonTerm = 'thingpedia_complete_join_action_past';
+                    else if (grammarCat === 'query')
+                        intoNonTerm = 'table_join_replace_placeholder';
+                    else if (fromNonTermName === 'stream_projection_Any')
+                        intoNonTerm = 'action_replace_param_with_stream';
+                    else
+                        intoNonTerm = 'action_replace_param_with_table';
+
+                    this._addRule<Array<Ast.Value|Ast.Expression>, Ast.ChainExpression>(intoNonTerm, clone,
+                        (...args) => replacePlaceholderWithTableOrStream(example, names, paramIdx, args, this),
+                        keyfns.expressionKeyFn);
+                }
             }
         }
     }
@@ -1118,19 +1146,37 @@ export default class ThingpediaLoader {
         this._grammar.addConstants('constant_name', 'GENERIC_ENTITY_' + idType.type, idType,
             keyfns.entityOrNumberValueKeyFn);
 
-        const idfilter = new Ast.BooleanExpression.Atom(null, 'id', '==', new Ast.Value.VarRef('p_id'));
+        let hasParentEntity = false;
+        if (entity.subtype_of) {
+            const parentFnDef = this.idQueries.get(entity.subtype_of);
+            if (parentFnDef)
+                hasParentEntity = true;
+        }
+
+        let span;
+        if (idType.type === q.class!.name + ':' + q.name && !hasParentEntity) {
+            // we make an example with just the name if and only if
+            // - this is the main query of this entity
+            // - this entity has no parent entity
+            span = [`\${p_name:no-undefined}`, ...canonical.map((c) => `${c} \${p_name:no-undefined}`)];
+        } else {
+            // make examples by name using the canonical form of the table
+            // to make the dataset unambiguous
+            span = canonical.map((c) => `${c} \${p_name:no-undefined}`);
+        }
+
+        const idfilter = new Ast.BooleanExpression.Atom(null, 'id', '==', new Ast.Value.VarRef('p_name'));
         await this._loadTemplate(new Ast.Example(
             null,
             -1,
             'query',
-            { p_id: id.type },
+            { p_name: id.type },
             new Ast.FilterExpression(null, table, idfilter, schemaClone),
-            [`\${p_id:no-undefined}`],
-            [`\${p_id:no-undefined}`],
+            span,
+            span,
             {}
         ));
         const namefilter = new Ast.BooleanExpression.Atom(null, 'id', '=~', new Ast.Value.VarRef('p_name'));
-        const span = [`\${p_name:no-undefined}`, ...canonical.map((c) => `${c} \${p_name:no-undefined}`)];
         await this._loadTemplate(new Ast.Example(
             null,
             -1,
@@ -1142,7 +1188,14 @@ export default class ThingpediaLoader {
             {}
         ));
 
-        for (const arg of q.iterateArguments()) {
+        // we only apply reverse_property/implicit_identity to the function's
+        // _own_ arguments
+        //
+        // that way, we don't have confusion with the superfunction
+        // FIXME this probably doesn't work with whitelist
+        for (const argname of q.args) {
+            const arg = q.getArgument(argname)!;
+
             if (typeof arg.metadata.canonical === 'string' || Array.isArray(arg.metadata.canonical))
                 continue;
 
@@ -1209,7 +1262,7 @@ export default class ThingpediaLoader {
         }
     }
 
-    private async _loadFunction(functionDef : Ast.FunctionDef) {
+    private async _recordFunction(functionDef : Ast.FunctionDef) {
         if (this.globalWhiteList && !this.globalWhiteList.includes(functionDef.name))
             return;
 
@@ -1227,9 +1280,12 @@ export default class ThingpediaLoader {
                 if (idarg.type instanceof Type.Entity && idarg.type.type === functionEntityType)
                     this.idQueries.set(functionEntityType, functionDef);
             }
-
-            await this._makeExampleFromQuery(functionDef);
         }
+    }
+
+    private async _loadFunction(functionDef : Ast.FunctionDef) {
+        if (functionDef.functionType === 'query')
+            await this._makeExampleFromQuery(functionDef);
 
         if (functionDef.metadata.result)
             await this._loadCustomResultString(functionDef);
@@ -1341,7 +1397,19 @@ export default class ThingpediaLoader {
             let hasNer = entity.getImplementationAnnotation<boolean>('has_ner');
             if (hasNer === undefined)
                 hasNer = true;
-            this._loadEntityType(classDef.kind + ':' + entity.name, hasNer);
+            let subTypeOf = null;
+            if (entity.extends) {
+                subTypeOf = entity.extends.includes(':') ? entity.extends
+                    : classDef.kind + ':' + entity.extends;
+            }
+            const entityRecord : ExtendedEntityRecord = {
+                type: classDef.kind + ':' + entity.name,
+                name: entity.getImplementationAnnotation<string>('description')||'',
+                has_ner_support: hasNer,
+                is_well_known: false,
+                subtype_of: subTypeOf
+            };
+            this._loadEntityType(entityRecord.type, entityRecord);
         }
 
         const whitelist = classDef.getImplementationAnnotation<string[]>('whitelist');
@@ -1352,12 +1420,28 @@ export default class ThingpediaLoader {
             actions = actions.filter((name) => whitelist.includes(name));
         }
 
+        // do one pass over all functions to learn about idQueries first
+        await Promise.all(queries.map((name) => classDef.queries[name]).map(this._recordFunction.bind(this)));
+        await Promise.all(actions.map((name) => classDef.actions[name]).map(this._recordFunction.bind(this)));
+
+        // do another pass to add primitive templates for each canonical form
         await Promise.all(queries.map((name) => classDef.queries[name]).map(this._loadFunction.bind(this)));
         await Promise.all(actions.map((name) => classDef.actions[name]).map(this._loadFunction.bind(this)));
     }
 
-    private _loadEntityType(entityType : string, hasNerSupport : boolean) {
-        this._entities[entityType] = { has_ner_support: hasNerSupport };
+    private _loadEntityType(entityType : string, typeRecord : ExtendedEntityRecord) {
+        this._entities[entityType] = typeRecord;
+        if (typeRecord.subtype_of) {
+            this.entitySubTypeMap[entityType] = typeRecord.subtype_of;
+
+            // TODO this only supports a flat hierarchy
+            // if we have a deeper hierarchy this code will not code
+            const subEntities = this._subEntityMap.get(typeRecord.subtype_of);
+            if (subEntities)
+                subEntities.push(typeRecord.type);
+            else
+                this._subEntityMap.set(typeRecord.subtype_of, [typeRecord.type]);
+        }
     }
 
     private _addEntityConstants() {
@@ -1404,7 +1488,7 @@ export default class ThingpediaLoader {
     }
 
     private async _loadMetadata() {
-        const entityTypes = await this._tpClient.getAllEntityTypes();
+        const entityTypes : ExtendedEntityRecord[] = await this._tpClient.getAllEntityTypes();
 
         let devices;
         if (this._options.onlyDevices)
@@ -1449,8 +1533,10 @@ export default class ThingpediaLoader {
             console.log('Loaded ' + countTemplates + ' templates');
         }
 
-        for (const entity of entityTypes)
-            this._loadEntityType(entity.type, !!(entity.type.startsWith('tt:') && entity.has_ner_support));
+        for (const entity of entityTypes) {
+            entity.has_ner_support = !!(entity.type.startsWith('tt:') && entity.has_ner_support);
+            this._loadEntityType(entity.type, entity);
+        }
         for (const device of devices)
             await this._loadDevice(device);
         this._addEntityConstants();
