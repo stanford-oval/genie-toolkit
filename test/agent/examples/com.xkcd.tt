@@ -1,26 +1,13 @@
-dataset @com.xkcd language "en" {
-    stream  := monitor (@com.xkcd.get_comic())
-    #_[utterances=["when a new xkcd is out","when a new xkcd is posted"]]
-    #_[preprocessed=["when a new xkcd is out","when a new xkcd is posted"]]
-    #[id=1648624] #[click_count=1];
-    stream  := monitor (@com.xkcd.what_if())
-    #_[utterances=["when a new xkcd is out in the what-if section","when there is a new post in the xkcd what-if blog"]]
-    #_[preprocessed=["when a new xkcd is out in the what-if section","when there is a new post in the xkcd what-if blog"]]
-    #[id=1648625] #[click_count=1];
-    query  := @com.xkcd.get_comic()
-    #_[utterances=["the latest xkcd","xkcd"]]
-    #_[preprocessed=["the latest xkcd","xkcd"]]
-    #[id=1648626] #[click_count=1];
-    query (p_number :Number)  := @com.xkcd.get_comic(number=p_number)
-    #_[utterances=["the xkcd number ${p_number}","xkcd ${p_number:const}"]]
-    #_[preprocessed=["the xkcd number ${p_number}","xkcd ${p_number:const}"]]
-    #[id=1648627] #[click_count=1];
-    query  := @com.xkcd.random_comic()
-    #_[utterances=["a random xkcd","a random xkcd comic","an xkcd comic at random"]]
-    #_[preprocessed=["a random xkcd","a random xkcd comic","an xkcd comic at random"]]
-    #[id=1648628] #[click_count=1];
-    query  := @com.xkcd.what_if()
-    #_[utterances=["the latest xkcd what if"]]
-    #_[preprocessed=["the latest xkcd what if"]]
-    #[id=1648630] #[click_count=1];
+dataset @com.xkcd {
+    stream = monitor (@com.xkcd.comic())
+    #_[utterances=["when a new xkcd is out",
+                   "when a new xkcd is posted"]]
+    #[id=1648624]
+    #[name="MonitorComic"];
+
+    query (p_id :Number) = @com.xkcd.comic(), id==p_id
+    #_[utterances=["the xkcd number ${p_id}",
+                   "xkcd ${p_id:const}"]]
+    #[id=1648627]
+    #[name="ComicWithNumber"];
 }

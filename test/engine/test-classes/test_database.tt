@@ -3,10 +3,10 @@ class @org.thingpedia.builtin.test.test_database {
   import config from @org.thingpedia.config.none();
 
   list query q1(out foo: String)
-  #_[confirmation="the q1s"]
+  #_[canonical="q1"]
   #[handle_thingtalk=true];
 
   list query q2(out bar: String)
-  #_[confirmation="the q2s"]
+  #_[canonical="q2"]
   #[handle_thingtalk=true];
 }

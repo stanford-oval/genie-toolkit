@@ -26,7 +26,7 @@ import * as fs from 'fs';
 import util from 'util';
 
 import { clean } from '../../../lib/utils/misc-utils';
-import EnglishLanguagePack from '../../../lib/i18n/american-english';
+import EnglishLanguagePack from '../../../lib/i18n/english';
 import * as StreamUtils from '../../../lib/utils/stream-utils';
 
 import genBaseCanonical from '../lib/base-canonical-generator';
@@ -146,7 +146,7 @@ class SchemaProcessor {
         this._wikidata_path = args.wikidata_path;
         this._wikidata_labels = {};
 
-        this._langPack = new EnglishLanguagePack();
+        this._langPack = new EnglishLanguagePack('en-US');
     }
 
 
@@ -759,7 +759,7 @@ class SchemaProcessor {
 
         const entities = this._entities.map((entityType) => {
             const name = entityType.slice(this._prefix.length);
-            return new Ast.EntityDef(null, name, {});
+            return new Ast.EntityDef(null, name, null, {});
         });
 
         const classdef = new Ast.ClassDef(null,

@@ -54,6 +54,7 @@ import {
     ContextPhrase,
     ContextTable,
     ContextFunction,
+    GrammarOptions,
 } from './types';
 import { importGenie } from './compiler';
 
@@ -92,7 +93,7 @@ class Rule<ArgTypes extends unknown[], ReturnType> {
         this.semanticAction = semanticAction;
         this.keyFunction = keyFunction;
 
-        // attributes
+        // attributesGrammarOptions
         this.weight = weight;
         assert(Number.isFinite(weight));
         this.priority = priority;
@@ -148,22 +149,14 @@ interface FunctionTable<StateType> {
 }
 type ContextInitializer<ContextType, StateType> = (previousTurn : ContextType, functionTable : FunctionTable<StateType>, contextTable : ContextTable) => ContextPhrase[]|null;
 
-interface GenericSentenceGeneratorOptions {
+interface GenericSentenceGeneratorOptions extends GrammarOptions {
     locale : string;
     templateFiles : string[];
-    flags : { [key : string] : boolean };
     rootSymbol ?: string;
     targetPruningSize : number;
     maxDepth : number;
     maxConstants : number;
-    debug : number;
     rng : () => number;
-
-    // options passed to the templates
-    thingpediaClient ?: any;
-    schemaRetriever ?: any;
-    onlyDevices ?: string[];
-    whiteList ?: string;
 }
 
 interface BasicSentenceGeneratorOptions {
@@ -542,7 +535,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
     async initialize() : Promise<void> {
         for (const filename of this._templateFiles) {
             const imported = await importGenie(filename);
-            await imported(SentenceGeneratorRuntime, this._options, this._langPack, this);
+            await imported(SentenceGeneratorRuntime, ThingTalkUtils, this._options, this._langPack, this);
         }
         this.finalize();
     }

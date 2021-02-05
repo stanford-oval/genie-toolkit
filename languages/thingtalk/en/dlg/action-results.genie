@@ -28,24 +28,30 @@ import { Ast, } from 'thingtalk';
 import * as C from '../../ast_manip';
 import * as D from '../../dialogue_acts';
 import * as S from '../../state_manip';
+import ThingpediaLoader from '../../load-thingpedia';
 
 import { SlotBag } from '../../slot_bag';
 
-// import thingpedia info
-import _tpLoader from '../../load-thingpedia';
-
-complete_past_action_phrase : Ast.Invocation = {
+complete_past_action_phrase : Ast.Expression = {
+    // using a constant
     ( action:thingpedia_complete_action_past
     | action:thingpedia_complete_action_past 'for you'
     ) => {
+        // check against weird primitive templates, because
+        // later we don't check the query
         if (!(action instanceof Ast.InvocationExpression))
             return null;
-        return action.invocation;
+        return action;
     };
+
+    // using a join
+    ( action:thingpedia_complete_join_action_past
+    | action:thingpedia_complete_join_action_past 'for you'
+    ) => action;
 
     ( action:complete_past_action_phrase param:preposition_input_param with { functionName = action.functionName } [priority=0.1]
     | action:complete_past_action_phrase ('with' | 'having') param:npp_input_param with { functionName = action.functionName } [priority=0.1]
-    ) => C.addInvocationInputParam(action, param);
+    ) => C.addActionInputParam(action, param);
 
     ( action:complete_past_action_phrase param:preposition_filter with { functionName = action.functionName } [priority=0.1]
     | action:complete_past_action_phrase ('with' | 'having') param:npp_filter with { functionName = action.functionName } [priority=0.1]
@@ -54,7 +60,7 @@ complete_past_action_phrase : Ast.Invocation = {
             return null;
         const ipslot = { schema: param.schema, ptype: param.ptype,
             ast: new Ast.InputParam(null, param.ast.name, param.ast.value) };
-        return C.addInvocationInputParam(action, ipslot, { allowOutput: true });
+        return C.addActionInputParam(action, ipslot, { allowOutput: true });
     };
 }
 
@@ -72,8 +78,15 @@ action_success_phrase_with_result : D.ActionSuccessPhraseWithResult = {
 }
 
 action_success_phrase : S.AgentReplyRecord = {
-    ctx:ctx_completed_action_success generic_excitement_phrase result:thingpedia_result with { functionName = ctx.currentFunction } '.' [priority=5]
-        => D.makeThingpediaActionSuccessPhrase(ctx, result);
+    // for Thingpedia phrases (#_[result]), at inference time we pick the top one and replace it
+    // directly using a context phrase
+    // at training time we generate all possible phrases and match
+    ?inference
+        ctx:ctx_completed_action_success generic_excitement_phrase result:ctx_thingpedia_result '.' [priority=5]
+            => D.makeThingpediaActionSuccessPhrase(ctx, result);
+    !inference
+        ctx:ctx_completed_action_success generic_excitement_phrase result:thingpedia_result with { functionName = ctx.currentFunction } '.' [priority=5]
+            => D.makeThingpediaActionSuccessPhrase(ctx, result);
 
     ctx:ctx_completed_action_success generic_excitement_phrase 'i' action:complete_past_action_phrase with { functionName = ctx.currentFunction } '.' [priority=2]
         => D.makeCompleteActionSuccessPhrase(ctx, action, null);
@@ -92,8 +105,15 @@ action_success_phrase : S.AgentReplyRecord = {
 }
 
 short_action_error_message : S.ContextInfo = {
-    ctx:ctx_completed_action_error msg:thingpedia_error_message
-        => D.checkThingpediaErrorMessage(ctx, msg);
+    // for Thingpedia phrases (#_[on_error]), at inference time we pick the top one for the correct code
+    // and replace it directly using a context phrase
+    // at training time we generate all possible phrases and match
+    ?inference
+        ctx:ctx_completed_action_error msg:ctx_thingpedia_error_message '.' [priority=5]
+            => D.checkThingpediaErrorMessage(ctx, msg);
+    !inference
+        ctx:ctx_completed_action_error msg:thingpedia_error_message with { functionName = ctx.currentFunction } '.' [priority=5]
+            => D.checkThingpediaErrorMessage(ctx, msg);
 
     ctx:ctx_completed_action_error msg:constant_String => {
         const error = ctx.error!;

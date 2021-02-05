@@ -48,6 +48,7 @@ import Platform from './lib/cmdline-platform';
 
 interface AnnotatorOptions {
     locale : string;
+    timezone : string|undefined;
     thingpedia_url : string;
     thingpedia_dir : string|undefined;
     nlu_server : string;
@@ -98,6 +99,7 @@ class Annotator extends events.EventEmitter {
             const simulatorOptions : ThingTalkUtils.SimulatorOptions = {
                 rng: seedrandom.alea('almond is awesome'),
                 locale: options.locale,
+                timezone: options.timezone,
                 thingpediaClient: this._tpClient,
                 schemaRetriever: this._schemas,
                 interactive: true
@@ -117,6 +119,7 @@ class Annotator extends events.EventEmitter {
             thingpedia: this._tpClient,
             schemas: this._schemas,
             locale: this._locale,
+            timezone: options.timezone,
             rng: this._rng,
             debug: false
         });
@@ -543,6 +546,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         required: false,
         default: 'en-US',
         help: `BGP 47 locale tag of the natural language being processed (defaults to en-US).`
+    });
+    parser.add_argument('--timezone', {
+        required: false,
+        default: undefined,
+        help: `Timezone to use to print dates and times (defaults to the current timezone).`
     });
     parser.add_argument('--thingpedia-url', {
         required: false,

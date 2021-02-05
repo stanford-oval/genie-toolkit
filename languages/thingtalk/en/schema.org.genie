@@ -21,6 +21,7 @@
 import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
+import ThingpediaLoader from '../load-thingpedia';
 
 schema_with_filtered_table_join : Ast.Expression = {
     // get-predicate form of join

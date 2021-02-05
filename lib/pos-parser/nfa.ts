@@ -21,7 +21,7 @@
 import assert from "assert";
 import { infixToPostfix, specialTokens } from "./infix-to-postfix";
 
-import EnglishLanguagePack from '../../lib/i18n/american-english';
+import EnglishLanguagePack from '../../lib/i18n/english';
 import EnglishTokenizer from '../../lib/i18n/tokenizer/english';
 import { TokenizerResult } from '../i18n';
 
@@ -118,7 +118,7 @@ export class NFA {
     constructor(start ?: State, end ?: State) {
         this.start = start || new State(false);
         this.end = end || new State(true);
-        this.languagePack = new EnglishLanguagePack();
+        this.languagePack = new EnglishLanguagePack('en');
         this.tokenizer = this.languagePack.getTokenizer();
     }
 

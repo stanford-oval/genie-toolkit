@@ -43,6 +43,7 @@ import MultiJSONDatabase from './lib/multi_json_database';
 
 interface AnnotatorOptions {
     locale : string;
+    timezone : string|undefined;
     thingpedia : string;
     user_nlu_server : string;
     agent_nlu_server : string;
@@ -112,6 +113,7 @@ class Annotator extends events.EventEmitter {
         const simulatorOptions : ThingTalkUtils.SimulatorOptions = {
             rng: seedrandom.alea('almond is awesome'),
             locale: options.locale,
+            timezone: options.timezone,
             thingpediaClient: this._tpClient,
             schemaRetriever: this._schemas,
             overrides: this._simulatorOverrides,
@@ -624,6 +626,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         required: false,
         default: 'en-US',
         help: `BGP 47 locale tag of the natural language being processed (defaults to en-US).`
+    });
+    parser.add_argument('--timezone', {
+        required: false,
+        default: undefined,
+        help: `Timezone to use to print dates and times (defaults to the current timezone).`
     });
     parser.add_argument('--thingpedia', {
         required: true,

@@ -22,9 +22,7 @@ import assert from 'assert';
 import { Ast, Type } from 'thingtalk';
 
 import * as C from '../ast_manip';
-
-// import thingpedia info
-import _tpLoader from '../load-thingpedia';
+import ThingpediaLoader from '../load-thingpedia';
 
 {
     const HERE = new Ast.Value.Location(new Ast.Location.Relative('current_location'));

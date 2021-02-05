@@ -80,6 +80,7 @@ export default class RemoteParserClient {
             return;
         const builder = new ExactMatcherBuilder({
             locale: this._locale,
+            timezone: this._platform.timezone,
             cachedir: this._platform.getCacheDir(),
             developerdir: Array.isArray(developerDir) ? developerDir : [developerDir],
             thingpediaClient: this._tpClient,

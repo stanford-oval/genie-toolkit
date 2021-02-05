@@ -62,7 +62,7 @@ export interface AbstractDialogueLoop {
     replyLink(title : string, link : string) : Promise<void>;
     interpolate(msg : string, args : Record<string, unknown>) : string;
     replyInterp(msg : string, args : Record<string, unknown>) : Promise<void>;
-    ask(expected : ValueCategory,
+    ask(expected : ValueCategory.PhoneNumber|ValueCategory.EmailAddress|ValueCategory.Location|ValueCategory.Time,
         question : string,
         args ?: Record<string, unknown>) : Promise<Ast.Value>;
     askChoices(question : string, choices : string[]) : Promise<number>;
@@ -167,7 +167,8 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         return contactApi.lookup(what, name);
     }
 
-    async askMissingContact(category : ValueCategory, name : string) : Promise<Ast.EntityValue> {
+    async askMissingContact(category : ValueCategory.EmailAddress|ValueCategory.PhoneNumber|ValueCategory.Contact,
+                            name : string) : Promise<Ast.EntityValue> {
         await this._dlg.replyInterp(this._("No contact matches “${name}”."), { name });
 
         // straight up ask for the target category
@@ -352,23 +353,23 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         switch (variable) {
         case '$context.location.current_location':
             question = this._("Where are you now?");
-            type = ValueCategory.Location;
+            type = ValueCategory.Location as const;
             break;
         case '$context.location.home':
             question = this._("What is your home address?");
-            type = ValueCategory.Location;
+            type = ValueCategory.Location as const;
             break;
         case '$context.location.work':
             question = this._("What is your work address?");
-            type = ValueCategory.Location;
+            type = ValueCategory.Location as const;
             break;
         case '$context.time.morning':
             question = this._("What time does your morning begin?");
-            type = ValueCategory.Time;
+            type = ValueCategory.Time as const;
             break;
         case '$context.time.evening':
             question = this._("What time does your evening begin?");
-            type = ValueCategory.Time;
+            type = ValueCategory.Time as const;
             break;
         }
 

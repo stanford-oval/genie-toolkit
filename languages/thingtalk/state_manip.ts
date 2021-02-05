@@ -26,7 +26,9 @@ import { SentenceGeneratorTypes } from 'genie-toolkit';
 export type AgentReplyRecord = SentenceGeneratorTypes.AgentReplyRecord<Ast.DialogueState>;
 
 import * as C from './ast_manip';
-import { isExecutable } from './utils';
+import * as keyfns from './keyfns';
+import { SlotBag } from './slot_bag';
+import ThingpediaLoader from './load-thingpedia';
 
 // NOTE: this version of arraySubset uses ===
 // the one in array_utils uses .equals()
@@ -168,7 +170,7 @@ export class NextStatementInfo {
 
         this.chainParameter = null;
         this.chainParameterFilled = false;
-        this.isComplete = isExecutable(nextstmt);
+        this.isComplete = nextItem.isExecutable();
 
         if (!this.isAction)
             return;
@@ -222,6 +224,7 @@ function toID(value : Ast.Value|undefined) {
 }
 
 export class ContextInfo {
+    loader : ThingpediaLoader;
     contextTable : SentenceGeneratorTypes.ContextTable;
 
     state : Ast.DialogueState;
@@ -257,7 +260,8 @@ export class ContextInfo {
         resultLength : number;
     };
 
-    constructor(contextTable : SentenceGeneratorTypes.ContextTable,
+    constructor(loader : ThingpediaLoader,
+                contextTable : SentenceGeneratorTypes.ContextTable,
                 state : Ast.DialogueState,
                 currentTableSchema : Ast.FunctionDef|null,
                 currentFunctionSchema : Ast.FunctionDef|null,
@@ -268,6 +272,7 @@ export class ContextInfo {
                 nextFunctionSchema : Ast.FunctionDef|null,
                 nextInfo : NextStatementInfo|null,
                 aux : any = null) {
+        this.loader = loader;
         this.contextTable = contextTable;
         this.state = state;
 
@@ -342,6 +347,7 @@ export class ContextInfo {
 
     clone() {
         return new ContextInfo(
+            this.loader,
             this.contextTable,
             this.state.clone(),
             this.currentTableFunction,
@@ -358,13 +364,15 @@ export function contextKeyFn(ctx : ContextInfo) {
     return ctx.key;
 }
 
-export function initialContextInfo(contextTable : SentenceGeneratorTypes.ContextTable) {
-    return new ContextInfo(contextTable,
+export function initialContextInfo(loader : ThingpediaLoader, contextTable : SentenceGeneratorTypes.ContextTable) {
+    return new ContextInfo(loader, contextTable,
         new Ast.DialogueState(null, POLICY_NAME, 'sys_init', [], []),
         null, null, null, null, null, null, null, null);
 }
 
-export function getContextInfo(state : Ast.DialogueState, contextTable : SentenceGeneratorTypes.ContextTable) : ContextInfo {
+export function getContextInfo(loader : ThingpediaLoader,
+                               state : Ast.DialogueState,
+                               contextTable : SentenceGeneratorTypes.ContextTable) : ContextInfo {
     let nextItemIdx = null, nextInfo = null, currentFunction = null, currentTableFunction = null,
         nextFunction = null, currentDevice = null, currentResultInfo = null,
         previousDomainItemIdx = null, currentItemIdx = null;
@@ -412,7 +420,7 @@ export function getContextInfo(state : Ast.DialogueState, contextTable : Sentenc
     if (previousDomainItemIdx !== null)
         assert(currentItemIdx !== null && previousDomainItemIdx <= currentItemIdx);
 
-    return new ContextInfo(contextTable, state, currentTableFunction, currentFunction, currentResultInfo,
+    return new ContextInfo(loader, contextTable, state, currentTableFunction, currentFunction, currentResultInfo,
         previousDomainItemIdx, currentItemIdx, nextItemIdx, nextFunction, nextInfo);
 }
 
@@ -721,6 +729,9 @@ function addQueryAndAction(ctx : ContextInfo,
 export function makeContextPhrase(symbol : number, value : ContextInfo, utterance = '', priority = 0) : SentenceGeneratorTypes.ContextPhrase {
     return { symbol, utterance, value, priority, key: value.key };
 }
+export function makeExpressionContextPhrase(symbol : number, value : Ast.Expression, utterance : string, priority = 0) : SentenceGeneratorTypes.ContextPhrase {
+    return { symbol, utterance, value, priority, key: keyfns.expressionKeyFn(value) };
+}
 
 export interface AgentReplyOptions {
     end ?: boolean;
@@ -748,7 +759,7 @@ function makeAgentReply(ctx : ContextInfo,
     assert(state.dialogueAct.startsWith('sys_'));
     assert(expectedType === null || expectedType instanceof ThingTalk.Type);
 
-    const newContext = getContextInfo(state, contextTable);
+    const newContext = getContextInfo(ctx.loader, state, contextTable);
     // set the auxiliary information, which is used by the semantic functions of the user
     // to see if the continuation is compatible with the specific reply from the agent
     newContext.aux = aux;
@@ -919,10 +930,150 @@ function ctxCanHaveRelatedQuestion(ctx : ContextInfo) : boolean {
     return !!(related && related.length);
 }
 
+function makeErrorContextPhrase(ctx : ContextInfo,
+                                error : Ast.EnumValue) {
+    const contextTable = ctx.contextTable;
+    const describer = ctx.loader.describer;
+
+    const currentFunction = ctx.currentFunction!;
+    const phrases = ctx.loader.getErrorMessages(currentFunction.qualifiedName)[error.value];
+    if (!phrases)
+        return null;
+
+    const action = C.getInvocation(ctx.current!);
+
+    // try all phrases, find the first that we can replace correctly
+    for (const candidate of phrases) {
+        const bag = new SlotBag(currentFunction);
+
+        let utterance = '';
+        let good = true;
+        for (const chunk of candidate.split(' ')) {
+            if (chunk.startsWith('$') && chunk !== '$$') {
+                const [, param1, param2,] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk)!;
+                const param = param1 || param2;
+                assert(param);
+                // TODO use opt
+
+                let found = null;
+                for (const in_param of action.in_params) {
+                    if (in_param.name === param) {
+                        found = in_param.value;
+                        break;
+                    }
+                }
+                if (!found) {
+                    good = false;
+                    break;
+                }
+                utterance += ' ' + describer.describeArg(found);
+                bag.set(param, found);
+            } else {
+                utterance += ' ' + chunk;
+            }
+        }
+        utterance = utterance.trim();
+
+        if (good) {
+            const value : C.ErrorMessage = { code: error.value, bag };
+            return { symbol: contextTable.ctx_thingpedia_error_message, utterance, value, priority: 0, key: keyfns.errorMessageKeyFn(value) };
+        }
+    }
+
+    return null;
+}
+
+function makeResultContextPhrase(ctx : ContextInfo,
+                                 result : Ast.DialogueHistoryResultItem) {
+    const contextTable = ctx.contextTable;
+    const describer = ctx.loader.describer;
+
+    const currentFunction = ctx.currentFunction!;
+    const phrases = ctx.loader.getResultStrings(currentFunction.qualifiedName);
+
+    // try all phrases, find the first that we can replace correctly
+    for (const candidate of phrases) {
+        const bag = new SlotBag(currentFunction);
+
+        let utterance = '';
+        let good = true;
+        for (const chunk of candidate.split(' ')) {
+            if (chunk.startsWith('$') && chunk !== '$$') {
+                const [, param1, param2,] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk)!;
+                const param = param1 || param2;
+                assert(param);
+                // TODO use opt
+
+                const value = result.value[param];
+                if (!value) {
+                    good = false;
+                    break;
+                }
+                utterance += ' ' + describer.describeArg(value);
+                bag.set(param, value);
+            } else {
+                utterance += ' ' + chunk;
+            }
+        }
+        utterance = utterance.trim();
+
+        if (good)
+            return { symbol: contextTable.ctx_thingpedia_result, utterance, value: bag, priority: 0, key: keyfns.slotBagKeyFn(bag) };
+    }
+
+    return null;
+}
+
 export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.ContextPhrase[] {
     const contextTable = ctx.contextTable;
 
     const phrases : SentenceGeneratorTypes.ContextPhrase[] = [];
+    const describer = ctx.loader.describer;
+
+    // make phrases that describe the current and next action
+    // these are used by the agent to form confirmations
+    const current = ctx.current;
+    if (current) {
+        const lastQuery = current.stmt.lastQuery;
+        if (lastQuery) {
+            phrases.push(makeExpressionContextPhrase(contextTable.ctx_current_query, lastQuery,
+                                                     describer.describeQuery(lastQuery)));
+        }
+
+        if (current.results!.error instanceof Ast.EnumValue) {
+            const phrase = makeErrorContextPhrase(ctx, current.results!.error);
+            if (phrase)
+                phrases.push(phrase);
+        } else {
+            const results = current.results!.results;
+            if (results.length > 0) {
+                const topResult = results[0];
+                const phrase = makeResultContextPhrase(ctx, topResult);
+                if (phrase)
+                    phrases.push(phrase);
+            }
+        }
+    }
+
+    const next = ctx.next;
+    if (next) {
+        phrases.push(makeContextPhrase(contextTable.ctx_next_statement, ctx,
+                                       describer.describeExpressionStatement(next.stmt)));
+
+        const lastQuery = next.stmt.lastQuery;
+        if (lastQuery) {
+            phrases.push(makeExpressionContextPhrase(contextTable.ctx_next_query, lastQuery,
+                                                     describer.describeQuery(lastQuery)));
+        }
+
+        const action = next.stmt.last;
+        if (action.schema!.functionType === 'action') {
+            assert(action instanceof Ast.InvocationExpression);
+            phrases.push(makeExpressionContextPhrase(contextTable.ctx_next_action, action,
+                                                     describer.describePrimitive(action.invocation)));
+        }
+    }
+
     if (ctx.isMultiDomain)
         phrases.push(makeContextPhrase(contextTable.ctx_multidomain, ctx));
 

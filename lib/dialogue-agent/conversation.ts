@@ -23,8 +23,8 @@ import * as events from 'events';
 import interpolate from 'string-interp';
 import type * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
-import type Gettext from 'node-gettext';
 
+import * as I18n from '../i18n';
 import * as ParserClient from '../prediction/parserclient';
 
 import UserInput, { PlatformData } from './user-input';
@@ -92,7 +92,6 @@ export default class Conversation extends events.EventEmitter {
     private _user : AssistantUser;
     private _conversationId : string;
     private _locale : string;
-    private _gettext : Gettext;
     _ : (x : string) => string;
 
     private _stats : Statistics;
@@ -130,8 +129,7 @@ export default class Conversation extends events.EventEmitter {
 
         this._conversationId = conversationId;
         this._locale = this._engine.platform.locale;
-        this._gettext = this._engine.gettext as Gettext; // FIXME
-        this._ = this._engine._;
+        this._ = I18n.get(this._locale).gettext;
 
         const stats = this._engine.platform.getCapability('statistics');
         if (stats === null)
@@ -197,10 +195,6 @@ export default class Conversation extends events.EventEmitter {
         return this._engine.platform.timezone;
     }
 
-    get gettext() : Gettext {
-        return this._gettext;
-    }
-
     get stats() : Statistics {
         return this._stats;
     }
@@ -229,10 +223,10 @@ export default class Conversation extends events.EventEmitter {
         return this._loop.dispatchNotifyError(appId, icon, error);
     }
 
-    expect(expecting : ValueCategory|null) : void {
+    setExpected(expecting : ValueCategory|null, raw : boolean) : void {
         this._expecting = expecting;
         this._choices = [];
-        this._raw = (expecting === ValueCategory.RawString || expecting === ValueCategory.Password);
+        this._raw = raw;
     }
 
     async start() : Promise<void> {
@@ -434,7 +428,12 @@ export default class Conversation extends events.EventEmitter {
 
         return this._errorWrap(async () => {
             if (this._raw && command !== null) {
-                const intent = new UserInput.Answer(new ThingTalk.Ast.Value.String(command), platformData);
+                let value;
+                if (this._expecting === ValueCategory.Location)
+                    value = new ThingTalk.Ast.LocationValue(new ThingTalk.Ast.UnresolvedLocation(command));
+                else
+                    value = new ThingTalk.Ast.Value.String(command);
+                const intent = new UserInput.Answer(value, platformData);
                 return this._doHandleCommand(intent, null, [], true);
             }
 

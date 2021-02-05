@@ -6,8 +6,8 @@ S4000292977	when slashdot news updates tell me what's on right now	monitor(@org.
 S2000024750	anyone is allowed to enable nba news if my location is not home	"$policy {
   true : now => @org.thingpedia.builtin.thingengine.builtin.configure filter any(@org.thingpedia.builtin.thingengine.builtin.get_gps() filter !(location == $location.home)) && device == ""com.nba""^^tt:device;
 }"
-S2000043793	@charlie has my permission to setup tumblr blog if my location is not here	"$policy {
-  $source == ""charlie""^^tt:username : now => @org.thingpedia.builtin.thingengine.builtin.configure filter any(@org.thingpedia.builtin.thingengine.builtin.get_gps() filter !(location == $location.current_location)) && device == ""com.tumblr.blog""^^tt:device;
+S2000043793	charlie has my permission to setup tumblr blog if my location is not here	"$policy {
+  $source == ""email:charlie@example.com""^^tt:contact(""charlie"") : now => @org.thingpedia.builtin.thingengine.builtin.configure filter any(@org.thingpedia.builtin.thingengine.builtin.get_gps() filter !(location == $location.current_location)) && device == ""com.tumblr.blog""^^tt:device;
 }"
 S4000514968	setup cryptonator when techcrunch news updates	"monitor(@com.techcrunch.news()) => @org.thingpedia.builtin.thingengine.builtin.configure(device=""com.cryptonator""^^tt:device);"
 S4000444881	get sticky notes when ars technica publishes a new article	monitor(@com.arstechnica.index()) => @org.thingpedia.friendhub.stickynotes.list_posts();
@@ -15,7 +15,7 @@ S4000140883	alert me when it is more humid than 1 in where i am now saying “Z�
 S1234567890	get weather for Time Square	"@org.thingpedia.weather.current(location=new Location(40.759, 73.9845, ""Time Square""));"
 S4000123456	what is the weather	@org.thingpedia.weather.current();
 S4000123457	get the current weather	@org.thingpedia.weather.current();
-S4000227894	if something happens on my security camera retrieve what philips hue can do	"monitor(@security-camera.current_event()) => @org.thingpedia.builtin.thingengine.builtin.get_commands(device=""com.hue""^^tt:device);"
+S4000227894	if something happens on my security camera retrieve what philips hue can do	"monitor(@security-camera.current_event()) => @org.thingpedia.builtin.thingengine.builtin.commands() filter device == ""com.hue""^^tt:device;"
 S4000511177	setup thingengine when a file is modified on google drive	"monitor(@com.google.drive.list_drive_files()) => @org.thingpedia.builtin.thingengine.builtin.configure(device=""org.thingpedia.builtin.thingengine""^^tt:device);"
 S4000113241	notify me should photos in album “X” on facebook change and after 7:30 am	"monitor(@com.facebook.list_photos(album=""x"")) filter any(@org.thingpedia.builtin.thingengine.builtin.get_time() filter time >= new Time(7, 30));"
 S4000123458	who is the sender of my emails	@com.gmail.inbox();

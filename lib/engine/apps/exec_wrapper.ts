@@ -103,7 +103,7 @@ export default class ExecWrapper extends ExecEnvironment {
         super();
 
         this.format = new TextFormatter(engine.platform.locale, engine.platform.timezone,
-            engine.schemas, engine._);
+            engine.schemas);
         this.engine = engine;
         this.app = app;
         this._programId = new ThingTalk.Builtin.Entity(this.app.uniqueId!, null);

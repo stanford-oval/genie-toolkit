@@ -22,9 +22,7 @@
 import { Ast, Type } from 'thingtalk';
 
 import * as C from '../ast_manip';
-
-// import thingpedia info
-import _tpLoader from '../load-thingpedia';
+import ThingpediaLoader from '../load-thingpedia';
 
 complete_table : Ast.Expression = {
     q:thingpedia_complete_query => {
@@ -559,9 +557,9 @@ have_arg_min_max_table : Ast.Expression = {
 
 
 edge_stream : Ast.Expression = {
-    !turking ('when' | 'if') 'the' p:projection_Any ('becomes' | 'becomes equal to') x:constant_Any => C.makeEdgeFilterStream(p, '==', x);
-    ('when' | 'if') 'the' p:projection_Any ('becomes greater than' | 'becomes higher than' | 'goes above' | 'increases above') x:constant_Numeric with { type = p.projectionType } => C.makeEdgeFilterStream(p, '>=', x);
-    ('when' | 'if') 'the' p:projection_Any ('becomes smaller than' | 'becomes lower than' | 'goes below' | 'decreases below') x:constant_Numeric with { type = p.projectionType } => C.makeEdgeFilterStream(p, '<=', x);
+    !turking ('when' | 'if') 'the' p:projection_Any ('becomes' | 'becomes equal to') x:constant_Any => C.makeEdgeFilterStream($loader, p, '==', x);
+    ('when' | 'if') 'the' p:projection_Any ('becomes greater than' | 'becomes higher than' | 'goes above' | 'increases above') x:constant_Numeric with { type = p.projectionType } => C.makeEdgeFilterStream($loader, p, '>=', x);
+    ('when' | 'if') 'the' p:projection_Any ('becomes smaller than' | 'becomes lower than' | 'goes below' | 'decreases below') x:constant_Numeric with { type = p.projectionType } => C.makeEdgeFilterStream($loader, p, '<=', x);
 }
 
 stream : Ast.Expression = {
@@ -588,7 +586,7 @@ stream : Ast.Expression = {
     !nofilter ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table with { is_monitorable = true } 'change and' filter:if_filter => {
         if (!table.schema!.is_monitorable || !C.checkFilter(table, filter))
             return null;
-        if (_tpLoader.flags.turking && table.schema!.is_list)
+        if ($loader.flags.turking && table.schema!.is_list)
             return null;
         const withFilter = C.addFilter(table, filter, { ifFilter: true });
         if (!withFilter)

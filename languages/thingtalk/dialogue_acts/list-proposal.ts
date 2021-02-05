@@ -24,6 +24,7 @@ import assert from 'assert';
 import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
+import ThingpediaLoader from '../load-thingpedia';
 
 import {
     AgentReplyOptions,
@@ -138,7 +139,9 @@ function makeListProposalReply(ctx : ContextInfo, proposal : ListProposal) {
         return makeAgentReply(ctx, addAction(ctx, dialogueAct, action, 'proposed'), proposal, null, options);
 }
 
-function positiveListProposalReply(ctx : ContextInfo, [name, acceptedAction, mustHaveAction] : [Ast.Value, Ast.Invocation|null, boolean]) {
+function positiveListProposalReply(loader : ThingpediaLoader,
+                                   ctx : ContextInfo,
+                                   [name, acceptedAction, mustHaveAction] : [Ast.Value, Ast.Invocation|null, boolean]) {
     // if actionProposal === null the flow is roughly
     //
     // U: hello i am looking for a restaurant
@@ -182,7 +185,7 @@ function positiveListProposalReply(ctx : ContextInfo, [name, acceptedAction, mus
         // do not consider a phrase of the form "play X" to be "accepting the action by name"
         // if the action auto-confirms, because the user is likely playing something else
         if (acceptedAction && name) {
-            const confirm = C.normalizeConfirmAnnotation(acceptedAction.schema as Ast.FunctionDef);
+            const confirm = loader.ttUtils.normalizeConfirmAnnotation(acceptedAction.schema as Ast.FunctionDef);
             if (confirm === 'auto')
                 return null;
         }
@@ -194,7 +197,9 @@ function positiveListProposalReply(ctx : ContextInfo, [name, acceptedAction, mus
     }
 }
 
-function positiveListProposalReplyActionByName(ctx : ContextInfo, action : Ast.Invocation) {
+function positiveListProposalReplyActionByName(loader : ThingpediaLoader,
+                                               ctx : ContextInfo,
+                                               action : Ast.Invocation) {
     const proposal = ctx.aux;
     const [results,] = proposal;
 
@@ -214,7 +219,7 @@ function positiveListProposalReplyActionByName(ctx : ContextInfo, action : Ast.I
     }
     if (!name)
         return null;
-    return positiveListProposalReply(ctx, [name, acceptedAction, false]);
+    return positiveListProposalReply(loader, ctx, [name, acceptedAction, false]);
 }
 
 function negativeListProposalReply(ctx : ContextInfo, [preamble, request] : [Ast.Expression|null, Ast.Expression|null]) {
@@ -231,7 +236,7 @@ function negativeListProposalReply(ctx : ContextInfo, [preamble, request] : [Ast
     return proposalReply(ctx, request, refineFilterToAnswerQuestionOrChangeFilter);
 }
 
-function listProposalLearnMoreReply(ctx : ContextInfo, name : Ast.EntityValue) {
+function listProposalLearnMoreReply(ctx : ContextInfo, name : Ast.Value) {
     // note: a learn more from a list proposal is different than a learn_more from a recommendation
     // in a recommendation, there is no change to the program, and the agent replies "what would
     // you like to know"

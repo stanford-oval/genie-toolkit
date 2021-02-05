@@ -19,7 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-import { Ast, Type } from 'thingtalk';
+import { Ast, } from 'thingtalk';
 
 import type AbstractDialogueAgent from '../abstract_dialogue_agent';
 import ValueCategory from '../value-category';
@@ -168,19 +168,17 @@ export interface Contact {
     timesContacted ?: number;
 }
 
-export async function contactSearch(dlg : AbstractDialogueAgent<unknown>, type : Type, name : string) {
-    if (!(type instanceof Type.Entity))
-        throw new TypeError('Invalid contact type ' + type);
+export async function contactSearch(dlg : AbstractDialogueAgent<unknown>, type : string, name : string) {
     let category;
-    switch (type.type) {
+    switch (type) {
         case 'tt:phone_number':
-            category = ValueCategory.PhoneNumber;
+            category = ValueCategory.PhoneNumber as const;
             break;
         case 'tt:email_address':
-            category = ValueCategory.EmailAddress;
+            category = ValueCategory.EmailAddress as const;
             break;
         case 'tt:contact':
-            category = ValueCategory.Contact;
+            category = ValueCategory.Contact as const;
             break;
         default:
             throw new TypeError('Invalid contact type ' + type);

@@ -21,6 +21,7 @@
 import { Ast, Type } from 'thingtalk';
 
 import * as C from './ast_manip';
+import ThingpediaLoader from './load-thingpedia';
 
 {
 const MAX_SMALL_INTEGER = 12;
