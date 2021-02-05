@@ -22,7 +22,7 @@ import { Ast, } from 'thingtalk';
 
 // import the combinator library
 import * as C from './ast_manip';
-import _tpLoader from './load-thingpedia';
+import ThingpediaLoader from './load-thingpedia';
 
 import './common-constants.genie';
 
@@ -31,8 +31,9 @@ keyfn = {
     C.Placeholder : C.placeholderKeyFn,
     Ast.Value : C.valueKeyFn,
     Ast.LocationValue : C.valueKeyFn,
-    Ast.NumberValue : C.numberValueKeyFn,
-    Ast.EntityValue : C.entityValueKeyFn,
+    Ast.NumberValue : C.entityOrNumberValueKeyFn,
+    Ast.EntityValue : C.entityOrNumberValueKeyFn,
+    Ast.EntityValue|Ast.NumberValue : C.entityOrNumberValueKeyFn,
     Ast.ContextRefValue : C.valueKeyFn,
     [Ast.Value, Ast.Value] : C.valueArrayKeyFn,
     Ast.Value[] : C.valueArrayKeyFn,
@@ -62,6 +63,7 @@ thingpedia_complete_get_command : Ast.Expression = {}
 thingpedia_complete_stream : Ast.Expression = {}
 thingpedia_complete_action : Ast.Expression = {}
 thingpedia_complete_action_past : Ast.Expression = {}
+thingpedia_complete_join_action_past : Ast.Expression = {}
 thingpedia_complete_program : Ast.Expression = {}
 
 thingpedia_who_question : Ast.Expression = {}
@@ -186,7 +188,7 @@ avp_boolean_projection : C.ParamSlot = {}
 // npv: implicit parameter with Noun-Phrase Value, i.e., the parameter itself will not appear in the sentence
 // e.g.: "Bob is a PhD", the parameter `academic_degree` is implicit, and should be inferred by the value "PhD"
 npv_filter : C.FilterSlot = {}
-npv_input_param : C.InputParamSlot = {}
+npv_input_pconstant_namearam : C.InputParamSlot = {}
 npv_argminmax : C.ArgMinMax = {}
 coref_npv_filter : C.FilterSlot = {}
 coref_npv_input_param : C.InputParamSlot = {}
@@ -215,14 +217,14 @@ question_projection_table = {}
 command_projection_table = {}
 
 
-constant_name : Ast.EntityValue = {}
+constant_name : Ast.EntityValue|Ast.NumberValue = {
+    // numbers are always allowed as "names" (id values)
+    // other ID values should be entities
+    constant_Number;
+}
 
 the_base_table : Ast.InvocationExpression = {}
 base_table : Ast.InvocationExpression = {}
 base_noun_phrase : Ast.FunctionDef = {}
 generic_anything_noun_phrase : Ast.InvocationExpression = {}
 generic_base_noun_phrase : Ast.InvocationExpression = {}
-
-{
-await _tpLoader.init($runtime, $grammar, $locale, $options);
-}

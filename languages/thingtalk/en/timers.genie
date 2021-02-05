@@ -19,6 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import { Ast, } from 'thingtalk';
+import ThingpediaLoader from '../load-thingpedia';
 
 {
 const TIMER_SCHEMA = new Ast.FunctionDef(null,

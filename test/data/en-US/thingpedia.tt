@@ -136,7 +136,7 @@ class @org.thingpedia.builtin.thingengine.phone
   monitorable list query sms(out sender: Entity(tt:phone_number) #_[prompt="What number do you want to monitor?"] #_[canonical="sender"],
                              out message: String #_[canonical="message"] #[string_values="tt:message"],
                              out date: Date #_[canonical="date"])
-  #_[canonical="receive sms on phone"]
+  #_[canonical="my sms"]
   #_[confirmation="your SMS"]
   #_[formatted=[{type="text",text="SMS from ${from} received at ${date}: ${body}"}]]
   #[confirm=false];
@@ -568,7 +568,7 @@ class @org.thingpedia.weather
                             in opt date: Date
                             #_[canonical={
                               default="preposition",
-                              default=["date"],
+                              base=["date"],
                               preposition=["on #"]
                             }],
                             out sunrise_time: Time
@@ -598,7 +598,7 @@ class @org.thingpedia.weather
                          in opt date: Date
                          #_[canonical={
                             default="preposition",
-                            default=["date"],
+                            base=["date"],
                             preposition=["on #"]
                          }],
                          out phase: Enum(new_moon,waxing_crescent,first_quarter,waxing_gibbous,full_moon,waning_gibbous,third_quarter,waning_crescent)
@@ -672,79 +672,189 @@ class @com.instagram
                                       out filter_: Entity(com.instagram:filter_) #_[prompt="With what filters do you want pictures?"] #_[canonical="filter"],
                                       out hashtags: Array(Entity(tt:hashtag)) #_[canonical="hashtags"],
                                       out location: Location #_[canonical="location"])
-  #_[canonical="get pictures on instagram"]
+  #_[canonical="picture on instagram"]
   #_[confirmation="your recent Instagram pictures"];
 }
 class @org.thingpedia.builtin.thingengine.builtin
-#_[canonical="miscellaneous interfaces"] {
-  query canned_reply(in req intent: Enum(hello,cool,sorry,thank_you) #_[canonical="intent"],
-                     out text: String #_[canonical="text"])
-  #_[canonical="get canned reply"]
-  #_[confirmation="a reply to ${intent}"]
-  #_[formatted=["${text}"]]
-  #[confirm=false];
+#_[thingpedia_name="Miscellaneous Interfaces"]
+#_[thingpedia_description="Commands that are always available and don't belong to any specific device or account. Mostly related to time and randomness, because the universe is chaos and those always there. Also debugging."]
+#_[name="Miscellaneous Interfaces"]
+#_[description="Commands that are always available and don't belong to any specific device or account. Mostly related to time and randomness, because the universe is chaos and those always there. Also debugging."]
+#_[canonical="miscellaneous interfaces"]
+#[repository="https://github.com/stanford-oval/genie-toolkit"]
+#[subcategory="service"]
+#[license="Apache-2.0"]
+#[license_gplcompatible=true]
+{
+  import loader from @org.thingpedia.builtin();
+  import config from @org.thingpedia.config.builtin();
 
-  list query get_commands(in req device: Entity(tt:device) #_[prompt="What device do you want help for?"] #_[canonical="device"],
-                          out program: Entity(tt:program) #_[canonical="program"])
-  #_[canonical="list commands"]
-  #_[confirmation="the list of commands of $device"]
-  #_[formatted=[{type="text",text="${program}"}]]
-  #[confirm=false];
-
-  query get_date(out date: Date #_[canonical="date"])
-  #_[canonical="get date"]
-  #_[confirmation="today's date"]
-  #_[formatted=[{type="text",text="Today is ${date:date}."}]]
-  #[confirm=false];
-
-  monitorable query get_gps(out location: Location #_[prompt="What location are you interested in?"] #_[canonical="location"],
-                            out altitude: Measure(m) #_[canonical="altitude"],
-                            out bearing: Number #_[canonical="bearing"],
-                            out speed: Measure(mps) #_[canonical="speed"])
-  #_[canonical="get current location"]
+  monitorable query get_gps(out location: Location
+                            #_[canonical={
+                              default="preposition",
+                              base=["coordinates"],
+                              preposition=["in #", "at #", "around #"]
+                            }],
+                            out altitude: Measure(m)
+                            #_[canonical={
+                              default="base",
+                              base=["altitude"],
+                              preposition=["at # above sea level"]
+                            }]
+                            #[min_number=0m]
+                            #[max_number=15000m], // not approved for use in the ISS
+                            out bearing: Number
+                            #_[canonical={
+                              base=["bearing"],
+                              passive_verb=["facing #"] // FIXME we want to say "facing 30 degrees north" but we can't quite do that...
+                            }],
+                            out speed: Measure(mps)
+                            #_[canonical={
+                              base=["speed"],
+                              passive_verb=["going at #", "moving at #"],
+                              preposition=["at #"]
+                            }]
+                            )
+  #_[canonical=["my current location", "my current position", "my current geocoordinates"]]
   #_[confirmation="your location"]
   #_[formatted=[{type="text",text="Current Location: ${location}"}]]
+  #[minimal_projection=["location"]]
+  #[poll_interval=0ms]
+  #[doc="get last known GPS location"]
   #[confirm=false];
 
-  query get_random_between(in req low: Number #_[prompt="What should be the lower bound?"] #_[canonical="low"],
-                           in req high: Number #_[prompt="What should be the upper bound?"] #_[canonical="high"],
-                           out random: Number #_[canonical="random"])
-  #_[canonical="get random integer"]
+  query get_time(out time: Time
+                 #_[canonical=["time"]]
+                 #[filterable=false])
+  #[result=["it 's ${time}", "the current time is ${time}", "now it 's ${time}"]]
+  #_[canonical=["current time", "time", "time of day"]]
+  #_[formatted=[{type="text",text="Current time is ${time:time}."}]]
+  #[doc="get the current time"]
+  #[confirm=false];
+
+  query get_date(out date: Date
+                 #_[canonical=["date"]]
+                 #[filterable=false])
+  #_[canonical=["today 's date", "date", "current date"]]
+  #_[formatted=[{type="text",text="Today is ${date:date}."}]]
+  #[doc="get the current date"]
+  #[confirm=false];
+
+  query get_random_between(in opt low: Number
+                           #_[canonical={
+                             base=["lower bound", "minimum number"],
+                             passive_verb=["higher than #", "more than #"] // the sentence is "give me a random number higher than X", so "higher than X" is pvp not apv
+                           }],
+                           in opt high: Number
+                           #_[canonical={
+                             base=["upper bound", "maximum number"],
+                             passive_verb=["higher than #", "more than #"] // the sentence is "give me a random number higher than X", so "higher than X" is pvp not apv
+                           }],
+                           out random: Number
+                           #_[canonical={
+                             base=["number", "result"],
+                           }]
+                           #[filterable=false])
+  #_[canonical=["random number", "random integer"]]
+  #_[result=["${random}", "your number is ${random}", "i chose ${random}"]]
   #_[confirmation="a random integer between $low and $high"]
   #_[formatted=[{type="text",text="${random}"}]]
+  #[doc="get a uniform random integer between `low` and `high`"]
   #[confirm=false];
 
-  query get_time(out time: Date #_[canonical="time"])
-  #_[canonical="get time"]
-  #_[confirmation="the current time"]
-  #_[formatted=[{type="text",text="Current time is ${time:time}."}]]
+  monitorable list query device(out id : Entity(tt:device)
+                                #_[canonical={
+                                   base=["name"],
+                                   passive_verb=["named #", "called #"],
+                                }],
+                                out description : String
+                                #_[canonical={
+                                   base=["description"]
+                                }]
+                                #[string_values="tt:short_free_text"]
+                                #[filterable=false],
+                                out category : Enum(service, media, social_network, communication, home, health, data_management)
+                                #_[canonical={
+                                   base=["category"],
+                                   adjective=["#"],
+                                   preposition=["in the # category"]
+                                }],
+                                out website : Entity(tt:url)
+                                #_[canonical={
+                                   base=["website", "link", "url"]
+                                }]
+                                #[filterable=false])
+  #_[canonical=["device", "skill", "thingpedia device", "supported skill"]]
+  #_[confirmation="Thingpedia devices"]
+  #_[formatted=[{type="text",text="${random}"}]]
+  #[doc="list supported Thingpedia devices"]
+  #[poll_interval=1day]
   #[confirm=false];
 
-  action configure(in req device: Entity(tt:device) #_[prompt="What device do you want to configure?"] #_[canonical="device"])
+  list query commands(out id : Entity(tt:command_id),
+                      out device: Entity(tt:device)
+                      #_[canonical={
+                        base=["device", "account", "skill"],
+                        adjective=["# 's"],
+                        preposition=["of #", "in #"]
+                      }]
+                      #_[prompt=["what device do you want help for", "for what device"]],
+                      out program: Entity(tt:program)
+                      #_[canonical=["program", "command"]]
+                      #[filterable=false])
+  #_[canonical="supported command"]
+  #_[confirmation="the list of commands of $device"]
+  #_[formatted=[{type="text",text="${program}"}]]
+  #[doc="retrieve the list of supported commands for the given device"]
+  #[confirm=false];
+
+  action open_url(in req url: Entity(tt:url)
+                  #_[prompt=["what url do you want to open", "what do you want to open"]]
+                  #_[canonical={
+                    base=["url", "link", "page"],
+                    preposition=["to #"]
+                  }])
+  #_[canonical=["open a url", "open a link"]]
+  #_[confirmation="open $url"]
+  #[doc="open a file/link"]
+  #[confirm=false];
+
+  action say(in req message: String
+             #_[prompt="what do you want me to say"]
+             #[string_values="tt:long_free_text"]
+             #_[canonical="message"],
+             out message_output: String
+             #_[canonical="message"])
+  #_[result="${message_output}"]
+  #_[canonical="say"]
+  #_[confirmation="send me a message $message"]
+  #[doc="makes Almond say something"]
+  #[confirm=false];
+
+  action debug_log(in req message: String
+                   #_[prompt=["what should i write in the logs", "what do you want me to write"]]
+                   #[string_values="tt:long_free_text"]
+                   #_[canonical="message"])
+  #_[canonical=["log a message", "record a message", "write a message in the logs"]]
+  #_[confirmation="write $message in the developer logs"]
+  #[doc="log a message in the developer logs"]
+  #[confirm=false];
+
+  action configure(in req device: Entity(tt:device) #_[prompt="What device do you want to configure?"])
   #_[canonical="configure"]
   #_[confirmation="configure a new $device"]
-  #[confirm=true];
-
-  action debug_log(in req message: String #_[prompt="What should I write in the logs?"] #_[canonical="message"])
-  #_[canonical="log"]
-  #_[confirmation="write $message in the developer logs"]
-  #[confirm=true];
+  #_[confirmation_remote="configure a new $device on $__person's Almond"]
+  #[doc="configure a specific device by type"]
+  #[confirm=false];
 
   action discover()
   #_[canonical="discover"]
   #_[confirmation="search for new devices"]
-  #[confirm=true];
-
-  action open_url(in req url: Entity(tt:url) #_[prompt="What URL do you want to open?"] #_[canonical="url"])
-  #_[canonical="open url on builtin"]
-  #_[confirmation="open $url"]
-  #[confirm=true];
-
-  action say(in req message: String #_[prompt="What do you want me to say?"] #_[canonical="message"] #[string_values="tt:message"])
-  #_[canonical="say"]
-  #_[confirmation="send you the message $message"]
-  #[confirm=true];
+  #_[confirmation_remote="search for new devices on $__person's Almond"]
+  #[doc="start interactive discovery for new devices"]
+  #[confirm=false];
 }
+
 class @light-bulb
 #_[canonical="light bulb"] {
   action alert_long()
@@ -824,7 +934,7 @@ class @com.google.drive
                                           in opt order_by: Enum(created_time_increasing,created_time_decreasing,modified_time_increasing,modified_time_decreasing,name_increasing,name_decreasing) #_[canonical="order by"],
                                           out last_modified_by: String #_[canonical="last modified by"],
                                           out link: Entity(tt:url) #_[canonical="link"])
-  #_[canonical="google drive file list"]
+  #_[canonical="google drive files"]
   #_[confirmation="files in your Google Drive"]
   #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${file_name} (last modified by ${last_modified_by} on ${modified_time})"}]]
   #[confirm=false];
@@ -954,7 +1064,7 @@ class @com.washingtonpost
                                      out link: Entity(tt:url) #_[canonical="link"],
                                      out description: String #_[canonical="description"] #[string_values="tt:news_description"],
                                      out picture_url: Entity(tt:picture) #_[canonical="picture url"])
-  #_[canonical="articles on washington post"]
+  #_[canonical="article on washington post"]
   #_[confirmation="the latest articles in the ${section} section of the Washington Post"]
   #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}",displayText="${description}"}, {type="picture",url="${picture_url}"}]]
   #[confirm=false];
@@ -1064,7 +1174,7 @@ class @com.wsj
                              out title: String #_[canonical="title"] #[string_values="tt:news_title"],
                              out link: Entity(tt:url) #_[canonical="link"],
                              out updated: Date #_[canonical="updated"])
-  #_[canonical="get post on wall street journal"]
+  #_[canonical="articles in the wall street journal"]
   #_[confirmation="articles published in the $section section of the Wall Street Journal"]
   #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}"}]]
   #[confirm=false];

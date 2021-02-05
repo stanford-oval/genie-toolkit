@@ -43,7 +43,7 @@ import { Ast } from 'thingtalk';
  * Also, #[confirm] can be specified as a boolean: "true" means "confirm" and "false" means
  * "display_result".
  */
-function normalizeConfirmAnnotation(fndef : Ast.FunctionDef) : 'confirm'|'display_result'|'auto' {
+export function normalizeConfirmAnnotation(fndef : Ast.FunctionDef) : 'confirm'|'display_result'|'auto' {
     const value = fndef.getAnnotation<boolean|string>('confirm');
     if (value === undefined) // unspecified
         return fndef.functionType === 'action' ? 'confirm' : 'display_result';
@@ -55,7 +55,7 @@ function normalizeConfirmAnnotation(fndef : Ast.FunctionDef) : 'confirm'|'displa
     return value;
 }
 
-function shouldAutoConfirmStatement(stmt : Ast.ExpressionStatement) : boolean {
+export function shouldAutoConfirmStatement(stmt : Ast.ExpressionStatement) : boolean {
     if (stmt.stream)
         return false;
 
@@ -88,7 +88,7 @@ function shouldAutoConfirmStatement(stmt : Ast.ExpressionStatement) : boolean {
  * @param {ThingTalk.Ast.DialogueState} newState - the new state of the dialogue, after the turn
  * @param {string} forTarget - who is speaking now: either `user` or `agent`
  */
-function computePrediction(oldState : Ast.DialogueState|null, newState : Ast.DialogueState, forTarget : 'user'|'agent') : Ast.DialogueState {
+export function computePrediction(oldState : Ast.DialogueState|null, newState : Ast.DialogueState, forTarget : 'user'|'agent') : Ast.DialogueState {
     // note: we used to short-circuit the case where oldState === null
     // and directly return newState
     // this is incorrect: newState will have .confirm === 'confirmed',
@@ -138,7 +138,7 @@ function computePrediction(oldState : Ast.DialogueState|null, newState : Ast.Dia
     return deltaState;
 }
 
-function computeNewState(state : Ast.DialogueState|null, prediction : Ast.DialogueState, forTarget : 'user'|'agent') {
+export function computeNewState(state : Ast.DialogueState|null, prediction : Ast.DialogueState, forTarget : 'user'|'agent') {
     const clone = new Ast.DialogueState(null, prediction.policy, prediction.dialogueAct, prediction.dialogueActParam, []);
 
     // append all history elements that were confirmed
@@ -155,7 +155,7 @@ function computeNewState(state : Ast.DialogueState|null, prediction : Ast.Dialog
     return clone;
 }
 
-function prepareContextForPrediction(context : Ast.DialogueState|null, forTarget : 'user'|'agent') : Ast.DialogueState|null {
+export function prepareContextForPrediction(context : Ast.DialogueState|null, forTarget : 'user'|'agent') : Ast.DialogueState|null {
     if (context === null)
         return null;
     const clone = new Ast.DialogueState(null, context.policy, context.dialogueAct, context.dialogueActParam, []);
@@ -220,11 +220,3 @@ function prepareContextForPrediction(context : Ast.DialogueState|null, forTarget
 
     return clone;
 }
-
-export {
-    shouldAutoConfirmStatement,
-
-    computePrediction,
-    computeNewState,
-    prepareContextForPrediction,
-};

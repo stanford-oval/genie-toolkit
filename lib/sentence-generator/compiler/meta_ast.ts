@@ -54,8 +54,8 @@ export class Grammar {
             if (stmt instanceof JSImportStmt)
                 buffer += stmt.codegen();
         }
-        buffer += `import type { SentenceGeneratorRuntime, SentenceGenerator, I18n } from "genie-toolkit";\n`;
-        buffer += `export default async function($runtime : typeof SentenceGeneratorRuntime, $options : any, $locale : I18n.LanguagePack, $grammar : SentenceGenerator<any, any>) : Promise<void> {\n`;
+        buffer += `import type * as $Genie from "genie-toolkit";\n`;
+        buffer += `export default async function($runtime : typeof $Genie.SentenceGeneratorRuntime, $ttUtils : typeof $Genie.ThingTalkUtils, $options : $Genie.SentenceGeneratorTypes.GrammarOptions, $locale : $Genie.I18n.LanguagePack, $grammar : $Genie.SentenceGenerator<any, any>, $loader : ThingpediaLoader) : Promise<void> {\n`;
         for (const stmt of this.statements) {
             if (stmt instanceof JSImportStmt)
                 continue;
@@ -243,7 +243,7 @@ export class Import extends Statement {
     }
 
     codegen(prefix = '') : string {
-        return `${prefix}await (await $runtime.import(${stringEscape(this.what)}, __dirname))($runtime, $options, $locale, $grammar);\n`;
+        return `${prefix}await (await $runtime.import(${stringEscape(this.what)}, __dirname))($runtime, $ttUtils, $options, $locale, $grammar, $loader);\n`;
     }
 }
 Statement.Import = Import;

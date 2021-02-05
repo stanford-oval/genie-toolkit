@@ -65,6 +65,7 @@ async function safeGetMTime(filename : string) : Promise<number> {
 
 interface ExactMatchBuilderOptions {
     locale : string;
+    timezone : string|undefined;
     cachedir : string;
     developerdir : string[];
     thingpediaClient : Tp.BaseClient;
@@ -76,6 +77,7 @@ interface ExactMatchBuilderOptions {
  */
 export default class ExactMatchBuilder {
     private _locale : string;
+    private _timezone : string|undefined;
     private _cachefile : string;
     private _developerdir : string[];
     private _matcher : ExactMatcher;
@@ -84,6 +86,7 @@ export default class ExactMatchBuilder {
 
     constructor(options : ExactMatchBuilderOptions) {
         this._locale = options.locale;
+        this._timezone = options.timezone;
         this._cachefile = path.resolve(options.cachedir, 'exact-' + options.locale + '.btrie');
         this._developerdir = options.developerdir;
         this._tpClient = options.thingpediaClient;
@@ -121,6 +124,7 @@ export default class ExactMatchBuilder {
             },
             rng: this._rng,
             locale: this._locale,
+            timezone: this._timezone,
             templateFiles: [TEMPLATE_FILE_PATH],
             thingpediaClient: this._tpClient,
             schemaRetriever: schemas,

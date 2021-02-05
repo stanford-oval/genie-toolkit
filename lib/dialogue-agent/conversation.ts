@@ -23,8 +23,8 @@ import * as events from 'events';
 import interpolate from 'string-interp';
 import type * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
-import type Gettext from 'node-gettext';
 
+import * as I18n from '../i18n';
 import * as ParserClient from '../prediction/parserclient';
 
 import UserInput, { PlatformData } from './user-input';
@@ -92,7 +92,6 @@ export default class Conversation extends events.EventEmitter {
     private _user : AssistantUser;
     private _conversationId : string;
     private _locale : string;
-    private _gettext : Gettext;
     _ : (x : string) => string;
 
     private _stats : Statistics;
@@ -130,8 +129,7 @@ export default class Conversation extends events.EventEmitter {
 
         this._conversationId = conversationId;
         this._locale = this._engine.platform.locale;
-        this._gettext = this._engine.gettext as Gettext; // FIXME
-        this._ = this._engine._;
+        this._ = I18n.get(this._locale).gettext;
 
         const stats = this._engine.platform.getCapability('statistics');
         if (stats === null)
@@ -195,10 +193,6 @@ export default class Conversation extends events.EventEmitter {
 
     get timezone() : string {
         return this._engine.platform.timezone;
-    }
-
-    get gettext() : Gettext {
-        return this._gettext;
     }
 
     get stats() : Statistics {

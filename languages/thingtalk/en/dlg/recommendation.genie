@@ -32,11 +32,9 @@ import { Ast, } from 'thingtalk';
 import * as C from '../../ast_manip';
 import * as D from '../../dialogue_acts';
 import * as S from '../../state_manip';
+import ThingpediaLoader from '../../load-thingpedia';
 
 import { SlotBag } from '../../slot_bag';
-
-// import thingpedia info
-import _tpLoader from '../../load-thingpedia';
 
 question_system_recommendation_short : D.Recommendation = {
     ctx:ctx_with_result_and_action 'how about' proposal:constant_name with { value = ctx.id0 }
@@ -49,10 +47,21 @@ action_recommendation : D.Recommendation = {
 }
 
 actionable_system_recommendation_short : D.Recommendation = {
-    ctx:ctx_with_result_noquestion proposal:thingpedia_result with { functionName = ctx.currentFunction } [priority=2]
-        => D.makeThingpediaRecommendation(ctx, proposal);
-    ctx:ctx_with_result_noquestion proposal:thingpedia_result with { functionName = ctx.currentFunction } [priority=2]
-        => D.makeThingpediaRecommendation(ctx, proposal);
+    // for Thingpedia phrases (#_[result]), at inference time we pick the top one and replace it
+    // directly using a context phrase
+    // at training time we generate all possible phrases and match
+    ?inference {
+        ctx:ctx_with_result_noquestion proposal:ctx_thingpedia_result [priority=2]
+            => D.makeThingpediaRecommendation(ctx, proposal);
+        ctx:ctx_with_result_noquestion proposal:ctx_thingpedia_result [priority=2]
+            => D.makeThingpediaRecommendation(ctx, proposal);
+    }
+    !inference {
+        ctx:ctx_with_result_noquestion proposal:thingpedia_result with { functionName = ctx.currentFunction } [priority=2]
+            => D.makeThingpediaRecommendation(ctx, proposal);
+        ctx:ctx_with_result_noquestion proposal:thingpedia_result with { functionName = ctx.currentFunction } [priority=2]
+            => D.makeThingpediaRecommendation(ctx, proposal);
+    }
 
     ( ctx:ctx_with_result_and_action 'i' ('recommend' | 'suggest') proposal:constant_name with { value = ctx.id0 }
     | ctx:ctx_with_result_noquestion ('i see' | 'i have' | 'i have found' | 'i have one , it is') proposal:constant_name with { value = ctx.id0 }
@@ -116,8 +125,15 @@ proposal_info_action_pair : [D.ResultPhrase, Ast.Invocation|null] = {
 }
 
 actionable_system_display_result_short : D.Recommendation = {
-    ctx:ctx_with_result info:thingpedia_result with { functionName = ctx.currentFunction } '.' [priority=5]
-        => D.makeDisplayResult(ctx, info);
+    // for Thingpedia phrases (#_[result]), at inference time we pick the top one and replace it
+    // directly using a context phrase
+    // at training time we generate all possible phrases and match
+    ?inference
+        ctx:ctx_with_result info:ctx_thingpedia_result '.' [priority=5]
+            => D.makeDisplayResult(ctx, info);
+    !inference
+        ctx:ctx_with_result info:thingpedia_result with { functionName = ctx.currentFunction } '.' [priority=5]
+            => D.makeDisplayResult(ctx, info);
 }
 
 // a non-list result
@@ -208,7 +224,7 @@ recommendation_accept_phrase_with_action : Ast.Invocation = {
     accept_phrase generic_preamble_for_action action:coref_action_command => action;
 }
 
-recommendation_accept_phrase_by_name : [Ast.EntityValue, Ast.Invocation|null] = {
+recommendation_accept_phrase_by_name : [Ast.EntityValue|Ast.NumberValue, Ast.Invocation|null] = {
     name:generic_list_proposal_accept_phrase => [name, null];
     name:list_proposal_accept_phrase_must_have_action => [name, null];
     accept:list_proposal_accept_phrase_with_action => [accept[0], accept[1]];

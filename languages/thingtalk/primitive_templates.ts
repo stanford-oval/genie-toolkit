@@ -28,10 +28,6 @@ import {
 } from './utils';
 import { SlotBag } from './slot_bag';
 
-// note: this is a circular import: ast_manip imports load-thingpedia that
-// loads this file
-// this should be ok because we don't use anything from this module during
-// the initial module run (we just define functions), but care is necessary
 import * as C from './ast_manip';
 
 // Semantic functions for primitive templates
@@ -89,6 +85,7 @@ export function replacePlaceholderWithTableOrStream(ex : Ast.Example,
     const table = args[tableParamIdx];
     assert(table instanceof Ast.Expression);
 
+
     const intoname = names[tableParamIdx];
     assert(typeof intoname === 'string');
     const intotype = ex.args[intoname];
@@ -101,6 +98,9 @@ export function replacePlaceholderWithTableOrStream(ex : Ast.Example,
         projection = maybeProjection;
     } else {
         projection = table;
+        // FIXME we should make up a projection based on what parameter is actually passed
+        if (projection.args.length !== 1)
+            return null;
     }
     assert(projection.args.length === 1);
 

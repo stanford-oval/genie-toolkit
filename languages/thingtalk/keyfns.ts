@@ -52,13 +52,9 @@ export function valueArrayKeyFn(values : Ast.Value[]) {
     return { type, is_numeric: type.isNumeric() };
 }
 
-export function entityValueKeyFn(value : Ast.EntityValue) {
+export function entityOrNumberValueKeyFn(value : Ast.EntityValue|Ast.NumberValue) {
     const type = value.getType();
-    return { type, is_numeric: type.isNumeric(), value: value.value };
-}
-
-export function numberValueKeyFn(value : Ast.NumberValue) {
-    return { type: Type.Number, is_numeric: true, value: value.value };
+    return { type,is_numeric: type.isNumeric(), value: value.value };
 }
 
 export function filterKeyFn(slot : FilterSlot|DomainIndependentFilterSlot) {

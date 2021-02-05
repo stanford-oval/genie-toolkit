@@ -23,9 +23,7 @@ import assert from 'assert';
 import { Ast, Type } from 'thingtalk';
 
 import * as C from '../ast_manip';
-
-// import thingpedia info
-import _tpLoader from '../load-thingpedia';
+import ThingpediaLoader from '../load-thingpedia';
 
 {
 const HERE = new Ast.Value.Location(new Ast.Location.Relative('current_location'));
@@ -33,21 +31,21 @@ const HERE = new Ast.Value.Location(new Ast.Location.Relative('current_location'
 
 // generic filters (npp)
 get_predicate_filter : C.DomainIndependentFilterSlot = {
-    'before' t1:constant_Time => C.timeGetPredicate(null, t1);
-    'after' t2:constant_Time  => C.timeGetPredicate(t2, null);
-    'between' t1:constant_Time 'and' t2:constant_Time => C.timeGetPredicate(t1, t2);
+    'before' t1:constant_Time => C.timeGetPredicate($loader, null, t1);
+    'after' t2:constant_Time  => C.timeGetPredicate($loader, t2, null);
+    'between' t1:constant_Time 'and' t2:constant_Time => C.timeGetPredicate($loader, t1, t2);
 
-    'my location is' loc:constant_Location     => C.locationGetPredicate(loc);
-    'my location is not' loc:constant_Location => C.locationGetPredicate(loc, true);
-    'i am at' loc:constant_Location            => C.locationGetPredicate(loc);
-    'i am not at' loc:constant_Location        => C.locationGetPredicate(loc, true);
+    'my location is' loc:constant_Location     => C.locationGetPredicate($loader, loc);
+    'my location is not' loc:constant_Location => C.locationGetPredicate($loader, loc, true);
+    'i am at' loc:constant_Location            => C.locationGetPredicate($loader, loc);
+    'i am not at' loc:constant_Location        => C.locationGetPredicate($loader, loc, true);
 
     proj:projection_Any ('is' | 'is exactly' | 'is equal to') x:constant_Any        => C.makeGetPredicate(proj, '==', x);
     proj:projection_Any ('is not' | 'is n\'t' | 'is different than') x:constant_Any => C.makeGetPredicate(proj, '==', x, true);
 }
 
 if_filter : C.FilterSlot|C.DomainIndependentFilterSlot = {
-    get_predicate_filter;
+    ?get_predicate get_predicate_filter;
 
     // note: we cannot apply a type constraint here because type equality would not
     // work with enums (which have incomplete type at the Ast.Value) and entities

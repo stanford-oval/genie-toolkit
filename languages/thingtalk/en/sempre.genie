@@ -22,11 +22,17 @@ import { Ast, Type } from 'thingtalk';
 
 // import the combinator library
 import * as C from '../ast_manip';
+import ThingpediaLoader from '../load-thingpedia';
 
-// import thingpedia info
-import _tpLoader from '../load-thingpedia';
-
+// Initialize the Thingpedia loader before doing anything else
+{
+$loader = new ThingpediaLoader($runtime, $ttUtils, $grammar, $locale, $options);
+}
 import '../common.genie';
+{
+await $loader.init();
+}
+
 import './constants.genie';
 
 table : Ast.Expression = thingpedia_complete_query;
@@ -111,7 +117,7 @@ filtered_table : Ast.Expression = {
     | p:out_param_Array__Any 'of' table:filtered_table ) => {
         if (p.name === 'id')
             return null;
-        return C.makeSingleFieldProjection('table', null, table, p);
+        return C.makeSingleFieldProjection($loader, 'table', null, table, p);
     };
 
     // count
@@ -164,15 +170,15 @@ filtered_table : Ast.Expression = {
 
 $root : Ast.Input = {
     t:table => {
-        const proj = C.sayProjection(t);
+        const proj = C.sayProjection($loader, t);
         if (proj)
-            return C.makeProgram(proj);
+            return C.makeProgram($loader, proj);
         return null;
     };
     t:filtered_table => {
-        const filtered = C.sayProjection(t);
+        const filtered = C.sayProjection($loader, t);
         if (filtered)
-            return C.makeProgram(filtered);
+            return C.makeProgram($loader, filtered);
         return null;
     };
 }

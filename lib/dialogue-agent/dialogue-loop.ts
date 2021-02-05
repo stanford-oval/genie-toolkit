@@ -28,16 +28,17 @@ import interpolate from 'string-interp';
 import AsyncQueue from 'consumer-queue';
 
 import { getProgramIcon } from '../utils/icons';
+import { computePrediction, computeNewState, prepareContextForPrediction } from '../utils/thingtalk';
+import type Engine from '../engine';
+
 import ValueCategory from './value-category';
 import QueueItem from './dialogue_queue';
 import UserInput, { PlatformData } from './user-input';
 import { CancellationError } from './errors';
 
 import * as Helpers from './helpers';
-import { computePrediction, computeNewState, prepareContextForPrediction } from './dialogue_state_utils';
 import DialoguePolicy from './dialogue_policy';
 import type Conversation from './conversation';
-import type Engine from '../engine';
 import TextFormatter from './card-output/text-formatter';
 import CardFormatter, { FormattedChunk } from './card-output/card-formatter';
 
@@ -84,8 +85,8 @@ export default class DialogueLoop {
         this.conversation = conversation;
         this.engine = engine;
         this._prefs = engine.platform.getSharedPreferences();
-        this._textFormatter = new TextFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas, engine._);
-        this._cardFormatter = new CardFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas, engine._);
+        this._textFormatter = new TextFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas);
+        this._cardFormatter = new CardFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas);
         this.icon = null;
         this.expecting = null;
         this.platformData = {};
@@ -98,6 +99,7 @@ export default class DialogueLoop {
             thingpedia: conversation.thingpedia,
             schemas: conversation.schemas,
             locale: conversation.locale,
+            timezone: engine.platform.timezone,
             rng: conversation.rng,
             debug : this._debug
         });

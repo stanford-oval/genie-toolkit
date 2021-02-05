@@ -25,9 +25,7 @@ import { Ast, } from 'thingtalk';
 import * as C from '../../ast_manip';
 import * as D from '../../dialogue_acts';
 import * as S from '../../state_manip';
-
-// import thingpedia info
-import _tpLoader from '../../load-thingpedia';
+import ThingpediaLoader from '../../load-thingpedia';
 
 coref_action_phrase : Ast.Invocation = {
     ( action:action_coref_context
@@ -35,7 +33,7 @@ coref_action_phrase : Ast.Invocation = {
     ) => {
         if (!(action.expression instanceof Ast.InvocationExpression))
             return null;
-        if (action.slot !== null || !_tpLoader.isIDType(action.type)) // TODO: non-id parameter passing
+        if (action.slot !== null || !$loader.isIDType(action.type)) // TODO: non-id parameter passing
             return null;
         return C.replacePlaceholderWithUndefined(action.expression.invocation, action.pname!);
     };
@@ -47,7 +45,7 @@ list_coref_action_phrase : Ast.Invocation = {
     ) => {
         if (!(action.expression instanceof Ast.InvocationExpression))
             return null;
-        if (action.slot !== null || !_tpLoader.isIDType(action.type)) // TODO: non-id parameter passing
+        if (action.slot !== null || !$loader.isIDType(action.type)) // TODO: non-id parameter passing
             return null;
         return C.replacePlaceholderWithUndefined(action.expression.invocation, action.pname!);
     };
