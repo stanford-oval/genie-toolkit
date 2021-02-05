@@ -496,9 +496,9 @@ export class Describer {
     }
 
     describeFilter(expr : Ast.BooleanExpression,
-                         schema : Ast.FunctionDef|null = null,
-                         scope : ScopeMap = {},
-                         canonical_overwrite : ScopeMap = {}) : string {
+                   schema : Ast.FunctionDef|null = null,
+                   scope : ScopeMap = {},
+                   canonical_overwrite : ScopeMap = {}) : string {
         const recursiveHelper = (expr : Ast.BooleanExpression) : string => {
             if (expr.isTrue || (expr instanceof Ast.AndBooleanExpression && expr.operands.length === 0))
                 return this._("true");
