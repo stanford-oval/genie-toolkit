@@ -331,6 +331,8 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
                 const location = await this._tryGetCurrentLocation();
                 if (location)
                     value = new Ast.Value.Location(location);
+                else
+                    value = this._tryGetStoredVariable(Type.Location, variable);
                 break;
             }
             case '$context.location.home':
@@ -347,7 +349,6 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         if (value !== null)
             return value;
 
-        let saveToContext = false;
         let question, type;
         switch (variable) {
         case '$context.location.current_location':
@@ -357,22 +358,18 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         case '$context.location.home':
             question = this._("What is your home address?");
             type = ValueCategory.Location as const;
-            saveToContext = true;
             break;
         case '$context.location.work':
             question = this._("What is your work address?");
             type = ValueCategory.Location as const;
-            saveToContext = true;
             break;
         case '$context.time.morning':
             question = this._("What time does your morning begin?");
             type = ValueCategory.Time as const;
-            saveToContext = true;
             break;
         case '$context.time.evening':
             question = this._("What time does your evening begin?");
             type = ValueCategory.Time as const;
-            saveToContext = true;
             break;
         }
 
@@ -386,10 +383,8 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
                 answer = await this.lookupLocation(answer.value.name, []);
         }
 
-        if (saveToContext) {
-            const sharedPrefs = this._platform.getSharedPreferences();
-            sharedPrefs.set('context-' + variable, answer.toJS());
-        }
+        const sharedPrefs = this._platform.getSharedPreferences();
+        sharedPrefs.set('context-' + variable, answer.toJS());
         return answer;
     }
 

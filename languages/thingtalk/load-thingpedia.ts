@@ -834,15 +834,15 @@ export default class ThingpediaLoader {
             return;
         }
 
-        // ignore builtin actions:
-        // debug_log is not interesting, say is special and we handle differently, configure/discover are not
-        // composable
+        // ignore certain builtin actions:
+        // debug_log is not interesting, say is special and we handle differently
+        // faq_reply is not composable
         if (ex.value instanceof Ast.InvocationExpression && ex.value.invocation.selector.kind === 'org.thingpedia.builtin.thingengine.builtin') {
             if (this._options.flags.turking && ex.type === 'action')
                 return;
             if (!this._options.flags.configure_actions && (ex.value.invocation.channel === 'configure' || ex.value.invocation.channel === 'discover'))
                 return;
-            if (ex.value.invocation.channel === 'say')
+            if (['say', 'debug_log', 'faq_reply'].includes(ex.value.invocation.channel))
                 return;
         }
         if (ex.value instanceof Ast.FunctionCallExpression) // timers
