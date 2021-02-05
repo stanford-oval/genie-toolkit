@@ -159,7 +159,7 @@ function makeDummyEntity(token : string) : AnyEntity {
 function makeDummyEntities(preprocessed : string) : EntityMap {
     const entities : EntityMap = {};
     for (const token of preprocessed.split(' ')) {
-        if (/^[A-Z]/.test(token))
+        if (ENTITY_MATCH_REGEX.test(token))
             entities[token] = makeDummyEntity(token);
     }
     return entities;

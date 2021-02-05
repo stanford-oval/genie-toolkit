@@ -41,8 +41,10 @@ result_name_pair : D.NameList = {
 
         const r1 = results[0];
         const r2 = results[1];
-        assert(r1.value.id.equals(n1));
-        assert(r2.value.id.equals(n2));
+        if (!r1.value.id.equals(n1)) // can happen if the types are different but the value is the same
+            return null;
+        if (!r2.value.id.equals(n2))
+            return null;
         return { ctx, results: results.slice(0, 2) };
     };
 }
@@ -55,8 +57,10 @@ result_name_list : D.NameList = {
 
         const r1 = results[0];
         const r2 = results[1];
-        assert(r1.value.id.equals(n1));
-        assert(r2.value.id.equals(n2));
+        if (!r1.value.id.equals(n1))
+            return null;
+        if (!r2.value.id.equals(n2))
+            return null;
         return { ctx, results: results.slice(0, 2) };
     };
 
@@ -66,7 +70,8 @@ result_name_list : D.NameList = {
         assert(results && results.length >= 3);
         assert(ctx.resultInfo!.idType !== null);
         const r3 = results[2];
-        assert(r3.value.id.equals(n3));
+        if (!r3.value.id.equals(n3))
+            return null;
         return { ctx, results: results.slice(0, 3) };
     };
 }
