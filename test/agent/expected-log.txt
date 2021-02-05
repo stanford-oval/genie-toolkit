@@ -15,7 +15,7 @@ UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.facebook.post(status="hello world");
 C: $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_action;
 C: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post(status="hello world");
-A: Ok, do you want me to post hello world on facebook?
+A: Ok, do you want me to post hello world on Facebook?
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_action;
 AT: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post(status="hello world");
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -26,7 +26,7 @@ UT: #[confirm=enum confirmed];
 C: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 C: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post(status="hello world")
 C: #[results=[]];
-A: I posted hello world on facebook.
+A: I posted hello world on Facebook.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! 👎
 # test
@@ -44,7 +44,7 @@ UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post(status="hello world");
 C: $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_action;
 C: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post(status="hello world");
-A: Ok, do you want me to post hello world on facebook?
+A: Ok, do you want me to post hello world on Facebook?
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_action;
 AT: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post(status="hello world");
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -55,7 +55,7 @@ UT: #[confirm=enum confirmed];
 C: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 C: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post(status="hello world")
 C: #[results=[]];
-A: I posted hello world on facebook.
+A: I posted hello world on Facebook.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 U: \t $dialogue @org.thingpedia.dialogue.transaction.end;
 UT: $dialogue @org.thingpedia.dialogue.transaction.end;
@@ -229,7 +229,7 @@ C: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471
 C: #[results=[
 C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, wind_speed=3.4mps, humidity=91.3, cloudiness=4.7, fog=0, status=enum sunny, icon="http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"^^tt:picture }
 C: ]];
-A: It is sunny today in Palo Alto, California and the temperature is 15.6 C.
+A: The current weather in Palo Alto, California is sunny. The temperature is 15.6 C and the humidity is 91.3 %.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! 👎
 # test
@@ -267,7 +267,7 @@ C: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471
 C: #[results=[
 C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, wind_speed=3.4mps, humidity=91.3, cloudiness=4.7, fog=0, status=enum sunny, icon="http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"^^tt:picture }
 C: ]];
-A: It is sunny today in Palo Alto, California and the temperature is 15.6 C.
+A: The current weather in Palo Alto, California is sunny. The temperature is 15.6 C and the humidity is 91.3 %.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (@com.spotify.song(), id =~ ("despacito"))[1] => @com.spotify.play_song(song=id);
@@ -314,7 +314,7 @@ C:   { song="spotify:track:6KJqZcs9XDgVck7Lg9QOTC"^^com.spotify:song("seven"), d
 C:   { song="spotify:track:7kt9e9LFSpN1zQtYEl19o1"^^com.spotify:song("this is me trying"), device="str:ENTITY_com.spotify:device::40:"^^com.spotify:device }
 C: ]]
 C: #[count=22];
-A: Your request was completed successfully.
+A: I played songs in the album folklore on Spotify for you.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! 👎
 # test
@@ -683,7 +683,7 @@ C: $dialogue @org.thingpedia.dialogue.transaction.sys_action_error;
 C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(song="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:song("Hello"))
 C: #[results=[]]
 C: #[error=enum no_active_device];
-A: Sorry, no Spotify player is active.
+A: Sorry, you must open the Spotify app first.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_error;
 #! 👎
 # test
@@ -804,7 +804,7 @@ C: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471
 C: #[results=[
 C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, wind_speed=3.4mps, humidity=91.3, cloudiness=4.7, fog=0, status=enum sunny, icon="http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"^^tt:picture }
 C: ]];
-A: It is sunny today in Palo Alto, California and the temperature is 15.6 C.
+A: The current weather in Palo Alto, California is sunny. The temperature is 15.6 C and the humidity is 91.3 %.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (@com.spotify.song(), id =~ "Nice For What") => notify;
@@ -911,24 +911,24 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.xkcd.comic();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.xkcd.comic();
-C: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
+C: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 C: @com.xkcd(id="com.xkcd-10"^^tt:device_id("Some Device 10")).comic()
 C: #[results=[
-C:   { id="str:ENTITY_com.xkcd:comic::0:"^^com.xkcd:comic, release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::9:"^^tt:picture, link="str:ENTITY_tt:url::37:"^^tt:url, alt_text="Some Device 10" },
-C:   { id="str:ENTITY_com.xkcd:comic::1:"^^com.xkcd:comic, release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::40:"^^tt:picture, link="str:ENTITY_tt:url::31:"^^tt:url, alt_text="str:QUOTED_STRING::23:" },
-C:   { id="str:ENTITY_com.xkcd:comic::2:"^^com.xkcd:comic, release_date=new Date("2019-06-09T07:00:00.000Z"), picture_url="str:ENTITY_tt:picture::47:"^^tt:picture, link="str:ENTITY_tt:url::39:"^^tt:url, alt_text="Some Device 10" },
-C:   { id="str:ENTITY_com.xkcd:comic::3:"^^com.xkcd:comic, release_date=new Date("2018-02-24T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::33:"^^tt:picture, link="str:ENTITY_tt:url::22:"^^tt:url, alt_text="str:QUOTED_STRING::49:" },
-C:   { id="str:ENTITY_com.xkcd:comic::4:"^^com.xkcd:comic, release_date=new Date("2018-03-18T07:00:00.000Z"), picture_url="str:ENTITY_tt:picture::21:"^^tt:picture, link="str:ENTITY_tt:url::7:"^^tt:url, alt_text="str:QUOTED_STRING::9:" },
-C:   { id="str:ENTITY_com.xkcd:comic::5:"^^com.xkcd:comic, release_date=new Date("2020-08-09T07:00:00.000Z"), picture_url="str:ENTITY_tt:picture::19:"^^tt:picture, link="str:ENTITY_tt:url::11:"^^tt:url, alt_text="str:QUOTED_STRING::19:" },
-C:   { id="str:ENTITY_com.xkcd:comic::6:"^^com.xkcd:comic, release_date=new Date("2018-05-20T07:00:00.000Z"), picture_url="str:ENTITY_tt:picture::8:"^^tt:picture, link="str:ENTITY_tt:url::12:"^^tt:url, alt_text="Some Device 10" },
-C:   { id="str:ENTITY_com.xkcd:comic::7:"^^com.xkcd:comic, release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::12:"^^tt:picture, link="str:ENTITY_tt:url::4:"^^tt:url, alt_text="Some Device 10" },
-C:   { id="str:ENTITY_com.xkcd:comic::8:"^^com.xkcd:comic, release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::35:"^^tt:picture, link="str:ENTITY_tt:url::33:"^^tt:url, alt_text="Some Device 10" },
-C:   { id="str:ENTITY_com.xkcd:comic::9:"^^com.xkcd:comic, release_date=new Date("2019-07-27T07:00:00.000Z"), picture_url="str:ENTITY_tt:picture::5:"^^tt:picture, link="str:ENTITY_tt:url::8:"^^tt:url, alt_text="str:QUOTED_STRING::28:" }
+C:   { id=20, title="Some Device 10", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::14:"^^tt:picture, link="str:ENTITY_tt:url::1:"^^tt:url, alt_text="Some Device 10" },
+C:   { id=451, title="str:QUOTED_STRING::49:", release_date=new Date("2020-03-20T07:00:00.000Z"), picture_url="str:ENTITY_tt:picture::41:"^^tt:picture, link="str:ENTITY_tt:url::28:"^^tt:url, alt_text="str:QUOTED_STRING::4:" },
+C:   { id=20, title="Some Device 10", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::27:"^^tt:picture, link="str:ENTITY_tt:url::14:"^^tt:url, alt_text="str:QUOTED_STRING::4:" },
+C:   { id=20, title="Some Device 10", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::47:"^^tt:picture, link="str:ENTITY_tt:url::19:"^^tt:url, alt_text="str:QUOTED_STRING::38:" },
+C:   { id=20, title="str:QUOTED_STRING::6:", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::3:"^^tt:picture, link="str:ENTITY_tt:url::4:"^^tt:url, alt_text="Some Device 10" },
+C:   { id=20, title="Some Device 10", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::46:"^^tt:picture, link="str:ENTITY_tt:url::35:"^^tt:url, alt_text="Some Device 10" },
+C:   { id=20, title="str:QUOTED_STRING::28:", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::33:"^^tt:picture, link="str:ENTITY_tt:url::28:"^^tt:url, alt_text="str:QUOTED_STRING::44:" },
+C:   { id=837, title="str:QUOTED_STRING::29:", release_date=new Date("2020-01-23T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::7:"^^tt:picture, link="str:ENTITY_tt:url::4:"^^tt:url, alt_text="str:QUOTED_STRING::40:" },
+C:   { id=481, title="Some Device 10", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::12:"^^tt:picture, link="str:ENTITY_tt:url::20:"^^tt:url, alt_text="Some Device 10" },
+C:   { id=638, title="Some Device 10", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::40:"^^tt:picture, link="str:ENTITY_tt:url::35:"^^tt:url, alt_text="str:QUOTED_STRING::3:" }
 C: ]]
 C: #[count=50]
 C: #[more=true];
-A: I have str:ENTITY_com.xkcd:comic::0: and str:ENTITY_com.xkcd:comic::1:. They're xkcds comic having release date 1/20/2018.
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
+A: I found xkcd 20. It is an xkcd comic from 1/20/2018 titled Some Device 10.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! 👍
 # test
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -938,10 +938,30 @@ UT: sort(release_date desc of @com.xkcd.comic())[1];
 C: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 C: sort(release_date desc of @com.xkcd(id="com.xkcd-10"^^tt:device_id("Some Device 10")).comic())[1]
 C: #[results=[
-C:   { id="str:ENTITY_com.xkcd:comic::29:"^^com.xkcd:comic, release_date=new Date("2020-08-28T07:00:00.000Z"), picture_url="str:ENTITY_tt:picture::3:"^^tt:picture, link="str:ENTITY_tt:url::45:"^^tt:url, alt_text="str:QUOTED_STRING::13:" }
+C:   { id=371, title="str:QUOTED_STRING::3:", release_date=new Date("2020-08-31T07:00:00.000Z"), picture_url="str:ENTITY_tt:picture::26:"^^tt:picture, link="str:ENTITY_tt:url::39:"^^tt:url, alt_text="str:QUOTED_STRING::6:" }
 C: ]];
-A: The latest xkcd comic is str:ENTITY_com.xkcd:comic::29:. It is an xkcd comic having release date 8/28/2020 and alt text str:QUOTED_STRING::13:.
+A: The latest xkcd comic is 371. It is an xkcd comic from 8/31/2020 titled str:QUOTED_STRING::3:.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.xkcd.comic() => @com.twitter.post(status=title);
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.xkcd.comic() => @com.twitter.post(status=title);
+C: $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_action;
+C: @com.xkcd(id="com.xkcd-10"^^tt:device_id("Some Device 10")).comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title);
+A: Ok, do you want me to get xkcd comic and then tweet the title?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_action;
+AT: @com.xkcd(id="com.xkcd-10"^^tt:device_id("Some Device 10")).comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title);
+U: \t $yes;
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.xkcd(id="com.xkcd-10"^^tt:device_id("Some Device 10")).comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title)
+UT: #[confirm=enum confirmed];
+C: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+C: @com.xkcd(id="com.xkcd-10"^^tt:device_id("Some Device 10")).comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title)
+C: #[results=[]];
+A: Your request was completed successfully.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! 👎
+# test
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_identity);
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -953,5 +973,5 @@ C:   { question=enum about_almond_identity, reply="str:QUOTED_STRING::42:" }
 C: ]];
 A: Str:QUOTED_STRING::42:.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
-#! 👎
+#! 👍
 # test
