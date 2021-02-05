@@ -101,13 +101,13 @@ class SimulatorStream extends Stream.Transform {
     private _dialoguePolicy : DialoguePolicy;
     private _parser : ParserClient.ParserClient | null;
     private _tpClient : Tp.BaseClient;
-    private _outputMistakesOnly: boolean;
-    private _locale: string;
+    private _outputMistakesOnly : boolean;
+    private _locale : string;
 
     constructor(policy : DialoguePolicy,
                 simulator : ThingTalkUtils.Simulator,
                 schemas : ThingTalk.SchemaRetriever,
-                parser: ParserClient.ParserClient | null,
+                parser : ParserClient.ParserClient | null,
                 tpClient : Tp.BaseClient,
                 outputMistakesOnly : boolean,
                 locale : string) {
@@ -123,7 +123,7 @@ class SimulatorStream extends Stream.Transform {
     }
 
     async _run(dlg : ParsedDialogue) : Promise<void> {
-        console.log('dialogue = ', dlg.id)
+        console.log('dialogue = ', dlg.id);
         const lastTurn = dlg[dlg.length-1];
 
         let state = null;
@@ -176,7 +176,7 @@ class SimulatorStream extends Stream.Transform {
                 // don't push anything
                 return;
             }
-            dlg[dlg.length-1].user_target = normalizedUserTarget
+            dlg[dlg.length-1].user_target = normalizedUserTarget;
             
         } else {
             userTarget = goldUserTarget;
@@ -199,7 +199,7 @@ class SimulatorStream extends Stream.Transform {
         let policyResult;
         try {
             policyResult = await this._dialoguePolicy.chooseAction(state);
-        } catch (error) {
+        } catch(error) {
             console.log(`Error while choosing action: ${error.message}. skipping.`);
             return;
         }
@@ -234,7 +234,7 @@ class DialogueToPartialDialoguesStream extends Stream.Transform {
         super({ objectMode : true });
     }
 
-    private _copyDialogueTurns(turns : Array<DialogueTurn>) : Array<DialogueTurn> {
+    private _copyDialogueTurns(turns : DialogueTurn[]) : DialogueTurn[] {
         const copy : DialogueTurn[] = [];
         for (let i = 0; i < turns.length; i++) {
             copy.push({
@@ -244,7 +244,7 @@ class DialogueToPartialDialoguesStream extends Stream.Transform {
                 intermediate_context : turns[i].intermediate_context,
                 user : turns[i].user,
                 user_target : turns[i].user_target
-            })
+            });
         }
         return copy;
     }
@@ -252,7 +252,7 @@ class DialogueToPartialDialoguesStream extends Stream.Transform {
     async _run(dlg : ParsedDialogue) : Promise<void> {
         for (let i = 1; i < dlg.length + 1; i++) {
             // do a deep copy so that later streams can modify these dialogues
-            let output = this._copyDialogueTurns(dlg.slice(0, i));
+            const output = this._copyDialogueTurns(dlg.slice(0, i));
             (output as ParsedDialogue).id = dlg.id + '-turn_' + i;
             this.push(output);
         }
