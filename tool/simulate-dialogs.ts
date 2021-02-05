@@ -82,10 +82,16 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: `The URL of the natural language server to parse user utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.
                If provided, will be used to parse the last user utterance instead of reading the parse from input_file.`
     });
-    parser.add_argument('--output_mistakes_only', {
+    parser.add_argument('--output-mistakes-only', {
         action: 'store_true',
         help: 'If set and --nlu-server is provided, will only output partial dialogues where a parsing mistake happens.',
-        default: true
+        default: false
+    });
+    parser.add_argument('--all-turns', {
+        action: 'store_true',
+        help: `If set, will run simulation on all dialogue turns as opposed to only the last turn (but still for one turn only).
+        The output will have as many partial dialogues as there are dialogue turns in the input.`,
+        default: false
     });
 }
 
@@ -117,7 +123,7 @@ class SimulatorStream extends Stream.Transform {
     }
 
     async _run(dlg : ParsedDialogue) : Promise<void> {
-        // console.log('dialogue = ', dlg)
+        console.log('dialogue = ', dlg.id)
         const lastTurn = dlg[dlg.length-1];
 
         let state = null;
@@ -128,7 +134,7 @@ class SimulatorStream extends Stream.Transform {
             const agentTarget = await ThingTalkUtils.parse(lastTurn.agent_target!, this._schemas);
             assert(agentTarget instanceof ThingTalk.Ast.DialogueState);
             state = ThingTalkUtils.computeNewState(context, agentTarget, 'agent');
-            [contextCode, contextEntities] = ThingTalkUtils.serializeNormalized(ThingTalkUtils.prepareContextForPrediction(context, 'user'));
+            [contextCode, contextEntities] = ThingTalkUtils.serializeNormalized(ThingTalkUtils.prepareContextForPrediction(state, 'user'));
         } else {
             contextCode = ['null'];
             contextEntities = {};
@@ -190,15 +196,23 @@ class SimulatorStream extends Stream.Transform {
             user_target: ''
         };
 
-        const policyResult = await this._dialoguePolicy.chooseAction(state);
-        if (!policyResult)
-            throw new Error(`Dialogue policy error: no reply for dialogue ${dlg.id}`);
+        let policyResult;
+        try {
+            policyResult = await this._dialoguePolicy.chooseAction(state);
+        } catch (error) {
+            console.log(`Error while choosing action: ${error.message}. skipping.`);
+            return;
+        }
+        if (!policyResult) {
+            // throw new Error(`Dialogue policy error: no reply for dialogue ${dlg.id}`);
+            console.log(`Dialogue policy error: no reply for dialogue ${dlg.id}. skipping.`);
+            return;
+        }
         const [dialogueStateAfterAgent, , utterance] = policyResult;
 
         const prediction = ThingTalkUtils.computePrediction(state, dialogueStateAfterAgent, 'agent');
         newTurn.agent = utterance;
         newTurn.agent_target = prediction.prettyprint();
-
         this.push({
             id: dlg.id,
             turns: dlg.concat([newTurn])
@@ -220,8 +234,8 @@ class DialogueToPartialDialoguesStream extends Stream.Transform {
         super({ objectMode : true });
     }
 
-    private copyDialogueTurns(turns : Array<DialogueTurn>) : Array<DialogueTurn> {
-        const copy = new Array<DialogueTurn>();
+    private _copyDialogueTurns(turns : Array<DialogueTurn>) : Array<DialogueTurn> {
+        const copy : DialogueTurn[] = [];
         for (let i = 0; i < turns.length; i++) {
             copy.push({
                 context : turns[i].context,
@@ -238,7 +252,7 @@ class DialogueToPartialDialoguesStream extends Stream.Transform {
     async _run(dlg : ParsedDialogue) : Promise<void> {
         for (let i = 1; i < dlg.length + 1; i++) {
             // do a deep copy so that later streams can modify these dialogues
-            let output = this.copyDialogueTurns(dlg.slice(0, i));
+            let output = this._copyDialogueTurns(dlg.slice(0, i));
             (output as ParsedDialogue).id = dlg.id + '-turn_' + i;
             this.push(output);
         }
@@ -284,16 +298,26 @@ export async function execute(args : any) {
         await parser.start();
     }
 
-    await StreamUtils.waitFinish(
-        readAllLines(args.input_file, '====')
-        .pipe(new DialogueParser())
-        .pipe(new DialogueToPartialDialoguesStream())
-        .pipe(new SimulatorStream(policy, simulator, schemas, parser, tpClient, args.output_mistakes_only, args.locale))
-        .pipe(new DialogueSerializer())
-        .pipe(args.output)
-    );
-
-    if (parser !== null) {
-        await parser.stop();
+    if (args.all_turns) {
+        await StreamUtils.waitFinish(
+            readAllLines(args.input_file, '====')
+            .pipe(new DialogueParser())
+            .pipe(new DialogueToPartialDialoguesStream()) // convert each dialogues to many partial dialogues
+            .pipe(new SimulatorStream(policy, simulator, schemas, parser, tpClient, args.output_mistakes_only, args.locale))
+            .pipe(new DialogueSerializer())
+            .pipe(args.output)
+        );
+    } else {
+        await StreamUtils.waitFinish(
+            readAllLines(args.input_file, '====')
+            .pipe(new DialogueParser())
+            .pipe(new SimulatorStream(policy, simulator, schemas, parser, tpClient, args.output_mistakes_only, args.locale))
+            .pipe(new DialogueSerializer())
+            .pipe(args.output)
+        );
     }
+
+
+    if (parser !== null)
+        await parser.stop();
 }
