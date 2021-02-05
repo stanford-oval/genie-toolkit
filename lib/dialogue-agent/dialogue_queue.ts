@@ -18,7 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import type UserInputIntent from './user-input';
+import type { UserInput as Command } from './user-input';
 
 class QueueItem {
 }
@@ -27,13 +27,12 @@ type JSError = Error;
 
 namespace QueueItem {
     export class UserInput extends QueueItem {
-        constructor(public intent : UserInputIntent,
-                    public confident : boolean) {
+        constructor(public command : Command) {
             super();
         }
 
         toString() {
-            return `UserInput(${this.intent})`;
+            return `UserInput(${this.command})`;
         }
     }
 
