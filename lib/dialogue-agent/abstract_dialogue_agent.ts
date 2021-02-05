@@ -421,7 +421,8 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * @param {string} name - the name to look up
      * @returns {thingtalk.Ast.Value.Entity} - the entity corresponding to the picked up information
      */
-    async askMissingContact(category : ValueCategory, name : string) : Promise<Ast.EntityValue> {
+    async askMissingContact(category : ValueCategory.EmailAddress|ValueCategory.PhoneNumber|ValueCategory.Contact,
+                            name : string) : Promise<Ast.EntityValue> {
         throw new TypeError('Abstract method');
     }
 

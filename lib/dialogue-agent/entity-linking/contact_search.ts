@@ -172,13 +172,13 @@ export async function contactSearch(dlg : AbstractDialogueAgent<unknown>, type :
     let category;
     switch (type) {
         case 'tt:phone_number':
-            category = ValueCategory.PhoneNumber;
+            category = ValueCategory.PhoneNumber as const;
             break;
         case 'tt:email_address':
-            category = ValueCategory.EmailAddress;
+            category = ValueCategory.EmailAddress as const;
             break;
         case 'tt:contact':
-            category = ValueCategory.Contact;
+            category = ValueCategory.Contact as const;
             break;
         default:
             throw new TypeError('Invalid contact type ' + type);
