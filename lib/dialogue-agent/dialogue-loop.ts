@@ -482,13 +482,13 @@ export default class DialogueLoop {
         throw new CancellationError();
     }
 
-    setExpected(expected : ValueCategory|null) {
+    setExpected(expected : ValueCategory|null, raw = (expected === ValueCategory.RawString || expected === ValueCategory.Password)) {
         if (expected === undefined)
             throw new TypeError();
         this.expecting = expected;
         const context = prepareContextForPrediction(this._dialogueState, 'user');
         this.conversation.setContext(context);
-        this.conversation.expect(expected);
+        this.conversation.setExpected(expected, raw);
     }
 
     /**
@@ -496,11 +496,14 @@ export default class DialogueLoop {
      *
      * This is a legacy method used for certain scripted interactions.
      */
-    async ask(expected : ValueCategory,
+    async ask(expected : ValueCategory.PhoneNumber|ValueCategory.EmailAddress|ValueCategory.Location|ValueCategory.Time,
               question : string,
               args ?: Record<string, unknown>) : Promise<ThingTalk.Ast.Value> {
         await this.replyInterp(question, args);
-        await this.setExpected(expected);
+        // force the question to occur in raw mode for locations
+        // because otherwise we send it to the parser and the parser will
+        // likely misbehave as it's a state that we've never seen in training
+        await this.setExpected(expected, expected === ValueCategory.Location);
         let intent = await this.nextIntent();
         while (!(intent instanceof UserInput.Answer) || intent.category !== expected) {
             if (intent instanceof UserInput.UICommand)

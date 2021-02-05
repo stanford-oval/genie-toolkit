@@ -229,10 +229,10 @@ export default class Conversation extends events.EventEmitter {
         return this._loop.dispatchNotifyError(appId, icon, error);
     }
 
-    expect(expecting : ValueCategory|null) : void {
+    setExpected(expecting : ValueCategory|null, raw : boolean) : void {
         this._expecting = expecting;
         this._choices = [];
-        this._raw = (expecting === ValueCategory.RawString || expecting === ValueCategory.Password);
+        this._raw = raw;
     }
 
     async start() : Promise<void> {
@@ -434,7 +434,12 @@ export default class Conversation extends events.EventEmitter {
 
         return this._errorWrap(async () => {
             if (this._raw && command !== null) {
-                const intent = new UserInput.Answer(new ThingTalk.Ast.Value.String(command), platformData);
+                let value;
+                if (this._expecting === ValueCategory.Location)
+                    value = new ThingTalk.Ast.LocationValue(new ThingTalk.Ast.UnresolvedLocation(command));
+                else
+                    value = new ThingTalk.Ast.Value.String(command);
+                const intent = new UserInput.Answer(value, platformData);
                 return this._doHandleCommand(intent, null, [], true);
             }
 
