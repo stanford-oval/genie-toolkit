@@ -61,7 +61,7 @@ export interface ConversationOptions {
     contextResetTimeout ?: number;
     showWelcome ?: boolean;
     deleteWhenInactive ?: boolean;
-    testMode ?: boolean;
+    log ?: boolean;
 }
 
 interface Statistics {
@@ -224,16 +224,16 @@ export default class Conversation extends events.EventEmitter {
         return this._history;
     }
 
-    get inTestMode() : boolean {
-        return !!this._options.testMode;
+    get inRecordingMode() : boolean {
+        return !!this._options.log;
     }
 
-    enterTestMode() {
-        this._options.testMode = true;
+    startRecording() {
+        this._options.log = true;
     }
 
-    exitTestMode() {
-        this._options.testMode = false;
+    endRecording() {
+        this._options.log = false;
     }
 
     notify(appId : string, icon : string|null, outputType : string, outputValue : Record<string, unknown>) {

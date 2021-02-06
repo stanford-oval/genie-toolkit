@@ -285,7 +285,7 @@ export default class DialogueLoop {
     }
 
     private _updateLog() {
-        if (this.conversation.inTestMode) {
+        if (this.conversation.inRecordingMode) {
             this.conversation.appendLog(this._currentTurn);
             this._currentTurn = {
                 context: null,

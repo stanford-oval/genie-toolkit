@@ -270,7 +270,7 @@ async function main(onlyIds) {
         anonymous: false,
         rng: rng,
     });
-    conversation.enterTestMode();
+    conversation.startRecording();
     testRunner.conversation = conversation;
     await mockNLU(conversation);
     await conversation.addOutput(delegate);
@@ -296,7 +296,7 @@ Hi, how can I help you?
     }
 
     await conversation.saveLog();
-    conversation.exitTestMode();
+    conversation.endRecording();
 
     const log = conversation.loadLog();
     const expectedLog = fs.readFileSync(path.resolve(__dirname, './expected-log.txt')).toString();
