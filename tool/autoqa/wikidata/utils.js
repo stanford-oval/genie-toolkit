@@ -18,9 +18,22 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 
+import * as fs from 'fs';
+import util from 'util';
+import assert from 'assert';
 import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
+import { cleanEnumValue, snakecase } from '../lib/utils';
+
+import {
+    PROPERTY_TYPE_OVERRIDE,
+    PROPERTY_FORCE_ARRAY,
+    PROPERTY_FORCE_NOT_ARRAY,
+    PROPERTY_TYPE_SAME_AS_SUBJECT
+} from './manual-annotations';
 
 const URL = 'https://query.wikidata.org/sparql';
+const Type = ThingTalk.Type;
 
 const WikidataUnitToTTUnit = {
     // time
@@ -342,6 +355,156 @@ async function getEquivalent(id) {
     return result.map((r) => r.class.value.slice('http://www.wikidata.org/entity/'.length));
 }
 
+async function getType(domainLabel, property, propertyLabel, schemaorgProperties) {
+    if (property in PROPERTY_TYPE_OVERRIDE)
+        return PROPERTY_TYPE_OVERRIDE[property];
+
+    const elemType = await getElemType(domainLabel, property, propertyLabel, schemaorgProperties);
+    if (elemType) {
+        if (PROPERTY_FORCE_ARRAY.has(property))
+            return new Type.Array(elemType);
+        if (PROPERTY_FORCE_NOT_ARRAY.has(property))
+            return elemType;
+
+        if (elemType.isEntity && elemType.type === 'tt:picture')
+            return new Type.Array(elemType);
+
+        return elemType;
+    }
+    return Type.String;
+}
+
+async function getElemType(domainLabel, property, propertyLabel, schemaorgProperties) {
+    if (PROPERTY_TYPE_SAME_AS_SUBJECT.has(property))
+        return new Type.Entity(`org.wikidata:${snakecase(domainLabel)}`);
+
+    const enumEntries = await getOneOfConstraint(property);
+    if (enumEntries.length > 0)
+        return new Type.Enum(enumEntries.map(cleanEnumValue));
+
+    const classes = await getClasses(property); // Replace
+    if (classes.includes('Q18636219')) // Wikidata property with datatype 'time'
+        return Type.Date;
+    if (classes.includes('Q18616084')) // Wikidata property to indicate a language
+        return new Type.Entity('tt:iso_lang_code');
+
+    if (propertyLabel.startsWith('date of'))
+        return Type.Date;
+
+    const units = await getAllowedUnits(property);
+    if (units.length > 0) {
+        if (units.includes('kilogram'))
+            return new Type.Measure('kg');
+        if (units.includes('metre') ||  units.includes('kilometre'))
+            return new Type.Measure('m');
+        if (units.includes('second') || units.includes('year'))
+            return new Type.Measure('ms');
+        if (units.includes('degree Celsius'))
+            return new Type.Measure('C');
+        if (units.includes('metre per second') || units.includes('kilometre per second'))
+            return new Type.Measure('mps');
+        if (units.includes('square metre'))
+            return new Type.Measure('m2');
+        if (units.includes('cubic metre'))
+            return new Type.Measure('m3');
+        if (units.includes('percent'))
+            return Type.Number;
+        if (units.includes('United States dollar'))
+            return Type.Currency;
+        if (units.includes('years old'))
+            return Type.Number; // To-do
+        if (units.includes('gram per cubic metre'))
+            return Type.Number; // To-do
+        console.error(`Unknown measurement type with unit ${units.join(', ')} for ${property}`);
+        return Type.Number;
+    }
+
+    const range = await getRangeConstraint(property);
+    if (range)
+        return Type.Number;
+
+    if (propertyLabel.startsWith('manner of') || 
+        propertyLabel.startsWith('cause of') || 
+        propertyLabel.startsWith('named after'))
+        return Type.String;
+
+    if (propertyLabel.startsWith('member of') || propertyLabel.startsWith('part of'))
+        return new Type.Entity(`org.wikidata:organization`);
+
+    const subpropertyOf = await wikidataQuery(`SELECT ?value WHERE { wd:${property} wdt:P1647 ?value. } `);
+    if (subpropertyOf.some((property) => property.value.value === 'http://www.wikidata.org/entity/P18'))
+        return new Type.Entity('tt:picture');
+    if (subpropertyOf.some((property) => property.value.value === 'http://www.wikidata.org/entity/P2699'))
+        return new Type.Entity('tt:url');
+    if (subpropertyOf.some((property) => property.value.value === 'http://www.wikidata.org/entity/P276'))
+        return Type.Location;
+
+    const types = await getValueTypeConstraint(property);
+    if (types.length > 0) {
+        // human type: Q5: human, Q215627: person
+        if (types.some((type) => type.label === 'human' || type.label === 'person'))
+            return new Type.Entity(`org.wikidata:human`);
+
+        // location type: Q618123: geographic object, Q2221906: geographic location
+        if (types.some((type) => type.label === 'geographical object' || type.label === 'geographical location'))
+            return Type.Location;
+    }
+
+    // load equivalent schema.org type if available
+    const schemaorgEquivalent = await getSchemaorgEquivalent(property);
+    if (schemaorgEquivalent && schemaorgProperties && schemaorgEquivalent in schemaorgProperties) {
+        const schemaorgType = schemaorgProperties[schemaorgEquivalent];
+        const schemaorgElemType = schemaorgType.isArray ? schemaorgType.elem : schemaorgType;
+        if (schemaorgElemType.isEntity && schemaorgElemType.type.startsWith('org.schema')) {
+            const entityType = schemaorgElemType.type.substring(schemaorgElemType.type.lastIndexOf(':') + 1).toLowerCase();
+            return schemaorgType.isArray ?
+                new Type.Array(new Type.Entity(`org.wikidata:${entityType}`)) : new Type.Entity(`org.wikidata:${entityType}`);
+        }
+        if (!schemaorgType.isCompound)
+            return schemaorgType;
+    }
+
+    // majority or arrays of string so this may be better default.
+    return Type.String;
+}
+
+function argnameFromLabel(label) {
+    return snakecase(label)
+        .replace(/'/g, '') // remove apostrophe
+        .replace(/,/g, '') // remove comma
+        .replace(/_\/_/g, '_or_') // replace slash by or
+        .replace(/[(|)]/g, '') // replace parentheses
+        .replace(/-/g, '_') // replace -
+        .replace(/\s/g, '_') // replace whitespace
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove accent
+        .replace(/[\W]+/g, '');
+}
+
+function getElementType(type) {
+    if (type.isArray)
+        return getElementType(type.elem);
+    return type;
+}
+
+async function loadSchemaOrgManifest(schemaorgManifest, schemaorgProperties) {
+    if (schemaorgManifest) {
+        const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(schemaorgManifest, { encoding: 'utf8' }));
+        assert(library.isLibrary && library.classes.length === 1);
+        const classDef = library.classes[0];
+
+        for (let fn in classDef.queries) {
+            const fndef = classDef.queries[fn];
+            for (let argname of fndef.args) {
+                let key = argname;
+                if (argname.includes('.'))
+                    key = argname.substring(argname.lastIndexOf('.') + 1);
+                if (!(argname in schemaorgProperties))
+                    schemaorgProperties[key] = fndef.getArgType(argname);
+            }
+        }
+    }
+}
+
 export {
     unitConverter,
     wikidataQuery,
@@ -355,5 +518,9 @@ export {
     getRangeConstraint,
     getSchemaorgEquivalent,
     getClasses,
-    getEquivalent
+    getEquivalent,
+    getType,
+    getElementType,
+    loadSchemaOrgManifest,
+    argnameFromLabel
 };

@@ -7,10 +7,24 @@ manifest.tt
 constants.tsv
 data.json
 entities.json
+common-words.txt
 parameter-datasets
 parameter-datasets.tsv
+filtered_property_wikidata4.json
+shared-parameter-datasets.tsv
+shared-parameter-datasets
 
-shared-parameter-datasets/
 datadir/
 models/
+raw/
 
+country/
+city/
+star/
+university/
+company/
+people/
+artist/
+athlete/
+sports_team/
+tv_series/

@@ -57,14 +57,12 @@ do_test([
     ('./test_exact_matcher'),
     ('./test_helpers'),
     ('./test_i18n_chinese'),
-    ('./test_infix_to_postfix'),
     ('./test_ip_address'),
     ('./test_linked_list'),
     ('./test_misc'),
     ('./test_new_tokenizer_en'),
     ('./test_new_tokenizer_it'),
     ('./test_new_tokenizer_zh'),
-    ('./test_pos_nfa'),
     ('./test_priority_queue'),
     ('./test_random'),
     ('./test_requoting'),
@@ -78,4 +76,7 @@ do_test([
     ('./test_timers'),
     ('./test_trie'),
     ('./test_wikidata_utils'),
+    ('./test_csqa_converter.js'),
+    ('./test_infix_to_postfix'),
+    ('./test_pos_nfa')
 ]);

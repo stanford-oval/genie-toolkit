@@ -21,50 +21,27 @@
 import * as fs from 'fs';
 import util from 'util';
 import assert from 'assert';
-import * as ThingTalk from 'thingtalk';
 import { Ast, Type } from 'thingtalk';
 
 import * as StreamUtils from '../../../lib/utils/stream-utils';
 import genBaseCanonical from '../lib/base-canonical-generator';
 import { clean } from '../../../lib/utils/misc-utils';
-import { cleanEnumValue, snakecase, titleCase, DEFAULT_ENTITIES } from '../lib/utils';
+import { snakecase, titleCase, DEFAULT_ENTITIES } from '../lib/utils';
 
 import {
-    wikidataQuery,
     getPropertyList,
     getItemLabel,
     getPropertyLabel,
     getPropertyAltLabels,
-    getValueTypeConstraint,
-    getOneOfConstraint,
-    getAllowedUnits,
-    getRangeConstraint,
-    getSchemaorgEquivalent,
-    getClasses
+    getType,
+    getElementType,
+    argnameFromLabel,
+    loadSchemaOrgManifest
 } from './utils';
 
 import {
-    PROPERTY_TYPE_OVERRIDE,
     MANUAL_PROPERTY_CANONICAL_OVERRIDE,
-    PROPERTY_FORCE_ARRAY,
-    PROPERTY_FORCE_NOT_ARRAY,
-    PROPERTY_TYPE_SAME_AS_SUBJECT
 } from './manual-annotations';
-
-function argnameFromLabel(label) {
-    return snakecase(label)
-        .replace(/'/g, '') // remove apostrophe
-        .replace(/,/g, '') // remove comma
-        .replace(/_\/_/g, '_or_') // replace slash by or
-        .replace(/[(|)]/g, '') // replace parentheses
-        .normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // remove accent
-}
-
-function getElementType(type) {
-    if (type.isArray)
-        return getElementType(type.elem);
-    return type;
-}
 
 async function retrieveProperties(domain, properties) {
     let list = properties.includes('default') ? await getPropertyList(domain) : [];
@@ -87,7 +64,7 @@ async function retrieveProperties(domain, properties) {
 
 class SchemaProcessor {
     constructor(domains, domainCanonicals, propertiesByDomain, requiredPropertiesByDomain, output, outputEntities,
-                manual, wikidataLabels, schemaorgManifest) {
+                manual, wikidataLabels, schemaorgManifest, paramDatasetsTsv) {
         this._domains = domains;
         this._domainCanonicals = domainCanonicals;
         this._propertiesByDomain = propertiesByDomain;
@@ -99,109 +76,10 @@ class SchemaProcessor {
         this._wikidataLabels = wikidataLabels;
         this._schemaorgManifest = schemaorgManifest;
         this._schemaorgProperties = {};
-    }
 
-    async _getType(domain, domainLabel, property, propertyLabel) {
-        if (property in PROPERTY_TYPE_OVERRIDE)
-            return PROPERTY_TYPE_OVERRIDE[property];
-
-        const elemType = await this._getElemType(domain, domainLabel, property, propertyLabel);
-        if (PROPERTY_FORCE_ARRAY.has(property))
-            return new Type.Array(elemType);
-        if (PROPERTY_FORCE_NOT_ARRAY.has(property))
-            return elemType;
-
-        if (elemType.isEntity && elemType.type === 'tt:picture')
-            return new Type.Array(elemType);
-
-        // TODO: decide if an property has an array type based on data
-        return elemType;
-    }
-
-    async _getElemType(domain, domainLabel, property, propertyLabel) {
-        if (PROPERTY_TYPE_SAME_AS_SUBJECT.has(property))
-            return new Type.Entity(`org.wikidata:${snakecase(domainLabel)}`);
-
-        const enumEntries = await getOneOfConstraint(property);
-        if (enumEntries.length > 0)
-            return new Type.Enum(enumEntries.map(cleanEnumValue));
-
-        const classes = await getClasses(property);
-        if (classes.includes('Q18636219')) // Wikidata property with datatype 'time'
-            return Type.Date;
-        if (classes.includes('Q18616084')) // Wikidata property to indicate a language
-            return new Type.Entity('tt:iso_lang_code');
-
-        if (propertyLabel.startsWith('date of'))
-            return Type.Date;
-
-        const units = await getAllowedUnits(property);
-        if (units.length > 0) {
-            if (units.includes('kilogram'))
-                return new Type.Measure('kg');
-            if (units.includes('metre') ||  units.includes('kilometre'))
-                return new Type.Measure('m');
-            if (units.includes('second') || units.includes('year'))
-                return new Type.Measure('ms');
-            if (units.includes('degree Celsius'))
-                return new Type.Measure('C');
-            if (units.includes('metre per second') || units.includes('kilometre per second'))
-                return new Type.Measure('mps');
-            if (units.includes('square metre'))
-                return new Type.Measure('m2');
-            if (units.includes('cubic metre'))
-                return new Type.Measure('m3');
-            if (units.includes('percent'))
-                return Type.Number;
-            if (units.includes('United States dollar'))
-                return Type.Currency;
-            console.error(`Unknown measurement type with unit ${units.join(', ')} for ${property}`);
-            return Type.Number;
-        }
-
-        const range = await getRangeConstraint(property);
-        if (range)
-            return Type.Number;
-
-        if (propertyLabel.startsWith('manner of') || propertyLabel.startsWith('cause of'))
-            return Type.String;
-
-        const subpropertyOf = await wikidataQuery(`SELECT ?value WHERE { wd:${property} wdt:P1647 ?value. } `);
-        if (subpropertyOf.some((property) => property.value.value === 'http://www.wikidata.org/entity/P18'))
-            return new Type.Entity('tt:picture');
-        if (subpropertyOf.some((property) => property.value.value === 'http://www.wikidata.org/entity/P2699'))
-            return new Type.Entity('tt:url');
-        if (subpropertyOf.some((property) => property.value.value === 'http://www.wikidata.org/entity/P276'))
-            return Type.Location;
-
-        const types = await getValueTypeConstraint(property);
-        if (types.length > 0) {
-            // human type: Q5: human, Q215627: person
-            if (types.some((type) => type.label === 'human' || type.label === 'person'))
-                return new Type.Entity(`org.wikidata:human`);
-
-            // location type: Q618123: geographic object, Q2221906: geographic location
-            if (types.some((type) => type.label === 'geographical object' || type.label === 'geographical location'))
-                return Type.Location;
-        }
-
-        // load equivalent schema.org type if available
-        const schemaorgEquivalent = await getSchemaorgEquivalent(property);
-        if (schemaorgEquivalent && schemaorgEquivalent in this._schemaorgProperties) {
-            const schemaorgType = this._schemaorgProperties[schemaorgEquivalent];
-            const schemaorgElemType = schemaorgType.isArray ? schemaorgType.elem : schemaorgType;
-            if (schemaorgElemType.isEntity && schemaorgElemType.type.startsWith('org.schema')) {
-                const entityType = schemaorgElemType.type.substring(schemaorgElemType.type.lastIndexOf(':') + 1).toLowerCase();
-                return schemaorgType.isArray ?
-                    new Type.Array(new Type.Entity(`org.wikidata:${entityType}`)) : new Type.Entity(`org.wikidata:${entityType}`);
-            }
-            if (!schemaorgType.isCompound)
-                return schemaorgType;
-        }
-
-        // majority or arrays of string so this may be better default.
-        return Type.String;
-
+        // Test if worth adding type mapping from paramter_datasets.tsv
+        this._paramDatasetsTsv = paramDatasetsTsv;
+        this._paramDatasets = { 'entity': new Set() , 'string': new Set() };
     }
 
     async _getArgCanonical(property, label, type) {
@@ -232,20 +110,18 @@ class SchemaProcessor {
         const actions = {};
 
         // load schema.org manifest if available
-        if (this._schemaorgManifest) {
-            const library = ThingTalk.Syntax.parse(await util.promisify(fs.readFile)(this._schemaorgManifest, { encoding: 'utf8' }));
-            assert(library instanceof ThingTalk.Ast.Library && library.classes.length === 1);
-            const classDef = library.classes[0];
+        await loadSchemaOrgManifest(this._schemaorgManifest, this._schemaorgProperties);
 
-            for (let fn in classDef.queries) {
-                const fndef = classDef.queries[fn];
-                for (let argname of fndef.args) {
-                    let key = argname;
-                    if (argname.includes('.'))
-                        key = argname.substring(argname.lastIndexOf('.') + 1);
-                    if (!(argname in this._schemaorgProperties))
-                        this._schemaorgProperties[key] = fndef.getArgType(argname);
-                }
+        // load parameter dataset file ids if available
+        if (this._paramDatasetsTsv) {
+            const paramDatasets = await util.promisify(fs.readFile)(this._paramDatasetsTsv, { encoding: 'utf8' });
+            for (const dataset of paramDatasets.split('\n')) {
+                if (dataset === '') continue;
+                const data = dataset.split('\t');
+                if (data[0] === 'string')
+                    this._paramDatasets['string'].add(data[2]);
+                 else
+                    this._paramDatasets['entity'].add(data[2]);
             }
         }
 
@@ -265,14 +141,14 @@ class SchemaProcessor {
             for (let property of properties) {
                 const label = await getPropertyLabel(property);
                 const name = argnameFromLabel(label);
-                const type = await this._getType(domain, domainLabel, property, label);
+                const type = await getType(domainLabel, property, label, this._schemaorgProperties);
                 const annotations = {
                     nl: { canonical: await this._getArgCanonical(property, label, type) },
                     impl: { wikidata_id: new Ast.Value.String(property) }
                 };
                 const elemType = getElementType(type);
                 if (elemType.isString)
-                    annotations.impl['string_values'] = new Ast.Value.String(`org.wikidata:${snakecase(domainLabel)}_${name}`);
+                    annotations.impl['string_values'] = new Ast.Value.String(`org.wikidata:${name}`);
                 if (elemType.isEntity && elemType.type.startsWith('org.wikidata:'))
                     this._addEntity(elemType.type, titleCase(label), true);
                 args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, name, type, annotations));
@@ -297,8 +173,16 @@ class SchemaProcessor {
             new Ast.MixinImportStmt(null, ['config'], 'org.thingpedia.config.none', [])
         ];
 
+        const entities = this._entities.filter((entity) => {
+            return entity.type.startsWith('org.wikidata');
+        }).map((entity) => {
+            return new Ast.EntityDef(null, entity.type.slice('org.wikidata:'.length), null, {
+                impl: { has_ner_support: new Ast.Value.Boolean(entity.has_ner_support) }
+            });
+        });
+        
         const classdef = new Ast.ClassDef(null, 'org.wikidata', null,
-            { imports, queries, actions }, {
+            { imports, queries, actions, entities }, {
                 nl: {
                     name: `Wikidata for domain ${this._domains.join(', ')}`,
                     description: 'Natural language dialogues over Wikidata knowledge base.'
@@ -317,11 +201,10 @@ class SchemaProcessor {
     }
 }
 
-
 export function initArgparse(subparsers) {
     const parser = subparsers.add_parser('wikidata-process-schema', {
         add_help: true,
-        description: "Generate schema.tt given a list of domains."
+        description: "Generate schema.tt given a list of domains. "
     });
     parser.add_argument('-o', '--output', {
         required: true,
@@ -342,7 +225,7 @@ export function initArgparse(subparsers) {
     });
     parser.add_argument('--properties', {
         nargs: '+',
-        required: false,
+        required: true,
         help: 'properties to include for each domain, properties are split by comma (no space);\n' +
             'use "default" to include properties included in P1963 (properties of this type);\n' +
             'exclude a property by placing a minus sign before its id (no space)'
@@ -368,7 +251,10 @@ export function initArgparse(subparsers) {
             'use "none" to indicate no required property needed;\n' +
             'use "default" to include properties included in P1963 (properties of this type);\n' +
             'exclude a property by placing a minus sign before its id (no space)'
-
+    });
+    parser.add_argument('--parameter-datasets', {
+        required: true,
+        help: 'Path to parammeter_datasets.tsv; used for entity/string type mapping'
     });
 }
 
@@ -395,17 +281,13 @@ export async function execute(args) {
     }
 
     const propertiesByDomain = {};
-    if (args.properties) {
-        // if provided, property lists should match the number of domains
-        assert(Array.isArray(args.properties) && args.properties.length === domains.length);
-        for (let i = 0; i < domains.length; i++) {
-            const domain = domains[i];
-            const properties = args.properties[i].split(',');
-            propertiesByDomain[domain] = await retrieveProperties(domain, properties);
-        }
-    } else {
-        for (let domain of domains)
-            propertiesByDomain[domain] = await getPropertyList(domain);
+    
+    // if provided, property lists should match the number of domains
+    assert(Array.isArray(args.properties) && args.properties.length === domains.length);
+    for (let i = 0; i < domains.length; i++) {
+        const domain = domains[i];
+        const properties = args.properties[i].split(',');
+        propertiesByDomain[domain] = await retrieveProperties(domain, properties);
     }
     const schemaProcessor = new SchemaProcessor(
         domains, domainCanonicals, propertiesByDomain, requiredPropertiesByDomain, args.output, args.entities,

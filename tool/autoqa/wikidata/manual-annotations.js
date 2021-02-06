@@ -48,6 +48,7 @@ const PROPERTY_TYPE_OVERRIDE = {
     'P206': new Type.Array(Type.String), // located_in_or_next_to_body_of_water
     'P610': Type.Location, // highest point
     'P1589': Type.Location, // lowest point
+    'P27': new Type.Entity('org.wikidata:country'), // country of citizenship
 };
 
 // properties that should have the same type as the subject

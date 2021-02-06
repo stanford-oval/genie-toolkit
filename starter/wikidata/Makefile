@@ -1,83 +1,79 @@
 geniedir = ../..
 developer_key =
-experiment ?= city
+
+experiment ?= country
 thingpedia_url = https://thingpedia.stanford.edu/thingpedia
 
 -include ./config.mk
 
 memsize := 15000
-genie = node --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/dist/tool/genie.js
-
-all_experiments = city country star university company people artist athlete sports-team tv-series
+genie = node --require ts-node/register --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/dist/tool/genie.js
+all_experiments = city country star university company people artist athlete sports_team tv_series
 
 city_class = Q515
 city_canonical = city
-city_properties ?= P571,P138,P30,P17,P1376,P131,P206,P625,P6,P1082,P2927,P2044,P421,P190,P47,P2046,P281,P856,P41,P1538,P18,P610,P2936
 city_required_properties ?= none
 
 country_class = Q6256
 country_canonical = country
-country_properties ?= P571,P1813,P138,P37,P85,P1451,P30,P36,P206,P610,P1589,P122,P6,P530,P1304,P463,P3001,P1082,P150,P421,P38,P2131,P2132,P1081,P47,P2046,P41,P1125
 country_required_properties ?= none
 
 star_class = Q523
 star_canonical = star
-star_properties ?= P18,P361,P2067,P398,P397,P2583,P1102,P215,P1215,P1457,P2227,P2076,P2120,P2547,P2046,P2234,P7584,P59,P1096,P4296,P2216
 star_required_properties ?= none
 
 university_class = Q3918
 university_canonical = university
-university_properties ?= P6375,P1449,P571,P17,P856,P131,P576,P154,P18,P571,P138,P112,P488,P2828,P1451,P2124,P463,P2196,P2936,P2769,P281,P355,P1830
 university_required_properties ?= none
 
 company_class = Q783794
 company_canonical = company
-company_properties ?= P154,P452,P571,P138,P112,P169,P1037,P1451,P17,P463,P2403,P2137,P2139,P2295,P3362,P740,P127,P749,P159,P1128,P166,P1056,P856,P1581,P414
 company_required_properties ?= none
 
 people_class = Q5
 people_canonical = people
-people_properties ?= P18,P21,P27,P39,P735,P734,P569,P19,P22,P25,P3373,P26,P40,P1412,P106,P1449,P1830,P69,P551,P2031,P2032,P172,P2067,P1344,P166,P1411,P2048,P140,P570,P20,P1196,P509,P4602,P119,P102,P410
 people_required_properties ?= none
 
 artist_class = Q5
 artist_canonical = artist
-artist_properties ?= P18,P21,P27,P735,P734,P569,P19,P22,P25,P3373,P26,P40,P1412,P106,P1449,P1830,P69,P551,P172,P2067,P1344,P166,P1411,P2048,P140,P412,P1303,P800,P136,P2218,P264
 artist_required_properties ?= P800
 
 athlete_class = Q5
 athlete_canonical = athlete
-athlete_properties ?= P18,P21,P27,P735,P734,P569,P19,P22,P25,P3373,P26,P40,P1412,P106,P1449,P1830,P69,P551,P172,P2067,P1344,P166,P1411,P2048,P140,P641,P413,P286,P118,P54,P552,P647,P1618,P1352,P1532
 athlete_required_properties ?= P641
 
-sports-team_class = Q12973014
-sports-team_canonical = sports_team
-sports-team_properties ?= P571,P17,P286,P118,P115,P127,P159,P859,P641,P822,P856,P112,P488,P2124,P355,P166,P1411,P94,P154,P1813,P138,P505
-sports-team_required_properties ?= none
+sports_team_class = Q12973014
+sports_team_canonical = sports_team
+sports_team_required_properties ?= none
 
-tv-series_class = Q5398426
-tv-series_canonical = tv_series
-tv-series_properties ?= P136,P170,P449,P495,P364,P58,P161,P162,P272,P750,P942,P840,P2047,P4312,P166,P1411,P674,P1113,P2437,P580,P582
-tv-series_required_properties ?= none
+tv_series_class = Q5398426
+tv_series_canonical = tv_series
+tv_series_required_properties ?= none
 
-eval_set ?= eval-synthetic
+class = $($(experiment)_class)
+canonical = $($(experiment)_canonical)
 
-mode ?= default
-default_process_schema_flags = --schemaorg-manifest ./schemaorg-manifest.tt --wikidata-labels
-base_process_schema_flags = --schemaorg-manifest ./schemaorg-manifest.tt
-manual_process_schema_flags = --schemaorg-manifest ./schemaorg-manifest.tt --wikidata-labels --manual
-auto_process_schema_flags = --schemaorg-manifest ./schemaorg-manifest.tt --wikidata-labels
-custom_process_schema_flags ?=
+eval_set ?= eval
 
-default_annotate_flags =
-base_annotate_flags =
-manual_annotate_flags = --skip
-auto_annotate_flags = --algorithm bert,adj,bart --paraphraser-model ./models/paraphraser-bart
-custom_annotate_flags ?=
-auto_auto_annotate_dependencies = models/paraphraser-bart
-manual_process_schema_dependencies = $(geniedir)/tool/autoqa/wikidata/manual-annotations.js
+all_annotation_strategies = baseline auto manual
+annotation ?= baseline
 
-load_predownloaded_parameter_sets = true
+paraphraser_options ?= --paraphraser-model ./models/paraphraser-bart --batch-size 32
+
+baseline_process_schemaorg_flags =
+auto_process_schemaorg_flags =
+manual_process_schemaorg_flags = --manual
+
+baseline_annotate_flags =
+auto_annotate_flags = --algorithms bart-paraphrase $(paraphraser_options)
+manual_annotate_flags =
+
+process_schemaorg_flags ?= $($(annotation)_process_schemaorg_flags)
+annotate_flags ?= $($(annotation)_annotate_flags)
+
+use_preprocessed_wikidata = true
+use_csqa_valid = true
+use_preprocessed_csqa_valid = 
 
 dataset_file ?= emptydataset.tt
 synthetic_flags ?= \
@@ -113,18 +109,22 @@ annotate_offset ?= 1
 .PHONY: train evaluate annotate demo clean
 .SECONDARY:
 
+common-words.txt:
+	curl -O https://almond-static.stanford.edu/test-data/common-words.txt
+
 models/paraphraser-bart:
 	mkdir models
-	wget --no-verbose https://almond-static.stanford.edu/test-data/paraphraser-bart.tar.xz
+	curl -O https://almond-static.stanford.edu/test-data/paraphraser-bart-large-speedup-megabatch-5m.tar.xz
 	tar -C models -xvf paraphraser-bart.tar.xz
 
-%/wikidata.tt: $(geniedir)/tool/autoqa/wikidata/process-schema.js $($(mode)_process_schema_dependencies)
+%/wikidata.tt: %/parameter-datasets.tsv $(geniedir)/tool/autoqa/wikidata/process-schema.js
 	mkdir -p $(dir $@)
-	$(genie) wikidata-process-schema -o $@.tmp --entities $*/entities.json $($(mode)_process_schema_flags)\
-	  --domains $($(*)_class) \
-	  --domain-canonicals $($(*)_canonical) \
-	  --properties $($(*)_properties) \
-	  --required-properties $($(*)_required_properties)
+	$(genie) wikidata-process-schema  -o $@.tmp --entities $(experiment)/entities.json \
+	  --domains $(class) \
+	  --domain-canonicals $(canonical) \
+	  --parameter-datasets $*/parameter-datasets.tsv \
+	  --properties $(shell cat $(dir $@)properties.txt) \
+	  $(process_schemaorg_flags)
 	mv $@.tmp $@
 
 emptydataset.tt:
@@ -136,24 +136,51 @@ shared-parameter-datasets.tsv:
 	$(genie) download-string-values --thingpedia-url $(thingpedia_url) --developer-key $(developer_key) \
 	   --manifest $@ --append-manifest -d shared-parameter-datasets
 
-%/parameter-datasets.tsv : %/wikidata.tt shared-parameter-datasets.tsv
-	if [ "$(load_predownloaded_parameter_sets)" = "true" ] ; then \
-	  wget --no-verbose https://almond-static.stanford.edu/test-data/wikidata-parameter-datasets/$*.tar.xz ; \
-	  tar -C . -xvf $*.tar.xz ; \
-	else \
-	  sed -e "s|$(echo -e '\t')shared-parameter-datasets|$(echo -e '\t')../shared-parameter-datasets|g" shared-parameter-datasets.tsv > $@ ; \
-	  $(genie) wikidata-make-string-datasets --manifest $@.local -d $*/parameter-datasets --thingpedia $*/wikidata.tt; \
-	  cat $@.local >> $@; \
-	  rm $@.local; \
-	fi
 
-%/constants.tsv: %/parameter-datasets.tsv %/wikidata.tt
+filtered_property_wikidata4.json: 
+	curl https://almond-static.stanford.edu/research/csqa/filtered_property_wikidata4.json --output $@
+
+%/instances.txt:
+	curl https://almond-static.stanford.edu/research/csqa/$*/instances.txt --output $@ --create-dirs
+
+%/property_item_map.json:
+	curl https://almond-static.stanford.edu/research/csqa/$*/property_item_map.json --output $@ --create-dirs
+
+%/property_item_values.json:
+	curl https://almond-static.stanford.edu/research/csqa/$*/property_item_values.json --output $@ --create-dirs
+
+%/instance_item_values.json:
+	curl https://almond-static.stanford.edu/research/csqa/$*/instance_item_values.json --output $@ --create-dirs
+
+raw/csqa-wikidata:
+	curl https://zenodo.org/record/4052427/files/wikidata_proc_json.zip --output wikidata_proc_json.zip 
+	mkdir -p raw/csqa-wikidata
+	unzip wikidata_proc_json.zip
+	mv 'wikidata_proc_json 2'/* raw/csqa-wikidata
+	rm -r 'wikidata_proc_json 2'
+
+%/parameter-datasets.tsv: shared-parameter-datasets.tsv filtered_property_wikidata4.json $(if ${use_preprocessed_wikidata},%/instances.txt %/property_item_map.json %/property_item_values.json %/instance_item_values.json,raw/csqa-wikidata)
+	$(genie) wikidata-preprocess-data \
+	  --domain $(class) \
+	  --domain-canonical $(canonical) \
+	  --input raw/csqa-wikidata \
+	  --output ./ \
+	  $(process_schemaorg_flags)
+	sed -e "s|$(echo -e '\t')shared-parameter-datasets|$(echo -e '\t')../shared-parameter-datasets|g" shared-parameter-datasets.tsv > $@
+
+%/constants.tsv: %/wikidata.tt %/parameter-datasets.tsv
 	$(genie) sample-constants -o $@.tmp --parameter-datasets $*/parameter-datasets.tsv --thingpedia $*/wikidata.tt --devices org.wikidata
 	cat $(geniedir)/data/en-US/constants.tsv >> $@.tmp
 	mv $@.tmp $@
 
-%/manifest.tt: %/constants.tsv %/wikidata.tt %/parameter-datasets.tsv $($(mode)_auto_annotate_dependencies)
-	$(genie) auto-annotate -o $@.tmp --constants $*/constants.tsv --thingpedia $*/wikidata.tt --functions $($(*)_canonical) $($(mode)_annotate_flags) --parameter-datasets $*/parameter-datasets.tsv --dataset wikidata
+%/manifest.tt: %/wikidata.tt %/constants.tsv %/parameter-datasets.tsv $(if $(findstring auto,$(annotation)),models/paraphraser-bart,) common-words.txt
+	$(genie) auto-annotate -o $@.tmp \
+	  --constants $*/constants.tsv \
+	  --thingpedia $*/wikidata.tt \
+	  --functions $($(*)_canonical) \
+	  $(annotate_flags) \
+	  --parameter-datasets $*/parameter-datasets.tsv \
+	  --dataset wikidata
 	mv $@.tmp $@
 
 %/synthetic.tsv: %/manifest.tt $(dataset_file)
@@ -164,23 +191,54 @@ shared-parameter-datasets.tsv:
 	  --random-seed $@ --id-prefix $*:
 	mv $@.tmp $@
 
-%/augmented.tsv : %/synthetic.tsv %/parameter-datasets.tsv
+%/augmented.tsv: %/synthetic.tsv %/parameter-datasets.tsv %/manifest.tt
 	$(genie) augment -o $@.tmp -l en-US --thingpedia $*/manifest.tt --parameter-datasets $*/parameter-datasets.tsv \
 	  --synthetic-expand-factor 1 --quoted-paraphrasing-expand-factor 60 --no-quote-paraphrasing-expand-factor 20 --quoted-fraction 0.0 \
 	  --debug $($(*)_paraphrase) $*/synthetic.tsv
 	mv $@.tmp $@
 
-datadir: $(experiment)/augmented.tsv
+raw/valid:
+	mkdir -p raw
+	curl -O https://almond-static.stanford.edu/research/csqa/valid.tar.xz
+	tar -C raw -xf valid.tar.xz
+
+raw/test:
+	mkdir -p raw
+	curl -O https://almond-static.stanford.edu/research/csqa/test.tar.xz
+	tar -C raw -xf test.tar.xz
+
+%/valid.json: 
+	curl https://almond-static.stanford.edu/research/csqa/$*/valid.json  --output $*/valid.json
+
+%/valid.tsv: %/manifest.tt $(if $(use_preprocessed_csqa_valid),%/valid.json,raw/valid)
+	mkdir -p datadir
+	$(genie) wikidata-convert-csqa \
+	  --domain $(class) \
+	  --domain-canonical $(canonical) \
+	  --input raw/ \
+	  --output . \
+	  --dataset valid
+
+%/valid_annotated.tsv: %/manifest.tt %/valid.tsv
+	$(genie) typecheck -o $*/valid_annotated.tsv --dropped $*/valid_dropped.tsv --thingpedia $*/manifest.tt $*/valid.tsv
+
+datadir: $(experiment)/augmented.tsv $(if $(use_csqa_valid),$(experiment)/valid_annotated.tsv,)
 	mkdir -p $@
-	if [ "$(eval_set)" = "eval-synthetic" ] ; then \
+	mkdir -p $(experiment)/$(eval_set)
+
+	if test -s $(experiment)/${eval_set}/annotated.tsv ; then \
+	  cp $(experiment)/augmented.tsv $@/train.tsv ; \
+	  cut -f1-3 $(experiment)/${eval_set}/annotated.tsv > $@/eval.tsv ; \
+	elif [ "$(use_csqa_valid)" = "true" ] ; then \
+	  cp $(experiment)/augmented.tsv $@/train.tsv ; \
+	  cp $(experiment)/valid_annotated.tsv $@/eval.tsv; \
+	  cp $(experiment)/valid_annotated.tsv $(experiment)/$(eval_set)/annotated.tsv;\
+	else \
 	  $(genie) split-train-eval --train $@/train.tsv --eval $@/eval.tsv \
 	    --eval-probability 0.1 --split-strategy sentence \
 	    --eval-on-synthetic $(experiment)/augmented.tsv ; \
-	  mkdir -p $(experiment)/eval-synthetic ; \
-	  cp $@/eval.tsv $(experiment)/eval-synthetic/annotated.tsv; \
-	else \
-	  cp $(experiment)/augmented.tsv $@/train.tsv ; \
-	  cut -f1-3 $(experiment)/${eval_set}/annotated.tsv > $@/eval.tsv ; \
+	  mkdir -p $(experiment)/$(eval_set) ; \
+	  cp $@/eval.tsv $(experiment)/$(eval_set)/annotated.tsv; \
 	fi
 	touch $@
 
@@ -206,10 +264,6 @@ train:
 	  $(train_nlu_flags) \
 	  $(custom_train_nlu_flags)
 
-%/eval-synthetic/annotated.tsv:
-	mkdir -p $*/eval-synthetic
-	wget https://almond-static.stanford.edu/test-data/wikidata/$*/eval-synthetic.tsv -O $@
-
 evaluate: $(experiment)/$(eval_set)/annotated.tsv $(experiment)/manifest.tt
 	$(genie) evaluate-server --url "file://$(abspath $(experiment)/models/$(model))" --thingpedia $(experiment)/manifest.tt $(experiment)/$(eval_set)/annotated.tsv --debug --csv-prefix $(eval_set) --csv --min-complexity 1 --max-complexity 3 -o $(experiment)/$(eval_set)/$(model).results.tmp | tee $(experiment)/$(eval_set)/$(model).debug
 	mv $(experiment)/$(eval_set)/$(model).results.tmp $(experiment)/$(eval_set)/$(model).results
@@ -229,7 +283,9 @@ demo: $(experiment)/manifest.tt
 	  --model "file://$(abspath $(experiment)/models/$(model))"
 
 clean:
-	rm -rf datadir bert-canonical-annotator-in.json bert-canonical-annotator-out.json gpt2-paraphraser-in.tsv gpt2-paraphraser-out.json
+	rm -rf datadir valid.tar.xz test.tar.xz paraphraser-bart.tar.xz wikidata_proc_json.zip
+	rm -f paraphraser-in.tsv paraphraser-out.json bert-canonical-annotator-in.json bert-canonical-annotator-out.json 
 	for exp in $(all_experiments) ; do \
-		rm -rf $$exp/synthetic* $$exp/entities.json $$exp/parameter-datasets* $$exp/wikidata.tt $$exp/manifest.tt $$exp/augmented.tsv $$exp/constants.tsv $$exp/*.tmp; \
+	  rm -rf $$exp/synthetic* $$exp/entities.json $$exp/parameter-datasets* $$exp/wikidata.tt $$exp/manifest.tt $$exp/augmented.tsv $$exp/constants.tsv $$exp/*.tmp; \
+	  rm -rf $$exp/valid.json $$exp/valid.tsv $$exp/valid_dropped.tsv $$exp/valid_annotated.tsv;\
 	done
