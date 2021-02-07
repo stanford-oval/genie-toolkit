@@ -41,6 +41,7 @@
     "sockaddr": "^1.0.1",
     "sqlite3": "5.0.2",
     "stemmer": "^1.0.5",
+    "stream-json": "^1.7.1",
     "string-interp": "^0.3.1",
     "thingpedia": "github:stanford-oval/thingpedia-api",
     "thingtalk": "github:stanford-oval/thingtalk",
