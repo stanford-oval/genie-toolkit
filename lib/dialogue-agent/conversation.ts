@@ -369,7 +369,7 @@ export default class Conversation extends events.EventEmitter {
                 await fn();
             } catch(e) {
                 if (this._isUnsupportedError(e))
-                    await this._doHandleCommand(new UserInput.Unsupported(command!, platformData), null, [], true);
+                    await this._doHandleCommand(new UserInput.Unsupported(command, platformData), null, [], true);
                 else
                     throw e;
             }

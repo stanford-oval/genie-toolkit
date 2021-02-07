@@ -77,9 +77,9 @@ class UserInput {
             else
                 throw new TypeError(`Unrecognized bookkeeping intent`);
         } else if (thingtalk instanceof Ast.Program) {
-            return new UserInput.Program(thingtalk, context.command!, context.platformData);
+            return new UserInput.Program(thingtalk, context.command, context.platformData);
         } else if (thingtalk instanceof Ast.DialogueState) {
-            return new UserInput.DialogueState(thingtalk, context.command!, context.platformData);
+            return new UserInput.DialogueState(thingtalk, context.command, context.platformData);
         } else {
             throw new TypeError(`Unrecognized ThingTalk command: ${thingtalk.prettyprint()}`);
         }
@@ -121,22 +121,12 @@ namespace UserInput {
      * A natural language command that was parsed correctly but is not supported in
      * Thingpedia (it uses Thingpedia classes that are not available).
      */
-    export class Unsupported extends UserInput {
-        constructor(utterance : string,
-                    platformData : PlatformData) {
-            super(utterance, platformData);
-        }
-    }
+    export class Unsupported extends UserInput {}
 
     /**
      * A natural language command that failed to parse entirely.
      */
-    export class Failed extends UserInput {
-        constructor(utterance : string,
-                    platformData : PlatformData) {
-            super(utterance, platformData);
-        }
-    }
+    export class Failed extends UserInput {}
 
     /**
      * A special command that bypasses the neural network, or a button on the UI.
@@ -185,9 +175,9 @@ namespace UserInput {
      */
     export class Program extends UserInput {
         constructor(public program : Ast.Program,
-                    utterance : string,
+                    utterance : string|null,
                     platformData : PlatformData) {
-            super(null, platformData);
+            super(utterance, platformData);
         }
     }
 
@@ -197,7 +187,7 @@ namespace UserInput {
      */
     export class DialogueState extends UserInput {
         constructor(public prediction : Ast.DialogueState,
-                    utterance : string,
+                    utterance : string|null,
                     platformData : PlatformData) {
             super(utterance, platformData);
         }
