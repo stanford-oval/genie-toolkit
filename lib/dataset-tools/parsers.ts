@@ -170,7 +170,7 @@ export interface DialogueTurn {
     intermediate_context : string|null;
     user : string;
     user_target : string;
-    rate ?: string;
+    vote ?: string;
     comment ?: string;
 }
 
@@ -216,11 +216,13 @@ class DialogueSerializer extends Stream.Transform {
                     this._pushMany(this._prefixLines(turn.agent_target, 'AT: '));
                 if (this._annotations && turn.intermediate_context)
                     this._pushMany(this._prefixLines(turn.intermediate_context, 'C: '));
-
-                if (turn.rate)
-                    this._pushMany(this._prefixLines(turn.rate, '#! '));
-                if (turn.comment)
-                    this._pushMany(this._prefixLines(turn.comment, '# '));
+                if (turn.vote)
+                    this.push('#! vote: ' + turn.vote + '\n');
+                if (turn.comment) {
+                    const lines = turn.comment.trim().split('\n');
+                    this.push('#! comment: ' + lines[0] + '\n');
+                    this._pushMany(this._prefixLines(lines.slice(1).join('\n'), '#!          '));
+                }
             }
             this._pushMany(this._prefixLines(turn.user, 'U: '));
             if (this._annotations)
@@ -275,7 +277,7 @@ class DialogueParser extends Stream.Transform {
             if (/^(R)?(P)?(C)?(S)?(E)?$/.test(this._id))
                 this._id = '_' + this._id;
         }
-        if (!line) {
+        if (!line || line.startsWith('#')) {
             callback();
             return;
         }
@@ -349,19 +351,21 @@ class DialogueParser extends Stream.Transform {
             } else if (line.startsWith('C: ')) {
                 key = 'context';
                 newText = line.substring(3).normalize('NFKD');
-            } else if (line.startsWith('#! ')) {
-                key = 'rate';
-                newText = line.substring(3);
-            } else if (line.startsWith('#')) {
+            } else if (line.startsWith('#! vote: ')) {
+                key = 'vote';
+                newText = line.substring('#! vote: '.length).normalize('NFKD');
+            } else if (line.startsWith('#! comment: ')) {
                 key = 'comment';
-                newText = line.substring(1).normalize('NFKD');
+                newText = line.substring('#! comment: '.length).normalize('NFKD');
+            } else if (line.startsWith('#! ')) {
+                key = 'comment';
+                newText = line.substring('#! '.length).normalize('NFKD');
             } else {
                 throw new Error(`malformed line ${line}, expected to start with C:, U:, A:, AT: or UT:`);
             }
 
-            if (key === 'rate') {
-                assert(newText === '👍' || newText === '👎');
-                currentTurn.rate = newText;
+            if (key === 'vote') {
+                currentTurn.vote = newText + '\n';
                 continue;
             }
             if (key === 'comment') {

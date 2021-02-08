@@ -288,11 +288,8 @@ Hi, how can I help you?
         if (onlyIds.length > 0 && !onlyIds.includes(TEST_CASES[i].id))
             continue;
         await test(testRunner, TEST_CASES[i], i);
-        if (i % 2)
-            conversation.upvoteLast();
-        else
-            conversation.downvoteLast();
-        conversation.commentLast('test');
+        conversation.voteLast(i % 2 ? 'up' : 'down');
+        conversation.commentLast('test comment for dialogue turns\nadditional\nlines');
     }
 
     await conversation.saveLog();

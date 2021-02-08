@@ -575,18 +575,11 @@ export default class Conversation extends events.EventEmitter {
         this._log.push(turn);
     }
 
-    upvoteLast() {
+    voteLast(vote : 'up'|'down') {
         if (this._log.length === 0)
-            throw new Error('No response found to be rated');
+            throw new Error('No response found to be voted');
         const last = this._log[this._log.length - 1];
-        last.rate = '👍';
-    }
-
-    downvoteLast() {
-        if (this._log.length === 0)
-            throw new Error('No response found to be rated');
-        const last = this._log[this._log.length - 1];
-        last.rate = '👎';
+        last.vote = vote;
     }
 
     commentLast(comment : string) {
