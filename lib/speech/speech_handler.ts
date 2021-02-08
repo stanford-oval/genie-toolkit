@@ -18,19 +18,22 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as Tp from 'thingpedia';
 import * as events from 'events';
 
 import SpeechRecognizer from './speech_recognizer';
 import SpeechSynthesizer from './speech_synthesizer';
 import { MessageType } from '../dialogue-agent/protocol';
+import type Conversation from '../dialogue-agent/conversation';
 
 interface SpeechHandlerOptions {
     subscriptionKey ?: string;
 }
 
 export default class SpeechHandler extends events.EventEmitter {
-    private _platform : any;
-    private _conversation : any;
+    private _platform : Tp.BasePlatform;
+    private _prefs : Tp.Preferences;
+    private _conversation : Conversation;
     private _pulse : any;
     private _wakeWordDetector : any;
     private _systemLock : any;
@@ -40,13 +43,14 @@ export default class SpeechHandler extends events.EventEmitter {
     private _started : boolean;
     private _enableVoiceInput : boolean;
     private _enableVoiceOutput : boolean;
-    private _stream : any;
+    private _stream : any|null = null;
 
-    constructor(conversation : any,
-                platform : any,
+    constructor(conversation : Conversation,
+                platform : Tp.BasePlatform,
                 options : SpeechHandlerOptions = {}) {
         super();
         this._platform = platform;
+        this._prefs = platform.getSharedPreferences();
 
         this._conversation = conversation;
 
@@ -66,8 +70,15 @@ export default class SpeechHandler extends events.EventEmitter {
         this._currentRequest = null;
 
         this._started = true;
-        this._enableVoiceInput = true;
-        this._enableVoiceOutput = true;
+        this._enableVoiceInput = this._prefs.get('enable-voice-input') as boolean ?? true;
+        this._enableVoiceOutput = this._prefs.get('enable-voice-output') as boolean ?? true;
+
+        this._prefs.on('changed', (key : string) => {
+            if (key === 'enable-voice-input')
+                this.setVoiceInput(this._prefs.get('enable-voice-input') as boolean ?? true);
+            else if (key === 'enable-voice-output')
+                this.setVoiceOutput(this._prefs.get('enable-voice-output') as boolean ?? true);
+        });
     }
 
     setVoiceInput(enable : boolean) : void {
@@ -184,7 +195,7 @@ export default class SpeechHandler extends events.EventEmitter {
             }
         });
 
-        this._stream.on('state', (state : string) => {
+        this._stream!.on('state', (state : string) => {
             console.log('Record stream is now ' + state);
             if (state === 'ready')
                 this.emit('ready');
@@ -201,7 +212,7 @@ export default class SpeechHandler extends events.EventEmitter {
                 this.emit('wakeword', wakeword);
                 this._onDetected();
             });
-            this._stream.pipe(this._wakeWordDetector);
+            this._stream!.pipe(this._wakeWordDetector);
         }
     }
 
