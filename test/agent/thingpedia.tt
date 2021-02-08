@@ -1099,4 +1099,56 @@ class @com.xkcd
   #[minimal_projection=["id", "title"]]
   #[doc="retrieve a random xkcd"];
 }
+abstract class @org.thingpedia.iot.light-bulb extends @org.thingpedia.iot.switch
+#_[name="Light Bulb"]
+#_[description="The general interface supported by all light bulbs."]
+#_[canonical="light bulb"]
+{
+  monitorable query power(out power : Enum(on, off)
+                          #_[canonical="power"])
+  #_[canonical="the power state of the light bulb"]
+  #_[confirmation="the power state of ${__device}"]
+  #_[result=["your lights are ${power}"]]
+  #_[confirmation_remote="the power state of ${__device}"]
+  #[minimal_projection=[]]
+  #[confirm=false];
 
+  action alert_long()
+  #_[canonical="loop the color in my light bulb"]
+  #_[confirmation="flash alerts on ${__device}"]
+  #_[confirmation_remote="flash alerts on ${__device}"]
+  #[confirm=true]
+  #[minimal_projection=[]];
+
+  action color_loop()
+  #_[canonical="flash the lights"]
+  #_[confirmation="loop colors on ${__device}"]
+  #_[confirmation_remote="loop colors on ${__device}"]
+  #[confirm=true]
+  #[minimal_projection=[]];
+
+  action set_power(in req power : Enum(on, off)
+                   #_[prompt=["do you want to turn it on or off"]]
+                   #_[canonical={
+                     base=["power"],
+                     property=[]
+                   }])
+  #_[canonical="set the power on the lights"]
+  #_[confirmation="turn $power ${__device}"]
+  #_[confirmation_remote="turn $power ${__device}"]
+  #[confirm=true]
+  #[minimal_projection=[]];
+}
+abstract class @org.thingpedia.iot.door
+#_[description="Interface for Door Sensor."]
+#_[name="Door Sensor"]
+#_[canonical="door sensor"] {
+  monitorable query state(out state : Enum(open, closed)
+                          #_[canonical="state"])
+  #_[canonical="door state"]
+  #_[confirmation="the state of $__device"]
+  #_[result=["the entrance is ${state}"]]
+  #_[confirmation_remote="the state of $__device"]
+  #[minimal_projection=[]]
+  #[confirm=false];
+}

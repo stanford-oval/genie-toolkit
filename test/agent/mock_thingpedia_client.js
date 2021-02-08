@@ -229,6 +229,10 @@ export default class MockThingpediaClient extends Tp.BaseClient {
                 ret[k] = {type: 'multiple', choices: [{ type: 'oauth2', kind: 'com.tumblr', text: "Tumblr Account" }, { type: 'form', kind: 'com.tumblr2', text: 'Some other Tumblr Thing' }]};
             else if (k === 'com.instagram')
                 ret[k] = {type: 'oauth2', kind: 'com.instagram', text: 'Instagram'};
+            else if (k === 'org.thingpedia.iot.light-bulb')
+                ret[k] = {type: 'multiple', text: 'Light Bulb', choices: [{ type: 'oauth2', kind: 'io.home-assistant', text: 'Home Assistant'}, { type: 'discovery', discoveryType: 'upnp', kind: 'com.hue', text:'Philips Hue'}] };
+            else if (k === 'org.thingpedia.iot.door')
+                ret[k] = {type: 'oauth2', kind: 'io.home-assistant', text: 'Home Assistant'};
             else if (k === 'org.thingpedia.rss')
                 ret[k] = _rssFactory;
             else if (k === 'org.thingpedia.builtin.thingengine.home' || k === 'car')

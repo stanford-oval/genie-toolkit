@@ -684,3 +684,27 @@ U: @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_alm
 A: Str:QUOTED_STRING::42:.
 A: >> context = null // {}
 A: >> expecting = null
+
+====
+# 45-not-configured-light-bulb
+
+# Turn off the lights
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.iot.light-bulb.set_power(power=enum(off));
+
+A: You do not have a Light Bulb configured. You will need to enable Home Assistant or Philips Hue before you can use that command.
+A: link: Configure a new skill /devices/create
+A: >> context = null // {}
+A: >> expecting = null
+
+====
+# 46-not-configured-door
+
+# Is the door open
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.iot.door.state();
+
+A: You need to enable Home Assistant before you can use that command.
+A: link: Configure Home Assistant /devices/create
+A: >> context = null // {}
+A: >> expecting = null

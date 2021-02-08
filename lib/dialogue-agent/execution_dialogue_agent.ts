@@ -121,22 +121,62 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         return this._dlg.askChoices(question, choices);
     }
 
-    protected async tryConfigureDevice(kind : string) : Promise<DeviceInfo> {
+    protected async tryConfigureDevice(kind : string) : Promise<DeviceInfo|null> {
         const factories = await this._thingpedia.getDeviceSetup([kind]);
         const factory = factories[kind];
-        if (factory && factory.type === 'none') {
+        if (!factory) {
+            await this._dlg.replyInterp(this._("You need to enable ${device} before you can use that command."), {
+                device: cleanKind(kind)
+            });
+            await this._dlg.replyLink(this._dlg.interpolate(this._("Configure ${device}"), {
+                device: cleanKind(kind)
+            }), "/devices/create");
+            return null;
+        }
+
+        if (factory.type === 'none') {
             const device = await this._engine.createDevice({ kind: factory.kind });
             return this._engine.getDeviceInfo(device.uniqueId!);
         } else {
-            this._dlg.icon = null;
             if (this._dlg.isAnonymous) {
-                await this._dlg.reply(this._("Sorry, I did not understand that. You might need to enable a new skill before I understand that command. To do so, please log in to your personal account."));
+                await this._dlg.replyInterp(this._("Sorry, to use ${device}, you must log in to your personal account."), {
+                    device: factory.text,
+                });
                 await this._dlg.replyLink(this._("Register for Almond"), "/user/register");
-            } else {
-                await this._dlg.reply(this._("Sorry, I did not understand that. You might need to enable a new skill before I understand that command."));
-                await this._dlg.replyLink(this._("Configure a new skill"), "/devices/create");
+                return null;
             }
-            throw new CancellationError(); // cancel the dialogue if we failed to set up a device
+
+            if (factory.type === 'multiple' && factory.choices.length === 0) {
+                await this._dlg.replyInterp(this._("You need to enable ${device} before you can use that command."), {
+                    device: factory.text
+                });
+            } else if (factory.type === 'multiple') {
+                await this._dlg.replyInterp(this._("You do not have a ${device} configured. You will need to enable ${choices:disjunction} before you can use that command."), {
+                    device: factory.text,
+                    choices: factory.choices.map((f) => f.text)
+                });
+            } else {
+                await this._dlg.replyInterp(this._("You need to enable ${device} before you can use that command."), {
+                    device: factory.text
+                });
+            }
+
+            // HACK: home assistant cannot be configured here, override the factory type
+            if (factory.type !== 'multiple' && factory.kind === 'io.home-assistant')
+                factory.type = 'interactive'; // this code is CHAOTIC EVIL as it exploits the unsoundness of TypeScript :D
+
+            switch (factory.type) {
+            case 'oauth2':
+                await this._dlg.replyLink(this._dlg.interpolate(this._("Configure ${device}"), { device: factory.text }),
+                    `/devices/oauth2/${factory.kind}?name=${encodeURIComponent(factory.text)}`);
+                break;
+            case 'multiple':
+                await this._dlg.replyLink(this._("Configure a new skill"), "/devices/create");
+                break;
+            default:
+                await this._dlg.replyLink(this._dlg.interpolate(this._("Configure ${device}"), { device: factory.text }), "/devices/create");
+            }
+            return null;
         }
     }
 
