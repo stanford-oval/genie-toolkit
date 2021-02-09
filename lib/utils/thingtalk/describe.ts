@@ -474,7 +474,7 @@ export class Describer {
             if (argname in canonical_overwrite) {
                 lhs = canonical_overwrite[argname];
             } else if (schema) {
-                if (argname in schema.index)
+                if (schema.hasArgument(argname))
                     lhs = schema.getArgCanonical(argname)!;
                 else
                     lhs = scope[argname];
@@ -510,7 +510,7 @@ export class Describer {
                 if (argname in canonical_overwrite) {
                     argcanonical = canonical_overwrite[argname];
                 } else if (schema) {
-                    if (argname in schema.index)
+                    if (schema.hasArgument(argname))
                         argcanonical = schema.getArgCanonical(argname);
                     else
                         argcanonical = scope[argname];
