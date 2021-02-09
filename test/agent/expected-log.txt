@@ -286,7 +286,7 @@ C: (@com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filte
 C: #[results=[
 C:   { song="spotify:track:6habFhsOp2NvshLv26DqMb"^^com.spotify:song("Despacito"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device }
 C: ]];
-A: I played Despacito on Spotify on str:ENTITY_com.spotify:device::36:.
+A: I played Despacito on Spotify.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! vote: down
 #! comment: test comment for dialogue turns
@@ -303,7 +303,7 @@ C: (@com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filte
 C: #[results=[
 C:   { song="spotify:track:6ocbgoVGwYJhOv1GgI9NsF"^^com.spotify:song("7 rings"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device }
 C: ]];
-A: I played 7 rings on Spotify on str:ENTITY_com.spotify:device::36:.
+A: I played 7 rings on Spotify.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -627,9 +627,9 @@ C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For Wha
 C: ]];
 C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
 C: #[results=[
-C:   { song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device }
+C:   { song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), device="str:ENTITY_com.spotify:device::28:"^^com.spotify:device }
 C: ]];
-A: I played Nice For What on Spotify on str:ENTITY_com.spotify:device::36:.
+A: I played Nice For What on Spotify.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! vote: up
 #! comment: test comment for dialogue turns
