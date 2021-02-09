@@ -40,12 +40,13 @@ export interface PreparsedCommand {
     slotTypes ?: Record<string, string>;
 }
 
-function parseSpecial(intent : Ast.SpecialControlIntent, context : { platformData : PlatformData }) {
+function parseSpecial(intent : Ast.SpecialControlIntent,
+                      context : { command : string|null, platformData : PlatformData }) {
     switch (intent.type) {
     case 'yes':
-        return new UserInput.Answer(new Ast.Value.Boolean(true), context.platformData);
+        return new UserInput.Answer(new Ast.Value.Boolean(true), context.command, context.platformData);
     case 'no':
-        return new UserInput.Answer(new Ast.Value.Boolean(false), context.platformData);
+        return new UserInput.Answer(new Ast.Value.Boolean(false), context.command, context.platformData);
     default:
         return new UserInput.UICommand(intent.type, context.platformData);
     }
@@ -56,26 +57,29 @@ function parseSpecial(intent : Ast.SpecialControlIntent, context : { platformDat
  * a UI action (a button) or a natural language command.
  */
 class UserInput {
+    utterance : string|null;
     platformData : PlatformData;
 
-    constructor(platformData : PlatformData) {
+    constructor(utterance : string|null, platformData : PlatformData) {
+        this.utterance = utterance;
         this.platformData = platformData;
     }
 
-    static fromThingTalk(thingtalk : Ast.Input, context : { platformData : PlatformData }) : UserInput {
+    static fromThingTalk(thingtalk : Ast.Input,
+                         context : { command : string|null, platformData : PlatformData }) : UserInput {
         if (thingtalk instanceof Ast.ControlCommand) {
             if (thingtalk.intent instanceof Ast.SpecialControlIntent)
                 return parseSpecial(thingtalk.intent, context);
             else if (thingtalk.intent instanceof Ast.AnswerControlIntent)
-                return new UserInput.Answer(thingtalk.intent.value, context.platformData);
+                return new UserInput.Answer(thingtalk.intent.value, context.command, context.platformData);
             else if (thingtalk.intent instanceof Ast.ChoiceControlIntent)
-                return new UserInput.MultipleChoiceAnswer(thingtalk.intent.value, context.platformData);
+                return new UserInput.MultipleChoiceAnswer(thingtalk.intent.value, context.command, context.platformData);
             else
                 throw new TypeError(`Unrecognized bookkeeping intent`);
         } else if (thingtalk instanceof Ast.Program) {
-            return new UserInput.Program(thingtalk, context.platformData);
+            return new UserInput.Program(thingtalk, context.command, context.platformData);
         } else if (thingtalk instanceof Ast.DialogueState) {
-            return new UserInput.DialogueState(thingtalk, context.platformData);
+            return new UserInput.DialogueState(thingtalk, context.command, context.platformData);
         } else {
             throw new TypeError(`Unrecognized ThingTalk command: ${thingtalk.prettyprint()}`);
         }
@@ -84,7 +88,7 @@ class UserInput {
     static async parse(json : { program : string }|PreparsedCommand,
                        thingpediaClient : Tp.BaseClient,
                        schemaRetriever : SchemaRetriever,
-                       context : { platformData : PlatformData }) : Promise<UserInput> {
+                       context : { command : string|null, platformData : PlatformData }) : Promise<UserInput> {
         if ('program' in json) {
             return UserInput.fromThingTalk(await ThingTalkUtils.parse(json.program, {
                 thingpediaClient,
@@ -122,12 +126,7 @@ namespace UserInput {
     /**
      * A natural language command that failed to parse entirely.
      */
-    export class Failed extends UserInput {
-        constructor(public utterance : string,
-                    platformData : PlatformData) {
-            super(platformData);
-        }
-    }
+    export class Failed extends UserInput {}
 
     /**
      * A special command that bypasses the neural network, or a button on the UI.
@@ -135,7 +134,7 @@ namespace UserInput {
     export class UICommand extends UserInput {
         constructor(public type : string,
                     platformData : PlatformData) {
-            super(platformData);
+            super(null, platformData);
         }
     }
 
@@ -148,8 +147,9 @@ namespace UserInput {
         category : ValueCategory.MultipleChoice = ValueCategory.MultipleChoice;
 
         constructor(public value : number,
+                    utterance : string|null,
                     platformData : PlatformData) {
-            super(platformData);
+            super(utterance, platformData);
         }
     }
 
@@ -162,8 +162,9 @@ namespace UserInput {
         category : ValueCategory;
 
         constructor(public value : Ast.Value,
+                    utterance : string|null,
                     platformData : PlatformData) {
-            super(platformData);
+            super(utterance, platformData);
             this.category = ValueCategory.fromValue(value);
         }
     }
@@ -174,8 +175,9 @@ namespace UserInput {
      */
     export class Program extends UserInput {
         constructor(public program : Ast.Program,
+                    utterance : string|null,
                     platformData : PlatformData) {
-            super(platformData);
+            super(utterance, platformData);
         }
     }
 
@@ -185,8 +187,9 @@ namespace UserInput {
      */
     export class DialogueState extends UserInput {
         constructor(public prediction : Ast.DialogueState,
+                    utterance : string|null,
                     platformData : PlatformData) {
-            super(platformData);
+            super(utterance, platformData);
         }
     }
 }

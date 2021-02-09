@@ -170,6 +170,8 @@ export interface DialogueTurn {
     intermediate_context : string|null;
     user : string;
     user_target : string;
+    vote ?: string;
+    comment ?: string;
 }
 
 export interface DialogueExample {
@@ -192,7 +194,9 @@ class DialogueSerializer extends Stream.Transform {
             this.push(v);
     }
 
-    private _prefixLines(text : string, prefix : string) : string[] {
+    private _prefixLines(text : string|null, prefix : string) : string[] {
+        if (!text)
+            return [];
         return text.trim().split('\n').map((line) => prefix + line + '\n');
     }
 
@@ -206,14 +210,21 @@ class DialogueSerializer extends Stream.Transform {
             const turn = dlg.turns[i];
             if (i > 0) {
                 if (this._annotations)
-                    this._pushMany(this._prefixLines(turn.context!, 'C: '));
-                this.push('A: ' + turn.agent + '\n');
+                    this._pushMany(this._prefixLines(turn.context, 'C: '));
+                this._pushMany(this._prefixLines(turn.agent, 'A: '));
                 if (this._annotations)
-                    this._pushMany(this._prefixLines(turn.agent_target!, 'AT: '));
+                    this._pushMany(this._prefixLines(turn.agent_target, 'AT: '));
                 if (this._annotations && turn.intermediate_context)
                     this._pushMany(this._prefixLines(turn.intermediate_context, 'C: '));
             }
-            this.push('U: ' + turn.user + '\n');
+            if (turn.vote)
+                this.push('#! vote: ' + turn.vote + '\n');
+            if (turn.comment) {
+                const lines = turn.comment.trim().split('\n');
+                this.push('#! comment: ' + lines[0] + '\n');
+                this._pushMany(this._prefixLines(lines.slice(1).join('\n'), '#!          '));
+            }
+            this._pushMany(this._prefixLines(turn.user, 'U: '));
             if (this._annotations)
                 this._pushMany(this._prefixLines(turn.user_target, 'UT: '));
         }
@@ -303,6 +314,7 @@ class DialogueParser extends Stream.Transform {
             intermediate_context: '',
             user: '',
             user_target: '',
+            comment: ''
         };
 
         // first turn starts with the user
@@ -316,13 +328,14 @@ class DialogueParser extends Stream.Transform {
                 intermediate_context: '',
                 user: '',
                 user_target: '',
+                comment: ''
             };
         }
 
         let currentKey : keyof DialogueTurn|null = null;
         let text = '';
         for (const line of lines) {
-            let key, newText;
+            let key : keyof DialogueTurn, newText;
             if (line.startsWith('A: ')) {
                 key = 'agent';
                 newText = line.substring(3).trim().normalize('NFKD');
@@ -338,12 +351,31 @@ class DialogueParser extends Stream.Transform {
             } else if (line.startsWith('C: ')) {
                 key = 'context';
                 newText = line.substring(3).normalize('NFKD');
+            } else if (line.startsWith('#! vote: ')) {
+                key = 'vote';
+                newText = line.substring('#! vote: '.length).normalize('NFKD');
+            } else if (line.startsWith('#! comment: ')) {
+                key = 'comment';
+                newText = line.substring('#! comment: '.length).normalize('NFKD');
+            } else if (line.startsWith('#! ')) {
+                key = 'comment';
+                newText = line.substring('#! '.length).normalize('NFKD');
             } else {
                 throw new Error(`malformed line ${line}, expected to start with C:, U:, A:, AT: or UT:`);
             }
 
+            if (key === 'vote') {
+                currentTurn.vote = newText + '\n';
+                continue;
+            }
+            if (key === 'comment') {
+                currentTurn.comment += newText + '\n';
+                continue;
+            }
+
             if (currentKey === 'intermediate_context' && key === 'context')
                 key = 'intermediate_context';
+
             if (currentKey !== null && currentKey !== key) {
                 assert(text);
                 currentTurn[currentKey] = text.trim().normalize('NFKD');

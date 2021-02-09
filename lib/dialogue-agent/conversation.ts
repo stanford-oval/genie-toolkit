@@ -19,6 +19,8 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
+import path from "path";
+import fs from "fs";
 import * as events from 'events';
 import interpolate from 'string-interp';
 import type * as Tp from 'thingpedia';
@@ -34,6 +36,8 @@ import { MessageType, Message, RDL } from './protocol';
 import { EntityMap } from '../utils/entity-utils';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import type Engine from '../engine';
+import * as StreamUtils from "../utils/stream-utils";
+import { DialogueSerializer, DialogueTurn } from "../dataset-tools/parsers";
 
 const DummyStatistics = {
     hit() {
@@ -57,6 +61,7 @@ export interface ConversationOptions {
     contextResetTimeout ?: number;
     showWelcome ?: boolean;
     deleteWhenInactive ?: boolean;
+    log ?: boolean;
 }
 
 interface Statistics {
@@ -85,6 +90,32 @@ interface ResultLike {
 interface PredictionCandidate {
     target : UserInput;
     score : number|'Infinity';
+}
+
+class DialogueLog {
+    private readonly _turns : DialogueTurn[];
+    private _done : boolean;
+
+    constructor() {
+        this._turns = [];
+        this._done = false;
+    }
+
+    get turns() {
+        return this._turns;
+    }
+
+    get done() {
+        return this._done;
+    }
+
+    finish() {
+        this._done = true;
+    }
+
+    append(turn : DialogueTurn) {
+        this._turns.push(turn);
+    }
 }
 
 export default class Conversation extends events.EventEmitter {
@@ -118,6 +149,8 @@ export default class Conversation extends events.EventEmitter {
     private _inactivityTimeoutSec : number;
     private _contextResetTimeout : NodeJS.Timeout|null;
     private _contextResetTimeoutSec : number;
+
+    private _log : DialogueLog[];
 
     constructor(engine : Engine,
                 conversationId : string,
@@ -169,6 +202,8 @@ export default class Conversation extends events.EventEmitter {
         this._inactivityTimeoutSec = options.inactivityTimeout || DEFAULT_CONVERSATION_TTL;
         this._contextResetTimeout = null;
         this._contextResetTimeoutSec = options.contextResetTimeout || this._inactivityTimeoutSec;
+
+        this._log = [];
     }
 
     get isAnonymous() : boolean {
@@ -213,6 +248,18 @@ export default class Conversation extends events.EventEmitter {
 
     get history() : Message[] {
         return this._history;
+    }
+
+    get inRecordingMode() : boolean {
+        return !!this._options.log;
+    }
+
+    startRecording() {
+        this._options.log = true;
+    }
+
+    endRecording() {
+        this._options.log = false;
     }
 
     notify(appId : string, icon : string|null, outputType : string, outputValue : Record<string, unknown>) {
@@ -312,7 +359,7 @@ export default class Conversation extends events.EventEmitter {
                 console.log(`Failed to parse beam ${beamposition}: ${e.message}`);
 
                 if (this._isUnsupportedError(e))
-                    parsed = new UserInput.Unsupported(platformData);
+                    parsed = new UserInput.Unsupported(command, platformData);
                 else
                     return null;
             }
@@ -342,13 +389,13 @@ export default class Conversation extends events.EventEmitter {
         }
     }
 
-    private async _errorWrap(fn : () => Promise<void>, platformData : PlatformData) : Promise<void> {
+    private async _errorWrap(fn : () => Promise<void>, command : string|null, platformData : PlatformData) : Promise<void> {
         try {
             try {
                 await fn();
             } catch(e) {
                 if (this._isUnsupportedError(e))
-                    await this._doHandleCommand(new UserInput.Unsupported(platformData), null, [], true);
+                    await this._doHandleCommand(new UserInput.Unsupported(command, platformData), null, [], true);
                 else
                     throw e;
             }
@@ -433,7 +480,7 @@ export default class Conversation extends events.EventEmitter {
                     value = new ThingTalk.Ast.LocationValue(new ThingTalk.Ast.UnresolvedLocation(command));
                 else
                     value = new ThingTalk.Ast.Value.String(command);
-                const intent = new UserInput.Answer(value, platformData);
+                const intent = new UserInput.Answer(value, command, platformData);
                 return this._doHandleCommand(intent, null, [], true);
             }
 
@@ -441,10 +488,11 @@ export default class Conversation extends events.EventEmitter {
             if (postprocess)
                 postprocess(analyzed);
             return this._continueHandleCommand(command, analyzed, platformData);
-        }, platformData);
+        }, command, platformData);
     }
 
     async handleParsedCommand(root : any, title ?: string, platformData : PlatformData = {}) : Promise<void> {
+        const command = `\\r ${typeof root === 'string' ? root : JSON.stringify(root)}`;
         this.stats.hit('sabrina-parsed-command');
         this.emit('active');
         this._resetInactivityTimeout();
@@ -458,26 +506,26 @@ export default class Conversation extends events.EventEmitter {
                 console.error('Failed to record example click: ' + e.message);
             });
         }
-
         return this._errorWrap(async () => {
             const intent = await UserInput.parse(root, this.thingpedia, this.schemas,
-                this._getContext(null, platformData));
+                this._getContext(command, platformData));
             return this._doHandleCommand(intent, null, [], true);
-        }, platformData);
+        }, command, platformData);
     }
 
     async handleThingTalk(program : string, platformData : PlatformData = {}) : Promise<void> {
+        const command = `\\t ${program}`;
         this.stats.hit('sabrina-thingtalk-command');
         this.emit('active');
         this._resetInactivityTimeout();
-        await this._addMessage({ type: MessageType.COMMAND, command: '\\t ' + program });
+        await this._addMessage({ type: MessageType.COMMAND, command });
         if (this._debug)
             console.log('Received ThingTalk program');
 
         return this._errorWrap(async () => {
-            const intent = await UserInput.parse({ program }, this.thingpedia, this.schemas, this._getContext(null, platformData));
+            const intent = await UserInput.parse({ program }, this.thingpedia, this.schemas, this._getContext(command, platformData));
             return this._doHandleCommand(intent, null, [], true);
-        }, platformData);
+        }, command, platformData);
     }
 
     async setHypothesis(hypothesis : string) : Promise<void> {
@@ -547,5 +595,67 @@ export default class Conversation extends events.EventEmitter {
         if (this._debug)
             console.log('Almond sends link: '+ url);
         return this._addMessage({ type: MessageType.LINK, url, title });
+    }
+
+    lastDialogue() {
+        if (this._log.length === 0)
+            return null;
+        return this._log[this._log.length - 1];
+    }
+
+    lastTurn() {
+        const lastDialogue = this.lastDialogue();
+        if (!lastDialogue || lastDialogue.turns.length === 0)
+            throw new Error('No dialogue is logged');
+        return lastDialogue.turns[lastDialogue.turns.length - 1];
+    }
+
+    appendNewDialogue() {
+        this._log.push(new DialogueLog());
+    }
+
+    appendNewTurn(turn : DialogueTurn) {
+        if (!this.lastDialogue() || this.lastDialogue()!.done)
+            this.appendNewDialogue();
+        const dialogue = this.lastDialogue()!;
+        dialogue.append(turn);
+    }
+
+    voteLast(vote : 'up'|'down') {
+        const last = this.lastTurn();
+        last.vote = vote;
+    }
+
+    commentLast(comment : string) {
+        const last = this.lastTurn();
+        last.comment = comment;
+    }
+
+    async saveLog() {
+        const dir = path.join(this._engine.platform.getWritableDir(), 'logs');
+        try {
+            fs.mkdirSync(dir);
+        } catch(e) {
+            if (e.code !== 'EEXIST')
+                throw e;
+        }
+        const logfile = path.join(dir, this.id + '.txt');
+        const serializer = new DialogueSerializer({ annotations: true });
+
+        const output = fs.createWriteStream(logfile);
+
+        serializer.pipe(output);
+        for (const dialogue of this._log)
+            serializer.write({ id: this.id, turns: dialogue.turns });
+        serializer.end();
+
+        await StreamUtils.waitFinish(output);
+    }
+
+    get log() : string|null {
+        const log = path.join(this._engine.platform.getWritableDir(), 'logs', this.id + '.txt');
+        if (!fs.existsSync(log))
+            return null;
+        return log;
     }
 }

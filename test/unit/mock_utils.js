@@ -67,6 +67,10 @@ class MockPlatform extends Tp.BasePlatform {
     getCacheDir() {
         return './cache';
     }
+
+    getWritableDir() {
+        return './';
+    }
 }
 
 export {
