@@ -295,7 +295,7 @@ Hi, how can I help you?
     await conversation.saveLog();
     conversation.endRecording();
 
-    const log = conversation.loadLog();
+    const log = fs.readFileSync(conversation.log).toString();
     const expectedLog = fs.readFileSync(path.resolve(__dirname, './expected-log.txt')).toString();
     assert(log === expectedLog);
 

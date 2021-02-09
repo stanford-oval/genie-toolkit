@@ -286,7 +286,7 @@ export default class DialogueLoop {
 
     private _updateLog() {
         if (this.conversation.inRecordingMode) {
-            this.conversation.appendLog(this._currentTurn);
+            this.conversation.appendNewTurn(this._currentTurn);
             this._currentTurn = {
                 context: null,
                 agent: null,
@@ -573,6 +573,7 @@ export default class DialogueLoop {
         this.icon = null;
         this._dialogueState = null;
         await this.setExpected(null);
+        this.conversation.lastDialogue().finish();
     }
 
     async replyInterp(msg : string, args ?: Record<string, unknown>, icon : string|null = null) {

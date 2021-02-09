@@ -92,6 +92,32 @@ interface PredictionCandidate {
     score : number|'Infinity';
 }
 
+class DialogueLog {
+    private readonly _turns : DialogueTurn[];
+    private _done : boolean;
+
+    constructor() {
+        this._turns = [];
+        this._done = false;
+    }
+
+    get turns() {
+        return this._turns;
+    }
+
+    get done() {
+        return this._done;
+    }
+
+    finish() {
+        this._done = true;
+    }
+
+    append(turn : DialogueTurn) {
+        this._turns.push(turn);
+    }
+}
+
 export default class Conversation extends events.EventEmitter {
     private _engine : Engine;
     private _user : AssistantUser;
@@ -124,7 +150,7 @@ export default class Conversation extends events.EventEmitter {
     private _contextResetTimeout : NodeJS.Timeout|null;
     private _contextResetTimeoutSec : number;
 
-    private _log : DialogueTurn[];
+    private _log : DialogueLog[];
 
     constructor(engine : Engine,
                 conversationId : string,
@@ -571,40 +597,61 @@ export default class Conversation extends events.EventEmitter {
         return this._addMessage({ type: MessageType.LINK, url, title });
     }
 
-    appendLog(turn : DialogueTurn) {
-        this._log.push(turn);
+    lastDialogue() {
+        if (this._log.length === 0)
+            throw new Error('No dialogue is logged');
+        return this._log[this._log.length - 1];
+    }
+
+    lastTurn() {
+        const dialogue = this.lastDialogue();
+        if (dialogue.turns.length === 0)
+            throw new Error('No dialogue is logged');
+        return dialogue.turns[dialogue.turns.length - 1];
+    }
+
+    appendNewDialogue() {
+        this._log.push(new DialogueLog());
+    }
+
+    appendNewTurn(turn : DialogueTurn) {
+        if (this._log.length === 0 || this.lastDialogue().done)
+            this.appendNewDialogue();
+        const dialogue = this.lastDialogue();
+        dialogue.append(turn);
     }
 
     voteLast(vote : 'up'|'down') {
-        if (this._log.length === 0)
-            throw new Error('No response found to be voted');
-        const last = this._log[this._log.length - 1];
+        const last = this.lastTurn();
         last.vote = vote;
     }
 
     commentLast(comment : string) {
-        if (this._log.length === 0)
-            throw new Error('No response found to be commented');
-        const last = this._log[this._log.length - 1];
+        const last = this.lastTurn();
         last.comment = comment;
     }
 
     async saveLog() {
-        const dir = this._engine.platform.getWritableDir();
+        const dir = path.join(this._engine.platform.getWritableDir(), 'logs');
+        if (!fs.existsSync(dir))
+            fs.mkdirSync(dir);
         const logfile = path.join(dir, this.id + '.txt');
         const serializer = new DialogueSerializer({ annotations: true });
 
         const output = fs.createWriteStream(logfile);
 
         serializer.pipe(output);
-        serializer.write({ id: this.id, turns : this._log });
+        for (const dialogue of this._log)
+            serializer.write({ id: this.id, turns: dialogue.turns });
         serializer.end();
 
         await StreamUtils.waitFinish(output);
     }
 
-    loadLog() {
-        const dir = this._engine.platform.getWritableDir();
-        return fs.readFileSync(path.join(dir, this.id + '.txt')).toString();
+    get log() : string|null {
+        const log = path.join(this._engine.platform.getWritableDir(), 'logs', this.id + '.txt');
+        if (!fs.existsSync(log))
+            return null;
+        return log;
     }
 }
