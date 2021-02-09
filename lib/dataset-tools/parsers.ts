@@ -216,13 +216,13 @@ class DialogueSerializer extends Stream.Transform {
                     this._pushMany(this._prefixLines(turn.agent_target, 'AT: '));
                 if (this._annotations && turn.intermediate_context)
                     this._pushMany(this._prefixLines(turn.intermediate_context, 'C: '));
-                if (turn.vote)
-                    this.push('#! vote: ' + turn.vote + '\n');
-                if (turn.comment) {
-                    const lines = turn.comment.trim().split('\n');
-                    this.push('#! comment: ' + lines[0] + '\n');
-                    this._pushMany(this._prefixLines(lines.slice(1).join('\n'), '#!          '));
-                }
+            }
+            if (turn.vote)
+                this.push('#! vote: ' + turn.vote + '\n');
+            if (turn.comment) {
+                const lines = turn.comment.trim().split('\n');
+                this.push('#! comment: ' + lines[0] + '\n');
+                this._pushMany(this._prefixLines(lines.slice(1).join('\n'), '#!          '));
             }
             this._pushMany(this._prefixLines(turn.user, 'U: '));
             if (this._annotations)
