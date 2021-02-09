@@ -1,6 +1,6 @@
 # Installation Instructions
 
-Genie is hosted on [NPM](https://npmjs.com), and depends on nodejs >= 10.*.
+Genie is hosted on [NPM](https://npmjs.com), and depends on nodejs >= 12.*.
 
 ## Option 1: "git" install
 
