@@ -633,8 +633,12 @@ export default class Conversation extends events.EventEmitter {
 
     async saveLog() {
         const dir = path.join(this._engine.platform.getWritableDir(), 'logs');
-        if (!fs.existsSync(dir))
+        try {
             fs.mkdirSync(dir);
+        } catch(e) {
+            if (e.code !== 'EEXIST')
+                throw e;
+        }
         const logfile = path.join(dir, this.id + '.txt');
         const serializer = new DialogueSerializer({ annotations: true });
 
