@@ -22,6 +22,7 @@
 import assert from 'assert';
 import { Ast, SchemaRetriever } from 'thingtalk';
 
+import * as I18n from '../i18n';
 import { cleanKind } from '../utils/misc-utils';
 import { shouldAutoConfirmStatement } from '../utils/thingtalk';
 import { contactSearch, Contact } from './entity-linking/contact_search';
@@ -75,11 +76,13 @@ interface ExecutionResult<PrivateStateType> {
 export default abstract class AbstractDialogueAgent<PrivateStateType> {
     protected _schemas : SchemaRetriever;
     protected _debug : boolean;
+    private _langPack : I18n.LanguagePack;
     locale : string;
     timezone : string;
 
     constructor(schemas : SchemaRetriever, options : AbstractDialogueAgentOptions) {
         this._schemas = schemas;
+        this._langPack = I18n.get(options.locale);
 
         this._debug = options.debug;
         this.locale = options.locale;
@@ -314,7 +317,17 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         // since dlg.locale is overwritten to be en-US, we infer the locale
         // via other environment variables like LANG (language) or TZ (timezone)
         if (value instanceof Ast.MeasureValue && value.unit.startsWith('default')) {
-            value.unit = this.getPreferredUnit(value.unit.substring('default'.length).toLowerCase());
+            const key = value.unit.substring('default'.length).toLowerCase();
+            const preference = this.getPreferredUnit(key);
+            if (preference)
+                value.unit = preference;
+
+            switch (key) {
+            case 'defaultTemperature':
+                value.unit = this._langPack.getDefaultTemperatureUnit();
+            default:
+                throw new TypeError('Unexpected default unit ' + value.unit);
+            }
         } else if (value instanceof Ast.LocationValue && value.value instanceof Ast.UnresolvedLocation) {
             slot.set(await this.lookupLocation(value.value.name, hints.previousLocations || []));
         } else if (value instanceof Ast.LocationValue && value.value instanceof Ast.RelativeLocation) {
@@ -474,12 +487,13 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * Compute the user's preferred unit to use when the program specifies an ambiguous unit
      * such as "degrees".
      *
-     * @param {string} type - the type of unit to retrieve (e.g. "temperature")
+     * @param {string} type - the type of unit to retrieve (e.g. "temperature"), or undefined
+     *   if the user has no preference
      * @returns {string} - the preferred unit
      * @abstract
      * @protected
      */
-    protected getPreferredUnit(type : string) : string {
+    getPreferredUnit(type : string) : string|undefined {
         throw new TypeError('Abstract method');
     }
 }

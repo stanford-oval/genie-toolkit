@@ -19,12 +19,33 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
+import interpolate from 'string-interp';
 import * as fs from 'fs';
 import * as path from 'path';
 import Gettext from 'node-gettext';
 import * as gettextParser from 'gettext-parser';
+import * as Units from 'thingtalk-units';
 
 import BaseTokenizer from './tokenizer/base';
+
+import {
+    EntityMap,
+    AnyEntity,
+    GenericEntity,
+    MeasureEntity,
+    TimeEntity,
+    LocationEntity,
+} from '../utils/entity-utils';
+
+interface UnitPreferenceDelegate {
+    timezone : string;
+
+    getPreferredUnit(type : string) : string|undefined;
+}
+
+function capitalize(word : string) : string {
+    return word[0].toUpperCase() + word.substring(1);
+}
 
 /**
  * Base class for all code that is specific to a certain natural language
@@ -38,6 +59,7 @@ export default class DefaultLanguagePack {
     CHANGE_SUBJECT_TEMPLATES ! : string[];
     SINGLE_DEVICE_TEMPLATES ! : Array<[string, RegExp|null]>;
     DEFINITE_ARTICLE_REGEXP ! : RegExp|undefined;
+    MUST_CAPITALIZE_TOKEN  ! : Set<string>;
 
     // FIXME
     ABBREVIATIONS ! : any;
@@ -52,6 +74,7 @@ export default class DefaultLanguagePack {
 
     private _gt : Gettext;
     gettext : (x : string) => string;
+    private _ : (x : string) => string;
     // do not use ngettext, use ICU syntax `${foo:plural:one{}other{}}` instead
 
     constructor(locale : string) {
@@ -60,6 +83,7 @@ export default class DefaultLanguagePack {
         this._gt = new Gettext();
         this._gt.setLocale(locale);
         this.gettext = this._gt.dgettext.bind(this._gt, 'genie-toolkit');
+        this._ = this.gettext;
 
         if (!/^en(-|$)/.test(locale))
             this._loadTranslations();
@@ -146,26 +170,239 @@ export default class DefaultLanguagePack {
     }
 
     /**
+     * Retrieve the list of units to use for a given base unit. This defaults
+     * to metric units, but subclasses can override to choose a different
+     * unit.
+     *
+     * The best unit for a given value (i.e., the one with the fewest digits)
+     * will be chosen to display. If there are ties, the first unit will be chosen.
+     */
+    protected _getPossibleUnits(baseUnit : string) : string[] {
+        switch (baseUnit) {
+        case 'ms':
+            return ['ms', 's', 'min', 'h', 'day', 'week', 'mon', 'year', 'decade', 'century'];
+        case 'm':
+            return ['mm', 'cm', 'm', 'km', 'ly'];
+        case 'm2':
+            return ['mm2', 'cm2', 'm2', 'km2'];
+        case 'm3':
+            // prefer liquid over solid units
+            return ['ml', 'cl', 'hl', 'l', 'mm3', 'cm3', 'm3', 'km3'];
+        case 'mps':
+            return ['mps', 'kmph'];
+        case 'kg':
+            return ['mg', 'g', 'kg'];
+        case 'Pa':
+            return ['Pa', 'bar'];
+        case 'C':
+            return ['C', 'K'];
+        case 'kcal':
+            return ['kcal', 'kJ'];
+        case 'byte':
+            // avoid IEC units
+            return ['byte', 'KB', 'MB', 'GB', 'TB'];
+        case 'W':
+            return ['W', 'kW'];
+        default:
+            return [baseUnit];
+        }
+    }
+
+    private _getBestUnit(value : number, baseUnit : string) {
+        // default to metric units
+
+        const possibleUnits = this._getPossibleUnits(baseUnit).map((unit) => {
+            const transformed = Units.transformFromBaseUnit(value, unit);
+            // score how close the representation is to 1
+            // add a penalty for 0.something
+            const cost = Math.abs(Math.log10(transformed)) + (2 * +(Math.abs(transformed) < 1));
+            return { unit, cost };
+        });
+        possibleUnits.sort((a, b) => {
+            return a.cost - b.cost;
+        });
+        return possibleUnits[0].unit;
+    }
+
+    private _measureToString(value : number, unit : string, precision = 1) : string {
+        const transformed = Units.transformFromBaseUnit(value, unit);
+        // TODO use value.toLocaleString() with unit formatting
+        //      it depends on https://github.com/tc39/proposal-unified-intl-numberformat
+        //      which is part of ES2020 (so node 14 or later?)
+        return this._numberToString(transformed, precision) + ' ' + unit;
+    }
+
+    private _numberToString(value : number, precision = 1) : string {
+        return value.toLocaleString(this.locale, {
+            minimumFractionDigits: 0,
+            maximumFractionDigits: precision
+        });
+    }
+
+    private _dateToString(date : Date, timezone : string, options ?: Intl.DateTimeFormatOptions) : string {
+        if (!options) {
+            options = {
+                weekday: undefined,
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+            };
+        }
+        options.timeZone = timezone;
+
+        return date.toLocaleDateString(this.locale, options);
+    }
+
+    /**
+     * Convert a date object to a user-visible string, displaying _only_ the time part.
+     *
+     * This is a small wrapper over {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString|Date.toLocaleString}
+     * that applies the correct timezone.
+     *
+     * @param {Date} date - the time to display
+     * @param {Object} [options] - additional options to pass to `toLocaleString`
+     * @return {string} the formatted time
+     */
+    private _timeToString(date : Date, timezone : string, options ?: Intl.DateTimeFormatOptions) : string {
+        if (!options) {
+            options = {
+                hour: 'numeric',
+                minute: '2-digit',
+                timeZoneName: undefined,
+            };
+            if (date.getSeconds() !== 0)
+                options.second = '2-digit';
+        }
+        options.timeZone = timezone;
+        return date.toLocaleTimeString(this.locale, options);
+    }
+
+    private _dateAndTimeToString(date : Date, timezone : string, options : Intl.DateTimeFormatOptions = {}) : string {
+        options.timeZone = timezone;
+        return date.toLocaleString(this.locale, options);
+    }
+
+    getDefaultTemperatureUnit() : string {
+        return 'C';
+    }
+
+    protected displayEntity(token : string,
+                            entityValue : AnyEntity,
+                            delegate : UnitPreferenceDelegate) : string {
+        if (token.startsWith('GENERIC_ENTITY_')) {
+            const entity = entityValue as GenericEntity;
+            return (entity.display || entity.value!);
+        }
+
+        if (token.startsWith('QUOTED_STRING_'))
+            return String(entityValue).replace(/[ \t\v\r\n]+/g, ' ').trim();
+        if (token.startsWith('USERNAME_'))
+            return '@' + entityValue;
+        if (token.startsWith('HASHTAG_'))
+            return '#' + entityValue;
+
+        if (token.startsWith('MEASURE_')) {
+            const [,baseUnit] = /^MEASURE_([A-Za-z0-9_]+)_[0-9]+$/.exec(token)!;
+            const entity = entityValue as MeasureEntity;
+            let fromUnit = entity.unit;
+            if (fromUnit.startsWith('default')) {
+                switch (fromUnit) {
+                case 'defaultTemperature':
+                    fromUnit = delegate.getPreferredUnit('temperature') || this.getDefaultTemperatureUnit();
+                    break;
+                default:
+                    throw new TypeError('Unexpected default unit ' + fromUnit);
+                }
+            }
+            const value = Units.transformToBaseUnit(entity.value, fromUnit);
+
+            let toUnit;
+            if (baseUnit === 'C') {
+                const maybeUnit = delegate.getPreferredUnit('temperature');
+                toUnit = maybeUnit || this.getDefaultTemperatureUnit();
+            } else {
+                toUnit = this._getBestUnit(value, baseUnit);
+            }
+            return this._measureToString(value, toUnit);
+        }
+        if (token.startsWith('NUMBER_'))
+            return this._numberToString(entityValue as number);
+        if (token.startsWith('CURRENCY_')) {
+            const entity = entityValue as MeasureEntity;
+            const options = {
+                style: 'currency',
+                currency: entity.unit.toUpperCase()
+            };
+            return entity.value.toLocaleString(this.locale, options);
+        }
+
+        if (token.startsWith('TIME_')) {
+            const entity = entityValue as TimeEntity;
+            const time = new Date;
+            time.setHours(entity.hour);
+            time.setMinutes(entity.minute);
+            time.setSeconds(entity.second);
+            time.setMilliseconds(0);
+            return this._timeToString(time, delegate.timezone);
+        }
+
+        if (token.startsWith('DATE_')) {
+            const date = entityValue as Date;
+            // check for midnight local, and midnight UTC, to mean date without time
+            if ((date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0) ||
+                (date.getUTCHours() === 0 && date.getUTCMinutes() === 0 && date.getUTCSeconds() === 0))
+                return this._dateToString(date, delegate.timezone);
+            else
+                return this._dateAndTimeToString(date, delegate.timezone);
+        }
+
+        if (token.startsWith('LOCATION_')) {
+            const loc = entityValue as LocationEntity;
+            if (loc.display) {
+                return loc.display;
+            } else {
+                return interpolate(this._("[Latitude: ${loc.latitude:.3} deg, Longitude: ${loc.longitude:.3} deg]"), { loc },
+                    { locale: this.locale, timezone: delegate.timezone })||'';
+            }
+        }
+
+        return String(entityValue);
+    }
+
+    /**
      * Post-process a sentence generated by the neural NLG for display to
      * the user.
      *
      * This includes true-casing, detokenizing, and replacing entity tokens
      * with actual values.
      */
-    postprocessNLG(answer : string, entities : { [key : string] : any }) : string {
-        // simple true-casing: uppercase all letters at the beginning of the sentence
-        // and after a period, question or exclamation mark
-        answer = answer.replace(/(^| [.?!] )([a-z])/g, (_, prefix, letter) => prefix + letter.toUpperCase());
+    postprocessNLG(answer : string, entities : EntityMap, delegate : UnitPreferenceDelegate) : string {
+        // small hack, fix untokenized commas generated by describe (which uses I18n.ListFormat)
+        answer = answer.replace(/([^ ]),/g, '$1 ,');
 
         const tokens = answer.split(' ').map((token) => {
-            if (token in entities) {
-                if (token.startsWith('GENERIC_ENTITY_'))
-                    return (entities[token].display || entities[token].value);
-                return String(entities[token]);
-            }
+            if (token in entities)
+                return this.displayEntity(token, entities[token], delegate);
+
+            // capitalize certain tokens that should be capitalized in English
+            if (this.MUST_CAPITALIZE_TOKEN.has(token))
+                return capitalize(token);
             return token;
         });
         answer = this.detokenizeSentence(tokens);
+
+        // simple true-casing: uppercase all letters at the beginning of the sentence
+        // and after a period, question or exclamation mark
+        answer = answer.replace(/(^|[.?!] )([a-z])/g, (_, prefix, letter) => prefix + letter.toUpperCase());
+
+        // remove duplicate spaces
+        answer = answer.replace(/\s+/g, ' ');
+
+        // sometimes, we end up with two periods at the end of a sentence, because
+        // a #[result] phrase includes a period, or because a value includes a period
+        // (this happens with jokes)
+        // clean that up
+        answer = answer.replace(/\.\.$/, '.');
 
         return answer;
     }
@@ -322,3 +559,10 @@ DefaultLanguagePack.prototype.SINGLE_DEVICE_TEMPLATES = [];
  * A language without definite articles should leave this to `undefined`.
  */
 DefaultLanguagePack.prototype.DEFINITE_ARTICLE_REGEXP = undefined;
+
+/**
+ * A set of tokens that must always be capitalized.
+ */
+DefaultLanguagePack.prototype.MUST_CAPITALIZE_TOKEN = new Set([
+    'spotify', 'twitter', 'yelp', 'google', 'facebook',
+]);

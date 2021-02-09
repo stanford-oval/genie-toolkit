@@ -83,7 +83,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant() => notify;
 
-A: I see Ramen Nagi or Evvia Estiatorio. All of them are restaurants rated 4.5 star.
+A: I have Ramen Nagi or Evvia Estiatorio. They're restaurants rated 4.5 star.
 A: rdl: Ramen Nagi https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Evvia Estiatorio https://www.yelp.com/biz/evvia-estiatorio-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_two ; @com.yelp . restaurant ( ) #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , image_url = PICTURE_0 , link = URL_0 , cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_1 ] , price = enum moderate , rating = NUMBER_0 , reviewCount = NUMBER_1 , geo = LOCATION_0 } ] ] #[ count = NUMBER_2 ] #[ more = true ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"PICTURE_0":"https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg","URL_0":"https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"ramen","display":"Ramen"},"GENERIC_ENTITY_com.yelp:restaurant_cuisine_1":{"value":"noodles","display":"Noodles"},"NUMBER_0":4.5,"NUMBER_1":1625,"LOCATION_0":{"latitude":37.445523,"longitude":-122.1607073261,"display":null},"NUMBER_2":50}
@@ -101,7 +101,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), price == enum(expensive) => notify;
 
-A: I have Evvia Estiatorio, NOLA Restaurant & Bar or Tamarine Restaurant. All of them are expensive restaurant.
+A: I see Evvia Estiatorio, NOLA Restaurant & Bar and Tamarine Restaurant. They're expensives restaurant.
 A: rdl: Evvia Estiatorio https://www.yelp.com/biz/evvia-estiatorio-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: NOLA Restaurant & Bar https://www.yelp.com/biz/nola-restaurant-and-bar-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Tamarine Restaurant https://www.yelp.com/biz/tamarine-restaurant-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
@@ -118,7 +118,7 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
 # U: No thanks, goodbye
 #U: \t $dialogue @org.thingpedia.dialogue.transaction.end;
 
-A: Alright, good bye!
+A: Alright, bye!
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -128,7 +128,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
 
-A: The current weather in Palo Alto, California is sunny. The temperature is 15.6 C and the humidity is 91.3 %.
+A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 F and the humidity is 91.3 %.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.weather . current ( location = LOCATION_0 ) #[ results = [ { location = LOCATION_0 , temperature = MEASURE_C_0 , wind_speed = MEASURE_mps_0 , humidity = NUMBER_0 , cloudiness = NUMBER_1 , fog = 0 , status = enum sunny , icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":15.6},"MEASURE_mps_0":{"unit":"mps","value":3.4},"NUMBER_0":91.3,"NUMBER_1":4.7,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
 A: >> expecting = null
 
@@ -136,7 +136,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => [temperature] of @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
 
-A: The temperature is 15.6 C.
+A: The temperature is 60.1 F.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; [ temperature ] of @org.thingpedia.weather . current ( location = LOCATION_0 ) #[ results = [ { location = LOCATION_0 , temperature = MEASURE_C_0 , status = enum sunny } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":15.6}}
 A: >> expecting = null
 
@@ -153,7 +153,7 @@ A: >> expecting = location
 # let's use the location picker!
 U: \t bookkeeping(answer(new Location(37.442156, -122.1634471, "Palo Alto, California")));
 
-A: The current weather in Palo Alto, California is sunny. The temperature is 15.6 C and the humidity is 91.3 %.
+A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 F and the humidity is 91.3 %.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.weather . current ( location = LOCATION_0 ) #[ results = [ { location = LOCATION_0 , temperature = MEASURE_C_0 , wind_speed = MEASURE_mps_0 , humidity = NUMBER_0 , cloudiness = NUMBER_1 , fog = 0 , status = enum sunny , icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":15.6},"MEASURE_mps_0":{"unit":"mps","value":3.4},"NUMBER_0":91.3,"NUMBER_1":4.7,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
 A: >> expecting = null
 
@@ -243,7 +243,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), contains(cuisines, null^^com.yelp:restaurant_cuisine("italian")) => notify;
 
-A: I have found Patxi's Pizza, Cafe Borrone and Osteria Toscana. All of them are moderate restaurant with Italian food.
+A: I see Patxi's Pizza, Cafe Borrone and Osteria Toscana. All of them are moderate restaurants having Italian food.
 A: rdl: Patxi's Pizza https://www.yelp.com/biz/patxis-pizza-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Cafe Borrone https://www.yelp.com/biz/cafe-borrone-menlo-park?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Osteria Toscana https://www.yelp.com/biz/osteria-toscana-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
@@ -275,7 +275,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), contains(cuisines, null^^com.yelp:restaurant_cuisine("italian")) => notify;
 
-A: I have found Patxi's Pizza, Cafe Borrone and Osteria Toscana. All of them are moderate restaurant with Italian food.
+A: I see Patxi's Pizza, Cafe Borrone and Osteria Toscana. All of them are moderate restaurants having Italian food.
 A: rdl: Patxi's Pizza https://www.yelp.com/biz/patxis-pizza-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Cafe Borrone https://www.yelp.com/biz/cafe-borrone-menlo-park?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Osteria Toscana https://www.yelp.com/biz/osteria-toscana-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
@@ -290,7 +290,7 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
 
 # "no thanks", but intercepted by the exact match
 #U: \r bookkeeping special special:no
-A: Alright, good bye!
+A: Alright, bye!
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -372,7 +372,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => [distance(geo, $location.current_location)] of (@com.yelp.restaurant()) => notify;
 
-A: The distance is 2004.1 m.
+A: The distance is 1.2 mi.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; [ distance ( geo , LOCATION_0 ) ] of @com.yelp . restaurant ( ) #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , distance = MEASURE_m_0 } ] ] #[ count = NUMBER_0 ] #[ more = true ] ; // {"LOCATION_0":{"latitude":37.4275,"longitude":-122.1697,"display":null},"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"MEASURE_m_0":{"unit":"m","value":2004.0661629148217},"NUMBER_0":50}
 A: >> expecting = null
 
@@ -390,7 +390,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (@com.yelp.restaurant(), id =~ "ramen nagi") => notify;
 
-A: Ramen Nagi is a moderate restaurant rated 4.5 star.
+A: Ramen Nagi is a moderate restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg].
 A: rdl: Ramen Nagi https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; @com.yelp . restaurant ( ) filter id =~ QUOTED_STRING_0 #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , image_url = PICTURE_0 , link = URL_0 , cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_1 ] , price = enum moderate , rating = NUMBER_0 , reviewCount = NUMBER_1 , geo = LOCATION_0 } ] ] ; // {"QUOTED_STRING_0":"ramen nagi","GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"PICTURE_0":"https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg","URL_0":"https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"ramen","display":"Ramen"},"GENERIC_ENTITY_com.yelp:restaurant_cuisine_1":{"value":"noodles","display":"Noodles"},"NUMBER_0":4.5,"NUMBER_1":1625,"LOCATION_0":{"latitude":37.445523,"longitude":-122.1607073261,"display":null}}
 A: >> expecting = null
@@ -408,7 +408,7 @@ A: >> expecting = command
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (@com.yelp.restaurant(), id =~ "ramen nagi") => notify;
 
-A: Ramen Nagi is a moderate restaurant rated 4.5 star.
+A: Ramen Nagi is a moderate restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg].
 A: rdl: Ramen Nagi https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; @com.yelp . restaurant ( ) filter id =~ QUOTED_STRING_0 #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , image_url = PICTURE_0 , link = URL_0 , cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_1 ] , price = enum moderate , rating = NUMBER_0 , reviewCount = NUMBER_1 , geo = LOCATION_0 } ] ] ; // {"QUOTED_STRING_0":"ramen nagi","GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"PICTURE_0":"https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg","URL_0":"https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"ramen","display":"Ramen"},"GENERIC_ENTITY_com.yelp:restaurant_cuisine_1":{"value":"noodles","display":"Noodles"},"NUMBER_0":4.5,"NUMBER_1":1625,"LOCATION_0":{"latitude":37.445523,"longitude":-122.1607073261,"display":null}}
 A: >> expecting = null
@@ -494,7 +494,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => [release_date] of (@com.spotify.song(), id =~ "Nice For What") => notify;
 
-A: Nice For What is a song released in 6/28/2018. Would you like to play it on Spotify?
+A: Nice For What is a song released on June 28, 2018. Would you like to play it on Spotify?
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; [ release_date ] of @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . song ( ) filter id =~ QUOTED_STRING_0 #[ results = [ { id = GENERIC_ENTITY_com.spotify:song_0 , release_date = DATE_0 } ] ] ; @com.spotify . play_song ( song = GENERIC_ENTITY_com.spotify:song_0 ) #[ confirm = enum proposed ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"Nice For What","GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:3CA9pLiwRIGtUBiMjbZmRw","display":"Nice For What"},"DATE_0":"2018-06-29T00:00:00.000Z"}
 A: >> expecting = command
 
@@ -505,7 +505,7 @@ A: >> expecting = command
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => [release_date] of (@com.spotify.song(), id =~ "hello") => notify;
 
-A: Hello? is a song released in 5/24/2018. Would you like to play it on Spotify?
+A: Hello? Is a song released on May 24, 2018. Would you like to play it on Spotify?
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; [ release_date ] of @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . song ( ) filter id =~ QUOTED_STRING_0 #[ results = [ { id = GENERIC_ENTITY_com.spotify:song_0 , release_date = DATE_0 } ] ] #[ count = 11 ] ; @com.spotify . play_song ( song = GENERIC_ENTITY_com.spotify:song_0 ) #[ confirm = enum proposed ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"hello","GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:7qwt4xUIqQWCu1DJf96g2k","display":"Hello?"},"DATE_0":"2018-05-25T00:00:00.000Z"}
 A: >> expecting = command
 
@@ -527,7 +527,7 @@ A: >> expecting = command
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => [release_date] of (@com.spotify.album(), id =~ "the wall") => notify;
 
-A: The Wall is an album from 11/29/1979.
+A: The Wall is an album from November 29, 1979.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; [ release_date ] of @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . album ( ) filter id =~ QUOTED_STRING_0 #[ results = [ { id = GENERIC_ENTITY_com.spotify:album_0 , release_date = DATE_0 } ] ] #[ count = 4 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"the wall","GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:5Dbax7G8SWrP9xyzkOvy2F","display":"The Wall"},"DATE_0":"1979-11-30T00:00:00.000Z"}
 A: >> expecting = null
 
@@ -537,14 +537,14 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => [release_date] of (@com.spotify.album(), id =~ "the wall") => notify;
 
-A: The Wall is an album from 11/29/1979.
+A: The Wall is an album from November 29, 1979.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; [ release_date ] of @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . album ( ) filter id =~ QUOTED_STRING_0 #[ results = [ { id = GENERIC_ENTITY_com.spotify:album_0 , release_date = DATE_0 } ] ] #[ count = 4 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"the wall","GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:5Dbax7G8SWrP9xyzkOvy2F","display":"The Wall"},"DATE_0":"1979-11-30T00:00:00.000Z"}
 A: >> expecting = null
 
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
 
-A: The current weather in Palo Alto, California is sunny. The temperature is 15.6 C and the humidity is 91.3 %.
+A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 F and the humidity is 91.3 %.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; [ release_date ] of @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . album ( ) filter id =~ QUOTED_STRING_0 #[ results = [ { id = GENERIC_ENTITY_com.spotify:album_0 , release_date = DATE_0 } ] ] #[ count = 4 ] ; @org.thingpedia.weather . current ( location = LOCATION_0 ) #[ results = [ { location = LOCATION_0 , temperature = MEASURE_C_0 , wind_speed = MEASURE_mps_0 , humidity = NUMBER_0 , cloudiness = NUMBER_1 , fog = 0 , status = enum sunny , icon = PICTURE_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"QUOTED_STRING_0":"the wall","GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:5Dbax7G8SWrP9xyzkOvy2F","display":"The Wall"},"DATE_0":"1979-11-30T00:00:00.000Z","LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":15.6},"MEASURE_mps_0":{"unit":"mps","value":3.4},"NUMBER_0":91.3,"NUMBER_1":4.7,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
 A: >> expecting = null
 
@@ -602,7 +602,7 @@ A: >> expecting = command
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (sort reviewCount desc of @com.yelp.restaurant())[1] => notify;
 
-A: The restaurant with the highest review count is NOLA Restaurant & Bar. It is an expensive restaurant rated 3.5 star.
+A: The restaurant with the highest review count is NOLA Restaurant & Bar. It is an expensive restaurant near [Latitude: 37.445 deg, Longitude: -122.161 deg].
 A: rdl: NOLA Restaurant & Bar https://www.yelp.com/biz/nola-restaurant-and-bar-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; sort ( reviewCount desc of @com.yelp . restaurant ( ) ) [ 1 ] #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , image_url = PICTURE_0 , link = URL_0 , cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_1 ] , price = enum expensive , rating = NUMBER_0 , reviewCount = NUMBER_1 , geo = LOCATION_0 , phone = PHONE_NUMBER_0 } ] ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"jwaXc3VVGDFQu1aCoiXwdw","display":"NOLA Restaurant & Bar"},"PICTURE_0":"https://s3-media2.fl.yelpcdn.com/bphoto/tna5SSdgZq3fFxoi4-Xx7A/o.jpg","URL_0":"https://www.yelp.com/biz/nola-restaurant-and-bar-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"cajun","display":"Cajun/Creole"},"GENERIC_ENTITY_com.yelp:restaurant_cuisine_1":{"value":"newamerican","display":"American (New)"},"NUMBER_0":3.5,"NUMBER_1":2821,"LOCATION_0":{"latitude":37.4450225830078,"longitude":-122.161323547363,"display":null},"PHONE_NUMBER_0":"+16503282722"}
 A: >> expecting = null
@@ -613,7 +613,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (sort reviewCount asc of @com.yelp.restaurant())[1] => notify;
 
-A: The restaurant with the lowest review count is The Ivy Cambridge Brasserie. It is a restaurant rated 4.5 star with British food.
+A: The restaurant with the lowest review count is The Ivy Cambridge Brasserie. It is a restaurant near [Latitude: 52.207 deg, Longitude: 0.118 deg] rated 4.5 star.
 A: rdl: The Ivy Cambridge Brasserie https://www.yelp.com/biz/the-ivy-cambridge-brasserie-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; sort ( reviewCount asc of @com.yelp . restaurant ( ) ) [ 1 ] #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , image_url = PICTURE_0 , link = URL_0 , cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 ] , rating = NUMBER_0 , reviewCount = 12 , geo = LOCATION_0 , phone = PHONE_NUMBER_0 } ] ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"yzBYyndSQ3RI6Hci2F9pRQ","display":"The Ivy Cambridge Brasserie"},"PICTURE_0":"https://s3-media4.fl.yelpcdn.com/bphoto/9daDsE_Aq-AtJnDDPruBSQ/o.jpg","URL_0":"https://www.yelp.com/biz/the-ivy-cambridge-brasserie-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"british","display":"British"},"NUMBER_0":4.5,"LOCATION_0":{"latitude":52.2069714284192,"longitude":0.118247921026355,"display":null},"PHONE_NUMBER_0":"+441223344044"}
 A: >> expecting = null
@@ -637,7 +637,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.xkcd.comic();
 
-A: I found xkcd 20. It is an xkcd comic from 1/20/2018 titled Some Device 10.
+A: I found xkcd 20. It is an xkcd comic from January 20, 2018 titled Some Device 10.
 A: rdl: Some Device 10 str:ENTITY_tt:url::1:
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; @com.xkcd ( id = GENERIC_ENTITY_tt:device_id_0 ) . comic ( ) #[ results = [ { id = NUMBER_0 , title = QUOTED_STRING_0 , release_date = DATE_0 , picture_url = PICTURE_0 , link = URL_0 , alt_text = QUOTED_STRING_0 } ] ] #[ count = NUMBER_1 ] #[ more = true ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.xkcd-10","display":"Some Device 10"},"NUMBER_0":20,"QUOTED_STRING_0":"Some Device 10","DATE_0":"2018-01-20T08:00:00.000Z","PICTURE_0":"str:ENTITY_tt:picture::14:","URL_0":"str:ENTITY_tt:url::1:","NUMBER_1":50}
 A: >> expecting = null
@@ -649,7 +649,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: sort(release_date desc of @com.xkcd.comic())[1];
 
-A: The latest xkcd comic is 371. It is an xkcd comic from 8/31/2020 titled str:QUOTED_STRING::3:.
+A: The latest xkcd comic is 371. It is an xkcd comic from August 31, 2020 titled str:QUOTED_STRING::3:.
 A: rdl: str:QUOTED_STRING::3: str:ENTITY_tt:url::39:
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; sort ( release_date desc of @com.xkcd ( id = GENERIC_ENTITY_tt:device_id_0 ) . comic ( ) ) [ 1 ] #[ results = [ { id = NUMBER_0 , title = QUOTED_STRING_0 , release_date = DATE_0 , picture_url = PICTURE_0 , link = URL_0 , alt_text = QUOTED_STRING_1 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.xkcd-10","display":"Some Device 10"},"NUMBER_0":371,"QUOTED_STRING_0":"str:QUOTED_STRING::3:","DATE_0":"2020-08-31T07:00:00.000Z","PICTURE_0":"str:ENTITY_tt:picture::26:","URL_0":"str:ENTITY_tt:url::39:","QUOTED_STRING_1":"str:QUOTED_STRING::6:"}
 A: >> expecting = null

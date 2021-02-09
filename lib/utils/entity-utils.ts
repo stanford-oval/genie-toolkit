@@ -23,6 +23,10 @@ import { Syntax } from 'thingtalk';
 
 export type AnyEntity = Syntax.AnyEntity;
 export type EntityMap = Syntax.EntityMap;
+export type MeasureEntity = Syntax.MeasureEntity;
+export type TimeEntity = Syntax.TimeEntity;
+export type GenericEntity = Syntax.GenericEntity;
+export type LocationEntity = Syntax.LocationEntity;
 
 const MAX_SMALL_INTEGER = 12;
 

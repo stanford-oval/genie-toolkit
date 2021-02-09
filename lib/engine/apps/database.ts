@@ -121,7 +121,8 @@ export default class AppDatabase extends events.EventEmitter {
         if (!description) {
             // if we don't have a description already, compute one using
             // the Describer
-            const describer = new Describer(this._platform.locale, this._platform.timezone);
+            const allocator = new ThingTalk.Syntax.SequentialEntityAllocator({});
+            const describer = new Describer(this._platform.locale, this._platform.timezone, allocator);
 
             // retrieve the relevant primitive templates
             const kinds = new Set<string>();
@@ -137,7 +138,13 @@ export default class AppDatabase extends events.EventEmitter {
             // treat it as an agent sentence for purposes of postprocessing
             // (which disables randomization)
             // even though it is a user-side sentence (ie, it says "my")
-            description = langPack.postprocessNLG(langPack.postprocessSynthetic(description, program, null, 'agent'), {});
+            description = langPack.postprocessNLG(langPack.postprocessSynthetic(description, program, null, 'agent'), allocator.entities, {
+                timezone: this._platform.timezone,
+                getPreferredUnit: (type) => {
+                    const pref = this._platform.getSharedPreferences();
+                    return pref.get('preferred-' + type) as string|undefined;
+                }
+            });
         }
 
         delete options.description;

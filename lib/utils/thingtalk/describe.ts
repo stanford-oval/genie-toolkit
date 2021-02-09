@@ -20,11 +20,12 @@
 
 import assert from 'assert';
 import interpolate from 'string-interp';
-import { Ast, Type, Builtin } from 'thingtalk';
+import { Ast, Type, Syntax } from 'thingtalk';
 
 import * as I18n from '../../i18n';
 import { clean, cleanKind } from '../misc-utils';
 import { splitParams, tokenizeExample } from './example-utils';
+import { AnyEntity } from '../entity-utils';
 
 const OLD_ANNOTATION_RENAME : { [key : string] : string } = {
     'property': 'npp',
@@ -61,14 +62,19 @@ export class Describer {
     timezone : string|undefined;
 
     private _langPack : I18n.LanguagePack;
+    private _entityAllocator : Syntax.SequentialEntityAllocator;
     private _direction : 'user'|'agent';
     private _format : InstanceType<typeof interpolate.Formatter>; // FIXME
     private _interp : (x : string, args : Record<string, InterpChunk|InterpChunk[]>) => string;
 
     private _datasets : Map<string, Ast.Dataset> = new Map;
 
-    constructor(locale : string, timezone : string|undefined, direction : 'user'|'agent' = 'user') {
+    constructor(locale : string,
+                timezone : string|undefined,
+                entityAllocator : Syntax.SequentialEntityAllocator,
+                direction : 'user'|'agent' = 'user') {
         this._langPack = I18n.get(locale);
+        this._entityAllocator = entityAllocator;
         this._ = this._langPack.gettext;
         this.locale = locale;
         this.timezone = timezone;
@@ -112,13 +118,8 @@ export class Describer {
     }
 
     private _displayLocation(loc : Ast.Location) {
-        if (loc instanceof Ast.AbsoluteLocation) {
-            if (loc.display)
-                return loc.display;
-            else
-                return this._interp(this._("[Latitude: ${loc.lat:.3} deg, Longitude: ${loc.lon:.3} deg]"), { loc });
-        } else if (loc instanceof Ast.UnresolvedLocation) {
-            return loc.name;
+        if (loc instanceof Ast.AbsoluteLocation || loc instanceof Ast.UnresolvedLocation) {
+            return this._getEntity('LOCATION', loc.toEntity());
         } else {
             assert(loc instanceof Ast.RelativeLocation);
             switch (loc.relativeTag) {
@@ -134,24 +135,13 @@ export class Describer {
         }
     }
 
+    private _getEntity(entityType : string, entity : AnyEntity) : string {
+        return this._entityAllocator.findEntity(entityType, entity).flatten().join(' ');
+    }
+
     private _describeTime(time : Ast.Time) {
         if (time instanceof Ast.AbsoluteTime) {
-            const date = new Date;
-            date.setHours(time.hour);
-            date.setMinutes(time.minute);
-            date.setSeconds(time.second);
-            if (time.second !== 0) {
-                return this._format.timeToString(date, {
-                    hour: 'numeric',
-                    minute: '2-digit',
-                    second: '2-digit'
-                });
-            } else {
-                return this._format.timeToString(date, {
-                    hour: 'numeric',
-                    minute: '2-digit'
-                });
-            }
+            return this._getEntity('TIME', time.toEntity());
         } else {
             assert(time instanceof Ast.RelativeTime);
             switch (time.relativeTag) {
@@ -221,10 +211,7 @@ export class Describer {
             const weekday = this._(date.weekday);
             base = this._interp(this._("${time} on ${weekday}"), { time, weekday });
         } else {
-            if (date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0)
-                base = this._format.dateToString(date);
-            else
-                base = this._format.dateAndTimeToString(date);
+            return this._getEntity('DATE', date);
         }
 
         return base;
@@ -242,9 +229,9 @@ export class Describer {
     private _describeArg(arg : Ast.Value, scope : ScopeMap = {}, skipThePrefix = false) : InterpChunk {
         if (arg instanceof Ast.ArrayValue)
             return arg.value.map((v) => this._describeArg(v, scope) as InterpChunkPrimitive);
-        // for Number, we return the actual value, so the sentence can do plural selection
+
         if (arg instanceof Ast.NumberValue)
-            return arg.value;
+            return this._getEntity('NUMBER', arg.value);
 
         if (arg instanceof Ast.VarRefValue) {
             let name;
@@ -340,31 +327,34 @@ export class Describer {
         if (arg instanceof Ast.LocationValue)
             return this._displayLocation(arg.value);
         if (arg instanceof Ast.StringValue)
-            return arg.value;
+            return this._getEntity('QUOTED_STRING', arg.value);
         if (arg instanceof Ast.EntityValue) {
-            if (arg.type === 'tt:username' || arg.type === 'tt:contact_name' || arg.type === 'tt:contact_group_name')
-                return '@' + arg.value;
-            if (arg.type === 'tt:hashtag')
-                return '#' + arg.value;
-            if (arg.display)
-                return arg.display;
-            return arg.value;
+            switch (arg.type) {
+            case 'tt:url':
+                return this._getEntity('URL', arg.value!);
+            case 'tt:username':
+                return this._getEntity('USERNAME', arg.value!);
+            case 'tt:hashtag':
+                return this._getEntity('HASHTAG', arg.value!);
+            case 'tt:phone_number':
+                return this._getEntity('PHONE_NUMBER', arg.value!);
+            case 'tt:email_address':
+                return this._getEntity('EMAIL_ADDRESS', arg.value!);
+            case 'tt:path_name':
+                return this._getEntity('PATH_NAME', arg.value!);
+            case 'tt:picture':
+                return this._getEntity('PICTURE', arg.value!);
+            default:
+                return this._getEntity('GENERIC_ENTITY_' + arg.type, arg.toEntity());
+            }
         }
         if (arg instanceof Ast.CurrencyValue)
-            return new Builtin.Currency(arg.value, arg.code).toLocaleString(this.locale);
+            return this._getEntity('CURRENCY', arg.toEntity());
         if (arg instanceof Ast.EnumValue)
             return clean(arg.value);
         if (arg instanceof Ast.MeasureValue) {
-            if (arg.unit.startsWith('default')) {
-                switch (arg.unit) {
-                case 'defaultTemperature':
-                    return this._interp(this._("${value:.1} degrees"), { value: arg.value });
-                default:
-                    throw new TypeError('Unexpected default unit ' + arg.unit);
-                }
-            } else {
-                return arg.value + ' ' + arg.unit;
-            }
+            const normalizedUnit = new Type.Measure(arg.unit).unit;
+            return this._getEntity('MEASURE_' + normalizedUnit, arg.toEntity());
         }
         if (arg instanceof Ast.BooleanValue)
             return arg.value ? this._("true") : this._("false");
@@ -1183,15 +1173,24 @@ export class Describer {
                 query: this.describeQuery(table.expression),
             });
         } else if (table instanceof Ast.SliceExpression) {
-            return this._interp(this._("${base:plural:\
-                =1 {the first ${limit} ${query}}\
-                =-1 {the last ${limit} ${query}}\
-                other {${limit} elements starting from ${base} of the ${query}}\
-            }"), {
-                limit: this._describeArg(table.limit),
-                base: this._describeArg(table.base),
-                query: this.describeQuery(table.expression),
-            });
+            const base = table.base.isConstant() ? table.base.toJS() : undefined;
+            if (base === 1) {
+                return this._interp(this._("the first ${limit} ${query}"), {
+                    limit: this._describeArg(table.limit),
+                    query: this.describeQuery(table.expression),
+                });
+            } else if (base === -1) {
+                return this._interp(this._("the last ${limit} ${query}"), {
+                    limit: this._describeArg(table.limit),
+                    query: this.describeQuery(table.expression),
+                });
+            } else {
+                return this._interp(this._("${limit} elements starting from ${base} of the ${query}"), {
+                    limit: this._describeArg(table.limit),
+                    base: this._describeArg(table.base),
+                    query: this.describeQuery(table.expression),
+                });
+            }
         } else if (table instanceof Ast.ChainExpression) {
             return this._format.listToString(table.expressions.map((t) => this.describeQuery(t)));
         } else {

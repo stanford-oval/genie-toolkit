@@ -268,13 +268,6 @@ export default class LocalParserClient {
     }
 
     async generateUtterance(contextCode : string[], contextEntities : EntityMap, targetAct : string[]) : Promise<GenerationResult[]> {
-        let candidates = await this._predictor.predict(contextCode.join(' ') + ' ' + targetAct.join(' '), NLG_QUESTION, undefined, NLG_TASK);
-        candidates = candidates.map((cand) => {
-            return {
-                answer: this._langPack.postprocessNLG(cand.answer, contextEntities),
-                score: cand.score
-            };
-        });
-        return candidates;
+        return this._predictor.predict(contextCode.join(' ') + ' ' + targetAct.join(' '), NLG_QUESTION, undefined, NLG_TASK);
     }
 }
