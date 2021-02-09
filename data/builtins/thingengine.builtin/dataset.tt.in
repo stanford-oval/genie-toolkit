@@ -114,7 +114,7 @@ dataset @org.thingpedia.builtin.thingengine.builtin language "en" {
     #_[utterances=["call me ${p_name}", "refer to me as ${p_name}", "i am ${p_name}", "my name is ${p_name}",
                    "i would like you to call me ${p_name}"]];
 
-    action (p_type : Enum(home,work)) = @org.thingpedia.builtin.thingengine.builtin.set_location(type=p_type)
+    action (p_type : Enum(current,home,work)) = @org.thingpedia.builtin.thingengine.builtin.set_location(type=p_type)
     #_[utterances=["set my ${p_type} location",
                    "set my ${p_type} address",
                    "remember my ${p_type} location",
