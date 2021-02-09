@@ -599,15 +599,15 @@ export default class Conversation extends events.EventEmitter {
 
     lastDialogue() {
         if (this._log.length === 0)
-            throw new Error('No dialogue is logged');
+            return null;
         return this._log[this._log.length - 1];
     }
 
     lastTurn() {
-        const dialogue = this.lastDialogue();
-        if (dialogue.turns.length === 0)
+        const lastDialogue = this.lastDialogue();
+        if (!lastDialogue || lastDialogue.turns.length === 0)
             throw new Error('No dialogue is logged');
-        return dialogue.turns[dialogue.turns.length - 1];
+        return lastDialogue.turns[lastDialogue.turns.length - 1];
     }
 
     appendNewDialogue() {
@@ -615,9 +615,9 @@ export default class Conversation extends events.EventEmitter {
     }
 
     appendNewTurn(turn : DialogueTurn) {
-        if (this._log.length === 0 || this.lastDialogue().done)
+        if (!this.lastDialogue() || this.lastDialogue()!.done)
             this.appendNewDialogue();
-        const dialogue = this.lastDialogue();
+        const dialogue = this.lastDialogue()!;
         dialogue.append(turn);
     }
 

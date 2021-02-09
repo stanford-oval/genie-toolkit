@@ -573,7 +573,9 @@ export default class DialogueLoop {
         this.icon = null;
         this._dialogueState = null;
         await this.setExpected(null);
-        this.conversation.lastDialogue().finish();
+        const last = this.conversation.lastDialogue();
+        if (last)
+            last.finish();
     }
 
     async replyInterp(msg : string, args ?: Record<string, unknown>, icon : string|null = null) {
