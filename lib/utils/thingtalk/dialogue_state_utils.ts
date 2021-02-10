@@ -155,6 +155,8 @@ export function computeNewState(state : Ast.DialogueState|null, prediction : Ast
     return clone;
 }
 
+const ENABLE_MULTIDOMAIN_CONTEXT = false;
+
 export function prepareContextForPrediction(context : Ast.DialogueState|null, forTarget : 'user'|'agent') : Ast.DialogueState|null {
     if (context === null)
         return null;
@@ -167,10 +169,18 @@ export function prepareContextForPrediction(context : Ast.DialogueState|null, fo
         const item = context.history[i];
         if (item.results === null)
             break;
-        if (lastItems.length > 0 && item.compatible(lastItems[lastItems.length-1]))
-            lastItems[lastItems.length-1] = item;
-        else
-            lastItems.push(item);
+
+        if (ENABLE_MULTIDOMAIN_CONTEXT) {
+            if (lastItems.length > 0 && item.compatible(lastItems[lastItems.length-1]))
+                lastItems[lastItems.length-1] = item;
+            else
+                lastItems.push(item);
+        } else {
+            if (lastItems.length > 0)
+                lastItems[0] = item;
+            else
+                lastItems.push(item);
+        }
     }
 
     // include at most the last 3 last items, or we'll run out of context length
