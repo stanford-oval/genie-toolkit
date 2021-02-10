@@ -28,6 +28,7 @@ import { shouldAutoConfirmStatement } from '../utils/thingtalk';
 import { contactSearch, Contact } from './entity-linking/contact_search';
 import { collectDisambiguationHints, getBestEntityMatch, EntityRecord } from './entity-linking/entity-finder';
 
+import { CancellationError } from './errors';
 import ValueCategory from './value-category';
 
 interface AbstractDialogueAgentOptions {
@@ -249,6 +250,8 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         if (alldevices.length === 0) {
             this.debug('No device of kind ' + kind + ' available, attempting configure...');
             const device = await this.tryConfigureDevice(kind);
+            if (!device) // cancel the dialogue if we failed to set up a device
+                throw new CancellationError();
             if (selector.all)
                 return;
             selector.id = device.uniqueId;
@@ -382,7 +385,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * @param {string} kind - the kind to configure
      * @returns {DeviceInfo} - the newly configured device
      */
-    protected async tryConfigureDevice(kind : string) : Promise<DeviceInfo> {
+    protected async tryConfigureDevice(kind : string) : Promise<DeviceInfo|null> {
         throw new TypeError('Abstract method');
     }
 
