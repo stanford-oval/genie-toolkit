@@ -185,7 +185,7 @@ export default class SimulationDialogueAgent extends AbstractDialogueAgent<Thing
         }
     }
 
-    protected getPreferredUnit(type : string) : string {
+    getPreferredUnit(type : string) : string {
         switch (type) {
         case 'temperature':
             if (this._interactive)

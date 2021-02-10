@@ -62,7 +62,7 @@ const TEST_CASES = [
     `Send me a message it's the evening every 2 h.`,//'
     'Say'],
     [`timer(base=new Date(), interval=2h, frequency=2) => @org.thingpedia.builtin.thingengine.builtin.say(message="it's the evening");`,
-    `Send me a message it's the evening twice every 2 h.`,//'
+    `Send me a message it's the evening 2 times every 2 h.`,//'
     'Say'],
 
     [`now => @com.xkcd.get_comic() => notify;`,
@@ -279,13 +279,13 @@ const TEST_CASES = [
     `Security Camera ⇒ Yandex Translate ⇒ Twitter`],
 
     [`(monitor (@org.thingpedia.weather.current(location=$?))) filter temperature >= 5defaultTemperature => notify;`,
-    'Notify me when the current weather in ____ changes and it becomes true that the temperature is greater than or equal to 5 degrees.', 'Weather'],
+    'Notify me when the current weather in ____ changes and it becomes true that the temperature is greater than or equal to 5 F.', 'Weather'],
     [`now => (@org.thingpedia.weather.current(location=$?)), temperature >= 10defaultTemperature => notify;`,
-    'Get the current weather in ____ such that the temperature is greater than or equal to 10 degrees.', 'Weather'],
+    'Get the current weather in ____ such that the temperature is greater than or equal to 10 F.', 'Weather'],
     [`now => (@org.thingpedia.weather.current(location=$?)), temperature >= 10.2defaultTemperature => notify;`,
-    'Get the current weather in ____ such that the temperature is greater than or equal to 10.2 degrees.', 'Weather'],
+    'Get the current weather in ____ such that the temperature is greater than or equal to 10.2 F.', 'Weather'],
     [`now => (@org.thingpedia.weather.current(location=$?)), temperature >= 10.33defaultTemperature => notify;`,
-    'Get the current weather in ____ such that the temperature is greater than or equal to 10.3 degrees.', 'Weather'],
+    'Get the current weather in ____ such that the temperature is greater than or equal to 10.3 F.', 'Weather'],
 
     [`now => (@com.yelp.restaurant()), true(cuisines) => notify;`,
     `Get restaurants such that any value of cuisines is acceptable.`,
@@ -324,7 +324,7 @@ const TEST_CASES = [
      `Get Date`],
 
     [`now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(2020, 6, ) => notify;`,
-     `Get today's date such that the date is after Monday, June 1, 2020.`,
+     `Get today's date such that the date is after June 1, 2020.`,
      `Get Date`],
 
     [`now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(2020, 6, , 12, 0, 0) => notify;`,
@@ -361,7 +361,8 @@ async function test(i) {
     let failed = false;
     try {
         const prog = await Syntax.parse(code).typecheck(schemaRetriever, true);
-        const describer = new Describer('en-US', 'America/Los_Angeles');
+        const allocator = new Syntax.SequentialEntityAllocator({});
+        const describer = new Describer('en-US', 'America/Los_Angeles', allocator);
         // retrieve the relevant primitive templates
         const kinds = new Set();
         for (const [, prim] of prog.iteratePrimitives(false))
@@ -370,7 +371,12 @@ async function test(i) {
             describer.setDataset(kind, await schemaRetriever.getExamplesByKind(kind));
 
         let reconstructed = describer.describe(prog);
-        reconstructed = langPack.postprocessNLG(langPack.postprocessSynthetic(reconstructed, prog, null, 'agent'), {});
+        reconstructed = langPack.postprocessNLG(langPack.postprocessSynthetic(reconstructed, prog, null, 'agent'), allocator.entities, {
+            timezone: 'America/Los_Angeles',
+            getPreferredUnit(key) {
+                return undefined;
+            }
+        });
         if (expected !== reconstructed) {
             console.error('Test Case #' + (i+1) + ': does not match what expected');
             console.error('Expected: ' + expected);

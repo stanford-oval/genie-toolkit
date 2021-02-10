@@ -30,6 +30,7 @@ import AsyncQueue from 'consumer-queue';
 import { getProgramIcon } from '../utils/icons';
 import { computePrediction, computeNewState, prepareContextForPrediction } from '../utils/thingtalk';
 import type Engine from '../engine';
+import * as I18n from '../i18n';
 
 import ValueCategory from './value-category';
 import QueueItem from './dialogue_queue';
@@ -58,6 +59,7 @@ export default class DialogueLoop {
     engine : Engine;
     private _textFormatter : TextFormatter;
     private _cardFormatter : CardFormatter;
+    private _langPack : I18n.LanguagePack;
 
     private _userInputQueue : AsyncQueue<UserInput>;
     private _notifyQueue : AsyncQueue<QueueItem>;
@@ -87,6 +89,7 @@ export default class DialogueLoop {
         this.conversation = conversation;
         this.engine = engine;
         this._prefs = engine.platform.getSharedPreferences();
+        this._langPack = I18n.get(engine.platform.locale);
         this._textFormatter = new TextFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas);
         this._cardFormatter = new CardFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas);
         this.icon = null;
@@ -261,9 +264,9 @@ export default class DialogueLoop {
             throw new CancellationError();
         }
 
-        let expect, utterance, numResults;
+        let expect, utterance, entities, numResults;
         if (this._useNeuralNLG()) {
-            [this._dialogueState, expect, , numResults] = policyResult;
+            [this._dialogueState, expect, , entities, numResults] = policyResult;
 
             const policyPrediction = computeNewState(oldState, this._dialogueState, 'agent');
             this.debug(`Agent act:`);
@@ -274,8 +277,10 @@ export default class DialogueLoop {
 
             utterance = await this.conversation.generateAnswer(policyPrediction);
         } else {
-            [this._dialogueState, expect, utterance, numResults] = policyResult;
+            [this._dialogueState, expect, utterance, entities, numResults] = policyResult;
         }
+
+        utterance = this._langPack.postprocessNLG(utterance, entities, this._agent);
 
         this.icon = getProgramIcon(this._dialogueState!);
         await this.reply(utterance);

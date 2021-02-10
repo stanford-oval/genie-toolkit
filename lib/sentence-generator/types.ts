@@ -19,7 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import * as Tp from 'thingpedia';
-import { Type, SchemaRetriever } from 'thingtalk';
+import { Type, SchemaRetriever, Syntax } from 'thingtalk';
 
 import { Hashable } from '../utils/hashmap';
 
@@ -73,6 +73,7 @@ export interface AgentReplyRecord<StateType> {
 export interface GrammarOptions {
     thingpediaClient : Tp.BaseClient;
     schemaRetriever ?: SchemaRetriever;
+    entityAllocator : Syntax.SequentialEntityAllocator;
     forSide : 'user'|'agent';
     flags : { [key : string] : boolean };
     onlyDevices ?: string[];

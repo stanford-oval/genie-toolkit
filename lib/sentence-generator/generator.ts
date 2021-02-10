@@ -21,6 +21,7 @@
 
 import assert from 'assert';
 import * as events from 'events';
+import * as ThingTalk from 'thingtalk';
 
 import * as I18n from '../i18n';
 import MultiMap from '../utils/multimap';
@@ -176,7 +177,7 @@ export type SentenceGeneratorOptions<ContextType, RootOutputType> =
     (BasicSentenceGeneratorOptions | ContextualSentenceGeneratorOptions<ContextType, RootOutputType>);
 
 interface Constant {
-    display : string;
+    token : string;
     value : unknown;
 }
 
@@ -473,6 +474,7 @@ const INFINITY = 1<<30; // integer infinity
 export default class SentenceGenerator<ContextType, StateType, RootOutputType = StateType> extends events.EventEmitter {
     private _templateFiles : string[];
     private _langPack : I18n.LanguagePack;
+    private _entityAllocator : ThingTalk.Syntax.SequentialEntityAllocator;
 
     private _options : SentenceGeneratorOptions<ContextType, StateType>;
     private _contextual : boolean;
@@ -504,6 +506,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
 
         this._templateFiles = options.templateFiles;
         this._langPack = I18n.get(options.locale);
+        this._entityAllocator = options.entityAllocator;
 
         this._options = options;
         this._contextual = options.contextual;
@@ -630,10 +633,8 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
         this._constantMap.put(token, [symbolId, keyFunction]);
 
         attributes.forConstant = true;
-        for (const constant of ThingTalkUtils.createConstants(token, type, this._options.maxConstants || DEFAULT_MAX_CONSTANTS)) {
-            const sentencepiece = constant.display;
-            this._addRuleInternal(symbolId, [sentencepiece], () => constant.value, keyFunction, attributes);
-        }
+        for (const constant of ThingTalkUtils.createConstants(token, type, this._options.maxConstants || DEFAULT_MAX_CONSTANTS, this._entityAllocator))
+            this._addRuleInternal(symbolId, [constant.token], () => constant.value, keyFunction, attributes);
     }
 
     addRule<ArgTypes extends unknown[], ResultType>(symbol : string,
@@ -1006,9 +1007,9 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
         for (const token in constants) {
             for (const [symbolId, keyFunction] of this._constantMap.get(token)) {
                 for (const constant of constants[token]) {
-                    this._addRuleInternal(symbolId, [constant.display], () => constant.value, keyFunction, attributes);
+                    this._addRuleInternal(symbolId, [constant.token], () => constant.value, keyFunction, attributes);
                     if (this._options.debug >= LogLevel.EVERYTHING)
-                        console.log(`added temporary rule NT[${this._nonTermList[symbolId]}] -> ${constant.display}`);
+                        console.log(`added temporary rule NT[${this._nonTermList[symbolId]}] -> ${constant.token}`);
                 }
             }
         }

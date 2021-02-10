@@ -388,72 +388,8 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         return answer;
     }
 
-    protected getPreferredUnit(type : string) : string {
-        // const locale = dlg.locale; // this is not useful
+    getPreferredUnit(type : string) : string|undefined {
         const pref = this._platform.getSharedPreferences();
-        let preferredUnit = pref.get('preferred-' + type) as string|undefined;
-        // e.g. defaultTemperature will get from preferred-temperature
-        if (preferredUnit === undefined) {
-            switch (type) {
-            case 'temperature':
-                preferredUnit = this._getDefaultTemperatureUnit();
-                break;
-            default:
-                throw new Error('Invalid default unit');
-            }
-        }
-        return preferredUnit;
-    }
-
-    private _getDefaultTemperatureUnit() : string {
-        // this method is quite hacky because it accounts for the fact that the locale
-        // is always en-US, but we don't want
-
-        let preferredUnit = 'C'; // Below code checks if we are in US
-        if (this._platform.type !== 'cloud' && this._platform.type !== 'android') {
-            const realLocale = process.env.LC_ALL || process.env.LC_MEASUREMENT || process.env.LANG || 'C';
-            if (realLocale.indexOf('en_US') !== -1)
-                preferredUnit = 'F';
-        } else if (this._platform.type === 'cloud') {
-            const realLocale = process.env.TZ || 'UTC';
-            // timezones obtained from http://efele.net/maps/tz/us/
-            const usTimeZones = [
-                'America/New_York',
-                'America/Chicago',
-                'America/Denver',
-                'America/Los_Angeles',
-                'America/Adak',
-                'America/Yakutat',
-                'America/Juneau',
-                'America/Sitka',
-                'America/Metlakatla',
-                'America/Anchrorage',
-                'America/Nome',
-                'America/Phoenix',
-                'America/Honolulu',
-                'America/Boise',
-                'America/Indiana/Marengo',
-                'America/Indiana/Vincennes',
-                'America/Indiana/Tell_City',
-                'America/Indiana/Petersburg',
-                'America/Indiana/Knox',
-                'America/Indiana/Winamac',
-                'America/Indiana/Vevay',
-                'America/Kentucky/Louisville',
-                'America/Indiana/Indianapolis',
-                'America/Kentucky/Monticello',
-                'America/Menominee',
-                'America/North_Dakota/Center',
-                'America/North_Dakota/New_Salem',
-                'America/North_Dakota/Beulah',
-                'America/Boise',
-                'America/Puerto_Rico',
-                'America/St_Thomas',
-                'America/Shiprock',
-            ];
-            if (usTimeZones.indexOf(realLocale) !== -1)
-                preferredUnit = 'F';
-        }
-        return preferredUnit;
+        return pref.get('preferred-' + type) as string|undefined;
     }
 }

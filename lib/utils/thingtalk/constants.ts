@@ -21,67 +21,66 @@
 
 import assert from 'assert';
 
-import { Ast, Type } from 'thingtalk';
+import { Ast, Type, Syntax } from 'thingtalk';
 
 const MAX_CONSTANTS = 15;
 const MAX_SMALL_INTEGER = 12;
 
-function numberToString(num : number) : string {
-    if (Math.floor(num) === num)
-        return String(num);
-    else
-        return num.toFixed(1);
-}
-
 interface Constant {
-    display : string;
+    token : string;
     value : Ast.Value;
 }
 type ConstantMap = { [key : string] : Constant[] };
 
-function extractConstants(ast : Ast.Node) : ConstantMap {
+function extractConstants(ast : Ast.Node, entityAllocator : Syntax.SequentialEntityAllocator) : ConstantMap {
     const constants : ConstantMap = {};
-    function addConstant(token : string, display : string, value : Ast.Value) : void {
-        if (constants[token])
-            constants[token].push({ display, value });
+    function addConstant(tokenPrefix : string, value : Ast.Value) : void {
+        const token = entityAllocator.findEntity(tokenPrefix, value.toEntity()).flatten().join(' ');
+
+        if (constants[tokenPrefix])
+            constants[tokenPrefix].push({ token, value });
         else
-            constants[token] = [{ display, value }];
+            constants[tokenPrefix] = [{ token, value }];
     }
 
     ast.visit(new class extends Ast.NodeVisitor {
         visitStringValue(value : Ast.StringValue) : boolean {
-            addConstant('QUOTED_STRING', value.value.replace(/[ \t\v\r\n]+/g, ' ').trim(), value);
+            addConstant('QUOTED_STRING', value);
             return true;
         }
 
         visitEntityValue(value : Ast.EntityValue) : boolean {
             switch (value.type) {
             case 'tt:url':
-                addConstant('URL', value.value || '', value);
+                addConstant('URL', value);
                 break;
 
             case 'tt:username':
-                addConstant('USERNAME', value.value || '', value);
+                addConstant('USERNAME', value);
                 break;
 
             case 'tt:hashtag':
-                addConstant('HASHTAG', value.value || '', value);
+                addConstant('HASHTAG', value);
                 break;
 
             case 'tt:phone_number':
-                addConstant('PHONE_NUMBER', value.value || '', value);
+                addConstant('PHONE_NUMBER', value);
                 break;
 
             case 'tt:email_address':
-                addConstant('EMAIL_ADDRESS', value.value || '', value);
+                addConstant('EMAIL_ADDRESS', value);
                 break;
 
             case 'tt:path_name':
-                addConstant('PATH_NAME', value.value || '', value);
+                addConstant('PATH_NAME', value);
+                break;
+
+            case 'tt:picture':
+                addConstant('PICTURE', value);
                 break;
 
             default:
-                addConstant('GENERIC_ENTITY_' + value.type, value.display || value.value || '', value);
+                addConstant('GENERIC_ENTITY_' + value.type, value);
                 break;
             }
             return true;
@@ -89,33 +88,24 @@ function extractConstants(ast : Ast.Node) : ConstantMap {
 
         visitMeasureValue(value : Ast.MeasureValue) : boolean {
             const normalizedUnit = new Type.Measure(value.unit).unit;
-            // TODO:
-            // - use the user's preferred measurement unit and/or the most appropriate unit for the
-            //   specific value rather than what's in the result object
-            //   (which likely will be the base unit)
-            // - use value.toLocaleString() with unit formatting
-            //   it depends on https://github.com/tc39/proposal-unified-intl-numberformat
-            //   which is part of ES2020 (so node 14 or later?)
-            addConstant('MEASURE_' + normalizedUnit, numberToString(value.value) + ' ' + value.unit, value);
+            addConstant('MEASURE_' + normalizedUnit, value);
             return true;
         }
 
         visitNumberValue(value : Ast.NumberValue) : boolean {
-            addConstant('NUMBER', numberToString(value.value), value);
+            addConstant('NUMBER', value);
             return true;
         }
 
         visitCurrencyValue(value : Ast.CurrencyValue) : boolean {
-            addConstant('CURRENCY', value.code + ' ' + (value.value.toFixed(2)), value);
+            addConstant('CURRENCY', value);
             return true;
         }
 
         visitLocationValue(value : Ast.LocationValue) : boolean {
             const loc = value.value;
-            if (loc instanceof Ast.AbsoluteLocation && loc.display)
-                addConstant('LOCATION', loc.display, value);
-            else if (loc instanceof Ast.UnresolvedLocation && loc.name)
-                addConstant('LOCATION', loc.name, value);
+            if (loc instanceof Ast.AbsoluteLocation || loc instanceof Ast.UnresolvedLocation)
+                addConstant('LOCATION', value);
             return true;
         }
 
@@ -123,7 +113,7 @@ function extractConstants(ast : Ast.Node) : ConstantMap {
             const time = value.value;
             if (!(time instanceof Ast.AbsoluteTime))
                 return true;
-            addConstant('TIME', `${time.hour}:${time.minute < 10 ? '0' : ''}${time.minute}:${time.second < 10 ? '0' : ''}${time.second}`, value);
+            addConstant('TIME', value);
             return true;
         }
 
@@ -131,18 +121,7 @@ function extractConstants(ast : Ast.Node) : ConstantMap {
             const date = value.value;
             if (!(date instanceof Date))
                 return true;
-
-            // FIXME we should pass the right locale here, and also use ThingTalk.FormatUtils
-            // which has better defaults
-            // the "correct" way is to generate a DATE_* token here, and put the date in the right
-            // way in postprocessNLG (which is locale specific)
-
-            // check for midnight local, and midnight UTC, to mean date without time
-            if ((date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0) ||
-                (date.getUTCHours() === 0 && date.getUTCMinutes() === 0 && date.getUTCSeconds() === 0))
-                addConstant('DATE', date.toLocaleDateString(), value);
-            else
-                addConstant('DATE', date.toLocaleString(), value);
+            addConstant('DATE', value);
             return true;
         }
     });
@@ -150,103 +129,72 @@ function extractConstants(ast : Ast.Node) : ConstantMap {
     return constants;
 }
 
-function createConstants(token : string, type : Type, maxConstants : number) : Constant[] {
+function createConstants(tokenPrefix : string,
+                         type : Type,
+                         maxConstants : number,
+                         entityAllocator : Syntax.SequentialEntityAllocator) : Constant[] {
     // ignore maxConstants, because it's too low (5) and there is no way to set it differently
 
     const constants : Constant[] = [];
+
+    function createConstant(type : string, index : number, value : Ast.Value) {
+        const token = type + '_' + index;
+        constants.push({ token, value });
+        entityAllocator.entities[token] = value.toEntity();
+        entityAllocator.offsets[type] = Math.max(entityAllocator.offsets[type] || 0, index+1);
+    }
+
     for (let i = 0; i < MAX_CONSTANTS; i++) {
-        switch (token) {
+        switch (tokenPrefix) {
         case 'NUMBER':
-            constants.push({
-                display: 'NUMBER_' + i,
-                value: new Ast.Value.Number(MAX_SMALL_INTEGER + 1 + i)
-            });
+            createConstant('NUMBER', i, new Ast.Value.Number(MAX_SMALL_INTEGER + 1 + i));
             break;
         case 'QUOTED_STRING':
-            constants.push({
-                display: 'QUOTED_STRING_' + i,
-                value: new Ast.Value.String('str:QUOTED_STRING::' + i + ':')
-            });
+            createConstant('QUOTED_STRING', i, new Ast.Value.String('str:QUOTED_STRING::' + i + ':'));
             break;
         case 'URL':
-            constants.push({
-                display: 'URL_' + i,
-                value: new Ast.Value.Entity('str:URL::' + i + ':', 'tt:url')
-            });
+            createConstant('URL', i, new Ast.Value.Entity('str:URL::' + i + ':', 'tt:url'));
             break;
         case 'USERNAME':
-            constants.push({
-                display: 'USERNAME_' + i,
-                value: new Ast.Value.Entity('str:USERNAME::' + i + ':', 'tt:username')
-            });
+            createConstant('USERNAME', i, new Ast.Value.Entity('str:USERNAME::' + i + ':', 'tt:username'));
             break;
         case 'HASHTAG':
-            constants.push({
-                display: 'HASHTAG_' + i,
-                value: new Ast.Value.Entity('str:HASHTAG::' + i + ':', 'tt:hashtag')
-            });
+            createConstant('HASHTAG', i, new Ast.Value.Entity('str:HASHTAG::' + i + ':', 'tt:hashtag'));
             break;
         case 'PHONE_NUMBER':
-            constants.push({
-                display: 'PHONE_NUMBER_' + i,
-                value: new Ast.Value.Entity('str:PHONE_NUMBER::' + i + ':', 'tt:phone_number')
-            });
+            createConstant('PHONE_NUMBER', i, new Ast.Value.Entity('str:PHONE_NUMBER::' + i + ':', 'tt:phone_number'));
             break;
         case 'EMAIL_ADDRESS':
-            constants.push({
-                display: 'EMAIL_ADDRESS_' + i,
-                value: new Ast.Value.Entity('str:EMAIL_ADDRESS::' + i + ':', 'tt:email_address')
-            });
+            createConstant('EMAIL_ADDRESS', i, new Ast.Value.Entity('str:EMAIL_ADDRESS::' + i + ':', 'tt:email_address'));
             break;
         case 'PATH_NAME':
-            constants.push({
-                display: 'PATH_NAME_' + i,
-                value: new Ast.Value.Entity('str:PATH_NAME::' + i + ':', 'tt:path_name')
-            });
+            createConstant('PATH_NAME', i, new Ast.Value.Entity('str:PATH_NAME::' + i + ':', 'tt:path_name'));
             break;
         case 'CURRENCY':
-            constants.push({
-                display: 'CURRENCY_' + i,
-                value: new Ast.Value.Currency(2 + i, 'usd')
-            });
+            createConstant('CURRENCY', i, new Ast.Value.Currency(2 + i, 'usd'));
             break;
         case 'LOCATION':
-            constants.push({
-                display: 'LOCATION_' + i,
-                value: new Ast.Value.Location(new Ast.Location.Absolute(2 + i, 2 + i, null))
-            });
+            createConstant('LOCATION', i, new Ast.Value.Location(new Ast.Location.Absolute(2 + i, 2 + i, null)));
             break;
         case 'DATE':
-            constants.push({
-                display: 'DATE_' + i,
-                value: new Ast.Value.Date(new Date(2018, 0, 2 + i))
-            });
+            createConstant('DATE', i, new Ast.Value.Date(new Date(2018, 0, 2 + i)));
             break;
         case 'TIME':
-            constants.push({
-                display: 'TIME_' + i,
-                value: new Ast.Value.Time(new Ast.Time.Absolute(Math.floor(i/4), [0, 15, 30, 45][i % 4], 0))
-            });
+            createConstant('TIME', i, new Ast.Value.Time(new Ast.Time.Absolute(Math.floor(i/4), [0, 15, 30, 45][i % 4], 0)));
             break;
         case 'RECURRENT_TIME_SPECIFICATION':
-            constants.push({
-                display: 'RECURRENT_TIME_SPECIFICATION' + i,
-                value: undefined as unknown as Ast.Value // FIXME
-            });
+            // FIXME do nothing
             break;
         default: {
             // ignore MEASURE_* tokens, they are only used in inference mode, and for those
             // we'll extract the constants from the context
-            if (token.startsWith('MEASURE_'))
+            if (tokenPrefix.startsWith('MEASURE_'))
                 break;
 
-            assert(token.startsWith('GENERIC_ENTITY_'));
+            assert(tokenPrefix.startsWith('GENERIC_ENTITY_'));
             assert(type instanceof Type.Entity);
             const string = `str:ENTITY_${type.type}::${i}:`;
-            constants.push({
-                display: token + '_' + i,
-                value: new Ast.Value.Entity(string, type.type, string)
-            });
+            createConstant(tokenPrefix, i, new Ast.Value.Entity(string, type.type, string));
         }
         }
     }

@@ -87,24 +87,6 @@ const SPECIAL_TOKENS : { [key : string] : string } = {
     '-lsb-': ' [',
 };
 
-function capitalize(word : string) : string {
-    return word[0].toUpperCase() + word.substring(1);
-}
-
-const MUST_CAPITALIZE_TOKEN = new Set([
-    'i',
-
-    'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday',
-    'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september',
-    'october', 'november', 'december',
-
-    // HACK
-    'chinese', 'italian', 'french', 'english', 'american',
-
-    'spotify', 'twitter', 'yelp', 'google', 'facebook',
-]);
-
-
 function isNumber(word : string) : boolean {
     // numbers with optional "," every 3 digits, cannot start with "."
     return /^\d{1,3}(,?\d{3})*(\.\d+)?$/.test(word);
@@ -151,6 +133,36 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
         if (this._tokenizer)
             return this._tokenizer;
         return this._tokenizer = new EnglishTokenizer();
+    }
+
+    getDefaultTemperatureUnit() : string {
+        return this.locale === 'en-us' ? 'F' : 'C';
+    }
+
+    protected _getPossibleUnits(baseUnit : string) : string[] {
+        if (this.locale !== 'en-us')
+            return super._getPossibleUnits(baseUnit);
+
+        switch (baseUnit) {
+        case 'm':
+            return ['in', 'ft', 'mi'];
+        case 'm2':
+            return ['in2', 'ft2', 'mi2'];
+        case 'm3':
+            // prefer liquid over solid units
+            // avoid cooking units
+            return ['floz', 'pt', 'qt', 'gal', 'in3', 'ft3', 'mi3'];
+        case 'mps':
+            return ['mps', 'mph'];
+        case 'kg':
+            return ['mg', 'oz', 'lb'];
+        case 'Pa':
+            return ['psi'];
+        case 'C':
+            return ['F', 'K'];
+        default:
+            return super._getPossibleUnits(baseUnit);
+        }
     }
 
     postprocessSynthetic(sentence : string, program : any, rng : (() => number)|null, forTarget = 'user') : string {
@@ -262,37 +274,6 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
             sentence += token;
         }
         return sentence;
-    }
-
-    postprocessNLG(answer : string, entities : { [key : string] : any }) : string {
-        // simple true-casing: uppercase all letters at the beginning of the sentence
-        // and after a period, question or exclamation mark
-        answer = answer.replace(/(^| [.?!] )([a-z])/g, (_, prefix, letter) => prefix + letter.toUpperCase());
-
-        const tokens = answer.split(' ').map((token) => {
-            if (token in entities) {
-                if (token.startsWith('GENERIC_ENTITY_'))
-                    return (entities[token].display || entities[token].value);
-                return String(entities[token]);
-            }
-
-            // capitalize certain tokens that should be capitalized in English
-            if (MUST_CAPITALIZE_TOKEN.has(token))
-                return capitalize(token);
-            return token;
-        });
-        answer = this.detokenizeSentence(tokens);
-
-        // remove duplicate spaces
-        answer = answer.replace(/\s+/g, ' ');
-
-        // sometimes, we end up with two periods at the end of a sentence, because
-        // a #[result] phrase includes a period, or because a value includes a period
-        // (this happens with jokes)
-        // clean that up
-        answer = answer.replace(/\.\.$/, '.');
-
-        return answer;
     }
 
     pluralize(name : string) : string {
@@ -522,3 +503,16 @@ EnglishLanguagePack.prototype.SINGLE_DEVICE_TEMPLATES = [
 ];
 
 EnglishLanguagePack.prototype.DEFINITE_ARTICLE_REGEXP = /^the /;
+
+EnglishLanguagePack.prototype.MUST_CAPITALIZE_TOKEN = new Set([
+    'i',
+
+    'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday',
+    'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september',
+    'october', 'november', 'december',
+
+    // HACK
+    'chinese', 'italian', 'french', 'english', 'american',
+
+    'spotify', 'twitter', 'yelp', 'google', 'facebook',
+]);

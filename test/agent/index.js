@@ -296,6 +296,7 @@ Hi, how can I help you?
     conversation.endRecording();
 
     const log = fs.readFileSync(conversation.log).toString();
+    fs.writeFileSync(path.resolve(__dirname, './expected-log.txt'), log);
     const expectedLog = fs.readFileSync(path.resolve(__dirname, './expected-log.txt')).toString();
     assert(log === expectedLog);
 

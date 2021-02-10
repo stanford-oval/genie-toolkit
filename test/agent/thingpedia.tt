@@ -721,7 +721,7 @@ class @com.spotify
                       property=["release date #"],
                       adjective=["#"],
                       preposition=["from #", "in #"],
-                      passive_verb=["released in #", "released #", "published in #"],
+                      passive_verb=["released on #", "released #", "published in #"],
                       adjective_argmin=["least recent", "oldest", "first"],
                       adjective_argmax=["most recent", "newest", "latest"],
                       passive_verb_argmax=["released most recently"],

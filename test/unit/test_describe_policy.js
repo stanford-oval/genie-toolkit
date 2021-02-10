@@ -173,15 +173,15 @@ let TEST_CASES = [
      'Anyone is allowed to read the current event on security camera if my location is not equal to home and my location is not equal to work.'],
 
     ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { temperature >= 21C } => notify',
-     'Anyone is allowed to read the current event on security camera if the temperature of the current weather in here is greater than or equal to 21 C.'],
+     'Anyone is allowed to read the current event on security camera if the temperature of the current weather in here is greater than or equal to 69.8 F.'],
     ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { temperature == 21C } => notify',
-     'Anyone is allowed to read the current event on security camera if the temperature of the current weather in here is equal to 21 C.'],
+     'Anyone is allowed to read the current event on security camera if the temperature of the current weather in here is equal to 69.8 F.'],
     ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { !(temperature == 21C) } => notify',
-     'Anyone is allowed to read the current event on security camera if the temperature of the current weather in here is not equal to 21 C.'],
+     'Anyone is allowed to read the current event on security camera if the temperature of the current weather in here is not equal to 69.8 F.'],
     ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { temperature <= 21C && temperature >= 19C } => notify',
-     'Anyone is allowed to read the current event on security camera if for the current weather in here, the temperature is less than or equal to 21 C and the temperature is greater than or equal to 19 C.'],
+     'Anyone is allowed to read the current event on security camera if for the current weather in here, the temperature is less than or equal to 69.8 F and the temperature is greater than or equal to 66.2 F.'],
     ['true : @security-camera.current_event, @org.thingpedia.weather.current(location=$context.location.current_location) { temperature >= 21C || temperature <= 19C } => notify',
-     'Anyone is allowed to read the current event on security camera if for the current weather in here, the temperature is less than or equal to 19 C or the temperature is greater than or equal to 21 C.'],
+     'Anyone is allowed to read the current event on security camera if for the current weather in here, the temperature is less than or equal to 66.2 F or the temperature is greater than or equal to 69.8 F.'],
 
 
     ['true : @com.bing.web_search, query == "foo" => notify',
@@ -214,13 +214,13 @@ let TEST_CASES = [
     'Anyone is allowed to read articles published in the world news section of the wall street journal if the updated is before now.'],
 
     ['true : @com.wsj.get, section == enum(world_news) && updated >= makeDate(2018, 5, 4) => notify',
-    'Anyone is allowed to read articles published in the world news section of the wall street journal if the updated is after Friday, May 4, 2018.'],
+    'Anyone is allowed to read articles published in the world news section of the wall street journal if the updated is after May 4, 2018.'],
     ['true : @com.wsj.get, section == enum(world_news) && updated <= makeDate(2018, 5, 4) => notify',
-    'Anyone is allowed to read articles published in the world news section of the wall street journal if the updated is before Friday, May 4, 2018.'],
+    'Anyone is allowed to read articles published in the world news section of the wall street journal if the updated is before May 4, 2018.'],
     ['true : @com.wsj.get, section == enum(world_news) && !(updated <= makeDate(2018, 5, 4)) => notify',
-    'Anyone is allowed to read articles published in the world news section of the wall street journal if the updated is after Friday, May 4, 2018.'],
+    'Anyone is allowed to read articles published in the world news section of the wall street journal if the updated is after May 4, 2018.'],
     ['true : @com.wsj.get, section == enum(world_news) && !(updated >= makeDate(2018, 5, 4)) => notify',
-    'Anyone is allowed to read articles published in the world news section of the wall street journal if the updated is before Friday, May 4, 2018.'],
+    'Anyone is allowed to read articles published in the world news section of the wall street journal if the updated is before May 4, 2018.'],
 
     /*['true : @com.wsj.get, section == enum(world_news) && updated >= makeDate(2018, 5, 4, 17, 30, 0) => notify',
     'Anyone is allowed to read articles published in the world news section if the updated is after 5/4/2018, 5:30:00 PM'],*/
@@ -250,7 +250,7 @@ let TEST_CASES = [
     'Anyone is allowed to read articles published in the world news section of the wall street journal if the updated is after the end of this year.'],
 
     ['true : @com.wsj.get, section == enum(world_news) && updated >= makeDate() + 1h => notify',
-    'Anyone is allowed to read articles published in the world news section of the wall street journal if the updated is after 1 h past now.'],
+    'Anyone is allowed to read articles published in the world news section of the wall street journal if the updated is after 60 min past now.'],
 
     ['true : @com.wsj.get, section == enum(world_news) && updated >= makeDate() + 30min => notify',
     'Anyone is allowed to read articles published in the world news section of the wall street journal if the updated is after 30 min past now.'],
@@ -264,7 +264,8 @@ async function test(i) {
     const [code, expected] = TEST_CASES[i];
     const langPack = I18n.get('en-US');
 
-    const describer = new Describer('en-US', 'America/Los_Angeles');
+    const allocator = new Syntax.SequentialEntityAllocator({});
+    const describer = new Describer('en-US', 'America/Los_Angeles', allocator);
     const prog = await Syntax.parse(code, Syntax.SyntaxType.Legacy).typecheck(schemaRetriever, true);
     try {
         assert(prog.isPermissionRule);
@@ -278,7 +279,12 @@ async function test(i) {
             describer.setDataset(kind, await schemaRetriever.getExamplesByKind(kind));
 
         let reconstructed = describer.describePermissionRule(prog);
-        reconstructed = langPack.postprocessNLG(langPack.postprocessSynthetic(reconstructed, prog, null, 'agent'), {});
+        reconstructed = langPack.postprocessNLG(langPack.postprocessSynthetic(reconstructed, prog, null, 'agent'), allocator.entities, {
+            timezone: 'America/Los_Angeles',
+            getPreferredUnit(key) {
+                return undefined;
+            }
+        });
 
         if (expected !== reconstructed) {
             console.error('Test Case #' + (i+1) + ': does not match what expected');

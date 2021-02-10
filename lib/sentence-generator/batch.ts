@@ -20,6 +20,7 @@
 
 
 import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
 import assert from 'assert';
 import stream from 'stream';
 
@@ -88,6 +89,7 @@ class BasicSentenceGenerator extends stream.Readable {
             rng: options.rng,
 
             thingpediaClient: options.thingpediaClient,
+            entityAllocator: new ThingTalk.Syntax.SequentialEntityAllocator({}),
             onlyDevices: options.onlyDevices,
             whiteList: options.whiteList
         });
@@ -478,6 +480,7 @@ class DialogueGenerator extends stream.Readable {
             debug: options.debug,
             rng: options.rng,
             thingpediaClient: options.thingpediaClient,
+            entityAllocator: new ThingTalk.Syntax.SequentialEntityAllocator({}),
             onlyDevices: options.onlyDevices,
             whiteList: options.whiteList,
 
@@ -501,6 +504,7 @@ class DialogueGenerator extends stream.Readable {
             debug: options.debug,
             rng: options.rng,
             thingpediaClient: options.thingpediaClient,
+            entityAllocator: new ThingTalk.Syntax.SequentialEntityAllocator({}),
             onlyDevices: options.onlyDevices,
             whiteList: options.whiteList,
 

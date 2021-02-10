@@ -157,7 +157,8 @@ export default class ThingpediaLoader {
         this._ttUtils = ttUtils;
         this._grammar = grammar;
         this._langPack = langPack;
-        this._describer = new ttUtils.Describer(langPack.locale, options.timezone, options.forSide);
+        this._describer = new ttUtils.Describer(langPack.locale,
+            options.timezone, options.entityAllocator, options.forSide);
 
         this._tpClient = options.thingpediaClient;
         if (!options.schemaRetriever) {
