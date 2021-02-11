@@ -171,9 +171,7 @@ class RemoteWorker extends events.EventEmitter {
             instances: minibatch
         }), { dataContentType: 'application/json', accept: 'application/json' });
         const parsed = JSON.parse(response);
-        // TODO: this needs to be updated when genienlp kfserver is fixed to avoid
-        // double wrapping in JSON
-        return JSON.parse(parsed.predictions).instances.map((instance : any) : PredictionCandidate[] => {
+        return parsed.predictions.instances.map((instance : any) : PredictionCandidate[] => {
             if (instance.candidates) {
                 return instance.candidates;
             } else {
