@@ -223,15 +223,20 @@ export default class LocalParserClient {
             assert(candidates.length > 0);
 
             result = candidates.map((c) => {
+                // convert is_correct and is_probably_correct scores into
+                // a single scale such that >0.5 is correct and >0.25 is
+                // probably correct
+                const score = (c.score.is_correct ?? 1) > 0.5 ? (c.score.is_correct ?? 1) :
+                    ((c.score.is_probably_correct ?? 1) * 0.5);
                 return {
                     code: c.answer.split(' '),
-                    score: c.score.confidence ?? 1
+                    score: score
                 };
             });
 
-            intent.ignore = candidates[0].score.ignore ?? 0;
-            intent.command = (candidates[0].score.in_domain ?? 1) * (1 - intent.ignore);
-            intent.other = 1 - intent.ignore - intent.command;
+            intent.ignore = candidates[0].score.is_junk ?? 0;
+            intent.other = (candidates[0].score.is_ood ?? 0) * (1 - intent.ignore);
+            intent.command = 1 - intent.ignore - intent.other;
         }
 
         let result2 = result!; // guaranteed not null
