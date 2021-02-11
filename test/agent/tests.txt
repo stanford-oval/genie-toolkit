@@ -161,7 +161,7 @@ A: >> expecting = null
 # 6-spotify
 # simple-spotify-search
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
-U: now => (@com.spotify.song(), id =~ ("despacito"))[1] => @com.spotify.play_song(song=id);
+U: now => (@com.spotify.song(), id =~ ("despacito")) => @com.spotify.play_song(song=id);
 
 A: I played Despacito on Spotify.
 A: >> context = null // {}
@@ -171,9 +171,9 @@ A: >> expecting = null
 # 7-spotify
 # spotify-search-artist
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
-U: now => (@com.spotify.song(), contains(artists, null^^com.spotify:artist("ariana grande")))[1] => @com.spotify.play_song(song=id);
+U: now => (@com.spotify.song(), contains(artists, null^^com.spotify:artist("ariana grande"))) => @com.spotify.play_song(song=id);
 
-A: I played 7 rings on Spotify.
+A: I played songs by Ariana Grande on Spotify for you.
 A: >> context = null // {}
 A: >> expecting = null
 

@@ -364,9 +364,9 @@ $user : Ast.DialogueState = {
 
     // empty search errors
     ctx:ctx_sys_empty_search req:precise_empty_search_change_request with { functionName = ctx.currentTableFunction }
-        => D.preciseEmptySearchChangeRequest($loader, ctx, req);
+        => D.preciseEmptySearchChangeRequest(ctx, req);
     ctx:ctx_sys_empty_search req:imprecise_empty_search_change_request
-        => D.impreciseEmptySearchChangeRequest($loader, ctx, req);
+        => D.impreciseEmptySearchChangeRequest(ctx, req);
 
     // search questions
     ctx:ctx_sys_search_question answer:precise_search_question_answer with { functionName = ctx.currentFunction }

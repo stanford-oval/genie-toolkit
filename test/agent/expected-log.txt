@@ -128,7 +128,7 @@ C:   { id="-g_tUhyvUFbxOs0aB28j1w"^^com.yelp:restaurant("Palo Alto Creamery"), i
 C: ]]
 C: #[count=50]
 C: #[more=true];
-A: I see Ramen Nagi or Evvia Estiatorio. All of them are restaurants rated 4.5 star.
+A: I have Ramen Nagi or Evvia Estiatorio. They're restaurants rated 4.5 star.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => [price] of @com.yelp.restaurant(), id == "vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant => notify;
@@ -193,7 +193,7 @@ C:   { id="wPKE3HvLo797DEveV7Ozbg"^^com.yelp:restaurant("Bird Dog"), image_url="
 C:   { id="iX8o07wSfvhe1laJhUzsFA"^^com.yelp:restaurant("The Cambridge Chop House"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/QEvjFKuiHXFDkkTQlgKBhA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/the-cambridge-chop-house-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["steak"^^com.yelp:restaurant_cuisine("Steakhouses"), "british"^^com.yelp:restaurant_cuisine("British")], price=enum expensive, rating=4.5, reviewCount=46, geo=new Location(52.204257, 0.117823), phone="+441223359506"^^tt:phone_number },
 C:   { id="btRAfitquaXgeB-2vuWxNQ"^^com.yelp:restaurant("The Free Press"), image_url="https://s3-media4.fl.yelpcdn.com/bphoto/Oq3r_QuneatEOt-poxpGuQ/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/the-free-press-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["british"^^com.yelp:restaurant_cuisine("British")], price=enum expensive, rating=4.5, reviewCount=35, geo=new Location(52.204808195527, 0.13039591109936), phone="+441223368337"^^tt:phone_number }
 C: ]];
-A: I have Evvia Estiatorio, NOLA Restaurant & Bar or Tamarine Restaurant. All of them are expensive restaurant.
+A: I see Evvia Estiatorio, NOLA Restaurant & Bar and Tamarine Restaurant. They're expensives restaurant.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
 UT: $dialogue @org.thingpedia.dialogue.transaction.cancel;
@@ -230,7 +230,7 @@ C:   { id="wPKE3HvLo797DEveV7Ozbg"^^com.yelp:restaurant("Bird Dog"), image_url="
 C:   { id="iX8o07wSfvhe1laJhUzsFA"^^com.yelp:restaurant("The Cambridge Chop House"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/QEvjFKuiHXFDkkTQlgKBhA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/the-cambridge-chop-house-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["steak"^^com.yelp:restaurant_cuisine("Steakhouses"), "british"^^com.yelp:restaurant_cuisine("British")], price=enum expensive, rating=4.5, reviewCount=46, geo=new Location(52.204257, 0.117823), phone="+441223359506"^^tt:phone_number },
 C:   { id="btRAfitquaXgeB-2vuWxNQ"^^com.yelp:restaurant("The Free Press"), image_url="https://s3-media4.fl.yelpcdn.com/bphoto/Oq3r_QuneatEOt-poxpGuQ/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/the-free-press-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["british"^^com.yelp:restaurant_cuisine("British")], price=enum expensive, rating=4.5, reviewCount=35, geo=new Location(52.204808195527, 0.13039591109936), phone="+441223368337"^^tt:phone_number }
 C: ]];
-A: Alright, good bye!
+A: Alright, bye!
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -247,7 +247,7 @@ C: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471
 C: #[results=[
 C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, wind_speed=3.4mps, humidity=91.3, cloudiness=4.7, fog=0, status=enum sunny, icon="http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"^^tt:picture }
 C: ]];
-A: The current weather in Palo Alto, California is sunny. The temperature is 15.6 C and the humidity is 91.3 %.
+A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 F and the humidity is 91.3 %.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! vote: down
 #! comment: test comment for dialogue turns
@@ -278,9 +278,9 @@ UT: @org.thingpedia.weather.current(location=new Location(37.442156, -122.163447
 ====
 # test
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
-U: now => (@com.spotify.song(), id =~ ("despacito"))[1] => @com.spotify.play_song(song=id);
+U: now => (@com.spotify.song(), id =~ ("despacito")) => @com.spotify.play_song(song=id);
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
-UT: (@com.spotify.song() filter id =~ "despacito")[1] => @com.spotify.play_song(song=id);
+UT: @com.spotify.song() filter id =~ "despacito" => @com.spotify.play_song(song=id);
 C: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 C: (@com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "despacito")[1] => @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(song=id)
 C: #[results=[
@@ -295,15 +295,25 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 ====
 # test
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
-U: now => (@com.spotify.song(), contains(artists, null^^com.spotify:artist("ariana grande")))[1] => @com.spotify.play_song(song=id);
+U: now => (@com.spotify.song(), contains(artists, null^^com.spotify:artist("ariana grande"))) => @com.spotify.play_song(song=id);
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
-UT: (@com.spotify.song() filter contains(artists, null^^com.spotify:artist("ariana grande")))[1] => @com.spotify.play_song(song=id);
+UT: @com.spotify.song() filter contains(artists, null^^com.spotify:artist("ariana grande")) => @com.spotify.play_song(song=id);
 C: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
-C: (@com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter contains(artists, "spotify:artist:66CXWjxzNUsdJxJ2JdwvnR"^^com.spotify:artist("Ariana Grande")))[1] => @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(song=id)
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter contains(artists, "spotify:artist:66CXWjxzNUsdJxJ2JdwvnR"^^com.spotify:artist("Ariana Grande")) => @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(song=id)
 C: #[results=[
-C:   { song="spotify:track:6ocbgoVGwYJhOv1GgI9NsF"^^com.spotify:song("7 rings"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device }
-C: ]];
-A: I played 7 rings on Spotify.
+C:   { song="spotify:track:6ocbgoVGwYJhOv1GgI9NsF"^^com.spotify:song("7 rings"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device },
+C:   { song="spotify:track:6va6SjWz457IOZidBppAhz"^^com.spotify:song("7 rings - live"), device="str:ENTITY_com.spotify:device::15:"^^com.spotify:device },
+C:   { song="spotify:track:6AyI8UGx8Y4peb7pLOy2pf"^^com.spotify:song("7 rings (feat. 2 Chainz) - Remix"), device="str:ENTITY_com.spotify:device::9:"^^com.spotify:device },
+C:   { song="spotify:track:4HBZA5flZLE435QTztThqH"^^com.spotify:song("Stuck with U (with Justin Bieber)"), device="str:ENTITY_com.spotify:device::19:"^^com.spotify:device },
+C:   { song="spotify:track:6ocbgoVGwYJhOv1GgI9NsF"^^com.spotify:song("7 rings"), device="str:ENTITY_com.spotify:device::14:"^^com.spotify:device },
+C:   { song="spotify:track:3e9HZxeyfWwjeyPAMmWSSQ"^^com.spotify:song("thank u, next"), device="str:ENTITY_com.spotify:device::15:"^^com.spotify:device },
+C:   { song="spotify:track:2qT1uLXPVPzGgFOx4jtEuo"^^com.spotify:song("no tears left to cry"), device="str:ENTITY_com.spotify:device::40:"^^com.spotify:device },
+C:   { song="spotify:track:0Ryd8975WihbObpp5cPW1t"^^com.spotify:song("boyfriend (with Social House)"), device="str:ENTITY_com.spotify:device::31:"^^com.spotify:device },
+C:   { song="spotify:track:4kV4N9D1iKVxx1KLvtTpjS"^^com.spotify:song("break up with your girlfriend, i'm bored"), device="str:ENTITY_com.spotify:device::23:"^^com.spotify:device },
+C:   { song="spotify:track:5OCJzvD7sykQEKHH7qAC3C"^^com.spotify:song("God is a woman"), device="str:ENTITY_com.spotify:device::40:"^^com.spotify:device }
+C: ]]
+C: #[count=23];
+A: I played songs by Ariana Grande on Spotify for you.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -436,7 +446,7 @@ C:   { id="d62LElGhYd65kXXCimgPpg"^^com.yelp:restaurant("Osteria Toscana"), imag
 C:   { id="pLqiFFz1JScp8wMMyXcx-w"^^com.yelp:restaurant("Terún"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/w1yuXOCOAFcL_TVkoFed4Q/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ter%C3%BAn-palo-alto-3?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["pizza"^^com.yelp:restaurant_cuisine("Pizza"), "italian"^^com.yelp:restaurant_cuisine("Italian")], price=enum moderate, rating=4, reviewCount=1493, geo=new Location(37.425993, -122.145453), phone="+16506008310"^^tt:phone_number },
 C:   { id="OZI4rK9s0xTwg2PdTRgmcw"^^com.yelp:restaurant("Aromi - Cambridge"), image_url="https://s3-media1.fl.yelpcdn.com/bphoto/eS-F_RSo1UyOumExtszsGA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/aromi-cambridge-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["italian"^^com.yelp:restaurant_cuisine("Italian"), "cafes"^^com.yelp:restaurant_cuisine("Cafes"), "delis"^^com.yelp:restaurant_cuisine("Delis")], price=enum cheap, rating=4, reviewCount=30, geo=new Location(52.2042405, 0.1187084), phone="+441223300117"^^tt:phone_number }
 C: ]];
-A: I have found Patxi's Pizza, Cafe Borrone and Osteria Toscana. All of them are moderate restaurant with Italian food.
+A: I see Patxi's Pizza, Cafe Borrone and Osteria Toscana. All of them are moderate restaurants having Italian food.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
 UT: $dialogue @org.thingpedia.dialogue.transaction.cancel;
@@ -449,7 +459,7 @@ C:   { id="d62LElGhYd65kXXCimgPpg"^^com.yelp:restaurant("Osteria Toscana"), imag
 C:   { id="pLqiFFz1JScp8wMMyXcx-w"^^com.yelp:restaurant("Terún"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/w1yuXOCOAFcL_TVkoFed4Q/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ter%C3%BAn-palo-alto-3?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["pizza"^^com.yelp:restaurant_cuisine("Pizza"), "italian"^^com.yelp:restaurant_cuisine("Italian")], price=enum moderate, rating=4, reviewCount=1493, geo=new Location(37.425993, -122.145453), phone="+16506008310"^^tt:phone_number },
 C:   { id="OZI4rK9s0xTwg2PdTRgmcw"^^com.yelp:restaurant("Aromi - Cambridge"), image_url="https://s3-media1.fl.yelpcdn.com/bphoto/eS-F_RSo1UyOumExtszsGA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/aromi-cambridge-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["italian"^^com.yelp:restaurant_cuisine("Italian"), "cafes"^^com.yelp:restaurant_cuisine("Cafes"), "delis"^^com.yelp:restaurant_cuisine("Delis")], price=enum cheap, rating=4, reviewCount=30, geo=new Location(52.2042405, 0.1187084), phone="+441223300117"^^tt:phone_number }
 C: ]];
-A: Alright, good bye!
+A: Alright, bye!
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
 #! vote: down
 #! comment: test comment for dialogue turns
@@ -566,7 +576,7 @@ C: @com.yelp.restaurant() filter id =~ "ramen nagi"
 C: #[results=[
 C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles")], price=enum moderate, rating=4.5, reviewCount=1625, geo=new Location(37.445523, -122.1607073261) }
 C: ]];
-A: Ramen Nagi is a moderate restaurant rated 4.5 star.
+A: Ramen Nagi is a moderate restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg].
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -585,7 +595,7 @@ C: @com.yelp.restaurant() filter id =~ "ramen nagi"
 C: #[results=[
 C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles")], price=enum moderate, rating=4.5, reviewCount=1625, geo=new Location(37.445523, -122.1607073261) }
 C: ]];
-A: Ramen Nagi is a moderate restaurant rated 4.5 star.
+A: Ramen Nagi is a moderate restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg].
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 U: \r {"code":["bookkeeping","special","special:no"],"entities":{}}
 UT: $dialogue @org.thingpedia.dialogue.transaction.cancel;
@@ -739,7 +749,7 @@ C:   { id="spotify:album:283NWqNsCA9GwVHrJk59CG"^^com.spotify:album("The Writing
 C:   { id="spotify:album:2ZytN2cY4Zjrr9ukb2rqTP"^^com.spotify:album("Off the Wall"), release_date=new Date("1979-08-10T00:00:00.000Z") },
 C:   { id="spotify:album:1GlOZiKHTgtJqEF2FRii9y"^^com.spotify:album("Over The Garden Wall"), release_date=new Date("2017-09-19T00:00:00.000Z") }
 C: ]];
-A: The Wall is an album from 11/29/1979.
+A: The Wall is an album from November 29, 1979.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -890,3 +900,23 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+====
+# test
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.iot.light-bulb.set_power(power=enum(off));
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.iot.light-bulb.set_power(power=enum off);
+====
+# test
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.iot.door.state();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.iot.door.state();
