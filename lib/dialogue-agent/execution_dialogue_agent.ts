@@ -121,22 +121,62 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         return this._dlg.askChoices(question, choices);
     }
 
-    protected async tryConfigureDevice(kind : string) : Promise<DeviceInfo> {
+    protected async tryConfigureDevice(kind : string) : Promise<DeviceInfo|null> {
         const factories = await this._thingpedia.getDeviceSetup([kind]);
         const factory = factories[kind];
-        if (factory && factory.type === 'none') {
+        if (!factory) {
+            await this._dlg.replyInterp(this._("You need to enable ${device} before you can use that command."), {
+                device: cleanKind(kind)
+            });
+            await this._dlg.replyLink(this._dlg.interpolate(this._("Configure ${device}"), {
+                device: cleanKind(kind)
+            }), "/devices/create");
+            return null;
+        }
+
+        if (factory.type === 'none') {
             const device = await this._engine.createDevice({ kind: factory.kind });
             return this._engine.getDeviceInfo(device.uniqueId!);
         } else {
-            this._dlg.icon = null;
             if (this._dlg.isAnonymous) {
-                await this._dlg.reply(this._("Sorry, I did not understand that. You might need to enable a new skill before I understand that command. To do so, please log in to your personal account."));
+                await this._dlg.replyInterp(this._("Sorry, to use ${device}, you must log in to your personal account."), {
+                    device: factory.text,
+                });
                 await this._dlg.replyLink(this._("Register for Almond"), "/user/register");
-            } else {
-                await this._dlg.reply(this._("Sorry, I did not understand that. You might need to enable a new skill before I understand that command."));
-                await this._dlg.replyLink(this._("Configure a new skill"), "/devices/create");
+                return null;
             }
-            throw new CancellationError(); // cancel the dialogue if we failed to set up a device
+
+            if (factory.type === 'multiple' && factory.choices.length === 0) {
+                await this._dlg.replyInterp(this._("You need to enable ${device} before you can use that command."), {
+                    device: factory.text
+                });
+            } else if (factory.type === 'multiple') {
+                await this._dlg.replyInterp(this._("You do not have a ${device} configured. You will need to enable ${choices:disjunction} before you can use that command."), {
+                    device: factory.text,
+                    choices: factory.choices.map((f) => f.text)
+                });
+            } else {
+                await this._dlg.replyInterp(this._("You need to enable ${device} before you can use that command."), {
+                    device: factory.text
+                });
+            }
+
+            // HACK: home assistant cannot be configured here, override the factory type
+            if (factory.type !== 'multiple' && factory.kind === 'io.home-assistant')
+                factory.type = 'interactive'; // this code is CHAOTIC EVIL as it exploits the unsoundness of TypeScript :D
+
+            switch (factory.type) {
+            case 'oauth2':
+                await this._dlg.replyLink(this._dlg.interpolate(this._("Configure ${device}"), { device: factory.text }),
+                    `/devices/oauth2/${factory.kind}?name=${encodeURIComponent(factory.text)}`);
+                break;
+            case 'multiple':
+                await this._dlg.replyLink(this._("Configure a new skill"), "/devices/create");
+                break;
+            default:
+                await this._dlg.replyLink(this._dlg.interpolate(this._("Configure ${device}"), { device: factory.text }), "/devices/create");
+            }
+            return null;
         }
     }
 
@@ -388,72 +428,8 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         return answer;
     }
 
-    protected getPreferredUnit(type : string) : string {
-        // const locale = dlg.locale; // this is not useful
+    getPreferredUnit(type : string) : string|undefined {
         const pref = this._platform.getSharedPreferences();
-        let preferredUnit = pref.get('preferred-' + type) as string|undefined;
-        // e.g. defaultTemperature will get from preferred-temperature
-        if (preferredUnit === undefined) {
-            switch (type) {
-            case 'temperature':
-                preferredUnit = this._getDefaultTemperatureUnit();
-                break;
-            default:
-                throw new Error('Invalid default unit');
-            }
-        }
-        return preferredUnit;
-    }
-
-    private _getDefaultTemperatureUnit() : string {
-        // this method is quite hacky because it accounts for the fact that the locale
-        // is always en-US, but we don't want
-
-        let preferredUnit = 'C'; // Below code checks if we are in US
-        if (this._platform.type !== 'cloud' && this._platform.type !== 'android') {
-            const realLocale = process.env.LC_ALL || process.env.LC_MEASUREMENT || process.env.LANG || 'C';
-            if (realLocale.indexOf('en_US') !== -1)
-                preferredUnit = 'F';
-        } else if (this._platform.type === 'cloud') {
-            const realLocale = process.env.TZ || 'UTC';
-            // timezones obtained from http://efele.net/maps/tz/us/
-            const usTimeZones = [
-                'America/New_York',
-                'America/Chicago',
-                'America/Denver',
-                'America/Los_Angeles',
-                'America/Adak',
-                'America/Yakutat',
-                'America/Juneau',
-                'America/Sitka',
-                'America/Metlakatla',
-                'America/Anchrorage',
-                'America/Nome',
-                'America/Phoenix',
-                'America/Honolulu',
-                'America/Boise',
-                'America/Indiana/Marengo',
-                'America/Indiana/Vincennes',
-                'America/Indiana/Tell_City',
-                'America/Indiana/Petersburg',
-                'America/Indiana/Knox',
-                'America/Indiana/Winamac',
-                'America/Indiana/Vevay',
-                'America/Kentucky/Louisville',
-                'America/Indiana/Indianapolis',
-                'America/Kentucky/Monticello',
-                'America/Menominee',
-                'America/North_Dakota/Center',
-                'America/North_Dakota/New_Salem',
-                'America/North_Dakota/Beulah',
-                'America/Boise',
-                'America/Puerto_Rico',
-                'America/St_Thomas',
-                'America/Shiprock',
-            ];
-            if (usTimeZones.indexOf(realLocale) !== -1)
-                preferredUnit = 'F';
-        }
-        return preferredUnit;
+        return pref.get('preferred-' + type) as string|undefined;
     }
 }

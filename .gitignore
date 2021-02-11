@@ -29,6 +29,7 @@ lib/engine/devices/builtins/faq.json
 
 workdir*
 genienlp/
+.embeddings/
 
 env/
 

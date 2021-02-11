@@ -157,7 +157,8 @@ export default class ThingpediaLoader {
         this._ttUtils = ttUtils;
         this._grammar = grammar;
         this._langPack = langPack;
-        this._describer = new ttUtils.Describer(langPack.locale, options.timezone, options.forSide);
+        this._describer = new ttUtils.Describer(langPack.locale,
+            options.timezone, options.entityAllocator, options.forSide);
 
         this._tpClient = options.thingpediaClient;
         if (!options.schemaRetriever) {
@@ -842,7 +843,7 @@ export default class ThingpediaLoader {
                 return;
             if (!this._options.flags.configure_actions && (ex.value.invocation.channel === 'configure' || ex.value.invocation.channel === 'discover'))
                 return;
-            if (['say', 'debug_log', 'faq_reply'].includes(ex.value.invocation.channel))
+            if (ex.type === 'action' && ['say', 'debug_log', 'faq_reply'].includes(ex.value.invocation.channel))
                 return;
         }
         if (ex.value instanceof Ast.FunctionCallExpression) // timers

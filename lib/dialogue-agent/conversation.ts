@@ -19,6 +19,8 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
+import path from "path";
+import fs from "fs";
 import * as events from 'events';
 import type * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
@@ -32,6 +34,8 @@ import { MessageType, Message, RDL } from './protocol';
 import { EntityMap } from '../utils/entity-utils';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import type Engine from '../engine';
+import * as StreamUtils from "../utils/stream-utils";
+import { DialogueSerializer, DialogueTurn } from "../dataset-tools/parsers";
 
 const DummyStatistics = {
     hit() {
@@ -55,6 +59,7 @@ export interface ConversationOptions {
     contextResetTimeout ?: number;
     showWelcome ?: boolean;
     deleteWhenInactive ?: boolean;
+    log ?: boolean;
 }
 
 interface Statistics {
@@ -74,6 +79,32 @@ export interface ConversationDelegate {
 
 interface ResultLike {
     toLocaleString(locale ?: string) : string;
+}
+
+class DialogueLog {
+    private readonly _turns : DialogueTurn[];
+    private _done : boolean;
+
+    constructor() {
+        this._turns = [];
+        this._done = false;
+    }
+
+    get turns() {
+        return this._turns;
+    }
+
+    get done() {
+        return this._done;
+    }
+
+    finish() {
+        this._done = true;
+    }
+
+    append(turn : DialogueTurn) {
+        this._turns.push(turn);
+    }
 }
 
 /**
@@ -108,6 +139,8 @@ export default class Conversation extends events.EventEmitter {
     private _inactivityTimeoutSec : number;
     private _contextResetTimeout : NodeJS.Timeout|null;
     private _contextResetTimeoutSec : number;
+
+    private _log : DialogueLog[];
 
     constructor(engine : Engine,
                 conversationId : string,
@@ -147,6 +180,8 @@ export default class Conversation extends events.EventEmitter {
         this._inactivityTimeoutSec = options.inactivityTimeout || DEFAULT_CONVERSATION_TTL;
         this._contextResetTimeout = null;
         this._contextResetTimeoutSec = options.contextResetTimeout || this._inactivityTimeoutSec;
+
+        this._log = [];
     }
 
     get isAnonymous() : boolean {
@@ -191,6 +226,18 @@ export default class Conversation extends events.EventEmitter {
 
     get history() : Message[] {
         return this._history;
+    }
+
+    get inRecordingMode() : boolean {
+        return !!this._options.log;
+    }
+
+    startRecording() {
+        this._options.log = true;
+    }
+
+    endRecording() {
+        this._options.log = false;
     }
 
     notify(appId : string, icon : string|null, outputType : string, outputValue : Record<string, unknown>) {
@@ -268,12 +315,13 @@ export default class Conversation extends events.EventEmitter {
     }
 
     async handleParsedCommand(root : any, title ?: string, platformData : PlatformData = {}) : Promise<void> {
+        const command = `\\r ${typeof root === 'string' ? root : JSON.stringify(root)}`;
         this.stats.hit('sabrina-parsed-command');
         this.emit('active');
         this._resetInactivityTimeout();
         if (typeof root === 'string')
             root = JSON.parse(root);
-        await this._addMessage({ type: MessageType.COMMAND, command: title || '\\r ' + JSON.stringify(root), json: root });
+        await this._addMessage({ type: MessageType.COMMAND, command: title || command, json: root });
 
         if (this._debug)
             console.log('Received pre-parsed assistant command');
@@ -305,10 +353,11 @@ export default class Conversation extends events.EventEmitter {
     }
 
     async handleThingTalk(program : string, platformData : PlatformData = {}) : Promise<void> {
+        const command = `\\t ${program}`;
         this.stats.hit('sabrina-thingtalk-command');
         this.emit('active');
         this._resetInactivityTimeout();
-        await this._addMessage({ type: MessageType.COMMAND, command: '\\t ' + program });
+        await this._addMessage({ type: MessageType.COMMAND, command });
         if (this._debug)
             console.log('Received ThingTalk program');
 
@@ -377,5 +426,74 @@ export default class Conversation extends events.EventEmitter {
         if (this._debug)
             console.log('Almond sends link: '+ url);
         return this._addMessage({ type: MessageType.LINK, url, title });
+    }
+
+    private get _lastDialogue() {
+        if (this._log.length === 0)
+            return null;
+        return this._log[this._log.length - 1];
+    }
+
+    lastTurn() {
+        const lastDialogue = this._lastDialogue;
+        if (!lastDialogue || lastDialogue.turns.length === 0)
+            throw new Error('No dialogue is logged');
+        return lastDialogue.turns[lastDialogue.turns.length - 1];
+    }
+
+    appendNewDialogue() {
+        this._log.push(new DialogueLog());
+    }
+
+    dialogueFinished() {
+        const last = this._lastDialogue;
+        if (last)
+            last.finish();
+    }
+
+    appendNewTurn(turn : DialogueTurn) {
+        const last = this._lastDialogue;
+        if (!last || last.done)
+            this.appendNewDialogue();
+        const dialogue = this._lastDialogue!;
+        dialogue.append(turn);
+    }
+
+    voteLast(vote : 'up'|'down') {
+        const last = this.lastTurn();
+        last.vote = vote;
+    }
+
+    commentLast(comment : string) {
+        const last = this.lastTurn();
+        last.comment = comment;
+    }
+
+    async saveLog() {
+        const dir = path.join(this._engine.platform.getWritableDir(), 'logs');
+        try {
+            fs.mkdirSync(dir);
+        } catch(e) {
+            if (e.code !== 'EEXIST')
+                throw e;
+        }
+        const logfile = path.join(dir, this.id + '.txt');
+        const serializer = new DialogueSerializer({ annotations: true });
+
+        const output = fs.createWriteStream(logfile);
+
+        serializer.pipe(output);
+        for (const dialogue of this._log)
+            serializer.write({ id: this.id, turns: dialogue.turns });
+        serializer.end();
+
+        await StreamUtils.waitFinish(output);
+    }
+
+    get log() : string|null {
+        const log = path.join(this._engine.platform.getWritableDir(), 'logs', this.id + '.txt');
+        if (!fs.existsSync(log))
+            return null;
+        return log;
     }
 }

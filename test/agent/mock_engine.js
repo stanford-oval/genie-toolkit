@@ -381,10 +381,6 @@ class TestPlatform extends MockPlatform {
         this._gettext.setLocale('en-US');
     }
 
-    getCacheDir() {
-        return './cache';
-    }
-
     hasCapability(cap) {
         return cap === 'gettext' || cap === 'contacts' || cap === 'gps';
     }

@@ -29,7 +29,7 @@ import * as path from 'path';
 import * as yaml from 'js-yaml';
 import * as seedrandom from 'seedrandom';
 
-import { DialogueParser } from '../../lib/dataset-tools/parsers';
+import { DialogueParser } from '../../lib';
 import * as StreamUtils from '../../lib/utils/stream-utils';
 import Conversation from '../../lib/dialogue-agent/conversation';
 
@@ -226,7 +226,7 @@ async function roundtrip(testRunner, input, expected) {
     else if (input.startsWith('\\r'))
         await conversation.handleParsedCommand({ code: input.substring(2).trim().split(' '), entities: {} });
     else if (input.startsWith('\\t'))
-        await conversation.handleThingTalk(input.substring(2));
+        await conversation.handleThingTalk(input.substring(2).trim());
     else
         await conversation.handleCommand(input);
 
@@ -270,6 +270,7 @@ async function main(onlyIds) {
         anonymous: false,
         rng: rng,
     });
+    conversation.startRecording();
     testRunner.conversation = conversation;
     await mockNLU(conversation);
     await conversation.addOutput(delegate);
@@ -287,7 +288,17 @@ Hi, how can I help you?
         if (onlyIds.length > 0 && !onlyIds.includes(TEST_CASES[i].id))
             continue;
         await test(testRunner, TEST_CASES[i], i);
+        conversation.voteLast(i % 2 ? 'up' : 'down');
+        conversation.commentLast('test comment for dialogue turns\nadditional\nlines');
     }
+
+    await conversation.saveLog();
+    conversation.endRecording();
+
+    const log = fs.readFileSync(conversation.log).toString();
+    //fs.writeFileSync(path.resolve(__dirname, './expected-log.txt'), log);
+    const expectedLog = fs.readFileSync(path.resolve(__dirname, './expected-log.txt')).toString();
+    assert(log === expectedLog);
 
     console.log('Done');
     process.exit(0);

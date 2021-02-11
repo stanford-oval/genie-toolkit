@@ -23,6 +23,10 @@ import { Syntax } from 'thingtalk';
 
 export type AnyEntity = Syntax.AnyEntity;
 export type EntityMap = Syntax.EntityMap;
+export type MeasureEntity = Syntax.MeasureEntity;
+export type TimeEntity = Syntax.TimeEntity;
+export type GenericEntity = Syntax.GenericEntity;
+export type LocationEntity = Syntax.LocationEntity;
 
 const MAX_SMALL_INTEGER = 12;
 
@@ -159,7 +163,7 @@ function makeDummyEntity(token : string) : AnyEntity {
 function makeDummyEntities(preprocessed : string) : EntityMap {
     const entities : EntityMap = {};
     for (const token of preprocessed.split(' ')) {
-        if (/^[A-Z]/.test(token))
+        if (ENTITY_MATCH_REGEX.test(token))
             entities[token] = makeDummyEntity(token);
     }
     return entities;

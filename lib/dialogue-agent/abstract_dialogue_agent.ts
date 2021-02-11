@@ -22,11 +22,13 @@
 import assert from 'assert';
 import { Ast, SchemaRetriever } from 'thingtalk';
 
+import * as I18n from '../i18n';
 import { cleanKind } from '../utils/misc-utils';
 import { shouldAutoConfirmStatement } from '../utils/thingtalk';
 import { contactSearch, Contact } from './entity-linking/contact_search';
 import { collectDisambiguationHints, getBestEntityMatch, EntityRecord } from './entity-linking/entity-finder';
 
+import { CancellationError } from './errors';
 import ValueCategory from './value-category';
 
 interface AbstractDialogueAgentOptions {
@@ -60,6 +62,34 @@ interface ExecutionResult<PrivateStateType> {
     anyChange : boolean;
 }
 
+class UsesParamVisitor extends Ast.NodeVisitor {
+    used = false;
+    constructor(private pname : string) {
+        super();
+    }
+
+    visitExternalBooleanExpression() {
+        // do not recurse
+        return false;
+    }
+    visitValue() {
+        // do not recurse
+        return false;
+    }
+
+    visitAtomBooleanExpression(atom : Ast.AtomBooleanExpression) {
+        this.used = this.used ||
+            (this.pname === atom.name && atom.operator === '=~');
+        return true;
+    }
+}
+
+function expressionUsesIDFilter(expr : Ast.Expression) {
+    const visitor = new UsesParamVisitor('id');
+    expr.visit(visitor);
+    return visitor.used;
+}
+
 /**
  * Base class of a dialogue agent.
  *
@@ -75,11 +105,13 @@ interface ExecutionResult<PrivateStateType> {
 export default abstract class AbstractDialogueAgent<PrivateStateType> {
     protected _schemas : SchemaRetriever;
     protected _debug : boolean;
+    private _langPack : I18n.LanguagePack;
     locale : string;
     timezone : string;
 
     constructor(schemas : SchemaRetriever, options : AbstractDialogueAgentOptions) {
         this._schemas = schemas;
+        this._langPack = I18n.get(options.locale);
 
         this._debug = options.debug;
         this.locale = options.locale;
@@ -169,6 +201,22 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * @param {any} hints - hints to use to resolve any ambiguity
      */
     protected async _prepareForExecution(stmt : Ast.ExpressionStatement, hints : DisambiguationHints) : Promise<void> {
+        // somewhat of a HACK:
+        // add a [1] clause to immediate-mode statements that refer to "id" in
+        // the query and don't have an index clause already
+        // we add the clause to all expressions except the last one
+        // that way, if we have an action, it will be performed on the first
+        // result only, but if we don't have an action, we'll return all results
+        // that match
+
+        for (let i = 0; i < stmt.expression.expressions.length-1; i++) {
+            const expr = stmt.expression.expressions[i];
+            if (expr.schema!.functionType !== 'action' &&
+                expressionUsesIDFilter(expr) && !(expr instanceof Ast.IndexExpression) &&
+                !(expr instanceof Ast.SliceExpression))
+                stmt.expression.expressions[i] = new Ast.IndexExpression(null, expr, [new Ast.Value.Number(1)], expr.schema).optimize();
+        }
+
         // FIXME this method can cause a few questions that
         // bypass the neural network, which is not great
         //
@@ -246,6 +294,8 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         if (alldevices.length === 0) {
             this.debug('No device of kind ' + kind + ' available, attempting configure...');
             const device = await this.tryConfigureDevice(kind);
+            if (!device) // cancel the dialogue if we failed to set up a device
+                throw new CancellationError();
             if (selector.all)
                 return;
             selector.id = device.uniqueId;
@@ -314,7 +364,17 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         // since dlg.locale is overwritten to be en-US, we infer the locale
         // via other environment variables like LANG (language) or TZ (timezone)
         if (value instanceof Ast.MeasureValue && value.unit.startsWith('default')) {
-            value.unit = this.getPreferredUnit(value.unit.substring('default'.length).toLowerCase());
+            const key = value.unit.substring('default'.length).toLowerCase();
+            const preference = this.getPreferredUnit(key);
+            if (preference)
+                value.unit = preference;
+
+            switch (key) {
+            case 'defaultTemperature':
+                value.unit = this._langPack.getDefaultTemperatureUnit();
+            default:
+                throw new TypeError('Unexpected default unit ' + value.unit);
+            }
         } else if (value instanceof Ast.LocationValue && value.value instanceof Ast.UnresolvedLocation) {
             slot.set(await this.lookupLocation(value.value.name, hints.previousLocations || []));
         } else if (value instanceof Ast.LocationValue && value.value instanceof Ast.RelativeLocation) {
@@ -369,7 +429,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * @param {string} kind - the kind to configure
      * @returns {DeviceInfo} - the newly configured device
      */
-    protected async tryConfigureDevice(kind : string) : Promise<DeviceInfo> {
+    protected async tryConfigureDevice(kind : string) : Promise<DeviceInfo|null> {
         throw new TypeError('Abstract method');
     }
 
@@ -474,12 +534,13 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * Compute the user's preferred unit to use when the program specifies an ambiguous unit
      * such as "degrees".
      *
-     * @param {string} type - the type of unit to retrieve (e.g. "temperature")
+     * @param {string} type - the type of unit to retrieve (e.g. "temperature"), or undefined
+     *   if the user has no preference
      * @returns {string} - the preferred unit
      * @abstract
      * @protected
      */
-    protected getPreferredUnit(type : string) : string {
+    getPreferredUnit(type : string) : string|undefined {
         throw new TypeError('Abstract method');
     }
 }

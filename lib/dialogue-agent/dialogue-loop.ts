@@ -23,7 +23,7 @@ import assert from 'assert';
 
 import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
-import { Ast } from 'thingtalk';
+import { Ast, Syntax } from 'thingtalk';
 import interpolate from 'string-interp';
 import AsyncQueue from 'consumer-queue';
 
@@ -32,6 +32,7 @@ import * as ThingTalkUtils from '../utils/thingtalk';
 import { EntityMap } from '../utils/entity-utils';
 import type Engine from '../engine';
 import * as ParserClient from '../prediction/parserclient';
+import * as I18n from '../i18n';
 
 import ValueCategory from './value-category';
 import QueueItem from './dialogue_queue';
@@ -48,6 +49,7 @@ import TextFormatter from './card-output/text-formatter';
 import CardFormatter, { FormattedChunk } from './card-output/card-formatter';
 
 import ExecutionDialogueAgent from './execution_dialogue_agent';
+import { DialogueTurn } from "../dataset-tools/parsers";
 
 // TODO: load the policy.yaml file instead
 const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
@@ -110,13 +112,14 @@ enum CommandAnalysisType {
 
 interface CommandAnalysisResult {
     type : CommandAnalysisType;
+    utterance : string;
 
     // not null if this command was generated as a ThingTalk $answer()
     // only used by legacy ask() methods
     answer : Ast.Value|number|null;
 
     // the user target
-    parsed : Ast.Input|null;
+    parsed : Ast.Input;
 }
 
 interface DialogueLoopOptions {
@@ -133,6 +136,7 @@ export default class DialogueLoop {
     private _nlg : ParserClient.ParserClient;
     private _textFormatter : TextFormatter;
     private _cardFormatter : CardFormatter;
+    private _langPack : I18n.LanguagePack;
 
     private _userInputQueue : AsyncQueue<UserInput>;
     private _notifyQueue : AsyncQueue<QueueItem>;
@@ -149,6 +153,7 @@ export default class DialogueLoop {
     private _dialogueState : ThingTalk.Ast.DialogueState|null;
     private _executorState : undefined;
     private _lastNotificationApp : string|undefined;
+    private _currentTurn : DialogueTurn;
 
     private _stopped = false;
     private _mgrResolve : (() => void)|null;
@@ -168,6 +173,7 @@ export default class DialogueLoop {
             undefined, engine.thingpedia);
         this._nlg = ParserClient.get(options.nlgServerUrl || undefined, engine.platform.locale, engine.platform);
 
+        this._langPack = I18n.get(engine.platform.locale);
         this._textFormatter = new TextFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas);
         this._cardFormatter = new CardFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas);
         this.icon = null;
@@ -187,6 +193,14 @@ export default class DialogueLoop {
             rng: conversation.rng,
             debug : this._debug
         });
+        this._currentTurn = {
+            context : null,
+            agent : null,
+            agent_target : null,
+            intermediate_context : null,
+            user: '',
+            user_target: ''
+        };
         this._dialogueState = null; // thingtalk dialogue state
         this._executorState = undefined; // private object managed by DialogueExecutor
         this._lastNotificationApp = undefined;
@@ -279,6 +293,7 @@ export default class DialogueLoop {
             const type = this._getSpecialThingTalkType(command.parsed);
             return {
                 type,
+                utterance: `\\t ${command.parsed.prettyprint()}`,
                 answer: this._maybeGetThingTalkAnswer(command.parsed),
                 parsed: command.parsed
             };
@@ -295,6 +310,7 @@ export default class DialogueLoop {
                 value = new Ast.Value.String(command.utterance);
             return {
                 type: CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND,
+                utterance: command.utterance,
                 answer: value,
                 parsed: new Ast.ControlCommand(null, new Ast.AnswerControlIntent(null, value))
             };
@@ -325,8 +341,9 @@ export default class DialogueLoop {
             this.debug('Ignored likely spurious command');
             return {
                 type: CommandAnalysisType.IGNORE,
+                utterance: command.utterance,
                 answer: null,
-                parsed: null
+                parsed: new Ast.ControlCommand(null, new Ast.SpecialControlIntent(null, 'failed'))
             };
         }
 
@@ -334,8 +351,9 @@ export default class DialogueLoop {
             this.debug('Analyzed as out-of-domain command');
             return {
                 type: CommandAnalysisType.OUT_OF_DOMAIN_COMMAND,
+                utterance: command.utterance,
                 answer: null,
-                parsed: null
+                parsed: new Ast.ControlCommand(null, new Ast.SpecialControlIntent(null, 'failed'))
             };
         }
 
@@ -386,6 +404,7 @@ export default class DialogueLoop {
         }
         return {
             type,
+            utterance: command.utterance,
             answer: this._maybeGetThingTalkAnswer(choice.parsed),
             parsed: choice.parsed
         };
@@ -397,6 +416,7 @@ export default class DialogueLoop {
 
     private async _doAgentReply() : Promise<[ValueCategory|null, number]> {
         const oldState = this._dialogueState;
+        this._currentTurn.context = oldState ? oldState.prettyprint() : null;
 
         const policyResult = await this._policy.chooseAction(this._dialogueState);
         if (!policyResult) {
@@ -404,22 +424,23 @@ export default class DialogueLoop {
             throw new CancellationError();
         }
 
-        let expect, utterance, numResults;
+        let expect, utterance, entities, numResults;
+        [this._dialogueState, expect, utterance, entities, numResults] = policyResult;
+
+        const policyPrediction = ThingTalkUtils.computePrediction(oldState, this._dialogueState, 'agent');
+        this._currentTurn.agent_target = policyPrediction.prettyprint();
+        this.debug(`Agent act:`);
+        this.debug(this._currentTurn.agent_target);
+
         if (this._useNeuralNLG()) {
-            [this._dialogueState, expect, , numResults] = policyResult;
-
-            const policyPrediction = ThingTalkUtils.computeNewState(oldState, this._dialogueState, 'agent');
-            this.debug(`Agent act:`);
-            this.debug(policyPrediction.prettyprint());
-
             const [contextCode, contextEntities] = this._prepareContextForPrediction(this._dialogueState, 'agent');
 
             const [targetAct,] = ThingTalkUtils.serializeNormalized(policyPrediction, contextEntities);
             const result = await this._nlg.generateUtterance(contextCode, contextEntities, targetAct);
             utterance = result[0].answer;
-        } else {
-            [this._dialogueState, expect, utterance, numResults] = policyResult;
         }
+
+        utterance = this._langPack.postprocessNLG(utterance, entities, this._agent);
 
         this.icon = getProgramIcon(this._dialogueState!);
         await this.reply(utterance);
@@ -427,6 +448,18 @@ export default class DialogueLoop {
             throw new CancellationError();
 
         return [expect, numResults];
+    }
+
+    private _updateLog() {
+        this.conversation.appendNewTurn(this._currentTurn);
+        this._currentTurn = {
+            context: null,
+            agent: null,
+            agent_target: null,
+            intermediate_context: null,
+            user: '',
+            user_target: ''
+        };
     }
 
     private async _handleUICommand(type : CommandAnalysisType) {
@@ -462,19 +495,29 @@ export default class DialogueLoop {
     }
 
     private async _describeProgram(program : Ast.Input) {
-        const describer = new ThingTalkUtils.Describer(this.conversation.locale, this.conversation.timezone);
+        const allocator = new Syntax.SequentialEntityAllocator({});
+        const describer = new ThingTalkUtils.Describer(this.conversation.locale,
+                                                       this.conversation.timezone,
+                                                       allocator);
         // retrieve the relevant primitive templates
         const kinds = new Set<string>();
         for (const [, prim] of program.iteratePrimitives(false))
             kinds.add(prim.selector.kind);
         for (const kind of kinds)
             describer.setDataset(kind, await this.engine.schemas.getExamplesByKind(kind));
-        return describer.describe(program);
+        return this._langPack.postprocessNLG(describer.describe(program), allocator.entities, this._agent);
     }
 
     private async _handleUserInput(command : UserInput) {
         for (;;) {
             const analyzed = await this._analyzeCommand(command);
+            if (analyzed.type !== CommandAnalysisType.IGNORE) {
+                // save the utterance and complete the turn
+                // skip the log if the command was ignored
+                this._currentTurn.user = analyzed.utterance;
+                this._currentTurn.user_target = analyzed.parsed.prettyprint();
+                this._updateLog();
+            }
 
             switch (analyzed.type) {
             case CommandAnalysisType.STOP:
@@ -522,17 +565,28 @@ export default class DialogueLoop {
                     break;
                 }
 
-                const terminated = await this._handleNormalDialogueCommand(prediction);
-                if (terminated)
-                    return;
+                await this._handleNormalDialogueCommand(prediction);
             }
             }
 
+            // if we're not expecting any more answer from the user,
+            // exit this loop
+            // note: this does not mean the dialogue is terminated!
+            // state is preserved until we call reset() due to context reset
+            // timeout, or some command causes a CancellationError
+            // (typically, "never mind", or a "no" in sys_anything_else)
+            //
+            // exiting this loop means that we close the microphone
+            // (requiring a wakeword again to continue) and start
+            // processing notifications again
+
+            if (this.expecting === null)
+                return;
             command = await this.nextCommand();
         }
     }
 
-    private async _handleNormalDialogueCommand(prediction : Ast.DialogueState) : Promise<boolean> {
+    private async _handleNormalDialogueCommand(prediction : Ast.DialogueState) : Promise<void> {
         this._dialogueState = ThingTalkUtils.computeNewState(this._dialogueState, prediction, 'user');
         this._checkPolicy(this._dialogueState.policy);
         this.icon = getProgramIcon(this._dialogueState);
@@ -556,7 +610,6 @@ export default class DialogueLoop {
         }
 
         await this.setExpected(expect);
-        return expect === null;
     }
 
     private async _showNotification(appId : string,
@@ -637,6 +690,7 @@ export default class DialogueLoop {
                     await this._handleUserInput(item.command);
                 } else {
                     await this._handleAPICall(item);
+                    this.conversation.dialogueFinished();
                     this._dialogueState = null;
                 }
             } catch(e) {
@@ -644,6 +698,10 @@ export default class DialogueLoop {
                     this.icon = null;
                     this._dialogueState = null;
                     await this.setExpected(null);
+                    // if the dialogue terminated, save the last utterance from the agent
+                    // in a new turn with an empty utterance from the user
+                    this._updateLog();
+                    this.conversation.dialogueFinished();
                 } else {
                     if (item instanceof QueueItem.UserInput) {
                         await this.replyInterp(this._("Sorry, I had an error processing your command: ${error}."), {//"
@@ -825,6 +883,8 @@ export default class DialogueLoop {
     }
 
     async reply(msg : string, icon ?: string|null) {
+        this._currentTurn.agent = this._currentTurn.agent ?
+            (this._currentTurn.agent + '\n' + msg) : msg;
         await this.conversation.sendReply(msg, icon || this.icon);
     }
 

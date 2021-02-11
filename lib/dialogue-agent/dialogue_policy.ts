@@ -21,13 +21,14 @@
 
 import assert from 'assert';
 import * as Tp from 'thingpedia';
-import { Ast, SchemaRetriever } from 'thingtalk';
+import { Ast, SchemaRetriever, Syntax } from 'thingtalk';
 
 import ValueCategory from './value-category';
 import * as I18n from '../i18n';
 import SentenceGenerator, { SentenceGeneratorOptions } from '../sentence-generator/generator';
 import { AgentReplyRecord } from '../sentence-generator/types';
 import * as ThingTalkUtils from '../utils/thingtalk';
+import { EntityMap } from '../utils/entity-utils';
 
 const MAX_DEPTH = 7;
 const TARGET_PRUNING_SIZES = [50, 100];
@@ -104,6 +105,7 @@ export default class DialoguePolicy {
     private _sentenceGenerator : SentenceGenerator<Ast.DialogueState|null, Ast.DialogueState, AgentReplyRecord<Ast.DialogueState>>|null;
     private _generatorDevices : string[]|null;
     private _generatorOptions : SentenceGeneratorOptions<Ast.DialogueState|null, Ast.DialogueState>|undefined;
+    private _entityAllocator : Syntax.SequentialEntityAllocator;
 
     constructor(options : DialoguePolicyOptions) {
         this._thingpedia = options.thingpedia;
@@ -111,6 +113,7 @@ export default class DialoguePolicy {
         this._locale = options.locale;
         this._timezone = options.timezone;
         this._langPack = I18n.get(options.locale);
+        this._entityAllocator = new Syntax.SequentialEntityAllocator({});
 
         this._rng = options.rng;
         assert(this._rng);
@@ -139,16 +142,18 @@ export default class DialoguePolicy {
             templateFiles: [TEMPLATE_FILE_PATH],
             thingpediaClient: this._thingpedia,
             schemaRetriever: this._schemas,
+            entityAllocator: this._entityAllocator,
             onlyDevices: forDevices,
             maxDepth: MAX_DEPTH,
             maxConstants: 5,
             targetPruningSize: TARGET_PRUNING_SIZES[0],
             debug: this._debug ? 2 : 1,
 
-            contextInitializer(state, functionTable, contextTable) {
+            contextInitializer: (state, functionTable, contextTable) => {
                 // ask the target language to extract the constants from the context
+                this._entityAllocator.reset();
                 if (state !== null) {
-                    const constants = ThingTalkUtils.extractConstants(state);
+                    const constants = ThingTalkUtils.extractConstants(state, this._entityAllocator);
                     sentenceGenerator.addConstantsFromContext(constants);
                 }
                 return functionTable.context!(state, contextTable);
@@ -203,15 +208,15 @@ export default class DialoguePolicy {
         return derivation;
     }
 
-    async chooseAction(state : Ast.DialogueState|null) : Promise<[Ast.DialogueState, ValueCategory|null, string, number]|undefined> {
+    async chooseAction(state : Ast.DialogueState|null) : Promise<[Ast.DialogueState, ValueCategory|null, string, EntityMap, number]|undefined> {
         await this._ensureGeneratorForState(state);
+
         const derivation = this._generateDerivation(state);
         if (derivation === undefined)
             return derivation;
 
         let sentence = derivation.toString();
         sentence = this._langPack.postprocessSynthetic(sentence, derivation.value.state, this._rng, 'agent');
-        sentence = this._langPack.postprocessNLG(sentence, {});
 
         let expect : ValueCategory|null;
         if (derivation.value.end)
@@ -223,6 +228,6 @@ export default class DialoguePolicy {
         if (expect === ValueCategory.RawString && !derivation.value.raw)
             expect = ValueCategory.Command;
 
-        return [derivation.value.state, expect, sentence, derivation.value.numResults];
+        return [derivation.value.state, expect, sentence, this._entityAllocator.entities, derivation.value.numResults];
     }
 }

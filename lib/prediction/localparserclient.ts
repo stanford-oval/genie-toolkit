@@ -277,7 +277,7 @@ export default class LocalParserClient {
         const candidates = await this._predictor.predict(contextCode.join(' ') + ' ' + targetAct.join(' '), NLG_QUESTION, undefined, NLG_TASK);
         return candidates.map((cand) => {
             return {
-                answer: this._langPack.postprocessNLG(cand.answer, contextEntities),
+                answer: cand.answer,
                 score: cand.score.confidence ?? 1
             };
         });

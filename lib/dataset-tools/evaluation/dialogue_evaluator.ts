@@ -200,7 +200,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
                 return this._tokenizeSlot(value.value.display||'');
             // unresolved
             assert(value.value instanceof Ast.UnresolvedLocation);
-            return value.value.name;
+            return this._tokenizeSlot(value.value.name);
         }
         if (value instanceof Ast.ContextRefValue)
             return 'context-' + value.name;
