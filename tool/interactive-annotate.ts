@@ -18,7 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import assert from 'assert';
 import * as argparse from 'argparse';
 import * as fs from 'fs';
 import * as readline from 'readline';
@@ -450,45 +449,7 @@ class Annotator extends events.EventEmitter {
     }
 
     private async _inputToDialogueState(input : ThingTalk.Ast.Input) : Promise<ThingTalk.Ast.DialogueState|null> {
-        if (input instanceof ThingTalk.Ast.ControlCommand) {
-            if (input.intent instanceof ThingTalk.Ast.SpecialControlIntent) {
-                switch (input.intent.type) {
-                case 'yes':
-                case 'no': {
-                    const value = new ThingTalk.Ast.BooleanValue(input.intent.type === 'yes');
-                    const handled = await this._dialoguePolicy.handleAnswer(this._context, value);
-                    if (!handled)
-                        return null;
-                    return ThingTalkUtils.computePrediction(this._context, handled, 'user');
-                }
-                default:
-                    return null;
-                }
-            }
-            if (input.intent instanceof ThingTalk.Ast.ChoiceControlIntent)
-                return null;
-
-            if (input.intent instanceof ThingTalk.Ast.AnswerControlIntent) {
-                const handled = await this._dialoguePolicy.handleAnswer(this._context, input.intent.value);
-                if (!handled)
-                    return null;
-                return ThingTalkUtils.computePrediction(this._context, handled, 'user');
-            }
-
-            throw new TypeError(`Unrecognized bookkeeping intent`);
-        } else if (input instanceof ThingTalk.Ast.Program) {
-            // convert thingtalk programs to dialogue states so we can use "\t" without too much typing
-            const prediction = new ThingTalk.Ast.DialogueState(null, 'org.thingpedia.dialogue.transaction', 'execute', null, []);
-            for (const stmt of input.statements) {
-                if (stmt instanceof ThingTalk.Ast.Assignment)
-                    throw new Error(`Unsupported: assignment statement`);
-                prediction.history.push(new ThingTalk.Ast.DialogueHistoryItem(null, stmt, null, 'accepted'));
-            }
-            return prediction;
-        }
-
-        assert(input instanceof ThingTalk.Ast.DialogueState);
-        return input;
+        return ThingTalkUtils.inputToDialogueState(this._dialoguePolicy, this._context, input);
     }
 
     private async _handleUtterance(utterance : string) {

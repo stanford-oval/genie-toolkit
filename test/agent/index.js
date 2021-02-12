@@ -159,7 +159,7 @@ class MockUser {
 
 async function mockNLU(conversation) {
     // inject some mocking in the parser:
-    conversation._nlu.onlineLearn = function(utterance, targetCode) {
+    conversation._loop._nlu.onlineLearn = function(utterance, targetCode) {
         if (utterance === 'get an xkcd comic')
             assert.strictEqual(targetCode.join(' '), 'now => @com.xkcd.get_comic => notify');
         else if (utterance === '!! test command multiple results !!')
@@ -171,8 +171,8 @@ async function mockNLU(conversation) {
     const commands = yaml.safeLoad(await util.promisify(fs.readFile)(
         path.resolve(path.dirname(module.filename), './mock-nlu.yaml')));
 
-    const realSendUtterance = conversation._nlu.sendUtterance;
-    conversation._nlu.sendUtterance = async function(utterance) {
+    const realSendUtterance = conversation._loop._nlu.sendUtterance;
+    conversation._loop._nlu.sendUtterance = async function(utterance) {
         if (utterance === '!! test command host unreach !!') {
             const e = new Error('Host is unreachable');
             e.code = 'EHOSTUNREACH';
@@ -188,7 +188,7 @@ async function mockNLU(conversation) {
                     err.code = command.error.code;
                     throw err;
                 }
-                return { tokens, entities, candidates: command.candidates };
+                return { tokens, entities, candidates: command.candidates, intent: { ignore: 0, command: 1, other: 0 } };
             }
         }
 
