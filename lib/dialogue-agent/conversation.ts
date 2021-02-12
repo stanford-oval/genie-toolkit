@@ -135,7 +135,7 @@ class DialogueLog {
         this._done = true;
         if (this.turns.length) {
             const lastTurn = this.turns[this.turns.length - 1];
-            lastTurn.finish()
+            lastTurn.finish();
         }
     }
 
