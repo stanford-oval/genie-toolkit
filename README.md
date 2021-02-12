@@ -15,7 +15,7 @@ If you use Genie in any academic work, please cite the above paper.
 
 ## Installation
 
-Genie depends on additional libraries, including the ThingTalk library and the decaNLP machine learning library.
+Genie depends on additional libraries, including the ThingTalk library and the [GenieNLP](https://github.com/stanford-oval/genienlp/) machine learning library.
 See [doc/install.md](doc/install.md) for details and installation instructions.
 
 ## License

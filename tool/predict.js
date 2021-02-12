@@ -72,7 +72,7 @@ module.exports = {
         });
         parser.add_argument('--url', {
             required: false,
-            help: "URL of the server to use. Use a file:// URL pointing to a model directory to predict using a local instance of decanlp",
+            help: "URL of the server to use. Use a file:// URL pointing to a model directory to predict using a local instance of genienlp",
             default: 'http://127.0.0.1:8400',
         });
         parser.add_argument('--contextual', {
