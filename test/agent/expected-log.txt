@@ -920,3 +920,38 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @org.thingpedia.iot.door.state();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.iot.door.state();
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"));
+C: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+C: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"))
+C: #[results=[
+C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, wind_speed=3.4mps, humidity=91.3, cloudiness=4.7, fog=0, status=enum sunny, icon="http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"^^tt:picture }
+C: ]];
+A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 F and the humidity is 91.3 %.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+U: \t $dialogue @org.thingpedia.dialogue.transaction.greet;
+UT: $dialogue @org.thingpedia.dialogue.transaction.greet;
+C: $dialogue @org.thingpedia.dialogue.transaction.sys_greet;
+C: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"))
+C: #[results=[
+C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, wind_speed=3.4mps, humidity=91.3, cloudiness=4.7, fog=0, status=enum sunny, icon="http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"^^tt:picture }
+C: ]];
+A: Hi, how can I help you?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_greet;
+U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
+UT: $dialogue @org.thingpedia.dialogue.transaction.cancel;
+C: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
+C: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"))
+C: #[results=[
+C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, wind_speed=3.4mps, humidity=91.3, cloudiness=4.7, fog=0, status=enum sunny, icon="http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"^^tt:picture }
+C: ]];
+A: Alright, bye!
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
