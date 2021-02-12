@@ -49,7 +49,6 @@ import TextFormatter from './card-output/text-formatter';
 import CardFormatter, { FormattedChunk } from './card-output/card-formatter';
 
 import ExecutionDialogueAgent from './execution_dialogue_agent';
-import { DialogueTurn } from "../dataset-tools/parsers";
 
 // TODO: load the policy.yaml file instead
 const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
@@ -153,7 +152,6 @@ export default class DialogueLoop {
     private _dialogueState : ThingTalk.Ast.DialogueState|null;
     private _executorState : undefined;
     private _lastNotificationApp : string|undefined;
-    private _currentTurn : DialogueTurn;
 
     private _stopped = false;
     private _mgrResolve : (() => void)|null;
@@ -193,14 +191,6 @@ export default class DialogueLoop {
             rng: conversation.rng,
             debug : this._debug
         });
-        this._currentTurn = {
-            context : null,
-            agent : null,
-            agent_target : null,
-            intermediate_context : null,
-            user: '',
-            user_target: ''
-        };
         this._dialogueState = null; // thingtalk dialogue state
         this._executorState = undefined; // private object managed by DialogueExecutor
         this._lastNotificationApp = undefined;
@@ -416,7 +406,8 @@ export default class DialogueLoop {
 
     private async _doAgentReply() : Promise<[ValueCategory|null, number]> {
         const oldState = this._dialogueState;
-        this._currentTurn.context = oldState ? oldState.prettyprint() : null;
+        if (oldState)
+            this.conversation.updateLog('context', oldState.prettyprint());
 
         const policyResult = await this._policy.chooseAction(this._dialogueState);
         if (!policyResult) {
@@ -428,9 +419,10 @@ export default class DialogueLoop {
         [this._dialogueState, expect, utterance, entities, numResults] = policyResult;
 
         const policyPrediction = ThingTalkUtils.computePrediction(oldState, this._dialogueState, 'agent');
-        this._currentTurn.agent_target = policyPrediction.prettyprint();
+        const agentTarget = policyPrediction.prettyprint();
+        this.conversation.updateLog('agent_target', agentTarget);
         this.debug(`Agent act:`);
-        this.debug(this._currentTurn.agent_target);
+        this.debug(agentTarget);
 
         if (this._useNeuralNLG()) {
             const [contextCode, contextEntities] = this._prepareContextForPrediction(this._dialogueState, 'agent');
@@ -448,18 +440,6 @@ export default class DialogueLoop {
             throw new CancellationError();
 
         return [expect, numResults];
-    }
-
-    private _updateLog() {
-        this.conversation.appendNewTurn(this._currentTurn);
-        this._currentTurn = {
-            context: null,
-            agent: null,
-            agent_target: null,
-            intermediate_context: null,
-            user: '',
-            user_target: ''
-        };
     }
 
     private async _handleUICommand(type : CommandAnalysisType) {
@@ -514,9 +494,9 @@ export default class DialogueLoop {
             if (analyzed.type !== CommandAnalysisType.IGNORE) {
                 // save the utterance and complete the turn
                 // skip the log if the command was ignored
-                this._currentTurn.user = analyzed.utterance;
-                this._currentTurn.user_target = analyzed.parsed.prettyprint();
-                this._updateLog();
+                this.conversation.updateLog('user', analyzed.utterance);
+                this.conversation.updateLog('user_target', analyzed.parsed.prettyprint());
+                this.conversation.turnFinished();
             }
 
             switch (analyzed.type) {
@@ -700,7 +680,6 @@ export default class DialogueLoop {
                     await this.setExpected(null);
                     // if the dialogue terminated, save the last utterance from the agent
                     // in a new turn with an empty utterance from the user
-                    this._updateLog();
                     this.conversation.dialogueFinished();
                 } else {
                     if (item instanceof QueueItem.UserInput) {
@@ -883,8 +862,7 @@ export default class DialogueLoop {
     }
 
     async reply(msg : string, icon ?: string|null) {
-        this._currentTurn.agent = this._currentTurn.agent ?
-            (this._currentTurn.agent + '\n' + msg) : msg;
+        this.conversation.updateLog('agent', msg);
         await this.conversation.sendReply(msg, icon || this.icon);
     }
 

@@ -267,10 +267,6 @@ C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), 
 C: ]];
 A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 F and the humidity is 91.3 %.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
-#! vote: down
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: [temperature] of @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"));
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -286,6 +282,10 @@ C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), 
 C: ]];
 A: The temperature is 60.1 F.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
 U: \t $stop;
 UT: $stop;
 ====
@@ -299,10 +299,6 @@ C: @org.thingpedia.weather.current(location=$?);
 A: What location do you want the current weather for?
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(location);
 AT: @org.thingpedia.weather.current(location=$?);
-#! vote: up
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
 U: \t $answer(new Location(37.442156, -122.1634471, "Palo Alto, California"));
 UT: $answer(new Location(37.442156, -122.1634471, "Palo Alto, California"));
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -312,6 +308,10 @@ C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), 
 C: ]];
 A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 F and the humidity is 91.3 %.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
 U: \t $stop;
 UT: $stop;
 ====
@@ -444,10 +444,6 @@ C:   { id="K6UKmykqrjb"^^com.icanhazdadjoke:id, text="What is a witch's favorite
 C: ]];
 A: What is a witch's favorite subject in school? Spelling!
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
-#! vote: up
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.icanhazdadjoke.get();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -471,6 +467,10 @@ C:   { id="K6UKmykqrjb"^^com.icanhazdadjoke:id, text="What is a witch's favorite
 C: ]];
 A: What is a witch's favorite subject in school? Spelling!
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
 U: \t $stop;
 UT: $stop;
 ====
@@ -497,10 +497,6 @@ U: \t $stop;
 UT: $stop;
 ====
 # test
-#! vote: up
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.yelp.restaurant() filter contains(cuisines, null^^com.yelp:restaurant_cuisine("italian"));
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -516,6 +512,10 @@ C:   { id="OZI4rK9s0xTwg2PdTRgmcw"^^com.yelp:restaurant("Aromi - Cambridge"), im
 C: ]];
 A: I see Patxi's Pizza, Cafe Borrone and Osteria Toscana. All of them are moderate restaurants having Italian food.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
 U: \t $stop;
 UT: $stop;
 ====
@@ -605,10 +605,6 @@ U: \t $stop;
 UT: $stop;
 ====
 # test
-#! vote: down
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.yelp.restaurant() filter contains(cuisines, "peruvian"^^com.yelp:restaurant_cuisine("Peruvian"));
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -618,14 +614,14 @@ C: @com.yelp.restaurant() filter contains(cuisines, "peruvian"^^com.yelp:restaur
 C: #[results=[]];
 A: Sorry, I cannot find any restaurant like that.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_empty_search;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
 U: \t $stop;
 UT: $stop;
 ====
 # test
-#! vote: up
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.spotify.song() filter contains(artists, "invalid"^^com.spotify:artist("Invalid")) => @com.spotify.play_song(song=id);
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -635,6 +631,10 @@ C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter
 C: #[results=[]];
 A: Sorry, I cannot find any song like that.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_empty_search;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
 U: \t $stop;
 UT: $stop;
 ====
@@ -658,10 +658,6 @@ U: \t $stop;
 UT: $stop;
 ====
 # test
-#! vote: up
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: count(@com.yelp.restaurant());
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -673,14 +669,14 @@ C:   { count=60 }
 C: ]];
 A: I have 60 restaurant with those characteristics.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
 U: \t $stop;
 UT: $stop;
 ====
 # test
-#! vote: down
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: count(@com.yelp.restaurant() filter contains(cuisines, "italian"^^com.yelp:restaurant_cuisine("Italian")));
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -692,14 +688,14 @@ C:   { count=5 }
 C: ]];
 A: There are 5 restaurant with those characteristics.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
 U: \t $stop;
 UT: $stop;
 ====
 # test
-#! vote: up
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: min(rating of @com.yelp.restaurant());
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -711,14 +707,14 @@ C:   { rating=3.5 }
 C: ]];
 A: The minimum rating is 3.5.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
 U: \t $stop;
 UT: $stop;
 ====
 # test
-#! vote: down
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: avg(rating of @com.yelp.restaurant());
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -730,14 +726,14 @@ C:   { rating=4.058333333333334 }
 C: ]];
 A: The average rating is 4.1.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
 U: \t $stop;
 UT: $stop;
 ====
 # test
-#! vote: up
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: [distance(geo, $location.current_location)] of @com.yelp.restaurant();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -760,6 +756,10 @@ C: #[count=50]
 C: #[more=true];
 A: The distance is 1.2 mi.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
 U: \t $stop;
 UT: $stop;
 ====
@@ -785,10 +785,6 @@ C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url
 C: ]];
 A: Ramen Nagi is a moderate restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg].
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-#! vote: up
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
 U: \t $yes;
 UT: $yes;
 C: $dialogue @org.thingpedia.dialogue.transaction.learn_more;
@@ -798,6 +794,10 @@ C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url
 C: ]];
 A: What would you like to know?
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_learn_more_what;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
 U: \t $stop;
 UT: $stop;
 ====
@@ -900,10 +900,6 @@ U: \t $stop;
 UT: $stop;
 ====
 # test
-#! vote: up
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.spotify.play_song(song="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:song("Hello"));
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -914,14 +910,14 @@ C: #[results=[]]
 C: #[error=enum no_active_device];
 A: Sorry, you must open the Spotify app first.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_error;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
 U: \t $stop;
 UT: $stop;
 ====
 # test
-#! vote: down
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.spotify.play_song(song="spotify:track:2zYzyRzz6pRmhPzyfMEC8s"^^com.spotify:song("Hello"));
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -932,14 +928,14 @@ C: #[results=[]]
 C: #[error="Some other error occurred"];
 A: Sorry, Some other error occurred.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_error;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
 U: \t $stop;
 UT: $stop;
 ====
 # test
-#! vote: up
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: [release_date] of @com.spotify.song() filter id =~ "Nice For What";
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -953,14 +949,14 @@ A: Nice For What is a song released on June 28, 2018. Would you like to play it 
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 AT: @com.spotify.play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
 AT: #[confirm=enum proposed];
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
 U: \t $stop;
 UT: $stop;
 ====
 # test
-#! vote: down
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: [release_date] of @com.spotify.song() filter id =~ "hello";
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -984,14 +980,14 @@ A: Hello? Is a song released on May 24, 2018. Would you like to play it on Spoti
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 AT: @com.spotify.play_song(song="spotify:track:7qwt4xUIqQWCu1DJf96g2k"^^com.spotify:song("Hello?"))
 AT: #[confirm=enum proposed];
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
 U: \t $stop;
 UT: $stop;
 ====
 # test
-#! vote: up
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: sort(popularity desc of @com.spotify.song())[1 : 3];
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -1005,50 +1001,50 @@ C:   { id="spotify:track:7eJMfftS33KTjuF7lTsMCx"^^com.spotify:song("death bed (c
 C: ]];
 A: I have found ROCKSTAR (feat. Roddy Ricch), Blinding Lights or death bed (coffee for your head).
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
-U: \t $stop;
-UT: $stop;
-====
-# test
-#! vote: down
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
-U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
-U: [release_date] of @com.spotify.album() filter id =~ "the wall";
-UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
-UT: [release_date] of @com.spotify.album() filter id =~ "the wall";
-C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: [release_date] of @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).album() filter id =~ "the wall"
-C: #[results=[
-C:   { id="spotify:album:5Dbax7G8SWrP9xyzkOvy2F"^^com.spotify:album("The Wall"), release_date=new Date("1979-11-30T00:00:00.000Z") },
-C:   { id="spotify:album:283NWqNsCA9GwVHrJk59CG"^^com.spotify:album("The Writing's On The Wall"), release_date=new Date("1999-07-27T00:00:00.000Z") },
-C:   { id="spotify:album:2ZytN2cY4Zjrr9ukb2rqTP"^^com.spotify:album("Off the Wall"), release_date=new Date("1979-08-10T00:00:00.000Z") },
-C:   { id="spotify:album:1GlOZiKHTgtJqEF2FRii9y"^^com.spotify:album("Over The Garden Wall"), release_date=new Date("2017-09-19T00:00:00.000Z") }
-C: ]];
-A: The Wall is an album from November 29, 1979.
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-U: \t $stop;
-UT: $stop;
-====
-# test
-U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
-U: [release_date] of @com.spotify.album() filter id =~ "the wall";
-UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
-UT: [release_date] of @com.spotify.album() filter id =~ "the wall";
-C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: [release_date] of @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).album() filter id =~ "the wall"
-C: #[results=[
-C:   { id="spotify:album:5Dbax7G8SWrP9xyzkOvy2F"^^com.spotify:album("The Wall"), release_date=new Date("1979-11-30T00:00:00.000Z") },
-C:   { id="spotify:album:283NWqNsCA9GwVHrJk59CG"^^com.spotify:album("The Writing's On The Wall"), release_date=new Date("1999-07-27T00:00:00.000Z") },
-C:   { id="spotify:album:2ZytN2cY4Zjrr9ukb2rqTP"^^com.spotify:album("Off the Wall"), release_date=new Date("1979-08-10T00:00:00.000Z") },
-C:   { id="spotify:album:1GlOZiKHTgtJqEF2FRii9y"^^com.spotify:album("Over The Garden Wall"), release_date=new Date("2017-09-19T00:00:00.000Z") }
-C: ]];
-A: The Wall is an album from November 29, 1979.
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: [release_date] of @com.spotify.album() filter id =~ "the wall";
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: [release_date] of @com.spotify.album() filter id =~ "the wall";
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: [release_date] of @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).album() filter id =~ "the wall"
+C: #[results=[
+C:   { id="spotify:album:5Dbax7G8SWrP9xyzkOvy2F"^^com.spotify:album("The Wall"), release_date=new Date("1979-11-30T00:00:00.000Z") },
+C:   { id="spotify:album:283NWqNsCA9GwVHrJk59CG"^^com.spotify:album("The Writing's On The Wall"), release_date=new Date("1999-07-27T00:00:00.000Z") },
+C:   { id="spotify:album:2ZytN2cY4Zjrr9ukb2rqTP"^^com.spotify:album("Off the Wall"), release_date=new Date("1979-08-10T00:00:00.000Z") },
+C:   { id="spotify:album:1GlOZiKHTgtJqEF2FRii9y"^^com.spotify:album("Over The Garden Wall"), release_date=new Date("2017-09-19T00:00:00.000Z") }
+C: ]];
+A: The Wall is an album from November 29, 1979.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: [release_date] of @com.spotify.album() filter id =~ "the wall";
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: [release_date] of @com.spotify.album() filter id =~ "the wall";
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: [release_date] of @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).album() filter id =~ "the wall"
+C: #[results=[
+C:   { id="spotify:album:5Dbax7G8SWrP9xyzkOvy2F"^^com.spotify:album("The Wall"), release_date=new Date("1979-11-30T00:00:00.000Z") },
+C:   { id="spotify:album:283NWqNsCA9GwVHrJk59CG"^^com.spotify:album("The Writing's On The Wall"), release_date=new Date("1999-07-27T00:00:00.000Z") },
+C:   { id="spotify:album:2ZytN2cY4Zjrr9ukb2rqTP"^^com.spotify:album("Off the Wall"), release_date=new Date("1979-08-10T00:00:00.000Z") },
+C:   { id="spotify:album:1GlOZiKHTgtJqEF2FRii9y"^^com.spotify:album("Over The Garden Wall"), release_date=new Date("2017-09-19T00:00:00.000Z") }
+C: ]];
+A: The Wall is an album from November 29, 1979.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"));
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -1067,6 +1063,10 @@ C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), 
 C: ]];
 A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 F and the humidity is 91.3 %.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
 U: \t $stop;
 UT: $stop;
 ====
@@ -1103,10 +1103,6 @@ U: \t $stop;
 UT: $stop;
 ====
 # test
-#! vote: up
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: sort(popularity desc of @com.spotify.song())[1];
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -1120,14 +1116,14 @@ A: The most popular song is ROCKSTAR (feat. Roddy Ricch). It is a song by DaBaby
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 AT: @com.spotify.play_song(song="spotify:track:7ytR5pFWmSjzHJIeQkgog4"^^com.spotify:song("ROCKSTAR (feat. Roddy Ricch)"))
 AT: #[confirm=enum proposed];
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
 U: \t $stop;
 UT: $stop;
 ====
 # test
-#! vote: down
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: sort(popularity asc of @com.spotify.song())[1];
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -1141,14 +1137,14 @@ A: The least popular song is Love Yourself. It is a song by Justin Bieber in the
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 AT: @com.spotify.play_song(song="spotify:track:0VXeNEtuiD77F2StUeUadK"^^com.spotify:song("Love Yourself"))
 AT: #[confirm=enum proposed];
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
 U: \t $stop;
 UT: $stop;
 ====
 # test
-#! vote: up
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: sort(reviewCount desc of @com.yelp.restaurant())[1];
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -1160,14 +1156,14 @@ C:   { id="jwaXc3VVGDFQu1aCoiXwdw"^^com.yelp:restaurant("NOLA Restaurant & Bar")
 C: ]];
 A: The restaurant with the highest review count is NOLA Restaurant & Bar. It is an expensive restaurant near [Latitude: 37.445 deg, Longitude: -122.161 deg].
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
 U: \t $stop;
 UT: $stop;
 ====
 # test
-#! vote: down
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: sort(reviewCount asc of @com.yelp.restaurant())[1];
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -1179,14 +1175,14 @@ C:   { id="yzBYyndSQ3RI6Hci2F9pRQ"^^com.yelp:restaurant("The Ivy Cambridge Brass
 C: ]];
 A: The restaurant with the lowest review count is The Ivy Cambridge Brasserie. It is a restaurant near [Latitude: 52.207 deg, Longitude: 0.118 deg] rated 4.5 star.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
 U: \t $stop;
 UT: $stop;
 ====
 # test
-#! vote: up
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.thecatapi.get();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -1198,14 +1194,14 @@ C:   { id="str:ENTITY_com.thecatapi:image_id::0:"^^com.thecatapi:image_id, pictu
 C: ]];
 A: Here is your cat picture.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
 U: \t $stop;
 UT: $stop;
 ====
 # test
-#! vote: down
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.xkcd.comic();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -1228,14 +1224,14 @@ C: #[count=50]
 C: #[more=true];
 A: I found xkcd 20. It is an xkcd comic from January 20, 2018 titled Some Device 10.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
 U: \t $stop;
 UT: $stop;
 ====
 # test
-#! vote: up
-#! comment: test comment for dialogue turns
-#!          additional
-#!          lines
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: sort(release_date desc of @com.xkcd.comic())[1];
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -1247,6 +1243,10 @@ C:   { id=371, title="str:QUOTED_STRING::3:", release_date=new Date("2020-08-31T
 C: ]];
 A: The latest xkcd comic is 371. It is an xkcd comic from August 31, 2020 titled str:QUOTED_STRING::3:.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
 U: \t $stop;
 UT: $stop;
 ====
