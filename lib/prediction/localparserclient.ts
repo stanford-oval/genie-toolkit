@@ -226,16 +226,22 @@ export default class LocalParserClient {
                 // convert is_correct and is_probably_correct scores into
                 // a single scale such that >0.5 is correct and >0.25 is
                 // probably correct
-                const score = (c.score.is_correct ?? 1) > 0.5 ? (c.score.is_correct ?? 1) :
-                    ((c.score.is_probably_correct ?? 1) * 0.5);
+                const score = (c.score.is_correct ?? 1) >= 0.5 ? 1 :
+                    (c.score.is_probably_correct ?? 1) >= 0.5 ? 0.35 : 0.15;
                 return {
                     code: c.answer.split(' '),
                     score: score
                 };
             });
 
-            intent.ignore = candidates[0].score.is_junk ?? 0;
-            intent.other = (candidates[0].score.is_ood ?? 0) * (1 - intent.ignore);
+            if (candidates[0].score.is_junk >= 0.5)
+                intent.ignore = 1;
+            else
+                intent.ignore = 0;
+            if (intent.ignore < 0.5 && candidates[0].score.is_ood >= 0.5)
+                intent.other = 1;
+            else
+                intent.other = 0;
             intent.command = 1 - intent.ignore - intent.other;
         }
 
