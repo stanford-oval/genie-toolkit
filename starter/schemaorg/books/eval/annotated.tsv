@@ -83,7 +83,6 @@
 99	find me a book in danish with a 3 star rating .	@org.schema.Book . Book ( ) filter aggregateRating . ratingValue == 3 && inLanguage == null ^^tt:iso_lang_code ( " danish " ) ;
 100	what is the isbn of game of thrones fire and ice ?	[ isbn ] of @org.schema.Book . Book ( ) filter id =~ " game of thrones fire and ice " ;
 102	how many awards has chinua achebe 's all things apart won ?	[ count ( award ) ] of @org.schema.Book . Book ( ) filter author == null ^^org.schema.Book:Person ( " chinua achebe " ) && id =~ " all things apart " ;
-103	does 50 shades of grey have any hardcover edition ?	@org.schema.Book . Book ( ) filter bookFormat == enum Hardcover && id =~ " 50 shades of grey " ;
 104	is there a chinese release of any of the harry potter books ?	@org.schema.Book . Book ( ) filter id =~ " harry potter " && inLanguage == null ^^tt:iso_lang_code ( " chinese " ) ;
 105	what is the isbn for the first edition of jk rowling 's harry potter book ?	[ isbn ] of @org.schema.Book . Book ( ) filter author == null ^^org.schema.Book:Person ( " jk rowling " ) && bookEdition =~ " first edition " && id =~ " harry potter " ;
 106	how many pages does choke by chuck palahniuk have ?	[ numberOfPages ] of @org.schema.Book . Book ( ) filter author == null ^^org.schema.Book:Person ( " chuck palahniuk " ) && id =~ " choke " ;
