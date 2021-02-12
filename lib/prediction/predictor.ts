@@ -82,8 +82,8 @@ class LocalWorker extends events.EventEmitter {
         ];
         if (process.env.GENIENLP_EMBEDDINGS)
             args.push('--embeddings', process.env.GENIENLP_EMBEDDINGS);
-        if (process.env.GENIENLP_DATABASE)
-            args.push('--database', process.env.GENIENLP_DATABASE);
+        if (process.env.GENIENLP_DATABASE_DIR)
+            args.push('--database_dir', process.env.GENIENLP_DATABASE_DIR);
 
         this._child = child_process.spawn('genienlp', args, {
             stdio: ['pipe', 'pipe', 'inherit']

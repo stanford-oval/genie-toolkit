@@ -106,6 +106,7 @@ interface ValueList {
     sample(rng : () => number) : string;
 }
 
+
 class WeightedValueList implements ValueList {
     private _values : string[];
     private _cumsum : number[];
@@ -152,6 +153,27 @@ class UniformValueList implements ValueList {
     }
 }
 
+class SequentialValueList implements ValueList  {
+    private _values : string[];
+    private _index : number;
+    constructor(values : string[]) {
+        this._values = values;
+        this._index = 0;
+    }
+
+    get size() {
+        return this._values.length;
+    }
+
+    sample(rng : () => number) {
+        if (this._index === this._values.length)
+            this._index = 0;
+        const value = this._values[this._index];
+        this._index += 1;
+        return value;
+    }
+}
+
 interface ParameterRecord {
     preprocessed : string;
     weight : number;
@@ -160,7 +182,7 @@ interface ParameterProvider {
     get(type : 'entity'|'string', key : string) : Promise<ParameterRecord[]>;
 }
 
-type SamplingType = 'random' | 'uniform' | 'default';
+type SamplingType = 'random' | 'uniform' | 'default' | 'sequential';
 
 class ValueListLoader {
     private _provider : ParameterProvider;
@@ -205,7 +227,14 @@ class ValueListLoader {
 
         const [beg, end] = this._subsetParamSet;
         const rows_size = rows.length;
-        rows = rows.slice(beg * rows_size, end * rows_size);
+        const slice_beg = beg * rows_size;
+        let slice_end;
+        // make sure we have at least one row
+        if ((end - beg) * rows_size < 1.0)
+            slice_end = slice_beg + 1;
+        else
+            slice_end = end * rows_size;
+        rows = rows.slice(slice_beg, slice_end);
 
         let minWeight = Infinity, maxWeight = -Infinity;
         let sumWeight = 0;
@@ -218,7 +247,9 @@ class ValueListLoader {
         // if all weights are approximately equal
         // (ie, the range is significantly smaller than the average)
         // we use a uniform sampler, which is faster
-        if ((maxWeight - minWeight) / (sumWeight / rows.length) < 0.0001)
+        if (this._samplingType === 'sequential')
+            return new SequentialValueList(rows.map((r) => r.preprocessed));
+        else if ((maxWeight - minWeight) / (sumWeight / rows.length) < 0.0001)
             return new UniformValueList(rows.map((r) => r.preprocessed));
         else
             return new WeightedValueList(rows.map((r) => r.preprocessed), rows.map((r) => r.weight));
