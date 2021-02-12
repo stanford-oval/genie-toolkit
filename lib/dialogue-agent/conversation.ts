@@ -81,8 +81,41 @@ interface ResultLike {
     toLocaleString(locale ?: string) : string;
 }
 
+export class DialogueTurnLog {
+    private readonly _turn : DialogueTurn;
+    private _done : boolean;
+
+    constructor() {
+        this._turn = {
+            context: null,
+            agent: null,
+            agent_target: null,
+            intermediate_context: null,
+            user: '',
+            user_target: ''
+        };
+        this._done = false;
+    }
+
+    get turn() {
+        return this._turn;
+    }
+
+    get done() {
+        return this._done;
+    }
+
+    finish() {
+        this._done = true;
+    }
+
+    update(field : keyof DialogueTurn, value : string) {
+        this._turn[field] = this._turn[field] ? this._turn[field] + '\n' + value : value;
+    }
+}
+
 class DialogueLog {
-    private readonly _turns : DialogueTurn[];
+    private readonly _turns : DialogueTurnLog[];
     private _done : boolean;
 
     constructor() {
@@ -100,9 +133,13 @@ class DialogueLog {
 
     finish() {
         this._done = true;
+        if (this.turns.length) {
+            const lastTurn = this.turns[this.turns.length - 1];
+            lastTurn.finish();
+        }
     }
 
-    append(turn : DialogueTurn) {
+    append(turn : DialogueTurnLog) {
         this._turns.push(turn);
     }
 }
@@ -434,10 +471,10 @@ export default class Conversation extends events.EventEmitter {
         return this._log[this._log.length - 1];
     }
 
-    lastTurn() {
+    private get _lastTurn() {
         const lastDialogue = this._lastDialogue;
         if (!lastDialogue || lastDialogue.turns.length === 0)
-            throw new Error('No dialogue is logged');
+            return null;
         return lastDialogue.turns[lastDialogue.turns.length - 1];
     }
 
@@ -451,7 +488,13 @@ export default class Conversation extends events.EventEmitter {
             last.finish();
     }
 
-    appendNewTurn(turn : DialogueTurn) {
+    turnFinished() {
+        const last = this._lastTurn;
+        if (last)
+            last.finish();
+    }
+
+    appendNewTurn(turn : DialogueTurnLog) {
         const last = this._lastDialogue;
         if (!last || last.done)
             this.appendNewDialogue();
@@ -460,13 +503,26 @@ export default class Conversation extends events.EventEmitter {
     }
 
     voteLast(vote : 'up'|'down') {
-        const last = this.lastTurn();
-        last.vote = vote;
+        const last = this._lastTurn;
+        if (!last)
+            throw new Error('No dialogue is logged');
+        last.turn.vote = vote;
     }
 
     commentLast(comment : string) {
-        const last = this.lastTurn();
-        last.comment = comment;
+        const last = this._lastTurn;
+        if (!last)
+            throw new Error('No dialogue is logged');
+        last.turn.comment = comment;
+    }
+
+    updateLog(field : keyof DialogueTurn, value : string) {
+        let last = this._lastTurn;
+        if (!last || last.done) {
+            last = new DialogueTurnLog();
+            this.appendNewTurn(last);
+        }
+        last.update(field, value);
     }
 
     async saveLog() {
@@ -484,7 +540,7 @@ export default class Conversation extends events.EventEmitter {
 
         serializer.pipe(output);
         for (const dialogue of this._log)
-            serializer.write({ id: this.id, turns: dialogue.turns });
+            serializer.write({ id: this.id, turns: dialogue.turns.map((log) => log.turn) });
         serializer.end();
 
         await StreamUtils.waitFinish(output);
