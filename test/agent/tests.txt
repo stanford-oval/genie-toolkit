@@ -708,3 +708,25 @@ A: You need to enable Home Assistant before you can use that command.
 A: link: Configure Home Assistant /devices/create
 A: >> context = null // {}
 A: >> expecting = null
+
+====
+# 47-greet-in-the-middle
+# getting the weather
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: now => @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California")) => notify;
+
+A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 F and the humidity is 91.3 %.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.weather . current ( location = LOCATION_0 ) #[ results = [ { location = LOCATION_0 , temperature = MEASURE_C_0 , wind_speed = MEASURE_mps_0 , humidity = NUMBER_0 , cloudiness = NUMBER_1 , fog = 0 , status = enum sunny , icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":15.6},"MEASURE_mps_0":{"unit":"mps","value":3.4},"NUMBER_0":91.3,"NUMBER_1":4.7,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
+A: >> expecting = null
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.greet;
+
+A: Hi, how can I help you?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_greet ; @org.thingpedia.weather . current ( location = LOCATION_0 ) #[ results = [ { location = LOCATION_0 , temperature = MEASURE_C_0 , wind_speed = MEASURE_mps_0 , humidity = NUMBER_0 , cloudiness = NUMBER_1 , fog = 0 , status = enum sunny , icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.442156,"longitude":-122.1634471,"display":"Palo Alto, California"},"MEASURE_C_0":{"unit":"C","value":15.6},"MEASURE_mps_0":{"unit":"mps","value":3.4},"NUMBER_0":91.3,"NUMBER_1":4.7,"PICTURE_0":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"}
+A: >> expecting = command
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
+
+A: Alright, bye!
+A: >> context = null // {}
+A: >> expecting = null

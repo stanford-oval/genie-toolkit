@@ -831,7 +831,6 @@ export function tagContextForAgent(ctx : ContextInfo) : number[] {
         return [contextTable.ctx_end];
 
     case 'greet':
-        assert(ctx.state.history.length === 0, `expected empty history for greet`);
         return [contextTable.ctx_greet];
 
     case 'reinit':
