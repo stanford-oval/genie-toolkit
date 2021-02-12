@@ -171,7 +171,7 @@ class RemoteWorker extends events.EventEmitter {
             instances: minibatch
         }), { dataContentType: 'application/json', accept: 'application/json' });
         const parsed = JSON.parse(response);
-        return parsed.predictions.instances.map((instance : any) : PredictionCandidate[] => {
+        return parsed.predictions.map((instance : any) : PredictionCandidate[] => {
             if (instance.candidates) {
                 return instance.candidates;
             } else {
