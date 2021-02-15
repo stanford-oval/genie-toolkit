@@ -58,14 +58,32 @@ async function testGetCommands(engine) {
     }
 }
 
+async function checkRandom(device, low, high, expectedLow, expectedHigh) {
+    for (let _try = 0; _try < 1000; _try++) {
+        const [random] = await device.get_get_random_between({ low, high });
+        assert.strictEqual(typeof random.random, 'number');
+        assert(random.random >= expectedLow, `got number ${random.random} which is less than ${expectedLow}`);
+        assert(random.random <= expectedHigh, `got number ${random.random} which is more than ${expectedHigh}`);
+        assert.strictEqual(Math.floor(random.random), random.random);
+    }
+}
+
 async function testOtherBuiltins(engine) {
     const device = engine.devices.getDevice('thingengine-own-global');
 
-    const [random] = await device.get_get_random_between({ low: 0, high: 7 });
-    assert.strictEqual(typeof random.random, 'number');
-    assert(random.random >= 0);
-    assert(random.random <= 7);
-    assert.strictEqual(Math.floor(random.random), random.random);
+    await checkRandom(device, 0, 7, 0, 7);
+    await checkRandom(device, 7, 0, 0, 7);
+    await checkRandom(device, undefined, undefined, 1, 6);
+
+    await checkRandom(device, 2, undefined, 2, 7);
+    await checkRandom(device, 10, undefined, 10, 20);
+    await checkRandom(device, 100, undefined, 100, 200);
+    await checkRandom(device, -100, undefined, -100, 0);
+    await checkRandom(device, undefined, 1, 1, 1);
+    await checkRandom(device, undefined, 10, 1, 10);
+    await checkRandom(device, undefined, -2, -7, -2);
+    await checkRandom(device, undefined, -10, -20, -10);
+    await checkRandom(device, undefined, -100, -200, -100);
 }
 
 function testBuiltinsAreExpected(engine) {

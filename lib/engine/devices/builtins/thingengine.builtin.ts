@@ -58,10 +58,16 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         // FIXME convert to the right timezone...
         return [{ time: new Tp.Value.Time(now.getHours(), now.getMinutes(), now.getSeconds()) }];
     }
-    get_get_random_between({ low, high } : { low : number, high : number }) {
-        low = (low === null || low === undefined) ?  1 : low;
-        high = (high === null || high === undefined) ?  6 : high;
-        return [{ random: Math.round(low + (Math.random() * (high - low))) }];
+    get_get_random_between({ low, high } : { low : number|null|undefined, high : number|null|undefined }) {
+        if ((low === null || low === undefined) && (high === null || high === undefined)) {
+            low = 1;
+            high = 6;
+        } else if (low === null || low === undefined) {
+            low = high! < 0 ? Math.min(2 * high!, high! - 5) : 1;
+        } else if (high === null || high === undefined) {
+            high = low < 0 ? 0 : Math.max(2 * low, low + 5);
+        }
+        return [{ random: Math.round(low + (Math.random() * (high! - low))) }];
     }
 
     get_get_name() {
