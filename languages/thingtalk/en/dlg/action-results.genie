@@ -22,119 +22,137 @@
 // Either the action was successful, and we're done, or
 // the action failed, and we give the user an option to try again
 
-{
-    const assert = require('assert');
-    const ThingTalk = require('thingtalk');
-    const Ast = ThingTalk.Ast;
-    const Type = ThingTalk.Type;
+import assert from 'assert';
+import { Ast, } from 'thingtalk';
 
-    const C = require('../../ast_manip');
-    const D = require('../../dialogue_acts');
+import * as C from '../../ast_manip';
+import * as D from '../../dialogue_acts';
+import * as S from '../../state_manip';
+import ThingpediaLoader from '../../load-thingpedia';
 
-    // import thingpedia info
-    const _tpLoader = require('../../load-thingpedia');
-}
+import { SlotBag } from '../../slot_bag';
 
-for (let [pname, [typestr,]] of _tpLoader.params.in.values()) {
-    thingpedia_action_past = {
-        ( action:thingpedia_action_past 'it' [priority=-0.01]
-        | action:thingpedia_action_past 'this' [priority=-0.01]
-        | action:thingpedia_action_past 'that' [priority=-0.01]
-        ) [-> pname] => {
-            const type = action.schema.getArgType(pname);
-            if (!type || !type.isEntity)
-                return null;
-            return C.replacePlaceholderWithUndefined(action, pname, typestr);
-        };
-    }
-}
-
-complete_past_action_phrase = {
-    ( action:thingpedia_action_past
-    | action:thingpedia_action_past 'for you'
-    ) if complete => {
-        if (!(action instanceof Ast.Action.Invocation))
-            return null;
-        return action.invocation;
-    };
-
-    ( action:complete_past_action_phrase param:preposition_input_param [priority=0.1]
-    | action:complete_past_action_phrase ('with' | 'having') param:npp_input_param [priority=0.1]
-    ) => C.addInvocationInputParam(action, param);
-
-    ( action:complete_past_action_phrase param:preposition_filter [priority=0.1]
-    | action:complete_past_action_phrase ('with' | 'having') param:npp_filter [priority=0.1]
+complete_past_action_phrase : Ast.Expression = {
+    // using a constant
+    ( action:thingpedia_complete_action_past
+    | action:thingpedia_complete_action_past 'for you'
     ) => {
-        if (!(param instanceof Ast.BooleanExpression.Atom))
+        // check against weird primitive templates, because
+        // later we don't check the query
+        if (!(action instanceof Ast.InvocationExpression))
             return null;
-        return C.addInvocationInputParam(action, new Ast.InputParam(null, param.name, param.value), { allowOutput: true });
+        return action;
+    };
+
+    // using a join
+    ( action:thingpedia_complete_join_action_past
+    | action:thingpedia_complete_join_action_past 'for you'
+    ) => action;
+
+    ( action:complete_past_action_phrase param:preposition_input_param with { functionName = action.functionName } [priority=0.1]
+    | action:complete_past_action_phrase ('with' | 'having') param:npp_input_param with { functionName = action.functionName } [priority=0.1]
+    ) => C.addActionInputParam($loader, action, param);
+
+    ( action:complete_past_action_phrase param:preposition_filter with { functionName = action.functionName } [priority=0.1]
+    | action:complete_past_action_phrase ('with' | 'having') param:npp_filter with { functionName = action.functionName } [priority=0.1]
+    ) => {
+        if (!(param.ast instanceof Ast.AtomBooleanExpression))
+            return null;
+        const ipslot = { schema: param.schema, ptype: param.ptype,
+            ast: new Ast.InputParam(null, param.ast.name, param.ast.value) };
+        return C.addActionInputParam($loader, action, ipslot, { allowOutput: true });
     };
 }
 
-generic_action_success_phrase = {
+generic_action_success_phrase : string = {
     'your request was completed successfully';
     'consider your request done !';
 }
 
-action_success_phrase = {
-    ctx:ctx_completed_action_success generic_excitement_phrase result:thingpedia_result '.' if complete [priority=5]
-        => D.makeThingpediaActionSuccessPhrase(ctx, result);
+action_success_phrase_with_result : D.ActionSuccessPhraseWithResult = {
+    generic_action_success_phrase '.' result:direct_result_info_phrase [priority=1]
+        => [null, result.info];
 
-    ctx:ctx_completed_action_success generic_excitement_phrase generic_action_success_phrase '.' result:direct_result_info_phrase [priority=1]
-        => D.makeThingpediaActionSuccessPhrase(ctx, result);
+    'i' action:complete_past_action_phrase '.' result:direct_result_info_phrase with { functionName = action.functionName } [priority=2]
+        => [action, result.info];
+}
 
-    ctx:ctx_completed_action_success generic_excitement_phrase 'i' action:complete_past_action_phrase '.' [priority=2]
+action_success_phrase : S.AgentReplyRecord = {
+    // for Thingpedia phrases (#_[result]), at inference time we pick the top one and replace it
+    // directly using a context phrase
+    // at training time we generate all possible phrases and match
+    ?inference
+        ctx:ctx_completed_action_success generic_excitement_phrase result:ctx_thingpedia_result '.' [priority=5]
+            => D.makeThingpediaActionSuccessPhrase(ctx, result);
+    !inference
+        ctx:ctx_completed_action_success generic_excitement_phrase result:thingpedia_result with { functionName = ctx.currentFunction } '.' [priority=5]
+            => D.makeThingpediaActionSuccessPhrase(ctx, result);
+
+    ctx:ctx_completed_action_success generic_excitement_phrase 'i' action:complete_past_action_phrase with { functionName = ctx.currentFunction } '.' [priority=2]
         => D.makeCompleteActionSuccessPhrase(ctx, action, null);
 
-    ctx:ctx_completed_action_success generic_excitement_phrase 'i' action:complete_past_action_phrase '.' info:direct_result_info_phrase [priority=2]
-        => D.makeCompleteActionSuccessPhrase(ctx, action, info);
+    ctx:ctx_completed_action_success generic_excitement_phrase phrase:action_success_phrase_with_result => {
+        const [action, info] = phrase;
+        if (action)
+            return D.makeCompleteActionSuccessPhrase(ctx, action, info);
+        else
+            return D.makeThingpediaActionSuccessPhrase(ctx, info);
+    };
 
     // purely generic fallback, so we always say something, even if we cannot use a better template
     ctx:ctx_completed_action_success generic_excitement_phrase generic_action_success_phrase [priority=-10]
         => D.makeGenericActionSuccessPhrase(ctx);
 }
 
-short_action_error_message = {
-    ctx:ctx_completed_action_error msg:thingpedia_error_message if complete
-        => D.checkThingpediaErrorMessage(ctx, msg);
+short_action_error_message : S.ContextInfo = {
+    // for Thingpedia phrases (#_[on_error]), at inference time we pick the top one for the correct code
+    // and replace it directly using a context phrase
+    // at training time we generate all possible phrases and match
+    ?inference
+        ctx:ctx_completed_action_error msg:ctx_thingpedia_error_message '.' [priority=5]
+            => D.checkThingpediaErrorMessage(ctx, msg);
+    !inference
+        ctx:ctx_completed_action_error msg:thingpedia_error_message with { functionName = ctx.currentFunction } '.' [priority=5]
+            => D.checkThingpediaErrorMessage(ctx, msg);
 
     ctx:ctx_completed_action_error msg:constant_String => {
-        const error = ctx.error;
-        if (error.isString && error.equals(msg))
+        const error = ctx.error!;
+        if (error.equals(msg))
             return ctx;
         else
             return null;
     };
 }
 
-long_action_error_message = {
+long_action_error_message : S.ContextInfo = {
     ('i could not' | 'it was not possible to') action:action_description_phrase (':' | 'because') ctx:short_action_error_message
         => D.checkActionErrorMessage(ctx, action);
 }
 
-one_param_try_different_param_question = {
+one_param_try_different_param_question : C.ParamSlot[] = {
     ( 'would you like to try a different' p:input_param '?'
     | 'would you like a different' p:input_param '?'
     | 'shall i try another' p:input_param '?'
     | 'how about for another' p:input_param '?'
     ) => {
-        return [p.name];
+        return [p];
     };
 }
 
-two_param_try_different_param_question = {
-    ( 'would you like to try a different' p1:input_param 'or' p2:input_param '?'
-    | 'would you like a different' p1:input_param 'or' p2:input_param '?'
-    | 'shall i try another' p1:input_param 'or' p2:input_param '?'
-    | 'how about for another' p1:input_param 'or' p2:input_param '?'
+two_param_try_different_param_question : C.ParamSlot[] = {
+    ( 'would you like to try a different' p1:input_param 'or' p2:input_param with { functionName = p1.functionName } '?'
+    | 'would you like a different' p1:input_param 'or' p2:input_param with { functionName = p1.functionName } '?'
+    | 'shall i try another' p1:input_param 'or' p2:input_param with { functionName = p1.functionName } '?'
+    | 'how about for another' p1:input_param 'or' p2:input_param with { functionName = p1.functionName } '?'
     ) => {
+        assert(C.isSameFunction(p1.schema, p2.schema));
         if (p1 === p2)
             return null;
         return [p1, p2];
     };
 }
 
-action_error_phrase = {
+action_error_phrase : S.AgentReplyRecord = {
     sorry_preamble ctx:short_action_error_message '.' => D.makeActionErrorPhrase(ctx, []);
 
     !inference {

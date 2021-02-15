@@ -18,18 +18,18 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>,
 //          Mehrad Moradshahi <mehrad@cs.stanford.edu>
-"use strict";
 
-const fs = require('fs');
-const Stream = require('stream');
-const assert = require('assert');
-const ConditionalDatasetSplitter = require('../lib/dataset-tools/conditional-splitter');
 
-const i18n = require('../lib/i18n');
+import * as fs from 'fs';
+import Stream from 'stream';
+import assert from 'assert';
+import ConditionalDatasetSplitter from '../lib/dataset-tools/conditional-splitter';
 
-const { DatasetParser, DatasetStringifier } = require('../lib/dataset-tools/parsers');
-const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
-const StreamUtils = require('../lib/utils/stream-utils');
+import * as i18n from '../lib/i18n';
+
+import { DatasetParser, DatasetStringifier } from '../lib/dataset-tools/parsers';
+import { maybeCreateReadStream, readAllLines } from './lib/argutils';
+import * as StreamUtils from '../lib/utils/stream-utils';
 
 const ENTITY_MATCH_REGEX = /^([A-Z].*)_[0-9|۰-۹]+$/;
 const NUMBER_MATCH_REGEX = /^([0-9|۰-۹]+)$/;
@@ -94,12 +94,28 @@ function findSubstring(sequence, substring, spansBySentencePos, allowOverlapping
         return [-1, false];
 }
 
+function getEntityType(entityMarker) {
+    switch (entityMarker) {
+    case '^^tt:hashtag':
+        return 'HASHTAG';
+    case '^^tt:username':
+        return 'USERNAME';
+    case '^^tt:phone_number':
+        return 'PHONE_NUMBER';
+    default:
+        return 'GENERIC_ENTITY_' + entityMarker.substring(2);
+    }
+}
 
 function findSpanType(program, begin_index, end_index, requote_numbers, string_number) {
     let spanType;
-    if (begin_index > 1 && program[begin_index-2] === 'location:') {
+    if (program[begin_index-2] === 'location:' ||
+        program[begin_index-3] === 'Location') { // new Location ( " ..., in new syntax
         spanType = 'LOCATION';
-
+    } else if ((program[end_index+1] || '').startsWith('^^')) {
+        spanType = getEntityType(program[end_index+1]);
+    } else if ((program[begin_index-3] || '').startsWith('^^') && program[begin_index-4] === 'null') { // null ^^com.foo ( " ..., in new syntax
+        spanType = getEntityType(program[begin_index-3]);
     } else if (doReplaceNumbers(program[begin_index], requote_numbers)
         && !(program[end_index+1].startsWith('^^'))){
         // catch purely numeric postal_codes or phone_numbers
@@ -107,29 +123,15 @@ function findSpanType(program, begin_index, end_index, requote_numbers, string_n
             spanType = 'QUOTED_STRING';
         else
             spanType = 'NUMBER';
-    } else if (end_index === program.length - 1 || !program[end_index+1].startsWith('^^')) {
-        spanType = 'QUOTED_STRING';
     } else {
-        switch (program[end_index+1]) {
-        case '^^tt:hashtag':
-            spanType = 'HASHTAG';
-            break;
-        case '^^tt:username':
-            spanType = 'USERNAME';
-            break;
-        case '^^tt:phone_number':
-            spanType = 'PHONE_NUMBER';
-            break;
-        default:
-            spanType = 'GENERIC_ENTITY_' + program[end_index+1].substring(2);
-        }
+        spanType = 'QUOTED_STRING';
     }
     return spanType;
 }
 
 
 function createProgram(program, spansByProgramPos, entityRemap, requote_numbers, ignoredProgramSpans) {
-    let in_string = false;
+    let in_string = false, in_location = false, in_entity = false;
     let newProgram = [];
     let programSpanIndex = 0;
 
@@ -150,9 +152,31 @@ function createProgram(program, spansByProgramPos, entityRemap, requote_numbers,
         }
         if (in_string)
             continue;
-        if (token === 'location:' || token.startsWith('^^')) {
+        // handle "new Location ( ... )" in new syntax
+        if ((token === 'new' && program[i+1] === 'Location' &&
+             program[i+3] === '"') ||
+            (token === 'Location' && program[i+2] === '"'))
             continue;
-        } else if (ENTITY_MATCH_REGEX.test(token)) {
+        // handle "null ^^com.foo ( ... )" in new syntax
+        if (token === 'null' && (program[i+1] || '').startsWith('^^'))
+            continue;
+        if (token === '(' && program[i-1] === 'Location' && program[i+1] === '"') {
+            in_location = true;
+            continue;
+        }
+        if (token === '(' && program[i-2] === 'null' && program[i-1].startsWith('^^')) {
+            in_entity = true;
+            continue;
+        }
+        if (token === ')' && (in_location || in_entity)) {
+            in_location = false;
+            in_entity = false;
+            continue;
+        }
+        if (token === 'location:' || token.startsWith('^^'))
+            continue;
+
+        if (ENTITY_MATCH_REGEX.test(token)) {
             assert(entityRemap[token]);
             newProgram.push(entityRemap[token]);
         } else if (doReplaceNumbers(token, requote_numbers)){
@@ -409,120 +433,118 @@ function requoteSentence(id, context, sentence, program, mode, requote_numbers, 
     return [newSentence.join(' '), newProgram.join(' ')];
 }
 
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('requote', {
+        add_help: true,
+        description: "Requote a dataset."
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--contextual', {
+        action: 'store_true',
+        help: 'Process a contextual dataset.',
+        default: false
+    });
+    parser.add_argument('--mode', {
+        type: String,
+        help: 'Type of requoting (replace with placeholder, or just add quotation marks around params)',
+        choices: ['replace', 'qpis'],
+        default: 'replace'
+    });
+    parser.add_argument('--requote-numbers', {
+        action: 'store_true',
+        help: 'Requote numbers',
+        default: false
+    });
+    parser.add_argument('--skip-errors', {
+        action: 'store_true',
+        help: 'Skip examples that we are unable to requote',
+        default: false
+    });
+    parser.add_argument('input_file', {
+        nargs: '+',
+        type: maybeCreateReadStream,
+        help: 'Input datasets to evaluate (in TSV format); use - for standard input'
+    });
+    parser.add_argument('--handle-heuristics', {
+        action: 'store_true',
+        help: 'Handle cases where augmentation introduced non-matching parameters in sentence and program',
+        default: false
+    });
+    parser.add_argument('--param-locale', {
+        type: String,
+        help: 'BGP 47 locale tag of the language for parameter values',
+        default: 'en-US'
+    });
+    parser.add_argument('--output-errors', {
+        type: fs.createWriteStream,
+        help: 'If provided, examples which fail to be requoted are written in this file as well as being printed to stdout '
+    });
+}
 
+export async function execute(args) {
+    const promises = [];
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('requote', {
-            add_help: true,
-            description: "Requote a dataset."
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('--contextual', {
-            action: 'store_true',
-            help: 'Process a contextual dataset.',
-            default: false
-        });
-        parser.add_argument('--mode', {
-            type: String,
-            help: 'Type of requoting (replace with placeholder, or just add quotation marks around params)',
-            choices: ['replace', 'qpis'],
-            default: 'replace'
-        });
-        parser.add_argument('--requote-numbers', {
-            action: 'store_true',
-            help: 'Requote numbers',
-            default: false
-        });
-        parser.add_argument('--skip-errors', {
-            action: 'store_true',
-            help: 'Skip examples that we are unable to requote',
-            default: false
-        });
-        parser.add_argument('input_file', {
-            nargs: '+',
-            type: maybeCreateReadStream,
-            help: 'Input datasets to evaluate (in TSV format); use - for standard input'
-        });
-        parser.add_argument('--handle-heuristics', {
-            action: 'store_true',
-            help: 'Handle cases where augmentation introduced non-matching parameters in sentence and program',
-            default: false
-        });
-        parser.add_argument('--param-locale', {
-            type: String,
-            help: 'BGP 47 locale tag of the language for parameter values',
-            default: 'en-US'
-        });
-        parser.add_argument('--output-errors', {
-            type: fs.createWriteStream,
-            help: 'If provided, examples which fail to be requoted are written in this file as well as being printed to stdout '
-        });
-    },
+    let outputErrors = null;
+    const output = new DatasetStringifier();
+    promises.push(StreamUtils.waitFinish(output.pipe(args.output)));
+    if (args.output_errors) {
+        outputErrors = new DatasetStringifier();
+        promises.push(StreamUtils.waitFinish(outputErrors.pipe(args.output_errors)));
+    }
 
-    async execute(args) {
+    readAllLines(args.input_file)
+        .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true, parseMultiplePrograms: true}))
+        .pipe(new Stream.Transform({
+            objectMode: true,
+            transform(ex, encoding, callback) {
+                try {
+                    let requoted_programs = [];
+                    let requoted_sentences = [];
+                    for (const program of ex.target_code) {
+                        const [newSentence, newProgram] =
+                            requoteSentence(ex.id, ex.context, ex.preprocessed, program, args.mode,
+                                args.requote_numbers, args.handle_heuristics, args.param_locale);
+                        requoted_programs.push(newProgram);
+                        requoted_sentences.push(newSentence);
+                    }
+                    ex.preprocessed = requoted_sentences[0];
+                    ex.target_code = requoted_programs;
+                    ex.is_ok = true;
 
-        const promises = [];
-
-        let outputErrors = null;
-        const output = new DatasetStringifier();
-        promises.push(StreamUtils.waitFinish(output.pipe(args.output)));
-        if (args.output_errors) {
-            outputErrors = new DatasetStringifier();
-            promises.push(StreamUtils.waitFinish(outputErrors.pipe(args.output_errors)));
-        }
-
-        readAllLines(args.input_file)
-            .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true, parseMultiplePrograms: true}))
-            .pipe(new Stream.Transform({
-                objectMode: true,
-                transform(ex, encoding, callback) {
-                    try {
-                        let requoted_programs = [];
-                        let requoted_sentences = [];
-                        for (const program of ex.target_code) {
-                            const [newSentence, newProgram] =
-                                requoteSentence(ex.id, ex.context, ex.preprocessed, program, args.mode,
-                                    args.requote_numbers, args.handle_heuristics, args.param_locale);
-                            requoted_programs.push(newProgram);
-                            requoted_sentences.push(newSentence);
-                        }
-                        ex.preprocessed = requoted_sentences[0];
-                        ex.target_code = requoted_programs;
-                        ex.is_ok = true;
+                    this.push(ex);
+                    callback();
+                } catch(e) {
+                    console.error('**************');
+                    console.error('Failed to requote');
+                    console.error(ex.id);
+                    console.error(ex.preprocessed);
+                    console.error(ex.target_code);
+                    console.error('**************');
+                    ex.is_ok = false;
+                    if (args.skip_errors) {
                         this.push(ex);
                         callback();
-
-                    } catch(e) {
-                        console.error('**************');
-                        console.error('Failed to requote');
-                        console.error(ex.id);
-                        console.error(ex.preprocessed);
-                        console.error(ex.target_code);
-                        console.error('**************');
-                        ex.is_ok = false;
-                        if (args.skip_errors) {
-                            this.push(ex);
-                            callback();
-                        } else {
-                            callback(e);
-                        }
+                    } else {
+                        callback(e);
                     }
-                },
-
-                flush(callback) {
-                    process.nextTick(callback);
                 }
-            }))
-            .pipe(new ConditionalDatasetSplitter({
-                output: output,
-                outputErrors: outputErrors
-            }));
+            },
 
-        return Promise.all(promises);
-    },
+            flush(callback) {
+                process.nextTick(callback);
+            }
+        }))
+        .pipe(new ConditionalDatasetSplitter({
+            output: output,
+            outputErrors: outputErrors
+        }));
+
+    await Promise.all(promises);
+}
+
+export {
     requoteSentence
 };

@@ -17,20 +17,19 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
 
-const fs = require('fs');
-const util = require('util');
-const assert = require('assert');
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
-const Type = ThingTalk.Type;
+import * as fs from 'fs';
+import util from 'util';
+import assert from 'assert';
+import * as ThingTalk from 'thingtalk';
+import { Ast, Type } from 'thingtalk';
 
-const StreamUtils = require('../../../lib/utils/stream-utils');
-const { clean } = require('../../../lib/utils/misc-utils');
-const { cleanEnumValue, snakecase, titleCase, DEFAULT_ENTITIES } = require('../lib/utils');
-const genBaseCanonical = require('../lib/base-canonical-generator');
-const {
+import * as StreamUtils from '../../../lib/utils/stream-utils';
+import genBaseCanonical from '../lib/base-canonical-generator';
+import { clean } from '../../../lib/utils/misc-utils';
+import { cleanEnumValue, snakecase, titleCase, DEFAULT_ENTITIES } from '../lib/utils';
+
+import {
     wikidataQuery,
     getPropertyList,
     getItemLabel,
@@ -42,15 +41,15 @@ const {
     getRangeConstraint,
     getSchemaorgEquivalent,
     getClasses
-} = require('./utils');
+} from './utils';
 
-const {
+import {
     PROPERTY_TYPE_OVERRIDE,
     MANUAL_PROPERTY_CANONICAL_OVERRIDE,
     PROPERTY_FORCE_ARRAY,
     PROPERTY_FORCE_NOT_ARRAY,
     PROPERTY_TYPE_SAME_AS_SUBJECT
-} = require('./manual-annotations');
+} from './manual-annotations';
 
 function argnameFromLabel(label) {
     return snakecase(label)
@@ -108,12 +107,12 @@ class SchemaProcessor {
 
         const elemType = await this._getElemType(domain, domainLabel, property, propertyLabel);
         if (PROPERTY_FORCE_ARRAY.has(property))
-            return Type.Array(elemType);
+            return new Type.Array(elemType);
         if (PROPERTY_FORCE_NOT_ARRAY.has(property))
             return elemType;
 
         if (elemType.isEntity && elemType.type === 'tt:picture')
-            return Type.Array(elemType);
+            return new Type.Array(elemType);
 
         // TODO: decide if an property has an array type based on data
         return elemType;
@@ -121,17 +120,17 @@ class SchemaProcessor {
 
     async _getElemType(domain, domainLabel, property, propertyLabel) {
         if (PROPERTY_TYPE_SAME_AS_SUBJECT.has(property))
-            return Type.Entity(`org.wikidata:${snakecase(domainLabel)}`);
+            return new Type.Entity(`org.wikidata:${snakecase(domainLabel)}`);
 
         const enumEntries = await getOneOfConstraint(property);
         if (enumEntries.length > 0)
-            return Type.Enum(enumEntries.map(cleanEnumValue));
+            return new Type.Enum(enumEntries.map(cleanEnumValue));
 
         const classes = await getClasses(property);
         if (classes.includes('Q18636219')) // Wikidata property with datatype 'time'
             return Type.Date;
         if (classes.includes('Q18616084')) // Wikidata property to indicate a language
-            return Type.Entity('tt:iso_lang_code');
+            return new Type.Entity('tt:iso_lang_code');
 
         if (propertyLabel.startsWith('date of'))
             return Type.Date;
@@ -139,19 +138,19 @@ class SchemaProcessor {
         const units = await getAllowedUnits(property);
         if (units.length > 0) {
             if (units.includes('kilogram'))
-                return Type.Measure('kg');
+                return new Type.Measure('kg');
             if (units.includes('metre') ||  units.includes('kilometre'))
-                return Type.Measure('m');
+                return new Type.Measure('m');
             if (units.includes('second') || units.includes('year'))
-                return Type.Measure('ms');
+                return new Type.Measure('ms');
             if (units.includes('degree Celsius'))
-                return Type.Measure('C');
+                return new Type.Measure('C');
             if (units.includes('metre per second') || units.includes('kilometre per second'))
-                return Type.Measure('mps');
+                return new Type.Measure('mps');
             if (units.includes('square metre'))
-                return Type.Measure('m2');
+                return new Type.Measure('m2');
             if (units.includes('cubic metre'))
-                return Type.Measure('m3');
+                return new Type.Measure('m3');
             if (units.includes('percent'))
                 return Type.Number;
             if (units.includes('United States dollar'))
@@ -169,9 +168,9 @@ class SchemaProcessor {
 
         const subpropertyOf = await wikidataQuery(`SELECT ?value WHERE { wd:${property} wdt:P1647 ?value. } `);
         if (subpropertyOf.some((property) => property.value.value === 'http://www.wikidata.org/entity/P18'))
-            return Type.Entity('tt:picture');
+            return new Type.Entity('tt:picture');
         if (subpropertyOf.some((property) => property.value.value === 'http://www.wikidata.org/entity/P2699'))
-            return Type.Entity('tt:url');
+            return new Type.Entity('tt:url');
         if (subpropertyOf.some((property) => property.value.value === 'http://www.wikidata.org/entity/P276'))
             return Type.Location;
 
@@ -179,7 +178,7 @@ class SchemaProcessor {
         if (types.length > 0) {
             // human type: Q5: human, Q215627: person
             if (types.some((type) => type.label === 'human' || type.label === 'person'))
-                return Type.Entity(`org.wikidata:human`);
+                return new Type.Entity(`org.wikidata:human`);
 
             // location type: Q618123: geographic object, Q2221906: geographic location
             if (types.some((type) => type.label === 'geographical object' || type.label === 'geographical location'))
@@ -194,7 +193,7 @@ class SchemaProcessor {
             if (schemaorgElemType.isEntity && schemaorgElemType.type.startsWith('org.schema')) {
                 const entityType = schemaorgElemType.type.substring(schemaorgElemType.type.lastIndexOf(':') + 1).toLowerCase();
                 return schemaorgType.isArray ?
-                    Type.Array(Type.Entity(`org.wikidata:${entityType}`)) : Type.Entity(`org.wikidata:${entityType}`);
+                    new Type.Array(new Type.Entity(`org.wikidata:${entityType}`)) : new Type.Entity(`org.wikidata:${entityType}`);
             }
             if (!schemaorgType.isCompound)
                 return schemaorgType;
@@ -234,8 +233,8 @@ class SchemaProcessor {
 
         // load schema.org manifest if available
         if (this._schemaorgManifest) {
-            const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(this._schemaorgManifest, { encoding: 'utf8' }));
-            assert(library.isLibrary && library.classes.length === 1);
+            const library = ThingTalk.Syntax.parse(await util.promisify(fs.readFile)(this._schemaorgManifest, { encoding: 'utf8' }));
+            assert(library instanceof ThingTalk.Ast.Library && library.classes.length === 1);
             const classDef = library.classes[0];
 
             for (let fn in classDef.queries) {
@@ -258,7 +257,7 @@ class SchemaProcessor {
                     null,
                     Ast.ArgDirection.OUT,
                     'id',
-                    Type.Entity(`org.wikidata:${snakecase(domainLabel)}`), {
+                    new Type.Entity(`org.wikidata:${snakecase(domainLabel)}`), {
                     nl: { canonical: { base: ['name'], passive_verb: ['named', 'called'] } }
                 })
             ];
@@ -294,8 +293,8 @@ class SchemaProcessor {
         }
 
         const imports = [
-            new Ast.ImportStmt.Mixin(null, ['loader'], 'org.thingpedia.v2', []),
-            new Ast.ImportStmt.Mixin(null, ['config'], 'org.thingpedia.config.none', [])
+            new Ast.MixinImportStmt(null, ['loader'], 'org.thingpedia.v2', []),
+            new Ast.MixinImportStmt(null, ['config'], 'org.thingpedia.config.none', [])
         ];
 
         const classdef = new Ast.ClassDef(null, 'org.wikidata', null,
@@ -319,100 +318,98 @@ class SchemaProcessor {
 }
 
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('wikidata-process-schema', {
-            add_help: true,
-            description: "Generate schema.tt given a list of domains. "
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('--entities', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('--domains', {
-            required: true,
-            help: 'domains (by item id) to include in the schema, split by comma (no space)'
-        });
-        parser.add_argument('--domain-canonicals', {
-            required: false,
-            help: 'the canonical form for the given domains, used as the query names, split by comma (no space);\n' +
-                'if absent, use Wikidata label by default.'
-        });
-        parser.add_argument('--properties', {
-            nargs: '+',
-            required: false,
-            help: 'properties to include for each domain, properties are split by comma (no space);\n' +
-                'use "default" to include properties included in P1963 (properties of this type);\n' +
-                'exclude a property by placing a minus sign before its id (no space)'
-        });
-        parser.add_argument('--manual', {
-            action: 'store_true',
-            help: 'Enable manual annotations.',
-            default: false
-        });
-        parser.add_argument('--wikidata-labels', {
-            action: 'store_true',
-            help: 'Enable wikidata labels as annotations.',
-            default: false
-        });
-        parser.add_argument('--schemaorg-manifest', {
-            required: false,
-            help: 'Path to manifest.tt for schema.org; used for predict the type of wikidata properties'
-        });
-        parser.add_argument('--required-properties', {
-            nargs: '+',
-            required: false,
-            help: 'the subset of properties that are required to be non-empty for all retrieved entities;\n' +
-                'use "none" to indicate no required property needed;\n' +
-                'use "default" to include properties included in P1963 (properties of this type);\n' +
-                'exclude a property by placing a minus sign before its id (no space)'
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('wikidata-process-schema', {
+        add_help: true,
+        description: "Generate schema.tt given a list of domains."
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--entities', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--domains', {
+        required: true,
+        help: 'domains (by item id) to include in the schema, split by comma (no space)'
+    });
+    parser.add_argument('--domain-canonicals', {
+        required: false,
+        help: 'the canonical form for the given domains, used as the query names, split by comma (no space);\n' +
+            'if absent, use Wikidata label by default.'
+    });
+    parser.add_argument('--properties', {
+        nargs: '+',
+        required: false,
+        help: 'properties to include for each domain, properties are split by comma (no space);\n' +
+            'use "default" to include properties included in P1963 (properties of this type);\n' +
+            'exclude a property by placing a minus sign before its id (no space)'
+    });
+    parser.add_argument('--manual', {
+        action: 'store_true',
+        help: 'Enable manual annotations.',
+        default: false
+    });
+    parser.add_argument('--wikidata-labels', {
+        action: 'store_true',
+        help: 'Enable wikidata labels as annotations.',
+        default: false
+    });
+    parser.add_argument('--schemaorg-manifest', {
+        required: false,
+        help: 'Path to manifest.tt for schema.org; used for predict the type of wikidata properties'
+    });
+    parser.add_argument('--required-properties', {
+        nargs: '+',
+        required: false,
+        help: 'the subset of properties that are required to be non-empty for all retrieved entities;\n' +
+            'use "none" to indicate no required property needed;\n' +
+            'use "default" to include properties included in P1963 (properties of this type);\n' +
+            'exclude a property by placing a minus sign before its id (no space)'
 
-        });
-    },
+    });
+}
 
-    async execute(args) {
-        const domains = args.domains.split(',');
+export async function execute(args) {
+    const domains = args.domains.split(',');
 
-        const domainCanonicals = {};
+    const domainCanonicals = {};
 
-        if (args.domain_canonicals) {
-            const canonicals = args.domain_canonicals.split(',');
-            assert.strictEqual(canonicals.length, domains.length);
-            for (let i = 0; i < domains.length; i++)
-                domainCanonicals[domains[i]] = canonicals[i];
-        }
-
-        const requiredPropertiesByDomain = {};
-        if (args.required_properties) {
-            // if provided, property lists should match the number of domains
-            assert(Array.isArray(args.required_properties) && args.required_properties.length === domains.length);
-            for (let i = 0; i < domains.length; i++) {
-                const domain = domains[i];
-                requiredPropertiesByDomain[domain] = await retrieveProperties(domain, args.required_properties[i].split(','));
-            }
-        }
-
-        const propertiesByDomain = {};
-        if (args.properties) {
-            // if provided, property lists should match the number of domains
-            assert(Array.isArray(args.properties) && args.properties.length === domains.length);
-            for (let i = 0; i < domains.length; i++) {
-                const domain = domains[i];
-                const properties = args.properties[i].split(',');
-                propertiesByDomain[domain] = await retrieveProperties(domain, properties);
-            }
-        } else {
-            for (let domain of domains)
-                propertiesByDomain[domain] = await getPropertyList(domain);
-        }
-        const schemaProcessor = new SchemaProcessor(
-            domains, domainCanonicals, propertiesByDomain, requiredPropertiesByDomain, args.output, args.entities,
-            args.manual, args.wikidata_labels, args.schemaorg_manifest
-        );
-        schemaProcessor.run();
+    if (args.domain_canonicals) {
+        const canonicals = args.domain_canonicals.split(',');
+        assert.strictEqual(canonicals.length, domains.length);
+        for (let i = 0; i < domains.length; i++)
+            domainCanonicals[domains[i]] = canonicals[i];
     }
-};
+
+    const requiredPropertiesByDomain = {};
+    if (args.required_properties) {
+        // if provided, property lists should match the number of domains
+        assert(Array.isArray(args.required_properties) && args.required_properties.length === domains.length);
+        for (let i = 0; i < domains.length; i++) {
+            const domain = domains[i];
+            requiredPropertiesByDomain[domain] = await retrieveProperties(domain, args.required_properties[i].split(','));
+        }
+    }
+
+    const propertiesByDomain = {};
+    if (args.properties) {
+        // if provided, property lists should match the number of domains
+        assert(Array.isArray(args.properties) && args.properties.length === domains.length);
+        for (let i = 0; i < domains.length; i++) {
+            const domain = domains[i];
+            const properties = args.properties[i].split(',');
+            propertiesByDomain[domain] = await retrieveProperties(domain, properties);
+        }
+    } else {
+        for (let domain of domains)
+            propertiesByDomain[domain] = await getPropertyList(domain);
+    }
+    const schemaProcessor = new SchemaProcessor(
+        domains, domainCanonicals, propertiesByDomain, requiredPropertiesByDomain, args.output, args.entities,
+        args.manual, args.wikidata_labels, args.schemaorg_manifest
+    );
+    schemaProcessor.run();
+}

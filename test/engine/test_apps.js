@@ -17,10 +17,10 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
-const Stream = require('stream');
+
+import assert from 'assert';
+import * as Stream from 'stream';
 
 const SUCCESS = {};
 const FAILURE = {};
@@ -45,7 +45,7 @@ async function testSimpleDo(engine) {
     const app = await engine.createApp('now => @org.thingpedia.builtin.test(id="org.thingpedia.builtin.test").eat_data(data="some data ");');
 
     assert.strictEqual(app.name, 'Test');
-    assert.strictEqual(app.description, 'consume “some data ”');
+    assert.strictEqual(app.description, 'Eat data on test with data some data.');
 
     // when we get here, the app might or might not have started already
     // to be sure, we iterate its mainOutput
@@ -128,8 +128,30 @@ async function testSimpleGet(engine, icon = null) {
     }]);
 }
 
+async function testSimpleGet2(engine, icon = null) {
+    const output = await engine.createAppAndReturnResults('now => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+        { icon: icon, uniqueId: 'app-foo-get' });
+    // when we get here, the app might or might not have started already
+    // to be sure, we iterate its mainOutput
+
+    assert.deepStrictEqual(output, {
+        uniqueId: 'app-foo-get',
+        description: 'Get get data on test with count 2 and with size 10 byte.',
+        code: '@org.thingpedia.builtin.test.get_data(count=2, size=10byte);',
+        icon: 'org.thingpedia.builtin.test',
+        results:
+           [ { raw: { data: '!!!!!!!!!!', count: 2, size: 10 },
+               type: 'org.thingpedia.builtin.test:get_data',
+               formatted: ['!!!!!!!!!!'] },
+             { raw: { data: '""""""""""', count: 2, size: 10 },
+               type: 'org.thingpedia.builtin.test:get_data',
+               formatted: ['""""""""""'] } ],
+        errors: []
+    });
+}
+
 async function testGetGet(engine, icon = null) {
-    const app = await engine.createApp('now => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) join @org.thingpedia.builtin.test.dup_data() on (data_in=data) => notify;',
+    const app = await engine.createApp('now => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => @org.thingpedia.builtin.test.dup_data(data_in=data) => notify;',
         { icon: icon, name: 'some app', description: 'some app description' });
     // when we get here, the app might or might not have started already
     // to be sure, we iterate its mainOutput
@@ -177,20 +199,20 @@ function testWhen(engine, conversation) {
 
         let count = 0;
         const delegate = {
-            notify(appId, icon, outputType, data) {
-                const app = engine.apps.getApp(appId);
+            notify(data) {
+                const app = engine.apps.getApp(data.appId);
                 assert(app.isEnabled);
                 assert(app.isRunning);
-                assert.strictEqual(outputType, 'org.thingpedia.builtin.test:get_data');
-                assert.strictEqual(icon, 'org.foo');
-                assert.strictEqual(appId, 'uuid-foo-' + conversation);
-                assert(Object.prototype.hasOwnProperty.call(data, '__timestamp'));
-                delete data.__timestamp;
+                assert.strictEqual(data.type, 'org.thingpedia.builtin.test:get_data');
+                assert.strictEqual(data.icon, 'org.foo');
+                assert.strictEqual(data.appId, 'uuid-foo-' + conversation);
+                assert(Object.prototype.hasOwnProperty.call(data.raw, '__timestamp'));
+                delete data.raw.__timestamp;
                 if (count === 0) {
-                    assert.deepStrictEqual(data, { count: 2, size: 10, data: '!!!!!!!!!!' });
+                    assert.deepStrictEqual(data.raw, { count: 2, size: 10, data: '!!!!!!!!!!' });
                     count++;
                 } else if (count === 1) {
-                    assert.deepStrictEqual(data, { count: 2, size: 10, data: '""""""""""' });
+                    assert.deepStrictEqual(data.raw, { count: 2, size: 10, data: '""""""""""' });
                     engine.apps.removeApp(app);
                     count++;
                     engine.assistant.removeNotificationOutput(delegate);
@@ -204,13 +226,13 @@ function testWhen(engine, conversation) {
                 }
             },
 
-            notifyError(appId, icon, err) {
+            notifyError(data) {
                 assert.fail('no error expected');
             }
         };
         engine.assistant.addNotificationOutput(delegate);
 
-        engine.createApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+        engine.createApp('monitor(@org.thingpedia.builtin.test.get_data(count=2, size=10byte)) => notify;',
             { icon: 'org.foo', uniqueId: 'uuid-foo-' + conversation, name: 'some app', description: 'some app description' }).then(async (app) => {
             await collectOutputs(app);
             assert.strictEqual(app.icon, 'org.foo');
@@ -233,18 +255,18 @@ function testWhenErrorInit(engine) {
         setTimeout(() => reject(new Error('Timed out while waiting for error to appear')), 10000).unref();
 
         const delegate = {
-            notify(appId, icon, outputType, data) {
+            notify(data) {
                 assert.fail('expected no results');
             },
 
-            notifyError(appId, icon, err) {
-                assert.strictEqual(appId, 'uuid-when-error');
-                assert.strictEqual(icon, 'org.foo');
-                assert.strictEqual(err, error);
+            notifyError(data) {
+                assert.strictEqual(data.appId, 'uuid-when-error');
+                assert.strictEqual(data.icon, 'org.foo');
+                assert.strictEqual(data.error, error);
 
-                assert(engine.apps.hasApp(appId));
+                assert(engine.apps.hasApp(data.appId));
 
-                const app = engine.apps.getApp(appId);
+                const app = engine.apps.getApp(data.appId);
 
                 assert(app.isEnabled);
                 assert(app.isRunning);
@@ -256,7 +278,7 @@ function testWhenErrorInit(engine) {
         };
         engine.assistant.addNotificationOutput(delegate);
 
-        engine.createApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+        engine.createApp('monitor(@org.thingpedia.builtin.test.get_data(count=2, size=10byte)) => notify;',
             { icon: 'org.foo', uniqueId: 'uuid-when-error', name: 'some app', description: 'some app description' }).then((app) => {
             assert.strictEqual(app.icon, 'org.foo');
             assert.strictEqual(app.uniqueId, 'uuid-when-error');
@@ -296,24 +318,24 @@ function testWhenErrorAsync(engine) {
         let count = 0;
         let seenerror = false;
         const delegate = {
-            notify(appId, icon, outputType, data) {
-                const app = engine.apps.getApp(appId);
+            notify(data) {
+                const app = engine.apps.getApp(data.appId);
                 if (!app) {
-                    console.log([appId, icon, outputType, data]);
-                    throw new Error('??? ' + appId);
+                    console.log([data.appId, data.icon, data.type, data.raw]);
+                    throw new Error('??? ' + data.appId);
                 }
                 assert(app.isEnabled);
                 assert(app.isRunning);
-                assert.strictEqual(outputType, 'org.thingpedia.builtin.test:get_data');
-                assert.strictEqual(icon, 'org.foo');
-                assert.strictEqual(appId, 'uuid-when-error-async');
-                assert(Object.prototype.hasOwnProperty.call(data, '__timestamp'));
-                delete data.__timestamp;
+                assert.strictEqual(data.type, 'org.thingpedia.builtin.test:get_data');
+                assert.strictEqual(data.icon, 'org.foo');
+                assert.strictEqual(data.appId, 'uuid-when-error-async');
+                assert(Object.prototype.hasOwnProperty.call(data.raw, '__timestamp'));
+                delete data.raw.__timestamp;
                 if (count === 0) {
-                    assert.deepStrictEqual(data, { count: 2, size: 10, data: '!!!!!!!!!!' });
+                    assert.deepStrictEqual(data.raw, { count: 2, size: 10, data: '!!!!!!!!!!' });
                     count++;
                 } else if (count === 1) {
-                    assert.deepStrictEqual(data, { count: 2, size: 10, data: '""""""""""' });
+                    assert.deepStrictEqual(data.raw, { count: 2, size: 10, data: '""""""""""' });
                     count++;
                     if (seenerror) {
                         engine.apps.removeApp(app);
@@ -329,14 +351,14 @@ function testWhenErrorAsync(engine) {
                 }
             },
 
-            notifyError(appId, icon, err) {
-                const app = engine.apps.getApp(appId);
+            notifyError(data) {
+                const app = engine.apps.getApp(data.appId);
 
                 assert(app.isEnabled);
                 assert(app.isRunning);
-                assert.strictEqual(icon, 'org.foo');
-                assert.strictEqual(appId, 'uuid-when-error-async');
-                assert.strictEqual(err, error);
+                assert.strictEqual(data.icon, 'org.foo');
+                assert.strictEqual(data.appId, 'uuid-when-error-async');
+                assert.strictEqual(data.error, error);
 
                 seenerror = true;
                 if (count === 2) {
@@ -348,7 +370,7 @@ function testWhenErrorAsync(engine) {
         };
         engine.assistant.addNotificationOutput(delegate);
 
-        engine.createApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+        engine.createApp('monitor(@org.thingpedia.builtin.test.get_data(count=2, size=10byte)) => notify;',
             { icon: 'org.foo', uniqueId: 'uuid-when-error-async', name: 'some app', description: 'some app description' }).then((app) => {
             assert.strictEqual(app.icon, 'org.foo');
             assert.strictEqual(app.uniqueId, 'uuid-when-error-async');
@@ -367,24 +389,24 @@ function drainTestWhen(engine) {
         setTimeout(() => reject(new Error('Timed out while waiting for data to appear')), 10000).unref();
 
         const delegate = {
-            notify(appId, icon, outputType, data) {
-                const app = engine.apps.getApp(appId);
+            notify(data) {
+                const app = engine.apps.getApp(data.appId);
                 assert(app.isEnabled);
                 assert(app.isRunning);
-                assert.strictEqual(outputType, 'org.thingpedia.builtin.test:get_data');
-                assert.strictEqual(icon, 'org.foo');
-                assert.strictEqual(appId, 'uuid-foo-when-restart');
-                assert(Object.prototype.hasOwnProperty.call(data, '__timestamp'));
+                assert.strictEqual(data.type, 'org.thingpedia.builtin.test:get_data');
+                assert.strictEqual(data.icon, 'org.foo');
+                assert.strictEqual(data.appId, 'uuid-foo-when-restart');
+                assert(Object.prototype.hasOwnProperty.call(data.raw, '__timestamp'));
                 // drain and ignore the result
             },
 
-            notifyError(appId, icon, err) {
+            notifyError(data) {
                 assert.fail('no error expected');
             }
         };
         engine.assistant.addNotificationOutput(delegate);
 
-        engine.createApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+        engine.createApp('monitor(@org.thingpedia.builtin.test.get_data(count=2, size=10byte)) => notify;',
             { icon: 'org.foo', uniqueId: 'uuid-foo-when-restart', name: 'some app', description: 'some app description' }).then(async (app) => {
             assert.strictEqual(app.icon, 'org.foo');
             assert.strictEqual(app.uniqueId, 'uuid-foo-when-restart');
@@ -425,18 +447,18 @@ async function testWhenRestart(engine) {
             setTimeout(() => reject(new Error('Timed out while waiting for data to appear')), 10000).unref();
 
             const delegate = {
-                notify(appId, icon, outputType, data) {
+                notify(data) {
                     console.error(data);
                     assert.fail('no result expected');
                 },
 
-                notifyError(appId, icon, err) {
+                notifyError(data) {
                     assert.fail('no error expected');
                 }
             };
             engine.assistant.addNotificationOutput(delegate);
 
-            engine.createApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+            engine.createApp('monitor(@org.thingpedia.builtin.test.get_data(count=2, size=10byte)) => notify;',
                 { icon: 'org.foo', uniqueId: 'uuid-foo-when-restart', name: 'some app', description: 'some app description' }).then((app) => {
                 assert.strictEqual(app.icon, 'org.foo');
                 assert.strictEqual(app.uniqueId, 'uuid-foo-when-restart');
@@ -458,20 +480,20 @@ function testWhenGet(engine, conversation) {
 
         let count = 0;
         const delegate = {
-            notify(appId, icon, outputType, data) {
-                const app = engine.apps.getApp(appId);
+            notify(data) {
+                const app = engine.apps.getApp(data.appId);
                 assert(app.isEnabled);
                 assert(app.isRunning);
-                assert.strictEqual(outputType, 'org.thingpedia.builtin.test:get_data+org.thingpedia.builtin.test:dup_data');
-                assert.strictEqual(icon, 'org.foo');
-                assert.strictEqual(appId, 'uuid-when-get');
+                assert.strictEqual(data.type, 'org.thingpedia.builtin.test:get_data+org.thingpedia.builtin.test:dup_data');
+                assert.strictEqual(data.icon, 'org.foo');
+                assert.strictEqual(data.appId, 'uuid-when-get');
                 //assert(data.hasOwnProperty('__timestamp'));
                 //delete data.__timestamp;
                 if (count === 0) {
-                    assert.deepStrictEqual(data, { __response: undefined, count: 2, size: 10, data: '!!!!!!!!!!', data_in: '!!!!!!!!!!', data_out: '!!!!!!!!!!!!!!!!!!!!' });
+                    assert.deepStrictEqual(data.raw, { __response: undefined, count: 2, size: 10, data: '!!!!!!!!!!', data_in: '!!!!!!!!!!', data_out: '!!!!!!!!!!!!!!!!!!!!' });
                     count++;
                 } else if (count === 1) {
-                    assert.deepStrictEqual(data, { __response: undefined, count: 2, size: 10, data: '""""""""""', data_in: '""""""""""', data_out: '""""""""""""""""""""' });
+                    assert.deepStrictEqual(data.raw, { __response: undefined, count: 2, size: 10, data: '""""""""""', data_in: '""""""""""', data_out: '""""""""""""""""""""' });
                     engine.apps.removeApp(app);
                     engine.assistant.removeNotificationOutput(delegate);
                     count++;
@@ -485,13 +507,13 @@ function testWhenGet(engine, conversation) {
                 }
             },
 
-            notifyError(appId, icon, err) {
+            notifyError(data) {
                 assert.fail('no error expected');
             }
         };
         engine.assistant.addNotificationOutput(delegate);
 
-        engine.createApp('monitor @org.thingpedia.builtin.test.get_data(count=2, size=10byte) join @org.thingpedia.builtin.test.dup_data() on (data_in=data) => notify;',
+        engine.createApp('monitor(@org.thingpedia.builtin.test.get_data(count=2, size=10byte)) => @org.thingpedia.builtin.test.dup_data(data_in=data) => notify;',
             { icon: 'org.foo', uniqueId: 'uuid-when-get', name: 'some app', description: 'some app description' }).then((app) => {
             assert.strictEqual(app.icon, 'org.foo');
             assert.strictEqual(app.uniqueId, 'uuid-when-get');
@@ -505,19 +527,19 @@ function testTimer(engine, conversation) {
 
         let count = 0;
         const delegate = {
-            notify(appId, icon, outputType, data) {
-                const app = engine.apps.getApp(appId);
+            notify(data) {
+                const app = engine.apps.getApp(data.appId);
                 assert(app.isEnabled);
                 assert(app.isRunning);
-                assert.strictEqual(outputType, 'org.thingpedia.builtin.test:get_data');
-                assert.strictEqual(icon, 'org.foo');
-                assert.strictEqual(appId, 'uuid-timer-foo');
-                delete data.__timestamp;
+                assert.strictEqual(data.type, 'org.thingpedia.builtin.test:get_data');
+                assert.strictEqual(data.icon, 'org.foo');
+                assert.strictEqual(data.appId, 'uuid-timer-foo');
+                delete data.raw.__timestamp;
                 if (count < 4) {
                     if (count % 2)
-                        assert.deepStrictEqual(data, { __response: undefined, count: 2, size: 10, data: '""""""""""' });
+                        assert.deepStrictEqual(data.raw, { __response: undefined, count: 2, size: 10, data: '""""""""""' });
                     else
-                        assert.deepStrictEqual(data, { __response: undefined, count: 2, size: 10, data: '!!!!!!!!!!' });
+                        assert.deepStrictEqual(data.raw, { __response: undefined, count: 2, size: 10, data: '!!!!!!!!!!' });
                     count++;
                     if (count === 4) {
                         engine.apps.removeApp(app);
@@ -533,13 +555,13 @@ function testTimer(engine, conversation) {
                 }
             },
 
-            notifyError(appId, icon, err) {
+            notifyError(data) {
                 assert.fail('no error expected');
             }
         };
         engine.assistant.addNotificationOutput(delegate);
 
-        engine.createApp('timer(base=makeDate(),interval=2s) join @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
+        engine.createApp('timer(base=$now,interval=2s) => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
             { icon: 'org.foo', uniqueId: 'uuid-timer-foo', name: 'some app', description: 'some app description' }).then((app) => {
             assert.strictEqual(app.icon, 'org.foo');
             assert.strictEqual(app.uniqueId, 'uuid-timer-foo');
@@ -552,17 +574,17 @@ async function testAtTimer(engine, conversation) {
     let now = new Date;
 
     const delegate = {
-        notify(appId, icon, outputType, data) {
+        notify(data) {
             assert.fail('expected no result');
         },
 
-        notifyError(appId, icon, err) {
+        notifyError(data) {
             assert.fail('no error expected');
         }
     };
     engine.assistant.addNotificationOutput(delegate);
 
-    const app = await engine.createApp(`attimer(time=makeTime(${now.getHours()+2},${now.getMinutes()})) join @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;`,
+    const app = await engine.createApp(`attimer(time=[new Time(${now.getHours()+2},${now.getMinutes()})]) => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;`,
         { icon: 'org.foo', uniqueId: 'uuid-attimer-foo', name: 'some app', description: 'some app description' });
     assert.strictEqual(app.icon, 'org.foo');
     assert.strictEqual(app.uniqueId, 'uuid-attimer-foo');
@@ -576,14 +598,14 @@ async function testAtTimer(engine, conversation) {
 
 async function testLoadAppNotCompilable(engine) {
     const delegate = {
-        notify(appId, icon, outputType, data) {
+        notify(data) {
             assert.fail('expected no result');
         },
 
-        notifyError(appId, icon, err) {
-            assert.strictEqual(appId, 'uuid-not-compilable-err');
-            assert.strictEqual(icon, 'org.foo');
-            assert(err.message.indexOf('slot-fill') >= 0);
+        notifyError(data) {
+            assert.strictEqual(data.appId, 'uuid-not-compilable-err');
+            assert.strictEqual(data.icon, 'org.foo');
+            assert(data.error.message.indexOf('slot-fill') >= 0);
         }
     };
     engine.assistant.addNotificationOutput(delegate);
@@ -619,7 +641,7 @@ async function testGetSequence(engine, icon = null) {
 async function testGetGetSequence(engine, icon = null) {
     // if you join a table with itself, with no param passing, you will get the same
     // result twice (ie, the table is static during the query)
-    const app = await engine.createApp('now => @org.thingpedia.builtin.test.next_sequence() join @org.thingpedia.builtin.test.next_sequence() => notify;',
+    const app = await engine.createApp('now => @org.thingpedia.builtin.test.next_sequence() => @org.thingpedia.builtin.test.next_sequence() => notify;',
         { icon , name: 'some app', description: 'some app description' });
     // when we get here, the app might or might not have started already
     // to be sure, we iterate its mainOutput
@@ -643,16 +665,16 @@ function testTimerSequence(engine, conversation) {
 
         let count = 0;
         const delegate = {
-            notify(appId, icon, outputType, data) {
-                const app = engine.apps.getApp(appId);
+            notify(data) {
+                const app = engine.apps.getApp(data.appId);
                 assert(app.isEnabled);
                 assert(app.isRunning);
-                assert.strictEqual(outputType, 'org.thingpedia.builtin.test:next_sequence');
-                assert.strictEqual(icon, 'org.foo');
-                assert.strictEqual(appId, 'uuid-timer-sequence');
-                delete data.__timestamp;
+                assert.strictEqual(data.type, 'org.thingpedia.builtin.test:next_sequence');
+                assert.strictEqual(data.icon, 'org.foo');
+                assert.strictEqual(data.appId, 'uuid-timer-sequence');
+                delete data.raw.__timestamp;
                 if (count < 3) {
-                    assert.deepStrictEqual(data, { __response: undefined, number: 2 + count });
+                    assert.deepStrictEqual(data.raw, { __response: undefined, number: 2 + count });
                     count++;
                     if (count === 3) {
                         engine.apps.removeApp(app);
@@ -668,13 +690,13 @@ function testTimerSequence(engine, conversation) {
                 }
             },
 
-            notifyError(appId, icon, err) {
+            notifyError(data) {
                 assert.fail('no error expected');
             }
         };
         engine.assistant.addNotificationOutput(delegate);
 
-        engine.createApp('timer(base=makeDate(),interval=2s) join @org.thingpedia.builtin.test.next_sequence() => notify;',
+        engine.createApp('timer(base=new Date(),interval=2s) => @org.thingpedia.builtin.test.next_sequence() => notify;',
             { icon: 'org.foo', uniqueId: 'uuid-timer-sequence', name: 'some app', description: 'some app description' }).then((app) => {
             assert.strictEqual(app.icon, 'org.foo');
             assert.strictEqual(app.uniqueId, 'uuid-timer-sequence');
@@ -682,6 +704,7 @@ function testTimerSequence(engine, conversation) {
     });
 }
 
+/*
 async function testGetContext(engine, icon = null) {
     const app = await engine.createApp('now => @org.thingpedia.builtin.test.dup_data(data_in=$context.selection: String) => notify;',
         { icon , name: 'some app', description: 'some app description' });
@@ -699,12 +722,6 @@ async function testGetContext(engine, icon = null) {
             data_in: 'Selected text'
         }
     }]);
-}
-
-function delay(ms) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, ms);
-    });
 }
 
 async function testSayContext(engine, icon = null) {
@@ -725,9 +742,15 @@ async function testSayContext(engine, icon = null) {
         }
     }]);
 }
+*/
 
+function delay(ms) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, ms);
+    });
+}
 
-module.exports = async function testApps(engine) {
+export default async function testApps(engine) {
     assert.deepStrictEqual(engine.apps.getAllApps(), []);
 
     await testLoadAppNotCompilable(engine);
@@ -735,6 +758,7 @@ module.exports = async function testApps(engine) {
     await testDoError(engine);
     await testDoSay(engine);
     await testSimpleGet(engine);
+    await testSimpleGet2(engine);
     await testSimpleGet(engine, 'org.foo');
     await testGetGet(engine);
     await testGetError(engine, 'org.foo');
@@ -747,15 +771,14 @@ module.exports = async function testApps(engine) {
     await testWhenErrorInit(engine);
     await testWhenErrorAsync(engine);
 
-    await testGetContext(engine);
+    //await testGetContext(engine);
+    //await testSayContext(engine);
 
     // these three must be exactly in this order
     await testGetSequence(engine);
     await testGetGetSequence(engine);
     await testTimerSequence(engine);
 
-    await testSayContext(engine);
-
     await delay(1000);
     assert.deepStrictEqual(engine.apps.getAllApps(), []);
-};
+}

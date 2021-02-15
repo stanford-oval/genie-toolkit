@@ -136,7 +136,7 @@ class @org.thingpedia.builtin.thingengine.phone
   monitorable list query sms(out sender: Entity(tt:phone_number) #_[prompt="What number do you want to monitor?"] #_[canonical="sender"],
                              out message: String #_[canonical="message"] #[string_values="tt:message"],
                              out date: Date #_[canonical="date"])
-  #_[canonical="receive sms on phone"]
+  #_[canonical="my sms"]
   #_[confirmation="your SMS"]
   #_[formatted=[{type="text",text="SMS from ${from} received at ${date}: ${body}"}]]
   #[confirm=false];
@@ -399,29 +399,29 @@ class @com.github
 class @com.xkcd
 #_[canonical="xkcd"] {
   monitorable query get_comic(in opt number: Number #_[prompt="What Xkcd comic do you want?"] #_[canonical="number"],
-                              out title: String #_[canonical="title"] #[string_values="com.xkcd:title"],
+                              out title: String #_[canonical="title"],
                               out picture_url: Entity(tt:picture) #_[canonical="picture url"],
                               out link: Entity(tt:url) #_[canonical="link"],
-                              out alt_text: String #_[canonical="alt text"] #[string_values="com.xkcd:alt_text"])
+                              out alt_text: String #_[canonical="alt text"])
   #_[canonical="xkcd comic"]
   #_[confirmation="an Xkcd comic"]
-  #[confirm=false];
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}"}, {type="picture",url="${picture_url}"}, {type="text",text="${alt_text}"}]];
 
   query random_comic(out number: Number #_[canonical="number"],
-                     out title: String #_[canonical="title"] #[string_values="com.xkcd:title"],
+                     out title: String #_[canonical="title"],
                      out picture_url: Entity(tt:picture) #_[canonical="picture url"],
                      out link: Entity(tt:url) #_[canonical="link"],
-                     out alt_text: String #_[canonical="alt text"] #[string_values="com.xkcd:alt_text"])
+                     out alt_text: String #_[canonical="alt text"])
   #_[canonical="random xkcd comic"]
   #_[confirmation="a random Xkcd comic"]
-  #[confirm=false];
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}"}, {type="picture",url="${picture_url}"}, {type="text",text="${alt_text}"}]];
 
-  monitorable list query what_if(out title: String #_[canonical="title"] #[string_values="com.xkcd:what_if_title"],
+  monitorable list query what_if(out title: String #_[canonical="title"],
                                  out link: Entity(tt:url) #_[canonical="link"],
                                  out updated_time: Date #_[canonical="updated time"])
   #_[canonical="xkcd what if blog posts"]
   #_[confirmation="Xkcd's What If blog posts"]
-  #[confirm=false];
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}"}]];
 }
 class @com.uber
 #_[canonical="uber"] {
@@ -547,123 +547,314 @@ class @com.youtube
   #[confirm=false];
 }
 class @org.thingpedia.weather
-#_[canonical="weather api"] {
-  monitorable query current(in opt location: Location #_[prompt="What location do you want the current weather for?"] #_[canonical="location"]
-                            #[default=$context.location.current_location],
-                            out temperature: Measure(C) #_[canonical="temperature"],
-                            out wind_speed: Measure(mps) #_[canonical="wind speed"],
-                            out humidity: Number #_[canonical="humidity"],
-                            out cloudiness: Number #_[canonical="cloudiness"],
-                            out fog: Number #_[canonical="fog"],
-                            out status: Enum(raining,cloudy,sunny,snowy,sleety,drizzling,windy) #_[canonical="status"],
-                            out icon: Entity(tt:picture) #_[canonical="icon"])
-  #_[canonical="get current weather on weatherapi"]
-  #_[confirmation="the current weather for $location"]
-  #_[formatted=[{type="text",text="Current weather for ${location}: ${status}, temperature ${temperature:C} C, wind speed ${wind_speed:mps} m/s, humidity ${humidity}%, cloudiness ${cloudiness}%, fog ${fog}%."}]]
-  #[confirm=false];
+#_[thingpedia_name="Weather"]
+#_[thingpedia_description="Weather forecasts and information provided by met.no"]
+#[license="BSD-3-Clause"]
+#[license_gplcompatible=true]
+#[subcategory="service"]
+{
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
 
-  monitorable query moon(in req location: Location #_[prompt="What location do you want moon time info for?"] #_[canonical="location"],
-                         in opt date: Date #_[prompt="What day are you interested in?"] #_[canonical="date"],
-                         out phase: Enum(new_moon,waxing_crescent,first_quarter,waxing_gibbous,full_moon,waning_gibbous,third_quarter,waning_crescent) #_[canonical="phase"])
-  #_[canonical="get moon phase on weatherapi"]
-  #_[confirmation="the moon phase for $location"]
-  #_[formatted=[{type="text",text="Moon phase on ${date:date} for ${location}: ${phase}."}]]
-  #[confirm=false];
-
-  monitorable query sunrise(in req location: Location #_[prompt="What location do you want sun time info for?"] #_[canonical="location"],
-                            in opt date: Date #_[prompt="What day are you interested in?"] #_[canonical="date"],
-                            out sunrise_time: Time #_[canonical="sunrise time"],
-                            out sunset_time: Time #_[canonical="sunset time"])
-  #_[canonical="get sunrise on weatherapi"]
+  monitorable query sunrise(in opt location: Location
+                            #_[prompt="what location do you want sun time info for?"]
+                            #_[canonical={
+                              default="preposition",
+                              base=["location", "position", "place"],
+                              property=[],
+                              preposition=["in #", "at #", "around #", "for location #", "for #"]
+                            }]
+                            #[default=$location.current_location],
+                            in opt date: Date
+                            #_[canonical={
+                              default="preposition",
+                              base=["date"],
+                              preposition=["on #"]
+                            }],
+                            out sunrise_time: Time
+                            #_[canonical="sunrise time"],
+                            out sunset_time: Time
+                            #_[canonical="sunset time"])
+  #_[result=["in ${location} , the sun rises at ${sunrise_time} and sets at ${sunset_time}",
+             "on ${date} the sun rises at ${sunrise_time} and sets at ${sunset_time} in ${location}",
+             "on ${date} the sun rises at ${sunrise_time}",
+             "on ${date} the sun sets at ${sunset_time}"]]
+  #_[canonical=["sunrise and sunset time", "sunrise time", "sunset time"]]
   #_[confirmation="the sunrise and sunset time for location $location"]
   #_[formatted=[{type="text",text="Sun times on ${date:date} for ${location}: rises at ${sunrise_time}, sets at ${sunset_time}"}]]
+  #[minimal_projection=["sunrise_time", "sunset_time"]]
+  #[poll_interval=86400000ms]
+  #[doc="Information about sunrise and sunset"];
+
+  monitorable query moon(in opt location: Location
+                         #_[prompt="what location do you want moon time info for"]
+                         #_[canonical={
+                            default="preposition",
+                            base=["location", "position", "place"],
+                            property=[],
+                            preposition=["in #", "at #", "around #", "for location #", "for #"]
+                         }]
+                         #[default=$location.current_location],
+                         in opt date: Date
+                         #_[canonical={
+                            default="preposition",
+                            base=["date"],
+                            preposition=["on #"]
+                         }],
+                         out phase: Enum(new_moon,waxing_crescent,first_quarter,waxing_gibbous,full_moon,waning_gibbous,third_quarter,waning_crescent)
+                         #_[canonical=["phase", "moon phase"]]
+                         )
+  #_[result=["in ${location} the moon is ${phase}",
+             "in ${location} the moon phase is ${phase}",
+             "on ${date} the moon is ${phase} in ${location}",
+             "the moon is ${phase}"]]
+  #_[canonical=["moon phase", "phase of the moon"]]
+  #_[confirmation="the moon phase for $location"]
+  #_[formatted=[{type="text",text="Moon phase on ${date:date} for ${location}: ${phase}."}]]
+  #[poll_interval=86400000ms]
+  #[doc="Information about moon times and moon phase"]
   #[confirm=false];
+
+  monitorable query current(in opt location: Location
+                            #_[prompt="what location do you want the current weather for?"]
+                            #_[canonical={
+                              default="preposition",
+                              base=["location", "position", "place"],
+                              property=[],
+                              preposition=["in #", "at #", "around #", "for location #", "for #"]
+                            }]
+                            #[default=$location.current_location],
+                            out temperature: Measure(C)
+                            #_[canonical="temperature"]
+                            // from the coldest artic to the death valley, in one filter
+                            #[min_number=-10C]
+                            #[max_number=50C],
+                            out wind_speed: Measure(mps)
+                            #_[canonical="wind speed"]
+                            #[min_number=0kmph]
+                            #[max_number=150kmph],
+                            out humidity: Number
+                            #_[canonical="humidity"]
+                            #[min_number=0]
+                            #[max_number=100],
+                            out cloudiness: Number
+                            #_[canonical="cloudiness"]
+                            #[min_number=0]
+                            #[max_number=100],
+                            out fog: Number
+                            #_[canonical="fog"]
+                            #[min_number=0]
+                            #[max_number=100],
+                            out status: Enum(raining,cloudy,sunny,snowy,sleety,drizzling,windy)
+                            #_[canonical="status"],
+                            out icon: Entity(tt:picture)
+                            #_[canonical="icon"])
+  #_[result=["the current weather in ${location} is ${status} . the temperature is ${temperature} and the humidity is ${humidity} % .",
+             "the current weather in ${location} is ${status}",
+             "the weather in ${location} is ${status}",
+             "it is ${status} today in ${location} and the temperature is ${temperature}"]]
+  #[minimal_projection=["status"]]
+  #_[canonical=["current weather", "weather", "weather outside"]]
+  #_[confirmation="the current weather for $location"]
+  #_[formatted=[{type="text",text="Current weather for ${location}: ${status}, temperature ${temperature:C} C, wind speed ${wind_speed:mps} m/s, humidity ${humidity}%, cloudiness ${cloudiness}%, fog ${fog}%."}]]
+  #[poll_interval=3600000ms]
+  #[doc="Information about current weather"]
+  #[confirm=false];
+
 }
 class @com.instagram
 #_[canonical="instagram"] {
-  monitorable query get_pictures(in opt count: Number #_[prompt="How many pictures do you want?"] #_[canonical="count"],
-                                 out media_id: Entity(instagram:media_id) #_[canonical="media id"],
-                                 out picture_url: Entity(tt:picture) #_[canonical="picture url"],
-                                 out caption: String #_[canonical="caption"] #[string_values="com.instagram:caption"],
-                                 out link: Entity(tt:url) #_[canonical="link"],
-                                 out filter_: Entity(com.instagram:filter_) #_[prompt="With what filters do you want pictures?"] #_[canonical="filter"],
-                                 out hashtags: Array(Entity(tt:hashtag)) #_[canonical="hashtags"] #[string_values="com.instagram:hashtag"],
-                                 out location: Location #_[canonical="location"])
-  #_[canonical="get pictures on instagram"]
-  #_[confirmation="your recent Instagram pictures"]
-  #_[formatted=[{type="text",text="${caption}"}, {type="picture",url="${picture_url}"}]]
-  #[confirm=false];
+  monitorable list query get_pictures(in opt count: Number #_[prompt="How many pictures do you want?"] #_[canonical="count"],
+                                      out media_id: Entity(instagram:media_id) #_[canonical="media id"],
+                                      out picture_url: Entity(tt:picture) #_[canonical="picture url"],
+                                      out caption: String #_[canonical="caption"],
+                                      out link: Entity(tt:url) #_[canonical="link"],
+                                      out filter_: Entity(com.instagram:filter_) #_[prompt="With what filters do you want pictures?"] #_[canonical="filter"],
+                                      out hashtags: Array(Entity(tt:hashtag)) #_[canonical="hashtags"],
+                                      out location: Location #_[canonical="location"])
+  #_[canonical="picture on instagram"]
+  #_[confirmation="your recent Instagram pictures"];
 }
 class @org.thingpedia.builtin.thingengine.builtin
-#_[canonical="miscellaneous interfaces"] {
-  query canned_reply(in req intent: Enum(hello,cool,sorry,thank_you) #_[canonical="intent"],
-                     out text: String #_[canonical="text"])
-  #_[canonical="get canned reply"]
-  #_[confirmation="a reply to ${intent}"]
-  #_[formatted=["${text}"]]
-  #[confirm=false];
+#_[thingpedia_name="Miscellaneous Interfaces"]
+#_[thingpedia_description="Commands that are always available and don't belong to any specific device or account. Mostly related to time and randomness, because the universe is chaos and those always there. Also debugging."]
+#_[name="Miscellaneous Interfaces"]
+#_[description="Commands that are always available and don't belong to any specific device or account. Mostly related to time and randomness, because the universe is chaos and those always there. Also debugging."]
+#_[canonical="miscellaneous interfaces"]
+#[repository="https://github.com/stanford-oval/genie-toolkit"]
+#[subcategory="service"]
+#[license="Apache-2.0"]
+#[license_gplcompatible=true]
+{
+  import loader from @org.thingpedia.builtin();
+  import config from @org.thingpedia.config.builtin();
 
-  list query get_commands(in req device: Entity(tt:device) #_[prompt="What device do you want help for?"] #_[canonical="device"],
-                          out program: Entity(tt:program) #_[canonical="program"])
-  #_[canonical="list commands"]
-  #_[confirmation="the list of commands of $device"]
-  #_[formatted=[{type="text",text="${program}"}]]
-  #[confirm=false];
-
-  query get_date(out date: Date #_[canonical="date"])
-  #_[canonical="get date"]
-  #_[confirmation="today's date"]
-  #_[formatted=[{type="text",text="Today is ${date:date}."}]]
-  #[confirm=false];
-
-  monitorable query get_gps(out location: Location #_[prompt="What location are you interested in?"] #_[canonical="location"],
-                            out altitude: Measure(m) #_[canonical="altitude"],
-                            out bearing: Number #_[canonical="bearing"],
-                            out speed: Measure(mps) #_[canonical="speed"])
-  #_[canonical="get current location"]
+  monitorable query get_gps(out location: Location
+                            #_[canonical={
+                              default="preposition",
+                              base=["coordinates"],
+                              preposition=["in #", "at #", "around #"]
+                            }],
+                            out altitude: Measure(m)
+                            #_[canonical={
+                              default="base",
+                              base=["altitude"],
+                              preposition=["at # above sea level"]
+                            }]
+                            #[min_number=0m]
+                            #[max_number=15000m], // not approved for use in the ISS
+                            out bearing: Number
+                            #_[canonical={
+                              base=["bearing"],
+                              passive_verb=["facing #"] // FIXME we want to say "facing 30 degrees north" but we can't quite do that...
+                            }],
+                            out speed: Measure(mps)
+                            #_[canonical={
+                              base=["speed"],
+                              passive_verb=["going at #", "moving at #"],
+                              preposition=["at #"]
+                            }]
+                            )
+  #_[canonical=["my current location", "my current position", "my current geocoordinates"]]
   #_[confirmation="your location"]
   #_[formatted=[{type="text",text="Current Location: ${location}"}]]
+  #[minimal_projection=["location"]]
+  #[poll_interval=0ms]
+  #[doc="get last known GPS location"]
   #[confirm=false];
 
-  query get_random_between(in req low: Number #_[prompt="What should be the lower bound?"] #_[canonical="low"],
-                           in req high: Number #_[prompt="What should be the upper bound?"] #_[canonical="high"],
-                           out random: Number #_[canonical="random"])
-  #_[canonical="get random integer"]
+  query get_time(out time: Time
+                 #_[canonical=["time"]]
+                 #[filterable=false])
+  #[result=["it 's ${time}", "the current time is ${time}", "now it 's ${time}"]]
+  #_[canonical=["current time", "time", "time of day"]]
+  #_[formatted=[{type="text",text="Current time is ${time:time}."}]]
+  #[doc="get the current time"]
+  #[confirm=false];
+
+  query get_date(out date: Date
+                 #_[canonical=["date"]]
+                 #[filterable=false])
+  #_[canonical=["today 's date", "date", "current date"]]
+  #_[formatted=[{type="text",text="Today is ${date:date}."}]]
+  #[doc="get the current date"]
+  #[confirm=false];
+
+  query get_random_between(in opt low: Number
+                           #_[canonical={
+                             base=["lower bound", "minimum number"],
+                             passive_verb=["higher than #", "more than #"] // the sentence is "give me a random number higher than X", so "higher than X" is pvp not apv
+                           }],
+                           in opt high: Number
+                           #_[canonical={
+                             base=["upper bound", "maximum number"],
+                             passive_verb=["higher than #", "more than #"] // the sentence is "give me a random number higher than X", so "higher than X" is pvp not apv
+                           }],
+                           out random: Number
+                           #_[canonical={
+                             base=["number", "result"],
+                           }]
+                           #[filterable=false])
+  #_[canonical=["random number", "random integer"]]
+  #_[result=["${random}", "your number is ${random}", "i chose ${random}"]]
   #_[confirmation="a random integer between $low and $high"]
   #_[formatted=[{type="text",text="${random}"}]]
+  #[doc="get a uniform random integer between `low` and `high`"]
   #[confirm=false];
 
-  query get_time(out time: Date #_[canonical="time"])
-  #_[canonical="get time"]
-  #_[confirmation="the current time"]
-  #_[formatted=[{type="text",text="Current time is ${time:time}."}]]
+  monitorable list query device(out id : Entity(tt:device)
+                                #_[canonical={
+                                   base=["name"],
+                                   passive_verb=["named #", "called #"],
+                                }],
+                                out description : String
+                                #_[canonical={
+                                   base=["description"]
+                                }]
+                                #[string_values="tt:short_free_text"]
+                                #[filterable=false],
+                                out category : Enum(service, media, social_network, communication, home, health, data_management)
+                                #_[canonical={
+                                   base=["category"],
+                                   adjective=["#"],
+                                   preposition=["in the # category"]
+                                }],
+                                out website : Entity(tt:url)
+                                #_[canonical={
+                                   base=["website", "link", "url"]
+                                }]
+                                #[filterable=false])
+  #_[canonical=["device", "skill", "thingpedia device", "supported skill"]]
+  #_[confirmation="Thingpedia devices"]
+  #_[formatted=[{type="text",text="${random}"}]]
+  #[doc="list supported Thingpedia devices"]
+  #[poll_interval=1day]
   #[confirm=false];
 
-  action configure(in req device: Entity(tt:device) #_[prompt="What device do you want to configure?"] #_[canonical="device"])
+  list query commands(out id : Entity(tt:command_id),
+                      out device: Entity(tt:device)
+                      #_[canonical={
+                        base=["device", "account", "skill"],
+                        adjective=["# 's"],
+                        preposition=["of #", "in #"]
+                      }]
+                      #_[prompt=["what device do you want help for", "for what device"]],
+                      out program: Entity(tt:program)
+                      #_[canonical=["program", "command"]]
+                      #[filterable=false])
+  #_[canonical="supported command"]
+  #_[confirmation="the list of commands of $device"]
+  #_[formatted=[{type="text",text="${program}"}]]
+  #[doc="retrieve the list of supported commands for the given device"]
+  #[confirm=false];
+
+  action open_url(in req url: Entity(tt:url)
+                  #_[prompt=["what url do you want to open", "what do you want to open"]]
+                  #_[canonical={
+                    base=["url", "link", "page"],
+                    preposition=["to #"]
+                  }])
+  #_[canonical=["open a url", "open a link"]]
+  #_[confirmation="open $url"]
+  #[doc="open a file/link"]
+  #[confirm=false];
+
+  action say(in req message: String
+             #_[prompt="what do you want me to say"]
+             #[string_values="tt:long_free_text"]
+             #_[canonical="message"],
+             out message_output: String
+             #_[canonical="message"])
+  #_[result="${message_output}"]
+  #_[canonical="say"]
+  #_[confirmation="send me a message $message"]
+  #[doc="makes Almond say something"]
+  #[confirm=false];
+
+  action debug_log(in req message: String
+                   #_[prompt=["what should i write in the logs", "what do you want me to write"]]
+                   #[string_values="tt:long_free_text"]
+                   #_[canonical="message"])
+  #_[canonical=["log a message", "record a message", "write a message in the logs"]]
+  #_[confirmation="write $message in the developer logs"]
+  #[doc="log a message in the developer logs"]
+  #[confirm=false];
+
+  action configure(in req device: Entity(tt:device) #_[prompt="What device do you want to configure?"])
   #_[canonical="configure"]
   #_[confirmation="configure a new $device"]
-  #[confirm=true];
-
-  action debug_log(in req message: String #_[prompt="What should I write in the logs?"] #_[canonical="message"])
-  #_[canonical="log"]
-  #_[confirmation="write $message in the developer logs"]
-  #[confirm=true];
+  #_[confirmation_remote="configure a new $device on $__person's Almond"]
+  #[doc="configure a specific device by type"]
+  #[confirm=false];
 
   action discover()
   #_[canonical="discover"]
   #_[confirmation="search for new devices"]
-  #[confirm=true];
-
-  action open_url(in req url: Entity(tt:url) #_[prompt="What URL do you want to open?"] #_[canonical="url"])
-  #_[canonical="open url on builtin"]
-  #_[confirmation="open $url"]
-  #[confirm=true];
-
-  action say(in req message: String #_[prompt="What do you want me to say?"] #_[canonical="message"] #[string_values="tt:message"])
-  #_[canonical="say"]
-  #_[confirmation="send you the message $message"]
-  #[confirm=true];
+  #_[confirmation_remote="search for new devices on $__person's Almond"]
+  #[doc="start interactive discovery for new devices"]
+  #[confirm=false];
 }
+
 class @light-bulb
 #_[canonical="light bulb"] {
   action alert_long()
@@ -743,7 +934,7 @@ class @com.google.drive
                                           in opt order_by: Enum(created_time_increasing,created_time_decreasing,modified_time_increasing,modified_time_decreasing,name_increasing,name_decreasing) #_[canonical="order by"],
                                           out last_modified_by: String #_[canonical="last modified by"],
                                           out link: Entity(tt:url) #_[canonical="link"])
-  #_[canonical="google drive file list"]
+  #_[canonical="google drive files"]
   #_[confirmation="files in your Google Drive"]
   #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${file_name} (last modified by ${last_modified_by} on ${modified_time})"}]]
   #[confirm=false];
@@ -873,7 +1064,7 @@ class @com.washingtonpost
                                      out link: Entity(tt:url) #_[canonical="link"],
                                      out description: String #_[canonical="description"] #[string_values="tt:news_description"],
                                      out picture_url: Entity(tt:picture) #_[canonical="picture url"])
-  #_[canonical="articles on washington post"]
+  #_[canonical="article on washington post"]
   #_[confirmation="the latest articles in the ${section} section of the Washington Post"]
   #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}",displayText="${description}"}, {type="picture",url="${picture_url}"}]]
   #[confirm=false];
@@ -983,7 +1174,7 @@ class @com.wsj
                              out title: String #_[canonical="title"] #[string_values="tt:news_title"],
                              out link: Entity(tt:url) #_[canonical="link"],
                              out updated: Date #_[canonical="updated"])
-  #_[canonical="get post on wall street journal"]
+  #_[canonical="articles in the wall street journal"]
   #_[confirmation="articles published in the $section section of the Wall Street Journal"]
   #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}"}]]
   #[confirm=false];
@@ -1156,7 +1347,7 @@ class @com.wunderlist
   list query get_lists(out id: Number #_[canonical="id"],
                        out title: String #_[canonical="title"],
                        out created_at: Date #_[canonical="created at"])
-  #_[canonical="get lists on Wunderlist"]
+  #_[canonical="lists on wunderlist"]
   #_[confirmation="your Wunderlist lists"]
   #_[formatted=[{type="text",text="${title} created on ${created_at}"}]]
   #[confirm=false];
@@ -1188,10 +1379,319 @@ class @com.foxnews
                              out url: Entity(tt:url) #_[canonical="url"],
                              out author: String #_[canonical="author"] #[string_values="tt:person_full_name"],
                              out description: String #_[canonical="description"] #[string_values="tt:news_description"])
-  #_[canonical="headlines from Fox News"]
+  #_[canonical="headlines from fox news"]
   #_[confirmation="headlines from Fox News"]
   #[confirm=false];
 }
+class @com.spotify2
+#_[thingpedia_name="Spotify 2.0"]
+#_[thingpedia_description="Play music on Spotify"]
+#_[canonical="spotify"]
+#[license="BSD-3-Clause"]
+#[license_gplcompatible=true]
+#[subcategory="media"]
+#_[name="Spotify Account of ${profile.display_name}"]
+#_[description="This is your Spotify Account"]
+{
+
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.oauth2(
+    client_id=$?, client_secret=$?,
+    authorize="https://accounts.spotify.com/authorize"^^tt:url,
+    get_access_token="https://accounts.spotify.com/api/token"^^tt:url,
+    scope=["streaming", "playlist-read-collaborative", "playlist-modify-private", "playlist-read-private", "playlist-modify-public", "user-read-email", "user-read-private", "user-read-playback-state", "user-read-currently-playing", "user-modify-playback-state", "user-read-recently-played", "user-top-read", "user-follow-read", "user-follow-modify", "user-library-read", "user-library-modify"],
+    get_profile="https://api.spotify.com/v1/me"^^tt:url,
+    profile=["id", "display_name"]
+  );
+
+  entity song #_[description="Songs on Spotify"];
+  entity artist #_[description="Artists on Spotify"];
+  entity album #_[description="Albums on Spotify"];
+  entity device #_[description="Spotify Connect device ID"];
+
+  list query song(out id: Entity(com.spotify2:song)
+                    #[string_values="tt:song_name"]
+                    #[unique=true]
+                    #_[canonical={
+                      default="base",
+                      base=["name", "title", "track name"],
+                      passive_verb=["named #", "called #", "titled #"],
+                      property=["name #", "title #"]
+                    }],
+                    out artists: Array(Entity(com.spotify2:artist))
+                    #[string_values="tt:song_artist"]
+                    #_[canonical={
+                      default="preposition",
+                      base=["artist", "author", "song writer", "band", "artist name",
+                            "singer", "composer"],
+                      property=["artist #", "song writer #"],
+                      preposition=["by #", "from #"],
+                      adjective=["#"],
+                      passive_verb=["written by #", "released by #", "produced by #",
+                                    "composed by #", "recorded by #"],
+                      verb = ["# wrote", "# released", "# produced", "# composed",
+                              "# did", "# recorded", "# sang", "# made"]
+                    }],
+                    out album: Entity(com.spotify2:album)
+                    #[string_values="tt:song_album"]
+                    #_[canonical={
+                      default="preposition",
+                      base=["album"],
+                      property=["album #"],
+                      preposition=["in the album #",
+                                   "in #", "part of #", "from the album #",
+                                   "from #"],
+                    }],
+                    out genres: Array(String)
+                    #[string_values="com.spotify:genre"]
+                    #_[canonical={
+                      default="adjective",
+                      base=["genres", "type of genre", "type of music", "category"],
+                      property=["# songs", "# music"],
+                      adjective=["#"],
+                      preposition=["in the # genre", "in #", "of the # genre",
+                                   "in the # style", "in the # category"],
+                    }],
+                    out release_date : Date
+                    #_[canonical={
+                      default="passive_verb",
+                      base=["date", "release date", "release year", "release day"],
+                      property=["release date #"],
+                      adjective=["#"],
+                      preposition=["from #", "in #"],
+                      passive_verb=["released in #", "released #", "published in #"],
+                      adjective_argmin=["least recent", "oldest", "first"],
+                      adjective_argmax=["most recent", "newest", "latest"],
+                      passive_verb_argmax=["released most recently"],
+                    }],
+                    out popularity: Number
+                    #[min_number=0]
+                    #[max_number=100]
+                    #_[canonical={
+                      default="base",
+                      base=["popularity", "average popularity"],
+                      passive_verb=["rated # popularity"],
+                      property=["# popularity"],
+                      adjective_argmin=["least popular", "most niche"],
+                      adjective_argmax=["most popular", "most well-known", "best", "greatest", "top"],
+                    }],
+                    out energy : Number
+                    #[min_number=0]
+                    #[max_number=100]
+                    #[filterable=false]
+                    #_[canonical={
+                      default="base",
+                      base=["energy"],
+                      adjective_argmin=["least energetic"],
+                      adjective_argmax=["most energetic"],
+                    }],
+                    out danceability : Number
+                    #[min_number=0]
+                    #[max_number=100]
+                    #[filterable=false]
+                    #_[canonical={
+                      default="base",
+                      base=["danceability"],
+                      adjective_argmin=["least danceable"],
+                      adjective_argmax=["most danceable"],
+                    }])
+    #_[canonical=["song", "music", "track"]]
+    #_[confirmation="songs on Spotify"]
+    #[minimal_projection=["id"]]
+    #_[formatted=[{type="text",text="${id} by ${artists}"}]]
+    #[doc="search for songs on Spotify"];
+
+    action play_song (in req song: Entity(com.spotify2:song)
+                      #[string_values="tt:song_name"]
+                      #_[prompt=["what song do you want to play"]]
+                      #_[canonical={
+                        default="base",
+                        base=["name"],
+                        // FIXME: actions must use "preposition" not "passive_verb"
+                        preposition=["named #", "called #", "titled #"],
+                        property=["name #", "title #"]
+                      }],
+                      out device : Entity(com.spotify2:device)
+                      #_[canonical={
+                        default="preposition",
+                        base=["device", "player", "app"], // "can you tell me the app"?
+                        preposition=["on"]
+                      }])
+    #_[canonical=["play a song", "play the song", "play a track", "play music",
+                  // i would like to...
+                  "listen to a song", "hear a song"]]
+    #_[confirmation="play the song $song"]
+    #_[on_error={
+      no_active_device=["you must open the spotify app first", "no spotify player is active"]
+    }]
+    #[confirm=enum(auto)];
+
+    list query artist(out id: Entity(com.spotify2:artist)
+                      #[string_values="tt:song_artist"]
+                      #[unique=true]
+                      #_[canonical={
+                        default="base",
+                        base=["name"],
+                        passive_verb=["named #", "called #"],
+                        property=["name #"]
+                      }],
+                      out genres: Array(String)
+                      #[string_values="com.spotify:genre"]
+                      #_[canonical={
+                        default="adjective",
+                        base=["genres", "type of genre", "type of music", "category"],
+                        property=["# songs", "# music"],
+                        adjective=["#"],
+                        preposition=["in the # genre", "in #", "of the # genre",
+                                     "in the # style", "in the # category"],
+                        verb=["plays # music", "plays the # genre", "does # music",
+                              "plays # songs", "does the # genre",
+                              "plays the # style", "belongs to the genre #",
+                              "belongs to the # genre", "plays #"]
+                      }],
+                      out popularity: Number
+                      #[min_number=0]
+                      #[max_number=100]
+                      #_[canonical={
+                        default="base",
+                        base=["popularity", "average popularity"],
+                        passive_verb=["rated # popularity"],
+                        property=["# popularity"],
+                        adjective_argmin=["least popular", "most niche"],
+                        adjective_argmax=["most popular", "most well-known", "best", "greatest", "top"],
+                      }])
+    #_[canonical=["artist", "composer", "musician", "singer"]]
+    #_[confirmation="artists on Spotify"]
+    #[minimal_projection=["id"]]
+    #_[formatted=[{type="text",text="${id}"}]]
+    #[doc="search for artists on Spotify"];
+
+    list query album(out id: Entity(com.spotify2:album) #[string_values="tt:song_album"]
+                    #[unique=true]
+                    #_[canonical={
+                      default="base",
+                      base=["name"],
+                      passive_verb=["named #", "called #", "titled #"],
+                      property=["name #", "title"]
+                    }],
+                    out artists: Array(Entity(com.spotify2:artist))
+                    #[string_values="tt:song_artist"]
+                    #_[canonical={
+                      default="preposition",
+                      base=["artist", "author", "song writer", "band", "artist name",
+                            "singer", "composer"],
+                      property=["artist #", "song writer #"],
+                      preposition=["by #", "from #"],
+                      adjective=["#"],
+                      passive_verb=["written by #", "released by #", "produced by #",
+                                    "composed by #", "recorded by #"],
+                      verb = ["# wrote", "# released", "# produced", "# composed",
+                              "# did", "# recorded", "# sang", "# made"]
+                    }],
+                    out release_date : Date
+                    #_[canonical={
+                      default="preposition",
+                      base=["date", "release date", "release year", "release day"],
+                      property=["release date #"],
+                      adjective=["#"],
+                      preposition=["from #", "in #"],
+                      passive_verb=["released in #", "released #", "published in #"],
+                      adjective_argmin=["least recent", "oldest", "first"],
+                      adjective_argmax=["most recent", "newest", "latest"],
+                      passive_verb_argmax=["released most recently"],
+                    }],
+                    out popularity: Number
+                    #[min_number=0]
+                    #[max_number=100]
+                    #_[canonical={
+                      default="base",
+                      base=["popularity", "average popularity"],
+                      passive_verb=["rated # popularity"],
+                      property=["# popularity"],
+                      adjective_argmin=["least popular", "most niche"],
+                      adjective_argmax=["most popular", "most well-known", "best", "greatest", "top"],
+                    }])
+    #_[canonical=["album", "music collection"]]
+    #_[confirmation="album on Spotify"]
+    #[minimal_projection=["id"]]
+    #_[formatted=[{type="text",text="${id} by ${artists}"}]]
+    #[doc="search for albums on Spotify"];
+
+    monitorable query get_currently_playing(out song: Entity(com.spotify2:song)
+                                            #[string_values="tt:song_name"])
+    #_[canonical=["the currently playing track name", "the currently playing song",
+                  "the song currently playing"]]
+    #_[confirmation="the currently playing track name"]
+    #_[result=["currently playing ${song}", "the currently playing track is ${song}"]]
+    #_[on_error={
+      no_song_playing=["no song is currently playing", "nothing is currently playing"]
+    }]
+    #_[formatted=[{type="text",text="The current playing song is ${song}."}]]
+    #[poll_interval=60000ms]
+    #[doc="retrieve the currently playing track name"];
+
+    monitorable list query get_user_top_tracks(out song: Entity(com.spotify2:song)
+                                               #[string_values="tt:song_name"])
+    #_[canonical=["spotify top tracks", "my favorite songs",
+                  "my top tracks"]]
+    #_[confirmation="my top tracks in Spotify"]
+    #_[formatted=[{type="text",text="${song}"}]]
+    #[poll_interval=3600000ms]
+    #[doc="get user's top tracks in the last 4 weeks"];
+
+    action player_next()
+    #_[canonical=["play the next song", "go to the next song", "skip this song"]]
+    #_[confirmation="go to the next song"]
+    #[doc="go to the next song"]
+    #[confirm=false];
+
+    action player_previous()
+    #_[canonical=["play the previous song", "go back",
+                  "play the last song",
+                  "go back to the last song",
+                  "go to the previous song"]]
+    #_[confirmation="go to the previous song"]
+    #[doc="go to the previous song"]
+    #[confirm=false];
+
+    action player_play()
+    #_[canonical=["resume playing", "start playing again", "resume playback"]]
+    #_[confirmation="resume playing"]
+    #[doc="resume playback"]
+    #[confirm=false];
+
+    action player_pause()
+    #_[canonical=["pause playback", "pause my spotify"]]
+    #_[confirmation="pause playback"]
+    #_[confirmation_remote="pause $_person's playback"]
+    #[doc="pause playback"]
+    #[confirm=false];
+
+    action player_shuffle(in req shuffle: Enum(on,off)
+                          #_[prompt="should we set the shuffle state to on or off"]
+                          #_[canonical={
+                            base=["shuffle"],
+                            preposition=["to"]
+                          }])
+    #_[canonical="set the shuffle state"]
+    #_[confirmation="set the shuffle state"]
+    #_[confirmation_remote="set the shuffle state"]
+    #[doc="set the shuffle state"]
+    #[confirm=false];
+
+    action player_repeat(in req repeat: Enum(track,context,off)
+                         #_[prompt="should we set the repeat state to track, context, or off"]
+                         #_[canonical={
+                           base=["repeat"],
+                           preposition=["to"]
+                         }])
+    #_[canonical="set the repeat state"]
+    #_[confirmation="set the repeat state"]
+    #_[confirmation_remote="set the repeat state"]
+    #[doc="set the repeat state"]
+    #[confirm=false];
+}
+
 class @com.spotify
 #_[canonical="spotify"] {
   monitorable query get_acousticness(in opt song: String #_[canonical="song"] #[string_values="tt:song_name"],
@@ -1405,12 +1905,11 @@ class @com.nest.security_camera
                                   out picture_url: Entity(tt:picture) #_[canonical="picture url"])
   #_[canonical="current event on nest security camera"]
   #_[confirmation="the current event detected on your Nest security camera"]
-  #[confirm=false];
+  #_[formatted=[{type="code",code="function(argMap, hint, formatter) {\n    var timeString = formatter.dateAndTimeToString(argMap.start_time);\n\n    var title;\n    if (argMap.has_person)\n        title = `Person detected on your camera at ${timeString}`;\n    else if (argMap.has_sound && argMap.has_motion)\n        title = `Sound and motion detected on your camera at ${timeString}`;\n    else if (argMap.has_sound)\n        title = `Sound detected on your camera at ${timeString}`;\n    else if (argMap.has_motion)\n        title = `Motion detected on your camera at ${timeString}`;\n    else\n        title = `Something detected on your camera at ${timeString}`;\n    return title;\n}"}, {type="picture",url="${picture_url}"}]];
 
   action set_power(in req power: Enum(on,off) #_[prompt="Do you want to turn your camera on or off?"] #_[canonical="power"])
   #_[canonical="set power on nest security camera"]
-  #_[confirmation="turn $power your Nest security camera"]
-  #[confirm=true];
+  #_[confirmation="turn $power your Nest security camera"];
 }
 class @com.nest.thermostat
 #_[canonical="nest thermostat"] {
@@ -1995,7 +2494,13 @@ class @com.mapquest
   #[confirm=false];
 }
 class @com.wikicfp
-#_[canonical="wikicfp"] {
+#_[name="WikiCFP"]
+#_[description="Keep updated with paper submission deadlines"]
+#[version=15]
+#[package_version=15] {
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+
   monitorable list query search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
                                 out abbr: String #_[canonical="abbreviation"],
                                 out name: String #_[canonical="name"],
@@ -2004,9 +2509,9 @@ class @com.wikicfp
                                 out city: String #_[canonical="city"],
                                 out deadline: Date #_[canonical="deadline"],
                                 out link: Entity(tt:url) #_[canonical="link"])
-  #_[canonical="events from wikicfp"]
+  #_[canonical="get events from wikicfp"]
   #_[confirmation="information of $query on wikicfp"]
-  #[confirm=false];
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${name} (${abbr})",displayText="Where: ${city},\nWhen: ${start:date} - ${end:date},\nDeadline: ${deadline:date}."}]];
 }
 class @rest.kanye
 #_[canonical="kanye rest"] {
@@ -2128,4 +2633,275 @@ class @org.thingpedia.friendhub.stickynotes
   #_[canonical="post on sticky notes"]
   #_[confirmation="Add $post to sticky notes"]
   #[confirm=true];
+}
+class @org.wikidata
+#_[name="Wikidata for domain Q515"]
+#_[description="Natural language dialogues over Wikidata knowledge base."] {
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+
+  entity city;
+
+  list query city(out id: Entity(org.wikidata:city)
+                  #_[canonical={
+                    base=["name"],
+                    passive_verb=["named", "called"]
+                  }]
+                  #[unique=true],
+                  out inception: Date
+                  #_[canonical={
+                    default="property",
+                    base=["inception", "foundation", "formation", "introduction", "date of establishment", "date of founding", "establishment date", "founding date", "commencement date", "construction date", "creation date", "date commenced", "date constructed", "date created", "date formed", "date founded", "date incorporated", "date of commencement", "date of creation", "date of foundation", "date of foundation or creation", "date of incorporation", "dedication date", "first issue", "formation date", "foundation / creation date", "foundation date", "incorporation date", "launch date", "time of foundation or creation", "time of inception", "year commenced", "year created", "year established", "year founded", "year incorporated", "year written"],
+                    passive_verb=["formed in", "introduced", "created", "built", "completed", "constructed", "created on date", "established", "established on date", "formed at", "formed on date", "founded", "founded on date", "inaugurated", "incorporated", "incorporated on date", "inititated", "written on date", "launched"],
+                    verb=["commenced on date"]
+                  }]
+                  #[wikidata_id="P571"],
+                  out named_after: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["named after", "toponym", "eponym", "named for", "linked with"],
+                    base=["etymology", "name after", "namesake"],
+                    reverse_property=["named in honor of", "# named in honor", "# 's named in honor"]
+                  }]
+                  #[wikidata_id="P138"]
+                  #[string_values="org.wikidata:city_named_after"],
+                  out continent: Enum(Africa,SouthAmerica,Europe,Asia,NorthAmerica,Antarctica,Oceania,Americas,Australia,Eurasia,CentralAmerica,AustraliaAndOceania,Caribbean,Tamriel,Faerun,KaraTur,Westeros,NorthernAmericaAndMexico)
+                  #_[canonical={
+                    default="property",
+                    base=["continent"]
+                  }]
+                  #[wikidata_id="P30"],
+                  out country: Entity(org.wikidata:country)
+                  #_[canonical={
+                    default="property",
+                    base=["country", "state", "land", "sovereign state", "host country"]
+                  }]
+                  #[wikidata_id="P17"],
+                  out capital_of: String
+                  #_[canonical={
+                    default="reverse_property",
+                    reverse_property=["capital of", "# capital", "# 's capital", "county seat of", "# county seat", "# 's county seat"],
+                    base=["county seat for"]
+                  }]
+                  #[wikidata_id="P1376"]
+                  #[string_values="org.wikidata:city_capital_of"],
+                  out located_in_the_administrative_territorial_entity: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["located in the administrative territorial entity", "based in", "in", "in administrative unit", "in the administrative unit", "located in", "located in administrative unit", "located in the administrative territorial entity", "located in the administrative unit", "located in the territorial entity"],
+                    base=["city", "town", "locality", "administrative territorial entity", "region", "state", "indian reservation", "location (administrative territorial entity)"],
+                    verb=["happens in"],
+                    reverse_property=["in administrative unit", "in the administrative region of", "in the administrative unit", "in the arrondissement of", "in the borough of", "in the city of", "in the commune of", "in the county of", "in the department of", "in the district of", "in the indian reservation of", "in the indian reserve of", "in the local government area of", "in the municipality of", "in the parish of", "in the prefecture of", "in the principal area of", "in the province of", "in the region of", "in the rural city of", "in the settlement of", "in the shire of", "in the state of", "in the territory of", "in the town of", "in the village of", "in the voivodeship of", "in the ward of"]
+                  }]
+                  #[wikidata_id="P131"]
+                  #[string_values="org.wikidata:city_located_in_the_administrative_territorial_entity"],
+                  out located_in_or_next_to_body_of_water: Array(String)
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["located in or next to body of water", "located next to body of water", "located on body of water", "on", "on", "on", "on"],
+                    base=["bays", "lakes", "seas", "body of water", "loc (water)", "next to lakes", "oceans", "on bays", "on harbour", "on lakes", "on rivers"],
+                    reverse_property=["on coast of", "# on coast", "# 's on coast", "on shore of", "# on shore", "# 's on shore", "on the coast of", "# on the coast", "# 's on the coast", "on the shore of", "# on the shore", "# 's on the shore"]
+                  }]
+                  #[wikidata_id="P206"]
+                  #[string_values="org.wikidata:city_located_in_or_next_to_body_of_water"],
+                  out coordinate_location: Location
+                  #_[canonical={
+                    default="property",
+                    base=["coordinate location", "position", "location", "co-ordinate location", "coordinate location", "geo", "geographic coordinate", "geographical coordinates", "gps coordinate", "gps coordinates", "gps location", "latitude", "location on earth", "location on map", "longitude", "point on a map", "point on earth", "point on the globe"],
+                    passive_verb=["geolocation", "co-ords", "coords", "geocoordinates", "geotag", "gps", "gps co-ordinate", "gps co-ordinates", "wgs 84", "wgs-84", "wgs84"],
+                    verb=["co-ordinates", "coordinates"]
+                  }]
+                  #[wikidata_id="P625"],
+                  out head_of_government: Entity(org.wikidata:human)
+                  #_[canonical={
+                    default="property",
+                    base=["head of government", "president", "chancellor", "mayor", "prime minister", "governor", "premier", "first minister", "executive power headed by", "government headed by", "head of national government"]
+                  }]
+                  #[wikidata_id="P6"],
+                  out population: Number
+                  #_[canonical={
+                    default="property",
+                    base=["population", "human population", "inhabitants"]
+                  }]
+                  #[wikidata_id="P1082"],
+                  out water_as_percent_of_area: Number
+                  #_[canonical={
+                    default="property",
+                    base=["water as percent of area", "percent of area that is water"],
+                    passive_verb=["h₂ o%"]
+                  }]
+                  #[wikidata_id="P2927"],
+                  out elevation_above_sea_level: Measure(m)
+                  #_[canonical={
+                    default="property",
+                    base=["elevation above sea level", "altitude", "height", "elevation", "elevation above mean sea level"],
+                    passive_verb=["masl", "amsl", "easl", "mamsl"]
+                  }]
+                  #[wikidata_id="P2044"],
+                  out located_in_time_zone: String
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["located in time zone", "timezone", "tz"],
+                    base=["time zone", "time"]
+                  }]
+                  #[wikidata_id="P421"]
+                  #[string_values="org.wikidata:city_located_in_time_zone"],
+                  out twinned_administrative_body: Array(Entity(org.wikidata:city))
+                  #_[canonical={
+                    default="passive_verb",
+                    passive_verb=["twinned administrative bodies"],
+                    base=["twin towns", "partner cities", "partner towns", "sister cities", "sister towns", "twin cities", "twin cities"]
+                  }]
+                  #[wikidata_id="P190"],
+                  out shares_border_with: Array(Entity(org.wikidata:city))
+                  #_[canonical={
+                    default="property",
+                    base=["shares border with", "borders", "borders"],
+                    passive_verb=["adjacent to", "bordered by", "next to"]
+                  }]
+                  #[wikidata_id="P47"],
+                  out area: Measure(m2)
+                  #_[canonical={
+                    default="property",
+                    base=["area", "size", "surface", "surface area", "acreage", "total area"]
+                  }]
+                  #[wikidata_id="P2046"],
+                  out postal_code: String
+                  #_[canonical={
+                    default="property",
+                    base=["postal code", "pin code", "post code", "postal index number", "zip code"],
+                    passive_verb=["postcode", "zip+4", "zipcode"]
+                  }]
+                  #[wikidata_id="P281"]
+                  #[string_values="org.wikidata:city_postal_code"],
+                  out official_website: Entity(tt:url)
+                  #_[canonical={
+                    default="property",
+                    base=["official website", "site", "web site", "home page", "home page (official)", "homepage (official)", "official homepage", "official page", "official site", "official url", "official web site", "url (official)", "url official", "web address", "website (official)", "www site (official)", "site (official)", "site official", "website official"],
+                    passive_verb=["website", "homepage"]
+                  }]
+                  #[wikidata_id="P856"],
+                  out flag_image: Array(Entity(tt:picture))
+                  #_[canonical={
+                    default="property",
+                    base=["flag images", "image flags", "image of flags"]
+                  }]
+                  #[wikidata_id="P41"],
+                  out number_of_households: Number
+                  #_[canonical={
+                    default="property",
+                    base=["number of households", "dwellings", "households"]
+                  }]
+                  #[wikidata_id="P1538"],
+                  out image: Array(Entity(tt:picture))
+                  #_[canonical={
+                    default="property",
+                    base=["images", "graphs", "illustrations", "screen capture", "still", "portraits", "photos", "pictures", "commons images", "image capture", "image of exterior", "image on commons", "image on wikimedia commons"],
+                    passive_verb=["screenshot", "drawing", "img"]
+                  }]
+                  #[wikidata_id="P18"],
+                  out highest_point: String
+                  #_[canonical={
+                    default="property",
+                    base=["highest point", "summit", "pinnacle", "highest peak", "zenith", "elevation of highest point"],
+                    passive_verb=["extreme point highest"]
+                  }]
+                  #[wikidata_id="P610"]
+                  #[string_values="org.wikidata:city_highest_point"],
+                  out language_used: Entity(tt:iso_lang_code)
+                  #_[canonical={
+                    default="property",
+                    base=["language used", "languages used"],
+                    passive_verb=["working language", "working languages"]
+                  }]
+                  #[wikidata_id="P2936"])
+  #_[canonical="city"]
+  #_[confirmation="city"]
+  #[wikidata_subject="Q515"]
+  #[required_properties=[]]
+  #[handle_thingtalk=true]
+  #[minimal_projection=["id"]];
+}
+class @com.yelp
+#_[name="Yelp"]
+#_[description="Search restaurants on Yelp"]
+#_[canonical="yelp"]
+{
+  entity restaurant;
+
+  list query restaurant(out id: Entity(com.yelp:restaurant)
+                        #[conflict_filter=["cuisines", "price_range"]]
+                        #[unique=true]
+                        #[string_values="gov.data:restaurant_names"]
+                        #_[canonical={
+                          default="property",
+                          base=["name"],
+                          property=[]
+                        }],
+                        out image_url: Entity(tt:picture)
+                        #[genie=false]
+                        #_[canonical={
+                          base=["picture", "image", "photo"]
+                        }],
+                        out link: Entity(tt:url)
+                        #[genie=false]
+                        #_[canonical="link"],
+                        out cuisines: Array(Entity(com.yelp:restaurant_cuisine))
+                        #[conflict_filter=["id"]]
+                        #_[canonical={
+                          default="property",
+                          base=["cuisines", "types of cuisine", "food", "types of food"],
+                          property=["# food", "# cuisine"],
+                          adjective=["#"],
+                          verb=["serves # cuisine", "serves # food", "offer # cuisine", "offer # food", "serves", "offers"]
+                        }],
+                        out price : Enum(cheap, moderate, expensive, luxury)
+                        #[conflict_filter=["id"]]
+                        #_[canonical={
+                          default="adjective",
+                          base=["price range", "price"],
+                          property=[],
+                          adjective=["#", "# -ly priced"]
+                          // FIXME
+                          /*adjective_enum={ expensive=["upscale"] }*/
+                        }],
+                        out rating: Number
+                        #_[canonical={
+                          default="passive_verb",
+                          base=["rating", "average rating"],
+                          passive_verb=["rated # star"],
+                          adjective=["# star"],
+                          npp=["rating", "# star rating"]
+                        }],
+                        out reviewCount: Number
+                        #_[canonical="review count"],
+                        out geo: Location
+                        #_[canonical={
+                          default="preposition",
+                          base=["address", "location"],
+                          preposition=["near #", "in #", "around #"]
+                        }],
+                        out phone: Entity(tt:phone_number)
+                        #_[canonical={
+                          default="base",
+                          base=["phone number", "telephone"]
+                        }],
+                        out openingHours: RecurrentTimeSpecification
+                        #_[canonical={
+                          default="base",
+                          base=["opening hours"]
+                        }])
+  #_[canonical="restaurant"]
+  #_[confirmation="restaurants on Yelp"]
+  #[minimal_projection=["id"]]
+  #[default_projection=["id", "link", "rating", "cuisines", "geo", "image_url"]]
+  #_[formatted=[{
+    type="rdl",
+    displayTitle="${name}",
+    webCallback="${link}",
+    displayText="Rating: ${rating}\nCuisines: ${cuisines}\nAddress: ${geo}",
+    pictureUrl="${image_url}"
+  }]]
+  #[doc="search for restaurants on Yelp"]
+  #[confirm=false];
 }

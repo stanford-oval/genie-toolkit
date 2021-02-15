@@ -18,40 +18,41 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-{
-const assert = require('assert');
-
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
-const Type = ThingTalk.Type;
+import { Ast, } from 'thingtalk';
 
 // import the combinator library
-const C = require('../ast_manip');
+import * as C from '../ast_manip';
+import ThingpediaLoader from '../load-thingpedia';
 
-// import thingpedia info
-const _tpLoader = require('../load-thingpedia');
+// Initialize the Thingpedia loader before doing anything else
+{
+$loader = new ThingpediaLoader($runtime, $ttUtils, $grammar, $locale, $options);
+}
+import '../common.genie';
+{
+await $loader.init();
 }
 
-import '../common';
-import './constants';
-import './timers';
-import './filters';
-import './parameters';
-import './aggregation';
-import './computation';
-import './who_questions';
-import './schema.org';
-import './commands';
-import './stream_tables';
+import './shared.genie';
+import './constants.genie';
+import './timers.genie';
+import './filters.genie';
+import './projections.genie';
+import './aggregation.genie';
+import './computation.genie';
+import './who_questions.genie';
+import './schema.org.genie';
+import './commands.genie';
+import './stream_tables.genie';
 
-$root = {
-    p:thingpedia_program if complete => C.adjustDefaultParameters(p);
+$root : Ast.Input = {
+    p:thingpedia_complete_program => C.makeProgram($loader, p);
 
-    ?timer stmt:timer_rule [weight=0.2] => C.makeProgram(stmt);
+    ?timer stmt:timer_rule [weight=0.2] => C.makeProgram($loader, stmt);
     !nostream {
         ( stmt:monitor_command [weight=0.2]
         | stmt:when_command [weight=0.2]
-        ) => C.makeProgram(stmt);
+        ) => C.makeProgram($loader, stmt);
     }
 
     (
@@ -63,14 +64,12 @@ $root = {
     | generic_preamble_for_action stmt:complete_action
 
       // now => get => do
-    | generic_preamble_for_action stmt:complete_forward_get_do_command [weight=0.1]
+    | generic_preamble_for_action stmt:forward_get_do_command
+    | stmt:backward_get_do_command [weight=0.1]
 
     | stmt:search_command
     | stmt:complete_question [weight=0.1]
     | stmt:projection_question [weight=0.1]
-    ) => C.makeProgram(stmt);
-
-    !turking generic_preamble_for_action stmt:backward_get_do_command if complete [weight=0.1]
-        => C.makeProgram(stmt);
+    ) => C.makeProgram($loader, stmt);
 }
 

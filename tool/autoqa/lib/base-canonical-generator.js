@@ -17,10 +17,10 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
 
-const { clean } = require('../../../lib/utils/misc-utils');
-const EnglishLanguagePack = require('../../../lib/i18n/american-english');
+
+import { clean } from '../../../lib/utils/misc-utils';
+import EnglishLanguagePack from '../../../lib/i18n/english';
 
 function updateDefault(canonical, type) {
     if (!canonical.default)
@@ -72,8 +72,8 @@ function typeEqual(t1, t2) {
     }
 }
 
-function genBaseCanonical(canonical, argname, ptype, functionDef=null) {
-    const languagePack = new EnglishLanguagePack();
+export default function genBaseCanonical(canonical, argname, ptype, functionDef = null) {
+    const languagePack = new EnglishLanguagePack('en-US');
     let [name, tags] = preprocessName(languagePack, argname, ptype);
 
     // e.g., saturatedFatContent
@@ -213,5 +213,3 @@ function genBaseCanonical(canonical, argname, ptype, functionDef=null) {
     updateDefault(canonical, 'property');
     updateCanonical(canonical, ptype.isBoolean? 'property_true' : 'base', name);
 }
-
-module.exports = genBaseCanonical;

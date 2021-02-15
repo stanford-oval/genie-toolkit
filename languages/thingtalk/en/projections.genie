@@ -1,0 +1,226 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2019-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+//         Silei Xu <silei@cs.stanford.edu>
+
+import assert from 'assert';
+import { Ast, Type } from 'thingtalk';
+
+import * as C from '../ast_manip';
+import ThingpediaLoader from '../load-thingpedia';
+
+table_join_replace_placeholder : Ast.ChainExpression = {}
+action_replace_param_with_table : Ast.ChainExpression = {}
+action_replace_param_with_stream : Ast.ChainExpression = {}
+
+the_out_param_Any : C.ParamSlot = {
+    'the' p:out_param_Any => p;
+    !inference {
+        !turking {
+            'its' p:out_param_Any => p;
+            'their' p:out_param_Any => p;
+        }
+    }
+}
+
+the_out_param_pair : C.ParamSlot[] = {
+    'the' p1:out_param_Any 'and' p2:out_param_Any with { functionName = p1.functionName } => {
+        assert(C.isSameFunction(p1.schema, p2.schema));
+        if (p1.name === p2.name)
+            return null;
+        return [p1, p2];
+    };
+}
+
+the_out_param_triple : C.ParamSlot[] = {
+    'the' p1:out_param_Any ',' p2:out_param_Any with { functionName = p1.functionName } (',' | '') 'and' p3:out_param_Any with { functionName = p1.functionName } => {
+        assert(C.isSameFunction(p1.schema, p2.schema));
+        assert(C.isSameFunction(p1.schema, p3.schema));
+        if (p1.name === p2.name || p1.name === p3.name || p2.name === p3.name)
+            return null;
+        return [p1, p2, p3];
+    };
+}
+
+pair_projection : Ast.Expression = {
+    ( ('both' | '') outParams:the_out_param_pair 'of' table:with_filtered_table with { functionName = outParams.functionName }
+    | outParams:the_out_param_triple 'of the' table:with_arg_min_max_table with { functionName = outParams.functionName }
+    ) => C.makeMultiFieldProjection($loader, 'table', table, outParams);
+}
+
+where_question : Ast.Expression = {
+    ( 'where is the' table:with_filtered_table with { has_geo = true }
+    | 'where is the' table:with_arg_min_max_table with { has_geo = true }
+    ) => C.makeSingleFieldProjection($loader, 'table', Type.Location, table, 'geo');
+}
+
+boolean_projection : Ast.Expression = {
+    ( 'does' ('the' | '' | 'any') table:with_filtered_table 'have' p:npp_boolean_projection with { functionName = table.functionName }
+    | 'does' ('the' | '' | 'any') table:with_filtered_table p:avp_boolean_projection with { functionName = table.functionName }
+    | 'is' ('the' | '') table:with_filtered_table p:pvp_boolean_projection with { functionName = table.functionName }
+    | 'is' ('the' | '') table:with_filtered_table p:preposition_boolean_projection with { functionName = table.functionName }
+    | 'is' ('the' | '') table:with_filtered_table p:npi_boolean_projection with { functionName = table.functionName }
+    | 'is' ('the' | '') table:with_filtered_table p:npv_boolean_projection with { functionName = table.functionName }
+    | 'is' ('the' | '') table:with_filtered_table p:apv_boolean_projection with { functionName = table.functionName }
+    ) => C.makeSingleFieldProjection($loader, 'table', Type.Boolean, table, p);
+}
+
+for (const proj of $loader.projections) {
+    if (proj.category === 'pvp' || proj.category === 'preposition') {
+        question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('is'|'was'|'are'|'were') ('the' | '') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } #(proj.canonical) =>
+            C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
+        question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('is'|'was'|'are'|'were') ('the' | '') table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } #(proj.canonical) =>
+            C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
+
+        if (proj.base) {
+            command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') ('the' | '') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } ('is'|'was'|'are'|'were') #(proj.canonical) =>
+                C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
+            command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') ('the' | '') table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } ('is'|'was'|'are'|'were') #(proj.canonical) =>
+                C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
+        }
+    }
+    if (proj.category === 'avp') {
+        question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('do'|'does'|'did') ('the' | '') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } #(proj.canonical) =>
+            C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
+        question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) ('do'|'does'|'did') ('the' | '') table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } #(proj.canonical) =>
+            C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
+
+        if (proj.base) {
+            command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') ('the' | '') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } #(proj.canonical) =>
+                C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
+            command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') ('the' | '') table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } #(proj.canonical) =>
+                C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
+        }
+    }
+    if (proj.category === 'reverse_verb') {
+        question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) #(proj.canonical) ('the' | '') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
+            C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
+        question_projection_table : Ast.Expression = #(proj.pronoun) #(proj.base) #(proj.canonical) ('the' | '') table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
+            C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
+
+        if (proj.base) {
+            command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') #(proj.canonical) ('the' | '') table:with_filtered_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
+                C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
+            command_projection_table : Ast.Expression = #(proj.base) ('that'|'which'|'') #(proj.canonical) ('the' | '') table:with_arg_min_max_table with { functionName = (proj.pslot.schema.qualifiedName) } =>
+                C.makeSingleFieldProjection($loader, 'table', null, table, proj.pslot);
+        }
+    }
+}
+
+projection_Any : Ast.Expression = {
+    ( 'the' outParam:out_param_Any 'of' table:with_filtered_table with { functionName = outParam.functionName }
+    | 'the' outParam:out_param_Any 'of the' table:with_arg_min_max_table with { functionName = outParam.functionName }
+    ) =>
+        C.makeSingleFieldProjection($loader, 'table', null, table, outParam);
+}
+
+verb_projection_Any : Ast.Expression = {
+    ( outParam:out_param_Any ('do' | 'does') ('the' | '') table:with_filtered_table with { functionName = outParam.functionName } 'have'
+    | outParam:out_param_Any ('do' | 'does') ('the' | '') table:with_arg_min_max_table with { functionName = outParam.functionName } 'have'
+    ) =>
+        C.makeSingleFieldProjection($loader, 'table', null, table, outParam);
+}
+
+stream_projection_Any : Ast.Expression = {
+    !nostream {
+        ( 'the' outParam:out_param_Any 'of new' table:with_filtered_table with { functionName = outParam.functionName }
+        | 'the' outParam:out_param_Any 'of the new' table:with_arg_min_max_table with { functionName = outParam.functionName }
+        ) => C.makeSingleFieldProjection($loader, 'stream', null, table, outParam);
+
+        'new' table:with_filtered_table with { is_monitorable = true } =>
+            C.makeTypeBasedStreamProjection(table);
+    }
+}
+
+placeholder : C.Placeholder = {
+    'some number' => ({ type: Type.Number });
+    'some value' => ({ type: Type.Number });
+
+    'something' => ({ type: Type.String });
+
+    'some value' => ({ type: Type.Currency });
+    'some amount' => ({ type: Type.Currency });
+
+    'some time' => ({ type: Type.Time });
+     'a certain time' => ({ type: Type.Time });
+
+    'some date' => ({ type: Type.Date });
+    'a certain date' => ({ type: Type.Date });
+    'some time' => ({ type: Type.Date });
+    'a certain time' => ({ type: Type.Date });
+
+    'some location' => ({ type: Type.Location });
+    'a location' => ({ type: Type.Location });
+    'some place' => ({ type: Type.Location });
+    'a place' => ({ type: Type.Location });
+    'a certain place' => ({ type: Type.Location });
+    'somewhere' => ({ type: Type.Location });
+
+    'some duration' => ({ type: new Type.Measure('ms') });
+    'some amount of time' => ({ type: new Type.Measure('ms') });
+
+    'some size' => ({ type: new Type.Measure('byte') });
+    'a certain size' => ({ type: new Type.Measure('byte') });
+
+    'a certain weight' => ({ type: new Type.Measure('kg') });
+
+    'a certain temperature' => ({ type: new Type.Measure('C') });
+
+    'some distance' => ({ type: new Type.Measure('m') });
+    'some length' => ({ type: new Type.Measure('m') });
+
+    'some size' => ({ type: new Type.Measure('m2') });
+    'a certain size' => ({ type: new Type.Measure('m2') });
+
+    'some volume' => ({ type: new Type.Measure('m3') });
+    'a certain volume' => ({ type: new Type.Measure('m3') });
+
+    'some speed' => ({ type: new Type.Measure('mps') });
+    'a certain speed' => ({ type: new Type.Measure('mps') });
+
+    'some image' => ({ type: new Type.Entity('tt:picture') });
+    'some picture' => ({ type: new Type.Entity('tt:picture') });
+    'some photo' => ({ type: new Type.Entity('tt:picture') });
+
+    'somebody' => ({ type: new Type.Entity('tt:username') });
+    'someone' => ({ type: new Type.Entity('tt:username') });
+    'some one' => ({ type: new Type.Entity('tt:username') });
+    'some person' => ({ type: new Type.Entity('tt:username') });
+
+    'somebody' => ({ type: new Type.Entity('tt:phone_number') });
+    'someone' => ({ type: new Type.Entity('tt:phone_number') });
+    'some one' => ({ type: new Type.Entity('tt:phone_number') });
+    'some person' => ({ type: new Type.Entity('tt:phone_number') });
+    'some number' => ({ type: new Type.Entity('tt:phone_number') });
+    'some phone number' => ({ type: new Type.Entity('tt:phone_number') });
+
+    'somebody' => ({ type: new Type.Entity('tt:phone_number') });
+    'someone' => ({ type: new Type.Entity('tt:phone_number') });
+    'some one' => ({ type: new Type.Entity('tt:phone_number') });
+    'some person' => ({ type: new Type.Entity('tt:phone_number') });
+    'some email address' => ({ type: new Type.Entity('tt:phone_number') });
+
+    'some file' => ({ type: new Type.Entity('tt:phone_number') });
+    'some directory' => ({ type: new Type.Entity('tt:phone_number') });
+    'some folder' => ({ type: new Type.Entity('tt:phone_number') });
+
+    'some url' => ({ type: new Type.Entity('tt:url') });
+    'some website' => ({ type: new Type.Entity('tt:url') });
+    'some link' => ({ type: new Type.Entity('tt:url') });
+}

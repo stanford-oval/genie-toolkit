@@ -17,11 +17,11 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
-const path = require('path');
-const child_process = require('child_process');
+
+import assert from 'assert';
+import * as path from 'path';
+import * as child_process from 'child_process';
 
 
 const input = {
@@ -188,6 +188,6 @@ async function main() {
 
     assert.deepStrictEqual(JSON.parse(stdout), expected_output);
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

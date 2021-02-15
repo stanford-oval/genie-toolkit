@@ -1,14 +1,16 @@
-# Italian translations for almond package.
-# Copyright (C) 2016 The Stanford Mobile and Social Research Group
-# This file is distributed under the same license as the almond package.
-# Giovanni Campagna <scampa.giovanni@gmail.com>, 2016-2019.
+# Italian translations for genie-toolkit package
+# Traduzioni italiane per il pacchetto genie-toolkit..
+# Copyright (C) 2016 The Stanford Open Virtual Assistant Lab
+# This file is distributed under the same license as the genie-toolkit package.
+# Giovanni Campagna <scampa.giovanni@gmail.com>, 2016-2020.
 #
+#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: almond 1.0.0\n"
+"Project-Id-Version: genie-toolkit 1.0.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-23 17:39-0700\n"
-"PO-Revision-Date: 2019-11-05 13:49-0800\n"
+"POT-Creation-Date: 2020-01-05 02:42-0800\n"
+"PO-Revision-Date: 2020-01-05 02:49-0800\n"
 "Last-Translator: Giovanni Campagna <scampa.giovanni@gmail.com>\n"
 "Language-Team: Italian <it@li.org>\n"
 "Language: it\n"
@@ -18,319 +20,1049 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 "X-Generator: Gtranslator 3.34.0\n"
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:32
-msgid "Media (news, comics, meme, etc)"
-msgstr "Media (news, fumetti, meme, ecc.)"
+#: lib/ast/slots.js:176
+msgid "Please tell me the ${argcanonical}."
+msgstr "Per favore dimmi il ${argcanonical}."
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:33
-msgid "Social Networks (facebook, twitter, etc)"
-msgstr "Social Network (Facebook, Twitter, ecc.)"
+#: lib/ast/slots.js:208
+msgid "Please tell me the name of the device you would like to use."
+msgstr "Per favore dimmi il nome del dispositivo che vuoi utilizzare."
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:34
-msgid "Home (camera, tv, etc)"
-msgstr "Casa (telecamera, TV, ecc.)"
+#: lib/ast/slots.js:290 lib/ast/slots.js:394
+msgid "Who is allowed to ask you for this command?"
+msgstr "Chi può richiedere questo comando?"
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:35
-msgid "Communication (phone, email, messenger, etc)"
-msgstr "Comunicazione (telefono, email, messenger, ecc.)"
+#: lib/ast/slots.js:297
+msgid "What should the ${argcanonical} be greater than?"
+msgstr "Il ${argcanonical} deve essere maggiore di cosa?"
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:36
-msgid "Services (weather, calendar, todo list, etc)"
-msgstr "Servizi (meteo, calendario, attività, ecc.)"
+#: lib/ast/slots.js:300
+msgid "What should the ${argcanonical} be less than?"
+msgstr "Il ${argcanonical} deve essere minore di cosa?"
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:37
-msgid "Data Management (cloud drives)"
-msgstr "Gestione Dati (dischi in cloud)"
+#: lib/ast/slots.js:303
+msgid "How should the ${argcanonical} start with?"
+msgstr "Il ${argcanonical} deve iniziare con cosa?"
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:40
-msgid "Pick one from the following categories or simply type in."
-msgstr "Scegli una delle categorie sequenti o scrivi direttamente."
+#: lib/ast/slots.js:306
+msgid "How should the ${argcanonical} end with?"
+msgstr "Il ${argcanonical} deve finire con cosa?"
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:42
-msgid "Do it now"
-msgstr "Esegui ora"
+#: lib/ast/slots.js:309
+msgid "What should the ${argcanonical} contain?"
+msgstr "Il ${argcanonical} deve contenere cosa?"
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:44
-msgid "Just notify me"
-msgstr "Notificami"
+#: lib/ast/slots.js:312
+msgid "What should the ${argcanonical} be equal to?"
+msgstr "Il ${argcanonical} deve essere uguale a cosa?"
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:52
-#: lib/dialogue-agent/legacy-dialogs/make.js:74
-#: lib/dialogue-agent/legacy-dialogs/make.js:121
-#: lib/dialogue-agent/legacy-dialogs/make.js:142
-#: lib/dialogue-agent/legacy-dialogs/make.js:355
-#: lib/dialogue-agent/legacy-dialogs/make.js:372
-#: lib/dialogue-agent/legacy-dialogs/make.js:465
-#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:128
-msgid "Back"
-msgstr "Indietro"
+#: lib/ast/slots.js:316
+msgid "Please tell me the value of the filter on the ${argcanonical}."
+msgstr "Per favore dimmi il valore del filtro sul ${argcanonical}."
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:62
-msgid "Pick a command from the following devices"
-msgstr "Scegli un comando tra i seguenti dispositivi"
+#: lib/ast/slots.js:366 lib/ast/slots.js:500
+msgid "Which result do you want?"
+msgstr "Quale risultato vuoi?"
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:73
-#: lib/dialogue-agent/legacy-dialogs/make.js:141
-msgid "More…"
-msgstr "Ancora…"
+#: lib/ast/slots.js:368
+msgid ""
+"${index:ordinal:                =1 {What is the index of the first result "
+"you would like?}                =2 {What is the index of the second result "
+"you would like?}                =3 {What is the index of the third result "
+"you would like?}                one {What is the index of the ${index}st "
+"result you would like?}                two {What is the index of the ${index}"
+"nd result you would like?}                few {What is the index of the "
+"${index}rd result you would like?}                other {What is the index "
+"of the ${index}th result you would like?}            }"
+msgstr ""
+"${index:ordinal:\n"
+"=1 {Qual è l'indice del primo risultato che desideri?}\n"
+"=2 {Qual è l'indice del secondo risultato che desideri?}\n"
+"=3 {Qual è l'indice del terzo risultato che desideri?}\n"
+"many {Qual è l'indice dell'${index}º risultato che desideri?}\n"
+"other {Qual è l'indice del ${index}º risultato che desideri?}\n"
+"}"
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:91
+#: lib/ast/slots.js:380
+msgid "When do you want your command to run?"
+msgstr "Quando vuoi che il tuo comando sia eseguito?"
+
+#: lib/ast/slots.js:382
+msgid ""
+"${index:ordinal:                =1 {What is the first time you would like "
+"your command to run?}                =2 {What is the second time you would "
+"like your command to run?}                =3 {What is the third time you "
+"would like your command to run?}                one {What is the ${index}st "
+"time you would like your command to run?}                two {What is the "
+"${index}nd time you would like your command to run?}                few "
+"{What is the ${index}rd time you would like your command to "
+"run?}                other {What is the ${index}th time you would like your "
+"command to run?}            }"
+msgstr ""
+"${index:ordinal:\n"
+"=1 {Qual è il primo orario a cui desideri che il comando si esegua?}\n"
+"=2 {Qual è il secondo orario a cui desideri che il comando si esegua?}\n"
+"=3 {Qual è il terzo orario a cui desideri che il comando si esegua?}\n"
+"many {Qual è l'${index}º orario a cui desideri che il comando si esegua?}\n"
+"other {Qual è il ${index}º orario a cui desideri che il comando si esegua?}\n"
+"}"
+
+#: lib/ast/slots.js:396
+msgid ""
+"${index:ordinal:                =1 {Who is the first friend who is allowed "
+"to ask you for this command?}                =2 {Who is the second friend "
+"who is allowed to ask you for this command?}                =3 {Who is the "
+"third friend who is allowed to ask you for this command?}                one "
+"{Who is the ${index}st friend who is allowed to ask you for this "
+"command?}                two {Who is the ${index}nd friend who is allowed to "
+"ask you for this command?}                few {Who is the ${index}rd friend "
+"who is allowed to ask you for this command?}                other {Who is "
+"the ${index}th friend who is allowed to ask you for this "
+"command?}            }"
+msgstr ""
+
+#: lib/ast/slots.js:408 lib/ast/slots.js:502
 #, fuzzy
-msgid "when ${utterance} change notify me"
-msgstr "quando %s cambia notificami"
+msgid "What is the left hand side of the filter?"
+msgstr "Qual è l'indice del primo risultato che vuoi?"
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:105
+#: lib/ast/slots.js:410
 #, fuzzy
-msgid "${utterance} notify me"
-msgstr "Notificami"
+msgid ""
+"${index:ordinal:                =1 {What is the first value of the filter "
+"left hand side?}                =2 {What is the second value of the filter "
+"left hand side?}                =3 {What is the third value of the filter "
+"left hand side?}                one {What is the ${index}st value of the "
+"filter left hand side?}                two {What is the ${index}nd value of "
+"the filter left hand side?}                few {What is the ${index}rd value "
+"of the filter left hand side?}                other {What is the ${index}th "
+"value of the filter left hand side?}            }"
+msgstr ""
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:113
+#: lib/ast/slots.js:422 lib/ast/slots.js:504
 #, fuzzy
-msgid "when ${utterance} change"
-msgstr "quando %s cambia"
+msgid "What is the right hand side of the filter?"
+msgstr "Qual è l'indice del primo risultato che vuoi?"
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:118
+#: lib/ast/slots.js:424
 #, fuzzy
-msgid "Can't find a compatible command from ${device}, choose another device."
-msgstr "Non trovo un comando compatibile in %s, scegli un altro dispositivo"
+msgid ""
+"${index:ordinal:                =1 {What is the first value of the filter "
+"right hand side?}                =2 {What is the second value of the filter "
+"right hand side?}                =3 {What is the third value of the filter "
+"right hand side?}                one {What is the ${index}st value of the "
+"filter right hand side?}                two {What is the ${index}nd value of "
+"the filter right hand side?}                few {What is the ${index}rd "
+"value of the filter right hand side?}                other {What is the "
+"${index}th value of the filter right hand side?}            }"
+msgstr ""
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:135
-msgid "Pick a command below."
-msgstr "Scegli un comando."
+#: lib/ast/slots.js:440
+#, fuzzy
+msgid ""
+"${index:ordinal:                =1 {What would you like the first "
+"${argcanonical} to be?}                =2 {What would you like the second "
+"${argcanonical} to be?}                =3 {What would you like the third "
+"${argcanonical} to be?}                one {What would you like the ${index}"
+"st ${argcanonical} to be?}                two {What would you like the "
+"${index}nd ${argcanonical} to be?}                few {What would you like "
+"the ${index}rd ${argcanonical} to be?}                other {What would you "
+"like the ${index}th ${argcanonical} to be?}            }"
+msgstr ""
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:253
+#: lib/ast/slots.js:484
+msgid "Who should run this command?"
+msgstr "Chi deve eseguire questo comando?"
+
+#: lib/ast/slots.js:486
+msgid "When would you like your command to start?"
+msgstr "Quando vuoi che questo comando sia iniziato?"
+
+#: lib/ast/slots.js:488
+msgid "How often should your command run?"
+msgstr "Quando spesso deve essere eseguito questo comando?"
+
+#: lib/ast/slots.js:490
+msgid "How many times should your command run during that time interval?"
+msgstr ""
+"Quante volte deve essere eseguito il tuo comando nell'intervallo di tempo?"
+
+#: lib/ast/slots.js:492
+msgid "When should your command stop?"
+msgstr "Quando deve fermarsi il tuo comando?"
+
+#: lib/ast/slots.js:495
+msgid "What is the first result you would like?"
+msgstr "Qual è il primo risultato che vuoi?"
+
+#: lib/ast/slots.js:498
+msgid "How many results would you like?"
+msgstr "Quanti risultati vuoi?"
+
+#: lib/ast/slots.js:508
+msgid "What ${field:enum} would you like?"
+msgstr "Quale ${field:enum} vuoi?"
+
+#: lib/builtin/values.js:146 lib/describe.js:38
+#: lib/utils/thingtalk/describe.ts:69
+msgid "[Latitude: ${loc.lat:.3} deg, Longitude: ${loc.lon:.3} deg]"
+msgstr "[Latitudine: ${loc.lat:.3} gradi, Longitudine: ${loc.lon:.3} gradi]"
+
+#: lib/describe.js:44 lib/utils/thingtalk/describe.ts:76
+msgid "here"
+msgstr "qui"
+
+#: lib/describe.js:46 lib/utils/thingtalk/describe.ts:78
+msgid "at home"
+msgstr "a casa"
+
+#: lib/describe.js:48 lib/utils/thingtalk/describe.ts:80
+msgid "at work"
+msgstr "al lavoro"
+
+#: lib/describe.js:59 lib/utils/thingtalk/describe.ts:122
 msgid "now"
-msgstr "ora"
+msgstr "adesso"
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:255
-msgid "notify me"
-msgstr "notificami"
+#: lib/describe.js:64 lib/utils/thingtalk/describe.ts:141
+msgid "this millisecond"
+msgstr "questo millisecondo"
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:273
-msgid "Do you want to use your own account or others?"
-msgstr "Vuoi usare il tuo account o quello di altri?"
+#: lib/describe.js:67 lib/utils/thingtalk/describe.ts:144
+msgid "this second"
+msgstr "questo secondo"
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:274
-msgid "Use my own account"
-msgstr "Usa il mio account"
+#: lib/describe.js:70 lib/utils/thingtalk/describe.ts:147
+msgid "this minute"
+msgstr "questo minuto"
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:274
-msgid "Use others' account"
-msgstr "Usa l'account di un altro"
+#: lib/describe.js:73 lib/utils/thingtalk/describe.ts:150
+msgid "this hour"
+msgstr "quest'ora"
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:279
-msgid "Whose account do you want to use?"
-msgstr "Vuoi usare l'account di chi?"
+#: lib/describe.js:76 lib/utils/thingtalk/describe.ts:153
+msgid "today"
+msgstr "oggi"
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:309
-msgid "When"
-msgstr "Quando"
+#: lib/describe.js:79 lib/utils/thingtalk/describe.ts:156
+msgid "this week"
+msgstr "questa settimana"
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:315
-msgid "Get"
-msgstr "Ottieni"
+#: lib/describe.js:82 lib/utils/thingtalk/describe.ts:159
+msgid "this month"
+msgstr "questo mese"
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:321
-msgid "Do"
-msgstr "Fai"
+#: lib/describe.js:85 lib/utils/thingtalk/describe.ts:126
+#: lib/utils/thingtalk/describe.ts:162
+msgid "this year"
+msgstr "quest'anno"
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:324
-msgid "Add more commands and filters or run your command if you are ready."
+#: lib/describe.js:89 lib/utils/thingtalk/describe.ts:166
+msgid "the start of ${unit}"
+msgstr "l'inizio di ${unit}"
+
+#: lib/describe.js:91 lib/utils/thingtalk/describe.ts:168
+msgid "the end of ${unit}"
+msgstr "la fine di ${unit}"
+
+#: lib/describe.js:123 lib/utils/thingtalk/describe.ts:109
+msgid "the morning"
+msgstr "la mattina"
+
+#: lib/describe.js:125
+msgid "the evening"
+msgstr "la sera"
+
+#: lib/describe.js:157 lib/utils/thingtalk/describe.ts:205
+#: lib/utils/thingtalk/describe.ts:431
+msgid "the ${name}"
+msgstr "il ${name}"
+
+#: lib/describe.js:166 lib/utils/thingtalk/describe.ts:214
+#, fuzzy
+msgid "${offset} past ${base}"
 msgstr ""
-"Aggiungi più comandi e filtri o esegui il tuo comando quando sei pronto."
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:326
-#: lib/dialogue-agent/legacy-dialogs/make.js:429
-msgid "Add a filter"
-msgstr "Aggiungi un filtro"
-
-#: lib/dialogue-agent/legacy-dialogs/make.js:327
-#: lib/dialogue-agent/legacy-dialogs/make.js:430
-msgid "Run it"
-msgstr "Esegui"
-
-#: lib/dialogue-agent/legacy-dialogs/make.js:329
-msgid "Click on one of the following buttons to start adding commands."
+#: lib/describe.js:168 lib/utils/thingtalk/describe.ts:216
+#, fuzzy
+msgid "${offset} before ${base}"
 msgstr ""
-"Clicca su uno dei pulsanti seguenti per iniziare ad aggiungere comandi."
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:357
-msgid "Pick the command you want to add filters to:"
-msgstr "Scegli il comando a cui vuoi aggiungere il filtro:"
+#: lib/describe.js:177 lib/utils/thingtalk/describe.ts:225
+#, fuzzy
+msgid "${lhs} plus ${rhs}"
+msgstr ""
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:366
-msgid "Pick the filter you want to add:"
-msgstr "Scegli il filtro che vuoi aggiungere:"
+#: lib/describe.js:179 lib/utils/thingtalk/describe.ts:227
+#, fuzzy
+msgid "${lhs} minus ${rhs}"
+msgstr ""
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:427
-msgid "Choose a different command"
-msgstr "Scegli un comando diverso"
+#: lib/describe.js:181 lib/utils/thingtalk/describe.ts:229
+#, fuzzy
+msgid "${lhs} times ${rhs}"
+msgstr ""
 
-#: lib/dialogue-agent/legacy-dialogs/make.js:432
+#: lib/describe.js:183 lib/utils/thingtalk/describe.ts:231
+#, fuzzy
+msgid "${lhs} divided by ${rhs}"
+msgstr ""
+
+#: lib/describe.js:185 lib/utils/thingtalk/describe.ts:233
+#, fuzzy
+msgid "${lhs} modulo ${rhs}"
+msgstr ""
+
+#: lib/describe.js:187 lib/utils/thingtalk/describe.ts:235
+#, fuzzy
+msgid "${lhs} to the power of ${rhs}"
+msgstr ""
+
+#: lib/describe.js:189 lib/utils/thingtalk/describe.ts:237
+#, fuzzy
+msgid "the distance between ${lhs} and ${rhs}"
+msgstr ""
+
+#: lib/describe.js:191 lib/utils/thingtalk/describe.ts:239
+#, fuzzy
+msgid "the maximum ${arg}"
+msgstr "il massimo %s in %s"
+
+#: lib/describe.js:193 lib/utils/thingtalk/describe.ts:241
+#, fuzzy
+msgid "the minimum ${arg}"
+msgstr "il minimo %s in %s"
+
+#: lib/describe.js:195 lib/utils/thingtalk/describe.ts:243
+#, fuzzy
+msgid "the average ${arg}"
+msgstr "la media di %s in %s"
+
+#: lib/describe.js:197 lib/utils/thingtalk/describe.ts:245
+#, fuzzy
+msgid "the total ${arg}"
+msgstr ""
+"il massimo %s in %s"
+
+#: lib/describe.js:199 lib/utils/thingtalk/describe.ts:247
+#, fuzzy
+msgid "the number of ${arg}"
+msgstr "il numero di %s"
+
+#: lib/describe.js:206 lib/utils/thingtalk/describe.ts:254
+msgid "${value} for which ${filter}"
+msgstr ""
+
+#: lib/describe.js:212 lib/utils/thingtalk/describe.ts:260
+#, fuzzy
+msgid "the ${field} of ${value}"
+msgstr ""
+"la fine di ${unit}"
+
+#: lib/describe.js:221 lib/utils/thingtalk/describe.ts:269
+msgid "the selection on the screen"
+msgstr "la selezione sullo schermo"
+
+#: lib/describe.js:231 lib/utils/thingtalk/describe.ts:279
+msgid "the program ID"
+msgstr "l'ID del programma"
+
+#: lib/describe.js:233 lib/utils/thingtalk/describe.ts:281
+msgid "the device type"
+msgstr "il tipo di dispositivo"
+
+#: lib/describe.js:235 lib/utils/thingtalk/describe.ts:285
+msgid "the result"
+msgstr "il risultato"
+
+#: lib/describe.js:256 lib/describe.js:365 lib/utils/thingtalk/describe.ts:318
+#: lib/utils/thingtalk/describe.ts:451
+msgid "true"
+msgstr "vero"
+
+#: lib/describe.js:256 lib/describe.js:367 lib/utils/thingtalk/describe.ts:318
+#: lib/utils/thingtalk/describe.ts:453
+msgid "false"
+msgstr "falso"
+
+#: lib/describe.js:293
 #, fuzzy
 msgid ""
-"Your command is: ${command}. You can add more filters or run your command if "
-"you are ready."
+"${op_key:select:             not_contains {the ${argcanonical} do not "
+"contain ${value}}             contains {the ${argcanonical} contain "
+"${value}}             not_substr {the ${argcanonical} does not contain "
+"${value}}             substr {the ${argcanonical} contains "
+"${value}}             not_in_array {the ${argcanonical} is none of "
+"${value}}             in_array {the ${argcanonical} is any of "
+"${value}}             not_rev_substr {the ${argcanonical} is not contained "
+"in ${value}}             rev_substr {the ${argcanonical} is contained in "
+"${value}}             not_starts_with {the ${argcanonical} does not start "
+"with ${value}}             starts_with {the ${argcanonical} starts with "
+"${value}}             not_ends_with {the ${argcanonical} does not end with "
+"${value}}             ends_with {the ${argcanonical} ends with "
+"${value}}             not_prefix_of {the ${argcanonical} is not a prefix of "
+"${value}}             prefix_of {the ${argcanonical} is a prefix of "
+"${value}}             not_suffix_of {the ${argcanonical} is not a suffix of "
+"${value}}             suffix_of {the ${argcanonical} is a suffix of "
+"${value}}             not_eq {the ${argcanonical} is not equal to "
+"${value}}             eq {the ${argcanonical} is equal to "
+"${value}}             not_geq {the ${argcanonical} is less than "
+"${value}}             geq {the ${argcanonical} is greater than or equal to "
+"${value}}             not_leq {the ${argcanonical} is greater than "
+"${value}}             leq {the ${argcanonical} is less than or equal to "
+"${value}}             not_before {the ${argcanonical} is after "
+"${value}}             before {the ${argcanonical} is before "
+"${value}}             not_after {the ${argcanonical} is before "
+"${value}}             after {the ${argcanonical} is after ${value}}         }"
 msgstr ""
-"Il tuo comando è: %s. Puoi aggiungere più comandi e filtri o eseguire il tuo "
-"comando quando sei pronto."
 
-#.
-#. let filterCandidates = {
-#. trigger: makeFilterCandidates(rule.trigger),
-#. query: makeFilterCandidates(rule.query),
-#. action: makeFilterCandidates(rule.action)
-#. };
-#. let scope = {};
-#. let filterDescription = [
-#. rule.trigger.isSpecified ? Describe.describePermissionFunction(dlg.manager.gettext, rule.trigger, 'trigger', scope) : '',
-#. rule.query.isSpecified ? Describe.describePermissionFunction(dlg.manager.gettext, rule.query, 'query', scope) : '',
-#. rule.action.isSpecified ? Describe.describePermissionFunction(dlg.manager.gettext, rule.action, 'action', scope) : ''
-#. ];
-#.
-#. let primTypes = [];
-#. let filterCommandChoices = [];
-#. if (filterCandidates.trigger.length > 0) {
-#. primTypes.push('trigger');
-#. filterCommandChoices.push(dlg._("When: %s").format(filterDescription[0]));
-#. }
-#. if (filterCandidates.query.length > 0) {
-#. primTypes.push('query');
-#. filterCommandChoices.push(dlg._("Get: %s").format(filterDescription[1]));
-#. }
-#. if (filterCandidates.action.length > 0) {
-#. primTypes.push('action');
-#. filterCommandChoices.push(dlg._("Do: %s").format(filterDescription[2]));
-#. }
-#. filterCommandChoices.push(dlg._("Done"));
-#. filterCommandChoices.push(dlg._("Back"));
-#.
-#. let prim;
-#. let choice;
-#. if (!firstTime || primTypes.length > 1) {
-#. choice = await dlg.askChoices(dlg._("Pick the part you want to add restrictions to:"), filterCommandChoices);
-#. if (choice === filterCommandChoices.length - 2) {
-#. // done!
-#. return rule;
-#. }
-#. if (choice === filterCommandChoices.length - 1) {
-#. // go back to the top
-#. return null;
-#. }
-#. prim = rule[primTypes[choice]];
-#. } else {
-#. prim = rule[primTypes[0]];
-#. choice = 0;
-#. }
-#. let prim = rule[primTypes[choice]];
-#.
-#: lib/dialogue-agent/legacy-dialogs/make.js:461
-#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:91
-msgid "Choose the filter you want to add:"
-msgstr "Scegli il filtro che vuoi aggiungere:"
+#: lib/describe.js:373 lib/utils/thingtalk/describe.ts:474
+#, fuzzy
+msgid "${lhs} ${op} ${rhs}"
+msgstr ""
 
-#: lib/dialogue-agent/legacy-dialogs/fallback.js:45
+#: lib/describe.js:382 lib/utils/thingtalk/describe.ts:483
+#, fuzzy
+msgid "not ${expr}"
+msgstr ""
+
+#: lib/describe.js:387
+msgid "current time"
+msgstr "l'ora attuale"
+
+#: lib/describe.js:392
+msgid "my location"
+msgstr "la mia posizione"
+
+#. #-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#
+#. common case
+#. common case 2
+#: lib/describe.js:399 lib/describe.js:411 lib/utils/thingtalk/describe.ts:500
+#: lib/utils/thingtalk/describe.ts:513
+#, fuzzy
+msgid "the ${param} of ${expr}"
+msgstr ""
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"la media di %s in %s"
+
+#. #-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#
+#. general case
+#: lib/describe.js:423 lib/utils/thingtalk/describe.ts:525
+#, fuzzy
+msgid "for ${expr}, ${filter}"
+msgstr ""
+
+#: lib/describe.js:446
+msgid "send it to me"
+msgstr "invialo a me"
+
+#: lib/describe.js:448
+msgid "notify you"
+msgstr "notifichi te"
+
+#: lib/describe.js:450
+msgid "save it"
+msgstr "salvalo"
+
+#: lib/describe.js:465 lib/utils/thingtalk/describe.ts:561
+msgid "send it to $__principal"
+msgstr "invialo a $__principal"
+
+#: lib/describe.js:467 lib/utils/thingtalk/describe.ts:563
+msgid "you receive something from $__principal"
+msgstr "ricevi qualcosa da $__principal"
+
+#: lib/describe.js:478 lib/describe.js:486 lib/describe.js:981
+#: lib/utils/thingtalk/describe.ts:574 lib/utils/thingtalk/describe.ts:582
+#: lib/utils/thingtalk/describe.ts:1173
+#, fuzzy
+msgid "your ${device}"
+msgstr ""
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"tutti i tuoi %s"
+
+#: lib/describe.js:480 lib/utils/thingtalk/describe.ts:576
+#, fuzzy
+msgid "all your ${name} ${device}"
+msgstr ""
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"tutti i tuoi %s"
+
+#: lib/describe.js:482 lib/utils/thingtalk/describe.ts:578
+#, fuzzy
+msgid "all your ${device}"
+msgstr "tutti i tuoi %s"
+
+#: lib/describe.js:484 lib/utils/thingtalk/describe.ts:580
+#, fuzzy
+msgid "your ${name} ${device}"
+msgstr ""
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"tutti i tuoi %s"
+
+#: lib/describe.js:536 lib/utils/thingtalk/describe.ts:632
+#, fuzzy
+msgid "${confirm} with ${argcanonical} equal to ${value}"
+msgstr ""
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"Il ${argcanonical} deve essere uguale a cosa?"
+
+#: lib/describe.js:539 lib/utils/thingtalk/describe.ts:635
+msgid "${confirm} and ${argcanonical} equal to ${value}"
+msgstr ""
+
+#: lib/describe.js:549 lib/utils/thingtalk/describe.ts:645
+#, fuzzy
 msgid ""
-"Sorry, I did not understand that. Use ‘help’ to learn what I can do for you."
+"${index:ordinal:                     =1 {the last "
+"${table}}                    =2 {the second to last "
+"${table}}                    one {the ${index}st last "
+"${table}}                    two {the ${index}nd last "
+"${table}}                    few {the ${index}rd last "
+"${table}}                    other {the ${index}th last "
+"${table}}                }"
 msgstr ""
-"Mi dispiace, non ho capito. Usa ‘aiuto’ per conoscere cosa posso fare per te."
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"${index:ordinal:\n"
+"=1 {Qual è l'indice del primo risultato che desideri?}\n"
+"=2 {Qual è l'indice del secondo risultato che desideri?}\n"
+"=3 {Qual è l'indice del terzo risultato che desideri?}\n"
+"many {Qual è l'indice dell'${index}º risultato che desideri?}\n"
+"other {Qual è l'indice del ${index}º risultato che desideri?}\n"
+"}"
 
-#. don't sort the examples, they come already sorted from Thingpedia
-#: lib/dialogue-agent/legacy-dialogs/fallback.js:53
-msgid "if"
-msgstr "se"
-
-#: lib/dialogue-agent/legacy-dialogs/fallback.js:56
+#: lib/describe.js:558 lib/utils/thingtalk/describe.ts:654
+#, fuzzy
 msgid ""
-"Sorry, I did not understand that. Try the following instead, or use the "
-"Train button to teach me:"
+"${index:ordinal:                     =1 {the first "
+"${table}}                    =2 {the second ${table}}                    =3 "
+"{the third ${table}}                    one {the ${index}st "
+"${table}}                    two {the ${index}nd "
+"${table}}                    few {the ${index}rd "
+"${table}}                    other {the ${index}th ${table}}                }"
 msgstr ""
-"Mi dispiace, non ho capito. Prova i seguenti comandi invece, o usa il "
-"pulsante Allena per insegnarmi:"
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"${index:ordinal:\n"
+"=1 {Qual è il primo orario a cui desideri che il comando si esegua?}\n"
+"=2 {Qual è il secondo orario a cui desideri che il comando si esegua?}\n"
+"=3 {Qual è il terzo orario a cui desideri che il comando si esegua?}\n"
+"many {Qual è l'${index}º orario a cui desideri che il comando si esegua?}\n"
+"other {Qual è il ${index}º orario a cui desideri che il comando si esegua?}\n"
+"}"
 
-#: lib/dialogue-agent/legacy-dialogs/fallback.js:58
-msgid "Sorry, I did not understand that. Try the following instead:"
-msgstr "Mi dispiace, non ho capito. Prova i seguenti comandi invece:"
-
-#: lib/dialogue-agent/legacy-dialogs/fallback.js:64
-msgid "Make Your Own Rule"
-msgstr "Crea la tua regola"
-
-#: lib/dialogue-agent/legacy-dialogs/fallback.js:94
+#: lib/describe.js:569 lib/utils/thingtalk/describe.ts:665
 #, fuzzy
-msgid "Did you mean ${command}?"
-msgstr "Intendevi %s?"
-
-#: lib/dialogue-agent/legacy-dialogs/fallback.js:119
-msgid "none of the above"
-msgstr "nessuno di questi"
-
-#: lib/dialogue-agent/legacy-dialogs/fallback.js:121
-msgid "Did you mean any of the following?"
-msgstr "Intendevi uno dei comandi seguenti?"
-
-#: lib/dialogue-agent/legacy-dialogs/fallback.js:135
-msgid "Your last command was a button. I know what a button means. 😛"
+msgid "the ${table} with index ${index}"
 msgstr ""
-"Il tuo ultimo comando era un pulsante. So cosa vuol dire un pulsante. 😛"
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"il %s con il minimo %s"
 
-#: lib/dialogue-agent/legacy-dialogs/fallback.js:159
-msgid "Thanks, I made a note of that."
-msgstr "Grazie, lo terrò a mente."
+#: lib/describe.js:585 lib/utils/thingtalk/describe.ts:676
+#: lib/utils/thingtalk/describe.ts:802
+#, fuzzy
+msgid "${table} such that ${filter}"
+msgstr ""
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"%s e diventa vero che %s"
 
-#: lib/dialogue-agent/legacy-dialogs/discovery.js:32
-msgid "Discovery is not available in this installation of Almond."
-msgstr "La ricerca non è disponibile in questa installazione di Almond."
+#: lib/describe.js:590 lib/utils/thingtalk/describe.ts:819
+#, fuzzy
+msgid "the ${param} of ${table}"
+msgstr ""
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"la media di %s in %s"
 
-#: lib/dialogue-agent/legacy-dialogs/discovery.js:36
+#: lib/describe.js:595 lib/utils/thingtalk/describe.ts:824
+#, fuzzy
+msgid "${table} and ${expression}"
+msgstr ""
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"ottieni %s e poi %s"
+
+#: lib/describe.js:603 lib/utils/thingtalk/describe.ts:832
+#, fuzzy
+msgid "the number of ${table}"
+msgstr "il numero di %s"
+
+#: lib/describe.js:611 lib/utils/thingtalk/describe.ts:840
+#, fuzzy
+msgid "the average ${param} in ${table}"
+msgstr "la media di %s in %s"
+
+#: lib/describe.js:614 lib/utils/thingtalk/describe.ts:843
+#, fuzzy
+msgid "the minimum ${param} in ${table}"
+msgstr "il minimo %s in %s"
+
+#: lib/describe.js:617 lib/utils/thingtalk/describe.ts:846
+#, fuzzy
+msgid "the maximum ${param} in ${table}"
+msgstr "il massimo %s in %s"
+
+#: lib/describe.js:620 lib/utils/thingtalk/describe.ts:849
+#, fuzzy
+msgid "the sum of the ${param} in ${table}"
+msgstr "la somma dei %s in %s"
+
+#: lib/describe.js:623 lib/utils/thingtalk/describe.ts:852
+#, fuzzy
+msgid "the number of ${param}s in ${table}"
+msgstr "il numero di %s in %s"
+
+#: lib/describe.js:638 lib/utils/thingtalk/describe.ts:870
+#, fuzzy
+msgid "the ${table} with the minimum ${param}"
+msgstr "il %s con il minimo %s"
+
+#: lib/describe.js:643 lib/utils/thingtalk/describe.ts:875
+#, fuzzy
+msgid "the ${table} with the maximum ${param}"
+msgstr "il %s con il massimo %s"
+
+#: lib/describe.js:654 lib/utils/thingtalk/describe.ts:886
+#, fuzzy
+msgid "the ${limit} ${table} with the minimum ${param}"
+msgstr "il %s %s con il minimo %s"
+
+#: lib/describe.js:660 lib/utils/thingtalk/describe.ts:892
+#, fuzzy
+msgid "the ${limit} ${table} with the maximum ${param}"
+msgstr "il %s %s con il massimo %s"
+
+#: lib/describe.js:668 lib/utils/thingtalk/describe.ts:900
+#, fuzzy
+msgid "the ${table} sorted by increasing ${param}"
+msgstr "i %s in ordine crescente di %s"
+
+#: lib/describe.js:673 lib/utils/thingtalk/describe.ts:905
+#, fuzzy
+msgid "the ${table} sorted by decreasing ${param}"
+msgstr "i %s in ordine decrescente di %s"
+
+#: lib/describe.js:682 lib/utils/thingtalk/describe.ts:914
 msgid ""
-"Sorry, to discover new devices you must log in to your personal account."
+"${indices.length:plural:                one {element ${indices} of the "
+"${table}}                other {elements ${indices} of the "
+"${table}}            }"
 msgstr ""
-"Mi dispiace, ma per collegare nuovi dispositivi devi fare login al tuo "
-"account personale."
 
-#: lib/dialogue-agent/legacy-dialogs/discovery.js:37
-#: lib/dialogue-agent/legacy-dialogs/device_choice.js:29
-#: lib/dialogue-agent/legacy-dialogs/config.js:54
-#: lib/dialogue-agent/legacy-dialogs/permission_rule.js:28
-#: lib/dialogue-agent/legacy-dialogs/rule.js:91
-#: lib/dialogue-agent/legacy-dialogs/rule.js:206
-msgid "Register for Almond"
-msgstr "Registrati ad Almond"
+#: lib/describe.js:690 lib/utils/thingtalk/describe.ts:922
+msgid ""
+"${base:plural:                =1 {the first ${limit} "
+"${table}}                =-1 {the last ${limit} ${table}}                "
+"other {${limit} elements starting from ${base} of the ${table}}            }"
+msgstr ""
 
-#: lib/dialogue-agent/legacy-dialogs/discovery.js:48
+#: lib/describe.js:703 lib/utils/thingtalk/describe.ts:935
+msgid "${lhs} and ${rhs}"
+msgstr ""
+
+#: lib/describe.js:709 lib/describe.js:735
 #, fuzzy
-msgid "Searching for ${device}…"
-msgstr "Ricerca di dispositivi nelle vicinanze in corso…"
+msgid "the latest ${delta} results of ${table}"
+msgstr "gli ultimi %s risultati di %s"
 
-#: lib/dialogue-agent/legacy-dialogs/discovery.js:50
-msgid "Searching for devices nearby…"
-msgstr "Ricerca di dispositivi nelle vicinanze in corso…"
-
-#: lib/dialogue-agent/legacy-dialogs/discovery.js:61
+#: lib/describe.js:714 lib/describe.js:740
 #, fuzzy
-msgid "Discovery failed: ${error}."
-msgstr "Ricerca fallita: %s"
+msgid "the latest ${delta} results, starting at the ${base}-th, of ${table}"
+msgstr "gli ultimi %s risultati, iniziando dal %dº, dei %s"
 
-#: lib/dialogue-agent/legacy-dialogs/discovery.js:69
+#: lib/describe.js:722 lib/describe.js:748
 #, fuzzy
-msgid "Can't find any ${device} around."
-msgstr "Non riesco a trovare alcun dispositivo qui intorno."
+msgid "the results in the last ${delta} of ${table}"
+msgstr "i risultati negli ultimi %s dei %s"
 
-#: lib/dialogue-agent/legacy-dialogs/discovery.js:71
-msgid "Can't find any device around."
-msgstr "Non riesco a trovare alcun dispositivo qui intorno."
-
-#: lib/dialogue-agent/legacy-dialogs/discovery.js:77
+#: lib/describe.js:727 lib/describe.js:753
 #, fuzzy
-msgid "I found a ${device}. Do you want to set it up now?"
-msgstr "Ho trovato %s. Vuoi configurarlo adesso?"
+msgid "the results in the ${delta} prior to ${base} of ${table}"
+msgstr "i risultati nei %s prima di %s dei %s"
 
-#: lib/dialogue-agent/legacy-dialogs/discovery.js:85
-msgid "I found the following devices. Which one do you want to set up?"
-msgstr "Ho trovato i seguenti dispositivi, quale vuoi configurare?"
+#: lib/describe.js:772 lib/utils/thingtalk/describe.ts:952
+msgid ""
+"${frequency:plural:                =1 {every ${interval}}                =2 "
+"{twice every ${interval}}                other {${frequency} times every "
+"${interval}}            }${? starting ${base}}"
+msgstr ""
 
-#: lib/dialogue-agent/legacy-dialogs/device_choice.js:28
+#: lib/describe.js:782 lib/utils/thingtalk/describe.ts:962
+#, fuzzy
+msgid "every day at ${times}${? until ${expiration}}"
+msgstr "ogni giorno alle %s fino al %s"
+
+#. #-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#
+#. flip monitor of filter to filter of monitor
+#: lib/describe.js:789 lib/utils/thingtalk/describe.ts:969
+#, fuzzy
+msgid ""
+"${is_list:select:                    true {when ${table} change if "
+"${filter}}                    false {when ${table} changes if "
+"${filter}}                }"
+msgstr ""
+
+#: lib/describe.js:798 lib/utils/thingtalk/describe.ts:978
+#, fuzzy
+msgid ""
+"${is_list:select:                    true {when ${table} "
+"change}                    false {when ${table} changes}                }"
+msgstr ""
+
+#. #-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#
+#. XXX weird
+#: lib/describe.js:808 lib/utils/thingtalk/describe.ts:988
+#, fuzzy
+msgid "${stream} and the result changes"
+msgstr ""
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"%s e diventa vero che %s"
+
+#: lib/describe.js:812 lib/utils/thingtalk/describe.ts:992
+#, fuzzy
+msgid "${stream} and it becomes true that ${filter}"
+msgstr "%s e diventa vero che %s"
+
+#: lib/describe.js:817 lib/utils/thingtalk/describe.ts:997
+#, fuzzy
+msgid "${stream} and ${filter}"
+msgstr ""
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"%s e diventa vero che %s"
+
+#: lib/describe.js:822 lib/utils/thingtalk/describe.ts:1002
+#, fuzzy
+msgid "the ${param} of ${stream}"
+msgstr ""
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"la media di %s in %s"
+
+#: lib/describe.js:827 lib/utils/thingtalk/describe.ts:1007
+#, fuzzy
+msgid "${stream} and ${expression}"
+msgstr ""
+
+#: lib/describe.js:834 lib/utils/thingtalk/describe.ts:1014
+#, fuzzy
+msgid "${stream}, get ${table}"
+msgstr ""
+
+#: lib/describe.js:859 lib/utils/thingtalk/describe.ts:1045
+#, fuzzy
+msgid "do the following: ${stream}, and then ${actions}"
+msgstr "esegui il seguente comando: %s, e poi %s"
+
+#: lib/describe.js:864 lib/utils/thingtalk/describe.ts:1050
+#, fuzzy
+msgid "${actions} ${stream}"
+msgstr ""
+
+#: lib/describe.js:870 lib/utils/thingtalk/describe.ts:1056
+#, fuzzy
+msgid "get ${table} and then ${actions}"
+msgstr "ottieni %s e poi %s"
+
+#: lib/describe.js:888 lib/utils/thingtalk/describe.ts:1075
+#, fuzzy
+msgid "let ${name} be ${value}"
+msgstr ""
+"Il %s totale è %s."
+
+#: lib/describe.js:902 lib/utils/thingtalk/describe.ts:1089
+#, fuzzy
+msgid "tell ${principal}: ${command}"
+msgstr ""
+
+#: lib/describe.js:942 lib/utils/thingtalk/describe.ts:1134
+#, fuzzy
+msgid "any ${param}"
+msgstr ""
+"${program}"
+
+#: lib/describe.js:954 lib/utils/thingtalk/describe.ts:1146
+#, fuzzy
+msgid "${confirm} if ${filter}"
+msgstr ""
+
+#: lib/describe.js:973 lib/utils/thingtalk/describe.ts:1165
+msgid "your clock"
+msgstr "il tuo orario"
+
+#: lib/describe.js:975 lib/utils/thingtalk/describe.ts:1167
+msgid "send you messages, configure new accounts and open links"
+msgstr "invii messaggi a te, configuri nuovi account e apra link"
+
+#: lib/describe.js:983 lib/utils/thingtalk/describe.ts:1175
+#, fuzzy
+msgid "perform any action on your ${device}"
+msgstr "esegua ogni azione sui tuoi %s"
+
+#: lib/describe.js:993 lib/utils/thingtalk/describe.ts:1185
+msgid "anyone"
+msgstr "chiunque"
+
+#: lib/describe.js:997 lib/utils/thingtalk/describe.ts:1193
+#, fuzzy
+msgid "anyone in the ${group} group"
+msgstr "chiunque nel gruppo %s"
+
+#: lib/describe.js:1001 lib/utils/thingtalk/describe.ts:1197
+#, fuzzy
+msgid "if ${filter}, the requester"
+msgstr ""
+
+#: lib/describe.js:1003
+msgid "requester"
+msgstr "richiedente"
+
+#: lib/describe.js:1013 lib/utils/thingtalk/describe.ts:1207
+#, fuzzy
+msgid "${principal} is allowed to perform any action"
+msgstr "a %s è consentito eseguire ogni azione"
+
+#: lib/describe.js:1017 lib/utils/thingtalk/describe.ts:1211
+#, fuzzy
+msgid "${principal} is allowed to ${action}"
+msgstr ""
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"a %s è consentito eseguire ogni azione"
+
+#: lib/describe.js:1024 lib/utils/thingtalk/describe.ts:1218
+#, fuzzy
+msgid "${principal} is allowed to read all your data"
+msgstr "a %s è consentito leggere tutti i tuoi dati"
+
+#: lib/describe.js:1028 lib/utils/thingtalk/describe.ts:1222
+#, fuzzy
+msgid ""
+"${principal} is allowed to read all your data and then perform any action "
+"with it"
+msgstr ""
+"a %s è consentito leggere tutti i tuoi dati ed eseguire ogni azione con essi"
+
+#: lib/describe.js:1032 lib/utils/thingtalk/describe.ts:1226
+#, fuzzy
+msgid ""
+"${principal} is allowed to read all your data and then use it to ${action}"
+msgstr "a %s è consentito leggere tutti i tuoi dati e poi usarli per %s"
+
+#: lib/describe.js:1039 lib/utils/thingtalk/describe.ts:1233
+#, fuzzy
+msgid "${principal} is allowed to read ${query}"
+msgstr "a %s è consentito leggere %s"
+
+#: lib/describe.js:1044 lib/utils/thingtalk/describe.ts:1238
+#, fuzzy
+msgid ""
+"${principal} is allowed to read ${query} and then perform any action with it"
+msgstr "a %s è consentito leggere %s e poi eseguire ogni azione con esso"
+
+#: lib/describe.js:1049 lib/utils/thingtalk/describe.ts:1243
+#, fuzzy
+msgid "${principal} is allowed to read ${query} and then use it to ${action}"
+msgstr "a %s è consentito leggere %s e poi usarlo per %s"
+
+#: lib/describe.js:1061 lib/utils/thingtalk/describe.ts:1255
+msgid "yes"
+msgstr "sì"
+
+#: lib/describe.js:1063 lib/utils/thingtalk/describe.ts:1257
+msgid "no"
+msgstr "no"
+
+#: lib/describe.js:1065
+msgid "I did not understand"
+msgstr "Non ho capito"
+
+#: lib/describe.js:1067 lib/utils/thingtalk/describe.ts:1261
+msgid "train me again"
+msgstr "allenami ancora"
+
+#: lib/describe.js:1069
+msgid "go back"
+msgstr "indietro"
+
+#: lib/describe.js:1071
+msgid "show more results"
+msgstr "mostrami più risultati"
+
+#: lib/describe.js:1073 lib/utils/thingtalk/describe.ts:1267
+msgid "no action"
+msgstr "nessuna azione"
+
+#: lib/describe.js:1075 lib/utils/thingtalk/describe.ts:1269
+msgid "show debugging information"
+msgstr "mostra informazioni di debug"
+
+#: lib/describe.js:1077 lib/utils/thingtalk/describe.ts:1271
+msgid "maybe"
+msgstr "forse"
+
+#: lib/describe.js:1079
+msgid "cancel"
+msgstr "annulla"
+
+#: lib/describe.js:1081 lib/utils/thingtalk/describe.ts:1275
+msgid "stop"
+msgstr "stop"
+
+#: lib/describe.js:1083 lib/utils/thingtalk/describe.ts:1277
+msgid "help"
+msgstr "aiuto"
+
+#: lib/describe.js:1085
+msgid "make a new command"
+msgstr "crea un nuovo comando"
+
+#: lib/describe.js:1087 lib/utils/thingtalk/describe.ts:1281
+msgid "wake up"
+msgstr "sveglia"
+
+#: lib/describe.js:1098
+#, fuzzy
+msgid "list the commands of ${device}, in category ${category}"
+msgstr "elenca i comandi di %s, nella categoria %s"
+
+#: lib/describe.js:1103 lib/utils/thingtalk/describe.ts:1292
+#, fuzzy
+msgid "choice number ${choice}"
+msgstr "scelta numero %d"
+
+#: lib/describe.js:1153
+msgid "Notification"
+msgstr "Notifica"
+
+#: lib/runtime/format_objects.js:130
+#: lib/dialogue-agent/card-output/format_objects.ts:151
+msgid "Picture: ${url}"
+msgstr "Immagine: ${url}"
+
+#: lib/runtime/format_objects.js:198
+#: lib/dialogue-agent/card-output/format_objects.ts:235
+msgid "Link: ${title} <${link}>"
+msgstr ""
+
+#: lib/runtime/format_objects.js:253
+msgid "Location: ${location}"
+msgstr "Località: ${location}"
+
+#: lib/runtime/format_objects.js:292
+#: lib/dialogue-agent/card-output/format_objects.ts:349
+msgid "Sound effect: ${name}"
+msgstr "Effetto sonoro: ${name}"
+
+#: lib/runtime/format_objects.js:334
+#: lib/dialogue-agent/card-output/format_objects.ts:399
+msgid "Media: ${url}"
+msgstr "Media: ${url}"
+
+#: lib/runtime/formatter.js:115
+#: lib/dialogue-agent/card-output/text-formatter.ts:143
+#, fuzzy
+msgid "${key} of ${rest}"
+msgstr ""
+
+#: lib/runtime/formatter.js:140 lib/runtime/formatter.js:228
+#: lib/runtime/formatter.js:247
+#: lib/dialogue-agent/card-output/card-formatter.ts:75
+#: lib/dialogue-agent/card-output/text-formatter.ts:258
+#: lib/dialogue-agent/card-output/text-formatter.ts:285
+#: lib/dialogue-agent/card-output/text-formatter.ts:321
+msgid "N/A"
+msgstr "N/D"
+
+#: lib/runtime/formatter.js:199
+#: lib/dialogue-agent/card-output/text-formatter.ts:229
+msgid "Here are the ${key}:"
+msgstr "Ecco i ${key}:"
+
+#: lib/runtime/formatter.js:241
+#: lib/dialogue-agent/card-output/text-formatter.ts:279
+#, fuzzy
+msgid "The ${key} is ${value}."
+msgstr ""
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"#-#-#-#-#  it.po (thingtalk 1.0.0)  #-#-#-#-#\n"
+"Il %s totale è %s."
+
+#: lib/runtime/formatter.js:286
+#: lib/dialogue-agent/card-output/text-formatter.ts:362
+#, fuzzy
+msgid ""
+"${count:plural:                one {I found ${count} result.}                "
+"other {I found ${count} results.}            }"
+msgstr ""
+
+#: lib/runtime/formatter.js:299
+#: lib/dialogue-agent/card-output/text-formatter.ts:375
+#, fuzzy
+msgid ""
+"${value:plural:                one {I found only one value of "
+"${key}.}                other {I found ${value} distinct values of "
+"${key}.}            }"
+msgstr ""
+
+#: lib/runtime/formatter.js:305
+#: lib/dialogue-agent/card-output/text-formatter.ts:381
+#, fuzzy
+msgid "The minimum ${key} is ${value}."
+msgstr "Il %s minimo è %s."
+
+#: lib/runtime/formatter.js:308
+#: lib/dialogue-agent/card-output/text-formatter.ts:384
+#, fuzzy
+msgid "The maximum ${key} is ${value}."
+msgstr "Il %s massimo è %s."
+
+#: lib/runtime/formatter.js:311
+#: lib/dialogue-agent/card-output/text-formatter.ts:387
+#, fuzzy
+msgid "The average ${key} is ${value}."
+msgstr "Il %s medio è %s."
+
+#: lib/runtime/formatter.js:314
+#: lib/dialogue-agent/card-output/text-formatter.ts:390
+#, fuzzy
+msgid "The total ${key} is ${value}."
+msgstr "Il %s totale è %s."
+
+#: lib/dialogue-agent/helpers.ts:44
+#, fuzzy
+msgid ""
+"Syntax error at ${error.fileName} line ${error.lineNumber}: ${error.message}"
+msgstr ""
+
+#: lib/dialogue-agent/conversation.ts:367
+#, fuzzy
+msgid "Sorry, I had an error processing your command: ${error}"
+msgstr "Mi dispiace, c'è stato un errore nel processare il tuo comando: %s."
+
+#: lib/dialogue-agent/execution_dialogue_agent.ts:84
+#, fuzzy
+msgid ""
+"You have multiple ${?“${name}” }${device} devices. Which one do you want to "
+"use?"
+msgstr ""
+"Hai più dispositivi di tipo %2$s che si chiamano “%1$s”. Quale vuoi usare?"
+
+#: lib/dialogue-agent/execution_dialogue_agent.ts:89
+#, fuzzy
+msgid "Multiple contacts match “${name}”. Who do you mean?"
+msgstr "Più di un contatto corrisponde a “%s”. A chi ti riferisci?"
+
+#: lib/dialogue-agent/execution_dialogue_agent.ts:103
 msgid ""
 "Sorry, I did not understand that. You might need to enable a new skill "
 "before I understand that command. To do so, please log in to your personal "
@@ -340,7 +1072,11 @@ msgstr ""
 "skill prima che io capisca quel comando. Per farlo, per favore entra nel tuo "
 "account personale."
 
-#: lib/dialogue-agent/legacy-dialogs/device_choice.js:31
+#: lib/dialogue-agent/execution_dialogue_agent.ts:104
+msgid "Register for Almond"
+msgstr "Registrati ad Almond"
+
+#: lib/dialogue-agent/execution_dialogue_agent.ts:106
 msgid ""
 "Sorry, I did not understand that. You might need to enable a new skill "
 "before I understand that command."
@@ -348,514 +1084,151 @@ msgstr ""
 "Mi dispiace, ma non ho capito. È possibile che tu debba abilitare una nuova "
 "skill prima che io capisca quel comando."
 
-#: lib/dialogue-agent/legacy-dialogs/device_choice.js:32
+#: lib/dialogue-agent/execution_dialogue_agent.ts:107
 msgid "Configure a new skill"
 msgstr "Configura una nuova skill"
 
-#: lib/dialogue-agent/legacy-dialogs/device_choice.js:62
-msgid "Remote devices are not supported in this version of Almond."
-msgstr "Dispositivi remoti non sono supportati in questa versione di Almond."
-
-#: lib/dialogue-agent/legacy-dialogs/device_choice.js:97
+#: lib/dialogue-agent/execution_dialogue_agent.ts:141
 #, fuzzy
-msgid "I cannot find any “${name}” device. Which ${device} do you want to use?"
-msgstr ""
-"Hai più dispositivi di tipo %2$s che si chiamano “%1$s”. Quale vuoi usare?"
-
-#: lib/dialogue-agent/legacy-dialogs/device_choice.js:108
-#, fuzzy
-msgid ""
-"You have multiple ${?“${name}” }${device} devices. Which one do you want to "
-"use?"
-msgstr ""
-"Hai più dispositivi di tipo %2$s che si chiamano “%1$s”. Quale vuoi usare?"
-
-#: lib/dialogue-agent/legacy-dialogs/messaging.js:21
-msgid ""
-"You need a Matrix account: I talk to other Almonds via the secure Matrix "
-"messaging service."
-msgstr ""
-"Necessiti di un account Matrix: io parlo ad altri Almond attraverso il "
-"servizio di messaggistica sicura Matrix."
-
-#: lib/dialogue-agent/legacy-dialogs/messaging.js:22
-msgid "Register a new Matrix account now"
-msgstr "Registra ora un nuovo account Matrix"
-
-#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:23
-msgid "Okay, I'll remember that."
-msgstr "Okay, lo terrò a mente."
-
-#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:236
-msgid "Yes this time"
-msgstr "Sì questa volta"
-
-#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:238
-msgid "Always from anybody (no restrictions)"
-msgstr "Sempre da chiunque (senza restrizioni)"
-
-#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:242
-#, fuzzy
-msgid "Always from ${principal} (no restrictions)"
-msgstr "Sempre da %s (senza restrizioni)"
-
-#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:247
-#, fuzzy
-msgid "Always from ${principal} (this exact request)"
-msgstr "Sempre da %s (solo questa richiesta esatta)"
-
-#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:252
-msgid "Always from anybody"
-msgstr "Sempre da chiunque"
-
-#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:256
-#, fuzzy
-msgid "Always from ${principal}"
-msgstr "Sempre da %s"
-
-#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:261
-msgid "No"
-msgstr "No"
-
-#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:262
-msgid "Only if…"
-msgstr "Solo se…"
-
-#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:275
-#: lib/dialogue-agent/legacy-dialogs/permission_grant.js:289
-#: lib/dialogue-agent/legacy-dialogs/permission_rule.js:59
-#: lib/dialogue-agent/legacy-dialogs/permission_rule.js:87
-#, fuzzy
-msgid "Okay, so ${permission}. Is that correct?"
-msgstr "Okay, quindi vuoi che io %s. Giusto?"
-
-#: lib/dialogue-agent/legacy-dialogs/slot_filling.js:40
-msgid "me"
-msgstr "me"
-
-#: lib/dialogue-agent/legacy-dialogs/slot_filling.js:98
-#, fuzzy
-msgid "Cannot find a messaging account for ${contact}."
-msgstr "Non trovo un account di messaging per %s."
-
-#: lib/dialogue-agent/legacy-dialogs/slot_filling.js:115
-#, fuzzy
-msgid "You chose ${array}."
-msgstr "Hai scelto %s."
-
-#: lib/dialogue-agent/legacy-dialogs/slot_filling.js:118
-msgid "Would you like to add more elements to the list?"
-msgstr "Vuoi aggiungere più elementi alla lista?"
-
-#: lib/dialogue-agent/legacy-dialogs/slot_filling.js:305
-msgid "A description of the result"
-msgstr "Una descrizione del risultato"
-
-#: lib/dialogue-agent/legacy-dialogs/slot_filling.js:313
-msgid "None of above"
-msgstr "Nessuno di questi"
-
-#: lib/dialogue-agent/legacy-dialogs/notifications.js:57
-#, fuzzy
-msgid "Notification from ${app}: ${message}"
-msgstr "Notifica da %s: %s"
-
-#: lib/dialogue-agent/legacy-dialogs/notifications.js:63
-#, fuzzy
-msgid "Notification from ${app}"
-msgstr "Notifica da %s"
-
-#: lib/dialogue-agent/legacy-dialogs/notifications.js:80
-#, fuzzy
-msgid "${app} had an error: ${error}."
-msgstr "%s ha avuto un errore: %s."
-
-#: lib/dialogue-agent/legacy-dialogs/notifications.js:82
-#: lib/dialogue-agent/legacy-dialogs/init.js:53
-#: lib/dialogue-agent/dialogue_loop.js:330
-#, fuzzy
-msgid "Sorry, that did not work: ${error}."
-msgstr "Mi dispiace, ma c'è stato un errore: %s."
-
-#: lib/dialogue-agent/legacy-dialogs/discovery_delegate.js:26
-#: lib/dialogue-agent/legacy-dialogs/config.js:42
-msgid "The account has been set up."
-msgstr "L'account è stato configurato."
-
-#: lib/dialogue-agent/legacy-dialogs/discovery_delegate.js:28
-#: lib/dialogue-agent/legacy-dialogs/config.js:44
-msgid "The device has been set up."
-msgstr "Il dispositivo è stato configurato."
-
-#: lib/dialogue-agent/legacy-dialogs/discovery_delegate.js:30
-#: lib/dialogue-agent/legacy-dialogs/config.js:46
-msgid "The service has been set up."
-msgstr "Il servizio è stato configurato."
-
-#: lib/dialogue-agent/legacy-dialogs/discovery_delegate.js:36
-#, fuzzy
-msgid "Configuration failed: ${error}."
-msgstr "Configurazione fallita: %s."
-
-#: lib/dialogue-agent/legacy-dialogs/ask_anything.js:21
-#, fuzzy
-msgid "Question from ${app}: ${question}."
-msgstr "Domanda da %s: %s"
-
-#: lib/dialogue-agent/legacy-dialogs/config.js:34
-#, fuzzy
-msgid "Please enter the ${label}."
-msgstr "Per favore inserisci il %s."
-
-#: lib/dialogue-agent/legacy-dialogs/config.js:51
-#, fuzzy
-msgid "Sorry, to enable ${device}, you must log in to your personal account."
-msgstr ""
-"Mi dispiace, ma per abilitare %s devi fare il login al tuo account personale."
-
-#: lib/dialogue-agent/legacy-dialogs/config.js:65
-#, fuzzy
-msgid "I'm sorry, I can't find ${device} in my database."
-msgstr "Mi dispiace, ma non riesco a trovare %s nel mio database."
-
-#: lib/dialogue-agent/legacy-dialogs/config.js:70
-#, fuzzy
-msgid "${device} has been enabled successfully."
-msgstr "%s è stato abilitato con successo."
-
-#: lib/dialogue-agent/legacy-dialogs/config.js:78
-#, fuzzy
-msgid "Choose one of the following to configure ${device}."
-msgstr "Scegli uno dei seguenti per configurare %s."
-
-#: lib/dialogue-agent/legacy-dialogs/config.js:84
-#: lib/dialogue-agent/legacy-dialogs/config.js:91
-#: lib/dialogue-agent/legacy-dialogs/config.js:119
-#, fuzzy
-msgid "Configure ${device}"
-msgstr "configura un nuovo $device"
-
-#: lib/dialogue-agent/legacy-dialogs/config.js:98
-#, fuzzy
-msgid "Sorry, I don't know how to configure ${device}."
-msgstr "Mi dispiace, ma non so come configurare %s."
-
-#: lib/dialogue-agent/legacy-dialogs/config.js:110
-#, fuzzy
-msgid "I'm sorry, but ${device} is not supported on this version of Almond."
-msgstr "Mi dispiace, ma %s non è supportato in questa versione di Almond."
-
-#: lib/dialogue-agent/legacy-dialogs/config.js:116
-#, fuzzy
-msgid "OK, here's the link to configure ${device}."
-msgstr "Ok, ecco il link per configurare %s."
-
-#: lib/dialogue-agent/legacy-dialogs/config.js:127
-#, fuzzy
-msgid "I'm sorry, I don't know how to configure ${device}."
-msgstr "Mi dispiace, ma non so come configurare %s."
-
-#: lib/dialogue-agent/legacy-dialogs/contact_search.js:213
-msgid "You don't have a valid address book available."
-msgstr "Non hai una rubrica disponibile."
-
-#: lib/dialogue-agent/legacy-dialogs/contact_search.js:218
-msgid "No contact matches your search."
-msgstr "Nessun contatto corrisponde alla tua ricerca."
-
-#: lib/dialogue-agent/legacy-dialogs/contact_search.js:224
-msgid "Who do you want to contact?"
-msgstr "Chi vuoi contattare?"
-
-#: lib/dialogue-agent/legacy-dialogs/contact_search.js:262
-#, fuzzy
-msgid "Multiple contacts match “${name}”. Who do you mean?"
+msgid "No contact matches “${name}”."
 msgstr "Più di un contatto corrisponde a “%s”. A chi ti riferisci?"
 
-#: lib/dialogue-agent/legacy-dialogs/init.js:25
-#: lib/dialogue-agent/legacy-dialogs/init.js:59
-msgid "Hello! I'm Almond, your virtual assistant."
-msgstr "Ciao! Mi chiamo Almond e sono il tuo assistente virtuale."
-
-#: lib/dialogue-agent/legacy-dialogs/init.js:26
+#: lib/dialogue-agent/execution_dialogue_agent.ts:147
 #, fuzzy
-msgid ""
-"I am part of a research project of Stanford University. I am capable of "
-"understanding actions and events over web services. Please keep in mind: I "
-"do not chat. Check out the Thingpedia to find out what I understand, or type "
-"‘help’."
-msgstr ""
-"Sono parte di un progetto di ricerca di Stanford University. Sono in grado "
-"di comprendere azioni ed eventi applicabili a servizi web e dispositivi "
-"smart."
+msgid "Who do you want to contact?"
+msgstr "Quando vuoi che il tuo comando sia eseguito?"
 
-#. await dlg.reply(dlg._("You can also configure your personal accounts. To do so, try ‘configure‘ followed by the type of account (e.g., ‘configure twitter’ or ‘configure nest’)."));
-#. await dlg.reply(dlg._("If you need help at any point, try ‘help’."));
-#: lib/dialogue-agent/legacy-dialogs/init.js:27
-#: lib/dialogue-agent/legacy-dialogs/init.js:95
-msgid "To start, how about you try one of these examples:"
-msgstr "Per iniziare, che ne dici di provare uno di questi esempi:"
-
-#: lib/dialogue-agent/legacy-dialogs/init.js:44
-msgid "Welcome back!"
-msgstr "Bentornato!"
-
-#: lib/dialogue-agent/legacy-dialogs/init.js:54
-msgid "You should try again later."
-msgstr "Riprova più tardi."
-
-#: lib/dialogue-agent/legacy-dialogs/init.js:62
-msgid ""
-"I am part of a research project of Stanford University. I am capable of "
-"understanding actions and events over web services."
-msgstr ""
-"Sono parte di un progetto di ricerca di Stanford University. Sono in grado "
-"di comprendere azioni ed eventi applicabili a servizi web."
-
-#: lib/dialogue-agent/legacy-dialogs/init.js:63
-msgid ""
-"Please keep in mind: I do not chat, and I do not understand questions very "
-"well. Please check out the Thingpedia to find out what I understand, or type "
-"‘help’."
-msgstr ""
-"Per favore tieni a mente: non chiacchiero, e non capisco molto bene le "
-"domande. Dai un'occhiata a Thingpedia per scoprire cosa capisco, o digita "
-"‘aiuto’."
-
-#: lib/dialogue-agent/legacy-dialogs/init.js:66
-msgid ""
-"I am part of a research project of Stanford University. Would you like to "
-"participate?"
-msgstr ""
-"Sono parte di un progetto di ricerca di Stanford University. Vuoi "
-"partecipare?"
-
-#: lib/dialogue-agent/legacy-dialogs/init.js:67
-msgid ""
-"With your consent, I will record the commands you give me for training. "
-"Recording the commands will allow me to improve my understanding of natural "
-"language. I will collect what you type, not your data, or what I reply."
-msgstr ""
-"Con il tuo consenso, registrerò i comandi che inserisci. Registrare i "
-"comandi mi consente di migliorare la mia comprensione della lingua. "
-"Raccoglierò solo quello che digiti, non i tuoi dati, o le mie risposte."
-
-#: lib/dialogue-agent/legacy-dialogs/init.js:68
-msgid ""
-"If you would like to participate, please review our consent form, and keep "
-"it for your records:"
-msgstr ""
-"Se vuoi partecipare, per favore leggi il nostro modulo di consenso, e "
-"salvane una copia personale."
-
-#: lib/dialogue-agent/legacy-dialogs/init.js:70
-msgid "Consent Form"
-msgstr "Modulo di Consenso"
-
-#: lib/dialogue-agent/legacy-dialogs/init.js:77
-msgid "Do you consent to recording your commands?"
-msgstr "Consenti alla raccolta dei tuoi comandi?"
-
-#: lib/dialogue-agent/legacy-dialogs/init.js:85
-msgid ""
-"Thank you! If you change your mind, you can change the option from Settings."
-msgstr "Grazie! Se cambi idea, puoi modificare l'opzione dalle Impostazioni."
-
-#: lib/dialogue-agent/legacy-dialogs/init.js:87
-msgid ""
-"Okay, I will not store any command from this Almond. If you change your "
-"mind, you can change the option from Settings."
-msgstr ""
-"Okay, non memorizzerò i comandi da questo Almond. Se cambi idea, puoi "
-"modificare l'opzione dalle Impostazioni."
-
-#: lib/dialogue-agent/legacy-dialogs/init.js:89
-msgid ""
-"Okay, on to what I can do: I am capable of understanding actions and events "
-"over web services and smart devices. I do not chat, and I do not understand "
-"questions very well. Please check out the Cheatsheet (from the menu) to find "
-"out what I understand, or type ‘help’."
-msgstr ""
-"Okay, continuando con cosa sono in grado di fare: sono capace di comprendere "
-"azioni ed eventi applicabili a servizi online e dispositivi smart. Non "
-"chiacchero, e non capisco molto bene le domande. Dai un'occhiata al Bigino "
-"(dal menù) per scopire cosa capisco, o digita ‘aiuto’."
-
-#: lib/dialogue-agent/legacy-dialogs/permission_rule.js:27
-msgid ""
-"Sorry, to allow access to your devices you must log in to your personal "
-"account."
-msgstr ""
-"Mi dispiace, ma per consentire l'accesso ai tuoi dispositivi devi fare login "
-"al tuo account personale."
-
-#: lib/dialogue-agent/legacy-dialogs/permission_rule.js:99
-#, fuzzy
-msgid "Okay, I'm going to remember: ${permission}."
-msgstr "Okay, vado a impostare: %s."
-
-#: lib/dialogue-agent/legacy-dialogs/entity_lookup.js:87
+#: lib/dialogue-agent/execution_dialogue_agent.ts:228
 #, fuzzy
 msgid "Sorry, I cannot find any ${entity_type} matching “${name}”."
 msgstr "Mi dispiace, ma non trovo alcun %s che corrisponda a “%s”."
 
-#: lib/dialogue-agent/legacy-dialogs/entity_lookup.js:117
+#: lib/dialogue-agent/execution_dialogue_agent.ts:268
 #, fuzzy
-msgid "Sorry, I cannot find any location matching “${location}”."
+msgid ""
+"Sorry, I cannot find any location matching “${location}”. What location are "
+"you looking for?"
 msgstr "Mi dispiace, ma non trovo alcuna località che corrisponda a “%s”."
 
-#: lib/dialogue-agent/legacy-dialogs/user_context.js:63
+#: lib/dialogue-agent/execution_dialogue_agent.ts:323
 msgid "Where are you now?"
 msgstr "Dove sei ora?"
 
-#: lib/dialogue-agent/legacy-dialogs/user_context.js:67
+#: lib/dialogue-agent/execution_dialogue_agent.ts:327
 msgid "What is your home address?"
 msgstr "Qual è il tuo indirizzo di casa?"
 
-#: lib/dialogue-agent/legacy-dialogs/user_context.js:72
+#: lib/dialogue-agent/execution_dialogue_agent.ts:332
 msgid "What is your work address?"
 msgstr "Qual è il tuo indirizzo di lavoro?"
 
-#: lib/dialogue-agent/legacy-dialogs/user_context.js:77
+#: lib/dialogue-agent/execution_dialogue_agent.ts:337
 msgid "What time does your morning begin?"
 msgstr "A che ora inizia la tua mattina?"
 
-#: lib/dialogue-agent/legacy-dialogs/user_context.js:82
+#: lib/dialogue-agent/execution_dialogue_agent.ts:342
 msgid "What time does your evening begin?"
 msgstr "A che ora inizia la sera per te?"
 
-#: lib/dialogue-agent/legacy-dialogs/rule.js:30
+#: lib/dialogue-agent/card-output/text-formatter.ts:314
 #, fuzzy
-msgid "Omlet User @${username}"
-msgstr "Utente Omlet @%s"
+msgid "The ${key} of ${name} is ${value}."
+msgstr "Il %s totale è %s."
 
-#: lib/dialogue-agent/legacy-dialogs/rule.js:90
-#: lib/dialogue-agent/legacy-dialogs/rule.js:205
-msgid ""
-"Sorry, to execute this command you must log in to your personal account."
+#: lib/dialogue-agent/card-output/format_objects.ts:446
+#, fuzzy
+msgid "Suggestion: ${title}"
 msgstr ""
-"Mi dispiace, ma per eseguire questo comando devi fare login al tuo account "
-"personale."
 
-#. ask the user before displaying further results
-#: lib/dialogue-agent/legacy-dialogs/rule.js:158
-msgid "Show more results"
-msgstr "Mostra più risultati"
+#: lib/dialogue-agent/dialogue-loop.ts:149
+msgid "Sorry I couldn't help on that."
+msgstr "Mi dispiace non poter essere d'aiuto."
 
-#: lib/dialogue-agent/legacy-dialogs/rule.js:181
-msgid "Sorry, I did not find any result for that."
-msgstr "Mi dispiace, non ho trovato alcun risultato."
-
-#: lib/dialogue-agent/legacy-dialogs/rule.js:189
+#: lib/dialogue-agent/dialogue-loop.ts:170
+#: lib/dialogue-agent/dialogue-loop.ts:468
 #, fuzzy
-msgid ""
-"Okay, so you want me to ${command}${? (as asked by ${source})}. Is that "
-"right?"
-msgstr "Okay, quindi vuoi che io %s (come richiesto da %s). Giusto?"
+msgid "Sorry, I did not understand that."
+msgstr "Non ho capito"
 
-#: lib/dialogue-agent/legacy-dialogs/rule.js:267
+#. don't sort the examples, they come already sorted from Thingpedia
+#: lib/dialogue-agent/dialogue-loop.ts:178
+msgid "Sorry, I did not understand that. Try the following instead:"
+msgstr "Mi dispiace, non ho capito. Prova i seguenti comandi invece:"
+
+#: lib/dialogue-agent/dialogue-loop.ts:197
+msgid "Sorry, I don't know how to do that yet."
+msgstr "Mi dispiace, ma ancora non so come fare ciò che mi hai chiesto."
+
+#: lib/dialogue-agent/dialogue-loop.ts:314
 #, fuzzy
-msgid "I'm going to ${command} (as asked by ${source})."
-msgstr "Ok, allora io %s (come richiesto da %s)."
+msgid "Notification from ${app}: ${message}"
+msgstr "Notifica da %s: %s"
 
-#: lib/dialogue-agent/legacy-dialogs/rule.js:271
+#: lib/dialogue-agent/dialogue-loop.ts:320
 #, fuzzy
-msgid "Okay, I'm going to ${command}."
-msgstr "Okay, allora io %s."
+msgid "Notification from ${app}"
+msgstr "Notifica"
 
-#: lib/dialogue-agent/almond.js:378
+#: lib/dialogue-agent/dialogue-loop.ts:339
 #, fuzzy
-msgid "Sorry, I had an error processing your command: ${error}"
-msgstr "Mi dispiace, c'è stato un errore nel processare il tuo comando: %s."
+msgid "${app} had an error: ${error}."
+msgstr "%s ha avuto un errore: %s."
 
-#: lib/dialogue-agent/almond.js:411 lib/dialogue-agent/dialogue_loop.js:326
+#: lib/dialogue-agent/dialogue-loop.ts:341
+#: lib/dialogue-agent/dialogue-loop.ts:387
+#, fuzzy
+msgid "Sorry, that did not work: ${error}."
+msgstr "Mi dispiace, ma c'è stato un errore: %s."
+
+#: lib/dialogue-agent/dialogue-loop.ts:383
 #, fuzzy
 msgid "Sorry, I had an error processing your command: ${error}."
 msgstr "Mi dispiace, c'è stato un errore nel processare il tuo comando: %s."
 
-#: lib/dialogue-agent/policies/legacy.js:62
-msgid "Sorry, I don't know how to do that yet."
-msgstr "Mi dispiace, ma ancora non so come fare ciò che mi hai chiesto."
-
-#: lib/dialogue-agent/policies/legacy.js:65
-msgid "I agree, but to what?"
-msgstr "Sono d'accordo, ma... su cosa?"
-
-#: lib/dialogue-agent/policies/legacy.js:68
-msgid "No way!"
-msgstr "Non esiste!"
-
-#: lib/dialogue-agent/policies/legacy.js:170
-msgid "Yes what?"
-msgstr "Sì cosa?"
-
-#: lib/dialogue-agent/policies/legacy.js:186
-msgid "Please click on one of the provided choices."
-msgstr "Per favore clicca su una delle scelte visualizzate."
-
-#: lib/dialogue-agent/policies/transaction.js:386
-#, fuzzy
-msgid "Hello! How can I help you?"
-msgstr "Subito! Come posso aiutarti?"
-
-#: lib/dialogue-agent/policies/transaction.js:391
-#, fuzzy
-msgid "Ok, so you want me to ${confirmation}. Is that right?"
-msgstr "Okay, quindi vuoi che io %s. Giusto?"
-
-#: lib/dialogue-agent/policies/transaction.js:445
-#, fuzzy
-msgid "Here is what I found."
-msgstr "Ecco quello che posso fare per te."
-
-#: lib/dialogue-agent/policies/transaction.js:454
-#, fuzzy
-msgid "What would you like to know?"
-msgstr "Che cosa vuoi che io domandi?"
-
-#: lib/dialogue-agent/dispatcher.js:132
-msgid "Sorry, but that's not what I asked."
-msgstr "Mi dispiace, ma non è quello che ho chiesto."
-
-#: lib/dialogue-agent/dispatcher.js:149
+#: lib/dialogue-agent/dialogue-loop.ts:420
 msgid "In fact, I did not ask for anything at all!"
 msgstr "In effetti, non ho chiesto nulla!"
 
-#: lib/dialogue-agent/dispatcher.js:151
+#: lib/dialogue-agent/dialogue-loop.ts:422
 msgid "Sorry, I need you to confirm the last question first."
 msgstr ""
 "Mi dispiace, ma mi serve che confermi l'ultima domanda prima di andare "
 "avanti."
 
-#: lib/dialogue-agent/dispatcher.js:153
+#: lib/dialogue-agent/dialogue-loop.ts:424
 msgid "Could you choose one of the following?"
 msgstr "Scegli solo uno dei seguenti."
 
-#: lib/dialogue-agent/dispatcher.js:171
+#: lib/dialogue-agent/dialogue-loop.ts:427
+#, fuzzy
+msgid "Could you give me a measurement?"
+msgstr "Puoi inserire un numero?"
+
+#: lib/dialogue-agent/dialogue-loop.ts:429
 msgid "Could you give me a number?"
 msgstr "Puoi inserire un numero?"
 
-#: lib/dialogue-agent/dispatcher.js:173
+#: lib/dialogue-agent/dialogue-loop.ts:431
 msgid "Could you give me a date?"
 msgstr "Puoi inserire una data?"
 
-#: lib/dialogue-agent/dispatcher.js:175
+#: lib/dialogue-agent/dialogue-loop.ts:433
 msgid "Could you give me a time of day?"
 msgstr "Puoi inserire un orario?"
 
-#: lib/dialogue-agent/dispatcher.js:177
+#: lib/dialogue-agent/dialogue-loop.ts:435
 msgid "Could you upload a picture?"
 msgstr "Puoi inserire una foto?"
 
-#: lib/dialogue-agent/dispatcher.js:179
+#: lib/dialogue-agent/dialogue-loop.ts:437
 msgid "Could you give me a place?"
 msgstr "Puoi inserire una località?"
 
-#: lib/dialogue-agent/dispatcher.js:181
+#: lib/dialogue-agent/dialogue-loop.ts:439
 msgid "Could you give me a phone number?"
 msgstr "Puoi inserire un numero di telefono?"
 
-#: lib/dialogue-agent/dispatcher.js:183
+#: lib/dialogue-agent/dialogue-loop.ts:441
 msgid "Could you give me an email address?"
 msgstr "Puoi inserire un indirizzo e-mail?"
 
@@ -863,151 +1236,1102 @@ msgstr "Puoi inserire un indirizzo e-mail?"
 #. so we accept almost everything
 #. but this will happen if the user clicks a button
 #. or upload a picture
-#: lib/dialogue-agent/dispatcher.js:189
+#: lib/dialogue-agent/dialogue-loop.ts:447
 msgid ""
 "Which is interesting, because I'll take anything at all. Just type your mind!"
 msgstr ""
 "Il che è interessante, perchè mi va bene qualunque cosa. Libera la tua "
 "fantasia!"
 
-#: lib/dialogue-agent/dispatcher.js:191
+#: lib/dialogue-agent/dialogue-loop.ts:449
 msgid "I'm looking for a command."
 msgstr "Vorrei un comando."
 
-#: lib/dialogue-agent/dispatcher.js:193
-msgid "I'm looking for a filter"
-msgstr "Vorrei un filtro."
-
-#: lib/dialogue-agent/dispatcher.js:195
+#: lib/dialogue-agent/dialogue-loop.ts:451
 msgid "In fact, I'm not even sure what I asked. Sorry!"
 msgstr "In effetti, non sono del tutto sicura di cosa ho chiesto. Scusa!"
 
-#: lib/dialogue-agent/dispatcher.js:202
+#: lib/dialogue-agent/dialogue-loop.ts:458
 #, fuzzy
 msgid "Sorry, I did not understand that: ${error}. Can you rephrase it?"
 msgstr "Mi dispiace, non ho capito: %s. Puoi riprovare?"
 
-#: lib/dialogue-agent/dispatcher.js:206
+#: lib/dialogue-agent/dialogue-loop.ts:462
 msgid "Sorry, I did not understand that. Can you rephrase it?"
 msgstr "Mi dispiace, non ho capito. Puoi riprovare?"
 
-#: lib/dialogue-agent/dispatcher.js:210
+#: lib/dialogue-agent/dialogue-loop.ts:466
 #, fuzzy
 msgid "Sorry, I did not understand that: ${error}."
-msgstr "Mi dispiace, non ho capito: %s."
+msgstr "Non ho capito"
 
-#: lib/dialogue-agent/dispatcher.js:212
-msgid "Sorry, I did not understand that."
-msgstr "Mi dispiace, non ho capito."
-
-#: lib/dialogue-agent/dispatcher.js:219
-msgid "I'm sorry, you don't have permission to do that."
-msgstr "Mi dispiace, non hai il permesso di eseguire questa operazione."
-
-#: lib/dialogue-agent/dispatcher.js:223
-msgid "Consider it done."
-msgstr "Consideralo fatto."
-
-#: lib/dialogue-agent/dispatcher.js:260
-msgid "Sorry I couldn't help on that."
-msgstr "Mi dispiace non poter essere d'aiuto."
-
-#: lib/engine/engine.js:451
-msgid "Unknown device"
-msgstr "Dispositivo sconosciuto"
-
-#: lib/engine/engine.js:452
-msgid "Description not available"
-msgstr "Descrizione non disponibile"
-
-#: lib/engine/apps/app_executor.js:158
+#: lib/engine/apps/app_executor.ts:239
+#, fuzzy
 msgid "This app has no description"
-msgstr "Questa app non ha descrizione."
+msgstr "la descrizione lunga dell'evento"
 
-#: lib/engine/apps/output_queue.js:133
-msgid "User not available to respond"
-msgstr "L'utente non è disponibile a rispondere"
-
-#: lib/engine/devices/builtins/thingengine.js:52
-msgid "This is one of your own Almond apps."
-msgstr "Questo è una delle tue app Almond."
-
-#: lib/engine/devices/builtins/thingengine.builtin.js:20
-msgid "I know, right?"
-msgstr "Vero?"
-
-#: lib/engine/devices/builtins/thingengine.builtin.js:21
-msgid "No need to be sorry."
-msgstr "Non c'è motivo di scusarsi."
-
-#: lib/engine/devices/builtins/thingengine.builtin.js:22
-msgid "At your service."
-msgstr "Al tuo servizio."
-
-#: lib/engine/devices/builtins/thingengine.builtin.js:34
+#: lib/engine/devices/builtins/thingengine.builtin.ts:38
 msgid "Miscellaneous Interfaces"
 msgstr "Miscellanea"
 
-#: lib/engine/devices/builtins/thingengine.builtin.js:35
+#: lib/engine/devices/builtins/thingengine.builtin.ts:39
 msgid "Time, randomness and other non-device specific things."
 msgstr "Orario, casualità e altre cose non specifiche di un dispositivo."
 
-#: lib/engine/devices/builtins/thingengine.builtin.js:65
-#: lib/engine/devices/builtins/thingengine.builtin.js:82
+#: lib/engine/devices/builtins/thingengine.builtin.ts:68
+#: lib/engine/devices/builtins/thingengine.builtin.ts:85
 msgid "Sorry, I cannot access your location in this version of Almond."
 msgstr ""
 "Mi dispiace, ma non posso accedere alla tua posizione in questa versione di "
 "Almond."
 
-#: lib/engine/devices/builtins/thingengine.builtin.js:73
+#: lib/engine/devices/builtins/thingengine.builtin.ts:76
 msgid "Unknown"
 msgstr "Ignota"
 
-#: lib/engine/devices/builtins/thingengine.builtin.js:118
-#: lib/engine/devices/builtins/thingengine.builtin.js:127
-msgid "User not available"
-msgstr "Utente non disponibile"
-
-#: lib/engine/devices/builtins/thingengine.builtin.js:136
+#: lib/engine/devices/builtins/thingengine.builtin.ts:179
 msgid "Opening files is not implemented in this Almond"
 msgstr "L'apertura di file non è implementata in questo Almond"
 
-#: lib/engine/devices/builtins/bluetooth.generic.js:36
+#: lib/engine/devices/builtins/thingengine.ts:83
 #, fuzzy
-msgid "Generic Bluetooth Device ${alias}"
-msgstr "Dispositivo Bluetooth Generico %s"
+msgid "Almond ${tier} (${identity})"
+msgstr ""
 
-#: lib/engine/devices/builtins/bluetooth.generic.js:39
-msgid "This is a Bluetooth device of unknown or generic type"
-msgstr "Questo è un dispositivo Bluetooth di tipo generico o sconosciuto"
+#: lib/engine/devices/builtins/thingengine.ts:86
+msgid "This is one of your own Almond apps."
+msgstr "Questo è una delle tue app Almond."
 
-#: lib/engine/devices/builtins/bluetooth.generic.js:47
-msgid "This Almond has no bluetooth capability"
-msgstr "Questo Almond non supporta il Bluetooth"
+#: lib/engine/index.ts:418
+msgid "Unknown device"
+msgstr "Dispositivo sconosciuto"
 
-#. NOTE: if you change the sentences used here, make sure to change tests/create_test_users.js
-#. in platform-cmdline
-#: lib/engine/devices/builtins/matrix/index.js:109
-msgid "Insert your email address or phone number:"
-msgstr "Inserisci il tuo numero di telefono o indirizzo email:"
+#: lib/engine/index.ts:419
+msgid "Description not available"
+msgstr "Descrizione non disponibile"
 
-#: lib/engine/devices/builtins/matrix/index.js:124
-msgid "Insert your password:"
-msgstr "Inserisci la tua password:"
-
-#: lib/engine/devices/builtins/matrix/index.js:139
+#: lib/utils/thingtalk/describe.ts:132
 #, fuzzy
-msgid "Authentication failed: ${error}"
-msgstr "Authenticazione fallita: %s"
+msgid "1"
+msgstr ""
 
-#: lib/engine/devices/builtins/matrix/index.js:189
+#: lib/utils/thingtalk/describe.ts:134 lib/utils/thingtalk/describe.ts:170
 #, fuzzy
-msgid "Matrix Account of ${userId}"
-msgstr "Account Matrix di %s"
+msgid "start of day"
+msgstr ""
 
-#: lib/engine/devices/builtins/matrix/index.js:192
-msgid "This is your Matrix Account."
-msgstr "Questo è il tuo account Matrix."
+#: lib/utils/thingtalk/describe.ts:135
+#, fuzzy
+msgid "${time} on day ${day} of ${month}, ${year}"
+msgstr ""
+
+#: lib/utils/thingtalk/describe.ts:172
+#, fuzzy
+msgid "${time} on ${weekday}"
+msgstr ""
+
+#: lib/utils/thingtalk/describe.ts:283
+#, fuzzy
+msgid "the requester"
+msgstr "richiedente"
+
+#: lib/utils/thingtalk/describe.ts:309
+#, fuzzy
+msgid "${value:.1} degrees"
+msgstr ""
+
+#: lib/utils/thingtalk/describe.ts:367
+#, fuzzy
+msgid ""
+"${op_key:select:             not_contains {${argcanonical} do not contain "
+"${value}}             contains {${argcanonical} contain "
+"${value}}             not_substr {${argcanonical} does not contain "
+"${value}}             substr {${argcanonical} contains ${value}}             "
+"not_in_array {${argcanonical} is none of ${value}}             in_array "
+"{${argcanonical} is any of ${value:disjunction}}             not_rev_substr "
+"{${argcanonical} is not contained in ${value}}             rev_substr "
+"{${argcanonical} is contained in ${value}}             not_starts_with "
+"{${argcanonical} does not start with ${value}}             starts_with "
+"{${argcanonical} starts with ${value}}             not_ends_with "
+"{${argcanonical} does not end with ${value}}             ends_with "
+"{${argcanonical} ends with ${value}}             not_prefix_of "
+"{${argcanonical} is not a prefix of ${value}}             prefix_of "
+"{${argcanonical} is a prefix of ${value}}             not_suffix_of "
+"{${argcanonical} is not a suffix of ${value}}             suffix_of "
+"{${argcanonical} is a suffix of ${value}}             not_eq "
+"{${argcanonical} is not equal to ${value}}             eq {${argcanonical} "
+"is equal to ${value}}             not_geq {${argcanonical} is less than "
+"${value}}             geq {${argcanonical} is greater than or equal to "
+"${value}}             not_leq {${argcanonical} is greater than "
+"${value}}             leq {${argcanonical} is less than or equal to "
+"${value}}             not_before {${argcanonical} is after "
+"${value}}             before {${argcanonical} is before "
+"${value}}             not_after {${argcanonical} is before "
+"${value}}             after {${argcanonical} is after ${value}}         }"
+msgstr ""
+
+#: lib/utils/thingtalk/describe.ts:467
+#, fuzzy
+msgid "any value of ${argcanonical} is acceptable"
+msgstr ""
+
+#: lib/utils/thingtalk/describe.ts:776
+#, fuzzy
+msgid ""
+"${canonical_key:select:                     base {${table} that have "
+"${filter}}                     property {${table} that have "
+"${filter}}                     reverse_property {${table} that are "
+"${filter}}                    verb {${table} that "
+"${filter}}                     adjective {${filter} "
+"${table}}                     passive_verb {${table} "
+"${filter}}                     preposition {${table} "
+"${filter}}                 }"
+msgstr ""
+
+#: lib/utils/thingtalk/describe.ts:789
+#, fuzzy
+msgid ""
+"${canonical_key:select:                     base {${table} and have "
+"${filter}}                     property {${table} and have "
+"${filter}}                     reverse_property {${table} and are "
+"${filter}}                    verb {${table} and "
+"${filter}}                     adjective {${filter} "
+"${table}}                     passive_verb {${table} "
+"${filter}}                     preposition {${table} "
+"${filter}}                 }"
+msgstr ""
+
+#~ msgid "What is the index of the second result you would like?"
+#~ msgstr "Qual è l'indice del secondo risultato che vuoi?"
+
+#~ msgid "What is the index of the third result you would like?"
+#~ msgstr "Qual è l'indice del terzo risultato che vuoi?"
+
+#, javascript-format
+#~ msgid "What is the index of the %dth result you would like?"
+#~ msgstr "Qual è l'indice del %dº risultato che vuoi?"
+
+#~ msgid "What is the first time you would like your command to run?"
+#~ msgstr "Qual è il primo orario a cui vuoi che il tuo comando sia eseguito?"
+
+#~ msgid "What is the second time you would like your command to run?"
+#~ msgstr ""
+#~ "Qual è il secondo orario a cui vuoi che il tuo comando sia eseguito?"
+
+#~ msgid "What is the third time you would like your command to run?"
+#~ msgstr "Qual è il terzo orario a cui vuoi che il tuo comando sia eseguito?"
+
+#, javascript-format
+#~ msgid "What is the %dth time you would like your command to run?"
+#~ msgstr "Qual è il %dº orario a cui vuoi che il tuo comando sia eseguito?"
+
+#~ msgid "Who is the first friend who is allowed to ask you for this command?"
+#~ msgstr "Chi è il primo amico a cui è consentito richiedere questo comando?"
+
+#~ msgid "Who is the second friend who is allowed to ask you for this command?"
+#~ msgstr ""
+#~ "Chi è il secondo amico a cui è consentito richiedere questo comando?"
+
+#~ msgid "Who is the third friend who is allowed to ask you for this command?"
+#~ msgstr "Chi è il terzo amico a cui è consentito richiedere questo comando?"
+
+#, javascript-format
+#~ msgid "Who is the %dth friend who is allowed to ask you for this command?"
+#~ msgstr "Chi è il %dº amico a cui è consentito richiedere questo comando?"
+
+#, javascript-format
+#~ msgid "What would you like the first %s to be?"
+#~ msgstr "Cosa vuoi che sia il primo %s?"
+
+#, javascript-format
+#~ msgid "What would you like the second %s to be?"
+#~ msgstr "Cosa vuoi che sia il secondo %s?"
+
+#, javascript-format
+#~ msgid "What would you like the third %s to be?"
+#~ msgstr "Cosa vuoi che sia il terzo %s?"
+
+#, javascript-format
+#~ msgid "What would you like the %dth %s to be?"
+#~ msgstr "Cosa vuoi che sia il %dº %s?"
+
+#, javascript-format
+#~ msgid "%s past %s"
+#~ msgstr "%s dopo %s"
+
+#, javascript-format
+#~ msgid "%s before %s"
+#~ msgstr "%s prima di %s"
+
+#, javascript-format
+#~ msgid "the %s"
+#~ msgstr "il %s"
+
+#, javascript-format
+#~ msgid "the %s do not contain %s"
+#~ msgstr "i %s non contengono %s"
+
+#, javascript-format
+#~ msgid "the %s contain %s"
+#~ msgstr "i %s contengono %s"
+
+#, javascript-format
+#~ msgid "the %s does not contain %s"
+#~ msgstr "il %s non contiene %s"
+
+#, javascript-format
+#~ msgid "the %s contains %s"
+#~ msgstr "il %s contiene %s"
+
+#, javascript-format
+#~ msgid "%s does not contain the %s"
+#~ msgstr "%s non contiene il %s"
+
+#, javascript-format
+#~ msgid "%s contains the %s"
+#~ msgstr "%s contiene il %s"
+
+#, javascript-format
+#~ msgid "the %s does not start with %s"
+#~ msgstr "il %s non inizia con %s"
+
+#, javascript-format
+#~ msgid "the %s starts with %s"
+#~ msgstr "il %s inizia con %s"
+
+#, javascript-format
+#~ msgid "the %s does not end with %s"
+#~ msgstr "il %s non finisce con %s"
+
+#, javascript-format
+#~ msgid "the %s ends with %s"
+#~ msgstr "il %s finisce con %s"
+
+#, javascript-format
+#~ msgid "the %s is not a prefix of %s"
+#~ msgstr "il %s non è un prefisso di %s"
+
+#, javascript-format
+#~ msgid "the %s is a prefix of %s"
+#~ msgstr "il %s è un prefisso %s"
+
+#, javascript-format
+#~ msgid "the %s is not a suffix of %s"
+#~ msgstr "il %s non è un suffisso di %s"
+
+#, javascript-format
+#~ msgid "the %s is a suffix of %s"
+#~ msgstr "il %s è un suffisso di %s"
+
+#, javascript-format
+#~ msgid "the %s is not equal to %s"
+#~ msgstr "il %s non è uguale a %s"
+
+#, javascript-format
+#~ msgid "the %s is equal to %s"
+#~ msgstr "il %s è uguale a %s"
+
+#, javascript-format
+#~ msgid "the %s is after %s"
+#~ msgstr "il %s è dopo %s"
+
+#, javascript-format
+#~ msgid "the %s is before %s"
+#~ msgstr "il %s è prima di %s"
+
+#, javascript-format
+#~ msgid "the %s is greater than %s"
+#~ msgstr "il %s è maggiore di %s"
+
+#, javascript-format
+#~ msgid "the %s is less than or equal to %s"
+#~ msgstr "il %s è minore uguale a %s"
+
+#, javascript-format
+#~ msgid "the %s is less than %s"
+#~ msgstr "il %s è minore di %s"
+
+#, javascript-format
+#~ msgid "the %s is greater than or equal to %s"
+#~ msgstr "il %s è maggiore uguale di %s"
+
+#, javascript-format
+#~ msgid "%s and %s"
+#~ msgstr "%s e %s"
+
+#, javascript-format
+#~ msgid "%s or %s"
+#~ msgstr "%s o %s"
+
+#, javascript-format
+#~ msgid "not %s"
+#~ msgstr "non %s"
+
+#, javascript-format
+#~ msgid "the %s of %s"
+#~ msgstr "il %s di %s"
+
+#, javascript-format
+#~ msgid "for %s, %s"
+#~ msgstr "per %s, %s"
+
+#, javascript-format
+#~ msgid "your %s"
+#~ msgstr "il tuo %s"
+
+#, javascript-format
+#~ msgid "all your %s %s"
+#~ msgstr "tutti i tuoi %2$s %1$s"
+
+#, javascript-format
+#~ msgid "your %s %s"
+#~ msgstr "il tuo %2$s %1$s"
+
+#, javascript-format
+#~ msgid " with %s equal to %s"
+#~ msgstr " con %s uguale a %s"
+
+#, javascript-format
+#~ msgid " and %s equal to %s"
+#~ msgstr " e %s uguale a %s"
+
+#, javascript-format
+#~ msgid "the last %s"
+#~ msgstr "l'ultimo %s"
+
+#, javascript-format
+#~ msgid "the first %s"
+#~ msgstr "il primo %s"
+
+#, javascript-format
+#~ msgid "the %d-th last %s"
+#~ msgstr "il %dº %s dal fondo"
+
+#, javascript-format
+#~ msgid "the %d-th %s"
+#~ msgstr "il %dº %s"
+
+#, javascript-format
+#~ msgid "%s if %s"
+#~ msgstr "%s se %s"
+
+#, javascript-format
+#~ msgid "a value computed from %s"
+#~ msgstr "un valore calcolato da %s"
+
+#, javascript-format
+#~ msgid "the %s-nth %s"
+#~ msgstr "il %sº %s"
+
+#, javascript-format
+#~ msgid "elements %s of the %s"
+#~ msgstr "elementi %s dei %s"
+
+#, javascript-format
+#~ msgid "the first %s %s"
+#~ msgstr "il primo %s %s"
+
+#, javascript-format
+#~ msgid "the last %s %s"
+#~ msgstr "l'ultimo %s %s"
+
+#, javascript-format
+#~ msgid "%d elements starting from %s of the %s"
+#~ msgstr "%d elementi iniziando da %s dei %s"
+
+#, javascript-format
+#~ msgid "the latest %s %s"
+#~ msgstr "gli ultimi %s %s"
+
+#, javascript-format
+#~ msgid "the latest %s %s, starting at the %d-th"
+#~ msgstr "gli ultimi %s %s, iniziando con il %dº"
+
+#, javascript-format
+#~ msgid "the %s that changed in in the last %s"
+#~ msgstr "i %s che hanno cambiato negli ultimi %s"
+
+#, javascript-format
+#~ msgid "the %s that changed in the %s prior to %s"
+#~ msgstr "i %s che hanno cambiato negli ultimi %s prima di %s"
+
+#, javascript-format
+#~ msgid "every %s"
+#~ msgstr "ogni %s"
+
+#, javascript-format
+#~ msgid "%s times every %s"
+#~ msgstr "%s volte ogni %s"
+
+#, javascript-format
+#~ msgid "every %s starting %s"
+#~ msgstr "ogni %s iniziando il %s"
+
+#, javascript-format
+#~ msgid "%s times every %s starting %s"
+#~ msgstr "%s volte ogni %s iniziando il %s"
+
+#, javascript-format
+#~ msgid "every day at %s"
+#~ msgstr "ogni giorno alle %s"
+
+#, javascript-format
+#~ msgid "when %s change if %s"
+#~ msgstr "quando %s cambiano se %s"
+
+#, javascript-format
+#~ msgid "when %s changes if %s"
+#~ msgstr "quando %s cambia se %s"
+
+#, javascript-format
+#~ msgid "when %s change"
+#~ msgstr "quando %s cambia"
+
+#, javascript-format
+#~ msgid "when %s changes"
+#~ msgstr "quando %s cambiano"
+
+#, javascript-format
+#~ msgid "%s changes"
+#~ msgstr "%s cambia"
+
+#, javascript-format
+#~ msgid "%s, get %s"
+#~ msgstr "%s, ottieni %s"
+
+#, javascript-format
+#~ msgid "%s %s"
+#~ msgstr "%s %s"
+
+#, javascript-format
+#~ msgid "let %s be %s"
+#~ msgstr "sia %s %s"
+
+#, javascript-format
+#~ msgid "tell %s: %s"
+#~ msgstr "di' a %s: %s"
+
+#, javascript-format
+#~ msgid "any %s"
+#~ msgstr "ogni %s"
+
+#, javascript-format
+#~ msgid "anyone if %s"
+#~ msgstr "chiunque se %s"
+
+#, javascript-format
+#~ msgid "%s is allowed to %s"
+#~ msgstr "a %s è consentito %s"
+
+#, javascript-format
+#~ msgid "Link: %s <%s>"
+#~ msgstr "Link: %s <%s>"
+
+#, javascript-format
+#~ msgid "Location: [Latitude: %.3f deg, Longitude: %.3f deg]"
+#~ msgstr "Località: [Latitudine: %.3f gradi, Longitudine: %.3f gradi]"
+
+#~ msgid ", "
+#~ msgstr ", "
+
+#, javascript-format
+#~ msgid "%s of %s"
+#~ msgstr "%s di %s"
+
+#, javascript-format
+#~ msgid "The %s is %s."
+#~ msgstr "Il %s è %s."
+
+#, javascript-format
+#~ msgid "I found %d result."
+#~ msgid_plural "I found %d results."
+#~ msgstr[0] "Ho trovato %d risultato."
+#~ msgstr[1] "Ho trovato %d risultati."
+
+#, javascript-format
+#~ msgid "I found only one value of %2$s."
+#~ msgid_plural "I found %d distinct values of %s."
+#~ msgstr[0] "Ho trovato solo un valore di %2$s."
+#~ msgstr[1] "Ho trovato %d valori distinti di %s."
+
+#~ msgid "it"
+#~ msgstr "esso"
+
+#~ msgid "the result title"
+#~ msgstr "il titolo del risultato"
+
+#~ msgid "the notification body"
+#~ msgstr "il corpo della notifica"
+
+#~ msgid "the event's long description"
+#~ msgstr "la descrizione lunga dell'evento"
+
+#~ msgid "someone"
+#~ msgstr "qualcuno"
+
+#~ msgid "some language"
+#~ msgstr "qualche lingua"
+
+#~ msgid "some team"
+#~ msgstr "qualche squadra"
+
+#~ msgid "some company"
+#~ msgstr "qualche società"
+
+#~ msgid "something"
+#~ msgstr "qualcosa"
+
+#~ msgid "some number"
+#~ msgstr "qualche numero"
+
+#~ msgid "some value"
+#~ msgstr "qualche valore"
+
+#~ msgid "some date"
+#~ msgstr "qualche data"
+
+#~ msgid "some time"
+#~ msgstr "qualche orario"
+
+#~ msgid "some place"
+#~ msgstr "qualche località"
+
+#~ msgid " and "
+#~ msgstr " e "
+
+#, javascript-format
+#~ msgid "%s when %s"
+#~ msgstr "%s quando %s"
+
+#, javascript-format
+#~ msgid "%s then %s"
+#~ msgstr "%s poi %s"
+
+#, javascript-format
+#~ msgid "notify when %s"
+#~ msgstr "notificami quando %s"
+
+#~ msgid " (only once)"
+#~ msgstr " (solo una volta)"
+
+#~ msgid " to "
+#~ msgstr " a "
+
+#, javascript-format
+#~ msgid "%s to %s"
+#~ msgstr "%s a %s"
+
+#, javascript-format
+#~ msgid "Monitor %s"
+#~ msgstr "Osserva %s"
+
+#, javascript-format
+#~ msgid "Execute %s"
+#~ msgstr "Esegui %s"
+
+#~ msgid "me"
+#~ msgstr "me"
+
+#~ msgid "Media (news, comics, meme, etc)"
+#~ msgstr "Media (news, fumetti, meme, ecc.)"
+
+#~ msgid "Social Networks (facebook, twitter, etc)"
+#~ msgstr "Social Network (Facebook, Twitter, ecc.)"
+
+#~ msgid "Home (camera, tv, etc)"
+#~ msgstr "Casa (telecamera, TV, ecc.)"
+
+#~ msgid "Communication (phone, email, messenger, etc)"
+#~ msgstr "Comunicazione (telefono, email, messenger, ecc.)"
+
+#~ msgid "Services (weather, calendar, todo list, etc)"
+#~ msgstr "Servizi (meteo, calendario, attività, ecc.)"
+
+#~ msgid "Data Management (cloud drives)"
+#~ msgstr "Gestione Dati (dischi in cloud)"
+
+#~ msgid "Pick one from the following categories or simply type in."
+#~ msgstr "Scegli una delle categorie sequenti o scrivi direttamente."
+
+#~ msgid "Do it now"
+#~ msgstr "Esegui ora"
+
+#~ msgid "Just notify me"
+#~ msgstr "Notificami"
+
+#~ msgid "Back"
+#~ msgstr "Indietro"
+
+#~ msgid "Pick a command from the following devices"
+#~ msgstr "Scegli un comando tra i seguenti dispositivi"
+
+#~ msgid "More…"
+#~ msgstr "Ancora…"
+
+#, fuzzy
+#~ msgid "when ${utterance} change notify me"
+#~ msgstr "quando %s cambia notificami"
+
+#, fuzzy
+#~ msgid "${utterance} notify me"
+#~ msgstr "Notificami"
+
+#, fuzzy
+#~ msgid ""
+#~ "Can't find a compatible command from ${device}, choose another device."
+#~ msgstr "Non trovo un comando compatibile in %s, scegli un altro dispositivo"
+
+#~ msgid "Pick a command below."
+#~ msgstr "Scegli un comando."
+
+#~ msgid "Do you want to use your own account or others?"
+#~ msgstr "Vuoi usare il tuo account o quello di altri?"
+
+#~ msgid "Use my own account"
+#~ msgstr "Usa il mio account"
+
+#~ msgid "Use others' account"
+#~ msgstr "Usa l'account di un altro"
+
+#~ msgid "When"
+#~ msgstr "Quando"
+
+#~ msgid "Get"
+#~ msgstr "Ottieni"
+
+#~ msgid "Do"
+#~ msgstr "Fai"
+
+#~ msgid "Add more commands and filters or run your command if you are ready."
+#~ msgstr ""
+#~ "Aggiungi più comandi e filtri o esegui il tuo comando quando sei pronto."
+
+#~ msgid "Add a filter"
+#~ msgstr "Aggiungi un filtro"
+
+#~ msgid "Run it"
+#~ msgstr "Esegui"
+
+#~ msgid "Click on one of the following buttons to start adding commands."
+#~ msgstr ""
+#~ "Clicca su uno dei pulsanti seguenti per iniziare ad aggiungere comandi."
+
+#~ msgid "Pick the command you want to add filters to:"
+#~ msgstr "Scegli il comando a cui vuoi aggiungere il filtro:"
+
+#~ msgid "Pick the filter you want to add:"
+#~ msgstr "Scegli il filtro che vuoi aggiungere:"
+
+#~ msgid "Choose a different command"
+#~ msgstr "Scegli un comando diverso"
+
+#, fuzzy
+#~ msgid ""
+#~ "Your command is: ${command}. You can add more filters or run your command "
+#~ "if you are ready."
+#~ msgstr ""
+#~ "Il tuo comando è: %s. Puoi aggiungere più comandi e filtri o eseguire il "
+#~ "tuo comando quando sei pronto."
+
+#~ msgid "Choose the filter you want to add:"
+#~ msgstr "Scegli il filtro che vuoi aggiungere:"
+
+#~ msgid ""
+#~ "Sorry, I did not understand that. Use ‘help’ to learn what I can do for "
+#~ "you."
+#~ msgstr ""
+#~ "Mi dispiace, non ho capito. Usa ‘aiuto’ per conoscere cosa posso fare per "
+#~ "te."
+
+#~ msgid "if"
+#~ msgstr "se"
+
+#~ msgid ""
+#~ "Sorry, I did not understand that. Try the following instead, or use the "
+#~ "Train button to teach me:"
+#~ msgstr ""
+#~ "Mi dispiace, non ho capito. Prova i seguenti comandi invece, o usa il "
+#~ "pulsante Allena per insegnarmi:"
+
+#~ msgid "Make Your Own Rule"
+#~ msgstr "Crea la tua regola"
+
+#, fuzzy
+#~ msgid "Did you mean ${command}?"
+#~ msgstr "Intendevi %s?"
+
+#~ msgid "none of the above"
+#~ msgstr "nessuno di questi"
+
+#~ msgid "Did you mean any of the following?"
+#~ msgstr "Intendevi uno dei comandi seguenti?"
+
+#~ msgid "Your last command was a button. I know what a button means. 😛"
+#~ msgstr ""
+#~ "Il tuo ultimo comando era un pulsante. So cosa vuol dire un pulsante. 😛"
+
+#~ msgid "Thanks, I made a note of that."
+#~ msgstr "Grazie, lo terrò a mente."
+
+#~ msgid "Discovery is not available in this installation of Almond."
+#~ msgstr "La ricerca non è disponibile in questa installazione di Almond."
+
+#~ msgid ""
+#~ "Sorry, to discover new devices you must log in to your personal account."
+#~ msgstr ""
+#~ "Mi dispiace, ma per collegare nuovi dispositivi devi fare login al tuo "
+#~ "account personale."
+
+#~ msgid "Searching for devices nearby…"
+#~ msgstr "Ricerca di dispositivi nelle vicinanze in corso…"
+
+#, fuzzy
+#~ msgid "Discovery failed: ${error}."
+#~ msgstr "Ricerca fallita: %s"
+
+#, fuzzy
+#~ msgid "Can't find any ${device} around."
+#~ msgstr "Non riesco a trovare alcun dispositivo qui intorno."
+
+#~ msgid "Can't find any device around."
+#~ msgstr "Non riesco a trovare alcun dispositivo qui intorno."
+
+#, fuzzy
+#~ msgid "I found a ${device}. Do you want to set it up now?"
+#~ msgstr "Ho trovato %s. Vuoi configurarlo adesso?"
+
+#~ msgid "I found the following devices. Which one do you want to set up?"
+#~ msgstr "Ho trovato i seguenti dispositivi, quale vuoi configurare?"
+
+#~ msgid "Remote devices are not supported in this version of Almond."
+#~ msgstr ""
+#~ "Dispositivi remoti non sono supportati in questa versione di Almond."
+
+#, fuzzy
+#~ msgid ""
+#~ "I cannot find any “${name}” device. Which ${device} do you want to use?"
+#~ msgstr ""
+#~ "Hai più dispositivi di tipo %2$s che si chiamano “%1$s”. Quale vuoi usare?"
+
+#~ msgid ""
+#~ "You need a Matrix account: I talk to other Almonds via the secure Matrix "
+#~ "messaging service."
+#~ msgstr ""
+#~ "Necessiti di un account Matrix: io parlo ad altri Almond attraverso il "
+#~ "servizio di messaggistica sicura Matrix."
+
+#~ msgid "Register a new Matrix account now"
+#~ msgstr "Registra ora un nuovo account Matrix"
+
+#~ msgid "Okay, I'll remember that."
+#~ msgstr "Okay, lo terrò a mente."
+
+#~ msgid "Yes this time"
+#~ msgstr "Sì questa volta"
+
+#~ msgid "Always from anybody (no restrictions)"
+#~ msgstr "Sempre da chiunque (senza restrizioni)"
+
+#, fuzzy
+#~ msgid "Always from ${principal} (no restrictions)"
+#~ msgstr "Sempre da %s (senza restrizioni)"
+
+#, fuzzy
+#~ msgid "Always from ${principal} (this exact request)"
+#~ msgstr "Sempre da %s (solo questa richiesta esatta)"
+
+#~ msgid "Always from anybody"
+#~ msgstr "Sempre da chiunque"
+
+#, fuzzy
+#~ msgid "Always from ${principal}"
+#~ msgstr "Sempre da %s"
+
+#~ msgid "No"
+#~ msgstr "No"
+
+#~ msgid "Only if…"
+#~ msgstr "Solo se…"
+
+#, fuzzy
+#~ msgid "Okay, so ${permission}. Is that correct?"
+#~ msgstr "Okay, quindi vuoi che io %s. Giusto?"
+
+#, fuzzy
+#~ msgid "Cannot find a messaging account for ${contact}."
+#~ msgstr "Non trovo un account di messaging per %s."
+
+#, fuzzy
+#~ msgid "You chose ${array}."
+#~ msgstr "Hai scelto %s."
+
+#~ msgid "A description of the result"
+#~ msgstr "Una descrizione del risultato"
+
+#~ msgid "None of above"
+#~ msgstr "Nessuno di questi"
+
+#~ msgid "The account has been set up."
+#~ msgstr "L'account è stato configurato."
+
+#~ msgid "The device has been set up."
+#~ msgstr "Il dispositivo è stato configurato."
+
+#~ msgid "The service has been set up."
+#~ msgstr "Il servizio è stato configurato."
+
+#, fuzzy
+#~ msgid "Configuration failed: ${error}."
+#~ msgstr "Configurazione fallita: %s."
+
+#, fuzzy
+#~ msgid "Question from ${app}: ${question}."
+#~ msgstr "Domanda da %s: %s"
+
+#, fuzzy
+#~ msgid ""
+#~ "Sorry, to enable ${device}, you must log in to your personal account."
+#~ msgstr ""
+#~ "Mi dispiace, ma per abilitare %s devi fare il login al tuo account "
+#~ "personale."
+
+#, fuzzy
+#~ msgid "I'm sorry, I can't find ${device} in my database."
+#~ msgstr "Mi dispiace, ma non riesco a trovare %s nel mio database."
+
+#, fuzzy
+#~ msgid "${device} has been enabled successfully."
+#~ msgstr "%s è stato abilitato con successo."
+
+#, fuzzy
+#~ msgid "Choose one of the following to configure ${device}."
+#~ msgstr "Scegli uno dei seguenti per configurare %s."
+
+#, fuzzy
+#~ msgid "Sorry, I don't know how to configure ${device}."
+#~ msgstr "Mi dispiace, ma non so come configurare %s."
+
+#, fuzzy
+#~ msgid "I'm sorry, but ${device} is not supported on this version of Almond."
+#~ msgstr "Mi dispiace, ma %s non è supportato in questa versione di Almond."
+
+#, fuzzy
+#~ msgid "OK, here's the link to configure ${device}."
+#~ msgstr "Ok, ecco il link per configurare %s."
+
+#, fuzzy
+#~ msgid "I'm sorry, I don't know how to configure ${device}."
+#~ msgstr "Mi dispiace, ma non so come configurare %s."
+
+#~ msgid "You don't have a valid address book available."
+#~ msgstr "Non hai una rubrica disponibile."
+
+#~ msgid "No contact matches your search."
+#~ msgstr "Nessun contatto corrisponde alla tua ricerca."
+
+#~ msgid "Hello! I'm Almond, your virtual assistant."
+#~ msgstr "Ciao! Mi chiamo Almond e sono il tuo assistente virtuale."
+
+#, fuzzy
+#~ msgid ""
+#~ "I am part of a research project of Stanford University. I am capable of "
+#~ "understanding actions and events over web services. Please keep in mind: "
+#~ "I do not chat. Check out the Thingpedia to find out what I understand, or "
+#~ "type ‘help’."
+#~ msgstr ""
+#~ "Sono parte di un progetto di ricerca di Stanford University. Sono in "
+#~ "grado di comprendere azioni ed eventi applicabili a servizi web e "
+#~ "dispositivi smart."
+
+#~ msgid "To start, how about you try one of these examples:"
+#~ msgstr "Per iniziare, che ne dici di provare uno di questi esempi:"
+
+#~ msgid "You should try again later."
+#~ msgstr "Riprova più tardi."
+
+#~ msgid ""
+#~ "I am part of a research project of Stanford University. I am capable of "
+#~ "understanding actions and events over web services."
+#~ msgstr ""
+#~ "Sono parte di un progetto di ricerca di Stanford University. Sono in "
+#~ "grado di comprendere azioni ed eventi applicabili a servizi web."
+
+#~ msgid ""
+#~ "Please keep in mind: I do not chat, and I do not understand questions "
+#~ "very well. Please check out the Thingpedia to find out what I understand, "
+#~ "or type ‘help’."
+#~ msgstr ""
+#~ "Per favore tieni a mente: non chiacchiero, e non capisco molto bene le "
+#~ "domande. Dai un'occhiata a Thingpedia per scoprire cosa capisco, o digita "
+#~ "‘aiuto’."
+
+#~ msgid ""
+#~ "I am part of a research project of Stanford University. Would you like to "
+#~ "participate?"
+#~ msgstr ""
+#~ "Sono parte di un progetto di ricerca di Stanford University. Vuoi "
+#~ "partecipare?"
+
+#~ msgid ""
+#~ "With your consent, I will record the commands you give me for training. "
+#~ "Recording the commands will allow me to improve my understanding of "
+#~ "natural language. I will collect what you type, not your data, or what I "
+#~ "reply."
+#~ msgstr ""
+#~ "Con il tuo consenso, registrerò i comandi che inserisci. Registrare i "
+#~ "comandi mi consente di migliorare la mia comprensione della lingua. "
+#~ "Raccoglierò solo quello che digiti, non i tuoi dati, o le mie risposte."
+
+#~ msgid ""
+#~ "If you would like to participate, please review our consent form, and "
+#~ "keep it for your records:"
+#~ msgstr ""
+#~ "Se vuoi partecipare, per favore leggi il nostro modulo di consenso, e "
+#~ "salvane una copia personale."
+
+#~ msgid "Consent Form"
+#~ msgstr "Modulo di Consenso"
+
+#~ msgid "Do you consent to recording your commands?"
+#~ msgstr "Consenti alla raccolta dei tuoi comandi?"
+
+#~ msgid ""
+#~ "Thank you! If you change your mind, you can change the option from "
+#~ "Settings."
+#~ msgstr ""
+#~ "Grazie! Se cambi idea, puoi modificare l'opzione dalle Impostazioni."
+
+#~ msgid ""
+#~ "Okay, I will not store any command from this Almond. If you change your "
+#~ "mind, you can change the option from Settings."
+#~ msgstr ""
+#~ "Okay, non memorizzerò i comandi da questo Almond. Se cambi idea, puoi "
+#~ "modificare l'opzione dalle Impostazioni."
+
+#~ msgid ""
+#~ "Okay, on to what I can do: I am capable of understanding actions and "
+#~ "events over web services and smart devices. I do not chat, and I do not "
+#~ "understand questions very well. Please check out the Cheatsheet (from the "
+#~ "menu) to find out what I understand, or type ‘help’."
+#~ msgstr ""
+#~ "Okay, continuando con cosa sono in grado di fare: sono capace di "
+#~ "comprendere azioni ed eventi applicabili a servizi online e dispositivi "
+#~ "smart. Non chiacchero, e non capisco molto bene le domande. Dai "
+#~ "un'occhiata al Bigino (dal menù) per scopire cosa capisco, o digita "
+#~ "‘aiuto’."
+
+#~ msgid ""
+#~ "Sorry, to allow access to your devices you must log in to your personal "
+#~ "account."
+#~ msgstr ""
+#~ "Mi dispiace, ma per consentire l'accesso ai tuoi dispositivi devi fare "
+#~ "login al tuo account personale."
+
+#, fuzzy
+#~ msgid "Okay, I'm going to remember: ${permission}."
+#~ msgstr "Okay, vado a impostare: %s."
+
+#, fuzzy
+#~ msgid "Omlet User @${username}"
+#~ msgstr "Utente Omlet @%s"
+
+#~ msgid ""
+#~ "Sorry, to execute this command you must log in to your personal account."
+#~ msgstr ""
+#~ "Mi dispiace, ma per eseguire questo comando devi fare login al tuo "
+#~ "account personale."
+
+#~ msgid "Sorry, I did not find any result for that."
+#~ msgstr "Mi dispiace, non ho trovato alcun risultato."
+
+#, fuzzy
+#~ msgid ""
+#~ "Okay, so you want me to ${command}${? (as asked by ${source})}. Is that "
+#~ "right?"
+#~ msgstr "Okay, quindi vuoi che io %s (come richiesto da %s). Giusto?"
+
+#, fuzzy
+#~ msgid "I'm going to ${command} (as asked by ${source})."
+#~ msgstr "Ok, allora io %s (come richiesto da %s)."
+
+#, fuzzy
+#~ msgid "Okay, I'm going to ${command}."
+#~ msgstr "Okay, allora io %s."
+
+#~ msgid "I agree, but to what?"
+#~ msgstr "Sono d'accordo, ma... su cosa?"
+
+#~ msgid "No way!"
+#~ msgstr "Non esiste!"
+
+#~ msgid "Yes what?"
+#~ msgstr "Sì cosa?"
+
+#~ msgid "Please click on one of the provided choices."
+#~ msgstr "Per favore clicca su una delle scelte visualizzate."
+
+#, fuzzy
+#~ msgid "Hello! How can I help you?"
+#~ msgstr "Subito! Come posso aiutarti?"
+
+#, fuzzy
+#~ msgid "Ok, so you want me to ${confirmation}. Is that right?"
+#~ msgstr "Okay, quindi vuoi che io %s. Giusto?"
+
+#, fuzzy
+#~ msgid "Here is what I found."
+#~ msgstr "Ecco quello che posso fare per te."
+
+#~ msgid "Sorry, but that's not what I asked."
+#~ msgstr "Mi dispiace, ma non è quello che ho chiesto."
+
+#~ msgid "I'm looking for a filter"
+#~ msgstr "Vorrei un filtro."
+
+#~ msgid "I'm sorry, you don't have permission to do that."
+#~ msgstr "Mi dispiace, non hai il permesso di eseguire questa operazione."
+
+#~ msgid "Consider it done."
+#~ msgstr "Consideralo fatto."
+
+#~ msgid "User not available to respond"
+#~ msgstr "L'utente non è disponibile a rispondere"
+
+#~ msgid "I know, right?"
+#~ msgstr "Vero?"
+
+#~ msgid "No need to be sorry."
+#~ msgstr "Non c'è motivo di scusarsi."
+
+#~ msgid "User not available"
+#~ msgstr "Utente non disponibile"
+
+#, fuzzy
+#~ msgid "Generic Bluetooth Device ${alias}"
+#~ msgstr "Dispositivo Bluetooth Generico %s"
+
+#~ msgid "This is a Bluetooth device of unknown or generic type"
+#~ msgstr "Questo è un dispositivo Bluetooth di tipo generico o sconosciuto"
+
+#~ msgid "This Almond has no bluetooth capability"
+#~ msgstr "Questo Almond non supporta il Bluetooth"
+
+#~ msgid "Insert your email address or phone number:"
+#~ msgstr "Inserisci il tuo numero di telefono o indirizzo email:"
+
+#~ msgid "Insert your password:"
+#~ msgstr "Inserisci la tua password:"
+
+#, fuzzy
+#~ msgid "Authentication failed: ${error}"
+#~ msgstr "Authenticazione fallita: %s"
+
+#, fuzzy
+#~ msgid "Matrix Account of ${userId}"
+#~ msgstr "Account Matrix di %s"
+
+#~ msgid "This is your Matrix Account."
+#~ msgstr "Questo è il tuo account Matrix."
 
 #, javascript-format
 #~ msgid "Configure %s"
@@ -1036,14 +2360,6 @@ msgstr "Questo è il tuo account Matrix."
 #~ msgstr[1] "Mi hai insegnato %d frasi."
 
 #, javascript-format
-#~ msgid "get %s"
-#~ msgstr "recupera %s"
-
-#, javascript-format
-#~ msgid "%s notify me"
-#~ msgstr "%s notificami"
-
-#, javascript-format
 #~ msgid "When: %s"
 #~ msgstr "Quando: %s"
 
@@ -1060,20 +2376,8 @@ msgstr "Questo è il tuo account Matrix."
 #~ msgstr "Errore di sintassi a %s linea %d: %s"
 
 #, javascript-format
-#~ msgid "%s would like to %s."
-#~ msgstr "%s vorrebbe %s"
-
-#, javascript-format
-#~ msgid "%s wants to %s"
-#~ msgstr "%s vuole %s"
-
-#, javascript-format
 #~ msgid "Okay, so %s. Is that right?"
 #~ msgstr "Okay, quindi %s. Giusto?"
-
-#, javascript-format
-#~ msgid "Use the %s from %s"
-#~ msgstr "Usa il %s da %s"
 
 #~ msgid "a time interval"
 #~ msgstr "un intervallo di tempo"
@@ -1102,9 +2406,6 @@ msgstr "Questo è il tuo account Matrix."
 #, javascript-format
 #~ msgid "I'm looking for %s in any of the supported units (%s)."
 #~ msgstr "Vorrei %s in una delle unità di misura supportate (%s)."
-
-#~ msgid "User cancelled"
-#~ msgstr "Annullato dall'utente"
 
 #, javascript-format
 #~ msgid "Sorry, to use %s, you must log in to your personal account."
@@ -1210,9 +2511,6 @@ msgstr "Questo è il tuo account Matrix."
 #~ msgid "If you need help at any point, try ‘help’."
 #~ msgstr "Se hai bisogno di aiuto in qualsiasi momento, prova ‘aiuto’."
 
-#~ msgid "What's the value of this filter?"
-#~ msgstr "Qual è il valore di questo filtro?"
-
 #~ msgid ""
 #~ "You haven't configured a Matrix account yet. You need a Matrix account to "
 #~ "let me talk to other Almonds."
@@ -1251,27 +2549,11 @@ msgstr "Questo è il tuo account Matrix."
 #~ msgstr "Ok, allora io %s."
 
 #, javascript-format
-#~ msgid "What is the value of the filter on the %s?"
-#~ msgstr "Qual è il valore del filtro su %s?"
-
-#, javascript-format
 #~ msgid "Sending rule to %s: %s"
 #~ msgstr "Invo regola a %s: %s"
 
 #~ msgid "never mind"
 #~ msgstr "non importa"
-
-#~ msgid "help"
-#~ msgstr "aiuto"
-
-#~ msgid "help %s"
-#~ msgstr "aiuto su %s"
-
-#~ msgid "make a command"
-#~ msgstr "crea comando"
-
-#~ msgid "ask %s to %s"
-#~ msgstr "chiedi a %s di %s"
 
 #~ msgid "Ok, so you want me to tell %s: %s. Is that right?"
 #~ msgstr "Ok, quindi vuoi che io dica a %s: %s. Corretto?"
@@ -1329,9 +2611,6 @@ msgstr "Questo è il tuo account Matrix."
 #~ msgid "Home"
 #~ msgstr "Per la casa"
 
-#~ msgid "Communication"
-#~ msgstr "Comunicazione"
-
 #~ msgid "Health and Fitness"
 #~ msgstr "Salute e Fitness"
 
@@ -1367,9 +2646,6 @@ msgstr "Questo è il tuo account Matrix."
 #~ msgid "Go to Dashboard"
 #~ msgstr "Vai alla Dashboard"
 
-#~ msgid ", owner is %s"
-#~ msgstr ", proprietario è %s"
-
 #~ msgid "What is the value of %s?"
 #~ msgstr "Qual è il valore di %s?"
 
@@ -1387,9 +2663,6 @@ msgstr "Questo è il tuo account Matrix."
 
 #~ msgid "Sorry,   I had an error processing your command: %s"
 #~ msgstr "Mi dispiace, c'è stato un errore nel processare il tuo comando: %s."
-
-#~ msgid "Execute"
-#~ msgstr "Esegui"
 
 #~ msgid "Ok, how about…"
 #~ msgstr "Ok, che dici di…"
@@ -1441,18 +2714,6 @@ msgstr "Questo è il tuo account Matrix."
 #~ msgid "Query"
 #~ msgstr "Interrogazione"
 
-#~ msgid "%s if %s"
-#~ msgstr "%s se %s"
-
-#~ msgid "%s then %s"
-#~ msgstr "%s quindi %s"
-
-#~ msgid "notify if %s"
-#~ msgstr "notifica se %s"
-
-#~ msgid "Monitor"
-#~ msgstr "Osserva"
-
 #~ msgid ""
 #~ "You can configure devices by command ‘configure ____’, e.g., ‘configure "
 #~ "twitter’."
@@ -1460,50 +2721,14 @@ msgstr "Questo è il tuo account Matrix."
 #~ "Puoi configurare dispositivi usando il comando 'configura ____', per "
 #~ "esempio 'configura twitter'."
 
-#~ msgid "here"
-#~ msgstr "qui"
-
-#~ msgid "at home"
-#~ msgstr "a casa"
-
-#~ msgid "at work"
-#~ msgstr "al lavoro"
-
-#~ msgid "the event"
-#~ msgstr "l'evento"
-
-#~ msgid "the event's title"
-#~ msgstr "il titolo dell'evento"
-
-#~ msgid "the event's long description"
-#~ msgstr "la descrizione lunga dell'evento"
-
 #~ msgid "on"
 #~ msgstr "acceso"
 
 #~ msgid "off"
 #~ msgstr "spento"
 
-#~ msgid "%s on %s"
-#~ msgstr "%s su %s"
-
-#~ msgid " and %s has %s"
-#~ msgstr " e %s ha %s"
-
-#~ msgid " and %s contains %s"
-#~ msgstr " e %s contiene %s"
-
-#~ msgid " and %s is less than %s"
-#~ msgstr " e %s è minore di %s"
-
-#~ msgid " and %s is greater than %s"
-#~ msgstr " e %s è maggiore di %s"
-
 #~ msgid "I'm a little confused, sorry. What where we talking about?"
 #~ msgstr "Sono un attimo confusa, scusa. Di cosa stavamo parlando?"
-
-#~ msgid "Can I call you %s?"
-#~ msgstr "Posso chiamarti %s?"
 
 #~ msgid "What's your name?"
 #~ msgstr "Come ti chiami?"
@@ -1558,9 +2783,6 @@ msgstr "Questo è il tuo account Matrix."
 
 #~ msgid "Discovering…"
 #~ msgstr "Ricerca…"
-
-#~ msgid "What device do you want to discover?"
-#~ msgstr "Quale dispositivo vuoi cercare?"
 
 #~ msgid "So sorry that I can't find %s in my database."
 #~ msgstr "Mi dispiace molto, ma non riesco a trovare %s nel mio database."
@@ -1620,17 +2842,11 @@ msgstr "Questo è il tuo account Matrix."
 #~ msgid "${data}"
 #~ msgstr "${data}"
 
-#~ msgid "How much fake data do you want?"
-#~ msgstr "Quanti dati fasulli vuoi?"
-
 #~ msgid "get sequence number on test"
 #~ msgstr "ottieni numero di sequenza di test"
 
 #~ msgid "return the next test number"
 #~ msgstr "ritorna il prossimo numero di test"
-
-#~ msgid "${number}"
-#~ msgstr "${number}"
 
 #~ msgid "duplicate data on test"
 #~ msgstr "duplica dati di test"
@@ -1653,9 +2869,6 @@ msgstr "Questo è il tuo account Matrix."
 #~ msgid "consume $data on $__person's Almond"
 #~ msgstr "consuma $data sull'Almond di $__person"
 
-#~ msgid "What do you want me to consume?"
-#~ msgstr "Che cosa vuoi che io consumi?"
-
 #~ msgid "say"
 #~ msgstr "dici"
 
@@ -1674,23 +2887,11 @@ msgstr "Questo è il tuo account Matrix."
 #~ "account specifico. Per lo più relativi al tempo e al caso, perché "
 #~ "l'universo è caos e ad essi non si può sfuggire. E anche debugging."
 
-#~ msgid "get current location"
-#~ msgstr "posizione corrente"
-
-#~ msgid "your location"
-#~ msgstr "la tua posizione"
-
 #~ msgid "$__person's location"
 #~ msgstr "la posizione di $__person"
 
-#~ msgid "Current Location: ${location}"
-#~ msgstr "Posizione corrente: ${location}"
-
 #~ msgid "What location are you interested in?"
 #~ msgstr "A quale posizione sei interessato?"
-
-#~ msgid "location"
-#~ msgstr "località"
 
 #~ msgid "altitude"
 #~ msgstr "altitudine"
@@ -1701,17 +2902,8 @@ msgstr "Questo è il tuo account Matrix."
 #~ msgid "speed"
 #~ msgstr "velocità"
 
-#~ msgid "get time"
-#~ msgstr "ottieni ora"
-
-#~ msgid "the current time"
-#~ msgstr "l'ora attuale"
-
 #~ msgid "Current time is ${time:time}."
 #~ msgstr "L'ora attuale è ${time:time}."
-
-#~ msgid "get date"
-#~ msgstr "ottieni data"
 
 #~ msgid "today's date"
 #~ msgstr "la data di oggi"
@@ -1728,23 +2920,11 @@ msgstr "Questo è il tuo account Matrix."
 #~ msgid "${random}"
 #~ msgstr "${random}"
 
-#~ msgid "What should be the lower bound?"
-#~ msgstr "Qual è l'estremo inferiore?"
-
-#~ msgid "What should be the upper bound?"
-#~ msgstr "Qual è l'estremo superiore?"
-
 #~ msgid "list commands"
 #~ msgstr "lista comandi"
 
 #~ msgid "the list of commands of $device"
 #~ msgstr "la lista dei comandi di $device"
-
-#~ msgid "${program}"
-#~ msgstr "${program}"
-
-#~ msgid "What device do you want help for?"
-#~ msgstr "Per quale dispositivo hai bisogno di aiuto?"
 
 #~ msgid "get canned reply"
 #~ msgstr "ottieni risposta confezionata"
@@ -1764,26 +2944,17 @@ msgstr "Questo è il tuo account Matrix."
 #~ msgid "write $message in the developer logs on $__person's phone"
 #~ msgstr "scrivi $message nei registri di sviluppo di $__person"
 
-#~ msgid "What should I write in the logs?"
-#~ msgstr "Cosa devo scrivere nel registro?"
-
 #~ msgid "configure"
 #~ msgstr "configura"
 
 #~ msgid "configure a new $device on $__person's Almond"
 #~ msgstr "configura un nuovo $device nell'Almond di $__person"
 
-#~ msgid "What device do you want to configure?"
-#~ msgstr "Quale dispositivo vuoi configurare?"
-
 #~ msgid "send me a message $message"
 #~ msgstr "mandami un messaggio $message"
 
 #~ msgid "send $__person message $message"
 #~ msgstr "manda un messaggio $message a $__person"
-
-#~ msgid "What do you want me to say?"
-#~ msgstr "Che cosa vuoi che io dica?"
 
 #~ msgid "discover"
 #~ msgstr "scopri"
@@ -1802,9 +2973,6 @@ msgstr "Questo è il tuo account Matrix."
 
 #~ msgid "open $url in $__person's PC"
 #~ msgstr "apri $url nel PC di $__person"
-
-#~ msgid "What URL do you want to open?"
-#~ msgstr "Quale URL vuoi aprire?"
 
 #~ msgid "Remote Almond"
 #~ msgstr "Almond remoto"
@@ -1874,8 +3042,181 @@ msgstr "Questo è il tuo account Matrix."
 #~ msgid "Timer at %s elapsed."
 #~ msgstr "Timer alle ore %s scaduto."
 
-#~ msgid "Current date is %s"
-#~ msgstr "La data di oggi è %s"
-
 #~ msgid "New SMS from %s: %s"
 #~ msgstr "Nuovo SMS da %s: %s"
+
+#, fuzzy
+#~ msgid "when ${utterance} change"
+#~ msgstr "quando %s cambia"
+
+#, fuzzy
+#~ msgid "Whose account do you want to use?"
+#~ msgstr "Quando vuoi che il tuo comando sia eseguito?"
+
+#, fuzzy
+#~ msgid "Searching for ${device}…"
+#~ msgstr "tutti i tuoi %s"
+
+#, fuzzy
+#~ msgid "Would you like to add more elements to the list?"
+#~ msgstr "Cosa vuoi che sia il secondo %s?"
+
+#, fuzzy
+#~ msgid "Please enter the ${label}."
+#~ msgstr "Per favore dimmi il ${argcanonical}."
+
+#, fuzzy
+#~ msgid "What would you like to know?"
+#~ msgstr "Cosa vuoi che sia il secondo %s?"
+
+#, fuzzy
+#~ msgid "At your service."
+#~ msgstr "tutti i tuoi %s"
+
+#, fuzzy, javascript-format
+#~ msgid "get %s"
+#~ msgstr "%s, ottieni %s"
+
+#, fuzzy, javascript-format
+#~ msgid "%s notify me"
+#~ msgstr "notifichi te"
+
+#, fuzzy, javascript-format
+#~ msgid "%s would like to %s."
+#~ msgstr "a %s è consentito %s"
+
+#, fuzzy, javascript-format
+#~ msgid "%s wants to %s"
+#~ msgstr "%s a %s"
+
+#, fuzzy, javascript-format
+#~ msgid "Use the %s from %s"
+#~ msgstr "il %s di %s"
+
+#, fuzzy
+#~ msgid "What's the value of this filter?"
+#~ msgstr "Qual è l'indice del primo risultato che vuoi?"
+
+#, fuzzy, javascript-format
+#~ msgid "What is the value of the filter on the %s?"
+#~ msgstr "Qual è l'indice del primo risultato che vuoi?"
+
+#, fuzzy
+#~ msgid "help %s"
+#~ msgstr "aiuto"
+
+#, fuzzy
+#~ msgid "ask %s to %s"
+#~ msgstr "%s a %s"
+
+#, fuzzy
+#~ msgid "Communication"
+#~ msgstr "Notifica"
+
+#, fuzzy
+#~ msgid ", owner is %s"
+#~ msgstr "il tuo %2$s %1$s"
+
+#, fuzzy
+#~ msgid "Execute"
+#~ msgstr "Esegui %s"
+
+#, fuzzy
+#~ msgid "notify if %s"
+#~ msgstr "notificami quando %s"
+
+#, fuzzy
+#~ msgid "Monitor"
+#~ msgstr "Osserva %s"
+
+#, fuzzy
+#~ msgid "the event's title"
+#~ msgstr "il titolo del risultato"
+
+#, fuzzy
+#~ msgid "%s on %s"
+#~ msgstr "%s o %s"
+
+#, fuzzy
+#~ msgid " and %s has %s"
+#~ msgstr " e %s uguale a %s"
+
+#, fuzzy
+#~ msgid " and %s contains %s"
+#~ msgstr "il %s contiene %s"
+
+#, fuzzy
+#~ msgid " and %s is less than %s"
+#~ msgstr "il %s è minore di %s"
+
+#, fuzzy
+#~ msgid " and %s is greater than %s"
+#~ msgstr "il %s è maggiore di %s"
+
+#, fuzzy
+#~ msgid "Can I call you %s?"
+#~ msgstr "tutti i tuoi %2$s %1$s"
+
+#, fuzzy
+#~ msgid "What device do you want to discover?"
+#~ msgstr "Quando vuoi che il tuo comando sia eseguito?"
+
+#, fuzzy
+#~ msgid "How much fake data do you want?"
+#~ msgstr "Quale risultato vuoi?"
+
+#, fuzzy
+#~ msgid "${number}"
+#~ msgstr "qualche numero"
+
+#, fuzzy
+#~ msgid "What do you want me to consume?"
+#~ msgstr "Quando vuoi che il tuo comando sia eseguito?"
+
+#, fuzzy
+#~ msgid "get current location"
+#~ msgstr "l'ora attuale"
+
+#, fuzzy
+#~ msgid "your location"
+#~ msgstr "la mia posizione"
+
+#, fuzzy
+#~ msgid "get time"
+#~ msgstr "qualche orario"
+
+#, fuzzy
+#~ msgid "get date"
+#~ msgstr "qualche data"
+
+#, fuzzy
+#~ msgid "What should be the lower bound?"
+#~ msgstr "Chi deve eseguire questo comando?"
+
+#, fuzzy
+#~ msgid "What should be the upper bound?"
+#~ msgstr "Chi deve eseguire questo comando?"
+
+#, fuzzy
+#~ msgid "What device do you want help for?"
+#~ msgstr "Quale risultato vuoi?"
+
+#, fuzzy
+#~ msgid "What should I write in the logs?"
+#~ msgstr "Chi deve eseguire questo comando?"
+
+#, fuzzy
+#~ msgid "What device do you want to configure?"
+#~ msgstr "Quando vuoi che il tuo comando sia eseguito?"
+
+#, fuzzy
+#~ msgid "What do you want me to say?"
+#~ msgstr "Quando vuoi che il tuo comando sia eseguito?"
+
+#, fuzzy
+#~ msgid "What URL do you want to open?"
+#~ msgstr "Quando vuoi che il tuo comando sia eseguito?"
+
+#, fuzzy
+#~ msgid "Current date is %s"
+#~ msgstr "l'ora attuale"

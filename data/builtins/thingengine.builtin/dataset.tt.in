@@ -1,0 +1,130 @@
+dataset @org.thingpedia.builtin.thingengine.builtin language "en" {
+    stream := monitor (@org.thingpedia.builtin.thingengine.builtin.get_gps())
+    #_[utterances=["when my location changes",
+                   "when i move",
+                   "when i move around",
+                   "when i change location",
+                   "when my position changes"]]
+    #[id=53269105]
+    #[name="MonitorGetCurrentLocation"];
+
+    stream (p_location :Location) := monitor (@org.thingpedia.builtin.thingengine.builtin.get_gps()), location == p_location
+    #_[utterances=["when my location changes to $p_location",
+                   "when i reach $p_location",
+                   "when i get to $p_location",
+                   "when i arrive at $p_location"]]
+    #[id=53269110]
+    #[name="MonitorGetCurrentLocationByLocation"];
+
+    stream (p_location :Location) := monitor (@org.thingpedia.builtin.thingengine.builtin.get_gps()), !(location == p_location)
+    #_[utterances=["when i move away from $p_location",
+                   "when my location changes away from $p_location",
+                   "when i leave $p_location"]]
+    #[id=53269117]
+    #[name="MonitorGetCurrentLocationNotByLocation"];
+
+    program := @org.thingpedia.builtin.thingengine.builtin.get_time()
+    #_[utterances=["what time is it"]]
+    #[id=53269120]
+    #[name="GetTime"];
+
+    program := @org.thingpedia.builtin.thingengine.builtin.get_date()
+    #_[utterances=["what day is today",
+                   "what day is it"]]
+    #[id=53269122]
+    #[name="GetDate"];
+
+    query := @org.thingpedia.builtin.thingengine.builtin.get_random_between()
+    #_[utterances=[", choose a random number",
+                   ", throw a dice"]]
+    #[id=53269126]
+    #[name="GetRandomInteger"];
+
+    query (p_low :Number, p_high :Number) := @org.thingpedia.builtin.thingengine.builtin.get_random_between(low=p_low, high=p_high)
+    #_[utterances=["a random number between ${p_low:const} and ${p_high:const}",
+                   "a random integer between ${p_low:const} and ${p_high:const}",
+                   ", throw a dice between ${p_low:const} and ${p_high:const}",
+                   ", generate a random number between ${p_low:const} and ${p_high:const}",
+                   ", choose a number between ${p_low:const} and ${p_high:const}"]]
+    #[id=53269129]
+    #[name="GetRandomIntegerWithLowWithHigh"];
+
+    action (p_message :String) := @org.thingpedia.builtin.thingengine.builtin.say(message=p_message)
+    #_[utterances=["send me a message ${p_message:const}",
+                   "tell me $p_message",
+                   "say $p_message"]]
+    #[id=53269140]
+    #[name="SayWithMessage"];
+
+    action (p_url :Entity(tt:url)) := @org.thingpedia.builtin.thingengine.builtin.open_url(url=p_url)
+    #_[utterances=["open $p_url",
+                   "open the file at $p_url",
+                   "open $p_url in the browser",
+                   "browse to $p_url"]]
+    #[id=53269149]
+    #[name="OpenUrlOnBuiltinWithUrl"];
+
+/*
+    action := @org.thingpedia.builtin.thingengine.builtin.discover()
+    #_[utterances=["discover new devices",
+                   "search devices nearby"]]
+    #[id=53269134]
+    #[name="Discover"];
+*/
+
+    action (p_device :Entity(tt:device)) := @org.thingpedia.builtin.thingengine.builtin.configure(device=p_device)
+    #_[utterances=["configure $p_device",
+                   "setup $p_device",
+                   "enable $p_device",
+                   "install $p_device",
+                   "connect to $p_device",
+                   "add a new $p_device account"]]
+    #[id=53269136]
+    #[name="ConfigureWithDevice"];
+
+    action (p_status : Enum(on,off)) = @org.thingpedia.builtin.thingengine.builtin.set_voice_output(status=p_status)
+    #_[utterances=["turn ${p_status} voice output"]];
+
+    // note: these are "program" because they don't fit the usual
+    // assistant paradigm of doing things on the user's behalf
+    program (p_status : Enum(on,off)) = @org.thingpedia.builtin.thingengine.builtin.set_voice_output(status=p_status)
+    #_[utterances=["turn ${p_status} your voice"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.set_voice_output(status=enum on)
+    #_[utterances=["start speaking", "talk to me", "use voice to talk to me",
+                   "speak to me"]];
+
+    // note: "stop speaking" is just "stop", it doesn't turn off voice forever
+    program = @org.thingpedia.builtin.thingengine.builtin.set_voice_output(status=enum off)
+    #_[utterances=["disable voice output"]];
+
+    action (p_status : Enum(on,off)) = @org.thingpedia.builtin.thingengine.builtin.set_voice_input(status=p_status)
+    #_[utterances=["turn ${p_status} voice input"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.set_voice_input(status=enum on)
+    #_[utterances=["start listening", "i want to use my voice", "listen to me"]];
+
+    program = @org.thingpedia.builtin.thingengine.builtin.set_voice_input(status=enum off)
+    #_[utterances=["disable voice input", "stop listening"]];
+
+    // note that "call" is not action (even though it's verb), because action templates
+    // must work with both "please do X" and "i would like to do X"
+    // (and "i would like to call me bob" is nonsensical)
+    program (p_name : String) = @org.thingpedia.builtin.thingengine.builtin.set_name(name=p_name)
+    #_[utterances=["call me ${p_name}", "refer to me as ${p_name}", "i am ${p_name}", "my name is ${p_name}",
+                   "i would like you to call me ${p_name}"]];
+
+    action (p_type : Enum(current,home,work)) = @org.thingpedia.builtin.thingengine.builtin.set_location(type=p_type)
+    #_[utterances=["set my ${p_type} location",
+                   "set my ${p_type} address",
+                   "remember my ${p_type} location",
+                   "change my ${p_type} address"]];
+
+    program (p_location : Location) = @org.thingpedia.builtin.thingengine.builtin.set_location(location=p_location)
+    #_[utterances=["my address is ${p_location}",
+                   "my location is ${p_location}"]];
+
+    program (p_type : Enum(current,home,work), p_location : Location) = @org.thingpedia.builtin.thingengine.builtin.set_location(type=p_type, location=p_location)
+    #_[utterances=["my ${p_type} address is ${p_location}",
+                   "my ${p_type} is at ${p_location}"]];
+}

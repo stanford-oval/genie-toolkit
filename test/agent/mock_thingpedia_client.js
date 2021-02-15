@@ -17,15 +17,15 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
-const ThingTalk = require('thingtalk');
-const Tp = require('thingpedia');
-const fs = require('fs');
-const path = require('path');
-const util = require('util');
-const ThingpediaDeviceFactories = require('./thingpedia-device-factories.json');
+
+import assert from 'assert';
+import * as ThingTalk from 'thingtalk';
+import * as Tp from 'thingpedia';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as util from 'util';
+import ThingpediaDeviceFactories from './thingpedia-device-factories.json';
 
 const _rssFactory = {
     "type":"form",
@@ -35,7 +35,7 @@ const _rssFactory = {
     "fields":[{"name":"url","label":"Feed URL","type":"text"}]
 };
 
-module.exports = class MockThingpediaClient extends Tp.BaseClient {
+export default class MockThingpediaClient extends Tp.BaseClient {
     constructor(testRunner) {
         super();
         this._testRunner = testRunner;
@@ -206,7 +206,11 @@ module.exports = class MockThingpediaClient extends Tp.BaseClient {
     }
 
     getDeviceCode(kind) {
-        return util.promisify(fs.readFile)(path.resolve(path.dirname(module.filename), kind + '.tt'), { encoding: 'utf8' });
+        const parsed = ThingTalk.Syntax.parse(this._devices);
+        const found = parsed.classes.find((classDef) => classDef.kind === kind);
+        if (!found)
+            throw new Error('Not Found');
+        return found.prettyprint();
     }
 
     getDeviceList(klass, page, page_size) {
@@ -225,6 +229,10 @@ module.exports = class MockThingpediaClient extends Tp.BaseClient {
                 ret[k] = {type: 'multiple', choices: [{ type: 'oauth2', kind: 'com.tumblr', text: "Tumblr Account" }, { type: 'form', kind: 'com.tumblr2', text: 'Some other Tumblr Thing' }]};
             else if (k === 'com.instagram')
                 ret[k] = {type: 'oauth2', kind: 'com.instagram', text: 'Instagram'};
+            else if (k === 'org.thingpedia.iot.light-bulb')
+                ret[k] = {type: 'multiple', text: 'Light Bulb', choices: [{ type: 'oauth2', kind: 'io.home-assistant', text: 'Home Assistant'}, { type: 'discovery', discoveryType: 'upnp', kind: 'com.hue', text:'Philips Hue'}] };
+            else if (k === 'org.thingpedia.iot.door')
+                ret[k] = {type: 'oauth2', kind: 'io.home-assistant', text: 'Home Assistant'};
             else if (k === 'org.thingpedia.rss')
                 ret[k] = _rssFactory;
             else if (k === 'org.thingpedia.builtin.thingengine.home' || k === 'car')
@@ -238,7 +246,7 @@ module.exports = class MockThingpediaClient extends Tp.BaseClient {
     async getAllDeviceNames() {
         await this._ensureLoaded();
 
-        const parsed = ThingTalk.Grammar.parse(this._devices);
+        const parsed = ThingTalk.Syntax.parse(this._devices);
         let names = [];
         for (let classDef of parsed.classes) {
             names.push({
@@ -277,4 +285,4 @@ module.exports = class MockThingpediaClient extends Tp.BaseClient {
 
         return util.promisify(fs.readFile)(path.resolve(path.dirname(module.filename), 'examples/' + kinds[0] + '.tt'), { encoding: 'utf8' });
     }
-};
+}

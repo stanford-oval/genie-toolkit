@@ -17,36 +17,35 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
-const ThingTalk = require('thingtalk');
-const Type = ThingTalk.Type;
+
+import { Type } from 'thingtalk';
 
 const PROPERTY_TYPE_OVERRIDE = {
-    'P166': Type.Array(Type.Entity('org.wikidata:award')), // award_received
-    'P1411': Type.Array(Type.Entity('org.wikidata:award')), // nominated_for
-    'P106': Type.Array(Type.Entity('org.wikidata:occupation')), // occupation
-    'P26': Type.Array(Type.Entity('org.wikidata:human')), // spouse (it misses no "value type constraint" property)
-    'P21': Type.Enum(['female', 'male']),
-    'P17': Type.Entity('org.wikidata:country'), // country
+    'P166': new Type.Array(new Type.Entity('org.wikidata:award')), // award_received
+    'P1411': new Type.Array(new Type.Entity('org.wikidata:award')), // nominated_for
+    'P106': new Type.Array(new Type.Entity('org.wikidata:occupation')), // occupation
+    'P26': new Type.Array(new Type.Entity('org.wikidata:human')), // spouse (it misses no "value type constraint" property)
+    'P21': new Type.Enum(['female', 'male']),
+    'P17': new Type.Entity('org.wikidata:country'), // country
     'P2295': Type.Currency, // net profit (it misses no allowed unit property)
     'P2031': Type.Date, // work_period_start
     'P2032': Type.Date, // work_period_end
-    'P172': Type.Array(Type.Entity('org.wikidata:ethnic_group')), // ethnic_group
-    'P1344': Type.Array(Type.Entity('org.wikidata:event')), //participant_in
-    'P54': Type.Array(Type.Entity('org.wikidata:sports_team')), // member_of_sports_team
-    'P647': Type.Entity('org.wikidata:sports_team'), // drafted by
-    'P1618': Type.Array(Type.Number), // sport_number
+    'P172': new Type.Array(new Type.Entity('org.wikidata:ethnic_group')), // ethnic_group
+    'P1344': new Type.Array(new Type.Entity('org.wikidata:event')), //participant_in
+    'P54': new Type.Array(new Type.Entity('org.wikidata:sports_team')), // member_of_sports_team
+    'P647': new Type.Entity('org.wikidata:sports_team'), // drafted by
+    'P1618': new Type.Array(Type.Number), // sport_number
     'P1352': Type.Number, // ranking
-    'P1303': Type.Array(Type.Entity('org.wikidata:musical_instrument')), // instrument
-    'P264': Type.Array(Type.Entity('org.wikidata:record_label')), // record_label
-    'P361': Type.Array(Type.String), // part_of
-    'P398': Type.Array(Type.Entity('org.wikidata:star')), // child_astronomical_body
-    'P397': Type.Array(Type.Entity('org.wikidata:star')), // parent_astronomical_body
+    'P1303': new Type.Array(new Type.Entity('org.wikidata:musical_instrument')), // instrument
+    'P264': new Type.Array(new Type.Entity('org.wikidata:record_label')), // record_label
+    'P361': new Type.Array(Type.String), // part_of
+    'P398': new Type.Array(new Type.Entity('org.wikidata:star')), // child_astronomical_body
+    'P397': new Type.Array(new Type.Entity('org.wikidata:star')), // parent_astronomical_body
     'P2227': Type.Number, // metallicity
-    'P85': Type.Entity('org.wikidata:song'), // anthem
-    'P942': Type.Entity('org.wikidata:song'), // theme_music
-    'P36': Type.Entity('org.wikidata:city'), // capital
-    'P206': Type.Array(Type.String), // located_in_or_next_to_body_of_water
+    'P85': new Type.Entity('org.wikidata:song'), // anthem
+    'P942': new Type.Entity('org.wikidata:song'), // theme_music
+    'P36': new Type.Entity('org.wikidata:city'), // capital
+    'P206': new Type.Array(Type.String), // located_in_or_next_to_body_of_water
     'P610': Type.Location, // highest point
     'P1589': Type.Location, // lowest point
 };
@@ -115,7 +114,7 @@ const STRING_FILE_OVERRIDES = {
 };
 
 
-module.exports = {
+export {
     MANUAL_PROPERTY_CANONICAL_OVERRIDE,
     MANUAL_TABLE_CANONICAL_OVERRIDE,
 

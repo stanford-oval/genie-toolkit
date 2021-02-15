@@ -5,7 +5,7 @@ of virtual assistant commands, how to train a model on it, and how to deploy
 the model.
 
 Note: this tutorial assumes that you installed Genie using the ["git" installation
-instructions](install.md). If you used the "yarn" installation method, you will
+instructions](install.md). If you used the "npm" installation method, you will
 need to adjust the paths. 
 
 It is recommended to also install the

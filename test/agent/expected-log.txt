@@ -1,0 +1,1363 @@
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.facebook.post();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.facebook.post();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post();
+A: What do you want to post?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(status);
+AT: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post();
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.facebook.post(status="hello world");
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.facebook.post(status="hello world");
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post(status="hello world");
+A: Ok, do you want me to post hello world on Facebook?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_action;
+AT: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post(status="hello world");
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.facebook.post(status="hello world")
+U: #[confirm=enum confirmed];
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.facebook.post(status="hello world")
+UT: #[confirm=enum confirmed];
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post(status="hello world")
+C: #[results=[]];
+A: I posted hello world on Facebook.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.facebook.post();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.facebook.post();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post();
+A: What do you want to post?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(status);
+AT: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post();
+U: hello world
+UT: $answer("hello world");
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post(status="hello world");
+A: Ok, do you want me to post hello world on Facebook?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_action;
+AT: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post(status="hello world");
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.facebook.post(status="hello world")
+U: #[confirm=enum confirmed];
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.facebook.post(status="hello world")
+UT: #[confirm=enum confirmed];
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post(status="hello world")
+C: #[results=[]];
+A: I posted hello world on Facebook.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.end;
+UT: $dialogue @org.thingpedia.dialogue.transaction.end;
+C: $dialogue @org.thingpedia.dialogue.transaction.end;
+A: Alright, bye!
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.twitter.post();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.twitter.post();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post();
+A: What do you want to tweet?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(status);
+AT: @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post();
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.twitter.post(status="hello world");
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.twitter.post(status="hello world");
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status="hello world");
+A: Ok, do you want me to tweet hello world?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_action;
+AT: @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status="hello world");
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.twitter.post(status="hello world")
+U: #[confirm=enum confirmed];
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.twitter.post(status="hello world")
+UT: #[confirm=enum confirmed];
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status="hello world")
+C: #[results=[]];
+A: I tweeted hello world.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.yelp.restaurant();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.yelp.restaurant();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.yelp.restaurant()
+C: #[results=[
+C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles")], price=enum moderate, rating=4.5, reviewCount=1625, geo=new Location(37.445523, -122.1607073261) },
+C:   { id="1vMgajRAI3lYwuCeGX58oQ"^^com.yelp:restaurant("Evvia Estiatorio"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/Q3lgbcNuRbdrITtLN5CQgQ/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/evvia-estiatorio-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["greek"^^com.yelp:restaurant_cuisine("Greek")], price=enum expensive, rating=4.5, reviewCount=2393, geo=new Location(37.445077, -122.163778), phone="+16503260983"^^tt:phone_number },
+C:   { id="KyU7XWDPclmZ3BpdIsd_0Q"^^com.yelp:restaurant("Oren's Hummus"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/vOWdAh4DKhMisL0K4YzXtA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/orens-hummus-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["mediterranean"^^com.yelp:restaurant_cuisine("Mediterranean"), "mideastern"^^com.yelp:restaurant_cuisine("Middle Eastern")], price=enum moderate, rating=4, reviewCount=2248, geo=new Location(37.445717, -122.162173), phone="+16507526492"^^tt:phone_number },
+C:   { id="jwaXc3VVGDFQu1aCoiXwdw"^^com.yelp:restaurant("NOLA Restaurant & Bar"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/tna5SSdgZq3fFxoi4-Xx7A/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/nola-restaurant-and-bar-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["cajun"^^com.yelp:restaurant_cuisine("Cajun/Creole"), "newamerican"^^com.yelp:restaurant_cuisine("American (New)")], price=enum expensive, rating=3.5, reviewCount=2821, geo=new Location(37.4450225830078, -122.161323547363), phone="+16503282722"^^tt:phone_number },
+C:   { id="0WDM3JlNBvk2MeOTlu03mg"^^com.yelp:restaurant("Coconuts Caribbean Restaurant & Bar"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/mA7Jp9irSTjUq8yneVh2IQ/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/coconuts-caribbean-restaurant-and-bar-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["caribbean"^^com.yelp:restaurant_cuisine("Caribbean")], price=enum moderate, rating=4, reviewCount=2230, geo=new Location(37.44381, -122.16027), phone="+16503299533"^^tt:phone_number },
+C:   { id="_mkNOTiQ-kbc1kJHo9RoVA"^^com.yelp:restaurant("Tamarine Restaurant"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/u6KX5WLtw23IMcIJgOSSCw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/tamarine-restaurant-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["vietnamese"^^com.yelp:restaurant_cuisine("Vietnamese")], price=enum expensive, rating=4, reviewCount=1833, geo=new Location(37.44881, -122.15833), phone="+16503258500"^^tt:phone_number },
+C:   { id="TtYbsOqn7vLKhva0AuKQQQ"^^com.yelp:restaurant("Philz Coffee"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/P9zDXYxfa8YoBz85MF7l7Q/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/philz-coffee-palo-alto-6?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["breakfast_brunch"^^com.yelp:restaurant_cuisine("Breakfast & Brunch")], price=enum cheap, rating=4.5, reviewCount=796, geo=new Location(37.442174, -122.161583), phone="+16503212161"^^tt:phone_number },
+C:   { id="pi9MMjHWtVxC9eTnMk7e_w"^^com.yelp:restaurant("Crepevine Restaurant"), image_url="https://s3-media1.fl.yelpcdn.com/bphoto/ZSDMh6BuvTfxYLuEWz2-8w/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/crepevine-restaurant-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["breakfast_brunch"^^com.yelp:restaurant_cuisine("Breakfast & Brunch"), "creperies"^^com.yelp:restaurant_cuisine("Crepes"), "newamerican"^^com.yelp:restaurant_cuisine("American (New)")], price=enum moderate, rating=4, reviewCount=1313, geo=new Location(37.44698, -122.161), phone="+16503233900"^^tt:phone_number },
+C:   { id="vStWaPrdP4ysnKpj0WoHJQ"^^com.yelp:restaurant("Rangoon Ruby"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/q9vLRl72wFGCI19S_nwBvA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/rangoon-ruby-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["asianfusion"^^com.yelp:restaurant_cuisine("Asian Fusion"), "burmese"^^com.yelp:restaurant_cuisine("Burmese")], price=enum moderate, rating=3.5, reviewCount=1590, geo=new Location(37.445122, -122.163104), phone="+16503236543"^^tt:phone_number },
+C:   { id="-g_tUhyvUFbxOs0aB28j1w"^^com.yelp:restaurant("Palo Alto Creamery"), image_url="https://s3-media4.fl.yelpcdn.com/bphoto/a2J68P_xcM8KqPyWm0VEyA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/palo-alto-creamery-palo-alto-2?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["diners"^^com.yelp:restaurant_cuisine("Diners"), "breakfast_brunch"^^com.yelp:restaurant_cuisine("Breakfast & Brunch")], price=enum moderate, rating=4, reviewCount=1359, geo=new Location(37.4438831241214, -122.16178176729), phone="+16503233131"^^tt:phone_number }
+C: ]]
+C: #[count=50]
+C: #[more=true];
+A: I have Ramen Nagi or Evvia Estiatorio. They're restaurants rated 4.5 star.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: [price] of @com.yelp.restaurant() filter id == "vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant;
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: [price] of @com.yelp.restaurant() filter id == "vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant;
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.yelp.restaurant()
+C: #[results=[
+C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles")], price=enum moderate, rating=4.5, reviewCount=1625, geo=new Location(37.445523, -122.1607073261) },
+C:   { id="1vMgajRAI3lYwuCeGX58oQ"^^com.yelp:restaurant("Evvia Estiatorio"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/Q3lgbcNuRbdrITtLN5CQgQ/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/evvia-estiatorio-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["greek"^^com.yelp:restaurant_cuisine("Greek")], price=enum expensive, rating=4.5, reviewCount=2393, geo=new Location(37.445077, -122.163778), phone="+16503260983"^^tt:phone_number },
+C:   { id="KyU7XWDPclmZ3BpdIsd_0Q"^^com.yelp:restaurant("Oren's Hummus"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/vOWdAh4DKhMisL0K4YzXtA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/orens-hummus-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["mediterranean"^^com.yelp:restaurant_cuisine("Mediterranean"), "mideastern"^^com.yelp:restaurant_cuisine("Middle Eastern")], price=enum moderate, rating=4, reviewCount=2248, geo=new Location(37.445717, -122.162173), phone="+16507526492"^^tt:phone_number },
+C:   { id="jwaXc3VVGDFQu1aCoiXwdw"^^com.yelp:restaurant("NOLA Restaurant & Bar"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/tna5SSdgZq3fFxoi4-Xx7A/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/nola-restaurant-and-bar-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["cajun"^^com.yelp:restaurant_cuisine("Cajun/Creole"), "newamerican"^^com.yelp:restaurant_cuisine("American (New)")], price=enum expensive, rating=3.5, reviewCount=2821, geo=new Location(37.4450225830078, -122.161323547363), phone="+16503282722"^^tt:phone_number },
+C:   { id="0WDM3JlNBvk2MeOTlu03mg"^^com.yelp:restaurant("Coconuts Caribbean Restaurant & Bar"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/mA7Jp9irSTjUq8yneVh2IQ/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/coconuts-caribbean-restaurant-and-bar-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["caribbean"^^com.yelp:restaurant_cuisine("Caribbean")], price=enum moderate, rating=4, reviewCount=2230, geo=new Location(37.44381, -122.16027), phone="+16503299533"^^tt:phone_number },
+C:   { id="_mkNOTiQ-kbc1kJHo9RoVA"^^com.yelp:restaurant("Tamarine Restaurant"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/u6KX5WLtw23IMcIJgOSSCw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/tamarine-restaurant-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["vietnamese"^^com.yelp:restaurant_cuisine("Vietnamese")], price=enum expensive, rating=4, reviewCount=1833, geo=new Location(37.44881, -122.15833), phone="+16503258500"^^tt:phone_number },
+C:   { id="TtYbsOqn7vLKhva0AuKQQQ"^^com.yelp:restaurant("Philz Coffee"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/P9zDXYxfa8YoBz85MF7l7Q/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/philz-coffee-palo-alto-6?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["breakfast_brunch"^^com.yelp:restaurant_cuisine("Breakfast & Brunch")], price=enum cheap, rating=4.5, reviewCount=796, geo=new Location(37.442174, -122.161583), phone="+16503212161"^^tt:phone_number },
+C:   { id="pi9MMjHWtVxC9eTnMk7e_w"^^com.yelp:restaurant("Crepevine Restaurant"), image_url="https://s3-media1.fl.yelpcdn.com/bphoto/ZSDMh6BuvTfxYLuEWz2-8w/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/crepevine-restaurant-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["breakfast_brunch"^^com.yelp:restaurant_cuisine("Breakfast & Brunch"), "creperies"^^com.yelp:restaurant_cuisine("Crepes"), "newamerican"^^com.yelp:restaurant_cuisine("American (New)")], price=enum moderate, rating=4, reviewCount=1313, geo=new Location(37.44698, -122.161), phone="+16503233900"^^tt:phone_number },
+C:   { id="vStWaPrdP4ysnKpj0WoHJQ"^^com.yelp:restaurant("Rangoon Ruby"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/q9vLRl72wFGCI19S_nwBvA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/rangoon-ruby-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["asianfusion"^^com.yelp:restaurant_cuisine("Asian Fusion"), "burmese"^^com.yelp:restaurant_cuisine("Burmese")], price=enum moderate, rating=3.5, reviewCount=1590, geo=new Location(37.445122, -122.163104), phone="+16503236543"^^tt:phone_number },
+C:   { id="-g_tUhyvUFbxOs0aB28j1w"^^com.yelp:restaurant("Palo Alto Creamery"), image_url="https://s3-media4.fl.yelpcdn.com/bphoto/a2J68P_xcM8KqPyWm0VEyA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/palo-alto-creamery-palo-alto-2?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["diners"^^com.yelp:restaurant_cuisine("Diners"), "breakfast_brunch"^^com.yelp:restaurant_cuisine("Breakfast & Brunch")], price=enum moderate, rating=4, reviewCount=1359, geo=new Location(37.4438831241214, -122.16178176729), phone="+16503233131"^^tt:phone_number }
+C: ]]
+C: #[count=50]
+C: #[more=true];
+C: [price] of @com.yelp.restaurant() filter id == "vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant
+C: #[results=[
+C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), price=enum moderate }
+C: ]];
+A: Ramen Nagi is a moderate restaurant.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.yelp.restaurant() filter price == enum expensive;
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.yelp.restaurant() filter price == enum expensive;
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.yelp.restaurant()
+C: #[results=[
+C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles")], price=enum moderate, rating=4.5, reviewCount=1625, geo=new Location(37.445523, -122.1607073261) },
+C:   { id="1vMgajRAI3lYwuCeGX58oQ"^^com.yelp:restaurant("Evvia Estiatorio"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/Q3lgbcNuRbdrITtLN5CQgQ/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/evvia-estiatorio-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["greek"^^com.yelp:restaurant_cuisine("Greek")], price=enum expensive, rating=4.5, reviewCount=2393, geo=new Location(37.445077, -122.163778), phone="+16503260983"^^tt:phone_number },
+C:   { id="KyU7XWDPclmZ3BpdIsd_0Q"^^com.yelp:restaurant("Oren's Hummus"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/vOWdAh4DKhMisL0K4YzXtA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/orens-hummus-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["mediterranean"^^com.yelp:restaurant_cuisine("Mediterranean"), "mideastern"^^com.yelp:restaurant_cuisine("Middle Eastern")], price=enum moderate, rating=4, reviewCount=2248, geo=new Location(37.445717, -122.162173), phone="+16507526492"^^tt:phone_number },
+C:   { id="jwaXc3VVGDFQu1aCoiXwdw"^^com.yelp:restaurant("NOLA Restaurant & Bar"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/tna5SSdgZq3fFxoi4-Xx7A/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/nola-restaurant-and-bar-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["cajun"^^com.yelp:restaurant_cuisine("Cajun/Creole"), "newamerican"^^com.yelp:restaurant_cuisine("American (New)")], price=enum expensive, rating=3.5, reviewCount=2821, geo=new Location(37.4450225830078, -122.161323547363), phone="+16503282722"^^tt:phone_number },
+C:   { id="0WDM3JlNBvk2MeOTlu03mg"^^com.yelp:restaurant("Coconuts Caribbean Restaurant & Bar"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/mA7Jp9irSTjUq8yneVh2IQ/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/coconuts-caribbean-restaurant-and-bar-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["caribbean"^^com.yelp:restaurant_cuisine("Caribbean")], price=enum moderate, rating=4, reviewCount=2230, geo=new Location(37.44381, -122.16027), phone="+16503299533"^^tt:phone_number },
+C:   { id="_mkNOTiQ-kbc1kJHo9RoVA"^^com.yelp:restaurant("Tamarine Restaurant"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/u6KX5WLtw23IMcIJgOSSCw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/tamarine-restaurant-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["vietnamese"^^com.yelp:restaurant_cuisine("Vietnamese")], price=enum expensive, rating=4, reviewCount=1833, geo=new Location(37.44881, -122.15833), phone="+16503258500"^^tt:phone_number },
+C:   { id="TtYbsOqn7vLKhva0AuKQQQ"^^com.yelp:restaurant("Philz Coffee"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/P9zDXYxfa8YoBz85MF7l7Q/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/philz-coffee-palo-alto-6?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["breakfast_brunch"^^com.yelp:restaurant_cuisine("Breakfast & Brunch")], price=enum cheap, rating=4.5, reviewCount=796, geo=new Location(37.442174, -122.161583), phone="+16503212161"^^tt:phone_number },
+C:   { id="pi9MMjHWtVxC9eTnMk7e_w"^^com.yelp:restaurant("Crepevine Restaurant"), image_url="https://s3-media1.fl.yelpcdn.com/bphoto/ZSDMh6BuvTfxYLuEWz2-8w/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/crepevine-restaurant-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["breakfast_brunch"^^com.yelp:restaurant_cuisine("Breakfast & Brunch"), "creperies"^^com.yelp:restaurant_cuisine("Crepes"), "newamerican"^^com.yelp:restaurant_cuisine("American (New)")], price=enum moderate, rating=4, reviewCount=1313, geo=new Location(37.44698, -122.161), phone="+16503233900"^^tt:phone_number },
+C:   { id="vStWaPrdP4ysnKpj0WoHJQ"^^com.yelp:restaurant("Rangoon Ruby"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/q9vLRl72wFGCI19S_nwBvA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/rangoon-ruby-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["asianfusion"^^com.yelp:restaurant_cuisine("Asian Fusion"), "burmese"^^com.yelp:restaurant_cuisine("Burmese")], price=enum moderate, rating=3.5, reviewCount=1590, geo=new Location(37.445122, -122.163104), phone="+16503236543"^^tt:phone_number },
+C:   { id="-g_tUhyvUFbxOs0aB28j1w"^^com.yelp:restaurant("Palo Alto Creamery"), image_url="https://s3-media4.fl.yelpcdn.com/bphoto/a2J68P_xcM8KqPyWm0VEyA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/palo-alto-creamery-palo-alto-2?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["diners"^^com.yelp:restaurant_cuisine("Diners"), "breakfast_brunch"^^com.yelp:restaurant_cuisine("Breakfast & Brunch")], price=enum moderate, rating=4, reviewCount=1359, geo=new Location(37.4438831241214, -122.16178176729), phone="+16503233131"^^tt:phone_number }
+C: ]]
+C: #[count=50]
+C: #[more=true];
+C: [price] of @com.yelp.restaurant() filter id == "vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant
+C: #[results=[
+C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), price=enum moderate }
+C: ]];
+C: @com.yelp.restaurant() filter price == enum expensive
+C: #[results=[
+C:   { id="1vMgajRAI3lYwuCeGX58oQ"^^com.yelp:restaurant("Evvia Estiatorio"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/Q3lgbcNuRbdrITtLN5CQgQ/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/evvia-estiatorio-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["greek"^^com.yelp:restaurant_cuisine("Greek")], price=enum expensive, rating=4.5, reviewCount=2393, geo=new Location(37.445077, -122.163778), phone="+16503260983"^^tt:phone_number },
+C:   { id="jwaXc3VVGDFQu1aCoiXwdw"^^com.yelp:restaurant("NOLA Restaurant & Bar"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/tna5SSdgZq3fFxoi4-Xx7A/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/nola-restaurant-and-bar-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["cajun"^^com.yelp:restaurant_cuisine("Cajun/Creole"), "newamerican"^^com.yelp:restaurant_cuisine("American (New)")], price=enum expensive, rating=3.5, reviewCount=2821, geo=new Location(37.4450225830078, -122.161323547363), phone="+16503282722"^^tt:phone_number },
+C:   { id="_mkNOTiQ-kbc1kJHo9RoVA"^^com.yelp:restaurant("Tamarine Restaurant"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/u6KX5WLtw23IMcIJgOSSCw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/tamarine-restaurant-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["vietnamese"^^com.yelp:restaurant_cuisine("Vietnamese")], price=enum expensive, rating=4, reviewCount=1833, geo=new Location(37.44881, -122.15833), phone="+16503258500"^^tt:phone_number },
+C:   { id="lQS2YhPTyMlkTbDROjYK0g"^^com.yelp:restaurant("Joya Restaurant & Lounge"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/M4Fzvha8f79dAwth76QX4Q/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/joya-restaurant-and-lounge-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["latin"^^com.yelp:restaurant_cuisine("Latin American"), "tapas"^^com.yelp:restaurant_cuisine("Tapas Bars")], price=enum expensive, rating=3.5, reviewCount=1614, geo=new Location(37.4464715, -122.1612308), phone="+16508539800"^^tt:phone_number },
+C:   { id="d_IBp5wNVn5wDlNkblAL8w"^^com.yelp:restaurant("Fleming's Prime Steakhouse & Wine Bar - Palo Alto"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/25MJYpVfRpZlHja_j-u1vA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/flemings-prime-steakhouse-and-wine-bar-palo-alto-palo-alto-2?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["steak"^^com.yelp:restaurant_cuisine("Steakhouses"), "seafood"^^com.yelp:restaurant_cuisine("Seafood")], price=enum expensive, rating=3.5, reviewCount=1364, geo=new Location(37.4445700266543, -122.170329823122), phone="+16503298457"^^tt:phone_number },
+C:   { id="-EMppAncnOot2p839R3X2g"^^com.yelp:restaurant("Zola"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/pqxovAhUtRgB4HEMVKxuFA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/zola-palo-alto-2?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["french"^^com.yelp:restaurant_cuisine("French")], price=enum expensive, rating=4.5, reviewCount=356, geo=new Location(37.4453893758217, -122.160659772584), phone="+16505210651"^^tt:phone_number },
+C:   { id="njVrdjtYX6EwsuCo1Qbp6A"^^com.yelp:restaurant("Saint Michael's Alley"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/hKaSPEW3IR39SMtOu6KZYA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/saint-michaels-alley-palo-alto-2?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["newamerican"^^com.yelp:restaurant_cuisine("American (New)")], price=enum expensive, rating=4, reviewCount=933, geo=new Location(37.44153, -122.15957), phone="+16503262530"^^tt:phone_number },
+C:   { id="wPKE3HvLo797DEveV7Ozbg"^^com.yelp:restaurant("Bird Dog"), image_url="https://s3-media4.fl.yelpcdn.com/bphoto/yiW9K4EeyC2EJ9u2xc0Q7g/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/bird-dog-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["newamerican"^^com.yelp:restaurant_cuisine("American (New)")], price=enum expensive, rating=4, reviewCount=544, geo=new Location(37.44567, -122.16321), phone="+16506568180"^^tt:phone_number },
+C:   { id="iX8o07wSfvhe1laJhUzsFA"^^com.yelp:restaurant("The Cambridge Chop House"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/QEvjFKuiHXFDkkTQlgKBhA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/the-cambridge-chop-house-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["steak"^^com.yelp:restaurant_cuisine("Steakhouses"), "british"^^com.yelp:restaurant_cuisine("British")], price=enum expensive, rating=4.5, reviewCount=46, geo=new Location(52.204257, 0.117823), phone="+441223359506"^^tt:phone_number },
+C:   { id="btRAfitquaXgeB-2vuWxNQ"^^com.yelp:restaurant("The Free Press"), image_url="https://s3-media4.fl.yelpcdn.com/bphoto/Oq3r_QuneatEOt-poxpGuQ/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/the-free-press-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["british"^^com.yelp:restaurant_cuisine("British")], price=enum expensive, rating=4.5, reviewCount=35, geo=new Location(52.204808195527, 0.13039591109936), phone="+441223368337"^^tt:phone_number }
+C: ]];
+A: I see Evvia Estiatorio, NOLA Restaurant & Bar and Tamarine Restaurant. They're expensives restaurant.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
+U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
+UT: $dialogue @org.thingpedia.dialogue.transaction.cancel;
+C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
+C: @com.yelp.restaurant()
+C: #[results=[
+C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles")], price=enum moderate, rating=4.5, reviewCount=1625, geo=new Location(37.445523, -122.1607073261) },
+C:   { id="1vMgajRAI3lYwuCeGX58oQ"^^com.yelp:restaurant("Evvia Estiatorio"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/Q3lgbcNuRbdrITtLN5CQgQ/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/evvia-estiatorio-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["greek"^^com.yelp:restaurant_cuisine("Greek")], price=enum expensive, rating=4.5, reviewCount=2393, geo=new Location(37.445077, -122.163778), phone="+16503260983"^^tt:phone_number },
+C:   { id="KyU7XWDPclmZ3BpdIsd_0Q"^^com.yelp:restaurant("Oren's Hummus"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/vOWdAh4DKhMisL0K4YzXtA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/orens-hummus-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["mediterranean"^^com.yelp:restaurant_cuisine("Mediterranean"), "mideastern"^^com.yelp:restaurant_cuisine("Middle Eastern")], price=enum moderate, rating=4, reviewCount=2248, geo=new Location(37.445717, -122.162173), phone="+16507526492"^^tt:phone_number },
+C:   { id="jwaXc3VVGDFQu1aCoiXwdw"^^com.yelp:restaurant("NOLA Restaurant & Bar"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/tna5SSdgZq3fFxoi4-Xx7A/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/nola-restaurant-and-bar-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["cajun"^^com.yelp:restaurant_cuisine("Cajun/Creole"), "newamerican"^^com.yelp:restaurant_cuisine("American (New)")], price=enum expensive, rating=3.5, reviewCount=2821, geo=new Location(37.4450225830078, -122.161323547363), phone="+16503282722"^^tt:phone_number },
+C:   { id="0WDM3JlNBvk2MeOTlu03mg"^^com.yelp:restaurant("Coconuts Caribbean Restaurant & Bar"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/mA7Jp9irSTjUq8yneVh2IQ/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/coconuts-caribbean-restaurant-and-bar-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["caribbean"^^com.yelp:restaurant_cuisine("Caribbean")], price=enum moderate, rating=4, reviewCount=2230, geo=new Location(37.44381, -122.16027), phone="+16503299533"^^tt:phone_number },
+C:   { id="_mkNOTiQ-kbc1kJHo9RoVA"^^com.yelp:restaurant("Tamarine Restaurant"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/u6KX5WLtw23IMcIJgOSSCw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/tamarine-restaurant-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["vietnamese"^^com.yelp:restaurant_cuisine("Vietnamese")], price=enum expensive, rating=4, reviewCount=1833, geo=new Location(37.44881, -122.15833), phone="+16503258500"^^tt:phone_number },
+C:   { id="TtYbsOqn7vLKhva0AuKQQQ"^^com.yelp:restaurant("Philz Coffee"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/P9zDXYxfa8YoBz85MF7l7Q/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/philz-coffee-palo-alto-6?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["breakfast_brunch"^^com.yelp:restaurant_cuisine("Breakfast & Brunch")], price=enum cheap, rating=4.5, reviewCount=796, geo=new Location(37.442174, -122.161583), phone="+16503212161"^^tt:phone_number },
+C:   { id="pi9MMjHWtVxC9eTnMk7e_w"^^com.yelp:restaurant("Crepevine Restaurant"), image_url="https://s3-media1.fl.yelpcdn.com/bphoto/ZSDMh6BuvTfxYLuEWz2-8w/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/crepevine-restaurant-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["breakfast_brunch"^^com.yelp:restaurant_cuisine("Breakfast & Brunch"), "creperies"^^com.yelp:restaurant_cuisine("Crepes"), "newamerican"^^com.yelp:restaurant_cuisine("American (New)")], price=enum moderate, rating=4, reviewCount=1313, geo=new Location(37.44698, -122.161), phone="+16503233900"^^tt:phone_number },
+C:   { id="vStWaPrdP4ysnKpj0WoHJQ"^^com.yelp:restaurant("Rangoon Ruby"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/q9vLRl72wFGCI19S_nwBvA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/rangoon-ruby-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["asianfusion"^^com.yelp:restaurant_cuisine("Asian Fusion"), "burmese"^^com.yelp:restaurant_cuisine("Burmese")], price=enum moderate, rating=3.5, reviewCount=1590, geo=new Location(37.445122, -122.163104), phone="+16503236543"^^tt:phone_number },
+C:   { id="-g_tUhyvUFbxOs0aB28j1w"^^com.yelp:restaurant("Palo Alto Creamery"), image_url="https://s3-media4.fl.yelpcdn.com/bphoto/a2J68P_xcM8KqPyWm0VEyA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/palo-alto-creamery-palo-alto-2?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["diners"^^com.yelp:restaurant_cuisine("Diners"), "breakfast_brunch"^^com.yelp:restaurant_cuisine("Breakfast & Brunch")], price=enum moderate, rating=4, reviewCount=1359, geo=new Location(37.4438831241214, -122.16178176729), phone="+16503233131"^^tt:phone_number }
+C: ]]
+C: #[count=50]
+C: #[more=true];
+C: [price] of @com.yelp.restaurant() filter id == "vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant
+C: #[results=[
+C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), price=enum moderate }
+C: ]];
+C: @com.yelp.restaurant() filter price == enum expensive
+C: #[results=[
+C:   { id="1vMgajRAI3lYwuCeGX58oQ"^^com.yelp:restaurant("Evvia Estiatorio"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/Q3lgbcNuRbdrITtLN5CQgQ/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/evvia-estiatorio-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["greek"^^com.yelp:restaurant_cuisine("Greek")], price=enum expensive, rating=4.5, reviewCount=2393, geo=new Location(37.445077, -122.163778), phone="+16503260983"^^tt:phone_number },
+C:   { id="jwaXc3VVGDFQu1aCoiXwdw"^^com.yelp:restaurant("NOLA Restaurant & Bar"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/tna5SSdgZq3fFxoi4-Xx7A/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/nola-restaurant-and-bar-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["cajun"^^com.yelp:restaurant_cuisine("Cajun/Creole"), "newamerican"^^com.yelp:restaurant_cuisine("American (New)")], price=enum expensive, rating=3.5, reviewCount=2821, geo=new Location(37.4450225830078, -122.161323547363), phone="+16503282722"^^tt:phone_number },
+C:   { id="_mkNOTiQ-kbc1kJHo9RoVA"^^com.yelp:restaurant("Tamarine Restaurant"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/u6KX5WLtw23IMcIJgOSSCw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/tamarine-restaurant-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["vietnamese"^^com.yelp:restaurant_cuisine("Vietnamese")], price=enum expensive, rating=4, reviewCount=1833, geo=new Location(37.44881, -122.15833), phone="+16503258500"^^tt:phone_number },
+C:   { id="lQS2YhPTyMlkTbDROjYK0g"^^com.yelp:restaurant("Joya Restaurant & Lounge"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/M4Fzvha8f79dAwth76QX4Q/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/joya-restaurant-and-lounge-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["latin"^^com.yelp:restaurant_cuisine("Latin American"), "tapas"^^com.yelp:restaurant_cuisine("Tapas Bars")], price=enum expensive, rating=3.5, reviewCount=1614, geo=new Location(37.4464715, -122.1612308), phone="+16508539800"^^tt:phone_number },
+C:   { id="d_IBp5wNVn5wDlNkblAL8w"^^com.yelp:restaurant("Fleming's Prime Steakhouse & Wine Bar - Palo Alto"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/25MJYpVfRpZlHja_j-u1vA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/flemings-prime-steakhouse-and-wine-bar-palo-alto-palo-alto-2?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["steak"^^com.yelp:restaurant_cuisine("Steakhouses"), "seafood"^^com.yelp:restaurant_cuisine("Seafood")], price=enum expensive, rating=3.5, reviewCount=1364, geo=new Location(37.4445700266543, -122.170329823122), phone="+16503298457"^^tt:phone_number },
+C:   { id="-EMppAncnOot2p839R3X2g"^^com.yelp:restaurant("Zola"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/pqxovAhUtRgB4HEMVKxuFA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/zola-palo-alto-2?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["french"^^com.yelp:restaurant_cuisine("French")], price=enum expensive, rating=4.5, reviewCount=356, geo=new Location(37.4453893758217, -122.160659772584), phone="+16505210651"^^tt:phone_number },
+C:   { id="njVrdjtYX6EwsuCo1Qbp6A"^^com.yelp:restaurant("Saint Michael's Alley"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/hKaSPEW3IR39SMtOu6KZYA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/saint-michaels-alley-palo-alto-2?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["newamerican"^^com.yelp:restaurant_cuisine("American (New)")], price=enum expensive, rating=4, reviewCount=933, geo=new Location(37.44153, -122.15957), phone="+16503262530"^^tt:phone_number },
+C:   { id="wPKE3HvLo797DEveV7Ozbg"^^com.yelp:restaurant("Bird Dog"), image_url="https://s3-media4.fl.yelpcdn.com/bphoto/yiW9K4EeyC2EJ9u2xc0Q7g/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/bird-dog-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["newamerican"^^com.yelp:restaurant_cuisine("American (New)")], price=enum expensive, rating=4, reviewCount=544, geo=new Location(37.44567, -122.16321), phone="+16506568180"^^tt:phone_number },
+C:   { id="iX8o07wSfvhe1laJhUzsFA"^^com.yelp:restaurant("The Cambridge Chop House"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/QEvjFKuiHXFDkkTQlgKBhA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/the-cambridge-chop-house-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["steak"^^com.yelp:restaurant_cuisine("Steakhouses"), "british"^^com.yelp:restaurant_cuisine("British")], price=enum expensive, rating=4.5, reviewCount=46, geo=new Location(52.204257, 0.117823), phone="+441223359506"^^tt:phone_number },
+C:   { id="btRAfitquaXgeB-2vuWxNQ"^^com.yelp:restaurant("The Free Press"), image_url="https://s3-media4.fl.yelpcdn.com/bphoto/Oq3r_QuneatEOt-poxpGuQ/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/the-free-press-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["british"^^com.yelp:restaurant_cuisine("British")], price=enum expensive, rating=4.5, reviewCount=35, geo=new Location(52.204808195527, 0.13039591109936), phone="+441223368337"^^tt:phone_number }
+C: ]];
+A: Alright, bye!
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"));
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"));
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"))
+C: #[results=[
+C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, wind_speed=3.4mps, humidity=91.3, cloudiness=4.7, fog=0, status=enum sunny, icon="http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"^^tt:picture }
+C: ]];
+A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 F and the humidity is 91.3 %.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: [temperature] of @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"));
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: [temperature] of @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"));
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"))
+C: #[results=[
+C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, wind_speed=3.4mps, humidity=91.3, cloudiness=4.7, fog=0, status=enum sunny, icon="http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"^^tt:picture }
+C: ]];
+C: [temperature] of @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"))
+C: #[results=[
+C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, status=enum sunny }
+C: ]];
+A: The temperature is 60.1 F.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.weather.current(location=$?);
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.weather.current(location=$?);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.weather.current(location=$?);
+A: What location do you want the current weather for?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(location);
+AT: @org.thingpedia.weather.current(location=$?);
+U: \t $answer(new Location(37.442156, -122.1634471, "Palo Alto, California"));
+UT: $answer(new Location(37.442156, -122.1634471, "Palo Alto, California"));
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"))
+C: #[results=[
+C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, wind_speed=3.4mps, humidity=91.3, cloudiness=4.7, fog=0, status=enum sunny, icon="http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"^^tt:picture }
+C: ]];
+A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 F and the humidity is 91.3 %.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.spotify.song() filter id =~ "despacito" => @com.spotify.play_song(song=id);
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.spotify.song() filter id =~ "despacito" => @com.spotify.play_song(song=id);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: (@com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "despacito")[1] => @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(song=id)
+C: #[results=[
+C:   { song="spotify:track:6habFhsOp2NvshLv26DqMb"^^com.spotify:song("Despacito"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device }
+C: ]];
+A: I played Despacito on Spotify.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.spotify.song() filter contains(artists, null^^com.spotify:artist("ariana grande")) => @com.spotify.play_song(song=id);
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.spotify.song() filter contains(artists, null^^com.spotify:artist("ariana grande")) => @com.spotify.play_song(song=id);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter contains(artists, "spotify:artist:66CXWjxzNUsdJxJ2JdwvnR"^^com.spotify:artist("Ariana Grande")) => @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(song=id)
+C: #[results=[
+C:   { song="spotify:track:6ocbgoVGwYJhOv1GgI9NsF"^^com.spotify:song("7 rings"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device },
+C:   { song="spotify:track:6va6SjWz457IOZidBppAhz"^^com.spotify:song("7 rings - live"), device="str:ENTITY_com.spotify:device::15:"^^com.spotify:device },
+C:   { song="spotify:track:6AyI8UGx8Y4peb7pLOy2pf"^^com.spotify:song("7 rings (feat. 2 Chainz) - Remix"), device="str:ENTITY_com.spotify:device::9:"^^com.spotify:device },
+C:   { song="spotify:track:4HBZA5flZLE435QTztThqH"^^com.spotify:song("Stuck with U (with Justin Bieber)"), device="str:ENTITY_com.spotify:device::19:"^^com.spotify:device },
+C:   { song="spotify:track:6ocbgoVGwYJhOv1GgI9NsF"^^com.spotify:song("7 rings"), device="str:ENTITY_com.spotify:device::14:"^^com.spotify:device },
+C:   { song="spotify:track:3e9HZxeyfWwjeyPAMmWSSQ"^^com.spotify:song("thank u, next"), device="str:ENTITY_com.spotify:device::15:"^^com.spotify:device },
+C:   { song="spotify:track:2qT1uLXPVPzGgFOx4jtEuo"^^com.spotify:song("no tears left to cry"), device="str:ENTITY_com.spotify:device::40:"^^com.spotify:device },
+C:   { song="spotify:track:0Ryd8975WihbObpp5cPW1t"^^com.spotify:song("boyfriend (with Social House)"), device="str:ENTITY_com.spotify:device::31:"^^com.spotify:device },
+C:   { song="spotify:track:4kV4N9D1iKVxx1KLvtTpjS"^^com.spotify:song("break up with your girlfriend, i'm bored"), device="str:ENTITY_com.spotify:device::23:"^^com.spotify:device },
+C:   { song="spotify:track:5OCJzvD7sykQEKHH7qAC3C"^^com.spotify:song("God is a woman"), device="str:ENTITY_com.spotify:device::40:"^^com.spotify:device }
+C: ]]
+C: #[count=23];
+A: I played songs by Ariana Grande on Spotify for you.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.spotify.song() filter album == null^^com.spotify:album("folklore") => @com.spotify.play_song(song=id);
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.spotify.song() filter album == null^^com.spotify:album("folklore") => @com.spotify.play_song(song=id);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter album == "spotify:album:2fenSS68JI1h4Fo296JfGr"^^com.spotify:album("folklore") => @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(song=id)
+C: #[results=[
+C:   { song="spotify:track:4R2kfaDFhslZEMJqAFNpdd"^^com.spotify:song("cardigan"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device },
+C:   { song="spotify:track:4pvb0WLRcMtbPGmtejJJ6y"^^com.spotify:song("exile (feat. Bon Iver)"), device="str:ENTITY_com.spotify:device::15:"^^com.spotify:device },
+C:   { song="spotify:track:0Jlcvv8IykzHaSmj49uNW8"^^com.spotify:song("the 1"), device="str:ENTITY_com.spotify:device::9:"^^com.spotify:device },
+C:   { song="spotify:track:2Eeur20xVqfUoM3Q7EFPFt"^^com.spotify:song("the last great american dynasty"), device="str:ENTITY_com.spotify:device::19:"^^com.spotify:device },
+C:   { song="spotify:track:1MgV7FIyNxIG7WzMRJV5HC"^^com.spotify:song("my tears ricochet"), device="str:ENTITY_com.spotify:device::14:"^^com.spotify:device },
+C:   { song="spotify:track:3hUxzQpSfdDqwM3ZTFQY0K"^^com.spotify:song("august"), device="str:ENTITY_com.spotify:device::15:"^^com.spotify:device },
+C:   { song="spotify:track:6VsvKPJ4xjVNKpI8VVZ3SV"^^com.spotify:song("invisible string"), device="str:ENTITY_com.spotify:device::40:"^^com.spotify:device },
+C:   { song="spotify:track:0ZNU020wNYvgW84iljPkPP"^^com.spotify:song("mirrorball"), device="str:ENTITY_com.spotify:device::31:"^^com.spotify:device },
+C:   { song="spotify:track:6KJqZcs9XDgVck7Lg9QOTC"^^com.spotify:song("seven"), device="str:ENTITY_com.spotify:device::23:"^^com.spotify:device },
+C:   { song="spotify:track:7kt9e9LFSpN1zQtYEl19o1"^^com.spotify:song("this is me trying"), device="str:ENTITY_com.spotify:device::40:"^^com.spotify:device }
+C: ]]
+C: #[count=22];
+A: I played songs in the album folklore on Spotify for you.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.icanhazdadjoke.get();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.icanhazdadjoke.get();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.icanhazdadjoke(id="com.icanhazdadjoke-8"^^tt:device_id("Some Device 8")).get()
+C: #[results=[
+C:   { id="A5ozsH6pWnb"^^com.icanhazdadjoke:id, text="What do you call a troublesome Canadian high schooler? A poutine" }
+C: ]];
+A: What do you call a troublesome Canadian high schooler? A poutine.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.icanhazdadjoke.get();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.icanhazdadjoke.get();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.icanhazdadjoke(id="com.icanhazdadjoke-8"^^tt:device_id("Some Device 8")).get()
+C: #[results=[
+C:   { id="A5ozsH6pWnb"^^com.icanhazdadjoke:id, text="What do you call a troublesome Canadian high schooler? A poutine" }
+C: ]];
+C: @com.icanhazdadjoke(id="com.icanhazdadjoke-8"^^tt:device_id("Some Device 8")).get()
+C: #[results=[
+C:   { id="lGe2Tvskyd"^^com.icanhazdadjoke:id, text="Why are fish so smart?\nBecause they live in schools!" }
+C: ]];
+A: Why are fish so smart? Because they live in schools!
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.icanhazdadjoke.get();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.icanhazdadjoke.get();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.icanhazdadjoke(id="com.icanhazdadjoke-8"^^tt:device_id("Some Device 8")).get()
+C: #[results=[
+C:   { id="A5ozsH6pWnb"^^com.icanhazdadjoke:id, text="What do you call a troublesome Canadian high schooler? A poutine" }
+C: ]];
+C: @com.icanhazdadjoke(id="com.icanhazdadjoke-8"^^tt:device_id("Some Device 8")).get()
+C: #[results=[
+C:   { id="lGe2Tvskyd"^^com.icanhazdadjoke:id, text="Why are fish so smart?\nBecause they live in schools!" }
+C: ]];
+C: @com.icanhazdadjoke(id="com.icanhazdadjoke-8"^^tt:device_id("Some Device 8")).get()
+C: #[results=[
+C:   { id="K6UKmykqrjb"^^com.icanhazdadjoke:id, text="What is a witch's favorite subject in school? Spelling!   " }
+C: ]];
+A: What is a witch's favorite subject in school? Spelling!
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.icanhazdadjoke.get();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.icanhazdadjoke.get();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.icanhazdadjoke(id="com.icanhazdadjoke-8"^^tt:device_id("Some Device 8")).get()
+C: #[results=[
+C:   { id="A5ozsH6pWnb"^^com.icanhazdadjoke:id, text="What do you call a troublesome Canadian high schooler? A poutine" }
+C: ]];
+C: @com.icanhazdadjoke(id="com.icanhazdadjoke-8"^^tt:device_id("Some Device 8")).get()
+C: #[results=[
+C:   { id="lGe2Tvskyd"^^com.icanhazdadjoke:id, text="Why are fish so smart?\nBecause they live in schools!" }
+C: ]];
+C: @com.icanhazdadjoke(id="com.icanhazdadjoke-8"^^tt:device_id("Some Device 8")).get()
+C: #[results=[
+C:   { id="K6UKmykqrjb"^^com.icanhazdadjoke:id, text="What is a witch's favorite subject in school? Spelling!   " }
+C: ]];
+C: @com.icanhazdadjoke(id="com.icanhazdadjoke-8"^^tt:device_id("Some Device 8")).get()
+C: #[results=[
+C:   { id="K6UKmykqrjb"^^com.icanhazdadjoke:id, text="What is a witch's favorite subject in school? Spelling!   " }
+C: ]];
+A: What is a witch's favorite subject in school? Spelling!
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.twitter.post();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.twitter.post();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post();
+A: What do you want to tweet?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(status);
+AT: @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post();
+U: \t $nevermind;
+UT: $nevermind;
+A: Sorry I couldn't help on that.
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.yelp.restaurant() filter contains(cuisines, null^^com.yelp:restaurant_cuisine("italian"));
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.yelp.restaurant() filter contains(cuisines, null^^com.yelp:restaurant_cuisine("italian"));
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.yelp.restaurant() filter contains(cuisines, "italian"^^com.yelp:restaurant_cuisine("Italian"))
+C: #[results=[
+C:   { id="OLa29RISTT2raUNPLo-9xw"^^com.yelp:restaurant("Patxi's Pizza"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/Jvow48SJ-SfCcxLt0a7uWg/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/patxis-pizza-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["pizza"^^com.yelp:restaurant_cuisine("Pizza"), "salad"^^com.yelp:restaurant_cuisine("Salad"), "italian"^^com.yelp:restaurant_cuisine("Italian")], price=enum moderate, rating=3.5, reviewCount=1700, geo=new Location(37.445153, -122.163337), phone="+16504739999"^^tt:phone_number },
+C:   { id="Tuq1Ht5QoISVViAlAnyrZg"^^com.yelp:restaurant("Cafe Borrone"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/jKOuPFIcqdtG47gRHqv1WQ/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/cafe-borrone-menlo-park?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["breakfast_brunch"^^com.yelp:restaurant_cuisine("Breakfast & Brunch"), "italian"^^com.yelp:restaurant_cuisine("Italian"), "cafes"^^com.yelp:restaurant_cuisine("Cafes")], price=enum moderate, rating=4, reviewCount=1727, geo=new Location(37.45368, -122.18205), phone="+16503270830"^^tt:phone_number },
+C:   { id="d62LElGhYd65kXXCimgPpg"^^com.yelp:restaurant("Osteria Toscana"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/eNDUayX7OPzh1MZFWB9Xpg/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/osteria-toscana-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["italian"^^com.yelp:restaurant_cuisine("Italian")], price=enum moderate, rating=3.5, reviewCount=938, geo=new Location(37.4445, -122.16118), phone="+16503285700"^^tt:phone_number },
+C:   { id="pLqiFFz1JScp8wMMyXcx-w"^^com.yelp:restaurant("Terún"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/w1yuXOCOAFcL_TVkoFed4Q/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ter%C3%BAn-palo-alto-3?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["pizza"^^com.yelp:restaurant_cuisine("Pizza"), "italian"^^com.yelp:restaurant_cuisine("Italian")], price=enum moderate, rating=4, reviewCount=1493, geo=new Location(37.425993, -122.145453), phone="+16506008310"^^tt:phone_number },
+C:   { id="OZI4rK9s0xTwg2PdTRgmcw"^^com.yelp:restaurant("Aromi - Cambridge"), image_url="https://s3-media1.fl.yelpcdn.com/bphoto/eS-F_RSo1UyOumExtszsGA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/aromi-cambridge-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["italian"^^com.yelp:restaurant_cuisine("Italian"), "cafes"^^com.yelp:restaurant_cuisine("Cafes"), "delis"^^com.yelp:restaurant_cuisine("Delis")], price=enum cheap, rating=4, reviewCount=30, geo=new Location(52.2042405, 0.1187084), phone="+441223300117"^^tt:phone_number }
+C: ]];
+A: I see Patxi's Pizza, Cafe Borrone and Osteria Toscana. All of them are moderate restaurants having Italian food.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.yelp.restaurant() filter contains(cuisines, null^^com.yelp:restaurant_cuisine("invalid"));
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.yelp.restaurant() filter contains(cuisines, null^^com.yelp:restaurant_cuisine("invalid"));
+A: Sorry, I cannot find any Yelp Cuisine matching “invalid”.
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: !! test command always failed !!
+UT: $failed;
+A: Sorry, I did not understand that. Can you rephrase it?
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.yelp.restaurant() filter contains(cuisines, null^^com.yelp:restaurant_cuisine("italian"));
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.yelp.restaurant() filter contains(cuisines, null^^com.yelp:restaurant_cuisine("italian"));
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.yelp.restaurant() filter contains(cuisines, "italian"^^com.yelp:restaurant_cuisine("Italian"))
+C: #[results=[
+C:   { id="OLa29RISTT2raUNPLo-9xw"^^com.yelp:restaurant("Patxi's Pizza"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/Jvow48SJ-SfCcxLt0a7uWg/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/patxis-pizza-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["pizza"^^com.yelp:restaurant_cuisine("Pizza"), "salad"^^com.yelp:restaurant_cuisine("Salad"), "italian"^^com.yelp:restaurant_cuisine("Italian")], price=enum moderate, rating=3.5, reviewCount=1700, geo=new Location(37.445153, -122.163337), phone="+16504739999"^^tt:phone_number },
+C:   { id="Tuq1Ht5QoISVViAlAnyrZg"^^com.yelp:restaurant("Cafe Borrone"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/jKOuPFIcqdtG47gRHqv1WQ/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/cafe-borrone-menlo-park?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["breakfast_brunch"^^com.yelp:restaurant_cuisine("Breakfast & Brunch"), "italian"^^com.yelp:restaurant_cuisine("Italian"), "cafes"^^com.yelp:restaurant_cuisine("Cafes")], price=enum moderate, rating=4, reviewCount=1727, geo=new Location(37.45368, -122.18205), phone="+16503270830"^^tt:phone_number },
+C:   { id="d62LElGhYd65kXXCimgPpg"^^com.yelp:restaurant("Osteria Toscana"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/eNDUayX7OPzh1MZFWB9Xpg/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/osteria-toscana-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["italian"^^com.yelp:restaurant_cuisine("Italian")], price=enum moderate, rating=3.5, reviewCount=938, geo=new Location(37.4445, -122.16118), phone="+16503285700"^^tt:phone_number },
+C:   { id="pLqiFFz1JScp8wMMyXcx-w"^^com.yelp:restaurant("Terún"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/w1yuXOCOAFcL_TVkoFed4Q/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ter%C3%BAn-palo-alto-3?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["pizza"^^com.yelp:restaurant_cuisine("Pizza"), "italian"^^com.yelp:restaurant_cuisine("Italian")], price=enum moderate, rating=4, reviewCount=1493, geo=new Location(37.425993, -122.145453), phone="+16506008310"^^tt:phone_number },
+C:   { id="OZI4rK9s0xTwg2PdTRgmcw"^^com.yelp:restaurant("Aromi - Cambridge"), image_url="https://s3-media1.fl.yelpcdn.com/bphoto/eS-F_RSo1UyOumExtszsGA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/aromi-cambridge-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["italian"^^com.yelp:restaurant_cuisine("Italian"), "cafes"^^com.yelp:restaurant_cuisine("Cafes"), "delis"^^com.yelp:restaurant_cuisine("Delis")], price=enum cheap, rating=4, reviewCount=30, geo=new Location(52.2042405, 0.1187084), phone="+441223300117"^^tt:phone_number }
+C: ]];
+A: I see Patxi's Pizza, Cafe Borrone and Osteria Toscana. All of them are moderate restaurants having Italian food.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
+U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
+UT: $dialogue @org.thingpedia.dialogue.transaction.cancel;
+C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
+C: @com.yelp.restaurant() filter contains(cuisines, "italian"^^com.yelp:restaurant_cuisine("Italian"))
+C: #[results=[
+C:   { id="OLa29RISTT2raUNPLo-9xw"^^com.yelp:restaurant("Patxi's Pizza"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/Jvow48SJ-SfCcxLt0a7uWg/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/patxis-pizza-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["pizza"^^com.yelp:restaurant_cuisine("Pizza"), "salad"^^com.yelp:restaurant_cuisine("Salad"), "italian"^^com.yelp:restaurant_cuisine("Italian")], price=enum moderate, rating=3.5, reviewCount=1700, geo=new Location(37.445153, -122.163337), phone="+16504739999"^^tt:phone_number },
+C:   { id="Tuq1Ht5QoISVViAlAnyrZg"^^com.yelp:restaurant("Cafe Borrone"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/jKOuPFIcqdtG47gRHqv1WQ/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/cafe-borrone-menlo-park?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["breakfast_brunch"^^com.yelp:restaurant_cuisine("Breakfast & Brunch"), "italian"^^com.yelp:restaurant_cuisine("Italian"), "cafes"^^com.yelp:restaurant_cuisine("Cafes")], price=enum moderate, rating=4, reviewCount=1727, geo=new Location(37.45368, -122.18205), phone="+16503270830"^^tt:phone_number },
+C:   { id="d62LElGhYd65kXXCimgPpg"^^com.yelp:restaurant("Osteria Toscana"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/eNDUayX7OPzh1MZFWB9Xpg/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/osteria-toscana-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["italian"^^com.yelp:restaurant_cuisine("Italian")], price=enum moderate, rating=3.5, reviewCount=938, geo=new Location(37.4445, -122.16118), phone="+16503285700"^^tt:phone_number },
+C:   { id="pLqiFFz1JScp8wMMyXcx-w"^^com.yelp:restaurant("Terún"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/w1yuXOCOAFcL_TVkoFed4Q/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ter%C3%BAn-palo-alto-3?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["pizza"^^com.yelp:restaurant_cuisine("Pizza"), "italian"^^com.yelp:restaurant_cuisine("Italian")], price=enum moderate, rating=4, reviewCount=1493, geo=new Location(37.425993, -122.145453), phone="+16506008310"^^tt:phone_number },
+C:   { id="OZI4rK9s0xTwg2PdTRgmcw"^^com.yelp:restaurant("Aromi - Cambridge"), image_url="https://s3-media1.fl.yelpcdn.com/bphoto/eS-F_RSo1UyOumExtszsGA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/aromi-cambridge-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["italian"^^com.yelp:restaurant_cuisine("Italian"), "cafes"^^com.yelp:restaurant_cuisine("Cafes"), "delis"^^com.yelp:restaurant_cuisine("Delis")], price=enum cheap, rating=4, reviewCount=30, geo=new Location(52.2042405, 0.1187084), phone="+441223300117"^^tt:phone_number }
+C: ]];
+A: Alright, bye!
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.spotify.player_repeat(repeat=enum track);
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.spotify.player_repeat(repeat=enum track);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).player_repeat(repeat=enum track)
+C: #[results=[]];
+A: I repeated this song.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.yelp.restaurant() filter contains(cuisines, "peruvian"^^com.yelp:restaurant_cuisine("Peruvian"));
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.yelp.restaurant() filter contains(cuisines, "peruvian"^^com.yelp:restaurant_cuisine("Peruvian"));
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.yelp.restaurant() filter contains(cuisines, "peruvian"^^com.yelp:restaurant_cuisine("Peruvian"))
+C: #[results=[]];
+A: Sorry, I cannot find any restaurant like that.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_empty_search;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.spotify.song() filter contains(artists, "invalid"^^com.spotify:artist("Invalid")) => @com.spotify.play_song(song=id);
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.spotify.song() filter contains(artists, "invalid"^^com.spotify:artist("Invalid")) => @com.spotify.play_song(song=id);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter contains(artists, "invalid"^^com.spotify:artist("Invalid")) => @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(song=id)
+C: #[results=[]];
+A: Sorry, I cannot find any song like that.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_empty_search;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.spotify.player_shuffle(shuffle=enum on);
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.spotify.player_shuffle(shuffle=enum on);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).player_shuffle(shuffle=enum on)
+C: #[results=[]];
+A: I shuffled your Spotify.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: count(@com.yelp.restaurant());
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: count(@com.yelp.restaurant());
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: count(@com.yelp.restaurant())
+C: #[results=[
+C:   { count=60 }
+C: ]];
+A: I have 60 restaurant with those characteristics.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: count(@com.yelp.restaurant() filter contains(cuisines, "italian"^^com.yelp:restaurant_cuisine("Italian")));
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: count(@com.yelp.restaurant() filter contains(cuisines, "italian"^^com.yelp:restaurant_cuisine("Italian")));
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: count(@com.yelp.restaurant() filter contains(cuisines, "italian"^^com.yelp:restaurant_cuisine("Italian")))
+C: #[results=[
+C:   { count=5 }
+C: ]];
+A: There are 5 restaurant with those characteristics.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: min(rating of @com.yelp.restaurant());
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: min(rating of @com.yelp.restaurant());
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: min(rating of @com.yelp.restaurant())
+C: #[results=[
+C:   { rating=3.5 }
+C: ]];
+A: The minimum rating is 3.5.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: avg(rating of @com.yelp.restaurant());
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: avg(rating of @com.yelp.restaurant());
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: avg(rating of @com.yelp.restaurant())
+C: #[results=[
+C:   { rating=4.058333333333334 }
+C: ]];
+A: The average rating is 4.1.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: [distance(geo, $location.current_location)] of @com.yelp.restaurant();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: [distance(geo, $location.current_location)] of @com.yelp.restaurant();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: [distance(geo, new Location(37.4275, -122.1697))] of @com.yelp.restaurant()
+C: #[results=[
+C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), distance=2004.0661629148217m },
+C:   { id="1vMgajRAI3lYwuCeGX58oQ"^^com.yelp:restaurant("Evvia Estiatorio"), distance=1954.4732256309346m },
+C:   { id="KyU7XWDPclmZ3BpdIsd_0Q"^^com.yelp:restaurant("Oren's Hummus"), distance=2025.637978683918m },
+C:   { id="jwaXc3VVGDFQu1aCoiXwdw"^^com.yelp:restaurant("NOLA Restaurant & Bar"), distance=1948.4223321751008m },
+C:   { id="0WDM3JlNBvk2MeOTlu03mg"^^com.yelp:restaurant("Coconuts Caribbean Restaurant & Bar"), distance=1813.5892535724372m },
+C:   { id="_mkNOTiQ-kbc1kJHo9RoVA"^^com.yelp:restaurant("Tamarine Restaurant"), distance=2369.5638867955154m },
+C:   { id="TtYbsOqn7vLKhva0AuKQQQ"^^com.yelp:restaurant("Philz Coffee"), distance=1631.6743535821893m },
+C:   { id="pi9MMjHWtVxC9eTnMk7e_w"^^com.yelp:restaurant("Crepevine Restaurant"), distance=2166.077171036171m },
+C:   { id="vStWaPrdP4ysnKpj0WoHJQ"^^com.yelp:restaurant("Rangoon Ruby"), distance=1959.476997329948m },
+C:   { id="-g_tUhyvUFbxOs0aB28j1w"^^com.yelp:restaurant("Palo Alto Creamery"), distance=1821.7202848874374m }
+C: ]]
+C: #[count=50]
+C: #[more=true];
+A: The distance is 1.2 mi.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.yelp.restaurant() filter id =~ "ramen nagi";
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.yelp.restaurant() filter id =~ "ramen nagi";
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.yelp.restaurant() filter id =~ "ramen nagi"
+C: #[results=[
+C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles")], price=enum moderate, rating=4.5, reviewCount=1625, geo=new Location(37.445523, -122.1607073261) }
+C: ]];
+A: Ramen Nagi is a moderate restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg].
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+U: \t $yes;
+UT: $yes;
+C: $dialogue @org.thingpedia.dialogue.transaction.learn_more;
+C: @com.yelp.restaurant() filter id =~ "ramen nagi"
+C: #[results=[
+C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles")], price=enum moderate, rating=4.5, reviewCount=1625, geo=new Location(37.445523, -122.1607073261) }
+C: ]];
+A: What would you like to know?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_learn_more_what;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.yelp.restaurant() filter id =~ "ramen nagi";
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.yelp.restaurant() filter id =~ "ramen nagi";
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.yelp.restaurant() filter id =~ "ramen nagi"
+C: #[results=[
+C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles")], price=enum moderate, rating=4.5, reviewCount=1625, geo=new Location(37.445523, -122.1607073261) }
+C: ]];
+A: Ramen Nagi is a moderate restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg].
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+U: \t $no;
+UT: $no;
+C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
+C: @com.yelp.restaurant() filter id =~ "ramen nagi"
+C: #[results=[
+C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles")], price=enum moderate, rating=4.5, reviewCount=1625, geo=new Location(37.445523, -122.1607073261) }
+C: ]];
+A: Alright, good bye!
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.spotify.song() filter id =~ "Nice For What";
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.spotify.song() filter id =~ "Nice For What";
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "Nice For What"
+C: #[results=[
+C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], album="spotify:album:1ATL5GLyefJaxhQzSPVrLX"^^com.spotify:album("Scorpion"), genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79, energy=90, danceability=58 }
+C: ]];
+A: Nice For What is a song by Drake in the album Scorpion. Would you like to play it on Spotify?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+AT: @com.spotify.play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
+AT: #[confirm=enum proposed];
+U: \t $yes;
+UT: $yes;
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "Nice For What"
+C: #[results=[
+C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], album="spotify:album:1ATL5GLyefJaxhQzSPVrLX"^^com.spotify:album("Scorpion"), genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79, energy=90, danceability=58 }
+C: ]];
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
+C: #[results=[
+C:   { song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), device="str:ENTITY_com.spotify:device::28:"^^com.spotify:device }
+C: ]];
+A: I played Nice For What on Spotify.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.spotify.song() filter id =~ "Nice For What";
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.spotify.song() filter id =~ "Nice For What";
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "Nice For What"
+C: #[results=[
+C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], album="spotify:album:1ATL5GLyefJaxhQzSPVrLX"^^com.spotify:album("Scorpion"), genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79, energy=90, danceability=58 }
+C: ]];
+A: Nice For What is a song by Drake in the album Scorpion. Would you like to play it on Spotify?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+AT: @com.spotify.play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
+AT: #[confirm=enum proposed];
+U: \t $no;
+UT: $no;
+C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "Nice For What"
+C: #[results=[
+C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], album="spotify:album:1ATL5GLyefJaxhQzSPVrLX"^^com.spotify:album("Scorpion"), genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79, energy=90, danceability=58 }
+C: ]];
+A: Alright, good bye!
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.spotify.play_song(song="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:song("Hello"));
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.spotify.play_song(song="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:song("Hello"));
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(song="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:song("Hello"))
+C: #[results=[]]
+C: #[error=enum no_active_device];
+A: Sorry, you must open the Spotify app first.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_error;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.spotify.play_song(song="spotify:track:2zYzyRzz6pRmhPzyfMEC8s"^^com.spotify:song("Hello"));
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.spotify.play_song(song="spotify:track:2zYzyRzz6pRmhPzyfMEC8s"^^com.spotify:song("Hello"));
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(song="spotify:track:2zYzyRzz6pRmhPzyfMEC8s"^^com.spotify:song("Hello"))
+C: #[results=[]]
+C: #[error="Some other error occurred"];
+A: Sorry, Some other error occurred.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_error;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: [release_date] of @com.spotify.song() filter id =~ "Nice For What";
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: [release_date] of @com.spotify.song() filter id =~ "Nice For What";
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: [release_date] of @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "Nice For What"
+C: #[results=[
+C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), release_date=new Date("2018-06-29T00:00:00.000Z") }
+C: ]];
+A: Nice For What is a song released on June 28, 2018. Would you like to play it on Spotify?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+AT: @com.spotify.play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
+AT: #[confirm=enum proposed];
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: [release_date] of @com.spotify.song() filter id =~ "hello";
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: [release_date] of @com.spotify.song() filter id =~ "hello";
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: [release_date] of @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "hello"
+C: #[results=[
+C:   { id="spotify:track:7qwt4xUIqQWCu1DJf96g2k"^^com.spotify:song("Hello?"), release_date=new Date("2018-05-25T00:00:00.000Z") },
+C:   { id="spotify:track:2r6OAV3WsYtXuXjvJ1lIDi"^^com.spotify:song("Hello (feat. A Boogie Wit da Hoodie)"), release_date=new Date("2020-07-20T00:00:00.000Z") },
+C:   { id="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:song("Hello"), release_date=new Date("2016-06-24T00:00:00.000Z") },
+C:   { id="spotify:track:7a2IJHzw9WJjoknwdnCop0"^^com.spotify:song("hello!"), release_date=new Date("2019-11-13T00:00:00.000Z") },
+C:   { id="spotify:track:2c62Xf5Po1YSa1N6LOjPHy"^^com.spotify:song("Hello My Old Heart"), release_date=new Date("2011-12-01T00:00:00.000Z") },
+C:   { id="spotify:track:0mHyWYXmmCB9iQyK18m3FQ"^^com.spotify:song("Hello"), release_date=new Date("1983-01-01T00:00:00.000Z") },
+C:   { id="spotify:track:1p61zyWNtBhbbAFzg4HUiq"^^com.spotify:song("Hello Beautiful"), release_date=new Date("2018-01-27T00:00:00.000Z") },
+C:   { id="spotify:track:30Chv2SmIry70YwtmtaKnj"^^com.spotify:song("Hello"), release_date=new Date("2014-12-09T00:00:00.000Z") },
+C:   { id="spotify:track:6vmAgl2y9MpoZKrVUXrPe5"^^com.spotify:song("Hello Darlin'"), release_date=new Date("1970-03-23T00:00:00.000Z") },
+C:   { id="spotify:track:0vZ97gHhemKm6c64hTfJNA"^^com.spotify:song("Hello, Goodbye - Remastered 2009"), release_date=new Date("1967-11-27T00:00:00.000Z") }
+C: ]]
+C: #[count=11];
+A: Hello? Is a song released on May 24, 2018. Would you like to play it on Spotify?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+AT: @com.spotify.play_song(song="spotify:track:7qwt4xUIqQWCu1DJf96g2k"^^com.spotify:song("Hello?"))
+AT: #[confirm=enum proposed];
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: sort(popularity desc of @com.spotify.song())[1 : 3];
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: sort(popularity desc of @com.spotify.song())[1 : 3];
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: sort(popularity desc of @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song())[1 : 3]
+C: #[results=[
+C:   { id="spotify:track:7ytR5pFWmSjzHJIeQkgog4"^^com.spotify:song("ROCKSTAR (feat. Roddy Ricch)"), artists=["spotify:artist:4r63FhuTkUYltbVAg5TQnk"^^com.spotify:artist("DaBaby"), "spotify:artist:757aE44tKEUQEqRuT6GnEB"^^com.spotify:artist("Roddy Ricch")], album="spotify:album:623PL2MBg50Br5dLXC9E9e"^^com.spotify:album("BLAME IT ON BABY"), genres=["north carolina hip hop", "rap"], release_date=new Date("2020-04-17T00:00:00.000Z"), popularity=100, energy=69, danceability=74 },
+C:   { id="spotify:track:0VjIjW4GlUZAMYd2vXMi3b"^^com.spotify:song("Blinding Lights"), artists=["spotify:artist:1Xyo4u8uXC1ZmMpatF05PJ"^^com.spotify:artist("The Weeknd")], album="spotify:album:4yP0hdKOZPNshxUOjY0cZj"^^com.spotify:album("After Hours"), genres=["canadian contemporary r&b", "canadian pop", "pop"], release_date=new Date("2020-03-20T00:00:00.000Z"), popularity=99, energy=73, danceability=51 },
+C:   { id="spotify:track:7eJMfftS33KTjuF7lTsMCx"^^com.spotify:song("death bed (coffee for your head)"), artists=["spotify:artist:6bmlMHgSheBauioMgKv2tn"^^com.spotify:artist("Powfu"), "spotify:artist:35l9BRT7MXmM8bv2WDQiyB"^^com.spotify:artist("beabadoobee")], album="spotify:album:2p9gK2BcdrloHNJwarc9gc"^^com.spotify:album("death bed (coffee for your head)"), genres=[], release_date=new Date("2020-02-08T00:00:00.000Z"), popularity=95, energy=43, danceability=72 }
+C: ]];
+A: I have found ROCKSTAR (feat. Roddy Ricch), Blinding Lights or death bed (coffee for your head).
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: [release_date] of @com.spotify.album() filter id =~ "the wall";
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: [release_date] of @com.spotify.album() filter id =~ "the wall";
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: [release_date] of @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).album() filter id =~ "the wall"
+C: #[results=[
+C:   { id="spotify:album:5Dbax7G8SWrP9xyzkOvy2F"^^com.spotify:album("The Wall"), release_date=new Date("1979-11-30T00:00:00.000Z") },
+C:   { id="spotify:album:283NWqNsCA9GwVHrJk59CG"^^com.spotify:album("The Writing's On The Wall"), release_date=new Date("1999-07-27T00:00:00.000Z") },
+C:   { id="spotify:album:2ZytN2cY4Zjrr9ukb2rqTP"^^com.spotify:album("Off the Wall"), release_date=new Date("1979-08-10T00:00:00.000Z") },
+C:   { id="spotify:album:1GlOZiKHTgtJqEF2FRii9y"^^com.spotify:album("Over The Garden Wall"), release_date=new Date("2017-09-19T00:00:00.000Z") }
+C: ]];
+A: The Wall is an album from November 29, 1979.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: [release_date] of @com.spotify.album() filter id =~ "the wall";
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: [release_date] of @com.spotify.album() filter id =~ "the wall";
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: [release_date] of @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).album() filter id =~ "the wall"
+C: #[results=[
+C:   { id="spotify:album:5Dbax7G8SWrP9xyzkOvy2F"^^com.spotify:album("The Wall"), release_date=new Date("1979-11-30T00:00:00.000Z") },
+C:   { id="spotify:album:283NWqNsCA9GwVHrJk59CG"^^com.spotify:album("The Writing's On The Wall"), release_date=new Date("1999-07-27T00:00:00.000Z") },
+C:   { id="spotify:album:2ZytN2cY4Zjrr9ukb2rqTP"^^com.spotify:album("Off the Wall"), release_date=new Date("1979-08-10T00:00:00.000Z") },
+C:   { id="spotify:album:1GlOZiKHTgtJqEF2FRii9y"^^com.spotify:album("Over The Garden Wall"), release_date=new Date("2017-09-19T00:00:00.000Z") }
+C: ]];
+A: The Wall is an album from November 29, 1979.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"));
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"));
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: [release_date] of @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).album() filter id =~ "the wall"
+C: #[results=[
+C:   { id="spotify:album:5Dbax7G8SWrP9xyzkOvy2F"^^com.spotify:album("The Wall"), release_date=new Date("1979-11-30T00:00:00.000Z") },
+C:   { id="spotify:album:283NWqNsCA9GwVHrJk59CG"^^com.spotify:album("The Writing's On The Wall"), release_date=new Date("1999-07-27T00:00:00.000Z") },
+C:   { id="spotify:album:2ZytN2cY4Zjrr9ukb2rqTP"^^com.spotify:album("Off the Wall"), release_date=new Date("1979-08-10T00:00:00.000Z") },
+C:   { id="spotify:album:1GlOZiKHTgtJqEF2FRii9y"^^com.spotify:album("Over The Garden Wall"), release_date=new Date("2017-09-19T00:00:00.000Z") }
+C: ]];
+C: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"))
+C: #[results=[
+C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, wind_speed=3.4mps, humidity=91.3, cloudiness=4.7, fog=0, status=enum sunny, icon="http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"^^tt:picture }
+C: ]];
+A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 F and the humidity is 91.3 %.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.spotify.song() filter id =~ "Nice For What";
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.spotify.song() filter id =~ "Nice For What";
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "Nice For What"
+C: #[results=[
+C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], album="spotify:album:1ATL5GLyefJaxhQzSPVrLX"^^com.spotify:album("Scorpion"), genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79, energy=90, danceability=58 }
+C: ]];
+A: Nice For What is a song by Drake in the album Scorpion. Would you like to play it on Spotify?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+AT: @com.spotify.play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
+AT: #[confirm=enum proposed];
+U: \t $no;
+UT: $no;
+C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "Nice For What"
+C: #[results=[
+C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], album="spotify:album:1ATL5GLyefJaxhQzSPVrLX"^^com.spotify:album("Scorpion"), genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79, energy=90, danceability=58 }
+C: ]];
+A: Alright, good bye!
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: sort(popularity desc of @com.spotify.song())[1];
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: sort(popularity desc of @com.spotify.song())[1];
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: sort(popularity desc of @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song())[1]
+C: #[results=[
+C:   { id="spotify:track:7ytR5pFWmSjzHJIeQkgog4"^^com.spotify:song("ROCKSTAR (feat. Roddy Ricch)"), artists=["spotify:artist:4r63FhuTkUYltbVAg5TQnk"^^com.spotify:artist("DaBaby"), "spotify:artist:757aE44tKEUQEqRuT6GnEB"^^com.spotify:artist("Roddy Ricch")], album="spotify:album:623PL2MBg50Br5dLXC9E9e"^^com.spotify:album("BLAME IT ON BABY"), genres=["north carolina hip hop", "rap"], release_date=new Date("2020-04-17T00:00:00.000Z"), popularity=100, energy=69, danceability=74 }
+C: ]];
+A: The most popular song is ROCKSTAR (feat. Roddy Ricch). It is a song by DaBaby in the album BLAME IT ON BABY. Would you like to play it on Spotify?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+AT: @com.spotify.play_song(song="spotify:track:7ytR5pFWmSjzHJIeQkgog4"^^com.spotify:song("ROCKSTAR (feat. Roddy Ricch)"))
+AT: #[confirm=enum proposed];
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: sort(popularity asc of @com.spotify.song())[1];
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: sort(popularity asc of @com.spotify.song())[1];
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: sort(popularity asc of @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song())[1]
+C: #[results=[
+C:   { id="spotify:track:0VXeNEtuiD77F2StUeUadK"^^com.spotify:song("Love Yourself"), artists=["spotify:artist:1uNFoZAHBGtllmzznpCI3s"^^com.spotify:artist("Justin Bieber")], album="spotify:album:74jDw6TsdKnT92V790QfvF"^^com.spotify:album("Romantic Pop Songs"), genres=["canadian pop", "pop", "post-teen pop"], release_date=new Date("2020-08-10T00:00:00.000Z"), popularity=0, energy=43, danceability=78 }
+C: ]];
+A: The least popular song is Love Yourself. It is a song by Justin Bieber in the album Romantic Pop Songs. Would you like to play it on Spotify?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+AT: @com.spotify.play_song(song="spotify:track:0VXeNEtuiD77F2StUeUadK"^^com.spotify:song("Love Yourself"))
+AT: #[confirm=enum proposed];
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: sort(reviewCount desc of @com.yelp.restaurant())[1];
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: sort(reviewCount desc of @com.yelp.restaurant())[1];
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: sort(reviewCount desc of @com.yelp.restaurant())[1]
+C: #[results=[
+C:   { id="jwaXc3VVGDFQu1aCoiXwdw"^^com.yelp:restaurant("NOLA Restaurant & Bar"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/tna5SSdgZq3fFxoi4-Xx7A/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/nola-restaurant-and-bar-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["cajun"^^com.yelp:restaurant_cuisine("Cajun/Creole"), "newamerican"^^com.yelp:restaurant_cuisine("American (New)")], price=enum expensive, rating=3.5, reviewCount=2821, geo=new Location(37.4450225830078, -122.161323547363), phone="+16503282722"^^tt:phone_number }
+C: ]];
+A: The restaurant with the highest review count is NOLA Restaurant & Bar. It is an expensive restaurant near [Latitude: 37.445 deg, Longitude: -122.161 deg].
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: sort(reviewCount asc of @com.yelp.restaurant())[1];
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: sort(reviewCount asc of @com.yelp.restaurant())[1];
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: sort(reviewCount asc of @com.yelp.restaurant())[1]
+C: #[results=[
+C:   { id="yzBYyndSQ3RI6Hci2F9pRQ"^^com.yelp:restaurant("The Ivy Cambridge Brasserie"), image_url="https://s3-media4.fl.yelpcdn.com/bphoto/9daDsE_Aq-AtJnDDPruBSQ/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/the-ivy-cambridge-brasserie-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["british"^^com.yelp:restaurant_cuisine("British")], rating=4.5, reviewCount=12, geo=new Location(52.2069714284192, 0.118247921026355), phone="+441223344044"^^tt:phone_number }
+C: ]];
+A: The restaurant with the lowest review count is The Ivy Cambridge Brasserie. It is a restaurant near [Latitude: 52.207 deg, Longitude: 0.118 deg] rated 4.5 star.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.thecatapi.get();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.thecatapi.get();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.thecatapi(id="com.thecatapi-9"^^tt:device_id("Some Device 9")).get()
+C: #[results=[
+C:   { id="str:ENTITY_com.thecatapi:image_id::0:"^^com.thecatapi:image_id, picture_url="str:ENTITY_tt:picture::36:"^^tt:picture, link="str:ENTITY_tt:url::42:"^^tt:url }
+C: ]];
+A: Here is your cat picture.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.xkcd.comic();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.xkcd.comic();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.xkcd(id="com.xkcd-10"^^tt:device_id("Some Device 10")).comic()
+C: #[results=[
+C:   { id=20, title="Some Device 10", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::14:"^^tt:picture, link="str:ENTITY_tt:url::1:"^^tt:url, alt_text="Some Device 10" },
+C:   { id=451, title="str:QUOTED_STRING::49:", release_date=new Date("2020-03-20T07:00:00.000Z"), picture_url="str:ENTITY_tt:picture::41:"^^tt:picture, link="str:ENTITY_tt:url::28:"^^tt:url, alt_text="str:QUOTED_STRING::4:" },
+C:   { id=20, title="Some Device 10", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::27:"^^tt:picture, link="str:ENTITY_tt:url::14:"^^tt:url, alt_text="str:QUOTED_STRING::4:" },
+C:   { id=20, title="Some Device 10", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::47:"^^tt:picture, link="str:ENTITY_tt:url::19:"^^tt:url, alt_text="str:QUOTED_STRING::38:" },
+C:   { id=20, title="str:QUOTED_STRING::6:", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::3:"^^tt:picture, link="str:ENTITY_tt:url::4:"^^tt:url, alt_text="Some Device 10" },
+C:   { id=20, title="Some Device 10", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::46:"^^tt:picture, link="str:ENTITY_tt:url::35:"^^tt:url, alt_text="Some Device 10" },
+C:   { id=20, title="str:QUOTED_STRING::28:", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::33:"^^tt:picture, link="str:ENTITY_tt:url::28:"^^tt:url, alt_text="str:QUOTED_STRING::44:" },
+C:   { id=837, title="str:QUOTED_STRING::29:", release_date=new Date("2020-01-23T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::7:"^^tt:picture, link="str:ENTITY_tt:url::4:"^^tt:url, alt_text="str:QUOTED_STRING::40:" },
+C:   { id=481, title="Some Device 10", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::12:"^^tt:picture, link="str:ENTITY_tt:url::20:"^^tt:url, alt_text="Some Device 10" },
+C:   { id=638, title="Some Device 10", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::40:"^^tt:picture, link="str:ENTITY_tt:url::35:"^^tt:url, alt_text="str:QUOTED_STRING::3:" }
+C: ]]
+C: #[count=50]
+C: #[more=true];
+A: I found xkcd 20. It is an xkcd comic from January 20, 2018 titled Some Device 10.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: sort(release_date desc of @com.xkcd.comic())[1];
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: sort(release_date desc of @com.xkcd.comic())[1];
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: sort(release_date desc of @com.xkcd(id="com.xkcd-10"^^tt:device_id("Some Device 10")).comic())[1]
+C: #[results=[
+C:   { id=371, title="str:QUOTED_STRING::3:", release_date=new Date("2020-08-31T07:00:00.000Z"), picture_url="str:ENTITY_tt:picture::26:"^^tt:picture, link="str:ENTITY_tt:url::39:"^^tt:url, alt_text="str:QUOTED_STRING::6:" }
+C: ]];
+A: The latest xkcd comic is 371. It is an xkcd comic from August 31, 2020 titled str:QUOTED_STRING::3:.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.xkcd.comic() => @com.twitter.post(status=title);
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.xkcd.comic() => @com.twitter.post(status=title);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.xkcd(id="com.xkcd-10"^^tt:device_id("Some Device 10")).comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title);
+A: Ok, do you want me to get xkcd comic and then tweet the title?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_action;
+AT: @com.xkcd(id="com.xkcd-10"^^tt:device_id("Some Device 10")).comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title);
+U: \t $yes;
+UT: $yes;
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.xkcd(id="com.xkcd-10"^^tt:device_id("Some Device 10")).comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title)
+C: #[results=[]];
+A: Your request was completed successfully.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_identity);
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_identity);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.builtin.thingengine.builtin(id="thingengine-own-global"^^tt:device_id("Builtin")).faq_reply(question=enum about_almond_identity)
+C: #[results=[
+C:   { question=enum about_almond_identity, reply="str:QUOTED_STRING::42:" }
+C: ]];
+A: Str:QUOTED_STRING::42:.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.iot.light-bulb.set_power(power=enum off);
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.iot.light-bulb.set_power(power=enum off);
+A: You do not have a Light Bulb configured. You will need to enable Home Assistant or Philips Hue before you can use that command.
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.iot.door.state();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.iot.door.state();
+A: You need to enable Home Assistant before you can use that command.
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"));
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"));
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"))
+C: #[results=[
+C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, wind_speed=3.4mps, humidity=91.3, cloudiness=4.7, fog=0, status=enum sunny, icon="http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"^^tt:picture }
+C: ]];
+A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 F and the humidity is 91.3 %.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+U: \t $dialogue @org.thingpedia.dialogue.transaction.greet;
+UT: $dialogue @org.thingpedia.dialogue.transaction.greet;
+C: $dialogue @org.thingpedia.dialogue.transaction.greet;
+C: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"))
+C: #[results=[
+C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, wind_speed=3.4mps, humidity=91.3, cloudiness=4.7, fog=0, status=enum sunny, icon="http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"^^tt:picture }
+C: ]];
+A: Hi, how can I help you?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_greet;
+U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
+UT: $dialogue @org.thingpedia.dialogue.transaction.cancel;
+C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
+C: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"))
+C: #[results=[
+C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, wind_speed=3.4mps, humidity=91.3, cloudiness=4.7, fog=0, status=enum sunny, icon="http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"^^tt:picture }
+C: ]];
+A: Alright, bye!
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines

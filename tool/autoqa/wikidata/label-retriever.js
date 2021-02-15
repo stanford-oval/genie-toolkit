@@ -17,56 +17,51 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
 
-const {
+import {
     getItemLabel,
     getPropertyLabel,
-} = require('./utils');
+} from './utils';
 
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('wikidata-label-retriever', {
+        add_help: true,
+        description: "A script to retrieve Wikidata labels in batch"
+    });
+    parser.add_argument('input', {
+        help: 'a list of properties, split by comma (no space)'
+    });
+    parser.add_argument('--format', {
+        required: false,
+        choices: ['label-only', 'id-label', 'label-id'],
+        default: 'label-only',
+        help: 'the format of the final output'
+    });
+    parser.add_argument('--delimiter', {
+        required: false,
+        default: ', ',
+        help: 'the delimiter to separate the final output'
+    });
+}
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('wikidata-label-retriever', {
-            add_help: true,
-            description: "A script to retrieve Wikidata labels in batch"
-        });
-        parser.add_argument('input', {
-            help: 'a list of properties, split by comma (no space)'
-        });
-        parser.add_argument('--format', {
-            required: false,
-            choices: ['label-only', 'id-label', 'label-id'],
-            default: 'label-only',
-            help: 'the format of the final output'
-        });
-        parser.add_argument('--delimiter', {
-            required: false,
-            default: ', ',
-            help: 'the delimiter to separate the final output'
-        });
-    },
-
-    async execute(args) {
-        const ids = args.input.split(',');
-        const labels = [];
-        for (let id of ids) {
-            if (id.startsWith('P'))
-                labels.push(await getPropertyLabel(id));
-            else if (id.startsWith('Q'))
-                labels.push(await getItemLabel(id));
-            else
-                throw new Error(`Invalid Wikidata ID: ${id}`);
-        }
-        if (args.format === 'label-only') {
-            console.log(labels.join(args.delimiter));
-        } else if (args.format === 'id-label') {
-            const indices = [...Array(ids.length).keys()];
-            console.log(indices.map((i) => `${ids[i]} (${labels[i]})`).join(args.delimiter));
-        } else if (args.format === 'label-id') {
-            const indices = [...Array(ids.length).keys()];
-            console.log(indices.map((i) => `${labels[i]} (${ids[i]})`).join(args.delimiter));
-        }
-
+export async function execute(args) {
+    const ids = args.input.split(',');
+    const labels = [];
+    for (let id of ids) {
+        if (id.startsWith('P'))
+            labels.push(await getPropertyLabel(id));
+        else if (id.startsWith('Q'))
+            labels.push(await getItemLabel(id));
+        else
+            throw new Error(`Invalid Wikidata ID: ${id}`);
     }
-};
+    if (args.format === 'label-only') {
+        console.log(labels.join(args.delimiter));
+    } else if (args.format === 'id-label') {
+        const indices = [...Array(ids.length).keys()];
+        console.log(indices.map((i) => `${ids[i]} (${labels[i]})`).join(args.delimiter));
+    } else if (args.format === 'label-id') {
+        const indices = [...Array(ids.length).keys()];
+        console.log(indices.map((i) => `${labels[i]} (${ids[i]})`).join(args.delimiter));
+    }
+}

@@ -93,11 +93,13 @@ class @uk.ac.cam.multiwoz.Restaurant
                           property=["# food", "# cuisine"],
                           adjective=["#"],
                           passive_verb=["serving #", "serving # food", "serving # cuisine"],
-                          verb=["serves # cuisine", "serves # food", "offer # cuisine", "offer # food", "serves", "offers"]
+                          verb=["serves # cuisine", "serves # food", "offer # cuisine", "offer # food", "serves", "offers"],
+                          base_projection=["cuisine", "type of cuisine", "food", "type of food"],
+                          verb_projection=["serve", "offer"]
                         }],
                         out price_range : Enum(cheap, moderate, expensive)
                         #[conflict_filter=['id']]
-                        #_[question=["how many stars does it have"]]
+                        #_[question=["how expensive is the restaurant"]]
                         #_[canonical={
                           default="adjective",
                           base=["price", "price range"],
@@ -115,7 +117,10 @@ class @uk.ac.cam.multiwoz.Restaurant
                                        "near the #", "near the # area", "near the # part of town",
                                        "around the #", "around the # area", "around the # part of town",
                                        "in the # of cambridge", "in # cambridge"],
-                          preposition_enum={ centre=["in the city centre"] }
+                          preposition_enum={ centre=["in the city centre"] },
+                          projection_pronoun=["where", "which part of town", "which area", "which part of cambridge"],
+                          passive_verb_projection=["located"],
+                          preposition_projection=["in", "at"]
                         }],
                         out phone : Entity(tt:phone_number)
                         #[filterable=false]

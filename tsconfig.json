@@ -1,0 +1,31 @@
+{
+    "include": [
+        "lib/**/*",
+        "tool/**/*"
+    ],
+    "exclude": [
+        "languages/**/*"
+    ],
+    "compilerOptions": {
+        "target": "es2018",
+        "lib": ["es2018"],
+        "module": "commonjs",
+        "allowJs": true,
+        "esModuleInterop": true,
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "strict": true,
+        "noUnusedLocals": true,
+        "outDir": "dist",
+        "rootDir": ".",
+        "sourceMap": true,
+        "incremental": true,
+        "declaration": true
+    },
+    "typedocOptions": {
+        "mode": "library",
+        "out": "jsdoc",
+        "name": "Genie",
+        "readme": "README.md"
+    }
+}

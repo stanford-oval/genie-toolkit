@@ -17,7 +17,6 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
 
 function cleanEnumValue(v) {
     // replace dash with space
@@ -60,7 +59,7 @@ const DEFAULT_ENTITIES = [
     {"type":"tt:username","name":"Username","is_well_known":1,"has_ner_support":0}
 ];
 
-module.exports = {
+export {
     cleanEnumValue,
     camelcase,
     snakecase,

@@ -16,24 +16,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+// Author: Silei Xu <silei@cs.stanford.edu>
 
-const assert = require('assert');
-const fs = require('fs');
-const util = require('util');
-const path = require('path');
-const ThingTalk = require('thingtalk');
-const csvstringify = require('csv-stringify');
+import assert from 'assert';
+import * as fs from 'fs';
+import * as util from 'util';
+import * as path from 'path';
+import * as ThingTalk from 'thingtalk';
+import csvstringify from 'csv-stringify';
 
-const I18N = require('../../../lib/i18n');
-const StreamUtils = require('../../../lib/utils/stream-utils');
+import * as I18N from '../../../lib/i18n';
+import * as StreamUtils from '../../../lib/utils/stream-utils';
 
-const {
+import {
     wikidataQuery,
     getEquivalent,
     getItemLabel
-} = require('./utils');
+} from './utils';
 
 function getElemType(type) {
     if (type.isArray)
@@ -65,8 +64,8 @@ class ParamDatasetGenerator {
     }
 
     async init(thingpedia) {
-        const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
-        assert(library.isLibrary && library.classes.length === 1);
+        const library = ThingTalk.Syntax.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
+        assert(library instanceof ThingTalk.Ast.Library && library.classes.length === 1);
         this._classDef = library.classes[0];
     }
 
@@ -254,59 +253,57 @@ class ParamDatasetGenerator {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('wikidata-make-string-datasets', {
-            add_help: true,
-            description: "Extract string datasets from a AutoQA normalized data file."
-        });
-        parser.add_argument('-d', '--output-dir', {
-            required: true,
-        });
-        parser.add_argument('--thingpedia', {
-            required: true,
-            help: 'Path to ThingTalk file containing class definitions.'
-        });
-        parser.add_argument('-l', '--locale', {
-            required: false,
-            default: 'en-US',
-            help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
-        });
-        parser.add_argument('--manifest', {
-            required: true,
-            help: `Write a parameter dataset manifest to this location`
-        });
-        parser.add_argument('--append-manifest', {
-            required: false,
-            action: 'store_true',
-            help: `append to the manifest instead of replacing`
-        });
-        parser.add_argument('--max-value-length', {
-            required: false,
-            default: 500,
-            help: 'Ignore values longer than this (unit: number of UTF-16 code points after tokenization).'
-        });
-        parser.add_argument('--target-size', {
-            required: false,
-            default: 1000,
-            help: 'target number of examples for each property'
-        });
-        parser.add_argument('--debug', {
-            action: 'store_true',
-            help: 'Enable debugging.',
-            default: true
-        });
-        parser.add_argument('--no-debug', {
-            action: 'store_false',
-            dest: 'debug',
-            help: 'Disable debugging.',
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('wikidata-make-string-datasets', {
+        add_help: true,
+        description: "Extract string datasets from a AutoQA normalized data file."
+    });
+    parser.add_argument('-d', '--output-dir', {
+        required: true,
+    });
+    parser.add_argument('--thingpedia', {
+        required: true,
+        help: 'Path to ThingTalk file containing class definitions.'
+    });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en-US',
+        help: `BGP 47 locale tag of the language to generate (defaults to 'en-US', English)`
+    });
+    parser.add_argument('--manifest', {
+        required: true,
+        help: `Write a parameter dataset manifest to this location`
+    });
+    parser.add_argument('--append-manifest', {
+        required: false,
+        action: 'store_true',
+        help: `append to the manifest instead of replacing`
+    });
+    parser.add_argument('--max-value-length', {
+        required: false,
+        default: 500,
+        help: 'Ignore values longer than this (unit: number of UTF-16 code points after tokenization).'
+    });
+    parser.add_argument('--target-size', {
+        required: false,
+        default: 1000,
+        help: 'target number of examples for each property'
+    });
+    parser.add_argument('--debug', {
+        action: 'store_true',
+        help: 'Enable debugging.',
+        default: true
+    });
+    parser.add_argument('--no-debug', {
+        action: 'store_false',
+        dest: 'debug',
+        help: 'Disable debugging.',
+    });
+}
 
-    async execute(args) {
-        const generator = new ParamDatasetGenerator(args);
-        await generator.init(args.thingpedia);
-        await generator.run();
-        await generator.output(args.output_dir, args.manifest, args.append_manifest);
-    }
-};
+export async function execute(args) {
+    const generator = new ParamDatasetGenerator(args);
+    await generator.init(args.thingpedia);
+    await generator.run();
+    await generator.output(args.output_dir, args.manifest, args.append_manifest);
+}

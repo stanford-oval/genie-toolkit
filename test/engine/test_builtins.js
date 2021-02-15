@@ -17,11 +17,11 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
 
-const Tp = require('thingpedia');
+import assert from 'assert';
+
+import * as Tp from 'thingpedia';
 
 async function testGetDateTime(engine) {
     const device = engine.devices.getDevice('thingengine-own-global');
@@ -90,10 +90,10 @@ async function testPlatformDevice(engine) {
     assert.strictEqual(typeof d.subscribe_foo, 'function');
 }
 
-module.exports = async function testBuiltins(engine) {
+export default async function testBuiltins(engine) {
     await testBuiltinsAreExpected(engine);
     await testGetDateTime(engine);
     await testGetCommands(engine);
     await testOtherBuiltins(engine);
     await testPlatformDevice(engine);
-};
+}

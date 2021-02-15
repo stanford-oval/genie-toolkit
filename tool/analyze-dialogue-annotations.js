@@ -17,22 +17,61 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const Tp = require('thingpedia');
-const ThingTalk = require('thingtalk');
-const Stream = require('stream');
-const fs = require('fs');
-const seedrandom = require('seedrandom');
 
-const StreamUtils = require('../lib/utils/stream-utils');
-const { isExecutable } = require('../lib/dialogue-agent/dialogue_state_utils');
-const { findFilterTable } = require('../languages/thingtalk/ast_manip');
-const TargetLanguages = require('../lib/languages');
-const { DialogueParser } = require('../lib/dataset-tools/parsers');
+import assert from 'assert';
+import * as Tp from 'thingpedia';
+import * as ThingTalk from 'thingtalk';
+import Stream from 'stream';
+import * as fs from 'fs';
+import seedrandom from 'seedrandom';
 
-const { maybeCreateReadStream, readAllLines } = require('./lib/argutils');
-const MultiJSONDatabase = require('./lib/multi_json_database');
+import * as StreamUtils from '../lib/utils/stream-utils';
+import * as ThingTalkUtils from '../lib/utils/thingtalk';
+import { DialogueParser } from '../lib/dataset-tools/parsers';
+
+import { maybeCreateReadStream, readAllLines } from './lib/argutils';
+import MultiJSONDatabase from './lib/multi_json_database';
+
+function findFilterTable(root) {
+    let table = root;
+    while (!table.isFilter) {
+        if (table.isSequence ||
+            table.isHistory ||
+            table.isWindow ||
+            table.isTimeSeries)
+            throw new Error('NOT IMPLEMENTED');
+
+        // do not touch these with filters
+        if (table.isAggregation ||
+            table.isVarRef ||
+            table.isResultRef)
+            return null;
+
+        // go inside these
+        if (table.isSort ||
+            table.isIndex ||
+            table.isSlice ||
+            table.isProjection ||
+            table.isCompute ||
+            table.isAlias) {
+            table = table.table;
+            continue;
+        }
+
+        if (table.isJoin) {
+            // go right on join, always
+            table = table.rhs;
+            continue;
+        }
+
+        assert(table.isInvocation);
+        // if we get here, there is no filter table at all
+        return null;
+    }
+
+    return table;
+}
 
 const USER_DIALOGUE_ACTS = new Set([
     // user says hi!
@@ -150,6 +189,10 @@ function isFilterCompatibleWithResult(topResult, filter) {
     }
 }
 
+function prettyprintStmt(stmt) {
+    return new ThingTalk.Ast.Program(null, [], [], [stmt]).prettyprint();
+}
+
 
 class DialogueAnalyzer extends Stream.Transform {
     constructor(options) {
@@ -160,7 +203,6 @@ class DialogueAnalyzer extends Stream.Transform {
 
         this._options = options;
         this._debug = options.debug;
-        this._target = TargetLanguages.get('thingtalk');
 
         this._simulatorOverrides = new Map;
         const simulatorOptions = {
@@ -172,12 +214,12 @@ class DialogueAnalyzer extends Stream.Transform {
             database: this._database
         };
 
-        this._simulator = this._target.createSimulator(simulatorOptions);
+        this._simulator = ThingTalkUtils.createSimulator(simulatorOptions);
     }
 
     async _checkAgentTurn(turn, userCheck, previousTurn) {
-        const context = await this._target.parse(turn.context, this._options);
-        const agentTarget = await this._target.parse(turn.agent_target, this._options);
+        const context = await ThingTalkUtils.parse(turn.context, this._options);
+        const agentTarget = await ThingTalkUtils.parse(turn.agent_target, this._options);
 
         if (!SYSTEM_DIALOGUE_ACTS.has(agentTarget.dialogueAct) ||
             SYSTEM_STATE_MUST_HAVE_PARAM.has(agentTarget.dialogueAct) !== (agentTarget.dialogueActParam !== null) ||
@@ -196,11 +238,11 @@ class DialogueAnalyzer extends Stream.Transform {
         if (context.dialogueAct === 'end')
             return 'after_end';
 
-        const previousUserTarget = await this._target.parse(previousTurn.user_target, this._options);
+        const previousUserTarget = await ThingTalkUtils.parse(previousTurn.user_target, this._options);
         if (previousUserTarget.history.length > 0) {
             const userLast = previousUserTarget[previousUserTarget.history.length-1];
             const contextLast = context[context.history.length-1];
-            if (userLast && isExecutable(userLast.stmt) && contextLast.results === null)
+            if (userLast && userLast.isExecutable() && contextLast.results === null)
                 return 'added_optional';
 
             if (userLast && userLast.stmt.prettyprint() !== contextLast.stmt.prettyprint())
@@ -309,20 +351,22 @@ class DialogueAnalyzer extends Stream.Transform {
     async _checkUserTurn(turn, agentCheck) {
         let context = null;
         if (turn.intermediate_context) {
-            context = await this._target.parse(turn.intermediate_context, this._options);
+            context = await ThingTalkUtils.parse(turn.intermediate_context, this._options);
         } else if (turn.context){
-            context = await this._target.parse(turn.context, this._options);
+            context = await ThingTalkUtils.parse(turn.context, this._options);
             // apply the agent prediction to the context to get the state of the dialogue before
             // the user speaks
-            const agentPrediction = await this._target.parse(turn.agent_target, this._options);
-            context = this._target.computeNewState(context, agentPrediction);
+            const agentPrediction = await ThingTalkUtils.parse(turn.agent_target, this._options);
+            context = ThingTalkUtils.computeNewState(context, agentPrediction);
         }
-        const userTarget = await this._target.parse(turn.user_target, this._options);
+        const userTarget = await ThingTalkUtils.parse(turn.user_target, this._options);
 
         if (!USER_DIALOGUE_ACTS.has(userTarget.dialogueAct) ||
             USER_STATE_MUST_HAVE_PARAM.has(userTarget.dialogueAct) !== (userTarget.dialogueActParam !== null))
             return 'unrepresentable';
 
+        if (agentCheck === 'unrepresentable')
+            return 'unrepresentable_agent_state';
         if (['unrepresentable', 'unexpected_proposed', 'multi_param_slot_fill'].includes(agentCheck))
             return 'unknown_agent_state';
 
@@ -367,8 +411,9 @@ class DialogueAnalyzer extends Stream.Transform {
                 current = item;
             }
         }
+
         if (current !== null && userTarget.dialogueAct === 'execute' &&
-            (userTarget.history.length === 0 || userTarget.history[0].stmt.prettyprint() === current.stmt.prettyprint()))
+            (userTarget.history.length === 0 || prettyprintStmt(userTarget.history[0].stmt) === prettyprintStmt(current.stmt)))
             return 'reissue_identical';
         if (userTarget.dialogueAct === 'insist')
             return 'insist';
@@ -383,7 +428,8 @@ class DialogueAnalyzer extends Stream.Transform {
         }
 
         const currentDomain = context && context.history.length > 0 ? this._getDomain(context.history[context.history.length-1]) : null;
-        if (currentDomain && userTargetDomain && currentDomain !== userTargetDomain)
+        if (currentDomain && userTargetDomain && currentDomain !== userTargetDomain &&
+            !['sys_anything_else', 'sys_action_success', 'sys_action_error'].includes(context.dialogueAct))
             return 'unexpected_domain_switch';
 
         if (current !== null  && current.stmt.actions[0].isInvocation) {
@@ -394,8 +440,8 @@ class DialogueAnalyzer extends Stream.Transform {
                 return 'query_after_action';
         }
 
-        if (userTarget.history.length >= 2 && (next === null || next.stmt.prettyprint() !== userTarget.history[1].stmt.prettyprint()) &&
-            context !== null  && !['sys_search_question', 'sys_generic_search_question'].includes(context.dialogueAct))
+        if (userTarget.history.length >= 2 && (next === null || prettyprintStmt(next.stmt) !== prettyprintStmt(userTarget.history[1].stmt)) &&
+            context !== null  && !['sys_search_question', 'sys_generic_search_question', 'sys_anything_else', 'sys_action_success', 'sys_action_error'].includes(context.dialogueAct))
             return 'query_plus_action_refinement';
 
         if (userTarget.history.length === 1) {
@@ -430,66 +476,64 @@ class DialogueAnalyzer extends Stream.Transform {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('analyze-dialogue-annotations', {
-            add_help: true,
-            description: "Transform a dialog input file in ThingTalk format into a dialogue state tracking dataset."
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('-l', '--locale', {
-            required: false,
-            default: 'en-US',
-            help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
-        });
-        parser.add_argument('--thingpedia', {
-            required: true,
-            help: 'Path to ThingTalk file containing class definitions.'
-        });
-        parser.add_argument('--database-file', {
-            required: true,
-            help: `Path to a file pointing to JSON databases used to simulate queries.`,
-        });
-        parser.add_argument('input_file', {
-            nargs: '+',
-            type: maybeCreateReadStream,
-            help: 'Input dialog file; use - for standard input'
-        });
-        parser.add_argument('--debug', {
-            action: 'store_true',
-            help: 'Enable debugging.',
-            default: true
-        });
-        parser.add_argument('--no-debug', {
-            action: 'store_false',
-            dest: 'debug',
-            help: 'Disable debugging.',
-        });
-        parser.add_argument('--random-seed', {
-            default: 'almond is awesome',
-            help: 'Random seed'
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('analyze-dialogue-annotations', {
+        add_help: true,
+        description: "Transform a dialog input file in ThingTalk format into a dialogue state tracking dataset."
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('-l', '--locale', {
+        required: false,
+        default: 'en-US',
+        help: `BGP 47 locale tag of the language to evaluate (defaults to 'en-US', English)`
+    });
+    parser.add_argument('--thingpedia', {
+        required: true,
+        help: 'Path to ThingTalk file containing class definitions.'
+    });
+    parser.add_argument('--database-file', {
+        required: true,
+        help: `Path to a file pointing to JSON databases used to simulate queries.`,
+    });
+    parser.add_argument('input_file', {
+        nargs: '+',
+        type: maybeCreateReadStream,
+        help: 'Input dialog file; use - for standard input'
+    });
+    parser.add_argument('--debug', {
+        action: 'store_true',
+        help: 'Enable debugging.',
+        default: true
+    });
+    parser.add_argument('--no-debug', {
+        action: 'store_false',
+        dest: 'debug',
+        help: 'Disable debugging.',
+    });
+    parser.add_argument('--random-seed', {
+        default: 'almond is awesome',
+        help: 'Random seed'
+    });
+}
 
-    async execute(args) {
-        let tpClient = new Tp.FileClient(args);
+export async function execute(args) {
+    let tpClient = new Tp.FileClient(args);
 
-        const database = new MultiJSONDatabase(args.database_file);
-        await database.load();
+    const database = new MultiJSONDatabase(args.database_file);
+    await database.load();
 
-        readAllLines(args.input_file, '====')
-            .pipe(new DialogueParser())
-            .pipe(new DialogueAnalyzer({
-                locale: args.locale,
-                debug: args.debug,
-                thingpediaClient: tpClient,
-                database: database,
-            }))
-            .pipe(args.output);
+    readAllLines(args.input_file, '====')
+        .pipe(new DialogueParser())
+        .pipe(new DialogueAnalyzer({
+            locale: args.locale,
+            debug: args.debug,
+            thingpediaClient: tpClient,
+            database: database,
+        }))
+        .pipe(args.output);
 
-        await StreamUtils.waitFinish(args.output);
-    }
-};
+    await StreamUtils.waitFinish(args.output);
+}

@@ -7,14 +7,14 @@
 // Author: Mehrad Moradshahi <mehrad@cs.stanford.edu>
 //
 // See COPYING for details
-"use strict";
-
-const assert = require('assert');
-
-const { requoteSentence } = require('../../tool/requote');
 
 
-const SINGLE_TURN_TEST_CASES = [
+import assert from 'assert';
+
+import { requoteSentence } from '../../tool/requote';
+
+
+const SINGLE_TURN_TEST_CASES_LEGACY = [
     [
         'i would like to find out more about queen college .',
         '... filter param:id =~ " queen college " => notify ;',
@@ -61,21 +61,159 @@ const SINGLE_TURN_TEST_CASES = [
 
     [
         'i am looking for multiple sports in sport city',
-    '... filter param:id: " sport " and param:area == " sport " and param:type =~ " multiple sports " => notify ;',
+        '... filter param:id =~ " sport " and param:area == " sport " and param:type =~ " multiple sports " => notify ;',
         'i am looking for QUOTED_STRING_0 in QUOTED_STRING_1 city',
-        '... filter param:id: QUOTED_STRING_1 and param:area == QUOTED_STRING_1 and param:type =~ QUOTED_STRING_0 => notify ;'
+        '... filter param:id =~ QUOTED_STRING_1 and param:area == QUOTED_STRING_1 and param:type =~ QUOTED_STRING_0 => notify ;'
     ],
 
     [
         'i am looking for multiple sports in sports city',
-    '... filter param:id: " sport " and param:area == " sport " and param:type =~ " multiple sports " => notify ;',
-    'i am looking for QUOTED_STRING_0 in QUOTED_STRING_1 city',
-    '... filter param:id: QUOTED_STRING_1 and param:area == QUOTED_STRING_1 and param:type =~ QUOTED_STRING_0 => notify ;'
-    ]
+        '... filter param:id =~ " sport " and param:area == " sport " and param:type =~ " multiple sports " => notify ;',
+        'i am looking for QUOTED_STRING_0 in QUOTED_STRING_1 city',
+        '... filter param:id =~ QUOTED_STRING_1 and param:area == QUOTED_STRING_1 and param:type =~ QUOTED_STRING_0 => notify ;'
+    ],
 
+    [
+        'weather for san francisco .',
+        '... param:location = location: " san francisco " ;',
+        'weather for LOCATION_0 .',
+        '... param:location = LOCATION_0 ;'
+    ],
+
+    [
+        'tweets with hashtag cat .',
+        '... param:hashtags contains " cat " ^^tt:hashtag ;',
+        'tweets with hashtag HASHTAG_0 .',
+        '... param:hashtags contains HASHTAG_0 ;'
+    ],
+
+    [
+        'italian restaurants .',
+        '... param:cuisines contains " italian " ^^com.yelp:restaurant_cuisine ;',
+        'GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 restaurants .',
+        '... param:cuisines contains GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 ;'
+    ],
 ];
 
-const CONTEXTUAL_TEST_CASES = [
+const SINGLE_TURN_TEST_CASES_NEW = [
+    [
+        'i would like to find out more about queen college .',
+        '... filter id =~ " queen college " ;',
+        'i would like to find out more about QUOTED_STRING_0 .',
+        '... filter id =~ QUOTED_STRING_0 ;'
+    ],
+
+    [
+        'i would like to find out more about queen colleges .',
+        '... filter id =~ " queen college " ;',
+        'i would like to find out more about QUOTED_STRING_0 .',
+        '... filter id =~ QUOTED_STRING_0 ;'
+    ],
+
+    [
+        'i would like to find out more about the queen college .',
+        '... filter id =~ " queen college " ;',
+        'i would like to find out more about QUOTED_STRING_0 .',
+        '... filter id =~ QUOTED_STRING_0 ;'
+    ],
+
+    [
+        'amazon are sunlight lounge rated a 1 star with summary being what .',
+        '... filter aggregateRating.ratingValue == 1 && name =~ " sunlight lounge " => notify',
+        'amazon are QUOTED_STRING_0 rated a NUMBER_0 star with summary being what .',
+        '... filter aggregateRating.ratingValue == NUMBER_0 && name =~ QUOTED_STRING_0 => notify'
+    ],
+
+
+    [
+        'amazon are sunlight lounge rated 15 stars with summary being what .',
+        '... filter aggregateRating.ratingValue:Number == 15 => notify',
+        'amazon are sunlight lounge rated NUMBER_0 stars with summary being what .',
+        '... filter aggregateRating.ratingValue:Number == NUMBER_0 => notify'
+    ],
+
+    [
+        'i am looking for multiple sports in sport city',
+        '... filter id " sport " && area == " sport " && type =~ " multiple sports " => notify ;',
+        'i am looking for QUOTED_STRING_0 in QUOTED_STRING_1 city',
+        '... filter id QUOTED_STRING_1 && area == QUOTED_STRING_1 && type =~ QUOTED_STRING_0 => notify ;'
+    ],
+
+    [
+        'i am looking for multiple sports in sports city',
+        '... filter id =~ " sport " && area == " sport " && type =~ " multiple sports " => notify ;',
+        'i am looking for QUOTED_STRING_0 in QUOTED_STRING_1 city',
+        '... filter id =~ QUOTED_STRING_1 && area == QUOTED_STRING_1 && type =~ QUOTED_STRING_0 => notify ;'
+    ],
+
+    [
+        'weather for san francisco .',
+        '... location = new Location ( " san francisco " ) ) ;',
+        'weather for LOCATION_0 .',
+        '... location = LOCATION_0 ) ;'
+    ],
+
+    [
+        'tweets with hashtag cat .',
+        '... contains ( hashtags , " cat " ^^tt:hashtag ) ;',
+        'tweets with hashtag HASHTAG_0 .',
+        '... contains ( hashtags , HASHTAG_0 ) ;'
+    ],
+
+    [
+        'italian restaurants .',
+        '... contains ( cuisines , null ^^com.yelp:restaurant_cuisine ( " italian " ) ) ;',
+        'GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 restaurants .',
+        '... contains ( cuisines , GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 ) ;'
+    ],
+];
+
+const CONTEXTUAL_TEST_CASES_NEW = [
+    [
+        '... filter food =~ QUOTED_STRING_0 ... ;',
+        'yes , how about a chinese restaurant ?',
+        '... filter food =~ " chinese " ...',
+        'yes , how about a QUOTED_STRING_1 restaurant ?',
+        '... filter food =~ QUOTED_STRING_1 ...'
+    ],
+
+    [
+        '... filter food =~ QUOTED_STRING_0 ... ;',
+        'yes , how about that ?',
+        '... filter food =~ QUOTED_STRING_0 ...',
+        'yes , how about that ?',
+        '... filter food =~ QUOTED_STRING_0 ...'
+    ],
+
+
+    [
+        '... filter departure =~ QUOTED_STRING_1 && destination =~ QUOTED_STRING_0 ... arrive_by = TIME_0 , leave_at = TIME_1 ...',
+        'i would like to arrive in cambridge by TIME_2 on wednesday .',
+        '... filter arrive_by <= TIME_2 ... && departure =~ QUOTED_STRING_1 && destination =~ " cambridge " => notify ;',
+        'i would like to arrive in QUOTED_STRING_2 by TIME_2 on wednesday .',
+        '... filter arrive_by <= TIME_2 ... && departure =~ QUOTED_STRING_1 && destination =~ QUOTED_STRING_2 => notify ;'
+    ],
+
+
+    [
+        '... filter departure =~ QUOTED_STRING_1 && destination =~ QUOTED_STRING_0 ... arrive_by = TIME_0 , leave_at = TIME_1 ...',
+        'i would like to arrive by TIME_2 on wednesday .',
+        '... filter arrive_by <= TIME_2 ... && departure =~ QUOTED_STRING_1 && destination =~ QUOTED_STRING_0 => notify ;',
+        'i would like to arrive by TIME_2 on wednesday .',
+        '... filter arrive_by <= TIME_2 ... && departure =~ QUOTED_STRING_1 && destination =~ QUOTED_STRING_0 => notify ;'
+    ],
+
+
+    [
+        '... departure = QUOTED_STRING_0 , destination = QUOTED_STRING_1 , id = GENERIC_ENTITY_uk.ac.cam.multiwoz.Train:Train_0 ...',
+        'what is the price of tr5695 train ?',
+        '... departure =~ QUOTED_STRING_0 && destination =~ QUOTED_STRING_1 && id =~ " tr5695 " ) => notify ;',
+        'what is the price of QUOTED_STRING_2 train ?',
+        '... departure =~ QUOTED_STRING_0 && destination =~ QUOTED_STRING_1 && id =~ QUOTED_STRING_2 ) => notify ;'
+    ],
+];
+
+const CONTEXTUAL_TEST_CASES_LEGACY = [
     [
         '... filter param:food =~ QUOTED_STRING_0 ... ;',
         'yes , how about a chinese restaurant ?',
@@ -124,34 +262,52 @@ const CONTEXTUAL_TEST_CASES = [
 
 
 function testRequoteSingleTurn(mode) {
-    for (let i = 0; i < SINGLE_TURN_TEST_CASES.length; i++) {
-        let [sentence, program, expectedSentence, expectedProgram] = SINGLE_TURN_TEST_CASES[i];
+    for (let i = 0; i < SINGLE_TURN_TEST_CASES_LEGACY.length; i++) {
+        let [sentence, program, expectedSentence, expectedProgram] = SINGLE_TURN_TEST_CASES_LEGACY[i];
 
         let [generatedSentence, generatedProgram] = requoteSentence(i, null, sentence, program,
             'replace', true, true, 'en-US');
-        assert.strictEqual(generatedSentence, expectedSentence);
         assert.strictEqual(generatedProgram, expectedProgram);
+        assert.strictEqual(generatedSentence, expectedSentence);
+    }
+
+    for (let i = 0; i < SINGLE_TURN_TEST_CASES_NEW.length; i++) {
+        let [sentence, program, expectedSentence, expectedProgram] = SINGLE_TURN_TEST_CASES_NEW[i];
+
+        let [generatedSentence, generatedProgram] = requoteSentence(i, null, sentence, program,
+            'replace', true, true, 'en-US');
+        assert.strictEqual(generatedProgram, expectedProgram);
+        assert.strictEqual(generatedSentence, expectedSentence);
     }
 }
 
 function testRequoteContextual() {
-    for (let i = 0; i < CONTEXTUAL_TEST_CASES.length; i++) {
-        let [context, sentence, program, expectedSentence, expectedProgram] = CONTEXTUAL_TEST_CASES[i];
+    for (let i = 0; i < CONTEXTUAL_TEST_CASES_LEGACY.length; i++) {
+        let [context, sentence, program, expectedSentence, expectedProgram] = CONTEXTUAL_TEST_CASES_LEGACY[i];
 
         let [generatedSentence, generatedProgram] = requoteSentence(i, context, sentence, program,
             'replace', true, true, 'en-US');
-        assert.strictEqual(generatedSentence, expectedSentence);
         assert.strictEqual(generatedProgram, expectedProgram);
+        assert.strictEqual(generatedSentence, expectedSentence);
+
+    }
+
+    for (let i = 0; i < CONTEXTUAL_TEST_CASES_NEW.length; i++) {
+        let [context, sentence, program, expectedSentence, expectedProgram] = CONTEXTUAL_TEST_CASES_NEW[i];
+
+        let [generatedSentence, generatedProgram] = requoteSentence(i, context, sentence, program,
+            'replace', true, true, 'en-US');
+        assert.strictEqual(generatedProgram, expectedProgram);
+        assert.strictEqual(generatedSentence, expectedSentence);
 
     }
 }
 
 
 async function main() {
-        testRequoteSingleTurn();
-        testRequoteContextual();
+    testRequoteSingleTurn();
+    testRequoteContextual();
 }
-
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

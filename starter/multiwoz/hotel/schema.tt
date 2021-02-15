@@ -24,7 +24,10 @@ class @uk.ac.cam.multiwoz.Hotel
                      preposition=["in the #", "in the # area", "in the # part of town",
                                   "near the #", "near the # area", "near the # part of town",
                                   "around the #", "around the # area", "around the # part of town",
-                                  "in the # of cambridge", "in # cambridge"]
+                                  "in the # of cambridge", "in # cambridge"],
+                     projection_pronoun=["where", "which part of town", "which area", "which part of cambridge"],
+                     passive_verb_projection=["located"],
+                     preposition_projection=["in", "at"]
                    }],
                    out price_range : Enum(cheap, moderate, expensive)
                    #[conflict_filter=['id']]
@@ -50,7 +53,9 @@ class @uk.ac.cam.multiwoz.Hotel
                      default="adjective",
                      base=["stars"],
                      property=["# stars", "# stars rating", "# star rating"],
-                     adjective=["# star", "# -star"]
+                     adjective=["# star", "# -star"],
+                     projection_pronoun=["how many stars"],
+                     verb=["have"]
                    }],
                    out parking : Boolean
                    #_[canonical={

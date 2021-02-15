@@ -17,11 +17,11 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
 
-const ArraySet = require('../../lib/engine/util/array_set');
+import assert from 'assert';
+
+import ArraySet from '../../lib/engine/util/array_set';
 
 function testBasic() {
     const set = new ArraySet();
@@ -124,7 +124,7 @@ function testIteration() {
     assert.deepStrictEqual(Array.from(set.values()), [1, 2]);
 }
 
-async function main() {
+export default async function main() {
     testBasic();
     testDuplicate();
     testDelete();
@@ -132,6 +132,5 @@ async function main() {
     testIteration();
     testToJSON();
 }
-module.exports = main;
 if (!module.parent)
     main();

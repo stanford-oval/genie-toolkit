@@ -36,6 +36,6 @@ EOF
 	make experiment=${experiment_name} target_pruning_size=10 "$@" datadir
 
 	# train a model (for a few iterations)
-	make experiment=${experiment_name} model=small train_iterations=30 train_save_every=10 \
-	  train_log_every=5 "$@" train
+	make experiment=${experiment_name} model=small train_iterations=6 train_save_every=2 \
+	  train_log_every=2 "$@" train
 }

@@ -18,8 +18,5 @@
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
 
-"use strict";
-
-
-module.exports = {
+export {
 };
