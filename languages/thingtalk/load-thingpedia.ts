@@ -1197,7 +1197,9 @@ export default class ThingpediaLoader {
         for (const argname of q.args) {
             const arg = q.getArgument(argname)!;
 
-            if (typeof arg.metadata.canonical === 'string' || Array.isArray(arg.metadata.canonical))
+            if (typeof arg.metadata.canonical === 'string' ||
+                typeof arg.metadata.canonical === 'undefined' ||
+                Array.isArray(arg.metadata.canonical))
                 continue;
 
             let op = '==';

@@ -2839,13 +2839,12 @@ class @com.yelp
                           property=[]
                         }],
                         out image_url: Entity(tt:picture)
-                        #[genie=false]
+                        #[filterable=false]
                         #_[canonical={
                           base=["picture", "image", "photo"]
                         }],
                         out link: Entity(tt:url)
-                        #[genie=false]
-                        #_[canonical="link"],
+                        /* no #_[canonical], to test that we don't crash */,
                         out cuisines: Array(Entity(com.yelp:restaurant_cuisine))
                         #[conflict_filter=["id"]]
                         #_[canonical={
