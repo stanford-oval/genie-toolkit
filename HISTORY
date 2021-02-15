@@ -1,3 +1,37 @@
+0.8.0-alpha.1
+=============
+
+This is a large release that culminates more than 5 months of development.
+This changelog includes only the major changes. Refer to the git history
+for additional details.
+
+* A large portion of the library was converted to TypeScript. This allows
+  strict typechecking, which should improve the robustness and API compatibility
+  going forward.
+* As part of this migration, the recommended package manager is now npm instead
+  of yarn, because yarn has problems with dependencies that need a building step.
+* The AutoQA template extraction code was rewritten to use a regular
+  expression-like pattern matching syntax, which should allow greater extensibility
+  in the future.
+* Sentence generation was refactored, and made significantly faster with a new
+  sampling strategy and constraint-based top-down pruning. Confusing features of
+  the template system, like computed non-terminals and placeholder replacement,
+  were refactored out and removed.
+* The codebase was updated for ThingTalk 2.0. Support for other programming
+  languages was removed in light of keeping the codebase lean, but might be
+  reintroduced in the future.
+* Picture and RDL (link) outputs are again available to Thingpedia skills, as
+  a graphical supplement to the voice output on Almond platforms with a graphical
+  display.
+* Added support for confidence based dispatch. If a suitable GenieNLP model is
+  available, the agent will consider parsing confidence when deciding whether
+  to act on an input from the user, or dispatch it out to other backends.
+* Added support for inference in Kubeflow, which will makes it possible to
+  swap out models transparently and scale out model serving resources automatically.
+* Added a basic support for certain frequently asked questions in Almond, using
+  the builtin skill.
+* Lots and lots of bug fixes, too many to list here.
+
 0.7.0
 =====
 
