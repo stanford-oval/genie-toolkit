@@ -7,26 +7,24 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 //
 // See COPYING for details
-"use strict";
 
+import assert from 'assert';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as util from 'util';
+import * as ThingTalk from 'thingtalk';
+import csvstringify from 'csv-stringify';
 
-const assert = require('assert');
-const fs = require('fs');
-const path = require('path');
-const util = require('util');
-const ThingTalk = require('thingtalk');
-const csvstringify = require('csv-stringify');
+import * as StreamUtils from '../../../lib/utils/stream-utils';
+import { makeMetadata } from '../lib/metadata';
+import { cleanEnumValue } from '../lib/utils';
 
-const StreamUtils = require('../../../lib/utils/stream-utils');
-const { makeMetadata } = require('../lib/metadata');
-const { cleanEnumValue } = require('../lib/utils');
-
-const {
+import {
     unitConverter,
     wikidataQuery,
     getItemLabel,
     getEquivalent
-} = require('./utils');
+} from './utils';
 
 class Downloader {
     constructor(options) {
@@ -41,8 +39,8 @@ class Downloader {
     }
 
     async init(thingpedia) {
-        const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
-        assert(library.isLibrary && library.classes.length === 1);
+        const library = ThingTalk.Syntax.parse(await util.promisify(fs.readFile)(thingpedia, { encoding: 'utf8' }));
+        assert(library instanceof ThingTalk.Ast.Library && library.classes.length === 1);
         const classDef = library.classes[0];
         this._classDef = classDef;
 
@@ -149,14 +147,14 @@ class Downloader {
             if (['tt:Measure', 'tt:Currency'].includes(this.meta[fname].fields[field].type)) {
                 query = `SELECT ?value ?valueLabel ?unit ?unitLabel
                     WHERE {
-                        wd:${id} p:${wikidataId}/psv:${wikidataId}  
-                        [ wikibase:quantityAmount ?value ; wikibase:quantityUnit ?unit ] . 
+                        wd:${id} p:${wikidataId}/psv:${wikidataId}
+                        [ wikibase:quantityAmount ?value ; wikibase:quantityUnit ?unit ] .
                         SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
                     }`;
             } else {
                 query = `SELECT ?value ?valueLabel
                     WHERE {
-                        wd:${id} wdt:${wikidataId} ?value. 
+                        wd:${id} wdt:${wikidataId} ?value.
                         SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
                     }`;
             }
@@ -184,7 +182,7 @@ class Downloader {
             for (let klass of classes) {
                 const predicate = klass === 'Q5' ? 'wdt:P31' : 'p:P31/ps:P31/wdt:P279*';
                 const query = `
-                    SELECT DISTINCT ?value 
+                    SELECT DISTINCT ?value
                     WHERE {
                       ?value ${predicate} wd:${klass}; ${triples.join('; ')} .
                     }
@@ -202,55 +200,53 @@ class Downloader {
     }
 }
 
-module.exports = {
-    initArgparse(subparsers) {
-        const parser = subparsers.add_parser('wikidata-download-data', {
-            add_help: true,
-            description: "Download sample data from wikidata."
-        });
-        parser.add_argument('--output-dir', {
-            required: true,
-            help: 'Path to the database map.'
-        });
-        parser.add_argument('--thingpedia', {
-            required: true,
-            help: 'Path to ThingTalk file containing class definitions.'
-        });
-        parser.add_argument('--target-size', {
-            required: false,
-            default: 10,
-            help: 'Target size to download.'
-        });
-        parser.add_argument('--dialogue', {
-            action: 'store_true',
-            required: false,
-            default: false,
-            help: 'Generate data for dialogue experiment or single-turn QA experiment.'
-        });
-    },
+export function initArgparse(subparsers) {
+    const parser = subparsers.add_parser('wikidata-download-data', {
+        add_help: true,
+        description: "Download sample data from wikidata."
+    });
+    parser.add_argument('--output-dir', {
+        required: true,
+        help: 'Path to the database map.'
+    });
+    parser.add_argument('--thingpedia', {
+        required: true,
+        help: 'Path to ThingTalk file containing class definitions.'
+    });
+    parser.add_argument('--target-size', {
+        required: false,
+        default: 10,
+        help: 'Target size to download.'
+    });
+    parser.add_argument('--dialogue', {
+        action: 'store_true',
+        required: false,
+        default: false,
+        help: 'Generate data for dialogue experiment or single-turn QA experiment.'
+    });
+}
 
-    async execute(args) {
-        const downloader = new Downloader(args);
-        await downloader.init(args.thingpedia);
-        await downloader.download();
+export async function execute(args) {
+    const downloader = new Downloader(args);
+    await downloader.init(args.thingpedia);
+    await downloader.download();
 
-        if (args.dialogue) {
-            const output = csvstringify({header: false, delimiter: '\t'});
-            output.pipe(fs.createWriteStream(path.resolve(args.output_dir, 'database-map.tsv')));
-            for (let fn in downloader.database_map)
-                output.write(downloader.database_map[fn]);
-            output.end();
-            await StreamUtils.waitFinish(output);
+    if (args.dialogue) {
+        const output = csvstringify({header: false, delimiter: '\t'});
+        output.pipe(fs.createWriteStream(path.resolve(args.output_dir, 'database-map.tsv')));
+        for (let fn in downloader.database_map)
+            output.write(downloader.database_map[fn]);
+        output.end();
+        await StreamUtils.waitFinish(output);
 
-            for (let fn in downloader.databases) {
-                const output = fs.createWriteStream(path.resolve(args.output_dir, `${downloader.database_map[fn][1]}`));
-                output.end(JSON.stringify(downloader.databases[fn], undefined, 2));
-                await StreamUtils.waitFinish(output);
-            }
-        } else {
-            const output = fs.createWriteStream(path.resolve(args.output_dir, 'data.json'));
-            output.end(JSON.stringify(downloader.output, undefined, 2));
+        for (let fn in downloader.databases) {
+            const output = fs.createWriteStream(path.resolve(args.output_dir, `${downloader.database_map[fn][1]}`));
+            output.end(JSON.stringify(downloader.databases[fn], undefined, 2));
             await StreamUtils.waitFinish(output);
         }
+    } else {
+        const output = fs.createWriteStream(path.resolve(args.output_dir, 'data.json'));
+        output.end(JSON.stringify(downloader.output, undefined, 2));
+        await StreamUtils.waitFinish(output);
     }
-};
+}

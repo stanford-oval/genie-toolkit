@@ -17,15 +17,15 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
-const ThingTalk = require('thingtalk');
+
+import assert from 'assert';
+import * as ThingTalk from 'thingtalk';
 const Type = ThingTalk.Type;
 
-const baseCanonical = require('../../tool/autoqa/lib/base-canonical-generator');
+import baseCanonical from '../../tool/autoqa/lib/base-canonical-generator';
 
-const library = ThingTalk.Grammar.parse(`
+const library = ThingTalk.Syntax.parse(`
     class @foo {
         query test1(out from_location: Location, 
                     out to_location: Location);
@@ -42,7 +42,7 @@ const klass = library.classes[0];
 const TEST_CASES = [
     ['author', new Type.Entity('org.schema.Restaurant:Person'), { default: 'property', base: ['author'] }, null],
     ['datePublished', Type.Date, { default: 'property', base: ['date published'] }, null],
-    ['review', new Type.Array(Type.Entity('org.schema.Restaurant:Review')), { default: 'property', base: ['reviews'] }, null],
+    ['review', new Type.Array(new Type.Entity('org.schema.Restaurant:Review')), { default: 'property', base: ['reviews'] }, null],
     ['servesCuisine', Type.String, { default: 'verb', verb: ["serves # cuisine"], base: ["cuisine"] }, null],
 
     ['inAlbum', new Type.Entity('org.schema:MusicAlbum'), { default: 'preposition', base: ['album'], preposition: ['in', 'in album'] }, null],
@@ -82,6 +82,6 @@ function main() {
     if (anyFailed)
         throw new Error('Some test failed');
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

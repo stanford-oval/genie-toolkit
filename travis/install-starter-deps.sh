@@ -7,9 +7,10 @@ set -o pipefail
 srcdir=`dirname $0`/..
 srcdir=`realpath $srcdir`
 
-which genienlp >/dev/null 2>&1 || pip3 install --user 'git+https://github.com/stanford-oval/genienlp@198d544aad36996cdb4eda811f2ce2b78f50a3f9#egg=genienlp'
+pip3 install --upgrade pip
+which genienlp >/dev/null 2>&1 || pip3 install --user 'git+https://github.com/stanford-oval/genienlp@8f48731ed1e907f2c2a469922d9b86eb8baa7631#egg=genienlp'
 which genienlp
 
-yarn global add thingpedia-cli
+npm install -g thingpedia-cli
 
 mkdir -p $srcdir/test/embeddings

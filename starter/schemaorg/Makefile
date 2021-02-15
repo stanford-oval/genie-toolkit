@@ -1,4 +1,4 @@
-geniedir = ../..
+geniedir ?= ../..
 developer_key =
 thingpedia_cli = thingpedia
 thingpedia_url = https://thingpedia.stanford.edu/thingpedia
@@ -6,7 +6,8 @@ thingpedia_url = https://thingpedia.stanford.edu/thingpedia
 -include ./config.mk
 
 memsize := 15000
-genie = node --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/tool/genie.js
+NODE ?= node
+genie ?= $(NODE) --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/dist/tool/genie.js
 
 all_experiments = restaurants hotels people books movies music
 
@@ -77,23 +78,10 @@ train_iterations ?= 100000
 train_save_every ?= 2000
 train_log_every ?= 100
 train_nlu_flags ?= \
-	--train_iterations=$(train_iterations) \
-	--dimension=768 \
-	--transformer_hidden=768 \
-	--transformer_layers=0 \
-	--rnn_layers=2 \
-	--seq2seq_encoder=Identity \
-	--rnn_zero_state=average \
-	--context_embeddings=bert-base-uncased@0 \
-	--question_embeddings=bert-base-uncased@1 \
-	--trainable_encoder_embeddings=0 \
-	--trainable_decoder_embeddings=25 \
-	--train_context_embeddings \
-	--train_context_embeddings_after=80000 \
-	--decoder_embeddings= \
-	--transformer_lr_multiply=0.5 \
-	--train_batch_tokens=4000 \
-	--val_batch_size=128
+	--model TransformerLSTM \
+	--pretrained_model bert-base-cased \
+	--trainable_decoder_embeddings 50 \
+	--override_question .
 custom_train_nlu_flags ?=
 
 .PHONY: all train evaluate
@@ -126,16 +114,16 @@ emptydataset.tt:
 	$(genie) sample-constants -o $@ --parameter-datasets $*/parameter-datasets.tsv --thingpedia $*/schema.trimmed.tt --devices $($(*)_class_name)
 	cat $(geniedir)/data/en-US/constants.tsv >> $@
 
-%/manifest.tt: %/constants.tsv %/schema.trimmed.tt %/parameter-datasets.tsv models/paraphraser-bart-large-speedup-megabatch-5m common-words.txt
+%/manifest.tt: %/constants.tsv %/schema.trimmed.tt %/parameter-datasets.tsv $(if $(findstring bart,$(annotation)),models/paraphraser-bart-large-speedup-megabatch-5m,) common-words.txt
 	$(genie) auto-annotate -o $@.tmp --constants $*/constants.tsv --thingpedia $*/schema.trimmed.tt --functions $($(*)_white_list) $(annotate_flags) --parameter-datasets $*/parameter-datasets.tsv --dataset schemaorg
 	mv $@.tmp $@
 
 multidomain/manifest.tt: $(addsuffix /manifest.tt,$(all_experiments))
 	cat $^ > $@
 
-%/synthetic.tsv: %/manifest.tt $(dataset_file) $(geniedir)/languages/thingtalk/en/*.genie
+%/synthetic.tsv: %/manifest.tt $(dataset_file) $(geniedir)/languages-dist/thingtalk/en/*.genie.js
 	$(genie) generate \
-	  --template $(geniedir)/languages/$(template_file) \
+	  --template $(geniedir)/languages-dist/$(template_file) \
 	  --thingpedia $*/manifest.tt --entities $*/entities.json --dataset $(dataset_file) \
 	  --target-pruning-size $(target_pruning_size) \
 	  -o $@.tmp --no-debug $(generate_flags) --maxdepth $(maxdepth) \
@@ -192,6 +180,7 @@ train:
 	  --cache datadir/.cache \
 	  --train_tasks almond \
 	  --preserve_case \
+	  --train_iterations $(train_iterations) \
 	  --save_every $(train_save_every) \
 	  --log_every $(train_log_every) \
 	  --val_every $(train_save_every) \

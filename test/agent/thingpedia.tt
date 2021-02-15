@@ -113,7 +113,7 @@ class @org.thingpedia.builtin.thingengine.builtin
   #[doc="get a uniform random integer between `low` and `high`"]
   #[confirm=false];
 
-  list query device(out id : Entity(tt:device)
+  /*list query device(out id : Entity(tt:device)
                     #_[canonical={
                        base=["name"],
                        passive_verb=["named #", "called #"],
@@ -155,6 +155,7 @@ class @org.thingpedia.builtin.thingengine.builtin
   #_[formatted=[{type="text",text="${program}"}]]
   #[doc="retrieve the list of supported commands for the given device"]
   #[confirm=false];
+  */
 
   action open_url(in req url: Entity(tt:url)
                   #_[prompt=["what url do you want to open", "what do you want to open"]]
@@ -184,6 +185,17 @@ class @org.thingpedia.builtin.thingengine.builtin
   #_[canonical=["log a message", "record a message", "write a message in the logs"]]
   #_[confirmation="write $message in the developer logs"]
   #[doc="log a message in the developer logs"]
+  #[confirm=false];
+
+  action faq_reply(in req question: Enum(about_almond_identity,about_almond_location,general_help)
+                   #_[prompt="what do you would like to know"]
+                   #_[canonical="message"],
+                   out reply: String
+                   #_[canonical=["reply", "answer"]])
+  #_[result="${reply}"]
+  #_[canonical="ask question about almond"]
+  #_[confirmation="reply to $question"]
+  #[doc="asks a question about Almond"]
   #[confirm=false];
 
 /*
@@ -442,11 +454,11 @@ class @org.thingpedia.weather
                               property=[],
                               preposition=["in #", "at #", "around #", "for location #", "for #"]
                             }]
-                            #[default=$context.location.current_location],
+                            #[default=$location.current_location],
                             in opt date: Date
                             #_[canonical={
                               default="preposition",
-                              default=["date"],
+                              base=["date"],
                               preposition=["on #"]
                             }],
                             out sunrise_time: Time
@@ -472,11 +484,11 @@ class @org.thingpedia.weather
                             property=[],
                             preposition=["in #", "at #", "around #", "for location #", "for #"]
                          }]
-                         #[default=$context.location.current_location],
+                         #[default=$location.current_location],
                          in opt date: Date
                          #_[canonical={
                             default="preposition",
-                            default=["date"],
+                            base=["date"],
                             preposition=["on #"]
                          }],
                          out phase: Enum(new_moon,waxing_crescent,first_quarter,waxing_gibbous,full_moon,waning_gibbous,third_quarter,waning_crescent)
@@ -501,7 +513,7 @@ class @org.thingpedia.weather
                               property=[],
                               preposition=["in #", "at #", "around #", "for location #", "for #"]
                             }]
-                            #[default=$context.location.current_location],
+                            #[default=$location.current_location],
                             out temperature: Measure(C)
                             #_[canonical="temperature"]
                             // from the coldest artic to the death valley, in one filter
@@ -523,7 +535,7 @@ class @org.thingpedia.weather
                             #_[canonical="fog"]
                             #[min_number=0]
                             #[max_number=100],
-                            out status: Enum(raining,cloudy,sunny,snowy,sleety,drizzling,windy)
+                            out status: Enum(raining,cloudy,sunny,snowy,sleety,drizzling,windy,foggy)
                             #_[canonical="status"],
                             out icon: Entity(tt:picture)
                             #_[canonical="icon"])
@@ -709,7 +721,7 @@ class @com.spotify
                       property=["release date #"],
                       adjective=["#"],
                       preposition=["from #", "in #"],
-                      passive_verb=["released in #", "released #", "published in #"],
+                      passive_verb=["released on #", "released #", "published in #"],
                       adjective_argmin=["least recent", "oldest", "first"],
                       adjective_argmax=["most recent", "newest", "latest"],
                       passive_verb_argmax=["released most recently"],
@@ -969,4 +981,174 @@ class @com.icanhazdadjoke
   #_[formatted=[{type="text",text="${text}"}]]
   #[doc="get a joke"]
   #[url="https://icanhazdadjoke.com/"];
+}
+class @com.thecatapi
+#_[canonical="the cat api"] {
+  entity image_id #[has_ner=false];
+
+  query get(out id: Entity(com.thecatapi:image_id) #_[canonical="id"],
+            out picture_url: Entity(tt:picture) #_[canonical="picture url"],
+            out link: Entity(tt:url) #_[canonical="link"])
+  #_[canonical="cat picture"]
+  #_[confirmation="cat pictures"]
+  #_[result=["here is your cat picture", "here is a cat picture for you"]]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${link}",pictureUrl="${picture_url}"}]]
+  #[confirm=false];
+}
+class @com.xkcd
+#_[thingpedia_name="XKCD"]
+#_[thingpedia_description="A webcomic of romance, sarcasm, math, and language."]
+#[license="BSD-3-Clause"]
+#[license_gplcompatible=true]
+#[subcategory="media"]
+{
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+
+  monitorable list query comic(out id: Number
+                               #_[canonical={
+                                 base=["number"],
+                                 passive_verb=["number #"]
+                               }],
+                               out title: String
+                               #_[canonical={
+                                 base=["name", "title"],
+                                 passive_verb=["titled #", "called #"]
+                               }]
+                               #[filterable=false]
+                               #[string_values="com.xkcd:title"],
+                               out release_date : Date
+                               #_[canonical={
+                                 base=["release date", "date"],
+                                 passive_verb=["released on #"],
+                                 preposition=["from #"],
+                                 adjective=["# 's"],
+                                 adjective_argmax=["latest", "most recent"],
+                                 adjective_argmin=["earliest", "oldest"],
+                               }],
+                               out picture_url: Entity(tt:picture)
+                               #_[canonical={
+                                 base=["picture url", "image url"]
+                               }],
+                               out link: Entity(tt:url)
+                               #_[canonical={
+                                 base=["link", "url"]
+                               }],
+                               out alt_text: String
+                               #_[canonical={
+                                 base=["alt text", "alternate text"]
+                               }]
+                               #[filterable=false]
+                               #[string_values="com.xkcd:alt_text"])
+  #_[canonical=["xkcd comic", "xkcd"]]
+  #_[confirmation="an Xkcd comic"]
+  #_[result=["i found xkcd ${id}"]]
+  #_[formatted=[{
+     type="rdl",
+     webCallback="${link}",
+     displayTitle="${title}",
+     pictureUrl="${picture_url}",
+     displayText="${alt_text}"
+  }]]
+  #[minimal_projection=["id", "title"]]
+  #[poll_interval=86400000ms]
+  #[doc="retrieve the comic with a given number, or the latest comic"];
+
+  query random_comic(out id: Number
+                     #_[canonical={
+                       base=["number"],
+                       passive_verb=["number #"]
+                     }],
+                     out title: String
+                     #_[canonical={
+                       base=["name", "title"],
+                       passive_verb=["titled #", "called #"]
+                     }]
+                     #[string_values="com.xkcd:title"],
+                     out release_date : Date
+                     #_[canonical={
+                       base=["release date", "date"],
+                       passive_verb=["released on #"],
+                       preposition=["from #"]
+                     }],
+                     out picture_url: Entity(tt:picture)
+                     #_[canonical={
+                       base=["picture url", "image url"]
+                     }],
+                     out link: Entity(tt:url)
+                     #_[canonical={
+                       base=["link", "url"]
+                     }],
+                     out alt_text: String
+                     #_[canonical={
+                       base=["alt text", "alternate text"]
+                     }]
+                     #[string_values="com.xkcd:alt_text"])
+  #_[canonical=["random xkcd",
+                "random xkcd comic",
+                "xkcd comic at random"]]
+  #_[confirmation="a random Xkcd comic"]
+  #_[result=["i found xkcd ${id}", "here is xkcd ${id}"]]
+  #_[formatted=[{
+     type="rdl",
+     webCallback="${link}",
+     displayTitle="${title}",
+     pictureUrl="${picture_url}",
+     displayText="${alt_text}"
+  }]]
+  #[minimal_projection=["id", "title"]]
+  #[doc="retrieve a random xkcd"];
+}
+abstract class @org.thingpedia.iot.light-bulb extends @org.thingpedia.iot.switch
+#_[name="Light Bulb"]
+#_[description="The general interface supported by all light bulbs."]
+#_[canonical="light bulb"]
+{
+  monitorable query power(out power : Enum(on, off)
+                          #_[canonical="power"])
+  #_[canonical="the power state of the light bulb"]
+  #_[confirmation="the power state of ${__device}"]
+  #_[result=["your lights are ${power}"]]
+  #_[confirmation_remote="the power state of ${__device}"]
+  #[minimal_projection=[]]
+  #[confirm=false];
+
+  action alert_long()
+  #_[canonical="loop the color in my light bulb"]
+  #_[confirmation="flash alerts on ${__device}"]
+  #_[confirmation_remote="flash alerts on ${__device}"]
+  #[confirm=true]
+  #[minimal_projection=[]];
+
+  action color_loop()
+  #_[canonical="flash the lights"]
+  #_[confirmation="loop colors on ${__device}"]
+  #_[confirmation_remote="loop colors on ${__device}"]
+  #[confirm=true]
+  #[minimal_projection=[]];
+
+  action set_power(in req power : Enum(on, off)
+                   #_[prompt=["do you want to turn it on or off"]]
+                   #_[canonical={
+                     base=["power"],
+                     property=[]
+                   }])
+  #_[canonical="set the power on the lights"]
+  #_[confirmation="turn $power ${__device}"]
+  #_[confirmation_remote="turn $power ${__device}"]
+  #[confirm=true]
+  #[minimal_projection=[]];
+}
+abstract class @org.thingpedia.iot.door
+#_[description="Interface for Door Sensor."]
+#_[name="Door Sensor"]
+#_[canonical="door sensor"] {
+  monitorable query state(out state : Enum(open, closed)
+                          #_[canonical="state"])
+  #_[canonical="door state"]
+  #_[confirmation="the state of $__device"]
+  #_[result=["the entrance is ${state}"]]
+  #_[confirmation_remote="the state of $__device"]
+  #[minimal_projection=[]]
+  #[confirm=false];
 }

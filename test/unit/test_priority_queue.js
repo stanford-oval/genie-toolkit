@@ -7,12 +7,12 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 //
 // See COPYING for details
-"use strict";
 
-const assert = require('assert');
-const seedrandom = require('seedrandom');
 
-const PriorityQueue = require('../../lib/utils/priority_queue');
+import assert from 'assert';
+import * as seedrandom from 'seedrandom';
+
+import PriorityQueue from '../../lib/utils/priority_queue';
 
 function testBasic() {
     const queue = new PriorityQueue();
@@ -139,6 +139,6 @@ function main() {
     testTieBreak();
     testInvariant();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

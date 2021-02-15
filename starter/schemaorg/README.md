@@ -4,25 +4,17 @@ This directory contains the basic starter code to train a single-sentence
 Q\&A semantic parsing model from a Schema.org schema.
 
 ## Installation
-The starter code requires`nodejs` (>=10.0) and `yarn` as a package manager. 
-See [nodejs](https://nodejs.org/en/download/) and [yarn](https://classic.yarnpkg.com/en/docs/install/) for installation details. 
-You can check your installation by running `node --version` and `yarn --version`.
+The starter code requires`nodejs` (>=10.0). See [nodejs](https://nodejs.org/en/download/) 
+for installation details. You can check your installation by running `node --version`.
 
 In addition, you will need [thingpedia-cli](https://github.com/stanford-oval/thingpedia-cli),
 which provides an easy way to download data from and upload data to Thingpedia. 
 Run the following command to install it: 
 ```bash
-yarn global add thingpedia-cli
+npm install -g thingpedia-cli
 ```
 
 After installation, you should get a command called `thingpedia`.
-If encounter `command not found`, make sure the Yarn global bin directory
-(usually `~/.yarn/bin`) is in your PATH. You can find the path with the command
-`yarn global bin`.
-
-```bash
-export PATH=~/.yarn/bin:$PATH
-```
 
 ## Configuration
 

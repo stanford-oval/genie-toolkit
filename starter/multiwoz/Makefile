@@ -1,11 +1,12 @@
-geniedir = ../..
+geniedir ?= ../..
 
 -include ./config.mk
 
 NULL =
 memsize := 9000
 parallel := 1
-genie = node --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/tool/genie.js
+NODE ?= node
+genie ?= $(NODE) --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/dist/tool/genie.js
 
 all_domains = attraction hotel restaurant taxi train
 all_experiments = $(all_domains) multidomain
@@ -62,34 +63,22 @@ custom_gen_flags ?=
 
 schema_deps = $(experiment)/schema.tt $(experiment)/entities.json
 template_deps = \
-	$(geniedir)/languages/thingtalk/*.js \
-	$(geniedir)/languages/thingtalk/*.genie \
-	$(geniedir)/languages/thingtalk/en/*.genie \
-	$(geniedir)/languages/thingtalk/en/dlg/*.genie
+	$(geniedir)/languages-dist/thingtalk/*.js \
+	$(geniedir)/languages-dist/thingtalk/*.genie.js \
+	$(geniedir)/languages-dist/thingtalk/en/*.genie.js \
+	$(geniedir)/languages-dist/thingtalk/en/dlg/*.genie.js
 
 evalflags ?=
 
-train_iterations ?= 120000
+train_iterations ?= 50000
 train_save_every ?= 2000
 train_log_every ?= 100
+train_pretrained_model ?= facebook/bart-large
 train_nlu_flags ?= \
-	--train_iterations $(train_iterations) \
-	--dimension 768 \
-	--transformer_hidden 768 \
-	--trainable_decoder_embeddings 50 \
-	--encoder_embeddings=bert-base-uncased \
-	--decoder_embeddings= \
-	--seq2seq_encoder=Identity \
-	--rnn_layers 1 \
-	--transformer_heads 12 \
-	--transformer_layers 0 \
-	--rnn_zero_state=average \
-	--train_encoder_embeddings \
-	--transformer_lr_multiply 0.1 \
-	--train_batch_tokens 2000 \
-	--val_batch_size 64 \
-	--append_question_to_context_too \
-	--almond_preprocess_context
+	--model TransformerSeq2Seq \
+	--pretrained_model $(train_pretrained_model) \
+	--gradient_accumulation_steps 20 \
+	--preprocess_special_tokens
 custom_train_nlu_flags ?=
 
 all: datadir
@@ -117,7 +106,7 @@ multidomain/test/annotated.txt : $(foreach v,$(all_domains),$(v)/test/annotated.
 $(experiment)/synthetic-%.txt : $(schema_deps) $(dataset_file) $(template_deps)
 	$(genie) generate-dialogs \
 	  --locale en-US --target-language thingtalk \
-	  --template $(geniedir)/languages/$(template_file) \
+	  --template $(geniedir)/languages-dist/$(template_file) \
 	  --thingpedia $(experiment)/schema.tt --entities $(experiment)/entities.json --dataset $(dataset_file) \
 	  -o $@.tmp -f txt $(generate_flags) --no-debug $(custom_gen_flags) --random-seed $@ \
 	  -n $(target_size) -B $(minibatch_size)
@@ -219,6 +208,7 @@ train-user: datadir
 	  --cache datadir/.cache \
 	  --train_tasks almond_dialogue_nlu \
 	  --preserve_case \
+	  --train_iterations $(train_iterations) \
 	  --save_every $(train_save_every) \
 	  --log_every $(train_log_every) \
 	  --val_every $(train_save_every) \
@@ -227,10 +217,10 @@ train-user: datadir
 	  $(train_nlu_flags) \
 	  $(custom_train_nlu_flags)
 
-evaluate: $(foreach v,$($(experiment)_$(eval_set)_nlu_models),$(experiment)/$(eval_set)/$(v).nlu.results) $(foreach v,$($(experiment)_$(eval_set)_nlu_models),$(experiment)/$(eval_set)/$(v).dialogue.results)
+evaluate: $(foreach v,$($(experiment)_$(eval_set)_nlu_models),$(experiment)/$(eval_set)/$(v).dialogue.results)
 	for f in $^ ; do echo $$f ; cat $$f ; done
 
-$(experiment)/$(eval_set)/%.dialogue.results: $(experiment)/models/%/best.pth $(experiment)/$(eval_set)/annotated.txt $(experiment)/schema.tt
+$(experiment)/$(eval_set)/%.dialogue.results: $(experiment)/models/%/best.pth $(experiment)/$(eval_set)/annotated.txt $(experiment)/schema.tt shared-parameter-datasets.tsv
 	mkdir -p $(experiment)/$(eval_set)/$(dir $*)
 	$(genie) evaluate-dialog \
 	  --url "file://$(abspath $(dir $<))" \
@@ -238,6 +228,7 @@ $(experiment)/$(eval_set)/%.dialogue.results: $(experiment)/models/%/best.pth $(
 	  --target-language thingtalk \
 	  $(experiment)/$(eval_set)/annotated.txt \
 	  --database-file $(experiment)/database-map.tsv \
+	  --parameter-datasets shared-parameter-datasets.tsv \
 	  --debug --csv-prefix $(eval_set) --csv $(evalflags) \
 	  -o $@.tmp | tee $(experiment)/$(eval_set)/$*.dialogue.debug
 	mv $@.tmp $@

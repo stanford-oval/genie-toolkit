@@ -17,10 +17,10 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
-const StreamUtils = require('../../lib/utils/stream-utils');
+
+import assert from 'assert';
+import * as StreamUtils from '../../lib/utils/stream-utils';
 
 async function readall(readable) {
     return new Promise((resolve, reject) => {
@@ -129,6 +129,6 @@ async function testChainStream() {
 async function main() {
     await testChainStream();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

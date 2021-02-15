@@ -17,14 +17,14 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
 
-const Tp = require('thingpedia');
-const fs = require('fs');
-const path = require('path');
-const Builtins = require('../../../lib/engine/devices/builtins');
+import { Ast } from 'thingtalk';
+import * as Tp from 'thingpedia';
+import * as fs from 'fs';
+import * as path from 'path';
+import Builtins from '../../../lib/engine/devices/builtins';
 
-class TestDatabaseDevice extends Tp.BaseDevice {
+export default class TestDatabaseDevice extends Tp.BaseDevice {
     constructor(engine, state) {
         super(engine, state);
 
@@ -33,16 +33,17 @@ class TestDatabaseDevice extends Tp.BaseDevice {
     }
 
     query(query) {
-        const table = query.rules[0].table;
-        if (table.isInvocation)
-            return [{ foo: ':-)' }];
-        if (table.isJoin)
+        const table = query.statements[0].expression;
+        if (table.expressions.length > 1)
             return [{ foo: ':-)', bar: '(-:' }];
-        if (table.isAggregation)
+        const first = table.first;
+        if (first instanceof Ast.InvocationExpression)
+            return [{ foo: ':-)' }];
+        if (first instanceof Ast.AggregationExpression)
             return [{ count: 1 }];
+        return [];
     }
 }
-module.exports = TestDatabaseDevice;
 
 const manifest = fs.readFileSync(path.resolve(path.dirname(module.filename), 'test_database.tt')).toString('utf8');
 Builtins['org.thingpedia.builtin.test.test_database'] = {

@@ -17,8 +17,8 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
-const ThingTalk = require('thingtalk');
+
+import * as ThingTalk from 'thingtalk';
 const Type = ThingTalk.Type;
 
 //TODO: some of the following could differ from domain to domain; we should allow domain override.
@@ -32,7 +32,7 @@ const BUILTIN_TYPEMAP = {
     Boolean: Type.Boolean,
     DateTime: Type.Date,
     Date: Type.Date,
-    DataType: Type.Any,
+    DataType: Type.String, // for lack of a better type
     URL: new Type.Entity('tt:url'),
     ImageObject: new Type.Entity('tt:picture'),
     Barcode: new Type.Entity('tt:picture'),
@@ -45,7 +45,7 @@ const BUILTIN_TYPEMAP = {
     GeoCoordinates: Type.Location,
     MonetaryAmount: Type.Currency,
 
-    QuantitativeValue: Type.Any
+    QuantitativeValue: Type.String // for lack of a better type
 };
 
 
@@ -646,7 +646,7 @@ const WHITELISTED_PROPERTIES_BY_DOMAIN = {
 };
 
 
-module.exports = {
+export {
     BUILTIN_TYPEMAP,
 
     BLACKLISTED_TYPES,

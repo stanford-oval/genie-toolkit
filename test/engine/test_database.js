@@ -17,10 +17,10 @@
 // limitations under the License.
 //
 // Author: Silei <silei@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
-require('./test-classes/test_database');
+
+import assert from 'assert';
+import './test-classes/test_database';
 
 async function collectOutputs(app) {
     let into = [];
@@ -52,7 +52,7 @@ async function testJoinDatabaseQuery(engine) {
 
     const app = await engine.createApp(`
         now => @org.thingpedia.builtin.test.test_database(id="org.thingpedia.builtin.test.test_database").q1()
-         join @org.thingpedia.builtin.test.test_database(id="org.thingpedia.builtin.test.test_database").q2() => notify;
+         => @org.thingpedia.builtin.test.test_database(id="org.thingpedia.builtin.test.test_database").q2() => notify;
     `);
 
     assert(engine.apps.hasApp(app.uniqueId));
@@ -69,7 +69,7 @@ async function testAggregateDatabaseQuery(engine) {
 
     assert(engine.devices.hasDevice('org.thingpedia.builtin.test.test_database'));
 
-    const app = await engine.createApp(`now => aggregate count of (@org.thingpedia.builtin.test.test_database(id="org.thingpedia.builtin.test.test_database").q1()) => notify;`);
+    const app = await engine.createApp(`now => count(@org.thingpedia.builtin.test.test_database(id="org.thingpedia.builtin.test.test_database").q1()) => notify;`);
 
     assert(engine.apps.hasApp(app.uniqueId));
 
@@ -80,8 +80,8 @@ async function testAggregateDatabaseQuery(engine) {
     }]);
 }
 
-module.exports = async function testDatabase(engine) {
+export default async function testDatabase(engine) {
     await testSimpleDatabaseQuery(engine);
     await testJoinDatabaseQuery(engine);
     await testAggregateDatabaseQuery(engine);
-};
+}

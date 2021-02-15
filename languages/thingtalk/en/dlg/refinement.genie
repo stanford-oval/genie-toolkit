@@ -26,49 +26,47 @@
 // - some form of "yes"
 // - some form of "no" followed by another search refinement
 
-{
-    const assert = require('assert');
-    const ThingTalk = require('thingtalk');
-    const Ast = ThingTalk.Ast;
-    const Type = ThingTalk.Type;
+import { Ast, } from 'thingtalk';
 
-    const C = require('../../ast_manip');
-    const D = require('../../dialogue_acts');
-}
+import * as C from '../../ast_manip';
+import * as D from '../../dialogue_acts';
+import * as S from '../../state_manip';
+import ThingpediaLoader from '../../load-thingpedia';
 
-search_result_preamble = {
-    ctx:ctx_search_command ('there are' | 'i can see' | 'i have found' | 'i can recommend') ('many' | 'several') base:base_noun_phrase
+search_result_preamble : S.ContextInfo = {
+    ctx:ctx_search_command ('there are' | 'i can see' | 'i have found' | 'i can recommend') ('many' | 'several') base:base_noun_phrase with { functionName = ctx.currentFunction }
         ('matching your request' | 'matching your constraints' | 'with those characteristics' | 'like that' | '') '.'
         => D.checkSearchResultPreamble(ctx, base, null, false);
 
-    ctx:ctx_search_command ('there are' | 'i have found' | 'i have' | 'i can see') num:constant_Number base:base_noun_phrase
+    ctx:ctx_search_command ('there are' | 'i have found' | 'i have' | 'i can see') num:constant_Number with { value = ctx.resultLength } base:base_noun_phrase with { functionName = ctx.currentFunction }
         ('in my database' | 'like that') '.'
         => D.checkSearchResultPreamble(ctx, base, num, false);
 }
 
-system_generic_proposal = {
-    ( ctx:ctx_search_command ('are you looking for a' | 'how about a' | 'how about the') proposal:answer_noun_phrase '?'
-    | ctx:ctx_search_command ('are you looking for' | 'how about') proposal:anything_phrase '?'
+system_generic_proposal : S.AgentReplyRecord = {
+    ( ctx:ctx_search_command ('are you looking for a' | 'how about a' | 'how about the') proposal:answer_noun_phrase with { functionName = ctx.currentFunction } '?'
+    | ctx:ctx_search_command ('are you looking for' | 'how about') proposal:anything_phrase with { functionName = ctx.currentFunction } '?'
     ) => D.makeRefinementProposal(ctx, proposal);
 
-    ( ctx:search_result_preamble ('are you looking for a' | 'how about a' | 'how about the') proposal:answer_noun_phrase '?'
-    | ctx:search_result_preamble ('are you looking for' | 'how about' | 'how about') proposal:anything_phrase '?'
+    ( ctx:search_result_preamble ('are you looking for a' | 'how about a' | 'how about the') proposal:answer_noun_phrase with { functionName = ctx.currentFunction } '?'
+    | ctx:search_result_preamble ('are you looking for' | 'how about' | 'how about') proposal:anything_phrase with { functionName = ctx.currentFunction } '?'
     ) => D.makeRefinementProposal(ctx, proposal);
 }
 
-negative_proposal_request = {
+negative_proposal_request : Ast.Expression = {
     counterproposal_preamble ('a' | 'any') request:answer_noun_phrase '.' => request;
     counterproposal_preamble request:anything_phrase '.' => request;
 }
 
-negative_proposal_answer_preamble = {
+negative_proposal_answer_preamble : Ast.Expression = {
     ( ('no ,' | 'no' | '') ('i am not in the mood for a' | 'i do not like' | 'i do not want') phrase:answer_noun_phrase
     | ('no ,' | 'no' | '') ('i am not in the mood for a' | 'i do not like' | 'i do not want') phrase:anything_phrase
     ) => phrase;
 }
 
-negative_proposal_reply = {
+negative_proposal_reply : D.NegativeProposalReply = {
     ('no ,' | 'no' | '') request:negative_proposal_request => [null, request];
+
     preamble:negative_proposal_answer_preamble => [preamble, null];
-    preamble:negative_proposal_answer_preamble request:negative_proposal_request => [preamble, request];
+    preamble:negative_proposal_answer_preamble request:negative_proposal_request with { functionName = preamble.functionName } => [preamble, request];
 }

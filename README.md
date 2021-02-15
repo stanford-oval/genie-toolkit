@@ -15,7 +15,7 @@ If you use Genie in any academic work, please cite the above paper.
 
 ## Installation
 
-Genie depends on additional libraries, including the ThingTalk library and the decaNLP machine learning library.
+Genie depends on additional libraries, including the ThingTalk library and the [GenieNLP](https://github.com/stanford-oval/genienlp/) machine learning library.
 See [doc/install.md](doc/install.md) for details and installation instructions.
 
 ## License
@@ -71,6 +71,6 @@ cause problems.
 
 If you want to also extend ThingTalk (with new syntax or new features) you will need to
 fork and modify the library, which lives at <https://github.com/stanford-oval/thingtalk>.
-After modifying the library, you can use `yarn link` or a combination of package.json `dependencies`
-and `resolutions` to point the almond-cloud installation to your library. You must make sure
-that only one copy of the ThingTalk library is loaded (use `find node_modules/ -name thingtalk` to check).
+After modifying the library, you can use `npm link` to point the almond-cloud installation
+to your library. You must make sure that only one copy of the ThingTalk library is loaded
+(use `npm ls thingtalk` to check).

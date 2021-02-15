@@ -17,20 +17,20 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
-const Gettext = require('node-gettext');
-const uuid = require('uuid');
-const AsyncQueue = require('consumer-queue');
 
-const { MockPlatform } = require('../unit/mock_utils');
-const {
+import assert from 'assert';
+import { Ast, Compiler, SchemaRetriever } from 'thingtalk';
+import Gettext from 'node-gettext';
+import * as uuid from 'uuid';
+import AsyncQueue from 'consumer-queue';
+
+import { getProgramName } from '../../lib/utils/thingtalk/describe';
+import { MockPlatform } from '../unit/mock_utils';
+import {
     ResultGenerator,
     SimulationExecEnvironment,
-} = require('../../lib/dialogue-agent/simulator/simulation_exec_environment');
+} from '../../lib/dialogue-agent/simulator/simulation_exec_environment';
 
 
 class QueueOutputDelegate {
@@ -71,12 +71,12 @@ class MockAppExecutor {
         console.log('MOCK: App ' + options.name + ' with code ' + this.code + ' loaded');
 
         this._program = program;
-        assert(this._program.rules.length === 1);
+        assert(this._program.statements.length === 1);
         this.mainOutput = new QueueOutputDelegate();
     }
 
     async compile() {
-        const compiler = new ThingTalk.Compiler(this._schemas);
+        const compiler = new Compiler(this._schemas);
         this._compiled = await compiler.compileCode(this.code);
     }
 
@@ -84,7 +84,7 @@ class MockAppExecutor {
         const overrides = new Map;
         const generator = new ResultGenerator(this._rng, overrides);
         for (let slot of this._program.iterateSlots2()) {
-            if (slot instanceof Ast.Selector)
+            if (slot instanceof Ast.DeviceSelector)
                 continue;
             generator.addCandidate(slot.get());
         }
@@ -108,7 +108,7 @@ class MockAppDatabase {
         this._rng = rng;
         assert(rng);
         this._database = database;
-        this._simulator = new SimulationExecEnvironment('en-US', this._schemas, this._database, {
+        this._simulator = new SimulationExecEnvironment('en-US', 'America/Los_Angeles', this._schemas, this._database, {
             rng, simulateErrors: false
         });
 
@@ -131,7 +131,7 @@ class MockAppDatabase {
         if (!options.uniqueId)
             options.uniqueId = uuid.v4();
         if (!options.name)
-            options.name = ThingTalk.Describe.getProgramName(this._gettext, program);
+            options.name = getProgramName(program);
         options.rng = this._rng;
         const app = new MockAppExecutor(this._simulator, this._schemas, program, options);
         this._apps[options.uniqueId] = app;
@@ -214,7 +214,7 @@ class MockBuiltinDevice {
     }
 }
 
-var _cnt = 0;
+let _cnt = 0;
 
 const UNIQUE_DEVICES = new Set(['com.yelp', 'org.thingpedia.weather']);
 class MockUnknownDevice {
@@ -225,7 +225,7 @@ class MockUnknownDevice {
             this.kind = kind;
             this.uniqueId = kind;
         } else {
-            var id = ++_cnt;
+            let id = ++_cnt;
 
             this.name = "Some Device " + id;
             this.description = 'This is a device of some sort';
@@ -381,10 +381,6 @@ class TestPlatform extends MockPlatform {
         this._gettext.setLocale('en-US');
     }
 
-    getCacheDir() {
-        return './cache';
-    }
-
     hasCapability(cap) {
         return cap === 'gettext' || cap === 'contacts' || cap === 'gps';
     }
@@ -418,9 +414,9 @@ function toDeviceInfo(d) {
     };
 }
 
-module.exports.createMockEngine = function(thingpedia, rng, database) {
+export function createMockEngine(thingpedia, rng, database) {
     const platform = new TestPlatform();
-    const schemas = new ThingTalk.SchemaRetriever(thingpedia, null, true);
+    const schemas = new SchemaRetriever(thingpedia, null, true);
 
     let gettext = platform.getCapability('gettext');
     const engine = {
@@ -439,6 +435,10 @@ module.exports.createMockEngine = function(thingpedia, rng, database) {
             return devices.map((d) => toDeviceInfo(d));
         },
 
+        getDeviceInfo(uniqueId) {
+            return toDeviceInfo(this.devices.getDevice(uniqueId));
+        },
+
         createDevice(blob) {
             return this.devices.addSerialized(blob);
         }
@@ -452,7 +452,7 @@ module.exports.createMockEngine = function(thingpedia, rng, database) {
     engine.pgettext = function(msgctx, msg) {
         return gettext.dpgettext('genie-toolkit', msgctx, msg);
     };
-    engine._ = this.gettext;
+    engine._ = engine.gettext;
 
     return engine;
-};
+}

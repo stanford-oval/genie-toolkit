@@ -17,10 +17,10 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
-const CanonicalGenerator = require('./canonical-generator');
 
-class AutoAnnotationGenerator {
+import CanonicalGenerator from './canonical-generator';
+
+export default class AutoAnnotationGenerator {
     constructor(classDef, constants, queries, parameterDatasets, options) {
         this.canonicalGenerator = new CanonicalGenerator(classDef, constants, queries, parameterDatasets, options);
     }
@@ -31,5 +31,3 @@ class AutoAnnotationGenerator {
         return classDef;
     }
 }
-
-module.exports = AutoAnnotationGenerator;

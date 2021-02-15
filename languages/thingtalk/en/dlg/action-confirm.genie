@@ -22,23 +22,13 @@
 // Either the action was successful, and we're done, or
 // the action failed, and we give the user an option to try again
 
-{
-    const assert = require('assert');
-    const ThingTalk = require('thingtalk');
-    const Ast = ThingTalk.Ast;
-    const Type = ThingTalk.Type;
+import * as D from '../../dialogue_acts';
+import * as S from '../../state_manip';
+import ThingpediaLoader from '../../load-thingpedia';
 
-    const C = require('../../ast_manip');
-    const D = require('../../dialogue_acts');
-
-    // import thingpedia info
-    const _tpLoader = require('../../load-thingpedia');
-}
-
-action_confirm_phrase = {
-    ( ctx:ctx_confirm_action 'ok , do you want me to' action:action_description_phrase '?'
-    | ctx:ctx_confirm_action 'ok ,' ('i am going to ' | 'you want to' | 'you would like to')
-        action:action_description_phrase '.' ('do you confirm' | 'is that it' | 'is that correct' |
-        'is that right') '?'
-    ) => D.makeActionConfirmationPhrase(ctx, action);
+action_confirm_phrase : S.AgentReplyRecord = {
+    ( 'ok , do you want me to' ctx:ctx_next_statement '?'
+    | 'ok ,' ('i am going to ' | 'you want to' | 'you would like to')
+        ctx:ctx_next_statement '.' ('do you confirm' | 'is that it' | 'is that correct' | 'is that right') '?'
+    ) => D.makeActionConfirmationPhrase(ctx);
 }

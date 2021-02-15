@@ -7,7 +7,7 @@ thingpedia_url = https://thingpedia.stanford.edu/thingpedia
 -include ./config.mk
 
 memsize := 15000
-genie = node --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/tool/genie.js
+genie = node --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/dist/tool/genie.js
 
 all_experiments = city country star university company people artist athlete sports-team tv-series
 
@@ -99,24 +99,13 @@ model ?= 1
 train_iterations ?= 20000
 train_save_every ?= 2000
 train_log_every ?= 100
-train_batch_tokens ?= 4000
-val_batch_size ?= 128
+train_batch_tokens ?= 400
+val_batch_size ?= 3000
 train_nlu_flags ?= \
-	--train_iterations=$(train_iterations) \
-	--dimension=768 \
-	--transformer_hidden=768 \
-	--transformer_layers=0 \
-	--rnn_layers=2 \
-	--seq2seq_encoder=Identity \
-	--rnn_zero_state=average \
-	--context_embeddings=bert-base-uncased@0 \
-	--question_embeddings=bert-base-uncased@1 \
-	--trainable_encoder_embeddings=0 \
-	--trainable_decoder_embeddings=25 \
-	--train_context_embeddings \
-	--train_context_embeddings_after=80000 \
-	--decoder_embeddings= \
-	--transformer_lr_multiply=0.5 \
+	--model TransformerLSTM \
+	--pretrained_model bert-base-cased \
+	--trainable_decoder_embeddings 50 \
+	--override_question . \
 	--train_batch_tokens=$(train_batch_tokens) \
 	--val_batch_size=$(val_batch_size)
 custom_train_nlu_flags ?=
@@ -169,9 +158,9 @@ shared-parameter-datasets.tsv:
 	$(genie) auto-annotate -o $@.tmp --constants $*/constants.tsv --thingpedia $*/wikidata.tt --functions $($(*)_canonical) $($(mode)_annotate_flags) --parameter-datasets $*/parameter-datasets.tsv --dataset wikidata
 	mv $@.tmp $@
 
-%/synthetic.tsv: %/manifest.tt $(dataset_file) $(geniedir)/languages/thingtalk/en/*.genie
+%/synthetic.tsv: %/manifest.tt $(dataset_file) $(geniedir)/languages-dist/thingtalk/en/*.js
 	$(genie) generate \
-	  --template $(geniedir)/languages/$(template_file) \
+	  --template $(geniedir)/languages-dist/$(template_file) \
 	  --thingpedia $*/manifest.tt --entities $*/entities.json --dataset $(dataset_file) \
 	  --target-pruning-size $(target_pruning_size) \
 	  -o $@.tmp --no-debug $(generate_flags) $(custom_generate_flags) --maxdepth $(maxdepth) \
@@ -211,6 +200,7 @@ train:
 	  --cache datadir/.cache \
 	  --train_tasks almond \
 	  --preserve_case \
+	  --train_iterations $(train_iterations) \
 	  --save_every $(train_save_every) \
 	  --log_every $(train_log_every) \
 	  --val_every $(train_save_every) \

@@ -3,12 +3,17 @@ node_modules/
 coverage/
 bundle/
 home/
+dist/
+languages-dist/
+jsdoc/
 .nyc_output/
 .idea/
 .vscode/
 .DS_Store
 *.pyc
 __pycache__
+*.genie.ts
+*.genie.js
 
 lib/sentence-generator/compiler/grammar.js
 po/tmp
@@ -19,9 +24,12 @@ po/*.json
 
 *.tgz
 *.tt.json
+data/builtins/thingengine.builtin/*.tt
+lib/engine/devices/builtins/faq.json
 
 workdir*
 genienlp/
+.embeddings/
 
 env/
 

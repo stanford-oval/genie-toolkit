@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -18,28 +18,30 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-{
-const assert = require('assert');
-
-const ThingTalk = require('thingtalk');
-const Ast = ThingTalk.Ast;
-const Type = ThingTalk.Type;
+import { Ast, } from 'thingtalk';
 
 // import the combinator library
-const C = require('../ast_manip');
+import * as C from '../ast_manip';
+import ThingpediaLoader from '../load-thingpedia';
 
-// import thingpedia info
-const _tpLoader = require('../load-thingpedia');
+// Initialize the Thingpedia loader before doing anything else
+{
+$loader = new ThingpediaLoader($runtime, $ttUtils, $grammar, $locale, $options);
+}
+import '../common.genie';
+{
+await $loader.init();
+}
 
-function special(specialType) {
-    return new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.Special(null, specialType));
+{
+function special(specialType : string) {
+    return new Ast.ControlCommand(null, new Ast.SpecialControlIntent(null, specialType));
 }
 }
 
-import '../common';
-import './constants';
+import './constants.genie';
 
-bookkeeping = {
+bookkeeping : Ast.ControlCommand = {
     'debug' => special('debug');
 
     ('cancel'
@@ -53,17 +55,17 @@ bookkeeping = {
     | 'close'
     ) => special('stop');
 
-    c:constant_Any => new Ast.Input.Bookkeeping(null, new Ast.BookkeepingIntent.Answer(null, c));
+    c:constant_Any => new Ast.ControlCommand(null, new Ast.AnswerControlIntent(null, c));
 }
 
-$root = {
+$root : Ast.Input = {
     bookkeeping;
 
-    ( 'get' query:thingpedia_query
-    | query:thingpedia_get_command
-    ) if complete => C.makeProgram(new Ast.Statement.Command(null, query, [C.notifyAction()]));
+    ( 'get' query:thingpedia_complete_query
+    | query:thingpedia_complete_get_command
+    ) => C.makeProgram($loader, query);
 
-    action:thingpedia_action if complete => C.makeProgram(new Ast.Statement.Command(null, null, [action]));
+    action:thingpedia_complete_action => C.makeProgram($loader, action);
 
-    'notify me' stream:thingpedia_stream if complete => C.makeProgram(new Ast.Statement.Rule(null, stream, [C.notifyAction()]));
+    'notify me' stream:thingpedia_complete_stream => C.makeProgram($loader, stream);
 }

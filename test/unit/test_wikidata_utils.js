@@ -17,14 +17,14 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
 
-const assert = require('assert');
 
-const {
+import assert from 'assert';
+
+import {
     getPropertyLabel,
     getPropertyList,
-} = require('../../tool/autoqa/wikidata/utils');
+} from '../../tool/autoqa/wikidata/utils';
 
 const TEST_CASES_PROPERTY_LABELS = [
     ['P31', 'instance of'],
@@ -33,9 +33,7 @@ const TEST_CASES_PROPERTY_LABELS = [
 
 const TEST_CASES_PROPERTY_LIST = [
     ['Q5', ['P18', 'P19', 'P20', 'P21', 'P3373']],
-    ['Q515', ['P17', 'P18', 'P31', 'P41', 'P47', 'P4290']
-
-    ]
+    ['Q515', ['P17', 'P18', 'P31', 'P41', 'P47']]
 ];
 
 async function main() {
@@ -64,7 +62,6 @@ async function main() {
     if (anyFailed)
         throw new Error('Some test failed');
 }
-
-module.exports = main;
+export default main;
 if (!module.parent)
     main();

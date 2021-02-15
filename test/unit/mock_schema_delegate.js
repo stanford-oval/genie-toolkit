@@ -16,12 +16,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-"use strict";
 
-const path = require('path');
-const Tp = require('thingpedia');
 
-module.exports = new Tp.FileClient({
+import * as path from 'path';
+import * as Tp from 'thingpedia';
+
+export default new Tp.FileClient({
     locale: 'en',
     thingpedia: path.resolve(path.dirname(module.filename), '../data/en-US/thingpedia.tt'),
     entities: path.resolve(path.dirname(module.filename), '../data/en-US/entities.json'),

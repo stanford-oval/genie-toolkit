@@ -18,30 +18,30 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 // Miscellaneous unit tests, for simple code fragments that don't need
 // a lot of mocking and fixtures
 
-const assert = require('assert');
-const ThingTalk = require('thingtalk');
-const _mockThingpediaClient = require('./mock_schema_delegate');
+import assert from 'assert';
+import * as ThingTalk from 'thingtalk';
+import _mockThingpediaClient from './mock_schema_delegate';
 
-const Helpers = require('../../lib/dialogue-agent/helpers');
-const { getProgramIcon } = require('../../lib/utils/icons');
+import { cleanKind } from '../../lib/utils/misc-utils';
+import { getProgramIcon } from '../../lib/utils/icons';
 
 function testCleanKind() {
-    assert.strictEqual(Helpers.cleanKind('uk.co.thedogapi'), 'Thedogapi');
-    assert.strictEqual(Helpers.cleanKind('org.thingpedia.weather'), 'Weather');
-    assert.strictEqual(Helpers.cleanKind('com.bing'), 'Bing');
-    assert.strictEqual(Helpers.cleanKind('gov.nasa'), 'Nasa');
-    assert.strictEqual(Helpers.cleanKind('org.thingpedia.builtin.test'), 'Test');
-    assert.strictEqual(Helpers.cleanKind('org.thingpedia.builtin.thingengine.phone'), 'Phone');
-    assert.strictEqual(Helpers.cleanKind('org.coinbin'), 'Coinbin');
+    assert.strictEqual(cleanKind('uk.co.thedogapi'), 'thedogapi');
+    assert.strictEqual(cleanKind('org.thingpedia.weather'), 'weather');
+    assert.strictEqual(cleanKind('com.bing'), 'bing');
+    assert.strictEqual(cleanKind('gov.nasa'), 'nasa');
+    assert.strictEqual(cleanKind('org.thingpedia.builtin.test'), 'test');
+    assert.strictEqual(cleanKind('org.thingpedia.builtin.thingengine.phone'), 'phone');
+    assert.strictEqual(cleanKind('org.coinbin'), 'coinbin');
 
-    assert.strictEqual(Helpers.cleanKind('com.made.up'), 'Made Up');
-    assert.strictEqual(Helpers.cleanKind('com.two-words'), 'Two Words');
-    assert.strictEqual(Helpers.cleanKind('org.under_score'), 'Under Score');
+    assert.strictEqual(cleanKind('com.made.up'), 'made up');
+    assert.strictEqual(cleanKind('com.two-words'), 'two words');
+    assert.strictEqual(cleanKind('org.under_score'), 'under score');
 }
 
 async function testGetIcon() {
@@ -57,7 +57,7 @@ async function testGetIcon() {
     const schemas = new ThingTalk.SchemaRetriever(_mockThingpediaClient, null, true);
 
     for (let [code, expected] of TEST_CASES) {
-        const program = await ThingTalk.Grammar.parseAndTypecheck(code, schemas, false);
+        const program = await ThingTalk.Syntax.parse(code).typecheck(schemas, false);
 
         const icon = getProgramIcon(program);
         assert.strictEqual(icon, expected);
@@ -68,7 +68,7 @@ async function main() {
     await testCleanKind();
     await testGetIcon();
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();
 

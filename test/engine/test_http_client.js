@@ -17,16 +17,16 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
 
-const ThingTalk = require('thingtalk');
 
-module.exports = async function testHTTPClient(engine) {
-    await ThingTalk.Grammar.parseAndTypecheck('now => @com.xkcd.get_comic() => notify;', engine.schemas, false);
+import * as ThingTalk from 'thingtalk';
+
+export default async function testHTTPClient(engine) {
+    await ThingTalk.Syntax.parse('now => @com.xkcd.comic() => notify;').typecheck(engine.schemas, false);
 
     // do it again, to check that it is cached
-    await ThingTalk.Grammar.parseAndTypecheck('now => @com.xkcd.get_comic() => notify;', engine.schemas, false);
+    await ThingTalk.Syntax.parse('now => @com.xkcd.comic() => notify;').typecheck(engine.schemas, false);
 
     // now with metas
-    await ThingTalk.Grammar.parseAndTypecheck('now => @com.xkcd.get_comic() => notify;', engine.schemas, true);
-};
+    await ThingTalk.Syntax.parse('now => @com.xkcd.comic() => notify;').typecheck(engine.schemas, true);
+}

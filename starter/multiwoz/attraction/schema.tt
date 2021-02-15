@@ -23,7 +23,10 @@ class @uk.ac.cam.multiwoz.Attraction
                          preposition=["in the #", "in the # area", "in the # part of town",
                                       "near the #", "near the # area", "near the # part of town",
                                       "around the #", "around the # area", "around the # part of town",
-                                      "in the # of cambridge", "in # cambridge"]
+                                      "in the # of cambridge", "in # cambridge"],
+                         projection_pronoun=["where", "which part of town", "which area", "which part of cambridge"],
+                         verb_projection=["locate"],
+                         preposition_projection=["in", "at"]
                        }],
                        out type : String
                        #[string_values="uk.ac.cam.multiwoz.Attraction:type"]
@@ -32,7 +35,8 @@ class @uk.ac.cam.multiwoz.Attraction
                          default="adjective",
                          base=["attraction type", "type", "type of attraction"],
                          property=["type #"],
-                         adjective=["#"]
+                         adjective=["#"],
+                         reverse_property=['#']
                        }],
                        out phone : Entity(tt:phone_number)
                         #[filterable=false]
@@ -60,7 +64,9 @@ class @uk.ac.cam.multiwoz.Attraction
                           default="base",
                           base=["opening hours", "opening time"],
                           property=[],
-                          verb=["opens #"]
+                          verb=["opens #"],
+                          projection_pronoun=["when"],
+                          verb_projection=["open", "close"]
                         }],
                         out price_range : Enum(free, cheap, moderate, expensive)
                         #[filterable=false]
@@ -75,7 +81,9 @@ class @uk.ac.cam.multiwoz.Attraction
                         #_[canonical={
                           default="adjective",
                           base=["fee", "entrance fee", "ticket cost"],
-                          property=["# fee", "# entrance fee"]
+                          property=["# fee", "# entrance fee"],
+                          projection_pronoun=["how much"],
+                          verb_projection=["cost"],
                         }]
                         )
   #[minimal_projection=["id"]]

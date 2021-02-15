@@ -17,9 +17,9 @@
 // limitations under the License.
 //
 // Author: Silei Xu <silei@cs.stanford.edu>
-"use strict";
 
-const Tp = require('thingpedia');
+import * as Tp from 'thingpedia';
+
 const URL = 'https://query.wikidata.org/sparql';
 
 const WikidataUnitToTTUnit = {
@@ -284,7 +284,7 @@ async function getRangeConstraint(propertyId) {
         ?statement ps:P2302 wd:Q21510860 .
         ?statement pq:P2312 ?max .
         ?statement pq:P2313 ?min .
-        
+
     }`;
     const result = await wikidataQuery(query);
     if (result.length > 0) {
@@ -342,7 +342,7 @@ async function getEquivalent(id) {
     return result.map((r) => r.class.value.slice('http://www.wikidata.org/entity/'.length));
 }
 
-module.exports = {
+export {
     unitConverter,
     wikidataQuery,
     getPropertyLabel,

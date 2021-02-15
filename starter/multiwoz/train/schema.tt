@@ -24,7 +24,9 @@ class @uk.ac.cam.multiwoz.Train
                      preposition=["to #"],
                      verb=["arrives at #", "should arrive at #", "arrives to #"],
                      passive_verb=["headed towards #", "arriving to #", "arriving in #", "arriving at #",
-                       "going to #", "going into #"]
+                       "going to #", "going into #"],
+                     projection_pronoun=["where"],
+                     verb_projection=["head to", "arrive to", "arrive at", "go to"]
                    }],
                    out departure : String
                    #[string_values="uk.ac.cam.multiwoz.Train:departure"]
@@ -36,7 +38,9 @@ class @uk.ac.cam.multiwoz.Train
                      property=["departure #", "departure station #"],
                      preposition=["from #"],
                      verb=["departs from #", "should depart from #", "departs at #"],
-                     passive_verb=["leaving #", "leaving from #", "departing from #"]
+                     passive_verb=["leaving #", "leaving from #", "departing from #"],
+                     projection_pronoun=["where"],
+                     verb_projection=["leave from", "depart from"]
                    }],
                    out day : Enum(friday, wednesday, monday, saturday, thursday, tuesday, sunday)
                    #[conflict_filter=['id']]
@@ -56,7 +60,9 @@ class @uk.ac.cam.multiwoz.Train
                      default="preposition",
                      base=["arrival time"],
                      verb=["arrives at #", "arrives by #", "arrives before #"],
-                     passive_verb=["arriving at #", "arriving by #", "arriving before #"]
+                     passive_verb=["arriving at #", "arriving by #", "arriving before #"],
+                     projection_pronoun=["when"],
+                     verb_projection=["arrive"]
                    }],
                    out leave_at : Time
                    #[conflict_filter=['arrive_by', 'id']]
@@ -67,20 +73,26 @@ class @uk.ac.cam.multiwoz.Train
                      base=["time", "departure time"],
                      preposition=["at #", "after #"],
                      verb=["leaves at #", "leaves after #"],
-                     passive_verb=["leaving at #", "leaving after #"]
+                     passive_verb=["leaving at #", "leaving after #"],
+                     projection_pronoun=["when"],
+                     verb_projection=["leave", "depart"]
                    }],
                    out price : Currency
                    #[filterable=false]
                    #_[canonical={
                      default="base",
-                     base=["cost", "price", "fare", "fare price", "ticket price", "ticket cost"]
+                     base=["cost", "price", "fare", "fare price", "ticket price", "ticket cost"],
+                     projection_pronoun=["how much"],
+                     verb_projection=["cost"]
                    }],
                    out duration : Measure(ms)
                    #[filterable=false]
                    #_[question=["how long does it take", "how long is the ride", "how long will i be travelling"]]
                    #_[canonical={
                      default="base",
-                     base=["duration", "length", "travel time"]
+                     base=["duration", "length", "travel time"],
+                     projection_pronoun=["how long"],
+                     verb_projection=["take"]
                    }]
                    )
   #[minimal_projection=["id"]]

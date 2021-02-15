@@ -17,23 +17,20 @@
 // limitations under the License.
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
-"use strict";
+
 
 process.on('unhandledRejection', (up) => { throw up; });
 
-const path = require('path');
-const stream = require('stream');
-const seedrandom = require('seedrandom');
+import * as path from 'path';
+import * as stream from 'stream';
+import * as seedrandom from 'seedrandom';
 
-const { BasicSentenceGenerator, DialogueGenerator } = require('../../lib/sentence-generator/batch');
-const { makeDummyEntities } = require('../../lib/utils/misc-utils');
+import { BasicSentenceGenerator, DialogueGenerator } from '../../lib/sentence-generator/batch';
+import { makeDummyEntities } from '../../lib/utils/misc-utils';
 
-const ThingTalk = require('thingtalk');
-const Grammar = ThingTalk.Grammar;
-const NNSyntax = ThingTalk.NNSyntax;
-const SchemaRetriever = ThingTalk.SchemaRetriever;
+import { Syntax, SchemaRetriever } from 'thingtalk';
 
-const _tpClient = require('./mock_schema_delegate');
+import _tpClient from './mock_schema_delegate';
 const _schemaRetriever = new SchemaRetriever(_tpClient, null, true);
 
 async function processOne(id, sentence, code) {
@@ -41,7 +38,7 @@ async function processOne(id, sentence, code) {
 
     try {
         const entities = makeDummyEntities(sentence);
-        const program = NNSyntax.fromNN(code.split(' '), (token) => {
+        const program = Syntax.parse(code.split(' '), Syntax.SyntaxType.Tokenized, (token) => {
             return assignedEntities[token] = entities[token];
         });
         await program.typecheck(_schemaRetriever);
@@ -88,7 +85,7 @@ async function doTestBasic(filename) {
         },
         targetPruningSize: 20,
         maxDepth: 8,
-        debug: true
+        debug: 2
     };
 
     const generator = new BasicSentenceGenerator(options);
@@ -121,7 +118,7 @@ async function tryTypecheck(code) {
     if (!code)
         return;
     try {
-        await Grammar.parseAndTypecheck(code, _schemaRetriever);
+        await Syntax.parse(code).typecheck(_schemaRetriever);
     } catch(e) {
         console.error(code);
         throw e;
@@ -137,10 +134,11 @@ async function processDialogue(dlg) {
 }
 
 
-async function doTestDialogue(filename) {
+async function doTestDialogue(filename, onlyDevices = null) {
     const options = {
         rng: seedrandom.alea('almond is awesome'),
         locale: 'en-US',
+        policyFile: path.resolve(path.dirname(module.filename), '../../languages/thingtalk/policy.yaml'),
         templateFiles: [filename],
         targetLanguage: 'thingtalk',
         thingpediaClient: _tpClient,
@@ -160,12 +158,13 @@ async function doTestDialogue(filename) {
             notablejoin: true,
             nostream: true
         },
-        targetPruningSize: 15,
+        onlyDevices,
+        targetPruningSize: 25,
         maxDepth: 9,
         maxTurns: 3,
         minibatchSize: 300,
         numMinibatches: 1,
-        debug: 1
+        debug: 2
     };
 
     const generator = new DialogueGenerator(options);
@@ -193,10 +192,13 @@ async function doTestDialogue(filename) {
 }
 
 async function main() {
-    await doTestBasic(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/thingtalk.genie'));
     await doTestBasic(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/basic.genie'));
+    await doTestBasic(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/thingtalk.genie'));
     await doTestDialogue(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/dialogue.genie'));
+    // run again with just yelp weather and spotify, as way to check certain paths that don't come up otherwise
+    await doTestDialogue(path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/dialogue.genie'),
+    ['com.yelp', 'org.thingpedia.weather', 'com.spotify2']);
 }
-module.exports = main;
+export default main;
 if (!module.parent)
     main();
