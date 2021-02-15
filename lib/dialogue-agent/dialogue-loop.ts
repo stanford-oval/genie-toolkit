@@ -663,8 +663,9 @@ export default class DialogueLoop {
             await this._showWelcome();
 
         while (!this._stopped) {
-            const item = await this.nextQueueItem();
+            let item;
             try {
+                item = await this.nextQueueItem();
                 if (item instanceof QueueItem.UserInput) {
                     this._lastNotificationApp = undefined;
                     await this._handleUserInput(item.command);
