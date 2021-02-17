@@ -70,8 +70,6 @@ export function getBestEntityMatch(searchTerm : string, entityType : string, can
     const searchTermTokens = refinedSearchTerm.split(' ');
 
     for (const cand of candidates) {
-        if (cand.canonical === searchTerm)
-            return cand;
         const candDisplay = removeParenthesis(cand.canonical);
         let score = 0;
         score -= 0.1 * editDistance(refinedSearchTerm, candDisplay);
@@ -92,7 +90,7 @@ export function getBestEntityMatch(searchTerm : string, entityType : string, can
             // give a small boost to ignorable tokens that are missing
             // this offsets the char-level edit distance
             if (!found && ['the', 'hotel', 'house', 'restaurant'].includes(candToken))
-                score += 0.1 * candToken.length;
+                score += 0.1 * (1 + candToken.length); // add 1 to account for the space
 
             if (entityType === 'imgflip:meme_id' && candToken === 'x')
                 score += 1;

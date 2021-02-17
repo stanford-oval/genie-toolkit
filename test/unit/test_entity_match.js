@@ -5,6 +5,7 @@ import { getBestEntityMatch } from '../../lib/dialogue-agent/entity-linking/enti
 const TEST_CASES = [
     [
         "bohemian rhapsody",
+        "spotify:track:6l8GvAyoUZwWDgF1e4822w",
         "com.spotify:song",
         [{
             type: 'com.spotify:song',
@@ -28,6 +29,7 @@ const TEST_CASES = [
     ],
     [
         "hotel california",
+        "spotify:track:2ilnn2pGrYpFPc1H4qhp7t",
         "com.spotify:song",
         [{
             type: 'com.spotify:song',
@@ -37,20 +39,21 @@ const TEST_CASES = [
         },
         {
             type: 'com.spotify:song',
+            value: 'spotify:track:2ilnn2pGrYpFPc1H4qhp7t',
+            canonical: 'hotel california',
+            name: 'Hotel California',
+        },
+        {
+            type: 'com.spotify:song',
             value: 'spotify:track:5nS9WEWYnbQDBAe81SHhDP',
             canonical: 'hotel california (cover)',
             name: 'Hotel California (Cover)',
         },
-        {
-            type: 'com.spotify:song',
-            value: 'spotify:track:2ilnn2pGrYpFPc1H4qhp7t',
-            canonical: 'hotel california',
-            name: 'Hotel California',
-        }
         ]
     ],
     [
         "eye of the tiger",
+        "spotify:track:2KH16WveTQWT6KOG9Rg6e2",
         "com.spotify:song",
         [{
             type: 'com.spotify:song',
@@ -74,6 +77,7 @@ const TEST_CASES = [
     ],
     [
         "taylor swift",
+        "spotify:artist:06HL4z0CvFAxyc27GXpf02",
         "com.spotify:artist",
         [{
             type: 'com.spotify:artist',
@@ -91,6 +95,7 @@ const TEST_CASES = [
     ],
     [
         "michael jackson",
+        "spotify:artist:3fMbdgg4jU18AjLCKBhRSm",
         "com.spotify:artist",
         [{
             type: 'com.spotify:artist',
@@ -114,6 +119,7 @@ const TEST_CASES = [
     ],
     [
         "drake",
+        "spotify:artist:3TVXtAsR1Inumwj472S9r4",
         "com.spotify:artist",
         [{
             type: 'com.spotify:artist',
@@ -137,6 +143,7 @@ const TEST_CASES = [
     ],
     [
         "maroon 5",
+        "spotify:artist:04gDigrS5kc9YWfZHwBETP",
         "com.spotify:artist",
         [{
             type: 'com.spotify:artist',
@@ -160,6 +167,7 @@ const TEST_CASES = [
     ],
     [
         "physical graffiti",
+        "spotify:album:1lZahjeu4AhPkg9JARZr5F",
         "com.spotify:album",
         [{
             type: 'com.spotify:album',
@@ -183,6 +191,7 @@ const TEST_CASES = [
     ],
     [
         "night visions",
+        "spotify:album:6htgf3qv7vGcsdxLCDxKp8",
         "com.spotify:album",
         [{
             type: 'com.spotify:album',
@@ -206,6 +215,7 @@ const TEST_CASES = [
     ],
     [
         "the wall",
+        "spotify:album:5Dbax7G8SWrP9xyzkOvy2F",
         "com.spotify:album",
         [{
             type: 'com.spotify:album',
@@ -227,20 +237,47 @@ const TEST_CASES = [
         },
         ]
     ],
-
+    [
+        "beatles",
+        "spotify:artist:3WrFJ7ztbogyGnTHbHJFl2",
+        "com.spotify:artist",
+        [{
+            type: 'com.spotify:artist',
+            value: 'spotify:artist:3WrFJ7ztbogyGnTHbHJFl2',
+            canonical: 'the beatles',
+            name: 'The Beatles'
+        },
+        {
+            type: 'com.spotify:artist',
+            value: 'spotify:artist:5o723EMxNulM5ydXRh7Qkk',
+            canonical: "the beatles complete on ukulele",
+            name: "The Beatles Complete On Ukulele"
+        },
+        {
+            type: 'com.spotify:artist',
+            value: 'spotify:artist:2FzAxY7Uqnr32pF7L0nK3c',
+            canonical: 'beatless',
+            name: 'Beatless'
+        },
+        {
+            type: 'com.spotify:artist',
+            value: 'spotify:artist:3YojAkU7hiAalEunJy55JW',
+            canonical: 'beatles',
+            name: 'beatles',
+        }
+        ]
+    ],
 ];
 
 async function main() {
     let failed = false;
     for (let i = 0; i < TEST_CASES.length; i++) {
-        const TEST_CASE = TEST_CASES[i];
-        const candidates = TEST_CASE[2];
-        const correct = TEST_CASE[0];
-        const generated = getBestEntityMatch(TEST_CASE[0], TEST_CASE[1], candidates);
-        if (generated.canonical !== correct) {
+        const [searchKey, expected, type, candidates] = TEST_CASES[i];
+        const generated = getBestEntityMatch(searchKey, type, candidates);
+        if (generated.value !== expected) {
             console.error(`Test Case ${i+1} failed`);
-            console.error(`Expected: ${correct}`);
-            console.error(`Generated: ${generated.canonical}`);
+            console.error(`Expected: ${expected}`);
+            console.error(`Generated: ${generated.value}`);
             failed = true;
         }
     }
