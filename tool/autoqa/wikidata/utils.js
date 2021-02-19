@@ -19,6 +19,7 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 
 import * as Tp from 'thingpedia';
+const { cleanEnumValue, snakecase } = require('../lib/utils');
 
 const URL = 'https://query.wikidata.org/sparql';
 
@@ -342,6 +343,21 @@ async function getEquivalent(id) {
     return result.map((r) => r.class.value.slice('http://www.wikidata.org/entity/'.length));
 }
 
+/**
+ * 
+ */
+function argnameFromLabel(label) {
+    return snakecase(label)
+        .replace(/'/g, '') // remove apostrophe
+        .replace(/,/g, '') // remove comma
+        .replace(/_\/_/g, '_or_') // replace slash by or
+        .replace('/[(|)]/g', '') // replace parentheses
+        .replace(/-/g, '_') // replace -
+        .replace(/\s/g, '_') // replace whitespace
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // remove accent
+        .replace(/[\W]+/g, '');
+}
+
 export {
     unitConverter,
     wikidataQuery,
@@ -355,5 +371,6 @@ export {
     getRangeConstraint,
     getSchemaorgEquivalent,
     getClasses,
-    getEquivalent
+    getEquivalent,
+    argnameFromLabel
 };

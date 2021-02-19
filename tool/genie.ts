@@ -82,6 +82,7 @@ const subcommands : { [key : string] : SubCommand } = {
     'wikidata-label-retriever': require('./autoqa/wikidata/label-retriever'),
     'wikidata-make-string-datasets': require('./autoqa/wikidata/make-string-datasets'),
     'wikidata-demo': require('./autoqa/wikidata/demo'),
+    'wikidata-convert-csqa': require('./autoqa/wikidata/csqa-converter'),
 
     'auto-annotate': require('./autoqa/auto-annotate'),
     'make-string-datasets': require('./autoqa/make-string-datasets'),
