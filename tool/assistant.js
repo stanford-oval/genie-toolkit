@@ -24,7 +24,7 @@ import * as readline from 'readline';
 import Engine from '../lib/engine';
 import Platform from './lib/cmdline-platform';
 
-const THINGPEDIA_URL = 'https://almond-dev.stanford.edu/thingpedia';
+const THINGPEDIA_URL = 'https://dev.almond.stanford.edu/thingpedia';
 const NL_SERVER_URL = 'https://nlp-staging.almond.stanford.edu';
 
 class LocalUser {

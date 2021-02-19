@@ -29,7 +29,7 @@ starter_gen_and_train() {
 	cat > config.mk <<EOF
 geniedir = ${srcdir}
 developer_key = 88c03add145ad3a3aa4074ffa828be5a391625f9d4e1d0b034b445f18c595656
-thingpedia_url = https://almond-dev.stanford.edu/thingpedia
+thingpedia_url = https://dev.almond.stanford.edu/thingpedia
 EOF
 
 	# make a dataset (a small one)

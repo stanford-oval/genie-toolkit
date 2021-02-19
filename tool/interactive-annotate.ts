@@ -492,7 +492,7 @@ class Annotator extends events.EventEmitter {
     }
 }
 
-const THINGPEDIA_URL = 'https://almond-dev.stanford.edu/thingpedia';
+const THINGPEDIA_URL = 'https://dev.almond.stanford.edu/thingpedia';
 const NL_SERVER_URL = 'https://nlp-staging.almond.stanford.edu';
 
 export function initArgparse(subparsers : argparse.SubParser) {
