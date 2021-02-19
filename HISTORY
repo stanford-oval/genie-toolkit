@@ -1,3 +1,11 @@
+0.8.0-alpha.2
+=============
+
+* Improved the default bounds of the random number skill [#475].
+* Misc bug fixes [#479, #480].
+* Updated dependencies [#477].
+* Build system fixes [#482].
+
 0.8.0-alpha.1
 =============
 
