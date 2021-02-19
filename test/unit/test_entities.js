@@ -24,7 +24,7 @@ import * as Tp from 'thingpedia';
 
 import { getBestEntityMatch } from '../../lib/dialogue-agent/entity-linking/entity-finder';
 
-const THINGPEDIA_URL = 'https://almond-dev.stanford.edu/thingpedia';
+const THINGPEDIA_URL = 'https://dev.almond.stanford.edu/thingpedia';
 
 const _mockPlatform = {
     locale: 'en-US',

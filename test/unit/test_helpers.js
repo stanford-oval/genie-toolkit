@@ -54,7 +54,7 @@ async function test(tpClient) {
 
 async function main() {
     const platform = new MockPlatform();
-    const tpClient = new Tp.HttpClient(platform, 'https://almond-dev.stanford.edu/thingpedia');
+    const tpClient = new Tp.HttpClient(platform, 'https://dev.almond.stanford.edu/thingpedia');
     await test(tpClient);
 }
 export default main;

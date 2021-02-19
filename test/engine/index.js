@@ -29,8 +29,8 @@ require('thingpedia');
 import Engine from '../../lib/engine';
 import * as Platform from './platform';
 
-const THINGPEDIA_URL = 'https://almond-dev.stanford.edu/thingpedia';
-const THINGENGINE_URL = 'https://almond-dev.stanford.edu';
+const THINGPEDIA_URL = 'https://dev.almond.stanford.edu/thingpedia';
+const THINGENGINE_URL = 'https://dev.almond.stanford.edu';
 
 async function runTests(engine, limitTo) {
     try {
