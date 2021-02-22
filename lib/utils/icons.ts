@@ -27,7 +27,14 @@ function isPlatformBuiltin(kind : string) : boolean {
 
 export function getProgramIcon(program : Ast.Input) : string|null {
     let icon : string|null = null;
-    for (const [, prim] of program.iteratePrimitives(false)) {
+    let node : Ast.Node = program;
+    if (node instanceof Ast.DialogueState) {
+        const last = node.history[node.history.length-1];
+        if (!last)
+            return null;
+        node = last;
+    }
+    for (const [, prim] of node.iteratePrimitives(false)) {
         if (!(prim.selector instanceof Ast.DeviceSelector))
             continue;
         const newIcon = getPrimitiveIcon(prim);
