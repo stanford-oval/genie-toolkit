@@ -127,16 +127,9 @@ export default class SpeechHandler extends events.EventEmitter {
             break;
 
         case MessageType.TEXT:
-        case MessageType.RESULT:
             if (!this._enableVoiceOutput)
                 break;
             await this._tts.say(message.text);
-            break;
-
-        case MessageType.RDL:
-            if (!this._enableVoiceOutput)
-                break;
-            await this._tts.say(message.rdl.displayTitle);
             break;
 
         // ignore all other message types
