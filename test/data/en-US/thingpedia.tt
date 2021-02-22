@@ -194,7 +194,11 @@ class @thermostat
   #_[confirmation="set your thermostat between $low and $high"]
   #[confirm=true];
 
-  action set_target_temperature(in req value: Measure(C) #_[prompt="What temperature do you want to set?"] #_[canonical="value"])
+  action set_target_temperature(in req value: Measure(C)
+                                #_[prompt="What temperature do you want to set?"]
+                                #_[canonical="value"]
+                                #[min_number=15C]
+                                #[max_number=30C])
   #_[canonical="set target temperature on thermostat"]
   #_[confirmation="set your thermostat to $value"]
   #[confirm=true];
