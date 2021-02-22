@@ -155,6 +155,13 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
                     device: factory.text,
                     choices: factory.choices.map((f) => f.text)
                 });
+            } else if (this.getAllDevicesOfKind(factory.kind).length > 0) {
+                await this._dlg.replyInterp(this._("You do not have a ${device} configured. You will need to configure it inside your ${factory} before you can use that command."), {
+                    device: cleanKind(kind),
+                    factory: factory.text,
+                });
+                // exit early without any button
+                return null;
             } else {
                 await this._dlg.replyInterp(this._("You need to enable ${device} before you can use that command."), {
                     device: factory.text
