@@ -273,10 +273,7 @@ export default class BaseTokenizer {
 
         this._lexer.addRule(/[+-]?{DECIMAL_NUMBER}/, (lexer) => {
             const value = this._parseDecimalNumber(lexer.text);
-            if (Math.floor(value) === value && value <= 12 && value >= -12)
-                return makeToken(lexer.index, lexer.text, String(value));
-            else
-                return makeToken(lexer.index, lexer.text, String(value), 'NUMBER', value);
+            return makeToken(lexer.index, lexer.text, String(value));
         });
     }
 
