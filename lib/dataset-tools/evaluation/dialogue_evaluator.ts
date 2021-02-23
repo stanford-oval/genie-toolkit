@@ -47,6 +47,7 @@ interface DialogueEvaluatorOptions {
     targetLanguage : string;
     tokenized : boolean;
     database ?: SimulationDatabase;
+    oracle ?: boolean;
 
     debug ?: boolean;
 }
@@ -81,6 +82,8 @@ class DialogueEvaluatorStream extends Stream.Transform {
     private _debug : boolean;
     private _tokenized : boolean;
     private _database : SimulationDatabase|undefined;
+    private _oracle : boolean;
+
     private _cachedEntityMatches : Map<string, EntityRecord>;
     private _minibatch : Array<Promise<ExampleEvaluationResult>>;
 
@@ -97,6 +100,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
         this._debug = !!options.debug;
         this._tokenized = options.tokenized;
         this._database = options.database;
+        this._oracle = !!options.oracle;
 
         this._cachedEntityMatches = new Map;
 
@@ -337,10 +341,14 @@ class DialogueEvaluatorStream extends Stream.Transform {
            locale: this._locale,
         }).join(' ');
 
+        let answer = undefined;
+        if (this._oracle)
+            answer = targetCode;
         const parsed : PredictionResult = await this._parser.sendUtterance(tokens.join(' '), contextCode, contextEntities, {
             tokenized: true,
             skip_typechecking: true,
             example_id: id + '/' + turnIndex,
+            answer: answer
         });
 
         const predictions = parsed.candidates

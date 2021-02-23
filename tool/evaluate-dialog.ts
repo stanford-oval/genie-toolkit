@@ -103,6 +103,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         default: '',
         help: `Prefix all output lines with this string`
     });
+    parser.add_argument('--oracle', {
+        action: 'store_true',
+        help: 'Indicates evaluation of an oracle model where ThingTalk code should be passed to the genienlp server',
+        default: false
+    });
 }
 
 export async function execute(args : any) {
@@ -126,7 +131,8 @@ export async function execute(args : any) {
             thingpediaClient: tpClient,
             tokenized: args.tokenized,
             debug: args.debug,
-            database: database
+            database: database,
+            oracle: args.oracle
         }))
         .pipe(new CollectDialogueStatistics());
 
