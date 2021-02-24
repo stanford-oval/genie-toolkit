@@ -155,6 +155,13 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
                     device: factory.text,
                     choices: factory.choices.map((f) => f.text)
                 });
+            } else if (this.getAllDevicesOfKind(factory.kind).length > 0) {
+                await this._dlg.replyInterp(this._("You do not have a ${device} configured. You will need to configure it inside your ${factory} before you can use that command."), {
+                    device: cleanKind(kind),
+                    factory: factory.text,
+                });
+                // exit early without any button
+                return null;
             } else {
                 await this._dlg.replyInterp(this._("You need to enable ${device} before you can use that command."), {
                     device: factory.text
@@ -336,20 +343,10 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         });
 
         if (mapped.length === 0) {
-            const question = this._dlg.interpolate(this._("Sorry, I cannot find any location matching “${location}”. What location are you looking for?"), {
+            await this._dlg.replyInterp(this._("Sorry, I cannot find any location matching “${location}”."), {
                 location: searchKey,
             });
-            const answer = await this._dlg.ask(ValueCategory.Location, question);
-            assert(answer instanceof Ast.LocationValue);
-            if (answer.value instanceof Ast.UnresolvedLocation) {
-                return this.lookupLocation(answer.value.name, previousLocations);
-            } else if (answer.value instanceof Ast.RelativeLocation) {
-                const resolved = await this.resolveUserContext('$context.location.' + answer.value.relativeTag);
-                assert(resolved instanceof Ast.LocationValue);
-                return resolved;
-            } else {
-                return answer;
-            }
+            throw new CancellationError();
         }
 
         return new Ast.Value.Location(mapped[0]);

@@ -58,6 +58,19 @@ export default class SpeechHandler extends events.EventEmitter {
         this._wakeWordDetector = platform.getCapability('wakeword-detector');
         this._systemLock = platform.getCapability('system-lock');
 
+        if (this._wakeWordDetector) {
+            this._wakeWordDetector.on('wakeword', (wakeword : string) => {
+                if (this._systemLock && this._systemLock.isActive) {
+                    console.log('Ignored wakeword ' + wakeword + ' because the system is locked');
+                    return;
+                }
+
+                console.log('Wakeword ' + wakeword + ' detected');
+                this.emit('wakeword', wakeword);
+                this._onDetected();
+            });
+        }
+
         this._recognizer = new SpeechRecognizer({
             locale: this._platform.locale,
             subscriptionKey: options.subscriptionKey
@@ -114,16 +127,9 @@ export default class SpeechHandler extends events.EventEmitter {
             break;
 
         case MessageType.TEXT:
-        case MessageType.RESULT:
             if (!this._enableVoiceOutput)
                 break;
             await this._tts.say(message.text);
-            break;
-
-        case MessageType.RDL:
-            if (!this._enableVoiceOutput)
-                break;
-            await this._tts.say(message.rdl.displayTitle);
             break;
 
         // ignore all other message types
@@ -201,19 +207,8 @@ export default class SpeechHandler extends events.EventEmitter {
                 this.emit('ready');
         });
 
-        if (this._wakeWordDetector) {
-            this._wakeWordDetector.on('wakeword', (wakeword : string) => {
-                if (this._systemLock && this._systemLock.isActive) {
-                    console.log('Ignored wakeword ' + wakeword + ' because the system is locked');
-                    return;
-                }
-
-                console.log('Wakeword ' + wakeword + ' detected');
-                this.emit('wakeword', wakeword);
-                this._onDetected();
-            });
+        if (this._wakeWordDetector)
             this._stream!.pipe(this._wakeWordDetector);
-        }
     }
 
     stop() {
@@ -226,10 +221,9 @@ export default class SpeechHandler extends events.EventEmitter {
     private _stopVoiceInput() {
         if (!this._stream)
             return;
+        this._stream.unpipe();
         this._stream.end();
         this._stream = null;
         this._recognizer.close();
-        if (this._wakeWordDetector)
-            this._wakeWordDetector.destroy();
     }
 }

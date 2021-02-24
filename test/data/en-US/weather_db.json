@@ -12,6 +12,16 @@
       "fog":0,
       "status":"sunny",
       "icon":"http://api.met.no/weatherapi/weathericon/1.1/?symbol=1;content_type=image/png"
+   },
 
+   {
+     "location":[
+        90,
+        0,
+        "North Pole"
+     ],
+     "$error": {
+        "message": "unexpected weather error"
+     }
    }
 ]

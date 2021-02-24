@@ -862,10 +862,11 @@ export function tagContextForAgent(ctx : ContextInfo) : number[] {
 
         // we must have a result
         assert(ctx.resultInfo, `expected result info`);
+        if (ctx.resultInfo.hasError)
+            return [contextTable.ctx_completed_action_error];
+
         if (!ctx.resultInfo.isTable) {
-            if (ctx.resultInfo.hasError)
-                return [contextTable.ctx_completed_action_error];
-            else if (ctx.resultInfo.hasEmptyResult && actionShouldHaveResult(ctx))
+            if (ctx.resultInfo.hasEmptyResult && actionShouldHaveResult(ctx))
                 return [contextTable.ctx_empty_search_command];
             else
                 return [contextTable.ctx_completed_action_success];

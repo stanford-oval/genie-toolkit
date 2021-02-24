@@ -87,8 +87,9 @@ shared-parameter-datasets.tsv:
 	$(thingpedia_cli) --url $(thingpedia_url) --developer-key $(developer_key) --access-token invalid \
 	  download-string-values --manifest $@ --append-manifest -d shared-parameter-datasets
 
-$(experiment)/augmented.tsv : $($(experiment)_paraphrase) $(experiment)/synthetic.tsv shared-parameter-datasets.tsv
-	$(genie) augment -o $@.tmp -l en-US --thingpedia $(experiment)/thingpedia.tt --parameter-datasets shared-parameter-datasets.tsv \
+$(experiment)/augmented.tsv : $($(experiment)_paraphrase) $(experiment)/synthetic.tsv $(experiment)/thingpedia.tt $(experiment)/entities.json shared-parameter-datasets.tsv
+	$(genie) augment -o $@.tmp -l en-US --thingpedia $(experiment)/thingpedia.tt --entities $(experiment)/entities.json\
+	  --parameter-datasets shared-parameter-datasets.tsv \
 	  --synthetic-expand-factor 1 --quoted-paraphrasing-expand-factor 60 --no-quote-paraphrasing-expand-factor 20 --quoted-fraction 0.1 \
 	  --debug $($(experiment)_paraphrase) $(experiment)/synthetic.tsv
 	mv $@.tmp $@
