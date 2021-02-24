@@ -1361,3 +1361,23 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+====
+# test
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.weather.current(location=new Location(90, 0, "North Pole"));
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.weather.current(location=new Location(90, 0, "North Pole"));
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.weather.current(location=new Location(90, 0, "North Pole"))
+C: #[results=[]]
+C: #[error="unexpected weather error"];
+A: Sorry, unexpected weather error.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_error;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines

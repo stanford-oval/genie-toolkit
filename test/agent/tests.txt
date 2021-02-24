@@ -730,3 +730,13 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
 A: Alright, bye!
 A: >> context = null // {}
 A: >> expecting = null
+
+====
+# 48-query-error
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.weather.current(location=new Location(90, 0, "North Pole"));
+
+A: Sorry, unexpected weather error.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_error ; @org.thingpedia.weather . current ( location = LOCATION_0 ) #[ results = [ ] ] #[ error = QUOTED_STRING_0 ] ; // {"LOCATION_0":{"latitude":90,"longitude":0,"display":"North Pole"},"QUOTED_STRING_0":"unexpected weather error"}
+A: >> expecting = null
