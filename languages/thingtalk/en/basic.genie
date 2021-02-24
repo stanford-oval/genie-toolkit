@@ -55,6 +55,20 @@ bookkeeping : Ast.ControlCommand = {
     | 'close'
     ) => special('stop');
 
+    ( 'yes'
+    | 'yes please'
+    | 'yes ,  please'
+    | 'yeah'
+    | 'ok'
+    | 'okay'
+    ) => special('yes');
+
+    ( 'no'
+    | 'no thanks'
+    | 'no ,  thanks'
+    | 'nope'
+    ) => special('no');
+
     c:constant_Any => new Ast.ControlCommand(null, new Ast.AnswerControlIntent(null, c));
 }
 
