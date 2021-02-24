@@ -57,6 +57,10 @@ export function initArgparse(subparsers : argparse.SubParser) {
         required: true,
         help: 'Path to ThingTalk file containing class definitions.'
     });
+    parser.add_argument('--entities', {
+        required: false,
+        help: 'Path to JSON file containing entity type definitions.'
+    });
     parser.add_argument('--parameter-datasets', {
         required: true,
         help: 'TSV file containing the paths to datasets for strings and entity types.'
