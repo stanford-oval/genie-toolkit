@@ -1,3 +1,11 @@
+0.8.0-alpha.3
+=============
+
+* Schema2QA evaluation sets have been fully updated to ThingTalk 2.0 [#472].
+* The transaction state machine now asks for "anything else" at the end of a
+  conversation [#491, #495].
+* Misc bug fixes [#470, #481, #483, #485, #491, #494].
+
 0.8.0-alpha.2
 =============
 
