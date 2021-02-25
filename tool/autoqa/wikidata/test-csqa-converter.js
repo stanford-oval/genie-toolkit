@@ -57,7 +57,7 @@ const TEST_CASES = [
         utterance: 'José Eduardo dos Santos',
         active_set: [ '(Q916,P35,c(Q502895))' ],
     }},
-    '[head_of_state] of @org.wikidata.country() filter (id=~"angola");'],
+    '[head_of_state] of @org.wikidata.country() filter id =~ "angola"'],
     // Test 2: 2.1. Secondary question, Subject based question
     [{  user: {
             ques_type_id: 2,  
@@ -68,7 +68,7 @@ const TEST_CASES = [
             utterance: 'French Parliament',
             active_set: [ '(Q142,P194,c(Q1752346))' ],
     }},
-    '[legislative_body] of @org.wikidata.country() filter (id=~"france");'],
+    '[legislative_body] of @org.wikidata.country() filter id =~ "france"'],
     // Test 3: 2.2. Secondary question, Object based question
     // Maybe skip. Property mostly belong to another table.
     [{  user: {
@@ -80,7 +80,7 @@ const TEST_CASES = [
             utterance: 'One Who Set Forth: Wim Wenders\' Early Years',
             active_set: [ '(c(Q838948),P291,Q183)' ],
     }},
-    '[place_of_publication] of @org.wikidata.country() filter (id=~"germany");'],
+    '[place_of_publication] of @org.wikidata.country() filter id =~ "germany"'],
     // Test 4: 4.1. Set-based question OR
     [{  user: {
             set_op_choice: 1,
@@ -91,7 +91,7 @@ const TEST_CASES = [
           utterance: 'Malaysia, Myanmar, Cambodia, Palazzolo sull\'Oglio, Chiari, Urago d\'Oglio, Laos, Cividate al Piano, Palosco',
           active_set: [ 'OR((Q869,P47,c(Q15617994)), (Q111466,P47,c(Q15617994)))' ],
     }},
-    '[shares_border_with] of @org.wikidata.country() filter (id=~"thailand" || shares_border_with=~"pontoglio");'],
+    '[shares_border_with] of @org.wikidata.country() filter id =~ "thailand" || shares_border_with =~ "pontoglio"'],
     // Test 5: 4.1. Set-based question OR
     // Maybe skip. Second condition should be from anothe table.
     [{  user: {
@@ -102,7 +102,7 @@ const TEST_CASES = [
         system: {
             utterance: 'Australia, Canada, Germany, Denmark',
             active_set: [ 'OR((Q30,P530,c(Q1048835)), (Q12318599,P27,c(Q1048835)))' ]}},
-    '(([diplomatic_relation] of @org.wikidata.country() filter (id=~"united states of america ")) || ([country_of_citizenship] of @org.wikidata.country() filter (country_of_citizenship=~"isabelle brockenhuus-løwenhielm")));'],
+    '[diplomatic_relation, country_of_citizenship] of @org.wikidata.country() filter id =~ "united states of america " || country_of_citizenship =~ "isabelle brockenhuus-løwenhielm"'],
     // Test 6: 4.2. Set-based question AND
     [{  user: {
             set_op_choice: 2,
@@ -113,7 +113,7 @@ const TEST_CASES = [
             utterance: 'Kingdom of the Netherlands',
             active_set: [ 'AND((Q142,P47,c(Q15617994)), (Q360469,P27,c(Q15617994)))' ],
     }},
-    '(([shares_border_with] of @org.wikidata.country() filter (id=~"france")) && ([country_of_citizenship] of @org.wikidata.country() filter (country_of_citizenship=~"charles iii, duke of parma")));'],
+    '[shares_border_with, country_of_citizenship] of @org.wikidata.country() filter id =~ "france" && country_of_citizenship =~ "charles iii, duke of parma"'],
     // Test 7: 4.2. Set-based question AND
     // Maybe skip. Another type of Object based question like Test 2.
     [{  user: {
@@ -125,7 +125,7 @@ const TEST_CASES = [
             utterance: 'Some of them are Virginia Peirano, Jane Alexander, Rafael Sabatini, Fiona May, Enrico Bayon, Simonetta Agnello Hornby, Liz Scalia, Rosemary Dexter, Arthur Valerian Wellesley, 8th Duke of Wellington, Diego De Girolamo',
             active_set: [ 'AND((c(Q502895),P27,Q38), (c(Q502895),P27,Q145))' ],
     }},
-    '[country_of_citizenship] of @org.wikidata.country() filter (id=~"united kingdom" && id=~"italy");'],
+    '[country_of_citizenship] of @org.wikidata.country() filter id =~ "united kingdom" && id =~ "italy"'],
     // Test 8: 4.3. Set-based question Difference
     [{  user: {
             set_op_choice: 3,
@@ -136,7 +136,7 @@ const TEST_CASES = [
             utterance: 'France, Zambia',
             active_set: [ 'AND((Q27,P530,c(Q15617994)), NOT((Q16,P530,c(Q15617994))))' ],
     }},
-    '[diplomatic_relation] of @org.wikidata.country() filter (id=~"ireland" && id!="canada");'],
+    '[diplomatic_relation] of @org.wikidata.country() filter id =~ "ireland" && !(id =~ "canada")'],
     // Test 9: 4.3. Set-based question Difference
     // Maybe skip. Aside from second query should be from another table, not sure if set exclusions are supported.
     [{  user: {
@@ -148,7 +148,7 @@ const TEST_CASES = [
             utterance: 'Some of them are Venezuela, Italy, Zambia, Turkey, Argentina, Vietnam, Mongolia, United States of America, Brazil, India',
             active_set: [ 'AND((Q159,P530,c(Q15617994)), NOT((Q11103562,P17,c(Q15617994))))' ],
     }},
-    '(([diplomatic_relation] of @org.wikidata.country() filter (id=~"russia")) && !([country] of @org.wikidata.country() filter (country=~"higashine interchange")));'],
+    '[diplomatic_relation, country] of @org.wikidata.country() filter id =~ "russia" && !(country =~ "higashine interchange")'],
     // Test 10: 7.1. Comparative and Quantitative questions (involving single entity), Quantitative (count) single entity
     [{  user: {
             ques_type_id: 7,
@@ -160,7 +160,7 @@ const TEST_CASES = [
             utterance: '4',
             active_set: [ '(Q414,P530,c(Q15617994))' ],
     }},
-    'count([diplomatic_relation] of @org.wikidata.country() filter (id=~"argentina"));'],
+    'count([diplomatic_relation] of @org.wikidata.country() filter id =~ "argentina")'],
     // Test 11: 8.1. Comparative and Quantitative questions (involving multiple(2) entities), Quantitative with Logical Operators
     // Maybe skip. Does thinkgtalk support way to filter property by entity type?
     // Also second filter should be from another table ("Georgia state not country")
@@ -175,7 +175,7 @@ const TEST_CASES = [
             utterance: '2',
             active_set: [ '(Q403,P463,c(Q484652))', '(Q1428,P463,c(Q484652))' ]
     }},
-    'count([member_of] of @org.wikidata.country() filter (id=~"serbia" && member_of=~"georgia"));'],
+    'count([member_of] of @org.wikidata.country() filter id =~ "serbia" && member_of =~ "georgia")'],
     // Test 12: 8.1. Comparative and Quantitative questions (involving multiple(2) entities), Quantitative with Logical Operators
     // Maybe skip. Second filter should be joined from another table.
     [{  user: {
@@ -189,7 +189,7 @@ const TEST_CASES = [
             utterance: '2',
             active_set: [ '(c(Q191067),P921,Q16)', '(c(Q191067),P921,Q56004)' ],
     }},
-    'count([main_subject] of @org.wikidata.country() filter (id=~"canada" || main_subject=~"corvey"));'],
+    'count([main_subject] of @org.wikidata.country() filter id =~ "canada" || main_subject =~ "corvey")'],
     // Test 13: 8.2. Comparative and Quantitative questions (involving multiple(2) entities), Quantitative (count) multiple entity
     // Maybe skip. Need filter by two entity types (Q15617994, Q1048835).
     [{  user: {
@@ -203,7 +203,7 @@ const TEST_CASES = [
             utterance: '18',
             active_set: [ '(Q142,P530,c(Q15617994))', '(Q142,P530,c(Q1048835))' ],
     }},
-    'count([diplomatic_relation] of @org.wikidata.country() filter (id=~"france"));'],
+    'count([diplomatic_relation] of @org.wikidata.country() filter id =~ "france")'],
 ];
 
 async function test(index) {
@@ -222,6 +222,7 @@ async function test(index) {
 
 export default async function main() {    
     for (let i = 0; i < TEST_CASES.length; i++) {
+    //for (let i = 0; i < 1; i++) {    
         console.log("TEST CASE #" + (i + 1));
         await test(i);
     }

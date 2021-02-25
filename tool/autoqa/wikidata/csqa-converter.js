@@ -9,6 +9,8 @@ const path = require('path');
 const assert = require('assert');
 
 const ThingTalk = require('thingtalk');
+const Ast = ThingTalk.Ast;
+const Helper = ThingTalk.Helper;
 
 import {
     wikidataQuery,
@@ -111,27 +113,46 @@ class CsqaConverter {
             } else {
                 // Since we won't get correct answer, ignore this for now.
                 console.log(`Not found: ${qid}`);
-                return;
+                return "";
             }
         }
         return value.toLowerCase();
     }
 
-    async getFilter(activeSet, negate) {
-        return `${await this.getArgName(activeSet[0], activeSet[1])}${negate?'!=':'=~'}"${await this.getArgValue(activeSet[0])}"`;
+    async getTable(canonical) {
+        const selector = new Ast.DeviceSelector(null, 'org.wikidata', null, null);
+        return (new Ast.InvocationExpression(null, new Ast.Invocation(null, selector, canonical, [], null), null));
+    }
+
+    async getSingleFilter(activeSet, negate) {
+        const param = await this.getArgName(activeSet[0], activeSet[1]);
+        const ttValue = new Ast.Value.String(await this.getArgValue(activeSet[0]));
+        const exp = new Ast.BooleanExpression.Atom(null, param, '=~', ttValue);
+        return negate ? new Ast.BooleanExpression.Not(null, exp) : exp;
+    }
+
+    async getMultiFilter(activeSet, negate) {
+        const filterClauses = [];
+        filterClauses.push(await this.getSingleFilter(activeSet.slice(0, 3)));
+        filterClauses.push(await this.getSingleFilter(activeSet.slice(3), negate));
+        return filterClauses;
     }
 
     // ques_type_id=1
     async simpleQuestion(canonical, activeSet) {
-        return `[${await this.getArgName(activeSet[2], activeSet[1])}] of @org.wikidata.${canonical}() filter (${await this.getFilter(activeSet)})`;
+        const invocationTable = await this.getTable(canonical);
+        const filter = new Ast.BooleanExpression.And(null, [(await this.getSingleFilter(activeSet))]);
+        const filterTable = new Ast.FilterExpression(null, invocationTable, filter, null);
+        // Return projected table.
+        return (new Ast.ProjectionExpression(null, filterTable, [(await this.getArgName(activeSet[2], activeSet[1]))], [], []));
     }
 
     // ques_type_id=2
     async secondaryQuestion	(canonical, activeSet, secQuesType) {
         switch(secQuesType) {
-            case(1): // Subject based question
+            case 1: // Subject based question
                 return this.simpleQuestion(canonical, activeSet);
-            case(2): // Object based question
+            case 2: // Object based question
                 return this.simpleQuestion(canonical, activeSet);
             default:
                 throw new Error(`Unknown sec_ques_type: ${secQuesType}`);    
@@ -139,43 +160,41 @@ class CsqaConverter {
 
     }
 
-    async getMultiFilter(canonical, activeSet, op, negate) {
-        return `[${await this.getArgName(activeSet[2], activeSet[1])}] of @org.wikidata.${canonical}() filter ` +
-        `(${await this.getFilter(activeSet.slice(0, 3))}${op}${await this.getFilter(activeSet.slice(3), negate)})`;
-    }
-
     // ques_type_id=4
     async setBasedQuestion(canonical, activeSet, setOpChoice) {
+        const invocationTable = await this.getTable(canonical);
+        let filter;
         switch(setOpChoice) {
-            case(1): // OR
-                if (activeSet[1] === activeSet[4]) {
-                    return this.getMultiFilter(canonical, activeSet, ' || ');
-                } else {
-                    return `((${await this.simpleQuestion(canonical, activeSet.slice(0, 3))}) || (${await this.simpleQuestion(canonical, activeSet.slice(3))}))`;
-                }
-            case(2): // AND
-                if (activeSet[1] === activeSet[4]) {
-                    return this.getMultiFilter(canonical, activeSet, ' && ');
-                } else {
-                    return `((${await this.simpleQuestion(canonical, activeSet.slice(0, 3))}) && (${await this.simpleQuestion(canonical, activeSet.slice(3))}))`;
-                }
-            case(3): // Difference
-                if (activeSet[1] === activeSet[4]) {
-                    return this.getMultiFilter(canonical, activeSet, ' && ', true);
-                } else {
-                    return `((${await this.simpleQuestion(canonical, activeSet.slice(0, 3))}) && !(${await this.simpleQuestion(canonical, activeSet.slice(3))}))`;
-                }
+            case 1: // OR
+                filter = new Ast.BooleanExpression.Or(null, (await this.getMultiFilter(activeSet)));
+                break;
+            case 2: // AND
+                filter = new Ast.BooleanExpression.And(null, (await this.getMultiFilter(activeSet)));
+                break;
+            case 3: // Difference
+                filter = new Ast.BooleanExpression.And(null, (await this.getMultiFilter(activeSet, true)));
+                break;
             default:
                 throw new Error(`Unknown set_op_choice: ${setOpChoice}`);
         }
+
+        const filterTable = new Ast.FilterExpression(null, invocationTable, filter, null);
+        let param;
+        if (activeSet[1] === activeSet[4]) {
+            param = [(await this.getArgName(activeSet[2], activeSet[1]))];
+        } else {
+            param = [(await this.getArgName(activeSet[2], activeSet[1])), (await this.getArgName(activeSet[5], activeSet[4]))];
+        }
+        // Return projected table.
+        return (new Ast.ProjectionExpression(null, filterTable, param, [], []));
     }
 
     // ques_type_id=7
     async quantitativeQuestionsSingleEntity(canonical, activeSet, countQuesSubType) {
         switch(countQuesSubType) {
-            case(1): // Quantitative (count) single entity
-                return `count(${await this.simpleQuestion(canonical, activeSet)})`;
-            case(2): // Quantitative (min/max) single entity
+            case 1: // Quantitative (count) single entity
+                return new Ast.AggregationExpression(null, await this.simpleQuestion(canonical, activeSet), '*', 'count', null);
+            case 2: // Quantitative (min/max) single entity
                 return; // not supprted in thingtalk.
             default:
                 throw new Error(`Unknown count_ques_sub_type: ${countQuesSubType}`);    
@@ -185,14 +204,13 @@ class CsqaConverter {
     // ques_type_id=8
     async quantitativeQuestionsMultiEntity(canonical, activeSet, countQuesSubType, setOpChoice) {
         switch(countQuesSubType) {
-            case(1): // Quantitative with Logical Operators
-                return `count(${await this.setBasedQuestion(canonical, activeSet, setOpChoice)})`;
-            case(2): // Quantitative (count) multiple entity
+            case 1: // Quantitative with Logical Operators
+                return new Ast.AggregationExpression(null, await this.setBasedQuestion(canonical, activeSet, setOpChoice), '*', 'count', null);
+            case 2: // Quantitative (count) multiple entity
                 if (activeSet[1] === activeSet[4]) {
-                    return `count(${await this.simpleQuestion(canonical, activeSet)})`;
+                    return new Ast.AggregationExpression(null, await this.simpleQuestion(canonical, activeSet), '*', 'count', null);
                 } else {
-                    return `count((${await this.simpleQuestion(canonical, activeSet.slice(0, 3))}) ${setOpChoice === 1 ? '||':'&&'} ` +
-                    `(${await this.simpleQuestion(canonical, activeSet.slice(3))}))`;
+                    return new Ast.AggregationExpression(null, await this.setBasedQuestion(canonical, activeSet, setOpChoice), '*', 'count', null);
                 }
             default:
                 throw new Error(`Unknown count_ques_sub_type: ${countQuesSubType}`);    
@@ -220,32 +238,34 @@ class CsqaConverter {
 
         let tk;
         switch(user.ques_type_id) {
-            case(1): // Simple Question (subject-based)
-                tk = (await this.simpleQuestion(canonical, activeSet)) + ';';
+            case 1: // Simple Question (subject-based)
+                tk = await this.simpleQuestion(canonical, activeSet);
                 break;
-            case(2): // Secondary question
-                tk = (await this.secondaryQuestion(canonical, activeSet, user.sec_ques_type)) + ';';
+            case 2: // Secondary question
+                tk = await this.secondaryQuestion(canonical, activeSet, user.sec_ques_type);
                 break;
-            case(3): // Clarification (for secondary) question
+            case 3: // Clarification (for secondary) question
                 break;
-            case(4): // Set-based question
-                tk = (await this.setBasedQuestion(canonical, activeSet, user.set_op_choice)) + ';';
-            case(5): // Boolean (Factual Verification) question
+            case 4: // Set-based question
+                tk = await this.setBasedQuestion(canonical, activeSet, user.set_op_choice);
+            case 5: // Boolean (Factual Verification) question
                 break; // Not supported by thingtalk
-            case(6): // Incomplete question (for secondary)
+            case 6: // Incomplete question (for secondary)
                 break;
-            case(7): // Comparative and Quantitative questions (involving single entity)
-                tk = (await this.quantitativeQuestionsSingleEntity(canonical, activeSet, user.count_ques_sub_type)) + ';';
+            case 7: // Comparative and Quantitative questions (involving single entity)
+                tk = await this.quantitativeQuestionsSingleEntity(canonical, activeSet, user.count_ques_sub_type);
                 break;
-            case(8): // Comparative and Quantitative questions (involving multiple(2) entities)
+            case 8: // Comparative and Quantitative questions (involving multiple(2) entities)
                 assert(user.set_op);
                 const op = user.set_op === 2 ? 1:2; // Somehow set op is reverse of question type 4
-                tk = (await this.quantitativeQuestionsMultiEntity(canonical, activeSet, user.count_ques_sub_type, op)) + ';';
+                tk = await this.quantitativeQuestionsMultiEntity(canonical, activeSet, user.count_ques_sub_type, op);
                 break;
             default:
                 throw new Error(`Unknown ques_type_id: ${user.ques_type_id}`);
         }
-        return tk;
+        if (tk) {
+            return tk.prettyprint();
+        } 
     }
 
     async _conveter(canonical, dialogs) {
