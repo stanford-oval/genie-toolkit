@@ -93,7 +93,6 @@ function checkListProposal(nameList : NameList, info : SlotBag|null, hasLearnMor
         if (!idType || !idType.equals(resultType))
             return null;
 
-        // check that the filter uses the right set of parameters
         const resultInfo = ctx.resultInfo!;
         if (resultInfo.projection !== null) {
             // check that all projected names are present
@@ -103,6 +102,7 @@ function checkListProposal(nameList : NameList, info : SlotBag|null, hasLearnMor
             }
         }
 
+        // check that the filter uses the right set of parameters
         for (const result of results) {
             if (!isInfoPhraseCompatibleWithResult(result, info))
                 return null;

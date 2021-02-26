@@ -152,23 +152,22 @@ function makeThingpediaRecommendation(ctx : ContextInfo, info : SlotBag) {
     };
 }
 
-function checkRecommendation(rec : Recommendation, info : SlotBag) {
-    if (!isInfoPhraseCompatibleWithResult(rec.topResult, info))
+function checkRecommendation(rec : Recommendation, info : SlotBag|null) {
+    if (info && !isInfoPhraseCompatibleWithResult(rec.topResult, info))
         return null;
 
-    // check that the filter uses the right set of parameters
     const resultInfo = rec.ctx.resultInfo!;
     if (resultInfo.projection !== null) {
         // check that all projected names are present
         for (const name of resultInfo.projection) {
-            if (!info.has(name))
+            if (!((info && info.has(name)) || (rec.info && rec.info.has(name))))
                 return null;
         }
     }
 
     return {
         ctx: rec.ctx, topResult: rec.topResult,
-        info,
+        info: info && rec.info ? SlotBag.merge(info, rec.info) : (info || rec.info),
         action: rec.action,
         hasLearnMore: rec.hasLearnMore,
         hasAnythingElse: rec.hasAnythingElse
@@ -260,6 +259,22 @@ function combineDisplayResult(proposal : Recommendation, newInfo : SlotBag) {
         hasAnythingElse: proposal.hasAnythingElse,
     };
     return newProposal;
+}
+
+function checkDisplayResult(proposal : Recommendation|null) {
+    if (!proposal)
+        return null;
+
+    const resultInfo = proposal.ctx.resultInfo!;
+    if (resultInfo.projection !== null) {
+        // check that all projected names are present
+        for (const name of resultInfo.projection) {
+            if (!proposal.info || !proposal.info.has(name))
+                return null;
+        }
+    }
+
+    return proposal;
 }
 
 function makeRecommendationReply(ctx : ContextInfo, proposal : Recommendation) {
@@ -392,6 +407,7 @@ export {
     checkActionForRecommendation,
     makeDisplayResult,
     combineDisplayResult,
+    checkDisplayResult,
     makeRecommendationReply,
     makeDisplayResultReply,
 

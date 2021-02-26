@@ -138,14 +138,15 @@ actionable_system_display_result_short : D.Recommendation = {
 
 // a non-list result
 system_nonlist_result : D.Recommendation = {
-    actionable_system_display_result_short;
+    phrase:actionable_system_display_result_short
+         => D.checkDisplayResult(phrase);
 
     ctx:ctx_with_result_noquestion res:direct_result_info_phrase
-        => D.makeDisplayResult(ctx, res.info);
+        => D.checkDisplayResult(D.makeDisplayResult(ctx, res.info));
     ctx:ctx_with_result_question res:direct_result_info_phrase [priority=10]
-        => D.makeDisplayResult(ctx, res.info);
+        => D.checkDisplayResult(D.makeDisplayResult(ctx, res.info));
     phrase:actionable_system_display_result_short extra:direct_result_info_phrase
-        => D.combineDisplayResult(phrase, extra.info);
+        => D.checkDisplayResult(D.combineDisplayResult(phrase, extra.info));
 
     // TODO: offer an action on the result (needs non-ID parameter passing to be useful)
     //proposal:actionable_system_display_result_short action:action_coref_recommendation
@@ -155,7 +156,7 @@ system_nonlist_result : D.Recommendation = {
         const clone : any = {};
         Object.assign(clone, proposal);
         clone.hasAnythingElse = true;
-        return clone;
+        return D.checkDisplayResult(clone);
     };
 }
 
@@ -166,7 +167,7 @@ system_nonlist_result : D.Recommendation = {
 system_recommendation : D.Recommendation = {
     ( ctx_with_action proposal:question_system_recommendation_short '.'
     | ctx_with_action proposal:actionable_system_recommendation_short '.'
-    ) => proposal;
+    ) => D.checkRecommendation(proposal, null);
 
     ctx_with_action proposal:actionable_system_recommendation_short '.' learn_more_offer
         => D.recommendationSetLearnMore(proposal);
@@ -190,7 +191,7 @@ system_recommendation : D.Recommendation = {
     ( proposal:question_system_recommendation_short '?'
     | proposal:action_recommendation '?'
     | proposal:actionable_system_recommendation_short '.'
-    ) => proposal;
+    ) => D.checkRecommendation(proposal, null);
 
     // long-form answers to a single question
     proposal:user_question_answer_begin 'is a' res:result_info_phrase '.'
@@ -204,7 +205,7 @@ system_recommendation : D.Recommendation = {
     ) => D.makeAnswerStyleRecommendation(proposal, filter);
 
     // even shorter answers to single questions
-    direct_user_question_answer;
+    proposal:direct_user_question_answer => D.checkRecommendation(proposal, null);
 
     // recommendations after a search, followed by an offer to make an action
     ( proposal:actionable_system_recommendation_short '. it' pair:proposal_info_action_pair [weight=2]
