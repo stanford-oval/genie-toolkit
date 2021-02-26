@@ -183,7 +183,7 @@ function startNewRequest(loader : ThingpediaLoader, ctx : ContextInfo, expr : As
     if (stmt.first.schema!.functionType === 'stream')
         return null;
 
-    if (loader.flags.strict_multidomain && getStatementDevice(ctx.current!.stmt.expression) === getStatementDevice(stmt))
+    if (loader.flags.strict_multidomain && ctx.current && getStatementDevice(ctx.current.stmt.expression) === getStatementDevice(stmt))
         return null;
 
     const newStatements = adjustStatementsForInitialRequest(loader, stmt);

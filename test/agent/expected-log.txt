@@ -1454,3 +1454,71 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_error;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: [temperature] of @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"));
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: [temperature] of @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"));
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: [temperature] of @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"))
+C: #[results=[
+C:   { location=new Location(37.442156, -122.1634471, "Palo Alto, California"), temperature=15.6C, status=enum sunny }
+C: ]];
+A: The current weather in Palo Alto, California is sunny. The temperature is 60.1 F.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: [rating, geo] of @com.yelp.restaurant();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: [rating, geo] of @com.yelp.restaurant();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: [rating, geo] of @com.yelp.restaurant()
+C: #[results=[
+C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), rating=4.5, geo=new Location(37.445523, -122.1607073261) },
+C:   { id="1vMgajRAI3lYwuCeGX58oQ"^^com.yelp:restaurant("Evvia Estiatorio"), rating=4.5, geo=new Location(37.445077, -122.163778) },
+C:   { id="KyU7XWDPclmZ3BpdIsd_0Q"^^com.yelp:restaurant("Oren's Hummus"), rating=4, geo=new Location(37.445717, -122.162173) },
+C:   { id="jwaXc3VVGDFQu1aCoiXwdw"^^com.yelp:restaurant("NOLA Restaurant & Bar"), rating=3.5, geo=new Location(37.4450225830078, -122.161323547363) },
+C:   { id="0WDM3JlNBvk2MeOTlu03mg"^^com.yelp:restaurant("Coconuts Caribbean Restaurant & Bar"), rating=4, geo=new Location(37.44381, -122.16027) },
+C:   { id="_mkNOTiQ-kbc1kJHo9RoVA"^^com.yelp:restaurant("Tamarine Restaurant"), rating=4, geo=new Location(37.44881, -122.15833) },
+C:   { id="TtYbsOqn7vLKhva0AuKQQQ"^^com.yelp:restaurant("Philz Coffee"), rating=4.5, geo=new Location(37.442174, -122.161583) },
+C:   { id="pi9MMjHWtVxC9eTnMk7e_w"^^com.yelp:restaurant("Crepevine Restaurant"), rating=4, geo=new Location(37.44698, -122.161) },
+C:   { id="vStWaPrdP4ysnKpj0WoHJQ"^^com.yelp:restaurant("Rangoon Ruby"), rating=3.5, geo=new Location(37.445122, -122.163104) },
+C:   { id="-g_tUhyvUFbxOs0aB28j1w"^^com.yelp:restaurant("Palo Alto Creamery"), rating=4, geo=new Location(37.4438831241214, -122.16178176729) }
+C: ]]
+C: #[count=50]
+C: #[more=true];
+A: I have one, it is Ramen Nagi. It is a restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg] rated 4.5 star.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+U: \t $stop;
+UT: $stop;
+====
+# test
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: [rating, geo] of @com.yelp.restaurant() filter id =~ "ramen nagi";
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: [rating, geo] of @com.yelp.restaurant() filter id =~ "ramen nagi";
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: [rating, geo] of @com.yelp.restaurant() filter id =~ "ramen nagi"
+C: #[results=[
+C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), rating=4.5, geo=new Location(37.445523, -122.1607073261) }
+C: ]];
+A: Ramen Nagi is a restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg] rated 4.5 star.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines

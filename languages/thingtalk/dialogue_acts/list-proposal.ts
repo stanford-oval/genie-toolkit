@@ -80,13 +80,19 @@ function checkListProposal(nameList : NameList, info : SlotBag|null, hasLearnMor
     const { ctx, results } = nameList;
     const resultType = results[0].value.id.getType();
 
+    const currentStmt = ctx.current!.stmt;
+    const currentTable = currentStmt.expression;
+    const last = currentTable.last;
+    if (last instanceof Ast.SliceExpression &&
+        results.length !== ctx.results!.length)
+        return null;
+
     if (info !== null) {
         const idType = info.schema!.getArgType('id');
 
         if (!idType || !idType.equals(resultType))
             return null;
 
-        // check that the filter uses the right set of parameters
         const resultInfo = ctx.resultInfo!;
         if (resultInfo.projection !== null) {
             // check that all projected names are present
@@ -96,6 +102,7 @@ function checkListProposal(nameList : NameList, info : SlotBag|null, hasLearnMor
             }
         }
 
+        // check that the filter uses the right set of parameters
         for (const result of results) {
             if (!isInfoPhraseCompatibleWithResult(result, info))
                 return null;
@@ -113,6 +120,13 @@ function checkListProposal(nameList : NameList, info : SlotBag|null, hasLearnMor
 function addActionToListProposal(nameList : NameList, action : Ast.Invocation) : ListProposal|null {
     const { ctx, results } = nameList;
     if (ctx.resultInfo!.projection !== null)
+        return null;
+
+    const currentStmt = ctx.current!.stmt;
+    const currentTable = currentStmt.expression;
+    const last = currentTable.last;
+    if (last instanceof Ast.SliceExpression &&
+        results.length !== ctx.results!.length)
         return null;
 
     const resultType = results[0].value.id.getType();
