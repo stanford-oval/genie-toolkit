@@ -308,7 +308,7 @@ $user : Ast.DialogueState = {
     ( ctx:ctx_init stmt:initial_command [weight=0.5]
     | ctx:ctx_init greeting stmt:initial_command [weight=0.5]
     | ctx:ctx_sys_greet stmt:initial_command
-    ) => D.initialRequest($loader, stmt);
+    ) => D.startNewRequest($loader, ctx, stmt);
 
     // do you need anything else?
     ( ctx:ctx_sys_anything_else no_thanks_phrase ('goodbye !' | '') [weight=0.01]
