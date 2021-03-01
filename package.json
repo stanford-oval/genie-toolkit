@@ -49,7 +49,7 @@
     "query-validation": "^0.2.1",
     "seedrandom": "^3.0.0",
     "sockaddr": "^1.0.1",
-    "sqlite3": "5.0.0",
+    "sqlite3": "5.0.2",
     "stemmer": "^1.0.5",
     "string-interp": "^0.3.1",
     "thingpedia": "^2.9.0-alpha.2",
