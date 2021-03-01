@@ -275,6 +275,7 @@ export default class Conversation extends events.EventEmitter {
 
     endRecording() {
         this._options.log = false;
+        this.dialogueFinished();
     }
 
     notify(appId : string, icon : string|null, outputType : string, outputValue : Record<string, unknown>) {
@@ -517,12 +518,14 @@ export default class Conversation extends events.EventEmitter {
     }
 
     updateLog(field : keyof DialogueTurn, value : string) {
-        let last = this._lastTurn;
-        if (!last || last.done) {
-            last = new DialogueTurnLog();
-            this.appendNewTurn(last);
+        if (this.inRecordingMode) {
+            let last = this._lastTurn;
+            if (!last || last.done) {
+                last = new DialogueTurnLog();
+                this.appendNewTurn(last);
+            }
+            last.update(field, value);
         }
-        last.update(field, value);
     }
 
     async saveLog() {
