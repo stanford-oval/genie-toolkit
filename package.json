@@ -69,7 +69,7 @@
     "pegjs": "^0.10.0",
     "source-map-support": "^0.5.19",
     "ts-node": "^9.1.1",
-    "typedoc": "^0.19.2"
+    "typedoc": "^0.20.28"
   },
   "optionalDependencies": {
     "mmap-io": "^1.1.7"
