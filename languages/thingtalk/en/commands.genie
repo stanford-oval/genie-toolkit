@@ -378,7 +378,7 @@ projection_question : Ast.Expression = {
 
 explicit_when_condition : Ast.Expression = {
     ('if' | 'when') filter:if_filter 'in' table:complete_table with { is_monitorable = true } => {
-        if (C.hasGetPredicate(filter.ast))
+        if (C.hasExistentialSubquery(filter.ast))
             return null;
         if (!table.schema!.is_monitorable)
             return null;
@@ -391,7 +391,7 @@ explicit_when_condition : Ast.Expression = {
     };
 
     ('if' | 'when') filter:edge_filter 'in' table:complete_table with { is_monitorable = true } => {
-        if (C.hasGetPredicate(filter.ast))
+        if (C.hasExistentialSubquery(filter.ast))
             return null;
         if (!table.schema!.is_monitorable || table.schema!.is_list)
             return null;
@@ -446,7 +446,7 @@ monitor_command : Ast.Expression = {
         | ('monitor' | 'watch') table:complete_table with { is_monitorable = true }
            'and' ('alert me' | 'notify me' | 'inform me' | 'warn me') ('if' | 'when') filter:if_filter with { functionName = null }
         ) => {
-            if (C.hasGetPredicate(filter.ast))
+            if (C.hasExistentialSubquery(filter.ast))
                 return null;
             if (table.schema!.is_list || !table.schema!.is_monitorable)
                 return null;

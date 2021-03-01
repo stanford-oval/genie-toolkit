@@ -1053,8 +1053,9 @@ function builtinSayAction(loader : ThingpediaLoader,
     }
 }
 
-function locationGetPredicate(loader : ThingpediaLoader,
-                              loc : Ast.Value, negate = false) : DomainIndependentFilterSlot|null {
+function locationSubquery(loader : ThingpediaLoader,
+                          loc : Ast.Value,
+                          negate = false) : DomainIndependentFilterSlot|null {
     if (!loader.standardSchemas.get_gps)
         return null;
 
@@ -1062,42 +1063,54 @@ function locationGetPredicate(loader : ThingpediaLoader,
     if (negate)
         filter = new Ast.BooleanExpression.Not(null, filter);
 
-    return { schema: null, ptype: null,
-        ast: new Ast.BooleanExpression.External(null, new Ast.DeviceSelector(null, 'org.thingpedia.builtin.thingengine.builtin',null,null),'get_gps', [], filter,
-            loader.standardSchemas.get_gps) };
+    const invocation = new Ast.Invocation(
+        null,
+        new Ast.DeviceSelector(null, 'org.thingpedia.builtin.thingengine.builtin', null, null),
+        'get_gps',
+        [],
+        loader.standardSchemas.get_gps
+    );
+    const subquery = new Ast.FilterExpression(null, new Ast.InvocationExpression(null, invocation, invocation.schema), filter, invocation.schema);
+    return { schema: null, ptype: null, ast: new Ast.BooleanExpression.ExistentialSubquery(null, subquery) };
 }
 
-function timeGetPredicate(loader : ThingpediaLoader,
-                          low : Ast.Value|null, high : Ast.Value|null) : DomainIndependentFilterSlot|null {
+function timeSubquery(loader : ThingpediaLoader,
+                      low : Ast.Value|null,
+                      high : Ast.Value|null) : DomainIndependentFilterSlot|null {
     if (!loader.standardSchemas.get_time)
         return null;
 
+    const invocation = new Ast.Invocation(
+        null,
+        new Ast.DeviceSelector(null, 'org.thingpedia.builtin.thingengine.builtin', null, null),
+        'get_time',
+        [],
+        loader.standardSchemas.get_time
+    );
     const operands = [];
-
     if (low)
         operands.push(new Ast.BooleanExpression.Atom(null, 'time', '>=', low));
     if (high)
         operands.push(new Ast.BooleanExpression.Atom(null, 'time', '<=', high));
     const filter = new Ast.BooleanExpression.And(null, operands);
-    return { schema: null, ptype: null,
-        ast: new Ast.BooleanExpression.External(null, new Ast.DeviceSelector(null, 'org.thingpedia.builtin.thingengine.builtin',null,null),'get_time', [], filter,
-            loader.standardSchemas.get_time) };
+    const subquery = new Ast.FilterExpression(null, new Ast.InvocationExpression(null, invocation, invocation.schema), filter, invocation.schema);
+    return { schema: null, ptype: null, ast: new Ast.BooleanExpression.ExistentialSubquery(null, subquery) };
 }
 
-function hasGetPredicate(filter : Ast.BooleanExpression) : boolean {
+function hasExistentialSubquery(filter : Ast.BooleanExpression) : boolean {
     if (filter instanceof Ast.AndBooleanExpression || filter instanceof Ast.OrBooleanExpression) {
         for (const op of filter.operands) {
-            if (hasGetPredicate(op))
+            if (hasExistentialSubquery(op))
                 return true;
         }
         return false;
     }
     if (filter instanceof Ast.NotBooleanExpression)
-        return hasGetPredicate(filter.expr);
-    return filter instanceof Ast.ExternalBooleanExpression;
+        return hasExistentialSubquery(filter.expr);
+    return filter instanceof Ast.ExistentialSubqueryBooleanExpression;
 }
 
-function makeGetPredicate(proj : Ast.Expression, op : string, value : Ast.Value, negate = false) : DomainIndependentFilterSlot|null {
+function makeExistentialSubquery(proj : Ast.Expression, op : string, value : Ast.Value, negate = false) : DomainIndependentFilterSlot|null {
     if (!(proj instanceof Ast.ProjectionExpression) || proj.args.length === 0)
         return null;
     if (!(proj.expression instanceof Ast.InvocationExpression))
@@ -1113,8 +1126,15 @@ function makeGetPredicate(proj : Ast.Expression, op : string, value : Ast.Value,
     const schema = proj.expression.invocation.schema!;
     if (!schema.out[arg].equals(value.getType()))
         return null;
-    return { schema: null, ptype: null,
-        ast: new Ast.BooleanExpression.External(null, selector, channel, proj.expression.invocation.in_params, filter, proj.expression.invocation.schema) };
+
+    const invocation = new Ast.Invocation(null, selector, channel, [], schema);
+    const subquery = new Ast.FilterExpression(
+        null,
+        new Ast.InvocationExpression(null, invocation, schema),
+        filter,
+        schema
+    );
+    return { schema: null, ptype: null, ast: new Ast.BooleanExpression.ExistentialSubquery(null, subquery) };
 }
 
 export function resolveChain(expressions : Ast.Expression[]) : Ast.FunctionDef {
@@ -1867,8 +1887,8 @@ export {
 
     // builtins
     builtinSayAction,
-    locationGetPredicate,
-    timeGetPredicate,
+    locationSubquery,
+    timeSubquery,
 
     makeProgram,
     combineStreamCommand,
@@ -1886,8 +1906,8 @@ export {
     makeAggregateFilterWithFilter,
     checkFilter,
     addFilter,
-    hasGetPredicate,
-    makeGetPredicate,
+    hasExistentialSubquery,
+    makeExistentialSubquery,
     findFilterExpression,
 
     makeListExpression,
