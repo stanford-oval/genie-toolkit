@@ -1,3 +1,12 @@
+0.8.0-alpha.4
+=============
+
+* Devices are now automatically updated in the background while the
+  assistant is running. Currently we check for updates every 3 hours [#510].
+* Multiple fixes related to response generation [#498, #499, #502].
+* Misc bug fixes [#505, #511].
+* Updated dependencies [#506, #508, #509].
+
 0.8.0-alpha.3
 =============
 
