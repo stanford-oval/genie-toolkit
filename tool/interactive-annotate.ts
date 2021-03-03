@@ -41,6 +41,7 @@ import ExecutionDialogueAgent from '../lib/dialogue-agent/execution_dialogue_age
 import DialoguePolicy from '../lib/dialogue-agent/dialogue_policy';
 import ValueCategory from '../lib/dialogue-agent/value-category';
 import Engine from '../lib/engine';
+import * as I18n from '../lib/i18n';
 
 import MultiJSONDatabase from './lib/multi_json_database';
 import Platform from './lib/cmdline-platform';
@@ -59,6 +60,7 @@ interface AnnotatorOptions {
 class Annotator extends events.EventEmitter {
     private _rl : readline.Interface;
     private _locale : string;
+    private _langPack : I18n.LanguagePack;
     private _rng : () => number;
     private _platform : Tp.BasePlatform;
     private _tpClient : Tp.BaseClient;
@@ -86,6 +88,7 @@ class Annotator extends events.EventEmitter {
         this._rl = rl;
 
         this._locale = options.locale;
+        this._langPack = I18n.get(options.locale);
         this._rng = seedrandom.alea(options.random_seed);
         this._parser = ParserClient.get(options.nlu_server, options.locale);
 
@@ -432,12 +435,14 @@ class Annotator extends events.EventEmitter {
                 this.next();
                 return;
             }
-            const [dialogueStateAfterAgent, , utterance] = policyResult;
-            console.log('A: ' + utterance);
+            const [dialogueStateAfterAgent, , utterance, entities] = policyResult;
+
+            const postprocessed = this._langPack.postprocessNLG(utterance, entities, this._executor);
+            console.log('A: ' + postprocessed);
 
             const prediction = ThingTalkUtils.computePrediction(this._context, dialogueStateAfterAgent, 'agent');
 
-            this._outputTurn.agent = utterance;
+            this._outputTurn.agent = postprocessed;
             this._outputTurn.agent_target = prediction.prettyprint();
             this._context = dialogueStateAfterAgent;
         }
