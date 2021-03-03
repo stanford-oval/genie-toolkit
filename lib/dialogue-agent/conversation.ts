@@ -109,8 +109,12 @@ export class DialogueTurnLog {
         this._done = true;
     }
 
-    update(field : keyof DialogueTurn, value : string) {
+    update(field : Exclude<keyof DialogueTurn,'agent_timestamp'|'user_timestamp'>, value : string) {
         this._turn[field] = this._turn[field] ? this._turn[field] + '\n' + value : value;
+        if (field === 'user')
+            this._turn.user_timestamp = new Date;
+        else if (field === 'agent')
+            this._turn.agent_timestamp = new Date;
     }
 }
 
@@ -517,7 +521,7 @@ export default class Conversation extends events.EventEmitter {
         last.turn.comment = comment;
     }
 
-    updateLog(field : keyof DialogueTurn, value : string) {
+    updateLog(field : Exclude<keyof DialogueTurn,'agent_timestamp'|'user_timestamp'>, value : string) {
         if (this.inRecordingMode) {
             let last = this._lastTurn;
             if (!last || last.done) {

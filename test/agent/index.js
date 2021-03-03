@@ -295,8 +295,10 @@ Hi, how can I help you?
     await conversation.saveLog();
     conversation.endRecording();
 
-    const log = fs.readFileSync(conversation.log).toString();
-    //fs.writeFileSync(path.resolve(__dirname, './expected-log.txt'), log);
+    const log = fs.readFileSync(conversation.log).toString()
+        .replace(/^#! timestamp: 202[1-9]-[01][0-9]-[013][0-9]T[012][0-9]:[0-5][0-9]:[0-5][0-9](\.[0-9]+)Z$/gm,
+                 '#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ');
+    fs.writeFileSync(path.resolve(__dirname, './expected-log.txt'), log);
     const expectedLog = fs.readFileSync(path.resolve(__dirname, './expected-log.txt')).toString();
     assert(log === expectedLog);
 
