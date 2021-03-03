@@ -103,6 +103,14 @@ general_help:
   a:
     - I'm a new virtual assistant. At the moment, I can help you with music, jokes, and managing some IoT devices.
 
+iot_help:
+  q:
+    - "What kind of IoT devices"
+    - "What IoT devices can you work with?"
+    - "What devices can I connect you to?"
+  a:
+    - At the moment, I can control lights, switches, as well as various sensors. Check the Thingpedia website for the full, up-to-date list, and check your My Skills page to see which of your devices I recognize.
+
 positive_emotion_thanks:
   q:
     - Lol
