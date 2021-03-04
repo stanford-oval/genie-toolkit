@@ -571,6 +571,8 @@ export class Describer {
                     });
                 }
             }
+            if (expr instanceof Ast.ExistentialSubqueryBooleanExpression || expr instanceof Ast.ComparisonSubqueryBooleanExpression)
+                return recursiveHelper(expr.toLegacy());
             assert(expr instanceof Ast.AtomBooleanExpression ||
                    expr instanceof Ast.ComputeBooleanExpression);
             return this._describeAtomFilter(expr, schema, scope, false, canonical_overwrite);
