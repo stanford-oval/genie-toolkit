@@ -600,28 +600,22 @@ stream : Ast.Expression = {
 
 with_filtered_table_join : Ast.Expression = {
     !notablejoin {
-    // get-predicate form of join
-    table:with_filtered_table ('with' | 'having' | 'that has' | 'that have' | 'which has' | 'which have') get_predicate_table:with_filtered_table
-        => C.addGetPredicateJoin(table, get_predicate_table, null);
+    table:with_filtered_table ('with' | 'having' | 'that has' | 'that have' | 'which has' | 'which have') subquery:with_filtered_table
+        => C.addComparisonSubquery(table, subquery, null);
 
-    // FIXME this does not work :(
-    ( table:with_filtered_table 'with' p:out_param_Any get_predicate_table:with_filtered_table
-    | table:with_filtered_table p:out_param_pvp get_predicate_table:with_filtered_table
-    | table:with_filtered_table ('who' | 'which' | 'that') p:out_param_avp get_predicate_table:with_filtered_table
-    ) => C.addGetPredicateJoin(table, get_predicate_table, p.name);
+    ( table:with_filtered_table 'with' p:out_param_Any subquery:with_filtered_table
+    | table:with_filtered_table p:out_param_pvp subquery:with_filtered_table
+    | table:with_filtered_table ('who' | 'which' | 'that') p:out_param_avp subquery:with_filtered_table
+    ) => C.addComparisonSubquery(table, subquery, p.name);
 
-    // join form of join
-
-    rhs:with_filtered_table ('of' | 'for' | 'in') lhs:with_filtered_table => C.addArrayJoin(lhs, rhs);
-
-    !turking lhs:with_filtered_table '\'s' rhs:with_filtered_table => C.addArrayJoin(lhs, rhs);
+    table:with_filtered_table ('of' | 'for' | 'in') subquery:with_filtered_table => C.addReverseComparisonSubquery(table, subquery, null);
+    !turking table:with_filtered_table '\'s' subquery:with_filtered_table => C.addReverseComparisonSubquery(table, subquery, null);
     }
 }
 
 have_filtered_table_join : Ast.Expression = {
-    // get-predicate form of join
     !notablejoin {
-    table:verb_filtered_table ('and' | 'and have' | 'and also' | 'and in addition' | 'but also') get_predicate_table:with_filtered_table
-        => C.addGetPredicateJoin(table, get_predicate_table, null);
+    table:verb_filtered_table ('and' | 'and have' | 'and also' | 'and in addition' | 'but also') subquery:with_filtered_table
+        => C.addComparisonSubquery(table, subquery, null);
     }
 }
