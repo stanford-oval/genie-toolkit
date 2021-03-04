@@ -314,4 +314,10 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         prefs.set('context-$context.location.' + (type === 'current' ? 'current_location' : type),
             new TT.Ast.LocationValue(new TT.Ast.AbsoluteLocation(location.lat, location.lon, location.display)).toJS());
     }
+
+    do_set_temperature_unit({ unit } : { unit : string }) {
+        const platform = this.platform;
+        const prefs = platform.getSharedPreferences();
+        prefs.set('preferred-temperature', unit[0].toUpperCase());
+    }
 }

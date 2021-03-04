@@ -315,4 +315,15 @@ class @org.thingpedia.builtin.thingengine.builtin
   #_[confirmation="change your ${type} location to ${name}"]
   #[doc="change the user's preferred locations (a setting)"]
   #[confirm=false];
+
+  action set_temperature_unit(in req unit : Enum(celsius,fahrenheit,kelvin)
+                              #_[prompt="what unit should i use"]
+                              #_[canonical={
+                                base=["unit"],
+                                preposition=["to #", "as #"],
+                              }])
+  #_[canonical=["set my preferred temperature unit", "change the temperature unit",
+                "set the default temperature unit"]]
+  #[doc="change the user's preferred temperature unit (a setting)"]
+  #[confirm=false];
 }
