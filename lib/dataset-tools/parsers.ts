@@ -255,8 +255,13 @@ class DialogueParser extends Stream.Transform {
     private _i : number;
     private _id : string|undefined;
     private _keySequence : Array<keyof DialogueTurn>;
+    private _ignoreErrors : boolean;
 
-    constructor({ withAnnotations = true, invertTurns = false } = {}) {
+    constructor({
+        withAnnotations = true,
+        invertTurns = false,
+        ignoreErrors = false
+    } = {}) {
         super({ objectMode: true });
 
         this._buffer = [];
@@ -268,6 +273,7 @@ class DialogueParser extends Stream.Transform {
             this._keySequence = KEY_SEQUENCE_INVERTED;
         else
             this._keySequence = KEY_SEQUENCE_WITHOUT_ANNOTATION;
+        this._ignoreErrors = ignoreErrors;
     }
 
     _transform(line : string, encoding : BufferEncoding, callback : (err ?: Error|null, data ?: DialogueTurn[]) => void) {
@@ -370,6 +376,8 @@ class DialogueParser extends Stream.Transform {
                 key = 'comment';
                 newText = line.substring('#! '.length).normalize('NFKD');
             } else {
+                if (this._ignoreErrors)
+                    continue;
                 throw new Error(`malformed line ${line}, expected to start with C:, U:, A:, AT: or UT:`);
             }
 
@@ -405,9 +413,19 @@ class DialogueParser extends Stream.Transform {
                 if (key === 'context' && this._keySequence[expect] === 'user')
                     key = 'intermediate_context';
 
+                if (this._ignoreErrors) {
+                    if (key === 'agent' && this._keySequence[expect] === 'context') {
+                        currentTurn.context = currentTurn.user_target;
+                        expect = (expect + 1) % this._keySequence.length;
+                    }
+                }
+
                 if (key !== 'intermediate_context') {
-                    if (key !== this._keySequence[expect])
+                    if (key !== this._keySequence[expect]) {
+                        if (this._ignoreErrors) // truncate the dialogue on errors, we'll drop the last turn
+                            break;
                         throw new Error(`malformed dialogue ${this._i}, expected ${this._keySequence[expect]}, saw ${key}`);
+                    }
                     expect = (expect + 1) % this._keySequence.length;
                 }
                 currentKey = key;
@@ -415,11 +433,16 @@ class DialogueParser extends Stream.Transform {
             text += newText + '\n';
         }
 
-        if (currentKey !== this._keySequence[this._keySequence.length-1])
-            throw new Error(`malformed dialogue ${this._i}, unterminated last turn`);
+        if (currentKey !== this._keySequence[this._keySequence.length-1]) {
+            if (!this._ignoreErrors)
+                throw new Error(`malformed dialogue ${this._i}, unterminated last turn`);
 
-        currentTurn[currentKey] = text.trim();
-        flushTurn();
+            // ignore the current turn entirely if it is unterminated and we're told to
+            // ignore errors
+        } else {
+            currentTurn[currentKey] = text.trim();
+            flushTurn();
+        }
 
         dlg.id = this._id || String(this._i);
         this._id = undefined;
