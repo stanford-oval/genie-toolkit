@@ -766,3 +766,34 @@ U: [rating, geo] of @com.yelp.restaurant(), id =~ "ramen nagi";
 A: Ramen Nagi is a restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg] rated 4.5 star.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; [ rating , geo ] of @com.yelp . restaurant ( ) filter id =~ QUOTED_STRING_0 #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , rating = NUMBER_0 , geo = LOCATION_0 } ] ] ; // {"QUOTED_STRING_0":"ramen nagi","GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"NUMBER_0":4.5,"LOCATION_0":{"latitude":37.445523,"longitude":-122.1607073261,"display":null}}
 A: >> expecting = null
+
+====
+# 52-weather-forecast
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.weather.forecast();
+
+A: It will be cloudy tomorrow in [Latitude: 37.428 deg, Longitude: -122.17 deg] and the temperature will be 105.8 F.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.weather . forecast ( location = LOCATION_0 , date = $end_of ( day ) ) #[ results = [ { date = DATE_0 , location = LOCATION_0 , temperature = MEASURE_C_0 , wind_speed = MEASURE_mps_0 , humidity = NUMBER_0 , cloudiness = 7 , fog = NUMBER_0 , status = enum cloudy , icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.4275,"longitude":-122.1697,"display":null},"DATE_0":"2021-03-06T08:00:00.000Z","MEASURE_C_0":{"unit":"C","value":41},"MEASURE_mps_0":{"unit":"mps","value":7},"NUMBER_0":15,"PICTURE_0":"str:ENTITY_tt:picture::40:"}
+A: >> expecting = null
+
+====
+# 53-weather-forecast-2
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.weather.forecast(date=$start_of(day));
+
+A: It will be cloudy today in [Latitude: 37.428 deg, Longitude: -122.17 deg] and the temperature will be 105.8 F.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.weather . forecast ( date = $start_of ( day ) , location = LOCATION_0 ) #[ results = [ { date = DATE_0 , location = LOCATION_0 , temperature = MEASURE_C_0 , wind_speed = MEASURE_mps_0 , humidity = NUMBER_0 , cloudiness = 7 , fog = NUMBER_0 , status = enum cloudy , icon = PICTURE_0 } ] ] ; // {"LOCATION_0":{"latitude":37.4275,"longitude":-122.1697,"display":null},"DATE_0":"2021-03-05T08:00:00.000Z","MEASURE_C_0":{"unit":"C","value":41},"MEASURE_mps_0":{"unit":"mps","value":7},"NUMBER_0":15,"PICTURE_0":"str:ENTITY_tt:picture::40:"}
+A: >> expecting = null
+
+#====
+# this one does not work because ThingTalk did not implement weekday dates
+# 54-weather-forecast-3
+
+#U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+#U: @org.thingpedia.weather.forecast(date=new Date(enum tuesday));
+
+#A: Ramen Nagi is a restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg] rated 4.5 star.
+#A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; [ rating , geo ] of @com.yelp . restaurant ( ) filter id =~ QUOTED_STRING_0 #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , rating = NUMBER_0 , geo = LOCATION_0 } ] ] ; // {"QUOTED_STRING_0":"ramen nagi","GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"NUMBER_0":4.5,"LOCATION_0":{"latitude":37.445523,"longitude":-122.1607073261,"display":null}}
+#A: >> expecting = null

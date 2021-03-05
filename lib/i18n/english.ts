@@ -25,7 +25,11 @@ import { Tag } from 'en-pos';
 
 import { coin } from '../utils/random';
 import EnglishTokenizer from './tokenizer/english';
-import DefaultLanguagePack from './default';
+import DefaultLanguagePack, { UnitPreferenceDelegate } from './default';
+
+import {
+    EntityMap,
+} from '../utils/entity-utils';
 
 // nltk stop words
 const STOPWORDS = ['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', "you're", "you've", "you'll",
@@ -230,7 +234,7 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
 
         sentence = sentence.replace(/\bat the (morning|evening)\b/, 'in the $1');
 
-        sentence = sentence.replace(/\bon (today|tomorrow|(?:(this|last|next) (?:week|month|year)))\b/, '$1');
+        sentence = sentence.replace(/\bon (today|tomorrow|yesterday|(?:(this|last|next) (?:week|month|year)))\b/, '$1');
 
         sentence = sentence.replace(/\bon (jan(?:uary)|feb(?:ruary)?|mar(?:ch)?|apr(?:il)|may|june?|july?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\b/, 'in $1');
 
@@ -247,6 +251,18 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
         sentence = sentence.replace(/\b(they(?: 're| are) [a-zA-Z' ]+?) (which|that) has\b/, '$1 $2 have');
 
         return sentence.trim();
+    }
+
+    postprocessNLG(answer : string, entities : EntityMap, delegate : UnitPreferenceDelegate) {
+        return super.postprocessNLG(answer, entities, delegate)
+            // adjust the output of NLG which introduces "today", "tomorrow" and "yesterday" by replacing DATE tokens
+            .replace(/\bon (today|tomorrow|yesterday)\b/i, (match, word) => {
+                // preserve the right capitalization
+                if (match.startsWith('On'))
+                    return word[0].toUpperCase() + word.substring(1);
+                else
+                    return word;
+            });
     }
 
     detokenize(sentence : string, prevtoken : string|null, token : string) : string {

@@ -37,7 +37,7 @@ import {
     LocationEntity,
 } from '../utils/entity-utils';
 
-interface UnitPreferenceDelegate {
+export interface UnitPreferenceDelegate {
     timezone : string;
 
     getPreferredUnit(type : string) : string|undefined;
@@ -239,47 +239,85 @@ export default class DefaultLanguagePack {
         });
     }
 
-    private _dateToString(date : Date, timezone : string, options ?: Intl.DateTimeFormatOptions) : string {
-        if (!options) {
-            options = {
-                weekday: undefined,
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-            };
-        }
-        options.timeZone = timezone;
+    /**
+     * Convert a date object to a user-visible string, displaying only the date part.
+     *
+     * @param {Date} date - the time to display
+     * @return {string} the formatted time
+     */
+    private _dateToString(date : Date, timezone : string) : string {
+        const now = new Date;
+        if (date.getDate() === now.getDate() &&
+            date.getMonth() === now.getMonth() &&
+            date.getFullYear() === now.getFullYear())
+            return this._("today");
 
+        const yesterday = new Date(now.getTime() - 86400 * 1000);
+        if (date.getDate() === yesterday.getDate() &&
+            date.getMonth() === yesterday.getMonth() &&
+            date.getFullYear() === yesterday.getFullYear())
+            return this._("yesterday");
+
+        const tomorrow = new Date(now.getTime() + 86400 * 1000);
+        if (date.getDate() === tomorrow.getDate() &&
+            date.getMonth() === tomorrow.getMonth() &&
+            date.getFullYear() === tomorrow.getFullYear())
+            return this._("tomorrow");
+
+        // same week
+        if (Math.abs(date.getTime() - now.getTime()) <= 7 * 86400 * 1000) {
+            const weekday = date.toLocaleString(this.locale, { weekday: 'long' });
+            return interpolate(date.getTime() < now.getTime() ? this._("last ${weekday}") : this._("next ${weekday}"), { weekday }, {
+                locale: this.locale,
+                timezone: timezone
+            })||'';
+        }
+
+        // same month
+        if (date.getMonth() === tomorrow.getMonth() &&
+            date.getFullYear() === tomorrow.getFullYear())
+            return date.toLocaleString(this.locale, { weekday: 'long', day: 'numeric' });
+
+        // generic date
+        const options : Intl.DateTimeFormatOptions = {
+            weekday: undefined,
+            day: 'numeric',
+            month: 'long',
+            year: date.getFullYear() === now.getFullYear() ? undefined : 'numeric',
+            timeZone: timezone
+        };
         return date.toLocaleDateString(this.locale, options);
     }
 
     /**
      * Convert a date object to a user-visible string, displaying _only_ the time part.
      *
-     * This is a small wrapper over {@link https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString|Date.toLocaleString}
-     * that applies the correct timezone.
-     *
      * @param {Date} date - the time to display
-     * @param {Object} [options] - additional options to pass to `toLocaleString`
      * @return {string} the formatted time
      */
-    private _timeToString(date : Date, timezone : string, options ?: Intl.DateTimeFormatOptions) : string {
-        if (!options) {
-            options = {
-                hour: 'numeric',
-                minute: '2-digit',
-                timeZoneName: undefined,
-            };
-            if (date.getSeconds() !== 0)
-                options.second = '2-digit';
-        }
-        options.timeZone = timezone;
+    private _timeToString(date : Date, timezone : string) : string {
+        const options : Intl.DateTimeFormatOptions = {
+            hour: 'numeric',
+            minute: '2-digit',
+            timeZoneName: undefined,
+            timeZone: timezone
+        };
+        if (date.getSeconds() !== 0)
+            options.second = '2-digit';
         return date.toLocaleTimeString(this.locale, options);
     }
 
-    private _dateAndTimeToString(date : Date, timezone : string, options : Intl.DateTimeFormatOptions = {}) : string {
-        options.timeZone = timezone;
-        return date.toLocaleString(this.locale, options);
+    /**
+     * Convert a date object to a user-visible string, displaying both the date and the time part.
+     *
+     * @param {Date} date - the time to display
+     * @return {string} the formatted time
+     */
+    private _dateAndTimeToString(date : Date, timezone : string) : string {
+        return interpolate(this._("${date} at ${time}"), {
+            date: this._dateToString(date, timezone),
+            time: this._timeToString(date, timezone)
+        }, { locale: this.locale, timezone })||'';
     }
 
     getDefaultTemperatureUnit() : string {

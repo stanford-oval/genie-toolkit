@@ -328,7 +328,7 @@ const TEST_CASES = [
      `Get Date`],
 
     [`now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(2020, 6, , 12, 0, 0) => notify;`,
-     `Get today's date such that the date is after 6/1/2020, 12:00:00 PM.`,
+     `Get today's date such that the date is after June 1, 2020 at 12:00 PM.`,
      `Get Date`],
 
     [`now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(, 6, 3, 12, 0, 0) => notify;`,

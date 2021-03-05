@@ -551,6 +551,65 @@ class @org.thingpedia.weather
   #[doc="Information about current weather"]
   #[confirm=false];
 
+  monitorable query forecast(in opt location: Location
+                            #_[prompt="what location do you want the weather forecast for"]
+                            #_[canonical={
+                              default="preposition",
+                              base=["location", "position", "place"],
+                              property=[],
+                              preposition=["in #", "around #", "for location #", "for #"]
+                            }]
+                            #[default=$location.current_location],
+                             in opt date: Date
+                            #_[prompt="what date or time do you want the forecast for"]
+                            #_[canonical={
+                              default="preposition",
+                              base=["time", "date"],
+                              property=[],
+                              preposition=["at #", "in #", "for #"]
+                            }]
+                            #[default=$end_of(day)],
+                            out temperature: Measure(C)
+                            #_[canonical="temperature"]
+                            // from the coldest artic to the death valley, in one filter
+                            #[min_number=-10C]
+                            #[max_number=50C],
+                            out wind_speed: Measure(mps)
+                            #_[canonical="wind speed"]
+                            #[min_number=0kmph]
+                            #[max_number=150kmph],
+                            out humidity: Number
+                            #_[canonical="humidity"]
+                            #[min_number=0]
+                            #[max_number=100],
+                            out cloudiness: Number
+                            #_[canonical="cloudiness"]
+                            #[min_number=0]
+                            #[max_number=100],
+                            out fog: Number
+                            #_[canonical="fog"]
+                            #[min_number=0]
+                            #[max_number=100],
+                            out status: Enum(raining,cloudy,sunny,snowy,sleety,drizzling,windy,foggy)
+                            #_[canonical="status"],
+                            out icon: Entity(tt:picture)
+                            #_[canonical="icon"])
+  #_[result=["it will be ${status} on ${date} in ${location} and the temperature will be ${temperature}",
+             "on ${date} the weather in ${location} will be ${status} . the temperature will be ${temperature} and the humidity will be ${humidity} %",
+             "on ${date} the weather in ${location} will be ${status} . the temperature will be ${temperature}",
+             "on ${date} the weather in ${location} will be ${status} . the humidity will be ${humidity} %",
+             "on ${date} the weather in ${location} will be ${status}",
+             "the weather in ${location} will be ${status} on ${date}"
+             ]]
+  #_[on_error={
+    no_past_forecast=["i cannot retrieve weather forecasts in the past"],
+    not_available=["the forecast for ${date} is not available yet"]
+  }]
+  #[minimal_projection=["status"]]
+  #_[canonical=["weather forecast", "forecasted weather outside", "future weather"]]
+  #[poll_interval=3600000ms]
+  #[doc="Information about future weather"]
+  #[confirm=false];
 }
 
 class @com.yelp
