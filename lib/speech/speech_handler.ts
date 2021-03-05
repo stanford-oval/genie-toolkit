@@ -181,10 +181,8 @@ export default class SpeechHandler extends events.EventEmitter {
                 }
                 this._conversation.setHypothesis('');
                 this._conversation.handleCommand(utterance);
-            } else if (status === 'NoMatch') {
+            } else if (status === 'NoMatch' || status === 'InitialSilenceTimeout') {
                 this.emit('no-match');
-            } else if (status === 'InitialSilenceTimeout') {
-                this.emit('silence');
             } else {
                 console.log('Recognition error: ' + status);
             }
