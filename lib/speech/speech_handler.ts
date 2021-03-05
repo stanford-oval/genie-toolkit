@@ -146,7 +146,7 @@ export default class SpeechHandler extends events.EventEmitter {
         this._onDetected(Buffer.from([]));
     }
 
-    private _onDetected(buffer : Buffer) {
+    private _onDetected(buffer : Buffer, mustHaveWakeword = true) {
         // if we already have a request active, ignore the wakeword, we're
         // already streaming the sound to the server
         if (this._currentRequest)
@@ -160,18 +160,23 @@ export default class SpeechHandler extends events.EventEmitter {
             this._currentRequest = null;
             if (status === 'Success') {
                 console.log('Recognized as "' + utterance + '"');
-                const wakeWordMatch = /^(computer)[,.!]?/i.exec(utterance);
-                if (!wakeWordMatch) {
-                    console.log('Ignored because wake-word is missing');
-                    this.emit('no-match');
-                    return;
+
+                if (mustHaveWakeword) {
+                    const wakeWordMatch = /^(computer)[,.!]?/i.exec(utterance);
+                    if (!wakeWordMatch) {
+                        console.log('Ignored because wake-word is missing');
+                        this.emit('no-match');
+                        return;
+                    }
+                    // remove the prefix from the utterance so we don't confuse
+                    // the model
+                    utterance = utterance.substring(wakeWordMatch[0].length).trim();
                 }
-                // remove the prefix from the utterance so we don't confuse
-                // the model
-                utterance = utterance.substring(wakeWordMatch[0].length).trim();
-                // if there is nothing left, also no-match
+                // if there is nothing left, start listening again in case
+                // the user paused in-between the wakeword and the command
+                // in that case, we will not check for the wakeword and remove it
                 if (!utterance) {
-                    this.emit('no-match');
+                    this._onDetected(Buffer.from([]), false);
                     return;
                 }
                 this._conversation.setHypothesis('');
