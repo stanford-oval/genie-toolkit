@@ -59,7 +59,7 @@ export default class SpeechHandler extends events.EventEmitter {
         this._systemLock = platform.getCapability('system-lock');
 
         if (this._wakeWordDetector) {
-            this._wakeWordDetector.on('wakeword', (wakeword : string) => {
+            this._wakeWordDetector.on('wakeword', (wakeword : string, buffer : Buffer) => {
                 if (this._systemLock && this._systemLock.isActive) {
                     console.log('Ignored wakeword ' + wakeword + ' because the system is locked');
                     return;
@@ -67,7 +67,7 @@ export default class SpeechHandler extends events.EventEmitter {
 
                 console.log('Wakeword ' + wakeword + ' detected');
                 this.emit('wakeword', wakeword);
-                this._onDetected();
+                this._onDetected(buffer);
             });
         }
 
@@ -143,16 +143,16 @@ export default class SpeechHandler extends events.EventEmitter {
      */
     wakeword() : void {
         this.emit('wakeword');
-        this._onDetected();
+        this._onDetected(Buffer.from([]));
     }
 
-    private _onDetected() {
+    private _onDetected(buffer : Buffer, mustHaveWakeword = true) {
         // if we already have a request active, ignore the wakeword, we're
         // already streaming the sound to the server
         if (this._currentRequest)
             return;
 
-        this._currentRequest = this._recognizer.request(this._stream);
+        this._currentRequest = this._recognizer.request(this._stream, buffer);
         this._currentRequest.on('hypothesis', (hypothesis : string) => {
             this._conversation.setHypothesis(hypothesis);
         });
@@ -160,12 +160,29 @@ export default class SpeechHandler extends events.EventEmitter {
             this._currentRequest = null;
             if (status === 'Success') {
                 console.log('Recognized as "' + utterance + '"');
+
+                if (mustHaveWakeword) {
+                    const wakeWordMatch = /^(computer)[,.!]?/i.exec(utterance);
+                    if (!wakeWordMatch) {
+                        console.log('Ignored because wake-word is missing');
+                        this.emit('no-match');
+                        return;
+                    }
+                    // remove the prefix from the utterance so we don't confuse
+                    // the model
+                    utterance = utterance.substring(wakeWordMatch[0].length).trim();
+                }
+                // if there is nothing left, start listening again in case
+                // the user paused in-between the wakeword and the command
+                // in that case, we will not check for the wakeword and remove it
+                if (!utterance) {
+                    this._onDetected(Buffer.from([]), false);
+                    return;
+                }
                 this._conversation.setHypothesis('');
                 this._conversation.handleCommand(utterance);
-            } else if (status === 'NoMatch') {
+            } else if (status === 'NoMatch' || status === 'InitialSilenceTimeout') {
                 this.emit('no-match');
-            } else if (status === 'InitialSilenceTimeout') {
-                this.emit('silence');
             } else {
                 console.log('Recognition error: ' + status);
             }
