@@ -182,7 +182,7 @@ class @org.thingpedia.builtin.thingengine.builtin
   #[confirm=false];
 
   action faq_reply(in req question: Enum(__faq__)
-                   #_[prompt="what do you would like to know"]
+                   #_[prompt="what would you like to know"]
                    #_[canonical="message"],
                    out reply: String
                    #_[canonical=["reply", "answer"]])
