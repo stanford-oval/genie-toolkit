@@ -1740,3 +1740,26 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
+UT: $dialogue @org.thingpedia.dialogue.transaction.cancel;
+C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Is there anything else I can help you with?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_anything_else;
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $no;
+UT: $no;
+C: $dialogue @org.thingpedia.dialogue.transaction.end;
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Alright, good bye!
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
