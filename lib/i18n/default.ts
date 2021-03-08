@@ -273,11 +273,6 @@ export default class DefaultLanguagePack {
             })||'';
         }
 
-        // same month
-        if (date.getMonth() === tomorrow.getMonth() &&
-            date.getFullYear() === tomorrow.getFullYear())
-            return date.toLocaleString(this.locale, { weekday: 'long', day: 'numeric' });
-
         // generic date
         const options : Intl.DateTimeFormatOptions = {
             weekday: undefined,
