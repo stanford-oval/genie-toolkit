@@ -1134,7 +1134,7 @@ C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(son
 C: #[results=[]]
 C: #[error="Some other error occurred"];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Sorry, Some other error occurred.
+A: Sorry, there was an unexpected error with your command. Please try again later or report this issue to my developers.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_error;
 #! vote: down
 #! comment: test comment for dialogue turns
@@ -1657,7 +1657,7 @@ C: @org.thingpedia.weather.current(location=new Location(90, 0, "North Pole"))
 C: #[results=[]]
 C: #[error="unexpected weather error"];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Sorry, unexpected weather error.
+A: Sorry, there was an unexpected error with your command. Please try again later or report this issue to my developers.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_error;
 #! vote: up
 #! comment: test comment for dialogue turns

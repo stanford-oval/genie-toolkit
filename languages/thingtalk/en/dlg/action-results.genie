@@ -115,13 +115,7 @@ short_action_error_message : S.ContextInfo = {
         ctx:ctx_completed_action_error msg:thingpedia_error_message with { functionName = ctx.currentFunction } '.' [priority=5]
             => D.checkThingpediaErrorMessage(ctx, msg);
 
-    ctx:ctx_completed_action_error msg:constant_String => {
-        const error = ctx.error!;
-        if (error.equals(msg))
-            return ctx;
-        else
-            return null;
-    };
+    ctx:ctx_completed_action_error 'there was an unexpected error with your command . please try again later or report this issue to my developers' => ctx;
 }
 
 long_action_error_message : S.ContextInfo = {
@@ -156,6 +150,9 @@ action_error_phrase : S.AgentReplyRecord = {
     sorry_preamble ctx:short_action_error_message '.' => D.makeActionErrorPhrase(ctx, []);
 
     !inference {
+        // FIXME this should be good for inference too but the phrase it generates is weird
+        sorry_preamble ctx:long_action_error_message '.' => D.makeActionErrorPhrase(ctx, []);
+
         ( sorry_preamble ctx:short_action_error_message '.' questions:one_param_try_different_param_question [weight=1, priority=0.5]
         | sorry_preamble ctx:short_action_error_message '.' questions:two_param_try_different_param_question [weight=0.5]
         | sorry_preamble ctx:long_action_error_message '.' questions:one_param_try_different_param_question [weight=1, priority=0.5]
