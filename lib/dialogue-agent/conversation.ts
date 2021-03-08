@@ -329,12 +329,47 @@ export default class Conversation extends events.EventEmitter {
     async addOutput(out : ConversationDelegate, replayHistory = true) {
         this._delegates.add(out);
         if (replayHistory) {
-            for (const msg of this._history)
-                await out.addMessage(msg);
+            for (const msg of this._history) {
+                try {
+                    await out.addMessage(msg);
+                } catch(e) {
+                    // delegate disappeared immediately (race condition)
+                    this._delegates.delete(out);
+                    return;
+                }
+            }
         }
     }
     async removeOutput(out : ConversationDelegate) {
         this._delegates.delete(out);
+    }
+
+    private _callDelegates(fn : (out : ConversationDelegate) => unknown) {
+        return Promise.all(Array.from(this._delegates).map(async (out) => {
+            try {
+                await fn(out);
+            } catch(e) {
+                // delegate disappeared (likely a disconnected websocket)
+                this._delegates.delete(out);
+            }
+        }));
+    }
+
+    async setHypothesis(hypothesis : string) : Promise<void> {
+        await this._callDelegates((out) => out.setHypothesis(hypothesis));
+    }
+
+    async sendAskSpecial() : Promise<void> {
+        const what = ValueCategory.toAskSpecial(this._expecting);
+
+        if (this._debug) {
+            if (what !== null && what !== 'generic')
+                console.log('Genie sends a special request');
+            else if (what !== null)
+                console.log('Genie expects an answer');
+        }
+
+        await this._callDelegates((out) => out.setExpected(what, this._context));
     }
 
     private async _addMessage(msg : Message) {
@@ -342,7 +377,7 @@ export default class Conversation extends events.EventEmitter {
         this._history.push(msg);
         if (this._history.length > 30)
             this._history.shift();
-        await Promise.all(Array.from(this._delegates).map((out) => out.addMessage(msg)));
+        await this._callDelegates((out) => out.addMessage(msg));
     }
 
     async handleCommand(command : string, platformData : PlatformData = {}) : Promise<void> {
@@ -409,23 +444,6 @@ export default class Conversation extends events.EventEmitter {
             loadMetadata: true
         });
         return this._loop.handleCommand({ type: 'thingtalk', parsed, platformData });
-    }
-
-    async setHypothesis(hypothesis : string) : Promise<void> {
-        await Promise.all(Array.from(this._delegates).map((out) => out.setHypothesis(hypothesis)));
-    }
-
-    async sendAskSpecial() : Promise<void> {
-        const what = ValueCategory.toAskSpecial(this._expecting);
-
-        if (this._debug) {
-            if (what !== null && what !== 'generic')
-                console.log('Genie sends a special request');
-            else if (what !== null)
-                console.log('Genie expects an answer');
-        }
-
-        await Promise.all(Array.from(this._delegates).map((out) => out.setExpected(what, this._context)));
     }
 
     sendReply(message : string, icon : string|null) {
