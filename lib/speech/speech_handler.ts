@@ -36,6 +36,7 @@ export default class SpeechHandler extends events.EventEmitter {
     private _conversation : Conversation;
     private _pulse : any;
     private _wakeWordDetector : any;
+    private _wakeWordExpression : any;
     private _systemLock : any;
     private _recognizer : SpeechRecognizer;
     private _tts : SpeechSynthesizer;
@@ -59,6 +60,8 @@ export default class SpeechHandler extends events.EventEmitter {
         this._systemLock = platform.getCapability('system-lock');
 
         if (this._wakeWordDetector) {
+            let wakeWords : Array<string|undefined> = (this._prefs.get('wakewords') || [ 'computer' ]) as Array<string|undefined>;
+            this._wakeWordExpression = new RegExp("^("+wakeWords.join("\|")+")[,.!]?", "i");
             this._wakeWordDetector.on('wakeword', (wakeword : string, buffer : Buffer) => {
                 if (this._systemLock && this._systemLock.isActive) {
                     console.log('Ignored wakeword ' + wakeword + ' because the system is locked');
@@ -162,7 +165,7 @@ export default class SpeechHandler extends events.EventEmitter {
                 console.log('Recognized as "' + utterance + '"');
 
                 if (mustHaveWakeword) {
-                    const wakeWordMatch = /^(computer)[,.!]?/i.exec(utterance);
+                    const wakeWordMatch = this._wakeWordExpression.exec(utterance);
                     if (!wakeWordMatch) {
                         console.log('Ignored because wake-word is missing');
                         this.emit('no-match');
