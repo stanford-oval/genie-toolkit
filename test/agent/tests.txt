@@ -484,7 +484,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.spotify.play_song(song="spotify:track:2zYzyRzz6pRmhPzyfMEC8s"^^com.spotify:song("Hello"));
 
-A: Sorry, Some other error occurred.
+A: Sorry, there was an unexpected error with your command. Please try again later or report this issue to my developers.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_error ; @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . play_song ( song = GENERIC_ENTITY_com.spotify:song_0 ) #[ results = [ ] ] #[ error = QUOTED_STRING_0 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:2zYzyRzz6pRmhPzyfMEC8s","display":"Hello"},"QUOTED_STRING_0":"Some other error occurred"}
 A: >> expecting = null
 
@@ -733,7 +733,7 @@ A: >> expecting = command
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @org.thingpedia.weather.current(location=new Location(90, 0, "North Pole"));
 
-A: Sorry, unexpected weather error.
+A: Sorry, there was an unexpected error with your command. Please try again later or report this issue to my developers.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_error ; @org.thingpedia.weather . current ( location = LOCATION_0 ) #[ results = [ ] ] #[ error = QUOTED_STRING_0 ] ; // {"LOCATION_0":{"latitude":90,"longitude":0,"display":"North Pole"},"QUOTED_STRING_0":"unexpected weather error"}
 A: >> expecting = null
 
