@@ -766,3 +766,18 @@ U: [rating, geo] of @com.yelp.restaurant(), id =~ "ramen nagi";
 A: Ramen Nagi is a restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg] rated 4.5 star.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; [ rating , geo ] of @com.yelp . restaurant ( ) filter id =~ QUOTED_STRING_0 #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , rating = NUMBER_0 , geo = LOCATION_0 } ] ] ; // {"QUOTED_STRING_0":"ramen nagi","GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"NUMBER_0":4.5,"LOCATION_0":{"latitude":37.445523,"longitude":-122.1607073261,"display":null}}
 A: >> expecting = null
+
+====
+# 52-issue-529
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
+
+A: Is there anything else I can help you with?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_anything_else ; // {}
+A: >> expecting = command
+
+U: \t $no;
+
+A: Alright, good bye!
+A: >> context = null // {}
+A: >> expecting = null
