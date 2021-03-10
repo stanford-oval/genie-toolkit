@@ -294,11 +294,10 @@ export default class DefaultLanguagePack {
         const options : Intl.DateTimeFormatOptions = {
             hour: 'numeric',
             minute: '2-digit',
+            second: undefined,
             timeZoneName: undefined,
             timeZone: timezone
         };
-        if (date.getSeconds() !== 0)
-            options.second = '2-digit';
         return date.toLocaleTimeString(this.locale, options);
     }
 

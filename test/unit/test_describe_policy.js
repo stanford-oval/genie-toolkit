@@ -149,10 +149,10 @@ let TEST_CASES = [
      'Anyone is allowed to read the current event on security camera if the current time is after 7:30 AM.'],
 
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(7,30,15) } => notify',
-     'Anyone is allowed to read the current event on security camera if the current time is after 7:30:15 AM.'],
+     'Anyone is allowed to read the current event on security camera if the current time is after 7:30 AM.'],
 
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(19,30,15) } => notify',
-     'Anyone is allowed to read the current event on security camera if the current time is after 7:30:15 PM.'],
+     'Anyone is allowed to read the current event on security camera if the current time is after 7:30 PM.'],
 
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= $context.time.morning } => notify',
      'Anyone is allowed to read the current event on security camera if the current time is after the morning.'],
