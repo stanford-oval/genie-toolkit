@@ -142,6 +142,7 @@ one_clean_filter_table : Ast.Expression = {
         ) => C.addFilter(table, filter);
 
         filter:quality_filter table:complete_table => C.addFilter(table, filter);
+        table:complete_table with { has_geo = true } filter:nearby_filter => C.addFilter(table, filter);
     }
 }
 
@@ -209,6 +210,7 @@ two_clean_filter_table : Ast.Expression = {
         ) => C.addFilter(table, filter);
 
         filter:quality_filter table:one_clean_filter_table => C.addFilter(table, filter);
+        table:one_clean_filter_table with { has_geo = true } filter:nearby_filter => C.addFilter(table, filter);
     }
 }
 
@@ -276,6 +278,7 @@ three_clean_filter_table : Ast.Expression = {
         ) => C.addFilter(table, filter);
 
         filter:quality_filter table:two_clean_filter_table => C.addFilter(table, filter);
+        table:two_clean_filter_table with { has_geo = true } filter:nearby_filter => C.addFilter(table, filter);
     }
 }
 
@@ -310,6 +313,8 @@ anything_clean_filter_phrase : Ast.Expression = {
     | phrase:generic_anything_noun_phrase filter:apv_filter with { functionName = phrase.functionName }
     | phrase:generic_anything_noun_phrase filter:pvp_filter with { functionName = phrase.functionName }
     | phrase:generic_anything_noun_phrase filter:preposition_filter with { functionName = phrase.functionName }
+    | phrase:generic_anything_noun_phrase with { has_geo = true } filter:nearby_filter
+    | filter:quality_filter phrase:generic_anything_noun_phrase
     ) => C.addFilter(phrase, filter);
 }
 
