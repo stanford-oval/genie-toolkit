@@ -1482,10 +1482,9 @@ function makeComputeFilterExpression(table : Ast.Expression,
 function makeWithinGeoDistanceExpression(table : Ast.Expression, location : Ast.Value, filterValue : Ast.Value) : Ast.Expression|null {
     if (!table.schema!.out.geo || !table.schema!.out.geo.isLocation)
         return null;
-    const filterType = filterValue.getType();
-    if (!(filterType instanceof Type.Measure))
+    if (!(filterValue instanceof Ast.Value.Measure))
         return null;
-    const unit = filterType.unit;
+    const unit = filterValue.unit;
     assert(unit);
     if (Units.normalizeUnit(unit) !== 'm')
         return null;
