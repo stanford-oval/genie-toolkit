@@ -603,7 +603,7 @@ const STRING_FILE_OVERRIDES = {
     'org.schema.Music:MusicRecording_inAlbum': 'tt:song_album',
     'org.schema.Music:MusicRecording_name': 'tt:song_name',
     'org.schema.Music:CreativeWork_genre': 'com.spotify:genre',
-    'org.schema.Book:Book_name': 'tt:book_title'
+    'org.schema.Book:Book_name': 'tt:book_name'
 };
 
 // maps old name to new name
