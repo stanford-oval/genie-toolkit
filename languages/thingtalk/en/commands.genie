@@ -245,9 +245,9 @@ search_command : Ast.Expression = {
     ( 'please' | '') ('list' | 'enumerate') table:with_filtered_table with { is_list = true } => table;
 
     // now => get join get => notify
-    ( generic_preamble_for_answer generic_article table:with_filtered_table
-    | generic_verb_for_search generic_article table:with_filtered_table
-    | generic_preamble_for_action generic_verb_for_search generic_article table:with_filtered_table
+    ( generic_preamble_for_answer generic_article table:with_filtered_table_join
+    | generic_verb_for_search generic_article table:with_filtered_table_join
+    | generic_preamble_for_action generic_verb_for_search generic_article table:with_filtered_table_join
     ) => table;
 
     // now => get => notify (argmin, argmax)
