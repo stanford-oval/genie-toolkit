@@ -605,16 +605,23 @@ stream : Ast.Expression = {
 
 with_filtered_table_join : Ast.Expression = {
     !notablejoin {
-    table:with_filtered_table ('with' | 'having' | 'that has' | 'that have' | 'which has' | 'which have') subquery:with_filtered_table
-        => C.addComparisonSubquery(table, subquery, null);
+    ( table:with_filtered_table ('with' | 'having' | 'that has' | 'that have' | 'which has' | 'which have') subquery:one_with_filter_table
+    | table:with_filtered_table ('with' | 'having' | 'that has' | 'that have' | 'which has' | 'which have') subquery:one_which_filter_table
+    | table:with_filtered_table ('with' | 'having' | 'that has' | 'that have' | 'which has' | 'which have') subquery:one_clean_filter_table
+    | table:with_filtered_table ('with' | 'having' | 'that has' | 'that have' | 'which has' | 'which have') subquery:two_with_filter_table
+    | table:with_filtered_table ('with' | 'having' | 'that has' | 'that have' | 'which has' | 'which have') subquery:two_which_filter_table
+    | table:with_filtered_table ('with' | 'having' | 'that has' | 'that have' | 'which has' | 'which have') subquery:two_clean_filter_table
+    | table:with_filtered_table ('with' | 'having' | 'that has' | 'that have' | 'which has' | 'which have') subquery:with_arg_min_max_table
+    ) => C.addComparisonSubquery(table, subquery, null);
 
-    ( table:with_filtered_table 'with' p:out_param_Any subquery:with_filtered_table
-    | table:with_filtered_table p:out_param_pvp subquery:with_filtered_table
-    | table:with_filtered_table ('who' | 'which' | 'that') p:out_param_avp subquery:with_filtered_table
-    ) => C.addComparisonSubquery(table, subquery, p.name);
-
-    table:with_filtered_table ('of' | 'for' | 'in') subquery:with_filtered_table => C.addReverseComparisonSubquery(table, subquery, null);
-    !turking table:with_filtered_table '\'s' subquery:with_filtered_table => C.addReverseComparisonSubquery(table, subquery, null);
+    ( table:with_filtered_table ('of' | 'for' | 'in') subquery:one_with_filter_table
+    | table:with_filtered_table ('of' | 'for' | 'in') subquery:one_which_filter_table
+    | table:with_filtered_table ('of' | 'for' | 'in') subquery:one_clean_filter_table
+    | table:with_filtered_table ('of' | 'for' | 'in') subquery:two_with_filter_table
+    | table:with_filtered_table ('of' | 'for' | 'in') subquery:two_which_filter_table
+    | table:with_filtered_table ('of' | 'for' | 'in') subquery:two_clean_filter_table
+    | table:with_filtered_table ('of' | 'for' | 'in') subquery:with_arg_min_max_table
+    ) => C.addReverseComparisonSubquery(table, subquery, null);
     }
 }
 
