@@ -1402,6 +1402,7 @@ function addComparisonSubquery(table : Ast.Expression,
     }
 
     // add id projection to subquery
+    subquery = subquery.clone();
     if (subquery instanceof Ast.ProjectionExpression)
         subquery.args = ['id'];
     else
