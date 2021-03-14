@@ -74,7 +74,7 @@ export default class DefaultLanguagePack {
 
     private _gt : Gettext;
     gettext : (x : string) => string;
-    private _ : (x : string) => string;
+    _ : (x : string) => string;
     // do not use ngettext, use ICU syntax `${foo:plural:one{}other{}}` instead
 
     constructor(locale : string) {

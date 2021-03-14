@@ -232,11 +232,12 @@ export default class ThingpediaLoader {
     }
 
     private _addRule<ArgTypes extends unknown[], ResultType>(nonTerm : string,
-                                                             parts : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal>,
+                                                             nonTerminals : Genie.SentenceGeneratorRuntime.NonTerminal[],
+                                                             sentenceTemplate : string,
                                                              semanticAction : (...args : ArgTypes) => ResultType|null,
                                                              keyFunction : (value : ResultType) => Genie.SentenceGeneratorTypes.DerivationKey,
                                                              attributes : Genie.SentenceGeneratorTypes.RuleAttributes = {}) {
-        this._grammar.addRule(nonTerm, parts, semanticAction, keyFunction, attributes);
+        this._grammar.addRule(nonTerm, nonTerminals, sentenceTemplate, semanticAction, keyFunction, attributes);
     }
 
     private async _tryGetStandard(kind : string,
@@ -270,21 +271,21 @@ export default class ThingpediaLoader {
         if (type.isArray)
             return 'Any';
 
-        this._addRule<Ast.Value[], Ast.Value>('constant_or_undefined', [this._getConstantNT(type)],
+        this._addRule<Ast.Value[], Ast.Value>('constant_or_undefined', [this._getConstantNT(type, 'value')], '${value}',
             identity, keyfns.valueKeyFn);
 
         if (!this._grammar.hasSymbol('constant_' + typestr)) {
             if (!type.isEnum && !type.isEntity)
                 throw new Error('Missing definition for type ' + typestr);
             this._grammar.declareSymbol('constant_' + typestr);
-            this._addRule<Ast.Value[], Ast.Value>('constant_Any', [this._getConstantNT(type)],
+            this._addRule<Ast.Value[], Ast.Value>('constant_Any', [this._getConstantNT(type, 'value')], '${value}',
                 identity, keyfns.valueKeyFn);
 
             if (type instanceof Type.Enum) {
                 for (const entry of type.entries!) {
                     const value = new Ast.Value.Enum(entry);
                     value.getType = function() { return type; };
-                    this._addRule('constant_' + typestr, [this._ttUtils.clean(entry)],
+                    this._addRule('constant_' + typestr, [], this._ttUtils.clean(entry),
                         () => value, keyfns.valueKeyFn);
                 }
             }
@@ -293,27 +294,27 @@ export default class ThingpediaLoader {
     }
 
     private _addOutParam(pslot : ParamSlot, canonical : string) {
-        this._addRule('out_param_Any', [canonical], () => pslot, keyfns.paramKeyFn);
+        this._addRule('out_param_Any', [], canonical, () => pslot, keyfns.paramKeyFn);
 
         if (pslot.type instanceof Type.Array) {
-            this._addRule('out_param_Array__Any', [canonical], () => pslot, keyfns.paramKeyFn);
+            this._addRule('out_param_Array__Any', [], canonical, () => pslot, keyfns.paramKeyFn);
             const elem = pslot.type.elem as Type;
             if (elem instanceof Type.Compound)
-                this._addRule('out_param_Array__Compound', [canonical], () => pslot, keyfns.paramKeyFn);
+                this._addRule('out_param_Array__Compound', [], canonical, () => pslot, keyfns.paramKeyFn);
         }
     }
 
-    private _getConstantNT(type : Type, { mustBeTrueConstant = false, strictTypeCheck = false } = {}) {
+    private _getConstantNT(type : Type, name ?: string, { mustBeTrueConstant = false, strictTypeCheck = false } = {}) {
         const typestr = this._recordType(type)!;
 
         // mustBeTrueConstant indicates that we really need just a constant literal
         // as oppposed to some relative constant like "today" or "here"
         if (mustBeTrueConstant)
-            return new this._runtime.NonTerminal('constant_' + typestr, ['is_constant', true]);
+            return new this._runtime.NonTerminal('constant_' + typestr, name, ['is_constant', true]);
         else if (strictTypeCheck && typestr === 'Any')
-            return new this._runtime.NonTerminal('constant_' + typestr, ['type', type]);
+            return new this._runtime.NonTerminal('constant_' + typestr, name, ['type', type]);
         else
-            return new this._runtime.NonTerminal('constant_' + typestr);
+            return new this._runtime.NonTerminal('constant_' + typestr, name);
     }
 
     private _recordInputParam(schema : Ast.FunctionDef, arg : Ast.ArgumentDef) {
@@ -340,7 +341,7 @@ export default class ThingpediaLoader {
                 if (form.endsWith('?'))
                     form = form.substring(0, form.length-1).trim();
 
-                this._addRule('thingpedia_slot_fill_question', [form], () => pslot, keyfns.paramKeyFn);
+                this._addRule('thingpedia_slot_fill_question', [], form, () => pslot, keyfns.paramKeyFn);
             }
         }
 
@@ -367,8 +368,8 @@ export default class ThingpediaLoader {
         else
             canonical = arg.metadata.canonical;
 
-        const corefconst = new this._runtime.NonTerminal('coref_constant');
-        const constant = this._getConstantNT(ptype);
+        const corefconst = new this._runtime.NonTerminal('coref_constant', 'value');
+        const constant = this._getConstantNT(ptype, 'value');
         for (let cat in canonical) {
             if (cat === 'default')
                 continue;
@@ -399,30 +400,15 @@ export default class ThingpediaLoader {
                 cat === ANNOTATION_RENAME[canonical['default']])
                 attributes.priority += 1;
 
-            for (const form of annotvalue) {
+            for (let form of annotvalue) {
                 if (cat === 'base') {
-                    this._addRule('input_param', [form], () => pslot, keyfns.paramKeyFn, attributes);
+                    this._addRule('input_param', [], form, () => pslot, keyfns.paramKeyFn, attributes);
                 } else {
-                    let [before, after] = form.split('#');
-                    before = (before || '').trim();
-                    after = (after || '').trim();
-
-                    let expansion, corefexpansion;
-                    if (before && after) {
-                        expansion = [before, constant, after];
-                        corefexpansion = [before, corefconst, after];
-                    } else if (before) {
-                        expansion = [before, constant, ''];
-                        corefexpansion = [before, corefconst, ''];
-                    } else if (after) {
-                        expansion = ['', constant, after];
-                        corefexpansion = ['', corefconst, after];
-                    } else {
-                        expansion = ['', constant, ''];
-                        corefexpansion = ['', corefconst, ''];
-                    }
-                    this._addRule(cat + '_input_param', expansion, (_1, value : Ast.Value, _2) => makeInputParamSlot(pslot, value, this), keyfns.inputParamKeyFn, attributes);
-                    this._addRule('coref_' + cat + '_input_param', corefexpansion, (_1, value : Ast.Value, _2) => makeInputParamSlot(pslot, value, this), keyfns.inputParamKeyFn, attributes);
+                    if (!form.includes('#'))
+                        form += ' #';
+                    const expansion = form.replace('#', '${value}');
+                    this._addRule(cat + '_input_param', [constant], expansion, (value : Ast.Value) => makeInputParamSlot(pslot, value, this), keyfns.inputParamKeyFn, attributes);
+                    this._addRule('coref_' + cat + '_input_param', [corefconst], expansion, (value : Ast.Value) => makeInputParamSlot(pslot, value, this), keyfns.inputParamKeyFn, attributes);
                 }
 
                 if (this._options.flags.inference)
@@ -479,8 +465,8 @@ export default class ThingpediaLoader {
                 attributes.priority += 1;
 
             for (const form of annotvalue) {
-                this._addRule(cat + '_filter', [form], () => makeFilter(this, pslot, '==', value, false), keyfns.filterKeyFn, attributes);
-                this._addRule(cat + '_boolean_projection', [form], () => pslot, keyfns.paramKeyFn);
+                this._addRule(cat + '_filter', [], form, () => makeFilter(this, pslot, '==', value, false), keyfns.filterKeyFn, attributes);
+                this._addRule(cat + '_boolean_projection', [], form, () => pslot, keyfns.paramKeyFn);
 
                 if (this._options.flags.inference)
                     break;
@@ -509,7 +495,7 @@ export default class ThingpediaLoader {
                 prompt = [prompt];
 
             for (const form of prompt)
-                this._addRule('thingpedia_search_question', [form], () => pslot, keyfns.paramKeyFn);
+                this._addRule('thingpedia_search_question', [], form, () => pslot, keyfns.paramKeyFn);
         }
         if (arg.metadata.question) {
             let question = arg.metadata.question;
@@ -517,7 +503,7 @@ export default class ThingpediaLoader {
                 question = [question];
 
             for (const form of question)
-                this._addRule('thingpedia_user_question', [form], () => [pslot], keyfns.paramArrayKeyFn);
+                this._addRule('thingpedia_user_question', [], form, () => [pslot], keyfns.paramArrayKeyFn);
         }
 
         if (ptype.isBoolean) {
@@ -537,7 +523,7 @@ export default class ThingpediaLoader {
             const forms = Array.isArray(arg.metadata.counted_object) ?
                 arg.metadata.counted_object : [arg.metadata.counted_object];
             for (const form of forms)
-                this._addRule('out_param_ArrayCount', [form], () => pslot, keyfns.paramKeyFn);
+                this._addRule('out_param_ArrayCount', [], form, () => pslot, keyfns.paramKeyFn);
         }
 
         let canonical;
@@ -595,8 +581,11 @@ export default class ThingpediaLoader {
         if (!vtypestr)
             return;
 
-        const constant = this._getConstantNT(vtype);
-        const corefconst = new this._runtime.NonTerminal('coref_constant');
+        const constant = this._getConstantNT(vtype, 'value');
+        const corefconst = new this._runtime.NonTerminal('coref_constant', 'value');
+        const both_prefix = new this._runtime.NonTerminal('both_prefix');
+        const constant_pairs = new this._runtime.NonTerminal('constant_pairs', 'values');
+        const constant_date_range = new this._runtime.NonTerminal('constant_date_range', 'value');
         for (let cat in canonical) {
             if (cat === 'default' || cat === 'projection_pronoun')
                 continue;
@@ -639,9 +628,9 @@ export default class ThingpediaLoader {
                 if (typeof annotvalue !== 'boolean')
                     throw new TypeError(`Invalid annotation #_[canonical.implicit_identity=${annotvalue}] for ${pslot.schema.qualifiedName}`);
                 if (annotvalue) {
-                    const expansion = [constant];
-                    this._addRule(cat + '_filter', expansion, (value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
-                    this._addRule('coref_' + cat + '_filter', [corefconst], (value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
+                    const expansion = '${value}';
+                    this._addRule(cat + '_filter', [constant], expansion, (value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
+                    this._addRule('coref_' + cat + '_filter', [corefconst], expansion, (value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
                 }
                 continue;
             }
@@ -656,7 +645,7 @@ export default class ThingpediaLoader {
                         formarray = forms;
                     const value = new Ast.Value.Enum(enumerand);
                     for (const form of formarray)
-                        this._addRule(cat + '_filter', [form], () => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
+                        this._addRule(cat + '_filter', [], form, () => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
                 }
             } else if (argMinMax) {
                 let annotarray : string[];
@@ -670,7 +659,7 @@ export default class ThingpediaLoader {
                 const argMinMax2 : 'asc'|'desc' = argMinMax;
 
                 for (const form of annotarray) {
-                    this._addRule(cat + '_argminmax', [form], () : [ParamSlot, 'asc'|'desc'] => [pslot, argMinMax2], keyfns.argMinMaxKeyFn, attributes);
+                    this._addRule(cat + '_argminmax', [], form, () : [ParamSlot, 'asc'|'desc'] => [pslot, argMinMax2], keyfns.argMinMaxKeyFn, attributes);
                     if (this._options.flags.inference)
                         break;
                 }
@@ -732,57 +721,31 @@ export default class ThingpediaLoader {
                     annotarray = annotvalue;
                 }
 
-                for (const form of annotarray) {
+                for (let form of annotarray) {
                     if (cat === 'base') {
                         this._addOutParam(pslot, form.trim());
                         if (!canonical.npp && !canonical.property && pslot.schema.is_list) {
-                            const expansion = [form, constant];
-                            this._addRule('npp_filter', expansion, (_, value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn);
-                            const corefexpansion = [form, corefconst];
-                            this._addRule('coref_npp_filter', corefexpansion, (_, value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
+                            const expansion = `${form} \${value}`;
+                            this._addRule('npp_filter', [constant], expansion, (value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn);
+                            this._addRule('coref_npp_filter', [corefconst], expansion, (value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
 
                             if (canUseBothForm) {
-                                const pairexpansion = [form, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs')];
-                                this._addRule('npp_filter', pairexpansion, (_1, _2, values : [Ast.Value, Ast.Value]) => makeAndFilter(this, pslot, op, values, false), keyfns.filterKeyFn, attributes);
+                                const pairexpansion = `${form} \${both_prefix} \${values}`;
+                                this._addRule('npp_filter', [both_prefix, constant_pairs], pairexpansion, (_both, values : [Ast.Value, Ast.Value]) => makeAndFilter(this, pslot, op, values, false), keyfns.filterKeyFn, attributes);
                             }
                         }
                     } else if (pslot.schema.is_list) {
-                        let [before, after] = form.split('#');
-                        before = (before || '').trim();
-                        after = (after || '').trim();
+                        if (!form.includes('#'))
+                            form += ' #';
+                        const expansion = form.replace('#', '${value}');
+                        const pairexpansion = form.replace('#', '${both_prefix} ${values}');
 
-                        let expansion, corefexpansion, pairexpansion, daterangeexpansion;
-                        if (before && after) {
-                            // "rated # stars"
-                            expansion = [before, constant, after];
-                            corefexpansion = [before, corefconst, after];
-                            pairexpansion = [before, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), after];
-                            daterangeexpansion = [before, new this._runtime.NonTerminal('constant_date_range'), after];
-                        } else if (before) {
-                            // "named #"
-                            expansion = [before, constant, ''];
-                            corefexpansion = [before, corefconst, ''];
-                            pairexpansion = [before, new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), ''];
-                            daterangeexpansion = [before, new this._runtime.NonTerminal('constant_date_range'), ''];
-                        } else if (after) {
-                            // "# -ly priced"
-                            expansion = ['', constant, after];
-                            corefexpansion = ['', corefconst, after];
-                            pairexpansion = ['', new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), after];
-                            daterangeexpansion = ['', new this._runtime.NonTerminal('constant_date_range'), after];
-                        } else {
-                            // "#" (as in "# restaurant")
-                            expansion = ['', constant, ''];
-                            corefexpansion = ['', corefconst, ''];
-                            pairexpansion = ['', new this._runtime.NonTerminal('both_prefix'), new this._runtime.NonTerminal('constant_pairs'), ''];
-                            daterangeexpansion = ['', new this._runtime.NonTerminal('constant_date_range'), ''];
-                        }
-                        this._addRule(cat + '_filter', expansion, (_1, value : Ast.Value, _2) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
-                        this._addRule('coref_' + cat + '_filter', corefexpansion, (_1, value : Ast.Value, _2) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
+                        this._addRule(cat + '_filter', [constant], expansion, (value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
+                        this._addRule('coref_' + cat + '_filter', [corefconst], expansion, (value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
                         if (canUseBothForm)
-                            this._addRule(cat + '_filter', pairexpansion, (_1, _2, values : [Ast.Value, Ast.Value], _3) => makeAndFilter(this, pslot, op, values, false), keyfns.filterKeyFn, attributes);
+                            this._addRule(cat + '_filter', [both_prefix, constant_pairs], pairexpansion, (_both, values : [Ast.Value, Ast.Value]) => makeAndFilter(this, pslot, op, values, false), keyfns.filterKeyFn, attributes);
                         if (ptype.isDate)
-                            this._addRule(cat + '_filter', daterangeexpansion, (_1, values : [Ast.Value, Ast.Value], _2) => makeDateRangeFilter(this, pslot, values), keyfns.filterKeyFn, attributes);
+                            this._addRule(cat + '_filter', [constant_date_range], expansion, (values : [Ast.Value, Ast.Value]) => makeDateRangeFilter(this, pslot, values), keyfns.filterKeyFn, attributes);
                     }
 
                     if (this._options.flags.inference)
@@ -861,7 +824,7 @@ export default class ThingpediaLoader {
             if (Object.keys(ex.args).length === 0 && ex.value.schema!.hasArgument('id')) {
                 const type = ex.value.schema!.getArgument('id')!.type;
                 if (isHumanEntity(type))
-                    this._addRule('thingpedia_who_question', [''], () => ex.value, keyfns.expressionKeyFn);
+                    this._addRule('thingpedia_who_question', [], '', () => ex.value, keyfns.expressionKeyFn);
             }
         }
 
@@ -902,10 +865,9 @@ export default class ThingpediaLoader {
                                   example : Ast.Example) {
         const chunks = preprocessed.trim().split(' ');
 
-        // compute the basic expansion, and compute the names used in the primitive
-        // template for each non-terminal
-        const expansion : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal> = [];
-        const names : Array<string|null> = [];
+        // compute the names used in the primitive template for each non-terminal
+        const nonTerminals : Genie.SentenceGeneratorRuntime.NonTerminal[] = [];
+        const names : string[] = [];
         const options : string[] = [];
 
         for (const chunk of chunks) {
@@ -924,30 +886,26 @@ export default class ThingpediaLoader {
                 const canUseUndefined = grammarCat !== 'action_past' && opt !== 'no-undefined' &&
                     opt !== 'const' && !type.isEnum && !type.isBoolean;
 
-                const nonTerm = canUseUndefined ? new this._runtime.NonTerminal('constant_or_undefined', ['type', type])
-                    : this._getConstantNT(type, { strictTypeCheck: true });
+                const nonTerm = canUseUndefined ? new this._runtime.NonTerminal('constant_or_undefined', param, ['type', type])
+                    : this._getConstantNT(type, param, { strictTypeCheck: true });
 
-                expansion.push(nonTerm);
+                nonTerminals.push(nonTerm);
                 names.push(param);
                 options.push(opt || '');
-            } else {
-                expansion.push(chunk);
-                names.push(null);
-                options.push('');
             }
         }
 
         // template #1: just constants and/or undefined
-        this._addConstantOrUndefinedPrimitiveTemplate(grammarCat, expansion, names, example);
+        this._addConstantOrUndefinedPrimitiveTemplate(grammarCat, preprocessed, nonTerminals, names, example);
 
         // template #2: replace placeholders with whole queries or streams
         // TODO: enable this for table joins with param passing
         if (grammarCat === 'action' || (this._options.flags.dialogues && grammarCat === 'action_past'))
-            this._addPlaceholderReplacementJoinPrimitiveTemplate(grammarCat, expansion, names, options, example);
+            this._addPlaceholderReplacementJoinPrimitiveTemplate(grammarCat, preprocessed, nonTerminals, names, options, example);
 
         // template #3: coreferences
         if (grammarCat !== 'action_past' && grammarCat !== 'program')
-            this._addCoreferencePrimitiveTemplate(grammarCat, expansion, names, options, example);
+            this._addCoreferencePrimitiveTemplate(grammarCat, preprocessed, nonTerminals, names, options, example);
     }
 
     /**
@@ -955,8 +913,9 @@ export default class ThingpediaLoader {
      * coreference.
      */
     private _addCoreferencePrimitiveTemplate(grammarCat : 'stream'|'action'|'query'|'get_command',
-                                             expansion : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal>,
-                                             names : Array<string|null>,
+                                             expansion : string,
+                                             nonTerminals : Genie.SentenceGeneratorRuntime.NonTerminal[],
+                                             names : string[],
                                              options : string[],
                                              example : Ast.Example) {
         const exParams = Object.keys(example.args);
@@ -982,16 +941,17 @@ export default class ThingpediaLoader {
 
                     let fromNonTerm;
                     if (fromNonTermName === 'out_param_Any')
-                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, ['type', example.args[tableParam]]);
+                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, tableParam, ['type', example.args[tableParam]]);
                     else if (fromNonTermName === 'the_base_table')
-                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, ['idType', example.args[tableParam]]);
+                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, tableParam, ['idType', example.args[tableParam]]);
                     else
-                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName);
+                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, tableParam);
 
-                    const clone = expansion.slice();
+                    const clone = nonTerminals.slice();
                     clone[paramIdx] = fromNonTerm;
 
-                    this._addRule<Array<Ast.Value|Ast.Expression|ParamSlot|string>, ExpressionWithCoreference>(grammarCat + '_coref_' + corefSource, clone,
+                    this._addRule<Array<Ast.Value|Ast.Expression|ParamSlot|string>, ExpressionWithCoreference>(grammarCat + '_coref_' + corefSource,
+                        clone, expansion,
                         (...args) => replacePlaceholderWithCoreference(example, names, paramIdx, args),
                         keyfns.expressionWithCoreferenceKeyFn);
                 }
@@ -1006,8 +966,9 @@ export default class ThingpediaLoader {
      * or undefined.
      */
     private _addPlaceholderReplacementJoinPrimitiveTemplate(grammarCat : 'action'|'query'|'get_command'|'action_past',
-                                                            expansion : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal>,
-                                                            names : Array<string|null>,
+                                                            expansion : string,
+                                                            nonTerminals : Genie.SentenceGeneratorRuntime.NonTerminal[],
+                                                            names : string[],
                                                             options : string[],
                                                             example : Ast.Example) {
         const exParams = Object.keys(example.args);
@@ -1047,13 +1008,13 @@ export default class ThingpediaLoader {
                 for (const fromType of fromTypes) {
                     let fromNonTerm;
                     if (fromNonTermName === 'ctx_current_query')
-                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName);
+                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, tableParam);
                     else if (fromNonTermName === 'projection_Any' || fromNonTermName === 'stream_projection_Any')
-                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, ['projectionType', fromType]);
+                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, tableParam, ['projectionType', fromType]);
                     else
-                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, ['implicitParamPassingType', fromType]);
+                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, tableParam, ['implicitParamPassingType', fromType]);
 
-                    const clone = expansion.slice();
+                    const clone = nonTerminals.slice();
                     clone[paramIdx] = fromNonTerm;
 
                     let intoNonTerm;
@@ -1066,7 +1027,7 @@ export default class ThingpediaLoader {
                     else
                         intoNonTerm = 'action_replace_param_with_table';
 
-                    this._addRule<Array<Ast.Value|Ast.Expression>, Ast.ChainExpression>(intoNonTerm, clone,
+                    this._addRule<Array<Ast.Value|Ast.Expression>, Ast.ChainExpression>(intoNonTerm, clone, expansion,
                         (...args) => replacePlaceholderWithTableOrStream(example, names, paramIdx, args, this),
                         keyfns.expressionKeyFn);
                 }
@@ -1079,10 +1040,11 @@ export default class ThingpediaLoader {
      * only constants and undefined.
      */
     private _addConstantOrUndefinedPrimitiveTemplate(grammarCat : PrimitiveTemplateType,
-                                                     expansion : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal>,
-                                                     names : Array<string|null>,
+                                                     expansion : string,
+                                                     nonTerminals : Genie.SentenceGeneratorRuntime.NonTerminal[],
+                                                     names : string[],
                                                      example : Ast.Example) {
-        this._addRule<Ast.Value[], Ast.Expression>('thingpedia_complete_' + grammarCat, expansion,
+        this._addRule<Ast.Value[], Ast.Expression>('thingpedia_complete_' + grammarCat, nonTerminals, expansion,
             (...args) => replacePlaceholdersWithConstants(example, names, args),
             keyfns.expressionKeyFn);
     }
@@ -1107,15 +1069,15 @@ export default class ThingpediaLoader {
         if (!Array.isArray(shortCanonical))
             shortCanonical = [shortCanonical];
         for (const form of shortCanonical) {
-            this._addRule('base_table', [form], () => table, keyfns.expressionKeyFn);
-            this._addRule('base_noun_phrase', [form], () => q, keyfns.functionDefKeyFn);
+            this._addRule('base_table', [], form, () => table, keyfns.expressionKeyFn);
+            this._addRule('base_noun_phrase', [], form, () => q, keyfns.functionDefKeyFn);
         }
 
         // FIXME English words should not be here
         for (const form of ['anything', 'one', 'something'])
-            this._addRule('generic_anything_noun_phrase', [form], () => table, keyfns.expressionKeyFn);
+            this._addRule('generic_anything_noun_phrase', [], form, () => table, keyfns.expressionKeyFn);
         for (const form of ['option', 'choice'])
-            this._addRule('generic_base_noun_phrase', [form], () => table, keyfns.expressionKeyFn);
+            this._addRule('generic_base_noun_phrase', [], form, () => table, keyfns.expressionKeyFn);
 
         await this._loadTemplate(new Ast.Example(
             null,
@@ -1310,8 +1272,8 @@ export default class ThingpediaLoader {
             for (let i = 0; i < messages.length; i++) {
                 const msg = messages[i];
                 const chunks = msg.trim().split(' ');
-                const expansion : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal> = [];
-                const names : Array<string|null> = [];
+                const nonTerminals : Genie.SentenceGeneratorRuntime.NonTerminal[] = [];
+                const names : string[] = [];
 
                 for (const chunk of chunks) {
                     if (chunk === '')
@@ -1327,18 +1289,15 @@ export default class ThingpediaLoader {
                             throw new Error(`Invalid placeholder \${param} in #_[on_error] annotation for @${functionDef.qualifiedName}`);
 
                         assert(this._recordType(arg.type));
-                        expansion.push(this._getConstantNT(arg.type, { mustBeTrueConstant: true }));
+                        nonTerminals.push(this._getConstantNT(arg.type, param, { mustBeTrueConstant: true }));
                         names.push(param);
-                    } else {
-                        expansion.push(chunk);
-                        names.push(null);
                     }
                 }
 
                 // give a small priority boost to each phrase, depending on the order
                 // in which they are given
                 const attributes = { priority: (messages.length-i) * 0.1 };
-                this._addRule<Ast.Value[], ErrorMessage>('thingpedia_error_message', expansion, (...args) => replaceErrorMessagePlaceholders({ code, bag }, names, args), keyfns.errorMessageKeyFn, attributes);
+                this._addRule<Ast.Value[], ErrorMessage>('thingpedia_error_message', nonTerminals, msg, (...args) => replaceErrorMessagePlaceholders({ code, bag }, names, args), keyfns.errorMessageKeyFn, attributes);
             }
         }
     }
@@ -1355,8 +1314,8 @@ export default class ThingpediaLoader {
             const form = resultstring[i];
 
             const chunks = form.trim().split(' ');
-            const expansion : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal> = [];
-            const names : Array<string|null> = [];
+            const nonTerminals : Genie.SentenceGeneratorRuntime.NonTerminal[] = [];
+            const names : string[] = [];
 
             for (const chunk of chunks) {
                 if (chunk === '')
@@ -1372,18 +1331,15 @@ export default class ThingpediaLoader {
                         throw new Error(`Invalid placeholder \${param} in #_[result] annotation for @${functionDef.qualifiedName}`);
 
                     assert(this._recordType(arg.type));
-                    expansion.push(this._getConstantNT(arg.type, { mustBeTrueConstant: true }));
+                    nonTerminals.push(this._getConstantNT(arg.type, param, { mustBeTrueConstant: true }));
                     names.push(param);
-                } else {
-                    expansion.push(chunk);
-                    names.push(null);
                 }
             }
 
             // give a small priority boost to each phrase, depending on the order
             // in which they are given
             const attributes = { priority: (resultstring.length-i) * 0.1 };
-            this._addRule<Ast.Value[], SlotBag>('thingpedia_result', expansion, (...args) => replaceSlotBagPlaceholders(bag, names, args),
+            this._addRule<Ast.Value[], SlotBag>('thingpedia_result', nonTerminals, form, (...args) => replaceSlotBagPlaceholders(bag, names, args),
                 keyfns.slotBagKeyFn, attributes);
         }
     }
@@ -1392,7 +1348,7 @@ export default class ThingpediaLoader {
         const classDef = await this._schemas.getFullMeta(kind);
 
         if (classDef.metadata.canonical) {
-            this._addRule('constant_Entity__tt__device', [classDef.metadata.canonical],
+            this._addRule('constant_Entity__tt__device', [], classDef.metadata.canonical,
                 () => new Ast.Value.Entity(kind, 'tt:device', null), keyfns.valueKeyFn);
         }
 

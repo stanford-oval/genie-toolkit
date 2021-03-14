@@ -124,7 +124,7 @@ function typeToStringSafe(type : Type) : string {
     if (type instanceof Type.Array)
         return 'Array__' + typeToStringSafe(type.elem as Type);
     else if (type instanceof Type.Entity)
-        return 'Entity__' + type.type.replace(':', '__');
+        return 'Entity__' + type.type.replace(/[:.-]/g, '__');
     else if (type instanceof Type.Measure)
         return 'Measure_' + type.unit;
     else if (type instanceof Type.Enum)

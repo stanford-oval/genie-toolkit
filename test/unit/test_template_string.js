@@ -18,7 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import * as util from 'util';
+//import * as util from 'util';
 import assert from 'assert';
 import * as seedrandom from 'seedrandom';
 
@@ -468,14 +468,16 @@ function test(rng, i) {
     try {
         const [templates, expected] = TEST_CASES[i];
 
-        const replacements = {};
         let root = null;
+
+        const placeholders = Object.keys(templates);
+        const replacements = [];
         for (const key in templates) {
             const tpl = templates[key];
             let parsed, replaced;
             if (typeof tpl === 'string') {
                 try {
-                    parsed = TemplateStringGrammar.parse(tpl).preprocess('en-US');
+                    parsed = TemplateStringGrammar.parse(tpl).preprocess('en-US', placeholders);
                 } catch(e) {
                     console.log(`Failed to parse ${key}`);
                     throw e;
@@ -484,10 +486,10 @@ function test(rng, i) {
                 replaced = parsed.replace({ replacements, constraints: {} });
                 if (replaced === null)
                     break;
-                replacements[key] = { text: replaced, value: {} };
+                replacements[placeholders.indexOf(key)] = { text: replaced, value: {} };
             } else {
                 try {
-                    parsed = TemplateStringGrammar.parse(tpl.text).preprocess('en-US');
+                    parsed = TemplateStringGrammar.parse(tpl.text).preprocess('en-US', placeholders);
                 } catch(e) {
                     console.log(`Failed to parse ${key}`);
                     throw e;
@@ -496,7 +498,7 @@ function test(rng, i) {
                 replaced = parsed.replace({ replacements, constraints: {} });
                 if (replaced === null)
                     break;
-                replacements[key] = { text: replaced, value: tpl.value };
+                replacements[placeholders.indexOf(key)] = { text: replaced, value: tpl.value };
             }
             if (key === '$root') {
                 root = replaced;

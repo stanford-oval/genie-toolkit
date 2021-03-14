@@ -132,7 +132,7 @@ export class Compiler {
         this.visit(new class extends metaast.NodeVisitor {
             // assign a type to every usage of a non-terminal
             visitNonTerminalRuleHead(node : metaast.NonTerminalRuleHead) {
-                const symbol = node.category;
+                const symbol = node.symbol;
                 if (!self._nonTerm.has(symbol))
                     throw new TypeError(`Undeclared non-terminal ${symbol}`);
 

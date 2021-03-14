@@ -35,16 +35,13 @@ import PriorityQueue from '../utils/priority_queue';
 import { HashMultiMap } from '../utils/hashmap';
 import * as ThingTalkUtils from '../utils/thingtalk';
 
-import List from './list';
 import * as SentenceGeneratorRuntime from './runtime';
 import {
     LogLevel,
 
-    Choice,
     Context,
     Derivation,
     NonTerminal,
-    DerivationChild,
     DerivationChildTuple,
 } from './runtime';
 import {
@@ -58,8 +55,12 @@ import {
     GrammarOptions,
 } from './types';
 import { importGenie } from './compiler';
-
-type RuleExpansionChunk = string | Choice | NonTerminal;
+import {
+    Phrase,
+    Replaceable,
+    ReplacedConcatenation
+} from './template-string/ast';
+import * as TemplateGrammar from './template-string/grammar';
 
 function dummyKeyFunction() {
     return {};
@@ -67,7 +68,8 @@ function dummyKeyFunction() {
 
 class Rule<ArgTypes extends unknown[], ReturnType> {
     number : number;
-    expansion : RuleExpansionChunk[];
+    expansion : NonTerminal[];
+    sentence : Replaceable;
     semanticAction : SemanticAction<ArgTypes, ReturnType>;
     keyFunction : KeyFunction<ReturnType>;
 
@@ -83,14 +85,15 @@ class Rule<ArgTypes extends unknown[], ReturnType> {
     enabled : boolean;
 
     constructor(number : number,
-                expansion : RuleExpansionChunk[],
+                expansion : NonTerminal[],
+                sentence : Replaceable,
                 semanticAction : SemanticAction<ArgTypes, ReturnType>,
                 keyFunction : KeyFunction<ReturnType> = dummyKeyFunction,
                 { weight = 1, priority = 0, repeat = false, forConstant = false, temporary = false,
                   identity = false, expandchoice = true } : RuleAttributes) {
         this.number = number;
         this.expansion = expansion;
-        assert(this.expansion.length > 0);
+        this.sentence = sentence;
         this.semanticAction = semanticAction;
         this.keyFunction = keyFunction;
 
@@ -110,8 +113,12 @@ class Rule<ArgTypes extends unknown[], ReturnType> {
         assert(this.weight > 0);
     }
 
+    toString() {
+        return `${this.sentence} (${this.expansion.join(', ')})`;
+    }
+
     apply(children : DerivationChildTuple<ArgTypes>) : Derivation<ReturnType>|null {
-        return Derivation.combine(children, this.semanticAction, this.keyFunction, this.priority);
+        return Derivation.combine(children, this.sentence, this.semanticAction, this.keyFunction, this.priority);
     }
 }
 
@@ -614,12 +621,13 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
     }
 
     private _addRuleInternal<ArgTypes extends unknown[], ResultType>(symbolId : number,
-                                                                     expansion : RuleExpansionChunk[],
+                                                                     expansion : NonTerminal[],
+                                                                     sentence : Replaceable,
                                                                      semanticAction : SemanticAction<ArgTypes, ResultType>,
                                                                      keyFunction : KeyFunction<ResultType>|undefined,
                                                                      attributes : RuleAttributes = {}) {
         const rulenumber = this._rules[symbolId].length;
-        this._rules[symbolId].push(new Rule(rulenumber, expansion, semanticAction, keyFunction, attributes));
+        this._rules[symbolId].push(new Rule(rulenumber, expansion, sentence, semanticAction, keyFunction, attributes));
     }
 
     addConstants(symbol : string, token : string, type : any, keyFunction : KeyFunction<any>, attributes : RuleAttributes = {}) : void {
@@ -634,11 +642,12 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
 
         attributes.forConstant = true;
         for (const constant of ThingTalkUtils.createConstants(token, type, this._options.maxConstants || DEFAULT_MAX_CONSTANTS, this._entityAllocator))
-            this._addRuleInternal(symbolId, [constant.token], () => constant.value, keyFunction, attributes);
+            this._addRuleInternal(symbolId, [], new Phrase(constant.token), () => constant.value, keyFunction, attributes);
     }
 
     addRule<ArgTypes extends unknown[], ResultType>(symbol : string,
-                                                    expansion : RuleExpansionChunk[],
+                                                    expansion : NonTerminal[],
+                                                    sentenceTemplate : string,
                                                     semanticAction : SemanticAction<ArgTypes, ResultType>,
                                                     keyFunction : KeyFunction<ResultType>|undefined,
                                                     attributes : RuleAttributes = {}) : void {
@@ -647,7 +656,14 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
         // ignore $user when loading the agent templates and vice-versa
         if (symbol.startsWith('$') && symbol !== this._rootSymbol)
             return;
-        this._addRuleInternal(this._lookupNonTerminal(symbol), expansion, semanticAction, keyFunction, attributes);
+
+        let sentence;
+        try {
+            sentence = TemplateGrammar.parse(sentenceTemplate).preprocess(this._options.locale, expansion.map((e) => e.name ?? e.symbol));
+        } catch(e) {
+            throw new GenieTypeError(`Failed to parse template string for ${symbol} = ${sentenceTemplate} (${expansion.join(', ')}): ${e.message}`);
+        }
+        this._addRuleInternal(this._lookupNonTerminal(symbol), expansion, sentence, semanticAction, keyFunction, attributes);
     }
 
     private _typecheck() {
@@ -663,7 +679,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
                     if (expansion instanceof NonTerminal) {
                         const index = this._nonTermTable.get(expansion.symbol);
                         if (index === undefined)
-                            throw new Error(`Non-terminal ${expansion.symbol} undefined, in ${nonTerm} = ${rule.expansion.join(' ')}`);
+                            throw new Error(`Non-terminal ${expansion.symbol} undefined, in ${nonTerm} = ${rule}`);
                         expansion.index = index;
                     }
                 }
@@ -793,78 +809,6 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
         }
     }
 
-    private _optimizeConstLikeNonTerminals() {
-        // replace non-terminals that only expand to strings with no semantic functions
-        // into choice terminals
-        //
-        // that, is optimize:
-        // ```
-        // thanks_phrase = {
-        //   'thank you';
-        //   'thanks';
-        // }
-        // foo = {
-        //   thanks_phrase bar => ...
-        // }
-        // ```
-        // into
-        // ```
-        // thanks_phrase = {
-        //   'thank you';
-        //   'thanks';
-        // }
-        // foo = {
-        //   ('thank you' | 'thanks') bar => ...
-        // }
-        // ```
-        //
-        // this is faster to generate because we don't need to enumerate thanks phrase
-
-        const choiceLikeNonTerms = new Map;
-        for (let index = 0; index < this._nonTermList.length; index++) {
-            // if there is only one expansion, this optimization has no effect,
-            // and if there is none, it will break things
-            if (this._rules[index].length <= 1)
-                continue;
-
-            let isChoiceLike = true;
-            const choices = [];
-            for (const rule of this._rules[index]) {
-                if (rule.expansion.length !== 1 ||
-                    typeof rule.expansion[0] !== 'string' ||
-                    !rule.identity) {
-                    isChoiceLike = false;
-                    break;
-                }
-                choices.push(rule.expansion[0]);
-            }
-            if (isChoiceLike) {
-                choiceLikeNonTerms.set(index, new Choice(choices));
-                if (this._options.debug >= LogLevel.DUMP_DERIVED)
-                    console.log(`non-term NT[${this._nonTermList[index]}] is choice-like`);
-            }
-        }
-
-        for (let index = 0; index < this._nonTermList.length; index++) {
-            for (const rule of this._rules[index]) {
-                if (!rule.expandchoice)
-                    continue;
-
-                // if there is only one non-terminal in this rule, we don't apply
-                // the optimization because it will change the sampling pattern quite a bit
-                // and we don't want that
-                if (rule.expansion.length === 1)
-                    continue;
-
-                for (let expindex = 0; expindex < rule.expansion.length; expindex++) {
-                    const expansion = rule.expansion[expindex];
-                    if (expansion instanceof NonTerminal && choiceLikeNonTerms.has(expansion.index))
-                        rule.expansion[expindex] = choiceLikeNonTerms.get(expansion.index);
-                }
-            }
-        }
-    }
-
     finalize() {
         if (this._finalized)
             return;
@@ -874,8 +818,6 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
         this._addAutomaticRepeat();
         if (this._contextual)
             this._computeHasContext();
-        if (!this._options.flags.inference)
-            this._optimizeConstLikeNonTerminals();
 
         for (let index = 0; index < this._nonTermList.length; index++) {
             const prunefactors : number[] = [];
@@ -887,7 +829,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
                 prunefactors.push(0.2);
 
                 if (this._options.debug >= LogLevel.DUMP_TEMPLATES)
-                    console.log(`rule NT[${this._nonTermList[index]}] -> ${rule.expansion.join(' ')}`);
+                    console.log(`rule NT[${this._nonTermList[index]}] -> ${rule}`);
             }
         }
 
@@ -976,7 +918,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
                         // all contexts are non-empty, or we don't have a context at all
                         // enable this rule
                         if (this._options.debug >= LogLevel.EVERYTHING)
-                            console.log(`enabling rule NT[${this._nonTermList[index]}] -> ${rule.expansion.join(' ')}`);
+                            console.log(`enabling rule NT[${this._nonTermList[index]}] -> ${rule}`);
                         rule.enabled = true;
                         anyChange = true;
                         for (const expansion of rule.expansion) {
@@ -1007,7 +949,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
         for (const token in constants) {
             for (const [symbolId, keyFunction] of this._constantMap.get(token)) {
                 for (const constant of constants[token]) {
-                    this._addRuleInternal(symbolId, [constant.token], () => constant.value, keyFunction, attributes);
+                    this._addRuleInternal(symbolId, [], new Phrase(constant.token), () => constant.value, keyFunction, attributes);
                     if (this._options.debug >= LogLevel.EVERYTHING)
                         console.log(`added temporary rule NT[${this._nonTermList[symbolId]}] -> ${constant.token}`);
                 }
@@ -1028,7 +970,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
                 if (rule.forConstant && !rule.temporary) {
                     rule.enabled = false;
                     if (this._options.debug >= LogLevel.EVERYTHING)
-                        console.log(`disabling rule NT[${this._nonTermList[index]}] -> ${rule.expansion.join(' ')}`);
+                        console.log(`disabling rule NT[${this._nonTermList[index]}] -> ${rule}`);
                 }
             }
         }
@@ -1091,7 +1033,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
                             queue.push(derivation);
                         });
                     } catch(e) {
-                        console.error(`Error expanding rule NT[${this._nonTermList[index]}] -> ${rule.expansion.join(' ')}`);
+                        console.error(`Error expanding rule NT[${this._nonTermList[index]}] -> ${rule}`);
                         throw e;
                     }
                 }
@@ -1177,7 +1119,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
                     for (const phrase of result) {
                         const index = phrase.symbol;
                         assert(index >= 0 && index <= this._nonTermTable.size, `Invalid context number ${index}`);
-                        const sentence = phrase.utterance ? List.singleton(phrase.utterance) : List.Nil;
+                        const sentence = new ReplacedConcatenation([phrase.utterance || ''], {}, {});
                         const derivation = new Derivation(phrase.key, phrase.value, sentence, ctx, phrase.priority || 0);
                         charts.add(index, 0, derivation);
                     }
@@ -1323,7 +1265,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
                                 this.emit('progress', this._progress);
                         });
                     } catch(e) {
-                        console.error(`Error expanding rule NT[${this._nonTermList[index]}] -> ${rule.expansion.join(' ')}`);
+                        console.error(`Error expanding rule NT[${this._nonTermList[index]}] -> ${rule}`);
                         throw e;
                     }
 
@@ -1391,11 +1333,8 @@ function computeWorstCaseGenSize(charts : ChartTable,
                                  rule : Rule<unknown[], unknown>,
                                  maxdepth : number) : number {
     const expansion = rule.expansion;
-    const anyNonTerm = expansion.some((x) => x instanceof NonTerminal);
-    if (!anyNonTerm)
-        return depth === 0 ? 1 : 0;
     if (depth === 0)
-        return 0;
+        return expansion.length === 0 ? 1 : 0;
 
     let worstCaseGenSize = 0;
     for (let pivotIdx = 0; pivotIdx < expansion.length; pivotIdx++) {
@@ -1480,18 +1419,11 @@ interface ExpandOptions {
     rng : () => number;
 }
 
-type DerivationChildOrChoice = DerivationChild<any> | Choice;
-
-function assignChoices(choices : DerivationChildOrChoice[], rng : () => number) : Array<DerivationChild<any>> {
-    return choices.map((c) => c instanceof Choice ? c.choose(rng) : c);
-}
-
-function getKeyConstraint(choices : DerivationChildOrChoice[],
+function getKeyConstraint(choices : Array<Derivation<any>>,
                           nonTerm : NonTerminal) : [string, DerivationKeyValue]|null {
     if (nonTerm.relativeKeyConstraint) {
         const [ourIndexName, otherNonTerminal, otherIndexName] = nonTerm.relativeKeyConstraint;
         const otherChoice = choices[otherNonTerminal];
-        assert(otherChoice instanceof Derivation);
         const keyValue = otherChoice.key[otherIndexName];
         assert(keyValue !== undefined);
         return [ourIndexName, keyValue];
@@ -1572,16 +1504,16 @@ function expandRuleExhaustive(charts : ChartTable,
     const expansion = rule.expansion;
 
     if (maxdepth < depth-1 && options.debug >= LogLevel.INFO)
-        console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : reduced max depth to avoid exponential behavior`);
+        console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${rule} : reduced max depth to avoid exponential behavior`);
 
     if (options.debug >= LogLevel.EVERYTHING)
-        console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : worst case ${sizeEstimate.worstCaseGenSize}, expect ${Math.round(sizeEstimate.estimatedGenSize)}`);
+        console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${rule} : worst case ${sizeEstimate.worstCaseGenSize}, expect ${Math.round(sizeEstimate.estimatedGenSize)}`);
 
     const estimatedPruneFactor = sizeEstimate.estimatedPruneFactor;
-    const choices : DerivationChildOrChoice[] = [];
+    const choices : Array<Derivation<any>> = [];
     // fill and size the array
     for (let i = 0; i < expansion.length; i++)
-        choices.push('');
+        choices.push(undefined!);
     let actualGenSize = 0;
     let prunedGenSize = 0;
     let coinProbability = basicCoinProbability;
@@ -1592,7 +1524,7 @@ function expandRuleExhaustive(charts : ChartTable,
                 //console.log('combine: ' + choices.join(' ++ '));
                 //console.log('depths: ' + depths);
                 if (!(coinProbability < 1.0) || coin(coinProbability, rng)) {
-                    const v = rule.apply(assignChoices(choices, rng));
+                    const v = rule.apply(choices);
                     if (v !== null) {
                         actualGenSize ++;
                         if (actualGenSize < targetPruningSize / 2 &&
@@ -1716,43 +1648,40 @@ function expandRuleSample(charts : ChartTable,
     // depth == 0 and the pivot business does not make sense
     if (depth === 1) {
         let actualGenSize = 0, prunedGenSize = 0;
-        const choices : Array<DerivationChild<any>> = [];
+        const choices : Array<Derivation<any>> = [];
         // fill and size the array
         for (let i = 0; i < expansionLenght; i++)
-            choices.push('');
+            choices.push(undefined!);
 
         outerloop:
         for (let sampleIdx = 0; sampleIdx < targetSemanticFunctionCalls && actualGenSize < targetPruningSize; sampleIdx++) {
             let newContext : Context|null = null;
             for (let i = 0; i < expansionLenght; i++) {
                 const currentExpansion = expansion[i];
-                if (currentExpansion instanceof NonTerminal) {
-                    // apply the key constraint if we have it
-                    const constraint = getKeyConstraint(choices, currentExpansion);
-                    let choice;
-                    if (constraint) {
-                        const [indexName, keyValue] = constraint;
-                        choice = charts.chooseAtDepthForKey(currentExpansion.index, 0, indexName, keyValue);
-                    } else if (newContext !== null) {
-                        // try with no context first, then try with the same context
-                        // this is not exactly correct sampling wise, but we don't
-                        // have a lot of mixed non-terminals (in fact, I can't think
-                        // of any) so it's mostly good enough
-                        choice = charts.chooseAtDepthForKey(currentExpansion.index, 0, CONTEXT_KEY_NAME, null);
-                        if (!choice)
-                            choice = charts.chooseAtDepthForKey(currentExpansion.index, 0, CONTEXT_KEY_NAME, newContext);
-                    } else {
-                        choice = charts.chooseAtDepth(currentExpansion.index, 0);
-                    }
-                    if (!choice) // no compatible derivation with these keys
-                        continue outerloop;
-                    choices[i] = choice;
-                    if (!Context.compatible(newContext, choice.context))
-                        continue outerloop;
-                    newContext = Context.meet(newContext, choice.context);
+
+                // apply the key constraint if we have it
+                const constraint = getKeyConstraint(choices, currentExpansion);
+                let choice;
+                if (constraint) {
+                    const [indexName, keyValue] = constraint;
+                    choice = charts.chooseAtDepthForKey(currentExpansion.index, 0, indexName, keyValue);
+                } else if (newContext !== null) {
+                    // try with no context first, then try with the same context
+                    // this is not exactly correct sampling wise, but we don't
+                    // have a lot of mixed non-terminals (in fact, I can't think
+                    // of any) so it's mostly good enough
+                    choice = charts.chooseAtDepthForKey(currentExpansion.index, 0, CONTEXT_KEY_NAME, null);
+                    if (!choice)
+                        choice = charts.chooseAtDepthForKey(currentExpansion.index, 0, CONTEXT_KEY_NAME, newContext);
                 } else {
-                    choices[i] = currentExpansion instanceof Choice ? currentExpansion.choose(rng) : currentExpansion;
+                    choice = charts.chooseAtDepth(currentExpansion.index, 0);
                 }
+                if (!choice) // no compatible derivation with these keys
+                    continue outerloop;
+                choices[i] = choice;
+                if (!Context.compatible(newContext, choice.context))
+                    continue outerloop;
+                newContext = Context.meet(newContext, choice.context);
             }
 
             const v = rule.apply(choices);
@@ -1840,10 +1769,10 @@ function expandRuleSample(charts : ChartTable,
 
     // now make the samples
     let actualGenSize = 0, prunedGenSize = 0;
-    const choices : Array<DerivationChild<any>> = [];
+    const choices : Array<Derivation<any>> = [];
     // fill and size the array
     for (let i = 0; i < expansionLenght; i++)
-        choices.push('');
+        choices.push(undefined!);
 
     outerloop:
     for (let sampleIdx = 0; sampleIdx < targetSemanticFunctionCalls && actualGenSize < targetPruningSize; sampleIdx++) {
@@ -1855,9 +1784,6 @@ function expandRuleSample(charts : ChartTable,
         for (let i = 0; i < expansionLenght; i++) {
             const currentExpansion = expansion[i];
             if (i === pivotIdx) {
-                if (!(currentExpansion instanceof NonTerminal))
-                    continue outerloop;
-
                 // apply the key constraint if we have it
                 const constraint = getKeyConstraint(choices, currentExpansion);
                 let choice;
@@ -1879,30 +1805,26 @@ function expandRuleSample(charts : ChartTable,
                     continue outerloop;
                 choices[i] = choice;
             } else {
-                if (currentExpansion instanceof NonTerminal) {
-                    const maxdepth = i < pivotIdx ? depth-2 : depth-1;
+                const maxdepth = i < pivotIdx ? depth-2 : depth-1;
 
-                    const constraint = getKeyConstraint(choices, currentExpansion);
-                    let choice;
-                    if (constraint) {
-                        const [indexName, keyValue] = constraint;
-                        choice = charts.chooseUpToDepthForKey(currentExpansion.index, maxdepth,
-                                                              indexName, keyValue);
-                    } else if (newContext !== null) {
-                        // try with no context first, then try with the same context
-                    // (see above for longer explanation)
-                        choice = charts.chooseUpToDepthForKey(currentExpansion.index, maxdepth, CONTEXT_KEY_NAME, null);
-                        if (!choice)
-                            choice = charts.chooseUpToDepthForKey(currentExpansion.index, maxdepth, CONTEXT_KEY_NAME, newContext);
-                    } else {
-                        choice = charts.chooseUpToDepth(currentExpansion.index, maxdepth);
-                    }
-                    if (!choice) // no compatible derivation with these keys
-                        continue outerloop;
-                    choices[i] = choice;
+                const constraint = getKeyConstraint(choices, currentExpansion);
+                let choice;
+                if (constraint) {
+                    const [indexName, keyValue] = constraint;
+                    choice = charts.chooseUpToDepthForKey(currentExpansion.index, maxdepth,
+                                                          indexName, keyValue);
+                } else if (newContext !== null) {
+                    // try with no context first, then try with the same context
+                // (see above for longer explanation)
+                    choice = charts.chooseUpToDepthForKey(currentExpansion.index, maxdepth, CONTEXT_KEY_NAME, null);
+                    if (!choice)
+                        choice = charts.chooseUpToDepthForKey(currentExpansion.index, maxdepth, CONTEXT_KEY_NAME, newContext);
                 } else {
-                    choices[i] = currentExpansion instanceof Choice ? currentExpansion.choose(rng) : currentExpansion;
+                    choice = charts.chooseUpToDepth(currentExpansion.index, maxdepth);
                 }
+                if (!choice) // no compatible derivation with these keys
+                    continue outerloop;
+                choices[i] = choice;
             }
 
             const chosen = choices[i];
@@ -1934,21 +1856,16 @@ function expandRule(charts : ChartTable,
                     options : ExpandOptions,
                     nonTermList : string[],
                     emit : (value : Derivation<any>) => void) : void {
-    const rng = options.rng;
-
     const expansion = rule.expansion;
-    const anyNonTerm = expansion.some((x) => x instanceof NonTerminal);
 
-    if (!anyNonTerm) {
-        if (depth === 0) {
-            const deriv = rule.apply(assignChoices(expansion as DerivationChildOrChoice[], rng));
+    if (depth === 0) {
+        if (expansion.length === 0) {
+            const deriv = rule.apply([]);
             if (deriv !== null)
                 emit(deriv);
         }
         return;
     }
-    if (depth === 0)
-        return;
 
     const sizeEstimate =
         estimateRuleSize(charts, depth, nonTermIndex, rule, averagePruningFactor);
@@ -1976,7 +1893,7 @@ function expandRule(charts : ChartTable,
     let strategy;
     if (sizeEstimate.maxdepth === depth-1 && (coinProbability >= 1 || targetSemanticFunctionCalls >= worstCaseGenSize * 0.8)) {
         if (options.debug >= LogLevel.EVERYTHING)
-            console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : using recursive expansion`);
+            console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${rule} : using recursive expansion`);
 
         // use the exhaustive algorithm if we expect to we'll be close to exhaustive anyway
         [actualGenSize, prunedGenSize] = expandRuleExhaustive(charts, depth, maxdepth, coinProbability,
@@ -1985,7 +1902,7 @@ function expandRule(charts : ChartTable,
         strategy = 'enumeration';
     } else {
         if (options.debug >= LogLevel.EVERYTHING)
-            console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : using sampling`);
+            console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${rule} : using sampling`);
 
         // otherwise use the imprecise but faster sampling algorithm
         [actualGenSize, prunedGenSize] = expandRuleSample(charts, depth,
@@ -1998,11 +1915,11 @@ function expandRule(charts : ChartTable,
         return;
     const newEstimatedPruneFactor = actualGenSize / (actualGenSize + prunedGenSize);
     if (options.debug >= LogLevel.VERBOSE_GENERATION && newEstimatedPruneFactor < 0.2)
-        console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : semantic function only accepted ${(newEstimatedPruneFactor*100).toFixed(1)}% of derivations`);
+        console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${rule} : semantic function only accepted ${(newEstimatedPruneFactor*100).toFixed(1)}% of derivations`);
 
     const elapsed = Date.now() - now;
     if (options.debug >= LogLevel.INFO && elapsed >= 10000)
-        console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${expansion.join(' ')} : took ${(elapsed/1000).toFixed(2)} seconds using ${strategy}`);
+        console.log(`expand NT[${nonTermList[nonTermIndex]}] -> ${rule} : took ${(elapsed/1000).toFixed(2)} seconds using ${strategy}`);
 
     const movingAverageOfPruneFactor = (0.01 * estimatedPruneFactor + newEstimatedPruneFactor) / (1.01);
     averagePruningFactor[nonTermIndex][rule.number] = movingAverageOfPruneFactor;

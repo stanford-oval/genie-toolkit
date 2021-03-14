@@ -49,7 +49,7 @@ export interface ReplacedResult {
     chooseBest() : string;
 }
 
-class ReplacedConcatenation implements ReplacedResult {
+export class ReplacedConcatenation implements ReplacedResult {
     constructor(public text : Array<string|ReplacedResult>,
                 public constFlags : Record<string, FlagValue>,
                 public refFlags : Record<string, [number, string]>) {
@@ -86,12 +86,12 @@ class ReplacedConcatenation implements ReplacedResult {
 
     chooseSample(rng : () => number) {
         const text = this.text.map((t) => typeof t === 'string' ? t : t.chooseSample(rng));
-        return text.join(' ');
+        return text.join(' ').replace(/\s+/g, ' ').trim();
     }
 
     chooseBest() {
         const text = this.text.map((t) => typeof t === 'string' ? t : t.chooseBest());
-        return text.join(' ');
+        return text.join(' ').replace(/\s+/g, ' ').trim();
     }
 }
 
@@ -126,20 +126,20 @@ export interface PlaceholderReplacement {
     text : ReplacedResult;
 }
 
-type PlaceholderConstraints = Record<string, Record<string, FlagValue>>;
+type PlaceholderConstraints = Record<number, Record<string, FlagValue>>;
 
 // AST objects (representations of a parsed template)
 
 
 interface ReplacementContext {
-    replacements : Record<string, PlaceholderReplacement>;
+    replacements : Record<number, PlaceholderReplacement>;
     constraints : PlaceholderConstraints;
 }
 
-abstract class Replaceable {
+export abstract class Replaceable {
     abstract visit(cb : (repl : Replaceable) => boolean) : void;
 
-    abstract preprocess(locale : string) : this;
+    abstract preprocess(locale : string, placeholders : string[]) : this;
 
     abstract replace(ctx : ReplacementContext) : ReplacedResult|null;
 }
@@ -152,22 +152,30 @@ abstract class Replaceable {
  * defined at this level.
  */
 export class Placeholder extends Replaceable {
+    private _index : number|undefined = undefined;
+
     constructor(public param : string,
-                public key : string[],
+                public key : string[] = [],
                 public option : string = '') {
         super();
+    }
+
+    toString() {
+        return `\${${this.param}${this.key.length > 0 ? '.' + this.key.join('.') : ''}`
+            + (this.option ? `:${this.option}` : '') + '}';
     }
 
     visit(cb : (repl : Replaceable) => boolean) {
         cb(this);
     }
 
-    preprocess(locale : string) {
+    preprocess(locale : string, placeholders : string[]) {
+        this._index = getPlaceholderIndex(placeholders, this.param);
         return this;
     }
 
     replace(ctx : ReplacementContext) : ReplacedResult|null {
-        const param = ctx.replacements[this.param];
+        const param = ctx.replacements[this._index!];
         if (!param)
             return null;
 
@@ -178,7 +186,7 @@ export class Placeholder extends Replaceable {
             return new ReplacedConcatenation([String(replacement)], {}, {});
         } else {
             let replacement = param.text;
-            const paramConstraints = ctx.constraints[this.param] || {};
+            const paramConstraints = ctx.constraints[this._index!] || {};
             for (const flag in paramConstraints) {
                 const value = paramConstraints[flag];
                 const maybeReplacement = replacement.constrain(flag, value);
@@ -192,6 +200,10 @@ export class Placeholder extends Replaceable {
     }
 }
 
+function templateEscape(str : string) {
+    return str.replace(/[${}|[\]\\]/g, '\\$0');
+}
+
 /**
  * A piece of text with flags such as gender, number, tense, etc.
  *
@@ -203,15 +215,19 @@ export class Placeholder extends Replaceable {
  */
 export class Phrase extends Replaceable {
     constructor(public text : string,
-                public flags : Record<string, string>) {
+                public flags : Record<string, string> = {}) {
         super();
+    }
+
+    toString() {
+        return templateEscape(this.text);
     }
 
     visit(cb : (repl : Replaceable) => boolean) {
         cb(this);
     }
 
-    preprocess(locale : string) {
+    preprocess(locale : string, placeholders : string[]) {
         const tokenizer = I18n.get(locale).getTokenizer();
         this.text = tokenizer.tokenize(this.text).rawTokens.join(' ');
         return this;
@@ -246,6 +262,20 @@ export class Concatenation extends Replaceable {
         super();
     }
 
+    toString() {
+        const buf = this.children.join(' ');
+
+        const flags = [];
+        for (const flag in this.constFlags)
+            flags.push(`${flag}=${this.constFlags[flag]}`);
+        for (const flag in this.refFlags)
+            flags.push(`${flag}=${this.refFlags[flag][0]}[${this.refFlags[flag][1]}]`);
+        if (flags.length > 0)
+            return buf + ` [${flags.join(',')}]`;
+        else
+            return buf;
+    }
+
     visit(cb : (repl : Replaceable) => boolean) {
         if (!cb(this))
             return;
@@ -253,9 +283,9 @@ export class Concatenation extends Replaceable {
             c.visit(cb);
     }
 
-    preprocess(locale : string) {
+    preprocess(locale : string, placeholders : string[]) {
         for (const c of this.children)
-            c.preprocess(locale);
+            c.preprocess(locale, placeholders);
 
         for (const ourFlag in this.refFlags) {
             const [placeholder, theirFlag] = this.refFlags[ourFlag];
@@ -305,9 +335,13 @@ export class Choice implements Replaceable {
     constructor(public variants : Replaceable[]) {
     }
 
-    preprocess(locale : string) {
+    toString() {
+        return `{${this.variants.join('|')}}`;
+    }
+
+    preprocess(locale : string, placeholders : string[]) {
         for (const v of this.variants)
-            v.preprocess(locale);
+            v.preprocess(locale, placeholders);
         return this;
     }
 
@@ -344,6 +378,13 @@ function get(value : any, keys : string[]) : unknown {
     return value;
 }
 
+function getPlaceholderIndex(placeholders : string[], toFind : string) {
+    const index = placeholders.indexOf(toFind);
+    if (index < 0)
+        throw new TypeError(`Invalid placeholder \${${toFind}}, allowed placeholders are: ${placeholders.join(', ')}`);
+    return index;
+}
+
 /**
  * A phrase that depends on a numeric value.
  *
@@ -363,12 +404,21 @@ function get(value : any, keys : string[]) : unknown {
  * }
  */
 export class Plural implements Replaceable {
+    private _index : number|undefined = undefined;
     private _rules : Intl.PluralRules|undefined = undefined;
 
     constructor(public param : string,
                 public key : string[],
                 public type : Intl.PluralRuleType,
                 public variants : Record<string|number, Replaceable>) {
+    }
+
+    toString() {
+        let buf = `${this.param}${this.key.length > 0 ? '.' + this.key.join('.') : ''}:${this.type === 'cardinal' ? 'plural' : this.type}{`;
+        for (const variant in this.variants)
+            buf += `${typeof variant === 'number' ? '=' + variant : variant}{${this.variants[variant]}}`;
+        buf += `}`;
+        return buf;
     }
 
     visit(cb : (repl : Replaceable) => boolean) {
@@ -378,16 +428,18 @@ export class Plural implements Replaceable {
             this.variants[v].visit(cb);
     }
 
-    preprocess(locale : string) {
+    preprocess(locale : string, placeholders : string[]) {
         for (const v in this.variants)
-            this.variants[v].preprocess(locale);
+            this.variants[v].preprocess(locale, placeholders);
+
+        this._index = getPlaceholderIndex(placeholders, this.param);
 
         this._rules = new Intl.PluralRules(locale, { type: this.type });
         return this;
     }
 
     replace(ctx : ReplacementContext) : ReplacedResult|null {
-        const param = ctx.replacements[this.param];
+        const param = ctx.replacements[this._index!];
         if (!param)
             return null;
 
@@ -429,9 +481,19 @@ export class Plural implements Replaceable {
  * ```
  */
 export class ValueSelect implements Replaceable {
+    private _index : number|undefined = undefined;
+
     constructor(public param : string,
                 public key : string[],
                 public variants : Record<string, Replaceable>) {
+    }
+
+    toString() {
+        let buf = `${this.param}${this.key.length > 0 ? '.' + this.key.join('.') : ''}:select{`;
+        for (const variant in this.variants)
+            buf += `${variant}{${this.variants[variant]}}`;
+        buf += `}`;
+        return buf;
     }
 
     visit(cb : (repl : Replaceable) => boolean) {
@@ -441,14 +503,16 @@ export class ValueSelect implements Replaceable {
             this.variants[v].visit(cb);
     }
 
-    preprocess(locale : string) {
+    preprocess(locale : string, placeholders : string[]) {
         for (const v in this.variants)
-            this.variants[v].preprocess(locale);
+            this.variants[v].preprocess(locale, placeholders);
+
+        this._index = getPlaceholderIndex(placeholders, this.param);
         return this;
     }
 
     replace(ctx : ReplacementContext) : ReplacedResult|null {
-        const param = ctx.replacements[this.param];
+        const param = ctx.replacements[this._index!];
         if (!param)
             return null;
 
@@ -483,9 +547,19 @@ export class ValueSelect implements Replaceable {
  * ```
  */
 export class FlagSelect implements Replaceable {
+    private _index : number|undefined = undefined;
+
     constructor(public param : string,
                 public flag : string,
                 public variants : Record<string, Replaceable>) {
+    }
+
+    toString() {
+        let buf = `${this.param}[${this.flag}]:select{`;
+        for (const variant in this.variants)
+            buf += `${variant}{${this.variants[variant]}}`;
+        buf += `}`;
+        return buf;
     }
 
     visit(cb : (repl : Replaceable) => boolean) {
@@ -495,16 +569,17 @@ export class FlagSelect implements Replaceable {
             this.variants[v].visit(cb);
     }
 
-    preprocess(locale : string) {
+    preprocess(locale : string, placeholders : string[]) {
         for (const v in this.variants)
-            this.variants[v].preprocess(locale);
+            this.variants[v].preprocess(locale, placeholders);
+        this._index = getPlaceholderIndex(placeholders, this.param);
         return this;
     }
 
     replace(ctx : ReplacementContext) : ReplacedResult|null {
         // check if we already have a constraint on this param
-        if (ctx.constraints[this.param] && this.flag in ctx.constraints[this.param]) {
-            const constraint = ctx.constraints[this.param][this.flag];
+        if (ctx.constraints[this._index!] && this.flag in ctx.constraints[this._index!]) {
+            const constraint = ctx.constraints[this._index!][this.flag];
             if (!this.variants[constraint])
                 return null;
 
@@ -522,7 +597,7 @@ export class FlagSelect implements Replaceable {
                 constraints: {}
             };
             mergeConstraints(newCtx.constraints, ctx.constraints);
-            mergeConstraints(newCtx.constraints, { [this.param]: { [this.flag]: v } });
+            mergeConstraints(newCtx.constraints, { [this._index!]: { [this.flag]: v } });
 
             const replaced = this.variants[v].replace(newCtx);
             if (replaced === null)
