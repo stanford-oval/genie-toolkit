@@ -29,7 +29,8 @@ export class NodeVisitor {
     visitNonTerminalStmt(stmt : NonTerminalStmt) {}
     visitKeyFunctionDeclaration(stmt : KeyFunctionDeclarationStmt) {}
 
-    visitExpansionRule(stmt : Expansion) {}
+    visitOldStyleExpansionRule(stmt : OldStyleExpansion) {}
+    visitNewStyleExpansionRule(stmt : NewStyleExpansion) {}
     visitConstantsRule(stmt : Constants) {}
     visitConditionRule(stmt : Condition) {}
 
@@ -267,8 +268,9 @@ export class RuleAttributes {
 
 export abstract class Rule {
     static Constants : typeof Constants;
-    static Expansion : typeof Expansion;
     static Condition : typeof Condition;
+    static OldStyleExpansion : typeof OldStyleExpansion;
+    static NewStyleExpansion : typeof NewStyleExpansion;
 
     abstract codegen(nonTerminal : string, prefix : string, type : string, keyfn : string) : string;
     abstract visit(visitor : NodeVisitor) : void;
@@ -306,7 +308,7 @@ function makeBodyLambda(head : NonTerminalRuleHead[],
     return `(${bodyArgs.join(', ')}) : (${type})|null => ${body}`;
 }
 
-export class Expansion extends Rule {
+export class OldStyleExpansion extends Rule {
     constructor(public head : RuleHeadPart[],
                 public bodyCode : string,
                 public attrs : RuleAttributes) {
@@ -315,15 +317,9 @@ export class Expansion extends Rule {
     }
 
     visit(visitor : NodeVisitor) {
-        visitor.visitExpansionRule(this);
+        visitor.visitOldStyleExpansionRule(this);
         for (const head of this.head)
             head.visit(visitor);
-    }
-
-    getTranslationKey() {
-        if (this.head.some((h) => h instanceof ComputedStringLiteralRuleHead))
-            return null;
-        return this.head.map((h) => h.getTemplate()).join(' ');
     }
 
     codegen(nonTerminal : string, prefix = '', type : string, keyfn : string) : string {
@@ -340,7 +336,29 @@ export class Expansion extends Rule {
         return `${prefix}$grammar.addRule(${stringEscape(nonTerminal)}, [${nonTerminalChildren.map((h, i) => h.codegen(nonTerminalChildren, i)).join(', ')}], ${template}, (${expanderCode}), ${keyfn}, ${this.attrs.codegen()});\n`;
     }
 }
-Rule.Expansion = Expansion;
+Rule.OldStyleExpansion = OldStyleExpansion;
+
+export class NewStyleExpansion extends Rule {
+    constructor(public nonTerminals : NonTerminalRuleHead[],
+                public sentenceTemplate : string,
+                public bodyCode : string,
+                public attrs : RuleAttributes) {
+        super();
+    }
+
+    visit(visitor : NodeVisitor) {
+        visitor.visitNewStyleExpansionRule(this);
+        for (const nt of this.nonTerminals)
+            nt.visit(visitor);
+    }
+
+    codegen(nonTerminal : string, prefix = '', type : string, keyfn : string) : string {
+        const expanderCode = makeBodyLambda(this.nonTerminals, this.bodyCode, type);
+
+        return `${prefix}$grammar.addRule(${stringEscape(nonTerminal)}, [${this.nonTerminals.map((h, i) => h.codegen(this.nonTerminals, i)).join(', ')}], $locale._(${stringEscape(this.sentenceTemplate)}), (${expanderCode}), ${keyfn}, ${this.attrs.codegen()});\n`;
+    }
+}
+Rule.NewStyleExpansion = NewStyleExpansion;
 
 export class Condition extends Rule {
     constructor(public flag : string,

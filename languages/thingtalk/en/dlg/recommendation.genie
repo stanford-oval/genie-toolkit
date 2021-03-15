@@ -37,13 +37,13 @@ import ThingpediaLoader from '../../load-thingpedia';
 import { SlotBag } from '../../slot_bag';
 
 question_system_recommendation_short : D.Recommendation = {
-    ctx:ctx_with_result_and_action 'how about' proposal:constant_name with { value = ctx.id0 }
-        => D.makeRecommendation(ctx, proposal);
+    ["how about ${proposal}"]: (ctx : ctx_with_result_and_action, proposal : constant_name<value = ctx.id0>)
+        => D.makeRecommendation(ctx, proposal),
 }
 
 action_recommendation : D.Recommendation = {
-    ctx:ctx_with_result_and_action ('would you like to' | 'would you like me to') action:contextual_action_phrase with { functionName = ctx.nextFunction } [weight=0.1]
-        => D.makeActionRecommendation(ctx, action);
+    ["{would you like to|would you like me to} ${action}", weight=0.1]: (ctx : ctx_with_result_and_action, action : contextual_action_phrase<functionName = ctx.nextFunction>)
+        => D.makeActionRecommendation(ctx, action),
 }
 
 actionable_system_recommendation_short : D.Recommendation = {
@@ -63,10 +63,12 @@ actionable_system_recommendation_short : D.Recommendation = {
             => D.makeThingpediaRecommendation(ctx, proposal);
     }
 
-    ( ctx:ctx_with_result_and_action 'i' ('recommend' | 'suggest') proposal:constant_name with { value = ctx.id0 }
-    | ctx:ctx_with_result_noquestion ('i see' | 'i have' | 'i have found' | 'i have one , it is') proposal:constant_name with { value = ctx.id0 }
-    | ctx:ctx_with_result_argminmax 'the answer is' proposal:constant_name with { value = ctx.id0 }
-    ) => D.makeRecommendation(ctx, proposal);
+    ["i {recommend|suggest} ${proposal}"]: (ctx : ctx_with_result_and_action, proposal : constant_name<value=ctx.id0>)
+        => D.makeRecommendation(ctx, proposal),
+    ["{i see|i have|i have found|i have one, it is} ${proposal}"]: (ctx : ctx_with_result_noquestion, proposal : constant_name<value=ctx.id0>)
+        => D.makeRecommendation(ctx, proposal),
+    ["the answer is ${proposal}"]: (ctx : ctx_with_result_argminmax, proposal : constant_name<value = ctx.id0>)
+        => D.makeRecommendation(ctx, proposal);
 
     ctx:ctx_with_result_argminmax 'the' base:base_table with { functionName = ctx.currentFunction } 'with the highest' param:out_param_Any with { functionName = ctx.currentFunction } 'is' proposal:constant_name with { value = ctx.id0 } [priority=1]
         => D.makeArgMinMaxRecommendation(ctx, proposal, base, param, 'desc');

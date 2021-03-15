@@ -32,7 +32,7 @@ import ThingpediaLoader from '../../load-thingpedia';
 // names of objects in the result
 
 result_name_pair : D.NameList = {
-    ctx:ctx_with_result n1:constant_name with { value = ctx.id0 } ',' n2:constant_name with { value = ctx.id1 } => {
+    ["${n1}, ${n2}"] : (ctx : ctx_with_result, n1 : constant_name<value = ctx.id0>, n2 : constant_name<value = ctx.id1>) => {
         const results = ctx.results;
         assert(results && results.length >= 2);
         assert(ctx.resultInfo!.idType !== null);
@@ -44,11 +44,11 @@ result_name_pair : D.NameList = {
         if (!r2.value.id.equals(n2))
             return null;
         return { ctx, results: results.slice(0, 2) };
-    };
+    },
 }
 
 result_name_list : D.NameList = {
-    ctx:ctx_with_result n1:constant_name with { value = ctx.id0 } ('and' | 'or') n2:constant_name with { value = ctx.id1 } [priority=2] => {
+    ["${n1} {and|or} ${n2}", priority=2] : (ctx : ctx_with_result, n1 : constant_name<value = ctx.id0>, n2 : constant_name<value = ctx.id1>) => {
         const results = ctx.results;
         assert(results && results.length >= 2);
         assert(ctx.resultInfo!.idType !== null);
@@ -60,9 +60,9 @@ result_name_list : D.NameList = {
         if (!r2.value.id.equals(n2))
             return null;
         return { ctx, results: results.slice(0, 2) };
-    };
+    },
 
-    pair:result_name_pair ('and' | 'or') n3:constant_name with { value = pair.id2 } [priority=3] => {
+    ["${pair} {and|or} ${n3}", priority=3] : (pair : result_name_pair, n3:constant_name<value = pair.id2>) => {
         const ctx = pair.ctx;
         const results = ctx.results;
         assert(results && results.length >= 3);
@@ -71,7 +71,7 @@ result_name_list : D.NameList = {
         if (!r3.value.id.equals(n3))
             return null;
         return { ctx, results: results.slice(0, 3) };
-    };
+    },
 }
 
 // a noun phrase of the form "the X is ... and the Y is ..."
