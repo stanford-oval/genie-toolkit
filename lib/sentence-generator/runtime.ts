@@ -22,10 +22,12 @@
 import assert from 'assert';
 
 import {
+    Phrase,
     Replaceable,
     PlaceholderReplacement,
     ReplacedResult
 } from './template-string/ast';
+export { Phrase };
 
 export { importGenie as import } from './compiler';
 

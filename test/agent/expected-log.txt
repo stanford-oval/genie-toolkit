@@ -616,7 +616,7 @@ C:   { id="pLqiFFz1JScp8wMMyXcx-w"^^com.yelp:restaurant("Terún"), image_url="ht
 C:   { id="OZI4rK9s0xTwg2PdTRgmcw"^^com.yelp:restaurant("Aromi - Cambridge"), image_url="https://s3-media1.fl.yelpcdn.com/bphoto/eS-F_RSo1UyOumExtszsGA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/aromi-cambridge-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["italian"^^com.yelp:restaurant_cuisine("Italian"), "cafes"^^com.yelp:restaurant_cuisine("Cafes"), "delis"^^com.yelp:restaurant_cuisine("Delis")], price=enum cheap, rating=4, reviewCount=30, geo=new Location(52.2042405, 0.1187084), phone="+441223300117"^^tt:phone_number }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I see Patxi's Pizza, Cafe Borrone and Osteria Toscana. They're moderates restaurants with Italian food.
+A: I see Patxi's Pizza, Cafe Borrone and Osteria Toscana. They're moderates restaurant with Italian food.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -676,7 +676,7 @@ C:   { id="pLqiFFz1JScp8wMMyXcx-w"^^com.yelp:restaurant("Terún"), image_url="ht
 C:   { id="OZI4rK9s0xTwg2PdTRgmcw"^^com.yelp:restaurant("Aromi - Cambridge"), image_url="https://s3-media1.fl.yelpcdn.com/bphoto/eS-F_RSo1UyOumExtszsGA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/aromi-cambridge-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["italian"^^com.yelp:restaurant_cuisine("Italian"), "cafes"^^com.yelp:restaurant_cuisine("Cafes"), "delis"^^com.yelp:restaurant_cuisine("Delis")], price=enum cheap, rating=4, reviewCount=30, geo=new Location(52.2042405, 0.1187084), phone="+441223300117"^^tt:phone_number }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I see Patxi's Pizza, Cafe Borrone and Osteria Toscana. They're moderates restaurants with Italian food.
+A: I see Patxi's Pizza, Cafe Borrone and Osteria Toscana. They're moderates restaurant with Italian food.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;

@@ -27,6 +27,8 @@ import * as gettextParser from 'gettext-parser';
 import * as Units from 'thingtalk-units';
 
 import BaseTokenizer from './tokenizer/base';
+import { Phrase } from '../sentence-generator/template-string/ast';
+import * as TemplateStringGrammar from '../sentence-generator/template-string/grammar';
 
 import {
     EntityMap,
@@ -46,6 +48,27 @@ export interface UnitPreferenceDelegate {
 function capitalize(word : string) : string {
     return word[0].toUpperCase() + word.substring(1);
 }
+
+export interface NormalizedParameterCanonical {
+    default : string;
+    projection_pronoun ?: string[];
+
+    base : Phrase[];
+    base_projection : Phrase[];
+    argmin : Phrase[];
+    argmax : Phrase[];
+    filter : Phrase[];
+    enum_filter : Record<string, Phrase[]>;
+    projection : Phrase[];
+}
+
+const POS_RENAME : Record<string, string> = {
+    'npp': 'property',
+    'npi': 'reverse_property',
+    'avp': 'verb',
+    'pvp': 'passive_verb',
+    'apv': 'adjective',
+};
 
 /**
  * Base class for all code that is specific to a certain natural language
@@ -125,6 +148,206 @@ export default class DefaultLanguagePack {
         if (this._tokenizer)
             return this._tokenizer;
         return this._tokenizer = new BaseTokenizer();
+    }
+
+    private _toTemplatePhrase(canonical : unknown, addHash = false) : Phrase {
+        let tmpl = String(canonical);
+        if (addHash && !tmpl.includes('#'))
+            tmpl += ' #';
+        const parsed = TemplateStringGrammar.parse(tmpl).preprocess(this.locale, []);
+        assert(parsed instanceof Phrase);
+        return parsed;
+    }
+
+    /**
+     * Apply load-time transformations to the canonical annotation of a function. This normalizes
+     * the form to the expected sets of POS, and adds any automatically generated
+     * plural/gender/case forms as necessary.
+     */
+    preprocessFunctionCanonical(canonical : unknown, forItem : 'query'|'action') : Phrase[] {
+        if (canonical === undefined || canonical === null)
+            return [];
+        if (Array.isArray(canonical))
+            return canonical.map((c) => this._toTemplatePhrase(c));
+        else
+            return [this._toTemplatePhrase(canonical)];
+    }
+
+    /**
+     * Apply load-time transformations to the canonical annotation of a parameter. This normalizes
+     * the form to the expected sets of POS, and adds any automatically generated
+     * plural/gender/case forms as necessary.
+     */
+    preprocessParameterCanonical(canonical : unknown) : NormalizedParameterCanonical {
+        // NOTE: we don't make singular/plural forms of parameters, even in English,
+        // because things like "with Chinese and Italian foods" are awkward
+        // and "with Chinese and Italian food" is better
+        // but "with #cat and #dog hashtag" is wrong, and "with #cat and #dog hashtags" is
+        // the correct form
+        //
+        // the template will choose any available form that does not have a "plural"
+        // flag, so it will generate "food" for the servesCuisine case when used
+        // in the template "with ${values} ${npp_filter[plural=other]}"
+        //
+        // for the cases where it makes sense to have singular/plural form,
+        // the developer should add the phrases and flags manually
+        // (or AutoQA should generate the canonical form with appropriate flags)
+
+        const normalized : NormalizedParameterCanonical = {
+            default: 'base',
+            base: [],
+            base_projection: [],
+            argmin: [],
+            argmax: [],
+            filter: [],
+            enum_filter: {},
+            projection: [],
+        };
+        if (canonical === undefined || canonical === null)
+            return normalized;
+        if (typeof canonical === 'string') {
+            normalized.base = [this._toTemplatePhrase(canonical)];
+            normalized.filter = [this._toTemplatePhrase(canonical, true)];
+            for (const phrase of normalized.filter) {
+                if (!phrase.flags.pos)
+                    phrase.flags.pos = 'property';
+            }
+            return normalized;
+        }
+        if (Array.isArray(canonical)) {
+            normalized.base = canonical.map((c) => this._toTemplatePhrase(c));
+            normalized.filter = canonical.map((c) => this._toTemplatePhrase(c, true));
+            for (const phrase of normalized.filter) {
+                if (!phrase.flags.pos)
+                    phrase.flags.pos = 'property';
+            }
+            return normalized;
+        }
+
+        const record = canonical as Record<string, unknown>;
+        for (let key in record) {
+            let value = record[key];
+            if (value === null || value === undefined)
+                continue;
+            if (key === 'default') {
+                normalized[key] = String(value);
+                continue;
+            }
+            if (key === 'projection_pronoun') {
+                if (Array.isArray(value))
+                    normalized[key] = value as string[];
+                else
+                    normalized[key] = [String(value)];
+                continue;
+            }
+
+            if ((key === 'npv' || key === 'implicit_identity') && value) {
+                // convert implicit_identity to reverse_property
+                key = 'reverse_property';
+                value = '#';
+            }
+            if ((key === 'apv' || key === 'adjective') && typeof value === 'boolean') {
+                if (!value)
+                    continue;
+                key = 'adjective';
+                value = '#';
+            }
+
+            if (key.endsWith('_true') || key.endsWith('_false')) {
+                let boolean, pos;
+                if (key.endsWith('_true')) {
+                    boolean = 'true';
+                    pos = key.substring(0, key.length - '_true'.length);
+                } else {
+                    boolean = 'false';
+                    pos = key.substring(0, key.length - '_false'.length);
+                }
+                let phrases;
+                if (Array.isArray(value))
+                    phrases = value.map((c) => this._toTemplatePhrase(c));
+                else
+                    phrases = [this._toTemplatePhrase(value)];
+
+                pos = POS_RENAME[pos]||pos;
+                for (const phrase of phrases)
+                    phrase.flags.pos = pos;
+
+                if (normalized.enum_filter[boolean])
+                    normalized.enum_filter[boolean].push(...phrases);
+                else
+                    normalized.enum_filter[boolean] = phrases;
+            } else if (key === 'enum_filter' || key.endsWith('_enum')) {
+                // new-style canonical for enums
+                for (const enumerand in value as Record<string, unknown>) {
+                    const enumCanonical = (value as Record<string, unknown>)[enumerand];
+                    if (enumCanonical === null || enumCanonical === undefined)
+                        continue;
+                    let enumNormalized;
+                    if (Array.isArray(enumCanonical))
+                        enumNormalized = enumCanonical.map((c) => this._toTemplatePhrase(c));
+                    else
+                        enumNormalized = [this._toTemplatePhrase(enumCanonical)];
+
+                    if (key !== 'enumerands') {
+                        let pos = key.substring(0, key.length - '_enum'.length);
+                        pos = POS_RENAME[pos]||pos;
+                        for (const phrase of enumNormalized)
+                            phrase.flags.pos = pos;
+                    }
+                    for (const phrase of enumNormalized) {
+                        // add the default POS, but only if we don't have a POS already
+                        if (!phrase.flags.pos)
+                            phrase.flags.pos = 'base';
+                    }
+
+                    if (normalized.enum_filter[enumerand])
+                        normalized.enum_filter[enumerand].push(...enumNormalized);
+                    else
+                        normalized.enum_filter[enumerand] = enumNormalized;
+                }
+            } else {
+                let into : 'base' | 'base_projection' | 'filter' | 'projection' | 'argmin' | 'argmax' = 'filter';
+                let pos : string|undefined;
+                let addHash = false;
+                if (key === 'base' || key === 'base_projection') {
+                    into = key;
+                    pos = 'base';
+                } else if (key.endsWith('_projection')) {
+                    into = 'projection';
+                    pos = key.substring(0, key.length - '_projection'.length);
+                } else if (key.endsWith('_argmin')) {
+                    into = 'argmin';
+                    pos = key.substring(0, key.length - '_argmin'.length);
+                } else if (key.endsWith('_argmax')) {
+                    into = 'argmax';
+                    pos = key.substring(0, key.length - '_argmax'.length);
+                } else if (key === 'filter' || key === 'projection'
+                            || key === 'argmin' || key === 'argmax') {
+                    into = key;
+                    pos = undefined;
+                    addHash = key === 'filter';
+                } else {
+                    into = 'filter';
+                    pos = key;
+                    addHash = true;
+                }
+
+                let phrases;
+                if (Array.isArray(value))
+                    phrases = value.map((c) => this._toTemplatePhrase(c, addHash));
+                else
+                    phrases = [this._toTemplatePhrase(value, addHash)];
+
+                if (pos !== undefined) {
+                    pos = POS_RENAME[pos]||pos;
+                    for (const phrase of phrases)
+                        phrase.flags.pos = pos;
+                }
+                normalized[into].push(...phrases);
+            }
+        }
+
+        return normalized;
     }
 
     /**

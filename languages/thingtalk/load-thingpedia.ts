@@ -82,23 +82,15 @@ const ANNOTATION_PRIORITY : Record<string, number> = {
 
 interface CanonicalForm {
     default : string;
+    projection_pronoun ?: string[];
 
-    property ?: string|string[];
-    reverse_property ?: string|string[];
-    verb ?: string|string[];
-    passive_verb ?: string|string[];
-    adjective ?: string|string[];
-    npp ?: string|string[];
-    npi ?: string|string[];
-    avp ?: string|string[];
-    pvp ?: string|string[];
-    apv ?: string|string[];
-
-    base_projection ?: string|string[];
-    projection_pronoun ?: string|string[];
-
-    npv ?: boolean;
-    implicit_identity ?: boolean;
+    base : Genie.SentenceGeneratorRuntime.Phrase[];
+    base_projection : Genie.SentenceGeneratorRuntime.Phrase[];
+    argmin : Genie.SentenceGeneratorRuntime.Phrase[];
+    argmax : Genie.SentenceGeneratorRuntime.Phrase[];
+    filter : Genie.SentenceGeneratorRuntime.Phrase[];
+    enum_filter : Record<string, Genie.SentenceGeneratorRuntime.Phrase[]>;
+    projection : Genie.SentenceGeneratorRuntime.Phrase[];
 }
 
 // FIXME this info needs to be in Thingpedia
@@ -317,6 +309,33 @@ export default class ThingpediaLoader {
             return new this._runtime.NonTerminal('constant_' + typestr, name);
     }
 
+    private _collectByPOS(phrases : Genie.SentenceGeneratorRuntime.Phrase[]) : Record<string, Genie.SentenceGeneratorRuntime.Phrase[]> {
+        const pos : Record<string, Genie.SentenceGeneratorRuntime.Phrase[]> = {};
+
+        for (const phrase of phrases) {
+            let cat = phrase.flags.pos;
+            if (cat in ANNOTATION_RENAME)
+                cat = ANNOTATION_RENAME[cat];
+
+            if (pos[cat])
+                pos[cat].push(phrase);
+            else
+                pos[cat] = [phrase];
+        }
+
+        return pos;
+    }
+
+    private _getRuleAttributes(canonical : CanonicalForm, cat : string) : Genie.SentenceGeneratorTypes.RuleAttributes {
+        const attributes = { priority: ANNOTATION_PRIORITY[cat] };
+        assert(Number.isFinite(attributes.priority), cat);
+        if (cat === canonical.default ||
+            cat === ANNOTATION_RENAME[canonical.default])
+            attributes.priority += 1;
+
+        return attributes;
+    }
+
     private _recordInputParam(schema : Ast.FunctionDef, arg : Ast.ArgumentDef) {
         const pname = arg.name;
         const ptype = arg.type;
@@ -345,10 +364,6 @@ export default class ThingpediaLoader {
             }
         }
 
-        // FIXME boolean types are not handled, they have no way to specify the true/false phrase
-        if (ptype.isBoolean)
-            return;
-
         /*
         FIXME what to do here?
         if (ptype.isArray && ptype.elem.isCompound) {
@@ -359,60 +374,34 @@ export default class ThingpediaLoader {
             }
         }*/
 
-        let canonical;
-
-        if (!arg.metadata.canonical)
-            canonical = { base: [this._ttUtils.clean(pname)] };
-        else if (typeof arg.metadata.canonical === 'string')
-            canonical = { base: [arg.metadata.canonical] };
-        else
-            canonical = arg.metadata.canonical;
+        const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || this._ttUtils.clean(arg.name));
 
         const corefconst = new this._runtime.NonTerminal('coref_constant', 'value');
         const constant = this._getConstantNT(ptype, 'value');
-        for (let cat in canonical) {
-            if (cat === 'default')
-                continue;
 
-            let annotvalue = canonical[cat];
-            if (cat in ANNOTATION_RENAME)
-                cat = ANNOTATION_RENAME[cat];
+        for (const form of canonical.base)
+            this._addRule('input_param', [], String(form), () => pslot, keyfns.paramKeyFn, {});
 
-            if (cat === 'apv' && typeof annotvalue === 'boolean') {
-                // compat
-                if (annotvalue)
-                    annotvalue = ['#'];
-                else
-                    annotvalue = [];
-            }
+        const filterforms = this._collectByPOS(canonical.filter);
+        for (const pos in filterforms) {
+            const forms = filterforms[pos];
+            const attributes = this._getRuleAttributes(canonical, pos);
 
-            if (cat === 'npv') {
-                // implicit identity does not make sense for input parameters
-                throw new TypeError(`Invalid annotation #_[canonical.implicit_identity=${annotvalue}] for ${schema.qualifiedName}`);
-            }
+            const expansion = '{' + forms.join('|').replace(/#/g, '${value}') + '}';
+            this._addRule(pos + '_input_param', [constant], expansion, (value : Ast.Value) => makeInputParamSlot(pslot, value, this), keyfns.inputParamKeyFn, attributes);
+            this._addRule('coref_' + pos + '_input_param', [corefconst], expansion, (value : Ast.Value) => makeInputParamSlot(pslot, value, this), keyfns.inputParamKeyFn, attributes);
+        }
+        if (ptype.isBoolean || ptype.isEnum) {
+            for (const key in canonical.enum_filter) {
+                const value = ptype.isBoolean ? new Ast.Value.Boolean(key === 'true') : new Ast.Value.Enum(key);
+                const filterforms = this._collectByPOS(canonical.enum_filter[key]);
+                for (const pos in filterforms) {
+                    const forms = filterforms[pos];
+                    const attributes = this._getRuleAttributes(canonical, pos);
 
-            if (!Array.isArray(annotvalue))
-                annotvalue = [annotvalue];
-
-            const attributes = { priority: ANNOTATION_PRIORITY[cat] };
-            assert(Number.isFinite(attributes.priority), cat);
-            if (cat === canonical['default'] ||
-                cat === ANNOTATION_RENAME[canonical['default']])
-                attributes.priority += 1;
-
-            for (let form of annotvalue) {
-                if (cat === 'base') {
-                    this._addRule('input_param', [], form, () => pslot, keyfns.paramKeyFn, attributes);
-                } else {
-                    if (!form.includes('#'))
-                        form += ' #';
-                    const expansion = form.replace('#', '${value}');
-                    this._addRule(cat + '_input_param', [constant], expansion, (value : Ast.Value) => makeInputParamSlot(pslot, value, this), keyfns.inputParamKeyFn, attributes);
-                    this._addRule('coref_' + cat + '_input_param', [corefconst], expansion, (value : Ast.Value) => makeInputParamSlot(pslot, value, this), keyfns.inputParamKeyFn, attributes);
+                    const expansion = '{' + forms.join('|') + '}';
+                    this._addRule(pos + '_input_param', [], expansion, () => makeInputParamSlot(pslot, value, this), keyfns.inputParamKeyFn, attributes);
                 }
-
-                if (this._options.flags.inference)
-                    break;
             }
         }
     }
@@ -423,55 +412,22 @@ export default class ThingpediaLoader {
         if (!this._recordType(ptype))
             return;
 
-        let canonical;
+        const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || this._ttUtils.clean(pname));
 
-        if (!arg.metadata.canonical)
-            canonical = { base: [this._ttUtils.clean(pname)] };
-        else if (typeof arg.metadata.canonical === 'string')
-            canonical = { base: [arg.metadata.canonical] };
-        else
-            canonical = arg.metadata.canonical;
+        for (const form of canonical.base)
+            this._addOutParam(pslot, String(form));
 
-        for (const key in canonical) {
-            if (key === 'default')
-                continue;
+        for (const boolean in canonical.enum_filter) {
+            const value = new Ast.Value.Boolean(boolean === 'true');
+            const filterforms = this._collectByPOS(canonical.enum_filter[boolean]);
+            for (const pos in filterforms) {
+                const forms = filterforms[pos];
+                const attributes = this._getRuleAttributes(canonical, pos);
 
-            let annotvalue = canonical[key];
-            if (!Array.isArray(annotvalue))
-                annotvalue = [annotvalue];
-            if (key === 'base') {
-                for (const form of annotvalue)
-                    this._addOutParam(pslot, form.trim());
-
-                continue;
+                const expansion = '{' + forms.join('|') + '}';
+                this._addRule(pos + '_filter', [], expansion, () => makeFilter(this, pslot, '==', value, false), keyfns.filterKeyFn, attributes);
+                this._addRule(pos + '_boolean_projection', [], expansion, () => pslot, keyfns.paramKeyFn);
             }
-
-            const match = /^([a-zA-Z_]+)_(true|false)$/.exec(key);
-            if (match === null) {
-                console.error(`Invalid canonical key ${key} for boolean output parameter ${pslot.schema.qualifiedName}:${arg.name}`);
-                continue;
-            }
-            let cat = match[1];
-            const value = new Ast.Value.Boolean(match[2] === 'true');
-
-            if (cat in ANNOTATION_RENAME)
-                cat = ANNOTATION_RENAME[cat];
-            const attributes = {
-                repeat: true,
-                priority: ANNOTATION_PRIORITY[cat]
-            };
-            if (cat === canonical['default'] ||
-                cat === ANNOTATION_RENAME[canonical['default']])
-                attributes.priority += 1;
-
-            for (const form of annotvalue) {
-                this._addRule(cat + '_filter', [], form, () => makeFilter(this, pslot, '==', value, false), keyfns.filterKeyFn, attributes);
-                this._addRule(cat + '_boolean_projection', [], form, () => pslot, keyfns.paramKeyFn);
-
-                if (this._options.flags.inference)
-                    break;
-            }
-
         }
     }
 
@@ -526,16 +482,7 @@ export default class ThingpediaLoader {
                 this._addRule('out_param_ArrayCount', [], form, () => pslot, keyfns.paramKeyFn);
         }
 
-        let canonical;
-
-        if (!arg.metadata.canonical)
-            canonical = { base: [this._ttUtils.clean(pname)] };
-        else if (typeof arg.metadata.canonical === 'string')
-            canonical = { base: [arg.metadata.canonical] };
-        else if (Array.isArray(arg.metadata.canonical))
-            canonical = { base: arg.metadata.canonical };
-        else
-            canonical = arg.metadata.canonical;
+        const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || this._ttUtils.clean(pname));
 
         const vtype = ptype;
         let op = '==';
@@ -581,175 +528,92 @@ export default class ThingpediaLoader {
         if (!vtypestr)
             return;
 
+        const baseforms = '{' + canonical.base.join('|') + '}';
+        this._addOutParam(pslot, baseforms.trim());
+
         const constant = this._getConstantNT(vtype, 'value');
         const corefconst = new this._runtime.NonTerminal('coref_constant', 'value');
         const both_prefix = new this._runtime.NonTerminal('both_prefix');
         const constant_pairs = new this._runtime.NonTerminal('constant_pairs', 'values');
         const constant_date_range = new this._runtime.NonTerminal('constant_date_range', 'value');
-        for (let cat in canonical) {
-            if (cat === 'default' || cat === 'projection_pronoun')
-                continue;
 
-            let annotvalue = canonical[cat as keyof CanonicalForm]!;
-            let isEnum = false, argMinMax : 'asc'|'desc'|undefined = undefined, isProjection = false;
-            if (vtype.isEnum && cat.endsWith('_enum')) {
-                cat = cat.substring(0, cat.length - '_enum'.length);
-                isEnum = true;
-            } else if (cat.endsWith('_argmin') || cat.endsWith('_argmax')) {
-                argMinMax = cat.endsWith('_argmin') ? 'asc' : 'desc';
-                // _argmin is the same length as _argmax
-                cat = cat.substring(0, cat.length - '_argmin'.length);
-            } else if (cat.endsWith('_projection')) {
-                cat = cat.substring(0, cat.length - '_projection'.length);
-                isProjection = true;
+        if (pslot.schema.is_list) {
+            for (const enumerand in canonical.enum_filter) {
+                const value = new Ast.Value.Enum(enumerand);
+                const filterforms = this._collectByPOS(canonical.enum_filter[enumerand]);
+                for (const pos in filterforms) {
+                    const forms = filterforms[pos];
+                    const attributes = this._getRuleAttributes(canonical, pos);
+
+                    const expansion = '{' + forms.join('|') + '}';
+                    this._addRule(pos + '_filter', [], expansion, () => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
+                }
             }
 
-            if (cat in ANNOTATION_RENAME)
-                cat = ANNOTATION_RENAME[cat];
+            const filterforms = this._collectByPOS(canonical.filter);
+            for (const pos in filterforms) {
+                const forms = filterforms[pos];
+                const attributes = this._getRuleAttributes(canonical, pos);
 
-            if (cat === 'apv' && typeof annotvalue === 'boolean') {
-                // compat
-                if (annotvalue)
-                    annotvalue = ['#'];
-                else
-                    annotvalue = [];
+                const expansion = '{' + forms.join('|').replace(/#/g, '${value}') + '}';
+                const pairexpansion = '{' + forms.join('|').replace(/#/g, '${both_prefix} ${values}') + '}';
+
+                this._addRule(pos + '_filter', [constant], expansion, (value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
+                this._addRule('coref_' + pos + '_filter', [corefconst], expansion, (value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
+                if (canUseBothForm)
+                    this._addRule(pos + '_filter', [both_prefix, constant_pairs], pairexpansion, (_both, values : [Ast.Value, Ast.Value]) => makeAndFilter(this, pslot, op, values, false), keyfns.filterKeyFn, attributes);
+                if (ptype.isDate)
+                    this._addRule(pos + '_filter', [constant_date_range], expansion, (values : [Ast.Value, Ast.Value]) => makeDateRangeFilter(this, pslot, values), keyfns.filterKeyFn, attributes);
             }
 
-            const attributes = {
-                repeat: true,
-                priority: ANNOTATION_PRIORITY[cat]
-            };
-            assert(Number.isFinite(attributes.priority), cat);
-            if (cat === canonical['default'] ||
-                cat === ANNOTATION_RENAME[canonical['default']])
-                attributes.priority += 1;
+            const argminforms = this._collectByPOS(canonical.argmin);
+            for (const pos in argminforms) {
+                const forms = argminforms[pos];
+                const attributes = this._getRuleAttributes(canonical, pos);
 
-            if (cat === 'npv') {
-                if (typeof annotvalue !== 'boolean')
-                    throw new TypeError(`Invalid annotation #_[canonical.implicit_identity=${annotvalue}] for ${pslot.schema.qualifiedName}`);
-                if (annotvalue) {
-                    const expansion = '${value}';
-                    this._addRule(cat + '_filter', [constant], expansion, (value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
-                    this._addRule('coref_' + cat + '_filter', [corefconst], expansion, (value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
-                }
-                continue;
+                const expansion = '{' + forms.join('|') + '}';
+                this._addRule(pos + '_argminmax', [], expansion, () : [ParamSlot, 'asc'|'desc'] => [pslot, 'asc'], keyfns.argMinMaxKeyFn, attributes);
+            }
+            const argmaxforms = this._collectByPOS(canonical.argmax);
+            for (const pos in argmaxforms) {
+                const forms = argmaxforms[pos];
+                const attributes = this._getRuleAttributes(canonical, pos);
+
+                const expansion = '{' + forms.join('|') + '}';
+                this._addRule(pos + '_argminmax', [], expansion, () : [ParamSlot, 'asc'|'desc'] => [pslot, 'desc'], keyfns.argMinMaxKeyFn, attributes);
+            }
+        }
+
+        const projectionforms = this._collectByPOS(canonical.projection);
+        for (const pos in projectionforms) {
+            const forms = projectionforms[pos];
+            // FIXME we cannot join all forms together in a single {} expression
+            // because _addProjection uses | as a special character
+
+            // always have what question for projection if base available
+            if (canonical.base_projection.length > 0) {
+                const baseprojection = '{' + canonical.base_projection.join('|') + '}';
+                for (const form of forms)
+                    this._addProjections(pslot, 'what', pos, baseprojection, String(form));
             }
 
-            if (isEnum) {
-                for (const enumerand in (annotvalue as unknown as Record<string, string|string[]>)) {
-                    const forms = (annotvalue as unknown as Record<string, string|string[]>)[enumerand];
-                    let formarray : string[];
-                    if (!Array.isArray(forms))
-                        formarray = [forms];
-                    else
-                        formarray = forms;
-                    const value = new Ast.Value.Enum(enumerand);
-                    for (const form of formarray)
-                        this._addRule(cat + '_filter', [], form, () => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
-                }
-            } else if (argMinMax) {
-                let annotarray : string[];
-                if (!Array.isArray(annotvalue)) {
-                    assert(typeof annotvalue === 'string');
-                    annotarray = [annotvalue];
-                } else {
-                    annotarray = annotvalue;
-                }
-                // appease the typechecker, which does not carry type refinements across callbacks
-                const argMinMax2 : 'asc'|'desc' = argMinMax;
-
-                for (const form of annotarray) {
-                    this._addRule(cat + '_argminmax', [], form, () : [ParamSlot, 'asc'|'desc'] => [pslot, argMinMax2], keyfns.argMinMaxKeyFn, attributes);
-                    if (this._options.flags.inference)
-                        break;
-                }
-            } else if (isProjection) {
-                if (cat === 'base')
-                    continue;
-
-                let annotarray : string[];
-                if (!Array.isArray(annotvalue)) {
-                    assert(typeof annotvalue === 'string');
-                    annotarray = [annotvalue];
-                } else {
-                    annotarray = annotvalue;
-                }
-
-                for (const form of annotarray) {
-                    // always have what question for projection if base available
-                    if (canonical.base_projection) {
-                        if (typeof canonical.base_projection === 'string')
-                            canonical.base_projection = [canonical.base_projection];
-                        for (const base of canonical.base_projection) {
-                            this._addProjections(pslot, 'what', cat, base, form);
-                            this._addProjections(pslot, 'which', cat, base, form);
-                        }
-                    }
-
-                    // add non-what question when applicable
-                    // `base` is no longer need for non-what question, thus leave as empty string
-                    if (canonical.projection_pronoun) {
-                        if (typeof canonical.projection_pronoun === 'string')
-                            canonical.projection_pronoun = [canonical.projection_pronoun];
-                        for (const pronoun of canonical.projection_pronoun)
-                            this._addProjections(pslot, pronoun, cat, '', form);
-
-                    } else {
-                        const pronounType = interrogativePronoun(ptype);
-                        if (pronounType !== 'what') {
-                            const pronouns = {
-                                'when': ['when', 'what time'],
-                                'where': ['where'],
-                                'who': ['who']
-                            };
-                            assert(pronounType in pronouns);
-                            for (const pronoun of pronouns[pronounType])
-                                this._addProjections(pslot, pronoun, cat, '', form);
-                        }
-                    }
-
-                    if (this._options.flags.inference)
-                        break;
-                }
-
+            // add non-what question when applicable
+            // `base` is no longer need for non-what question, thus leave as empty string
+            if (canonical.projection_pronoun) {
+                const pronoun = '{' + canonical.projection_pronoun.join('|') + '}';
+                for (const form of forms)
+                    this._addProjections(pslot, pronoun, pos, baseforms, String(form));
             } else {
-                let annotarray : string[];
-                if (!Array.isArray(annotvalue)) {
-                    assert(typeof annotvalue === 'string');
-                    annotarray = [annotvalue];
-                } else {
-                    annotarray = annotvalue;
-                }
-
-                for (let form of annotarray) {
-                    if (cat === 'base') {
-                        this._addOutParam(pslot, form.trim());
-                        if (!canonical.npp && !canonical.property && pslot.schema.is_list) {
-                            const expansion = `${form} \${value}`;
-                            this._addRule('npp_filter', [constant], expansion, (value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn);
-                            this._addRule('coref_npp_filter', [corefconst], expansion, (value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
-
-                            if (canUseBothForm) {
-                                const pairexpansion = `${form} \${both_prefix} \${values}`;
-                                this._addRule('npp_filter', [both_prefix, constant_pairs], pairexpansion, (_both, values : [Ast.Value, Ast.Value]) => makeAndFilter(this, pslot, op, values, false), keyfns.filterKeyFn, attributes);
-                            }
-                        }
-                    } else if (pslot.schema.is_list) {
-                        if (!form.includes('#'))
-                            form += ' #';
-                        const expansion = form.replace('#', '${value}');
-                        const pairexpansion = form.replace('#', '${both_prefix} ${values}');
-
-                        this._addRule(cat + '_filter', [constant], expansion, (value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
-                        this._addRule('coref_' + cat + '_filter', [corefconst], expansion, (value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
-                        if (canUseBothForm)
-                            this._addRule(cat + '_filter', [both_prefix, constant_pairs], pairexpansion, (_both, values : [Ast.Value, Ast.Value]) => makeAndFilter(this, pslot, op, values, false), keyfns.filterKeyFn, attributes);
-                        if (ptype.isDate)
-                            this._addRule(cat + '_filter', [constant_date_range], expansion, (values : [Ast.Value, Ast.Value]) => makeDateRangeFilter(this, pslot, values), keyfns.filterKeyFn, attributes);
-                    }
-
-                    if (this._options.flags.inference)
-                        break;
+                const pronounType = interrogativePronoun(ptype);
+                if (pronounType !== 'what') {
+                    const pronouns = {
+                        'when': '{when|what time}',
+                        'where': 'where',
+                        'who': 'who'
+                    };
+                    assert(pronounType in pronouns);
+                    for (const form of forms)
+                        this._addProjections(pslot, pronouns[pronounType], pos, '', String(form));
                 }
             }
         }
@@ -768,7 +632,7 @@ export default class ThingpediaLoader {
             });
 
             // for when question, we can drop the prep entirely
-            if (pronoun === 'when' || pronoun === 'what time') {
+            if (pronoun === '{when|what time}') {
                 this.projections.push({
                     pname: pslot.name,
                     pslot,
@@ -1053,31 +917,20 @@ export default class ThingpediaLoader {
         const device = new Ast.DeviceSelector(null, q.class!.name, null, null);
         const invocation = new Ast.Invocation(null, device, q.name, [], q);
 
-        const canonical : string[] = q.canonical ?
-            (Array.isArray(q.canonical) ? q.canonical : [q.canonical]) :
-            [this._ttUtils.clean(q.name)];
-
-        for (const form of canonical) {
-            const pluralized = this._langPack.pluralize(form);
-            if (pluralized !== undefined && pluralized !== form)
-                canonical.push(pluralized);
-        }
+        const canonical = this._langPack.preprocessFunctionCanonical(q.nl_annotations.canonical
+            || this._ttUtils.clean(q.name), 'query');
 
         const table = new Ast.InvocationExpression(null, invocation, q);
 
-        let shortCanonical = q.metadata.canonical_short || canonical;
-        if (!Array.isArray(shortCanonical))
-            shortCanonical = [shortCanonical];
-        for (const form of shortCanonical) {
-            this._addRule('base_table', [], form, () => table, keyfns.expressionKeyFn);
-            this._addRule('base_noun_phrase', [], form, () => q, keyfns.functionDefKeyFn);
-        }
+        let shortCanonical = this._langPack.preprocessFunctionCanonical(q.nl_annotations.canonical_short, 'query');
+        if (shortCanonical.length === 0)
+            shortCanonical = canonical;
+        const tmpl = '{' + shortCanonical.join('|') + '}';
+        this._addRule('base_table', [], tmpl, () => table, keyfns.expressionKeyFn);
+        this._addRule('base_noun_phrase', [], tmpl, () => q, keyfns.functionDefKeyFn);
 
-        // FIXME English words should not be here
-        for (const form of ['anything', 'one', 'something'])
-            this._addRule('generic_anything_noun_phrase', [], form, () => table, keyfns.expressionKeyFn);
-        for (const form of ['option', 'choice'])
-            this._addRule('generic_base_noun_phrase', [], form, () => table, keyfns.expressionKeyFn);
+        this._addRule('generic_anything_noun_phrase', [], this._langPack._("{anything|one|something}"), () => table, keyfns.expressionKeyFn);
+        this._addRule('generic_base_noun_phrase', [], this._langPack._("{option|choice}"), () => table, keyfns.expressionKeyFn);
 
         await this._loadTemplate(new Ast.Example(
             null,
@@ -1085,8 +938,8 @@ export default class ThingpediaLoader {
             'query',
             {},
             table,
-            canonical,
-            canonical,
+            canonical.map((c) => String(c)),
+            canonical.map((c) => String(c)),
             {}
         ));
 
@@ -1121,10 +974,12 @@ export default class ThingpediaLoader {
             // we make an example with just the name if and only if
             // - this is the main query of this entity
             // - this entity has no parent entity
+            // TODO: choose the right canonical form wrt singular/plural
             span = [`\${p_name:no-undefined}`, ...canonical.map((c) => `${c} \${p_name:no-undefined}`)];
         } else {
             // make examples by name using the canonical form of the table
             // to make the dataset unambiguous
+            // TODO: choose the right canonical form wrt singular/plural
             span = canonical.map((c) => `${c} \${p_name:no-undefined}`);
         }
 
@@ -1159,10 +1014,7 @@ export default class ThingpediaLoader {
         for (const argname of q.args) {
             const arg = q.getArgument(argname)!;
 
-            if (typeof arg.metadata.canonical === 'string' ||
-                typeof arg.metadata.canonical === 'undefined' ||
-                Array.isArray(arg.metadata.canonical))
-                continue;
+            const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical);
 
             let op = '==';
             let vtype : Type[] = [arg.type];
@@ -1197,29 +1049,22 @@ export default class ThingpediaLoader {
                     ast = table.clone();
                     ast.invocation.in_params = inparams;
                 }
-                for (let canonical of arg.metadata.canonical.reverse_property || arg.metadata.canonical.npi || []) {
-                    if (!canonical.includes('#'))
-                        canonical += ' #';
+                for (const form of canonical.filter) {
+                    if (form.flags.pos !== 'reverse_property')
+                        continue;
+
+                    let tmpl = String(form);
+                    if (!tmpl.includes('#'))
+                        tmpl += ' #';
+                    tmpl = tmpl.replace('#', `\${p_${arg.name}:no-undefined}`);
                     await this._loadTemplate(new Ast.Example(
                         null,
                         -1,
                         'query',
                         args,
                         ast,
-                        [canonical.replace('#', `\${p_${arg.name}:no-undefined}`)],
-                        [canonical.replace('#', `\${p_${arg.name}:no-undefined}`)],
-                        {}
-                    ));
-                }
-                if ('implicit_identity' in arg.metadata.canonical || ANNOTATION_RENAME.implicit_identity in arg.metadata.canonical) {
-                    await this._loadTemplate(new Ast.Example(
-                        null,
-                        -1,
-                        'query',
-                        args,
-                        ast,
-                        [`\${p_${arg.name}:no-undefined}`],
-                        [`\${p_${arg.name}:no-undefined}`],
+                        [tmpl],
+                        [tmpl],
                         {}
                     ));
                 }

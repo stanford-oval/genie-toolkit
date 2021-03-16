@@ -243,7 +243,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), contains(cuisines, null^^com.yelp:restaurant_cuisine("italian")) => notify;
 
-A: I see Patxi's Pizza, Cafe Borrone and Osteria Toscana. They're moderates restaurants with Italian food.
+A: I see Patxi's Pizza, Cafe Borrone and Osteria Toscana. They're moderates restaurant with Italian food.
 A: rdl: Patxi's Pizza https://www.yelp.com/biz/patxis-pizza-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Cafe Borrone https://www.yelp.com/biz/cafe-borrone-menlo-park?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Osteria Toscana https://www.yelp.com/biz/osteria-toscana-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
@@ -275,7 +275,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), contains(cuisines, null^^com.yelp:restaurant_cuisine("italian")) => notify;
 
-A: I see Patxi's Pizza, Cafe Borrone and Osteria Toscana. They're moderates restaurants with Italian food.
+A: I see Patxi's Pizza, Cafe Borrone and Osteria Toscana. They're moderates restaurant with Italian food.
 A: rdl: Patxi's Pizza https://www.yelp.com/biz/patxis-pizza-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Cafe Borrone https://www.yelp.com/biz/cafe-borrone-menlo-park?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Osteria Toscana https://www.yelp.com/biz/osteria-toscana-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
