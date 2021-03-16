@@ -101,7 +101,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), price == enum(expensive) => notify;
 
-A: I see Evvia Estiatorio, NOLA Restaurant & Bar and Tamarine Restaurant. They're expensives restaurant.
+A: I see Evvia Estiatorio, NOLA Restaurant & Bar and Tamarine Restaurant. They're expensive restaurants.
 A: rdl: Evvia Estiatorio https://www.yelp.com/biz/evvia-estiatorio-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: NOLA Restaurant & Bar https://www.yelp.com/biz/nola-restaurant-and-bar-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Tamarine Restaurant https://www.yelp.com/biz/tamarine-restaurant-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
@@ -243,7 +243,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), contains(cuisines, null^^com.yelp:restaurant_cuisine("italian")) => notify;
 
-A: I see Patxi's Pizza, Cafe Borrone and Osteria Toscana. They're moderates restaurant with Italian food.
+A: I see Patxi's Pizza, Cafe Borrone and Osteria Toscana. They're moderate restaurants with Italian food.
 A: rdl: Patxi's Pizza https://www.yelp.com/biz/patxis-pizza-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Cafe Borrone https://www.yelp.com/biz/cafe-borrone-menlo-park?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Osteria Toscana https://www.yelp.com/biz/osteria-toscana-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
@@ -275,7 +275,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), contains(cuisines, null^^com.yelp:restaurant_cuisine("italian")) => notify;
 
-A: I see Patxi's Pizza, Cafe Borrone and Osteria Toscana. They're moderates restaurant with Italian food.
+A: I see Patxi's Pizza, Cafe Borrone and Osteria Toscana. They're moderate restaurants with Italian food.
 A: rdl: Patxi's Pizza https://www.yelp.com/biz/patxis-pizza-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Cafe Borrone https://www.yelp.com/biz/cafe-borrone-menlo-park?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Osteria Toscana https://www.yelp.com/biz/osteria-toscana-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
@@ -309,7 +309,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.yelp.restaurant(), contains(cuisines, "peruvian"^^com.yelp:restaurant_cuisine("Peruvian")) => notify;
 
-A: Sorry, there are no restaurant matching your request.
+A: Sorry, there are no restaurants matching your request.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_empty_search ; @com.yelp . restaurant ( ) filter contains ( cuisines , GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 ) #[ results = [ ] ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"peruvian","display":"Peruvian"}}
 A: >> expecting = command
 
@@ -319,7 +319,7 @@ A: >> expecting = command
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.spotify.song(), contains(artists, "invalid"^^com.spotify:artist("Invalid")) => @com.spotify.play_song(song=id);
 
-A: Sorry, there are no song matching your request.
+A: Sorry, there are no songs matching your request.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_empty_search ; @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . song ( ) filter contains ( artists , GENERIC_ENTITY_com.spotify:artist_0 ) => @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . play_song ( song = id ) #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"invalid","display":"Invalid"}}
 A: >> expecting = command
 
@@ -336,7 +336,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => count(@com.yelp.restaurant()) => notify;
 
-A: There are 60 restaurant like that.
+A: There are 60 restaurants like that.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; count ( @com.yelp . restaurant ( ) ) #[ results = [ { count = NUMBER_0 } ] ] ; // {"NUMBER_0":60}
 A: >> expecting = null
 
@@ -345,7 +345,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => count(@com.yelp.restaurant(), contains(cuisines, "italian"^^com.yelp:restaurant_cuisine("Italian"))) => notify;
 
-A: There are 5 restaurant like that.
+A: There are 5 restaurants like that.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; count ( @com.yelp . restaurant ( ) filter contains ( cuisines , GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 ) ) #[ results = [ { count = 5 } ] ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"italian","display":"Italian"}}
 A: >> expecting = null
 

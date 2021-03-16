@@ -22,6 +22,8 @@
 import assert from 'assert';
 import { stringEscape } from '../../utils/escaping';
 
+import * as TemplateGrammar from '../template-string/grammar';
+
 export class NodeVisitor {
     visitImport(stmt : Import) {}
 
@@ -354,6 +356,13 @@ export class NewStyleExpansion extends Rule {
 
     codegen(nonTerminal : string, prefix = '', type : string, keyfn : string) : string {
         const expanderCode = makeBodyLambda(this.nonTerminals, this.bodyCode, type);
+
+        // try parsing the template and preprocessing, so we catch errors eagerly
+        try {
+            TemplateGrammar.parse(this.sentenceTemplate).preprocess('en-US', this.nonTerminals.map((e) => e.name ?? e.symbol));
+        } catch(e) {
+            throw new Error(`Failed to parse template string for ${nonTerminal} = ${this.sentenceTemplate} (${this.nonTerminals.join(', ')}): ${e.message}`);
+        }
 
         return `${prefix}$grammar.addRule(${stringEscape(nonTerminal)}, [${this.nonTerminals.map((h, i) => h.codegen(this.nonTerminals, i)).join(', ')}], $locale._(${stringEscape(this.sentenceTemplate)}), (${expanderCode}), ${keyfn}, ${this.attrs.codegen()});\n`;
     }

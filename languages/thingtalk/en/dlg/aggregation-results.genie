@@ -27,19 +27,15 @@ import * as D from '../../dialogue_acts';
 import * as S from '../../state_manip';
 import ThingpediaLoader from '../../load-thingpedia';
 
-count_aggregation_reply_suffix : S.ContextInfo = {
-    ctx:ctx_with_aggregation_result base:base_table with { functionName = ctx.currentFunction } ('like that' | 'with those characteristics')
-        => D.makeCountAggregationReplySuffix(ctx, base, false);
-
-    ctx:ctx_with_aggregation_result table:one_with_filter_table with { functionName = ctx.currentFunction } [priority=10]
-        => D.makeCountAggregationReplySuffix(ctx, table, true);
-    ctx:ctx_with_aggregation_result table:two_with_filter_table with { functionName = ctx.currentFunction } [priority=10]
-        => D.makeCountAggregationReplySuffix(ctx, table, true);
-}
-
 count_aggregation_reply : S.AgentReplyRecord = {
-    ('there are' | 'i see' | 'i have') num:constant_Number ctx:count_aggregation_reply_suffix
-        => D.makeCountAggregationReply(ctx, num);
+    ["{there ${ctx.aggregationCount:plural:one{is}other{are}}|i see|i have} ${ctx.aggregationCount} ${ctx.aggregationCount:plural:one{${table[plural=one]}}other{${table[plural=other]}}} {like that|with those characteristics}"]: (ctx:ctx_with_aggregation_result, table:base_table<functionName = ctx.currentFunction>)
+        => D.makeCountAggregationReply(ctx, table, false),
+
+    ["{there ${ctx.aggregationCount:plural:one{is}other{are}}|i see|i have} ${ctx.aggregationCount} ${ctx.aggregationCount:plural:one{${table[plural=one]}}other{${table[plural=other]}}}", priority=10]: (ctx:ctx_with_aggregation_result, table:one_with_filter_table)
+        => D.makeCountAggregationReply(ctx, table, true),
+
+    ["{there ${ctx.aggregationCount:plural:one{is}other{are}}|i see|i have} ${ctx.aggregationCount} ${ctx.aggregationCount:plural:one{${table[plural=one]}}other{${table[plural=other]}}}", priority=10]: (ctx:ctx_with_aggregation_result, table:two_with_filter_table)
+        => D.makeCountAggregationReply(ctx, table, true),
 }
 
 agg_operator_for_reply : 'min'|'max'|'avg'|'sum' = {

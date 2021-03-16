@@ -258,6 +258,9 @@ export class ContextInfo {
 
         // number of results
         resultLength : number;
+
+        // aggregation result (for count)
+        aggregationCount : number|null;
     };
 
     constructor(loader : ThingpediaLoader,
@@ -301,7 +304,9 @@ export class ContextInfo {
             id0: null,
             id1: null,
             id2: null,
-            resultLength: 0
+            resultLength: 0,
+
+            aggregationCount: null
         };
         if (this.resultInfo) {
             this.key.idType = this.resultInfo.idType;
@@ -314,6 +319,12 @@ export class ContextInfo {
                 this.key.id1 = toID(results[1].value.id);
             if (results.length > 2)
                 this.key.id2 = toID(results[2].value.id);
+
+            if (this.resultInfo.isAggregation) {
+                const count = results[0].value.count;
+                if (count)
+                    this.key.aggregationCount = count.toJS() as number;
+            }
         }
     }
 

@@ -26,6 +26,7 @@ import { Tag } from 'en-pos';
 import { coin } from '../utils/random';
 import EnglishTokenizer from './tokenizer/english';
 import DefaultLanguagePack, { UnitPreferenceDelegate } from './default';
+import { Phrase } from '../sentence-generator/template-string/ast';
 
 import {
     EntityMap,
@@ -238,19 +239,45 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
 
         sentence = sentence.replace(/\bon (jan(?:uary)|feb(?:ruary)?|mar(?:ch)?|apr(?:il)|may|june?|july?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\b/, 'in $1');
 
-        // apply some very loose grammar fixes
-        sentence = sentence.replace(/\b(they(?: 're| are)) ([a-z]+)\b/, (_, pre, word) => {
-            const inflected = new Inflectors(word).toPlural();
-            return pre + ' ' + inflected;
-        });
-        sentence = sentence.replace(/\b(it(?: 's| is)) an? ([a-z]+)\b/, (_, pre, word) => {
-            const inflected = new Inflectors(word).toSingular();
-            return pre + ' ' + indefiniteArticle(inflected) + ' ' + inflected;
-        });
-        sentence = sentence.replace(/\b(they(?: 're| are) [a-zA-Z' ]+?) (which|that) is\b/, '$1 $2 are');
-        sentence = sentence.replace(/\b(they(?: 're| are) [a-zA-Z' ]+?) (which|that) has\b/, '$1 $2 have');
-
         return sentence.trim();
+    }
+
+    preprocessFunctionCanonical(canonical : unknown, forItem : 'query'|'action') : Phrase[] {
+        const normalized = super.preprocessFunctionCanonical(canonical, forItem);
+
+        // if we have any form that already has the [plural] flag, we do nothing
+        // and assume the developer already did the work
+        if (normalized.some((form) => !!form.flags.plural))
+            return normalized;
+
+        if (forItem === 'query') {
+            return normalized.flatMap((form) => {
+                const clone = form.clone();
+                clone.text = this.pluralize(form.text);
+                if (clone.text !== form.text) {
+                    clone.flags.plural = 'other';
+                    form.flags.plural = 'one';
+                    return [form, clone];
+                } else {
+                    return [form];
+                }
+            });
+        } else {
+            return normalized.flatMap((form) => {
+                const words = form.text.split(' ');
+                const verb = words[0];
+                const verbsingular = new Inflectors(verb).toPresentS();
+                if (verb !== verbsingular) {
+                    const clone = form.clone();
+                    clone.text = (verbsingular + ' ' + words.slice(1)).trim();
+                    clone.flags.plural = 'one';
+                    form.flags.plural = 'other';
+                    return [form, clone];
+                } else {
+                    return [form];
+                }
+            });
+        }
     }
 
     postprocessNLG(answer : string, entities : EntityMap, delegate : UnitPreferenceDelegate) {

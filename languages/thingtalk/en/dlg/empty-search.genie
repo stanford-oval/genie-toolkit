@@ -32,28 +32,27 @@ import * as C from '../../ast_manip';
 import ThingpediaLoader from '../../load-thingpedia';
 
 empty_search_error : [Ast.InvocationExpression|null, C.ParamSlot|null] = {
-    sorry_preamble ('there are no' | 'i cannot find any') base:base_table ('matching your request' | 'with those characteristics' | 'like that')
-    '.' => [base, null];
+    ["${sorry_preamble} {there are no ${base[plural=other]}|i cannot find any ${base[plural=one]}} {matching your request|with those characteristics|like that}."]:
+        (sorry_preamble, base:base_table) => [base, null],
 
     !inference {
-        sorry_preamble ('there are no' | 'i cannot find any') base:base_table ('matching your request' | 'with those characteristics' | 'like that')
-        '.' 'would you like' ('a different' | 'another') p:out_param_Any '?' [priority=1] => {
+        ["${sorry_preamble} {there are no ${base[plural=other]}|i cannot find any ${base[plural=one]}} {matching your request|with those characteristics|like that}. would you like {a different|another} ${p}?", priority=1]: (sorry_preamble, base:base_table, p:out_param_Any) => {
             if (!C.isSameFunction(base.schema!, p.schema))
                 return null;
             if (p.name === 'id')
                 return null;
             return [base, p];
-        };
+        },
 
-        sorry_preamble 'i cannot find any result for your search . would you like' ('a different' | 'another') p:out_param_Any '?' => {
+        ["${sorry_preamble} i cannot find any result for your search . would you like {a different|another} ${p}?"]: (sorry_preamble, p:out_param_Any) => {
             if (p.name === 'id')
                 return null;
             return [null, p];
-        };
+        },
     }
 
     ?inference {
-        sorry_preamble 'i cannot find any result for your search .' [priority=-1] => [null, null];
+        ["${sorry_preamble} i cannot find any result for your search. ", priority=-1]: (sorry_preamble) => [null, null];
     }
 }
 

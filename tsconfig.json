@@ -7,8 +7,8 @@
         "languages/**/*"
     ],
     "compilerOptions": {
-        "target": "es2018",
-        "lib": ["es2018"],
+        "target": "es2019",
+        "lib": ["es2019"],
         "module": "commonjs",
         "allowJs": true,
         "esModuleInterop": true,

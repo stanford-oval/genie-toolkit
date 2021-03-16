@@ -1030,6 +1030,8 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
                         expandRule(charts, depth, index, rule, this._averagePruningFactor, INFINITY, this._options, this._nonTermList, (derivation) => {
                             if (derivation === null)
                                 return;
+                            //if (['one_clean_info_phrase', 'base_table'].includes(this._nonTermList[index]))
+                            //    console.log(`NT[${this._nonTermList[index]}] -> ${derivation.sentence} /// ${derivation.sentence.constrain('plural', 'one')}`);
                             queue.push(derivation);
                         });
                     } catch(e) {

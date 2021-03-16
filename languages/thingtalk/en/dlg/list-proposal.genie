@@ -49,10 +49,10 @@ system_list_proposal : D.ListProposal = {
             => D.checkListProposal(name_list, null, true);
     }
 
-    ["{i see|i have|i have found} ${name_list}. {they|all of them} are ${res}.", priority=2]: (name_list : result_name_list, res : result_info_phrase)
+    ["{i see|i have|i have found} ${name_list}. {they|all of them} are ${res[plural=other]}.", priority=2]: (name_list : result_name_list, res : result_info_phrase)
         => D.checkListProposal(name_list, res.info, true);
 
-    ["{i see|i have|i have found} ${name_list}. both are ${res}."]: (name_list : result_name_list, res : result_info_phrase) => {
+    ["{i see|i have|i have found} ${name_list}. both are ${res[plural=other]}."]: (name_list : result_name_list, res : result_info_phrase) => {
         if (name_list.results.length !== 2)
             return null;
         return D.checkListProposal(name_list, res.info, true);

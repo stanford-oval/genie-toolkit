@@ -162,7 +162,7 @@ class Derivation<ValueType> {
             newContext = Context.meet(newContext, child.context);
             newPriority += child.priority;
             values.push(child.value);
-            phrases.push({ text: child.sentence, value: child.value });
+            phrases.push({ text: child.sentence, value: child.key });
         }
 
         const newValue = semanticAction(...(values as ArgTypes));

@@ -55,6 +55,20 @@ export class ReplacedConcatenation implements ReplacedResult {
                 public refFlags : Record<string, [number, string]>) {
     }
 
+    toString() {
+        const buf = this.text.map((t) => '{' + t + '}').join(' ');
+
+        const flags = [];
+        for (const flag in this.constFlags)
+            flags.push(`${flag}=${this.constFlags[flag]}`);
+        for (const flag in this.refFlags)
+            flags.push(`${flag}=${this.refFlags[flag][0]}[${this.refFlags[flag][1]}]`);
+        if (flags.length > 0)
+            return buf + ` [${flags.join(',')}]`;
+        else
+            return buf;
+    }
+
     constrain(flag : string, value : FlagValue) : ReplacedResult|null {
         if (flag in this.constFlags) {
             const ourValue = this.constFlags[flag];
@@ -77,7 +91,11 @@ export class ReplacedConcatenation implements ReplacedResult {
             const newFlags : Record<string, FlagValue> = {};
             Object.assign(newFlags, this.constFlags);
             newFlags[flag] = value;
-            return new ReplacedConcatenation(newText, newFlags, this.refFlags);
+
+            const newRefFlags : Record<string, [number, string]> = {};
+            Object.assign(newRefFlags, this.refFlags);
+            delete newRefFlags[flag];
+            return new ReplacedConcatenation(newText, newFlags, newRefFlags);
         }
 
         // no constraint at all
@@ -97,6 +115,10 @@ export class ReplacedConcatenation implements ReplacedResult {
 
 class ReplacedChoice implements ReplacedResult {
     constructor(public choices : ReplacedResult[]) {
+    }
+
+    toString() {
+        return `{${this.choices.join('|')}}`;
     }
 
     constrain(flag : string, value : FlagValue) : ReplacedResult|null {
@@ -219,8 +241,22 @@ export class Phrase extends Replaceable {
         super();
     }
 
+    clone() {
+        const flags : Record<string, string> = {};
+        Object.assign(flags, this.flags);
+        return new Phrase(this.text, flags);
+    }
+
     toString() {
-        return templateEscape(this.text);
+        const text = templateEscape(this.text);
+
+        const flags = [];
+        for (const flag in this.flags)
+            flags.push(`${flag}=${this.flags[flag]}`);
+        if (flags.length > 0)
+            return `${text} [${flags.join(',')}]`;
+        else
+            return text;
     }
 
     visit(cb : (repl : Replaceable) => boolean) {
@@ -255,11 +291,14 @@ function mergeConstraints(into : PlaceholderConstraints, newConstraints : Placeh
  */
 export class Concatenation extends Replaceable {
     private _computedRefFlags : Record<string, [number, string]> = {};
+    private _hasAnyFlag : boolean;
 
     constructor(public children : Replaceable[],
                 public constFlags : Record<string, FlagValue>,
                 public refFlags : Record<string, [string|number, string]>) {
         super();
+
+        this._hasAnyFlag = Object.keys(constFlags).length + Object.keys(refFlags).length > 0;
     }
 
     toString() {
@@ -313,12 +352,18 @@ export class Concatenation extends Replaceable {
     }
 
     replace(ctx : ReplacementContext) : ReplacedResult|null {
-        const replaced : ReplacedResult[] = [];
+        const replaced : Array<string|ReplacedResult> = [];
         for (const child of this.children) {
             const childReplacement = child.replace(ctx);
             if (childReplacement === null)
                 return null;
-            replaced.push(childReplacement);
+
+            // if we don't have any flags, we can flatten the replacement
+            // if we do have flags, we cannot because it will change the meaning of the ref flags
+            if (!this._hasAnyFlag && childReplacement instanceof ReplacedConcatenation)
+                replaced.push(...childReplacement.text);
+            else
+                replaced.push(childReplacement);
         }
 
         return new ReplacedConcatenation(replaced, this.constFlags, this._computedRefFlags);
@@ -414,7 +459,7 @@ export class Plural implements Replaceable {
     }
 
     toString() {
-        let buf = `${this.param}${this.key.length > 0 ? '.' + this.key.join('.') : ''}:${this.type === 'cardinal' ? 'plural' : this.type}{`;
+        let buf = `\${${this.param}${this.key.length > 0 ? '.' + this.key.join('.') : ''}:${this.type === 'cardinal' ? 'plural' : this.type}:`;
         for (const variant in this.variants)
             buf += `${typeof variant === 'number' ? '=' + variant : variant}{${this.variants[variant]}}`;
         buf += `}`;
@@ -489,7 +534,7 @@ export class ValueSelect implements Replaceable {
     }
 
     toString() {
-        let buf = `${this.param}${this.key.length > 0 ? '.' + this.key.join('.') : ''}:select{`;
+        let buf = `\${${this.param}${this.key.length > 0 ? '.' + this.key.join('.') : ''}:select:`;
         for (const variant in this.variants)
             buf += `${variant}{${this.variants[variant]}}`;
         buf += `}`;
@@ -555,7 +600,7 @@ export class FlagSelect implements Replaceable {
     }
 
     toString() {
-        let buf = `${this.param}[${this.flag}]:select{`;
+        let buf = `\${${this.param}[${this.flag}]:select:`;
         for (const variant in this.variants)
             buf += `${variant}{${this.variants[variant]}}`;
         buf += `}`;

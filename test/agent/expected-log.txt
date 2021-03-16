@@ -236,7 +236,7 @@ C:   { id="iX8o07wSfvhe1laJhUzsFA"^^com.yelp:restaurant("The Cambridge Chop Hous
 C:   { id="btRAfitquaXgeB-2vuWxNQ"^^com.yelp:restaurant("The Free Press"), image_url="https://s3-media4.fl.yelpcdn.com/bphoto/Oq3r_QuneatEOt-poxpGuQ/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/the-free-press-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["british"^^com.yelp:restaurant_cuisine("British")], price=enum expensive, rating=4.5, reviewCount=35, geo=new Location(52.204808195527, 0.13039591109936), phone="+441223368337"^^tt:phone_number }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I see Evvia Estiatorio, NOLA Restaurant & Bar and Tamarine Restaurant. They're expensives restaurant.
+A: I see Evvia Estiatorio, NOLA Restaurant & Bar and Tamarine Restaurant. They're expensive restaurants.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
@@ -616,7 +616,7 @@ C:   { id="pLqiFFz1JScp8wMMyXcx-w"^^com.yelp:restaurant("Terún"), image_url="ht
 C:   { id="OZI4rK9s0xTwg2PdTRgmcw"^^com.yelp:restaurant("Aromi - Cambridge"), image_url="https://s3-media1.fl.yelpcdn.com/bphoto/eS-F_RSo1UyOumExtszsGA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/aromi-cambridge-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["italian"^^com.yelp:restaurant_cuisine("Italian"), "cafes"^^com.yelp:restaurant_cuisine("Cafes"), "delis"^^com.yelp:restaurant_cuisine("Delis")], price=enum cheap, rating=4, reviewCount=30, geo=new Location(52.2042405, 0.1187084), phone="+441223300117"^^tt:phone_number }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I see Patxi's Pizza, Cafe Borrone and Osteria Toscana. They're moderates restaurant with Italian food.
+A: I see Patxi's Pizza, Cafe Borrone and Osteria Toscana. They're moderate restaurants with Italian food.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -676,7 +676,7 @@ C:   { id="pLqiFFz1JScp8wMMyXcx-w"^^com.yelp:restaurant("Terún"), image_url="ht
 C:   { id="OZI4rK9s0xTwg2PdTRgmcw"^^com.yelp:restaurant("Aromi - Cambridge"), image_url="https://s3-media1.fl.yelpcdn.com/bphoto/eS-F_RSo1UyOumExtszsGA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/aromi-cambridge-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["italian"^^com.yelp:restaurant_cuisine("Italian"), "cafes"^^com.yelp:restaurant_cuisine("Cafes"), "delis"^^com.yelp:restaurant_cuisine("Delis")], price=enum cheap, rating=4, reviewCount=30, geo=new Location(52.2042405, 0.1187084), phone="+441223300117"^^tt:phone_number }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I see Patxi's Pizza, Cafe Borrone and Osteria Toscana. They're moderates restaurant with Italian food.
+A: I see Patxi's Pizza, Cafe Borrone and Osteria Toscana. They're moderate restaurants with Italian food.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
@@ -750,7 +750,7 @@ C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.yelp.restaurant() filter contains(cuisines, "peruvian"^^com.yelp:restaurant_cuisine("Peruvian"))
 C: #[results=[]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Sorry, there are no restaurant matching your request.
+A: Sorry, there are no restaurants matching your request.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_empty_search;
 #! vote: down
 #! comment: test comment for dialogue turns
@@ -770,7 +770,7 @@ C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter contains(artists, "invalid"^^com.spotify:artist("Invalid")) => @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(song=id)
 C: #[results=[]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Sorry, there are no song matching your request.
+A: Sorry, there are no songs matching your request.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_empty_search;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -814,7 +814,7 @@ C: #[results=[
 C:   { count=60 }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: There are 60 restaurant like that.
+A: There are 60 restaurants like that.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -836,7 +836,7 @@ C: #[results=[
 C:   { count=5 }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: There are 5 restaurant like that.
+A: There are 5 restaurants like that.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! vote: down
 #! comment: test comment for dialogue turns
