@@ -1087,6 +1087,27 @@ export default class ThingpediaLoader {
             keyfns.expressionKeyFn);
     }
 
+    private async _makeExampleFromAction(a : Ast.FunctionDef) {
+        const device = new Ast.DeviceSelector(null, a.class!.name, null, null);
+        const invocation = new Ast.Invocation(null, device, a.name, [], a);
+
+        const canonical : string[] = a.canonical ?
+            (Array.isArray(a.canonical) ? a.canonical : [a.canonical]) :
+            [this._ttUtils.clean(a.name)];
+
+        const action = new Ast.InvocationExpression(null, invocation, a);
+        await this._loadTemplate(new Ast.Example(
+            null,
+            -1,
+            'action',
+            {},
+            action,
+            canonical,
+            canonical,
+            {}
+        ));
+    }
+
     private async _makeExampleFromQuery(q : Ast.FunctionDef) {
         const device = new Ast.DeviceSelector(null, q.class!.name, null, null);
         const invocation = new Ast.Invocation(null, device, q.name, [], q);
@@ -1289,6 +1310,8 @@ export default class ThingpediaLoader {
     private async _loadFunction(functionDef : Ast.FunctionDef) {
         if (functionDef.functionType === 'query')
             await this._makeExampleFromQuery(functionDef);
+        else
+            await this._makeExampleFromAction(functionDef);
 
         if (functionDef.metadata.result)
             await this._loadCustomResultString(functionDef);
