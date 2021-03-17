@@ -19,7 +19,9 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import * as I18n from '../../i18n';
-import { uniform } from '../../utils/random';
+import { uniform, coin } from '../../utils/random';
+
+import * as TemplateGrammar from './grammar';
 
 /**
  * Natural language template language that supports grammar-based constraints
@@ -35,7 +37,9 @@ type FlagValue = string|number;
  *
  * This is a tree of strings or choices, each associated with flags.
  */
-export interface ReplacedResult {
+export abstract class ReplacedResult {
+    static EMPTY : ReplacedResult;
+
     /**
      * Apply a flag constraint to this tree.
      *
@@ -43,16 +47,32 @@ export interface ReplacedResult {
      * is valid.
      *
      */
-    constrain(flag : string, value : FlagValue) : ReplacedResult|null;
+    abstract constrain(flag : string, value : FlagValue) : ReplacedResult|null;
 
-    chooseSample(rng : () => number) : string;
-    chooseBest() : string;
+    abstract chooseSample(rng : () => number) : string;
+    abstract chooseBest() : string;
 }
 
-export class ReplacedConcatenation implements ReplacedResult {
+class EmptyReplacement extends ReplacedResult {
+    constrain(flag : string, value : FlagValue) {
+        return this;
+    }
+
+    chooseSample(rng : () => number) {
+        return '';
+    }
+
+    chooseBest() {
+        return '';
+    }
+}
+ReplacedResult.EMPTY = new EmptyReplacement();
+
+export class ReplacedConcatenation extends ReplacedResult {
     constructor(public text : Array<string|ReplacedResult>,
                 public constFlags : Record<string, FlagValue>,
                 public refFlags : Record<string, [number, string]>) {
+        super();
     }
 
     toString() {
@@ -113,8 +133,9 @@ export class ReplacedConcatenation implements ReplacedResult {
     }
 }
 
-class ReplacedChoice implements ReplacedResult {
+export class ReplacedChoice extends ReplacedResult {
     constructor(public choices : ReplacedResult[]) {
+        super();
     }
 
     toString() {
@@ -140,6 +161,59 @@ class ReplacedChoice implements ReplacedResult {
     }
 }
 
+export class ReplacedList extends ReplacedResult {
+    constructor(public elements : ReplacedResult[],
+                public locale : string,
+                public listType : string|undefined) {
+        super();
+    }
+
+    get length() {
+        return this.elements.length;
+    }
+
+    private _makeList(elements : unknown[], listType : string) : string {
+        if (listType === 'disjunction' ||
+            listType === 'conjunction') {
+            return new (Intl as any).ListFormat(this.locale, { type: listType })
+                .format(elements).replace(/\s+/g, ' ').trim();
+        }
+        return elements.join(listType);
+    }
+
+    toString() {
+        return this._makeList(this.elements, 'conjunction');
+    }
+
+    constrain(flag : string, value : FlagValue) : ReplacedResult|null {
+        const mapped : ReplacedResult[] = [];
+        for (const el of this.elements) {
+            const constrained = el.constrain(flag, value);
+            if (constrained === null)
+                return null;
+            mapped.push(el);
+        }
+        if (flag === 'list_type') {
+            if (this.listType === undefined)
+                return new ReplacedList(mapped, this.locale, String(value));
+            else if (this.listType !== value)
+                return null;
+        }
+        return new ReplacedList(mapped, this.locale, this.listType);
+    }
+
+    chooseSample(rng : () => number) {
+        const listType = this.listType === undefined ?
+            (coin(0.5, rng) ? 'conjunction' : 'disjunction') : this.listType;
+        return this._makeList(this.elements.map((el) => el.chooseSample(rng)), listType);
+    }
+
+    chooseBest() {
+        return this._makeList(this.elements.map((el) => el.chooseBest()),
+            this.listType ?? 'conjunction');
+    }
+}
+
 /**
  * An object that represents the value with which to replace a placeholder.
  */
@@ -159,6 +233,34 @@ interface ReplacementContext {
 }
 
 export abstract class Replaceable {
+    private static _cache = new Map<string, Replaceable>();
+
+    /**
+     * Parse a template string into a replaceable object.
+     */
+    static parse(template : string) : Replaceable {
+        return TemplateGrammar.parse(template);
+    }
+
+    /**
+     * Parse a template string into a replaceable object, and preprocess
+     * it immediately.
+     *
+     * This method differs from {@link Replaceable.parse} because it will
+     * cache the result so it is fast to call multiple times for the same string.
+     */
+    static get(template : string, locale : string, names : string[]) {
+        const cacheKey = locale + '/' + template;
+        const cached = Replaceable._cache.get(cacheKey);
+        if (cached)
+            return cached;
+
+        const parsed = TemplateGrammar.parse(template);
+        parsed.preprocess(locale, names);
+        Replaceable._cache.set(cacheKey, parsed);
+        return parsed;
+    }
+
     abstract visit(cb : (repl : Replaceable) => boolean) : void;
 
     abstract preprocess(locale : string, placeholders : string[]) : this;
@@ -259,6 +361,10 @@ export class Phrase extends Replaceable {
             return text;
     }
 
+    toReplaced() {
+        return new ReplacedConcatenation([this.text], this.flags, {});
+    }
+
     visit(cb : (repl : Replaceable) => boolean) {
         cb(this);
     }
@@ -294,19 +400,19 @@ export class Concatenation extends Replaceable {
     private _hasAnyFlag : boolean;
 
     constructor(public children : Replaceable[],
-                public constFlags : Record<string, FlagValue>,
+                public flags : Record<string, FlagValue>,
                 public refFlags : Record<string, [string|number, string]>) {
         super();
 
-        this._hasAnyFlag = Object.keys(constFlags).length + Object.keys(refFlags).length > 0;
+        this._hasAnyFlag = Object.keys(flags).length + Object.keys(refFlags).length > 0;
     }
 
     toString() {
         const buf = this.children.join(' ');
 
         const flags = [];
-        for (const flag in this.constFlags)
-            flags.push(`${flag}=${this.constFlags[flag]}`);
+        for (const flag in this.flags)
+            flags.push(`${flag}=${this.flags[flag]}`);
         for (const flag in this.refFlags)
             flags.push(`${flag}=${this.refFlags[flag][0]}[${this.refFlags[flag][1]}]`);
         if (flags.length > 0)
@@ -366,7 +472,7 @@ export class Concatenation extends Replaceable {
                 replaced.push(childReplacement);
         }
 
-        return new ReplacedConcatenation(replaced, this.constFlags, this._computedRefFlags);
+        return new ReplacedConcatenation(replaced, this.flags, this._computedRefFlags);
     }
 }
 

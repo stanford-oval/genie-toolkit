@@ -24,13 +24,13 @@ import { Inflectors } from 'en-inflectors';
 import { Tag } from 'en-pos';
 
 import { coin } from '../utils/random';
-import EnglishTokenizer from './tokenizer/english';
-import DefaultLanguagePack, { UnitPreferenceDelegate } from './default';
-import { Phrase } from '../sentence-generator/template-string/ast';
-
+import { Phrase } from '../utils/template-string';
 import {
     EntityMap,
 } from '../utils/entity-utils';
+
+import EnglishTokenizer from './tokenizer/english';
+import DefaultLanguagePack, { UnitPreferenceDelegate } from './default';
 
 // nltk stop words
 const STOPWORDS = ['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', "you're", "you've", "you'll",
@@ -242,15 +242,15 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
         return sentence.trim();
     }
 
-    preprocessFunctionCanonical(canonical : unknown, forItem : 'query'|'action') : Phrase[] {
-        const normalized = super.preprocessFunctionCanonical(canonical, forItem);
+    preprocessFunctionCanonical(canonical : unknown, forItem : 'query'|'action'|'stream', forSide : 'user'|'agent', isList : boolean) : Phrase[] {
+        const normalized = super.preprocessFunctionCanonical(canonical, forItem, forSide, isList);
 
         // if we have any form that already has the [plural] flag, we do nothing
         // and assume the developer already did the work
         if (normalized.some((form) => !!form.flags.plural))
             return normalized;
 
-        if (forItem === 'query') {
+        if (forItem === 'query' && isList) {
             return normalized.flatMap((form) => {
                 const clone = form.clone();
                 clone.text = this.pluralize(form.text);
@@ -263,20 +263,7 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
                 }
             });
         } else {
-            return normalized.flatMap((form) => {
-                const words = form.text.split(' ');
-                const verb = words[0];
-                const verbsingular = new Inflectors(verb).toPresentS();
-                if (verb !== verbsingular) {
-                    const clone = form.clone();
-                    clone.text = (verbsingular + ' ' + words.slice(1)).trim();
-                    clone.flags.plural = 'one';
-                    form.flags.plural = 'other';
-                    return [form, clone];
-                } else {
-                    return [form];
-                }
-            });
+            return normalized;
         }
     }
 

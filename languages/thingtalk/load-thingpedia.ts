@@ -34,7 +34,6 @@ import type * as Tp from 'thingpedia';
 
 import {
     ParamSlot,
-    ErrorMessage,
     ExpressionWithCoreference,
     typeToStringSafe,
     makeInputParamSlot,
@@ -88,7 +87,7 @@ interface CanonicalForm {
     base_projection : Genie.SentenceGeneratorRuntime.Phrase[];
     argmin : Genie.SentenceGeneratorRuntime.Phrase[];
     argmax : Genie.SentenceGeneratorRuntime.Phrase[];
-    filter : Genie.SentenceGeneratorRuntime.Phrase[];
+    filter : Genie.SentenceGeneratorRuntime.Concatenation[];
     enum_filter : Record<string, Genie.SentenceGeneratorRuntime.Phrase[]>;
     projection : Genie.SentenceGeneratorRuntime.Phrase[];
 }
@@ -104,6 +103,11 @@ interface ExtendedEntityRecord {
 
 type PrimitiveTemplateType = 'action'|'action_past'|'query'|'get_command'|'stream'|'program';
 
+interface ParsedPrimitiveTemplate {
+    names : string[];
+    replaceable : Genie.SentenceGeneratorRuntime.Replaceable;
+}
+
 export default class ThingpediaLoader {
     private _runtime : typeof Genie.SentenceGeneratorRuntime;
     private _ttUtils : typeof Genie.ThingTalkUtils;
@@ -116,8 +120,8 @@ export default class ThingpediaLoader {
 
     private _entities : Record<string, ExtendedEntityRecord>
     // cached annotations extracted from Thingpedia, for use at inference time
-    private _errorMessages : Map<string, Record<string, string[]>>;
-    private _resultStrings : Map<string, string[]>;
+    private _errorMessages : Map<string, Record<string, ParsedPrimitiveTemplate[]>>;
+    private _resultStrings : Map<string, ParsedPrimitiveTemplate[]>;
 
     types : Map<string, Type>;
     params : ParamSlot[];
@@ -198,6 +202,10 @@ export default class ThingpediaLoader {
         await this._loadMetadata();
     }
 
+    get runtime() {
+        return this._runtime;
+    }
+
     get ttUtils() {
         return this._ttUtils;
     }
@@ -216,16 +224,16 @@ export default class ThingpediaLoader {
         return this.idQueries.has(type.type);
     }
 
-    getResultStrings(functionName : string) : string[] {
+    getResultStrings(functionName : string) : ParsedPrimitiveTemplate[] {
         return this._resultStrings.get(functionName) || [];
     }
-    getErrorMessages(functionName : string) : Record<string, string[]> {
+    getErrorMessages(functionName : string) : Record<string, ParsedPrimitiveTemplate[]> {
         return this._errorMessages.get(functionName) || {};
     }
 
     private _addRule<ArgTypes extends unknown[], ResultType>(nonTerm : string,
                                                              nonTerminals : Genie.SentenceGeneratorRuntime.NonTerminal[],
-                                                             sentenceTemplate : string,
+                                                             sentenceTemplate : string|Genie.SentenceGeneratorRuntime.Replaceable,
                                                              semanticAction : (...args : ArgTypes) => ResultType|null,
                                                              keyFunction : (value : ResultType) => Genie.SentenceGeneratorTypes.DerivationKey,
                                                              attributes : Genie.SentenceGeneratorTypes.RuleAttributes = {}) {
@@ -309,8 +317,8 @@ export default class ThingpediaLoader {
             return new this._runtime.NonTerminal('constant_' + typestr, name);
     }
 
-    private _collectByPOS(phrases : Genie.SentenceGeneratorRuntime.Phrase[]) : Record<string, Genie.SentenceGeneratorRuntime.Phrase[]> {
-        const pos : Record<string, Genie.SentenceGeneratorRuntime.Phrase[]> = {};
+    private _collectByPOS<T extends Genie.SentenceGeneratorRuntime.Phrase|Genie.SentenceGeneratorRuntime.Concatenation>(phrases : T[]) : Record<string, T[]> {
+        const pos : Record<string, T[]> = {};
 
         for (const phrase of phrases) {
             let cat = phrase.flags.pos;
@@ -387,7 +395,7 @@ export default class ThingpediaLoader {
             const forms = filterforms[pos];
             const attributes = this._getRuleAttributes(canonical, pos);
 
-            const expansion = '{' + forms.join('|').replace(/#/g, '${value}') + '}';
+            const expansion = '{' + forms.join('|') + '}';
             this._addRule(pos + '_input_param', [constant], expansion, (value : Ast.Value) => makeInputParamSlot(pslot, value, this), keyfns.inputParamKeyFn, attributes);
             this._addRule('coref_' + pos + '_input_param', [corefconst], expansion, (value : Ast.Value) => makeInputParamSlot(pslot, value, this), keyfns.inputParamKeyFn, attributes);
         }
@@ -555,8 +563,8 @@ export default class ThingpediaLoader {
                 const forms = filterforms[pos];
                 const attributes = this._getRuleAttributes(canonical, pos);
 
-                const expansion = '{' + forms.join('|').replace(/#/g, '${value}') + '}';
-                const pairexpansion = '{' + forms.join('|').replace(/#/g, '${both_prefix} ${values}') + '}';
+                const expansion = '{' + forms.join('|') + '}';
+                const pairexpansion = '{' + forms.join('|').replace(/\$\{value\}/g, '${both_prefix} ${values}') + '}';
 
                 this._addRule(pos + '_filter', [constant], expansion, (value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
                 this._addRule('coref_' + pos + '_filter', [corefconst], expansion, (value : Ast.Value) => makeFilter(this, pslot, op, value, false), keyfns.filterKeyFn, attributes);
@@ -727,49 +735,46 @@ export default class ThingpediaLoader {
     private _addPrimitiveTemplate(grammarCat : PrimitiveTemplateType,
                                   preprocessed : string,
                                   example : Ast.Example) {
-        const chunks = preprocessed.trim().split(' ');
-
         // compute the names used in the primitive template for each non-terminal
         const nonTerminals : Genie.SentenceGeneratorRuntime.NonTerminal[] = [];
         const names : string[] = [];
         const options : string[] = [];
 
-        for (const chunk of chunks) {
-            if (chunk === '')
-                continue;
-            if (chunk.startsWith('$') && chunk !== '$$') {
-                const [, param1, param2, opt] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk)!;
-                const param = param1 || param2;
-                assert(param);
+        const parsed : Genie.SentenceGeneratorRuntime.Replaceable = this._runtime.Replaceable.parse(preprocessed);
+        parsed.visit((elem) => {
+            if (elem instanceof this._runtime.Placeholder) {
+                const param = elem.param;
+                if (names.includes(param))
+                    return true;
 
                 const type = example.args[param];
                 if (!type)
-                    throw new Error(`Invalid placeholder \${param} in primitive template`);
+                    throw new Error(`Invalid placeholder \${${param}} in primitive template`);
 
                 // don't use placeholders for booleans or enums, as that rarely makes sense
-                const canUseUndefined = grammarCat !== 'action_past' && opt !== 'no-undefined' &&
-                    opt !== 'const' && !type.isEnum && !type.isBoolean;
+                const canUseUndefined = grammarCat !== 'action_past' && elem.option !== 'no-undefined' &&
+                    elem.option !== 'const' && !type.isEnum && !type.isBoolean;
 
                 const nonTerm = canUseUndefined ? new this._runtime.NonTerminal('constant_or_undefined', param, ['type', type])
                     : this._getConstantNT(type, param, { strictTypeCheck: true });
-
                 nonTerminals.push(nonTerm);
                 names.push(param);
-                options.push(opt || '');
             }
-        }
+            return true;
+        });
+        parsed.preprocess(this._langPack.locale, names);
 
         // template #1: just constants and/or undefined
-        this._addConstantOrUndefinedPrimitiveTemplate(grammarCat, preprocessed, nonTerminals, names, example);
+        this._addConstantOrUndefinedPrimitiveTemplate(grammarCat, parsed, nonTerminals, names, example);
 
         // template #2: replace placeholders with whole queries or streams
         // TODO: enable this for table joins with param passing
         if (grammarCat === 'action' || (this._options.flags.dialogues && grammarCat === 'action_past'))
-            this._addPlaceholderReplacementJoinPrimitiveTemplate(grammarCat, preprocessed, nonTerminals, names, options, example);
+            this._addPlaceholderReplacementJoinPrimitiveTemplate(grammarCat, parsed, nonTerminals, names, options, example);
 
         // template #3: coreferences
         if (grammarCat !== 'action_past' && grammarCat !== 'program')
-            this._addCoreferencePrimitiveTemplate(grammarCat, preprocessed, nonTerminals, names, options, example);
+            this._addCoreferencePrimitiveTemplate(grammarCat, parsed, nonTerminals, names, options, example);
     }
 
     /**
@@ -777,7 +782,7 @@ export default class ThingpediaLoader {
      * coreference.
      */
     private _addCoreferencePrimitiveTemplate(grammarCat : 'stream'|'action'|'query'|'get_command',
-                                             expansion : string,
+                                             expansion : Genie.SentenceGeneratorRuntime.Replaceable,
                                              nonTerminals : Genie.SentenceGeneratorRuntime.NonTerminal[],
                                              names : string[],
                                              options : string[],
@@ -830,7 +835,7 @@ export default class ThingpediaLoader {
      * or undefined.
      */
     private _addPlaceholderReplacementJoinPrimitiveTemplate(grammarCat : 'action'|'query'|'get_command'|'action_past',
-                                                            expansion : string,
+                                                            expansion : Genie.SentenceGeneratorRuntime.Replaceable,
                                                             nonTerminals : Genie.SentenceGeneratorRuntime.NonTerminal[],
                                                             names : string[],
                                                             options : string[],
@@ -904,7 +909,7 @@ export default class ThingpediaLoader {
      * only constants and undefined.
      */
     private _addConstantOrUndefinedPrimitiveTemplate(grammarCat : PrimitiveTemplateType,
-                                                     expansion : string,
+                                                     expansion : Genie.SentenceGeneratorRuntime.Replaceable,
                                                      nonTerminals : Genie.SentenceGeneratorRuntime.NonTerminal[],
                                                      names : string[],
                                                      example : Ast.Example) {
@@ -918,11 +923,11 @@ export default class ThingpediaLoader {
         const invocation = new Ast.Invocation(null, device, q.name, [], q);
 
         const canonical = this._langPack.preprocessFunctionCanonical(q.nl_annotations.canonical
-            || this._ttUtils.clean(q.name), 'query');
+            || this._ttUtils.clean(q.name), 'query', this._options.forSide, q.is_list);
 
         const table = new Ast.InvocationExpression(null, invocation, q);
 
-        let shortCanonical = this._langPack.preprocessFunctionCanonical(q.nl_annotations.canonical_short, 'query');
+        let shortCanonical = this._langPack.preprocessFunctionCanonical(q.nl_annotations.canonical_short, 'query', this._options.forSide, q.is_list);
         if (shortCanonical.length === 0)
             shortCanonical = canonical;
         const tmpl = '{' + shortCanonical.join('|') + '}';
@@ -1054,9 +1059,7 @@ export default class ThingpediaLoader {
                         continue;
 
                     let tmpl = String(form);
-                    if (!tmpl.includes('#'))
-                        tmpl += ' #';
-                    tmpl = tmpl.replace('#', `\${p_${arg.name}:no-undefined}`);
+                    tmpl = tmpl.replace(/\$\{value\}/g, `\${p_${arg.name}:no-undefined}`);
                     await this._loadTemplate(new Ast.Example(
                         null,
                         -1,
@@ -1103,90 +1106,76 @@ export default class ThingpediaLoader {
             await this._loadCustomErrorMessages(functionDef);
     }
 
+    private _loadPlaceholderPhraseCommon<ResultType>(intoNonTerm : string,
+                                                     functionDef : Ast.FunctionDef,
+                                                     fromAnnotation : string|string[],
+                                                     annotName : string,
+                                                     semanticAction : (args : Ast.Value[], names : string[]) => ResultType|null,
+                                                     keyFunction : (value : ResultType) => Genie.SentenceGeneratorTypes.DerivationKey) : ParsedPrimitiveTemplate[] {
+        let strings;
+        if (Array.isArray(fromAnnotation))
+            strings = fromAnnotation;
+        else
+            strings = [fromAnnotation];
+
+        const parsedstrings : ParsedPrimitiveTemplate[] = [];
+
+        for (let i = 0; i < strings.length; i++) {
+            const nonTerminals : Genie.SentenceGeneratorRuntime.NonTerminal[] = [];
+            const names : string[] = [];
+
+            const parsed : Genie.SentenceGeneratorRuntime.Replaceable = this._runtime.Replaceable.parse(strings[i]);
+            parsed.visit((elem) => {
+                if (elem instanceof this._runtime.Placeholder) {
+                    const param = elem.param;
+                    if (names.includes(param))
+                        return true;
+
+                    const arg = functionDef.getArgument(param);
+                    if (!arg)
+                        throw new Error(`Invalid placeholder \${${param}} in #_[${annotName}] annotation for @${functionDef.qualifiedName}`);
+
+                    // TODO use opt
+
+                    assert(this._recordType(arg.type));
+                    nonTerminals.push(this._getConstantNT(arg.type, param, { mustBeTrueConstant: true }));
+                    names.push(param);
+                }
+                return true;
+            });
+            parsed.preprocess(this._langPack.locale, names);
+            parsedstrings.push({ names, replaceable: parsed });
+
+            // give a small priority boost to each phrase, depending on the order
+            // in which they are given
+            const attributes = { priority: (strings.length-i) * 0.1 };
+            this._addRule<Ast.Value[], ResultType>(intoNonTerm, nonTerminals, parsed, (...args) => semanticAction(args, names), keyFunction, attributes);
+        }
+
+        return parsedstrings;
+    }
+
     private async _loadCustomErrorMessages(functionDef : Ast.FunctionDef) {
         const bag = new SlotBag(functionDef);
 
-        const normalized : Record<string, string[]> = {};
+        const normalized : Record<string, ParsedPrimitiveTemplate[]> = {};
         this._errorMessages.set(functionDef.qualifiedName, normalized);
         for (const code in functionDef.metadata.on_error) {
-            let messages = functionDef.metadata.on_error[code];
-            if (!Array.isArray(messages))
-                messages = [messages];
-            normalized[code] = messages;
-
-            for (let i = 0; i < messages.length; i++) {
-                const msg = messages[i];
-                const chunks = msg.trim().split(' ');
-                const nonTerminals : Genie.SentenceGeneratorRuntime.NonTerminal[] = [];
-                const names : string[] = [];
-
-                for (const chunk of chunks) {
-                    if (chunk === '')
-                        continue;
-                    if (chunk.startsWith('$') && chunk !== '$$') {
-                        const [, param1, param2,] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk)!;
-                        const param = param1 || param2;
-                        assert(param);
-                        // TODO use opt
-
-                        const arg = functionDef.getArgument(param);
-                        if (!arg)
-                            throw new Error(`Invalid placeholder \${param} in #_[on_error] annotation for @${functionDef.qualifiedName}`);
-
-                        assert(this._recordType(arg.type));
-                        nonTerminals.push(this._getConstantNT(arg.type, param, { mustBeTrueConstant: true }));
-                        names.push(param);
-                    }
-                }
-
-                // give a small priority boost to each phrase, depending on the order
-                // in which they are given
-                const attributes = { priority: (messages.length-i) * 0.1 };
-                this._addRule<Ast.Value[], ErrorMessage>('thingpedia_error_message', nonTerminals, msg, (...args) => replaceErrorMessagePlaceholders({ code, bag }, names, args), keyfns.errorMessageKeyFn, attributes);
-            }
+            normalized[code] = this._loadPlaceholderPhraseCommon('thingpedia_error_message',
+                functionDef, functionDef.metadata.on_error[code], 'on_error',
+                (args, names) => replaceErrorMessagePlaceholders({ code, bag }, names, args),
+                keyfns.errorMessageKeyFn);
         }
     }
 
     private async _loadCustomResultString(functionDef : Ast.FunctionDef) {
         const bag = new SlotBag(functionDef);
 
-        let resultstring = functionDef.metadata.result;
-        if (!Array.isArray(resultstring))
-            resultstring = [resultstring];
-
-        this._resultStrings.set(functionDef.qualifiedName, resultstring);
-        for (let i = 0; i < resultstring.length; i++) {
-            const form = resultstring[i];
-
-            const chunks = form.trim().split(' ');
-            const nonTerminals : Genie.SentenceGeneratorRuntime.NonTerminal[] = [];
-            const names : string[] = [];
-
-            for (const chunk of chunks) {
-                if (chunk === '')
-                    continue;
-                if (chunk.startsWith('$') && chunk !== '$$') {
-                    const [, param1, param2,] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk)!;
-                    const param = param1 || param2;
-                    assert(param);
-                    // TODO use opt
-
-                    const arg = functionDef.getArgument(param);
-                    if (!arg)
-                        throw new Error(`Invalid placeholder \${param} in #_[result] annotation for @${functionDef.qualifiedName}`);
-
-                    assert(this._recordType(arg.type));
-                    nonTerminals.push(this._getConstantNT(arg.type, param, { mustBeTrueConstant: true }));
-                    names.push(param);
-                }
-            }
-
-            // give a small priority boost to each phrase, depending on the order
-            // in which they are given
-            const attributes = { priority: (resultstring.length-i) * 0.1 };
-            this._addRule<Ast.Value[], SlotBag>('thingpedia_result', nonTerminals, form, (...args) => replaceSlotBagPlaceholders(bag, names, args),
-                keyfns.slotBagKeyFn, attributes);
-        }
+        this._resultStrings.set(functionDef.qualifiedName,
+            this._loadPlaceholderPhraseCommon('thingpedia_result',
+                functionDef, functionDef.metadata.result, 'result',
+                (args, names) => replaceSlotBagPlaceholders(bag, names, args),
+                keyfns.slotBagKeyFn));
     }
 
     private async _loadDevice(kind : string) {

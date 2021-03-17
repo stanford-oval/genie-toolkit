@@ -23,11 +23,24 @@ import assert from 'assert';
 
 import {
     Phrase,
+    Concatenation,
+    Placeholder,
     Replaceable,
     PlaceholderReplacement,
-    ReplacedResult
-} from './template-string/ast';
-export { Phrase };
+    ReplacedResult,
+    ReplacedConcatenation,
+    ReplacedChoice,
+} from '../utils/template-string';
+export {
+    Phrase,
+    Concatenation,
+    Placeholder,
+    PlaceholderReplacement,
+    Replaceable,
+    ReplacedResult,
+    ReplacedConcatenation,
+    ReplacedChoice,
+};
 
 export { importGenie as import } from './compiler';
 

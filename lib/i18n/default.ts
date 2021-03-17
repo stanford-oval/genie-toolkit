@@ -27,9 +27,12 @@ import * as gettextParser from 'gettext-parser';
 import * as Units from 'thingtalk-units';
 
 import BaseTokenizer from './tokenizer/base';
-import { Phrase } from '../sentence-generator/template-string/ast';
-import * as TemplateStringGrammar from '../sentence-generator/template-string/grammar';
 
+import {
+    Phrase,
+    Concatenation,
+    Replaceable
+} from '../utils/template-string';
 import {
     EntityMap,
     AnyEntity,
@@ -57,7 +60,7 @@ export interface NormalizedParameterCanonical {
     base_projection : Phrase[];
     argmin : Phrase[];
     argmax : Phrase[];
-    filter : Phrase[];
+    filter : Concatenation[];
     enum_filter : Record<string, Phrase[]>;
     projection : Phrase[];
 }
@@ -150,12 +153,25 @@ export default class DefaultLanguagePack {
         return this._tokenizer = new BaseTokenizer();
     }
 
-    private _toTemplatePhrase(canonical : unknown, addHash = false) : Phrase {
+    private _toTemplatePhrase(canonical : unknown, isFilter : true) : Concatenation;
+    private _toTemplatePhrase(canonical : unknown, isFilter ?: false) : Phrase;
+    private _toTemplatePhrase(canonical : unknown, isFilter : boolean) : Phrase|Concatenation;
+    private _toTemplatePhrase(canonical : unknown, isFilter = false) : Replaceable {
         let tmpl = String(canonical);
-        if (addHash && !tmpl.includes('#'))
-            tmpl += ' #';
-        const parsed = TemplateStringGrammar.parse(tmpl).preprocess(this.locale, []);
-        assert(parsed instanceof Phrase);
+        if (isFilter) {
+            tmpl = tmpl.replace('#', '${value}');
+            if (!/\$(\{value\}|value)/.test(tmpl))
+                tmpl += ' ${value}';
+        }
+        const parsed = Replaceable.parse(tmpl).preprocess(this.locale, isFilter ? ['value'] : []);
+        if (isFilter) {
+            if (parsed instanceof Concatenation)
+                return parsed;
+            // this can happen if the original template was empty
+            return new Concatenation([parsed], {}, {});
+        } else {
+            assert(parsed instanceof Phrase);
+        }
         return parsed;
     }
 
@@ -164,13 +180,13 @@ export default class DefaultLanguagePack {
      * the form to the expected sets of POS, and adds any automatically generated
      * plural/gender/case forms as necessary.
      */
-    preprocessFunctionCanonical(canonical : unknown, forItem : 'query'|'action') : Phrase[] {
+    preprocessFunctionCanonical(canonical : unknown, forItem : 'query'|'action'|'stream', forSide : 'user'|'agent', isList : boolean) : Phrase[] {
         if (canonical === undefined || canonical === null)
             return [];
         if (Array.isArray(canonical))
-            return canonical.map((c) => this._toTemplatePhrase(c));
+            return canonical.map((c) => this._toTemplatePhrase(forSide === 'agent' ? this.toAgentSideUtterance(String(c)) : c));
         else
-            return [this._toTemplatePhrase(canonical)];
+            return [this._toTemplatePhrase(forSide === 'agent' ? this.toAgentSideUtterance(String(canonical)) : canonical)];
     }
 
     /**
@@ -308,7 +324,7 @@ export default class DefaultLanguagePack {
             } else {
                 let into : 'base' | 'base_projection' | 'filter' | 'projection' | 'argmin' | 'argmax' = 'filter';
                 let pos : string|undefined;
-                let addHash = false;
+                let isFilter = false;
                 if (key === 'base' || key === 'base_projection') {
                     into = key;
                     pos = 'base';
@@ -325,25 +341,27 @@ export default class DefaultLanguagePack {
                             || key === 'argmin' || key === 'argmax') {
                     into = key;
                     pos = undefined;
-                    addHash = key === 'filter';
+                    isFilter = key === 'filter';
                 } else {
                     into = 'filter';
                     pos = key;
-                    addHash = true;
+                    isFilter = true;
                 }
 
                 let phrases;
                 if (Array.isArray(value))
-                    phrases = value.map((c) => this._toTemplatePhrase(c, addHash));
+                    phrases = value.map((c) => this._toTemplatePhrase(c, isFilter));
                 else
-                    phrases = [this._toTemplatePhrase(value, addHash)];
+                    phrases = [this._toTemplatePhrase(value, isFilter)];
 
                 if (pos !== undefined) {
                     pos = POS_RENAME[pos]||pos;
                     for (const phrase of phrases)
                         phrase.flags.pos = pos;
                 }
-                normalized[into].push(...phrases);
+                // HACK: this is not the right type signature, but it works in practice
+                // due to the logic around isFilter
+                normalized[into].push(...(phrases as Array<Concatenation & Phrase>));
             }
         }
 

@@ -20,9 +20,9 @@
 
 
 import assert from 'assert';
-import { stringEscape } from '../../utils/escaping';
 
-import * as TemplateGrammar from '../template-string/grammar';
+import { stringEscape } from '../../utils/escaping';
+import * as TemplateGrammar from '../../utils/template-string/grammar';
 
 export class NodeVisitor {
     visitImport(stmt : Import) {}

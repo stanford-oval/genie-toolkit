@@ -442,7 +442,7 @@ C:   { song="spotify:track:5OCJzvD7sykQEKHH7qAC3C"^^com.spotify:song("God is a w
 C: ]]
 C: #[count=23];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I played songs by Ariana Grande on Spotify for you.
+A: I played music by Ariana Grande on Spotify for you.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -476,7 +476,7 @@ C:   { song="spotify:track:7kt9e9LFSpN1zQtYEl19o1"^^com.spotify:song("this is me
 C: ]]
 C: #[count=22];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I played songs in the album folklore on Spotify for you.
+A: I played music in the album folklore on Spotify for you.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! vote: down
 #! comment: test comment for dialogue turns

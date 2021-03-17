@@ -34,6 +34,10 @@ import {
 import PriorityQueue from '../utils/priority_queue';
 import { HashMultiMap } from '../utils/hashmap';
 import * as ThingTalkUtils from '../utils/thingtalk';
+import {
+    Phrase,
+    Replaceable,
+} from '../utils/template-string';
 
 import * as SentenceGeneratorRuntime from './runtime';
 import {
@@ -55,12 +59,6 @@ import {
     GrammarOptions,
 } from './types';
 import { importGenie } from './compiler';
-import {
-    Phrase,
-    Replaceable,
-    ReplacedConcatenation
-} from './template-string/ast';
-import * as TemplateGrammar from './template-string/grammar';
 
 function dummyKeyFunction() {
     return {};
@@ -647,7 +645,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
 
     addRule<ArgTypes extends unknown[], ResultType>(symbol : string,
                                                     expansion : NonTerminal[],
-                                                    sentenceTemplate : string,
+                                                    sentenceTemplate : string|Replaceable,
                                                     semanticAction : SemanticAction<ArgTypes, ResultType>,
                                                     keyFunction : KeyFunction<ResultType>|undefined,
                                                     attributes : RuleAttributes = {}) : void {
@@ -658,10 +656,14 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
             return;
 
         let sentence;
-        try {
-            sentence = TemplateGrammar.parse(sentenceTemplate).preprocess(this._options.locale, expansion.map((e) => e.name ?? e.symbol));
-        } catch(e) {
-            throw new GenieTypeError(`Failed to parse template string for ${symbol} = ${sentenceTemplate} (${expansion.join(', ')}): ${e.message}`);
+        if (typeof sentenceTemplate === 'string') {
+            try {
+                sentence = Replaceable.parse(sentenceTemplate).preprocess(this._options.locale, expansion.map((e) => e.name ?? e.symbol));
+            } catch(e) {
+                throw new GenieTypeError(`Failed to parse template string for ${symbol} = ${sentenceTemplate} (${expansion.join(', ')}): ${e.message}`);
+            }
+        } else {
+            sentence = sentenceTemplate;
         }
         this._addRuleInternal(this._lookupNonTerminal(symbol), expansion, sentence, semanticAction, keyFunction, attributes);
     }
@@ -1121,8 +1123,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
                     for (const phrase of result) {
                         const index = phrase.symbol;
                         assert(index >= 0 && index <= this._nonTermTable.size, `Invalid context number ${index}`);
-                        const sentence = new ReplacedConcatenation([phrase.utterance || ''], {}, {});
-                        const derivation = new Derivation(phrase.key, phrase.value, sentence, ctx, phrase.priority || 0);
+                        const derivation = new Derivation(phrase.key, phrase.value, phrase.utterance, ctx, phrase.priority || 0);
                         charts.add(index, 0, derivation);
                     }
                 }

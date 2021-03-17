@@ -22,6 +22,7 @@ import * as Tp from 'thingpedia';
 import { Type, SchemaRetriever, Syntax } from 'thingtalk';
 
 import { Hashable } from '../utils/hashmap';
+import { ReplacedResult } from '../utils/template-string';
 
 export interface RuleAttributes {
     weight ?: number;
@@ -49,7 +50,7 @@ export type KeyFunction<ValueType> = (value : ValueType) => DerivationKey;
 
 export interface ContextPhrase {
     symbol : number;
-    utterance : string;
+    utterance : ReplacedResult;
     value : unknown;
     priority ?: number;
     key : DerivationKey;
