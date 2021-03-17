@@ -168,7 +168,7 @@ async function mockNLU(conversation) {
             assert.fail(`Unexpected learned utterance ${utterance}`);
     };
 
-    const commands = yaml.safeLoad(await util.promisify(fs.readFile)(
+    const commands = yaml.load(await util.promisify(fs.readFile)(
         path.resolve(path.dirname(module.filename), './mock-nlu.yaml')));
 
     const realSendUtterance = conversation._loop._nlu.sendUtterance;
