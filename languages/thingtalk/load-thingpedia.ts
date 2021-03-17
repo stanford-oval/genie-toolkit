@@ -999,6 +999,25 @@ export default class ThingpediaLoader {
         }
     }
 
+    private _getPrimitiveTemplatePriority(example : Ast.Example) {
+        // add a priority boost to each template, depending on how many parameters it uses
+        // this is important for thingpedia_complete_action_past, so we choose primitive templates with
+        // parameters and not primitive templates without them
+        //
+        // except for enums we use a smaller boost because enum phrases can
+        // have domain-specific words that can be preferrable
+
+        let priority = 0;
+        for (const pname in example.args) {
+            const type = example.args[pname];
+            if (type.isEnum)
+                priority += 0.5;
+            else
+                priority += 1;
+        }
+        return priority;
+    }
+
     /**
      * Convert a primitive template into a regular template that performs
      * a join with parameter passing by replacing exactly one placeholder
@@ -1011,6 +1030,7 @@ export default class ThingpediaLoader {
                                                             options : string[],
                                                             example : Ast.Example) {
         const exParams = Object.keys(example.args);
+        const attributes = { priority: this._getPrimitiveTemplatePriority(example) };
 
         const fromNonTermNames =
             grammarCat === 'action_past' ? ['ctx_current_query'] :
@@ -1066,9 +1086,12 @@ export default class ThingpediaLoader {
                     else
                         intoNonTerm = 'action_replace_param_with_table';
 
+                    // add a priority boost to this template, depending on how many parameters it uses
+                    // this is important for thingpedia_complete_action_past, so we choose primitive templates with
+                    // parameters and not primitive templates without it
                     this._addRule<Array<Ast.Value|Ast.Expression>, Ast.ChainExpression>(intoNonTerm, clone,
                         (...args) => replacePlaceholderWithTableOrStream(example, names, paramIdx, args, this),
-                        keyfns.expressionKeyFn);
+                        keyfns.expressionKeyFn, attributes);
                 }
             }
         }
@@ -1082,9 +1105,31 @@ export default class ThingpediaLoader {
                                                      expansion : Array<string|Genie.SentenceGeneratorRuntime.NonTerminal>,
                                                      names : Array<string|null>,
                                                      example : Ast.Example) {
+        const attributes = { priority: this._getPrimitiveTemplatePriority(example) };
         this._addRule<Ast.Value[], Ast.Expression>('thingpedia_complete_' + grammarCat, expansion,
             (...args) => replacePlaceholdersWithConstants(example, names, args),
-            keyfns.expressionKeyFn);
+            keyfns.expressionKeyFn, attributes);
+    }
+
+    private async _makeExampleFromAction(a : Ast.FunctionDef) {
+        const device = new Ast.DeviceSelector(null, a.class!.name, null, null);
+        const invocation = new Ast.Invocation(null, device, a.name, [], a);
+
+        const canonical : string[] = a.canonical ?
+            (Array.isArray(a.canonical) ? a.canonical : [a.canonical]) :
+            [this._ttUtils.clean(a.name)];
+
+        const action = new Ast.InvocationExpression(null, invocation, a);
+        await this._loadTemplate(new Ast.Example(
+            null,
+            -1,
+            'action',
+            {},
+            action,
+            canonical,
+            canonical,
+            {}
+        ));
     }
 
     private async _makeExampleFromQuery(q : Ast.FunctionDef) {
@@ -1289,6 +1334,8 @@ export default class ThingpediaLoader {
     private async _loadFunction(functionDef : Ast.FunctionDef) {
         if (functionDef.functionType === 'query')
             await this._makeExampleFromQuery(functionDef);
+        else
+            await this._makeExampleFromAction(functionDef);
 
         if (functionDef.metadata.result)
             await this._loadCustomResultString(functionDef);

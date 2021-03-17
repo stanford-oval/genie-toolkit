@@ -442,7 +442,7 @@ C:   { song="spotify:track:5OCJzvD7sykQEKHH7qAC3C"^^com.spotify:song("God is a w
 C: ]]
 C: #[count=23];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I played songs by Ariana Grande on Spotify for you.
+A: I played songs by Ariana Grande on Spotify.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -476,7 +476,7 @@ C:   { song="spotify:track:7kt9e9LFSpN1zQtYEl19o1"^^com.spotify:song("this is me
 C: ]]
 C: #[count=22];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I played songs in the album folklore on Spotify for you.
+A: I played songs in the album folklore on Spotify.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! vote: down
 #! comment: test comment for dialogue turns
@@ -728,7 +728,7 @@ C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).player_repeat(repeat=enum track)
 C: #[results=[]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I repeated this song.
+A: I set the repeat state to track.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -790,7 +790,7 @@ C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).player_shuffle(shuffle=enum on)
 C: #[results=[]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I shuffled your Spotify.
+A: I turned shuffle on.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! vote: down
 #! comment: test comment for dialogue turns
@@ -1530,7 +1530,7 @@ C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.xkcd(id="com.xkcd-10"^^tt:device_id("Some Device 10")).comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title)
 C: #[results=[]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Your request was completed successfully.
+A: I tweeted something.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! vote: down
 #! comment: test comment for dialogue turns

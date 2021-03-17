@@ -200,6 +200,7 @@ class Derivation<ValueType> {
         if (newValue === null)
             return null;
         const newKey = keyFunction(newValue);
+
         return new Derivation(newKey, newValue, newSentence, newContext, newPriority);
     }
 }
