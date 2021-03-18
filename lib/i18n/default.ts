@@ -321,7 +321,7 @@ export default class DefaultLanguagePack {
                         normalized.enum_filter[enumerand] = enumNormalized;
                 }
             } else {
-                let into : 'base' | 'base_projection' | 'filter' | 'projection' | 'argmin' | 'argmax' = 'filter';
+                let into : 'base' | 'base_projection' | 'filter' | 'projection' | 'argmin' | 'argmax';
                 let pos : string|undefined;
                 let isFilter = false;
                 if (key === 'base' || key === 'base_projection') {

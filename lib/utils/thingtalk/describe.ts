@@ -212,7 +212,7 @@ export class Describer {
                 unit = this._("this year");
                 break;
             default:
-                throw new Error(`Invalid time unit ${unit}`);
+                throw new Error(`Invalid time unit ${date.unit}`);
             }
             if (date.edge === 'start_of')
                 base = this._interp(this._("the start of ${unit}"), { unit });
