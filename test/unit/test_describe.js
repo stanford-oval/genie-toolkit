@@ -88,7 +88,7 @@ const TEST_CASES = [
     `Get the current weather at work.`,
     'Weather'],
     [`now => @org.thingpedia.weather.current(location=new Location(37,-137)) => notify;`,
-    `Get the current weather in [Latitude: 37 deg, Longitude: -137 deg].`,
+    `Get the current weather in [Latitude: 37.000 deg, Longitude: -137.000 deg].`,
     'Weather'],
     [`now => @org.thingpedia.weather.current(location=new Location(37,-137, "Somewhere")) => notify;`,
     `Get the current weather in Somewhere.`,

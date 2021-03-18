@@ -19,7 +19,6 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
-import interpolate from 'string-interp';
 import * as fs from 'fs';
 import * as path from 'path';
 import Gettext from 'node-gettext';
@@ -508,10 +507,7 @@ export default class DefaultLanguagePack {
         // same week
         if (Math.abs(date.getTime() - now.getTime()) <= 7 * 86400 * 1000) {
             const weekday = date.toLocaleString(this.locale, { weekday: 'long' });
-            return interpolate(date.getTime() < now.getTime() ? this._("last ${weekday}") : this._("next ${weekday}"), { weekday }, {
-                locale: this.locale,
-                timezone: timezone
-            })||'';
+            return (date.getTime() < now.getTime() ? this._("last ${weekday}") : this._("next ${weekday}")).replace('${weekday}',  weekday);
         }
 
         // generic date
@@ -549,10 +545,9 @@ export default class DefaultLanguagePack {
      * @return {string} the formatted time
      */
     private _dateAndTimeToString(date : Date, timezone : string) : string {
-        return interpolate(this._("${date} at ${time}"), {
-            date: this._dateToString(date, timezone),
-            time: this._timeToString(date, timezone)
-        }, { locale: this.locale, timezone })||'';
+        return this._("${date} at ${time}")
+            .replace('${date}', this._dateToString(date, timezone))
+            .replace('${time}', this._timeToString(date, timezone));
     }
 
     getDefaultTemperatureUnit() : string {
@@ -634,8 +629,9 @@ export default class DefaultLanguagePack {
             if (loc.display) {
                 return loc.display;
             } else {
-                return interpolate(this._("[Latitude: ${loc.latitude:.3} deg, Longitude: ${loc.longitude:.3} deg]"), { loc },
-                    { locale: this.locale, timezone: delegate.timezone })||'';
+                return this._("[Latitude: ${latitude} deg, Longitude: ${longitude} deg]")
+                    .replace('${latitude}', loc.latitude.toFixed(3))
+                    .replace('${longitude}', loc.longitude.toFixed(3));
             }
         }
 

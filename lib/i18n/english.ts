@@ -82,6 +82,7 @@ const SPECIAL_TOKENS : { [key : string] : string } = {
     '!': '!',
     ':': ':',
     'n\'t': 'n\'t',
+    '”': '”',
 
     // right/left round/curly/square bracket
     '-rrb-': ')',
@@ -299,7 +300,7 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
             // note the absence of a space
             sentence += token;
         } else {
-            if (sentence)
+            if (sentence && prevtoken !== '“')
                 sentence += ' ';
             sentence += token;
         }

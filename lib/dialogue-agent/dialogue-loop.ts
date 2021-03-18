@@ -24,11 +24,11 @@ import assert from 'assert';
 import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
 import { Ast, Syntax } from 'thingtalk';
-import interpolate from 'string-interp';
 import AsyncQueue from 'consumer-queue';
 
 import { getProgramIcon } from '../utils/icons';
 import * as ThingTalkUtils from '../utils/thingtalk';
+import { Replaceable, ReplacedConcatenation, ReplacedResult } from '../utils/template-string';
 import { EntityMap } from '../utils/entity-utils';
 import type Engine from '../engine';
 import * as ParserClient from '../prediction/parserclient';
@@ -213,10 +213,19 @@ export default class DialogueLoop {
     }
 
     interpolate(msg : string, args : Record<string, unknown>) : string {
-        return interpolate(msg, args, {
-            locale: this.conversation.locale,
-            timezone: this.conversation.timezone
-        })||'';
+        const replacements = [];
+        const names = [];
+        for (const key in args) {
+            names.push(key);
+            const value = args[key];
+            replacements.push({
+                text: value instanceof ReplacedResult ? value : new ReplacedConcatenation([String(value)], {}, {}),
+                value,
+            });
+        }
+
+        const tmpl = Replaceable.get(msg, this.conversation.locale, names);
+        return this._langPack.postprocessNLG(tmpl.replace({ replacements, constraints: {} })!.chooseBest(), {}, this._agent);
     }
 
     async nextCommand() : Promise<UserInput> {
