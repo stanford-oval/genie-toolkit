@@ -98,7 +98,7 @@ async function main() {
     assert(questionarg.type instanceof Type.Enum && questionarg.type.entries![0] === '__faq__');
 
     const faqfile = path.resolve(path.dirname(module.filename), './faq.yaml');
-    const faqData : any = yaml.safeLoad(await pfs.readFile(faqfile, { encoding: 'utf8' }));
+    const faqData : any = yaml.load(await pfs.readFile(faqfile, { encoding: 'utf8' }));
     assert(typeof faqData === 'object' && !Array.isArray(faqData));
 
     const intents = Object.keys(faqData);

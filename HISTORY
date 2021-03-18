@@ -1,3 +1,17 @@
+0.8.0-alpha.5
+=============
+
+* Join templates have been replaced with subqueries, supporting a richer set
+  of questions, and compatible with dialogues as well [#530, #543].
+* Expanded FAQs [#512]
+* Dialogue recordings now include timestamps, for performance analysis [#515].
+* Added a dialogue parser that tolerates format errors. This is suitable for
+  automatic analysis of recordings [#517].
+* Improved the display of times and dates [#520, #526, #537].
+* The wake-word is more reliable, as we now use speech-to-text to detect the
+  presence of the wake word in case the wake-word model activates spuriously [#519].
+* Misc bug fixes [#521, #524, #525, #533].
+
 0.8.0-alpha.4
 =============
 

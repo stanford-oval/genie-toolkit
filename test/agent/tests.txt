@@ -173,7 +173,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (@com.spotify.song(), contains(artists, null^^com.spotify:artist("ariana grande"))) => @com.spotify.play_song(song=id);
 
-A: I played music by Ariana Grande on Spotify for you.
+A: I played music by Ariana Grande on Spotify.
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -183,7 +183,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => (@com.spotify.song(), album == null^^com.spotify:album("folklore")) =>  @com.spotify.play_song(song=id);
 
-A: I played music in the album folklore on Spotify for you.
+A: I played music in the album folklore on Spotify.
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -299,7 +299,7 @@ A: >> expecting = null
 # repeat this song
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.spotify.player_repeat(repeat=enum(track));
-A: I repeated this song.
+A: I set the repeat state to track.
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -327,7 +327,7 @@ A: >> expecting = command
 # 18-agent-phrase-with-my
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.spotify.player_shuffle(shuffle=enum(on));
-A: I shuffled your Spotify.
+A: I turned shuffle on.
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -662,9 +662,7 @@ A: >> expecting = yesno
 
 U: \t $yes;
 
-# (mock) Twitter doesn't return a result bag, so we cannot display
-# what we actually posted, and this is the best we can do
-A: Your request was completed successfully.
+A: I tweeted something.
 A: >> context = null // {}
 A: >> expecting = null
 

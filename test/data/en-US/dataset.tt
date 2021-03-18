@@ -85,10 +85,6 @@ dataset @org.thingpedia.everything {
     #[id=-1]
     #_[preprocessed=["autoretweet tweets with $p_hashtag", "autoretweet $p_hashtag"]];
 
-    action () := @com.twitter.post()
-    #[id=0]
-    #_[preprocessed=["tweet something", "post on twitter"]];
-
     action (p_status : String) := @com.twitter.post(status=p_status)
     #[id=1]
     #_[preprocessed=["tweet ${p_status}", "post ${p_status} on twitter"]];

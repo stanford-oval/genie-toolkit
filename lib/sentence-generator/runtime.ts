@@ -188,6 +188,7 @@ class Derivation<ValueType> {
             return null;
 
         const newKey = keyFunction(newValue);
+
         return new Derivation(newKey, newValue, newSentence, newContext, newPriority);
     }
 }

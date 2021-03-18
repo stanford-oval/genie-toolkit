@@ -110,7 +110,7 @@ export default class PosParser {
             for (const pos in this.queryTemplates) {
                 for (const template of this.queryTemplates[pos]) {
                     const match = template.match(utterance, domainCanonicals, value);
-                    if (match && match.split(' ').length - 1 < MAX_LENGTH) {
+                    if (match && !match.includes('$domain') && match.split(' ').length - 1 < MAX_LENGTH) {
                         if (pos === 'verb' && match.startsWith('$value ')) {
                             return [
                                 { pos, canonical: match },

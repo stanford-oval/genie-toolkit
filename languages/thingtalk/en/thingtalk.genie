@@ -41,7 +41,6 @@ import './projections.genie';
 import './aggregation.genie';
 import './computation.genie';
 import './who_questions.genie';
-import './schema.org.genie';
 import './commands.genie';
 import './stream_tables.genie';
 
