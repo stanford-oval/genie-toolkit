@@ -214,6 +214,14 @@ class DialogueEvaluatorStream extends Stream.Transform {
             return this._tokenizeSlot(value.toJS());
         }
 
+        if (value instanceof Ast.DateValue) {
+            const date = value.value;
+            if (date instanceof Ast.DateEdge)
+                return date.edge + ' ' + date.unit;
+            else if (date instanceof Ast.WeekDayDate)
+                return date.weekday;
+        }
+
         // everything else (time, currency, number, enum), use JS value
         return String(value.toJS()).toLowerCase();
     }
