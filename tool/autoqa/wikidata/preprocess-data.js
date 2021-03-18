@@ -239,12 +239,7 @@ class ParamDatasetGenerator {
         pipeline.on('error', (error) => console.error(error));
         pipeline.on('end', async () => {
             console.log(`Found ${instanceQids.size} instances in ${canonical} domain with ${Object.keys(properties).length} properties.`);
-            await Promise.all([
-                util.promisify(fs.writeFile)(this._property_item_map_path, 
-                    JSON.stringify(properties), { encoding: 'utf8' }),
-                util.promisify(fs.writeFile)( path.join(this._output_dir, this._canonical, 'properties_all.txt'), 
-                    Object.keys(properties).join(','), { encoding: 'utf8' })
-            ]);
+            await util.promisify(fs.writeFile)(this._property_item_map_path, JSON.stringify(properties), { encoding: 'utf8' });
             await this._filterItemValues(canonical);
         });
     }
@@ -305,10 +300,6 @@ class ParamDatasetGenerator {
     async run() {
         // Required CSQA Wikidata json files
         assert(fs.existsSync(path.join(this._input_dir, 'filtered_property_wikidata4.json')));
-        assert(fs.existsSync(path.join(this._input_dir, 'items_wikidata_n.json')));
-        assert(fs.existsSync(path.join(this._input_dir, 'wikidata_short_1.json')));
-        assert(fs.existsSync(path.join(this._input_dir, 'wikidata_short_2.json')));
-        assert(fs.existsSync(path.join(this._input_dir, 'comp_wikidata_rev.json')));
 
         // Set up
         const outputDir = path.join(this._output_dir, this._canonical, 'parameter-datasets');
@@ -320,10 +311,15 @@ class ParamDatasetGenerator {
         if (!fs.existsSync(this._property_item_map_path) || 
             !fs.existsSync(this._instance_file_path) ||
             !fs.existsSync( this._property_value_map_path) ||
-            !fs.existsSync(this._instance_value_map_path))
+            !fs.existsSync(this._instance_value_map_path)) {
+            assert(fs.existsSync(path.join(this._input_dir, 'items_wikidata_n.json')));
+            assert(fs.existsSync(path.join(this._input_dir, 'wikidata_short_1.json')));
+            assert(fs.existsSync(path.join(this._input_dir, 'wikidata_short_2.json')));
+            assert(fs.existsSync(path.join(this._input_dir, 'comp_wikidata_rev.json')));
             await this._mapDomainProperties(this._domain, this._canonical, 1, true);
-         else
+        } else {
             await this._processData(this._canonical);
+        }
     }
 }
 
