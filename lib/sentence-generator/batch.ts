@@ -116,7 +116,7 @@ class BasicSentenceGenerator extends stream.Readable {
     }
 
     private _postprocessSentence(derivation : Derivation<ThingTalkUtils.Input>, program : ThingTalkUtils.Input) {
-        let utterance = derivation.toString();
+        let utterance = derivation.sampleSentence(this._rng);
         utterance = utterance.replace(/ +/g, ' ');
         utterance = this._langPack.postprocessSynthetic(utterance, program, this._rng, 'user');
         return utterance;
@@ -140,10 +140,9 @@ class BasicSentenceGenerator extends stream.Readable {
             });
         } catch(e) {
             console.error(preprocessed);
-            console.error(String(program));
+            console.error(program.prettyprint().trim());
             console.error(sequence);
 
-            console.error(program.prettyprint().trim());
             this.emit('error', e);
             return;
         }
@@ -265,7 +264,7 @@ class MinibatchDialogueGenerator {
     private _postprocessSentence(derivation : Derivation<unknown>,
                                  program : ThingTalkUtils.DialogueState,
                                  forTarget : 'user'|'agent') : string {
-        let utterance = derivation.toString();
+        let utterance = derivation.sampleSentence(this._rng);
         utterance = utterance.replace(/ +/g, ' ');
         utterance = this._langPack.postprocessSynthetic(utterance, program, this._rng, forTarget);
         return utterance;

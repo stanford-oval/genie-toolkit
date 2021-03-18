@@ -278,7 +278,7 @@ async function main(onlyIds) {
 
     // test the welcome message (and the context at the start)
     expect(testRunner, `
-Hi, how can I help you?
+Hello! How can I help you?
 >> context = null // {}
 >> expecting = null
 `);

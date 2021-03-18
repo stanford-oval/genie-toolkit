@@ -27,8 +27,5 @@ import * as S from '../../state_manip';
 import ThingpediaLoader from '../../load-thingpedia';
 
 action_confirm_phrase : S.AgentReplyRecord = {
-    ( 'ok , do you want me to' ctx:ctx_next_statement '?'
-    | 'ok ,' ('i am going to ' | 'you want to' | 'you would like to')
-        ctx:ctx_next_statement '.' ('do you confirm' | 'is that it' | 'is that correct' | 'is that right') '?'
-    ) => D.makeActionConfirmationPhrase(ctx);
+    ["{ok , do you want me to ${stmt}?|ok, {i am going to|you want to|you would like to} ${stmt}. {do you confirm|is that it|is that correct|is that right}?}"]: (stmt:ctx_next_statement) => D.makeActionConfirmationPhrase(stmt),
 }

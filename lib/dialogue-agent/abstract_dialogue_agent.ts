@@ -366,14 +366,16 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         if (value instanceof Ast.MeasureValue && value.unit.startsWith('default')) {
             const key = value.unit.substring('default'.length).toLowerCase();
             const preference = this.getPreferredUnit(key);
-            if (preference)
+            if (preference) {
                 value.unit = preference;
-
-            switch (key) {
-            case 'defaultTemperature':
-                value.unit = this._langPack.getDefaultTemperatureUnit();
-            default:
-                throw new TypeError('Unexpected default unit ' + value.unit);
+            } else {
+                switch (key) {
+                case 'defaultTemperature':
+                    value.unit = this._langPack.getDefaultTemperatureUnit();
+                    break;
+                default:
+                    throw new TypeError('Unexpected default unit ' + value.unit);
+                }
             }
         } else if (value instanceof Ast.LocationValue && value.value instanceof Ast.UnresolvedLocation) {
             slot.set(await this.lookupLocation(value.value.name, hints.previousLocations || []));

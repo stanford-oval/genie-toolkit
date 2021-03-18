@@ -131,7 +131,8 @@ export default class AppDatabase extends events.EventEmitter {
             for (const kind of kinds)
                 describer.setDataset(kind, await this._engine.schemas.getExamplesByKind(kind));
 
-            description = describer.describeProgram(program);
+            const generated = describer.describeProgram(program);
+            description = generated ? generated.chooseBest() : "description missing";
 
             // apply the usual postprocessing
             const langPack = I18n.get(this._platform.locale);

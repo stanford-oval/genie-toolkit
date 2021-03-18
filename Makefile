@@ -34,6 +34,7 @@ generated := \
 	data/builtins/thingengine.builtin/dataset.tt \
 	lib/engine/db/schema.json \
 	lib/sentence-generator/compiler/grammar.js \
+	lib/utils/template-string/grammar.js \
 	lib/engine/devices/builtins/test.tt.json \
 	lib/engine/devices/builtins/thingengine.tt.json \
 	lib/engine/devices/builtins/thingengine.builtin.tt.json \

@@ -28,7 +28,7 @@ import {
     makeSimpleState,
 } from '../state_manip';
 
-function makeCountAggregationReplySuffix(ctx : ContextInfo, table : Ast.Expression, mustFilter : boolean) {
+export function makeCountAggregationReply(ctx : ContextInfo, table : Ast.Expression, mustFilter : boolean) {
     if (!ctx.resultInfo!.isAggregation)
         return null;
     const results = ctx.results;
@@ -51,17 +51,11 @@ function makeCountAggregationReplySuffix(ctx : ContextInfo, table : Ast.Expressi
         if (!table.filter.equals(filterTable.filter))
             return null;
     }
-    return ctx;
-}
 
-function makeCountAggregationReply(ctx : ContextInfo, num : Ast.Value) {
-    const count = ctx.results![0].value.count;
-    if (!count.equals(num))
-        return null;
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_display_result', null));
 }
 
-function makeOtherAggregationReply(ctx : ContextInfo, op : string, param : C.ParamSlot, value : Ast.Value) {
+export function makeOtherAggregationReply(ctx : ContextInfo, op : string, param : C.ParamSlot, value : Ast.Value) {
     if (!ctx.resultInfo!.isAggregation)
         return null;
     const results = ctx.results;
@@ -78,9 +72,3 @@ function makeOtherAggregationReply(ctx : ContextInfo, op : string, param : C.Par
         return null;
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_display_result', null));
 }
-
-export {
-    makeCountAggregationReplySuffix,
-    makeCountAggregationReply,
-    makeOtherAggregationReply
-};

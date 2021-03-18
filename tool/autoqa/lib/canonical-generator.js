@@ -392,7 +392,7 @@ export default class AutoCanonicalGenerator {
                             if (tokens.length === 1)
                                 return c;
                             if (['IN', 'TO', 'PR'].includes(this._langPack.posTag(tokens)[tokens.length - 1]))
-                                return [...tokens.slice(0, -1), '|', tokens[tokens.length - 1]].join(' ');
+                                return [...tokens.slice(0, -1), '//', tokens[tokens.length - 1]].join(' ');
                             return c;
                         }).filter(this._dedup);
                     } else {

@@ -26,6 +26,7 @@ import type Engine from '../engine';
 import type { DeviceInfo } from '../engine';
 
 import { cleanKind } from '../utils/misc-utils';
+import { ReplacedList, ReplacedConcatenation } from '../utils/template-string';
 import ValueCategory from './value-category';
 import StatementExecutor from './statement_executor';
 import { CancellationError } from './errors';
@@ -151,9 +152,9 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
                     device: factory.text
                 });
             } else if (factory.type === 'multiple') {
-                await this._dlg.replyInterp(this._("You do not have a ${device} configured. You will need to enable ${choices:disjunction} before you can use that command."), {
+                await this._dlg.replyInterp(this._("You do not have a ${device} configured. You will need to enable ${choices} before you can use that command."), {
                     device: factory.text,
-                    choices: factory.choices.map((f) => f.text)
+                    choices: new ReplacedList(factory.choices.map((f) => new ReplacedConcatenation([f.text], {}, {})), this._engine.platform.locale, 'disjunction')
                 });
             } else if (this.getAllDevicesOfKind(factory.kind).length > 0) {
                 await this._dlg.replyInterp(this._("You do not have a ${device} configured. You will need to configure it inside your ${factory} before you can use that command."), {

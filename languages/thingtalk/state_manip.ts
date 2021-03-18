@@ -22,7 +22,7 @@
 import assert from 'assert';
 import * as ThingTalk from 'thingtalk';
 import { Ast, Type } from 'thingtalk';
-import { SentenceGeneratorTypes } from 'genie-toolkit';
+import type { SentenceGeneratorTypes, SentenceGeneratorRuntime } from 'genie-toolkit';
 export type AgentReplyRecord = SentenceGeneratorTypes.AgentReplyRecord<Ast.DialogueState>;
 
 import * as C from './ast_manip';
@@ -258,6 +258,9 @@ export class ContextInfo {
 
         // number of results
         resultLength : number;
+
+        // aggregation result (for count)
+        aggregationCount : number|null;
     };
 
     constructor(loader : ThingpediaLoader,
@@ -301,7 +304,9 @@ export class ContextInfo {
             id0: null,
             id1: null,
             id2: null,
-            resultLength: 0
+            resultLength: 0,
+
+            aggregationCount: null
         };
         if (this.resultInfo) {
             this.key.idType = this.resultInfo.idType;
@@ -314,6 +319,12 @@ export class ContextInfo {
                 this.key.id1 = toID(results[1].value.id);
             if (results.length > 2)
                 this.key.id2 = toID(results[2].value.id);
+
+            if (this.resultInfo.isAggregation) {
+                const count = results[0].value.count;
+                if (count)
+                    this.key.aggregationCount = count.toJS() as number;
+            }
         }
     }
 
@@ -726,10 +737,17 @@ function addQueryAndAction(ctx : ContextInfo,
     return addNewItem(ctx, dialogueAct, null, confirm, newTableHistoryItem, newActionHistoryItem);
 }
 
-export function makeContextPhrase(symbol : number, value : ContextInfo, utterance = '', priority = 0) : SentenceGeneratorTypes.ContextPhrase {
+export function makeContextPhrase(symbol : number,
+                                  value : ContextInfo,
+                                  utterance : SentenceGeneratorRuntime.ReplacedResult = value.loader.runtime.ReplacedResult.EMPTY,
+                                  priority = 0) : SentenceGeneratorTypes.ContextPhrase {
     return { symbol, utterance, value, priority, key: value.key };
 }
-export function makeExpressionContextPhrase(symbol : number, value : Ast.Expression, utterance : string, priority = 0) : SentenceGeneratorTypes.ContextPhrase {
+export function makeExpressionContextPhrase(loader : ThingpediaLoader,
+                                            symbol : number,
+                                            value : Ast.Expression,
+                                            utterance : SentenceGeneratorRuntime.ReplacedResult = loader.runtime.ReplacedResult.EMPTY,
+                                            priority = 0) : SentenceGeneratorTypes.ContextPhrase {
     return { symbol, utterance, value, priority, key: keyfns.expressionKeyFn(value) };
 }
 
@@ -943,38 +961,29 @@ function makeErrorContextPhrase(ctx : ContextInfo,
     const action = C.getInvocation(ctx.current!);
 
     // try all phrases, find the first that we can replace correctly
-    for (const candidate of phrases) {
+    outer: for (const candidate of phrases) {
         const bag = new SlotBag(currentFunction);
-
-        let utterance = '';
-        let good = true;
-        for (const chunk of candidate.split(' ')) {
-            if (chunk.startsWith('$') && chunk !== '$$') {
-                const [, param1, param2,] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk)!;
-                const param = param1 || param2;
-                assert(param);
-                // TODO use opt
-
-                let found = null;
-                for (const in_param of action.in_params) {
-                    if (in_param.name === param) {
-                        found = in_param.value;
-                        break;
-                    }
-                }
-                if (!found) {
-                    good = false;
+        const replacements : SentenceGeneratorRuntime.PlaceholderReplacement[] = [];
+        for (const param of candidate.names) {
+            let value = null;
+            for (const in_param of action.in_params) {
+                if (in_param.name === param) {
+                    value = in_param.value;
                     break;
                 }
-                utterance += ' ' + describer.describeArg(found);
-                bag.set(param, found);
-            } else {
-                utterance += ' ' + chunk;
             }
+            if (!value)
+                continue outer;
+            const text = describer.describeArg(value);
+            if (text === null)
+                continue outer;
+            replacements.push({ value, text });
+            bag.set(param, value);
         }
-        utterance = utterance.trim();
+        const replacementCtx = { replacements, constraints: {} };
+        const utterance = candidate.replaceable.replace(replacementCtx);
 
-        if (good) {
+        if (utterance) {
             const value : C.ErrorMessage = { code: error.value, bag };
             return { symbol: contextTable.ctx_thingpedia_error_message, utterance, value, priority: 0, key: keyfns.errorMessageKeyFn(value) };
         }
@@ -992,32 +1001,23 @@ function makeResultContextPhrase(ctx : ContextInfo,
     const phrases = ctx.loader.getResultStrings(currentFunction.qualifiedName);
 
     // try all phrases, find the first that we can replace correctly
-    for (const candidate of phrases) {
+    outer: for (const candidate of phrases) {
         const bag = new SlotBag(currentFunction);
-
-        let utterance = '';
-        let good = true;
-        for (const chunk of candidate.split(' ')) {
-            if (chunk.startsWith('$') && chunk !== '$$') {
-                const [, param1, param2,] = /^\$(?:\$|([a-zA-Z0-9_]+(?![a-zA-Z0-9_]))|{([a-zA-Z0-9_]+)(?::([a-zA-Z0-9_-]+))?})$/.exec(chunk)!;
-                const param = param1 || param2;
-                assert(param);
-                // TODO use opt
-
-                const value = result.value[param];
-                if (!value) {
-                    good = false;
-                    break;
-                }
-                utterance += ' ' + describer.describeArg(value);
-                bag.set(param, value);
-            } else {
-                utterance += ' ' + chunk;
-            }
+        const replacements : SentenceGeneratorRuntime.PlaceholderReplacement[] = [];
+        for (const param of candidate.names) {
+            const value = result.value[param];
+            if (!value)
+                continue outer;
+            const text = describer.describeArg(value);
+            if (text === null)
+                continue outer;
+            replacements.push({ value, text });
+            bag.set(param, value);
         }
-        utterance = utterance.trim();
+        const replacementCtx = { replacements, constraints: {} };
+        const utterance = candidate.replaceable.replace(replacementCtx);
 
-        if (good)
+        if (utterance)
             return { symbol: contextTable.ctx_thingpedia_result, utterance, value: bag, priority: 0, key: keyfns.slotBagKeyFn(bag) };
     }
 
@@ -1036,8 +1036,14 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
     if (current) {
         const lastQuery = current.stmt.lastQuery;
         if (lastQuery) {
-            phrases.push(makeExpressionContextPhrase(contextTable.ctx_current_query, lastQuery,
-                                                     describer.describeQuery(lastQuery)));
+            let description = describer.describeQuery(lastQuery);
+            if (description !== null)
+                description = description.constrain('plural', 'other');
+            if (description !== null) {
+                phrases.push(makeExpressionContextPhrase(ctx.loader,
+                                                         contextTable.ctx_current_query, lastQuery,
+                                                         description));
+            }
         }
 
         if (current.results!.error instanceof Ast.EnumValue) {
@@ -1057,20 +1063,27 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
 
     const next = ctx.next;
     if (next) {
-        phrases.push(makeContextPhrase(contextTable.ctx_next_statement, ctx,
-                                       describer.describeExpressionStatement(next.stmt)));
+        const description = describer.describeExpressionStatement(next.stmt);
+        if (description !== null)
+            phrases.push(makeContextPhrase(contextTable.ctx_next_statement, ctx, description));
 
         const lastQuery = next.stmt.lastQuery;
         if (lastQuery) {
-            phrases.push(makeExpressionContextPhrase(contextTable.ctx_next_query, lastQuery,
-                                                     describer.describeQuery(lastQuery)));
+            const description = describer.describeQuery(lastQuery);
+            if (description !== null) {
+                phrases.push(makeExpressionContextPhrase(ctx.loader, contextTable.ctx_next_query, lastQuery,
+                                                         description));
+            }
         }
 
         const action = next.stmt.last;
         if (action.schema!.functionType === 'action') {
             assert(action instanceof Ast.InvocationExpression);
-            phrases.push(makeExpressionContextPhrase(contextTable.ctx_next_action, action,
-                                                     describer.describePrimitive(action.invocation)));
+            const description = describer.describePrimitive(action.invocation);
+            if (description !== null) {
+                phrases.push(makeExpressionContextPhrase(ctx.loader, contextTable.ctx_next_action, action,
+                                                         description));
+            }
         }
     }
 

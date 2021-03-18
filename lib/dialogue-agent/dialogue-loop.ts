@@ -24,11 +24,11 @@ import assert from 'assert';
 import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
 import { Ast, Syntax } from 'thingtalk';
-import interpolate from 'string-interp';
 import AsyncQueue from 'consumer-queue';
 
 import { getProgramIcon } from '../utils/icons';
 import * as ThingTalkUtils from '../utils/thingtalk';
+import { Replaceable, ReplacedConcatenation, ReplacedResult } from '../utils/template-string';
 import { EntityMap } from '../utils/entity-utils';
 import type Engine from '../engine';
 import * as ParserClient from '../prediction/parserclient';
@@ -213,10 +213,19 @@ export default class DialogueLoop {
     }
 
     interpolate(msg : string, args : Record<string, unknown>) : string {
-        return interpolate(msg, args, {
-            locale: this.conversation.locale,
-            timezone: this.conversation.timezone
-        })||'';
+        const replacements = [];
+        const names = [];
+        for (const key in args) {
+            names.push(key);
+            const value = args[key];
+            replacements.push({
+                text: value instanceof ReplacedResult ? value : new ReplacedConcatenation([String(value)], {}, {}),
+                value,
+            });
+        }
+
+        const tmpl = Replaceable.get(msg, this.conversation.locale, names);
+        return this._langPack.postprocessNLG(tmpl.replace({ replacements, constraints: {} })!.chooseBest(), {}, this._agent);
     }
 
     async nextCommand() : Promise<UserInput> {
@@ -485,7 +494,11 @@ export default class DialogueLoop {
             kinds.add(prim.selector.kind);
         for (const kind of kinds)
             describer.setDataset(kind, await this.engine.schemas.getExamplesByKind(kind));
-        return this._langPack.postprocessNLG(describer.describe(program), allocator.entities, this._agent);
+
+        const description = describer.describe(program);
+        if (description === null)
+            return null;
+        return this._langPack.postprocessNLG(description.chooseBest(), allocator.entities, this._agent);
     }
 
     private async _handleUserInput(command : UserInput) {
@@ -520,6 +533,12 @@ export default class DialogueLoop {
             case CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND: {
                 // TODO move this to the state machine, not here
                 const confirmation = await this._describeProgram(analyzed.parsed!);
+                if (confirmation === null) {
+                    // we failed to generate a confirmation (due to missing/incompatible canonical forms)
+                    // emit a generic error message and move on
+                    await this.fail();
+                    break;
+                }
                 const question = this.interpolate(this._("Did you mean ${command}?"), { command: confirmation });
                 const yesNo = await this.ask(ValueCategory.YesNo, question);
                 assert(yesNo instanceof Ast.BooleanValue);

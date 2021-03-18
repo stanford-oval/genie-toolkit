@@ -158,7 +158,7 @@
       "has_ner_support": 1
     },
     {
-      "type": "org.wikidatasportsskill:australianfootball.com_id",
+      "type": "org.wikidatasportsskill:australianfootball_id",
       "name": "australianfootball.com id",
       "is_well_known": 0,
       "has_ner_support": 0
@@ -176,19 +176,19 @@
       "has_ner_support": 0
     },
     {
-      "type": "org.wikidatasportsskill:baseball-reference.com_major_league_play",
+      "type": "org.wikidatasportsskill:baseball_reference_major_league_play",
       "name": "baseball-reference.com major league player id",
       "is_well_known": 0,
       "has_ner_support": 0
     },
     {
-      "type": "org.wikidatasportsskill:baseball-reference.com_minor_&_foreign_l",
+      "type": "org.wikidatasportsskill:baseball_reference_minor_foreign_l",
       "name": "baseball-reference.com minor & foreign league player id",
       "is_well_known": 0,
       "has_ner_support": 0
     },
     {
-      "type": "org.wikidatasportsskill:basketball-reference.com_nba_player_id",
+      "type": "org.wikidatasportsskill:basketball_reference_nba_player_id",
       "name": "basketball-reference.com nba player id",
       "is_well_known": 0,
       "has_ner_support": 0
@@ -218,7 +218,7 @@
       "has_ner_support": 0
     },
     {
-      "type": "org.wikidatasportsskill:databaseolympics.com_athlete_id",
+      "type": "org.wikidatasportsskill:databaseolympics_athlete_id",
       "name": "databaseolympics.com athlete id",
       "is_well_known": 0,
       "has_ner_support": 0
@@ -236,25 +236,25 @@
       "has_ner_support": 0
     },
     {
-      "type": "org.wikidatasportsskill:encyclopædia_britannica_online_id",
+      "type": "org.wikidatasportsskill:encyclopedia_britannica_online_id",
       "name": "encyclopædia britannica online id",
       "is_well_known": 0,
       "has_ner_support": 0
     },
     {
-      "type": "org.wikidatasportsskill:encyclopædia_universalis_id",
+      "type": "org.wikidatasportsskill:encyclopedia_universalis_id",
       "name": "encyclopædia universalis id",
       "is_well_known": 0,
       "has_ner_support": 0
     },
     {
-      "type": "org.wikidatasportsskill:espncricinfo.com_player_id",
+      "type": "org.wikidatasportsskill:espncricinfo_player_id",
       "name": "espncricinfo.com player id",
       "is_well_known": 0,
       "has_ner_support": 0
     },
     {
-      "type": "org.wikidatasportsskill:eurohockey.com_player_id",
+      "type": "org.wikidatasportsskill:eurohockey_player_id",
       "name": "eurohockey.com player id",
       "is_well_known": 0,
       "has_ner_support": 0
@@ -290,7 +290,7 @@
       "has_ner_support": 0
     },
     {
-      "type": "org.wikidatasportsskill:footballdatabase.eu_player_id",
+      "type": "org.wikidatasportsskill:footballdatabase_player_id",
       "name": "footballdatabase.eu player id",
       "is_well_known": 0,
       "has_ner_support": 0
@@ -314,13 +314,13 @@
       "has_ner_support": 0
     },
     {
-      "type": "org.wikidatasportsskill:hockey-reference.com_player_id",
+      "type": "org.wikidatasportsskill:hockey-reference_player_id",
       "name": "hockey-reference.com player id",
       "is_well_known": 0,
       "has_ner_support": 0
     },
     {
-      "type": "org.wikidatasportsskill:hockeydb.com_player_id",
+      "type": "org.wikidatasportsskill:hockeydb_player_id",
       "name": "hockeydb.com player id",
       "is_well_known": 0,
       "has_ner_support": 0
@@ -380,13 +380,13 @@
       "has_ner_support": 0
     },
     {
-      "type": "org.wikidatasportsskill:mlb.com_player_id",
+      "type": "org.wikidatasportsskill:mlb_player_id",
       "name": "mlb.com player id",
       "is_well_known": 0,
       "has_ner_support": 0
     },
     {
-      "type": "org.wikidatasportsskill:national-football-teams.com_player_id",
+      "type": "org.wikidatasportsskill:national_football_teams_player_id",
       "name": "national-football-teams.com player id",
       "is_well_known": 0,
       "has_ner_support": 0
@@ -404,13 +404,13 @@
       "has_ner_support": 0
     },
     {
-      "type": "org.wikidatasportsskill:nfl.com_id",
+      "type": "org.wikidatasportsskill:nfl_id",
       "name": "nfl.com id",
       "is_well_known": 0,
       "has_ner_support": 0
     },
     {
-      "type": "org.wikidatasportsskill:nhl.com_player_id",
+      "type": "org.wikidatasportsskill:nhl_player_id",
       "name": "nhl.com player id",
       "is_well_known": 0,
       "has_ner_support": 0
@@ -446,7 +446,7 @@
       "has_ner_support": 1
     },
     {
-      "type": "org.wikidatasportsskill:pro-football-reference.com_player_id",
+      "type": "org.wikidatasportsskill:pro_football_reference_player_id",
       "name": "pro-football-reference.com player id",
       "is_well_known": 0,
       "has_ner_support": 0
@@ -476,13 +476,13 @@
       "has_ner_support": 1
     },
     {
-      "type": "org.wikidatasportsskill:sports-reference.com_college_basketball_",
+      "type": "org.wikidatasportsskill:sports_reference_college_basketball_",
       "name": "sports-reference.com college basketball player id",
       "is_well_known": 0,
       "has_ner_support": 0
     },
     {
-      "type": "org.wikidatasportsskill:sports-reference.com_olympic_athlete_id",
+      "type": "org.wikidatasportsskill:sports_reference_olympic_athlete_id",
       "name": "sports-reference.com olympic athlete id",
       "is_well_known": 0,
       "has_ner_support": 0
