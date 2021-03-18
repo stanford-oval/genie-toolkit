@@ -22,7 +22,7 @@
 import assert from 'assert';
 import * as seedrandom from 'seedrandom';
 
-import * as TemplateStringGrammar from '../../lib/sentence-generator/template-string/grammar';
+import { Replaceable } from '../../lib/utils/template-string';
 
 const TEST_CASES = [
     // 1 simple string
@@ -477,7 +477,7 @@ function test(rng, i) {
             let parsed, replaced;
             if (typeof tpl === 'string') {
                 try {
-                    parsed = TemplateStringGrammar.parse(tpl).preprocess('en-US', placeholders);
+                    parsed = Replaceable.parse(tpl).preprocess('en-US', placeholders);
                 } catch(e) {
                     console.log(`Failed to parse ${key}`);
                     throw e;
@@ -489,7 +489,7 @@ function test(rng, i) {
                 replacements[placeholders.indexOf(key)] = { text: replaced, value: {} };
             } else {
                 try {
-                    parsed = TemplateStringGrammar.parse(tpl.text).preprocess('en-US', placeholders);
+                    parsed = Replaceable.parse(tpl.text).preprocess('en-US', placeholders);
                 } catch(e) {
                     console.log(`Failed to parse ${key}`);
                     throw e;
