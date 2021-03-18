@@ -596,7 +596,8 @@ export default class ThingpediaLoader {
         for (const pos in projectionforms) {
             const forms = projectionforms[pos];
             // FIXME we cannot join all forms together in a single {} expression
-            // because _addProjection uses | as a special character
+            // because _addProjection wants to split on "//" to get to different
+            // phrases
 
             // always have what question for projection if base available
             if (canonical.base_projection.length > 0) {
@@ -628,8 +629,8 @@ export default class ThingpediaLoader {
     }
 
     private _addProjections(pslot : ParamSlot, pronoun : string, posCategory : string, base : string, canonical : string) {
-        if (canonical.includes('|')) {
-            const [verb, prep] = canonical.split('|').map((span) => span.trim());
+        if (canonical.includes('//')) {
+            const [verb, prep] = canonical.split('//').map((span) => span.trim());
             this.projections.push({
                 pname: pslot.name,
                 pslot,

@@ -161,6 +161,9 @@ export default class DefaultLanguagePack {
             tmpl = tmpl.replace('#', '${value}');
             if (!/\$(\{value\}|value)/.test(tmpl))
                 tmpl += ' ${value}';
+        } else if (tmpl.includes('|')) {
+            // backward compatibility with old projection phrases that use |
+            tmpl = tmpl.replace('|', '//');
         }
         const parsed = Replaceable.parse(tmpl).preprocess(this.locale, isFilter ? ['value'] : []);
         if (isFilter) {

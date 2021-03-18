@@ -35,6 +35,7 @@ const TEST_CASES = [
     ['Post 😗 on Twitter', 'post 😗 on twitter', 'post 😗 on twitter', {}],
     ['make a twitter-post', 'make a twitter-post', 'make a twitter-post', {}],
     ['make a twitter-', 'make a twitter -', 'make a twitter -', {}],
+    ['created // by', 'created // by', 'created // by', {}],
 
     // numbers and words together
     ['train tr0123', 'train tr0123', 'train tr0123', {}],
