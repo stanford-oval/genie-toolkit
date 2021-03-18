@@ -603,11 +603,11 @@ export class Describer {
             missing.add(in_param2.name);
         }
         for (const in_param of exampleInParams) {
+            if (in_param.value instanceof Ast.UndefinedValue)
+                continue;
+
             let found = false;
             for (const in_param2 of programInParams) {
-                if (in_param2.value instanceof Ast.UndefinedValue)
-                    continue;
-
                 if (in_param2.name === in_param.name) {
                     // found it!
                     if (in_param.value.equals(in_param2.value)) {
@@ -615,8 +615,16 @@ export class Describer {
                         score += 2;
                     } else if (in_param.value instanceof Ast.VarRefValue &&
                                in_param.value.name in exampleArgs) {
-                        // normal match (map to a placeholder and replace)
-                        score += 1;
+                        if (in_param2.value instanceof Ast.UndefinedValue) {
+                            // the parameter is mentioned in the example utterance but
+                            // is undefined in the program we're describing, so we'll have to
+                            // use a placeholder
+                            // lower the score
+                            score -= 0.5;
+                        } else {
+                            // normal match (map to a placeholder and replace)
+                            score += 1;
+                        }
                     } else {
                         // no match at all, break out of here!
                         break;
@@ -627,18 +635,8 @@ export class Describer {
                     break;
                 }
             }
-            if (!found) {
-                if (in_param.value instanceof Ast.VarRefValue &&
-                    in_param.value.name in exampleArgs) {
-                    // the parameter is mentioned in the example utterance but not
-                    // in the program we're describing, so we'll have to
-                    // use a placeholder
-                    // lower the score
-                    score -= 0.5;
-                } else if (!(in_param.value instanceof Ast.UndefinedValue)) {
-                    return null;
-                }
-            }
+            if (!found)
+                return null;
         }
 
         for (const _ of missing) {
