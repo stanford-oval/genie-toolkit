@@ -171,6 +171,7 @@ export class NFA {
     }
 
     match(utterance : string, domainCanonical : string[], value : string) : string|null {
+        value = this.tokenizer.tokenize(value).rawTokens.join(' ');
         const preprocessed = this.preprocess(utterance, domainCanonical, value);
         if (preprocessed.length === 0)
             return null;

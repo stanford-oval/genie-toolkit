@@ -23,7 +23,7 @@ import { specialTokens, NFA, toNFA } from './nfa';
 // maximum length of the canonical (value excluded)
 const MAX_LENGTH = 5;
 
-const a = '( a | an | any | some | all | the | ε )';
+const a = '( a | an | any | some | all | the | ε | the | that | this )';
 const that = '( that | which | who | ε )';
 const is = '( is | are | was | were )';
 const does = '( does | do | did )';
@@ -45,13 +45,13 @@ const queryTemplates : Record<string, string[]> = {
         `${find} ${a} $domain [ ${passiveVerb} .* $value .* ]`,
         `${find} ${a} $domain ${that} ${is} [ ${passiveVerb} .* $value .* ]`,
         `${who} ${is} [ ${passiveVerb} .* $value .* ]`,
-        `who's [ ${passiveVerb} .* $value .* ]`
+        `who 's [ ${passiveVerb} .* $value .* ]`
     ],
     'preposition': [
         `${find} ${a} $domain [ ${preposition} .* $value .* ]`,
         `${find} ${a} $domain ${that} ${is} [ ${preposition} .* $value .* ]`,
         `${who} ${is} [ ${preposition} .* $value .* ]`,
-        `who's [ ${preposition} .* $value .* ]`
+        `who 's [ ${preposition} .* $value .* ]`
     ],
     'verb': [
         `${who} ${does} [ $value .* ]`, // some verbs are tagged as noun, so no ${verb} requirement after $value
@@ -61,11 +61,12 @@ const queryTemplates : Record<string, string[]> = {
     'reverse_property' : [
         `${find} ${a} [ .* ${noun} ]`,
         `${who} ${is} [ .* ${noun} ]`,
-        `who's [ .* ${noun} ]`
+        `who 's [ .* ${noun} ]`
     ],
     'adjective' : [
         `${find} ${a} [ .* $value .* ] $domain`,
-        `${who} ${is} [ .* $value .* ]`
+        `${who} ${is} [ .* $value .* ] $domain`,
+        `what 's [ .* $value . *] $domain`,
     ],
 };
 

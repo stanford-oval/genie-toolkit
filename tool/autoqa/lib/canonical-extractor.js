@@ -26,7 +26,6 @@ import * as child_process from 'child_process';
 import stemmer from 'stemmer';
 
 import PosParser from '../../../lib/pos-parser';
-import EnglishTokenizer from '../../../lib/i18n/tokenizer/english';
 
 export default class AnnotationExtractor {
     constructor(klass, queries, model, options) {
@@ -35,7 +34,6 @@ export default class AnnotationExtractor {
         this.queries = queries;
         this.options = options;
         this.parser = new PosParser();
-        this.tokenizer = new EnglishTokenizer();
 
         this._input = [];
         this._output = [];
@@ -286,9 +284,6 @@ export default class AnnotationExtractor {
     }
 
     _extractOneCanonical(canonical, paraphrase, value, query_canonical) {
-        paraphrase = paraphrase.toLowerCase();
-        value = this.tokenizer.tokenize(value).rawTokens.join(' ');
-
         const annotations = this.parser.match('query', paraphrase, [query_canonical], value);
         if (annotations) {
             for (const annotation of annotations) {
