@@ -88,7 +88,7 @@ const TEST_CASES = [
     `Get the current weather at work.`,
     'Weather'],
     [`now => @org.thingpedia.weather.current(location=new Location(37,-137)) => notify;`,
-    `Get the current weather in [Latitude: 37 deg, Longitude: -137 deg].`,
+    `Get the current weather in [Latitude: 37.000 deg, Longitude: -137.000 deg].`,
     'Weather'],
     [`now => @org.thingpedia.weather.current(location=new Location(37,-137, "Somewhere")) => notify;`,
     `Get the current weather in Somewhere.`,
@@ -112,17 +112,17 @@ const TEST_CASES = [
     'Instagram'],
 
     [`now => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code, text="hello") => @com.facebook.post(status=$result);`,
-    `Get the translate on ytranslate with target language zh and with text hello and then post on Facebook with status the result.`,
+    `Get the translate on ytranslate with target language zh and text hello and then post on Facebook with status the result.`,
     'Yandex Translate ⇒ Facebook'],
 
     [`monitor (@com.xkcd.get_comic()) => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code("Chinese"), text=title) => @com.facebook.post(status=$result);`,
-    `Do the following: when the xkcd comic changes, get the translate on ytranslate with target language Chinese and with text the title, and then post on Facebook with status the result.`,
+    `Do the following: when the xkcd comic changes, get the translate on ytranslate with target language Chinese and text the title, and then post on Facebook with status the result.`,
     'Xkcd ⇒ Yandex Translate ⇒ Facebook'],
     [`monitor (@com.xkcd.get_comic()) => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code("Chinese"), text=title) => notify;`,
-    `Get the translate on ytranslate with target language Chinese and with text the title when the xkcd comic changes.`,
+    `Get the translate on ytranslate with target language Chinese and text the title when the xkcd comic changes.`,
     'Xkcd ⇒ Yandex Translate'],
     [`monitor (@com.xkcd.get_comic(), title =~ "lol") => @com.yandex.translate.translate(target_language="zh"^^tt:iso_lang_code("Chinese"), text=title) => notify;`,
-    'Get the translate on ytranslate with target language Chinese and with text the title when the xkcd comic changes if the title contains lol.',
+    'Get the translate on ytranslate with target language Chinese and text the title when the xkcd comic changes if the title contains lol.',
     'Xkcd ⇒ Yandex Translate'],
     [`monitor (@com.xkcd.get_comic(), title =~ "lol") => notify;`,
     'Notify me when the xkcd comic changes if the title contains lol.',
@@ -159,10 +159,10 @@ const TEST_CASES = [
     'Set ringer on phone with mode vibrate.', 'Phone'],
 
     ['now => @com.bing.web_search() => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian"), text=$result) => notify;',
-    'Get web searches on bing and then get the translate on ytranslate with target language Italian and with text the result.',
+    'Get web searches on bing and then get the translate on ytranslate with target language Italian and text the result.',
     'Bing ⇒ Yandex Translate'],
     ['monitor(@com.bing.web_search()) => @com.yandex.translate.translate(target_language="it"^^tt:iso_lang_code("Italian"), text=$result) => notify;',
-    'Get the translate on ytranslate with target language Italian and with text the result when web searches on bing change.',
+    'Get the translate on ytranslate with target language Italian and text the result when web searches on bing change.',
     'Bing ⇒ Yandex Translate'],
 
     [`now => avg(file_size of @com.google.drive.list_drive_files()) => notify;`,
@@ -178,10 +178,10 @@ const TEST_CASES = [
     'Get the sum of the file size in Google drive files.',
     'Google Drive'],
     [`now => count(file_size of @com.google.drive.list_drive_files()) => notify;`,
-    'Get the number of file sizes in Google drive files.',
+    'Get the number of file size in Google drive files.',
     'Google Drive'],
     [`now => count(file_name of @com.google.drive.list_drive_files()) => notify;`,
-    'Get the number of file names in Google drive files.',
+    'Get the number of file name in Google drive files.',
     'Google Drive'],
     [`now => count(@com.google.drive.list_drive_files()) => notify;`,
     'Get the number of Google drive files.',
@@ -300,7 +300,7 @@ const TEST_CASES = [
     `Yelp`],
 
     [`now => (@com.yelp.restaurant()), contains(cuisines, "mexican"^^com.yelp:restaurant_cuisine("Mexican")) && rating == 4 => notify;`,
-    `Get restaurants rated 4 star that have Mexican food.`,
+    `Get restaurants that have Mexican food rated 4 star.`,
     `Yelp`],
 
     [`now => (@com.yelp.restaurant()), contains(cuisines, "mexican"^^com.yelp:restaurant_cuisine("Mexican")) && rating >= 4 => notify;`,
@@ -328,7 +328,7 @@ const TEST_CASES = [
      `Get Date`],
 
     [`now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(2020, 6, , 12, 0, 0) => notify;`,
-     `Get today's date such that the date is after 6/1/2020, 12:00:00 PM.`,
+     `Get today's date such that the date is after June 1, 2020 at 12:00 PM.`,
      `Get Date`],
 
     [`now => @org.thingpedia.builtin.thingengine.builtin.get_date(), date >= new Date(, 6, 3, 12, 0, 0) => notify;`,
@@ -370,7 +370,7 @@ async function test(i) {
         for (const kind of kinds)
             describer.setDataset(kind, await schemaRetriever.getExamplesByKind(kind));
 
-        let reconstructed = describer.describe(prog);
+        let reconstructed = describer.describe(prog).chooseBest();
         reconstructed = langPack.postprocessNLG(langPack.postprocessSynthetic(reconstructed, prog, null, 'agent'), allocator.entities, {
             timezone: 'America/Los_Angeles',
             getPreferredUnit(key) {

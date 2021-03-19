@@ -34,23 +34,23 @@ import * as S from '../../state_manip';
 import ThingpediaLoader from '../../load-thingpedia';
 
 search_result_preamble : S.ContextInfo = {
-    ctx:ctx_search_command ('there are' | 'i can see' | 'i have found' | 'i can recommend') ('many' | 'several') base:base_noun_phrase with { functionName = ctx.currentFunction }
-        ('matching your request' | 'matching your constraints' | 'with those characteristics' | 'like that' | '') '.'
-        => D.checkSearchResultPreamble(ctx, base, null, false);
+    ["{there are|i can see|i have found|i can recommend} {many|several} ${base[plural=other]} {matching your request|matching your constraints|with those characteristics|like that|}."]: (ctx:ctx_search_command, base:base_noun_phrase<functionName = ctx.currentFunction>)
+        => D.checkSearchResultPreamble(ctx, base, null, false),
 
-    ctx:ctx_search_command ('there are' | 'i have found' | 'i have' | 'i can see') num:constant_Number with { value = ctx.resultLength } base:base_noun_phrase with { functionName = ctx.currentFunction }
-        ('in my database' | 'like that') '.'
-        => D.checkSearchResultPreamble(ctx, base, num, false);
+    ["{there are|i can see|i have found|i have} ${ctx.resultLength} ${ctx.resultLength:plural:one{${base[plural=one]}}other{${base[plural=other]}}} {in my database|like that|}."]: (ctx:ctx_search_command, base:base_noun_phrase<functionName = ctx.currentFunction>)
+        => D.checkSearchResultPreamble(ctx, base, null, false);
 }
 
 system_generic_proposal : S.AgentReplyRecord = {
-    ( ctx:ctx_search_command ('are you looking for a' | 'how about a' | 'how about the') proposal:answer_noun_phrase with { functionName = ctx.currentFunction } '?'
-    | ctx:ctx_search_command ('are you looking for' | 'how about') proposal:anything_phrase with { functionName = ctx.currentFunction } '?'
-    ) => D.makeRefinementProposal(ctx, proposal);
+    ["{are you looking for a|how about a|how about the} ${proposal[plural=one]}"]: (ctx:ctx_search_command, proposal:answer_noun_phrase<functionName = ctx.currentFunction>)
+        => D.makeRefinementProposal(ctx, proposal),
+    ["{are you looking for|how about|how about} ${proposal}"]: (ctx:ctx_search_command, proposal:anything_phrase<functionName = ctx.currentFunction>)
+        => D.makeRefinementProposal(ctx, proposal),
 
-    ( ctx:search_result_preamble ('are you looking for a' | 'how about a' | 'how about the') proposal:answer_noun_phrase with { functionName = ctx.currentFunction } '?'
-    | ctx:search_result_preamble ('are you looking for' | 'how about' | 'how about') proposal:anything_phrase with { functionName = ctx.currentFunction } '?'
-    ) => D.makeRefinementProposal(ctx, proposal);
+    ["${preamble} {are you looking for a|how about a|how about the} ${proposal[plural=one]}"]: (preamble:search_result_preamble, proposal:answer_noun_phrase<functionName = preamble.currentFunction>)
+        => D.makeRefinementProposal(preamble, proposal),
+    ["${preamble} {are you looking for|how about|how about} ${proposal}"]: (preamble:search_result_preamble, proposal:anything_phrase<functionName = preamble.currentFunction>)
+        => D.makeRefinementProposal(preamble, proposal),
 }
 
 negative_proposal_request : Ast.Expression = {

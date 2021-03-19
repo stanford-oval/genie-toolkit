@@ -49,6 +49,13 @@ dataset @org.thingpedia.builtin.thingengine.builtin language "en" {
     #[id=53269129]
     #[name="GetRandomIntegerWithLowWithHigh"];
 
+    query (p_device : Entity(tt:device)) := @org.thingpedia.builtin.thingengine.builtin.device_info(id=p_device)
+    #_[utterances=["information about ${p_device}",
+                   "help with ${p_device}",
+                   "${p_device} help",
+                   "${p_device} documentation"]]
+    #[name="DeviceInfoWithDevice"];
+
     action (p_message :String) := @org.thingpedia.builtin.thingengine.builtin.say(message=p_message)
     #_[utterances=["send me a message ${p_message:const}",
                    "tell me $p_message",
@@ -127,4 +134,8 @@ dataset @org.thingpedia.builtin.thingengine.builtin language "en" {
     program (p_type : Enum(current,home,work), p_location : Location) = @org.thingpedia.builtin.thingengine.builtin.set_location(type=p_type, location=p_location)
     #_[utterances=["my ${p_type} address is ${p_location}",
                    "my ${p_type} is at ${p_location}"]];
+
+    program (p_unit : Enum(celsius,fahrenheit,kelvin)) = @org.thingpedia.builtin.thingengine.builtin.set_temperature_unit(unit=p_unit)
+    #_[utterances=["use ${p_unit} for temperatures", "use ${p_unit} to display temperatures",
+                   "tell me the temperature in ${p_unit}"]];
 }

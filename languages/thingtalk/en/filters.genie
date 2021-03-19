@@ -31,17 +31,17 @@ const HERE = new Ast.Value.Location(new Ast.Location.Relative('current_location'
 
 // generic filters (npp)
 get_predicate_filter : C.DomainIndependentFilterSlot = {
-    'before' t1:constant_Time => C.timeGetPredicate($loader, null, t1);
-    'after' t2:constant_Time  => C.timeGetPredicate($loader, t2, null);
-    'between' t1:constant_Time 'and' t2:constant_Time => C.timeGetPredicate($loader, t1, t2);
+    'before' t1:constant_Time => C.timeSubquery($loader, null, t1);
+    'after' t2:constant_Time  => C.timeSubquery($loader, t2, null);
+    'between' t1:constant_Time 'and' t2:constant_Time => C.timeSubquery($loader, t1, t2);
 
-    'my location is' loc:constant_Location     => C.locationGetPredicate($loader, loc);
-    'my location is not' loc:constant_Location => C.locationGetPredicate($loader, loc, true);
-    'i am at' loc:constant_Location            => C.locationGetPredicate($loader, loc);
-    'i am not at' loc:constant_Location        => C.locationGetPredicate($loader, loc, true);
+    'my location is' loc:constant_Location     => C.locationSubquery($loader, loc);
+    'my location is not' loc:constant_Location => C.locationSubquery($loader, loc, true);
+    'i am at' loc:constant_Location            => C.locationSubquery($loader, loc);
+    'i am not at' loc:constant_Location        => C.locationSubquery($loader, loc, true);
 
-    proj:projection_Any ('is' | 'is exactly' | 'is equal to') x:constant_Any        => C.makeGetPredicate(proj, '==', x);
-    proj:projection_Any ('is not' | 'is n\'t' | 'is different than') x:constant_Any => C.makeGetPredicate(proj, '==', x, true);
+    proj:projection_Any ('is' | 'is exactly' | 'is equal to') x:constant_Any        => C.makeExistentialSubquery(proj, '==', x);
+    proj:projection_Any ('is not' | 'is n\'t' | 'is different than') x:constant_Any => C.makeExistentialSubquery(proj, '==', x, true);
 }
 
 if_filter : C.FilterSlot|C.DomainIndependentFilterSlot = {

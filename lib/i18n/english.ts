@@ -24,8 +24,13 @@ import { Inflectors } from 'en-inflectors';
 import { Tag } from 'en-pos';
 
 import { coin } from '../utils/random';
+import { Phrase } from '../utils/template-string';
+import {
+    EntityMap,
+} from '../utils/entity-utils';
+
 import EnglishTokenizer from './tokenizer/english';
-import DefaultLanguagePack from './default';
+import DefaultLanguagePack, { UnitPreferenceDelegate } from './default';
 
 // nltk stop words
 const STOPWORDS = ['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', "you're", "you've", "you'll",
@@ -77,6 +82,7 @@ const SPECIAL_TOKENS : { [key : string] : string } = {
     '!': '!',
     ':': ':',
     'n\'t': 'n\'t',
+    '”': '”',
 
     // right/left round/curly/square bracket
     '-rrb-': ')',
@@ -230,23 +236,48 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
 
         sentence = sentence.replace(/\bat the (morning|evening)\b/, 'in the $1');
 
-        sentence = sentence.replace(/\bon (today|tomorrow|(?:(this|last|next) (?:week|month|year)))\b/, '$1');
+        sentence = sentence.replace(/\bon (today|tomorrow|yesterday|(?:(this|last|next) (?:week|month|year)))\b/, '$1');
 
         sentence = sentence.replace(/\bon (jan(?:uary)|feb(?:ruary)?|mar(?:ch)?|apr(?:il)|may|june?|july?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\b/, 'in $1');
 
-        // apply some very loose grammar fixes
-        sentence = sentence.replace(/\b(they(?: 're| are)) ([a-z]+)\b/, (_, pre, word) => {
-            const inflected = new Inflectors(word).toPlural();
-            return pre + ' ' + inflected;
-        });
-        sentence = sentence.replace(/\b(it(?: 's| is)) an? ([a-z]+)\b/, (_, pre, word) => {
-            const inflected = new Inflectors(word).toSingular();
-            return pre + ' ' + indefiniteArticle(inflected) + ' ' + inflected;
-        });
-        sentence = sentence.replace(/\b(they(?: 're| are) [a-zA-Z' ]+?) (which|that) is\b/, '$1 $2 are');
-        sentence = sentence.replace(/\b(they(?: 're| are) [a-zA-Z' ]+?) (which|that) has\b/, '$1 $2 have');
-
         return sentence.trim();
+    }
+
+    preprocessFunctionCanonical(canonical : unknown, forItem : 'query'|'action'|'stream', forSide : 'user'|'agent', isList : boolean) : Phrase[] {
+        const normalized = super.preprocessFunctionCanonical(canonical, forItem, forSide, isList);
+
+        // if we have any form that already has the [plural] flag, we do nothing
+        // and assume the developer already did the work
+        if (normalized.some((form) => !!form.flags.plural))
+            return normalized;
+
+        if (forItem === 'query' && isList) {
+            return normalized.flatMap((form) => {
+                const clone = form.clone();
+                clone.text = this.pluralize(form.text);
+                if (clone.text !== form.text) {
+                    clone.flags.plural = 'other';
+                    form.flags.plural = 'one';
+                    return [form, clone];
+                } else {
+                    return [form];
+                }
+            });
+        } else {
+            return normalized;
+        }
+    }
+
+    postprocessNLG(answer : string, entities : EntityMap, delegate : UnitPreferenceDelegate) {
+        return super.postprocessNLG(answer, entities, delegate)
+            // adjust the output of NLG which introduces "today", "tomorrow" and "yesterday" by replacing DATE tokens
+            .replace(/\bon (today|tomorrow|yesterday)\b/i, (match, word) => {
+                // preserve the right capitalization
+                if (match.startsWith('On'))
+                    return word[0].toUpperCase() + word.substring(1);
+                else
+                    return word;
+            });
     }
 
     detokenize(sentence : string, prevtoken : string|null, token : string) : string {
@@ -269,7 +300,7 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
             // note the absence of a space
             sentence += token;
         } else {
-            if (sentence)
+            if (sentence && prevtoken !== '“')
                 sentence += ' ';
             sentence += token;
         }

@@ -248,7 +248,7 @@ export function initArgparse(subparsers) {
 }
 
 export async function execute(args) {
-    const platform = new Platform(args.workdir, args.locale, args.thingpediaUrl);
+    const platform = new Platform(args.workdir, args.locale, args.thingpedia_url);
     const prefs = platform.getSharedPreferences();
     if (args.thingpedia_dir && args.thingpedia_dir.length)
         prefs.set('developer-dir', args.thingpedia_dir);

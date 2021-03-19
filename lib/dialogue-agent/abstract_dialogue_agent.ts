@@ -20,6 +20,7 @@
 
 
 import assert from 'assert';
+import * as Tp from 'thingpedia';
 import { Ast, SchemaRetriever } from 'thingtalk';
 
 import * as I18n from '../i18n';
@@ -103,13 +104,15 @@ function expressionUsesIDFilter(expr : Ast.Expression) {
  * There are two subclasses, one used during simulation, and one used for execution.
  */
 export default abstract class AbstractDialogueAgent<PrivateStateType> {
+    protected _tpClient : Tp.BaseClient;
     protected _schemas : SchemaRetriever;
     protected _debug : boolean;
     private _langPack : I18n.LanguagePack;
     locale : string;
     timezone : string;
 
-    constructor(schemas : SchemaRetriever, options : AbstractDialogueAgentOptions) {
+    constructor(tpClient : Tp.BaseClient, schemas : SchemaRetriever, options : AbstractDialogueAgentOptions) {
+        this._tpClient = tpClient;
         this._schemas = schemas;
         this._langPack = I18n.get(options.locale);
 
@@ -366,14 +369,16 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         if (value instanceof Ast.MeasureValue && value.unit.startsWith('default')) {
             const key = value.unit.substring('default'.length).toLowerCase();
             const preference = this.getPreferredUnit(key);
-            if (preference)
+            if (preference) {
                 value.unit = preference;
-
-            switch (key) {
-            case 'defaultTemperature':
-                value.unit = this._langPack.getDefaultTemperatureUnit();
-            default:
-                throw new TypeError('Unexpected default unit ' + value.unit);
+            } else {
+                switch (key) {
+                case 'defaultTemperature':
+                    value.unit = this._langPack.getDefaultTemperatureUnit();
+                    break;
+                default:
+                    throw new TypeError('Unexpected default unit ' + value.unit);
+                }
             }
         } else if (value instanceof Ast.LocationValue && value.value instanceof Ast.UnresolvedLocation) {
             slot.set(await this.lookupLocation(value.value.name, hints.previousLocations || []));
@@ -385,6 +390,16 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
             if (value.type === 'tt:email_address' || value.type === 'tt:phone_number' ||
                 value.type === 'tt:contact') {
                 slot.set(await contactSearch(this, value.type, value.display!));
+            } else if (value.type === 'tt:device') {
+                const candidates = await this._tpClient.searchDevice(value.display!);
+                const tokenizer = this._langPack.getTokenizer();
+                const resolved = getBestEntityMatch(value.display!, value.type, candidates.map((d) => ({
+                    value: d.primary_kind,
+                    name: d.name,
+                    canonical: tokenizer.tokenize(d.name).rawTokens.join(' ')
+                })));
+                value.value = resolved.value;
+                value.display = resolved.name;
             } else {
                 const candidates = (hints.idEntities ? hints.idEntities.get(value.type) : undefined)
                     || await this.lookupEntityCandidates(value.type, value.display!, hints);

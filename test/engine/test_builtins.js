@@ -40,8 +40,7 @@ async function testGetDateTime(engine) {
 async function testGetCommands(engine) {
     const device = engine.devices.getDevice('thingengine-own-global');
 
-    const devices = await device.get_device();
-    for (const d of devices) {
+    for await (const d of await device.get_device()) {
         assert(d.id instanceof Tp.Value.Entity);
         assert(typeof d.id.value === 'string');
         assert(typeof d.id.display === 'string');
@@ -51,7 +50,7 @@ async function testGetCommands(engine) {
 
     const result = await device.get_commands({ device: new Tp.Value.Entity('com.xkcd', 'tt:device', 'XKCD') });
 
-    for (let ex of result) {
+    for await (const ex of result) {
         assert(typeof ex.id === 'string');
         assert(typeof ex.device === 'string');
         assert(ex.program instanceof Tp.Value.Entity);

@@ -118,26 +118,34 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         return gpsstream;
     }
 
-    async get_device() {
+    async *get_device() {
         // TODO use hints
-        // TODO make lazy
 
-        const everything = [];
         for (let page = 0; ; page++) {
             const devices = await this.engine.thingpedia.getDeviceList(undefined, page, 10);
             for (let j = 0; j < Math.min(devices.length, 10); j++) {
                 const device = devices[j];
-                everything.push({
+                yield {
                     id: new Tp.Value.Entity(device.primary_kind, device.name),
                     description: device.description,
                     category: device.subcategory
-                });
+                };
             }
             if (devices.length <= 10)
                 break;
         }
+    }
 
-        return everything;
+    async get_device_info({ id } : { id : unknown }) {
+        const manifest = await this.engine.schemas.getFullMeta(String(id));
+        return [{
+            help: manifest.getNaturalLanguageAnnotation('help'),
+            description: manifest.getNaturalLanguageAnnotation('thingpedia_description'),
+            thingpedia_url: manifest.getImplementationAnnotation('thingpedia_url') || `https://dev.almond.stanford.edu/thingpedia/devices/by-id/${id}`,
+            website:  manifest.getImplementationAnnotation('website'),
+            category:  manifest.getImplementationAnnotation('subcategory'),
+            issue_tracker:  manifest.getImplementationAnnotation('issue_tracker'),
+        }];
     }
 
     async get_commands(params : unknown, hints ?: CompiledQueryHints) {
@@ -313,5 +321,11 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         const prefs = platform.getSharedPreferences();
         prefs.set('context-$context.location.' + (type === 'current' ? 'current_location' : type),
             new TT.Ast.LocationValue(new TT.Ast.AbsoluteLocation(location.lat, location.lon, location.display)).toJS());
+    }
+
+    do_set_temperature_unit({ unit } : { unit : string }) {
+        const platform = this.platform;
+        const prefs = platform.getSharedPreferences();
+        prefs.set('preferred-temperature', unit[0].toUpperCase());
     }
 }

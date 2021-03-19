@@ -80,7 +80,7 @@ class Annotator extends events.EventEmitter {
     private _currentTurnIdx : number;
     private _dialogueState : 'user'|'agent';
     private _outputTurn : DialogueTurn|undefined;
-    private _currentKey : keyof DialogueTurn|undefined;
+    private _currentKey : Exclude<keyof DialogueTurn,'agent_timestamp'|'user_timestamp'>|undefined;
     private _context : ThingTalk.Ast.DialogueState|null;
     private _contextOverride : string|undefined;
     private _simulatorState : any|undefined;
@@ -552,7 +552,7 @@ class Annotator extends events.EventEmitter {
         this._contextOverride = undefined;
 
         const utterance = this._outputTurn![this._dialogueState]!;
-        this._currentKey = (this._dialogueState + '_target') as keyof DialogueTurn;
+        this._currentKey = (this._dialogueState + '_target') as ('user_target'|'agent_target');
 
         console.log((this._dialogueState === 'agent' ? 'A: ' : 'U: ') + utterance);
         this._state = 'loading';

@@ -76,7 +76,7 @@ Given the skill definition, we will proceed to synthesize a dataset of commands 
 can train on. To do so, use:
 
 ```bash
-genie generate --locale en-US --template languages/thingtalk/en/thingtalk.genie
+genie generate --locale en-US --template languages-dist/thingtalk/en/thingtalk.genie
   --thingpedia thingpedia.tt --entities entities.json --dataset dataset.tt
   -o synthesized.tsv
 ```

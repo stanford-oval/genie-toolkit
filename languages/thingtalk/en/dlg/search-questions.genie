@@ -131,7 +131,6 @@ disjunctive_search_question : C.ParamSlot[] = {
     | ('are you looking for' | 'would you like' | 'do you need') 'something that' question:question_avp_filter_pair '?'
     ) => [question];
 
-    // FIXME we need to check that the base table matches the current domain
     ( ('are you looking for' | 'would you like' | 'do you need') 'a' table:base_table ('with' | 'that has') question:question_npp_filter_pair with { functionName = table.functionName } '?'
     | ('are you looking for' | 'would you like' | 'do you need') 'a' question:question_apv_filter_pair table:base_table with { functionName = question.functionName } '?'
     | ('are you looking for' | 'would you like' | 'do you need') 'a' table:base_table question:question_pvp_filter_pair with { functionName = table.functionName } '?'

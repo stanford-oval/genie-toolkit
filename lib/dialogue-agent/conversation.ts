@@ -109,8 +109,12 @@ export class DialogueTurnLog {
         this._done = true;
     }
 
-    update(field : keyof DialogueTurn, value : string) {
+    update(field : Exclude<keyof DialogueTurn,'agent_timestamp'|'user_timestamp'>, value : string) {
         this._turn[field] = this._turn[field] ? this._turn[field] + '\n' + value : value;
+        if (field === 'user')
+            this._turn.user_timestamp = new Date;
+        else if (field === 'agent')
+            this._turn.agent_timestamp = new Date;
     }
 }
 
@@ -275,6 +279,7 @@ export default class Conversation extends events.EventEmitter {
 
     endRecording() {
         this._options.log = false;
+        this.dialogueFinished();
     }
 
     notify(appId : string, icon : string|null, outputType : string, outputValue : Record<string, unknown>) {
@@ -324,12 +329,47 @@ export default class Conversation extends events.EventEmitter {
     async addOutput(out : ConversationDelegate, replayHistory = true) {
         this._delegates.add(out);
         if (replayHistory) {
-            for (const msg of this._history)
-                await out.addMessage(msg);
+            for (const msg of this._history) {
+                try {
+                    await out.addMessage(msg);
+                } catch(e) {
+                    // delegate disappeared immediately (race condition)
+                    this._delegates.delete(out);
+                    return;
+                }
+            }
         }
     }
     async removeOutput(out : ConversationDelegate) {
         this._delegates.delete(out);
+    }
+
+    private _callDelegates(fn : (out : ConversationDelegate) => unknown) {
+        return Promise.all(Array.from(this._delegates).map(async (out) => {
+            try {
+                await fn(out);
+            } catch(e) {
+                // delegate disappeared (likely a disconnected websocket)
+                this._delegates.delete(out);
+            }
+        }));
+    }
+
+    async setHypothesis(hypothesis : string) : Promise<void> {
+        await this._callDelegates((out) => out.setHypothesis(hypothesis));
+    }
+
+    async sendAskSpecial() : Promise<void> {
+        const what = ValueCategory.toAskSpecial(this._expecting);
+
+        if (this._debug) {
+            if (what !== null && what !== 'generic')
+                console.log('Genie sends a special request');
+            else if (what !== null)
+                console.log('Genie expects an answer');
+        }
+
+        await this._callDelegates((out) => out.setExpected(what, this._context));
     }
 
     private async _addMessage(msg : Message) {
@@ -337,7 +377,7 @@ export default class Conversation extends events.EventEmitter {
         this._history.push(msg);
         if (this._history.length > 30)
             this._history.shift();
-        await Promise.all(Array.from(this._delegates).map((out) => out.addMessage(msg)));
+        await this._callDelegates((out) => out.addMessage(msg));
     }
 
     async handleCommand(command : string, platformData : PlatformData = {}) : Promise<void> {
@@ -404,23 +444,6 @@ export default class Conversation extends events.EventEmitter {
             loadMetadata: true
         });
         return this._loop.handleCommand({ type: 'thingtalk', parsed, platformData });
-    }
-
-    async setHypothesis(hypothesis : string) : Promise<void> {
-        await Promise.all(Array.from(this._delegates).map((out) => out.setHypothesis(hypothesis)));
-    }
-
-    async sendAskSpecial() : Promise<void> {
-        const what = ValueCategory.toAskSpecial(this._expecting);
-
-        if (this._debug) {
-            if (what !== null && what !== 'generic')
-                console.log('Genie sends a special request');
-            else if (what !== null)
-                console.log('Genie expects an answer');
-        }
-
-        await Promise.all(Array.from(this._delegates).map((out) => out.setExpected(what, this._context)));
     }
 
     sendReply(message : string, icon : string|null) {
@@ -516,13 +539,15 @@ export default class Conversation extends events.EventEmitter {
         last.turn.comment = comment;
     }
 
-    updateLog(field : keyof DialogueTurn, value : string) {
-        let last = this._lastTurn;
-        if (!last || last.done) {
-            last = new DialogueTurnLog();
-            this.appendNewTurn(last);
+    updateLog(field : Exclude<keyof DialogueTurn,'agent_timestamp'|'user_timestamp'>, value : string) {
+        if (this.inRecordingMode) {
+            let last = this._lastTurn;
+            if (!last || last.done) {
+                last = new DialogueTurnLog();
+                this.appendNewTurn(last);
+            }
+            last.update(field, value);
         }
-        last.update(field, value);
     }
 
     async saveLog() {

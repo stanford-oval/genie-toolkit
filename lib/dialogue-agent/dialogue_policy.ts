@@ -215,7 +215,7 @@ export default class DialoguePolicy {
         if (derivation === undefined)
             return derivation;
 
-        let sentence = derivation.toString();
+        let sentence = derivation.chooseBestSentence();
         sentence = this._langPack.postprocessSynthetic(sentence, derivation.value.state, this._rng, 'agent');
 
         let expect : ValueCategory|null;

@@ -21,8 +21,26 @@
 
 import assert from 'assert';
 
-import List from './list';
-import { uniform } from '../utils/random';
+import {
+    Phrase,
+    Concatenation,
+    Placeholder,
+    Replaceable,
+    PlaceholderReplacement,
+    ReplacedResult,
+    ReplacedConcatenation,
+    ReplacedChoice,
+} from '../utils/template-string';
+export {
+    Phrase,
+    Concatenation,
+    Placeholder,
+    PlaceholderReplacement,
+    Replaceable,
+    ReplacedResult,
+    ReplacedConcatenation,
+    ReplacedChoice,
+};
 
 export { importGenie as import } from './compiler';
 
@@ -101,25 +119,22 @@ class Context {
     }
 }
 
-export type DerivationChild<T> = string | Derivation<T>;
+export type DerivationChildTuple<ArgTypes extends unknown[]> = { [K in keyof ArgTypes] : Derivation<ArgTypes[K]> };
 
-export type DerivationChildTuple<ArgTypes extends unknown[]> = { [K in keyof ArgTypes] : DerivationChild<ArgTypes[K]> };
-
-// A Derivation represents a sentence, possibly with placeholders,
-// and a value, possibly with unspecified input parameters, that
-// was computed at a certain point in the derivation tree
+/**
+ * A Derivation represents a sentence fragment and an intermediate value
+ * that were computed at some point during the generation process.
+ */
 class Derivation<ValueType> {
     readonly key : DerivationKey;
     readonly value : ValueType;
     readonly context : Context|null;
-    sentence : List<string>;
+    sentence : ReplacedResult;
     priority : number;
-
-    private _flatSentence : string|null;
 
     constructor(key : DerivationKey,
                 value : ValueType,
-                sentence : List<string>,
+                sentence : ReplacedResult,
                 context : Context|null = null,
                 priority = 0) {
         this.key = key;
@@ -131,18 +146,14 @@ class Derivation<ValueType> {
         this.sentence = sentence;
         this.priority = priority;
         assert(Number.isFinite(this.priority));
-        assert(sentence instanceof List);
-
-        this._flatSentence = null;
     }
 
-    toString() : string {
-        if (this._flatSentence)
-            return this._flatSentence;
+    chooseBestSentence() : string {
+        return this.sentence.chooseBest();
+    }
 
-        const flattened : string[] = [];
-        this.sentence.traverse((el : DerivationChild<unknown>) => flattened.push(String(el)));
-        return this._flatSentence = flattened.join(' ');
+    sampleSentence(rng : () => number) : string {
+        return this.sentence.chooseSample(rng);
     }
 
     clone() : Derivation<ValueType> {
@@ -150,56 +161,34 @@ class Derivation<ValueType> {
     }
 
     static combine<ArgTypes extends unknown[], ResultType>(children : DerivationChildTuple<ArgTypes>,
+                                                           template : Replaceable,
                                                            semanticAction : SemanticAction<ArgTypes, ResultType>,
                                                            keyFunction : KeyFunction<ResultType>,
                                                            rulePriority : number) : Derivation<ResultType>|null {
-        if (children.length === 1) {
-            assert(!(children[0] instanceof Context));
-            if (children[0] instanceof Derivation) {
-                const newValue = semanticAction(... ([children[0].value] as ArgTypes));
-                assert(newValue !== undefined);
-                if (newValue === null)
-                    return null;
-                const newKey = keyFunction(newValue);
-                const newDerivation = new Derivation(newKey, newValue, children[0].sentence, children[0].context, children[0].priority);
-                newDerivation.priority += rulePriority;
-                return newDerivation;
-            } else { // constant or terminal
-                const newValue = semanticAction(... ([undefined] as ArgTypes));
-                assert(newValue !== undefined);
-                if (newValue === null)
-                    return null;
-                const newKey = keyFunction(newValue);
-                return new Derivation(newKey, newValue, List.singleton(children[0]), null, rulePriority);
-            }
-        }
-
-        let newSentence : List<string> = List.Nil;
+        const phrases : PlaceholderReplacement[] = [];
         const values : unknown[] = [];
         let newContext : Context|null = null;
         let newPriority = rulePriority;
 
         for (const child of children) {
-            if (typeof child === 'string') { // terminal
-                values.push(undefined);
-                newSentence = List.append(newSentence, child);
-            } else {
-                assert(Context.compatible(newContext, child.context));
-                newContext = Context.meet(newContext, child.context);
-                newPriority += child.priority;
-                values.push(child.value);
-                newSentence = List.join(newSentence, child.sentence);
-            }
+            assert(Context.compatible(newContext, child.context));
+            newContext = Context.meet(newContext, child.context);
+            newPriority += child.priority;
+            values.push(child.value);
+            phrases.push({ text: child.sentence, value: child.key });
         }
-
-        //console.log('combine: ' + children.join(' ++ '));
-        //console.log('values: ' + values.join(' , '));
 
         const newValue = semanticAction(...(values as ArgTypes));
         assert(newValue !== undefined);
         if (newValue === null)
             return null;
+
+        const newSentence = template.replace({ replacements: phrases, constraints: {} });
+        if (newSentence === null)
+            return null;
+
         const newKey = keyFunction(newValue);
+
         return new Derivation(newKey, newValue, newSentence, newContext, newPriority);
     }
 }
@@ -220,13 +209,15 @@ type ConstantKeyConstraint = [string, DerivationKeyValue];
 
 class NonTerminal {
     symbol : string;
+    name : string|undefined;
     index : number;
 
     relativeKeyConstraint : RelativeKeyConstraint|undefined = undefined;
     constantKeyConstraint : ConstantKeyConstraint|undefined = undefined;
 
-    constructor(symbol : string, constraint : RelativeKeyConstraint|ConstantKeyConstraint|undefined = undefined) {
+    constructor(symbol : string, name ?: string, constraint ?: RelativeKeyConstraint|ConstantKeyConstraint) {
         this.symbol = symbol;
+        this.name = name;
         this.index = -1;
 
         if (constraint) {
@@ -238,25 +229,10 @@ class NonTerminal {
     }
 
     toString() : string {
-        return `NT[${this.symbol}]`;
-    }
-}
-
-type RNG = () => number;
-
-class Choice {
-    choices : string[];
-
-    constructor(choices : string[]) {
-        this.choices = choices;
-    }
-
-    choose(rng : RNG) : string {
-        return uniform(this.choices, rng);
-    }
-
-    toString() : string {
-        return `C[${this.choices.join('|')}]`;
+        if (this.name !== undefined)
+            return `NT[${this.name} : ${this.symbol}]`;
+        else
+            return `NT[${this.symbol}]`;
     }
 }
 
@@ -268,5 +244,4 @@ export {
     Derivation,
     Context,
     NonTerminal,
-    Choice,
 };

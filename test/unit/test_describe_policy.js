@@ -38,10 +38,10 @@ let TEST_CASES = [
      'Anyone is allowed to perform any action.'],
 
     ['true : @com.bing.* => *',
-     'Anyone is allowed to read your Bing and then perform any action with it.'],
+     'Anyone is allowed to read your bing and then perform any action with it.'],
 
     ['true : @com.bing.* => notify',
-     'Anyone is allowed to read your Bing.'],
+     'Anyone is allowed to read your bing.'],
 
     ['true : * => @com.twitter.*',
      'Anyone is allowed to read all your data and then use it to perform any action on your Twitter.'],
@@ -56,7 +56,7 @@ let TEST_CASES = [
      'Anyone is allowed to read all your data and then use it to post on Twitter.'],
 
     ['true : @com.bing.* => @com.twitter.post',
-     'Anyone is allowed to read your Bing and then use it to post on Twitter.'],
+     'Anyone is allowed to read your bing and then use it to post on Twitter.'],
 
     ['true : @com.bing.web_search => *',
      'Anyone is allowed to read web searches on bing and then perform any action with it.'],
@@ -149,10 +149,10 @@ let TEST_CASES = [
      'Anyone is allowed to read the current event on security camera if the current time is after 7:30 AM.'],
 
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(7,30,15) } => notify',
-     'Anyone is allowed to read the current event on security camera if the current time is after 7:30:15 AM.'],
+     'Anyone is allowed to read the current event on security camera if the current time is after 7:30 AM.'],
 
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= makeTime(19,30,15) } => notify',
-     'Anyone is allowed to read the current event on security camera if the current time is after 7:30:15 PM.'],
+     'Anyone is allowed to read the current event on security camera if the current time is after 7:30 PM.'],
 
     ['true : @security-camera.current_event, @org.thingpedia.builtin.thingengine.builtin.get_time() { time >= $context.time.morning } => notify',
      'Anyone is allowed to read the current event on security camera if the current time is after the morning.'],
@@ -278,7 +278,7 @@ async function test(i) {
         for (const kind of kinds)
             describer.setDataset(kind, await schemaRetriever.getExamplesByKind(kind));
 
-        let reconstructed = describer.describePermissionRule(prog);
+        let reconstructed = describer.describePermissionRule(prog).chooseBest();
         reconstructed = langPack.postprocessNLG(langPack.postprocessSynthetic(reconstructed, prog, null, 'agent'), allocator.entities, {
             timezone: 'America/Los_Angeles',
             getPreferredUnit(key) {

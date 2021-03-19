@@ -26,6 +26,7 @@ import type Engine from '../engine';
 import type { DeviceInfo } from '../engine';
 
 import { cleanKind } from '../utils/misc-utils';
+import { ReplacedList, ReplacedConcatenation } from '../utils/template-string';
 import ValueCategory from './value-category';
 import StatementExecutor from './statement_executor';
 import { CancellationError } from './errors';
@@ -75,20 +76,18 @@ export interface AbstractDialogueLoop {
  */
 export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefined> {
     private _engine : Engine;
-    private _thingpedia : Tp.BaseClient;
     private _platform : Tp.BasePlatform;
     private _dlg : AbstractDialogueLoop;
     private _executor : StatementExecutor;
 
     constructor(engine : Engine, dlg : AbstractDialogueLoop, debug : boolean) {
-        super(engine.schemas, {
+        super(engine.thingpedia, engine.schemas, {
             debug: debug,
             locale: engine.platform.locale,
             timezone: engine.platform.timezone
         });
 
         this._engine = engine;
-        this._thingpedia = engine.thingpedia;
         this._platform = engine.platform;
         this._executor = new StatementExecutor(engine);
         this._dlg = dlg;
@@ -122,7 +121,7 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
     }
 
     protected async tryConfigureDevice(kind : string) : Promise<DeviceInfo|null> {
-        const factories = await this._thingpedia.getDeviceSetup([kind]);
+        const factories = await this._tpClient.getDeviceSetup([kind]);
         const factory = factories[kind];
         if (!factory) {
             await this._dlg.replyInterp(this._("You need to enable ${device} before you can use that command."), {
@@ -151,10 +150,17 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
                     device: factory.text
                 });
             } else if (factory.type === 'multiple') {
-                await this._dlg.replyInterp(this._("You do not have a ${device} configured. You will need to enable ${choices:disjunction} before you can use that command."), {
+                await this._dlg.replyInterp(this._("You do not have a ${device} configured. You will need to enable ${choices} before you can use that command."), {
                     device: factory.text,
-                    choices: factory.choices.map((f) => f.text)
+                    choices: new ReplacedList(factory.choices.map((f) => new ReplacedConcatenation([f.text], {}, {})), this._engine.platform.locale, 'disjunction')
                 });
+            } else if (this.getAllDevicesOfKind(factory.kind).length > 0) {
+                await this._dlg.replyInterp(this._("You do not have a ${device} configured. You will need to configure it inside your ${factory} before you can use that command."), {
+                    device: cleanKind(kind),
+                    factory: factory.text,
+                });
+                // exit early without any button
+                return null;
             } else {
                 await this._dlg.replyInterp(this._("You need to enable ${device} before you can use that command."), {
                     device: factory.text
@@ -262,7 +268,7 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
                 return appLauncher.listApps();
         }
 
-        const { data: tpCandidates, meta } = await this._thingpedia.lookupEntity(entityType, entityDisplay);
+        const { data: tpCandidates, meta } = await this._tpClient.lookupEntity(entityType, entityDisplay);
         if (tpCandidates.length > 0)
             return tpCandidates;
 
@@ -328,7 +334,7 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         else if (currentLocation)
             around = { latitude: currentLocation.lat, longitude: currentLocation.lon };
 
-        const candidates = await this._thingpedia.lookupLocation(searchKey, around);
+        const candidates = await this._tpClient.lookupLocation(searchKey, around);
 
         // ignore locations larger than a city
         const mapped = candidates.filter((c) => c.rank >= 16).map((c) => {
@@ -336,20 +342,10 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         });
 
         if (mapped.length === 0) {
-            const question = this._dlg.interpolate(this._("Sorry, I cannot find any location matching “${location}”. What location are you looking for?"), {
+            await this._dlg.replyInterp(this._("Sorry, I cannot find any location matching “${location}”."), {
                 location: searchKey,
             });
-            const answer = await this._dlg.ask(ValueCategory.Location, question);
-            assert(answer instanceof Ast.LocationValue);
-            if (answer.value instanceof Ast.UnresolvedLocation) {
-                return this.lookupLocation(answer.value.name, previousLocations);
-            } else if (answer.value instanceof Ast.RelativeLocation) {
-                const resolved = await this.resolveUserContext('$context.location.' + answer.value.relativeTag);
-                assert(resolved instanceof Ast.LocationValue);
-                return resolved;
-            } else {
-                return answer;
-            }
+            throw new CancellationError();
         }
 
         return new Ast.Value.Location(mapped[0]);

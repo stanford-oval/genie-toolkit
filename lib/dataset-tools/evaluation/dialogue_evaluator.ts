@@ -47,6 +47,7 @@ interface DialogueEvaluatorOptions {
     targetLanguage : string;
     tokenized : boolean;
     database ?: SimulationDatabase;
+    oracle ?: boolean;
 
     debug ?: boolean;
 }
@@ -81,6 +82,8 @@ class DialogueEvaluatorStream extends Stream.Transform {
     private _debug : boolean;
     private _tokenized : boolean;
     private _database : SimulationDatabase|undefined;
+    private _oracle : boolean;
+
     private _cachedEntityMatches : Map<string, EntityRecord>;
     private _minibatch : Array<Promise<ExampleEvaluationResult>>;
 
@@ -97,6 +100,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
         this._debug = !!options.debug;
         this._tokenized = options.tokenized;
         this._database = options.database;
+        this._oracle = !!options.oracle;
 
         this._cachedEntityMatches = new Map;
 
@@ -208,6 +212,14 @@ class DialogueEvaluatorStream extends Stream.Transform {
         if (value instanceof Ast.StringValue) {
             // "tokenize" the value, because the prediction will also be tokenized
             return this._tokenizeSlot(value.toJS());
+        }
+
+        if (value instanceof Ast.DateValue) {
+            const date = value.value;
+            if (date instanceof Ast.DateEdge)
+                return date.edge + ' ' + date.unit;
+            else if (date instanceof Ast.WeekDayDate)
+                return date.weekday;
         }
 
         // everything else (time, currency, number, enum), use JS value
@@ -337,10 +349,14 @@ class DialogueEvaluatorStream extends Stream.Transform {
            locale: this._locale,
         }).join(' ');
 
+        let answer = undefined;
+        if (this._oracle)
+            answer = targetCode;
         const parsed : PredictionResult = await this._parser.sendUtterance(tokens.join(' '), contextCode, contextEntities, {
             tokenized: true,
             skip_typechecking: true,
             example_id: id + '/' + turnIndex,
+            answer: answer
         });
 
         const predictions = parsed.candidates

@@ -556,6 +556,12 @@ class SimulationExecEnvironment extends ExecEnvironment {
         if (fromDB)
             return fromDB;
 
+        // with some probability, fail the query
+        if (this._simulateErrors && coin(0.1, this._rng)) {
+            await this._failAction(schema);
+            return [[], false];
+        }
+
         let numResults, cacheable;
         if (schema.is_list) {
             // with some probability, return no results, so we hit the search error path

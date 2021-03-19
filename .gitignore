@@ -16,6 +16,7 @@ __pycache__
 *.genie.js
 
 lib/sentence-generator/compiler/grammar.js
+lib/utils/template-string/grammar.js
 po/tmp
 po/POTFILES
 po/genie-toolkit.pot

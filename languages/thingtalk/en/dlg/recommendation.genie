@@ -37,13 +37,13 @@ import ThingpediaLoader from '../../load-thingpedia';
 import { SlotBag } from '../../slot_bag';
 
 question_system_recommendation_short : D.Recommendation = {
-    ctx:ctx_with_result_and_action 'how about' proposal:constant_name with { value = ctx.id0 }
-        => D.makeRecommendation(ctx, proposal);
+    ["how about ${proposal}"]: (ctx : ctx_with_result_and_action, proposal : constant_name<value = ctx.id0>)
+        => D.makeRecommendation(ctx, proposal),
 }
 
 action_recommendation : D.Recommendation = {
-    ctx:ctx_with_result_and_action ('would you like to' | 'would you like me to') action:contextual_action_phrase with { functionName = ctx.nextFunction } [weight=0.1]
-        => D.makeActionRecommendation(ctx, action);
+    ["{would you like to|would you like me to} ${action}", weight=0.1]: (ctx : ctx_with_result_and_action, action : contextual_action_phrase<functionName = ctx.nextFunction>)
+        => D.makeActionRecommendation(ctx, action),
 }
 
 actionable_system_recommendation_short : D.Recommendation = {
@@ -63,32 +63,37 @@ actionable_system_recommendation_short : D.Recommendation = {
             => D.makeThingpediaRecommendation(ctx, proposal);
     }
 
-    ( ctx:ctx_with_result_and_action 'i' ('recommend' | 'suggest') proposal:constant_name with { value = ctx.id0 }
-    | ctx:ctx_with_result_noquestion ('i see' | 'i have' | 'i have found' | 'i have one , it is') proposal:constant_name with { value = ctx.id0 }
-    | ctx:ctx_with_result_argminmax 'the answer is' proposal:constant_name with { value = ctx.id0 }
-    ) => D.makeRecommendation(ctx, proposal);
+    ["i {recommend|suggest} ${proposal}"]: (ctx : ctx_with_result_and_action, proposal : constant_name<value=ctx.id0>)
+        => D.makeRecommendation(ctx, proposal),
+    ["{i see|i have|i have found|i have one, it is} ${proposal}"]: (ctx : ctx_with_result_noquestion, proposal : constant_name<value=ctx.id0>)
+        => D.makeRecommendation(ctx, proposal),
+    ["the answer is ${proposal}"]: (ctx : ctx_with_result_argminmax, proposal : constant_name<value = ctx.id0>)
+        => D.makeRecommendation(ctx, proposal);
 
-    ctx:ctx_with_result_argminmax 'the' base:base_table with { functionName = ctx.currentFunction } 'with the highest' param:out_param_Any with { functionName = ctx.currentFunction } 'is' proposal:constant_name with { value = ctx.id0 } [priority=1]
+    ["the ${base[plural=one]} with the highest ${param} is ${proposal}", priority=1]: (ctx:ctx_with_result_argminmax, base:base_table<functionName = ctx.currentFunction>, param:out_param_Any<functionName = ctx.currentFunction>, proposal:constant_name<value = ctx.id0>)
         => D.makeArgMinMaxRecommendation(ctx, proposal, base, param, 'desc');
-    ctx:ctx_with_result_argminmax 'the' base:base_table with { functionName = ctx.currentFunction } 'with the lowest' param:out_param_Any 'is' proposal:constant_name with { value = ctx.id0 } [priority=1]
+    ["the ${base[plural=one]} with the lowest ${param} is ${proposal}", priority=1]: (ctx:ctx_with_result_argminmax, base:base_table<functionName = ctx.currentFunction>, param:out_param_Any<functionName = ctx.currentFunction>, proposal:constant_name<value = ctx.id0>)
         => D.makeArgMinMaxRecommendation(ctx, proposal, base, param, 'asc');
 
-    ctx:ctx_with_result_argminmax 'the' argminmax:apv_argminmax with { functionName = ctx.currentFunction } base:base_table with { functionName = ctx.currentFunction } 'is' proposal:constant_name with { value = ctx.id0 } [priority=2]
+    ["the ${argminmax} ${base[plural=one]} is ${proposal}", priority=2]: (ctx:ctx_with_result_argminmax, argminmax:apv_argminmax<functionName = ctx.currentFunction>, base:base_table<functionName = ctx.currentFunction>, proposal:constant_name<value = ctx.id0>)
         => D.makeArgMinMaxRecommendation(ctx, proposal, base, argminmax[0], argminmax[1]);
 }
 
-recommendation_info_action_pair : [D.ResultPhrase, Ast.Invocation|null] = {
-    'is a' res:result_info_phrase '.' action:action_coref_recommendation [weight=0.8] => {
+proposal_info_action_pair : [D.ResultPhrase, Ast.Invocation|null] = {
+    // NOTE: action_coref_recommendation already includes the ?
+    ["is a ${res[plural=one]}. ${action}", weight=0.8]: (res:result_info_phrase, action:action_coref_recommendation) => {
         const resultType = res.info.schema!.getArgType('id');
 
         if (!resultType || !C.hasArgumentOfType(action, resultType))
             return null;
         return [res, action];
-    };
+    },
 
-    'is a' res:result_info_phrase '.' learn_more_offer [weight=0.2] => {
-        return [res, null];
-    };
+    !inference {
+        ["is a ${res[plural=one]}. ${learn_more_offer}?", weight=0.2]: (res:result_info_phrase, learn_more_offer) => {
+            return [res, null];
+        };
+    }
 }
 
 user_question_answer_begin : D.Recommendation = {
@@ -108,22 +113,6 @@ direct_user_question_answer : D.Recommendation = {
         => D.makeThingpediaRecommendation(res.ctx, res.info);
 }
 
-proposal_info_action_pair : [D.ResultPhrase, Ast.Invocation|null] = {
-    'is a' res:result_info_phrase '.' action:action_coref_recommendation [weight=0.8] => {
-        const resultType = res.info.schema!.getArgType('id');
-
-        if (!resultType || !C.hasArgumentOfType(action, resultType))
-            return null;
-        return [res, action];
-    };
-
-    !inference {
-        'is a' res:result_info_phrase '.' learn_more_offer [weight=0.2] => {
-            return [res, null];
-        };
-    }
-}
-
 actionable_system_display_result_short : D.Recommendation = {
     // for Thingpedia phrases (#_[result]), at inference time we pick the top one and replace it
     // directly using a context phrase
@@ -138,14 +127,15 @@ actionable_system_display_result_short : D.Recommendation = {
 
 // a non-list result
 system_nonlist_result : D.Recommendation = {
-    actionable_system_display_result_short;
+    phrase:actionable_system_display_result_short
+         => D.checkDisplayResult(phrase);
 
     ctx:ctx_with_result_noquestion res:direct_result_info_phrase
-        => D.makeDisplayResult(ctx, res.info);
+        => D.checkDisplayResult(D.makeDisplayResult(ctx, res.info));
     ctx:ctx_with_result_question res:direct_result_info_phrase [priority=10]
-        => D.makeDisplayResult(ctx, res.info);
+        => D.checkDisplayResult(D.makeDisplayResult(ctx, res.info));
     phrase:actionable_system_display_result_short extra:direct_result_info_phrase
-        => D.combineDisplayResult(phrase, extra.info);
+        => D.checkDisplayResult(D.combineDisplayResult(phrase, extra.info));
 
     // TODO: offer an action on the result (needs non-ID parameter passing to be useful)
     //proposal:actionable_system_display_result_short action:action_coref_recommendation
@@ -155,7 +145,7 @@ system_nonlist_result : D.Recommendation = {
         const clone : any = {};
         Object.assign(clone, proposal);
         clone.hasAnythingElse = true;
-        return clone;
+        return D.checkDisplayResult(clone);
     };
 }
 
@@ -164,52 +154,56 @@ system_nonlist_result : D.Recommendation = {
 // the action can come from the context (if the user expressed it earlier), or it can
 // be offered immediately
 system_recommendation : D.Recommendation = {
-    ( ctx_with_action proposal:question_system_recommendation_short '.'
-    | ctx_with_action proposal:actionable_system_recommendation_short '.'
-    ) => proposal;
+    ["${proposal}."]: (ctx_with_action, proposal:question_system_recommendation_short)
+        => D.checkRecommendation(proposal, null),
+    ["${proposal}."]: (ctx_with_action, proposal:actionable_system_recommendation_short)
+        => D.checkRecommendation(proposal, null),
 
-    ctx_with_action proposal:actionable_system_recommendation_short '.' learn_more_offer
-        => D.recommendationSetLearnMore(proposal);
+    ["${proposal}. ${learn_more_offer}?"]: (ctx_with_action, proposal:actionable_system_recommendation_short, learn_more_offer)
+        => D.recommendationSetLearnMore(proposal),
 
-    ctx_without_projection proposal:action_recommendation => proposal;
-    ctx_without_projection proposal:actionable_system_recommendation_short action:action_coref_recommendation
-        => D.checkActionForRecommendation(proposal, action);
+    ["${proposal}?"]: (ctx_without_projection, proposal:action_recommendation) => proposal,
+    // NOTE: action_coref_recommendation already includes the ?
+    ["${proposal}. ${action}"]: (ctx_without_projection, proposal:actionable_system_recommendation_short, action:action_coref_recommendation)
+        => D.checkActionForRecommendation(proposal, action),
 
     // recommendations after a search
     // with additional info
-    ( proposal:question_system_recommendation_short '?' 'it is a' res:result_info_phrase '.'
-    | proposal:action_recommendation '?' 'it is a' res:result_info_phrase '.'
-    | proposal:actionable_system_recommendation_short '.' 'it is a' res:result_info_phrase '.'
-    | proposal:question_system_recommendation_short ', which is a' res:result_info_phrase '?'
-    | proposal:action_recommendation ', which is a' res:result_info_phrase '?'
-    | proposal:actionable_system_recommendation_short ', which is a' res:result_info_phrase '.'
-    ) => D.checkRecommendation(proposal, res.info);
+    ["{${proposal}? it is a ${res[plural=one]}.|${proposal}, which is a ${res[plural=one]}?}"]: (proposal:question_system_recommendation_short, res:result_info_phrase)
+        => D.checkRecommendation(proposal, res.info),
+    ["{${proposal}? it is a ${res[plural=one]}.|${proposal}, which is a ${res[plural=one]}?}"]: (proposal:action_recommendation, res:result_info_phrase)
+        => D.checkRecommendation(proposal, res.info),
+    ["{${proposal}. it is a ${res[plural=one]}.|${proposal}, which is a ${res[plural=one]}.}"]: (proposal:actionable_system_recommendation_short, res:result_info_phrase)
+        => D.checkRecommendation(proposal, res.info),
 
     // recommendations after a search
     // no additional info
-    ( proposal:question_system_recommendation_short '?'
-    | proposal:action_recommendation '?'
-    | proposal:actionable_system_recommendation_short '.'
-    ) => proposal;
+    ["${proposal}?"]: (proposal:question_system_recommendation_short)
+        => D.checkRecommendation(proposal, null),
+    ["${proposal}?"]: (proposal:action_recommendation)
+        => D.checkRecommendation(proposal, null),
+    ["${proposal}."]: (proposal:actionable_system_recommendation_short)
+        => D.checkRecommendation(proposal, null),
 
     // long-form answers to a single question
-    proposal:user_question_answer_begin 'is a' res:result_info_phrase '.'
-        => D.checkRecommendation(proposal, res.info);
+    ["${proposal} is a ${res[plural=one]}."]: (proposal:user_question_answer_begin, res:result_info_phrase)
+        => D.checkRecommendation(proposal, res.info),
 
     // short answers to a single question
-    ( proposal:user_question_answer_begin filter:avp_filter with { functionName = proposal.functionName } '.'
-    | proposal:user_question_answer_begin 'is' filter:pvp_filter with { functionName = proposal.functionName } '.'
-    | proposal:user_question_answer_begin 'is' filter:apv_filter with { functionName = proposal.functionName } '.'
-    | proposal:user_question_answer_begin 'has' filter:npp_filter with { functionName = proposal.functionName } '.'
-    ) => D.makeAnswerStyleRecommendation(proposal, filter);
+    ["${proposal} ${filter[plural=one]}."]: (proposal:user_question_answer_begin, filter:avp_filter<functionName = proposal.functionName>)
+        => D.makeAnswerStyleRecommendation(proposal, filter),
+    ["${proposal} is ${filter[plural=one]}."]: (proposal:user_question_answer_begin, filter:pvp_filter<functionName = proposal.functionName>)
+        => D.makeAnswerStyleRecommendation(proposal, filter),
+    ["${proposal} is ${filter[plural=one]}."]: (proposal:user_question_answer_begin, filter:apv_filter<functionName = proposal.functionName>)
+        => D.makeAnswerStyleRecommendation(proposal, filter),
+    ["${proposal} has ${filter[plural=one]}."]: (proposal:user_question_answer_begin, filter:npp_filter<functionName = proposal.functionName>)
+        => D.makeAnswerStyleRecommendation(proposal, filter),
 
     // even shorter answers to single questions
-    direct_user_question_answer;
+    proposal:direct_user_question_answer => D.checkRecommendation(proposal, null),
 
     // recommendations after a search, followed by an offer to make an action
-    ( proposal:actionable_system_recommendation_short '. it' pair:proposal_info_action_pair [weight=2]
-    | proposal:user_question_answer_begin pair:proposal_info_action_pair [weight=2]
-    ) => {
+    ["${proposal}. it ${pair}", weight=2]: (proposal:actionable_system_recommendation_short, pair:proposal_info_action_pair) => {
         const [res, action] = pair;
         const maybeProposal = D.checkRecommendation(proposal, res.info);
         if (maybeProposal === null)
@@ -217,7 +211,16 @@ system_recommendation : D.Recommendation = {
         if (action === null)
             return D.recommendationSetLearnMore(maybeProposal);
         return D.checkActionForRecommendation(maybeProposal, action);
-    };
+    },
+    ["${proposal} ${pair}", weight=2]: (proposal:user_question_answer_begin, pair:proposal_info_action_pair) => {
+        const [res, action] = pair;
+        const maybeProposal = D.checkRecommendation(proposal, res.info);
+        if (maybeProposal === null)
+            return null;
+        if (action === null)
+            return D.recommendationSetLearnMore(maybeProposal);
+        return D.checkActionForRecommendation(maybeProposal, action);
+    },
 }
 
 recommendation_accept_phrase_with_action : Ast.Invocation = {

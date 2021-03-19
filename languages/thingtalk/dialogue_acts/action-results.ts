@@ -246,6 +246,9 @@ function actionErrorChangeParam(ctx : ContextInfo, answer : Ast.Value|C.InputPar
         if (!C.isSameFunction(ipslot.schema, schema))
             return null;
     }
+    // TODO implement this template for queries
+    if (schema.functionType !== 'action')
+        return null;
 
     const action = C.getInvocation(ctx.current!);
     if (!action)

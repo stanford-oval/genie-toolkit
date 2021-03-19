@@ -20,7 +20,9 @@
 
 
 import assert from 'assert';
+
 import { stringEscape } from '../../utils/escaping';
+import * as TemplateGrammar from '../../utils/template-string/grammar';
 
 export class NodeVisitor {
     visitImport(stmt : Import) {}
@@ -29,7 +31,8 @@ export class NodeVisitor {
     visitNonTerminalStmt(stmt : NonTerminalStmt) {}
     visitKeyFunctionDeclaration(stmt : KeyFunctionDeclarationStmt) {}
 
-    visitExpansionRule(stmt : Expansion) {}
+    visitOldStyleExpansionRule(stmt : OldStyleExpansion) {}
+    visitNewStyleExpansionRule(stmt : NewStyleExpansion) {}
     visitConstantsRule(stmt : Constants) {}
     visitConditionRule(stmt : Condition) {}
 
@@ -267,8 +270,9 @@ export class RuleAttributes {
 
 export abstract class Rule {
     static Constants : typeof Constants;
-    static Expansion : typeof Expansion;
     static Condition : typeof Condition;
+    static OldStyleExpansion : typeof OldStyleExpansion;
+    static NewStyleExpansion : typeof NewStyleExpansion;
 
     abstract codegen(nonTerminal : string, prefix : string, type : string, keyfn : string) : string;
     abstract visit(visitor : NodeVisitor) : void;
@@ -291,7 +295,7 @@ export class Constants extends Rule {
 }
 Rule.Constants = Constants;
 
-function makeBodyLambda(head : RuleHeadPart[],
+function makeBodyLambda(head : NonTerminalRuleHead[],
                         body : string,
                         type = 'any') : string {
     const bodyArgs : string[] = [];
@@ -306,40 +310,7 @@ function makeBodyLambda(head : RuleHeadPart[],
     return `(${bodyArgs.join(', ')}) : (${type})|null => ${body}`;
 }
 
-
-function getTranslationKey(expansion : RuleHeadPart[]) : [string, string, boolean] {
-    let str = '';
-    let comment = '';
-    let positionalIdx = 0;
-    let needsComment = false;
-
-    for (const part of expansion) {
-        if (str)
-            str += ' ';
-        if (comment)
-            comment += ' ';
-        if (part instanceof StringLiteralRuleHead) {
-            str += part.value;
-            comment += part.value;
-        } else if (part instanceof ComputedStringLiteralRuleHead) {
-            str += '${' + String(positionalIdx++) + '}';
-            comment += '${' + part.code + '}';
-            needsComment = true;
-        } else if (part instanceof NonTerminalRuleHead) {
-            str += '${' + part.category + '}';
-            comment += '${' + part.category + '}';
-        } else if (part instanceof ChoiceRuleHead) {
-            str += '{' + part.values.join('|') + '}';
-            comment += '{' + part.values.join('|') + '}';
-        } else {
-            throw new TypeError();
-        }
-    }
-
-    return [str, comment, needsComment];
-}
-
-export class Expansion extends Rule {
+export class OldStyleExpansion extends Rule {
     constructor(public head : RuleHeadPart[],
                 public bodyCode : string,
                 public attrs : RuleAttributes) {
@@ -348,22 +319,55 @@ export class Expansion extends Rule {
     }
 
     visit(visitor : NodeVisitor) {
-        visitor.visitExpansionRule(this);
+        visitor.visitOldStyleExpansionRule(this);
         for (const head of this.head)
             head.visit(visitor);
     }
 
-    getTranslationKey() {
-        return getTranslationKey(this.head);
+    codegen(nonTerminal : string, prefix = '', type : string, keyfn : string) : string {
+        const nonTerminalChildren : NonTerminalRuleHead[] = this.head.filter((h) : h is NonTerminalRuleHead => h instanceof NonTerminalRuleHead);
+        const expanderCode = makeBodyLambda(nonTerminalChildren, this.bodyCode, type);
+
+        let template = '"' + this.head.map((h) => h.getTemplate()).join(' ') + '"';
+
+        // generate code to lookup the translation of the template if meaningful
+        // (skip if this template has only one component)
+        if (this.head.length > 1)
+            template = `$locale._(${template})`;
+
+        return `${prefix}$grammar.addRule(${stringEscape(nonTerminal)}, [${nonTerminalChildren.map((h, i) => h.codegen(nonTerminalChildren, i)).join(', ')}], ${template}, (${expanderCode}), ${keyfn}, ${this.attrs.codegen()});\n`;
+    }
+}
+Rule.OldStyleExpansion = OldStyleExpansion;
+
+export class NewStyleExpansion extends Rule {
+    constructor(public nonTerminals : NonTerminalRuleHead[],
+                public sentenceTemplate : string,
+                public bodyCode : string,
+                public attrs : RuleAttributes) {
+        super();
+    }
+
+    visit(visitor : NodeVisitor) {
+        visitor.visitNewStyleExpansionRule(this);
+        for (const nt of this.nonTerminals)
+            nt.visit(visitor);
     }
 
     codegen(nonTerminal : string, prefix = '', type : string, keyfn : string) : string {
-        const expanderCode = makeBodyLambda(this.head, this.bodyCode, type);
+        const expanderCode = makeBodyLambda(this.nonTerminals, this.bodyCode, type);
 
-        return `${prefix}$grammar.addRule(${stringEscape(nonTerminal)}, [${this.head.map((h, i) => h.codegen(this.head, i)).join(', ')}], (${expanderCode}), ${keyfn}, ${this.attrs.codegen()});\n`;
+        // try parsing the template and preprocessing, so we catch errors eagerly
+        try {
+            TemplateGrammar.parse(this.sentenceTemplate).preprocess('en-US', this.nonTerminals.map((e) => e.name ?? e.symbol));
+        } catch(e) {
+            throw new Error(`Failed to parse template string for ${nonTerminal} = ${this.sentenceTemplate} (${this.nonTerminals.join(', ')}): ${e.message}`);
+        }
+
+        return `${prefix}$grammar.addRule(${stringEscape(nonTerminal)}, [${this.nonTerminals.map((h, i) => h.codegen(this.nonTerminals, i)).join(', ')}], $locale._(${stringEscape(this.sentenceTemplate)}), (${expanderCode}), ${keyfn}, ${this.attrs.codegen()});\n`;
     }
 }
-Rule.Expansion = Expansion;
+Rule.NewStyleExpansion = NewStyleExpansion;
 
 export class Condition extends Rule {
     constructor(public flag : string,
@@ -396,7 +400,7 @@ export abstract class NonTerminalConstraint {
     static Constant : typeof ConstantNonTerminalConstraint;
     static Equality : typeof EqualityNonTerminalConstraint;
 
-    abstract codegen(allParts : RuleHeadPart[], ourKeyFn : string, ourIndex : number) : string;
+    abstract codegen(allNonTerminals : NonTerminalRuleHead[], ourKeyFn : string, ourIndex : number) : string;
 }
 
 export class EqualityNonTerminalConstraint extends NonTerminalConstraint {
@@ -406,7 +410,7 @@ export class EqualityNonTerminalConstraint extends NonTerminalConstraint {
         super();
     }
 
-    codegen(allParts : RuleHeadPart[], ourKeyFn : string, ourIndex : number) {
+    codegen(allNonTerminals : NonTerminalRuleHead[], ourKeyFn : string, ourIndex : number) {
         if (ourKeyFn === 'undefined')
             console.error(`WARNING: key function is not set in constraint {${this.ourIndexName} = ${this.nonTermRef}.${this.theirIndexName}}, cannot check correctness statically`);
         const ourTypeConstraint = ourKeyFn === 'undefined' ? '' :
@@ -415,23 +419,22 @@ export class EqualityNonTerminalConstraint extends NonTerminalConstraint {
         let nonTermIndex, theirKeyFn;
         if (/^[0-9]+/.test(this.nonTermRef)) {
             nonTermIndex = parseInt(this.nonTermRef, 10);
-            assert(allParts[nonTermIndex]);
+            assert(allNonTerminals[nonTermIndex]);
 
-            theirKeyFn = allParts[nonTermIndex];
+            theirKeyFn = allNonTerminals[nonTermIndex];
         } else {
-            for (let i = 0; i < allParts.length; i++) {
-                const part = allParts[i];
-                if (part instanceof NonTerminalRuleHead &&
-                    part.name === this.nonTermRef) {
+            for (let i = 0; i < allNonTerminals.length; i++) {
+                const part = allNonTerminals[i];
+                if (part.name === this.nonTermRef) {
                     nonTermIndex = i;
                     theirKeyFn = part.keyfn;
                     break;
                 }
             }
             if (nonTermIndex === undefined)
-                throw new Error(`Invalid non-terminal backreference to ${this.nonTermRef} for equality constraint of ${allParts[ourIndex]} (alias not found)`);
+                throw new Error(`Invalid non-terminal backreference to ${this.nonTermRef} for equality constraint of ${allNonTerminals[ourIndex]} (alias not found)`);
             if (nonTermIndex >= ourIndex)
-                throw new Error(`Invalid non-terminal backreference to ${this.nonTermRef} for equality constraint of ${allParts[ourIndex]} (alias must precede usage)`);
+                throw new Error(`Invalid non-terminal backreference to ${this.nonTermRef} for equality constraint of ${allNonTerminals[ourIndex]} (alias must precede usage)`);
         }
         if (theirKeyFn === 'undefined')
             console.error(`WARNING: key function is not set in constraint {${this.ourIndexName} = ${this.nonTermRef}.${this.theirIndexName}}, cannot check correctness statically`);
@@ -449,7 +452,7 @@ export class ConstantNonTerminalConstraint extends NonTerminalConstraint {
         super();
     }
 
-    codegen(allParts : RuleHeadPart[], ourKeyFn : string) {
+    codegen(allNonTerminals : NonTerminalRuleHead[], ourKeyFn : string) {
         if (ourKeyFn === 'undefined')
             console.error(`WARNING: key function is not set in constraint {${this.indexName} = ${this.valueCode}}, cannot check correctness statically`);
         const ourTypeConstraint = ourKeyFn === 'undefined' ? '' :
@@ -468,9 +471,8 @@ export abstract class RuleHeadPart {
     static ComputedStringLiteral : typeof ComputedStringLiteralRuleHead;
     static Choice : typeof ChoiceRuleHead;
 
-    abstract type : string;
-    abstract codegen(allParts : RuleHeadPart[], index : number) : string;
     abstract visit(visitor : NodeVisitor) : void;
+    abstract getTemplate() : string;
 }
 
 export class NonTerminalRuleHead extends RuleHeadPart {
@@ -478,66 +480,75 @@ export class NonTerminalRuleHead extends RuleHeadPart {
     keyfn = 'undefined';
 
     constructor(public name : string|null,
-                public category : string,
+                public symbol : string,
                 public constraint : NonTerminalConstraint|null) {
         super();
     }
 
     toString() {
-        return `${this.name} : NT[${this.category}]`;
+        return `${this.name} : NT[${this.symbol}]`;
     }
 
     visit(visitor : NodeVisitor) {
         visitor.visitNonTerminalRuleHead(this);
     }
 
-    codegen(allParts : RuleHeadPart[], index : number) : string {
-        return `new $runtime.NonTerminal(${stringEscape(this.category)}, ${this.constraint ? this.constraint.codegen(allParts, this.keyfn, index) : 'undefined'})`;
+    getTemplate() {
+        return `\${${this.name ?? this.symbol}}`;
+    }
+
+    codegen(allNonTerminals : NonTerminalRuleHead[], index : number) : string {
+        return `new $runtime.NonTerminal(${stringEscape(this.symbol)}, ${this.name !== null ? stringEscape(this.name) : 'undefined'}, ${this.constraint ? this.constraint.codegen(allNonTerminals, this.keyfn, index) : 'undefined'})`;
     }
 }
 RuleHeadPart.NonTerminal = NonTerminalRuleHead;
 
-export class StringLiteralRuleHead extends RuleHeadPart {
-    type = 'undefined';
+function templateEscape(str : string) {
+    return str.replace(/[${}|[\]\\]/g, '\\$0');
+}
 
+export class StringLiteralRuleHead extends RuleHeadPart {
     constructor(public value : string) {
         super();
     }
 
     visit(visitor : NodeVisitor) {}
 
-    codegen() : string {
-        return stringEscape(this.value);
+    getTemplate() {
+        // note the double escaping here:
+        // getTemplate() will escape any special character that have meaning to the template
+        // language (so $, {, }, |, etc.)
+        // but we also escape any special character that have meaning in JS, so the resulting
+        // string can be output as a double-quoted JS string
+
+        return templateEscape(this.value).replace(/(["\\])/g, '\\$1').replace(/\n/g, '\\n');
     }
 }
 RuleHeadPart.StringLiteral = StringLiteralRuleHead;
 
 export class ComputedStringLiteralRuleHead extends RuleHeadPart {
-    type = 'undefined';
-
     constructor(public code : string) {
         super();
     }
 
-    visit(visitor : NodeVisitor) {}
-
-    codegen() : string {
-        return this.code;
+    getTemplate() {
+        // hack: we need to close the template string, add some piece dynamically, and then reopen it
+        return `" + (${this.code}) + "`;
     }
+
+    visit(visitor : NodeVisitor) {}
 }
 RuleHeadPart.ComputedStringLiteral = ComputedStringLiteralRuleHead;
 
 export class ChoiceRuleHead extends RuleHeadPart {
-    type = 'undefined';
-
     constructor(public values : string[]) {
         super();
     }
 
-    visit(visitor : NodeVisitor) {}
-
-    codegen() : string {
-        return `new $runtime.Choice([${this.values.map(stringEscape).join(', ')}])`;
+    getTemplate() {
+        return '{' + this.values.map((v) => templateEscape(v).replace(/(["\\])/g, '\\$1').replace(/\n/g, '\\n')).join('|') + '}';
     }
+
+    visit(visitor : NodeVisitor) {}
 }
 RuleHeadPart.Choice = ChoiceRuleHead;

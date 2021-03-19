@@ -19,42 +19,23 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
-import interpolate from 'string-interp';
 import { Ast, Type, Syntax } from 'thingtalk';
 
 import * as I18n from '../../i18n';
 import { clean, cleanKind } from '../misc-utils';
-import { splitParams, tokenizeExample } from './example-utils';
+import { tokenizeExample } from './example-utils';
 import { AnyEntity } from '../entity-utils';
+import {
+    Replaceable,
+    Choice,
+    Placeholder,
+    ReplacedResult,
+    ReplacedList,
+    ReplacedChoice,
+    ReplacedConcatenation,
+} from '../template-string';
 
-const OLD_ANNOTATION_RENAME : { [key : string] : string } = {
-    'property': 'npp',
-    'reverse_property': 'npi',
-    'verb': 'avp',
-    'passive_verb': 'pvp',
-    'adjective': 'apv',
-    'implicit_identity': 'npv',
-};
-const NEW_ANNOTATION_RENAME : { [key : string] : string } = {
-    'npp': 'property',
-    'npi': 'reverse_property',
-    'avp': 'verb',
-    'pvp': 'passive_verb',
-    'apv': 'adjective',
-    'npv': 'implicit_identity',
-};
-
-type ScopeMap = Record<string, string>;
-
-interface LocationLike {
-    lat : number;
-    lon : number;
-    display ?: string|null;
-}
-
-type InterpChunkPrimitive = string|number|boolean|null|undefined|LocationLike;
-type InterpChunk = InterpChunkPrimitive|InterpChunkPrimitive[];
-
+type ScopeMap = Record<string, string|ReplacedResult>;
 
 export class Describer {
     private _ : (x : string) => string;
@@ -64,8 +45,6 @@ export class Describer {
     private _langPack : I18n.LanguagePack;
     private _entityAllocator : Syntax.SequentialEntityAllocator;
     private _direction : 'user'|'agent';
-    private _format : InstanceType<typeof interpolate.Formatter>; // FIXME
-    private _interp : (x : string, args : Record<string, InterpChunk|InterpChunk[]>) => string;
 
     private _datasets : Map<string, Ast.Dataset> = new Map;
 
@@ -80,8 +59,38 @@ export class Describer {
         this.timezone = timezone;
 
         this._direction = direction;
-        this._format = new interpolate.Formatter(locale, timezone);
-        this._interp = (string, args) => interpolate(string, args, { locale, timezone })||'';
+    }
+
+    private _interp(x : string, args : Record<string, string|number|ReplacedResult|null>) : ReplacedResult|null {
+        const replacements = [];
+        const names = [];
+        for (const key in args) {
+            names.push(key);
+            const value = args[key];
+            if (value === null)
+                return null;
+            replacements.push({
+                text: typeof value === 'string' ? this._const(value) :
+                    typeof value === 'number' ? new ReplacedConcatenation([String(value)], {}, {}) : value,
+                value,
+            });
+        }
+
+        const tmpl = Replaceable.get(x, this.locale, names);
+        return tmpl.replace({ replacements, constraints: {} });
+    }
+
+    private _const(x : string) : ReplacedResult {
+        // even though x is a constant, we parse it as a template so we get all the flags and the choices
+        const res =  this._interp(x, {});
+        assert(res);
+        return res;
+    }
+
+    private _makeList(elements : Array<ReplacedResult|null>, listType ?: string) : ReplacedResult|null {
+        if (elements.some((x) => x === null))
+            return null;
+        return new ReplacedList(elements as ReplacedResult[], this.locale, listType);
     }
 
     setDataset(kind : string, dataset : Ast.Dataset) {
@@ -89,7 +98,6 @@ export class Describer {
     }
 
     setFullDataset(datasets : Ast.Dataset[]) {
-
         // flatten all examples in all datasets, and then split again by device
         // split the dataset into multiple datasets for each kind
         // to have a faster lookup when we describe a specific program later
@@ -124,42 +132,44 @@ export class Describer {
             assert(loc instanceof Ast.RelativeLocation);
             switch (loc.relativeTag) {
             case 'current_location':
-                return this._("here");
+                return this._const(this._("here"));
             case 'home':
-                return this._("home");
+                return this._const(this._("home"));
             case 'work':
-                return this._("work");
+                return this._const(this._("work"));
             default:
-                return loc.relativeTag;
+                return this._const(loc.relativeTag);
             }
         }
     }
 
-    private _getEntity(entityType : string, entity : AnyEntity) : string {
-        return this._entityAllocator.findEntity(entityType, entity).flatten().join(' ');
+    private _getEntity(entityType : string, entity : AnyEntity) : ReplacedResult {
+        // note: we don't use this._const here because we don't want to preprocess
+        // the string, because that would mess up with the entities
+        return new ReplacedConcatenation([this._entityAllocator.findEntity(entityType, entity).flatten().join(' ')], {}, {});
     }
 
-    private _describeTime(time : Ast.Time) {
+    private _describeTime(time : Ast.Time) : ReplacedResult|null {
         if (time instanceof Ast.AbsoluteTime) {
             return this._getEntity('TIME', time.toEntity());
         } else {
             assert(time instanceof Ast.RelativeTime);
             switch (time.relativeTag) {
                 case 'morning':
-                    return this._('the morning');
+                    return this._const(this._('the morning'));
                 case 'evening':
-                    return this._('the evening');
+                    return this._const(this._('the evening'));
                 default:
-                    return time.relativeTag;
+                    return this._const(time.relativeTag);
             }
         }
     }
 
-    private _describeDate(date : Date|Ast.DatePiece|Ast.DateEdge|Ast.WeekDayDate|null) {
+    private _describeDate(date : Date|Ast.DatePiece|Ast.DateEdge|Ast.WeekDayDate|null) : ReplacedResult|null {
         let base;
 
         if (date === null) {
-            base = this._("now");
+            base = this._const(this._("now"));
         } else if (date instanceof Ast.DatePiece) {
             const monthNames = ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december" ];
             const year = this._(date.year === null ?
@@ -201,6 +211,8 @@ export class Describer {
             case 'year':
                 unit = this._("this year");
                 break;
+            default:
+                throw new Error(`Invalid time unit ${date.unit}`);
             }
             if (date.edge === 'start_of')
                 base = this._interp(this._("the start of ${unit}"), { unit });
@@ -217,18 +229,9 @@ export class Describer {
         return base;
     }
 
-    // public API that always returns a string
-    describeArg(arg : Ast.Value, scope ?: ScopeMap) : string {
-        return this._interp('${v}', {
-            v: this._describeArg(arg, scope)
-        });
-    }
-
-    // internal API that returns an array or number in some cases (so string-interp can do
-    // better formatting than we can)
-    private _describeArg(arg : Ast.Value, scope : ScopeMap = {}, skipThePrefix = false) : InterpChunk {
+    describeArg(arg : Ast.Value, scope : ScopeMap = {}, skipThePrefix = false) : ReplacedResult|null {
         if (arg instanceof Ast.ArrayValue)
-            return arg.value.map((v) => this._describeArg(v, scope) as InterpChunkPrimitive);
+            return this._makeList(arg.value.map((v) => this.describeArg(v, scope)));
 
         if (arg instanceof Ast.NumberValue)
             return this._getEntity('NUMBER', arg.value);
@@ -239,15 +242,17 @@ export class Describer {
                 name = scope[arg.name];
             else
                 name = clean(arg.name);
+            if (typeof name === 'string')
+                name = new ReplacedConcatenation([name], {}, {});
             if (skipThePrefix)
                 return name;
-            return this._interp(this._("the ${name}"), { name });
+            return this._interp(this._("the ${name} [plural=name[plural]]"), { name });
         }
         if (arg instanceof Ast.ComputationValue) {
             if ((arg.op === '+' || arg.op === '-') &&
                 arg.operands[0].isDate) {
-                const base = this._describeArg(arg.operands[0], scope);
-                const offset = this._describeArg(arg.operands[1], scope);
+                const base = this.describeArg(arg.operands[0], scope);
+                const offset = this.describeArg(arg.operands[1], scope);
 
                 if (arg.op === '+')
                     return this._interp(this._("${offset} past ${base}"), { offset, base });
@@ -256,9 +261,9 @@ export class Describer {
             }
 
             if (arg.op === '+' && arg.operands.every((op) => op.isMeasure))
-                return arg.operands.map((v) => this._describeArg(v, scope)).join(' ');
+                return this._makeList(arg.operands.map((v) => this.describeArg(v, scope)), ' ');
 
-            const operands : InterpChunk[] = arg.operands.map((v) => this._describeArg(v, scope));
+            const operands : Array<ReplacedResult|null> = arg.operands.map((v) => this.describeArg(v, scope));
             switch (arg.op) {
             case '+':
                 return this._interp(this._("${lhs} plus ${rhs}"), { lhs: operands[0], rhs: operands[1] });
@@ -291,37 +296,37 @@ export class Describer {
 
         if (arg instanceof Ast.FilterValue) {
             return this._interp(this._("${value} for which ${filter}"), {
-                value: this._describeArg(arg.value, scope),
+                value: this.describeArg(arg.value, scope),
                 filter: this.describeFilter(arg.filter, this._compoundTypeToSchema((arg.type as InstanceType<typeof Type.Array>).elem as Type), scope)
             });
         }
         if (arg instanceof Ast.ArrayFieldValue) {
             return this._interp(this._("the ${field} of ${value}"), {
                 field: arg.arg!.canonical,
-                value: this._describeArg(arg.value, scope)
+                value: this.describeArg(arg.value, scope)
             });
         }
 
         if (arg instanceof Ast.ContextRefValue) {
             switch (arg.name) {
             case 'selection':
-                return this._("the selection on the screen");
+                return this._const(this._("the selection on the screen"));
             default:
                 throw new Error(`unsupported context value`);
             }
         }
         if (arg instanceof Ast.UndefinedValue)
-            return '____';
+            return this._const('____');
         if (arg instanceof Ast.EventValue) {
             switch (arg.name) {
             case 'program_id':
-                return this._("the program ID");
+                return this._const(this._("the program ID"));
             case 'type':
-                return this._("the device type");
+                return this._const(this._("the device type"));
             case 'source':
-                return this._("the requester");
+                return this._const(this._("the requester"));
             default:
-                return this._("the result");
+                return this._const(this._("the result"));
             }
         }
         if (arg instanceof Ast.LocationValue)
@@ -351,24 +356,24 @@ export class Describer {
         if (arg instanceof Ast.CurrencyValue)
             return this._getEntity('CURRENCY', arg.toEntity());
         if (arg instanceof Ast.EnumValue)
-            return clean(arg.value);
+            return new ReplacedConcatenation([clean(arg.value)], {}, {});
         if (arg instanceof Ast.MeasureValue) {
             const normalizedUnit = new Type.Measure(arg.unit).unit;
             return this._getEntity('MEASURE_' + normalizedUnit, arg.toEntity());
         }
         if (arg instanceof Ast.BooleanValue)
-            return arg.value ? this._("true") : this._("false");
+            return this._const(arg.value ? this._("true") : this._("false"));
         if (arg instanceof Ast.DateValue)
             return this._describeDate(arg.value);
         if (arg instanceof Ast.TimeValue)
             return this._describeTime(arg.value);
 
-        return String(arg);
+        return new ReplacedConcatenation([String(arg)], {}, {});
     }
 
-    private _describeOperator(argcanonical : InterpChunk,
+    private _describeOperator(argcanonical : ReplacedResult|null,
                               op : string,
-                              value : InterpChunk,
+                              value : ReplacedResult|null,
                               negate : boolean,
                               ptype : Type) {
         let op_key = op;
@@ -412,7 +417,7 @@ export class Describer {
             not_substr {${argcanonical} does not contain ${value}} \
             substr {${argcanonical} contains ${value}} \
             not_in_array {${argcanonical} is none of ${value}} \
-            in_array {${argcanonical} is any of ${value:disjunction}} \
+            in_array {${argcanonical} is any of ${value[list_type=disjunction]}} \
             not_rev_substr {${argcanonical} is not contained in ${value}} \
             rev_substr {${argcanonical} is contained in ${value}} \
             not_starts_with {${argcanonical} does not start with ${value}} \
@@ -458,28 +463,28 @@ export class Describer {
                                 scope : ScopeMap,
                                 negate : boolean,
                                 canonical_overwrite : ScopeMap = {}) {
-        let lhs : InterpChunk, rhs : InterpChunk, ptype : Type;
+        let lhs : ReplacedResult|string|null, rhs : ReplacedResult|null, ptype : Type;
         if (expr instanceof Ast.AtomBooleanExpression) {
             const argname = expr.name;
             if (argname in canonical_overwrite) {
                 lhs = canonical_overwrite[argname];
             } else if (schema) {
                 if (schema.hasArgument(argname))
-                    lhs = schema.getArgCanonical(argname)!;
+                    lhs = this._getArgCanonical(schema, argname);
                 else
                     lhs = scope[argname];
             } else {
                 lhs = scope[argname];
             }
-            lhs = this._interp(this._("the ${name}"), { name: lhs });
-            rhs = this._describeArg(expr.value, scope);
+            lhs = this._interp(this._("the ${name} [plural=name[plural]]"), { name: lhs });
+            rhs = this.describeArg(expr.value, scope);
             if (schema)
                 ptype = schema.out[argname] || schema.inReq[argname] || schema.inOpt[argname];
             else
                 ptype = Type.Any;
         } else {
-            lhs = this._describeArg(expr.lhs, scope);
-            rhs = this._describeArg(expr.rhs, scope);
+            lhs = this.describeArg(expr.lhs, scope);
+            rhs = this.describeArg(expr.rhs, scope);
             ptype = expr.lhs.getType();
         }
         return this._describeOperator(lhs, expr.operator, rhs, negate, ptype);
@@ -488,12 +493,12 @@ export class Describer {
     describeFilter(expr : Ast.BooleanExpression,
                    schema : Ast.FunctionDef|null = null,
                    scope : ScopeMap = {},
-                   canonical_overwrite : ScopeMap = {}) : string {
-        const recursiveHelper = (expr : Ast.BooleanExpression) : string => {
+                   canonical_overwrite : ScopeMap = {}) : ReplacedResult|null {
+        const recursiveHelper = (expr : Ast.BooleanExpression) : ReplacedResult|null => {
             if (expr.isTrue || (expr instanceof Ast.AndBooleanExpression && expr.operands.length === 0))
-                return this._("true");
+                return this._const(this._("true"));
             if (expr.isFalse || (expr instanceof Ast.OrBooleanExpression && expr.operands.length === 0))
-                return this._("false");
+                return this._const(this._("false"));
             if (expr instanceof Ast.DontCareBooleanExpression) {
                 const argname = expr.name;
                 let argcanonical;
@@ -501,7 +506,7 @@ export class Describer {
                     argcanonical = canonical_overwrite[argname];
                 } else if (schema) {
                     if (schema.hasArgument(argname))
-                        argcanonical = schema.getArgCanonical(argname);
+                        argcanonical = this._getArgCanonical(schema, argname);
                     else
                         argcanonical = scope[argname];
                 } else {
@@ -510,8 +515,6 @@ export class Describer {
                 return this._interp(this._("any value of ${argcanonical} is acceptable"), { argcanonical });
             }
 
-            // FIXME these should use this._format.listToString but that might not behave well
-            // on all versions of node / ICU
             if (expr instanceof Ast.AndBooleanExpression || expr instanceof Ast.OrBooleanExpression) {
                 return expr.operands.map(recursiveHelper).reduce((lhs, rhs) => {
                     return this._interp(this._("${lhs} ${op} ${rhs}"), {
@@ -547,7 +550,7 @@ export class Describer {
 
                     return this._describeOperator(lhs,
                                                   expr.filter.operator,
-                                                  this._describeArg(expr.filter.value, scope),
+                                                  this.describeArg(expr.filter.value, scope),
                                                   false,
                                                   expr.schema!.out[expr.filter.name]);
                 } else if (expr.filter instanceof Ast.NotBooleanExpression &&
@@ -560,7 +563,7 @@ export class Describer {
 
                     return this._describeOperator(lhs,
                                                   expr.filter.expr.operator,
-                                                  this._describeArg(expr.filter.expr.value, scope),
+                                                  this.describeArg(expr.filter.expr.value, scope),
                                                   true,
                                                   expr.schema!.out[expr.filter.expr.name]);
                 } else {
@@ -571,6 +574,8 @@ export class Describer {
                     });
                 }
             }
+            if (expr instanceof Ast.ExistentialSubqueryBooleanExpression || expr instanceof Ast.ComparisonSubqueryBooleanExpression)
+                return recursiveHelper(expr.toLegacy());
             assert(expr instanceof Ast.AtomBooleanExpression ||
                    expr instanceof Ast.ComputeBooleanExpression);
             return this._describeAtomFilter(expr, schema, scope, false, canonical_overwrite);
@@ -579,10 +584,10 @@ export class Describer {
         return recursiveHelper(expr);
     }
 
-    private _getDeviceAttribute(selector : Ast.DeviceSelector, name : string) : InterpChunk|undefined {
+    private _getDeviceAttribute(selector : Ast.DeviceSelector, name : string) : ReplacedResult|null|undefined {
         for (const attr of selector.attributes) {
             if (attr.name === name)
-                return this._describeArg(attr.value, {});
+                return this.describeArg(attr.value, {});
         }
         return undefined;
     }
@@ -598,11 +603,11 @@ export class Describer {
             missing.add(in_param2.name);
         }
         for (const in_param of exampleInParams) {
+            if (in_param.value instanceof Ast.UndefinedValue)
+                continue;
+
             let found = false;
             for (const in_param2 of programInParams) {
-                if (in_param2.value instanceof Ast.UndefinedValue)
-                    continue;
-
                 if (in_param2.name === in_param.name) {
                     // found it!
                     if (in_param.value.equals(in_param2.value)) {
@@ -610,8 +615,16 @@ export class Describer {
                         score += 2;
                     } else if (in_param.value instanceof Ast.VarRefValue &&
                                in_param.value.name in exampleArgs) {
-                        // normal match (map to a placeholder and replace)
-                        score += 1;
+                        if (in_param2.value instanceof Ast.UndefinedValue) {
+                            // the parameter is mentioned in the example utterance but
+                            // is undefined in the program we're describing, so we'll have to
+                            // use a placeholder
+                            // lower the score
+                            score -= 0.5;
+                        } else {
+                            // normal match (map to a placeholder and replace)
+                            score += 1;
+                        }
                     } else {
                         // no match at all, break out of here!
                         break;
@@ -622,18 +635,8 @@ export class Describer {
                     break;
                 }
             }
-            if (!found) {
-                if (in_param.value instanceof Ast.VarRefValue &&
-                    in_param.value.name in exampleArgs) {
-                    // the parameter is mentioned in the example utterance but not
-                    // in the program we're describing, so we'll have to
-                    // use a placeholder
-                    // lower the score
-                    score -= 0.5;
-                } else if (!(in_param.value instanceof Ast.UndefinedValue)) {
-                    return null;
-                }
-            }
+            if (!found)
+                return null;
         }
 
         for (const _ of missing) {
@@ -646,11 +649,56 @@ export class Describer {
         return score;
     }
 
+    private _exampleToTemplate(invocation : Ast.Invocation,
+                               preprocessed : string,
+                               deviceNameParam : string|null) : [Replaceable, string[]]|null {
+        const parsed = Replaceable.parse(preprocessed);
+        const names : string[] = [];
+
+        let good = true;
+        parsed.visit((node) => {
+            if (node instanceof Placeholder) {
+                if (node.param === deviceNameParam) {
+                    node.param = '__device';
+                    if (!names.includes('__device'))
+                        names.push('__device');
+                    return true;
+                }
+
+                let found = null;
+                for (const in_param of invocation.in_params) {
+                    if (in_param.value instanceof Ast.VarRefValue &&
+                        in_param.value.name === node.param) {
+                        found = in_param.name;
+                        break;
+                    }
+                }
+                if (!found) {
+                    // ??? the parameter is used in some weird way, not a good example
+                    good = false;
+                    return false;
+                }
+                if (!names.includes(found))
+                    names.push(found);
+                node.param = found;
+            }
+
+            return true;
+        });
+
+        if (good) {
+            parsed.preprocess(this.locale, names);
+            return [parsed, names];
+        } else {
+            return null;
+        }
+    }
+
     private _findBestExampleUtterance(kind : string,
                                       functionName : string,
                                       forSelector : Ast.DeviceSelector|null,
                                       forInParams : Ast.InputParam[],
-                                      forSchema : Ast.FunctionDef) {
+                                      forSchema : Ast.FunctionDef) : [Replaceable, string[]] {
         const dataset = this._datasets.get(kind);
 
         let relevantExamples : Ast.Example[] = [];
@@ -664,7 +712,7 @@ export class Describer {
             });
         }
 
-        const templates : Array<{ utterance : string, score : number }> = [];
+        const templates : Array<{ utterance : Replaceable, names : string[], score : number }> = [];
 
         // map each example from a form with p_ parameters into a "confirmation"-like form
         for (const ex of relevantExamples) {
@@ -712,193 +760,141 @@ export class Describer {
                 score -= 1;
             }
 
-            outerloop: for (let i = 0; i < ex.preprocessed.length; i++) {
-                const preprocessed = ex.preprocessed[i];
-                let mapped = '';
+            for (let preprocessed of ex.preprocessed) {
+                if (ex.type === 'query' && preprocessed.startsWith(','))
+                    continue;
 
-                for (const chunk of splitParams(preprocessed)) {
-                    if (typeof chunk === 'string') {
-                        mapped += chunk;
-                        continue;
-                    }
+                if (this._direction === 'agent')
+                    preprocessed = this._langPack.toAgentSideUtterance(preprocessed);
+                const mapped = this._exampleToTemplate(invocation, preprocessed, deviceNameParam);
+                if (mapped === null)
+                    continue;
 
-                    const [, param1, param2] = chunk;
-                    const param = param1 || param2;
-                    if (param === deviceNameParam) {
-                        mapped += '${__device}';
-                        continue;
-                    }
-
-                    let found = null;
-                    for (const in_param of invocation.in_params) {
-                        if (in_param.value instanceof Ast.VarRefValue &&
-                            in_param.value.name === param) {
-                            found = in_param.name;
-                            break;
-                        }
-                    }
-                    if (!found) {
-                        // ??? the parameter is used in some weird way, not a good example
-                        continue outerloop;
-                    }
-                    mapped += '${' + found + '}';
-                }
-
-                templates.push({ utterance: mapped, score });
+                const [utterance, names] = mapped;
+                templates.push({ utterance, names, score });
             }
         }
 
         // add the fallback example, with the score it would have as a score
-        let canonical = forSchema.metadata.canonical;
-        if (!canonical)
-            canonical = clean(forSchema.name);
-        if (Array.isArray(canonical))
-            canonical = canonical[0];
-        if (forSchema.functionType === 'query' && forSchema.is_list) {
-            const plural = this._langPack.pluralize(canonical);
-            if (plural)
-                canonical = plural;
-        }
+        const canonical = this._langPack.preprocessFunctionCanonical(forSchema.metadata.canonical || clean(forSchema.name),
+            forSchema.functionType, this._direction, forSchema.is_list);
         // put the canonical form first in the order
         // so all things equal, we'll pick the canonical form (which is, well, canonical)
         templates.unshift({
-            utterance: canonical,
+            utterance: new Choice(canonical),
+            names: [],
             score: this._computeParamMatchingScore([], forInParams, {})!
                 + (forSelector && forSelector.id ? -1 : 0)
         });
 
         // sort the templates by score, pick the highest one
         templates.sort((one, two) => two.score - one.score);
-        return templates[0].utterance;
+        return [templates[0].utterance, templates[0].names];
     }
 
-
     describePrimitive(obj : Ast.Invocation|Ast.ExternalBooleanExpression|Ast.FunctionCallExpression,
-                      scope ?: ScopeMap) : string {
+                      scope ?: ScopeMap) : ReplacedResult|null {
         const schema = obj.schema;
         assert(schema instanceof Ast.FunctionDef);
 
-        const argMap = new Map;
-        let confirm : string;
-        if (obj instanceof Ast.FunctionCallExpression)
-            confirm = schema.canonical!;
-        else
-            confirm = this._findBestExampleUtterance(obj.selector.kind, obj.channel, obj.selector, obj.in_params, obj.schema!);
-
-        if (this._direction === 'agent')
-            confirm = this._langPack.toAgentSideUtterance(confirm);
+        const argMap = new Map<string, [ReplacedResult, Ast.Value|null]>();
+        let template : Replaceable, names : string[];
+        if (obj instanceof Ast.FunctionCallExpression) {
+            template = Replaceable.parse(schema.canonical!).preprocess(this.locale, []);
+            names = [];
+        } else {
+            [template, names] = this._findBestExampleUtterance(obj.selector.kind, obj.channel, obj.selector, obj.in_params, obj.schema!);
+        }
 
         if (obj instanceof Ast.Invocation ||
             obj instanceof Ast.ExternalBooleanExpression) {
             const cleanKind = schema.class ? schema.class.canonical : clean(obj.selector.kind);
             const name = this._getDeviceAttribute(obj.selector, 'name');
             if (name)
-                argMap.set('__device', name);
+                argMap.set('__device', [name,   null]);
             else
-                argMap.set('__device', cleanKind);
+                argMap.set('__device', [this._const(cleanKind), null]);
         }
 
         for (const inParam of obj.in_params) {
             const argname = inParam.name;
-            if (inParam.value.isUndefined)
-                continue;
-            argMap.set(argname, this._describeArg(inParam.value, scope));
+            argMap.set(argname, [this.describeArg(inParam.value, scope)!, inParam.value]);
         }
 
-        const usedArgs = new Set;
-        confirm = interpolate(confirm, (param) => {
-            usedArgs.add(param);
-            return argMap.get(param);
-        }, {
-            locale: this.locale,
-            timezone: this.timezone,
-            failIfMissing: false,
-            nullReplacement: '____'
-        })||'';
+        const replacements = [];
+        for (const name of names) {
+            const [text, value] = argMap.get(name)!;
+            replacements.push({ text, value });
+        }
+        let confirm = template.replace({ replacements, constraints: {} });
+        if (confirm === null)
+            return null;
 
         let firstExtra = true;
-
         for (const inParam of obj.in_params) {
             const argname = inParam.name;
-            if (usedArgs.has(argname))
+            if (names.includes(argname))
                 continue;
-
             if (argname.startsWith('__'))
                 continue;
             const arg = schema.getArgument(argname)!;
             if (inParam.value.isUndefined && arg.required)
                 continue;
 
-            let canonical;
-            if (!arg.metadata.canonical)
-                canonical = { base: [clean(argname)] };
-            else if (typeof arg.metadata.canonical === 'string')
-                canonical = { base: [arg.metadata.canonical] };
-            else
-                canonical = arg.metadata.canonical;
-
-            if (!canonical.default)
-                canonical.default = 'base';
-            if (canonical.default in NEW_ANNOTATION_RENAME)
-                canonical.default = NEW_ANNOTATION_RENAME[canonical.default];
-
-            let canonical_key = canonical.default;
-            let form;
-            if (canonical_key === 'implicit_identity') {
-                canonical_key = 'reverse_property';
-                form = '#';
-            } else {
-                if (canonical[canonical.default])
-                    form = canonical[canonical.default];
-                else if (canonical[OLD_ANNOTATION_RENAME[canonical.default]])
-                    form = canonical[OLD_ANNOTATION_RENAME[canonical.default]];
-                if (Array.isArray(form))
-                    form = form[0];
+            const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || clean(argname));
+            const text = this.describeArg(inParam.value, scope)!;
+            const ctx = {
+                replacements: [{ text, value: inParam.value }],
+                constraints: {}
+            };
+            const phrases : ReplacedResult[] = [];
+            for (const phrase of canonical.filter) {
+                const replaced = phrase.replace(ctx);
+                if (replaced)
+                    phrases.push(replaced);
             }
-            assert(typeof form === 'string');
-
-            let value = this._describeArg(inParam.value, scope);
-            if (Array.isArray(value)) {
-                value = this._format.listToString(value, {
-                    type: 'conjunction'
-                });
+            if (phrases.length === 0)
+                return null;
+            let forms : ReplacedResult = new ReplacedChoice(phrases);
+            if (canonical.default !== 'base') {
+                const constrained = forms.constrain('pos', canonical.default);
+                if (constrained)
+                    forms = constrained;
             }
-            let input_param;
-            if (form.indexOf('#') >= 0)
-                input_param = form.replace('#', String(value));
-            else
-                input_param = form + ' ' + value;
 
             if (firstExtra) {
-                confirm = this._interp(this._("${canonical_key:select: \
-                    base {${invocation} with ${input_param}} \
-                    property {${invocation} that have ${input_param}} \
-                    reverse_property {${invocation} that are ${input_param}}\
-                    verb {${invocation} that ${input_param}} \
-                    adjective {${input_param} ${invocation}} \
-                    passive_verb {${invocation} ${input_param}} \
-                    preposition {${invocation} ${input_param}} \
-                }"), { canonical_key: canonical.default, invocation: confirm, input_param });
-
-                if (!['adjective', 'passive_verb'].includes(canonical.default))
-                    firstExtra = false;
+                confirm = this._interp(this._("${input_param[pos]:select: \
+                    base {${invocation} with ${input_param} [plural=invocation[plural]]} \
+                    property {${invocation} with ${input_param} [plural=invocation[plural]]} \
+                    reverse_property {${invocation} that ${invocation[plural]:select:one{is}other{are}} ${input_param} [plural=invocation[plural]]}\
+                    verb {${invocation} that ${invocation[plural]:select:one{${input_param[plural=one]}}other{${input_param[plural=other]}}} [plural=invocation[plural]]} \
+                    adjective {${input_param} ${invocation} [plural=invocation[plural]]} \
+                    passive_verb {${invocation} ${input_param} [plural=invocation[plural]]} \
+                    preposition {${invocation} ${input_param} [plural=invocation[plural]]} \
+                }"), { invocation: confirm, input_param: forms });
+                firstExtra = false;
             } else {
-                confirm = this._interp(this._("${canonical_key:select: \
-                    base {${invocation} and with ${input_param}} \
-                    property {${invocation} and have ${input_param}} \
-                    reverse_property {${invocation} and are ${input_param}}\
-                    verb {${invocation} and ${input_param}} \
-                    adjective {${input_param} ${table}} \
-                    passive_verb {${invocation} ${input_param}} \
-                    preposition {${invocation} ${input_param}} \
-                }"), { canonical_key, invocation: confirm, input_param });
+                confirm = this._interp(this._("${input_param[pos]:select: \
+                    base {${invocation} and ${input_param} [plural=invocation[plural]]} \
+                    property {${invocation} and ${input_param} [plural=invocation[plural]]} \
+                    reverse_property {${invocation} and ${invocation[plural]:select:one{is}other{are}} ${input_param} [plural=invocation[plural]]}\
+                    verb {${invocation} and ${input_param} [plural=invocation[plural]]} \
+                    adjective {${input_param} ${invocation} [plural=invocation[plural]]} \
+                    passive_verb {${invocation} ${input_param} [plural=invocation[plural]]} \
+                    preposition {${invocation} ${input_param} [plural=invocation[plural]]} \
+                }"), { invocation: confirm, input_param: forms });
             }
+
+            if (confirm === null)
+                return null;
         }
 
         return confirm;
     }
 
-    private _describeIndex(index : Ast.Value, tabledesc : string) {
+    private _describeIndex(index : Ast.Value, tabledesc : ReplacedResult|null) {
+        if (tabledesc === null)
+            return null;
         if (index instanceof Ast.NumberValue) {
             if (index.value < 0) {
                 return this._interp(this._("${index:ordinal: \
@@ -922,24 +918,24 @@ export class Describer {
             }
         } else {
             return this._interp(this._("the ${query} with index ${index}"), {
-                index: this._describeArg(index),
+                index: this.describeArg(index),
                 query: tabledesc
             });
         }
     }
 
-    private _describeFilteredTable(table : Ast.FilterExpression) : string {
+    private _describeFilteredTable(table : Ast.FilterExpression) : ReplacedResult|null {
         const inner = this.describeQuery(table.expression);
         if (!table.schema!.is_list) {
-            return this._interp(this._("${query} such that ${filter}"), {
+            return this._interp(this._("${query} such that ${filter} [plural=query[plural]]"), {
                 query: inner,
                 filter: this.describeFilter(table.filter, table.schema)
             });
         }
 
         const filter = table.filter.optimize();
-        const slotClauses = [];
-        const otherClauses = [];
+        const slotClauses : ReplacedResult[] = [];
+        const otherClauses : Ast.BooleanExpression[] = [];
 
         for (const clause of (filter instanceof Ast.AndBooleanExpression ? filter.operands : [filter])) {
             if (!(clause instanceof Ast.AtomBooleanExpression)) {
@@ -960,40 +956,50 @@ export class Describer {
                 continue;
             }
 
-            let canonical;
-            if (!arg.metadata.canonical)
-                canonical = { base: [clean(name)] };
-            else if (typeof arg.metadata.canonical === 'string')
-                canonical = { base: [arg.metadata.canonical] };
+            const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || clean(arg.name));
+            // TODO handle boolean/enum filters correctly
+
+            let text : ReplacedResult|null = this.describeArg(clause.value, {});
+            if (!text) {
+                otherClauses.push(clause);
+                continue;
+            }
+            if (['in_array', '~in_array', 'in_array~'].includes(clause.operator))
+                text = text.constrain('list_type', 'disjunction');
             else
-                canonical = arg.metadata.canonical;
-
-            if (!canonical.default)
-                canonical.default = 'base';
-            if (canonical.default in NEW_ANNOTATION_RENAME)
-                canonical.default = NEW_ANNOTATION_RENAME[canonical.default];
-            if (canonical.default === 'implicit_identity') {
+                text = text.constrain('list_type', 'conjunction');
+            if (!text) {
                 otherClauses.push(clause);
                 continue;
             }
 
-            let form;
-            if (canonical[canonical.default])
-                form = canonical[canonical.default];
-            else if (canonical[OLD_ANNOTATION_RENAME[canonical.default]])
-                form = canonical[OLD_ANNOTATION_RENAME[canonical.default]];
-            if (Array.isArray(form))
-                form = form[0];
-            if (!form || typeof form !== 'string') {
+            const ctx = {
+                replacements: [{ text, value: clause.value }],
+                constraints: {}
+            };
+            const phrases : ReplacedResult[] = [];
+            for (const phrase of canonical.filter) {
+                const replaced = phrase.replace(ctx);
+                if (replaced)
+                    phrases.push(replaced);
+            }
+            if (phrases.length === 0) {
                 otherClauses.push(clause);
                 continue;
             }
 
-            slotClauses.push([clause, canonical, form]);
+            let forms : ReplacedResult = new ReplacedChoice(phrases);
+            if (canonical.default !== 'base') {
+                const constrained = forms.constrain('pos', canonical.default);
+                if (constrained)
+                    forms = constrained;
+            }
+            slotClauses.push(forms);
         }
 
         // sort "adjective" and "passive verb" slots first, "preposition" slots at the end
-        slotClauses.sort((a, b) => {
+        // FIXME: not sure how to do this in the new way of propagating POS
+        /*slotClauses.sort((a, b) => {
             const [, canonicalA] = a;
             const [, canonicalB] = b;
 
@@ -1012,52 +1018,38 @@ export class Describer {
                 return -1;
             return 0;
         });
+        */
 
         let tabledesc = inner;
         let first = true;
 
-        for (const [clause, canonical, form] of slotClauses) {
-            let value = this._describeArg(clause.value, {});
-            if (Array.isArray(value)) {
-                value = this._format.listToString(value, {
-                    type: ['in_array', '~in_array', 'in_array~'].includes(clause.operator) ? 'disjunction' : 'conjunction'
-                });
-            }
-
-            let clauseString;
-            if (form.indexOf('#') >= 0)
-                clauseString = form.replace('#', value);
-            else
-                clauseString = form + ' ' + value;
-
+        for (const clause of slotClauses) {
             if (first) {
-                tabledesc = this._interp(this._("${canonical_key:select: \
-                    base {${table} that have ${filter}} \
-                    property {${table} that have ${filter}} \
-                    reverse_property {${table} that are ${filter}}\
-                    verb {${table} that ${filter}} \
-                    adjective {${filter} ${table}} \
-                    passive_verb {${table} ${filter}} \
-                    preposition {${table} ${filter}} \
-                }"), { canonical_key: canonical.default, table: tabledesc, filter: clauseString });
-
-                if (!['adjective', 'passive_verb'].includes(canonical.default))
-                    first = false;
+                tabledesc = this._interp(this._("${filter[pos]:select: \
+                    base {${table} that ${table[plural]:select:one{has}other{have}} ${filter} [plural=table[plural]]} \
+                    property {${table} that ${table[plural]:select:one{has}other{have}} ${filter} [plural=table[plural]]} \
+                    reverse_property {${table} that ${table[plural]:select:one{is}other{are}} ${filter} [plural=table[plural]]}\
+                    verb {${table} that ${table[plural]:select:one{${filter[plural=one]}}other{${filter[plural=other]}}} [plural=table[plural]]} \
+                    adjective {${filter} ${table} [plural=table[plural]]} \
+                    passive_verb {${table} ${filter} [plural=table[plural]]} \
+                    preposition {${table} ${filter} [plural=table[plural]]} \
+                }"), { table: tabledesc, filter: clause });
+                first = false;
             } else {
-                tabledesc = this._interp(this._("${canonical_key:select: \
-                    base {${table} and have ${filter}} \
-                    property {${table} and have ${filter}} \
-                    reverse_property {${table} and are ${filter}}\
-                    verb {${table} and ${filter}} \
-                    adjective {${filter} ${table}} \
-                    passive_verb {${table} ${filter}} \
-                    preposition {${table} ${filter}} \
-                }"), { canonical_key: canonical.default, table: tabledesc, filter: clauseString });
+                tabledesc = this._interp(this._("${filter[pos]:select: \
+                    base {${table} and ${table[plural]:select:one{has}other{have}} ${filter} [plural=table[plural]]} \
+                    property {${table} and ${table[plural]:select:one{has}other{have}} ${filter} [plural=table[plural]]} \
+                    reverse_property {${table} and ${table[plural]:select:one{is}other{are}} ${filter} [plural=table[plural]]}\
+                    verb {${table} and ${filter} [plural=table[plural]]} \
+                    adjective {${filter} ${table} [plural=table[plural]]} \
+                    passive_verb {${table} ${filter} [plural=table[plural]]} \
+                    preposition {${table} ${filter} [plural=table[plural]]} \
+                }"), { table: tabledesc, filter: clause });
             }
         }
 
         if (otherClauses.length > 0) {
-            return this._interp(this._("${query} such that ${filter}"), {
+            return this._interp(this._("${query} such that ${filter} [plural=query[plural]]"), {
                 query: tabledesc,
                 filter: this.describeFilter(new Ast.BooleanExpression.And(null, otherClauses).optimize(), table.schema)
             });
@@ -1066,7 +1058,7 @@ export class Describer {
         }
     }
 
-    describeQuery(table : Ast.Expression) : string {
+    describeQuery(table : Ast.Expression) : ReplacedResult|null {
         if (table instanceof Ast.FunctionCallExpression) {
             return this.describePrimitive(table);
         } else if (table instanceof Ast.InvocationExpression) {
@@ -1082,7 +1074,7 @@ export class Describer {
             return this.describeQuery(table.expression);
         } else if (table instanceof Ast.AggregationExpression) {
             if (table.field === '*') {
-                return this._interp(this._("the number of ${query}"), {
+                return this._interp(this._("the number of ${query[plural=other]}"), {
                     query: this.describeQuery(table.expression)
                 });
             }
@@ -1090,25 +1082,25 @@ export class Describer {
             let desc;
             switch (table.operator) {
             case 'avg':
-                desc = this._("the average ${param} in ${query}");
+                desc = this._("the average ${param} in ${query[plural=other]}");
                 break;
             case 'min':
-                desc = this._("the minimum ${param} in ${query}");
+                desc = this._("the minimum ${param} in ${query[plural=other]}");
                 break;
             case 'max':
-                desc = this._("the maximum ${param} in ${query}");
+                desc = this._("the maximum ${param} in ${query[plural=other]}");
                 break;
             case 'sum':
-                desc = this._("the sum of the ${param} in ${query}");
+                desc = this._("the sum of the ${param} in ${query[plural=other]}");
                 break;
             case 'count':
-                desc = this._("the number of ${param}s in ${query}");
+                desc = this._("the number of ${param[plural=other]} in ${query[plural=other]}");
                 break;
             default:
                 throw new TypeError(`Invalid aggregation ${table.operator}`);
             }
             return this._interp(desc, {
-                param: table.schema!.getArgCanonical(table.field),
+                param: this._getArgCanonical(table.schema!, table.field),
                 query: this.describeQuery(table.expression)
             });
 
@@ -1120,14 +1112,14 @@ export class Describer {
 
             if ((index.value === 1 && table.expression.direction === 'asc') ||
                 (index.value === -1 && table.expression.direction === 'desc')) {
-                return this._interp(this._("the ${query} with the minimum ${param}"), {
+                return this._interp(this._("the ${query[plural=one]} with the minimum ${param} [plural=one]"), {
                     query: this.describeQuery(table.expression.expression),
-                    param: this._describeArg(table.expression.value, {}, true)
+                    param: this.describeArg(table.expression.value, {}, true)
                 });
             } else {
-                return this._interp(this._("the ${query} with the maximum ${param}"), {
+                return this._interp(this._("the ${query[plural=one]} with the maximum ${param} [plural=one]"), {
                     query: this.describeQuery(table.expression.expression),
-                    param: this._describeArg(table.expression.value, {}, true)
+                    param: this.describeArg(table.expression.value, {}, true)
                 });
             }
 
@@ -1137,28 +1129,28 @@ export class Describer {
             (table.base.value === 1 || table.base.value === -1)) {
                 if ((table.base.value === 1 && table.expression.direction === 'asc') ||
                     (table.base.value === -1 && table.expression.direction === 'desc')) {
-                return this._interp(this._("the ${limit} ${query} with the minimum ${param}"), {
-                    limit: this._describeArg(table.limit),
+                return this._interp(this._("the ${limit} ${query[plural=other]} with the minimum ${param} [plural=other]"), {
+                    limit: this.describeArg(table.limit),
                     query: this.describeQuery(table.expression.expression),
-                    param: this._describeArg(table.expression.value, {}, true)
+                    param: this.describeArg(table.expression.value, {}, true)
                 });
             } else {
-                return this._interp(this._("the ${limit} ${query} with the maximum ${param}"), {
-                    limit: this._describeArg(table.limit),
+                return this._interp(this._("the ${limit} ${query[plural=other]} with the maximum ${param} [plural=other]"), {
+                    limit: this.describeArg(table.limit),
                     query: this.describeQuery(table.expression.expression),
-                    param: this._describeArg(table.expression.value, {}, true)
+                    param: this.describeArg(table.expression.value, {}, true)
                 });
             }
         } else if (table instanceof Ast.SortExpression) {
             if (table.direction === 'asc') {
-                return this._interp(this._("the ${query} sorted by increasing ${param}"), {
+                return this._interp(this._("the ${query} sorted by increasing ${param} [plural=query[plural]]"), {
                     query: this.describeQuery(table.expression),
-                    param: this._describeArg(table.value, {}, true)
+                    param: this.describeArg(table.value, {}, true)
                 });
             } else {
-                return this._interp(this._("the ${query} sorted by decreasing ${param}"), {
+                return this._interp(this._("the ${query} sorted by decreasing ${param} [plural=query[plural]]"), {
                     query: this.describeQuery(table.expression),
-                    param: this._describeArg(table.value, {}, true)
+                    param: this.describeArg(table.value, {}, true)
                 });
             }
         } else if (table instanceof Ast.IndexExpression && table.indices.length === 1) {
@@ -1166,43 +1158,55 @@ export class Describer {
                 this.describeQuery(table.expression));
         } else if (table instanceof Ast.IndexExpression) {
             return this._interp(this._("${indices.length:plural:\
-                one {element ${indices} of the ${query}}\
-                other {elements ${indices} of the ${query}}\
+                one {element ${indices} of the ${query} [plural=one]}\
+                other {elements ${indices} of the ${query} [plural=other]}\
             }"), {
-                indices: this._describeArg(new Ast.Value.Array(table.indices)),
+                indices: this.describeArg(new Ast.Value.Array(table.indices)),
                 query: this.describeQuery(table.expression),
             });
         } else if (table instanceof Ast.SliceExpression) {
             const base = table.base.isConstant() ? table.base.toJS() : undefined;
             if (base === 1) {
-                return this._interp(this._("the first ${limit} ${query}"), {
-                    limit: this._describeArg(table.limit),
+                return this._interp(this._("the first ${limit} ${query[plural=other]} [plural=other]"), {
+                    limit: this.describeArg(table.limit),
                     query: this.describeQuery(table.expression),
                 });
             } else if (base === -1) {
-                return this._interp(this._("the last ${limit} ${query}"), {
-                    limit: this._describeArg(table.limit),
+                return this._interp(this._("the last ${limit} ${query[plural=other]} [plural=other]"), {
+                    limit: this.describeArg(table.limit),
                     query: this.describeQuery(table.expression),
                 });
             } else {
-                return this._interp(this._("${limit} elements starting from ${base} of the ${query}"), {
-                    limit: this._describeArg(table.limit),
-                    base: this._describeArg(table.base),
+                return this._interp(this._("${limit} elements starting from ${base} of the ${query[plural=other]} [plural=other]"), {
+                    limit: this.describeArg(table.limit),
+                    base: this.describeArg(table.base),
                     query: this.describeQuery(table.expression),
                 });
             }
         } else if (table instanceof Ast.ChainExpression) {
-            return this._format.listToString(table.expressions.map((t) => this.describeQuery(t)));
+            return this._makeList(table.expressions.map((t) => this.describeQuery(t)), 'conjunction');
         } else {
             throw new TypeError(`Unexpected query ${table.prettyprint()}`);
         }
     }
 
+    private _getArgCanonical(schema : Ast.FunctionDef, argname : string) : ReplacedResult|null {
+        const arg = schema.getArgument(argname)!;
+        const normalized = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || clean(argname));
+
+        const phrases : ReplacedResult[] = normalized.base.map((phrase) => phrase.toReplaced());
+        if (phrases.length === 0)
+            return null;
+        if (phrases.length === 1)
+            return phrases[0];
+        return new ReplacedChoice(phrases);
+    }
+
     private __describeArgList(args : string[],
                               computations : Ast.Value[],
                               schema : Ast.FunctionDef) {
-        return args.map((argname) : InterpChunk => schema.getArgCanonical(argname))
-            .concat(computations.map((c) => this._describeArg(c)));
+        return this._makeList(args.map((argname) => this._getArgCanonical(schema, argname))
+            .concat(computations.map((c) => this.describeArg(c))));
     }
 
     private _describeTimer(stream : Ast.FunctionCallExpression) {
@@ -1216,9 +1220,9 @@ export class Describer {
                 =2 {twice every ${interval}}\
                 other {${frequency} times every ${interval}}\
             } starting ${base}"), {
-                frequency: frequency ? this._describeArg(frequency.value) : 1,
-                interval: this._describeArg(interval ? interval.value : new Ast.Value.Undefined()),
-                base: this._describeArg(base.value)
+                frequency: frequency ? this.describeArg(frequency.value) : 1,
+                interval: this.describeArg(interval ? interval.value : new Ast.Value.Undefined()),
+                base: this.describeArg(base.value)
             });
         } else {
             return this._interp(this._("${frequency:plural:\
@@ -1226,8 +1230,8 @@ export class Describer {
                 =2 {twice every ${interval}}\
                 other {${frequency} times every ${interval}}\
             }"), {
-                frequency: frequency ? this._describeArg(frequency.value) : 1,
-                interval: this._describeArg(interval ? interval.value : new Ast.Value.Undefined()),
+                frequency: frequency ? this.describeArg(frequency.value) : 1,
+                interval: this.describeArg(interval ? interval.value : new Ast.Value.Undefined()),
             });
         }
     }
@@ -1238,17 +1242,17 @@ export class Describer {
 
         if (expiration_date) {
             return this._interp(this._("every day at ${time} until ${expiration}"), {
-                time: this._describeArg(time ? time.value : new Ast.Value.Undefined()),
-                expiration: this._describeArg(expiration_date.value)
+                time: this.describeArg(time ? time.value : new Ast.Value.Undefined()),
+                expiration: this.describeArg(expiration_date.value)
             });
         } else {
             return this._interp(this._("every day at ${time}"), {
-                time: this._describeArg(time ? time.value : new Ast.Value.Undefined()),
+                time: this.describeArg(time ? time.value : new Ast.Value.Undefined()),
             });
         }
     }
 
-    describeStream(stream : Ast.Expression) : string {
+    describeStream(stream : Ast.Expression) : ReplacedResult|null {
         if (stream instanceof Ast.FunctionCallExpression) {
             if (stream.name === 'timer')
                 return this._describeTimer(stream);
@@ -1260,22 +1264,28 @@ export class Describer {
             if (stream.expression instanceof Ast.FilterExpression) {
                 // flip monitor of filter to filter of monitor
                 // FIXME is this the right thing to do? not sure
-                return this._interp(this._("${is_list:select:\
-                    true {when ${table} change if ${filter}}\
-                    false {when the ${table} changes if ${filter}}\
-                }"), {
-                    is_list: stream.expression.schema!.is_list,
-                    table: this.describeQuery(stream.expression.expression),
-                    filter: this.describeFilter(stream.expression.filter, stream.expression.schema)
-                });
+                if (stream.expression.schema!.is_list) {
+                    // try both plural forms, but prefer the plural if available
+                    return this._interp(this._("when {${table[plural=other]} change|${table[plural=one]} changes} if ${filter}"), {
+                        table: this.describeQuery(stream.expression.expression),
+                        filter: this.describeFilter(stream.expression.filter, stream.expression.schema)
+                    });
+                } else {
+                    return this._interp(this._("when the ${table[plural=one]} changes if ${filter}"), {
+                        table: this.describeQuery(stream.expression.expression),
+                        filter: this.describeFilter(stream.expression.filter, stream.expression.schema)
+                    });
+                }
             } else {
-                return this._interp(this._("${is_list:select:\
-                    true {when ${table} change}\
-                    false {when the ${table} changes}\
-                }"), {
-                    is_list: stream.expression.schema!.is_list,
-                    table: this.describeQuery(stream.expression),
-                });
+                if (stream.expression.schema!.is_list) {
+                    return this._interp(this._("when ${table[plural=other]} change"), {
+                        table: this.describeQuery(stream.expression),
+                    });
+                } else {
+                    return this._interp(this._("when the ${table[plural=one]} changes"), {
+                        table: this.describeQuery(stream.expression),
+                    });
+                }
             }
         } else if (stream instanceof Ast.FilterExpression) {
             return this._interp(this._("${stream} and it becomes true that ${filter}"), {
@@ -1296,9 +1306,9 @@ export class Describer {
         }
     }
 
-    describeAction(action : Ast.Expression) : string {
+    describeAction(action : Ast.Expression) : ReplacedResult|null {
         if (action instanceof Ast.FunctionCallExpression)
-            return clean(action.name);
+            return this._const(clean(action.name));
         else if (action instanceof Ast.InvocationExpression)
             return this.describePrimitive(action.invocation);
         else
@@ -1307,16 +1317,18 @@ export class Describer {
 
     private _describeExpression(exp : Ast.Expression) {
         if (exp.schema!.functionType === 'query') {
-            if (exp.schema!.is_list)
-                return this._interp(this._("get ${query}"), { query: this.describeQuery(exp) });
-            else
-                return this._interp(this._("get the ${query}"), { query: this.describeQuery(exp) });
+            if (exp.schema!.is_list) {
+                // try both plural forms, but prefer the plural if available
+                return this._interp(this._("get {${query[plural=other]}|${query[plural=one]}}"), { query: this.describeQuery(exp) });
+            } else {
+                return this._interp(this._("get the ${query[plural=one]}"), { query: this.describeQuery(exp) });
+            }
         } else {
             return this.describeAction(exp);
         }
     }
 
-    describeExpressionStatement(r : Ast.ExpressionStatement) : string {
+    describeExpressionStatement(r : Ast.ExpressionStatement) : ReplacedResult|null {
         const expressions = r.expression.expressions;
 
         const stream = r.stream;
@@ -1326,7 +1338,7 @@ export class Describer {
 
                 return this._interp(this._("do the following : ${stream} , ${queries} , and then ${action}"), {
                     stream: this.describeStream(stream),
-                    queries: descriptions.slice(0, descriptions.length-1),
+                    queries: this._makeList(descriptions.slice(0, descriptions.length-1), 'conjunction'),
                     action: descriptions[descriptions.length-1],
                 });
             } else if (expressions.length === 2) {
@@ -1342,7 +1354,7 @@ export class Describer {
         } else if (expressions.length > 2) {
             const descriptions = expressions.map((exp) => this._describeExpression(exp));
             return this._interp(this._("${queries} , and then ${action}"), {
-                queries: descriptions.slice(0, descriptions.length-1),
+                queries: this._makeList(descriptions.slice(0, descriptions.length-1), 'conjunction'),
                 action: descriptions[descriptions.length-1]
             });
         } else if (expressions.length === 2) {
@@ -1356,7 +1368,7 @@ export class Describer {
     }
 
     private _describeAssignment(d : Ast.Assignment) {
-        let valuedesc : string;
+        let valuedesc : ReplacedResult|null;
         const value = d.value;
         if (value.schema!.functionType === 'query')
             valuedesc = this.describeQuery(value);
@@ -1371,16 +1383,16 @@ export class Describer {
         });
     }
 
-    describeProgram(program : Ast.Program) : string {
-        const desc = program.statements.map((r) => {
+    describeProgram(program : Ast.Program) : ReplacedResult|null {
+        const desc = this._makeList(program.statements.map((r) => {
             if (r instanceof Ast.Assignment)
                 return this._describeAssignment(r);
             else
                 return this.describeExpressionStatement(r);
-        }).join('; ');
+        }), ' ; ');
         if (program.principal) {
             return this._interp(this._("tell ${principal} : ${command}"), {
-                principal: this._describeArg(program.principal),
+                principal: this.describeArg(program.principal),
                 command: desc
             });
         } else {
@@ -1390,7 +1402,7 @@ export class Describer {
 
     describePermissionFunction(permissionFunction : Ast.PermissionFunction,
                                functionType : 'query'|'action',
-                               scope : ScopeMap) : string {
+                               scope : ScopeMap) : ReplacedResult|null {
         if (permissionFunction instanceof Ast.SpecifiedPermissionFunction) {
             const kind = permissionFunction.kind;
             const schema = permissionFunction.schema as Ast.FunctionDef;
@@ -1402,8 +1414,8 @@ export class Describer {
             else
                 andFilter = filterClone;
 
-            const argMap = new Map;
-            argMap.set('__device', [clean(kind), -1]);
+            const argMap = new Map<string, [ReplacedResult, Ast.Value|null, number]>();
+            argMap.set('__device', [this._const(clean(kind)), null, -1]);
             const pseudoInParams : Ast.InputParam[] = [];
             andFilter.operands.forEach((operand, i) => {
                 // don't traverse Ors or Nots
@@ -1413,45 +1425,37 @@ export class Describer {
                     return;
 
                 const argname = operand.name;
-                argMap.set(argname, [this._describeArg(operand.value, scope), i]);
+                argMap.set(argname, [this.describeArg(operand.value, scope)!, operand.value, i]);
                 pseudoInParams.push(new Ast.InputParam(null, argname, operand.value));
             });
 
-            let confirm = this._findBestExampleUtterance(kind, permissionFunction.channel, null, pseudoInParams,
+            const [template, names] = this._findBestExampleUtterance(kind, permissionFunction.channel, null, pseudoInParams,
                 permissionFunction.schema!);
-
-            if (this._direction === 'agent')
-                confirm = this._langPack.toAgentSideUtterance(confirm);
-
-            confirm = interpolate(confirm, (param) => {
-                if (argMap.has(param)) {
-                    const [desc, index] = argMap.get(param);
-                    if (index >= 0)
-                        andFilter.operands[index] = Ast.BooleanExpression.True;
-                    return desc;
-                } else {
-                    return this._interp(this._("any ${param}"), { param });
-                }
-            }, {
-                locale: this.locale,
-                timezone: this.timezone,
-                failIfMissing: false,
-                nullReplacement: '____'
-            })||'';
+            const replacements = [];
+            for (const name of names) {
+                const [text, value, index] = argMap.get(name)!;
+                if (index >= 0)
+                    andFilter.operands[index] = Ast.BooleanExpression.True;
+                replacements.push({ text, value });
+            }
+            let replaced = template.replace({ replacements, constraints: {} });
 
             // optimize the modified filter, and see if there is anything left
             filterClone = andFilter.optimize();
             if (!filterClone.isTrue) {
-                confirm = this._interp(this._("${confirm} if ${filter}"), {
-                    confirm,
+                replaced = this._interp(this._("${confirm} if ${filter} [plural=confirm[plural]]"), {
+                    confirm: replaced,
                     filter: this.describeFilter(filterClone, schema, scope)
                 });
             }
 
-            for (const argname in schema.out)
-                scope[argname] = schema.getArgCanonical(argname)!;
+            for (const argname in schema.out) {
+                const canonical = this._getArgCanonical(schema, argname);
+                if (canonical !== null)
+                    scope[argname] = canonical;
+            }
 
-            return confirm;
+            return replaced;
         } else {
             assert(permissionFunction instanceof Ast.ClassStarPermissionFunction);
 
@@ -1461,9 +1465,9 @@ export class Describer {
                 // very weird edge cases...
                 switch (functionType) {
                 case 'query':
-                    return this._("your clock");
+                    return this._const(this._("your clock"));
                 case 'action':
-                    return this._("send you messages , configure new accounts and open links");
+                    return this._const(this._("send you messages , configure new accounts and open links"));
                 }
             }
 
@@ -1473,25 +1477,25 @@ export class Describer {
             case 'action':
                 return this._interp(this._("perform any action on your ${device}"), { device: capitalize(cleanKind(kind)) });
             default:
-                return '';
+                return ReplacedResult.EMPTY;
             }
         }
     }
 
-    describePermissionRule(permissionRule : Ast.PermissionRule) : string {
+    describePermissionRule(permissionRule : Ast.PermissionRule) : ReplacedResult|null {
         let principal;
         if (permissionRule.principal.isTrue) {
             principal = this._("anyone");
         } else if (permissionRule.principal instanceof Ast.ComputeBooleanExpression &&
             permissionRule.principal.lhs instanceof Ast.EventValue &&
             permissionRule.principal.operator === '==') {
-            principal = this._describeArg(permissionRule.principal.rhs);
+            principal = this.describeArg(permissionRule.principal.rhs);
         } else if (permissionRule.principal instanceof Ast.ComputeBooleanExpression &&
             permissionRule.principal.lhs instanceof Ast.EventValue &&
             permissionRule.principal.operator === 'group_member') {
             principal = this._interp(this._("anyone in the ${group} group"), {
-                group: this._describeArg(permissionRule.principal.rhs)
-        });
+                group: this.describeArg(permissionRule.principal.rhs)
+            });
         } else {
             principal = this._interp(this._("if ${filter} , the requester"), {
                 filter: this.describeFilter(permissionRule.principal, null)
@@ -1535,7 +1539,7 @@ export class Describer {
                         query: this.describePermissionFunction(permissionRule.query, 'query', scope)
                     });
                 } else {
-                    return this._interp(this._("${principal} is allowed to read ${query}"), {
+                    return this._interp(this._("${principal} is allowed to read {${query[plural=other]}|the ${query[plural=one]}}"), {
                         principal,
                         query: this.describePermissionFunction(permissionRule.query, 'query', scope)
                     });
@@ -1547,7 +1551,7 @@ export class Describer {
                         query: this.describePermissionFunction(permissionRule.query, 'query', scope)
                     });
                 } else {
-                    return this._interp(this._("${principal} is allowed to read ${query} and then perform any action with it"), {
+                    return this._interp(this._("${principal} is allowed to read {${query[plural=other]}|the ${query[plural=one]}} and then perform any action with it"), {
                         principal,
                         query: this.describePermissionFunction(permissionRule.query, 'query', scope)
                     });
@@ -1560,7 +1564,7 @@ export class Describer {
                         action: this.describePermissionFunction(permissionRule.action, 'action', scope)
                     });
                 } else {
-                    return this._interp(this._("${principal} is allowed to read ${query} and then use it to ${action}"), {
+                    return this._interp(this._("${principal} is allowed to read {${query[plural=other]}|the ${query[plural=one]}} and then use it to ${action}"), {
                         principal,
                         query: this.describePermissionFunction(permissionRule.query, 'query', scope),
                         action: this.describePermissionFunction(permissionRule.action, 'action', scope)
@@ -1570,7 +1574,7 @@ export class Describer {
         }
     }
 
-    private _describeSpecial(specialType : string) {
+    private _describeSpecial(specialType : string) : string {
         switch (specialType) {
             case 'yes':
                 return this._("yes");
@@ -1605,14 +1609,14 @@ export class Describer {
         }
     }
 
-    private _describeControlCommand(input : Ast.ControlCommand) : string {
+    private _describeControlCommand(input : Ast.ControlCommand) : ReplacedResult|null {
         const intent = input.intent;
         if (intent instanceof Ast.SpecialControlIntent) {
-            return this._describeSpecial(intent.type);
+            return this._const(this._describeSpecial(intent.type));
         } else if (intent instanceof Ast.ChoiceControlIntent) {
             return this._interp(this._("choice number ${choice}"), {
                 choice: intent.value+1
-            })||'';
+            });
         } else if (intent instanceof Ast.AnswerControlIntent) {
             return this.describeArg(intent.value);
         } else {
@@ -1620,7 +1624,7 @@ export class Describer {
         }
     }
 
-    describe(input : Ast.Input) : string {
+    describe(input : Ast.Input) : ReplacedResult|null {
         if (input instanceof Ast.Program)
             return this.describeProgram(input);
         else if (input instanceof Ast.PermissionRule)

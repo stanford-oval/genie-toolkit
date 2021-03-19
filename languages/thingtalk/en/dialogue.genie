@@ -191,7 +191,7 @@ function answer(state : Ast.DialogueState, answer : Ast.Value, contextTable : Se
     const ctx = S.getContextInfo($loader, state, contextTable);
 
     // if the agent proposed something and the user says "yes", we accept the proposal
-    if (state.history[state.history.length-1].confirm === 'proposed' &&
+    if (state.history.length > 0 && state.history[state.history.length-1].confirm === 'proposed' &&
         answer instanceof Ast.BooleanValue && answer.value === true) {
         const item = state.history[state.history.length-1].clone();
         item.confirm = 'accepted';
@@ -253,22 +253,15 @@ $agent : S.AgentReplyRecord = {
         ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null));
     }
 
-    ?anything_else {
-        ctx:ctx_cancel anything_else_phrase
-            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_anything_else', null));
+    ctx:ctx_cancel anything_else_phrase
+        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_anything_else', null));
 
-        ctx:ctx_end 'alright ,' ('bye !' | 'good bye !')
-            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null));
-    }
-    !anything_else {
-        ( ctx:ctx_cancel 'alright ,' ('bye !' | 'good bye !')
-        | ctx:ctx_end 'alright ,' ('bye !' | 'good bye !')
-        ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null));
-    }
+    ctx:ctx_end 'alright ,' ('bye !' | 'good bye !')
+        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null));
 
     // action results
     action_success_phrase;
-    ?anything_else action:action_success_phrase anything_else_phrase => S.setEndBit(action, false);
+    action:action_success_phrase anything_else_phrase => S.setEndBit(action, false);
     action_error_phrase;
 
     // query results
@@ -315,21 +308,19 @@ $user : Ast.DialogueState = {
     ( ctx:ctx_init stmt:initial_command [weight=0.5]
     | ctx:ctx_init greeting stmt:initial_command [weight=0.5]
     | ctx:ctx_sys_greet stmt:initial_command
-    ) => D.initialRequest($loader, stmt);
+    ) => D.startNewRequest($loader, ctx, stmt);
 
     // do you need anything else?
     ( ctx:ctx_sys_anything_else no_thanks_phrase ('goodbye !' | '') [weight=0.01]
     | ctx:ctx_sys_anything_else thanks_phrase ('goodbye !' | '') [weight=0.01]
     ) => S.makeSimpleState(ctx, 'end', null);
 
-    ?anything_else {
-        ( ctx:ctx_sys_anything_else stmt:initial_command
-        | ctx:ctx_sys_anything_else yes_please_phrase stmt:initial_command
-        ) => D.startNewRequest($loader, ctx, stmt);
+    ( ctx:ctx_sys_anything_else stmt:initial_command
+    | ctx:ctx_sys_anything_else yes_please_phrase stmt:initial_command
+    ) => D.startNewRequest($loader, ctx, stmt);
 
-        ctx:ctx_sys_anything_else yes_please_phrase
-            => S.makeSimpleState(ctx, 'reinit', null);
-    }
+    ctx:ctx_sys_anything_else yes_please_phrase
+        => S.makeSimpleState(ctx, 'reinit', null);
 
     // action confirmations
     ctx:ctx_sys_confirm_action accept_phrase [weight=0.9]

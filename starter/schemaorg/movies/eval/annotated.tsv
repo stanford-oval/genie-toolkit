@@ -1,5 +1,4 @@
 0	find me movies with clint eastwood as both actor and director .	@org.schema.Movie . Movie ( ) filter contains ( actor , null ^^org.schema.Movie:Person ( " clint eastwood " ) ) && contains ( director , null ^^org.schema.Movie:Person ( " clint eastwood " ) ) ;
-1	search for all movies with the name friday the 13 .	@org.schema.Movie . Movie ( ) filter id =~ " friday the 13 " ;
 3	i 'd like to find pg rated horror movies .	@org.schema.Movie . Movie ( ) filter contains~ ( genre , " horror " ) && contentRating =~ " pg " ;
 4	show me all movies produced by steven spielberg .	@org.schema.Movie . Movie ( ) filter contains ( creator , null ^^org.schema.Movie:Person ( " steven spielberg " ) ) ;
 5	i 'd like the name of a movie that stars tom hanks .	@org.schema.Movie . Movie ( ) filter contains ( actor , null ^^org.schema.Movie:Person ( " tom hanks " ) ) ;
@@ -101,7 +100,6 @@
 143	what are science fiction movies with an average rating of at least NUMBER_0 ?	@org.schema.Movie . Movie ( ) filter aggregateRating . ratingValue >= NUMBER_0 && contains~ ( genre , " science fiction " ) ;
 145	i want to see a list of all movies directed by steven spielberg that have a pg rating .	@org.schema.Movie . Movie ( ) filter contains ( director , null ^^org.schema.Movie:Person ( " steven spielberg " ) ) && contentRating =~ " pg " ;
 146	what movies staring harrison ford are in the action genre ?	@org.schema.Movie . Movie ( ) filter contains ( actor , null ^^org.schema.Movie:Person ( " harrison ford " ) ) && contains~ ( genre , " action " ) ;
-147	when was the movie 300 first published ?	[ datePublished ] of sort ( datePublished asc of @org.schema.Movie . Movie ( ) filter id =~ " 300 " ) [ 1 ] ;
 148	what is the length of the movie starring fay wray and robert armstrong ?	[ duration ] of @org.schema.Movie . Movie ( ) filter contains ( actor , null ^^org.schema.Movie:Person ( " fay wray " ) ) && contains ( actor , null ^^org.schema.Movie:Person ( " robert armstrong " ) ) ;
 150	what is the duration of gattaca ?	[ duration ] of @org.schema.Movie . Movie ( ) filter id =~ " gattaca " ;
 151	when was the movie chinatown released ?	[ datePublished ] of @org.schema.Movie . Movie ( ) filter id =~ " chinatown " ;

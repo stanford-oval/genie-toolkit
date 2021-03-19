@@ -64,24 +64,24 @@ filtered_table : Ast.Expression = {
     | t1:table 'that is' p:out_param_Any 'of' t2:filtered_table
     | t1:table 'that is' p:out_param_Array__Any 'of' t2:table
     | t1:table 'that is' p:out_param_Array__Any 'of' t2:filtered_table) => {
-        return C.addReverseGetPredicateJoin(t1, t2, p.name);
+        return C.addReverseComparisonSubquery(t1, t2, p.name);
     };
     ( t1:table 'that is not' p:out_param_Any 'of' t2:table
     | t1:table 'that is not' p:out_param_Any 'of' t2:filtered_table
     | t1:table 'that is not' p:out_param_Array__Any 'of' t2:table
     | t1:table 'that is not' p:out_param_Array__Any 'of' t2:filtered_table
     ) => {
-        return C.addReverseGetPredicateJoin(t1, t2, p.name, true);
+        return C.addReverseComparisonSubquery(t1, t2, p.name, true);
     };
 
     // verb reverse
     ( t1:table 'that' t2:table p:out_param_avp
     | t1:table 'that' t2:filtered_table 'and' p:out_param_avp ) => {
-        return C.addReverseGetPredicateJoin(t1, t2, p.name);
+        return C.addReverseComparisonSubquery(t1, t2, p.name);
     };
     ( t1:table 'that' t2:table 'not' p:out_param_avp
     | t1:table 'that' t2:filtered_table 'and not' p:out_param_avp ) => {
-        return C.addReverseGetPredicateJoin(t1, t2, p.name, true);
+        return C.addReverseComparisonSubquery(t1, t2, p.name, true);
     };
 
     // arg minmax

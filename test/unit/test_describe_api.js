@@ -26,11 +26,6 @@ import { Describer } from '../../lib/utils/thingtalk/describe';
 async function testDescribeArg() {
     const allocator = new Syntax.SequentialEntityAllocator({});
     const describer = new Describer('en-US', 'America/Los_Angeles', allocator);
-    const describer2 = new Describer('en-US', 'Asia/Tokyo', allocator);
-    const describer3 = new Describer('en-US', 'Pacific/Honolulu', allocator);
-    // we would like to test i18n here too but
-    // travis's nodejs does not have full-icu so Intl is
-    // broken (also on Android)
 
     const TEST_CASES = [
         [new Ast.Value.VarRef('picture_url'), 'the image'],
@@ -77,21 +72,10 @@ async function testDescribeArg() {
     ];
 
     for (let [value, expected] of TEST_CASES) {
-        assert.strictEqual(describer.describeArg(value, { picture_url: 'image' }), expected);
+        assert.strictEqual(describer.describeArg(value, { picture_url: 'image' }).chooseBest(), expected);
         if (!value.isVarRef)
-            assert.strictEqual(describer.describeArg(value), expected);
+            assert.strictEqual(describer.describeArg(value).chooseBest(), expected);
     }
-
-    const date = new Ast.Value.Date(new Date(2018, 9, 13, 0, 0, 0));
-
-    assert.strictEqual(describer.describeArg(date), 'DATE_0');
-    assert.strictEqual(describer2.describeArg(date), 'DATE_0');
-    assert.strictEqual(describer3.describeArg(date), 'DATE_0');
-
-    const date2 = new Ast.Value.Date(new Date(2018, 9, 13, 1, 0, 0));
-    assert.strictEqual(describer.describeArg(date2), 'DATE_1');
-    assert.strictEqual(describer2.describeArg(date2), 'DATE_1');
-    assert.strictEqual(describer3.describeArg(date2), 'DATE_1');
 }
 
 export default async function main() {

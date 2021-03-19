@@ -92,7 +92,7 @@ class StateValidator {
         if (!this._policyManifest)
             return;
         const buffer = await util.promisify(fs.readFile)(this._policyManifest, { encoding: 'utf8' });
-        const policy = yaml.safeLoad(buffer) as any;
+        const policy = yaml.load(buffer) as any;
 
         this._policy = {
             name: policy.name,
