@@ -149,6 +149,9 @@ class @org.thingpedia.builtin.thingengine.builtin
              "the description of ${id} is ${description} . visit the thingpedia page for additional information"]]
   #_[formatted=[{type="rdl",displayTitle="${id}",webCallback="${thingpedia_url}"}]]
   #[doc="query info about supported Thingpedia devices"]
+  // specify minimal_projection explicitly otherwise we'll default to ["id"]
+  // which is incorrect because "id" is input not output
+  #[minimal_projection=[]]
   #[confirm=false];
 
   /*
