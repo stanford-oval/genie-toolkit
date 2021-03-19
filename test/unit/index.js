@@ -74,8 +74,8 @@ do_test([
     ('./test_timed_reference'),
     ('./test_timers'),
     ('./test_trie'),
-    //('./test_wikidata_utils'),
     ('./test_wikidata_utils'),
+    ('./test_csqa_converter.js'),
     ('./test_infix_to_postfix'),
     ('./test_pos_nfa')
 ]);
