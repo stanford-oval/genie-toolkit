@@ -760,6 +760,7 @@ export default class ThingpediaLoader {
                     : this._getConstantNT(type, param, { strictTypeCheck: true });
                 nonTerminals.push(nonTerm);
                 names.push(param);
+                options.push(elem.option);
             }
             return true;
         });
