@@ -408,8 +408,10 @@ function resolveProjection(schema : Ast.FunctionDef,
         argset.add(argname);
     for (const argname of argset) {
         const arg = schema.getArgument(argname);
-        if (!arg || arg.is_input)
+        if (!arg || arg.is_input) {
+            console.log(schema.prettyprint(), argname);
             throw new TypeError('Invalid field name ' + argname);
+        }
     }
     let clone = schema.filterArguments((a : Ast.ArgumentDef) => a.is_input || argset.has(a.name));
 
