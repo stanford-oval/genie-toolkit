@@ -116,10 +116,19 @@ class NumberValueList implements ValueList {
         this._min = min;
         this._max = max;
         this._isMeasure = isMeasure;
+        assert(Number.isFinite(min));
+        assert(Number.isFinite(max));
     }
 
     get size() : number {
         return this._min < this._max ? Infinity : 0; // we can sample as much as we want
+    }
+
+    private _checkFinite(value : number) {
+        if (Number.isFinite(value))
+            return;
+
+        throw new Error(`Unexpected ${value} with bounds ${this._min} / ${this._max} (isMeasure = ${this._isMeasure})`);
     }
 
     sample(rng : () => number) : string {
@@ -127,6 +136,7 @@ class NumberValueList implements ValueList {
             // for measurements, sample uniformly between the (adjusted) bounds,
 
             const value = (this._min + (this._max - this._min) * rng());
+            this._checkFinite(value);
             if (Math.abs(value) > 2)
                 return value.toFixed(coin(0.9, rng) ? 0 : 1);
             else
@@ -169,6 +179,7 @@ class NumberValueList implements ValueList {
             // so we don't generate them here, ever
         } while (val < this._min || val > this._max || val === 0 || val === 1);
 
+        this._checkFinite(val);
         return String(val);
     }
 }
@@ -624,6 +635,9 @@ export default class ParameterReplacer {
                 max = arg.getImplementationAnnotation<number>('max_number') ?? 1000;
 
                 if (unit) {
+                    if (unit === 'defaultTemperature')
+                        unit = this._paramLangPack.getDefaultTemperatureUnit();
+
                     min = Units.transformFromBaseUnit(min, unit);
                     max = Units.transformFromBaseUnit(max, unit);
                 }
