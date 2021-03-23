@@ -381,6 +381,10 @@ export default class Conversation extends events.EventEmitter {
     }
 
     async handleCommand(command : string, platformData : PlatformData = {}) : Promise<void> {
+        // if the command is just whitespace, ignore it without even adding it to the history
+        if (!command.trim())
+            return;
+
         this.stats.hit('sabrina-command');
         this.emit('active');
         this._resetInactivityTimeout();
@@ -388,7 +392,7 @@ export default class Conversation extends events.EventEmitter {
         if (this._debug)
             console.log('Received assistant command ' + command);
 
-        return this._loop.handleCommand({ type: 'command', utterance: command, platformData });
+        await this._loop.handleCommand({ type: 'command', utterance: command, platformData });
     }
 
     async handleParsedCommand(root : any, title ?: string, platformData : PlatformData = {}) : Promise<void> {
