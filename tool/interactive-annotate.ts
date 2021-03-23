@@ -50,7 +50,7 @@ interface AnnotatorOptions {
     locale : string;
     timezone : string|undefined;
     thingpedia_url : string;
-    thingpedia_dir : string|undefined;
+    thingpedia_dir : string[]|undefined;
     nlu_server : string;
     database_file : string|undefined;
     execution_mode : 'simulation'|'real';
@@ -93,6 +93,9 @@ class Annotator extends events.EventEmitter {
         this._parser = ParserClient.get(options.nlu_server, options.locale);
 
         this._platform = new Platform(undefined, options.locale, options.thingpedia_url);
+        const prefs = this._platform.getSharedPreferences();
+        if (options.thingpedia_dir && options.thingpedia_dir.length)
+            prefs.set('developer-dir', options.thingpedia_dir);
         this._tpClient = this._platform.getCapability('thingpedia-client')!;
 
         if (options.execution_mode === 'simulation') {
