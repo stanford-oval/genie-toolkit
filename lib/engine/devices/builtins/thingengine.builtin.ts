@@ -51,7 +51,9 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
     }
 
     get_get_date() {
-        return [{ date: new Date }];
+        const today = new Date;
+        today.setHours(0, 0, 0);
+        return [{ date: today }];
     }
     get_get_time() {
         const now = new Date;
