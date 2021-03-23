@@ -605,24 +605,24 @@ stream : Ast.Expression = {
 
 with_filtered_table_join : Ast.Expression = {
     !notablejoin {
-    table:with_filtered_table ('with' | 'having' | 'that has' | 'that have' | 'which has' | 'which have') subquery:with_filtered_table p:out_param_Any_hidden
+    table:with_filtered_table ('with' | 'having' | 'that has' | 'that have' | 'which has' | 'which have') p:out_param_Any_hidden with { functionName = table.functionName } subquery:with_filtered_table with { idType = p.elem } 
         => C.addComparisonSubquery(table, subquery, p.name);
 
-    ( table:with_filtered_table 'with' p:out_param_Any subquery:with_filtered_table
-    | table:with_filtered_table p:out_param_pvp subquery:with_filtered_table
-    | table:with_filtered_table ('who' | 'which' | 'that') p:out_param_avp subquery:with_filtered_table
+    ( table:with_filtered_table 'with' p:out_param_Any with { functionName = table.functionName } subquery:with_filtered_table with { idType = p.elem }
+    | table:with_filtered_table p:out_param_pvp with { functionName = table.functionName } subquery:with_filtered_table with { idType = p.elem }
+    | table:with_filtered_table ('who' | 'which' | 'that') p:out_param_avp with { functionName = table.functionName } subquery:with_filtered_table with { idType = p.elem }
     ) => C.addComparisonSubquery(table, subquery, p.name);
 
-    table:with_filtered_table ('of' | 'for' | 'in') subquery:with_filtered_table p:out_param_Any_hidden
+    table:with_filtered_table ('of' | 'for' | 'in') p:out_param_Any_hidden with { functionName = table.functionName } subquery:with_filtered_table with { idType = p.elem } 
         => C.addReverseComparisonSubquery(table, subquery, null);
-    !turking table:with_filtered_table '\'s' subquery:with_filtered_table p:out_param_Any_hidden
+    !turking table:with_filtered_table '\'s' p:out_param_Any_hidden with { functionName = table.functionName } subquery:with_filtered_table with { idType = p.elem }
         => C.addReverseComparisonSubquery(table, subquery, null);
     }
 }
 
 have_filtered_table_join : Ast.Expression = {
     !notablejoin {
-    table:verb_filtered_table ('and' | 'and have' | 'and also' | 'and in addition' | 'but also') subquery:with_filtered_table p:out_param_Any_hidden
+    table:verb_filtered_table ('and' | 'and have' | 'and also' | 'and in addition' | 'but also')  p:out_param_Any_hidden with { functionName = table.functionName } subquery:with_filtered_table with { idType = p.elem }
         => C.addComparisonSubquery(table, subquery, p.name);
     }
 }
