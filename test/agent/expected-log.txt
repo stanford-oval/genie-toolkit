@@ -1763,3 +1763,44 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.builtin.thingengine.builtin.get_time();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.builtin.thingengine.builtin.get_time();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.builtin.thingengine.builtin(id="thingengine-own-global"^^tt:device_id("Builtin")).get_time()
+C: #[results=[
+C:   { time=new Time(17, 50) }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Right now, it's 5:50 PM.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.builtin.thingengine.builtin.get_date();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.builtin.thingengine.builtin.get_date();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.builtin.thingengine.builtin(id="thingengine-own-global"^^tt:device_id("Builtin")).get_time()
+C: #[results=[
+C:   { time=new Time(17, 50) }
+C: ]];
+C: @org.thingpedia.builtin.thingengine.builtin(id="thingengine-own-global"^^tt:device_id("Builtin")).get_date()
+C: #[results=[
+C:   { date=new Date("2018-01-20T08:00:00.000Z") }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Today is January 20, 2018.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines

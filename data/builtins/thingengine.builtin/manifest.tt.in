@@ -50,7 +50,7 @@ class @org.thingpedia.builtin.thingengine.builtin
   query get_time(out time: Time
                  #_[canonical=["time"]]
                  #[filterable=false])
-  #[result=["it 's ${time}", "the current time is ${time}", "now it 's ${time}"]]
+  #_[result=["right now, it's ${time}", "it's ${time}", "the current time is ${time}"]]
   #_[canonical=["current time", "time", "time of day"]]
   #_[confirmation="the current time"]
   #_[formatted=[{type="text",text="Current time is ${time:time}."}]]
@@ -62,7 +62,7 @@ class @org.thingpedia.builtin.thingengine.builtin
                  #[filterable=false])
   #_[canonical=["today 's date", "date", "current date"]]
   #_[confirmation="today's date"]
-  #_[formatted=[{type="text",text="Today is ${date:date}."}]]
+  #_[result=["today is ${date}-absolute."]]
   #[doc="get the current date"]
   #[confirm=false];
 

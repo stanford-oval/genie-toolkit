@@ -488,29 +488,31 @@ export default class DefaultLanguagePack {
      * @param {Date} date - the time to display
      * @return {string} the formatted time
      */
-    private _dateToString(date : Date, timezone : string) : string {
+    private _dateToString(date : Date, format : string, timezone : string) : string {
         const now = new Date;
-        if (date.getDate() === now.getDate() &&
-            date.getMonth() === now.getMonth() &&
-            date.getFullYear() === now.getFullYear())
-            return this._("today");
+        if (format !== 'absolute') {
+            if (date.getDate() === now.getDate() &&
+                date.getMonth() === now.getMonth() &&
+                date.getFullYear() === now.getFullYear())
+                return this._("today");
 
-        const yesterday = new Date(now.getTime() - 86400 * 1000);
-        if (date.getDate() === yesterday.getDate() &&
-            date.getMonth() === yesterday.getMonth() &&
-            date.getFullYear() === yesterday.getFullYear())
-            return this._("yesterday");
+            const yesterday = new Date(now.getTime() - 86400 * 1000);
+            if (date.getDate() === yesterday.getDate() &&
+                date.getMonth() === yesterday.getMonth() &&
+                date.getFullYear() === yesterday.getFullYear())
+                return this._("yesterday");
 
-        const tomorrow = new Date(now.getTime() + 86400 * 1000);
-        if (date.getDate() === tomorrow.getDate() &&
-            date.getMonth() === tomorrow.getMonth() &&
-            date.getFullYear() === tomorrow.getFullYear())
-            return this._("tomorrow");
+            const tomorrow = new Date(now.getTime() + 86400 * 1000);
+            if (date.getDate() === tomorrow.getDate() &&
+                date.getMonth() === tomorrow.getMonth() &&
+                date.getFullYear() === tomorrow.getFullYear())
+                return this._("tomorrow");
 
-        // same week
-        if (Math.abs(date.getTime() - now.getTime()) <= 7 * 86400 * 1000) {
-            const weekday = date.toLocaleString(this.locale, { weekday: 'long' });
-            return (date.getTime() < now.getTime() ? this._("last ${weekday}") : this._("next ${weekday}")).replace('${weekday}',  weekday);
+            // same week
+            if (Math.abs(date.getTime() - now.getTime()) <= 7 * 86400 * 1000) {
+                const weekday = date.toLocaleString(this.locale, { weekday: 'long' });
+                return (date.getTime() < now.getTime() ? this._("last ${weekday}") : this._("next ${weekday}")).replace('${weekday}',  weekday);
+            }
         }
 
         // generic date
@@ -530,7 +532,7 @@ export default class DefaultLanguagePack {
      * @param {Date} date - the time to display
      * @return {string} the formatted time
      */
-    private _timeToString(date : Date, timezone : string) : string {
+    private _timeToString(date : Date, format : string, timezone : string) : string {
         const options : Intl.DateTimeFormatOptions = {
             hour: 'numeric',
             minute: '2-digit',
@@ -547,10 +549,10 @@ export default class DefaultLanguagePack {
      * @param {Date} date - the time to display
      * @return {string} the formatted time
      */
-    private _dateAndTimeToString(date : Date, timezone : string) : string {
+    private _dateAndTimeToString(date : Date, format : string, timezone : string) : string {
         return this._("${date} at ${time}")
-            .replace('${date}', this._dateToString(date, timezone))
-            .replace('${time}', this._timeToString(date, timezone));
+            .replace('${date}', this._dateToString(date, format, timezone))
+            .replace('${time}', this._timeToString(date, format, timezone));
     }
 
     getDefaultTemperatureUnit() : string {
@@ -559,7 +561,8 @@ export default class DefaultLanguagePack {
 
     protected displayEntity(token : string,
                             entityValue : AnyEntity,
-                            delegate : UnitPreferenceDelegate) : string {
+                            delegate : UnitPreferenceDelegate,
+                            format = '') : string {
         if (token.startsWith('GENERIC_ENTITY_')) {
             const entity = entityValue as GenericEntity;
             return (entity.display || entity.value!);
@@ -614,7 +617,7 @@ export default class DefaultLanguagePack {
             time.setMinutes(entity.minute);
             time.setSeconds(entity.second);
             time.setMilliseconds(0);
-            return this._timeToString(time, delegate.timezone);
+            return this._timeToString(time, format, delegate.timezone);
         }
 
         if (token.startsWith('DATE_')) {
@@ -622,9 +625,9 @@ export default class DefaultLanguagePack {
             // check for midnight local, and midnight UTC, to mean date without time
             if ((date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0) ||
                 (date.getUTCHours() === 0 && date.getUTCMinutes() === 0 && date.getUTCSeconds() === 0))
-                return this._dateToString(date, delegate.timezone);
+                return this._dateToString(date, format, delegate.timezone);
             else
-                return this._dateAndTimeToString(date, delegate.timezone);
+                return this._dateAndTimeToString(date, format, delegate.timezone);
         }
 
         if (token.startsWith('LOCATION_')) {
@@ -652,16 +655,30 @@ export default class DefaultLanguagePack {
         // small hack, fix untokenized commas generated by describe (which uses I18n.ListFormat)
         answer = answer.replace(/([^ ]),/g, '$1 ,');
 
-        const tokens = answer.split(' ').map((token) => {
-            if (token in entities)
-                return this.displayEntity(token, entities[token], delegate);
+        const tokens = answer.split(' ');
+        const lexicalized = [];
+        for (let i = 0; i < tokens.length; i++) {
+            const token = tokens[i];
+            const nextToken = tokens[i+1];
+            if (token in entities) {
+                if (nextToken.startsWith('-')) {
+                    // nextToken is a marker to tell us how to display this entity
+                    lexicalized.push(this.displayEntity(token, entities[token], delegate, nextToken.substring(1)));
 
-            // capitalize certain tokens that should be capitalized in English
-            if (this.MUST_CAPITALIZE_TOKEN.has(token))
-                return capitalize(token);
-            return token;
-        });
-        answer = this.detokenizeSentence(tokens);
+                    // ignore the next token
+                    i++;
+                } else {
+                    lexicalized.push(this.displayEntity(token, entities[token], delegate));
+                }
+            } else {
+                // capitalize certain tokens that should be capitalized in English
+                if (this.MUST_CAPITALIZE_TOKEN.has(token))
+                    lexicalized.push(capitalize(token));
+                else
+                    lexicalized.push(token);
+            }
+        }
+        answer = this.detokenizeSentence(lexicalized);
 
         // simple true-casing: uppercase all letters at the beginning of the sentence
         // and after a period, question or exclamation mark
