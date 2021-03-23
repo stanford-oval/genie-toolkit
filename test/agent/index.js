@@ -145,6 +145,10 @@ class TestDelegate {
             }
             this._testRunner.writeLine('button: ' + msg.title + ' ' + JSON.stringify(msg.json));
             break;
+
+        case 'new-program':
+            console.log(JSON.stringify(msg));
+            break;
         }
     }
 }

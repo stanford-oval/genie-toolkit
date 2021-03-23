@@ -30,7 +30,8 @@ export enum MessageType {
     LINK = 'link',
     BUTTON = 'button',
     RDL = 'rdl',
-    RESULT = 'result'
+    RESULT = 'result',
+    NEW_PROGRAM = 'new-program'
 }
 
 interface TextMessage {
@@ -97,6 +98,17 @@ interface ResultMessage {
     icon : string|null;
 }
 
+interface NewProgramMessage {
+    id ?: number;
+    type : MessageType.NEW_PROGRAM;
+    uniqueId : string;
+    name : string;
+    code : string;
+    results : Array<Record<string, unknown>>;
+    errors : string[];
+    icon : string|null;
+}
+
 export type Message = TextMessage
     | CommandMessage
     | PictureMessage
@@ -104,4 +116,5 @@ export type Message = TextMessage
     | ChoiceMessage
     | LinkMessage
     | ButtonMessage
-    | ResultMessage;
+    | ResultMessage
+    | NewProgramMessage;

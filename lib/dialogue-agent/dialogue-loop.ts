@@ -593,11 +593,14 @@ export default class DialogueLoop {
         //this.debug(`Before execution:`);
         //this.debug(this._dialogueState.prettyprint());
 
-        const { newDialogueState, newExecutorState, newResults } = await this._agent.execute(this._dialogueState, this._executorState);
+        const { newDialogueState, newExecutorState, newPrograms, newResults } = await this._agent.execute(this._dialogueState, this._executorState);
         this._dialogueState = newDialogueState;
         this._executorState = newExecutorState;
         this.debug(`Execution state:`);
         this.debug(this._dialogueState!.prettyprint());
+
+        for (const newProgram of newPrograms)
+            await this.conversation.sendNewProgram(newProgram);
 
         const [expect, numResults] = await this._doAgentReply();
 
