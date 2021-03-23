@@ -40,8 +40,10 @@ class @org.thingpedia.builtin.thingengine.builtin
                             }]
                             )
   #_[canonical=["my current location", "my current position", "my current geocoordinates"]]
-  #_[confirmation="your location"]
-  #_[formatted=[{type="text",text="Current Location: ${location}"}]]
+  #_[result=["your current location is ${location}", "you are currently in ${location}"]]
+  #_[on_error={
+    unsupported_platform=["i cannot access your location in this version of almond"]
+  }]
   #[minimal_projection=["location"]]
   #[poll_interval=0ms]
   #[doc="get last known GPS location"]
@@ -50,10 +52,8 @@ class @org.thingpedia.builtin.thingengine.builtin
   query get_time(out time: Time
                  #_[canonical=["time"]]
                  #[filterable=false])
-  #_[result=["right now, it's ${time}", "it's ${time}", "the current time is ${time}"]]
   #_[canonical=["current time", "time", "time of day"]]
-  #_[confirmation="the current time"]
-  #_[formatted=[{type="text",text="Current time is ${time:time}."}]]
+  #_[result=["right now, it's ${time}", "it's ${time}", "the current time is ${time}"]]
   #[doc="get the current time"]
   #[confirm=false];
 
@@ -180,7 +180,9 @@ class @org.thingpedia.builtin.thingengine.builtin
                     preposition=["to #"]
                   }])
   #_[canonical=["open a url", "open a link"]]
-  #_[confirmation="open $url"]
+  #_[on_error={
+    unsupported_platform=["opening files is not possible in this version of almond"]
+  }]
   #[doc="open a file/link"]
   #[confirm=false];
 
