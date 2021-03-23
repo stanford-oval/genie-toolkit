@@ -294,6 +294,7 @@ export default class ThingpediaLoader {
 
     private _addOutParam(pslot : ParamSlot, canonical : string) {
         this._addRule('out_param_Any', [canonical], () => pslot, keyfns.paramKeyFn);
+        this._addRule('out_param_Any_hidden', [''], () => pslot, keyfns.paramKeyFn);
 
         if (pslot.type instanceof Type.Array) {
             this._addRule('out_param_Array__Any', [canonical], () => pslot, keyfns.paramKeyFn);
