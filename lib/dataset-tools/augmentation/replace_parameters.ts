@@ -173,7 +173,7 @@ class NumberValueList implements ValueList {
             const minlog = Math.floor(Math.log10(1+min)) - 1 - (val >= 10 ? 1 : 0);
             const maxlog = Math.floor(Math.log10(1+max)) - (val >= 10 ? 1 : 0);
             val *= 10**randint(minlog, maxlog, rng);
-            val = Math.round(val);
+            val = sign * Math.round(val);
 
             // note: 0 and 1 are very special (not normalized by the tokenizer)
             // so we don't generate them here, ever
