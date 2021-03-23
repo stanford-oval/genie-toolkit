@@ -18,7 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 import assert from 'assert';
 import * as ThingTalk from 'thingtalk';
 import * as Tp from 'thingpedia';
@@ -42,8 +41,17 @@ export default class MockThingpediaClient extends Tp.BaseClient {
         this._devices = null;
         this._entities = null;
 
-        this._thingpediafilename = path.resolve(path.dirname(module.filename), 'thingpedia.tt');
-        this._entityfilename = path.resolve(path.dirname(module.filename), 'entities.json');
+        const thisdir = path.dirname(module.filename);
+
+        this._thingpediafilename = path.resolve(thisdir, 'thingpedia.tt');
+        this._entityfilename = path.resolve(thisdir, 'entities.json');
+        this._builtins = {};
+        for (const builtin of ['thingengine.builtin', 'thingengine', 'test']) {
+            this._builtins[builtin] = {
+                manifest: path.resolve(thisdir, '../../data/builtins', builtin, 'manifest.tt'),
+                dataset: path.resolve(thisdir, '../../data/builtins', builtin, 'dataset.tt'),
+            };
+        }
         this._loaded = null;
     }
 
@@ -178,6 +186,8 @@ export default class MockThingpediaClient extends Tp.BaseClient {
 
     async _load() {
         this._devices = (await util.promisify(fs.readFile)(this._thingpediafilename)).toString();
+        for (const builtin in this._builtins)
+            this._devices += '\n' + (await util.promisify(fs.readFile)(this._builtins[builtin].manifest)).toString();
 
         if (this._entityfilename)
             this._entities = JSON.parse(await util.promisify(fs.readFile)(this._entityfilename)).data;

@@ -18,7 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 import assert from 'assert';
 import { Ast, Compiler, SchemaRetriever } from 'thingtalk';
 import Gettext from 'node-gettext';
