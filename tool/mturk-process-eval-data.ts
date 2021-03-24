@@ -29,11 +29,13 @@ import * as StreamUtils from '../lib/utils/stream-utils';
 interface ParserOptions {
     sentencesPerTask : number;
     idPrefix : string;
+    idOffset : number;
 }
 
 class Parser extends Stream.Transform {
     private _sentencesPerTask : number;
     private _idPrefix : string;
+    private _idOffset : number;
 
     private _id : number;
 
@@ -45,8 +47,9 @@ class Parser extends Stream.Transform {
 
         this._sentencesPerTask = options.sentencesPerTask;
         this._idPrefix = options.idPrefix;
+        this._idOffset = options.idOffset;
 
-        this._id = 0;
+        this._id = this._idOffset;
     }
 
     _transform(row : Record<string, string>, encoding : BufferEncoding, callback : () => void) {
@@ -88,6 +91,12 @@ export function initArgparse(subparsers : argparse.SubParser) {
         default: '',
         help: "Prefix for all sentence IDs (to distinguish batches)"
     });
+    parser.add_argument('--id-offset', {
+        required: false,
+        type: Number,
+        default: 0,
+        help: 'The number to start the id suffix'
+    });
     parser.add_argument('input_file', {
         nargs: '+',
         help: 'MTurk result file to choose contexts from, split'
@@ -101,7 +110,7 @@ export async function execute(args : any) {
     });
 
     await StreamUtils.waitFinish(StreamUtils.chain(inputs, { objectMode: true })
-        .pipe(new Parser({ sentencesPerTask: args.sentences_per_task, idPrefix: args.id_prefix }))
+        .pipe(new Parser({ sentencesPerTask: args.sentences_per_task, idPrefix: args.id_prefix, idOffset: args.id_offset }))
         .pipe(csvstringify({ header: true, delimiter: '\t' }))
         .pipe(args.output));
 }
