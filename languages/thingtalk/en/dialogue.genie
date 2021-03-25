@@ -158,6 +158,9 @@ context : Ast.Expression = {
 context : SlotBag = {
     ctx_thingpedia_result
 };
+context : D.ThingpediaListProposal = {
+    ctx_thingpedia_list_result
+};
 context : C.ErrorMessage = {
     ctx_thingpedia_error_message
 };

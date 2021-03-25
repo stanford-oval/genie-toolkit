@@ -71,9 +71,6 @@ thingpedia_search_question : C.ParamSlot = {}
 thingpedia_slot_fill_question : C.ParamSlot = {}
 thingpedia_user_question : C.ParamSlot[] = {}
 
-thingpedia_result : SlotBag = {}
-thingpedia_error_message : C.ErrorMessage = {}
-
 same_sentence_coref = {}
 context_coref = {}
 list_context_coref = {}

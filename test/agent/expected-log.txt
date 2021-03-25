@@ -1804,3 +1804,89 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t @org.thingpedia.builtin.test.get_data(count=1, size=5byte);
+UT: @org.thingpedia.builtin.test.get_data(count=1, size=5byte);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.builtin.test.get_data(count=1, size=5byte)
+C: #[results=[
+C:   { data="!!!!!", count=1, size=5byte }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: The answer is !!!!!
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t @org.thingpedia.builtin.test.get_data(count=2, size=5byte);
+UT: @org.thingpedia.builtin.test.get_data(count=2, size=5byte);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.builtin.test.get_data(count=1, size=5byte)
+C: #[results=[
+C:   { data="!!!!!", count=1, size=5byte }
+C: ]];
+C: @org.thingpedia.builtin.test.get_data(count=2, size=5byte)
+C: #[results=[
+C:   { data="!!!!!", count=2, size=5byte },
+C:   { data="\"\"\"\"\"", count=2, size=5byte }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: First answer for 2 items of size 5 byte is !!!!! 2 nd answer is """"".
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t @org.thingpedia.builtin.test.get_data(count=3, size=5byte);
+UT: @org.thingpedia.builtin.test.get_data(count=3, size=5byte);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.builtin.test.get_data(count=1, size=5byte)
+C: #[results=[
+C:   { data="!!!!!", count=1, size=5byte }
+C: ]];
+C: @org.thingpedia.builtin.test.get_data(count=2, size=5byte)
+C: #[results=[
+C:   { data="!!!!!", count=2, size=5byte },
+C:   { data="\"\"\"\"\"", count=2, size=5byte }
+C: ]];
+C: @org.thingpedia.builtin.test.get_data(count=3, size=5byte)
+C: #[results=[
+C:   { data="!!!!!", count=3, size=5byte },
+C:   { data="\"\"\"\"\"", count=3, size=5byte },
+C:   { data="#####", count=3, size=5byte }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: First answer for 3 items of size 5 byte is !!!!! 2 nd answer is """"". 3 rd answer is #####.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t @org.thingpedia.builtin.test.get_data2(count=3, size=5byte);
+UT: @org.thingpedia.builtin.test.get_data2(count=3, size=5byte);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.builtin.test.get_data(count=1, size=5byte)
+C: #[results=[
+C:   { data="!!!!!", count=1, size=5byte }
+C: ]];
+C: @org.thingpedia.builtin.test.get_data(count=2, size=5byte)
+C: #[results=[
+C:   { data="!!!!!", count=2, size=5byte },
+C:   { data="\"\"\"\"\"", count=2, size=5byte }
+C: ]];
+C: @org.thingpedia.builtin.test.get_data(count=3, size=5byte)
+C: #[results=[
+C:   { data="!!!!!", count=3, size=5byte },
+C:   { data="\"\"\"\"\"", count=3, size=5byte },
+C:   { data="#####", count=3, size=5byte }
+C: ]];
+C: @org.thingpedia.builtin.test.get_data2(count=3, size=5byte)
+C: #[results=[
+C:   { data="AAAAA", count=3, size=5byte },
+C:   { data="BBBBB", count=3, size=5byte },
+C:   { data="CCCCC", count=3, size=5byte }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: The answers for 3 items of size 5 byte are AAAAA, BBBBB, and CCCCC.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines

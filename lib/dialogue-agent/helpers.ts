@@ -41,7 +41,7 @@ export function formatError(dlg : DialogueLoop, error : Error|string) {
     if (typeof error === 'string')
         return error;
     else if (error.name === 'SyntaxError')
-        return dlg.interpolate(dlg._("Syntax error at ${error.fileName} line ${error.lineNumber}: ${error.message}"), { error });
+        return dlg.interpolate(dlg._("Syntax error {at ${error.fileName}|} {line ${error.lineNumber}|}: ${error.message}"), { error });
     else if (error.message)
         return error.message;
     else

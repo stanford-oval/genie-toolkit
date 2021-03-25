@@ -44,19 +44,22 @@ system_list_proposal : D.ListProposal = {
              'are you interested to hear more about any of them ?')
             => D.checkListProposal(name_list, null, true);
     }
-    ?inference {
-        ["{i see|i have|i have found} ${name_list}."]: (name_list : result_name_list)
-            => D.checkListProposal(name_list, null, true);
-    }
+    ["{i see|i have|i have found} ${name_list}."]: (name_list : result_name_list)
+        => D.checkListProposal(name_list, null, false);
 
-    ["{i see|i have|i have found} ${name_list}. {they|all of them} are ${res[plural=other]}.", priority=2]: (name_list : result_name_list, res : result_info_phrase)
-        => D.checkListProposal(name_list, res.info, true);
+    ["{i see|i have|i have found} ${name_list}. {they|all of them} are ${info[plural=other]}.", priority=2]: (name_list : result_name_list, info : result_info_phrase)
+        => D.checkListProposal(name_list, info.info, false);
 
-    ["{i see|i have|i have found} ${name_list}. both are ${res[plural=other]}."]: (name_list : result_name_list, res : result_info_phrase) => {
+    ["{i see|i have|i have found} ${name_list}. both are ${info[plural=other]}."]: (name_list : result_name_list, info : result_info_phrase) => {
         if (name_list.results.length !== 2)
             return null;
-        return D.checkListProposal(name_list, res.info, true);
+        return D.checkListProposal(name_list, info.info, false);
     };
+
+    proposal:ctx_thingpedia_list_result [priority=5]
+        => D.checkThingpediaListProposal(proposal, null);
+    ["${proposal}. {they|all of them} are ${info[plural=other]}.", priority=6]: (proposal : ctx_thingpedia_list_result, info : result_info_phrase)
+        => D.checkThingpediaListProposal(proposal, info.info);
 
     !inference {
         ["{i see|i have|i have found} ${name_list}. {action}.", priority=-1]: (name_list : result_name_list, action : action_coref_list_proposal)

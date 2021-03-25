@@ -165,9 +165,13 @@ function checkRecommendation(rec : Recommendation, info : SlotBag|null) {
         }
     }
 
+    const merged = info && rec.info ? SlotBag.merge(info, rec.info) : (info || rec.info);
+    if (info && rec.info && !merged)
+        return null;
+
     return {
         ctx: rec.ctx, topResult: rec.topResult,
-        info: info && rec.info ? SlotBag.merge(info, rec.info) : (info || rec.info),
+        info: merged,
         action: rec.action,
         hasLearnMore: rec.hasLearnMore,
         hasAnythingElse: rec.hasAnythingElse
