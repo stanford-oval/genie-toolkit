@@ -413,6 +413,10 @@ function toDeviceInfo(d) {
     };
 }
 
+class MockAudioController {
+    async stopAudio() {}
+}
+
 export function createMockEngine(thingpedia, rng, database) {
     const platform = new TestPlatform();
     const schemas = new SchemaRetriever(thingpedia, null, true);
@@ -424,6 +428,7 @@ export function createMockEngine(thingpedia, rng, database) {
         schemas: schemas,
         devices: new MockDeviceDatabase(),
         apps: new MockAppDatabase(schemas, gettext, rng, database),
+        audio: new MockAudioController(),
 
         createApp(program, options = {}) {
             return this.apps.createApp(program, options);

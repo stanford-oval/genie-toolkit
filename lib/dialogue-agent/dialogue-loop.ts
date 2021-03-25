@@ -454,7 +454,8 @@ export default class DialogueLoop {
     private async _handleUICommand(type : CommandAnalysisType) {
         switch (type) {
         case CommandAnalysisType.STOP:
-            // stop means cancel, but without a failure message
+            // stop means cancel, but without a failure message + stopping audio
+            await this.engine.audio.stopAudio();
             throw new CancellationError();
 
         case CommandAnalysisType.NEVERMIND:
