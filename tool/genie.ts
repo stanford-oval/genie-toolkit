@@ -51,6 +51,7 @@ const subcommands : { [key : string] : SubCommand } = {
     'deduplicate': require('./deduplicate'),
     'measure-training-set': require('./measure-training-set'),
     'compute-training-coverage': require('./compute-training-coverage'),
+    'retokenize-eval': require('./retokenize-evaluation-data'),
 
     'train': require('./train'),
     'predict': require('./predict'),
@@ -88,7 +89,7 @@ const subcommands : { [key : string] : SubCommand } = {
 
     'auto-annotate-multiwoz': require('./auto-annotate-multiwoz'),
     'extract-predicted-slots': require('./extract-predicted-slots'),
-    'analyze-dialogue-annotations': require('./analyze-dialogue-annotations')
+    'analyze-dialogue-annotations': require('./analyze-dialogue-annotations'),
 };
 
 async function main() {
