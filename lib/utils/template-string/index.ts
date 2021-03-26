@@ -27,7 +27,6 @@ import * as TemplateGrammar from './grammar';
  * Natural language template language that supports grammar-based constraints
  * to handle agreement in number, tense, gender, etc.
  *
- * @module
  */
 
 type FlagValue = string|number;

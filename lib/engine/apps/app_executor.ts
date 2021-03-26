@@ -104,9 +104,21 @@ interface AppMeta {
  * under this object.
  */
 export default class AppExecutor extends events.EventEmitter {
+    /**
+     * The unique ID of this app.
+     */
     uniqueId : string|undefined;
+    /**
+     * The engine that owns this app.
+     */
     engine : Engine;
+    /**
+     * The ThingTalk code of this app.
+     */
     code : string;
+    /**
+     * The icon to use for this app.
+     */
     icon : string|null;
     name : string;
     description : string;
@@ -114,9 +126,20 @@ export default class AppExecutor extends events.EventEmitter {
     mainOutput : QueueOutputDelegate;
     private _notificationOutput : NotificationOutputDelegate;
 
+    /**
+     * Whether this app is running.
+     *
+     * This is set automatically by the engine.
+     */
     isRunning : boolean;
+    /**
+     * Whether this app is enabled (should be run automatically at startup).
+     */
     isEnabled : boolean;
 
+    /**
+     * The ThingTalk compiler used by this app.
+     */
     private compiler : AppCompiler;
     private _ast : Ast.Program|null;
     private _error : Error|null;
@@ -148,47 +171,13 @@ export default class AppExecutor extends events.EventEmitter {
                 description : string|undefined) {
         super();
 
-        /**
-         * The unique ID of this app.
-         * @type {string}
-         * @readonly
-         */
         this.uniqueId = undefined;
-
-        /**
-         * The engine that owns this app.
-         * @type {Engine}
-         * @readonly
-         */
         this.engine = engine;
-
-        /**
-         * The ThingTalk code of this app.
-         * @type {string}
-         * @readonly
-         */
         this.code = code;
 
-        /**
-         * Whether this app is running.
-         *
-         * This is set automatically by the engine.
-         * @type {boolean}
-         */
         this.isRunning = false;
-
-        /**
-         * Whether this app is enabled (should be run automatically at startup).
-         * @type {boolean}
-         */
         this.isEnabled = false;
 
-        /**
-         * The ThingTalk compiler used by this app.
-         * @type {ThingTalk.Compiler}
-         * @readonly
-         * @private
-         */
         this.compiler = new AppCompiler(engine.schemas);
         this.command = null;
         this.rules = [];
@@ -204,11 +193,6 @@ export default class AppExecutor extends events.EventEmitter {
         }
 
         this._meta = meta;
-        /**
-         * The icon to use for this app.
-         * @type {string|null}
-         * @readonly
-         */
         this.icon = meta.icon || null;
 
         this.name = '';
@@ -241,7 +225,6 @@ export default class AppExecutor extends events.EventEmitter {
 
     /**
      * The last error reported by this app.
-     * @type {string}
      */
     get error() : string|null {
         if (this._error)
@@ -267,7 +250,6 @@ export default class AppExecutor extends events.EventEmitter {
      * after all commands have been stopped.
      *
      * @package
-     * @async
      */
     destroy() {
         if (this._finished)
@@ -279,7 +261,6 @@ export default class AppExecutor extends events.EventEmitter {
 
     /**
      * Stop and delete this app.
-     * @async
      */
     async removeSelf() {
         await this.engine.apps.removeApp(this);
@@ -292,7 +273,6 @@ export default class AppExecutor extends events.EventEmitter {
      * or {@link AppExecutor#start}.
      *
      * On failure, this method will set {@link AppExecutor#error}.
-     * @async
      */
     async compile() : Promise<void> {
         if (this._error)
