@@ -57,6 +57,10 @@ interface SoundOutputStream extends stream.Writable {
     discard() : void;
 }
 
+function sleep(duration : number) : Promise<void> {
+    return new Promise((resolve, reject) => setTimeout(resolve, duration));
+}
+
 export default class SpeechSynthesizer extends events.EventEmitter {
     private _baseUrl : string;
     private _locale : string;
@@ -156,7 +160,7 @@ export default class SpeechSynthesizer extends events.EventEmitter {
         // and slows down the pace
         const bufferLength = 0.15 * this._sampleRate * this._numChannels * 2;
         this._outputStream!.write(Buffer.alloc(bufferLength));
-        return 1000;
+        return 150;
     }
 
     private _ensureOutputStream(result : { sampleRate : number, numChannels : number }) {
@@ -188,9 +192,11 @@ export default class SpeechSynthesizer extends events.EventEmitter {
             }
         }) as SoundOutputStream;
         this._outputStream.on('drain', () => {
-            console.log('Done speaking');
-            this.emit('done');
-            this._speaking = false;
+            if (this._queue.length === 0) {
+                console.log('Done speaking');
+                this.emit('done');
+                this._speaking = false;
+            }
         });
     }
 
@@ -217,6 +223,11 @@ export default class SpeechSynthesizer extends events.EventEmitter {
                 console.log('outputstream write for ' + qitem.text + ', delay of ' + duration);
                 this._outputStream!.write(qitem.buffer);
                 duration += this._silence();
+
+                // delay writing to the buffer again
+                // this ensures that end a frame only when we actually finished
+                // speaking, and we track "done speaking" correctly
+                await sleep(duration);
             } else {
                 const effectApi = this._platform.getCapability('sound-effects');
                 if (effectApi)
