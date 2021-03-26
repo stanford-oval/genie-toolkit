@@ -245,12 +245,12 @@ export default class Conversation extends events.EventEmitter {
         return this._engine.platform.timezone;
     }
 
-    get stats() : Statistics {
-        return this._stats;
+    get engine() : Engine {
+        return this._engine;
     }
 
-    get apps() {
-        return this._engine.apps;
+    get stats() : Statistics {
+        return this._stats;
     }
 
     get schemas() : ThingTalk.SchemaRetriever {

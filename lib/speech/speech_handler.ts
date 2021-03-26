@@ -25,6 +25,7 @@ import SpeechRecognizer from './speech_recognizer';
 import SpeechSynthesizer from './speech_synthesizer';
 import { MessageType } from '../dialogue-agent/protocol';
 import type Conversation from '../dialogue-agent/conversation';
+import type AudioController from '../engine/audio_controller';
 
 interface SpeechHandlerOptions {
     subscriptionKey ?: string;
@@ -34,9 +35,9 @@ export default class SpeechHandler extends events.EventEmitter {
     private _platform : Tp.BasePlatform;
     private _prefs : Tp.Preferences;
     private _conversation : Conversation;
-    private _pulse : any;
-    private _wakeWordDetector : any;
-    private _systemLock : any;
+    private _pulse : Tp.Capabilities.SoundApi;
+    private _wakeWordDetector : Tp.Capabilities.WakeWordApi|null;
+    private _systemLock : Tp.Capabilities.SystemLockApi|null;
     private _recognizer : SpeechRecognizer;
     private _tts : SpeechSynthesizer;
     private _currentRequest : any;
@@ -44,6 +45,8 @@ export default class SpeechHandler extends events.EventEmitter {
     private _enableVoiceInput : boolean;
     private _enableVoiceOutput : boolean;
     private _stream : any|null = null;
+    private _audioController : AudioController;
+    private _queuedAudio : string[];
 
     constructor(conversation : Conversation,
                 platform : Tp.BasePlatform,
@@ -53,8 +56,9 @@ export default class SpeechHandler extends events.EventEmitter {
         this._prefs = platform.getSharedPreferences();
 
         this._conversation = conversation;
+        this._audioController = conversation.engine.audio;
 
-        this._pulse = platform.getCapability('sound');
+        this._pulse = platform.getCapability('sound')!;
         this._wakeWordDetector = platform.getCapability('wakeword-detector');
         this._systemLock = platform.getCapability('system-lock');
 
@@ -81,6 +85,7 @@ export default class SpeechHandler extends events.EventEmitter {
         this._tts = new SpeechSynthesizer(platform);
 
         this._currentRequest = null;
+        this._queuedAudio = [];
 
         this._started = true;
         this._enableVoiceInput = this._prefs.get('enable-voice-input') as boolean ?? true;
@@ -117,7 +122,38 @@ export default class SpeechHandler extends events.EventEmitter {
         // ignore, this is called from the conversation when it broadcasts the hypothesis
         // to all listeners
     }
-    setExpected(expect : string) : void {
+    async setExpected(expect : string) : Promise<void> {
+        // flush any request to play audio
+        if (this._queuedAudio.length) {
+            const toPlay = this._queuedAudio;
+            this._queuedAudio = [];
+            if (this._enableVoiceOutput) {
+                // wait until the agent finishes speaking to start playing audio
+                // if the agent is interrupted by the user while speaking, then
+                // skip playing altogether
+                try {
+                    await this._tts.endFrame();
+                } catch(e) {
+                    if (e.code === 'ECANCELLED')
+                        return;
+                    throw e;
+                }
+            }
+            const cap = this._platform.getCapability('audio-player');
+            if (!cap)
+                return;
+
+            let player : {
+                stop() : Promise<void>
+            }|undefined;
+            await this._audioController.requestSystemAudio(async () => {
+                if (player) {
+                    await player.stop();
+                    player = undefined;
+                }
+            });
+            player = await cap.play(toPlay);
+        }
     }
 
     async addMessage(message : any) : Promise<void> {
@@ -130,6 +166,16 @@ export default class SpeechHandler extends events.EventEmitter {
             if (!this._enableVoiceOutput)
                 break;
             await this._tts.say(message.text);
+            break;
+
+        case MessageType.SOUND_EFFECT:
+            if (!this._enableVoiceOutput)
+                break;
+            await this._tts.soundEffect(message.name);
+            break;
+
+        case MessageType.AUDIO:
+            this._queuedAudio.push(message.url);
             break;
 
         // ignore all other message types

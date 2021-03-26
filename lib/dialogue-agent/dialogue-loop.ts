@@ -621,7 +621,7 @@ export default class DialogueLoop {
                                     outputValue : Record<string, unknown>) {
         let app;
         if (appId !== undefined)
-            app = this.conversation.apps.getApp(appId);
+            app = this.engine.apps.getApp(appId);
         else
             app = undefined;
 
@@ -645,7 +645,7 @@ export default class DialogueLoop {
                                   error : Error) {
         let app;
         if (appId !== undefined)
-            app = this.conversation.apps.getApp(appId);
+            app = this.engine.apps.getApp(appId);
         else
             app = undefined;
 

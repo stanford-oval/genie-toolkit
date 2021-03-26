@@ -74,6 +74,19 @@ export default class AudioController extends events.EventEmitter {
     }
 
     /**
+     * Request background audio on behalf of the system itself.
+     *
+     * This method must not be called outside of Genie
+     */
+    async requestSystemAudio(releaseCallback : () => void|Promise<void>) {
+        if (this._releaseCallback)
+            this._releaseCallback();
+        this._currentDevice = null;
+        console.log(`Switching audio to system`);
+        this._releaseCallback = releaseCallback;
+    }
+
+    /**
      * Release the control of background audio on behalf of the given device.
      *
      * This method has no effect if the given device is not currently controlling

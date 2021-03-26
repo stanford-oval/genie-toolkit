@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -18,12 +18,14 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 import * as Tp from 'thingpedia';
 import assert from 'assert';
 import * as events from 'events';
+import * as stream from 'stream';
 
 class CancelledError extends Error {
+    code : string;
+
     constructor() {
         super("Cancelled");
         this.code = 'ECANCELLED';
@@ -32,37 +34,74 @@ class CancelledError extends Error {
 
 const URL = 'https://almond-nl.stanford.edu';
 
+enum QueueItemType { END_FRAME, SPEECH, SOUND_EFFECT, ERROR }
+type QueueItem = {
+    type : QueueItemType.END_FRAME;
+    resolve() : void;
+    reject(err : Error) : void;
+} | {
+    type : QueueItemType.SPEECH;
+    buffer : Buffer;
+    sampleRate : number;
+    numChannels : number;
+    text : string;
+} | {
+    type : QueueItemType.SOUND_EFFECT;
+    effect : string;
+} | {
+    type : QueueItemType.ERROR;
+    error : Error;
+}
+
+interface SoundOutputStream extends stream.Writable {
+    discard() : void;
+}
+
 export default class SpeechSynthesizer extends events.EventEmitter {
-    constructor(platform, url = URL) {
+    private _baseUrl : string;
+    private _locale : string;
+    private _platform : Tp.BasePlatform;
+    private _soundCtx : Tp.Capabilities.SoundApi;
+    private _queue : Array<QueueItem|Promise<QueueItem>>;
+    private _speaking : boolean;
+    private _outputStream : SoundOutputStream|null;
+    private _closeTimeout : NodeJS.Timeout|null;
+    private _sampleRate : number;
+    private _numChannels : number;
+
+    constructor(platform : Tp.BasePlatform, url = URL) {
         super();
         this._baseUrl = url;
         this._locale = platform.locale;
-        this._soundCtx = platform.getCapability('sound');
+        this._platform = platform;
+        this._soundCtx = platform.getCapability('sound')!;
 
         this._queue = [];
         this._speaking = false;
 
         this._outputStream = null;
         this._closeTimeout = null;
+        this._sampleRate = 0;
+        this._numChannels = 0;
     }
 
     get speaking() {
         return this._speaking;
     }
 
-    clearQueue() {
+    async clearQueue() {
         if (this._outputStream)
             this._outputStream.discard();
 
         const err = new CancelledError();
-        for (const q of this._queue) {
-            if (typeof q.reject === 'function')
+        for await (const q of this._queue) {
+            if (q.type === QueueItemType.END_FRAME)
                 q.reject(err);
         }
         this._queue.length = 0;
     }
 
-    async _synth(text) {
+    private async _synth(text : string) : Promise<QueueItem> {
         try {
             const [buffer,] = await Tp.Helpers.Http.post(this._baseUrl + '/' + this._locale + '/voice/tts', JSON.stringify({
                 text
@@ -82,50 +121,50 @@ export default class SpeechSynthesizer extends events.EventEmitter {
             const sliced = buffer.slice(44, buffer.length);
             console.log(buffer.length, sliced.length);
 
-            return { buffer: sliced, sampleRate, numChannels, text };
+            return { type: QueueItemType.SPEECH, buffer: sliced, sampleRate, numChannels, text };
         } catch(e) {
-            return { error: e };
+            return { type: QueueItemType.ERROR, error: e };
         }
     }
 
-    say(text) {
-        if (this._currentFrame !== this._nextFrame) {
-            this.clearQueue();
-            this._currentFrame = this._nextFrame;
-        }
-
+    say(text : string) {
         this._queue.push(this._synth(text));
         if (!this._speaking)
             this._sayNext();
     }
-    endFrame() {
-        const callbacks = {};
-        const promise = new Promise((resolve, reject) => {
-            callbacks.resolve = resolve;
-            callbacks.reject = reject;
-        });
-
-        this._queue.push(callbacks);
+    soundEffect(effect : string) {
+        this._queue.push({ type: QueueItemType.SOUND_EFFECT, effect });
         if (!this._speaking)
             this._sayNext();
+    }
+    endFrame() : Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            const callbacks = {
+                type: QueueItemType.END_FRAME as const,
+                resolve, reject
+            };
 
-        return promise;
+            this._queue.push(callbacks);
+            if (!this._speaking)
+                this._sayNext();
+        });
     }
 
-    _silence() {
+    private _silence() {
         // force flush the buffer with 0.15 second of silence
         // this also causes a pause between the utterances, which sounds natural
         // and slows down the pace
-        let bufferLength = 0.15 * this._sampleRate * this._numChannels * 2;
-        this._outputStream.write(Buffer.alloc(bufferLength));
+        const bufferLength = 0.15 * this._sampleRate * this._numChannels * 2;
+        this._outputStream!.write(Buffer.alloc(bufferLength));
         return 1000;
     }
 
-    _ensureOutputStream(result) {
+    private _ensureOutputStream(result : { sampleRate : number, numChannels : number }) {
         if (this._closeTimeout)
             clearTimeout(this._closeTimeout);
         this._closeTimeout = setTimeout(() => {
-            this._outputStream.end();
+            if (this._outputStream)
+                this._outputStream.end();
             this._outputStream = null;
             this._closeTimeout = null;
         }, 60000);
@@ -147,7 +186,7 @@ export default class SpeechSynthesizer extends events.EventEmitter {
                 'media.role': 'voice-assistant',
                 'filter.want': 'echo-cancel',
             }
-        });
+        }) as SoundOutputStream;
         this._outputStream.on('drain', () => {
             console.log('Done speaking');
             this.emit('done');
@@ -155,7 +194,7 @@ export default class SpeechSynthesizer extends events.EventEmitter {
         });
     }
 
-    async _sayNext() {
+    private async _sayNext() {
         if (this._queue.length === 0)
             return;
         if (!this._speaking) {
@@ -164,21 +203,24 @@ export default class SpeechSynthesizer extends events.EventEmitter {
         }
         this._speaking = true;
 
-        const qitem = this._queue.shift();
+        const qitem = await this._queue.shift()!;
         try {
-            if (typeof qitem.resolve === 'function') {
+            if (qitem.type === QueueItemType.END_FRAME) {
                 qitem.resolve();
-            } else {
-                const result = await qitem;
-                if (result.error)
-                    throw result.error;
-                this._ensureOutputStream(result);
+            } else if (qitem.type === QueueItemType.ERROR) {
+                throw qitem.error;
+            } else if (qitem.type === QueueItemType.SPEECH) {
+                this._ensureOutputStream(qitem);
 
-                let duration = result.buffer.length /2 /
-                    result.sampleRate / result.numChannels * 1000;
-                console.log('outputstream write for ' + result.text + ', delay of ' + duration);
-                this._outputStream.write(result.buffer);
+                let duration = qitem.buffer.length /2 /
+                    qitem.sampleRate / qitem.numChannels * 1000;
+                console.log('outputstream write for ' + qitem.text + ', delay of ' + duration);
+                this._outputStream!.write(qitem.buffer);
                 duration += this._silence();
+            } else {
+                const effectApi = this._platform.getCapability('sound-effects');
+                if (effectApi)
+                    await effectApi.play(qitem.effect);
             }
         } catch(e) {
             console.error('Failed to speak: ' + e);
