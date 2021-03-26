@@ -122,23 +122,25 @@ export default class SpeechHandler extends events.EventEmitter {
         // ignore, this is called from the conversation when it broadcasts the hypothesis
         // to all listeners
     }
+
+    private _waitFinishSpeaking() {
+        return new Promise<void>((resolve, reject) => {
+            if (!this._tts.speaking) {
+                resolve();
+                return;
+            }
+
+            this._tts.once('done', () => resolve());
+        });
+    }
+
     async setExpected(expect : string) : Promise<void> {
         // flush any request to play audio
         if (this._queuedAudio.length) {
             const toPlay = this._queuedAudio;
             this._queuedAudio = [];
-            if (this._enableVoiceOutput) {
-                // wait until the agent finishes speaking to start playing audio
-                // if the agent is interrupted by the user while speaking, then
-                // skip playing altogether
-                try {
-                    await this._tts.endFrame();
-                } catch(e) {
-                    if (e.code === 'ECANCELLED')
-                        return;
-                    throw e;
-                }
-            }
+            // wait until the agent finishes speaking to start playing audio
+            await this._waitFinishSpeaking();
             const cap = this._platform.getCapability('audio-player');
             if (!cap)
                 return;
@@ -168,11 +170,32 @@ export default class SpeechHandler extends events.EventEmitter {
             await this._tts.say(message.text);
             break;
 
-        case MessageType.SOUND_EFFECT:
-            if (!this._enableVoiceOutput)
-                break;
-            await this._tts.soundEffect(message.name);
+        case MessageType.SOUND_EFFECT: {
+            const soundEffects = this._platform.getCapability('sound-effects');
+            if (soundEffects) {
+                if (message.exclusive) {
+                    // in exclusive mode, we queue the sound effect as if it was
+                    // a regular audio URL
+                    // this means we'll stop other audio and we will synchronize
+                    // with audio messages
+                    const url = soundEffects.getURL(message.name);
+
+                    if (url)
+                        this._queuedAudio.push(url);
+                    else
+                        console.log(`Ignored unknown sound effect ${message.name}`);
+                } else {
+                    this._waitFinishSpeaking().then(() => {
+                        return soundEffects.play(message.name);
+                    }).catch((e) => {
+                        console.error(`Failed to play sound effect: ${e.message}`);
+                    });
+                }
+            } else {
+                console.log(`Ignored sound effect ${message.name}: not supported on this platform`);
+            }
             break;
+        }
 
         case MessageType.AUDIO:
             this._queuedAudio.push(message.url);

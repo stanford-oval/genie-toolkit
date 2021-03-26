@@ -23,7 +23,7 @@ import interpolate from 'string-interp';
 import * as I18n from '../../i18n';
 import type CardFormatter from './card-formatter';
 type PlainObject = { [key : string] : unknown };
-type GenericFormatSpec = { [key : string] : string|null };
+type GenericFormatSpec = { [key : string] : unknown };
 
 export function isNull(value : unknown) : boolean {
     // all false-y values except false itself are "null"
@@ -93,7 +93,10 @@ export abstract class BaseFormattedObject {
             if (key === 'type')
                 continue;
 
-            (this as unknown as GenericFormatSpec)[key] = formatter.replaceInString((this as unknown as GenericFormatSpec)[key], argMap);
+            const tmpl = (this as unknown as GenericFormatSpec)[key];
+            if (typeof tmpl !== 'string')
+                continue;
+            (this as unknown as GenericFormatSpec)[key] = formatter.replaceInString(tmpl, argMap);
         }
     }
 }
@@ -187,6 +190,7 @@ class RDL extends BaseFormattedObject implements RDLSpec {
 interface SoundEffectSpec {
     type : 'sound';
     name : string;
+    exclusive ?: boolean;
 }
 
 /**
@@ -196,6 +200,7 @@ interface SoundEffectSpec {
 class SoundEffect extends BaseFormattedObject implements SoundEffectSpec {
     type : 'sound';
     name : string;
+    exclusive : boolean;
 
     /**
      * Construct a new sound effect object.
@@ -213,6 +218,7 @@ class SoundEffect extends BaseFormattedObject implements SoundEffectSpec {
          */
         this.type = 'sound';
         this.name = spec.name;
+        this.exclusive = spec.exclusive || false;
     }
 
     isValid() : boolean {

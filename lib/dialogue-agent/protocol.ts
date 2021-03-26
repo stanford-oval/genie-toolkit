@@ -76,6 +76,7 @@ interface SoundEffectMessage {
     id ?: number;
     type : MessageType.SOUND_EFFECT;
     name : string;
+    exclusive : boolean;
     icon : string|null;
 }
 

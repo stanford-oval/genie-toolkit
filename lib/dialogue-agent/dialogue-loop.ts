@@ -899,7 +899,7 @@ export default class DialogueLoop {
         else if (message.type === 'rdl')
             await this.conversation.sendRDL(message, icon || this.icon);
         else if (message.type === 'sound')
-            await this.conversation.sendSoundEffect(message.name, icon || this.icon);
+            await this.conversation.sendSoundEffect(message.name, message.exclusive, icon || this.icon);
     }
 
     async replyButton(text : string, json : string) {

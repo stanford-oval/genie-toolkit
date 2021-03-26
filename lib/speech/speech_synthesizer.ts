@@ -23,31 +23,15 @@ import assert from 'assert';
 import * as events from 'events';
 import * as stream from 'stream';
 
-class CancelledError extends Error {
-    code : string;
-
-    constructor() {
-        super("Cancelled");
-        this.code = 'ECANCELLED';
-    }
-}
-
 const URL = 'https://almond-nl.stanford.edu';
 
-enum QueueItemType { END_FRAME, SPEECH, SOUND_EFFECT, ERROR }
+enum QueueItemType { SPEECH, ERROR }
 type QueueItem = {
-    type : QueueItemType.END_FRAME;
-    resolve() : void;
-    reject(err : Error) : void;
-} | {
     type : QueueItemType.SPEECH;
     buffer : Buffer;
     sampleRate : number;
     numChannels : number;
     text : string;
-} | {
-    type : QueueItemType.SOUND_EFFECT;
-    effect : string;
 } | {
     type : QueueItemType.ERROR;
     error : Error;
@@ -57,14 +41,9 @@ interface SoundOutputStream extends stream.Writable {
     discard() : void;
 }
 
-function sleep(duration : number) : Promise<void> {
-    return new Promise((resolve, reject) => setTimeout(resolve, duration));
-}
-
 export default class SpeechSynthesizer extends events.EventEmitter {
     private _baseUrl : string;
     private _locale : string;
-    private _platform : Tp.BasePlatform;
     private _soundCtx : Tp.Capabilities.SoundApi;
     private _queue : Array<QueueItem|Promise<QueueItem>>;
     private _speaking : boolean;
@@ -77,7 +56,6 @@ export default class SpeechSynthesizer extends events.EventEmitter {
         super();
         this._baseUrl = url;
         this._locale = platform.locale;
-        this._platform = platform;
         this._soundCtx = platform.getCapability('sound')!;
 
         this._queue = [];
@@ -96,12 +74,6 @@ export default class SpeechSynthesizer extends events.EventEmitter {
     async clearQueue() {
         if (this._outputStream)
             this._outputStream.discard();
-
-        const err = new CancelledError();
-        for await (const q of this._queue) {
-            if (q.type === QueueItemType.END_FRAME)
-                q.reject(err);
-        }
         this._queue.length = 0;
     }
 
@@ -135,23 +107,6 @@ export default class SpeechSynthesizer extends events.EventEmitter {
         this._queue.push(this._synth(text));
         if (!this._speaking)
             this._sayNext();
-    }
-    soundEffect(effect : string) {
-        this._queue.push({ type: QueueItemType.SOUND_EFFECT, effect });
-        if (!this._speaking)
-            this._sayNext();
-    }
-    endFrame() : Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            const callbacks = {
-                type: QueueItemType.END_FRAME as const,
-                resolve, reject
-            };
-
-            this._queue.push(callbacks);
-            if (!this._speaking)
-                this._sayNext();
-        });
     }
 
     private _silence() {
@@ -211,27 +166,16 @@ export default class SpeechSynthesizer extends events.EventEmitter {
 
         const qitem = await this._queue.shift()!;
         try {
-            if (qitem.type === QueueItemType.END_FRAME) {
-                qitem.resolve();
-            } else if (qitem.type === QueueItemType.ERROR) {
+            if (qitem.type === QueueItemType.ERROR) {
                 throw qitem.error;
-            } else if (qitem.type === QueueItemType.SPEECH) {
+            } else {
                 this._ensureOutputStream(qitem);
 
-                let duration = qitem.buffer.length /2 /
+                const duration = qitem.buffer.length /2 /
                     qitem.sampleRate / qitem.numChannels * 1000;
                 console.log('outputstream write for ' + qitem.text + ', delay of ' + duration);
                 this._outputStream!.write(qitem.buffer);
-                duration += this._silence();
-
-                // delay writing to the buffer again
-                // this ensures that end a frame only when we actually finished
-                // speaking, and we track "done speaking" correctly
-                await sleep(duration);
-            } else {
-                const effectApi = this._platform.getCapability('sound-effects');
-                if (effectApi)
-                    await effectApi.play(qitem.effect);
+                this._silence();
             }
         } catch(e) {
             console.error('Failed to speak: ' + e);

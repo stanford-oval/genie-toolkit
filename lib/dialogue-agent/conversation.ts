@@ -464,10 +464,10 @@ export default class Conversation extends events.EventEmitter {
         return this._addMessage({ type: MessageType.RDL, rdl, icon });
     }
 
-    sendSoundEffect(name : string, icon : string|null) {
+    sendSoundEffect(name : string, exclusive : boolean, icon : string|null) {
         if (this._debug)
             console.log('Genie sends sound effect: '+ name);
-        return this._addMessage({ type: MessageType.SOUND_EFFECT, name, icon });
+        return this._addMessage({ type: MessageType.SOUND_EFFECT, name, exclusive, icon });
     }
 
     sendChoice(idx : number, title : string) {
