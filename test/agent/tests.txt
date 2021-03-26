@@ -779,3 +779,20 @@ U: \t $no;
 A: Alright, bye!
 A: >> context = null // {}
 A: >> expecting = null
+
+====
+# 53-time-and-date
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.builtin.thingengine.builtin.get_time();
+
+A: Right now, it's 5:50 PM.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.builtin.thingengine.builtin ( id = GENERIC_ENTITY_tt:device_id_0 ) . get_time ( ) #[ results = [ { time = TIME_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"thingengine-own-global","display":"Builtin"},"TIME_0":{"hour":17,"minute":50,"second":0}}
+A: >> expecting = null
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.builtin.thingengine.builtin.get_date();
+
+A: Today is January 20, 2018.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.builtin.thingengine.builtin ( id = GENERIC_ENTITY_tt:device_id_0 ) . get_time ( ) #[ results = [ { time = TIME_0 } ] ] ; @org.thingpedia.builtin.thingengine.builtin ( id = GENERIC_ENTITY_tt:device_id_0 ) . get_date ( ) #[ results = [ { date = DATE_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"thingengine-own-global","display":"Builtin"},"TIME_0":{"hour":17,"minute":50,"second":0},"DATE_0":"2018-01-20T08:00:00.000Z"}
+A: >> expecting = null
