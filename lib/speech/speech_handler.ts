@@ -56,7 +56,7 @@ export default class SpeechHandler extends events.EventEmitter {
         this._prefs = platform.getSharedPreferences();
 
         this._conversation = conversation;
-        this._audioController = conversation.engine.audio;
+        this._audioController = conversation.engine.audio!;
 
         this._pulse = platform.getCapability('sound')!;
         this._wakeWordDetector = platform.getCapability('wakeword-detector');

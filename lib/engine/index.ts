@@ -165,7 +165,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
     private _devices : DeviceDatabase;
     private _appdb : AppDatabase;
     private _assistant : AssistantDispatcher;
-    private _audio : AudioController;
+    private _audio : AudioController|null;
 
     private _running : boolean;
     private _stopCallback : (() => void)|null;
@@ -195,16 +195,20 @@ export default class AssistantEngine extends Tp.BaseEngine {
 
         this._assistant = new AssistantDispatcher(this, options.nluModelUrl);
 
-        this._audio = new AudioController(this._devices);
+        if (platform.hasCapability('sound'))
+            this._audio = new AudioController(this._devices);
+        else
+            this._audio = null;
 
         // in loading order
         this._modules = [this._tiers,
                          this._devices,
                          new PairedEngineManager(platform, this._devices, deviceFactory, this._tiers),
-                         this._appdb,
-                         this._audio,
-                         this._assistant,
-                         new AppRunner(this._appdb)];
+                         this._appdb];
+        if (this._audio)
+            this._modules.push(this._audio);
+        this._modules.push(this._assistant,
+                           new AppRunner(this._appdb));
 
         this._running = false;
         this._stopCallback = null;
