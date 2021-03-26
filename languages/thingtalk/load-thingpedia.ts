@@ -1171,28 +1171,32 @@ export default class ThingpediaLoader {
         for (let i = 0; i < strings.length; i++) {
             const names : string[] = [];
 
-            const parsed : Genie.SentenceGeneratorRuntime.Replaceable = this._runtime.Replaceable.parse(strings[i]);
-            parsed.visit((elem) => {
-                if (elem instanceof this._runtime.Placeholder) {
-                    const param = elem.param;
-                    if (names.includes(param))
-                        return true;
-                    names.push(param);
-                    if (additionalArguments.includes(param))
-                        return true;
+            try {
+                const parsed : Genie.SentenceGeneratorRuntime.Replaceable = this._runtime.Replaceable.parse(strings[i]);
+                parsed.visit((elem) => {
+                    if (elem instanceof this._runtime.Placeholder) {
+                        const param = elem.param;
+                        if (names.includes(param))
+                            return true;
+                        names.push(param);
+                        if (additionalArguments.includes(param))
+                            return true;
 
-                    const arg = functionDef.getArgument(param);
-                    if (!arg)
-                        throw new Error(`Invalid placeholder \${${param}} in #_[${annotName}] annotation for @${functionDef.qualifiedName}`);
+                        const arg = functionDef.getArgument(param);
+                        if (!arg)
+                            throw new Error(`Invalid placeholder \${${param}}`);
 
-                    // TODO store opt somewhere
+                        // TODO store opt somewhere
 
-                    assert(this._recordType(arg.type));
-                }
-                return true;
-            });
-            parsed.preprocess(this._langPack.locale, names);
-            parsedstrings.push({ names, replaceable: parsed });
+                        assert(this._recordType(arg.type));
+                    }
+                    return true;
+                });
+                parsed.preprocess(this._langPack.locale, names);
+                parsedstrings.push({ names, replaceable: parsed });
+            } catch(e) {
+                throw new Error(`Failed to parse #_[${annotName}] annotation for @${functionDef.qualifiedName}: ${e.message}`);
+            }
         }
 
         return parsedstrings;
