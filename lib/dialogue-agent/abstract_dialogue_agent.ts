@@ -274,7 +274,6 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * Show a debug message.
      *
      * @param {any} msg - what to show
-     * @protected
      */
     debug(...args : unknown[]) : void {
         if (!this._debug)
@@ -445,7 +444,6 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      *
      * @param {string} kind - the kind to check
      * @returns {Array<DeviceInfo>} - the list of configured devices
-     * @abstract
      */
     protected getAllDevicesOfKind(kind : string) : DeviceInfo[] {
         throw new TypeError('Abstract method');
@@ -536,8 +534,6 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * @param {string} entityDisplay - the display name of the entity look up
      * @param {any} hints - hints to use to resolve any ambiguity
      * @returns {ThingpediaEntity[]} - possible entities that match the given name, in Thingpedia API format
-     * @abstract
-     * @protected
      */
     protected async lookupEntityCandidates(entityType : string,
                                            entityDisplay : string,
@@ -551,8 +547,6 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      *
      * @param {string} variable - the variable name to lookup, including the `$context.` prefix
      * @returns {thingtalk.Ast.Value} - the resolved value
-     * @abstract
-     * @protected
      */
     protected async resolveUserContext(variable : string) : Promise<Ast.Value> {
         throw new TypeError('Abstract method');
@@ -566,8 +560,6 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * @param {string} type - the type of unit to retrieve (e.g. "temperature"), or undefined
      *   if the user has no preference
      * @returns {string} - the preferred unit
-     * @abstract
-     * @protected
      */
     getPreferredUnit(type : string) : string|undefined {
         throw new TypeError('Abstract method');

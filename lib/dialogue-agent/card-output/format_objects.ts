@@ -45,7 +45,6 @@ export function isNull(value : unknown) : boolean {
  * Classes in this namespace are not accessible directly, but objects
  * of this classes are returned by {@link Formatter} methods.
  *
- * @name FormatObjects
  * @namespace
  */
 
@@ -113,8 +112,6 @@ interface PictureSpec {
 /**
  * A simple still picture.
  *
- * @alias FormatObjects~Picture
- * @extends FormatObjects~FormattedObject
  */
 class Picture extends BaseFormattedObject implements PictureSpec {
     type : 'picture';
@@ -132,8 +129,6 @@ class Picture extends BaseFormattedObject implements PictureSpec {
         /**
          * A string identifying the type of this formatted object. Always the value `picture`.
          *
-         * @readonly
-         * @type {string}
          */
         this.type = 'picture';
         this.url = spec.url;
@@ -166,8 +161,6 @@ interface RDLSpec {
  * An RDL is expected to be displayed as a clickable card with optional
  * description and picture.
  *
- * @alias FormatObjects~RDL
- * @extends FormatObjects~FormattedObject
  */
 class RDL extends BaseFormattedObject implements RDLSpec {
     type : 'rdl';
@@ -196,8 +189,6 @@ class RDL extends BaseFormattedObject implements RDLSpec {
         /**
          * A string identifying the type of this formatted object. Always the value `rdl`.
          *
-         * @readonly
-         * @type {string}
          */
         this.type = 'rdl';
         this.callback = spec.callback;
@@ -252,8 +243,6 @@ interface MapFOSpec {
  * [Map](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map)
  * data structure.
  *
- * @alias FormatObjects~MapFO
- * @extends FormatObjects~FormattedObject
  */
 class MapFO extends BaseFormattedObject implements MapFOSpec {
     type : 'map';
@@ -275,8 +264,6 @@ class MapFO extends BaseFormattedObject implements MapFOSpec {
         /**
          * A string identifying the type of this formatted object. Always the value `map`.
          *
-         * @readonly
-         * @type {string}
          */
         this.type = 'map';
         this.lat = spec.lat;
@@ -310,8 +297,6 @@ interface SoundEffectSpec {
 /**
  * A short notification sound from a predefined library.
  *
- * @alias FormatObjects~SoundEffect
- * @extends FormatObjects~FormattedObject
 */
 class SoundEffect extends BaseFormattedObject implements SoundEffectSpec {
     type : 'sound';
@@ -330,8 +315,6 @@ class SoundEffect extends BaseFormattedObject implements SoundEffectSpec {
         /**
          * A string identifying the type of this formatted object. Always the value `sound`.
          *
-         * @readonly
-         * @type {string}
          */
         this.type = 'sound';
         this.name = spec.name;
@@ -357,8 +340,6 @@ interface MediaSpec {
 /**
  * Audio/video display with controls
  *
- * @alias FormatObjects~Media
- * @extends FormatObjects~FormattedObject
 */
 class Media extends BaseFormattedObject implements MediaSpec {
     type : 'media';
@@ -380,8 +361,6 @@ class Media extends BaseFormattedObject implements MediaSpec {
         /**
          * A string identifying the type of this formatted object. Always the value `media`.
          *
-         * @readonly
-         * @type {string}
          */
         this.type = 'media';
         this.url = spec.url;
@@ -426,8 +405,6 @@ class Button extends BaseFormattedObject implements ButtonSpec {
         /**
          * A string identifying the type of this formatted object. Always the value `media`.
          *
-         * @readonly
-         * @type {string}
          */
         this.type = 'button';
         this.title = spec.title;

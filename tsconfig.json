@@ -23,9 +23,10 @@
         "declaration": true
     },
     "typedocOptions": {
-        "mode": "library",
         "out": "jsdoc",
-        "name": "Genie",
-        "readme": "README.md"
+        "readme": "README.md",
+        "includeVersion": true,
+        "excludeExternals": true,
+        "listInvalidSymbolLinks": true
     }
 }
