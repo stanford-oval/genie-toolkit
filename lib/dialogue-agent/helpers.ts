@@ -96,14 +96,6 @@ export function loadOneExample(ex : ThingTalk.Ast.Example) {
                 example_id: ex.id, code, entities, slotTypes, slots } };
 }
 
-export async function loadSuggestedProgram(code : string, schemaRetriever : ThingTalk.SchemaRetriever) {
-    const parsed = await ThingTalkUtils.parse(code, schemaRetriever);
-
-    const entities = {};
-    const normalized = ThingTalkUtils.serializeNormalized(parsed, entities);
-    return { code: normalized, entities, slotTypes: {}, slots: [] };
-}
-
 export async function loadExamples(dataset : string,
                                    schemaRetriever : ThingTalk.SchemaRetriever,
                                    maxCount : number) {

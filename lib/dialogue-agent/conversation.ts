@@ -77,10 +77,6 @@ export interface ConversationDelegate {
     addMessage(msg : Message) : Promise<void>;
 }
 
-interface ResultLike {
-    toLocaleString(locale ?: string) : string;
-}
-
 export class DialogueTurnLog {
     private readonly _turn : DialogueTurn;
     private _done : boolean;
@@ -456,20 +452,22 @@ export default class Conversation extends events.EventEmitter {
         return this._addMessage({ type: MessageType.TEXT, text: message, icon });
     }
 
-    sendResult(message : ResultLike, icon : string|null) {
-        return this._addMessage({ type: MessageType.RESULT, text: message.toLocaleString(this._locale), result: message, icon });
-    }
-
-    sendPicture(url : string, icon : string|null) {
+    sendMedia(mediaType : 'picture'|'audio'|'video', url : string, icon : string|null) {
         if (this._debug)
-            console.log('Genie sends picture: '+ url);
-        return this._addMessage({ type: MessageType.PICTURE, url, icon });
+            console.log('Genie sends ' + mediaType + ': '+ url);
+        return this._addMessage({ type: mediaType as MessageType.AUDIO|MessageType.VIDEO|MessageType.PICTURE, url, icon });
     }
 
     sendRDL(rdl : RDL, icon : string|null) {
         if (this._debug)
             console.log('Genie sends RDL: '+ rdl.callback);
         return this._addMessage({ type: MessageType.RDL, rdl, icon });
+    }
+
+    sendSoundEffect(name : string, icon : string|null) {
+        if (this._debug)
+            console.log('Genie sends sound effect: '+ name);
+        return this._addMessage({ type: MessageType.SOUND_EFFECT, name, icon });
     }
 
     sendChoice(idx : number, title : string) {

@@ -891,20 +891,14 @@ export default class DialogueLoop {
     }
 
     async replyCard(message : FormattedChunk, icon ?: string|null) {
-        if (typeof message === 'string') {
+        if (typeof message === 'string')
             await this.reply(message, icon);
-        } else if (message.type === 'picture') {
-            if (message.url === undefined)
-                return;
-            await this.conversation.sendPicture(message.url, icon || this.icon);
-        } else if (message.type === 'rdl') {
+        else if (message.type === 'picture' || message.type === 'audio' || message.type === 'video')
+            await this.conversation.sendMedia(message.type, message.url, icon || this.icon);
+        else if (message.type === 'rdl')
             await this.conversation.sendRDL(message, icon || this.icon);
-        } else if (message.type === 'button') {
-            const loaded = await Helpers.loadSuggestedProgram(message.code, this.conversation.schemas);
-            await this.replyButton(message.title, JSON.stringify(loaded));
-        } else {
-            await this.conversation.sendResult(message, icon || this.icon);
-        }
+        else if (message.type === 'sound')
+            await this.conversation.sendSoundEffect(message.name, icon || this.icon);
     }
 
     async replyButton(text : string, json : string) {
