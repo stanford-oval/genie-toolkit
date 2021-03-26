@@ -230,6 +230,7 @@ class SoundEffect extends BaseFormattedObject implements SoundEffectSpec {
 interface MediaSpec {
     type : 'picture'|'audio'|'video';
     url : string;
+    alt ?: string;
 }
 
 /**
@@ -239,6 +240,7 @@ interface MediaSpec {
 class Media extends BaseFormattedObject implements MediaSpec {
     type : 'picture'|'audio'|'video';
     url : string;
+    alt : string|undefined;
 
     /**
      * Construct a new media object.
@@ -258,6 +260,7 @@ class Media extends BaseFormattedObject implements MediaSpec {
          */
         this.type = spec.type;
         this.url = spec.url;
+        this.alt = spec.alt;
     }
 
     isValid() : boolean {
@@ -265,6 +268,8 @@ class Media extends BaseFormattedObject implements MediaSpec {
     }
 
     toLocaleString(locale : string) : string {
+        if (this.alt)
+            return this.alt;
         const [_, localestr] = localeCompat(locale);
         return interpolate(_("Media: ${url}"), {
             url: this.url

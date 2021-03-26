@@ -894,7 +894,7 @@ export default class DialogueLoop {
         if (typeof message === 'string')
             await this.reply(message, icon);
         else if (message.type === 'picture' || message.type === 'audio' || message.type === 'video')
-            await this.conversation.sendMedia(message.type, message.url, icon || this.icon);
+            await this.conversation.sendMedia(message.type, message.url, message.alt, icon || this.icon);
         else if (message.type === 'rdl')
             await this.conversation.sendRDL(message, icon || this.icon);
         else if (message.type === 'sound')

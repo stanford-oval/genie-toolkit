@@ -452,10 +452,10 @@ export default class Conversation extends events.EventEmitter {
         return this._addMessage({ type: MessageType.TEXT, text: message, icon });
     }
 
-    sendMedia(mediaType : 'picture'|'audio'|'video', url : string, icon : string|null) {
+    sendMedia(mediaType : 'picture'|'audio'|'video', url : string, alt : string|undefined, icon : string|null) {
         if (this._debug)
             console.log('Genie sends ' + mediaType + ': '+ url);
-        return this._addMessage({ type: mediaType as MessageType.AUDIO|MessageType.VIDEO|MessageType.PICTURE, url, icon });
+        return this._addMessage({ type: mediaType as MessageType.AUDIO|MessageType.VIDEO|MessageType.PICTURE, url, alt, icon });
     }
 
     sendRDL(rdl : RDL, icon : string|null) {

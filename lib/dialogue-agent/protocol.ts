@@ -54,6 +54,7 @@ interface MediaMessage {
     id ?: number;
     type : MessageType.PICTURE|MessageType.AUDIO|MessageType.VIDEO;
     url : string;
+    alt ?: string;
     icon : string|null;
 }
 
