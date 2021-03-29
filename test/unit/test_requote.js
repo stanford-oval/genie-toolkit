@@ -39,8 +39,8 @@ const SINGLE_TURN_TEST_CASES_LEGACY = [
     [
         'amazon are sunlight lounge rated a 1 star with summary being what .',
         '... filter param:aggregateRating.ratingValue:Number == 1 and param:name:String =~ " sunlight lounge " => notify',
-        'amazon are QUOTED_STRING_0 rated a NUMBER_0 star with summary being what .',
-        '... filter param:aggregateRating.ratingValue:Number == NUMBER_0 and param:name:String =~ QUOTED_STRING_0 => notify'
+        'amazon are QUOTED_STRING_0 rated a 1 star with summary being what .',
+        '... filter param:aggregateRating.ratingValue:Number == 1 and param:name:String =~ QUOTED_STRING_0 => notify'
     ],
 
 
@@ -93,6 +93,13 @@ const SINGLE_TURN_TEST_CASES_LEGACY = [
         'GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 restaurants .',
         '... param:cuisines contains GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 ;'
     ],
+
+    [
+        'name the restaurant rated 4 or below with a minimum of 150 reviews .',
+        'now => ( @org.schema.Restaurant.Restaurant ) filter count ( param:review:Array(Entity(org.schema.Restaurant:Review)) ) >= 150 and param:aggregateRating.ratingValue:Number <= 4 => notify',
+        'name the restaurant rated NUMBER_0 or below with a minimum of NUMBER_1 reviews .',
+        'now => ( @org.schema.Restaurant.Restaurant ) filter count ( param:review:Array(Entity(org.schema.Restaurant:Review)) ) >= NUMBER_1 and param:aggregateRating.ratingValue:Number <= NUMBER_0 => notify',
+    ]
 ];
 
 const SINGLE_TURN_TEST_CASES_NEW = [
@@ -120,8 +127,8 @@ const SINGLE_TURN_TEST_CASES_NEW = [
     [
         'amazon are sunlight lounge rated a 1 star with summary being what .',
         '... filter aggregateRating.ratingValue == 1 && name =~ " sunlight lounge " => notify',
-        'amazon are QUOTED_STRING_0 rated a NUMBER_0 star with summary being what .',
-        '... filter aggregateRating.ratingValue == NUMBER_0 && name =~ QUOTED_STRING_0 => notify'
+        'amazon are QUOTED_STRING_0 rated a 1 star with summary being what .',
+        '... filter aggregateRating.ratingValue == 1 && name =~ QUOTED_STRING_0 => notify'
     ],
 
 
@@ -266,7 +273,7 @@ function testRequoteSingleTurn(mode) {
         let [sentence, program, expectedSentence, expectedProgram] = SINGLE_TURN_TEST_CASES_LEGACY[i];
 
         let [generatedSentence, generatedProgram] = requoteSentence(i, null, sentence, program,
-            'replace', true, true, 'en-US');
+            'replace', true, 'en-US');
         assert.strictEqual(generatedProgram, expectedProgram);
         assert.strictEqual(generatedSentence, expectedSentence);
     }
@@ -275,7 +282,7 @@ function testRequoteSingleTurn(mode) {
         let [sentence, program, expectedSentence, expectedProgram] = SINGLE_TURN_TEST_CASES_NEW[i];
 
         let [generatedSentence, generatedProgram] = requoteSentence(i, null, sentence, program,
-            'replace', true, true, 'en-US');
+            'replace', true, 'en-US');
         assert.strictEqual(generatedProgram, expectedProgram);
         assert.strictEqual(generatedSentence, expectedSentence);
     }
@@ -286,7 +293,7 @@ function testRequoteContextual() {
         let [context, sentence, program, expectedSentence, expectedProgram] = CONTEXTUAL_TEST_CASES_LEGACY[i];
 
         let [generatedSentence, generatedProgram] = requoteSentence(i, context, sentence, program,
-            'replace', true, true, 'en-US');
+            'replace', true, 'en-US');
         assert.strictEqual(generatedProgram, expectedProgram);
         assert.strictEqual(generatedSentence, expectedSentence);
 
@@ -296,7 +303,7 @@ function testRequoteContextual() {
         let [context, sentence, program, expectedSentence, expectedProgram] = CONTEXTUAL_TEST_CASES_NEW[i];
 
         let [generatedSentence, generatedProgram] = requoteSentence(i, context, sentence, program,
-            'replace', true, true, 'en-US');
+            'replace', true, 'en-US');
         assert.strictEqual(generatedProgram, expectedProgram);
         assert.strictEqual(generatedSentence, expectedSentence);
 

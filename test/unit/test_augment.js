@@ -38,8 +38,14 @@ const _schemaRetriever = new SchemaRetriever(_tpClient, null, true);
 async function processOne(id, preprocessed, code) {
     const entities = Utils.makeDummyEntities(preprocessed);
 
-    const program = Syntax.parse(code.split(' '), Syntax.SyntaxType.Tokenized, entities);
-    await program.typecheck(_schemaRetriever);
+    try {
+        const program = Syntax.parse(code.split(' '), Syntax.SyntaxType.Tokenized, entities);
+        await program.typecheck(_schemaRetriever);
+    } catch(e) {
+        console.error(code);
+        console.error(e);
+        throw e;
+    }
 }
 
 const MAX_SPAN_LENGTH = 10;

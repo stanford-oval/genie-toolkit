@@ -488,6 +488,96 @@ R43-26	when their location on my icalendar is not church and there is a change t
 R43-27	when their location on my icalendar is not afforded the opportunity and there is a change to the events you are to change my hvac to heat	monitor ( @org.thingpedia.icalendar . list_events ( ) filter ! ( location =~ " afforded the opportunity " ) ) => @thermostat . set_hvac_mode ( mode = enum heat ) ;
 R43-28	when their location on my icalendar is not church and there is a change to the events you are to change my hvac to heat	monitor ( @org.thingpedia.icalendar . list_events ( ) filter ! ( location =~ " church " ) ) => @thermostat . set_hvac_mode ( mode = enum heat ) ;
 R43-29	when their location on my icalendar is not lay people and there is a change to the events you are to change my hvac to heat	monitor ( @org.thingpedia.icalendar . list_events ( ) filter ! ( location =~ " lay people " ) ) => @thermostat . set_hvac_mode ( mode = enum heat ) ;
+R44-0	find a restaurant with 6 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 6 ;
+R44-1	find a restaurant with 26 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 26 ;
+R44-2	find a restaurant with 920 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 920 ;
+R44-3	find a restaurant with 4 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 4 ;
+R44-4	find a restaurant with 800 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 800 ;
+R44-5	find a restaurant with 9 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 9 ;
+R44-6	find a restaurant with 40 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 40 ;
+R44-7	find a restaurant with 41 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 41 ;
+R44-8	find a restaurant with 700 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 700 ;
+R44-9	find a restaurant with 290 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 290 ;
+R44-10	find a restaurant with 63 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 63 ;
+R44-11	find a restaurant with 390 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 390 ;
+R44-12	find a restaurant with 5 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 5 ;
+R44-13	find a restaurant with 330 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 330 ;
+R44-14	find a restaurant with 410 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 410 ;
+R44-15	find a restaurant with 170 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 170 ;
+R44-16	find a restaurant with 5 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 5 ;
+R44-17	find a restaurant with 2 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 2 ;
+R44-18	find a restaurant with 730 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 730 ;
+R44-19	find a restaurant with 14 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 14 ;
+R44-20	find a restaurant with 80 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 80 ;
+R44-21	find a restaurant with 55 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 55 ;
+R44-22	find a restaurant with 6 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 6 ;
+R44-23	find a restaurant with 93 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 93 ;
+R44-24	find a restaurant with 82 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 82 ;
+R44-25	find a restaurant with 820 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 820 ;
+R44-26	find a restaurant with 800 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 800 ;
+R44-27	find a restaurant with 410 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 410 ;
+R44-28	find a restaurant with 300 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 300 ;
+R44-29	find a restaurant with 2 reviews	@com.yelp . restaurant ( ) filter reviewCount >= 2 ;
+R45-0	set the temperature to 16 celsius	@thermostat . set_target_temperature ( value = 16 C ) ;
+R45-1	set the temperature to 16.7 celsius	@thermostat . set_target_temperature ( value = 16.7 C ) ;
+R45-2	set the temperature to 26 celsius	@thermostat . set_target_temperature ( value = 26 C ) ;
+R45-3	set the temperature to 17 celsius	@thermostat . set_target_temperature ( value = 17 C ) ;
+R45-4	set the temperature to 16 celsius	@thermostat . set_target_temperature ( value = 16 C ) ;
+R45-5	set the temperature to 15 celsius	@thermostat . set_target_temperature ( value = 15 C ) ;
+R45-6	set the temperature to 21 celsius	@thermostat . set_target_temperature ( value = 21 C ) ;
+R45-7	set the temperature to 21 celsius	@thermostat . set_target_temperature ( value = 21 C ) ;
+R45-8	set the temperature to 28 celsius	@thermostat . set_target_temperature ( value = 28 C ) ;
+R45-9	set the temperature to 19.4 celsius	@thermostat . set_target_temperature ( value = 19.4 C ) ;
+R45-10	set the temperature to 22.6 celsius	@thermostat . set_target_temperature ( value = 22.6 C ) ;
+R45-11	set the temperature to 23 celsius	@thermostat . set_target_temperature ( value = 23 C ) ;
+R45-12	set the temperature to 18 celsius	@thermostat . set_target_temperature ( value = 18 C ) ;
+R45-13	set the temperature to 18 celsius	@thermostat . set_target_temperature ( value = 18 C ) ;
+R45-14	set the temperature to 29 celsius	@thermostat . set_target_temperature ( value = 29 C ) ;
+R45-15	set the temperature to 24 celsius	@thermostat . set_target_temperature ( value = 24 C ) ;
+R45-16	set the temperature to 23 celsius	@thermostat . set_target_temperature ( value = 23 C ) ;
+R45-17	set the temperature to 19 celsius	@thermostat . set_target_temperature ( value = 19 C ) ;
+R45-18	set the temperature to 21 celsius	@thermostat . set_target_temperature ( value = 21 C ) ;
+R45-19	set the temperature to 23 celsius	@thermostat . set_target_temperature ( value = 23 C ) ;
+R45-20	set the temperature to 27 celsius	@thermostat . set_target_temperature ( value = 27 C ) ;
+R45-21	set the temperature to 27 celsius	@thermostat . set_target_temperature ( value = 27 C ) ;
+R45-22	set the temperature to 26 celsius	@thermostat . set_target_temperature ( value = 26 C ) ;
+R45-23	set the temperature to 23 celsius	@thermostat . set_target_temperature ( value = 23 C ) ;
+R45-24	set the temperature to 20 celsius	@thermostat . set_target_temperature ( value = 20 C ) ;
+R45-25	set the temperature to 25 celsius	@thermostat . set_target_temperature ( value = 25 C ) ;
+R45-26	set the temperature to 22 celsius	@thermostat . set_target_temperature ( value = 22 C ) ;
+R45-27	set the temperature to 19 celsius	@thermostat . set_target_temperature ( value = 19 C ) ;
+R45-28	set the temperature to 18 celsius	@thermostat . set_target_temperature ( value = 18 C ) ;
+R45-29	set the temperature to 27 celsius	@thermostat . set_target_temperature ( value = 27 C ) ;
+R46-0	set the temperature to 67 f	@thermostat . set_target_temperature ( value = 67 F ) ;
+R46-1	set the temperature to 84 f	@thermostat . set_target_temperature ( value = 84 F ) ;
+R46-2	set the temperature to 69 f	@thermostat . set_target_temperature ( value = 69 F ) ;
+R46-3	set the temperature to 77 f	@thermostat . set_target_temperature ( value = 77 F ) ;
+R46-4	set the temperature to 69 f	@thermostat . set_target_temperature ( value = 69 F ) ;
+R46-5	set the temperature to 77 f	@thermostat . set_target_temperature ( value = 77 F ) ;
+R46-6	set the temperature to 65 f	@thermostat . set_target_temperature ( value = 65 F ) ;
+R46-7	set the temperature to 83 f	@thermostat . set_target_temperature ( value = 83 F ) ;
+R46-8	set the temperature to 81.0 f	@thermostat . set_target_temperature ( value = 81.0 F ) ;
+R46-9	set the temperature to 77 f	@thermostat . set_target_temperature ( value = 77 F ) ;
+R46-10	set the temperature to 64 f	@thermostat . set_target_temperature ( value = 64 F ) ;
+R46-11	set the temperature to 61 f	@thermostat . set_target_temperature ( value = 61 F ) ;
+R46-12	set the temperature to 67 f	@thermostat . set_target_temperature ( value = 67 F ) ;
+R46-13	set the temperature to 61 f	@thermostat . set_target_temperature ( value = 61 F ) ;
+R46-14	set the temperature to 66 f	@thermostat . set_target_temperature ( value = 66 F ) ;
+R46-15	set the temperature to 85 f	@thermostat . set_target_temperature ( value = 85 F ) ;
+R46-16	set the temperature to 85 f	@thermostat . set_target_temperature ( value = 85 F ) ;
+R46-17	set the temperature to 62 f	@thermostat . set_target_temperature ( value = 62 F ) ;
+R46-18	set the temperature to 66 f	@thermostat . set_target_temperature ( value = 66 F ) ;
+R46-19	set the temperature to 83 f	@thermostat . set_target_temperature ( value = 83 F ) ;
+R46-20	set the temperature to 85 f	@thermostat . set_target_temperature ( value = 85 F ) ;
+R46-21	set the temperature to 74 f	@thermostat . set_target_temperature ( value = 74 F ) ;
+R46-22	set the temperature to 83 f	@thermostat . set_target_temperature ( value = 83 F ) ;
+R46-23	set the temperature to 74 f	@thermostat . set_target_temperature ( value = 74 F ) ;
+R46-24	set the temperature to 76.6 f	@thermostat . set_target_temperature ( value = 76.6 F ) ;
+R46-25	set the temperature to 72 f	@thermostat . set_target_temperature ( value = 72 F ) ;
+R46-26	set the temperature to 64 f	@thermostat . set_target_temperature ( value = 64 F ) ;
+R46-27	set the temperature to 71 f	@thermostat . set_target_temperature ( value = 71 F ) ;
+R46-28	set the temperature to 71 f	@thermostat . set_target_temperature ( value = 71 F ) ;
+R46-29	set the temperature to 73 f	@thermostat . set_target_temperature ( value = 73 F ) ;
 RS4000136273-0	send me a message in case sports youtube channels change and i am not at here	edge ( monitor ( @com.youtube.channels_by_category param:category_id:Enum(best_of_youtube,recommended,paid,music,comedy,film_and_entertainment,gaming,beauty_and_fashion,from_tv,automotive,animation,sports,diy,tech,science,cooking,causes,news_and_politics,lifestyle) = enum:sports ) ) on @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } => notify
 RS4000136273-1	send me a message in case sports youtube channels change and i am not at here	edge ( monitor ( @com.youtube.channels_by_category param:category_id:Enum(best_of_youtube,recommended,paid,music,comedy,film_and_entertainment,gaming,beauty_and_fashion,from_tv,automotive,animation,sports,diy,tech,science,cooking,causes,news_and_politics,lifestyle) = enum:sports ) ) on @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } => notify
 RS4000136273-2	send me a message in case sports youtube channels change and i am not at here	edge ( monitor ( @com.youtube.channels_by_category param:category_id:Enum(best_of_youtube,recommended,paid,music,comedy,film_and_entertainment,gaming,beauty_and_fashion,from_tv,automotive,animation,sports,diy,tech,science,cooking,causes,news_and_politics,lifestyle) = enum:sports ) ) on @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } => notify
@@ -510,11 +600,11 @@ RS4000444881-0	get sticky notes when ars technica publishes a new article	( moni
 RS4000444881-1	get sticky notes when ars technica publishes a new article	( monitor ( @com.arstechnica.index ) ) => ( @org.thingpedia.friendhub.stickynotes.list_posts ) => notify
 RS4000444881-2	get sticky notes when ars technica publishes a new article	( monitor ( @com.arstechnica.index ) ) => ( @org.thingpedia.friendhub.stickynotes.list_posts ) => notify
 RS4000140883-0	alert me when it is more humid than 1 in where i am now saying maximizing economic and cultural opportunity	monitor ( ( @org.thingpedia.weather.current param:location:Location = location:current_location ) filter param:humidity:Number >= 1 ) => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = " maximizing economic and cultural opportunity "
-RS4000140883-1	alert me when it is more humid than 1 in where i am now saying maximizing economic and cultural opportunity	monitor ( ( @org.thingpedia.weather.current param:location:Location = location:current_location ) filter param:humidity:Number >= 1 ) => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = " maximizing economic and cultural opportunity "
-RS4000140883-2	alert me when it is more humid than 1 in where i am now saying news of the project reached the press	monitor ( ( @org.thingpedia.weather.current param:location:Location = location:current_location ) filter param:humidity:Number >= 1 ) => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = " news of the project reached the press "
-RS2000043793-0	leiona has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == null ^^tt:contact ( " leiona " ) : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
-RS2000043793-1	gurshaan has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == null ^^tt:contact ( " gurshaan " ) : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
-RS2000043793-2	saratha has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == null ^^tt:contact ( " saratha " ) : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
+RS4000140883-1	alert me when it is more humid than 1 in where i am now saying news of the project reached the press	monitor ( ( @org.thingpedia.weather.current param:location:Location = location:current_location ) filter param:humidity:Number >= 1 ) => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = " news of the project reached the press "
+RS4000140883-2	alert me when it is more humid than 1 in where i am now saying maximizing economic and cultural opportunity	monitor ( ( @org.thingpedia.weather.current param:location:Location = location:current_location ) filter param:humidity:Number >= 1 ) => @org.thingpedia.builtin.thingengine.builtin.say param:message:String = " maximizing economic and cultural opportunity "
+RS2000043793-0	amariss has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == null ^^tt:contact ( " amariss " ) : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
+RS2000043793-1	delantae has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == null ^^tt:contact ( " delantae " ) : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
+RS2000043793-2	colon has my permission to setup tumblr blog if my location is not here	policy param:source:Entity(tt:contact) == null ^^tt:contact ( " colon " ) : now => @org.thingpedia.builtin.thingengine.builtin.configure filter @org.thingpedia.builtin.thingengine.builtin.get_gps { not param:location:Location == location:current_location } and param:device:Entity(tt:device) == device:com.tumblr.blog
 RS4000227894-0	if something happens on my security camera retrieve what philips hue can do	( monitor ( @security-camera.current_event ) ) => ( ( @org.thingpedia.builtin.thingengine.builtin.commands ) filter param:device:Entity(tt:device) == device:com.hue ) => notify
 RS4000227894-1	if something happens on my security camera retrieve what philips hue can do	( monitor ( @security-camera.current_event ) ) => ( ( @org.thingpedia.builtin.thingengine.builtin.commands ) filter param:device:Entity(tt:device) == device:com.hue ) => notify
 RS4000227894-2	if something happens on my security camera retrieve what philips hue can do	( monitor ( @security-camera.current_event ) ) => ( ( @org.thingpedia.builtin.thingengine.builtin.commands ) filter param:device:Entity(tt:device) == device:com.hue ) => notify
@@ -523,10 +613,10 @@ RS4000511177-1	setup thingengine when a file is modified on google drive	monitor
 RS4000511177-2	setup thingengine when a file is modified on google drive	monitor ( @com.google.drive.list_drive_files ) => @org.thingpedia.builtin.thingengine.builtin.configure param:device:Entity(tt:device) = device:org.thingpedia.builtin.thingengine
 RS4000113241-0	notify me should photos in album lay people on facebook change and after TIME_0	edge ( monitor ( @com.facebook.list_photos param:album:String = " lay people " ) ) on @org.thingpedia.builtin.thingengine.builtin.get_time { param:time:Date >= TIME_0 } => notify
 RS4000113241-1	notify me should photos in album afforded the opportunity on facebook change and after TIME_0	edge ( monitor ( @com.facebook.list_photos param:album:String = " afforded the opportunity " ) ) on @org.thingpedia.builtin.thingengine.builtin.get_time { param:time:Date >= TIME_0 } => notify
-RS4000113241-2	notify me should photos in album church on facebook change and after TIME_0	edge ( monitor ( @com.facebook.list_photos param:album:String = " church " ) ) on @org.thingpedia.builtin.thingengine.builtin.get_time { param:time:Date >= TIME_0 } => notify
+RS4000113241-2	notify me should photos in album afforded the opportunity on facebook change and after TIME_0	edge ( monitor ( @com.facebook.list_photos param:album:String = " afforded the opportunity " ) ) on @org.thingpedia.builtin.thingengine.builtin.get_time { param:time:Date >= TIME_0 } => notify
 RS1234567890-0	get weather for san francisco	now => @org.thingpedia.weather.current param:location:Location = new Location ( " san francisco " ) => notify
-RS1234567890-1	get weather for los angeles	now => @org.thingpedia.weather.current param:location:Location = new Location ( " los angeles " ) => notify
-RS1234567890-2	get weather for seattle	now => @org.thingpedia.weather.current param:location:Location = new Location ( " seattle " ) => notify
+RS1234567890-1	get weather for new york	now => @org.thingpedia.weather.current param:location:Location = new Location ( " new york " ) => notify
+RS1234567890-2	get weather for new york	now => @org.thingpedia.weather.current param:location:Location = new Location ( " new york " ) => notify
 RS4000123456-0	what is the weather	now => @org.thingpedia.weather.current => notify
 RS4000123456-1	what is the weather	now => @org.thingpedia.weather.current => notify
 RS4000123456-2	what is the weather	now => @org.thingpedia.weather.current => notify

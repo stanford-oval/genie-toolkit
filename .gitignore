@@ -37,25 +37,8 @@ env/
 # test dirs
 genie-??????
 
-*.tsv
+#*.tsv
 *.csv
 *.bin
 !data/**/*.tsv
-
-!test/**/*-results.csv
-!test/**/expected-*.csv
-!test/**/expected-*.tsv
-!test/data/en-US/synthetic.tsv
-!test/data/en-US/synthetic-contextual.tsv
-!test/data/en-US/synthetic-context-source.tsv
-!test/data/en-US/easy-hard-functions.tsv
-!test/data/en-US/parameter-datasets.tsv
-!test/data/en-US/thingpedia.tt
-!test/data/en-US/samples-en-hard.tsv
-!test/data/en-US/samples-en-hard-qpis.tsv
-!test/data/en-US/samples-en-hard-requoted.tsv
-!test/data/en-US/thingpedia.tt
-!test/data/en-US/dataset-map.tsv
-!test/data/fa/*
-!test/data/thingpedia.tt
-!test/thingpedia.tt
+!data/**/*.csv
