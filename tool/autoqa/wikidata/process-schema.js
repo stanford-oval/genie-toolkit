@@ -173,8 +173,16 @@ class SchemaProcessor {
             new Ast.MixinImportStmt(null, ['config'], 'org.thingpedia.config.none', [])
         ];
 
+        const entities = this._entities.filter((entity) => {
+            return entity.type.startsWith('org.wikidata');
+        }).map((entity) => {
+            return new Ast.EntityDef(null, entity.type.slice('org.wikidata:'.length), null, {
+                impl: { has_ner_support: new Ast.Value.Boolean(entity.has_ner_support) }
+            });
+        });
+        
         const classdef = new Ast.ClassDef(null, 'org.wikidata', null,
-            { imports, queries, actions }, {
+            { imports, queries, actions, entities }, {
                 nl: {
                     name: `Wikidata for domain ${this._domains.join(', ')}`,
                     description: 'Natural language dialogues over Wikidata knowledge base.'
@@ -194,60 +202,60 @@ class SchemaProcessor {
 }
 
 export function initArgparse(subparsers) {
-        const parser = subparsers.add_parser('wikidata-process-schema', {
-            add_help: true,
-            description: "Generate schema.tt given a list of domains. "
-        });
-        parser.add_argument('-o', '--output', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('--entities', {
-            required: true,
-            type: fs.createWriteStream
-        });
-        parser.add_argument('--domains', {
-            required: true,
-            help: 'domains (by item id) to include in the schema, split by comma (no space)'
-        });
-        parser.add_argument('--domain-canonicals', {
-            required: false,
-            help: 'the canonical form for the given domains, used as the query names, split by comma (no space);\n' +
-                'if absent, use Wikidata label by default.'
-        });
-        parser.add_argument('--properties', {
-            nargs: '+',
-            required: true,
-            help: 'properties to include for each domain, properties are split by comma (no space);\n' +
-                'use "default" to include properties included in P1963 (properties of this type);\n' +
-                'exclude a property by placing a minus sign before its id (no space)'
-        });
-        parser.add_argument('--manual', {
-            action: 'store_true',
-            help: 'Enable manual annotations.',
-            default: false
-        });
-        parser.add_argument('--wikidata-labels', {
-            action: 'store_true',
-            help: 'Enable wikidata labels as annotations.',
-            default: false
-        });
-        parser.add_argument('--schemaorg-manifest', {
-            required: false,
-            help: 'Path to manifest.tt for schema.org; used for predict the type of wikidata properties'
-        });
-        parser.add_argument('--required-properties', {
-            nargs: '+',
-            required: false,
-            help: 'the subset of properties that are required to be non-empty for all retrieved entities;\n' +
-                'use "none" to indicate no required property needed;\n' +
-                'use "default" to include properties included in P1963 (properties of this type);\n' +
-                'exclude a property by placing a minus sign before its id (no space)'
-        });
-        parser.add_argument('--parameter-datasets', {
-            required: true,
-            help: 'Path to parammeter_datasets.tsv; used for entity/string type mapping'
-        });
+    const parser = subparsers.add_parser('wikidata-process-schema', {
+        add_help: true,
+        description: "Generate schema.tt given a list of domains. "
+    });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--entities', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--domains', {
+        required: true,
+        help: 'domains (by item id) to include in the schema, split by comma (no space)'
+    });
+    parser.add_argument('--domain-canonicals', {
+        required: false,
+        help: 'the canonical form for the given domains, used as the query names, split by comma (no space);\n' +
+            'if absent, use Wikidata label by default.'
+    });
+    parser.add_argument('--properties', {
+        nargs: '+',
+        required: true,
+        help: 'properties to include for each domain, properties are split by comma (no space);\n' +
+            'use "default" to include properties included in P1963 (properties of this type);\n' +
+            'exclude a property by placing a minus sign before its id (no space)'
+    });
+    parser.add_argument('--manual', {
+        action: 'store_true',
+        help: 'Enable manual annotations.',
+        default: false
+    });
+    parser.add_argument('--wikidata-labels', {
+        action: 'store_true',
+        help: 'Enable wikidata labels as annotations.',
+        default: false
+    });
+    parser.add_argument('--schemaorg-manifest', {
+        required: false,
+        help: 'Path to manifest.tt for schema.org; used for predict the type of wikidata properties'
+    });
+    parser.add_argument('--required-properties', {
+        nargs: '+',
+        required: false,
+        help: 'the subset of properties that are required to be non-empty for all retrieved entities;\n' +
+            'use "none" to indicate no required property needed;\n' +
+            'use "default" to include properties included in P1963 (properties of this type);\n' +
+            'exclude a property by placing a minus sign before its id (no space)'
+    });
+    parser.add_argument('--parameter-datasets', {
+        required: true,
+        help: 'Path to parammeter_datasets.tsv; used for entity/string type mapping'
+    });
 }
 
 export async function execute(args) {
