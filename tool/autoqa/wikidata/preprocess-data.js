@@ -63,7 +63,7 @@ class ParamDatasetGenerator {
      */
     async _processData(canonical) {
         const domainProperties = JSON.parse(await this. _readSync(fs.readFile, this._property_item_map_path));
-        const propertyLabels = JSON.parse(await this. _readSync(fs.readFile, path.join(this._input_dir, 'filtered_property_wikidata4.json')));
+        const propertyLabels = JSON.parse(await this. _readSync(fs.readFile, 'filtered_property_wikidata4.json'));
         const itemLabels = JSON.parse(await this. _readSync(fs.readFile, this._property_value_map_path));
         const outputDir = path.join(this._output_dir, canonical, 'parameter-datasets');
         const datasetPathes = new Set();
@@ -220,7 +220,7 @@ class ParamDatasetGenerator {
         console.log('Processing comp_wikidata_rev.json');
         const properties = JSON.parse(await this. _readSync(fs.readFile, this._property_item_map_path));
         const instanceQids = new Set((await this. _readSync(fs.readFile, this._instance_file_path)).split(','));        
-        const filteredProperties = JSON.parse(await this. _readSync(fs.readFile, path.join(this._input_dir, 'filtered_property_wikidata4.json')));
+        const filteredProperties = JSON.parse(await this. _readSync(fs.readFile, 'filtered_property_wikidata4.json'));
         const pipeline = fs.createReadStream(path.join(this._input_dir, `comp_wikidata_rev.json`)).pipe(JSONStream.parse('$*'));
 
         pipeline.on('data', async (data) => {
@@ -251,7 +251,7 @@ class ParamDatasetGenerator {
      */
     async _mapDomainProperties(domain, canonical, idx, mapReverse) {
         console.log(`Processing wikidata_short_${idx + 1}.json`);
-        const filteredProperties = JSON.parse(await this. _readSync(fs.readFile, path.join(this._input_dir, 'filtered_property_wikidata4.json')));
+        const filteredProperties = JSON.parse(await this. _readSync(fs.readFile, 'filtered_property_wikidata4.json'));
         const pipeline = fs.createReadStream(path.join(this._input_dir, `wikidata_short_${idx + 1}.json`)).pipe(JSONStream.parse('$*'));
 
         pipeline.on('data', async (data) => {
@@ -299,7 +299,7 @@ class ParamDatasetGenerator {
 
     async run() {
         // Required CSQA Wikidata json files
-        assert(fs.existsSync(path.join(this._input_dir, 'filtered_property_wikidata4.json')));
+        assert(fs.existsSync('filtered_property_wikidata4.json'));
 
         // Set up
         const outputDir = path.join(this._output_dir, this._canonical, 'parameter-datasets');

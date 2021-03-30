@@ -8,7 +8,7 @@ thingpedia_url = https://thingpedia.stanford.edu/thingpedia
 
 memsize := 15000
 genie = node --require ts-node/register --experimental_worker --max_old_space_size=$(memsize) $(geniedir)/dist/tool/genie.js
-all_experiments = city country star university company people artist athlete sports-team tv-series
+all_experiments = city country star university company people artist athlete sports_team tv_series
 
 city_class = Q515
 city_canonical = city
@@ -53,24 +53,27 @@ tv_series_required_properties ?= none
 class = $($(experiment)_class)
 canonical = $($(experiment)_canonical)
 
-eval_set ?= eval_synthetic
+eval_set ?= eval
 
-mode ?= default
-default_process_schema_flags = --schemaorg-manifest ./schemaorg-manifest.tt --wikidata-labels
-base_process_schema_flags = --schemaorg-manifest ./schemaorg-manifest.tt
-manual_process_schema_flags = --schemaorg-manifest ./schemaorg-manifest.tt --wikidata-labels --manual
-auto_process_schema_flags = --schemaorg-manifest ./schemaorg-manifest.tt --wikidata-labels
-custom_process_schema_flags ?=
+all_annotation_strategies = baseline auto manual
+annotation ?= baseline
 
-default_annotate_flags =
-base_annotate_flags =
-manual_annotate_flags = --skip
-auto_annotate_flags = --algorithm bert,adj,bart --paraphraser-model ./models/paraphraser-bart
-custom_annotate_flags ?=
-auto_auto_annotate_dependencies = models/paraphraser-bart
-manual_process_schema_dependencies = $(geniedir)/tool/autoqa/wikidata/manual-annotations.js
+paraphraser_options ?= --paraphraser-model ./models/paraphraser-bart --batch-size 32
 
-use_preprocessed_datasets = true
+baseline_process_schemaorg_flags =
+auto_process_schemaorg_flags =
+manual_process_schemaorg_flags = --manual
+
+baseline_annotate_flags =
+auto_annotate_flags = --algorithms bart-paraphrase $(paraphraser_options)
+manual_annotate_flags =
+
+process_schemaorg_flags ?= $($(annotation)_process_schemaorg_flags)
+annotate_flags ?= $($(annotation)_annotate_flags)
+
+use_preprocessed_wikidata = true
+use_csqa_valid = true
+use_preprocessed_csqa_valid = 
 
 template_file ?= thingtalk/en/thingtalk.genie
 dataset_file ?= emptydataset.tt
@@ -107,12 +110,15 @@ annotate_offset ?= 1
 .PHONY: train evaluate annotate demo clean
 .SECONDARY:
 
+common-words.txt:
+	curl -O https://almond-static.stanford.edu/test-data/common-words.txt
+
 models/paraphraser-bart:
 	mkdir models
-	wget --no-verbose https://almond-static.stanford.edu/test-data/paraphraser-bart.tar.xz
+	curl -O https://almond-static.stanford.edu/test-data/paraphraser-bart-large-speedup-megabatch-5m.tar.xz
 	tar -C models -xvf paraphraser-bart.tar.xz
 
-%/wikidata.tt: $(experiment)/parameter-datasets.tsv $(geniedir)/tool/autoqa/wikidata/process-schema.js $($(mode)_process_schema_dependencies)
+%/wikidata.tt: %/parameter-datasets.tsv $(geniedir)/tool/autoqa/wikidata/process-schema.js
 	mkdir -p $(dir $@)
 	$(genie) wikidata-process-schema  -o $@.tmp --entities $(experiment)/entities.json \
 		--domains $(class) \
@@ -132,44 +138,50 @@ shared-parameter-datasets.tsv:
 	   --manifest $@ --append-manifest -d shared-parameter-datasets
 
 
-%/parameter-datasets.tsv : shared-parameter-datasets.tsv
-	mkdir -p $(canonical)
-	mkdir -p datadir
+filtered_property_wikidata4.json: 
+	curl https://almond-static.stanford.edu/research/csqa/filtered_property_wikidata4.json --output $@
 
-	if [ "$(use_preprocessed_datasets)" = "true" ] ; then \
-	  curl https://almond-static.stanford.edu/research/csqa/filtered_property_wikidata4.json  --output datadir/filtered_property_wikidata4.json ; \
-	  curl https://almond-static.stanford.edu/research/csqa/${experiment}/instances.txt  --output ${experiment}/instances.txt; \
-	  curl https://almond-static.stanford.edu/research/csqa/${experiment}/property_item_map.json  --output ${experiment}/property_item_map.json; \
-	  curl https://almond-static.stanford.edu/research/csqa/${experiment}/property_item_values.json  --output ${experiment}/property_item_values.json; \
-	  curl https://almond-static.stanford.edu/research/csqa/${experiment}/instance_item_values.json  --output ${experiment}/instance_item_values.json; \
-	else \
-	  curl https://zenodo.org/record/4052427/files/wikidata_proc_json.zip --output wikidata_proc_json.zip ; \
-	  unzip wikidata_proc_json.zip ; \
-	  mv 'wikidata_proc_json 2'/* datadir ; \
-	  rm -r 'wikidata_proc_json 2' ; \
-	fi
+%/instances.txt:
+	curl https://almond-static.stanford.edu/research/csqa/$*/instances.txt --output $@ --create-dirs
 
+%/property_item_map.json:
+	curl https://almond-static.stanford.edu/research/csqa/$*/property_item_map.json --output $@ --create-dirs
+
+%/property_item_values.json:
+	curl https://almond-static.stanford.edu/research/csqa/$*/property_item_values.json --output $@ --create-dirs
+
+%/instance_item_values.json:
+	curl https://almond-static.stanford.edu/research/csqa/$*/instance_item_values.json --output $@ --create-dirs
+
+raw/csqa-wikidata:
+	curl https://zenodo.org/record/4052427/files/wikidata_proc_json.zip --output wikidata_proc_json.zip 
+	mkdir -p raw/csqa-wikidata
+	unzip wikidata_proc_json.zip
+	mv 'wikidata_proc_json 2'/* raw/csqa-wikidata
+	rm -r 'wikidata_proc_json 2'
+
+%/parameter-datasets.tsv: shared-parameter-datasets.tsv filtered_property_wikidata4.json $(if ${use_preprocessed_wikidata},%/instances.txt %/property_item_map.json %/property_item_values.json %/instance_item_values.json,raw/csqa-wikidata)
 	$(genie) wikidata-preprocess-data \
 		--domain $(class) \
 		--domain-canonical $(canonical) \
-		--input datadir \
+		--input raw/csqa-wikidata \
 		--output ./ \
 		$(process_schemaorg_flags)
-	cat shared-parameter-datasets.tsv >> $(experiment)/parameter-datasets.tsv
+	sed -e "s|$(echo -e '\t')shared-parameter-datasets|$(echo -e '\t')../shared-parameter-datasets|g" shared-parameter-datasets.tsv > $@
 
-%/constants.tsv: %/parameter-datasets.tsv %/wikidata.tt
+%/constants.tsv: %/wikidata.tt %/parameter-datasets.tsv
 	$(genie) sample-constants -o $@.tmp --parameter-datasets $*/parameter-datasets.tsv --thingpedia $*/wikidata.tt --devices org.wikidata
 	cat $(geniedir)/data/en-US/constants.tsv >> $@.tmp
 	mv $@.tmp $@
 
-%/manifest.tt: %/constants.tsv %/wikidata.tt %/parameter-datasets.tsv $($(mode)_auto_annotate_dependencies)
+%/manifest.tt: %/wikidata.tt %/constants.tsv %/parameter-datasets.tsv $(if $(findstring auto,$(annotation)),models/paraphraser-bart,) common-words.txt
 	$(genie) auto-annotate -o $@.tmp \
-	--constants $*/constants.tsv \
-	--thingpedia $*/wikidata.tt \
-	--functions $($(*)_canonical) \
-	$($(mode)_annotate_flags) \
-	--parameter-datasets $*/parameter-datasets.tsv \
-	--dataset wikidata
+		--constants $*/constants.tsv \
+		--thingpedia $*/wikidata.tt \
+		--functions $($(*)_canonical) \
+		$(annotate_flags) \
+		--parameter-datasets $*/parameter-datasets.tsv \
+		--dataset wikidata
 	mv $@.tmp $@
 
 %/synthetic.tsv: %/manifest.tt $(dataset_file) $(geniedir)/languages-dist/thingtalk/en/*.js
@@ -181,43 +193,55 @@ shared-parameter-datasets.tsv:
 	  --random-seed $@ --id-prefix $*:
 	mv $@.tmp $@
 
-%/augmented.tsv : %/synthetic.tsv %/parameter-datasets.tsv
+%/augmented.tsv: %/synthetic.tsv %/parameter-datasets.tsv %/manifest.tt
 	$(genie) augment -o $@.tmp -l en-US --thingpedia $*/manifest.tt --parameter-datasets $*/parameter-datasets.tsv \
 	  --synthetic-expand-factor 1 --quoted-paraphrasing-expand-factor 60 --no-quote-paraphrasing-expand-factor 20 --quoted-fraction 0.0 \
 	  --debug $($(*)_paraphrase) $*/synthetic.tsv
 	mv $@.tmp $@
 
-%/valid.tsv :
-	mkdir -p datadir
-	if [ "$(use_preprocessed_datasets)" = "true" ] ; then \
-		curl https://almond-static.stanford.edu/research/csqa/${experiment}/valid.json  --output ${experiment}/valid.json ; \
-	else \
-		curl https://zenodo.org/record/3268649/files/CSQA_v9.zip --output CSQA_v9.zip ; \
-		unzip CSQA_v9.zip ; \
-		mv CSQA_v9 datadir/csqa ; \
-	fi
+raw/valid:
+	mkdir -p raw
+	curl -O https://almond-static.stanford.edu/research/csqa/valid.tar.xz
+	tar -C raw -xf valid.tar.xz
 
+raw/test:
+	mkdir -p raw
+	curl -O https://almond-static.stanford.edu/research/csqa/test.tar.xz
+	tar -C raw -xf test.tar.xz
+
+%/valid.json: 
+	curl https://almond-static.stanford.edu/research/csqa/$*/valid.json  --output $*/valid.json
+
+%/valid.tsv: %/manifest.tt $(if $(use_preprocessed_csqa_valid),%/valid.json,raw/valid)
+	mkdir -p datadir
 	$(genie) wikidata-convert-csqa \
 		--domain $(class) \
 		--domain-canonical $(canonical) \
-		--input datadir/csqa \
+		--input raw/ \
 		--output . \
 		--dataset valid
-	$(genie) typecheck -o $(experiment)/valid_annotated.tsv --dropped $(experiment)/valid_dropped.tsv --thingpedia $(experiment)/manifest.tt $(experiment)/valid.tsv
-	mv $(experiment)/valid_annotated.tsv $(experiment)/valid.tsv
 
-datadir: $(experiment)/augmented.tsv $(experiment)/valid.tsv
+%/valid_annotated.tsv: %/manifest.tt %/valid.tsv
+	$(genie) typecheck -o $*/valid_annotated.tsv --dropped $*/valid_dropped.tsv --thingpedia $*/manifest.tt $*/valid.tsv
+
+datadir: $(experiment)/augmented.tsv $(if $(use_csqa_valid),$(experiment)/valid_annotated.tsv,)
 	mkdir -p $@
-	if [ "$(eval_set)" = "eval_synthetic" ] ; then \
-	  $(genie) split-train-eval --train $@/train.tsv --eval $@/eval.tsv \
-	    --eval-probability 0.1 --split-strategy sentence \
-	    --eval-on-synthetic $(experiment)/augmented.tsv ; \
-	  mkdir -p $(experiment)/$(eval_set) ; \
-	  cp $(experiment)/valid.tsv $(experiment)/$(eval_set)/annotated.tsv; \
-	else \
-	  cp $(experiment)/augmented.tsv $@/train.tsv ; \
-	  cut -f1-3 $(experiment)/${eval_set}/annotated.tsv > $@/eval.tsv ; \
-	fi
+	mkdir -p $(experiment)/$(eval_set)
+
+	if test -s $(experiment)/${eval_set}/annotated.tsv ; then \
+      cp $(experiment)/augmented.tsv $@/train.tsv ; \
+      cut -f1-3 $(experiment)/${eval_set}/annotated.tsv > $@/eval.tsv ; \
+    elif [ "$(use_csqa_valid)" = "true" ] ; then \
+      cp $(experiment)/augmented.tsv $@/train.tsv ; \
+      cp $(experiment)/valid_annotated.tsv $@/eval.tsv; \
+      cp $(experiment)/valid_annotated.tsv $(experiment)/$(eval_set)/annotated.tsv;\
+    else \
+      $(genie) split-train-eval --train $@/train.tsv --eval $@/eval.tsv \
+        --eval-probability 0.1 --split-strategy sentence \
+        --eval-on-synthetic $(experiment)/augmented.tsv ; \
+      mkdir -p $(experiment)/$(eval_set) ; \
+      cp $@/eval.tsv $(experiment)/$(eval_set)/annotated.tsv; \
+    fi
 	touch $@
 
 train:
@@ -242,10 +266,6 @@ train:
 	  $(train_nlu_flags) \
 	  $(custom_train_nlu_flags)
 
-%/eval_synthetic/annotated.tsv:
-	mkdir -p $*/eval_synthetic
-	wget https://almond-static.stanford.edu/test-data/wikidata/$*/eval-synthetic.tsv -O $@
-
 evaluate: $(experiment)/$(eval_set)/annotated.tsv $(experiment)/manifest.tt
 	$(genie) evaluate-server --url "file://$(abspath $(experiment)/models/$(model))" --thingpedia $(experiment)/manifest.tt $(experiment)/$(eval_set)/annotated.tsv --debug --csv-prefix $(eval_set) --csv --min-complexity 1 --max-complexity 3 -o $(experiment)/$(eval_set)/$(model).results.tmp | tee $(experiment)/$(eval_set)/$(model).debug
 	mv $(experiment)/$(eval_set)/$(model).results.tmp $(experiment)/$(eval_set)/$(model).results
@@ -265,7 +285,9 @@ demo: $(experiment)/manifest.tt
 	  --model "file://$(abspath $(experiment)/models/$(model))"
 
 clean:
-	rm -rf datadir bert-canonical-annotator-in.json bert-canonical-annotator-out.json gpt2-paraphraser-in.tsv gpt2-paraphraser-out.json
+	rm -rf datadir valid.tar.xz test.tar.xz paraphraser-bart.tar.xz wikidata_proc_json.zip
+	rm -f paraphraser-in.tsv paraphraser-out.json bert-canonical-annotator-in.json bert-canonical-annotator-out.json 
 	for exp in $(all_experiments) ; do \
 		rm -rf $$exp/synthetic* $$exp/entities.json $$exp/parameter-datasets* $$exp/wikidata.tt $$exp/manifest.tt $$exp/augmented.tsv $$exp/constants.tsv $$exp/*.tmp; \
+		rm -rf $$exp/valid.json $$exp/valid.tsv $$exp/valid_dropped.tsv $$exp/valid_annotated.tsv;\
 	done

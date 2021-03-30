@@ -346,7 +346,7 @@ class CsqaConverter {
     async run() {
             const propertyValuePath = path.join(this._output_dir, this._canonical, 'property_item_values.json');
             const instancePath = path.join(this._output_dir, this._canonical, 'instances.txt');
-            const propertyPath = path.join(this._output_dir, 'datadir', 'filtered_property_wikidata4.json');
+            const propertyPath = path.join('filtered_property_wikidata4.json');
             assert(fs.existsSync(instancePath));
             assert(fs.existsSync(propertyPath));
             this._instances = new Set((await this. _readSync(fs.readFile, instancePath)).split(','));
