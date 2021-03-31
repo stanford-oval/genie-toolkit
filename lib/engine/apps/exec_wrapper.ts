@@ -28,6 +28,7 @@ import TriggerRunner from './trigger_runner';
 import { Timer, AtTimer } from './timers';
 import DeviceView from '../devices/device_view';
 import TextFormatter from '../../dialogue-agent/card-output/text-formatter';
+import RestartableAsyncIterable from '../util/restartable_async_iterable';
 
 import type AppExecutor from './app_executor';
 import type Engine from '../index';
@@ -58,7 +59,7 @@ export interface CompiledQueryHints {
 type MaybePromise<T> = T|Promise<T>;
 type ActionFunction = (params : Record<string, unknown>, env : ExecWrapper) => MaybePromise<unknown>;
 
-type QueryFunctionResult = Iterable<Record<string, unknown>>|AsyncIterable<Record<string, unknown>>;
+type QueryFunctionResult = AsyncIterable<Record<string, unknown>>;
 type QueryFunction = (params : Record<string, unknown>, hints : CompiledQueryHints, env : ExecWrapper) => MaybePromise<QueryFunctionResult>;
 
 interface TriggerLike {
@@ -219,7 +220,7 @@ export default class ExecWrapper extends ExecEnvironment {
             const js_function_name = 'get_' + fname;
 
             promises = devices.map(async (d) => {
-                return (d as unknown as Record<string, QueryFunction>)[js_function_name](params, hints, this);
+                return new RestartableAsyncIterable(await (d as unknown as Record<string, QueryFunction>)[js_function_name](params, hints, this));
             });
             // cache now, rather than when the query completes, because ThingTalk might
             // invoke multiple queries in parallel

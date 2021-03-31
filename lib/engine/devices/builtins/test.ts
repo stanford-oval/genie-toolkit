@@ -45,19 +45,17 @@ export default class TestDevice extends Tp.BaseDevice {
         this._sequenceNumber = 0;
     }
 
-    get_next_sequence() {
-        return [{ number: this._sequenceNumber ++ }];
+    async *get_next_sequence() {
+        yield { number: this._sequenceNumber ++ };
     }
 
-    get_get_data({ size, count } : { size : number, count : number }) {
+    async *get_get_data({ size, count } : { size : number, count : number }) {
         if (!(count >= 0))
             count = 1;
         console.log(`Generating ${size} bytes of fake data, ${count} times`);
 
-        const ret = [];
         for (let i = 0; i < count; i++)
-            ret.push({ data: genFakeData(size, '!'.charCodeAt(0) + i) });
-        return ret;
+            yield { data: genFakeData(size, '!'.charCodeAt(0) + i) };
     }
     /**
      * @returns {stream.Readable}
@@ -77,7 +75,7 @@ export default class TestDevice extends Tp.BaseDevice {
             yield ({ data: genFakeData(size, 'A'.charCodeAt(0) + i) });
     }
 
-    get_dup_data({ data_in } : { data_in : string }) {
+    async get_dup_data({ data_in } : { data_in : string }) {
         return [{ data_out: data_in + data_in }];
     }
     do_eat_data(args : { data : string }) {
