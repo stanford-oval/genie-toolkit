@@ -775,6 +775,17 @@ export default class DefaultLanguagePack {
     }
 
     /**
+     * Check if a phrase looks like a social media user name.
+     *
+     * This is a coarse check that is used to override
+     * {@link DefaultLanguagePack#isGoodWord} to account for foreign person
+     * names and loan words.
+     */
+    isGoodUserName(word : string) : boolean {
+        return /^([0-9|\w]+)$/.test(word);
+    }
+
+    /**
      * Add a definite article ("the") to the given phrase.
      *
      * If the language has no concept of definite articles, this function

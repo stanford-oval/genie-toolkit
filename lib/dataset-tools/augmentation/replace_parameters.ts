@@ -727,6 +727,9 @@ export default class ParameterReplacer {
                          type : Type,
                          operator : string,
                          replacedValuesSet : Set<string>) : ReplacementRecord|null {
+        let typeValue = undefined;
+        if (type instanceof Type.Entity)
+            typeValue = type.type;
         let attempts = this._numAttempts;
         while (attempts > 0) {
             const sampled = valueList.sample(this._rng).toLowerCase();
@@ -751,7 +754,10 @@ export default class ParameterReplacer {
             }
 
             if (!type.isNumeric()) {
-                if (this._paramLangPack.isGoodPersonName(sampled))
+                if (
+                    (this._paramLangPack.isGoodPersonName(sampled)) ||
+                    (this._paramLangPack.isGoodUserName(sampled) && typeValue && typeValue === "tt:username")
+                )
                     return { sentenceValue: sampled, programValue: sampled };
                 if (words.some((w) => !this._paramLangPack.isGoodWord(w)) || words.length > this._maxSpanLength) {
                     attempts -= 1;
