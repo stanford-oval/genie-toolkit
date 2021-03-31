@@ -31,7 +31,7 @@ import { DatasetParser, DatasetStringifier } from '../lib/dataset-tools/parsers'
 import { maybeCreateReadStream, readAllLines } from './lib/argutils';
 import * as StreamUtils from '../lib/utils/stream-utils';
 
-const ENTITY_MATCH_REGEX = /^([A-Z].*)_[0-9۰-۹]+$/;
+const ENTITY_MATCH_REGEX = /^([A-Z].*)_[0-9]+$/;
 const NUMBER_MATCH_REGEX = /^[0-9۰-۹]+(?:\.[0-9۰-۹]+)?$/;
 const SMALL_NUMBER_REGEX = /^-?(۱۰|۱۱|۱۲|10|11|12|[0-9۰-۹])$/;
 
@@ -395,7 +395,7 @@ function requoteSentence(id, context, sentence, program, mode, handle_heuristics
     let contextEntities = new Set;
     if (context) {
         for (let token of context.split(' ')) {
-            if (/^[A-Z].*_[0-9۰-۹]+/.test(token)) // match strings like QUOTED_STRING_0, NUMBER_0 and GENERIC_ENTITY_uk.ac.cam.multiwoz.Hotel:Hotel_0
+            if (/^[A-Z].*_[0-9]+/.test(token)) // match strings like QUOTED_STRING_0, NUMBER_0 and GENERIC_ENTITY_uk.ac.cam.multiwoz.Hotel:Hotel_0
                 contextEntities.add(token);
         }
     }
