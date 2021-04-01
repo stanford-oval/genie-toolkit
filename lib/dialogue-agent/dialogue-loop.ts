@@ -454,7 +454,9 @@ export default class DialogueLoop {
     private async _handleUICommand(type : CommandAnalysisType) {
         switch (type) {
         case CommandAnalysisType.STOP:
-            // stop means cancel, but without a failure message
+            // stop means cancel, but without a failure message + stopping audio
+            if (this.engine.audio)
+                await this.engine.audio.stopAudio();
             throw new CancellationError();
 
         case CommandAnalysisType.NEVERMIND:
@@ -620,7 +622,7 @@ export default class DialogueLoop {
                                     outputValue : Record<string, unknown>) {
         let app;
         if (appId !== undefined)
-            app = this.conversation.apps.getApp(appId);
+            app = this.engine.apps.getApp(appId);
         else
             app = undefined;
 
@@ -644,7 +646,7 @@ export default class DialogueLoop {
                                   error : Error) {
         let app;
         if (appId !== undefined)
-            app = this.conversation.apps.getApp(appId);
+            app = this.engine.apps.getApp(appId);
         else
             app = undefined;
 
@@ -890,20 +892,14 @@ export default class DialogueLoop {
     }
 
     async replyCard(message : FormattedChunk, icon ?: string|null) {
-        if (typeof message === 'string') {
+        if (typeof message === 'string')
             await this.reply(message, icon);
-        } else if (message.type === 'picture') {
-            if (message.url === undefined)
-                return;
-            await this.conversation.sendPicture(message.url, icon || this.icon);
-        } else if (message.type === 'rdl') {
+        else if (message.type === 'picture' || message.type === 'audio' || message.type === 'video')
+            await this.conversation.sendMedia(message.type, message.url, message.alt, icon || this.icon);
+        else if (message.type === 'rdl')
             await this.conversation.sendRDL(message, icon || this.icon);
-        } else if (message.type === 'button') {
-            const loaded = await Helpers.loadSuggestedProgram(message.code, this.conversation.schemas);
-            await this.replyButton(message.title, JSON.stringify(loaded));
-        } else {
-            await this.conversation.sendResult(message, icon || this.icon);
-        }
+        else if (message.type === 'sound')
+            await this.conversation.sendSoundEffect(message.name, message.exclusive, icon || this.icon);
     }
 
     async replyButton(text : string, json : string) {

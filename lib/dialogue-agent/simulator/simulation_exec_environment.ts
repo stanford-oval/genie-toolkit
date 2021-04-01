@@ -347,12 +347,41 @@ function recursivelyComputeOutputType(kind : string, expr : Ast.Expression) : st
     throw new TypeError('Invalid query expression ' + expr);
 }
 
+function genFakeData(size : number, fill : number) {
+    return String(Buffer.alloc(size, fill));
+}
+
+class SimpleTestDevice {
+    private _sequenceNumber = 0;
+
+    next_sequence() {
+        return [{ number: this._sequenceNumber ++ }];
+    }
+
+    async *get_data({ size, count } : { size : number, count : number }) {
+        if (!(count >= 0))
+            count = 1;
+        for (let i = 0; i < count; i++)
+            yield ({ data: genFakeData(size, '!'.charCodeAt(0) + i) });
+    }
+    async *get_data2({ size, count } : { size : number, count : number }) {
+        if (!(count >= 0))
+            count = 1;
+        for (let i = 0; i < count; i++)
+            yield ({ data: genFakeData(size, 'A'.charCodeAt(0) + i) });
+    }
+    dup_data({ data_in } : { data_in : string }) {
+        return [{ data_out: data_in + data_in }];
+    }
+}
+
 class SimulationExecEnvironment extends ExecEnvironment {
     format : TextFormatter;
     private _schemas : SchemaRetriever;
     private _database : SimulationDatabase|undefined;
     private _rng : () => number;
     private _simulateErrors : boolean;
+    private _testDevice = new SimpleTestDevice();
 
     private _execCache : Array<[string, Record<string, unknown>, Array<[string, Record<string, unknown>]>]>;
 
@@ -555,6 +584,15 @@ class SimulationExecEnvironment extends ExecEnvironment {
         const fromDB = await this._tryFromSimulationDatabase(schema, 'query', kind, fname, params, hints);
         if (fromDB)
             return fromDB;
+
+        if (kind === 'org.thingpedia.builtin.test') {
+            const results : Array<[string, Record<string, unknown>]> = [];
+            for await (const result of (this._testDevice[fname as ('get_data'|'get_data2'|'dup_data'|'next_sequence')](params as any))) {
+                Object.assign(result, params);
+                results.push([outputType, result]);
+            }
+            return [results, false];
+        }
 
         // with some probability, fail the query
         if (this._simulateErrors && coin(0.1, this._rng)) {

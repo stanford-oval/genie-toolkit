@@ -142,10 +142,10 @@ async function testSimpleGet2(engine, icon = null) {
         results:
            [ { raw: { data: '!!!!!!!!!!', count: 2, size: 10 },
                type: 'org.thingpedia.builtin.test:get_data',
-               formatted: ['!!!!!!!!!!'] },
+               formatted: ['The data is !!!!!!!!!!.', 'The count is 2.'] },
              { raw: { data: '""""""""""', count: 2, size: 10 },
                type: 'org.thingpedia.builtin.test:get_data',
-               formatted: ['""""""""""'] } ],
+               formatted: ['The data is """""""""".', 'The count is 2.'] } ],
         errors: []
     });
 }

@@ -47,21 +47,10 @@ action_recommendation : D.Recommendation = {
 }
 
 actionable_system_recommendation_short : D.Recommendation = {
-    // for Thingpedia phrases (#_[result]), at inference time we pick the top one and replace it
-    // directly using a context phrase
-    // at training time we generate all possible phrases and match
-    ?inference {
-        ctx:ctx_with_result_noquestion proposal:ctx_thingpedia_result [priority=2]
-            => D.makeThingpediaRecommendation(ctx, proposal);
-        ctx:ctx_with_result_noquestion proposal:ctx_thingpedia_result [priority=2]
-            => D.makeThingpediaRecommendation(ctx, proposal);
-    }
-    !inference {
-        ctx:ctx_with_result_noquestion proposal:thingpedia_result with { functionName = ctx.currentFunction } [priority=2]
-            => D.makeThingpediaRecommendation(ctx, proposal);
-        ctx:ctx_with_result_noquestion proposal:thingpedia_result with { functionName = ctx.currentFunction } [priority=2]
-            => D.makeThingpediaRecommendation(ctx, proposal);
-    }
+    ctx:ctx_with_result_noquestion proposal:ctx_thingpedia_result [priority=2]
+        => D.makeThingpediaRecommendation(ctx, proposal);
+    ctx:ctx_with_result_noquestion proposal:ctx_thingpedia_result [priority=2]
+        => D.makeThingpediaRecommendation(ctx, proposal);
 
     ["i {recommend|suggest} ${proposal}"]: (ctx : ctx_with_result_and_action, proposal : constant_name<value=ctx.id0>)
         => D.makeRecommendation(ctx, proposal),
@@ -114,15 +103,8 @@ direct_user_question_answer : D.Recommendation = {
 }
 
 actionable_system_display_result_short : D.Recommendation = {
-    // for Thingpedia phrases (#_[result]), at inference time we pick the top one and replace it
-    // directly using a context phrase
-    // at training time we generate all possible phrases and match
-    ?inference
-        ctx:ctx_with_result info:ctx_thingpedia_result '.' [priority=5]
-            => D.makeDisplayResult(ctx, info);
-    !inference
-        ctx:ctx_with_result info:thingpedia_result with { functionName = ctx.currentFunction } '.' [priority=5]
-            => D.makeDisplayResult(ctx, info);
+    ctx:ctx_with_result info:ctx_thingpedia_result '.' [priority=5]
+        => D.makeDisplayResult(ctx, info);
 }
 
 // a non-list result

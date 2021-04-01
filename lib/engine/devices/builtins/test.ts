@@ -69,6 +69,14 @@ export default class TestDevice extends Tp.BaseDevice {
             return [{ data: genFakeData(args.size, '!'.charCodeAt(0) + (count++)) }];
         });
     }
+
+    async *get_get_data2({ size, count } : { size : number, count : number }) {
+        if (!(count >= 0))
+            count = 1;
+        for (let i = 0; i < count; i++)
+            yield ({ data: genFakeData(size, 'A'.charCodeAt(0) + i) });
+    }
+
     get_dup_data({ data_in } : { data_in : string }) {
         return [{ data_out: data_in + data_in }];
     }

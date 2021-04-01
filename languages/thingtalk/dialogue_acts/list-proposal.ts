@@ -70,7 +70,7 @@ export type ListProposal = [Ast.DialogueHistoryResultItem[], SlotBag|null, Ast.I
 
 export function listProposalKeyFn([results, info, action, hasLearnMore] : ListProposal) {
     return {
-        idType: results[0].value.id.getType(),
+        idType: results[0].value.id ? results[0].value.id.getType() : null,
         queryName: info ? info.schema!.qualifiedName : null,
         actionName: action ? action.schema!.qualifiedName : null,
     };
@@ -117,7 +117,38 @@ function checkListProposal(nameList : NameList, info : SlotBag|null, hasLearnMor
     return [results, info, action, hasLearnMore];
 }
 
-function addActionToListProposal(nameList : NameList, action : Ast.Invocation) : ListProposal|null {
+export type ThingpediaListProposal = [ContextInfo, SlotBag];
+
+export function checkThingpediaListProposal(proposal : ThingpediaListProposal, additionalInfo : SlotBag|null) : ListProposal|null {
+    const [ctx, info] = proposal;
+
+    const resultInfo = ctx.resultInfo!;
+    if (resultInfo.projection !== null) {
+        // check that all projected names are present
+        for (const name of resultInfo.projection) {
+            if (!info.has(name))
+                return null;
+        }
+    }
+
+    let mergedInfo : SlotBag|null = info;
+    if (additionalInfo) {
+        // check that the new info is truthful
+        for (const result of ctx.results!) {
+            if (!isInfoPhraseCompatibleWithResult(result, additionalInfo))
+                return null;
+        }
+
+        mergedInfo = SlotBag.merge(mergedInfo, additionalInfo);
+    }
+    if (!mergedInfo)
+        return null;
+
+    const action = ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next!) : null;
+    return [ctx.results!, mergedInfo, action, false];
+}
+
+export function addActionToListProposal(nameList : NameList, action : Ast.Invocation) : ListProposal|null {
     const { ctx, results } = nameList;
     if (ctx.resultInfo!.projection !== null)
         return null;
@@ -146,7 +177,20 @@ function makeListProposalReply(ctx : ContextInfo, proposal : ListProposal) {
     };
     if (action || hasLearnMore)
         options.end = false;
-    const dialogueAct = results.length === 2 ? 'sys_recommend_two' : 'sys_recommend_three';
+    let dialogueAct;
+    switch (results.length) {
+    case 2:
+        dialogueAct = 'sys_recommend_two';
+        break;
+    case 3:
+        dialogueAct = 'sys_recommend_three';
+        break;
+    case 4:
+        dialogueAct = 'sys_recommend_four';
+        break;
+    default:
+        dialogueAct = 'sys_recommend_many';
+    }
     if (action === null)
         return makeAgentReply(ctx, makeSimpleState(ctx, dialogueAct, null), proposal, null, options);
     else
@@ -280,7 +324,6 @@ function listProposalLearnMoreReply(ctx : ContextInfo, name : Ast.Value) {
 
 export {
     checkListProposal,
-    addActionToListProposal,
     makeListProposalReply,
 
     positiveListProposalReply,

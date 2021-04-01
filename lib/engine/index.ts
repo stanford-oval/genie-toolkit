@@ -28,6 +28,7 @@ import DeviceDatabase from './devices/database';
 import TierManager from './tiers/tier_manager';
 import PairedEngineManager from './tiers/paired';
 import Builtins from './devices/builtins';
+import AudioController from './audio_controller';
 
 import AppDatabase from './apps/database';
 import AppRunner from './apps/runner';
@@ -164,6 +165,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
     private _devices : DeviceDatabase;
     private _appdb : AppDatabase;
     private _assistant : AssistantDispatcher;
+    private _audio : AudioController|null;
 
     private _running : boolean;
     private _stopCallback : (() => void)|null;
@@ -180,7 +182,6 @@ export default class AssistantEngine extends Tp.BaseEngine {
 
         this._ = I18n.get(platform.locale).gettext;
 
-        // tiers and devices are always enabled
         this._tiers = new TierManager(platform, options.cloudSyncUrl || Config.THINGENGINE_URL);
 
         this._modules = [];
@@ -194,13 +195,20 @@ export default class AssistantEngine extends Tp.BaseEngine {
 
         this._assistant = new AssistantDispatcher(this, options.nluModelUrl);
 
+        if (platform.hasCapability('sound'))
+            this._audio = new AudioController(this._devices);
+        else
+            this._audio = null;
+
         // in loading order
         this._modules = [this._tiers,
                          this._devices,
                          new PairedEngineManager(platform, this._devices, deviceFactory, this._tiers),
-                         this._appdb,
-                         this._assistant,
-                         new AppRunner(this._appdb)];
+                         this._appdb];
+        if (this._audio)
+            this._modules.push(this._audio);
+        this._modules.push(this._assistant,
+                           new AppRunner(this._appdb));
 
         this._running = false;
         this._stopCallback = null;
@@ -237,6 +245,13 @@ export default class AssistantEngine extends Tp.BaseEngine {
      */
     get assistant() {
         return this._assistant;
+    }
+
+    /**
+     * Access the audio controller to coordinate access to audio.
+     */
+    get audio() {
+        return this._audio;
     }
 
     private async _openSequential(modules : EngineModule[]) {

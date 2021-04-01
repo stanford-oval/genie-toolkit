@@ -28,7 +28,7 @@ export type AgentReplyRecord = SentenceGeneratorTypes.AgentReplyRecord<Ast.Dialo
 import * as C from './ast_manip';
 import * as keyfns from './keyfns';
 import { SlotBag } from './slot_bag';
-import ThingpediaLoader from './load-thingpedia';
+import ThingpediaLoader, { ParsedPlaceholderPhrase } from './load-thingpedia';
 
 // NOTE: this version of arraySubset uses ===
 // the one in array_utils uses .equals()
@@ -948,6 +948,19 @@ function ctxCanHaveRelatedQuestion(ctx : ContextInfo) : boolean {
     return !!(related && related.length);
 }
 
+function tryReplacePlaceholderPhrase(phrase : ParsedPlaceholderPhrase,
+                                     getParam : (name : string) => SentenceGeneratorRuntime.PlaceholderReplacement|null) : SentenceGeneratorRuntime.ReplacedResult|null {
+    const replacements : SentenceGeneratorRuntime.PlaceholderReplacement[] = [];
+    for (const param of phrase.names) {
+        const replacement = getParam(param);
+        if (!replacement)
+            return null;
+        replacements.push(replacement);
+    }
+    const replacementCtx = { replacements, constraints: {} };
+    return phrase.replaceable.replace(replacementCtx);
+}
+
 function makeErrorContextPhrase(ctx : ContextInfo,
                                 error : Ast.EnumValue) {
     const contextTable = ctx.contextTable;
@@ -956,15 +969,14 @@ function makeErrorContextPhrase(ctx : ContextInfo,
     const currentFunction = ctx.currentFunction!;
     const phrases = ctx.loader.getErrorMessages(currentFunction.qualifiedName)[error.value];
     if (!phrases)
-        return null;
+        return [];
 
     const action = C.getInvocation(ctx.current!);
 
-    // try all phrases, find the first that we can replace correctly
-    outer: for (const candidate of phrases) {
+    const output = [];
+    for (const candidate of phrases) {
         const bag = new SlotBag(currentFunction);
-        const replacements : SentenceGeneratorRuntime.PlaceholderReplacement[] = [];
-        for (const param of candidate.names) {
+        const utterance = tryReplacePlaceholderPhrase(candidate, (param) => {
             let value = null;
             for (const in_param of action.in_params) {
                 if (in_param.name === param) {
@@ -973,55 +985,228 @@ function makeErrorContextPhrase(ctx : ContextInfo,
                 }
             }
             if (!value)
-                continue outer;
+                return null;
             const text = describer.describeArg(value);
             if (text === null)
-                continue outer;
-            replacements.push({ value, text });
+                return null;
             bag.set(param, value);
-        }
-        const replacementCtx = { replacements, constraints: {} };
-        const utterance = candidate.replaceable.replace(replacementCtx);
+            return { value, text };
+        });
 
         if (utterance) {
             const value : C.ErrorMessage = { code: error.value, bag };
-            return { symbol: contextTable.ctx_thingpedia_error_message, utterance, value, priority: 0, key: keyfns.errorMessageKeyFn(value) };
+            output.push({ symbol: contextTable.ctx_thingpedia_error_message, utterance, value, priority: 0, key: keyfns.errorMessageKeyFn(value) });
+
+            // in inference mode, we're done
+            if (ctx.loader.flags.inference)
+                return output;
         }
     }
 
-    return null;
+    return output;
 }
 
-function makeResultContextPhrase(ctx : ContextInfo,
-                                 result : Ast.DialogueHistoryResultItem) {
+function makeListResultContextPhrase(ctx : ContextInfo,
+                                     allResults : Ast.DialogueHistoryResultItem[],
+                                     phrases : ParsedPlaceholderPhrase[]) {
     const contextTable = ctx.contextTable;
     const describer = ctx.loader.describer;
 
     const currentFunction = ctx.currentFunction!;
-    const phrases = ctx.loader.getResultStrings(currentFunction.qualifiedName);
 
-    // try all phrases, find the first that we can replace correctly
-    outer: for (const candidate of phrases) {
+    const output = [];
+
+    // list result, concatenate all parameters into each placeholder
+    for (const candidate of phrases) {
         const bag = new SlotBag(currentFunction);
-        const replacements : SentenceGeneratorRuntime.PlaceholderReplacement[] = [];
-        for (const param of candidate.names) {
-            const value = result.value[param];
-            if (!value)
-                continue outer;
-            const text = describer.describeArg(value);
-            if (text === null)
-                continue outer;
-            replacements.push({ value, text });
-            bag.set(param, value);
-        }
-        const replacementCtx = { replacements, constraints: {} };
-        const utterance = candidate.replaceable.replace(replacementCtx);
 
-        if (utterance)
-            return { symbol: contextTable.ctx_thingpedia_result, utterance, value: bag, priority: 0, key: keyfns.slotBagKeyFn(bag) };
+        const utterance = tryReplacePlaceholderPhrase(candidate, (param) => {
+            const arg = currentFunction.getArgument(param)!;
+            if (arg.is_input) {
+                // use the top result value only
+                const topResult = allResults[0];
+                const value = topResult.value[param];
+                if (!value)
+                    return null;
+                const text = describer.describeArg(value);
+                if (text === null)
+                    return null;
+                bag.set(param, value);
+                return { value, text };
+            } else {
+                const arrayValue = new Ast.ArrayValue([]);
+                for (const result of allResults) {
+                    const value = result.value[param];
+                    if (!value)
+                        return null;
+                    arrayValue.value.push(value);
+                }
+                const text = describer.describeArg(arrayValue);
+                if (text === null)
+                    return null;
+                bag.set(param, arrayValue);
+                return { value: arrayValue, text };
+            }
+        });
+
+        if (utterance) {
+            const value = [ctx, bag];
+            output.push({ symbol: contextTable.ctx_thingpedia_list_result, utterance, value, priority: 0, key: keyfns.slotBagKeyFn(bag) });
+
+            // in inference mode, we're done
+            if (ctx.loader.flags.inference)
+                return output;
+        }
     }
 
-    return null;
+    return output;
+}
+
+const MAX_LIST_LENGTH = 5;
+
+function makeListConcatResultContextPhrase(ctx : ContextInfo,
+                                           allResults : Ast.DialogueHistoryResultItem[],
+                                           phrases : ParsedPlaceholderPhrase[]) {
+    const contextTable = ctx.contextTable;
+    const describer = ctx.loader.describer;
+
+    const currentFunction = ctx.currentFunction!;
+
+    const output = [];
+
+    // list_concat result: concatenate phrases made from each result
+
+    // don't concatenate too many phrases
+    allResults = allResults.slice(0, MAX_LIST_LENGTH);
+
+    outer: for (const candidate of phrases) {
+        const bag = new SlotBag(currentFunction);
+
+        const utterance = [];
+        for (let resultIdx = 0; resultIdx < allResults.length; resultIdx++) {
+            const result = allResults[resultIdx];
+            const piece = tryReplacePlaceholderPhrase(candidate, (param) => {
+                if (param === '__index')
+                    return { value: resultIdx+1, text: new ctx.loader.runtime.ReplacedConcatenation([String(resultIdx+1)], {}, {}) };
+
+                // set the bag to the array value, if we haven't already
+                if (!bag.has(param)) {
+                    const arrayValue = new Ast.ArrayValue([]);
+                    for (const result of allResults) {
+                        const value = result.value[param];
+                        if (!value)
+                            return null;
+                        arrayValue.value.push(value);
+                    }
+                    bag.set(param, arrayValue);
+                }
+
+                // then pick the current result
+                const value = result.value[param];
+                if (!value)
+                    return null;
+                const text = describer.describeArg(value);
+                if (text === null)
+                    return null;
+                return { value, text };
+            });
+            if (piece === null)
+                continue outer;
+            utterance.push(piece);
+        }
+
+        if (utterance) {
+            const value = [ctx, bag];
+            output.push({ symbol: contextTable.ctx_thingpedia_list_result, utterance: new ctx.loader.runtime.ReplacedConcatenation(utterance, {}, {}), value, priority: 0, key: keyfns.slotBagKeyFn(bag) });
+
+            // in inference mode, we're done
+            if (ctx.loader.flags.inference)
+                return output;
+        }
+    }
+
+    return output;
+}
+
+function makeTopResultContextPhrase(ctx : ContextInfo,
+                                    topResult : Ast.DialogueHistoryResultItem,
+                                    phrases : ParsedPlaceholderPhrase[]) {
+    const contextTable = ctx.contextTable;
+    const describer = ctx.loader.describer;
+
+    const currentFunction = ctx.currentFunction!;
+
+    const output = [];
+
+    // top result
+    for (const candidate of phrases) {
+        const bag = new SlotBag(currentFunction);
+
+        const utterance = tryReplacePlaceholderPhrase(candidate, (param) => {
+            const value = topResult.value[param];
+            if (!value)
+                return null;
+            const text = describer.describeArg(value);
+            if (text === null)
+                return null;
+            bag.set(param, value);
+            return { value, text };
+        });
+
+        if (utterance) {
+            output.push({ symbol: contextTable.ctx_thingpedia_result, utterance, value: bag, priority: 0, key: keyfns.slotBagKeyFn(bag) });
+
+            // in inference mode, we're done
+            if (ctx.loader.flags.inference)
+                return output;
+        }
+    }
+
+    return output;
+}
+
+// exported for tests
+export function makeResultContextPhrase(ctx : ContextInfo,
+                                        topResult : Ast.DialogueHistoryResultItem,
+                                        allResults : Ast.DialogueHistoryResultItem[]) {
+    const currentFunction = ctx.currentFunction!;
+    const phrases = ctx.loader.getResultPhrases(currentFunction.qualifiedName);
+
+    const output = [];
+
+    // if we have multiple results, we prefer, in order:
+    // - list result
+    // - list_concat result
+    // - top result
+    //
+    // if we have one result, we prefer, in order:
+    // - top result
+    // - list_concat result
+    // - list result
+
+    if (allResults.length > 1) {
+        output.push(...makeListResultContextPhrase(ctx, allResults, phrases.list));
+        if (ctx.loader.flags.inference && output.length > 0)
+            return output;
+
+        output.push(...makeListConcatResultContextPhrase(ctx, allResults, phrases.list_concat));
+        if (ctx.loader.flags.inference && output.length > 0)
+            return output;
+
+        output.push(...makeTopResultContextPhrase(ctx, topResult, phrases.top));
+    } else {
+        output.push(...makeTopResultContextPhrase(ctx, topResult, phrases.top));
+        if (ctx.loader.flags.inference && output.length > 0)
+            return output;
+
+        output.push(...makeListConcatResultContextPhrase(ctx, allResults, phrases.list_concat));
+        if (ctx.loader.flags.inference && output.length > 0)
+            return output;
+
+        output.push(...makeListResultContextPhrase(ctx, allResults, phrases.list));
+    }
+
+    return output;
 }
 
 export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.ContextPhrase[] {
@@ -1047,16 +1232,12 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
         }
 
         if (current.results!.error instanceof Ast.EnumValue) {
-            const phrase = makeErrorContextPhrase(ctx, current.results!.error);
-            if (phrase)
-                phrases.push(phrase);
+            phrases.push(...makeErrorContextPhrase(ctx, current.results!.error));
         } else {
             const results = current.results!.results;
             if (results.length > 0) {
                 const topResult = results[0];
-                const phrase = makeResultContextPhrase(ctx, topResult);
-                if (phrase)
-                    phrases.push(phrase);
+                phrases.push(...makeResultContextPhrase(ctx, topResult, results));
             }
         }
     }

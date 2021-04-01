@@ -35,8 +35,7 @@ const TEST_CASES = [
     [ { type: 'rdl',
         callback: 'https://xkcd.com/1234/',
         webCallback: 'https://xkcd.com/1234/',
-        displayTitle: 'Douglas Engelbart (1925-2013)',
-        displayText: null },
+        displayTitle: 'Douglas Engelbart (1925-2013)' },
       { type: 'picture',
         url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png' },
       'some alt text' ]
@@ -47,7 +46,7 @@ const TEST_CASES = [
           picture_url: 'https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png',
           alt_text: 'some alt text' }, 'string',
     `Link: Douglas Engelbart (1925-2013) <https://xkcd.com/1234/>
-Picture: https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png
+Media: https://imgs.xkcd.com/comics/douglas_engelbart_1925_2013.png
 some alt text`,
     ],
 
