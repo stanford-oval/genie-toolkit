@@ -36,12 +36,13 @@ import {
 
 function adjustStatementsForInitialRequest(loader : ThingpediaLoader,
                                            expr : Ast.ChainExpression) {
-    // TODO implement rules (streams)
-    if (expr.first.schema!.functionType === 'stream')
-        return null;
-
     if (!C.checkValidQuery(expr))
         return null;
+
+    // if we have a stream, we apply no further modification to the statements,
+    // regardless of #[confirm] parameter
+    if (expr.first.schema!.functionType === 'stream')
+        return [C.adjustDefaultParameters(new Ast.ExpressionStatement(null, expr))];
 
     const newStatements : Ast.ExpressionStatement[] = [];
     if (expr.expressions.length > 1) {
@@ -180,8 +181,6 @@ function getStatementDevice(stmt : Ast.ChainExpression) {
 
 function startNewRequest(loader : ThingpediaLoader, ctx : ContextInfo, expr : Ast.Expression) {
     const stmt = C.toChainExpression(expr);
-    if (stmt.first.schema!.functionType === 'stream')
-        return null;
 
     if (loader.flags.strict_multidomain && ctx.current && getStatementDevice(ctx.current.stmt.expression) === getStatementDevice(stmt))
         return null;

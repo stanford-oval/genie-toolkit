@@ -623,7 +623,7 @@ U: @com.thecatapi.get();
 
 A: Here is your cat picture.
 A: rdl: str:ENTITY_tt:url::42: str:ENTITY_tt:url::42:
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @com.thecatapi ( id = GENERIC_ENTITY_tt:device_id_0 ) . get ( ) #[ results = [ { id = GENERIC_ENTITY_com.thecatapi:image_id_0 , picture_url = PICTURE_0 , link = URL_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.thecatapi-9","display":"Some Device 9"},"GENERIC_ENTITY_com.thecatapi:image_id_0":{"value":"str:ENTITY_com.thecatapi:image_id::0:","display":null},"PICTURE_0":"str:ENTITY_tt:picture::36:","URL_0":"str:ENTITY_tt:url::42:"}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @com.thecatapi . get ( ) #[ results = [ { id = GENERIC_ENTITY_com.thecatapi:image_id_0 , picture_url = PICTURE_0 , link = URL_0 } ] ] ; // {"GENERIC_ENTITY_com.thecatapi:image_id_0":{"value":"str:ENTITY_com.thecatapi:image_id::0:","display":null},"PICTURE_0":"str:ENTITY_tt:picture::36:","URL_0":"str:ENTITY_tt:url::42:"}
 A: >> expecting = null
 
 ====
@@ -633,9 +633,9 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.xkcd.comic();
 
-A: I found xkcd 20. It is an xkcd comic from January 20, 2018 titled Some Device 10.
-A: rdl: Some Device 10 str:ENTITY_tt:url::1:
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; @com.xkcd ( id = GENERIC_ENTITY_tt:device_id_0 ) . comic ( ) #[ results = [ { id = NUMBER_0 , title = QUOTED_STRING_0 , release_date = DATE_0 , picture_url = PICTURE_0 , link = URL_0 , alt_text = QUOTED_STRING_0 } ] ] #[ count = NUMBER_1 ] #[ more = true ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.xkcd-10","display":"Some Device 10"},"NUMBER_0":20,"QUOTED_STRING_0":"Some Device 10","DATE_0":"2018-01-20T08:00:00.000Z","PICTURE_0":"str:ENTITY_tt:picture::14:","URL_0":"str:ENTITY_tt:url::1:","NUMBER_1":50}
+A: I found xkcd 20. It is an xkcd comic from January 20, 2018 titled Some Device com.xkcd.
+A: rdl: Some Device com.xkcd str:ENTITY_tt:url::1:
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; @com.xkcd . comic ( ) #[ results = [ { id = NUMBER_0 , title = QUOTED_STRING_0 , release_date = DATE_0 , picture_url = PICTURE_0 , link = URL_0 , alt_text = QUOTED_STRING_0 } ] ] #[ count = NUMBER_1 ] #[ more = true ] ; // {"NUMBER_0":20,"QUOTED_STRING_0":"Some Device com.xkcd","DATE_0":"2018-01-20T08:00:00.000Z","PICTURE_0":"str:ENTITY_tt:picture::14:","URL_0":"str:ENTITY_tt:url::1:","NUMBER_1":50}
 A: >> expecting = null
 
 ====
@@ -647,7 +647,7 @@ U: sort(release_date desc of @com.xkcd.comic())[1];
 
 A: The latest xkcd comic is 371. It is an xkcd comic from August 31, 2020 titled str:QUOTED_STRING::3:.
 A: rdl: str:QUOTED_STRING::3: str:ENTITY_tt:url::39:
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; sort ( release_date desc of @com.xkcd ( id = GENERIC_ENTITY_tt:device_id_0 ) . comic ( ) ) [ 1 ] #[ results = [ { id = NUMBER_0 , title = QUOTED_STRING_0 , release_date = DATE_0 , picture_url = PICTURE_0 , link = URL_0 , alt_text = QUOTED_STRING_1 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.xkcd-10","display":"Some Device 10"},"NUMBER_0":371,"QUOTED_STRING_0":"str:QUOTED_STRING::3:","DATE_0":"2020-08-31T07:00:00.000Z","PICTURE_0":"str:ENTITY_tt:picture::26:","URL_0":"str:ENTITY_tt:url::39:","QUOTED_STRING_1":"str:QUOTED_STRING::6:"}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; sort ( release_date desc of @com.xkcd . comic ( ) ) [ 1 ] #[ results = [ { id = NUMBER_0 , title = QUOTED_STRING_0 , release_date = DATE_0 , picture_url = PICTURE_0 , link = URL_0 , alt_text = QUOTED_STRING_1 } ] ] ; // {"NUMBER_0":371,"QUOTED_STRING_0":"str:QUOTED_STRING::3:","DATE_0":"2020-08-31T07:00:00.000Z","PICTURE_0":"str:ENTITY_tt:picture::26:","URL_0":"str:ENTITY_tt:url::39:","QUOTED_STRING_1":"str:QUOTED_STRING::6:"}
 A: >> expecting = null
 
 ====
@@ -657,7 +657,7 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.xkcd.comic() => @com.twitter.post(status=title);
 
 A: Ok, do you want me to get xkcd comic and then tweet the title?
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_confirm_action ; @com.xkcd ( id = GENERIC_ENTITY_tt:device_id_0 ) . comic ( ) => @com.twitter ( id = GENERIC_ENTITY_tt:device_id_1 ) . post ( status = title ) ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.xkcd-10","display":"Some Device 10"},"GENERIC_ENTITY_tt:device_id_1":{"value":"twitter-foo","display":"Twitter Account foo"}}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_confirm_action ; @com.xkcd . comic ( ) => @com.twitter ( id = GENERIC_ENTITY_tt:device_id_0 ) . post ( status = title ) ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"twitter-foo","display":"Twitter Account foo"}}
 A: >> expecting = yesno
 
 U: \t $yes;
@@ -822,4 +822,14 @@ U: \t @org.thingpedia.builtin.test.get_data2(size=5byte, count=3);
 
 A: The answers for 3 items of size 5 byte are AAAAA, BBBBB, and CCCCC.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_three ; @org.thingpedia.builtin.test . get_data ( count = 3 , size = MEASURE_byte_0 ) #[ results = [ { data = QUOTED_STRING_0 , count = 3 , size = MEASURE_byte_0 } ] ] #[ count = 3 ] ; @org.thingpedia.builtin.test . get_data2 ( count = 3 , size = MEASURE_byte_0 ) #[ results = [ { data = QUOTED_STRING_1 , count = 3 , size = MEASURE_byte_0 } ] ] #[ count = 3 ] ; // {"MEASURE_byte_0":{"unit":"byte","value":5},"QUOTED_STRING_0":"!!!!!","QUOTED_STRING_1":"AAAAA"}
+A: >> expecting = null
+
+====
+# 55-basic-streams
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: timer(interval=1h, base=$now) => @com.thecatapi.get();
+
+A: Alright, I will get the cat picture every 60 min.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_rule_enable_success ; timer ( base = $now , interval = DURATION_0 ) => @com.thecatapi . get ( ) #[ results = [ ] ] ; // {"DURATION_0":{"unit":"h","value":1}}
 A: >> expecting = null

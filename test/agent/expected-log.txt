@@ -1441,7 +1441,7 @@ U: @com.thecatapi.get();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.thecatapi.get();
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @com.thecatapi(id="com.thecatapi-9"^^tt:device_id("Some Device 9")).get()
+C: @com.thecatapi.get()
 C: #[results=[
 C:   { id="str:ENTITY_com.thecatapi:image_id::0:"^^com.thecatapi:image_id, picture_url="str:ENTITY_tt:picture::36:"^^tt:picture, link="str:ENTITY_tt:url::42:"^^tt:url }
 C: ]];
@@ -1463,23 +1463,23 @@ U: @com.xkcd.comic();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.xkcd.comic();
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @com.xkcd(id="com.xkcd-10"^^tt:device_id("Some Device 10")).comic()
+C: @com.xkcd.comic()
 C: #[results=[
-C:   { id=20, title="Some Device 10", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::14:"^^tt:picture, link="str:ENTITY_tt:url::1:"^^tt:url, alt_text="Some Device 10" },
+C:   { id=20, title="Some Device com.xkcd", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::14:"^^tt:picture, link="str:ENTITY_tt:url::1:"^^tt:url, alt_text="Some Device com.xkcd" },
 C:   { id=451, title="str:QUOTED_STRING::49:", release_date=new Date("2020-03-20T07:00:00.000Z"), picture_url="str:ENTITY_tt:picture::41:"^^tt:picture, link="str:ENTITY_tt:url::28:"^^tt:url, alt_text="str:QUOTED_STRING::4:" },
-C:   { id=20, title="Some Device 10", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::27:"^^tt:picture, link="str:ENTITY_tt:url::14:"^^tt:url, alt_text="str:QUOTED_STRING::4:" },
-C:   { id=20, title="Some Device 10", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::47:"^^tt:picture, link="str:ENTITY_tt:url::19:"^^tt:url, alt_text="str:QUOTED_STRING::38:" },
-C:   { id=20, title="str:QUOTED_STRING::6:", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::3:"^^tt:picture, link="str:ENTITY_tt:url::4:"^^tt:url, alt_text="Some Device 10" },
-C:   { id=20, title="Some Device 10", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::46:"^^tt:picture, link="str:ENTITY_tt:url::35:"^^tt:url, alt_text="Some Device 10" },
+C:   { id=20, title="Some Device com.xkcd", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::27:"^^tt:picture, link="str:ENTITY_tt:url::14:"^^tt:url, alt_text="str:QUOTED_STRING::4:" },
+C:   { id=20, title="Some Device com.xkcd", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::47:"^^tt:picture, link="str:ENTITY_tt:url::19:"^^tt:url, alt_text="str:QUOTED_STRING::38:" },
+C:   { id=20, title="str:QUOTED_STRING::6:", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::3:"^^tt:picture, link="str:ENTITY_tt:url::4:"^^tt:url, alt_text="Some Device com.xkcd" },
+C:   { id=20, title="Some Device com.xkcd", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::46:"^^tt:picture, link="str:ENTITY_tt:url::35:"^^tt:url, alt_text="Some Device com.xkcd" },
 C:   { id=20, title="str:QUOTED_STRING::28:", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::33:"^^tt:picture, link="str:ENTITY_tt:url::28:"^^tt:url, alt_text="str:QUOTED_STRING::44:" },
 C:   { id=837, title="str:QUOTED_STRING::29:", release_date=new Date("2020-01-23T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::7:"^^tt:picture, link="str:ENTITY_tt:url::4:"^^tt:url, alt_text="str:QUOTED_STRING::40:" },
-C:   { id=481, title="Some Device 10", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::12:"^^tt:picture, link="str:ENTITY_tt:url::20:"^^tt:url, alt_text="Some Device 10" },
-C:   { id=638, title="Some Device 10", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::40:"^^tt:picture, link="str:ENTITY_tt:url::35:"^^tt:url, alt_text="str:QUOTED_STRING::3:" }
+C:   { id=481, title="Some Device com.xkcd", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::12:"^^tt:picture, link="str:ENTITY_tt:url::20:"^^tt:url, alt_text="Some Device com.xkcd" },
+C:   { id=638, title="Some Device com.xkcd", release_date=new Date("2018-01-20T08:00:00.000Z"), picture_url="str:ENTITY_tt:picture::40:"^^tt:picture, link="str:ENTITY_tt:url::35:"^^tt:url, alt_text="str:QUOTED_STRING::3:" }
 C: ]]
 C: #[count=50]
 C: #[more=true];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I found xkcd 20. It is an xkcd comic from January 20, 2018 titled Some Device 10.
+A: I found xkcd 20. It is an xkcd comic from January 20, 2018 titled Some Device com.xkcd.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! vote: down
 #! comment: test comment for dialogue turns
@@ -1496,7 +1496,7 @@ U: sort(release_date desc of @com.xkcd.comic())[1];
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: sort(release_date desc of @com.xkcd.comic())[1];
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: sort(release_date desc of @com.xkcd(id="com.xkcd-10"^^tt:device_id("Some Device 10")).comic())[1]
+C: sort(release_date desc of @com.xkcd.comic())[1]
 C: #[results=[
 C:   { id=371, title="str:QUOTED_STRING::3:", release_date=new Date("2020-08-31T07:00:00.000Z"), picture_url="str:ENTITY_tt:picture::26:"^^tt:picture, link="str:ENTITY_tt:url::39:"^^tt:url, alt_text="str:QUOTED_STRING::6:" }
 C: ]];
@@ -1518,16 +1518,16 @@ U: @com.xkcd.comic() => @com.twitter.post(status=title);
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.xkcd.comic() => @com.twitter.post(status=title);
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @com.xkcd(id="com.xkcd-10"^^tt:device_id("Some Device 10")).comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title);
+C: @com.xkcd.comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title);
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Ok, do you want me to get xkcd comic and then tweet the title?
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_action;
-AT: @com.xkcd(id="com.xkcd-10"^^tt:device_id("Some Device 10")).comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title);
+AT: @com.xkcd.comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title);
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $yes;
 UT: $yes;
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @com.xkcd(id="com.xkcd-10"^^tt:device_id("Some Device 10")).comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title)
+C: @com.xkcd.comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title)
 C: #[results=[]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I tweeted something.
@@ -1887,6 +1887,26 @@ C: ]];
 A: The answers for 3 items of size 5 byte are AAAAA, BBBBB, and CCCCC.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: timer(base=$now, interval=1h) => @com.thecatapi.get();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: timer(base=$now, interval=1h) => @com.thecatapi.get();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: timer(base=$now, interval=1h) => @com.thecatapi.get()
+C: #[results=[]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Alright, I will get the cat picture every 60 min.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_rule_enable_success;
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines

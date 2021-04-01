@@ -260,6 +260,9 @@ function actionErrorChangeParam(ctx : ContextInfo, answer : Ast.Value|C.InputPar
 }
 
 function actionSuccessQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
+    if (ctx.resultInfo && ctx.resultInfo.hasStream)
+        return null;
+
     for (const q of questions) {
         if (!C.isSameFunction(q.schema, ctx.currentFunction!))
             return null;

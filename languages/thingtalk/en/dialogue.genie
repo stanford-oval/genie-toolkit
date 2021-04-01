@@ -104,6 +104,7 @@ context : S.ContextInfo = {
     // phrases that describe the current context
     // (some are later because they use a different type)
     ctx_next_statement,
+    ctx_current_statement,
 
     // abstract result states (used to interpret user utterances)
     // these should be returned by S.tagContextForAgent()
@@ -128,6 +129,7 @@ context : S.ContextInfo = {
     ctx_incomplete_action_after_search,
     ctx_learn_more,
     ctx_display_nonlist_result,
+    ctx_rule_enable_success,
 
     // agent states (used to continue the conversation with more user utterances)
     // these more or less map to the agent dialogue acts, except we don't distinguish
@@ -303,6 +305,9 @@ $agent : S.AgentReplyRecord = {
     // learn more
     ctx:ctx_learn_more system_learn_more
         => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_learn_more_what', null));
+
+    ["${preamble} I {will|am going to} ${stmt}"]: (ctx : ctx_rule_enable_success, preamble : generic_excitement2_phrase, stmt : ctx_current_statement)
+        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_rule_enable_success', null));
 }
 
 $user : Ast.DialogueState = {

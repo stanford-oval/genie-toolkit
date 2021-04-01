@@ -54,6 +54,8 @@ dialogueActs:
     # agent had an error in executing the action (with and without a slot-fill question)
     - sys_action_error_question
     - sys_action_error
+    # agent started a rule (command with stream) successfully
+    - sys_rule_enable_success
     # agent asks if anything else is needed
     - sys_anything_else
     # agent says good bye

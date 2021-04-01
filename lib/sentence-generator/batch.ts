@@ -347,9 +347,15 @@ class MinibatchDialogueGenerator {
                     dlg.execState);
 
                 if (this._maybeAddPartialDialog(newDialogue)) {
-                    const { newDialogueState, newExecutorState } = await this._simulator.execute(userState, dlg.execState);
-                    newDialogue.context = newDialogueState;
-                    newDialogue.execState = newExecutorState;
+                    try {
+                        const { newDialogueState, newExecutorState } = await this._simulator.execute(userState, dlg.execState);
+                        newDialogue.context = newDialogueState;
+                        newDialogue.execState = newExecutorState;
+                    } catch(e) {
+                        console.error(`Failed to execute dialogue`);
+                        console.error(userState.prettyprint());
+                        throw e;
+                    }
                 }
             }
         }

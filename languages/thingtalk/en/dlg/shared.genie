@@ -41,6 +41,10 @@ generic_excitement_phrase : string = {
     ["{alright,| great!|awesome !|sounds good !|sounds good ,|perfect !}"]: () => '',
 }
 
+generic_excitement2_phrase : string = {
+    ["{alright,| great!|awesome !|sounds good !|sounds good ,|perfect !}"]: () => '',
+}
+
 greeting : string = {
     ["{hello !|hi !}"]: () => '',
 }
