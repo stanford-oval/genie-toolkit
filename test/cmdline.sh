@@ -95,21 +95,24 @@ diff -u $srcdir/test/data/en-US/expected-paraphrase2.tsv paraphrase2.tsv
 
 # yay we have a dataset, time to augment it...
 
-node $srcdir/dist/tool/genie.js augment paraphrase1.tsv $srcdir/test/data/en-US/synthetic.tsv --thingpedia $srcdir/test/data/en-US/thingpedia.tt \
+node $srcdir/dist/tool/genie.js augment $srcdir/test/data/en-US/augment-input.tsv $srcdir/test/data/en-US/synthetic.tsv --thingpedia $srcdir/test/data/en-US/thingpedia.tt \
   --param-locale en --parameter-datasets $srcdir/test/data/en-US/parameter-datasets.tsv \
   -o everything.tsv \
   --quoted-fraction 0.1 \
   --synthetic-expand-factor 3
 node $srcdir/dist/tool/genie.js requote ./everything.tsv --output ./everything-req.tsv --mode replace
+#cp everything-req.tsv $srcdir/test/data/en-US/expected-everything-req.tsv
 diff -u $srcdir/test/data/en-US/expected-everything-req.tsv everything-req.tsv
+#cp everything.tsv $srcdir/test/data/en-US/expected-everything.tsv
 diff -u $srcdir/test/data/en-US/expected-everything.tsv everything.tsv
 
-node $srcdir/dist/tool/genie.js augment paraphrase1.tsv $srcdir/test/data/en-US/synthetic.tsv --thingpedia $srcdir/test/data/en-US/thingpedia.tt \
+node $srcdir/dist/tool/genie.js augment $srcdir/test/data/en-US/augment-input.tsv $srcdir/test/data/en-US/synthetic.tsv --thingpedia $srcdir/test/data/en-US/thingpedia.tt \
   --param-locale en --parameter-datasets $srcdir/test/data/en-US/parameter-datasets.tsv \
   -o everything-nonrequotable.tsv \
   --quoted-fraction 0.1 \
   --synthetic-expand-factor 3 \
   --no-requotable
+#cp everything-nonrequotable.tsv $srcdir/test/data/en-US/expected-everything-nonrequotable.tsv
 diff -u $srcdir/test/data/en-US/expected-everything-nonrequotable.tsv everything-nonrequotable.tsv
 
 # and split it in various ways

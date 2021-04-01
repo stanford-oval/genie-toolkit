@@ -46,8 +46,6 @@ export default async function worker(args : any, shard : string) {
         paraphrasingExpandFactor: args.quoted_paraphrasing_expand_factor,
         noQuoteExpandFactor: args.no_quote_paraphrasing_expand_factor,
         singleDeviceExpandFactor: args.single_device_expand_factor,
-        replaceLocations: args.replace_locations,
-        replaceNumbers: args.replace_numbers,
         cleanParameters: args.clean_parameters,
         requotable: args.requotable,
         samplingType: args.sampling_type,
