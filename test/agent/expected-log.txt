@@ -1132,7 +1132,7 @@ UT: @com.spotify.play_song(song="spotify:track:2zYzyRzz6pRmhPzyfMEC8s"^^com.spot
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(song="spotify:track:2zYzyRzz6pRmhPzyfMEC8s"^^com.spotify:song("Hello"))
 C: #[results=[]]
-C: #[error="Some other error occurred"];
+C: #[error=enum E_some_other_error];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Sorry, there was an unexpected error with your command. Please try again later or report this issue to my developers.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_error;
@@ -1907,6 +1907,90 @@ C: #[results=[]];
 A: Alright, I will get the cat picture every 60 min.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_rule_enable_success;
 #! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.notification("CatAPI");
+U: timer(base=$now, interval=1h) => @com.thecatapi.get()
+U: #[results=[
+U:   { id="e7e"^^com.thecatapi:cat, picture_url="https://25.media.tumblr.com/tumblr_m4ry1ocUb21r6jd7fo1_500.jpg"^^tt:picture, link="http://thecatapi.com/?id=e7e"^^tt:url }
+U: ]];
+UT: $dialogue @org.thingpedia.dialogue.transaction.notification("CatAPI");
+UT: timer(base=$now, interval=1h) => @com.thecatapi.get()
+UT: #[results=[
+UT:   { id="e7e"^^com.thecatapi:cat, picture_url="https://25.media.tumblr.com/tumblr_m4ry1ocUb21r6jd7fo1_500.jpg"^^tt:picture, link="http://thecatapi.com/?id=e7e"^^tt:url }
+UT: ]];
+C: $dialogue @org.thingpedia.dialogue.transaction.notification("CatAPI");
+C: timer(base=$now, interval=1h) => @com.thecatapi.get()
+C: #[results=[
+C:   { id="e7e"^^com.thecatapi:cat, picture_url="https://25.media.tumblr.com/tumblr_m4ry1ocUb21r6jd7fo1_500.jpg"^^tt:picture, link="http://thecatapi.com/?id=e7e"^^tt:url }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Notification from CatAPI: here is your cat picture.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.notification("Yelp");
+U: timer(base=$now, interval=1h) => @com.yelp.restaurant()
+U: #[results=[
+U:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles")], price=enum moderate, rating=4.5, reviewCount=1625, geo=new Location(37.445523, -122.1607073261) }
+U: ]];
+UT: $dialogue @org.thingpedia.dialogue.transaction.notification("Yelp");
+UT: timer(base=$now, interval=1h) => @com.yelp.restaurant()
+UT: #[results=[
+UT:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles")], price=enum moderate, rating=4.5, reviewCount=1625, geo=new Location(37.445523, -122.1607073261) }
+UT: ]];
+C: $dialogue @org.thingpedia.dialogue.transaction.notification("Yelp");
+C: timer(base=$now, interval=1h) => @com.yelp.restaurant()
+C: #[results=[
+C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles")], price=enum moderate, rating=4.5, reviewCount=1625, geo=new Location(37.445523, -122.1607073261) }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Notification from Yelp: I see Ramen Nagi. It is a moderate restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg].
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.notification("Yelp");
+U: timer(base=$now, interval=1h) => sort(rating desc of @com.yelp.restaurant())[1]
+U: #[results=[
+U:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles")], price=enum moderate, rating=4.5, reviewCount=1625, geo=new Location(37.445523, -122.1607073261) }
+U: ]];
+UT: $dialogue @org.thingpedia.dialogue.transaction.notification("Yelp");
+UT: timer(base=$now, interval=1h) => sort(rating desc of @com.yelp.restaurant())[1]
+UT: #[results=[
+UT:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles")], price=enum moderate, rating=4.5, reviewCount=1625, geo=new Location(37.445523, -122.1607073261) }
+UT: ]];
+C: $dialogue @org.thingpedia.dialogue.transaction.notification("Yelp");
+C: timer(base=$now, interval=1h) => sort(rating desc of @com.yelp.restaurant())[1]
+C: #[results=[
+C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles")], price=enum moderate, rating=4.5, reviewCount=1625, geo=new Location(37.445523, -122.1607073261) }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Notification from Yelp: the restaurant with the highest rating is Ramen Nagi. It is a moderate restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg].
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines

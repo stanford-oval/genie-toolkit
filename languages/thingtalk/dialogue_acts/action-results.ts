@@ -228,7 +228,7 @@ function makeActionErrorPhrase(ctx : ContextInfo, questions : C.ParamSlot[]) {
 
 function actionErrorChangeParam(ctx : ContextInfo, answer : Ast.Value|C.InputParamSlot) {
     const schema = ctx.currentFunction!;
-    const questions = ctx.state.dialogueActParam || [];
+    const questions = ctx.state.dialogueActParam as string[] || [];
     let ipslot : C.InputParamSlot;
     if (answer instanceof Ast.Value) {
         if (questions.length !== 1)

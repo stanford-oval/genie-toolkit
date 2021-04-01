@@ -145,7 +145,7 @@ export class ResultInfo {
             this.argMinMaxField = null;
             this.projection = null;
             if (state.dialogueAct === 'action_question')
-                this.projection = state.dialogueActParam;
+                this.projection = state.dialogueActParam as string[];
         }
         this.hasError = item.results.error !== null;
         this.hasEmptyResult = !this.hasStream && item.results.results.length === 0;
@@ -764,6 +764,13 @@ export function makeExpressionContextPhrase(loader : ThingpediaLoader,
                                             priority = 0) : SentenceGeneratorTypes.ContextPhrase {
     return { symbol, utterance, value, priority, key: keyfns.expressionKeyFn(value) };
 }
+export function makeValueContextPhrase(loader : ThingpediaLoader,
+                                       symbol : number,
+                                       value : Ast.Value,
+                                       utterance : SentenceGeneratorRuntime.ReplacedResult = loader.runtime.ReplacedResult.EMPTY,
+                                       priority = 0) : SentenceGeneratorTypes.ContextPhrase {
+    return { symbol, utterance, value, priority, key: keyfns.valueKeyFn(value) };
+}
 
 export interface AgentReplyOptions {
     end ?: boolean;
@@ -858,7 +865,7 @@ function actionShouldHaveResult(ctx : ContextInfo) : boolean {
 export function tagContextForAgent(ctx : ContextInfo) : number[] {
     const contextTable = ctx.contextTable;
 
-    switch (ctx.state.dialogueAct){
+    switch (ctx.state.dialogueAct) {
     case 'end':
         // no continuations are possible after explicit "end" (which means the user said
         // "no thanks" after the agent asked "is there anything else I can do for you")
@@ -880,6 +887,20 @@ export function tagContextForAgent(ctx : ContextInfo) : number[] {
     case 'learn_more':
         assert(ctx.results);
         return [contextTable.ctx_learn_more];
+
+    case 'notification':
+        assert(ctx.nextInfo === null);
+        assert(ctx.resultInfo, `expected result info`);
+
+        if (ctx.resultInfo.hasError)
+            return [contextTable.ctx_notification_error];
+
+        if (!ctx.resultInfo.isTable)
+            return [contextTable.ctx_action_notification];
+        else if (ctx.resultInfo.isList)
+            return [contextTable.ctx_list_notification];
+        else
+            return [contextTable.ctx_nonlist_notification];
 
     case 'execute':
     case 'ask_recommend':
@@ -957,7 +978,8 @@ export function tagContextForAgent(ctx : ContextInfo) : number[] {
 
 function ctxCanHaveRelatedQuestion(ctx : ContextInfo) : boolean {
     const currentStmt = ctx.current!.stmt;
-    assert(currentStmt.stream === null);
+    if (currentStmt.stream !== null)
+        return false;
     const currentTable = currentStmt.lastQuery;
     if (!currentTable)
         return false;
@@ -1249,6 +1271,13 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
     const phrases : SentenceGeneratorTypes.ContextPhrase[] = [];
     const describer = ctx.loader.describer;
 
+    if (ctx.state.dialogueAct === 'notification') {
+        const appName = ctx.state.dialogueActParam![0];
+        assert(appName instanceof Ast.StringValue);
+        phrases.push(makeValueContextPhrase(ctx.loader,
+            contextTable.ctx_notification_app_name, appName, describer.describeArg(appName)!));
+    }
+
     // make phrases that describe the current and next action
     // these are used by the agent to form confirmations
     const current = ctx.current;
@@ -1306,6 +1335,9 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
         }
     }
 
+    if (ctx.state.dialogueAct === 'notification')
+        phrases.push(makeContextPhrase(contextTable.ctx_with_notification, ctx));
+
     if (ctx.isMultiDomain)
         phrases.push(makeContextPhrase(contextTable.ctx_multidomain, ctx));
 
@@ -1318,7 +1350,9 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
         if (ctx.resultInfo && ctx.resultInfo.isTable)
             phrases.push(makeContextPhrase(contextTable.ctx_without_action, ctx));
     }
-    if (!ctx.resultInfo || ctx.resultInfo.hasEmptyResult || ctx.resultInfo.hasStream)
+    if (!ctx.resultInfo || ctx.resultInfo.hasEmptyResult)
+        return phrases;
+    if (ctx.resultInfo.hasStream && ctx.state.dialogueAct !== 'notification')
         return phrases;
 
     assert(ctx.results && ctx.results.length > 0);

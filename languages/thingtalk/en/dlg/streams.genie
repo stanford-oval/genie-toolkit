@@ -23,7 +23,16 @@
 import { Ast, } from 'thingtalk';
 
 import * as C from '../../ast_manip';
+import * as S from '../../state_manip';
 import ThingpediaLoader from '../../load-thingpedia';
+
+notification_preamble : S.ContextInfo = {
+    ["notification from ${app}:"] : (ctx : ctx_with_notification, app : ctx_notification_app_name) => ctx,
+}
+
+notification_error_preamble : S.ContextInfo = {
+    ["${sorry} {there was an error in|an error occurred in} ${app}:"] : (sorry : sorry_preamble, ctx : ctx_with_notification, app : ctx_notification_app_name) => ctx,
+}
 
 add_separate_stream_to_query : Ast.Expression = {
     ['{send this to me|send it to me|i want to see this|i want this|send this} ${stream}']:

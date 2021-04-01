@@ -87,7 +87,7 @@ export default class InferenceStatementExecutor {
         return this._schemas.getSchemaAndNames(kind, ftype, fname);
     }
 
-    private async _mapResult(outputType : string|null, outputValue : Record<string, unknown>) {
+    async mapResult(outputType : string|null, outputValue : Record<string, unknown>) {
         const mappedResult : Record<string, Ast.Value> = {};
         if (outputType === null) {
             // fallback
@@ -95,7 +95,7 @@ export default class InferenceStatementExecutor {
                 const jsValue = outputValue[key];
                 mappedResult[key] = Ast.Value.fromJS(this._inferType(key, jsValue), jsValue);
             }
-            return mappedResult;
+            return new Ast.DialogueHistoryResultItem(null, mappedResult, outputValue);
         }
 
         if (outputType.indexOf('+') >= 0) {
@@ -112,7 +112,7 @@ export default class InferenceStatementExecutor {
             const value = outputValue[field];
             if (operator === 'count') {
                 mappedResult[field] = Ast.Value.fromJS(Type.Number, outputValue[field]);
-                return mappedResult;
+                return new Ast.DialogueHistoryResultItem(null, mappedResult, outputValue);
             }
 
             const schema = await this._outputTypeToSchema(outputType);
@@ -134,7 +134,7 @@ export default class InferenceStatementExecutor {
                     mappedResult[key] = Ast.Value.fromJS(type, value);
             }
         }
-        return mappedResult;
+        return new Ast.DialogueHistoryResultItem(null, mappedResult, outputValue);
     }
 
     private _mapCompound(prefix : string, schema : Ast.FunctionDef, object : Record<string, unknown>) {
@@ -154,6 +154,13 @@ export default class InferenceStatementExecutor {
         return new Ast.Value.Object(result);
     }
 
+    mapError(error : Error) : Ast.Value {
+        const err : ErrorWithCode = error;
+        if (typeof err.code === 'string') // error codes starting with E are reserved for system errors
+            return new Ast.Value.Enum(err.code);
+        return new Ast.Value.String(error.message);
+    }
+
     private async _iterateResults(app : AppExecutor,
                                   into : Ast.DialogueHistoryResultItem[],
                                   intoRaw : RawExecutionResult) : Promise<[boolean, string|undefined, string|undefined]> {
@@ -168,14 +175,13 @@ export default class InferenceStatementExecutor {
 
             if (value instanceof Error) {
                 const err : ErrorWithCode = value;
-                if (typeof err.code === 'string'
-                    && !err.code.startsWith('E')) // error codes starting with E are reserved for system errors
+                if (typeof err.code === 'string') // error codes starting with E are reserved for system errors
                     errorCode = err.code;
                 if (!errorMessage)
                     errorMessage = value.message;
             } else {
-                const mapped = await this._mapResult(value.outputType, value.outputValue);
-                into.push(new Ast.DialogueHistoryResultItem(null, mapped, value.outputValue));
+                const mapped = await this.mapResult(value.outputType, value.outputValue);
+                into.push(mapped);
                 intoRaw.push([value.outputType, value.outputValue]);
                 count ++;
             }

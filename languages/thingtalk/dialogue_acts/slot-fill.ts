@@ -107,8 +107,8 @@ function isSlotFillAnswerValidForQuestion(action : Ast.Invocation, questions : s
 }
 
 function preciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Invocation) {
-    const questions = ctx.state.dialogueActParam;
-    assert(questions);
+    const questions = ctx.state.dialogueActParam as string[];
+    assert(Array.isArray(questions) && questions.length > 0 && questions.every((q) => typeof q === 'string'));
     if (!isSlotFillAnswerValidForQuestion(answer, questions))
         return null;
     if (!C.isSameFunction(answer.schema!, ctx.nextFunction!))
@@ -135,8 +135,8 @@ function preciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Invocation) {
 }
 
 function impreciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Value|C.InputParamSlot) {
-    const questions = ctx.state.dialogueActParam;
-    assert(Array.isArray(questions));
+    const questions = ctx.state.dialogueActParam as string[];
+    assert(Array.isArray(questions) && questions.length > 0 && questions.every((q) => typeof q === 'string'));
     if (questions.length !== 1)
         return null;
 

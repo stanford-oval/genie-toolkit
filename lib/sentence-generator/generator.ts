@@ -151,6 +151,8 @@ const CONTEXT_KEY_NAME = '$context';
 interface FunctionTable<StateType> {
     answer ?: (state : StateType, value : unknown, contextTable : ContextTable) => StateType|null;
     context ?: ContextFunction<StateType>;
+    notification ?: (appName : string, program : unknown, result : unknown, contextTable : ContextTable) => StateType|null;
+    notifyError ?: (appName : string, program : unknown, error : unknown, contextTable : ContextTable) => StateType|null;
 
     [key : string] : ((...args : any[]) => any)|undefined;
 }

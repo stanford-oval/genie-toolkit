@@ -24,6 +24,9 @@ dialogueActs:
     # "end" is a terminal state, it has no continuations
     # (the agent replies with sys_goodbye which itself generates no user reply)
     - end
+
+    # pseudo state used to enter the dialogue state machine for notifications
+    - notification
   agent:
     # agent says hi back
     - sys_greet

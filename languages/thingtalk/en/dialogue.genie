@@ -100,6 +100,7 @@ context : S.ContextInfo = {
     ctx_with_result_noquestion,
     ctx_with_result_argminmax,
     ctx_without_projection,
+    ctx_with_notification,
     ctx_for_related_question,
 
     // phrases that describe the current context
@@ -131,6 +132,10 @@ context : S.ContextInfo = {
     ctx_learn_more,
     ctx_display_nonlist_result,
     ctx_rule_enable_success,
+    ctx_action_notification,
+    ctx_list_notification,
+    ctx_nonlist_notification,
+    ctx_notification_error,
 
     // agent states (used to continue the conversation with more user utterances)
     // these more or less map to the agent dialogue acts, except we don't distinguish
@@ -166,6 +171,9 @@ context : D.ThingpediaListProposal = {
 };
 context : C.ErrorMessage = {
     ctx_thingpedia_error_message
+};
+context : Ast.Value = {
+    ctx_notification_app_name
 };
 
 // map a concrete dialogue state (produced by the simulation or the neural network)
@@ -245,6 +253,25 @@ function answer(state : Ast.DialogueState, answer : Ast.Value, contextTable : Se
     }
 }
 
+// handle notifications
+function notification(appName : string, program : Ast.Program, result : Ast.DialogueHistoryResultItem) {
+    assert(program.statements.length === 1);
+    const stmt = program.statements[0];
+    assert(stmt instanceof Ast.ExpressionStatement);
+
+    return new Ast.DialogueState(null, S.POLICY_NAME, 'notification', [new Ast.Value.String(appName)],
+        [new Ast.DialogueHistoryItem(null, stmt, new Ast.DialogueHistoryResultList(null, [result], new Ast.NumberValue(1), false), 'confirmed')]);
+}
+
+function notifyError(appName : string, program : Ast.Program, error : Ast.Value) {
+    assert(program.statements.length === 1);
+    const stmt = program.statements[0];
+    assert(stmt instanceof Ast.ExpressionStatement);
+
+    return new Ast.DialogueState(null, S.POLICY_NAME, 'notification', [new Ast.Value.String(appName)],
+        [new Ast.DialogueHistoryItem(null, stmt, new Ast.DialogueHistoryResultList(null, [], new Ast.NumberValue(1), false, error), 'confirmed')]);
+}
+
 $agent : S.AgentReplyRecord = {
     !inference {
         ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
@@ -268,7 +295,7 @@ $agent : S.AgentReplyRecord = {
     // action results
     action_success_phrase;
     action:action_success_phrase anything_else_phrase => S.setEndBit(action, false);
-    action_error_phrase;
+    ctx:ctx_completed_action_error sorry_preamble phrase:action_error_phrase => phrase;
 
     // query results
     ctx:ctx_display_nonlist_result proposal:system_nonlist_result
@@ -309,6 +336,14 @@ $agent : S.AgentReplyRecord = {
 
     ["${preamble} I {will|am going to} ${stmt}"]: (ctx : ctx_rule_enable_success, preamble : generic_excitement2_phrase, stmt : ctx_current_statement)
         => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_rule_enable_success', null));
+
+    // notification
+    ctx:ctx_list_notification notification_preamble proposal:system_recommendation
+        => D.makeRecommendationReply(ctx, proposal);
+    ctx:ctx_nonlist_notification notification_preamble proposal:system_nonlist_result
+        => D.makeDisplayResultReply(ctx, proposal);
+    action_notification_phrase;
+    ctx:ctx_notification_error notification_error_preamble phrase:action_error_phrase => phrase;
 }
 
 $user : Ast.DialogueState = {

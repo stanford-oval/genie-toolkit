@@ -65,6 +65,9 @@ export function recommendationKeyFn(rec : Recommendation) {
 }
 
 function makeActionRecommendation(ctx : ContextInfo, action : Ast.Invocation) {
+    // we don't offer actions during recommendations
+    if (ctx.state.dialogueAct === 'notification')
+        return null;
     assert(action instanceof Ast.Invocation);
 
     const results = ctx.results;
@@ -179,6 +182,9 @@ function checkRecommendation(rec : Recommendation, info : SlotBag|null) {
 }
 
 function checkActionForRecommendation(rec : Recommendation, action : Ast.Invocation) {
+    // we don't offer actions during recommendations
+    if (rec.ctx.state.dialogueAct === 'notification')
+        return null;
     if (!rec.topResult.value.id)
         return null;
     const resultType = rec.topResult.value.id.getType();
