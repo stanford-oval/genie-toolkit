@@ -263,6 +263,8 @@ export class ContextInfo {
 
         // aggregation result (for count)
         aggregationCount : number|null;
+
+        is_monitorable : boolean;
     };
 
     constructor(loader : ThingpediaLoader,
@@ -308,7 +310,9 @@ export class ContextInfo {
             id2: null,
             resultLength: 0,
 
-            aggregationCount: null
+            aggregationCount: null,
+
+            is_monitorable: this.currentFunction ? this.currentFunction.is_monitorable : false
         };
         if (this.resultInfo) {
             this.key.idType = this.resultInfo.idType;
@@ -509,6 +513,16 @@ function addNewItem(ctx : ContextInfo,
     }
 
     return newState;
+}
+
+export function addNewStatement(ctx : ContextInfo,
+                                dialogueAct : string,
+                                dialogueActParam : string|null,
+                                confirm : 'accepted'|'proposed'|'confirmed',
+                                ...newExpression : Ast.Expression[]) {
+    const newItems = newExpression.map((expr) =>
+        new Ast.DialogueHistoryItem(null, new Ast.ExpressionStatement(null, expr), null, confirm));
+    return addNewItem(ctx, dialogueAct, dialogueActParam, confirm, ...newItems);
 }
 
 function makeSimpleState(ctx : ContextInfo,

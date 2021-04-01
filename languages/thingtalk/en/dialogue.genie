@@ -80,6 +80,7 @@ import './dlg/refinement.genie';
 import './dlg/related-questions.genie';
 import './dlg/search-questions.genie';
 import './dlg/slot-fill.genie';
+import './dlg/streams.genie';
 
 // declare contexts
 context : S.ContextInfo = {
@@ -453,4 +454,22 @@ $user : Ast.DialogueState = {
     ctx:ctx_sys_recommend_many questions:user_search_question_for_list with { functionName = ctx.currentFunction }
         => D.listProposalSearchQuestionReply(ctx, questions);
 
+    // streams
+    !nostream {
+        ctx:ctx_sys_action_success stream:add_separate_stream
+            => D.addStream(ctx, stream);
+        ctx:ctx_sys_recommend_one stream:add_separate_stream_to_query
+            => D.addStream(ctx, stream);
+        ctx:ctx_sys_recommend_many stream:add_separate_stream_to_query
+            => D.addStream(ctx, stream);
+        ctx:ctx_sys_display_result stream:add_separate_stream_to_query
+            => D.addStream(ctx, stream);
+
+        ctx:ctx_sys_recommend_one with { is_monitorable = true } make_monitor_phrase
+            => D.makeMonitor(ctx);
+        ctx:ctx_sys_recommend_many with { is_monitorable = true } make_monitor_phrase
+            => D.makeMonitor(ctx);
+        ctx:ctx_sys_display_result with { is_monitorable = true } make_monitor_phrase
+            => D.makeMonitor(ctx);
+    }
 }
