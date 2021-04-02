@@ -1,11 +1,29 @@
 # Installation Instructions
 
-Genie is hosted on [NPM](https://npmjs.com), and depends on nodejs >= 12.*.
+Genie is hosted on [NPM](https://npmjs.com), and depends on node >= 12.*.
+
+## Dependencies
+
+The following OS packages are required to build and run Genie:
+- node
+- a C++ compiler
+- GNU make
+- gettext
+- zip
+- GraphicsMagick (only for `genie assistant` command)
+- unzip (only for `genie assistant` command)
+
+The following commands can be used to install all the dependencies on common Linux distributions:
+
+```bash
+dnf -y install nodejs make gcc-c++ gettext GraphicsMagick zip unzip # Fedora/RHEL
+apt -y install nodejs build-essential make g++ gettext graphicsmagick zip unzip # Ubuntu/Debian
+```
 
 ## Option 1: "git" install
 
 This option is recommended for development and command-line usage. 
-You need a recent version of Yarn for this.
+You need a recent version of NPM for this.
 
 ```bash
 git clone https://github.com/stanford-oval/genie-toolkit
