@@ -829,7 +829,7 @@ A: >> expecting = null
 
 U: \t @com.yelp.restaurant()[1:3];
 
-A: I see Ramen Nagi, Evvia Estiatorio, and Oren's Hummus. Ramen Nagi is a restaurant rated 4.5 star, Evvia Estiatorio is rated 4.5 star, and Oren's Hummus is rated 4 star.
+A: I see Ramen Nagi, Evvia Estiatorio, and Oren's Hummus. Ramen Nagi is a moderate restaurant, Evvia Estiatorio is expensive, and Oren's Hummus is moderate.
 A: rdl: Ramen Nagi https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Evvia Estiatorio https://www.yelp.com/biz/evvia-estiatorio-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg
 A: rdl: Oren's Hummus https://www.yelp.com/biz/orens-hummus-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg

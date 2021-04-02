@@ -1906,7 +1906,7 @@ C:   { id="1vMgajRAI3lYwuCeGX58oQ"^^com.yelp:restaurant("Evvia Estiatorio"), ima
 C:   { id="KyU7XWDPclmZ3BpdIsd_0Q"^^com.yelp:restaurant("Oren's Hummus"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/vOWdAh4DKhMisL0K4YzXtA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/orens-hummus-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["mediterranean"^^com.yelp:restaurant_cuisine("Mediterranean"), "mideastern"^^com.yelp:restaurant_cuisine("Middle Eastern")], price=enum moderate, rating=4, reviewCount=2248, geo=new Location(37.445717, -122.162173), phone="+16507526492"^^tt:phone_number }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I see Ramen Nagi, Evvia Estiatorio, and Oren's Hummus. Ramen Nagi is a restaurant rated 4.5 star, Evvia Estiatorio is rated 4.5 star, and Oren's Hummus is rated 4 star.
+A: I see Ramen Nagi, Evvia Estiatorio, and Oren's Hummus. Ramen Nagi is a moderate restaurant, Evvia Estiatorio is expensive, and Oren's Hummus is moderate.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t [reviewCount] of @com.yelp.restaurant()[1 : 3];

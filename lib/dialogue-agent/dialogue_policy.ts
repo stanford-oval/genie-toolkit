@@ -31,7 +31,7 @@ import * as ThingTalkUtils from '../utils/thingtalk';
 import { EntityMap } from '../utils/entity-utils';
 
 const MAX_DEPTH = 7;
-const TARGET_PRUNING_SIZES = [50, 100];
+const TARGET_PRUNING_SIZES = [15, 50, 100];
 
 let TEMPLATE_FILE_PATH : string;
 try {
