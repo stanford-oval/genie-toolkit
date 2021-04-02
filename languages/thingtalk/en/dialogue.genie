@@ -44,6 +44,7 @@ keyfn = {
     D.Recommendation : D.recommendationKeyFn,
     D.ListProposal : D.listProposalKeyFn,
     D.ResultPhrase : D.resultPhraseKeyFn,
+    D.DirectAnswerPhrase : D.directAnswerPhraseKeyFn,
     D.UserSearchQuestionForList : D.userSearchQuestionForListKeyFn,
     D.PreciseSearchQuestionAnswer : D.preciseSearchQuestionAnswerKeyFn,
     D.NegativeProposalReply : D.negativeProposalReplyKeyFn,

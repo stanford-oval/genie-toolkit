@@ -74,6 +74,40 @@ result_name_list : D.NameList = {
     },
 }
 
+direct_answer_phrase : D.DirectAnswerPhrase = {
+    ["${name} is a ${info[plural=one]}"]: (ctx: ctx_with_result, name: constant_name<type=ctx.idType>, info: result_info_phrase)
+        => D.checkDirectAnswerPhrase(info, name),
+
+    // to support Xkcd (which uses a numeric "ID" property), we allow any type of constant
+    ?inference ["${name} is a ${info[plural=one]}"]: (ctx: ctx_with_result, name: constant_Any<type=ctx.idType>, info: result_info_phrase)
+        => D.checkDirectAnswerPhrase(info, name),
+
+    // short answers to a single question
+    ["${name} ${filter[plural=one]}", priority=0.1]: (ctx: ctx_with_result, name: constant_name<type=ctx.idType>, filter:avp_filter<functionName = ctx.currentFunction>)
+        => D.makeFilterStyleDirectAnswerPhrase(ctx, name, filter),
+    ["${name} is ${filter[plural=one]}", priority=0.1]: (ctx: ctx_with_result, name: constant_name<type=ctx.idType>, filter:pvp_filter<functionName = ctx.currentFunction>)
+        => D.makeFilterStyleDirectAnswerPhrase(ctx, name, filter),
+    ["${name} is ${filter[plural=one]}", priority=0.1]: (ctx: ctx_with_result, name: constant_name<type=ctx.idType>, filter:apv_filter<functionName = ctx.currentFunction>)
+        => D.makeFilterStyleDirectAnswerPhrase(ctx, name, filter),
+    ["${name} has ${filter[plural=one]}", priority=0.1]: (ctx: ctx_with_result, name: constant_name<type=ctx.idType>, filter:npp_filter<functionName = ctx.currentFunction>)
+        => D.makeFilterStyleDirectAnswerPhrase(ctx, name, filter),
+}
+
+// note: we need to make new non-terminals for these, it is not enough to use constraints
+// because direct_answer_phrase becomes too big at inference
+direct_answer_phrase_0 : D.DirectAnswerPhrase = {
+    direct_answer_phrase with { index = 0 };
+}
+direct_answer_phrase_1 : D.DirectAnswerPhrase = {
+    direct_answer_phrase with { index = 1 };
+}
+direct_answer_phrase_2 : D.DirectAnswerPhrase = {
+    direct_answer_phrase with { index = 2 };
+}
+direct_answer_phrase_3 : D.DirectAnswerPhrase = {
+    direct_answer_phrase with { index = 3 };
+}
+
 // a noun phrase of the form "the X is ... and the Y is ..."
 // used to answer questions, and to add extra information after recommendations & action results
 direct_result_info_phrase : D.ResultPhrase = {

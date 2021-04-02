@@ -162,9 +162,11 @@ const TEST_CASES = [
     [{
         status: {
             text: '{sunny|bright}',
-            value: 'sunny'
+            value: {
+                inner: 'sunny'
+            }
         },
-        $root: `{it is \${status} today | \${status:select:
+        $root: `{it is \${status} today | \${status.inner:select:
             sunny{
                 the sun is shining today
             }
