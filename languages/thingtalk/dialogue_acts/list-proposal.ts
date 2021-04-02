@@ -29,6 +29,7 @@ import ThingpediaLoader from '../load-thingpedia';
 import {
     AgentReplyOptions,
     ContextInfo,
+    NameList,
     makeAgentReply,
     makeSimpleState,
     addActionParam,
@@ -51,24 +52,6 @@ import {
 import {
     DirectAnswerPhrase
 } from './results';
-
-export interface NameList {
-    ctx : ContextInfo;
-    results : Ast.DialogueHistoryResultItem[];
-}
-
-export function nameListKeyFn(list : NameList) {
-    const schema = list.ctx.currentFunction!;
-    return {
-        functionName: schema.qualifiedName,
-        idType: schema.getArgType('id')!,
-        length: list.results.length,
-
-        id0: list.ctx.key.id0,
-        id1: list.ctx.key.id1,
-        id2: list.ctx.key.id2,
-    };
-}
 
 export type ListProposal = [Ast.DialogueHistoryResultItem[], SlotBag|null, Ast.Invocation|null, boolean];
 

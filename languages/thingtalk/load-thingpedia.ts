@@ -213,6 +213,10 @@ export default class ThingpediaLoader {
         return this._ttUtils;
     }
 
+    get locale() {
+        return this._langPack.locale;
+    }
+
     get flags() {
         return this._options.flags;
     }

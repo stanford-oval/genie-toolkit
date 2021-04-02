@@ -30,6 +30,7 @@ import {
     ReplacedResult,
     ReplacedConcatenation,
     ReplacedChoice,
+    ReplacedList,
 } from '../utils/template-string';
 export {
     Phrase,
@@ -40,6 +41,7 @@ export {
     ReplacedResult,
     ReplacedConcatenation,
     ReplacedChoice,
+    ReplacedList,
 };
 
 export { importGenie as import } from './compiler';

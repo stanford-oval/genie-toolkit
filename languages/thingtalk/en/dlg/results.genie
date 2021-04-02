@@ -29,51 +29,7 @@ import * as S from '../../state_manip';
 import { SlotBag } from '../../slot_bag';
 import ThingpediaLoader from '../../load-thingpedia';
 
-// names of objects in the result
-
-result_name_pair : D.NameList = {
-    ["${n1}, ${n2}"] : (ctx : ctx_with_result, n1 : constant_name<value = ctx.id0>, n2 : constant_name<value = ctx.id1>) => {
-        const results = ctx.results;
-        assert(results && results.length >= 2);
-        assert(ctx.resultInfo!.idType !== null);
-
-        const r1 = results[0];
-        const r2 = results[1];
-        if (!r1.value.id.equals(n1)) // can happen if the types are different but the value is the same
-            return null;
-        if (!r2.value.id.equals(n2))
-            return null;
-        return { ctx, results: results.slice(0, 2) };
-    },
-}
-
-result_name_list : D.NameList = {
-    ["${n1} {and|or} ${n2}", priority=2] : (ctx : ctx_with_result, n1 : constant_name<value = ctx.id0>, n2 : constant_name<value = ctx.id1>) => {
-        const results = ctx.results;
-        assert(results && results.length >= 2);
-        assert(ctx.resultInfo!.idType !== null);
-
-        const r1 = results[0];
-        const r2 = results[1];
-        if (!r1.value.id.equals(n1))
-            return null;
-        if (!r2.value.id.equals(n2))
-            return null;
-        return { ctx, results: results.slice(0, 2) };
-    },
-
-    ["${pair} {and|or} ${n3}", priority=3] : (pair : result_name_pair, n3:constant_name<value = pair.id2>) => {
-        const ctx = pair.ctx;
-        const results = ctx.results;
-        assert(results && results.length >= 3);
-        assert(ctx.resultInfo!.idType !== null);
-        const r3 = results[2];
-        if (!r3.value.id.equals(n3))
-            return null;
-        return { ctx, results: results.slice(0, 3) };
-    },
-}
-
+// a phrase that talks about the result by name
 direct_answer_phrase : D.DirectAnswerPhrase = {
     ["${name} is a ${info[plural=one]}"]: (ctx: ctx_with_result, name: constant_name<type=ctx.idType>, info: result_info_phrase)
         => D.checkDirectAnswerPhrase(info, name),

@@ -236,7 +236,7 @@ C:   { id="iX8o07wSfvhe1laJhUzsFA"^^com.yelp:restaurant("The Cambridge Chop Hous
 C:   { id="btRAfitquaXgeB-2vuWxNQ"^^com.yelp:restaurant("The Free Press"), image_url="https://s3-media4.fl.yelpcdn.com/bphoto/Oq3r_QuneatEOt-poxpGuQ/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/the-free-press-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["british"^^com.yelp:restaurant_cuisine("British")], price=enum expensive, rating=4.5, reviewCount=35, geo=new Location(52.204808195527, 0.13039591109936), phone="+441223368337"^^tt:phone_number }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I see Evvia Estiatorio, NOLA Restaurant & Bar and Tamarine Restaurant. They're expensive restaurants.
+A: I see Evvia Estiatorio, NOLA Restaurant & Bar, and Tamarine Restaurant. They're expensive restaurants.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
@@ -616,7 +616,7 @@ C:   { id="pLqiFFz1JScp8wMMyXcx-w"^^com.yelp:restaurant("Terún"), image_url="ht
 C:   { id="OZI4rK9s0xTwg2PdTRgmcw"^^com.yelp:restaurant("Aromi - Cambridge"), image_url="https://s3-media1.fl.yelpcdn.com/bphoto/eS-F_RSo1UyOumExtszsGA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/aromi-cambridge-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["italian"^^com.yelp:restaurant_cuisine("Italian"), "cafes"^^com.yelp:restaurant_cuisine("Cafes"), "delis"^^com.yelp:restaurant_cuisine("Delis")], price=enum cheap, rating=4, reviewCount=30, geo=new Location(52.2042405, 0.1187084), phone="+441223300117"^^tt:phone_number }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I see Patxi's Pizza, Cafe Borrone and Osteria Toscana. They're moderate restaurants with Italian food.
+A: I see Patxi's Pizza, Cafe Borrone, and Osteria Toscana. They're moderate restaurants with Italian food.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -676,7 +676,7 @@ C:   { id="pLqiFFz1JScp8wMMyXcx-w"^^com.yelp:restaurant("Terún"), image_url="ht
 C:   { id="OZI4rK9s0xTwg2PdTRgmcw"^^com.yelp:restaurant("Aromi - Cambridge"), image_url="https://s3-media1.fl.yelpcdn.com/bphoto/eS-F_RSo1UyOumExtszsGA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/aromi-cambridge-cambridge?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["italian"^^com.yelp:restaurant_cuisine("Italian"), "cafes"^^com.yelp:restaurant_cuisine("Cafes"), "delis"^^com.yelp:restaurant_cuisine("Delis")], price=enum cheap, rating=4, reviewCount=30, geo=new Location(52.2042405, 0.1187084), phone="+441223300117"^^tt:phone_number }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I see Patxi's Pizza, Cafe Borrone and Osteria Toscana. They're moderate restaurants with Italian food.
+A: I see Patxi's Pizza, Cafe Borrone, and Osteria Toscana. They're moderate restaurants with Italian food.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
@@ -1216,7 +1216,7 @@ C:   { id="spotify:track:0VjIjW4GlUZAMYd2vXMi3b"^^com.spotify:song("Blinding Lig
 C:   { id="spotify:track:7eJMfftS33KTjuF7lTsMCx"^^com.spotify:song("death bed (coffee for your head)"), artists=["spotify:artist:6bmlMHgSheBauioMgKv2tn"^^com.spotify:artist("Powfu"), "spotify:artist:35l9BRT7MXmM8bv2WDQiyB"^^com.spotify:artist("beabadoobee")], album="spotify:album:2p9gK2BcdrloHNJwarc9gc"^^com.spotify:album("death bed (coffee for your head)"), genres=[], release_date=new Date("2020-02-08T00:00:00.000Z"), popularity=95, energy=43, danceability=72 }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I see ROCKSTAR (feat. Roddy Ricch), Blinding Lights and death bed (coffee for your head). ROCKSTAR (feat. Roddy Ricch) is a song released on April 16, 2020, Blinding Lights is released on March 19, 2020, and death bed (coffee for your head) is released on February 7, 2020.
+A: I see ROCKSTAR (feat. Roddy Ricch), Blinding Lights, and death bed (coffee for your head). ROCKSTAR (feat. Roddy Ricch) is a song released on April 16, 2020, Blinding Lights is released on March 19, 2020, and death bed (coffee for your head) is released on February 7, 2020.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -1906,7 +1906,7 @@ C:   { id="1vMgajRAI3lYwuCeGX58oQ"^^com.yelp:restaurant("Evvia Estiatorio"), ima
 C:   { id="KyU7XWDPclmZ3BpdIsd_0Q"^^com.yelp:restaurant("Oren's Hummus"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/vOWdAh4DKhMisL0K4YzXtA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/orens-hummus-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["mediterranean"^^com.yelp:restaurant_cuisine("Mediterranean"), "mideastern"^^com.yelp:restaurant_cuisine("Middle Eastern")], price=enum moderate, rating=4, reviewCount=2248, geo=new Location(37.445717, -122.162173), phone="+16507526492"^^tt:phone_number }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I see Ramen Nagi, Evvia Estiatorio and Oren's Hummus. Ramen Nagi is a restaurant rated 4.5 star, Evvia Estiatorio is rated 4.5 star, and Oren's Hummus is rated 4 star.
+A: I see Ramen Nagi, Evvia Estiatorio, and Oren's Hummus. Ramen Nagi is a restaurant rated 4.5 star, Evvia Estiatorio is rated 4.5 star, and Oren's Hummus is rated 4 star.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t [reviewCount] of @com.yelp.restaurant()[1 : 3];
