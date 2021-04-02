@@ -41,6 +41,7 @@ import * as ParserClient from '../lib/prediction/parserclient';
 import { readAllLines } from './lib/argutils';
 import MultiJSONDatabase from './lib/multi_json_database';
 import { PredictionResult } from '../lib/prediction/parserclient';
+import { I18n } from '../lib';
 
 export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('simulate-dialogs', {
@@ -87,6 +88,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: `The URL of the natural language server to parse user utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.
                If provided, will be used to parse the last user utterance instead of reading the parse from input_file.`
     });
+    parser.add_argument('--nlg-server', {
+        required: false,
+        help: `The URL of the natural language generation server to generate agent utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.
+               If provided, will be used to generate the last agent utterance according to the gold policy.`
+    });
     parser.add_argument('--output-mistakes-only', {
         action: 'store_true',
         help: 'If set and --nlu-server is provided, will only output partial dialogues where a parsing mistake happens.',
@@ -105,14 +111,17 @@ class SimulatorStream extends Stream.Transform {
     private _schemas : ThingTalk.SchemaRetriever;
     private _dialoguePolicy : DialoguePolicy;
     private _parser : ParserClient.ParserClient | null;
+    private _nlg : ParserClient.ParserClient | null;
     private _tpClient : Tp.BaseClient;
     private _outputMistakesOnly : boolean;
     private _locale : string;
+    private _langPack : I18n.LanguagePack;
 
     constructor(policy : DialoguePolicy,
                 simulator : ThingTalkUtils.Simulator,
                 schemas : ThingTalk.SchemaRetriever,
                 parser : ParserClient.ParserClient | null,
+                nlg : ParserClient.ParserClient | null,
                 tpClient : Tp.BaseClient,
                 outputMistakesOnly : boolean,
                 locale : string) {
@@ -122,23 +131,51 @@ class SimulatorStream extends Stream.Transform {
         this._simulator = simulator;
         this._schemas = schemas;
         this._parser = parser;
+        this._nlg = nlg;
         this._tpClient = tpClient;
         this._outputMistakesOnly = outputMistakesOnly;
         this._locale = locale;
+        this._langPack = I18n.get(locale);
     }
 
     async _run(dlg : ParsedDialogue) : Promise<void> {
-        console.log('dialogue = ', dlg.id);
+        // console.log('dialogue = ', dlg.id);
+        // console.log('dialogue turns = ', dlg.length);
         const lastTurn = dlg[dlg.length-1];
 
         let state = null;
         let contextCode, contextEntities;
         if (lastTurn.context) {
-            const context = await ThingTalkUtils.parse(lastTurn.context, this._schemas);
+            let context;
+            try {
+                context = await ThingTalkUtils.parse(lastTurn.context, this._schemas);
+            } catch(error) {
+                console.log('Error while parsing the context. skipping.');
+                return;
+            }
             assert(context instanceof ThingTalk.Ast.DialogueState);
-            const agentTarget = await ThingTalkUtils.parse(lastTurn.agent_target!, this._schemas);
+            let agentTarget;
+            try {
+                agentTarget = await ThingTalkUtils.parse(lastTurn.agent_target!, this._schemas);
+            } catch(error) {
+                console.log('Error while parsing the agent target. skipping.');
+                return;
+            }
             assert(agentTarget instanceof ThingTalk.Ast.DialogueState);
             state = ThingTalkUtils.computeNewState(context, agentTarget, 'agent');
+            // console.log('agentTarget = ', agentTarget);
+            if (this._nlg) {
+                [contextCode, contextEntities] = ThingTalkUtils.serializeNormalized(ThingTalkUtils.prepareContextForPrediction(state, 'agent'));
+                const [targetAct,] = ThingTalkUtils.serializeNormalized(agentTarget, contextEntities);
+                const nlg_result = await this._nlg.generateUtterance(contextCode, contextEntities, targetAct);
+                // console.log('contextCode = ', contextCode);
+                // console.log('targetAct = ', targetAct);
+                // console.log('nlg_result = ', nlg_result);
+                const nlg_utterance = this._langPack.postprocessNLG(nlg_result[0].answer, contextEntities, this._simulator);
+                console.log(dlg.id, ':', nlg_utterance);
+                lastTurn.agent = nlg_utterance;
+
+            }
             [contextCode, contextEntities] = ThingTalkUtils.serializeNormalized(ThingTalkUtils.prepareContextForPrediction(state, 'user'));
         } else {
             contextCode = ['null'];
@@ -304,13 +341,18 @@ export async function execute(args : any) {
         parser = ParserClient.get(args.nlu_server, args.locale);
         await parser.start();
     }
+    let nlg = null;
+    if (args.nlg_server){
+        nlg = ParserClient.get(args.nlg_server, args.locale);
+        await nlg.start();
+    }
 
     if (args.all_turns) {
         await StreamUtils.waitFinish(
             readAllLines(args.input_file, '====')
             .pipe(new DialogueParser())
             .pipe(new DialogueToPartialDialoguesStream()) // convert each dialogues to many partial dialogues
-            .pipe(new SimulatorStream(policy, simulator, schemas, parser, tpClient, args.output_mistakes_only, args.locale))
+            .pipe(new SimulatorStream(policy, simulator, schemas, parser, nlg, tpClient, args.output_mistakes_only, args.locale))
             .pipe(new DialogueSerializer())
             .pipe(args.output)
         );
@@ -318,7 +360,7 @@ export async function execute(args : any) {
         await StreamUtils.waitFinish(
             readAllLines(args.input_file, '====')
             .pipe(new DialogueParser())
-            .pipe(new SimulatorStream(policy, simulator, schemas, parser, tpClient, args.output_mistakes_only, args.locale))
+            .pipe(new SimulatorStream(policy, simulator, schemas, parser, nlg, tpClient, args.output_mistakes_only, args.locale))
             .pipe(new DialogueSerializer())
             .pipe(args.output)
         );
@@ -327,4 +369,7 @@ export async function execute(args : any) {
 
     if (parser !== null)
         await parser.stop();
+    
+    if (nlg !== null)
+        await nlg?.stop();
 }
