@@ -61,6 +61,25 @@ function makeThingpediaActionSuccessPhrase(ctx : ContextInfo, info : SlotBag) {
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_success', null), info);
 }
 
+function checkSelector(ctxSelector : Ast.DeviceSelector, actionSelector : Ast.DeviceSelector) : boolean {
+    if (actionSelector.all !== ctxSelector.all)
+        return false;
+
+    const deviceName = ctxSelector.attributes.find((ip) => ip.name === 'name')?.value;
+
+    if (actionSelector.attributes.length > 0 &&
+        actionSelector.attributes[0].name === 'name') {
+        /* we have a device name */
+        assert(actionSelector.attributes[0].value instanceof Ast.StringValue);
+        const actionDeviceName = actionSelector.attributes[0].value;
+
+        if (!deviceName || !actionDeviceName.equals(deviceName))
+            return false;
+    }
+
+    return true;
+}
+
 function makeCompleteActionSuccessPhrase(ctx : ContextInfo, action : Ast.Expression, info : SlotBag|null) {
     const results = ctx.results;
     assert(results);
@@ -74,7 +93,9 @@ function makeCompleteActionSuccessPhrase(ctx : ContextInfo, action : Ast.Express
         last = action;
     assert(last instanceof Ast.InvocationExpression);
     const ctxInvocation = C.getInvocation(ctx.current!);
-    if (!C.isSameFunction(ctxInvocation.schema!, action.schema!))
+    if (!C.isSameFunction(ctxInvocation.schema!, last.invocation.schema!))
+        return null;
+    if (!checkSelector(ctxInvocation.selector, last.invocation.selector))
         return null;
 
     for (const newParam of last.invocation.in_params) {

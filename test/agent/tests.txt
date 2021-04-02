@@ -867,3 +867,14 @@ U: #[results=[{ id = "vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi")
 A: Notification from Yelp: the restaurant with the highest rating is Ramen Nagi. It is a moderate restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg].
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; timer ( base = $now , interval = DURATION_0 ) => sort ( rating desc of @com.yelp . restaurant ( ) ) [ 1 ] #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , image_url = PICTURE_0 , link = URL_0 , cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_1 ] , price = enum moderate , rating = NUMBER_0 , reviewCount = NUMBER_1 , geo = LOCATION_0 } ] ] ; // {"DURATION_0":{"unit":"h","value":1},"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"PICTURE_0":"https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg","URL_0":"https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"ramen","display":"Ramen"},"GENERIC_ENTITY_com.yelp:restaurant_cuisine_1":{"value":"noodles","display":"Noodles"},"NUMBER_0":4.5,"NUMBER_1":1625,"LOCATION_0":{"latitude":37.445523,"longitude":-122.1607073261,"display":null}}
 A: >> expecting = null
+
+====
+# 59-notifications-from-actions
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.notification("Lightbulb");
+U: timer(interval=1h, base=$now) => @org.thingpedia.iot.light-bulb(id="io.home-assistant/lights.living_room_1"^^tt:device_id("Living Room")).set_power(power=enum off)
+U: #[results=[{ power = enum off }]];
+
+A: Notification from Lightbulb: I turned off your Living Room light bulb.
+A: >> context = null // {}
+A: >> expecting = null
