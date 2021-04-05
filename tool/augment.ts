@@ -164,7 +164,8 @@ export function initArgparse(subparsers : argparse.SubParser) {
     });
     parser.add_argument('--parallelize', {
         type: Number,
-        help: 'Run N threads in parallel (requires --experimental-worker support)',
+        help: 'Run N threads in parallel (requires --experimental-worker support)' +
+            ' Please note that for N>1 the output does not align with input sentences anymore',
         metavar: 'N',
         default: 1,
     });

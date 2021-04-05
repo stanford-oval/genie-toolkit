@@ -280,7 +280,7 @@ function createSentence(sentence, contextEntities, spansBySentencePos) {
 }
 
 
-function getProgSpans(program) {
+function getProgSpans(program, mode) {
     let in_string = false;
     let begin_index = null;
     let end_index = null;
@@ -298,7 +298,8 @@ function getProgSpans(program) {
                 let prog_span = {begin: begin_index, end: end_index, span_type:span_type};
                 allProgSpans.push(prog_span);
             }
-        } else if (!in_string && doReplaceNumbers(token)){
+        } else if ((!in_string && doReplaceNumbers(token)) ||
+            (!in_string && mode === 'qpis' && ENTITY_MATCH_REGEX.test(token))) {
             begin_index = i;
             end_index = begin_index + 1;
             span_type = findSpanType(program, begin_index, end_index, false);
@@ -317,14 +318,14 @@ function getProgSpans(program) {
 }
 
 
-function findSpanPositions(id, sentence, program, handle_heuristics, param_locale) {
+function findSpanPositions(id, sentence, program, handle_heuristics, param_locale, mode) {
     const spansBySentencePos = [];
     const spansByProgramPos = [];
 
     let ignoredProgramSpans = [];
 
     // allProgSpans is sorted by length (longest first)
-    const allProgSpans = getProgSpans(program);
+    const allProgSpans = getProgSpans(program, mode);
 
     for (const progSpan of allProgSpans) {
         let [begin_index, end_index, span_type] = [progSpan.begin, progSpan.end, progSpan.span_type];
@@ -334,8 +335,9 @@ function findSpanPositions(id, sentence, program, handle_heuristics, param_local
         // (this is mostly useful for parameters that used twice, which happens in some dialogue dataset)
         let [idx, parsedWithArticle] = findSubstring(sentence, substring, spansBySentencePos, false /* allow overlapping */, handle_heuristics, param_locale);
         if (idx < 0) {
-            // skip requoting "small" numbers that do not exist in the sentence
-            if (SMALL_NUMBER_REGEX.test(substring)) {
+            if (SMALL_NUMBER_REGEX.test(substring) ||  // skip requoting "small" numbers that do not exist in the sentence
+                (mode === 'qpis' && ENTITY_MATCH_REGEX.test(substring)) // skip qpis ing entities that do not exist in the sentence
+            ) {
                 ignoredProgramSpans.push({begin: begin_index, end: end_index, type: span_type});
                 continue;
             } else {
@@ -395,12 +397,12 @@ function requoteSentence(id, context, sentence, program, mode, handle_heuristics
     let contextEntities = new Set;
     if (context) {
         for (let token of context.split(' ')) {
-            if (/^[A-Z].*_[0-9]+/.test(token)) // match strings like QUOTED_STRING_0, NUMBER_0 and GENERIC_ENTITY_uk.ac.cam.multiwoz.Hotel:Hotel_0
+            if (/^[A-Z].*?_\d+/.test(token)) // match strings like QUOTED_STRING_0, NUMBER_0 and GENERIC_ENTITY_uk.ac.cam.multiwoz.Hotel:Hotel_0
                 contextEntities.add(token);
         }
     }
 
-    let [spansBySentencePos, spansByProgramPos, ignoredProgramSpans] = findSpanPositions(id, sentence, program, handle_heuristics, param_locale);
+    let [spansBySentencePos, spansByProgramPos, ignoredProgramSpans] = findSpanPositions(id, sentence, program, handle_heuristics, param_locale, mode);
 
     if (spansBySentencePos.length === 0)
         return [sentence.join(' '), program.join(' ')];
