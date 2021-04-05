@@ -298,10 +298,8 @@ function getProgSpans(program, mode) {
                 let prog_span = {begin: begin_index, end: end_index, span_type:span_type};
                 allProgSpans.push(prog_span);
             }
-        } else if (
-            (!in_string && doReplaceNumbers(token)) ||
-            (!in_string && mode === 'qpis' && ENTITY_MATCH_REGEX.test(token))
-        ) {
+        } else if ((!in_string && doReplaceNumbers(token)) ||
+            (!in_string && mode === 'qpis' && ENTITY_MATCH_REGEX.test(token))) {
             begin_index = i;
             end_index = begin_index + 1;
             span_type = findSpanType(program, begin_index, end_index, false);
@@ -337,8 +335,7 @@ function findSpanPositions(id, sentence, program, handle_heuristics, param_local
         // (this is mostly useful for parameters that used twice, which happens in some dialogue dataset)
         let [idx, parsedWithArticle] = findSubstring(sentence, substring, spansBySentencePos, false /* allow overlapping */, handle_heuristics, param_locale);
         if (idx < 0) {
-            if (
-                SMALL_NUMBER_REGEX.test(substring) ||  // skip requoting "small" numbers that do not exist in the sentence
+            if (SMALL_NUMBER_REGEX.test(substring) ||  // skip requoting "small" numbers that do not exist in the sentence
                 (mode === 'qpis' && ENTITY_MATCH_REGEX.test(substring)) // skip qpis ing entities that do not exist in the sentence
             ) {
                 ignoredProgramSpans.push({begin: begin_index, end: end_index, type: span_type});

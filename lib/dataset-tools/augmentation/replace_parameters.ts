@@ -754,11 +754,9 @@ export default class ParameterReplacer {
             }
 
             if (!type.isNumeric()) {
-                if (
-                    (this._paramLangPack.isGoodPersonName(sampled)) ||
-                    (this._paramLangPack.isGoodUserName(sampled) && typeValue && typeValue === "tt:username")
-                )
-                    return { sentenceValue: sampled, programValue: sampled };
+                if ((this._paramLangPack.isGoodPersonName(sampled)) ||
+                    (this._paramLangPack.isGoodUserName(sampled) && typeValue && typeValue === "tt:username"))
+                        return { sentenceValue: sampled, programValue: sampled };
                 if (words.some((w) => !this._paramLangPack.isGoodWord(w)) || words.length > this._maxSpanLength) {
                     attempts -= 1;
                     continue;
