@@ -39,11 +39,12 @@ await $loader.init();
 // Declare key functions for contextual stuff
 keyfn = {
     S.ContextInfo : S.contextKeyFn,
+    S.NameList : S.nameListKeyFn,
     D.ActionSuccessPhraseWithResult : D.actionSuccessPhraseWithResultKeyFn,
-    D.NameList : D.nameListKeyFn,
     D.Recommendation : D.recommendationKeyFn,
     D.ListProposal : D.listProposalKeyFn,
     D.ResultPhrase : D.resultPhraseKeyFn,
+    D.DirectAnswerPhrase : D.directAnswerPhraseKeyFn,
     D.UserSearchQuestionForList : D.userSearchQuestionForListKeyFn,
     D.PreciseSearchQuestionAnswer : D.preciseSearchQuestionAnswerKeyFn,
     D.NegativeProposalReply : D.negativeProposalReplyKeyFn,
@@ -171,6 +172,9 @@ context : D.ThingpediaListProposal = {
 };
 context : C.ErrorMessage = {
     ctx_thingpedia_error_message
+};
+context : S.NameList = {
+    ctx_result_name_list
 };
 context : Ast.Value = {
     ctx_notification_app_name

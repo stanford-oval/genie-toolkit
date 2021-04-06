@@ -1250,6 +1250,71 @@ export function makeResultContextPhrase(ctx : ContextInfo,
     return output;
 }
 
+export interface NameList {
+    ctx : ContextInfo;
+    results : Ast.DialogueHistoryResultItem[];
+}
+
+export function nameListKeyFn(list : NameList) {
+    const schema = list.ctx.currentFunction!;
+    return {
+        functionName: schema.qualifiedName,
+        idType: schema.getArgType('id')!,
+        length: list.results.length,
+
+        id0: list.ctx.key.id0,
+        id1: list.ctx.key.id1,
+        id2: list.ctx.key.id2,
+    };
+}
+
+function makeOneNameListContextPhrase(ctx : ContextInfo,
+                                      descriptions : SentenceGeneratorRuntime.ReplacedResult[],
+                                      length : number) {
+    const utterance = new ctx.loader.runtime.ReplacedList(descriptions.slice(0, length), ctx.loader.locale, undefined);
+    const value : NameList = { ctx, results: ctx.results!.slice(0, length) };
+    return {
+        symbol: ctx.contextTable.ctx_result_name_list,
+        utterance,
+        value,
+        priority: length === 2 || length === 3 ? length : 0,
+        key: nameListKeyFn(value)
+    };
+}
+
+export function makeNameListContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.ContextPhrase[] {
+    const describer = ctx.loader.describer;
+
+    const phrases : SentenceGeneratorTypes.ContextPhrase[] = [];
+
+    const descriptions : SentenceGeneratorRuntime.ReplacedResult[] = [];
+
+    const results = ctx.results!;
+    for (let index = 0; index < results.length; index++) {
+        const value = results[index].value.id;
+        if (!value)
+            break;
+        const description = describer.describeArg(value);
+        if (!description)
+            break;
+        descriptions.push(description);
+    }
+
+    if (descriptions.length <= 1)
+        return phrases;
+
+    // add a name list of size 2, one of size 3, and one that includes all
+    // names in the list
+    // the last one will be used to support arbitrary slices
+    if (descriptions.length > 2)
+        phrases.push(makeOneNameListContextPhrase(ctx, descriptions, 2));
+    if (descriptions.length > 3)
+        phrases.push(makeOneNameListContextPhrase(ctx, descriptions, 3));
+    phrases.push(makeOneNameListContextPhrase(ctx, descriptions, descriptions.length));
+
+    return phrases;
+}
+
 function getQuery(expr : Ast.Expression) : Ast.Expression|null {
     if (expr instanceof Ast.ChainExpression)
         return getQuery(expr.last);
@@ -1305,6 +1370,7 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
             if (results.length > 0) {
                 const topResult = results[0];
                 phrases.push(...makeResultContextPhrase(ctx, topResult, results));
+                phrases.push(...makeNameListContextPhrases(ctx));
             }
         }
     }

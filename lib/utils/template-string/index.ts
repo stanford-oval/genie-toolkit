@@ -669,6 +669,8 @@ export class ValueSelect implements Replaceable {
         const value = String(get(param.value, this.key));
         if (value in this.variants)
             return this.variants[value].replace(ctx);
+        else if ('_' in this.variants)
+            return this.variants['_'].replace(ctx);
         else
             return null;
     }

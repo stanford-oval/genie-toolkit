@@ -29,6 +29,7 @@ import ThingpediaLoader from '../load-thingpedia';
 import {
     AgentReplyOptions,
     ContextInfo,
+    NameList,
     makeAgentReply,
     makeSimpleState,
     addActionParam,
@@ -48,23 +49,9 @@ import {
 import {
     SlotBag
 } from '../slot_bag';
-
-export interface NameList {
-    ctx : ContextInfo;
-    results : Ast.DialogueHistoryResultItem[];
-}
-
-export function nameListKeyFn(list : NameList) {
-    const schema = list.ctx.currentFunction!;
-    return {
-        functionName: schema.qualifiedName,
-        idType: schema.getArgType('id')!,
-
-        id0: list.ctx.key.id0,
-        id1: list.ctx.key.id1,
-        id2: list.ctx.key.id2,
-    };
-}
+import {
+    DirectAnswerPhrase
+} from './results';
 
 export type ListProposal = [Ast.DialogueHistoryResultItem[], SlotBag|null, Ast.Invocation|null, boolean];
 
@@ -83,7 +70,8 @@ function checkListProposal(nameList : NameList, info : SlotBag|null, hasLearnMor
     const currentStmt = ctx.current!.stmt;
     const currentTable = currentStmt.expression;
     const last = currentTable.last;
-    if (last instanceof Ast.SliceExpression &&
+    if ((last instanceof Ast.SliceExpression ||
+        (last instanceof Ast.ProjectionExpression && last.expression instanceof Ast.SliceExpression)) &&
         results.length !== ctx.results!.length)
         return null;
 
@@ -168,6 +156,56 @@ export function addActionToListProposal(nameList : NameList, action : Ast.Invoca
         return null;
 
     return [results, null, action, false];
+}
+
+export function makeListProposalFromDirectAnswers(...phrases : DirectAnswerPhrase[]) : ListProposal|null {
+    for (let i = 0; i < phrases.length; i++) {
+        if (phrases[i].index !== i)
+            return null;
+    }
+
+    const ctx = phrases[0].result.ctx;
+
+    const currentStmt = ctx.current!.stmt;
+    const currentTable = currentStmt.expression;
+    const last = currentTable.last;
+    if ((last instanceof Ast.SliceExpression ||
+        (last instanceof Ast.ProjectionExpression && last.expression instanceof Ast.SliceExpression)) &&
+        phrases.length !== ctx.results!.length)
+        return null;
+
+    const names = Array.from(phrases[0].result.info.keys());
+    // check that all phrases talk about the same slots (it would be weird otherwise)
+    for (let i = 0; i < phrases.length; i++) {
+        for (const key of phrases[i].result.info.keys()) {
+            if (!names.includes(key))
+                return null;
+        }
+        for (const name of names) {
+            if (!phrases[i].result.info.has(name))
+                return null;
+        }
+    }
+
+    const resultInfo = ctx.resultInfo!;
+    if (resultInfo.projection !== null) {
+        // check that all projected names are present
+        for (const phrase of phrases) {
+            for (const name of resultInfo.projection) {
+                if (!phrase.result.info.has(name))
+                    return null;
+            }
+        }
+    }
+
+    // don't use a direct answer with a list if the user is issuing a query by name
+    const filterTable = C.findFilterExpression(currentTable);
+    if (filterTable && C.filterUsesParam(filterTable.filter, 'id'))
+        return null;
+
+    const results = ctx.results!.slice(0, phrases.length);
+
+    return [results, null, null, false];
 }
 
 function makeListProposalReply(ctx : ContextInfo, proposal : ListProposal) {

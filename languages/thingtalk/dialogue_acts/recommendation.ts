@@ -44,10 +44,6 @@ import {
     combinePreambleAndRequest,
     proposalReply
 } from './refinement-helpers';
-import {
-    addSlotToBag,
-} from './results';
-
 
 export interface Recommendation {
     ctx : ContextInfo;
@@ -75,7 +71,9 @@ function makeActionRecommendation(ctx : ContextInfo, action : Ast.Invocation) {
     const currentStmt = ctx.current!.stmt;
     const currentTable = currentStmt.expression;
     const last = currentTable.last;
-    if (last instanceof Ast.SliceExpression && last.limit.toJS() !== 1)
+    if ((last instanceof Ast.SliceExpression ||
+        (last instanceof Ast.ProjectionExpression && last.expression instanceof Ast.SliceExpression))
+        && results.length !== 1)
         return null;
 
     const topResult = results[0];
@@ -115,7 +113,9 @@ function makeRecommendation(ctx : ContextInfo, name : Ast.Value) {
     const currentStmt = ctx.current!.stmt;
     const currentTable = currentStmt.expression;
     const last = currentTable.last;
-    if (last instanceof Ast.SliceExpression && last.limit.toJS() !== 1)
+    if ((last instanceof Ast.SliceExpression ||
+        (last instanceof Ast.ProjectionExpression && last.expression instanceof Ast.SliceExpression))
+        && results.length !== 1)
         return null;
 
     const topResult = results[0];
@@ -139,7 +139,9 @@ function makeThingpediaRecommendation(ctx : ContextInfo, info : SlotBag) {
     const currentStmt = ctx.current!.stmt;
     const currentTable = currentStmt.expression;
     const last = currentTable.last;
-    if (last instanceof Ast.SliceExpression && last.limit.toJS() !== 1)
+    if ((last instanceof Ast.SliceExpression ||
+        (last instanceof Ast.ProjectionExpression && last.expression instanceof Ast.SliceExpression))
+        && results.length !== 1)
         return null;
 
     const topResult = results[0];
@@ -204,16 +206,6 @@ function checkActionForRecommendation(rec : Recommendation, action : Ast.Invocat
         hasLearnMore: rec.hasLearnMore,
         hasAnythingElse: rec.hasAnythingElse
     };
-}
-
-// make a recommendation that looks like an answer, that is, "so and so is a ..."
-function makeAnswerStyleRecommendation(rec : Recommendation, filter : C.FilterSlot) {
-    assert(C.isSameFunction(rec.ctx.currentFunction!, filter.schema));
-    const added = addSlotToBag(new SlotBag(rec.ctx.currentFunction), filter);
-    if (!added)
-        return null;
-
-    return checkRecommendation(rec, added[0]);
 }
 
 export function recommendationSetLearnMore(rec : Recommendation) {
@@ -412,7 +404,6 @@ export {
     makeArgMinMaxRecommendation,
     makeRecommendation,
     makeThingpediaRecommendation,
-    makeAnswerStyleRecommendation,
     checkRecommendation,
     checkActionForRecommendation,
     makeDisplayResult,
