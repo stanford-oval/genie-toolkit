@@ -479,7 +479,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
             uniqueId: a.uniqueId!,
             name: a.name,
             description: a.description,
-            code: a.code,
+            code: a.program.prettyprint(),
             icon: a.icon || null,
             isRunning: a.isRunning,
             isEnabled: a.isEnabled,
@@ -593,7 +593,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
         return {
             uniqueId: app.uniqueId!,
             description: app.description,
-            code: app.code,
+            code: app.program.prettyprint(),
             icon: app.icon,
             results, errors
         };

@@ -170,7 +170,8 @@ function isQueryAnswerValidForQuestion(table : Ast.Expression, questions : strin
 }
 
 function preciseSearchQuestionAnswer(ctx : ContextInfo, [answerTable, answerAction, _bool] : [Ast.Expression, Ast.Invocation|null, boolean]) {
-    const questions = ctx.state.dialogueActParam;
+    const questions = ctx.state.dialogueActParam as string[];
+    assert(questions === null || (Array.isArray(questions) && questions.length > 0 && questions.every((q) => typeof q === 'string')));
     if (questions !== null && !isQueryAnswerValidForQuestion(answerTable, questions))
         return null;
     if (!(answerTable instanceof Ast.FilterExpression))
@@ -214,10 +215,10 @@ function preciseSearchQuestionAnswer(ctx : ContextInfo, [answerTable, answerActi
 
 
 function impreciseSearchQuestionAnswer(ctx : ContextInfo, answer : C.FilterSlot|Ast.Value|'dontcare') {
-    const questions = ctx.state.dialogueActParam;
+    const questions = ctx.state.dialogueActParam as string[];
     if (questions === null || questions.length !== 1)
         return null;
-    assert(Array.isArray(questions) && questions.length > 0);
+    assert(Array.isArray(questions) && questions.length > 0 && questions.every((q) => typeof q === 'string'));
 
     let answerFilter : C.FilterSlot;
     if (answer === 'dontcare') {

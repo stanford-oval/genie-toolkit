@@ -103,6 +103,7 @@ function getTableArgMinMax(table : Ast.Expression) : [string, string]|null {
 }
 
 export class ResultInfo {
+    hasStream : boolean;
     isTable : boolean;
     isQuestion : boolean;
     isAggregation : boolean;
@@ -120,7 +121,8 @@ export class ResultInfo {
         assert(item.results !== null);
 
         const stmt = item.stmt;
-        assert(stmt.stream === null);
+        this.hasStream = stmt.stream !== null;
+
         this.isTable = stmt.last.schema!.functionType === 'query';
 
         if (this.isTable) {
@@ -143,10 +145,10 @@ export class ResultInfo {
             this.argMinMaxField = null;
             this.projection = null;
             if (state.dialogueAct === 'action_question')
-                this.projection = state.dialogueActParam;
+                this.projection = state.dialogueActParam as string[];
         }
         this.hasError = item.results.error !== null;
-        this.hasEmptyResult = item.results.results.length === 0;
+        this.hasEmptyResult = !this.hasStream && item.results.results.length === 0;
         this.hasSingleResult = item.results.results.length === 1;
         this.hasLargeResult = isLargeResultSet(item.results);
 
@@ -261,6 +263,8 @@ export class ContextInfo {
 
         // aggregation result (for count)
         aggregationCount : number|null;
+
+        is_monitorable : boolean;
     };
 
     constructor(loader : ThingpediaLoader,
@@ -306,7 +310,9 @@ export class ContextInfo {
             id2: null,
             resultLength: 0,
 
-            aggregationCount: null
+            aggregationCount: null,
+
+            is_monitorable: this.currentFunction ? this.currentFunction.is_monitorable : false
         };
         if (this.resultInfo) {
             this.key.idType = this.resultInfo.idType;
@@ -390,8 +396,8 @@ export function getContextInfo(loader : ThingpediaLoader,
     let proposedSkip = 0;
     for (let idx = 0; idx < state.history.length; idx ++) {
         const item = state.history[idx];
-        const functions = C.getFunctions(item.stmt);
-        const device = functions[functions.length-1].class!.name;
+        const itemschema = item.stmt.expression.schema!;
+        const device = itemschema.class!.name;
         assert(typeof device === 'string');
         if (currentDevice && device !== currentDevice)
             previousDomainItemIdx = currentItemIdx;
@@ -401,7 +407,7 @@ export function getContextInfo(loader : ThingpediaLoader,
         }
         if (item.results === null) {
             nextItemIdx = idx;
-            nextFunction = functions[functions.length-1];
+            nextFunction = itemschema;
             nextInfo = new NextStatementInfo(
                 currentItemIdx !== null ? state.history[currentItemIdx] : null,
                 currentResultInfo, item);
@@ -413,14 +419,12 @@ export function getContextInfo(loader : ThingpediaLoader,
         assert(proposedSkip === 0);
 
         currentDevice = device;
-        currentFunction = functions[functions.length-1];
+        currentFunction = itemschema;
 
         const stmt = item.stmt;
         const lastQuery = stmt.lastQuery;
-        if (lastQuery) {
-            const tablefunctions = C.getFunctions(lastQuery);
-            currentTableFunction = tablefunctions[tablefunctions.length-1];
-        }
+        if (lastQuery)
+            currentTableFunction = lastQuery.schema;
         currentItemIdx = idx;
         currentResultInfo = new ResultInfo(state, item);
     }
@@ -509,6 +513,16 @@ function addNewItem(ctx : ContextInfo,
     }
 
     return newState;
+}
+
+export function addNewStatement(ctx : ContextInfo,
+                                dialogueAct : string,
+                                dialogueActParam : string|null,
+                                confirm : 'accepted'|'proposed'|'confirmed',
+                                ...newExpression : Ast.Expression[]) {
+    const newItems = newExpression.map((expr) =>
+        new Ast.DialogueHistoryItem(null, new Ast.ExpressionStatement(null, expr), null, confirm));
+    return addNewItem(ctx, dialogueAct, dialogueActParam, confirm, ...newItems);
 }
 
 function makeSimpleState(ctx : ContextInfo,
@@ -750,6 +764,13 @@ export function makeExpressionContextPhrase(loader : ThingpediaLoader,
                                             priority = 0) : SentenceGeneratorTypes.ContextPhrase {
     return { symbol, utterance, value, priority, key: keyfns.expressionKeyFn(value) };
 }
+export function makeValueContextPhrase(loader : ThingpediaLoader,
+                                       symbol : number,
+                                       value : Ast.Value,
+                                       utterance : SentenceGeneratorRuntime.ReplacedResult = loader.runtime.ReplacedResult.EMPTY,
+                                       priority = 0) : SentenceGeneratorTypes.ContextPhrase {
+    return { symbol, utterance, value, priority, key: keyfns.valueKeyFn(value) };
+}
 
 export interface AgentReplyOptions {
     end ?: boolean;
@@ -789,6 +810,8 @@ function makeAgentReply(ctx : ContextInfo,
         mainTag = contextTable['ctx_' + state.dialogueAct.substring(0, state.dialogueAct.length - '_question'.length)];
     else if (state.dialogueAct.startsWith('sys_recommend_') && state.dialogueAct !== 'sys_recommend_one')
         mainTag = contextTable.ctx_sys_recommend_many;
+    else if (state.dialogueAct === 'sys_rule_enable_success')
+        mainTag = contextTable.ctx_sys_action_success;
     else
         mainTag = contextTable['ctx_' + state.dialogueAct];
 
@@ -802,7 +825,8 @@ function makeAgentReply(ctx : ContextInfo,
     if (end === undefined) {
         end = !state.history.some((item) => item.results === null) &&
             (state.dialogueAct.startsWith('sys_recommend_') ||
-            ['sys_action_success', 'sys_action_error', 'sys_end', 'sys_display_result'].includes(state.dialogueAct));
+            ['sys_rule_enable_success', 'sys_action_success', 'sys_action_error',
+             'sys_end', 'sys_display_result'].includes(state.dialogueAct));
     }
 
     return {
@@ -841,7 +865,7 @@ function actionShouldHaveResult(ctx : ContextInfo) : boolean {
 export function tagContextForAgent(ctx : ContextInfo) : number[] {
     const contextTable = ctx.contextTable;
 
-    switch (ctx.state.dialogueAct){
+    switch (ctx.state.dialogueAct) {
     case 'end':
         // no continuations are possible after explicit "end" (which means the user said
         // "no thanks" after the agent asked "is there anything else I can do for you")
@@ -864,6 +888,20 @@ export function tagContextForAgent(ctx : ContextInfo) : number[] {
         assert(ctx.results);
         return [contextTable.ctx_learn_more];
 
+    case 'notification':
+        assert(ctx.nextInfo === null);
+        assert(ctx.resultInfo, `expected result info`);
+
+        if (ctx.resultInfo.hasError)
+            return [contextTable.ctx_notification_error];
+
+        if (!ctx.resultInfo.isTable)
+            return [contextTable.ctx_action_notification];
+        else if (ctx.resultInfo.isList)
+            return [contextTable.ctx_list_notification];
+        else
+            return [contextTable.ctx_nonlist_notification];
+
     case 'execute':
     case 'ask_recommend':
         if (ctx.nextInfo !== null) {
@@ -882,6 +920,8 @@ export function tagContextForAgent(ctx : ContextInfo) : number[] {
         assert(ctx.resultInfo, `expected result info`);
         if (ctx.resultInfo.hasError)
             return [contextTable.ctx_completed_action_error];
+        if (ctx.resultInfo.hasStream)
+            return [contextTable.ctx_rule_enable_success];
 
         if (!ctx.resultInfo.isTable) {
             if (ctx.resultInfo.hasEmptyResult && actionShouldHaveResult(ctx))
@@ -938,7 +978,8 @@ export function tagContextForAgent(ctx : ContextInfo) : number[] {
 
 function ctxCanHaveRelatedQuestion(ctx : ContextInfo) : boolean {
     const currentStmt = ctx.current!.stmt;
-    assert(currentStmt.stream === null);
+    if (currentStmt.stream !== null)
+        return false;
     const currentTable = currentStmt.lastQuery;
     if (!currentTable)
         return false;
@@ -1209,17 +1250,43 @@ export function makeResultContextPhrase(ctx : ContextInfo,
     return output;
 }
 
+function getQuery(expr : Ast.Expression) : Ast.Expression|null {
+    if (expr instanceof Ast.ChainExpression)
+        return getQuery(expr.last);
+
+    if (expr.schema!.functionType === 'query')
+        return expr;
+
+    if (expr instanceof Ast.ProjectionExpression ||
+        expr instanceof Ast.FilterExpression ||
+        expr instanceof Ast.MonitorExpression)
+        return getQuery(expr.expression);
+
+    return null;
+}
+
 export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.ContextPhrase[] {
     const contextTable = ctx.contextTable;
 
     const phrases : SentenceGeneratorTypes.ContextPhrase[] = [];
     const describer = ctx.loader.describer;
 
+    if (ctx.state.dialogueAct === 'notification') {
+        const appName = ctx.state.dialogueActParam![0];
+        assert(appName instanceof Ast.StringValue);
+        phrases.push(makeValueContextPhrase(ctx.loader,
+            contextTable.ctx_notification_app_name, appName, describer.describeArg(appName)!));
+    }
+
     // make phrases that describe the current and next action
     // these are used by the agent to form confirmations
     const current = ctx.current;
     if (current) {
-        const lastQuery = current.stmt.lastQuery;
+        const description = describer.describeExpressionStatement(current.stmt);
+        if (description !== null)
+            phrases.push(makeContextPhrase(contextTable.ctx_current_statement, ctx, description));
+
+        const lastQuery = current.stmt.lastQuery ? getQuery(current.stmt.lastQuery) : null;
         if (lastQuery) {
             let description = describer.describeQuery(lastQuery);
             if (description !== null)
@@ -1248,7 +1315,7 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
         if (description !== null)
             phrases.push(makeContextPhrase(contextTable.ctx_next_statement, ctx, description));
 
-        const lastQuery = next.stmt.lastQuery;
+        const lastQuery = next.stmt.lastQuery ? getQuery(next.stmt.lastQuery) : null;
         if (lastQuery) {
             const description = describer.describeQuery(lastQuery);
             if (description !== null) {
@@ -1268,6 +1335,9 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
         }
     }
 
+    if (ctx.state.dialogueAct === 'notification')
+        phrases.push(makeContextPhrase(contextTable.ctx_with_notification, ctx));
+
     if (ctx.isMultiDomain)
         phrases.push(makeContextPhrase(contextTable.ctx_multidomain, ctx));
 
@@ -1281,6 +1351,8 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
             phrases.push(makeContextPhrase(contextTable.ctx_without_action, ctx));
     }
     if (!ctx.resultInfo || ctx.resultInfo.hasEmptyResult)
+        return phrases;
+    if (ctx.resultInfo.hasStream && ctx.state.dialogueAct !== 'notification')
         return phrases;
 
     assert(ctx.results && ctx.results.length > 0);

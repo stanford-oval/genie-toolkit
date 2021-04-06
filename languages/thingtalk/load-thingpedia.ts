@@ -76,6 +76,42 @@ const ANNOTATION_PRIORITY : Record<string, number> = {
     'npv': 1
 };
 
+// TODO translate these
+const TIMER_SCHEMA = new Ast.FunctionDef(null,
+    'stream',
+    null, // class
+    'timer',
+    [], // extends
+    {
+        is_list: false,
+        is_monitorable: true
+    },
+    [
+        new Ast.ArgumentDef(null, Ast.ArgDirection.IN_OPT, 'base', Type.Date, { impl: {
+            default: new Ast.DateValue(null) // $now
+        }}),
+        new Ast.ArgumentDef(null, Ast.ArgDirection.IN_REQ, 'interval', new Type.Measure('ms')),
+        new Ast.ArgumentDef(null, Ast.ArgDirection.IN_OPT, 'frequency', Type.Number),
+    ],
+    {}
+);
+
+const ATTIMER_SCHEMA = new Ast.FunctionDef(null,
+    'stream',
+    null, // class
+    'attimer',
+    [], // extends
+    {
+        is_list: false,
+        is_monitorable: true
+    },
+    [
+        new Ast.ArgumentDef(null, Ast.ArgDirection.IN_REQ, 'time', new Type.Array(Type.Time)),
+        new Ast.ArgumentDef(null, Ast.ArgDirection.IN_OPT, 'expiration_date', Type.Date),
+    ],
+    {}
+);
+
 interface CanonicalForm {
     default : string;
     projection_pronoun ?: string[];
@@ -140,6 +176,8 @@ export default class ThingpediaLoader {
     compoundArrays : { [key : string] : InstanceType<typeof Type.Compound> };
     globalWhiteList : string[]|null;
     standardSchemas : {
+        timer : Ast.FunctionDef,
+        attimer : Ast.FunctionDef,
         say : Ast.FunctionDef|null;
         get_gps : Ast.FunctionDef|null;
         get_time : Ast.FunctionDef|null;
@@ -183,7 +221,13 @@ export default class ThingpediaLoader {
         this.entitySubTypeMap = {};
         this._subEntityMap = new Map;
 
-        this.standardSchemas = { say: null, get_gps: null, get_time: null };
+        this.standardSchemas = {
+            timer: TIMER_SCHEMA,
+            attimer: ATTIMER_SCHEMA,
+            say: null,
+            get_gps: null,
+            get_time: null
+        };
     }
 
     async init() {
@@ -200,7 +244,9 @@ export default class ThingpediaLoader {
             this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'query', 'get_gps'),
             this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'query', 'get_time')
         ]);
-        this.standardSchemas = { say, get_gps, get_time };
+        this.standardSchemas.say = say;
+        this.standardSchemas.get_gps = get_gps;
+        this.standardSchemas.get_time = get_time;
 
         await this._loadMetadata();
     }

@@ -156,7 +156,6 @@ async function doTestDialogue(filename, onlyDevices = null) {
 
             // TODO
             notablejoin: true,
-            nostream: true
         },
         onlyDevices,
         targetPruningSize: 25,
