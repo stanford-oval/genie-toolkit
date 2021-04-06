@@ -67,6 +67,7 @@ do_test([
     ('./test_random'),
     ('./test_requoting'),
     ('./test_requote'),
+    ('./test_restartable_async_iterable'),
     ('./test_sentence_generator'),
     ('./test_stream_utils'),
     ('./test_template_string'),
