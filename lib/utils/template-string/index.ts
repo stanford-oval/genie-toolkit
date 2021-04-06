@@ -67,6 +67,25 @@ class EmptyReplacement extends ReplacedResult {
 }
 ReplacedResult.EMPTY = new EmptyReplacement();
 
+function whitespaceJoin(iterable : Iterable<unknown>, joiner = '') {
+    joiner = joiner.trim();
+    let buf = '';
+    for (const element of iterable) {
+        const string = (typeof element === 'string' ? element : String(element)).trim();
+        if (!string)
+            continue;
+        if (buf) {
+            buf += ' ';
+            if (joiner) {
+                buf += joiner;
+                buf += ' ';
+            }
+        }
+        buf += string;
+    }
+    return buf;
+}
+
 export class ReplacedConcatenation extends ReplacedResult {
     constructor(public text : Array<string|ReplacedResult>,
                 public constFlags : Record<string, FlagValue>,
@@ -123,12 +142,12 @@ export class ReplacedConcatenation extends ReplacedResult {
 
     chooseSample(rng : () => number) {
         const text = this.text.map((t) => typeof t === 'string' ? t : t.chooseSample(rng));
-        return text.join(' ').replace(/\s+/g, ' ').trim();
+        return whitespaceJoin(text);
     }
 
     chooseBest() {
         const text = this.text.map((t) => typeof t === 'string' ? t : t.chooseBest());
-        return text.join(' ').replace(/\s+/g, ' ').trim();
+        return whitespaceJoin(text);
     }
 }
 
@@ -160,6 +179,14 @@ export class ReplacedChoice extends ReplacedResult {
     }
 }
 
+type ListFormatPart = {
+    type : 'literal',
+    value : string
+} | {
+    type : 'element',
+    value : string
+};
+
 export class ReplacedList extends ReplacedResult {
     constructor(public elements : ReplacedResult[],
                 public locale : string,
@@ -174,10 +201,12 @@ export class ReplacedList extends ReplacedResult {
     private _makeList(elements : unknown[], listType : string) : string {
         if (listType === 'disjunction' ||
             listType === 'conjunction') {
-            return new (Intl as any).ListFormat(this.locale, { type: listType })
-                .format(elements).replace(/\s+/g, ' ').trim();
+            const strings = elements.map((el) => String(el));
+            const formatted = new (Intl as any).ListFormat(this.locale, { type: listType })
+                .formatToParts(strings);
+            return whitespaceJoin(formatted.map((el : ListFormatPart) => el.type === 'literal' ? el.value.trim() : el.value));
         }
-        return elements.join(listType);
+        return whitespaceJoin(elements, this.listType);
     }
 
     toString() {
