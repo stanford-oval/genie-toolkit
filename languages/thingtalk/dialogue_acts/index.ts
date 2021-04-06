@@ -32,3 +32,4 @@ export * from './related-questions';
 export * from './results';
 export * from './search-questions';
 export * from './slot-fill';
+export * from './streams';

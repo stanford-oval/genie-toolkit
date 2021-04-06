@@ -485,7 +485,7 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.spotify.play_song(song="spotify:track:2zYzyRzz6pRmhPzyfMEC8s"^^com.spotify:song("Hello"));
 
 A: Sorry, there was an unexpected error with your command. Please try again later or report this issue to my developers.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_error ; @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . play_song ( song = GENERIC_ENTITY_com.spotify:song_0 ) #[ results = [ ] ] #[ error = QUOTED_STRING_0 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:2zYzyRzz6pRmhPzyfMEC8s","display":"Hello"},"QUOTED_STRING_0":"Some other error occurred"}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_error ; @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . play_song ( song = GENERIC_ENTITY_com.spotify:song_0 ) #[ results = [ ] ] #[ error = enum E_some_other_error ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"},"GENERIC_ENTITY_com.spotify:song_0":{"value":"spotify:track:2zYzyRzz6pRmhPzyfMEC8s","display":"Hello"}}
 A: >> expecting = null
 
 ====
@@ -623,7 +623,7 @@ U: @com.thecatapi.get();
 
 A: Here is your cat picture.
 A: rdl: str:ENTITY_tt:url::42: str:ENTITY_tt:url::42:
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @com.thecatapi ( id = GENERIC_ENTITY_tt:device_id_0 ) . get ( ) #[ results = [ { id = GENERIC_ENTITY_com.thecatapi:image_id_0 , picture_url = PICTURE_0 , link = URL_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.thecatapi-9","display":"Some Device 9"},"GENERIC_ENTITY_com.thecatapi:image_id_0":{"value":"str:ENTITY_com.thecatapi:image_id::0:","display":null},"PICTURE_0":"str:ENTITY_tt:picture::36:","URL_0":"str:ENTITY_tt:url::42:"}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @com.thecatapi . get ( ) #[ results = [ { id = GENERIC_ENTITY_com.thecatapi:image_id_0 , picture_url = PICTURE_0 , link = URL_0 } ] ] ; // {"GENERIC_ENTITY_com.thecatapi:image_id_0":{"value":"str:ENTITY_com.thecatapi:image_id::0:","display":null},"PICTURE_0":"str:ENTITY_tt:picture::36:","URL_0":"str:ENTITY_tt:url::42:"}
 A: >> expecting = null
 
 ====
@@ -633,9 +633,9 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.xkcd.comic();
 
-A: I found xkcd 20. It is an xkcd comic from January 20, 2018 titled Some Device 10.
-A: rdl: Some Device 10 str:ENTITY_tt:url::1:
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; @com.xkcd ( id = GENERIC_ENTITY_tt:device_id_0 ) . comic ( ) #[ results = [ { id = NUMBER_0 , title = QUOTED_STRING_0 , release_date = DATE_0 , picture_url = PICTURE_0 , link = URL_0 , alt_text = QUOTED_STRING_0 } ] ] #[ count = NUMBER_1 ] #[ more = true ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.xkcd-10","display":"Some Device 10"},"NUMBER_0":20,"QUOTED_STRING_0":"Some Device 10","DATE_0":"2018-01-20T08:00:00.000Z","PICTURE_0":"str:ENTITY_tt:picture::14:","URL_0":"str:ENTITY_tt:url::1:","NUMBER_1":50}
+A: I found xkcd 20. It is an xkcd comic from January 20, 2018 titled Some Device com.xkcd.
+A: rdl: Some Device com.xkcd str:ENTITY_tt:url::1:
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; @com.xkcd . comic ( ) #[ results = [ { id = NUMBER_0 , title = QUOTED_STRING_0 , release_date = DATE_0 , picture_url = PICTURE_0 , link = URL_0 , alt_text = QUOTED_STRING_0 } ] ] #[ count = NUMBER_1 ] #[ more = true ] ; // {"NUMBER_0":20,"QUOTED_STRING_0":"Some Device com.xkcd","DATE_0":"2018-01-20T08:00:00.000Z","PICTURE_0":"str:ENTITY_tt:picture::14:","URL_0":"str:ENTITY_tt:url::1:","NUMBER_1":50}
 A: >> expecting = null
 
 ====
@@ -647,7 +647,7 @@ U: sort(release_date desc of @com.xkcd.comic())[1];
 
 A: The latest xkcd comic is 371. It is an xkcd comic from August 31, 2020 titled str:QUOTED_STRING::3:.
 A: rdl: str:QUOTED_STRING::3: str:ENTITY_tt:url::39:
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; sort ( release_date desc of @com.xkcd ( id = GENERIC_ENTITY_tt:device_id_0 ) . comic ( ) ) [ 1 ] #[ results = [ { id = NUMBER_0 , title = QUOTED_STRING_0 , release_date = DATE_0 , picture_url = PICTURE_0 , link = URL_0 , alt_text = QUOTED_STRING_1 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.xkcd-10","display":"Some Device 10"},"NUMBER_0":371,"QUOTED_STRING_0":"str:QUOTED_STRING::3:","DATE_0":"2020-08-31T07:00:00.000Z","PICTURE_0":"str:ENTITY_tt:picture::26:","URL_0":"str:ENTITY_tt:url::39:","QUOTED_STRING_1":"str:QUOTED_STRING::6:"}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; sort ( release_date desc of @com.xkcd . comic ( ) ) [ 1 ] #[ results = [ { id = NUMBER_0 , title = QUOTED_STRING_0 , release_date = DATE_0 , picture_url = PICTURE_0 , link = URL_0 , alt_text = QUOTED_STRING_1 } ] ] ; // {"NUMBER_0":371,"QUOTED_STRING_0":"str:QUOTED_STRING::3:","DATE_0":"2020-08-31T07:00:00.000Z","PICTURE_0":"str:ENTITY_tt:picture::26:","URL_0":"str:ENTITY_tt:url::39:","QUOTED_STRING_1":"str:QUOTED_STRING::6:"}
 A: >> expecting = null
 
 ====
@@ -657,7 +657,7 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.xkcd.comic() => @com.twitter.post(status=title);
 
 A: Ok, do you want me to get xkcd comic and then tweet the title?
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_confirm_action ; @com.xkcd ( id = GENERIC_ENTITY_tt:device_id_0 ) . comic ( ) => @com.twitter ( id = GENERIC_ENTITY_tt:device_id_1 ) . post ( status = title ) ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.xkcd-10","display":"Some Device 10"},"GENERIC_ENTITY_tt:device_id_1":{"value":"twitter-foo","display":"Twitter Account foo"}}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_confirm_action ; @com.xkcd . comic ( ) => @com.twitter ( id = GENERIC_ENTITY_tt:device_id_0 ) . post ( status = title ) ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"twitter-foo","display":"Twitter Account foo"}}
 A: >> expecting = yesno
 
 U: \t $yes;
@@ -825,7 +825,62 @@ A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_t
 A: >> expecting = null
 
 ====
-# 55-list-default-templates
+# 55-basic-streams
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: timer(interval=1h, base=$now) => @com.thecatapi.get();
+
+A: Alright, I will get the cat picture every 60 min.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_rule_enable_success ; timer ( base = $now , interval = DURATION_0 ) => @com.thecatapi . get ( ) #[ results = [ ] ] ; // {"DURATION_0":{"unit":"h","value":1}}
+A: >> expecting = null
+
+====
+# 56-notifications-from-queries
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.notification("CatAPI");
+U: timer(interval=1h, base=$now) => @com.thecatapi.get()
+U: #[results=[{ id="e7e"^^com.thecatapi:cat, picture_url="https://25.media.tumblr.com/tumblr_m4ry1ocUb21r6jd7fo1_500.jpg"^^tt:picture, link="http://thecatapi.com/?id=e7e"^^tt:url }]];
+
+A: Notification from CatAPI: here is your cat picture.
+# FIXME: the picture is missing here because of how the test is built, but it should appear in practice
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; timer ( base = $now , interval = DURATION_0 ) => @com.thecatapi . get ( ) #[ results = [ { id = GENERIC_ENTITY_com.thecatapi:cat_0 , picture_url = PICTURE_0 , link = URL_0 } ] ] ; // {"DURATION_0":{"unit":"h","value":1},"GENERIC_ENTITY_com.thecatapi:cat_0":{"value":"e7e","display":null},"PICTURE_0":"https://25.media.tumblr.com/tumblr_m4ry1ocUb21r6jd7fo1_500.jpg","URL_0":"http://thecatapi.com/?id=e7e"}
+A: >> expecting = null
+
+====
+# 57-notifications-from-list-queries
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.notification("Yelp");
+U: timer(interval=1h, base=$now) => @com.yelp.restaurant()
+U: #[results=[{ id = "vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi") , image_url = "https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture , link = "https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url , cuisines = [ "ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles") ] , price = enum moderate , rating = 4.5 , reviewCount = 1625 , geo = new Location(37.445523,-122.1607073261) }]];
+
+A: Notification from Yelp: I see Ramen Nagi. It is a moderate restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg].
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; timer ( base = $now , interval = DURATION_0 ) => @com.yelp . restaurant ( ) #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , image_url = PICTURE_0 , link = URL_0 , cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_1 ] , price = enum moderate , rating = NUMBER_0 , reviewCount = NUMBER_1 , geo = LOCATION_0 } ] ] ; // {"DURATION_0":{"unit":"h","value":1},"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"PICTURE_0":"https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg","URL_0":"https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"ramen","display":"Ramen"},"GENERIC_ENTITY_com.yelp:restaurant_cuisine_1":{"value":"noodles","display":"Noodles"},"NUMBER_0":4.5,"NUMBER_1":1625,"LOCATION_0":{"latitude":37.445523,"longitude":-122.1607073261,"display":null}}
+A: >> expecting = null
+
+====
+# 58-notifications-from-list-queries-2
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.notification("Yelp");
+U: timer(interval=1h, base=$now) => sort(rating desc of @com.yelp.restaurant())[1]
+U: #[results=[{ id = "vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi") , image_url = "https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture , link = "https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url , cuisines = [ "ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles") ] , price = enum moderate , rating = 4.5 , reviewCount = 1625 , geo = new Location(37.445523,-122.1607073261) }]];
+
+A: Notification from Yelp: the restaurant with the highest rating is Ramen Nagi. It is a moderate restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg].
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; timer ( base = $now , interval = DURATION_0 ) => sort ( rating desc of @com.yelp . restaurant ( ) ) [ 1 ] #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , image_url = PICTURE_0 , link = URL_0 , cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 , GENERIC_ENTITY_com.yelp:restaurant_cuisine_1 ] , price = enum moderate , rating = NUMBER_0 , reviewCount = NUMBER_1 , geo = LOCATION_0 } ] ] ; // {"DURATION_0":{"unit":"h","value":1},"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"PICTURE_0":"https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg","URL_0":"https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"ramen","display":"Ramen"},"GENERIC_ENTITY_com.yelp:restaurant_cuisine_1":{"value":"noodles","display":"Noodles"},"NUMBER_0":4.5,"NUMBER_1":1625,"LOCATION_0":{"latitude":37.445523,"longitude":-122.1607073261,"display":null}}
+A: >> expecting = null
+
+====
+# 59-notifications-from-actions
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.notification("Lightbulb");
+U: timer(interval=1h, base=$now) => @org.thingpedia.iot.light-bulb(id="io.home-assistant/lights.living_room_1"^^tt:device_id("Living Room")).set_power(power=enum off)
+U: #[results=[{ power = enum off }]];
+
+A: Notification from Lightbulb: I turned off your Living Room light bulb.
+A: >> context = null // {}
+A: >> expecting = null
+
+====
+# 60-list-default-templates
 
 U: \t @com.yelp.restaurant()[1:3];
 
@@ -841,4 +896,3 @@ U: \t [reviewCount] of @com.yelp.restaurant()[1:3];
 A: Ramen Nagi is a restaurant with 1,625 reviews, Evvia Estiatorio has 2,393 reviews, and Oren's Hummus has 2,248 reviews.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_three ; [ reviewCount ] of @com.yelp . restaurant ( ) [ 1 : 3 ] #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , reviewCount = NUMBER_0 } ] ] #[ count = 3 ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"NUMBER_0":1625}
 A: >> expecting = null
-

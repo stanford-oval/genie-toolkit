@@ -67,6 +67,29 @@ function areQuestionsValidForContext(ctx : ContextInfo, questions : C.ParamSlot[
     return true;
 }
 
+function removeMonitorInner(expr : Ast.Expression) : Ast.Expression {
+    if (expr instanceof Ast.MonitorExpression)
+        return expr.expression;
+
+    if (expr instanceof Ast.FilterExpression ||
+        expr instanceof Ast.ProjectionExpression)
+        return removeMonitorInner(expr.expression);
+
+    return expr;
+}
+
+function removeMonitor(expr : Ast.ChainExpression) : Ast.ChainExpression {
+    if (expr instanceof Ast.ChainExpression &&
+        expr.first.schema!.functionType === 'stream') {
+        const withoutMonitor = removeMonitorInner(expr.first);
+        const clone = expr.expressions.slice();
+        clone[0] = withoutMonitor;
+        return new Ast.ChainExpression(null, clone, expr.schema);
+    }
+
+    return expr;
+}
+
 function recommendationSearchQuestionReply(ctx : ContextInfo, questions : C.ParamSlot[]) {
     const proposal = ctx.aux as Recommendation;
     const { topResult, info, } = proposal;
@@ -83,7 +106,7 @@ function recommendationSearchQuestionReply(ctx : ContextInfo, questions : C.Para
         return null;
 
     const currentStmt = ctx.current!.stmt;
-    const currentTable = currentStmt.expression;
+    const currentTable = removeMonitor(currentStmt.expression);
     const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', topResult.value.id);
     const newTable = queryRefinement(currentTable, newFilter, refineFilterToAnswerQuestion,
         questions.map((q) => q.name));
@@ -98,7 +121,7 @@ function learnMoreSearchQuestionReply(ctx : ContextInfo, questions : C.ParamSlot
         return null;
 
     const currentStmt = ctx.current!.stmt;
-    const currentTable = currentStmt.expression;
+    const currentTable = removeMonitor(currentStmt.expression);
     if (!topResult.value.id)
         return null;
     const newFilter = new Ast.BooleanExpression.Atom(null, 'id', '==', topResult.value.id);
@@ -114,7 +137,7 @@ function displayResultSearchQuestionReply(ctx : ContextInfo, questions : C.Param
         return null;
 
     const currentStmt = ctx.current!.stmt;
-    const currentTable = currentStmt.expression;
+    const currentTable = removeMonitor(currentStmt.expression);
     const newTable = queryRefinement(currentTable, null, refineFilterToAnswerQuestion,
         questions.map((q) => q.name));
     if (newTable === null)

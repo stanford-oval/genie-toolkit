@@ -165,7 +165,7 @@ export default class DialoguePolicy {
         await this._sentenceGenerator.initialize();
     }
 
-    private _extractDevices(state : Ast.DialogueState|null) : string[] {
+    private _extractDevices(state : Ast.DialogueState|Ast.Program|null) : string[] {
         if (state === null)
             return [];
         const devices = new Set<string>();
@@ -180,7 +180,7 @@ export default class DialoguePolicy {
         return deviceArray;
     }
 
-    private async _ensureGeneratorForState(state : Ast.DialogueState|null) {
+    private async _ensureGeneratorForState(state : Ast.DialogueState|Ast.Program|null) {
         const devices = this._extractDevices(state);
         if (this._generatorDevices && arrayEqual(this._generatorDevices, devices))
             return;
@@ -229,5 +229,17 @@ export default class DialoguePolicy {
             expect = ValueCategory.Command;
 
         return [derivation.value.state, expect, sentence, this._entityAllocator.entities, derivation.value.numResults];
+    }
+
+    async getNotificationState(appName : string, program : Ast.Program, result : Ast.DialogueHistoryResultItem) {
+        await this._ensureGeneratorForState(program);
+
+        return this._sentenceGenerator!.invokeFunction('notification', appName, program, result, this._sentenceGenerator!.contextTable);
+    }
+
+    async getAsyncErrorState(appName : string, program : Ast.Program, error : Ast.Value) {
+        await this._ensureGeneratorForState(program);
+
+        return this._sentenceGenerator!.invokeFunction('notifyError', appName, program, error, this._sentenceGenerator!.contextTable);
     }
 }

@@ -94,7 +94,8 @@ class MockAppExecutor {
         this._simulator.reportError = async (msg, err) => {
             return this.mainOutput.notifyError(err);
         };
-        await this._compiled.command(this._simulator);
+        if (this._compiled.command)
+            await this._compiled.command(this._simulator);
         this.mainOutput.done();
     }
 }
@@ -215,7 +216,7 @@ class MockBuiltinDevice {
 
 let _cnt = 0;
 
-const UNIQUE_DEVICES = new Set(['com.yelp', 'org.thingpedia.weather', 'org.thingpedia.builtin.test']);
+const UNIQUE_DEVICES = new Set(['com.yelp', 'org.thingpedia.weather', 'org.thingpedia.builtin.test', 'com.thecatapi', 'com.xkcd']);
 class MockUnknownDevice {
     constructor(kind) {
         if (UNIQUE_DEVICES.has(kind)) {

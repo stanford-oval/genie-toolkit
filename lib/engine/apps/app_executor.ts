@@ -113,9 +113,9 @@ export default class AppExecutor extends events.EventEmitter {
      */
     engine : Engine;
     /**
-     * The ThingTalk code of this app.
+     * The ThingTalk program of this app.
      */
-    code : string;
+    program : Ast.Program;
     /**
      * The icon to use for this app.
      */
@@ -141,7 +141,6 @@ export default class AppExecutor extends events.EventEmitter {
      * The ThingTalk compiler used by this app.
      */
     private compiler : AppCompiler;
-    private _ast : Ast.Program|null;
     private _error : Error|null;
     private _meta : AppMeta;
 
@@ -173,7 +172,6 @@ export default class AppExecutor extends events.EventEmitter {
 
         this.uniqueId = undefined;
         this.engine = engine;
-        this.code = code;
 
         this.isRunning = false;
         this.isEnabled = false;
@@ -182,15 +180,10 @@ export default class AppExecutor extends events.EventEmitter {
         this.command = null;
         this.rules = [];
 
-        try {
-            const ast = Syntax.parse(code);
-            assert(ast instanceof Ast.Program);
-            this._ast = ast;
-            this._error = null;
-        } catch(e) {
-            this._ast = null;
-            this._error = e;
-        }
+        const ast = Syntax.parse(code);
+        assert(ast instanceof Ast.Program);
+        this.program = ast;
+        this._error = null;
 
         this._meta = meta;
         this.icon = meta.icon || null;
@@ -275,10 +268,7 @@ export default class AppExecutor extends events.EventEmitter {
      * On failure, this method will set {@link AppExecutor#error}.
      */
     async compile() : Promise<void> {
-        if (this._error)
-            throw this._error;
-
-        const compiled = await this.compiler.compileProgram(this._ast!);
+        const compiled = await this.compiler.compileProgram(this.program);
 
         if (compiled.command)
             this.command = new RuleExecutor(this.engine, this, compiled.command, this.mainOutput);

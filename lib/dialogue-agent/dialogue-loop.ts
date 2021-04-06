@@ -45,7 +45,6 @@ import { CancellationError } from './errors';
 import * as Helpers from './helpers';
 import DialoguePolicy from './dialogue_policy';
 import type Conversation from './conversation';
-import TextFormatter from './card-output/text-formatter';
 import CardFormatter, { FormattedChunk } from './card-output/card-formatter';
 
 import ExecutionDialogueAgent from './execution_dialogue_agent';
@@ -133,7 +132,6 @@ export default class DialogueLoop {
 
     private _nlu : ParserClient.ParserClient;
     private _nlg : ParserClient.ParserClient;
-    private _textFormatter : TextFormatter;
     private _cardFormatter : CardFormatter;
     private _langPack : I18n.LanguagePack;
 
@@ -151,7 +149,6 @@ export default class DialogueLoop {
     private _choices : string[];
     private _dialogueState : ThingTalk.Ast.DialogueState|null;
     private _executorState : undefined;
-    private _lastNotificationApp : string|undefined;
 
     private _stopped = false;
     private _mgrResolve : (() => void)|null;
@@ -172,7 +169,6 @@ export default class DialogueLoop {
         this._nlg = ParserClient.get(options.nlgServerUrl || undefined, engine.platform.locale, engine.platform);
 
         this._langPack = I18n.get(engine.platform.locale);
-        this._textFormatter = new TextFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas);
         this._cardFormatter = new CardFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas);
         this.icon = null;
         this.expecting = null;
@@ -193,7 +189,6 @@ export default class DialogueLoop {
         });
         this._dialogueState = null; // thingtalk dialogue state
         this._executorState = undefined; // private object managed by DialogueExecutor
-        this._lastNotificationApp = undefined;
     }
 
     get _() : (x : string) => string {
@@ -413,7 +408,7 @@ export default class DialogueLoop {
         return this._prefs.get('experimental-use-neural-nlg') as boolean;
     }
 
-    private async _doAgentReply() : Promise<[ValueCategory|null, number]> {
+    private async _doAgentReply(newResults : Array<[string, Record<string, unknown>]>) : Promise<void> {
         const oldState = this._dialogueState;
         if (oldState)
             this.conversation.updateLog('context', oldState.prettyprint());
@@ -440,15 +435,22 @@ export default class DialogueLoop {
             const result = await this._nlg.generateUtterance(contextCode, contextEntities, targetAct);
             utterance = result[0].answer;
         }
-
         utterance = this._langPack.postprocessNLG(utterance, entities, this._agent);
 
         this.icon = getProgramIcon(this._dialogueState!);
         await this.reply(utterance);
+
+        for (const [outputType, outputValue] of newResults.slice(0, numResults)) {
+            const formatted = await this._cardFormatter.formatForType(outputType, outputValue, { removeText: true });
+
+            for (const card of formatted)
+                await this.replyCard(card);
+        }
+
         if (expect === null && TERMINAL_STATES.includes(this._dialogueState!.dialogueAct))
             throw new CancellationError();
 
-        return [expect, numResults];
+        await this.setExpected(expect);
     }
 
     private async _handleUICommand(type : CommandAnalysisType) {
@@ -604,73 +606,47 @@ export default class DialogueLoop {
         for (const newProgram of newPrograms)
             await this.conversation.sendNewProgram(newProgram);
 
-        const [expect, numResults] = await this._doAgentReply();
-
-        for (const [outputType, outputValue] of newResults.slice(0, numResults)) {
-            const formatted = await this._cardFormatter.formatForType(outputType, outputValue, { removeText: true });
-
-            for (const card of formatted)
-                await this.replyCard(card);
-        }
-
-        await this.setExpected(expect);
+        await this._doAgentReply(newResults);
     }
 
     private async _showNotification(appId : string,
                                     icon : string|null,
                                     outputType : string,
                                     outputValue : Record<string, unknown>) {
-        let app;
-        if (appId !== undefined)
-            app = this.engine.apps.getApp(appId);
-        else
-            app = undefined;
+        const app = this.engine.apps.getApp(appId);
+        if (!app) // the app was already stopped, ignore this notification
+            return;
 
-        const messages = await this._textFormatter.formatForType(outputType, outputValue, 'messages');
-        if (app !== undefined && app.isRunning && appId !== this._lastNotificationApp &&
-            (messages.length === 1 && typeof messages[0] === 'string')) {
-            await this.replyInterp(this._("Notification from ${app}: ${message}"), {
-                app: app.name,
-                message: messages[0]
-            }, icon);
-        } else {
-            if (app !== undefined && app.isRunning && appId !== this._lastNotificationApp)
-                await this.replyInterp(this._("Notification from ${app}"), { app: app.name }, icon);
-            for (const msg of messages)
-                await this.replyCard(msg, icon);
-        }
+        const mappedResult = await this._agent.executor.mapResult(outputType, outputValue);
+
+        this._dialogueState = await this._policy.getNotificationState(app.name, app.program, mappedResult);
+        await this._doAgentReply([[outputType, outputValue]]);
     }
 
     private async _showAsyncError(appId : string,
                                   icon : string|null,
                                   error : Error) {
-        let app;
-        if (appId !== undefined)
-            app = this.engine.apps.getApp(appId);
-        else
-            app = undefined;
+        const app = this.engine.apps.getApp(appId);
+        if (!app) // the app was already stopped, ignore this notification
+            return;
 
-        const errorMessage = Helpers.formatError(this, error);
         console.log('Error from ' + appId, error);
 
-        if (app !== undefined && app.isRunning)
-            await this.replyInterp(this._("${app} had an error: ${error}."), { app: app.name, error: errorMessage }, icon);
-        else
-            await this.replyInterp(this._("Sorry, that did not work: ${error}."), { error: errorMessage }, icon);
+        const mappedError = await this._agent.executor.mapError(error);
+
+        this._dialogueState = await this._policy.getAsyncErrorState(app.name, app.program, mappedError);
+        await this._doAgentReply([]);
     }
 
     private async _handleAPICall(call : QueueItem) {
-        if (call instanceof QueueItem.Notification) {
+        if (call instanceof QueueItem.Notification)
             await this._showNotification(call.appId, call.icon, call.outputType, call.outputValue);
-            this._lastNotificationApp = call.appId;
-        } else if (call instanceof QueueItem.Error) {
+        else if (call instanceof QueueItem.Error)
             await this._showAsyncError(call.appId, call.icon, call.error);
-            this._lastNotificationApp = call.appId;
-        }
     }
 
     private async _showWelcome() {
-        await this._doAgentReply();
+        await this._doAgentReply([]);
         // reset the dialogue state here; if we don't, we we'll see sys_greet as an agent
         // dialogue act; this is never seen in training, because in training the user speaks
         // first, so it confuses the neural network
@@ -690,14 +666,10 @@ export default class DialogueLoop {
             let item;
             try {
                 item = await this.nextQueueItem();
-                if (item instanceof QueueItem.UserInput) {
-                    this._lastNotificationApp = undefined;
+                if (item instanceof QueueItem.UserInput)
                     await this._handleUserInput(item.command);
-                } else {
+                else
                     await this._handleAPICall(item);
-                    this.conversation.dialogueFinished();
-                    this._dialogueState = null;
-                }
             } catch(e) {
                 if (e.code === 'ECANCELLED') {
                     this.icon = null;
