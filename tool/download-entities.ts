@@ -1,8 +1,8 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
-// Copyright 2019-2020 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2019-2021 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,31 +18,26 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
+import * as argparse from 'argparse';
 import * as fs from 'fs';
 import * as Tp from 'thingpedia';
 
 import * as StreamUtils from '../lib/utils/stream-utils';
 
-const DEFAULT_THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
+import { getConfig, DEFAULT_THINGPEDIA_URL } from './lib/argutils';
 
-export function initArgparse(subparsers) {
-    const parser = subparsers.add_parser('download-dataset', {
+export function initArgparse(subparsers : argparse.SubParser) {
+    const parser = subparsers.add_parser('download-entities', {
         add_help: true,
-        description: "Download primitive templates from Thingpedia."
+        description: "Download a snapshot of Thingpedia."
     });
     parser.add_argument('-l', '--locale', {
         required: false,
         default: 'en',
         help: `BGP 47 locale tag of the natural language to download the snapshot for (defaults to 'en', English)`
     });
-    parser.add_argument('-o', '--output', {
-        required: true,
-        type: fs.createWriteStream
-    });
     parser.add_argument('--thingpedia-url', {
         required: false,
-        default: DEFAULT_THINGPEDIA_URL,
         help: `base URL of Thingpedia server to contact; defaults to '${DEFAULT_THINGPEDIA_URL}'`
     });
     parser.add_argument('--developer-key', {
@@ -50,13 +45,29 @@ export function initArgparse(subparsers) {
         default: '',
         help: `developer key to use when contacting Thingpedia`
     });
+    parser.add_argument('-o', '--output', {
+        required: true,
+        type: fs.createWriteStream
+    });
+    parser.add_argument('--snapshot', {
+        required: false,
+        default: '-1',
+        help: `identifier of the Thingpedia snapshot to download (or -1 for the latest snapshot)`
+    });
 }
 
-export async function execute(args) {
-    let url = args.thingpedia_url + '/api/v3/examples/all?locale=' + args.locale;
+export async function execute(args : any) {
+    if (!args.thingpedia_url)
+        args.thingpedia_url = await getConfig('thingpedia.url', process.env.THINGPEDIA_URL || DEFAULT_THINGPEDIA_URL);
+    if (!args.developer_key)
+        args.developer_key = await getConfig('thingpedia.developer-key', process.env.THINGPEDIA_DEVELOPER_KEY || null);
+
+    let url = args.thingpedia_url + '/api/v3/entities/all?snapshot=' + args.snapshot + '&locale=' + args.locale;
     if (args.developer_key)
         url += '&developer_key=' + args.developer_key;
 
-    args.output.end(await Tp.Helpers.Http.get(url, { accept: 'application/x-thingtalk' }));
+    args.output.end(JSON.stringify(JSON.parse(
+        await Tp.Helpers.Http.get(url, { accept: 'application/json' })),
+        undefined, 2));
     await StreamUtils.waitFinish(args.output);
 }
