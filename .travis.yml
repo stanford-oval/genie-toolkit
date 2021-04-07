@@ -78,6 +78,14 @@ jobs:
       - travis_retry npm ci
       script: npx nyc ./test/multiwoz-starter.sh
       after_success: npm run coverage
+    -
+      name: "Starter Code Tests (Custom Skills)"
+      install:
+      - pyenv global 3.7.1
+      - ./travis/install-starter-deps.sh
+      - travis_retry npm ci
+      script: npx nyc ./test/custom-starter.sh
+      after_success: npm run coverage
 
 notifications:
   webhooks: https://coveralls.io/webhook
