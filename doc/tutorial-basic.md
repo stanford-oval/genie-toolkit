@@ -8,10 +8,6 @@ Note: this tutorial assumes that you installed Genie using the ["git" installati
 instructions](install.md). If you used the "npm" installation method, you will
 need to adjust the paths. 
 
-It is recommended to also install the
-[Thingpedia command line tools](https://github.com/stanford-oval/thingpedia-cli)
-as that simplifies obtaining skill definitions.
-
 ## Step 1: Obtain the skill definitions
 
 The first step in this tutorial is to obtain the definitions of the virtual assistant
@@ -27,19 +23,11 @@ you can retrieve them from <https://almond.stanford.edu/thingpedia/classes/by-id
 See the [Thingpedia documentation](https://almond.stanford.edu/thingpedia/developers/thingpedia-nl-support.md)
 for additional description of these files.
 
-You can also retrieve the entirety of Thingpedia using the
-[Thingpedia command line tools](https://github.com/stanford-oval/thingpedia-cli),
-by issuing:
+You can also retrieve the entirety of Thingpedia by issuing:
 ```bash
-thingpedia download-snapshot -o thingpedia.tt
-thingpedia download-templates -o dataset.tt
-```
-
-The third file must be downloaded from Thingpedia, using the API
-at <https://thingpedia.stanford.edu/thingpedia/api/v3/entities/all>.
-You can also use the command:
-```bash
-thingpedia download-entities -o entities.json
+genie download-snapshot -o thingpedia.tt
+genie download-templates -o dataset.tt
+genie download-entities -o entities.json
 ```
 
 ## Step 2: Obtain Parameter Datasets
@@ -63,8 +51,8 @@ is available after registration and accepting the terms and conditions.
 If you have an appropriate Thingpedia developer key, you can also download the datasets
 with:
 ```bash
-thingpedia download-entity-values -d parameter-datasets/ --manifest parameter-datasets.tsv
-thingpedia download-string-values -d parameter-datasets/ --manifest parameter-datasets.tsv --append-manifest
+genie download-entity-values -d parameter-datasets/ --manifest parameter-datasets.tsv
+genie download-string-values -d parameter-datasets/ --manifest parameter-datasets.tsv --append-manifest
 ```
 
 These commands will download into the `parameter-datasets` directory, and
