@@ -34,45 +34,71 @@ export function initArgparse(subparsers : argparse.SubParser) {
         default: 'org.thingpedia.v2',
         help: "The loader to use for the new device (defaults to org.thingpedia.v2)"
     });
-    parser.add_argument('name', {
+    parser.add_argument('--description', {
+        help: "The human-readable description of the new device",
+        default: 'TODO add description'
+    });
+    parser.add_argument('--name', {
+        help: "The human-readable name of the new device",
+    });
+    parser.add_argument('class_name', {
         help: "The name (unique ID) of the new device, in reverse-DNS notation (e.g. com.example.foo)"
     });
 }
 
 export async function execute(args : any) {
     try {
-        await pfs.rmdir(args.name);
+        await pfs.rmdir(args.class_name);
     } catch(e) {
         if (e.code !== 'ENOENT') {
-            console.error(`${args.name} already exists and is not an empty directory`);
+            console.error(`${args.class_name} already exists and is not an empty directory`);
             return;
         }
     }
 
     const packageInfo = JSON.parse(await pfs.readFile('./package.json', { encoding: 'utf8' }));
 
-    await pfs.mkdir(args.name);
+    await pfs.mkdir(args.class_name);
 
-    await pfs.writeFile(path.resolve(args.name, 'manifest.tt'),
-`class @${args.name} {
+    await pfs.writeFile(path.resolve(args.class_name, 'manifest.tt'),
+`class @${args.class_name}
+#_[name="${args.name || args.class_name}"]
+#_[description="${args.description}"]
+#_[thingpedia_name="${args.name || args.class_name}"]
+#_[thingpedia_description="${args.description}"]
+#[license="${packageInfo.license}"]
+#[license_gplcompatible=${packageInfo.license !== 'Proprietary'}]
+#[subcategory="service"] {
 import loader from @${args.loader}();
 import config from @org.thingpedia.config.none();
 }
 `);
-    await execCommand(['git', 'add', path.resolve(args.name, 'manifest.tt')]);
+
+    await pfs.writeFile(path.resolve(args.class_name, 'dataset.tt'),
+`dataset @${args.class_name} {
+}
+`);
+
+    await pfs.mkdir(path.resolve(args.class_name, 'eval'));
+    await pfs.mkdir(path.resolve(args.class_name, 'eval/dev'));
+    await pfs.writeFile(path.resolve(args.class_name, 'eval/dev/annotated.txt'), '');
+    await pfs.mkdir(path.resolve(args.class_name, 'eval/train'));
+    await pfs.writeFile(path.resolve(args.class_name, 'eval/train/annotated.txt'), '');
+    await pfs.writeFile(path.resolve(args.class_name, 'eval/paraphrase.tsv'), '');
 
     if (args.loader === 'org.thingpedia.v2') {
-        await pfs.writeFile(path.resolve(args.name, 'package.json'), JSON.stringify({
-            name: args.name,
+        await pfs.writeFile(path.resolve(args.class_name, 'package.json'), JSON.stringify({
+            name: args.class_name,
+            description: args.name||'',
             author: packageInfo.author,
             license: packageInfo.license,
             main: 'index.js'
         }));
 
-        await pfs.writeFile(path.resolve(args.name, 'index.js'),
+        await pfs.writeFile(path.resolve(args.class_name, 'index.js'),
 `// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
-// This file is part of ${args.name}
+// This file is part of ${args.class_name}
 //
 // Copyright ${(new Date).getFullYear()} ${packageInfo.author}
 //
@@ -85,16 +111,12 @@ module.exports = class extends Tp.BaseDevice {
 };
 `);
 
-        await execCommand(['yarn'], { cwd: args.name });
-
-        await execCommand(['git', 'add',
-            path.resolve(args.name, 'package.json'),
-            path.resolve(args.name, 'yarn.lock'),
-            path.resolve(args.name, 'index.js')
-        ]);
+        await execCommand(['npm', 'install'], { debug: true, cwd: args.class_name });
     }
 
-    await pfs.writeFile(`test/${args.name}.js`,
+    await execCommand(['git', 'add', args.class_name], { debug: true, });
+
+    await pfs.writeFile(`test/unit/${args.class_name}.js`,
 `// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // Copyright ${(new Date).getFullYear()} ${packageInfo.author}
@@ -105,9 +127,9 @@ module.exports = class extends Tp.BaseDevice {
 module.exports = [
 ];
 `);
-    await execCommand(['git', 'add', `test/${args.name}.js`]);
+    await execCommand(['git', 'add', `test/unit/${args.class_name}.js`], { debug: true, });
 
-    await execCommand(['git', 'commit', '-m', `Added ${args.name}`]);
+    await execCommand(['git', 'commit', '-m', `Added ${args.class_name}`], { debug: true, });
 
     console.log('Success!');
 }

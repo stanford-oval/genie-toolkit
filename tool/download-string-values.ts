@@ -95,7 +95,7 @@ export async function execute(args : any) {
             listUrl += '&developer_key=' + args.developer_key;
 
         args.type = JSON.parse(await Tp.Helpers.Http.get(listUrl, { accept: 'application/json' }))
-            .data.map((e : { type: string }) => e.type);
+            .data.map((e : { type : string }) => e.type);
     }
 
     let progbar : ProgressBar|undefined;

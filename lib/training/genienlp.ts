@@ -89,7 +89,7 @@ export default class GenieNLPTrainingJob extends BaseTrainingJob {
         }
 
         this.metrics = {};
-        await execCommand(args, { handleStderr: (line) => {
+        await execCommand(args, { debug: this.debug, handleStderr: (line) => {
             // the line we are looking for has the form:
             // ...:train_contextual_almond:70000/100000:val_deca:...
             // or
@@ -123,7 +123,7 @@ export default class GenieNLPTrainingJob extends BaseTrainingJob {
         else
             args.push('--embeddings', path.resolve(this.workdir, 'embeddings'));
 
-        await execCommand(args, {}, this);
+        await execCommand(args, { debug: this.debug, }, this);
     }
 
     async train() {

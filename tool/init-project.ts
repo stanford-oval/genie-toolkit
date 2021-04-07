@@ -19,14 +19,13 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import * as argparse from 'argparse';
-import * as fs from 'fs';
 import { promises as pfs } from 'fs';
 import * as path from 'path';
-import * as Tp from 'thingpedia';
+import * as util from 'util';
+
+import * as licejs from 'lice-js';
 
 import { execCommand } from '../lib/utils/process-utils';
-import { waitFinish } from '../lib/utils/stream-utils';
-import ProgressBar from './lib/progress_bar';
 
 import { getConfig } from './lib/argutils';
 
@@ -65,6 +64,20 @@ export function initArgparse(subparsers : argparse.SubParser) {
     });
 }
 
+async function copyTree(from : string, to : string) {
+    for await (const entry of await pfs.opendir(from)) {
+        if (entry.isDirectory()) {
+            await pfs.mkdir(path.resolve(to, entry.name));
+            await copyTree(path.resolve(from, entry.name), path.resolve(to, entry.name));
+        } else if (entry.isSymbolicLink()) {
+            const link = await pfs.readlink(path.resolve(from, entry.name));
+            await pfs.symlink(path.relative(from, link), path.resolve(to, entry.name));
+        } else {
+            await pfs.copyFile(path.resolve(from, entry.name), path.resolve(to, entry.name));
+        }
+    }
+}
+
 export async function execute(args : any) {
     try {
         await pfs.rmdir(args.output_dir);
@@ -80,73 +93,55 @@ export async function execute(args : any) {
     if (!args.author)
         args.author = `${await getConfig('user.name')} <${await getConfig('user.email')}>`;
 
-    const parentDir = path.dirname(path.resolve(args.output_dir));
-    await pfs.mkdir(parentDir, { recursive: true });
-
-    console.log('Downloading skeleton...');
-    const zipFile = fs.createWriteStream(path.resolve(parentDir, 'skeleton.zip'));
-    const stream = await Tp.Helpers.Http.getStream('https://github.com/stanford-oval/thingpedia-common-devices/archive/skeleton.zip');
-
-    let progbar : ProgressBar|undefined;
-    if (stream.headers['content-length'])
-        progbar = new ProgressBar(parseFloat(stream.headers['content-length']));
-
-    stream.on('data', (buf) => {
-        if (progbar)
-            progbar.add(buf.length);
-        zipFile.write(buf);
-    });
-    stream.on('end', () => {
-        zipFile.end();
-    });
-
-    await waitFinish(zipFile);
-    await execCommand(['unzip', 'skeleton.zip'], { cwd: parentDir });
-    await pfs.rename(path.resolve(parentDir, 'thingpedia-common-devices-skeleton'), args.output_dir);
-    await pfs.unlink(path.resolve(parentDir, 'skeleton.zip'));
+    await pfs.mkdir(args.output_dir, { recursive: true });
 
     console.log('Initializing Git repository...');
-    await execCommand(['git', 'init'], { cwd: args.output_dir });
+    await execCommand(['git', 'init'], { debug: true, cwd: args.output_dir });
 
-    await execCommand(['git', 'config', 'thingpedia.url', args.thingpedia_url], { cwd: args.output_dir });
+    await execCommand(['git', 'config', 'thingpedia.url', args.thingpedia_url], { debug: true, cwd: args.output_dir });
     if (args.developer_key)
-        await execCommand(['git', 'config', 'thingpedia.developer-key', args.developer_key], { cwd: args.output_dir });
+        await execCommand(['git', 'config', 'thingpedia.developer-key', args.developer_key], { debug: true, cwd: args.output_dir });
 
-    if (process.platform === 'darwin') {
-        await execCommand(['sed', '-i', '.backup',
-        '-e', `s|@@name@@|${name}|`,
-        '-e', `s|@@description@@|${args.description}|`,
-        '-e', `s|@@author@@|${args.author}|`,
-        '-e', `s|@@license@@|${args.license}|`,
-        path.resolve(args.output_dir, 'package.json')]);
-        await execCommand(['rm', path.resolve(args.output_dir, 'package.json.backup')]);
-    }
-    else {
-        await execCommand(['sed', '-i',
-        '-e', `s|@@name@@|${name}|`,
-        '-e', `s|@@description@@|${args.description}|`,
-        '-e', `s|@@author@@|${args.author}|`,
-        '-e', `s|@@license@@|${args.license}|`,
-        path.resolve(args.output_dir, 'package.json')]);
-    }
+    console.log('Copying skeleton code...');
+    await copyTree(path.resolve(path.dirname(module.filename), '../../starter/custom'), args.output_dir);
 
-    const licenseFD = await pfs.open(path.resolve(args.output_dir, 'LICENSE'), 'w');
-    await execCommand(['licejs',
-        '-o', args.author,
-        '-p', name,
-        '-y', String((new Date).getFullYear()),
-        LICENSES[args.license]
-        ], { stdio: ['ignore', licenseFD.fd, 'inherit'] });
-    await licenseFD.close();
+    console.log('Writing metadata...');
 
-    console.log('Creating initial commit...');
+    const ourPackageJSON = JSON.parse(await pfs.readFile(path.resolve(path.dirname(module.filename), '../../package.json'), { encoding: 'utf8' }));
 
-    await execCommand(['git', 'add', '.'], { cwd: args.output_dir });
-    await execCommand(['git', 'commit', '-m', 'Initial commit'], { cwd: args.output_dir });
+    const ourdeps : Record<string, string> = {};
+    for (const dep of ['thingpedia', 'uuid', 'byline', 'seedrandom', 'argparse', 'eslint'])
+        ourdeps[dep] = ourPackageJSON.dependencies[dep] || ourPackageJSON.devDependencies[dep];
+
+    const packageJSON = {
+        name: name,
+        description: args.description,
+        version: '0.0.1',
+        author: args.author,
+        license: args.license,
+        devDependencies: {
+            'genie-toolkit': '^' + ourPackageJSON.version,
+            ...ourdeps
+        }
+    };
+    await pfs.writeFile(path.resolve(args.output_dir, 'package.json'), JSON.stringify(packageJSON, undefined, 2));
+
+    const license = await util.promisify(licejs.createLicense)(LICENSES[args.license], {
+        year: String((new Date).getFullYear()),
+        organization:  args.author,
+        project: name,
+        header: false
+    });
+    await pfs.writeFile(path.resolve(args.output_dir, 'LICENSE'), license.body!);
 
     console.log('Installing dependencies...');
 
-    await execCommand(['yarn'], { cwd: args.output_dir });
+    await execCommand(['npm', 'install'], { debug: true, cwd: args.output_dir });
+
+    console.log('Creating initial commit...');
+
+    await execCommand(['git', 'add', '.'], { debug: true, cwd: args.output_dir });
+    await execCommand(['git', 'commit', '-m', 'Initial commit'], { debug: true, cwd: args.output_dir });
 
     console.log('Success!');
 }

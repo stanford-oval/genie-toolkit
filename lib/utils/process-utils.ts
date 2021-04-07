@@ -42,21 +42,26 @@ export async function safeMkdir(dir : string) {
 
 interface Job {
     id : string;
-    debug : boolean;
     child ?: child_process.ChildProcess|null;
 }
 
-type Options = child_process.SpawnOptions & { handleStderr ?: (line : string) => void };
+interface ExecCommandOptions {
+    debug ?: boolean,
+    cwd ?: string,
+    handleStderr ?: (line : string) => void
+}
 
-export function execCommand(argv : string[], options : Options = {}, job ?: Job) {
+export function execCommand(argv : string[], options : ExecCommandOptions = {}, job ?: Job) {
     return new Promise<void>((resolve, reject) => {
-        const stdio : ['ignore', 'pipe'|'ignore', 'pipe'|'inherit'] = ['ignore', job && job.debug ? 'pipe' : 'ignore', job ? 'pipe' : 'inherit'];
+        const stdio : ['ignore', 'pipe'|'ignore'|'inherit', 'pipe'|'inherit'] = ['ignore',
+            job && options.debug ? 'pipe' : options.debug ? 'inherit' : 'ignore',
+            job ? 'pipe' : 'inherit'];
 
-        if (job && job.debug)
+        if (options.debug)
             console.log(argv.map((a) => "'" + a + "'").join(' '));
 
         const [argv0, ...args] = argv;
-        const child = child_process.spawn(argv0, args, { stdio });
+        const child = child_process.spawn(argv0, args, { stdio, cwd: options.cwd });
         if (job)
             job.child = child;
         child.on('error', reject);
@@ -77,7 +82,7 @@ export function execCommand(argv : string[], options : Options = {}, job ?: Job)
         });
 
         if (job) {
-            if (job.debug) {
+            if (options.debug) {
                 child.stdout!.setEncoding('utf-8');
                 const stdout = byline(child.stdout!);
                 stdout.on('data', (line) => {
@@ -91,7 +96,7 @@ export function execCommand(argv : string[], options : Options = {}, job ?: Job)
             child.stderr!.setEncoding('utf-8');
             const stderr = byline(child.stderr!);
             stderr.on('data', (line) => {
-                if (job.debug) {
+                if (options.debug) {
                     if (job.id !== undefined)
                         process.stderr.write(`job ${job.id}: ${line}\n`);
                     else
