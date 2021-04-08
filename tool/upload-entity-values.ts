@@ -33,8 +33,8 @@ export function initArgparse(subparsers : argparse.SubParser) {
     });
     parser.add_argument('-l', '--locale', {
         required: false,
-        default: 'en',
-        help: `BGP 47 locale tag of the natural language to download the snapshot for (defaults to 'en', English)`
+        default: 'en-US',
+        help: `BGP 47 locale tag of the natural language (defaults to 'en-US', American English)`
     });
     parser.add_argument('--thingpedia-url', {
         required: false,
