@@ -153,13 +153,13 @@ compute_question : Ast.Expression = {
         };
 
         !dialogues {
-        ( 'how many' p:out_param_Array__Any 'with' filter:with_filter with { functionName = p.functionName } ('does' | 'do') table:with_filtered_table with { functionName = p.functionName } 'have ?'
-        | 'how many' p:out_param_Array__Any 'with' filter:with_filter with { functionName = p.functionName } ('in a' | 'in' | 'in the') table:with_filtered_table with { functionName = p.functionName } '?'
-        | 'how many' p:out_param_Array__Any 'with' filter:with_filter with { functionName = p.functionName } 'are there' ('in a' | 'in' | 'in the') table:with_filtered_table with { functionName = p.functionName } '?'
+        ( 'how many' p:out_param_Array__Compound 'with' filter:with_filter with { functionName = p.functionName } ('does' | 'do') table:with_filtered_table with { functionName = p.functionName } 'have ?'
+        | 'how many' p:out_param_Array__Compound 'with' filter:with_filter with { functionName = p.functionName } ('in a' | 'in' | 'in the') table:with_filtered_table with { functionName = p.functionName } '?'
+        | 'how many' p:out_param_Array__Compound 'with' filter:with_filter with { functionName = p.functionName } 'are there' ('in a' | 'in' | 'in the') table:with_filtered_table with { functionName = p.functionName } '?'
 
-        | 'how many' p:out_param_Array__Any 'with' filter:with_filter with { functionName = p.functionName } ('does' | 'do') 'the'  table:with_arg_min_max_table with { functionName = p.functionName } 'have ?'
-        | 'how many' p:out_param_Array__Any 'with' filter:with_filter with { functionName = p.functionName } 'in the' table:with_arg_min_max_table with { functionName = p.functionName } '?'
-        | 'how many' p:out_param_Array__Any 'with' filter:with_filter with { functionName = p.functionName } 'are there in the' table:with_arg_min_max_table with { functionName = p.functionName } '?'
+        | 'how many' p:out_param_Array__Compound 'with' filter:with_filter with { functionName = p.functionName } ('does' | 'do') 'the'  table:with_arg_min_max_table with { functionName = p.functionName } 'have ?'
+        | 'how many' p:out_param_Array__Compound 'with' filter:with_filter with { functionName = p.functionName } 'in the' table:with_arg_min_max_table with { functionName = p.functionName } '?'
+        | 'how many' p:out_param_Array__Compound 'with' filter:with_filter with { functionName = p.functionName } 'are there in the' table:with_arg_min_max_table with { functionName = p.functionName } '?'
         ) => {
             const ptype = table.schema!.out[p.name];
             if (!ptype || !(ptype instanceof Type.Array) || !(filter instanceof Ast.AtomBooleanExpression))

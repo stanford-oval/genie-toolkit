@@ -30,6 +30,7 @@ export interface SentenceExample {
     id : string;
     flags : FlagUtils.SentenceFlags;
 
+    raw ?: string;
     context ?: string;
     preprocessed : string;
     target_code : string|string[];

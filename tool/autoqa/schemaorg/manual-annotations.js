@@ -163,7 +163,7 @@ const PROPERTY_NAME_OVERRIDE_BY_DOMAIN = {
     'hotels': {
         'starRating.ratingValue': 'star'
     },
-    'linkedin': {
+    'people': {
         'address.addressLocality': 'homeLocation'
     }
 };

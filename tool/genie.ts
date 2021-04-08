@@ -55,6 +55,7 @@ const subcommands : { [key : string] : SubCommand } = {
     'deduplicate': require('./deduplicate'),
     'measure-training-set': require('./measure-training-set'),
     'compute-training-coverage': require('./compute-training-coverage'),
+    'retokenize-eval': require('./retokenize-evaluation-data'),
 
     'train': require('./train'),
     'predict': require('./predict'),

@@ -111,6 +111,7 @@ get_command_coref_list_context : C.ExpressionWithCoreference = {}
 
 // references to parameter by name
 out_param_Any : C.ParamSlot = {}
+out_param_Any_hidden: C.ParamSlot = {}
 the_out_param_Any : C.ParamSlot = {}
 out_param_Array__Any : C.ParamSlot = {}
 out_param_Array__Compound : C.ParamSlot = {}
