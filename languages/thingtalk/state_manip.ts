@@ -123,7 +123,8 @@ export class ResultInfo {
         const stmt = item.stmt;
         this.hasStream = stmt.stream !== null;
 
-        this.isTable = stmt.last.schema!.functionType === 'query';
+        this.isTable = stmt.last.schema!.functionType === 'query' &&
+            (!this.hasStream || state.dialogueAct === 'notification');
 
         if (this.isTable) {
             const table = stmt.lastQuery!;
@@ -1423,7 +1424,7 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
 
     assert(ctx.results && ctx.results.length > 0);
     phrases.push(makeContextPhrase(contextTable.ctx_with_result, ctx));
-    if (ctx.resultInfo.isTable)
+    if (ctx.resultInfo.isTable && !ctx.resultInfo.isAggregation)
         phrases.push(makeContextPhrase(contextTable.ctx_with_table_result, ctx));
     if (ctx.resultInfo.isAggregation)
         phrases.push(makeContextPhrase(contextTable.ctx_with_aggregation_result, ctx));
