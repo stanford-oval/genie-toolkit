@@ -106,6 +106,7 @@ $(dataset_file): $(addsuffix /dataset.tt,$(devices))
 	if test -f $@ && cmp $@.tmp $@ ; then rm $@.tmp ; else mv $@.tmp $@ ; fi
 
 everything/database-map.tsv: $(wildcard $(addsuffix /database-map.tsv,$(devices)))
+	touch $@.tmp
 	for f in $^ ; do \
 	  sed 's|\t|\t../../'`dirname $$f`'/|g' $$f >> $@.tmp ; \
 	done
