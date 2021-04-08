@@ -855,6 +855,11 @@ export default class ThingpediaLoader {
             if (option === 'const') // no coreference if parameter uses :const in the placeholder
                 continue;
 
+            const intoType = example.args[tableParam];
+            // don't use parameter passing for booleans or enums, as that rarely makes sense
+            if (intoType.isEnum || intoType.isBoolean)
+                continue;
+
             for (const corefSource of ['same_sentence', 'context', 'list_context']) {
                 if (corefSource === 'same_sentence' && grammarCat === 'stream')
                     continue;
@@ -865,9 +870,9 @@ export default class ThingpediaLoader {
 
                     let fromNonTerm;
                     if (fromNonTermName === 'out_param_Any')
-                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, tableParam, ['type', example.args[tableParam]]);
+                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, tableParam, ['type', intoType]);
                     else if (fromNonTermName === 'the_base_table')
-                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, tableParam, ['idType', example.args[tableParam]]);
+                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, tableParam, ['idType', intoType]);
                     else
                         fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, tableParam);
 
@@ -933,6 +938,9 @@ export default class ThingpediaLoader {
                 continue;
 
             const intoType = example.args[tableParam];
+            // don't use parameter passing for booleans or enums, as that rarely makes sense
+            if (intoType.isEnum || intoType.isBoolean)
+                continue;
 
             for (const fromNonTermName of fromNonTermNames) {
                 if (grammarCat === 'query' && fromNonTermName === 'stream_projection_Any') // TODO
