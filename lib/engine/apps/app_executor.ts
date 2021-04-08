@@ -104,9 +104,21 @@ interface AppMeta {
  * under this object.
  */
 export default class AppExecutor extends events.EventEmitter {
+    /**
+     * The unique ID of this app.
+     */
     uniqueId : string|undefined;
+    /**
+     * The engine that owns this app.
+     */
     engine : Engine;
-    code : string;
+    /**
+     * The ThingTalk program of this app.
+     */
+    program : Ast.Program;
+    /**
+     * The icon to use for this app.
+     */
     icon : string|null;
     name : string;
     description : string;
@@ -114,11 +126,21 @@ export default class AppExecutor extends events.EventEmitter {
     mainOutput : QueueOutputDelegate;
     private _notificationOutput : NotificationOutputDelegate;
 
+    /**
+     * Whether this app is running.
+     *
+     * This is set automatically by the engine.
+     */
     isRunning : boolean;
+    /**
+     * Whether this app is enabled (should be run automatically at startup).
+     */
     isEnabled : boolean;
 
+    /**
+     * The ThingTalk compiler used by this app.
+     */
     private compiler : AppCompiler;
-    private _ast : Ast.Program|null;
     private _error : Error|null;
     private _meta : AppMeta;
 
@@ -148,67 +170,22 @@ export default class AppExecutor extends events.EventEmitter {
                 description : string|undefined) {
         super();
 
-        /**
-         * The unique ID of this app.
-         * @type {string}
-         * @readonly
-         */
         this.uniqueId = undefined;
-
-        /**
-         * The engine that owns this app.
-         * @type {Engine}
-         * @readonly
-         */
         this.engine = engine;
 
-        /**
-         * The ThingTalk code of this app.
-         * @type {string}
-         * @readonly
-         */
-        this.code = code;
-
-        /**
-         * Whether this app is running.
-         *
-         * This is set automatically by the engine.
-         * @type {boolean}
-         */
         this.isRunning = false;
-
-        /**
-         * Whether this app is enabled (should be run automatically at startup).
-         * @type {boolean}
-         */
         this.isEnabled = false;
 
-        /**
-         * The ThingTalk compiler used by this app.
-         * @type {ThingTalk.Compiler}
-         * @readonly
-         * @private
-         */
         this.compiler = new AppCompiler(engine.schemas);
         this.command = null;
         this.rules = [];
 
-        try {
-            const ast = Syntax.parse(code);
-            assert(ast instanceof Ast.Program);
-            this._ast = ast;
-            this._error = null;
-        } catch(e) {
-            this._ast = null;
-            this._error = e;
-        }
+        const ast = Syntax.parse(code);
+        assert(ast instanceof Ast.Program);
+        this.program = ast;
+        this._error = null;
 
         this._meta = meta;
-        /**
-         * The icon to use for this app.
-         * @type {string|null}
-         * @readonly
-         */
         this.icon = meta.icon || null;
 
         this.name = '';
@@ -241,7 +218,6 @@ export default class AppExecutor extends events.EventEmitter {
 
     /**
      * The last error reported by this app.
-     * @type {string}
      */
     get error() : string|null {
         if (this._error)
@@ -267,7 +243,6 @@ export default class AppExecutor extends events.EventEmitter {
      * after all commands have been stopped.
      *
      * @package
-     * @async
      */
     destroy() {
         if (this._finished)
@@ -279,7 +254,6 @@ export default class AppExecutor extends events.EventEmitter {
 
     /**
      * Stop and delete this app.
-     * @async
      */
     async removeSelf() {
         await this.engine.apps.removeApp(this);
@@ -292,13 +266,9 @@ export default class AppExecutor extends events.EventEmitter {
      * or {@link AppExecutor#start}.
      *
      * On failure, this method will set {@link AppExecutor#error}.
-     * @async
      */
     async compile() : Promise<void> {
-        if (this._error)
-            throw this._error;
-
-        const compiled = await this.compiler.compileProgram(this._ast!);
+        const compiled = await this.compiler.compileProgram(this.program);
 
         if (compiled.command)
             this.command = new RuleExecutor(this.engine, this, compiled.command, this.mainOutput);

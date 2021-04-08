@@ -28,8 +28,11 @@ interface SubCommand {
 
 const subcommands : { [key : string] : SubCommand } = {
     'download-snapshot': require('./download-snapshot'),
-    'download-dataset': require('./download-dataset'),
-    'sample-constants': require('./sample-constants'),
+    'download-templates': require('./download-templates'),
+    'download-entities': require('./download-entities'),
+    'download-entity-values': require('./download-entity-values'),
+    'download-strings': require('./download-strings'),
+    'download-string-values': require('./download-string-values'),
 
     'compile-template': require('./compile-template'),
     'generate': require('./generate'),
@@ -38,6 +41,7 @@ const subcommands : { [key : string] : SubCommand } = {
     'simulate-dialogs': require('./simulate-dialogs'),
 
     'sample': require('./sample'),
+    'sample-constants': require('./sample-constants'),
     'mturk-make-paraphrase-hits': require('./mturk-make-paraphrase-hits'),
     'mturk-make-validation-hits': require('./mturk-make-validation-hits'),
     'mturk-validate': require('./mturk-validate'),
@@ -90,6 +94,14 @@ const subcommands : { [key : string] : SubCommand } = {
     'auto-annotate-multiwoz': require('./auto-annotate-multiwoz'),
     'extract-predicted-slots': require('./extract-predicted-slots'),
     'analyze-dialogue-annotations': require('./analyze-dialogue-annotations'),
+
+    'init-project': require('./init-project'),
+    'init-device': require('./init-device'),
+    'lint-device': require('./lint-device'),
+
+    'upload-device': require('./upload-device'),
+    'upload-string-values': require('./upload-string-values'),
+    'upload-entity-values': require('./upload-entity-values'),
 };
 
 async function main() {

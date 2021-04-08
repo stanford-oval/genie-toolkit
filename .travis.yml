@@ -12,14 +12,19 @@ env:
 jobs:
   include:
     -
+      name: "Lint"
+      install:
+      - travis_retry npm ci
+      script:
+      - npm run lint
+      - npm run doc
+    -
       name: "Unit Tests"
       install:
       - pyenv global 3.7.1
       - pip install --user torch transformers
       - travis_retry npm ci
       script:
-      - npm run lint
-      #- npm run doc
       - TZ="America/Los_Angeles" npx nyc ts-node -T ./test/unit
       after_success: npm run coverage
     -
@@ -73,13 +78,21 @@ jobs:
       - travis_retry npm ci
       script: npx nyc ./test/multiwoz-starter.sh
       after_success: npm run coverage
+    -
+      name: "Starter Code Tests (Custom Skills)"
+      install:
+      - pyenv global 3.7.1
+      - ./travis/install-starter-deps.sh
+      - travis_retry npm ci
+      script: npx nyc ./test/custom-starter.sh
+      after_success: npm run coverage
 
 notifications:
   webhooks: https://coveralls.io/webhook
   slack:
     secure: IgwEjeN5cfZMm+zOnxiL7Gd1F4JYL+CFlNoEO5NbQ9Nl+OPRF3DI33mumC7AvBx32i0xmd62MYdLs8hSKQfmrv/amq1mxEqpnvATNh58v9SOMzAw5zscf5TMgSD4L3jzAQ4kLkws1DCxq8TaaukErQYVIUU0n6ILJQ3UuUGPjKLX7R2CwjzPVNeCbBxyJ6c/kwmVOEn//E5be+Y3g044AfeJZ8Q99oVIKqzgxI+kkDwuc4bkbQwP+p6hDcXAuy13ewoTz/f6oAUjcgJUwKUAe0LiVVS46aXT1ftBUQN8wA/KEgC4TdMsfmOI4XbzW9g7xhngAZ5DdB+wJ2R2TGhpqSjZ7yCQGMH4yM/2QU4dMEQUd1A9H0bYCaC449yp+WVIDz78bC4GQA1UA8RzeM8EHb5GHRQu1LloHTVSdVoTjbngPMFv6lJj7AjhAfPgi7IyO2DIp2J7f2/2FdxRVIq+TRwBNQdo1/G+XvQFNtev5o5ANiIa/r+fmE5i1yi0ZVfpe3ojerrTxArtn6VRazO7SdiyW+injMSx+NlGj3qtJVGNrzQNlC9lpOMN/Y4Y3NWSnlNumRNAxBGEUS7hnRPBRrkovUe6mdLRI4oSkVl4cwR8XNh+R31IJl9g7XpehBmkXWh+gq44S82Y+dTvbvOCidgd55AQNVTOp0XE//hE5TQ=
 deploy:
-  provider: npm
+- provider: npm
   skip_cleanup: true
   email: gcampagn@cs.stanford.edu
   api_key:
@@ -87,3 +100,18 @@ deploy:
   on:
     tags: true
     repo: stanford-oval/genie-toolkit
+    condition: '"${TRAVIS_JOB_NAME}" = Lint'
+- provider: s3
+  bucket: "geniehai-public"
+  region: us-west-2
+  skip_cleanup: true
+  access_key_id:
+    secure: "jBi41JAwA16Up/8SxiimcEdJuh/QnHmyGV5mu/StHJYSdTRDFChkismutTX3f1Aw1czDJYTwKfsv2WIGCsa1QKJOTw4mvXtx1fn12CVRgLxZjpsNpvMohZd/NOQ62CxaITIMag0R5GAnCt+TaotgqM135YTRvkO/AHfmHhxRHFJ5+bnwYFY8J+bevHFuPHQQcXEOFdig/WE/ZPfkZ3SvkK2Texv/Gfm/3UjOgwn5dJjfHeqwT3jirANvy2N7+gAOKncdEwCUuyXLpcjpiX/EZNFVZ2ULbiVq2nBy8ef2bcBVo71cg6jv7ry4LENOWcHi82EVGntVTIqKGBcbT2KuGRRIRzetm/2J8bl48MZSHHq40N/1JnFph6hM/0Uz5yXLdzpUnBTVRVnFg89XvteCJ5YHo/Fd8ziClsva/7KE/NMHZHyiXVUkhM/T+dO7C0RPcSbYbEIP/ZnH4KF5KnOkCQOoUqfzDC8le9MM3D5WjqYgwAq7h7B+I3G6EQrvDmBKIjCHapdhFKwhgfeugm0hbFkJgXJXhATwjZrmoOAnJ48NBCWhnNIdH53su3WT8gCI9Z8UXUnDHJTkSezqePGVsRhOtI5yg+SXtRW120Prv5fKP4HM51//ZKGZTJKo879qsb4g0T6t1ToikOkzZ6E9WOAJaHldg9hcAwFg1aFSE5Y="
+  secret_access_key:
+    secure: "AwPvMdwfnom4TdwIgDMc1EeFVzS3sPiwKYMQYlhlyeLRFxtFa1UNmWQKFOvsRGIilo2zyuh2Bw0Fb1jU2nsKro2s+xQ+Qlce0GCQR6+IGK/Zw66pNVxwZyLuEOasK3cjpQ7Xf+thr0wWw2UpMv7fnn9+s8YtBcs1J58/Fd2uC4A6iybDcd4jIcZ4g/2F06UxKqZaxc/ORdS8vx88jkPxS+1N6IWtY8GjbseXBs7/XsLgRed4PyECQwTS/2G4TaeVf7vraJu+f31xColrGARQOpzzb4P57zDYTvW/T8ZSnhBjZAWtxehGiOjAnALN71TQh9dqcvMODuLcvmybxzQLq8YhaHFkP1q41WrhFoLi6Vrnhgk95iiJhOOAWssMaQhpelqiHW7EKmHGLhAx7OVeFsIlBz3YkQKf6rq6gq10paDAimkFUwH6zZQlvTSNvy4Kgm7OKFIEL/rEckLTGGdlhnQ7FaQwliuMLAutH+6jJJYnZ1RTNnTC14ti8oSWlYGnVvjS1vwMzP4BN1Iv3M5vqm1VhdcBxZChfzALxn1Z1LvuSzNBaNgOCipLhd2Qd5QvUR//PW925X1XRZJK9TFp9w4i8jO7EKNJ3euFv2I5e0Nhv8x3hQqMszL7EcP2jQ5GWreE6WF/sGGw0IQeEAOaAwhXYCSTuI5yI4o4ttyT7Jw="
+  localdir: jsdoc
+  upload-dir: jsdoc/genie-toolkit/latest
+  on:
+    branch: master
+    repo: stanford-oval/genie-toolkit
+    condition: '"${TRAVIS_JOB_NAME}" = Lint'

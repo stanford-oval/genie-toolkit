@@ -24,6 +24,9 @@ dialogueActs:
     # "end" is a terminal state, it has no continuations
     # (the agent replies with sys_goodbye which itself generates no user reply)
     - end
+
+    # pseudo state used to enter the dialogue state machine for notifications
+    - notification
   agent:
     # agent says hi back
     - sys_greet
@@ -32,10 +35,12 @@ dialogueActs:
     - sys_generic_search_question
     # agent asks a question to slot fill a program
     - sys_slot_fill
-    # agent recommends one, two, or three results from the program (with or without an action)
+    # agent recommends one, two, three, four, or more results from the program (with or without an action)
     - sys_recommend_one
     - sys_recommend_two
     - sys_recommend_three
+    - sys_recommend_four
+    - sys_recommend_many
     # agent displays the result of a non-list query (incl. aggregation)
     - sys_display_result
     # agent proposes a refined query
@@ -52,6 +57,8 @@ dialogueActs:
     # agent had an error in executing the action (with and without a slot-fill question)
     - sys_action_error_question
     - sys_action_error
+    # agent started a rule (command with stream) successfully
+    - sys_rule_enable_success
     # agent asks if anything else is needed
     - sys_anything_else
     # agent says good bye

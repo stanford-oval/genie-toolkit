@@ -42,8 +42,6 @@ interface DatasetAugmenterOptions {
     paraphrasingExpandFactor : number;
 
     includeQuotedExample : boolean;
-    replaceLocations : boolean;
-    replaceNumbers : boolean;
     cleanParameters : boolean;
     requotable : boolean;
 
@@ -98,8 +96,6 @@ export default class DatasetAugmenter extends Stream.Transform {
             syntheticExpandFactor: this._options.syntheticExpandFactor,
             noQuoteExpandFactor: this._options.noQuoteExpandFactor,
             paraphrasingExpandFactor: this._options.paraphrasingExpandFactor,
-            replaceLocations: this._options.replaceLocations,
-            replaceNumbers: this._options.replaceNumbers,
             cleanParameters: this._options.cleanParameters,
             requotable: this._options.requotable,
             samplingType: this._options.samplingType,

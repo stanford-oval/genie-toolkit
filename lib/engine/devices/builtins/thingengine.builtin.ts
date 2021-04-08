@@ -28,6 +28,13 @@ import ExecWrapper, { CompiledQueryHints } from '../../apps/exec_wrapper';
 
 import FAQ from './faq.json';
 
+class CustomError extends Error {
+    constructor(public code : string,
+                message : string) {
+        super(message);
+    }
+}
+
 // A placeholder object for builtin triggers/queries/actions that
 // don't have any better place to live, such as those related to
 // time
@@ -51,7 +58,9 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
     }
 
     get_get_date() {
-        return [{ date: new Date }];
+        const today = new Date;
+        today.setHours(0, 0, 0);
+        return [{ date: today }];
     }
     get_get_time() {
         const now = new Date;
@@ -83,9 +92,9 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
     }
 
     async get_get_gps() {
-        const gps = this.engine.platform.getCapability('gps');
+        const gps = this.platform.getCapability('gps');
         if (gps === null)
-            throw new Error((this.engine as Engine)._("Sorry, I cannot access your location in this version of Almond."));
+            throw new CustomError('unsupported_platform', `get_gps is not supported in ${this.platform.type} platform`);
         const location = await gps.getCurrentLocation();
         if (location) {
             return [{ location: { x: location.longitude, y: location.latitude, display: location.display },
@@ -100,9 +109,9 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         }
     }
     subscribe_get_gps() {
-        const gps = this.engine.platform.getCapability('gps');
+        const gps = this.platform.getCapability('gps');
         if (gps === null)
-            throw new Error((this.engine as Engine)._("Sorry, I cannot access your location in this version of Almond."));
+            throw new CustomError('unsupported_platform', `get_gps is not supported in ${this.platform.type} platform`);
         const gpsstream = new stream.Readable({ objectMode: true, read() {} });
 
         gps.onlocationchanged = (location) => {
@@ -215,7 +224,7 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
     do_open_url({ url } : { url : unknown }) {
         const cap = this.engine.platform.getCapability('app-launcher');
         if (!cap)
-            throw new Error((this.engine as Engine)._("Opening files is not implemented in this Almond"));
+            throw new CustomError('unsupported_platform', `open_url is not supported in ${this.platform.type} platform`);
         return cap.launchURL(String(url));
     }
 
@@ -230,9 +239,7 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         }
 
         // TODO restore the ability to configure skills from inside the dialogue
-        const err : Error & { code ?: string } = new Error('not supported');
-        err.code = 'unsupported_platform';
-        throw err;
+        throw new CustomError('unsupported_platform', `not supported`);
 
         /*
         var conversation = env.app.getConversation();
@@ -258,39 +265,21 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
     }
 
     do_set_language() : never {
-        const err : Error & { code ?: string } = new Error('not supported');
-        if (this.platform.type === 'cloud')
-            err.code = 'unsupported_platform_cloud';
-        else
-            err.code = 'unsupported_language';
-        throw err;
+        throw new CustomError(this.platform.type === 'cloud' ? 'unsupported_platform_cloud' : 'unsupported_language', `not supported`);
     }
 
     do_set_timezone() : never {
-        const err : Error & { code ?: string } = new Error('not supported');
-        // in cloud, the timezone is set in the user DB
-        // in server/gnome, the timezone is the system timezone
-        // either way, no luck
-        if (this.platform.type === 'cloud')
-            err.code = 'unsupported_platform_cloud';
-        else
-            err.code = 'unsupported_platform';
-        throw err;
+        throw new CustomError(this.platform.type === 'cloud' ? 'unsupported_platform_cloud' : 'unsupported_platform', `not supported`);
     }
 
     do_set_wake_word() : never {
-        const err : Error & { code ?: string } = new Error('not supported');
-        err.code = 'unsupported';
-        throw err;
+        throw new CustomError('unsupported', `not supported`);
     }
 
     do_set_voice_output({ status } : { status : 'on'|'off' }) {
         const platform = this.platform;
-        if (!platform.hasCapability('sound')) {
-            const err : Error & { code ?: string } = new Error('not supported');
-            err.code = 'unsupported';
-            throw err;
-        }
+        if (!platform.hasCapability('sound'))
+            throw new CustomError('unsupported', `not supported`);
         const prefs = platform.getSharedPreferences();
         // TODO this does not quite work because SpeechHandler doesn't listen
         // to preference changes
@@ -299,11 +288,8 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
 
     do_set_voice_input({ status } : { status : 'on'|'off' }) {
         const platform = this.platform;
-        if (!platform.hasCapability('sound')) {
-            const err : Error & { code ?: string } = new Error('not supported');
-            err.code = 'unsupported';
-            throw err;
-        }
+        if (!platform.hasCapability('sound'))
+            throw new CustomError('unsupported', `not supported`);
         const prefs = platform.getSharedPreferences();
         // TODO this does not quite work because SpeechHandler doesn't listen
         // to preference changes

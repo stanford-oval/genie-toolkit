@@ -31,13 +31,17 @@ counterproposal_preamble : string = {
 }
 
 the_base_noun_phrase : Ast.FunctionDef = {
-    ["{the|that} ${noun} [plural=noun[plural]]"]: (noun:base_noun_phrase)
+    ["{the|that} ${noun} [plural=noun[plural]]"]: (noun : base_noun_phrase)
         => noun,
 }
 
 generic_excitement_phrase : string = {
     ['', priority=0.1]: () => '',
 
+    ["{alright,| great!|awesome !|sounds good !|sounds good ,|perfect !}"]: () => '',
+}
+
+generic_excitement2_phrase : string = {
     ["{alright,| great!|awesome !|sounds good !|sounds good ,|perfect !}"]: () => '',
 }
 
@@ -114,4 +118,8 @@ system_learn_more : string = {
 
 repeat_command_phrase : string = {
     ["{again !|another one|do this again|do it again}"]: () => '',
+}
+
+make_monitor_phrase : string = {
+    ['{ok|great|i like that|yes i like that|sure i like that|sounds good} {,|} {notify me when it changes|notify me when it changes|subscribe to changes|let me know of changes|notify me of this|subscribe to this}']: () => '',
 }

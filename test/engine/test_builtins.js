@@ -26,12 +26,11 @@ import * as Tp from 'thingpedia';
 async function testGetDateTime(engine) {
     const device = engine.devices.getDevice('thingengine-own-global');
 
-    const now = new Date;
-
     const [date] = await device.get_get_date();
     assert(date.date instanceof Date);
-    assert(date.date >= now);
-    assert(date.date <= now.getTime() + 10000);
+    assert.strictEqual(date.date.getHours(), 0);
+    assert.strictEqual(date.date.getMinutes(), 0);
+    assert.strictEqual(date.date.getSeconds(), 0);
 
     const [time] = await device.get_get_time();
     assert(time.time instanceof Tp.Value.Time);

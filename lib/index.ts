@@ -40,6 +40,7 @@ import parallelize from './utils/parallelize';
 import * as EntityUtils from './utils/entity-utils';
 import * as IpAddressUtils from './engine/util/ip_address';
 import * as ThingTalkUtils from './utils/thingtalk';
+import * as StreamUtils from './utils/stream-utils';
 import * as BTrie from './utils/btrie';
 
 import SpeechHandler from './speech/speech_handler';
@@ -77,6 +78,7 @@ export {
     EntityUtils,
     IpAddressUtils,
     ThingTalkUtils,
+    StreamUtils,
     BTrie,
 
     // dialogue agent

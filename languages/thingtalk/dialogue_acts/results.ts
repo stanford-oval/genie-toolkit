@@ -191,3 +191,51 @@ export function addSlotToResultPhrase(phrase : ResultPhrase, filter : C.FilterSl
         return null;
     return { ctx: phrase.ctx, info: newBag, compatible };
 }
+
+export interface DirectAnswerPhrase {
+    result : ResultPhrase;
+    name : Ast.Value;
+    index : number;
+}
+
+export function directAnswerPhraseKeyFn(phrase : DirectAnswerPhrase) {
+    return {
+        index: phrase.index,
+        type: phrase.name.getType()
+    };
+}
+
+export function checkDirectAnswerPhrase(res : ResultPhrase, name : Ast.Value) : DirectAnswerPhrase|null {
+    const results = res.ctx.results!;
+    for (const resultIdx of res.compatible) {
+        const result = results[resultIdx];
+        if (result.value.id && result.value.id.equals(name))
+            return { result: res, name, index: resultIdx };
+    }
+    return null;
+}
+
+export function makeFilterStyleDirectAnswerPhrase(ctx : ContextInfo, name : Ast.Value, filter : C.FilterSlot) : DirectAnswerPhrase|null {
+    assert(C.isSameFunction(ctx.currentFunction!, filter.schema));
+    const added = addSlotToBag(new SlotBag(ctx.currentFunction), filter);
+    if (!added)
+        return null;
+    const [info,] = added;
+
+    const results = ctx.results!;
+    for (let i = 0; i < Math.min(MAX_RESULTS, results.length); i++) {
+        const result = results[i];
+        if (!result.value.id || !result.value.id.equals(name))
+            continue;
+
+        if (isInfoPhraseCompatibleWithResult(results[i], info)) {
+            return {
+                result: { ctx, info, compatible: [i] },
+                name,
+                index: i
+            };
+        }
+    }
+
+    return null;
+}

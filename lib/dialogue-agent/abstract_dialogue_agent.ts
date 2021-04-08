@@ -38,10 +38,19 @@ interface AbstractDialogueAgentOptions {
     debug : boolean;
 }
 
-type RawExecutionResult = Array<[string, Record<string, unknown>]>;
+export interface NewProgramRecord {
+    uniqueId : string;
+    name : string;
+    code : string;
+    results : Array<Record<string, unknown>>;
+    errors : string[];
+    icon : string|null;
+}
+
+export type RawExecutionResult = Array<[string, Record<string, unknown>]>;
 interface AbstractStatementExecutor<PrivateStateType> {
     executeStatement(stmt : Ast.ExpressionStatement, privateState : PrivateStateType|undefined) :
-        Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, PrivateStateType]>;
+        Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, NewProgramRecord|undefined, PrivateStateType]>;
 }
 
 export interface DisambiguationHints {
@@ -56,10 +65,12 @@ export interface DeviceInfo {
     name : string;
 }
 
+
 interface ExecutionResult<PrivateStateType> {
     newDialogueState : Ast.DialogueState;
     newExecutorState : PrivateStateType|undefined;
     newResults : Array<[string, Record<string, unknown>]>;
+    newPrograms : NewProgramRecord[];
     anyChange : boolean;
 }
 
@@ -138,6 +149,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         let clone = state;
 
         const newResults : RawExecutionResult = [];
+        const newPrograms : NewProgramRecord[] = [];
         const hints = this._collectDisambiguationHintsForState(state);
         for (let i = 0; i < clone.history.length; i++) {
             if (clone.history[i].results !== null)
@@ -159,13 +171,15 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
                 continue;
             assert(clone.history[i].isExecutable());
 
-            const [newResultList, newRawResult, newPrivateState] = await this.executor.executeStatement(clone.history[i].stmt, privateState);
+            const [newResultList, newRawResult, newProgram, newPrivateState] = await this.executor.executeStatement(clone.history[i].stmt, privateState);
             clone.history[i].results = newResultList;
             newResults.push(...newRawResult);
+            if (newProgram)
+                newPrograms.push(newProgram);
             privateState = newPrivateState;
         }
 
-        return { newDialogueState: clone, newExecutorState: privateState, newResults, anyChange };
+        return { newDialogueState: clone, newExecutorState: privateState, newResults, newPrograms, anyChange };
     }
 
     private _collectDisambiguationHintsForState(state : Ast.DialogueState) {
@@ -260,7 +274,6 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * Show a debug message.
      *
      * @param {any} msg - what to show
-     * @protected
      */
     debug(...args : unknown[]) : void {
         if (!this._debug)
@@ -431,7 +444,6 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      *
      * @param {string} kind - the kind to check
      * @returns {Array<DeviceInfo>} - the list of configured devices
-     * @abstract
      */
     protected getAllDevicesOfKind(kind : string) : DeviceInfo[] {
         throw new TypeError('Abstract method');
@@ -522,8 +534,6 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * @param {string} entityDisplay - the display name of the entity look up
      * @param {any} hints - hints to use to resolve any ambiguity
      * @returns {ThingpediaEntity[]} - possible entities that match the given name, in Thingpedia API format
-     * @abstract
-     * @protected
      */
     protected async lookupEntityCandidates(entityType : string,
                                            entityDisplay : string,
@@ -537,8 +547,6 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      *
      * @param {string} variable - the variable name to lookup, including the `$context.` prefix
      * @returns {thingtalk.Ast.Value} - the resolved value
-     * @abstract
-     * @protected
      */
     protected async resolveUserContext(variable : string) : Promise<Ast.Value> {
         throw new TypeError('Abstract method');
@@ -552,8 +560,6 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * @param {string} type - the type of unit to retrieve (e.g. "temperature"), or undefined
      *   if the user has no preference
      * @returns {string} - the preferred unit
-     * @abstract
-     * @protected
      */
     getPreferredUnit(type : string) : string|undefined {
         throw new TypeError('Abstract method');

@@ -44,10 +44,6 @@ import {
     combinePreambleAndRequest,
     proposalReply
 } from './refinement-helpers';
-import {
-    addSlotToBag,
-} from './results';
-
 
 export interface Recommendation {
     ctx : ContextInfo;
@@ -65,6 +61,9 @@ export function recommendationKeyFn(rec : Recommendation) {
 }
 
 function makeActionRecommendation(ctx : ContextInfo, action : Ast.Invocation) {
+    // we don't offer actions during recommendations
+    if (ctx.state.dialogueAct === 'notification')
+        return null;
     assert(action instanceof Ast.Invocation);
 
     const results = ctx.results;
@@ -72,7 +71,9 @@ function makeActionRecommendation(ctx : ContextInfo, action : Ast.Invocation) {
     const currentStmt = ctx.current!.stmt;
     const currentTable = currentStmt.expression;
     const last = currentTable.last;
-    if (last instanceof Ast.SliceExpression && last.limit.toJS() !== 1)
+    if ((last instanceof Ast.SliceExpression ||
+        (last instanceof Ast.ProjectionExpression && last.expression instanceof Ast.SliceExpression))
+        && results.length !== 1)
         return null;
 
     const topResult = results[0];
@@ -112,7 +113,9 @@ function makeRecommendation(ctx : ContextInfo, name : Ast.Value) {
     const currentStmt = ctx.current!.stmt;
     const currentTable = currentStmt.expression;
     const last = currentTable.last;
-    if (last instanceof Ast.SliceExpression && last.limit.toJS() !== 1)
+    if ((last instanceof Ast.SliceExpression ||
+        (last instanceof Ast.ProjectionExpression && last.expression instanceof Ast.SliceExpression))
+        && results.length !== 1)
         return null;
 
     const topResult = results[0];
@@ -136,7 +139,9 @@ function makeThingpediaRecommendation(ctx : ContextInfo, info : SlotBag) {
     const currentStmt = ctx.current!.stmt;
     const currentTable = currentStmt.expression;
     const last = currentTable.last;
-    if (last instanceof Ast.SliceExpression && last.limit.toJS() !== 1)
+    if ((last instanceof Ast.SliceExpression ||
+        (last instanceof Ast.ProjectionExpression && last.expression instanceof Ast.SliceExpression))
+        && results.length !== 1)
         return null;
 
     const topResult = results[0];
@@ -165,9 +170,13 @@ function checkRecommendation(rec : Recommendation, info : SlotBag|null) {
         }
     }
 
+    const merged = info && rec.info ? SlotBag.merge(info, rec.info) : (info || rec.info);
+    if (info && rec.info && !merged)
+        return null;
+
     return {
         ctx: rec.ctx, topResult: rec.topResult,
-        info: info && rec.info ? SlotBag.merge(info, rec.info) : (info || rec.info),
+        info: merged,
         action: rec.action,
         hasLearnMore: rec.hasLearnMore,
         hasAnythingElse: rec.hasAnythingElse
@@ -175,6 +184,9 @@ function checkRecommendation(rec : Recommendation, info : SlotBag|null) {
 }
 
 function checkActionForRecommendation(rec : Recommendation, action : Ast.Invocation) {
+    // we don't offer actions during recommendations
+    if (rec.ctx.state.dialogueAct === 'notification')
+        return null;
     if (!rec.topResult.value.id)
         return null;
     const resultType = rec.topResult.value.id.getType();
@@ -194,16 +206,6 @@ function checkActionForRecommendation(rec : Recommendation, action : Ast.Invocat
         hasLearnMore: rec.hasLearnMore,
         hasAnythingElse: rec.hasAnythingElse
     };
-}
-
-// make a recommendation that looks like an answer, that is, "so and so is a ..."
-function makeAnswerStyleRecommendation(rec : Recommendation, filter : C.FilterSlot) {
-    assert(C.isSameFunction(rec.ctx.currentFunction!, filter.schema));
-    const added = addSlotToBag(new SlotBag(rec.ctx.currentFunction), filter);
-    if (!added)
-        return null;
-
-    return checkRecommendation(rec, added[0]);
 }
 
 export function recommendationSetLearnMore(rec : Recommendation) {
@@ -402,7 +404,6 @@ export {
     makeArgMinMaxRecommendation,
     makeRecommendation,
     makeThingpediaRecommendation,
-    makeAnswerStyleRecommendation,
     checkRecommendation,
     checkActionForRecommendation,
     makeDisplayResult,

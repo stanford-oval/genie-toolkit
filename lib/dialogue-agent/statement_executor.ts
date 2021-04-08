@@ -23,6 +23,11 @@ import { Ast, Type, Builtin, SchemaRetriever } from 'thingtalk';
 import type Engine from '../engine';
 import type AppExecutor from '../engine/apps/app_executor';
 
+import type {
+    NewProgramRecord,
+    RawExecutionResult
+} from './abstract_dialogue_agent';
+
 // above MORE_SIZE, we set the "more" bit
 const MORE_SIZE = 50;
 // above PAGE_SIZE, we set the count but don't actually show the full list of results
@@ -32,8 +37,6 @@ interface ErrorWithCode {
     message : string;
     code ?: string;
 }
-
-type RawExecutionResult = Array<[string, Record<string, unknown>]>;
 
 /**
  * Run the dialogue, executing ThingTalk and invoking the policy at the
@@ -84,7 +87,7 @@ export default class InferenceStatementExecutor {
         return this._schemas.getSchemaAndNames(kind, ftype, fname);
     }
 
-    private async _mapResult(outputType : string|null, outputValue : Record<string, unknown>) {
+    async mapResult(outputType : string|null, outputValue : Record<string, unknown>) {
         const mappedResult : Record<string, Ast.Value> = {};
         if (outputType === null) {
             // fallback
@@ -92,7 +95,7 @@ export default class InferenceStatementExecutor {
                 const jsValue = outputValue[key];
                 mappedResult[key] = Ast.Value.fromJS(this._inferType(key, jsValue), jsValue);
             }
-            return mappedResult;
+            return new Ast.DialogueHistoryResultItem(null, mappedResult, outputValue);
         }
 
         if (outputType.indexOf('+') >= 0) {
@@ -109,7 +112,7 @@ export default class InferenceStatementExecutor {
             const value = outputValue[field];
             if (operator === 'count') {
                 mappedResult[field] = Ast.Value.fromJS(Type.Number, outputValue[field]);
-                return mappedResult;
+                return new Ast.DialogueHistoryResultItem(null, mappedResult, outputValue);
             }
 
             const schema = await this._outputTypeToSchema(outputType);
@@ -131,7 +134,7 @@ export default class InferenceStatementExecutor {
                     mappedResult[key] = Ast.Value.fromJS(type, value);
             }
         }
-        return mappedResult;
+        return new Ast.DialogueHistoryResultItem(null, mappedResult, outputValue);
     }
 
     private _mapCompound(prefix : string, schema : Ast.FunctionDef, object : Record<string, unknown>) {
@@ -151,6 +154,13 @@ export default class InferenceStatementExecutor {
         return new Ast.Value.Object(result);
     }
 
+    mapError(error : Error) : Ast.Value {
+        const err : ErrorWithCode = error;
+        if (typeof err.code === 'string') // error codes starting with E are reserved for system errors
+            return new Ast.Value.Enum(err.code);
+        return new Ast.Value.String(error.message);
+    }
+
     private async _iterateResults(app : AppExecutor,
                                   into : Ast.DialogueHistoryResultItem[],
                                   intoRaw : RawExecutionResult) : Promise<[boolean, string|undefined, string|undefined]> {
@@ -165,14 +175,13 @@ export default class InferenceStatementExecutor {
 
             if (value instanceof Error) {
                 const err : ErrorWithCode = value;
-                if (typeof err.code === 'string'
-                    && !err.code.startsWith('E')) // error codes starting with E are reserved for system errors
+                if (typeof err.code === 'string') // error codes starting with E are reserved for system errors
                     errorCode = err.code;
                 if (!errorMessage)
                     errorMessage = value.message;
             } else {
-                const mapped = await this._mapResult(value.outputType, value.outputValue);
-                into.push(new Ast.DialogueHistoryResultItem(null, mapped, value.outputValue));
+                const mapped = await this.mapResult(value.outputType, value.outputValue);
+                into.push(mapped);
                 intoRaw.push([value.outputType, value.outputValue]);
                 count ++;
             }
@@ -182,7 +191,7 @@ export default class InferenceStatementExecutor {
         return [false, errorCode, errorMessage];
     }
 
-    async executeStatement(stmt : Ast.ExpressionStatement) : Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, undefined]> {
+    async executeStatement(stmt : Ast.ExpressionStatement) : Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, NewProgramRecord, undefined]> {
         const program = new Ast.Program(null, [], [], [stmt]);
         const app = await this._engine.createApp(program);
         const results : Ast.DialogueHistoryResultItem[] = [];
@@ -193,6 +202,14 @@ export default class InferenceStatementExecutor {
             new Ast.Value.Number(results.length), more,
             (errorCode ? new Ast.Value.Enum(errorCode) :
              (errorMessage ? new Ast.Value.String(errorMessage) : null)));
-        return [resultList, rawResults, undefined];
+        const newProgramRecord = {
+            uniqueId: app.uniqueId!,
+            name: app.name,
+            code: program.prettyprint(),
+            results: rawResults.map((r) => r[1]),
+            errors: errorCode ? [errorCode] : errorMessage ? [errorMessage] : [],
+            icon: app.icon
+        };
+        return [resultList, rawResults, newProgramRecord, undefined];
     }
 }

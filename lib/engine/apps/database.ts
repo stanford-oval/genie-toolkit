@@ -227,7 +227,7 @@ export default class AppDatabase extends events.EventEmitter {
         return this._insertOne({
             uniqueId: app.uniqueId!,
             state: JSON.stringify(app.metadata),
-            code: app.code,
+            code: app.program.prettyprint(),
             name: app.name,
             description: app.description
         });

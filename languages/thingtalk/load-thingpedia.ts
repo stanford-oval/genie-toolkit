@@ -44,14 +44,11 @@ import {
     interrogativePronoun,
 } from './utils';
 import {
-    replaceSlotBagPlaceholders,
-    replaceErrorMessagePlaceholders,
     replacePlaceholdersWithConstants,
     replacePlaceholderWithTableOrStream,
     replacePlaceholderWithCoreference,
 } from './primitive_templates';
 import * as keyfns from './keyfns';
-import { SlotBag } from './slot_bag';
 
 function identity<T>(x : T) : T {
     return x;
@@ -79,6 +76,42 @@ const ANNOTATION_PRIORITY : Record<string, number> = {
     'npv': 1
 };
 
+// TODO translate these
+const TIMER_SCHEMA = new Ast.FunctionDef(null,
+    'stream',
+    null, // class
+    'timer',
+    [], // extends
+    {
+        is_list: false,
+        is_monitorable: true
+    },
+    [
+        new Ast.ArgumentDef(null, Ast.ArgDirection.IN_OPT, 'base', Type.Date, { impl: {
+            default: new Ast.DateValue(null) // $now
+        }}),
+        new Ast.ArgumentDef(null, Ast.ArgDirection.IN_REQ, 'interval', new Type.Measure('ms')),
+        new Ast.ArgumentDef(null, Ast.ArgDirection.IN_OPT, 'frequency', Type.Number),
+    ],
+    {}
+);
+
+const ATTIMER_SCHEMA = new Ast.FunctionDef(null,
+    'stream',
+    null, // class
+    'attimer',
+    [], // extends
+    {
+        is_list: false,
+        is_monitorable: true
+    },
+    [
+        new Ast.ArgumentDef(null, Ast.ArgDirection.IN_REQ, 'time', new Type.Array(Type.Time)),
+        new Ast.ArgumentDef(null, Ast.ArgDirection.IN_OPT, 'expiration_date', Type.Date),
+    ],
+    {}
+);
+
 interface CanonicalForm {
     default : string;
     projection_pronoun ?: string[];
@@ -103,9 +136,15 @@ interface ExtendedEntityRecord {
 
 type PrimitiveTemplateType = 'action'|'action_past'|'query'|'get_command'|'stream'|'program';
 
-interface ParsedPrimitiveTemplate {
+export interface ParsedPlaceholderPhrase {
     names : string[];
     replaceable : Genie.SentenceGeneratorRuntime.Replaceable;
+}
+
+interface NormalizedResultPhraseList {
+    top : ParsedPlaceholderPhrase[];
+    list : ParsedPlaceholderPhrase[];
+    list_concat : ParsedPlaceholderPhrase[];
 }
 
 export default class ThingpediaLoader {
@@ -120,8 +159,8 @@ export default class ThingpediaLoader {
 
     private _entities : Record<string, ExtendedEntityRecord>
     // cached annotations extracted from Thingpedia, for use at inference time
-    private _errorMessages : Map<string, Record<string, ParsedPrimitiveTemplate[]>>;
-    private _resultStrings : Map<string, ParsedPrimitiveTemplate[]>;
+    private _errorMessages : Map<string, Record<string, ParsedPlaceholderPhrase[]>>;
+    private _resultPhrases : Map<string, NormalizedResultPhraseList>;
 
     types : Map<string, Type>;
     params : ParamSlot[];
@@ -137,6 +176,8 @@ export default class ThingpediaLoader {
     compoundArrays : { [key : string] : InstanceType<typeof Type.Compound> };
     globalWhiteList : string[]|null;
     standardSchemas : {
+        timer : Ast.FunctionDef,
+        attimer : Ast.FunctionDef,
         say : Ast.FunctionDef|null;
         get_gps : Ast.FunctionDef|null;
         get_time : Ast.FunctionDef|null;
@@ -171,7 +212,7 @@ export default class ThingpediaLoader {
 
         this._entities = {};
         this._errorMessages = new Map;
-        this._resultStrings = new Map;
+        this._resultPhrases = new Map;
         this.types = new Map;
         this.params = [];
         this.projections = [];
@@ -180,7 +221,13 @@ export default class ThingpediaLoader {
         this.entitySubTypeMap = {};
         this._subEntityMap = new Map;
 
-        this.standardSchemas = { say: null, get_gps: null, get_time: null };
+        this.standardSchemas = {
+            timer: TIMER_SCHEMA,
+            attimer: ATTIMER_SCHEMA,
+            say: null,
+            get_gps: null,
+            get_time: null
+        };
     }
 
     async init() {
@@ -197,7 +244,9 @@ export default class ThingpediaLoader {
             this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'query', 'get_gps'),
             this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'query', 'get_time')
         ]);
-        this.standardSchemas = { say, get_gps, get_time };
+        this.standardSchemas.say = say;
+        this.standardSchemas.get_gps = get_gps;
+        this.standardSchemas.get_time = get_time;
 
         await this._loadMetadata();
     }
@@ -208,6 +257,10 @@ export default class ThingpediaLoader {
 
     get ttUtils() {
         return this._ttUtils;
+    }
+
+    get locale() {
+        return this._langPack.locale;
     }
 
     get flags() {
@@ -224,10 +277,10 @@ export default class ThingpediaLoader {
         return this.idQueries.has(type.type);
     }
 
-    getResultStrings(functionName : string) : ParsedPrimitiveTemplate[] {
-        return this._resultStrings.get(functionName) || [];
+    getResultPhrases(functionName : string) : NormalizedResultPhraseList {
+        return this._resultPhrases.get(functionName) || { top: [], list: [], list_concat: [] };
     }
-    getErrorMessages(functionName : string) : Record<string, ParsedPrimitiveTemplate[]> {
+    getErrorMessages(functionName : string) : Record<string, ParsedPlaceholderPhrase[]> {
         return this._errorMessages.get(functionName) || {};
     }
 
@@ -1148,81 +1201,91 @@ export default class ThingpediaLoader {
             await this._makeExampleFromAction(functionDef);
 
         if (functionDef.metadata.result)
-            await this._loadCustomResultString(functionDef);
+            await this._loadCustomResultPhrases(functionDef);
         if (functionDef.metadata.on_error)
             await this._loadCustomErrorMessages(functionDef);
     }
 
-    private _loadPlaceholderPhraseCommon<ResultType>(intoNonTerm : string,
-                                                     functionDef : Ast.FunctionDef,
-                                                     fromAnnotation : string|string[],
-                                                     annotName : string,
-                                                     semanticAction : (args : Ast.Value[], names : string[]) => ResultType|null,
-                                                     keyFunction : (value : ResultType) => Genie.SentenceGeneratorTypes.DerivationKey) : ParsedPrimitiveTemplate[] {
+    private _loadPlaceholderPhraseCommon(intoNonTerm : string,
+                                         functionDef : Ast.FunctionDef,
+                                         fromAnnotation : string|string[],
+                                         annotName : string,
+                                         additionalArguments : string[] = []) : ParsedPlaceholderPhrase[] {
         let strings;
         if (Array.isArray(fromAnnotation))
             strings = fromAnnotation;
         else
             strings = [fromAnnotation];
 
-        const parsedstrings : ParsedPrimitiveTemplate[] = [];
+        const parsedstrings : ParsedPlaceholderPhrase[] = [];
 
         for (let i = 0; i < strings.length; i++) {
-            const nonTerminals : Genie.SentenceGeneratorRuntime.NonTerminal[] = [];
             const names : string[] = [];
 
-            const parsed : Genie.SentenceGeneratorRuntime.Replaceable = this._runtime.Replaceable.parse(strings[i]);
-            parsed.visit((elem) => {
-                if (elem instanceof this._runtime.Placeholder) {
-                    const param = elem.param;
-                    if (names.includes(param))
-                        return true;
+            try {
+                const parsed : Genie.SentenceGeneratorRuntime.Replaceable = this._runtime.Replaceable.parse(strings[i]);
+                parsed.visit((elem) => {
+                    if (elem instanceof this._runtime.Placeholder) {
+                        const param = elem.param;
+                        if (names.includes(param))
+                            return true;
+                        names.push(param);
+                        if (additionalArguments.includes(param))
+                            return true;
 
-                    const arg = functionDef.getArgument(param);
-                    if (!arg)
-                        throw new Error(`Invalid placeholder \${${param}} in #_[${annotName}] annotation for @${functionDef.qualifiedName}`);
+                        const arg = functionDef.getArgument(param);
+                        if (!arg)
+                            throw new Error(`Invalid placeholder \${${param}}`);
 
-                    // TODO use opt
+                        // TODO store opt somewhere
 
-                    assert(this._recordType(arg.type));
-                    nonTerminals.push(this._getConstantNT(arg.type, param, { mustBeTrueConstant: true }));
-                    names.push(param);
-                }
-                return true;
-            });
-            parsed.preprocess(this._langPack.locale, names);
-            parsedstrings.push({ names, replaceable: parsed });
-
-            // give a small priority boost to each phrase, depending on the order
-            // in which they are given
-            const attributes = { priority: (strings.length-i) * 0.1 };
-            this._addRule<Ast.Value[], ResultType>(intoNonTerm, nonTerminals, parsed, (...args) => semanticAction(args, names), keyFunction, attributes);
+                        assert(this._recordType(arg.type));
+                    }
+                    return true;
+                });
+                parsed.preprocess(this._langPack.locale, names);
+                parsedstrings.push({ names, replaceable: parsed });
+            } catch(e) {
+                throw new Error(`Failed to parse #_[${annotName}] annotation for @${functionDef.qualifiedName}: ${e.message}`);
+            }
         }
 
         return parsedstrings;
     }
 
     private async _loadCustomErrorMessages(functionDef : Ast.FunctionDef) {
-        const bag = new SlotBag(functionDef);
-
-        const normalized : Record<string, ParsedPrimitiveTemplate[]> = {};
+        const normalized : Record<string, ParsedPlaceholderPhrase[]> = {};
         this._errorMessages.set(functionDef.qualifiedName, normalized);
-        for (const code in functionDef.metadata.on_error) {
+        for (const code in functionDef.nl_annotations.on_error) {
             normalized[code] = this._loadPlaceholderPhraseCommon('thingpedia_error_message',
-                functionDef, functionDef.metadata.on_error[code], 'on_error',
-                (args, names) => replaceErrorMessagePlaceholders({ code, bag }, names, args),
-                keyfns.errorMessageKeyFn);
+                functionDef, functionDef.metadata.on_error[code], 'on_error');
         }
     }
 
-    private async _loadCustomResultString(functionDef : Ast.FunctionDef) {
-        const bag = new SlotBag(functionDef);
+    private async _loadCustomResultPhrases(functionDef : Ast.FunctionDef) {
+        const normalized : NormalizedResultPhraseList = {
+            top: [],
+            list: [],
+            list_concat: []
+        };
+        this._resultPhrases.set(functionDef.qualifiedName, normalized);
 
-        this._resultStrings.set(functionDef.qualifiedName,
-            this._loadPlaceholderPhraseCommon('thingpedia_result',
-                functionDef, functionDef.metadata.result, 'result',
-                (args, names) => replaceSlotBagPlaceholders(bag, names, args),
-                keyfns.slotBagKeyFn));
+        const resultAnnot = functionDef.nl_annotations.result;
+        if (typeof resultAnnot === 'string' ||
+            Array.isArray(resultAnnot)) {
+            normalized.top = this._loadPlaceholderPhraseCommon('thingpedia_result',
+                functionDef, resultAnnot, 'result');
+        } else {
+            if (typeof resultAnnot !== 'object')
+                throw new Error(`Invalid #[result] annotation of type ${typeof resultAnnot}`);
+
+            normalized.top = this._loadPlaceholderPhraseCommon('thingpedia_result',
+                functionDef, resultAnnot.top || [], 'result');
+            normalized.list = this._loadPlaceholderPhraseCommon('thingpedia_result',
+                functionDef, resultAnnot.list || [], 'result');
+            normalized.list_concat = this._loadPlaceholderPhraseCommon('thingpedia_result',
+                functionDef, resultAnnot.list_concat || [], 'result', ['__index']);
+        }
     }
 
     private async _loadDevice(kind : string) {

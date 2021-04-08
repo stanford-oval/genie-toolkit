@@ -25,8 +25,9 @@ import assert from 'assert';
 import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
 import { Ast, Type, Syntax } from 'thingtalk';
+import * as Units from 'thingtalk-units';
 
-import { coin, uniform } from '../../utils/random';
+import { coin, randint, uniform } from '../../utils/random';
 import binarySearch from '../../utils/binary_search';
 import * as I18n from '../../i18n';
 import { sampleString } from '../../utils/misc-utils';
@@ -35,11 +36,11 @@ import * as ThingTalkUtils from '../../utils/thingtalk';
 import { SentenceExample, SentenceFlags } from '../parsers';
 
 function isReplaceToken(tok : string) : boolean {
-    return /^(?:GENERIC_ENTITY_|LOCATION_|NUMBER_|QUOTED_STRING_|HASHTAG_|USERNAME_)/.test(tok);
+    return /^(?:GENERIC_ENTITY|LOCATION|NUMBER|QUOTED_STRING|HASHTAG|USERNAME)_/.test(tok);
 }
 
 function tokenCanAppearInSentence(token : string) {
-    return /^(?:QUOTED_STRING|HASHTAG|USERNAME|NUMBER)_/.test(token);
+    return /^(?:QUOTED_STRING|HASHTAG|USERNAME)_/.test(token);
 }
 
 const IDENTIFIER = /^[A-Za-z_][A-Za-z0-9_]*$/;
@@ -106,6 +107,82 @@ interface ValueList {
     sample(rng : () => number) : string;
 }
 
+class NumberValueList implements ValueList {
+    private _min : number;
+    private _max : number;
+    private _isMeasure : boolean;
+
+    constructor(min : number, max : number, isMeasure : boolean) {
+        this._min = min;
+        this._max = max;
+        this._isMeasure = isMeasure;
+        assert(Number.isFinite(min));
+        assert(Number.isFinite(max));
+    }
+
+    get size() : number {
+        return this._min < this._max ? Infinity : 0; // we can sample as much as we want
+    }
+
+    private _checkFinite(value : number) {
+        if (Number.isFinite(value))
+            return;
+
+        throw new Error(`Unexpected ${value} with bounds ${this._min} / ${this._max} (isMeasure = ${this._isMeasure})`);
+    }
+
+    sample(rng : () => number) : string {
+        if (this._isMeasure) {
+            // for measurements, sample uniformly between the (adjusted) bounds,
+
+            const value = (this._min + (this._max - this._min) * rng());
+            this._checkFinite(value);
+            if (Math.abs(value) > 2)
+                return value.toFixed(coin(0.9, rng) ? 0 : 1);
+            else
+                return value.toPrecision(2);
+        }
+
+        // sample an "easy" number
+        // that is, a number with one or two significant digits and enough
+        // trailing zeros to fit in the range
+        let val;
+
+        do {
+            // first choose the sign of the number
+            let sign = 1, min, max;
+            if (this._min < 0 && this._max > 0) {
+                sign = coin(0.8, rng) ? 1 : -1;
+                min = 0;
+                max = sign < 0 ? -this._min : this._max;
+            } else if (this._min < 0 && this._max <= 0) {
+                sign = -1;
+                min = -this._max;
+                max = -this._min;
+            } else {
+                min = this._min;
+                max = this._max;
+            }
+            assert(min >= 0);
+            assert(max >= 0);
+
+            // choose the value of the number
+            val = randint(1, 99, rng);
+
+            // add or subtract enough zeros to fit in the range
+            const minlog = Math.floor(Math.log10(1+min)) - 1 - (val >= 10 ? 1 : 0);
+            const maxlog = Math.floor(Math.log10(1+max)) - (val >= 10 ? 1 : 0);
+            val *= 10**randint(minlog, maxlog, rng);
+            val = sign * Math.round(val);
+
+            // note: 0 and 1 are very special (not normalized by the tokenizer)
+            // so we don't generate them here, ever
+        } while (val < this._min || val > this._max || val === 0 || val === 1);
+
+        this._checkFinite(val);
+        return String(val);
+    }
+}
 
 class WeightedValueList implements ValueList {
     private _values : string[];
@@ -298,8 +375,6 @@ interface ParameterReplacerOptions {
     quotedProbability ?: number;
     untypedStringProbability ?: number;
     maxSpanLength ?: number;
-    replaceLocations ?: boolean;
-    replaceNumbers ?: boolean;
     cleanParameters ?: boolean;
     requotable ?: boolean;
     numAttempts ?: number;
@@ -329,8 +404,6 @@ export default class ParameterReplacer {
     private _quotedProbability : number;
     private _untypedStringProbability : number;
     private _maxSpanLength : number;
-    private _replaceLocations : boolean;
-    private _replaceNumbers : boolean;
     private _cleanParameters : boolean;
     private _requotable : boolean;
     private _numAttempts : number;
@@ -352,8 +425,6 @@ export default class ParameterReplacer {
         this._quotedProbability = _default(options.quotedProbability, 0.1);
         this._untypedStringProbability = _default(options.untypedStringProbability, 0.01);
         this._maxSpanLength = _default(options.maxSpanLength, 10);
-        this._replaceLocations = _default(options.replaceLocations, true);
-        this._replaceNumbers = _default(options.replaceNumbers, false);
         this._cleanParameters = _default(options.cleanParameters, true);
         this._requotable = _default(options.requotable, true);
         this._numAttempts = _default(options.numAttempts, 10000);
@@ -418,7 +489,7 @@ export default class ParameterReplacer {
             slot.tag === 'program.principal'))
             return ['string', 'tt:person_first_name'];
 
-        if (!slot.type.isEntity && !slot.type.isString && !slot.type.isLocation && !slot.type.isNumber && !slot.type.isMeasure)
+        if (!slot.type.isEntity && !slot.type.isString && !slot.type.isLocation && !slot.type.isMeasure)
             throw new TypeError(`Unexpected replaced type ${slot.type}`);
 
         if (slot.tag === 'attribute.name') {
@@ -537,6 +608,46 @@ export default class ParameterReplacer {
 
     private async _getValueListForSlot(slot : Ast.AbstractSlot) : Promise<[ValueList, Ast.ArgumentDef|null, Type, string]> {
         const arg = this._getSlotArg(slot);
+
+        let operator;
+        if (slot.tag.startsWith('filter.'))
+            operator = slot.tag.split('.')[1];
+        else
+            operator = '==';
+        if (operator === '=~') {
+            const arg = slot.arg;
+            if (arg && arg.type.isEntity)
+                operator = '==';
+        }
+
+        if (slot.type === Type.Number || slot.type instanceof Type.Measure) {
+            let unit = '';
+            if (slot.type instanceof Type.Measure) {
+                const value = slot.get();
+                assert(value instanceof Ast.VarRefValue);
+                const match = /__const_NUMBER_[0-9]+__([a-zA-Z0-9]+)/.exec(value.name)!;
+                unit = match[1];
+            }
+
+            let min = 0, max = 1000;
+            if (arg) {
+                min = arg.getImplementationAnnotation<number>('min_number') ?? 0;
+                max = arg.getImplementationAnnotation<number>('max_number') ?? 1000;
+
+                if (unit) {
+                    if (unit === 'defaultTemperature')
+                        unit = this._paramLangPack.getDefaultTemperatureUnit();
+
+                    min = Units.transformFromBaseUnit(min, unit);
+                    max = Units.transformFromBaseUnit(max, unit);
+                }
+            } else if (slot.tag === 'slice.limit') {
+                min = 1;
+                max = 5;
+            }
+            return [new NumberValueList(min, max, !!unit), arg, slot.type, operator];
+        }
+
         let valueListKey = this._getParamListKey(slot, arg);
         const fallbackKey = this._getFallbackParamListKey(slot);
         if (valueListKey[0] === 'string' && valueListKey[1] !== fallbackKey &&
@@ -553,23 +664,17 @@ export default class ParameterReplacer {
                 throw new Error(`Fallback value list is empty: missing required parameter list ${fallbackKey} for ${slot.tag}:${slot.type}`);
         }
 
-        let operator;
-        if (slot.tag.startsWith('filter.'))
-            operator = slot.tag.split('.')[1];
-        else
-            operator = '==';
-        if (operator === '=~') {
-            const arg = slot.arg;
-            if (arg && arg.type.isEntity)
-                operator = '==';
-        }
-
         return [valueList, arg, slot.type, operator];
     }
 
     private async _getValueListForToken(token : string) : Promise<[ValueList, Type, string]> {
         let type, valueListKey : ['string' | 'entity', string], fallbackKey;
-        if (token.startsWith('LOCATION_')) {
+        if (token.startsWith('NUMBER_')) {
+            // choose reasonable bounds if we don't know the bound
+            const match = /NUMBER_[0-9]+__([a-zA-Z0-9]+)/.exec(token);
+            return [new NumberValueList(0, 1000, !!match),
+                match ? new Type.Measure(match[1]) : Type.Number, '='];
+        } else if (token.startsWith('LOCATION_')) {
             valueListKey = ['string', 'tt:location'];
             fallbackKey = 'tt:location';
             type = Type.Location;
@@ -622,6 +727,9 @@ export default class ParameterReplacer {
                          type : Type,
                          operator : string,
                          replacedValuesSet : Set<string>) : ReplacementRecord|null {
+        let typeValue = undefined;
+        if (type instanceof Type.Entity)
+            typeValue = type.type;
         let attempts = this._numAttempts;
         while (attempts > 0) {
             const sampled = valueList.sample(this._rng).toLowerCase();
@@ -635,17 +743,6 @@ export default class ParameterReplacer {
                 continue;
             }
 
-            // if sampled is a number and we are instructed to replace numbers, return sampled value right away
-            if (this._replaceNumbers && this._paramLangPack.isGoodNumber(sampled)) {
-                // avoid having duplicate numbers in the sentence because they cannot be requoted properly
-                if (replacedValuesSet.has(sampled)) {
-                    attempts -= 1;
-                    continue;
-                } else {
-                    return { sentenceValue: sampled, programValue: sampled };
-                }
-            }
-
             if (operator === '=~') {
                 const candidate = sampleString(words, this._paramLangPack, this._rng);
                 if (!candidate) {
@@ -656,15 +753,18 @@ export default class ParameterReplacer {
                 return this._transformValue(candidate, candidate, arg);
             }
 
-            if (this._paramLangPack.isGoodPersonName(sampled))
-                return { sentenceValue: sampled, programValue: sampled };
-            if (words.some((w) => !this._paramLangPack.isGoodWord(w)) || words.length > this._maxSpanLength) {
-                attempts -= 1;
-                continue;
-            }
-            if (!this._paramLangPack.isGoodSentence(sampled)) {
-                attempts -= 1;
-                continue;
+            if (!type.isNumeric()) {
+                if ((this._paramLangPack.isGoodPersonName(sampled)) ||
+                    (this._paramLangPack.isGoodUserName(sampled) && typeValue && typeValue === "tt:username"))
+                        return { sentenceValue: sampled, programValue: sampled };
+                if (words.some((w) => !this._paramLangPack.isGoodWord(w)) || words.length > this._maxSpanLength) {
+                    attempts -= 1;
+                    continue;
+                }
+                if (!this._paramLangPack.isGoodSentence(sampled)) {
+                    attempts -= 1;
+                    continue;
+                }
             }
 
             return this._transformValue(sampled, sampled, arg);
@@ -828,7 +928,7 @@ export default class ParameterReplacer {
                 if (slot instanceof Ast.DeviceSelector)
                     continue;
                 
-                const value = slot.get() as ConstantValue;
+                const value : ConstantValue = slot.get();
                 if (isEntity(value)) {
                     if (slot.type.isAny) {
                         // ignore this parameter, it probably comes from a
@@ -837,11 +937,6 @@ export default class ParameterReplacer {
                         assert(contextProgram instanceof Ast.ControlCommand);
                         continue;
                     }
-                    if (slot.type.isLocation && !this._replaceLocations)
-                    continue;
-                    if ((slot.type.isNumber || slot.type.isMeasure) && !this._replaceNumbers)
-                    continue;
-                    
                     if (isReplaceType(slot.type)) {
                         assert(isReplaceToken(value.token!));
                         parameters.set(value.token!, slot);
@@ -855,7 +950,7 @@ export default class ParameterReplacer {
             if (slot instanceof Ast.DeviceSelector)
                 continue;
 
-            const value = slot.get() as ConstantValue;
+            const value : ConstantValue = slot.get();
             if (isEntity(value)) {
                 if (slot.type.isAny) {
                     // ignore this parameter, it probably comes from a
@@ -864,11 +959,6 @@ export default class ParameterReplacer {
                     assert(targetProgram instanceof Ast.ControlCommand);
                     continue;
                 }
-                if (slot.type.isLocation && !this._replaceLocations)
-                    continue;
-                if ((slot.type.isNumber || slot.type.isMeasure) && !this._replaceNumbers)
-                    continue;
-
                 if (isReplaceType(slot.type)) {
                     assert(isReplaceToken(value.token!));
                     parameters.set(value.token!, slot);

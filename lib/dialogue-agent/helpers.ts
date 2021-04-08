@@ -41,7 +41,7 @@ export function formatError(dlg : DialogueLoop, error : Error|string) {
     if (typeof error === 'string')
         return error;
     else if (error.name === 'SyntaxError')
-        return dlg.interpolate(dlg._("Syntax error at ${error.fileName} line ${error.lineNumber}: ${error.message}"), { error });
+        return dlg.interpolate(dlg._("Syntax error {at ${error.fileName}|} {line ${error.lineNumber}|}: ${error.message}"), { error });
     else if (error.message)
         return error.message;
     else
@@ -94,14 +94,6 @@ export function loadOneExample(ex : ThingTalk.Ast.Example) {
              monitorable: monitorable,
              target: {
                 example_id: ex.id, code, entities, slotTypes, slots } };
-}
-
-export async function loadSuggestedProgram(code : string, schemaRetriever : ThingTalk.SchemaRetriever) {
-    const parsed = await ThingTalkUtils.parse(code, schemaRetriever);
-
-    const entities = {};
-    const normalized = ThingTalkUtils.serializeNormalized(parsed, entities);
-    return { code: normalized, entities, slotTypes: {}, slots: [] };
 }
 
 export async function loadExamples(dataset : string,

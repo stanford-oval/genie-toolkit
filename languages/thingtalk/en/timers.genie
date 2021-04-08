@@ -22,44 +22,6 @@ import { Ast, } from 'thingtalk';
 import ThingpediaLoader from '../load-thingpedia';
 
 {
-const TIMER_SCHEMA = new Ast.FunctionDef(null,
-    'stream',
-    null, // class
-    'timer',
-    [], // extends
-    {
-        is_list: false,
-        is_monitorable: true
-    },
-    [], // args,
-    {
-        nl: {
-            canonical: 'every fixed interval',
-            confirmation: 'every ${interval}',
-        },
-        impl: {}
-    }
-);
-
-const AT_TIMER_SCHEMA = new Ast.FunctionDef(null,
-    'stream',
-    null, // class
-    'attimer',
-    [], // extends
-    {
-        is_list: false,
-        is_monitorable: true
-    },
-    [], // args,
-    {
-        nl: {
-            canonical: 'every day',
-            confirmation: 'every day at ${interval}',
-        },
-        impl: {}
-    }
-);
-
 const TIME_MORNING = new Ast.Value.Time(new Ast.Time.Relative("morning"));
 const TIME_NOON = new Ast.Value.Time(new Ast.Time.Absolute(12, 0, 0));
 const TIME_EVENING = new Ast.Value.Time(new Ast.Time.Relative("evening"));
@@ -379,43 +341,43 @@ on = {
 timer : Ast.FunctionCallExpression = {
     ?extended_timers {
         // this noon one can be removed since noon maps to TIME_0?
-        optional_once optional_emphasis at_noon => new Ast.Stream.AtTimer(null, [TIME_NOON], null, AT_TIMER_SCHEMA).toExpression();
-        optional_once optional_emphasis at_morning => new Ast.Stream.AtTimer(null, [TIME_MORNING], null, AT_TIMER_SCHEMA).toExpression();
-        optional_once optional_emphasis at_evening => new Ast.Stream.AtTimer(null, [TIME_EVENING], null, AT_TIMER_SCHEMA).toExpression();
-        optional_twice optional_per_day optional_comma optional_first optional_emphasis at_morning and optional_second optional_emphasis at_evening_second => new Ast.Stream.AtTimer(null, [TIME_MORNING, TIME_EVENING], null, AT_TIMER_SCHEMA).toExpression();
-        when_brushing_teeth => new Ast.Stream.AtTimer(null, [TIME_MORNING, TIME_EVENING], null, AT_TIMER_SCHEMA).toExpression();
+        optional_once optional_emphasis at_noon => new Ast.Stream.AtTimer(null, [TIME_NOON], null, $loader.standardSchemas.attimer).toExpression();
+        optional_once optional_emphasis at_morning => new Ast.Stream.AtTimer(null, [TIME_MORNING], null, $loader.standardSchemas.attimer).toExpression();
+        optional_once optional_emphasis at_evening => new Ast.Stream.AtTimer(null, [TIME_EVENING], null, $loader.standardSchemas.attimer).toExpression();
+        optional_twice optional_per_day optional_comma optional_first optional_emphasis at_morning and optional_second optional_emphasis at_evening_second => new Ast.Stream.AtTimer(null, [TIME_MORNING, TIME_EVENING], null, $loader.standardSchemas.attimer).toExpression();
+        when_brushing_teeth => new Ast.Stream.AtTimer(null, [TIME_MORNING, TIME_EVENING], null, $loader.standardSchemas.attimer).toExpression();
     }
 
-    once_per_day 'at' time:constant_Time => new Ast.Stream.AtTimer(null, [time], null, AT_TIMER_SCHEMA).toExpression();
-    twice_per_day 'at' time1:constant_Time and time2:constant_Time => new Ast.Stream.AtTimer(null, [time1, time2], null, AT_TIMER_SCHEMA).toExpression();
-    thrice_per_day 'at' time1:constant_Time and time2:constant_Time and time3:constant_Time => new Ast.Stream.AtTimer(null, [time1, time2, time3], null, AT_TIMER_SCHEMA).toExpression();
+    once_per_day 'at' time:constant_Time => new Ast.Stream.AtTimer(null, [time], null, $loader.standardSchemas.attimer).toExpression();
+    twice_per_day 'at' time1:constant_Time and time2:constant_Time => new Ast.Stream.AtTimer(null, [time1, time2], null, $loader.standardSchemas.attimer).toExpression();
+    thrice_per_day 'at' time1:constant_Time and time2:constant_Time and time3:constant_Time => new Ast.Stream.AtTimer(null, [time1, time2, time3], null, $loader.standardSchemas.attimer).toExpression();
 
     !turking {
-        optional_once each interval:constant_Measure_ms => new Ast.Stream.Timer(null, new Ast.Value.Date(null), interval, null, TIMER_SCHEMA).toExpression();
-        once_per_day => new Ast.Stream.Timer(null, new Ast.Value.Date(null), new Ast.Value.Measure(1, 'day'), null, TIMER_SCHEMA).toExpression();
+        optional_once each interval:constant_Measure_ms => new Ast.Stream.Timer(null, new Ast.Value.Date(null), interval, null, $loader.standardSchemas.timer).toExpression();
+        once_per_day => new Ast.Stream.Timer(null, new Ast.Value.Date(null), new Ast.Value.Measure(1, 'day'), null, $loader.standardSchemas.timer).toExpression();
         // twice_per_day and thrice_per_day still need to be AtTimer until we can explicitly set the frequency param in Timer
-        // twice_per_day => new Ast.Stream.AtTimer([TIME_MORNING, TIME_EVENING], null, AT_TIMER_SCHEMA);
-        // thrice_per_day => new Ast.Stream.AtTimer([TIME_MORNING, TIME_NOON, TIME_EVENING], null, AT_TIMER_SCHEMA);
-        optional_once each 'year' => new Ast.Stream.Timer(null, new Ast.Value.Date(null), new Ast.Value.Measure(1, 'year'), null, TIMER_SCHEMA).toExpression();
-        optional_once each 'month' => new Ast.Stream.Timer(null, new Ast.Value.Date(null), new Ast.Value.Measure(1, 'mon'), null, TIMER_SCHEMA).toExpression();
-        optional_once each 'week' => new Ast.Stream.Timer(null, new Ast.Value.Date(null), new Ast.Value.Measure(1, 'week'), null, TIMER_SCHEMA).toExpression();
-        optional_once each 'hour' => new Ast.Stream.Timer(null, new Ast.Value.Date(null), new Ast.Value.Measure(1, 'h'), null, TIMER_SCHEMA).toExpression();
+        // twice_per_day => new Ast.Stream.AtTimer([TIME_MORNING, TIME_EVENING], null, $loader.standardSchemas.attimer);
+        // thrice_per_day => new Ast.Stream.AtTimer([TIME_MORNING, TIME_NOON, TIME_EVENING], null, $loader.standardSchemas.attimer);
+        optional_once each 'year' => new Ast.Stream.Timer(null, new Ast.Value.Date(null), new Ast.Value.Measure(1, 'year'), null, $loader.standardSchemas.timer).toExpression();
+        optional_once each 'month' => new Ast.Stream.Timer(null, new Ast.Value.Date(null), new Ast.Value.Measure(1, 'mon'), null, $loader.standardSchemas.timer).toExpression();
+        optional_once each 'week' => new Ast.Stream.Timer(null, new Ast.Value.Date(null), new Ast.Value.Measure(1, 'week'), null, $loader.standardSchemas.timer).toExpression();
+        optional_once each 'hour' => new Ast.Stream.Timer(null, new Ast.Value.Date(null), new Ast.Value.Measure(1, 'h'), null, $loader.standardSchemas.timer).toExpression();
 
         // FREQ times per minute
-        freq:constant_Number 'times' each 'minute' => new Ast.Stream.Timer(null, new Ast.Value.Date(null), new Ast.Value.Measure(1, 'min'), freq, TIMER_SCHEMA).toExpression();
+        freq:constant_Number 'times' each 'minute' => new Ast.Stream.Timer(null, new Ast.Value.Date(null), new Ast.Value.Measure(1, 'min'), freq, $loader.standardSchemas.timer).toExpression();
         // FREQ times per hour
-        freq:constant_Number 'times' each 'hour' => new Ast.Stream.Timer(null, new Ast.Value.Date(null), new Ast.Value.Measure(1, 'h'), freq, TIMER_SCHEMA).toExpression();
+        freq:constant_Number 'times' each 'hour' => new Ast.Stream.Timer(null, new Ast.Value.Date(null), new Ast.Value.Measure(1, 'h'), freq, $loader.standardSchemas.timer).toExpression();
         // FREQ times per day
-        freq:constant_Number 'times' each 'day' => new Ast.Stream.Timer(null, new Ast.Value.Date(null), new Ast.Value.Measure(1, 'day'), freq, TIMER_SCHEMA).toExpression();
+        freq:constant_Number 'times' each 'day' => new Ast.Stream.Timer(null, new Ast.Value.Date(null), new Ast.Value.Measure(1, 'day'), freq, $loader.standardSchemas.timer).toExpression();
         // FREQ times per week
-        freq:constant_Number 'times' each 'week' => new Ast.Stream.Timer(null, new Ast.Value.Date(null), new Ast.Value.Measure(1, 'week'), freq, TIMER_SCHEMA).toExpression();
+        freq:constant_Number 'times' each 'week' => new Ast.Stream.Timer(null, new Ast.Value.Date(null), new Ast.Value.Measure(1, 'week'), freq, $loader.standardSchemas.timer).toExpression();
         // FREQ times per month
-        freq:constant_Number 'times' each 'month' => new Ast.Stream.Timer(null, new Ast.Value.Date(null), new Ast.Value.Measure(1, 'mon'), freq, TIMER_SCHEMA).toExpression();
+        freq:constant_Number 'times' each 'month' => new Ast.Stream.Timer(null, new Ast.Value.Date(null), new Ast.Value.Measure(1, 'mon'), freq, $loader.standardSchemas.timer).toExpression();
         // FREQ times per year
-        freq:constant_Number 'times' each 'year' => new Ast.Stream.Timer(null, new Ast.Value.Date(null), new Ast.Value.Measure(1, 'year'), freq, TIMER_SCHEMA).toExpression();
+        freq:constant_Number 'times' each 'year' => new Ast.Stream.Timer(null, new Ast.Value.Date(null), new Ast.Value.Measure(1, 'year'), freq, $loader.standardSchemas.timer).toExpression();
         // FREQ 'times' every INTERVAL
-        freq:constant_Number 'times' each interval:constant_Measure_ms => new Ast.Stream.Timer(null, new Ast.Value.Date(null), interval, freq, TIMER_SCHEMA).toExpression();
+        freq:constant_Number 'times' each interval:constant_Measure_ms => new Ast.Stream.Timer(null, new Ast.Value.Date(null), interval, freq, $loader.standardSchemas.timer).toExpression();
         // FREQ 'times' on DATE (requires expiry on Timer)
-        // freq:constant_Number 'times' on date:constant_Date => new Ast.Stream.Timer(date, new Ast.Value.Measure(1, 'day'), freq, TIMER_SCHEMA);
+        // freq:constant_Number 'times' on date:constant_Date => new Ast.Stream.Timer(date, new Ast.Value.Measure(1, 'day'), freq, $loader.standardSchemas.timer);
     }
 }

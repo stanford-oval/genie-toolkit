@@ -47,21 +47,10 @@ action_recommendation : D.Recommendation = {
 }
 
 actionable_system_recommendation_short : D.Recommendation = {
-    // for Thingpedia phrases (#_[result]), at inference time we pick the top one and replace it
-    // directly using a context phrase
-    // at training time we generate all possible phrases and match
-    ?inference {
-        ctx:ctx_with_result_noquestion proposal:ctx_thingpedia_result [priority=2]
-            => D.makeThingpediaRecommendation(ctx, proposal);
-        ctx:ctx_with_result_noquestion proposal:ctx_thingpedia_result [priority=2]
-            => D.makeThingpediaRecommendation(ctx, proposal);
-    }
-    !inference {
-        ctx:ctx_with_result_noquestion proposal:thingpedia_result with { functionName = ctx.currentFunction } [priority=2]
-            => D.makeThingpediaRecommendation(ctx, proposal);
-        ctx:ctx_with_result_noquestion proposal:thingpedia_result with { functionName = ctx.currentFunction } [priority=2]
-            => D.makeThingpediaRecommendation(ctx, proposal);
-    }
+    ctx:ctx_with_result_noquestion proposal:ctx_thingpedia_result [priority=2]
+        => D.makeThingpediaRecommendation(ctx, proposal);
+    ctx:ctx_with_result_noquestion proposal:ctx_thingpedia_result [priority=2]
+        => D.makeThingpediaRecommendation(ctx, proposal);
 
     ["i {recommend|suggest} ${proposal}"]: (ctx : ctx_with_result_and_action, proposal : constant_name<value=ctx.id0>)
         => D.makeRecommendation(ctx, proposal),
@@ -96,15 +85,6 @@ proposal_info_action_pair : [D.ResultPhrase, Ast.Invocation|null] = {
     }
 }
 
-user_question_answer_begin : D.Recommendation = {
-    ctx:ctx_with_result_question proposal:constant_name with { value = ctx.id0 }
-        => D.makeRecommendation(ctx, proposal);
-
-    // to support Xkcd (which uses a numeric "ID" property), we allow any type of constant
-    ?inference ctx:ctx_with_result_question proposal:constant_Any
-        => D.makeRecommendation(ctx, proposal);
-}
-
 // note: most of the following combine non-terminals that are already depending
 // on the context, so we don't need an additional constraint here
 
@@ -114,15 +94,8 @@ direct_user_question_answer : D.Recommendation = {
 }
 
 actionable_system_display_result_short : D.Recommendation = {
-    // for Thingpedia phrases (#_[result]), at inference time we pick the top one and replace it
-    // directly using a context phrase
-    // at training time we generate all possible phrases and match
-    ?inference
-        ctx:ctx_with_result info:ctx_thingpedia_result '.' [priority=5]
-            => D.makeDisplayResult(ctx, info);
-    !inference
-        ctx:ctx_with_result info:thingpedia_result with { functionName = ctx.currentFunction } '.' [priority=5]
-            => D.makeDisplayResult(ctx, info);
+    ctx:ctx_with_result info:ctx_thingpedia_result '.' [priority=5]
+        => D.makeDisplayResult(ctx, info);
 }
 
 // a non-list result
@@ -186,20 +159,14 @@ system_recommendation : D.Recommendation = {
         => D.checkRecommendation(proposal, null),
 
     // long-form answers to a single question
-    ["${proposal} is a ${res[plural=one]}."]: (proposal:user_question_answer_begin, res:result_info_phrase)
-        => D.checkRecommendation(proposal, res.info),
+    ["${proposal}."]: (ctx : ctx_with_result_question, proposal:direct_answer_phrase<index=0>) => {
+        const rec = D.makeRecommendation(proposal.result.ctx, proposal.name);
+        if (!rec)
+            return null;
+        return D.checkRecommendation(rec, proposal.result.info);
+    },
 
-    // short answers to a single question
-    ["${proposal} ${filter[plural=one]}."]: (proposal:user_question_answer_begin, filter:avp_filter<functionName = proposal.functionName>)
-        => D.makeAnswerStyleRecommendation(proposal, filter),
-    ["${proposal} is ${filter[plural=one]}."]: (proposal:user_question_answer_begin, filter:pvp_filter<functionName = proposal.functionName>)
-        => D.makeAnswerStyleRecommendation(proposal, filter),
-    ["${proposal} is ${filter[plural=one]}."]: (proposal:user_question_answer_begin, filter:apv_filter<functionName = proposal.functionName>)
-        => D.makeAnswerStyleRecommendation(proposal, filter),
-    ["${proposal} has ${filter[plural=one]}."]: (proposal:user_question_answer_begin, filter:npp_filter<functionName = proposal.functionName>)
-        => D.makeAnswerStyleRecommendation(proposal, filter),
-
-    // even shorter answers to single questions
+    // short answers to single questions
     proposal:direct_user_question_answer => D.checkRecommendation(proposal, null),
 
     // recommendations after a search, followed by an offer to make an action
@@ -212,14 +179,17 @@ system_recommendation : D.Recommendation = {
             return D.recommendationSetLearnMore(maybeProposal);
         return D.checkActionForRecommendation(maybeProposal, action);
     },
-    ["${proposal} ${pair}", weight=2]: (proposal:user_question_answer_begin, pair:proposal_info_action_pair) => {
+    ["${proposal} ${pair}", weight=2]: (ctx: ctx_with_result_question, proposal: constant_name, pair:proposal_info_action_pair) => {
+        const rec = D.makeRecommendation(ctx, proposal);
+        if (!rec)
+            return null;
         const [res, action] = pair;
-        const maybeProposal = D.checkRecommendation(proposal, res.info);
-        if (maybeProposal === null)
+        const maybeRec = D.checkRecommendation(rec, res.info);
+        if (maybeRec === null)
             return null;
         if (action === null)
-            return D.recommendationSetLearnMore(maybeProposal);
-        return D.checkActionForRecommendation(maybeProposal, action);
+            return D.recommendationSetLearnMore(maybeRec);
+        return D.checkActionForRecommendation(maybeRec, action);
     },
 }
 

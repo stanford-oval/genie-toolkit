@@ -78,15 +78,8 @@ action_success_phrase_with_result : D.ActionSuccessPhraseWithResult = {
 }
 
 action_success_phrase : S.AgentReplyRecord = {
-    // for Thingpedia phrases (#_[result]), at inference time we pick the top one and replace it
-    // directly using a context phrase
-    // at training time we generate all possible phrases and match
-    ?inference
-        ctx:ctx_completed_action_success generic_excitement_phrase result:ctx_thingpedia_result '.' [priority=5]
-            => D.makeThingpediaActionSuccessPhrase(ctx, result);
-    !inference
-        ctx:ctx_completed_action_success generic_excitement_phrase result:thingpedia_result with { functionName = ctx.currentFunction } '.' [priority=5]
-            => D.makeThingpediaActionSuccessPhrase(ctx, result);
+    ctx:ctx_completed_action_success generic_excitement_phrase result:ctx_thingpedia_result '.' [priority=5]
+        => D.makeThingpediaActionSuccessPhrase(ctx, result);
 
     ctx:ctx_completed_action_success generic_excitement_phrase 'i' action:complete_past_action_phrase with { functionName = ctx.currentFunction } '.' [priority=2]
         => D.makeCompleteActionSuccessPhrase(ctx, action, null);
@@ -102,18 +95,32 @@ action_success_phrase : S.AgentReplyRecord = {
     // purely generic fallback, so we always say something, even if we cannot use a better template
     ctx:ctx_completed_action_success generic_excitement_phrase generic_action_success_phrase [priority=-10]
         => D.makeGenericActionSuccessPhrase(ctx);
+
+}
+
+action_notification_phrase : S.AgentReplyRecord = {
+    ctx:ctx_action_notification notification_preamble generic_excitement_phrase result:ctx_thingpedia_result '.' [priority=5]
+        => D.makeThingpediaActionSuccessPhrase(ctx, result);
+
+    ctx:ctx_action_notification notification_preamble generic_excitement_phrase 'i' action:complete_past_action_phrase with { functionName = ctx.currentFunction } '.' [priority=2]
+        => D.makeCompleteActionSuccessPhrase(ctx, action, null);
+
+    ctx:ctx_action_notification notification_preamble generic_excitement_phrase phrase:action_success_phrase_with_result => {
+        const [action, info] = phrase;
+        if (action)
+            return D.makeCompleteActionSuccessPhrase(ctx, action, info);
+        else
+            return D.makeThingpediaActionSuccessPhrase(ctx, info);
+    };
+
+    // purely generic fallback, so we always say something, even if we cannot use a better template
+    ctx:ctx_action_notification notification_preamble generic_excitement_phrase generic_action_success_phrase [priority=-10]
+        => D.makeGenericActionSuccessPhrase(ctx);
 }
 
 short_action_error_message : S.ContextInfo = {
-    // for Thingpedia phrases (#_[on_error]), at inference time we pick the top one for the correct code
-    // and replace it directly using a context phrase
-    // at training time we generate all possible phrases and match
-    ?inference
-        ctx:ctx_completed_action_error msg:ctx_thingpedia_error_message '.' [priority=5]
-            => D.checkThingpediaErrorMessage(ctx, msg);
-    !inference
-        ctx:ctx_completed_action_error msg:thingpedia_error_message with { functionName = ctx.currentFunction } '.' [priority=5]
-            => D.checkThingpediaErrorMessage(ctx, msg);
+    ctx:ctx_completed_action_error msg:ctx_thingpedia_error_message '.' [priority=5]
+        => D.checkThingpediaErrorMessage(ctx, msg);
 
     ctx:ctx_completed_action_error 'there was an unexpected error with your command . please try again later or report this issue to my developers' => ctx;
 }
@@ -147,7 +154,7 @@ two_param_try_different_param_question : C.ParamSlot[] = {
 }
 
 action_error_phrase : S.AgentReplyRecord = {
-    sorry_preamble ctx:short_action_error_message '.' => D.makeActionErrorPhrase(ctx, []);
+    ctx:short_action_error_message '.' => D.makeActionErrorPhrase(ctx, []);
 
     !inference {
         // FIXME this should be good for inference too but the phrase it generates is weird

@@ -29,6 +29,7 @@ import ThingpediaLoader from '../load-thingpedia';
 import {
     AgentReplyOptions,
     ContextInfo,
+    NameList,
     makeAgentReply,
     makeSimpleState,
     addActionParam,
@@ -48,29 +49,15 @@ import {
 import {
     SlotBag
 } from '../slot_bag';
-
-export interface NameList {
-    ctx : ContextInfo;
-    results : Ast.DialogueHistoryResultItem[];
-}
-
-export function nameListKeyFn(list : NameList) {
-    const schema = list.ctx.currentFunction!;
-    return {
-        functionName: schema.qualifiedName,
-        idType: schema.getArgType('id')!,
-
-        id0: list.ctx.key.id0,
-        id1: list.ctx.key.id1,
-        id2: list.ctx.key.id2,
-    };
-}
+import {
+    DirectAnswerPhrase
+} from './results';
 
 export type ListProposal = [Ast.DialogueHistoryResultItem[], SlotBag|null, Ast.Invocation|null, boolean];
 
 export function listProposalKeyFn([results, info, action, hasLearnMore] : ListProposal) {
     return {
-        idType: results[0].value.id.getType(),
+        idType: results[0].value.id ? results[0].value.id.getType() : null,
         queryName: info ? info.schema!.qualifiedName : null,
         actionName: action ? action.schema!.qualifiedName : null,
     };
@@ -83,7 +70,8 @@ function checkListProposal(nameList : NameList, info : SlotBag|null, hasLearnMor
     const currentStmt = ctx.current!.stmt;
     const currentTable = currentStmt.expression;
     const last = currentTable.last;
-    if (last instanceof Ast.SliceExpression &&
+    if ((last instanceof Ast.SliceExpression ||
+        (last instanceof Ast.ProjectionExpression && last.expression instanceof Ast.SliceExpression)) &&
         results.length !== ctx.results!.length)
         return null;
 
@@ -117,7 +105,38 @@ function checkListProposal(nameList : NameList, info : SlotBag|null, hasLearnMor
     return [results, info, action, hasLearnMore];
 }
 
-function addActionToListProposal(nameList : NameList, action : Ast.Invocation) : ListProposal|null {
+export type ThingpediaListProposal = [ContextInfo, SlotBag];
+
+export function checkThingpediaListProposal(proposal : ThingpediaListProposal, additionalInfo : SlotBag|null) : ListProposal|null {
+    const [ctx, info] = proposal;
+
+    const resultInfo = ctx.resultInfo!;
+    if (resultInfo.projection !== null) {
+        // check that all projected names are present
+        for (const name of resultInfo.projection) {
+            if (!info.has(name))
+                return null;
+        }
+    }
+
+    let mergedInfo : SlotBag|null = info;
+    if (additionalInfo) {
+        // check that the new info is truthful
+        for (const result of ctx.results!) {
+            if (!isInfoPhraseCompatibleWithResult(result, additionalInfo))
+                return null;
+        }
+
+        mergedInfo = SlotBag.merge(mergedInfo, additionalInfo);
+    }
+    if (!mergedInfo)
+        return null;
+
+    const action = ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next!) : null;
+    return [ctx.results!, mergedInfo, action, false];
+}
+
+export function addActionToListProposal(nameList : NameList, action : Ast.Invocation) : ListProposal|null {
     const { ctx, results } = nameList;
     if (ctx.resultInfo!.projection !== null)
         return null;
@@ -139,6 +158,56 @@ function addActionToListProposal(nameList : NameList, action : Ast.Invocation) :
     return [results, null, action, false];
 }
 
+export function makeListProposalFromDirectAnswers(...phrases : DirectAnswerPhrase[]) : ListProposal|null {
+    for (let i = 0; i < phrases.length; i++) {
+        if (phrases[i].index !== i)
+            return null;
+    }
+
+    const ctx = phrases[0].result.ctx;
+
+    const currentStmt = ctx.current!.stmt;
+    const currentTable = currentStmt.expression;
+    const last = currentTable.last;
+    if ((last instanceof Ast.SliceExpression ||
+        (last instanceof Ast.ProjectionExpression && last.expression instanceof Ast.SliceExpression)) &&
+        phrases.length !== ctx.results!.length)
+        return null;
+
+    const names = Array.from(phrases[0].result.info.keys());
+    // check that all phrases talk about the same slots (it would be weird otherwise)
+    for (let i = 0; i < phrases.length; i++) {
+        for (const key of phrases[i].result.info.keys()) {
+            if (!names.includes(key))
+                return null;
+        }
+        for (const name of names) {
+            if (!phrases[i].result.info.has(name))
+                return null;
+        }
+    }
+
+    const resultInfo = ctx.resultInfo!;
+    if (resultInfo.projection !== null) {
+        // check that all projected names are present
+        for (const phrase of phrases) {
+            for (const name of resultInfo.projection) {
+                if (!phrase.result.info.has(name))
+                    return null;
+            }
+        }
+    }
+
+    // don't use a direct answer with a list if the user is issuing a query by name
+    const filterTable = C.findFilterExpression(currentTable);
+    if (filterTable && C.filterUsesParam(filterTable.filter, 'id'))
+        return null;
+
+    const results = ctx.results!.slice(0, phrases.length);
+
+    return [results, null, null, false];
+}
+
 function makeListProposalReply(ctx : ContextInfo, proposal : ListProposal) {
     const [results, /*info*/, action, hasLearnMore] = proposal;
     const options : AgentReplyOptions = {
@@ -146,7 +215,20 @@ function makeListProposalReply(ctx : ContextInfo, proposal : ListProposal) {
     };
     if (action || hasLearnMore)
         options.end = false;
-    const dialogueAct = results.length === 2 ? 'sys_recommend_two' : 'sys_recommend_three';
+    let dialogueAct;
+    switch (results.length) {
+    case 2:
+        dialogueAct = 'sys_recommend_two';
+        break;
+    case 3:
+        dialogueAct = 'sys_recommend_three';
+        break;
+    case 4:
+        dialogueAct = 'sys_recommend_four';
+        break;
+    default:
+        dialogueAct = 'sys_recommend_many';
+    }
     if (action === null)
         return makeAgentReply(ctx, makeSimpleState(ctx, dialogueAct, null), proposal, null, options);
     else
@@ -280,7 +362,6 @@ function listProposalLearnMoreReply(ctx : ContextInfo, name : Ast.Value) {
 
 export {
     checkListProposal,
-    addActionToListProposal,
     makeListProposalReply,
 
     positiveListProposalReply,

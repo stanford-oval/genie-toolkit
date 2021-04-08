@@ -22,21 +22,23 @@ import * as fs from 'fs';
 import * as stream from 'stream';
 import byline from 'byline';
 import * as argparse from 'argparse';
+import * as child_process from 'child_process';
+import * as util from 'util';
 
 import * as StreamUtils from '../../lib/utils/stream-utils';
 
-function maybeCreateReadStream(filename : string) : stream.Readable {
+export function maybeCreateReadStream(filename : string) : stream.Readable {
     if (filename === '-')
         return process.stdin;
     else
         return fs.createReadStream(filename);
 }
 
-function readAllLines(files : stream.Readable[], separator = '') : stream.Readable {
+export function readAllLines(files : stream.Readable[], separator = '') : stream.Readable {
     return StreamUtils.chain(files.map((s) => s.setEncoding('utf8').pipe(byline())), { objectMode: true, separator });
 }
 
-class ActionSetFlag extends argparse.Action {
+export class ActionSetFlag extends argparse.Action {
     'const' ! : boolean;
 
     call(parser : argparse.ArgumentParser,
@@ -49,8 +51,19 @@ class ActionSetFlag extends argparse.Action {
     }
 }
 
-export {
-    ActionSetFlag,
-    maybeCreateReadStream,
-    readAllLines
-};
+export async function getConfig<T>(key : string, _default ?: T) : Promise<string|T|undefined> {
+    try {
+        const args = ['config', '--get', key];
+        const { stdout, stderr } = await util.promisify(child_process.execFile)('git', args);
+        process.stderr.write(stderr);
+        return stdout.trim() || _default;
+    } catch(e) {
+        // ignore error if git is not installed
+        // also ignore error if the key is not present
+        if (e.code !== 'ENOENT' && e.code !== 1)
+            throw e;
+        return _default;
+    }
+}
+
+export const DEFAULT_THINGPEDIA_URL = 'https://dev.almond.stanford.edu/thingpedia';

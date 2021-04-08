@@ -1,7 +1,6 @@
 geniedir = ../..
 developer_key =
 experiment ?= city
-thingpedia_cli = thingpedia
 thingpedia_url = https://thingpedia.stanford.edu/thingpedia
 
 -include ./config.mk
@@ -133,10 +132,10 @@ emptydataset.tt:
 	echo 'dataset @empty {}' > $@
 
 shared-parameter-datasets.tsv:
-	$(thingpedia_cli) --url $(thingpedia_url) --developer-key $(developer_key) --access-token invalid \
-	  download-entity-values --manifest $@ --append-manifest -d shared-parameter-datasets
-	$(thingpedia_cli) --url $(thingpedia_url) --developer-key $(developer_key) --access-token invalid \
-	  download-string-values --manifest $@ --append-manifest -d shared-parameter-datasets
+	$(genie) download-entity-values --thingpedia-url $(thingpedia_url) --developer-key $(developer_key) \
+	   --manifest $@ --append-manifest -d shared-parameter-datasets
+	$(genie) download-string-values --thingpedia-url $(thingpedia_url) --developer-key $(developer_key) \
+	   --manifest $@ --append-manifest -d shared-parameter-datasets
 
 %/parameter-datasets.tsv : %/wikidata.tt shared-parameter-datasets.tsv
 	if [ "$(load_predownloaded_parameter_sets)" = "true" ] ; then \

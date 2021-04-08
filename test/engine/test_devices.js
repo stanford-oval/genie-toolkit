@@ -163,11 +163,18 @@ async function testUpdateDevice(engine) {
     await engine.upgradeDevice('com.twitter');
 }
 
+async function iterate(iterable) {
+    const ret = [];
+    for await (const el of iterable)
+        ret.push(el);
+    return ret;
+}
+
 async function testDeviceMethods(engine) {
     const devices = engine.devices;
 
     const test = devices.getDevice('org.thingpedia.builtin.test');
-    const result = await test.get_get_data({ count: 2, size: 10 });
+    const result = await iterate(await test.get_get_data({ count: 2, size: 10 }));
     assert.deepStrictEqual(result, [{
         data: '!!!!!!!!!!',
     }, {

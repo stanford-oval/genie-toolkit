@@ -30,7 +30,10 @@ export enum MessageType {
     LINK = 'link',
     BUTTON = 'button',
     RDL = 'rdl',
-    RESULT = 'result'
+    NEW_PROGRAM = 'new-program',
+    SOUND_EFFECT = 'sound',
+    AUDIO = 'audio',
+    VIDEO = 'video'
 }
 
 interface TextMessage {
@@ -47,10 +50,11 @@ interface CommandMessage {
     json ?: any;
 }
 
-interface PictureMessage {
+interface MediaMessage {
     id ?: number;
-    type : MessageType.PICTURE;
+    type : MessageType.PICTURE|MessageType.AUDIO|MessageType.VIDEO;
     url : string;
+    alt ?: string;
     icon : string|null;
 }
 
@@ -65,6 +69,14 @@ interface RDLMessage {
     id ?: number;
     type : MessageType.RDL;
     rdl : RDL;
+    icon : string|null;
+}
+
+interface SoundEffectMessage {
+    id ?: number;
+    type : MessageType.SOUND_EFFECT;
+    name : string;
+    exclusive : boolean;
     icon : string|null;
 }
 
@@ -89,19 +101,23 @@ interface ButtonMessage {
     title : string;
 }
 
-interface ResultMessage {
+interface NewProgramMessage {
     id ?: number;
-    type : MessageType.RESULT;
-    text : string;
-    result : unknown;
+    type : MessageType.NEW_PROGRAM;
+    uniqueId : string;
+    name : string;
+    code : string;
+    results : Array<Record<string, unknown>>;
+    errors : string[];
     icon : string|null;
 }
 
 export type Message = TextMessage
     | CommandMessage
-    | PictureMessage
+    | MediaMessage
     | RDLMessage
+    | SoundEffectMessage
     | ChoiceMessage
     | LinkMessage
     | ButtonMessage
-    | ResultMessage;
+    | NewProgramMessage;

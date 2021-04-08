@@ -117,26 +117,6 @@ export function initArgparse(subparsers : argparse.SubParser) {
         metavar: 'FACTOR',
         help: 'Number of sentences to generate with "ask" or "tell" prefixes for single-device commands'
     });
-    parser.add_argument('--replace-locations', {
-        action: 'store_true',
-        help: 'Replace LOCATION tokens with unquoted locations.',
-        default: true
-    });
-    parser.add_argument('--no-replace-locations', {
-        action: 'store_false',
-        dest: 'replace_locations',
-        help: 'Do not replace LOCATION tokens with unquoted locations.',
-    });
-    parser.add_argument('--replace-numbers', {
-        action: 'store_true',
-        help: 'Replace NUMBER tokens with actual values.',
-        default: false
-    });
-    parser.add_argument('--no-replace-numbers', {
-        action: 'store_false',
-        dest: 'replace_numbers',
-        help: 'Do not replace NUMBER tokens',
-    });
     parser.add_argument('--requotable', {
         action: 'store_true',
         help: 'Replace parameters in a way that they can be requoted later (defaults to true).',
@@ -184,7 +164,8 @@ export function initArgparse(subparsers : argparse.SubParser) {
     });
     parser.add_argument('--parallelize', {
         type: Number,
-        help: 'Run N threads in parallel (requires --experimental-worker support)',
+        help: 'Run N threads in parallel (requires --experimental-worker support)' +
+            ' Please note that for N>1 the output does not align with input sentences anymore',
         metavar: 'N',
         default: 1,
     });

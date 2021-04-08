@@ -1,0 +1,2255 @@
+class @com.facebook
+#_[canonical="facebook account"] {
+  monitorable list query list_photos(in opt album: String #_[prompt="Which album?"] #_[canonical="album"],
+                                     out date: Date #_[canonical="date"],
+                                     out picture_url: Entity(tt:picture) #_[canonical="picture url"])
+  #_[canonical="facebook photos"]
+  #_[confirmation="my facebook photos"]
+  #_[formatted=[{type="picture",url="$picture_url"}]]
+  #[confirm=false];
+
+  monitorable list query list_posts(out id: Entity(com.facebook:id) #_[canonical="id"],
+                                    out date: Date #_[canonical="date"],
+                                    out message: String #_[canonical="message"] #[string_values="tt:long_free_text"],
+                                    out picture_url: Entity(tt:picture) #_[canonical="picture url"],
+                                    out type: Enum(status,photo,link,video) #_[canonical="type"],
+                                    out link: Entity(tt:url) #_[canonical="link"],
+                                    out link_title: String #_[canonical="link title"] #[string_values="tt:news_title"])
+  #_[canonical="facebook posts"]
+  #_[confirmation="my posts on facebook"]
+  #_[formatted=[{type="code",code="(function(params, hint, formatter) {\n    let formatted = [];\n    if (params.type === 'status') {\n        formatted.push({\n            type: 'rdl',\n            displayTitle: params.message ? params.message : 'Link',\n            webCallback: params.link,\n            callback: params.link,\n        });\n    } else if (params.type === 'photo') {\n        if (params.message)\n            formatted.push({\n                type: 'rdl',\n                displayTitle: params.message,\n                webCallback: params.link,\n                callback: params.link,\n            });\n        formatted.push({ type: 'picture', url: params.picture_url });\n    } else if (params.type === 'link' || params.type === 'video') {\n        if (params.message)\n            formatted.push({\n                type: 'rdl',\n                displayTitle: params.link_title ? params.link_title : 'Link',\n                displayText: params.message,\n                webCallback: params.link,\n                callback: params.link,\n            });\n        else\n            formatted.push({\n                type: 'rdl',\n                displayTitle: params.link_title ? params.link_title: 'Link',\n                webCallback: params.link,\n                callback: params.link,\n            });\n    }\n    formatted.push(`Posted on ${params.date}.`);\n    return formatted;\n})"}]]
+  #[confirm=false]
+  #[minimal_projection=["id"]];
+
+  action post(in req status: String #_[prompt="What do you want to post?"] #_[canonical="status"] #[string_values="tt:long_free_text"])
+  #_[canonical="post on facebook"]
+  #_[confirmation="post $status on Facebook"]
+  #[confirm=true];
+
+  action post_picture(in req picture_url: Entity(tt:picture) #_[prompt="Upload the picture now."] #_[canonical="picture url"],
+                      in req caption: String #_[prompt="What should be the caption of the picture?"] #_[canonical="caption"] #[string_values="com.instagram:caption"])
+  #_[canonical="post picture on facebook"]
+  #_[confirmation="upload a picture on Facebook with caption $caption"]
+  #[confirm=true];
+}
+class @com.google
+#_[canonical="google account"] {
+}
+class @com.twitter
+#_[canonical="twitter account"] {
+  monitorable list query direct_messages(out sender: Entity(tt:username) #_[canonical="sender"] #[string_values="com.twitter:username"],
+                                         out message: String #_[canonical="message"] #[string_values="tt:message"])
+  #_[canonical="twitter direct messages"]
+  #_[confirmation="direct messages you received on Twitter"]
+  #_[formatted=[{type="text",text="@${sender}: ${message}"}]]
+  #[confirm=false];
+
+  monitorable list query home_timeline(out text: String #_[canonical="text"] #[string_values="tt:long_free_text"],
+                                       out hashtags: Array(Entity(tt:hashtag)) #_[canonical="hashtags"] #[string_values="com.twitter:hashtag"],
+                                       out urls: Array(Entity(tt:url)) #_[canonical="urls"],
+                                       out author: Entity(tt:username) #_[canonical="author"] #[string_values="com.twitter:username"],
+                                       out in_reply_to: Entity(tt:username) #_[canonical="in reply to"] #[string_values="com.twitter:username"],
+                                       out tweet_id: Entity(com.twitter:id) #_[canonical="tweet id"])
+  #_[canonical="twitter home timeline"]
+  #_[confirmation="tweets from anyone you follow"]
+  #_[formatted=[{type="text",text="@${author} tweeted: ${text}"}]]
+  #[confirm=false];
+
+  monitorable list query my_tweets(out text: String #_[canonical="text"] #[string_values="tt:long_free_text"],
+                                   out hashtags: Array(Entity(tt:hashtag)) #_[canonical="hashtags"] #[string_values="com.twitter:hashtag"],
+                                   out urls: Array(Entity(tt:url)) #_[canonical="urls"],
+                                   out in_reply_to: Entity(tt:username) #_[canonical="in reply to"] #[string_values="com.twitter:username"],
+                                   out tweet_id: Entity(com.twitter:id) #_[canonical="tweet id"])
+  #_[canonical="my tweets on twitter"]
+  #_[confirmation="tweets from you"]
+  #_[formatted=[{type="text",text="You tweeted: ${text}"}]]
+  #[confirm=false];
+
+  monitorable list query search(in opt count: Number #_[prompt="How many tweets do you want?"] #_[canonical="count"],
+                                out text: String #_[canonical="text"] #[string_values="tt:long_free_text"],
+                                out hashtags: Array(Entity(tt:hashtag)) #_[canonical="hashtags"] #[string_values="com.twitter:hashtag"],
+                                out urls: Array(Entity(tt:url)) #_[canonical="urls"],
+                                out author: Entity(tt:username) #_[prompt="From which user do you want tweets?"] #_[canonical="author"] #[string_values="com.twitter:username"],
+                                out in_reply_to: Entity(tt:username) #_[prompt="In reply to which user do you want tweets?"] #_[canonical="in reply to"] #[string_values="com.twitter:username"],
+                                out tweet_id: Entity(com.twitter:id) #_[canonical="tweet id"])
+  #_[canonical="search on twitter"]
+  #_[confirmation="recent tweets"]
+  #_[formatted=[{type="text",text="@${author} tweeted: ${text}"}]]
+  #[confirm=false];
+
+  action follow(in req user_name: Entity(tt:username) #_[prompt="What user do you want to follow?"] #_[canonical="user name"] #[string_values="com.twitter:username"])
+  #_[canonical="follow on twitter"]
+  #_[confirmation="follow $user_name on Twitter"]
+  #[confirm=true];
+
+  action post(in req status: String #_[prompt="What do you want to tweet?"] #_[canonical="status"] #[string_values="tt:long_free_text"])
+  #_[canonical="post on twitter"]
+  #_[confirmation="tweet $status"]
+  #[confirm=true];
+
+  action post_picture(in req caption: String #_[prompt="What caption do you want?"] #_[canonical="caption"] #[string_values="com.instagram:caption"],
+                      in req picture_url: Entity(tt:picture) #_[prompt="Upload the picture now."] #_[canonical="picture url"])
+  #_[canonical="post picture on twitter"]
+  #_[confirmation="tweet $caption with an attached picture"]
+  #[confirm=true];
+
+  action retweet(in req tweet_id: Entity(com.twitter:id) #_[prompt="What tweet do you want to retweet?"] #_[canonical="tweet id"])
+  #_[canonical="retweet"]
+  #_[confirmation="retween $tweet_id"]
+  #[confirm=true];
+
+  action send_direct_message(in req to: Entity(tt:username) #_[prompt="Who do you want to send the message to?"] #_[canonical="to"] #[string_values="com.twitter:username"],
+                             in req message: String #_[prompt="What message do you want to send?"] #_[canonical="message"] #[string_values="tt:message"])
+  #_[canonical="send dm on twitter"]
+  #_[confirmation="send a direct message on Twitter to $to saying $message"]
+  #[confirm=true];
+
+  action unfollow(in req user_name: Entity(tt:username) #_[prompt="What user do you want to unfollow?"] #_[canonical="user name"] #[string_values="com.twitter:username"])
+  #_[canonical="unfollow on twitter"]
+  #_[confirmation="unfollow $user_name on Twitter"]
+  #[confirm=true];
+}
+class @org.thingpedia.builtin.bluetooth.generic
+#_[canonical="generic bluetooth device"] {
+}
+class @online-account
+#_[canonical="online account"] {
+}
+class @messaging
+#_[canonical="messaging"] {
+}
+class @com.thecatapi
+#_[canonical="the cat api"] {
+  query get(out image_id: Entity(com.thecatapi:image_id) #_[canonical="image id"],
+            in opt count: Number #_[prompt="How many cats do you want?"] #_[canonical="count"],
+            out picture_url: Entity(tt:picture) #_[canonical="picture url"],
+            out link: Entity(tt:url) #_[canonical="link"])
+  #_[canonical="cat picture"]
+  #_[confirmation="cat pictures"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${link}"}, {type="picture",url="${picture_url}"}]]
+  #[confirm=false];
+}
+class @data-source
+#_[canonical="data source"] {
+}
+class @org.thingpedia.builtin.thingengine.phone
+#_[canonical="phone"] {
+  monitorable list query sms(out sender: Entity(tt:phone_number) #_[prompt="What number do you want to monitor?"] #_[canonical="sender"],
+                             out message: String #_[canonical="message"] #[string_values="tt:message"],
+                             out date: Date #_[canonical="date"])
+  #_[canonical="receive sms on phone"]
+  #_[confirmation="your SMS"]
+  #_[formatted=[{type="text",text="SMS from ${from} received at ${date}: ${body}"}]]
+  #[confirm=false];
+
+  action call(in req number: Entity(tt:phone_number) #_[prompt="Who do you want to call?"] #_[canonical="number"])
+  #_[canonical="make call on phone"]
+  #_[confirmation="call $number"]
+  #[confirm=true];
+
+  action call_emergency()
+  #_[canonical="call emergency on phone"]
+  #_[confirmation="call emergency assistance"]
+  #[confirm=true];
+
+  action put_string(in req str: String #_[prompt="What you would you like to put in here?"] #_[canonical="str"])
+  #_[canonical="put text in the textbox"]
+  #_[confirmation="put $str in here"]
+  #[confirm=true];
+
+  action send_sms(in req to: Entity(tt:phone_number) #_[prompt="Who do you want to text?"] #_[canonical="to"],
+                  in req message: String #_[prompt="What do you want to say in your text?"] #_[canonical="message"] #[string_values="tt:message"])
+  #_[canonical="send sms on phone"]
+  #_[confirmation="send a message to $to containing $message"]
+  #[confirm=true];
+
+  action set_ringer(in req mode: Enum(normal,vibrate,silent) #_[prompt="What mode to you want to set?"] #_[canonical="mode"])
+  #_[canonical="set ringer on phone"]
+  #_[confirmation="set your phone to $mode"]
+  #[confirm=true];
+}
+class @com.nest
+#_[canonical="nest account"] {
+}
+class @thermostat
+#_[canonical="thermostat"] {
+  monitorable query get_hvac_state(out mode: Enum(heat,cool,heat_cool,off,auto,dry,fan_only) #_[canonical="mode"],
+                                   out state: Enum(heating,cooling,off,drying,idle,fan) #_[canonical="state"])
+  #_[canonical="get hvac state on thermostat"]
+  #_[confirmation="the state of your heating system"]
+  #[confirm=false];
+
+  action set_hvac_mode(in req mode: Enum(heat,cool,heat_cool,off,auto,dry,fan_only) #_[prompt="What mode do you want to set?"] #_[canonical="mode"])
+  #_[canonical="set hvac mode on thermostat"]
+  #_[confirmation="set your HVAC to $mode"]
+  #[confirm=true];
+
+  action set_minmax_temperature(in req low: Measure(C) #_[prompt="What low temperature do you want to set?"] #_[canonical="low"],
+                                in req high: Measure(C) #_[prompt="What high temperature do you want to set?"] #_[canonical="high"])
+  #_[canonical="set minimum maximum temperature on thermostat"]
+  #_[confirmation="set your thermostat between $low and $high"]
+  #[confirm=true];
+
+  action set_target_temperature(in req value: Measure(C) #_[prompt="What temperature do you want to set?"] #_[canonical="value"])
+  #_[canonical="set target temperature on thermostat"]
+  #_[confirmation="set your thermostat to $value"]
+  #[confirm=true];
+}
+class @com.tesla
+#_[canonical="tesla account"] {
+}
+class @car
+#_[canonical="car"] {
+  action honk_horn()
+  #_[canonical="honk horn on car"]
+  #_[confirmation="honk your car's horn"]
+  #[confirm=true];
+}
+class @security-camera
+#_[canonical="security camera"] {
+  monitorable query current_event(out start_time: Date #_[canonical="start time"],
+                                  out has_sound: Boolean #_[prompt="Do you want events with sound?"] #_[canonical="has sound"],
+                                  out has_motion: Boolean #_[prompt="Do you want events with motion?"] #_[canonical="has motion"],
+                                  out has_person: Boolean #_[prompt="Do you want events with people in front of the camera?"] #_[canonical="has person"],
+                                  out picture_url: Entity(tt:picture) #_[canonical="picture url"])
+  #_[canonical="current event on security camera"]
+  #_[confirmation="the current event detected on your security camera"]
+  #[confirm=false];
+
+  action set_power(in req power: Enum(on,off) #_[prompt="Do you want to turn your camera on or off?"] #_[canonical="power"])
+  #_[canonical="set power on security camera"]
+  #_[confirmation="turn $power your security camera"]
+  #[confirm=true];
+}
+class @com.slack
+#_[canonical="slack"] {
+  monitorable list query channel_history(out channel: Entity(tt:hashtag) #_[prompt="What channel are you interested in?"] #_[canonical="channel"],
+                                         out date: Date #_[canonical="date"],
+                                         out sender: Entity(tt:username) #_[prompt="What user are you interested in?"] #_[canonical="sender"],
+                                         out message: String #_[canonical="message"] #[string_values="tt:message"])
+  #_[canonical="get message on slack"]
+  #_[confirmation="your messages on Slack"]
+  #_[formatted=[{type="text",text="New message on #${channel} from @${sender}: ${message}"}]]
+  #[confirm=false];
+
+  monitorable query user_presence(in req username: Entity(tt:username) #_[prompt="What user do you want presence for?"] #_[canonical="username"],
+                                  out presence: Enum(away,active) #_[canonical="presence"])
+  #_[canonical="user presence on slack"]
+  #_[confirmation="whether $username is online or away on Slack"]
+  #_[formatted=["${username} is currently ${presence}"]]
+  #[confirm=false];
+
+  action send(in req channel: Entity(tt:hashtag) #_[prompt="What channel do you want to send the message to?"] #_[canonical="channel"],
+              in req message: String #_[prompt="What message do you want me to send?"] #_[canonical="message"] #[string_values="tt:message"])
+  #_[canonical="send message on slack"]
+  #_[confirmation="send a message on slack to channel $channel saying $message"]
+  #[confirm=true];
+
+  action send_picture(in req channel: Entity(tt:hashtag) #_[prompt="What channel do you want to send the message to?"] #_[canonical="channel"],
+                      in req caption: String #_[prompt="What is the caption of the picture?"] #_[canonical="caption"] #[string_values="tt:message"],
+                      in req picture_url: Entity(tt:picture) #_[prompt="Upload the picture now."] #_[canonical="picture url"])
+  #_[canonical="send picture on slack"]
+  #_[confirmation="send a picture on slack to channel $channel with caption $caption"]
+  #[confirm=true];
+
+  action setPresence(in req presence: Enum(away,auto) #_[prompt="What should be your new presence?"] #_[canonical="presence"])
+  #_[canonical="set presence on slack"]
+  #_[confirmation="set your presence status on slack to $presence"]
+  #[confirm=true];
+
+  action updateChannelPurpose(in req channel: Entity(tt:hashtag) #_[prompt="What channel do you want to change?"] #_[canonical="channel"],
+                              in req purpose: String #_[prompt="What purpose do you want to set?"] #_[canonical="purpose"])
+  #_[canonical="update channel purpose on slack"]
+  #_[confirmation="update the purpose of slack channel $channel to $purpose"]
+  #[confirm=true];
+
+  action updateChannelTopic(in req channel: Entity(tt:hashtag) #_[prompt="What channel do you want to change?"] #_[canonical="channel"],
+                            in req topic: String #_[prompt="What should be the new topic?"] #_[canonical="topic"])
+  #_[canonical="update channel topic on slack"]
+  #_[confirmation="update the topic of slack channel $channel to $topic"]
+  #[confirm=true];
+}
+class @org.thingpedia.bluetooth.speaker.a2dp
+#_[canonical="bluetooth speaker"] {
+}
+class @com.bing
+#_[canonical="bing search"] {
+  monitorable list query image_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
+                                      out title: String #_[canonical="title"],
+                                      out picture_url: Entity(tt:picture) #_[canonical="picture url"],
+                                      out link: Entity(tt:url) #_[canonical="link"],
+                                      out width: Number #_[prompt="What width are you looking for (in pixels)?"] #_[canonical="width"],
+                                      out height: Number #_[prompt="What height are you looking for (in pixels)?"] #_[canonical="height"])
+  #_[canonical="image search on bing"]
+  #_[confirmation="images matching $query from Bing"]
+  #[confirm=false];
+
+  monitorable list query web_search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
+                                    out title: String #_[canonical="title"],
+                                    out description: String #_[canonical="description"] #[string_values="tt:long_free_text"],
+                                    out link: Entity(tt:url) #_[canonical="link"])
+  #_[canonical="web search on bing"]
+  #_[confirmation="websites matching $query on Bing"]
+  #[confirm=false];
+}
+class @com.github
+#_[canonical="github account"] {
+  monitorable list query get_commit(in req repo_name: Entity(tt:path_name) #_[prompt="What repository do you want to watch?"] #_[canonical="repo name"],
+                                    out user: Entity(tt:username) #_[prompt="What user are you interested in?"] #_[canonical="user"],
+                                    out message: String #_[canonical="message"],
+                                    out time: Date #_[canonical="time"],
+                                    out modified_files: Array(Entity(tt:path_name)) #_[canonical="modified files"],
+                                    out added_files: Array(Entity(tt:path_name)) #_[canonical="added files"],
+                                    out deleted_files: Array(Entity(tt:path_name)) #_[canonical="deleted files"])
+  #_[canonical="commits on github"]
+  #_[confirmation="commits of repository $repo_name on Github"]
+  #_[formatted=[{type="text",text="\"${message}\" by @${user}"}]]
+  #[confirm=false];
+
+  query get_file(in req repo_name: Entity(tt:path_name) #_[prompt="What repository is the file in?"] #_[canonical="repo name"],
+                 in req file_name: Entity(tt:path_name) #_[prompt="What file do you want to get?"] #_[canonical="file name"],
+                 out url: Entity(tt:url) #_[canonical="url"])
+  #_[canonical="link of file in github"]
+  #_[confirmation="link of ${file_name} in Github repository ${repo_name}"]
+  #_[formatted=[{type="text",text="Here is the link:"}, {type="rdl",webCallback="${url}",displayTitle="${url}"}]]
+  #[confirm=false];
+
+  monitorable list query get_issue(in req repo_name: Entity(tt:path_name) #_[prompt="What repository do you want to watch?"] #_[canonical="repo name"],
+                                   out user: Entity(tt:username) #_[prompt="What user are you interested in?"] #_[canonical="user"],
+                                   out number: Number #_[canonical="number"],
+                                   out title: String #_[canonical="title"],
+                                   out body: String #_[canonical="body"],
+                                   out time: Date #_[canonical="time"])
+  #_[canonical="issues on github"]
+  #_[confirmation="opened issues of repository $repo_name on Github"]
+  #_[formatted=[{type="text",text="Issue @${number} opened in ${repo_name} by @${user}"}, {type="text",text="${title}"}, {type="text",text="${body}"}]]
+  #[confirm=false];
+
+  monitorable list query get_issue_comment(in req repo_name: Entity(tt:path_name) #_[prompt="What repository do you want to watch?"] #_[canonical="repo name"],
+                                           out user: Entity(tt:username) #_[prompt="What user are you interested in?"] #_[canonical="user"],
+                                           out issue_number: Number #_[prompt="What issue number to want to watch?"] #_[canonical="issue number"],
+                                           out body: String #_[canonical="body"],
+                                           out time: Date #_[canonical="time"])
+  #_[canonical="get issue comments on github"]
+  #_[confirmation="comments on issues on Github repository $repo_name"]
+  #_[formatted=[{type="text",text="@${user} commented on issue ${issue_number} in ${repo_name}"}, {type="text",text="${body}"}]]
+  #[confirm=false];
+
+  monitorable list query get_milestone(in req repo_name: Entity(tt:path_name) #_[prompt="What repository do you want to watch?"] #_[canonical="repo name"],
+                                       out user: Entity(tt:username) #_[prompt="What user are you interested in?"] #_[canonical="user"],
+                                       out description: String #_[canonical="description"],
+                                       out time: Date #_[canonical="time"],
+                                       out title: String #_[canonical="title"])
+  #_[canonical="milestones on github"]
+  #_[confirmation="the milestones created on Github repository $repo_name"]
+  #_[formatted=[{type="text",text="Milestone created in ${repo_name} by ${user}: "}, {type="text",text="$title"}, {type="text",text="${description}"}]]
+  #[confirm=false];
+
+  monitorable list query get_pull_requests(in req repo_name: Entity(tt:path_name) #_[prompt="What repository do you want to wath?"] #_[canonical="repo name"],
+                                           out title: String #_[canonical="title"],
+                                           out body: String #_[canonical="body"],
+                                           out time: Date #_[canonical="time"],
+                                           out reviewers: Array(Entity(tt:username)) #_[canonical="reviewers"],
+                                           out url: Entity(tt:url) #_[canonical="url"])
+  #_[canonical="pull requests on github"]
+  #_[confirmation="pull requests in Github repository ${repo_name}"]
+  #_[formatted=[{type="rdl",webCallback="${url}",displayTitle="PR: ${title}",displayText="${body}\nCreated at: ${time}\nRequested reviewers: ${reviewers}"}]]
+  #[confirm=false];
+
+  action add_email(in req email: Entity(tt:email_address) #_[prompt="What email do you want to add?"] #_[canonical="email"])
+  #_[canonical="add email on github"]
+  #_[confirmation="add $email to your Github account"]
+  #[confirm=true];
+
+  action comment_issue(in req repo_name: Entity(tt:path_name) #_[prompt="What repository do you want to comment on?"] #_[canonical="repo name"],
+                       in req issue_number: Number #_[prompt="What issue do you want to comment on?"] #_[canonical="issue number"],
+                       in req body: String #_[prompt="What do you want to comment?"] #_[canonical="body"])
+  #_[canonical="comment on issue on github"]
+  #_[confirmation="comment on issue $issue_number in $repo_name on Github"]
+  #[confirm=true];
+}
+class @com.xkcd
+#_[canonical="xkcd"] {
+  monitorable query get_comic(in opt number: Number #_[prompt="What Xkcd comic do you want?"] #_[canonical="number"],
+                              out title: String #_[canonical="title"] #[string_values="com.xkcd:title"],
+                              out picture_url: Entity(tt:picture) #_[canonical="picture url"],
+                              out link: Entity(tt:url) #_[canonical="link"],
+                              out alt_text: String #_[canonical="alt text"] #[string_values="com.xkcd:alt_text"])
+  #_[canonical="xkcd comic"]
+  #_[confirmation="an Xkcd comic"]
+  #[confirm=false];
+
+  query random_comic(out number: Number #_[canonical="number"],
+                     out title: String #_[canonical="title"] #[string_values="com.xkcd:title"],
+                     out picture_url: Entity(tt:picture) #_[canonical="picture url"],
+                     out link: Entity(tt:url) #_[canonical="link"],
+                     out alt_text: String #_[canonical="alt text"] #[string_values="com.xkcd:alt_text"])
+  #_[canonical="random xkcd comic"]
+  #_[confirmation="a random Xkcd comic"]
+  #[confirm=false];
+
+  monitorable list query what_if(out title: String #_[canonical="title"] #[string_values="com.xkcd:what_if_title"],
+                                 out link: Entity(tt:url) #_[canonical="link"],
+                                 out updated_time: Date #_[canonical="updated time"])
+  #_[canonical="xkcd what if blog posts"]
+  #_[confirmation="Xkcd's What If blog posts"]
+  #[confirm=false];
+}
+class @com.yandex.translate
+#_[canonical="yandex translate"] {
+  query detect_language(in req text: String #_[prompt="What text do you want to analyze?"] #_[canonical="text"],
+                        out value: Entity(tt:iso_lang_code) #_[canonical="value"])
+  #_[canonical="detect language on ytranslate"]
+  #_[confirmation="the language of $text "]
+  #_[formatted=[{type="text",text="Detected as ${value}."}]]
+  #[confirm=false];
+
+  query translate(in opt source_language: Entity(tt:iso_lang_code) #_[prompt="What's the source language? Use an ISO language code like it, en or zh."] #_[canonical="source language"],
+                  in req target_language: Entity(tt:iso_lang_code) #_[prompt="What's the target language? Use an ISO language code like it, en or zh."] #_[canonical="target language"],
+                  in req text: String #_[prompt="What do you want to translate?"] #_[canonical="text"],
+                  out translated_text: String #_[canonical="translated text"])
+  #_[canonical="translate on ytranslate"]
+  #_[confirmation="the translation of $text to $target_language"]
+  #_[formatted=[{type="text",text="${translated_text}"}]]
+  #[confirm=false];
+}
+class @org.thingpedia.rss
+#_[canonical="rss feed"] {
+  monitorable list query get_post(out title: String #_[canonical="title"],
+                                  out link: Entity(tt:url) #_[canonical="link"])
+  #_[canonical="get post on rss"]
+  #_[confirmation="posts on the RSS feed"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}"}]]
+  #[confirm=false];
+}
+class @com.youtube
+#_[canonical="youtube account"] {
+  monitorable list query channels_by_category(in req category_id: Enum(best_of_youtube,recommended,paid,music,comedy,film_and_entertainment,gaming,beauty_and_fashion,from_tv,automotive,animation,sports,diy,tech,science,cooking,causes,news_and_politics,lifestyle) #_[prompt="What category do you want to list?"] #_[canonical="category id"],
+                                              out channel_id: Entity(com.youtube:channel_id) #_[canonical="channel id"],
+                                              out title: String #_[canonical="title"] #[string_values="com.youtube:channel_title"],
+                                              out description: String #_[canonical="description"] #[string_values="com.youtube:video_title"],
+                                              out thumbnail: Entity(tt:picture) #_[canonical="thumbnail"])
+  #_[canonical="list channel by category on youtube"]
+  #_[confirmation="channels in YouTube Category $category_id"]
+  #_[formatted=[{type="rdl",webCallback="http://www.youtube.com/channel/${channel_id}",displayTitle="${title}",displayText="${description}"}, {type="picture",url="${thumbnail}"}]]
+  #[confirm=false];
+
+  monitorable list query list_subscriptions(out channel_id: Entity(com.youtube:channel_id) #_[canonical="channel id"],
+                                            out title: String #_[canonical="title"] #[string_values="com.youtube:channel_title"],
+                                            out description: String #_[canonical="description"] #[string_values="tt:long_free_text"],
+                                            out thumbnail: Entity(tt:picture) #_[canonical="thumbnail"])
+  #_[canonical="list subscriptions on youtube"]
+  #_[confirmation="your subscribed channels on YouTube"]
+  #_[formatted=[{type="rdl",webCallback="http://www.youtube.com/channel/${channel_id}",displayTitle="${title}",displayText="${description}"}, {type="picture",url="${thumbnail}"}]]
+  #[confirm=false];
+
+  monitorable list query list_videos(in req channel_id: Entity(com.youtube:channel_id) #_[prompt="What channel do you want to be notified about? Use the full channel URL, like https://www.youtube.com/channels/xxxxxxx."] #_[canonical="channel id"],
+                                     out channel_title: String #_[canonical="channel title"] #[string_values="com.youtube:channel_title"],
+                                     out title: String #_[canonical="title"] #[string_values="com.youtube:video_title"],
+                                     out video_id: Entity(com.youtube:video_id) #_[canonical="video id"],
+                                     out video_url: Entity(tt:url) #_[canonical="video url"],
+                                     out description: String #_[canonical="description"] #[string_values="tt:long_free_text"],
+                                     out thumbnail: Entity(tt:picture) #_[canonical="thumbnail"])
+  #_[canonical="list video on youtube"]
+  #_[confirmation="recent videos in YouTube channel ${channel_id}"]
+  #_[formatted=[{type="rdl",displayTitle="${title}",displayText="${description}. Published by ${channel_title}.",webCallback="${video_url}"}]]
+  #[confirm=false];
+
+  monitorable list query search_channel(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
+                                        out channel_id: Entity(com.youtube:channel_id) #_[canonical="channel id"],
+                                        out title: String #_[canonical="title"] #[string_values="com.youtube:channel_title"],
+                                        out description: String #_[canonical="description"] #[string_values="tt:long_free_text"],
+                                        out thumbnail: Entity(tt:picture) #_[canonical="thumbnail"])
+  #_[canonical="search channel on youtube"]
+  #_[confirmation="YouTube channels matching $query"]
+  #_[formatted=[{type="rdl",webCallback="http://www.youtube.com/channel/${channel_id}",displayTitle="${title}",displayText="${description}"}, {type="picture",url="${thumbnail}"}]]
+  #[confirm=false];
+
+  monitorable list query search_videos(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="tt:search_query"],
+                                       out video_id: Entity(com.youtube:video_id) #_[canonical="video id"],
+                                       in opt channel_id: Entity(com.youtube:channel_id) #_[prompt="What channel do you want to limit the search to?"] #_[canonical="channel id"],
+                                       out title: String #_[canonical="title"] #[string_values="com.youtube:video_title"],
+                                       out description: String #_[canonical="description"] #[string_values="tt:long_free_text"],
+                                       out thumbnail: Entity(tt:picture) #_[canonical="thumbnail"],
+                                       in opt count: Number #_[prompt="How many search results do you want?"] #_[canonical="count"],
+                                       out video_url: Entity(tt:url) #_[canonical="video url"])
+  #_[canonical="search video on youtube"]
+  #_[confirmation="YouTube videos matching $query"]
+  #_[formatted=[{type="rdl",webCallback="${video_url}",displayTitle="${title}",displayText="${description}. Published by ${channel_title}."}, {type="picture",url="${thumbnail}"}]]
+  #[confirm=false];
+}
+class @org.thingpedia.weather
+#_[canonical="weather api"] {
+  monitorable query current(in req location: Location #_[prompt="What location do you want the current weather for?"] #_[canonical="location"],
+                            out temperature: Measure(C) #_[canonical="temperature"],
+                            out wind_speed: Measure(mps) #_[canonical="wind speed"],
+                            out humidity: Number #_[canonical="humidity"],
+                            out cloudiness: Number #_[canonical="cloudiness"],
+                            out fog: Number #_[canonical="fog"],
+                            out status: Enum(raining,cloudy,sunny,snowy,sleety,drizzling,windy) #_[canonical="status"],
+                            out icon: Entity(tt:picture) #_[canonical="icon"])
+  #_[canonical="get current weather on weatherapi"]
+  #_[confirmation="the current weather for $location"]
+  #_[formatted=[{type="text",text="Current weather for ${location}: ${status}, temperature ${temperature:C} C, wind speed ${wind_speed:mps} m/s, humidity ${humidity}%, cloudiness ${cloudiness}%, fog ${fog}%."}]]
+  #[confirm=false];
+
+  monitorable query forecast(in req location: Location #_[prompt="What location do you want the current weather for?"] #_[canonical="location"],
+                             out date: Date #_[canonical="date"],
+                             out temperature: Measure(C) #_[canonical="temperature"],
+                             out wind_speed: Measure(mps) #_[canonical="wind speed"],
+                             out humidity: Number #_[canonical="humidity"],
+                             out cloudiness: Number #_[canonical="cloudiness"],
+                             out fog: Number #_[canonical="fog"],
+                             out status: Enum(raining,cloudy,sunny,snowy,sleety,drizzling,windy) #_[canonical="status"],
+                             out icon: Entity(tt:picture) #_[canonical="icon"])
+  #_[canonical="get weather forecast on weatherapi"]
+  #_[confirmation="the weather forecast for $location"]
+  #_[formatted=[{type="text",text="Weather for ${location} on ${date:date}: ${status}, temperature ${temperature:C} C, wind speed ${wind_speed:mps} m/s, humidity ${humidity}%, cloudiness ${cloudiness}%, fog ${fog}%."}]]
+  #[confirm=false];
+
+  monitorable query moon(in req location: Location #_[prompt="What location do you want moon time info for?"] #_[canonical="location"],
+                         in opt date: Date #_[prompt="What day are you interested in?"] #_[canonical="date"],
+                         out phase: Enum(new_moon,waxing_crescent,first_quarter,waxing_gibbous,full_moon,waning_gibbous,third_quarter,waning_crescent) #_[canonical="phase"])
+  #_[canonical="get moon phase on weatherapi"]
+  #_[confirmation="the moon phase for $location"]
+  #_[formatted=[{type="text",text="Moon phase on ${date:date} for ${location}: ${phase}."}]]
+  #[confirm=false];
+
+  monitorable query sunrise(in req location: Location #_[prompt="What location do you want sun time info for?"] #_[canonical="location"],
+                            in opt date: Date #_[prompt="What day are you interested in?"] #_[canonical="date"],
+                            out sunrise_time: Time #_[canonical="sunrise time"],
+                            out sunset_time: Time #_[canonical="sunset time"],
+                            out sunset: Boolean #_[canonical="sunset"],
+                            out sunrisen: Boolean #_[canonical="sunrisen"])
+  #_[canonical="get sunrise on weatherapi"]
+  #_[confirmation="the sunrise and sunset time for location $location"]
+  #_[formatted=[{type="text",text="Sun times on ${date:date} for ${location}: rises at ${sunrise_time}, sets at ${sunset_time}"}]]
+  #[confirm=false];
+}
+class @com.instagram
+#_[canonical="instagram"] {
+  monitorable query get_pictures(in opt count: Number #_[prompt="How many pictures do you want?"] #_[canonical="count"],
+                                 out media_id: Entity(instagram:media_id) #_[canonical="media id"],
+                                 out picture_url: Entity(tt:picture) #_[canonical="picture url"],
+                                 out caption: String #_[canonical="caption"] #[string_values="com.instagram:caption"],
+                                 out link: Entity(tt:url) #_[canonical="link"],
+                                 out filter_: Entity(com.instagram:filter_) #_[prompt="With what filters do you want pictures?"] #_[canonical="filter "],
+                                 out hashtags: Array(Entity(tt:hashtag)) #_[canonical="hashtags"] #[string_values="com.instagram:hashtag"],
+                                 out location: Location #_[canonical="location"])
+  #_[canonical="pictures on instagram"]
+  #_[confirmation="your recent Instagram pictures"]
+  #_[formatted=[{type="text",text="${caption}"}, {type="picture",url="${picture_url}"}]]
+  #[confirm=false];
+}
+class @org.thingpedia.builtin.thingengine.builtin
+#_[canonical="miscellaneous interfaces"] {
+  query canned_reply(in req intent: Enum(hello,cool,sorry,thank_you) #_[canonical="intent"],
+                     out text: String #_[canonical="text"])
+  #_[canonical="get canned reply"]
+  #_[confirmation="a reply to ${intent}"]
+  #_[formatted=["${text}"]]
+  #[confirm=false];
+
+  list query get_commands(in req device: Entity(tt:device) #_[prompt="What device do you want help for?"] #_[canonical="device"],
+                          out program: Entity(tt:program) #_[canonical="program"])
+  #_[canonical="list commands"]
+  #_[confirmation="the list of commands of $device"]
+  #_[formatted=[{type="text",text="${program}"}]]
+  #[confirm=false];
+
+  query get_date(out date: Date #_[canonical="date"])
+  #_[canonical="get date"]
+  #_[confirmation="today's date"]
+  #_[formatted=[{type="text",text="Today is ${date:date}."}]]
+  #[confirm=false];
+
+  monitorable query get_gps(out location: Location #_[prompt="What location are you interested in?"] #_[canonical="location"],
+                            out altitude: Measure(m) #_[canonical="altitude"],
+                            out bearing: Number #_[canonical="bearing"],
+                            out speed: Measure(mps) #_[canonical="speed"])
+  #_[canonical="get current location"]
+  #_[confirmation="your location"]
+  #_[formatted=[{type="text",text="Current Location: ${location}"}]]
+  #[confirm=false];
+
+  query get_random_between(in opt low: Number #_[prompt="What should be the lower bound?"] #_[canonical="low"],
+                           in opt high: Number #_[prompt="What should be the upper bound?"] #_[canonical="high"],
+                           out random: Number #_[canonical="random"])
+  #_[canonical="get random integer"]
+  #_[confirmation="a random integer between $low and $high"]
+  #_[formatted=[{type="text",text="${random}"}]]
+  #[confirm=false];
+
+  query get_time(out time: Date #_[canonical="time"])
+  #_[canonical="get time"]
+  #_[confirmation="the current time"]
+  #_[formatted=[{type="text",text="Current time is ${time:time}."}]]
+  #[confirm=false];
+
+  action configure(in req device: Entity(tt:device) #_[prompt="What device do you want to configure?"] #_[canonical="device"])
+  #_[canonical="configure"]
+  #_[confirmation="configure a new $device"]
+  #[confirm=false];
+
+  action debug_log(in req message: String #_[prompt="What should I write in the logs?"] #_[canonical="message"])
+  #_[canonical="log"]
+  #_[confirmation="write $message in the developer logs"]
+  #[confirm=false];
+
+  action discover()
+  #_[canonical="discover"]
+  #_[confirmation="search for new devices"]
+  #[confirm=false];
+
+  action open_url(in req url: Entity(tt:url) #_[prompt="What URL do you want to open?"] #_[canonical="url"])
+  #_[canonical="open url on builtin"]
+  #_[confirmation="open $url"]
+  #[confirm=false];
+
+  action say(in req message: String #_[prompt="What do you want me to say?"] #_[canonical="message"])
+  #_[canonical="say"]
+  #_[confirmation="send me a message $message"]
+  #[confirm=false];
+}
+class @light-bulb
+#_[canonical="light bulb"] {
+  monitorable query power(out power: Enum(on,off) #_[canonical="power"])
+  #_[canonical="light bulb power state"]
+  #_[confirmation="the power state of ${__device}"]
+  #_[formatted=["Your lights are ${power}"]]
+  #[confirm=false];
+
+  action alert_long()
+  #_[canonical="flash alert lights on light bulb"]
+  #_[confirmation="flash alerts on ${__device}"]
+  #[confirm=true];
+
+  action color_loop()
+  #_[canonical="color loop lights on light bulb"]
+  #_[confirmation="loop colors on ${__device}"]
+  #[confirm=true];
+
+  action set_power(in req power: Enum(on,off) #_[prompt="Do you want to turn it on or off?"] #_[canonical="power"])
+  #_[canonical="set power on light bulb"]
+  #_[confirmation="turn $power ${__device}"]
+  #[confirm=true];
+}
+class @com.gmail
+#_[canonical="gmail account"] {
+  monitorable list query inbox(out sender_name: String #_[canonical="sender name"] #[string_values="tt:person_full_name"],
+                               out sender_address: Entity(tt:email_address) #_[canonical="sender address"],
+                               out subject: String #_[canonical="subject"] #[string_values="tt:email_subject"],
+                               out date: Date #_[canonical="date"],
+                               out labels: Array(String) #_[canonical="labels"],
+                               out snippet: String #_[canonical="snippet"] #[string_values="tt:long_free_text"],
+                               out thread_id: Entity(com.gmail:thread_id) #_[canonical="thread id"],
+                               out email_id: Entity(com.gmail:email_id) #_[canonical="email id"],
+                               in opt is_important: Boolean #_[canonical="is important"],
+                               in opt is_primary: Boolean #_[canonical="is primary"])
+  #_[canonical="list email in inbox"]
+  #_[confirmation="the emails in your GMail inbox"]
+  #_[formatted=[{type="text",text="From ${sender_name} <${sender_address}>: ${subject}"}, {type="text",text="${snippet}"}]]
+  #[confirm=false];
+
+  action forward(in req email_id: Entity(com.gmail:email_id) #_[prompt="What email do you want to forward?"] #_[canonical="email id"],
+                 in req to: Entity(tt:email_address) #_[prompt="Who do you want to forward it to?"] #_[canonical="to"],
+                 in req message: String #_[prompt="What do you want to say in the email?"] #_[canonical="message"] #[string_values="tt:long_free_text"])
+  #_[canonical="gmail forward email"]
+  #_[confirmation="forward $email_id to $to saying $message with your GMail"]
+  #[confirm=true];
+
+  action reply(in req email_id: Entity(com.gmail:email_id) #_[prompt="What email do you want to reply to?"] #_[canonical="email id"],
+               in opt subject: String #_[canonical="subject"] #[string_values="tt:email_subject"],
+               in req message: String #_[prompt="What do you want to say in your reply?"] #_[canonical="message"] #[string_values="tt:long_free_text"])
+  #_[canonical="gmail reply email"]
+  #_[confirmation="reply to $email_id saying $message"]
+  #[confirm=true];
+
+  action send_email(in req to: Entity(tt:email_address) #_[prompt="Who do you want to send to?"] #_[canonical="to"],
+                    in req subject: String #_[prompt="With what subject?"] #_[canonical="subject"] #[string_values="tt:email_subject"],
+                    in req message: String #_[prompt="What message do you want to send?"] #_[canonical="message"] #[string_values="tt:long_free_text"])
+  #_[canonical="send email on gmail"]
+  #_[confirmation="send an email to $to with subject $subject on GMail"]
+  #[confirm=true];
+
+  action send_picture(in req to: Entity(tt:email_address) #_[prompt="Who do you want to send to?"] #_[canonical="to"],
+                      in req subject: String #_[prompt="With what subject?"] #_[canonical="subject"] #[string_values="tt:email_subject"],
+                      in req message: String #_[prompt="What message do you want to send?"] #_[canonical="message"] #[string_values="tt:long_free_text"],
+                      in req picture_url: Entity(tt:picture) #_[prompt="Upload the picture now."] #_[canonical="picture url"])
+  #_[canonical="send picture on gmail"]
+  #_[confirmation="send a picture to $to with subject $subject on GMail"]
+  #[confirm=true];
+}
+class @smoke-alarm
+#_[canonical="smoke alarm"] {
+}
+class @com.google.drive
+#_[canonical="google drive"] {
+  monitorable list query list_drive_files(out file_id: Entity(com.google.drive:file_id) #_[canonical="file id"],
+                                          out file_name: Entity(tt:path_name) #_[canonical="file name"],
+                                          out mime_type: Entity(tt:mime_type) #_[canonical="mime type"],
+                                          out description: String #_[canonical="description"],
+                                          out starred: Boolean #_[canonical="starred"],
+                                          out created_time: Date #_[canonical="created time"],
+                                          out modified_time: Date #_[canonical="modified time"],
+                                          out file_size: Measure(byte) #_[canonical="file size"],
+                                          in opt order_by: Enum(created_time_increasing,created_time_decreasing,modified_time_increasing,modified_time_decreasing,name_increasing,name_decreasing) #_[canonical="order by"],
+                                          out last_modified_by: String #_[canonical="last modified by"],
+                                          out link: Entity(tt:url) #_[canonical="link"])
+  #_[canonical="google drive file list"]
+  #_[confirmation="files in your Google Drive"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${file_name} (last modified by ${last_modified_by} on ${modified_time})"}]]
+  #[confirm=false];
+
+  action create_new_drive_file(in req file_name: Entity(tt:path_name) #_[prompt="what's the name of the file?"] #_[canonical="file name"])
+  #_[canonical="create a new file on google drive"]
+  #_[confirmation="create a file with name $file_name on google drive"]
+  #[confirm=true];
+}
+class @org.thingpedia.icalendar
+#_[canonical="icalendar events"] {
+  monitorable list query list_events(out start_date: Date #_[canonical="start date"],
+                                     out end_date: Date #_[canonical="end date"],
+                                     out summary: String #_[canonical="summary"],
+                                     out description: String #_[canonical="description"],
+                                     out sequence: Number #_[canonical="sequence"],
+                                     out organizer: String #_[prompt="Who should be the organizer of the events?"] #_[canonical="organizer"],
+                                     out location: String #_[prompt="What should be the location of the events?"] #_[canonical="location"],
+                                     out status: Enum(scheduled,upcoming,started,ended) #_[canonical="status"])
+  #_[canonical="list event on icalendar"]
+  #_[confirmation="the events in your calendar"]
+  #_[formatted=[{type="code",code="(function({location, organizer, summary}, hint, formatter) {\nif (location && organizer)\n   return `${summary} (${location}, organized by ${organizer})`;\nelse if (location)\n   return `${summary} (${location})`;\nelse if (organizer)\n   return `${summary} (organized by ${organizer})`;\nelse\n   return summary;\n})"}, {type="code",code="(function({start_date, end_date}, hint, formatter) {\nif (end_date)\nreturn `Runs from ${formatter.dateAndTimeToString(start_date)} to ${formatter.dateAndTimeToString(end_date)}`;\nelse\nreturn `Starts at ${formatter.dateAndTimeToString(start_date)}`;\n})"}]]
+  #[confirm=false];
+}
+class @org.thingpedia.holidays
+#_[canonical="holidays calendar"] {
+  monitorable list query get_holidays(in opt country: Entity(tt:country) #_[canonical="country"],
+                                      out date: Date #_[canonical="date"],
+                                      out summary: String #_[canonical="summary"],
+                                      out description: String #_[canonical="description"])
+  #_[canonical="get holidays"]
+  #_[confirmation="the holidays in ${country}"]
+  #_[formatted=[{type="text",text="${summary} on ${date:date}"}, {type="text",text="${description}"}]]
+  #[confirm=false];
+}
+class @com.dropbox
+#_[canonical="dropbox account"] {
+  monitorable query get_space_usage(out used_space: Measure(byte) #_[canonical="used space"],
+                                    out total_space: Measure(byte) #_[canonical="total space"])
+  #_[canonical="get space usage on dropbox"]
+  #_[confirmation="your Dropbox quota info"]
+  #_[formatted=[{type="text",text="You have used ${used_space:MB} MBs out of ${total_space:MB}."}]]
+  #[confirm=false];
+
+  monitorable list query list_folder(in req folder_name: Entity(tt:path_name) #_[prompt="What folder do you want to list?"] #_[canonical="folder name"],
+                                     out file_name: Entity(tt:path_name) #_[canonical="file name"],
+                                     out is_folder: Boolean #_[canonical="is folder"],
+                                     out modified_time: Date #_[canonical="modified time"],
+                                     out file_size: Measure(byte) #_[canonical="file size"],
+                                     out full_path: Entity(tt:path_name) #_[canonical="full path"],
+                                     in opt order_by: Enum(modified_time_decreasing,modified_time_increasing,name_decreasing,name_increasing) #_[canonical="order by"])
+  #_[canonical="list folder on dropbox"]
+  #_[confirmation="the content of $folder_name in your Dropbox"]
+  #_[formatted=[{type="code",code="(function(params, hint, formatter) {\nif (params.is_folder)\nreturn `${params.file_name} (dir)`;\nelse\nreturn `${params.file_name} (reg, ${formatter.measureToString(params.file_size, 1, 'KB')} KBs)`;\n})"}]]
+  #[confirm=false];
+
+  query open(in req file_name: Entity(tt:path_name) #_[prompt="What file do you want to open? Use the full path name."] #_[canonical="file name"],
+             out url: Entity(tt:url) #_[canonical="url"])
+  #_[canonical="open on dropbox"]
+  #_[confirmation="the link to $file_name in your Dropbox"]
+  #_[formatted=[{type="rdl",webCallback="${url}",displayTitle="${file_name}"}]]
+  #[confirm=false];
+
+  action create_new_folder(in req folder_name: Entity(tt:path_name) #_[prompt="How do you want to call the folder?"] #_[canonical="folder name"])
+  #_[canonical="create folder on dropbox"]
+  #_[confirmation="create a new folder called $folder_name in your Dropbox"]
+  #[confirm=true];
+
+  action move(in req old_name: Entity(tt:path_name) #_[prompt="What file do you want to move?"] #_[canonical="old name"],
+              in req new_name: Entity(tt:path_name) #_[prompt="What should be the new name?"] #_[canonical="new name"])
+  #_[canonical="move on dropbox"]
+  #_[confirmation="rename $old_name to $new_name in your Dropbox"]
+  #[confirm=true];
+}
+class @com.imgflip
+#_[canonical="imgflip meme generator"] {
+  query generate(in req template: Entity(imgflip:meme_id) #_[prompt="What meme do you want to generate?"] #_[canonical="template"],
+                 in req text_top: String #_[prompt="What do you want to write at the top? Leave blank for the default (if recognized)"] #_[canonical="text top"] #[string_values="com.imgflip:meme_text"],
+                 in req text_bottom: String #_[prompt="What do you want to write at the bottom? Leave blank for the default (if recognized)"] #_[canonical="text bottom"] #[string_values="com.imgflip:meme_text"],
+                 out picture_url: Entity(tt:picture) #_[canonical="picture url"])
+  #_[canonical="generate meme on imgflip"]
+  #_[confirmation="the meme $template with $text_top at the top and $text_bottom at the bottom, generated using Imflip"]
+  #_[formatted=[{type="picture",url="${picture_url}"}]]
+  #[confirm=false];
+
+  list query list(out name: String #_[prompt="What meme do you want?"] #_[canonical="name"],
+                  out picture_url: Entity(tt:picture) #_[canonical="picture url"])
+  #_[canonical="list meme templates on imgflip"]
+  #_[confirmation="meme templates available on Imgflip"]
+  #_[formatted=[{type="text",text="${name}"}, {type="picture",url="${picture_url}"}]]
+  #[confirm=false];
+}
+class @com.giphy
+#_[canonical="giphy"] {
+  query get(in opt tag: Entity(tt:hashtag) #_[prompt="With what tag?"] #_[canonical="tag"] #[string_values="com.twitter:hashtag"],
+            out picture_url: Entity(tt:picture) #_[canonical="picture url"])
+  #_[canonical="random giphy gif"]
+  #_[confirmation="a gif from GIPHY"]
+  #_[formatted=[{type="picture",url="${picture_url}"}, {type="text",text="Powered By GIPHY"}]]
+  #[confirm=false];
+}
+class @media
+#_[canonical="media"] {
+}
+class @service
+#_[canonical="service"] {
+}
+class @social-network
+#_[canonical="social network"] {
+}
+class @communication
+#_[canonical="communication"] {
+}
+class @home
+#_[canonical="home"] {
+}
+class @health
+#_[canonical="health"] {
+}
+class @data-management
+#_[canonical="data management"] {
+}
+class @com.washingtonpost
+#_[canonical="the washington post"] {
+  monitorable list query get_article(in req section: Enum(politics,opinions,local,sports,national,world,business,lifestyle) #_[prompt="What section do you want to read?"] #_[canonical="section"],
+                                     out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                                     out link: Entity(tt:url) #_[canonical="link"],
+                                     out description: String #_[canonical="description"] #[string_values="tt:news_description"],
+                                     out picture_url: Entity(tt:picture) #_[canonical="picture url"])
+  #_[canonical="articles on washington post"]
+  #_[confirmation="the latest articles in the ${section} section of the Washington Post"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}",displayText="${description}",pictureUrl="${picture_url}"}]]
+  #[confirm=false];
+
+  monitorable list query get_blog_post(in req section: Enum(the_fix,politics,powerpost,fact_checker,world_views,compost,the_plum_line,post_partisan,post_everything,right_turn,capital_weather_gang,morning_mix,wonkblog) #_[prompt="What blog do you want to monitor?"] #_[canonical="section"],
+                                       out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                                       out link: Entity(tt:url) #_[canonical="link"],
+                                       out updated: Date #_[canonical="updated"])
+  #_[canonical="blog post on washington post"]
+  #_[confirmation="the latest articles in the $section blog of the Washington Post"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}"}]]
+  #[confirm=false];
+}
+class @com.phdcomics
+#_[canonical="piled higher and deeper"] {
+  monitorable list query get_post(out title: String #_[canonical="title"] #[string_values="com.phdcomics:title"],
+                                  out link: Entity(tt:url) #_[canonical="link"],
+                                  out picture_url: Entity(tt:picture) #_[canonical="picture url"],
+                                  out updated_time: Date #_[canonical="updated time"])
+  #_[canonical="phdcomics posts"]
+  #_[confirmation="PhD comics"]
+  #[confirm=false];
+}
+class @gov.nasa
+#_[canonical="nasa daily"] {
+  monitorable query apod(out title: String #_[canonical="title"] #[string_values="gov.nasa:apod_title"],
+                         out description: String #_[canonical="description"] #[string_values="tt:long_free_text"],
+                         out picture_url: Entity(tt:picture) #_[canonical="picture url"])
+  #_[canonical="get astronomy picture of the day on nasa"]
+  #_[confirmation="NASA's Astronomy Picture of the Day"]
+  #_[formatted=[{type="text",text="${title}"}, {type="text",text="${description}"}, {type="picture",url="${picture_url}"}]]
+  #[confirm=false];
+
+  monitorable query asteroid(out asteroid_id: Entity(gov.nasa:asteroid_id) #_[canonical="asteroid id"],
+                             out name: String #_[canonical="name"],
+                             out estimated_diameter_min: Measure(m) #_[canonical="estimated diameter min"],
+                             out estimated_diameter_max: Measure(m) #_[canonical="estimated diameter max"],
+                             out is_dangerous: Boolean #_[canonical="is dangerous"],
+                             out relative_velocity: Measure(mps) #_[canonical="relative velocity"],
+                             out distance: Measure(m) #_[canonical="distance"],
+                             out orbiting_body: String #_[canonical="orbiting body"] #[string_values="tt:celestial_body"])
+  #_[canonical="close asteroid on nasa"]
+  #_[confirmation="the asteroid passing close to Earth today"]
+  #_[formatted=[{type="code",code="(function({is_dangerous,name}, hint, formatter) {\nif (is_dangerous)\nreturn `Dangerous object near Earth today: ${name}`;\nelse\nreturn `Nearest asteroid today: ${name}`;\n})"}, {type="text",text="Diameter: between ${estimated_diameter_min:m} m and ${estimated_diameter_max:m} m"}, {type="text",text="Relative velocity: ${relative_velocity:mps} m/s"}, {type="text",text="Closest distance to Earth: ${distance:km} km"}]]
+  #[confirm=false];
+
+  monitorable list query rover(in opt date_taken: Date #_[prompt="From what Earth day do you want pictures?"] #_[canonical="date taken"],
+                               in opt count: Number #_[prompt="How many pictures do you want?"] #_[canonical="count"],
+                               out picture_url: Entity(tt:picture) #_[canonical="picture url"],
+                               out camera_used: Entity(gov.nasa:curiosity_rover_camera) #_[canonical="camera used"])
+  #_[canonical="get curiosity rover picture on nasa"]
+  #_[confirmation="Curiosity Rover photos from NASA"]
+  #_[formatted=[{type="picture",url="${picture_url}"}]]
+  #[confirm=false];
+}
+class @com.reddit.frontpage
+#_[canonical="reddit frontpage"] {
+  monitorable list query get(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                             out link: Entity(tt:url) #_[canonical="link"],
+                             out user: Entity(tt:username) #_[prompt="What user do you want to monitor?"] #_[canonical="user"],
+                             out category: String #_[prompt="What sub-reddit do you want to monitor?"] #_[canonical="category"] #[string_values="com.reddit.frontpage:category"],
+                             out updated: Date #_[canonical="updated"])
+  #_[canonical="get post on reddit front page"]
+  #_[confirmation="the posts on the front page of Reddit"]
+  #[confirm=false];
+}
+class @com.lg.tv.webos2
+#_[canonical="lg webos tv"] {
+}
+class @com.wsj
+#_[canonical="the wall street journal"] {
+  monitorable list query get(in req section: Enum(opinions,world_news,us_business,markets,technology,lifestyle) #_[prompt="What section of the Wall Street Journal do you want to read?"] #_[canonical="section"],
+                             out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                             out link: Entity(tt:url) #_[canonical="link"],
+                             out updated: Date #_[canonical="updated"])
+  #_[canonical="get post on wall street journal"]
+  #_[confirmation="articles published in the $section section of the Wall Street Journal"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}"}]]
+  #[confirm=false];
+}
+class @thingengine-system
+#_[canonical="thingengine system"] {
+}
+class @org.thingpedia.builtin.thingengine
+#_[canonical="thingengine"] {
+}
+class @org.thingpedia.builtin.thingengine.remote
+#_[canonical="remote thingengine"] {
+}
+class @uk.co.thedogapi
+#_[canonical="the dog api"] {
+  query get(in opt count: Number #_[prompt="How many dogs do you want?"] #_[canonical="count"],
+            out image_id: Entity(dogapi:image_id) #_[canonical="image id"],
+            out picture_url: Entity(tt:picture) #_[canonical="picture url"])
+  #_[canonical="get dogs"]
+  #_[confirmation="dog pictures"]
+  #[confirm=false];
+}
+class @org.thingpedia.demo.coffee
+#_[canonical="almond coffee"] {
+  action order(in req beverage: Enum(drip_coffee,espresso,latte,flat_white,mocha,caramel_mocha,white_mocha,macchiato,caramel_macchiato,cappuccino,americano) #_[prompt="What beverage do you want?"] #_[canonical="beverage"],
+               in req delivery_location: Location #_[prompt="Where do you want it delivered?"] #_[canonical="delivery location"],
+               in req size: Enum(small,medium,large) #_[prompt="What size do you want?"] #_[canonical="size"],
+               in opt iced: Boolean #_[prompt="Do you want it iced?"] #_[canonical="iced"],
+               in opt extras: Enum(none,milk,sugar,both) #_[prompt="Do you want milk or sugar?"] #_[canonical="extras"])
+  #_[canonical="order coffee"]
+  #_[confirmation="order a $size $beverage to deliver at $delivery_location"]
+  #[confirm=true];
+}
+class @com.nytimes
+#_[canonical="new york times"] {
+  monitorable list query get_front_page(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                                        out link: Entity(tt:url) #_[canonical="link"],
+                                        out updated: Date #_[canonical="updated"],
+                                        out description: String #_[canonical="description"] #[string_values="tt:news_description"])
+  #_[canonical="get new york times front page"]
+  #_[confirmation="New York Times articles"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}",displayText="${description}"}]]
+  #[confirm=false];
+
+  monitorable list query get_section_page(in req section: Enum(world,us,business,technology,sports,science,health,arts,travel) #_[prompt="What section of the New York Times do you want to read?"] #_[canonical="section"],
+                                          out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                                          out link: Entity(tt:url) #_[canonical="link"],
+                                          out updated: Date #_[canonical="updated"],
+                                          out description: String #_[canonical="description"] #[string_values="tt:news_description"])
+  #_[canonical="get new york times articles in a section"]
+  #_[confirmation="New York Times articles in ${section} section"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}",displayText="${description}"}]]
+  #[confirm=false];
+}
+class @org.thingpedia.builtin.matrix
+#_[canonical="matrix"] {
+}
+class @org.thingpedia.builtin.test
+#_[canonical="test device"] {
+  query dup_data(in req data_in: String #_[prompt="What data do you want to duplicate?"] #_[canonical="data in"],
+                 out data_out: String #_[canonical="data out"])
+  #_[canonical="duplicate data on test"]
+  #_[confirmation="duplicate ${data_in} data"]
+  #[confirm=false];
+
+  monitorable list query get_data(in req size: Measure(byte) #_[prompt="How much fake data do you want?"] #_[canonical="size"],
+                                  in opt count: Number #_[canonical="count"],
+                                  out data: String #_[canonical="data"])
+  #_[canonical="get data on test"]
+  #_[confirmation="generate $size of fake data"]
+  #[confirm=false];
+
+  action eat_data(in req data: String #_[prompt="What do you want me to consume?"] #_[canonical="data"])
+  #_[canonical="eat data on test"]
+  #_[confirmation="consume $data"]
+  #[confirm=true];
+}
+class @org.thingpedia.builtin.thingengine.gnome
+#_[canonical="almond 4 gnome"] {
+  query get_screenshot(out picture_url: Entity(tt:picture) #_[canonical="picture url"])
+  #_[canonical="screenshot on laptop"]
+  #_[confirmation="a screenshot of your PC"]
+  #[confirm=false];
+
+  action create_file(in req file_name: Entity(tt:path_name) #_[prompt="What should be the name of the file?"] #_[canonical="file name"],
+                     in req contents: String #_[prompt="What do you want to write in the file?"] #_[canonical="contents"])
+  #_[canonical="create file on laptop"]
+  #_[confirmation="create a new file in your laptop named $file_name containing $contents"]
+  #[confirm=true];
+
+  action delete_file(in req file_name: Entity(tt:path_name) #_[prompt="What file do you want to delete?"] #_[canonical="file name"])
+  #_[canonical="delete file on laptop"]
+  #_[confirmation="delete the file $file_name from your laptop"]
+  #[confirm=true];
+
+  action lock()
+  #_[canonical="lock on laptop"]
+  #_[confirmation="lock your PC"]
+  #[confirm=true];
+
+  action open_app(in req app_id: Entity(org.freedesktop:app_id) #_[prompt="What app do you want to open?"] #_[canonical="app id"],
+                  in opt url: Entity(tt:url) #_[prompt="What file do you want to open?"] #_[canonical="url"])
+  #_[canonical="open app on laptop"]
+  #_[confirmation="open $app_id"]
+  #[confirm=true];
+
+  action set_background(in req picture_url: Entity(tt:picture) #_[prompt="What picture do you want to use as the background?"] #_[canonical="picture url"])
+  #_[canonical="set background on laptop"]
+  #_[confirmation="set your laptop's background to $picture_url"]
+  #[confirm=true];
+
+  action set_power(in req power: Enum(on,off) #_[prompt="Do you want to turn it on or off?"] #_[canonical="power"])
+  #_[canonical="set power on laptop"]
+  #_[confirmation="turn $power your PC"]
+  #[confirm=true];
+}
+class @com.icanhazdadjoke
+#_[canonical="dad jokes"] {
+  query get(out text: String #_[canonical="text"],
+            out joke_id: Entity(com.icanhazdadjoke:id) #_[canonical="joke id"])
+  #_[canonical="dad joke"]
+  #_[confirmation="a dad joke"]
+  #[confirm=false];
+}
+class @com.forismatic.quotes
+#_[canonical="quotes"] {
+  query get(out text: String #_[canonical="text"],
+            out author: String #_[canonical="author"])
+  #_[canonical="quote"]
+  #_[confirmation="a quote"]
+  #[confirm=false];
+}
+class @com.steampowered
+#_[canonical="steam"] {
+  monitorable query get_price(in req game_name: String #_[prompt="What is the name of the app you're looking for? (Case-insensitive)"] #_[canonical="game name"],
+                              in opt country: Entity(tt:country) #_[canonical="country"],
+                              out price: Currency #_[canonical="price"])
+  #_[canonical="get price from steam"]
+  #_[confirmation="price of ${game_name} from steam"]
+  #_[formatted=[{type="text",text="The current price of ${game_name} is ${price}."}]]
+  #[confirm=false];
+
+  query get_steam_id(in req name: String #_[prompt="What is the Steam name? (Go to a Steam profile and enter the NAME from the URL https://steamcommunity.com/id/NAME)"] #_[canonical="name"],
+                     out id: Entity(com.steampowered:user_id) #_[canonical="id"])
+  #_[canonical="get user's steam ID"]
+  #_[confirmation="steam ID of ${name}"]
+  #_[formatted=[{type="text",text="Your Steam ID is ${id}"}]]
+  #[confirm=false]
+  #[minimal_projection=["id"]];
+}
+class @com.google.contacts
+#_[canonical="google contacts"] {
+  monitorable list query get_contacts(out name: String #_[canonical="name"],
+                                      out email: Entity(tt:email_address) #_[canonical="email"],
+                                      out phone_number: Entity(tt:phone_number) #_[canonical="phone number"])
+  #_[canonical="get my Google contacts"]
+  #_[confirmation="retrieve your Google contacts"]
+  #_[formatted=[{type="text",text="Name: ${name}"}, {type="text",text="Email: ${email}"}, {type="text",text="Phone Number: $phone_number"}]]
+  #[confirm=false];
+}
+class @com.wunderlist
+#_[canonical="wunderlist"] {
+  list query get_lists(out id: Number #_[canonical="id"],
+                       out title: String #_[canonical="title"],
+                       out created_at: Date #_[canonical="created at"])
+  #_[canonical="get lists on Wunderlist"]
+  #_[confirmation="your Wunderlist lists"]
+  #_[formatted=[{type="text",text="${title} created on ${created_at}"}]]
+  #[confirm=false]
+  #[minimal_projection=["id"]];
+
+  monitorable list query get_tasks(in opt list_title: String #_[canonical="list title"],
+                                   out id: Number #_[canonical="id"],
+                                   out created_at: Date #_[canonical="created at"],
+                                   out due_date: Date #_[canonical="due date"],
+                                   out starred: Boolean #_[canonical="starred"],
+                                   out title: String #_[canonical="title"],
+                                   in opt time_window: Number #_[canonical="time window"],
+                                   in opt completed: Boolean #_[canonical="completed"])
+  #_[canonical="wunderlist tasks"]
+  #_[confirmation="your tasks in Wunderlist from $list_title"]
+  #_[formatted=[{type="text",text="Task: ${title}  Due on: ${due_date}"}]]
+  #[confirm=false]
+  #[minimal_projection=["id"]];
+}
+class @com.wolframalpha
+#_[canonical="wolframalpha"] {
+  query plot(in req query: String #_[prompt="What function?"] #_[canonical="query"],
+             out picture_url: Entity(tt:picture) #_[canonical="picture url"])
+  #_[canonical="get plot from wolframalpha"]
+  #_[confirmation="a plot of ${query} from wolframalpha"]
+  #_[formatted=[{type="picture",url="${picture_url}"}]]
+  #[confirm=false];
+}
+class @com.foxnews
+#_[canonical="fox news articles"] {
+  monitorable list query get(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                             out url: Entity(tt:url) #_[canonical="url"],
+                             out author: String #_[canonical="author"] #[string_values="tt:person_full_name"],
+                             out description: String #_[canonical="description"] #[string_values="tt:news_description"])
+  #_[canonical="headlines from Fox News"]
+  #_[confirmation="headlines from Fox News"]
+  #[confirm=false];
+}
+class @com.spotify
+#_[canonical="spotify"] {
+  monitorable query get_acousticness(in opt song: String #_[canonical="song"] #[string_values="tt:song_name"],
+                                     out acousticness: Number #_[canonical="acousticness"])
+  #_[canonical="acousticness of this track"]
+  #_[confirmation="acousticness of this track"]
+  #_[formatted=[{type="text",text="'On a scale from 0 to 1, the acousticness of this track is ${acousticness}."}]]
+  #[confirm=false];
+
+  monitorable query get_currently_playing(out song: String #_[canonical="song"] #[string_values="tt:song_name"])
+  #_[canonical="get currently playing track name"]
+  #_[confirmation="the currently playing track name"]
+  #_[formatted=[{type="text",text="The current playing song is ${song}."}]]
+  #[confirm=false];
+
+  monitorable query get_danceability(in opt song: String #_[canonical="song"] #[string_values="tt:song_name"],
+                                     out danceability: Number #_[canonical="danceability"])
+  #_[canonical="danceability of this track"]
+  #_[confirmation="danceability of this track"]
+  #_[formatted=[{type="text",text="On a scale from 0 to 1, the danceability of this track is ${danceability}."}]]
+  #[confirm=false];
+
+  monitorable query get_energy(in opt song: String #_[canonical="song"] #[string_values="tt:song_name"],
+                               out energy: Number #_[canonical="energy"])
+  #_[canonical="energy of this track"]
+  #_[confirmation="energy of this track"]
+  #_[formatted=[{type="text",text="On a scale from 0 to 1, the energy of this track is ${energy}."}]]
+  #[confirm=false];
+
+  monitorable query get_instrumentalness(in opt song: String #_[canonical="song"] #[string_values="tt:song_name"],
+                                         out instrumentalness: Number #_[canonical="instrumentalness"])
+  #_[canonical="instrumentalness of this track"]
+  #_[confirmation="instrumentalness of this track"]
+  #_[formatted=[{type="text",text="On a scale from 0 to 1, the instrumentalness of this track is ${instrumentalness}."}]]
+  #[confirm=false];
+
+  monitorable query get_key(in opt song: String #_[canonical="song"] #[string_values="tt:song_name"],
+                            out key: String #_[canonical="key"],
+                            out modality: String #_[canonical="modality"])
+  #_[canonical="key of this track"]
+  #_[confirmation="key of this track"]
+  #_[formatted=[{type="text",text="The key of this track is ${key} ${modality}."}]]
+  #[confirm=false];
+
+  monitorable query get_liveness(in opt song: String #_[canonical="song"] #[string_values="tt:song_name"],
+                                 out liveness: Number #_[canonical="liveness"])
+  #_[canonical="liveness of this track"]
+  #_[confirmation="liveness of this track"]
+  #_[formatted=[{type="text",text="On a scale from 0 to 1, the liveness of this track is ${liveness}."}]]
+  #[confirm=false];
+
+  monitorable query get_loudness(in opt song: String #_[canonical="song"] #[string_values="tt:song_name"],
+                                 out loudness: Number #_[canonical="loudness"])
+  #_[canonical="loudness of this track"]
+  #_[confirmation="loudness of this track"]
+  #_[formatted=[{type="text",text="On a scale from -60 to 0 dB, the loudness of this track is ${loudness} dB."}]]
+  #[confirm=false];
+
+  monitorable query get_speechiness(in opt song: String #_[canonical="song"] #[string_values="tt:song_name"],
+                                    out speechness: Number #_[canonical="speechness"])
+  #_[canonical="speechiness of this track"]
+  #_[confirmation="speechiness of this track"]
+  #_[formatted=[{type="text",text="On a scale from 0 to 1, the speechiness of this track is ${speechiness}."}]]
+  #[confirm=false];
+
+  monitorable query get_tempo(in opt song: String #_[canonical="song"] #[string_values="tt:song_name"],
+                              out tempo: Number #_[canonical="tempo"])
+  #_[canonical="retrieve the tempo"]
+  #_[confirmation="retrieve the tempo"]
+  #_[formatted=[{type="text",text="The tempo of this track is ${tempo} beats per minute."}]]
+  #[confirm=false];
+
+  monitorable query get_time_signature(in opt song: String #_[canonical="song"] #[string_values="tt:song_name"],
+                                       out beats: Number #_[canonical="beats"])
+  #_[canonical="time signature of this track"]
+  #_[confirmation="time signature of this track"]
+  #_[formatted=[{type="text",text="This track has ${beats} beats per measure."}]]
+  #[confirm=false];
+
+  monitorable list query get_user_playlist(out playlist: String #_[canonical="playlist"])
+  #_[canonical="get my spotify playlist"]
+  #_[confirmation="your Spotify playlist"]
+  #[confirm=false];
+
+  monitorable list query get_user_playlist_track(in req playlist: String #_[prompt="Which playlist do you want?"] #_[canonical="playlist"],
+                                                 out song: String #_[canonical="song"] #[string_values="tt:song_name"])
+  #_[canonical="get songs in my spotify playlist"]
+  #_[confirmation="songs in your Spotify playlist ${playlist}"]
+  #_[formatted=[{type="text",text="${song}"}]]
+  #[confirm=false];
+
+  monitorable list query get_user_top_tracks(out song: String #_[canonical="song"] #[string_values="tt:song_name"])
+  #_[canonical="sportify top tracks"]
+  #_[confirmation="my top tracks in Spotify"]
+  #_[formatted=[{type="text",text="${song}"}]]
+  #[confirm=false];
+
+  monitorable query get_valence(in opt song: String #_[canonical="song"] #[string_values="tt:song_name"],
+                                out valence: Number #_[canonical="valence"])
+  #_[canonical="valence (positivity) of this track"]
+  #_[confirmation="valence (positivity) of this track"]
+  #_[formatted=[{type="text",text="On a scale from 0 to 1, the valence of this track is ${valence}"}]]
+  #[confirm=false];
+
+  action add_album_to_playlist(in req toAdd: String #_[prompt="What album would you like to add to your playlist?"] #_[canonical="to add"] #[string_values="tt:song_name"],
+                               in req playlist: String #_[prompt="What play list would you like to add to?"] #_[canonical="playlist"] #[string_values="com.spotify:playlist"])
+  #_[canonical="add an album to a playlist"]
+  #_[confirmation="add the album $toAdd to the playlist $playlist"]
+  #[confirm=true];
+
+  action add_songs_to_playlist(in req toAdd: String #_[prompt="What songs would you like to add? List them separated by comma."] #_[canonical="to add"] #[string_values="tt:song_name"],
+                               in req playlist: String #_[prompt="What playlist would you like to add to?"] #_[canonical="playlist"] #[string_values="com.spotify:playlist"])
+  #_[canonical="add songs to a playlist"]
+  #_[confirmation="add the songs $toAdd to the playlist $playlist"]
+  #[confirm=true];
+
+  action add_this_song_to_playlist(in req playlist: String #_[prompt="What playlist would you like to add to?"] #_[canonical="playlist"] #[string_values="com.spotify:playlist"])
+  #_[canonical="add this song to playlist"]
+  #_[confirmation="add this song to the playlist $playlist"]
+  #[confirm=true];
+
+  action create_new_playlist(in req title: String #_[prompt="What would you like to name your playlist?"] #_[canonical="title"] #[string_values="com.spotify:playlist"],
+                             in opt description: String #_[prompt="What description would you like to give your playlist?"] #_[canonical="description"] #[string_values="tt:long_free_text"],
+                             in opt isPublic: Boolean #_[prompt="Would you like your playlist to be public?"] #_[canonical="is public"])
+  #_[canonical="create a new playlist"]
+  #_[confirmation="create a new playlist named $title"]
+  #[confirm=true];
+
+  action play_album(in req toPlay: String #_[prompt="What album would you like to play?"] #_[canonical="to play"] #[string_values="tt:song_album"])
+  #_[canonical="play an album"]
+  #_[confirmation="play the album $toPlay"]
+  #[confirm=true];
+
+  action play_artist(in req toPlay: String #_[prompt="What artist would you like to play?"] #_[canonical="to play"] #[string_values="tt:song_artist"])
+  #_[canonical="play an artist"]
+  #_[confirmation="play the artist $toPlay"]
+  #[confirm=true];
+
+  action play_my_playlist(in req toPlay: String #_[prompt="Which one of your playlists do you want to play?"] #_[canonical="to play"] #[string_values="com.spotify:playlist"])
+  #_[canonical="play your playlist"]
+  #_[confirmation="play your playlist $toPlay"]
+  #[confirm=true];
+
+  action play_playlist(in req toPlay: String #_[prompt="What playlist do you want to play?"] #_[canonical="to play"] #[string_values="com.spotify:playlist"])
+  #_[canonical="play the playlist"]
+  #_[confirmation="play the playlist $toPlay"]
+  #[confirm=true];
+
+  action play_seek_seconds(in req seconds: Measure(ms) #_[prompt="What timestamp (in seconds) should we seek to?"] #_[canonical="seconds"])
+  #_[canonical="seek the track in seconds"]
+  #_[confirmation="seek the track to $seconds seconds"]
+  #[confirm=true];
+
+  action play_songs(in req toPlay: String #_[prompt="List the songs you want to play, separated by comma."] #_[canonical="to play"] #[string_values="tt:song_name"])
+  #_[canonical="play the song(s)"]
+  #_[confirmation="play the song(s) $toPlay"]
+  #[confirm=true];
+
+  action player_next()
+  #_[canonical="go to the next song"]
+  #_[confirmation="go to the next song"]
+  #[confirm=true];
+
+  action player_pause()
+  #_[canonical="pause playback"]
+  #_[confirmation="pause playback"]
+  #[confirm=true];
+
+  action player_play()
+  #_[canonical="resume playback"]
+  #_[confirmation="resume playback"]
+  #[confirm=true];
+
+  action player_previous()
+  #_[canonical="go to the previous song"]
+  #_[confirmation="go to the previous song"]
+  #[confirm=true];
+
+  action player_repeat(in req repeat: Enum(track,context,off) #_[prompt="Should we set the repeat state to 'track', 'context', or 'off'?"] #_[canonical="repeat"])
+  #_[canonical="set the repeat state"]
+  #_[confirmation="set the repeat state"]
+  #[confirm=true];
+
+  action player_shuffle(in req shuffle: Enum(on,off) #_[prompt="Should we set the shuffle state to 'on' or 'off'?"] #_[canonical="shuffle"])
+  #_[canonical="set the shuffle state"]
+  #_[confirmation="set the shuffle state"]
+  #[confirm=true];
+
+  action save_current_track()
+  #_[canonical="save the currently playing track"]
+  #_[confirmation="save the currently playing track"]
+  #[confirm=true];
+}
+class @edu.stanford.cs.roster
+#_[canonical="stanford computer science staff roster"] {
+  monitorable query get_instructor_info(in req name: String #_[prompt="Which instructor?"] #_[canonical="name"] #[string_values="tt:person_full_name"],
+                                        out email: String #_[canonical="email"],
+                                        out number: String #_[canonical="number"],
+                                        out office: String #_[canonical="office"])
+  #_[canonical="get instructor info"]
+  #_[confirmation="get info of $name from Stanford CS Staff Roster"]
+  #_[formatted=[{type="text",text="${name} is in ${office}. Their email is ${email} and their phone number is ${number}."}]]
+  #[confirm=false];
+}
+class @com.nest.security_camera
+#_[canonical="nest security camera"] {
+  monitorable query current_event(out start_time: Date #_[canonical="start time"],
+                                  out has_sound: Boolean #_[prompt="Do you want events with sound?"] #_[canonical="has sound"],
+                                  out has_motion: Boolean #_[prompt="Do you want events with motion?"] #_[canonical="has motion"],
+                                  out has_person: Boolean #_[prompt="Do you want events with people in front of the camera?"] #_[canonical="has person"],
+                                  out picture_url: Entity(tt:picture) #_[canonical="picture url"])
+  #_[canonical="current event on nest security camera"]
+  #_[confirmation="the current event detected on your Nest security camera"]
+  #_[formatted=[{type="code",code="function(argMap, hint, formatter) {\n    var timeString = formatter.dateAndTimeToString(argMap.start_time);\n\n    var title;\n    if (argMap.has_person)\n        title = `Person detected on your camera at ${timeString}`;\n    else if (argMap.has_sound && argMap.has_motion)\n        title = `Sound and motion detected on your camera at ${timeString}`;\n    else if (argMap.has_sound)\n        title = `Sound detected on your camera at ${timeString}`;\n    else if (argMap.has_motion)\n        title = `Motion detected on your camera at ${timeString}`;\n    else\n        title = `Something detected on your camera at ${timeString}`;\n    return title;\n}"}, {type="picture",url="${picture_url}"}]]
+  #[confirm=false];
+
+  action set_power(in req power: Enum(on,off) #_[prompt="Do you want to turn your camera on or off?"] #_[canonical="power"])
+  #_[canonical="set power on nest security camera"]
+  #_[confirmation="turn $power your Nest security camera"]
+  #[confirm=true];
+}
+class @com.nest.thermostat
+#_[canonical="nest thermostat"] {
+}
+class @com.microsoft.cognitive.vision
+#_[canonical="microsoft computer vision"] {
+  query generate_description(in req picture_url: Entity(tt:picture) #_[prompt="What picture do you want to describe?"] #_[canonical="picture url"],
+                             out description: String #_[canonical="description"])
+  #_[canonical="generate description of picture"]
+  #_[confirmation="the description of ${picture_url}"]
+  #_[formatted=[{type="text",text="${description}"}, {type="picture",url="${picture_url}"}]]
+  #[confirm=false];
+}
+class @com.tesla.car
+#_[canonical="tesla car"] {
+  monitorable query get_charge_state(out charging_state: String #_[canonical="charging state"],
+                                     out battery_level: Number #_[canonical="battery level"],
+                                     out charge_port_door_open: Boolean #_[canonical="charge port door open"],
+                                     out charge_port_latch: String #_[canonical="charge port latch"])
+  #_[canonical="get the charge state of the Tesla car"]
+  #_[confirmation="the charge state of your Tesla car"]
+  #_[formatted=[{type="text",text="The charging state is ${charging_state}"}, {type="text",text="The battery level is ${battery_level}%"}, {type="text",text="The charge port door open is ${charge_port_door_open}"}, {type="text",text="The charge port latch is ${charge_port_latch}"}]]
+  #[confirm=false];
+
+  monitorable query get_climate_state(out inside_temperature: Measure(C) #_[canonical="inside temperature"],
+                                      out temperature_setting: Measure(C) #_[canonical="temperature setting"],
+                                      out conditioner_on: Boolean #_[canonical="conditioner on"])
+  #_[canonical="get the climate state of the Tesla car"]
+  #_[confirmation="the climate state of your Tesla car"]
+  #_[formatted=[{type="text",text="The temperature is ${inside_temperature} C"}, {type="text",text="The temperature is set to ${temperature_setting} C"}, {type="text",text="The air conditioner is ${conditioner_on}"}]]
+  #[confirm=false];
+
+  monitorable query get_drive_state(out location: Location #_[canonical="location"])
+  #_[canonical="get the location of the Tesla car"]
+  #_[confirmation="the location of your Tesla car"]
+  #_[formatted=[{type="text",text="The location is ${location}"}]]
+  #[confirm=false];
+
+  monitorable query get_mobile_enabled(out mobile_enabled: Boolean #_[canonical="mobile enabled"])
+  #_[canonical="is your Tesla car remotely accessible"]
+  #_[confirmation="remote accessibility of your Tesla "]
+  #_[formatted=[{type="text",text="The remote accessibility is ${mobile_enabled}"}]]
+  #[confirm=false];
+
+  monitorable query get_vehicle_state(out odometer: Number #_[canonical="odometer"],
+                                      out locked: Boolean #_[canonical="locked"])
+  #_[canonical="get state on Tesla"]
+  #_[confirmation="your Tesla car state"]
+  #[confirm=false];
+
+  action flash()
+  #_[canonical="flash your tesla car"]
+  #_[confirmation="flash your Tesla car"]
+  #[confirm=true];
+
+  action honk_horn()
+  #_[canonical="honk your Tesla car"]
+  #_[confirmation="honk the horn on your Tesla car"]
+  #[confirm=true];
+
+  action set_air_conditioning(in req power: Enum(on,off) #_[prompt="Do you want to turn the air-conditioner on your Tesla car on or off?"] #_[canonical="power"])
+  #_[canonical="set power on the Tesla air-conditioner"]
+  #_[confirmation="turn $power your Tesla air-conditioner"]
+  #[confirm=true];
+
+  action set_temperature(in req value: Measure(C) #_[prompt="What temperature do you want to set?"] #_[canonical="value"])
+  #_[canonical="set target temperature of the Tesla car"]
+  #_[confirmation="set the temperature of your Tesla car to $value"]
+  #[confirm=true];
+
+  action wake_up()
+  #_[canonical="wake up your Tesla car"]
+  #_[confirmation="wake up your Tesla car"]
+  #[confirm=true];
+}
+class @com.fitbit
+#_[canonical="fitbit tracker"] {
+  monitorable query getbody(out weight: Measure(kg) #_[canonical="weight"],
+                            out bmi: Number #_[canonical="bmi"],
+                            out fat: Number #_[canonical="fat"])
+  #_[canonical="retrieve body measurements on fitbit"]
+  #_[confirmation="your body measurements from FitBit"]
+  #_[formatted=[{type="text",text="Weight: ${weight} kg, BMI: ${bmi}, Fat: ${fat}%"}]]
+  #[confirm=false];
+
+  monitorable query getsteps(in opt date: Date #_[canonical="date"],
+                             out steps: Number #_[canonical="steps"])
+  #_[canonical="retrieve steps on fitbit"]
+  #_[confirmation="your step count from your FitBit"]
+  #_[formatted=[{type="text",text="Steps on ${date:date}: ${steps}"}]]
+  #[confirm=false];
+
+  action recordweight(in req weight: Measure(kg) #_[prompt="What is your weight?"] #_[canonical="weight"])
+  #_[canonical="record weight on fitbit"]
+  #_[confirmation="record weight"]
+  #[confirm=true];
+}
+class @com.nest.smoke_alarm
+#_[canonical="nest smoke alarm"] {
+}
+class @com.cryptonator
+#_[canonical="cryptonator"] {
+  monitorable query get_price(in req currency: Entity(tt:cryptocurrency_code) #_[prompt="What crypto currency do you want to check?"] #_[canonical="currency"],
+                              out price: Currency #_[canonical="price"])
+  #_[canonical="get crypto currency price"]
+  #_[confirmation="price of ${currency}"]
+  #[confirm=false];
+}
+class @org.arxiv
+#_[canonical="arxiv"] {
+  monitorable list query query(in opt query: String #_[prompt="what do you want to search?"] #_[canonical="query"],
+                               in opt category: Entity(org.arxiv:category) #_[prompt="what field do you want to search?"] #_[canonical="category"],
+                               out title: String #_[canonical="title"],
+                               in opt author: String #_[canonical="author"],
+                               out pubDate: Date #_[canonical="pub date"],
+                               out link: Entity(tt:url) #_[canonical="link"],
+                               out summary: String #_[canonical="summary"])
+  #_[canonical="Search papers on ArXiv"]
+  #_[confirmation="papers on ArXiv"]
+  #_[formatted=[{type="rdl",webCallback="$link",displayTitle="$title by $author ($pubDate)",displayText="$summary"}]]
+  #[confirm=false];
+}
+class @com.arstechnica
+#_[canonical="ars technica"] {
+  monitorable list query index(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                               out link: Entity(tt:url) #_[canonical="link"],
+                               out updated: Date #_[canonical="updated"])
+  #_[canonical="get ars technica index"]
+  #_[confirmation="latest articles published by Ars Technica"]
+  #[confirm=false];
+}
+class @org.hackernews
+#_[canonical="hacker news"] {
+  monitorable list query frontpage(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                                   out link: Entity(tt:url) #_[canonical="link"],
+                                   out updated: Date #_[canonical="updated"])
+  #_[canonical="get hacker news frontpage"]
+  #_[confirmation="front page of Hacker News"]
+  #[confirm=false];
+}
+class @com.time
+#_[canonical="time magazine"] {
+  monitorable list query top_stories(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                                     out link: Entity(tt:url) #_[canonical="link"],
+                                     out updated: Date #_[canonical="updated"])
+  #_[canonical="get top stories on Time Magazine"]
+  #_[confirmation="top stories on Time Magazine"]
+  #[confirm=false];
+}
+class @com.bbc
+#_[canonical="bbc news"] {
+  monitorable list query top_stories(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                                     out link: Entity(tt:url) #_[canonical="link"],
+                                     out updated: Date #_[canonical="updated"],
+                                     out description: String #_[canonical="description"] #[string_values="tt:news_description"])
+  #_[canonical="get top stories on BBC News"]
+  #_[confirmation="top stories on BBC News"]
+  #[confirm=false];
+}
+class @com.huffingtonpost
+#_[canonical="huffpost"] {
+  monitorable list query frontpage(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                                   out link: Entity(tt:url) #_[canonical="link"],
+                                   out updated: Date #_[canonical="updated"],
+                                   out description: String #_[canonical="description"] #[string_values="tt:news_description"])
+  #_[canonical="get front page of HuffPost"]
+  #_[confirmation="front page of HuffPost"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}",displayText="${description}"}]]
+  #[confirm=false];
+}
+class @org.sup
+#_[canonical="stanford press"] {
+  monitorable list query new_books(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                                   out link: Entity(tt:url) #_[canonical="link"],
+                                   out updated: Date #_[canonical="updated"],
+                                   out description: String #_[canonical="description"] #[string_values="tt:news_description"])
+  #_[canonical="get new books by Stanford Press"]
+  #_[confirmation="new books by Stanford Press"]
+  #[confirm=false];
+}
+class @com.wired
+#_[canonical="wired"] {
+  monitorable list query top_stories(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                                     out link: Entity(tt:url) #_[canonical="link"],
+                                     out updated: Date #_[canonical="updated"],
+                                     out description: String #_[canonical="description"] #[string_values="tt:news_description"])
+  #_[canonical="get top stories on Wired"]
+  #_[confirmation="top stories on Wired"]
+  #[confirm=false];
+}
+class @org.slashdot
+#_[canonical="slashdot"] {
+  monitorable list query news(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                              out link: Entity(tt:url) #_[canonical="link"],
+                              out updated: Date #_[canonical="updated"])
+  #_[canonical="get latest news on Slashdot"]
+  #_[confirmation="latest news on Slashdot"]
+  #[confirm=false];
+}
+class @com.macrumors
+#_[canonical="macrumors"] {
+  monitorable list query stories(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                                 out link: Entity(tt:url) #_[canonical="link"],
+                                 out updated: Date #_[canonical="updated"])
+  #_[canonical="get stories on MacRumors"]
+  #_[confirmation="top stories on MacRumors"]
+  #[confirm=false];
+}
+class @com.engadget
+#_[canonical="engadget"] {
+  monitorable list query news(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                              out link: Entity(tt:url) #_[canonical="link"],
+                              out updated: Date #_[canonical="updated"])
+  #_[canonical="get latest news on Engadget"]
+  #_[confirmation="latest news on Engadget"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}"}]]
+  #[confirm=false];
+}
+class @com.abcnews
+#_[canonical="abc news"] {
+  monitorable list query top_stories(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                                     out link: Entity(tt:url) #_[canonical="link"],
+                                     out updated: Date #_[canonical="updated"],
+                                     out description: String #_[canonical="description"] #[string_values="tt:news_description"])
+  #_[canonical="get top stories on ABC News"]
+  #_[confirmation="top stories on ABC News"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}",displayText="${description}"}]]
+  #[confirm=false];
+}
+class @com.nature
+#_[canonical="nature issue"] {
+  monitorable list query articles(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                                  out link: Entity(tt:url) #_[canonical="link"],
+                                  out updated: Date #_[canonical="updated"])
+  #_[canonical="get articles on Nature"]
+  #_[confirmation="articles on Nature"]
+  #[confirm=false];
+}
+class @com.matrix67
+#_[canonical="matrix67"] {
+  monitorable list query posts(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                               out link: Entity(tt:url) #_[canonical="link"],
+                               out updated: Date #_[canonical="updated"])
+  #_[canonical="get latest posts on Matrix67"]
+  #_[confirmation="posts on Matrix67"]
+  #[confirm=false];
+}
+class @com.medium
+#_[canonical="medium"] {
+  monitorable list query articles(in req author: Entity(tt:username) #_[prompt="What is the username of the writer"] #_[canonical="author"] #[string_values="com.twitter:username"],
+                                  out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                                  out link: Entity(tt:url) #_[canonical="link"],
+                                  out updated: Date #_[canonical="updated"])
+  #_[canonical="get articles on medium"]
+  #_[confirmation="articles by $author"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}"}]]
+  #[confirm=false];
+}
+class @com.ted
+#_[canonical="ted talks daily"] {
+  monitorable list query talks(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                               out link: Entity(tt:url) #_[canonical="link"],
+                               out updated: Date #_[canonical="updated"],
+                               out description: String #_[canonical="description"] #[string_values="tt:news_description"])
+  #_[canonical="get talks on TED"]
+  #_[confirmation="talks on BBC News"]
+  #[confirm=false];
+}
+class @org.mozilla
+#_[canonical="the mozilla blog"] {
+  monitorable list query articles(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                                  out link: Entity(tt:url) #_[canonical="link"],
+                                  out updated: Date #_[canonical="updated"])
+  #_[canonical="get articles on the Mozilla Blog"]
+  #_[confirmation="articles on the Mozilla Blog"]
+  #[confirm=false];
+}
+class @com.starwars
+#_[canonical="star wars news"] {
+  monitorable list query news(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                              out link: Entity(tt:url) #_[canonical="link"],
+                              out updated: Date #_[canonical="updated"])
+  #_[canonical="get latest Star Wars news"]
+  #_[confirmation="latest Star Wars news"]
+  #[confirm=false];
+}
+class @edu.stanford.news
+#_[canonical="stanford news"] {
+  monitorable list query get(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                             out url: Entity(tt:url) #_[canonical="url"])
+  #_[canonical="Stanford news"]
+  #_[confirmation="stanford news"]
+  #[confirm=false];
+}
+class @com.techcrunch
+#_[canonical="techcrunch"] {
+  monitorable list query news(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                              out link: Entity(tt:url) #_[canonical="link"],
+                              out updated: Date #_[canonical="updated"])
+  #_[canonical="get news on TechCrunch"]
+  #_[confirmation="latest news on TechCrunch"]
+  #[confirm=false];
+}
+class @com.herokuapp.cat-fact
+#_[canonical="animal facts"] {
+  query random(in req animal: Enum(cat,dog,horse,snail) #_[prompt="What animal are you interested in?"] #_[canonical="animal"],
+               out text: String #_[canonical="text"] #[string_values="tt:long_free_text"])
+  #_[canonical="random animal fact"]
+  #_[confirmation="a random ${animal} fact"]
+  #[confirm=false];
+}
+class @com.lifehacker
+#_[canonical="lifehacker"] {
+  monitorable list query articles(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                                  out link: Entity(tt:url) #_[canonical="link"],
+                                  out updated: Date #_[canonical="updated"])
+  #_[canonical="get articles on LifeHacker"]
+  #_[confirmation="articles on LifeHacker"]
+  #[confirm=false];
+}
+class @com.howtogeek
+#_[canonical="how-to geek"] {
+  monitorable list query articles(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                                  out link: Entity(tt:url) #_[canonical="link"],
+                                  out updated: Date #_[canonical="updated"])
+  #_[canonical="get articles on How-To Geek"]
+  #_[confirmation="articles on How-To Geek"]
+  #[confirm=false];
+}
+class @ca.randomfox
+#_[canonical="random fox"] {
+  query floof(out link: Entity(tt:url) #_[canonical="link"],
+              out picture_url: Entity(tt:picture) #_[canonical="picture url"])
+  #_[canonical="random fox picture"]
+  #_[confirmation="a random picture of a fox"]
+  #_[formatted=[{type="rdl",displayTitle="${link}",callback="${link}",webCallback="${link}"}, {type="picture",url="${picture_url}"}]]
+  #[confirm=false];
+}
+class @com.cnn
+#_[canonical="cnn news"] {
+  monitorable list query top_stories(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                                     out link: Entity(tt:url) #_[canonical="link"],
+                                     out updated: Date #_[canonical="updated"])
+  #_[canonical="get top stories on CNN News"]
+  #_[confirmation="top stories on CNN News"]
+  #[confirm=false];
+}
+class @com.fortune
+#_[canonical="fortune"] {
+  monitorable list query news(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                              out link: Entity(tt:url) #_[canonical="link"],
+                              out updated: Date #_[canonical="updated"])
+  #_[canonical="get news on Fortune"]
+  #_[confirmation="news on Fortune"]
+  #[confirm=false];
+}
+class @com.businessinsider
+#_[canonical="business insider"] {
+  monitorable list query news(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                              out link: Entity(tt:url) #_[canonical="link"],
+                              out updated: Date #_[canonical="updated"])
+  #_[canonical="get latest news on Business Insider"]
+  #_[confirmation="news on Business Insider"]
+  #[confirm=false];
+}
+class @com.wordsapi
+#_[canonical="dictionary"] {
+  monitorable list query definitions(in req word: String #_[prompt="What word are you looking for?"] #_[canonical="word"] #[string_values="tt:word"],
+                                     out definition: String #_[canonical="definition"] #[string_values="tt:long_free_text"],
+                                     out part_of_speech: Enum(noun,verb,adjective,adverb) #_[canonical="part of speech"])
+  #_[canonical="definitions on dictionary"]
+  #_[confirmation="the dictionary definitions of ${word}"]
+  #[confirm=false];
+
+  monitorable list query synonyms(in req word: String #_[prompt="What word are you looking for?"] #_[canonical="word"] #[string_values="tt:word"],
+                                  out synonym: String #_[canonical="synonym"] #[string_values="tt:word"])
+  #_[canonical="synonyms on dictionary"]
+  #_[confirmation="synonyms of ${word}"]
+  #[confirm=false];
+}
+class @com.uinames
+#_[canonical="uinames"] {
+  query get(out name: String #_[canonical="name"],
+            out surname: String #_[canonical="surname"],
+            out gender: Enum(male,female) #_[canonical="gender"])
+  #_[canonical="random name"]
+  #_[confirmation="random name"]
+  #[confirm=false];
+}
+class @com.numbersapi
+#_[canonical="number facts"] {
+  query fact(in opt number: Number #_[canonical="number"],
+             in opt type: Enum(trivia,math,year) #_[canonical="type"],
+             out text: String #_[canonical="text"] #[string_values="tt:long_free_text"])
+  #_[canonical="number facts"]
+  #_[confirmation="a fact about a number"]
+  #_[formatted=["${text}"]]
+  #[confirm=false];
+}
+class @com.poemist
+#_[canonical="poemist"] {
+  query get(out title: String #_[canonical="title"],
+            out poem: String #_[canonical="poem"],
+            out url: Entity(tt:url) #_[canonical="url"],
+            out poet: String #_[canonical="poet"] #[string_values="tt:person_full_name"])
+  #_[canonical="random poem"]
+  #_[confirmation="a random poem"]
+  #[confirm=false];
+}
+class @com.whatdoestrumpthink
+#_[canonical="what does trump think"] {
+  query get(out text: String #_[canonical="text"])
+  #_[canonical="Trump quotes"]
+  #_[confirmation="a random Trump quote"]
+  #_[formatted=[{type="text",text="${text}"}]]
+  #[confirm=false];
+}
+class @com.imgur
+#_[canonical="imgur"] {
+  monitorable list query album(in req album_id: Entity(com.imgur:album_id) #_[canonical="album id"],
+                               out description: String #_[canonical="description"] #[string_values="tt:long_free_text"],
+                               out author: Entity(tt:username) #_[canonical="author"] #[string_values="com.twitter:username"],
+                               out date: Date #_[canonical="date"],
+                               out picture_url: Entity(tt:picture) #_[canonical="picture url"],
+                               out width: Number #_[canonical="width"],
+                               out height: Number #_[canonical="height"],
+                               out is_mature: Boolean #_[canonical="is mature"])
+  #_[canonical="album on imgur"]
+  #_[confirmation="images in the Imgur album ${album_id}"]
+  #[confirm=false];
+
+  monitorable list query comments(in req album_id: Entity(com.imgur:album_id) #_[canonical="album id"],
+                                  out comment: String #_[canonical="comment"] #[string_values="tt:long_free_text"],
+                                  out author: Entity(tt:username) #_[canonical="author"] #[string_values="com.twitter:username"],
+                                  out date: Date #_[canonical="date"],
+                                  out points: Number #_[canonical="points"])
+  #_[canonical="comments on imgur"]
+  #_[confirmation="comments in Imgur album ${album_id}"]
+  #[confirm=false];
+
+  monitorable list query gallery(in opt section: Enum(hot,user) #_[canonical="section"],
+                                 in opt order_by: Enum(viral,rising) #_[canonical="order by"],
+                                 out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                                 out author: Entity(tt:username) #_[canonical="author"] #[string_values="com.twitter:username"],
+                                 out date: Date #_[canonical="date"],
+                                 out picture_url: Entity(tt:picture) #_[canonical="picture url"],
+                                 out link: Entity(tt:url) #_[canonical="link"],
+                                 out points: Number #_[canonical="points"],
+                                 out width: Number #_[canonical="width"],
+                                 out height: Number #_[canonical="height"],
+                                 out hashtags: Array(Entity(tt:hashtag)) #_[canonical="hashtags"] #[string_values="com.twitter:hashtag"],
+                                 out is_album: Boolean #_[canonical="is album"],
+                                 out is_mature: Boolean #_[canonical="is mature"],
+                                 out album_id: Entity(com.imgur:album_id) #_[canonical="album id"])
+  #_[canonical="gallery on imgur"]
+  #_[confirmation="images and albums in Imgur"]
+  #[confirm=false];
+
+  monitorable list query search(in req query: String #_[canonical="query"] #[string_values="tt:search_query"],
+                                out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                                out author: Entity(tt:username) #_[canonical="author"] #[string_values="com.twitter:username"],
+                                out date: Date #_[canonical="date"],
+                                out picture_url: Entity(tt:picture) #_[canonical="picture url"],
+                                out link: Entity(tt:url) #_[canonical="link"],
+                                out points: Number #_[canonical="points"],
+                                out width: Number #_[canonical="width"],
+                                out height: Number #_[canonical="height"],
+                                out hashtags: Array(Entity(tt:hashtag)) #_[canonical="hashtags"] #[string_values="com.twitter:hashtag"],
+                                out is_album: Boolean #_[canonical="is album"],
+                                out is_mature: Boolean #_[canonical="is mature"],
+                                out album_id: Entity(com.imgur:album_id) #_[canonical="album id"])
+  #_[canonical="search on imgur"]
+  #_[confirmation="search ${query} in Imgur"]
+  #[confirm=false];
+
+  action upload(in req picture_url: Entity(tt:picture) #_[canonical="picture url"],
+                in req title: String #_[canonical="title"] #[string_values="com.instagram:caption"],
+                in opt body: String #_[canonical="body"],
+                in opt is_mature: Boolean #_[canonical="is mature"],
+                in opt hashtags: Array(Entity(tt:hashtag)) #_[canonical="hashtags"] #[string_values="com.twitter:hashtag"],
+                in req to_gallery: Boolean #_[canonical="to gallery"])
+  #_[canonical="upload on imgur"]
+  #_[confirmation="upload an image to Imgur with title ${title}"]
+  #[confirm=true];
+}
+class @com.omdbapi
+#_[canonical="omdb"] {
+  query search(in req title: String #_[prompt="What do you want to search?"] #_[canonical="title"] #[string_values="tt:movie_title"],
+               out year: Number #_[canonical="year"],
+               out director: String #_[canonical="director"] #[string_values="tt:person_full_name"],
+               out actors: Array(String) #_[canonical="actors"] #[string_values="tt:person_full_name"],
+               out plot: String #_[canonical="plot"],
+               out picture_url: Entity(tt:picture) #_[canonical="picture url"],
+               out link: Entity(tt:url) #_[canonical="link"],
+               out rating: Enum(unknown,general_audiences,parental_guidance_suggested,parents_strongly_cautioned,restricted,adults_only) #_[canonical="rating"],
+               out release_date: Date #_[canonical="release date"],
+               out genre: String #_[canonical="genre"],
+               out metascore: Number #_[canonical="metascore"])
+  #_[canonical="search on omdb"]
+  #_[confirmation="search information of movie $title"]
+  #_[formatted=[{type="rdl",displayTitle="$title ($year)",displayText="With ${actors}. Directed by $director.",callback="${link}",webCallback="${link}"}, {type="picture",url="$picture_url"}, {type="text",text="Plot: $plot"}, {type="text",text="Critics rated it ${metascore}% (according to Metacritic)."}]]
+  #[confirm=false];
+}
+class @edu.stanford.almond.nl
+#_[canonical="almond nlp"] {
+  query analyze(in req text: String #_[prompt="What sentence do you want to analyze?"] #_[canonical="text"] #[string_values="tt:long_free_text"],
+                out sentiment: Enum(very_negative,negative,neutral,positive,very_positive) #_[canonical="sentiment"],
+                out tokens: Array(String) #_[canonical="tokens"] #[string_values="tt:word"])
+  #_[canonical="natural language analysis"]
+  #_[confirmation="the lexical analysis of ${text}"]
+  #[confirm=false];
+}
+class @com.mashable
+#_[canonical="mashable"] {
+  monitorable list query news(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                              out link: Entity(tt:url) #_[canonical="link"],
+                              out updated: Date #_[canonical="updated"])
+  #_[canonical="get Mashable news"]
+  #_[confirmation="latest news on Mashable"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}"}]]
+  #[confirm=false];
+}
+class @com.gamespot
+#_[canonical="gamespot"] {
+  monitorable list query news(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                              out link: Entity(tt:url) #_[canonical="link"],
+                              out updated: Date #_[canonical="updated"])
+  #_[canonical="get Gamespot news"]
+  #_[confirmation="latest news on Gamespot"]
+  #[confirm=false];
+}
+class @com.wikicfp
+#_[canonical="wikicfp"] {
+  monitorable list query search(in req query: String #_[prompt="What do you want to search?"] #_[canonical="query"] #[string_values="com.wikicfp:conference"],
+                                out abbr: String #_[canonical="abbreviation"],
+                                out name: String #_[canonical="name"],
+                                out start: Date #_[canonical="start date"],
+                                out end: Date #_[canonical="end date"],
+                                out city: String #_[canonical="city"],
+                                out deadline: Date #_[canonical="deadline"],
+                                out link: Entity(tt:url) #_[canonical="link"])
+  #_[canonical="get events from wikicfp"]
+  #_[confirmation="information of $query on wikicfp"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${name} (${abbr})",displayText="Where: ${city},\nWhen: ${start:date} - ${end:date},\nDeadline: ${deadline:date}."}]]
+  #[confirm=false];
+}
+class @rest.kanye
+#_[canonical="kanye rest"] {
+  query get(out text: String #_[canonical="text"] #[string_values="tt:long_free_text"])
+  #_[canonical="kanye west quote"]
+  #_[confirmation="a random quote from Kanye West"]
+  #_[formatted=["Kanye says: ${text}"]]
+  #[confirm=false];
+}
+class @rickygv.stanforddaily
+#_[canonical="stanford daily"] {
+  monitorable list query get_front_page(out title: String #_[canonical="title"],
+                                        out link: Entity(tt:url) #_[canonical="link"],
+                                        out updated: Date #_[canonical="updated"])
+  #_[canonical="get front page on stanford daily"]
+  #_[confirmation="Stanford Daily articles"]
+  #[confirm=false];
+}
+class @edu.stanford.almond.blog
+#_[canonical="almond blog"] {
+  monitorable list query posts(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                               out link: Entity(tt:url) #_[canonical="link"],
+                               out updated: Date #_[canonical="updated"],
+                               out description: String #_[canonical="description"] #[string_values="tt:news_description"])
+  #_[canonical="get almond blog"]
+  #_[confirmation="latest posts in the Almond Blog"]
+  #[confirm=false];
+}
+class @com.appspot.randomuselessfact
+#_[canonical="random facts"] {
+  query random(out text: String #_[canonical="text"],
+               out link: Entity(tt:url) #_[canonical="link"])
+  #_[canonical="random useless fact"]
+  #_[confirmation="a random useless fact"]
+  #_[formatted=["${text}"]]
+  #[confirm=false];
+}
+class @co.alphavantage
+#_[canonical="alpha vantage"] {
+  monitorable query get_price(in req company: Entity(tt:stock_id) #_[prompt="What company do you want to check?"] #_[canonical="company"],
+                              out price: Currency #_[canonical="price"],
+                              out change: Number #_[canonical="change"])
+  #_[canonical="get stock price"]
+  #_[confirmation="stock price of ${company}"]
+  #_[formatted=[{type="text",text="The current stock price of ${company} is ${price}."}]]
+  #[confirm=false];
+}
+class @wesleyliu.wiki
+#_[canonical="wikipedia"] {
+  list query wikipedia(in req query: String #_[prompt="What do you want to search in wikipedia?"] #_[canonical="query"] #[string_values="tt:search_query"],
+                       out title: String #_[canonical="title"],
+                       out description: String #_[canonical="description"] #[string_values="tt:long_free_text"],
+                       out link: Entity(tt:url) #_[canonical="link"])
+  #_[canonical="wikipedia on wikipedia"]
+  #_[confirmation="information matching $query on wikipedia"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}",displayText="${description}"}]]
+  #[confirm=false];
+}
+class @com.yelp
+#_[canonical="yelp"] {
+  monitorable list query search(in opt query: String #_[canonical="query"] #[string_values="com.yelp:restaurants"],
+                                in req location: Location #_[canonical="location"],
+                                in opt sort_by: Enum(best_match,rating,review_count,distance) #_[canonical="sort by"],
+                                out name: String #_[canonical="name"],
+                                out picture_url: Entity(tt:picture) #_[canonical="picture url"],
+                                out category: Array(String) #_[canonical="category"] #[string_values="com.yelp:restaurant_category"],
+                                out rating: Number #_[canonical="rating"],
+                                out review_count: Number #_[canonical="review count"],
+                                out link: Entity(tt:url) #_[canonical="link"],
+                                out address: Location #_[canonical="address"],
+                                out distance: Measure(m) #_[canonical="distance"],
+                                out open: Boolean #_[canonical="open"])
+  #_[canonical="restaurants on yelp"]
+  #_[confirmation="restaurants on yelp"]
+  #_[formatted=[{type="rdl",displayTitle="${name}",webCallback="${link}",displayText="Rating: ${rating}\nCategory: ${category}\nAddress: ${address}"}, {type="picture",url="${picture_url}"}]]
+  #[confirm=false];
+}
+class @com.smbc-comics
+#_[canonical="saturday morning breakfast cereal"] {
+  monitorable list query comic(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                               out link: Entity(tt:url) #_[canonical="link"],
+                               out updated: Date #_[canonical="updated"])
+  #_[canonical="comic on saturday morning breakfast cereal"]
+  #_[confirmation="the latest SMBC comics"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}"}]]
+  #[confirm=false];
+}
+class @io.home-assistant
+#_[canonical="home assistant"] {
+}
+class @org.thingpedia.iot.air
+#_[canonical="air binary sensor"] {
+  monitorable query state(out state: Enum(gas,smoke,nothing) #_[canonical="state"])
+  #_[canonical="air sensor state"]
+  #_[confirmation="the state of $__device"]
+  #_[formatted=["The sensor is detecting ${state:enum}."]]
+  #[confirm=false];
+}
+class @org.thingpedia.iot.battery
+#_[canonical="battery sensor"] {
+  monitorable query state(out state: Enum(low,normal) #_[canonical="state"],
+                          out value: Number #_[canonical="value"])
+  #_[canonical="battery state"]
+  #_[confirmation="the state of $__device"]
+  #_[formatted=["Your battery is $state.", "It is at ${value} percent charge."]]
+  #[confirm=false];
+}
+class @org.thingpedia.iot.cover
+#_[canonical="cover"] {
+  monitorable query state(out state: Enum(open,closed) #_[canonical="state"])
+  #_[canonical="cover state"]
+  #_[confirmation="the state of $__device"]
+  #_[formatted=["It is ${state}"]]
+  #[confirm=false];
+
+  action set_openclose(in req state: Enum(open,close) #_[prompt="Do you want to open or close it?"] #_[canonical="state"])
+  #_[canonical="open or close cover"]
+  #_[confirmation="$state $__device"]
+  #[confirm=true];
+}
+class @org.thingpedia.iot.door
+#_[canonical="door sensor"] {
+  monitorable query state(out state: Enum(open,closed) #_[canonical="state"])
+  #_[canonical="door state"]
+  #_[confirmation="the state of $__device"]
+  #_[formatted=["It is $state."]]
+  #[confirm=false];
+}
+class @org.thingpedia.iot.fan
+#_[canonical="fan"] {
+  monitorable query oscillation(out state: Enum(oscillating,not_oscillating) #_[canonical="state"])
+  #_[canonical="fan oscillation state"]
+  #_[confirmation="the oscillation of $__device"]
+  #_[formatted=["The fan is ${state:enum}"]]
+  #[confirm=false];
+
+  monitorable query state(out state: Enum(on,off) #_[canonical="state"])
+  #_[canonical="fan state"]
+  #_[confirmation="the state of $__device"]
+  #_[formatted=["The fan is $state"]]
+  #[confirm=false];
+
+  action set_oscillation(in req oscillation: Enum(on,off) #_[prompt="Do you want to turn oscillation on or off?"] #_[canonical="oscillation"])
+  #_[canonical="set oscillation on fan"]
+  #_[confirmation="turn $oscillation oscillation for $__device"]
+  #[confirm=true];
+
+  action set_power(in req power: Enum(on,off) #_[prompt="Do you want to turn it on or off?"] #_[canonical="power"])
+  #_[canonical="set power on fan"]
+  #_[confirmation="turn $power $__device"]
+  #[confirm=true];
+}
+class @org.thingpedia.iot.heat
+#_[canonical="heat sensor"] {
+  monitorable query state(out state: Enum(hot,cold,normal) #_[canonical="state"])
+  #_[canonical="heat sensor state"]
+  #_[confirmation="the state of $__device"]
+  #_[formatted=["It is $state."]]
+  #[confirm=false];
+}
+class @org.thingpedia.iot.motion
+#_[canonical="motion sensor"] {
+  monitorable query motion(out state: Enum(detecting,not_detecting) #_[canonical="state"])
+  #_[canonical="motion detection state"]
+  #_[confirmation="whether $__device detected motion"]
+  #_[formatted=["It is ${state:enum} movement."]]
+  #[confirm=false];
+}
+class @org.thingpedia.iot.occupancy
+#_[canonical="occupancy sensor"] {
+  monitorable query occupancy(out state: Enum(detecting,not_detecting) #_[canonical="state"])
+  #_[canonical="occupancy state"]
+  #_[confirmation="whether $__device detected someone"]
+  #_[formatted=["It is ${state} someone."]]
+  #[confirm=false];
+}
+class @org.thingpedia.iot.plug
+#_[canonical="plug sensor"] {
+  monitorable query state(out state: Enum(plugged,unplugged) #_[canonical="state"])
+  #_[canonical="plug sensor state"]
+  #_[confirmation="the state of $__device"]
+  #_[formatted=["The plug is ${state}."]]
+  #[confirm=false];
+}
+class @org.thingpedia.iot.sound
+#_[canonical="sound sensor"] {
+  monitorable query sound(out state: Enum(detecting,not_detecting) #_[canonical="state"])
+  #_[canonical="sound detection state"]
+  #_[confirmation="whether $__device detected sound"]
+  #_[formatted=["It is ${state:enum} sound."]]
+  #[confirm=false];
+}
+class @org.thingpedia.iot.switch
+#_[canonical="switch"] {
+  monitorable query state(out state: Enum(on,off) #_[canonical="state"])
+  #_[canonical="switch state"]
+  #_[confirmation="the state of $__device"]
+  #_[formatted=["Your switch is ${state}"]]
+  #[confirm=false];
+
+  action set_power(in req power: Enum(on,off) #_[prompt="Do you want to turn it on or off?"] #_[canonical="power"])
+  #_[canonical="set power on switch"]
+  #_[confirmation="turn $power $__device"]
+  #[confirm=true];
+}
+class @org.thingpedia.iot.vacuum
+#_[canonical="vacuum"] {
+  monitorable query state(out state: Enum(on,off,docked) #_[canonical="state"],
+                          out status: String #_[canonical="status"])
+  #_[canonical="vacuum state"]
+  #_[confirmation="the state of your vacuum"]
+  #_[formatted=["Your vacuum is ${state}.", "It is ${status}."]]
+  #[confirm=false];
+
+  action pause()
+  #_[canonical="pause vacuum"]
+  #_[confirmation="pause $__device"]
+  #[confirm=true];
+
+  action return_to_base()
+  #_[canonical="dock vacuum"]
+  #_[confirmation="dock $__device"]
+  #[confirm=true];
+
+  action set_power(in req power: Enum(on,off) #_[prompt="Do you want to turn it on or off?"] #_[canonical="power"])
+  #_[canonical="set power on vacuum"]
+  #_[confirmation="turn $power $__device"]
+  #[confirm=true];
+
+  action start()
+  #_[canonical="start vacuum"]
+  #_[confirmation="start $__device"]
+  #[confirm=true];
+
+  action stop()
+  #_[canonical="stop vacuum"]
+  #_[confirmation="stop $__device"]
+  #[confirm=true];
+}
+class @com.popsci
+#_[canonical="popular science rss"] {
+  monitorable list query articles(out title: String #_[canonical="title"] #[string_values="tt:news_title"],
+                                  out link: Entity(tt:url) #_[canonical="link"],
+                                  out updated: Date #_[canonical="updated"])
+  #_[canonical="get popular science news"]
+  #_[confirmation="latest news on popular science"]
+  #_[formatted=[{type="rdl",webCallback="${link}",displayTitle="${title}"}]]
+  #[confirm=false];
+}
+class @org.thingpedia.iot.humidity
+#_[canonical="humidity sensor"] {
+  monitorable query humidity(out state: Enum(humid,normal) #_[canonical="state"],
+                             out value: Number #_[canonical="value"])
+  #_[canonical="humidity sensor state"]
+  #_[confirmation="the humidity from $__device"]
+  #_[formatted=["It is ${state}.", "The humidity level is ${value} percent."]]
+  #[confirm=false];
+}
+class @org.thingpedia.iot.lock
+#_[canonical="lock sensor"] {
+  monitorable query state(out state: Enum(unlocked,locked) #_[canonical="state"])
+  #_[canonical="lock state"]
+  #_[confirmation="the state of $__device"]
+  #_[formatted=["The lock is ${state}."]]
+  #[confirm=false];
+
+  action set_state(in req state: Enum(lock,unlock) #_[prompt="Do you want to lock or unlock?"] #_[canonical="state"])
+  #_[canonical="lock or unlock"]
+  #_[confirmation="$state $__device"]
+  #[confirm=true];
+}
+class @org.thingpedia.iot.moisture
+#_[canonical="moisture binary sensor"] {
+  monitorable query state(out state: Enum(wet,dry) #_[canonical="state"])
+  #_[canonical="moisture sensor state"]
+  #_[confirmation="the state of $__device"]
+  #_[formatted=["The moisture sensor is ${state}."]]
+  #[confirm=false];
+}
+class @org.thingpedia.iot.speaker
+#_[canonical="speaker"] {
+  monitorable query power(out state: Enum(on,off) #_[canonical="state"])
+  #_[canonical="power state"]
+  #_[confirmation="the power state of $__device"]
+  #_[formatted=["It is ${state}"]]
+  #[confirm=false];
+
+  action lower_volume()
+  #_[canonical="decrease speaker volume"]
+  #_[confirmation="decrease $__device's volume"]
+  #[confirm=true];
+
+  action mute()
+  #_[canonical="mute speaker"]
+  #_[confirmation="mute $__device"]
+  #[confirm=true];
+
+  action play_music()
+  #_[canonical="play music on speaker"]
+  #_[confirmation="play some music on $__device"]
+  #[confirm=true];
+
+  action raise_volume()
+  #_[canonical="increase speaker volume"]
+  #_[confirmation="increase $__device's volume"]
+  #[confirm=true];
+
+  action set_power(in req power: Enum(on,off) #_[prompt="Do you want to turn it on or off?"] #_[canonical="power"])
+  #_[canonical="turn your speaker on or off"]
+  #_[confirmation="turn ${power} $__device"]
+  #[confirm=true];
+
+  action set_sink()
+  #_[canonical="set audio sink on speaker"]
+  #_[confirmation="set $__device to be the default audio output"]
+  #[confirm=true];
+
+  action set_volume(in req volume: Number #_[prompt="From 0 to 100, what volume do you want to set?"] #_[canonical="volume"])
+  #_[canonical="set volume for speaker"]
+  #_[confirmation="set $__device's volume to $volume"]
+  #[confirm=true];
+
+  action unmute()
+  #_[canonical="unmute speaker"]
+  #_[confirmation="unmute $__device"]
+  #[confirm=true];
+}
+class @org.thingpedia.iot.temperature
+#_[canonical="temperature sensor"] {
+  monitorable query temperature(out value: Measure(C) #_[canonical="value"])
+  #_[canonical="temperature sensor state"]
+  #_[confirmation="the temperature from $__device"]
+  #_[formatted=["The temperature is ${value:F}°F."]]
+  #[confirm=false];
+}
+class @org.thingpedia.iot.tv
+#_[canonical="tv"] {
+  monitorable query power(out state: Enum(on,off) #_[canonical="state"])
+  #_[canonical="power state"]
+  #_[confirmation="the power state of $__device"]
+  #_[formatted=["It is ${state}"]]
+  #[confirm=false];
+
+  action lower_volume()
+  #_[canonical="decrease tv volume"]
+  #_[confirmation="decrease $__device's volume"]
+  #[confirm=true];
+
+  action mute()
+  #_[canonical="mute tv"]
+  #_[confirmation="mute $__device"]
+  #[confirm=true];
+
+  action play_url(in req url: Entity(tt:url) #_[prompt="What video do you want to play? Use the full URL."] #_[canonical="url"])
+  #_[canonical="play url on tv"]
+  #_[confirmation="play $url on $__device"]
+  #[confirm=true];
+
+  action raise_volume()
+  #_[canonical="increase tv volume"]
+  #_[confirmation="increase $__device's volume"]
+  #[confirm=true];
+
+  action set_power(in req power: Enum(on,off) #_[prompt="Do you want to turn it on or off?"] #_[canonical="power"])
+  #_[canonical="turn your tv on or off"]
+  #_[confirmation="turn ${power} $__device"]
+  #[confirm=true];
+
+  action set_volume(in req volume: Number #_[prompt="From 0 to 100, what volume do you want to set?"] #_[canonical="volume"])
+  #_[canonical="set volume on tv"]
+  #_[confirmation="set $__device's volume to $volume"]
+  #[confirm=true];
+
+  action unmute()
+  #_[canonical="unmute tv"]
+  #_[confirmation="unmute $__device"]
+  #[confirm=true];
+}
+class @io.home-assistant.climate
+#_[canonical="climate device"] {
+}

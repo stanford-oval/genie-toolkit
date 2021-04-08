@@ -350,7 +350,8 @@ function makeEdgeFilterStream(loader : ThingpediaLoader,
     if (outParams.length === 1 && loader.flags.turking)
         return null;
 
-    return new Ast.FilterExpression(null, new Ast.MonitorExpression(null, proj.expression, null, proj.expression.schema), f.ast, proj.expression.schema);
+    const monitor = new Ast.MonitorExpression(null, proj.expression, null, proj.expression.schema!.asType('stream'));
+    return new Ast.FilterExpression(null, monitor, f.ast, monitor.schema);
 }
 
 function addUnit(unit : string, num : Ast.VarRefValue | Ast.NumberValue) : Ast.Value {
@@ -488,7 +489,7 @@ export function makeTypeBasedStreamProjection(table : Ast.Expression) : Ast.Proj
     if (pname === '$event')
         return null;
 
-    return makeProjection(new Ast.MonitorExpression(null, table, null, table.schema), pname);
+    return makeProjection(new Ast.MonitorExpression(null, table, null, table.schema!.asType('stream')), pname);
 }
 
 function isEqualityFilteredOnParameter(table : Ast.Expression, pname : string) : boolean {
@@ -539,7 +540,7 @@ function makeSingleFieldProjection(loader : ThingpediaLoader,
     } else {
         if (!table.schema!.is_monitorable)
             return null;
-        const stream = new Ast.MonitorExpression(null, table, null, table.schema);
+        const stream = new Ast.MonitorExpression(null, table, null, table.schema!.asType('stream'));
         return makeProjection(stream, pname);
     }
 }
@@ -576,7 +577,7 @@ function makeMultiFieldProjection(loader : ThingpediaLoader,
 
         return new Ast.ProjectionExpression(null, table, names, [], [], resolveProjection(table.schema!, names));
     } else {
-        const stream = new Ast.MonitorExpression(null, table, null, table.schema);
+        const stream = new Ast.MonitorExpression(null, table, null, table.schema!.asType('stream'));
         return new Ast.ProjectionExpression(null, stream, names, [], [], resolveProjection(stream.schema!, names));
     }
 }
@@ -1033,9 +1034,9 @@ function tableToStream(table : Ast.Expression) : Ast.Expression|null {
 
     let stream;
     if (table instanceof Ast.FilterExpression && !table.schema!.is_list)
-        stream = new Ast.FilterExpression(null, new Ast.MonitorExpression(null, table.expression, projArg, table.expression.schema), table.filter, table.expression.schema);
+        stream = new Ast.FilterExpression(null, new Ast.MonitorExpression(null, table.expression, projArg, table.expression.schema!.asType('stream')), table.filter, table.expression.schema!.asType('stream'));
     else
-        stream = new Ast.MonitorExpression(null, table, projArg, table.schema);
+        stream = new Ast.MonitorExpression(null, table, projArg, table.schema!.asType('stream'));
     return stream;
 }
 

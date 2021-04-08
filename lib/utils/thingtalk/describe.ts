@@ -22,8 +22,7 @@ import assert from 'assert';
 import { Ast, Type, Syntax } from 'thingtalk';
 
 import * as I18n from '../../i18n';
-import { clean, cleanKind } from '../misc-utils';
-import { tokenizeExample } from './example-utils';
+import { clean, cleanKind, tokenizeExample } from '../misc-utils';
 import { AnyEntity } from '../entity-utils';
 import {
     Replaceable,

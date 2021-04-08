@@ -56,9 +56,6 @@ export function normalizeConfirmAnnotation(fndef : Ast.FunctionDef) : 'confirm'|
 }
 
 export function shouldAutoConfirmStatement(stmt : Ast.ExpressionStatement) : boolean {
-    if (stmt.stream)
-        return false;
-
     let needsConfirm = false;
     const visitor = new class extends Ast.NodeVisitor {
         visitInvocation(invocation : Ast.Invocation) : boolean {

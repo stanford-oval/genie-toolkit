@@ -28,6 +28,7 @@ import DeviceDatabase from './devices/database';
 import TierManager from './tiers/tier_manager';
 import PairedEngineManager from './tiers/paired';
 import Builtins from './devices/builtins';
+import AudioController from './audio_controller';
 
 import AppDatabase from './apps/database';
 import AppRunner from './apps/runner';
@@ -42,47 +43,75 @@ import * as sqlite from './db/sqlite';
 
 /**
  * Information about a running ThingTalk program (app).
- * @typedef {Object} AppInfo
- * @property {string} uniqueId - the unique ID of the app
- * @property {string} name - a short string identifying the app
- * @property {string} description - a longer description of the code in the app
- * @property {string|null} icon - the icon associated with the app (as a Thingpedia class ID)
- * @property {boolean} isRunning - whether the app is currently running (executing ThingTalk code)
- * @property {boolean} isEnabled - whether the app is set to run in the background
- * @property {string|null} error - the last error reported by the app
  */
 export interface AppInfo {
+    /**
+     * The unique ID of the app.
+     */
     uniqueId : string;
+    /**
+     * A short string identifying the app.
+     */
     name : string;
+    /**
+     * A longer description of the code in the app.
+     */
     description : string;
     code : string;
+    /**
+     * The icon associated with the app (as a Thingpedia class ID).
+     */
     icon : string|null;
+    /**
+     * Whether the app is currently running (executing ThingTalk code).
+     */
     isRunning : boolean;
+    /**
+     * Whether the app is set to run in the background.
+     */
     isEnabled : boolean;
+    /**
+     * The last error reported by the app.
+     */
     error : string|null;
 }
 
 /**
  * Information about a configured Thingpedia device.
- * @typedef {Object} DeviceInfo
- * @property {string} uniqueId - the unique ID of the device
- * @property {string} name - a short, human-readable string identifying the device
- * @property {string} description - a longer string describing the device
- * @property {string} kind - the Thingpedia class ID this device belongs to (suitable to select an icon)
- * @property {number} version - the version of the class this device belongs to
- * @property {string} class - the coarse categorization of the device: `physical`, `online`, `data`, or `system`
- * @property {string} ownerTier - the ID of the engine that configured this device (for purposes of cloud sync)
- * @property {boolean} isTransient - true if this device was created on the fly by some discovery module, false
- *           if it was configured manually and is stored on disk
  */
 export interface DeviceInfo {
+    /**
+     * The unique ID of the device.
+     */
     uniqueId : string;
+    /**
+     * A short, human-readable string identifying the device.
+     */
     name : string;
+    /**
+     * A longer string describing the device.
+     */
     description : string;
+    /**
+     * The Thingpedia class ID this device belongs to (suitable to select an icon).
+     */
     kind : string;
+    /**
+     * The version of the class this device belongs to.
+     */
     version : number;
+    /**
+     * The coarse categorization of the device: `physical`, `online`, `data`, or `system`.
+     */
     class : 'physical' | 'online' | 'data' | 'system';
+    /**
+     * The ID of the engine that configured this device (for purposes of cloud sync).
+     */
     ownerTier : string;
+    /**
+     * `true` if this device was created on the fly by some discovery module, `false`
+     * if it was configured manually and is stored on disk.
+     */
     isTransient : boolean;
 }
 
@@ -125,7 +154,6 @@ interface AppResult {
  * can run in the same process, but they must be associated with
  * different platform objects.
  *
- * @extends external:thingpedia.BaseEngine
  */
 export default class AssistantEngine extends Tp.BaseEngine {
     readonly _ : (x : string) => string;
@@ -137,6 +165,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
     private _devices : DeviceDatabase;
     private _appdb : AppDatabase;
     private _assistant : AssistantDispatcher;
+    private _audio : AudioController|null;
 
     private _running : boolean;
     private _stopCallback : (() => void)|null;
@@ -153,7 +182,6 @@ export default class AssistantEngine extends Tp.BaseEngine {
 
         this._ = I18n.get(platform.locale).gettext;
 
-        // tiers and devices are always enabled
         this._tiers = new TierManager(platform, options.cloudSyncUrl || Config.THINGENGINE_URL);
 
         this._modules = [];
@@ -167,13 +195,20 @@ export default class AssistantEngine extends Tp.BaseEngine {
 
         this._assistant = new AssistantDispatcher(this, options.nluModelUrl);
 
+        if (platform.hasCapability('sound'))
+            this._audio = new AudioController(this._devices);
+        else
+            this._audio = null;
+
         // in loading order
         this._modules = [this._tiers,
                          this._devices,
                          new PairedEngineManager(platform, this._devices, deviceFactory, this._tiers),
-                         this._appdb,
-                         this._assistant,
-                         new AppRunner(this._appdb)];
+                         this._appdb];
+        if (this._audio)
+            this._modules.push(this._audio);
+        this._modules.push(this._assistant,
+                           new AppRunner(this._appdb));
 
         this._running = false;
         this._stopCallback = null;
@@ -212,6 +247,13 @@ export default class AssistantEngine extends Tp.BaseEngine {
         return this._assistant;
     }
 
+    /**
+     * Access the audio controller to coordinate access to audio.
+     */
+    get audio() {
+        return this._audio;
+    }
+
     private async _openSequential(modules : EngineModule[]) {
         for (let i = 0; i < modules.length; i++) {
             //console.log('Starting ' + modules[i].constructor.name);
@@ -230,7 +272,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * Initialize this engine.
      *
      * This will initialize all modules sequentially in the right
-     * order. It must be called before {@link Engine#run}.
+     * order. It must be called before {@link run}.
      */
     open() : Promise<void> {
         return sqlite.ensureSchema(this.platform).then(() => {
@@ -246,7 +288,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * This will sequentially close all modules, save the database
      * and release all resources.
      *
-     * This should not be called if {@link Engine#start} fails. After
+     * This should not be called if {@link start} fails. After
      * this method succeed, the engine is in undefined state and must
      * not be used.
      */
@@ -261,7 +303,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
      *
      * Kick start the engine by returning a promise that will
      * run each rule in sequence, forever, without ever being
-     * fulfilled until {@link Engine#stop} is called.
+     * fulfilled until {@link stop} is called.
      */
     run() : Promise<void> {
         console.log('Engine running');
@@ -280,10 +322,10 @@ export default class AssistantEngine extends Tp.BaseEngine {
     /**
      * Stop any rule execution at the next available moment.
      *
-     * This will cause the {@link Engine#run} promise to be fulfilled.
+     * This will cause the {@link run} promise to be fulfilled.
      *
      * This method can be called multiple times and is idempotent.
-     * It can also be called before {@link Engine#run}.
+     * It can also be called before {@link run}.
      */
     stop() : void {
         console.log('Engine stopped');
@@ -297,7 +339,6 @@ export default class AssistantEngine extends Tp.BaseEngine {
      *
      * @param {string} kind - the Thingpedia class ID of the device to configure.
      * @return {Array} a tuple with the redirect URL and the session object.
-     * @async
      */
     startOAuth(kind : string) : Promise<[string, Record<string, string>]> {
         return this._devices.addFromOAuth(kind);
@@ -309,7 +350,6 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * @param {string} redirectUri - the OAuth redirect URI that was called at the end of the OAuth flow.
      * @param {Object.<string,string>} session - an object with session information.
      * @return {external:thingpedia.BaseDevice} the configured device
-     * @async
      */
     completeOAuth(kind : string,
                   redirectUri : string,
@@ -322,7 +362,6 @@ export default class AssistantEngine extends Tp.BaseEngine {
      *
      * @param {string} kind - the Thingpedia class ID of the device to configure.
      * @return {external:thingpedia.BaseDevice} the configured device
-     * @async
      */
     createSimpleDevice(kind : string) : Promise<Tp.BaseDevice> {
         return this._devices.addSerialized({ kind });
@@ -333,7 +372,6 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * @param {Object} state - the configured device parameters.
      * @param {string} state.kind - the Thingpedia class ID of the device to configure.
      * @return {external:thingpedia.BaseDevice} the configured device
-     * @async
      */
     createDevice(state : DeviceState) : Promise<Tp.BaseDevice> {
         return this._devices.addSerialized(state);
@@ -427,7 +465,6 @@ export default class AssistantEngine extends Tp.BaseEngine {
      *
      * @param {string} uniqueId - the ID of the device to check
      * @return {external:thingpedia.Availability} whether the device is available
-     * @async
      */
     async checkDeviceAvailable(uniqueId : string) : Promise<Tp.Availability> {
         const d = this._devices.getDevice(uniqueId);
@@ -442,7 +479,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
             uniqueId: a.uniqueId!,
             name: a.name,
             description: a.description,
-            code: a.code,
+            code: a.program.prettyprint(),
             icon: a.icon || null,
             isRunning: a.isRunning,
             isEnabled: a.isEnabled,
@@ -525,7 +562,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
     /**
      * Create a new ThingTalk app, and execute it to compute all results.
      *
-     * This is a convenience wrapper over {@link Engine#createApp} that also
+     * This is a convenience wrapper over {@link createApp} that also
      * iterates the results of the app and formats them.
      *
      * @param {string|external:thingtalk.Ast.Program} program - the ThingTalk code to execute,
@@ -556,7 +593,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
         return {
             uniqueId: app.uniqueId!,
             description: app.description,
-            code: app.code,
+            code: app.program.prettyprint(),
             icon: app.icon,
             results, errors
         };
