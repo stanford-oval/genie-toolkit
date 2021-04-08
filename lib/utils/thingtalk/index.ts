@@ -32,10 +32,9 @@ export * from './describe';
 export * from './syntax';
 export * from './dialogue_state_utils';
 import { computePrediction } from './dialogue_state_utils';
-export * from './example-utils';
-// reexport clean from misc-utils
-import { clean } from '../misc-utils';
-export { clean };
+// reexport clean, tokenizeExample from misc-utils
+import { clean, tokenizeExample } from '../misc-utils';
+export { clean, tokenizeExample };
 
 export type Input = Ast.Input;
 export type DialogueState = Ast.DialogueState;

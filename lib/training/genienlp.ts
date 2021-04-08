@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -23,11 +23,21 @@ import path from 'path';
 import * as fs from 'fs';
 import util from 'util';
 
-import BaseTrainingJob from './base_training_job';
+import { BaseTrainingJob, TrainingJobOptions } from './base_training_job';
 
-import { execCommand, safeMkdir, safeRmdir } from './exec-utils';
+import { execCommand, safeMkdir, safeRmdir } from '../utils/process-utils';
 
-const DEFAULT_TRAINING_CONFIG = {
+export interface GenieNLPConfig {
+    task_name : 'almond'|'almond_dialogue_nlu',
+    train_iterations : number,
+    save_every : number,
+    log_every : number,
+    val_every : number,
+
+    [key : string] : unknown
+}
+
+const DEFAULT_TRAINING_CONFIG : GenieNLPConfig = {
     task_name: 'almond',
     train_iterations: 100000,
     save_every: 2000,
@@ -36,10 +46,12 @@ const DEFAULT_TRAINING_CONFIG = {
 };
 
 export default class GenieNLPTrainingJob extends BaseTrainingJob {
-    constructor(options) {
+    private _config : GenieNLPConfig;
+
+    constructor(options : TrainingJobOptions & { config : GenieNLPConfig }) {
         super(options);
 
-        this._config = {};
+        this._config = {} as GenieNLPConfig;
         Object.assign(this._config, DEFAULT_TRAINING_CONFIG);
         if (options.config)
             Object.assign(this._config, options.config);
@@ -53,7 +65,7 @@ export default class GenieNLPTrainingJob extends BaseTrainingJob {
         await util.promisify(fs.symlink)(path.resolve(this.datadir), path.resolve(this.workdir, this._config.task_name));
 
         const args = [
-            'train',
+            'genienlp', 'train',
             '--train_tasks', this._config.task_name,
             '--save', path.resolve(this.workdir, 'model'),
             '--cache', path.resolve(this.workdir, 'cache'),
@@ -65,7 +77,7 @@ export default class GenieNLPTrainingJob extends BaseTrainingJob {
             args.push('--embeddings', process.env.GENIENLP_EMBEDDINGS);
         else
             args.push('--embeddings', path.resolve(this.workdir, 'embeddings'));
-        for (let key in this._config) {
+        for (const key in this._config) {
             if (['thingpedia_snapshot', 'thingpedia_developer_key', 'synthetic_depth', 'task_name'].indexOf(key) >= 0)
                 continue;
             if (typeof this._config[key] === 'boolean') {
@@ -77,7 +89,7 @@ export default class GenieNLPTrainingJob extends BaseTrainingJob {
         }
 
         this.metrics = {};
-        await execCommand(this, 'genienlp', args, (line) => {
+        await execCommand(args, { debug: this.debug, handleStderr: (line) => {
             // the line we are looking for has the form:
             // ...:train_contextual_almond:70000/100000:val_deca:...
             // or
@@ -86,11 +98,11 @@ export default class GenieNLPTrainingJob extends BaseTrainingJob {
             if (match === null)
                 return;
             this.progress = parseFloat(match[1])/this._config.train_iterations;
-            for (let metric of match[2].split(':')) {
-                 let [key, value] = metric.split('_');
+            for (const metric of match[2].split(':')) {
+                 const [key, value] = metric.split('_');
                  this.metrics[key] = parseFloat(value);
             }
-        });
+        } }, this);
         if (this._killed)
             return;
 
@@ -102,16 +114,16 @@ export default class GenieNLPTrainingJob extends BaseTrainingJob {
         if (this._killed)
             return;
 
-        const args = ['export',
+        const args = ['genienlp', 'export',
             '--path', path.resolve(this.workdir, 'model'),
-            '--output', path.resolve(this.outputdir)
+            '--output', path.resolve(this.outputdir!)
         ];
         if (process.env.GENIENLP_EMBEDDINGS)
             args.push('--embeddings', process.env.GENIENLP_EMBEDDINGS);
         else
             args.push('--embeddings', path.resolve(this.workdir, 'embeddings'));
 
-        await execCommand(this, 'genienlp', args);
+        await execCommand(args, { debug: this.debug, }, this);
     }
 
     async train() {

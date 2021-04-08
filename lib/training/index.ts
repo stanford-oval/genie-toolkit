@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -19,18 +19,19 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-import GenieNLP from './genienlp';
+import GenieNLP, { GenieNLPConfig } from './genienlp';
+import { TrainingJobOptions } from './base_training_job';
 
 const BACKENDS = {
     'genienlp': GenieNLP
 };
-const DEFAULT_BACKEND = 'genienlp';
+const DEFAULT_BACKEND = 'genienlp' as const;
 
 export {
     BACKENDS,
     DEFAULT_BACKEND,
 };
 
-export function createJob(options) {
+export function createJob(options : TrainingJobOptions & { backend ?: keyof typeof BACKENDS, config : GenieNLPConfig }) {
     return new BACKENDS[options.backend || DEFAULT_BACKEND](options);
 }

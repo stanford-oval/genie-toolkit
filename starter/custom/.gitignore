@@ -1,0 +1,12 @@
+build/
+node_modules/
+
+synthetic*
+augmented*
+*user.tsv
+*agent.tsv
+everything/schema*.tt
+everything/dataset.tt
+everything/database-map.tsv
+everything/models
+everything/datasets

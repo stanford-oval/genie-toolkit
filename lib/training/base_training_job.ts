@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -18,24 +18,39 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 import path from 'path';
+import * as child_process from 'child_process';
 import * as events from 'events';
 
-export default class BaseTrainingJob extends events.EventEmitter {
-    constructor(options) {
-        super();
+export interface TrainingJobOptions {
+    id : string;
+    datadir : string;
+    workdir : string;
+    outputdir ?: string;
+    debug ?: boolean;
+    config ?: Record<string, unknown>;
+}
 
-        this._options = options;
+export abstract class BaseTrainingJob extends events.EventEmitter {
+    private _datadir : string;
+    private _workdir : string;
+    private _outputdir : string|null;
+    private _debug : boolean;
+    private _progress : number;
+    protected _killed = false;
+    id : string;
+    child : child_process.ChildProcess|null;
+    metrics : Record<string, number>;
+
+    constructor(options : TrainingJobOptions) {
+        super();
 
         this.id = options.id;
         this._datadir = path.resolve(options.datadir);
         this._workdir = path.resolve(options.workdir);
         this._outputdir = options.outputdir ? path.resolve(options.outputdir) : null;
 
-        this._debug = options.debug;
-        if (this._debug === undefined)
-            this._debug = true;
+        this._debug = options.debug ?? true;
 
         this._progress = 0;
 
@@ -56,19 +71,12 @@ export default class BaseTrainingJob extends events.EventEmitter {
         return this._debug;
     }
 
-    /* istanbul ignore next */
-    async train() {
-        throw new TypeError(`Abstract method`);
-    }
-    /* istanbul ignore next */
-    async evaluate(useTestSet) {
-        throw new TypeError(`Abstract method`);
-    }
+    abstract train() : Promise<void>;
 
     get progress() {
         return this._progress;
     }
-    set progress(value) {
+    set progress(value : number) {
         // progress is monotonic
         if (value > this._progress) {
             this._progress = value;

@@ -1,6 +1,5 @@
 geniedir ?= ../..
 developer_key =
-thingpedia_cli = thingpedia
 thingpedia_url = https://thingpedia.stanford.edu/thingpedia
 
 -include ./config.mk
@@ -63,16 +62,13 @@ all: train
 .SECONDARY:
 
 thingpedia/thingpedia.tt:
-	$(thingpedia_cli) --url $(thingpedia_url) --developer-key $(developer_key) --access-token invalid \
-	  download-snapshot -o $@
+	$(genie) download-snapshot --thingpedia-url $(thingpedia_url) --developer-key $(developer_key) -o $@
 
 thingpedia/dataset.tt:
-	$(thingpedia_cli) --url $(thingpedia_url) --developer-key $(developer_key) --access-token invalid \
-	  download-templates -o $@
+	$(genie) download-templates --thingpedia-url $(thingpedia_url) --developer-key $(developer_key) -o $@
 
 thingpedia/entities.json:
-	$(thingpedia_cli) --url $(thingpedia_url) --developer-key $(developer_key) --access-token invalid \
-	  download-entities -o $@
+	$(genie) download-entities --thingpedia-url $(thingpedia_url) --developer-key $(developer_key) -o $@
 
 $(experiment)/synthetic.tsv : $(experiment)/thingpedia.tt $(experiment)/dataset.tt $(experiment)/entities.json $(geniedir)/languages-dist/thingtalk/en/*.genie.js
 	$(genie) generate \
@@ -82,10 +78,10 @@ $(experiment)/synthetic.tsv : $(experiment)/thingpedia.tt $(experiment)/dataset.
 	mv $@.tmp $@
 
 shared-parameter-datasets.tsv:
-	$(thingpedia_cli) --url $(thingpedia_url) --developer-key $(developer_key) --access-token invalid \
-	  download-entity-values --manifest $@ --append-manifest -d shared-parameter-datasets
-	$(thingpedia_cli) --url $(thingpedia_url) --developer-key $(developer_key) --access-token invalid \
-	  download-string-values --manifest $@ --append-manifest -d shared-parameter-datasets
+	$(genie) download-entity-values --thingpedia-url $(thingpedia_url) --developer-key $(developer_key) \
+	   --manifest $@ --append-manifest -d shared-parameter-datasets
+	$(genie) download-string-values --thingpedia-url $(thingpedia_url) --developer-key $(developer_key) \
+	   --manifest $@ --append-manifest -d shared-parameter-datasets
 
 $(experiment)/augmented.tsv : $($(experiment)_paraphrase) $(experiment)/synthetic.tsv $(experiment)/thingpedia.tt $(experiment)/entities.json shared-parameter-datasets.tsv
 	$(genie) augment -o $@.tmp -l en-US --thingpedia $(experiment)/thingpedia.tt --entities $(experiment)/entities.json\

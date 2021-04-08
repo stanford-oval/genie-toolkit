@@ -8,6 +8,22 @@ node $srcdir/dist/tool/genie.js && exit 1 || true
 
 node $srcdir/dist/tool/genie.js --help
 
+git config thingpedia.url https://almond-dev.stanford.edu/thingpedia
+git config thingpedia.developer-key 88c03add145ad3a3aa4074ffa828be5a391625f9d4e1d0b034b445f18c595656
+
+# download commands
+
+node $srcdir/dist/tool/genie.js download-snapshot -o thingpedia.tt --entities entities.json --snapshot -1
+node $srcdir/dist/tool/genie.js download-snapshot -o thingpedia.tt --snapshot -1
+node $srcdir/dist/tool/genie.js download-snapshot --thingpedia-url https://almond.stanford.edu/thingpedia -o thingpedia12.tt --snapshot 12
+diff -u thingpedia12.tt $srcdir/test/data/en-US/expected-thingpedia12.tt
+node $srcdir/dist/tool/genie.js download-templates -o dataset.tt
+
+node $srcdir/dist/tool/genie.js download-entities -o entities.json
+node $srcdir/dist/tool/genie.js download-entity-values -d parameters --manifest parameters/parameter-datasets.tsv
+
+node $srcdir/dist/tool/genie.js download-strings -o strings.json
+node $srcdir/dist/tool/genie.js download-string-values -d parameters --manifest parameters/parameter-datasets.tsv --append-manifest
 
 ## test requote.js
 # replace mode
@@ -30,14 +46,6 @@ node $srcdir/dist/tool/genie.js augment $srcdir/test/data/fa/para-restaurants-fi
 # then requote the augmented dataset and assert the result matches the input dataset
 node $srcdir/dist/tool/genie.js requote ./para-restaurants-aug.tsv --output ./para-restaurants-aug-req.tsv --mode replace
 diff -u --left-column <(cut -f2- ./para-restaurants-aug-req.tsv) <(cut -f2- $srcdir/test/data/fa/para-restaurants-fixed.tsv)
-
-
-# download-*
-node $srcdir/dist/tool/genie.js download-snapshot --help
-node $srcdir/dist/tool/genie.js download-dataset --help
-
-node $srcdir/dist/tool/genie.js download-snapshot -o thingpedia.tt --entities entities.json --snapshot -1
-node $srcdir/dist/tool/genie.js download-dataset -o dataset.tt
 
 # preprocess string datasets
 node $srcdir/dist/tool/genie.js preprocess-string-dataset -o com.spotify:genre.tsv $srcdir/test/data/en-US/spotify-genres.txt
