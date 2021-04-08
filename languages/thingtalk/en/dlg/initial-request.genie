@@ -51,8 +51,8 @@ initial_command : Ast.Expression = {
     // ?remote_commands remote_command [weight=0.1];
     // ?policies policy_command [weight=0.2];
 
-    ?timer stmt:timer_rule [weight=0.2] => stmt;
     !nostream {
+        ?timer stmt:timer_rule [weight=0.2] => stmt;
         monitor_command [weight=0.1];
         when_command [weight=0.1];
     }
