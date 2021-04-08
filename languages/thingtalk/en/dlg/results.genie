@@ -31,22 +31,18 @@ import ThingpediaLoader from '../../load-thingpedia';
 
 // a phrase that talks about the result by name
 direct_answer_phrase : D.DirectAnswerPhrase = {
-    ["${name} is a ${info[plural=one]}"]: (ctx: ctx_with_result, name: constant_name<type=ctx.idType>, info: result_info_phrase)
-        => D.checkDirectAnswerPhrase(info, name),
-
-    // to support Xkcd (which uses a numeric "ID" property), we allow any type of constant
-    ?inference ["${name} is a ${info[plural=one]}"]: (ctx: ctx_with_result, name: constant_Any<type=ctx.idType>, info: result_info_phrase)
-        => D.checkDirectAnswerPhrase(info, name),
+    ["${name} is a ${info[plural=one]}"]: (name: ctx_result_name, info: result_info_phrase)
+        => D.checkDirectAnswerPhrase(info, name.name),
 
     // short answers to a single question
-    ["${name} ${filter[plural=one]}", priority=0.1]: (ctx: ctx_with_result, name: constant_name<type=ctx.idType>, filter:avp_filter<functionName = ctx.currentFunction>)
-        => D.makeFilterStyleDirectAnswerPhrase(ctx, name, filter),
-    ["${name} is ${filter[plural=one]}", priority=0.1]: (ctx: ctx_with_result, name: constant_name<type=ctx.idType>, filter:pvp_filter<functionName = ctx.currentFunction>)
-        => D.makeFilterStyleDirectAnswerPhrase(ctx, name, filter),
-    ["${name} is ${filter[plural=one]}", priority=0.1]: (ctx: ctx_with_result, name: constant_name<type=ctx.idType>, filter:apv_filter<functionName = ctx.currentFunction>)
-        => D.makeFilterStyleDirectAnswerPhrase(ctx, name, filter),
-    ["${name} has ${filter[plural=one]}", priority=0.1]: (ctx: ctx_with_result, name: constant_name<type=ctx.idType>, filter:npp_filter<functionName = ctx.currentFunction>)
-        => D.makeFilterStyleDirectAnswerPhrase(ctx, name, filter),
+    ["${name} ${filter[plural=one]}", priority=0.1]: (name: ctx_result_name, filter:avp_filter<functionName = name.currentFunction>)
+        => D.makeFilterStyleDirectAnswerPhrase(name.ctx, name.name, filter),
+    ["${name} is ${filter[plural=one]}", priority=0.1]: (name: ctx_result_name, filter:pvp_filter<functionName = name.currentFunction>)
+        => D.makeFilterStyleDirectAnswerPhrase(name.ctx, name.name, filter),
+    ["${name} is ${filter[plural=one]}", priority=0.1]: (name: ctx_result_name, filter:apv_filter<functionName = name.currentFunction>)
+        => D.makeFilterStyleDirectAnswerPhrase(name.ctx, name.name, filter),
+    ["${name} has ${filter[plural=one]}", priority=0.1]: (name: ctx_result_name, filter:npp_filter<functionName = name.currentFunction>)
+        => D.makeFilterStyleDirectAnswerPhrase(name.ctx, name.name, filter),
 }
 
 // note: we need to make new non-terminals for these, it is not enough to use constraints

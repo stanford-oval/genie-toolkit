@@ -1283,6 +1283,30 @@ function makeOneNameListContextPhrase(ctx : ContextInfo,
     };
 }
 
+export interface ContextName {
+    ctx : ContextInfo;
+    name : Ast.Value;
+}
+
+export function contextNameKeyFn(name : ContextName) {
+    return {
+        currentFunction: name.ctx.key.currentFunction
+    };
+}
+
+function makeNameContextPhrase(ctx : ContextInfo,
+                               utterance : SentenceGeneratorRuntime.ReplacedResult,
+                               name : Ast.Value) {
+    const value = { ctx, name };
+    return {
+        symbol: ctx.contextTable.ctx_result_name,
+        utterance,
+        value,
+        priority: 0,
+        key: contextNameKeyFn(value)
+    };
+}
+
 export function makeNameListContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.ContextPhrase[] {
     const describer = ctx.loader.describer;
 
@@ -1300,6 +1324,8 @@ export function makeNameListContextPhrases(ctx : ContextInfo) : SentenceGenerato
             break;
         descriptions.push(description);
     }
+
+    phrases.push(...descriptions.slice(0, 3).map((d, i) => makeNameContextPhrase(ctx, d, results[i].value.id)));
 
     if (descriptions.length <= 1)
         return phrases;

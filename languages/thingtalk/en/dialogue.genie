@@ -40,6 +40,7 @@ await $loader.init();
 keyfn = {
     S.ContextInfo : S.contextKeyFn,
     S.NameList : S.nameListKeyFn,
+    S.ContextName : S.contextNameKeyFn,
     D.ActionSuccessPhraseWithResult : D.actionSuccessPhraseWithResultKeyFn,
     D.Recommendation : D.recommendationKeyFn,
     D.ListProposal : D.listProposalKeyFn,
@@ -175,6 +176,9 @@ context : C.ErrorMessage = {
 };
 context : S.NameList = {
     ctx_result_name_list
+};
+context : S.ContextName = {
+    ctx_result_name
 };
 context : Ast.Value = {
     ctx_notification_app_name
