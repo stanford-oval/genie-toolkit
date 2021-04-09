@@ -27,7 +27,7 @@ import * as licejs from 'lice-js';
 
 import { execCommand } from '../lib/utils/process-utils';
 
-import { getConfig } from './lib/argutils';
+import { getConfig, DEFAULT_THINGPEDIA_URL } from './lib/argutils';
 
 const LICENSES : Record<string, string> = {
     'BSD-3-Clause': 'bsd3',
@@ -44,6 +44,16 @@ export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('init-project', {
         add_help: true,
         description: "Initialize a repository to develop Thingpedia devices."
+    });
+    parser.add_argument('--thingpedia-url', {
+        required: false,
+        default: DEFAULT_THINGPEDIA_URL,
+        help: `base URL of Thingpedia server to contact; defaults to '${DEFAULT_THINGPEDIA_URL}'`
+    });
+    parser.add_argument('--developer-key', {
+        required: false,
+        default: '',
+        help: `developer key to use when contacting Thingpedia`
     });
     parser.add_argument('--description', {
         required: false,
