@@ -28,8 +28,8 @@ import { EntityRecord } from '../entity-linking/entity-finder';
 
 import StatementSimulator, {
     ThingTalkSimulatorState,
-    SimulationDatabase
 } from './statement_simulator';
+import { SimulationDatabase } from './types';
 import ValueCategory from '../value-category';
 
 export interface SimulationDialogueAgentOptions {

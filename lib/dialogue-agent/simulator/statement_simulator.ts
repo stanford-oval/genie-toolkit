@@ -35,16 +35,12 @@ import {
     SimulationExecEnvironment,
     SimulatedError
 } from './simulation_exec_environment';
+import { SimulationDatabase } from './types';
 
 // above MORE_SIZE, we set the "more" bit
 const MORE_SIZE = 50;
 // above PAGE_SIZE, we set the count but don't actually show the full list of results
 const PAGE_SIZE = 10;
-
-export interface SimulationDatabase {
-    has(key : string) : boolean;
-    get(key : string) : Array<{ [key : string] : unknown }>|undefined;
-}
 
 interface SimulatorOptions {
     locale : string;

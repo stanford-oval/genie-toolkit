@@ -29,6 +29,7 @@ import MultiMap from '../utils/multimap';
 import { ReservoirSampler, } from '../utils/random';
 import * as Utils from '../utils/entity-utils';
 import * as ThingTalkUtils from '../utils/thingtalk';
+import { SimulationDatabase } from '../dialogue-agent/simulator/types';
 
 import SentenceGenerator, {
     SentenceGeneratorOptions,
@@ -407,11 +408,6 @@ class MinibatchDialogueGenerator {
                 yield dialogue;
         }
     }
-}
-
-interface SimulationDatabase {
-    has(key : string) : boolean;
-    get(key : string) : Array<{ [key : string] : unknown }>|undefined;
 }
 
 interface DialogueGeneratorOptions {

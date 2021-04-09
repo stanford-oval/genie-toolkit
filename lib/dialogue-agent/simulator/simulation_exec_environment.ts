@@ -27,7 +27,7 @@ import { Ast, Type, ExecEnvironment, SchemaRetriever } from 'thingtalk';
 import { coin, uniform, randint } from '../../utils/random';
 import TextFormatter from '../card-output/text-formatter';
 
-import { SimulationDatabase } from './statement_simulator';
+import { SimulationDatabase } from './types';
 
 type CompiledFilterHint = [string, string, unknown];
 export interface CompiledQueryHints {
