@@ -151,6 +151,13 @@ export default class SlotExtractor {
                 return date.weekday;
         }
 
+        if (value instanceof Ast.EventValue) {
+            if (value.name === null)
+                return '$event';
+            else
+                return '$' + value.name;
+        }
+
         // everything else (time, currency, number, enum), use JS value
         return String(value.toJS()).toLowerCase();
     }
