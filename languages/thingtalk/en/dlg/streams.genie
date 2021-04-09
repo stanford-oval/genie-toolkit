@@ -35,7 +35,7 @@ notification_error_preamble : S.ContextInfo = {
 }
 
 add_separate_stream_to_query : Ast.Expression = {
-    ['{send this to me|send it to me|i want to see this|i want this|send this} ${stream}']:
+    ?timer ['{send this to me|send it to me|i want to see this|i want this|send this} ${stream}']:
         (stream : timer) => stream,
     ['{send this to me|send it to me|i want to see this|i want this|send this} ${stream}']:
         (stream : stream) => stream,
@@ -43,5 +43,5 @@ add_separate_stream_to_query : Ast.Expression = {
 
 add_separate_stream : Ast.Expression = {
     ['{do this|do it|do it automatically} ${stream}']: (stream : stream) => stream,
-    ['{do this|do it|do it automatically} ${stream}']: (stream : timer) => stream,
+    ?timer ['{do this|do it|do it automatically} ${stream}']: (stream : timer) => stream,
 }

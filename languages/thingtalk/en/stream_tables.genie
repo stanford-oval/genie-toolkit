@@ -580,7 +580,7 @@ stream : Ast.Expression = {
         ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'anytime') proj:projection_Any with { is_monitorable = true } 'changes'
             => C.tableToStream(proj);
     }
-    !nofilter ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table with { is_monitorable = true } 'change and' filter:edge_filter => {
+    !nofilter ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table with { is_monitorable = true } 'change and' filter:edge_filter with { functionName = table.functionName } => {
         if (!table.schema!.is_monitorable || !C.checkFilter(table, filter) || table.schema!.is_list)
             return null;
         const withFilter = C.addFilter(table, filter, { ifFilter: true });
@@ -588,7 +588,7 @@ stream : Ast.Expression = {
             return null;
         return C.tableToStream(withFilter);
     };
-    !nofilter ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table with { is_monitorable = true } 'change and' filter:if_filter => {
+    !nofilter ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table with { is_monitorable = true } 'change and' filter:if_filter with { functionName = table.functionName } => {
         if (!table.schema!.is_monitorable || !C.checkFilter(table, filter))
             return null;
         if ($loader.flags.turking && table.schema!.is_list)
@@ -599,7 +599,6 @@ stream : Ast.Expression = {
         return C.tableToStream(withFilter);
     };
     !nofilter edge_stream;
-    ?timer timer;
 }
 
 

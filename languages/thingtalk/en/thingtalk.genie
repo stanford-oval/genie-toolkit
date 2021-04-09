@@ -47,8 +47,8 @@ import './stream_tables.genie';
 $root : Ast.Input = {
     p:thingpedia_complete_program => C.makeProgram($loader, p);
 
-    ?timer stmt:timer_rule [weight=0.2] => C.makeProgram($loader, stmt);
     !nostream {
+        ?timer stmt:timer_rule [weight=0.2] => C.makeProgram($loader, stmt);
         ( stmt:monitor_command [weight=0.2]
         | stmt:when_command [weight=0.2]
         ) => C.makeProgram($loader, stmt);

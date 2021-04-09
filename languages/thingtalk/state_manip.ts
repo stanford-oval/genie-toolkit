@@ -123,7 +123,8 @@ export class ResultInfo {
         const stmt = item.stmt;
         this.hasStream = stmt.stream !== null;
 
-        this.isTable = stmt.last.schema!.functionType === 'query';
+        this.isTable = stmt.last.schema!.functionType === 'query' &&
+            (!this.hasStream || state.dialogueAct === 'notification');
 
         if (this.isTable) {
             const table = stmt.lastQuery!;
@@ -1282,6 +1283,30 @@ function makeOneNameListContextPhrase(ctx : ContextInfo,
     };
 }
 
+export interface ContextName {
+    ctx : ContextInfo;
+    name : Ast.Value;
+}
+
+export function contextNameKeyFn(name : ContextName) {
+    return {
+        currentFunction: name.ctx.key.currentFunction
+    };
+}
+
+function makeNameContextPhrase(ctx : ContextInfo,
+                               utterance : SentenceGeneratorRuntime.ReplacedResult,
+                               name : Ast.Value) {
+    const value = { ctx, name };
+    return {
+        symbol: ctx.contextTable.ctx_result_name,
+        utterance,
+        value,
+        priority: 0,
+        key: contextNameKeyFn(value)
+    };
+}
+
 export function makeNameListContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.ContextPhrase[] {
     const describer = ctx.loader.describer;
 
@@ -1299,6 +1324,8 @@ export function makeNameListContextPhrases(ctx : ContextInfo) : SentenceGenerato
             break;
         descriptions.push(description);
     }
+
+    phrases.push(...descriptions.slice(0, 3).map((d, i) => makeNameContextPhrase(ctx, d, results[i].value.id)));
 
     if (descriptions.length <= 1)
         return phrases;
@@ -1423,7 +1450,7 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
 
     assert(ctx.results && ctx.results.length > 0);
     phrases.push(makeContextPhrase(contextTable.ctx_with_result, ctx));
-    if (ctx.resultInfo.isTable)
+    if (ctx.resultInfo.isTable && !ctx.resultInfo.isAggregation)
         phrases.push(makeContextPhrase(contextTable.ctx_with_table_result, ctx));
     if (ctx.resultInfo.isAggregation)
         phrases.push(makeContextPhrase(contextTable.ctx_with_aggregation_result, ctx));

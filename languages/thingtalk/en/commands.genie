@@ -377,7 +377,7 @@ projection_question : Ast.Expression = {
 }
 
 explicit_when_condition : Ast.Expression = {
-    ('if' | 'when') filter:if_filter 'in' table:complete_table with { is_monitorable = true } => {
+    ["{if|when} ${filter} in ${table}"]: (table:complete_table<is_monitorable=true>, filter:if_filter<functionName=table.functionName>) => {
         if (C.hasExistentialSubquery(filter.ast))
             return null;
         if (!table.schema!.is_monitorable)
@@ -388,9 +388,9 @@ explicit_when_condition : Ast.Expression = {
         if (!withFilter)
             return null;
         return C.tableToStream(withFilter);
-    };
+    },
 
-    ('if' | 'when') filter:edge_filter 'in' table:complete_table with { is_monitorable = true } => {
+    ["{if|when} ${filter} in ${table}"]: (table:complete_table<is_monitorable=true>, filter:edge_filter<functionName=table.functionName>) => {
         if (C.hasExistentialSubquery(filter.ast))
             return null;
         if (!table.schema!.is_monitorable || table.schema!.is_list)

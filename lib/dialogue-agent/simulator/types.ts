@@ -2,7 +2,7 @@
 //
 // This file is part of Genie
 //
-// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2020-2021 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,26 +15,10 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import {
-    SentenceEvaluatorStream,
-    CollectSentenceStatistics,
-} from './sentence_evaluator';
-import {
-    DialogueEvaluatorStream,
-    CollectDialogueStatistics
-} from './dialogue_evaluator';
-import SlotExtractor from './slot_extractor';
-
-/**
- * Classes related to evaluation of a model.
- *
- * @namespace
- */
-export {
-    SentenceEvaluatorStream,
-    CollectSentenceStatistics,
-    DialogueEvaluatorStream,
-    CollectDialogueStatistics,
-    SlotExtractor
-};
+export interface SimulationDatabase {
+    has(key : string) : boolean;
+    get(key : string) : Array<Record<string, unknown>>|undefined;
+}

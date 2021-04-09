@@ -22,24 +22,18 @@
 import Stream from 'stream';
 import deepEqual from 'deep-equal';
 import * as Tp from 'thingpedia';
-import * as ThingTalk from 'thingtalk';
 import { Ast, } from 'thingtalk';
 import assert from 'assert';
 
 import * as Utils from '../../utils/misc-utils';
 import { EntityMap } from '../../utils/entity-utils';
 import * as I18n from '../../i18n';
-import { EntityRecord, getBestEntityMatch } from '../../dialogue-agent/entity-linking/entity-finder';
 import { stripOutTypeAnnotations } from './eval_utils';
 import { ParserClient, PredictionResult } from '../../prediction/parserclient';
 import { ParsedDialogue, DialogueTurn } from '../parsers';
 import * as ThingTalkUtils from '../../utils/thingtalk';
-
-// FIXME move this to a shared place with the simulation code
-interface SimulationDatabase {
-    has(key : string) : boolean;
-    get(key : string) : Array<{ [key : string] : unknown }>|undefined;
-}
+import { SimulationDatabase } from '../../dialogue-agent/simulator/types';
+import SlotExtractor from './slot_extractor';
 
 interface DialogueEvaluatorOptions {
     thingpediaClient : Tp.BaseClient|null;
@@ -75,16 +69,14 @@ const MINIBATCH_SIZE = 100;
 
 class DialogueEvaluatorStream extends Stream.Transform {
     private _parser : ParserClient;
-    private _tpClient : Tp.BaseClient|null;
     private _tokenizer : I18n.BaseTokenizer;
     private _options : DialogueEvaluatorOptions;
     private _locale : string;
     private _debug : boolean;
     private _tokenized : boolean;
-    private _database : SimulationDatabase|undefined;
+    private _slotExtractor : SlotExtractor;
     private _oracle : boolean;
 
-    private _cachedEntityMatches : Map<string, EntityRecord>;
     private _minibatch : Array<Promise<ExampleEvaluationResult>>;
 
     constructor(parser : ParserClient,
@@ -92,17 +84,14 @@ class DialogueEvaluatorStream extends Stream.Transform {
         super({ objectMode: true });
 
         this._parser = parser;
-        this._tpClient = options.thingpediaClient;
         this._tokenizer = I18n.get(options.locale).getTokenizer();
 
         this._options = options;
         this._locale = options.locale;
         this._debug = !!options.debug;
         this._tokenized = options.tokenized;
-        this._database = options.database;
+        this._slotExtractor = new SlotExtractor(options.locale, options.thingpediaClient, options.database);
         this._oracle = !!options.oracle;
-
-        this._cachedEntityMatches = new Map;
 
         this._minibatch = [];
     }
@@ -118,201 +107,6 @@ class DialogueEvaluatorStream extends Stream.Transform {
         }
         Utils.renumberEntities(tokenized, contextEntities);
         return tokenized;
-    }
-
-    private _isWellKnownEntity(entityType : string) {
-        switch (entityType) {
-        case 'tt:username':
-        case 'tt:hashtag':
-        case 'tt:picture':
-        case 'tt:url':
-        case 'tt:email_address':
-        case 'tt:phone_number':
-        case 'tt:path_name':
-        case 'tt:device':
-        case 'tt:function':
-            return true;
-        default:
-            return false;
-        }
-    }
-
-    private _tokenizeSlot(value : string) {
-        return this._tokenizer.tokenize(value).rawTokens.join(' ');
-    }
-
-    private async _resolveEntity(value : Ast.EntityValue) : Promise<EntityRecord> {
-        if (this._isWellKnownEntity(value.type)) {
-            assert(value.value);
-            return { value: value.value!, name: value.display||'', canonical: value.value! };
-        }
-
-        const searchKey = value.display||value.value;
-        assert(searchKey);
-        const cacheKey = value.type + '/' + value.value + '/' + searchKey;
-        let resolved = this._cachedEntityMatches.get(cacheKey);
-        if (resolved)
-            return resolved;
-
-        if (this._database && this._database.has(value.type)) {
-            // resolve as ID entity from the database (simulate issuing a query for it)
-            const ids = this._database.get(value.type)!.map((entry) => {
-                const id = entry.id as { value : string, display : string };
-                return {
-                    value: id.value,
-                    name: id.display,
-                    canonical: id.display.toLowerCase()
-                };
-            });
-            if (value.value) {
-                for (const id of ids) {
-                    if (id.value === value.value) {
-                        resolved = id;
-                        break;
-                    }
-                }
-            }
-            if (!resolved)
-                resolved = getBestEntityMatch(searchKey, value.type, ids);
-            this._cachedEntityMatches.set(cacheKey, resolved);
-            return resolved;
-        }
-
-        // resolve as regular Thingpedia entity
-        const candidates = await this._tpClient!.lookupEntity(value.type, searchKey);
-        resolved = getBestEntityMatch(searchKey, value.type, candidates.data);
-        this._cachedEntityMatches.set(cacheKey, resolved);
-        return resolved;
-    }
-
-    private async _valueToSlot(value : Ast.Value) : Promise<string> {
-        // HACK
-        if (value instanceof Ast.ComputationValue)
-            return this._valueToSlot(value.operands[0]);
-        if (value instanceof Ast.EntityValue) {
-            const resolved = await this._resolveEntity(value);
-            if (resolved)
-                return resolved.canonical;
-            return this._tokenizeSlot(value.display||'');
-        }
-        if (value instanceof Ast.BooleanValue)
-            return value.value ? 'yes' : 'no';
-        if (value instanceof Ast.LocationValue) {
-            if (value.value instanceof Ast.RelativeLocation)
-                return value.value.relativeTag;
-            if (value.value instanceof Ast.AbsoluteLocation)
-                return this._tokenizeSlot(value.value.display||'');
-            // unresolved
-            assert(value.value instanceof Ast.UnresolvedLocation);
-            return this._tokenizeSlot(value.value.name);
-        }
-        if (value instanceof Ast.ContextRefValue)
-            return 'context-' + value.name;
-
-        if (value instanceof Ast.StringValue) {
-            // "tokenize" the value, because the prediction will also be tokenized
-            return this._tokenizeSlot(value.toJS());
-        }
-
-        if (value instanceof Ast.DateValue) {
-            const date = value.value;
-            if (date instanceof Ast.DateEdge)
-                return date.edge + ' ' + date.unit;
-            else if (date instanceof Ast.WeekDayDate)
-                return date.weekday;
-        }
-
-        // everything else (time, currency, number, enum), use JS value
-        return String(value.toJS()).toLowerCase();
-    }
-
-    private async _extractSlots(state : Ast.Node) {
-        const slotValues : Record<string, Ast.Value> = {};
-        let currentDomain : string|undefined;
-
-        function nameToSlot(domain : string, name : string) {
-            if (name === 'id' || name === domain)
-                return domain + '-name';
-            const slotKey = domain + '-' + name.replace(/_/g, '-');
-            return slotKey;
-        }
-
-        // note: this function relies on the precise visit order, in which an invocation
-        // is visited before the boolean expressions that use the output of that invocation
-        state.visit(new class extends ThingTalk.Ast.NodeVisitor {
-            visitInvocation(invocation : Ast.Invocation) {
-                const selector = invocation.selector;
-                assert(selector instanceof Ast.DeviceSelector);
-                const device = selector.kind;
-                const domain = device.substring(device.lastIndexOf('.')+1).toLowerCase();
-                currentDomain = domain;
-
-                // delete all slots for this domain (they'll be set again right after)
-                for (const arg of invocation.schema!.iterateArguments()) {
-                    if (arg.name === currentDomain) {
-                        // do not erase the "id" slot just because we have an action!
-                        assert(arg.type.isEntity);
-                        continue;
-                    }
-                    const slotKey = nameToSlot(domain, arg.name);
-                    delete slotValues[slotKey];
-                }
-
-                for (const in_param of invocation.in_params) {
-                    if (in_param.value.isUndefined || in_param.value.isVarRef)
-                        continue;
-                    const slotKey = nameToSlot(domain, in_param.name);
-                    slotValues[slotKey] = in_param.value;
-                }
-
-                // do not recurse
-                return false;
-            }
-
-            visitDialogueHistoryItem(item : Ast.DialogueHistoryItem) {
-                // recurse only if this item comes from the user and not the agent
-                return item.confirm !== 'proposed';
-            }
-
-            visitDontCareBooleanExpression(expr : Ast.DontCareBooleanExpression) {
-                const slotKey = nameToSlot(currentDomain!, expr.name);
-                slotValues[slotKey] = new ThingTalk.Ast.Value.Enum('dontcare');
-                return false;
-            }
-
-            visitAtomBooleanExpression(expr : Ast.AtomBooleanExpression) {
-                if (expr.value.isUndefined || expr.value.isVarRef)
-                    return false;
-
-                const slotKey = nameToSlot(currentDomain!, expr.name);
-                if (expr.operator === 'in_array') // multiple values, pick the first one
-                    slotValues[slotKey] = (expr.value as Ast.ArrayValue).value[0];
-                else
-                    slotValues[slotKey] = expr.value;
-                return false;
-            }
-
-            visitNotBooleanExpression(expr : Ast.NotBooleanExpression) {
-                // explicitly do not recurse into "not" operators
-                return false;
-            }
-
-            visitOrBooleanExpression(expr : Ast.OrBooleanExpression) {
-                // explicitly do not recurse into "or" operators
-                // (unless they are an "or" of one operand)
-                return expr.operands.length === 1;
-            }
-        });
-
-        // remove train-name which is not in multiwoz
-        delete slotValues['train-name'];
-
-        // resolve entities and map Ast.Value to a string we can compare for equality
-        const slotStrings : Record<string, string> = {};
-        for (const key in slotValues)
-            slotStrings[key] = await this._valueToSlot(slotValues[key]);
-
-        return slotStrings;
     }
 
     private async _checkTurn(id : string, turn : DialogueTurn, turnIndex : number) : Promise<'ok' | 'ok_slot' | 'ok_syntax' | 'wrong_syntax'> {
@@ -343,7 +137,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
         const goldUserTarget = await ThingTalkUtils.parse(turn.user_target, this._options);
         assert(goldUserTarget instanceof Ast.DialogueState);
         const goldUserState = ThingTalkUtils.computeNewState(context, goldUserTarget, 'user');
-        const goldSlots = await this._extractSlots(goldUserState);
+        const goldSlots = await this._slotExtractor.extractSlots(goldUserState);
 
         const targetCode = ThingTalkUtils.serializePrediction(goldUserTarget, tokens, entities, {
            locale: this._locale,
@@ -385,7 +179,7 @@ class DialogueEvaluatorStream extends Stream.Transform {
         const predictedUserState = ThingTalkUtils.computeNewState(context, predictedUserTarget, 'user');
         let predictedSlots;
         try {
-            predictedSlots = await this._extractSlots(predictedUserState);
+            predictedSlots = await this._slotExtractor.extractSlots(predictedUserState);
         } catch(e) {
             console.error(predictedUserTarget.prettyprint());
             throw e;
