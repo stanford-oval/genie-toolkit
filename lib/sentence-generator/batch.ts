@@ -354,6 +354,10 @@ class MinibatchDialogueGenerator {
                         newDialogue.execState = newExecutorState;
                     } catch(e) {
                         console.error(`Failed to execute dialogue`);
+                        for (const turn of newDialogue.turns) {
+                            console.log('A: ' + turn.agent);
+                            console.log('U: ' + turn.user);
+                        }
                         console.error(userState.prettyprint());
                         throw e;
                     }
