@@ -29,6 +29,7 @@ import Conversation, {
 } from './conversation';
 import { Message } from './protocol';
 import NotificationFormatter, { FormattedObject } from './notifications/formatter';
+import TwilioNotificationBackend from './notifications/twilio';
 
 import type Engine from '../engine';
 import DeviceView from '../engine/devices/device_view';
@@ -54,29 +55,8 @@ interface NotificationBackend extends NotificationDelegate {
     uniqueId : string;
 }
 
-class NullNotificationBackend implements NotificationBackend {
-    name = 'nowhere';
-    uniqueId = 'null';
-
-    constructor(engine : Engine, config : {}) {}
-
-    async notify(data : {
-        appId : string;
-        icon : string|null;
-        raw : Record<string, unknown>;
-        type : string;
-        formatted : FormattedObject[]
-    }) {}
-
-    async notifyError(data : {
-        appId : string;
-        icon : string|null;
-        error : Error
-    }) {}
-}
-
 const StaticNotificationBackends = {
-    'null': NullNotificationBackend
+    'twilio': TwilioNotificationBackend
 };
 
 export type NotificationConfig = {
