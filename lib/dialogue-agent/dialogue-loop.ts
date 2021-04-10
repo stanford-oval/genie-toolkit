@@ -185,7 +185,7 @@ export default class DialogueLoop {
             locale: conversation.locale,
             timezone: engine.platform.timezone,
             rng: conversation.rng,
-            debug : this._debug
+            debug : this._debug ? 2 : 1
         });
         this._dialogueState = null; // thingtalk dialogue state
         this._executorState = undefined; // private object managed by DialogueExecutor
@@ -441,7 +441,7 @@ export default class DialogueLoop {
         await this.reply(utterance);
 
         for (const [outputType, outputValue] of newResults.slice(0, numResults)) {
-            const formatted = await this._cardFormatter.formatForType(outputType, outputValue, { removeText: true });
+            const formatted = await this._cardFormatter.formatForType(outputType, outputValue);
 
             for (const card of formatted)
                 await this.replyCard(card);

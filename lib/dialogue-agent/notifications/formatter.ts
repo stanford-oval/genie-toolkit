@@ -64,7 +64,7 @@ export default class NotificationFormatter {
             locale: engine.platform.locale,
             timezone: engine.platform.timezone,
             rng: Math.random,
-            debug: false
+            debug: 0
         });
     }
 
@@ -89,7 +89,7 @@ export default class NotificationFormatter {
         const output : FormattedObject[] = [
             new FORMAT_TYPES.text({ type: 'text', text: postprocessed })
         ];
-        const formatted = await this._cardFormatter.formatForType(outputType, outputValue, { removeText: true });
+        const formatted = await this._cardFormatter.formatForType(outputType, outputValue);
         for (const card of formatted)
             output.push(card);
 

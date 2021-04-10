@@ -418,6 +418,12 @@ class MockAudioController {
     async stopAudio() {}
 }
 
+class MockAssistantDispatcher {
+    getAvailableNotificationBackends() {
+        return [{ name: 'SMS', uniqueId: 'twilio', requiredSettings:['$context.self.phone_number'] }];
+    }
+}
+
 export function createMockEngine(thingpedia, rng, database) {
     const platform = new TestPlatform();
     const schemas = new SchemaRetriever(thingpedia, null, true);
@@ -430,6 +436,7 @@ export function createMockEngine(thingpedia, rng, database) {
         devices: new MockDeviceDatabase(),
         apps: new MockAppDatabase(schemas, gettext, rng, database),
         audio: new MockAudioController(),
+        assistant: new MockAssistantDispatcher(),
 
         createApp(program, options = {}) {
             return this.apps.createApp(program, options);

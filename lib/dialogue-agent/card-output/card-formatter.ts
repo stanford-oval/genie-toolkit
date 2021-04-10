@@ -76,7 +76,7 @@ export default class CardFormatter {
         return replaced;
     }
 
-    async formatForType(outputType : string, outputValue : PlainObject, options : { removeText : boolean }) : Promise<FormattedObject[]> {
+    async formatForType(outputType : string, outputValue : PlainObject) : Promise<FormattedObject[]> {
         // apply masquerading for @remote.receive
         if (outputType === 'org.thingpedia.builtin.thingengine.remote:receive')
             outputType = String(outputValue.__kindChannel);

@@ -1904,6 +1904,8 @@ C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: timer(base=$now, interval=1h) => @com.thecatapi.get()
 C: #[results=[]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: How would you like to be notified?
+A: What is your phone number?
 A: Alright, I will get the cat picture every 60 min.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_rule_enable_success;
 #! vote: down

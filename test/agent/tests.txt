@@ -830,6 +830,18 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: timer(interval=1h, base=$now) => @com.thecatapi.get();
 
+A: How would you like to be notified?
+A: choice 0: SMS
+A: choice 1: This chat
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . execute ; timer ( base = $now , interval = DURATION_0 ) => @com.thecatapi . get ( ) ; // {"DURATION_0":{"unit":"h","value":1}}
+A: >> expecting = choice
+U: \t $choice(0);
+
+A: What is your phone number?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . execute ; timer ( base = $now , interval = DURATION_0 ) => @com.thecatapi . get ( ) ; // {"DURATION_0":{"unit":"h","value":1}}
+A: >> expecting = phone_number
+U: \t $answer("555-12345678"^^tt:phone_number);
+
 A: Alright, I will get the cat picture every 60 min.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_rule_enable_success ; timer ( base = $now , interval = DURATION_0 ) => @com.thecatapi . get ( ) #[ results = [ ] ] ; // {"DURATION_0":{"unit":"h","value":1}}
 A: >> expecting = null
