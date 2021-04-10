@@ -43,6 +43,10 @@ export default class TwilioNotificationBackend {
         this._from = config.from;
     }
 
+    get requiredSettings() {
+        return ['$context.self.phone_number'];
+    }
+
     async notify(data : {
         appId : string;
         icon : string|null;
@@ -51,7 +55,7 @@ export default class TwilioNotificationBackend {
         formatted : FormattedObject[]
     }) {
         const prefs = this._platform.getSharedPreferences();
-        const to = prefs.get('$context.self.phone_number') as string;
+        const to = prefs.get('context-$context.self.phone_number') as string;
 
         await this._client.messages.create({
             to, from: this._from,

@@ -51,8 +51,9 @@ interface NotificationDelegate {
 }
 
 interface NotificationBackend extends NotificationDelegate {
-    name : string;
-    uniqueId : string;
+    readonly name : string;
+    readonly uniqueId : string;
+    readonly requiredSettings : string[];
 }
 
 const StaticNotificationBackends = {
@@ -66,7 +67,7 @@ export type NotificationConfig = {
 /**
  * Helper class to adapt a Thingpedia device into a notification backend.
  */
-class ThingpediaNotificationBackend {
+class ThingpediaNotificationBackend implements NotificationBackend {
     private _iface : NotificationDelegate;
     name : string;
     uniqueId : string;
@@ -75,6 +76,10 @@ class ThingpediaNotificationBackend {
         this.name = device.name;
         this.uniqueId = 'thingpedia/' + device.uniqueId;
         this._iface = device.queryInterface('notifications') as NotificationDelegate;
+    }
+
+    get requiredSettings() {
+        return [];
     }
 
     notify(data : {

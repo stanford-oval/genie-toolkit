@@ -379,6 +379,10 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
             case '$context.time.evening':
                 value = this._tryGetStoredVariable(Type.Time, variable);
                 break;
+            case '$context.self.phone_number':
+                value = this._tryGetStoredVariable(new Type.Entity('tt:phone_number'), variable);
+                break;
+
             default:
                 throw new TypeError('Invalid variable ' + variable);
         }
@@ -407,6 +411,10 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
             question = this._("What time does your evening begin?");
             type = ValueCategory.Time as const;
             break;
+        case '$context.self.phone_number':
+            question = this._("What is your phone number?");
+            type = ValueCategory.PhoneNumber as const;
+            break;
         }
 
         let answer = await this._dlg.ask(type, question);
@@ -427,5 +435,44 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
     getPreferredUnit(type : string) : string|undefined {
         const pref = this._platform.getSharedPreferences();
         return pref.get('preferred-' + type) as string|undefined;
+    }
+
+    protected async ensureNotificationsConfigured() {
+        const prefs = this._platform.getSharedPreferences();
+        const backendId = prefs.get('notification-backend') as string|undefined;
+        // check if the user has chosen a backend, and if that backend was
+        // autodiscovered from a thingpedia device, check that the device is
+        // still available
+        if (backendId !== undefined &&
+            (!backendId.startsWith('thingpedia/') && this._engine.hasDevice(backendId.substring('thingpedia/'.length))))
+            return;
+
+        const available = this._engine.assistant.getAvailableNotificationBackends();
+        // if no backend is available, use the default (which is to blast to all
+        // conversations) and leave it unspecified
+        if (available.length === 0)
+            return;
+
+        // if we have voice, we'll use that for notifications
+        if (this._platform.hasCapability('sound'))
+            return;
+
+        const choices = available.map((c) => c.name);
+        // add the option to be notified in the chat
+        choices.push(this._("This chat"));
+        const chosen = await this._dlg.askChoices(this._("How would you like to be notified?"), choices);
+        if (chosen === available.length) {
+            prefs.set('notification-backend', 'conversation');
+            return;
+        }
+
+        const backend = available[chosen];
+        // ensure that all settings needed by the notification backend are set
+        for (const variable of backend.requiredSettings)
+            await this.resolveUserContext(variable);
+
+        // if we get here, the user has given meaningful answers to our questions
+        // save the setting and continue
+        prefs.set('notification-backend', backend.uniqueId);
     }
 }
