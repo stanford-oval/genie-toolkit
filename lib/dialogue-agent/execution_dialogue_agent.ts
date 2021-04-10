@@ -104,6 +104,23 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         return this._engine.getDeviceInfos(kind);
     }
 
+    protected async checkForPermission(stmt : Ast.ExpressionStatement) {
+        if (!this._dlg.isAnonymous)
+            return;
+
+        if (stmt.stream) {
+            await this._dlg.reply(this._("To receive notifications you must first log in to your personal account."));
+            await this._dlg.replyLink(this._("Register for Almond"), "/user/register");
+            throw new CancellationError();
+        }
+
+        if (stmt.last.schema!.functionType === 'action') {
+            await this._dlg.reply(this._("To use this command you must first log in to your personal account."));
+            await this._dlg.replyLink(this._("Register for Almond"), "/user/register");
+            throw new CancellationError();
+        }
+    }
+
     async disambiguate(type : 'device'|'contact',
                        name : string|null,
                        choices : string[],
