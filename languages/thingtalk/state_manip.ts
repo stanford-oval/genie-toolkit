@@ -1364,10 +1364,12 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
     const describer = ctx.loader.describer;
 
     if (ctx.state.dialogueAct === 'notification') {
-        const appName = ctx.state.dialogueActParam![0];
-        assert(appName instanceof Ast.StringValue);
-        phrases.push(makeValueContextPhrase(ctx.loader,
-            contextTable.ctx_notification_app_name, appName, describer.describeArg(appName)!));
+        if (ctx.state.dialogueActParam) {
+            const appName = ctx.state.dialogueActParam[0];
+            assert(appName instanceof Ast.StringValue);
+            phrases.push(makeValueContextPhrase(ctx.loader,
+                contextTable.ctx_notification_app_name, appName, describer.describeArg(appName)!));
+        }
     }
 
     // make phrases that describe the current and next action

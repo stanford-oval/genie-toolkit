@@ -262,21 +262,21 @@ function answer(state : Ast.DialogueState, answer : Ast.Value, contextTable : Se
 }
 
 // handle notifications
-function notification(appName : string, program : Ast.Program, result : Ast.DialogueHistoryResultItem) {
+function notification(appName : string|null, program : Ast.Program, result : Ast.DialogueHistoryResultItem) {
     assert(program.statements.length === 1);
     const stmt = program.statements[0];
     assert(stmt instanceof Ast.ExpressionStatement);
 
-    return new Ast.DialogueState(null, S.POLICY_NAME, 'notification', [new Ast.Value.String(appName)],
+    return new Ast.DialogueState(null, S.POLICY_NAME, 'notification', appName ? [new Ast.Value.String(appName)] : null,
         [new Ast.DialogueHistoryItem(null, stmt, new Ast.DialogueHistoryResultList(null, [result], new Ast.NumberValue(1), false), 'confirmed')]);
 }
 
-function notifyError(appName : string, program : Ast.Program, error : Ast.Value) {
+function notifyError(appName : string|null, program : Ast.Program, error : Ast.Value) {
     assert(program.statements.length === 1);
     const stmt = program.statements[0];
     assert(stmt instanceof Ast.ExpressionStatement);
 
-    return new Ast.DialogueState(null, S.POLICY_NAME, 'notification', [new Ast.Value.String(appName)],
+    return new Ast.DialogueState(null, S.POLICY_NAME, 'notification', appName ? [new Ast.Value.String(appName)] : null,
         [new Ast.DialogueHistoryItem(null, stmt, new Ast.DialogueHistoryResultList(null, [], new Ast.NumberValue(1), false, error), 'confirmed')]);
 }
 

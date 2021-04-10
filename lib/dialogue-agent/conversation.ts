@@ -278,12 +278,12 @@ export default class Conversation extends events.EventEmitter {
         this.dialogueFinished();
     }
 
-    notify(appId : string, icon : string|null, outputType : string, outputValue : Record<string, unknown>) {
-        return this._loop.dispatchNotify(appId, icon, outputType, outputValue);
+    notify(appId : string, outputType : string, outputValue : Record<string, unknown>) {
+        return this._loop.dispatchNotify(appId, outputType, outputValue);
     }
 
-    notifyError(appId : string, icon : string|null, error : Error) {
-        return this._loop.dispatchNotifyError(appId, icon, error);
+    notifyError(appId : string, error : Error) {
+        return this._loop.dispatchNotifyError(appId, error);
     }
 
     setExpected(expecting : ValueCategory|null, context : Context) : void {

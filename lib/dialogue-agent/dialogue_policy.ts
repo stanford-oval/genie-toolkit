@@ -231,13 +231,13 @@ export default class DialoguePolicy {
         return [derivation.value.state, expect, sentence, this._entityAllocator.entities, derivation.value.numResults];
     }
 
-    async getNotificationState(appName : string, program : Ast.Program, result : Ast.DialogueHistoryResultItem) {
+    async getNotificationState(appName : string|null, program : Ast.Program, result : Ast.DialogueHistoryResultItem) {
         await this._ensureGeneratorForState(program);
 
         return this._sentenceGenerator!.invokeFunction('notification', appName, program, result, this._sentenceGenerator!.contextTable);
     }
 
-    async getAsyncErrorState(appName : string, program : Ast.Program, error : Ast.Value) {
+    async getAsyncErrorState(appName : string|null, program : Ast.Program, error : Ast.Value) {
         await this._ensureGeneratorForState(program);
 
         return this._sentenceGenerator!.invokeFunction('notifyError', appName, program, error, this._sentenceGenerator!.contextTable);

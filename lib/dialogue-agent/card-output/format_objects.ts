@@ -251,10 +251,6 @@ class Media extends BaseFormattedObject implements MediaSpec {
     /**
      * Construct a new media object.
      *
-     * Whether the URL is audio or video will be identified
-     * based on Content-Type, URL patterns and potentially
-     * file extension.
-     *
      * @param {Object} spec
      * @param {string} spec.url - the URL of the music/video to display
      */
@@ -283,6 +279,39 @@ class Media extends BaseFormattedObject implements MediaSpec {
     }
 }
 
+interface TextSpec {
+    type : 'text';
+    text : string;
+}
+/**
+ * A plain text message.
+ */
+class Text extends BaseFormattedObject implements TextSpec {
+    type : 'text';
+    text : string;
+
+    /**
+     * Construct a new text object.
+     *
+     * @param {Object} spec
+     * @param {string} spec.text - the text to display
+     */
+    constructor(spec : TextSpec) {
+        super();
+
+        this.type = spec.type;
+        this.text = spec.text;
+    }
+
+    isValid() : boolean {
+        return !isNull(this.text);
+    }
+
+    toLocaleString(locale : string) : string {
+        return this.text;
+    }
+}
+
 export interface FormattedObjectClass {
     new (obj : FormattedObjectSpec) : FormattedObject;
 }
@@ -293,14 +322,17 @@ export const FORMAT_TYPES = {
     'picture': Media,
     'audio': Media,
     'video': Media,
+    'text': Text
 };
 
 export type FormattedObjectSpec =
     RDLSpec |
     SoundEffectSpec |
-    MediaSpec;
+    MediaSpec |
+    TextSpec;
 
 export type FormattedObject =
     RDL |
     SoundEffect |
-    Media;
+    Media |
+    Text;

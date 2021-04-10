@@ -45,7 +45,7 @@ import { CancellationError } from './errors';
 import * as Helpers from './helpers';
 import DialoguePolicy from './dialogue_policy';
 import type Conversation from './conversation';
-import CardFormatter, { FormattedChunk } from './card-output/card-formatter';
+import CardFormatter, { FormattedObject } from './card-output/card-formatter';
 
 import ExecutionDialogueAgent from './execution_dialogue_agent';
 
@@ -610,7 +610,6 @@ export default class DialogueLoop {
     }
 
     private async _showNotification(appId : string,
-                                    icon : string|null,
                                     outputType : string,
                                     outputValue : Record<string, unknown>) {
         const app = this.engine.apps.getApp(appId);
@@ -624,7 +623,6 @@ export default class DialogueLoop {
     }
 
     private async _showAsyncError(appId : string,
-                                  icon : string|null,
                                   error : Error) {
         const app = this.engine.apps.getApp(appId);
         if (!app) // the app was already stopped, ignore this notification
@@ -640,9 +638,9 @@ export default class DialogueLoop {
 
     private async _handleAPICall(call : QueueItem) {
         if (call instanceof QueueItem.Notification)
-            await this._showNotification(call.appId, call.icon, call.outputType, call.outputValue);
+            await this._showNotification(call.appId, call.outputType, call.outputValue);
         else if (call instanceof QueueItem.Error)
-            await this._showAsyncError(call.appId, call.icon, call.error);
+            await this._showAsyncError(call.appId, call.error);
     }
 
     private async _showWelcome() {
@@ -863,7 +861,7 @@ export default class DialogueLoop {
         await this.conversation.sendReply(msg, icon || this.icon);
     }
 
-    async replyCard(message : FormattedChunk, icon ?: string|null) {
+    async replyCard(message : FormattedObject, icon ?: string|null) {
         if (typeof message === 'string')
             await this.reply(message, icon);
         else if (message.type === 'picture' || message.type === 'audio' || message.type === 'video')
@@ -886,12 +884,12 @@ export default class DialogueLoop {
         return this._notifyQueue.hasWaiter();
     }
 
-    dispatchNotify(appId : string, icon : string|null, outputType : string, outputValue : Record<string, unknown>) {
-        const item = new QueueItem.Notification(appId, icon, outputType, outputValue);
+    dispatchNotify(appId : string, outputType : string, outputValue : Record<string, unknown>) {
+        const item = new QueueItem.Notification(appId, outputType, outputValue);
         this._pushQueueItem(item);
     }
-    dispatchNotifyError(appId : string, icon : string|null, error : Error) {
-        const item = new QueueItem.Error(appId, icon, error);
+    dispatchNotifyError(appId : string, error : Error) {
+        const item = new QueueItem.Error(appId, error);
         this._pushQueueItem(item);
     }
 
