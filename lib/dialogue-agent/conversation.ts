@@ -145,7 +145,7 @@ class DialogueLog {
 }
 
 /**
- * A single session of conversation in Almond.
+ * A single session of conversation in Genie.
  *
  * This object is responsible for maintaining the history of the conversation
  * to support clients reconnecting to the same conversation later, as well
@@ -486,7 +486,7 @@ export default class Conversation extends events.EventEmitter {
 
     sendLink(title : string, url : string) {
         if (this._debug)
-            console.log('Almond sends link: '+ url);
+            console.log('Genie sends link: '+ url);
         return this._addMessage({ type: MessageType.LINK, url, title });
     }
 
@@ -499,7 +499,7 @@ export default class Conversation extends events.EventEmitter {
         icon : string|null;
     }) {
         if (this._debug)
-            console.log('Almond executed new program: '+ program.uniqueId);
+            console.log('Genie executed new program: '+ program.uniqueId);
         return this._addMessage({ type: MessageType.NEW_PROGRAM, ...program });
     }
 

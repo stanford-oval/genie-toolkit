@@ -44,8 +44,6 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
 
         this.isTransient = true;
         this.uniqueId = 'thingengine-own-global';
-        this.name = engine._("Miscellaneous Interfaces");
-        this.description = engine._("Time, randomness and other non-device specific things.");
     }
 
     get ownerTier() {

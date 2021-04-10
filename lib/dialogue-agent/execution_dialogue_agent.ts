@@ -110,13 +110,13 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
 
         if (stmt.stream) {
             await this._dlg.reply(this._("To receive notifications you must first log in to your personal account."));
-            await this._dlg.replyLink(this._("Register for Almond"), "/user/register");
+            await this._dlg.replyLink(this._("Register for Genie"), "/user/register");
             throw new CancellationError();
         }
 
         if (stmt.last.schema!.functionType === 'action') {
             await this._dlg.reply(this._("To use this command you must first log in to your personal account."));
-            await this._dlg.replyLink(this._("Register for Almond"), "/user/register");
+            await this._dlg.replyLink(this._("Register for Genie"), "/user/register");
             throw new CancellationError();
         }
     }
@@ -158,7 +158,7 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
                 await this._dlg.replyInterp(this._("Sorry, to use ${device}, you must log in to your personal account."), {
                     device: factory.text,
                 });
-                await this._dlg.replyLink(this._("Register for Almond"), "/user/register");
+                await this._dlg.replyLink(this._("Register for Genie"), "/user/register");
                 return null;
             }
 

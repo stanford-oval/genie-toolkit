@@ -84,7 +84,7 @@ function recursivelyComputeOutputType(kind : string, expr : Ast.Expression) : st
  * Wrap a ThingTalk statement and provide access to the Engine.
  *
  * This is an implementation of {@link external:thingtalk.ExecEnvironment}
- * suitable for running with the Almond engine.
+ * suitable for running with the Genie engine.
  *
  * @package
  */

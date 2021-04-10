@@ -322,10 +322,10 @@ export default class DialogueLoop {
             });
         } catch(e) {
             if (e.code === 'EHOSTUNREACH' || e.code === 'ETIMEDOUT') {
-                await this.reply(this._("Sorry, I cannot contact the Almond service. Please check your Internet connection and try again later."), null);
+                await this.reply(this._("Sorry, I cannot contact the Genie service. Please check your Internet connection and try again later."), null);
                 throw new CancellationError();
             } else if (typeof e.code === 'number' && (e.code === 404 || e.code >= 500)) {
-                await this.reply(this._("Sorry, there seems to be a problem with the Almond service at the moment. Please try again later."), null);
+                await this.reply(this._("Sorry, there seems to be a problem with the Genie service at the moment. Please try again later."), null);
                 throw new CancellationError();
             } else {
                 throw e;
@@ -470,8 +470,8 @@ export default class DialogueLoop {
             break;
 
         case CommandAnalysisType.WAKEUP:
-            // "wakeup" means the user said "hey almond" without anything else,
-            // or said "hey almond wake up", or triggered one of the LaunchIntents
+            // "wakeup" means the user said "hey genie" without anything else,
+            // or said "hey genie wake up", or triggered one of the LaunchIntents
             // in Google Assistant or Alexa, or similar "opening" statements
             // we show the welcome message if the current state is null,
             // and do nothing otherwise
@@ -738,7 +738,7 @@ export default class DialogueLoop {
         } else if (this.expecting === ValueCategory.EmailAddress) {
             await this.reply(this._("Could you give me an email address?"));
         } else if (this.expecting === ValueCategory.RawString || this.expecting === ValueCategory.Password) {
-            // ValueCategory.RawString puts Almond in raw mode,
+            // ValueCategory.RawString puts us in raw mode,
             // so we accept almost everything
             // but this will happen if the user clicks a button
             // or upload a picture

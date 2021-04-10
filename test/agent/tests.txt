@@ -380,7 +380,7 @@ A: >> expecting = null
 # 24-error-500
 U: !! test command error 500 !!
 
-A: Sorry, there seems to be a problem with the Almond service at the moment. Please try again later.
+A: Sorry, there seems to be a problem with the Genie service at the moment. Please try again later.
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -667,7 +667,7 @@ A: >> context = null // {}
 A: >> expecting = null
 
 ====
-# 44-faq-about-almond
+# 44-faq-about-genie
 
 # Who are you?
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -916,7 +916,7 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: timer(interval=1h, base=$now) => @com.thecatapi.get();
 
 A: To receive notifications you must first log in to your personal account.
-A: link: Register for Almond /user/register
+A: link: Register for Genie /user/register
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -927,6 +927,6 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.twitter.post();
 
 A: To use this command you must first log in to your personal account.
-A: link: Register for Almond /user/register
+A: link: Register for Genie /user/register
 A: >> context = null // {}
 A: >> expecting = null

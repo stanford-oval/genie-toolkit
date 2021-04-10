@@ -207,7 +207,7 @@ class SoundEffect extends BaseFormattedObject implements SoundEffectSpec {
      *
      * @param {Object} spec
      * @param {string} spec.name - the name of the sound, from the {@link http://0pointer.de/public/sound-theme-spec.html|Freedesktop Sound Theme Spec}
-     *                             (with a couple Almond-specific extensions)
+     *                             (with a couple Genie-specific extensions)
      */
     constructor(spec : SoundEffectSpec) {
         super();

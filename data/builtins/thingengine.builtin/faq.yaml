@@ -5,11 +5,11 @@ about_almond_identity:
   q:
     - Who are you?
     - What are you?
-    - What is Almond?
-    - Are you almond?
+    - What is Genie?
+    - Are you Genie?
     - What{ is|'s|s} your name?
   a:
-    - I'm Almond, an open-source virtual assistant created at Stanford.
+    - I'm Genie, an open-source virtual assistant created at Stanford.
 
 about_almond_age:
   q:
@@ -76,7 +76,7 @@ check_capability_phone:
     - Do you support any phones?
     - What phones do you support?
   a:
-    - Sorry, Almond does not work on mobile phones yet.
+    - Sorry, Genie does not work on mobile phones yet.
 
 general_help:
   q:
@@ -159,7 +159,7 @@ how_to_train:
   q:
     - How do I train you?
   a:
-    - You can train me from the Almond website. Check our contribution guide to learn more!
+    - You can train me from the Genie website. Check our contribution guide to learn more!
 
 how_to_configure_skill:
   q:
@@ -167,20 +167,20 @@ how_to_configure_skill:
     - How do I configure new skills?
   a:
     cloud:
-    - You can enable new skills to expand the set of commands that I understand. Click on Configure New Skills in the My Almond page to do so.
+    - You can enable new skills to expand the set of commands that I understand. Click on Configure New Skills in the My Genie page to do so.
     default:
-    - You can enable new skills to expand the set of commands that I understand. Click on My Skills from the Almond app to see the list of all the skills you have enabled, and click Configure New Skills to enable more.
+    - You can enable new skills to expand the set of commands that I understand. Click on My Skills from the Genie app to see the list of all the skills you have enabled, and click Configure New Skills to enable more.
 
 how_to_disable_skill:
   q:
     - How do I disable a skill?
   a:
     cloud:
-    - You can disable any skill from the My Almond page. Click on Enabled Skills, then click Forget under the skill you would like to disable.
+    - You can disable any skill from the My Genie page. Click on Enabled Skills, then click Forget under the skill you would like to disable.
     server:
-    - You can disable any skill from the Almond web interface, by accessing the My Skills page. On that page, click Forget under the skill you would like to disable.
+    - You can disable any skill from the Genie web interface, by accessing the My Skills page. On that page, click Forget under the skill you would like to disable.
     default: # gnome or android
-    - You can disable any skill from the My Skills page in the Almond app. Click on the skill you would like to disable, then click Forget.
+    - You can disable any skill from the My Skills page in the Genie app. Click on the skill you would like to disable, then click Forget.
 
 how_to_set_language:
   q:
@@ -191,15 +191,15 @@ how_to_set_language:
 
 how_to_access_settings:
   q:
-    - Where is Almond settings?
+    - Where is Genie settings?
     - How to change preferences?
   a:
     cloud:
     - To access the settings, click on Settings in the top right corner of the page.
     server:
-    - To access the settings, access the Almond web interface then click on Configuration in the top right corner of the page.
+    - To access the settings, access the Genie web interface then click on Configuration in the top right corner of the page.
     default: # gnome or android
-    - To access the settings, open the Almond app then click the Hamburger menu in the top right corner, and finally click Preferences.
+    - To access the settings, open the Genie app then click the Hamburger menu in the top right corner, and finally click Preferences.
 
 how_to_use_wakeword:
   q:
@@ -210,7 +210,7 @@ how_to_use_wakeword:
     - How do I enable audio?
   a:
     cloud:
-    - I am sorry, continuous voice input with wake word detection is not available in the web version of Almond.
+    - I am sorry, continuous voice input with wake word detection is not available in the web version of Genie.
     default:
     - To speak to me in voice using a wake word, first make sure that voice input is enabled in Settings. Then you can just say “Computer” to wake me up. You will hear a sound when the wake word is recognized correctly.
 
@@ -218,4 +218,4 @@ troubleshooting_home_assistant:
   q:
     - Help in recognizing home assistant entities.
   a:
-    - If you need help troubleshooting Almond with Home Assistant, check the documentation on our wiki. If you don't find the answer there, don't hesitate to ask on our Community Forum!
+    - If you need help troubleshooting Genie with Home Assistant, check the documentation on our wiki. If you don't find the answer there, don't hesitate to ask on our Community Forum!
