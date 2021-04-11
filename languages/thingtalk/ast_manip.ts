@@ -1740,6 +1740,8 @@ class GetInvocationVisitor extends Ast.NodeVisitor {
     invocation : Ast.Invocation|undefined = undefined;
 
     visitInvocation(inv : Ast.Invocation) : boolean {
+        // keep overwriting so we store the last invocation in traversal order
+        // which is also the last invocation in program order
         this.invocation = inv;
         return false; // no need to recurse
     }

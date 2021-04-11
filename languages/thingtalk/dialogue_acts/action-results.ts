@@ -31,7 +31,7 @@ import {
     makeAgentReply,
     makeSimpleState,
     setOrAddInvocationParam,
-    replaceAction,
+    addNewItem,
 } from '../state_manip';
 import {
     isInfoPhraseCompatibleWithResult
@@ -271,13 +271,12 @@ function actionErrorChangeParam(ctx : ContextInfo, answer : Ast.Value|C.InputPar
     if (schema.functionType !== 'action')
         return null;
 
-    const action = C.getInvocation(ctx.current!);
+    const clone = ctx.current!.clone();
+    const action = C.getInvocation(clone);
     if (!action)
         return null;
-    // shallow clone
-    const clone = action.clone();
-    setOrAddInvocationParam(clone, ipslot.ast.name, ipslot.ast.value);
-    return replaceAction(ctx, 'execute', clone, 'accepted');
+    setOrAddInvocationParam(action, ipslot.ast.name, ipslot.ast.value);
+    return addNewItem(ctx, 'execute', null, 'accepted', clone);
 }
 
 function actionSuccessQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
