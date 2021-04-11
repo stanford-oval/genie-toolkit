@@ -48,7 +48,6 @@ export default class SpeechSynthesizer extends events.EventEmitter {
     private _queue : Array<QueueItem|Promise<QueueItem>>;
     private _speaking : boolean;
     private _outputStream : SoundOutputStream|null;
-    private _closeTimeout : NodeJS.Timeout|null;
     private _sampleRate : number;
     private _numChannels : number;
 
@@ -62,7 +61,6 @@ export default class SpeechSynthesizer extends events.EventEmitter {
         this._speaking = false;
 
         this._outputStream = null;
-        this._closeTimeout = null;
         this._sampleRate = 0;
         this._numChannels = 0;
     }
@@ -118,16 +116,13 @@ export default class SpeechSynthesizer extends events.EventEmitter {
         return 150;
     }
 
-    private _ensureOutputStream(result : { sampleRate : number, numChannels : number }) {
-        if (this._closeTimeout)
-            clearTimeout(this._closeTimeout);
-        this._closeTimeout = setTimeout(() => {
-            if (this._outputStream)
-                this._outputStream.end();
-            this._outputStream = null;
-            this._closeTimeout = null;
-        }, 60000);
+    private _closeOutputStream() {
+        if (this._outputStream)
+            this._outputStream.end();
+        this._outputStream = null;
+    }
 
+    private _ensureOutputStream(result : { sampleRate : number, numChannels : number }) {
         if (this._outputStream && this._sampleRate === result.sampleRate
             && this._numChannels === result.numChannels)
             return;
@@ -151,13 +146,17 @@ export default class SpeechSynthesizer extends events.EventEmitter {
                 console.log('Done speaking');
                 this.emit('done');
                 this._speaking = false;
+                this._closeOutputStream();
             }
         });
     }
 
     private async _sayNext() {
-        if (this._queue.length === 0)
+        if (this._queue.length === 0) {
+            if (!this._speaking)
+                this._closeOutputStream();
             return;
+        }
         if (!this._speaking) {
             console.log('Starting to speak...');
             this.emit('speaking');
