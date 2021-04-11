@@ -248,6 +248,7 @@ export default class SpeechHandler extends events.EventEmitter {
                     this._onDetected(Buffer.from([]), false);
                     return;
                 }
+                this.emit('match');
                 this._conversation.setHypothesis('');
                 this._conversation.handleCommand(utterance);
             } else if (status === 'NoMatch' || status === 'InitialSilenceTimeout') {
