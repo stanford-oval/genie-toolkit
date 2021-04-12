@@ -30,7 +30,7 @@ import {
     makeAgentReply,
     makeSimpleState,
     setOrAddInvocationParam,
-    replaceAction,
+    addNewItem,
 } from '../state_manip';
 
 
@@ -56,8 +56,6 @@ function actionConfirmRejectPhrase(ctx : ContextInfo) {
 function actionConfirmChangeParam(ctx : ContextInfo, answer : Ast.Value|C.InputParamSlot) {
     if (!ctx.next)
         return null;
-    const action = C.getInvocation(ctx.next);
-    if (!action) return null;
 
     if (answer instanceof Ast.Value)
         return null;
@@ -67,9 +65,12 @@ function actionConfirmChangeParam(ctx : ContextInfo, answer : Ast.Value|C.InputP
     if (!arg || !arg.is_input || !arg.type.equals(answer.ast.value.getType()))
         return null;
 
-    const clone = action.clone();
-    setOrAddInvocationParam(clone, answer.ast.name, answer.ast.value);
-    return replaceAction(ctx, 'execute', clone, 'confirmed');
+    const clone = ctx.next.clone();
+    const action = C.getInvocation(clone);
+    if (!action) return null;
+
+    setOrAddInvocationParam(action, answer.ast.name, answer.ast.value);
+    return addNewItem(ctx, 'execute', null, 'confirmed', clone);
 }
 
 export {

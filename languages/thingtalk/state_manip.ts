@@ -488,7 +488,11 @@ function addNewItem(ctx : ContextInfo,
                     dialogueActParam : string|null,
                     confirm : 'accepted'|'proposed'|'confirmed',
                     ...newHistoryItem : Ast.DialogueHistoryItem[]) : Ast.DialogueState {
-    newHistoryItem = newHistoryItem.map(C.adjustDefaultParameters);
+    for (const item of newHistoryItem) {
+        C.adjustDefaultParameters(item);
+        item.results = null;
+        item.confirm = confirm;
+    }
 
     const newState = new Ast.DialogueState(null, POLICY_NAME, dialogueAct, dialogueActParam, []);
 
@@ -653,16 +657,6 @@ function addActionParam(ctx : ContextInfo,
         ));
         newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
     }
-
-    return addNewItem(ctx, dialogueAct, null, confirm, newHistoryItem);
-}
-
-function replaceAction(ctx : ContextInfo,
-                       dialogueAct : string,
-                       action : Ast.Invocation,
-                       confirm : 'accepted' | 'proposed' | 'confirmed') : Ast.DialogueState {
-    const newStmt = new Ast.ExpressionStatement(null, new Ast.InvocationExpression(null, action, action.schema));
-    const newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
 
     return addNewItem(ctx, dialogueAct, null, confirm, newHistoryItem);
 }
@@ -1485,7 +1479,6 @@ export {
     addAction,
     addQuery,
     addQueryAndAction,
-    replaceAction,
     mergeParameters,
     setOrAddInvocationParam,
 };
