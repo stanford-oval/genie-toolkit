@@ -34,8 +34,8 @@ import AppDatabase from './apps/database';
 import AppRunner from './apps/runner';
 import type AppExecutor from './apps/app_executor';
 
-import AssistantDispatcher from '../dialogue-agent/dispatcher';
-import TextFormatter, { FormattedChunk } from '../dialogue-agent/card-output/text-formatter';
+import AssistantDispatcher, { NotificationConfig } from '../dialogue-agent/assistant_dispatcher';
+import NotificationFormatter, { FormattedObject } from '../dialogue-agent/notifications/formatter';
 
 import * as Config from '../config';
 
@@ -131,6 +131,7 @@ interface AssistantEngineOptions {
     cloudSyncUrl ?: string;
     nluModelUrl ?: string;
     thingpediaUrl ?: string;
+    notifications ?: NotificationConfig;
 }
 
 interface CreateAppOptions {
@@ -144,7 +145,7 @@ interface CreateAppOptions {
 interface AppResult {
     raw : Record<string, unknown>;
     type : string;
-    formatted : FormattedChunk[];
+    formatted : FormattedObject[];
 }
 
 /**
@@ -193,7 +194,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
 
         this._appdb = new AppDatabase(this);
 
-        this._assistant = new AssistantDispatcher(this, options.nluModelUrl);
+        this._assistant = new AssistantDispatcher(this, options.nluModelUrl, options.notifications||{});
 
         if (platform.hasCapability('sound'))
             this._audio = new AudioController(this._devices);
@@ -580,12 +581,12 @@ export default class AssistantEngine extends Tp.BaseEngine {
         const results : AppResult[] = [];
         const errors : Error[] = [];
 
-        const formatter = new TextFormatter(this._platform.locale, this._platform.timezone, this._schemas);
+        const formatter = new NotificationFormatter(this);
         for await (const value of app.mainOutput) {
             if (value instanceof Error) {
                 errors.push(value);
             } else {
-                const messages = await formatter.formatForType(value.outputType, value.outputValue, 'messages');
+                const messages = await formatter.formatNotification(null, app.program, value.outputType, value.outputValue);
                 results.push({ raw: value.outputValue, type: value.outputType, formatted: messages });
             }
         }

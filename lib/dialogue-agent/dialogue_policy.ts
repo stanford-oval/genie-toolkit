@@ -90,7 +90,7 @@ interface DialoguePolicyOptions {
     timezone : string|undefined;
 
     rng : () => number;
-    debug : boolean;
+    debug : number;
 }
 
 export default class DialoguePolicy {
@@ -100,7 +100,7 @@ export default class DialoguePolicy {
     private _timezone : string|undefined;
     private _langPack : I18n.LanguagePack;
     private _rng : () => number;
-    private _debug : boolean;
+    private _debug : number;
 
     private _sentenceGenerator : SentenceGenerator<Ast.DialogueState|null, Ast.DialogueState, AgentReplyRecord<Ast.DialogueState>>|null;
     private _generatorDevices : string[]|null;
@@ -147,7 +147,7 @@ export default class DialoguePolicy {
             maxDepth: MAX_DEPTH,
             maxConstants: 5,
             targetPruningSize: TARGET_PRUNING_SIZES[0],
-            debug: this._debug ? 2 : 1,
+            debug: this._debug,
 
             contextInitializer: (state, functionTable, contextTable) => {
                 // ask the target language to extract the constants from the context
@@ -231,13 +231,13 @@ export default class DialoguePolicy {
         return [derivation.value.state, expect, sentence, this._entityAllocator.entities, derivation.value.numResults];
     }
 
-    async getNotificationState(appName : string, program : Ast.Program, result : Ast.DialogueHistoryResultItem) {
+    async getNotificationState(appName : string|null, program : Ast.Program, result : Ast.DialogueHistoryResultItem) {
         await this._ensureGeneratorForState(program);
 
         return this._sentenceGenerator!.invokeFunction('notification', appName, program, result, this._sentenceGenerator!.contextTable);
     }
 
-    async getAsyncErrorState(appName : string, program : Ast.Program, error : Ast.Value) {
+    async getAsyncErrorState(appName : string|null, program : Ast.Program, error : Ast.Value) {
         await this._ensureGeneratorForState(program);
 
         return this._sentenceGenerator!.invokeFunction('notifyError', appName, program, error, this._sentenceGenerator!.contextTable);

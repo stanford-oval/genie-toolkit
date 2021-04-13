@@ -28,10 +28,16 @@ import ThingpediaLoader from '../../load-thingpedia';
 
 notification_preamble : S.ContextInfo = {
     ["notification from ${app}:"] : (ctx : ctx_with_notification, app : ctx_notification_app_name) => ctx,
+
+    // empty preamble if we don't have the app name
+    ["", priority=-1] : (ctx : ctx_with_notification) => ctx.state.dialogueActParam === null ? ctx : null,
 }
 
 notification_error_preamble : S.ContextInfo = {
     ["${sorry} {there was an error in|an error occurred in} ${app}:"] : (sorry : sorry_preamble, ctx : ctx_with_notification, app : ctx_notification_app_name) => ctx,
+
+    // empty preamble if we don't have the app name
+    ["${sorry} {there was an error}:"] : (sorry : sorry_preamble, ctx : ctx_with_notification) => ctx.state.dialogueActParam === null ? ctx : null,
 }
 
 add_separate_stream_to_query : Ast.Expression = {

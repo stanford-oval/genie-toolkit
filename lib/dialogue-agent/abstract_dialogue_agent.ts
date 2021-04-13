@@ -206,6 +206,19 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
     }
 
     /**
+     * Ensure that notifications are configured for the user, and we have
+     * all the information we need.
+     */
+    protected abstract ensureNotificationsConfigured() : Promise<void>;
+
+    /**
+     * Check that a given statement is permitted for the current user.
+     *
+     * This is the hook to prevent running unsafe statements in anonymous mode.
+     */
+    protected abstract checkForPermission(stmt : Ast.ExpressionStatement) : Promise<void>;
+
+    /**
      * Prepare a statement for being executed.
      *
      * This will resolve all ThingTalk values that are relative to the user, such as
@@ -233,6 +246,13 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
                 !(expr instanceof Ast.SliceExpression))
                 stmt.expression.expressions[i] = new Ast.IndexExpression(null, expr, [new Ast.Value.Number(1)], expr.schema).optimize();
         }
+
+        await this.checkForPermission(stmt);
+
+        // if we have a stream, we'll trigger notifications
+        // configure them if necessary
+        if (stmt.stream)
+            await this.ensureNotificationsConfigured();
 
         // FIXME this method can cause a few questions that
         // bypass the neural network, which is not great

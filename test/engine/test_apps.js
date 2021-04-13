@@ -134,7 +134,9 @@ async function testSimpleGet2(engine, icon = null) {
     // when we get here, the app might or might not have started already
     // to be sure, we iterate its mainOutput
 
-    assert.deepStrictEqual(output, {
+    // do a layer of json.stringify->json.parse so we lose the prototypes
+    // of the Text objects
+    assert.deepStrictEqual(JSON.parse(JSON.stringify(output)), {
         uniqueId: 'app-foo-get',
         description: 'Get get data on test with count 2 and size 10 byte.',
         code: '@org.thingpedia.builtin.test.get_data(count=2, size=10byte);',
@@ -142,10 +144,10 @@ async function testSimpleGet2(engine, icon = null) {
         results:
            [ { raw: { data: '!!!!!!!!!!', count: 2, size: 10 },
                type: 'org.thingpedia.builtin.test:get_data',
-               formatted: ['The data is !!!!!!!!!!.', 'The count is 2.'] },
+               formatted: [{ type: 'text', text: 'The answer is !!!!!!!!!!' }] },
              { raw: { data: '""""""""""', count: 2, size: 10 },
                type: 'org.thingpedia.builtin.test:get_data',
-               formatted: ['The data is """""""""".', 'The count is 2.'] } ],
+               formatted: [{ type: 'text', text: 'The answer is """""""""".', }] } ],
         errors: []
     });
 }

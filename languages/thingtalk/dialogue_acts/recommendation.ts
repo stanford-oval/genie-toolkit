@@ -224,8 +224,6 @@ function makeDisplayResult(ctx : ContextInfo, info : SlotBag) {
     assert(results && results.length > 0);
     const topResult = results[0];
 
-    if (ctx.currentFunction!.is_list)
-        return null;
     if (!C.isSameFunction(ctx.currentFunction!, info.schema!))
         return null;
     if (!isInfoPhraseCompatibleWithResult(topResult, info))

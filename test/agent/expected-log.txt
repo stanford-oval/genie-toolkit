@@ -1904,6 +1904,8 @@ C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: timer(base=$now, interval=1h) => @com.thecatapi.get()
 C: #[results=[]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: How would you like to be notified?
+A: What is your phone number?
 A: Alright, I will get the cat picture every 60 min.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_rule_enable_success;
 #! vote: down
@@ -2061,6 +2063,40 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Ramen Nagi is a restaurant with 1,625 reviews, Evvia Estiatorio has 2,393 reviews, and Oren's Hummus has 2,248 reviews.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: timer(base=$now, interval=1h) => @com.thecatapi.get();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: timer(base=$now, interval=1h) => @com.thecatapi.get();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: To receive notifications you must first log in to your personal account.
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.twitter.post();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.twitter.post();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: To use this command you must first log in to your personal account.
 #! vote: up
 #! comment: test comment for dialogue turns
 #!          additional

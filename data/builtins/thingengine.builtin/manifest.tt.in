@@ -84,7 +84,6 @@ class @org.thingpedia.builtin.thingengine.builtin
   #_[canonical=["random number", "random integer"]]
   #_[result=["${random}", "your number is ${random}", "i chose ${random}"]]
   #_[confirmation="a random integer between $low and $high"]
-  #_[formatted=[{type="text",text="${random}"}]]
   #[doc="get a uniform random integer between `low` and `high`"]
   #[confirm=false];
 
@@ -168,7 +167,6 @@ class @org.thingpedia.builtin.thingengine.builtin
                       #[filterable=false])
   #_[canonical="supported command"]
   #_[confirmation="the list of commands of $device"]
-  #_[formatted=[{type="text",text="${program}"}]]
   #[doc="retrieve the list of supported commands for the given device"]
   #[confirm=false];
   */

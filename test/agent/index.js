@@ -240,6 +240,7 @@ async function roundtrip(testRunner, input, expected) {
 async function test(testRunner, dlg, i) {
     console.log(`Test Case #${i+1}: ${dlg.id}`);
 
+    testRunner.conversation._options.anonymous = dlg.id.indexOf('-anon-') >= 0;
     testRunner.reset();
 
     // reset the conversation

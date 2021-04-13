@@ -38,7 +38,6 @@ namespace QueueItem {
 
     export class Notification extends QueueItem {
         constructor(public appId : string,
-                    public icon : string|null,
                     public outputType : string,
                     public outputValue : Record<string, unknown>) {
             super();
@@ -51,7 +50,6 @@ namespace QueueItem {
 
     export class Error extends QueueItem {
         constructor(public appId : string,
-                    public icon : string|null,
                     public error : JSError) {
             super();
         }

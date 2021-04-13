@@ -25,7 +25,6 @@ import * as ThingTalk from 'thingtalk';
 import { Ast, Type, ExecEnvironment, SchemaRetriever } from 'thingtalk';
 
 import { coin, uniform, randint } from '../../utils/random';
-import TextFormatter from '../card-output/text-formatter';
 
 import { SimulationDatabase } from './types';
 
@@ -376,7 +375,6 @@ class SimpleTestDevice {
 }
 
 class SimulationExecEnvironment extends ExecEnvironment {
-    format : TextFormatter;
     private _schemas : SchemaRetriever;
     private _database : SimulationDatabase|undefined;
     private _rng : () => number;
@@ -394,7 +392,6 @@ class SimulationExecEnvironment extends ExecEnvironment {
                 database : SimulationDatabase|undefined,
                 { rng, simulateErrors = true } : { rng : () => number, simulateErrors ?: boolean }) {
         super();
-        this.format = new TextFormatter(locale, timezone, schemas);
         this._execCache = [];
 
         this._schemas = schemas;
@@ -659,7 +656,7 @@ class SimulationExecEnvironment extends ExecEnvironment {
     }
 
     async formatEvent(outputType : string, output : Record<string, unknown>, hint : string) : Promise<string> {
-        return String(await this.format.formatForType(outputType, output, hint));
+        return this.generator!.generateString();
     }
 }
 

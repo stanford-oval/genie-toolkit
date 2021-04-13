@@ -76,7 +76,7 @@ class NotificationOutputDelegate {
      */
     notifyError(error : Error) {
         this._app.setError(error);
-        return this._engine.assistant.notifyErrorAll(this._app.uniqueId!, this._app.icon, error);
+        return this._engine.assistant.notifyError(this._app.uniqueId!, error);
     }
 
     /**
@@ -86,7 +86,7 @@ class NotificationOutputDelegate {
      * @package
      */
     output(outputType : string, outputValue : Record<string, unknown>) {
-        return this._engine.assistant.notifyAll(this._app.uniqueId!, this._app.icon, outputType, outputValue);
+        return this._engine.assistant.notify(this._app.uniqueId!, outputType, outputValue);
     }
 }
 

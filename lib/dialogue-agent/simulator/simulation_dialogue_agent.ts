@@ -79,6 +79,10 @@ export default class SimulationDialogueAgent extends AbstractDialogueAgent<Thing
         return this._executor;
     }
 
+    protected async ensureNotificationsConfigured() {}
+
+    protected async checkForPermission(stmt : Ast.ExpressionStatement) {}
+
     protected getAllDevicesOfKind(kind : string) : DeviceInfo[] {
         // make up a unique fake device, and make the uniqueId same as the kind,
         // so the device will not be recorded in the context

@@ -126,7 +126,7 @@ class Annotator extends events.EventEmitter {
             locale: this._locale,
             timezone: options.timezone,
             rng: this._rng,
-            debug: false
+            debug: 0
         });
 
         this._state = 'loading';

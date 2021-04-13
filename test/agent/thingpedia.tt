@@ -67,7 +67,6 @@ class @org.thingpedia.builtin.thingengine.builtin
                             )
   #_[canonical=["my current location", "my current position", "my current geocoordinates"]]
   #_[confirmation="your location"]
-  #_[formatted=[{type="text",text="Current Location: ${location}"}]]
   #[poll_interval=0ms]
   #[doc="get last known GPS location"]
   #[confirm=false];
@@ -78,7 +77,6 @@ class @org.thingpedia.builtin.thingengine.builtin
   #[result=["it 's ${time}", "the current time is ${time}", "now it 's ${time}"]]
   #_[canonical=["time", "current time", "time of day"]]
   #_[confirmation="the current time"]
-  #_[formatted=[{type="text",text="Current time is ${time:time}."}]]
   #[doc="get the current time"]
   #[confirm=false];
 
@@ -87,7 +85,6 @@ class @org.thingpedia.builtin.thingengine.builtin
                  #[filterable=false])
   #_[canonical=["date", "current date", "today 's date"]]
   #_[confirmation="today's date"]
-  #_[formatted=[{type="text",text="Today is ${date:date}."}]]
   #[doc="get the current date"]
   #[confirm=false];
 
@@ -109,7 +106,6 @@ class @org.thingpedia.builtin.thingengine.builtin
   #_[canonical=["random number", "random integer"]]
   #_[result=["${random}", "your number is ${random} .", "i chose ${random} ."]]
   #_[confirmation="a random integer between $low and $high"]
-  #_[formatted=[{type="text",text="${random}"}]]
   #[doc="get a uniform random integer between `low` and `high`"]
   #[confirm=false];
 
@@ -136,7 +132,6 @@ class @org.thingpedia.builtin.thingengine.builtin
                     )
   #_[canonical=["device", "skill", "thingpedia device", "supported skill"]]
   #_[confirmation="Thingpedia devices"]
-  #_[formatted=[{type="text",text="${random}"}]]
   #[doc="list supported Thingpedia devices"]
   #[confirm=false];
 
@@ -152,7 +147,6 @@ class @org.thingpedia.builtin.thingengine.builtin
                       #[filterable=false])
   #_[canonical="supported command"]
   #_[confirmation="the list of commands of $device"]
-  #_[formatted=[{type="text",text="${program}"}]]
   #[doc="retrieve the list of supported commands for the given device"]
   #[confirm=false];
   */
@@ -273,7 +267,6 @@ class @com.twitter
                                )
   #_[canonical=["tweet", "recent tweet"]]
   #_[result=["${author} tweeted : ${text}"]]
-  #_[formatted=[{type="text",text="@${author} tweeted: ${text}"}]]
   #_[confirmation_remote="recent tweets"]
   #[related=["com.twitter:home_timeline"]]
   #[poll_interval=600000ms]
@@ -329,7 +322,6 @@ class @com.twitter
   #_[canonical=["my twitter home timeline", "tweet in my timeline", "tweet from anyone i follow", "tweet from people i follow"]]
   #_[result=["${author} tweeted : ${text}"]]
   #_[confirmation="tweets from anyone you follow"]
-  #_[formatted=[{type="text",text="@${author} tweeted: ${text}"}]]
   #[poll_interval=600000ms]
   #[doc="shows your Twitter timeline (the home page of Twitter)"];
 
@@ -357,7 +349,6 @@ class @com.twitter
                 "my twitter messages",
                 "my twitter dms"]]
   #_[confirmation="direct messages you received on Twitter"]
-  #_[formatted=[{type="text",text="@${sender}: ${message}"}]]
   #[poll_interval=600000ms]
   #[doc="get recent direct messages you received"];
 
@@ -471,7 +462,7 @@ class @org.thingpedia.weather
              "on ${date} the sun sets at ${sunset_time}"]]
   #_[canonical=["sunrise and sunset time", "sunrise time", "sunset time"]]
   #_[confirmation="the sunrise and sunset time for location $location"]
-  #_[formatted=[{type="text",text="Sun times on ${date:date} for ${location}: rises at ${sunrise_time}, sets at ${sunset_time}"}]]
+  #_[result=["Sun times on ${date:date} for ${location}: rises at ${sunrise_time}, sets at ${sunset_time}"]]
   #[minimal_projection=["sunrise_time", "sunset_time"]]
   #[poll_interval=86400000ms]
   #[doc="Information about sunrise and sunset"];
@@ -500,7 +491,7 @@ class @org.thingpedia.weather
              "the moon is ${phase}"]]
   #_[canonical=["moon phase", "phase of the moon"]]
   #_[confirmation="the moon phase for $location"]
-  #_[formatted=[{type="text",text="Moon phase on ${date:date} for ${location}: ${phase}."}]]
+  #_[result=["Moon phase on ${date:date} for ${location}: ${phase}."]]
   #[poll_interval=86400000ms]
   #[doc="Information about moon times and moon phase"]
   #[confirm=false];
@@ -546,7 +537,6 @@ class @org.thingpedia.weather
   #[minimal_projection=["status"]]
   #_[canonical=["current weather", "weather", "weather outside"]]
   #_[confirmation="the current weather for $location"]
-  #_[formatted=[{type="text",text="Current weather for ${location}: ${status}, temperature ${temperature:C} C, wind speed ${wind_speed:mps} m/s, humidity ${humidity}%, cloudiness ${cloudiness}%, fog ${fog}%."}]]
   #[poll_interval=3600000ms]
   #[doc="Information about current weather"]
   #[confirm=false];
@@ -819,7 +809,6 @@ class @com.spotify
     #_[canonical=["song", "music", "track"]]
     #_[confirmation="songs on Spotify"]
     #[minimal_projection=["id"]]
-    #_[formatted=[{type="text",text="${id} by ${artists}"}]]
     #[doc="search for songs on Spotify"];
 
     action play_song (in req song: Entity(com.spotify:song)
@@ -884,7 +873,6 @@ class @com.spotify
     #_[canonical=["artist", "composer", "musician", "singer"]]
     #_[confirmation="artists on Spotify"]
     #[minimal_projection=["id"]]
-    #_[formatted=[{type="text",text="${id}"}]]
     #[doc="search for artists on Spotify"];
 
     list query album(out id: Entity(com.spotify:album) #[string_values="tt:song_album"]
@@ -935,7 +923,6 @@ class @com.spotify
     #_[canonical=["album", "music collection"]]
     #_[confirmation="album on Spotify"]
     #[minimal_projection=["id"]]
-    #_[formatted=[{type="text",text="${id} by ${artists}"}]]
     #[doc="search for albums on Spotify"];
 
     monitorable query get_currently_playing(out song: Entity(com.spotify:song)
@@ -947,7 +934,7 @@ class @com.spotify
     #_[on_error={
       no_song_playing=["no song is currently playing", "nothing is currently playing"]
     }]
-    #_[formatted=[{type="text",text="The current playing song is ${song}."}]]
+    #_[result=["The current playing song is ${song}."]]
     #[poll_interval=60000ms]
     #[doc="retrieve the currently playing track name"];
 
@@ -956,7 +943,6 @@ class @com.spotify
     #_[canonical=["spotify top tracks", "my favorite songs",
                   "my top tracks"]]
     #_[confirmation="my top tracks in Spotify"]
-    #_[formatted=[{type="text",text="${song}"}]]
     #[poll_interval=3600000ms]
     #[doc="get user's top tracks in the last 4 weeks"];
 
@@ -1037,7 +1023,6 @@ class @com.icanhazdadjoke
   #_[result=["${text}"]]
   #_[canonical=["joke", "dad joke", "funny joke"]]
   #_[confirmation="a dad joke"]
-  #_[formatted=[{type="text",text="${text}"}]]
   #[doc="get a joke"]
   #[url="https://icanhazdadjoke.com/"];
 }

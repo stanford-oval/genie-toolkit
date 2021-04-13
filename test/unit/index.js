@@ -39,14 +39,15 @@ async function do_test(array) {
 
 
 // test lib scripts
+// keep this alphabetized!
 do_test([
-    ('./test_bart_canonical_extractor'),
     ('./test_array_set'),
     ('./test_augment'),
     ('./test_bart_canonical_extractor'),
     ('./test_base_canonical_generator'),
     ('./test_bert_canonical_generator'),
     ('./test_btrie'),
+    ('./test_card_formatter'),
     ('./test_describe'),
     ('./test_describe_api'),
     ('./test_describe_policy'),
@@ -54,15 +55,16 @@ do_test([
     ('./test_entities'),
     ('./test_entity_match'),
     ('./test_exact_matcher'),
-    ('./test_formatter'),
     ('./test_helpers'),
     ('./test_i18n_chinese'),
+    ('./test_infix_to_postfix'),
     ('./test_ip_address'),
     ('./test_linked_list'),
     ('./test_misc'),
     ('./test_new_tokenizer_en'),
     ('./test_new_tokenizer_it'),
     ('./test_new_tokenizer_zh'),
+    ('./test_pos_nfa'),
     ('./test_priority_queue'),
     ('./test_random'),
     ('./test_requoting'),
@@ -74,8 +76,5 @@ do_test([
     ('./test_timed_reference'),
     ('./test_timers'),
     ('./test_trie'),
-    //('./test_wikidata_utils'),
     ('./test_wikidata_utils'),
-    ('./test_infix_to_postfix'),
-    ('./test_pos_nfa')
 ]);

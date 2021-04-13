@@ -32,20 +32,17 @@ import {
 
 type PlainObject = { [key : string] : unknown };
 
-interface TextSpec {
-    type : 'text';
-    text : string;
-}
-
-type FormatSpecChunk = string | FormattedObjectSpec | TextSpec;
+type FormatSpecChunk = string | FormattedObjectSpec;
 export type FormatSpec = FormatSpecChunk[];
-export type FormattedChunk = string | FormattedObject;
+export { FormattedObject };
 
 /**
  * An object that is able to convert structured ThingTalk results
  * into interactive cards suitable to supplement text or speech output.
  */
-export default class CardFormatter extends interpolate.Formatter {
+export default class CardFormatter {
+    private _locale : string;
+    private _timezone : string|undefined;
     private _schemas : SchemaRetriever;
     private _ : (key : string) => string;
 
@@ -59,7 +56,8 @@ export default class CardFormatter extends interpolate.Formatter {
     constructor(locale : string,
                 timezone : string|undefined,
                 schemaRetriever : SchemaRetriever) {
-        super(locale, timezone);
+        this._locale = locale;
+        this._timezone = timezone;
         this._schemas = schemaRetriever;
         this._ = I18n.get(locale).gettext;
     }
@@ -78,7 +76,7 @@ export default class CardFormatter extends interpolate.Formatter {
         return replaced;
     }
 
-    async formatForType(outputType : string, outputValue : PlainObject, options : { removeText : boolean }) : Promise<FormattedChunk[]> {
+    async formatForType(outputType : string, outputValue : PlainObject) : Promise<FormattedObject[]> {
         // apply masquerading for @remote.receive
         if (outputType === 'org.thingpedia.builtin.thingengine.remote:receive')
             outputType = String(outputValue.__kindChannel);
@@ -99,23 +97,9 @@ export default class CardFormatter extends interpolate.Formatter {
         const [kind, function_name] = outputType.split(':');
         const formatspec = (await this._schemas.getFormatMetadata(kind, function_name)) as FormatSpecChunk[];
 
-        return this._normalize(formatspec.map((f : FormatSpecChunk, i : number) : FormattedChunk|null => {
+        return formatspec.map((f : FormatSpecChunk, i : number) : FormattedObject|null => {
             if (typeof f === 'string')
                 f = { type: 'text', text: f };
-
-            if (f.type === 'text') {
-                // when this method is called to supplement text output, we pass removeText=true and ignore
-                // any purely textual output in the #_[formatted] annotation
-                // when this method is called to form notification or for $event, we pass removeText=false
-                // and use the textual output in #_[formatted]
-                //
-                // FIXME text in #_[formatted] should be always removed and we should always use the
-                // state machine and #_[result] to form the output text
-                if (options.removeText)
-                    return null;
-                else
-                    return this.replaceInString(f.text, outputValue);
-            }
 
             const formatType = FORMAT_TYPES[f.type as keyof typeof FORMAT_TYPES] as FormattedObjectClass;
             if (!formatType) {
@@ -129,14 +113,6 @@ export default class CardFormatter extends interpolate.Formatter {
                 return null;
 
             return obj;
-        }));
-    }
-
-    private _normalize(formatted : Array<FormattedChunk|null>) : FormattedChunk[] {
-        // filter out null/undefined in the array
-        const filtered = formatted.filter((formatted) => !isNull(formatted)) as Array<FormattedChunk[]|FormattedChunk>;
-        // flatten formatted (returning array in function causes nested array)
-        const empty : FormattedChunk[] = [];
-        return empty.concat(...filtered);
+        }).filter((formatted) : formatted is FormattedObject => !isNull(formatted));
     }
 }

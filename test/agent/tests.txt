@@ -830,6 +830,18 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: timer(interval=1h, base=$now) => @com.thecatapi.get();
 
+A: How would you like to be notified?
+A: choice 0: SMS
+A: choice 1: This chat
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . execute ; timer ( base = $now , interval = DURATION_0 ) => @com.thecatapi . get ( ) ; // {"DURATION_0":{"unit":"h","value":1}}
+A: >> expecting = choice
+U: \t $choice(0);
+
+A: What is your phone number?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . execute ; timer ( base = $now , interval = DURATION_0 ) => @com.thecatapi . get ( ) ; // {"DURATION_0":{"unit":"h","value":1}}
+A: >> expecting = phone_number
+U: \t $answer("555-12345678"^^tt:phone_number);
+
 A: Alright, I will get the cat picture every 60 min.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_rule_enable_success ; timer ( base = $now , interval = DURATION_0 ) => @com.thecatapi . get ( ) #[ results = [ ] ] ; // {"DURATION_0":{"unit":"h","value":1}}
 A: >> expecting = null
@@ -895,4 +907,26 @@ U: \t [reviewCount] of @com.yelp.restaurant()[1:3];
 
 A: Ramen Nagi is a restaurant with 1,625 reviews, Evvia Estiatorio has 2,393 reviews, and Oren's Hummus has 2,248 reviews.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_three ; [ reviewCount ] of @com.yelp . restaurant ( ) [ 1 : 3 ] #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , reviewCount = NUMBER_0 } ] ] #[ count = 3 ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"NUMBER_0":1625}
+A: >> expecting = null
+
+====
+# 61-anon-basic-streams
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: timer(interval=1h, base=$now) => @com.thecatapi.get();
+
+A: To receive notifications you must first log in to your personal account.
+A: link: Register for Almond /user/register
+A: >> context = null // {}
+A: >> expecting = null
+
+====
+# 62-anon-actions
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.twitter.post();
+
+A: To use this command you must first log in to your personal account.
+A: link: Register for Almond /user/register
+A: >> context = null // {}
 A: >> expecting = null
