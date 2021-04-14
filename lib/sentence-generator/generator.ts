@@ -143,6 +143,7 @@ for (let i = 1; i < 6; i++)
 for (let i = 6; i < 20; i++)
     POWERS[i] = 0.8 * POWERS[i-1];
 const EXPONENTIAL_PRUNE_SIZE = 500000000;
+const SAMPLING_PRUNE_SIZE = 1000000;
 const MAX_SAMPLE_SIZE = 1000000;
 
 // the automatically added derivation key considering the context
@@ -1890,7 +1891,7 @@ function expandRule(charts : ChartTable,
 
     // make an estimate of the number of times we'll need to call the semantic function
     // to get the target pruning size
-    const targetSemanticFunctionCalls = Math.min(targetPruningSize / estimatedPruneFactor, EXPONENTIAL_PRUNE_SIZE);
+    const targetSemanticFunctionCalls = Math.min(targetPruningSize / estimatedPruneFactor, SAMPLING_PRUNE_SIZE);
 
     //console.log('expand $' + nonterminal + ' -> ' + expansion.join('') + ' : actual ' + actualGenSize);
 
