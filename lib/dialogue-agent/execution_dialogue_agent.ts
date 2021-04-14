@@ -461,7 +461,7 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         // autodiscovered from a thingpedia device, check that the device is
         // still available
         if (backendId !== undefined &&
-            (!backendId.startsWith('thingpedia/') && this._engine.hasDevice(backendId.substring('thingpedia/'.length))))
+            (!backendId.startsWith('thingpedia/') || this._engine.hasDevice(backendId.substring('thingpedia/'.length))))
             return;
 
         const available = this._engine.assistant.getAvailableNotificationBackends();
