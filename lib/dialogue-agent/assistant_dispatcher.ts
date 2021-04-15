@@ -23,7 +23,6 @@ import * as events from 'events';
 import * as Tp from 'thingpedia';
 
 import Conversation, {
-    AssistantUser,
     ConversationDelegate,
     ConversationOptions,
     ConversationState
@@ -208,8 +207,8 @@ export default class AssistantDispatcher extends events.EventEmitter {
      * It exists for the convenience of REST API clients which do not keep
      * an open web socket.
      */
-    async converse(command : ConverseInput, user : AssistantUser, conversationId : string) {
-        const conversation = await this.getOrOpenConversation(conversationId, user, {
+    async converse(command : ConverseInput, conversationId : string) {
+        const conversation = await this.getOrOpenConversation(conversationId, {
             showWelcome: false,
             anonymous: false,
             debug: true
@@ -352,18 +351,18 @@ export default class AssistantDispatcher extends events.EventEmitter {
             return this._lastConversation;
     }
 
-    async getOrOpenConversation(id : string, user : AssistantUser, options : ConversationOptions, state ?: ConversationState) {
+    async getOrOpenConversation(id : string, options : ConversationOptions, state ?: ConversationState) {
         if (this._conversations.has(id))
             return this._conversations.get(id)!;
         options = options || {};
         if (!options.nluServerUrl)
             options.nluServerUrl = this._nluModelUrl;
-        const conv = this.openConversation(id, user, options);
+        const conv = this.openConversation(id, options);
         await conv.start(state);
         return conv;
     }
 
-    openConversation(id : string, user : AssistantUser, options : ConversationOptions) {
+    openConversation(id : string, options : ConversationOptions) {
         this._conversations.delete(id);
         options = options || {};
         if (!options.nluServerUrl)
@@ -372,7 +371,7 @@ export default class AssistantDispatcher extends events.EventEmitter {
         let deleteWhenInactive = options.deleteWhenInactive;
         if (deleteWhenInactive === undefined)
             deleteWhenInactive = true;
-        const conv = new Conversation(this._engine, id, user, options);
+        const conv = new Conversation(this._engine, id, options);
         conv.on('active', () => {
             this._lastConversation = conv;
         });
