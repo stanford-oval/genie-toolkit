@@ -54,11 +54,12 @@ export default class TwilioNotificationBackend {
         type : string;
         formatted : FormattedObject[]
     }) {
-        const prefs = this._platform.getSharedPreferences();
-        const to = prefs.get('context-$context.self.phone_number') as (string|{ value : string });
+        const profile = this._platform.getProfile();
+        if (!profile.phone || !profile.phone_verified)
+            return;
 
         await this._client.messages.create({
-            to: typeof to === 'string' ? to : to.value,
+            to: profile.phone,
             from: this._from,
             body: data.formatted.map((x) => x.toLocaleString(this._platform.locale)).join('\n')
         });
