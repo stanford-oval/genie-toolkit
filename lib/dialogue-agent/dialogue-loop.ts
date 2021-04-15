@@ -201,6 +201,10 @@ export default class DialogueLoop {
         return this._debug;
     }
 
+    getState() : string {
+        return this._dialogueState ? this._dialogueState.prettyprint() : 'null';
+    }
+
     debug(...args : unknown[]) {
         if (!this._debug)
             return;
@@ -655,10 +659,24 @@ export default class DialogueLoop {
         await this.setExpected(null);
     }
 
-    private async _loop(showWelcome : boolean) {
-        // if we want to show the welcome message, we run the policy on the `null` state, which will return the sys_greet intent
-        if (showWelcome)
+    private async _loop(showWelcome : boolean, initialState : string|null, expected : ValueCategory|null) {
+        if (initialState !== null) {
+            if (initialState === 'null') {
+                this._dialogueState = null;
+            } else {
+                const parsed = await ThingTalkUtils.parse(initialState, {
+                    schemaRetriever: this.engine.schemas,
+                    thingpediaClient: this.engine.thingpedia
+                });
+                assert(parsed instanceof Ast.DialogueState);
+                this._dialogueState = parsed;
+            }
+
+            await this.setExpected(expected);
+        } else if (showWelcome) {
+            // if we want to show the welcome message, we run the policy on the `null` state, which will return the sys_greet intent
             await this._showWelcome();
+        }
 
         while (!this._stopped) {
             let item;
@@ -893,12 +911,12 @@ export default class DialogueLoop {
         this._pushQueueItem(item);
     }
 
-    async start(showWelcome : boolean) {
+    async start(showWelcome : boolean, initialState : string|null, expecting : ValueCategory|null) {
         await this._nlu.start();
         await this._nlg.start();
 
         const promise = this._waitNextCommand();
-        this._loop(showWelcome).then(() => {
+        this._loop(showWelcome, initialState, expecting).then(() => {
             throw new Error('Unexpected end of dialog loop');
         }, (err) => {
             console.error('Uncaught error in dialog loop', err);
