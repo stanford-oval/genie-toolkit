@@ -304,8 +304,7 @@ export default class Conversation extends events.EventEmitter {
                 await this.addMessage(msg);
         }
         return this._loop.start(!!this._options.showWelcome,
-            state ? state.dialogueState : null,
-            state ? ValueCategory.fromString(state.expected) : null);
+            state ? state.dialogueState : null);
     }
 
     async stop() : Promise<void> {
@@ -406,7 +405,6 @@ export default class Conversation extends events.EventEmitter {
         return {
             history: this._history.slice(),
             dialogueState: this._loop.getState(),
-            expected: ValueCategory.toString(this._expecting)
         };
     }
 
@@ -518,10 +516,10 @@ export default class Conversation extends events.EventEmitter {
         return this.addMessage({ type: MessageType.BUTTON, json, title });
     }
 
-    sendLink(title : string, url : string) {
+    sendLink(title : string, url : string, state : ConversationState) {
         if (this._debug)
             console.log('Genie sends link: '+ url);
-        return this.addMessage({ type: MessageType.LINK, url, title, state: this.getState() });
+        return this.addMessage({ type: MessageType.LINK, url, title, state });
     }
 
     sendNewProgram(program : {

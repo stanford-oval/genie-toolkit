@@ -45,6 +45,7 @@ import { CancellationError } from './errors';
 import * as Helpers from './helpers';
 import DialoguePolicy from './dialogue_policy';
 import type Conversation from './conversation';
+import { ConversationState } from './conversation';
 import CardFormatter, { FormattedObject } from './card-output/card-formatter';
 
 import ExecutionDialogueAgent from './execution_dialogue_agent';
@@ -596,6 +597,11 @@ export default class DialogueLoop {
     private async _handleNormalDialogueCommand(prediction : Ast.DialogueState) : Promise<void> {
         this._dialogueState = ThingTalkUtils.computeNewState(this._dialogueState, prediction, 'user');
         this._checkPolicy(this._dialogueState.policy);
+
+        await this._executeCurrentState();
+    }
+
+    private async _executeCurrentState() {
         this.icon = getProgramIcon(this._dialogueState);
 
         //this.debug(`Before execution:`);
@@ -659,10 +665,11 @@ export default class DialogueLoop {
         await this.setExpected(null);
     }
 
-    private async _loop(showWelcome : boolean, initialState : string|null, expected : ValueCategory|null) {
+    private async _loop(showWelcome : boolean, initialState : string|null) {
         if (initialState !== null) {
             if (initialState === 'null') {
                 this._dialogueState = null;
+                await this.setExpected(null);
             } else {
                 const parsed = await ThingTalkUtils.parse(initialState, {
                     schemaRetriever: this.engine.schemas,
@@ -670,9 +677,13 @@ export default class DialogueLoop {
                 });
                 assert(parsed instanceof Ast.DialogueState);
                 this._dialogueState = parsed;
-            }
 
-            await this.setExpected(expected);
+                // execute the current dialogue state
+                // this will attempt to run all the programs that failed in the
+                // previous conversation (most likely because they were executed
+                // in the anonymous context)
+                await this._executeCurrentState();
+            }
         } else if (showWelcome) {
             // if we want to show the welcome message, we run the policy on the `null` state, which will return the sys_greet intent
             await this._showWelcome();
@@ -894,8 +905,8 @@ export default class DialogueLoop {
         await this.conversation.sendButton(text, json);
     }
 
-    async replyLink(title : string, url : string) {
-        await this.conversation.sendLink(title, url);
+    async replyLink(title : string, url : string, state : ConversationState = this.conversation.getState()) {
+        await this.conversation.sendLink(title, url, state);
     }
 
     private _isInDefaultState() : boolean {
@@ -911,12 +922,12 @@ export default class DialogueLoop {
         this._pushQueueItem(item);
     }
 
-    async start(showWelcome : boolean, initialState : string|null, expecting : ValueCategory|null) {
+    async start(showWelcome : boolean, initialState : string|null) {
         await this._nlu.start();
         await this._nlg.start();
 
         const promise = this._waitNextCommand();
-        this._loop(showWelcome, initialState, expecting).then(() => {
+        this._loop(showWelcome, initialState).then(() => {
             throw new Error('Unexpected end of dialog loop');
         }, (err) => {
             console.error('Uncaught error in dialog loop', err);
