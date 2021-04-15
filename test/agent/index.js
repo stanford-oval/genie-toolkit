@@ -266,7 +266,7 @@ async function main(onlyIds) {
     const delegate = new TestDelegate(testRunner);
 
     const nluServerUrl = 'https://nlp-staging.almond.stanford.edu';
-    const conversation = new Conversation(engine, 'test', new MockUser(), {
+    const conversation = new Conversation(engine, 'test', {
         nluServerUrl: nluServerUrl,
         nlgServerUrl: null,
         debug: true,

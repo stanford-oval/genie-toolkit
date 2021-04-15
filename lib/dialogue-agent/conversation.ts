@@ -43,11 +43,6 @@ const DummyStatistics = {
 
 const DEFAULT_CONVERSATION_TTL = 600000; // 10 minutes
 
-export interface AssistantUser {
-    id : string;
-    account : string;
-}
-
 export interface ConversationOptions {
     nluServerUrl ?: string;
     nlgServerUrl ?: string;
@@ -159,7 +154,6 @@ export interface ConversationState {
  */
 export default class Conversation extends events.EventEmitter {
     private _engine : Engine;
-    private _user : AssistantUser;
     private _conversationId : string;
     private _locale : string;
     _ : (x : string) => string;
@@ -185,11 +179,9 @@ export default class Conversation extends events.EventEmitter {
 
     constructor(engine : Engine,
                 conversationId : string,
-                user : AssistantUser,
                 options : ConversationOptions = {}) {
         super();
         this._engine = engine;
-        this._user = user;
 
         this._conversationId = conversationId;
         this._locale = this._engine.platform.locale;
@@ -231,10 +223,6 @@ export default class Conversation extends events.EventEmitter {
 
     get id() : string {
         return this._conversationId;
-    }
-
-    get user() : AssistantUser {
-        return this._user;
     }
 
     get engine() : Engine {
