@@ -22,7 +22,6 @@
 import path from "path";
 import fs from "fs";
 import * as events from 'events';
-import type * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
 
 import * as I18n from '../i18n';
@@ -238,32 +237,12 @@ export default class Conversation extends events.EventEmitter {
         return this._user;
     }
 
-    get platform() : Tp.BasePlatform {
-        return this._engine.platform;
-    }
-
-    get locale() : string {
-        return this._engine.platform.locale;
-    }
-
-    get timezone() : string {
-        return this._engine.platform.timezone;
-    }
-
     get engine() : Engine {
         return this._engine;
     }
 
     get stats() : Statistics {
         return this._stats;
-    }
-
-    get schemas() : ThingTalk.SchemaRetriever {
-        return this._engine.schemas;
-    }
-
-    get thingpedia() : Tp.BaseClient {
-        return this._engine.thingpedia;
     }
 
     get history() : Message[] {
@@ -434,7 +413,7 @@ export default class Conversation extends events.EventEmitter {
         if (this._debug)
             console.log('Received pre-parsed assistant command');
         if (root.example_id) {
-            this.thingpedia.clickExample(root.example_id).catch((e) => {
+            this._engine.thingpedia.clickExample(root.example_id).catch((e) => {
                 console.error('Failed to record example click: ' + e.message);
             });
         }
