@@ -382,7 +382,50 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         return Ast.Value.fromJSON(type, value);
     }
 
+    private async _resolvePhoneNumber() : Promise<Ast.Value> {
+        let profile = this._platform.getProfile();
+        if (profile.phone) {
+            // TODO phone verification???
+            assert(profile.phone_verified);
+            return new Ast.Value.Entity(profile.phone, 'tt:phone_number', null);
+        }
+
+        const phone = await this._dlg.ask(ValueCategory.PhoneNumber, this._("What is your phone number?"));
+        if (!await this._platform.setProfile({ phone: String(phone.toJS()) }))
+            return phone;
+
+        profile = this._platform.getProfile();
+        assert(profile.phone_verified);
+        return phone;
+    }
+
+    private async _resolveEmailAddress() : Promise<Ast.Value> {
+        let profile = this._platform.getProfile();
+        if (profile.email) {
+            if (!profile.email_verified)
+                await this._dlg.reply(this._("You must verify your email address by clicking the verification link before you can use it to receive notifications."));
+            return new Ast.Value.Entity(profile.email, 'tt:email_address', null);
+        }
+
+        const email = await this._dlg.ask(ValueCategory.PhoneNumber, this._("What is your email address?"));
+        if (!await this._platform.setProfile({ email: String(email.toJS()) }))
+            return email;
+
+        profile = this._platform.getProfile();
+        if (!profile.email_verified)
+            await this._dlg.reply(this._("Thank you! Please verify your email address by clicking the verification link before continuing."));
+
+        return email;
+    }
+
     protected async resolveUserContext(variable : string) : Promise<Ast.Value> {
+        switch (variable) {
+        case '$context.self.phone_number':
+            return this._resolvePhoneNumber();
+        case '$context.self.email_address':
+            return this._resolveEmailAddress();
+        }
+
         let value : Ast.Value|null = null;
         switch (variable) {
             case '$context.location.current_location': {
@@ -401,10 +444,6 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
             case '$context.time.evening':
                 value = this._tryGetStoredVariable(Type.Time, variable);
                 break;
-            case '$context.self.phone_number':
-                value = this._tryGetStoredVariable(new Type.Entity('tt:phone_number'), variable);
-                break;
-
             default:
                 throw new TypeError('Invalid variable ' + variable);
         }
@@ -432,10 +471,6 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         case '$context.time.evening':
             question = this._("What time does your evening begin?");
             type = ValueCategory.Time as const;
-            break;
-        case '$context.self.phone_number':
-            question = this._("What is your phone number?");
-            type = ValueCategory.PhoneNumber as const;
             break;
         }
 
