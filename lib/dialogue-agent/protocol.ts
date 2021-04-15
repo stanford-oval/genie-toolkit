@@ -18,6 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import { ConversationState } from './conversation';
 
 export enum MessageType {
     // from user
@@ -92,6 +93,15 @@ interface LinkMessage {
     type : MessageType.LINK;
     url : string;
     title : string;
+
+    /**
+     * Conversation state associated with this link message.
+     *
+     * This is added to link messages to enable transparent
+     * transfer of conversations across registration and
+     * configuration flows.
+     */
+    state : ConversationState;
 }
 
 interface ButtonMessage {

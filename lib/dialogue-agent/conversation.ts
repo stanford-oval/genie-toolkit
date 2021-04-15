@@ -144,7 +144,7 @@ class DialogueLog {
     }
 }
 
-interface ConversationState {
+export interface ConversationState {
     history : Message[],
     dialogueState : string,
     expected : string|null
@@ -521,7 +521,7 @@ export default class Conversation extends events.EventEmitter {
     sendLink(title : string, url : string) {
         if (this._debug)
             console.log('Genie sends link: '+ url);
-        return this.addMessage({ type: MessageType.LINK, url, title });
+        return this.addMessage({ type: MessageType.LINK, url, title, state: this.getState() });
     }
 
     sendNewProgram(program : {
