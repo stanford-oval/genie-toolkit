@@ -25,7 +25,8 @@ import * as Tp from 'thingpedia';
 import Conversation, {
     AssistantUser,
     ConversationDelegate,
-    ConversationOptions
+    ConversationOptions,
+    ConversationState
 } from './conversation';
 import { Message } from './protocol';
 import NotificationFormatter, { FormattedObject } from './notifications/formatter';
@@ -351,14 +352,14 @@ export default class AssistantDispatcher extends events.EventEmitter {
             return this._lastConversation;
     }
 
-    async getOrOpenConversation(id : string, user : AssistantUser, options : ConversationOptions) {
+    async getOrOpenConversation(id : string, user : AssistantUser, options : ConversationOptions, state ?: ConversationState) {
         if (this._conversations.has(id))
             return this._conversations.get(id)!;
         options = options || {};
         if (!options.nluServerUrl)
             options.nluServerUrl = this._nluModelUrl;
         const conv = this.openConversation(id, user, options);
-        await conv.start();
+        await conv.start(state);
         return conv;
     }
 

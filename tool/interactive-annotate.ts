@@ -222,6 +222,17 @@ class Annotator extends events.EventEmitter {
     get platformData() {
         return {};
     }
+    get conversation() {
+        return {
+            getState() {
+                return {
+                    history: [],
+                    dialogueState: 'null',
+                    expected: null
+                }
+            }
+        };
+    }
 
     interpolate(msg : string, args : Record<string, unknown>) : string {
         return interpolate(msg, args, {

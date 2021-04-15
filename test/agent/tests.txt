@@ -915,8 +915,8 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: timer(interval=1h, base=$now) => @com.thecatapi.get();
 
-A: To receive notifications you must first log in to your personal account.
-A: link: Register for Almond /user/register
+A: To receive notifications you must first create a personal Almond account.
+A: link: Sign up for Almond /user/register
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -926,8 +926,8 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.twitter.post();
 
-A: To use this command you must first log in to your personal account.
-A: link: Register for Almond /user/register
+A: To use this command you must first create a personal Almond account.
+A: link: Sign up for Almond /user/register
 A: >> context = null // {}
 A: >> expecting = null
 

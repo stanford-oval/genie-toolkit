@@ -144,8 +144,13 @@ class DialogueLog {
     }
 }
 
+export interface ConversationState {
+    history : Message[];
+    dialogueState : string;
+}
+
 /**
- * A single session of conversation in Almond.
+ * A single session of conversation in Genie.
  *
  * This object is responsible for maintaining the history of the conversation
  * to support clients reconnecting to the same conversation later, as well
@@ -291,9 +296,14 @@ export default class Conversation extends events.EventEmitter {
         this._context = context;
     }
 
-    async start() : Promise<void> {
+    async start(state ?: ConversationState) : Promise<void> {
         this._resetInactivityTimeout();
-        return this._loop.start(!!this._options.showWelcome);
+        if (state) {
+            for (const msg of state.history)
+                await this.addMessage(msg);
+        }
+        return this._loop.start(!!this._options.showWelcome,
+            state ? state.dialogueState : null);
     }
 
     async stop() : Promise<void> {
@@ -356,7 +366,7 @@ export default class Conversation extends events.EventEmitter {
     }
 
     async sendAskSpecial() : Promise<void> {
-        const what = ValueCategory.toAskSpecial(this._expecting);
+        const what = ValueCategory.toString(this._expecting);
 
         if (this._debug) {
             if (what !== null && what !== 'generic')
@@ -368,12 +378,33 @@ export default class Conversation extends events.EventEmitter {
         await this._callDelegates((out) => out.setExpected(what, this._context));
     }
 
-    private async _addMessage(msg : Message) {
-        msg.id = this._nextMsgId ++;
+    /**
+     * Add a message to the conversation history.
+     *
+     * This method is exported to inject conversation history from outside.
+     */
+    async addMessage(msg : Message) {
+        if (msg.id !== undefined)
+            this._nextMsgId = Math.max(this._nextMsgId, msg.id+1);
+        else
+            msg.id = this._nextMsgId ++;
         this._history.push(msg);
         if (this._history.length > 30)
             this._history.shift();
         await this._callDelegates((out) => out.addMessage(msg));
+    }
+
+    /**
+     * Extract the state from the conversation.
+     *
+     * This method is provided to save and restore the conversation state,
+     * and transfer the conversation state between engines.
+     */
+    getState() : ConversationState {
+        return {
+            history: this._history.slice(),
+            dialogueState: this._loop.getState(),
+        };
     }
 
     async handleCommand(command : string, platformData : PlatformData = {}) : Promise<void> {
@@ -384,7 +415,7 @@ export default class Conversation extends events.EventEmitter {
         this.stats.hit('sabrina-command');
         this.emit('active');
         this._resetInactivityTimeout();
-        await this._addMessage({ type: MessageType.COMMAND, command });
+        await this.addMessage({ type: MessageType.COMMAND, command });
         if (this._debug)
             console.log('Received assistant command ' + command);
 
@@ -398,7 +429,7 @@ export default class Conversation extends events.EventEmitter {
         this._resetInactivityTimeout();
         if (typeof root === 'string')
             root = JSON.parse(root);
-        await this._addMessage({ type: MessageType.COMMAND, command: title || command, json: root });
+        await this.addMessage({ type: MessageType.COMMAND, command: title || command, json: root });
 
         if (this._debug)
             console.log('Received pre-parsed assistant command');
@@ -434,7 +465,7 @@ export default class Conversation extends events.EventEmitter {
         this.stats.hit('sabrina-thingtalk-command');
         this.emit('active');
         this._resetInactivityTimeout();
-        await this._addMessage({ type: MessageType.COMMAND, command });
+        await this.addMessage({ type: MessageType.COMMAND, command });
         if (this._debug)
             console.log('Received ThingTalk program');
 
@@ -449,25 +480,25 @@ export default class Conversation extends events.EventEmitter {
     sendReply(message : string, icon : string|null) {
         if (this._debug)
             console.log('Genie says: ' + message);
-        return this._addMessage({ type: MessageType.TEXT, text: message, icon });
+        return this.addMessage({ type: MessageType.TEXT, text: message, icon });
     }
 
     sendMedia(mediaType : 'picture'|'audio'|'video', url : string, alt : string|undefined, icon : string|null) {
         if (this._debug)
             console.log('Genie sends ' + mediaType + ': '+ url);
-        return this._addMessage({ type: mediaType as MessageType.AUDIO|MessageType.VIDEO|MessageType.PICTURE, url, alt, icon });
+        return this.addMessage({ type: mediaType as MessageType.AUDIO|MessageType.VIDEO|MessageType.PICTURE, url, alt, icon });
     }
 
     sendRDL(rdl : RDL, icon : string|null) {
         if (this._debug)
             console.log('Genie sends RDL: '+ rdl.callback);
-        return this._addMessage({ type: MessageType.RDL, rdl, icon });
+        return this.addMessage({ type: MessageType.RDL, rdl, icon });
     }
 
     sendSoundEffect(name : string, exclusive : boolean, icon : string|null) {
         if (this._debug)
             console.log('Genie sends sound effect: '+ name);
-        return this._addMessage({ type: MessageType.SOUND_EFFECT, name, exclusive, icon });
+        return this.addMessage({ type: MessageType.SOUND_EFFECT, name, exclusive, icon });
     }
 
     sendChoice(idx : number, title : string) {
@@ -475,19 +506,19 @@ export default class Conversation extends events.EventEmitter {
             console.log('UNEXPECTED: sendChoice while not expecting a MultipleChoice');
         if (this._debug)
             console.log('Genie sends multiple choice button: '+ title);
-        return this._addMessage({ type: MessageType.CHOICE, idx, title });
+        return this.addMessage({ type: MessageType.CHOICE, idx, title });
     }
 
     sendButton(title : string, json : string) {
         if (this._debug)
             console.log('Genie sends generic button: '+ title);
-        return this._addMessage({ type: MessageType.BUTTON, json, title });
+        return this.addMessage({ type: MessageType.BUTTON, json, title });
     }
 
-    sendLink(title : string, url : string) {
+    sendLink(title : string, url : string, state : ConversationState) {
         if (this._debug)
-            console.log('Almond sends link: '+ url);
-        return this._addMessage({ type: MessageType.LINK, url, title });
+            console.log('Genie sends link: '+ url);
+        return this.addMessage({ type: MessageType.LINK, url, title, state });
     }
 
     sendNewProgram(program : {
@@ -499,8 +530,8 @@ export default class Conversation extends events.EventEmitter {
         icon : string|null;
     }) {
         if (this._debug)
-            console.log('Almond executed new program: '+ program.uniqueId);
-        return this._addMessage({ type: MessageType.NEW_PROGRAM, ...program });
+            console.log('Genie executed new program: '+ program.uniqueId);
+        return this.addMessage({ type: MessageType.NEW_PROGRAM, ...program });
     }
 
     private get _lastDialogue() {

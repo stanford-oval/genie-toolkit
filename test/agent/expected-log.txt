@@ -2078,7 +2078,7 @@ U: timer(base=$now, interval=1h) => @com.thecatapi.get();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: timer(base=$now, interval=1h) => @com.thecatapi.get();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: To receive notifications you must first log in to your personal account.
+A: To receive notifications you must first create a personal Almond account.
 #! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
@@ -2096,7 +2096,7 @@ U: @com.twitter.post();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.twitter.post();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: To use this command you must first log in to your personal account.
+A: To use this command you must first create a personal Almond account.
 #! vote: up
 #! comment: test comment for dialogue turns
 #!          additional

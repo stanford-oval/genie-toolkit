@@ -33,10 +33,15 @@ import { CancellationError } from './errors';
 import { EntityRecord } from './entity-linking/entity-finder';
 import { Contact } from './entity-linking/contact_search';
 import { PlatformData } from './user-input';
+import { ConversationState } from './conversation';
 
 import AbstractDialogueAgent, {
     DisambiguationHints,
 } from './abstract_dialogue_agent';
+
+interface AbstractConversation {
+    getState() : ConversationState;
+}
 
 /**
  * The interface that the {@link ExecutionDialogueAgent} uses to communicate
@@ -58,9 +63,10 @@ export interface AbstractDialogueLoop {
     platformData : PlatformData;
     isAnonymous : boolean;
     _ : (x : string) => string;
+    conversation : AbstractConversation;
 
     reply(msg : string) : Promise<void>;
-    replyLink(title : string, link : string) : Promise<void>;
+    replyLink(title : string, link : string, state ?: ConversationState) : Promise<void>;
     interpolate(msg : string, args : Record<string, unknown>) : string;
     replyInterp(msg : string, args : Record<string, unknown>) : Promise<void>;
     ask(expected : ValueCategory.PhoneNumber|ValueCategory.EmailAddress|ValueCategory.Location|ValueCategory.Time,
@@ -104,21 +110,22 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         return this._engine.getDeviceInfos(kind);
     }
 
+    private async _requireRegistration(msg : string) : Promise<never> {
+        const state = this._dlg.conversation.getState();
+        await this._dlg.reply(msg);
+        await this._dlg.replyLink(this._("Sign up for Almond"), "/user/register", state);
+        throw new CancellationError();
+    }
+
     protected async checkForPermission(stmt : Ast.ExpressionStatement) {
         if (!this._dlg.isAnonymous)
             return;
 
-        if (stmt.stream) {
-            await this._dlg.reply(this._("To receive notifications you must first log in to your personal account."));
-            await this._dlg.replyLink(this._("Register for Almond"), "/user/register");
-            throw new CancellationError();
-        }
+        if (stmt.stream)
+            await this._requireRegistration(this._("To receive notifications you must first create a personal Almond account."));
 
-        if (stmt.last.schema!.functionType === 'action') {
-            await this._dlg.reply(this._("To use this command you must first log in to your personal account."));
-            await this._dlg.replyLink(this._("Register for Almond"), "/user/register");
-            throw new CancellationError();
-        }
+        if (stmt.last.schema!.functionType === 'action')
+            await this._requireRegistration(this._("To use this command you must first create a personal Almond account."));
     }
 
     async disambiguate(type : 'device'|'contact',
@@ -155,11 +162,9 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
             return this._engine.getDeviceInfo(device.uniqueId!);
         } else {
             if (this._dlg.isAnonymous) {
-                await this._dlg.replyInterp(this._("Sorry, to use ${device}, you must log in to your personal account."), {
+                await this._requireRegistration(this._dlg.interpolate(this._("Sorry, to use ${device}, you must create a personal Almond account."), {
                     device: factory.text,
-                });
-                await this._dlg.replyLink(this._("Register for Almond"), "/user/register");
-                return null;
+                }));
             }
 
             if (factory.type === 'multiple' && factory.choices.length === 0) {
