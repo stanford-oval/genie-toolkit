@@ -147,7 +147,6 @@ class DialogueLog {
 export interface ConversationState {
     history : Message[],
     dialogueState : string,
-    expected : string|null
 }
 
 /**

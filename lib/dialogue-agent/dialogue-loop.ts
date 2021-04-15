@@ -602,12 +602,12 @@ export default class DialogueLoop {
     }
 
     private async _executeCurrentState() {
-        this.icon = getProgramIcon(this._dialogueState);
+        this.icon = getProgramIcon(this._dialogueState!);
 
         //this.debug(`Before execution:`);
         //this.debug(this._dialogueState.prettyprint());
 
-        const { newDialogueState, newExecutorState, newPrograms, newResults } = await this._agent.execute(this._dialogueState, this._executorState);
+        const { newDialogueState, newExecutorState, newPrograms, newResults } = await this._agent.execute(this._dialogueState!, this._executorState);
         this._dialogueState = newDialogueState;
         this._executorState = newExecutorState;
         this.debug(`Execution state:`);
