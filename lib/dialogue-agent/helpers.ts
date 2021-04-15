@@ -51,7 +51,7 @@ export function formatError(dlg : DialogueLoop, error : Error|string) {
 export function presentExample(dlg : DialogueLoop, utterance : string) {
     // on Android, we have app-level slot filling which is more powerful, so we don't
     // want to lose the argument name information
-    if (dlg.conversation.platform.type === 'android' || dlg.conversation.platform.type === 'test')
+    if (dlg.engine.platform.type === 'android' || dlg.engine.platform.type === 'test')
         utterance = utterance.split(' ').map((t) => t.startsWith('$') ? normalizeSlot(t) : t).join(' ');
     else
         utterance = utterance.split(' ').map((t) => t.startsWith('$') ? '____' : t).join(' ');

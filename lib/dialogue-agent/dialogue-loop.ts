@@ -181,9 +181,9 @@ export default class DialogueLoop {
 
         this._agent = new ExecutionDialogueAgent(engine, this, options.debug);
         this._policy = new DialoguePolicy({
-            thingpedia: conversation.thingpedia,
-            schemas: conversation.schemas,
-            locale: conversation.locale,
+            thingpedia: engine.thingpedia,
+            schemas: engine.schemas,
+            locale: engine.platform.locale,
             timezone: engine.platform.timezone,
             rng: conversation.rng,
             debug : this._debug ? 2 : 1
@@ -224,7 +224,7 @@ export default class DialogueLoop {
             });
         }
 
-        const tmpl = Replaceable.get(msg, this.conversation.locale, names);
+        const tmpl = Replaceable.get(msg, this.engine.platform.locale, names);
         return this._langPack.postprocessNLG(tmpl.replace({ replacements, constraints: {} })!.chooseBest(), {}, this._agent);
     }
 
@@ -494,8 +494,8 @@ export default class DialogueLoop {
 
     private async _describeProgram(program : Ast.Input) {
         const allocator = new Syntax.SequentialEntityAllocator({});
-        const describer = new ThingTalkUtils.Describer(this.conversation.locale,
-                                                       this.conversation.timezone,
+        const describer = new ThingTalkUtils.Describer(this.engine.platform.locale,
+                                                       this.engine.platform.timezone,
                                                        allocator);
         // retrieve the relevant primitive templates
         const kinds = new Set<string>();
