@@ -23,9 +23,10 @@ import assert from 'assert';
 
 import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
-import { Ast, Syntax } from 'thingtalk';
+import { Ast, Type, Syntax } from 'thingtalk';
 import AsyncQueue from 'consumer-queue';
 
+import { clean } from '../utils/misc-utils';
 import { getProgramIcon } from '../utils/icons';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import { Replaceable, ReplacedConcatenation, ReplacedResult } from '../utils/template-string';
@@ -433,9 +434,8 @@ export default class DialogueLoop {
             throw new CancellationError();
         }
 
-        let expect, utterance, entities, numResults;
-        [this._dialogueState, expect, utterance, entities, numResults] = policyResult;
-
+        this._dialogueState = policyResult.state;
+        let utterance = policyResult.utterance;
         const policyPrediction = ThingTalkUtils.computePrediction(oldState, this._dialogueState, 'agent');
         const agentTarget = policyPrediction.prettyprint();
         this.conversation.updateLog('agent_target', agentTarget);
@@ -449,17 +449,32 @@ export default class DialogueLoop {
             const result = await this._nlg.generateUtterance(contextCode, contextEntities, targetAct);
             utterance = result[0].answer;
         }
-        utterance = this._langPack.postprocessNLG(utterance, entities, this._agent);
+        utterance = this._langPack.postprocessNLG(utterance, policyResult.entities, this._agent);
 
         this.icon = getProgramIcon(this._dialogueState!);
         await this.reply(utterance);
 
-        for (const [outputType, outputValue] of newResults.slice(0, numResults)) {
+        for (const [outputType, outputValue] of newResults.slice(0, policyResult.numResults)) {
             const formatted = await this._cardFormatter.formatForType(outputType, outputValue);
 
             for (const card of formatted)
                 await this.replyCard(card);
         }
+
+        let expect : ValueCategory|null;
+        if (policyResult.end) {
+            expect = null;
+        } else if (policyResult.expect instanceof Type.Enum) {
+            for (const entry of policyResult.expect.entries!)
+                await this.replyButton(clean(entry), JSON.stringify({ code: ['$answer', '(', 'enum', entry, ')', ';'], entities: {} }));
+            expect = ValueCategory.Command;
+        } else if (policyResult.expect) {
+            expect = ValueCategory.fromType(policyResult.expect);
+        } else {
+            expect = ValueCategory.Command;
+        }
+        if (expect === ValueCategory.RawString && !policyResult.raw)
+            expect = ValueCategory.Command;
 
         if (expect === null && TERMINAL_STATES.includes(this._dialogueState!.dialogueAct))
             throw new CancellationError();

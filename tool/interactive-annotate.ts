@@ -451,16 +451,15 @@ class Annotator extends events.EventEmitter {
                 this.next();
                 return;
             }
-            const [dialogueStateAfterAgent, , utterance, entities] = policyResult;
 
-            const postprocessed = this._langPack.postprocessNLG(utterance, entities, this._executor);
+            const postprocessed = this._langPack.postprocessNLG(policyResult.utterance, policyResult.entities, this._executor);
             console.log('A: ' + postprocessed);
 
-            const prediction = ThingTalkUtils.computePrediction(this._context, dialogueStateAfterAgent, 'agent');
+            const prediction = ThingTalkUtils.computePrediction(this._context, policyResult.state, 'agent');
 
             this._outputTurn.agent = postprocessed;
             this._outputTurn.agent_target = prediction.prettyprint();
-            this._context = dialogueStateAfterAgent;
+            this._context = policyResult.state;
         }
 
         this._state = 'input';
