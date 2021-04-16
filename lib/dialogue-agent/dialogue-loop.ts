@@ -186,7 +186,9 @@ export default class DialogueLoop {
             locale: engine.platform.locale,
             timezone: engine.platform.timezone,
             rng: conversation.rng,
-            debug : this._debug ? 2 : 1
+            debug : this._debug ? 2 : 1,
+            anonymous: conversation.isAnonymous,
+            extraFlags: conversation.dialogueFlags,
         });
         this._dialogueState = null; // thingtalk dialogue state
         this._executorState = undefined; // private object managed by DialogueExecutor
@@ -300,8 +302,17 @@ export default class DialogueLoop {
 
         // ok so this was a natural language
 
+        const [contextCode, contextEntities] = this._prepareContextForPrediction(this._dialogueState, 'user');
         if (this._raw) {
             // in "raw mode", all natural language becomes an answer
+
+            // we still ship it to the parser so it gets recorded
+            await this._nlu.sendUtterance(command.utterance, contextCode, contextEntities, {
+                expect: this.expecting ? String(this.expecting) : undefined,
+                choices: this._choices,
+                store: this._prefs.get('sabrina-store-log') as string || 'no'
+            });
+
             let value;
             if (this.expecting === ValueCategory.Location)
                 value = new Ast.LocationValue(new Ast.UnresolvedLocation(command.utterance));
@@ -318,8 +329,6 @@ export default class DialogueLoop {
         // alright, let's ask parser first then
         let nluResult : ParserClient.PredictionResult;
         try {
-            const [contextCode, contextEntities] = this._prepareContextForPrediction(this._dialogueState, 'user');
-
             nluResult = await this._nlu.sendUtterance(command.utterance, contextCode, contextEntities, {
                 expect: this.expecting ? String(this.expecting) : undefined,
                 choices: this._choices,

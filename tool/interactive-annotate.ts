@@ -126,7 +126,9 @@ class Annotator extends events.EventEmitter {
             locale: this._locale,
             timezone: options.timezone,
             rng: this._rng,
-            debug: 0
+            debug: 0,
+            anonymous: false,
+            extraFlags: {},
         });
 
         this._state = 'loading';
@@ -229,7 +231,7 @@ class Annotator extends events.EventEmitter {
                     history: [],
                     dialogueState: 'null',
                     expected: null
-                }
+                };
             }
         };
     }
