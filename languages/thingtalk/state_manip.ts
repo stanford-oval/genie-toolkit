@@ -836,6 +836,10 @@ function makeAgentReply(ctx : ContextInfo,
              'sys_end', 'sys_display_result'].includes(state.dialogueAct));
     }
 
+    // show a yes/no thing if we're proposing something
+    if (expectedType === null && state.history.some((item) => item.confirm === 'proposed'))
+        expectedType = Type.Boolean;
+
     return {
         state,
         context: newContext,
