@@ -18,10 +18,15 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import * as I18n from '../../i18n';
+import BaseTokenizer from '../../i18n/tokenizer/base';
 import { uniform, coin } from '../../utils/random';
 
 import * as TemplateGrammar from './grammar';
+
+interface LanguagePack {
+    locale : string,
+    getTokenizer() : BaseTokenizer;
+}
 
 /**
  * Natural language template language that supports grammar-based constraints
@@ -277,21 +282,21 @@ export abstract class Replaceable {
      * This method differs from {@link Replaceable.parse} because it will
      * cache the result so it is fast to call multiple times for the same string.
      */
-    static get(template : string, locale : string, names : string[]) {
-        const cacheKey = locale + '/' + template;
+    static get(template : string, langPack : LanguagePack, names : string[]) {
+        const cacheKey = langPack.locale + '/' + template;
         const cached = Replaceable._cache.get(cacheKey);
         if (cached)
             return cached;
 
         const parsed = TemplateGrammar.parse(template);
-        parsed.preprocess(locale, names);
+        parsed.preprocess(langPack, names);
         Replaceable._cache.set(cacheKey, parsed);
         return parsed;
     }
 
     abstract visit(cb : (repl : Replaceable) => boolean) : void;
 
-    abstract preprocess(locale : string, placeholders : string[]) : this;
+    abstract preprocess(langPack : LanguagePack, placeholders : string[]) : this;
 
     abstract replace(ctx : ReplacementContext) : ReplacedResult|null;
 }
@@ -321,7 +326,7 @@ export class Placeholder extends Replaceable {
         cb(this);
     }
 
-    preprocess(locale : string, placeholders : string[]) {
+    preprocess(langPack : LanguagePack, placeholders : string[]) {
         this._index = getPlaceholderIndex(placeholders, this.param);
         return this;
     }
@@ -397,8 +402,8 @@ export class Phrase extends Replaceable {
         cb(this);
     }
 
-    preprocess(locale : string, placeholders : string[]) {
-        const tokenizer = I18n.get(locale).getTokenizer();
+    preprocess(langPack : LanguagePack, placeholders : string[]) {
+        const tokenizer = langPack.getTokenizer();
         this.text = tokenizer.tokenize(this.text).rawTokens.join(' ');
         return this;
     }
@@ -456,9 +461,9 @@ export class Concatenation extends Replaceable {
             c.visit(cb);
     }
 
-    preprocess(locale : string, placeholders : string[]) {
+    preprocess(langPack : LanguagePack, placeholders : string[]) {
         for (const c of this.children)
-            c.preprocess(locale, placeholders);
+            c.preprocess(langPack, placeholders);
 
         for (const ourFlag in this.refFlags) {
             const [placeholder, theirFlag] = this.refFlags[ourFlag];
@@ -518,9 +523,9 @@ export class Choice implements Replaceable {
         return `{${this.variants.join('|')}}`;
     }
 
-    preprocess(locale : string, placeholders : string[]) {
+    preprocess(langPack : LanguagePack, placeholders : string[]) {
         for (const v of this.variants)
-            v.preprocess(locale, placeholders);
+            v.preprocess(langPack, placeholders);
         return this;
     }
 
@@ -607,13 +612,13 @@ export class Plural implements Replaceable {
             this.variants[v].visit(cb);
     }
 
-    preprocess(locale : string, placeholders : string[]) {
+    preprocess(langPack : LanguagePack, placeholders : string[]) {
         for (const v in this.variants)
-            this.variants[v].preprocess(locale, placeholders);
+            this.variants[v].preprocess(langPack, placeholders);
 
         this._index = getPlaceholderIndex(placeholders, this.param);
 
-        this._rules = new Intl.PluralRules(locale, { type: this.type });
+        this._rules = new Intl.PluralRules(langPack.locale, { type: this.type });
         return this;
     }
 
@@ -682,9 +687,9 @@ export class ValueSelect implements Replaceable {
             this.variants[v].visit(cb);
     }
 
-    preprocess(locale : string, placeholders : string[]) {
+    preprocess(langPack : LanguagePack, placeholders : string[]) {
         for (const v in this.variants)
-            this.variants[v].preprocess(locale, placeholders);
+            this.variants[v].preprocess(langPack, placeholders);
 
         this._index = getPlaceholderIndex(placeholders, this.param);
         return this;
@@ -750,9 +755,9 @@ export class FlagSelect implements Replaceable {
             this.variants[v].visit(cb);
     }
 
-    preprocess(locale : string, placeholders : string[]) {
+    preprocess(langPack : LanguagePack, placeholders : string[]) {
         for (const v in this.variants)
-            this.variants[v].preprocess(locale, placeholders);
+            this.variants[v].preprocess(langPack, placeholders);
         this._index = getPlaceholderIndex(placeholders, this.param);
         return this;
     }
