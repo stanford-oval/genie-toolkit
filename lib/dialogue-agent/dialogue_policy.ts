@@ -93,6 +93,9 @@ interface DialoguePolicyOptions {
     debug : number;
 }
 
+// HACK
+const MUST_INCLUDE_DEVICES = ['org.thingpedia.covid-vaccine'];
+
 export default class DialoguePolicy {
     private _thingpedia : Tp.BaseClient;
     private _schemas : SchemaRetriever;
@@ -167,7 +170,7 @@ export default class DialoguePolicy {
 
     private _extractDevices(state : Ast.DialogueState|Ast.Program|null) : string[] {
         if (state === null)
-            return [];
+            return MUST_INCLUDE_DEVICES;
         const devices = new Set<string>();
         state.visit(new class extends Ast.NodeVisitor {
             visitDeviceSelector(selector : Ast.DeviceSelector) : boolean {
@@ -175,6 +178,8 @@ export default class DialoguePolicy {
                 return true;
             }
         });
+        for (const d of MUST_INCLUDE_DEVICES)
+            devices.add(d);
         const deviceArray = Array.from(devices);
         deviceArray.sort();
         return deviceArray;
@@ -241,5 +246,10 @@ export default class DialoguePolicy {
         await this._ensureGeneratorForState(program);
 
         return this._sentenceGenerator!.invokeFunction('notifyError', appName, program, error, this._sentenceGenerator!.contextTable);
+    }
+
+    async getInitialState() {
+        await this._ensureGeneratorForState(null);
+        return this._sentenceGenerator!.invokeFunction('initialState', this._sentenceGenerator!.contextTable);
     }
 }

@@ -86,11 +86,9 @@ import './dlg/streams.genie';
 
 // declare contexts
 context : S.ContextInfo = {
-    // initial (null) context
-    ctx_init,
-
     // context tags applied to both agent and user contexts
     // these should be returned by S.getContextTags()
+    ctx_init,
     ctx_multidomain,
     ctx_with_result,
     ctx_with_table_result,
@@ -280,19 +278,41 @@ function notifyError(appName : string|null, program : Ast.Program, error : Ast.V
         [new Ast.DialogueHistoryItem(null, stmt, new Ast.DialogueHistoryResultList(null, [], new Ast.NumberValue(1), false, error), 'confirmed')]);
 }
 
+// initial state
+function initialState() {
+    const initialFunction = $loader.initialFunction;
+    if (!initialFunction)
+        return null;
+
+    const selector = new Ast.DeviceSelector(null, initialFunction.class!.name, null, null, []);
+    const invocation = new Ast.Invocation(null, selector, initialFunction.name, [], initialFunction);
+    // add required arguments to the invocation, or we'll fail to notice this statement is not executable
+    for (const arg of initialFunction.iterateArguments()) {
+        if (arg.is_input && arg.required)
+            invocation.in_params.push(new Ast.InputParam(null, arg.name, new Ast.Value.Undefined(true)));
+    }
+
+    const stmt = new Ast.ExpressionStatement(null, new Ast.InvocationExpression(null,
+        invocation, initialFunction));
+    return new Ast.DialogueState(null, S.POLICY_NAME, 'init', null, [new Ast.DialogueHistoryItem(null, stmt, null, 'accepted')]);
+}
+
+initial_request_preamble : S.ContextInfo = {
+    ["{hello|hi}! i can help you {find a ${table[plural=one]}|{find|search for} ${table[plural=other]}}.", priority=10]: (ctx : ctx_init, table : base_table<functionName = ctx.nextFunction>) => ctx,
+
+    ["{hello|hi}! i can help you ${action}.", priority=10]: (ctx : ctx_init, action : complete_action<functionName = ctx.nextFunction>) => {
+        const invocation = C.getInvocation(action);
+        if (invocation.in_params.length > 0)
+            return null;
+        return ctx;
+    },
+}
+
 $agent : S.AgentReplyRecord = {
-    !inference {
-        ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
-        | ctx:ctx_init ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
-        | ctx:ctx_reinit ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
-        ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null));
-    }
-    ?inference {
-        ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what can i do for you') '?'
-        | ctx:ctx_init ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what can i do for you') '?'
-        | ctx:ctx_reinit ('how can i help you' | 'what can i do for you') '?'
-        ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null));
-    }
+    ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
+    | ctx:ctx_init ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
+    | ctx:ctx_reinit ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
+    ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null));
 
     ctx:ctx_cancel anything_else_phrase
         => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_anything_else', null));
@@ -328,6 +348,9 @@ $agent : S.AgentReplyRecord = {
 
     // slot filling of actions
     ctx:ctx_incomplete_action_after_search questions:slot_fill_question
+        => D.makeSlotFillQuestion(ctx, questions);
+
+    ctx:ctx_incomplete_action_after_search initial_request_preamble questions:slot_fill_question
         => D.makeSlotFillQuestion(ctx, questions);
 
     // action recommendation (through one or a list)

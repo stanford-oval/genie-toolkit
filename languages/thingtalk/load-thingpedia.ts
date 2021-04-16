@@ -162,6 +162,8 @@ export default class ThingpediaLoader {
     private _errorMessages : Map<string, Record<string, ParsedPlaceholderPhrase[]>>;
     private _resultPhrases : Map<string, NormalizedResultPhraseList>;
 
+    private _initialFunction : Ast.FunctionDef|null;
+
     types : Map<string, Type>;
     params : ParamSlot[];
     projections : Array<{
@@ -220,6 +222,7 @@ export default class ThingpediaLoader {
         this.compoundArrays = {};
         this.entitySubTypeMap = {};
         this._subEntityMap = new Map;
+        this._initialFunction = null;
 
         this.standardSchemas = {
             timer: TIMER_SCHEMA,
@@ -269,6 +272,10 @@ export default class ThingpediaLoader {
 
     get describer() {
         return this._describer;
+    }
+
+    get initialFunction() {
+        return this._initialFunction;
     }
 
     isIDType(type : Type) {
@@ -1212,6 +1219,14 @@ export default class ThingpediaLoader {
             await this._loadCustomResultPhrases(functionDef);
         if (functionDef.metadata.on_error)
             await this._loadCustomErrorMessages(functionDef);
+
+        if (functionDef.getImplementationAnnotation<boolean>('initial')) {
+            if (this._initialFunction) {
+                console.log('WARNING: multiple initial functions defined, will ignore all but the first one');
+                return;
+            }
+            this._initialFunction = functionDef;
+        }
     }
 
     private _loadPlaceholderPhraseCommon(intoNonTerm : string,
@@ -1233,7 +1248,10 @@ export default class ThingpediaLoader {
             try {
                 const parsed : Genie.SentenceGeneratorRuntime.Replaceable = this._runtime.Replaceable.parse(strings[i]);
                 parsed.visit((elem) => {
-                    if (elem instanceof this._runtime.Placeholder) {
+                    if (elem instanceof this._runtime.Placeholder ||
+                        elem instanceof this._runtime.ValueSelect ||
+                        elem instanceof this._runtime.FlagSelect ||
+                        elem instanceof this._runtime.Plural) {
                         const param = elem.param;
                         if (names.includes(param))
                             return true;

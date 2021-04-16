@@ -307,8 +307,6 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * fulfilled until {@link stop} is called.
      */
     run() : Promise<void> {
-        console.log('Engine running');
-
         this._running = true;
 
         return new Promise((callback, errback) => {
@@ -444,7 +442,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * @param {string} [kind] - filter only devices that have the specified kind
      * @return {Array<DeviceInfo>} a list of device info objects, one per device
      */
-    getDeviceInfos(kind : string) : DeviceInfo[] {
+    getDeviceInfos(kind ?: string) : DeviceInfo[] {
         const devices = this._devices.getAllDevices(kind);
         return devices.map((d) => this._toDeviceInfo(d));
     }
