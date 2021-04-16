@@ -444,9 +444,6 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
             case '$context.time.evening':
                 value = this._tryGetStoredVariable(Type.Time, variable);
                 break;
-                value = this._tryGetStoredVariable(new Type.Entity('tt:phone_number'), variable);
-                break;
-
             default:
                 throw new TypeError('Invalid variable ' + variable);
         }
