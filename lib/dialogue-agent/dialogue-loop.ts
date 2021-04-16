@@ -532,7 +532,6 @@ export default class DialogueLoop {
 
             switch (analyzed.type) {
             case CommandAnalysisType.STOP:
-            case CommandAnalysisType.NEVERMIND:
             case CommandAnalysisType.DEBUG:
             case CommandAnalysisType.WAKEUP:
             case CommandAnalysisType.IGNORE:

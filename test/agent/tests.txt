@@ -233,9 +233,9 @@ A: >> expecting = raw_string
 
 U: \r bookkeeping special special:nevermind
 
-A: Sorry I couldn't help on that.
-A: >> context = null // {}
-A: >> expecting = null
+A: Is there anything else I can help you with?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_anything_else ; // {}
+A: >> expecting = command
 
 ====
 # 11-entity-linking

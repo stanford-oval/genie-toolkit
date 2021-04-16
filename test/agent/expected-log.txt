@@ -588,14 +588,14 @@ AT: @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $nevermind;
 UT: $nevermind;
+C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Sorry I couldn't help on that.
+A: Is there anything else I can help you with?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_anything_else;
 #! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
-====
-# test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $stop;
 UT: $stop;
