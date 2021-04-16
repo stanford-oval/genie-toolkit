@@ -233,9 +233,9 @@ A: >> expecting = raw_string
 
 U: \r bookkeeping special special:nevermind
 
-A: Sorry I couldn't help on that.
-A: >> context = null // {}
-A: >> expecting = null
+A: Is there anything else I can help you with?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_anything_else ; // {}
+A: >> expecting = command
 
 ====
 # 11-entity-linking
@@ -1027,3 +1027,19 @@ U: what is covid?
 A: Thank you!
 A: >> context = null // {}
 A: >> expecting = null
+
+====
+# 66-covid-vaccine-cancel-nevermind
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.init;
+U: @org.thingpedia.covid-vaccine.appointment();
+
+A: Hello! I can help you find an appointment. What is your address?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_slot_fill ( location ) ; @org.thingpedia.covid-vaccine . appointment ( ) ; // {}
+A: >> expecting = location
+
+U: \t $nevermind;
+
+A: I will soon be able to answer questions about covid. In the meantime, please let me know what you're interested in.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_record_command ; // {}
+A: >> expecting = raw_string
