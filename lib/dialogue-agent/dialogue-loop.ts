@@ -479,7 +479,8 @@ export default class DialogueLoop {
         if (expect === null && TERMINAL_STATES.includes(this._dialogueState!.dialogueAct))
             throw new CancellationError();
 
-        await this.setExpected(expect);
+        // HACK: force the question to occur in raw mode for locations
+        await this.setExpected(expect, expect === ValueCategory.RawString || expect === ValueCategory.Password || expect === ValueCategory.Location);
     }
 
     private async _handleUICommand(type : CommandAnalysisType) {
