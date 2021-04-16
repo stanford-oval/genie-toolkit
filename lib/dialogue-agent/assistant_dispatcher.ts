@@ -30,6 +30,7 @@ import Conversation, {
 import { Message } from './protocol';
 import NotificationFormatter, { FormattedObject } from './notifications/formatter';
 import TwilioNotificationBackend from './notifications/twilio';
+import EmailNotificationBackend from './notifications/email';
 
 import type Engine from '../engine';
 import DeviceView from '../engine/devices/device_view';
@@ -57,7 +58,8 @@ interface NotificationBackend extends NotificationDelegate {
 }
 
 const StaticNotificationBackends = {
-    'twilio': TwilioNotificationBackend
+    'twilio': TwilioNotificationBackend,
+    'email': EmailNotificationBackend,
 };
 
 export type NotificationConfig = {
@@ -188,7 +190,7 @@ export default class AssistantDispatcher extends events.EventEmitter {
         this._staticNotificationBackends = {};
         for (const key in notificationConfig) {
             const key2 = key as keyof typeof StaticNotificationBackends;
-            this._staticNotificationBackends[key] = new (StaticNotificationBackends[key2])(engine, notificationConfig[key2]!);
+            this._staticNotificationBackends[key] = new (StaticNotificationBackends[key2])(engine, notificationConfig[key2] as any);
         }
     }
 
