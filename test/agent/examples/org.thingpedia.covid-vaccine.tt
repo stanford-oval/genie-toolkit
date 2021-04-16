@@ -1,6 +1,2 @@
 dataset @org.thingpedia.covid-vaccine language "en" {
-    query (p_location :Location) := @org.thingpedia.covid-vaccine.appointment(location=p_location)
-    #_[utterances=["covid vaccine near $p_location"]]
-    #[name="COVIDVaccineAppointmentsWithLocation"];
-
 }

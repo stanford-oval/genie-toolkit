@@ -1053,6 +1053,6 @@ A: >> expecting = yesno
 
 U: \t $yes;
 
-A: Alright, I will notify you when covid vaccine near Seattle, King County, Washington, USA for my first dose change.
+A: Alright, I will notify you when there are new appointments for your first dose near Seattle, King County, Washington, USA.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_rule_enable_success ; monitor ( @org.thingpedia.covid-vaccine . appointment ( dose = enum first , location = LOCATION_0 ) ) #[ results = [ ] ] ; // {"LOCATION_0":{"latitude":47.6038321,"longitude":-122.3300624,"display":"Seattle, King County, Washington, USA"}}
 A: >> expecting = null

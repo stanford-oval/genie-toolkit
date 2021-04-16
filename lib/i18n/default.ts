@@ -152,11 +152,14 @@ export default class DefaultLanguagePack {
         return this._tokenizer = new BaseTokenizer();
     }
 
-    private _toTemplatePhrase(canonical : unknown, isFilter : true) : Concatenation;
-    private _toTemplatePhrase(canonical : unknown, isFilter ?: false) : Phrase;
-    private _toTemplatePhrase(canonical : unknown, isFilter : boolean) : Phrase|Concatenation;
-    private _toTemplatePhrase(canonical : unknown, isFilter = false) : Replaceable {
+    private _toTemplatePhrase(canonical : unknown, forSide : 'user'|'agent', isFilter : true) : Concatenation;
+    private _toTemplatePhrase(canonical : unknown, forSide : 'user'|'agent', isFilter ?: false) : Phrase;
+    private _toTemplatePhrase(canonical : unknown, forSide : 'user'|'agent', isFilter : boolean) : Phrase|Concatenation;
+    private _toTemplatePhrase(canonical : unknown, forSide : 'user'|'agent', isFilter = false) : Replaceable {
         let tmpl = String(canonical);
+        if (forSide === 'agent')
+            tmpl = this.toAgentSideUtterance(tmpl);
+
         if (isFilter) {
             tmpl = tmpl.replace('#', '${value}');
             if (!/\$(\{value\}|value)/.test(tmpl))
@@ -186,9 +189,9 @@ export default class DefaultLanguagePack {
         if (canonical === undefined || canonical === null)
             return [];
         if (Array.isArray(canonical))
-            return canonical.map((c) => this._toTemplatePhrase(forSide === 'agent' ? this.toAgentSideUtterance(String(c)) : c));
+            return canonical.map((c) => this._toTemplatePhrase(c, forSide));
         else
-            return [this._toTemplatePhrase(forSide === 'agent' ? this.toAgentSideUtterance(String(canonical)) : canonical)];
+            return [this._toTemplatePhrase(canonical, forSide)];
     }
 
     /**
@@ -196,7 +199,7 @@ export default class DefaultLanguagePack {
      * the form to the expected sets of POS, and adds any automatically generated
      * plural/gender/case forms as necessary.
      */
-    preprocessParameterCanonical(canonical : unknown) : NormalizedParameterCanonical {
+    preprocessParameterCanonical(canonical : unknown, forSide : 'user'|'agent') : NormalizedParameterCanonical {
         // NOTE: we don't make singular/plural forms of parameters, even in English,
         // because things like "with Chinese and Italian foods" are awkward
         // and "with Chinese and Italian food" is better
@@ -224,8 +227,8 @@ export default class DefaultLanguagePack {
         if (canonical === undefined || canonical === null)
             return normalized;
         if (typeof canonical === 'string') {
-            normalized.base = [this._toTemplatePhrase(canonical)];
-            normalized.filter = [this._toTemplatePhrase(canonical, true)];
+            normalized.base = [this._toTemplatePhrase(canonical, forSide)];
+            normalized.filter = [this._toTemplatePhrase(canonical, forSide, true)];
             for (const phrase of normalized.filter) {
                 if (!phrase.flags.pos)
                     phrase.flags.pos = 'property';
@@ -233,8 +236,8 @@ export default class DefaultLanguagePack {
             return normalized;
         }
         if (Array.isArray(canonical)) {
-            normalized.base = canonical.map((c) => this._toTemplatePhrase(c));
-            normalized.filter = canonical.map((c) => this._toTemplatePhrase(c, true));
+            normalized.base = canonical.map((c) => this._toTemplatePhrase(c, forSide));
+            normalized.filter = canonical.map((c) => this._toTemplatePhrase(c, forSide, true));
             for (const phrase of normalized.filter) {
                 if (!phrase.flags.pos)
                     phrase.flags.pos = 'property';
@@ -282,9 +285,9 @@ export default class DefaultLanguagePack {
                 }
                 let phrases;
                 if (Array.isArray(value))
-                    phrases = value.map((c) => this._toTemplatePhrase(c));
+                    phrases = value.map((c) => this._toTemplatePhrase(c, forSide));
                 else
-                    phrases = [this._toTemplatePhrase(value)];
+                    phrases = [this._toTemplatePhrase(value, forSide)];
 
                 pos = POS_RENAME[pos]||pos;
                 for (const phrase of phrases)
@@ -302,9 +305,9 @@ export default class DefaultLanguagePack {
                         continue;
                     let enumNormalized;
                     if (Array.isArray(enumCanonical))
-                        enumNormalized = enumCanonical.map((c) => this._toTemplatePhrase(c));
+                        enumNormalized = enumCanonical.map((c) => this._toTemplatePhrase(c, forSide));
                     else
-                        enumNormalized = [this._toTemplatePhrase(enumCanonical)];
+                        enumNormalized = [this._toTemplatePhrase(enumCanonical, forSide)];
 
                     if (key !== 'enumerands') {
                         let pos = key.substring(0, key.length - '_enum'.length);
@@ -352,9 +355,9 @@ export default class DefaultLanguagePack {
 
                 let phrases;
                 if (Array.isArray(value))
-                    phrases = value.map((c) => this._toTemplatePhrase(c, isFilter));
+                    phrases = value.map((c) => this._toTemplatePhrase(c, forSide, isFilter));
                 else
-                    phrases = [this._toTemplatePhrase(value, isFilter)];
+                    phrases = [this._toTemplatePhrase(value, forSide, isFilter)];
 
                 if (pos !== undefined) {
                     pos = POS_RENAME[pos]||pos;

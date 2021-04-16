@@ -840,7 +840,7 @@ export class Describer {
             if (inParam.value.isUndefined && arg.required)
                 continue;
 
-            const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || clean(argname));
+            const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || clean(argname), this._direction);
             const text = this.describeArg(inParam.value, scope)!;
             const ctx = {
                 replacements: [{ text, value: inParam.value }],
@@ -955,7 +955,7 @@ export class Describer {
                 continue;
             }
 
-            const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || clean(arg.name));
+            const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || clean(arg.name), this._direction);
             // TODO handle boolean/enum filters correctly
 
             let text : ReplacedResult|null = this.describeArg(clause.value, {});
@@ -1191,7 +1191,7 @@ export class Describer {
 
     private _getArgCanonical(schema : Ast.FunctionDef, argname : string) : ReplacedResult|null {
         const arg = schema.getArgument(argname)!;
-        const normalized = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || clean(argname));
+        const normalized = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || clean(argname), this._direction);
 
         const phrases : ReplacedResult[] = normalized.base.map((phrase) => phrase.toReplaced());
         if (phrases.length === 0)
@@ -1265,7 +1265,7 @@ export class Describer {
                 // FIXME is this the right thing to do? not sure
                 if (stream.expression.schema!.is_list) {
                     // try both plural forms, but prefer the plural if available
-                    return this._interp(this._("when {${table[plural=other]} change|${table[plural=one]} changes} if ${filter}"), {
+                    return this._interp(this._("when {there are new ${table[plural=other]}|${table[plural=one]} changes} if ${filter}"), {
                         table: this.describeQuery(stream.expression.expression),
                         filter: this.describeFilter(stream.expression.filter, stream.expression.schema)
                     });
@@ -1277,7 +1277,7 @@ export class Describer {
                 }
             } else {
                 if (stream.expression.schema!.is_list) {
-                    return this._interp(this._("when ${table[plural=other]} change"), {
+                    return this._interp(this._("when {there are new ${table[plural=other]}|${table[plural=one]} changes}"), {
                         table: this.describeQuery(stream.expression),
                     });
                 } else {
