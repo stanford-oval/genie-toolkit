@@ -22,6 +22,7 @@
 import assert from 'assert';
 import * as seedrandom from 'seedrandom';
 
+import * as I18n from '../../lib/i18n';
 import { Replaceable } from '../../lib/utils/template-string';
 
 const TEST_CASES = [
@@ -464,7 +465,8 @@ const TEST_CASES = [
     }]
 ];
 
-function test(rng, i) {
+
+function test(languagePack, rng, i) {
     console.log(`# Test Case ${i+1}`);
 
     try {
@@ -479,7 +481,7 @@ function test(rng, i) {
             let parsed, replaced;
             if (typeof tpl === 'string') {
                 try {
-                    parsed = Replaceable.parse(tpl).preprocess('en-US', placeholders);
+                    parsed = Replaceable.parse(tpl).preprocess(languagePack, placeholders);
                 } catch(e) {
                     console.log(`Failed to parse ${key}`);
                     throw e;
@@ -491,7 +493,7 @@ function test(rng, i) {
                 replacements[placeholders.indexOf(key)] = { text: replaced, value: {} };
             } else {
                 try {
-                    parsed = Replaceable.parse(tpl.text).preprocess('en-US', placeholders);
+                    parsed = Replaceable.parse(tpl.text).preprocess(languagePack, placeholders);
                 } catch(e) {
                     console.log(`Failed to parse ${key}`);
                     throw e;
@@ -543,9 +545,10 @@ function test(rng, i) {
 
 export default function main() {
     const rng = seedrandom.alea('almond is awesome');
+    const languagePack = I18n.get('en-US');
 
     for (let i = 0; i < TEST_CASES.length; i++)
-        test(rng, i);
+        test(languagePack, rng, i);
 }
 if (!module.parent)
     main();

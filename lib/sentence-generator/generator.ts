@@ -660,7 +660,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
         let sentence;
         if (typeof sentenceTemplate === 'string') {
             try {
-                sentence = Replaceable.parse(sentenceTemplate).preprocess(this._options.locale, expansion.map((e) => e.name ?? e.symbol));
+                sentence = Replaceable.parse(sentenceTemplate).preprocess(this._langPack, expansion.map((e) => e.name ?? e.symbol));
             } catch(e) {
                 throw new GenieTypeError(`Failed to parse template string for ${symbol} = ${sentenceTemplate} (${expansion.join(', ')}): ${e.message}`);
             }

@@ -165,7 +165,7 @@ export default class DefaultLanguagePack {
             // backward compatibility with old projection phrases that use |
             tmpl = tmpl.replace('|', '//');
         }
-        const parsed = Replaceable.parse(tmpl).preprocess(this.locale, isFilter ? ['value'] : []);
+        const parsed = Replaceable.parse(tmpl).preprocess(this, isFilter ? ['value'] : []);
         if (isFilter) {
             if (parsed instanceof Concatenation)
                 return parsed;

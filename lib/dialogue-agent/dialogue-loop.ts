@@ -219,7 +219,7 @@ export default class DialogueLoop {
             });
         }
 
-        const tmpl = Replaceable.get(msg, this.conversation.locale, names);
+        const tmpl = Replaceable.get(msg, this._langPack, names);
         return this._langPack.postprocessNLG(tmpl.replace({ replacements, constraints: {} })!.chooseBest(), {}, this._agent);
     }
 

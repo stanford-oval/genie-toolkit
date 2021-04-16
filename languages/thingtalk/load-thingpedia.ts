@@ -818,7 +818,7 @@ export default class ThingpediaLoader {
             }
             return true;
         });
-        parsed.preprocess(this._langPack.locale, names);
+        parsed.preprocess(this._langPack, names);
 
         // template #1: just constants and/or undefined
         this._addConstantOrUndefinedPrimitiveTemplate(grammarCat, parsed, nonTerminals, names, example);
@@ -1251,7 +1251,7 @@ export default class ThingpediaLoader {
                     }
                     return true;
                 });
-                parsed.preprocess(this._langPack.locale, names);
+                parsed.preprocess(this._langPack, names);
                 parsedstrings.push({ names, replaceable: parsed });
             } catch(e) {
                 throw new Error(`Failed to parse #_[${annotName}] annotation for @${functionDef.qualifiedName}: ${e.message}`);
