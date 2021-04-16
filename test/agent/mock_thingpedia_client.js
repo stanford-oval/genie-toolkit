@@ -176,6 +176,23 @@ export default class MockThingpediaClient extends Tp.BaseClient {
         'seattle vista real classica batasan hills 2nd district quezon city metro manila 1808 philippines',
        rank: 26,
        importance: 0.2 } ];
+       } else if (searchKey === 'palo alto') {
+        return [{
+      "latitude": 37.4455862,
+      "longitude": -122.1619289,
+      "display": "Palo Alto, California",
+      "canonical": "palo alto california",
+      "full_name": "Palo Alto, Santa Clara County, California, United States of America",
+      "rank": 16,
+      "importance": 0.32889886832081,
+      "address": {
+        "city": "Palo Alto",
+        "county": "Santa Clara County",
+        "state": "California",
+        "country": "United States of America",
+        "country_code": "us"
+      }
+    }];
         } else if (searchKey === 'invalid') {
             return [];
         } else {

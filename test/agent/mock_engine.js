@@ -216,7 +216,8 @@ class MockBuiltinDevice {
 
 let _cnt = 0;
 
-const UNIQUE_DEVICES = new Set(['com.yelp', 'org.thingpedia.weather', 'org.thingpedia.builtin.test', 'com.thecatapi', 'com.xkcd']);
+const UNIQUE_DEVICES = new Set(['com.yelp', 'org.thingpedia.weather', 'org.thingpedia.builtin.test',
+    'com.thecatapi', 'com.xkcd', 'org.thingpedia.covid-vaccine']);
 class MockUnknownDevice {
     constructor(kind) {
         if (UNIQUE_DEVICES.has(kind)) {

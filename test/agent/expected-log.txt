@@ -2078,7 +2078,7 @@ U: timer(base=$now, interval=1h) => @com.thecatapi.get();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: timer(base=$now, interval=1h) => @com.thecatapi.get();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: To receive notifications you must first log in to your personal account.
+A: To receive notifications you must first create a personal Genie account.
 #! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
@@ -2096,7 +2096,130 @@ U: @com.twitter.post();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.twitter.post();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: To use this command you must first log in to your personal account.
+A: To use this command you must first create a personal Genie account.
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.init;
+U: @org.thingpedia.covid-vaccine.appointment();
+UT: $dialogue @org.thingpedia.dialogue.transaction.init;
+UT: @org.thingpedia.covid-vaccine.appointment();
+C: $dialogue @org.thingpedia.dialogue.transaction.init;
+C: @org.thingpedia.covid-vaccine.appointment();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Hello! I can help you find an appointment. What is your address?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(location);
+AT: @org.thingpedia.covid-vaccine.appointment();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.covid-vaccine.appointment(location=new Location("palo alto"));
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.covid-vaccine.appointment(location=new Location("palo alto"));
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.covid-vaccine.appointment(location=new Location(37.4455862, -122.1619289, "Palo Alto, California"));
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Is this your first or second dose?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(dose);
+AT: @org.thingpedia.covid-vaccine.appointment(location=new Location(37.4455862, -122.1619289, "Palo Alto, California"));
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.covid-vaccine.appointment(dose=enum first, location=new Location("palo alto"));
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.covid-vaccine.appointment(dose=enum first, location=new Location("palo alto"));
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.covid-vaccine.appointment(dose=enum first, location=new Location(37.4455862, -122.1619289, "Palo Alto, California"))
+C: #[results=[
+C:   { dose=enum first, location=new Location(37.4455862, -122.1619289, "Palo Alto, California"), id="str:ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment::0:"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(37.4455862, -122.1619289, "Palo Alto, California"), link="str:ENTITY_tt:url::9:"^^tt:url },
+C:   { dose=enum first, location=new Location(37.4455862, -122.1619289, "Palo Alto, California"), id="str:ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment::1:"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(-21, -82), link="str:ENTITY_tt:url::1:"^^tt:url },
+C:   { dose=enum first, location=new Location(37.4455862, -122.1619289, "Palo Alto, California"), id="str:ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment::2:"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(37.4455862, -122.1619289, "Palo Alto, California"), link="str:ENTITY_tt:url::21:"^^tt:url },
+C:   { dose=enum first, location=new Location(37.4455862, -122.1619289, "Palo Alto, California"), id="str:ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment::3:"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(-5, 150), link="str:ENTITY_tt:url::25:"^^tt:url },
+C:   { dose=enum first, location=new Location(37.4455862, -122.1619289, "Palo Alto, California"), id="str:ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment::4:"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(12, 102), link="str:ENTITY_tt:url::4:"^^tt:url },
+C:   { dose=enum first, location=new Location(37.4455862, -122.1619289, "Palo Alto, California"), id="str:ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment::5:"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(37.4455862, -122.1619289, "Palo Alto, California"), link="str:ENTITY_tt:url::21:"^^tt:url },
+C:   { dose=enum first, location=new Location(37.4455862, -122.1619289, "Palo Alto, California"), id="str:ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment::6:"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(-10, 87), link="str:ENTITY_tt:url::49:"^^tt:url },
+C:   { dose=enum first, location=new Location(37.4455862, -122.1619289, "Palo Alto, California"), id="str:ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment::7:"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(37.4455862, -122.1619289, "Palo Alto, California"), link="str:ENTITY_tt:url::4:"^^tt:url },
+C:   { dose=enum first, location=new Location(37.4455862, -122.1619289, "Palo Alto, California"), id="str:ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment::8:"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(37.4455862, -122.1619289, "Palo Alto, California"), link="str:ENTITY_tt:url::43:"^^tt:url },
+C:   { dose=enum first, location=new Location(37.4455862, -122.1619289, "Palo Alto, California"), id="str:ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment::9:"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(-15, 117), link="str:ENTITY_tt:url::40:"^^tt:url }
+C: ]]
+C: #[count=50]
+C: #[more=true];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Here are the earliest appointments, starting with the closest ones.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_many;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.init;
+U: @org.thingpedia.covid-vaccine.appointment();
+UT: $dialogue @org.thingpedia.dialogue.transaction.init;
+UT: @org.thingpedia.covid-vaccine.appointment();
+C: $dialogue @org.thingpedia.dialogue.transaction.init;
+C: @org.thingpedia.covid-vaccine.appointment();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Hello! I can help you find an appointment. What is your address?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(location);
+AT: @org.thingpedia.covid-vaccine.appointment();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.covid-vaccine.appointment(location=new Location("palo alto"));
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.covid-vaccine.appointment(location=new Location("palo alto"));
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.covid-vaccine.appointment(location=new Location(37.4455862, -122.1619289, "Palo Alto, California"));
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Is this your first or second dose?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(dose);
+AT: @org.thingpedia.covid-vaccine.appointment(location=new Location(37.4455862, -122.1619289, "Palo Alto, California"));
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.covid-vaccine.appointment(dose=enum second, location=new Location("palo alto"));
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.covid-vaccine.appointment(dose=enum second, location=new Location("palo alto"));
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.covid-vaccine.appointment(dose=enum second, location=new Location(37.4455862, -122.1619289, "Palo Alto, California"));
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: What type of vaccine did you receive at the first dose?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(vaccine_type);
+AT: @org.thingpedia.covid-vaccine.appointment(dose=enum second, location=new Location(37.4455862, -122.1619289, "Palo Alto, California"));
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.covid-vaccine.appointment(dose=enum second, location=new Location("palo alto"), vaccine_type=enum pfizer);
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.covid-vaccine.appointment(dose=enum second, location=new Location("palo alto"), vaccine_type=enum pfizer);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.covid-vaccine.appointment(dose=enum second, location=new Location(37.4455862, -122.1619289, "Palo Alto, California"), vaccine_type=enum pfizer)
+C: #[results=[
+C:   { dose=enum second, location=new Location(37.4455862, -122.1619289, "Palo Alto, California"), vaccine_type=enum pfizer, id="str:ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment::0:"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(37.4455862, -122.1619289, "Palo Alto, California"), link="str:ENTITY_tt:url::9:"^^tt:url },
+C:   { dose=enum second, location=new Location(37.4455862, -122.1619289, "Palo Alto, California"), vaccine_type=enum pfizer, id="str:ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment::1:"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(-21, -82), link="str:ENTITY_tt:url::1:"^^tt:url },
+C:   { dose=enum second, location=new Location(37.4455862, -122.1619289, "Palo Alto, California"), vaccine_type=enum pfizer, id="str:ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment::2:"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(37.4455862, -122.1619289, "Palo Alto, California"), link="str:ENTITY_tt:url::21:"^^tt:url },
+C:   { dose=enum second, location=new Location(37.4455862, -122.1619289, "Palo Alto, California"), vaccine_type=enum pfizer, id="str:ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment::3:"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(-5, 150), link="str:ENTITY_tt:url::25:"^^tt:url },
+C:   { dose=enum second, location=new Location(37.4455862, -122.1619289, "Palo Alto, California"), vaccine_type=enum pfizer, id="str:ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment::4:"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(12, 102), link="str:ENTITY_tt:url::4:"^^tt:url },
+C:   { dose=enum second, location=new Location(37.4455862, -122.1619289, "Palo Alto, California"), vaccine_type=enum pfizer, id="str:ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment::5:"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(37.4455862, -122.1619289, "Palo Alto, California"), link="str:ENTITY_tt:url::21:"^^tt:url },
+C:   { dose=enum second, location=new Location(37.4455862, -122.1619289, "Palo Alto, California"), vaccine_type=enum pfizer, id="str:ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment::6:"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(-10, 87), link="str:ENTITY_tt:url::49:"^^tt:url },
+C:   { dose=enum second, location=new Location(37.4455862, -122.1619289, "Palo Alto, California"), vaccine_type=enum pfizer, id="str:ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment::7:"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(37.4455862, -122.1619289, "Palo Alto, California"), link="str:ENTITY_tt:url::4:"^^tt:url },
+C:   { dose=enum second, location=new Location(37.4455862, -122.1619289, "Palo Alto, California"), vaccine_type=enum pfizer, id="str:ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment::8:"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(37.4455862, -122.1619289, "Palo Alto, California"), link="str:ENTITY_tt:url::43:"^^tt:url },
+C:   { dose=enum second, location=new Location(37.4455862, -122.1619289, "Palo Alto, California"), vaccine_type=enum pfizer, id="str:ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment::9:"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(-15, 117), link="str:ENTITY_tt:url::40:"^^tt:url }
+C: ]]
+C: #[count=50]
+C: #[more=true];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Here are the earliest appointments, starting with the closest ones.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_many;
 #! vote: up
 #! comment: test comment for dialogue turns
 #!          additional

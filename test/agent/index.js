@@ -266,7 +266,7 @@ async function main(onlyIds) {
     const delegate = new TestDelegate(testRunner);
 
     const nluServerUrl = 'https://nlp-staging.almond.stanford.edu';
-    const conversation = new Conversation(engine, 'test', new MockUser(), {
+    const conversation = new Conversation(engine, 'test', {
         nluServerUrl: nluServerUrl,
         nlgServerUrl: null,
         debug: true,
@@ -282,10 +282,15 @@ async function main(onlyIds) {
     await conversation.start();
 
     // test the welcome message (and the context at the start)
-    expect(testRunner, `
+    /*expect(testRunner, `
 Hello! How can I help you?
 >> context = null // {}
 >> expecting = null
+`);*/
+    expect(testRunner, `
+Hello! I can help you find an appointment. What is your address?
+>> context = $dialogue @org.thingpedia.dialogue.transaction . sys_slot_fill ( location ) ; @org.thingpedia.covid-vaccine . appointment ( ) ; // {}
+>> expecting = location
 `);
 
     const TEST_CASES = await loadTestCases();

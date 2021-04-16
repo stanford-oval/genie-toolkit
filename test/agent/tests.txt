@@ -915,8 +915,8 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: timer(interval=1h, base=$now) => @com.thecatapi.get();
 
-A: To receive notifications you must first log in to your personal account.
-A: link: Register for Genie /user/register
+A: To receive notifications you must first create a personal Genie account.
+A: link: Sign-up for Genie /user/register
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -926,7 +926,82 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.twitter.post();
 
-A: To use this command you must first log in to your personal account.
-A: link: Register for Genie /user/register
+A: To use this command you must first create a personal Genie account.
+A: link: Sign-up for Genie /user/register
 A: >> context = null // {}
+A: >> expecting = null
+
+====
+# 63-covid-vaccine-first-dose
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.init;
+U: @org.thingpedia.covid-vaccine.appointment();
+
+A: Hello! I can help you find an appointment. What is your address?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_slot_fill ( location ) ; @org.thingpedia.covid-vaccine . appointment ( ) ; // {}
+A: >> expecting = location
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.covid-vaccine.appointment(location=new Location("palo alto"));
+
+A: Is this your first or second dose?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_slot_fill ( dose ) ; @org.thingpedia.covid-vaccine . appointment ( location = LOCATION_0 ) ; // {"LOCATION_0":{"latitude":37.4455862,"longitude":-122.1619289,"display":"Palo Alto, California"}}
+A: >> expecting = command
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.covid-vaccine.appointment(location=new Location("palo alto"), dose=enum first);
+
+A: Here are the earliest appointments, starting with the closest ones.
+A: rdl: Palo Alto, California str:ENTITY_tt:url::9:
+A: rdl: [Latitude: -21.00000 deg, Longitude: -82.00000 deg] str:ENTITY_tt:url::1:
+A: rdl: Palo Alto, California str:ENTITY_tt:url::21:
+A: rdl: [Latitude: -5.00000 deg, Longitude: 150.00000 deg] str:ENTITY_tt:url::25:
+A: rdl: [Latitude: 12.00000 deg, Longitude: 102.00000 deg] str:ENTITY_tt:url::4:
+A: rdl: Palo Alto, California str:ENTITY_tt:url::21:
+A: rdl: [Latitude: -10.00000 deg, Longitude: 87.00000 deg] str:ENTITY_tt:url::49:
+A: rdl: Palo Alto, California str:ENTITY_tt:url::4:
+A: rdl: Palo Alto, California str:ENTITY_tt:url::43:
+A: rdl: [Latitude: -15.00000 deg, Longitude: 117.00000 deg] str:ENTITY_tt:url::40:
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_many ; @org.thingpedia.covid-vaccine . appointment ( dose = enum first , location = LOCATION_0 ) #[ results = [ { dose = enum first , location = LOCATION_0 , id = GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0 , geo = LOCATION_0 , link = URL_0 } ] ] #[ count = NUMBER_0 ] #[ more = true ] ; // {"LOCATION_0":{"latitude":37.4455862,"longitude":-122.1619289,"display":"Palo Alto, California"},"GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0":{"value":"str:ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment::0:","display":null},"URL_0":"str:ENTITY_tt:url::9:","NUMBER_0":50}
+A: >> expecting = null
+
+====
+# 64-covid-vaccine-second-dose
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.init;
+U: @org.thingpedia.covid-vaccine.appointment();
+
+A: Hello! I can help you find an appointment. What is your address?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_slot_fill ( location ) ; @org.thingpedia.covid-vaccine . appointment ( ) ; // {}
+A: >> expecting = location
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.covid-vaccine.appointment(location=new Location("palo alto"));
+
+A: Is this your first or second dose?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_slot_fill ( dose ) ; @org.thingpedia.covid-vaccine . appointment ( location = LOCATION_0 ) ; // {"LOCATION_0":{"latitude":37.4455862,"longitude":-122.1619289,"display":"Palo Alto, California"}}
+A: >> expecting = command
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.covid-vaccine.appointment(location=new Location("palo alto"), dose=enum second);
+
+A: What type of vaccine did you receive at the first dose?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_slot_fill ( vaccine_type ) ; @org.thingpedia.covid-vaccine . appointment ( dose = enum second , location = LOCATION_0 ) ; // {"LOCATION_0":{"latitude":37.4455862,"longitude":-122.1619289,"display":"Palo Alto, California"}}
+A: >> expecting = command
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.covid-vaccine.appointment(location=new Location("palo alto"), dose=enum second, vaccine_type=enum pfizer);
+
+A: Here are the earliest appointments, starting with the closest ones.
+A: rdl: Palo Alto, California str:ENTITY_tt:url::9:
+A: rdl: [Latitude: -21.00000 deg, Longitude: -82.00000 deg] str:ENTITY_tt:url::1:
+A: rdl: Palo Alto, California str:ENTITY_tt:url::21:
+A: rdl: [Latitude: -5.00000 deg, Longitude: 150.00000 deg] str:ENTITY_tt:url::25:
+A: rdl: [Latitude: 12.00000 deg, Longitude: 102.00000 deg] str:ENTITY_tt:url::4:
+A: rdl: Palo Alto, California str:ENTITY_tt:url::21:
+A: rdl: [Latitude: -10.00000 deg, Longitude: 87.00000 deg] str:ENTITY_tt:url::49:
+A: rdl: Palo Alto, California str:ENTITY_tt:url::4:
+A: rdl: Palo Alto, California str:ENTITY_tt:url::43:
+A: rdl: [Latitude: -15.00000 deg, Longitude: 117.00000 deg] str:ENTITY_tt:url::40:
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_many ; @org.thingpedia.covid-vaccine . appointment ( dose = enum second , location = LOCATION_0 , vaccine_type = enum pfizer ) #[ results = [ { dose = enum second , location = LOCATION_0 , vaccine_type = enum pfizer , id = GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0 , geo = LOCATION_0 , link = URL_0 } ] ] #[ count = NUMBER_0 ] #[ more = true ] ; // {"LOCATION_0":{"latitude":37.4455862,"longitude":-122.1619289,"display":"Palo Alto, California"},"GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0":{"value":"str:ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment::0:","display":null},"URL_0":"str:ENTITY_tt:url::9:","NUMBER_0":50}
 A: >> expecting = null

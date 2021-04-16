@@ -53,7 +53,7 @@ import ExecutionDialogueAgent from './execution_dialogue_agent';
 // TODO: load the policy.yaml file instead
 const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
 const TERMINAL_STATES = [
-    'sys_end', 'sys_action_success'
+    'sys_greet', 'sys_end', 'sys_action_success'
 ];
 
 // Confidence thresholds:
