@@ -34,6 +34,12 @@ import {
     proposalReply
 } from './refinement-helpers';
 
+// Refinement dialogue acts
+//
+// A proposal is when the agent proposed a refined search; the user answers:
+// - some form of "yes"
+// - some form of "no" followed by another search refinement
+
 export type NegativeProposalReply = [Ast.Expression|null, Ast.Expression|null];
 
 export function negativeProposalReplyKeyFn([preamble, request] : NegativeProposalReply) {

@@ -26,7 +26,9 @@ import {
     ContextInfo,
     makeAgentReply,
     makeSimpleState,
+    addNewStatement,
     addQuery,
+    acceptAllProposedStatements
 } from '../state_manip';
 import {
     queryRefinement,
@@ -36,15 +38,7 @@ import {
     isValidSearchQuestion
 } from './common';
 
-// Refinement dialogue acts: the search is NOT complete (0, or more than 1 result), and the
-// agent doesn't want to show results
-//
-// These include proposals, and empty search errors.
-// A proposal is when the agent proposed a refined search; the user answers:
-// - some form of "yes"
-// - some form of "no" followed by another search refinement
-
-type EmptySearch = [Ast.Expression|null, C.ParamSlot|null];
+type EmptySearch = [Ast.Expression|null, C.ParamSlot|null, boolean];
 
 /**
  * Agent dialogue act: a search command returned no result.
@@ -53,7 +47,7 @@ type EmptySearch = [Ast.Expression|null, C.ParamSlot|null];
  * @param base - the base table used in the reply
  * @param question - a search question used in the reply
  */
-function makeEmptySearchError(ctx : ContextInfo, [base, question] : EmptySearch) {
+export function makeEmptySearchError(ctx : ContextInfo, [base, question, offerMonitor] : EmptySearch) {
     if (base !== null && !C.isSameFunction(base.schema!, ctx.currentTableFunction!))
         return null;
     if (question !== null && !C.isSameFunction(ctx.currentTableFunction!, question.schema))
@@ -69,6 +63,11 @@ function makeEmptySearchError(ctx : ContextInfo, [base, question] : EmptySearch)
             return null;
         type = arg.type;
         state = makeSimpleState(ctx, 'sys_empty_search_question', [question.name]);
+    } else if (offerMonitor) {
+        const monitor = C.tableToStream(ctx.current!.stmt.lastQuery!);
+        if (!monitor)
+            return null;
+        state = addNewStatement(ctx, 'sys_empty_search', null, 'proposed', monitor);
     } else {
         type = null;
         state = makeSimpleState(ctx, 'sys_empty_search', null);
@@ -107,8 +106,8 @@ function emptySearchChangePhraseCommon(ctx : ContextInfo,
  * The "precise" variant explicitly contains a reference to a table, which must be the same
  * as the context.
  */
-function preciseEmptySearchChangeRequest(ctx : ContextInfo,
-                                         phrase : Ast.Expression) {
+export function preciseEmptySearchChangeRequest(ctx : ContextInfo,
+                                                phrase : Ast.Expression) {
     if (!(phrase instanceof Ast.FilterExpression))
         return null;
     const [, param] = ctx.aux as EmptySearch;
@@ -126,8 +125,8 @@ function preciseEmptySearchChangeRequest(ctx : ContextInfo,
  * The "imprecise" variant only contains a value and optionally a parameter name.
  * The table is inferred from the context.
  */
-function impreciseEmptySearchChangeRequest(ctx : ContextInfo,
-                                           answer : Ast.Value|C.FilterSlot) {
+export function impreciseEmptySearchChangeRequest(ctx : ContextInfo,
+                                                  answer : Ast.Value|C.FilterSlot) {
     const [base, param] = ctx.aux as EmptySearch;
     // because we're imprecise, we're only valid if the agent asked a specific question
     if (base === null || param === null)
@@ -147,8 +146,10 @@ function impreciseEmptySearchChangeRequest(ctx : ContextInfo,
     return emptySearchChangePhraseCommon(ctx, answerFilter);
 }
 
-export {
-    makeEmptySearchError,
-    preciseEmptySearchChangeRequest,
-    impreciseEmptySearchChangeRequest
-};
+/**
+ * User dialogue act: in response to an empty search where the agent proposed a statement,
+ * the user accepts the statement.
+ */
+export function acceptEmptySearchOffer(ctx : ContextInfo) {
+    return acceptAllProposedStatements(ctx);
+}

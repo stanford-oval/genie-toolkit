@@ -530,6 +530,18 @@ export function addNewStatement(ctx : ContextInfo,
     return addNewItem(ctx, dialogueAct, dialogueActParam, confirm, ...newItems);
 }
 
+export function acceptAllProposedStatements(ctx : ContextInfo) {
+    if (!ctx.state.history.some((item) => item.confirm === 'proposed'))
+        return null;
+
+    return new Ast.DialogueState(null, POLICY_NAME, 'execute', null, ctx.state.history.map((item) => {
+        if (item.confirm === 'proposed')
+            return new Ast.DialogueHistoryItem(null, item.stmt, null, 'accepted');
+        else
+            return item;
+    }));
+}
+
 function makeSimpleState(ctx : ContextInfo,
                          dialogueAct : string,
                          dialogueActParam : string[]|null) : Ast.DialogueState {
