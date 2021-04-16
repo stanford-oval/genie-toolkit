@@ -444,6 +444,8 @@ $user : Ast.DialogueState = {
         => D.preciseEmptySearchChangeRequest(ctx, req);
     ctx:ctx_sys_empty_search req:imprecise_empty_search_change_request
         => D.impreciseEmptySearchChangeRequest(ctx, req);
+    ctx:ctx_sys_empty_search accept_phrase
+        => D.acceptEmptySearchOffer(ctx);
 
     // search questions
     ctx:ctx_sys_search_question answer:precise_search_question_answer with { functionName = ctx.currentFunction }
