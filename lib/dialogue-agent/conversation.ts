@@ -299,7 +299,7 @@ export default class Conversation extends events.EventEmitter {
         // conversation
         if (this._contextResetTimeout)
             clearTimeout(this._contextResetTimeout);
-        if (this._contextResetTimeoutSec) {
+        if (this._contextResetTimeoutSec > 0) {
             this._contextResetTimeout = setTimeout(() => {
                 this._loop.reset();
             }, this._contextResetTimeoutSec);
