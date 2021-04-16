@@ -54,6 +54,7 @@ export interface ConversationOptions {
     showWelcome ?: boolean;
     deleteWhenInactive ?: boolean;
     log ?: boolean;
+    dialogueFlags ?: Record<string, boolean>;
 }
 
 interface Statistics {
@@ -161,6 +162,7 @@ export default class Conversation extends events.EventEmitter {
     private _stats : Statistics;
     private _options : ConversationOptions;
     private _debug : boolean;
+    private _dialogueFlags : Record<string, boolean>;
     rng : () => number;
 
     private _loop : DialogueLoop;
@@ -195,6 +197,7 @@ export default class Conversation extends events.EventEmitter {
 
         this._options = options;
         this._debug = !!this._options.debug;
+        this._dialogueFlags = options.dialogueFlags || {};
 
         this.rng = options.rng || Math.random;
 
@@ -239,6 +242,10 @@ export default class Conversation extends events.EventEmitter {
 
     get inRecordingMode() : boolean {
         return !!this._options.log;
+    }
+
+    get dialogueFlags() : Record<string, boolean> {
+        return this._dialogueFlags;
     }
 
     startRecording() {

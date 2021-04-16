@@ -66,6 +66,9 @@ dialogueActs:
     - sys_anything_else
     # agent says good bye
     - sys_end
+
+    # agent asks the user a free-form command
+    - sys_record_command
   withParam:
     - action_question
     - sys_search_question

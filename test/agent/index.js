@@ -153,14 +153,6 @@ class TestDelegate {
     }
 }
 
-class MockUser {
-    constructor() {
-        this.name = 'Alice Tester';
-        this.isOwner = true;
-        this.anonymous = false;
-    }
-}
-
 async function mockNLU(conversation) {
     // inject some mocking in the parser:
     conversation._loop._nlu.onlineLearn = function(utterance, targetCode) {
@@ -241,6 +233,7 @@ async function test(testRunner, dlg, i) {
     console.log(`Test Case #${i+1}: ${dlg.id}`);
 
     testRunner.conversation._options.anonymous = dlg.id.indexOf('-anon-') >= 0;
+    testRunner.conversation.dialogueFlags.covid = dlg.id.indexOf('-covid-') >= 0;
     testRunner.reset();
 
     // reset the conversation

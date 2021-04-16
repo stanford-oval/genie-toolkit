@@ -19,7 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
-import { Ast, } from 'thingtalk';
+import { Ast, Type } from 'thingtalk';
 import { SentenceGeneratorTypes } from 'genie-toolkit';
 
 import * as C from '../ast_manip';
@@ -219,6 +219,9 @@ function answer(state : Ast.DialogueState, answer : Ast.Value, contextTable : Se
     }
 
     switch (state.dialogueAct) {
+    case 'sys_record_command':
+        return S.makeSimpleState(ctx, 'end', null);
+
     case 'sys_anything_else':
         if (answer instanceof Ast.BooleanValue) {
             if (answer.value)
@@ -312,13 +315,21 @@ $agent : S.AgentReplyRecord = {
     ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
     | ctx:ctx_init ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
     | ctx:ctx_reinit ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
-    ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null));
+    ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null)),
 
     ctx:ctx_cancel anything_else_phrase
-        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_anything_else', null));
+        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_anything_else', null)),
 
     ctx:ctx_end 'alright ,' ('bye !' | 'good bye !')
-        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null));
+        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null)),
+
+    ?covid {
+        ["I will soon be able to answer questions about Covid.  In the meantime, please let me know what you are interested in.", priority=5]: (ctx:ctx_cancel)
+            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_record_command', null), null, Type.String, { raw: true }),
+
+        ["Thank you!", priority=5]: (ctx:ctx_end)
+            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null)),
+    }
 
     // action results
     action_success_phrase;

@@ -88,6 +88,8 @@ interface DialoguePolicyOptions {
     schemas : SchemaRetriever;
     locale : string;
     timezone : string|undefined;
+    extraFlags : Record<string, boolean>;
+    anonymous : boolean;
 
     rng : () => number;
     debug : number;
@@ -104,6 +106,8 @@ export default class DialoguePolicy {
     private _langPack : I18n.LanguagePack;
     private _rng : () => number;
     private _debug : number;
+    private _anonymous : boolean;
+    private _extraFlags : Record<string, boolean>;
 
     private _sentenceGenerator : SentenceGenerator<Ast.DialogueState|null, Ast.DialogueState, AgentReplyRecord<Ast.DialogueState>>|null;
     private _generatorDevices : string[]|null;
@@ -121,6 +125,8 @@ export default class DialoguePolicy {
         this._rng = options.rng;
         assert(this._rng);
         this._debug = options.debug;
+        this._anonymous = options.anonymous;
+        this._extraFlags = options.extraFlags;
 
         this._sentenceGenerator = null;
         this._generatorDevices = null;
@@ -135,9 +141,10 @@ export default class DialoguePolicy {
             rootSymbol: '$agent',
             forSide: 'agent',
             flags: {
-                // FIXME
                 dialogues: true,
                 inference: true,
+                anonymous: this._anonymous,
+                ...this._extraFlags
             },
             rng: this._rng,
             locale: this._locale,

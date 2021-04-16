@@ -64,7 +64,9 @@ export default class NotificationFormatter {
             locale: engine.platform.locale,
             timezone: engine.platform.timezone,
             rng: Math.random,
-            debug: 0
+            debug: 0,
+            anonymous: false,
+            extraFlags: {}
         });
     }
 

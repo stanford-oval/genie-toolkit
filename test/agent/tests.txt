@@ -1005,3 +1005,25 @@ A: rdl: Palo Alto, California str:ENTITY_tt:url::43:
 A: rdl: [Latitude: -15.00000 deg, Longitude: 117.00000 deg] str:ENTITY_tt:url::40:
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_many ; @org.thingpedia.covid-vaccine . appointment ( dose = enum second , location = LOCATION_0 , vaccine_type = enum pfizer ) #[ results = [ { dose = enum second , location = LOCATION_0 , vaccine_type = enum pfizer , id = GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0 , geo = LOCATION_0 , link = URL_0 } ] ] #[ count = NUMBER_0 ] #[ more = true ] ; // {"LOCATION_0":{"latitude":37.4455862,"longitude":-122.1619289,"display":"Palo Alto, California"},"GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0":{"value":"str:ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment::0:","display":null},"URL_0":"str:ENTITY_tt:url::9:","NUMBER_0":50}
 A: >> expecting = null
+
+====
+# 65-covid-vaccine-cancel
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.init;
+U: @org.thingpedia.covid-vaccine.appointment();
+
+A: Hello! I can help you find an appointment. What is your address?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_slot_fill ( location ) ; @org.thingpedia.covid-vaccine . appointment ( ) ; // {}
+A: >> expecting = location
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
+
+A: I will soon be able to answer questions about covid. In the meantime, please let me know what you're interested in.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_record_command ; // {}
+A: >> expecting = raw_string
+
+U: what is covid?
+
+A: Thank you!
+A: >> context = null // {}
+A: >> expecting = null

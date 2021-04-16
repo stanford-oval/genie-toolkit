@@ -296,7 +296,9 @@ export async function execute(args : any) {
         locale: args.locale,
         timezone: args.timezone,
         rng: simulatorOptions.rng,
-        debug: 0
+        debug: 0,
+        anonymous: false,
+        extraFlags: {},
     });
 
     let parser = null;
