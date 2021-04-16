@@ -213,10 +213,9 @@ class SimulatorStream extends Stream.Transform {
             console.log(`Dialogue policy error: no reply for dialogue ${dlg.id}. skipping.`);
             return;
         }
-        const [dialogueStateAfterAgent, , utterance] = policyResult;
 
-        const prediction = ThingTalkUtils.computePrediction(state, dialogueStateAfterAgent, 'agent');
-        newTurn.agent = utterance;
+        const prediction = ThingTalkUtils.computePrediction(state, policyResult.state, 'agent');
+        newTurn.agent = policyResult.utterance;
         newTurn.agent_target = prediction.prettyprint();
         this.push({
             id: dlg.id,

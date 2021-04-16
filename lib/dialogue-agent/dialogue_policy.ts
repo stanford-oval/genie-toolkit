@@ -21,9 +21,8 @@
 
 import assert from 'assert';
 import * as Tp from 'thingpedia';
-import { Ast, SchemaRetriever, Syntax } from 'thingtalk';
+import { Ast, Type, SchemaRetriever, Syntax } from 'thingtalk';
 
-import ValueCategory from './value-category';
 import * as I18n from '../i18n';
 import SentenceGenerator, { SentenceGeneratorOptions } from '../sentence-generator/generator';
 import { AgentReplyRecord } from '../sentence-generator/types';
@@ -97,6 +96,16 @@ interface DialoguePolicyOptions {
 
 // HACK
 const MUST_INCLUDE_DEVICES = ['org.thingpedia.covid-vaccine'];
+
+interface PolicyResult {
+    state : Ast.DialogueState;
+    end : boolean;
+    expect : Type|null;
+    raw : boolean;
+    utterance : string;
+    entities : EntityMap;
+    numResults : number;
+}
 
 export default class DialoguePolicy {
     private _thingpedia : Tp.BaseClient;
@@ -220,27 +229,25 @@ export default class DialoguePolicy {
         return derivation;
     }
 
-    async chooseAction(state : Ast.DialogueState|null) : Promise<[Ast.DialogueState, ValueCategory|null, string, EntityMap, number]|undefined> {
+    async chooseAction(state : Ast.DialogueState|null) : Promise<PolicyResult|undefined> {
         await this._ensureGeneratorForState(state);
 
         const derivation = this._generateDerivation(state);
         if (derivation === undefined)
             return derivation;
 
-        let sentence = derivation.chooseBestSentence();
-        sentence = this._langPack.postprocessSynthetic(sentence, derivation.value.state, this._rng, 'agent');
+        let utterance = derivation.chooseBestSentence();
+        utterance = this._langPack.postprocessSynthetic(utterance, derivation.value.state, this._rng, 'agent');
 
-        let expect : ValueCategory|null;
-        if (derivation.value.end)
-            expect = null;
-        else if (derivation.value.expect)
-            expect = ValueCategory.fromType(derivation.value.expect);
-        else
-            expect = ValueCategory.Command;
-        if (expect === ValueCategory.RawString && !derivation.value.raw)
-            expect = ValueCategory.Command;
-
-        return [derivation.value.state, expect, sentence, this._entityAllocator.entities, derivation.value.numResults];
+        return {
+            state: derivation.value.state,
+            end: derivation.value.end,
+            expect: derivation.value.expect,
+            raw: derivation.value.raw,
+            utterance,
+            entities: this._entityAllocator.entities,
+            numResults: derivation.value.numResults
+        };
     }
 
     async getNotificationState(appName : string|null, program : Ast.Program, result : Ast.DialogueHistoryResultItem) {

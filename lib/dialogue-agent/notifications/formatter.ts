@@ -79,8 +79,7 @@ export default class NotificationFormatter {
         if (!policyResult)
             throw new Error(`Unexpected invalid state from agent during notification`);
 
-        const [, , utterance, entities,] = policyResult;
-        const postprocessed = this._langPack.postprocessNLG(utterance, entities, {
+        const postprocessed = this._langPack.postprocessNLG(policyResult.utterance, policyResult.entities, {
             timezone: this._engine.platform.timezone,
             getPreferredUnit: (type : string) => {
                 const pref = this._engine.platform.getSharedPreferences();
