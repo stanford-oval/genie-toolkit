@@ -660,15 +660,11 @@ export default class DialogueLoop {
     }
 
     private async _showWelcome() {
-        await this._doAgentReply([]);
-        // reset the dialogue state here; if we don't, we we'll see sys_greet as an agent
-        // dialogue act; this is never seen in training, because in training the user speaks
-        // first, so it confuses the neural network
-        this._dialogueState = null;
-        // the utterance ends with "what can i do for you?", which is expect = 'generic'
-        // but we don't want to keep the microphone open here, we want to go back to wake-word mode
-        // so we unconditionally close the round here
-        await this.setExpected(null);
+        this._dialogueState = await this._policy.getInitialState();
+        if (this._dialogueState === null)
+            await this._doAgentReply([]);
+        else
+            await this._executeCurrentState();
     }
 
     private async _loop(showWelcome : boolean, initialState : string|null) {
@@ -736,7 +732,6 @@ export default class DialogueLoop {
     }
 
     async nextQueueItem() : Promise<QueueItem> {
-        this.setExpected(null);
         await this.conversation.sendAskSpecial();
         this._mgrPromise = null;
         this._mgrResolve!();

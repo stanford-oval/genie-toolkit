@@ -256,4 +256,9 @@ export default class DialoguePolicy {
 
         return this._sentenceGenerator!.invokeFunction('notifyError', appName, program, error, this._sentenceGenerator!.contextTable);
     }
+
+    async getInitialState() {
+        await this._ensureGeneratorForState(null);
+        return this._sentenceGenerator!.invokeFunction('initialState', this._sentenceGenerator!.contextTable);
+    }
 }

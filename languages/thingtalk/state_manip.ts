@@ -988,6 +988,7 @@ export function tagContextForAgent(ctx : ContextInfo) : number[] {
         else
             return [contextTable.ctx_nonlist_notification];
 
+    case 'init':
     case 'insist':
     case 'execute':
     case 'ask_recommend':
@@ -1595,6 +1596,9 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
 
     if (ctx.state.dialogueAct === 'notification')
         phrases.push(makeContextPhrase(contextTable.ctx_with_notification, ctx));
+
+    if (ctx.state.dialogueAct === 'init')
+        phrases.push(makeContextPhrase(contextTable.ctx_init, ctx));
 
     if (ctx.isMultiDomain)
         phrases.push(makeContextPhrase(contextTable.ctx_multidomain, ctx));

@@ -1387,3 +1387,59 @@ abstract class @org.thingpedia.iot.door
   #[minimal_projection=[]]
   #[confirm=false];
 }
+class @org.thingpedia.covid-vaccine
+#_[thingpedia_name="COVID Vaccine"]
+#_[thingpedia_description="COVID Vaccine Finder"]
+#[license="BSD-3-Clause"]
+#[license_gplcompatible=true]
+#[subcategory="service"]
+{
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+
+  entity vaccine_appointment #_[description="Vaccine appointment ID"] #[has_ner=false];
+
+  monitorable list query appointment(in req location: Location
+                                     #_[prompt="what is your address"]
+                                     #_[canonical={
+                                       default="preposition",
+                                       base=["location", "position", "place"],
+                                       property=[],
+                                       preposition=["in #", "at #", "around #", "for location #", "for #"]
+                                     }],
+                                     in req dose: Enum(first, second)
+                                     #_[prompt="is this your first or second dose"]
+                                     #_[canonical={
+                                       base=["dose"],
+                                       preposition=["for my # dose"],
+                                     }],
+                                     in opt vaccine_type: Enum(moderna, pfizer, johnson_and_johnson, astra_zeneca)
+                                     #[required_if=["dose=second"]]
+                                     #_[prompt="what type of vaccine did you receive at the first dose"]
+                                     #_[canonical={
+                                       base=["vaccine type"],
+                                     }],
+                                     out id: Entity(org.thingpedia.covid-vaccine:vaccine_appointment)
+                                     #[unique=true]
+                                     #[filterable=false]
+                                     #_[canonical={
+                                        base=["id"],
+                                     }],
+                                     out geo: Location
+                                     #_[canonical={
+                                       default="preposition",
+                                       base=["address", "location"],
+                                       preposition=["near #", "in #", "around #"]
+                                     }],
+                                     out link: Entity(tt:url) #_[canonical="link"]
+                                    )
+  #[canonical=["appointment", "vaccine appointment", "vaccination slot",
+               "appointment to get a vaccine"]]
+  #_[result={
+    list_concat=["${select:__index:=0 {Here are the earliest appointments, starting with the closest ones: }}${id} at ${geo}"]
+  }]
+  #[minimal_projection=["id"]]
+  #[initial=true]
+  #[poll_interval=86400000ms]
+  #[doc="Information about COVID vaccine appointments"];
+}

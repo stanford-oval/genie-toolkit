@@ -340,8 +340,6 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * fulfilled until {@link stop} is called.
      */
     run() : Promise<void> {
-        console.log('Engine running');
-
         this._running = true;
 
         return new Promise((callback, errback) => {
