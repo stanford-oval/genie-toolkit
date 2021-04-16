@@ -211,11 +211,12 @@ function answer(state : Ast.DialogueState, answer : Ast.Value, contextTable : Se
     const ctx = S.getContextInfo($loader, state, contextTable);
 
     // if the agent proposed something and the user says "yes", we accept the proposal
-    if (state.history.length > 0 && state.history[state.history.length-1].confirm === 'proposed' &&
-        answer instanceof Ast.BooleanValue && answer.value === true) {
-        const item = state.history[state.history.length-1].clone();
-        item.confirm = 'accepted';
-        return S.addNewItem(ctx, 'execute', null, 'accepted', item);
+    if (state.history.length > 0 && state.history[state.history.length-1].confirm === 'proposed'
+        && answer instanceof Ast.BooleanValue) {
+        if (answer.value) // yes accepts
+            return S.acceptAllProposedStatements(ctx);
+        else // no is cancel
+            return S.makeSimpleState(ctx, 'cancel', null);
     }
 
     switch (state.dialogueAct) {

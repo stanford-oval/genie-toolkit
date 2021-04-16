@@ -1,0 +1,29 @@
+[{
+   "location": [37.4455862, -122.1619289, "Palo Alto, California"],
+   "vaccine_type": "pfizer",
+   "dose": "first",
+   "id": "1",
+   "geo": [37.4334411, -122.1774838, "Stanford Hospital (Pfizer)"],
+   "link": "https://stanfordhealthcare.org/"
+}, {
+   "location": [37.4455862, -122.1619289, "Palo Alto, California"],
+   "vaccine_type": "moderna",
+   "dose": "first",
+   "id": "2",
+   "geo": [37.4334411, -122.1774838, "Stanford Hospital (Moderna)"],
+   "link": "https://stanfordhealthcare.org/"
+}, {
+   "location": [37.4455862, -122.1619289, "Palo Alto, California"],
+   "vaccine_type": "pfizer",
+   "dose": "second",
+   "id": "3",
+   "geo": [37.4334411, -122.1774838, "Stanford Hospital (Pfizer, 2nd dose)"],
+   "link": "https://stanfordhealthcare.org/"
+}, {
+   "location": [37.4455862, -122.1619289, "Palo Alto, California"],
+   "vaccine_type": "pfizer",
+   "dose": "second",
+   "id": "4",
+   "geo": [37.4394411, -122.1615375, "Sutter Palo Alto Medical Foundation Care Center"],
+   "link": "http://www.sutterhealth.org/"
+}]
