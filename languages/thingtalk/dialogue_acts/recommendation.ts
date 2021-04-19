@@ -244,7 +244,11 @@ function combineDisplayResult(proposal : Recommendation, newInfo : SlotBag) {
     const results = ctx.results;
     assert(results && results.length > 0);
     const topResult = results[0];
-    assert(isInfoPhraseCompatibleWithResult(topResult, newInfo));
+    if (!isInfoPhraseCompatibleWithResult(topResult, newInfo)) {
+        console.log('topResult', topResult);
+        console.log('newInfo', newInfo);
+        throw new Error('???');
+    }
 
     const maybeNewInfo = oldInfo ? SlotBag.merge(oldInfo, newInfo) : newInfo;
     if (maybeNewInfo === null)
