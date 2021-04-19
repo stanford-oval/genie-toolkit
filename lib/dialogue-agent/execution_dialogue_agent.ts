@@ -394,6 +394,10 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
     }
 
     private async _resolvePhoneNumber() : Promise<Ast.Value> {
+        // if we received the command over SMS, that's our phone number, immediately
+        if (this._dlg.platformData.from && this._dlg.platformData.from.startsWith('phone:'))
+            return new Ast.Value.Entity(this._dlg.platformData.from.substring('phone:'.length), 'tt:phone_number', null);
+
         if (!this._dlg.isAnonymous) {
             const profile = this._platform.getProfile();
             if (profile.phone) {
@@ -417,6 +421,10 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
     }
 
     private async _resolveEmailAddress() : Promise<Ast.Value> {
+        // if we received the command over email, that's our email address, immediately
+        if (this._dlg.platformData.from && this._dlg.platformData.from.startsWith('email:'))
+            return new Ast.Value.Entity(this._dlg.platformData.from.substring('email:'.length), 'tt:email_address', null);
+
         if (!this._dlg.isAnonymous) {
             const profile = this._platform.getProfile();
             if (profile.email) {
