@@ -264,3 +264,10 @@ export function waitFinish(stream : Stream.Writable) : Promise<void> {
         stream.on('error', reject);
     });
 }
+
+export function waitEnd(stream : Stream.Readable) : Promise<void>{
+    return new Promise((resolve, reject) => {
+        stream.on('end', resolve);
+        stream.on('error', reject);
+    });
+} 

@@ -14,9 +14,9 @@ filtered_property_wikidata4.json
 shared-parameter-datasets.tsv
 shared-parameter-datasets
 
-datadir/
-models/
-raw/
+datadir
+models
+raw
 
 country/
 city/

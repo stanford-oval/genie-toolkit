@@ -113,19 +113,9 @@ common-words.txt:
 	curl -O https://almond-static.stanford.edu/test-data/common-words.txt
 
 models/paraphraser-bart:
-	mkdir models
+	mkdir -p models
 	curl -O https://almond-static.stanford.edu/test-data/paraphraser-bart-large-speedup-megabatch-5m.tar.xz
 	tar -C models -xvf paraphraser-bart.tar.xz
-
-%/wikidata.tt: %/parameter-datasets.tsv $(geniedir)/tool/autoqa/wikidata/process-schema.js
-	mkdir -p $(dir $@)
-	$(genie) wikidata-process-schema  -o $@.tmp --entities $(experiment)/entities.json \
-	  --domains $(class) \
-	  --domain-canonicals $(canonical) \
-	  --parameter-datasets $*/parameter-datasets.tsv \
-	  --properties $(shell cat $(dir $@)properties.txt) \
-	  $(process_schemaorg_flags)
-	mv $@.tmp $@
 
 emptydataset.tt:
 	echo 'dataset @empty {}' > $@
@@ -136,21 +126,20 @@ shared-parameter-datasets.tsv:
 	$(genie) download-string-values --thingpedia-url $(thingpedia_url) --developer-key $(developer_key) \
 	   --manifest $@ --append-manifest -d shared-parameter-datasets
 
+%/items.json:
+	curl https://almond-static.stanford.edu/research/csqa/$*/items.json --output $@ --create-dirs
 
-filtered_property_wikidata4.json: 
-	curl https://almond-static.stanford.edu/research/csqa/filtered_property_wikidata4.json --output $@
+%/predicates.json:
+	curl https://almond-static.stanford.edu/research/csqa/$*/predicates.json --output $@ --create-dirs
 
-%/instances.txt:
-	curl https://almond-static.stanford.edu/research/csqa/$*/instances.txt --output $@ --create-dirs
+%/values.json:
+	curl https://almond-static.stanford.edu/research/csqa/$*/values.json --output $@ --create-dirs
 
-%/property_item_map.json:
-	curl https://almond-static.stanford.edu/research/csqa/$*/property_item_map.json --output $@ --create-dirs
+%/properties.txt:
+	curl https://almond-static.stanford.edu/research/csqa/$*/properties.txt --output $@ --create-dirs
 
-%/property_item_values.json:
-	curl https://almond-static.stanford.edu/research/csqa/$*/property_item_values.json --output $@ --create-dirs
-
-%/instance_item_values.json:
-	curl https://almond-static.stanford.edu/research/csqa/$*/instance_item_values.json --output $@ --create-dirs
+raw/csqa-wikidata/filtered_property_wikidata4.json: 
+	curl https://almond-static.stanford.edu/research/csqa/filtered_property_wikidata4.json --output $@ --create-dirs
 
 raw/csqa-wikidata:
 	curl https://zenodo.org/record/4052427/files/wikidata_proc_json.zip --output wikidata_proc_json.zip 
@@ -159,14 +148,31 @@ raw/csqa-wikidata:
 	mv 'wikidata_proc_json 2'/* raw/csqa-wikidata
 	rm -r 'wikidata_proc_json 2'
 
-%/parameter-datasets.tsv: shared-parameter-datasets.tsv filtered_property_wikidata4.json $(if ${use_preprocessed_wikidata},%/instances.txt %/property_item_map.json %/property_item_values.json %/instance_item_values.json,raw/csqa-wikidata)
+%/parameter-datasets.tsv: shared-parameter-datasets.tsv raw/csqa-wikidata/filtered_property_wikidata4.json $(if ${use_preprocessed_wikidata},%/items.json %/predicates.json %/values.json,raw/csqa-wikidata)
+	mkdir -p $*/parameter-datasets
 	$(genie) wikidata-preprocess-data \
 	  --domain $(class) \
 	  --domain-canonical $(canonical) \
-	  --input raw/csqa-wikidata \
-	  --output ./ \
+	  --wikidata raw/csqa-wikidata/wikidata_short_1.json raw/csqa-wikidata/wikidata_short_2.json \
+	  --wikidata-entity-list raw/csqa-wikidata/items_wikidata_n.json \
+	  --wikidata-property-list raw/csqa-wikidata/filtered_property_wikidata4.json \
+	  --filtered-properties $*/properties.txt \
+	  --schemaorg-manifest schemaorg-manifest.tt \
+	  --manifest $*/parameter-datasets.tsv.tmp \
+	  --output-dir $*/parameter-datasets \
 	  $(process_schemaorg_flags)
-	sed -e "s|$(echo -e '\t')shared-parameter-datasets|$(echo -e '\t')../shared-parameter-datasets|g" shared-parameter-datasets.tsv > $@
+	mv $*/parameter-datasets.tsv.tmp $*/parameter-datasets.tsv
+	sed -e "s|$(echo -e '\t')shared-parameter-datasets|$(echo -e '\t')../shared-parameter-datasets|g" shared-parameter-datasets.tsv >> $@
+
+%/wikidata.tt: %/parameter-datasets.tsv $(geniedir)/tool/autoqa/wikidata/process-schema.js
+	mkdir -p $(dir $@)
+	$(genie) wikidata-process-schema  -o $@.tmp --entities $(experiment)/entities.json \
+	  --domains $(class) \
+	  --domain-canonicals $(canonical) \
+	  --parameter-datasets $*/parameter-datasets.tsv \
+	  --properties $(shell cat $*/properties.txt) \
+	  $(process_schemaorg_flags)
+	mv $@.tmp $@
 
 %/constants.tsv: %/wikidata.tt %/parameter-datasets.tsv
 	$(genie) sample-constants -o $@.tmp --parameter-datasets $*/parameter-datasets.tsv --thingpedia $*/wikidata.tt --devices org.wikidata
