@@ -64,9 +64,11 @@ export default class TwilioNotificationBackend {
             to = profile.phone;
         }
 
+        let body = data.formatted.map((x) => x.toLocaleString(this._platform.locale)).join('\n');
+        body += 'To stop these messages, say STOP.';
+
         await this._client.messages.create({
-            to, from: this._from,
-            body: data.formatted.map((x) => x.toLocaleString(this._platform.locale)).join('\n')
+            to, from: this._from, body
         });
     }
 
