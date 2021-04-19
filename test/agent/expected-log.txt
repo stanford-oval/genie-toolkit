@@ -1904,7 +1904,6 @@ C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: timer(base=$now, interval=1h) => @com.thecatapi.get()
 C: #[results=[]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: How would you like to be notified?
 A: What is your phone number?
 A: Alright, I will get the cat picture every 60 min.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_rule_enable_success;
@@ -2078,16 +2077,11 @@ U: timer(base=$now, interval=1h) => @com.thecatapi.get();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: timer(base=$now, interval=1h) => @com.thecatapi.get();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: To receive notifications you must first create a personal Genie account.
+A: What is your phone number?
 #! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
-====
-# test
-#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-U: \t $stop;
-UT: $stop;
 ====
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
