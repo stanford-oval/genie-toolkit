@@ -48,6 +48,7 @@ import DialoguePolicy from './dialogue_policy';
 import type Conversation from './conversation';
 import { ConversationState } from './conversation';
 import CardFormatter, { FormattedObject } from './card-output/card-formatter';
+import AppExecutor from '../engine/apps/app_executor';
 
 import ExecutionDialogueAgent from './execution_dialogue_agent';
 
@@ -642,38 +643,28 @@ export default class DialogueLoop {
         await this._doAgentReply(newResults);
     }
 
-    private async _showNotification(appId : string,
+    private async _showNotification(app : AppExecutor,
                                     outputType : string,
                                     outputValue : Record<string, unknown>) {
-        const app = this.engine.apps.getApp(appId);
-        if (!app) // the app was already stopped, ignore this notification
-            return;
-
         const mappedResult = await this._agent.executor.mapResult(outputType, outputValue);
-
         this._dialogueState = await this._policy.getNotificationState(app.name, app.program, mappedResult);
         await this._doAgentReply([[outputType, outputValue]]);
     }
 
-    private async _showAsyncError(appId : string,
+    private async _showAsyncError(app : AppExecutor,
                                   error : Error) {
-        const app = this.engine.apps.getApp(appId);
-        if (!app) // the app was already stopped, ignore this notification
-            return;
-
-        console.log('Error from ' + appId, error);
+        console.log('Error from ' + app.uniqueId, error);
 
         const mappedError = await this._agent.executor.mapError(error);
-
         this._dialogueState = await this._policy.getAsyncErrorState(app.name, app.program, mappedError);
         await this._doAgentReply([]);
     }
 
     private async _handleAPICall(call : QueueItem) {
         if (call instanceof QueueItem.Notification)
-            await this._showNotification(call.appId, call.outputType, call.outputValue);
+            await this._showNotification(call.app, call.outputType, call.outputValue);
         else if (call instanceof QueueItem.Error)
-            await this._showAsyncError(call.appId, call.error);
+            await this._showAsyncError(call.app, call.error);
     }
 
     private async _showWelcome() {
@@ -936,12 +927,12 @@ export default class DialogueLoop {
         return this._notifyQueue.hasWaiter();
     }
 
-    dispatchNotify(appId : string, outputType : string, outputValue : Record<string, unknown>) {
-        const item = new QueueItem.Notification(appId, outputType, outputValue);
+    dispatchNotify(app : AppExecutor, outputType : string, outputValue : Record<string, unknown>) {
+        const item = new QueueItem.Notification(app, outputType, outputValue);
         this._pushQueueItem(item);
     }
-    dispatchNotifyError(appId : string, error : Error) {
-        const item = new QueueItem.Error(appId, error);
+    dispatchNotifyError(app : AppExecutor, error : Error) {
+        const item = new QueueItem.Error(app, error);
         this._pushQueueItem(item);
     }
 

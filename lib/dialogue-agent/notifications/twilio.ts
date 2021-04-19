@@ -44,7 +44,7 @@ export default class TwilioNotificationBackend {
     }
 
     get requiredSettings() {
-        return ['$context.self.phone_number'];
+        return { to: '$context.self.phone_number' };
     }
 
     async notify(data : {
@@ -53,14 +53,19 @@ export default class TwilioNotificationBackend {
         raw : Record<string, unknown>;
         type : string;
         formatted : FormattedObject[]
-    }) {
-        const profile = this._platform.getProfile();
-        if (!profile.phone || !profile.phone_verified)
-            return;
+    }, config ?: Record<string, string>) {
+        let to;
+        if (config) {
+            to = config.to;
+        } else {
+            const profile = this._platform.getProfile();
+            if (!profile.phone || !profile.phone_verified)
+                return;
+            to = profile.phone;
+        }
 
         await this._client.messages.create({
-            to: profile.phone,
-            from: this._from,
+            to, from: this._from,
             body: data.formatted.map((x) => x.toLocaleString(this._platform.locale)).join('\n')
         });
     }

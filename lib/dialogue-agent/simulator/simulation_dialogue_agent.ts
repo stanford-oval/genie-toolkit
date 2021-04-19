@@ -79,7 +79,9 @@ export default class SimulationDialogueAgent extends AbstractDialogueAgent<Thing
         return this._executor;
     }
 
-    protected async ensureNotificationsConfigured() {}
+    protected async configureNotifications() {
+        return undefined;
+    }
 
     protected async checkForPermission(stmt : Ast.ExpressionStatement) {}
 

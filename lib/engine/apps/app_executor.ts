@@ -76,7 +76,7 @@ class NotificationOutputDelegate {
      */
     notifyError(error : Error) {
         this._app.setError(error);
-        return this._engine.assistant.notifyError(this._app.uniqueId!, error);
+        return this._engine.assistant.notifyError(this._app, error);
     }
 
     /**
@@ -86,14 +86,20 @@ class NotificationOutputDelegate {
      * @package
      */
     output(outputType : string, outputValue : Record<string, unknown>) {
-        return this._engine.assistant.notify(this._app.uniqueId!, outputType, outputValue);
+        return this._engine.assistant.notify(this._app, outputType, outputValue);
     }
 }
 
-interface AppMeta {
+interface NotificationConfig {
+    backend : string;
+    config : Record<string, string>;
+};
+
+export interface AppMeta {
     icon ?: string|null;
     conversation ?: string;
     description ?: string;
+    notifications ?: NotificationConfig;
 }
 
 /**
@@ -107,7 +113,7 @@ export default class AppExecutor extends events.EventEmitter {
     /**
      * The unique ID of this app.
      */
-    uniqueId : string|undefined;
+    uniqueId ! : string;
     /**
      * The engine that owns this app.
      */
@@ -125,6 +131,7 @@ export default class AppExecutor extends events.EventEmitter {
 
     mainOutput : QueueOutputDelegate;
     private _notificationOutput : NotificationOutputDelegate;
+    notifications : NotificationConfig|undefined;
 
     /**
      * Whether this app is running.
@@ -170,7 +177,6 @@ export default class AppExecutor extends events.EventEmitter {
                 description : string|undefined) {
         super();
 
-        this.uniqueId = undefined;
         this.engine = engine;
 
         this.isRunning = false;
@@ -199,6 +205,7 @@ export default class AppExecutor extends events.EventEmitter {
 
         this.mainOutput = new QueueOutputDelegate();
         this._notificationOutput = new NotificationOutputDelegate(this);
+        this.notifications = meta.notifications;
     }
 
     get metadata() : AppMeta {

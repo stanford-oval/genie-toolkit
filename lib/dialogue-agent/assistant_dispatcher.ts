@@ -20,7 +20,6 @@
 
 import assert from 'assert';
 import * as events from 'events';
-import * as Tp from 'thingpedia';
 
 import Conversation, {
     ConversationDelegate,
@@ -28,80 +27,18 @@ import Conversation, {
     ConversationState
 } from './conversation';
 import { Message } from './protocol';
-import NotificationFormatter, { FormattedObject } from './notifications/formatter';
-import TwilioNotificationBackend from './notifications/twilio';
-import EmailNotificationBackend from './notifications/email';
+import NotificationFormatter from './notifications/formatter';
+import {
+    StaticNotificationBackends,
+    ThingpediaNotificationBackend,
+    NotificationConfig,
+    NotificationDelegate,
+    NotificationBackend
+} from './notifications';
 
+import AppExecutor from '../engine/apps/app_executor';
 import type Engine from '../engine';
 import DeviceView from '../engine/devices/device_view';
-
-interface NotificationDelegate {
-    notify(data : {
-        appId : string;
-        icon : string|null;
-        raw : Record<string, unknown>;
-        type : string;
-        formatted : FormattedObject[]
-    }) : Promise<void>;
-
-    notifyError(data : {
-        appId : string;
-        icon : string|null;
-        error : Error
-    }) : Promise<void>;
-}
-
-interface NotificationBackend extends NotificationDelegate {
-    readonly name : string;
-    readonly uniqueId : string;
-    readonly requiredSettings : string[];
-}
-
-const StaticNotificationBackends = {
-    'twilio': TwilioNotificationBackend,
-    'email': EmailNotificationBackend,
-};
-
-export type NotificationConfig = {
-    [T in keyof typeof StaticNotificationBackends] ?: ConstructorParameters<(typeof StaticNotificationBackends)[T]>[1]
-}
-
-/**
- * Helper class to adapt a Thingpedia device into a notification backend.
- */
-class ThingpediaNotificationBackend implements NotificationBackend {
-    private _iface : NotificationDelegate;
-    name : string;
-    uniqueId : string;
-
-    constructor(device : Tp.BaseDevice) {
-        this.name = device.name;
-        this.uniqueId = 'thingpedia/' + device.uniqueId;
-        this._iface = device.queryInterface('notifications') as NotificationDelegate;
-    }
-
-    get requiredSettings() {
-        return [];
-    }
-
-    notify(data : {
-        appId : string;
-        icon : string|null;
-        raw : Record<string, unknown>;
-        type : string;
-        formatted : FormattedObject[]
-    }) {
-        return this._iface.notify(data);
-    }
-
-    notifyError(data : {
-        appId : string;
-        icon : string|null;
-        error : Error
-    }) {
-        return this._iface.notifyError(data);
-    }
-}
 
 /**
  * A conversation delegate that buffers all commands until the dialogue turn
@@ -265,25 +202,22 @@ export default class AssistantDispatcher extends events.EventEmitter {
      * Dispatch a notification (a single new result from a stream) from a
      * ThingTalk program.
      *
-     * @param appId - the unique ID of the running ThingTalk program
+     * @param app - the running ThingTalk program that generated the notification
      * @param outputType - a string identifying the type of result to display
      * @param outputValue - the new value to display
      */
-    async notify(appId : string, outputType : string, outputValue : Record<string, unknown>) {
+    async notify(app : AppExecutor, outputType : string, outputValue : Record<string, unknown>) {
         const prefs = this._engine.platform.getSharedPreferences();
-        const notificationBackend = prefs.get('notification-backend') as string || 'conversation';
-        const app = this._engine.apps.getApp(appId);
-        // ignore if the app was stopped already
-        if (!app)
-            return;
+        const notificationBackend =
+            app.notifications ? app.notifications.backend : (prefs.get('notification-backend') as string || 'conversation');
 
         const promises = [];
         if (this._notificationOutputs.size > 0 || notificationBackend !== 'conversation') {
             const messages = await this._notificationFormatter.formatNotification(app.name, app.program, outputType, outputValue);
 
             const notification = {
-                appId: appId,
-                icon: app ? app.icon : null,
+                appId: app.uniqueId,
+                icon: app.icon,
                 raw: outputValue,
                 type: outputType,
                 formatted: messages
@@ -300,30 +234,27 @@ export default class AssistantDispatcher extends events.EventEmitter {
                 } else {
                     const backend = this._staticNotificationBackends[notificationBackend];
                     if (backend)
-                        promises.push(backend.notify(notification));
+                        promises.push(backend.notify(notification, app.notifications?.config));
                 }
             }
         }
 
         if (notificationBackend === 'conversation') {
             for (const conv of this._conversations.values())
-                promises.push(conv.notify(appId, outputType, outputValue));
+                promises.push(conv.notify(app, outputType, outputValue));
         }
         await Promise.all(promises);
     }
 
-    async notifyError(appId : string, error : Error) {
+    async notifyError(app : AppExecutor, error : Error) {
         const prefs = this._engine.platform.getSharedPreferences();
-        const notificationBackend = prefs.get('notification-backend') as string || 'conversation';
-        const app = this._engine.apps.getApp(appId);
-        // ignore if the app was stopped already
-        if (!app)
-            return;
+        const notificationBackend =
+            app.notifications ? app.notifications.backend : (prefs.get('notification-backend') as string || 'conversation');
 
         const promises = [];
         const notification = {
-            appId: appId,
-            icon: app ? app.icon : null,
+            appId: app.uniqueId,
+            icon: app.icon,
             error: error
         };
         for (const out of this._notificationOutputs.values())
@@ -331,7 +262,7 @@ export default class AssistantDispatcher extends events.EventEmitter {
 
         if (notificationBackend === 'conversation') {
             for (const conv of this._conversations.values())
-                promises.push(conv.notifyError(appId, error));
+                promises.push(conv.notifyError(app, error));
         } else if (notificationBackend.startsWith('thingpedia/')) {
             const deviceId = notificationBackend.substring('thingpedia/'.length);
             const device = this._notificationDeviceView.getById(deviceId);
@@ -340,7 +271,7 @@ export default class AssistantDispatcher extends events.EventEmitter {
         } else {
             const backend = this._staticNotificationBackends[notificationBackend];
             if (backend)
-                promises.push(backend.notifyError(notification));
+                promises.push(backend.notifyError(notification, app.notifications?.config));
         }
 
         await Promise.all(promises);

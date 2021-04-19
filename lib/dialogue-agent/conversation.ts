@@ -35,6 +35,7 @@ import * as ThingTalkUtils from '../utils/thingtalk';
 import type Engine from '../engine';
 import * as StreamUtils from "../utils/stream-utils";
 import { DialogueSerializer, DialogueTurn } from "../dataset-tools/parsers";
+import AppExecutor from '../engine/apps/app_executor';
 
 const DummyStatistics = {
     hit() {
@@ -257,12 +258,12 @@ export default class Conversation extends events.EventEmitter {
         this.dialogueFinished();
     }
 
-    notify(appId : string, outputType : string, outputValue : Record<string, unknown>) {
-        return this._loop.dispatchNotify(appId, outputType, outputValue);
+    notify(app : AppExecutor, outputType : string, outputValue : Record<string, unknown>) {
+        return this._loop.dispatchNotify(app, outputType, outputValue);
     }
 
-    notifyError(appId : string, error : Error) {
-        return this._loop.dispatchNotifyError(appId, error);
+    notifyError(app : AppExecutor, error : Error) {
+        return this._loop.dispatchNotifyError(app, error);
     }
 
     setExpected(expecting : ValueCategory|null, context : Context) : void {

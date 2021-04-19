@@ -121,11 +121,19 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         if (!this._dlg.isAnonymous)
             return;
 
-        if (stmt.stream)
-            await this._requireRegistration(this._("To receive notifications you must first create a personal Almond account."));
-
         if (stmt.last.schema!.functionType === 'action')
             await this._requireRegistration(this._("To use this command you must first create a personal Almond account."));
+
+        if (stmt.stream) {
+            // check available notification backends
+            // if we have one, we allow notifications from anonymous accounts
+            // and we'll ask the user for the notification configuration
+            // otherwise, we reject them
+            const available = this._engine.assistant.getAvailableNotificationBackends();
+
+            if (available.length === 0)
+                await this._requireRegistration(this._("To receive notifications you must first create a personal Almond account."));
+        }
     }
 
     async disambiguate(type : 'device'|'contact',
@@ -306,7 +314,7 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         let candidates = tpCandidates;
         if (stmt) {
             await this._prepareForExecution(stmt, hints);
-            const [results,] = await this._executor.executeStatement(stmt);
+            const [results,] = await this._executor.executeStatement(stmt, undefined, undefined);
             candidates = [];
             for (const item of results!.results) {
                 const id = item.value.id;
@@ -494,42 +502,64 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         return pref.get('preferred-' + type) as string|undefined;
     }
 
-    protected async ensureNotificationsConfigured() {
-        const prefs = this._platform.getSharedPreferences();
-        const backendId = prefs.get('notification-backend') as string|undefined;
-        // check if the user has chosen a backend, and if that backend was
-        // autodiscovered from a thingpedia device, check that the device is
-        // still available
-        if (backendId !== undefined &&
-            (!backendId.startsWith('thingpedia/') || this._engine.hasDevice(backendId.substring('thingpedia/'.length))))
-            return;
+    protected async configureNotifications() {
+        if (!this._dlg.isAnonymous) {
+            // if we're not anonymous, look at the previous configuration
+
+            const prefs = this._platform.getSharedPreferences();
+            const backendId = prefs.get('notification-backend') as string|undefined;
+            // check if the user has chosen a backend, and if that backend was
+            // autodiscovered from a thingpedia device, check that the device is
+            // still available
+            if (backendId !== undefined &&
+                (!backendId.startsWith('thingpedia/') || this._engine.hasDevice(backendId.substring('thingpedia/'.length))))
+                return undefined; // return null so we don't force a particular configuration now
+        }
 
         const available = this._engine.assistant.getAvailableNotificationBackends();
         // if no backend is available, use the default (which is to blast to all
         // conversations) and leave it unspecified
         if (available.length === 0)
-            return;
+            return undefined;
 
         // if we have voice, we'll use that for notifications
         if (this._platform.hasCapability('sound'))
-            return;
+            return undefined;
 
-        const choices = available.map((c) => c.name);
-        // add the option to be notified in the chat
-        choices.push(this._("This chat"));
-        const chosen = await this._dlg.askChoices(this._("How would you like to be notified?"), choices);
-        if (chosen === available.length) {
-            prefs.set('notification-backend', 'conversation');
-            return;
+
+        let chosen;
+        if (available.length > 1) {
+            const choices = available.map((c) => c.name);
+            chosen = await this._dlg.askChoices(this._("How would you like to be notified?"), choices);
+        } else {
+            chosen = 0;
         }
 
         const backend = available[chosen];
+        const settings = backend.requiredSettings;
+        const config : Record<string, string> = {};
         // ensure that all settings needed by the notification backend are set
-        for (const variable of backend.requiredSettings)
-            await this.resolveUserContext(variable);
+        for (const key in settings) {
+            const variable = settings[key];
+            config[key] = String((await this.resolveUserContext(variable)).toJS());
+        }
 
         // if we get here, the user has given meaningful answers to our questions
-        // save the setting and continue
-        prefs.set('notification-backend', backend.uniqueId);
+        // in anonymous mode, we make up a transient notification config that we'll
+        // use just for this program
+        //
+        // in non-anonymous mode, we save the choice the notification backend
+        // other info has been saved to the profile already
+
+        if (this._dlg.isAnonymous) {
+            return {
+                backend: backend.uniqueId,
+                config
+            };
+        } else {
+            const prefs = this._platform.getSharedPreferences();
+            prefs.set('notification-backend', backend.uniqueId);
+            return undefined;
+        }
     }
 }

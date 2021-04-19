@@ -830,13 +830,6 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: timer(interval=1h, base=$now) => @com.thecatapi.get();
 
-A: How would you like to be notified?
-A: choice 0: SMS
-A: choice 1: This chat
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . execute ; timer ( base = $now , interval = DURATION_0 ) => @com.thecatapi . get ( ) ; // {"DURATION_0":{"unit":"h","value":1}}
-A: >> expecting = choice
-U: \t $choice(0);
-
 A: What is your phone number?
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . execute ; timer ( base = $now , interval = DURATION_0 ) => @com.thecatapi . get ( ) ; // {"DURATION_0":{"unit":"h","value":1}}
 A: >> expecting = phone_number
@@ -915,10 +908,9 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: timer(interval=1h, base=$now) => @com.thecatapi.get();
 
-A: To receive notifications you must first create a personal Almond account.
-A: link: Sign up for Almond /user/register
-A: >> context = null // {}
-A: >> expecting = null
+A: What is your phone number?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . execute ; timer ( base = $now , interval = DURATION_0 ) => @com.thecatapi . get ( ) ; // {"DURATION_0":{"unit":"h","value":1}}
+A: >> expecting = phone_number
 
 ====
 # 62-anon-actions
