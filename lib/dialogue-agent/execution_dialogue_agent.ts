@@ -382,6 +382,9 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
     }
 
     private _tryGetStoredVariable(type : Type, variable : string) : Ast.Value|null {
+        if (this._dlg.isAnonymous)
+            return null;
+
         const sharedPrefs = this._platform.getSharedPreferences();
 
         const value = sharedPrefs.get('context-' + variable);
@@ -391,39 +394,51 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
     }
 
     private async _resolvePhoneNumber() : Promise<Ast.Value> {
-        let profile = this._platform.getProfile();
-        if (profile.phone) {
-            // TODO phone verification???
-            assert(profile.phone_verified);
-            return new Ast.Value.Entity(profile.phone, 'tt:phone_number', null);
+        if (!this._dlg.isAnonymous) {
+            const profile = this._platform.getProfile();
+            if (profile.phone) {
+                // TODO phone verification???
+                assert(profile.phone_verified);
+                return new Ast.Value.Entity(profile.phone, 'tt:phone_number', null);
+            }
         }
 
         const phone = await this._dlg.ask(ValueCategory.PhoneNumber, this._("What is your phone number?"));
-        if (!await this._platform.setProfile({ phone: String(phone.toJS()) }))
+        if (this._dlg.isAnonymous) {
             return phone;
+        } else {
+            if (!await this._platform.setProfile({ phone: String(phone.toJS()) }))
+                return phone;
 
-        profile = this._platform.getProfile();
-        assert(profile.phone_verified);
-        return phone;
+            const profile = this._platform.getProfile();
+            assert(profile.phone_verified);
+            return phone;
+        }
     }
 
     private async _resolveEmailAddress() : Promise<Ast.Value> {
-        let profile = this._platform.getProfile();
-        if (profile.email) {
-            if (!profile.email_verified)
-                await this._dlg.reply(this._("You must verify your email address by clicking the verification link before you can use it to receive notifications."));
-            return new Ast.Value.Entity(profile.email, 'tt:email_address', null);
+        if (!this._dlg.isAnonymous) {
+            const profile = this._platform.getProfile();
+            if (profile.email) {
+                if (!profile.email_verified)
+                    await this._dlg.reply(this._("You must verify your email address by clicking the verification link before you can use it to receive notifications."));
+                return new Ast.Value.Entity(profile.email, 'tt:email_address', null);
+            }
         }
 
-        const email = await this._dlg.ask(ValueCategory.PhoneNumber, this._("What is your email address?"));
-        if (!await this._platform.setProfile({ email: String(email.toJS()) }))
+        const email = await this._dlg.ask(ValueCategory.EmailAddress, this._("What is your email address?"));
+        if (this._dlg.isAnonymous) {
             return email;
+        } else {
+            if (!await this._platform.setProfile({ email: String(email.toJS()) }))
+                return email;
 
-        profile = this._platform.getProfile();
-        if (!profile.email_verified)
-            await this._dlg.reply(this._("Thank you! Please verify your email address by clicking the verification link before continuing."));
+            const profile = this._platform.getProfile();
+            if (!profile.email_verified)
+                await this._dlg.reply(this._("Thank you! Please verify your email address by clicking the verification link before continuing."));
 
-        return email;
+            return email;
+        }
     }
 
     protected async resolveUserContext(variable : string) : Promise<Ast.Value> {
@@ -492,8 +507,10 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
                 answer = await this.lookupLocation(answer.value.name, []);
         }
 
-        const sharedPrefs = this._platform.getSharedPreferences();
-        sharedPrefs.set('context-' + variable, answer.toJS());
+        if (!this._dlg.isAnonymous) {
+            const sharedPrefs = this._platform.getSharedPreferences();
+            sharedPrefs.set('context-' + variable, answer.toJS());
+        }
         return answer;
     }
 
