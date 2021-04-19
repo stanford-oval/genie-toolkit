@@ -51,10 +51,45 @@ class ParamDatasetGenerator {
         this._instance_file_path = path.join(this._output_dir, this._canonical, 'instances.txt');
         this._property_value_map_path = path.join(this._output_dir, this._canonical, 'property_item_values.json');
         this._instance_value_map_path = path.join(this._output_dir, this._canonical, 'instance_item_values.json');
+        this._parameterDatasetManifest = new Map();
     }
 
     async _readSync(func, dir) {
         return util.promisify(func)(dir, { encoding: 'utf8' });
+    }
+
+    async _outputEntityValueSet(type, data) {
+        const outputPath = path.join(this._output_dir, this._canonical, 'parameter-datasets', `${type}.json`);
+        const manifestEntry = `entity\t${this._locale}\t${type}\tparameter-datasets/${type}.json`;
+        if (this._parameterDatasetManifest.has(type)) {
+            const savedData = JSON.parse(await this. _readSync(fs.readFile, outputPath));
+            // Just keep unique values
+            data = Array.from(new Set(savedData['data'].concat(data)));
+        } 
+        await util.promisify(fs.writeFile)(outputPath, JSON.stringify({ result: 'ok', data }, undefined, 2), { encoding: 'utf8' });
+        this._parameterDatasetManifest.set(type, manifestEntry);
+    }
+
+    async _outputStringValueSet(type, data) {
+        const outputPath = path.join(this._output_dir, this._canonical, 'parameter-datasets', `${type}.tsv`);
+        const manifestEntry = `string\t${this._locale}\t${type}\tparameter-datasets/${type}.tsv`;
+        data = data.join(os.EOL).concat(os.EOL);
+        await util.promisify(fs.appendFile)(outputPath, data, { encoding: 'utf8' });
+        this._parameterDatasetManifest.set(type, manifestEntry);
+    }
+
+    async _outputDomainValueSet() {
+        const instanceValueMap = JSON.parse(await this._readSync(fs.readFile, this._instance_value_map_path));
+        const instanceQids = new Set((await this._readSync(fs.readFile, this._instance_file_path)).split(','));
+        const data = [];
+        for (const id of instanceQids) {
+            const name = instanceValueMap[id];
+            if (name) {
+                const canonical = this._tokenizer.tokenize(name).tokens.join(' ');
+                data.push({ value: id, name, canonical });
+            }
+        }
+        await this._outputEntityValueSet(`org.wikidata:${this._canonical}`, data);
     }
 
     /**
@@ -65,16 +100,17 @@ class ParamDatasetGenerator {
         const domainProperties = JSON.parse(await this. _readSync(fs.readFile, this._property_item_map_path));
         const propertyLabels = JSON.parse(await this. _readSync(fs.readFile, 'filtered_property_wikidata4.json'));
         const itemLabels = JSON.parse(await this. _readSync(fs.readFile, this._property_value_map_path));
-        const outputDir = path.join(this._output_dir, canonical, 'parameter-datasets');
-        const datasetPathes = new Set();
         const filteredDomainProperties = [];
+
+        console.log('Processing entity: ', this._canonical);
+        this._outputDomainValueSet();
         
-        console.log('Processing properties');
         for (const [property, qids] of Object.entries(domainProperties)) {
             // Ignore list for now as later step throws error
             if (['P2439'].indexOf(property) > -1)
                 continue;
             const label = propertyLabels[property];
+            console.log('Processing property: ', label);
             let type = await getType(canonical, property, label, this._schemaorgProperties);
             let fileId = `org.wikidata:${(await argnameFromLabel(label))}`;
             let isEntity = false;
@@ -96,9 +132,6 @@ class ParamDatasetGenerator {
                 filteredDomainProperties.push(property);
                 continue;
             }
-
-            // Set file path based on if string or entity
-            const outputPath = path.join(outputDir, `${fileId}.${isEntity?'json':'tsv'}`);
 
             const data = [];
             for (const qid of qids) {
@@ -136,31 +169,18 @@ class ParamDatasetGenerator {
             // Ignore if the property finds no valid value.
             if (data.length !== 0) {
                 filteredDomainProperties.push(property);
-                // Dump propety data
-                let dataPath;
-                if (isEntity) {
-                    let outData = { result: 'ok', data };
-                    dataPath = `entity\t${this._locale}\t${fileId}\t${path.relative(path.join(this._output_dir, canonical), outputPath)}\n`;
-                    if (datasetPathes.has(dataPath)) {
-                        outData = JSON.parse(await this. _readSync(fs.readFile, outputPath));
-                        // Just keep unique values
-                        outData['data'] = Array.from(new Set(outData['data'].concat(data)));
-                    }
-                    await util.promisify(fs.writeFile)(outputPath, JSON.stringify(outData, undefined, 2), { encoding: 'utf8' });
-                } else {
-                    dataPath = `string\t${this._locale}\t${fileId}\t${path.relative(path.join(this._output_dir, canonical), outputPath)}\n`;
-                    let outData = data.join(os.EOL).concat(os.EOL);
-                    await util.promisify(fs.appendFile)(outputPath, outData, { encoding: 'utf8' });
-                }
-                datasetPathes.add(dataPath);
+                if (isEntity) 
+                    this._outputEntityValueSet(fileId, data);
+                else 
+                    this._outputStringValueSet(fileId, data);
             }
         }
-            await Promise.all([
-                util.promisify(fs.writeFile)(path.join(this._output_dir, this._canonical, 'parameter-datasets.tsv'),
-                    Array.from(datasetPathes).join(''), { encoding: 'utf8' }),
-                util.promisify(fs.writeFile)(path.join(this._output_dir, this._canonical, 'properties.txt'), 
-                    filteredDomainProperties.join(','), { encoding: 'utf8' })
-            ]);    
+        await Promise.all([
+            util.promisify(fs.writeFile)(path.join(this._output_dir, this._canonical, 'parameter-datasets.tsv'),
+                Array.from(this._parameterDatasetManifest.values()).join('\n'), { encoding: 'utf8' }),
+            util.promisify(fs.writeFile)(path.join(this._output_dir, this._canonical, 'properties.txt'), 
+                filteredDomainProperties.join(','), { encoding: 'utf8' })
+        ]);    
         console.log(`${filteredDomainProperties.length} filtered properties in domain.`);  
     }
 
