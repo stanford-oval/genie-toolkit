@@ -28,7 +28,7 @@ import { Describer, getProgramName } from '../../utils/thingtalk/describe';
 import * as I18n from '../../i18n';
 
 import AppSql from '../db/app';
-import AppExecutor from './app_executor';
+import AppExecutor, { AppMeta } from './app_executor';
 
 import type Engine from '../index';
 
@@ -38,12 +38,6 @@ interface AppRow {
     name : string;
     description : string;
     state : string;
-}
-
-interface AppMeta {
-    icon ?: string|null;
-    conversation ?: string;
-    description ?: string;
 }
 
 /**
@@ -111,6 +105,10 @@ export default class AppDatabase extends events.EventEmitter {
             description ?: string;
             icon ?: string;
             conversation ?: string;
+            notifications ?: {
+                backend : string;
+                config : Record<string, string>;
+            };
         } = {}) {
         const uniqueId = options.uniqueId || 'uuid-' + uuid.v4();
 
@@ -151,8 +149,9 @@ export default class AppDatabase extends events.EventEmitter {
         delete options.description;
         const icon = options.icon || getProgramIcon(program);
         const conversation = options.conversation;
+        const notifications = options.notifications;
 
-        return this._loadOneApp(program.prettyprint(), { icon, conversation }, uniqueId, name, description, true);
+        return this._loadOneApp(program.prettyprint(), { icon, conversation, notifications }, uniqueId, name, description, true);
     }
 
     private async _loadOneApp(code : string,

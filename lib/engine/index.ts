@@ -34,7 +34,8 @@ import AppDatabase from './apps/database';
 import AppRunner from './apps/runner';
 import type AppExecutor from './apps/app_executor';
 
-import AssistantDispatcher, { NotificationConfig } from '../dialogue-agent/assistant_dispatcher';
+import AssistantDispatcher from '../dialogue-agent/assistant_dispatcher';
+import { NotificationConfig } from '../dialogue-agent/notifications';
 import NotificationFormatter, { FormattedObject } from '../dialogue-agent/notifications/formatter';
 
 import * as Config from '../config';
@@ -140,6 +141,10 @@ interface CreateAppOptions {
     description ?: string;
     icon ?: string;
     conversation ?: string;
+    notifications ?: {
+        backend : string;
+        config : Record<string, string>;
+    };
 }
 
 interface AppResult {

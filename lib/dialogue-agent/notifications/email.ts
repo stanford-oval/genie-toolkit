@@ -47,7 +47,7 @@ export default class EmailNotificationBackend {
     }
 
     get requiredSettings() {
-        return ['$context.self.email_address'];
+        return { to: '$context.self.email_address' };
     }
 
     async notify(data : {
@@ -56,14 +56,19 @@ export default class EmailNotificationBackend {
         raw : Record<string, unknown>;
         type : string;
         formatted : FormattedObject[]
-    }) {
-        const profile = this._platform.getProfile();
-        if (!profile.email || !profile.email_verified)
-            return;
+    }, config ?: Record<string, string>) {
+        let to;
+        if (config) {
+            to = config.to;
+        } else {
+            const profile = this._platform.getProfile();
+            if (!profile.email || !profile.email_verified)
+                return;
+            to = profile.email;
+        }
 
         await this._client.sendMail({
-            to: profile.email,
-            from: this._from,
+            to, from: this._from,
             subject: "Notification from Genie",
             text: data.formatted.map((x) => x.toLocaleString(this._platform.locale)).join('\n')
         });

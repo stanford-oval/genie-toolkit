@@ -47,9 +47,14 @@ export interface NewProgramRecord {
     icon : string|null;
 }
 
+export interface NotificationConfig {
+    backend : string;
+    config : Record<string, string>;
+}
+
 export type RawExecutionResult = Array<[string, Record<string, unknown>]>;
 interface AbstractStatementExecutor<PrivateStateType> {
-    executeStatement(stmt : Ast.ExpressionStatement, privateState : PrivateStateType|undefined) :
+    executeStatement(stmt : Ast.ExpressionStatement, privateState : PrivateStateType|undefined, notificationConfig : NotificationConfig|undefined) :
         Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, NewProgramRecord|undefined, PrivateStateType]>;
 }
 
@@ -161,18 +166,27 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
             }
             // prepare for execution now, even if we don't execute yet
             // so we slot-fill eagerly
-            await this._prepareForExecution(clone.history[i].stmt, hints);
+            const item = clone.history[i];
+            await this._prepareForExecution(item.stmt, hints);
 
-            if (clone.history[i].confirm === 'accepted' &&
-                clone.history[i].isExecutable() &&
-                shouldAutoConfirmStatement(clone.history[i].stmt))
-                clone.history[i].confirm = 'confirmed';
-            if (clone.history[i].confirm !== 'confirmed')
+            if (item.confirm === 'accepted' &&
+                item.isExecutable() &&
+                shouldAutoConfirmStatement(item.stmt))
+                item.confirm = 'confirmed';
+            if (item.confirm !== 'confirmed')
                 continue;
-            assert(clone.history[i].isExecutable());
+            assert(item.isExecutable());
 
-            const [newResultList, newRawResult, newProgram, newPrivateState] = await this.executor.executeStatement(clone.history[i].stmt, privateState);
-            clone.history[i].results = newResultList;
+            // if we have a stream, we'll trigger notifications
+            // configure them if necessary
+            // we do this last after slot-filling and confirmations,
+            // because we use the configuration immediately
+            let notificationConfig = undefined;
+            if (item.stmt.stream)
+                notificationConfig = await this.configureNotifications();
+
+            const [newResultList, newRawResult, newProgram, newPrivateState] = await this.executor.executeStatement(item.stmt, privateState, notificationConfig);
+            item.results = newResultList;
             newResults.push(...newRawResult);
             if (newProgram)
                 newPrograms.push(newProgram);
@@ -206,10 +220,10 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
     }
 
     /**
-     * Ensure that notifications are configured for the user, and we have
+     * Ensure that notifications are configured for the user, and gather
      * all the information we need.
      */
-    protected abstract ensureNotificationsConfigured() : Promise<void>;
+    protected abstract configureNotifications() : Promise<NotificationConfig|undefined>;
 
     /**
      * Check that a given statement is permitted for the current user.
@@ -248,11 +262,6 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         }
 
         await this.checkForPermission(stmt);
-
-        // if we have a stream, we'll trigger notifications
-        // configure them if necessary
-        if (stmt.stream)
-            await this.ensureNotificationsConfigured();
 
         // FIXME this method can cause a few questions that
         // bypass the neural network, which is not great
