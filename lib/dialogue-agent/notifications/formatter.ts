@@ -74,8 +74,10 @@ export default class NotificationFormatter {
         const dialogueState = await this._policy.getNotificationState(appName, program, mappedResult);
 
         const policyResult = await this._policy.chooseAction(dialogueState);
-        if (!policyResult)
+        if (!policyResult) {
+            console.log(dialogueState!.prettyprint());
             throw new Error(`Unexpected invalid state from agent during notification`);
+        }
 
         const [, , utterance, entities,] = policyResult;
         const postprocessed = this._langPack.postprocessNLG(utterance, entities, {
