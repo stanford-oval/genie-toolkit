@@ -500,7 +500,7 @@ class ApplyDeviceIDVisitor extends Ast.NodeVisitor {
     }
 
     visitDeviceSelector(selector : Ast.DeviceSelector) {
-        if (selector.attributes.length > 0)
+        if (selector.attributes.length > 0 || selector.all)
             return false;
         if (selector.id)
             return false;

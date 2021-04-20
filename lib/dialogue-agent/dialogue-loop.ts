@@ -213,10 +213,14 @@ export default class DialogueLoop {
         for (const key in args) {
             names.push(key);
             const value = args[key];
-            replacements.push({
-                text: value instanceof ReplacedResult ? value : new ReplacedConcatenation([String(value)], {}, {}),
-                value,
-            });
+            if (value !== null && value !== undefined) {
+                replacements.push({
+                    text: value instanceof ReplacedResult ? value : new ReplacedConcatenation([String(value)], {}, {}),
+                    value,
+                });
+            } else {
+                replacements.push(undefined);
+            }
         }
 
         const tmpl = Replaceable.get(msg, this._langPack, names);

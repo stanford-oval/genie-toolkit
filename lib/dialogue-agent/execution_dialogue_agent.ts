@@ -127,12 +127,11 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
                        hint ?: string) : Promise<number> {
         let question : string;
         if (type === 'device') {
-            question = this._dlg.interpolate(this._("You have multiple ${?“${name}” }${device} devices. Which one do you want to use?"), {
-                name,
-                device: cleanKind(hint!)
-            })!;
+            question = this._dlg.interpolate(this._("You have multiple {${name}| }${device} devices. Which one do you want to use?"), {
+                name, device: cleanKind(hint!)
+            });
         } else {
-            question = this._dlg.interpolate(this._("Multiple contacts match “${name}”. Who do you mean?"), { name })!;
+            question = this._dlg.interpolate(this._("Multiple contacts match “${name}”. Who do you mean?"), { name });
         }
         return this._dlg.askChoices(question, choices);
     }

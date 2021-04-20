@@ -107,14 +107,15 @@ UT: @com.twitter.post();
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: You have multiple Twitter devices. Which one do you want to use?
 A: What do you want to tweet?
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(status);
 AT: @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
-U: @com.twitter.post(status="hello world");
+U: @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status="hello world");
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
-UT: @com.twitter.post(status="hello world");
+UT: @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status="hello world");
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status="hello world");
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
@@ -123,10 +124,10 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_action;
 AT: @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status="hello world");
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
-U: @com.twitter.post(status="hello world")
+U: @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status="hello world")
 U: #[confirm=enum confirmed];
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
-UT: @com.twitter.post(status="hello world")
+UT: @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status="hello world")
 UT: #[confirm=enum confirmed];
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status="hello world")
@@ -580,11 +581,12 @@ U: @com.twitter.post();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.twitter.post();
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post();
+C: @com.twitter(id="twitter-bar"^^tt:device_id("Twitter Account bar")).post();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: You have multiple Twitter devices. Which one do you want to use?
 A: What do you want to tweet?
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(status);
-AT: @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post();
+AT: @com.twitter(id="twitter-bar"^^tt:device_id("Twitter Account bar")).post();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $nevermind;
 UT: $nevermind;
@@ -1027,7 +1029,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Nice For What is a song by Drake in the album Scorpion. Would you like to play it on Spotify?
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-AT: @com.spotify.play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
+AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
 AT: #[confirm=enum proposed];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $yes;
@@ -1037,7 +1039,7 @@ C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter
 C: #[results=[
 C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], album="spotify:album:1ATL5GLyefJaxhQzSPVrLX"^^com.spotify:album("Scorpion"), genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79, energy=90, danceability=58 }
 C: ]];
-C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
+C: @com.spotify(id="com.spotify-7"^^tt:device_id).play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
 C: #[results=[
 C:   { song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device }
 C: ]];
@@ -1068,7 +1070,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Nice For What is a song by Drake in the album Scorpion. Would you like to play it on Spotify?
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-AT: @com.spotify.play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
+AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
 AT: #[confirm=enum proposed];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $no;
@@ -1158,7 +1160,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Nice For What is a song released on June 28, 2018. Would you like to play it on Spotify?
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-AT: @com.spotify.play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
+AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
 AT: #[confirm=enum proposed];
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -1192,7 +1194,7 @@ C: #[count=11];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Hello? Is a song released on May 24, 2018. Would you like to play it on Spotify?
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-AT: @com.spotify.play_song(song="spotify:track:7qwt4xUIqQWCu1DJf96g2k"^^com.spotify:song("Hello?"))
+AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play_song(song="spotify:track:7qwt4xUIqQWCu1DJf96g2k"^^com.spotify:song("Hello?"))
 AT: #[confirm=enum proposed];
 #! vote: down
 #! comment: test comment for dialogue turns
@@ -1310,7 +1312,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Nice For What is a song by Drake in the album Scorpion. Would you like to play it on Spotify?
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-AT: @com.spotify.play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
+AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
 AT: #[confirm=enum proposed];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $no;
@@ -1356,7 +1358,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: The most popular song is ROCKSTAR (feat. Roddy Ricch). It is a song by DaBaby in the album BLAME IT ON BABY. Would you like to play it on Spotify?
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-AT: @com.spotify.play_song(song="spotify:track:7ytR5pFWmSjzHJIeQkgog4"^^com.spotify:song("ROCKSTAR (feat. Roddy Ricch)"))
+AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play_song(song="spotify:track:7ytR5pFWmSjzHJIeQkgog4"^^com.spotify:song("ROCKSTAR (feat. Roddy Ricch)"))
 AT: #[confirm=enum proposed];
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -1380,7 +1382,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: The least popular song is Love Yourself. It is a song by Justin Bieber in the album Romantic Pop Songs. Would you like to play it on Spotify?
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-AT: @com.spotify.play_song(song="spotify:track:0VXeNEtuiD77F2StUeUadK"^^com.spotify:song("Love Yourself"))
+AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play_song(song="spotify:track:0VXeNEtuiD77F2StUeUadK"^^com.spotify:song("Love Yourself"))
 AT: #[confirm=enum proposed];
 #! vote: down
 #! comment: test comment for dialogue turns
@@ -1520,6 +1522,7 @@ UT: @com.xkcd.comic() => @com.twitter.post(status=title);
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.xkcd.comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title);
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: You have multiple Twitter devices. Which one do you want to use?
 A: Ok, do you want me to get xkcd comic and then tweet the title?
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_action;
 AT: @com.xkcd.comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title);

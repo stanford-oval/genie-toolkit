@@ -349,8 +349,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         if (name !== undefined)
             selecteddevices = alldevices.filter((d) => like(d.name, name.value.toJS() as string));
 
-        // TODO let the user choose if multiple devices match...
-        if (selecteddevices.length >= 1) {
+        if (selecteddevices.length === 1) {
             selector.id = selecteddevices[0].uniqueId;
             if (name)
                 name.value = new Ast.Value.String(selecteddevices[0].name);
@@ -359,14 +358,18 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
             return;
         }
 
+        // HACK if we're doing IoT and we don't have a name, treat it like "all" devices
+        if (selector.kind.startsWith('org.thingpedia.iot.') && name === undefined)
+            return;
+
         const choosefrom = (selecteddevices.length ? selecteddevices : alldevices);
         const choice = await this.disambiguate('device',
             selecteddevices.length && name ? name.value.toJS() as string : null, choosefrom.map((d) => d.name), kind);
         selector.id = choosefrom[choice].uniqueId;
         if (name)
-            name.value = new Ast.Value.String(choosefrom[0].name);
+            name.value = new Ast.Value.String(choosefrom[choice].name);
         else
-            selector.attributes.push(new Ast.InputParam(null, 'name', new Ast.Value.String(choosefrom[0].name)));
+            selector.attributes.push(new Ast.InputParam(null, 'name', new Ast.Value.String(choosefrom[choice].name)));
     }
 
     private async _addDisplayToDevice(value : Ast.EntityValue) : Promise<void> {
