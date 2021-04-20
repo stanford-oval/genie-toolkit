@@ -101,7 +101,7 @@ general_help:
     - Can you give me another suggestion?
     - Show skills
   a:
-    - I'm a new virtual assistant. At the moment, I can help you with music, jokes, and managing some IoT devices.
+    - I'm a new virtual assistant. At the moment, I can help you schedule your COVID-19 vaccine appointment. In the future, I will answer questions about COVID-19, but also help you with music, weather, jokes, etc.
 
 iot_help:
   q:
