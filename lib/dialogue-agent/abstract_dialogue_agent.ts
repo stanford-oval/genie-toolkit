@@ -325,7 +325,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
             return;
         }
 
-        const alldevices = this.getAllDevicesOfKind(kind);
+        const alldevices = await this.getAllDevicesOfKind(kind);
 
         if (alldevices.length === 0) {
             this.debug('No device of kind ' + kind + ' available, attempting configure...');
@@ -468,7 +468,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * @param {string} kind - the kind to check
      * @returns {Array<DeviceInfo>} - the list of configured devices
      */
-    protected getAllDevicesOfKind(kind : string) : DeviceInfo[] {
+    protected async getAllDevicesOfKind(kind : string) : Promise<DeviceInfo[]> {
         throw new TypeError('Abstract method');
     }
 

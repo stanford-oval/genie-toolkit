@@ -100,7 +100,7 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         return this._executor;
     }
 
-    getAllDevicesOfKind(kind : string) {
+    async getAllDevicesOfKind(kind : string) {
         return this._engine.getDeviceInfos(kind);
     }
 
@@ -170,7 +170,7 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
                     device: factory.text,
                     choices: new ReplacedList(factory.choices.map((f) => new ReplacedConcatenation([f.text], {}, {})), this._engine.platform.locale, 'disjunction')
                 });
-            } else if (this.getAllDevicesOfKind(factory.kind).length > 0) {
+            } else if ((await this.getAllDevicesOfKind(factory.kind)).length > 0) {
                 await this._dlg.replyInterp(this._("You do not have a ${device} configured. You will need to configure it inside your ${factory} before you can use that command."), {
                     device: cleanKind(kind),
                     factory: factory.text,

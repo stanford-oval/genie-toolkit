@@ -83,14 +83,37 @@ export default class SimulationDialogueAgent extends AbstractDialogueAgent<Thing
 
     protected async checkForPermission(stmt : Ast.ExpressionStatement) {}
 
-    protected getAllDevicesOfKind(kind : string) : DeviceInfo[] {
-        // make up a unique fake device, and make the uniqueId same as the kind,
-        // so the device will not be recorded in the context
-        // TODO when we actually support choosing devices (when dealing with IoT)
-        // this needs to be revised
-        return [{
-            kind, name: kind, uniqueId: kind
-        }];
+    protected async getAllDevicesOfKind(kind : string) : Promise<DeviceInfo[]> {
+        let numDevices = 1;
+
+        if (kind.startsWith('org.thingpedia.iot.')) { // HACK
+            numDevices = 6;
+        } else {
+            const classDef = await this._schemas.getFullMeta(kind);
+            const config = classDef.config;
+            if (config && config.module !== 'org.thingpedia.config.none' &&
+                config.module !== 'org.thingpedia.config.builtin')
+                numDevices = 3;
+        }
+
+        if (numDevices === 1) {
+            // make up a unique fake device, and make the uniqueId same as the kind,
+            // so the device will not be recorded in the context
+            return [{
+                kind, name: kind, uniqueId: kind
+            }];
+        } else {
+            const out = [];
+            for (let i = 0; i < numDevices; i++) {
+                out.push({
+                    kind,
+                    name: `Simulated Device ${kind} ${i}`,
+                    // pick a format that matches the other simulated values
+                    uniqueId: `str:ENTITY_tt:device_id::${i}:`
+                });
+            }
+            return out;
+        }
     }
 
     protected async tryConfigureDevice(kind : string) : Promise<never> {
