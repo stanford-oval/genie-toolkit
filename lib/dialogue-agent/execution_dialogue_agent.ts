@@ -121,7 +121,9 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         if (!this._dlg.isAnonymous)
             return;
 
-        if (stmt.last.schema!.functionType === 'action')
+        if (stmt.last.schema!.functionType === 'action' &&
+            !['org.thingpedia.builtin.thingengine.builtin.faq_reply',
+              'org.thingpedia.builtin.thingengine.builtin.say'].includes(stmt.last.schema!.qualifiedName))
             await this._requireRegistration(this._("To use this command you must first create a personal Almond account."));
 
         if (stmt.stream) {
