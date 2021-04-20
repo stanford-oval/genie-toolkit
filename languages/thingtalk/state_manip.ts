@@ -132,7 +132,7 @@ export class ResultInfo {
                 || table instanceof Ast.IndexExpression
                 || table instanceof Ast.AggregationExpression);
             this.isAggregation = table instanceof Ast.AggregationExpression;
-            this.isList = table.schema!.is_list;
+            this.isList = stmt.expression.schema!.is_list;
             this.argMinMaxField = getTableArgMinMax(table);
             assert(this.argMinMaxField === null || this.isQuestion);
             this.projection = table instanceof Ast.ProjectionExpression ?

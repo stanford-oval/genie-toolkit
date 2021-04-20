@@ -2101,3 +2101,33 @@ A: To use this command you must first log in to your personal account.
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.notification("some app");
+U: monitor(@org.thingpedia.builtin.test.get_data(count=2, size=10byte)) => @org.thingpedia.builtin.test.dup_data(data_in=data)
+U: #[results=[
+U:   { data_in="!!!!!!!!!!", data_out="!!!!!!!!!!!!!!!!!!!!", count=2, size=10, data="!!!!!!!!!!" }
+U: ]];
+UT: $dialogue @org.thingpedia.dialogue.transaction.notification("some app");
+UT: monitor(@org.thingpedia.builtin.test.get_data(count=2, size=10byte)) => @org.thingpedia.builtin.test.dup_data(data_in=data)
+UT: #[results=[
+UT:   { data_in="!!!!!!!!!!", data_out="!!!!!!!!!!!!!!!!!!!!", count=2, size=10, data="!!!!!!!!!!" }
+UT: ]];
+C: $dialogue @org.thingpedia.dialogue.transaction.notification("some app");
+C: monitor(@org.thingpedia.builtin.test.get_data(count=2, size=10byte)) => @org.thingpedia.builtin.test.dup_data(data_in=data)
+C: #[results=[
+C:   { data_in="!!!!!!!!!!", data_out="!!!!!!!!!!!!!!!!!!!!", count=2, size=10, data="!!!!!!!!!!" }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Notification from some app: the answer is !!!!!!!!!!!!!!!!!!!!
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines

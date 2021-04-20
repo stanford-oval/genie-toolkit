@@ -930,3 +930,15 @@ A: To use this command you must first log in to your personal account.
 A: link: Register for Almond /user/register
 A: >> context = null // {}
 A: >> expecting = null
+
+====
+# 63-list-notifications
+U: \t $dialogue @org.thingpedia.dialogue.transaction.notification("some app");
+U: monitor(@org.thingpedia.builtin.test.get_data(count=2, size=10byte)) => @org.thingpedia.builtin.test.dup_data(data_in=data)
+U: #[results=[
+U:  { data_in="!!!!!!!!!!", data_out="!!!!!!!!!!!!!!!!!!!!", count=2, size=10, data="!!!!!!!!!!" }
+U: ]];
+
+A: Notification from some app: the answer is !!!!!!!!!!!!!!!!!!!!
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; monitor ( @org.thingpedia.builtin.test . get_data ( count = 2 , size = MEASURE_byte_0 ) ) => @org.thingpedia.builtin.test . dup_data ( data_in = data ) #[ results = [ { data_in = QUOTED_STRING_0 , data_out = QUOTED_STRING_1 , count = 2 , size = 10 , data = QUOTED_STRING_0 } ] ] ; // {"MEASURE_byte_0":{"unit":"byte","value":10},"QUOTED_STRING_0":"!!!!!!!!!!","QUOTED_STRING_1":"!!!!!!!!!!!!!!!!!!!!"}
+A: >> expecting = null
