@@ -483,15 +483,62 @@ export function isUserAskingResultQuestion(ctx : ContextInfo) : boolean {
     return !arraySubset(currentProjection, previousResultInfo.projection);
 }
 
+class CollectDeviceIDVisitor extends Ast.NodeVisitor {
+    collection = new Map<string, string>();
+
+    visitDeviceSelector(selector : Ast.DeviceSelector) {
+        if (!selector.id)
+            return false;
+        this.collection.set(selector.kind, selector.id);
+        return false;
+    }
+}
+
+class ApplyDeviceIDVisitor extends Ast.NodeVisitor {
+    constructor(private collection : Map<string, string>) {
+        super();
+    }
+
+    visitDeviceSelector(selector : Ast.DeviceSelector) {
+        if (selector.attributes.length > 0)
+            return false;
+        if (selector.id)
+            return false;
+
+        const existing = this.collection.get(selector.kind);
+        if (existing)
+            selector.id = existing;
+        return false;
+    }
+}
+
+function propagateDeviceIDs(ctx : ContextInfo,
+                            newHistoryItems : Ast.DialogueHistoryItem[]) {
+    const visitor = new CollectDeviceIDVisitor();
+    ctx.state.visit(visitor);
+
+    const applyVisitor = new ApplyDeviceIDVisitor(visitor.collection);
+    return newHistoryItems.map((item) => {
+        // clone the item just to be sure
+        // FIXME we might be able to skip this clone in some cases
+        item = item.clone();
+        item.visit(applyVisitor);
+        return item;
+    });
+}
+
 function addNewItem(ctx : ContextInfo,
                     dialogueAct : string,
                     dialogueActParam : string|null,
-                    confirm : 'accepted'|'proposed'|'confirmed',
+                    confirm : 'accepted-query'|'accepted'|'proposed'|'proposed-query'|'confirmed',
                     ...newHistoryItem : Ast.DialogueHistoryItem[]) : Ast.DialogueState {
+    newHistoryItem = propagateDeviceIDs(ctx, newHistoryItem);
+
     for (const item of newHistoryItem) {
         C.adjustDefaultParameters(item);
         item.results = null;
-        item.confirm = confirm;
+        item.confirm = confirm === 'accepted-query' ? 'accepted' :
+            confirm  === 'proposed-query' ? 'proposed' : confirm;
     }
 
     const newState = new Ast.DialogueState(null, POLICY_NAME, dialogueAct, dialogueActParam, []);
@@ -505,11 +552,26 @@ function addNewItem(ctx : ContextInfo,
             newState.history.push(ctx.state.history[i]);
         }
         newState.history.push(...newHistoryItem);
+    } else if (confirm === 'accepted-query' || confirm === 'proposed-query') {
+        // add the new history item right after the current one, keep
+        // all the accepted items, and remove all proposed items
+
+        const newState = new Ast.DialogueState(null, POLICY_NAME, dialogueAct, null, []);
+        if (ctx.currentIdx !== null) {
+            for (let i = 0; i <= ctx.currentIdx; i++)
+                newState.history.push(ctx.state.history[i]);
+        }
+        newState.history.push(...newHistoryItem);
+        if (ctx.currentIdx !== null) {
+            for (let i = ctx.currentIdx + 1; i < ctx.state.history.length; i++) {
+                if (ctx.state.history[i].confirm === 'proposed')
+                    continue;
+                newState.history.push(ctx.state.history[i]);
+            }
+        }
     } else {
         // wipe everything from state after the current program
         // this will remove all previously accepted and/or proposed actions
-        //
-        // XXX is the right thing to do?
         if (ctx.currentIdx !== null) {
             for (let i = 0; i <= ctx.currentIdx; i++)
                 newState.history.push(ctx.state.history[i]);
@@ -714,20 +776,7 @@ function addQuery(ctx : ContextInfo,
     const newStmt = new Ast.ExpressionStatement(null, newTable);
     const newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
 
-    // add the new history item right after the current one, and remove all proposed elements
-
-    assert(ctx.currentIdx !== null);
-    const newState = new Ast.DialogueState(null, POLICY_NAME, dialogueAct, null, []);
-    for (let i = 0; i <= ctx.currentIdx; i++)
-        newState.history.push(ctx.state.history[i]);
-    newState.history.push(newHistoryItem);
-    for (let i = ctx.currentIdx + 1; i < ctx.state.history.length; i++) {
-        if (ctx.state.history[i].confirm === 'proposed')
-            continue;
-        newState.history.push(ctx.state.history[i]);
-    }
-
-    return newState;
+    return addNewItem(ctx, dialogueAct, null, confirm === 'accepted' ? 'accepted-query' : 'proposed-query', newHistoryItem);
 }
 
 function addQueryAndAction(ctx : ContextInfo,
