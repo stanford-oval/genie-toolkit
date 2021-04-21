@@ -486,6 +486,17 @@ function getElementType(type) {
     return type;
 }
 
+
+async function readJson(file) {
+    const data = await util.promisify(fs.readFile)(file, { encoding: 'utf8' });
+    return new Map(Object.entries(JSON.parse(data)));
+}
+
+async function dumpMap(file, map) {
+    const data = Object.fromEntries(map);
+    await util.promisify(fs.writeFile)(file, JSON.stringify(data, undefined, 2));
+}
+
 async function loadSchemaOrgManifest(schemaorgManifest, schemaorgProperties) {
     if (schemaorgManifest) {
         const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(schemaorgManifest, { encoding: 'utf8' }));
@@ -521,6 +532,8 @@ export {
     getEquivalent,
     getType,
     getElementType,
+    readJson,
+    dumpMap,
     loadSchemaOrgManifest,
     argnameFromLabel
 };

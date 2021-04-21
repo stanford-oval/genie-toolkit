@@ -221,9 +221,12 @@ raw/test:
 	$(genie) wikidata-convert-csqa \
 	  --domain $(class) \
 	  --domain-canonical $(canonical) \
-	  --input raw/ \
-	  --output . \
-	  --dataset valid
+	  --input raw/valid \
+	  --output $@\
+	  --wikidata-property-list raw/csqa-wikidata/filtered_property_wikidata4.json \
+	  --items $*/items.json \
+	  --values $*/values.json \
+	  --filtered-examples $*/valid.json
 
 %/valid_annotated.tsv: %/manifest.tt %/valid.tsv
 	$(genie) typecheck -o $*/valid_annotated.tsv --dropped $*/valid_dropped.tsv --thingpedia $*/manifest.tt $*/valid.tsv

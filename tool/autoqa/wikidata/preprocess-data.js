@@ -30,7 +30,9 @@ import {
     getType,
     getElementType,
     argnameFromLabel,
-    loadSchemaOrgManifest
+    loadSchemaOrgManifest,
+    readJson,
+    dumpMap
 } from './utils';
 import * as StreamUtils from '../../../lib/utils/stream-utils';
 
@@ -62,16 +64,6 @@ class ParamDatasetGenerator {
         this._tokenizer = I18N.get(options.locale).getTokenizer();
     }
 
-    async _readJson(file) {
-        const data = await util.promisify(fs.readFile)(file, { encoding: 'utf8' });
-        return new Map(Object.entries(JSON.parse(data)));
-    }
-
-    async _dumpMap(file, map) {
-        const data = Object.fromEntries(map);
-        await util.promisify(fs.writeFile)(file, JSON.stringify(data, undefined, 2));
-    }
-
     async _outputEntityValueSet(type, data) {
         const outputPath = path.join(this._paths.parameterDataset, `${type}.json`);
         const manifestEntry = `entity\t${this._locale}\t${type}\tparameter-datasets/${type}.json\n`;
@@ -80,7 +72,7 @@ class ParamDatasetGenerator {
             if (type === `org.wikidata:${this._canonical}`)
                 return;
 
-            const savedData = await this._readJson(outputPath);
+            const savedData = await readJson(outputPath);
             // Just keep unique values
             data = Array.from(new Set(savedData.get('data').concat(data)));
         } 
@@ -109,7 +101,7 @@ class ParamDatasetGenerator {
     }
 
     async _loadPredicates(kbFile) {
-        const wikidataProperties = await this._readJson(this._paths.wikidataProperties);
+        const wikidataProperties = await readJson(this._paths.wikidataProperties);
         const pipeline = fs.createReadStream(kbFile).pipe(JSONStream.parse('$*'));
         pipeline.on('data', async (item) => {
             const predicates = item.value;
@@ -240,23 +232,23 @@ class ParamDatasetGenerator {
 
     async run() {
         // load wikidata properties 
-        this._wikidataProperties = await this._readJson(this._paths.wikidataProperties);
+        this._wikidataProperties = await readJson(this._paths.wikidataProperties);
         // load schema.org manifest (to help determine property type)
         await loadSchemaOrgManifest(this._schemaorgManifest, this._schemaorgProperties);
         
         if (['predicates.json', 'items.json', 'values.json', 'properties.txt'].every((fname) => fs.existsSync(path.join(this._paths.dir, fname)))) {
             console.log('load predicates & labels from preprocessed files');
-            this._items = await this._readJson(path.join(this._paths.dir, 'items.json'));
-            this._predicates = await this._readJson(path.join(this._paths.dir, 'predicates.json'));
-            this._values = await this._readJson(path.join(this._paths.dir, 'values.json'));
+            this._items = await readJson(path.join(this._paths.dir, 'items.json'));
+            this._predicates = await readJson(path.join(this._paths.dir, 'predicates.json'));
+            this._values = await readJson(path.join(this._paths.dir, 'values.json'));
         } else {
             console.log('load predicates & labels from wikidata kb files');
             for (const kbfile of this._paths.wikidata)
                 await this._loadPredicates(kbfile);
             await this._loadLabels();
-            await this._dumpMap(path.join(this._paths.dir, 'items.json'), this._items);
-            await this._dumpMap(path.join(this._paths.dir, 'predicates.json'), this._predicates);
-            await this._dumpMap(path.join(this._paths.dir, 'values.json'), this._values);
+            await dumpMap(path.join(this._paths.dir, 'items.json'), this._items);
+            await dumpMap(path.join(this._paths.dir, 'predicates.json'), this._predicates);
+            await dumpMap(path.join(this._paths.dir, 'values.json'), this._values);
         }
         
         // generate parameter datasets
@@ -299,7 +291,7 @@ module.exports = {
         });
         parser.add_argument('--filtered-properties', {
             required: true,
-            help: "Path to a txt file containing properties available for the domain, split by comma"
+            help: "Path to output a txt file containing properties available for the domain, split by comma"
         });
         parser.add_argument('--schemaorg-manifest', {
             required: false,
