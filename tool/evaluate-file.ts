@@ -75,7 +75,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: 'The utterances are tokenized.',
         default: true
     });
-    parser.add_argument('--untokenized', {
+    parser.add_argument('--no-tokenized', {
         action: 'store_false',
         dest: 'tokenized',
         help: 'The utterances are not tokenized.',
@@ -103,7 +103,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('--csv', {
         action: 'store_true',
         help: 'Output a single CSV line',
-        default: true
+        default: false
     });
     parser.add_argument('--csv-prefix', {
         required: false,
