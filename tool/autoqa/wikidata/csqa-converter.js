@@ -86,13 +86,13 @@ class CsqaConverter {
     }
 
     async _getFilterBoolExp(property, value, param) {
-        let ttValue;
-        let op = '==';
+        let ttValue, op;
         if (param === 'id') {
             ttValue = new Ast.Value.String(value);
             op = '=~';
         } else {
             const type = await getType(this._canonical, property, value);
+            op = type.isArray ? 'contains' : '==';
             const elemType = getElementType(type);
             if (elemType.isEntity) {
                 ttValue = new Ast.Value.Entity(value, elemType.type, value);
@@ -102,7 +102,7 @@ class CsqaConverter {
                 ttValue = new Ast.Value.Number(Number(value));
             } else { // Default to string
                 ttValue = new Ast.Value.String(value);
-                op = '=~';
+                op = type.isArray ? 'contains~' : '=~';
             }
         }
         return new Ast.BooleanExpression.Atom(null, param, op, ttValue);
