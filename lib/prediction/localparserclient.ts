@@ -113,29 +113,6 @@ export default class LocalParserClient {
         this._exactmatcher = await builder.load();
     }
 
-    private _applyPreHeuristics(contextCode : string[]) : string[] {
-        // remove "attribute:id = GENERIC_ENTITY_tt:device_id_*" from the context because
-        // we never generate that in training
-
-        const newCode = [];
-        let inString = false;
-        for (let i = 0; i < contextCode.length; i++) {
-            const token = contextCode[i];
-            if (token === '"')
-                inString = !inString;
-            if (inString) {
-                newCode.push(token);
-                continue;
-            }
-            if (token === 'attribute:id') {
-                i += 2; // skip "attribute:id" and "=", the loop increment will skip GENERIC_ENTITY
-                continue;
-            }
-            newCode.push(token);
-        }
-        return newCode;
-    }
-
     private _applyPostHeuristics(programs : PredictionCandidate[], contextCode : string[]|undefined) {
         // only work on contextual
         if (!contextCode)
@@ -212,9 +189,6 @@ export default class LocalParserClient {
         }
 
         if (result === null) {
-            if (contextCode)
-                contextCode = this._applyPreHeuristics(contextCode);
-
             let candidates;
             if (contextCode)
                 candidates = await this._predictor.predict(contextCode.join(' '), tokens.join(' '), answer, NLU_TASK, options.example_id);
