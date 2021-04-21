@@ -72,13 +72,13 @@ export function initArgparse(subparsers : argparse.SubParser) {
     });
     parser.add_argument('--tokenized', {
         action: 'store_true',
-        help: 'The utterance is tokenized.',
+        help: 'The utterances are tokenized.',
         default: true
     });
     parser.add_argument('--untokenized', {
         action: 'store_false',
         dest: 'tokenized',
-        help: 'The utterance is tokenized.',
+        help: 'The utterances are not tokenized.',
     });
     parser.add_argument('--contextual', {
         action: 'store_true',
