@@ -297,11 +297,12 @@ export default class AssistantDispatcher extends events.EventEmitter {
         await Promise.all(promises);
     }
 
-    getConversation(id ?: string) : Conversation|null {
-        if (id !== undefined && this._conversations.has(id))
-            return this._conversations.get(id)!;
-        else
-            return this._lastConversation;
+    getConversation(id : string) : Conversation|undefined {
+        return this._conversations.get(id);
+    }
+
+    get lastConversation() {
+        return this._lastConversation;
     }
 
     async getOrOpenConversation(id : string, options : ConversationOptions, state ?: ConversationState) {
