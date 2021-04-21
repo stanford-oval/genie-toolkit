@@ -192,9 +192,23 @@ export default class InferenceStatementExecutor {
         return [false, errorCode, errorMessage];
     }
 
-    async executeStatement(stmt : Ast.ExpressionStatement, privateState : undefined, notifications : NotificationConfig|undefined) : Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, NewProgramRecord, undefined]> {
+    async executeStatement(stmt : Ast.ExpressionStatement, privateState : undefined, notifications : NotificationConfig|undefined) : Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, NewProgramRecord|undefined, undefined]> {
         const program = new Ast.Program(null, [], [], [stmt]);
-        const app = await this._engine.createApp(program, { notifications });
+
+        // check if there is a running program with the same exact code,
+        // in which case we append the notification config to the existing app
+        // and we're done
+        const code = program.prettyprint();
+        for (const app of this._engine.getAppInfos()) {
+            if (app.code === code) {
+                if (notifications)
+                    app.notifications.push(notifications);
+                const resultList = new Ast.DialogueHistoryResultList(null, [], new Ast.Value.Number(0), false, null);
+                return [resultList, [], undefined, undefined];
+            }
+        }
+
+        const app = await this._engine.createApp(program, { notifications: notifications ? [notifications] : undefined });
         const results : Ast.DialogueHistoryResultItem[] = [];
         const rawResults : RawExecutionResult = [];
         const [more, errorCode, errorMessage] = await this._iterateResults(app, results, rawResults);
@@ -206,7 +220,7 @@ export default class InferenceStatementExecutor {
         const newProgramRecord = {
             uniqueId: app.uniqueId!,
             name: app.name,
-            code: program.prettyprint(),
+            code,
             results: rawResults.map((r) => r[1]),
             errors: errorCode ? [errorCode] : errorMessage ? [errorMessage] : [],
             icon: app.icon,

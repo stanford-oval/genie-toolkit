@@ -78,7 +78,7 @@ export interface AppInfo {
     /**
      * Configuration related to how notifications should be reported by the app.
      */
-    notifications ?: {
+    notifications : Array<{
         /**
          * Identifier of the backend to use for notifications.
          */
@@ -88,7 +88,7 @@ export interface AppInfo {
          * address to send notifications to.
          */
         config : Record<string, string>;
-    };
+    }>;
 }
 
 /**
@@ -155,10 +155,10 @@ interface CreateAppOptions {
     description ?: string;
     icon ?: string;
     conversation ?: string;
-    notifications ?: {
+    notifications ?: Array<{
         backend : string;
         config : Record<string, string>;
-    };
+    }>;
 }
 
 interface AppResult {

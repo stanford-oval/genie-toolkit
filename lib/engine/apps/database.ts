@@ -105,10 +105,10 @@ export default class AppDatabase extends events.EventEmitter {
             description ?: string;
             icon ?: string;
             conversation ?: string;
-            notifications ?: {
+            notifications ?: Array<{
                 backend : string;
                 config : Record<string, string>;
-            };
+            }>;
         } = {}) {
         const uniqueId = options.uniqueId || 'uuid-' + uuid.v4();
 
@@ -183,6 +183,8 @@ export default class AppDatabase extends events.EventEmitter {
         await this._getAll().then((rows) => Promise.all(rows.map((row) => {
             const code = row.code;
             const metadata = JSON.parse(row.state);
+            if (metadata.notifications && !Array.isArray(metadata.notifications))
+                metadata.notifications = [metadata.notifications];
             return this._loadOneApp(code, metadata, row.uniqueId, row.name, row.description, false);
         })));
     }

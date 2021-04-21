@@ -207,12 +207,24 @@ export default class AssistantDispatcher extends events.EventEmitter {
      * @param outputValue - the new value to display
      */
     async notify(app : AppExecutor, outputType : string, outputValue : Record<string, unknown>) {
-        const prefs = this._engine.platform.getSharedPreferences();
-        const notificationBackend =
-            app.notifications ? app.notifications.backend : (prefs.get('notification-backend') as string || 'conversation');
+        let notificationConfigs = app.notifications;
+        if (notificationConfigs.length === 0) {
+            const prefs = this._engine.platform.getSharedPreferences();
+            const defaultBackend = (prefs.get('notification-backend') as string || 'conversation');
+            notificationConfigs = [{ backend: defaultBackend, config: {} }];
+        }
+
+        let hasConversation = false;
+        let hasNonConversation = false;
+        for (const config of notificationConfigs) {
+            if (config.backend === 'conversation')
+                hasConversation = true;
+            else
+                hasNonConversation = true;
+        }
 
         const promises = [];
-        if (this._notificationOutputs.size > 0 || notificationBackend !== 'conversation') {
+        if (this._notificationOutputs.size > 0 || hasNonConversation) {
             const messages = await this._notificationFormatter.formatNotification(app.name, app.program, outputType, outputValue);
 
             const notification = {
@@ -225,21 +237,24 @@ export default class AssistantDispatcher extends events.EventEmitter {
             for (const out of this._notificationOutputs.values())
                 promises.push(out.notify(notification));
 
-            if (notificationBackend !== 'conversation') {
-                if (notificationBackend.startsWith('thingpedia/')) {
-                    const deviceId = notificationBackend.substring('thingpedia/'.length);
+            for (const config of notificationConfigs) {
+                if (hasConversation && config.backend === 'conversation')
+                    continue;
+
+                if (config.backend.startsWith('thingpedia/')) {
+                    const deviceId = config.backend.substring('thingpedia/'.length);
                     const device = this._notificationDeviceView.getById(deviceId);
                     if (device)
                         promises.push((device.queryInterface('notifications') as NotificationDelegate).notify(notification));
                 } else {
-                    const backend = this._staticNotificationBackends[notificationBackend];
+                    const backend = this._staticNotificationBackends[config.backend];
                     if (backend)
-                        promises.push(backend.notify(notification, app.notifications?.config));
+                        promises.push(backend.notify(notification, config.config));
                 }
             }
         }
 
-        if (notificationBackend === 'conversation') {
+        if (hasConversation) {
             for (const conv of this._conversations.values())
                 promises.push(conv.notify(app, outputType, outputValue));
         }
@@ -247,10 +262,6 @@ export default class AssistantDispatcher extends events.EventEmitter {
     }
 
     async notifyError(app : AppExecutor, error : Error) {
-        const prefs = this._engine.platform.getSharedPreferences();
-        const notificationBackend =
-            app.notifications ? app.notifications.backend : (prefs.get('notification-backend') as string || 'conversation');
-
         const promises = [];
         const notification = {
             appId: app.uniqueId,
@@ -260,18 +271,27 @@ export default class AssistantDispatcher extends events.EventEmitter {
         for (const out of this._notificationOutputs.values())
             promises.push(out.notifyError(notification));
 
-        if (notificationBackend === 'conversation') {
-            for (const conv of this._conversations.values())
-                promises.push(conv.notifyError(app, error));
-        } else if (notificationBackend.startsWith('thingpedia/')) {
-            const deviceId = notificationBackend.substring('thingpedia/'.length);
-            const device = this._notificationDeviceView.getById(deviceId);
-            if (device)
-                promises.push((device.queryInterface('notifications') as NotificationDelegate).notifyError(notification));
-        } else {
-            const backend = this._staticNotificationBackends[notificationBackend];
-            if (backend)
-                promises.push(backend.notifyError(notification, app.notifications?.config));
+        let notificationConfigs = app.notifications;
+        if (notificationConfigs.length === 0) {
+            const prefs = this._engine.platform.getSharedPreferences();
+            const defaultBackend = (prefs.get('notification-backend') as string || 'conversation');
+            notificationConfigs = [{ backend: defaultBackend, config: {} }];
+        }
+
+        for (const config of notificationConfigs) {
+            if (config.backend === 'conversation') {
+                for (const conv of this._conversations.values())
+                    promises.push(conv.notifyError(app, error));
+            } else if (config.backend.startsWith('thingpedia/')) {
+                const deviceId = config.backend.substring('thingpedia/'.length);
+                const device = this._notificationDeviceView.getById(deviceId);
+                if (device)
+                    promises.push((device.queryInterface('notifications') as NotificationDelegate).notifyError(notification));
+            } else {
+                const backend = this._staticNotificationBackends[config.backend];
+                if (backend)
+                    promises.push(backend.notifyError(notification, config.config));
+            }
         }
 
         await Promise.all(promises);
