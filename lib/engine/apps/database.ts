@@ -86,7 +86,7 @@ export default class AppDatabase extends events.EventEmitter {
             if (app.hasRule) {
                 this._enableApp(app);
                 if (isNewApp)
-                    await this._saveApp(app);
+                    await this.saveApp(app);
             } else {
                 await this._removeAppInternal(app.uniqueId!);
             }
@@ -224,7 +224,7 @@ export default class AppDatabase extends events.EventEmitter {
         this.emit('app-added', app);
     }
 
-    private _saveApp(app : AppExecutor) {
+    saveApp(app : AppExecutor) {
         return this._insertOne({
             uniqueId: app.uniqueId!,
             state: JSON.stringify(app.metadata),

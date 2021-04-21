@@ -206,6 +206,7 @@ export default class AppExecutor extends events.EventEmitter {
         this.mainOutput = new QueueOutputDelegate();
         this._notificationOutput = new NotificationOutputDelegate(this);
         this.notifications = meta.notifications || [];
+        meta.notifications = this.notifications;
     }
 
     get metadata() : AppMeta {
