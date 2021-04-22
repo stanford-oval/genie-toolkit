@@ -26,10 +26,9 @@ import * as ThingTalk from 'thingtalk';
 
 import * as I18n from '../i18n';
 
-import { PlatformData } from './user-input';
 import ValueCategory from './value-category';
 import DialogueLoop from './dialogue-loop';
-import { MessageType, Message, RDL } from './protocol';
+import { PlatformData, MessageType, Message, RDL } from './protocol';
 import { EntityMap } from '../utils/entity-utils';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import type Engine from '../engine';

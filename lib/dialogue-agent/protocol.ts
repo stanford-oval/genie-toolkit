@@ -20,6 +20,48 @@
 
 import { ConversationState } from './conversation';
 
+/**
+ * Additional platform-specific metadata associated with each command from the user.
+ */
+export interface PlatformData {
+    /**
+     * The originator of this command.
+     *
+     * This should be a principal string, consisting of a prefix indicating
+     * the protocol, followed by an account identifier.
+     *
+     * Examples:
+     * - `phone:+1555123456`: command received over SMS
+     * - `email:bob@example.com`: received over email
+     */
+    from ?: string;
+
+    /**
+     * Any contact mention in the command that were resolved by the platform.
+     *
+     * This property allows to support interactive @-mentions in a command,
+     * similar to those available on typical messengers.
+     *
+     * The expectation is that the actual mention in the command will be replaced
+     * by @ followed by an opaque identifier, which will be picked up by the
+     * tokenizer. This array maps the opaque identifier to an actual contact.
+     */
+    contacts ?: Array<{
+        /**
+         * The opaque identifier of this contact in the command.
+         */
+        value : string;
+        /**
+         * The contact string, of the form protocol`:`identifier
+         */
+        principal : string;
+        /**
+         * The user-visible name of this contact, for subsequent references.
+         */
+        display : string;
+    }>;
+}
+
 export enum MessageType {
     // from user
     COMMAND = 'command',
