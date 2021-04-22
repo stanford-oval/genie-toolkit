@@ -280,9 +280,9 @@ Hello! How can I help you?
 >> expecting = null
 `);*/
     expect(testRunner, `
-Hello! I can help you find an appointment. What is your address?
->> context = $dialogue @org.thingpedia.dialogue.transaction . sys_slot_fill ( location ) ; @org.thingpedia.covid-vaccine . appointment ( ) ; // {}
->> expecting = location
+Hello! I can help you find an appointment. What is your zip code?
+>> context = $dialogue @org.thingpedia.dialogue.transaction . sys_slot_fill ( zip_code ) ; @org.thingpedia.covid-vaccine . appointment ( ) ; // {}
+>> expecting = command
 `);
 
     const TEST_CASES = await loadTestCases();

@@ -76,6 +76,9 @@ function makeActionRecommendation(ctx : ContextInfo, action : Ast.Invocation) {
         && results.length !== 1)
         return null;
 
+    if (currentTable.schema!.getImplementationAnnotation('follow_up') !== undefined)
+        return null;
+
     const topResult = results[0];
     const id = topResult.value.id;
     if (!id)
@@ -197,6 +200,11 @@ function checkActionForRecommendation(rec : Recommendation, action : Ast.Invocat
     }
 
     if (!C.hasArgumentOfType(action, resultType))
+        return null;
+
+    const currentStmt = rec.ctx.current!.stmt;
+    const currentTable = currentStmt.expression;
+    if (currentTable.schema!.getImplementationAnnotation('follow_up') !== undefined)
         return null;
 
     return {

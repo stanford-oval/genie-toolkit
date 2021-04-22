@@ -1208,15 +1208,16 @@ class @org.thingpedia.covid-vaccine
 
   entity vaccine_appointment #_[description="Vaccine appointment ID"] #[has_ner=false];
 
-  monitorable list query appointment(in req location: Location
-                                     #_[prompt="what is your address"]
+  monitorable list query appointment(in req zip_code: String
+                                     #[string_values="tt:us_postal_code"]
+                                     #_[prompt="what is your zip code"]
                                      #_[canonical={
                                        default="preposition",
-                                       base=["location", "position", "place"],
+                                       base=["zip code", "post code", "postal code"],
                                        property=[],
-                                       preposition=["near #", "in #", "at #", "around #", "for location #", "for #"]
+                                       preposition=["in the # zip code", "near #", "in #", "at #", "around #", "for location #", "for #"]
                                      }],
-                                     in req dose: Enum(first, second)
+                                     in opt dose: Enum(first, second)
                                      #_[prompt="is this your first or second dose"]
                                      #_[canonical={
                                        base=["dose"],
@@ -1239,14 +1240,19 @@ class @org.thingpedia.covid-vaccine
                                        default="preposition",
                                        base=["address", "location"],
                                        preposition=["near #", "in #", "around #"]
-                                     }]
-                                     #[filterable=false],
-                                     out link: Entity(tt:url) #_[canonical="link"]
+                                     }],
+                                     out link: Entity(tt:url) #_[canonical="link"],
+                                     out success_rate: Number
                                     )
   #[canonical=["appointment", "vaccine appointment", "vaccination slot",
                "appointment to get a vaccine"]]
   #_[result={
-    list=["Here are the earliest appointments, starting with the closest ones."]
+    top=["Here is a location near you that has reported available appointments {|${geo} ${link}}"],
+    empty=["I cannot find any available appointments in your area"],
+  }]
+  #_[on_error={
+    invalid_zipcode=["this is not a valid zip code, please re-enter it"],
+    second_dose_unneeded=["you do not need a second dose for the johnson & johnson vaccine"],
   }]
   #_[formatted=[{
     type="rdl",
@@ -1255,6 +1261,19 @@ class @org.thingpedia.covid-vaccine
   }]]
   #[minimal_projection=["id"]]
   #[initial=true]
-  #[poll_interval=86400000ms]
+  #[follow_up="org.thingpedia.covid-vaccine.mark_valid"]
+  #[poll_interval=300000ms]
   #[doc="Information about COVID vaccine appointments"];
+
+  action mark_valid(in req appointment : Entity(org.thingpedia.covid-vaccine:vaccine_appointment),
+                    in req validity : Boolean
+                    #_[prompt="please try this and let me know if it works."]
+                    #_[canonical={
+                      base=["validity", "existence"],
+                      preposition_true=["as valid", "as existent", "as real"],
+                      preposition_false=["as invalid", "as non-existent", "as not real"]
+                    }])
+  #[canonical=["mark an appointment", "record an appointment"]]
+  #_[result=["${validity:select:true{Great, congratulations on getting your appointment! Please tell your friends about us.} false{Sorry that did not work out.}}"]]
+  #[follow_up="org.thingpedia.covid-vaccine.mark_valid if validity=false"];
 }

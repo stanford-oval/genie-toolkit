@@ -107,6 +107,14 @@ interface PolicyResult {
     numResults : number;
 }
 
+function flagEquals(flags : Record<string, boolean>, equalTo : Record<string, boolean>) : boolean {
+    for (const key in flags) {
+        if (equalTo[key] !== flags[key])
+            return false;
+    }
+    return true;
+}
+
 export default class DialoguePolicy {
     private _thingpedia : Tp.BaseClient;
     private _schemas : SchemaRetriever;
@@ -203,7 +211,8 @@ export default class DialoguePolicy {
 
     private async _ensureGeneratorForState(state : Ast.DialogueState|Ast.Program|null) {
         const devices = this._extractDevices(state);
-        if (this._generatorDevices && arrayEqual(this._generatorDevices, devices))
+        if (this._generatorDevices && arrayEqual(this._generatorDevices, devices)
+            && flagEquals(this._extraFlags, this._generatorOptions!.flags))
             return;
         await this._initializeGenerator(devices);
     }
