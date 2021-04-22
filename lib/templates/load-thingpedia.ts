@@ -546,7 +546,7 @@ export default class ThingpediaLoader {
             } else if (ptype.isRecurrentTimeSpecification) {
                 vtypes = [Type.Date, Type.Time];
                 op = 'contains';
-            } else if (pname === 'id') {
+            } else if (pname === 'id' && !this._options.flags.entity_id) {
                 vtypes = [Type.String];
             }
         }
@@ -1074,28 +1074,31 @@ export default class ThingpediaLoader {
             span = canonical.map((c) => `${c} \${p_name:no-undefined}`);
         }
 
-        const idfilter = new Ast.BooleanExpression.Atom(null, 'id', '==', new Ast.Value.VarRef('p_name'));
-        await this._loadTemplate(new Ast.Example(
-            null,
-            -1,
-            'query',
-            { p_name: id.type },
-            new Ast.FilterExpression(null, table, idfilter, schemaClone),
-            span,
-            span,
-            {}
-        ));
-        const namefilter = new Ast.BooleanExpression.Atom(null, 'id', '=~', new Ast.Value.VarRef('p_name'));
-        await this._loadTemplate(new Ast.Example(
-            null,
-            -1,
-            'query',
-            { p_name: Type.String },
-            new Ast.FilterExpression(null, table, namefilter, table.schema),
-            span,
-            span,
-            {}
-        ));
+        if (this._options.flags.entity_id) {
+            const idfilter = new Ast.BooleanExpression.Atom(null, 'id', '==', new Ast.Value.VarRef('p_name'));
+            await this._loadTemplate(new Ast.Example(
+                null,
+                -1,
+                'query',
+                { p_name: id.type },
+                new Ast.FilterExpression(null, table, idfilter, schemaClone),
+                span,
+                span,
+                {}
+            ));
+        } else {
+            const namefilter = new Ast.BooleanExpression.Atom(null, 'id', '=~', new Ast.Value.VarRef('p_name'));
+            await this._loadTemplate(new Ast.Example(
+                null,
+                -1,
+                'query',
+                { p_name: Type.String },
+                new Ast.FilterExpression(null, table, namefilter, table.schema),
+                span,
+                span,
+                {}
+            ));
+        }
 
         // we only apply reverse_property/implicit_identity to the function's
         // _own_ arguments

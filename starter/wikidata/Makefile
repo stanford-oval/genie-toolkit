@@ -75,6 +75,8 @@ use_preprocessed_wikidata = true
 use_csqa_valid = true
 use_preprocessed_csqa_valid = 
 
+annotate_with_entity_id = true
+
 dataset_file ?= emptydataset.tt
 synthetic_flags ?= \
 	projection_with_filter \
@@ -82,8 +84,8 @@ synthetic_flags ?= \
 	aggregation \
 	schema_org \
 	filter_join \
-	no_stream
-generate_flags = $(foreach v,$(synthetic_flags),--set-flag $(v))
+	no_stream 
+generate_flags = $(foreach v,$(synthetic_flags),--set-flag $(v)) $(if $(annotate_with_entity_id),--set-flag entity_id,)
 custom_generate_flags ?=
 
 target_pruning_size ?= 500
@@ -200,6 +202,7 @@ raw/csqa-wikidata:
 %/augmented.tsv: %/synthetic.tsv %/parameter-datasets.tsv %/manifest.tt
 	$(genie) augment -o $@.tmp -l en-US --thingpedia $*/manifest.tt --parameter-datasets $*/parameter-datasets.tsv \
 	  --synthetic-expand-factor 1 --quoted-paraphrasing-expand-factor 60 --no-quote-paraphrasing-expand-factor 20 --quoted-fraction 0.0 \
+	  $(if $(annotate_with_entity_id),--entity-id) \
 	  --debug $($(*)_paraphrase) $*/synthetic.tsv
 	mv $@.tmp $@
 
@@ -217,7 +220,6 @@ raw/test:
 	curl https://almond-static.stanford.edu/research/csqa/$*/valid.json  --output $*/valid.json
 
 %/valid.tsv: %/manifest.tt $(if $(use_preprocessed_csqa_valid),%/valid.json,raw/valid)
-	mkdir -p datadir
 	$(genie) wikidata-convert-csqa \
 	  --domain $(class) \
 	  --domain-canonical $(canonical) \
@@ -230,6 +232,10 @@ raw/test:
 
 %/valid_annotated.tsv: %/manifest.tt %/valid.tsv
 	$(genie) typecheck -o $*/valid_annotated.tsv --dropped $*/valid_dropped.tsv --thingpedia $*/manifest.tt $*/valid.tsv
+
+%/valid/annotated.tsv: %/valid_annotated.tsv
+	mkdir -p $*/valid
+	cp $*/valid_annotated.tsv $*/valid/annotated.tsv
 
 datadir: $(experiment)/augmented.tsv $(if $(use_csqa_valid),$(experiment)/valid_annotated.tsv,)
 	mkdir -p $@

@@ -44,6 +44,7 @@ interface DatasetAugmenterOptions {
     includeQuotedExample : boolean;
     cleanParameters : boolean;
     requotable : boolean;
+    entityIdAnnotation : boolean;
 
     samplingType : 'random' | 'uniform' | 'default';
     subsetParamSet : [number, number];
@@ -98,6 +99,7 @@ export default class DatasetAugmenter extends Stream.Transform {
             paraphrasingExpandFactor: this._options.paraphrasingExpandFactor,
             cleanParameters: this._options.cleanParameters,
             requotable: this._options.requotable,
+            entityIdAnnotation: this._options.entityIdAnnotation,
             samplingType: this._options.samplingType,
             subsetParamSet: this._options.subsetParamSet,
             numAttempts: this._options.numAttempts,
