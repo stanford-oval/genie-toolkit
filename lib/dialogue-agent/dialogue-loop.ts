@@ -37,10 +37,8 @@ import * as I18n from '../i18n';
 
 import ValueCategory from './value-category';
 import QueueItem from './dialogue_queue';
-import {
-    UserInput,
-    PlatformData
-} from './user-input';
+import { UserInput, } from './user-input';
+import { PlatformData } from './protocol';
 import { CancellationError } from './errors';
 
 import * as Helpers from './helpers';

@@ -26,7 +26,7 @@ import Conversation, {
     ConversationOptions,
     ConversationState
 } from './conversation';
-import { Message } from './protocol';
+import { PlatformData, Message } from './protocol';
 import NotificationFormatter from './notifications/formatter';
 import {
     StaticNotificationBackends,
@@ -81,7 +81,7 @@ class StatelessConversationDelegate implements ConversationDelegate {
     }
 }
 
-type ConverseInput = {
+type ConverseInput = ({
     type : 'command';
     text : string;
 } | {
@@ -91,7 +91,7 @@ type ConverseInput = {
 } | {
     type : 'tt';
     code : string;
-};
+}) & PlatformData;
 
 /**
  * The main controller class for interaction with the user.
@@ -157,13 +157,13 @@ export default class AssistantDispatcher extends events.EventEmitter {
 
         switch (command.type) {
         case 'command':
-            await conversation.handleCommand(command.text);
+            await conversation.handleCommand(command.text, command);
             break;
         case 'parsed':
-            await conversation.handleParsedCommand(command.json, command.title);
+            await conversation.handleParsedCommand(command.json, command.title, command);
             break;
         case 'tt':
-            await conversation.handleThingTalk(command.code);
+            await conversation.handleThingTalk(command.code, command);
             break;
         }
 

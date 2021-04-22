@@ -32,7 +32,7 @@ import StatementExecutor from './statement_executor';
 import { CancellationError } from './errors';
 import { EntityRecord } from './entity-linking/entity-finder';
 import { Contact } from './entity-linking/contact_search';
-import { PlatformData } from './user-input';
+import { PlatformData } from './protocol';
 import { ConversationState } from './conversation';
 
 import AbstractDialogueAgent, {
