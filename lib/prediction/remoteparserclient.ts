@@ -65,7 +65,9 @@ export default class RemoteParserClient {
                 platform ?: Tp.BasePlatform,
                 tpClient ?: Tp.BaseClient) {
         this._locale = locale;
-        this._baseUrl = baseUrl + '/' + this._locale;
+
+        // HACK override all locales to be english acutally
+        this._baseUrl = baseUrl + '/' + 'en-US';
         this._platform = platform;
         this._tpClient = tpClient;
     }
@@ -146,6 +148,13 @@ export default class RemoteParserClient {
             const exact = this._exactmatcher.get(parsed.tokens);
             if (exact)
                 parsed.candidates = exact.map((code) : PredictionCandidate => ({ code, score: 'Infinity' })).concat(parsed.candidates);
+        }
+        if (/^\s*[0-9]{5}\s*$/.test(utterance)) {
+            parsed.candidates.unshift({
+                code: ['$dialogue', '@org.thingpedia.dialogue.transaction', '.', 'execute', ';',
+                    '@org.thingpedia.covid-vaccine', '.', 'appointment', '(', 'zip_code', '=', '"', utterance.trim(), '"', ')', ';'],
+                score: 'Infinity'
+            });
         }
 
         return parsed;

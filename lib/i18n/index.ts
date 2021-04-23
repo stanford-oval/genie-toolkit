@@ -28,7 +28,7 @@ import German from './german';
 import Japanese from './japanese';
 import Turkish from './turkish';
 import Tagalog from './tagalog';
-import Spanish from './spanish';
+//import Spanish from './spanish';
 import Finnish from './finnish';
 import Polish from './polish';
 import SimplifiedChinese from './simplified-chinese';
@@ -46,6 +46,9 @@ interface LPClass {
 const _classes : { [locale : string] : LPClass } = {
     'en': English,
 
+    // HACK: use the english language pack for spanish because we haven't translated the templates actually
+    'es': English,
+
     'it': Italian,
 
     'fa': Persian,
@@ -55,7 +58,7 @@ const _classes : { [locale : string] : LPClass } = {
     'ja': Japanese,
     'tr': Turkish,
     'tl': Tagalog,
-    'es': Spanish,
+
     'fi': Finnish,
     'pl': Polish,
 
