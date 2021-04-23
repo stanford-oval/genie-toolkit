@@ -20,7 +20,7 @@
 
 // Error correction templates
 
-import { Ast, } from 'thingtalk';
+// import { Ast, } from 'thingtalk';
 
 import * as C from '../../ast_manip';
 import ThingpediaLoader from '../../load-thingpedia';

@@ -19,30 +19,30 @@
 // Author: Sina Semnani <sinaj@stanford.edu>
 
 
-import assert from 'assert';
+// import assert from 'assert';
 
 import { Ast, } from 'thingtalk';
 
 import * as C from '../ast_manip';
 import * as S from '../state_manip';
-import ThingpediaLoader from '../load-thingpedia';
+// import ThingpediaLoader from '../load-thingpedia';
 
 export function userChangeMind(ctx : S.ContextInfo, [p1, p2] : [C.ParamSlot, C.ParamSlot]) : Ast.DialogueState|null {
     // two things:
     // 1. check if the ctx is actually using p1
     const currentFunction = ctx.currentFunction;
     if (!currentFunction)
-        return null; // or maybe look nextFunction
+    return null; // or maybe look nextFunction
     if (!C.isSameFunction(p1.schema, currentFunction))
-        return null;
-
+    return null;
+    
+    // return null;
     // TODO more checks here
 
     // 2. replace p1 with p2
-    const current = ctx.current!.stmt;
+    const current = ctx.current;
 
-    const clone = current.clone();
+    const clone = current!.clone();
     // do all the modification...
-
     return S.addNewItem(ctx, 'execute', null, 'accepted', clone);
 }

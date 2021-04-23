@@ -33,3 +33,4 @@ export * from './results';
 export * from './search-questions';
 export * from './slot-fill';
 export * from './streams';
+export * from './error-correction';

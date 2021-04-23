@@ -75,6 +75,7 @@ import './dlg/action-results.genie';
 import './dlg/aggregation-results.genie';
 import './dlg/coref-questions.genie';
 import './dlg/empty-search.genie';
+import './dlg/error-correction.genie';
 import './dlg/initial-request.genie';
 import './dlg/list-proposal.genie';
 import './dlg/recommendation.genie';
@@ -355,8 +356,8 @@ $agent : S.AgentReplyRecord = {
 }
 
 $user : Ast.DialogueState = {
-    ctx:ctx_sys_any params:user_change_mind
-        => D.userChangeMind(ctx, params);
+    // ctx:ctx_sys_any params:user_change_mind
+    //     => D.userChangeMind(ctx, params);
 
     ctx:ctx_init greeting [weight=0.01, expandchoice=false]
         => S.makeSimpleState(ctx, 'greet', null);
