@@ -1275,5 +1275,6 @@ class @org.thingpedia.covid-vaccine
                     }])
   #[canonical=["mark an appointment", "record an appointment"]]
   #_[result=["${validity:select:true{Great, congratulations on getting your appointment! Please tell your friends about us.} false{Sorry that did not work out.}}"]]
-  #[follow_up="org.thingpedia.covid-vaccine.mark_valid if validity=false"];
+  #[follow_up="org.thingpedia.covid-vaccine.appointment(zip_code,dose,vaccine_type) if validity=false"]
+  #[confirm=false];
 }

@@ -103,9 +103,6 @@ class TestDelegate {
         case 'text':
             checkIcon(msg);
             this._testRunner.writeLine(msg.text);
-            // die horribly if something does not work (and it's not a test error)
-            if (msg.text.indexOf('that did not work') >= 0 && msg.text.indexOf('I do not like that location') < 0)
-                setImmediate(() => process.exit(1));
             break;
 
         case 'result':

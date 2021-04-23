@@ -145,6 +145,16 @@ interface NormalizedResultPhraseList {
     top : ParsedPlaceholderPhrase[];
     list : ParsedPlaceholderPhrase[];
     list_concat : ParsedPlaceholderPhrase[];
+    empty : ParsedPlaceholderPhrase[];
+}
+
+interface FollowUpRecord {
+    schema : Ast.FunctionDef;
+    params : string[];
+    condition ?: {
+        name : string;
+        value : string;
+    };
 }
 
 export default class ThingpediaLoader {
@@ -161,6 +171,8 @@ export default class ThingpediaLoader {
     // cached annotations extracted from Thingpedia, for use at inference time
     private _errorMessages : Map<string, Record<string, ParsedPlaceholderPhrase[]>>;
     private _resultPhrases : Map<string, NormalizedResultPhraseList>;
+
+    private _followUps : Map<string, FollowUpRecord>;
 
     private _initialFunction : Ast.FunctionDef|null;
 
@@ -215,6 +227,7 @@ export default class ThingpediaLoader {
         this._entities = {};
         this._errorMessages = new Map;
         this._resultPhrases = new Map;
+        this._followUps = new Map;
         this.types = new Map;
         this.params = [];
         this.projections = [];
@@ -284,8 +297,12 @@ export default class ThingpediaLoader {
         return this.idQueries.has(type.type);
     }
 
+    getFollowUp(functionName : string) : FollowUpRecord|undefined {
+        return this._followUps.get(functionName);
+    }
+
     getResultPhrases(functionName : string) : NormalizedResultPhraseList {
-        return this._resultPhrases.get(functionName) || { top: [], list: [], list_concat: [] };
+        return this._resultPhrases.get(functionName) || { top: [], list: [], list_concat: [], empty: [] };
     }
     getErrorMessages(functionName : string) : Record<string, ParsedPlaceholderPhrase[]> {
         return this._errorMessages.get(functionName) || {};
@@ -1227,10 +1244,32 @@ export default class ThingpediaLoader {
             }
             this._initialFunction = functionDef;
         }
+
+        const followUp = functionDef.getImplementationAnnotation<string>('follow_up');
+        if (followUp) {
+            const match = /^([a-zA-Z0-9._-]+)(?:\(([a-zA-Z0-9_]+(?:,[a-zA-Z0-9_]+)*)\))?(?:\s+if\s+([a-zA-Z0-9_]+)=(.*))?/.exec(followUp);
+            if (!match)
+                throw new Error(`Failed to parse #[follow_up] annotation for @${functionDef.qualifiedName}`);
+
+            const [,functionName, params, conditionName, conditionValue] = match;
+
+            const dot = functionName.lastIndexOf('.');
+            const schema = await this._schemas.getMeta(functionName.substring(0, dot), 'both',
+                functionName.substring(dot+1));
+
+            let condition;
+            if (conditionName)
+                condition = { name: conditionName, value: conditionValue };
+
+            this._followUps.set(functionDef.qualifiedName, {
+                schema,
+                params: params ? params.split(',') : [],
+                condition
+            });
+        }
     }
 
-    private _loadPlaceholderPhraseCommon(intoNonTerm : string,
-                                         functionDef : Ast.FunctionDef,
+    private _loadPlaceholderPhraseCommon(functionDef : Ast.FunctionDef,
                                          fromAnnotation : string|string[],
                                          annotName : string,
                                          additionalArguments : string[] = []) : ParsedPlaceholderPhrase[] {
@@ -1283,8 +1322,8 @@ export default class ThingpediaLoader {
         const normalized : Record<string, ParsedPlaceholderPhrase[]> = {};
         this._errorMessages.set(functionDef.qualifiedName, normalized);
         for (const code in functionDef.nl_annotations.on_error) {
-            normalized[code] = this._loadPlaceholderPhraseCommon('thingpedia_error_message',
-                functionDef, functionDef.metadata.on_error[code], 'on_error');
+            normalized[code] = this._loadPlaceholderPhraseCommon(functionDef,
+                functionDef.metadata.on_error[code], 'on_error');
         }
     }
 
@@ -1292,25 +1331,28 @@ export default class ThingpediaLoader {
         const normalized : NormalizedResultPhraseList = {
             top: [],
             list: [],
-            list_concat: []
+            list_concat: [],
+            empty: [],
         };
         this._resultPhrases.set(functionDef.qualifiedName, normalized);
 
         const resultAnnot = functionDef.nl_annotations.result;
         if (typeof resultAnnot === 'string' ||
             Array.isArray(resultAnnot)) {
-            normalized.top = this._loadPlaceholderPhraseCommon('thingpedia_result',
-                functionDef, resultAnnot, 'result');
+            normalized.top = this._loadPlaceholderPhraseCommon(functionDef,
+                resultAnnot, 'result');
         } else {
             if (typeof resultAnnot !== 'object')
                 throw new Error(`Invalid #[result] annotation of type ${typeof resultAnnot}`);
 
-            normalized.top = this._loadPlaceholderPhraseCommon('thingpedia_result',
-                functionDef, resultAnnot.top || [], 'result');
-            normalized.list = this._loadPlaceholderPhraseCommon('thingpedia_result',
-                functionDef, resultAnnot.list || [], 'result');
-            normalized.list_concat = this._loadPlaceholderPhraseCommon('thingpedia_result',
-                functionDef, resultAnnot.list_concat || [], 'result', ['__index']);
+            normalized.top = this._loadPlaceholderPhraseCommon(functionDef,
+                resultAnnot.top || [], 'result');
+            normalized.list = this._loadPlaceholderPhraseCommon(functionDef,
+                resultAnnot.list || [], 'result');
+            normalized.empty = this._loadPlaceholderPhraseCommon(functionDef,
+                resultAnnot.empty || [], 'result');
+            normalized.list_concat = this._loadPlaceholderPhraseCommon(functionDef,
+                resultAnnot.list_concat || [], 'result', ['__index']);
         }
     }
 

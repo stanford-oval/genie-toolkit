@@ -46,18 +46,9 @@ export function actionSuccessPhraseWithResultKeyFn([expression, bag] : ActionSuc
 }
 
 function makeThingpediaActionSuccessPhrase(ctx : ContextInfo, info : SlotBag) {
-    const results = ctx.results;
-    if (!results || results.length !== 1)
-        return null;
-
-    const ctxInvocation = C.getInvocation(ctx.current!);
-    if (!C.isSameFunction(ctxInvocation.schema!, info.schema!))
-        return null;
-
-    const topResult = results[0];
-    if (!isInfoPhraseCompatibleWithResult(topResult, info))
-        return null;
-
+    // we don't need to check anything here, we know the context matches
+    // because the generation enforces that, and we know that the result phrase
+    // is correct by construction
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_action_success', null), info);
 }
 

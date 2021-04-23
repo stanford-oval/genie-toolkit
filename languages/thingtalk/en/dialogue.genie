@@ -164,7 +164,8 @@ context : Ast.Expression = {
     ctx_next_action
 };
 context : SlotBag = {
-    ctx_thingpedia_result
+    ctx_thingpedia_result,
+    ctx_thingpedia_empty_result
 };
 context : D.ThingpediaListProposal = {
     ctx_thingpedia_list_result
@@ -187,16 +188,14 @@ context : Ast.Value = {
 // auxiliary phrases that defined top-down and used to construct the reply
 //
 // those phrases are mapped to the context non-terminals defined above
-function context(state : Ast.DialogueState, contextTable : SentenceGeneratorTypes.ContextTable) : SentenceGeneratorTypes.ContextPhrase[]|null {
+function context(state : Ast.DialogueState|null, contextTable : SentenceGeneratorTypes.ContextTable) : SentenceGeneratorTypes.ContextPhrase[]|null {
     if (state === null)
         return [S.makeContextPhrase(contextTable.ctx_init, S.initialContextInfo($loader, contextTable))];
 
     assert(state instanceof Ast.DialogueState, `expected a dialogue state Ast node`);
     if (state.policy !== S.POLICY_NAME)
         return null;
-    (global as any).enableBreakpoint = true;
     const ctx = S.getContextInfo($loader, state, contextTable);
-    (global as any).enableBreakpoint = false;
     // get the main context tags for this context (the abstract state, in paper terminology)
     const tags = S.tagContextForAgent(ctx);
 
@@ -299,6 +298,84 @@ function initialState() {
     const stmt = new Ast.ExpressionStatement(null, new Ast.InvocationExpression(null,
         invocation, initialFunction));
     return new Ast.DialogueState(null, S.POLICY_NAME, 'init', null, [new Ast.DialogueHistoryItem(null, stmt, null, 'accepted')]);
+}
+
+// follow up
+function followUp(state : Ast.DialogueState, contextTable : SentenceGeneratorTypes.ContextTable) {
+    const ctx = S.getContextInfo($loader, state, contextTable);
+    if (ctx.next)
+        return null;
+
+    const current = ctx.current;
+    if (!current)
+        return null;
+
+    if (current.stmt.stream)
+        return null;
+
+    const currentfunction = current.stmt.expression.schema!;
+    const followUp = $loader.getFollowUp(currentfunction.qualifiedName);
+    if (!followUp)
+        return null;
+
+    const selector = new Ast.DeviceSelector(null, followUp.schema.class!.name, null, null, []);
+    const invocation = new Ast.Invocation(null, selector, followUp.schema.name, [], followUp.schema);
+
+    const idArg = currentfunction.getArgument('id');
+    const results = ctx.results!;
+    const topResult = results.length > 0 ? results[0] : undefined;
+    const action = C.getInvocation(current);
+
+    if (followUp.condition) {
+        let value : Ast.Value|undefined;
+        if (topResult) {
+            value = topResult.value[followUp.condition.name];
+        } else {
+            for (const param of action.in_params) {
+                if (param.name === followUp.condition.name) {
+                    value = param.value;
+                    break;
+                }
+            }
+        }
+        if (!value)
+            return null;
+        if (String(value.toJS()) !== followUp.condition.value)
+            return null;
+    }
+
+    let setArguments = new Set<string>();
+    if (followUp.params.length > 0) {
+        // find another statement with the same function and copy over the arguments we're asked to copy
+        for (let idx = ctx.currentIdx!; idx >= 0; idx --) {
+            const item = ctx.state.history[idx];
+            if (C.isSameFunction(item.stmt.expression.schema!, followUp.schema)) {
+                const action = C.getInvocation(item);
+                for (const in_param of action.in_params) {
+                    if (followUp.params.includes(in_param.name)) {
+                        invocation.in_params.push(in_param);
+                        setArguments.add(in_param.name);
+                    }
+                }
+
+                break;
+            }
+        }
+    }
+
+    for (const followUpArg of followUp.schema.iterateArguments()) {
+        if (!followUpArg.is_input)
+            continue;
+        if (setArguments.has(followUpArg.name))
+            continue;
+        if (idArg && topResult && topResult.value.id && followUpArg.type.equals(idArg.type))
+            invocation.in_params.push(new Ast.InputParam(null, followUpArg.name, topResult.value.id));
+        else if (followUpArg.required)
+            invocation.in_params.push(new Ast.InputParam(null, followUpArg.name, new Ast.UndefinedValue(true)));
+    }
+
+    return S.addNewStatement(ctx, 'execute', null, 'accepted', new Ast.InvocationExpression(null,
+        invocation, followUp.schema))
 }
 
 initial_request_preamble : S.ContextInfo = {
