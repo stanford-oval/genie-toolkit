@@ -202,7 +202,7 @@ raw/csqa-wikidata:
 %/augmented.tsv: %/synthetic.tsv %/parameter-datasets.tsv %/manifest.tt
 	$(genie) augment -o $@.tmp -l en-US --thingpedia $*/manifest.tt --parameter-datasets $*/parameter-datasets.tsv \
 	  --synthetic-expand-factor 1 --quoted-paraphrasing-expand-factor 60 --no-quote-paraphrasing-expand-factor 20 --quoted-fraction 0.0 \
-	  $(if $(annotate_with_entity_id),--entity-id) \
+	  $(if $(annotate_with_entity_id),--entity-id,) \
 	  --debug $($(*)_paraphrase) $*/synthetic.tsv
 	mv $@.tmp $@
 
@@ -228,7 +228,8 @@ raw/test:
 	  --wikidata-property-list raw/csqa-wikidata/filtered_property_wikidata4.json \
 	  --items $*/items.json \
 	  --values $*/values.json \
-	  --filtered-examples $*/valid.json
+	  --filtered-examples $*/valid.json \
+	  $(if $(annotate_with_entity_id),--entity-id, )
 
 %/valid_annotated.tsv: %/manifest.tt %/valid.tsv
 	$(genie) typecheck -o $*/valid_annotated.tsv --dropped $*/valid_dropped.tsv --thingpedia $*/manifest.tt $*/valid.tsv

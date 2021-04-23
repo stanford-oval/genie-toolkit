@@ -43,6 +43,7 @@ class CsqaConverter {
     constructor(options) {
         this._domain = options.domain;
         this._canonical = options.canonical;
+        this._entityIdAnnotation = options.entityIdAnnotation;
 
         this._paths = {
             inputDir: options.inputDir,
@@ -75,7 +76,7 @@ class CsqaConverter {
                 this._values.set(qid, value);
         }
         if (value) 
-            return this._tokenizer.tokenize(value).tokens.join(' ');
+            return { value: qid, preprocessed: this._tokenizer.tokenize(value).tokens.join(' ') };
         console.log(`Label not found for ${qid}`);
         return null;
     }
@@ -88,20 +89,25 @@ class CsqaConverter {
     async _getFilterBoolExp(property, value, param) {
         let ttValue, op;
         if (param === 'id') {
-            ttValue = new Ast.Value.String(value);
-            op = '=~';
+            if (this._entityIdAnnotation) {
+                ttValue = new Ast.Value.Entity(value.value, `org.wikidata:${this._canonical}`, value.preprocessed);
+                op = '==';
+            } else {
+                ttValue = new Ast.Value.String(value.preprocessed);
+                op = '=~';
+            }
         } else {
-            const type = await getType(this._canonical, property, value);
+            const type = await getType(this._canonical, property, value.preprocessed);
             op = type.isArray ? 'contains' : '==';
             const elemType = getElementType(type);
             if (elemType.isEntity) {
-                ttValue = new Ast.Value.Entity(value, elemType.type, value);
+                ttValue = new Ast.Value.Entity(value.value, elemType.type, value.preprocessed);
             } else if (elemType.Enum) {
-                ttValue = new Ast.Value.Enum(value);
+                ttValue = new Ast.Value.Enum(value.preprocessed);
             } else if (elemType.isNumber) {
-                ttValue = new Ast.Value.Number(Number(value));
+                ttValue = new Ast.Value.Number(Number(value.preprocessed));
             } else { // Default to string
-                ttValue = new Ast.Value.String(value);
+                ttValue = new Ast.Value.String(value.preprocessed);
                 op = type.isArray ? 'contains~' : '=~';
             }
         }
@@ -189,7 +195,7 @@ class CsqaConverter {
                 return new Ast.AggregationExpression(null, exp, '*', 'count', null);
             }
             case 2: // Quantitative (min/max) single entity
-                return false; // not supprted in thingtalk.
+                return false; // not supported in thingtalk.
             default:
                 throw new Error(`Unknown count_ques_sub_type: ${countQuesSubType}`);    
         }
@@ -311,7 +317,7 @@ class CsqaConverter {
         await util.promisify(fs.writeFile)(this._paths.filteredExamples, JSON.stringify(this._examples, undefined, 2));
     }
 
-    async _loadfilteredExamples() {
+    async _loadFilteredExamples() {
         this._examples = JSON.parse(await util.promisify(fs.readFile)(this._paths.filteredExamples));
     }
 
@@ -331,7 +337,7 @@ class CsqaConverter {
             try {
                 const preprocessed = this._tokenizer.tokenize(user.utterance).tokens.join(' ');
                 const entities = makeDummyEntities(preprocessed);
-                const thingtalk = serializePrediction(program, preprocessed, entities, { locale: 'en-US' }).join(' ');
+                const thingtalk = serializePrediction(program, preprocessed, entities, { locale: 'en-US', entityIdAnnotation : this._entityIdAnnotation }).join(' ');
                 annotated.push({
                     id : annotated.length + 1,
                     raw: user.utterance,
@@ -355,7 +361,7 @@ class CsqaConverter {
 
         // load in-domain examples 
         if (fs.existsSync(this._paths.filteredExamples))
-            await this._loadfilteredExamples();
+            await this._loadFilteredExamples();
         else 
             await this._filterExamples();
 
@@ -406,6 +412,11 @@ module.exports = {
             required: true,
             help: "A json file containing in-domain examples of the given CSQA dataset"
         });
+        parser.add_argument('--entity-id', {
+            action: 'store_true',
+            help: "Include entity id in thingtalk",
+            default: false
+        });
     },
 
     async execute(args) {
@@ -417,7 +428,8 @@ module.exports = {
             wikidataProperties: args.wikidata_property_list,
             items: args.items,
             values: args.values,
-            filteredExamples: args.filtered_examples
+            filteredExamples: args.filtered_examples,
+            entityIdAnnotation: args.entity_id
         });
         csqaConverter.run();
     },
