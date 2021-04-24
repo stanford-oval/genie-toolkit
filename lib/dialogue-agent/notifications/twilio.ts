@@ -70,9 +70,14 @@ export default class TwilioNotificationBackend {
         let body = data.formatted.map((x) => x.toLocaleString(this._platform.locale)).join('\n');
         body += I18n.get(this._platform.locale)._(" To stop these messages, say STOP.");
 
-        await this._client.messages.create({
-            to, from: this._from, body
-        });
+        try {
+            await this._client.messages.create({
+                to, from: this._from, body
+            });
+        } catch(e) {
+            // can happen e.g. if unsubscribed
+            console.error(`Failed to send SMS to ${to}: ${e.message}`);
+        }
     }
 
     async notifyError(data : {
