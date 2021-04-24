@@ -30,6 +30,15 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 "X-Generator: Gtranslator 3.34.0\n"
 
+msgid " To stop these messages, say STOP."
+msgstr ""
+
+msgid "You are receiving this email because you subscribed to notifications from Genie. To stop, open the following link: %s"
+msgstr ""
+
+msgid "You are receiving this email because you subscribed to notifications from Genie. To stop, you can <a href=\"%s\">unsubscribe</a>."
+msgstr ""
+
 msgid "Alright, I will notify you when there are new appointments in the ${zip_code} zip code."
 msgstr "Bueno, te notifico cuando hay citas acerca de tu código postal ${zip_code}."
 

@@ -23,6 +23,7 @@ import * as twilio from 'twilio';
 
 import type Engine from '../../engine';
 import { FormattedObject } from './formatter';
+import * as I18n from '../../i18n';
 
 interface TwilioConfig {
     accountSid : string;
@@ -65,7 +66,7 @@ export default class TwilioNotificationBackend {
         }
 
         let body = data.formatted.map((x) => x.toLocaleString(this._platform.locale)).join('\n');
-        body += ' To stop these messages, say STOP.';
+        body += I18n.get(this._platform.locale)._(" To stop these messages, say STOP.");
 
         await this._client.messages.create({
             to, from: this._from, body
