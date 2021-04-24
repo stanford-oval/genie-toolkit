@@ -30,29 +30,17 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1)\n"
 "X-Generator: Gtranslator 3.34.0\n"
 
-msgid " To stop these messages, say STOP."
-msgstr ""
+msgid "To stop these messages, say STOP."
+msgstr "Si no quieres recibir esta mensajes, diga STOP"
 
 msgid "You are receiving this email because you subscribed to notifications from Genie. To stop, open the following link: %s"
-msgstr ""
+msgstr "Recibiste este correo electrónico porque te suscribiste a las notificaciones de el Covid Genio. Para detener, abra el siguiente enlace: %s"
 
 msgid "You are receiving this email because you subscribed to notifications from Genie. To stop, you can <a href=\"%s\">unsubscribe</a>."
-msgstr ""
-
-msgid "Sorry, this is not a valid zip code, please re-enter it."
-msgstr ""
-
-msgid "Sorry, you do not need a second dose for the johnson & johnson vaccine."
-msgstr ""
-
-msgid "Is this your first or second dose?"
-msgstr ""
-
-msgid "What is your zip code?"
-msgstr "¿Cuál es su código postal?"
+msgstr "Recibiste este correo electrónico porque te suscribiste a las notificaciones de el Covid Genio. Para detener, puedes <a href=\"%s\">unsubscribe</a>."
 
 msgid "Alright, I will notify you when there are new appointments in the ${zip_code} zip code."
-msgstr "Bueno, te notifico cuando hay citas acerca de tu código postal ${zip_code}."
+msgstr "Bueno, te notificará cuando hay citas acerca de tu código postal ${zip_code}."
 
 #: data/translations.js:25
 msgid "Hello! I can help you find an appointment. What is your zip code?"
@@ -67,56 +55,42 @@ msgid "Please try this and let me know if it works."
 msgstr "Por favor usa esto y avíseme si funciona."
 
 #: data/translations.js:31
-msgid ""
-"Great, congratulations on getting your appointment! Please tell your friends "
-"about us."
-msgstr "Que bien, ¡felicidades por conseguir su cita! Cuéntele a sus amigos de estas buenas noticias y que también les podemos ayudar."
+msgid "Great, congratulations on getting your appointment! Please tell your friends about us."
+msgstr "Que bien, ¡felicidades por conseguir su cita! Por favor dile a tus amigos que se vacunen."
 
 #: data/translations.js:33
+#, fuzzy
 msgid "What type of vaccine did you receive at the first dose?"
-msgstr ""
+msgstr "Cual vacuna de covid tomaste cuando fuiste a tomar la primer vacuna"
 
 #: data/translations.js:35
 msgid "Sorry that did not work out."
 msgstr "Desafortunadamente, eso no funcionó."
 
 #: data/translations.js:37
-msgid ""
-"I will soon be able to answer questions about covid. In the meantime, please "
-"let me know what you're interested in."
-msgstr ""
+msgid "I will soon be able to answer questions about covid. In the meantime, please let me know what you're interested in knowing."
+msgstr "Pronto podré responder a preguntas sobre covid. Mientras de esperar, dígame qué le interesa saber."
 
 #: data/translations.js:39
-msgid ""
-"Sorry, I cannot find any available appointments in your area. Would you like "
-"to be notified when there are new appointments?"
+msgid "Sorry, I cannot find any available appointments in your area. Would you like to be notified when there are new appointments?
 msgstr "Lo siento, no puedo encontrar ninguna cita disponible en su área. ¿Debo avisarle cuando hay una oportunidad?"
 
 #: data/translations.js:41
-msgid ""
-"Notification from Stanford Covid Genie: here is a location near you that has "
-"reported available appointments."
-msgstr "Alerta de Stanford Covid Genie: aquí hay una ubicación cerca de usted que ha informado citas disponibles:"
+msgid "Notification from Stanford Covid Genie: here is a location near you that has reported available appointments."
+msgstr "Alerta de Stanford Covid Genio: aquí hay una ubicación cerca de usted que ha informado citas disponibles:"
 
 #: lib/dialogue-agent/execution_dialogue_agent.ts:128
 #, fuzzy
-msgid "To use this command you must first create a personal Genie account."
-msgstr ""
-"Lo siento, para ejecutar este comando debe iniciar sesión en su cuenta "
-"personal."
+msgid "I'm sorry, to use this command you must log into your personal account."
+msgstr "Lo siento, para utilizar este comando, necesitas inciar sesión en su cuenta personal."
 
 #: lib/dialogue-agent/execution_dialogue_agent.ts:138
-msgid ""
-"To receive notifications you must first create a personal Genie account."
-msgstr ""
+msgid "To receive notifications you must first create a personal Genie account."
+msgstr "Para recibir notificaciónes, primero necesitas crear una cuenta personal de Covid Genio"
 
 #: lib/dialogue-agent/execution_dialogue_agent.ts:148
-msgid ""
-"You have multiple ${?“${name}” }${device} devices. Which one do you want to "
-"use?"
-msgstr ""
-"Tiene varios dispositivos de tipo ${device}{ que se llaman “${name}”|}. ¿Cuál quiere "
-"utilizar?"
+msgid "You have multiple ${?“${name}” }${device} devices. Which one do you want to use?"
+msgstr "Tiene varios dispositivos de tipo ${device}{ que se llaman “${name}”|}. ¿Cuál quiere utilizar?"
 
 #: lib/dialogue-agent/execution_dialogue_agent.ts:153
 msgid "Multiple contacts match “${name}”. Who do you mean?"
@@ -131,8 +105,7 @@ msgstr "Configure ${device}"
 #: lib/dialogue-agent/execution_dialogue_agent.ts:176
 #, fuzzy
 msgid "Sorry, to use ${device}, you must create a personal Genie account."
-msgstr ""
-"Lo siento, para habilitar ${device}, debe iniciar sesión en su cuenta personal."
+msgstr "Lo siento, para usar ${device}, necesitas crear una cuenta personal de Covid Genio."
 
 # skill = habilidad
 #: lib/dialogue-agent/execution_dialogue_agent.ts:213
@@ -141,52 +114,47 @@ msgstr "Configure una nueva habilidad"
 
 #: lib/dialogue-agent/execution_dialogue_agent.ts:251
 msgid "No contact matches “${name}”."
-msgstr "Más de un contacto coincide con “${name}”. ¿A quién se refiere?"
+msgstr "No contactos coincide con “${name}”."
 
 #: lib/dialogue-agent/execution_dialogue_agent.ts:257
 msgid "Who do you want to contact?"
-msgstr "¿Con quién desea contactar?"
+msgstr "¿Quién quieres contactar?"
 
 #: lib/dialogue-agent/execution_dialogue_agent.ts:338
 msgid "Sorry, I cannot find any ${entity_type} matching “${name}”."
-msgstr "Lo siento, pero no encuentro ningún ${entity_type} que coincida con ${name}”."
+msgstr "Lo siento, no puedo encontrar ningún ${entity_type} que coincida con ${name}”."
 
 #: lib/dialogue-agent/execution_dialogue_agent.ts:378
 msgid "Sorry, I cannot find any location matching “${location}”."
-msgstr ""
-"Lo siento, pero no puedo encontrar ninguna ubicación que coincida con “${location}”."
+msgstr "Lo siento, no puedo encontrar ninguna ubicación que coincida con “${location}”."
 
 #: lib/dialogue-agent/execution_dialogue_agent.ts:413
 #, fuzzy
 msgid "What is your phone number?"
-msgstr "¿Cuál es la dirección de su domicilio?"
+msgstr "¿Cuál es su número de teléfono?"
 
 #: lib/dialogue-agent/execution_dialogue_agent.ts:435
 #, fuzzy
-msgid ""
-"You must verify your email address by clicking the verification link before "
-"you can use it to receive notifications."
-msgstr ""
+msgid "You must verify your email address by clicking the verification link before you can use it to receive notifications."
+msgstr "Necesitas verificar su dirección de correo electrónico por el enlace de verificación antes de poder usarlo para recibir notificaciones. "
 
 #: lib/dialogue-agent/execution_dialogue_agent.ts:440
 #, fuzzy
 msgid "What is your email address?"
-msgstr "¿Cuál es la dirección de su domicilio?"
+msgstr "¿Cuál es su dirección de orreo electrónico?"
 
 #: lib/dialogue-agent/execution_dialogue_agent.ts:449
 #, fuzzy
-msgid ""
-"Thank you! Please verify your email address by clicking the verification "
-"link before continuing."
-msgstr ""
+msgid "Thank you! Please verify your email address by clicking the verification link before continuing."
+msgstr "Gracias! Por favor verifica su dirección de correo electrónico por el enlace de verificación antes de continuar."
 
 #: lib/dialogue-agent/execution_dialogue_agent.ts:490
 msgid "Where are you now?"
-msgstr "¿Donde está ahora?"
+msgstr "¿Donde estás ahora?"
 
 #: lib/dialogue-agent/execution_dialogue_agent.ts:494
 msgid "What is your home address?"
-msgstr "¿Cuál es la dirección de su domicilio?"
+msgstr "¿Cuál es la dirección de su casa?"
 
 #: lib/dialogue-agent/execution_dialogue_agent.ts:498
 msgid "What is your work address?"
@@ -194,21 +162,21 @@ msgstr "¿Cuál es la dirección de su trabajo?"
 
 #: lib/dialogue-agent/execution_dialogue_agent.ts:502
 msgid "What time does your morning begin?"
-msgstr "¿A qué hora comienza su mañana?"
+msgstr "¿A qué hora despiertas?"
 
 #: lib/dialogue-agent/execution_dialogue_agent.ts:506
 msgid "What time does your evening begin?"
-msgstr "¿A qué hora comienza la noche para usted?"
+msgstr "¿A qué hora duermas?"
 
 #: lib/dialogue-agent/execution_dialogue_agent.ts:561
 #, fuzzy
 msgid "How would you like to be notified?"
-msgstr "%s le gustaría %s."
+msgstr "Como le gustaría ser notificado."
 
 #: lib/dialogue-agent/card-output/card-formatter.ts:72
 #, fuzzy
 msgid "N/A"
-msgstr ""
+msgstr "N/A"
 
 #: lib/dialogue-agent/card-output/format_objects.ts:183
 msgid "Link: ${title} <${link}>"
@@ -216,17 +184,13 @@ msgstr "Link: ${title} <${link}>"
 
 #: lib/dialogue-agent/dialogue-loop.ts:339
 #, fuzzy
-msgid ""
-"Sorry, I cannot contact the Genie service. Please check your Internet "
-"connection and try again later."
-msgstr ""
+msgid "Sorry, I cannot contact the Genie service. Please check your internet connection and try again later."
+msgstr "Lo siento, no puedo contactar el servicio de el Covid Genio. Por favor, comprueba tu conexión de Internet y vuelve a contactar luego."
 
 #: lib/dialogue-agent/dialogue-loop.ts:342
 #, fuzzy
-msgid ""
-"Sorry, there seems to be a problem with the Genie service at the moment. "
-"Please try again later."
-msgstr ""
+msgid "Sorry, there seems to be a problem with the Genie service at the moment. Please try again later."
+msgstr "Discúplame, parace que hay una problema con el servicio de del Covid Genio este momento. Por favor vuelva más tarde."
 
 #: lib/dialogue-agent/dialogue-loop.ts:490
 msgid "Sorry I couldn't help on that."
@@ -244,7 +208,7 @@ msgstr "¿Quiso decir ${command}?"
 #: lib/dialogue-agent/dialogue-loop.ts:575
 #, fuzzy
 msgid "Sorry I couldn't help on that. Would you like to try again?"
-msgstr "Lo siento, no pude ayudar."
+msgstr "Lo siento, no pude ayudar. Le gustaría intentarlo otra vez?"
 
 #: lib/dialogue-agent/dialogue-loop.ts:728
 msgid "Sorry, I had an error processing your command: ${error}."
@@ -256,11 +220,11 @@ msgstr "Lo siento, hubo un error: ${error}."
 
 #: lib/dialogue-agent/dialogue-loop.ts:764
 msgid "In fact, I did not ask for anything at all!"
-msgstr "De hecho, ¡no pedí nada!"
+msgstr "De hecho, ¡ni pedí ningún cosa!"
 
 #: lib/dialogue-agent/dialogue-loop.ts:766
 msgid "Sorry, I need you to confirm the last question first."
-msgstr "Lo siento, necesito que confirme primero la última pregunta."
+msgstr "Lo siento, necesito que confirmes primero la pregunta pasada."
 
 #: lib/dialogue-agent/dialogue-loop.ts:768
 msgid "Could you choose one of the following?"
@@ -269,50 +233,47 @@ msgstr "¿Podría elegir uno de los siguientes?"
 #: lib/dialogue-agent/dialogue-loop.ts:771
 #, fuzzy
 msgid "Could you give me a measurement?"
-msgstr "¿Podría insertar un número?"
+msgstr "¿Podría darme un número de medida?"
 
 #: lib/dialogue-agent/dialogue-loop.ts:773
 msgid "Could you give me a number?"
-msgstr "¿Podría insertar un número?"
+msgstr "¿Podría darme un número?"
 
 #: lib/dialogue-agent/dialogue-loop.ts:775
 msgid "Could you give me a date?"
-msgstr "¿Podría insertar una fecha?"
+msgstr "¿Podría darme una fecha?"
 
 #: lib/dialogue-agent/dialogue-loop.ts:777
 msgid "Could you give me a time of day?"
-msgstr "¿Podría insertar una hora del día?"
+msgstr "¿Podría darme una hora del día?"
 
 #: lib/dialogue-agent/dialogue-loop.ts:779
 msgid "Could you upload a picture?"
-msgstr "¿Podría subir una foto?"
+msgstr "¿Podría subir un foto de usted?"
 
 #: lib/dialogue-agent/dialogue-loop.ts:781
 msgid "Could you give me a place?"
-msgstr "¿Podría insertar un lugar?"
+msgstr "¿Podría darme un lugar?"
 
 #: lib/dialogue-agent/dialogue-loop.ts:783
 msgid "Could you give me a phone number?"
-msgstr "¿Podría insertar un número de teléfono?"
+msgstr "¿Podría darme un número de teléfono?"
 
 #: lib/dialogue-agent/dialogue-loop.ts:785
 msgid "Could you give me an email address?"
-msgstr "¿Podría insertar una dirección de correo electrónico?"
+msgstr "¿Podría darme una dirección de correo electrónico?"
 
 #. ValueCategory.RawString puts us in raw mode,
 #. so we accept almost everything
 #. but this will happen if the user clicks a button
 #. or upload a picture
 #: lib/dialogue-agent/dialogue-loop.ts:791
-msgid ""
-"Which is interesting, because I'll take anything at all. Just type your mind!"
-msgstr ""
-"Lo cual es interesante, porque me va bien cualquier cosa. ¡Libera tu "
-"imaginación!"
+msgid "Which is interesting, because I'll take anything at all. Just type your mind!"
+msgstr "Lo cual es interesante, porque me va bien cualquier cosa. ¡Libera tu imaginación!"
 
 #: lib/dialogue-agent/dialogue-loop.ts:793
 msgid "I'm looking for a command."
-msgstr "Buscando un comando."
+msgstr "Estoy buscando un comando."
 
 #: lib/dialogue-agent/dialogue-loop.ts:795
 msgid "In fact, I'm not even sure what I asked. Sorry!"
@@ -324,7 +285,7 @@ msgstr "Lo siento, no entiendí: ${error}. ¿Puede reformularlo?"
 
 #: lib/dialogue-agent/dialogue-loop.ts:806
 msgid "Sorry, I did not understand that. Can you rephrase it?"
-msgstr "Lo siento, no entiendí. ¿Puede reformularlo?"
+msgstr "Lo siento, no entiendí. ¿Puedes reformularlo?"
 
 #: lib/dialogue-agent/dialogue-loop.ts:810
 msgid "Sorry, I did not understand that: ${error}."
@@ -348,7 +309,7 @@ msgstr "No entiendí."
 
 #: lib/utils/thingtalk/describe.ts:1589
 msgid "show more results"
-msgstr "mostrar más resultados"
+msgstr "muestra más resultados"
 
 #: languages/thingtalk/en/dialogue.genie.ts:324
 msgid "Thank you!"
@@ -410,7 +371,7 @@ msgstr "configure una nueva habilidad"
 #~ msgstr "Elija un comando."
 
 #~ msgid "Do you want to use your own account or others?"
-#~ msgstr "¿Quiere usar su cuenta u otras?"
+#~ msgstr "¿Quiere usar su cuenta o otras?"
 
 #~ msgid "Use others' account"
 #~ msgstr "Usar la cuenta de otro"
@@ -453,7 +414,7 @@ msgstr "configure una nueva habilidad"
 #~ "Your command is: ${command}. You can add more filters or run your command "
 #~ "if you are ready."
 #~ msgstr ""
-#~ "Su comando es: %s. Puede agregar más filtros o ejecutar su comando cuando "
+#~ "Su comando es: %s. Puede agregar más filtros o ejecutar su comando si "
 #~ "esté listo."
 
 #~ msgid "Choose the filter you want to add:"
@@ -474,7 +435,7 @@ msgstr "configure una nueva habilidad"
 #~ "Train button to teach me:"
 #~ msgstr ""
 #~ "Lo siento, no entiendí. Pruebe los siguientes comandos en su lugar, o "
-#~ "utilice el botón Entrenar para enseñarme."
+#~ "utilice el botón de Entrenar para enseñarme."
 
 #~ msgid "Sorry, I did not understand that. Try the following instead:"
 #~ msgstr "Lo siento, no entiendí. Pruebe los siguientes comandos en su lugar:"
@@ -588,7 +549,7 @@ msgstr "configure una nueva habilidad"
 #~ msgstr "No"
 
 #~ msgid "Only if…"
-#~ msgstr "Solo sí…"
+#~ msgstr "Solo si…"
 
 #, fuzzy
 #~ msgid "Okay, so ${permission}. Is that correct?"
@@ -711,7 +672,7 @@ msgstr "configure una nueva habilidad"
 #~ "or type ‘help’."
 #~ msgstr ""
 #~ "Por favor tenga en cuenta: no chateo, y no comprendo muy bien las "
-#~ "preguntas Eche un vistazo a Thingpedia para averiguar lo que entiendo, o "
+#~ "preguntas. Por favor visita a Thingpedia para averiguar lo que entiendo, o "
 #~ "escriba ‘ayuda’."
 
 #~ msgid ""
@@ -719,7 +680,7 @@ msgstr "configure una nueva habilidad"
 #~ "participate?"
 #~ msgstr ""
 #~ "Soy parte de un proyecto de investigación de la Universidad de Stanford. "
-#~ "¿Quiere participar?"
+#~ "¿Quieres participar?"
 
 #~ msgid ""
 #~ "With your consent, I will record the commands you give me for training. "
