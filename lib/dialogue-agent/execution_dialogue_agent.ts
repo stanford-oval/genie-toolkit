@@ -555,15 +555,24 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
             return undefined;
 
 
-        let chosen;
-        if (available.length > 1) {
-            const choices = available.map((c) => c.name);
-            chosen = await this._dlg.askChoices(this._("How would you like to be notified?"), choices);
-        } else {
-            chosen = 0;
+        let backend;
+        if (this._dlg.platformData.from) {
+            if (this._dlg.platformData.from.startsWith('email:'))
+                backend = available.find((b) => b.uniqueId === 'email');
+            else if (this._dlg.platformData.from.startsWith('phone:'))
+                backend = available.find((b) => b.uniqueId === 'twilio');
+        }
+        if (!backend) {
+            let chosen;
+            if (available.length > 1) {
+                const choices = available.map((c) => c.name);
+                chosen = await this._dlg.askChoices(this._("How would you like to be notified?"), choices);
+            } else {
+                chosen = 0;
+            }
+            backend = available[chosen];
         }
 
-        const backend = available[chosen];
         const settings = backend.requiredSettings;
         const config : Record<string, string> = {};
         // ensure that all settings needed by the notification backend are set
