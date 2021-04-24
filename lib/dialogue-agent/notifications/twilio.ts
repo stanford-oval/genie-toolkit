@@ -29,6 +29,7 @@ interface TwilioConfig {
     accountSid : string;
     authToken : string;
     from : string;
+    fromByLocale ?: Record<string, string>;
 }
 
 export default class TwilioNotificationBackend {
@@ -41,7 +42,8 @@ export default class TwilioNotificationBackend {
     constructor(engine : Engine, config : TwilioConfig) {
         this._platform = engine.platform;
         this._client = new twilio.Twilio(config.accountSid, config.authToken);
-        this._from = config.from;
+        this._from = config.fromByLocale ? (config.fromByLocale[this._platform.locale] || config.from)
+            : config.from;
     }
 
     get requiredSettings() {
