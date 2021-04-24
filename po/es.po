@@ -83,9 +83,9 @@ msgstr "Lo siento, no puedo encontrar ninguna cita disponible en su área. ¿Deb
 
 #: data/translations.js:41
 msgid ""
-"Notification from Stanford Covid Genie: Here is a location near you that has "
+"Notification from Stanford Covid Genie: here is a location near you that has "
 "reported available appointments."
-msgstr "Alerta de Stanford Covid Genie: Aquí hay una ubicación cerca de usted que ha informado citas disponibles:"
+msgstr "Alerta de Stanford Covid Genie: aquí hay una ubicación cerca de usted que ha informado citas disponibles:"
 
 #: lib/dialogue-agent/execution_dialogue_agent.ts:128
 #, fuzzy

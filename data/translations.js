@@ -38,7 +38,7 @@ _("I will soon be able to answer questions about covid. In the meantime, please 
 
 _("Sorry, I cannot find any available appointments in your area. Would you like to be notified when there are new appointments?");
 
-_("Notification from Stanford Covid Genie: Here is a location near you that has reported available appointments.");
+_("Notification from Stanford Covid Genie: here is a location near you that has reported available appointments.");
 
 _("Is there anything else I can help you with?");
 
