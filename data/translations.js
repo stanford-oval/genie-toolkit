@@ -43,3 +43,11 @@ _("Notification from Stanford Covid Genie: here is a location near you that has 
 _("Is there anything else I can help you with?");
 
 _("Alright, I will notify you when there are new appointments in the ${zip_code} zip code.");
+
+_("Sorry, this is not a valid zip code, please re-enter it.");
+
+_("Sorry, you do not need a second dose for the johnson & johnson vaccine.");
+
+_("Is this your first or second dose?");
+
+_("What is your zip code?");

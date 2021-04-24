@@ -39,6 +39,18 @@ msgstr ""
 msgid "You are receiving this email because you subscribed to notifications from Genie. To stop, you can <a href=\"%s\">unsubscribe</a>."
 msgstr ""
 
+msgid "Sorry, this is not a valid zip code, please re-enter it."
+msgstr ""
+
+msgid "Sorry, you do not need a second dose for the johnson & johnson vaccine."
+msgstr ""
+
+msgid "Is this your first or second dose?"
+msgstr ""
+
+msgid "What is your zip code?"
+msgstr "¿Cuál es su código postal?"
+
 msgid "Alright, I will notify you when there are new appointments in the ${zip_code} zip code."
 msgstr "Bueno, te notifico cuando hay citas acerca de tu código postal ${zip_code}."
 
@@ -61,7 +73,6 @@ msgid ""
 msgstr "Que bien, ¡felicidades por conseguir su cita! Cuéntele a sus amigos de estas buenas noticias y que también les podemos ayudar."
 
 #: data/translations.js:33
-#, fuzzy
 msgid "What type of vaccine did you receive at the first dose?"
 msgstr ""
 
