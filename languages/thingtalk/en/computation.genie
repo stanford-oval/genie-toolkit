@@ -152,7 +152,6 @@ compute_question : Ast.Expression = {
             return C.makeAggComputeExpression(table, 'count', null, p, Type.Number);
         };
 
-        !dialogues {
         ( 'how many' p:out_param_Array__Compound 'with' filter:with_filter with { functionName = p.functionName } ('does' | 'do') table:with_filtered_table with { functionName = p.functionName } 'have ?'
         | 'how many' p:out_param_Array__Compound 'with' filter:with_filter with { functionName = p.functionName } ('in a' | 'in' | 'in the') table:with_filtered_table with { functionName = p.functionName } '?'
         | 'how many' p:out_param_Array__Compound 'with' filter:with_filter with { functionName = p.functionName } 'are there' ('in a' | 'in' | 'in the') table:with_filtered_table with { functionName = p.functionName } '?'
@@ -172,7 +171,6 @@ compute_question : Ast.Expression = {
                 return null;
             return C.makeAggComputeExpression(table, 'count', null, list, Type.Number);
         };
-        }
 
         // aggregation questions
         ?aggregation {

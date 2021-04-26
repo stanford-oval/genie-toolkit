@@ -23,7 +23,6 @@ synthetic_flags ?= \
 	aggregation \
 	multifilters \
 	nostream \
-	notablejoin \
 	projection \
 	projection_with_filter \
 	schema_org \
