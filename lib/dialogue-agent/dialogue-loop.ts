@@ -86,8 +86,8 @@ const TERMINAL_STATES = [
 //   for additional confirmation before executing.
 //
 // - In all other cases, we tell the user we did not understand.
-const CONFIDENCE_CONFIRM_THRESHOLD = 0.5;
-const CONFIDENCE_FAILURE_THRESHOLD = 0.25;
+//const CONFIDENCE_CONFIRM_THRESHOLD = 0.5;
+//const CONFIDENCE_FAILURE_THRESHOLD = 0.25;
 const IN_DOMAIN_THRESHOLD = 0.5;
 const IGNORE_THRESHOLD = 0.5;
 
@@ -143,7 +143,7 @@ export default class DialogueLoop {
     private _policy : DialoguePolicy;
     private _debug : boolean;
 
-    icon : string|null;
+    //icon : string|null;
     expecting : ValueCategory|null;
     platformData : PlatformData;
     private _raw = false;
@@ -171,7 +171,6 @@ export default class DialogueLoop {
 
         this._langPack = I18n.get(engine.platform.locale);
         this._cardFormatter = new CardFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas);
-        this.icon = null;
         this.expecting = null;
         this._choices = [];
         this.platformData = {};
@@ -192,6 +191,13 @@ export default class DialogueLoop {
         });
         this._dialogueState = null; // thingtalk dialogue state
         this._executorState = undefined; // private object managed by DialogueExecutor
+    }
+
+    get icon() : string|null {
+        return 'org.thingpedia.covid-vaccine.appointment';
+    }
+    set icon(v : string|null) {
+        // do nothing
     }
 
     get _() : (x : string) => string {
@@ -398,14 +404,14 @@ export default class DialogueLoop {
         }
 
         if (type === CommandAnalysisType.PARSE_FAILURE ||
-            choice.score < CONFIDENCE_FAILURE_THRESHOLD) {
+            choice.score !== 'Infinity') {
             type = CommandAnalysisType.PARSE_FAILURE;
             this.debug('Failed to analyze message');
             this.conversation.stats.hit('sabrina-failure');
-        } else if (choice.score < CONFIDENCE_CONFIRM_THRESHOLD) {
+        /*} else if (choice.score < CONFIDENCE_CONFIRM_THRESHOLD) {
             type = CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND;
             this.debug('Dubiously analyzed message into ' + choice.parsed.prettyprint());
-            this.conversation.stats.hit('sabrina-command-maybe');
+            this.conversation.stats.hit('sabrina-command-maybe');*/
         } else {
             this.debug('Confidently analyzed message into ' + choice.parsed.prettyprint());
             this.conversation.stats.hit('sabrina-command-good');
@@ -763,7 +769,7 @@ export default class DialogueLoop {
         if (this.expecting === null) {
             await this.reply(this._("In fact, I did not ask for anything at all!"));
         } else if (this.expecting === ValueCategory.YesNo) {
-            await this.reply(this._("Sorry, I need you to confirm the last question first."));
+            await this.reply(this._("Please answer yes or no."));
         } else if (this.expecting === ValueCategory.MultipleChoice) {
             await this.reply(this._("Could you choose one of the following?"));
             await this._resendChoices();
@@ -797,21 +803,21 @@ export default class DialogueLoop {
     }
 
     async fail(msg ?: string) {
-        if (this.expecting === null) {
+        if (this.expecting === null || this.expecting === ValueCategory.Command) {
             if (msg) {
-                await this.replyInterp(this._("Sorry, I did not understand that: ${error}. Can you rephrase it?"), {
+                await this.replyInterp(this._("Sorry, I did not understand that: ${error}. Please enter a 5-digit zip code."), {
                     error: msg
                 });
             } else {
-                await this.reply(this._("Sorry, I did not understand that. Can you rephrase it?"));
+                await this.reply(this._("Sorry, I did not understand that. Please enter a 5-digit zip code."));
             }
         } else {
             if (msg)
                 await this.replyInterp(this._("Sorry, I did not understand that: ${error}."), { error: msg });
             else
                 await this.reply(this._("Sorry, I did not understand that."));
+            this.lookingFor();
         }
-        throw new CancellationError();
     }
 
     setExpected(expected : ValueCategory|null, raw = (expected === ValueCategory.RawString || expected === ValueCategory.Password)) {
@@ -851,7 +857,6 @@ export default class DialogueLoop {
 
             default:
                 await this.fail();
-                await this.lookingFor();
             }
 
             analyzed = await this._analyzeCommand(await this.nextCommand());
@@ -880,7 +885,6 @@ export default class DialogueLoop {
 
             default:
                 await this.fail();
-                await this.lookingFor();
             }
 
             analyzed = await this._analyzeCommand(await this.nextCommand());
