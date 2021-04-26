@@ -556,7 +556,6 @@ function addNewItem(ctx : ContextInfo,
         // add the new history item right after the current one, keep
         // all the accepted items, and remove all proposed items
 
-        const newState = new Ast.DialogueState(null, POLICY_NAME, dialogueAct, null, []);
         if (ctx.currentIdx !== null) {
             for (let i = 0; i <= ctx.currentIdx; i++)
                 newState.history.push(ctx.state.history[i]);
