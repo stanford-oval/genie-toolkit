@@ -22,6 +22,8 @@ import * as Tp from 'thingpedia';
 
 const URL = 'https://query.wikidata.org/sparql';
 
+const _cache = new Map();
+
 const WikidataUnitToTTUnit = {
     // time
     'millisecond': 'ms',
@@ -144,11 +146,15 @@ function unitConverter(wikidataUnit) {
  * @returns {Promise<*>}
  */
 async function wikidataQuery(query) {
+    if (_cache.has(query))
+        return _cache.get(query);
     try {
         const result = await Tp.Helpers.Http.get(`${URL}?query=${encodeURIComponent(query)}`, {
             accept: 'application/json'
         });
-        return JSON.parse(result).results.bindings;
+        const parsed = JSON.parse(result).results.bindings;
+        _cache.set(query, parsed);
+        return parsed;
     } catch(e) {
         const error = new Error('The connection timed out waiting for a response');
         error.code = 500;
