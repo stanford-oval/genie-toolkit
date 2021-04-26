@@ -70,7 +70,14 @@ msgstr "Por favor usa esto y avíseme si funciona."
 msgid ""
 "Great, congratulations on getting your appointment! Please tell your friends "
 "about us."
-msgstr "Que bien, ¡felicidades por conseguir su cita! Cuéntele a sus amigos de estas buenas noticias y que también les podemos ayudar."
+msgstr "Que bien, ¡felicidades por conseguir su cita! Por favor dile a tus amigos que se vacunen."
+
+#: data/translations.js:31
+msgid ""
+"Great, congratulations on getting your appointment! Please tell your friends "
+"to get vaccinated."
+msgstr "Que bien, ¡felicidades por conseguir su cita! Por favor dile a tus amigos que se vacunen."
+
 
 #: data/translations.js:33
 msgid "What type of vaccine did you receive at the first dose?"

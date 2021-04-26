@@ -30,6 +30,8 @@ _("Please try this and let me know if it works.");
 
 _("Great, congratulations on getting your appointment! Please tell your friends about us.");
 
+_("Great, congratulations on getting your appointment! Please tell your friends to get vaccinated.");
+
 _("What type of vaccine did you receive at the first dose?");
 
 _("Sorry that did not work out.");
