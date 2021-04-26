@@ -229,10 +229,10 @@ raw/test:
 	  --items $*/items.json \
 	  --values $*/values.json \
 	  --filtered-examples $*/valid.json \
-	  $(if $(annotate_with_entity_id),--entity-id, )
+	  $(if $(annotate_with_entity_id),--entity-id,)
 
 %/valid_annotated.tsv: %/manifest.tt %/valid.tsv
-	$(genie) typecheck -o $*/valid_annotated.tsv --dropped $*/valid_dropped.tsv --thingpedia $*/manifest.tt $*/valid.tsv
+	$(genie) typecheck -o $*/valid_annotated.tsv --dropped $*/valid_dropped.tsv --thingpedia $*/manifest.tt $*/valid.tsv $(if $(annotate_with_entity_id),--entity-id,)
 
 %/valid/annotated.tsv: %/valid_annotated.tsv
 	mkdir -p $*/valid

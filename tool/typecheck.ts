@@ -69,6 +69,7 @@ class CacheSerializer extends Stream.Transform {
 
 class TypecheckStream extends Stream.Transform {
     private _locale : string;
+    private _entityIdAnnotation : boolean;
     private _tpClient : Tp.BaseClient;
     private _schemas : ThingTalk.SchemaRetriever;
     private _cache : Map<string, CacheEntry>;
@@ -87,10 +88,11 @@ class TypecheckStream extends Stream.Transform {
                 cache : Map<string, CacheEntry>,
                 cacheOut : Stream.Writable|undefined,
                 droppedOut : Stream.Writable,
-                args : { interactive : boolean, strict : boolean, locale : string }) {
+                args : { interactive : boolean, strict : boolean, locale : string, entity_id : boolean }) {
         super({ objectMode: true });
 
         this._locale = args.locale;
+        this._entityIdAnnotation = args.entity_id;
         this._tpClient = tpClient;
         this._schemas = schemas;
         this._cache = cache;
@@ -169,7 +171,8 @@ class TypecheckStream extends Stream.Transform {
         try {
             const program = await ThingTalkUtils.parse(line, this._schemas);
             const code = ThingTalkUtils.serializePrediction(program, this._current!.preprocessed, this._entities!, {
-                locale: this._locale
+                locale: this._locale,
+                entityIdAnnotation: this._entityIdAnnotation
             }).join(' ');
 
             this._doCache(code);
@@ -199,7 +202,8 @@ class TypecheckStream extends Stream.Transform {
             }, true);
 
             ex.target_code = ThingTalkUtils.serializePrediction(program!, this._current!.preprocessed, this._entities, {
-                locale: this._locale
+                locale: this._locale,
+                entityIdAnnotation: this._entityIdAnnotation
             }).join(' ');
             this.push(ex);
             return;
@@ -328,6 +332,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('--random-seed', {
         default: 'almond is awesome',
         help: 'Random seed'
+    });
+    parser.add_argument('--entity-id', {
+        action: 'store_true',
+        help: "Include entity id in thingtalk",
+        default: false
     });
 }
 
