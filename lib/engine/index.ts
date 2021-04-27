@@ -113,6 +113,10 @@ export interface DeviceInfo {
      * if it was configured manually and is stored on disk.
      */
     isTransient : boolean;
+    /**
+     * A string identifying the type of authentication used by this device.
+     */
+    authType : string;
 }
 
 interface EngineModule {
@@ -434,7 +438,8 @@ export default class AssistantEngine extends Tp.BaseEngine {
             version: (d.constructor as typeof Tp.BaseDevice).metadata.version || 0,
             class: deviceKlass,
             ownerTier: d.ownerTier,
-            isTransient: d.isTransient
+            isTransient: d.isTransient,
+            authType: (d.constructor as typeof Tp.BaseDevice).metadata.auth.type || 'unknown',
         };
     }
 
