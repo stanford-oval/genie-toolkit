@@ -194,7 +194,7 @@ export default class DialogueLoop {
     }
 
     get icon() : string|null {
-        return 'org.thingpedia.covid-vaccine.appointment';
+        return 'org.thingpedia.covid-vaccine';
     }
     set icon(v : string|null) {
         // do nothing
