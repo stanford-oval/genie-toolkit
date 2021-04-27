@@ -487,6 +487,10 @@ class CollectDeviceIDVisitor extends Ast.NodeVisitor {
     collection = new Map<string, string>();
 
     visitDeviceSelector(selector : Ast.DeviceSelector) {
+        if (selector.all) {
+            this.collection.set(selector.kind, 'all');
+            return false;
+        }
         if (!selector.id)
             return false;
         this.collection.set(selector.kind, selector.id);
@@ -506,7 +510,9 @@ class ApplyDeviceIDVisitor extends Ast.NodeVisitor {
             return false;
 
         const existing = this.collection.get(selector.kind);
-        if (existing)
+        if (existing === 'all')
+            selector.all = true;
+        else if (existing)
             selector.id = existing;
         return false;
     }
