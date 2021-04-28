@@ -187,6 +187,8 @@ export default class AssistantEngine extends Tp.BaseEngine {
 
         this._ = I18n.get(platform.locale).gettext;
 
+        this._langPack = I18n.get(platform.locale);
+
         this._tiers = new TierManager(platform, options.cloudSyncUrl || Config.THINGENGINE_URL);
 
         this._modules = [];
@@ -217,6 +219,10 @@ export default class AssistantEngine extends Tp.BaseEngine {
 
         this._running = false;
         this._stopCallback = null;
+    }
+
+    get langPack() {
+        return this._langPack;
     }
 
     /**
