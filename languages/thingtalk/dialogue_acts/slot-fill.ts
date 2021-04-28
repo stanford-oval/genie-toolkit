@@ -106,6 +106,19 @@ function isSlotFillAnswerValidForQuestion(action : Ast.Invocation, questions : s
     });
 }
 
+function fastSemiShallowClone(item : Ast.DialogueHistoryItem) {
+    const newExpressions = [];
+    const oldExpressions = item.stmt.expression.expressions;
+    for (let i = 0; i < oldExpressions.length-1; i++)
+        newExpressions.push(oldExpressions[i]);
+    // deep clone only the last expression
+    newExpressions.push(oldExpressions[oldExpressions.length-1].clone());
+    const newStmt = new Ast.ExpressionStatement(null,
+        new Ast.ChainExpression(null, newExpressions, item.stmt.expression.schema));
+
+    return new Ast.DialogueHistoryItem(null, newStmt, null, 'accepted');
+}
+
 function preciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Invocation) {
     const questions = ctx.state.dialogueActParam as string[];
     assert(Array.isArray(questions) && questions.length > 0 && questions.every((q) => typeof q === 'string'));
@@ -124,10 +137,9 @@ function preciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Invocation) {
             return null;
     }
 
-    const clone = ctx.next.clone();
-    clone.confirm = 'accepted';
-    clone.results = null;
+    const clone = fastSemiShallowClone(ctx.next);
     const newInvocation = C.getInvocation(clone);
+    assert(C.isSameFunction(newInvocation.schema!, answer.schema!));
     // modify in place
     mergeParameters(newInvocation, answer);
 
@@ -164,9 +176,7 @@ function impreciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Value|C.InputPa
     if (ipslot.ast.name === ctx.nextInfo.chainParameter)
         return null;
 
-    const clone = ctx.next.clone();
-    clone.confirm = 'accepted';
-    clone.results = null;
+    const clone = fastSemiShallowClone(ctx.next);
     const newAction = C.getInvocation(clone);
     if (!C.checkInvocationInputParam(ctx.loader, newAction, ipslot))
         return null;
