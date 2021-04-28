@@ -45,6 +45,10 @@ export function addStream(ctx : ContextInfo, stream : Ast.Expression) {
     if (currentExpression.first.schema!.functionType === 'stream')
         return null;
 
+    // no self-joins
+    if (C.isSameFunction(currentExpression.schema!, stream.schema!))
+        return null;
+
     return addNewStatement(ctx, 'execute', null, 'accepted',
         new Ast.ChainExpression(null, [stream, currentExpression], C.resolveChain([stream, currentExpression])));
 }

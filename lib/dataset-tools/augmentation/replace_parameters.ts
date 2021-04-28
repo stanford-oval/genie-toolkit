@@ -36,7 +36,8 @@ import * as ThingTalkUtils from '../../utils/thingtalk';
 import { SentenceExample, SentenceFlags } from '../parsers';
 
 function isReplaceToken(tok : string) : boolean {
-    return /^(?:GENERIC_ENTITY|LOCATION|NUMBER|QUOTED_STRING|HASHTAG|USERNAME)_/.test(tok);
+    return /^(?:GENERIC_ENTITY|LOCATION|NUMBER|QUOTED_STRING|HASHTAG|USERNAME)_/.test(tok) &&
+        !tok.startsWith('GENERIC_ENTITY_tt:device_id_');
 }
 
 function tokenCanAppearInSentence(token : string) {
@@ -880,7 +881,7 @@ export default class ParameterReplacer {
                 varref.token = token;
                 entities[slot] = varref;
                 out.push(slot);
-            } else if (/^[A-Za-z_]+?_[0-9]+$/.test(token)) {
+            } else if (/^[A-Za-z_:]+_[0-9]+$/.test(token)) {
                 entities[token] = makeDummyEntity(token);
                 out.push(token);
             } else {
