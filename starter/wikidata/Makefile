@@ -150,7 +150,7 @@ raw/csqa-wikidata:
 	mv 'wikidata_proc_json 2'/* raw/csqa-wikidata
 	rm -r 'wikidata_proc_json 2'
 
-%/parameter-datasets.tsv: shared-parameter-datasets.tsv raw/csqa-wikidata/filtered_property_wikidata4.json $(if ${use_preprocessed_wikidata},%/items.json %/predicates.json %/values.json,raw/csqa-wikidata)
+%/parameter-datasets.tsv: shared-parameter-datasets.tsv raw/csqa-wikidata/filtered_property_wikidata4.json $(if ${use_preprocessed_wikidata},%/items.json %/predicates.json %/values.json %/properties.txt,raw/csqa-wikidata)
 	mkdir -p $*/parameter-datasets
 	$(genie) wikidata-preprocess-data \
 	  --domain $(class) \
