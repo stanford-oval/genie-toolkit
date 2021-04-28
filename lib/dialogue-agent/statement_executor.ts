@@ -55,6 +55,8 @@ export default class InferenceStatementExecutor {
     private _inferType(key : string, jsValue : unknown) : Type {
         if (key === 'distance') // HACK
             return new Type.Measure('m');
+        if (key === '__device')
+            return new Type.Entity('tt:device_id');
         if (typeof jsValue === 'boolean')
             return Type.Boolean;
         if (typeof jsValue === 'string')

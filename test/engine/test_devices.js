@@ -43,7 +43,7 @@ async function testLookup(engine) {
 
     const builtin = devices.getAllDevicesOfKind('org.thingpedia.builtin.thingengine.builtin');
     assert.strictEqual(builtin.length, 1);
-    assert.strictEqual(builtin[0], devices.getDevice('thingengine-own-global'));
+    assert.strictEqual(builtin[0], devices.getDevice('org.thingpedia.builtin.thingengine.builtin'));
 
     let test = devices.getAllDevicesOfKind('org.thingpedia.builtin.test');
     assert.strictEqual(test.length, 1);
@@ -59,6 +59,15 @@ async function testLookup(engine) {
        kind: 'org.thingpedia.builtin.test',
        version: 0,
        class: 'system',
+       ownerTier: 'global',
+       isTransient: true,
+       authType: 'builtin' },
+     { uniqueId: 'org.thingpedia.builtin.thingengine.builtin',
+       name: 'Miscellaneous Interfaces',
+       description: 'Time, randomness and other non-device specific things.',
+       kind: 'org.thingpedia.builtin.thingengine.builtin',
+       version: 0,
+       class: 'data',
        ownerTier: 'global',
        isTransient: true,
        authType: 'builtin' },
@@ -80,15 +89,6 @@ async function testLookup(engine) {
        ownerTier: 'desktop',
        isTransient: false,
        authType: 'builtin' },
-     { uniqueId: 'thingengine-own-global',
-       name: 'Miscellaneous Interfaces',
-       description: 'Time, randomness and other non-device specific things.',
-       kind: 'org.thingpedia.builtin.thingengine.builtin',
-       version: 0,
-       class: 'data',
-       ownerTier: 'global',
-       isTransient: true,
-       authType: 'builtin' }
     ]);
 }
 

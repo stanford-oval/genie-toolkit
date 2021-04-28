@@ -304,6 +304,8 @@ $agent : S.AgentReplyRecord = {
     // query results
     ctx:ctx_display_nonlist_result proposal:system_nonlist_result
         => D.makeDisplayResultReply(ctx, proposal);
+    ctx:ctx_display_nonlist_result proposal:system_list_proposal
+        => D.makeDisplayResultReplyFromList(ctx, proposal);
 
     // aggregation results
     ( ctx:ctx_aggregation_question reply:count_aggregation_reply

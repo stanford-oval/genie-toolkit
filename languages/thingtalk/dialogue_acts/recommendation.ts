@@ -44,6 +44,7 @@ import {
     combinePreambleAndRequest,
     proposalReply
 } from './refinement-helpers';
+import type { ListProposal } from './list-proposal';
 
 export interface Recommendation {
     ctx : ContextInfo;
@@ -307,6 +308,16 @@ function makeDisplayResultReply(ctx : ContextInfo, proposal : Recommendation) {
         numResults: 1
     };
     if (action || hasAnythingElse)
+        options.end = false;
+    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_display_result', null), proposal, null, options);
+}
+
+export function makeDisplayResultReplyFromList(ctx : ContextInfo, proposal : ListProposal) {
+    const { results, action, hasLearnMore } = proposal;
+    const options : AgentReplyOptions = {
+        numResults: results.length
+    };
+    if (action || hasLearnMore)
         options.end = false;
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_display_result', null), proposal, null, options);
 }

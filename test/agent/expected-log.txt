@@ -406,7 +406,7 @@ UT: @com.spotify.song() filter id =~ "despacito" => @com.spotify.play_song(song=
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: (@com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "despacito")[1] => @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(song=id)
 C: #[results=[
-C:   { song="spotify:track:6habFhsOp2NvshLv26DqMb"^^com.spotify:song("Despacito"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device }
+C:   { song="spotify:track:6habFhsOp2NvshLv26DqMb"^^com.spotify:song("Despacito"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I played Despacito on Spotify.
@@ -430,16 +430,16 @@ UT: @com.spotify.song() filter contains(artists, null^^com.spotify:artist("arian
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter contains(artists, "spotify:artist:66CXWjxzNUsdJxJ2JdwvnR"^^com.spotify:artist("Ariana Grande")) => @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(song=id)
 C: #[results=[
-C:   { song="spotify:track:6ocbgoVGwYJhOv1GgI9NsF"^^com.spotify:song("7 rings"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device },
-C:   { song="spotify:track:6va6SjWz457IOZidBppAhz"^^com.spotify:song("7 rings - live"), device="str:ENTITY_com.spotify:device::15:"^^com.spotify:device },
-C:   { song="spotify:track:6AyI8UGx8Y4peb7pLOy2pf"^^com.spotify:song("7 rings (feat. 2 Chainz) - Remix"), device="str:ENTITY_com.spotify:device::9:"^^com.spotify:device },
-C:   { song="spotify:track:4HBZA5flZLE435QTztThqH"^^com.spotify:song("Stuck with U (with Justin Bieber)"), device="str:ENTITY_com.spotify:device::19:"^^com.spotify:device },
-C:   { song="spotify:track:6ocbgoVGwYJhOv1GgI9NsF"^^com.spotify:song("7 rings"), device="str:ENTITY_com.spotify:device::14:"^^com.spotify:device },
-C:   { song="spotify:track:3e9HZxeyfWwjeyPAMmWSSQ"^^com.spotify:song("thank u, next"), device="str:ENTITY_com.spotify:device::15:"^^com.spotify:device },
-C:   { song="spotify:track:2qT1uLXPVPzGgFOx4jtEuo"^^com.spotify:song("no tears left to cry"), device="str:ENTITY_com.spotify:device::40:"^^com.spotify:device },
-C:   { song="spotify:track:0Ryd8975WihbObpp5cPW1t"^^com.spotify:song("boyfriend (with Social House)"), device="str:ENTITY_com.spotify:device::31:"^^com.spotify:device },
-C:   { song="spotify:track:4kV4N9D1iKVxx1KLvtTpjS"^^com.spotify:song("break up with your girlfriend, i'm bored"), device="str:ENTITY_com.spotify:device::23:"^^com.spotify:device },
-C:   { song="spotify:track:5OCJzvD7sykQEKHH7qAC3C"^^com.spotify:song("God is a woman"), device="str:ENTITY_com.spotify:device::40:"^^com.spotify:device }
+C:   { song="spotify:track:6ocbgoVGwYJhOv1GgI9NsF"^^com.spotify:song("7 rings"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { song="spotify:track:6va6SjWz457IOZidBppAhz"^^com.spotify:song("7 rings - live"), device="str:ENTITY_com.spotify:device::15:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { song="spotify:track:6AyI8UGx8Y4peb7pLOy2pf"^^com.spotify:song("7 rings (feat. 2 Chainz) - Remix"), device="str:ENTITY_com.spotify:device::9:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { song="spotify:track:4HBZA5flZLE435QTztThqH"^^com.spotify:song("Stuck with U (with Justin Bieber)"), device="str:ENTITY_com.spotify:device::19:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { song="spotify:track:6ocbgoVGwYJhOv1GgI9NsF"^^com.spotify:song("7 rings"), device="str:ENTITY_com.spotify:device::14:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { song="spotify:track:3e9HZxeyfWwjeyPAMmWSSQ"^^com.spotify:song("thank u, next"), device="str:ENTITY_com.spotify:device::15:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { song="spotify:track:2qT1uLXPVPzGgFOx4jtEuo"^^com.spotify:song("no tears left to cry"), device="str:ENTITY_com.spotify:device::40:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { song="spotify:track:0Ryd8975WihbObpp5cPW1t"^^com.spotify:song("boyfriend (with Social House)"), device="str:ENTITY_com.spotify:device::31:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { song="spotify:track:4kV4N9D1iKVxx1KLvtTpjS"^^com.spotify:song("break up with your girlfriend, i'm bored"), device="str:ENTITY_com.spotify:device::23:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { song="spotify:track:5OCJzvD7sykQEKHH7qAC3C"^^com.spotify:song("God is a woman"), device="str:ENTITY_com.spotify:device::40:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") }
 C: ]]
 C: #[count=23];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
@@ -464,16 +464,16 @@ UT: @com.spotify.song() filter album == null^^com.spotify:album("folklore") => @
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter album == "spotify:album:2fenSS68JI1h4Fo296JfGr"^^com.spotify:album("folklore") => @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(song=id)
 C: #[results=[
-C:   { song="spotify:track:4R2kfaDFhslZEMJqAFNpdd"^^com.spotify:song("cardigan"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device },
-C:   { song="spotify:track:4pvb0WLRcMtbPGmtejJJ6y"^^com.spotify:song("exile (feat. Bon Iver)"), device="str:ENTITY_com.spotify:device::15:"^^com.spotify:device },
-C:   { song="spotify:track:0Jlcvv8IykzHaSmj49uNW8"^^com.spotify:song("the 1"), device="str:ENTITY_com.spotify:device::9:"^^com.spotify:device },
-C:   { song="spotify:track:2Eeur20xVqfUoM3Q7EFPFt"^^com.spotify:song("the last great american dynasty"), device="str:ENTITY_com.spotify:device::19:"^^com.spotify:device },
-C:   { song="spotify:track:1MgV7FIyNxIG7WzMRJV5HC"^^com.spotify:song("my tears ricochet"), device="str:ENTITY_com.spotify:device::14:"^^com.spotify:device },
-C:   { song="spotify:track:3hUxzQpSfdDqwM3ZTFQY0K"^^com.spotify:song("august"), device="str:ENTITY_com.spotify:device::15:"^^com.spotify:device },
-C:   { song="spotify:track:6VsvKPJ4xjVNKpI8VVZ3SV"^^com.spotify:song("invisible string"), device="str:ENTITY_com.spotify:device::40:"^^com.spotify:device },
-C:   { song="spotify:track:0ZNU020wNYvgW84iljPkPP"^^com.spotify:song("mirrorball"), device="str:ENTITY_com.spotify:device::31:"^^com.spotify:device },
-C:   { song="spotify:track:6KJqZcs9XDgVck7Lg9QOTC"^^com.spotify:song("seven"), device="str:ENTITY_com.spotify:device::23:"^^com.spotify:device },
-C:   { song="spotify:track:7kt9e9LFSpN1zQtYEl19o1"^^com.spotify:song("this is me trying"), device="str:ENTITY_com.spotify:device::40:"^^com.spotify:device }
+C:   { song="spotify:track:4R2kfaDFhslZEMJqAFNpdd"^^com.spotify:song("cardigan"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { song="spotify:track:4pvb0WLRcMtbPGmtejJJ6y"^^com.spotify:song("exile (feat. Bon Iver)"), device="str:ENTITY_com.spotify:device::15:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { song="spotify:track:0Jlcvv8IykzHaSmj49uNW8"^^com.spotify:song("the 1"), device="str:ENTITY_com.spotify:device::9:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { song="spotify:track:2Eeur20xVqfUoM3Q7EFPFt"^^com.spotify:song("the last great american dynasty"), device="str:ENTITY_com.spotify:device::19:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { song="spotify:track:1MgV7FIyNxIG7WzMRJV5HC"^^com.spotify:song("my tears ricochet"), device="str:ENTITY_com.spotify:device::14:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { song="spotify:track:3hUxzQpSfdDqwM3ZTFQY0K"^^com.spotify:song("august"), device="str:ENTITY_com.spotify:device::15:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { song="spotify:track:6VsvKPJ4xjVNKpI8VVZ3SV"^^com.spotify:song("invisible string"), device="str:ENTITY_com.spotify:device::40:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { song="spotify:track:0ZNU020wNYvgW84iljPkPP"^^com.spotify:song("mirrorball"), device="str:ENTITY_com.spotify:device::31:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { song="spotify:track:6KJqZcs9XDgVck7Lg9QOTC"^^com.spotify:song("seven"), device="str:ENTITY_com.spotify:device::23:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { song="spotify:track:7kt9e9LFSpN1zQtYEl19o1"^^com.spotify:song("this is me trying"), device="str:ENTITY_com.spotify:device::40:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") }
 C: ]]
 C: #[count=22];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
@@ -1041,7 +1041,7 @@ C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For Wha
 C: ]];
 C: @com.spotify(id="com.spotify-7"^^tt:device_id).play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
 C: #[results=[
-C:   { song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device }
+C:   { song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Unknown device") }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I played Nice For What on Spotify.
@@ -1552,7 +1552,7 @@ U: @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_alm
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_identity);
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @org.thingpedia.builtin.thingengine.builtin(id="thingengine-own-global"^^tt:device_id("Builtin")).faq_reply(question=enum about_almond_identity)
+C: @org.thingpedia.builtin.thingengine.builtin.faq_reply(question=enum about_almond_identity)
 C: #[results=[
 C:   { question=enum about_almond_identity, reply="str:QUOTED_STRING::42:" }
 C: ]];
@@ -1779,7 +1779,7 @@ U: @org.thingpedia.builtin.thingengine.builtin.get_time();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.builtin.thingengine.builtin.get_time();
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @org.thingpedia.builtin.thingengine.builtin(id="thingengine-own-global"^^tt:device_id("Builtin")).get_time()
+C: @org.thingpedia.builtin.thingengine.builtin.get_time()
 C: #[results=[
 C:   { time=new Time(17, 50) }
 C: ]];
@@ -1792,11 +1792,11 @@ U: @org.thingpedia.builtin.thingengine.builtin.get_date();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.builtin.thingengine.builtin.get_date();
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @org.thingpedia.builtin.thingengine.builtin(id="thingengine-own-global"^^tt:device_id("Builtin")).get_time()
+C: @org.thingpedia.builtin.thingengine.builtin.get_time()
 C: #[results=[
 C:   { time=new Time(17, 50) }
 C: ]];
-C: @org.thingpedia.builtin.thingengine.builtin(id="thingengine-own-global"^^tt:device_id("Builtin")).get_date()
+C: @org.thingpedia.builtin.thingengine.builtin.get_date()
 C: #[results=[
 C:   { date=new Date("2018-01-20T08:00:00.000Z") }
 C: ]];
@@ -2125,6 +2125,118 @@ C: ]];
 A: Notification from some app: the answer is !!!!!!!!!!!!!!!!!!!!
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t @org.thingpedia.iot.switch.state();
+UT: @org.thingpedia.iot.switch.state();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.iot.switch.state()
+C: #[results=[
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 0") },
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::2:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 2") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::4:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 4") },
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: The Simulated Device org.thingpedia.iot.switch 0 switch is off. The Simulated Device org.thingpedia.iot.switch 1 switch is off. The Simulated Device org.thingpedia.iot.switch 2 switch is on. The Simulated Device org.thingpedia.iot.switch 3 switch is on. The Simulated Device org.thingpedia.iot.switch 4 switch is on.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t @org.thingpedia.iot.switch(name="kitchen").state();
+UT: @org.thingpedia.iot.switch(name="kitchen").state();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.iot.switch.state()
+C: #[results=[
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 0") },
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::2:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 2") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::4:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 4") },
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
+C: ]];
+C: @org.thingpedia.iot.switch(id="switch-kitchen"^^tt:device_id("Kitchen Switches")).state()
+C: #[results=[
+C:   { state=enum on, __device="switch-kitchen"^^tt:device_id("Kitchen Switches") }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: The Kitchen Switches switch is on.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t @org.thingpedia.iot.switch(all=true).state();
+UT: @org.thingpedia.iot.switch(all=true).state();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.iot.switch.state()
+C: #[results=[
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 0") },
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::2:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 2") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::4:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 4") },
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
+C: ]];
+C: @org.thingpedia.iot.switch(id="switch-kitchen"^^tt:device_id("Kitchen Switches")).state()
+C: #[results=[
+C:   { state=enum on, __device="switch-kitchen"^^tt:device_id("Kitchen Switches") }
+C: ]];
+C: @org.thingpedia.iot.switch(all=true).state()
+C: #[results=[
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 0") },
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::2:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 2") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::4:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 4") },
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: The Simulated Device org.thingpedia.iot.switch 0 switch is off. The Simulated Device org.thingpedia.iot.switch 1 switch is off. The Simulated Device org.thingpedia.iot.switch 2 switch is on. The Simulated Device org.thingpedia.iot.switch 3 switch is on. The Simulated Device org.thingpedia.iot.switch 4 switch is on.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t @org.thingpedia.iot.switch(all=true, name="bed").state();
+UT: @org.thingpedia.iot.switch(all=true, name="bed").state();
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.iot.switch.state()
+C: #[results=[
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 0") },
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::2:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 2") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::4:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 4") },
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
+C: ]];
+C: @org.thingpedia.iot.switch(id="switch-kitchen"^^tt:device_id("Kitchen Switches")).state()
+C: #[results=[
+C:   { state=enum on, __device="switch-kitchen"^^tt:device_id("Kitchen Switches") }
+C: ]];
+C: @org.thingpedia.iot.switch(all=true).state()
+C: #[results=[
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 0") },
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::2:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 2") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::4:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 4") },
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
+C: ]];
+C: @org.thingpedia.iot.switch(all=true, name="bed").state()
+C: #[results=[
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 0") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::2:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 2") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::4:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 4") },
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: The Simulated Device org.thingpedia.iot.switch 0 switch is on. The Simulated Device org.thingpedia.iot.switch 1 switch is on. The Simulated Device org.thingpedia.iot.switch 2 switch is on. The Simulated Device org.thingpedia.iot.switch 3 switch is on. The Simulated Device org.thingpedia.iot.switch 4 switch is on.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines

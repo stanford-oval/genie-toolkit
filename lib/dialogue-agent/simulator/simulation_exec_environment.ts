@@ -27,6 +27,7 @@ import { Ast, Type, ExecEnvironment, SchemaRetriever } from 'thingtalk';
 import { coin, uniform, randint } from '../../utils/random';
 
 import { SimulationDatabase } from './types';
+import { getAllDevicesOfKind } from './helpers';
 
 type CompiledFilterHint = [string, string, unknown];
 export interface CompiledQueryHints {
@@ -381,7 +382,7 @@ class SimulationExecEnvironment extends ExecEnvironment {
     private _simulateErrors : boolean;
     private _testDevice = new SimpleTestDevice();
 
-    private _execCache : Array<[string, Record<string, unknown>, Array<[string, Record<string, unknown>]>]>;
+    private _execCache : Array<[string, Record<string, string>, Record<string, unknown>, Array<[string, Record<string, unknown>]>]>;
 
     output ! : (type : string, value : Record<string, unknown>) => Promise<void>;
     generator : ResultGenerator|null;
@@ -411,10 +412,13 @@ class SimulationExecEnvironment extends ExecEnvironment {
         // all queries are expected to return consistent results
     }
 
-    private _findInCache(functionKey : string, params : Record<string, unknown>) : Array<[string, Record<string, unknown>]>|null {
+    private _findInCache(functionKey : string,
+                         attrs : Record<string, string>,
+                         params : Record<string, unknown>) : Array<[string, Record<string, unknown>]>|null {
         for (const cached of this._execCache) {
-            const [_function, cachedparams, result] = cached;
+            const [_function, cachedattrs, cachedparams, result] = cached;
             if (_function === functionKey &&
+                ThingTalk.Builtin.equality(cachedattrs, attrs) &&
                 ThingTalk.Builtin.equality(cachedparams, params))
                 return result;
         }
@@ -427,6 +431,23 @@ class SimulationExecEnvironment extends ExecEnvironment {
             throw new SimulatedError(this.generator!.generateString());
         else
             throw new SimulatedError(this.generator!.generateString(), uniform(errors, this._rng));
+    }
+
+    private async _getDevices(kind : string, attrs : Record<string, string>) {
+        if (attrs.id) {
+            if (attrs.id.startsWith('str:ENTITY_tt:device_id::')) {
+                const index = attrs.id.substring('str:ENTITY_tt:device_id::'.length, attrs.id.length-1);
+                return [{
+                    kind, name: `Simulated Device ${kind} ${index}`, uniqueId: attrs.id
+                }];
+            } else {
+                return [{
+                    kind, name: attrs.name || 'Unknown device', uniqueId: attrs.id
+                }];
+            }
+        } else {
+            return getAllDevicesOfKind(this._schemas, kind);
+        }
     }
 
     async *invokeAction(kind : string,
@@ -457,8 +478,21 @@ class SimulationExecEnvironment extends ExecEnvironment {
             }
         }
 
-        if (anyOutArgument)
-            yield [outputType, this.generator!.generate(schema, params, 0)];
+        for (const d of await this._getDevices(kind, attrs)) {
+            if (anyOutArgument) {
+                const generated = this.generator!.generate(schema, params, 0);
+                if (d.kind !== d.uniqueId)
+                    generated.__device = new ThingTalk.Builtin.Entity(d.uniqueId, d.name);
+                yield [outputType, generated];
+            } else {
+                if (d.kind !== d.uniqueId) {
+                    const __device = new ThingTalk.Builtin.Entity(d.uniqueId, d.name);
+                    yield [outputType, { __device }];
+                } else {
+                    yield [outputType, {}];
+                }
+            }
+        }
     }
 
     private _tryFromSimulationDatabase(schema : Ast.FunctionDef,
@@ -572,6 +606,7 @@ class SimulationExecEnvironment extends ExecEnvironment {
     }
 
     private async _doInvokeQuery(kind : string,
+                                 attrs : Record<string, string>,
                                  fname : string,
                                  params : Record<string, unknown>,
                                  hints : CompiledQueryHints) : Promise<[Array<[string, Record<string, unknown>]>, boolean]> {
@@ -613,8 +648,16 @@ class SimulationExecEnvironment extends ExecEnvironment {
         }
 
         const results : Array<[string, Record<string, unknown>]> = [];
-        for (let i = 0; i < numResults; i++)
-            results.push([outputType, this.generator!.generate(schema, params, i)]);
+        const devices = await this._getDevices(kind, attrs);
+
+        for (const d of devices) {
+            for (let i = 0; i < numResults; i++) {
+                const generated = this.generator!.generate(schema, params, 0);
+                if (d.uniqueId !== d.kind)
+                    generated.__device = new ThingTalk.Builtin.Entity(d.uniqueId, d.name);
+                results.push([outputType, generated]);
+            }
+        }
 
         return [results, cacheable];
     }
@@ -625,16 +668,16 @@ class SimulationExecEnvironment extends ExecEnvironment {
                        params : Record<string, unknown>,
                        hints : CompiledQueryHints) : AsyncIterable<[string, Record<string, unknown>]> {
         const functionKey = kind + ':' + fname;
-        const cached = this._findInCache(functionKey, params);
+        const cached = this._findInCache(functionKey, attrs, params);
         if (cached) {
             for (const el of cached)
                 yield el;
             return;
         }
 
-        const [list, cacheable] = await this._doInvokeQuery(kind, fname, params, hints);
+        const [list, cacheable] = await this._doInvokeQuery(kind, attrs, fname, params, hints);
         if (cacheable)
-            this._execCache.push([functionKey, params, list]);
+            this._execCache.push([functionKey, attrs, params, list]);
         for (const el of list)
             yield el;
     }

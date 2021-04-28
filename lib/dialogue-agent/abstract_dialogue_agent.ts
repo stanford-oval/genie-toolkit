@@ -322,14 +322,12 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
 
         const kind = selector.kind;
         const name = selector.getAttribute('name');
-        if (hints.devices.has(kind) && !selector.all) {
+        if (!name && hints.devices.has(kind) && !selector.all) {
             // if we have already selected a device for this kind in the context, reuse what
             // we chose before without asking again
             const [previousId, previousName] = hints.devices.get(kind)!;
             selector.id = previousId;
-            if (name && previousName)
-                name.value = previousName.value;
-            else if (previousName)
+            if (previousName)
                 selector.attributes.push(previousName.clone());
             return;
         }
