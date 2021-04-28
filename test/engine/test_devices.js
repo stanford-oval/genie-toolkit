@@ -60,7 +60,8 @@ async function testLookup(engine) {
        version: 0,
        class: 'system',
        ownerTier: 'global',
-       isTransient: true },
+       isTransient: true,
+       authType: 'builtin' },
      { uniqueId: 'org.thingpedia.builtin.thingengine.test_platform',
        name: 'Unknown device',
        description: 'Description not available',
@@ -68,7 +69,8 @@ async function testLookup(engine) {
        version: 0,
        class: 'data',
        ownerTier: 'global',
-       isTransient: true },
+       isTransient: true,
+       authType: 'builtin' },
      { uniqueId: 'thingengine-own-desktop:XXXXXX',
        name: 'Almond desktop (XXXXXX)',
        description: 'This is one of your own Almond apps.',
@@ -76,7 +78,8 @@ async function testLookup(engine) {
        version: 0,
        class: 'system',
        ownerTier: 'desktop',
-       isTransient: false },
+       isTransient: false,
+       authType: 'builtin' },
      { uniqueId: 'thingengine-own-global',
        name: 'Miscellaneous Interfaces',
        description: 'Time, randomness and other non-device specific things.',
@@ -84,7 +87,8 @@ async function testLookup(engine) {
        version: 0,
        class: 'data',
        ownerTier: 'global',
-       isTransient: true }
+       isTransient: true,
+       authType: 'builtin' }
     ]);
 }
 
