@@ -92,7 +92,7 @@ export default class EmailNotificationBackend {
             to = profile.email;
         }
 
-        let unsubscribeURL = interpolate(this._unsubURL, {
+        const unsubscribeURL = interpolate(this._unsubURL, {
             email: new Buffer(to).toString('base64')
         }, {
             locale: this._platform.locale,

@@ -93,7 +93,7 @@ class NotificationOutputDelegate {
 interface NotificationConfig {
     backend : string;
     config : Record<string, string>;
-};
+}
 
 export interface AppMeta {
     icon ?: string|null;
