@@ -21,7 +21,7 @@
 
 import assert from 'assert';
 
-import { Ast, } from 'thingtalk';
+import { Ast, Type } from 'thingtalk';
 
 import * as C from '../ast_manip';
 
@@ -157,7 +157,7 @@ function impreciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Value|C.InputPa
         assert(questions.length === 1);
 
         const ptype = ctx.nextFunction!.getArgType(questions[0])!;
-        if (!ptype.equals(answer.getType()))
+        if (!Type.isAssignable(answer.getType(), ptype, {}, ctx.loader.entitySubTypeMap))
             return null;
         ipslot = {
             schema: ctx.nextFunction!,

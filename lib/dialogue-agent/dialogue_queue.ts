@@ -18,6 +18,8 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import AppExecutor from '../engine/apps/app_executor';
+
 import type { UserInput as Command } from './user-input';
 
 class QueueItem {
@@ -37,25 +39,25 @@ namespace QueueItem {
     }
 
     export class Notification extends QueueItem {
-        constructor(public appId : string,
+        constructor(public app : AppExecutor,
                     public outputType : string,
                     public outputValue : Record<string, unknown>) {
             super();
         }
 
         toString() {
-            return `Notification(${this.appId}, ${this.outputType})`;
+            return `Notification(${this.app.uniqueId}, ${this.outputType})`;
         }
     }
 
     export class Error extends QueueItem {
-        constructor(public appId : string,
+        constructor(public app : AppExecutor,
                     public error : JSError) {
             super();
         }
 
         toString() {
-            return `Error(${this.appId}, ${this.error})`;
+            return `Error(${this.app.uniqueId}, ${this.error})`;
         }
     }
 }

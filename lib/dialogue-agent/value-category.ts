@@ -79,7 +79,43 @@ namespace ValueCategory {
         return fromType(type);
     }
 
-    export function toAskSpecial(expected : ValueCategory|null) : string|null {
+    export function fromString(expected : string|null) : ValueCategory|null {
+        if (expected === null)
+            return null;
+
+        switch (expected) {
+        case 'yesno':
+            return ValueCategory.YesNo;
+        case 'location':
+            return ValueCategory.Location;
+        case 'picture':
+            return ValueCategory.Picture;
+        case 'phone_number':
+            return ValueCategory.PhoneNumber;
+        case 'email_address':
+            return ValueCategory.EmailAddress;
+        case 'contact':
+            return ValueCategory.Contact;
+        case 'number':
+            return ValueCategory.Number;
+        case 'date':
+            return ValueCategory.Date;
+        case 'time':
+            return ValueCategory.Time;
+        case 'raw_string':
+            return ValueCategory.RawString;
+        case 'password':
+            return ValueCategory.Password;
+        case 'choice':
+            return ValueCategory.MultipleChoice;
+        case 'command':
+            return ValueCategory.Command;
+        default:
+            return ValueCategory.Unknown;
+        }
+    }
+
+    export function toString(expected : ValueCategory|null) : string|null {
         let what;
         if (expected === ValueCategory.YesNo)
             what = 'yesno';

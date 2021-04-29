@@ -590,14 +590,14 @@ AT: @com.twitter(id="twitter-bar"^^tt:device_id("Twitter Account bar")).post();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $nevermind;
 UT: $nevermind;
+C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Sorry I couldn't help on that.
+A: Is there anything else I can help you with?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_anything_else;
 #! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
-====
-# test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $stop;
 UT: $stop;
@@ -1907,7 +1907,6 @@ C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: timer(base=$now, interval=1h) => @com.thecatapi.get()
 C: #[results=[]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: How would you like to be notified?
 A: What is your phone number?
 A: Alright, I will get the cat picture every 60 min.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_rule_enable_success;
@@ -2081,16 +2080,11 @@ U: timer(base=$now, interval=1h) => @com.thecatapi.get();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: timer(base=$now, interval=1h) => @com.thecatapi.get();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: To receive notifications you must first log in to your personal account.
+A: What is your phone number?
 #! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
-====
-# test
-#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-U: \t $stop;
-UT: $stop;
 ====
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
@@ -2099,7 +2093,7 @@ U: @com.twitter.post();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.twitter.post();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: To use this command you must first log in to your personal account.
+A: To use this command you must first create a personal Almond account.
 #! vote: up
 #! comment: test comment for dialogue turns
 #!          additional

@@ -597,6 +597,18 @@ export function addNewStatement(ctx : ContextInfo,
     return addNewItem(ctx, dialogueAct, dialogueActParam, confirm, ...newItems);
 }
 
+export function acceptAllProposedStatements(ctx : ContextInfo) {
+    if (!ctx.state.history.some((item) => item.confirm === 'proposed'))
+        return null;
+
+    return new Ast.DialogueState(null, POLICY_NAME, 'execute', null, ctx.state.history.map((item) => {
+        if (item.confirm === 'proposed')
+            return new Ast.DialogueHistoryItem(null, item.stmt, null, 'accepted');
+        else
+            return item;
+    }));
+}
+
 function makeSimpleState(ctx : ContextInfo,
                          dialogueAct : string,
                          dialogueActParam : string[]|null) : Ast.DialogueState {
@@ -877,6 +889,10 @@ function makeAgentReply(ctx : ContextInfo,
             ['sys_rule_enable_success', 'sys_action_success', 'sys_action_error',
              'sys_end', 'sys_display_result'].includes(state.dialogueAct));
     }
+
+    // show a yes/no thing if we're proposing something
+    if (expectedType === null && state.history.some((item) => item.confirm === 'proposed'))
+        expectedType = Type.Boolean;
 
     return {
         state,

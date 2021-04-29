@@ -126,7 +126,9 @@ class Annotator extends events.EventEmitter {
             locale: this._locale,
             timezone: options.timezone,
             rng: this._rng,
-            debug: 0
+            debug: 0,
+            anonymous: false,
+            extraFlags: {},
         });
 
         this._state = 'loading';
@@ -221,6 +223,17 @@ class Annotator extends events.EventEmitter {
     }
     get platformData() {
         return {};
+    }
+    get conversation() {
+        return {
+            getState() {
+                return {
+                    history: [],
+                    dialogueState: 'null',
+                    expected: null
+                };
+            }
+        };
     }
 
     interpolate(msg : string, args : Record<string, unknown>) : string {
@@ -438,16 +451,15 @@ class Annotator extends events.EventEmitter {
                 this.next();
                 return;
             }
-            const [dialogueStateAfterAgent, , utterance, entities] = policyResult;
 
-            const postprocessed = this._langPack.postprocessNLG(utterance, entities, this._executor);
+            const postprocessed = this._langPack.postprocessNLG(policyResult.utterance, policyResult.entities, this._executor);
             console.log('A: ' + postprocessed);
 
-            const prediction = ThingTalkUtils.computePrediction(this._context, dialogueStateAfterAgent, 'agent');
+            const prediction = ThingTalkUtils.computePrediction(this._context, policyResult.state, 'agent');
 
             this._outputTurn.agent = postprocessed;
             this._outputTurn.agent_target = prediction.prettyprint();
-            this._context = dialogueStateAfterAgent;
+            this._context = policyResult.state;
         }
 
         this._state = 'input';

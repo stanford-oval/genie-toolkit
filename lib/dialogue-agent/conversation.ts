@@ -22,20 +22,19 @@
 import path from "path";
 import fs from "fs";
 import * as events from 'events';
-import type * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
 
 import * as I18n from '../i18n';
 
-import { PlatformData } from './user-input';
 import ValueCategory from './value-category';
 import DialogueLoop from './dialogue-loop';
-import { MessageType, Message, RDL } from './protocol';
+import { PlatformData, MessageType, Message, RDL } from './protocol';
 import { EntityMap } from '../utils/entity-utils';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import type Engine from '../engine';
 import * as StreamUtils from "../utils/stream-utils";
 import { DialogueSerializer, DialogueTurn } from "../dataset-tools/parsers";
+import AppExecutor from '../engine/apps/app_executor';
 
 const DummyStatistics = {
     hit() {
@@ -43,11 +42,6 @@ const DummyStatistics = {
 };
 
 const DEFAULT_CONVERSATION_TTL = 600000; // 10 minutes
-
-export interface AssistantUser {
-    id : string;
-    account : string;
-}
 
 export interface ConversationOptions {
     nluServerUrl ?: string;
@@ -60,6 +54,7 @@ export interface ConversationOptions {
     showWelcome ?: boolean;
     deleteWhenInactive ?: boolean;
     log ?: boolean;
+    dialogueFlags ?: Record<string, boolean>;
 }
 
 interface Statistics {
@@ -144,8 +139,13 @@ class DialogueLog {
     }
 }
 
+export interface ConversationState {
+    history : Message[];
+    dialogueState : string;
+}
+
 /**
- * A single session of conversation in Almond.
+ * A single session of conversation in Genie.
  *
  * This object is responsible for maintaining the history of the conversation
  * to support clients reconnecting to the same conversation later, as well
@@ -155,7 +155,6 @@ class DialogueLog {
  */
 export default class Conversation extends events.EventEmitter {
     private _engine : Engine;
-    private _user : AssistantUser;
     private _conversationId : string;
     private _locale : string;
     _ : (x : string) => string;
@@ -163,6 +162,7 @@ export default class Conversation extends events.EventEmitter {
     private _stats : Statistics;
     private _options : ConversationOptions;
     private _debug : boolean;
+    private _dialogueFlags : Record<string, boolean>;
     rng : () => number;
 
     private _loop : DialogueLoop;
@@ -181,11 +181,9 @@ export default class Conversation extends events.EventEmitter {
 
     constructor(engine : Engine,
                 conversationId : string,
-                user : AssistantUser,
                 options : ConversationOptions = {}) {
         super();
         this._engine = engine;
-        this._user = user;
 
         this._conversationId = conversationId;
         this._locale = this._engine.platform.locale;
@@ -199,6 +197,7 @@ export default class Conversation extends events.EventEmitter {
 
         this._options = options;
         this._debug = !!this._options.debug;
+        this._dialogueFlags = options.dialogueFlags || {};
 
         this.rng = options.rng || Math.random;
 
@@ -229,22 +228,6 @@ export default class Conversation extends events.EventEmitter {
         return this._conversationId;
     }
 
-    get user() : AssistantUser {
-        return this._user;
-    }
-
-    get platform() : Tp.BasePlatform {
-        return this._engine.platform;
-    }
-
-    get locale() : string {
-        return this._engine.platform.locale;
-    }
-
-    get timezone() : string {
-        return this._engine.platform.timezone;
-    }
-
     get engine() : Engine {
         return this._engine;
     }
@@ -253,20 +236,16 @@ export default class Conversation extends events.EventEmitter {
         return this._stats;
     }
 
-    get schemas() : ThingTalk.SchemaRetriever {
-        return this._engine.schemas;
-    }
-
-    get thingpedia() : Tp.BaseClient {
-        return this._engine.thingpedia;
-    }
-
     get history() : Message[] {
         return this._history;
     }
 
     get inRecordingMode() : boolean {
         return !!this._options.log;
+    }
+
+    get dialogueFlags() : Record<string, boolean> {
+        return this._dialogueFlags;
     }
 
     startRecording() {
@@ -278,12 +257,12 @@ export default class Conversation extends events.EventEmitter {
         this.dialogueFinished();
     }
 
-    notify(appId : string, outputType : string, outputValue : Record<string, unknown>) {
-        return this._loop.dispatchNotify(appId, outputType, outputValue);
+    notify(app : AppExecutor, outputType : string, outputValue : Record<string, unknown>) {
+        return this._loop.dispatchNotify(app, outputType, outputValue);
     }
 
-    notifyError(appId : string, error : Error) {
-        return this._loop.dispatchNotifyError(appId, error);
+    notifyError(app : AppExecutor, error : Error) {
+        return this._loop.dispatchNotifyError(app, error);
     }
 
     setExpected(expecting : ValueCategory|null, context : Context) : void {
@@ -291,9 +270,14 @@ export default class Conversation extends events.EventEmitter {
         this._context = context;
     }
 
-    async start() : Promise<void> {
+    async start(state ?: ConversationState) : Promise<void> {
         this._resetInactivityTimeout();
-        return this._loop.start(!!this._options.showWelcome);
+        if (state) {
+            for (const msg of state.history)
+                await this.addMessage(msg);
+        }
+        return this._loop.start(!!this._options.showWelcome,
+            state ? state.dialogueState : null);
     }
 
     async stop() : Promise<void> {
@@ -315,7 +299,7 @@ export default class Conversation extends events.EventEmitter {
         // conversation
         if (this._contextResetTimeout)
             clearTimeout(this._contextResetTimeout);
-        if (this._contextResetTimeoutSec) {
+        if (this._contextResetTimeoutSec > 0) {
             this._contextResetTimeout = setTimeout(() => {
                 this._loop.reset();
             }, this._contextResetTimeoutSec);
@@ -356,7 +340,7 @@ export default class Conversation extends events.EventEmitter {
     }
 
     async sendAskSpecial() : Promise<void> {
-        const what = ValueCategory.toAskSpecial(this._expecting);
+        const what = ValueCategory.toString(this._expecting);
 
         if (this._debug) {
             if (what !== null && what !== 'generic')
@@ -368,12 +352,33 @@ export default class Conversation extends events.EventEmitter {
         await this._callDelegates((out) => out.setExpected(what, this._context));
     }
 
-    private async _addMessage(msg : Message) {
-        msg.id = this._nextMsgId ++;
+    /**
+     * Add a message to the conversation history.
+     *
+     * This method is exported to inject conversation history from outside.
+     */
+    async addMessage(msg : Message) {
+        if (msg.id !== undefined)
+            this._nextMsgId = Math.max(this._nextMsgId, msg.id+1);
+        else
+            msg.id = this._nextMsgId ++;
         this._history.push(msg);
         if (this._history.length > 30)
             this._history.shift();
         await this._callDelegates((out) => out.addMessage(msg));
+    }
+
+    /**
+     * Extract the state from the conversation.
+     *
+     * This method is provided to save and restore the conversation state,
+     * and transfer the conversation state between engines.
+     */
+    getState() : ConversationState {
+        return {
+            history: this._history.slice(),
+            dialogueState: this._loop.getState(),
+        };
     }
 
     async handleCommand(command : string, platformData : PlatformData = {}) : Promise<void> {
@@ -384,7 +389,7 @@ export default class Conversation extends events.EventEmitter {
         this.stats.hit('sabrina-command');
         this.emit('active');
         this._resetInactivityTimeout();
-        await this._addMessage({ type: MessageType.COMMAND, command });
+        await this.addMessage({ type: MessageType.COMMAND, command });
         if (this._debug)
             console.log('Received assistant command ' + command);
 
@@ -398,12 +403,12 @@ export default class Conversation extends events.EventEmitter {
         this._resetInactivityTimeout();
         if (typeof root === 'string')
             root = JSON.parse(root);
-        await this._addMessage({ type: MessageType.COMMAND, command: title || command, json: root });
+        await this.addMessage({ type: MessageType.COMMAND, command: title || command, json: root });
 
         if (this._debug)
             console.log('Received pre-parsed assistant command');
         if (root.example_id) {
-            this.thingpedia.clickExample(root.example_id).catch((e) => {
+            this._engine.thingpedia.clickExample(root.example_id).catch((e) => {
                 console.error('Failed to record example click: ' + e.message);
             });
         }
@@ -434,7 +439,7 @@ export default class Conversation extends events.EventEmitter {
         this.stats.hit('sabrina-thingtalk-command');
         this.emit('active');
         this._resetInactivityTimeout();
-        await this._addMessage({ type: MessageType.COMMAND, command });
+        await this.addMessage({ type: MessageType.COMMAND, command });
         if (this._debug)
             console.log('Received ThingTalk program');
 
@@ -449,25 +454,25 @@ export default class Conversation extends events.EventEmitter {
     sendReply(message : string, icon : string|null) {
         if (this._debug)
             console.log('Genie says: ' + message);
-        return this._addMessage({ type: MessageType.TEXT, text: message, icon });
+        return this.addMessage({ type: MessageType.TEXT, text: message, icon });
     }
 
     sendMedia(mediaType : 'picture'|'audio'|'video', url : string, alt : string|undefined, icon : string|null) {
         if (this._debug)
             console.log('Genie sends ' + mediaType + ': '+ url);
-        return this._addMessage({ type: mediaType as MessageType.AUDIO|MessageType.VIDEO|MessageType.PICTURE, url, alt, icon });
+        return this.addMessage({ type: mediaType as MessageType.AUDIO|MessageType.VIDEO|MessageType.PICTURE, url, alt, icon });
     }
 
     sendRDL(rdl : RDL, icon : string|null) {
         if (this._debug)
             console.log('Genie sends RDL: '+ rdl.callback);
-        return this._addMessage({ type: MessageType.RDL, rdl, icon });
+        return this.addMessage({ type: MessageType.RDL, rdl, icon });
     }
 
     sendSoundEffect(name : string, exclusive : boolean, icon : string|null) {
         if (this._debug)
             console.log('Genie sends sound effect: '+ name);
-        return this._addMessage({ type: MessageType.SOUND_EFFECT, name, exclusive, icon });
+        return this.addMessage({ type: MessageType.SOUND_EFFECT, name, exclusive, icon });
     }
 
     sendChoice(idx : number, title : string) {
@@ -475,19 +480,19 @@ export default class Conversation extends events.EventEmitter {
             console.log('UNEXPECTED: sendChoice while not expecting a MultipleChoice');
         if (this._debug)
             console.log('Genie sends multiple choice button: '+ title);
-        return this._addMessage({ type: MessageType.CHOICE, idx, title });
+        return this.addMessage({ type: MessageType.CHOICE, idx, title });
     }
 
     sendButton(title : string, json : string) {
         if (this._debug)
             console.log('Genie sends generic button: '+ title);
-        return this._addMessage({ type: MessageType.BUTTON, json, title });
+        return this.addMessage({ type: MessageType.BUTTON, json, title });
     }
 
-    sendLink(title : string, url : string) {
+    sendLink(title : string, url : string, state : ConversationState) {
         if (this._debug)
-            console.log('Almond sends link: '+ url);
-        return this._addMessage({ type: MessageType.LINK, url, title });
+            console.log('Genie sends link: '+ url);
+        return this.addMessage({ type: MessageType.LINK, url, title, state });
     }
 
     sendNewProgram(program : {
@@ -499,8 +504,8 @@ export default class Conversation extends events.EventEmitter {
         icon : string|null;
     }) {
         if (this._debug)
-            console.log('Almond executed new program: '+ program.uniqueId);
-        return this._addMessage({ type: MessageType.NEW_PROGRAM, ...program });
+            console.log('Genie executed new program: '+ program.uniqueId);
+        return this.addMessage({ type: MessageType.NEW_PROGRAM, ...program });
     }
 
     private get _lastDialogue() {

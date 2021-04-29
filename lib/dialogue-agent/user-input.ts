@@ -21,14 +21,7 @@
 import * as ThingTalk from 'thingtalk';
 
 import { EntityMap } from '../utils/entity-utils';
-
-export interface PlatformData {
-    contacts ?: Array<{
-        value : string;
-        principal : string;
-        display : string;
-    }>;
-}
+import { PlatformData } from './protocol';
 
 export interface PreparsedCommand {
     code : string[];

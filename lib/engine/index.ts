@@ -34,7 +34,8 @@ import AppDatabase from './apps/database';
 import AppRunner from './apps/runner';
 import type AppExecutor from './apps/app_executor';
 
-import AssistantDispatcher, { NotificationConfig } from '../dialogue-agent/assistant_dispatcher';
+import AssistantDispatcher from '../dialogue-agent/assistant_dispatcher';
+import { NotificationConfig } from '../dialogue-agent/notifications';
 import NotificationFormatter, { FormattedObject } from '../dialogue-agent/notifications/formatter';
 
 import * as Config from '../config';
@@ -74,6 +75,20 @@ export interface AppInfo {
      * The last error reported by the app.
      */
     error : string|null;
+    /**
+     * Configuration related to how notifications should be reported by the app.
+     */
+    notifications ?: {
+        /**
+         * Identifier of the backend to use for notifications.
+         */
+        backend : string;
+        /**
+         * Backend-specific information, such as the phone number or email
+         * address to send notifications to.
+         */
+        config : Record<string, string>;
+    };
 }
 
 /**
@@ -144,6 +159,10 @@ interface CreateAppOptions {
     description ?: string;
     icon ?: string;
     conversation ?: string;
+    notifications ?: {
+        backend : string;
+        config : Record<string, string>;
+    };
 }
 
 interface AppResult {
@@ -489,7 +508,8 @@ export default class AssistantEngine extends Tp.BaseEngine {
             icon: a.icon || null,
             isRunning: a.isRunning,
             isEnabled: a.isEnabled,
-            error: a.error
+            error: a.error,
+            notifications: a.notifications,
         };
     }
 

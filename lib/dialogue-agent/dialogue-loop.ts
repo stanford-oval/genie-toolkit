@@ -23,9 +23,10 @@ import assert from 'assert';
 
 import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
-import { Ast, Syntax } from 'thingtalk';
+import { Ast, Type, Syntax } from 'thingtalk';
 import AsyncQueue from 'consumer-queue';
 
+import { clean } from '../utils/misc-utils';
 import { getProgramIcon } from '../utils/icons';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import { Replaceable, ReplacedConcatenation, ReplacedResult } from '../utils/template-string';
@@ -36,16 +37,16 @@ import * as I18n from '../i18n';
 
 import ValueCategory from './value-category';
 import QueueItem from './dialogue_queue';
-import {
-    UserInput,
-    PlatformData
-} from './user-input';
+import { UserInput, } from './user-input';
+import { PlatformData } from './protocol';
 import { CancellationError } from './errors';
 
 import * as Helpers from './helpers';
 import DialoguePolicy from './dialogue_policy';
 import type Conversation from './conversation';
+import { ConversationState } from './conversation';
 import CardFormatter, { FormattedObject } from './card-output/card-formatter';
+import AppExecutor from '../engine/apps/app_executor';
 
 import ExecutionDialogueAgent from './execution_dialogue_agent';
 
@@ -180,12 +181,14 @@ export default class DialogueLoop {
 
         this._agent = new ExecutionDialogueAgent(engine, this, options.debug);
         this._policy = new DialoguePolicy({
-            thingpedia: conversation.thingpedia,
-            schemas: conversation.schemas,
-            locale: conversation.locale,
+            thingpedia: engine.thingpedia,
+            schemas: engine.schemas,
+            locale: engine.platform.locale,
             timezone: engine.platform.timezone,
             rng: conversation.rng,
-            debug : this._debug ? 2 : 1
+            debug : this._debug ? 2 : 1,
+            anonymous: conversation.isAnonymous,
+            extraFlags: conversation.dialogueFlags,
         });
         this._dialogueState = null; // thingtalk dialogue state
         this._executorState = undefined; // private object managed by DialogueExecutor
@@ -199,6 +202,10 @@ export default class DialogueLoop {
     }
     get hasDebug() : boolean {
         return this._debug;
+    }
+
+    getState() : string {
+        return this._dialogueState ? this._dialogueState.prettyprint() : 'null';
     }
 
     debug(...args : unknown[]) {
@@ -299,8 +306,17 @@ export default class DialogueLoop {
 
         // ok so this was a natural language
 
+        const [contextCode, contextEntities] = this._prepareContextForPrediction(this._dialogueState, 'user');
         if (this._raw) {
             // in "raw mode", all natural language becomes an answer
+
+            // we still ship it to the parser so it gets recorded
+            await this._nlu.sendUtterance(command.utterance, contextCode, contextEntities, {
+                expect: this.expecting ? String(this.expecting) : undefined,
+                choices: this._choices,
+                store: this._prefs.get('sabrina-store-log') as string || 'no'
+            });
+
             let value;
             if (this.expecting === ValueCategory.Location)
                 value = new Ast.LocationValue(new Ast.UnresolvedLocation(command.utterance));
@@ -317,8 +333,6 @@ export default class DialogueLoop {
         // alright, let's ask parser first then
         let nluResult : ParserClient.PredictionResult;
         try {
-            const [contextCode, contextEntities] = this._prepareContextForPrediction(this._dialogueState, 'user');
-
             nluResult = await this._nlu.sendUtterance(command.utterance, contextCode, contextEntities, {
                 expect: this.expecting ? String(this.expecting) : undefined,
                 choices: this._choices,
@@ -423,9 +437,8 @@ export default class DialogueLoop {
             throw new CancellationError();
         }
 
-        let expect, utterance, entities, numResults;
-        [this._dialogueState, expect, utterance, entities, numResults] = policyResult;
-
+        this._dialogueState = policyResult.state;
+        let utterance = policyResult.utterance;
         const policyPrediction = ThingTalkUtils.computePrediction(oldState, this._dialogueState, 'agent');
         const agentTarget = policyPrediction.prettyprint();
         this.conversation.updateLog('agent_target', agentTarget);
@@ -439,17 +452,32 @@ export default class DialogueLoop {
             const result = await this._nlg.generateUtterance(contextCode, contextEntities, targetAct);
             utterance = result[0].answer;
         }
-        utterance = this._langPack.postprocessNLG(utterance, entities, this._agent);
+        utterance = this._langPack.postprocessNLG(utterance, policyResult.entities, this._agent);
 
         this.icon = getProgramIcon(this._dialogueState!);
         await this.reply(utterance);
 
-        for (const [outputType, outputValue] of newResults.slice(0, numResults)) {
+        for (const [outputType, outputValue] of newResults.slice(0, policyResult.numResults)) {
             const formatted = await this._cardFormatter.formatForType(outputType, outputValue);
 
             for (const card of formatted)
                 await this.replyCard(card);
         }
+
+        let expect : ValueCategory|null;
+        if (policyResult.end) {
+            expect = null;
+        } else if (policyResult.expect instanceof Type.Enum) {
+            for (const entry of policyResult.expect.entries!)
+                await this.replyButton(clean(entry), JSON.stringify({ code: ['$answer', '(', 'enum', entry, ')', ';'], entities: {} }));
+            expect = ValueCategory.Command;
+        } else if (policyResult.expect) {
+            expect = ValueCategory.fromType(policyResult.expect);
+        } else {
+            expect = ValueCategory.Command;
+        }
+        if (expect === ValueCategory.RawString && !policyResult.raw)
+            expect = ValueCategory.Command;
 
         if (expect === null && TERMINAL_STATES.includes(this._dialogueState!.dialogueAct))
             throw new CancellationError();
@@ -493,8 +521,8 @@ export default class DialogueLoop {
 
     private async _describeProgram(program : Ast.Input) {
         const allocator = new Syntax.SequentialEntityAllocator({});
-        const describer = new ThingTalkUtils.Describer(this.conversation.locale,
-                                                       this.conversation.timezone,
+        const describer = new ThingTalkUtils.Describer(this.engine.platform.locale,
+                                                       this.engine.platform.timezone,
                                                        allocator);
         // retrieve the relevant primitive templates
         const kinds = new Set<string>();
@@ -522,7 +550,6 @@ export default class DialogueLoop {
 
             switch (analyzed.type) {
             case CommandAnalysisType.STOP:
-            case CommandAnalysisType.NEVERMIND:
             case CommandAnalysisType.DEBUG:
             case CommandAnalysisType.WAKEUP:
             case CommandAnalysisType.IGNORE:
@@ -596,12 +623,17 @@ export default class DialogueLoop {
     private async _handleNormalDialogueCommand(prediction : Ast.DialogueState) : Promise<void> {
         this._dialogueState = ThingTalkUtils.computeNewState(this._dialogueState, prediction, 'user');
         this._checkPolicy(this._dialogueState.policy);
-        this.icon = getProgramIcon(this._dialogueState);
+
+        await this._executeCurrentState();
+    }
+
+    private async _executeCurrentState() {
+        this.icon = getProgramIcon(this._dialogueState!);
 
         //this.debug(`Before execution:`);
         //this.debug(this._dialogueState.prettyprint());
 
-        const { newDialogueState, newExecutorState, newPrograms, newResults } = await this._agent.execute(this._dialogueState, this._executorState);
+        const { newDialogueState, newExecutorState, newPrograms, newResults } = await this._agent.execute(this._dialogueState!, this._executorState);
         this._dialogueState = newDialogueState;
         this._executorState = newExecutorState;
         this.debug(`Execution state:`);
@@ -613,38 +645,28 @@ export default class DialogueLoop {
         await this._doAgentReply(newResults);
     }
 
-    private async _showNotification(appId : string,
+    private async _showNotification(app : AppExecutor,
                                     outputType : string,
                                     outputValue : Record<string, unknown>) {
-        const app = this.engine.apps.getApp(appId);
-        if (!app) // the app was already stopped, ignore this notification
-            return;
-
         const mappedResult = await this._agent.executor.mapResult(outputType, outputValue);
-
         this._dialogueState = await this._policy.getNotificationState(app.name, app.program, mappedResult);
         await this._doAgentReply([[outputType, outputValue]]);
     }
 
-    private async _showAsyncError(appId : string,
+    private async _showAsyncError(app : AppExecutor,
                                   error : Error) {
-        const app = this.engine.apps.getApp(appId);
-        if (!app) // the app was already stopped, ignore this notification
-            return;
-
-        console.log('Error from ' + appId, error);
+        console.log('Error from ' + app.uniqueId, error);
 
         const mappedError = await this._agent.executor.mapError(error);
-
         this._dialogueState = await this._policy.getAsyncErrorState(app.name, app.program, mappedError);
         await this._doAgentReply([]);
     }
 
     private async _handleAPICall(call : QueueItem) {
         if (call instanceof QueueItem.Notification)
-            await this._showNotification(call.appId, call.outputType, call.outputValue);
+            await this._showNotification(call.app, call.outputType, call.outputValue);
         else if (call instanceof QueueItem.Error)
-            await this._showAsyncError(call.appId, call.error);
+            await this._showAsyncError(call.app, call.error);
     }
 
     private async _showWelcome() {
@@ -659,10 +681,29 @@ export default class DialogueLoop {
         await this.setExpected(null);
     }
 
-    private async _loop(showWelcome : boolean) {
-        // if we want to show the welcome message, we run the policy on the `null` state, which will return the sys_greet intent
-        if (showWelcome)
+    private async _loop(showWelcome : boolean, initialState : string|null) {
+        if (initialState !== null) {
+            if (initialState === 'null') {
+                this._dialogueState = null;
+                await this.setExpected(null);
+            } else {
+                const parsed = await ThingTalkUtils.parse(initialState, {
+                    schemaRetriever: this.engine.schemas,
+                    thingpediaClient: this.engine.thingpedia
+                });
+                assert(parsed instanceof Ast.DialogueState);
+                this._dialogueState = parsed;
+
+                // execute the current dialogue state
+                // this will attempt to run all the programs that failed in the
+                // previous conversation (most likely because they were executed
+                // in the anonymous context)
+                await this._executeCurrentState();
+            }
+        } else if (showWelcome) {
+            // if we want to show the welcome message, we run the policy on the `null` state, which will return the sys_greet intent
             await this._showWelcome();
+        }
 
         while (!this._stopped) {
             let item;
@@ -880,29 +921,29 @@ export default class DialogueLoop {
         await this.conversation.sendButton(text, json);
     }
 
-    async replyLink(title : string, url : string) {
-        await this.conversation.sendLink(title, url);
+    async replyLink(title : string, url : string, state : ConversationState = this.conversation.getState()) {
+        await this.conversation.sendLink(title, url, state);
     }
 
     private _isInDefaultState() : boolean {
         return this._notifyQueue.hasWaiter();
     }
 
-    dispatchNotify(appId : string, outputType : string, outputValue : Record<string, unknown>) {
-        const item = new QueueItem.Notification(appId, outputType, outputValue);
+    dispatchNotify(app : AppExecutor, outputType : string, outputValue : Record<string, unknown>) {
+        const item = new QueueItem.Notification(app, outputType, outputValue);
         this._pushQueueItem(item);
     }
-    dispatchNotifyError(appId : string, error : Error) {
-        const item = new QueueItem.Error(appId, error);
+    dispatchNotifyError(app : AppExecutor, error : Error) {
+        const item = new QueueItem.Error(app, error);
         this._pushQueueItem(item);
     }
 
-    async start(showWelcome : boolean) {
+    async start(showWelcome : boolean, initialState : string|null) {
         await this._nlu.start();
         await this._nlg.start();
 
         const promise = this._waitNextCommand();
-        this._loop(showWelcome).then(() => {
+        this._loop(showWelcome, initialState).then(() => {
             throw new Error('Unexpected end of dialog loop');
         }, (err) => {
             console.error('Uncaught error in dialog loop', err);

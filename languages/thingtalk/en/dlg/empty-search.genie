@@ -31,9 +31,12 @@ import { Ast, } from 'thingtalk';
 import * as C from '../../ast_manip';
 import ThingpediaLoader from '../../load-thingpedia';
 
-empty_search_error : [Ast.InvocationExpression|null, C.ParamSlot|null] = {
+empty_search_error : [Ast.InvocationExpression|null, C.ParamSlot|null, boolean] = {
     ["${sorry_preamble} {there are no ${base[plural=other]}|i cannot find any ${base[plural=one]}} {matching your request|with those characteristics|like that}."]:
-        (sorry_preamble, base:base_table) => [base, null],
+        (sorry_preamble, base:base_table) => [base, null, false],
+
+    ["${sorry_preamble} {there are no ${base[plural=other]}|i cannot find any ${base[plural=one]}} at the moment {matching your request|with those characteristics|like that}. would you like to be notified when {there are|i have|you have} new ${base[plural=other]}?", priority=1]:
+        (sorry_preamble, base:base_table<is_monitorable=true>) => [base, null, true],
 
     !inference {
         ["${sorry_preamble} {there are no ${base[plural=other]}|i cannot find any ${base[plural=one]}} {matching your request|with those characteristics|like that}. would you like {a different|another} ${p}?", priority=1]: (sorry_preamble, base:base_table, p:out_param_Any) => {
@@ -41,18 +44,18 @@ empty_search_error : [Ast.InvocationExpression|null, C.ParamSlot|null] = {
                 return null;
             if (p.name === 'id')
                 return null;
-            return [base, p];
+            return [base, p, false];
         },
 
         ["${sorry_preamble} i cannot find any result for your search . would you like {a different|another} ${p}?"]: (sorry_preamble, p:out_param_Any) => {
             if (p.name === 'id')
                 return null;
-            return [null, p];
+            return [null, p, false];
         },
     }
 
     ?inference {
-        ["${sorry_preamble} i cannot find any result for your search. ", priority=-1]: (sorry_preamble) => [null, null];
+        ["${sorry_preamble} i cannot find any result for your search. ", priority=-1]: (sorry_preamble) => [null, null, false];
     }
 }
 

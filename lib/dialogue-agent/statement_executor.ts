@@ -25,7 +25,8 @@ import type AppExecutor from '../engine/apps/app_executor';
 
 import type {
     NewProgramRecord,
-    RawExecutionResult
+    RawExecutionResult,
+    NotificationConfig,
 } from './abstract_dialogue_agent';
 
 // above MORE_SIZE, we set the "more" bit
@@ -191,9 +192,9 @@ export default class InferenceStatementExecutor {
         return [false, errorCode, errorMessage];
     }
 
-    async executeStatement(stmt : Ast.ExpressionStatement) : Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, NewProgramRecord, undefined]> {
+    async executeStatement(stmt : Ast.ExpressionStatement, privateState : undefined, notifications : NotificationConfig|undefined) : Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, NewProgramRecord, undefined]> {
         const program = new Ast.Program(null, [], [], [stmt]);
-        const app = await this._engine.createApp(program);
+        const app = await this._engine.createApp(program, { notifications });
         const results : Ast.DialogueHistoryResultItem[] = [];
         const rawResults : RawExecutionResult = [];
         const [more, errorCode, errorMessage] = await this._iterateResults(app, results, rawResults);
@@ -208,7 +209,7 @@ export default class InferenceStatementExecutor {
             code: program.prettyprint(),
             results: rawResults.map((r) => r[1]),
             errors: errorCode ? [errorCode] : errorMessage ? [errorMessage] : [],
-            icon: app.icon
+            icon: app.icon,
         };
         return [resultList, rawResults, newProgramRecord, undefined];
     }

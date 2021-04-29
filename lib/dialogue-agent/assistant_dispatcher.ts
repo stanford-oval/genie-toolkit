@@ -20,86 +20,25 @@
 
 import assert from 'assert';
 import * as events from 'events';
-import * as Tp from 'thingpedia';
 
 import Conversation, {
-    AssistantUser,
     ConversationDelegate,
-    ConversationOptions
+    ConversationOptions,
+    ConversationState
 } from './conversation';
-import { Message } from './protocol';
-import NotificationFormatter, { FormattedObject } from './notifications/formatter';
-import TwilioNotificationBackend from './notifications/twilio';
+import { PlatformData, Message } from './protocol';
+import NotificationFormatter from './notifications/formatter';
+import {
+    StaticNotificationBackends,
+    ThingpediaNotificationBackend,
+    NotificationConfig,
+    NotificationDelegate,
+    NotificationBackend
+} from './notifications';
 
+import AppExecutor from '../engine/apps/app_executor';
 import type Engine from '../engine';
 import DeviceView from '../engine/devices/device_view';
-
-interface NotificationDelegate {
-    notify(data : {
-        appId : string;
-        icon : string|null;
-        raw : Record<string, unknown>;
-        type : string;
-        formatted : FormattedObject[]
-    }) : Promise<void>;
-
-    notifyError(data : {
-        appId : string;
-        icon : string|null;
-        error : Error
-    }) : Promise<void>;
-}
-
-interface NotificationBackend extends NotificationDelegate {
-    readonly name : string;
-    readonly uniqueId : string;
-    readonly requiredSettings : string[];
-}
-
-const StaticNotificationBackends = {
-    'twilio': TwilioNotificationBackend
-};
-
-export type NotificationConfig = {
-    [T in keyof typeof StaticNotificationBackends] ?: ConstructorParameters<(typeof StaticNotificationBackends)[T]>[1]
-}
-
-/**
- * Helper class to adapt a Thingpedia device into a notification backend.
- */
-class ThingpediaNotificationBackend implements NotificationBackend {
-    private _iface : NotificationDelegate;
-    name : string;
-    uniqueId : string;
-
-    constructor(device : Tp.BaseDevice) {
-        this.name = device.name;
-        this.uniqueId = 'thingpedia/' + device.uniqueId;
-        this._iface = device.queryInterface('notifications') as NotificationDelegate;
-    }
-
-    get requiredSettings() {
-        return [];
-    }
-
-    notify(data : {
-        appId : string;
-        icon : string|null;
-        raw : Record<string, unknown>;
-        type : string;
-        formatted : FormattedObject[]
-    }) {
-        return this._iface.notify(data);
-    }
-
-    notifyError(data : {
-        appId : string;
-        icon : string|null;
-        error : Error
-    }) {
-        return this._iface.notifyError(data);
-    }
-}
 
 /**
  * A conversation delegate that buffers all commands until the dialogue turn
@@ -142,7 +81,7 @@ class StatelessConversationDelegate implements ConversationDelegate {
     }
 }
 
-type ConverseInput = {
+type ConverseInput = ({
     type : 'command';
     text : string;
 } | {
@@ -152,7 +91,7 @@ type ConverseInput = {
 } | {
     type : 'tt';
     code : string;
-};
+}) & PlatformData;
 
 /**
  * The main controller class for interaction with the user.
@@ -188,7 +127,7 @@ export default class AssistantDispatcher extends events.EventEmitter {
         this._staticNotificationBackends = {};
         for (const key in notificationConfig) {
             const key2 = key as keyof typeof StaticNotificationBackends;
-            this._staticNotificationBackends[key] = new (StaticNotificationBackends[key2])(engine, notificationConfig[key2]!);
+            this._staticNotificationBackends[key] = new (StaticNotificationBackends[key2])(engine, notificationConfig[key2] as any);
         }
     }
 
@@ -207,8 +146,8 @@ export default class AssistantDispatcher extends events.EventEmitter {
      * It exists for the convenience of REST API clients which do not keep
      * an open web socket.
      */
-    async converse(command : ConverseInput, user : AssistantUser, conversationId : string) {
-        const conversation = await this.getOrOpenConversation(conversationId, user, {
+    async converse(command : ConverseInput, conversationId : string) {
+        const conversation = await this.getOrOpenConversation(conversationId, {
             showWelcome: false,
             anonymous: false,
             debug: true
@@ -218,13 +157,13 @@ export default class AssistantDispatcher extends events.EventEmitter {
 
         switch (command.type) {
         case 'command':
-            await conversation.handleCommand(command.text);
+            await conversation.handleCommand(command.text, command);
             break;
         case 'parsed':
-            await conversation.handleParsedCommand(command.json, command.title);
+            await conversation.handleParsedCommand(command.json, command.title, command);
             break;
         case 'tt':
-            await conversation.handleThingTalk(command.code);
+            await conversation.handleThingTalk(command.code, command);
             break;
         }
 
@@ -263,25 +202,22 @@ export default class AssistantDispatcher extends events.EventEmitter {
      * Dispatch a notification (a single new result from a stream) from a
      * ThingTalk program.
      *
-     * @param appId - the unique ID of the running ThingTalk program
+     * @param app - the running ThingTalk program that generated the notification
      * @param outputType - a string identifying the type of result to display
      * @param outputValue - the new value to display
      */
-    async notify(appId : string, outputType : string, outputValue : Record<string, unknown>) {
+    async notify(app : AppExecutor, outputType : string, outputValue : Record<string, unknown>) {
         const prefs = this._engine.platform.getSharedPreferences();
-        const notificationBackend = prefs.get('notification-backend') as string || 'conversation';
-        const app = this._engine.apps.getApp(appId);
-        // ignore if the app was stopped already
-        if (!app)
-            return;
+        const notificationBackend =
+            app.notifications ? app.notifications.backend : (prefs.get('notification-backend') as string || 'conversation');
 
         const promises = [];
         if (this._notificationOutputs.size > 0 || notificationBackend !== 'conversation') {
             const messages = await this._notificationFormatter.formatNotification(app.name, app.program, outputType, outputValue);
 
             const notification = {
-                appId: appId,
-                icon: app ? app.icon : null,
+                appId: app.uniqueId,
+                icon: app.icon,
                 raw: outputValue,
                 type: outputType,
                 formatted: messages
@@ -298,30 +234,27 @@ export default class AssistantDispatcher extends events.EventEmitter {
                 } else {
                     const backend = this._staticNotificationBackends[notificationBackend];
                     if (backend)
-                        promises.push(backend.notify(notification));
+                        promises.push(backend.notify(notification, app.notifications?.config));
                 }
             }
         }
 
         if (notificationBackend === 'conversation') {
             for (const conv of this._conversations.values())
-                promises.push(conv.notify(appId, outputType, outputValue));
+                promises.push(conv.notify(app, outputType, outputValue));
         }
         await Promise.all(promises);
     }
 
-    async notifyError(appId : string, error : Error) {
+    async notifyError(app : AppExecutor, error : Error) {
         const prefs = this._engine.platform.getSharedPreferences();
-        const notificationBackend = prefs.get('notification-backend') as string || 'conversation';
-        const app = this._engine.apps.getApp(appId);
-        // ignore if the app was stopped already
-        if (!app)
-            return;
+        const notificationBackend =
+            app.notifications ? app.notifications.backend : (prefs.get('notification-backend') as string || 'conversation');
 
         const promises = [];
         const notification = {
-            appId: appId,
-            icon: app ? app.icon : null,
+            appId: app.uniqueId,
+            icon: app.icon,
             error: error
         };
         for (const out of this._notificationOutputs.values())
@@ -329,7 +262,7 @@ export default class AssistantDispatcher extends events.EventEmitter {
 
         if (notificationBackend === 'conversation') {
             for (const conv of this._conversations.values())
-                promises.push(conv.notifyError(appId, error));
+                promises.push(conv.notifyError(app, error));
         } else if (notificationBackend.startsWith('thingpedia/')) {
             const deviceId = notificationBackend.substring('thingpedia/'.length);
             const device = this._notificationDeviceView.getById(deviceId);
@@ -338,31 +271,32 @@ export default class AssistantDispatcher extends events.EventEmitter {
         } else {
             const backend = this._staticNotificationBackends[notificationBackend];
             if (backend)
-                promises.push(backend.notifyError(notification));
+                promises.push(backend.notifyError(notification, app.notifications?.config));
         }
 
         await Promise.all(promises);
     }
 
-    getConversation(id ?: string) : Conversation|null {
-        if (id !== undefined && this._conversations.has(id))
-            return this._conversations.get(id)!;
-        else
-            return this._lastConversation;
+    getConversation(id : string) : Conversation|undefined {
+        return this._conversations.get(id);
     }
 
-    async getOrOpenConversation(id : string, user : AssistantUser, options : ConversationOptions) {
+    get lastConversation() {
+        return this._lastConversation;
+    }
+
+    async getOrOpenConversation(id : string, options : ConversationOptions, state ?: ConversationState) {
         if (this._conversations.has(id))
             return this._conversations.get(id)!;
         options = options || {};
         if (!options.nluServerUrl)
             options.nluServerUrl = this._nluModelUrl;
-        const conv = this.openConversation(id, user, options);
-        await conv.start();
+        const conv = this.openConversation(id, options);
+        await conv.start(state);
         return conv;
     }
 
-    openConversation(id : string, user : AssistantUser, options : ConversationOptions) {
+    openConversation(id : string, options : ConversationOptions) {
         this._conversations.delete(id);
         options = options || {};
         if (!options.nluServerUrl)
@@ -371,7 +305,7 @@ export default class AssistantDispatcher extends events.EventEmitter {
         let deleteWhenInactive = options.deleteWhenInactive;
         if (deleteWhenInactive === undefined)
             deleteWhenInactive = true;
-        const conv = new Conversation(this._engine, id, user, options);
+        const conv = new Conversation(this._engine, id, options);
         conv.on('active', () => {
             this._lastConversation = conv;
         });

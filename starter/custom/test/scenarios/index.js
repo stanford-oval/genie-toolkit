@@ -222,14 +222,6 @@ function readAllLines(files, separator = '') {
     return Genie.StreamUtils.chain(files.map((f) => fs.createReadStream(f).setEncoding('utf8').pipe(byline())), { objectMode: true, separator });
 }
 
-class TestUser {
-    constructor() {
-        this.name = 'Alice Tester';
-        this.isOwner = true;
-        this.anonymous = false;
-    }
-}
-
 async function execProcess(command, ...args) {
     const child = child_process.spawn(command, args, { stdio: ['ignore', 'inherit', 'inherit'] });
 
@@ -332,7 +324,7 @@ async function main() {
 
     try {
 
-        const conversation = await engine.assistant.getOrOpenConversation('test', new TestUser, {
+        const conversation = await engine.assistant.getOrOpenConversation('test', {
             debug: true,
             testMode: false,
             showWelcome: false,

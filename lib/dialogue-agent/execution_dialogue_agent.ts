@@ -32,11 +32,16 @@ import StatementExecutor from './statement_executor';
 import { CancellationError } from './errors';
 import { EntityRecord } from './entity-linking/entity-finder';
 import { Contact } from './entity-linking/contact_search';
-import { PlatformData } from './user-input';
+import { PlatformData } from './protocol';
+import { ConversationState } from './conversation';
 
 import AbstractDialogueAgent, {
     DisambiguationHints,
 } from './abstract_dialogue_agent';
+
+interface AbstractConversation {
+    getState() : ConversationState;
+}
 
 /**
  * The interface that the {@link ExecutionDialogueAgent} uses to communicate
@@ -58,9 +63,10 @@ export interface AbstractDialogueLoop {
     platformData : PlatformData;
     isAnonymous : boolean;
     _ : (x : string) => string;
+    conversation : AbstractConversation;
 
     reply(msg : string) : Promise<void>;
-    replyLink(title : string, link : string) : Promise<void>;
+    replyLink(title : string, link : string, state ?: ConversationState) : Promise<void>;
     interpolate(msg : string, args : Record<string, unknown>) : string;
     replyInterp(msg : string, args : Record<string, unknown>) : Promise<void>;
     ask(expected : ValueCategory.PhoneNumber|ValueCategory.EmailAddress|ValueCategory.Location|ValueCategory.Time,
@@ -104,20 +110,31 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         return this._engine.getDeviceInfos(kind);
     }
 
+    private async _requireRegistration(msg : string) : Promise<never> {
+        const state = this._dlg.conversation.getState();
+        await this._dlg.reply(msg);
+        await this._dlg.replyLink(this._("Sign up for Almond"), "/user/register", state);
+        throw new CancellationError();
+    }
+
     protected async checkForPermission(stmt : Ast.ExpressionStatement) {
         if (!this._dlg.isAnonymous)
             return;
 
-        if (stmt.stream) {
-            await this._dlg.reply(this._("To receive notifications you must first log in to your personal account."));
-            await this._dlg.replyLink(this._("Register for Almond"), "/user/register");
-            throw new CancellationError();
-        }
+        if (stmt.last.schema!.functionType === 'action' &&
+            !['org.thingpedia.builtin.thingengine.builtin.faq_reply',
+              'org.thingpedia.builtin.thingengine.builtin.say'].includes(stmt.last.schema!.qualifiedName))
+            await this._requireRegistration(this._("To use this command you must first create a personal Almond account."));
 
-        if (stmt.last.schema!.functionType === 'action') {
-            await this._dlg.reply(this._("To use this command you must first log in to your personal account."));
-            await this._dlg.replyLink(this._("Register for Almond"), "/user/register");
-            throw new CancellationError();
+        if (stmt.stream) {
+            // check available notification backends
+            // if we have one, we allow notifications from anonymous accounts
+            // and we'll ask the user for the notification configuration
+            // otherwise, we reject them
+            const available = this._engine.assistant.getAvailableNotificationBackends();
+
+            if (available.length === 0)
+                await this._requireRegistration(this._("To receive notifications you must first create a personal Almond account."));
         }
     }
 
@@ -154,11 +171,9 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
             return this._engine.getDeviceInfo(device.uniqueId!);
         } else {
             if (this._dlg.isAnonymous) {
-                await this._dlg.replyInterp(this._("Sorry, to use ${device}, you must log in to your personal account."), {
+                await this._requireRegistration(this._dlg.interpolate(this._("Sorry, to use ${device}, you must create a personal Almond account."), {
                     device: factory.text,
-                });
-                await this._dlg.replyLink(this._("Register for Almond"), "/user/register");
-                return null;
+                }));
             }
 
             if (factory.type === 'multiple' && factory.choices.length === 0) {
@@ -300,7 +315,7 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         let candidates = tpCandidates;
         if (stmt) {
             await this._prepareForExecution(stmt, hints);
-            const [results,] = await this._executor.executeStatement(stmt);
+            const [results,] = await this._executor.executeStatement(stmt, undefined, undefined);
             candidates = [];
             for (const item of results!.results) {
                 const id = item.value.id;
@@ -368,6 +383,9 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
     }
 
     private _tryGetStoredVariable(type : Type, variable : string) : Ast.Value|null {
+        if (this._dlg.isAnonymous)
+            return null;
+
         const sharedPrefs = this._platform.getSharedPreferences();
 
         const value = sharedPrefs.get('context-' + variable);
@@ -376,7 +394,70 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         return Ast.Value.fromJSON(type, value);
     }
 
+    private async _resolvePhoneNumber() : Promise<Ast.Value> {
+        // if we received the command over SMS, that's our phone number, immediately
+        if (this._dlg.platformData.from && this._dlg.platformData.from.startsWith('phone:'))
+            return new Ast.Value.Entity(this._dlg.platformData.from.substring('phone:'.length), 'tt:phone_number', null);
+
+        if (!this._dlg.isAnonymous) {
+            const profile = this._platform.getProfile();
+            if (profile.phone) {
+                // TODO phone verification???
+                assert(profile.phone_verified);
+                return new Ast.Value.Entity(profile.phone, 'tt:phone_number', null);
+            }
+        }
+
+        const phone = await this._dlg.ask(ValueCategory.PhoneNumber, this._("What is your phone number?"));
+        if (this._dlg.isAnonymous) {
+            return phone;
+        } else {
+            if (!await this._platform.setProfile({ phone: String(phone.toJS()) }))
+                return phone;
+
+            const profile = this._platform.getProfile();
+            assert(profile.phone_verified);
+            return phone;
+        }
+    }
+
+    private async _resolveEmailAddress() : Promise<Ast.Value> {
+        // if we received the command over email, that's our email address, immediately
+        if (this._dlg.platformData.from && this._dlg.platformData.from.startsWith('email:'))
+            return new Ast.Value.Entity(this._dlg.platformData.from.substring('email:'.length), 'tt:email_address', null);
+
+        if (!this._dlg.isAnonymous) {
+            const profile = this._platform.getProfile();
+            if (profile.email) {
+                if (!profile.email_verified)
+                    await this._dlg.reply(this._("You must verify your email address by clicking the verification link before you can use it to receive notifications."));
+                return new Ast.Value.Entity(profile.email, 'tt:email_address', null);
+            }
+        }
+
+        const email = await this._dlg.ask(ValueCategory.EmailAddress, this._("What is your email address?"));
+        if (this._dlg.isAnonymous) {
+            return email;
+        } else {
+            if (!await this._platform.setProfile({ email: String(email.toJS()) }))
+                return email;
+
+            const profile = this._platform.getProfile();
+            if (!profile.email_verified)
+                await this._dlg.reply(this._("Thank you! Please verify your email address by clicking the verification link before continuing."));
+
+            return email;
+        }
+    }
+
     protected async resolveUserContext(variable : string) : Promise<Ast.Value> {
+        switch (variable) {
+        case '$context.self.phone_number':
+            return this._resolvePhoneNumber();
+        case '$context.self.email_address':
+            return this._resolveEmailAddress();
+        }
+
         let value : Ast.Value|null = null;
         switch (variable) {
             case '$context.location.current_location': {
@@ -395,10 +476,6 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
             case '$context.time.evening':
                 value = this._tryGetStoredVariable(Type.Time, variable);
                 break;
-            case '$context.self.phone_number':
-                value = this._tryGetStoredVariable(new Type.Entity('tt:phone_number'), variable);
-                break;
-
             default:
                 throw new TypeError('Invalid variable ' + variable);
         }
@@ -427,10 +504,6 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
             question = this._("What time does your evening begin?");
             type = ValueCategory.Time as const;
             break;
-        case '$context.self.phone_number':
-            question = this._("What is your phone number?");
-            type = ValueCategory.PhoneNumber as const;
-            break;
         }
 
         let answer = await this._dlg.ask(type, question);
@@ -443,8 +516,10 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
                 answer = await this.lookupLocation(answer.value.name, []);
         }
 
-        const sharedPrefs = this._platform.getSharedPreferences();
-        sharedPrefs.set('context-' + variable, answer.toJS());
+        if (!this._dlg.isAnonymous) {
+            const sharedPrefs = this._platform.getSharedPreferences();
+            sharedPrefs.set('context-' + variable, answer.toJS());
+        }
         return answer;
     }
 
@@ -453,42 +528,73 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         return pref.get('preferred-' + type) as string|undefined;
     }
 
-    protected async ensureNotificationsConfigured() {
-        const prefs = this._platform.getSharedPreferences();
-        const backendId = prefs.get('notification-backend') as string|undefined;
-        // check if the user has chosen a backend, and if that backend was
-        // autodiscovered from a thingpedia device, check that the device is
-        // still available
-        if (backendId !== undefined &&
-            (!backendId.startsWith('thingpedia/') && this._engine.hasDevice(backendId.substring('thingpedia/'.length))))
-            return;
+    protected async configureNotifications() {
+        if (!this._dlg.isAnonymous) {
+            // if we're not anonymous, look at the previous configuration
+
+            const prefs = this._platform.getSharedPreferences();
+            const backendId = prefs.get('notification-backend') as string|undefined;
+            // check if the user has chosen a backend, and if that backend was
+            // autodiscovered from a thingpedia device, check that the device is
+            // still available
+            if (backendId !== undefined &&
+                (!backendId.startsWith('thingpedia/') || this._engine.hasDevice(backendId.substring('thingpedia/'.length))))
+                return undefined; // return null so we don't force a particular configuration now
+        }
 
         const available = this._engine.assistant.getAvailableNotificationBackends();
         // if no backend is available, use the default (which is to blast to all
         // conversations) and leave it unspecified
         if (available.length === 0)
-            return;
+            return undefined;
 
         // if we have voice, we'll use that for notifications
         if (this._platform.hasCapability('sound'))
-            return;
+            return undefined;
 
-        const choices = available.map((c) => c.name);
-        // add the option to be notified in the chat
-        choices.push(this._("This chat"));
-        const chosen = await this._dlg.askChoices(this._("How would you like to be notified?"), choices);
-        if (chosen === available.length) {
-            prefs.set('notification-backend', 'conversation');
-            return;
+
+        let backend;
+        if (this._dlg.platformData.from) {
+            if (this._dlg.platformData.from.startsWith('email:'))
+                backend = available.find((b) => b.uniqueId === 'email');
+            else if (this._dlg.platformData.from.startsWith('phone:'))
+                backend = available.find((b) => b.uniqueId === 'twilio');
+        }
+        if (!backend) {
+            let chosen;
+            if (available.length > 1) {
+                const choices = available.map((c) => c.name);
+                chosen = await this._dlg.askChoices(this._("How would you like to be notified?"), choices);
+            } else {
+                chosen = 0;
+            }
+            backend = available[chosen];
         }
 
-        const backend = available[chosen];
+        const settings = backend.requiredSettings;
+        const config : Record<string, string> = {};
         // ensure that all settings needed by the notification backend are set
-        for (const variable of backend.requiredSettings)
-            await this.resolveUserContext(variable);
+        for (const key in settings) {
+            const variable = settings[key];
+            config[key] = String((await this.resolveUserContext(variable)).toJS());
+        }
 
         // if we get here, the user has given meaningful answers to our questions
-        // save the setting and continue
-        prefs.set('notification-backend', backend.uniqueId);
+        // in anonymous mode, we make up a transient notification config that we'll
+        // use just for this program
+        //
+        // in non-anonymous mode, we save the choice the notification backend
+        // other info has been saved to the profile already
+
+        if (this._dlg.isAnonymous) {
+            return {
+                backend: backend.uniqueId,
+                config
+            };
+        } else {
+            const prefs = this._platform.getSharedPreferences();
+            prefs.set('notification-backend', backend.uniqueId);
+            return undefined;
+        }
     }
 }

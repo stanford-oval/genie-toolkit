@@ -152,6 +152,8 @@ export async function inputToDialogueState(policy : DialoguePolicy,
                     return null;
                 return computePrediction(context, handled, 'user');
             }
+            case 'nevermind':
+                return new Ast.DialogueState(null, 'org.thingpedia.dialogue.transaction', 'cancel', null, []);
             default:
                 return null;
             }

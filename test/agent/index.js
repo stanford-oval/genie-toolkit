@@ -131,33 +131,24 @@ class TestDelegate {
             this._testRunner.writeLine('link: ' + msg.title + ' ' + msg.url);
             break;
 
-        case 'button':
-            if (typeof msg.json !== 'object')
-                console.error(msg.json);
-            assert(typeof json === 'object');
-            assert(Array.isArray(msg.json.code) ||
-                   typeof msg.json.program === 'string' ||
-                   typeof msg.json.permissionRule === 'string');
-            if (msg.json.slots) {
-                msg.json.slots.forEach((slot) => {
+        case 'button': {
+            const json = JSON.parse(msg.json);
+            assert(Array.isArray(json.code) ||
+                   typeof json.program === 'string' ||
+                   typeof json.permissionRule === 'string');
+            if (json.slots) {
+                json.slots.forEach((slot) => {
                     assert(msg.title.indexOf('$' + slot) >= 0, `button ${msg.title} is missing slot ${slot}`);
                 });
             }
-            this._testRunner.writeLine('button: ' + msg.title + ' ' + JSON.stringify(msg.json));
+            this._testRunner.writeLine('button: ' + msg.title + ' ' + msg.json);
             break;
+        }
 
         case 'new-program':
             console.log(JSON.stringify(msg));
             break;
         }
-    }
-}
-
-class MockUser {
-    constructor() {
-        this.name = 'Alice Tester';
-        this.isOwner = true;
-        this.anonymous = false;
     }
 }
 
@@ -266,7 +257,7 @@ async function main(onlyIds) {
     const delegate = new TestDelegate(testRunner);
 
     const nluServerUrl = 'https://nlp-staging.almond.stanford.edu';
-    const conversation = new Conversation(engine, 'test', new MockUser(), {
+    const conversation = new Conversation(engine, 'test', {
         nluServerUrl: nluServerUrl,
         nlgServerUrl: null,
         debug: true,

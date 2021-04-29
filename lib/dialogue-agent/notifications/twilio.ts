@@ -28,6 +28,7 @@ interface TwilioConfig {
     accountSid : string;
     authToken : string;
     from : string;
+    fromByLocale ?: Record<string, string>;
 }
 
 export default class TwilioNotificationBackend {
@@ -40,11 +41,12 @@ export default class TwilioNotificationBackend {
     constructor(engine : Engine, config : TwilioConfig) {
         this._platform = engine.platform;
         this._client = new twilio.Twilio(config.accountSid, config.authToken);
-        this._from = config.from;
+        this._from = config.fromByLocale ? (config.fromByLocale[this._platform.locale] || config.from)
+            : config.from;
     }
 
     get requiredSettings() {
-        return ['$context.self.phone_number'];
+        return { to: '$context.self.phone_number' };
     }
 
     async notify(data : {
@@ -53,14 +55,28 @@ export default class TwilioNotificationBackend {
         raw : Record<string, unknown>;
         type : string;
         formatted : FormattedObject[]
-    }) {
-        const prefs = this._platform.getSharedPreferences();
-        const to = prefs.get('context-$context.self.phone_number') as string;
+    }, config ?: Record<string, string>) {
+        let to;
+        if (config) {
+            to = config.to;
+        } else {
+            const profile = this._platform.getProfile();
+            if (!profile.phone || !profile.phone_verified)
+                return;
+            to = profile.phone;
+        }
 
-        await this._client.messages.create({
-            to, from: this._from,
-            body: data.formatted.map((x) => x.toLocaleString(this._platform.locale)).join('\n')
-        });
+        let body = data.formatted.map((x) => x.toLocaleString(this._platform.locale)).join('\n');
+        body += ' To stop these messages, say STOP.';
+
+        try {
+            await this._client.messages.create({
+                to, from: this._from, body
+            });
+        } catch(e) {
+            // can happen e.g. if unsubscribed
+            console.error(`Failed to send SMS to ${to}: ${e.message}`);
+        }
     }
 
     async notifyError(data : {

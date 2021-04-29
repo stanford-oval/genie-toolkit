@@ -213,14 +213,18 @@ function answer(state : Ast.DialogueState, answer : Ast.Value, contextTable : Se
     const ctx = S.getContextInfo($loader, state, contextTable);
 
     // if the agent proposed something and the user says "yes", we accept the proposal
-    if (state.history.length > 0 && state.history[state.history.length-1].confirm === 'proposed' &&
-        answer instanceof Ast.BooleanValue && answer.value === true) {
-        const item = state.history[state.history.length-1].clone();
-        item.confirm = 'accepted';
-        return S.addNewItem(ctx, 'execute', null, 'accepted', item);
+    if (state.history.length > 0 && state.history[state.history.length-1].confirm === 'proposed'
+        && answer instanceof Ast.BooleanValue) {
+        if (answer.value) // yes accepts
+            return S.acceptAllProposedStatements(ctx);
+        else // no is cancel
+            return S.makeSimpleState(ctx, 'cancel', null);
     }
 
     switch (state.dialogueAct) {
+    case 'sys_record_command':
+        return S.makeSimpleState(ctx, 'end', null);
+
     case 'sys_anything_else':
         if (answer instanceof Ast.BooleanValue) {
             if (answer.value)
@@ -281,24 +285,16 @@ function notifyError(appName : string|null, program : Ast.Program, error : Ast.V
 }
 
 $agent : S.AgentReplyRecord = {
-    !inference {
-        ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
-        | ctx:ctx_init ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
-        | ctx:ctx_reinit ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
-        ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null));
-    }
-    ?inference {
-        ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what can i do for you') '?'
-        | ctx:ctx_init ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what can i do for you') '?'
-        | ctx:ctx_reinit ('how can i help you' | 'what can i do for you') '?'
-        ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null));
-    }
+    ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
+    | ctx:ctx_init ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
+    | ctx:ctx_reinit ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
+    ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null)),
 
     ctx:ctx_cancel anything_else_phrase
-        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_anything_else', null));
+        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_anything_else', null)),
 
     ctx:ctx_end 'alright ,' ('bye !' | 'good bye !')
-        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null));
+        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null)),
 
     // action results
     action_success_phrase;
@@ -410,6 +406,8 @@ $user : Ast.DialogueState = {
         => D.preciseEmptySearchChangeRequest(ctx, req);
     ctx:ctx_sys_empty_search req:imprecise_empty_search_change_request
         => D.impreciseEmptySearchChangeRequest(ctx, req);
+    ctx:ctx_sys_empty_search accept_phrase
+        => D.acceptEmptySearchOffer(ctx);
 
     // search questions
     ctx:ctx_sys_search_question answer:precise_search_question_answer with { functionName = ctx.currentFunction }

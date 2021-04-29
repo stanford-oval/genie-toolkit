@@ -544,7 +544,7 @@ class SimulationExecEnvironment extends ExecEnvironment {
         });
 
         if (mapped.length === 0)
-            return null;
+            return schema.is_list ? [[], false] : null;
 
         if (ftype === 'action') {
             const choice = uniform(mapped, this._rng);
