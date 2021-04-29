@@ -217,12 +217,11 @@ class SimulatorStream extends Stream.Transform {
             return;
         }
         //
-        let dialogueStateAfterAgent, utterance, entities;
-        [dialogueStateAfterAgent, , utterance, entities, ] = policyResult;
-        utterance = this._langPack.postprocessNLG(utterance, entities, this._simulator);
+        let utterance = policyResult.utterance; 
+        utterance = this._langPack.postprocessNLG(policyResult.utterance, policyResult.entities, this._simulator);
 
         const prediction = ThingTalkUtils.computePrediction(state, policyResult.state, 'agent');
-        newTurn.agent = policyResult.utterance;
+        newTurn.agent = utterance;
         newTurn.agent_target = prediction.prettyprint();
         this.push({
             id: dlg.id,
