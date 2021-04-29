@@ -313,49 +313,111 @@ $agent : S.AgentReplyRecord = {
     ctx:ctx_display_nonlist_result proposal:system_list_proposal
         => D.makeDisplayResultReplyFromList(ctx, proposal);
 
-    // aggregation results
-    ( ctx:ctx_aggregation_question reply:count_aggregation_reply
-    | ctx:ctx_aggregation_question reply:other_aggregation_reply
-    ) => reply;
+        // aggregation results
+        ( ctx:ctx_aggregation_question reply:count_aggregation_reply
+        | ctx:ctx_aggregation_question reply:other_aggregation_reply
+        ) => reply;
 
-    // confirming an action
-    ctx:ctx_confirm_action reply:action_confirm_phrase => reply;
+        // confirming an action
+        ctx:ctx_confirm_action reply:action_confirm_phrase => reply;
 
-    // empty search error
-    ctx:ctx_empty_search_command error:empty_search_error
-        => D.makeEmptySearchError(ctx, error);
+        // empty search error
+        ctx:ctx_empty_search_command error:empty_search_error
+            => D.makeEmptySearchError(ctx, error);
 
-    // query refinement (through proposal or search question)
-    !inference prop:system_generic_proposal => prop;
-    !inference ctx:ctx_search_command questions:search_question
-        => D.makeSearchQuestion(ctx, questions);
+        // query refinement (through proposal or search question)
+        !inference prop:system_generic_proposal => prop;
+        !inference ctx:ctx_search_command questions:search_question
+            => D.makeSearchQuestion(ctx, questions);
 
-    // slot filling of actions
-    ctx:ctx_incomplete_action_after_search questions:slot_fill_question
-        => D.makeSlotFillQuestion(ctx, questions);
+        // slot filling of actions
+        ctx:ctx_incomplete_action_after_search questions:slot_fill_question
+            => D.makeSlotFillQuestion(ctx, questions);
 
-    // action recommendation (through one or a list)
+        // action recommendation (through one or a list)
 
-    ctx:ctx_complete_search_command proposal:system_recommendation
-        => D.makeRecommendationReply(ctx, proposal);
+        ctx:ctx_complete_search_command proposal:system_recommendation
+            => D.makeRecommendationReply(ctx, proposal);
 
-    ctx:ctx_complete_search_command proposal:system_list_proposal [weight=10]
-        => D.makeListProposalReply(ctx, proposal);
+        ctx:ctx_complete_search_command proposal:system_list_proposal [weight=10]
+            => D.makeListProposalReply(ctx, proposal);
 
-    // learn more
-    ctx:ctx_learn_more system_learn_more
-        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_learn_more_what', null), null, null, { end: false });
+        // learn more
+        ctx:ctx_learn_more system_learn_more
+            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_learn_more_what', null), null, null, { end: false });
 
-    ["${preamble} I {will|am going to} ${stmt}"]: (ctx : ctx_rule_enable_success, preamble : generic_excitement2_phrase, stmt : ctx_current_statement)
-        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_rule_enable_success', null));
+        ["${preamble} I {will|am going to} ${stmt}"]: (ctx : ctx_rule_enable_success, preamble : generic_excitement2_phrase, stmt : ctx_current_statement)
+            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_rule_enable_success', null));
 
-    // notification
-    ctx:ctx_list_notification notification_preamble proposal:system_recommendation
-        => D.makeRecommendationReply(ctx, proposal);
-    ctx:ctx_nonlist_notification notification_preamble proposal:system_nonlist_result
-        => D.makeDisplayResultReply(ctx, proposal);
-    action_notification_phrase;
-    ctx:ctx_notification_error notification_error_preamble phrase:action_error_phrase => phrase;
+        // notification
+        ctx:ctx_list_notification notification_preamble proposal:system_recommendation
+            => D.makeRecommendationReply(ctx, proposal);
+        ctx:ctx_nonlist_notification notification_preamble proposal:system_nonlist_result
+            => D.makeDisplayResultReply(ctx, proposal);
+        action_notification_phrase;
+        ctx:ctx_notification_error notification_error_preamble phrase:action_error_phrase => phrase;
+    }
+    ?verboseagent {
+        // In this section, vd (verbose description) is prepended to all agent utterances
+        vd:ctx_current_statement ctx:ctx_cancel anything_else_phrase
+            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_anything_else', null)),
+
+            vd:ctx_current_statement ctx:ctx_end 'alright ,' ('bye !' | 'good bye !') 
+            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null)),
+
+        // action results
+        action_success_phrase;
+        vd:ctx_current_statement action:action_success_phrase anything_else_phrase => S.setEndBit(action, false);
+        vd:ctx_current_statement ctx:ctx_completed_action_error sorry_preamble phrase:action_error_phrase => phrase;
+
+        // query results
+        vd:ctx_current_statement ctx:ctx_display_nonlist_result proposal:system_nonlist_result
+            => D.makeDisplayResultReply(ctx, proposal);
+
+        // aggregation results
+        ( vd:ctx_current_statement ctx:ctx_aggregation_question reply:count_aggregation_reply
+        | vd:ctx_current_statement ctx:ctx_aggregation_question reply:other_aggregation_reply
+        ) => reply;
+
+        // confirming an action
+        vd:ctx_current_statement ctx:ctx_confirm_action reply:action_confirm_phrase => reply;
+
+        // empty search error
+        vd:ctx_current_statement ctx:ctx_empty_search_command error:empty_search_error
+            => D.makeEmptySearchError(ctx, error);
+
+        // query refinement (through proposal or search question)
+        !inference vd:ctx_current_statement prop:system_generic_proposal => prop;
+        !inference vd:ctx_current_statement ctx:ctx_search_command questions:search_question
+            => D.makeSearchQuestion(ctx, questions);
+
+        // slot filling of actions
+        vd:ctx_current_statement ctx:ctx_incomplete_action_after_search questions:slot_fill_question
+            => D.makeSlotFillQuestion(ctx, questions);
+
+        // action recommendation (through one or a list)
+
+        vd:ctx_current_statement ctx:ctx_complete_search_command proposal:system_recommendation
+            => D.makeRecommendationReply(ctx, proposal);
+
+        vd:ctx_current_statement ctx:ctx_complete_search_command proposal:system_list_proposal [weight=10]
+            => D.makeListProposalReply(ctx, proposal);
+
+        // learn more
+        vd:ctx_current_statement ctx:ctx_learn_more system_learn_more
+            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_learn_more_what', null), null, null, { end: false });
+
+        ["${preamble} I {will|am going to} ${stmt}"]: (ctx : ctx_rule_enable_success, preamble : generic_excitement2_phrase, stmt : ctx_current_statement)
+            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_rule_enable_success', null));
+
+        // notification
+        ctx:ctx_list_notification notification_preamble proposal:system_recommendation
+            => D.makeRecommendationReply(ctx, proposal);
+        ctx:ctx_nonlist_notification notification_preamble proposal:system_nonlist_result
+            => D.makeDisplayResultReply(ctx, proposal);
+        action_notification_phrase;
+        ctx:ctx_notification_error notification_error_preamble phrase:action_error_phrase => phrase;
+    }
 }
 
 $user : Ast.DialogueState = {

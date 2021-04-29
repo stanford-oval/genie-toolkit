@@ -99,6 +99,12 @@ export function initArgparse(subparsers : argparse.SubParser) {
         The output will have as many partial dialogues as there are dialogue turns in the input.`,
         default: false
     });
+
+    parser.add_argument('--verbose-agent', {
+        action: 'store_true',
+        help: `If set, we will pass verboseagent flag to the agent. This will affect which templates are used for response generation.`,
+        default: false
+    });
 }
 
 class SimulatorStream extends Stream.Transform {
@@ -303,7 +309,7 @@ export async function execute(args : any) {
         rng: simulatorOptions.rng,
         debug: 0,
         anonymous: false,
-        extraFlags: {},
+        extraFlags: {verboseagent: args.verbose_agent},
     });
 
     let parser = null;
