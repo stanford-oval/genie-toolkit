@@ -1,0 +1,34 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: monthly
+    time: "13:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: "@types/js-yaml"
+    versions:
+    - 4.0.0
+  - dependency-name: eslint
+    versions:
+    - 7.19.0
+    - 7.20.0
+  - dependency-name: js-yaml
+    versions:
+    - 4.0.0
+  - dependency-name: sqlite3
+    versions:
+    - 5.0.1
+  - dependency-name: csv-stringify
+    versions:
+    - 5.6.1
+  - dependency-name: qs
+    versions:
+    - 6.9.6
+  - dependency-name: query-validation
+    versions:
+    - 0.2.1
+  - dependency-name: csv-parse
+    versions:
+    - 4.15.0
