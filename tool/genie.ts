@@ -103,7 +103,7 @@ const subcommands : { [key : string] : SubCommand } = {
     'upload-string-values': require('./upload-string-values'),
     'upload-entity-values': require('./upload-entity-values'),
 
-    'update-annotations': require('./update-annotations-multiwoz.ts'),
+    'update-annotations': require('./update-annotations-multiwoz'),
 };
 
 async function main() {
