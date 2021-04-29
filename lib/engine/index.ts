@@ -166,6 +166,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
     // should be private, but it is accessed from @org.thingpedia.builtin.thingengine
     _tiers : TierManager;
     private _modules : EngineModule[];
+    private _langPack : I18n.LanguagePack;
 
     private _devices : DeviceDatabase;
     private _appdb : AppDatabase;
