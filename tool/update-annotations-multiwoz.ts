@@ -22,6 +22,7 @@ import { Ast, Syntax } from 'thingtalk';
 import byline from 'byline';
 
 import { DialogueSerializer, DialogueParser } from '../lib/dataset-tools/parsers';
+import { StreamUtils } from '../lib';
 
 export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('update-annotations', {});
@@ -104,6 +105,7 @@ export async function execute(args: any) {
     let inputs = args.input.split(',');
     const places : {[name: string]: string} = {};
     for (const visitor_creator of [() => {return new EntityReader(places)}, () => {return new PlaceAugmenter(places)}]) {
+        console.log('begin');
         await Promise.all(inputs.map(async (input: string) => {
             const out = new DialogueSerializer({annotations: true});
             // lol this should not be separately generated from output array, should zip
@@ -120,14 +122,16 @@ export async function execute(args: any) {
                     }
                 }
                 out.write({id: dlg.id, turns: dlg});
-                console.log(dlg.id);
+                //console.log(dlg.id);
             }
-            //out.end();
+            StreamUtils.waitFinish(out);
+            out.end();
         })).catch(err => {
             console.log(err);
         });
-        inputs = inputs.map((input:string) => {
+        inputs = inputs.map((input:string) : string => {
             return input + ".tmp";
         });
     }
+    console.log('ohp');
 }
