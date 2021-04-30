@@ -119,9 +119,14 @@ export async function execute(args: any) {
                     //console.log(turn);
                     for (const field of ['context', 'agent_target', 'user_target']) {
                         if (turn[field] == '') continue;
-                        const parsed = Syntax.parse(turn[field], input.lastIndexOf('.tmp') == -1 ? Syntax.SyntaxType.Legacy : Syntax.SyntaxType.Normal);
+                        try {
+                            const parsed = Syntax.parse(turn[field], input.lastIndexOf('.tmp') == -1 ? Syntax.SyntaxType.Legacy : Syntax.SyntaxType.Normal);
                         parsed.visit(visitor_creator());
                         turn[field] = parsed.prettyprint();
+                    } catch (err) {
+                            console.log(err);
+                            console.log(turn[field]);
+                    }
                     }
                 }
                 out.write({id: dlg.id, turns: dlg});
@@ -137,10 +142,10 @@ export async function execute(args: any) {
         });
     }
 
-    await Promise.all(inputs.map(async (input: string) => {
+    /*await Promise.all(inputs.map(async (input: string) => {
         fs.rename(input, input.substring(0, input.length - 8), (err) => { throw err; });
     })).catch(err => {
         console.log(err);
-    });
+    });*/
     console.log('ohp');
 }
