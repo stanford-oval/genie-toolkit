@@ -1240,6 +1240,8 @@ export default class ThingpediaLoader {
                         names.push(param);
                         if (additionalArguments.includes(param))
                             return true;
+                        if (param === '__device')
+                            return true;
 
                         const arg = functionDef.getArgument(param);
                         if (!arg)

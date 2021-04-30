@@ -810,14 +810,14 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @org.thingpedia.builtin.thingengine.builtin.get_time();
 
 A: Right now, it's 5:50 PM.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.builtin.thingengine.builtin ( id = GENERIC_ENTITY_tt:device_id_0 ) . get_time ( ) #[ results = [ { time = TIME_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"thingengine-own-global","display":"Builtin"},"TIME_0":{"hour":17,"minute":50,"second":0}}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.builtin.thingengine.builtin . get_time ( ) #[ results = [ { time = TIME_0 } ] ] ; // {"TIME_0":{"hour":17,"minute":50,"second":0}}
 A: >> expecting = null
 
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @org.thingpedia.builtin.thingengine.builtin.get_date();
 
 A: Today is January 20, 2018.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.builtin.thingengine.builtin ( id = GENERIC_ENTITY_tt:device_id_0 ) . get_time ( ) #[ results = [ { time = TIME_0 } ] ] ; @org.thingpedia.builtin.thingengine.builtin ( id = GENERIC_ENTITY_tt:device_id_0 ) . get_date ( ) #[ results = [ { date = DATE_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"thingengine-own-global","display":"Builtin"},"TIME_0":{"hour":17,"minute":50,"second":0},"DATE_0":"2018-01-20T08:00:00.000Z"}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.builtin.thingengine.builtin . get_time ( ) #[ results = [ { time = TIME_0 } ] ] ; @org.thingpedia.builtin.thingengine.builtin . get_date ( ) #[ results = [ { date = DATE_0 } ] ] ; // {"TIME_0":{"hour":17,"minute":50,"second":0},"DATE_0":"2018-01-20T08:00:00.000Z"}
 A: >> expecting = null
 
 ====
@@ -956,4 +956,31 @@ U: ]];
 
 A: Notification from some app: the answer is !!!!!!!!!!!!!!!!!!!!
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; monitor ( @org.thingpedia.builtin.test . get_data ( count = 2 , size = MEASURE_byte_0 ) ) => @org.thingpedia.builtin.test . dup_data ( data_in = data ) #[ results = [ { data_in = QUOTED_STRING_0 , data_out = QUOTED_STRING_1 , count = 2 , size = 10 , data = QUOTED_STRING_0 } ] ] ; // {"MEASURE_byte_0":{"unit":"byte","value":10},"QUOTED_STRING_0":"!!!!!!!!!!","QUOTED_STRING_1":"!!!!!!!!!!!!!!!!!!!!"}
+A: >> expecting = null
+
+====
+# 64-device-names-and-selectors
+
+U: \t @org.thingpedia.iot.switch.state();
+
+A: The Simulated Device org.thingpedia.iot.switch 0 switch is off. The Simulated Device org.thingpedia.iot.switch 1 switch is off. The Simulated Device org.thingpedia.iot.switch 2 switch is on. The Simulated Device org.thingpedia.iot.switch 3 switch is on. The Simulated Device org.thingpedia.iot.switch 4 switch is on.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.iot.switch . state ( ) #[ results = [ { state = enum off , __device = GENERIC_ENTITY_tt:device_id_0 } ] ] #[ count = 6 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"str:ENTITY_tt:device_id::0:","display":"Simulated Device org.thingpedia.iot.switch 0"}}
+A: >> expecting = null
+
+U: \t @org.thingpedia.iot.switch(name="kitchen").state();
+
+A: The Kitchen Switches switch is on.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.iot.switch ( id = GENERIC_ENTITY_tt:device_id_0 ) . state ( ) #[ results = [ { state = enum on , __device = GENERIC_ENTITY_tt:device_id_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"switch-kitchen","display":"Kitchen Switches"}}
+A: >> expecting = null
+
+U: \t @org.thingpedia.iot.switch(all=true).state();
+
+A: The Simulated Device org.thingpedia.iot.switch 0 switch is off. The Simulated Device org.thingpedia.iot.switch 1 switch is off. The Simulated Device org.thingpedia.iot.switch 2 switch is on. The Simulated Device org.thingpedia.iot.switch 3 switch is on. The Simulated Device org.thingpedia.iot.switch 4 switch is on.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.iot.switch ( all = true ) . state ( ) #[ results = [ { state = enum off , __device = GENERIC_ENTITY_tt:device_id_0 } ] ] #[ count = 6 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"str:ENTITY_tt:device_id::0:","display":"Simulated Device org.thingpedia.iot.switch 0"}}
+A: >> expecting = null
+
+U: \t @org.thingpedia.iot.switch(all=true, name="bed").state();
+
+A: The Simulated Device org.thingpedia.iot.switch 0 switch is on. The Simulated Device org.thingpedia.iot.switch 1 switch is on. The Simulated Device org.thingpedia.iot.switch 2 switch is on. The Simulated Device org.thingpedia.iot.switch 3 switch is on. The Simulated Device org.thingpedia.iot.switch 4 switch is on.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.iot.switch ( all = true , name = QUOTED_STRING_0 ) . state ( ) #[ results = [ { state = enum on , __device = GENERIC_ENTITY_tt:device_id_0 } ] ] #[ count = 6 ] ; // {"QUOTED_STRING_0":"bed","GENERIC_ENTITY_tt:device_id_0":{"value":"str:ENTITY_tt:device_id::0:","display":"Simulated Device org.thingpedia.iot.switch 0"}}
 A: >> expecting = null

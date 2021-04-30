@@ -233,6 +233,8 @@ export default class ExecWrapper extends ExecEnvironment {
             const outputType = device.kind + ':' + fname;
             for await (const element of list) {
                 extendParams(element, params);
+                if (device.uniqueId !== device.kind)
+                    element.__device = new Tp.Value.Entity(device.uniqueId!, device.name);
                 yield [outputType, element];
             }
         }
@@ -276,8 +278,18 @@ export default class ExecWrapper extends ExecEnvironment {
                 result = undefined;
             }
 
-            if (result)
+            if (result) {
+                if (d.uniqueId !== d.kind)
+                    (result as Record<string, unknown>).__device = new Tp.Value.Entity(d.uniqueId!, d.name);
                 yield [outputType, result as Record<string, unknown>];
+            } else {
+                if (d.uniqueId !== d.kind) {
+                    const __device = new Tp.Value.Entity(d.uniqueId!, d.name);
+                    yield [outputType, { __device }];
+                } else {
+                    yield [outputType, {}];
+                }
+            }
         }
     }
 

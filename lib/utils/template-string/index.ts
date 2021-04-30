@@ -261,7 +261,7 @@ type PlaceholderConstraints = Record<number, Record<string, FlagValue>>;
 
 
 interface ReplacementContext {
-    replacements : Record<number, PlaceholderReplacement>;
+    replacements : Record<number, PlaceholderReplacement|undefined>;
     constraints : PlaceholderConstraints;
 }
 

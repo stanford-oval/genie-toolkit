@@ -24,7 +24,7 @@ import assert from 'assert';
 import * as Tp from 'thingpedia';
 
 async function testGetDateTime(engine) {
-    const device = engine.devices.getDevice('thingengine-own-global');
+    const device = engine.devices.getDevice('org.thingpedia.builtin.thingengine.builtin');
 
     const [date] = await device.get_get_date();
     assert(date.date instanceof Date);
@@ -37,7 +37,7 @@ async function testGetDateTime(engine) {
 }
 
 async function testGetCommands(engine) {
-    const device = engine.devices.getDevice('thingengine-own-global');
+    const device = engine.devices.getDevice('org.thingpedia.builtin.thingengine.builtin');
 
     for await (const d of await device.get_device()) {
         assert(d.id instanceof Tp.Value.Entity);
@@ -67,7 +67,7 @@ async function checkRandom(device, low, high, expectedLow, expectedHigh) {
 }
 
 async function testOtherBuiltins(engine) {
-    const device = engine.devices.getDevice('thingengine-own-global');
+    const device = engine.devices.getDevice('org.thingpedia.builtin.thingengine.builtin');
 
     await checkRandom(device, 0, 7, 0, 7);
     await checkRandom(device, 7, 0, 0, 7);
@@ -89,7 +89,7 @@ function testBuiltinsAreExpected(engine) {
 
     const devices = engine.devices;
 
-    assert(devices.hasDevice('thingengine-own-global'));
+    assert(devices.hasDevice('org.thingpedia.builtin.thingengine.builtin'));
     assert(devices.hasDevice('org.thingpedia.builtin.test'));
     assert(!devices.hasDevice('org.thingpedia.builtin.thingengine.phone'));
     assert(!devices.hasDevice('org.thingpedia.builtin.thingengine.home'));

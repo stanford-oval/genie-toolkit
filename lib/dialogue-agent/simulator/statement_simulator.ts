@@ -74,7 +74,7 @@ export class ThingTalkSimulatorState {
         });
     }
 
-     async compile(stmt : Ast.ExpressionStatement, cache : Map<string, CompiledProgram>) : Promise<CompiledProgram> {
+    async compile(stmt : Ast.ExpressionStatement, cache : Map<string, CompiledProgram>) : Promise<CompiledProgram> {
         const clone = stmt.clone();
 
         const program = new Ast.Program(null, [], [], [clone]);
@@ -143,7 +143,11 @@ export class ThingTalkSimulatorState {
             new Ast.Value.Number(Math.min(MORE_SIZE, numResults)), numResults > MORE_SIZE, error), rawResults];
     }
 
-    private _inferType(jsValue : unknown) : Type {
+    private _inferType(key : string, jsValue : unknown) : Type {
+        if (key === 'distance') // HACK
+            return new Type.Measure('m');
+        if (key === '__device')
+            return new Type.Entity('tt:device_id');
         if (typeof jsValue === 'boolean')
             return Type.Boolean;
         if (typeof jsValue === 'string')
@@ -159,7 +163,7 @@ export class ThingTalkSimulatorState {
         if (jsValue instanceof Date)
             return Type.Date;
         if (Array.isArray(jsValue) && jsValue.length > 0)
-            return new Type.Array(this._inferType(jsValue[0]));
+            return new Type.Array(this._inferType(key, jsValue[0]));
         if (Array.isArray(jsValue))
             return new Type.Array(Type.Any);
 
@@ -184,7 +188,7 @@ export class ThingTalkSimulatorState {
             // fallback
             for (const key in outputValue) {
                 const jsValue = outputValue[key];
-                mappedResult[key] = Ast.Value.fromJS(this._inferType(jsValue), jsValue);
+                mappedResult[key] = Ast.Value.fromJS(this._inferType(key, jsValue), jsValue);
             }
             return mappedResult;
         }
@@ -207,7 +211,7 @@ export class ThingTalkSimulatorState {
             }
 
             const schema = await this._outputTypeToSchema(outputType);
-            const type = schema.getArgType(field) || this._inferType(value);
+            const type = schema.getArgType(field) || this._inferType(field, value);
             mappedResult[field] = Ast.Value.fromJS(type, value);
         } else {
             const schema = await this._outputTypeToSchema(outputType);
@@ -216,7 +220,7 @@ export class ThingTalkSimulatorState {
                 const value = outputValue[key];
                 if (value === null || value === undefined)
                     continue;
-                const type = schema.getArgType(key) || this._inferType(value);
+                const type = schema.getArgType(key) || this._inferType(key, value);
                 if (type instanceof Type.Compound)
                     mappedResult[key] = this._mapCompound(key + '.', schema, value as { [key : string] : unknown });
                 else
@@ -230,7 +234,7 @@ export class ThingTalkSimulatorState {
         const result : { [key : string] : Ast.Value } = {};
         for (const key in object) {
             const value = object[key];
-            const type = schema.getArgType(prefix + key) || this._inferType(value);
+            const type = schema.getArgType(prefix + key) || this._inferType(key, value);
             if (type instanceof Type.Compound)
                 result[key] = this._mapCompound(prefix + key + '.', schema, object as { [key : string] : unknown });
             else

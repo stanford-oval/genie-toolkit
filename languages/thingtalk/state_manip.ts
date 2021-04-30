@@ -22,7 +22,7 @@
 import assert from 'assert';
 import * as ThingTalk from 'thingtalk';
 import { Ast, Type } from 'thingtalk';
-import type { SentenceGeneratorTypes, SentenceGeneratorRuntime } from 'genie-toolkit';
+import type { SentenceGeneratorTypes, SentenceGeneratorRuntime, ThingTalkUtils } from 'genie-toolkit';
 export type AgentReplyRecord = SentenceGeneratorTypes.AgentReplyRecord<Ast.DialogueState>;
 
 import * as C from './ast_manip';
@@ -1055,16 +1055,49 @@ function ctxCanHaveRelatedQuestion(ctx : ContextInfo) : boolean {
 }
 
 function tryReplacePlaceholderPhrase(phrase : ParsedPlaceholderPhrase,
-                                     getParam : (name : string) => SentenceGeneratorRuntime.PlaceholderReplacement|null) : SentenceGeneratorRuntime.ReplacedResult|null {
-    const replacements : SentenceGeneratorRuntime.PlaceholderReplacement[] = [];
+                                     getParam : (name : string) => SentenceGeneratorRuntime.PlaceholderReplacement|undefined|null) : SentenceGeneratorRuntime.ReplacedResult|null {
+    const replacements : Array<SentenceGeneratorRuntime.PlaceholderReplacement|undefined> = [];
     for (const param of phrase.names) {
         const replacement = getParam(param);
-        if (!replacement)
+        if (replacement === null)
             return null;
         replacements.push(replacement);
     }
     const replacementCtx = { replacements, constraints: {} };
     return phrase.replaceable.replace(replacementCtx);
+}
+
+function getDeviceName(describer : ThingTalkUtils.Describer,
+                       resultItem : Ast.DialogueHistoryResultItem|undefined,
+                       invocation : Ast.Invocation) {
+    if (resultItem) {
+        // check in the result first
+        // until ThingTalk is fixed, this will be present only if there was no
+        // projection and the compiler did not get in the way
+        // FIXME we should fix the ThingTalk compiler though...
+        if (resultItem.value.__device) {
+            const entity = resultItem.value.__device;
+            const description = describer.describeArg(entity, {});
+            if (description)
+                return { value: entity, text: description };
+        }
+    }
+
+    let name;
+    for (const in_param of invocation.selector.attributes) {
+        if (in_param.name === 'name') {
+            name = in_param.value;
+            break;
+        }
+    }
+    if (!name)
+        return undefined;
+
+    const entity = new Ast.EntityValue(invocation.selector.id, 'tt:device_id', name.toJS() as string);
+    const description = describer.describeArg(entity, {});
+    if (!description)
+        return undefined;
+    return { value: entity, text: description };
 }
 
 function makeErrorContextPhrase(ctx : ContextInfo,
@@ -1083,6 +1116,9 @@ function makeErrorContextPhrase(ctx : ContextInfo,
     for (const candidate of phrases) {
         const bag = new SlotBag(currentFunction);
         const utterance = tryReplacePlaceholderPhrase(candidate, (param) => {
+            if (param === '__device')
+                return getDeviceName(describer, undefined, action);
+
             let value = null;
             for (const in_param of action.in_params) {
                 if (in_param.name === param) {
@@ -1119,6 +1155,7 @@ function makeListResultContextPhrase(ctx : ContextInfo,
     const describer = ctx.loader.describer;
 
     const currentFunction = ctx.currentFunction!;
+    const action = C.getInvocation(ctx.current!);
 
     const output = [];
 
@@ -1127,6 +1164,9 @@ function makeListResultContextPhrase(ctx : ContextInfo,
         const bag = new SlotBag(currentFunction);
 
         const utterance = tryReplacePlaceholderPhrase(candidate, (param) => {
+            if (param === '__device')
+                return getDeviceName(describer, undefined, action);
+
             const arg = currentFunction.getArgument(param)!;
             if (arg.is_input) {
                 // use the top result value only
@@ -1177,6 +1217,7 @@ function makeListConcatResultContextPhrase(ctx : ContextInfo,
     const describer = ctx.loader.describer;
 
     const currentFunction = ctx.currentFunction!;
+    const action = C.getInvocation(ctx.current!);
 
     const output = [];
 
@@ -1194,6 +1235,11 @@ function makeListConcatResultContextPhrase(ctx : ContextInfo,
             const piece = tryReplacePlaceholderPhrase(candidate, (param) => {
                 if (param === '__index')
                     return { value: resultIdx+1, text: new ctx.loader.runtime.ReplacedConcatenation([String(resultIdx+1)], {}, {}) };
+
+                // FIXME this should be extracted from the result instead
+                // so we can show different names for different devices
+                if (param === '__device')
+                    return getDeviceName(describer, result, action);
 
                 // set the bag to the array value, if we haven't already
                 if (!bag.has(param)) {
@@ -1223,7 +1269,8 @@ function makeListConcatResultContextPhrase(ctx : ContextInfo,
 
         if (utterance) {
             const value = [ctx, bag];
-            output.push({ symbol: contextTable.ctx_thingpedia_list_result, utterance: new ctx.loader.runtime.ReplacedConcatenation(utterance, {}, {}), value, priority: 0, key: keyfns.slotBagKeyFn(bag) });
+            output.push({ symbol: contextTable.ctx_thingpedia_list_result, utterance:
+                new ctx.loader.runtime.ReplacedList(utterance, ctx.loader.locale, '.'), value, priority: 0, key: keyfns.slotBagKeyFn(bag) });
 
             // in inference mode, we're done
             if (ctx.loader.flags.inference)
@@ -1241,6 +1288,7 @@ function makeTopResultContextPhrase(ctx : ContextInfo,
     const describer = ctx.loader.describer;
 
     const currentFunction = ctx.currentFunction!;
+    const action = C.getInvocation(ctx.current!);
 
     const output = [];
 
@@ -1249,6 +1297,9 @@ function makeTopResultContextPhrase(ctx : ContextInfo,
         const bag = new SlotBag(currentFunction);
 
         const utterance = tryReplacePlaceholderPhrase(candidate, (param) => {
+            if (param === '__device')
+                return getDeviceName(describer, topResult, action);
+
             const value = topResult.value[param];
             if (!value)
                 return null;
@@ -1275,7 +1326,10 @@ function makeTopResultContextPhrase(ctx : ContextInfo,
 export function makeResultContextPhrase(ctx : ContextInfo,
                                         topResult : Ast.DialogueHistoryResultItem,
                                         allResults : Ast.DialogueHistoryResultItem[]) {
-    const currentFunction = ctx.currentFunction!;
+    // note: this is not the same as ctx.currentFunction (aka ctx.current!.stmt.expression.schema!)
+    // because the value of is_list will be different if the last function is not
+    // a list query but it is invoked in a chain with a list function
+    const currentFunction = ctx.current!.stmt.last.schema!;
     const phrases = ctx.loader.getResultPhrases(currentFunction.qualifiedName);
 
     const output = [];
@@ -1299,7 +1353,17 @@ export function makeResultContextPhrase(ctx : ContextInfo,
         if (ctx.loader.flags.inference && output.length > 0)
             return output;
 
-        output.push(...makeTopResultContextPhrase(ctx, topResult, phrases.top));
+        if (!currentFunction.is_list) {
+            // if the function is not a list, but we're getting multiple
+            // results, it means it was invoked over multiple devices, or multiple
+            // times in a row using a chain expression
+            // concatenates all the result phrases as if they were of "list_concat"
+            // type, because "list_concat" does not make sense for a non-list
+            // function
+            output.push(...makeListConcatResultContextPhrase(ctx, allResults, phrases.top));
+        } else {
+            output.push(...makeTopResultContextPhrase(ctx, topResult, phrases.top));
+        }
     } else {
         output.push(...makeTopResultContextPhrase(ctx, topResult, phrases.top));
         if (ctx.loader.flags.inference && output.length > 0)
