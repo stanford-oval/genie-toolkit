@@ -73,9 +73,10 @@ class PlaceAugmenter extends Ast.NodeVisitor {
     }
     visitInputParam(node: Ast.InputParam) : boolean {
         if (node.name == "destination" || node.name == "departure") {
+            if (node.value instanceof Ast.UndefinedValue) return true;
             const val : string = (node.value as Ast.StringValue).value;
-            node.value = new Ast.EntityValue(val in this.places ? this.places[val]: null, "uk.ac.cam.multiwoz.Place:Place", val);
-            if (!(val in this.places)) {
+            node.value = new Ast.EntityValue(val in this.places ? this.places[val]: null, "uk.ac.cam.multiwoz.Taxi:Place", val);
+            if (!(val in this.places) && val != null) {
                 this.places[val] = "P" + this.counter.toString();
                 this.counter++;
             }
@@ -84,17 +85,18 @@ class PlaceAugmenter extends Ast.NodeVisitor {
     }
 
     visitDialogueHistoryResultItem(node: Ast.DialogueHistoryResultItem) : boolean {
-        // hack to not change Train results
-        if ('id' in node.value) return true;
+        // hack
+        const is_train_not_taxi = 'id' in node.value;
 
         for (const key of ["destination", "departure"]) {
             if (key in node.value) {
+                if (node.value[key] instanceof Ast.UndefinedValue) continue;
                 const val = (node.value[key] as Ast.StringValue).value;
-                if (!(val in this.places)) {
+                if (is_train_not_taxi || !(val in this.places) && val != null) {
                     this.places[val] = "P" + this.counter.toString();
                     this.counter++;
                 }
-                node.value[key] = new Ast.EntityValue(this.places[val], "uk.ac.cam.multiwoz.Place:Place", val);
+                node.value[key] = new Ast.EntityValue(this.places[val], is_train_not_taxi ? "uk.ac.cam.multiwoz.Train:Place" : "uk.ac.cam.multiwoz.Taxi:Place", val);
             }
         }
         return true;
@@ -109,7 +111,8 @@ export async function execute(args: any) {
         await Promise.all(inputs.map(async (input: string) => {
             const out = new DialogueSerializer({annotations: true});
             // lol this should not be separately generated from output array, should zip
-            out.pipe(fs.createWriteStream(input + '.tmp'));
+            const fout = fs.createWriteStream(input + '.tmp');
+            out.pipe(fout);
             console.log(input);
             for await (const dlg of fs.createReadStream(input, { encoding: 'utf8'}).pipe(byline()).pipe(new DialogueParser())) {
                 for (const turn of dlg) {
@@ -124,8 +127,8 @@ export async function execute(args: any) {
                 out.write({id: dlg.id, turns: dlg});
                 //console.log(dlg.id);
             }
-            StreamUtils.waitFinish(out);
             out.end();
+            await StreamUtils.waitFinish(fout);
         })).catch(err => {
             console.log(err);
         });
@@ -133,5 +136,11 @@ export async function execute(args: any) {
             return input + ".tmp";
         });
     }
+
+    await Promise.all(inputs.map(async (input: string) => {
+        fs.rename(input, input.substring(0, input.length - 8), (err) => { throw err; });
+    })).catch(err => {
+        console.log(err);
+    });
     console.log('ohp');
 }
