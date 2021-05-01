@@ -34,7 +34,7 @@
     "mmap-io": "^1.1.7",
     "morgan": "^1.9.1",
     "node-gettext": "^3.0.0",
-    "nodemailer": "^6.5.0",
+    "nodemailer": "^6.6.0",
     "q": "^1.5.0",
     "qs": "^6.10.1",
     "query-validation": "^0.2.1",
