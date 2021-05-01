@@ -298,6 +298,8 @@ export abstract class Replaceable {
 
     abstract preprocess(langPack : LanguagePack, placeholders : string[]) : this;
 
+    abstract optimize(constraints : PlaceholderConstraints) : Replaceable|null;
+
     abstract replace(ctx : ReplacementContext) : ReplacedResult|null;
 }
 
@@ -328,6 +330,10 @@ export class Placeholder extends Replaceable {
 
     preprocess(langPack : LanguagePack, placeholders : string[]) {
         this._index = getPlaceholderIndex(placeholders, this.param);
+        return this;
+    }
+
+    optimize() {
         return this;
     }
 
@@ -408,6 +414,10 @@ export class Phrase extends Replaceable {
         return this;
     }
 
+    optimize() {
+        return this;
+    }
+
     replace(ctx : ReplacementContext) : ReplacedResult|null {
         return new ReplacedConcatenation([this.text], this.flags, {});
     }
@@ -459,6 +469,23 @@ export class Concatenation extends Replaceable {
             return;
         for (const c of this.children)
             c.visit(cb);
+    }
+
+    optimize(constraints : PlaceholderConstraints) {
+        const optimized = [];
+        let anyChange = false;
+        for (const c of this.children) {
+            const copt = c.optimize(constraints);
+            if (copt === null)
+                return null;
+            optimized.push(copt);
+            anyChange = anyChange || c !== copt;
+        }
+        if (!anyChange)
+            return this;
+        const optconcat = new Concatenation(optimized, this.flags, this.refFlags);
+        optconcat._computedRefFlags = this._computedRefFlags;
+        return optconcat;
     }
 
     preprocess(langPack : LanguagePack, placeholders : string[]) {
@@ -527,6 +554,27 @@ export class Choice implements Replaceable {
         for (const v of this.variants)
             v.preprocess(langPack, placeholders);
         return this;
+    }
+
+    optimize(constraints : PlaceholderConstraints) : Replaceable|null {
+        const optimized = [];
+        let anyChange = false;
+        for (const v of this.variants) {
+            const vopt = v.optimize(constraints);
+            if (vopt === null) {
+                anyChange = true;
+                continue;
+            }
+            optimized.push(vopt);
+            anyChange = anyChange || v !== vopt;
+        }
+        if (optimized.length === 0)
+            return null;
+        else if (optimized.length === 1)
+            return optimized[0];
+        if (!anyChange)
+            return this;
+        return new Choice(optimized);
     }
 
     visit(cb : (repl : Replaceable) => boolean) {
@@ -612,6 +660,30 @@ export class Plural implements Replaceable {
             this.variants[v].visit(cb);
     }
 
+    optimize(constraints : PlaceholderConstraints) {
+        const optimized : Record<string|number, Replaceable> = {};
+        let anyVariant = false;
+        let anyChange = false;
+        for (const v in this.variants) {
+            const vopt = this.variants[v].optimize(constraints);
+            if (vopt === null) {
+                anyChange = true;
+                continue;
+            }
+            optimized[v] = vopt;
+            anyVariant = true;
+            anyChange = anyChange || this.variants[v] !== vopt;
+        }
+        if (!anyVariant)
+            return null;
+        if (!anyChange)
+            return this;
+        const optthis = new Plural(this.param, this.key, this.type, optimized);
+        optthis._index = this._index;
+        optthis._rules = this._rules;
+        return optthis;
+    }
+
     preprocess(langPack : LanguagePack, placeholders : string[]) {
         for (const v in this.variants)
             this.variants[v].preprocess(langPack, placeholders);
@@ -687,6 +759,29 @@ export class ValueSelect implements Replaceable {
             this.variants[v].visit(cb);
     }
 
+    optimize(constraints : PlaceholderConstraints) {
+        const optimized : Record<string|number, Replaceable> = {};
+        let anyVariant = false;
+        let anyChange = false;
+        for (const v in this.variants) {
+            const vopt = this.variants[v].optimize(constraints);
+            if (vopt === null) {
+                anyChange = true;
+                continue;
+            }
+            optimized[v] = vopt;
+            anyVariant = true;
+            anyChange = anyChange || this.variants[v] !== vopt;
+        }
+        if (!anyVariant)
+            return null;
+        if (!anyChange)
+            return this;
+        const optthis = new ValueSelect(this.param, this.key, optimized);
+        optthis._index = this._index;
+        return optthis;
+    }
+
     preprocess(langPack : LanguagePack, placeholders : string[]) {
         for (const v in this.variants)
             this.variants[v].preprocess(langPack, placeholders);
@@ -753,6 +848,41 @@ export class FlagSelect implements Replaceable {
             return;
         for (const v in this.variants)
             this.variants[v].visit(cb);
+    }
+
+    optimize(constraints : PlaceholderConstraints) : Replaceable|null {
+        // check if we already have a constraint on this param
+        if (constraints[this._index!] && this.flag in constraints[this._index!]) {
+            const constraint = constraints[this._index!][this.flag];
+            if (!this.variants[constraint])
+                return null;
+
+            return this.variants[constraint].optimize(constraints);
+        }
+
+        const optimized : Record<string, Replaceable> = {};
+        let anyVariant = false;
+        for (const v in this.variants) {
+            // make a new replacement context with the added constraint on this
+            // placeholder
+            // the constraint will be propagated down to where this placeholder is
+            // used, and will be applied to the replacement of the placeholder
+            const newConstraints : PlaceholderConstraints = {};
+            mergeConstraints(newConstraints, constraints);
+            mergeConstraints(newConstraints, { [this._index!]: { [this.flag]: v } });
+
+            const vopt = this.variants[v].optimize(newConstraints);
+            if (vopt === null)
+                continue;
+            optimized[v] = vopt;
+            anyVariant = true;
+        }
+        if (!anyVariant)
+            return null;
+
+        const optthis = new FlagSelect(this.param, this.flag, optimized);
+        optthis._index = this._index;
+        return optthis;
     }
 
     preprocess(langPack : LanguagePack, placeholders : string[]) {

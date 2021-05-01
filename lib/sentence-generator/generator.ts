@@ -628,7 +628,10 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
                                                                      keyFunction : KeyFunction<ResultType>|undefined,
                                                                      attributes : RuleAttributes = {}) {
         const rulenumber = this._rules[symbolId].length;
-        this._rules[symbolId].push(new Rule(rulenumber, expansion, sentence, semanticAction, keyFunction, attributes));
+        const optsentence = sentence.optimize({});
+        if (optsentence === null)
+            return;
+        this._rules[symbolId].push(new Rule(rulenumber, expansion, optsentence, semanticAction, keyFunction, attributes));
     }
 
     addConstants(symbol : string, token : string, type : any, keyFunction : KeyFunction<any>, attributes : RuleAttributes = {}) : void {
