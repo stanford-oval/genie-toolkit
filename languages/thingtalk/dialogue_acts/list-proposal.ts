@@ -65,6 +65,7 @@ export function listProposalKeyFn({ results, info, action, hasLearnMore } : List
         idType: results[0].value.id ? results[0].value.id.getType() : null,
         queryName: info ? info.schema!.qualifiedName : null,
         actionName: action ? action.schema!.qualifiedName : null,
+        length: results.length
     };
 }
 
@@ -179,15 +180,14 @@ export function makeListProposalFromDirectAnswers(...phrases : DirectAnswerPhras
         phrases.length !== ctx.results!.length)
         return null;
 
-    const names = Array.from(phrases[0].result.info.keys());
     // check that all phrases talk about the same slots (it would be weird otherwise)
-    for (let i = 0; i < phrases.length; i++) {
+    for (let i = 1; i < phrases.length; i++) {
         for (const key of phrases[i].result.info.keys()) {
-            if (!names.includes(key))
+            if (!phrases[0].result.info.has(key))
                 return null;
         }
-        for (const name of names) {
-            if (!phrases[i].result.info.has(name))
+        for (const key of phrases[0].result.info.keys()) {
+            if (!phrases[i].result.info.has(key))
                 return null;
         }
     }
@@ -195,11 +195,9 @@ export function makeListProposalFromDirectAnswers(...phrases : DirectAnswerPhras
     const resultInfo = ctx.resultInfo!;
     if (resultInfo.projection !== null) {
         // check that all projected names are present
-        for (const phrase of phrases) {
-            for (const name of resultInfo.projection) {
-                if (!phrase.result.info.has(name))
-                    return null;
-            }
+        for (const name of resultInfo.projection) {
+            if (!phrases[0].result.info.has(name))
+                return null;
         }
     }
 
