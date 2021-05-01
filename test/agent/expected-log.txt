@@ -39,8 +39,6 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
-====
-# test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $stop;
 UT: $stop;
@@ -79,12 +77,12 @@ C: #[results=[]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I posted hello world on Facebook.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
-====
-# test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.end;
 UT: $dialogue @org.thingpedia.dialogue.transaction.end;
 C: $dialogue @org.thingpedia.dialogue.transaction.end;
+C: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post(status="hello world")
+C: #[results=[]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Alright, bye!
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
@@ -139,8 +137,6 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
-====
-# test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $stop;
 UT: $stop;
@@ -415,8 +411,6 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
-====
-# test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $stop;
 UT: $stop;
@@ -449,8 +443,6 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
-====
-# test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $stop;
 UT: $stop;
@@ -483,8 +475,6 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
-====
-# test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $stop;
 UT: $stop;
@@ -736,8 +726,6 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
-====
-# test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $stop;
 UT: $stop;
@@ -798,8 +786,6 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
-====
-# test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $stop;
 UT: $stop;
@@ -1050,8 +1036,6 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
-====
-# test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $stop;
 UT: $stop;
@@ -1539,8 +1523,6 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
-====
-# test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $stop;
 UT: $stop;
@@ -1563,8 +1545,6 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
-====
-# test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $stop;
 UT: $stop;
@@ -2026,8 +2006,6 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
-====
-# test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $stop;
 UT: $stop;
