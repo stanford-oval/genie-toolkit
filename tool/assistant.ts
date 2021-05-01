@@ -114,9 +114,11 @@ class CommandLineHandler {
         console.log('\\a list : list apps');
         console.log('\\a stop [<uuid> | all] : stop app');
         console.log('\\d list : list devices');
+        console.log('\\d create <json> : configure device manually');
         console.log('\\d start-oauth <kind> : start oauth');
         console.log('\\d complete-oauth <url> : finish oauth');
         console.log('\\d update <kind> : update devices');
+        console.log('\\d delete <uuid> : delete device');
         console.log('\\= <pref> : show a preference value');
         console.log('\\= <pref> <value> : set a preference value');
         console.log('\\? or \\h : show this help');
@@ -150,24 +152,26 @@ class CommandLineHandler {
             console.log(prefs.get(param));
     }
 
-    private _runDeviceCommand(cmd : string, param : string) {
+    private async _runDeviceCommand(cmd : string, param : string) {
         if (cmd === 'list') {
             this._engine.getDeviceInfos().forEach((dev) => {
                 console.log('- ' + dev.uniqueId + ' (' + dev.kind +') ' + dev.name + ': ' + dev.description);
             });
         } else if (cmd === 'start-oauth' || cmd === 'start-oauth2') {
             this._oauthKind = param;
-            return this._engine.startOAuth(param).then(([redirect, session]) => {
-                this._oauthSession = session;
-                console.log(redirect);
-            });
+            const [redirect, session] = await this._engine.startOAuth(param);
+            this._oauthSession = session;
+            console.log(redirect);
         } else if (cmd === 'complete-oauth' || cmd === 'complete-oauth2') {
-            return this._engine.completeOAuth(this._oauthKind!, param, this._oauthSession);
+            await this._engine.completeOAuth(this._oauthKind!, param, this._oauthSession);
         } else if (cmd === 'update' || cmd === 'upgrade') {
-            return this._engine.upgradeDevice(param);
+            await this._engine.upgradeDevice(param);
+        } else if (cmd === 'create') {
+            const parsed = JSON.parse(param);
+            await this._engine.createDevice(parsed);
+        } else if (cmd === 'delete') {
+            await this._engine.deleteDevice(param);
         }
-
-        return Promise.resolve();
     }
 
     private _handleSlashR(line : string) {
