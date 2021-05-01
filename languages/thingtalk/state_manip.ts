@@ -731,9 +731,8 @@ function addActionParam(ctx : ContextInfo,
             in_params,
             schema
         );
-        const newStmt = new Ast.ExpressionStatement(null, new Ast.InvocationExpression(null,
-            newInvocation, schema.removeArgument(pname)
-        ));
+        const newStmt = new Ast.ExpressionStatement(null,
+            new Ast.InvocationExpression(null, newInvocation, schema));
         newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
     }
 
