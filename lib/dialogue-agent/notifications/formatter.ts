@@ -18,6 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import assert from 'assert';
 import * as ThingTalk from 'thingtalk';
 
 import Engine from '../../engine';
@@ -71,7 +72,12 @@ export default class NotificationFormatter {
     }
 
     async formatNotification(appName : string|null, program : ThingTalk.Ast.Program, outputType : string, outputValue : Record<string, unknown>) : Promise<FormattedObject[]> {
-        const mappedResult = await this._executor.mapResult(outputType, outputValue);
+        assert(program.statements.length === 1);
+        const stmt = program.statements[0];
+        assert(stmt instanceof ThingTalk.Ast.ExpressionStatement);
+        assert(stmt.expression.schema);
+
+        const mappedResult = await this._executor.mapResult(stmt.expression.schema, outputValue);
 
         const dialogueState = await this._policy.getNotificationState(appName, program, mappedResult);
 

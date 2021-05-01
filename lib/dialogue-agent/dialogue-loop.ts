@@ -648,7 +648,12 @@ export default class DialogueLoop {
     private async _showNotification(app : AppExecutor,
                                     outputType : string,
                                     outputValue : Record<string, unknown>) {
-        const mappedResult = await this._agent.executor.mapResult(outputType, outputValue);
+        assert(app.program.statements.length === 1);
+        const stmt = app.program.statements[0];
+        assert(stmt instanceof ThingTalk.Ast.ExpressionStatement);
+        assert(stmt.expression.schema);
+
+        const mappedResult = await this._agent.executor.mapResult(stmt.expression.schema, outputValue);
         this._dialogueState = await this._policy.getNotificationState(app.name, app.program, mappedResult);
         await this._doAgentReply([[outputType, outputValue]]);
     }
