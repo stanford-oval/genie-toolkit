@@ -858,23 +858,6 @@ function makeAgentReply(ctx : ContextInfo,
     assert(state.dialogueAct.startsWith('sys_'));
     assert(expectedType === null || expectedType instanceof ThingTalk.Type);
 
-    const newContext = getContextInfo(ctx.loader, state, contextTable);
-    // set the auxiliary information, which is used by the semantic functions of the user
-    // to see if the continuation is compatible with the specific reply from the agent
-    newContext.aux = aux;
-
-    let mainTag;
-    if (state.dialogueAct === 'sys_generic_search_question')
-        mainTag = contextTable.ctx_sys_search_question;
-    else if (state.dialogueAct.endsWith('_question') && state.dialogueAct !== 'sys_search_question')
-        mainTag = contextTable['ctx_' + state.dialogueAct.substring(0, state.dialogueAct.length - '_question'.length)];
-    else if (state.dialogueAct.startsWith('sys_recommend_') && state.dialogueAct !== 'sys_recommend_one')
-        mainTag = contextTable.ctx_sys_recommend_many;
-    else if (state.dialogueAct === 'sys_rule_enable_success')
-        mainTag = contextTable.ctx_sys_action_success;
-    else
-        mainTag = contextTable['ctx_' + state.dialogueAct];
-
     // if true, the interaction is done and the agent should stop listening
     // these dialogue acts are considered to "end" the conversation:
     // sys_recommend_*, sys_action_success, sys_action_error
@@ -892,6 +875,45 @@ function makeAgentReply(ctx : ContextInfo,
     // show a yes/no thing if we're proposing something
     if (expectedType === null && state.history.some((item) => item.confirm === 'proposed'))
         expectedType = Type.Boolean;
+
+    if (ctx.loader.flags.inference) {
+        // at inference time, we don't need to compute any of the auxiliary info
+        // necessary to synthesize the new utterance, so we take a shortcut
+        // here and skip a whole bunch of computation
+
+        return {
+            state,
+            context: null,
+            contextPhrases: [],
+            expect: expectedType,
+
+            end: end,
+            // if true, enter raw mode for this user's turn
+            // (this is used for slot filling free-form strings)
+            raw: !!options.raw,
+
+            // the number of results we're describing at this turn
+            // (this affects the number of result cards to show)
+            numResults: options.numResults || 0,
+        };
+    }
+
+    const newContext = getContextInfo(ctx.loader, state, contextTable);
+    // set the auxiliary information, which is used by the semantic functions of the user
+    // to see if the continuation is compatible with the specific reply from the agent
+    newContext.aux = aux;
+
+    let mainTag;
+    if (state.dialogueAct === 'sys_generic_search_question')
+        mainTag = contextTable.ctx_sys_search_question;
+    else if (state.dialogueAct.endsWith('_question') && state.dialogueAct !== 'sys_search_question')
+        mainTag = contextTable['ctx_' + state.dialogueAct.substring(0, state.dialogueAct.length - '_question'.length)];
+    else if (state.dialogueAct.startsWith('sys_recommend_') && state.dialogueAct !== 'sys_recommend_one')
+        mainTag = contextTable.ctx_sys_recommend_many;
+    else if (state.dialogueAct === 'sys_rule_enable_success')
+        mainTag = contextTable.ctx_sys_action_success;
+    else
+        mainTag = contextTable['ctx_' + state.dialogueAct];
 
     return {
         state,
