@@ -22,7 +22,7 @@
 import interpolate from 'string-interp';
 import * as Tp from 'thingpedia';
 
-import type TierManager from '../../tiers/tier_manager';
+import type TierManager from '../../sync/manager';
 import type Engine from '../../index';
 
 interface ThingEngineDeviceState {
@@ -48,8 +48,10 @@ export default class ThingEngineDevice extends Tp.BaseDevice {
     own : true;
     cloudId : string|undefined;
     developerKey : string|null|undefined;
+    host : string|undefined;
+    port : number|undefined;
 
-    _tierManager : TierManager;
+    private _syncManager : TierManager;
 
     constructor(engine : Engine, state : ThingEngineDeviceState) {
         super(engine, state);
@@ -64,7 +66,7 @@ export default class ThingEngineDevice extends Tp.BaseDevice {
 
         // This is a built-in device so we're allowed some
         // "friendly" API access
-        this._tierManager = engine._tiers;
+        this._syncManager = engine._sync;
 
         this.cloudId = undefined;
         this.developerKey = undefined;
@@ -72,11 +74,13 @@ export default class ThingEngineDevice extends Tp.BaseDevice {
             this.cloudId = state.cloudId!;
             this.developerKey = state.developerKey;
             this._checkCloudIdDevKey(state);
-            if (this._tierManager.ownTier !== Tp.Tier.CLOUD)
+            if (this._syncManager.ownTier !== Tp.Tier.CLOUD)
                 (engine.platform as PlatformWithDeveloperKey).setDeveloperKey(state.developerKey);
         } else if (this.tier === Tp.Tier.SERVER) {
+            this.host = state.host as string;
             if (typeof state.port !== 'number' || isNaN(state.port))
                 throw new TypeError('Invalid port number ' + state.port);
+            this.port = state.port;
         }
 
         this.uniqueId = 'thingengine-own-' + this.address;
@@ -93,7 +97,7 @@ export default class ThingEngineDevice extends Tp.BaseDevice {
     }
 
     private _checkCloudIdDevKey(state : ThingEngineDeviceState) {
-        if (this._tierManager.ownTier !== Tp.Tier.CLOUD)
+        if (this._syncManager.ownTier !== Tp.Tier.CLOUD)
             return;
         let changed = false;
 
@@ -118,10 +122,10 @@ export default class ThingEngineDevice extends Tp.BaseDevice {
     }
 
     async checkAvailable() {
-        if (this.tier === this._tierManager.ownTier) {
+        if (this.tier === this._syncManager.ownTier) {
             return Tp.Availability.AVAILABLE;
         } else {
-            return (this._tierManager.isConnected(this.address) ?
+            return (this._syncManager.isConnected(this.address) ?
                     Tp.Availability.AVAILABLE :
                     Tp.Availability.OWNER_UNAVAILABLE);
         }

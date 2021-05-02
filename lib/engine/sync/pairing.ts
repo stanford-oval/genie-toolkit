@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -18,45 +18,48 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-import * as crypto from 'crypto';
-
+import assert from 'assert';
 import * as Tp from 'thingpedia';
-const Tier = Tp.Tier;
+
 import * as IpAddress from '../util/ip_address';
 import Builtins from '../devices/builtins';
+import ThingEngineDevice from '../devices/builtins/thingengine';
+
+import type DeviceDatabase from '../devices/database';
+import SyncManager, { Tier } from './manager';
 
 export default class PairedEngineManager {
-    constructor(platform, devices, deviceFactory, tierManager) {
+    private _platform : Tp.BasePlatform;
+    private _devices : DeviceDatabase;
+    private _deviceFactory : Tp.DeviceFactory;
+    private _syncManager : SyncManager;
+
+    private _deviceAddedListener : (device : Tp.BaseDevice) => void;
+    private _deviceRemovedListener : (device : Tp.BaseDevice) => void;
+
+    constructor(platform : Tp.BasePlatform,
+                devices : DeviceDatabase,
+                deviceFactory : Tp.DeviceFactory,
+                syncManager : SyncManager) {
         this._platform = platform;
         this._devices = devices;
         this._deviceFactory = deviceFactory;
-        this._tierManager = tierManager;
+        this._syncManager = syncManager;
 
         this._deviceAddedListener = this._onDeviceAdded.bind(this);
         this._deviceRemovedListener = this._onDeviceRemoved.bind(this);
     }
 
-    _makeAuthToken() {
-        let prefs = this._platform.getSharedPreferences();
-        let authToken = prefs.get('auth-token');
-        if (authToken === undefined) {
-            // No auth token, generate one now with 256 random bits
-            authToken = crypto.randomBytes(32).toString('hex');
-            prefs.set('auth-token', authToken);
-        }
-        return authToken;
-    }
-
-    _onDeviceAdded(device) {
+    private _onDeviceAdded(device : Tp.BaseDevice) {
         if (device.kind !== 'org.thingpedia.builtin.thingengine')
             return;
+        assert(device instanceof ThingEngineDevice);
 
         // Added by syncdb because some other config-pairing app
         // created it, or added by us when we started
         // In any case, we're obviously already configured with
         // ourselves, so do nothing
-        if (device.address === this._tierManager.ownAddress)
+        if (device.address === this._syncManager.ownAddress)
             return;
         // global is not really a tier, ignore it
         if (device.tier === Tier.GLOBAL)
@@ -71,19 +74,20 @@ export default class PairedEngineManager {
             // If we don't have a connection to this tier, probably we
             // had the wrong settings when tier manager started up,
             // by now we should have fixed them, so try again
-            if (!this._tierManager.isConnected(device.address))
-                await this._tierManager.tryConnect(device.address);
+            if (!this._syncManager.isConnected(device.address))
+                await this._syncManager.tryConnect(device.address);
         }).catch((e) => {
             console.error('Failed to connect to ' + device.address + ': ' + e.message);
         });
     }
 
-    _onDeviceRemoved(device) {
+    private _onDeviceRemoved(device : Tp.BaseDevice) {
         if (device.kind !== 'org.thingpedia.builtin.thingengine')
             return;
+        assert(device instanceof ThingEngineDevice);
 
         // wait what?
-        if (device.address === this._tierManager.ownAddress) {
+        if (device.address === this._syncManager.ownAddress) {
             console.error('ThingEngine for current device removed, ignoring...');
             return;
         }
@@ -94,18 +98,18 @@ export default class PairedEngineManager {
         }
 
         if (device.tier === Tier.SERVER)
-            this._tierManager.removeServerConfig(device.address);
+            this._syncManager.removeServerConfig(device.address);
         else if (device.tier === Tier.CLOUD)
-            this._tierManager.removeCloudConfig();
+            this._syncManager.removeCloudConfig();
 
         // close the connection, which is the goal of removing
         // the device (breaking sync)
-        this._tierManager.closeConnection(device.address).catch((e) => {
+        this._syncManager.closeConnection(device.address).catch((e) => {
             console.error('Failed to close connection to ' + device.address + ': ' + e.message);
         });
     }
 
-    async _onServerAdded(device) {
+    private async _onServerAdded(device : ThingEngineDevice) {
         // server will be added to phone by injection from the platform
         // code (when you scan the QR code from the server config page)
         // or will be added to cloud by syncdb when server first connects
@@ -116,7 +120,7 @@ export default class PairedEngineManager {
         // if we are a cloud, we already know what we need to know
         // (cloud ID and auth token) because the frontend code set it up
         // for us, so do nothing
-        if (this._tierManager.ownTier === Tier.CLOUD)
+        if (this._syncManager.ownTier === Tier.CLOUD)
             return;
 
         // Note: no need for confirmation here, this is a thingengine
@@ -125,12 +129,12 @@ export default class PairedEngineManager {
                     + ' port ' + device.port);
         console.log('Autoconfiguring...');
 
-        const host = device.host.indexOf(':') >= 0 ?
+        const host = device.host!.indexOf(':') >= 0 ?
             ('[' + device.host + ']') : device.host;
         const url = 'http://' + host + ':' + device.port + '/api/sync';
         const prefs = this._platform.getSharedPreferences();
 
-        let servers = prefs.get('servers');
+        let servers = prefs.get('servers') as Record<string, { url : string }>|undefined;
         if (!servers) {
             servers = {};
             prefs.set('servers', {});
@@ -151,22 +155,22 @@ export default class PairedEngineManager {
             if (oldurl === url)
                 return;
 
-            await this._tierManager.closeConnection(device.address);
+            await this._syncManager.closeConnection(device.address);
         }
 
         servers[device.identity] = { url };
         prefs.changed('servers');
-        this._tierManager.addServerConfig({ url });
+        this._syncManager.addServerConfig(device.identity, { url });
     }
 
-    async _onCloudAdded(device) {
+    private async _onCloudAdded(device : ThingEngineDevice) {
         // cloud will be added to phone or server by injection in the
         // respective platform layers, or by syncdb between them
         // in all cases, we just take the cloudId from the device,
         // set it in our settings, and tell tiermanager to reconnect
 
-        let prefs = this._platform.getSharedPreferences();
-        let oldCloudId = prefs.get('cloud-id');
+        const prefs = this._platform.getSharedPreferences();
+        const oldCloudId = prefs.get('cloud-id');
         if (oldCloudId !== undefined) {
             // we already had a cloud ID configured
             // this should never happen, but for robustness we let it
@@ -177,43 +181,43 @@ export default class PairedEngineManager {
         }
 
         prefs.set('cloud-id', device.cloudId);
-        this._tierManager.addCloudConfig();
+        this._syncManager.addCloudConfig();
     }
 
-    async _loadDevice(state) {
+    private async _loadDevice(state : Record<string, unknown> & { kind : string }) {
         const instance = await this._deviceFactory.loadSerialized(state.kind, state);
         await this._devices.addDevice(instance);
     }
 
-    _addPhoneToDB() {
+    private _addPhoneToDB() {
         return this._loadDevice({
             kind: 'org.thingpedia.builtin.thingengine',
             tier: Tier.PHONE,
-            identity: this._tierManager.ownIdentity,
+            identity: this._syncManager.ownIdentity,
             own: true });
     }
 
-    _addDesktopToDB() {
+    private _addDesktopToDB() {
         return this._loadDevice({
             kind: 'org.thingpedia.builtin.thingengine',
             tier: Tier.DESKTOP,
-            identity: this._tierManager.ownIdentity,
+            identity: this._syncManager.ownIdentity,
             own: true });
     }
 
-    _addServerToDB() {
+    private _addServerToDB() {
         return IpAddress.getServerName().then((host) => {
             return this._loadDevice({
                 kind: 'org.thingpedia.builtin.thingengine',
                 tier: Tier.SERVER,
-                identity: this._tierManager.ownIdentity,
+                identity: this._syncManager.ownIdentity,
                 host: host,
-                port: parseInt(process.env.PORT) || 3000,
+                port: parseInt(process.env.PORT || '3000'),
                 own: true });
         });
     }
 
-    _addCloudToDB() {
+    private _addCloudToDB() {
         return this._loadDevice({
             kind: 'org.thingpedia.builtin.thingengine',
             tier: Tier.CLOUD,
@@ -223,11 +227,11 @@ export default class PairedEngineManager {
             own: true });
     }
 
-    _addSelfToDB() {
-        if (this._devices.hasDevice('thingengine-own-' + this._tierManager.ownAddress))
+    private _addSelfToDB() {
+        if (this._devices.hasDevice('thingengine-own-' + this._syncManager.ownAddress))
             return Promise.resolve();
 
-        switch (this._tierManager.ownTier) {
+        switch (this._syncManager.ownTier) {
         case Tier.PHONE:
             return this._addPhoneToDB();
         case Tier.SERVER:
@@ -237,32 +241,23 @@ export default class PairedEngineManager {
         case Tier.CLOUD:
             return this._addCloudToDB();
         default:
-            throw new Error('Invalid own tier ' + this._tierManager.ownTier);
+            throw new Error('Invalid own tier ' + this._syncManager.ownTier);
         }
     }
 
-    async _addPlatformToDB() {
-        let platdev = await this._platform.getPlatformDevice();
+    private async _addPlatformToDB() {
+        const platdev = await this._platform.getPlatformDevice();
         if (!platdev)
             return;
 
-        let kind;
-        if (typeof platdev === 'object') {
-            Builtins[platdev.kind] = platdev;
-            kind = platdev.kind;
-        } else {
-            kind = platdev;
-            if (!kind.startsWith('org.thingpedia.builtin.thingengine.'))
-                kind = 'org.thingpedia.builtin.thingengine.' + kind;
-        }
-
-        if (this._devices.hasDevice(kind))
+        Builtins[platdev.kind] = platdev;
+        if (this._devices.hasDevice(platdev.kind))
             return;
 
-        await this._addToDB(kind);
+        await this._addToDB(platdev.kind);
     }
 
-    _addToDB(kind) {
+    private _addToDB(kind : string) {
         return this._loadDevice({ kind });
     }
 

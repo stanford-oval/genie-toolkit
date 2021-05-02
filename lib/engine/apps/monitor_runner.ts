@@ -24,7 +24,7 @@ import AsyncQueue from 'consumer-queue';
 
 import RateLimiter from '../util/rate_limiter';
 
-import * as Protocol from '../tiers/protocol';
+import * as Protocol from '../sync/protocol';
 import { ChannelStateBinder } from '../db/channel';
 
 import type ExecWrapper from './exec_wrapper';

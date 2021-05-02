@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -18,13 +18,13 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
+import * as Tp from 'thingpedia';
 import * as events from 'events';
 import * as crypto from 'crypto';
 
-import * as tc from './tier_connections';
+import * as tc from './connections';
 
-const Tier = {
+export const Tier = {
     GLOBAL: 'global', // a non-tier, represents some builtin devices
     PHONE: 'phone',
     SERVER: 'server',
@@ -34,22 +34,25 @@ const Tier = {
 const INITIAL_RECONNECTION_BACKOFF = 262144;
 const MAX_RECONNECTION_BACKOFF = 76527504; // approx 21h
 
-// Note: this should be the only module (togheter with
-// tier_connections) in the engine to have intimate knowledge of what
-// a platform is, and host platform specific code; other code
-// (especially apps, except for a few system apps like 'server-config' and 'cloud-config')
-// should be platform agnostic and rely on platform capabilities
-// instead
+export default class SyncManager extends events.EventEmitter {
+    private _platform : Tp.BasePlatform;
+    private _cloudUrl : string;
+    ownTier  : string;
+    ownIdentity : string;
 
-export default class TierManager extends events.EventEmitter {
-    constructor(platform, cloudUrl) {
+    private _serverSocket : tc.ServerConnection|null;
+    private _clientConfigurations : Record<string, { url : string }>;
+    private _clientSockets : Record<string, tc.ClientConnection>;
+    private _backoffs : Record<string, number>;
+    private _reconnectTimeouts : Record<string, NodeJS.Timeout|undefined>;
+
+    private _handlers : Record<string, (from : string, msg : any) => void>;
+
+    constructor(platform : Tp.BasePlatform, cloudUrl : string) {
         super();
 
         this._platform = platform;
         this._cloudUrl = cloudUrl;
-
-        this.devices = null;
-        this.ownTier = null;
 
         if (platform.type === 'android' || platform.type === 'ios')
             this.ownTier = Tier.PHONE;
@@ -88,7 +91,7 @@ export default class TierManager extends events.EventEmitter {
         return this.ownTier + this.ownIdentity;
     }
 
-    _backoffTimer(address) {
+    private _backoffTimer(address : string) {
         let backoff = this._backoffs[address];
         if (backoff === undefined)
             backoff = this._backoffs[address] = INITIAL_RECONNECTION_BACKOFF;
@@ -103,19 +106,19 @@ export default class TierManager extends events.EventEmitter {
         return backoff;
     }
 
-    async tryConnect(address) {
+    async tryConnect(address : string) {
         if (address === this.ownAddress)
             return;
         if (this._clientSockets[address])
             return;
         await this._tryOpenClient(address);
     }
-    async _tryOpenClient(address) {
+    private async _tryOpenClient(address : string) {
         const config = this._clientConfigurations[address];
         if (!config)
             return;
 
-        const socket = new tc.ClientConnection(config.url, this.ownAddress, this._platform.getAuthToken());
+        const socket = new tc.ClientConnection(config.url, this.ownAddress, this._platform.getAuthToken()!);
         this._clientSockets[address] = socket;
 
         socket.on('failed', () => {
@@ -127,7 +130,7 @@ export default class TierManager extends events.EventEmitter {
             this.emit('disconnected', address);
 
             // Try again at some point in the future
-            let timer = this._backoffTimer(address);
+            const timer = this._backoffTimer(address);
             console.log('Trying again in ' + Math.floor(timer/60000) + ' minutes');
             this._reconnectTimeouts[address] = setTimeout(() => {
                 this._reconnectTimeouts[address] = undefined;
@@ -146,7 +149,7 @@ export default class TierManager extends events.EventEmitter {
             this.emit('connected', address);
     }
 
-    async _tryOpenServer() {
+    private async _tryOpenServer() {
         this._serverSocket = new tc.ServerConnection(this._platform);
         this._serverSocket.on('message', (msg, from) => {
             this._routeMessage(from, msg);
@@ -173,21 +176,21 @@ export default class TierManager extends events.EventEmitter {
 
         delete this._clientConfigurations['cloud'];
     }
-    _addAllServerConfigs() {
+    private _addAllServerConfigs() {
         const prefs = this._platform.getSharedPreferences();
 
-        const servers = prefs.get('servers') || {};
-        for (let identity in servers)
+        const servers = (prefs.get('servers') || {}) as Record<string, { url : string }>;
+        for (const identity in servers)
             this._clientConfigurations['server:' + identity] = servers[identity];
     }
-    addServerConfig(identity, config) {
+    addServerConfig(identity : string, config : { url : string }) {
         this._clientConfigurations['server:' + identity] = config;
     }
-    removeServerConfig(identity) {
+    removeServerConfig(identity : string) {
         delete this._clientConfigurations['server:' + identity];
 
         const prefs = this._platform.getSharedPreferences();
-        let servers = prefs.get('servers');
+        const servers = prefs.get('servers') as Record<string, { url : string }>|undefined;
         if (!servers)
             return;
         delete servers[identity];
@@ -211,7 +214,7 @@ export default class TierManager extends events.EventEmitter {
             break;
 
         default:
-            throw new Error('Invalid own tier ' + this._tierManager.ownTier);
+            throw new Error('Invalid own tier ' + this.ownTier);
         }
 
         await Promise.all(Object.keys(this._clientConfigurations).map((address) => {
@@ -229,29 +232,29 @@ export default class TierManager extends events.EventEmitter {
         await Promise.all(Object.values(this._clientSockets).map((s) => s.close()));
     }
 
-    registerHandler(target, handler) {
+    registerHandler(target : string, handler : (from : string, msg : any) => void) {
         if (target in this._handlers)
             throw new Error('Handler for target ' + target + ' already registered');
 
         this._handlers[target] = handler;
     }
 
-    _routeMessage(address, msg) {
+    private _routeMessage(address : string, msg : any) {
         if (msg.control)
             throw new Error('Unexpected control message in TierManager');
 
-        let target = msg.target;
+        const target = msg.target;
         if (target in this._handlers)
             this._handlers[target](address, msg);
         else
             console.error('Message target ' + target + ' not recognized');
     }
 
-    isClientTier(address) {
+    isClientTier(address : string) {
         return address in this._clientSockets;
     }
 
-    isConnected(address) {
+    isConnected(address : string) {
         if (address in this._clientSockets)
             return true;
         if (!this._serverSocket)
@@ -259,7 +262,7 @@ export default class TierManager extends events.EventEmitter {
         return this._serverSocket.isConnected(address);
     }
 
-    async closeConnection(address) {
+    async closeConnection(address : string) {
         if (address in this._clientSockets) {
             await this._clientSockets[address].close();
             delete this._clientSockets[address];
@@ -269,11 +272,11 @@ export default class TierManager extends events.EventEmitter {
         }
     }
 
-    getClientConnections() {
+    getClientConnections() : string[] {
         return Object.keys(this._clientSockets);
     }
 
-    async sendTo(address, msg) {
+    async sendTo(address : string, msg : unknown) {
         if (address in this._clientSockets)
             await this._clientSockets[address].send(msg);
         else if (this._serverSocket && this._serverSocket.isConnected(address))
@@ -285,10 +288,10 @@ export default class TierManager extends events.EventEmitter {
         // the client will reinitiate sync soon
     }
 
-    sendToAll(msg) {
+    sendToAll(msg : unknown) {
         if (this._serverSocket)
             this._serverSocket.send(msg);
-        for (let target in this._clientSockets)
+        for (const target in this._clientSockets)
             this._clientSockets[target].send(msg);
     }
 }
