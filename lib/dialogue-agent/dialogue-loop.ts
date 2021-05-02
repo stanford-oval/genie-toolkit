@@ -499,18 +499,6 @@ export default class DialogueLoop {
             await this.reply("Current State:\n" + (this._dialogueState ? this._dialogueState.prettyprint() : "null"));
             break;
 
-        case CommandAnalysisType.WAKEUP:
-            // "wakeup" means the user said "hey almond" without anything else,
-            // or said "hey almond wake up", or triggered one of the LaunchIntents
-            // in Google Assistant or Alexa, or similar "opening" statements
-            // we show the welcome message if the current state is null,
-            // and do nothing otherwise
-            if (this._dialogueState === null) {
-                this._showWelcome();
-                // keep the microphone open for a while
-                await this.setExpected(ValueCategory.Generic);
-            }
-
         case CommandAnalysisType.IGNORE:
             // do exactly nothing
             break;
@@ -549,7 +537,6 @@ export default class DialogueLoop {
             switch (analyzed.type) {
             case CommandAnalysisType.STOP:
             case CommandAnalysisType.DEBUG:
-            case CommandAnalysisType.WAKEUP:
             case CommandAnalysisType.IGNORE:
                 await this._handleUICommand(analyzed.type);
                 break;
@@ -840,7 +827,6 @@ export default class DialogueLoop {
             case CommandAnalysisType.STOP:
             case CommandAnalysisType.NEVERMIND:
             case CommandAnalysisType.DEBUG:
-            case CommandAnalysisType.WAKEUP:
             case CommandAnalysisType.IGNORE:
                 await this._handleUICommand(analyzed.type);
                 break;
@@ -869,7 +855,6 @@ export default class DialogueLoop {
             case CommandAnalysisType.STOP:
             case CommandAnalysisType.NEVERMIND:
             case CommandAnalysisType.DEBUG:
-            case CommandAnalysisType.WAKEUP:
             case CommandAnalysisType.IGNORE:
                 await this._handleUICommand(analyzed.type);
                 break;

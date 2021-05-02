@@ -139,13 +139,12 @@ export async function inputToDialogueState(policy : DialoguePolicy,
                                            context : Ast.DialogueState|null,
                                            input : Ast.Input) : Promise<Ast.DialogueState|null> {
     if (input instanceof Ast.ControlCommand) {
-        if (context === null)
-            return null;
-
         if (input.intent instanceof Ast.SpecialControlIntent) {
             switch (input.intent.type) {
             case 'yes':
             case 'no': {
+                if (context === null)
+                    return null;
                 const value = new Ast.BooleanValue(input.intent.type === 'yes');
                 const handled = await policy.handleAnswer(context, value);
                 if (!handled)
@@ -154,11 +153,15 @@ export async function inputToDialogueState(policy : DialoguePolicy,
             }
             case 'nevermind':
                 return new Ast.DialogueState(null, 'org.thingpedia.dialogue.transaction', 'cancel', null, []);
+            case 'wakeup':
+                return new Ast.DialogueState(null, 'org.thingpedia.dialogue.transaction', 'greet', null, []);
             default:
                 return null;
             }
         }
         if (input.intent instanceof Ast.ChoiceControlIntent)
+            return null;
+        if (context === null)
             return null;
 
         if (input.intent instanceof Ast.AnswerControlIntent) {

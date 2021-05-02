@@ -1006,3 +1006,12 @@ U: #[count=38];
 A: I see Crouching Tiger Restaurant & Bar and I Dumpling. Both are restaurants rated 4 star with Chinese food.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_two ; @com.yelp . restaurant ( ) filter contains ( cuisines , GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 ) && geo == LOCATION_0 #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , image_url = PICTURE_0 , link = URL_0 , cuisines = [ GENERIC_ENTITY_com.yelp:restaurant_cuisine_0 ] , price = enum moderate , rating = 4 , review_count = NUMBER_0 , geo = LOCATION_1 , phone = PHONE_NUMBER_0 } ] ] #[ count = NUMBER_1 ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_cuisine_0":{"value":"chinese","display":"Chinese"},"LOCATION_0":{"latitude":37.4863239,"longitude":-122.232523,"display":"Redwood City, California"},"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"dLbBSJeyN85FIzHxb6oYtg","display":"Crouching Tiger Restaurant & Bar"},"PICTURE_0":"https://s3-media2.fl.yelpcdn.com/bphoto/ve7XevVMUGbqXg3eZtRpgw/o.jpg","URL_0":"https://www.yelp.com/biz/crouching-tiger-restaurant-and-bar-redwood-city?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg","NUMBER_0":963,"LOCATION_1":{"latitude":37.48640133,"longitude":-122.23424633,"display":"2644 Broadway St, Redwood City, CA 94063"},"PHONE_NUMBER_0":"+16502988881","NUMBER_1":38}
 A: >> expecting = null
+
+====
+# 66-wakeup
+
+U: \t $wakeup;
+
+A: Hello! How can I help you?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_greet ; // {}
+A: >> expecting = generic

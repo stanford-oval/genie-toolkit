@@ -2177,3 +2177,19 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $wakeup;
+UT: $wakeup;
+C: $dialogue @org.thingpedia.dialogue.transaction.greet;
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Hello! How can I help you?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_greet;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
