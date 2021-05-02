@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -18,13 +18,32 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 import * as events from 'events';
 
+import type Engine from '..';
+
+import type AppExecutor from './app_executor';
 import ExecWrapper from './exec_wrapper';
+import { OutputDelegate } from './exec_wrapper';
 
 export default class RuleExecutor extends events.EventEmitter {
-    constructor(engine, app, compiled, output) {
+    engine : Engine;
+    app : AppExecutor;
+
+    private _output : OutputDelegate;
+    private _env : ExecWrapper;
+    private _tt : (env : ExecWrapper) => Promise<unknown>;
+
+    private _finished ! : {
+        resolve() : void;
+        reject(err : Error) : void;
+    };
+    private _finishPromise : Promise<void>;
+
+    constructor(engine : Engine,
+                app : AppExecutor,
+                compiled : (env : ExecWrapper) => Promise<unknown>,
+                output : OutputDelegate) {
         super();
         this.engine = engine;
         this.app = app;
@@ -34,13 +53,12 @@ export default class RuleExecutor extends events.EventEmitter {
         this._tt = compiled;
 
         // create an early promise so we can call waitFinished() before start()
-        this._finished = null;
         this._finishPromise = new Promise((resolve, reject) => {
             this._finished = { resolve, reject };
         });
     }
 
-    async _ruleThread() {
+    private async _ruleThread() {
         try {
             await this._tt(this._env);
         } catch(e) {

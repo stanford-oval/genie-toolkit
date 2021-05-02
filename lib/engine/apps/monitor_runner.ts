@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -19,6 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import * as Tp from 'thingpedia';
+import type * as stream from 'stream';
 import AsyncQueue from 'consumer-queue';
 
 import RateLimiter from '../util/rate_limiter';
@@ -26,17 +27,48 @@ import RateLimiter from '../util/rate_limiter';
 import * as Protocol from '../tiers/protocol';
 import { ChannelStateBinder } from '../db/channel';
 
-function extendParams(output, input) {
-    for (let key in input) {
+import type ExecWrapper from './exec_wrapper';
+import type { CompiledQueryHints } from './exec_wrapper';
+import type DeviceView from '../devices/device_view';
+
+function extendParams(output : Record<string, unknown>, input : Record<string, unknown>) {
+    for (const key in input) {
          if (Object.prototype.hasOwnProperty.call(output, key))
              continue;
          output[key] = input[key];
     }
 }
 
-// TODO rename file
+type MonitorStream = stream.Readable & {
+    destroy() : void;
+    uniqueId ?: string;
+    device ?: Tp.BaseDevice;
+}
+
+type SubscribeFunction = (params : Record<string, unknown>, state : ChannelStateBinder, hints : CompiledQueryHints, env : ExecWrapper) => MonitorStream;
+type MonitorEvent = Record<string, unknown> & { __timestamp : number };
+
 export default class MonitorRunner {
-    constructor(env, devices, channel, params, hints) {
+    private _env : ExecWrapper;
+    private _devices : DeviceView;
+    private _channel : string;
+    private _fn : string;
+    private _params : Record<string, unknown>;
+    private _hints : CompiledQueryHints;
+    private _rateLimiter : RateLimiter;
+    private _streams : Map<Tp.BaseDevice, MonitorStream>;
+    private _ended : Set<MonitorStream>;
+    private _stopped : boolean;
+    private _queue : AsyncQueue<IteratorResult<[string, MonitorEvent], void>>;
+    private _dataListener : (this : MonitorStream, data : MonitorEvent) => void;
+    private _endListener : (this : MonitorStream) => void;
+    private _errorListener : (this : MonitorStream, error : Error) => void;
+
+    constructor(env : ExecWrapper,
+                devices : DeviceView,
+                channel : string,
+                params : Record<string, unknown>,
+                hints : CompiledQueryHints) {
         this._env = env;
         this._channel = channel;
         this._fn = 'subscribe_' + channel;
@@ -46,17 +78,17 @@ export default class MonitorRunner {
         // rate limit to 1 per second, with a burst of 300
         this._rateLimiter = new RateLimiter(300, 300 * 1000);
 
-        let self = this;
+        const self = this;
         this._dataListener = function(data) {
-            let from = this;
+            const from = this;
             self._onTriggerData(from, data);
         };
         this._endListener = function() {
-            let from = this;
+            const from = this;
             self._onTriggerEnd(from);
         };
         this._errorListener = function(error) {
-            let from = this;
+            const from = this;
             self._onTriggerError(from, error);
         };
 
@@ -71,11 +103,11 @@ export default class MonitorRunner {
         return this._queue.pop();
     }
 
-    _onTriggerError(from, error) {
+    private _onTriggerError(from : MonitorStream, error : Error) {
         this._env.reportError('Trigger ' + from.uniqueId + ' reported an error', error);
     }
 
-    _onTriggerData(from, data) {
+    private _onTriggerData(from : MonitorStream, data : MonitorEvent) {
         if (this._stopped)
             return;
         if (!this._rateLimiter.hit())
@@ -83,30 +115,30 @@ export default class MonitorRunner {
 
         console.log('Handling incoming data on ' + from.uniqueId);
 
-        let outputType = from.device.kind + ':' + this._channel;
+        const outputType = from.device!.kind + ':' + this._channel;
         if (data.__timestamp === undefined) {
             console.log('WARNING: missing timestamp on data from ' + from.uniqueId);
-            let now = Date.now();
+            const now = Date.now();
             data.__timestamp = now;
         }
-        if (from.device.uniqueId !== from.device.kind)
-            data.__device = new Tp.Value.Entity(from.device.uniqueId, from.device.name);
+        if (from.device!.uniqueId !== from.device!.kind)
+            data.__device = new Tp.Value.Entity(from.device!.uniqueId!, from.device!.name);
         extendParams(data, this._params);
         this._queue.push({ done: false, value: [outputType, data] });
     }
 
-    _onTriggerEnd(from) {
+    private _onTriggerEnd(from : MonitorStream) {
         console.log('Handling trigger end from ' + from.uniqueId);
         if (this._stopped)
             return;
         this._ended.add(from);
         if (this._ended.size === this._streams.size) {
             this._stopped = true;
-            this._queue.push({ done: true });
+            this._queue.push({ done: true, value: undefined });
         }
     }
 
-    _onDeviceAdded(device) {
+    private _onDeviceAdded(device : Tp.BaseDevice) {
         const uniqueId = device.uniqueId + ':' + this._channel + ':' + Protocol.params.makeString(this._params);
 
         Promise.resolve().then(() => {
@@ -121,7 +153,7 @@ export default class MonitorRunner {
                 if (this._stopped)
                     return;
 
-                let stream = device[this._fn](this._params, state, this._hints);
+                const stream = (device as unknown as Record<string, SubscribeFunction>)[this._fn](this._params, state, this._hints, this._env);
                 this._streams.set(device, stream);
 
                 stream.uniqueId = uniqueId; // for debugging only
@@ -136,8 +168,8 @@ export default class MonitorRunner {
         });
     }
 
-    _onDeviceRemoved(device) {
-        let stream = this._streams.get(device);
+    private _onDeviceRemoved(device : Tp.BaseDevice) {
+        const stream = this._streams.get(device);
         if (!stream)
             return;
 
@@ -149,14 +181,14 @@ export default class MonitorRunner {
         if (this._stopped)
             return;
         this._stopped = true;
-        this._queue.push({ done: true });
+        this._queue.push({ done: true, value: undefined });
     }
 
     stop() {
         this._stopped = true;
         this._devices.stop();
 
-        for (let stream of this._streams.values())
+        for (const stream of this._streams.values())
             stream.destroy();
     }
 

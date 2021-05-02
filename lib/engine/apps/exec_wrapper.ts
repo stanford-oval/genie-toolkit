@@ -23,7 +23,7 @@ import assert from 'assert';
 import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
 import { Ast, ExecEnvironment } from 'thingtalk';
-import TriggerRunner from './trigger_runner';
+import MonitorRunner from './monitor_runner';
 
 import { Timer, AtTimer } from './timers';
 import DeviceView from '../devices/device_view';
@@ -42,7 +42,7 @@ function extendParams(output : Record<string, unknown>,
     }
 }
 
-interface OutputDelegate {
+export interface OutputDelegate {
     done() : void;
     output(outputType : string, outputValue : Record<string, unknown>) : void;
     notifyError(error : Error) : void;
@@ -61,11 +61,6 @@ type ActionFunction = (params : Record<string, unknown>, env : ExecWrapper) => M
 
 type QueryFunctionResult = AsyncIterable<Record<string, unknown>>;
 type QueryFunction = (params : Record<string, unknown>, hints : CompiledQueryHints, env : ExecWrapper) => MaybePromise<QueryFunctionResult>;
-
-interface TriggerLike {
-    end() : void;
-    stop() : void;
-}
 
 function recursivelyComputeOutputType(kind : string, expr : Ast.Expression) : string {
     if (expr instanceof Ast.InvocationExpression)
@@ -95,7 +90,7 @@ export default class ExecWrapper extends ExecEnvironment {
 
     private _programId : ThingTalk.Builtin.Entity;
     private _outputDelegate : OutputDelegate;
-    private _trigger : TriggerLike|null;
+    private _trigger : MonitorRunner|Timer|AtTimer|null;
 
     private _execCache : Array<[string, string, Record<string, unknown>, Array<Promise<QueryFunctionResult>>]>;
     private _hooks : Array<() => void|Promise<void>>;
@@ -151,7 +146,7 @@ export default class ExecWrapper extends ExecEnvironment {
     }
 
     invokeTimer(base : Date, interval : number, frequency : number) : AsyncIterator<{ __timestamp : number }> {
-        const trigger = new Timer(base, interval, frequency);
+        const trigger = new Timer(base.getTime(), interval, frequency);
         this._trigger = trigger;
         trigger.start();
         return this._wrapClearCache(trigger);
@@ -169,7 +164,7 @@ export default class ExecWrapper extends ExecEnvironment {
                   fname : string,
                   params : Record<string, unknown>,
                   hints : CompiledQueryHints) : AsyncIterator<[string, Record<string, unknown> & { __timestamp : number }]> {
-        const trigger = new TriggerRunner(this, new DeviceView(this.engine.devices, kind, attrs), fname, params, hints);
+        const trigger = new MonitorRunner(this, new DeviceView(this.engine.devices, kind, attrs), fname, params, hints);
         this._trigger = trigger;
         trigger.start();
         return this._wrapClearCache(trigger);
