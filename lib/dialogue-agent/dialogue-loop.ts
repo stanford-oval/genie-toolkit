@@ -468,14 +468,14 @@ export default class DialogueLoop {
         } else if (policyResult.expect instanceof Type.Enum) {
             for (const entry of policyResult.expect.entries!)
                 await this.replyButton(clean(entry), JSON.stringify({ code: ['$answer', '(', 'enum', entry, ')', ';'], entities: {} }));
-            expect = ValueCategory.Command;
+            expect = ValueCategory.Generic;
         } else if (policyResult.expect) {
             expect = ValueCategory.fromType(policyResult.expect);
         } else {
-            expect = ValueCategory.Command;
+            expect = ValueCategory.Generic;
         }
         if (expect === ValueCategory.RawString && !policyResult.raw)
-            expect = ValueCategory.Command;
+            expect = ValueCategory.Generic;
 
         if (expect === null && TERMINAL_STATES.includes(this._dialogueState!.dialogueAct))
             throw new CancellationError();
@@ -508,7 +508,7 @@ export default class DialogueLoop {
             if (this._dialogueState === null) {
                 this._showWelcome();
                 // keep the microphone open for a while
-                await this.setExpected(ValueCategory.Command);
+                await this.setExpected(ValueCategory.Generic);
             }
 
         case CommandAnalysisType.IGNORE:
@@ -762,10 +762,8 @@ export default class DialogueLoop {
     }
 
     async lookingFor() {
-        if (this.expecting === null) {
-            await this.reply(this._("In fact, I did not ask for anything at all!"));
-        } else if (this.expecting === ValueCategory.YesNo) {
-            await this.reply(this._("Sorry, I need you to confirm the last question first."));
+        if (this.expecting === ValueCategory.YesNo) {
+            await this.reply(this._("Please answer yes or no."));
         } else if (this.expecting === ValueCategory.MultipleChoice) {
             await this.reply(this._("Could you choose one of the following?"));
             await this._resendChoices();
@@ -791,10 +789,6 @@ export default class DialogueLoop {
             // but this will happen if the user clicks a button
             // or upload a picture
             await this.reply(this._("Which is interesting, because I'll take anything at all. Just type your mind!"));
-        } else if (this.expecting === ValueCategory.Command) {
-            await this.reply(this._("I'm looking for a command."));
-        } else {
-            await this.reply(this._("In fact, I'm not even sure what I asked. Sorry!"));
         }
     }
 

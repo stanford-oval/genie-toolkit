@@ -288,11 +288,11 @@ $agent : S.AgentReplyRecord = {
     ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
     | ctx:ctx_init ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
     | ctx:ctx_reinit ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
-    ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null)),
+    ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null), null, null, { end: false }),
 
     ?anything_else {
         ctx:ctx_cancel anything_else_phrase
-            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_anything_else', null)),
+            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_anything_else', null), null, null, { end: false }),
 
         ctx:ctx_end 'alright ,' ('bye !' | 'good bye !')
             => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null)),
@@ -344,7 +344,7 @@ $agent : S.AgentReplyRecord = {
 
     // learn more
     ctx:ctx_learn_more system_learn_more
-        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_learn_more_what', null));
+        => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_learn_more_what', null), null, null, { end: false });
 
     ["${preamble} I {will|am going to} ${stmt}"]: (ctx : ctx_rule_enable_success, preamble : generic_excitement2_phrase, stmt : ctx_current_statement)
         => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_rule_enable_success', null));

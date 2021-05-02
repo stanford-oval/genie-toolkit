@@ -858,23 +858,23 @@ function makeAgentReply(ctx : ContextInfo,
     assert(state.dialogueAct.startsWith('sys_'));
     assert(expectedType === null || expectedType instanceof ThingTalk.Type);
 
-    // if true, the interaction is done and the agent should stop listening
-    // these dialogue acts are considered to "end" the conversation:
-    // sys_recommend_*, sys_action_success, sys_action_error
-    // provided no thingtalk statement is left to do (accepted or proposed)
-    // the user can still continue, but the agent won't be listening unless woken up
-    // (specific semantic functions can override)
-    let end = options.end;
-    if (end === undefined) {
-        end = !state.history.some((item) => item.results === null) &&
-            (state.dialogueAct.startsWith('sys_recommend_') ||
-            ['sys_rule_enable_success', 'sys_action_success', 'sys_action_error',
-             'sys_end', 'sys_display_result'].includes(state.dialogueAct));
-    }
-
     // show a yes/no thing if we're proposing something
     if (expectedType === null && state.history.some((item) => item.confirm === 'proposed'))
         expectedType = Type.Boolean;
+
+    // if false, the agent is still listening
+    // the agent will continue listening if one of the following is true:
+    // - the agent is eliciting a value (slot fill or search question)
+    // - the agent is proposing a statement
+    // - the agent is asking the user to learn more
+    // - there are more statements left to do (includes the case of confirmations)
+    let end = options.end;
+    if (end === undefined) {
+        end = expectedType === null &&
+            state.dialogueActParam === null &&
+            !state.dialogueAct.endsWith('_question') &&
+            state.history.every((item) => item.results !== null);
+    }
 
     if (ctx.loader.flags.inference) {
         // at inference time, we don't need to compute any of the auxiliary info
