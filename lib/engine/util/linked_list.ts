@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -19,22 +19,25 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-class ListNode {
-    constructor(data, prev, next) {
-        this.data = data;
-        this.prev = prev;
-        this.next = next;
+class ListNode<T> {
+    constructor(public data : T,
+                public prev : ListNode<T>|null,
+                public next : ListNode<T>|null) {
     }
 }
 
-export default class LinkedList {
+export default class LinkedList<T> {
+    private head : ListNode<T>|null;
+    private tail : ListNode<T>|null;
+    size : number;
+
     constructor() {
         this.head = null;
         this.tail = null;
         this.size = 0;
     }
 
-    *[Symbol.iterator]() {
+    *[Symbol.iterator]() : Iterator<T> {
         let node = this.head;
         while (node !== null) {
             yield node.data;
@@ -42,28 +45,28 @@ export default class LinkedList {
         }
     }
 
-    unshift(data) {
+    unshift(data : T) : void {
         if (this.head === null) {
             this.head = this.tail = new ListNode(data, null, null);
             this.size = 1;
         } else {
             this.head = new ListNode(data, null, this.head);
-            this.head.next.prev = this.head;
+            this.head.next!.prev = this.head;
             this.size ++;
         }
     }
 
-    peek() {
+    peek() : T|undefined {
         if (this.tail === null)
             return undefined;
         else
             return this.tail.data;
     }
 
-    pop() {
+    pop() : T {
         if (this.tail === null)
             throw new Error("Pop from an empty list");
-        let data = this.tail.data;
+        const data = this.tail.data;
         if (this.tail.prev === null) {
             this.head = this.tail = null;
             this.size = 0;
