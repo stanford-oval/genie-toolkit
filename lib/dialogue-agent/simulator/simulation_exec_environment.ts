@@ -571,6 +571,7 @@ class SimulationExecEnvironment extends ExecEnvironment {
                 const dvalue = data[key];
                 if (!dvalue)
                     continue;
+
                 if (!ThingTalk.Builtin.equality(pvalue, dvalue))
                     return false;
             }

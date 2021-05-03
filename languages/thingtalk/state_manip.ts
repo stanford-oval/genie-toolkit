@@ -988,6 +988,7 @@ export function tagContextForAgent(ctx : ContextInfo) : number[] {
         else
             return [contextTable.ctx_nonlist_notification];
 
+    case 'init':
     case 'execute':
     case 'ask_recommend':
         if (ctx.nextInfo !== null) {
@@ -1153,7 +1154,7 @@ function makeErrorContextPhrase(ctx : ContextInfo,
             if (text === null)
                 return null;
             bag.set(param, value);
-            return { value, text };
+            return { value: value.toJS(), text };
         });
 
         if (utterance) {
@@ -1199,7 +1200,7 @@ function makeListResultContextPhrase(ctx : ContextInfo,
                 if (text === null)
                     return null;
                 bag.set(param, value);
-                return { value, text };
+                return { value: value.toJS(), text };
             } else {
                 const arrayValue = new Ast.ArrayValue([]);
                 for (const result of allResults) {
@@ -1212,7 +1213,7 @@ function makeListResultContextPhrase(ctx : ContextInfo,
                 if (text === null)
                     return null;
                 bag.set(param, arrayValue);
-                return { value: arrayValue, text };
+                return { value: arrayValue.toJS(), text };
             }
         });
 
@@ -1281,7 +1282,7 @@ function makeListConcatResultContextPhrase(ctx : ContextInfo,
                 const text = describer.describeArg(value);
                 if (text === null)
                     return null;
-                return { value, text };
+                return { value: value.toJS(), text };
             });
             if (piece === null)
                 continue outer;
@@ -1328,7 +1329,7 @@ function makeTopResultContextPhrase(ctx : ContextInfo,
             if (text === null)
                 return null;
             bag.set(param, value);
-            return { value, text };
+            return { value: value.toJS(), text };
         });
 
         if (utterance) {
@@ -1395,6 +1396,53 @@ export function makeResultContextPhrase(ctx : ContextInfo,
             return output;
 
         output.push(...makeListResultContextPhrase(ctx, allResults, phrases.list));
+    }
+
+    return output;
+}
+
+export function makeEmptyResultContextPhrase(ctx : ContextInfo) {
+    const currentFunction = ctx.currentFunction!;
+    const contextTable = ctx.contextTable;
+    const describer = ctx.loader.describer;
+    const phrases = ctx.loader.getResultPhrases(currentFunction.qualifiedName);
+
+    const action = C.getInvocation(ctx.current!);
+    const isAction = currentFunction.functionType === 'action';
+
+    const output = [];
+    for (const candidate of (isAction ? phrases.top : phrases.empty)) {
+        const bag = new SlotBag(currentFunction);
+        const utterance = tryReplacePlaceholderPhrase(candidate, (param) => {
+            let value = null;
+            for (const in_param of action.in_params) {
+                if (in_param.name === param) {
+                    value = in_param.value;
+                    break;
+                }
+            }
+            if (!value)
+                return null;
+            const text = describer.describeArg(value);
+            if (text === null)
+                return null;
+            bag.set(param, value);
+            return { value: value.toJS(), text };
+        });
+
+        if (utterance) {
+            output.push({
+                symbol: isAction ? contextTable.ctx_thingpedia_result : contextTable.ctx_thingpedia_empty_result,
+                utterance,
+                value: bag,
+                priority: 0,
+                key: keyfns.slotBagKeyFn(bag)
+            });
+
+            // in inference mode, we're done
+            if (ctx.loader.flags.inference)
+                return output;
+        }
     }
 
     return output;
@@ -1549,6 +1597,8 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
                 const topResult = results[0];
                 phrases.push(...makeResultContextPhrase(ctx, topResult, results));
                 phrases.push(...makeNameListContextPhrases(ctx));
+            } else if (!current.results!.error) {
+                phrases.push(...makeEmptyResultContextPhrase(ctx));
             }
         }
     }
@@ -1581,6 +1631,9 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
 
     if (ctx.state.dialogueAct === 'notification')
         phrases.push(makeContextPhrase(contextTable.ctx_with_notification, ctx));
+
+    if (ctx.state.dialogueAct === 'init')
+        phrases.push(makeContextPhrase(contextTable.ctx_init, ctx));
 
     if (ctx.isMultiDomain)
         phrases.push(makeContextPhrase(contextTable.ctx_multidomain, ctx));

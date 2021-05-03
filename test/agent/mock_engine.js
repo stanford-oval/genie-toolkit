@@ -19,6 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
+import events from 'events';
 import { Ast, Compiler, SchemaRetriever } from 'thingtalk';
 import Gettext from 'node-gettext';
 import * as uuid from 'uuid';
@@ -55,8 +56,9 @@ class QueueOutputDelegate {
     }
 }
 
-class MockAppExecutor {
+class MockAppExecutor extends events.EventEmitter {
     constructor(simulator, schemas, program, options) {
+        super();
         this._simulator = simulator;
         this._schemas = schemas;
         this._rng = options.rng;
@@ -97,6 +99,7 @@ class MockAppExecutor {
         if (this._compiled.command)
             await this._compiled.command(this._simulator);
         this.mainOutput.done();
+        this.emit('done');
     }
 }
 
@@ -114,13 +117,19 @@ class MockAppDatabase {
 
         this._apps['app-foo'] = { name: 'Execute Foo',
             description: 'This app fooes', code: 'now => @builtin.foo();', state: {},
-            uniqueId: 'app-foo', isRunning: true };
+            uniqueId: 'app-foo', isRunning: true,
+            notifications: [] };
         this._apps['uuid-test-notify2'] = {
             name: 'Xkcd ⇒ Notification',
             description: 'get xkcd and stuff',
             uniqueId: 'uuid-test-notify2',
-            isRunning: true
+            isRunning: true,
+            notifications: []
         };
+    }
+
+    getAllApps() {
+        return Object.values(this._apps);
     }
 
     getApp(appId) {
@@ -135,6 +144,9 @@ class MockAppDatabase {
         options.rng = this._rng;
         const app = new MockAppExecutor(this._simulator, this._schemas, program, options);
         this._apps[options.uniqueId] = app;
+        app.on('done', () => {
+            delete this._apps[options.uniqueId];
+        });
         await app.compile();
 
         // execute asynchronously
@@ -216,7 +228,8 @@ class MockBuiltinDevice {
 
 let _cnt = 0;
 
-const UNIQUE_DEVICES = new Set(['com.yelp', 'org.thingpedia.weather', 'org.thingpedia.builtin.test', 'com.thecatapi', 'com.xkcd']);
+const UNIQUE_DEVICES = new Set(['com.yelp', 'org.thingpedia.weather', 'org.thingpedia.builtin.test',
+    'com.thecatapi', 'com.xkcd', 'org.thingpedia.covid-vaccine']);
 class MockUnknownDevice {
     constructor(kind) {
         if (UNIQUE_DEVICES.has(kind)) {
@@ -453,6 +466,10 @@ export function createMockEngine(thingpedia, rng, database) {
 
         createDevice(blob) {
             return this.devices.addSerialized(blob);
+        },
+
+        getAppInfos() {
+            return this.apps.getAllApps();
         }
     };
     engine.gettext = function(string) {

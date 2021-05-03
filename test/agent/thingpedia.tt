@@ -1214,3 +1214,85 @@ abstract class @org.thingpedia.iot.door
   #[minimal_projection=[]]
   #[confirm=false];
 }
+class @org.thingpedia.covid-vaccine
+#_[thingpedia_name="COVID Vaccine"]
+#_[thingpedia_description="COVID Vaccine Finder"]
+#[license="BSD-3-Clause"]
+#[license_gplcompatible=true]
+#[subcategory="service"]
+{
+  import loader from @org.thingpedia.v2();
+  import config from @org.thingpedia.config.none();
+
+  entity vaccine_appointment #_[description="Vaccine appointment ID"] #[has_ner=false];
+
+  monitorable list query appointment(in req zip_code: String
+                                     #[string_values="tt:us_postal_code"]
+                                     #_[prompt="what is your zip code"]
+                                     #_[canonical={
+                                       default="preposition",
+                                       base=["zip code", "post code", "postal code"],
+                                       property=[],
+                                       preposition=["in the # zip code", "near #", "in #", "at #", "around #", "for location #", "for #"]
+                                     }],
+                                     in opt dose: Enum(first, second)
+                                     #_[prompt="is this your first or second dose"]
+                                     #_[canonical={
+                                       base=["dose"],
+                                       preposition=["for my # dose"],
+                                     }],
+                                     in opt vaccine_type: Enum(moderna, pfizer, johnson_and_johnson, astra_zeneca)
+                                     #[required_if=["dose=second"]]
+                                     #_[prompt="what type of vaccine did you receive at the first dose"]
+                                     #_[canonical={
+                                       base=["vaccine type"],
+                                     }],
+                                     out id: Entity(org.thingpedia.covid-vaccine:vaccine_appointment)
+                                     #[unique=true]
+                                     #[filterable=false]
+                                     #_[canonical={
+                                        base=["id"],
+                                     }],
+                                     out geo: Location
+                                     #_[canonical={
+                                       default="preposition",
+                                       base=["address", "location"],
+                                       preposition=["near #", "in #", "around #"]
+                                     }],
+                                     out link: Entity(tt:url) #_[canonical="link"],
+                                     out success_rate: Number
+                                    )
+  #[canonical=["appointment", "vaccine appointment", "vaccination slot",
+               "appointment to get a vaccine"]]
+  #_[result={
+    top=["Here is a location near you that has reported available appointments {|${geo} ${link}}"],
+    empty=["I cannot find any available appointments in your area"],
+  }]
+  #_[on_error={
+    invalid_zipcode=["this is not a valid zip code, please re-enter it"],
+    second_dose_unneeded=["you do not need a second dose for the johnson & johnson vaccine"],
+  }]
+  #_[formatted=[{
+    type="rdl",
+    displayText="${geo}",
+    webCallback="${link}"
+  }]]
+  #[minimal_projection=["id"]]
+  #[initial=true]
+  #[follow_up="org.thingpedia.covid-vaccine.mark_valid"]
+  #[poll_interval=300000ms]
+  #[doc="Information about COVID vaccine appointments"];
+
+  action mark_valid(in req appointment : Entity(org.thingpedia.covid-vaccine:vaccine_appointment),
+                    in req validity : Boolean
+                    #_[prompt="please try this and let me know if it works."]
+                    #_[canonical={
+                      base=["validity", "existence"],
+                      preposition_true=["as valid", "as existent", "as real"],
+                      preposition_false=["as invalid", "as non-existent", "as not real"]
+                    }])
+  #[canonical=["mark an appointment", "record an appointment"]]
+  #_[result=["${validity:select:true{Great, congratulations on getting your appointment! Please tell your friends about us.} false{Sorry that did not work out.}}"]]
+  #[follow_up="org.thingpedia.covid-vaccine.appointment(zip_code,dose,vaccine_type) if validity=false"]
+  #[confirm=false];
+}

@@ -18,8 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-import interpolate from 'string-interp';
 import * as Tp from 'thingpedia';
 
 import type TierManager from '../../tiers/tier_manager';
@@ -80,10 +78,6 @@ export default class ThingEngineDevice extends Tp.BaseDevice {
         }
 
         this.uniqueId = 'thingengine-own-' + this.address;
-        this.name = interpolate(engine._("Almond ${tier} (${identity})"), this.state, {
-            locale: this.platform.locale
-        })||'';
-        this.description = (engine as Engine)._("This is one of your own Almond apps.");
     }
 
     updateState(state : ThingEngineDeviceState) {

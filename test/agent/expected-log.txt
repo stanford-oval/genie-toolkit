@@ -593,13 +593,11 @@ UT: $stop;
 U: !! test command always failed !!
 UT: $failed;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Sorry, I did not understand that. Can you rephrase it?
+A: Sorry, I did not understand that. Please enter a 5-digit zip code.
 #! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
-====
-# test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $stop;
 UT: $stop;
@@ -2189,6 +2187,288 @@ C: $dialogue @org.thingpedia.dialogue.transaction.greet;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Hello! How can I help you?
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_greet;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.init;
+U: @org.thingpedia.covid-vaccine.appointment();
+UT: $dialogue @org.thingpedia.dialogue.transaction.init;
+UT: @org.thingpedia.covid-vaccine.appointment();
+C: $dialogue @org.thingpedia.dialogue.transaction.init;
+C: @org.thingpedia.covid-vaccine.appointment();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Hello! I can help you find an appointment. What is your zip code?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(zip_code);
+AT: @org.thingpedia.covid-vaccine.appointment();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.covid-vaccine.appointment(zip_code="94305");
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.covid-vaccine.appointment(zip_code="94305");
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.covid-vaccine.appointment(zip_code="94305")
+C: #[results=[
+C:   { zip_code="94305", vaccine_type=enum pfizer, dose=enum first, id="1"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(37.4334411, -122.1774838, "Stanford Hospital (Pfizer)"), link="https://stanfordhealthcare.org/"^^tt:url }
+C: ]];
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.covid-vaccine.appointment(zip_code="94305")
+C: #[results=[
+C:   { zip_code="94305", vaccine_type=enum pfizer, dose=enum first, id="1"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(37.4334411, -122.1774838, "Stanford Hospital (Pfizer)"), link="https://stanfordhealthcare.org/"^^tt:url }
+C: ]];
+C: @org.thingpedia.covid-vaccine.mark_valid(appointment="1"^^org.thingpedia.covid-vaccine:vaccine_appointment);
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Here is a location near you that has reported available appointments.
+A: Please try this and let me know if it works.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(validity);
+AT: @org.thingpedia.covid-vaccine.mark_valid(appointment="1"^^org.thingpedia.covid-vaccine:vaccine_appointment);
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $yes;
+UT: $yes;
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.covid-vaccine.appointment(zip_code="94305")
+C: #[results=[
+C:   { zip_code="94305", vaccine_type=enum pfizer, dose=enum first, id="1"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(37.4334411, -122.1774838, "Stanford Hospital (Pfizer)"), link="https://stanfordhealthcare.org/"^^tt:url }
+C: ]];
+C: @org.thingpedia.covid-vaccine.mark_valid(appointment="1"^^org.thingpedia.covid-vaccine:vaccine_appointment, validity=true)
+C: #[results=[]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Great, congratulations on getting your appointment! Please tell your friends about us.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.init;
+U: @org.thingpedia.covid-vaccine.appointment();
+UT: $dialogue @org.thingpedia.dialogue.transaction.init;
+UT: @org.thingpedia.covid-vaccine.appointment();
+C: $dialogue @org.thingpedia.dialogue.transaction.init;
+C: @org.thingpedia.covid-vaccine.appointment();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Hello! I can help you find an appointment. What is your zip code?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(zip_code);
+AT: @org.thingpedia.covid-vaccine.appointment();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.covid-vaccine.appointment(dose=enum second, zip_code="94304");
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.covid-vaccine.appointment(dose=enum second, zip_code="94304");
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.covid-vaccine.appointment(dose=enum second, zip_code="94304");
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: What type of vaccine did you receive at the first dose?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(vaccine_type);
+AT: @org.thingpedia.covid-vaccine.appointment(dose=enum second, zip_code="94304");
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.covid-vaccine.appointment(dose=enum second, vaccine_type=enum pfizer, zip_code="94304");
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.covid-vaccine.appointment(dose=enum second, vaccine_type=enum pfizer, zip_code="94304");
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.covid-vaccine.appointment(dose=enum second, vaccine_type=enum pfizer, zip_code="94304")
+C: #[results=[
+C:   { zip_code="94304", vaccine_type=enum pfizer, dose=enum second, id="3"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(37.4334411, -122.1774838, "Stanford Hospital (Pfizer, 2nd dose)"), link="https://stanfordhealthcare.org/"^^tt:url }
+C: ]];
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.covid-vaccine.appointment(dose=enum second, vaccine_type=enum pfizer, zip_code="94304")
+C: #[results=[
+C:   { zip_code="94304", vaccine_type=enum pfizer, dose=enum second, id="3"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(37.4334411, -122.1774838, "Stanford Hospital (Pfizer, 2nd dose)"), link="https://stanfordhealthcare.org/"^^tt:url }
+C: ]];
+C: @org.thingpedia.covid-vaccine.mark_valid(appointment="3"^^org.thingpedia.covid-vaccine:vaccine_appointment);
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Here is a location near you that has reported available appointments.
+A: Please try this and let me know if it works.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(validity);
+AT: @org.thingpedia.covid-vaccine.mark_valid(appointment="3"^^org.thingpedia.covid-vaccine:vaccine_appointment);
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $no;
+UT: $no;
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.covid-vaccine.appointment(dose=enum second, vaccine_type=enum pfizer, zip_code="94304")
+C: #[results=[
+C:   { zip_code="94304", vaccine_type=enum pfizer, dose=enum second, id="3"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(37.4334411, -122.1774838, "Stanford Hospital (Pfizer, 2nd dose)"), link="https://stanfordhealthcare.org/"^^tt:url }
+C: ]];
+C: @org.thingpedia.covid-vaccine.mark_valid(appointment="3"^^org.thingpedia.covid-vaccine:vaccine_appointment, validity=false)
+C: #[results=[]];
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.covid-vaccine.appointment(dose=enum second, vaccine_type=enum pfizer, zip_code="94304")
+C: #[results=[
+C:   { zip_code="94304", vaccine_type=enum pfizer, dose=enum second, id="3"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(37.4334411, -122.1774838, "Stanford Hospital (Pfizer, 2nd dose)"), link="https://stanfordhealthcare.org/"^^tt:url }
+C: ]];
+C: @org.thingpedia.covid-vaccine.mark_valid(appointment="3"^^org.thingpedia.covid-vaccine:vaccine_appointment, validity=false)
+C: #[results=[]];
+C: @org.thingpedia.covid-vaccine.appointment(dose=enum second, vaccine_type=enum pfizer, zip_code="94304")
+C: #[results=[
+C:   { zip_code="94304", vaccine_type=enum pfizer, dose=enum second, id="3"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(37.4334411, -122.1774838, "Stanford Hospital (Pfizer, 2nd dose)"), link="https://stanfordhealthcare.org/"^^tt:url }
+C: ]];
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.covid-vaccine.appointment(dose=enum second, vaccine_type=enum pfizer, zip_code="94304")
+C: #[results=[
+C:   { zip_code="94304", vaccine_type=enum pfizer, dose=enum second, id="3"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(37.4334411, -122.1774838, "Stanford Hospital (Pfizer, 2nd dose)"), link="https://stanfordhealthcare.org/"^^tt:url }
+C: ]];
+C: @org.thingpedia.covid-vaccine.mark_valid(appointment="3"^^org.thingpedia.covid-vaccine:vaccine_appointment, validity=false)
+C: #[results=[]];
+C: @org.thingpedia.covid-vaccine.appointment(dose=enum second, vaccine_type=enum pfizer, zip_code="94304")
+C: #[results=[
+C:   { zip_code="94304", vaccine_type=enum pfizer, dose=enum second, id="3"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(37.4334411, -122.1774838, "Stanford Hospital (Pfizer, 2nd dose)"), link="https://stanfordhealthcare.org/"^^tt:url }
+C: ]];
+C: @org.thingpedia.covid-vaccine.mark_valid(appointment="3"^^org.thingpedia.covid-vaccine:vaccine_appointment);
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Sorry that did not work out.
+A: Here is a location near you that has reported available appointments.
+A: Please try this and let me know if it works.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(validity);
+AT: @org.thingpedia.covid-vaccine.mark_valid(appointment="3"^^org.thingpedia.covid-vaccine:vaccine_appointment);
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.init;
+U: @org.thingpedia.covid-vaccine.appointment();
+UT: $dialogue @org.thingpedia.dialogue.transaction.init;
+UT: @org.thingpedia.covid-vaccine.appointment();
+C: $dialogue @org.thingpedia.dialogue.transaction.init;
+C: @org.thingpedia.covid-vaccine.appointment();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Hello! I can help you find an appointment. What is your zip code?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(zip_code);
+AT: @org.thingpedia.covid-vaccine.appointment();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
+UT: $dialogue @org.thingpedia.dialogue.transaction.cancel;
+C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: I will soon be able to answer questions about covid. In the meantime, please let me know what you're interested in.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_record_command;
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: what is covid?
+UT: $answer("what is covid?");
+C: $dialogue @org.thingpedia.dialogue.transaction.end;
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Thank you!
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.init;
+U: @org.thingpedia.covid-vaccine.appointment();
+UT: $dialogue @org.thingpedia.dialogue.transaction.init;
+UT: @org.thingpedia.covid-vaccine.appointment();
+C: $dialogue @org.thingpedia.dialogue.transaction.init;
+C: @org.thingpedia.covid-vaccine.appointment();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Hello! I can help you find an appointment. What is your zip code?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(zip_code);
+AT: @org.thingpedia.covid-vaccine.appointment();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $nevermind;
+UT: $nevermind;
+C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: I will soon be able to answer questions about covid. In the meantime, please let me know what you're interested in.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_record_command;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.init;
+U: @org.thingpedia.covid-vaccine.appointment();
+UT: $dialogue @org.thingpedia.dialogue.transaction.init;
+UT: @org.thingpedia.covid-vaccine.appointment();
+C: $dialogue @org.thingpedia.dialogue.transaction.init;
+C: @org.thingpedia.covid-vaccine.appointment();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Hello! I can help you find an appointment. What is your zip code?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(zip_code);
+AT: @org.thingpedia.covid-vaccine.appointment();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $answer("94062");
+UT: $answer("94062");
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.covid-vaccine.appointment(zip_code="94062")
+C: #[results=[]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Sorry, I cannot find any available appointments in your area. Would you like to be notified when there are new appointments?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_empty_search;
+AT: monitor(@org.thingpedia.covid-vaccine.appointment(zip_code="94062"))
+AT: #[confirm=enum proposed];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $yes;
+UT: $yes;
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.covid-vaccine.appointment(zip_code="94062")
+C: #[results=[]];
+C: monitor(@org.thingpedia.covid-vaccine.appointment(zip_code="94062"))
+C: #[results=[]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Alright, I will notify you when there are new appointments in the 94062 zip code.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_rule_enable_success;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.notification("Stanford Covid Genie");
+U: monitor(@org.thingpedia.covid-vaccine.appointment(zip_code="94062"))
+U: #[results=[
+U:   { zip_code="94062", vaccine_type=enum pfizer, dose=enum first, id="1"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(37.4334411, -122.1774838, "Stanford Hospital (Pfizer)"), link="https://stanfordhealthcare.org/"^^tt:url }
+U: ]];
+UT: $dialogue @org.thingpedia.dialogue.transaction.notification("Stanford Covid Genie");
+UT: monitor(@org.thingpedia.covid-vaccine.appointment(zip_code="94062"))
+UT: #[results=[
+UT:   { zip_code="94062", vaccine_type=enum pfizer, dose=enum first, id="1"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(37.4334411, -122.1774838, "Stanford Hospital (Pfizer)"), link="https://stanfordhealthcare.org/"^^tt:url }
+UT: ]];
+C: $dialogue @org.thingpedia.dialogue.transaction.notification("Stanford Covid Genie");
+C: monitor(@org.thingpedia.covid-vaccine.appointment(zip_code="94062"))
+C: #[results=[
+C:   { zip_code="94062", vaccine_type=enum pfizer, dose=enum first, id="1"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(37.4334411, -122.1774838, "Stanford Hospital (Pfizer)"), link="https://stanfordhealthcare.org/"^^tt:url }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Notification from Stanford Covid Genie: here is a location near you that has reported available appointments.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! vote: up
 #! comment: test comment for dialogue turns
 #!          additional

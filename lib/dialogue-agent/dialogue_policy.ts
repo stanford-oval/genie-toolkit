@@ -94,6 +94,9 @@ interface DialoguePolicyOptions {
     debug : number;
 }
 
+// HACK
+const MUST_INCLUDE_DEVICES = ['org.thingpedia.covid-vaccine'];
+
 interface PolicyResult {
     state : Ast.DialogueState;
     end : boolean;
@@ -102,6 +105,14 @@ interface PolicyResult {
     utterance : string;
     entities : EntityMap;
     numResults : number;
+}
+
+function flagEquals(flags : Record<string, boolean>, equalTo : Record<string, boolean>) : boolean {
+    for (const key in flags) {
+        if (equalTo[key] !== flags[key])
+            return false;
+    }
+    return true;
 }
 
 export default class DialoguePolicy {
@@ -183,7 +194,7 @@ export default class DialoguePolicy {
 
     private _extractDevices(state : Ast.DialogueState|Ast.Program|null) : string[] {
         if (state === null)
-            return [];
+            return MUST_INCLUDE_DEVICES;
         const devices = new Set<string>();
         state.visit(new class extends Ast.NodeVisitor {
             visitDeviceSelector(selector : Ast.DeviceSelector) : boolean {
@@ -191,6 +202,8 @@ export default class DialoguePolicy {
                 return true;
             }
         });
+        for (const d of MUST_INCLUDE_DEVICES)
+            devices.add(d);
         const deviceArray = Array.from(devices);
         deviceArray.sort();
         return deviceArray;
@@ -198,7 +211,8 @@ export default class DialoguePolicy {
 
     private async _ensureGeneratorForState(state : Ast.DialogueState|Ast.Program|null) {
         const devices = this._extractDevices(state);
-        if (this._generatorDevices && arrayEqual(this._generatorDevices, devices))
+        if (this._generatorDevices && arrayEqual(this._generatorDevices, devices)
+            && flagEquals(this._extraFlags, this._generatorOptions!.flags))
             return;
         await this._initializeGenerator(devices);
     }
@@ -245,6 +259,12 @@ export default class DialoguePolicy {
         };
     }
 
+    async getFollowUp(state : Ast.DialogueState) : Promise<Ast.DialogueState|null> {
+        await this._ensureGeneratorForState(state);
+
+        return this._sentenceGenerator!.invokeFunction('followUp', state, this._sentenceGenerator!.contextTable);
+    }
+
     async getNotificationState(appName : string|null, program : Ast.Program, result : Ast.DialogueHistoryResultItem) {
         await this._ensureGeneratorForState(program);
 
@@ -255,5 +275,10 @@ export default class DialoguePolicy {
         await this._ensureGeneratorForState(program);
 
         return this._sentenceGenerator!.invokeFunction('notifyError', appName, program, error, this._sentenceGenerator!.contextTable);
+    }
+
+    async getInitialState() {
+        await this._ensureGeneratorForState(null);
+        return this._sentenceGenerator!.invokeFunction('initialState', this._sentenceGenerator!.contextTable);
     }
 }

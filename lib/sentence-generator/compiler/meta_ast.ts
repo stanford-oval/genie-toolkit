@@ -333,7 +333,7 @@ export class OldStyleExpansion extends Rule {
 
         // generate code to lookup the translation of the template if meaningful
         // (skip if this template has only one component)
-        if (this.head.length > 1)
+        if (this.head.length > 1 && template !== '""')
             template = `$locale._(${template})`;
 
         return `${prefix}$grammar.addRule(${stringEscape(nonTerminal)}, [${nonTerminalChildren.map((h, i) => h.codegen(nonTerminalChildren, i)).join(', ')}], ${template}, (${expanderCode}), ${keyfn}, ${this.attrs.codegen()});\n`;
@@ -365,7 +365,13 @@ export class NewStyleExpansion extends Rule {
             throw new Error(`Failed to parse template string for ${nonTerminal} = ${this.sentenceTemplate} (${this.nonTerminals.join(', ')}): ${e.message}`);
         }
 
-        return `${prefix}$grammar.addRule(${stringEscape(nonTerminal)}, [${this.nonTerminals.map((h, i) => h.codegen(this.nonTerminals, i)).join(', ')}], $locale._(${stringEscape(this.sentenceTemplate)}), (${expanderCode}), ${keyfn}, ${this.attrs.codegen()});\n`;
+        let gettext;
+        if (this.sentenceTemplate)
+            gettext = `$locale._(${stringEscape(this.sentenceTemplate)})`;
+        else
+            gettext = "''";
+
+        return `${prefix}$grammar.addRule(${stringEscape(nonTerminal)}, [${this.nonTerminals.map((h, i) => h.codegen(this.nonTerminals, i)).join(', ')}], ${gettext}, (${expanderCode}), ${keyfn}, ${this.attrs.codegen()});\n`;
     }
 }
 Rule.NewStyleExpansion = NewStyleExpansion;

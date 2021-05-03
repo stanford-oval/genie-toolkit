@@ -1748,8 +1748,8 @@ class GetInvocationVisitor extends Ast.NodeVisitor {
     }
 }
 
-function getInvocation(historyItem : Ast.DialogueHistoryItem) : Ast.Invocation {
-    assert(historyItem instanceof Ast.DialogueHistoryItem);
+function getInvocation(historyItem : Ast.Node) : Ast.Invocation {
+    assert(historyItem instanceof Ast.Node);
 
     const visitor = new GetInvocationVisitor();
     historyItem.visit(visitor);

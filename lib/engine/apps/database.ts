@@ -86,7 +86,7 @@ export default class AppDatabase extends events.EventEmitter {
             if (app.hasRule) {
                 this._enableApp(app);
                 if (isNewApp)
-                    await this._saveApp(app);
+                    await this.saveApp(app);
             } else {
                 await this._removeAppInternal(app.uniqueId!);
             }
@@ -105,10 +105,10 @@ export default class AppDatabase extends events.EventEmitter {
             description ?: string;
             icon ?: string;
             conversation ?: string;
-            notifications ?: {
+            notifications ?: Array<{
                 backend : string;
                 config : Record<string, string>;
-            };
+            }>;
         } = {}) {
         const uniqueId = options.uniqueId || 'uuid-' + uuid.v4();
 
@@ -183,6 +183,8 @@ export default class AppDatabase extends events.EventEmitter {
         await this._getAll().then((rows) => Promise.all(rows.map((row) => {
             const code = row.code;
             const metadata = JSON.parse(row.state);
+            if (metadata.notifications && !Array.isArray(metadata.notifications))
+                metadata.notifications = [metadata.notifications];
             return this._loadOneApp(code, metadata, row.uniqueId, row.name, row.description, false);
         })));
     }
@@ -222,7 +224,7 @@ export default class AppDatabase extends events.EventEmitter {
         this.emit('app-added', app);
     }
 
-    private _saveApp(app : AppExecutor) {
+    saveApp(app : AppExecutor) {
         return this._insertOne({
             uniqueId: app.uniqueId!,
             state: JSON.stringify(app.metadata),

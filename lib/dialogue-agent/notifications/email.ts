@@ -24,6 +24,7 @@ import interpolate from 'string-interp';
 
 import type Engine from '../../engine';
 import { FormattedObject } from './formatter';
+import * as I18n from '../../i18n';
 
 interface EmailConfig {
     service : string;
@@ -99,13 +100,12 @@ export default class EmailNotificationBackend {
             timezone: this._platform.timezone
         })!;
 
+        const langPack = I18n.get(this._platform.locale);
+
         let text = data.formatted.map((x) => x.toLocaleString(this._platform.locale)).join('\n');
-        text += `
-----
-You are receiving this email because you subscribed to notifications
-from Genie. To stop, open the following link:
-${unsubscribeURL}
-`;
+        text += `\n----\n`;
+        text += langPack._("You are receiving this email because you subscribed to notifications from Genie. To stop, open the following link: %s")
+            .replace('%s', unsubscribeURL);
 
         let html = data.formatted.map((x) => {
             if (x.type === 'text')
@@ -118,14 +118,16 @@ ${unsubscribeURL}
             }
             return `<p>${htmlEscape(x.toLocaleString(this._platform.locale))}</p>`;
         }).join('\n');
-        html += `
-<hr/>
-<p>You are receiving this email because you subscribed to notifications
-from Genie. To stop, you can <a href="${htmlEscape(unsubscribeURL)}">unsubscribe</a>.</p>`;
+        html += `\n<hr/>\n<p>`;
+
+        html += langPack._("You are receiving this email because you subscribed to notifications from Genie. To stop, you can <a href=\"%s\">unsubscribe</a>.")
+            .replace('%s', htmlEscape(unsubscribeURL));
+
+        html += "</p>";
 
         await this._client.sendMail({
             to, from: this._from,
-            subject: "Notification from Genie",
+            subject: langPack._("Notification from Genie"),
             text, html
         });
     }

@@ -52,7 +52,7 @@ import ExecutionDialogueAgent from './execution_dialogue_agent';
 
 // TODO: load the policy.yaml file instead
 const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
-const TERMINAL_STATES = ['sys_end'];
+const TERMINAL_STATES = ['sys_greet', 'sys_end'];
 
 // Confidence thresholds:
 //
@@ -84,8 +84,8 @@ const TERMINAL_STATES = ['sys_end'];
 //   for additional confirmation before executing.
 //
 // - In all other cases, we tell the user we did not understand.
-const CONFIDENCE_CONFIRM_THRESHOLD = 0.5;
-const CONFIDENCE_FAILURE_THRESHOLD = 0.25;
+//const CONFIDENCE_CONFIRM_THRESHOLD = 0.5;
+//const CONFIDENCE_FAILURE_THRESHOLD = 0.25;
 const IN_DOMAIN_THRESHOLD = 0.5;
 const IGNORE_THRESHOLD = 0.5;
 
@@ -141,7 +141,7 @@ export default class DialogueLoop {
     private _policy : DialoguePolicy;
     private _debug : boolean;
 
-    icon : string|null;
+    //icon : string|null;
     expecting : ValueCategory|null;
     platformData : PlatformData;
     private _raw = false;
@@ -169,7 +169,6 @@ export default class DialogueLoop {
 
         this._langPack = I18n.get(engine.platform.locale);
         this._cardFormatter = new CardFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas);
-        this.icon = null;
         this.expecting = null;
         this._choices = [];
         this.platformData = {};
@@ -190,6 +189,13 @@ export default class DialogueLoop {
         });
         this._dialogueState = null; // thingtalk dialogue state
         this._executorState = undefined; // private object managed by DialogueExecutor
+    }
+
+    get icon() : string|null {
+        return 'org.thingpedia.covid-vaccine';
+    }
+    set icon(v : string|null) {
+        // do nothing
     }
 
     get _() : (x : string) => string {
@@ -338,10 +344,10 @@ export default class DialogueLoop {
             });
         } catch(e) {
             if (e.code === 'EHOSTUNREACH' || e.code === 'ETIMEDOUT') {
-                await this.reply(this._("Sorry, I cannot contact the Almond service. Please check your Internet connection and try again later."), null);
+                await this.reply(this._("Sorry, I cannot contact the Genie service. Please check your Internet connection and try again later."), null);
                 throw new CancellationError();
             } else if (typeof e.code === 'number' && (e.code === 404 || e.code >= 500)) {
-                await this.reply(this._("Sorry, there seems to be a problem with the Almond service at the moment. Please try again later."), null);
+                await this.reply(this._("Sorry, there seems to be a problem with the Genie service at the moment. Please try again later."), null);
                 throw new CancellationError();
             } else {
                 throw e;
@@ -400,14 +406,14 @@ export default class DialogueLoop {
         }
 
         if (type === CommandAnalysisType.PARSE_FAILURE ||
-            choice.score < CONFIDENCE_FAILURE_THRESHOLD) {
+            choice.score !== 'Infinity') {
             type = CommandAnalysisType.PARSE_FAILURE;
             this.debug('Failed to analyze message');
             this.conversation.stats.hit('sabrina-failure');
-        } else if (choice.score < CONFIDENCE_CONFIRM_THRESHOLD) {
+        /*} else if (choice.score < CONFIDENCE_CONFIRM_THRESHOLD) {
             type = CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND;
             this.debug('Dubiously analyzed message into ' + choice.parsed.prettyprint());
-            this.conversation.stats.hit('sabrina-command-maybe');
+            this.conversation.stats.hit('sabrina-command-maybe');*/
         } else {
             this.debug('Confidently analyzed message into ' + choice.parsed.prettyprint());
             this.conversation.stats.hit('sabrina-command-good');
@@ -476,9 +482,6 @@ export default class DialogueLoop {
         }
         if (expect === ValueCategory.RawString && !policyResult.raw)
             expect = ValueCategory.Generic;
-
-        if (expect === null && TERMINAL_STATES.includes(this._dialogueState!.dialogueAct))
-            throw new CancellationError();
 
         await this.setExpected(expect);
     }
@@ -610,6 +613,19 @@ export default class DialogueLoop {
         this._checkPolicy(this._dialogueState.policy);
 
         await this._executeCurrentState();
+
+        while (this.expecting === null) {
+            const followUp : Ast.DialogueState|null = await this._policy.getFollowUp(this._dialogueState!);
+            if (followUp === null)
+                break;
+
+            console.log('followUp', followUp.prettyprint());
+            this._dialogueState = followUp;
+            await this._executeCurrentState();
+        }
+
+        if (this.expecting === null && TERMINAL_STATES.includes(this._dialogueState!.dialogueAct))
+            throw new CancellationError();
     }
 
     private async _executeCurrentState() {
@@ -660,15 +676,11 @@ export default class DialogueLoop {
     }
 
     private async _showWelcome() {
-        await this._doAgentReply([]);
-        // reset the dialogue state here; if we don't, we we'll see sys_greet as an agent
-        // dialogue act; this is never seen in training, because in training the user speaks
-        // first, so it confuses the neural network
-        this._dialogueState = null;
-        // the utterance ends with "what can i do for you?", which is expect = 'generic'
-        // but we don't want to keep the microphone open here, we want to go back to wake-word mode
-        // so we unconditionally close the round here
-        await this.setExpected(null);
+        this._dialogueState = await this._policy.getInitialState();
+        if (this._dialogueState === null)
+            await this._doAgentReply([]);
+        else
+            await this._executeCurrentState();
     }
 
     private async _loop(showWelcome : boolean, initialState : string|null) {
@@ -736,7 +748,6 @@ export default class DialogueLoop {
     }
 
     async nextQueueItem() : Promise<QueueItem> {
-        this.setExpected(null);
         await this.conversation.sendAskSpecial();
         this._mgrPromise = null;
         this._mgrResolve!();
@@ -771,7 +782,7 @@ export default class DialogueLoop {
         } else if (this.expecting === ValueCategory.EmailAddress) {
             await this.reply(this._("Could you give me an email address?"));
         } else if (this.expecting === ValueCategory.RawString || this.expecting === ValueCategory.Password) {
-            // ValueCategory.RawString puts Almond in raw mode,
+            // ValueCategory.RawString puts us in raw mode,
             // so we accept almost everything
             // but this will happen if the user clicks a button
             // or upload a picture
@@ -780,21 +791,21 @@ export default class DialogueLoop {
     }
 
     async fail(msg ?: string) {
-        if (this.expecting === null) {
+        if (this.expecting === null || this.expecting === ValueCategory.Generic) {
             if (msg) {
-                await this.replyInterp(this._("Sorry, I did not understand that: ${error}. Can you rephrase it?"), {
+                await this.replyInterp(this._("Sorry, I did not understand that: ${error}. Please enter a 5-digit zip code."), {
                     error: msg
                 });
             } else {
-                await this.reply(this._("Sorry, I did not understand that. Can you rephrase it?"));
+                await this.reply(this._("Sorry, I did not understand that. Please enter a 5-digit zip code."));
             }
         } else {
             if (msg)
                 await this.replyInterp(this._("Sorry, I did not understand that: ${error}."), { error: msg });
             else
                 await this.reply(this._("Sorry, I did not understand that."));
+            this.lookingFor();
         }
-        throw new CancellationError();
     }
 
     setExpected(expected : ValueCategory|null, raw = (expected === ValueCategory.RawString || expected === ValueCategory.Password)) {
@@ -833,7 +844,6 @@ export default class DialogueLoop {
 
             default:
                 await this.fail();
-                await this.lookingFor();
             }
 
             analyzed = await this._analyzeCommand(await this.nextCommand());
@@ -861,7 +871,6 @@ export default class DialogueLoop {
 
             default:
                 await this.fail();
-                await this.lookingFor();
             }
 
             analyzed = await this._analyzeCommand(await this.nextCommand());

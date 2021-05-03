@@ -274,7 +274,7 @@ A: >> expecting = null
 
 U: !! test command always failed !!
 
-A: Sorry, I did not understand that. Can you rephrase it?
+A: Sorry, I did not understand that. Please enter a 5-digit zip code.
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -389,7 +389,7 @@ A: >> expecting = null
 # 24-error-500
 U: !! test command error 500 !!
 
-A: Sorry, there seems to be a problem with the Almond service at the moment. Please try again later.
+A: Sorry, there seems to be a problem with the Genie service at the moment. Please try again later.
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -687,7 +687,7 @@ A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_succ
 A: >> expecting = null
 
 ====
-# 44-faq-about-almond
+# 44-faq-about-genie
 
 # Who are you?
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -1015,3 +1015,140 @@ U: \t $wakeup;
 A: Hello! How can I help you?
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_greet ; // {}
 A: >> expecting = generic
+
+====
+# 67-covid-vaccine-first-dose
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.init;
+U: @org.thingpedia.covid-vaccine.appointment();
+
+A: Hello! I can help you find an appointment. What is your zip code?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_slot_fill ( zip_code ) ; @org.thingpedia.covid-vaccine . appointment ( ) ; // {}
+A: >> expecting = generic
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.covid-vaccine.appointment(zip_code="94305");
+
+A: Here is a location near you that has reported available appointments.
+A: rdl: Stanford Hospital (Pfizer) https://stanfordhealthcare.org/
+A: Please try this and let me know if it works.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_slot_fill ( validity ) ; @org.thingpedia.covid-vaccine . appointment ( zip_code = QUOTED_STRING_0 ) #[ results = [ { zip_code = QUOTED_STRING_0 , vaccine_type = enum pfizer , dose = enum first , id = GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0 , geo = LOCATION_0 , link = URL_0 } ] ] ; @org.thingpedia.covid-vaccine . mark_valid ( appointment = GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0 ) ; // {"QUOTED_STRING_0":"94305","GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0":{"value":"1","display":null},"LOCATION_0":{"latitude":37.4334411,"longitude":-122.1774838,"display":"Stanford Hospital (Pfizer)"},"URL_0":"https://stanfordhealthcare.org/"}
+A: >> expecting = yesno
+
+U: \t $yes;
+
+A: Great, congratulations on getting your appointment! Please tell your friends about us.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @org.thingpedia.covid-vaccine . appointment ( zip_code = QUOTED_STRING_0 ) #[ results = [ { zip_code = QUOTED_STRING_0 , vaccine_type = enum pfizer , dose = enum first , id = GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0 , geo = LOCATION_0 , link = URL_0 } ] ] ; @org.thingpedia.covid-vaccine . mark_valid ( appointment = GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0 , validity = true ) #[ results = [ ] ] ; // {"QUOTED_STRING_0":"94305","GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0":{"value":"1","display":null},"LOCATION_0":{"latitude":37.4334411,"longitude":-122.1774838,"display":"Stanford Hospital (Pfizer)"},"URL_0":"https://stanfordhealthcare.org/"}
+A: >> expecting = null
+
+====
+# 68-covid-vaccine-second-dose
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.init;
+U: @org.thingpedia.covid-vaccine.appointment();
+
+A: Hello! I can help you find an appointment. What is your zip code?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_slot_fill ( zip_code ) ; @org.thingpedia.covid-vaccine . appointment ( ) ; // {}
+A: >> expecting = generic
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.covid-vaccine.appointment(zip_code="94304", dose=enum second);
+
+A: What type of vaccine did you receive at the first dose?
+A: button: moderna {"code":["$answer","(","enum","moderna",")",";"],"entities":{}}
+A: button: pfizer {"code":["$answer","(","enum","pfizer",")",";"],"entities":{}}
+A: button: johnson and johnson {"code":["$answer","(","enum","johnson_and_johnson",")",";"],"entities":{}}
+A: button: astra zeneca {"code":["$answer","(","enum","astra_zeneca",")",";"],"entities":{}}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_slot_fill ( vaccine_type ) ; @org.thingpedia.covid-vaccine . appointment ( dose = enum second , zip_code = QUOTED_STRING_0 ) ; // {"QUOTED_STRING_0":"94304"}
+A: >> expecting = generic
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @org.thingpedia.covid-vaccine.appointment(zip_code="94304", dose=enum second, vaccine_type=enum pfizer);
+
+A: Here is a location near you that has reported available appointments.
+A: rdl: Stanford Hospital (Pfizer, 2nd dose) https://stanfordhealthcare.org/
+A: Please try this and let me know if it works.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_slot_fill ( validity ) ; @org.thingpedia.covid-vaccine . appointment ( dose = enum second , vaccine_type = enum pfizer , zip_code = QUOTED_STRING_0 ) #[ results = [ { zip_code = QUOTED_STRING_0 , vaccine_type = enum pfizer , dose = enum second , id = GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0 , geo = LOCATION_0 , link = URL_0 } ] ] ; @org.thingpedia.covid-vaccine . mark_valid ( appointment = GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0 ) ; // {"QUOTED_STRING_0":"94304","GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0":{"value":"3","display":null},"LOCATION_0":{"latitude":37.4334411,"longitude":-122.1774838,"display":"Stanford Hospital (Pfizer, 2nd dose)"},"URL_0":"https://stanfordhealthcare.org/"}
+A: >> expecting = yesno
+
+U: \t $no;
+
+A: Sorry that did not work out.
+A: Here is a location near you that has reported available appointments.
+A: rdl: Stanford Hospital (Pfizer, 2nd dose) https://stanfordhealthcare.org/
+A: Please try this and let me know if it works.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_slot_fill ( validity ) ; @org.thingpedia.covid-vaccine . appointment ( dose = enum second , vaccine_type = enum pfizer , zip_code = QUOTED_STRING_0 ) #[ results = [ { zip_code = QUOTED_STRING_0 , vaccine_type = enum pfizer , dose = enum second , id = GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0 , geo = LOCATION_0 , link = URL_0 } ] ] ; @org.thingpedia.covid-vaccine . mark_valid ( appointment = GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0 , validity = false ) #[ results = [ ] ] ; @org.thingpedia.covid-vaccine . appointment ( dose = enum second , vaccine_type = enum pfizer , zip_code = QUOTED_STRING_0 ) #[ results = [ { zip_code = QUOTED_STRING_0 , vaccine_type = enum pfizer , dose = enum second , id = GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0 , geo = LOCATION_0 , link = URL_0 } ] ] ; @org.thingpedia.covid-vaccine . mark_valid ( appointment = GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0 ) ; // {"QUOTED_STRING_0":"94304","GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0":{"value":"3","display":null},"LOCATION_0":{"latitude":37.4334411,"longitude":-122.1774838,"display":"Stanford Hospital (Pfizer, 2nd dose)"},"URL_0":"https://stanfordhealthcare.org/"}
+A: >> expecting = yesno
+
+====
+# 69-covid-vaccine-cancel
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.init;
+U: @org.thingpedia.covid-vaccine.appointment();
+
+A: Hello! I can help you find an appointment. What is your zip code?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_slot_fill ( zip_code ) ; @org.thingpedia.covid-vaccine . appointment ( ) ; // {}
+A: >> expecting = generic
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
+
+A: I will soon be able to answer questions about covid. In the meantime, please let me know what you're interested in.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_record_command ; // {}
+A: >> expecting = raw_string
+
+U: what is covid?
+
+A: Thank you!
+A: >> context = null // {}
+A: >> expecting = null
+
+====
+# 70-covid-vaccine-cancel-nevermind
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.init;
+U: @org.thingpedia.covid-vaccine.appointment();
+
+A: Hello! I can help you find an appointment. What is your zip code?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_slot_fill ( zip_code ) ; @org.thingpedia.covid-vaccine . appointment ( ) ; // {}
+A: >> expecting = generic
+
+U: \t $nevermind;
+
+A: I will soon be able to answer questions about covid. In the meantime, please let me know what you're interested in.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_record_command ; // {}
+A: >> expecting = raw_string
+
+====
+# 71-covid-vaccine-missing
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.init;
+U: @org.thingpedia.covid-vaccine.appointment();
+
+A: Hello! I can help you find an appointment. What is your zip code?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_slot_fill ( zip_code ) ; @org.thingpedia.covid-vaccine . appointment ( ) ; // {}
+A: >> expecting = generic
+
+U: \t $answer("94062");
+
+A: Sorry, I cannot find any available appointments in your area. Would you like to be notified when there are new appointments?
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_empty_search ; @org.thingpedia.covid-vaccine . appointment ( zip_code = QUOTED_STRING_0 ) #[ results = [ ] ] ; monitor ( @org.thingpedia.covid-vaccine . appointment ( zip_code = QUOTED_STRING_0 ) ) #[ confirm = enum proposed ] ; // {"QUOTED_STRING_0":"94062"}
+A: >> expecting = yesno
+
+U: \t $yes;
+
+A: Alright, I will notify you when there are new appointments in the 94062 zip code.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_rule_enable_success ; monitor ( @org.thingpedia.covid-vaccine . appointment ( zip_code = QUOTED_STRING_0 ) ) #[ results = [ ] ] ; // {"QUOTED_STRING_0":"94062"}
+A: >> expecting = null
+
+====
+# 72-covid-vaccine-notification
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.notification("Stanford Covid Genie");
+U: monitor(@org.thingpedia.covid-vaccine.appointment(zip_code="94062"))
+U: #[results=[
+U:   { zip_code="94062", vaccine_type=enum pfizer, dose=enum first, id="1"^^org.thingpedia.covid-vaccine:vaccine_appointment, geo=new Location(37.4334411, -122.1774838, "Stanford Hospital (Pfizer)"), link="https://stanfordhealthcare.org/"^^tt:url }
+U: ]];
+
+A: Notification from Stanford Covid Genie: here is a location near you that has reported available appointments.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; monitor ( @org.thingpedia.covid-vaccine . appointment ( zip_code = QUOTED_STRING_0 ) ) #[ results = [ { zip_code = QUOTED_STRING_0 , vaccine_type = enum pfizer , dose = enum first , id = GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0 , geo = LOCATION_0 , link = URL_0 } ] ] ; // {"QUOTED_STRING_0":"94062","GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0":{"value":"1","display":null},"LOCATION_0":{"latitude":37.4334411,"longitude":-122.1774838,"display":"Stanford Hospital (Pfizer)"},"URL_0":"https://stanfordhealthcare.org/"}
+A: >> expecting = null

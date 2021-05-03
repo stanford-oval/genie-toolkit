@@ -4,7 +4,7 @@ set -e
 set -x
 
 podir=`dirname $0`
-find lib/ languages/ tool/ -name \*.js -or -name \*.ts > po/POTFILES
+find data/ lib/ languages/ tool/ -name \*.js -or -name \*.ts > po/POTFILES
 mkdir -p $podir/tmp
 for f in $podir/../data/builtins/*/manifest.tt ; do
 	kind=$(basename $(dirname $f))

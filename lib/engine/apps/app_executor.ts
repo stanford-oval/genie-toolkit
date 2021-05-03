@@ -99,7 +99,7 @@ export interface AppMeta {
     icon ?: string|null;
     conversation ?: string;
     description ?: string;
-    notifications ?: NotificationConfig;
+    notifications ?: NotificationConfig[];
 }
 
 /**
@@ -131,7 +131,7 @@ export default class AppExecutor extends events.EventEmitter {
 
     mainOutput : QueueOutputDelegate;
     private _notificationOutput : NotificationOutputDelegate;
-    notifications : NotificationConfig|undefined;
+    notifications : NotificationConfig[];
 
     /**
      * Whether this app is running.
@@ -205,7 +205,8 @@ export default class AppExecutor extends events.EventEmitter {
 
         this.mainOutput = new QueueOutputDelegate();
         this._notificationOutput = new NotificationOutputDelegate(this);
-        this.notifications = meta.notifications;
+        this.notifications = meta.notifications || [];
+        meta.notifications = this.notifications;
     }
 
     get metadata() : AppMeta {
