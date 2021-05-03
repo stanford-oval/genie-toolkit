@@ -219,9 +219,12 @@ constant_Measure_C : Ast.Value = {
         !turking {
             num:constant_Number 'c' => C.addUnit('C', num);
             num:constant_Number 'centigrade' => C.addUnit('C', num);
+            num:constant_Number 'celsius' => C.addUnit('C', num);
+            num:constant_Number 'degrees celsius' => C.addUnit('C', num);
         }
         num:constant_Number 'f' => C.addUnit('F', num);
         num:constant_Number 'fahrenheit' => C.addUnit('F', num);
+        num:constant_Number 'degrees fahrenheit' => C.addUnit('F', num);
         num:constant_Number 'degrees' => C.addUnit('defaultTemperature', num);
     }
 }
