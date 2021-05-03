@@ -94,7 +94,7 @@ export default class SimulationDialogueAgent extends AbstractDialogueAgent<Thing
         throw new TypeError('Should not attempt to configure devices in simulation');
     }
 
-    async disambiguate(type : 'device'|'contact',
+    async disambiguate(type : string,
                        name : string|null,
                        choices : string[],
                        hint ?: string) : Promise<number> {
