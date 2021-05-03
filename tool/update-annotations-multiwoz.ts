@@ -92,6 +92,7 @@ class PlaceAugmenter extends Ast.NodeVisitor {
             if (node.value instanceof Ast.UndefinedValue) return true;
             const val : string = (node.value as Ast.StringValue).value;
             node.value = new Ast.EntityValue(val in this.places ? this.places[val]: null, "uk.ac.cam.multiwoz.Train:Place", val);
+            node.operator = '==';
             if (!(val in this.places) && val != null) {
                 this.places[val] = "P" + this.counter.toString();
                 this.counter++;
