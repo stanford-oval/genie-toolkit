@@ -90,10 +90,10 @@ class PlaceAugmenter extends Ast.NodeVisitor {
         if (node.name == "destination" || node.name == "departure") {
             if (node.value instanceof Ast.UndefinedValue) return true;
             const val : string = (node.value as Ast.StringValue).value;
-            node.value = new Ast.EntityValue(val in this.places ? this.places[val]: null, "uk.ac.cam.multiwoz.Train:Place", val);
+            node.value = new Ast.EntityValue(val in this.stations ? this.stations[val]: null, "uk.ac.cam.multiwoz.Train:Place", val);
             node.operator = '==';
             if (!(val in this.places) && val != null) {
-                this.places[val] = "P" + Atomics.add(this.counter, 0, 1);
+                this.places[val] = "T" + Atomics.add(this.counter, 0, 1);
             }
         }
         return true;
