@@ -101,7 +101,7 @@ interface CanonicalForm {
 
 // FIXME this info needs to be in Thingpedia
 interface ExtendedEntityRecord extends Tp.BaseClient.EntityTypeRecord {
-    subtype_of ?: string|null;
+    subtype_of ?: string[]|null;
 }
 
 type PrimitiveTemplateType = 'action'|'action_past'|'query'|'get_command'|'stream'|'program';
@@ -164,7 +164,7 @@ export default class ThingpediaLoader {
         get_gps : Ast.FunctionDef|null;
         get_time : Ast.FunctionDef|null;
     };
-    entitySubTypeMap : Record<string, string>;
+    entitySubTypeMap : Record<string, string[]>;
     private _subEntityMap : Map<string, string[]>;
 
     constructor(grammar : SentenceGenerator<any, Ast.Input>,
@@ -1055,9 +1055,13 @@ export default class ThingpediaLoader {
 
         let hasParentEntity = false;
         if (entity.subtype_of) {
-            const parentFnDef = this.idQueries.get(entity.subtype_of);
-            if (parentFnDef)
-                hasParentEntity = true;
+            for (const parentEntityType of entity.subtype_of) {
+                const parentFnDef = this.idQueries.get(parentEntityType);
+                if (parentFnDef) {
+                    hasParentEntity = true;
+                    break;
+                }
+            }
         }
 
         let span;
@@ -1330,10 +1334,8 @@ export default class ThingpediaLoader {
             if (hasNer === undefined)
                 hasNer = true;
             let subTypeOf = null;
-            if (entity.extends) {
-                subTypeOf = entity.extends.includes(':') ? entity.extends
-                    : classDef.kind + ':' + entity.extends;
-            }
+            if (entity.extends) 
+                subTypeOf = entity.extends.map((e) => e.includes(':') ? e : classDef.kind + ':' + e);
             const entityRecord : ExtendedEntityRecord = {
                 type: classDef.kind + ':' + entity.name,
                 name: entity.getImplementationAnnotation<string>('description')||'',
@@ -1368,11 +1370,13 @@ export default class ThingpediaLoader {
 
             // TODO this only supports a flat hierarchy
             // if we have a deeper hierarchy this code will not code
-            const subEntities = this._subEntityMap.get(typeRecord.subtype_of);
-            if (subEntities)
-                subEntities.push(typeRecord.type);
-            else
-                this._subEntityMap.set(typeRecord.subtype_of, [typeRecord.type]);
+            for (const parentEntity of typeRecord.subtype_of) {
+                const subEntities = this._subEntityMap.get(parentEntity);
+                if (subEntities)
+                    subEntities.push(typeRecord.type);
+                else
+                    this._subEntityMap.set(parentEntity, [typeRecord.type]);
+            }
         }
     }
 
