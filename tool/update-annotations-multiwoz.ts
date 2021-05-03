@@ -65,13 +65,13 @@ class EntityReader extends Ast.NodeVisitor {
 class PlaceAugmenter extends Ast.NodeVisitor {
     places: { [name: string]: string; };
     stations: { [name: string]: string; };
-    counter: number;
+    counter: Uint32Array;
 
-    constructor(places : {[name: string]: string}, stations: {[name: string] : string}) {
+    constructor(places : {[name: string]: string}, stations: {[name: string] : string}, counter: Uint32Array) {
         super();
         this.places = places;
         this.stations = stations;
-        this.counter = 0;
+        this.counter = counter;
     }
 
     visitInputParam(node: Ast.InputParam) : boolean {
@@ -80,8 +80,7 @@ class PlaceAugmenter extends Ast.NodeVisitor {
             const val : string = (node.value as Ast.StringValue).value;
             node.value = new Ast.EntityValue(val in this.places ? this.places[val]: null, "uk.ac.cam.multiwoz.Taxi:Place", val);
             if (!(val in this.places) && val != null) {
-                this.places[val] = "P" + this.counter.toString();
-                this.counter++;
+                this.places[val] = "P" + Atomics.add(this.counter, 0, 1);
             }
         }
         return true;
@@ -94,8 +93,7 @@ class PlaceAugmenter extends Ast.NodeVisitor {
             node.value = new Ast.EntityValue(val in this.places ? this.places[val]: null, "uk.ac.cam.multiwoz.Train:Place", val);
             node.operator = '==';
             if (!(val in this.places) && val != null) {
-                this.places[val] = "P" + this.counter.toString();
-                this.counter++;
+                this.places[val] = "P" + Atomics.add(this.counter, 0, 1);
             }
         }
         return true;
@@ -111,15 +109,12 @@ class PlaceAugmenter extends Ast.NodeVisitor {
                 const val = (node.value[key] as Ast.StringValue).value;
                 if (is_train_not_taxi) {
                     if (!(val in this.stations) && val != null) {
-                        this.stations[val] = "T" + this.counter.toString();
-                        this.counter++;
+                        this.stations[val] = "T" + Atomics.add(this.counter, 0, 1);
                     }
                     node.value[key] = new Ast.EntityValue(this.stations[val], "uk.ac.cam.multiwoz.Train:Place", val);
                 } else {
                     if (!(val in this.places) && val != null) {
-                        this.places[val] = "P" + this.counter.toString();
-                        // lol same counter
-                        this.counter++;
+                        this.places[val] = "P" + Atomics.add(this.counter, 0, 1);
                     }
                     node.value[key] = new Ast.EntityValue(this.places[val], "uk.ac.cam.multiwoz.Taxi:Place", val);
                 }
@@ -133,7 +128,11 @@ export async function execute(args: any) {
     let inputs = args.input.split(',');
     const taxi_places : {[name: string]: string} = {};
     const train_stations : {[name: string]: string} = {};
-    for (const visitor_creator of [() => {return new EntityReader(taxi_places)}, () => {return new PlaceAugmenter(taxi_places, train_stations)}]) {
+
+    const buffer = new SharedArrayBuffer(32);
+    const place_ctr = new Uint32Array(buffer);
+
+    for (const visitor_creator of [() => {return new EntityReader(taxi_places)}, () => {return new PlaceAugmenter(taxi_places, train_stations, place_ctr)}]) {
         console.log('begin');
         await Promise.all(inputs.map(async (input: string) => {
             const out = new DialogueSerializer({annotations: true});
