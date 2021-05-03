@@ -2193,3 +2193,54 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_greet;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t monitor(@org.thingpedia.weather.current()) filter temperature >= 70defaultTemperature;
+UT: monitor(@org.thingpedia.weather.current()) filter temperature >= 70defaultTemperature;
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: monitor(@org.thingpedia.weather.current(location=new Location(37.4275, -122.1697))) filter temperature >= 70F
+C: #[results=[]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Alright, I will notify you when the current weather in [Latitude: 37.428 deg, Longitude: -122.170 deg] changes and it becomes true that the temperature is greater than or equal to 70 F.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_rule_enable_success;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t @org.thingpedia.iot.switch(name="invalid").state();
+UT: @org.thingpedia.iot.switch(name="invalid").state();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: I cannot find any invalid switch device. Which device do you want to use?
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t @com.spotify(name="invalid").song() filter id =~ "nice for what";
+UT: @com.spotify(name="invalid").song() filter id =~ "nice for what";
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "nice for what"
+C: #[results=[
+C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], album="spotify:album:1ATL5GLyefJaxhQzSPVrLX"^^com.spotify:album("Scorpion"), genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79, energy=90, danceability=58 }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Nice For What is a song by Drake in the album Scorpion. Would you like to play it on Spotify?
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
+AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
+AT: #[confirm=enum proposed];
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
