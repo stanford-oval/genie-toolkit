@@ -176,8 +176,8 @@ export async function inputToDialogueState(policy : DialoguePolicy,
         // convert thingtalk programs to dialogue states so we can use "\t" without too much typing
         const prediction = new Ast.DialogueState(null, 'org.thingpedia.dialogue.transaction', 'execute', null, []);
         for (const stmt of input.statements) {
-            if (stmt instanceof Ast.Assignment)
-                throw new Error(`Unsupported: assignment statement`);
+            if (!(stmt instanceof Ast.ExpressionStatement))
+                throw new Error(`Unsupported: not an expression statement`);
             prediction.history.push(new Ast.DialogueHistoryItem(null, stmt, null, 'accepted'));
         }
         return prediction;
