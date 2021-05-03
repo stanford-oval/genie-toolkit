@@ -64,18 +64,34 @@ class EntityReader extends Ast.NodeVisitor {
 
 class PlaceAugmenter extends Ast.NodeVisitor {
     places: { [name: string]: string; };
+    stations: { [name: string]: string; };
     counter: number;
 
-    constructor(places : {[name: string]: string}) {
+    constructor(places : {[name: string]: string}, stations: {[name: string] : string}) {
         super();
         this.places = places;
+        this.stations = stations;
         this.counter = 0;
     }
+
     visitInputParam(node: Ast.InputParam) : boolean {
         if (node.name == "destination" || node.name == "departure") {
             if (node.value instanceof Ast.UndefinedValue) return true;
             const val : string = (node.value as Ast.StringValue).value;
             node.value = new Ast.EntityValue(val in this.places ? this.places[val]: null, "uk.ac.cam.multiwoz.Taxi:Place", val);
+            if (!(val in this.places) && val != null) {
+                this.places[val] = "P" + this.counter.toString();
+                this.counter++;
+            }
+        }
+        return true;
+    }
+
+    visitAtomBooleanExpression(node: Ast.AtomBooleanExpression) : boolean {
+        if (node.name == "destination" || node.name == "departure") {
+            if (node.value instanceof Ast.UndefinedValue) return true;
+            const val : string = (node.value as Ast.StringValue).value;
+            node.value = new Ast.EntityValue(val in this.places ? this.places[val]: null, "uk.ac.cam.multiwoz.Train:Place", val);
             if (!(val in this.places) && val != null) {
                 this.places[val] = "P" + this.counter.toString();
                 this.counter++;
@@ -92,11 +108,20 @@ class PlaceAugmenter extends Ast.NodeVisitor {
             if (key in node.value) {
                 if (node.value[key] instanceof Ast.UndefinedValue) continue;
                 const val = (node.value[key] as Ast.StringValue).value;
-                if (is_train_not_taxi || !(val in this.places) && val != null) {
-                    this.places[val] = "P" + this.counter.toString();
-                    this.counter++;
+                if (is_train_not_taxi) {
+                    if (!(val in this.stations) && val != null) {
+                        this.stations[val] = "T" + this.counter.toString();
+                        this.counter++;
+                    }
+                    node.value[key] = new Ast.EntityValue(this.stations[val], "uk.ac.cam.multiwoz.Train:Place", val);
+                } else {
+                    if (!(val in this.places) && val != null) {
+                        this.places[val] = "P" + this.counter.toString();
+                        // lol same counter
+                        this.counter++;
+                    }
+                    node.value[key] = new Ast.EntityValue(this.places[val], "uk.ac.cam.multiwoz.Taxi:Place", val);
                 }
-                node.value[key] = new Ast.EntityValue(this.places[val], is_train_not_taxi ? "uk.ac.cam.multiwoz.Train:Place" : "uk.ac.cam.multiwoz.Taxi:Place", val);
             }
         }
         return true;
@@ -105,8 +130,9 @@ class PlaceAugmenter extends Ast.NodeVisitor {
 
 export async function execute(args: any) {
     let inputs = args.input.split(',');
-    const places : {[name: string]: string} = {};
-    for (const visitor_creator of [() => {return new EntityReader(places)}, () => {return new PlaceAugmenter(places)}]) {
+    const taxi_places : {[name: string]: string} = {};
+    const train_stations : {[name: string]: string} = {};
+    for (const visitor_creator of [() => {return new EntityReader(taxi_places)}, () => {return new PlaceAugmenter(taxi_places, train_stations)}]) {
         console.log('begin');
         await Promise.all(inputs.map(async (input: string) => {
             const out = new DialogueSerializer({annotations: true});
@@ -117,16 +143,17 @@ export async function execute(args: any) {
             for await (const dlg of fs.createReadStream(input, { encoding: 'utf8'}).pipe(byline()).pipe(new DialogueParser())) {
                 for (const turn of dlg) {
                     //console.log(turn);
-                    for (const field of ['context', 'agent_target', 'user_target']) {
+                    for (const field of ['context', 'agent_target', 'intermediate_context', 'user_target']) {
                         if (turn[field] == '') continue;
                         try {
                             const parsed = Syntax.parse(turn[field], input.lastIndexOf('.tmp') == -1 ? Syntax.SyntaxType.Legacy : Syntax.SyntaxType.Normal);
-                        parsed.visit(visitor_creator());
-                        turn[field] = parsed.prettyprint();
-                    } catch (err) {
+                            parsed.visit(visitor_creator());
+                            turn[field] = parsed.prettyprint();
+                        } catch (err) {
                             console.log(err);
+                            console.log(input);
                             console.log(turn[field]);
-                    }
+                        }
                     }
                 }
                 out.write({id: dlg.id, turns: dlg});
