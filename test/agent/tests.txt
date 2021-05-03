@@ -1015,3 +1015,13 @@ U: \t $wakeup;
 A: Hello! How can I help you?
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_greet ; // {}
 A: >> expecting = generic
+
+====
+# 67-default-temperature
+
+# alert me when't is hotter than 70 degrees outside
+U: \t monitor(@org.thingpedia.weather.current()), temperature >= 70defaultTemperature;
+
+A: Alright, I will notify you when the current weather in [Latitude: 37.428 deg, Longitude: -122.170 deg] changes and it becomes true that the temperature is greater than or equal to 70 F.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_rule_enable_success ; monitor ( @org.thingpedia.weather . current ( location = LOCATION_0 ) ) filter temperature >= MEASURE_C_0 #[ results = [ ] ] ; // {"LOCATION_0":{"latitude":37.4275,"longitude":-122.1697,"display":null},"MEASURE_C_0":{"unit":"F","value":70}}
+A: >> expecting = null

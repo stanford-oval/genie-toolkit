@@ -416,7 +416,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
                 value.unit = preference;
             } else {
                 switch (key) {
-                case 'defaultTemperature':
+                case 'temperature':
                     value.unit = this._langPack.getDefaultTemperatureUnit();
                     break;
                 default:
