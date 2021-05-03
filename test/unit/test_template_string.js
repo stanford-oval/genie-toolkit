@@ -481,7 +481,7 @@ function test(languagePack, rng, i) {
             let parsed, replaced;
             if (typeof tpl === 'string') {
                 try {
-                    parsed = Replaceable.parse(tpl).preprocess(languagePack, placeholders);
+                    parsed = Replaceable.parse(tpl).preprocess(languagePack, placeholders).optimize({});
                 } catch(e) {
                     console.log(`Failed to parse ${key}`);
                     throw e;
@@ -493,7 +493,7 @@ function test(languagePack, rng, i) {
                 replacements[placeholders.indexOf(key)] = { text: replaced, value: {} };
             } else {
                 try {
-                    parsed = Replaceable.parse(tpl.text).preprocess(languagePack, placeholders);
+                    parsed = Replaceable.parse(tpl.text).preprocess(languagePack, placeholders).optimize({});
                 } catch(e) {
                     console.log(`Failed to parse ${key}`);
                     throw e;

@@ -1049,14 +1049,14 @@ function builtinSayAction(loader : ThingpediaLoader,
     if (pname instanceof Ast.Value) {
         const param = new Ast.InputParam(null, 'message', pname);
         return new Ast.InvocationExpression(null, new Ast.Invocation(null, selector, 'say', [param], loader.standardSchemas.say),
-            loader.standardSchemas.say.removeArgument('message'));
+            loader.standardSchemas.say);
     } else if (pname) {
         const param = new Ast.InputParam(null, 'message', new Ast.Value.VarRef(pname));
         return new Ast.InvocationExpression(null, new Ast.Invocation(null, selector, 'say', [param], loader.standardSchemas.say),
-            loader.standardSchemas.say.removeArgument('message'));
+            loader.standardSchemas.say);
     } else {
         return new Ast.InvocationExpression(null, new Ast.Invocation(null, selector, 'say', [], loader.standardSchemas.say),
-            loader.standardSchemas.say.removeArgument('message'));
+            loader.standardSchemas.say);
     }
 }
 
