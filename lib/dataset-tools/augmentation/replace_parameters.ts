@@ -379,7 +379,7 @@ interface ParameterReplacerOptions {
     maxSpanLength ?: number;
     cleanParameters ?: boolean;
     requotable ?: boolean;
-    entityIdAnnotation ?: boolean;
+    includeEntityValue ?: boolean;
     numAttempts ?: number;
     syntheticExpandFactor ?: number;
     noQuoteExpandFactor ?: number;
@@ -409,7 +409,7 @@ export default class ParameterReplacer {
     private _maxSpanLength : number;
     private _cleanParameters : boolean;
     private _requotable : boolean;
-    private _entityIdAnnotation : boolean;
+    private _includeEntityValue : boolean;
     private _numAttempts : number;
     private _debug : boolean;
     private _blowUpSynthetic : number;
@@ -431,7 +431,7 @@ export default class ParameterReplacer {
         this._maxSpanLength = _default(options.maxSpanLength, 10);
         this._cleanParameters = _default(options.cleanParameters, true);
         this._requotable = _default(options.requotable, true);
-        this._entityIdAnnotation = _default(options.entityIdAnnotation, false);
+        this._includeEntityValue = _default(options.includeEntityValue, false);
         this._numAttempts = _default(options.numAttempts, 10000);
         this._debug = _default(options.debug, true);
 
@@ -834,7 +834,7 @@ export default class ParameterReplacer {
                 if (token.startsWith('LOCATION_')) {
                     output.push('new', 'Location', '(', '"', string, '"', ')');
                 } else if (token.startsWith('GENERIC_ENTITY_')) {
-                    if (this._entityIdAnnotation && value) 
+                    if (this._includeEntityValue && value) 
                         output.push('"', value, '"');
                     else 
                         output.push('null');

@@ -43,7 +43,7 @@ class CsqaConverter {
     constructor(options) {
         this._domain = options.domain;
         this._canonical = options.canonical;
-        this._entityIdAnnotation = options.entityIdAnnotation;
+        this._includeEntityValue = options.includeEntityValue;
 
         this._paths = {
             inputDir: options.inputDir,
@@ -89,7 +89,7 @@ class CsqaConverter {
     async _getFilterBoolExp(property, value, param) {
         let ttValue, op;
         if (param === 'id') {
-            if (this._entityIdAnnotation) {
+            if (this._includeEntityValue) {
                 ttValue = new Ast.Value.Entity(value.value, `org.wikidata:${this._canonical}`, value.preprocessed);
                 op = '==';
             } else {
@@ -337,7 +337,7 @@ class CsqaConverter {
             try {
                 const preprocessed = this._tokenizer.tokenize(user.utterance).tokens.join(' ');
                 const entities = makeDummyEntities(preprocessed);
-                const thingtalk = serializePrediction(program, preprocessed, entities, { locale: 'en-US', entityIdAnnotation : this._entityIdAnnotation }).join(' ');
+                const thingtalk = serializePrediction(program, preprocessed, entities, { locale: 'en-US', includeEntityValue : this._includeEntityValue }).join(' ');
                 annotated.push({
                     id : annotated.length + 1,
                     raw: user.utterance,
@@ -429,7 +429,7 @@ module.exports = {
             items: args.items,
             values: args.values,
             filteredExamples: args.filtered_examples,
-            entityIdAnnotation: args.entity_id
+            includeEntityValue: args.entity_id
         });
         csqaConverter.run();
     },

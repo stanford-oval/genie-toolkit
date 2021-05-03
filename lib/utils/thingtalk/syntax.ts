@@ -132,7 +132,7 @@ interface SerializeOptions {
     locale : string;
     ignoreSentence ?: boolean;
     compatibility ?: string;
-    entityIdAnnotation ?: boolean;
+    includeEntityValue ?: boolean;
 }
 
 /**
@@ -151,6 +151,6 @@ export function serializePrediction(program : Ast.Input,
     });
     return Syntax.serialize(program, Syntax.SyntaxType.Tokenized, entityRetriever, {
         compatibility: options.compatibility,
-        entityIdAnnotation: options.entityIdAnnotation
+        includeEntityValue: options.includeEntityValue
     });
 }

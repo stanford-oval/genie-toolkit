@@ -69,7 +69,7 @@ class CacheSerializer extends Stream.Transform {
 
 class TypecheckStream extends Stream.Transform {
     private _locale : string;
-    private _entityIdAnnotation : boolean;
+    private _includeEntityValue : boolean;
     private _tpClient : Tp.BaseClient;
     private _schemas : ThingTalk.SchemaRetriever;
     private _cache : Map<string, CacheEntry>;
@@ -92,7 +92,7 @@ class TypecheckStream extends Stream.Transform {
         super({ objectMode: true });
 
         this._locale = args.locale;
-        this._entityIdAnnotation = args.entity_id;
+        this._includeEntityValue = args.entity_id;
         this._tpClient = tpClient;
         this._schemas = schemas;
         this._cache = cache;
@@ -172,7 +172,7 @@ class TypecheckStream extends Stream.Transform {
             const program = await ThingTalkUtils.parse(line, this._schemas);
             const code = ThingTalkUtils.serializePrediction(program, this._current!.preprocessed, this._entities!, {
                 locale: this._locale,
-                entityIdAnnotation: this._entityIdAnnotation
+                includeEntityValue: this._includeEntityValue
             }).join(' ');
 
             this._doCache(code);
@@ -203,7 +203,7 @@ class TypecheckStream extends Stream.Transform {
 
             ex.target_code = ThingTalkUtils.serializePrediction(program!, this._current!.preprocessed, this._entities, {
                 locale: this._locale,
-                entityIdAnnotation: this._entityIdAnnotation
+                includeEntityValue: this._includeEntityValue
             }).join(' ');
             this.push(ex);
             return;
