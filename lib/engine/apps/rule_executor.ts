@@ -23,14 +23,13 @@ import * as events from 'events';
 import type Engine from '..';
 
 import type AppExecutor from './app_executor';
-import ExecWrapper from './exec_wrapper';
-import { OutputDelegate } from './exec_wrapper';
+import ExecWrapper, { IODelegate } from './exec_wrapper';
 
 export default class RuleExecutor extends events.EventEmitter {
     engine : Engine;
     app : AppExecutor;
 
-    private _output : OutputDelegate;
+    private _output : IODelegate;
     private _env : ExecWrapper;
     private _tt : (env : ExecWrapper) => Promise<unknown>;
 
@@ -43,7 +42,7 @@ export default class RuleExecutor extends events.EventEmitter {
     constructor(engine : Engine,
                 app : AppExecutor,
                 compiled : (env : ExecWrapper) => Promise<unknown>,
-                output : OutputDelegate) {
+                output : IODelegate) {
         super();
         this.engine = engine;
         this.app = app;
@@ -56,6 +55,11 @@ export default class RuleExecutor extends events.EventEmitter {
         this._finishPromise = new Promise((resolve, reject) => {
             this._finished = { resolve, reject };
         });
+    }
+
+    setIODelegate(delegate : IODelegate) {
+        this._output = delegate;
+        this._env.setIODelegate(delegate);
     }
 
     private async _ruleThread() {

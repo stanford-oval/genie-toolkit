@@ -32,12 +32,6 @@ import { collectDisambiguationHints, getBestEntityMatch, EntityRecord } from './
 import { CancellationError } from './errors';
 import ValueCategory from './value-category';
 
-interface AbstractDialogueAgentOptions {
-    locale : string;
-    timezone : string;
-    debug : boolean;
-}
-
 export interface NewProgramRecord {
     uniqueId : string;
     name : string;
@@ -127,7 +121,11 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
     locale : string;
     timezone : string;
 
-    constructor(tpClient : Tp.BaseClient, schemas : SchemaRetriever, options : AbstractDialogueAgentOptions) {
+    constructor(tpClient : Tp.BaseClient, schemas : SchemaRetriever, options : {
+        locale : string;
+        timezone : string;
+        debug : boolean;
+    }) {
         this._tpClient = tpClient;
         this._schemas = schemas;
         this._langPack = I18n.get(options.locale);

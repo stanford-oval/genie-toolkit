@@ -27,7 +27,7 @@ const FAILURE = {};
 
 async function collectOutputs(app) {
     let into = [];
-    for await (const output of app.mainOutput)
+    for await (const output of app.runImmediate())
         into.push(output);
     return into;
 }
@@ -48,7 +48,6 @@ async function testSimpleDo(engine) {
     assert.strictEqual(app.description, 'Eat data on test with data some data.');
 
     // when we get here, the app might or might not have started already
-    // to be sure, we iterate its mainOutput
 
     // the app is still running, so the engine should know about it
     assert(engine.apps.hasApp(app.uniqueId));
@@ -70,7 +69,6 @@ async function testDoSay(engine) {
         { name: 'some app', description: 'some app description' });
 
     // when we get here, the app might or might not have started already
-    // to be sure, we iterate its mainOutput
 
     // the app is still running, so the engine should know about it
     assert(engine.apps.hasApp(app.uniqueId));
@@ -97,7 +95,6 @@ async function testDoError(engine) {
     const app = await engine.createApp('now => @org.thingpedia.builtin.test.eat_data(data="some data ");',
         { name: 'some app', description: 'some app description' });
     // when we get here, the app might or might not have started already
-    // to be sure, we iterate its mainOutput
 
     // the app is still running, so the engine should know about it
     assert(engine.apps.hasApp(app.uniqueId));
@@ -113,7 +110,6 @@ async function testSimpleGet(engine, icon = null) {
     const app = await engine.createApp('now => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
         { icon: icon, name: 'some app', description: 'some app description' });
     // when we get here, the app might or might not have started already
-    // to be sure, we iterate its mainOutput
 
     // the app is still running, so the engine should know about it
     assert(engine.apps.hasApp(app.uniqueId));
@@ -132,7 +128,6 @@ async function testSimpleGet2(engine, icon = null) {
     const output = await engine.createAppAndReturnResults('now => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
         { icon: icon, uniqueId: 'app-foo-get' });
     // when we get here, the app might or might not have started already
-    // to be sure, we iterate its mainOutput
 
     // do a layer of json.stringify->json.parse so we lose the prototypes
     // of the Text objects
@@ -156,7 +151,6 @@ async function testGetGet(engine, icon = null) {
     const app = await engine.createApp('now => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => @org.thingpedia.builtin.test.dup_data(data_in=data) => notify;',
         { icon: icon, name: 'some app', description: 'some app description' });
     // when we get here, the app might or might not have started already
-    // to be sure, we iterate its mainOutput
 
     // the app is still running, so the engine should know about it
     assert(engine.apps.hasApp(app.uniqueId));
@@ -183,7 +177,6 @@ async function testGetError(engine, icon = null) {
     const app = await engine.createApp('now => @org.thingpedia.builtin.test.get_data(count=2, size=10byte) => notify;',
         { icon: icon, name: 'some app', description: 'some app description' });
     // when we get here, the app might or might not have started already
-    // to be sure, we iterate its mainOutput
 
     // the app is still running, so the engine should know about it
     assert(engine.apps.hasApp(app.uniqueId));
@@ -628,7 +621,6 @@ async function testGetSequence(engine, icon = null) {
     const app = await engine.createApp('now => @org.thingpedia.builtin.test.next_sequence() => notify;',
         { icon , name: 'some app', description: 'some app description' });
     // when we get here, the app might or might not have started already
-    // to be sure, we iterate its mainOutput
 
     // the app is still running, so the engine should know about it
     assert(engine.apps.hasApp(app.uniqueId));
@@ -646,7 +638,6 @@ async function testGetGetSequence(engine, icon = null) {
     const app = await engine.createApp('now => @org.thingpedia.builtin.test.next_sequence() => @org.thingpedia.builtin.test.next_sequence() => notify;',
         { icon , name: 'some app', description: 'some app description' });
     // when we get here, the app might or might not have started already
-    // to be sure, we iterate its mainOutput
 
     // the app is still running, so the engine should know about it
     assert(engine.apps.hasApp(app.uniqueId));
@@ -711,7 +702,6 @@ async function testGetContext(engine, icon = null) {
     const app = await engine.createApp('now => @org.thingpedia.builtin.test.dup_data(data_in=$context.selection: String) => notify;',
         { icon , name: 'some app', description: 'some app description' });
     // when we get here, the app might or might not have started already
-    // to be sure, we iterate its mainOutput
 
     // the app is still running, so the engine should know about it
     assert(engine.apps.hasApp(app.uniqueId));
@@ -730,7 +720,6 @@ async function testSayContext(engine, icon = null) {
     const app = await engine.createApp('now => @org.thingpedia.builtin.thingengine.builtin.say(message=$context.selection: String);',
         { icon , name: 'some app', description: 'some app description' });
     // when we get here, the app might or might not have started already
-    // to be sure, we iterate its mainOutput
 
     // the app is still running, so the engine should know about it
     assert(engine.apps.hasApp(app.uniqueId));

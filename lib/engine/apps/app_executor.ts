@@ -22,23 +22,29 @@ import assert from 'assert';
 import * as events from 'events';
 import AsyncQueue from 'consumer-queue';
 
-import { Syntax, Compiler as AppCompiler, Ast } from 'thingtalk';
+import { Syntax, Compiler as AppCompiler, Ast, Type } from 'thingtalk';
 import RuleExecutor from './rule_executor';
-import type ExecWrapper from './exec_wrapper';
 import { ChannelState } from '../db/channel';
 
 import type Engine from '../index';
+import { IODelegate } from './exec_wrapper';
 
 interface ResultItem {
     outputType : string;
     outputValue : Record<string, unknown>;
 }
-
-class QueueOutputDelegate {
+class QueueIODelegate {
     private _queue : AsyncQueue<IteratorResult<ResultItem|Error>>;
 
     constructor() {
         this._queue = new AsyncQueue();
+    }
+
+    ask(type : Type, question : string) : Promise<Ast.Value> {
+        throw new Error('Not available when streaming results');
+    }
+    say(message : string) : Promise<void> {
+        throw new Error('Not available when streaming results');
     }
 
     [Symbol.asyncIterator]() : AsyncIterator<ResultItem|Error> {
@@ -59,13 +65,20 @@ class QueueOutputDelegate {
     }
 }
 
-class NotificationOutputDelegate {
+class BackgroundIODelegate implements IODelegate {
     private _app : AppExecutor;
     private _engine : Engine;
 
     constructor(app : AppExecutor) {
         this._app = app;
         this._engine = app.engine;
+    }
+
+    ask(type : Type, question : string) : Promise<Ast.Value> {
+        throw new Error('Not available in background');
+    }
+    say(message : string) : Promise<void> {
+        throw new Error('Not available in background');
     }
 
     done() {}
@@ -130,8 +143,7 @@ export default class AppExecutor extends events.EventEmitter {
     name : string;
     description : string;
 
-    mainOutput : QueueOutputDelegate;
-    private _notificationOutput : NotificationOutputDelegate;
+    private _notificationdelegate : IODelegate;
     notifications : NotificationConfig[];
 
     /**
@@ -204,8 +216,7 @@ export default class AppExecutor extends events.EventEmitter {
 
         this._states = [];
 
-        this.mainOutput = new QueueOutputDelegate();
-        this._notificationOutput = new NotificationOutputDelegate(this);
+        this._notificationdelegate = new BackgroundIODelegate(this);
         this.notifications = meta.notifications || [];
         meta.notifications = this.notifications;
     }
@@ -238,7 +249,7 @@ export default class AppExecutor extends events.EventEmitter {
         this._error = e;
     }
     reportError(error : Error) {
-        this._notificationOutput.notifyError(error);
+        this._notificationdelegate.notifyError(error);
     }
 
     get hasRule() {
@@ -271,19 +282,19 @@ export default class AppExecutor extends events.EventEmitter {
     /**
      * Attempt compilation of this app.
      *
-     * This method must be called before running the app through {@link AppExecutor#runCommand}
-     * or {@link AppExecutor#start}.
+     * This method must be called before running the app through {@link AppExecutor.runImmediate}
+     * or {@link AppExecutor.start}.
      *
-     * On failure, this method will set {@link AppExecutor#error}.
+     * On failure, this method will set {@link AppExecutor.error}.
      */
     async compile() : Promise<void> {
         const compiled = await this.compiler.compileProgram(this.program);
 
         if (compiled.command)
-            this.command = new RuleExecutor(this.engine, this, compiled.command as (env : ExecWrapper) => Promise<unknown>, this.mainOutput);
+            this.command = new RuleExecutor(this.engine, this, compiled.command, this._notificationdelegate);
 
         for (const rule of compiled.rules) {
-            const executor = new RuleExecutor(this.engine, this, rule as (env : ExecWrapper) => Promise<unknown>, this._notificationOutput);
+            const executor = new RuleExecutor(this.engine, this, rule, this._notificationdelegate);
             this.rules.push(executor);
             executor.on('finish', () => {
                 this._finishedRules.add(executor);
@@ -302,18 +313,20 @@ export default class AppExecutor extends events.EventEmitter {
      * This method will execute the portion of the app that uses the `now =>` stream.
      * It should be called only for a newly created app, not for an app that was loaded from
      * disk after a restart.
-     *
-     * This method must not be called on an app returned by {@link Engine#createApp} or
-     * {@link AppDatabase#createApp}, as those methods will already call this one.
      */
-    async runCommand() {
+    runImmediate(delegate : IODelegate) : IODelegate;
+    runImmediate() : QueueIODelegate;
+    runImmediate(delegate ?: IODelegate) {
+        if (!delegate)
+            delegate = new QueueIODelegate();
+
         if (this.command) {
+            this.command.setIODelegate(delegate);
             this.command.start();
-            await this.command.waitFinished();
         } else {
-            // mark the main output as done or we'll hang when we iterate it
-            this.mainOutput.done();
+            delegate.done();
         }
+        return delegate;
     }
 
     /**

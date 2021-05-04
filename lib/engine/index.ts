@@ -611,7 +611,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
         const errors : Error[] = [];
 
         const formatter = new NotificationFormatter(this);
-        for await (const value of app.mainOutput) {
+        for await (const value of app.runImmediate()) {
             if (value instanceof Error) {
                 errors.push(value);
             } else {

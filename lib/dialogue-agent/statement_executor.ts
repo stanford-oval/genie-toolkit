@@ -129,7 +129,7 @@ export default class InferenceStatementExecutor {
             return [false, undefined, undefined];
 
         let errorCode, errorMessage;
-        for await (const value of app.mainOutput) {
+        for await (const value of app.runImmediate()) {
             if (count >= MORE_SIZE)
                 return [true, errorCode, errorMessage];
 

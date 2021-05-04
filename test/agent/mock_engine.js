@@ -73,7 +73,6 @@ class MockAppExecutor extends events.EventEmitter {
 
         this._program = program;
         assert(this._program.statements.length === 1);
-        this.mainOutput = new QueueOutputDelegate();
     }
 
     async compile() {
@@ -81,7 +80,7 @@ class MockAppExecutor extends events.EventEmitter {
         this._compiled = await compiler.compileCode(this.code);
     }
 
-    async execute() {
+    runImmediate() {
         const overrides = new Map;
         const generator = new ResultGenerator(this._rng, overrides);
         for (let slot of this._program.iterateSlots2()) {
@@ -90,16 +89,16 @@ class MockAppExecutor extends events.EventEmitter {
             generator.addCandidate(slot.get());
         }
         this._simulator.generator = generator;
+        const delegate = new QueueOutputDelegate();
         this._simulator.output = async (outputType, outputValue) => {
-            return this.mainOutput.output(outputType, outputValue);
+            return delegate.output(outputType, outputValue);
         };
         this._simulator.reportError = async (msg, err) => {
-            return this.mainOutput.notifyError(err);
+            return delegate.notifyError(err);
         };
         if (this._compiled.command)
-            await this._compiled.command(this._simulator);
-        this.mainOutput.done();
-        this.emit('done');
+            this._compiled.command(this._simulator).then(() => delegate.done());
+        return delegate;
     }
 }
 
@@ -148,9 +147,6 @@ class MockAppDatabase {
             delete this._apps[options.uniqueId];
         });
         await app.compile();
-
-        // execute asynchronously
-        app.execute();
         return app;
     }
 }
