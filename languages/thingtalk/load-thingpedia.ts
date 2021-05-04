@@ -26,7 +26,8 @@ import {
     Ast,
     Type,
     Syntax,
-    SchemaRetriever
+    SchemaRetriever,
+    Operators
 } from 'thingtalk';
 import * as Units from 'thingtalk-units';
 import type * as Genie from 'genie-toolkit';
@@ -77,40 +78,8 @@ const ANNOTATION_PRIORITY : Record<string, number> = {
 };
 
 // TODO translate these
-const TIMER_SCHEMA = new Ast.FunctionDef(null,
-    'stream',
-    null, // class
-    'timer',
-    [], // extends
-    {
-        is_list: false,
-        is_monitorable: true
-    },
-    [
-        new Ast.ArgumentDef(null, Ast.ArgDirection.IN_OPT, 'base', Type.Date, { impl: {
-            default: new Ast.DateValue(null) // $now
-        }}),
-        new Ast.ArgumentDef(null, Ast.ArgDirection.IN_REQ, 'interval', new Type.Measure('ms')),
-        new Ast.ArgumentDef(null, Ast.ArgDirection.IN_OPT, 'frequency', Type.Number),
-    ],
-    {}
-);
-
-const ATTIMER_SCHEMA = new Ast.FunctionDef(null,
-    'stream',
-    null, // class
-    'attimer',
-    [], // extends
-    {
-        is_list: false,
-        is_monitorable: true
-    },
-    [
-        new Ast.ArgumentDef(null, Ast.ArgDirection.IN_REQ, 'time', new Type.Array(Type.Time)),
-        new Ast.ArgumentDef(null, Ast.ArgDirection.IN_OPT, 'expiration_date', Type.Date),
-    ],
-    {}
-);
+const TIMER_SCHEMA = Operators.Functions['timer'];
+const ATTIMER_SCHEMA = Operators.Functions['attimer'];
 
 interface CanonicalForm {
     default : string;
@@ -126,11 +95,7 @@ interface CanonicalForm {
 }
 
 // FIXME this info needs to be in Thingpedia
-interface ExtendedEntityRecord {
-    type : string;
-    name : string;
-    is_well_known : boolean|number;
-    has_ner_support : boolean|number;
+interface ExtendedEntityRecord extends Tp.BaseClient.EntityTypeRecord {
     subtype_of ?: string|null;
 }
 

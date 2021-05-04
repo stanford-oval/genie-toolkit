@@ -26,7 +26,7 @@ import {
     Type,
     Compiler,
     SchemaRetriever,
-    CompiledProgram,
+    Runtime,
     Builtin
 } from 'thingtalk';
 
@@ -74,7 +74,7 @@ export class ThingTalkSimulatorState {
         });
     }
 
-    async compile(stmt : Ast.ExpressionStatement, cache : Map<string, CompiledProgram>) : Promise<CompiledProgram> {
+    async compile(stmt : Ast.ExpressionStatement, cache : Map<string, Runtime.CompiledProgram>) : Promise<Runtime.CompiledProgram> {
         const clone = stmt.clone();
 
         const program = new Ast.Program(null, [], [], [clone]);
@@ -99,7 +99,7 @@ export class ThingTalkSimulatorState {
         return compiled;
     }
 
-    async simulate(stmt : Ast.ExpressionStatement, compiled : CompiledProgram) : Promise<ExecutionResult> {
+    async simulate(stmt : Ast.ExpressionStatement, compiled : Runtime.CompiledProgram) : Promise<ExecutionResult> {
         const results : Ast.DialogueHistoryResultItem[] = [];
         const rawResults : RawExecutionResult = [];
         let error : Ast.Value|null = null;
@@ -249,7 +249,7 @@ export class ThingTalkSimulatorState {
  */
 export default class ThingTalkStatementSimulator {
     private _options : SimulatorOptions;
-    private cache : Map<string, CompiledProgram>;
+    private cache : Map<string, Runtime.CompiledProgram>;
 
     constructor(options : SimulatorOptions) {
         this._options = options;

@@ -18,8 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-import interpolate from 'string-interp';
 import * as Tp from 'thingpedia';
 
 import type TierManager from '../../tiers/tier_manager';
@@ -51,7 +49,7 @@ export default class ThingEngineDevice extends Tp.BaseDevice {
 
     _tierManager : TierManager;
 
-    constructor(engine : Engine, state : ThingEngineDeviceState) {
+    constructor(engine : Tp.BaseEngine, state : ThingEngineDeviceState) {
         super(engine, state);
 
         this.tier = state.tier;
@@ -64,7 +62,7 @@ export default class ThingEngineDevice extends Tp.BaseDevice {
 
         // This is a built-in device so we're allowed some
         // "friendly" API access
-        this._tierManager = engine._tiers;
+        this._tierManager = (engine as Engine)._tiers;
 
         this.cloudId = undefined;
         this.developerKey = undefined;
@@ -80,10 +78,6 @@ export default class ThingEngineDevice extends Tp.BaseDevice {
         }
 
         this.uniqueId = 'thingengine-own-' + this.address;
-        this.name = interpolate(engine._("Almond ${tier} (${identity})"), this.state, {
-            locale: this.platform.locale
-        })||'';
-        this.description = (engine as Engine)._("This is one of your own Almond apps.");
     }
 
     updateState(state : ThingEngineDeviceState) {
