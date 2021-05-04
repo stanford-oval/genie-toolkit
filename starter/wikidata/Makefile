@@ -159,7 +159,6 @@ raw/csqa-wikidata:
 	  --wikidata-entity-list raw/csqa-wikidata/items_wikidata_n.json \
 	  --wikidata-property-list raw/csqa-wikidata/filtered_property_wikidata4.json \
 	  --filtered-properties $*/properties.txt \
-	  --schemaorg-manifest schemaorg-manifest.tt \
 	  --manifest $*/parameter-datasets.tsv.tmp \
 	  --output-dir $*/parameter-datasets \
 	  $(process_schemaorg_flags)

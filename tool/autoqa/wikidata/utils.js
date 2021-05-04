@@ -319,23 +319,6 @@ async function getRangeConstraint(propertyId) {
 }
 
 /**
- * Get the Schema.org equivalent given a wikidata property
- * @param {string} propertyId: the id of a property
- * @returns {Promise<string>}: name of the equivalent property in Schema.org
- */
-async function getSchemaorgEquivalent(propertyId) {
-    const query = `SELECT ?property WHERE {
-        wd:${propertyId} wdt:P1628 ?property .
-    }`;
-    const result = await wikidataQuery(query);
-    for (let r of result) {
-        if (r.property.value.startsWith('https://schema.org/'))
-            return r.property.value.substring('https://schema.org/'.length);
-    }
-    return null;
-}
-
-/**
  * Get the class (instance of) of a given wikidata property or entity
  * @param {string} id: the id of a property or an entity
  * @returns {Promise<Array.string>}: list of classes
@@ -361,11 +344,11 @@ async function getEquivalent(id) {
     return result.map((r) => r.class.value.slice('http://www.wikidata.org/entity/'.length));
 }
 
-async function getType(domainLabel, property, propertyLabel, schemaorgProperties) {
+async function getType(domainLabel, property, propertyLabel) {
     if (property in PROPERTY_TYPE_OVERRIDE)
         return PROPERTY_TYPE_OVERRIDE[property];
 
-    const elemType = await getElemType(domainLabel, property, propertyLabel, schemaorgProperties);
+    const elemType = await getElemType(domainLabel, property, propertyLabel);
     if (elemType) {
         if (PROPERTY_FORCE_ARRAY.has(property))
             return new Type.Array(elemType);
@@ -380,7 +363,7 @@ async function getType(domainLabel, property, propertyLabel, schemaorgProperties
     return Type.String;
 }
 
-async function getElemType(domainLabel, property, propertyLabel, schemaorgProperties) {
+async function getElemType(domainLabel, property, propertyLabel) {
     if (PROPERTY_TYPE_SAME_AS_SUBJECT.has(property))
         return new Type.Entity(`org.wikidata:${snakecase(domainLabel)}`);
 
@@ -456,20 +439,6 @@ async function getElemType(domainLabel, property, propertyLabel, schemaorgProper
             return Type.Location;
     }
 
-    // load equivalent schema.org type if available
-    const schemaorgEquivalent = await getSchemaorgEquivalent(property);
-    if (schemaorgEquivalent && schemaorgProperties && schemaorgEquivalent in schemaorgProperties) {
-        const schemaorgType = schemaorgProperties[schemaorgEquivalent];
-        const schemaorgElemType = schemaorgType.isArray ? schemaorgType.elem : schemaorgType;
-        if (schemaorgElemType.isEntity && schemaorgElemType.type.startsWith('org.schema')) {
-            const entityType = schemaorgElemType.type.substring(schemaorgElemType.type.lastIndexOf(':') + 1).toLowerCase();
-            return schemaorgType.isArray ?
-                new Type.Array(new Type.Entity(`org.wikidata:${entityType}`)) : new Type.Entity(`org.wikidata:${entityType}`);
-        }
-        if (!schemaorgType.isCompound)
-            return schemaorgType;
-    }
-
     // majority or arrays of string so this may be better default.
     return Type.String;
 }
@@ -503,25 +472,6 @@ async function dumpMap(file, map) {
     await util.promisify(fs.writeFile)(file, JSON.stringify(data, undefined, 2));
 }
 
-async function loadSchemaOrgManifest(schemaorgManifest, schemaorgProperties) {
-    if (schemaorgManifest) {
-        const library = ThingTalk.Grammar.parse(await util.promisify(fs.readFile)(schemaorgManifest, { encoding: 'utf8' }));
-        assert(library.isLibrary && library.classes.length === 1);
-        const classDef = library.classes[0];
-
-        for (let fn in classDef.queries) {
-            const fndef = classDef.queries[fn];
-            for (let argname of fndef.args) {
-                let key = argname;
-                if (argname.includes('.'))
-                    key = argname.substring(argname.lastIndexOf('.') + 1);
-                if (!(argname in schemaorgProperties))
-                    schemaorgProperties[key] = fndef.getArgType(argname);
-            }
-        }
-    }
-}
-
 export {
     unitConverter,
     wikidataQuery,
@@ -533,13 +483,11 @@ export {
     getOneOfConstraint,
     getAllowedUnits,
     getRangeConstraint,
-    getSchemaorgEquivalent,
     getClasses,
     getEquivalent,
     getType,
     getElementType,
     readJson,
     dumpMap,
-    loadSchemaOrgManifest,
     argnameFromLabel
 };

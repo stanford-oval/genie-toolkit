@@ -35,8 +35,7 @@ import {
     getPropertyAltLabels,
     getType,
     getElementType,
-    argnameFromLabel,
-    loadSchemaOrgManifest
+    argnameFromLabel
 } from './utils';
 
 import {
@@ -64,7 +63,7 @@ async function retrieveProperties(domain, properties) {
 
 class SchemaProcessor {
     constructor(domains, domainCanonicals, propertiesByDomain, requiredPropertiesByDomain, output, outputEntities,
-                manual, wikidataLabels, schemaorgManifest, paramDatasetsTsv) {
+                manual, wikidataLabels, paramDatasetsTsv) {
         this._domains = domains;
         this._domainCanonicals = domainCanonicals;
         this._propertiesByDomain = propertiesByDomain;
@@ -74,8 +73,6 @@ class SchemaProcessor {
         this._entities = DEFAULT_ENTITIES.slice();
         this._manual = manual;
         this._wikidataLabels = wikidataLabels;
-        this._schemaorgManifest = schemaorgManifest;
-        this._schemaorgProperties = {};
 
         // Test if worth adding type mapping from paramter_datasets.tsv
         this._paramDatasetsTsv = paramDatasetsTsv;
@@ -109,9 +106,6 @@ class SchemaProcessor {
         const queries = {};
         const actions = {};
 
-        // load schema.org manifest if available
-        await loadSchemaOrgManifest(this._schemaorgManifest, this._schemaorgProperties);
-
         // load parameter dataset file ids if available
         if (this._paramDatasetsTsv) {
             const paramDatasets = await util.promisify(fs.readFile)(this._paramDatasetsTsv, { encoding: 'utf8' });
@@ -141,7 +135,7 @@ class SchemaProcessor {
             for (let property of properties) {
                 const label = await getPropertyLabel(property);
                 const name = argnameFromLabel(label);
-                const type = await getType(domainLabel, property, label, this._schemaorgProperties);
+                const type = await getType(domainLabel, property, label);
                 const annotations = {
                     nl: { canonical: await this._getArgCanonical(property, label, type) },
                     impl: { wikidata_id: new Ast.Value.String(property) }
@@ -240,10 +234,6 @@ export function initArgparse(subparsers) {
         help: 'Enable wikidata labels as annotations.',
         default: false
     });
-    parser.add_argument('--schemaorg-manifest', {
-        required: false,
-        help: 'Path to manifest.tt for schema.org; used for predict the type of wikidata properties'
-    });
     parser.add_argument('--required-properties', {
         nargs: '+',
         required: false,
@@ -291,7 +281,7 @@ export async function execute(args) {
     }
     const schemaProcessor = new SchemaProcessor(
         domains, domainCanonicals, propertiesByDomain, requiredPropertiesByDomain, args.output, args.entities,
-        args.manual, args.wikidata_labels, args.schemaorg_manifest
+        args.manual, args.wikidata_labels
     );
     schemaProcessor.run();
 }

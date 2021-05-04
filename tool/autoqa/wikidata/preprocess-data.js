@@ -30,7 +30,6 @@ import {
     getType,
     getElementType,
     argnameFromLabel,
-    loadSchemaOrgManifest,
     readJson,
     dumpMap
 } from './utils';
@@ -54,7 +53,6 @@ class ParamDatasetGenerator {
             filteredProperties: options.filteredProperties
         };
         this._wikidataProperties = new Map();
-        this._schemaorgProperties = {};
 
         this._items = new Map();
         this._values = new Map();
@@ -173,7 +171,7 @@ class ParamDatasetGenerator {
             const propertyLabel = this._wikidataProperties.get(property);
             
             console.log('Processing property: ', propertyLabel);
-            let type = await getType(this._canonical, property, propertyLabel, this._schemaorgProperties);
+            let type = await getType(this._canonical, property, propertyLabel);
             let fileId = `org.wikidata:${argnameFromLabel(propertyLabel)}`;
             let isEntity = false;
 
@@ -233,8 +231,6 @@ class ParamDatasetGenerator {
     async run() {
         // load wikidata properties 
         this._wikidataProperties = await readJson(this._paths.wikidataProperties);
-        // load schema.org manifest (to help determine property type)
-        await loadSchemaOrgManifest(this._schemaorgManifest, this._schemaorgProperties);
         
         if (['predicates.json', 'items.json', 'values.json', 'properties.txt'].every((fname) => fs.existsSync(path.join(this._paths.dir, fname)))) {
             console.log('load predicates & labels from preprocessed files');
@@ -293,10 +289,6 @@ module.exports = {
             required: true,
             help: "Path to output a txt file containing properties available for the domain, split by comma"
         });
-        parser.add_argument('--schemaorg-manifest', {
-            required: false,
-            help: 'Path to manifest.tt for schema.org; used for predict the type of wikidata properties'
-        });
         parser.add_argument('--max-value-length', {
             required: false,
             help: 'Maximum number of tokens for parameter values'
@@ -320,7 +312,6 @@ module.exports = {
             wikidataEntities: args.wikidata_entity_list,
             wikidataProperties: args.wikidata_property_list,
             filteredProperties: args.filtered_properties,
-            schemaorgManifest:args.schemaorg_manifest,
             maxValueLength: args.max_value_length,
             manifest: args.manifest,
             outputDir: args.output_dir
