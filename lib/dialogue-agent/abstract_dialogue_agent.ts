@@ -352,8 +352,13 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         if (selector.all)
             return;
 
+        // HACK if we're doing IoT and we don't have a name, treat it like "all" devices
+        if (selector.kind.startsWith('org.thingpedia.iot.') && name === undefined)
+            return;
+
         let selecteddevices = alldevices;
-        if (name !== undefined)
+        // note: we ignore the name if there is only one device configured - this protects against some bad parses
+        if (alldevices.length > 1 && name !== undefined)
             selecteddevices = alldevices.filter((d) => like(d.name, name.value.toJS() as string));
 
         if (selecteddevices.length === 1) {
@@ -365,13 +370,9 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
             return;
         }
 
-        // HACK if we're doing IoT and we don't have a name, treat it like "all" devices
-        if (selector.kind.startsWith('org.thingpedia.iot.') && name === undefined)
-            return;
-
         const choosefrom = (selecteddevices.length ? selecteddevices : alldevices);
-        const choice = await this.disambiguate('device',
-            selecteddevices.length && name ? name.value.toJS() as string : null, choosefrom.map((d) => d.name), kind);
+        const choice = await this.disambiguate(selecteddevices.length ? 'device' : 'device-missing',
+            name ? name.value.toJS() as string : null, choosefrom.map((d) => d.name), kind);
         selector.id = choosefrom[choice].uniqueId;
         if (name)
             name.value = new Ast.Value.String(choosefrom[choice].name);
@@ -416,7 +417,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
                 value.unit = preference;
             } else {
                 switch (key) {
-                case 'defaultTemperature':
+                case 'temperature':
                     value.unit = this._langPack.getDefaultTemperatureUnit();
                     break;
                 default:
@@ -501,7 +502,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * @param {string} hint - a type-specific hint to show to the user
      * @returns {number} - the index of the provided choice
      */
-    async disambiguate(type : 'device'|'contact',
+    async disambiguate(type : 'device'|'device-missing'|'contact',
                        name : string|null,
                        choices : string[],
                        hint ?: string) : Promise<number> {

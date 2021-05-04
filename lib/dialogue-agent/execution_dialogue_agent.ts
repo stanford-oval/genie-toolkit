@@ -139,12 +139,17 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         }
     }
 
-    async disambiguate(type : 'device'|'contact',
+    async disambiguate(type : 'device'|'device-missing'|'contact',
                        name : string|null,
                        choices : string[],
                        hint ?: string) : Promise<number> {
         let question : string;
-        if (type === 'device') {
+        if (type === 'device-missing') {
+            assert(name);
+            question = this._dlg.interpolate(this._("I cannot find any ${name} ${device} device. Which device do you want to use?"), {
+                name, device: cleanKind(hint!)
+            });
+        } else if (type === 'device') {
             question = this._dlg.interpolate(this._("You have multiple {${name}| }${device} devices. Which one do you want to use?"), {
                 name, device: cleanKind(hint!)
             });

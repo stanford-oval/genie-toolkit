@@ -22,21 +22,12 @@
 import assert from 'assert';
 
 import * as ThingTalk from 'thingtalk';
-import { Ast, Type, ExecEnvironment, SchemaRetriever } from 'thingtalk';
+import { Ast, Type, ExecEnvironment, SchemaRetriever, Runtime } from 'thingtalk';
 
 import { coin, uniform, randint } from '../../utils/random';
 
 import { SimulationDatabase } from './types';
 import { getAllDevicesOfKind } from './helpers';
-
-type CompiledFilterHint = [string, string, unknown];
-export interface CompiledQueryHints {
-    filter ?: CompiledFilterHint[];
-    sort ?: [string, 'asc' | 'desc'];
-    projection ?: string[];
-    limit ?: number;
-}
-
 
 class ResultGenerator {
     private _rng : () => number;
@@ -500,7 +491,7 @@ class SimulationExecEnvironment extends ExecEnvironment {
                                        kind : string,
                                        fname : string,
                                        params : Record<string, unknown>,
-                                       hints : CompiledQueryHints) : Promise<[Array<[string, Record<string, unknown>]>, boolean]|null>;
+                                       hints : Runtime.CompiledQueryHints) : Promise<[Array<[string, Record<string, unknown>]>, boolean]|null>;
     private _tryFromSimulationDatabase(schema : Ast.FunctionDef,
                                        ftype : 'action',
                                        kind : string,
@@ -512,7 +503,7 @@ class SimulationExecEnvironment extends ExecEnvironment {
                                              kind : string,
                                              fname : string,
                                              params : Record<string, unknown>,
-                                             hints : CompiledQueryHints|null) {
+                                             hints : Runtime.CompiledQueryHints|null) {
         let outputType : string, dbKey : string;
         if (ftype === 'action') {
             outputType = kind + ':action/' + fname;
@@ -610,7 +601,7 @@ class SimulationExecEnvironment extends ExecEnvironment {
                                  attrs : Record<string, string>,
                                  fname : string,
                                  params : Record<string, unknown>,
-                                 hints : CompiledQueryHints) : Promise<[Array<[string, Record<string, unknown>]>, boolean]> {
+                                 hints : Runtime.CompiledQueryHints) : Promise<[Array<[string, Record<string, unknown>]>, boolean]> {
         const outputType = kind + ':' + fname;
         const schema = await this._schemas.getMeta(kind, 'query', fname);
 
@@ -667,7 +658,7 @@ class SimulationExecEnvironment extends ExecEnvironment {
                        attrs : Record<string, string>,
                        fname : string,
                        params : Record<string, unknown>,
-                       hints : CompiledQueryHints) : AsyncIterable<[string, Record<string, unknown>]> {
+                       hints : Runtime.CompiledQueryHints) : AsyncIterable<[string, Record<string, unknown>]> {
         const functionKey = kind + ':' + fname;
         const cached = this._findInCache(functionKey, attrs, params);
         if (cached) {

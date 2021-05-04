@@ -64,7 +64,7 @@ async function testLookup(engine) {
        authType: 'builtin' },
      { uniqueId: 'org.thingpedia.builtin.thingengine.builtin',
        name: 'Miscellaneous Interfaces',
-       description: 'Time, randomness and other non-device specific things.',
+       description: 'Time, random numbers, and other commands not specific to any skill.',
        kind: 'org.thingpedia.builtin.thingengine.builtin',
        version: 0,
        class: 'data',
