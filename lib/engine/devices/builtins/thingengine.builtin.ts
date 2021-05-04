@@ -23,8 +23,8 @@ import * as Tp from 'thingpedia';
 import * as TT from 'thingtalk';
 import * as stream from 'stream';
 
-import Engine from '../../index';
-import ExecWrapper, { CompiledQueryHints } from '../../apps/exec_wrapper';
+import ExecWrapper from '../../apps/exec_wrapper';
+import AssistantEngine from '../..';
 
 import FAQ from './faq.json';
 
@@ -39,13 +39,11 @@ class CustomError extends Error {
 // don't have any better place to live, such as those related to
 // time
 export default class MiscellaneousDevice extends Tp.BaseDevice {
-    constructor(engine : Engine, state : { kind : string }) {
+    constructor(engine : Tp.BaseEngine, state : { kind : string }) {
         super(engine, state);
 
         this.isTransient = true;
         this.uniqueId = 'org.thingpedia.builtin.thingengine.builtin';
-        this.name = engine._("Miscellaneous Interfaces");
-        this.description = engine._("Time, randomness and other non-device specific things.");
     }
 
     get ownerTier() {
@@ -102,7 +100,7 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
                       bearing: location.bearing,
                       speed: location.speed }];
         } else {
-            return [{ location: { x: 0, y: 0, display: (this.engine as Engine)._("Unknown") },
+            return [{ location: { x: 0, y: 0, display: (this.engine as AssistantEngine)._("Unknown") },
                       altitude: 0,
                       bearing: 0,
                       speed: 0 }];
@@ -157,7 +155,7 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         }];
     }
 
-    async get_commands(params : unknown, hints ?: CompiledQueryHints) {
+    async get_commands(params : unknown, hints ?: TT.Runtime.CompiledQueryHints) {
         let dataset;
         if (hints && hints.filter) {
             for (const [pname, op, value] of hints.filter) {
