@@ -1,3 +1,62 @@
+0.8.0-beta.1
+============
+
+* Tokenization change: numbers are no longer preprocessed to special tokens.
+  Instead they are normalized and left in the sentence. This allows to represent
+  commands that have numbers inside quoted strings (e.g. inside song names or
+  movie titles) [#492, #573]
+* The template system was overhauled to add the ability to produce grammatical
+  sentence in the face of arbitrarily complex constraints. This is now used
+  to ensure properly grammatical agent sentences, w.r.t to singular and plural,
+  without hacks [#542].
+* Canonical forms for actions are now treated like implicit primitive templates,
+  identically to canonical forms for queries [#546].
+* Added linking of tt:device entities, by searching in Thingpedia [#538].
+* Added the ability to provide custom help messages for Thingpedia skills, using
+  the `#_[help]` class annotation [#538].
+* Added a new conversation API to expose the executed ThingTalk programs and their
+  raw results. This allows the frontend layers to provide a semantic (graphical)
+  representation of the program results, such as charts or interactive widgets [#420].
+* Added a new AudioController engine module that coordinates access to audio
+  on the speaker device. This is now used to stop playing music when the user
+  asks to play news and viceversa [#552].
+* Added new card objects to play audios and videos. Audio and sound effect
+  card objects are now natively supported on platforms with sound output, and
+  can optionally synchronize with each other [#552].
+* The `#_[result]` annotation was extended to allow more complex phrases for
+  lists with arbitrary length. The default templates for lists were also
+  improved to describe lists of results with no common attribute
+  [#486, 504, #552, #559, #561, #587].
+* Streams and monitors are now fully supported in the dialogue agent. Notifications
+  are sent to the chat by default, but the agent can be configured to send
+  notifications to SMS or emails [#558, #567, #585].
+* Device IDs are now propagated turn-by-turn in dialogues, and multiple devices
+  are simulated at training time. This allows to properly support multiple devices
+  of the same type [#578].
+* Queries can now be implemented lazily using async generators, to reduce
+  the number of API calls necessary [#238, #557].
+* All commands that were previously part of thingpedia-cli are now part of genie
+  directly. This simplifies configuration and reduces dependency skew [#562].
+* Added a new "custom" starter code that contains a fully functional local
+  environment for developing custom Thingpedia skills and training models [#562].
+* Anonymous mode is again fully supported and safe to use in the dialogue agent
+  [#567, #571, #585].
+* Conversations are now serializable, so the state of the conversation can be
+  transferred from one Genie agent to another. This can be used for smooth hand-off
+  between anonymous and logged-in context [#585].
+* Restored and updated documentation [#553].
+* Misc bug fixes [#528, #536, #541, #547, #548, #549, #550, #551, #554, #555,
+  #560, #563, #565, #566, #574, #577, #579, #583, #586, #588, #589, #599, #600,
+  #602, #603, #607, #609, #610, #611, #613].
+* Updated dependencies [#556, #584, #591, #592, #594, #608, #614].
+
+Contributors to this release:
+- Ryan Cheng
+- Mehrad Moradshahi
+- Antonio Muratore
+- Sina Semnani
+- Silei Xu
+
 0.8.0-alpha.5
 =============
 
