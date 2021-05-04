@@ -24,6 +24,7 @@ import AsyncQueue from 'consumer-queue';
 
 import { Syntax, Compiler as AppCompiler, Ast } from 'thingtalk';
 import RuleExecutor from './rule_executor';
+import type ExecWrapper from './exec_wrapper';
 import { ChannelState } from '../db/channel';
 
 import type Engine from '../index';
@@ -279,10 +280,10 @@ export default class AppExecutor extends events.EventEmitter {
         const compiled = await this.compiler.compileProgram(this.program);
 
         if (compiled.command)
-            this.command = new RuleExecutor(this.engine, this, compiled.command, this.mainOutput);
+            this.command = new RuleExecutor(this.engine, this, compiled.command as (env : ExecWrapper) => Promise<unknown>, this.mainOutput);
 
         for (const rule of compiled.rules) {
-            const executor = new RuleExecutor(this.engine, this, rule, this._notificationOutput);
+            const executor = new RuleExecutor(this.engine, this, rule as (env : ExecWrapper) => Promise<unknown>, this._notificationOutput);
             this.rules.push(executor);
             executor.on('finish', () => {
                 this._finishedRules.add(executor);

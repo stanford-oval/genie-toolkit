@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -18,11 +18,14 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+/**
+ * A Set-like class that uses an Array as backing store, and thus can
+ * be stored transparently to and from JSON.
+ */
+export default class ArraySet<S> {
+    private store : S[];
 
-// A Set-like class that uses an Array as backing store, and thus can
-// be stored transparently to and from JSON
-export default class ArraySet {
-    constructor(store) {
+    constructor(store ?: S[]) {
         this.store = store || [];
     }
     toJSON() {
@@ -31,39 +34,41 @@ export default class ArraySet {
     get size() {
         return this.store.length;
     }
-    add(elem) {
-        let idx = this.store.indexOf(elem);
+    add(elem : S) : boolean {
+        const idx = this.store.indexOf(elem);
         if (idx >= 0)
             return false;
         this.store.push(elem);
         return true;
     }
-    delete(elem) {
-        let idx = this.store.indexOf(elem);
+    delete(elem : S) : boolean {
+        const idx = this.store.indexOf(elem);
         if (idx < 0)
             return false;
         this.store.splice(idx, 1);
         return true;
     }
-    has(elem) {
+    has(elem : S) : boolean {
         return this.store.indexOf(elem) >= 0;
     }
     clear() {
         this.store = [];
     }
-    forEach(callback, thisArg) {
+    forEach<T>(callback : (this : T, key : S, value : S, set : this) => void, thisArg : T) : void;
+    forEach(callback : (key : S, value : S, set : this) => void) : void;
+    forEach(callback : (this : any, key : S, value : S, set : this) => void, thisArg ?: any) {
         this.store.forEach((value) => {
             callback.call(thisArg, value, value, this);
         });
     }
 
-    values() {
+    values() : Iterable<S> {
+        return this.store;
+    }
+    keys() : Iterable<S> {
+        return this.values();
+    }
+    [Symbol.iterator]() : Iterator<S> {
         return this.store[Symbol.iterator]();
-    }
-    keys() {
-        return this.values();
-    }
-    [Symbol.iterator]() {
-        return this.values();
     }
 }

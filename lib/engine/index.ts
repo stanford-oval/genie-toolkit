@@ -25,8 +25,8 @@ import * as Tp from 'thingpedia';
 import * as I18n from '../i18n';
 
 import DeviceDatabase from './devices/database';
-import TierManager from './tiers/tier_manager';
-import PairedEngineManager from './tiers/paired';
+import SyncManager from './sync/manager';
+import PairedEngineManager from './sync/pairing';
 import Builtins from './devices/builtins';
 import AudioController from './audio_controller';
 
@@ -183,7 +183,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
     readonly _ : (x : string) => string;
 
     // should be private, but it is accessed from @org.thingpedia.builtin.thingengine
-    _tiers : TierManager;
+    _sync : SyncManager;
     private _modules : EngineModule[];
     private _langPack : I18n.LanguagePack;
 
@@ -209,14 +209,13 @@ export default class AssistantEngine extends Tp.BaseEngine {
 
         this._langPack = I18n.get(platform.locale);
 
-        this._tiers = new TierManager(platform, options.cloudSyncUrl || Config.THINGENGINE_URL);
+        this._sync = new SyncManager(platform, options.cloudSyncUrl || Config.THINGENGINE_URL);
 
         this._modules = [];
 
         const deviceFactory = new Tp.DeviceFactory(this, this._thingpedia, Builtins);
-        this._devices = new DeviceDatabase(platform, this._tiers,
+        this._devices = new DeviceDatabase(platform, this._sync,
                                            deviceFactory, this._schemas);
-        this._tiers.devices = this._devices;
 
         this._appdb = new AppDatabase(this);
 
@@ -228,9 +227,9 @@ export default class AssistantEngine extends Tp.BaseEngine {
             this._audio = null;
 
         // in loading order
-        this._modules = [this._tiers,
+        this._modules = [this._sync,
                          this._devices,
-                         new PairedEngineManager(platform, this._devices, deviceFactory, this._tiers),
+                         new PairedEngineManager(platform, this._devices, deviceFactory, this._sync),
                          this._appdb];
         if (this._audio)
             this._modules.push(this._audio);
@@ -254,7 +253,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * that use local communication to distinguish which engine configured them.
      */
     get ownTier() : string {
-        return this._tiers.ownAddress;
+        return this._sync.ownAddress;
     }
 
     /**
@@ -644,8 +643,8 @@ export default class AssistantEngine extends Tp.BaseEngine {
             return false;
 
         this._platform.getSharedPreferences().set('cloud-id', cloudId);
-        this._tiers.addCloudConfig();
-        await this._tiers.tryConnect('cloud');
+        this._sync.addCloudConfig();
+        await this._sync.tryConnect('cloud');
         return true;
     }
 
