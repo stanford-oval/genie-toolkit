@@ -379,11 +379,11 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * @param {string} kind - the Thingpedia class ID of the device to configure.
      * @param {string} redirectUri - the OAuth redirect URI that was called at the end of the OAuth flow.
      * @param {Object.<string,string>} session - an object with session information.
-     * @return {external:thingpedia.BaseDevice} the configured device
+     * @return {external:thingpedia.BaseDevice} the configured device, or null if configuration failed
      */
     completeOAuth(kind : string,
                   redirectUri : string,
-                  session : Record<string, string>) : Promise<Tp.BaseDevice> {
+                  session : Record<string, string>) : Promise<Tp.BaseDevice|null> {
         return this._devices.completeOAuth(kind, redirectUri, session);
     }
 
