@@ -137,8 +137,8 @@ shared-parameter-datasets.tsv:
 %/values.json:
 	curl https://almond-static.stanford.edu/research/csqa/$*/values.json --output $@ --create-dirs
 
-%/properties.txt:
-	curl https://almond-static.stanford.edu/research/csqa/$*/properties.txt --output $@ --create-dirs
+%/types.json: 
+	curl https://almond-static.stanford.edu/research/csqa/$*/types.json --output $@ --create-dirs
 
 raw/csqa-wikidata/filtered_property_wikidata4.json: 
 	curl https://almond-static.stanford.edu/research/csqa/filtered_property_wikidata4.json --output $@ --create-dirs
@@ -150,7 +150,7 @@ raw/csqa-wikidata:
 	mv 'wikidata_proc_json 2'/* raw/csqa-wikidata
 	rm -r 'wikidata_proc_json 2'
 
-%/parameter-datasets.tsv: shared-parameter-datasets.tsv raw/csqa-wikidata/filtered_property_wikidata4.json $(if ${use_preprocessed_wikidata},%/items.json %/predicates.json %/values.json %/properties.txt,raw/csqa-wikidata)
+%/parameter-datasets.tsv: shared-parameter-datasets.tsv raw/csqa-wikidata/filtered_property_wikidata4.json $(if ${use_preprocessed_wikidata},%/items.json %/predicates.json %/values.json %/types.json,raw/csqa-wikidata)
 	mkdir -p $*/parameter-datasets
 	$(genie) wikidata-preprocess-data \
 	  --domain $(class) \
@@ -170,6 +170,8 @@ raw/csqa-wikidata:
 	$(genie) wikidata-process-schema  -o $@.tmp --entities $(experiment)/entities.json \
 	  --domains $(class) \
 	  --domain-canonicals $(canonical) \
+	  --property-labels raw/csqa-wikidata/filtered_property_wikidata4.json \
+	  --subtypes $*/subtypes.json \
 	  --parameter-datasets $*/parameter-datasets.tsv \
 	  --properties $(shell cat $*/properties.txt) \
 	  $(process_schemaorg_flags)

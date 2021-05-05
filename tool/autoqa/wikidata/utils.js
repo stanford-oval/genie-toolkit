@@ -20,17 +20,9 @@
 
 import * as fs from 'fs';
 import util from 'util';
-import assert from 'assert';
 import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
-import { cleanEnumValue, snakecase } from '../lib/utils';
-
-import {
-    PROPERTY_TYPE_OVERRIDE,
-    PROPERTY_FORCE_ARRAY,
-    PROPERTY_FORCE_NOT_ARRAY,
-    PROPERTY_TYPE_SAME_AS_SUBJECT
-} from './manual-annotations';
+import { snakecase } from '../lib/utils';
 
 const URL = 'https://query.wikidata.org/sparql';
 const Type = ThingTalk.Type;
@@ -344,40 +336,9 @@ async function getEquivalent(id) {
     return result.map((r) => r.class.value.slice('http://www.wikidata.org/entity/'.length));
 }
 
-async function getType(domainLabel, property, propertyLabel) {
-    if (property in PROPERTY_TYPE_OVERRIDE)
-        return PROPERTY_TYPE_OVERRIDE[property];
-
-    const elemType = await getElemType(domainLabel, property, propertyLabel);
-    if (elemType) {
-        if (PROPERTY_FORCE_ARRAY.has(property))
-            return new Type.Array(elemType);
-        if (PROPERTY_FORCE_NOT_ARRAY.has(property))
-            return elemType;
-
-        if (elemType.isEntity && elemType.type === 'tt:picture')
-            return new Type.Array(elemType);
-
-        return elemType;
-    }
-    return Type.String;
-}
-
-async function getElemType(domainLabel, property, propertyLabel) {
-    if (PROPERTY_TYPE_SAME_AS_SUBJECT.has(property))
-        return new Type.Entity(`org.wikidata:${snakecase(domainLabel)}`);
-
-    const enumEntries = await getOneOfConstraint(property);
-    if (enumEntries.length > 0)
-        return new Type.Enum(enumEntries.map(cleanEnumValue));
-
-    const classes = await getClasses(property); // Replace
+async function getType(property) {
+    const classes = await getClasses(property); 
     if (classes.includes('Q18636219')) // Wikidata property with datatype 'time'
-        return Type.Date;
-    if (classes.includes('Q18616084')) // Wikidata property to indicate a language
-        return new Type.Entity('tt:iso_lang_code');
-
-    if (propertyLabel.startsWith('date of'))
         return Type.Date;
 
     const units = await getAllowedUnits(property);
@@ -412,32 +373,11 @@ async function getElemType(domainLabel, property, propertyLabel) {
     if (range)
         return Type.Number;
 
-    if (propertyLabel.startsWith('manner of') || 
-        propertyLabel.startsWith('cause of') || 
-        propertyLabel.startsWith('named after'))
-        return Type.String;
-
-    if (propertyLabel.startsWith('member of') || propertyLabel.startsWith('part of'))
-        return new Type.Entity(`org.wikidata:organization`);
-
     const subpropertyOf = await wikidataQuery(`SELECT ?value WHERE { wd:${property} wdt:P1647 ?value. } `);
     if (subpropertyOf.some((property) => property.value.value === 'http://www.wikidata.org/entity/P18'))
         return new Type.Entity('tt:picture');
     if (subpropertyOf.some((property) => property.value.value === 'http://www.wikidata.org/entity/P2699'))
         return new Type.Entity('tt:url');
-    if (subpropertyOf.some((property) => property.value.value === 'http://www.wikidata.org/entity/P276'))
-        return Type.Location;
-
-    const types = await getValueTypeConstraint(property);
-    if (types.length > 0) {
-        // human type: Q5: human, Q215627: person
-        if (types.some((type) => type.label === 'human' || type.label === 'person'))
-            return new Type.Entity(`org.wikidata:human`);
-
-        // location type: Q618123: geographic object, Q2221906: geographic location
-        if (types.some((type) => type.label === 'geographical object' || type.label === 'geographical location'))
-            return Type.Location;
-    }
 
     // majority or arrays of string so this may be better default.
     return Type.String;
@@ -460,7 +400,6 @@ function getElementType(type) {
         return getElementType(type.elem);
     return type;
 }
-
 
 async function readJson(file) {
     const data = await util.promisify(fs.readFile)(file, { encoding: 'utf8' });

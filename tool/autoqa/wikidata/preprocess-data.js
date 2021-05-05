@@ -22,18 +22,14 @@
 import * as fs from 'fs';
 import * as util from 'util';
 import * as path from 'path';
-import csvstringify from 'csv-stringify';
-import * as I18N from '../../../lib/i18n';
+import * as ThingTalk from 'thingtalk';
 import JSONStream from 'JSONStream';
 
-import {
-    getType,
-    getElementType,
-    argnameFromLabel,
-    readJson,
-    dumpMap
-} from './utils';
+import * as I18N from '../../../lib/i18n';
+import { argnameFromLabel, readJson, dumpMap } from './utils';
 import * as StreamUtils from '../../../lib/utils/stream-utils';
+
+const Type = ThingTalk.Type;
 
 const INSTANCE_OF_PROP = "P31";
 
@@ -52,17 +48,23 @@ class ParamDatasetGenerator {
             wikidataProperties: options.wikidataProperties,
             filteredProperties: options.filteredProperties
         };
-        this._wikidataProperties = new Map();
 
+        // wikidata information
+        this._wikidataProperties = new Map(); // labels for all properties
+
+        // in domain information
         this._items = new Map();
         this._values = new Map();
         this._predicates = new Map();
+        this._types = new Map(); // types for all entities
+        this._subtypes = new Map(); 
+        this._valueSets = new Map();
 
         this._manifest = fs.createWriteStream(this._paths.manifest);
         this._tokenizer = I18N.get(options.locale).getTokenizer();
     }
 
-    async _outputEntityValueSet(type, data) {
+    async _outputValueSet(type, data) {
         const outputPath = path.join(this._paths.parameterDataset, `${type}.json`);
         const manifestEntry = `entity\t${this._locale}\t${type}\tparameter-datasets/${type}.json\n`;
         if (fs.existsSync(outputPath)) {
@@ -78,28 +80,16 @@ class ParamDatasetGenerator {
         this._manifest.write(manifestEntry);
     }
 
-    async _outputStringValueSet(type, data) {
-        const outputPath = path.join(this._paths.parameterDataset, `${type}.tsv`);
-        const output = csvstringify({ header: false, delimiter: '\t'});
-        output.pipe(fs.createWriteStream(outputPath, { encoding: 'utf8' }));
-        const manifestEntry = `string\t${this._locale}\t${type}\tparameter-datasets/${type}.tsv\n`;
-        for (const row of data)
-            output.write(row);
-        StreamUtils.waitFinish(output);
-        this._manifest.write(manifestEntry);
-    }
-
     async _outputDomainValueSet(manifest) {
         const data = [];
         for (const [value, label] of this._items) {
             const tokenized = this._tokenizer.tokenize(label).tokens.join(' ');
             data.push({ value, name: label, canonical: tokenized });
         }
-        await this._outputEntityValueSet(`org.wikidata:${this._canonical}`, data);
+        await this._outputValueSet(`org.wikidata:${this._canonical}`, data);
     }
 
     async _loadPredicates(kbFile) {
-        const wikidataProperties = await readJson(this._paths.wikidataProperties);
         const pipeline = fs.createReadStream(kbFile).pipe(JSONStream.parse('$*'));
         pipeline.on('data', async (item) => {
             const predicates = item.value;
@@ -107,7 +97,8 @@ class ParamDatasetGenerator {
             if (!(INSTANCE_OF_PROP in predicates))
                 return;
             
-            // skip entities that do not have $domain as one of its types "instance of"
+            // skip reading predicates for entities that do not have $domain as one of 
+            // its types "instance of"
             const entityTypes = predicates[INSTANCE_OF_PROP];
             if (!entityTypes.includes(this._domain))
                 return;
@@ -118,8 +109,7 @@ class ParamDatasetGenerator {
 
             // add predicates
             for (const [property, values] of Object.entries(predicates)) {
-                // FIXME: is this necessary? 
-                if (!wikidataProperties.has(property))
+                if (!this._wikidataProperties.has(property))
                     continue;
                 if (!this._predicates.has(property))
                     this._predicates.set(property, []);
@@ -138,14 +128,30 @@ class ParamDatasetGenerator {
         await StreamUtils.waitEnd(pipeline);
     }
 
+    async _loadTypes(kbFile) {
+        const pipeline = fs.createReadStream(kbFile).pipe(JSONStream.parse('$*'));
+        pipeline.on('data', async (item) => {
+            const predicates = item.value;
+            // skip entities with no type information
+            if (!predicates[INSTANCE_OF_PROP])
+                return;
+            if (this._values.has(item.key))
+                this._types.set(item.key, predicates[INSTANCE_OF_PROP]);
+        });
+
+        pipeline.on('error', (error) => console.error(error));
+        await StreamUtils.waitEnd(pipeline);
+    }
+
     async _loadLabels() {
         const pipeline = fs.createReadStream(this._paths.wikidataEntities).pipe(JSONStream.parse('$*'));
+        const valueTypes = new Set(Array.from(this._types.values()).flat());
         pipeline.on('data', async (entity) => {
             const qid = String(entity.key);
             const label = String(entity.value);
             if (this._items.has(qid))
                 this._items.set(qid, label);
-            if (this._values.has(qid)) 
+            if (this._values.has(qid) || valueTypes.has(qid)) 
                 this._values.set(qid, label);
         });
 
@@ -168,38 +174,23 @@ class ParamDatasetGenerator {
             if (['P2439'].indexOf(property) > -1)
                 continue;
 
+            // all properties in CSQA has entity values, skip if no value has been found
+            if (values.length === 0)
+                continue; 
+
             const propertyLabel = this._wikidataProperties.get(property);
-            
             console.log('Processing property: ', propertyLabel);
-            let type = await getType(this._canonical, property, propertyLabel);
-            let fileId = `org.wikidata:${argnameFromLabel(propertyLabel)}`;
-            let isEntity = false;
-
-            type = getElementType(type);
-            if (type.isEntity) {
-                const typeStr = type.toString();
-                fileId = `${typeStr.substring(typeStr.lastIndexOf("Entity(") + 7, typeStr.indexOf(")"))}`;
-                isEntity = true;
-            }  else if (type.isString) {
-                isEntity = false;
-            } else { // Enum, Date, Measure, Number, Location, Currency
-                filteredDomainProperties.push(property);
-                continue;
-            }
-
-            // skip non-wikidata-specific values
-            if (!fileId.startsWith('org.wikidata:'))
-                continue;
-
-            const dataset = [];
+            const thingtalkEntityTypes = new Set();
             for (const value of values) {
+                 // skip entities with no type information
+                if (!this._types.has(value))
+                    continue;
+
+                const valueTypes = this._types.get(value);
                 const valueLabel = this._values.get(value);
 
                 // Tokenizer throws error.
                 if (valueLabel.includes('æ'))
-                    continue;
-                // tsv record length get's messed up and constants sampler throws error.
-                if (type.isString && valueLabel.startsWith('"'))
                     continue;
 
                 const tokens = this._tokenizer.tokenize(valueLabel).tokens;
@@ -207,20 +198,23 @@ class ParamDatasetGenerator {
                     continue;
 
                 const tokenized = tokens.join(' ');
-                if (isEntity)
-                    dataset.push({ value, name: valueLabel, canonical: tokenized });
-                else 
-                    dataset.push([valueLabel, tokenized, 1]);
+                const entry = { value, name: valueLabel, canonical: tokenized };
+                for (const valueType of valueTypes) {
+                    const thingtalkEntityType = argnameFromLabel(this._values.get(valueType));
+                    thingtalkEntityTypes.add(thingtalkEntityType);
+                    if (this._valueSets.has(thingtalkEntityType))
+                        this._valueSets.get(thingtalkEntityType).push(entry);
+                    else 
+                        this._valueSets.set(thingtalkEntityType, [entry]);
+                }
             }
-
-            // Ignore if the property finds no valid value.
-            if (dataset.length !== 0) {
-                filteredDomainProperties.push(property);
-                if (isEntity) 
-                    this._outputEntityValueSet(fileId, dataset);
-                else 
-                    this._outputStringValueSet(fileId, dataset);
-            }
+            const thingtalkPropertyType = new Type.Entity(argnameFromLabel(propertyLabel));
+            this._subtypes.set(thingtalkPropertyType.type, Array.from(thingtalkEntityTypes));
+            filteredDomainProperties.push(property);
+        }
+        for (const [valueType, examples] of this._valueSets) {
+            const type = `org.wikidata:${valueType}`;
+            await this._outputValueSet(type, examples);
         }
         await util.promisify(fs.writeFile)(this._paths.filteredProperties, filteredDomainProperties.join(','), { encoding: 'utf8' });
 
@@ -229,26 +223,34 @@ class ParamDatasetGenerator {
     }
 
     async run() {
-        // load wikidata properties 
+        console.log('loading property labels ...');
         this._wikidataProperties = await readJson(this._paths.wikidataProperties);
         
-        if (['predicates.json', 'items.json', 'values.json', 'properties.txt'].every((fname) => fs.existsSync(path.join(this._paths.dir, fname)))) {
-            console.log('load predicates & labels from preprocessed files');
+        const preprocessed = ['predicates.json', 'items.json', 'values.json', 'types.json'];
+        if (preprocessed.every((fname) => fs.existsSync(path.join(this._paths.dir, fname)))) {
+            console.log('loading preprocessed in-domain files ...');
             this._items = await readJson(path.join(this._paths.dir, 'items.json'));
             this._predicates = await readJson(path.join(this._paths.dir, 'predicates.json'));
             this._values = await readJson(path.join(this._paths.dir, 'values.json'));
+            this._types = await readJson(path.join(this._paths.dir, 'types.json'));
         } else {
-            console.log('load predicates & labels from wikidata kb files');
+            console.log('loading predicates ...');
             for (const kbfile of this._paths.wikidata)
                 await this._loadPredicates(kbfile);
+            console.log('loading value types ...');
+            for (const kbfile of this._paths.wikidata)
+                await this._loadTypes(kbfile);
+            console.log('loading entity labels ...');
             await this._loadLabels();
             await dumpMap(path.join(this._paths.dir, 'items.json'), this._items);
             await dumpMap(path.join(this._paths.dir, 'predicates.json'), this._predicates);
             await dumpMap(path.join(this._paths.dir, 'values.json'), this._values);
+            await dumpMap(path.join(this._paths.dir, 'types.json'), this._types);
         }
-        
-        // generate parameter datasets
+
+        console.log('generating parameter datasets ...');
         await this._generateParameterDatasets();
+        await dumpMap(path.join(this._paths.dir, 'subtypes.json'), this._subtypes);
     }
 }
 

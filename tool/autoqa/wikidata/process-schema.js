@@ -26,15 +26,13 @@ import { Ast, Type } from 'thingtalk';
 import * as StreamUtils from '../../../lib/utils/stream-utils';
 import genBaseCanonical from '../lib/base-canonical-generator';
 import { clean } from '../../../lib/utils/misc-utils';
-import { snakecase, titleCase, DEFAULT_ENTITIES } from '../lib/utils';
+import { DEFAULT_ENTITIES } from '../lib/utils';
 
 import {
+    readJson,
     getPropertyList,
     getItemLabel,
-    getPropertyLabel,
     getPropertyAltLabels,
-    getType,
-    getElementType,
     argnameFromLabel
 } from './utils';
 
@@ -62,15 +60,17 @@ async function retrieveProperties(domain, properties) {
 }
 
 class SchemaProcessor {
-    constructor(domains, domainCanonicals, propertiesByDomain, requiredPropertiesByDomain, output, outputEntities,
-                manual, wikidataLabels, paramDatasetsTsv) {
+    constructor(domains, domainCanonicals, propertiesByDomain, requiredPropertiesByDomain, subtypeMap, labels,
+                output, outputEntities, manual, wikidataLabels, paramDatasetsTsv) {
         this._domains = domains;
         this._domainCanonicals = domainCanonicals;
         this._propertiesByDomain = propertiesByDomain;
         this._requiredPropertiesByDomain = requiredPropertiesByDomain;
+        this._subtypeMap = subtypeMap;
+        this._labels = labels;
         this._output = output;
         this._outputEntities = outputEntities;
-        this._entities = DEFAULT_ENTITIES.slice();
+        this._entities = new Map();
         this._manual = manual;
         this._wikidataLabels = wikidataLabels;
 
@@ -97,9 +97,35 @@ class SchemaProcessor {
         return canonical;
     }
 
-    _addEntity(type, name, has_ner_support) {
-        if (!this._entities.some((entity) => entity.type === type))
-            this._entities.push({ type, name, is_well_known: false, has_ner_support});
+    _addPrimEntity(type, subtype_of) {
+        if (this._entities.has(type)) {
+            const entity = this._entities.get(type);
+            if (!entity.subtype_of.includes(subtype_of))
+                entity.subtype_of.push(subtype_of);
+        } else {
+            this._entities.set(type, { 
+                type: `org.wikidata:` + type, 
+                name: type, 
+                is_well_known: false, 
+                has_ner_support: true, 
+                subtype_of: [subtype_of] 
+            });
+        }
+    }
+
+    _addSuperEntity(type) {
+        const subtypes = this._subtypeMap.get(type);
+        if (subtypes) {
+            for (const subtype of this._subtypeMap.get(type))
+                this._addPrimEntity(subtype, type);
+        }
+        this._entities.set(type, { 
+            type: `org.wikidata:` + type, 
+            name: type, 
+            is_well_known: false, 
+            has_ner_support: false,  
+            subtype_of: []
+        });
     }
 
     async run() {
@@ -121,30 +147,27 @@ class SchemaProcessor {
 
         for (let domain of this._domains) {
             const domainLabel = domain in this._domainCanonicals ? this._domainCanonicals[domain] : await getItemLabel(domain);
+            const domainEntityType = argnameFromLabel(domainLabel);
             const properties = this._propertiesByDomain[domain];
             const args = [
                 new Ast.ArgumentDef(
                     null,
                     Ast.ArgDirection.OUT,
                     'id',
-                    new Type.Entity(`org.wikidata:${snakecase(domainLabel)}`), {
+                    new Type.Entity(`org.wikidata:${domainEntityType}`), {
                     nl: { canonical: { base: ['name'], passive_verb: ['named', 'called'] } }
                 })
             ];
-            this._addEntity(`org.wikidata:${snakecase(domainLabel)}`, titleCase(domainLabel), true);
+            this._addSuperEntity(domainEntityType);
             for (let property of properties) {
-                const label = await getPropertyLabel(property);
+                const label = this._labels.get(property);
                 const name = argnameFromLabel(label);
-                const type = await getType(domainLabel, property, label);
+                const type = new Type.Array(new Type.Entity(`org.wikidata:${name}`));
                 const annotations = {
                     nl: { canonical: await this._getArgCanonical(property, label, type) },
                     impl: { wikidata_id: new Ast.Value.String(property) }
                 };
-                const elemType = getElementType(type);
-                if (elemType.isString)
-                    annotations.impl['string_values'] = new Ast.Value.String(`org.wikidata:${name}`);
-                if (elemType.isEntity && elemType.type.startsWith('org.wikidata:'))
-                    this._addEntity(elemType.type, titleCase(label), true);
+                this._addSuperEntity(name);
                 args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, name, type, annotations));
             }
             const qualifiers = { is_list: true, is_monitorable: false };
@@ -159,7 +182,7 @@ class SchemaProcessor {
             }
 
             queries[domainLabel] = new Ast.FunctionDef(
-                null, 'query', null, snakecase(domainLabel), null, qualifiers, args, annotations);
+                null, 'query', null, argnameFromLabel(domainLabel), null, qualifiers, args, annotations);
         }
 
         const imports = [
@@ -167,12 +190,13 @@ class SchemaProcessor {
             new Ast.MixinImportStmt(null, ['config'], 'org.thingpedia.config.none', [])
         ];
 
-        const entities = this._entities.filter((entity) => {
-            return entity.type.startsWith('org.wikidata');
-        }).map((entity) => {
-            return new Ast.EntityDef(null, entity.type.slice('org.wikidata:'.length), null, {
-                impl: { has_ner_support: new Ast.Value.Boolean(entity.has_ner_support) }
-            });
+        const entities = Array.from(this._entities.values()).map((entity) => {
+            return new Ast.EntityDef(
+                null, 
+                entity.type.slice('org.wikidata:'.length), 
+                entity.subtype_of, 
+                { impl: { has_ner: new Ast.Value.Boolean(entity.has_ner_support) }}
+            );
         });
         
         const classdef = new Ast.ClassDef(null, 'org.wikidata', null,
@@ -188,7 +212,7 @@ class SchemaProcessor {
         this._output.end(classdef.prettyprint());
         this._outputEntities.end(JSON.stringify({
             result: 'ok',
-            data: this._entities
+            data: Array.from(this._entities.values())
         }, undefined, 2));
         await StreamUtils.waitFinish(this._output);
         await StreamUtils.waitFinish(this._outputEntities);
@@ -223,6 +247,14 @@ export function initArgparse(subparsers) {
         help: 'properties to include for each domain, properties are split by comma (no space);\n' +
             'use "default" to include properties included in P1963 (properties of this type);\n' +
             'exclude a property by placing a minus sign before its id (no space)'
+    });
+    parser.add_argument('--property-labels', {
+        required: true,
+        help: 'path to the JSON file containing default label for each property'
+    }); 
+    parser.add_argument('--subtypes', {
+        required: true,
+        help: 'path to the JSON file containing subtypes for each property'
     });
     parser.add_argument('--manual', {
         action: 'store_true',
@@ -271,7 +303,6 @@ export async function execute(args) {
     }
 
     const propertiesByDomain = {};
-    
     // if provided, property lists should match the number of domains
     assert(Array.isArray(args.properties) && args.properties.length === domains.length);
     for (let i = 0; i < domains.length; i++) {
@@ -279,9 +310,13 @@ export async function execute(args) {
         const properties = args.properties[i].split(',');
         propertiesByDomain[domain] = await retrieveProperties(domain, properties);
     }
+
+    const subtypeMap = await readJson(args.subtypes);
+    const labels = await readJson(args.property_labels);
+
     const schemaProcessor = new SchemaProcessor(
-        domains, domainCanonicals, propertiesByDomain, requiredPropertiesByDomain, args.output, args.entities,
-        args.manual, args.wikidata_labels
+        domains, domainCanonicals, propertiesByDomain, requiredPropertiesByDomain, subtypeMap, labels,
+        args.output, args.entities, args.manual, args.wikidata_labels
     );
     schemaProcessor.run();
 }
