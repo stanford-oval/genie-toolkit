@@ -474,7 +474,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * @param {string} [kind] - filter only devices that have the specified kind
      * @return {Array<DeviceInfo>} a list of device info objects, one per device
      */
-    getDeviceInfos(kind : string) : DeviceInfo[] {
+    getDeviceInfos(kind ?: string) : DeviceInfo[] {
         const devices = this._devices.getAllDevices(kind);
         return devices.map((d) => this._toDeviceInfo(d));
     }

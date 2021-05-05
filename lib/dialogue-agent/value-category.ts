@@ -29,13 +29,12 @@ enum ValueCategory {
     Password,
     Date,
     Time,
-    Unknown,
     Picture,
     Location,
     PhoneNumber,
     EmailAddress,
     Contact,
-    Command,
+    Generic,
 }
 export default ValueCategory;
 
@@ -68,12 +67,12 @@ namespace ValueCategory {
         else if (type.isLocation)
             return ValueCategory.Location;
         else
-            return ValueCategory.Unknown;
+            return ValueCategory.Generic;
     }
 
     export function fromValue(value : Ast.Value) : ValueCategory {
         if (value.isVarRef)
-            return ValueCategory.Unknown;
+            return ValueCategory.Generic;
 
         const type = value.getType();
         return fromType(type);
@@ -108,10 +107,8 @@ namespace ValueCategory {
             return ValueCategory.Password;
         case 'choice':
             return ValueCategory.MultipleChoice;
-        case 'command':
-            return ValueCategory.Command;
         default:
-            return ValueCategory.Unknown;
+            return ValueCategory.Generic;
         }
     }
 
@@ -141,8 +138,6 @@ namespace ValueCategory {
             what = 'password';
         else if (expected === ValueCategory.MultipleChoice)
             what = 'choice';
-        else if (expected === ValueCategory.Command)
-            what = 'command';
         else if (expected !== null)
             what = 'generic';
         else

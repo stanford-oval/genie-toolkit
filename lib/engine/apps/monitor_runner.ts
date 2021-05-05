@@ -19,6 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import * as Tp from 'thingpedia';
+import { Runtime } from 'thingtalk';
 import type * as stream from 'stream';
 import AsyncQueue from 'consumer-queue';
 
@@ -28,7 +29,6 @@ import * as Protocol from '../sync/protocol';
 import { ChannelStateBinder } from '../db/channel';
 
 import type ExecWrapper from './exec_wrapper';
-import type { CompiledQueryHints } from './exec_wrapper';
 import type DeviceView from '../devices/device_view';
 
 function extendParams(output : Record<string, unknown>, input : Record<string, unknown>) {
@@ -45,7 +45,7 @@ type MonitorStream = stream.Readable & {
     device ?: Tp.BaseDevice;
 }
 
-type SubscribeFunction = (params : Record<string, unknown>, state : ChannelStateBinder, hints : CompiledQueryHints, env : ExecWrapper) => MonitorStream;
+type SubscribeFunction = (params : Record<string, unknown>, state : ChannelStateBinder, hints : Runtime.CompiledQueryHints, env : ExecWrapper) => MonitorStream;
 type MonitorEvent = Record<string, unknown> & { __timestamp : number };
 
 export default class MonitorRunner {
@@ -54,7 +54,7 @@ export default class MonitorRunner {
     private _channel : string;
     private _fn : string;
     private _params : Record<string, unknown>;
-    private _hints : CompiledQueryHints;
+    private _hints : Runtime.CompiledQueryHints;
     private _rateLimiter : RateLimiter;
     private _streams : Map<Tp.BaseDevice, MonitorStream>;
     private _ended : Set<MonitorStream>;
@@ -68,7 +68,7 @@ export default class MonitorRunner {
                 devices : DeviceView,
                 channel : string,
                 params : Record<string, unknown>,
-                hints : CompiledQueryHints) {
+                hints : Runtime.CompiledQueryHints) {
         this._env = env;
         this._channel = channel;
         this._fn = 'subscribe_' + channel;

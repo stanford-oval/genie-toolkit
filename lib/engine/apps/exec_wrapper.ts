@@ -22,7 +22,7 @@ import assert from 'assert';
 
 import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
-import { Ast, ExecEnvironment } from 'thingtalk';
+import { Ast, Runtime } from 'thingtalk';
 import MonitorRunner from './monitor_runner';
 
 import { Timer, AtTimer } from './timers';
@@ -48,19 +48,11 @@ export interface OutputDelegate {
     notifyError(error : Error) : void;
 }
 
-type CompiledFilterHint = [string, string, unknown];
-export interface CompiledQueryHints {
-    filter ?: CompiledFilterHint[];
-    sort ?: [string, 'asc' | 'desc'];
-    projection ?: string[];
-    limit ?: number;
-}
-
 type MaybePromise<T> = T|Promise<T>;
 type ActionFunction = (params : Record<string, unknown>, env : ExecWrapper) => MaybePromise<unknown>;
 
 type QueryFunctionResult = AsyncIterable<Record<string, unknown>>;
-type QueryFunction = (params : Record<string, unknown>, hints : CompiledQueryHints, env : ExecWrapper) => MaybePromise<QueryFunctionResult>;
+type QueryFunction = (params : Record<string, unknown>, hints : Runtime.CompiledQueryHints, env : ExecWrapper) => MaybePromise<QueryFunctionResult>;
 
 function recursivelyComputeOutputType(kind : string, expr : Ast.Expression) : string {
     if (expr instanceof Ast.InvocationExpression)
@@ -83,7 +75,7 @@ function recursivelyComputeOutputType(kind : string, expr : Ast.Expression) : st
  *
  * @package
  */
-export default class ExecWrapper extends ExecEnvironment {
+export default class ExecWrapper extends Runtime.ExecEnvironment {
     engine : Engine;
     app : AppExecutor;
     format : NotificationFormatter;
@@ -163,7 +155,7 @@ export default class ExecWrapper extends ExecEnvironment {
                   attrs : Record<string, string>,
                   fname : string,
                   params : Record<string, unknown>,
-                  hints : CompiledQueryHints) : AsyncIterator<[string, Record<string, unknown> & { __timestamp : number }]> {
+                  hints : Runtime.CompiledQueryHints) : AsyncIterator<[string, Record<string, unknown> & { __timestamp : number }]> {
         const trigger = new MonitorRunner(this, new DeviceView(this.engine.devices, kind, attrs), fname, params, hints);
         this._trigger = trigger;
         trigger.start();
@@ -203,7 +195,7 @@ export default class ExecWrapper extends ExecEnvironment {
                        attrs : Record<string, string>,
                        fname : string,
                        params : Record<string, unknown>,
-                       hints : CompiledQueryHints) : AsyncIterable<[string, Record<string, unknown>]> {
+                       hints : Runtime.CompiledQueryHints) : AsyncIterable<[string, Record<string, unknown>]> {
         const devices = this._getDevices(kind, attrs);
 
         let promises : Array<Promise<QueryFunctionResult>>;

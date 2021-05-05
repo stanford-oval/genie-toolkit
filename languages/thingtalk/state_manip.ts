@@ -731,9 +731,8 @@ function addActionParam(ctx : ContextInfo,
             in_params,
             schema
         );
-        const newStmt = new Ast.ExpressionStatement(null, new Ast.InvocationExpression(null,
-            newInvocation, schema.removeArgument(pname)
-        ));
+        const newStmt = new Ast.ExpressionStatement(null,
+            new Ast.InvocationExpression(null, newInvocation, schema));
         newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
     }
 
@@ -859,6 +858,46 @@ function makeAgentReply(ctx : ContextInfo,
     assert(state.dialogueAct.startsWith('sys_'));
     assert(expectedType === null || expectedType instanceof ThingTalk.Type);
 
+    // show a yes/no thing if we're proposing something
+    if (expectedType === null && state.history.some((item) => item.confirm === 'proposed'))
+        expectedType = Type.Boolean;
+
+    // if false, the agent is still listening
+    // the agent will continue listening if one of the following is true:
+    // - the agent is eliciting a value (slot fill or search question)
+    // - the agent is proposing a statement
+    // - the agent is asking the user to learn more
+    // - there are more statements left to do (includes the case of confirmations)
+    let end = options.end;
+    if (end === undefined) {
+        end = expectedType === null &&
+            state.dialogueActParam === null &&
+            !state.dialogueAct.endsWith('_question') &&
+            state.history.every((item) => item.results !== null);
+    }
+
+    if (ctx.loader.flags.inference) {
+        // at inference time, we don't need to compute any of the auxiliary info
+        // necessary to synthesize the new utterance, so we take a shortcut
+        // here and skip a whole bunch of computation
+
+        return {
+            state,
+            context: null,
+            contextPhrases: [],
+            expect: expectedType,
+
+            end: end,
+            // if true, enter raw mode for this user's turn
+            // (this is used for slot filling free-form strings)
+            raw: !!options.raw,
+
+            // the number of results we're describing at this turn
+            // (this affects the number of result cards to show)
+            numResults: options.numResults || 0,
+        };
+    }
+
     const newContext = getContextInfo(ctx.loader, state, contextTable);
     // set the auxiliary information, which is used by the semantic functions of the user
     // to see if the continuation is compatible with the specific reply from the agent
@@ -875,24 +914,6 @@ function makeAgentReply(ctx : ContextInfo,
         mainTag = contextTable.ctx_sys_action_success;
     else
         mainTag = contextTable['ctx_' + state.dialogueAct];
-
-    // if true, the interaction is done and the agent should stop listening
-    // these dialogue acts are considered to "end" the conversation:
-    // sys_recommend_*, sys_action_success, sys_action_error
-    // provided no thingtalk statement is left to do (accepted or proposed)
-    // the user can still continue, but the agent won't be listening unless woken up
-    // (specific semantic functions can override)
-    let end = options.end;
-    if (end === undefined) {
-        end = !state.history.some((item) => item.results === null) &&
-            (state.dialogueAct.startsWith('sys_recommend_') ||
-            ['sys_rule_enable_success', 'sys_action_success', 'sys_action_error',
-             'sys_end', 'sys_display_result'].includes(state.dialogueAct));
-    }
-
-    // show a yes/no thing if we're proposing something
-    if (expectedType === null && state.history.some((item) => item.confirm === 'proposed'))
-        expectedType = Type.Boolean;
 
     return {
         state,

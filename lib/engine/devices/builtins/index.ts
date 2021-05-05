@@ -28,13 +28,7 @@ import TestTT from './test.tt.json';
 import ThingEngineTT from './thingengine.tt.json';
 import ThingEngineBuiltinTT from './thingengine.builtin.tt.json';
 
-import type Engine from '../..';
-
-interface DeviceClass {
-    new(engine : Engine, state : any) : Tp.BaseDevice;
-}
-
-const modules : Record<string, { class : string, module : DeviceClass }> = {
+const modules : Record<string, { class : string, module : Tp.BaseDevice.DeviceClass<Tp.BaseDevice> }> = {
     'org.thingpedia.builtin.test' : {
         class: TestTT,
         module: Test

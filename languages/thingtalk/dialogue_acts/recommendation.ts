@@ -247,11 +247,11 @@ function combineDisplayResult(proposal : Recommendation, newInfo : SlotBag) {
     const results = ctx.results;
     assert(results && results.length > 0);
     const topResult = results[0];
-    if (!isInfoPhraseCompatibleWithResult(topResult, newInfo)) {
-        console.log('topResult', topResult);
-        console.log('newInfo', newInfo);
-        throw new Error('???');
-    }
+
+    // this can occur if there is more than one result for a single result query,
+    // which can occur for IoT queries over multiple devices
+    if (!isInfoPhraseCompatibleWithResult(topResult, newInfo))
+        return null;
 
     const maybeNewInfo = oldInfo ? SlotBag.merge(oldInfo, newInfo) : newInfo;
     if (maybeNewInfo === null)
