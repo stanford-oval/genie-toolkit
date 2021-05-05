@@ -24,6 +24,7 @@ import * as Tp from 'thingpedia';
 
 import * as I18n from '../i18n';
 
+import { AbstractDatabase, createDB } from './db';
 import DeviceDatabase from './devices/database';
 import SyncManager from './sync/manager';
 import PairedEngineManager from './sync/pairing';
@@ -40,7 +41,6 @@ import NotificationFormatter, { FormattedObject } from '../dialogue-agent/notifi
 
 import * as Config from '../config';
 
-import * as sqlite from './db/sqlite';
 
 /**
  * Information about a running ThingTalk program (app).
@@ -182,6 +182,7 @@ interface AppResult {
 export default class AssistantEngine extends Tp.BaseEngine {
     readonly _ : (x : string) => string;
 
+    private _db : AbstractDatabase;
     // should be private, but it is accessed from @org.thingpedia.builtin.thingengine
     _sync : SyncManager;
     private _modules : EngineModule[];
@@ -209,12 +210,13 @@ export default class AssistantEngine extends Tp.BaseEngine {
 
         this._langPack = I18n.get(platform.locale);
 
+        this._db = createDB(platform);
         this._sync = new SyncManager(platform, options.cloudSyncUrl || Config.THINGENGINE_URL);
 
         this._modules = [];
 
         const deviceFactory = new Tp.DeviceFactory(this, this._thingpedia, Builtins);
-        this._devices = new DeviceDatabase(platform, this._sync,
+        this._devices = new DeviceDatabase(platform, this._db, this._sync,
                                            deviceFactory, this._schemas);
 
         this._appdb = new AppDatabase(this);
@@ -242,6 +244,10 @@ export default class AssistantEngine extends Tp.BaseEngine {
 
     get langPack() {
         return this._langPack;
+    }
+
+    get db() {
+        return this._db;
     }
 
     /**
@@ -304,12 +310,10 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * This will initialize all modules sequentially in the right
      * order. It must be called before {@link run}.
      */
-    open() : Promise<void> {
-        return sqlite.ensureSchema(this.platform).then(() => {
-            return this._openSequential(this._modules);
-        }).then(() => {
-            console.log('Engine started');
-        });
+    async open() : Promise<void> {
+        await this._db.ensureSchema();
+        await this._openSequential(this._modules);
+        console.log('Engine started');
     }
 
     /**

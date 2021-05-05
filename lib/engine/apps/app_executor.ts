@@ -25,7 +25,7 @@ import AsyncQueue from 'consumer-queue';
 import { Syntax, Compiler as AppCompiler, Ast } from 'thingtalk';
 import RuleExecutor from './rule_executor';
 import type ExecWrapper from './exec_wrapper';
-import { ChannelState } from '../db/channel';
+import { ChannelState } from './channel_state_binder';
 
 import type Engine from '../index';
 
@@ -330,7 +330,7 @@ export default class AppExecutor extends events.EventEmitter {
 
     private _getState(stateId : number) {
         if (!this._states[stateId])
-            this._states[stateId] = new ChannelState(this.engine.platform, 'app:' + this.uniqueId + ':' + stateId);
+            this._states[stateId] = new ChannelState(this.engine.db, 'app:' + this.uniqueId + ':' + stateId);
         return this._states[stateId];
     }
 

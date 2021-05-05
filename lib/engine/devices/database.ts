@@ -23,6 +23,7 @@ import * as Tp from 'thingpedia';
 import { ObjectSet } from 'thingpedia';
 import { SchemaRetriever } from 'thingtalk';
 
+import { AbstractDatabase } from '../db';
 import SyncDatabase from '../db/syncdb';
 import SyncManager from '../sync/manager';
 
@@ -40,7 +41,7 @@ export default class DeviceDatabase extends ObjectSet.Base<Tp.BaseDevice> {
     private _devices : Map<string, Tp.BaseDevice>;
     private _byDescriptor : Map<string, Tp.BaseDevice>;
     private _syncManager : SyncManager;
-    private _syncdb : SyncDatabase;
+    private _syncdb : SyncDatabase<"device">;
 
     private _subdeviceAddedListener : (device : Tp.BaseDevice) => void;
     private _subdeviceRemovedListener : (device : Tp.BaseDevice) => void;
@@ -63,6 +64,7 @@ export default class DeviceDatabase extends ObjectSet.Base<Tp.BaseDevice> {
      * @internal
      */
      constructor(platform : Tp.BasePlatform,
+                 db : AbstractDatabase,
                  syncManager : SyncManager,
                  factory : Tp.DeviceFactory,
                  schemas : SchemaRetriever) {
@@ -77,7 +79,7 @@ export default class DeviceDatabase extends ObjectSet.Base<Tp.BaseDevice> {
         this._byDescriptor = new Map;
 
         this._syncManager = syncManager;
-        this._syncdb = new SyncDatabase(platform, 'device', ['state'], syncManager);
+        this._syncdb = new SyncDatabase(platform, db, 'device', syncManager);
 
         this._subdeviceAddedListener = this._notifySubdeviceAdded.bind(this);
         this._subdeviceRemovedListener = this._notifySubdeviceRemoved.bind(this);
@@ -94,7 +96,7 @@ export default class DeviceDatabase extends ObjectSet.Base<Tp.BaseDevice> {
         if (addToDB)
             console.log('loadOneDevice(..., true) is deprecated; from inside a BaseDevice, return the instance directly; from a platform layer, use addDevice');
 
-        const uniqueId = serializedDevice.uniqueId;
+        const uniqueId = serializedDevice.uniqueId!;
         delete serializedDevice.uniqueId;
         try {
             const device = await this._factory.loadSerialized(serializedDevice.kind, serializedDevice);
@@ -286,7 +288,7 @@ export default class DeviceDatabase extends ObjectSet.Base<Tp.BaseDevice> {
         if (device.isTransient)
             return;
         const state = device.serialize();
-        const uniqueId = device.uniqueId;
+        const uniqueId = device.uniqueId!;
         await this._syncdb.insertOne(uniqueId, { state: JSON.stringify(state) });
     }
 
@@ -380,7 +382,7 @@ export default class DeviceDatabase extends ObjectSet.Base<Tp.BaseDevice> {
     async removeDevice(device : Tp.BaseDevice) {
         this._removeDeviceFromCache(device);
         if (!device.isTransient)
-            await this._syncdb.deleteOne(device.uniqueId);
+            await this._syncdb.deleteOne(device.uniqueId!);
 
         return this._notifyDeviceRemoved(device);
     }
