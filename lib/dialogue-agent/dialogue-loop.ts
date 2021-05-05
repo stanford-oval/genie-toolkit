@@ -103,6 +103,9 @@ enum CommandAnalysisType {
     OUT_OF_DOMAIN_COMMAND,
     PARSE_FAILURE,
 
+    // some complicated thingtalk program
+    INTERACTIVE_THINGTALK,
+
     // ignore this command and do nothing
     IGNORE
 }
@@ -271,6 +274,11 @@ export default class DialogueLoop {
                 }
             }
         }
+
+        if (input instanceof Ast.Program &&
+            (input.declarations.length > 0 ||
+             input.statements.some((x) => !(x instanceof Ast.ExpressionStatement))))
+            return CommandAnalysisType.INTERACTIVE_THINGTALK;
 
         // anything else is automatically in-domain
         return CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND;
@@ -548,6 +556,10 @@ export default class DialogueLoop {
                 await this.fail();
                 break;
 
+            case CommandAnalysisType.INTERACTIVE_THINGTALK:
+                await this._runInteractiveThingTalk(analyzed.parsed as Ast.Program);
+                break;
+
             case CommandAnalysisType.OUT_OF_DOMAIN_COMMAND:
                 // TODO dispatch this out
                 await this.reply(this._("Sorry, I don't know how to do that yet."));
@@ -606,6 +618,44 @@ export default class DialogueLoop {
                 return;
             command = await this.nextCommand();
         }
+    }
+
+    private async _runInteractiveThingTalk(program : Ast.Program) {
+        const app = await this.engine.createApp(program);
+
+        await new Promise<void>((resolve, reject) => {
+            app.runImmediate({
+                ask: async (type : Type, question : string) : Promise<Ast.Value> => {
+                    if (type instanceof Type.Enum) {
+                        const entries = type.entries!;
+                        const choice = await this.askChoices(question, entries.map((e) => clean(e)));
+                        return new Ast.Value.Enum(entries[choice]);
+                    }
+                    return this.ask(ValueCategory.fromType(type), question);
+                },
+
+                say: async (message : string) : Promise<void> => {
+                    await this.replyInterp(message);
+                },
+
+                done: async () => {
+                    await this.setExpected(null);
+                    resolve();
+                },
+
+                output: () => {
+                    // TODO
+                },
+
+                error: (err : any) => {
+                    if (err.code === 'ECANCELLED')
+                        throw err;
+
+                    // TODO
+                    console.error(`Error`, err);
+                },
+            });
+        });
     }
 
     private async _handleNormalDialogueCommand(prediction : Ast.DialogueState) : Promise<void> {
@@ -822,14 +872,15 @@ export default class DialogueLoop {
      *
      * This is a legacy method used for certain scripted interactions.
      */
-    async ask(expected : ValueCategory.YesNo|ValueCategory.PhoneNumber|ValueCategory.EmailAddress|ValueCategory.Location|ValueCategory.Time,
+    async ask(expected : ValueCategory,
               question : string,
               args ?: Record<string, unknown>) : Promise<ThingTalk.Ast.Value> {
         await this.replyInterp(question, args);
         // force the question to occur in raw mode for locations
         // because otherwise we send it to the parser and the parser will
         // likely misbehave as it's a state that we've never seen in training
-        await this.setExpected(expected, expected === ValueCategory.Location);
+        await this.setExpected(expected, expected === ValueCategory.RawString || expected === ValueCategory.Password
+            || expected === ValueCategory.Location);
 
         let analyzed = await this._analyzeCommand(await this.nextCommand());
         while (analyzed.answer === null || typeof analyzed.answer === 'number' ||
@@ -851,8 +902,8 @@ export default class DialogueLoop {
         return analyzed.answer;
     }
 
-    async askChoices(question : string, choices : string[]) : Promise<number> {
-        await this.reply(question);
+    async askChoices(question : string, choices : string[], args ?: Record<string, unknown>) : Promise<number> {
+        await this.replyInterp(question, args);
         this.setExpected(ValueCategory.MultipleChoice);
         this._choices = choices;
         for (let i = 0; i < choices.length; i++)
@@ -885,11 +936,8 @@ export default class DialogueLoop {
             await this.conversation.sendChoice(idx, this._choices[idx]);
     }
 
-    async replyInterp(msg : string, args ?: Record<string, unknown>, icon : string|null = null) {
-        if (args === undefined)
-            return this.reply(msg, icon);
-        else
-            return this.reply(this.interpolate(msg, args), icon);
+    async replyInterp(msg : string, args : Record<string, unknown> = {}, icon : string|null = null) {
+        return this.reply(this.interpolate(msg, args), icon);
     }
 
     async reply(msg : string, icon ?: string|null) {

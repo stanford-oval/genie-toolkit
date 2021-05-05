@@ -42,8 +42,19 @@ function extendParams(output : Record<string, unknown>,
 }
 
 export interface IODelegate {
+    /**
+     * Report a new result from app.
+     * @param {string} outputType - the type of result.
+     * @param {any} outputValue - the actual result.
+     * @package
+     */
     output(outputType : string, outputValue : Record<string, unknown>) : void;
-    notifyError(error : Error) : void;
+    /**
+     * Report that the app had an error.
+     * @param {Error} error - the error that occurred.
+     * @package
+     */
+    error(error : Error) : void;
     ask(type : Type, question : string) : Promise<Ast.Value>;
     say(message : string) : Promise<void>;
     done() : void;
@@ -300,7 +311,7 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
 
         console.error(message, error);
         this.app.setError(error);
-        await this._delegate.notifyError(error);
+        await this._delegate.error(error);
     }
 
     async output(outputType : string, outputValues : Record<string, unknown>) : Promise<void> {

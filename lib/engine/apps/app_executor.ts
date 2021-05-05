@@ -60,7 +60,7 @@ class QueueIODelegate {
     output(outputType : string, outputValue : Record<string, unknown>) {
         this._queue.push({ done: false, value: { outputType, outputValue } });
     }
-    notifyError(error : Error) {
+    error(error : Error) {
         this._queue.push({ done: false, value: error });
     }
 }
@@ -83,22 +83,11 @@ class BackgroundIODelegate implements IODelegate {
 
     done() {}
 
-    /**
-     * Report that the app had an error.
-     * @param {Error} error - the error that occurred.
-     * @package
-     */
-    notifyError(error : Error) {
+    error(error : Error) {
         this._app.setError(error);
         return this._engine.assistant.notifyError(this._app, error);
     }
 
-    /**
-     * Report a new result from app.
-     * @param {string} outputType - the type of result.
-     * @param {any} outputValue - the actual result.
-     * @package
-     */
     output(outputType : string, outputValue : Record<string, unknown>) {
         return this._engine.assistant.notify(this._app, outputType, outputValue);
     }
@@ -249,7 +238,7 @@ export default class AppExecutor extends events.EventEmitter {
         this._error = e;
     }
     reportError(error : Error) {
-        this._notificationdelegate.notifyError(error);
+        this._notificationdelegate.error(error);
     }
 
     get hasRule() {

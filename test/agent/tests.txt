@@ -1183,3 +1183,34 @@ U: ]];
 A: Notification from Stanford Covid Genie: here is a location near you that has reported available appointments.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; monitor ( @org.thingpedia.covid-vaccine . appointment ( zip_code = QUOTED_STRING_0 ) ) #[ results = [ { zip_code = QUOTED_STRING_0 , vaccine_type = enum pfizer , dose = enum first , id = GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0 , geo = LOCATION_0 , link = URL_0 } ] ] ; // {"QUOTED_STRING_0":"94062","GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0":{"value":"1","display":null},"LOCATION_0":{"latitude":37.4334411,"longitude":-122.1774838,"display":"Stanford Hospital (Pfizer)"},"URL_0":"https://stanfordhealthcare.org/"}
 A: >> expecting = null
+
+====
+# 76-interactive-program
+
+U: \t function myprogram() {
+U:    let value = $ask(String, "what is the foo?");
+U:    @org.thingpedia.builtin.test.eat_data(data=value);
+U:    $say("i ate the value.");
+U:    let feeling = $ask(Enum(happy,sad), "how does it make you feel?");
+U:    $say("too bad i do not care.");
+U: }
+U: myprogram();
+
+A: What is the foo?
+A: >> context = null // {}
+A: >> expecting = raw_string
+
+U: floof
+
+A: I ate the value.
+A: How does it make you feel?
+A: choice 0: happy
+A: choice 1: sad
+A: >> context = null // {}
+A: >> expecting = choice
+
+U: \t $choice(0);
+
+A: Too bad I do not care.
+A: >> context = null // {}
+A: >> expecting = null

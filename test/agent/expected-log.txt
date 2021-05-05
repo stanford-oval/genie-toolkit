@@ -2515,3 +2515,34 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t function myprogram() {
+U:   let value=$ask(String, "what is the foo?");
+U:   @org.thingpedia.builtin.test.eat_data(data=value);
+U:   $say("i ate the value.");
+U:   let feeling=$ask(Enum(happy, sad), "how does it make you feel?");
+U:   $say("too bad i do not care.");
+U: }
+U: myprogram();
+UT: function myprogram() {
+UT:   let value=$ask(String, "what is the foo?");
+UT:   @org.thingpedia.builtin.test.eat_data(data=value);
+UT:   $say("i ate the value.");
+UT:   let feeling=$ask(Enum(happy, sad), "how does it make you feel?");
+UT:   $say("too bad i do not care.");
+UT: }
+UT: myprogram();
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: What is the foo?
+A: I ate the value.
+A: How does it make you feel?
+A: Too bad I do not care.
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines

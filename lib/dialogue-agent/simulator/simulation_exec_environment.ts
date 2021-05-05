@@ -25,6 +25,7 @@ import * as ThingTalk from 'thingtalk';
 import { Ast, Type, ExecEnvironment, SchemaRetriever, Runtime } from 'thingtalk';
 
 import { coin, uniform, randint } from '../../utils/random';
+import { IODelegate } from '../../engine/apps/exec_wrapper';
 
 import { SimulationDatabase } from './types';
 import { getAllDevicesOfKind } from './helpers';
@@ -372,10 +373,10 @@ class SimulationExecEnvironment extends ExecEnvironment {
     private _rng : () => number;
     private _simulateErrors : boolean;
     private _testDevice = new SimpleTestDevice();
+    private _delegate ! : IODelegate;
 
     private _execCache : Array<[string, Record<string, string>, Record<string, unknown>, Array<[string, Record<string, unknown>]>]>;
 
-    output ! : (type : string, value : Record<string, unknown>) => Promise<void>;
     generator : ResultGenerator|null;
 
     constructor(locale : string,
@@ -392,6 +393,27 @@ class SimulationExecEnvironment extends ExecEnvironment {
         this._simulateErrors = simulateErrors;
 
         this.generator = null;
+    }
+
+    setIODelegate(delegate : IODelegate) {
+        this._delegate = delegate;
+    }
+
+    async output(outputType : string, outputValue : Record<string, unknown>) {
+        return this._delegate.output(outputType, outputValue);
+    }
+
+    async reportError(message : string, err : Error) {
+        return this._delegate.error(err);
+    }
+
+    async say(message : string) {
+        return this._delegate.say(message);
+    }
+
+    async ask(name : string, typestr : string, question : string|null) {
+        // FIXME
+        return this._delegate.ask(Type.fromString(typestr), question || `What ${name} would you like?`);
     }
 
     get program_id() {

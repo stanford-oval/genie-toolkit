@@ -64,14 +64,16 @@ export default class RuleExecutor extends events.EventEmitter {
 
     private async _ruleThread() {
         try {
-            await this._tt(this._env);
-        } catch(e) {
-            this._env.reportError('Uncaught error in rule', e);
+            try {
+                await this._tt(this._env);
+            } catch(e) {
+                this._env.reportError('Uncaught error in rule', e);
+            }
+        } finally {
+            this.emit('finish');
+            this._output.done();
+            this._finished.resolve();
         }
-
-        this.emit('finish');
-        this._output.done();
-        this._finished.resolve();
     }
 
     start() {

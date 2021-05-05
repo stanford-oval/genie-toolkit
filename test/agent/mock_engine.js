@@ -51,7 +51,7 @@ class QueueOutputDelegate {
     output(outputType, outputValue) {
         this._queue.push({ done: false, value: { outputType, outputValue } });
     }
-    notifyError(error) {
+    error(error) {
         this._queue.push({ done: false, value: error });
     }
 }
@@ -80,7 +80,7 @@ class MockAppExecutor extends events.EventEmitter {
         this._compiled = await compiler.compileCode(this.code);
     }
 
-    runImmediate() {
+    runImmediate(delegate) {
         const overrides = new Map;
         const generator = new ResultGenerator(this._rng, overrides);
         for (let slot of this._program.iterateSlots2()) {
@@ -89,15 +89,18 @@ class MockAppExecutor extends events.EventEmitter {
             generator.addCandidate(slot.get());
         }
         this._simulator.generator = generator;
-        const delegate = new QueueOutputDelegate();
-        this._simulator.output = async (outputType, outputValue) => {
-            return delegate.output(outputType, outputValue);
-        };
-        this._simulator.reportError = async (msg, err) => {
-            return delegate.notifyError(err);
-        };
-        if (this._compiled.command)
-            this._compiled.command(this._simulator).then(() => delegate.done());
+        if (!delegate)
+            delegate = new QueueOutputDelegate();
+        this._simulator.setIODelegate(delegate);
+        if (this._compiled.command) {
+            this._compiled.command(this._simulator).then(() => {
+                this.emit('done');
+                delegate.done();
+            });
+        } else {
+            this.emit('done');
+            delegate.done();
+        }
         return delegate;
     }
 }
