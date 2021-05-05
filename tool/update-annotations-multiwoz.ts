@@ -33,14 +33,14 @@ export function initArgparse(subparsers : argparse.SubParser) {
 }
 
 class EntityReader extends Ast.NodeVisitor {
-    places: { [name: string]: string; };
+    places : { [name : string] : string; };
 
-    constructor(places : {[name: string]: string}) {
+    constructor(places : {[name : string] : string}) {
         super();
         this.places = places;
     }
 
-    visitEntityValue(node: Ast.EntityValue): boolean {
+    visitEntityValue(node : Ast.EntityValue) : boolean {
         if (node.value == null)
             return true;
         switch (node.type) {
@@ -63,11 +63,11 @@ class EntityReader extends Ast.NodeVisitor {
 }
 
 class PlaceAugmenter extends Ast.NodeVisitor {
-    places: { [name: string]: string; };
-    stations: { [name: string]: string; };
-    counter: Uint32Array;
+    places : { [name : string] : string; };
+    stations : { [name : string] : string; };
+    counter : Uint32Array;
 
-    constructor(places : {[name: string]: string}, stations: {[name: string] : string}, counter: Uint32Array) {
+    constructor(places : {[name : string] : string}, stations : {[name : string] : string}, counter : Uint32Array) {
         super();
         this.places = places;
         this.stations = stations;
@@ -124,22 +124,22 @@ class PlaceAugmenter extends Ast.NodeVisitor {
     }
 }
 
-export async function execute(args: any) {
+export async function execute(args : any) {
     let inputs = args.input.split(',');
-    const taxi_places : {[name: string]: string} = {};
-    const train_stations : {[name: string]: string} = {};
+    const taxi_places : {[name : string] : string} = {};
+    const train_stations : {[name : string] : string} = {};
 
     const buffer = new SharedArrayBuffer(32);
     const place_ctr = new Uint32Array(buffer);
 
-    for (const visitor_creator of [() => {return new EntityReader(taxi_places)}, () => {return new PlaceAugmenter(taxi_places, train_stations, place_ctr)}]) {
+    for (const visitor_creator of [() => { return new EntityReader(taxi_places); }, () => { return new PlaceAugmenter(taxi_places, train_stations, place_ctr); }]) {
         console.log('begin');
-        await Promise.all(inputs.map(async (input: string) => {
+        await Promise.all(inputs.map(async (input : string) => {
             const out = new DialogueSerializer({annotations: true});
             // lol this should not be separately generated from output array, should zip
             const fout = fs.createWriteStream(input + '.tmp');
             out.pipe(fout);
-            console.log(input);
+            // console.log(input);
             for await (const dlg of fs.createReadStream(input, { encoding: 'utf8'}).pipe(byline()).pipe(new DialogueParser())) {
                 for (const turn of dlg) {
                     //console.log(turn);
@@ -150,21 +150,20 @@ export async function execute(args: any) {
                             parsed.visit(visitor_creator());
                             turn[field] = parsed.prettyprint();
                         } catch (err) {
-                            console.log(err);
-                            console.log(input);
-                            console.log(turn[field]);
+                            console.error('Error in dialogue ', dlg.id);
+                            console.error('file = ', input);
+                            console.error('turn = ', turn[field]);
+                            console.error(err);
+                            throw err;
                         }
                     }
                 }
                 out.write({id: dlg.id, turns: dlg});
-                //console.log(dlg.id);
             }
             out.end();
             await StreamUtils.waitFinish(fout);
-        })).catch(err => {
-            console.log(err);
-        });
-        inputs = inputs.map((input:string) : string => {
+        }));
+        inputs = inputs.map((input : string) : string => {
             return input + ".tmp";
         });
     }
