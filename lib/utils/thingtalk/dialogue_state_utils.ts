@@ -175,9 +175,9 @@ export function prepareContextForPrediction(context : Ast.DialogueState|null, fo
             lastItems.push(item);
     }
 
-    // include at most the last 3 last items, or we'll run out of context length
-    if (lastItems.length > 3)
-        lastItems = lastItems.slice(lastItems.length-3, lastItems.length);
+    // include at most the last 5 last items, or we'll run out of context length
+    if (lastItems.length > 5)
+        lastItems = lastItems.slice(lastItems.length-5, lastItems.length);
 
     // add a copy of the last items with results, and trim the result list to 1 or 3
     for (const lastItem of lastItems) {
