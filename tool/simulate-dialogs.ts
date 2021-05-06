@@ -37,6 +37,7 @@ import {
 } from '../lib/dataset-tools/parsers';
 import DialoguePolicy from '../lib/dialogue-agent/dialogue_policy';
 import * as ParserClient from '../lib/prediction/parserclient';
+import * as I18n from '../lib/i18n';
 
 import { readAllLines } from './lib/argutils';
 import MultiJSONDatabase from './lib/multi_json_database';
@@ -108,6 +109,7 @@ class SimulatorStream extends Stream.Transform {
     private _tpClient : Tp.BaseClient;
     private _outputMistakesOnly : boolean;
     private _locale : string;
+    private _langPack : I18n.LanguagePack;
 
     constructor(policy : DialoguePolicy,
                 simulator : ThingTalkUtils.Simulator,
@@ -125,6 +127,7 @@ class SimulatorStream extends Stream.Transform {
         this._tpClient = tpClient;
         this._outputMistakesOnly = outputMistakesOnly;
         this._locale = locale;
+        this._langPack = I18n.get(locale);
     }
 
     async _run(dlg : ParsedDialogue) : Promise<void> {
@@ -213,6 +216,10 @@ class SimulatorStream extends Stream.Transform {
             console.log(`Dialogue policy error: no reply for dialogue ${dlg.id}. skipping.`);
             return;
         }
+        //
+        let dialogueStateAfterAgent, utterance, entities;
+        [dialogueStateAfterAgent, , utterance, entities, ] = policyResult;
+        utterance = this._langPack.postprocessNLG(utterance, entities, this._simulator);
 
         const prediction = ThingTalkUtils.computePrediction(state, policyResult.state, 'agent');
         newTurn.agent = policyResult.utterance;
