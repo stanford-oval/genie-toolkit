@@ -42,6 +42,12 @@ import * as I18n from '../lib/i18n';
 import { readAllLines } from './lib/argutils';
 import MultiJSONDatabase from './lib/multi_json_database';
 import { PredictionResult } from '../lib/prediction/parserclient';
+// @ts-ignore
+import { AndBooleanExpression, AtomBooleanExpression, DialogueState, Expression, FilterExpression, FunctionDef, Invocation, InvocationExpression, Node } from 'thingtalk/dist/ast';
+// @ts-ignore
+import * as util from 'util';
+// @ts-ignore
+import * as random from '../lib/utils/random';
 
 export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('simulate-dialogs', {
@@ -106,6 +112,69 @@ export function initArgparse(subparsers : argparse.SubParser) {
         default: false
     });
 }
+
+// function changeArgumentName(expression : AtomBooleanExpression, schema : FunctionDef, rng : () => number) {
+//     const currentName = expression.name;
+//     const possibleNewNames = schema.args.filter((value) => value !== currentName); // returns a new array
+//     console.log('currentName = ', currentName);
+//     console.log('possibleNewNames = ', possibleNewNames);
+//     const newName = random.uniform(possibleNewNames, rng);
+//     expression.name = newName;
+// }
+
+// function changeArgumentValue(expression : AtomBooleanExpression, schema : FunctionDef, rng : () => number) {
+//     const currentValue = expression.value;
+//     // const possibleNewValues = schema.args.filter((value) => value !== currentValue); // returns a new array
+//     console.log('currentValue = ', currentValue);
+//     for (const a of schema.iterateArguments()){
+//         console.log('iterateArguments = ', a);
+//     }
+//     // console.log('possibleNewValues = ', possibleNewValues);
+//     // const newName = random.uniform(possibleNewNames, rng);
+//     // expression.name = newName;
+// }
+
+// function recursiveErrorFunction(node : Node, schema : FunctionDef, rng : () => number) {
+//     console.log('recursiveErrorFunction() called with node "', node.prettyprint(), '": ', util.inspect(node, false, 1, true));
+//     if (node instanceof AtomBooleanExpression) {
+//         changeArgumentValue(node, schema, rng);
+//     }
+//     else if (node instanceof FilterExpression) {
+//         recursiveErrorFunction(node.expression, schema, rng);
+//         recursiveErrorFunction(node.filter, schema, rng);
+//     }
+//     else if (node instanceof InvocationExpression) {
+//         recursiveErrorFunction(node.invocation, schema, rng);
+//     }
+//     else if (node instanceof Invocation) {
+//         for (let i = 0 ; i < node.in_params.length ; i ++)
+//         recursiveErrorFunction(node.in_params[i], schema, rng);
+//     }
+//     else if (node instanceof AndBooleanExpression) {
+//         for (let i = 0; i < node.operands.length; i++) {
+//             recursiveErrorFunction(node.operands[i], schema, rng);
+//         }
+//         // recursiveErrorFunction(node.expression, schema, rng);
+//     }
+// }
+
+// function introduceErrorsToUserTarget(userTarget : DialogueState) : DialogueState {
+//     const rng = seedrandom.alea('almond is awesome');
+//     const expressions = userTarget.history[userTarget.history.length-1].stmt.expression.expressions;
+//     console.log(util.inspect(expressions, false, 2, true));
+//     for (let i=0 ; i < expressions.length ; i++) {
+//         const expression = expressions[i];
+//         const schema = expression.schema;
+//         // console.log('FilterExpression detected:');
+//         // console.log('Schema = ', util.inspect(schema!.args, false, 2, true));
+//         console.log('expression before = ', expression.prettyprint());
+//         recursiveErrorFunction(expression, schema!, rng);
+//         console.log('expression after = ', expression.prettyprint());
+//         console.log('----------');
+
+//     }
+//     return userTarget.clone();
+// }
 
 class SimulatorStream extends Stream.Transform {
     private _simulator : ThingTalkUtils.Simulator;
@@ -196,7 +265,9 @@ class SimulatorStream extends Stream.Transform {
             userTarget = goldUserTarget;
         }
         assert(userTarget instanceof ThingTalk.Ast.DialogueState);
-        state = ThingTalkUtils.computeNewState(state, userTarget, 'user');
+        // userTarget = introduceErrorsToUserTarget(<DialogueState> userTarget);
+
+        state = ThingTalkUtils.computeNewState(state, <DialogueState> userTarget, 'user');
 
         const { newDialogueState } = await this._simulator.execute(state, undefined);
         state = newDialogueState;
