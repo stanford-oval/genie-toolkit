@@ -284,6 +284,10 @@ function notifyError(appName : string|null, program : Ast.Program, error : Ast.V
         [new Ast.DialogueHistoryItem(null, stmt, new Ast.DialogueHistoryResultList(null, [], new Ast.NumberValue(1), false, error), 'confirmed')]);
 }
 
+verbose_reply_group : S.ContextInfo = {
+    verbose_agent_preamble vd:ctx_current_statement '.' => vd,
+}
+
 $agent : S.AgentReplyRecord = {
     ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
     | ctx:ctx_init ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
@@ -359,36 +363,36 @@ $agent : S.AgentReplyRecord = {
     }
     ?verboseagent {
         // In this section, vd (verbose description) is prepended to all agent utterances
-        verbose_agent_preamble vd:ctx_current_statement '.' ctx:ctx_cancel anything_else_phrase
+        'You asked me to cancel the previous command.' ctx:ctx_cancel anything_else_phrase
             => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_anything_else', null)),
 
-        verbose_agent_preamble vd:ctx_current_statement '.' ctx:ctx_end 'alright ,' ('bye !' | 'good bye !') 
+        ctx:ctx_end 'alright ,' ('bye !' | 'good bye !') 
             => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null)),
 
         // action results
         action_success_phrase;
-        verbose_agent_preamble vd:ctx_current_statement '.' action:action_success_phrase anything_else_phrase => S.setEndBit(action, false);
-        verbose_agent_preamble vd:ctx_current_statement '.' ctx:ctx_completed_action_error sorry_preamble phrase:action_error_phrase => phrase;
+        vd:verbose_reply_group action:action_success_phrase anything_else_phrase => S.setEndBit(action, false);
+        vd:verbose_reply_group ctx:ctx_completed_action_error sorry_preamble phrase:action_error_phrase => phrase;
 
         // query results
-        verbose_agent_preamble vd:ctx_current_statement '.' ctx:ctx_display_nonlist_result proposal:system_nonlist_result
+        vd:verbose_reply_group ctx:ctx_display_nonlist_result proposal:system_nonlist_result
             => D.makeDisplayResultReply(ctx, proposal);
 
         // aggregation results
-        ( verbose_agent_preamble vd:ctx_current_statement '.' ctx:ctx_aggregation_question reply:count_aggregation_reply
-        | verbose_agent_preamble vd:ctx_current_statement '.' ctx:ctx_aggregation_question reply:other_aggregation_reply
+        ( vd:verbose_reply_group ctx:ctx_aggregation_question reply:count_aggregation_reply
+        | vd:verbose_reply_group ctx:ctx_aggregation_question reply:other_aggregation_reply
         ) => reply;
 
         // confirming an action
-        verbose_agent_preamble vd:ctx_current_statement '.' ctx:ctx_confirm_action reply:action_confirm_phrase => reply;
+        vd:verbose_reply_group ctx:ctx_confirm_action reply:action_confirm_phrase => reply;
 
         // empty search error
-        verbose_agent_preamble vd:ctx_current_statement '.' ctx:ctx_empty_search_command error:empty_search_error
+        vd:verbose_reply_group ctx:ctx_empty_search_command error:empty_search_error
             => D.makeEmptySearchError(ctx, error);
 
         // query refinement (through proposal or search question)
-        !inference verbose_agent_preamble vd:ctx_current_statement '.' prop:system_generic_proposal => prop;
-        !inference verbose_agent_preamble vd:ctx_current_statement '.' ctx:ctx_search_command questions:search_question
+        !inference vd:verbose_reply_group prop:system_generic_proposal => prop;
+        !inference vd:verbose_reply_group ctx:ctx_search_command questions:search_question
             => D.makeSearchQuestion(ctx, questions);
 
         // slot filling of actions
@@ -397,10 +401,10 @@ $agent : S.AgentReplyRecord = {
 
         // action recommendation (through one or a list)
 
-        verbose_agent_preamble vd:ctx_current_statement '.' ctx:ctx_complete_search_command proposal:system_recommendation
+        vd:verbose_reply_group ctx:ctx_complete_search_command proposal:system_recommendation
             => D.makeRecommendationReply(ctx, proposal);
 
-        verbose_agent_preamble vd:ctx_current_statement '.' ctx:ctx_complete_search_command proposal:system_list_proposal [weight=10]
+        vd:verbose_reply_group ctx:ctx_complete_search_command proposal:system_list_proposal [weight=10]
             => D.makeListProposalReply(ctx, proposal);
 
         // learn more
