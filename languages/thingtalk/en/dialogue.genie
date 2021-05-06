@@ -90,7 +90,7 @@ context : S.ContextInfo = {
     ctx_init,
 
     // context tags applied to both agent and user contexts
-    // these should be returned by S.getContextTags()
+    // these should be returned by S.getContextPhrases()
     ctx_multidomain,
     ctx_with_result,
     ctx_with_table_result,

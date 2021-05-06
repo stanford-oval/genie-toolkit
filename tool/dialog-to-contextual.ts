@@ -44,6 +44,7 @@ interface DialogueToTurnStreamOptions {
     locale : string;
     debug : boolean;
     side : string;
+    unroll : boolean;
     flags : string;
     idPrefix : string;
     deduplicate : boolean;
@@ -55,6 +56,7 @@ class DialogueToTurnStream extends Stream.Transform {
     private _locale : string;
     private _options : DialogueToTurnStreamOptions;
     private _side : string;
+    private _unroll : boolean;
     private _flags : string;
     private _idPrefix : string;
     private _dedupe : Set<string>|undefined;
@@ -68,6 +70,7 @@ class DialogueToTurnStream extends Stream.Transform {
 
         this._options = options;
         this._side = options.side;
+        this._unroll = options.unroll;
         this._flags = options.flags;
         this._idPrefix = options.idPrefix;
         this._dedupe = options.deduplicate ? new Set : undefined;
@@ -127,7 +130,7 @@ class DialogueToTurnStream extends Stream.Transform {
         });
     }
 
-    private async _emitUserTurn(i : number, turn : DialogueTurn, dlg : ParsedDialogue) {
+    private async _getContextForUserTurn(i: number, turn: DialogueTurn) {
         let context, contextCode, contextEntities;
         if (i > 0) {
             // if we have an "intermediate context" (C: block after AT:) we ran the execution
@@ -156,7 +159,16 @@ class DialogueToTurnStream extends Stream.Transform {
             contextEntities = {};
         }
 
-        const { tokens, entities } = this._preprocess(turn.user, contextEntities);
+        return {contextCode, contextEntities};
+    }
+
+    private async _emitUserTurn(i : number, turn : DialogueTurn, dlg : ParsedDialogue) {
+        let contextCode, contextEntities;
+        ({contextCode, contextEntities} = await this._getContextForUserTurn(i, turn));
+
+        let tokens, entities;
+        ({ tokens, entities } = this._preprocess(turn.user, contextEntities));
+       
         const userTarget = await ThingTalkUtils.parse(turn.user_target, this._options);
         assert(userTarget instanceof ThingTalk.Ast.DialogueState);
         const code = await ThingTalkUtils.serializePrediction(userTarget, tokens, entities, {
@@ -168,6 +180,13 @@ class DialogueToTurnStream extends Stream.Transform {
             if (this._dedupe.has(key))
                 return;
             this._dedupe.add(key);
+        }
+
+        if (this._unroll && i > 0) {
+            // Use the previous turn's context
+            ({contextCode, contextEntities} = await this._getContextForUserTurn(i-1, dlg[i-1]));
+            // Prepend the previous turn's user and agent utterances
+            ({ tokens, entities } = this._preprocess(' user: ' + dlg[i-1].user + ' system: ' + turn.agent + ' user: ' + turn.user, contextEntities));
         }
 
         this.push({
@@ -244,6 +263,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         choices: ['user', 'agent'],
         help: 'Which side of the conversation should be extracted.'
     });
+    parser.add_argument('--unroll', {
+        action: 'store_true',
+        default: false,
+        help: 'When `--side user` is used, include the previous context, user and agent utterance instead of the current context.',
+    });
     parser.add_argument('--flags', {
         required: false,
         default: '',
@@ -297,6 +321,7 @@ export async function execute(args : any) {
             flags: args.flags,
             idPrefix: args.id_prefix,
             side: args.side,
+            unroll: args.unroll,
             tokenized: args.tokenized,
             deduplicate: args.deduplicate,
             debug: args.debug
