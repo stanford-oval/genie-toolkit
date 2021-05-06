@@ -22,14 +22,11 @@
 import * as fs from 'fs';
 import * as util from 'util';
 import * as path from 'path';
-import * as ThingTalk from 'thingtalk';
 import JSONStream from 'JSONStream';
 
 import * as I18N from '../../../lib/i18n';
 import { argnameFromLabel, readJson, dumpMap } from './utils';
 import * as StreamUtils from '../../../lib/utils/stream-utils';
-
-const Type = ThingTalk.Type;
 
 const INSTANCE_OF_PROP = "P31";
 
@@ -159,6 +156,13 @@ class ParamDatasetGenerator {
         await StreamUtils.waitEnd(pipeline);
     }
 
+    _addToValueSet(type, entry) {
+        if (this._valueSets.has(type))
+            this._valueSets.get(type).push(entry);
+        else 
+            this._valueSets.set(type, [entry]);
+    }
+
     /**
      * Generates paramter-datasets. Iterate through each domain properties.
      * Find data type and value and output corresponding json/tsv files.
@@ -179,6 +183,7 @@ class ParamDatasetGenerator {
                 continue; 
 
             const propertyLabel = this._wikidataProperties.get(property);
+            const thingtalkPropertyType = argnameFromLabel(propertyLabel);
             console.log('Processing property: ', propertyLabel);
             const thingtalkEntityTypes = new Set();
             for (const value of values) {
@@ -199,17 +204,17 @@ class ParamDatasetGenerator {
 
                 const tokenized = tokens.join(' ');
                 const entry = { value, name: valueLabel, canonical: tokenized };
+
+                // add to property value set, for easier constant sampling
+                this._addToValueSet(thingtalkPropertyType, entry);
+                // add to each subtype value set, for actual augmentation in synthesis
                 for (const valueType of valueTypes) {
                     const thingtalkEntityType = argnameFromLabel(this._values.get(valueType));
                     thingtalkEntityTypes.add(thingtalkEntityType);
-                    if (this._valueSets.has(thingtalkEntityType))
-                        this._valueSets.get(thingtalkEntityType).push(entry);
-                    else 
-                        this._valueSets.set(thingtalkEntityType, [entry]);
+                    this._addToValueSet(thingtalkEntityType, entry);
                 }
             }
-            const thingtalkPropertyType = new Type.Entity(argnameFromLabel(propertyLabel));
-            this._subtypes.set(thingtalkPropertyType.type, Array.from(thingtalkEntityTypes));
+            this._subtypes.set(thingtalkPropertyType, Array.from(thingtalkEntityTypes));
             filteredDomainProperties.push(property);
         }
         for (const [valueType, examples] of this._valueSets) {
