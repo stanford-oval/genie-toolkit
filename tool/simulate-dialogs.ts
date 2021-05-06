@@ -42,6 +42,7 @@ import * as I18n from '../lib/i18n';
 import { readAllLines } from './lib/argutils';
 import MultiJSONDatabase from './lib/multi_json_database';
 import { PredictionResult } from '../lib/prediction/parserclient';
+import FileThingpediaClient from './lib/file_thingpedia_client';
 // @ts-ignore
 import { AndBooleanExpression, AtomBooleanExpression, DialogueState, Expression, FilterExpression, FunctionDef, Invocation, InvocationExpression, Node } from 'thingtalk/dist/ast';
 // @ts-ignore
@@ -83,6 +84,10 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('--database-file', {
         required: false,
         help: `Path to a file pointing to JSON databases used to simulate queries.`,
+    });
+    parser.add_argument('--parameter-datasets', {
+        required: true,
+        help: 'TSV file containing the paths to datasets for strings and entity types.'
     });
     parser.add_argument('input_file', {
         nargs: '+',
@@ -230,13 +235,13 @@ class SimulatorStream extends Stream.Transform {
                 tokenized: false,
                 skip_typechecking: true
             });
-            
+
             const candidates = await ThingTalkUtils.parseAllPredictions(parsed.candidates, parsed.entities, {
                 thingpediaClient: this._tpClient,
                 schemaRetriever: this._schemas,
                 loadMetadata: true
             }) as ThingTalk.Ast.DialogueState[];
-    
+
             if (candidates.length > 0) {
                 userTarget = candidates[0];
             } else {
@@ -260,7 +265,7 @@ class SimulatorStream extends Stream.Transform {
                 return;
             }
             dlg[dlg.length-1].user_target = normalizedUserTarget;
-            
+
         } else {
             userTarget = goldUserTarget;
         }
@@ -355,7 +360,7 @@ class DialogueToPartialDialoguesStream extends Stream.Transform {
 }
 
 export async function execute(args : any) {
-    const tpClient = new Tp.FileClient(args);
+    const tpClient = new FileThingpediaClient(args);
     const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
 
     const simulatorOptions : ThingTalkUtils.SimulatorOptions = {
