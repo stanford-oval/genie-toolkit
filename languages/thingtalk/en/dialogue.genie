@@ -294,7 +294,7 @@ $agent : S.AgentReplyRecord = {
     | ctx:ctx_reinit ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
     ) => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_greet', null), null, null, { end: false }),
 
-    !verbose_agent{
+    !verboseagent{
         ?anything_else {
             ctx:ctx_cancel anything_else_phrase
                 => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_anything_else', null), null, null, { end: false }),
@@ -405,7 +405,7 @@ $agent : S.AgentReplyRecord = {
             => D.makeSearchQuestion(ctx, questions);
         
         // slot filling of actions
-        verbose_agent_preamble vd:ctx_current_statement ctx:ctx_incomplete_action_after_search questions:slot_fill_question
+        verbose_agent_preamble vd:ctx_next_statement '.' ctx:ctx_incomplete_action_after_search questions:slot_fill_question
             => D.makeSlotFillQuestion(ctx, questions);
         
         // action recommendation (through one or a list)
