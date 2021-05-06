@@ -145,8 +145,8 @@ export function serializePrediction(program : Ast.Input,
         locale: options.locale!,
         allowNonConsecutive: true,
         useHeuristics: true,
-        alwaysAllowStrings: false,
-        ignoreSentence: options.ignoreSentence || false,
+        alwaysAllowStrings: true,
+        ignoreSentence: true,
     });
     return Syntax.serialize(program, Syntax.SyntaxType.Tokenized, entityRetriever, {
         compatibility: options.compatibility
