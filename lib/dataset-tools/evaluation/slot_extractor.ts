@@ -109,7 +109,16 @@ export default class SlotExtractor {
 
         // resolve as regular Thingpedia entity
         const candidates = await this._tpClient!.lookupEntity(value.type, searchKey);
-        resolved = getBestEntityMatch(searchKey, value.type, candidates.data);
+        if (candidates.data.length === 0) {
+            // this entity has no NER
+            resolved = {
+                value: value.value||value.display||'',
+                name: value.display||'',
+                canonical: value.display||''
+            };
+        } else {
+            resolved = getBestEntityMatch(searchKey, value.type, candidates.data);
+        }
         this._cachedEntityMatches.set(cacheKey, resolved);
         return resolved;
     }
