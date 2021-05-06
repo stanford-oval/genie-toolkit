@@ -110,6 +110,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         The output will have as many partial dialogues as there are dialogue turns in the input.`,
         default: false
     });
+    parser.add_argument('--detokenize-all', {
+        action: 'store_true',
+        help: `If set, will detokenize and fix capitalization of all user and agent turns.`,
+        default: false
+    });
 
     parser.add_argument('--verbose-agent', {
         action: 'store_true',
@@ -190,6 +195,7 @@ class SimulatorStream extends Stream.Transform {
     private _outputMistakesOnly : boolean;
     private _locale : string;
     private _langPack : I18n.LanguagePack;
+    private _detokenize_all : boolean;
 
     constructor(policy : DialoguePolicy,
                 simulator : ThingTalkUtils.Simulator,
@@ -197,7 +203,8 @@ class SimulatorStream extends Stream.Transform {
                 parser : ParserClient.ParserClient | null,
                 tpClient : Tp.BaseClient,
                 outputMistakesOnly : boolean,
-                locale : string) {
+                locale : string,
+                detokenize_all : boolean) {
         super({ objectMode : true });
 
         this._dialoguePolicy = policy;
@@ -208,6 +215,21 @@ class SimulatorStream extends Stream.Transform {
         this._outputMistakesOnly = outputMistakesOnly;
         this._locale = locale;
         this._langPack = I18n.get(locale);
+        this._detokenize_all = detokenize_all;
+    }
+
+    _detokenize(sentence : string) : string{
+        // TODO move to languagePack
+        const tokens = sentence.split(' ');
+        for (let i = 0; i < tokens.length; i++) {
+            const token = tokens[i];
+            if (this._langPack.MUST_CAPITALIZE_TOKEN.has(token))
+                tokens[i] = tokens[i][0].toUpperCase() + tokens[i].substring(1);
+        }
+        sentence = this._langPack.detokenizeSentence(tokens);
+        sentence = sentence.replace(/(^|[.?!] )([a-z])/g, (_, prefix, letter) => prefix + letter.toUpperCase());
+        sentence = sentence.replace(/\s+/g, ' ');
+        return sentence;
     }
 
     async _run(dlg : ParsedDialogue) : Promise<void> {
@@ -232,7 +254,7 @@ class SimulatorStream extends Stream.Transform {
         const goldUserTarget = await ThingTalkUtils.parse(lastTurn.user_target, this._schemas);
         if (this._parser !== null) {
             const parsed : PredictionResult = await this._parser.sendUtterance(lastTurn.user, contextCode, contextEntities, {
-                tokenized: false,
+                tokenized: true,
                 skip_typechecking: true
             });
 
@@ -257,12 +279,13 @@ class SimulatorStream extends Stream.Transform {
                 ignoreSentence: true
             }).join(' ');
 
-            // console.log('normalizedUserTarget = ', normalizedUserTarget)
-            // console.log('normalizedGoldUserTarget = ', normalizedGoldUserTarget)
-
             if (normalizedUserTarget === normalizedGoldUserTarget && this._outputMistakesOnly) {
                 // don't push anything
                 return;
+            }
+            else {
+                console.log('normalizedUserTarget = ', normalizedUserTarget);
+                console.log('normalizedGoldUserTarget = ', normalizedGoldUserTarget);
             }
             dlg[dlg.length-1].user_target = normalizedUserTarget;
 
@@ -289,6 +312,7 @@ class SimulatorStream extends Stream.Transform {
         let policyResult;
         try {
             policyResult = await this._dialoguePolicy.chooseAction(state);
+            // console.log('policyResult = ', policyResult);
         } catch(error) {
             console.log(`Error while choosing action: ${error.message}. skipping.`);
             return;
@@ -298,9 +322,15 @@ class SimulatorStream extends Stream.Transform {
             console.log(`Dialogue policy error: no reply for dialogue ${dlg.id}. skipping.`);
             return;
         }
-        //
+        
         let utterance = policyResult.utterance; 
         utterance = this._langPack.postprocessNLG(policyResult.utterance, policyResult.entities, this._simulator);
+        if (this._detokenize_all) {
+            for (let i = 0 ; i < dlg.length ; i++) {
+                dlg[i].agent = this._detokenize(dlg[i].agent!);
+                dlg[i].user = this._detokenize(dlg[i].user!);
+            }
+        }
 
         const prediction = ThingTalkUtils.computePrediction(state, policyResult.state, 'agent');
         newTurn.agent = utterance;
@@ -399,7 +429,7 @@ export async function execute(args : any) {
             readAllLines(args.input_file, '====')
             .pipe(new DialogueParser())
             .pipe(new DialogueToPartialDialoguesStream()) // convert each dialogues to many partial dialogues
-            .pipe(new SimulatorStream(policy, simulator, schemas, parser, tpClient, args.output_mistakes_only, args.locale))
+            .pipe(new SimulatorStream(policy, simulator, schemas, parser, tpClient, args.output_mistakes_only, args.locale, args.detokenize_all))
             .pipe(new DialogueSerializer())
             .pipe(args.output)
         );
@@ -407,7 +437,7 @@ export async function execute(args : any) {
         await StreamUtils.waitFinish(
             readAllLines(args.input_file, '====')
             .pipe(new DialogueParser())
-            .pipe(new SimulatorStream(policy, simulator, schemas, parser, tpClient, args.output_mistakes_only, args.locale))
+            .pipe(new SimulatorStream(policy, simulator, schemas, parser, tpClient, args.output_mistakes_only, args.locale, args.detokenize_all))
             .pipe(new DialogueSerializer())
             .pipe(args.output)
         );
