@@ -183,7 +183,7 @@ class ParamDatasetGenerator {
                 continue; 
 
             const propertyLabel = this._wikidataProperties.get(property);
-            const thingtalkPropertyType = argnameFromLabel(propertyLabel);
+            const thingtalkPropertyType = 'p_' + argnameFromLabel(propertyLabel);
             console.log('Processing property: ', propertyLabel);
             const thingtalkEntityTypes = new Set();
             for (const value of values) {

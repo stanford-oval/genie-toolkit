@@ -108,7 +108,7 @@ class SchemaProcessor {
                 name: type, 
                 is_well_known: false, 
                 has_ner_support: true, 
-                subtype_of: [subtype_of] 
+                subtype_of: [subtype_of]
             });
         }
     }
@@ -162,12 +162,12 @@ class SchemaProcessor {
             for (let property of properties) {
                 const label = this._labels.get(property);
                 const name = argnameFromLabel(label);
-                const type = new Type.Array(new Type.Entity(`org.wikidata:${name}`));
+                const type = new Type.Array(new Type.Entity(`org.wikidata:p_${name}`));
                 const annotations = {
                     nl: { canonical: await this._getArgCanonical(property, label, type) },
                     impl: { wikidata_id: new Ast.Value.String(property) }
                 };
-                this._addSuperEntity(name);
+                this._addSuperEntity(`p_${name}`);
                 args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, name, type, annotations));
             }
             const qualifiers = { is_list: true, is_monitorable: false };
