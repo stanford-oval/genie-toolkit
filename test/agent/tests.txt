@@ -941,8 +941,8 @@ A: >> expecting = phone_number
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: @com.twitter.post();
 
-A: To use this command you must first create a personal Almond account.
-A: link: Sign up for Almond /user/register
+A: To use this command you must first create a personal Genie account.
+A: link: Sign up for Genie /user/register
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -1016,6 +1016,7 @@ A: Hello! How can I help you?
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_greet ; // {}
 A: >> expecting = generic
 
+====
 # 67-default-temperature
 
 # alert me when't is hotter than 70 degrees outside

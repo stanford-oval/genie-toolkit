@@ -1970,7 +1970,7 @@ U: @com.twitter.post();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.twitter.post();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: To use this command you must first create a personal Almond account.
+A: To use this command you must first create a personal Genie account.
 #! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
@@ -2187,6 +2187,15 @@ C: $dialogue @org.thingpedia.dialogue.transaction.greet;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Hello! How can I help you?
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_greet;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t monitor(@org.thingpedia.weather.current()) filter temperature >= 70defaultTemperature;
 UT: monitor(@org.thingpedia.weather.current()) filter temperature >= 70defaultTemperature;
@@ -2196,7 +2205,7 @@ C: #[results=[]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Alright, I will notify you when the current weather in [Latitude: 37.428 deg, Longitude: -122.170 deg] changes and it becomes true that the temperature is greater than or equal to 70 F.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_rule_enable_success;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2210,7 +2219,7 @@ U: \t @org.thingpedia.iot.switch(name="invalid").state();
 UT: @org.thingpedia.iot.switch(name="invalid").state();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I cannot find any invalid switch device. Which device do you want to use?
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2229,7 +2238,7 @@ A: Nice For What is a song by Drake in the album Scorpion. Would you like to pla
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
 AT: #[confirm=enum proposed];
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2284,7 +2293,7 @@ C: #[results=[]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Great, congratulations on getting your appointment! Please tell your friends about us.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2378,7 +2387,7 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(validity);
 AT: @org.thingpedia.covid-vaccine.mark_valid(appointment="3"^^org.thingpedia.covid-vaccine:vaccine_appointment);
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2412,7 +2421,7 @@ C: $dialogue @org.thingpedia.dialogue.transaction.end;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Thank you!
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2441,7 +2450,7 @@ C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I will soon be able to answer questions about covid. In the meantime, please let me know what you're interested in.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_record_command;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2483,7 +2492,7 @@ C: #[results=[]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Alright, I will notify you when there are new appointments in the 94062 zip code.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_rule_enable_success;
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2511,7 +2520,7 @@ C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Notification from Stanford Covid Genie: here is a location near you that has reported available appointments.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
-#! vote: up
+#! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
@@ -2542,7 +2551,7 @@ A: What is the foo?
 A: I ate the value.
 A: How does it make you feel?
 A: Too bad I do not care.
-#! vote: down
+#! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
