@@ -174,7 +174,7 @@ function makeFilter(tpLoader : ThingpediaLoader,
 
             const elem = ptype.elem as Type;
             if ((vtype.isEnum && elem.isEnum) || (vtype.isEntity && elem.isEntity)) {
-                if (!Type.isAssignable(vtype, elem, tpLoader.entitySubTypeMap))
+                if (!Type.isAssignable(vtype, elem, {}, tpLoader.entitySubTypeMap))
                     return null;
             } else if (!elem.equals(vtype)) {
                 return null;
@@ -191,7 +191,7 @@ function makeFilter(tpLoader : ThingpediaLoader,
         // note: we need to use "isAssignable" instead of "equals" here
         // to handle enums and entities correctly
         if ((vtype.isEnum && ptype.isEnum) || (vtype.isEntity && ptype.isEntity)) {
-            if (!Type.isAssignable(vtype, ptype, tpLoader.entitySubTypeMap))
+            if (!Type.isAssignable(vtype, ptype, {}, tpLoader.entitySubTypeMap))
                 return null;
         } else if (!ptype.equals(vtype)) {
             return null;

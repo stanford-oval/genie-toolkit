@@ -279,7 +279,7 @@ Hello! How can I help you?
     expect(testRunner, `
 Hello! I can help you find an appointment. What is your zip code?
 >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_slot_fill ( zip_code ) ; @org.thingpedia.covid-vaccine . appointment ( ) ; // {}
->> expecting = command
+>> expecting = generic
 `);
 
     const TEST_CASES = await loadTestCases();
@@ -297,7 +297,7 @@ Hello! I can help you find an appointment. What is your zip code?
     const log = fs.readFileSync(conversation.log).toString()
         .replace(/^#! timestamp: 202[1-9]-[01][0-9]-[0123][0-9]T[012][0-9]:[0-5][0-9]:[0-5][0-9](\.[0-9]+)Z$/gm,
                  '#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ');
-    //fs.writeFileSync(path.resolve(__dirname, './expected-log.txt'), log);
+    fs.writeFileSync(path.resolve(__dirname, './expected-log.txt'), log);
     const expectedLog = fs.readFileSync(path.resolve(__dirname, './expected-log.txt')).toString();
     assert(log === expectedLog);
 

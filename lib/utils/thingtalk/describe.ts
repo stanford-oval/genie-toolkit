@@ -75,7 +75,7 @@ export class Describer {
             });
         }
 
-        const tmpl = Replaceable.get(x, this.locale, names);
+        const tmpl = Replaceable.get(x, this._langPack, names);
         return tmpl.replace({ replacements, constraints: {} });
     }
 
@@ -686,7 +686,7 @@ export class Describer {
         });
 
         if (good) {
-            parsed.preprocess(this.locale, names);
+            parsed.preprocess(this._langPack, names);
             return [parsed, names];
         } else {
             return null;
@@ -799,7 +799,7 @@ export class Describer {
         const argMap = new Map<string, [ReplacedResult, Ast.Value|null]>();
         let template : Replaceable, names : string[];
         if (obj instanceof Ast.FunctionCallExpression) {
-            template = Replaceable.parse(schema.canonical!).preprocess(this.locale, []);
+            template = Replaceable.parse(schema.canonical!).preprocess(this._langPack, []);
             names = [];
         } else {
             [template, names] = this._findBestExampleUtterance(obj.selector.kind, obj.channel, obj.selector, obj.in_params, obj.schema!);

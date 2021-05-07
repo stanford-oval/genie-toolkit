@@ -22,7 +22,7 @@ import assert from 'assert';
 
 import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
-import { Ast, ExecEnvironment } from 'thingtalk';
+import { Ast, Runtime } from 'thingtalk';
 import TriggerRunner from './trigger_runner';
 
 import { Timer, AtTimer } from './timers';
@@ -48,19 +48,11 @@ interface OutputDelegate {
     notifyError(error : Error) : void;
 }
 
-type CompiledFilterHint = [string, string, unknown];
-export interface CompiledQueryHints {
-    filter ?: CompiledFilterHint[];
-    sort ?: [string, 'asc' | 'desc'];
-    projection ?: string[];
-    limit ?: number;
-}
-
 type MaybePromise<T> = T|Promise<T>;
 type ActionFunction = (params : Record<string, unknown>, env : ExecWrapper) => MaybePromise<unknown>;
 
 type QueryFunctionResult = AsyncIterable<Record<string, unknown>>;
-type QueryFunction = (params : Record<string, unknown>, hints : CompiledQueryHints, env : ExecWrapper) => MaybePromise<QueryFunctionResult>;
+type QueryFunction = (params : Record<string, unknown>, hints : Runtime.CompiledQueryHints, env : ExecWrapper) => MaybePromise<QueryFunctionResult>;
 
 interface TriggerLike {
     end() : void;
@@ -88,7 +80,7 @@ function recursivelyComputeOutputType(kind : string, expr : Ast.Expression) : st
  *
  * @package
  */
-export default class ExecWrapper extends ExecEnvironment {
+export default class ExecWrapper extends Runtime.ExecEnvironment {
     engine : Engine;
     app : AppExecutor;
     format : NotificationFormatter;
@@ -168,7 +160,7 @@ export default class ExecWrapper extends ExecEnvironment {
                   attrs : Record<string, string>,
                   fname : string,
                   params : Record<string, unknown>,
-                  hints : CompiledQueryHints) : AsyncIterator<[string, Record<string, unknown> & { __timestamp : number }]> {
+                  hints : Runtime.CompiledQueryHints) : AsyncIterator<[string, Record<string, unknown> & { __timestamp : number }]> {
         const trigger = new TriggerRunner(this, new DeviceView(this.engine.devices, kind, attrs), fname, params, hints);
         this._trigger = trigger;
         trigger.start();
@@ -208,7 +200,7 @@ export default class ExecWrapper extends ExecEnvironment {
                        attrs : Record<string, string>,
                        fname : string,
                        params : Record<string, unknown>,
-                       hints : CompiledQueryHints) : AsyncIterable<[string, Record<string, unknown>]> {
+                       hints : Runtime.CompiledQueryHints) : AsyncIterable<[string, Record<string, unknown>]> {
         const devices = this._getDevices(kind, attrs);
 
         let promises : Array<Promise<QueryFunctionResult>>;
@@ -233,6 +225,8 @@ export default class ExecWrapper extends ExecEnvironment {
             const outputType = device.kind + ':' + fname;
             for await (const element of list) {
                 extendParams(element, params);
+                if (device.uniqueId !== device.kind)
+                    element.__device = new Tp.Value.Entity(device.uniqueId!, device.name);
                 yield [outputType, element];
             }
         }
@@ -276,8 +270,18 @@ export default class ExecWrapper extends ExecEnvironment {
                 result = undefined;
             }
 
-            if (result)
+            if (result) {
+                if (d.uniqueId !== d.kind)
+                    (result as Record<string, unknown>).__device = new Tp.Value.Entity(d.uniqueId!, d.name);
                 yield [outputType, result as Record<string, unknown>];
+            } else {
+                if (d.uniqueId !== d.kind) {
+                    const __device = new Tp.Value.Entity(d.uniqueId!, d.name);
+                    yield [outputType, { __device }];
+                } else {
+                    yield [outputType, {}];
+                }
+            }
         }
     }
 

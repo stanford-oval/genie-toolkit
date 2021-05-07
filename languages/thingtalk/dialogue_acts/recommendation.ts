@@ -44,6 +44,7 @@ import {
     combinePreambleAndRequest,
     proposalReply
 } from './refinement-helpers';
+import type { ListProposal } from './list-proposal';
 
 export interface Recommendation {
     ctx : ContextInfo;
@@ -232,6 +233,8 @@ function makeDisplayResult(ctx : ContextInfo, info : SlotBag) {
     assert(results && results.length > 0);
     const topResult = results[0];
 
+    if (ctx.currentFunction!.is_list)
+        return null;
     if (!C.isSameFunction(ctx.currentFunction!, info.schema!))
         return null;
     if (!isInfoPhraseCompatibleWithResult(topResult, info))
@@ -252,7 +255,11 @@ function combineDisplayResult(proposal : Recommendation, newInfo : SlotBag) {
     const results = ctx.results;
     assert(results && results.length > 0);
     const topResult = results[0];
-    assert(isInfoPhraseCompatibleWithResult(topResult, newInfo));
+
+    // this can occur if there is more than one result for a single result query,
+    // which can occur for IoT queries over multiple devices
+    if (!isInfoPhraseCompatibleWithResult(topResult, newInfo))
+        return null;
 
     const maybeNewInfo = oldInfo ? SlotBag.merge(oldInfo, newInfo) : newInfo;
     if (maybeNewInfo === null)
@@ -309,6 +316,16 @@ function makeDisplayResultReply(ctx : ContextInfo, proposal : Recommendation) {
         numResults: 1
     };
     if (action || hasAnythingElse)
+        options.end = false;
+    return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_display_result', null), proposal, null, options);
+}
+
+export function makeDisplayResultReplyFromList(ctx : ContextInfo, proposal : ListProposal) {
+    const { results, action, hasLearnMore } = proposal;
+    const options : AgentReplyOptions = {
+        numResults: results.length
+    };
+    if (action || hasLearnMore)
         options.end = false;
     return makeAgentReply(ctx, makeSimpleState(ctx, 'sys_display_result', null), proposal, null, options);
 }

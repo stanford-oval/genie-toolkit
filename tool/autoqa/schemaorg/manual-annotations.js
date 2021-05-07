@@ -143,7 +143,7 @@ const PROPERTY_TYPE_OVERRIDE = {
 
     'genre': new Type.Array(Type.String),
     'creator': new Type.Array(new Type.Entity('org.schema.Movie:Person')),
-    'contentRating': Type.String,
+    'contentRating': new Type.Enum(['G', 'PG', 'PG13', 'R', 'NC17']),
     'byArtist': new Type.Entity('org.schema.Music:Person'),
 
     'openingHours': Type.RecurrentTimeSpecification,

@@ -53,13 +53,19 @@ import {
     DirectAnswerPhrase
 } from './results';
 
-export type ListProposal = [Ast.DialogueHistoryResultItem[], SlotBag|null, Ast.Invocation|null, boolean];
+export interface ListProposal {
+    results : Ast.DialogueHistoryResultItem[];
+    info : SlotBag|null;
+    action : Ast.Invocation|null;
+    hasLearnMore : boolean;
+}
 
-export function listProposalKeyFn([results, info, action, hasLearnMore] : ListProposal) {
+export function listProposalKeyFn({ results, info, action, hasLearnMore } : ListProposal) {
     return {
         idType: results[0].value.id ? results[0].value.id.getType() : null,
         queryName: info ? info.schema!.qualifiedName : null,
         actionName: action ? action.schema!.qualifiedName : null,
+        length: results.length
     };
 }
 
@@ -102,7 +108,7 @@ function checkListProposal(nameList : NameList, info : SlotBag|null, hasLearnMor
 
 
     const action = ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next!) : null;
-    return [results, info, action, hasLearnMore];
+    return { results, info, action, hasLearnMore };
 }
 
 export type ThingpediaListProposal = [ContextInfo, SlotBag];
@@ -133,7 +139,7 @@ export function checkThingpediaListProposal(proposal : ThingpediaListProposal, a
         return null;
 
     const action = ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next!) : null;
-    return [ctx.results!, mergedInfo, action, false];
+    return { results: ctx.results!, info: mergedInfo, action, hasLearnMore: false };
 }
 
 export function addActionToListProposal(nameList : NameList, action : Ast.Invocation) : ListProposal|null {
@@ -155,7 +161,7 @@ export function addActionToListProposal(nameList : NameList, action : Ast.Invoca
     if (ctxAction && !C.isSameFunction(ctxAction.schema!, action.schema!))
         return null;
 
-    return [results, null, action, false];
+    return { results, info: null, action, hasLearnMore: false };
 }
 
 export function makeListProposalFromDirectAnswers(...phrases : DirectAnswerPhrase[]) : ListProposal|null {
@@ -174,15 +180,14 @@ export function makeListProposalFromDirectAnswers(...phrases : DirectAnswerPhras
         phrases.length !== ctx.results!.length)
         return null;
 
-    const names = Array.from(phrases[0].result.info.keys());
     // check that all phrases talk about the same slots (it would be weird otherwise)
-    for (let i = 0; i < phrases.length; i++) {
+    for (let i = 1; i < phrases.length; i++) {
         for (const key of phrases[i].result.info.keys()) {
-            if (!names.includes(key))
+            if (!phrases[0].result.info.has(key))
                 return null;
         }
-        for (const name of names) {
-            if (!phrases[i].result.info.has(name))
+        for (const key of phrases[0].result.info.keys()) {
+            if (!phrases[i].result.info.has(key))
                 return null;
         }
     }
@@ -190,11 +195,9 @@ export function makeListProposalFromDirectAnswers(...phrases : DirectAnswerPhras
     const resultInfo = ctx.resultInfo!;
     if (resultInfo.projection !== null) {
         // check that all projected names are present
-        for (const phrase of phrases) {
-            for (const name of resultInfo.projection) {
-                if (!phrase.result.info.has(name))
-                    return null;
-            }
+        for (const name of resultInfo.projection) {
+            if (!phrases[0].result.info.has(name))
+                return null;
         }
     }
 
@@ -205,11 +208,11 @@ export function makeListProposalFromDirectAnswers(...phrases : DirectAnswerPhras
 
     const results = ctx.results!.slice(0, phrases.length);
 
-    return [results, null, null, false];
+    return { results, info: null, action: null, hasLearnMore: false };
 }
 
 function makeListProposalReply(ctx : ContextInfo, proposal : ListProposal) {
-    const [results, /*info*/, action, hasLearnMore] = proposal;
+    const { results, action, hasLearnMore } = proposal;
     const options : AgentReplyOptions = {
         numResults: results.length
     };
@@ -248,7 +251,7 @@ function positiveListProposalReply(loader : ThingpediaLoader,
     // we treat it as "execute" dialogue act and add a filter that causes the program to return a single result
 
     const proposal = ctx.aux as ListProposal;
-    const [results, /*info*/, actionProposal] = proposal;
+    const { results, action: actionProposal } = proposal;
     let good = false;
     for (const result of results) {
         if (result.value.id.equals(name)) {
@@ -296,8 +299,8 @@ function positiveListProposalReply(loader : ThingpediaLoader,
 function positiveListProposalReplyActionByName(loader : ThingpediaLoader,
                                                ctx : ContextInfo,
                                                action : Ast.Invocation) {
-    const proposal = ctx.aux;
-    const [results,] = proposal;
+    const proposal = ctx.aux as ListProposal;
+    const { results } = proposal;
 
     let name = null;
     const acceptedAction = action.clone();
@@ -324,7 +327,7 @@ function negativeListProposalReply(ctx : ContextInfo, [preamble, request] : [Ast
         return null;
 
     const proposal = ctx.aux as ListProposal;
-    const [results, info] = proposal;
+    const { results, info } = proposal;
     const proposalType = results[0].value.id.getType();
     request = combinePreambleAndRequest(preamble, request, info, proposalType);
     if (request === null)
@@ -339,7 +342,7 @@ function listProposalLearnMoreReply(ctx : ContextInfo, name : Ast.Value) {
     // in a list proposal, we add a filter "id == "
 
     const proposal = ctx.aux as ListProposal;
-    const [results,] = proposal;
+    const { results } = proposal;
     let good = false;
     for (const result of results) {
         if (result.value.id.equals(name)) {

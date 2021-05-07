@@ -43,7 +43,7 @@ async function testLookup(engine) {
 
     const builtin = devices.getAllDevicesOfKind('org.thingpedia.builtin.thingengine.builtin');
     assert.strictEqual(builtin.length, 1);
-    assert.strictEqual(builtin[0], devices.getDevice('thingengine-own-global'));
+    assert.strictEqual(builtin[0], devices.getDevice('org.thingpedia.builtin.thingengine.builtin'));
 
     let test = devices.getAllDevicesOfKind('org.thingpedia.builtin.test');
     assert.strictEqual(test.length, 1);
@@ -60,7 +60,17 @@ async function testLookup(engine) {
        version: 0,
        class: 'system',
        ownerTier: 'global',
-       isTransient: true },
+       isTransient: true,
+       authType: 'builtin' },
+     { uniqueId: 'org.thingpedia.builtin.thingengine.builtin',
+       name: 'Miscellaneous Interfaces',
+       description: 'Time, random numbers, and other commands not specific to any skill.',
+       kind: 'org.thingpedia.builtin.thingengine.builtin',
+       version: 0,
+       class: 'data',
+       ownerTier: 'global',
+       isTransient: true,
+       authType: 'builtin' },
      { uniqueId: 'org.thingpedia.builtin.thingengine.test_platform',
        name: 'Unknown device',
        description: 'Description not available',
@@ -68,7 +78,8 @@ async function testLookup(engine) {
        version: 0,
        class: 'data',
        ownerTier: 'global',
-       isTransient: true },
+       isTransient: true,
+       authType: 'builtin' },
      { uniqueId: 'thingengine-own-desktop:XXXXXX',
        name: 'Genie desktop (XXXXXX)',
        description: 'This is one of your Genie apps.',
@@ -76,15 +87,8 @@ async function testLookup(engine) {
        version: 0,
        class: 'system',
        ownerTier: 'desktop',
-       isTransient: false },
-     { uniqueId: 'thingengine-own-global',
-       name: 'Miscellaneous Interfaces',
-       description: 'Time, randomness and other non-device specific things.',
-       kind: 'org.thingpedia.builtin.thingengine.builtin',
-       version: 0,
-       class: 'data',
-       ownerTier: 'global',
-       isTransient: true }
+       isTransient: false,
+       authType: 'builtin' },
     ]);
 }
 

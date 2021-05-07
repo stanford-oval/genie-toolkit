@@ -25,12 +25,13 @@ import { Ast, SchemaRetriever } from 'thingtalk';
 import { coin } from '../../utils/random';
 import AbstractDialogueAgent, { DeviceInfo } from '../abstract_dialogue_agent';
 import { EntityRecord } from '../entity-linking/entity-finder';
+import ValueCategory from '../value-category';
 
 import StatementSimulator, {
     ThingTalkSimulatorState,
 } from './statement_simulator';
 import { SimulationDatabase } from './types';
-import ValueCategory from '../value-category';
+import { getAllDevicesOfKind } from './helpers';
 
 export interface SimulationDialogueAgentOptions {
     schemaRetriever ?: SchemaRetriever;
@@ -85,21 +86,15 @@ export default class SimulationDialogueAgent extends AbstractDialogueAgent<Thing
 
     protected async checkForPermission(stmt : Ast.ExpressionStatement) {}
 
-    protected getAllDevicesOfKind(kind : string) : DeviceInfo[] {
-        // make up a unique fake device, and make the uniqueId same as the kind,
-        // so the device will not be recorded in the context
-        // TODO when we actually support choosing devices (when dealing with IoT)
-        // this needs to be revised
-        return [{
-            kind, name: kind, uniqueId: kind
-        }];
+    protected async getAllDevicesOfKind(kind : string) : Promise<DeviceInfo[]> {
+        return getAllDevicesOfKind(this._schemas, kind);
     }
 
     protected async tryConfigureDevice(kind : string) : Promise<never> {
         throw new TypeError('Should not attempt to configure devices in simulation');
     }
 
-    async disambiguate(type : 'device'|'contact',
+    async disambiguate(type : string,
                        name : string|null,
                        choices : string[],
                        hint ?: string) : Promise<number> {

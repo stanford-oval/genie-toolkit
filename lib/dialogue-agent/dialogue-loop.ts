@@ -52,9 +52,7 @@ import ExecutionDialogueAgent from './execution_dialogue_agent';
 
 // TODO: load the policy.yaml file instead
 const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
-const TERMINAL_STATES = [
-    'sys_greet', 'sys_end', 'sys_action_success'
-];
+const TERMINAL_STATES = ['sys_greet', 'sys_end'];
 
 // Confidence thresholds:
 //
@@ -226,13 +224,17 @@ export default class DialogueLoop {
         for (const key in args) {
             names.push(key);
             const value = args[key];
-            replacements.push({
-                text: value instanceof ReplacedResult ? value : new ReplacedConcatenation([String(value)], {}, {}),
-                value,
-            });
+            if (value !== null && value !== undefined) {
+                replacements.push({
+                    text: value instanceof ReplacedResult ? value : new ReplacedConcatenation([String(value)], {}, {}),
+                    value,
+                });
+            } else {
+                replacements.push(undefined);
+            }
         }
 
-        const tmpl = Replaceable.get(msg, this.engine.platform.locale, names);
+        const tmpl = Replaceable.get(msg, this._langPack, names);
         return this._langPack.postprocessNLG(tmpl.replace({ replacements, constraints: {} })!.chooseBest(), {}, this._agent);
     }
 
@@ -472,14 +474,14 @@ export default class DialogueLoop {
         } else if (policyResult.expect instanceof Type.Enum) {
             for (const entry of policyResult.expect.entries!)
                 await this.replyButton(clean(entry), JSON.stringify({ code: ['$answer', '(', 'enum', entry, ')', ';'], entities: {} }));
-            expect = ValueCategory.Command;
+            expect = ValueCategory.Generic;
         } else if (policyResult.expect) {
             expect = ValueCategory.fromType(policyResult.expect);
         } else {
-            expect = ValueCategory.Command;
+            expect = ValueCategory.Generic;
         }
         if (expect === ValueCategory.RawString && !policyResult.raw)
-            expect = ValueCategory.Command;
+            expect = ValueCategory.Generic;
 
         await this.setExpected(expect);
     }
@@ -499,18 +501,6 @@ export default class DialogueLoop {
         case CommandAnalysisType.DEBUG:
             await this.reply("Current State:\n" + (this._dialogueState ? this._dialogueState.prettyprint() : "null"));
             break;
-
-        case CommandAnalysisType.WAKEUP:
-            // "wakeup" means the user said "hey genie" without anything else,
-            // or said "hey genie wake up", or triggered one of the LaunchIntents
-            // in Google Assistant or Alexa, or similar "opening" statements
-            // we show the welcome message if the current state is null,
-            // and do nothing otherwise
-            if (this._dialogueState === null) {
-                this._showWelcome();
-                // keep the microphone open for a while
-                await this.setExpected(ValueCategory.Command);
-            }
 
         case CommandAnalysisType.IGNORE:
             // do exactly nothing
@@ -550,7 +540,6 @@ export default class DialogueLoop {
             switch (analyzed.type) {
             case CommandAnalysisType.STOP:
             case CommandAnalysisType.DEBUG:
-            case CommandAnalysisType.WAKEUP:
             case CommandAnalysisType.IGNORE:
                 await this._handleUICommand(analyzed.type);
                 break;
@@ -660,7 +649,12 @@ export default class DialogueLoop {
     private async _showNotification(app : AppExecutor,
                                     outputType : string,
                                     outputValue : Record<string, unknown>) {
-        const mappedResult = await this._agent.executor.mapResult(outputType, outputValue);
+        assert(app.program.statements.length === 1);
+        const stmt = app.program.statements[0];
+        assert(stmt instanceof ThingTalk.Ast.ExpressionStatement);
+        assert(stmt.expression.schema);
+
+        const mappedResult = await this._agent.executor.mapResult(stmt.expression.schema, outputValue);
         this._dialogueState = await this._policy.getNotificationState(app.name, app.program, mappedResult);
         await this._doAgentReply([[outputType, outputValue]]);
     }
@@ -766,9 +760,7 @@ export default class DialogueLoop {
     }
 
     async lookingFor() {
-        if (this.expecting === null) {
-            await this.reply(this._("In fact, I did not ask for anything at all!"));
-        } else if (this.expecting === ValueCategory.YesNo) {
+        if (this.expecting === ValueCategory.YesNo) {
             await this.reply(this._("Please answer yes or no."));
         } else if (this.expecting === ValueCategory.MultipleChoice) {
             await this.reply(this._("Could you choose one of the following?"));
@@ -795,15 +787,11 @@ export default class DialogueLoop {
             // but this will happen if the user clicks a button
             // or upload a picture
             await this.reply(this._("Which is interesting, because I'll take anything at all. Just type your mind!"));
-        } else if (this.expecting === ValueCategory.Command) {
-            await this.reply(this._("I'm looking for a command."));
-        } else {
-            await this.reply(this._("In fact, I'm not even sure what I asked. Sorry!"));
         }
     }
 
     async fail(msg ?: string) {
-        if (this.expecting === null || this.expecting === ValueCategory.Command) {
+        if (this.expecting === null || this.expecting === ValueCategory.Generic) {
             if (msg) {
                 await this.replyInterp(this._("Sorry, I did not understand that: ${error}. Please enter a 5-digit zip code."), {
                     error: msg
@@ -850,7 +838,6 @@ export default class DialogueLoop {
             case CommandAnalysisType.STOP:
             case CommandAnalysisType.NEVERMIND:
             case CommandAnalysisType.DEBUG:
-            case CommandAnalysisType.WAKEUP:
             case CommandAnalysisType.IGNORE:
                 await this._handleUICommand(analyzed.type);
                 break;
@@ -878,7 +865,6 @@ export default class DialogueLoop {
             case CommandAnalysisType.STOP:
             case CommandAnalysisType.NEVERMIND:
             case CommandAnalysisType.DEBUG:
-            case CommandAnalysisType.WAKEUP:
             case CommandAnalysisType.IGNORE:
                 await this._handleUICommand(analyzed.type);
                 break;

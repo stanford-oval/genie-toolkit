@@ -32,7 +32,8 @@ import {
 } from '../state_manip';
 import {
     queryRefinement,
-    refineFilterToChangeFilter
+    refineFilterForEmptySearch,
+    RefineFilterCallback
 } from './refinement-helpers';
 import {
     isValidSearchQuestion
@@ -89,10 +90,11 @@ function isGoodEmptySearchQuestion(ctx : ContextInfo, question : C.ParamSlot) {
 }
 
 function emptySearchChangePhraseCommon(ctx : ContextInfo,
-                                       newFilter : Ast.BooleanExpression) {
+                                       newFilter : Ast.BooleanExpression,
+                                       refineFilter : RefineFilterCallback) {
     const currentStmt = ctx.current!.stmt;
     const currentExpression = currentStmt.expression;
-    const newExpression = queryRefinement(currentExpression, newFilter, refineFilterToChangeFilter, null);
+    const newExpression = queryRefinement(currentExpression, newFilter, refineFilter, null);
     if (newExpression === null)
         return null;
 
@@ -116,7 +118,7 @@ export function preciseEmptySearchChangeRequest(ctx : ContextInfo,
     if (param !== null && !C.filterUsesParam(phrase.filter, param.name))
         return null;
 
-    return emptySearchChangePhraseCommon(ctx, phrase.filter);
+    return emptySearchChangePhraseCommon(ctx, phrase.filter, refineFilterForEmptySearch);
 }
 
 /**
@@ -143,7 +145,7 @@ export function impreciseEmptySearchChangeRequest(ctx : ContextInfo,
     if (!C.checkFilter(base, answerFilter))
         return null;
 
-    return emptySearchChangePhraseCommon(ctx, answerFilter);
+    return emptySearchChangePhraseCommon(ctx, answerFilter, refineFilterForEmptySearch);
 }
 
 /**

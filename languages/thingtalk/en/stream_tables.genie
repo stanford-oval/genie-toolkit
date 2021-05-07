@@ -562,9 +562,14 @@ have_arg_min_max_table : Ast.Expression = {
 
 
 edge_stream : Ast.Expression = {
-    !turking ('when' | 'if') 'the' p:projection_Any ('becomes' | 'becomes equal to') x:constant_Any => C.makeEdgeFilterStream($loader, p, '==', x);
-    ('when' | 'if') 'the' p:projection_Any ('becomes greater than' | 'becomes higher than' | 'goes above' | 'increases above') x:constant_Numeric with { type = p.projectionType } => C.makeEdgeFilterStream($loader, p, '>=', x);
-    ('when' | 'if') 'the' p:projection_Any ('becomes smaller than' | 'becomes lower than' | 'goes below' | 'decreases below') x:constant_Numeric with { type = p.projectionType } => C.makeEdgeFilterStream($loader, p, '<=', x);
+    // this is not exactly precise because it will disregard entity inheritance and enums
+    // but it's good enough, and otherwise this template is very slow
+    ["{when|if} the ${p} {becomes|becomes equal to} ${x}"]: (p:projection_Any<is_monitorable=true>, x:constant_Any<type=p.projectionType>)
+        => C.makeEdgeFilterStream($loader, p, '==', x),
+    ["{when|if} the ${p} {becomes greater than|becomes higher than|goes above|increases above} ${x}"]: (p:projection_Any<is_monitorable=true>, x:constant_Numeric<type=p.projectionType>)
+        => C.makeEdgeFilterStream($loader, p, '>=', x),
+    ["{when|if} the ${p} {becomes smaller than|becomes lower than|goes below|decreases above} ${x}"]: (p:projection_Any<is_monitorable=true>, x:constant_Numeric<type=p.projectionType>)
+        => C.makeEdgeFilterStream($loader, p, '<=', x),
 }
 
 stream : Ast.Expression = {

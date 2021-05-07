@@ -170,7 +170,7 @@ function filterToSlots(filter : Ast.BooleanExpression) : Record<string, SlotBool
     return slots;
 }
 
-type RefineFilterCallback = (old : Ast.BooleanExpression, new_ : Ast.BooleanExpression) => Ast.BooleanExpression|null;
+export type RefineFilterCallback = (old : Ast.BooleanExpression, new_ : Ast.BooleanExpression) => Ast.BooleanExpression|null;
 
 function queryRefinement(ctxExpression : Ast.ChainExpression,
                          newFilter : Ast.BooleanExpression|null,
@@ -383,10 +383,7 @@ class IsGoodFilterForChangeFilterVisitor extends Ast.NodeVisitor {
 
 function refineFilterToChangeFilter(ctxFilter : Ast.BooleanExpression,
                                     refinedFilter : Ast.BooleanExpression) {
-    // this function is used:
-    // - when the agent returned zero results, and the user
-    //   must change the search
-    // - when the agent makes a filter proposal, and the user says no I want something else
+    // this function is used when the agent makes a filter proposal, and the user says no I want something else
     //
     // the refinement is allowed only if no new parameters are introduced (all parameters were
     // mentioned before), and at least one parameter is different than before
@@ -409,6 +406,51 @@ function refineFilterToChangeFilter(ctxFilter : Ast.BooleanExpression,
         if (!ctxSlots[key])
             return null;
     }
+
+    const visitor = new IsGoodFilterForChangeFilterVisitor(refinedFilter);
+    const ctxClauses = (ctxFilter instanceof Ast.AndBooleanExpression ? ctxFilter.operands : [ctxFilter]).filter((clause) => {
+        visitor.good = true;
+        clause.visit(visitor);
+        return visitor.good;
+    });
+
+    return new Ast.BooleanExpression.And(null, [...ctxClauses, refinedFilter]).optimize();
+}
+
+function refineFilterForEmptySearch(ctxFilter : Ast.BooleanExpression,
+                                    refinedFilter : Ast.BooleanExpression) {
+    // this function is used when the agent returns no result, and the user
+    // replies with a different search for the same function
+    //
+    // this is one of the trickiest refinement, because it can be ambiguous
+    //
+    // we interpret it this way:
+    // - the user must issue a filter that is not identical or a subset of the context filter
+    // - if the user's filter slots are a subset of the previously mentioned slots
+    //   (with different values), we change only those slots
+    //   (same as refineFilterToChangeFilter)
+    // - otherwise, we discard the ctxFilter entirely and return just refinedFilter
+
+    ctxFilter = ctxFilter.optimize();
+    refinedFilter = refinedFilter.optimize();
+
+    const ctxSlots = filterToSlots(ctxFilter);
+    const refinedSlots = filterToSlots(refinedFilter);
+
+    // all slots in the context must be either not mentioned in the refinement, or changed
+    for (const key in ctxSlots) {
+        if (refinedSlots[key] && refinedSlots[key].equals(ctxSlots[key]))
+            return null;
+    }
+
+    // if some slots in the refinement is not mentioned in the context, we
+    // return the refined filter alone
+    for (const key in refinedSlots) {
+        if (!ctxSlots[key])
+            return refinedFilter;
+    }
+
+    // otherwise, merge the ctx and refined filter as in refineFilterToChangeFilter
 
     const visitor = new IsGoodFilterForChangeFilterVisitor(refinedFilter);
     const ctxClauses = (ctxFilter instanceof Ast.AndBooleanExpression ? ctxFilter.operands : [ctxFilter]).filter((clause) => {
@@ -494,6 +536,7 @@ export {
     refineFilterToAnswerQuestion,
     refineFilterToAnswerQuestionOrChangeFilter,
     refineFilterToChangeFilter,
+    refineFilterForEmptySearch,
     proposalReply,
     combinePreambleAndRequest
 };

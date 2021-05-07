@@ -22,7 +22,7 @@
 import assert from 'assert';
 import * as ThingTalk from 'thingtalk';
 import { Ast, Type } from 'thingtalk';
-import type { SentenceGeneratorTypes, SentenceGeneratorRuntime } from 'genie-toolkit';
+import type { SentenceGeneratorTypes, SentenceGeneratorRuntime, ThingTalkUtils } from 'genie-toolkit';
 export type AgentReplyRecord = SentenceGeneratorTypes.AgentReplyRecord<Ast.DialogueState>;
 
 import * as C from './ast_manip';
@@ -132,7 +132,7 @@ export class ResultInfo {
                 || table instanceof Ast.IndexExpression
                 || table instanceof Ast.AggregationExpression);
             this.isAggregation = table instanceof Ast.AggregationExpression;
-            this.isList = table.schema!.is_list;
+            this.isList = stmt.expression.schema!.is_list;
             this.argMinMaxField = getTableArgMinMax(table);
             assert(this.argMinMaxField === null || this.isQuestion);
             this.projection = table instanceof Ast.ProjectionExpression ?
@@ -483,15 +483,68 @@ export function isUserAskingResultQuestion(ctx : ContextInfo) : boolean {
     return !arraySubset(currentProjection, previousResultInfo.projection);
 }
 
+class CollectDeviceIDVisitor extends Ast.NodeVisitor {
+    collection = new Map<string, string>();
+
+    visitDeviceSelector(selector : Ast.DeviceSelector) {
+        if (selector.all) {
+            this.collection.set(selector.kind, 'all');
+            return false;
+        }
+        if (!selector.id)
+            return false;
+        this.collection.set(selector.kind, selector.id);
+        return false;
+    }
+}
+
+class ApplyDeviceIDVisitor extends Ast.NodeVisitor {
+    constructor(private collection : Map<string, string>) {
+        super();
+    }
+
+    visitDeviceSelector(selector : Ast.DeviceSelector) {
+        if (selector.attributes.length > 0 || selector.all)
+            return false;
+        if (selector.id)
+            return false;
+
+        const existing = this.collection.get(selector.kind);
+        if (existing === 'all')
+            selector.all = true;
+        else if (existing)
+            selector.id = existing;
+        return false;
+    }
+}
+
+function propagateDeviceIDs(ctx : ContextInfo,
+                            newHistoryItems : Ast.DialogueHistoryItem[]) {
+    const visitor = new CollectDeviceIDVisitor();
+    ctx.state.visit(visitor);
+
+    const applyVisitor = new ApplyDeviceIDVisitor(visitor.collection);
+    return newHistoryItems.map((item) => {
+        // clone the item just to be sure
+        // FIXME we might be able to skip this clone in some cases
+        item = item.clone();
+        item.visit(applyVisitor);
+        return item;
+    });
+}
+
 function addNewItem(ctx : ContextInfo,
                     dialogueAct : string,
                     dialogueActParam : string|null,
-                    confirm : 'accepted'|'proposed'|'confirmed',
+                    confirm : 'accepted-query'|'accepted'|'proposed'|'proposed-query'|'confirmed',
                     ...newHistoryItem : Ast.DialogueHistoryItem[]) : Ast.DialogueState {
+    newHistoryItem = propagateDeviceIDs(ctx, newHistoryItem);
+
     for (const item of newHistoryItem) {
         C.adjustDefaultParameters(item);
         item.results = null;
-        item.confirm = confirm;
+        item.confirm = confirm === 'accepted-query' ? 'accepted' :
+            confirm  === 'proposed-query' ? 'proposed' : confirm;
     }
 
     const newState = new Ast.DialogueState(null, POLICY_NAME, dialogueAct, dialogueActParam, []);
@@ -505,11 +558,25 @@ function addNewItem(ctx : ContextInfo,
             newState.history.push(ctx.state.history[i]);
         }
         newState.history.push(...newHistoryItem);
+    } else if (confirm === 'accepted-query' || confirm === 'proposed-query') {
+        // add the new history item right after the current one, keep
+        // all the accepted items, and remove all proposed items
+
+        if (ctx.currentIdx !== null) {
+            for (let i = 0; i <= ctx.currentIdx; i++)
+                newState.history.push(ctx.state.history[i]);
+        }
+        newState.history.push(...newHistoryItem);
+        if (ctx.currentIdx !== null) {
+            for (let i = ctx.currentIdx + 1; i < ctx.state.history.length; i++) {
+                if (ctx.state.history[i].confirm === 'proposed')
+                    continue;
+                newState.history.push(ctx.state.history[i]);
+            }
+        }
     } else {
         // wipe everything from state after the current program
         // this will remove all previously accepted and/or proposed actions
-        //
-        // XXX is the right thing to do?
         if (ctx.currentIdx !== null) {
             for (let i = 0; i <= ctx.currentIdx; i++)
                 newState.history.push(ctx.state.history[i]);
@@ -664,9 +731,8 @@ function addActionParam(ctx : ContextInfo,
             in_params,
             schema
         );
-        const newStmt = new Ast.ExpressionStatement(null, new Ast.InvocationExpression(null,
-            newInvocation, schema.removeArgument(pname)
-        ));
+        const newStmt = new Ast.ExpressionStatement(null,
+            new Ast.InvocationExpression(null, newInvocation, schema));
         newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
     }
 
@@ -726,20 +792,7 @@ function addQuery(ctx : ContextInfo,
     const newStmt = new Ast.ExpressionStatement(null, newTable);
     const newHistoryItem = new Ast.DialogueHistoryItem(null, newStmt, null, confirm);
 
-    // add the new history item right after the current one, and remove all proposed elements
-
-    assert(ctx.currentIdx !== null);
-    const newState = new Ast.DialogueState(null, POLICY_NAME, dialogueAct, null, []);
-    for (let i = 0; i <= ctx.currentIdx; i++)
-        newState.history.push(ctx.state.history[i]);
-    newState.history.push(newHistoryItem);
-    for (let i = ctx.currentIdx + 1; i < ctx.state.history.length; i++) {
-        if (ctx.state.history[i].confirm === 'proposed')
-            continue;
-        newState.history.push(ctx.state.history[i]);
-    }
-
-    return newState;
+    return addNewItem(ctx, dialogueAct, null, confirm === 'accepted' ? 'accepted-query' : 'proposed-query', newHistoryItem);
 }
 
 function addQueryAndAction(ctx : ContextInfo,
@@ -805,6 +858,46 @@ function makeAgentReply(ctx : ContextInfo,
     assert(state.dialogueAct.startsWith('sys_'));
     assert(expectedType === null || expectedType instanceof ThingTalk.Type);
 
+    // show a yes/no thing if we're proposing something
+    if (expectedType === null && state.history.some((item) => item.confirm === 'proposed'))
+        expectedType = Type.Boolean;
+
+    // if false, the agent is still listening
+    // the agent will continue listening if one of the following is true:
+    // - the agent is eliciting a value (slot fill or search question)
+    // - the agent is proposing a statement
+    // - the agent is asking the user to learn more
+    // - there are more statements left to do (includes the case of confirmations)
+    let end = options.end;
+    if (end === undefined) {
+        end = expectedType === null &&
+            state.dialogueActParam === null &&
+            !state.dialogueAct.endsWith('_question') &&
+            state.history.every((item) => item.results !== null);
+    }
+
+    if (ctx.loader.flags.inference) {
+        // at inference time, we don't need to compute any of the auxiliary info
+        // necessary to synthesize the new utterance, so we take a shortcut
+        // here and skip a whole bunch of computation
+
+        return {
+            state,
+            context: null,
+            contextPhrases: [],
+            expect: expectedType,
+
+            end: end,
+            // if true, enter raw mode for this user's turn
+            // (this is used for slot filling free-form strings)
+            raw: !!options.raw,
+
+            // the number of results we're describing at this turn
+            // (this affects the number of result cards to show)
+            numResults: options.numResults || 0,
+        };
+    }
+
     const newContext = getContextInfo(ctx.loader, state, contextTable);
     // set the auxiliary information, which is used by the semantic functions of the user
     // to see if the continuation is compatible with the specific reply from the agent
@@ -821,24 +914,6 @@ function makeAgentReply(ctx : ContextInfo,
         mainTag = contextTable.ctx_sys_action_success;
     else
         mainTag = contextTable['ctx_' + state.dialogueAct];
-
-    // if true, the interaction is done and the agent should stop listening
-    // these dialogue acts are considered to "end" the conversation:
-    // sys_recommend_*, sys_action_success, sys_action_error
-    // provided no thingtalk statement is left to do (accepted or proposed)
-    // the user can still continue, but the agent won't be listening unless woken up
-    // (specific semantic functions can override)
-    let end = options.end;
-    if (end === undefined) {
-        end = !state.history.some((item) => item.results === null) &&
-            (state.dialogueAct.startsWith('sys_recommend_') ||
-            ['sys_rule_enable_success', 'sys_action_success', 'sys_action_error',
-             'sys_end', 'sys_display_result'].includes(state.dialogueAct));
-    }
-
-    // show a yes/no thing if we're proposing something
-    if (expectedType === null && state.history.some((item) => item.confirm === 'proposed'))
-        expectedType = Type.Boolean;
 
     return {
         state,
@@ -1002,16 +1077,49 @@ function ctxCanHaveRelatedQuestion(ctx : ContextInfo) : boolean {
 }
 
 function tryReplacePlaceholderPhrase(phrase : ParsedPlaceholderPhrase,
-                                     getParam : (name : string) => SentenceGeneratorRuntime.PlaceholderReplacement|null) : SentenceGeneratorRuntime.ReplacedResult|null {
-    const replacements : SentenceGeneratorRuntime.PlaceholderReplacement[] = [];
+                                     getParam : (name : string) => SentenceGeneratorRuntime.PlaceholderReplacement|undefined|null) : SentenceGeneratorRuntime.ReplacedResult|null {
+    const replacements : Array<SentenceGeneratorRuntime.PlaceholderReplacement|undefined> = [];
     for (const param of phrase.names) {
         const replacement = getParam(param);
-        if (!replacement)
+        if (replacement === null)
             return null;
         replacements.push(replacement);
     }
     const replacementCtx = { replacements, constraints: {} };
     return phrase.replaceable.replace(replacementCtx);
+}
+
+function getDeviceName(describer : ThingTalkUtils.Describer,
+                       resultItem : Ast.DialogueHistoryResultItem|undefined,
+                       invocation : Ast.Invocation) {
+    if (resultItem) {
+        // check in the result first
+        // until ThingTalk is fixed, this will be present only if there was no
+        // projection and the compiler did not get in the way
+        // FIXME we should fix the ThingTalk compiler though...
+        if (resultItem.value.__device) {
+            const entity = resultItem.value.__device;
+            const description = describer.describeArg(entity, {});
+            if (description)
+                return { value: entity, text: description };
+        }
+    }
+
+    let name;
+    for (const in_param of invocation.selector.attributes) {
+        if (in_param.name === 'name') {
+            name = in_param.value;
+            break;
+        }
+    }
+    if (!name)
+        return undefined;
+
+    const entity = new Ast.EntityValue(invocation.selector.id, 'tt:device_id', name.toJS() as string);
+    const description = describer.describeArg(entity, {});
+    if (!description)
+        return undefined;
+    return { value: entity, text: description };
 }
 
 function makeErrorContextPhrase(ctx : ContextInfo,
@@ -1030,6 +1138,9 @@ function makeErrorContextPhrase(ctx : ContextInfo,
     for (const candidate of phrases) {
         const bag = new SlotBag(currentFunction);
         const utterance = tryReplacePlaceholderPhrase(candidate, (param) => {
+            if (param === '__device')
+                return getDeviceName(describer, undefined, action);
+
             let value = null;
             for (const in_param of action.in_params) {
                 if (in_param.name === param) {
@@ -1066,6 +1177,7 @@ function makeListResultContextPhrase(ctx : ContextInfo,
     const describer = ctx.loader.describer;
 
     const currentFunction = ctx.currentFunction!;
+    const action = C.getInvocation(ctx.current!);
 
     const output = [];
 
@@ -1074,6 +1186,9 @@ function makeListResultContextPhrase(ctx : ContextInfo,
         const bag = new SlotBag(currentFunction);
 
         const utterance = tryReplacePlaceholderPhrase(candidate, (param) => {
+            if (param === '__device')
+                return getDeviceName(describer, undefined, action);
+
             const arg = currentFunction.getArgument(param)!;
             if (arg.is_input) {
                 // use the top result value only
@@ -1124,6 +1239,7 @@ function makeListConcatResultContextPhrase(ctx : ContextInfo,
     const describer = ctx.loader.describer;
 
     const currentFunction = ctx.currentFunction!;
+    const action = C.getInvocation(ctx.current!);
 
     const output = [];
 
@@ -1141,6 +1257,11 @@ function makeListConcatResultContextPhrase(ctx : ContextInfo,
             const piece = tryReplacePlaceholderPhrase(candidate, (param) => {
                 if (param === '__index')
                     return { value: resultIdx+1, text: new ctx.loader.runtime.ReplacedConcatenation([String(resultIdx+1)], {}, {}) };
+
+                // FIXME this should be extracted from the result instead
+                // so we can show different names for different devices
+                if (param === '__device')
+                    return getDeviceName(describer, result, action);
 
                 // set the bag to the array value, if we haven't already
                 if (!bag.has(param)) {
@@ -1170,7 +1291,8 @@ function makeListConcatResultContextPhrase(ctx : ContextInfo,
 
         if (utterance) {
             const value = [ctx, bag];
-            output.push({ symbol: contextTable.ctx_thingpedia_list_result, utterance: new ctx.loader.runtime.ReplacedConcatenation(utterance, {}, {}), value, priority: 0, key: keyfns.slotBagKeyFn(bag) });
+            output.push({ symbol: contextTable.ctx_thingpedia_list_result, utterance:
+                new ctx.loader.runtime.ReplacedList(utterance, ctx.loader.locale, '.'), value, priority: 0, key: keyfns.slotBagKeyFn(bag) });
 
             // in inference mode, we're done
             if (ctx.loader.flags.inference)
@@ -1188,6 +1310,7 @@ function makeTopResultContextPhrase(ctx : ContextInfo,
     const describer = ctx.loader.describer;
 
     const currentFunction = ctx.currentFunction!;
+    const action = C.getInvocation(ctx.current!);
 
     const output = [];
 
@@ -1196,6 +1319,9 @@ function makeTopResultContextPhrase(ctx : ContextInfo,
         const bag = new SlotBag(currentFunction);
 
         const utterance = tryReplacePlaceholderPhrase(candidate, (param) => {
+            if (param === '__device')
+                return getDeviceName(describer, topResult, action);
+
             const value = topResult.value[param];
             if (!value)
                 return null;
@@ -1222,7 +1348,10 @@ function makeTopResultContextPhrase(ctx : ContextInfo,
 export function makeResultContextPhrase(ctx : ContextInfo,
                                         topResult : Ast.DialogueHistoryResultItem,
                                         allResults : Ast.DialogueHistoryResultItem[]) {
-    const currentFunction = ctx.currentFunction!;
+    // note: this is not the same as ctx.currentFunction (aka ctx.current!.stmt.expression.schema!)
+    // because the value of is_list will be different if the last function is not
+    // a list query but it is invoked in a chain with a list function
+    const currentFunction = ctx.current!.stmt.last.schema!;
     const phrases = ctx.loader.getResultPhrases(currentFunction.qualifiedName);
 
     const output = [];
@@ -1246,7 +1375,17 @@ export function makeResultContextPhrase(ctx : ContextInfo,
         if (ctx.loader.flags.inference && output.length > 0)
             return output;
 
-        output.push(...makeTopResultContextPhrase(ctx, topResult, phrases.top));
+        if (!currentFunction.is_list) {
+            // if the function is not a list, but we're getting multiple
+            // results, it means it was invoked over multiple devices, or multiple
+            // times in a row using a chain expression
+            // concatenates all the result phrases as if they were of "list_concat"
+            // type, because "list_concat" does not make sense for a non-list
+            // function
+            output.push(...makeListConcatResultContextPhrase(ctx, allResults, phrases.top));
+        } else {
+            output.push(...makeTopResultContextPhrase(ctx, topResult, phrases.top));
+        }
     } else {
         output.push(...makeTopResultContextPhrase(ctx, topResult, phrases.top));
         if (ctx.loader.flags.inference && output.length > 0)

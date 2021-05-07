@@ -71,6 +71,7 @@ dialogueActs:
     - sys_record_command
   withParam:
     - action_question
+    - notification
     - sys_search_question
     - sys_slot_fill
     - sys_empty_search_question

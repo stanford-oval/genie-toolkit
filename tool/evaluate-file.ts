@@ -40,15 +40,24 @@ export function initArgparse(subparsers : argparse.SubParser) {
         required: true,
         help: 'Path to ThingTalk file containing class definitions.'
     });
+    parser.add_argument('--parameter-datasets', {
+        required: true,
+        help: 'Path to parameter dataset manifest.'
+    });
     parser.add_argument('--predictions', {
         required: true,
         type: fs.createReadStream,
-        help: 'Prediction results (in TSV format: id, prediction)'
+        help: 'Prediction results (in TSV format: id, sentence, target, prediction)'
     });
     parser.add_argument('input_file', {
         nargs: '+',
         type: maybeCreateReadStream,
         help: 'Input datasets to evaluate (in TSV format); use - for standard input'
+    });
+    parser.add_argument('-o', '--output', {
+        required: false,
+        type: fs.createWriteStream,
+        default: process.stdout
     });
     parser.add_argument('-l', '--locale', {
         required: false,
@@ -60,6 +69,16 @@ export function initArgparse(subparsers : argparse.SubParser) {
         default: 'thingtalk',
         choices: ['thingtalk', 'dlgthingtalk'],
         help: `The programming language to generate`
+    });
+    parser.add_argument('--tokenized', {
+        action: 'store_true',
+        help: 'The utterances are tokenized.',
+        default: true
+    });
+    parser.add_argument('--no-tokenized', {
+        action: 'store_false',
+        dest: 'tokenized',
+        help: 'The utterances are not tokenized.',
     });
     parser.add_argument('--contextual', {
         action: 'store_true',
@@ -84,6 +103,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('--csv', {
         action: 'store_true',
         help: 'Output a single CSV line',
+        default: false
     });
     parser.add_argument('--csv-prefix', {
         required: false,

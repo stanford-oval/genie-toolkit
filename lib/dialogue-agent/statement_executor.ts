@@ -18,7 +18,8 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import { Ast, Type, Builtin, SchemaRetriever } from 'thingtalk';
+import assert from 'assert';
+import { Ast, Type, Builtin } from 'thingtalk';
 
 import type Engine from '../engine';
 import type AppExecutor from '../engine/apps/app_executor';
@@ -45,16 +46,16 @@ interface ErrorWithCode {
  */
 export default class InferenceStatementExecutor {
     private _engine : Engine;
-    private _schemas : SchemaRetriever;
 
     constructor(engine : Engine) {
         this._engine = engine;
-        this._schemas = this._engine.schemas;
     }
 
     private _inferType(key : string, jsValue : unknown) : Type {
         if (key === 'distance') // HACK
             return new Type.Measure('m');
+        if (key === '__device')
+            return new Type.Entity('tt:device_id');
         if (typeof jsValue === 'boolean')
             return Type.Boolean;
         if (typeof jsValue === 'string')
@@ -77,63 +78,20 @@ export default class InferenceStatementExecutor {
         return Type.Any;
     }
 
-    private _outputTypeToSchema(outputType : string) : Promise<Ast.FunctionDef> {
-        const [kind, fnamesplit] = outputType.split(':');
-        let fname = fnamesplit;
-        let ftype : 'query'|'action' = 'query';
-        if (fname.startsWith('action/')) {
-            ftype = 'action';
-            fname = fname.substring('action/'.length);
-        }
-        return this._schemas.getSchemaAndNames(kind, ftype, fname);
-    }
-
-    async mapResult(outputType : string|null, outputValue : Record<string, unknown>) {
+    async mapResult(schema : Ast.FunctionDef, outputValue : Record<string, unknown>) {
         const mappedResult : Record<string, Ast.Value> = {};
-        if (outputType === null) {
-            // fallback
-            for (const key in outputValue) {
-                const jsValue = outputValue[key];
-                mappedResult[key] = Ast.Value.fromJS(this._inferType(key, jsValue), jsValue);
-            }
-            return new Ast.DialogueHistoryResultItem(null, mappedResult, outputValue);
-        }
 
-        if (outputType.indexOf('+') >= 0) {
-            const types = outputType.split('+');
-            outputType = types[types.length-1];
-        }
+        for (const key in outputValue) {
+            const value = outputValue[key];
+            const type = schema.getArgType(key) || this._inferType(key, value);
 
-        const aggregation = /^([a-zA-Z]+)\(([^)]+)\)$/.exec(outputType);
-        if (aggregation !== null) {
-            let operator;
-            [, operator, outputType] = aggregation;
+            if (value === null || value === undefined)
+                continue;
 
-            const field = Object.keys(outputValue)[0];
-            const value = outputValue[field];
-            if (operator === 'count') {
-                mappedResult[field] = Ast.Value.fromJS(Type.Number, outputValue[field]);
-                return new Ast.DialogueHistoryResultItem(null, mappedResult, outputValue);
-            }
-
-            const schema = await this._outputTypeToSchema(outputType);
-            const type = schema.getArgType(field) || this._inferType(field, value);
-            mappedResult[field] = Ast.Value.fromJS(type, value);
-        } else {
-            const schema = await this._outputTypeToSchema(outputType);
-
-            for (const key in outputValue) {
-                const value = outputValue[key];
-                const type = schema.getArgType(key) || this._inferType(key, value);
-
-                if (value === null || value === undefined)
-                    continue;
-
-                if (type instanceof Type.Compound)
-                    mappedResult[key] = this._mapCompound(key + '.', schema, value as Record<string, unknown>);
-                else
-                    mappedResult[key] = Ast.Value.fromJS(type, value);
-            }
+            if (type instanceof Type.Compound)
+                mappedResult[key] = this._mapCompound(key + '.', schema, value as Record<string, unknown>);
+            else
+                mappedResult[key] = Ast.Value.fromJS(type, value);
         }
         return new Ast.DialogueHistoryResultItem(null, mappedResult, outputValue);
     }
@@ -163,6 +121,7 @@ export default class InferenceStatementExecutor {
     }
 
     private async _iterateResults(app : AppExecutor,
+                                  schema : Ast.FunctionDef,
                                   into : Ast.DialogueHistoryResultItem[],
                                   intoRaw : RawExecutionResult) : Promise<[boolean, string|undefined, string|undefined]> {
         let count = 0;
@@ -181,7 +140,7 @@ export default class InferenceStatementExecutor {
                 if (!errorMessage)
                     errorMessage = value.message;
             } else {
-                const mapped = await this.mapResult(value.outputType, value.outputValue);
+                const mapped = await this.mapResult(schema, value.outputValue);
                 into.push(mapped);
                 intoRaw.push([value.outputType, value.outputValue]);
                 count ++;
@@ -209,9 +168,11 @@ export default class InferenceStatementExecutor {
         }
 
         const app = await this._engine.createApp(program, { notifications: notifications ? [notifications] : undefined });
+        // by now the statement must have been typechecked
+        assert(stmt.expression.schema);
         const results : Ast.DialogueHistoryResultItem[] = [];
         const rawResults : RawExecutionResult = [];
-        const [more, errorCode, errorMessage] = await this._iterateResults(app, results, rawResults);
+        const [more, errorCode, errorMessage] = await this._iterateResults(app, stmt.expression.schema, results, rawResults);
 
         const resultList = new Ast.DialogueHistoryResultList(null, results.slice(0, PAGE_SIZE),
             new Ast.Value.Number(results.length), more,

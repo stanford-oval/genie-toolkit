@@ -128,6 +128,10 @@ export interface DeviceInfo {
      * if it was configured manually and is stored on disk.
      */
     isTransient : boolean;
+    /**
+     * A string identifying the type of authentication used by this device.
+     */
+    authType : string;
 }
 
 interface EngineModule {
@@ -181,6 +185,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
     // should be private, but it is accessed from @org.thingpedia.builtin.thingengine
     _tiers : TierManager;
     private _modules : EngineModule[];
+    private _langPack : I18n.LanguagePack;
 
     private _devices : DeviceDatabase;
     private _appdb : AppDatabase;
@@ -201,6 +206,8 @@ export default class AssistantEngine extends Tp.BaseEngine {
         super(platform, options);
 
         this._ = I18n.get(platform.locale).gettext;
+
+        this._langPack = I18n.get(platform.locale);
 
         this._tiers = new TierManager(platform, options.cloudSyncUrl || Config.THINGENGINE_URL);
 
@@ -232,6 +239,10 @@ export default class AssistantEngine extends Tp.BaseEngine {
 
         this._running = false;
         this._stopCallback = null;
+    }
+
+    get langPack() {
+        return this._langPack;
     }
 
     /**
@@ -451,7 +462,8 @@ export default class AssistantEngine extends Tp.BaseEngine {
             version: (d.constructor as typeof Tp.BaseDevice).metadata.version || 0,
             class: deviceKlass,
             ownerTier: d.ownerTier,
-            isTransient: d.isTransient
+            isTransient: d.isTransient,
+            authType: (d.constructor as typeof Tp.BaseDevice).metadata.auth.type || 'unknown',
         };
     }
 

@@ -147,7 +147,7 @@ function displayResultSearchQuestionReply(ctx : ContextInfo, questions : C.Param
 
 function listProposalSearchQuestionReply(ctx : ContextInfo, [name, questions] : [Ast.Value|null, C.ParamSlot[]]) {
     const proposal = ctx.aux as ListProposal;
-    const [results, info] = proposal;
+    const { results, info } = proposal;
 
     if (name !== null) {
         let good = false;

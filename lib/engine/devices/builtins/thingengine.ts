@@ -49,7 +49,7 @@ export default class ThingEngineDevice extends Tp.BaseDevice {
 
     _tierManager : TierManager;
 
-    constructor(engine : Engine, state : ThingEngineDeviceState) {
+    constructor(engine : Tp.BaseEngine, state : ThingEngineDeviceState) {
         super(engine, state);
 
         this.tier = state.tier;
@@ -62,7 +62,7 @@ export default class ThingEngineDevice extends Tp.BaseDevice {
 
         // This is a built-in device so we're allowed some
         // "friendly" API access
-        this._tierManager = engine._tiers;
+        this._tierManager = (engine as Engine)._tiers;
 
         this.cloudId = undefined;
         this.developerKey = undefined;

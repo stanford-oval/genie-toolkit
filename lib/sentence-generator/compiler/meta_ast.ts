@@ -23,6 +23,7 @@ import assert from 'assert';
 
 import { stringEscape } from '../../utils/escaping';
 import * as TemplateGrammar from '../../utils/template-string/grammar';
+import * as I18n from '../../i18n';
 
 export class NodeVisitor {
     visitImport(stmt : Import) {}
@@ -359,7 +360,7 @@ export class NewStyleExpansion extends Rule {
 
         // try parsing the template and preprocessing, so we catch errors eagerly
         try {
-            TemplateGrammar.parse(this.sentenceTemplate).preprocess('en-US', this.nonTerminals.map((e) => e.name ?? e.symbol));
+            TemplateGrammar.parse(this.sentenceTemplate).preprocess(I18n.get('en-US'), this.nonTerminals.map((e) => e.name ?? e.symbol));
         } catch(e) {
             throw new Error(`Failed to parse template string for ${nonTerminal} = ${this.sentenceTemplate} (${this.nonTerminals.join(', ')}): ${e.message}`);
         }

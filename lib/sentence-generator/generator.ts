@@ -620,7 +620,10 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
                                                                      keyFunction : KeyFunction<ResultType>|undefined,
                                                                      attributes : RuleAttributes = {}) {
         const rulenumber = this._rules[symbolId].length;
-        this._rules[symbolId].push(new Rule(rulenumber, expansion, sentence, semanticAction, keyFunction, attributes));
+        const optsentence = sentence.optimize({});
+        if (optsentence === null)
+            return;
+        this._rules[symbolId].push(new Rule(rulenumber, expansion, optsentence, semanticAction, keyFunction, attributes));
     }
 
     addConstants(symbol : string, token : string, type : any, keyFunction : KeyFunction<any>, attributes : RuleAttributes = {}) : void {
@@ -653,7 +656,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
         let sentence;
         if (typeof sentenceTemplate === 'string') {
             try {
-                sentence = Replaceable.parse(sentenceTemplate).preprocess(this._options.locale, expansion.map((e) => e.name ?? e.symbol));
+                sentence = Replaceable.parse(sentenceTemplate).preprocess(this._langPack, expansion.map((e) => e.name ?? e.symbol));
             } catch(e) {
                 throw new GenieTypeError(`Failed to parse template string for ${symbol} = ${sentenceTemplate} (${expansion.join(', ')}): ${e.message}`);
             }
@@ -1019,10 +1022,12 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
 
                 let nonTermSize = 0;
                 const queue = new PriorityQueue<Derivation<any>>();
+
                 for (const rule of this._rules[index]) {
                     if (!rule.enabled)
                         continue;
 
+                    const rulebegin = Date.now();
                     try {
                         expandRule(charts, depth, index, rule, this._averagePruningFactor, INFINITY, this._options, this._nonTermList, (derivation) => {
                             if (derivation === null)
@@ -1034,6 +1039,11 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
                     } catch(e) {
                         console.error(`Error expanding rule NT[${this._nonTermList[index]}] -> ${rule}`);
                         throw e;
+                    }
+                    if (this._options.debug >= LogLevel.INFO) {
+                        const ruleend = Date.now();
+                        if (ruleend - rulebegin >= 250)
+                            console.log(`NT[${this._nonTermList[index]}] -> ${rule} took ${ruleend - rulebegin} milliseconds`);
                     }
                 }
 
@@ -1054,7 +1064,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
             }
 
             if (this._options.debug >= LogLevel.INFO) {
-                console.log(`depth ${depth} took ${((Date.now() - depthbegin)/1000).toFixed(2)} seconds`);
+                console.log(`depth ${depth} took ${Date.now() - depthbegin} milliseconds`);
                 console.log();
             }
         }

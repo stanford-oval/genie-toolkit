@@ -1049,14 +1049,14 @@ function builtinSayAction(loader : ThingpediaLoader,
     if (pname instanceof Ast.Value) {
         const param = new Ast.InputParam(null, 'message', pname);
         return new Ast.InvocationExpression(null, new Ast.Invocation(null, selector, 'say', [param], loader.standardSchemas.say),
-            loader.standardSchemas.say.removeArgument('message'));
+            loader.standardSchemas.say);
     } else if (pname) {
         const param = new Ast.InputParam(null, 'message', new Ast.Value.VarRef(pname));
         return new Ast.InvocationExpression(null, new Ast.Invocation(null, selector, 'say', [param], loader.standardSchemas.say),
-            loader.standardSchemas.say.removeArgument('message'));
+            loader.standardSchemas.say);
     } else {
         return new Ast.InvocationExpression(null, new Ast.Invocation(null, selector, 'say', [], loader.standardSchemas.say),
-            loader.standardSchemas.say.removeArgument('message'));
+            loader.standardSchemas.say);
     }
 }
 
@@ -1484,7 +1484,8 @@ function makeComputeFilterExpression(table : Ast.Expression,
 }
 
 function makeWithinGeoDistanceExpression(table : Ast.Expression, location : Ast.Value, filterValue : Ast.Value) : Ast.Expression|null {
-    if (!table.schema!.out.geo || !table.schema!.out.geo.isLocation)
+    const arg = table.schema!.getArgument('geo');
+    if (!arg || !arg.type.isLocation)
         return null;
     if (!(filterValue instanceof Ast.Value.Measure))
         return null;

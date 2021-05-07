@@ -106,14 +106,14 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         return this._executor;
     }
 
-    getAllDevicesOfKind(kind : string) {
+    async getAllDevicesOfKind(kind : string) {
         return this._engine.getDeviceInfos(kind);
     }
 
     private async _requireRegistration(msg : string) : Promise<never> {
         const state = this._dlg.conversation.getState();
         await this._dlg.reply(msg);
-        await this._dlg.replyLink(this._("Sign-up for Genie"), "/user/register", state);
+        await this._dlg.replyLink(this._("Sign up for Genie"), "/user/register", state);
         throw new CancellationError();
     }
 
@@ -139,18 +139,22 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         }
     }
 
-    async disambiguate(type : 'device'|'contact',
+    async disambiguate(type : 'device'|'device-missing'|'contact',
                        name : string|null,
                        choices : string[],
                        hint ?: string) : Promise<number> {
         let question : string;
-        if (type === 'device') {
-            question = this._dlg.interpolate(this._("You have multiple ${?“${name}” }${device} devices. Which one do you want to use?"), {
-                name,
-                device: cleanKind(hint!)
-            })!;
+        if (type === 'device-missing') {
+            assert(name);
+            question = this._dlg.interpolate(this._("I cannot find any ${name} ${device} device. Which device do you want to use?"), {
+                name, device: cleanKind(hint!)
+            });
+        } else if (type === 'device') {
+            question = this._dlg.interpolate(this._("You have multiple {${name}| }${device} devices. Which one do you want to use?"), {
+                name, device: cleanKind(hint!)
+            });
         } else {
-            question = this._dlg.interpolate(this._("Multiple contacts match “${name}”. Who do you mean?"), { name })!;
+            question = this._dlg.interpolate(this._("Multiple contacts match “${name}”. Who do you mean?"), { name });
         }
         return this._dlg.askChoices(question, choices);
     }
@@ -173,7 +177,7 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
             return this._engine.getDeviceInfo(device.uniqueId!);
         } else {
             if (this._dlg.isAnonymous) {
-                await this._requireRegistration(this._dlg.interpolate(this._("Sorry, to use ${device}, you must create a personal Genie account."), {
+                await this._requireRegistration(this._dlg.interpolate(this._("Sorry, to use ${device}, you must create a personal Almond account."), {
                     device: factory.text,
                 }));
             }
@@ -187,7 +191,7 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
                     device: factory.text,
                     choices: new ReplacedList(factory.choices.map((f) => new ReplacedConcatenation([f.text], {}, {})), this._engine.platform.locale, 'disjunction')
                 });
-            } else if (this.getAllDevicesOfKind(factory.kind).length > 0) {
+            } else if ((await this.getAllDevicesOfKind(factory.kind)).length > 0) {
                 await this._dlg.replyInterp(this._("You do not have a ${device} configured. You will need to configure it inside your ${factory} before you can use that command."), {
                     device: cleanKind(kind),
                     factory: factory.text,
