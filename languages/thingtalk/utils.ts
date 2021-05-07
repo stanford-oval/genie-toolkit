@@ -199,6 +199,26 @@ function makeFilter(tpLoader : ThingpediaLoader,
 
         if (op === '==' && vtype.isString)
             op = '=~';
+
+        const arg = slot.schema.getArgument(slot.name)!;
+        if (vtype.isNumber || vtype.isMeasure) {
+            let min = -Infinity;
+            const minArg = arg.getImplementationAnnotation<number>('min_number');
+            if (minArg !== undefined)
+                min = minArg;
+            const maxArg = arg.getImplementationAnnotation<number>('max_number');
+            let max = Infinity;
+            if (maxArg !== undefined)
+                max = maxArg;
+
+            if (value.isNumber) {
+                const num = value.toJS() as number;
+                if (min >= 0 && min <= 12 && num < min)
+                    return null;
+                if (max >= 0 && max <= 12 && num > max)
+                    return null;
+            }
+        }
     }
 
     let ast = new Ast.BooleanExpression.Atom(null, slot.name, op, value);
