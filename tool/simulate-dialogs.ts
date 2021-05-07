@@ -129,6 +129,20 @@ export function initArgparse(subparsers : argparse.SubParser) {
         The output will have as many partial dialogues as there are dialogue turns in the input.`,
         default: false
     });
+    parser.add_argument('--debug', {
+        action: 'store_true',
+        default: false,
+        help: 'Enable debugging.',
+    });
+    parser.add_argument('--no-debug', {
+        action: 'store_false',
+        dest: 'debug',
+        help: 'Disable debugging.',
+    });
+    parser.add_argument('--random-seed', {
+        default: 'almond is awesome',
+        help: 'Random seed'
+    });
 
     parser.add_argument('--verbose-agent', {
         action: 'store_true',
@@ -391,7 +405,7 @@ export async function execute(args : any) {
     const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
 
     const simulatorOptions : ThingTalkUtils.SimulatorOptions = {
-        rng: seedrandom.alea('almond is awesome'),
+        rng: seedrandom.alea(args.random_seed),
         locale: args.locale,
         timezone: args.timezone,
         thingpediaClient: tpClient,
@@ -410,7 +424,7 @@ export async function execute(args : any) {
         locale: args.locale,
         timezone: args.timezone,
         rng: simulatorOptions.rng,
-        debug: 0,
+        debug: args.debug ? 2 : 0,
         anonymous: false,
         extraFlags: {
             verboseagent: args.verbose_agent,
