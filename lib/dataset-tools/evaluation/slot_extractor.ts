@@ -72,7 +72,7 @@ export default class SlotExtractor {
 
     private async _resolveEntity(value : Ast.EntityValue) : Promise<EntityRecord> {
         if (this._isWellKnownEntity(value.type)) {
-            assert(value.value);
+            assert(value.value, `Unexpected missing entity value "${value.value}" for a ${value.type} entity`);
             return { value: value.value!, name: value.display||'', canonical: value.value! };
         }
 
