@@ -58,7 +58,6 @@ export default class SlotExtractor {
         case 'tt:email_address':
         case 'tt:phone_number':
         case 'tt:path_name':
-        case 'tt:device':
         case 'tt:function':
             return true;
         default:
@@ -107,17 +106,37 @@ export default class SlotExtractor {
             return resolved;
         }
 
-        // resolve as regular Thingpedia entity
-        const candidates = await this._tpClient!.lookupEntity(value.type, searchKey);
-        if (candidates.data.length === 0) {
-            // this entity has no NER
-            resolved = {
-                value: value.value||value.display||'',
-                name: value.display||'',
-                canonical: value.display||''
-            };
+        if (value.type === 'tt:device') {
+            if (value.value)
+                return { value: value.value!, name: value.display||'', canonical: value.value! };
+
+            const candidates = await this._tpClient!.searchDevice(value.display!);
+            if (candidates.length === 0) {
+                resolved = {
+                    value: value.display||'',
+                    name: value.display||'',
+                    canonical: value.display||''
+                };
+            } else {
+                resolved = getBestEntityMatch(value.display!, value.type, candidates.map((d) => ({
+                    value: d.primary_kind,
+                    name: d.name,
+                    canonical: this._tokenizer.tokenize(d.name).rawTokens.join(' ')
+                })));
+            }
         } else {
-            resolved = getBestEntityMatch(searchKey, value.type, candidates.data);
+            // resolve as regular Thingpedia entity
+            const candidates = await this._tpClient!.lookupEntity(value.type, searchKey);
+            if (candidates.data.length === 0) {
+                // this entity has no NER
+                resolved = {
+                    value: value.value||value.display||'',
+                    name: value.display||'',
+                    canonical: value.display||''
+                };
+            } else {
+                resolved = getBestEntityMatch(searchKey, value.type, candidates.data);
+            }
         }
         this._cachedEntityMatches.set(cacheKey, resolved);
         return resolved;
