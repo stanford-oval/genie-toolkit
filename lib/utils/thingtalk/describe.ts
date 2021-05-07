@@ -1195,7 +1195,7 @@ export class Describer {
 
         const phrases : ReplacedResult[] = normalized.base.map((phrase) => phrase.toReplaced());
         if (phrases.length === 0)
-            return null;
+            return this._const(clean(argname));
         if (phrases.length === 1)
             return phrases[0];
         return new ReplacedChoice(phrases);
