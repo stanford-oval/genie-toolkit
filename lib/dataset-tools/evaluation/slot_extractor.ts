@@ -113,12 +113,18 @@ export default class SlotExtractor {
         if (value.type === 'tt:device') {
             if (value.value) {
                 try {
-                    const classDef = await this._schemas.getFullMeta(value.value!);
-                    value.display = classDef.nl_annotations.thingpedia_name || classDef.nl_annotations.canonical || cleanKind(value.value!);
+                    const classDef = await this._schemas.getFullMeta(value.value);
+                    value.display = classDef.nl_annotations.thingpedia_name || classDef.nl_annotations.canonical;
                 } catch(e) {
                     // ignore errors if the device is not known
                 }
-                return { value: value.value!, name: value.display||'', canonical: value.value! };
+                if (!value.display)
+                    value.display = cleanKind(value.value);
+                return {
+                    value: value.value!,
+                    name: value.display||'',
+                    canonical: this._tokenizer.tokenize(value.display).rawTokens.join(' ')
+                };
             }
 
             const candidates = await this._tpClient!.searchDevice(value.display!);
