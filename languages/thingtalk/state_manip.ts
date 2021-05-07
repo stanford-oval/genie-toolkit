@@ -988,6 +988,7 @@ export function tagContextForAgent(ctx : ContextInfo) : number[] {
         else
             return [contextTable.ctx_nonlist_notification];
 
+    case 'insist':
     case 'execute':
     case 'ask_recommend':
         if (ctx.nextInfo !== null) {
