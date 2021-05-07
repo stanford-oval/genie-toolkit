@@ -225,6 +225,7 @@ class SimulatorStream extends Stream.Transform {
     private _introduceErrors : boolean;
     private _locale : string;
     private _langPack : I18n.LanguagePack;
+    private _debug : boolean;
 
     constructor(options : {
         policy : DialoguePolicy,
@@ -234,6 +235,7 @@ class SimulatorStream extends Stream.Transform {
         tpClient : Tp.BaseClient,
         outputMistakesOnly : boolean,
         introduceErrors : boolean,
+        debug : boolean,
         locale : string
     }) {
         super({ objectMode : true });
@@ -245,6 +247,7 @@ class SimulatorStream extends Stream.Transform {
         this._tpClient = options.tpClient;
         this._outputMistakesOnly = options.outputMistakesOnly;
         this._introduceErrors = options.introduceErrors;
+        this._debug = options.debug;
         this._locale = options.locale;
         this._langPack = I18n.get(options.locale);
     }
@@ -330,11 +333,14 @@ class SimulatorStream extends Stream.Transform {
         try {
             policyResult = await this._dialoguePolicy.chooseAction(state);
         } catch(error) {
+            if (this._debug)
+                throw error;
             console.log(`Error while choosing action: ${error.message}. skipping.`);
             return;
         }
         if (!policyResult) {
-            // throw new Error(`Dialogue policy error: no reply for dialogue ${dlg.id}`);
+            if (this._debug)
+                throw new Error(`Dialogue policy error: no reply for dialogue ${dlg.id}`);
             console.log(`Dialogue policy error: no reply for dialogue ${dlg.id}. skipping.`);
             console.log(lastTurn);
             return;
@@ -447,7 +453,8 @@ export async function execute(args : any) {
                 policy, simulator, schemas, parser, tpClient,
                 outputMistakesOnly: args.output_mistakes_only,
                 locale: args.locale,
-                introduceErrors: args.introduce_errors
+                introduceErrors: args.introduce_errors,
+                debug: args.debug
             }))
             .pipe(new DialogueSerializer())
             .pipe(args.output)
@@ -460,7 +467,8 @@ export async function execute(args : any) {
                 policy, simulator, schemas, parser, tpClient,
                 outputMistakesOnly: args.output_mistakes_only,
                 locale: args.locale,
-                introduceErrors: args.introduce_errors
+                introduceErrors: args.introduce_errors,
+                debug: args.debug
             }))
             .pipe(new DialogueSerializer())
             .pipe(args.output)
