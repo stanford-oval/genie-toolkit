@@ -42,7 +42,7 @@ import DialoguePolicy from '../lib/dialogue-agent/dialogue_policy';
 import * as ParserClient from '../lib/prediction/parserclient';
 import * as I18n from '../lib/i18n';
 
-import { readAllLines } from './lib/argutils';
+import { ActionSetFlag, readAllLines } from './lib/argutils';
 import MultiJSONDatabase from './lib/multi_json_database';
 import { PredictionResult } from '../lib/prediction/parserclient';
 import FileThingpediaClient from './lib/file_thingpedia_client';
@@ -84,8 +84,24 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: `Path to a file pointing to JSON databases used to simulate queries.`,
     });
     parser.add_argument('--parameter-datasets', {
-        required: true,
+        required: false,
         help: 'TSV file containing the paths to datasets for strings and entity types.'
+    });
+    parser.add_argument('--set-flag', {
+        required: false,
+        nargs: 1,
+        action: ActionSetFlag,
+        const: true,
+        metavar: 'FLAG',
+        help: 'Set a flag for the construct template file.',
+    });
+    parser.add_argument('--unset-flag', {
+        required: false,
+        nargs: 1,
+        action: ActionSetFlag,
+        const: false,
+        metavar: 'FLAG',
+        help: 'Unset (clear) a flag for the construct template file.',
     });
     parser.add_argument('input_file', {
         nargs: '+',
@@ -396,7 +412,10 @@ export async function execute(args : any) {
         rng: simulatorOptions.rng,
         debug: 0,
         anonymous: false,
-        extraFlags: {verboseagent: args.verbose_agent},
+        extraFlags: {
+            verboseagent: args.verbose_agent,
+            ...args.flags
+        },
     });
 
     let parser = null;
