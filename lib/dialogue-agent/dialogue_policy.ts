@@ -29,8 +29,8 @@ import { AgentReplyRecord } from '../sentence-generator/types';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import { EntityMap } from '../utils/entity-utils';
 
-const MAX_DEPTH = 7;
-const TARGET_PRUNING_SIZES = [15, 50, 100];
+const MAX_DEPTH = 8;
+const TARGET_PRUNING_SIZES = [15, 50, 100, 200];
 
 let TEMPLATE_FILE_PATH : string;
 try {
