@@ -128,8 +128,13 @@ base_result_phrase : D.ResultPhrase = {
     },
 }
 
+equal_with_filter : C.FilterSlot = {
+    ["the ${p} equal to ${x}"]: (p:out_param_Any, x:constant_Any<type=p.type>) => C.makeFilter($loader, p, '==', x),
+}
+
 one_with_info_phrase : D.ResultPhrase = {
     ["${table} {with|having} ${filter} [plural=table[plural]]"]: (table:base_result_phrase, filter:npp_filter<functionName = table.functionName>) => D.addSlotToResultPhrase(table, filter),
+    ["${table} {with|having} ${filter} [plural=table[plural]]"]: (table:base_result_phrase, filter:equal_with_filter<functionName = table.functionName>) => D.addSlotToResultPhrase(table, filter),
 }
 
 one_which_info_phrase : D.ResultPhrase = {
@@ -163,6 +168,9 @@ one_clean_info_phrase : D.ResultPhrase = {
 two_with_info_phrase : D.ResultPhrase = {
     ["${table} and ${filter} [plural=table[plural]]"]:
         (table:one_with_info_phrase, filter:npp_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} and ${filter} [plural=table[plural]]"]:
+        (table:one_with_info_phrase, filter:equal_with_filter<functionName = table.functionName>)
             => D.addSlotToResultPhrase(table, filter),
     // XXX not sure about this one, once a table is "which" it should stay which
     // concretely, it generates "restaurants that serve chinese food and having moderate price" which seems awkward?
@@ -230,11 +238,19 @@ three_with_info_phrase : D.ResultPhrase = {
     ["${table} and ${filter} [plural=table[plural]]"]:
         (table:two_with_info_phrase, filter:npp_filter<functionName = table.functionName>)
             => D.addSlotToResultPhrase(table, filter),
+    ["${table} and ${filter} [plural=table[plural]]"]:
+        (table:two_with_info_phrase, filter:equal_with_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
     ["${table} {and having|and with|, with} ${filter} [plural=table[plural]]"]:
         (table:two_which_info_phrase, filter:npp_filter<functionName = table.functionName>)
             => D.addSlotToResultPhrase(table, filter),
+    ["${table} {and having|and with|, with} ${filter} [plural=table[plural]]"]:
+        (table:two_which_info_phrase, filter:equal_with_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
     ["${table} {with|having} ${filter} [plural=table[plural]]"]:
         (table:two_clean_info_phrase, filter:npp_filter<functionName = table.functionName>) => D.addSlotToResultPhrase(table, filter),
+    ["${table} {with|having} ${filter} [plural=table[plural]]"]:
+        (table:two_clean_info_phrase, filter:equal_with_filter<functionName = table.functionName>) => D.addSlotToResultPhrase(table, filter),
 }
 
 three_which_info_phrase : D.ResultPhrase = {
@@ -295,22 +311,38 @@ n_with_info_phrase : D.ResultPhrase = {
     ["${table} and ${filter} [plural=table[plural]]"]:
         (table:one_with_info_phrase, filter:npp_filter<functionName = table.functionName>)
             => D.addSlotToResultPhrase(table, filter),
+    ["${table} and ${filter} [plural=table[plural]]"]:
+        (table:one_with_info_phrase, filter:equal_with_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
     // XXX not sure about this one, once a table is "which" it should stay which
     // concretely, it generates "restaurants that serve chinese food and having moderate price" which seems awkward?
     ["${table} {and having|and with|, with} ${filter} [plural=table[plural]]"]:
         (table:one_which_info_phrase, filter:npp_filter<functionName = table.functionName>)
             => D.addSlotToResultPhrase(table, filter),
+    ["${table} {and having|and with|, with} ${filter} [plural=table[plural]]"]:
+        (table:one_which_info_phrase, filter:equal_with_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
     ["${table} {with|having} ${filter} [plural=table[plural]]"]:
         (table:one_clean_info_phrase, filter:npp_filter<functionName = table.functionName>) => D.addSlotToResultPhrase(table, filter),
+    ["${table} {with|having} ${filter} [plural=table[plural]]"]:
+        (table:one_clean_info_phrase, filter:equal_with_filter<functionName = table.functionName>) => D.addSlotToResultPhrase(table, filter),
 
     ["${table} and ${filter} [plural=table[plural]]"]:
         (table:n_with_info_phrase, filter:npp_filter<functionName = table.functionName>)
             => D.addSlotToResultPhrase(table, filter),
+    ["${table} and ${filter} [plural=table[plural]]"]:
+        (table:n_with_info_phrase, filter:equal_with_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
     ["${table} {and having|and with|, with} ${filter} [plural=table[plural]]"]:
         (table:n_which_info_phrase, filter:npp_filter<functionName = table.functionName>)
             => D.addSlotToResultPhrase(table, filter),
+    ["${table} {and having|and with|, with} ${filter} [plural=table[plural]]"]:
+        (table:n_which_info_phrase, filter:equal_with_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
     ["${table} {with|having} ${filter} [plural=table[plural]]"]:
         (table:n_clean_info_phrase, filter:npp_filter<functionName = table.functionName>) => D.addSlotToResultPhrase(table, filter),
+    ["${table} {with|having} ${filter} [plural=table[plural]]"]:
+        (table:n_clean_info_phrase, filter:equal_with_filter<functionName = table.functionName>) => D.addSlotToResultPhrase(table, filter),
 }
 
 n_which_info_phrase : D.ResultPhrase = {
