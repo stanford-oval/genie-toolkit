@@ -100,7 +100,7 @@ class SchemaProcessor {
     _addPrimEntity(type, subtype_of) {
         if (this._entities.has(type)) {
             const entity = this._entities.get(type);
-            if (!entity.subtype_of.includes(subtype_of))
+            if (subtype_of && !entity.subtype_of.includes(subtype_of))
                 entity.subtype_of.push(subtype_of);
         } else {
             this._entities.set(type, { 
@@ -108,7 +108,7 @@ class SchemaProcessor {
                 name: type, 
                 is_well_known: false, 
                 has_ner_support: true, 
-                subtype_of: [subtype_of]
+                subtype_of: subtype_of ? [subtype_of] : []
             });
         }
     }
@@ -158,7 +158,7 @@ class SchemaProcessor {
                     nl: { canonical: { base: ['name'], passive_verb: ['named', 'called'] } }
                 })
             ];
-            this._addSuperEntity(domainEntityType);
+            this._addPrimEntity(domainEntityType);
             for (let property of properties) {
                 const label = this._labels.get(property);
                 const name = argnameFromLabel(label);
