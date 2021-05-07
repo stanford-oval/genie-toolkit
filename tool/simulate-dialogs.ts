@@ -25,7 +25,10 @@ import * as Stream from 'stream';
 import seedrandom from 'seedrandom';
 import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
+import * as util from 'util';
+import { Ast } from 'thingtalk';
 
+import * as random from '../lib/utils/random';
 import * as ThingTalkUtils from '../lib/utils/thingtalk';
 import * as StreamUtils from '../lib/utils/stream-utils';
 import {
@@ -43,12 +46,7 @@ import { readAllLines } from './lib/argutils';
 import MultiJSONDatabase from './lib/multi_json_database';
 import { PredictionResult } from '../lib/prediction/parserclient';
 import FileThingpediaClient from './lib/file_thingpedia_client';
-// @ts-ignore
-import { AndBooleanExpression, AtomBooleanExpression, DialogueState, Expression, FilterExpression, FunctionDef, Invocation, InvocationExpression, Node } from 'thingtalk/dist/ast';
-// @ts-ignore
-import * as util from 'util';
-// @ts-ignore
-import * as random from '../lib/utils/random';
+
 
 export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('simulate-dialogs', {
@@ -94,6 +92,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         type: fs.createReadStream,
         help: 'Input dialog file'
     });
+    parser.add_argument('--introduce-errors', {
+        action: 'store_true',
+        help: 'Simulate the dialogue as-if the user target was erroneous.',
+        default: false
+    });
     parser.add_argument('--nlu-server', {
         required: false,
         help: `The URL of the natural language server to parse user utterances. Use a file:// URL pointing to a model directory to use a local instance of genienlp.
@@ -118,68 +121,69 @@ export function initArgparse(subparsers : argparse.SubParser) {
     });
 }
 
-// function changeArgumentName(expression : AtomBooleanExpression, schema : FunctionDef, rng : () => number) {
-//     const currentName = expression.name;
-//     const possibleNewNames = schema.args.filter((value) => value !== currentName); // returns a new array
-//     console.log('currentName = ', currentName);
-//     console.log('possibleNewNames = ', possibleNewNames);
-//     const newName = random.uniform(possibleNewNames, rng);
-//     expression.name = newName;
-// }
+function changeArgumentName(expression : Ast.AtomBooleanExpression, schema : Ast.FunctionDef, rng : () => number) {
+    const currentName = expression.name;
+    const possibleNewNames = schema.args.filter((value) => value !== currentName); // returns a new array
+    console.log('currentName = ', currentName);
+    console.log('possibleNewNames = ', possibleNewNames);
+    const newName = random.uniform(possibleNewNames, rng);
+    expression.name = newName;
+}
 
-// function changeArgumentValue(expression : AtomBooleanExpression, schema : FunctionDef, rng : () => number) {
-//     const currentValue = expression.value;
-//     // const possibleNewValues = schema.args.filter((value) => value !== currentValue); // returns a new array
-//     console.log('currentValue = ', currentValue);
-//     for (const a of schema.iterateArguments()){
-//         console.log('iterateArguments = ', a);
-//     }
-//     // console.log('possibleNewValues = ', possibleNewValues);
-//     // const newName = random.uniform(possibleNewNames, rng);
-//     // expression.name = newName;
-// }
+function changeArgumentValue(expression : Ast.AtomBooleanExpression, schema : Ast.FunctionDef, rng : () => number) {
+    const currentValue = expression.value;
+    // const possibleNewValues = schema.args.filter((value) => value !== currentValue); // returns a new array
+    console.log('currentValue = ', currentValue);
+    for (const a of schema.iterateArguments())
+        console.log('iterateArguments = ', a);
+    // console.log('possibleNewValues = ', possibleNewValues);
+    // const newName = random.uniform(possibleNewNames, rng);
+    // expression.name = newName;
+}
 
-// function recursiveErrorFunction(node : Node, schema : FunctionDef, rng : () => number) {
-//     console.log('recursiveErrorFunction() called with node "', node.prettyprint(), '": ', util.inspect(node, false, 1, true));
-//     if (node instanceof AtomBooleanExpression) {
-//         changeArgumentValue(node, schema, rng);
-//     }
-//     else if (node instanceof FilterExpression) {
-//         recursiveErrorFunction(node.expression, schema, rng);
-//         recursiveErrorFunction(node.filter, schema, rng);
-//     }
-//     else if (node instanceof InvocationExpression) {
-//         recursiveErrorFunction(node.invocation, schema, rng);
-//     }
-//     else if (node instanceof Invocation) {
-//         for (let i = 0 ; i < node.in_params.length ; i ++)
-//         recursiveErrorFunction(node.in_params[i], schema, rng);
-//     }
-//     else if (node instanceof AndBooleanExpression) {
-//         for (let i = 0; i < node.operands.length; i++) {
-//             recursiveErrorFunction(node.operands[i], schema, rng);
-//         }
-//         // recursiveErrorFunction(node.expression, schema, rng);
-//     }
-// }
+function recursiveErrorFunction(node : Ast.Node, schema : Ast.FunctionDef, rng : () => number) {
+    console.log('recursiveErrorFunction() called with node "', node.prettyprint(), '": ', util.inspect(node, false, 1, true));
+    if (node instanceof Ast.AtomBooleanExpression) {
+        if (random.coin(0.5, rng))
+            changeArgumentValue(node, schema, rng);
+        else
+            changeArgumentName(node, schema, rng);
+    }
+    else if (node instanceof Ast.FilterExpression) {
+        recursiveErrorFunction(node.expression, schema, rng);
+        recursiveErrorFunction(node.filter, schema, rng);
+    }
+    else if (node instanceof Ast.InvocationExpression) {
+        recursiveErrorFunction(node.invocation, schema, rng);
+    }
+    else if (node instanceof Ast.Invocation) {
+        for (let i = 0 ; i < node.in_params.length ; i ++)
+        recursiveErrorFunction(node.in_params[i], schema, rng);
+    }
+    else if (node instanceof Ast.AndBooleanExpression) {
+        for (let i = 0; i < node.operands.length; i++)
+            recursiveErrorFunction(node.operands[i], schema, rng);
+        // recursiveErrorFunction(node.expression, schema, rng);
+    }
+}
 
-// function introduceErrorsToUserTarget(userTarget : DialogueState) : DialogueState {
-//     const rng = seedrandom.alea('almond is awesome');
-//     const expressions = userTarget.history[userTarget.history.length-1].stmt.expression.expressions;
-//     console.log(util.inspect(expressions, false, 2, true));
-//     for (let i=0 ; i < expressions.length ; i++) {
-//         const expression = expressions[i];
-//         const schema = expression.schema;
-//         // console.log('FilterExpression detected:');
-//         // console.log('Schema = ', util.inspect(schema!.args, false, 2, true));
-//         console.log('expression before = ', expression.prettyprint());
-//         recursiveErrorFunction(expression, schema!, rng);
-//         console.log('expression after = ', expression.prettyprint());
-//         console.log('----------');
+function introduceErrorsToUserTarget(userTarget : Ast.DialogueState) : Ast.DialogueState {
+    const rng = seedrandom.alea('almond is awesome');
+    const expressions = userTarget.history[userTarget.history.length-1].stmt.expression.expressions;
+    console.log(util.inspect(expressions, false, 2, true));
+    for (let i=0 ; i < expressions.length ; i++) {
+        const expression = expressions[i];
+        const schema = expression.schema;
+        // console.log('FilterExpression detected:');
+        // console.log('Schema = ', util.inspect(schema!.args, false, 2, true));
+        console.log('expression before = ', expression.prettyprint());
+        recursiveErrorFunction(expression, schema!, rng);
+        console.log('expression after = ', expression.prettyprint());
+        console.log('----------');
 
-//     }
-//     return userTarget.clone();
-// }
+    }
+    return userTarget.clone();
+}
 
 class SimulatorStream extends Stream.Transform {
     private _simulator : ThingTalkUtils.Simulator;
@@ -188,26 +192,31 @@ class SimulatorStream extends Stream.Transform {
     private _parser : ParserClient.ParserClient | null;
     private _tpClient : Tp.BaseClient;
     private _outputMistakesOnly : boolean;
+    private _introduceErrors : boolean;
     private _locale : string;
     private _langPack : I18n.LanguagePack;
 
-    constructor(policy : DialoguePolicy,
-                simulator : ThingTalkUtils.Simulator,
-                schemas : ThingTalk.SchemaRetriever,
-                parser : ParserClient.ParserClient | null,
-                tpClient : Tp.BaseClient,
-                outputMistakesOnly : boolean,
-                locale : string) {
+    constructor(options : {
+        policy : DialoguePolicy,
+        simulator : ThingTalkUtils.Simulator,
+        schemas : ThingTalk.SchemaRetriever,
+        parser : ParserClient.ParserClient | null,
+        tpClient : Tp.BaseClient,
+        outputMistakesOnly : boolean,
+        introduceErrors : boolean,
+        locale : string
+    }) {
         super({ objectMode : true });
 
-        this._dialoguePolicy = policy;
-        this._simulator = simulator;
-        this._schemas = schemas;
-        this._parser = parser;
-        this._tpClient = tpClient;
-        this._outputMistakesOnly = outputMistakesOnly;
-        this._locale = locale;
-        this._langPack = I18n.get(locale);
+        this._dialoguePolicy = options.policy;
+        this._simulator = options.simulator;
+        this._schemas = options.schemas;
+        this._parser = options.parser;
+        this._tpClient = options.tpClient;
+        this._outputMistakesOnly = options.outputMistakesOnly;
+        this._introduceErrors = options.introduceErrors;
+        this._locale = options.locale;
+        this._langPack = I18n.get(options.locale);
     }
 
     async _run(dlg : ParsedDialogue) : Promise<void> {
@@ -218,9 +227,9 @@ class SimulatorStream extends Stream.Transform {
         let contextCode, contextEntities;
         if (lastTurn.context) {
             const context = await ThingTalkUtils.parse(lastTurn.context, this._schemas);
-            assert(context instanceof ThingTalk.Ast.DialogueState);
+            assert(context instanceof Ast.DialogueState);
             const agentTarget = await ThingTalkUtils.parse(lastTurn.agent_target!, this._schemas);
-            assert(agentTarget instanceof ThingTalk.Ast.DialogueState);
+            assert(agentTarget instanceof Ast.DialogueState);
             state = ThingTalkUtils.computeNewState(context, agentTarget, 'agent');
             [contextCode, contextEntities] = ThingTalkUtils.serializeNormalized(ThingTalkUtils.prepareContextForPrediction(state, 'user'));
         } else {
@@ -228,7 +237,7 @@ class SimulatorStream extends Stream.Transform {
             contextEntities = {};
         }
 
-        let userTarget : ThingTalk.Ast.Input;
+        let userTarget : Ast.Input;
         const goldUserTarget = await ThingTalkUtils.parse(lastTurn.user_target, this._schemas);
         if (this._parser !== null) {
             const parsed : PredictionResult = await this._parser.sendUtterance(lastTurn.user, contextCode, contextEntities, {
@@ -240,7 +249,7 @@ class SimulatorStream extends Stream.Transform {
                 thingpediaClient: this._tpClient,
                 schemaRetriever: this._schemas,
                 loadMetadata: true
-            }) as ThingTalk.Ast.DialogueState[];
+            }) as Ast.DialogueState[];
 
             if (candidates.length > 0) {
                 userTarget = candidates[0];
@@ -269,10 +278,11 @@ class SimulatorStream extends Stream.Transform {
         } else {
             userTarget = goldUserTarget;
         }
-        assert(userTarget instanceof ThingTalk.Ast.DialogueState);
-        // userTarget = introduceErrorsToUserTarget(<DialogueState> userTarget);
+        assert(userTarget instanceof Ast.DialogueState);
+        if (this._introduceErrors)
+            userTarget = introduceErrorsToUserTarget(<Ast.DialogueState> userTarget);
 
-        state = ThingTalkUtils.computeNewState(state, <DialogueState> userTarget, 'user');
+        state = ThingTalkUtils.computeNewState(state, <Ast.DialogueState> userTarget, 'user');
 
         const { newDialogueState } = await this._simulator.execute(state, undefined);
         state = newDialogueState;
@@ -296,10 +306,11 @@ class SimulatorStream extends Stream.Transform {
         if (!policyResult) {
             // throw new Error(`Dialogue policy error: no reply for dialogue ${dlg.id}`);
             console.log(`Dialogue policy error: no reply for dialogue ${dlg.id}. skipping.`);
+            console.log(lastTurn);
             return;
         }
         //
-        let utterance = policyResult.utterance; 
+        let utterance = policyResult.utterance;
         utterance = this._langPack.postprocessNLG(policyResult.utterance, policyResult.entities, this._simulator);
 
         const prediction = ThingTalkUtils.computePrediction(state, policyResult.state, 'agent');
@@ -399,7 +410,12 @@ export async function execute(args : any) {
             readAllLines(args.input_file, '====')
             .pipe(new DialogueParser())
             .pipe(new DialogueToPartialDialoguesStream()) // convert each dialogues to many partial dialogues
-            .pipe(new SimulatorStream(policy, simulator, schemas, parser, tpClient, args.output_mistakes_only, args.locale))
+            .pipe(new SimulatorStream({
+                policy, simulator, schemas, parser, tpClient,
+                outputMistakesOnly: args.output_mistakes_only,
+                locale: args.locale,
+                introduceErrors: args.introduce_errors
+            }))
             .pipe(new DialogueSerializer())
             .pipe(args.output)
         );
@@ -407,7 +423,12 @@ export async function execute(args : any) {
         await StreamUtils.waitFinish(
             readAllLines(args.input_file, '====')
             .pipe(new DialogueParser())
-            .pipe(new SimulatorStream(policy, simulator, schemas, parser, tpClient, args.output_mistakes_only, args.locale))
+            .pipe(new SimulatorStream({
+                policy, simulator, schemas, parser, tpClient,
+                outputMistakesOnly: args.output_mistakes_only,
+                locale: args.locale,
+                introduceErrors: args.introduce_errors
+            }))
             .pipe(new DialogueSerializer())
             .pipe(args.output)
         );
