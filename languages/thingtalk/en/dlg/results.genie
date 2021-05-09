@@ -66,6 +66,7 @@ direct_result_info_phrase : D.ResultPhrase = {
     one_param_direct_result_info_phrase,
     two_param_direct_result_info_phrase,
     three_param_direct_result_info_phrase,
+    ?long_projections four_param_direct_result_info_phrase,
 }
 
 one_param_direct_result_info_phrase : D.ResultPhrase = {
@@ -90,6 +91,17 @@ two_param_direct_result_info_phrase : D.ResultPhrase = {
 three_param_direct_result_info_phrase : D.ResultPhrase = {
     // account for nulls when merging
     ["${b1}, ${b2}"]: (b1:one_param_direct_result_info_phrase, b2:two_param_direct_result_info_phrase) => D.mergeResultPhrase(b1, b2);
+}
+
+four_param_direct_result_info_phrase : D.ResultPhrase = {
+    // account for nulls when merging
+    ["${b1}, ${b2}, ${b3}"]: (b1:one_param_direct_result_info_phrase, b2:one_param_direct_result_info_phrase, b3:two_param_direct_result_info_phrase)
+    => {
+        const b12 = D.mergeResultPhrase(b1, b2);
+        if (b12 === null)
+            return null;
+        return D.mergeResultPhrase(b12, b3);
+    },
 }
 
 // a noun phrase of the form "a restaurant in Cambridge that serves X"
