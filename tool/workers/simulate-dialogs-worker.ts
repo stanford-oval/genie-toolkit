@@ -195,6 +195,8 @@ class SimulatorStream extends Stream.Transform {
                 skip_typechecking: true
             });
 
+            // console.log(util.inspect(parsed, false, 3, true));
+
             const candidates = await ThingTalkUtils.parseAllPredictions(parsed.candidates, parsed.entities, {
                 thingpediaClient: this._tpClient,
                 schemaRetriever: this._schemas,
