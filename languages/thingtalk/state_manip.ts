@@ -991,6 +991,10 @@ export function tagContextForAgent(ctx : ContextInfo) : number[] {
     case 'insist':
     case 'execute':
     case 'ask_recommend':
+        // treat an empty execute like greet
+        if (ctx.state.history.length === 0)
+            return [contextTable.ctx_greet];
+
         if (ctx.nextInfo !== null) {
             // we have an action we want to execute, or a query that needs confirmation
             if (ctx.nextInfo.chainParameter === null || ctx.nextInfo.chainParameterFilled) {
