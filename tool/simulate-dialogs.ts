@@ -148,7 +148,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: `If set, will detokenize and fix capitalization of all user and agent turns.`,
         default: false
     });
-
+    parser.add_argument('--abort-on-error', {
+        action: 'store_true',
+        default: false,
+        help: 'Abort on the first policy error. Implied by --debug.',
+    });
     parser.add_argument('--verbose-agent', {
         action: 'store_true',
         help: `If set, we will pass verboseagent flag to the agent. This will affect which templates are used for response generation.`,
@@ -232,6 +236,7 @@ class SimulatorStream extends Stream.Transform {
     private _langPack : I18n.LanguagePack;
     private _detokenizeAll : boolean;
     private _debug : boolean;
+    private _abortOnError : boolean;
 
     constructor(options : {
         policy : DialoguePolicy,
@@ -243,6 +248,7 @@ class SimulatorStream extends Stream.Transform {
         introduceErrors : boolean,
         detokenizeAll : boolean,
         debug : boolean,
+        abortOnError : boolean,
         locale : string
     }) {
         super({ objectMode : true });
@@ -256,6 +262,7 @@ class SimulatorStream extends Stream.Transform {
         this._introduceErrors = options.introduceErrors;
         this._detokenizeAll = options.detokenizeAll;
         this._debug = options.debug;
+        this._abortOnError = options.abortOnError;
         this._locale = options.locale;
         this._langPack = I18n.get(options.locale);
     }
@@ -357,14 +364,16 @@ class SimulatorStream extends Stream.Transform {
             policyResult = await this._dialoguePolicy.chooseAction(state);
             // console.log('policyResult = ', policyResult);
         } catch(error) {
-            if (this._debug)
+            if (this._debug || this._abortOnError)
                 throw error;
             console.log(`Error while choosing action: ${error.message}. skipping.`);
             return;
         }
         if (!policyResult) {
-            if (this._debug)
+            if (this._debug || this._abortOnError) {
+                console.log(lastTurn);
                 throw new Error(`Dialogue policy error: no reply for dialogue ${dlg.id}`);
+            }
             console.log(`Dialogue policy error: no reply for dialogue ${dlg.id}. skipping.`);
             console.log(lastTurn);
             return;
@@ -469,7 +478,7 @@ export async function execute(args : any) {
     });
 
     let parser = null;
-    if (args.nlu_server){
+    if (args.nlu_server) {
         parser = ParserClient.get(args.nlu_server, args.locale);
         await parser.start();
     }
@@ -485,7 +494,8 @@ export async function execute(args : any) {
                 locale: args.locale,
                 introduceErrors: args.introduce_errors,
                 debug: args.debug,
-                detokenizeAll: args.detokenize_all
+                detokenizeAll: args.detokenize_all,
+                abortOnError: args.abort_on_error
             }))
             .pipe(new DialogueSerializer())
             .pipe(args.output)
@@ -500,7 +510,8 @@ export async function execute(args : any) {
                 locale: args.locale,
                 introduceErrors: args.introduce_errors,
                 debug: args.debug,
-                detokenizeAll: args.detokenize_all
+                detokenizeAll: args.detokenize_all,
+                abortOnError: args.abort_on_error
             }))
             .pipe(new DialogueSerializer())
             .pipe(args.output)
