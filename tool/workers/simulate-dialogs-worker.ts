@@ -181,8 +181,14 @@ class SimulatorStream extends Stream.Transform {
             contextEntities = {};
         }
 
-        let userTarget : Ast.Input;
+        let userTarget : Ast.DialogueState;
         const goldUserTarget = await ThingTalkUtils.parse(lastTurn.user_target, this._schemas);
+        assert(goldUserTarget instanceof Ast.DialogueState);
+        if (goldUserTarget.dialogueAct === 'invalid') {
+            console.log(`${dlg.id} uses an invalid dialogue act, skipping`);
+            return;
+        }
+
         if (this._parser !== null) {
             const parsed : PredictionResult = await this._parser.sendUtterance(lastTurn.user, contextCode, contextEntities, {
                 tokenized: true,
@@ -213,8 +219,7 @@ class SimulatorStream extends Stream.Transform {
             if (normalizedUserTarget === normalizedGoldUserTarget && this._outputMistakesOnly) {
                 // don't push anything
                 return;
-            }
-            else {
+            } else {
                 console.log('normalizedUserTarget = ', normalizedUserTarget);
                 console.log('normalizedGoldUserTarget = ', normalizedGoldUserTarget);
             }
@@ -223,7 +228,6 @@ class SimulatorStream extends Stream.Transform {
         } else {
             userTarget = goldUserTarget;
         }
-        assert(userTarget instanceof Ast.DialogueState);
         if (this._introduceErrors)
             userTarget = introduceErrorsToUserTarget(<Ast.DialogueState> userTarget);
 
