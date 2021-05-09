@@ -118,7 +118,12 @@ class LocalWorker extends events.EventEmitter {
             } else {
                 req.resolve(msg.instances.map((instance : any) : RawPredictionCandidate[] => {
                     if (instance.candidates) {
-                        return instance.candidates;
+                        return instance.candidates.map((c : any) => {
+                            return {
+                                answer: c.answer,
+                                score: c.score || {}
+                            };
+                        });
                     } else {
                         // no beam search, hence only one candidate
                         // the score might present or not, depending on whether
