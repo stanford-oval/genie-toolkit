@@ -284,7 +284,7 @@ class DialogueToPartialDialoguesStream extends Stream.Transform {
         for (let i = 1; i < dlg.length + 1; i++) {
             // do a deep copy so that later streams can modify these dialogues
             const output = this._copyDialogueTurns(dlg.slice(0, i));
-            (output as ParsedDialogue).id = dlg.id + '-turn_' + i;
+            (output as ParsedDialogue).id = dlg.id + '/' + (i-1);
             this.push(output);
         }
     }

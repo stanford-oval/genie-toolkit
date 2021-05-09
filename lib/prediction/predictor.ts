@@ -84,8 +84,14 @@ class LocalWorker extends events.EventEmitter {
             args.push('--embeddings', process.env.GENIENLP_EMBEDDINGS);
         if (process.env.GENIENLP_DATABASE_DIR)
             args.push('--database_dir', process.env.GENIENLP_DATABASE_DIR);
-        if (process.env.GENIENLP_NUM_BEAMS)
-            args.push('--num_beams', process.env.GENIENLP_NUM_BEAMS, '--num_outputs', process.env.GENIENLP_NUM_BEAMS);
+        if (process.env.GENIENLP_NUM_BEAMS){
+            const numBeams = parseInt(process.env.GENIENLP_NUM_BEAMS);
+            // Count the greedy output as one of the results
+            if (numBeams > 1)
+                args.push('--num_beams', '1', (numBeams-1).toString(), '--num_outputs', '1', (numBeams-1).toString());
+            else
+                args.push('--num_beams', '1', '--num_outputs', '1');
+        }
 
         this._child = child_process.spawn('genienlp', args, {
             stdio: ['pipe', 'pipe', 'inherit']
