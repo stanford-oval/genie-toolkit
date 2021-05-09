@@ -22,6 +22,8 @@
 import Stream from 'stream';
 import { workerData, parentPort } from 'worker_threads';
 
+process.on('unhandledRejection', (up) => { throw up; });
+
 (async function main() {
     const worker = (await import(workerData.workerPath)).default;
     const stream = await worker(workerData.args, workerData.shard);
