@@ -43,11 +43,13 @@ class ParamDatasetGenerator {
             wikidata: options.wikidata,
             wikidataEntities: options.wikidataEntities,
             wikidataProperties: options.wikidataProperties,
-            filteredProperties: options.filteredProperties
+            filteredProperties: options.filteredProperties,
+            bootlegTypes: options.bootlegTypes
         };
 
         // wikidata information
         this._wikidataProperties = new Map(); // labels for all properties
+        this._bootlegTypes = new Map();
 
         // in domain information
         this._items = new Map();
@@ -125,7 +127,7 @@ class ParamDatasetGenerator {
         await StreamUtils.waitEnd(pipeline);
     }
 
-    async _loadTypes(kbFile) {
+    async _loadWikidataTypes(kbFile) {
         const pipeline = fs.createReadStream(kbFile).pipe(JSONStream.parse('$*'));
         pipeline.on('data', async (item) => {
             const predicates = item.value;
@@ -134,6 +136,17 @@ class ParamDatasetGenerator {
                 return;
             if (this._values.has(item.key))
                 this._types.set(item.key, predicates[INSTANCE_OF_PROP]);
+        });
+
+        pipeline.on('error', (error) => console.error(error));
+        await StreamUtils.waitEnd(pipeline);
+    }
+
+    async _loadBootlegTypes() {
+        const pipeline = fs.createReadStream(this._paths.bootlegTypes).pipe(JSONStream.parse('$*'));
+        pipeline.on('data', async (item) => {
+            if (this._values.has(item.key))
+                this._bootlegTypes.set(item.key, item.value);
         });
 
         pipeline.on('error', (error) => console.error(error));
@@ -161,6 +174,30 @@ class ParamDatasetGenerator {
             this._valueSets.get(type).push(entry);
         else 
             this._valueSets.set(type, [entry]);
+    }
+
+    _getEntityType(qid) {
+        const wikidataTypes = this._types.get(qid);
+        const bootlegTypes = this._bootlegTypes.get(qid);
+        if (!wikidataTypes)
+            return null;
+        // return the first type in bootleg
+        if (bootlegTypes) {
+            for (const type of bootlegTypes) {
+                if (wikidataTypes.includes(type)) {
+                    const entityType = this._values.get(type);
+                    if (entityType)
+                        return argnameFromLabel(entityType);
+                }
+            }
+        }
+        // fallback to the first wikidata type with label
+        for (const type of wikidataTypes) {
+            const entityType = this._values.get(type);
+            if (entityType)
+                return argnameFromLabel(entityType);
+        }
+        return null;
     }
 
     /**
@@ -191,8 +228,12 @@ class ParamDatasetGenerator {
                 if (!this._types.has(value))
                     continue;
 
-                const valueTypes = this._types.get(value);
+                const valueType = this._getEntityType(value);
                 const valueLabel = this._values.get(value);
+
+                // value does not have value for "instance of" field
+                if (!valueType)
+                    continue;
 
                 // Tokenizer throws error.
                 if (valueLabel.includes('æ'))
@@ -207,12 +248,9 @@ class ParamDatasetGenerator {
 
                 // add to property value set, for easier constant sampling
                 this._addToValueSet(thingtalkPropertyType, entry);
-                // add to each subtype value set, for actual augmentation in synthesis
-                for (const valueType of valueTypes) {
-                    const thingtalkEntityType = argnameFromLabel(this._values.get(valueType));
-                    thingtalkEntityTypes.add(thingtalkEntityType);
-                    this._addToValueSet(thingtalkEntityType, entry);
-                }
+                // add to entity value set, for actual augmentation in synthesis
+                thingtalkEntityTypes.add(valueType);
+                this._addToValueSet(valueType, entry);
             }
             this._subtypes.set(thingtalkPropertyType, Array.from(thingtalkEntityTypes));
             filteredDomainProperties.push(property);
@@ -244,13 +282,18 @@ class ParamDatasetGenerator {
                 await this._loadPredicates(kbfile);
             console.log('loading value types ...');
             for (const kbfile of this._paths.wikidata)
-                await this._loadTypes(kbfile);
+                await this._loadWikidataTypes(kbfile);
             console.log('loading entity labels ...');
             await this._loadLabels();
             await dumpMap(path.join(this._paths.dir, 'items.json'), this._items);
             await dumpMap(path.join(this._paths.dir, 'predicates.json'), this._predicates);
             await dumpMap(path.join(this._paths.dir, 'values.json'), this._values);
             await dumpMap(path.join(this._paths.dir, 'types.json'), this._types);
+        }
+
+        if (this._paths.bootlegTypes) {
+            console.log('loading bootleg types ...');
+            await this._loadBootlegTypes();
         }
 
         console.log('generating parameter datasets ...');
@@ -296,6 +339,10 @@ module.exports = {
             required: true,
             help: "Path to output a txt file containing properties available for the domain, split by comma"
         });
+        parser.add_argument('--bootleg-types', {
+            required: false,
+            help: "Path to types used for each entity in Bootleg"
+        });
         parser.add_argument('--max-value-length', {
             required: false,
             help: 'Maximum number of tokens for parameter values'
@@ -319,6 +366,7 @@ module.exports = {
             wikidataEntities: args.wikidata_entity_list,
             wikidataProperties: args.wikidata_property_list,
             filteredProperties: args.filtered_properties,
+            bootlegTypes: args.bootleg_types,
             maxValueLength: args.max_value_length,
             manifest: args.manifest,
             outputDir: args.output_dir
