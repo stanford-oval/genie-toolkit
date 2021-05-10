@@ -169,7 +169,11 @@ class SimulatorStream extends Stream.Transform {
 
         let state = null;
         let contextCode, contextEntities;
-        if (lastTurn.context) {
+        if (lastTurn.intermediate_context) {
+            const context = await ThingTalkUtils.parse(lastTurn.intermediate_context, this._schemas);
+            assert(context instanceof Ast.DialogueState);
+            [contextCode, contextEntities] = ThingTalkUtils.serializeNormalized(ThingTalkUtils.prepareContextForPrediction(context, 'user'));
+        } else if (lastTurn.context) {
             const context = await ThingTalkUtils.parse(lastTurn.context, this._schemas);
             assert(context instanceof Ast.DialogueState);
             const agentTarget = await ThingTalkUtils.parse(lastTurn.agent_target!, this._schemas);
