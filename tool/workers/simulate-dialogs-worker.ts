@@ -195,7 +195,7 @@ class SimulatorStream extends Stream.Transform {
 
         if (this._parser !== null) {
             const parsed : PredictionResult = await this._parser.sendUtterance(lastTurn.user, contextCode, contextEntities, {
-                tokenized: true,
+                tokenized: false,
                 skip_typechecking: true
             });
 
