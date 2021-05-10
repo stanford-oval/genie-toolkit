@@ -57,7 +57,8 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(status);
 AT: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: hello world
-UT: $answer("hello world");
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post(status="hello world");
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post(status="hello world");
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
@@ -326,7 +327,8 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(location);
 AT: @org.thingpedia.weather.current(location=$?);
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $answer(new Location(37.442156, -122.1634471, "Palo Alto, California"));
-UT: $answer(new Location(37.442156, -122.1634471, "Palo Alto, California"));
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"));
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"))
 C: #[results=[
@@ -529,7 +531,7 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(status);
 AT: @com.twitter(id="twitter-bar"^^tt:device_id("Twitter Account bar")).post();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $nevermind;
-UT: $nevermind;
+UT: $dialogue @org.thingpedia.dialogue.transaction.cancel;
 C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Alright, let me know if I can help you with anything else!
@@ -873,7 +875,7 @@ A: Ramen Nagi is a moderate restaurant near [Latitude: 37.446 deg, Longitude: -1
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $yes;
-UT: $yes;
+UT: $dialogue @org.thingpedia.dialogue.transaction.learn_more;
 C: $dialogue @org.thingpedia.dialogue.transaction.learn_more;
 C: @com.yelp.restaurant() filter id =~ "ramen nagi"
 C: #[results=[
@@ -906,7 +908,7 @@ A: Ramen Nagi is a moderate restaurant near [Latitude: 37.446 deg, Longitude: -1
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $no;
-UT: $no;
+UT: $dialogue @org.thingpedia.dialogue.transaction.cancel;
 C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
 C: @com.yelp.restaurant() filter id =~ "ramen nagi"
 C: #[results=[
@@ -943,7 +945,8 @@ AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play_song(song="spotify:track
 AT: #[confirm=enum proposed];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $yes;
-UT: $yes;
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.spotify(id="com.spotify-7"^^tt:device_id).play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"));
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "Nice For What"
 C: #[results=[
@@ -982,7 +985,7 @@ AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play_song(song="spotify:track
 AT: #[confirm=enum proposed];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $no;
-UT: $no;
+UT: $dialogue @org.thingpedia.dialogue.transaction.cancel;
 C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
 C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "Nice For What"
 C: #[results=[
@@ -1213,7 +1216,7 @@ AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play_song(song="spotify:track
 AT: #[confirm=enum proposed];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $no;
-UT: $no;
+UT: $dialogue @org.thingpedia.dialogue.transaction.cancel;
 C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
 C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "Nice For What"
 C: #[results=[
@@ -1416,7 +1419,9 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_action;
 AT: @com.xkcd.comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title);
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $yes;
-UT: $yes;
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.xkcd.comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title)
+UT: #[confirm=enum confirmed];
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.xkcd.comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title)
 C: #[results=[]];
@@ -1693,6 +1698,7 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @org.thingpedia.builtin.test.get_data(count=1, size=5byte);
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.builtin.test.get_data(count=1, size=5byte);
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.builtin.test.get_data(count=1, size=5byte)
@@ -1704,6 +1710,7 @@ A: The answer is !!!!!
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @org.thingpedia.builtin.test.get_data(count=2, size=5byte);
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.builtin.test.get_data(count=2, size=5byte);
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.builtin.test.get_data(count=1, size=5byte)
@@ -1720,6 +1727,7 @@ A: First answer for 2 items of size 5 byte is !!!!! 2 nd answer is """"".
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @org.thingpedia.builtin.test.get_data(count=3, size=5byte);
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.builtin.test.get_data(count=3, size=5byte);
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.builtin.test.get_data(count=1, size=5byte)
@@ -1742,6 +1750,7 @@ A: First answer for 3 items of size 5 byte is !!!!! 2 nd answer is """"". 3 rd a
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @org.thingpedia.builtin.test.get_data2(count=3, size=5byte);
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.builtin.test.get_data2(count=3, size=5byte);
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.builtin.test.get_data(count=1, size=5byte)
@@ -1912,6 +1921,7 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @com.yelp.restaurant()[1 : 3];
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.yelp.restaurant()[1 : 3];
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.yelp.restaurant()[1 : 3]
@@ -1925,6 +1935,7 @@ A: I see Ramen Nagi, Evvia Estiatorio, and Oren's Hummus. Ramen Nagi is rated 4.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t [reviewCount] of @com.yelp.restaurant()[1 : 3];
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: [reviewCount] of @com.yelp.restaurant()[1 : 3];
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.yelp.restaurant()[1 : 3]
@@ -2012,6 +2023,7 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @org.thingpedia.iot.switch.state();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.iot.switch.state();
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.iot.switch.state()
@@ -2028,6 +2040,7 @@ A: The Simulated Device org.thingpedia.iot.switch 0 switch is off. The Simulated
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @org.thingpedia.iot.switch(name="kitchen").state();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.iot.switch(name="kitchen").state();
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.iot.switch.state()
@@ -2048,6 +2061,7 @@ A: The Kitchen Switches switch is on.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @org.thingpedia.iot.switch(all=true).state();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.iot.switch(all=true).state();
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.iot.switch.state()
@@ -2077,6 +2091,7 @@ A: The Simulated Device org.thingpedia.iot.switch 0 switch is off. The Simulated
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @org.thingpedia.iot.switch(all=true, name="bed").state();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.iot.switch(all=true, name="bed").state();
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.iot.switch.state()
@@ -2182,7 +2197,7 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $wakeup;
-UT: $wakeup;
+UT: $dialogue @org.thingpedia.dialogue.transaction.greet;
 C: $dialogue @org.thingpedia.dialogue.transaction.greet;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Hello! How can I help you?
@@ -2198,6 +2213,7 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t monitor(@org.thingpedia.weather.current()) filter temperature >= 70defaultTemperature;
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: monitor(@org.thingpedia.weather.current()) filter temperature >= 70defaultTemperature;
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: monitor(@org.thingpedia.weather.current(location=new Location(37.4275, -122.1697))) filter temperature >= 70F
@@ -2216,6 +2232,7 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @org.thingpedia.iot.switch(name="invalid").state();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.iot.switch(name="invalid").state();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I cannot find any invalid switch device. Which device do you want to use?
@@ -2227,6 +2244,7 @@ A: I cannot find any invalid switch device. Which device do you want to use?
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @com.spotify(name="invalid").song() filter id =~ "nice for what";
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.spotify(name="invalid").song() filter id =~ "nice for what";
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "nice for what"
@@ -2282,7 +2300,8 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(validity);
 AT: @org.thingpedia.covid-vaccine.mark_valid(appointment="1"^^org.thingpedia.covid-vaccine:vaccine_appointment);
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $yes;
-UT: $yes;
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.covid-vaccine.mark_valid(appointment="1"^^org.thingpedia.covid-vaccine:vaccine_appointment, validity=true);
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.covid-vaccine.appointment(zip_code="94305")
 C: #[results=[
@@ -2348,7 +2367,8 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(validity);
 AT: @org.thingpedia.covid-vaccine.mark_valid(appointment="3"^^org.thingpedia.covid-vaccine:vaccine_appointment);
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $no;
-UT: $no;
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.covid-vaccine.mark_valid(appointment="3"^^org.thingpedia.covid-vaccine:vaccine_appointment, validity=false);
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.covid-vaccine.appointment(dose=enum second, vaccine_type=enum pfizer, zip_code="94304")
 C: #[results=[
@@ -2416,7 +2436,7 @@ A: I will soon be able to answer questions about covid. In the meantime, please 
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_record_command;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: what is covid?
-UT: $answer("what is covid?");
+UT: $dialogue @org.thingpedia.dialogue.transaction.end;
 C: $dialogue @org.thingpedia.dialogue.transaction.end;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Thank you!
@@ -2445,7 +2465,7 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(zip_code);
 AT: @org.thingpedia.covid-vaccine.appointment();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $nevermind;
-UT: $nevermind;
+UT: $dialogue @org.thingpedia.dialogue.transaction.cancel;
 C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I will soon be able to answer questions about covid. In the meantime, please let me know what you're interested in.
@@ -2472,7 +2492,8 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(zip_code);
 AT: @org.thingpedia.covid-vaccine.appointment();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $answer("94062");
-UT: $answer("94062");
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.covid-vaccine.appointment(zip_code="94062");
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.covid-vaccine.appointment(zip_code="94062")
 C: #[results=[]];
@@ -2483,7 +2504,8 @@ AT: monitor(@org.thingpedia.covid-vaccine.appointment(zip_code="94062"))
 AT: #[confirm=enum proposed];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $yes;
-UT: $yes;
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: monitor(@org.thingpedia.covid-vaccine.appointment(zip_code="94062"));
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.covid-vaccine.appointment(zip_code="94062")
 C: #[results=[]];
@@ -2546,6 +2568,7 @@ UT:   let feeling=$ask(Enum(happy, sad), "how does it make you feel?");
 UT:   $say("too bad i do not care.");
 UT: }
 UT: myprogram();
+C: $dialogue @org.thingpedia.dialogue.custom.execute;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: What is the foo?
 A: I ate the value.
