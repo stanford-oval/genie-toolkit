@@ -230,6 +230,7 @@ async function test(testRunner, dlg, i) {
 
     testRunner.conversation._options.anonymous = dlg.id.indexOf('-anon-') >= 0;
     testRunner.conversation.dialogueFlags.covid = dlg.id.indexOf('-covid-') >= 0;
+    testRunner.conversation.dialogueFlags.faqs = dlg.id.indexOf('-faqs-') >= 0;
     testRunner.reset();
 
     // reset the conversation
