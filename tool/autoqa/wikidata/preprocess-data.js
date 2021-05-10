@@ -29,7 +29,6 @@ import { argnameFromLabel, readJson, dumpMap } from './utils';
 import * as StreamUtils from '../../../lib/utils/stream-utils';
 
 const INSTANCE_OF_PROP = "P31";
-const SUBCLASS_OF_PROP = "P279";
 
 class ParamDatasetGenerator {
     constructor(options) {
@@ -49,8 +48,6 @@ class ParamDatasetGenerator {
 
         // wikidata information
         this._wikidataProperties = new Map(); // labels for all properties
-        this._wikidataTypeHierarchy = new Map(); // parent types
-        this._wikidataAncestorTypes = new Map();
 
         // in domain information
         this._items = new Map();
@@ -87,35 +84,6 @@ class ParamDatasetGenerator {
             data.push({ value, name: label, canonical: tokenized });
         }
         await this._outputValueSet(`org.wikidata:${this._canonical}`, data);
-    }
-
-    async _loadTypeHierarchy(kbFile) {
-        const pipeline = fs.createReadStream(kbFile).pipe(JSONStream.parse('$*'));
-        pipeline.on('data', async (item) => {
-            const predicates = item.value;
-            // skip entities with no "subclass of" property
-            if (!(SUBCLASS_OF_PROP in predicates))
-                return;
-            const parentClasses = predicates[SUBCLASS_OF_PROP];
-            this._wikidataTypeHierarchy.set(item.key, parentClasses);
-        });
-
-        pipeline.on('error', (error) => console.error(error));
-        await StreamUtils.waitEnd(pipeline);
-    }
-
-    _ancestorTypes(type) {
-        if (this._wikidataAncestorTypes.has(type))
-            return this._wikidataAncestorTypes.get(type);
-        const parentTypes = this._wikidataTypeHierarchy.get(type) || [];
-        let ancestorTypes = [];
-        for (const parentType of parentTypes) {
-            ancestorTypes.push(parentType);
-            ancestorTypes.push(...this._ancestorTypes(parentType));
-        }
-        ancestorTypes = Array.from(new Set(ancestorTypes));
-        this._wikidataAncestorTypes.set(type, ancestorTypes);
-        return ancestorTypes;
     }
 
     async _loadPredicates(kbFile) {
@@ -164,20 +132,8 @@ class ParamDatasetGenerator {
             // skip entities with no type information
             if (!predicates[INSTANCE_OF_PROP])
                 return;
-            if (this._values.has(item.key)) {
-                const types = predicates[INSTANCE_OF_PROP];
-                this._types.set(item.key, types.filter((t) => {
-                    // filter out types that already has ancestor (super types) included
-                    const ancestors = this._ancestorTypes(t);
-                    if (!ancestors)
-                        return true;
-                    for (const ancestor of ancestors) {
-                        if (types.includes(ancestor))
-                            return true;
-                    }
-                    return false;
-                }));
-            }
+            if (this._values.has(item.key))
+                this._types.set(item.key, predicates[INSTANCE_OF_PROP]);
         });
 
         pipeline.on('error', (error) => console.error(error));
@@ -275,18 +231,14 @@ class ParamDatasetGenerator {
         console.log('loading property labels ...');
         this._wikidataProperties = await readJson(this._paths.wikidataProperties);
         
-        const preprocessed = ['predicates.json', 'items.json', 'values.json', 'types.json', 'typeHierarchy.json'];
+        const preprocessed = ['predicates.json', 'items.json', 'values.json', 'types.json'];
         if (preprocessed.every((fname) => fs.existsSync(path.join(this._paths.dir, fname)))) {
             console.log('loading preprocessed in-domain files ...');
             this._items = await readJson(path.join(this._paths.dir, 'items.json'));
             this._predicates = await readJson(path.join(this._paths.dir, 'predicates.json'));
             this._values = await readJson(path.join(this._paths.dir, 'values.json'));
             this._types = await readJson(path.join(this._paths.dir, 'types.json'));
-            this._wikidataTypeHierarchy = await readJson(path.join(this._paths.dir, 'typeHierarchy.json'));
         } else {
-            console.log('loading type hierarchy ...');
-            for (const kbfile of this._paths.wikidata) 
-                await this._loadTypeHierarchy(kbfile);
             console.log('loading predicates ...');
             for (const kbfile of this._paths.wikidata)
                 await this._loadPredicates(kbfile);
@@ -299,8 +251,6 @@ class ParamDatasetGenerator {
             await dumpMap(path.join(this._paths.dir, 'predicates.json'), this._predicates);
             await dumpMap(path.join(this._paths.dir, 'values.json'), this._values);
             await dumpMap(path.join(this._paths.dir, 'types.json'), this._types);
-            await dumpMap(path.join(this._paths.dir, 'typeHierarchy.json'), this._wikidataTypeHierarchy);
-            await dumpMap(path.join(this._paths.dir, 'ancestors.json'), this._wikidataAncestorTypes);
         }
 
         console.log('generating parameter datasets ...');
