@@ -28,7 +28,7 @@ import type Conversation from '../dialogue-agent/conversation';
 import type AudioController from '../engine/audio_controller';
 
 interface SpeechHandlerOptions {
-    subscriptionKey ?: string;
+    nlUrl ?: string;
 }
 
 export default class SpeechHandler extends events.EventEmitter {
@@ -37,6 +37,7 @@ export default class SpeechHandler extends events.EventEmitter {
     private _conversation : Conversation;
     private _pulse : Tp.Capabilities.SoundApi;
     private _wakeWordDetector : Tp.Capabilities.WakeWordApi|null;
+    private _voiceDetector : Tp.Capabilities.VadApi|null;
     private _systemLock : Tp.Capabilities.SystemLockApi|null;
     private _recognizer : SpeechRecognizer;
     private _tts : SpeechSynthesizer;
@@ -50,7 +51,9 @@ export default class SpeechHandler extends events.EventEmitter {
 
     constructor(conversation : Conversation,
                 platform : Tp.BasePlatform,
-                options : SpeechHandlerOptions = {}) {
+                options : SpeechHandlerOptions = {
+                    nlUrl: 'https://almond-nl.stanford.edu'
+                }) {
         super();
         this._platform = platform;
         this._prefs = platform.getSharedPreferences();
@@ -60,6 +63,7 @@ export default class SpeechHandler extends events.EventEmitter {
 
         this._pulse = platform.getCapability('sound')!;
         this._wakeWordDetector = platform.getCapability('wakeword-detector');
+        this._voiceDetector = platform.getCapability('voice-detector');
         this._systemLock = platform.getCapability('system-lock');
 
         if (this._wakeWordDetector) {
@@ -77,7 +81,8 @@ export default class SpeechHandler extends events.EventEmitter {
 
         this._recognizer = new SpeechRecognizer({
             locale: this._platform.locale,
-            subscriptionKey: options.subscriptionKey
+            nlUrl: options.nlUrl,
+            vad: this._voiceDetector
         });
         this._recognizer.on('error', (e) => {
             this.emit('error', e);
@@ -244,10 +249,10 @@ export default class SpeechHandler extends events.EventEmitter {
                 // if there is nothing left, start listening again in case
                 // the user paused in-between the wakeword and the command
                 // in that case, we will not check for the wakeword and remove it
-                if (!utterance) {
-                    this._onDetected(Buffer.from([]), false);
-                    return;
-                }
+                //if (!utterance) {
+                //    this._onDetected(Buffer.from([]), false);
+                //    return;
+                //}
                 this.emit('match');
                 this._conversation.setHypothesis('');
                 this._conversation.handleCommand(utterance);
@@ -293,6 +298,9 @@ export default class SpeechHandler extends events.EventEmitter {
             if (state === 'ready')
                 this.emit('ready');
         });
+
+        if (this._voiceDetector)
+            this._voiceDetector.setup(16000, 3);
 
         if (this._wakeWordDetector)
             this._stream!.pipe(this._wakeWordDetector);
