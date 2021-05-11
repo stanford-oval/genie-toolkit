@@ -63,7 +63,7 @@ const valid_values : { [name : string] : Ast.Value[] } = {
 //     }
 // }
 
-function changeArgumentValue(expression : Ast.AtomBooleanExpression|Ast.InputParam, schema : Ast.FunctionDef, rng : () => number) {
+function changeArgumentValue(expression : Ast.AtomBooleanExpression|Ast.InputParam, schema : Ast.FunctionDef, rng : () => number, allFeedbacks : string[]){
     console.log('changeArgumentValue called with expression ', expression);
     // console.log(schema);
     // console.log(schema.class!.name);
@@ -86,48 +86,51 @@ function changeArgumentValue(expression : Ast.AtomBooleanExpression|Ast.InputPar
     const newValue = random.uniform(possibleNewValues, rng);
     expression.value = newValue.clone();
     console.log('expression after changed argument value: ', expression);
+    allFeedbacks.push(expression.name + ' should not be ' + newValue.prettyprint());
 }
 
-function recursiveErrorFunction(node : Ast.Node, schema : Ast.FunctionDef, rng : () => number) {
+function recursiveErrorFunction(node : Ast.Node, schema : Ast.FunctionDef, rng : () => number, allFeedbacks : string[]) {
     console.log('recursiveErrorFunction() called with node "', node.prettyprint(), '": ', util.inspect(node, false, 1, true));
     if (node instanceof Ast.AtomBooleanExpression || node instanceof Ast.InputParam) {
         // if (random.coin(0.5, rng))
-        changeArgumentValue(node, schema, rng);
+        changeArgumentValue(node, schema, rng, allFeedbacks);
         // else
         //     changeArgumentName(node, schema, rng);
     }
     else if (node instanceof Ast.FilterExpression) {
-        recursiveErrorFunction(node.expression, schema, rng);
-        recursiveErrorFunction(node.filter, schema, rng);
+        recursiveErrorFunction(node.expression, schema, rng, allFeedbacks);
+        recursiveErrorFunction(node.filter, schema, rng, allFeedbacks);
     }
     else if (node instanceof Ast.InvocationExpression) {
-        recursiveErrorFunction(node.invocation, schema, rng);
+        recursiveErrorFunction(node.invocation, schema, rng, allFeedbacks);
     }
     else if (node instanceof Ast.Invocation) {
         for (let i = 0 ; i < node.in_params.length ; i ++)
-        recursiveErrorFunction(node.in_params[i], schema, rng);
+            recursiveErrorFunction(node.in_params[i], schema, rng, allFeedbacks);
     }
     else if (node instanceof Ast.AndBooleanExpression) {
         for (let i = 0; i < node.operands.length; i++)
-            recursiveErrorFunction(node.operands[i], schema, rng);
-        // recursiveErrorFunction(node.expression, schema, rng);
+            recursiveErrorFunction(node.operands[i], schema, rng, allFeedbacks);
+        // recursiveErrorFunction(node.expression, schema, rng, allFeedbacks);
     }
+
 }
 
 export function introduceErrorsToUserTarget(userTarget : Ast.DialogueState) : [Ast.DialogueState, string] {
     const rng = seedrandom.alea('almond is awesome');
     const expressions = userTarget.history[userTarget.history.length-1].stmt.expression.expressions;
     console.log(util.inspect(expressions, false, 2, true));
+    const allFeedbacks : string[] = [];
     for (let i=0 ; i < expressions.length ; i++) {
         const expression = expressions[i];
         const schema = expression.schema;
         // console.log('FilterExpression detected:');
         // console.log('Schema = ', util.inspect(schema!.args, false, 2, true));
         console.log('expression before = ', expression.prettyprint());
-        recursiveErrorFunction(expression, schema!, rng);
+        recursiveErrorFunction(expression, schema!, rng, allFeedbacks);
         console.log('expression after = ', expression.prettyprint());
         console.log('----------');
 
     }
-    return [userTarget.clone(), ''];
+    return [userTarget.clone(), allFeedbacks.join('. ')];
 }

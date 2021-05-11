@@ -176,6 +176,7 @@ class SimulatorStream extends Stream.Transform {
         let userFeedback = '';
         if (this._introduceErrors)
             [userTarget, userFeedback] = introduceErrorsToUserTarget(<Ast.DialogueState> userTarget);
+            console.log('userFeedback = ', userFeedback);
 
         state = ThingTalkUtils.computeNewState(state, <Ast.DialogueState> userTarget, 'user');
 
