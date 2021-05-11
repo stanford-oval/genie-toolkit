@@ -23,43 +23,78 @@ import * as random from '../../lib/utils/random';
 import seedrandom from 'seedrandom';
 import * as util from 'util';
 import { Ast } from 'thingtalk';
+import { NumberValue } from 'thingtalk/dist/ast';
 
 // parameter names with the same type. These parameters can safely be replaced with each other
 // const valid_name_changes = {
 //     'area': [],
 // };
 
-// const valid_values = {
-//     'area': ['north', 'south', 'east', 'west']
+const valid_values : { [name : string] : Ast.Value[] } = {
+    // All Enums
+    'uk.ac.cam.multiwoz.Hotel.area' : [new Ast.EnumValue('north'), new Ast.EnumValue('south'), new Ast.EnumValue('east'), new Ast.EnumValue('west'), new Ast.EnumValue('center')],
+    'uk.ac.cam.multiwoz.Hotel.price_range' : [new Ast.EnumValue('cheap'), new Ast.EnumValue('moderate'), new Ast.EnumValue('expensive')],
+    'uk.ac.cam.multiwoz.Hotel.type' : [new Ast.EnumValue('hotel'), new Ast.EnumValue('guest_house')],
+    'uk.ac.cam.multiwoz.Hotel.book_day' : [new Ast.EnumValue('monday'), new Ast.EnumValue('tuesday'), new Ast.EnumValue('wednesday'), new Ast.EnumValue('thursday'), new Ast.EnumValue('friday'), new Ast.EnumValue('saturday'), new Ast.EnumValue('sunday')],
+    'uk.ac.cam.multiwoz.Attraction.area' : [new Ast.EnumValue('north'), new Ast.EnumValue('south'), new Ast.EnumValue('east'), new Ast.EnumValue('west'), new Ast.EnumValue('center')],
+    'uk.ac.cam.multiwoz.Attraction.price_range' : [new Ast.EnumValue('free'), new Ast.EnumValue('cheap'), new Ast.EnumValue('moderate'), new Ast.EnumValue('expensive')],
+    'uk.ac.cam.multiwoz.Restaurant.area' : [new Ast.EnumValue('north'), new Ast.EnumValue('south'), new Ast.EnumValue('east'), new Ast.EnumValue('west'), new Ast.EnumValue('center')],
+    'uk.ac.cam.multiwoz.Restaurant.price_range' : [new Ast.EnumValue('cheap'), new Ast.EnumValue('moderate'), new Ast.EnumValue('expensive')],
+    'uk.ac.cam.multiwoz.Restaurant.book_day' : [new Ast.EnumValue('monday'), new Ast.EnumValue('tuesday'), new Ast.EnumValue('wednesday'), new Ast.EnumValue('thursday'), new Ast.EnumValue('friday'), new Ast.EnumValue('saturday'), new Ast.EnumValue('sunday')],
+    'uk.ac.cam.multiwoz.Train.day' : [new Ast.EnumValue('monday'), new Ast.EnumValue('tuesday'), new Ast.EnumValue('wednesday'), new Ast.EnumValue('thursday'), new Ast.EnumValue('friday'), new Ast.EnumValue('saturday'), new Ast.EnumValue('sunday')],
+};
+
+// function changeArgumentName(expression : Ast.AtomBooleanExpression, schema : Ast.FunctionDef, rng : () => number) {
+//     const currentName = expression.name;
+//     const possibleNewNames = schema.args.filter((value) => value !== currentName); // returns a new array
+//     console.log('currentName = ', currentName);
+//     console.log('possibleNewNames = ', possibleNewNames);
+//     const newName = random.uniform(possibleNewNames, rng);
+//     expression.name = newName;
 // }
 
-function changeArgumentName(expression : Ast.AtomBooleanExpression, schema : Ast.FunctionDef, rng : () => number) {
-    const currentName = expression.name;
-    const possibleNewNames = schema.args.filter((value) => value !== currentName); // returns a new array
-    console.log('currentName = ', currentName);
-    console.log('possibleNewNames = ', possibleNewNames);
-    const newName = random.uniform(possibleNewNames, rng);
-    expression.name = newName;
-}
+// class ErrorAndFeedback {
+//     erroneousUserTarget :Ast.DialogueState;
+//     userFeedback: string;
 
-function changeArgumentValue(expression : Ast.AtomBooleanExpression, schema : Ast.FunctionDef, rng : () => number) {
+//     constructor(erroneousUserTarget: Ast.DialogueState, userFeedback: string) {
+//         this.erroneousUserTarget = erroneousUserTarget;
+//         this.userFeedback = userFeedback;
+//     }
+// }
+
+function changeArgumentValue(expression : Ast.AtomBooleanExpression|Ast.InputParam, schema : Ast.FunctionDef, rng : () => number) {
+    console.log('changeArgumentValue called with expression ', expression);
+    // console.log(schema);
+    // console.log(schema.class!.name);
     const currentValue = expression.value;
-    // const possibleNewValues = schema.args.filter((value) => value !== currentValue); // returns a new array
+    let possibleNewValues = valid_values[schema.class!.name+'.'+expression.name]; // prepend class name to make parameter names unique
+    if (!possibleNewValues){
+        if (currentValue.isNumber){
+            // off by one error
+            possibleNewValues = [new NumberValue((<Ast.NumberValue> currentValue).value + 1), new NumberValue(Math.max((<Ast.NumberValue> currentValue).value - 1, 1))];
+        }
+        else {
+            return;
+        }
+    }
+    
+    possibleNewValues = possibleNewValues.filter((value) => !value.equals(currentValue));
     console.log('currentValue = ', currentValue);
-    for (const a of schema.iterateArguments())
-        console.log('iterateArguments = ', a);
-    // console.log('possibleNewValues = ', possibleNewValues);
-    // const newName = random.uniform(possibleNewNames, rng);
-    // expression.name = newName;
+   
+    console.log('possibleNewValues = ', possibleNewValues);
+    const newValue = random.uniform(possibleNewValues, rng);
+    expression.value = newValue.clone();
+    console.log('expression after changed argument value: ', expression);
 }
 
 function recursiveErrorFunction(node : Ast.Node, schema : Ast.FunctionDef, rng : () => number) {
     console.log('recursiveErrorFunction() called with node "', node.prettyprint(), '": ', util.inspect(node, false, 1, true));
-    if (node instanceof Ast.AtomBooleanExpression) {
-        if (random.coin(0.5, rng))
-            changeArgumentValue(node, schema, rng);
-        else
-            changeArgumentName(node, schema, rng);
+    if (node instanceof Ast.AtomBooleanExpression || node instanceof Ast.InputParam) {
+        // if (random.coin(0.5, rng))
+        changeArgumentValue(node, schema, rng);
+        // else
+        //     changeArgumentName(node, schema, rng);
     }
     else if (node instanceof Ast.FilterExpression) {
         recursiveErrorFunction(node.expression, schema, rng);
@@ -79,7 +114,7 @@ function recursiveErrorFunction(node : Ast.Node, schema : Ast.FunctionDef, rng :
     }
 }
 
-export function introduceErrorsToUserTarget(userTarget : Ast.DialogueState) : Ast.DialogueState {
+export function introduceErrorsToUserTarget(userTarget : Ast.DialogueState) : [Ast.DialogueState, string] {
     const rng = seedrandom.alea('almond is awesome');
     const expressions = userTarget.history[userTarget.history.length-1].stmt.expression.expressions;
     console.log(util.inspect(expressions, false, 2, true));
@@ -94,5 +129,5 @@ export function introduceErrorsToUserTarget(userTarget : Ast.DialogueState) : As
         console.log('----------');
 
     }
-    return userTarget.clone();
+    return [userTarget.clone(), ''];
 }

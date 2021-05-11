@@ -173,8 +173,9 @@ class SimulatorStream extends Stream.Transform {
         } else {
             userTarget = goldUserTarget;
         }
+        let userFeedback = '';
         if (this._introduceErrors)
-            userTarget = introduceErrorsToUserTarget(<Ast.DialogueState> userTarget);
+            [userTarget, userFeedback] = introduceErrorsToUserTarget(<Ast.DialogueState> userTarget);
 
         state = ThingTalkUtils.computeNewState(state, <Ast.DialogueState> userTarget, 'user');
 
@@ -186,7 +187,7 @@ class SimulatorStream extends Stream.Transform {
             agent: '',
             agent_target: '',
             intermediate_context: '',
-            user: '',
+            user: userFeedback,
             user_target: ''
         };
 
