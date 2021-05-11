@@ -95,7 +95,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
     });
     parser.add_argument('--introduce-errors', {
         action: 'store_true',
-        help: 'Simulate the dialogue as-if the user target was erroneous.',
+        help: 'Simulate the dialogue as if the user target was erroneous.',
         default: false
     });
     parser.add_argument('--nlu-server', {

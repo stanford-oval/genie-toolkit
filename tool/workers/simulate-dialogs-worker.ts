@@ -24,10 +24,9 @@ import * as Stream from 'stream';
 import seedrandom from 'seedrandom';
 import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
-import * as util from 'util';
 import { Ast } from 'thingtalk';
 
-import * as random from '../../lib/utils/random';
+
 import * as ThingTalkUtils from '../../lib/utils/thingtalk';
 import {
     ParsedDialogue,
@@ -41,70 +40,9 @@ import * as I18n from '../../lib/i18n';
 import MultiJSONDatabase from '../lib/multi_json_database';
 import { PredictionResult } from '../../lib/prediction/parserclient';
 import FileThingpediaClient from '../lib/file_thingpedia_client';
+import { introduceErrorsToUserTarget } from '../lib/error-creation';
 
-function changeArgumentName(expression : Ast.AtomBooleanExpression, schema : Ast.FunctionDef, rng : () => number) {
-    const currentName = expression.name;
-    const possibleNewNames = schema.args.filter((value) => value !== currentName); // returns a new array
-    console.log('currentName = ', currentName);
-    console.log('possibleNewNames = ', possibleNewNames);
-    const newName = random.uniform(possibleNewNames, rng);
-    expression.name = newName;
-}
 
-function changeArgumentValue(expression : Ast.AtomBooleanExpression, schema : Ast.FunctionDef, rng : () => number) {
-    const currentValue = expression.value;
-    // const possibleNewValues = schema.args.filter((value) => value !== currentValue); // returns a new array
-    console.log('currentValue = ', currentValue);
-    for (const a of schema.iterateArguments())
-        console.log('iterateArguments = ', a);
-    // console.log('possibleNewValues = ', possibleNewValues);
-    // const newName = random.uniform(possibleNewNames, rng);
-    // expression.name = newName;
-}
-
-function recursiveErrorFunction(node : Ast.Node, schema : Ast.FunctionDef, rng : () => number) {
-    console.log('recursiveErrorFunction() called with node "', node.prettyprint(), '": ', util.inspect(node, false, 1, true));
-    if (node instanceof Ast.AtomBooleanExpression) {
-        if (random.coin(0.5, rng))
-            changeArgumentValue(node, schema, rng);
-        else
-            changeArgumentName(node, schema, rng);
-    }
-    else if (node instanceof Ast.FilterExpression) {
-        recursiveErrorFunction(node.expression, schema, rng);
-        recursiveErrorFunction(node.filter, schema, rng);
-    }
-    else if (node instanceof Ast.InvocationExpression) {
-        recursiveErrorFunction(node.invocation, schema, rng);
-    }
-    else if (node instanceof Ast.Invocation) {
-        for (let i = 0 ; i < node.in_params.length ; i ++)
-        recursiveErrorFunction(node.in_params[i], schema, rng);
-    }
-    else if (node instanceof Ast.AndBooleanExpression) {
-        for (let i = 0; i < node.operands.length; i++)
-            recursiveErrorFunction(node.operands[i], schema, rng);
-        // recursiveErrorFunction(node.expression, schema, rng);
-    }
-}
-
-function introduceErrorsToUserTarget(userTarget : Ast.DialogueState) : Ast.DialogueState {
-    const rng = seedrandom.alea('almond is awesome');
-    const expressions = userTarget.history[userTarget.history.length-1].stmt.expression.expressions;
-    console.log(util.inspect(expressions, false, 2, true));
-    for (let i=0 ; i < expressions.length ; i++) {
-        const expression = expressions[i];
-        const schema = expression.schema;
-        // console.log('FilterExpression detected:');
-        // console.log('Schema = ', util.inspect(schema!.args, false, 2, true));
-        console.log('expression before = ', expression.prettyprint());
-        recursiveErrorFunction(expression, schema!, rng);
-        console.log('expression after = ', expression.prettyprint());
-        console.log('----------');
-
-    }
-    return userTarget.clone();
-}
 
 class SimulatorStream extends Stream.Transform {
     private _simulator : ThingTalkUtils.Simulator;
@@ -192,6 +130,7 @@ class SimulatorStream extends Stream.Transform {
             console.log(`${dlg.id} uses an invalid dialogue act, skipping`);
             return;
         }
+        let is_mistake = false; // whether the top parser output doesn't match the gold
 
         if (this._parser !== null) {
             const parsed : PredictionResult = await this._parser.sendUtterance(lastTurn.user, contextCode, contextEntities, {
@@ -199,7 +138,6 @@ class SimulatorStream extends Stream.Transform {
                 skip_typechecking: true
             });
 
-            // console.log(util.inspect(parsed, false, 3, true));
 
             const candidates = await ThingTalkUtils.parseAllPredictions(parsed.candidates, parsed.entities, {
                 thingpediaClient: this._tpClient,
@@ -212,6 +150,7 @@ class SimulatorStream extends Stream.Transform {
             } else {
                 console.log(`No valid candidate parses for this command. Top candidate was ${parsed.candidates[0].code.join(' ')}. Using the gold UT`);
                 userTarget = goldUserTarget;
+                is_mistake = true;
             }
             const normalizedUserTarget : string = ThingTalkUtils.serializePrediction(userTarget, parsed.tokens, parsed.entities, {
                 locale: this._locale,
@@ -222,7 +161,7 @@ class SimulatorStream extends Stream.Transform {
                 ignoreSentence: true
             }).join(' ');
 
-            if (normalizedUserTarget === normalizedGoldUserTarget && this._outputMistakesOnly) {
+            if (normalizedUserTarget === normalizedGoldUserTarget && !is_mistake && this._outputMistakesOnly) {
                 // don't push anything
                 return;
             } else {
@@ -281,7 +220,10 @@ class SimulatorStream extends Stream.Transform {
         }
 
         const prediction = ThingTalkUtils.computePrediction(state, policyResult.state, 'agent');
-        newTurn.agent = utterance;
+        if (is_mistake)
+            newTurn.agent = 'Sorry, I did not understand that.';
+        else
+            newTurn.agent = utterance;
         newTurn.agent_target = prediction.prettyprint();
         this.push({
             id: dlg.id,
