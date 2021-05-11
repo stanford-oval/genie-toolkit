@@ -1,8 +1,8 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
-// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2021 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,26 +18,35 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
+import * as Tp from 'thingpedia';
 import * as events from 'events';
 import * as Stream from 'stream';
-
-import * as uuid from 'uuid';
 import WebSocket from 'ws';
 
 const URL = 'https://almond-nl.stanford.edu';
 
 class SpeechRequest extends Stream.Writable {
-    constructor(stream, initialBuffer, vad) {
-        // this is important, as the protocol does not allow chunks larger than 8192 bytes
-        super({ highWaterMark: 8192 });
+    private _stream : Stream.Readable;
+    private _endDetected : boolean;
+    private _ended : boolean;
+    private _started : boolean;
+    private _vad : Tp.Capabilities.VadApi|null;
+    private consecutiveSilence : number;
+    private _bufferedMessages : Buffer[];
+    private _piped : boolean;
+    private _endTimeout : NodeJS.Timeout|null = null;
+    private _connection : WebSocket|null = null;
+    private _listener : (msg : Buffer) => void;
+
+    constructor(stream : Stream.Readable, initialBuffer : Buffer, vad : Tp.Capabilities.VadApi|null) {
+        super();
 
         this._stream = stream;
 
-        this._requestId = uuid.v4().replace(/-/g, '');
         this._endDetected = false;
         this._ended = false;
         this._started = false;
+        this._listener = this._handleMessage.bind(this);
 
         //this._debugFile = fs.createWriteStream('out_' + process.pid + '_' + (i++) + '.wav');
         this._vad = vad;
@@ -58,20 +67,19 @@ class SpeechRequest extends Stream.Writable {
         });
     }
 
-    start(connection) {
+    start(connection : WebSocket) {
         this._started = true;
         this._connection = connection;
-        this._endTimeout = setTimeout(() => this.end(), 150000);
 
-        this._listener = this._handleMessage.bind(this);
         this._connection.on('message', this._listener);
 
-        for (let message of this._bufferedMessages)
+        this._endTimeout = setTimeout(() => this.end(), 150000);
+        for (const message of this._bufferedMessages)
             this._connection.send(message, { binary: true });
         this._bufferedMessages = [];
     }
 
-    _finish(callback) {
+    _finish(callback : () => void) {
         // readable stream ended
         this._piped = false;
         this.end();
@@ -94,33 +102,34 @@ class SpeechRequest extends Stream.Writable {
             return;
         }
 
-        clearTimeout(this._endTimeout);
+        if (this._endTimeout) clearTimeout(this._endTimeout);
 
         this._ended = true;
         //this._debugFile.end();
     }
 
-    _handleMessage(msg) {
+    _handleMessage(msg : Buffer) {
         //console.log('Received message');
         //console.log(msg);
+        let json;
         try {
-            msg = JSON.parse(msg);
+            json = JSON.parse(msg.toString());
         } catch(e) {
             this.emit('error', e);
             this.end();
             return;
         }
 
-        if (msg.status === 400 && msg.code === "E_NO_MATCH")
+        if (json.status === 400 && json.code === "E_NO_MATCH")
             this.emit('done', "NoMatch");
-        else if (msg.result === 'ok')
-            this.emit('done', "Success", msg.text);
+        else if (json.result === 'ok')
+            this.emit('done', "Success", json.text);
         else
             this.emit('error', msg);
         this.end();
     }
 
-    _write(chunk, encoding, callback) {
+    _write(chunk : Buffer, encoding : BufferEncoding, callback : (err ?: Error) => void) {
         if (this._ended || this._endDetected) {
             callback();
             return;
@@ -137,9 +146,9 @@ class SpeechRequest extends Stream.Writable {
             if (this.consecutiveSilence === 96) {
                 this._endDetected = true;
                 console.log("VAD threshold reached", this.consecutiveSilence);
-                this._connection.send(undefined, {}, (err) => callback(err));
+                this._connection.send(undefined, {}, (err ?: Error) => callback(err));
             } else {
-                this._connection.send(chunk, { binary: true }, (err) => callback(err));
+                this._connection.send(chunk, { binary: true }, (err ?: Error) => callback(err));
             }
         } else {
             this._bufferedMessages.push(chunk);
@@ -148,8 +157,19 @@ class SpeechRequest extends Stream.Writable {
     }
 }
 
+export interface SpeechRecognizerOptions {
+    locale ?: string;
+    nlUrl ?: string;
+    vad ?: Tp.Capabilities.VadApi|null;
+}
+
 export default class SpeechRecognizer extends events.EventEmitter {
-    constructor(options = {}) {
+    private _language : string;
+    private _baseUrl : string;
+    private _connection : WebSocket|null;
+    private _vad : Tp.Capabilities.VadApi|null;
+
+    constructor(options : SpeechRecognizerOptions = {}) {
         super();
         this._language = options.locale || 'en-US';
         this._baseUrl = options.nlUrl || URL;
@@ -165,8 +185,8 @@ export default class SpeechRecognizer extends events.EventEmitter {
     }
 
     _doConnect() {
-        let url = this._baseUrl + '/' + this._language + '/voice/stream';
-        let connection = new WebSocket(url, {
+        const url = this._baseUrl + '/' + this._language + '/voice/stream';
+        const connection = new WebSocket(url, {
             perMessageDeflate: true
         });
         return new Promise((callback, errback) => {
@@ -184,26 +204,22 @@ export default class SpeechRecognizer extends events.EventEmitter {
                     console.log('Connection to STT service closed: ' + code + ' ' + reason);
                 this._connection = null;
             });
-            connection.on('error', (e) => {
+            connection.on('error', (e : Error) => {
                 this._connection = null;
-                if (e.code === 'ECONNRESET')
-                    console.log('Error on STT service: Connection Reset');
-                else
-                    this.emit('error', e);
+                this.emit('error', e);
             });
         });
     }
 
     _ensureConnection() {
         if (this._connection)
-            return Promise.resolve(this._connection);
-        else
-            return this._doConnect();
+            this._connection.close();
+        return this._doConnect();
     }
 
-    request(stream, initialBuffer) {
-        let req = new SpeechRequest(stream, initialBuffer, this._vad);
-        this._ensureConnection().then((connection) => {
+    request(stream : Stream.Readable, initialBuffer : Buffer) {
+        const req = new SpeechRequest(stream, initialBuffer, this._vad);
+        this._ensureConnection().then((connection : any) => {
             req.start(connection);
         }).catch((e) => {
             req.end();
