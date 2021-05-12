@@ -161,6 +161,10 @@ class SchemaProcessor {
             this._addPrimEntity(domainEntityType);
             for (let property of properties) {
                 const label = this._labels.get(property);
+                // in case the property has the same name as the domain, drop it
+                // it happens for country entities, probably added for the completeness of the kb
+                if (label === domainLabel) 
+                    continue;
                 const name = argnameFromLabel(label);
                 const type = new Type.Array(new Type.Entity(`org.wikidata:p_${name}`));
                 const annotations = {
