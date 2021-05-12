@@ -41,8 +41,7 @@ import MultiJSONDatabase from '../lib/multi_json_database';
 import { PredictionResult } from '../../lib/prediction/parserclient';
 import FileThingpediaClient from '../lib/file_thingpedia_client';
 import { introduceErrorsToUserTarget } from '../lib/error-creation';
-
-
+import { EntityMap } from '../../lib/utils/entity-utils';
 
 class SimulatorStream extends Stream.Transform {
     private _simulator : ThingTalkUtils.Simulator;
@@ -57,6 +56,7 @@ class SimulatorStream extends Stream.Transform {
     private _detokenizeAll : boolean;
     private _debug : boolean;
     private _abortOnError : boolean;
+    private _rng : () => number;
 
     constructor(options : {
         policy : DialoguePolicy,
@@ -69,7 +69,8 @@ class SimulatorStream extends Stream.Transform {
         detokenizeAll : boolean,
         debug : boolean,
         abortOnError : boolean,
-        locale : string
+        locale : string,
+        rng : () => number
     }) {
         super({ objectMode : true });
 
@@ -85,6 +86,7 @@ class SimulatorStream extends Stream.Transform {
         this._abortOnError = options.abortOnError;
         this._locale = options.locale;
         this._langPack = I18n.get(options.locale);
+        this._rng = options.rng;
     }
 
     _detokenize(sentence : string) : string{
@@ -132,12 +134,14 @@ class SimulatorStream extends Stream.Transform {
         }
         let is_mistake = false; // whether the top parser output doesn't match the gold
 
+        let currentEntities : EntityMap, utteranceTokens : string[];
         if (this._parser !== null) {
             const parsed : PredictionResult = await this._parser.sendUtterance(lastTurn.user, contextCode, contextEntities, {
                 tokenized: false,
                 skip_typechecking: true
             });
-
+            currentEntities = parsed.entities;
+            utteranceTokens = parsed.tokens;
 
             const candidates = await ThingTalkUtils.parseAllPredictions(parsed.candidates, parsed.entities, {
                 thingpediaClient: this._tpClient,
@@ -172,13 +176,31 @@ class SimulatorStream extends Stream.Transform {
 
         } else {
             userTarget = goldUserTarget;
+
+            const tokenized = this._langPack.getTokenizer().tokenize(lastTurn.user);
+            currentEntities = tokenized.entities;
+            utteranceTokens = tokenized.tokens;
         }
         let userFeedback = '';
-        if (this._introduceErrors)
-            [userTarget, userFeedback] = introduceErrorsToUserTarget(<Ast.DialogueState> userTarget);
-            console.log('userFeedback = ', userFeedback);
+        if (this._introduceErrors) {
+            try {
+                const maybeIntroducedError = introduceErrorsToUserTarget(userTarget, {
+                    locale: this._locale,
+                    rng: this._rng,
+                    tokens: utteranceTokens,
+                    currentEntities: currentEntities,
+                });
+                if (maybeIntroducedError) {
+                    [userTarget, userFeedback] = maybeIntroducedError;
+                    console.log('userFeedback = ', userFeedback);
+                }
+            } catch(e) {
+                console.error(e);
+                throw e;
+            }
+        }
 
-        state = ThingTalkUtils.computeNewState(state, <Ast.DialogueState> userTarget, 'user');
+        state = ThingTalkUtils.computeNewState(state, userTarget, 'user');
 
         const { newDialogueState } = await this._simulator.execute(state, undefined);
         state = newDialogueState;
@@ -287,7 +309,8 @@ export default async function worker(args : any, shard : string) {
         introduceErrors: args.introduce_errors,
         debug: args.debug,
         detokenizeAll: args.detokenize_all,
-        abortOnError: args.abort_on_error
+        abortOnError: args.abort_on_error,
+        rng: simulatorOptions.rng
     });
 
     stream.on('end', () => {

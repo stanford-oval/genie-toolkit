@@ -282,7 +282,7 @@ export abstract class Replaceable {
      * This method differs from {@link Replaceable.parse} because it will
      * cache the result so it is fast to call multiple times for the same string.
      */
-    static get(template : string, langPack : LanguagePack, names : string[]) {
+    static get(template : string, langPack : LanguagePack, names : string[]) : Replaceable {
         const cacheKey = langPack.locale + '/' + template;
         const cached = Replaceable._cache.get(cacheKey);
         if (cached)

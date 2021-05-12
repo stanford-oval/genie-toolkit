@@ -469,7 +469,7 @@ export class Describer {
                 lhs = canonical_overwrite[argname];
             } else if (schema) {
                 if (schema.hasArgument(argname))
-                    lhs = this._getArgCanonical(schema, argname);
+                    lhs = this.getArgCanonical(schema, argname);
                 else
                     lhs = scope[argname];
             } else {
@@ -505,7 +505,7 @@ export class Describer {
                     argcanonical = canonical_overwrite[argname];
                 } else if (schema) {
                     if (schema.hasArgument(argname))
-                        argcanonical = this._getArgCanonical(schema, argname);
+                        argcanonical = this.getArgCanonical(schema, argname);
                     else
                         argcanonical = scope[argname];
                 } else {
@@ -1099,7 +1099,7 @@ export class Describer {
                 throw new TypeError(`Invalid aggregation ${table.operator}`);
             }
             return this._interp(desc, {
-                param: this._getArgCanonical(table.schema!, table.field),
+                param: this.getArgCanonical(table.schema!, table.field),
                 query: this.describeQuery(table.expression)
             });
 
@@ -1189,7 +1189,7 @@ export class Describer {
         }
     }
 
-    private _getArgCanonical(schema : Ast.FunctionDef, argname : string) : ReplacedResult|null {
+    getArgCanonical(schema : Ast.FunctionDef, argname : string) : ReplacedResult|null {
         const arg = schema.getArgument(argname)!;
         const normalized = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || clean(argname), this._direction);
 
@@ -1204,7 +1204,7 @@ export class Describer {
     private __describeArgList(args : string[],
                               computations : Ast.Value[],
                               schema : Ast.FunctionDef) {
-        return this._makeList(args.map((argname) => this._getArgCanonical(schema, argname))
+        return this._makeList(args.map((argname) => this.getArgCanonical(schema, argname))
             .concat(computations.map((c) => this.describeArg(c))));
     }
 
@@ -1449,7 +1449,7 @@ export class Describer {
             }
 
             for (const argname in schema.out) {
-                const canonical = this._getArgCanonical(schema, argname);
+                const canonical = this.getArgCanonical(schema, argname);
                 if (canonical !== null)
                     scope[argname] = canonical;
             }
