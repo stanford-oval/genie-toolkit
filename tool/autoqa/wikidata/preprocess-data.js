@@ -27,8 +27,11 @@ import JSONStream from 'JSONStream';
 import * as I18N from '../../../lib/i18n';
 import { argnameFromLabel, readJson, dumpMap } from './utils';
 import * as StreamUtils from '../../../lib/utils/stream-utils';
+import { PROPERTIES_DROP_WITH_GEO } from '../schemaorg/manual-annotations';
 
 const INSTANCE_OF_PROP = "P31";
+const SYMMETRIC_PROPERTY_MIN_EXAMPLES = 10;
+const SYMMETRIC_PROPERTY_THRESHOLD = 0.85;
 
 class ParamDatasetGenerator {
     constructor(options) {
@@ -44,6 +47,7 @@ class ParamDatasetGenerator {
             wikidataEntities: options.wikidataEntities,
             wikidataProperties: options.wikidataProperties,
             filteredProperties: options.filteredProperties,
+            symmetricProperties: options.symmetricProperties,
             bootlegTypes: options.bootlegTypes
         };
 
@@ -79,7 +83,7 @@ class ParamDatasetGenerator {
         this._manifest.write(manifestEntry);
     }
 
-    async _outputDomainValueSet(manifest) {
+    async _outputDomainValueSet() {
         const data = [];
         for (const [value, label] of this._items) {
             const tokenized = this._tokenizer.tokenize(label).tokens.join(' ');
@@ -88,58 +92,111 @@ class ParamDatasetGenerator {
         await this._outputValueSet(`org.wikidata:${this._canonical}`, data);
     }
 
-    async _loadPredicates(kbFile) {
-        const pipeline = fs.createReadStream(kbFile).pipe(JSONStream.parse('$*'));
-        pipeline.on('data', async (item) => {
-            const predicates = item.value;
-            // skip entities with no "instance of" property
-            if (!(INSTANCE_OF_PROP in predicates))
-                return;
-            
-            // skip reading predicates for entities that do not have $domain as one of 
-            // its types "instance of"
-            const entityTypes = predicates[INSTANCE_OF_PROP];
-            if (!entityTypes.includes(this._domain))
-                return;
+    async _loadPredicates() {
+        for (const kbFile of this._paths.wikidata) {
+            const pipeline = fs.createReadStream(kbFile).pipe(JSONStream.parse('$*'));
+            pipeline.on('data', async (item) => {
+                const predicates = item.value;
+                // skip entities with no "instance of" property
+                if (!(INSTANCE_OF_PROP in predicates))
+                    return;
+                
+                // skip reading predicates for entities that do not have $domain as one of 
+                // its types "instance of"
+                const entityTypes = predicates[INSTANCE_OF_PROP];
+                if (!entityTypes.includes(this._domain))
+                    return;
 
-            // add wikidata item in the domain 
-            // set QID as label as fallback, and update with labels later
-            this._items.set(item.key, item.key);
+                // add wikidata item in the domain 
+                // set QID as label as fallback, and update with labels later
+                this._items.set(item.key, item.key);
 
-            // add predicates
-            for (const [property, values] of Object.entries(predicates)) {
-                if (!this._wikidataProperties.has(property))
-                    continue;
-                if (!this._predicates.has(property))
-                    this._predicates.set(property, []);
+                // add predicates
+                for (const [property, values] of Object.entries(predicates)) {
+                    if (!this._wikidataProperties.has(property))
+                        continue;
+                    if (!this._predicates.has(property))
+                        this._predicates.set(property, []);
 
-                const predicate = this._predicates.get(property);
-                for (const value of values) {
-                    predicate.push(value);
-                    // add values 
-                    // set QID as label as fallback, and update with labels later
-                    this._values.set(value, value);
+                    const predicate = this._predicates.get(property);
+                    for (const value of values) {
+                        predicate.push(value);
+                        // add values 
+                        // set QID as label as fallback, and update with labels later
+                        this._values.set(value, value);
+                    }
                 }
-            }
-        });
+            });
 
-        pipeline.on('error', (error) => console.error(error));
-        await StreamUtils.waitEnd(pipeline);
+            pipeline.on('error', (error) => console.error(error));
+            await StreamUtils.waitEnd(pipeline);
+        }
     }
 
-    async _loadWikidataTypes(kbFile) {
-        const pipeline = fs.createReadStream(kbFile).pipe(JSONStream.parse('$*'));
-        pipeline.on('data', async (item) => {
-            const predicates = item.value;
-            // skip entities with no type information
-            if (!predicates[INSTANCE_OF_PROP])
-                return;
-            if (this._values.has(item.key))
-                this._types.set(item.key, predicates[INSTANCE_OF_PROP]);
-        });
+    async _loadWikidataTypes() {
+        for (const kbFile of this._paths.wikidata) {
+            const pipeline = fs.createReadStream(kbFile).pipe(JSONStream.parse('$*'));
+            pipeline.on('data', async (item) => {
+                const predicates = item.value;
+                // skip entities with no type information
+                if (!predicates[INSTANCE_OF_PROP])
+                    return;
+                if (this._values.has(item.key))
+                    this._types.set(item.key, predicates[INSTANCE_OF_PROP]);
+            });
 
-        pipeline.on('error', (error) => console.error(error));
-        await StreamUtils.waitEnd(pipeline);
+            pipeline.on('error', (error) => console.error(error));
+            await StreamUtils.waitEnd(pipeline);
+        }
+    }
+
+    async _identifySymmetricProperties() {
+        const relations = new Map();
+        for (const kbFile of this._paths.wikidata) {
+            const pipeline = fs.createReadStream(kbFile).pipe(JSONStream.parse('$*'));
+            pipeline.on('data', async (item) => {
+                if (!this._items.has(item.key))
+                    return;
+
+                for (const property in item.value) {
+                    if (!this._predicates.has(property))
+                        continue;
+                    
+                    if (!relations.has(property))
+                        relations.set(property, new Map());
+
+                    relations.get(property).set(item.key, item.value[property]);
+                }
+            });
+
+            pipeline.on('error', (error) => console.error(error));
+            await StreamUtils.waitEnd(pipeline);
+        }
+
+        const symmetricProperties = [];
+        for (const [property, maps] of relations) {
+            let count_bidirectional = 0;
+            let count_unidirectional = 0;
+            for (const [subject, objects] of maps) {
+                for (const object of objects) {
+                    if (!maps.has(object)) {
+                        count_unidirectional += 1;
+                        break;
+                    }
+                    if (!maps.get(object).includes(subject)) {
+                        count_unidirectional += 1;
+                        break;
+                    }
+                    count_bidirectional +=1;
+                }
+            }
+            const total = (count_bidirectional + count_unidirectional) / 2;
+            if (total < SYMMETRIC_PROPERTY_MIN_EXAMPLES)
+                continue;
+            if (count_bidirectional / 2 / total > SYMMETRIC_PROPERTY_THRESHOLD)
+                symmetricProperties.push(property);
+        }
+        await util.promisify(fs.writeFile)(this._paths.symmetricProperties, symmetricProperties.join(','), { encoding: 'utf8' });
     }
 
     async _loadBootlegTypes() {
@@ -269,7 +326,7 @@ class ParamDatasetGenerator {
         console.log('loading property labels ...');
         this._wikidataProperties = await readJson(this._paths.wikidataProperties);
         
-        const preprocessed = ['predicates.json', 'items.json', 'values.json', 'types.json'];
+        const preprocessed = ['predicates.json', 'items.json', 'values.json', 'types.json', 'symmetric-properties.txt'];
         if (preprocessed.every((fname) => fs.existsSync(path.join(this._paths.dir, fname)))) {
             console.log('loading preprocessed in-domain files ...');
             this._items = await readJson(path.join(this._paths.dir, 'items.json'));
@@ -278,13 +335,13 @@ class ParamDatasetGenerator {
             this._types = await readJson(path.join(this._paths.dir, 'types.json'));
         } else {
             console.log('loading predicates ...');
-            for (const kbfile of this._paths.wikidata)
-                await this._loadPredicates(kbfile);
+            await this._loadPredicates();
             console.log('loading value types ...');
-            for (const kbfile of this._paths.wikidata)
-                await this._loadWikidataTypes(kbfile);
+            await this._loadWikidataTypes();
             console.log('loading entity labels ...');
             await this._loadLabels();
+            console.log('identifying symmetric properties ...');
+            await this._identifySymmetricProperties();
             await dumpMap(path.join(this._paths.dir, 'items.json'), this._items);
             await dumpMap(path.join(this._paths.dir, 'predicates.json'), this._predicates);
             await dumpMap(path.join(this._paths.dir, 'values.json'), this._values);
@@ -339,6 +396,10 @@ module.exports = {
             required: true,
             help: "Path to output a txt file containing properties available for the domain, split by comma"
         });
+        parser.add_argument('--symmetric-properties', {
+            required: true,
+            help: "Path to output a txt file containing symmetric properties for the domain, split by comma"
+        });
         parser.add_argument('--bootleg-types', {
             required: false,
             help: "Path to types used for each entity in Bootleg"
@@ -366,6 +427,7 @@ module.exports = {
             wikidataEntities: args.wikidata_entity_list,
             wikidataProperties: args.wikidata_property_list,
             filteredProperties: args.filtered_properties,
+            symmetricProperties: args.symmetric_properties,
             bootlegTypes: args.bootleg_types,
             maxValueLength: args.max_value_length,
             manifest: args.manifest,
