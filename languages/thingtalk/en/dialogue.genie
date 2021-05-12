@@ -354,7 +354,7 @@ $agent : S.AgentReplyRecord = {
     ?verboseagent {
         // In this section, vd (verbose description) is prepended to all agent utterances
         ?anything_else {
-            'You asked me to cancel the previous command.' ctx:ctx_cancel anything_else_phrase
+            'You asked me to abandon this reservation.' ctx:ctx_cancel anything_else_phrase
                 => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_anything_else', null), null, null, { end: false }),
 
             ctx:ctx_end 'alright ,' ('bye !' | 'good bye !')
