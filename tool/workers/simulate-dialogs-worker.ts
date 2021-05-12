@@ -172,8 +172,8 @@ class SimulatorStream extends Stream.Transform {
                 console.log('normalizedUserTarget = ', normalizedUserTarget);
                 console.log('normalizedGoldUserTarget = ', normalizedGoldUserTarget);
             }
-            dlg[dlg.length-1].user_target = normalizedUserTarget;
 
+            dlg[dlg.length-1].user_target = userTarget.prettyprint();
         } else {
             userTarget = goldUserTarget;
 
@@ -190,10 +190,15 @@ class SimulatorStream extends Stream.Transform {
                     tokens: utteranceTokens,
                     currentEntities: currentEntities,
                 });
-                if (maybeIntroducedError) {
-                    [userTarget, userFeedback] = maybeIntroducedError;
-                    console.log('userFeedback = ', userFeedback);
+                if (!maybeIntroducedError) {
+                    // we couldn't generate an error for this turn
+                    // don't push anything
+                    return;
                 }
+
+                [userTarget, userFeedback] = maybeIntroducedError;
+                console.log('userFeedback = ', userFeedback);
+                dlg[dlg.length-1].user_target = userTarget.prettyprint();
             } catch(e) {
                 console.error(e);
                 throw e;
@@ -211,7 +216,7 @@ class SimulatorStream extends Stream.Transform {
             agent_target: '',
             intermediate_context: '',
             user: userFeedback,
-            user_target: ''
+            user_target: goldUserTarget.prettyprint()
         };
 
         let policyResult;
