@@ -55,20 +55,26 @@ canonical = $($(experiment)_canonical)
 
 eval_set ?= eval
 
-all_annotation_strategies = baseline auto manual
-annotation ?= baseline
 
+all_annotation_strategies = baseline auto manual
+annotation ?= auto
+type_system ?= entity-hierarchical
 paraphraser_options ?= --paraphraser-model ./models/paraphraser-bart --batch-size 32
 
-baseline_process_schemaorg_flags =
-auto_process_schemaorg_flags =
-manual_process_schemaorg_flags = --manual
+baseline_preprocess_flags =
+wikidata_preprocess_flags =
+auto_preprocess_flags =
+
+baseline_process_schema_flags =
+wikidata_process_schema_flags = --wikidata-labels
+auto_process_schema_flags =
 
 baseline_annotate_flags =
+wikidata_annotate_flags =
 auto_annotate_flags = --algorithms bart-paraphrase $(paraphraser_options)
-manual_annotate_flags =
 
-process_schemaorg_flags ?= $($(annotation)_process_schemaorg_flags)
+preprocess_flags ?= $($(annotation)_preprocess_flags)
+process_schema_flags ?= $($(annotation)_process_schema_flags) --type-system $(type_system)
 annotate_flags ?= $($(annotation)_annotate_flags)
 
 use_preprocessed_wikidata = true
@@ -166,7 +172,7 @@ raw/csqa-wikidata:
 	  --symmetric-properties $*/symmetric-properties.txt \
 	  --manifest $*/parameter-datasets.tsv.tmp \
 	  --output-dir $*/parameter-datasets \
-	  $(process_schemaorg_flags)
+	  $(preprocess_flags)
 	mv $*/parameter-datasets.tsv.tmp $*/parameter-datasets.tsv
 	sed -e "s|$(echo -e '\t')shared-parameter-datasets|$(echo -e '\t')../shared-parameter-datasets|g" shared-parameter-datasets.tsv >> $@
 
@@ -179,7 +185,7 @@ raw/csqa-wikidata:
 	  --subtypes $*/subtypes.json \
 	  --parameter-datasets $*/parameter-datasets.tsv \
 	  --properties $(shell cat $*/properties.txt) \
-	  $(process_schemaorg_flags)
+	  $(process_schema_flags)
 	mv $@.tmp $@
 
 %/constants.tsv: %/wikidata.tt %/parameter-datasets.tsv
@@ -194,7 +200,8 @@ raw/csqa-wikidata:
 	  --functions $($(*)_canonical) \
 	  $(annotate_flags) \
 	  --parameter-datasets $*/parameter-datasets.tsv \
-	  --dataset wikidata
+	  --dataset wikidata \
+	  --debug
 	mv $@.tmp $@
 
 %/synthetic.tsv: %/manifest.tt $(dataset_file)

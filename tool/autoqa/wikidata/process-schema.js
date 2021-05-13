@@ -60,12 +60,13 @@ async function retrieveProperties(domain, properties) {
 }
 
 class SchemaProcessor {
-    constructor(domains, domainCanonicals, propertiesByDomain, requiredPropertiesByDomain, subtypeMap, labels,
+    constructor(domains, domainCanonicals, propertiesByDomain, requiredPropertiesByDomain, typeSystem, subtypeMap, labels,
                 output, outputEntities, manual, wikidataLabels, paramDatasetsTsv) {
         this._domains = domains;
         this._domainCanonicals = domainCanonicals;
         this._propertiesByDomain = propertiesByDomain;
         this._requiredPropertiesByDomain = requiredPropertiesByDomain;
+        this._typeSystem = typeSystem;
         this._subtypeMap = subtypeMap;
         this._labels = labels;
         this._output = output;
@@ -166,12 +167,22 @@ class SchemaProcessor {
                 if (label === domainLabel) 
                     continue;
                 const name = argnameFromLabel(label);
-                const type = new Type.Array(new Type.Entity(`org.wikidata:p_${name}`));
+                let type;
+                if (this._typeSystem === 'string') {
+                    type = new Type.Array(Type.String);
+                } else {
+                    type = new Type.Array(new Type.Entity(`org.wikidata:p_${name}`));
+                    if (this._typeSystem === 'entity-plain')
+                        this._addPrimEntity(`p_${name}`);
+                    else if (this._typeSystem === 'entity-hierarchical')
+                        this._addSuperEntity(`p_${name}`);
+                }
                 const annotations = {
                     nl: { canonical: await this._getArgCanonical(property, label, type) },
                     impl: { wikidata_id: new Ast.Value.String(property) }
                 };
-                this._addSuperEntity(`p_${name}`);
+                if (this._typeSystem === 'string') 
+                    annotations.nl.string_values = 'p_' + name;
                 args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, name, type, annotations));
             }
             const qualifiers = { is_list: true, is_monitorable: false };
@@ -255,9 +266,18 @@ export function initArgparse(subparsers) {
     parser.add_argument('--property-labels', {
         required: true,
         help: 'path to the JSON file containing default label for each property'
-    }); 
-    parser.add_argument('--subtypes', {
+    });
+    parser.add_argument('--type-system', {
         required: true,
+        choices: ['entity-plain', 'entity-hierarchical', 'string'],
+        help: 'design choices for the type system:\n' +
+            'entity-plain: one entity type per property\n' +
+            'entity-hierarchical: one entity type for each value, and the property type is the supertype of all types of its values\n' +
+            'string: all property has a string type except id',
+        default: 'entity-hierarchical'
+    });
+    parser.add_argument('--subtypes', {
+        required: false,
         help: 'path to the JSON file containing subtypes for each property'
     });
     parser.add_argument('--manual', {
@@ -280,7 +300,7 @@ export function initArgparse(subparsers) {
     });
     parser.add_argument('--parameter-datasets', {
         required: true,
-        help: 'Path to parammeter_datasets.tsv; used for entity/string type mapping'
+        help: 'Path to parameter_datasets.tsv; used for entity/string type mapping'
     });
 }
 
@@ -319,7 +339,7 @@ export async function execute(args) {
     const labels = await readJson(args.property_labels);
 
     const schemaProcessor = new SchemaProcessor(
-        domains, domainCanonicals, propertiesByDomain, requiredPropertiesByDomain, subtypeMap, labels,
+        domains, domainCanonicals, propertiesByDomain, requiredPropertiesByDomain, args.type_system, subtypeMap, labels,
         args.output, args.entities, args.manual, args.wikidata_labels
     );
     schemaProcessor.run();

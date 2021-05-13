@@ -22,6 +22,7 @@
 import * as fs from 'fs';
 import * as util from 'util';
 import * as path from 'path';
+import csvstringify from 'csv-stringify';
 import JSONStream from 'JSONStream';
 
 import * as I18N from '../../../lib/i18n';
@@ -38,6 +39,7 @@ class ParamDatasetGenerator {
         this._locale = options.locale;
         this._domain = options.domain;
         this._canonical = options.canonical;
+        this._typeSystem = options.typeSystem;
 
         this._paths = {
             dir: path.dirname(options.manifest),
@@ -67,7 +69,7 @@ class ParamDatasetGenerator {
         this._tokenizer = I18N.get(options.locale).getTokenizer();
     }
 
-    async _outputValueSet(type, data) {
+    async _outputEntityValueSet(type, data) {
         const outputPath = path.join(this._paths.parameterDataset, `${type}.json`);
         const manifestEntry = `entity\t${this._locale}\t${type}\tparameter-datasets/${type}.json\n`;
         if (fs.existsSync(outputPath)) {
@@ -83,13 +85,24 @@ class ParamDatasetGenerator {
         this._manifest.write(manifestEntry);
     }
 
+    async _outputStringValueSet(type, data) {
+        const outputPath = path.join(this._paths.parameterDataset, `${type}.tsv`);
+        const output = csvstringify({ header: false, delimiter: '\t'});
+        output.pipe(fs.createWriteStream(outputPath, { encoding: 'utf8' }));
+        const manifestEntry = `string\t${this._locale}\t${type}\tparameter-datasets/${type}.tsv\n`;
+        for (const row of data)
+            output.write(row);
+        StreamUtils.waitFinish(output);
+        this._manifest.write(manifestEntry);
+    }
+
     async _outputDomainValueSet() {
         const data = [];
         for (const [value, label] of this._items) {
             const tokenized = this._tokenizer.tokenize(label).tokens.join(' ');
             data.push({ value, name: label, canonical: tokenized });
         }
-        await this._outputValueSet(`org.wikidata:${this._canonical}`, data);
+        await this._outputEntityValueSet(`org.wikidata:${this._canonical}`, data);
     }
 
     async _loadPredicates() {
@@ -280,41 +293,52 @@ class ParamDatasetGenerator {
             const thingtalkPropertyType = 'p_' + argnameFromLabel(propertyLabel);
             console.log('Processing property: ', propertyLabel);
             const thingtalkEntityTypes = new Set();
-            for (const value of values) {
-                 // skip entities with no type information
-                if (!this._types.has(value))
-                    continue;
-
-                const valueType = this._getEntityType(value);
+            for (const value of values) {               
                 const valueLabel = this._values.get(value);
-
-                // value does not have value for "instance of" field
-                if (!valueType)
-                    continue;
-
                 // Tokenizer throws error.
                 if (valueLabel.includes('æ'))
                     continue;
-
                 const tokens = this._tokenizer.tokenize(valueLabel).tokens;
                 if (this._maxValueLength && tokens.length > this._maxValueLength) 
                     continue;
 
                 const tokenized = tokens.join(' ');
-                const entry = { value, name: valueLabel, canonical: tokenized };
 
-                // add to property value set, for easier constant sampling
+                if (this._typeSystem === 'string') {
+                    this._addToValueSet(thingtalkPropertyType, [valueLabel, tokenized, 1]);
+                    continue;
+                } 
+
+                const entry = { value, name: valueLabel, canonical: tokenized };
+                // add to property value set
                 this._addToValueSet(thingtalkPropertyType, entry);
-                // add to entity value set, for actual augmentation in synthesis
-                thingtalkEntityTypes.add(valueType);
-                this._addToValueSet(valueType, entry);
+
+                if (this._typeSystem === 'entity-hierarchical') {
+                    // skip entities with no type information
+                    if (!this._types.has(value))
+                        continue;
+
+                    const valueType = this._getEntityType(value);
+                    // value does not have value for "instance of" field
+                    if (!valueType)
+                        continue;
+                    
+                    // add to entity type value set
+                    thingtalkEntityTypes.add(valueType);
+                    this._addToValueSet(valueType, entry);
+                }         
             }
-            this._subtypes.set(thingtalkPropertyType, Array.from(thingtalkEntityTypes));
+            if (this._typeSystem === 'entity-hierarchical')
+                this._subtypes.set(thingtalkPropertyType, Array.from(thingtalkEntityTypes));
             filteredDomainProperties.push(property);
         }
         for (const [valueType, examples] of this._valueSets) {
-            const type = `org.wikidata:${valueType}`;
-            await this._outputValueSet(type, examples);
+            if (this._typeSystem === 'string') {
+                await this._outputStringValueSet(valueType, examples);
+            } else {
+                const type = `org.wikidata:${valueType}`;
+                await this._outputEntityValueSet(type, examples);
+            }
         }
         await util.promisify(fs.writeFile)(this._paths.filteredProperties, filteredDomainProperties.join(','), { encoding: 'utf8' });
 
@@ -377,6 +401,15 @@ module.exports = {
             required: true,
             help: 'the canonical form for the given domain, used as the query names'
         });
+        parser.add_argument('--type-system', {
+            required: true,
+            choices: ['entity-plain', 'entity-hierarchical', 'string'],
+            help: 'design choices for the type system:\n' +
+                'entity-plain: one entity type per property\n' +
+                'entity-hierarchical: one entity type for each value, and the property type is the supertype of all types of its values\n' +
+                'string: all property has a string type except id',
+            default: 'entity-hierarchical'
+        });
         parser.add_argument('--wikidata', {
             required: false,
             nargs: '+',
@@ -423,6 +456,7 @@ module.exports = {
             locale: args.locale,
             domain: args.domain,
             canonical: args.domain_canonical,
+            typeSystem: args.type_system,
             wikidata: args.wikidata,
             wikidataEntities: args.wikidata_entity_list,
             wikidataProperties: args.wikidata_property_list,
