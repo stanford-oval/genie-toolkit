@@ -31,6 +31,8 @@ interface SpeechHandlerOptions {
     subscriptionKey ?: string;
 }
 
+var alreadyPlayedAudio = [];
+
 export default class SpeechHandler extends events.EventEmitter {
     private _platform : Tp.BasePlatform;
     private _prefs : Tp.Preferences;
@@ -154,7 +156,35 @@ export default class SpeechHandler extends events.EventEmitter {
                     player = undefined;
                 }
             });
-            player = await cap.play(toPlay);
+            let currentNews = 0; // index of the current news being played
+
+            function cancelChain() {
+              alreadyPlayedAudio.pop(); // the last audio in the queue has not completed playing, so it should be played again on the next news request
+              currentNews = 1000000;
+            }
+            function chainaudio() {
+                if (currentNews+2 >= toPlay.length) { // check if all news is read
+                    return;
+                }
+                const playthis = [toPlay[currentNews], toPlay[currentNews+1]]; // one single file + sound effect
+                var hasplayed = true;
+
+                if (alreadyPlayedAudio.includes(toPlay[currentNews+1]) == false) { // check whether next audio has already been played
+                    player = cap.play(playthis);
+                    alreadyPlayedAudio.push(toPlay[currentNews+1]); // now that it is playing, add it into the already played list
+                } else {
+                    hasplayed = false;
+                }
+                if (currentNews+2 <= toPlay.length && hasplayed == true) { // listen for emits to know when audio is over or if user has asked to stop
+                    currentNews+=2;
+                    player.once('done', chainaudio); // audio file has been read completely, go to the next audio in the chain
+                    player.once('stopChain', cancelChain); // stop reading the news
+                } else if (currentNews+2 <= toPlay.length) { // keep going but dont read current audio
+                    currentNews+=2;
+                    chainaudio();
+                }
+            }
+            chainaudio();
         }
     }
 
