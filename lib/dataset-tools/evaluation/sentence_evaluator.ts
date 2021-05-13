@@ -73,13 +73,14 @@ const COMPLEXITY_METRICS = {
     }
 };
 
-type SentenceEvaluatorOptions = {
+export type SentenceEvaluatorOptions = {
     locale : string;
     targetLanguage : string;
     debug : boolean;
     tokenized ?: boolean;
     oracle ?: boolean;
     complexityMetric ?: keyof typeof COMPLEXITY_METRICS;
+    skipWrongSyntax ?: boolean;
 } & ThingTalkUtils.ParseOptions;
 
 export interface ExampleEvaluationResult {
@@ -135,6 +136,7 @@ class SentenceEvaluator {
     private _tokenized : boolean;
     private _debug : boolean;
     private _oracle : boolean;
+    private _skipWrongSyntax : boolean;
     private _tokenizer : I18n.BaseTokenizer;
     private _computeComplexity : ((id : string, code : string) => number)|undefined;
 
@@ -155,6 +157,7 @@ class SentenceEvaluator {
         this._tokenized = !!options.tokenized;
         this._debug = options.debug;
         this._oracle = !!options.oracle;
+        this._skipWrongSyntax = !!options.skipWrongSyntax;
         this._tokenizer = tokenizer;
 
         if (options.complexityMetric)
@@ -262,9 +265,6 @@ class SentenceEvaluator {
         result.is_primitive = goldFunctions[0].length === 1;
         result.target_devices = goldDevices[0];
 
-        let first = true;
-        let ok = false, ok_without_param = false, ok_function = false,
-            ok_device = false, ok_num_function = false, ok_syntax = false;
 
         let predictions;
         if (this._predictions) {
@@ -293,12 +293,17 @@ class SentenceEvaluator {
             }
         }
 
+        let first = true;
+        let ok = false, ok_without_param = false, ok_function = false,
+            ok_device = false, ok_num_function = false, ok_syntax = false;
         for (const beam of predictions) {
             const target = normalizedTargetCode[0];
 
             // first check if the program parses and typechecks (no hope otherwise)
             const parsed = await ThingTalkUtils.parsePrediction(beam, entities, this._options);
             if (!parsed) {
+                if (this._skipWrongSyntax)
+                    continue;
                 // push the previous result, so the stats
                 // stay cumulative along the beam
 
@@ -394,6 +399,18 @@ class SentenceEvaluator {
             result.ok_device.push(ok_device);
             result.ok_num_function.push(ok_num_function);
             result.ok_syntax.push(ok_syntax);
+        }
+        if (this._skipWrongSyntax) {
+            // fill in the remaining beams if we skipped some
+            // we fill in by copying the last result so stats remain cumulative along the beam length
+            for (let i = result.ok.length; i < predictions.length; i++) {
+                result.ok.push(ok);
+                result.ok_without_param.push(ok_without_param);
+                result.ok_function.push(ok_function);
+                result.ok_device.push(ok_device);
+                result.ok_num_function.push(ok_num_function);
+                result.ok_syntax.push(ok_syntax);
+            }
         }
 
         return result;
@@ -572,7 +589,7 @@ export class CollectSentenceStatistics extends Stream.Writable {
     _final(callback : () => void) {
         for (const device in this._buffer) {
             // convert to percentages
-            for (const key of ['ok', 'ok_without_param', 'ok_function', 'ok_device', 'ok_num_function', 'ok_syntax']) {
+            for (const key of KEYS) {
                 for (let beampos = 0; beampos < this._buffer[device][key].length; beampos++) {
                     //this._buffer[device][key][beampos] = (this._buffer[device][key][beampos] * 100 / this._buffer[device].total).toFixed(2);
                     //this._buffer[device]['prim/' + key][beampos] = (this._buffer[device]['prim/' + key][beampos] * 100 / this._buffer[device].primitives).toFixed(2);

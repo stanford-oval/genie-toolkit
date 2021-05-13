@@ -132,6 +132,16 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: 'Indicates evaluation of an oracle model where ThingTalk code should be passed to the genienlp server',
         default: false
     });
+    parser.add_argument('--skip-wrong-syntax', {
+        action: 'store_true',
+        help: 'Skip syntactically invalid predictions along a beam',
+        default: false
+    });
+    parser.add_argument('--output-all-beams', {
+        action: 'store_true',
+        help: 'Output metrics for all beam positions',
+        default: false
+    });
     parser.add_argument('--offset', {
         required: false,
         type: Number,
@@ -178,7 +188,8 @@ export async function execute(args : any) {
             tokenized: args.tokenized,
             debug: args.debug,
             complexityMetric: args.complexity_metric,
-            oracle: args.oracle
+            oracle: args.oracle,
+            skipWrongSyntax: args.skip_wrong_syntax
         }))
         .pipe(new CollectSentenceStatistics({
             minComplexity: args.min_complexity,

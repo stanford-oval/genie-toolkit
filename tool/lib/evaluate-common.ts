@@ -22,16 +22,16 @@ import { EvaluationResult } from '../../lib/dataset-tools/evaluation/sentence_ev
 
 function csvDisplay(args : any,
                     complexity : number|string|null,
-                    result : Record<string, EvaluationResult>,
+                    result : EvaluationResult,
                     device : string,
                     with_numeric = false,
                     without_numeric = false) {
-    let buffer = '';
+    let lineprefix = '';
     if (args.csv_prefix)
-        buffer = args.csv_prefix + ',';
+        lineprefix = args.csv_prefix + ',';
 
     if (args.split_by_device)
-        buffer += device + ',';
+        lineprefix += device + ',';
 
     let prefix = '';
     if (with_numeric) {
@@ -39,31 +39,48 @@ function csvDisplay(args : any,
         if (!result[`${prefix}total`])
             return;
 
-        buffer += `with_numeric,` + String(result[`${prefix}total`]);
+        lineprefix += `with_numeric,` + String(result[`${prefix}total`]);
     } else if (without_numeric) {
         prefix = `without_numeric_`;
         if (!result[`${prefix}total`])
             return;
 
-        buffer += `without_numeric,` + String(result[`${prefix}total`]);
+        lineprefix += `without_numeric,` + String(result[`${prefix}total`]);
     } else if (complexity === null) {
-        buffer += 'all,';
-        buffer += String(result.total);
+        lineprefix += 'all,';
+        lineprefix += String(result.total);
     } else {
         prefix = `complexity_${complexity}/`;
         if (!result[`${prefix}total`])
             return;
 
-        buffer += String(complexity) + ',' + String(result[`${prefix}total`]);
-    }
-    for (const key of ['ok', 'ok_without_param', 'ok_function', 'ok_device', 'ok_num_function', 'ok_syntax']) {
-        const fullkey = `${prefix}${key}`;
-        result[fullkey].length = parseInt(process.env.CSV_LENGTH || '1');
-        buffer += ',';
-        buffer += String(result[fullkey]);
+        lineprefix += String(complexity) + ',' + String(result[`${prefix}total`]);
     }
 
-    args.output.write(buffer + '\n');
+    if (args.output_all_beams) {
+        const beamsize = result.ok.length;
+
+        for (let beam = 0; beam < beamsize; beam++) {
+            let buffer = lineprefix + ',' + beam;
+            for (const key of ['ok', 'ok_without_param', 'ok_function', 'ok_device', 'ok_num_function', 'ok_syntax']) {
+                const fullkey = `${prefix}${key}`;
+                buffer += ',';
+                buffer += String(result[fullkey][beam]);
+            }
+
+            args.output.write(buffer + '\n');
+        }
+    } else {
+        let buffer = '';
+
+        for (const key of ['ok', 'ok_without_param', 'ok_function', 'ok_device', 'ok_num_function', 'ok_syntax']) {
+            const fullkey = `${prefix}${key}`;
+            buffer += ',';
+            buffer += String(result[fullkey][0]);
+        }
+
+        args.output.write(buffer + '\n');
+    }
 }
 
 export function outputResult(args : any, result : Record<string, EvaluationResult>) {
@@ -98,8 +115,8 @@ export function outputResult(args : any, result : Record<string, EvaluationResul
                 for (let complexity = args.min_complexity + 1; complexity < 10; complexity++)
                     csvDisplay(args, complexity, result[device], device);
             }
-            csvDisplay(args, null, result, device, true);
-            csvDisplay(args, null, result, device, false, true);
+            csvDisplay(args, null, result[device], device, true);
+            csvDisplay(args, null, result[device], device, false, true);
         } else {
             for (const key in result[device]) {
                 if (Array.isArray(result[device][key]))
