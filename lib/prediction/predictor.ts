@@ -37,7 +37,7 @@ interface Request {
     reject(err : Error) : void;
 }
 
-const DEFAULT_MINIBATCH_SIZE = 30;
+const DEFAULT_MINIBATCH_SIZE = process.env.GENIENLP_BATCH_SIZE ? parseInt(process.env.GENIENLP_BATCH_SIZE, 10) : 30;
 const DEFAULT_MAX_LATENCY = 50; // milliseconds
 
 interface Example {
@@ -216,10 +216,7 @@ export default class Predictor {
         this._modelurl = modelurl;
         this._worker = null;
 
-        if (process.env.GENIENLP_DISABLE_BATCHING)
-            this._minibatchSize = 1;
-        else
-            this._minibatchSize = minibatchSize;
+        this._minibatchSize = minibatchSize;
         this._maxLatency = maxLatency;
 
         this._stopped = false;
