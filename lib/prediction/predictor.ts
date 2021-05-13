@@ -216,7 +216,10 @@ export default class Predictor {
         this._modelurl = modelurl;
         this._worker = null;
 
-        this._minibatchSize = minibatchSize;
+        if (process.env.GENIENLP_DISABLE_BATCHING)
+            this._minibatchSize = 1;
+        else
+            this._minibatchSize = minibatchSize;
         this._maxLatency = maxLatency;
 
         this._stopped = false;
