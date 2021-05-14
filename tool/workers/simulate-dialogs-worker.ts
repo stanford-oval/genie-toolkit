@@ -36,6 +36,7 @@ import {
 import DialoguePolicy from '../../lib/dialogue-agent/dialogue_policy';
 import * as ParserClient from '../../lib/prediction/parserclient';
 import * as I18n from '../../lib/i18n';
+import { EntityRecord, getBestEntityMatch } from '../../lib/dialogue-agent/entity-linking/entity-finder';
 
 import MultiJSONDatabase from '../lib/multi_json_database';
 import { PredictionResult } from '../../lib/prediction/parserclient';
@@ -71,6 +72,7 @@ class SimulatorStream extends Stream.Transform {
     private _abortOnError : boolean;
     private _rng : () => number;
     private _validator : ThingTalkUtils.StateValidator;
+    private _cachedEntityMatches : Map<string, EntityRecord>;
 
     constructor(options : {
         policy : DialoguePolicy,
@@ -104,6 +106,7 @@ class SimulatorStream extends Stream.Transform {
         this._langPack = I18n.get(options.locale);
         this._rng = options.rng;
         this._validator = new ThingTalkUtils.StateValidator(POLICY_FILE_PATH);
+        this._cachedEntityMatches = new Map;
     }
 
     async load() {
@@ -122,6 +125,92 @@ class SimulatorStream extends Stream.Transform {
         sentence = sentence.replace(/(^|[.?!] )([a-z])/g, (_, prefix, letter) => prefix + letter.toUpperCase());
         sentence = sentence.replace(/\s+/g, ' ');
         return sentence;
+    }
+
+    private _isWellKnownEntity(entityType : string) {
+        switch (entityType) {
+        case 'tt:username':
+        case 'tt:hashtag':
+        case 'tt:picture':
+        case 'tt:url':
+        case 'tt:email_address':
+        case 'tt:phone_number':
+        case 'tt:path_name':
+        case 'tt:device':
+        case 'tt:function':
+            return true;
+        default:
+            return false;
+        }
+    }
+
+    private async _resolveEntity(value : Ast.EntityValue) : Promise<EntityRecord> {
+        if (this._isWellKnownEntity(value.type)) {
+            assert(value.value);
+            return { value: value.value!, name: value.display||'', canonical: value.value! };
+        }
+
+        const searchKey = value.display||value.value;
+        assert(searchKey);
+        const cacheKey = value.type + '/' + value.value + '/' + searchKey;
+        let resolved = this._cachedEntityMatches.get(cacheKey);
+        if (resolved)
+            return resolved;
+
+        const database = this._simulator.database;
+        if (database && database.has(value.type)) {
+            // resolve as ID entity from the database (simulate issuing a query for it)
+            const ids = database.get(value.type)!.map((entry) => {
+                const id = entry.id as { value : string, display : string };
+                return {
+                    value: id.value,
+                    name: id.display,
+                    canonical: id.display.toLowerCase()
+                };
+            });
+            if (value.value) {
+                for (const id of ids) {
+                    if (id.value === value.value) {
+                        resolved = id;
+                        break;
+                    }
+                }
+            }
+            if (!resolved)
+                resolved = getBestEntityMatch(searchKey, value.type, ids);
+            this._cachedEntityMatches.set(cacheKey, resolved);
+            return resolved;
+        }
+
+        // resolve as regular Thingpedia entity
+        const candidates = await this._tpClient.lookupEntity(value.type, searchKey);
+        resolved = getBestEntityMatch(searchKey, value.type, candidates.data);
+        this._cachedEntityMatches.set(cacheKey, resolved);
+        return resolved;
+    }
+
+    async _resolveAllEntities(userTarget : Ast.DialogueState) {
+        for (const slot of userTarget.iterateSlots2()) {
+            if (slot instanceof Ast.DeviceSelector)
+                continue;
+
+            const value = slot.get();
+            if (value instanceof Ast.EntityValue) {
+                const resolved = await this._resolveEntity(value);
+                value.value = resolved.value;
+                value.display = resolved.name;
+
+                // adjust the type to the base type in case of entity inheritance
+                // this is not strictly correct but it avoids human confusion
+                value.type = (slot.type as InstanceType<typeof ThingTalk.Type.Entity>).type;
+            } else if (value instanceof Ast.StringValue && slot.tag === 'filter.=~.id' && slot.primitive) {
+                const prim = slot.primitive;
+                assert(prim instanceof Ast.Invocation);
+                const entity = new Ast.EntityValue(null, prim.selector.kind + ':' + prim.channel, value.value);
+                const resolved = await this._resolveEntity(entity);
+                value.value = resolved.canonical;
+            }
+        }
     }
 
     async _run(dlg : ParsedDialogue) : Promise<void> {
@@ -153,6 +242,7 @@ class SimulatorStream extends Stream.Transform {
             console.log(`${dlg.id} uses an invalid dialogue act, skipping`);
             return;
         }
+        await this._resolveAllEntities(goldUserTarget);
         let is_mistake = false; // whether the top parser output doesn't match the gold
 
         let currentEntities : EntityMap, utteranceTokens : string[];
@@ -174,6 +264,7 @@ class SimulatorStream extends Stream.Transform {
 
             if (candidates.length > 0) {
                 userTarget = candidates[0];
+                await this._resolveAllEntities(userTarget);
             } else {
                 console.log(`No valid candidate parses for this command. Top candidate was ${parsed.candidates[0].code.join(' ')}. Using the gold UT`);
                 userTarget = goldUserTarget;
@@ -181,14 +272,8 @@ class SimulatorStream extends Stream.Transform {
                 if (this._outputAllMistakes)
                     return;
             }
-            const normalizedGoldUserTarget = ThingTalkUtils.serializePrediction(goldUserTarget, parsed.tokens, parsed.entities, {
-                locale: this._locale,
-                ignoreSentence: true
-            }).join(' ');
-            let normalizedUserTarget = ThingTalkUtils.serializePrediction(userTarget, parsed.tokens, parsed.entities, {
-                locale: this._locale,
-                ignoreSentence: true
-            }).join(' ');
+            const normalizedGoldUserTarget = goldUserTarget.prettyprint();
+            let normalizedUserTarget = userTarget.prettyprint();
 
             if (normalizedUserTarget === normalizedGoldUserTarget && !is_mistake) {
                 if (this._outputMistakesOnly) {
@@ -202,10 +287,8 @@ class SimulatorStream extends Stream.Transform {
                             return;
                         }
                         userTarget = candidates[beamIdx];
-                        normalizedUserTarget = ThingTalkUtils.serializePrediction(userTarget, parsed.tokens, parsed.entities, {
-                            locale: this._locale,
-                            ignoreSentence: true
-                        }).join(' ');
+                        await this._resolveAllEntities(userTarget);
+                        normalizedUserTarget = userTarget.prettyprint();
                         beamIdx++;
                     }
                 }

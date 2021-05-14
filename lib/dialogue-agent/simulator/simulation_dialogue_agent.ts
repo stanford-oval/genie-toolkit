@@ -80,6 +80,10 @@ export default class SimulationDialogueAgent extends AbstractDialogueAgent<Thing
         return this._executor;
     }
 
+    get database() : SimulationDatabase|undefined {
+        return this._database;
+    }
+
     protected async configureNotifications() {
         return undefined;
     }
