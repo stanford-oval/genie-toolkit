@@ -43,6 +43,18 @@ import FileThingpediaClient from '../lib/file_thingpedia_client';
 import { introduceErrorsToUserTarget } from '../lib/error-creation';
 import { EntityMap } from '../../lib/utils/entity-utils';
 
+let POLICY_FILE_PATH : string;
+try {
+    // try the path relative to our build location first (in dist/lib/dialogue-agent)
+    POLICY_FILE_PATH = require.resolve('../../../languages/thingtalk/policy.yaml');
+} catch(e) {
+    if (e.code !== 'MODULE_NOT_FOUND')
+        throw e;
+    // if that fails, try the location relative to our source directory
+    // (in case we're running with ts-node)
+    POLICY_FILE_PATH = require.resolve('../../languages/thingtalk/policy.yaml');
+}
+
 class SimulatorStream extends Stream.Transform {
     private _simulator : ThingTalkUtils.Simulator;
     private _schemas : ThingTalk.SchemaRetriever;
@@ -58,6 +70,7 @@ class SimulatorStream extends Stream.Transform {
     private _debug : boolean;
     private _abortOnError : boolean;
     private _rng : () => number;
+    private _validator : ThingTalkUtils.StateValidator;
 
     constructor(options : {
         policy : DialoguePolicy,
@@ -90,6 +103,11 @@ class SimulatorStream extends Stream.Transform {
         this._locale = options.locale;
         this._langPack = I18n.get(options.locale);
         this._rng = options.rng;
+        this._validator = new ThingTalkUtils.StateValidator(POLICY_FILE_PATH);
+    }
+
+    async load() {
+        await this._validator.load();
     }
 
     _detokenize(sentence : string) : string{
@@ -149,7 +167,9 @@ class SimulatorStream extends Stream.Transform {
             const candidates = await ThingTalkUtils.parseAllPredictions(parsed.candidates, parsed.entities, {
                 thingpediaClient: this._tpClient,
                 schemaRetriever: this._schemas,
-                loadMetadata: true
+                loadMetadata: true,
+                validator: this._validator,
+                forSide: 'user'
             }) as Ast.DialogueState[];
 
             if (candidates.length > 0) {
@@ -338,6 +358,7 @@ export default async function worker(args : any, shard : string) {
         abortOnError: args.abort_on_error,
         rng: simulatorOptions.rng
     });
+    await stream.load();
 
     stream.on('end', () => {
         if (parser !== null)

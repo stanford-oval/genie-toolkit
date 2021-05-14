@@ -24,11 +24,14 @@ import * as Tp from 'thingpedia';
 
 import { Ast, SchemaRetriever, Syntax } from 'thingtalk';
 import GenieEntityRetriever from './entity-retriever';
+import type { StateValidator } from '.';
 
 export interface ParseOptions {
     thingpediaClient : Tp.BaseClient|null;
     schemaRetriever ?: SchemaRetriever;
     loadMetadata ?: boolean;
+    validator ?: StateValidator;
+    forSide ?: 'user'|'agent';
 }
 
 export async function parse(code : string, schemas : SchemaRetriever) : Promise<Ast.Input>;
@@ -93,6 +96,13 @@ export async function parsePrediction(code : string|string[], entities : Syntax.
             }
         }
         await parsed.typecheck(schemas, options.loadMetadata);
+        if (options.validator) {
+            assert(parsed instanceof Ast.DialogueState);
+            if (options.forSide === 'agent')
+                options.validator.validateAgent(parsed);
+            else
+                options.validator.validateUser(parsed);
+        }
         return parsed;
     } catch(e) {
         if (strict)

@@ -78,7 +78,7 @@ interface PolicyManifest {
     };
 }
 
-class StateValidator {
+export class StateValidator {
     private _policyManifest : string|undefined;
     private _policy : PolicyManifest|null;
 
