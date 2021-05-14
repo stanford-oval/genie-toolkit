@@ -44,7 +44,7 @@ interface FileClientArgs {
     locale : string;
     entities ?: string;
     dataset ?: string;
-    parameter_datasets : string;
+    parameter_datasets ?: string;
 }
 
 /**
@@ -53,13 +53,16 @@ interface FileClientArgs {
  */
 export default class FileThingpediaClient extends Tp.FileClient {
     private _cachedEntities : Map<string, EntityRecord[]>;
-    private _provider : FileParameterProvider;
+    private _provider : FileParameterProvider|null;
 
     constructor(options : FileClientArgs) {
         super(options);
 
         this._cachedEntities = new Map;
-        this._provider = new FileParameterProvider(options.parameter_datasets, options.locale);
+        if (options.parameter_datasets)
+            this._provider = new FileParameterProvider(options.parameter_datasets, options.locale);
+        else
+            this._provider = null;
     }
 
     async lookupEntity(entityType : string, searchTerm : string) : Promise<EntityLookupResult> {
@@ -67,6 +70,9 @@ export default class FileThingpediaClient extends Tp.FileClient {
         const cached = this._cachedEntities.get(entityType);
         if (cached)
             return { data: cached, meta: { name: entityType, is_well_known: false, has_ner_support: true } };
+
+        if (!this._provider)
+            return { data: [], meta: { "name": entityType, is_well_known: false, has_ner_support: true } };
 
         const result = await this._provider.getEntity(entityType);
         this._cachedEntities.set(entityType, result);
