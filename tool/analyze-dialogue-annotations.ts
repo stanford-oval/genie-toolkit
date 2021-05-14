@@ -179,8 +179,10 @@ function isFilterCompatibleWithResult(topResult : Ast.DialogueHistoryResultItem,
     if (resultValue instanceof Ast.EntityValue) {
         if (filter.operator === '=~')
             return resultValue.display!.toLowerCase().indexOf((filter.value.toJS() as string) .toLowerCase()) >= 0;
-        else
+        else if (resultValue.value && (filter.value as Ast.EntityValue).value)
             return String(resultValue.toJS()) === String(filter.value.toJS());
+        else
+            return resultValue.display!.toLowerCase().indexOf((filter.value as Ast.EntityValue).display!.toLowerCase()) >= 0;
     }
 
     switch (filter.operator) {
@@ -512,8 +514,9 @@ class DialogueAnalyzer extends Stream.Transform {
             if (item.stmt.expression.schema!.functionType === 'action') {
                 const expr = item.stmt.expression.expressions[0];
                 assert(expr instanceof Ast.InvocationExpression);
-                if (expr.invocation.in_params.some((in_param) => in_param.value.isEntity) &&
-                    context !== null && context.dialogueAct !== 'sys_slot_fill')
+                if (!expr.invocation.in_params.some((in_param) => in_param.value.isEntity) &&
+                    context !== null &&
+                    !['sys_slot_fill', 'sys_action_error', 'sys_action_error_question'].includes(context.dialogueAct))
                 return 'action_refinement_before_search_end';
             }
         }
