@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -18,59 +18,62 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 import assert from 'assert';
+import * as argparse from 'argparse';
 import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
+import { Ast } from 'thingtalk';
 import Stream from 'stream';
 import * as fs from 'fs';
 import seedrandom from 'seedrandom';
 
 import * as StreamUtils from '../lib/utils/stream-utils';
 import * as ThingTalkUtils from '../lib/utils/thingtalk';
-import { DialogueParser } from '../lib/dataset-tools/parsers';
+import { DialogueParser, DialogueTurn, ParsedDialogue } from '../lib/dataset-tools/parsers';
 
 import { maybeCreateReadStream, readAllLines } from './lib/argutils';
 import MultiJSONDatabase from './lib/multi_json_database';
+import FileThingpediaClient from './lib/file_thingpedia_client';
 
-function findFilterTable(root) {
-    let table = root;
-    while (!table.isFilter) {
-        if (table.isSequence ||
-            table.isHistory ||
-            table.isWindow ||
-            table.isTimeSeries)
-            throw new Error('NOT IMPLEMENTED');
-
+/**
+ * Find the filter expression in the context.
+ *
+ * Returns filter expression
+ */
+ function findFilterExpression(root : Ast.Expression) : Ast.FilterExpression|null {
+    let expr = root;
+    while (!(expr instanceof Ast.FilterExpression)) {
         // do not touch these with filters
-        if (table.isAggregation ||
-            table.isVarRef ||
-            table.isResultRef)
+        if (expr instanceof Ast.AggregationExpression ||
+            expr instanceof Ast.FunctionCallExpression)
             return null;
 
         // go inside these
-        if (table.isSort ||
-            table.isIndex ||
-            table.isSlice ||
-            table.isProjection ||
-            table.isCompute ||
-            table.isAlias) {
-            table = table.table;
+        if (expr instanceof Ast.SortExpression ||
+            expr instanceof Ast.MonitorExpression ||
+            expr instanceof Ast.IndexExpression ||
+            expr instanceof Ast.SliceExpression ||
+            expr instanceof Ast.ProjectionExpression ||
+            expr instanceof Ast.AliasExpression) {
+            expr = expr.expression;
             continue;
         }
 
-        if (table.isJoin) {
-            // go right on join, always
-            table = table.rhs;
+        if (expr instanceof Ast.ChainExpression) {
+            // go right on join, always, but don't cross into the action
+            const maybeExpr = expr.lastQuery;
+            if (!maybeExpr)
+                return null;
+            expr = maybeExpr;
             continue;
         }
 
-        assert(table.isInvocation);
+        assert(expr instanceof Ast.InvocationExpression);
         // if we get here, there is no filter table at all
         return null;
     }
 
-    return table;
+    return expr;
 }
 
 const USER_DIALOGUE_ACTS = new Set([
@@ -134,7 +137,7 @@ const SYSTEM_DIALOGUE_ACTS = new Set([
     'sys_anything_else',
 
     // agent says good bye
-    'sys_goodbye',
+    'sys_end',
 ]);
 
 const SYSTEM_STATE_MUST_HAVE_PARAM = new Set([
@@ -145,16 +148,17 @@ const SYSTEM_STATE_MUST_HAVE_PARAM = new Set([
 ]);
 
 
-function isFilterCompatibleWithResult(topResult, filter) {
-    if (filter.isTrue || filter.isDontCare)
+function isFilterCompatibleWithResult(topResult : Ast.DialogueHistoryResultItem,
+                                      filter : Ast.BooleanExpression) : boolean {
+    if (filter === Ast.BooleanExpression.True || filter.isDontCare)
         return true;
-    if (filter.isFalse)
+    if (filter === Ast.BooleanExpression.False)
         return false;
-    if (filter.isAnd)
+    if (filter instanceof Ast.AndBooleanExpression)
         return filter.operands.every((op) => isFilterCompatibleWithResult(topResult, op));
-    if (filter.isOr)
+    if (filter instanceof Ast.OrBooleanExpression)
         return filter.operands.some((op) => isFilterCompatibleWithResult(topResult, op));
-    if (filter.isNot)
+    if (filter instanceof Ast.NotBooleanExpression)
         return !isFilterCompatibleWithResult(topResult, filter.expr);
 
     if (filter.isExternal) // approximate
@@ -164,6 +168,7 @@ function isFilterCompatibleWithResult(topResult, filter) {
         return true;
 
     const values = topResult.value;
+    assert(filter instanceof Ast.AtomBooleanExpression);
 
     // if the value was not returned, assume yes
     if (!values[filter.name])
@@ -171,9 +176,9 @@ function isFilterCompatibleWithResult(topResult, filter) {
 
     const resultValue = topResult.value[filter.name];
 
-    if (resultValue.isEntity) {
+    if (resultValue instanceof Ast.EntityValue) {
         if (filter.operator === '=~')
-            return resultValue.display.toLowerCase().indexOf(filter.value.toJS().toLowerCase()) >= 0;
+            return resultValue.display!.toLowerCase().indexOf((filter.value.toJS() as string) .toLowerCase()) >= 0;
         else
             return String(resultValue.toJS()) === String(filter.value.toJS());
     }
@@ -189,44 +194,57 @@ function isFilterCompatibleWithResult(topResult, filter) {
     }
 }
 
-function prettyprintStmt(stmt) {
+function prettyprintStmt(stmt : Ast.ExpressionStatement) {
     return new ThingTalk.Ast.Program(null, [], [], [stmt]).prettyprint();
 }
 
 
 class DialogueAnalyzer extends Stream.Transform {
-    constructor(options) {
+    private _database : MultiJSONDatabase;
+    private _options : ThingTalkUtils.ParseOptions;
+    private _simulatorOverrides : Map<string, string>;
+    private _schemas : ThingTalk.SchemaRetriever;
+    private _simulator : ThingTalkUtils.Simulator;
+
+    constructor(options : {
+        locale : string;
+        database : MultiJSONDatabase;
+        debug : boolean,
+        thingpediaClient : Tp.BaseClient
+    } & ThingTalkUtils.ParseOptions) {
         super({ objectMode: true });
 
-        this._locale = options.locale;
         this._database = options.database;
 
         this._options = options;
-        this._debug = options.debug;
 
         this._simulatorOverrides = new Map;
+        this._schemas = new ThingTalk.SchemaRetriever(options.thingpediaClient, null, true);
         const simulatorOptions = {
             rng: seedrandom.alea('almond is awesome'),
             locale: options.locale,
             thingpediaClient: options.thingpediaClient,
             schemaRetriever: this._schemas,
             overrides: this._simulatorOverrides,
-            database: this._database
+            database: this._database,
+            interactive: true,
+            timezone: 'America/Los_Angeles'
         };
 
         this._simulator = ThingTalkUtils.createSimulator(simulatorOptions);
     }
 
-    async _checkAgentTurn(turn, userCheck, previousTurn) {
-        const context = await ThingTalkUtils.parse(turn.context, this._options);
-        const agentTarget = await ThingTalkUtils.parse(turn.agent_target, this._options);
+    async _checkAgentTurn(turn : DialogueTurn, userCheck : string, previousTurn : DialogueTurn) {
+        const context = await ThingTalkUtils.parse(turn.context!, this._options);
+        assert(context instanceof Ast.DialogueState);
+        const agentTarget = await ThingTalkUtils.parse(turn.agent_target!, this._options);
+        assert(agentTarget instanceof Ast.DialogueState);
 
         if (!SYSTEM_DIALOGUE_ACTS.has(agentTarget.dialogueAct) ||
-            SYSTEM_STATE_MUST_HAVE_PARAM.has(agentTarget.dialogueAct) !== (agentTarget.dialogueActParam !== null) ||
-            userCheck === 'multidomain_turn')
+            SYSTEM_STATE_MUST_HAVE_PARAM.has(agentTarget.dialogueAct) !== (agentTarget.dialogueActParam !== null))
             return 'unrepresentable';
 
-        if (userCheck === 'unrepresentable')
+        if (userCheck === 'unrepresentable' || userCheck === 'multidomain_turn')
             return 'unknown_user_state';
 
         if (turn.intermediate_context)
@@ -238,10 +256,20 @@ class DialogueAnalyzer extends Stream.Transform {
         if (context.dialogueAct === 'end')
             return 'after_end';
 
+        if (context.dialogueAct === 'learn_more' && agentTarget.dialogueAct !== 'sys_learn_more_what')
+            return 'unexpected_learn_more_reply';
+
+        if (context.dialogueAct === 'greet' && agentTarget.dialogueAct !== 'sys_greet')
+            return 'unexpected_greet_reply';
+
+        if (context.dialogueAct === 'ask_recommend' && !['sys_recommend_one', 'sys_recommend_two', 'sys_recommend_three'].includes(agentTarget.dialogueAct))
+            return 'unexpected_ask_recommend_reply';
+
         const previousUserTarget = await ThingTalkUtils.parse(previousTurn.user_target, this._options);
+        assert(previousUserTarget instanceof Ast.DialogueState);
         if (previousUserTarget.history.length > 0) {
-            const userLast = previousUserTarget[previousUserTarget.history.length-1];
-            const contextLast = context[context.history.length-1];
+            const userLast = previousUserTarget.history[previousUserTarget.history.length-1];
+            const contextLast = context.history[context.history.length-1];
             if (userLast && userLast.isExecutable() && contextLast.results === null)
                 return 'added_optional';
 
@@ -258,17 +286,18 @@ class DialogueAnalyzer extends Stream.Transform {
             currentIdx = i;
         }
 
-        if (current !== null && current.stmt.table) {
-            const filterTable = findFilterTable(current.stmt.table);
-            if (filterTable !== null && !current.results.results.every((result) => isFilterCompatibleWithResult(result, filterTable.filter)))
+        if (current !== null && current.stmt.expression.schema!.functionType === 'query') {
+            const filterTable = findFilterExpression(current.stmt.expression);
+            if (filterTable !== null && !current.results!.results.every((result) => isFilterCompatibleWithResult(result, filterTable.filter)))
                 return 'overridden_context_incompatible_filter';
 
-            if (current.results.results.length === 0) {
+            if (current.results!.results.length === 0) {
                 let clone = context.clone();
-                clone.history[currentIdx].results = null;
+                clone.history[currentIdx!].results = null;
 
-                [clone,] = await await this._simulator.execute(clone, undefined /* simulator state */);
-                if (clone.history[currentIdx].results.results.length > 0)
+                const { newDialogueState } = await this._simulator.execute(clone, undefined /* simulator state */);
+                clone = newDialogueState;
+                if (clone.history[currentIdx!].results!.results.length > 0)
                     return 'overridden_context_wrong_empty_search';
             }
         }
@@ -277,10 +306,31 @@ class DialogueAnalyzer extends Stream.Transform {
             !['sys_recommend_one', 'sys_recommend_two', 'sys_recommend_three', 'sys_proposed_refined_query'].includes(agentTarget.dialogueAct))
             return 'unexpected_proposed';
 
+        if (agentTarget.dialogueAct === 'sys_proposed_refined_query') {
+            const proposed = agentTarget.history.find((item) => item.confirm === 'proposed');
+            if (!proposed)
+                return 'annotation_error';
+            if (!current)
+                return 'proposed_without_current';
+
+            const proposedFilterTable = findFilterExpression(proposed.stmt.expression);
+            if (!proposedFilterTable)
+                return 'unexpected_proposed';
+
+            const contextFilterTable = findFilterExpression(current.stmt.expression);
+            if (contextFilterTable !== null && contextFilterTable.equals(proposedFilterTable))
+                return 'proposed_projection';
+        }
+        if (['sys_recommend_one', 'sys_recommend_two', 'sys_recommend_three'].includes(agentTarget.dialogueAct)) {
+            const proposed = agentTarget.history.find((item) => item.confirm === 'proposed');
+            if (proposed && proposed.stmt.expression.schema!.functionType !== 'action')
+                return 'unexpected_proposed';
+        }
+
         if (agentTarget.dialogueActParam && agentTarget.dialogueActParam.length > 2)
             return 'multi_param_slot_fill';
 
-        if (current && current.stmt.actions[0].isInvocation) {
+        if (current && current.stmt.expression.schema!.functionType === 'action') {
             if (!['sys_action_success', 'sys_action_error_question', 'sys_action_error'].includes(agentTarget.dialogueAct))
                 return 'annotation_error';
         } else {
@@ -291,8 +341,8 @@ class DialogueAnalyzer extends Stream.Transform {
         const providedSlots = new Set;
         if (current !== null) {
             current.visit(new class extends ThingTalk.Ast.NodeVisitor {
-                visitInvocation(invocation) {
-                    for (let in_param of invocation.in_params) {
+                visitInvocation(invocation : Ast.Invocation) {
+                    for (const in_param of invocation.in_params) {
                         if (in_param.value.isUndefined)
                             continue;
                         providedSlots.add(in_param.name);
@@ -301,31 +351,31 @@ class DialogueAnalyzer extends Stream.Transform {
                     return false;
                 }
 
-                visitDontCareBooleanExpression(expr) {
+                visitDontCareBooleanExpression(expr : Ast.DontCareBooleanExpression) {
                     providedSlots.add(expr.name);
                     return false;
                 }
 
-                visitAtomBooleanExpression(expr) {
+                visitAtomBooleanExpression(expr : Ast.AtomBooleanExpression) {
                     if (expr.value.isUndefined || expr.value.isVarRef)
                         return false;
                     providedSlots.add(expr.name);
                     return false;
                 }
 
-                visitNotBooleanExpression(expr) {
+                visitNotBooleanExpression(expr : Ast.NotBooleanExpression) {
                     // explicitly do not recurse into "not" operators
                     return false;
                 }
 
-                visitOrBooleanExpression(expr) {
+                visitOrBooleanExpression(expr : Ast.OrBooleanExpression) {
                     // explicitly do not recurse into "or" operators
                     return false;
                 }
             });
         }
         if (['sys_search_question', 'sys_slot_fill'].includes(agentTarget.dialogueAct)) {
-            for (let param of agentTarget.dialogueActParam) {
+            for (const param of agentTarget.dialogueActParam!) {
                 if (providedSlots.has(param))
                     return 'redundant_slot_fill';
             }
@@ -335,44 +385,48 @@ class DialogueAnalyzer extends Stream.Transform {
         return 'ok';
     }
 
-    _getDomain(astNode) {
-        let domain = undefined;
+    private _getDomain(astNode : Ast.Node) {
+        let domain : string|undefined = undefined;
         astNode.visit(new class extends ThingTalk.Ast.NodeVisitor {
-            visitInvocation(invocation) {
+            visitInvocation(invocation : Ast.Invocation) {
                 if (domain === undefined)
                     domain = invocation.selector.kind;
                 else if (domain !== invocation.selector.kind)
                     domain = 'mixed';
+
+                return false;
             }
         });
         return domain;
     }
 
-    async _checkUserTurn(turn, agentCheck) {
+    async _checkUserTurn(turn : DialogueTurn, agentCheck : string) {
         let context = null;
         if (turn.intermediate_context) {
             context = await ThingTalkUtils.parse(turn.intermediate_context, this._options);
-        } else if (turn.context){
+            assert(context instanceof Ast.DialogueState);
+        } else if (turn.context) {
             context = await ThingTalkUtils.parse(turn.context, this._options);
+            assert(context instanceof Ast.DialogueState);
             // apply the agent prediction to the context to get the state of the dialogue before
             // the user speaks
-            const agentPrediction = await ThingTalkUtils.parse(turn.agent_target, this._options);
-            context = ThingTalkUtils.computeNewState(context, agentPrediction);
+            const agentPrediction = await ThingTalkUtils.parse(turn.agent_target!, this._options);
+            assert(agentPrediction instanceof Ast.DialogueState);
+            context = ThingTalkUtils.computeNewState(context, agentPrediction, 'agent');
         }
         const userTarget = await ThingTalkUtils.parse(turn.user_target, this._options);
+        assert(userTarget instanceof Ast.DialogueState);
 
         if (!USER_DIALOGUE_ACTS.has(userTarget.dialogueAct) ||
             USER_STATE_MUST_HAVE_PARAM.has(userTarget.dialogueAct) !== (userTarget.dialogueActParam !== null))
             return 'unrepresentable';
 
-        if (agentCheck === 'unrepresentable')
-            return 'unrepresentable_agent_state';
-        if (['unrepresentable', 'unexpected_proposed', 'multi_param_slot_fill'].includes(agentCheck))
-            return 'unknown_agent_state';
-
         if (userTarget.dialogueAct === 'execute' && userTarget.history.length === 0 &&
-            !(context || context.history.length === 0))
+            (!context || context.history.length === 0))
             return 'unrepresentable'; // because the user is not saying what they want at the first turn
+
+        if (agentCheck !== 'ok')
+            return 'unknown_agent_state';
 
         const userTargetDomain = this._getDomain(userTarget);
         if (userTargetDomain === 'mixed')
@@ -380,18 +434,18 @@ class DialogueAnalyzer extends Stream.Transform {
 
         let complex_expression = false;
         userTarget.visit(new class extends ThingTalk.Ast.NodeVisitor {
-            visitAtomBooleanExpression(atom) {
+            visitAtomBooleanExpression(atom : Ast.AtomBooleanExpression) {
                 if (atom.operator === 'in_array')
                     complex_expression = true;
                 return true;
             }
 
-            visitComputationValue(value) {
+            visitComputationValue(value : Ast.ComputationValue) {
                 complex_expression = true;
                 return true;
             }
 
-            visitNotBooleanExpression(not) {
+            visitNotBooleanExpression(not : Ast.NotBooleanExpression) {
                 // do not recurse
                 return false;
             }
@@ -417,26 +471,35 @@ class DialogueAnalyzer extends Stream.Transform {
             return 'reissue_identical';
         if (userTarget.dialogueAct === 'insist')
             return 'insist';
+        if (userTarget.dialogueAct !== 'execute' && userTarget.history.length > 0)
+            return 'ask_recommend_or_learn_more_with_statement';
 
-        if (next !== null && userTarget.history.every((item) => item.stmt.actions.length === 1 && item.stmt.actions.every((a) => a.isNotify))) {
-            // user dropped the function
-            for (let param of next.stmt.actions[0].invocation.in_params) {
-                if (!param.value.isUndefined && !param.value.isEntity)
-                    return 'drop_function_with_param';
+        if (next !== null) {
+            const expr = next.stmt.expression.expressions[0];
+            if (!(expr instanceof Ast.InvocationExpression)) {
+                console.log(expr.prettyprint());
+                return 'unexpected_next';
             }
-            return 'drop_function';
+
+            if (userTarget.history.every((item) => item.stmt.expression.schema!.functionType === 'query')) {
+                for (const param of expr.invocation.in_params) {
+                    if (!param.value.isUndefined && !param.value.isEntity)
+                        return 'drop_function_with_param';
+                }
+                return 'drop_function';
+            }
         }
 
         const currentDomain = context && context.history.length > 0 ? this._getDomain(context.history[context.history.length-1]) : null;
         if (currentDomain && userTargetDomain && currentDomain !== userTargetDomain &&
-            !['sys_anything_else', 'sys_action_success', 'sys_action_error'].includes(context.dialogueAct))
+            !['sys_anything_else', 'sys_action_success', 'sys_action_error'].includes(context!.dialogueAct))
             return 'unexpected_domain_switch';
 
-        if (current !== null  && current.stmt.actions[0].isInvocation) {
+        if (current !== null  && current.stmt.expression.schema!.functionType === 'action') {
             // after an executed action
             const actionDomain = this._getDomain(current.stmt);
 
-            if (userTarget.history.some((item) => this._getDomain(item) === actionDomain && item.stmt.table))
+            if (userTarget.history.some((item) => this._getDomain(item) === actionDomain && item.stmt.expression.schema!.functionType === 'query'))
                 return 'query_after_action';
         }
 
@@ -446,15 +509,19 @@ class DialogueAnalyzer extends Stream.Transform {
 
         if (userTarget.history.length === 1) {
             const item = userTarget.history[0];
-            if (item.stmt.actions[0].isInvocation && !item.stmt.actions[0].invocation.in_params.some((in_param) => in_param.value.isEntity) &&
-                context !== null && context.dialogueAct !== 'sys_slot_fill')
+            if (item.stmt.expression.schema!.functionType === 'action') {
+                const expr = item.stmt.expression.expressions[0];
+                assert(expr instanceof Ast.InvocationExpression);
+                if (expr.invocation.in_params.some((in_param) => in_param.value.isEntity) &&
+                    context !== null && context.dialogueAct !== 'sys_slot_fill')
                 return 'action_refinement_before_search_end';
+            }
         }
 
         return 'ok';
     }
 
-    async _doDialogue(dlg) {
+    async _doDialogue(dlg : ParsedDialogue) {
         let userCheck = 'ok', agentCheck = 'ok';
         for (let i = 0; i < dlg.length; i++) {
             const turn = dlg[i];
@@ -467,16 +534,16 @@ class DialogueAnalyzer extends Stream.Transform {
         }
     }
 
-    _transform(dlg, encoding, callback) {
+    _transform(dlg : ParsedDialogue, encoding : BufferEncoding, callback : (err ?: Error|null) => void) {
         this._doDialogue(dlg).then(() => callback(null), callback);
     }
 
-    _flush(callback) {
+    _flush(callback : () => void) {
         process.nextTick(callback);
     }
 }
 
-export function initArgparse(subparsers) {
+export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('analyze-dialogue-annotations', {
         add_help: true,
         description: "Transform a dialog input file in ThingTalk format into a dialogue state tracking dataset."
@@ -497,6 +564,10 @@ export function initArgparse(subparsers) {
     parser.add_argument('--database-file', {
         required: true,
         help: `Path to a file pointing to JSON databases used to simulate queries.`,
+    });
+    parser.add_argument('--parameter-datasets', {
+        required: true,
+        help: 'TSV file containing the paths to datasets for strings and entity types.'
     });
     parser.add_argument('input_file', {
         nargs: '+',
@@ -519,8 +590,8 @@ export function initArgparse(subparsers) {
     });
 }
 
-export async function execute(args) {
-    let tpClient = new Tp.FileClient(args);
+export async function execute(args : any) {
+    const tpClient = new FileThingpediaClient(args);
 
     const database = new MultiJSONDatabase(args.database_file);
     await database.load();
