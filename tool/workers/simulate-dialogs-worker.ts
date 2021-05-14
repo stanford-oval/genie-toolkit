@@ -158,12 +158,14 @@ class SimulatorStream extends Stream.Transform {
                 console.log(`No valid candidate parses for this command. Top candidate was ${parsed.candidates[0].code.join(' ')}. Using the gold UT`);
                 userTarget = goldUserTarget;
                 is_mistake = true;
+                if (this._outputAllMistakes)
+                    return;
             }
-            const normalizedUserTarget : string = ThingTalkUtils.serializePrediction(userTarget, parsed.tokens, parsed.entities, {
+            const normalizedGoldUserTarget = ThingTalkUtils.serializePrediction(goldUserTarget, parsed.tokens, parsed.entities, {
                 locale: this._locale,
                 ignoreSentence: true
             }).join(' ');
-            const normalizedGoldUserTarget : string = ThingTalkUtils.serializePrediction(goldUserTarget, parsed.tokens, parsed.entities, {
+            let normalizedUserTarget = ThingTalkUtils.serializePrediction(userTarget, parsed.tokens, parsed.entities, {
                 locale: this._locale,
                 ignoreSentence: true
             }).join(' ');
@@ -172,9 +174,20 @@ class SimulatorStream extends Stream.Transform {
                 if (this._outputMistakesOnly) {
                     // don't push anything
                     return;
-                } else if (this._outputAllMistakes && candidates.length > 1) {
-                    // pick the second best instead
-                    userTarget = candidates[1];
+                } else if (this._outputAllMistakes) {
+                    let beamIdx = 1;
+                    while (normalizedUserTarget === normalizedGoldUserTarget) {
+                        if (beamIdx >= candidates.length) {
+                            // run out of parses, skip this example
+                            return;
+                        }
+                        userTarget = candidates[beamIdx];
+                        normalizedUserTarget = ThingTalkUtils.serializePrediction(userTarget, parsed.tokens, parsed.entities, {
+                            locale: this._locale,
+                            ignoreSentence: true
+                        }).join(' ');
+                        beamIdx++;
+                    }
                 }
             }
             console.log('normalizedUserTarget = ', normalizedUserTarget);
