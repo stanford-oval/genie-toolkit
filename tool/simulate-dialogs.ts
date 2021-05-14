@@ -108,6 +108,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: 'If set and --nlu-server is provided, will only output partial dialogues where a parsing mistake happens.',
         default: false
     });
+    parser.add_argument('--output-all-mistakes', {
+        action: 'store_true',
+        help: 'If set and --nlu-server is provided, output a parsing mistake for all partial dialogues.',
+        default: false
+    });
     parser.add_argument('--all-turns', {
         action: 'store_true',
         help: `If set, will run simulation on all dialogue turns as opposed to only the last turn (but still for one turn only).

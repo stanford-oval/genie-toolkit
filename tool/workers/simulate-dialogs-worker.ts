@@ -50,6 +50,7 @@ class SimulatorStream extends Stream.Transform {
     private _parser : ParserClient.ParserClient | null;
     private _tpClient : Tp.BaseClient;
     private _outputMistakesOnly : boolean;
+    private _outputAllMistakes : boolean;
     private _introduceErrors : boolean;
     private _locale : string;
     private _langPack : I18n.LanguagePack;
@@ -65,6 +66,7 @@ class SimulatorStream extends Stream.Transform {
         parser : ParserClient.ParserClient | null,
         tpClient : Tp.BaseClient,
         outputMistakesOnly : boolean,
+        outputAllMistakes : boolean,
         introduceErrors : boolean,
         detokenizeAll : boolean,
         debug : boolean,
@@ -80,6 +82,7 @@ class SimulatorStream extends Stream.Transform {
         this._parser = options.parser;
         this._tpClient = options.tpClient;
         this._outputMistakesOnly = options.outputMistakesOnly;
+        this._outputAllMistakes = options.outputAllMistakes;
         this._introduceErrors = options.introduceErrors;
         this._detokenizeAll = options.detokenizeAll;
         this._debug = options.debug;
@@ -165,13 +168,17 @@ class SimulatorStream extends Stream.Transform {
                 ignoreSentence: true
             }).join(' ');
 
-            if (normalizedUserTarget === normalizedGoldUserTarget && !is_mistake && this._outputMistakesOnly) {
-                // don't push anything
-                return;
-            } else {
-                console.log('normalizedUserTarget = ', normalizedUserTarget);
-                console.log('normalizedGoldUserTarget = ', normalizedGoldUserTarget);
+            if (normalizedUserTarget === normalizedGoldUserTarget && !is_mistake) {
+                if (this._outputMistakesOnly) {
+                    // don't push anything
+                    return;
+                } else if (this._outputAllMistakes && candidates.length > 1) {
+                    // pick the second best instead
+                    userTarget = candidates[1];
+                }
             }
+            console.log('normalizedUserTarget = ', normalizedUserTarget);
+            console.log('normalizedGoldUserTarget = ', normalizedGoldUserTarget);
 
             dlg[dlg.length-1].user_target = userTarget.prettyprint();
         } else {
@@ -310,6 +317,7 @@ export default async function worker(args : any, shard : string) {
     const stream = new SimulatorStream({
         policy, simulator, schemas, parser, tpClient,
         outputMistakesOnly: args.output_mistakes_only,
+        outputAllMistakes: args.output_all_mistakes,
         locale: args.locale,
         introduceErrors: args.introduce_errors,
         debug: args.debug,
