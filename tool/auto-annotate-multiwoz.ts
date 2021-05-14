@@ -297,7 +297,7 @@ class Converter extends stream.Readable {
             thingpediaClient: this._tpClient,
             schemaRetriever: this._schemas,
             overrides: this._simulatorOverrides,
-            interactive: false
+            interactive: true
         };
         this._database = new MultiJSONDatabase(args.database_file);
         simulatorOptions.database = this._database;
@@ -590,6 +590,10 @@ class Converter extends stream.Readable {
                             ttValue = new Ast.Value.Number(parseInt(value) || 0);
                         else if (param === 'area' || param === 'price_range' || param === 'day' || key === 'hotel-type')
                             ttValue = new Ast.Value.Enum(value.replace(/\s+/g, '_'));
+                        else if (param === 'type' && domain === 'attraction')
+                            ttValue = new Ast.Value.Entity(null, tpClass + ':type', value);
+                        else if (param === 'food' && domain === 'restaurant')
+                                ttValue = new Ast.Value.Entity(null, tpClass + ':food', value);
                         else
                             ttValue = new Ast.Value.String(value);
                         if (ttValue instanceof Ast.EntityValue)
@@ -648,6 +652,8 @@ class Converter extends stream.Readable {
                         ttValue = new Ast.Value.Number(parseInt(value) || 0);
                     else if (param === 'book_day' || param === 'day')
                         ttValue = new Ast.Value.Enum(value);
+                    else if (param === 'departure' || param === 'destination')
+                        ttValue = new Ast.Value.Entity(null, tpClass + ':Place', value);
                     else if (param === domain)
                         ttValue = new Ast.Value.Entity(null, tpClass + ':' + queryname, value);
                     else
@@ -823,7 +829,7 @@ class Converter extends stream.Readable {
         this._n = 0;
         this._N = data.length;
         for (let i = 0; i < data.length; ) {
-            // run 100 dialogues in parallel
+            // run 1000 dialogues in parallel
             // Predictor will split the minibatch if necessary
             const promises = [];
 
