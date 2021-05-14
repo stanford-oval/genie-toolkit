@@ -178,6 +178,9 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
                 item.confirm = 'confirmed';
             if (item.confirm !== 'confirmed')
                 continue;
+            // if we did not execute the previous item we're not executing this one either
+            if (i > 0 && clone.history[i-1].results === null)
+                continue;
             anyChange = true;
             assert(item.isExecutable());
 
