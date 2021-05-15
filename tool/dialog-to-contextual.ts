@@ -181,14 +181,20 @@ class DialogueToTurnStream extends Stream.Transform {
             this._dedupe.add(key);
         }
 
-        if (this._unroll && i > 0) {
-            // Use the previous turn's context
-            ({ contextCode, contextEntities } = await this._getContextForUserTurn(i-1, dlg[i-1]));
-            // Prepend the previous turn's user and agent utterances
-            tokenized = this._preprocess(' user: ' + dlg[i-1].user + ' system: ' + turn.agent + ' user: ' + turn.user, contextEntities);
-            code = await ThingTalkUtils.serializePrediction(userTarget, tokenized.tokens, tokenized.entities, {
-                locale: this._locale
-            });
+        if (this._unroll) {
+            if (i > 0) {
+               // Use the previous turn's context
+                ({ contextCode, contextEntities } = await this._getContextForUserTurn(i-1, dlg[i-1]));
+                // Prepend the previous turn's user and agent utterances
+                tokenized = this._preprocess(' user: ' + dlg[i-1].user + ' system: ' + turn.agent + ' user: ' + turn.user, contextEntities);
+                code = await ThingTalkUtils.serializePrediction(userTarget, tokenized.tokens, tokenized.entities, {
+                    locale: this._locale
+                });
+            }
+            else {
+                // prepend 'user:'
+                tokenized = this._preprocess(' user: ' + turn.user, contextEntities);
+            }
         }
 
         this.push({
