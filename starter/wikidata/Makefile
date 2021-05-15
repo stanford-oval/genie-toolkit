@@ -73,7 +73,7 @@ baseline_annotate_flags =
 wikidata_annotate_flags =
 auto_annotate_flags = --algorithms bart-paraphrase $(paraphraser_options)
 
-preprocess_flags ?= $($(annotation)_preprocess_flags)
+preprocess_flags ?= $($(annotation)_preprocess_flags) --type-system $(type_system)
 process_schema_flags ?= $($(annotation)_process_schema_flags) --type-system $(type_system)
 annotate_flags ?= $($(annotation)_annotate_flags)
 
@@ -122,7 +122,7 @@ common-words.txt:
 
 models/paraphraser-bart:
 	mkdir -p models
-	curl -O https://almond-static.stanford.edu/test-data/paraphraser-bart-large-speedup-megabatch-5m.tar.xz
+	curl https://almond-static.stanford.edu/test-data/paraphraser-bart-large-speedup-megabatch-5m.tar.xz -o paraphraser-bart.tar.xz
 	tar -C models -xvf paraphraser-bart.tar.xz
 
 emptydataset.tt:
