@@ -40,28 +40,28 @@ import * as ThingTalkUtils from '../lib/utils/thingtalk';
 import ProgressBar from './lib/progress_bar';
 import { maybeCreateReadStream, readAllLines } from './lib/argutils';
 
-interface DialogueToTurnStreamOptions {
-    locale : string;
-    debug : boolean;
-    side : string;
-    flags : string;
-    idPrefix : string;
-    deduplicate : boolean;
-    tokenized : boolean;
-    thingpediaClient : Tp.BaseClient;
-}
-
 class DialogueToTurnStream extends Stream.Transform {
     private _locale : string;
-    private _options : DialogueToTurnStreamOptions;
+    private _options : ThingTalkUtils.ParseOptions;
     private _side : string;
     private _flags : string;
     private _idPrefix : string;
     private _dedupe : Set<string>|undefined;
     private _tokenized : boolean;
     private _tokenizer : I18n.BaseTokenizer|null;
+    private _ignoreErrors : boolean;
 
-    constructor(options : DialogueToTurnStreamOptions) {
+    constructor(options : {
+        locale : string;
+        debug : boolean;
+        side : string;
+        flags : string;
+        idPrefix : string;
+        deduplicate : boolean;
+        tokenized : boolean;
+        thingpediaClient : Tp.BaseClient;
+        ignoreErrors : boolean;
+    }) {
         super({ objectMode: true });
 
         this._locale = options.locale;
@@ -71,6 +71,7 @@ class DialogueToTurnStream extends Stream.Transform {
         this._flags = options.flags;
         this._idPrefix = options.idPrefix;
         this._dedupe = options.deduplicate ? new Set : undefined;
+        this._ignoreErrors = options.ignoreErrors;
 
         this._tokenized = options.tokenized;
         this._tokenizer = null;
@@ -188,9 +189,13 @@ class DialogueToTurnStream extends Stream.Transform {
                 else
                     await this._emitUserTurn(i, turn, dlg);
             } catch(e) {
-                console.error('Failed in dialogue ' + dlg.id);
-                console.error(turn);
-                throw e;
+                if (this._ignoreErrors) {
+                    console.error(`Failed at turn ${dlg.id}/${i}: ${e.message}`);
+                } else {
+                    console.error('Failed in dialogue ' + dlg.id);
+                    console.error(turn);
+                    throw e;
+                }
             }
         }
 
@@ -264,6 +269,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         dest: 'deduplicate',
         help: 'Output duplicate turns (with the same preprocessed context and utterance)'
     });
+    parser.add_argument('--ignore-errors', {
+        action: 'store_true',
+        default: false,
+        help: 'Skip dialogue turns that have errors without crashing'
+    });
     parser.add_argument('input_file', {
         nargs: '+',
         type: maybeCreateReadStream,
@@ -299,7 +309,8 @@ export async function execute(args : any) {
             side: args.side,
             tokenized: args.tokenized,
             deduplicate: args.deduplicate,
-            debug: args.debug
+            debug: args.debug,
+            ignoreErrors: args.ignore_errors
         }))
         .pipe(new DatasetStringifier())
         .pipe(args.output);
