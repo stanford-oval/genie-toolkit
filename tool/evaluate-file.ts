@@ -24,7 +24,7 @@ import csvparse from 'csv-parse';
 import Stream from 'stream';
 
 import { DatasetParser } from '../lib/dataset-tools/parsers';
-import { SentenceEvaluatorStream, CollectSentenceStatistics } from '../lib/dataset-tools/evaluation/sentence_evaluator';
+import { SentenceEvaluatorStream, CollectSentenceStatistics, SPLITS, COMPLEXITY_METRICS } from '../lib/dataset-tools/evaluation/sentence_evaluator';
 import * as StreamUtils from '../lib/utils/stream-utils';
 
 import FileThingpediaClient from './lib/file_thingpedia_client';
@@ -90,6 +90,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: 'Compute evaluation statistics separating examples by Thingpedia device',
         default: false
     });
+    parser.add_argument('--split-by', {
+        nargs: '+',
+        choices: Object.keys(SPLITS),
+        help: `Additional functions to divide examples by`
+    });
     parser.add_argument('--debug', {
         action: 'store_true',
         help: 'Enable debugging.',
@@ -111,7 +116,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: `Prefix all output lines with this string`
     });
     parser.add_argument('--complexity-metric', {
-        choices: ['num_params', 'turn_number'],
+        choices: Object.keys(COMPLEXITY_METRICS),
         default: 'num_params',
         help: `Complexity metric to use to divide examples by complexity`
     });
@@ -155,9 +160,7 @@ export async function execute(args : any) {
     if (args.thingpedia)
         tpClient = new FileThingpediaClient(args);
 
-    const columns = args.contextual ?
-        ['id', 'context', 'sentence', 'target_code', 'prediction'] :
-        ['id', 'sentence', 'target_code', 'prediction'];
+    const columns = ['id', 'prediction'];
     const predictionstream = args.predictions
         .pipe(csvparse({ columns, delimiter: '\t', relax: true }))
         .pipe(new StreamUtils.MapAccumulator());
@@ -189,7 +192,8 @@ export async function execute(args : any) {
             debug: args.debug,
             complexityMetric: args.complexity_metric,
             oracle: args.oracle,
-            skipWrongSyntax: args.skip_wrong_syntax
+            skipWrongSyntax: args.skip_wrong_syntax,
+            splitBy: args.split_by
         }))
         .pipe(new CollectSentenceStatistics({
             minComplexity: args.min_complexity,

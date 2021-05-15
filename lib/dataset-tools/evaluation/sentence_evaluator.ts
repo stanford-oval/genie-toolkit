@@ -101,6 +101,7 @@ export type SentenceEvaluatorOptions = {
     complexityMetric ?: keyof typeof COMPLEXITY_METRICS;
     splitBy ?: Array<keyof typeof SPLITS>;
     skipWrongSyntax ?: boolean;
+    replacements ?: Map<string, { prediction : string, replacement : string }>;
 } & ThingTalkUtils.ParseOptions;
 
 export interface ExampleEvaluationResult {
@@ -167,6 +168,7 @@ class SentenceEvaluator {
     private _preprocessed : string;
     private _targetPrograms : string[];
     private _predictions : string[][]|undefined;
+    private _replacements : Map<string, { prediction : string, replacement : string }>|undefined;
 
     constructor(parser : ParserClient|null,
                 options : SentenceEvaluatorOptions,
@@ -181,6 +183,7 @@ class SentenceEvaluator {
         this._oracle = !!options.oracle;
         this._skipWrongSyntax = !!options.skipWrongSyntax;
         this._tokenizer = tokenizer;
+        this._replacements = options.replacements;
 
         if (options.complexityMetric)
             this._computeComplexity = COMPLEXITY_METRICS[options.complexityMetric];
@@ -304,6 +307,10 @@ class SentenceEvaluator {
             }
         }
 
+        let replacement;
+        if (this._replacements)
+            replacement = this._replacements.get(this._id);
+
         let first = true;
         let ok = false, ok_without_param = false, ok_function = false,
             ok_device = false, ok_num_function = false, ok_syntax = false;
@@ -338,11 +345,15 @@ class SentenceEvaluator {
             // we pass "ignoreSentence: true", which means strings are tokenized and then put in the
             // program regardless of what the sentence contains (because the neural network might
             // get creative in copying, and we don't want to crash here)
-            const normalized = ThingTalkUtils.serializePrediction(parsed, tokens, entities, {
+            let normalized = ThingTalkUtils.serializePrediction(parsed, tokens, entities, {
                locale: this._locale,
                ignoreSentence: true
             });
-            const normalizedCode = normalized.join(' ');
+            let normalizedCode = normalized.join(' ');
+            if (replacement && replacement.prediction === normalizedCode) {
+                normalizedCode = replacement.replacement;
+                normalized = normalizedCode.split(' ');
+            }
 
             // check that by normalizing we did not accidentally mark wrong a program that
             // was correct before

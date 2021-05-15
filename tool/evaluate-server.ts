@@ -21,6 +21,7 @@
 import * as argparse from 'argparse';
 import * as Tp from 'thingpedia';
 import * as fs from 'fs';
+import byline from 'byline';
 
 import { DatasetParser } from '../lib/dataset-tools/parsers';
 import {
@@ -148,6 +149,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: 'Output metrics for all beam positions',
         default: false
     });
+    parser.add_argument('--replacement-file', {
+        help: 'TSV file with overrides of the outputs of the model',
+        type: fs.createReadStream,
+        default: false
+    });
     parser.add_argument('--offset', {
         required: false,
         type: Number,
@@ -163,6 +169,15 @@ export async function execute(args : any) {
     const parser = ParserClient.get(args.url, args.locale);
     await parser.start();
 
+    let replacements : Map<string, { prediction : string, replacement : string }>|undefined = undefined;
+    if (args.replacement_file) {
+        replacements = new Map;
+        for await (const line of args.replacement_file.setEncoding('utf8').pipe(byline())) {
+            const [id, prediction, replacement] = line.trim().split('\t');
+            replacements.set(id, { prediction, replacement });
+        }
+    }
+
     const output = readAllLines(args.input_file)
         .pipe(new DatasetParser({ contextual: args.contextual, preserveId: true, parseMultiplePrograms: true, offset: args.offset }))
         .pipe(new SentenceEvaluatorStream(parser, {
@@ -175,6 +190,7 @@ export async function execute(args : any) {
             splitBy: args.split_by,
             oracle: args.oracle,
             skipWrongSyntax: args.skip_wrong_syntax,
+            replacements
         }))
         .pipe(new CollectSentenceStatistics({
             minComplexity: args.min_complexity,
