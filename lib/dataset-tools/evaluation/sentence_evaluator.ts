@@ -46,7 +46,7 @@ function iterEquals<T>(iterable1 : Iterable<T>, iterable2 : Iterable<T>) : boole
     return true;
 }
 
-const COMPLEXITY_METRICS = {
+export const COMPLEXITY_METRICS = {
     num_params(id : string, code : string) : number {
         let params = 0;
         let joins = 0;
@@ -73,6 +73,25 @@ const COMPLEXITY_METRICS = {
     }
 };
 
+export const SPLITS = {
+    has_numeric(id : string, utterance : string, code : string) {
+        for (const token of code.split(' ')) {
+            if (!Number.isNaN(Number(token)))
+                return 'with_numeric';
+            if (token === '>=' || token === '<=')
+                return 'with_numeric';
+            if (token.startsWith('NUMBER_'))
+                return 'with_numeric';
+        }
+        return 'without_numeric';
+    },
+
+    has_feedback(id : string, utterance : string, code : string) {
+        return utterance.endsWith('user : no , that is not what i asked .') ?
+            'without_feedback' : 'with_feedback';
+    }
+};
+
 export type SentenceEvaluatorOptions = {
     locale : string;
     targetLanguage : string;
@@ -80,6 +99,7 @@ export type SentenceEvaluatorOptions = {
     tokenized ?: boolean;
     oracle ?: boolean;
     complexityMetric ?: keyof typeof COMPLEXITY_METRICS;
+    splitBy ?: Array<keyof typeof SPLITS>;
     skipWrongSyntax ?: boolean;
 } & ThingTalkUtils.ParseOptions;
 
@@ -97,13 +117,14 @@ export interface ExampleEvaluationResult {
 
     is_primitive : boolean;
     complexity : number|undefined;
-    has_numeric : boolean;
+    splits : string[];
 }
 
 export type EvaluationResult = {
     total : number;
     primitives : number;
     compounds : number;
+    splits : string[];
 
     ok : number[];
     ok_without_param : number[];
@@ -139,6 +160,7 @@ class SentenceEvaluator {
     private _skipWrongSyntax : boolean;
     private _tokenizer : I18n.BaseTokenizer;
     private _computeComplexity : ((id : string, code : string) => number)|undefined;
+    private _splitFunctions : Array<(id : string, utterance : string, code : string) => string>;
 
     private _id : string;
     private _context : string|undefined;
@@ -162,6 +184,7 @@ class SentenceEvaluator {
 
         if (options.complexityMetric)
             this._computeComplexity = COMPLEXITY_METRICS[options.complexityMetric];
+        this._splitFunctions = (options.splitBy || []).map((splitfn) => SPLITS[splitfn]);
 
         this._id = ex.id;
         this._context = ex.context;
@@ -172,18 +195,6 @@ class SentenceEvaluator {
             this._targetPrograms = [ex.target_code];
         this._predictions = ex.predictions;
 
-    }
-
-    private _hasNumeric(code : string) {
-        for (const token of code.split(' ')) {
-            if (!Number.isNaN(Number(token)))
-                return true;
-            if (token === '>=' || token === '<=')
-                return true;
-            if (token.startsWith('NUMBER_'))
-                return true;
-        }
-        return false;
     }
 
     async evaluate() : Promise<ExampleEvaluationResult|undefined> {
@@ -201,7 +212,7 @@ class SentenceEvaluator {
 
             is_primitive: false,
             complexity: undefined,
-            has_numeric: false
+            splits: [],
         };
 
         let contextCode = undefined, contextEntities = {};
@@ -244,7 +255,7 @@ class SentenceEvaluator {
             result.complexity = this._computeComplexity(this._id, this._targetPrograms[0]);
         else
             result.complexity = 0;
-        result.has_numeric = this._hasNumeric(this._targetPrograms[0]);
+        result.splits = this._splitFunctions.map((fn) => fn(this._id, this._preprocessed, this._targetPrograms[0]));
 
         // normalized other target codes
         for (let i = 1; i < this._targetPrograms.length; i++) {
@@ -469,13 +480,14 @@ interface CollectSentenceStatisticsOptions {
     splitByDevice ?: boolean;
 }
 
-const KEYS : Array<'ok' | 'ok_without_param' | 'ok_function' | 'ok_device' | 'ok_num_function' | 'ok_syntax'> = ['ok', 'ok_without_param', 'ok_function', 'ok_device', 'ok_num_function', 'ok_syntax'];
+const KEYS = ['ok', 'ok_without_param', 'ok_function', 'ok_device', 'ok_num_function', 'ok_syntax'] as const;
 
 export class CollectSentenceStatistics extends Stream.Writable {
     private _minComplexity : number;
     private _maxComplexity : number;
     private _splitByDevice : boolean;
     private _buffer : Record<string, EvaluationResult>;
+    private _allSplits : Set<string> = new Set;
 
     constructor(options : CollectSentenceStatisticsOptions = {}) {
         super({ objectMode: true });
@@ -505,6 +517,7 @@ export class CollectSentenceStatistics extends Stream.Writable {
                     total: 0,
                     primitives: 0,
                     compounds: 0,
+                    splits: [],
                     ok: [],
                     ok_without_param: [],
                     ok_function: [],
@@ -543,17 +556,18 @@ export class CollectSentenceStatistics extends Stream.Writable {
                 for (const key of KEYS)
                     this._buffer[device][compkey + key] = [];
             }
-
-
-            const numericKey = ex.has_numeric ? 'with_numeric_' : 'without_numeric_';
-            if (!this._buffer[device][numericKey + 'total']) {
-                this._buffer[device][numericKey + 'total'] = 0;
-                for (const key of KEYS)
-                    this._buffer[device][numericKey + key] = [];
-            }
-
             this._buffer[device][compkey + 'total'] += 1;
-            this._buffer[device][numericKey + 'total'] += 1;
+
+            for (const split of ex.splits) {
+                this._allSplits.add(split);
+                const splitKey = split + '_';
+                if (!this._buffer[device][splitKey + 'total']) {
+                    this._buffer[device][splitKey + 'total'] = 0;
+                    for (const key of KEYS)
+                        this._buffer[device][splitKey + key] = [];
+                }
+                this._buffer[device][splitKey + 'total'] += 1;
+            }
 
             for (const key of KEYS) {
                 for (let beampos = 0; beampos < ex[key].length; beampos++) {
@@ -575,11 +589,13 @@ export class CollectSentenceStatistics extends Stream.Writable {
                         this._buffer[device][subkey][beampos] ++;
                     assert(!isNaN(this._buffer[device][subkey][beampos]));
 
-                    subkey = numericKey + key;
-                    while (this._buffer[device][subkey].length <= beampos)
-                        this._buffer[device][subkey].push(0);
-                    if (ex[key][beampos])
-                        this._buffer[device][subkey][beampos] ++;
+                    for (const split of ex.splits) {
+                        subkey = split + '_' + key;
+                        while (this._buffer[device][subkey].length <= beampos)
+                            this._buffer[device][subkey].push(0);
+                        if (ex[key][beampos])
+                            this._buffer[device][subkey][beampos] ++;
+                    }
                 }
             }
         }
@@ -588,6 +604,8 @@ export class CollectSentenceStatistics extends Stream.Writable {
 
     _final(callback : () => void) {
         for (const device in this._buffer) {
+            this._buffer[device].splits = Array.from(this._allSplits);
+
             // convert to percentages
             for (const key of KEYS) {
                 for (let beampos = 0; beampos < this._buffer[device][key].length; beampos++) {
@@ -619,16 +637,12 @@ export class CollectSentenceStatistics extends Stream.Writable {
                         }
                     }
 
-                    let numerickey = 'with_numeric_';
-                    if (this._buffer[device][numerickey + 'total']) {
-                        this._buffer[device][numerickey + key][beampos] /= this._buffer[device][numerickey + 'total'];
-                        assert(!isNaN(this._buffer[device][numerickey + key][beampos]), this._buffer[device][numerickey + key]);
-                    }
-
-                    numerickey = 'without_numeric_';
-                    if (this._buffer[device][numerickey + 'total']) {
-                        this._buffer[device][numerickey + key][beampos] /= this._buffer[device][numerickey + 'total'];
-                        assert(!isNaN(this._buffer[device][numerickey + key][beampos]), this._buffer[device][numerickey + key]);
+                    for (const split of this._allSplits) {
+                        const subkey = split + '_';
+                        if (this._buffer[device][subkey + 'total']) {
+                            this._buffer[device][subkey + key][beampos] /= this._buffer[device][subkey + 'total'];
+                            assert(!isNaN(this._buffer[device][subkey + key][beampos]), this._buffer[device][subkey + key]);
+                        }
                     }
                 }
             }

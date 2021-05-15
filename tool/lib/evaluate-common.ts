@@ -24,8 +24,7 @@ function csvDisplay(args : any,
                     complexity : number|string|null,
                     result : EvaluationResult,
                     device : string,
-                    with_numeric = false,
-                    without_numeric = false) {
+                    split : string|null) {
     let lineprefix = '';
     if (args.csv_prefix)
         lineprefix = args.csv_prefix + ',';
@@ -34,23 +33,17 @@ function csvDisplay(args : any,
         lineprefix += device + ',';
 
     let prefix = '';
-    if (with_numeric) {
-        prefix = `with_numeric_`;
+    if (split) {
+        prefix = `${split}_`;
         if (!result[`${prefix}total`])
             return;
 
-        lineprefix += `with_numeric,` + String(result[`${prefix}total`]);
-    } else if (without_numeric) {
-        prefix = `without_numeric_`;
-        if (!result[`${prefix}total`])
-            return;
-
-        lineprefix += `without_numeric,` + String(result[`${prefix}total`]);
+        lineprefix += `${split},${result[`${prefix}total`]}`;
     } else if (complexity === null) {
         lineprefix += 'all,';
         lineprefix += String(result.total);
     } else {
-        prefix = `complexity_${complexity}/`;
+        prefix = `complexity_${complexity}`;
         if (!result[`${prefix}total`])
             return;
 
@@ -102,21 +95,21 @@ export function outputResult(args : any, result : Record<string, EvaluationResul
 
     for (const device of devices) {
         if (args.csv) {
-            csvDisplay(args, null, result[device], device);
+            csvDisplay(args, null, result[device], device, null);
             if (args.min_complexity > 0)
-                csvDisplay(args, '<=' + args.min_complexity, result[device], device);
+                csvDisplay(args, `complexity_<=${args.min_complexity}`, result[device], device, null);
             else
-                csvDisplay(args, 0, result[device], device);
+                csvDisplay(args, 0, result[device], device, null);
             if (args.max_complexity) {
-                for (let complexity = args.min_complexity + 1; complexity < args.max_complexity; complexity++)
-                    csvDisplay(args, complexity, result[device], device);
-                csvDisplay(args, '>=' + args.max_complexity, result[device], device);
+                for (let complexity : number = args.min_complexity + 1; complexity < args.max_complexity; complexity++)
+                    csvDisplay(args, complexity, result[device], device, null);
+                csvDisplay(args, `complexity_>=${args.max_complexity}`, result[device], device, null);
             } else {
-                for (let complexity = args.min_complexity + 1; complexity < 10; complexity++)
-                    csvDisplay(args, complexity, result[device], device);
+                for (let complexity : number = args.min_complexity + 1; complexity < 10; complexity++)
+                    csvDisplay(args, complexity, result[device], device, null);
             }
-            csvDisplay(args, null, result[device], device, true);
-            csvDisplay(args, null, result[device], device, false, true);
+            for (const split of result[device].splits)
+                csvDisplay(args, null, result[device], device, split);
         } else {
             for (const key in result[device]) {
                 if (Array.isArray(result[device][key]))
