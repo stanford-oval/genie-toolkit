@@ -207,15 +207,18 @@ class DialogueAnalyzer extends Stream.Transform {
     private _simulatorOverrides : Map<string, string>;
     private _schemas : ThingTalk.SchemaRetriever;
     private _simulator : ThingTalkUtils.Simulator;
+    private _mode : 'synthesis'|'features';
 
     constructor(options : {
         locale : string;
         database : MultiJSONDatabase;
         debug : boolean,
-        thingpediaClient : Tp.BaseClient
+        thingpediaClient : Tp.BaseClient,
+        mode : 'synthesis'|'features'
     } & ThingTalkUtils.ParseOptions) {
         super({ objectMode: true });
 
+        this._mode = options.mode;
         this._database = options.database;
 
         this._options = options;
@@ -524,16 +527,170 @@ class DialogueAnalyzer extends Stream.Transform {
         return 'ok';
     }
 
+    _visitStateForFeatures(state : Ast.DialogueState) {
+        let hasConjunction = false;
+        let hasDisjunction = false;
+        let hasComplexComparison = false;
+        let hasRanking = false;
+        let hasProjection = false;
+
+        state.visit(new class extends Ast.NodeVisitor {
+            visitAndBooleanExpression(expr : Ast.AndBooleanExpression) {
+                hasConjunction = true;
+                return true;
+            }
+
+            visitOrBooleanExpression(expr : Ast.OrBooleanExpression) {
+                hasDisjunction = true;
+                return true;
+            }
+
+            visitNotBooleanExpression(expr : Ast.NotBooleanExpression) {
+                hasDisjunction = true;
+                return true;
+            }
+
+            visitAtomBooleanExpression(expr : Ast.AtomBooleanExpression) {
+                const arg = expr.name;
+                if (arg === 'id') {
+                    if (expr.operator === 'in_array' || expr.operator === 'in_array~')
+                        hasDisjunction = true;
+                    return true;
+                }
+
+                let operator;
+                if (arg === 'leave_at')
+                    operator = '>=';
+                else if (arg === 'arrive_by')
+                    operator = '<=';
+                else
+                    operator = '==';
+                if (expr.operator !== operator)
+                    hasComplexComparison = true;
+                if (expr.operator === 'in_array' || expr.operator === 'in_array~')
+                    hasDisjunction = true;
+
+                return true;
+            }
+
+            visitSortExpression(expr : Ast.SortExpression) {
+                hasRanking = true;
+                return true;
+            }
+            visitIndexExpression(expr : Ast.IndexExpression) {
+                hasRanking = true;
+                return true;
+            }
+
+            visitProjectionExpression(expr : Ast.ProjectionExpression) {
+                hasProjection = true;
+                return true;
+            }
+        });
+
+        const features : string[] = [];
+        if (hasConjunction)
+            features.push('conjunction');
+        if (hasDisjunction)
+            features.push('disjunction');
+        if (hasComplexComparison)
+            features.push('comparison');
+        if (hasRanking)
+            features.push('ranking');
+        if (hasProjection)
+            features.push('projection');
+        return features;
+    }
+
+    async _extractAgentFeatures(turn : DialogueTurn) {
+        const context = await ThingTalkUtils.parse(turn.context!, this._options);
+        assert(context instanceof Ast.DialogueState);
+        const agentTarget = await ThingTalkUtils.parse(turn.agent_target!, this._options);
+        assert(agentTarget instanceof Ast.DialogueState);
+
+        const features : string[] = [];
+
+        if (agentTarget.history.some((item) => item.confirm === 'proposed'))
+            features.push('proposed_statement');
+
+        if (agentTarget.dialogueActParam !== null)
+            features.push('requested_slots');
+
+        if (agentTarget.dialogueAct === 'sys_action_success' ||
+            agentTarget.dialogueAct.startsWith('sys_recommend_'))
+            features.push('informed_slots');
+
+        if (agentTarget.dialogueAct === 'sys_greet' ||
+            agentTarget.dialogueAct === 'sys_anything_else' ||
+            agentTarget.dialogueAct === 'sys_end')
+            features.push('greeting');
+        else
+            features.push('agent_dialogue_act');
+
+        features.push(...this._visitStateForFeatures(agentTarget));
+
+        return features;
+    }
+
+    async _extractUserFeatures(turn : DialogueTurn) {
+        let context = null;
+        if (turn.intermediate_context) {
+            context = await ThingTalkUtils.parse(turn.intermediate_context, this._options);
+            assert(context instanceof Ast.DialogueState);
+        } else if (turn.context) {
+            context = await ThingTalkUtils.parse(turn.context, this._options);
+            assert(context instanceof Ast.DialogueState);
+            // apply the agent prediction to the context to get the state of the dialogue before
+            // the user speaks
+            const agentPrediction = await ThingTalkUtils.parse(turn.agent_target!, this._options);
+            assert(agentPrediction instanceof Ast.DialogueState);
+            context = ThingTalkUtils.computeNewState(context, agentPrediction, 'agent');
+        }
+        const userTarget = await ThingTalkUtils.parse(turn.user_target, this._options);
+        assert(userTarget instanceof Ast.DialogueState);
+
+        const features : string[] = [];
+
+        const userTargetDomain = this._getDomain(userTarget);
+        if (userTargetDomain === 'mixed')
+            features.push('multidomain_turn');
+        if (userTarget.dialogueActParam !== null)
+            features.push('projection');
+        if (userTarget.dialogueAct === 'learn_more' || userTarget.dialogueAct === 'ask_recommend')
+            features.push('learn_more');
+        else if (userTarget.dialogueAct === 'cancel' || userTarget.dialogueAct === 'end' || userTarget.dialogueAct === 'greet')
+            features.push('greeting');
+        if (userTarget.history.length > 0)
+            features.push('request');
+
+        features.push(...this._visitStateForFeatures(userTarget));
+
+        return features;
+    }
+
     async _doDialogue(dlg : ParsedDialogue) {
         let userCheck = 'ok', agentCheck = 'ok';
         for (let i = 0; i < dlg.length; i++) {
             const turn = dlg[i];
-            if (i > 0)
-                agentCheck = await this._checkAgentTurn(turn, userCheck, dlg[i-1]);
 
-            userCheck = await this._checkUserTurn(turn, agentCheck);
+            if (this._mode === 'synthesis') {
+                if (i > 0)
+                    agentCheck = await this._checkAgentTurn(turn, userCheck, dlg[i-1]);
 
-            this.push(`${dlg.id}:${i}\t${agentCheck}\t${userCheck}\t"${turn.agent}"\t"${turn.user}"\n`);
+                userCheck = await this._checkUserTurn(turn, agentCheck);
+
+                this.push(`${dlg.id}:${i}\t${agentCheck}\t${userCheck}\t"${turn.agent}"\t"${turn.user}"\n`);
+            } else {
+                let features : string[] = [];
+
+                if (i > 0)
+                    features.push(...await this._extractAgentFeatures(turn));
+                features.push(...await this._extractUserFeatures(turn));
+
+                features = Array.from(new Set(features));
+                features.sort();
+                this.push(`${dlg.id}:${i}\t${features}\t"${turn.agent}"\t"${turn.user}"\n`);
+            }
         }
     }
 
@@ -572,6 +729,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         required: true,
         help: 'TSV file containing the paths to datasets for strings and entity types.'
     });
+    parser.add_argument('--mode', {
+        required: true,
+        choices: ['synthesis', 'features'],
+        help: 'The type of analysis to perform.'
+    });
     parser.add_argument('input_file', {
         nargs: '+',
         type: maybeCreateReadStream,
@@ -606,6 +768,7 @@ export async function execute(args : any) {
             debug: args.debug,
             thingpediaClient: tpClient,
             database: database,
+            mode: args.mode
         }))
         .pipe(args.output);
 
