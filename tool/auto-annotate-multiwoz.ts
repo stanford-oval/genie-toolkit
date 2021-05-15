@@ -34,6 +34,7 @@ import MultiJSONDatabase from './lib/multi_json_database';
 import ProgressBar from './lib/progress_bar';
 import { getBestEntityMatch } from '../lib/dialogue-agent/entity-linking/entity-finder';
 import * as ThingTalkUtils from '../lib/utils/thingtalk';
+import FileThingpediaClient from './lib/file_thingpedia_client';
 
 function undoTradePreprocessing(sentence : string) : string {
     return sentence.replace(/ -(ly|s)/g, '$1').replace(/\b24:([0-9]{2})\b/g, '00:$1');
@@ -232,6 +233,7 @@ interface ConverterOptions {
     locale : string;
     timezone : string|undefined;
     thingpedia : string;
+    parameter_datasets ?: string;
     database_file : string;
     user_nlu_server : string;
     agent_nlu_server : string;
@@ -280,7 +282,7 @@ class Converter extends stream.Readable {
     constructor(args : ConverterOptions) {
         super({ objectMode: true });
         this._onlyMultidomain = args.only_multidomain;
-        this._tpClient = new Tp.FileClient(args);
+        this._tpClient = new FileThingpediaClient(args);
         this._schemas = new SchemaRetriever(this._tpClient, null, true);
         this._userParser = ParserClient.get(args.user_nlu_server, 'en-US');
         this._agentParser = ParserClient.get(args.agent_nlu_server, 'en-US');
@@ -295,7 +297,7 @@ class Converter extends stream.Readable {
             thingpediaClient: this._tpClient,
             schemaRetriever: this._schemas,
             overrides: this._simulatorOverrides,
-            interactive: false
+            interactive: true
         };
         this._database = new MultiJSONDatabase(args.database_file);
         simulatorOptions.database = this._database;
@@ -588,6 +590,10 @@ class Converter extends stream.Readable {
                             ttValue = new Ast.Value.Number(parseInt(value) || 0);
                         else if (param === 'area' || param === 'price_range' || param === 'day' || key === 'hotel-type')
                             ttValue = new Ast.Value.Enum(value.replace(/\s+/g, '_'));
+                        else if (param === 'type' && domain === 'attraction')
+                            ttValue = new Ast.Value.Entity(null, tpClass + ':type', value);
+                        else if (param === 'food' && domain === 'restaurant')
+                                ttValue = new Ast.Value.Entity(null, tpClass + ':food', value);
                         else
                             ttValue = new Ast.Value.String(value);
                         if (ttValue instanceof Ast.EntityValue)
@@ -646,6 +652,8 @@ class Converter extends stream.Readable {
                         ttValue = new Ast.Value.Number(parseInt(value) || 0);
                     else if (param === 'book_day' || param === 'day')
                         ttValue = new Ast.Value.Enum(value);
+                    else if (param === 'departure' || param === 'destination')
+                        ttValue = new Ast.Value.Entity(null, tpClass + ':Place', value);
                     else if (param === domain)
                         ttValue = new Ast.Value.Entity(null, tpClass + ':' + queryname, value);
                     else
@@ -821,7 +829,7 @@ class Converter extends stream.Readable {
         this._n = 0;
         this._N = data.length;
         for (let i = 0; i < data.length; ) {
-            // run 100 dialogues in parallel
+            // run 1000 dialogues in parallel
             // Predictor will split the minibatch if necessary
             const promises = [];
 
@@ -861,6 +869,10 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('--database-file', {
         required: false,
         help: `Path to a file pointing to JSON databases used to simulate queries.`,
+    });
+    parser.add_argument('--parameter-datasets', {
+        required: false,
+        help: 'TSV file containing the paths to datasets for strings and entity types.'
     });
     parser.add_argument('--user-nlu-server', {
         required: false,

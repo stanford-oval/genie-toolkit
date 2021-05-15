@@ -172,6 +172,9 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
             const item = clone.history[i];
             await this._prepareForExecution(item.stmt, hints);
 
+            // if we did not execute the previous item we're not executing this one either
+            if (i > 0 && clone.history[i-1].results === null)
+                continue;
             if (item.confirm === 'accepted' &&
                 item.isExecutable() &&
                 shouldAutoConfirmStatement(item.stmt))
