@@ -45,6 +45,7 @@ interface DialogueToTurnStreamOptions {
     debug : boolean;
     side : string;
     unroll : boolean;
+    all_turns : boolean;
     flags : string;
     idPrefix : string;
     deduplicate : boolean;
@@ -57,6 +58,7 @@ class DialogueToTurnStream extends Stream.Transform {
     private _options : DialogueToTurnStreamOptions;
     private _side : string;
     private _unroll : boolean;
+    private _all_turns : boolean;
     private _flags : string;
     private _idPrefix : string;
     private _dedupe : Set<string>|undefined;
@@ -71,6 +73,7 @@ class DialogueToTurnStream extends Stream.Transform {
         this._options = options;
         this._side = options.side;
         this._unroll = options.unroll;
+        this._all_turns = options.all_turns;
         this._flags = options.flags;
         this._idPrefix = options.idPrefix;
         this._dedupe = options.deduplicate ? new Set : undefined;
@@ -130,7 +133,7 @@ class DialogueToTurnStream extends Stream.Transform {
         });
     }
 
-    private async _getContextForUserTurn(i: number, turn: DialogueTurn) {
+    private async _getContextForUserTurn(i : number, turn : DialogueTurn) {
         let context, contextCode, contextEntities;
         if (i > 0) {
             // if we have an "intermediate context" (C: block after AT:) we ran the execution
@@ -206,7 +209,7 @@ class DialogueToTurnStream extends Stream.Transform {
     }
 
     private async _doTransform(dlg : ParsedDialogue) {
-        if (this._unroll) {
+        if (this._unroll && !this._all_turns) {
             const turn = dlg[dlg.length-1];
             try {
                 if (this._side === 'agent')
@@ -287,7 +290,12 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('--unroll', {
         action: 'store_true',
         default: false,
-        help: 'When `--side user` is used, include the previous context, user and agent utterance instead of the current context.',
+        help: 'When `--side user` is used, include the previous context, user and agent utterance instead of the current context. By default, will only output the last turn in each dialogue.',
+    });
+    parser.add_argument('--all-turns', {
+        action: 'store_true',
+        default: false,
+        help: 'When `--unroll` is used, still include all turns.',
     });
     parser.add_argument('--flags', {
         required: false,
@@ -343,6 +351,7 @@ export async function execute(args : any) {
             idPrefix: args.id_prefix,
             side: args.side,
             unroll: args.unroll,
+            all_turns: args.all_turns,
             tokenized: args.tokenized,
             deduplicate: args.deduplicate,
             debug: args.debug
