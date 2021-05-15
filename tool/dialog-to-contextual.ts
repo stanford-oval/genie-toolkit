@@ -166,17 +166,16 @@ class DialogueToTurnStream extends Stream.Transform {
         let contextCode, contextEntities;
         ({contextCode, contextEntities} = await this._getContextForUserTurn(i, turn));
 
-        let tokens, entities;
-        ({ tokens, entities } = this._preprocess(turn.user, contextEntities));
-       
+        let tokenized = this._preprocess(turn.user, contextEntities);
+
         const userTarget = await ThingTalkUtils.parse(turn.user_target, this._options);
         assert(userTarget instanceof ThingTalk.Ast.DialogueState);
-        const code = await ThingTalkUtils.serializePrediction(userTarget, tokens, entities, {
+        let code = await ThingTalkUtils.serializePrediction(userTarget, tokenized.tokens, tokenized.entities, {
             locale: this._locale
         });
 
         if (this._dedupe) {
-            const key = this._getDedupeKey(contextCode, tokens);
+            const key = this._getDedupeKey(contextCode, tokenized.tokens);
             if (this._dedupe.has(key))
                 return;
             this._dedupe.add(key);
@@ -184,35 +183,51 @@ class DialogueToTurnStream extends Stream.Transform {
 
         if (this._unroll && i > 0) {
             // Use the previous turn's context
-            ({contextCode, contextEntities} = await this._getContextForUserTurn(i-1, dlg[i-1]));
+            ({ contextCode, contextEntities } = await this._getContextForUserTurn(i-1, dlg[i-1]));
             // Prepend the previous turn's user and agent utterances
-            ({ tokens, entities } = this._preprocess(' user: ' + dlg[i-1].user + ' system: ' + turn.agent + ' user: ' + turn.user, contextEntities));
+            tokenized = this._preprocess(' user: ' + dlg[i-1].user + ' system: ' + turn.agent + ' user: ' + turn.user, contextEntities);
+            code = await ThingTalkUtils.serializePrediction(userTarget, tokenized.tokens, tokenized.entities, {
+                locale: this._locale
+            });
         }
 
         this.push({
             id: this._flags + '' + this._idPrefix + dlg.id + '/' + i,
             context: contextCode.join(' '),
-            preprocessed: tokens.join(' '),
+            preprocessed: tokenized.tokens.join(' '),
             target_code: code.join(' ')
         });
     }
 
     private async _doTransform(dlg : ParsedDialogue) {
-        for (let i = 0; i < dlg.length; i++) {
-            const turn = dlg[i];
-
+        if (this._unroll) {
+            const turn = dlg[dlg.length-1];
             try {
                 if (this._side === 'agent')
-                    await this._emitAgentTurn(i, turn, dlg);
+                    await this._emitAgentTurn(dlg.length-1, turn, dlg);
                 else
-                    await this._emitUserTurn(i, turn, dlg);
+                    await this._emitUserTurn(dlg.length-1, turn, dlg);
             } catch(e) {
                 console.error('Failed in dialogue ' + dlg.id);
                 console.error(turn);
                 throw e;
             }
-        }
+        } else {
+            for (let i = 0; i < dlg.length; i++) {
+                const turn = dlg[i];
 
+                try {
+                    if (this._side === 'agent')
+                        await this._emitAgentTurn(i, turn, dlg);
+                    else
+                        await this._emitUserTurn(i, turn, dlg);
+                } catch(e) {
+                    console.error('Failed in dialogue ' + dlg.id);
+                    console.error(turn);
+                    throw e;
+                }
+            }
+        }
     }
 
     _transform(dialog : ParsedDialogue, encoding : BufferEncoding, callback : (err ?: Error|null) => void) {
