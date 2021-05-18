@@ -319,6 +319,15 @@ class Platform extends Tp.BasePlatform {
         return null;
     }
 
+    getPostgresConfig() {
+        return {
+            user: "root",
+            host: "localhost",
+            database: "thingengine",
+            port: 8888
+        };
+    }
+
     // Stop the main loop and exit
     // (In Android, this only stops the node.js thread)
     // This function should be called by the platform integration

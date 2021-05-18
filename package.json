@@ -35,6 +35,7 @@
     "morgan": "^1.9.1",
     "node-gettext": "^3.0.0",
     "nodemailer": "^6.6.0",
+    "pg": "^8.6.0",
     "q": "^1.5.0",
     "qs": "^6.10.1",
     "query-validation": "^0.2.1",
@@ -52,6 +53,7 @@
     "ws": "^7.4.5"
   },
   "devDependencies": {
+    "@types/pg": "^7.14.11",
     "@istanbuljs/nyc-config-typescript": "^1.0.1",
     "@types/argparse": "^2.0.5",
     "@types/body-parser": "^1.19.0",

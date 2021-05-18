@@ -21,6 +21,7 @@
 import * as Tp from 'thingpedia';
 
 import { SQLiteDatabase } from './sqlite';
+import { PostgresDatabase, PostgresPlatform } from './postgres';
 
 export interface AbstractRow {
     uniqueId : string;
@@ -90,6 +91,10 @@ export interface AbstractDatabase {
 }
 
 export function createDB(platform : Tp.BasePlatform) : AbstractDatabase {
+    // Uncomment to use PostgresDatabase:
+    // const postgresPlatform = platform as PostgresPlatform;
+    // return new PostgresDatabase(postgresPlatform);
+
     // for now, all platforms are sqlite platforms
 
     const sqliteplatform = platform as Tp.BasePlatform & {

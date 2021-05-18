@@ -2,7 +2,7 @@
 //
 // This file is part of Genie
 //
-// Copyright 2020-2021 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2021 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,24 +18,24 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import * as sqlite3 from 'sqlite3';
+import * as pg from 'pg';
 import * as sql from '.';
 import { SyncRecord } from '..';
 
 export default class SyncTable<RowType extends { uniqueId : string }> {
     name : string;
     fields : ReadonlyArray<Exclude<keyof RowType & string, "uniqueId">>;
-    private _db : sql.SQLiteDatabase;
+    private _db : sql.PostgresDatabase;
     private _discriminator : Exclude<keyof RowType & string, "uniqueId">;
 
-    constructor(db : sql.SQLiteDatabase, name : string, fields : ReadonlyArray<Exclude<keyof RowType & string, "uniqueId">>) {
+    constructor(db : sql.PostgresDatabase, name : string, fields : ReadonlyArray<Exclude<keyof RowType & string, "uniqueId">>) {
         this.name = name;
         this.fields = fields;
         this._db = db;
         this._discriminator = fields[0];
     }
 
-    private _getLastModifiedInternal(client : sqlite3.Database) {
+    private _getLastModifiedInternal(client : pg.PoolClient) {
         return sql.selectAll(client, `select max(lastModified) as maxLastModified
                              from ${this.name}_journal`, []).then((rows) : number => {
             if (rows.length === 0 || rows[0].maxLastModified === null)
@@ -54,7 +54,7 @@ export default class SyncTable<RowType extends { uniqueId : string }> {
     getOne(uniqueId : string) : Promise<RowType> {
         return this._db.withClient((client) => {
             return sql.selectOne(client, `select uniqueId,${this.fields.join(',')}
-                                 from ${this.name} where uniqueId = ?`, [uniqueId]);
+                                 from ${this.name} where uniqueId = $1`, [uniqueId]);
         });
     }
 
@@ -71,11 +71,11 @@ export default class SyncTable<RowType extends { uniqueId : string }> {
             return sql.selectAll(client, `select tj.uniqueId,tj.lastModified,${this.fields.map((f) => 't.' + f).join(',')}
                                  from ${this.name}_journal as tj left outer join
                                  ${this.name} as t on tj.uniqueId = t.uniqueId where
-                                 tj.lastModified > ?`, [lastModified]);
+                                 tj.lastModified > $1`, [lastModified]);
         });
     }
 
-    private _handleChangesInternal(client : sqlite3.Database, changes : Array<SyncRecord<RowType>>) : Promise<boolean[]> {
+    private _handleChangesInternal(client : pg.PoolClient, changes : Array<SyncRecord<RowType>>) : Promise<boolean[]> {
         return Promise.all(changes.map((change) => {
             if (change[this._discriminator] !== null) {
                 return this._insertIfRecentInternal(client, change.uniqueId,
@@ -99,7 +99,7 @@ export default class SyncTable<RowType extends { uniqueId : string }> {
                 `select tj.uniqueId,tj.lastModified,${this.fields.map((f) => 't.' + f)}
                  from ${this.name}_journal as tj left outer join
                  ${this.name} as t on tj.uniqueId = t.uniqueId where
-                 tj.lastModified > ?`, [lastModified]).then((ourChanges) =>{
+                 tj.lastModified > $1`, [lastModified]).then((ourChanges) =>{
                 return this._getLastModifiedInternal(client).then((lastModified) => {
                     return this._handleChangesInternal(client, pushedChanges).then((done) => {
                         return [lastModified, ourChanges, done];
@@ -109,13 +109,13 @@ export default class SyncTable<RowType extends { uniqueId : string }> {
         });
     }
 
-    private async _insertInternal(client : sqlite3.Database, uniqueId : string, lastModified : number, row : Omit<RowType, "uniqueId">) {
-        const insertSql = `insert or replace into ${this.name} (uniqueId,${this.fields})
-            values(?,${this.fields.map(() => '?')})`;
+    private async _insertInternal(client : pg.PoolClient, uniqueId : string, lastModified : number, row : Omit<RowType, "uniqueId">) {
+        const insertSql = `upsert into ${this.name} (uniqueId,${this.fields})
+            values($1,${this.fields.map((x,i) => '$'+(i+2))})`;
         const param = ([uniqueId] as unknown[]).concat(this.fields.map((f) => row[f]));
         await sql.insertOne(client, insertSql, param);
-        await sql.insertOne(client, `insert or replace into ${this.name}_journal
-            (uniqueId, lastModified) values(?, ?)`, [uniqueId, lastModified]);
+        await sql.insertOne(client, `upsert into ${this.name}_journal
+            (uniqueId, lastModified) values($1, $2)`, [uniqueId, lastModified]);
         return lastModified;
     }
 
@@ -133,8 +133,8 @@ export default class SyncTable<RowType extends { uniqueId : string }> {
         });
     }
 
-    private _insertIfRecentInternal(client : sqlite3.Database, uniqueId : string, lastModified : number, row : Omit<RowType, "uniqueId">) {
-        return sql.selectAll(client, `select lastModified from ${this.name}_journal where uniqueId = ?`,
+    private _insertIfRecentInternal(client : pg.PoolClient, uniqueId : string, lastModified : number, row : Omit<RowType, "uniqueId">) {
+        return sql.selectAll(client, `select lastModified from ${this.name}_journal where uniqueId = $1`,
                              [uniqueId]).then((rows) => {
             if (rows.length > 0 && rows[0].lastModified >= lastModified)
                 return false;
@@ -156,15 +156,15 @@ export default class SyncTable<RowType extends { uniqueId : string }> {
         });
     }
 
-    private async _deleteInternal(client : sqlite3.Database, uniqueId : string, lastModified : number) {
-        await sql.query(client, `delete from ${this.name} where uniqueId = ?`, [uniqueId]);
-        await sql.insertOne(client, `insert or replace into ${this.name}_journal
-                            (uniqueId, lastModified) values(?, ?)`, [uniqueId, lastModified]);
+    private async _deleteInternal(client : pg.PoolClient, uniqueId : string, lastModified : number) {
+        await sql.query(client, `delete from ${this.name} where uniqueId = $1`, [uniqueId]);
+        await sql.insertOne(client, `upsert into ${this.name}_journal
+                            (uniqueId, lastModified) values($1, $2)`, [uniqueId, lastModified]);
         return lastModified;
     }
 
-    private _deleteIfRecentInternal(client : sqlite3.Database, uniqueId : string, lastModified : number) {
-        return sql.selectAll(client, `select lastModified from ${this.name}_journal where uniqueId = ?`,
+    private _deleteIfRecentInternal(client : pg.PoolClient, uniqueId : string, lastModified : number) {
+        return sql.selectAll(client, `select lastModified from ${this.name}_journal where uniqueId = $1`,
                              [uniqueId]).then((rows) => {
             if (rows.length > 0 && rows[0].lastModified >= lastModified)
                 return false;
