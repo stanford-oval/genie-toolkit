@@ -1,3 +1,56 @@
+class @io.home-assistant
+#_[thingpedia_name="Home Assistant"]
+#_[thingpedia_description="Integrate your Almond with Home Assistant to control your home with voice."]
+#_[description="This is your Home Assistant Gateway."]
+#_[name="Home Assistant Gateway at ${hassUrl}"]
+#[license="BSD-3-Clause"]
+#[license_gplcompatible=true]
+#[subcategory="home"]
+#[website="https://home-assistant.io"]
+#[child_types=[ "org.thingpedia.iot.battery",
+                "org.thingpedia.iot.climate",
+                "org.thingpedia.iot.cover",
+                "org.thingpedia.iot.door",
+                "org.thingpedia.iot.fan",
+                "org.thingpedia.iot.flood",
+                "org.thingpedia.iot.humidity",
+                "org.thingpedia.iot.illuminance",
+                "org.thingpedia.iot.light-bulb",
+                "org.thingpedia.iot.lock",
+                "org.thingpedia.iot.motion",
+                "org.thingpedia.iot.switch",
+                "org.thingpedia.iot.temperature",
+                "org.thingpedia.iot.uv",
+                "org.thingpedia.iot.vacuum"
+                ]]
+
+/*
+               "org.thingpedia.iot.media-player",
+               "org.thingpedia.iot.smoke",
+               "org.thingpedia.iot.air",
+               "org.thingpedia.iot.heat",
+               "org.thingpedia.iot.moisture",
+               "org.thingpedia.iot.occupancy",
+               "org.thingpedia.iot.plug",
+               "org.thingpedia.iot.security-camera",
+               "org.thingpedia.iot.sound",
+               "org.thingpedia.iot.speaker",
+               "org.thingpedia.iot.tv",
+ */
+
+{
+    import loader from @org.thingpedia.v2();
+    import config from @org.thingpedia.config.oauth2(
+       client_id="https://thingengine.stanford.edu",
+       // There is no client secret, security is granted by matching the client_id and the redirect_uri
+       client_secret="",
+       set_state=true,
+
+       // FIXME the URL of the gateway should be configurable somehow...
+       authorize="http://hassio.local:8123/auth/authorize"^^tt:url,
+       get_access_token="http://hassio.local:8123/auth/token"^^tt:url
+    );
+}
 class @com.facebook
 #_[canonical="facebook account"] {
   monitorable list query list_photos(in opt album: String #_[prompt="Which album?"] #_[canonical="album"],
