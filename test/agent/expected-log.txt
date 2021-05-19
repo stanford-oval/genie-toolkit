@@ -2244,3 +2244,32 @@ AT: #[confirm=enum proposed];
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t @org.thingpedia.iot.switch(name="büro decke").set_power(power=enum on);
+UT: @org.thingpedia.iot.switch(name="büro decke").set_power(power=enum on);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.iot.switch(id="switch-office-de"^^tt:device_id("Büro Decke")).set_power(power=enum on)
+C: #[results=[]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: I turned on your Büro Decke switch.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t @org.thingpedia.iot.switch(name="büro decke").set_power(power=enum off);
+UT: @org.thingpedia.iot.switch(name="büro decke").set_power(power=enum off);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.iot.switch(id="switch-office-de"^^tt:device_id("Büro Decke")).set_power(power=enum on)
+C: #[results=[]];
+C: @org.thingpedia.iot.switch(id="switch-office-de"^^tt:device_id("Büro Decke")).set_power(power=enum off)
+C: #[results=[]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: I turned off your Büro Decke switch for you.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines

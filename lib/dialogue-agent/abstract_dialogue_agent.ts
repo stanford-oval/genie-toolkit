@@ -21,7 +21,7 @@
 
 import assert from 'assert';
 import * as Tp from 'thingpedia';
-import { Ast, SchemaRetriever } from 'thingtalk';
+import { Ast, SchemaRetriever, Builtin } from 'thingtalk';
 
 import * as I18n from '../i18n';
 import { cleanKind } from '../utils/misc-utils';
@@ -311,12 +311,6 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
     }
 
     private async _chooseDevice(selector : Ast.DeviceSelector, hints : DisambiguationHints) : Promise<void> {
-        function like(str : string, substr : string) : boolean {
-            if (!str)
-                return false;
-            return str.toLowerCase().indexOf(substr.toLowerCase()) >= 0;
-        }
-
         if (selector.id !== null)
             return;
 
@@ -359,7 +353,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         let selecteddevices = alldevices;
         // note: we ignore the name if there is only one device configured - this protects against some bad parses
         if (alldevices.length > 1 && name !== undefined)
-            selecteddevices = alldevices.filter((d) => like(d.name, name.value.toJS() as string));
+            selecteddevices = alldevices.filter((d) => Builtin.like(d.name, name.value.toJS() as string));
 
         if (selecteddevices.length === 1) {
             selector.id = selecteddevices[0].uniqueId;
