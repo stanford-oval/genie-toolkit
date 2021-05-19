@@ -1064,3 +1064,22 @@ U: \t @org.thingpedia.iot.switch(name="büro decke").set_power(power=enum off);
 A: I turned off your Büro Decke switch for you.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @org.thingpedia.iot.switch ( id = GENERIC_ENTITY_tt:device_id_0 ) . set_power ( power = enum off ) #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"switch-office-de","display":"Büro Decke"}}
 A: >> expecting = null
+
+====
+# 71-device-name-natural-language
+U: \t @org.thingpedia.iot.switch(name="invalid").set_power(power=enum off);
+
+A: I cannot find any invalid switch device. Which device do you want to use?
+A: choice 0: Bed Switch 1
+A: choice 1: Bed Switch 2
+A: choice 2: Kitchen Switches
+A: choice 3: Ceiling Switches
+A: choice 4: Büro Decke
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . execute ; @org.thingpedia.iot.switch ( name = QUOTED_STRING_0 ) . set_power ( power = enum off ) ; // {"QUOTED_STRING_0":"invalid"}
+A: >> expecting = choice
+
+U: kitchen
+
+A: I turned off your Kitchen Switches switch.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @org.thingpedia.iot.switch ( id = GENERIC_ENTITY_tt:device_id_0 ) . set_power ( power = enum off ) #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"switch-kitchen","display":"Kitchen Switches"}}
+A: >> expecting = null
