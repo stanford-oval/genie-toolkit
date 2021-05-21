@@ -963,25 +963,35 @@ A: >> expecting = null
 
 U: \t @org.thingpedia.iot.switch.state();
 
-A: The Simulated Device org.thingpedia.iot.switch 0 switch is off. The Simulated Device org.thingpedia.iot.switch 1 switch is off. The Simulated Device org.thingpedia.iot.switch 2 switch is on. The Simulated Device org.thingpedia.iot.switch 3 switch is on. The Simulated Device org.thingpedia.iot.switch 4 switch is on.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.iot.switch . state ( ) #[ results = [ { state = enum off , __device = GENERIC_ENTITY_tt:device_id_0 } ] ] #[ count = 6 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"str:ENTITY_tt:device_id::0:","display":"Simulated Device org.thingpedia.iot.switch 0"}}
+A: You have multiple switch devices. Which one do you want to use?
+A: choice 0: Bed Switch 1
+A: choice 1: Bed Switch 2
+A: choice 2: Kitchen Switches
+A: choice 3: Ceiling Switches
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . execute ; @org.thingpedia.iot.switch . state ( ) ; // {}
+A: >> expecting = choice
+
+U: \t $choice(0);
+
+A: The Bed Switch 1 switch is off.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.iot.switch ( id = GENERIC_ENTITY_tt:device_id_0 ) . state ( ) #[ results = [ { state = enum off , __device = GENERIC_ENTITY_tt:device_id_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"switch-bed1","display":"Bed Switch 1"}}
 A: >> expecting = null
 
 U: \t @org.thingpedia.iot.switch(name="kitchen").state();
 
-A: The Kitchen Switches switch is on.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.iot.switch ( id = GENERIC_ENTITY_tt:device_id_0 ) . state ( ) #[ results = [ { state = enum on , __device = GENERIC_ENTITY_tt:device_id_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"switch-kitchen","display":"Kitchen Switches"}}
+A: The Kitchen Switches switch is off.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.iot.switch ( id = GENERIC_ENTITY_tt:device_id_0 ) . state ( ) #[ results = [ { state = enum off , __device = GENERIC_ENTITY_tt:device_id_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"switch-kitchen","display":"Kitchen Switches"}}
 A: >> expecting = null
 
 U: \t @org.thingpedia.iot.switch(all=true).state();
 
-A: The Simulated Device org.thingpedia.iot.switch 0 switch is off. The Simulated Device org.thingpedia.iot.switch 1 switch is off. The Simulated Device org.thingpedia.iot.switch 2 switch is on. The Simulated Device org.thingpedia.iot.switch 3 switch is on. The Simulated Device org.thingpedia.iot.switch 4 switch is on.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.iot.switch ( all = true ) . state ( ) #[ results = [ { state = enum off , __device = GENERIC_ENTITY_tt:device_id_0 } ] ] #[ count = 6 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"str:ENTITY_tt:device_id::0:","display":"Simulated Device org.thingpedia.iot.switch 0"}}
+A: The Simulated Device org.thingpedia.iot.switch 0 switch is on. The Simulated Device org.thingpedia.iot.switch 1 switch is on. The Simulated Device org.thingpedia.iot.switch 2 switch is on. The Simulated Device org.thingpedia.iot.switch 3 switch is off. The Simulated Device org.thingpedia.iot.switch 4 switch is on.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.iot.switch ( all = true ) . state ( ) #[ results = [ { state = enum on , __device = GENERIC_ENTITY_tt:device_id_0 } ] ] #[ count = 6 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"str:ENTITY_tt:device_id::0:","display":"Simulated Device org.thingpedia.iot.switch 0"}}
 A: >> expecting = null
 
 U: \t @org.thingpedia.iot.switch(all=true, name="bed").state();
 
-A: The Simulated Device org.thingpedia.iot.switch 0 switch is on. The Simulated Device org.thingpedia.iot.switch 1 switch is on. The Simulated Device org.thingpedia.iot.switch 2 switch is on. The Simulated Device org.thingpedia.iot.switch 3 switch is on. The Simulated Device org.thingpedia.iot.switch 4 switch is on.
+A: The Simulated Device org.thingpedia.iot.switch 0 switch is on. The Simulated Device org.thingpedia.iot.switch 1 switch is on. The Simulated Device org.thingpedia.iot.switch 2 switch is on. The Simulated Device org.thingpedia.iot.switch 3 switch is on. The Simulated Device org.thingpedia.iot.switch 4 switch is off.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_display_result ; @org.thingpedia.iot.switch ( all = true , name = QUOTED_STRING_0 ) . state ( ) #[ results = [ { state = enum on , __device = GENERIC_ENTITY_tt:device_id_0 } ] ] #[ count = 6 ] ; // {"QUOTED_STRING_0":"bed","GENERIC_ENTITY_tt:device_id_0":{"value":"str:ENTITY_tt:device_id::0:","display":"Simulated Device org.thingpedia.iot.switch 0"}}
 A: >> expecting = null
 

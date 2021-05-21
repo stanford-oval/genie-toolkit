@@ -352,10 +352,6 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         if (selector.all)
             return;
 
-        // HACK if we're doing IoT and we don't have a name, treat it like "all" devices
-        if (selector.kind.startsWith('org.thingpedia.iot.') && name === undefined)
-            return;
-
         let selecteddevices = alldevices;
         // note: we ignore the name if there is only one device configured - this protects against some bad parses
         if (alldevices.length > 1 && name !== undefined)
