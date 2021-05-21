@@ -2432,14 +2432,7 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
 UT: $dialogue @org.thingpedia.dialogue.transaction.cancel;
 C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I will soon be able to answer questions about covid. In the meantime, please let me know what you're interested in.
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_record_command;
-#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-U: what is covid?
-UT: $dialogue @org.thingpedia.dialogue.transaction.end;
-C: $dialogue @org.thingpedia.dialogue.transaction.end;
-#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Thank you!
+A: Alright, let me know if you have any more questions!
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -2468,12 +2461,14 @@ U: \t $nevermind;
 UT: $dialogue @org.thingpedia.dialogue.transaction.cancel;
 C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I will soon be able to answer questions about covid. In the meantime, please let me know what you're interested in.
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_record_command;
+A: Alright, let me know if you have any more questions!
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_end;
 #! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+====
+# test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $stop;
 UT: $stop;

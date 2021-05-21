@@ -1124,13 +1124,7 @@ A: >> expecting = generic
 
 U: \t $dialogue @org.thingpedia.dialogue.transaction.cancel;
 
-A: I will soon be able to answer questions about covid. In the meantime, please let me know what you're interested in.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_record_command ; // {}
-A: >> expecting = raw_string
-
-U: what is covid?
-
-A: Thank you!
+A: Alright, let me know if you have any more questions!
 A: >> context = null // {}
 A: >> expecting = null
 
@@ -1146,9 +1140,9 @@ A: >> expecting = generic
 
 U: \t $nevermind;
 
-A: I will soon be able to answer questions about covid. In the meantime, please let me know what you're interested in.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_record_command ; // {}
-A: >> expecting = raw_string
+A: Alright, let me know if you have any more questions!
+A: >> context = null // {}
+A: >> expecting = null
 
 ====
 # 74-covid-vaccine-missing

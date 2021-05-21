@@ -19,7 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
-import { Ast, Type } from 'thingtalk';
+import { Ast, } from 'thingtalk';
 import { SentenceGeneratorTypes } from 'genie-toolkit';
 
 import * as C from '../ast_manip';
@@ -405,13 +405,7 @@ $agent : S.AgentReplyRecord = {
     !anything_else {
         ctx:ctx_cancel 'alright, let me know if I can help you with anything else!'
             => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null)),
-    }
-
-    ?covid {
-        ["I will soon be able to answer questions about Covid.  In the meantime, please let me know what you are interested in.", priority=5]: (ctx:ctx_cancel)
-            => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_record_command', null), null, Type.String, { raw: true }),
-
-        ["Thank you!", priority=5]: (ctx:ctx_end)
+        ?covid ctx:ctx_cancel 'alright, let me know if you have any more questions!' [priority=1]
             => S.makeAgentReply(ctx, S.makeSimpleState(ctx, 'sys_end', null)),
     }
 
