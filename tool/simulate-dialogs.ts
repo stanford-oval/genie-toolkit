@@ -238,8 +238,7 @@ class SimulatorStream extends Stream.Transform {
             return;
         }
         //
-        let utterance = policyResult.utterance; 
-        utterance = this._langPack.postprocessNLG(policyResult.utterance, policyResult.entities, this._simulator);
+        const utterance = this._langPack.postprocessNLG(policyResult.utterance, policyResult.entities, this._simulator);
 
         const prediction = ThingTalkUtils.computePrediction(state, policyResult.state, 'agent');
         newTurn.agent = utterance;

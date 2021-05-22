@@ -784,7 +784,7 @@ export class Describer {
             forSchema.functionType, this._direction, forSchema.is_list);
         // put the canonical form first in the order
         // so all things equal, we'll pick the canonical form (which is, well, canonical)
-        const [canonicalscore,] = this._computeParamMatchingScore([], forInParams, {})!
+        const [canonicalscore,] = this._computeParamMatchingScore([], forInParams, {})!;
         templates.unshift({
             utterance: new Choice(canonical),
             replaceablenames: [],
@@ -807,7 +807,7 @@ export class Describer {
         if (obj instanceof Ast.FunctionCallExpression) {
             template = Replaceable.parse(schema.canonical!).preprocess(this._langPack, []);
             replaceablenames = [];
-            othernames = []
+            othernames = [];
         } else {
             [template, replaceablenames, othernames] = this._findBestExampleUtterance(obj.selector.kind, obj.channel, obj.selector, obj.in_params, obj.schema!);
         }
