@@ -988,8 +988,13 @@ export function tagContextForAgent(ctx : ContextInfo) : number[] {
         else
             return [contextTable.ctx_nonlist_notification];
 
+    case 'insist':
     case 'execute':
     case 'ask_recommend':
+        // treat an empty execute like greet
+        if (ctx.state.history.length === 0)
+            return [contextTable.ctx_greet];
+
         if (ctx.nextInfo !== null) {
             // we have an action we want to execute, or a query that needs confirmation
             if (ctx.nextInfo.chainParameter === null || ctx.nextInfo.chainParameterFilled) {
@@ -1526,8 +1531,8 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
     const current = ctx.current;
     if (current) {
         const description = describer.describeExpressionStatement(current.stmt);
-        if (description !== null)
-            phrases.push(makeContextPhrase(contextTable.ctx_current_statement, ctx, description));
+        assert(description !== null);
+        phrases.push(makeContextPhrase(contextTable.ctx_current_statement, ctx, description));
 
         const lastQuery = current.stmt.lastQuery ? getQuery(current.stmt.lastQuery) : null;
         if (lastQuery) {

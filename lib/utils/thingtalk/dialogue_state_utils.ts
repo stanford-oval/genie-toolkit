@@ -131,7 +131,15 @@ export function computePrediction(oldState : Ast.DialogueState|null, newState : 
     // check that the results is null for everything in the prediction
     // and reset confirm to false (the default) for everything autoconfirmable
     for (let i = 0; i < deltaState.history.length; i++) {
-        assert(deltaState.history[i].results === null);
+        if (deltaState.history[i].results !== null) {
+            console.log('----');
+            console.log(oldState ? oldState.prettyprint() : 'null');
+            console.log(newState.prettyprint());
+            console.log('----');
+            console.log(deltaState.history[i].prettyprint());
+            console.log('----');
+            throw new Error(`Item unexpectedly has results in prediction`);
+        }
 
         if (forTarget === 'user' && shouldAutoConfirmStatement(deltaState.history[i].stmt))
             deltaState.history[i].confirm = 'accepted';

@@ -153,8 +153,8 @@ C: ]]
 C: #[count=50]
 C: #[more=true];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I see Ramen Nagi and Evvia Estiatorio. Both are restaurants rated 4.5 star.
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
+A: I see Ramen Nagi, Evvia Estiatorio, and Oren's Hummus. Ramen Nagi is a restaurant rated 4.5 star, Evvia Estiatorio is rated 4.5 star, and Oren's Hummus is rated 4 star.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: [price] of @com.yelp.restaurant() filter id == "vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant;
@@ -1057,7 +1057,7 @@ C: #[results=[
 C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), release_date=new Date("2018-06-29T00:00:00.000Z") }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The date is June 28, 2018.
+A: Nice For What is a song with the date equal to June 28, 2018.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -1113,7 +1113,7 @@ C:   { id="spotify:track:0VjIjW4GlUZAMYd2vXMi3b"^^com.spotify:song("Blinding Lig
 C:   { id="spotify:track:7eJMfftS33KTjuF7lTsMCx"^^com.spotify:song("death bed (coffee for your head)"), artists=["spotify:artist:6bmlMHgSheBauioMgKv2tn"^^com.spotify:artist("Powfu"), "spotify:artist:35l9BRT7MXmM8bv2WDQiyB"^^com.spotify:artist("beabadoobee")], album="spotify:album:2p9gK2BcdrloHNJwarc9gc"^^com.spotify:album("death bed (coffee for your head)"), genres=[], release_date=new Date("2020-02-08T00:00:00.000Z"), popularity=95, energy=43, danceability=72 }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I see ROCKSTAR (feat. Roddy Ricch), Blinding Lights, and death bed (coffee for your head). ROCKSTAR (feat. Roddy Ricch) Roddy Ricch wrote, Blinding Lights The Weeknd wrote, and death bed (coffee for your head) Powfu wrote.
+A: I see ROCKSTAR (feat. Roddy Ricch), Blinding Lights, and death bed (coffee for your head). ROCKSTAR (feat. Roddy Ricch) is a song by DaBaby, Blinding Lights The Weeknd wrote, and death bed (coffee for your head) Powfu wrote.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -1915,7 +1915,7 @@ C:   { id="1vMgajRAI3lYwuCeGX58oQ"^^com.yelp:restaurant("Evvia Estiatorio"), ima
 C:   { id="KyU7XWDPclmZ3BpdIsd_0Q"^^com.yelp:restaurant("Oren's Hummus"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/vOWdAh4DKhMisL0K4YzXtA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/orens-hummus-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["mediterranean"^^com.yelp:restaurant_cuisine("Mediterranean"), "mideastern"^^com.yelp:restaurant_cuisine("Middle Eastern")], price=enum moderate, rating=4, reviewCount=2248, geo=new Location(37.445717, -122.162173), phone="+16507526492"^^tt:phone_number }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I see Ramen Nagi, Evvia Estiatorio, and Oren's Hummus. Ramen Nagi is rated 4.5 star, Evvia Estiatorio is rated 4.5 star, and Oren's Hummus is rated 4 star.
+A: I see Ramen Nagi, Evvia Estiatorio, and Oren's Hummus. Ramen Nagi is a restaurant rated 4.5 star, Evvia Estiatorio is rated 4.5 star, and Oren's Hummus is rated 4 star.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t [reviewCount] of @com.yelp.restaurant()[1 : 3];
@@ -1934,7 +1934,7 @@ C:   { id="1vMgajRAI3lYwuCeGX58oQ"^^com.yelp:restaurant("Evvia Estiatorio"), rev
 C:   { id="KyU7XWDPclmZ3BpdIsd_0Q"^^com.yelp:restaurant("Oren's Hummus"), reviewCount=2248 }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Ramen Nagi has 1,625 reviews, Evvia Estiatorio has 2,393 reviews, and Oren's Hummus has 2,248 reviews.
+A: Ramen Nagi is a restaurant with 1,625 reviews, Evvia Estiatorio has 2,393 reviews, and Oren's Hummus has 2,248 reviews.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -2286,10 +2286,8 @@ C:   { id="spotify:track:62bOmKYxYg7dhrC6gH9vFn"^^com.spotify:playable("Bye Bye 
 C: ]]
 C: #[count=50];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I see Yellow. It is a music by Coldplay. Would you like to play it on Spotify?
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-AT: @com.spotify(id="com.spotify-gcampax"^^tt:device_id).play(playable="spotify:track:3AJwUDP919kvQ9QcozQPxg"^^com.spotify:playable("Yellow"))
-AT: #[confirm=enum proposed];
+A: I see Yellow and The Real Slim Shady. Yellow is a music by Coldplay, while The Real Slim Shady Eminem wrote.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
 #! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
