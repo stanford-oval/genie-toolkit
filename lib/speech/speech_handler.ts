@@ -156,6 +156,13 @@ export default class SpeechHandler extends events.EventEmitter {
             });
             player = await cap.play(toPlay);
         }
+        // expect some input from the user
+        if (expect !== null) {
+            // wait until the agent finishes before listening for a needed interaction
+            await this._waitFinishSpeaking();
+
+            this._onDetected(Buffer.from([]), false);
+        }
     }
 
     async addMessage(message : any) : Promise<void> {
