@@ -593,7 +593,7 @@ export class Describer {
 
     private _computeParamMatchingScore(exampleInParams : Ast.InputParam[],
                                        programInParams : Ast.InputParam[],
-                                       exampleArgs : Record<string, Type>) {
+                                       exampleArgs : Record<string, Type>) : [number, string[]]|null {
         let score = 0;
         const missing = new Set<string>();
         for (const in_param2 of programInParams) {
@@ -601,11 +601,14 @@ export class Describer {
                 continue;
             missing.add(in_param2.name);
         }
+
+        const names : string[] = [];
         for (const in_param of exampleInParams) {
             if (in_param.value instanceof Ast.UndefinedValue)
                 continue;
 
             let found = false;
+            names.push(in_param.name);
             for (const in_param2 of programInParams) {
                 if (in_param2.name === in_param.name) {
                     // found it!
@@ -645,7 +648,7 @@ export class Describer {
             score -= 0.1;
         }
 
-        return score;
+        return [score, names];
     }
 
     private _exampleToTemplate(invocation : Ast.Invocation,
@@ -697,7 +700,7 @@ export class Describer {
                                       functionName : string,
                                       forSelector : Ast.DeviceSelector|null,
                                       forInParams : Ast.InputParam[],
-                                      forSchema : Ast.FunctionDef) : [Replaceable, string[]] {
+                                      forSchema : Ast.FunctionDef) : [Replaceable, string[], string[]] {
         const dataset = this._datasets.get(kind);
 
         let relevantExamples : Ast.Example[] = [];
@@ -711,7 +714,7 @@ export class Describer {
             });
         }
 
-        const templates : Array<{ utterance : Replaceable, names : string[], score : number }> = [];
+        const templates : Array<{ utterance : Replaceable, replaceablenames : string[], othernames : string[], score : number }> = [];
 
         // map each example from a form with p_ parameters into a "confirmation"-like form
         for (const ex of relevantExamples) {
@@ -733,11 +736,13 @@ export class Describer {
             if (forSelector && forSelector.all && !invocation.selector.all)
                 continue;
 
-            let score = this._computeParamMatchingScore(invocation.in_params,
-                                                        forInParams,
-                                                        ex.args);
-            if (score === null)
+            const scoreAndNames = this._computeParamMatchingScore(invocation.in_params,
+                                                                forInParams,
+                                                                ex.args);
+            if (scoreAndNames === null)
                 continue;
+            let score = scoreAndNames[0];
+            const names = scoreAndNames[1];
 
             let deviceNameParam = null;
             if (invocation.selector.attributes.length > 0 &&
@@ -769,8 +774,8 @@ export class Describer {
                 if (mapped === null)
                     continue;
 
-                const [utterance, names] = mapped;
-                templates.push({ utterance, names, score });
+                const [utterance, replaceablenames] = mapped;
+                templates.push({ utterance, replaceablenames, othernames: names.filter((n) => !replaceablenames.includes(n)), score });
             }
         }
 
@@ -779,16 +784,17 @@ export class Describer {
             forSchema.functionType, this._direction, forSchema.is_list);
         // put the canonical form first in the order
         // so all things equal, we'll pick the canonical form (which is, well, canonical)
+        const [canonicalscore,] = this._computeParamMatchingScore([], forInParams, {})!;
         templates.unshift({
             utterance: new Choice(canonical),
-            names: [],
-            score: this._computeParamMatchingScore([], forInParams, {})!
-                + (forSelector && forSelector.id ? -1 : 0)
+            replaceablenames: [],
+            othernames: [],
+            score: canonicalscore + (forSelector && forSelector.id ? -1 : 0)
         });
 
         // sort the templates by score, pick the highest one
         templates.sort((one, two) => two.score - one.score);
-        return [templates[0].utterance, templates[0].names];
+        return [templates[0].utterance, templates[0].replaceablenames, templates[0].othernames];
     }
 
     describePrimitive(obj : Ast.Invocation|Ast.ExternalBooleanExpression|Ast.FunctionCallExpression,
@@ -797,12 +803,13 @@ export class Describer {
         assert(schema instanceof Ast.FunctionDef);
 
         const argMap = new Map<string, [ReplacedResult, Ast.Value|null]>();
-        let template : Replaceable, names : string[];
+        let template : Replaceable, replaceablenames : string[], othernames : string[];
         if (obj instanceof Ast.FunctionCallExpression) {
             template = Replaceable.parse(schema.canonical!).preprocess(this._langPack, []);
-            names = [];
+            replaceablenames = [];
+            othernames = [];
         } else {
-            [template, names] = this._findBestExampleUtterance(obj.selector.kind, obj.channel, obj.selector, obj.in_params, obj.schema!);
+            [template, replaceablenames, othernames] = this._findBestExampleUtterance(obj.selector.kind, obj.channel, obj.selector, obj.in_params, obj.schema!);
         }
 
         if (obj instanceof Ast.Invocation ||
@@ -821,7 +828,7 @@ export class Describer {
         }
 
         const replacements = [];
-        for (const name of names) {
+        for (const name of replaceablenames) {
             const [text, value] = argMap.get(name)!;
             replacements.push({ text, value });
         }
@@ -832,7 +839,7 @@ export class Describer {
         let firstExtra = true;
         for (const inParam of obj.in_params) {
             const argname = inParam.name;
-            if (names.includes(argname))
+            if (replaceablenames.includes(argname) || othernames.includes(argname))
                 continue;
             if (argname.startsWith('__'))
                 continue;
@@ -1195,7 +1202,7 @@ export class Describer {
 
         const phrases : ReplacedResult[] = normalized.base.map((phrase) => phrase.toReplaced());
         if (phrases.length === 0)
-            return null;
+            return this._const(clean(argname));
         if (phrases.length === 1)
             return phrases[0];
         return new ReplacedChoice(phrases);

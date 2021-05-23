@@ -84,13 +84,13 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('--maxdepth', {
         required: false,
         type: Number,
-        default: 5,
+        default: 8,
         help: 'Maximum depth of sentence generation',
     });
     parser.add_argument('--target-pruning-size', {
         required: false,
         type: Number,
-        default: 100000,
+        default: 500,
         help: 'Approximate target size of the generate dataset, for each $root rule and each depth',
     });
 

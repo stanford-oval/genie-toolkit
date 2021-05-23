@@ -1,3 +1,56 @@
+class @io.home-assistant
+#_[thingpedia_name="Home Assistant"]
+#_[thingpedia_description="Integrate your Almond with Home Assistant to control your home with voice."]
+#_[description="This is your Home Assistant Gateway."]
+#_[name="Home Assistant Gateway at ${hassUrl}"]
+#[license="BSD-3-Clause"]
+#[license_gplcompatible=true]
+#[subcategory="home"]
+#[website="https://home-assistant.io"]
+#[child_types=[ "org.thingpedia.iot.battery",
+                "org.thingpedia.iot.climate",
+                "org.thingpedia.iot.cover",
+                "org.thingpedia.iot.door",
+                "org.thingpedia.iot.fan",
+                "org.thingpedia.iot.flood",
+                "org.thingpedia.iot.humidity",
+                "org.thingpedia.iot.illuminance",
+                "org.thingpedia.iot.light-bulb",
+                "org.thingpedia.iot.lock",
+                "org.thingpedia.iot.motion",
+                "org.thingpedia.iot.switch",
+                "org.thingpedia.iot.temperature",
+                "org.thingpedia.iot.uv",
+                "org.thingpedia.iot.vacuum"
+                ]]
+
+/*
+               "org.thingpedia.iot.media-player",
+               "org.thingpedia.iot.smoke",
+               "org.thingpedia.iot.air",
+               "org.thingpedia.iot.heat",
+               "org.thingpedia.iot.moisture",
+               "org.thingpedia.iot.occupancy",
+               "org.thingpedia.iot.plug",
+               "org.thingpedia.iot.security-camera",
+               "org.thingpedia.iot.sound",
+               "org.thingpedia.iot.speaker",
+               "org.thingpedia.iot.tv",
+ */
+
+{
+    import loader from @org.thingpedia.v2();
+    import config from @org.thingpedia.config.oauth2(
+       client_id="https://thingengine.stanford.edu",
+       // There is no client secret, security is granted by matching the client_id and the redirect_uri
+       client_secret="",
+       set_state=true,
+
+       // FIXME the URL of the gateway should be configurable somehow...
+       authorize="http://hassio.local:8123/auth/authorize"^^tt:url,
+       get_access_token="http://hassio.local:8123/auth/token"^^tt:url
+    );
+}
 class @com.facebook
 #_[canonical="facebook account"] {
   monitorable list query list_photos(in opt album: String #_[prompt="Which album?"] #_[canonical="album"],
@@ -875,6 +928,64 @@ class @light-bulb
   #_[canonical="set power on light bulb"]
   #_[confirmation="turn $power your lightbulb"]
   #[confirm=true];
+}
+abstract class @org.thingpedia.iot.switch
+#_[thingpedia_name="Switch"]
+#_[thingpedia_description="Interface for Switch."]
+#[license="BSD-3-Clause"]
+#[license_gplcompatible=true]
+#[subcategory="home"]
+{
+  monitorable query state(out state : Enum(on,off))
+  #_[canonical=["switch state", "the state of my switch", "the state of the switch"]]
+  #_[confirmation="the state of $__device"]
+  #[confirm=false]
+  #_[result=["the {${__device}|} switch is ${state}"]];
+
+  action set_power(in req power: Enum(on,off) #_[prompt="Do you want to turn it on or off?"] #_[canonical="power"])
+  #_[canonical=["set the power of my switch", "set the power of the switch"]]
+  #_[confirmation="turn $power $__device"]
+  #[confirm=false];
+}
+abstract class @org.thingpedia.iot.light-bulb extends @org.thingpedia.iot.switch
+#_[name="Light Bulb"]
+#_[description="The general interface supported by all light bulbs."]
+#_[canonical="light bulb"]
+{
+  monitorable query power(out power : Enum(on, off)
+                          #_[canonical="power"])
+  #_[canonical="the power state of the light bulb"]
+  #_[confirmation="the power state of ${__device}"]
+  #_[result=["your lights are ${power}"]]
+  #_[confirmation_remote="the power state of ${__device}"]
+  #[minimal_projection=[]]
+  #[confirm=false];
+
+  action alert_long()
+  #_[canonical="loop the color in my light bulb"]
+  #_[confirmation="flash alerts on ${__device}"]
+  #_[confirmation_remote="flash alerts on ${__device}"]
+  #[confirm=true]
+  #[minimal_projection=[]];
+
+  action color_loop()
+  #_[canonical="flash the lights"]
+  #_[confirmation="loop colors on ${__device}"]
+  #_[confirmation_remote="loop colors on ${__device}"]
+  #[confirm=true]
+  #[minimal_projection=[]];
+
+  action set_power(in req power : Enum(on, off)
+                   #_[prompt=["do you want to turn it on or off"]]
+                   #_[canonical={
+                     base=["power"],
+                     property=[]
+                   }])
+  #_[canonical="set the power on the lights"]
+  #_[confirmation="turn $power ${__device}"]
+  #_[confirmation_remote="turn $power ${__device}"]
+  #[confirm=true]
+  #[minimal_projection=[]];
 }
 class @com.gmail
 #_[canonical="gmail account"] {

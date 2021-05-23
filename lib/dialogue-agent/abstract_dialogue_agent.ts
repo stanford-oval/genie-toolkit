@@ -150,8 +150,9 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * @return {Ast.DialogueState} - the new state, with information about the returned query or action
      */
     async execute(state : Ast.DialogueState, privateState : PrivateStateType|undefined) : Promise<ExecutionResult<PrivateStateType>> {
-        let anyChange = false;
+        let cloned = false;
         let clone = state;
+        let anyChange = false;
 
         const newResults : RawExecutionResult = [];
         const newPrograms : NewProgramRecord[] = [];
@@ -159,10 +160,12 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         for (let i = 0; i < clone.history.length; i++) {
             if (clone.history[i].results !== null)
                 continue;
+            if (clone.history[i].confirm === 'proposed')
+                continue;
 
-            if (!anyChange) {
+            if (!cloned) {
                 clone = state.clone();
-                anyChange = true;
+                cloned = true;
             }
             // prepare for execution now, even if we don't execute yet
             // so we slot-fill eagerly
@@ -175,6 +178,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
                 item.confirm = 'confirmed';
             if (item.confirm !== 'confirmed')
                 continue;
+            anyChange = true;
             assert(item.isExecutable());
 
             // if we have a stream, we'll trigger notifications
@@ -344,10 +348,6 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         }
 
         if (selector.all)
-            return;
-
-        // HACK if we're doing IoT and we don't have a name, treat it like "all" devices
-        if (selector.kind.startsWith('org.thingpedia.iot.') && name === undefined)
             return;
 
         let selecteddevices = alldevices;
