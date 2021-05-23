@@ -2008,92 +2008,73 @@ UT: $stop;
 U: \t @org.thingpedia.iot.switch.state();
 UT: @org.thingpedia.iot.switch.state();
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @org.thingpedia.iot.switch.state()
+C: @org.thingpedia.iot.switch(id="switch-bed1"^^tt:device_id("Bed Switch 1")).state()
 C: #[results=[
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 0") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::2:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 2") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::4:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 4") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
+C:   { state=enum off, __device="switch-bed1"^^tt:device_id("Bed Switch 1") }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The Simulated Device org.thingpedia.iot.switch 0 switch is off. The Simulated Device org.thingpedia.iot.switch 1 switch is off. The Simulated Device org.thingpedia.iot.switch 2 switch is on. The Simulated Device org.thingpedia.iot.switch 3 switch is on. The Simulated Device org.thingpedia.iot.switch 4 switch is on.
+A: You have multiple switch devices. Which one do you want to use?
+A: The Bed Switch 1 switch is off.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @org.thingpedia.iot.switch(name="kitchen").state();
 UT: @org.thingpedia.iot.switch(name="kitchen").state();
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @org.thingpedia.iot.switch.state()
+C: @org.thingpedia.iot.switch(id="switch-bed1"^^tt:device_id("Bed Switch 1")).state()
 C: #[results=[
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 0") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::2:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 2") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::4:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 4") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
+C:   { state=enum off, __device="switch-bed1"^^tt:device_id("Bed Switch 1") }
 C: ]];
 C: @org.thingpedia.iot.switch(id="switch-kitchen"^^tt:device_id("Kitchen Switches")).state()
 C: #[results=[
-C:   { state=enum on, __device="switch-kitchen"^^tt:device_id("Kitchen Switches") }
+C:   { state=enum off, __device="switch-kitchen"^^tt:device_id("Kitchen Switches") }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The Kitchen Switches switch is on.
+A: The Kitchen Switches switch is off.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @org.thingpedia.iot.switch(all=true).state();
 UT: @org.thingpedia.iot.switch(all=true).state();
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @org.thingpedia.iot.switch.state()
+C: @org.thingpedia.iot.switch(id="switch-bed1"^^tt:device_id("Bed Switch 1")).state()
 C: #[results=[
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 0") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::2:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 2") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::4:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 4") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
+C:   { state=enum off, __device="switch-bed1"^^tt:device_id("Bed Switch 1") }
 C: ]];
 C: @org.thingpedia.iot.switch(id="switch-kitchen"^^tt:device_id("Kitchen Switches")).state()
 C: #[results=[
-C:   { state=enum on, __device="switch-kitchen"^^tt:device_id("Kitchen Switches") }
+C:   { state=enum off, __device="switch-kitchen"^^tt:device_id("Kitchen Switches") }
 C: ]];
 C: @org.thingpedia.iot.switch(all=true).state()
 C: #[results=[
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 0") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 0") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
 C:   { state=enum on, __device="str:ENTITY_tt:device_id::2:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 2") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
 C:   { state=enum on, __device="str:ENTITY_tt:device_id::4:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 4") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The Simulated Device org.thingpedia.iot.switch 0 switch is off. The Simulated Device org.thingpedia.iot.switch 1 switch is off. The Simulated Device org.thingpedia.iot.switch 2 switch is on. The Simulated Device org.thingpedia.iot.switch 3 switch is on. The Simulated Device org.thingpedia.iot.switch 4 switch is on.
+A: The Simulated Device org.thingpedia.iot.switch 0 switch is on. The Simulated Device org.thingpedia.iot.switch 1 switch is on. The Simulated Device org.thingpedia.iot.switch 2 switch is on. The Simulated Device org.thingpedia.iot.switch 3 switch is off. The Simulated Device org.thingpedia.iot.switch 4 switch is on.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @org.thingpedia.iot.switch(all=true, name="bed").state();
 UT: @org.thingpedia.iot.switch(all=true, name="bed").state();
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @org.thingpedia.iot.switch.state()
+C: @org.thingpedia.iot.switch(id="switch-bed1"^^tt:device_id("Bed Switch 1")).state()
 C: #[results=[
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 0") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::2:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 2") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::4:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 4") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
+C:   { state=enum off, __device="switch-bed1"^^tt:device_id("Bed Switch 1") }
 C: ]];
 C: @org.thingpedia.iot.switch(id="switch-kitchen"^^tt:device_id("Kitchen Switches")).state()
 C: #[results=[
-C:   { state=enum on, __device="switch-kitchen"^^tt:device_id("Kitchen Switches") }
+C:   { state=enum off, __device="switch-kitchen"^^tt:device_id("Kitchen Switches") }
 C: ]];
 C: @org.thingpedia.iot.switch(all=true).state()
 C: #[results=[
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 0") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 0") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
 C:   { state=enum on, __device="str:ENTITY_tt:device_id::2:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 2") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
 C:   { state=enum on, __device="str:ENTITY_tt:device_id::4:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 4") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
 C: ]];
 C: @org.thingpedia.iot.switch(all=true, name="bed").state()
 C: #[results=[
@@ -2101,11 +2082,11 @@ C:   { state=enum on, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simu
 C:   { state=enum on, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
 C:   { state=enum on, __device="str:ENTITY_tt:device_id::2:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 2") },
 C:   { state=enum on, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::4:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 4") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::4:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 4") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The Simulated Device org.thingpedia.iot.switch 0 switch is on. The Simulated Device org.thingpedia.iot.switch 1 switch is on. The Simulated Device org.thingpedia.iot.switch 2 switch is on. The Simulated Device org.thingpedia.iot.switch 3 switch is on. The Simulated Device org.thingpedia.iot.switch 4 switch is on.
+A: The Simulated Device org.thingpedia.iot.switch 0 switch is on. The Simulated Device org.thingpedia.iot.switch 1 switch is on. The Simulated Device org.thingpedia.iot.switch 2 switch is on. The Simulated Device org.thingpedia.iot.switch 3 switch is on. The Simulated Device org.thingpedia.iot.switch 4 switch is off.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! vote: up
 #! comment: test comment for dialogue turns
