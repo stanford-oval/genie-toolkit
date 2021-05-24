@@ -969,6 +969,7 @@ A: choice 0: Bed Switch 1
 A: choice 1: Bed Switch 2
 A: choice 2: Kitchen Switches
 A: choice 3: Ceiling Switches
+A: choice 4: Büro Decke
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . execute ; @org.thingpedia.iot.switch . state ( ) ; // {}
 A: >> expecting = choice
 
@@ -1046,6 +1047,7 @@ A: choice 0: Bed Switch 1
 A: choice 1: Bed Switch 2
 A: choice 2: Kitchen Switches
 A: choice 3: Ceiling Switches
+A: choice 4: Büro Decke
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . execute ; @org.thingpedia.iot.switch ( name = QUOTED_STRING_0 ) . state ( ) ; // {"QUOTED_STRING_0":"invalid"}
 A: >> expecting = choice
 
@@ -1080,4 +1082,39 @@ U: #[count=50];
 
 A: I see Yellow and The Real Slim Shady. Yellow is a music by Coldplay, while The Real Slim Shady Eminem wrote.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_two ; @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . playable ( ) filter release_date <= DATE_0 + DURATION_0 && release_date >= DATE_0 #[ results = [ { id = GENERIC_ENTITY_com.spotify:playable_0 , artists = [ GENERIC_ENTITY_com.spotify:artist_0 ] , album = GENERIC_ENTITY_com.spotify:album_0 , genres = [ QUOTED_STRING_0 , QUOTED_STRING_1 ] , release_date = DATE_1 , popularity = NUMBER_0 , energy = NUMBER_1 , danceability = NUMBER_2 , __device = GENERIC_ENTITY_tt:device_id_0 } ] ] #[ count = NUMBER_3 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-gcampax","display":"Spotify Account of gcampax"},"DATE_0":"2000-01-01T00:00:00.000Z","DURATION_0":{"unit":"year","value":1},"GENERIC_ENTITY_com.spotify:playable_0":{"value":"spotify:track:3AJwUDP919kvQ9QcozQPxg","display":"Yellow"},"GENERIC_ENTITY_com.spotify:artist_0":{"value":"spotify:artist:4gzpq5DPGxSnKTe4SA8HAU","display":"Coldplay"},"GENERIC_ENTITY_com.spotify:album_0":{"value":"spotify:album:6ZG5lRT77aJ3btmArcykra","display":"Parachutes"},"QUOTED_STRING_0":"permanent wave","QUOTED_STRING_1":"pop","DATE_1":"2000-07-10T00:00:00.000Z","NUMBER_0":85,"NUMBER_1":66.10000000000001,"NUMBER_2":42.9,"NUMBER_3":50}
+A: >> expecting = null
+
+====
+# 71-nfc-names
+
+# names in NFC or NFD should compare identically
+U: \t @org.thingpedia.iot.switch(name="büro decke").set_power(power=enum on);
+
+A: I turned on your Büro Decke switch.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @org.thingpedia.iot.switch ( id = GENERIC_ENTITY_tt:device_id_0 ) . set_power ( power = enum on ) #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"switch-office-de","display":"Büro Decke"}}
+A: >> expecting = null
+
+U: \t @org.thingpedia.iot.switch(name="büro decke").set_power(power=enum off);
+
+A: I turned off your Büro Decke switch for you.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @org.thingpedia.iot.switch ( id = GENERIC_ENTITY_tt:device_id_0 ) . set_power ( power = enum off ) #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"switch-office-de","display":"Büro Decke"}}
+A: >> expecting = null
+
+====
+# 72-device-name-natural-language
+U: \t @org.thingpedia.iot.switch(name="invalid").set_power(power=enum off);
+
+A: I cannot find any invalid switch device. Which device do you want to use?
+A: choice 0: Bed Switch 1
+A: choice 1: Bed Switch 2
+A: choice 2: Kitchen Switches
+A: choice 3: Ceiling Switches
+A: choice 4: Büro Decke
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . execute ; @org.thingpedia.iot.switch ( name = QUOTED_STRING_0 ) . set_power ( power = enum off ) ; // {"QUOTED_STRING_0":"invalid"}
+A: >> expecting = choice
+
+U: kitchen
+
+A: I turned off your Kitchen Switches switch.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @org.thingpedia.iot.switch ( id = GENERIC_ENTITY_tt:device_id_0 ) . set_power ( power = enum off ) #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"switch-kitchen","display":"Kitchen Switches"}}
 A: >> expecting = null

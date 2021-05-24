@@ -2273,3 +2273,51 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t @org.thingpedia.iot.switch(name="büro decke").set_power(power=enum on);
+UT: @org.thingpedia.iot.switch(name="büro decke").set_power(power=enum on);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.iot.switch(id="switch-office-de"^^tt:device_id("Büro Decke")).set_power(power=enum on)
+C: #[results=[]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: I turned on your Büro Decke switch.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t @org.thingpedia.iot.switch(name="büro decke").set_power(power=enum off);
+UT: @org.thingpedia.iot.switch(name="büro decke").set_power(power=enum off);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.iot.switch(id="switch-office-de"^^tt:device_id("Büro Decke")).set_power(power=enum on)
+C: #[results=[]];
+C: @org.thingpedia.iot.switch(id="switch-office-de"^^tt:device_id("Büro Decke")).set_power(power=enum off)
+C: #[results=[]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: I turned off your Büro Decke switch for you.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t @org.thingpedia.iot.switch(name="invalid").set_power(power=enum off);
+UT: @org.thingpedia.iot.switch(name="invalid").set_power(power=enum off);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.iot.switch(id="switch-kitchen"^^tt:device_id("Kitchen Switches")).set_power(power=enum off)
+C: #[results=[]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: I cannot find any invalid switch device. Which device do you want to use?
+A: I turned off your Kitchen Switches switch.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
