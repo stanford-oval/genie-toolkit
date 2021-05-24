@@ -1,3 +1,16 @@
+0.8.0-rc.1
+==========
+
+* Improved agent templates, so more dialogue states are handled correctly
+  by the agent [#629].
+* Added support for beam search in prediction [#629].
+* Misc bug fixes, many related to handling of multiple devices [#575, #618, #620,
+  #621, #625, #626, #627, #628, #630].
+
+Contributors to this release:
+- Philip Allgaier
+- Sina Semnani
+
 0.8.0-beta.1
 ============
 
