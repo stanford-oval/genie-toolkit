@@ -1531,8 +1531,10 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
     const current = ctx.current;
     if (current) {
         const description = describer.describeExpressionStatement(current.stmt);
-        assert(description !== null);
-        phrases.push(makeContextPhrase(contextTable.ctx_current_statement, ctx, description));
+        if (description !== null)
+            phrases.push(makeContextPhrase(contextTable.ctx_current_statement, ctx, description));
+        else
+            console.error(`WARNING: failed to generate description for ${current.stmt.prettyprint()}`);
 
         const lastQuery = current.stmt.lastQuery ? getQuery(current.stmt.lastQuery) : null;
         if (lastQuery) {
