@@ -22,13 +22,15 @@ import * as sqlite3 from 'sqlite3';
 import * as sql from '.';
 import { SyncRecord } from '..';
 
+type Field<RowType> = Exclude<keyof RowType & string, "uniqueId">;
+
 export default class SyncTable<RowType extends { uniqueId : string }> {
     name : string;
-    fields : ReadonlyArray<Exclude<keyof RowType & string, "uniqueId">>;
+    fields : ReadonlyArray<Field<RowType>>;
     private _db : sql.SQLiteDatabase;
-    private _discriminator : Exclude<keyof RowType & string, "uniqueId">;
+    private _discriminator : Field<RowType>;
 
-    constructor(db : sql.SQLiteDatabase, name : string, fields : ReadonlyArray<Exclude<keyof RowType & string, "uniqueId">>) {
+    constructor(db : sql.SQLiteDatabase, name : string, fields : ReadonlyArray<Field<RowType>>) {
         this.name = name;
         this.fields = fields;
         this._db = db;

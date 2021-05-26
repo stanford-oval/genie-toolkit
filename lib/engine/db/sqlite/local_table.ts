@@ -20,12 +20,14 @@
 
 import * as sql from '.';
 
+type Fields<RowType> = ReadonlyArray<Exclude<keyof RowType & string, "uniqueId">>;
+
 export default class LocalTable<RowType> {
     name : string;
     private _db : sql.SQLiteDatabase;
-    private _fields : ReadonlyArray<Exclude<keyof RowType & string, "uniqueId">>;
+    private _fields : Fields<RowType>;
 
-    constructor(db : sql.SQLiteDatabase, name : string, fields : ReadonlyArray<Exclude<keyof RowType & string, "uniqueId">>) {
+    constructor(db : sql.SQLiteDatabase, name : string, fields : Fields<RowType>) {
         this.name = name;
         this._db = db;
         this._fields = fields;

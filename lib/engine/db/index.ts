@@ -20,7 +20,7 @@
 
 import * as Tp from 'thingpedia';
 
-import { SQLiteDatabase } from './sqlite';
+import { SQLiteDatabase, SQLitePlatform } from './sqlite';
 
 export interface AbstractRow {
     uniqueId : string;
@@ -92,10 +92,6 @@ export interface AbstractDatabase {
 export function createDB(platform : Tp.BasePlatform) : AbstractDatabase {
     // for now, all platforms are sqlite platforms
 
-    const sqliteplatform = platform as Tp.BasePlatform & {
-        getSqliteDB() : string;
-        getSqliteKey() : string|null;
-    };
-
+    const sqliteplatform = platform as SQLitePlatform;
     return new SQLiteDatabase(sqliteplatform);
 }
