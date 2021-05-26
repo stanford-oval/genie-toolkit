@@ -512,8 +512,8 @@ class Annotator extends events.EventEmitter {
     }
 }
 
-const THINGPEDIA_URL = 'https://dev.almond.stanford.edu/thingpedia';
-const NL_SERVER_URL = 'https://nlp-staging.almond.stanford.edu';
+const THINGPEDIA_URL = 'https://almond.stanford.edu/thingpedia';
+const NL_SERVER_URL = 'https://nlp.almond.stanford.edu';
 
 export function initArgparse(subparsers : argparse.SubParser) {
     const parser = subparsers.add_parser('interactive-annotate', {

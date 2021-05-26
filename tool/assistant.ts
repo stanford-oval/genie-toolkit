@@ -27,8 +27,8 @@ import Platform from './lib/cmdline-platform';
 import Conversation from '../lib/dialogue-agent/conversation';
 import { Message } from '../lib/dialogue-agent/protocol';
 
-const THINGPEDIA_URL = 'https://dev.almond.stanford.edu/thingpedia';
-const NL_SERVER_URL = 'https://nlp-staging.almond.stanford.edu';
+const THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';
+const NL_SERVER_URL = 'https://nlp.almond.stanford.edu';
 
 class CommandLineDelegate {
     private _rl : readline.Interface;

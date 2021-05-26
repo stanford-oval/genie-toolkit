@@ -148,7 +148,7 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         return [{
             help: manifest.getNaturalLanguageAnnotation('help'),
             description: manifest.getNaturalLanguageAnnotation('thingpedia_description'),
-            thingpedia_url: manifest.getImplementationAnnotation('thingpedia_url') || `https://dev.almond.stanford.edu/thingpedia/devices/by-id/${id}`,
+            thingpedia_url: manifest.getImplementationAnnotation('thingpedia_url') || `https://almond.stanford.edu/thingpedia/devices/by-id/${id}`,
             website:  manifest.getImplementationAnnotation('website'),
             category:  manifest.getImplementationAnnotation('subcategory'),
             issue_tracker:  manifest.getImplementationAnnotation('issue_tracker'),
