@@ -1511,6 +1511,8 @@ function getQuery(expr : Ast.Expression) : Ast.Expression|null {
     return null;
 }
 
+const _warned = new Set<string>();
+
 export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.ContextPhrase[] {
     const contextTable = ctx.contextTable;
 
@@ -1531,8 +1533,15 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
     const current = ctx.current;
     if (current) {
         const description = describer.describeExpressionStatement(current.stmt);
-        assert(description !== null);
-        phrases.push(makeContextPhrase(contextTable.ctx_current_statement, ctx, description));
+        if (description !== null) {
+            phrases.push(makeContextPhrase(contextTable.ctx_current_statement, ctx, description));
+        } else {
+            const code = current.stmt.prettyprint();
+            if (!_warned.has(code)) {
+                console.error(`WARNING: failed to generate description for ${code}`);
+                _warned.add(code);
+            }
+        }
 
         const lastQuery = current.stmt.lastQuery ? getQuery(current.stmt.lastQuery) : null;
         if (lastQuery) {
