@@ -51,7 +51,7 @@ suitable for integrating Genie in a larger project (such as Almond).
 
 To train a model, genie uses the [Genie NLP](https://github.com/stanford-oval/genienlp) library. To install it, use:
 ```bash
-pip install 'genienlp>=0.6.0a1'
+pip install 'genienlp>=0.6.0'
 ```
 
 After training, you should also prepare a directory to contain the embeddings.
