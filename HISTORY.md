@@ -1,3 +1,11 @@
+0.8.0
+=====
+
+* Misc bug fixes [#633].
+
+Please see the previous release for the full list of changes in this
+development cycle.
+
 0.8.0-rc.1
 ==========
 

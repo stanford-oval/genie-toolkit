@@ -1,6 +1,6 @@
 {
   "name": "genie-toolkit",
-  "version": "0.8.0-rc.1",
+  "version": "0.8.0",
   "description": "A Generator of Natural Language Parsers for Compositional Virtual Assistants",
   "repository": "https://github.com/stanford-oval/genie-toolkit.git",
   "author": "Giovanni Campagna <gcampagn@cs.stanford.edu>",
