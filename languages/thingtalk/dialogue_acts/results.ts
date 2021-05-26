@@ -162,6 +162,8 @@ export function addSlotToBag(bag : SlotBag, filter : C.FilterSlot) : [SlotBag, s
     }
     if (bag.has(name))
         return null;
+    if (name === 'id')
+        return null;
 
     const clone = bag.clone();
     return addSlotToBagCloned(clone, filter.ast);

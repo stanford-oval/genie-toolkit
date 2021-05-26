@@ -66,4 +66,4 @@ export async function getConfig<T>(key : string, _default ?: T) : Promise<string
     }
 }
 
-export const DEFAULT_THINGPEDIA_URL = 'https://dev.almond.stanford.edu/thingpedia';
+export const DEFAULT_THINGPEDIA_URL = 'https://thingpedia.stanford.edu/thingpedia';

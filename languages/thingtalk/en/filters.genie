@@ -215,7 +215,6 @@ with_filter : C.FilterSlot = {
     // work with enums (which have incomplete type at the Ast.Value) and entities
     // makeFilter has the right logic to check types
     'the' p:out_param_Any 'equal to' x:constant_Any => C.makeFilter($loader, p, '==', x);
-    'the' p:out_param_Any 'equal to' x:constant_Any => C.makeFilter($loader, p, '==', x);
 
     !turking 'the' p:out_param_Any with { type = (Type.String) } ('containing' | 'including') x:constant_String => C.makeFilter($loader, p, '=~', x);
     !turking x:constant_String ('in the' | 'in its' | 'in their') p:out_param_Any with { type = (Type.String) } => C.makeFilter($loader, p, '=~', x);

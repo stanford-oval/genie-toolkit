@@ -310,7 +310,7 @@ export default class DialogueLoop {
 
             // we still ship it to the parser so it gets recorded
             await this._nlu.sendUtterance(command.utterance, contextCode, contextEntities, {
-                expect: this.expecting ? String(this.expecting) : undefined,
+                expect: this.expecting ? ValueCategory[this.expecting] : undefined,
                 choices: this._choices,
                 store: this._prefs.get('sabrina-store-log') as string || 'no'
             });
@@ -332,7 +332,7 @@ export default class DialogueLoop {
         let nluResult : ParserClient.PredictionResult;
         try {
             nluResult = await this._nlu.sendUtterance(command.utterance, contextCode, contextEntities, {
-                expect: this.expecting ? String(this.expecting) : undefined,
+                expect: this.expecting ? ValueCategory[this.expecting] : undefined,
                 choices: this._choices,
                 store: this._prefs.get('sabrina-store-log') as string || 'no'
             });

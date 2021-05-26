@@ -793,7 +793,9 @@ function checkAtomFilter(table : Ast.Expression, filter : Ast.AtomBooleanExpress
 
         if (filter.value.isNumber) {
             const value = filter.value.toJS() as number;
-            if (value < min || value > max)
+            if (min >= 0 && min <= 12 && value < min)
+                return false;
+            if (max >= 0 && max <= 12 && value > max)
                 return false;
         }
     }

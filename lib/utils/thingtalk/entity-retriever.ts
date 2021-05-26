@@ -84,6 +84,21 @@ export default class GenieEntityRetriever extends Syntax.EntityRetriever {
         return recursiveHelper(0, 0);
     }
 
+    protected _findNumberFromSentence(entityType : string, number : number, ignoreNotFound : boolean) {
+        const found = super._findNumberFromSentence(entityType, number, ignoreNotFound);
+        if (found)
+            return found;
+
+        if (this._ignoreSentence) {
+            if (ignoreNotFound)
+                return undefined; // check the entities in the bag first
+            else
+                return [String(number)];
+        }
+
+        return undefined;
+    }
+
     protected _findEntityFromSentence(entityType : string, entityString : string, ignoreNotFound : boolean) : string[]|undefined {
         // use the raw tokens, rather than the preprocessed tokens
         // the difference is NUMBER/TIME/etc are shown in numeric form
