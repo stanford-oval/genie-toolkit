@@ -18,6 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as Tp from 'thingpedia';
 
 import Test from './test';
 import ThingEngine from './thingengine';
@@ -27,7 +28,7 @@ import TestTT from './test.tt.json';
 import ThingEngineTT from './thingengine.tt.json';
 import ThingEngineBuiltinTT from './thingengine.builtin.tt.json';
 
-const modules = {
+const modules : Record<string, { class : string, module : Tp.BaseDevice.DeviceClass<Tp.BaseDevice> }> = {
     'org.thingpedia.builtin.test' : {
         class: TestTT,
         module: Test

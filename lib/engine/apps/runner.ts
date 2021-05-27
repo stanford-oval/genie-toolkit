@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -18,23 +18,27 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import type AppDatabase from './database';
+import type AppExecutor from './app_executor';
 
 export default class AppRunner {
-    constructor(appdb) {
+    private _db : AppDatabase;
+
+    constructor(appdb : AppDatabase) {
         this._db = appdb;
     }
 
-    _startAllApps() {
-        let apps = this._db.getAllApps();
+    private _startAllApps() {
+        const apps = this._db.getAllApps();
         return Promise.all(apps.map(this._startOneApp, this));
     }
 
-    _stopAllApps() {
-        let apps = this._db.getAllApps();
+    private _stopAllApps() {
+        const apps = this._db.getAllApps();
         return Promise.all(apps.map(this._stopOneApp, this));
     }
 
-    _startOneApp(a) {
+    private _startOneApp(a : AppExecutor) {
         if (!a.isEnabled) {
             console.log('App ' + a.uniqueId  + ' is not enabled');
             return Promise.resolve();
@@ -54,7 +58,7 @@ export default class AppRunner {
         });
     }
 
-    _stopOneApp(a) {
+    private _stopOneApp(a : AppExecutor) {
         if (!a.isRunning)
             return Promise.resolve();
         console.log('Stopping app ' + a.uniqueId);
@@ -72,7 +76,7 @@ export default class AppRunner {
         });
     }
 
-    _onAppChanged(a) {
+    private _onAppChanged(a : AppExecutor) {
         if (a.isRunning && !a.isEnabled)
             this._stopOneApp(a);
         else if (a.isEnabled && !a.isRunning)

@@ -19,7 +19,7 @@ make experiment=multidomain subdatasets=1 max_turns=3 target_pruning_size=10 dat
 
 # train a model (for a few iterations)
 make experiment=multidomain model=small train_iterations=4 train_save_every=2 \
-  train_log_every=2 custom_train_nlu_flags="--train_batch_tokens 100 --val_batch_size 100" \
+  train_log_every=2 custom_train_nlu_flags="--train_batch_tokens 100 --val_batch_size 500" \
   train_pretrained_model=sshleifer/bart-tiny-random train-user
 
 # get some sample data to test with

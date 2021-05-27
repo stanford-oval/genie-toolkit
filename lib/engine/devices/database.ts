@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -18,12 +18,14 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 import * as uuid from 'uuid';
-
 import * as Tp from 'thingpedia';
-const ObjectSet = Tp.ObjectSet;
+import { ObjectSet } from 'thingpedia';
+import { SchemaRetriever } from 'thingtalk';
+
+import { AbstractDatabase } from '../db';
 import SyncDatabase from '../db/syncdb';
+import SyncManager from '../sync/manager';
 
 // check for updates of all devices every 3 hours
 // this is to catch bug fixes quickly
@@ -33,20 +35,39 @@ const UPDATE_FREQUENCY = 3 * 3600 * 1000;
 /**
  * The collection of all configured Thingpedia devices.
  */
-export default class DeviceDatabase extends ObjectSet.Base {
+export default class DeviceDatabase extends ObjectSet.Base<Tp.BaseDevice> {
+    private _factory : Tp.DeviceFactory;
+    private schemas : SchemaRetriever;
+    private _devices : Map<string, Tp.BaseDevice>;
+    private _byDescriptor : Map<string, Tp.BaseDevice>;
+    private _syncManager : SyncManager;
+    private _syncdb : SyncDatabase<"device">;
+
+    private _subdeviceAddedListener : (device : Tp.BaseDevice) => void;
+    private _subdeviceRemovedListener : (device : Tp.BaseDevice) => void;
+    private _objectAddedHandler : (uniqueId : string, row : any) => void;
+    private _objectDeletedHandler : (uniqueId : string) => void;
+
+    private _isUpdatingState : boolean;
+    private _updateTimer : NodeJS.Timeout|null;
+
     /**
      * Construct the device database for this engine.
      *
      * There is only one device database instance per engine,
      * and it is accessible as {@link Engine#devices}.
      *
-     * @param {external:thingpedia.BasePlatform} - the platform associated with the engine
-     * @param {TierManager} - the tier manager to use for device synchronization
-     * @param {external:thingpedia.DeviceFactory} - the factory to load and construct Thingpedia devices
-     * @param {external:thingtalk.SchemaRetriever} - the schema retriever to typecheck ThingTalk code
-     * @package
+     * @param platform - the platform associated with the engine
+     * @param syncManager - the tier manager to use for device synchronization
+     * @param factory - the factory to load and construct Thingpedia devices
+     * @param schemas - the schema retriever to typecheck ThingTalk code
+     * @internal
      */
-     constructor(platform, tierManager, factory, schemas) {
+     constructor(platform : Tp.BasePlatform,
+                 db : AbstractDatabase,
+                 syncManager : SyncManager,
+                 factory : Tp.DeviceFactory,
+                 schemas : SchemaRetriever) {
         super();
         this.setMaxListeners(0);
 
@@ -55,24 +76,27 @@ export default class DeviceDatabase extends ObjectSet.Base {
         this.schemas = schemas;
 
         this._devices = new Map;
-        this._byDescriptor = {};
+        this._byDescriptor = new Map;
 
-        this._tierManager = tierManager;
-        this._syncdb = new SyncDatabase(platform, 'device', ['state'], tierManager);
+        this._syncManager = syncManager;
+        this._syncdb = new SyncDatabase(platform, db, 'device', syncManager);
 
         this._subdeviceAddedListener = this._notifySubdeviceAdded.bind(this);
         this._subdeviceRemovedListener = this._notifySubdeviceRemoved.bind(this);
+        this._objectAddedHandler = this._onObjectAdded.bind(this);
+        this._objectDeletedHandler = this._onObjectDeleted.bind(this);
 
         this._isUpdatingState = false;
 
         this._updateTimer = null;
     }
 
-    async loadOneDevice(serializedDevice, addToDB) {
+    async loadOneDevice(serializedDevice : Tp.BaseDevice.DeviceState & { uniqueId ?: string },
+                        addToDB : boolean) {
         if (addToDB)
             console.log('loadOneDevice(..., true) is deprecated; from inside a BaseDevice, return the instance directly; from a platform layer, use addDevice');
 
-        const uniqueId = serializedDevice.uniqueId;
+        const uniqueId = serializedDevice.uniqueId!;
         delete serializedDevice.uniqueId;
         try {
             const device = await this._factory.loadSerialized(serializedDevice.kind, serializedDevice);
@@ -89,15 +113,12 @@ export default class DeviceDatabase extends ObjectSet.Base {
     }
 
     async start() {
-        this._objectAddedHandler = this._onObjectAdded.bind(this);
-        this._objectDeletedHandler = this._onObjectDeleted.bind(this);
-
         this._syncdb.on('object-added', this._objectAddedHandler);
         this._syncdb.on('object-deleted', this._objectDeletedHandler);
         this._syncdb.open();
         const rows = await this._syncdb.getAll();
 
-        await Promise.all(rows.map(async (row) => {
+        await Promise.all(rows.map(async (row : any) => {
             try {
                 const serializedDevice = JSON.parse(row.state);
                 serializedDevice.uniqueId = row.uniqueId;
@@ -110,11 +131,11 @@ export default class DeviceDatabase extends ObjectSet.Base {
         this._updateTimer = setInterval(() => this._updateAll(), UPDATE_FREQUENCY);
     }
 
-    _onObjectAdded(uniqueId, row) {
+    private _onObjectAdded(uniqueId : string, row : any) {
         const serializedDevice = JSON.parse(row.state);
-        if (uniqueId in this._devices) {
+        if (this._devices.has(uniqueId)) {
             this._isUpdatingState = true;
-            this._devices[uniqueId].updateState(serializedDevice);
+            this._devices.get(uniqueId)!.updateState(serializedDevice);
             this._isUpdatingState = false;
         } else {
             serializedDevice.uniqueId = uniqueId;
@@ -122,7 +143,7 @@ export default class DeviceDatabase extends ObjectSet.Base {
         }
     }
 
-    _onObjectDeleted(uniqueId) {
+    private _onObjectDeleted(uniqueId : string) {
         const device = this._devices.get(uniqueId);
         if (device !== undefined) {
             this._removeDeviceFromCache(device);
@@ -142,21 +163,23 @@ export default class DeviceDatabase extends ObjectSet.Base {
         return Array.from(this._devices.values());
     }
 
-    _getValuesOfExactKind(kind) {
+    private _getValuesOfExactKind(kind : string) {
         return this.values().filter((d) => d.kind === kind);
     }
 
-    // return all devices, and resolve meta devices into concrete devices
-    // the result of this call might change without an object-added/object-removed
-    // event
-    // use DeviceView to track all the devices that match a selector
-    //
-    // if kind is not undefined, only devices with hasKind(kind) will be returned
-    getAllDevices(kind) {
-        const devices = [];
+    /**
+     * Return all devices, and expand collection devices into concrete devices.
+     *
+     * The result of this call might change without an object-added/object-removed
+     * event. Use DeviceView to track all the devices that match a selector.
+     *
+     * @param kind - if specified, only devices with `hasKind(kind)` will be returned.
+     * */
+    getAllDevices(kind ?: string) {
+        const devices : Tp.BaseDevice[] = [];
 
-        function addContext(ctx) {
-            for (let d of ctx.values()) {
+        function addContext(ctx : Tp.ObjectSet.Base<Tp.BaseDevice>) {
+            for (const d of ctx.values()) {
                 if (kind === undefined || d.hasKind(kind))
                     devices.push(d);
                 try {
@@ -172,15 +195,15 @@ export default class DeviceDatabase extends ObjectSet.Base {
         return devices;
     }
 
-    getAllDevicesOfKind(kind) {
+    getAllDevicesOfKind(kind ?: string) {
         return this.getAllDevices(kind);
     }
 
-    getDeviceByDescriptor(descriptor) {
-        return this._byDescriptor[descriptor];
+    getDeviceByDescriptor(descriptor : string) {
+        return this._byDescriptor.get(descriptor);
     }
 
-    _notifySubdeviceAdded(subdevice) {
+    private _notifySubdeviceAdded(subdevice : Tp.BaseDevice) {
         // emit only device-added, not object-added
         //
         // object-added is used for cloud synchronization,
@@ -200,7 +223,7 @@ export default class DeviceDatabase extends ObjectSet.Base {
             this._startSubdevices(subsubdevices);
     }
 
-    _notifySubdeviceRemoved(subdevice) {
+    private _notifySubdeviceRemoved(subdevice : Tp.BaseDevice) {
         this.emit('device-removed', subdevice);
 
         // recursively check for subdevices
@@ -209,7 +232,7 @@ export default class DeviceDatabase extends ObjectSet.Base {
             this._stopSubdevices(subsubdevices);
     }
 
-    _startSubdevices(subdevices) {
+    private _startSubdevices(subdevices : Tp.ObjectSet.Base<Tp.BaseDevice>) {
         subdevices.on('object-added', this._subdeviceAddedListener);
         subdevices.on('object-removed', this._subdeviceRemovedListener);
 
@@ -217,7 +240,7 @@ export default class DeviceDatabase extends ObjectSet.Base {
             this._notifySubdeviceAdded(subdevice);
     }
 
-    _stopSubdevices(subdevices) {
+    private _stopSubdevices(subdevices : Tp.ObjectSet.Base<Tp.BaseDevice>) {
         subdevices.removeListener('object-added', this._subdeviceAddedListener);
         subdevices.removeListener('object-removed', this._subdeviceRemovedListener);
 
@@ -225,7 +248,7 @@ export default class DeviceDatabase extends ObjectSet.Base {
             this._notifySubdeviceRemoved(subdevice);
     }
 
-    async _notifyDeviceAdded(device) {
+    private async _notifyDeviceAdded(device : Tp.BaseDevice) {
         console.log('Added device ' + device.uniqueId);
 
         // for compat, emit it first
@@ -236,13 +259,13 @@ export default class DeviceDatabase extends ObjectSet.Base {
         if (subdevices !== null)
             this._startSubdevices(subdevices);
 
-        if (device.ownerTier === this._tierManager.ownTier + this._tierManager.ownIdentity ||
+        if (device.ownerTier === this._syncManager.ownTier + this._syncManager.ownIdentity ||
             device.ownerTier === 'global')
             await device.start();
         return device;
     }
 
-    async _notifyDeviceRemoved(device) {
+    private async _notifyDeviceRemoved(device : Tp.BaseDevice) {
         this.emit('device-removed', device);
         this.objectRemoved(device);
 
@@ -250,7 +273,7 @@ export default class DeviceDatabase extends ObjectSet.Base {
         if (subdevices !== null)
             this._stopSubdevices(subdevices);
 
-        if (device.ownerTier === this._tierManager.ownTier + this._tierManager.ownIdentity ||
+        if (device.ownerTier === this._syncManager.ownTier + this._syncManager.ownIdentity ||
             device.ownerTier === 'global') {
             try {
                 await device.stop();
@@ -261,15 +284,15 @@ export default class DeviceDatabase extends ObjectSet.Base {
         }
     }
 
-    async _saveDevice(device) {
+    private async _saveDevice(device : Tp.BaseDevice) {
         if (device.isTransient)
             return;
-        let state = device.serialize();
-        let uniqueId = device.uniqueId;
+        const state = device.serialize();
+        const uniqueId = device.uniqueId!;
         await this._syncdb.insertOne(uniqueId, { state: JSON.stringify(state) });
     }
 
-    async _addDeviceInternal(device, uniqueId, addToDB) {
+    private async _addDeviceInternal(device : Tp.BaseDevice, uniqueId : string|undefined, addToDB : boolean) {
         if (device.uniqueId === undefined) {
             if (uniqueId === undefined)
                 device.uniqueId = device.kind + '-' + uuid.v4();
@@ -282,7 +305,7 @@ export default class DeviceDatabase extends ObjectSet.Base {
         }
 
         if (this._devices.has(device.uniqueId)) {
-            const existing = this._devices.get(device.uniqueId);
+            const existing = this._devices.get(device.uniqueId)!;
 
             this._isUpdatingState = true;
             existing.updateState(device.serialize());
@@ -299,16 +322,16 @@ export default class DeviceDatabase extends ObjectSet.Base {
         });
 
         this._devices.set(device.uniqueId, device);
-        device.descriptors.forEach(function(descriptor) {
-            this._byDescriptor[descriptor] = device;
-        }, this);
+        device.descriptors.forEach((descriptor) => {
+            this._byDescriptor.set(descriptor, device);
+        });
         if (addToDB)
             await this._saveDevice(device);
 
         return this._notifyDeviceAdded(device);
     }
 
-    async addDevice(device) {
+    async addDevice(device : Tp.BaseDevice) {
         // Check if the device was already added, if so, do nothing
         // This is compatibility code to handle both the old and the new way to configure devices:
         // the old way required each device to add themselves to the database,
@@ -320,57 +343,59 @@ export default class DeviceDatabase extends ObjectSet.Base {
         await this._addDeviceInternal(device, undefined, true);
     }
 
-    async addSerialized(state) {
+    async addSerialized(state : Tp.BaseDevice.DeviceState) {
         const instance = await this._factory.loadSerialized(state.kind, state);
         await this.addDevice(instance);
         return instance;
     }
-    addFromOAuth(kind) {
+    addFromOAuth(kind : string) {
         return this._factory.loadFromOAuth(kind);
     }
-    async completeOAuth(kind, url, session) {
+    async completeOAuth(kind : string, url : string, session : Record<string, string>) {
         const instance = await this._factory.completeOAuth(kind, url, session);
+        if (!instance)
+            return null;
         await this.addDevice(instance);
         return instance;
     }
-    addFromDiscovery(kind, publicData, privateData) {
+    addFromDiscovery(kind : string, publicData : Record<string, unknown>, privateData : Record<string, unknown>) {
         return this._factory.loadFromDiscovery(kind, publicData, privateData);
     }
-    async completeDiscovery(instance, delegate) {
+    async completeDiscovery(instance : Tp.BaseDevice, delegate : Tp.ConfigDelegate) {
         await instance.completeDiscovery(delegate);
         await this.addDevice(instance);
         return instance;
     }
-    async addInteractively(kind, delegate) {
+    async addInteractively(kind : string, delegate : Tp.ConfigDelegate) {
         const instance = await this._factory.loadInteractively(kind, delegate);
         await this.addDevice(instance);
         return instance;
     }
 
-    _removeDeviceFromCache(device) {
-        this._devices.delete(device.uniqueId);
+    private _removeDeviceFromCache(device : Tp.BaseDevice) {
+        this._devices.delete(device.uniqueId!);
         device.descriptors.forEach((descriptor) => {
-            delete this._byDescriptor[descriptor];
+            this._byDescriptor.delete(descriptor);
         });
     }
 
-    async removeDevice(device) {
+    async removeDevice(device : Tp.BaseDevice) {
         this._removeDeviceFromCache(device);
         if (!device.isTransient)
-            await this._syncdb.deleteOne(device.uniqueId);
+            await this._syncdb.deleteOne(device.uniqueId!);
 
         return this._notifyDeviceRemoved(device);
     }
 
-    hasDevice(uniqueId) {
+    hasDevice(uniqueId : string) {
         return this._devices.has(uniqueId);
     }
 
-    getDevice(uniqueId) {
+    getDevice(uniqueId : string) {
         return this._devices.get(uniqueId);
     }
 
-    async reloadDevice(device) {
+    async reloadDevice(device : Tp.BaseDevice) {
         const state = device.serialize();
 
         await this._removeDeviceFromCache(device);
@@ -383,14 +408,14 @@ export default class DeviceDatabase extends ObjectSet.Base {
         return this._factory.getCachedDeviceClasses();
     }
 
-    async updateDevicesOfKind(kind) {
+    async updateDevicesOfKind(kind : string) {
         this.schemas.removeFromCache(kind);
 
         await this._factory.updateDeviceClass(kind);
         await this._reloadAllDevices(kind);
     }
 
-    async _reloadAllDevices(kind) {
+    private async _reloadAllDevices(kind : string) {
         const devices = this._getValuesOfExactKind(kind);
 
         return Promise.all(devices.map((d) => {
@@ -398,11 +423,11 @@ export default class DeviceDatabase extends ObjectSet.Base {
         }));
     }
 
-    async _updateAll() {
+    private async _updateAll() {
         const kinds = new Map; // from kind to version
 
         for (const dev of this._devices.values())
-            kinds.set(dev.kind, dev.constructor.metadata.version);
+            kinds.set(dev.kind, (dev.constructor as typeof Tp.BaseDevice).metadata.version);
 
         for (const [kind, oldVersion] of kinds) {
             if (kind.startsWith('org.thingpedia.builtin'))

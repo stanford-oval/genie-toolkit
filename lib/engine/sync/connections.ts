@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -18,7 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
+import * as Tp from 'thingpedia';
 import * as events from 'events';
 import WebSocket from 'ws';
 
@@ -27,7 +27,20 @@ import WebSocket from 'ws';
 // or server <-> cloud, from the POV of the server
 // web sockets, client side
 class ClientConnection extends events.EventEmitter {
-    constructor(serverAddress, identity, authToken) {
+    private _serverAddress : string;
+    private _identity : string;
+    private _authToken : string;
+
+    private _closeOk : boolean;
+    private _outgoingBuffer : any[];
+    private _ratelimitTimer : Date|null;
+    private _retryAttempts : number;
+    private _socket : WebSocket|null;
+
+    isClient : boolean;
+    isServer : boolean;
+
+    constructor(serverAddress : string, identity : string, authToken : string) {
         super();
         this._serverAddress = serverAddress;
         this._identity = identity;
@@ -37,12 +50,13 @@ class ClientConnection extends events.EventEmitter {
         this._outgoingBuffer = [];
         this._ratelimitTimer = null;
         this._retryAttempts = 3;
+        this._socket = null;
 
         this.isClient = true;
         this.isServer = false;
     }
 
-    _onConnectionLost() {
+    private _onConnectionLost() {
         if (this._closeOk)
             return;
 
@@ -53,9 +67,9 @@ class ClientConnection extends events.EventEmitter {
         // a failed open (subject to retry limit), otherwise reopen
         // right away
 
-        let now = new Date;
+        const now = new Date;
         let retry;
-        if (now.getTime() - this._ratelimitTimer.getTime() < 60000) {
+        if (now.getTime() - this._ratelimitTimer!.getTime() < 60000) {
             if (this._retryAttempts > 0)
                 retry = true;
             else
@@ -74,7 +88,7 @@ class ClientConnection extends events.EventEmitter {
         }
     }
 
-    _onConnected(socket) {
+    private _onConnected(socket : WebSocket) {
         this._socket = socket;
 
         // setup keep-alives
@@ -101,7 +115,7 @@ class ClientConnection extends events.EventEmitter {
 
             this._onConnectionLost();
         });
-        this._socket.on('message', (data) => {
+        this._socket.on('message', (data : string) => {
             if (socket !== this._socket)
                 return;
 
@@ -133,41 +147,41 @@ class ClientConnection extends events.EventEmitter {
 
             this.emit('message', msg);
         });
-
-        return Promise.resolve(true);
     }
 
-    open() {
+    async open() : Promise<boolean> {
         this._retryAttempts--;
-        return new Promise((callback, errback) => {
-            let socket = new WebSocket(this._serverAddress);
-            socket.on('open', () => {
-                callback(socket);
+        try {
+            const socket = await new Promise<WebSocket>((callback, errback) => {
+                const socket = new WebSocket(this._serverAddress);
+                socket.on('open', () => {
+                    callback(socket);
+                });
+                socket.on('error', errback);
+                setTimeout(() => {
+                    errback(new Error('Timed out'));
+                }, 10000);
             });
-            socket.on('error', errback);
-            setTimeout(() => {
-                errback(new Error('Timed out'));
-            }, 10000);
-        }).then((socket) => {
-            return this._onConnected(socket);
-        }).catch((error) => {
+            await this._onConnected(socket);
+            return true;
+        } catch(error) {
             if (this._retryAttempts > 0) {
                 return this.open();
             } else {
                 this.emit('failed', this._outgoingBuffer);
                 return false;
             }
-        });
+        }
     }
 
     close() {
-        this._socket.close();
+        this._socket!.close();
         this._closeOk = true;
         this._socket = null;
         return Promise.resolve();
     }
 
-    send(msg) {
+    send(msg : any) {
         if (this._socket) {
             try {
                 if (msg.control === undefined)
@@ -182,9 +196,19 @@ class ClientConnection extends events.EventEmitter {
         }
     }
 
-    sendMany(buffer) {
+    sendMany(buffer : any[]) {
         buffer.forEach((msg) => this.send(msg));
     }
+}
+
+interface ConnectionRecord {
+    socket : WebSocket|null;
+    identity : string|undefined;
+    dataOk : boolean;
+    closeOk : boolean;
+    closeCallback : (() => void)|null;
+    pingTimeout : NodeJS.Timeout|null;
+    outgoingBuffer : any[];
 }
 
 //    phone <-> server, from the POV of a server
@@ -193,7 +217,13 @@ class ClientConnection extends events.EventEmitter {
 // on server: websockets endpoint, plugging in the express frontend
 // on cloud: websockets server on Unix domain socket (proxied from frontend)
 class ServerConnection extends events.EventEmitter {
-    constructor(platform) {
+    private _connections : Record<string, ConnectionRecord>;
+    private _platform : Tp.BasePlatform;
+
+    isClient : boolean;
+    isServer : boolean;
+
+    constructor(platform : Tp.BasePlatform) {
         super();
 
         this._connections = {};
@@ -203,34 +233,35 @@ class ServerConnection extends events.EventEmitter {
         this.isServer = true;
     }
 
-    isConnected(remote) {
+    isConnected(remote : string) {
         return this._connections[remote] !== undefined &&
             this._connections[remote].socket !== null;
     }
 
-    _findConnection(socket) {
-        for (let id in this._connections) {
+    private _findConnection(socket : WebSocket) {
+        for (const id in this._connections) {
             if (this._connections[id].socket === socket)
                 return this._connections[id];
         }
         return undefined;
     }
 
-    _handleConnection(socket) {
-        let connection = {
+    private _handleConnection(socket : WebSocket) {
+        const connection : ConnectionRecord = {
             socket: socket,
+            identity: undefined,
             // wait for authentication
             dataOk: false,
             closeOk: false,
             closeCallback: null,
-            pingTimeout: -1,
+            pingTimeout: null,
             outgoingBuffer: [],
         };
 
         // setup keep-alives
         socket.on('ping', () => socket.pong());
 
-        socket.on('message', (data) => {
+        socket.on('message', (data : string) => {
             let msg;
             try {
                 msg = JSON.parse(data);
@@ -248,12 +279,12 @@ class ServerConnection extends events.EventEmitter {
                 } else {
                     connection.dataOk = true;
 
-                    connection.identity = msg.identity;
-                    let oldConnection = this._connections[connection.identity];
+                    connection.identity = msg.identity as string;
+                    const oldConnection = this._connections[connection.identity];
                     if (oldConnection) {
                         if (oldConnection.socket)
                             oldConnection.socket.terminate();
-                        if (oldConnection.pingTimeout !== -1)
+                        if (oldConnection.pingTimeout !== null)
                             clearInterval(oldConnection.pingTimeout);
                     }
                     this._connections[connection.identity] = connection;
@@ -294,7 +325,7 @@ class ServerConnection extends events.EventEmitter {
             if (connection === undefined)
                 return;
 
-            if (connection.pingTimeout !== -1)
+            if (connection.pingTimeout !== null)
                 clearInterval(connection.pingTimeout);
 
             if (connection.closeOk) {
@@ -312,7 +343,7 @@ class ServerConnection extends events.EventEmitter {
     }
 
     open() {
-        let capability = this._platform.getCapability('websocket-api');
+        const capability = this._platform.getCapability('websocket-api');
         if (capability !== null) {
             capability.on('connection', this._handleConnection.bind(this));
             return Promise.resolve(true);
@@ -325,12 +356,12 @@ class ServerConnection extends events.EventEmitter {
         return Promise.all(Object.keys(this._connections).map((id) => this.closeOne(id)));
     }
 
-    closeOne(identity) {
-        let connection = this._connections[identity];
+    closeOne(identity : string) {
+        const connection = this._connections[identity];
         if (!connection)
             return Promise.resolve();
 
-        return new Promise((callback, errback) => {
+        return new Promise<void>((callback, errback) => {
             if (connection.socket !== null) {
                 connection.socket.send(JSON.stringify({control:'close'}));
                 connection.closeOk = true;
@@ -341,7 +372,7 @@ class ServerConnection extends events.EventEmitter {
                 callback();
             }
             setTimeout(() => {
-                let err = new Error('Timed out');
+                const err : Error & { code ?: string } = new Error('Timed out');
                 err.code = 'ETIMEOUT';
                 errback(err);
             });
@@ -357,8 +388,8 @@ class ServerConnection extends events.EventEmitter {
         });
     }
 
-    _sendTo(msg, to) {
-        let connection = this._connections[to];
+    private _sendTo(msg : any, to : string) {
+        const connection = this._connections[to];
         if (connection === undefined)
             throw new Error('Invalid destination for server message');
 
@@ -371,17 +402,17 @@ class ServerConnection extends events.EventEmitter {
         }
     }
 
-    send(msg, to) {
+    send(msg : any, to ?: string) {
         if (to !== undefined) {
             this._sendTo(msg, to);
             return;
         }
 
-        for (let id in this._connections)
+        for (const id in this._connections)
             this._sendTo(msg, id);
     }
 
-    sendMany(buffer, to) {
+    sendMany(buffer : any[], to ?: string) {
         buffer.forEach((msg) => this.send(msg, to));
     }
 }

@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -18,11 +18,19 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+/**
+ * A reference to an object that automatically disappears after some time.
+ */
+export default class TimedReference<T> {
+    private _cached : T|Promise<T>|null;
+    private _age : number;
+    private _maxAge : number;
+    private _timeout : NodeJS.Timeout|null;
+    private _releasable : boolean;
+    private _autoRelease : boolean;
+    private _releasefn : ((x : T) => Promise<void>)|null;
 
-// A reference to an object that automatically disappears after some time
-
-export default class TimedReference {
-    constructor(maxAge, autoRelease, releasefn) {
+    constructor(maxAge : number, autoRelease : boolean, releasefn ?: (x : T) => Promise<void>) {
         this._cached = null;
         this._age = 0;
         this._timeout = null;
@@ -32,7 +40,7 @@ export default class TimedReference {
         this._releasefn = releasefn || null;
     }
 
-    acquire(ifabsent) {
+    acquire(ifabsent : () => T|Promise<T>) : Promise<T> {
         if (!this._autoRelease)
             this._releasable = false;
         if (this._cached) {
@@ -52,7 +60,7 @@ export default class TimedReference {
         });
     }
 
-    _tryClear() {
+    private _tryClear() {
         if (!this._cached)
             return;
 
@@ -61,7 +69,7 @@ export default class TimedReference {
             if (!this._releasable)
                 return;
 
-            let age = Date.now() - this._age;
+            const age = Date.now() - this._age;
             if (age < this._maxAge - 100) {
                 this._timeout = setTimeout(() => {
                     this._tryClear();

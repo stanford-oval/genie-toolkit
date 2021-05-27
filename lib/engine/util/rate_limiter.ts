@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -22,17 +22,21 @@
 import LinkedList from './linked_list';
 
 export default class RateLimiter {
-    constructor(burst, interval) {
+    private _queue : LinkedList<number>;
+    private _burst : number;
+    private _interval : number;
+
+    constructor(burst : number, interval : number) {
         this._queue = new LinkedList();
         this._burst = burst;
         this._interval = interval;
     }
 
     hit() {
-        let now = Date.now();
+        const now = Date.now();
 
         while (this._queue.size >= this._burst) {
-            let oldest = this._queue.peek();
+            const oldest = this._queue.peek()!;
             if (now - oldest > this._interval)
                 this._queue.pop();
             else

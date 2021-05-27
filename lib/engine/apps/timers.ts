@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -18,15 +18,21 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>, Swee Kiat Lim <sweekiat@stanford.edu>
 
-
+import * as ThingTalk from 'thingtalk';
 import AsyncQueue from 'consumer-queue';
 
-class BaseTimer {
+abstract class BaseTimer {
+    private _stopped : boolean;
+    private _queue : AsyncQueue<IteratorResult<{ __timestamp : number }, void>>;
+    private _timeout : NodeJS.Timeout|null;
+
     constructor() {
         this._stopped = false;
         this._queue = new AsyncQueue();
         this._timeout = null;
     }
+
+    protected abstract _nextTimeout() : number;
 
     next() {
         return this._queue.pop();
@@ -36,20 +42,20 @@ class BaseTimer {
         if (this._stopped)
             return;
         this._stopped = true;
-        this._queue.push({ done: true });
+        this._queue.push({ done: true, value: undefined });
     }
 
     stop() {
         this._stopped = true;
-        clearTimeout(this._timeout);
+        clearTimeout(this._timeout!);
         this._timeout = null;
     }
 
-    _reschedule() {
+    private _reschedule() {
         this._timeout = setTimeout(() => {
             if (this._stopped)
                 return;
-            this._queue.push({ done: false, value: null });
+            this._queue.push({ done: false, value: { __timestamp: Date.now() } });
             this._reschedule();
         }, this._nextTimeout());
     }
@@ -60,7 +66,11 @@ class BaseTimer {
 }
 
 class Timer extends BaseTimer {
-    constructor(base, interval, frequency) {
+    private _base : number;
+    private _interval : number;
+    private _frequency : number;
+
+    constructor(base : number, interval : number, frequency : number) {
         super();
 
         this._base = base;
@@ -72,40 +82,40 @@ class Timer extends BaseTimer {
         return `[Timer ${this._base}, ${this._interval}, ${this._frequency}]`;
     }
 
-    _setTimems(date, timeInms) {
+    private _setTimems(date : number|Date, timeInms : number) {
         // Takes and returns ms representation
         // 0 sets time to 0:00:00
         // 1000 sets time to 0:00:01
         // 43200000 sets time to 12:00:00
-        let dateObj = new Date(date);
-        return dateObj.setHours(null, null, null, timeInms);
+        const dateObj = new Date(date);
+        return dateObj.setHours(0, 0, 0, timeInms);
     }
 
-    _getTimems(date) {
+    private _getTimems(date : number) {
         // Takes and returns ms representation
         // SOME_DATE 0:00:00 returns 0
         // SOME_DATE 0:00:01 returns 1000
         // SOME_DATE 12:00:00 returns 43200000
-        let dateObj = new Date(date);
-        let dateObj0 = new Date(date);
-        return dateObj - this._setTimems(dateObj0, 0);
+        const dateObj = new Date(date);
+        const dateObj0 = new Date(date);
+        return dateObj.getTime() - this._setTimems(dateObj0, 0);
     }
 
-    _setDay(date, day) {
+    private _setDay(date : number, day : number) {
         // Takes and returns ms representation
-        let dateObj = new Date(date);
-        let currentDay = dateObj.getDay();
+        const dateObj = new Date(date);
+        const currentDay = dateObj.getDay();
         return date + (day - currentDay) * 86400000;
     }
 
-    _splitDay(frequency) {
+    private _splitDay(frequency : number) {
         // Takes frequency (per day) and returns reasonable timings
 
         const REASONABLE_START_TIME = 32400000; // 9AM
         const REASONABLE_INTERVAL = 43200000; // 12h
         const TIME_12PM = 43200000;
 
-        let timings = [];
+        const timings = [];
         if (frequency === null || frequency === 1) {
             // If it's just once a day, set timing as 12pm
             timings.push(TIME_12PM);
@@ -117,17 +127,17 @@ class Timer extends BaseTimer {
             // Might want to set a limit on frequency?
             // Like if it is more than once per hour
             // then we just do simple divide
-            let interval = REASONABLE_INTERVAL / (frequency - 1);
+            const interval = REASONABLE_INTERVAL / (frequency - 1);
             for (let i = 0; i < frequency; i++)
                 timings.push(Math.round(REASONABLE_START_TIME + i * interval));
         }
         return timings;
     }
 
-    _splitWeek(frequency) {
+    private _splitWeek(frequency : number) {
         // Takes frequency (per week) and returns reasonable days
         // Days of week are 0-indexed, starting from Sunday
-        let base_day = new Date(this._base).getDay();
+        const base_day = new Date(this._base).getDay();
         switch (frequency) {
             case 2:
                 return [base_day, (base_day + 4) % 7];
@@ -146,7 +156,7 @@ class Timer extends BaseTimer {
         }
     }
 
-    _getEarliest(base, timings) {
+    private _getEarliest(base : number, timings : number[]) {
         // Returns earliest valid timing after base
         // e.g. if timings = [9am, 3pm, 9pm] and base = 1st Jan 1pm
         // then next timing should be 1st Jan 3pm
@@ -161,16 +171,16 @@ class Timer extends BaseTimer {
         return this._setTimems(base + 86400000, timings[0]);
     }
 
-    _nextTimeout(_now=null) {
+    protected _nextTimeout(_now : number|null = null) {
         // Should we check for cases where frequency > interval?
         let interval = this._interval;
-        let base = this._base;
-        let now = _now === null ? Date.now() : _now; // used for testing
-        let frequency = this._frequency === null ? 1 : this._frequency;
-        let nextTiming = null;
+        const base = this._base;
+        const now = _now === null ? Date.now() : _now; // used for testing
+        const frequency = this._frequency === null ? 1 : this._frequency;
         const DAY = 86400000;
         const WEEK = 7 * DAY;
 
+        let nextTiming = 0;
         if (frequency === 0) { // End timer because it will never execute
             this.end();
             return 0;
@@ -180,7 +190,7 @@ class Timer extends BaseTimer {
         }
         // Special case if interval is 1 day
         else if (this._interval === DAY) {
-            let timings = this._splitDay(frequency);
+            const timings = this._splitDay(frequency);
             nextTiming = this._getEarliest(Math.max(now, base), timings);
         }
         // Special case if interval is 1 week
@@ -191,8 +201,8 @@ class Timer extends BaseTimer {
                 nextTiming = now + WEEK - ((now - base) % WEEK);
             } else if (frequency < 8) {
                 // Hardcoded cases
-                let days = this._splitWeek(frequency);
-                let baseTime = this._getTimems(base);
+                const days = this._splitWeek(frequency);
+                const baseTime = this._getTimems(base);
                 for (let n = 0; n < days.length; n++) {
                     nextTiming = this._setDay(now, days[n]);
                     nextTiming = this._setTimems(nextTiming, baseTime);
@@ -215,7 +225,7 @@ class Timer extends BaseTimer {
             } else if (frequency <= (this._interval / DAY)) {
                 // In this case, we are calling at most once a day
                 // So just call at consistent time
-                let baseTime = this._getTimems(base);
+                const baseTime = this._getTimems(base);
                 interval /= frequency;
                 nextTiming = Math.round(now + interval - ((now - base) % interval));
                 nextTiming = this._setTimems(nextTiming, baseTime);
@@ -240,7 +250,10 @@ class Timer extends BaseTimer {
 }
 
 class AtTimer extends BaseTimer {
-    constructor(times, expiration_date) {
+    private _times : ThingTalk.Builtin.Time[];
+    private _expiration_date : Date|null|undefined;
+
+    constructor(times : ThingTalk.Builtin.Time[], expiration_date : Date|null|undefined) {
         super();
 
         this._times = times;
@@ -251,10 +264,11 @@ class AtTimer extends BaseTimer {
         return `[AtTimer [${this._times}], ${this._expiration_date}]`;
     }
 
-    _nextTimeout() {
-        let now = new Date;
+    protected _nextTimeout() {
+        const now = new Date;
 
-        if (this._expiration_date !== null && this._expiration_date < now) {
+        if (this._expiration_date !== undefined && this._expiration_date !== null
+            && this._expiration_date < now) {
             console.log('AtTimer to the times ' + this._times + ': has hit expiration date of ' + this._expiration_date);
             this.end();
             return 86400000;
@@ -262,9 +276,9 @@ class AtTimer extends BaseTimer {
 
         let interval = 86400000; // Tomorrow
         for (let i = 0; i < this._times.length; i++) {
-            let target = new Date(now.getFullYear(), now.getMonth(), now.getDate(),
+            const target = new Date(now.getFullYear(), now.getMonth(), now.getDate(),
                 this._times[i].hour, this._times[i].minute, this._times[i].second, 0);
-            let newInterval = target.getTime() - now.getTime();
+            const newInterval = target.getTime() - now.getTime();
             if (newInterval < interval && newInterval >= 0)
                 interval = newInterval;
         }

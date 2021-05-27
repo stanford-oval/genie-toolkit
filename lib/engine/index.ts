@@ -24,9 +24,10 @@ import * as Tp from 'thingpedia';
 
 import * as I18n from '../i18n';
 
+import { AbstractDatabase, createDB } from './db';
 import DeviceDatabase from './devices/database';
-import TierManager from './tiers/tier_manager';
-import PairedEngineManager from './tiers/paired';
+import SyncManager from './sync/manager';
+import PairedEngineManager from './sync/pairing';
 import Builtins from './devices/builtins';
 import AudioController from './audio_controller';
 
@@ -40,7 +41,6 @@ import NotificationFormatter, { FormattedObject } from '../dialogue-agent/notifi
 
 import * as Config from '../config';
 
-import * as sqlite from './db/sqlite';
 
 /**
  * Information about a running ThingTalk program (app).
@@ -182,8 +182,9 @@ interface AppResult {
 export default class AssistantEngine extends Tp.BaseEngine {
     readonly _ : (x : string) => string;
 
+    private _db : AbstractDatabase;
     // should be private, but it is accessed from @org.thingpedia.builtin.thingengine
-    _tiers : TierManager;
+    _sync : SyncManager;
     private _modules : EngineModule[];
     private _langPack : I18n.LanguagePack;
 
@@ -209,14 +210,14 @@ export default class AssistantEngine extends Tp.BaseEngine {
 
         this._langPack = I18n.get(platform.locale);
 
-        this._tiers = new TierManager(platform, options.cloudSyncUrl || Config.THINGENGINE_URL);
+        this._db = createDB(platform);
+        this._sync = new SyncManager(platform, options.cloudSyncUrl || Config.THINGENGINE_URL);
 
         this._modules = [];
 
         const deviceFactory = new Tp.DeviceFactory(this, this._thingpedia, Builtins);
-        this._devices = new DeviceDatabase(platform, this._tiers,
+        this._devices = new DeviceDatabase(platform, this._db, this._sync,
                                            deviceFactory, this._schemas);
-        this._tiers.devices = this._devices;
 
         this._appdb = new AppDatabase(this);
 
@@ -228,9 +229,9 @@ export default class AssistantEngine extends Tp.BaseEngine {
             this._audio = null;
 
         // in loading order
-        this._modules = [this._tiers,
+        this._modules = [this._sync,
                          this._devices,
-                         new PairedEngineManager(platform, this._devices, deviceFactory, this._tiers),
+                         new PairedEngineManager(platform, this._devices, deviceFactory, this._sync),
                          this._appdb];
         if (this._audio)
             this._modules.push(this._audio);
@@ -245,6 +246,10 @@ export default class AssistantEngine extends Tp.BaseEngine {
         return this._langPack;
     }
 
+    get db() {
+        return this._db;
+    }
+
     /**
      * Return a unique identifier associated with this engine.
      *
@@ -254,7 +259,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * that use local communication to distinguish which engine configured them.
      */
     get ownTier() : string {
-        return this._tiers.ownAddress;
+        return this._sync.ownAddress;
     }
 
     /**
@@ -305,12 +310,10 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * This will initialize all modules sequentially in the right
      * order. It must be called before {@link run}.
      */
-    open() : Promise<void> {
-        return sqlite.ensureSchema(this.platform).then(() => {
-            return this._openSequential(this._modules);
-        }).then(() => {
-            console.log('Engine started');
-        });
+    async open() : Promise<void> {
+        await this._db.ensureSchema();
+        await this._openSequential(this._modules);
+        console.log('Engine started');
     }
 
     /**
@@ -380,11 +383,11 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * @param {string} kind - the Thingpedia class ID of the device to configure.
      * @param {string} redirectUri - the OAuth redirect URI that was called at the end of the OAuth flow.
      * @param {Object.<string,string>} session - an object with session information.
-     * @return {external:thingpedia.BaseDevice} the configured device
+     * @return {external:thingpedia.BaseDevice} the configured device, or null if configuration failed
      */
     completeOAuth(kind : string,
                   redirectUri : string,
-                  session : Record<string, string>) : Promise<Tp.BaseDevice> {
+                  session : Record<string, string>) : Promise<Tp.BaseDevice|null> {
         return this._devices.completeOAuth(kind, redirectUri, session);
     }
 
@@ -646,8 +649,8 @@ export default class AssistantEngine extends Tp.BaseEngine {
             return false;
 
         this._platform.getSharedPreferences().set('cloud-id', cloudId);
-        this._tiers.addCloudConfig();
-        await this._tiers.tryConnect('cloud');
+        this._sync.addCloudConfig();
+        await this._sync.tryConnect('cloud');
         return true;
     }
 

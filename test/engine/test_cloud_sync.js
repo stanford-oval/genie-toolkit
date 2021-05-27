@@ -34,24 +34,24 @@ export default async function testCloudSync(engine) {
     const platform = engine.platform;
     const prefs = platform.getSharedPreferences(platform);
 
-    const tierManager = engine._tiers;
+    const syncManager = engine._sync;
 
-    assert.strictEqual(tierManager.ownTier, 'desktop');
-    assert.strictEqual(tierManager.ownIdentity.length, 17);
-    assert(tierManager.ownAddress.startsWith('desktop:'));
+    assert.strictEqual(syncManager.ownTier, 'desktop');
+    assert.strictEqual(syncManager.ownIdentity.length, 17);
+    assert(syncManager.ownAddress.startsWith('desktop:'));
 
-    const self = engine.devices.getDevice('thingengine-own-' + tierManager.ownAddress);
+    const self = engine.devices.getDevice('thingengine-own-' + syncManager.ownAddress);
     assert(self);
 
     assert.strictEqual(self.tier, 'desktop');
-    assert.strictEqual(self.identity, tierManager.ownIdentity);
-    assert.strictEqual(self.address, tierManager.ownAddress);
+    assert.strictEqual(self.identity, syncManager.ownIdentity);
+    assert.strictEqual(self.address, syncManager.ownAddress);
 
     assert.strictEqual(prefs.get('cloud-id'), undefined);
-    assert(!tierManager.isConnected('cloud'));
+    assert(!syncManager.isConnected('cloud'));
 
     engine.setCloudId(TEST_CLOUD_ID, TEST_AUTH_TOKEN);
-    assert(tierManager.isConnected('cloud'));
+    assert(syncManager.isConnected('cloud'));
 
     // wait 10 seconds to sync...
     await delay(10000);
@@ -72,11 +72,11 @@ export default async function testCloudSync(engine) {
     // has been added to the remote list of devices
     // but we can't do that until almond-dev has been updated with this version of the thingengine-core
 
-    assert(tierManager.isConnected('cloud'));
+    assert(syncManager.isConnected('cloud'));
     await engine.devices.removeDevice(cloud);
 
     // sync has been broken
     assert.strictEqual(prefs.get('cloud-id'), undefined);
     await delay(5000);
-    assert(!tierManager.isConnected('cloud'));
+    assert(!syncManager.isConnected('cloud'));
 }
