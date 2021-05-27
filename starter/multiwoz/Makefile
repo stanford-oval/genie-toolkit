@@ -19,7 +19,6 @@ dataset_file ?= $(experiment)/dataset.tt
 synthetic_flags ?= \
 	dialogues \
 	nostream \
-	notablejoin \
 	projection \
 	projection_with_filter \
 	schema_org \
