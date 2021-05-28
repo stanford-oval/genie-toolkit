@@ -96,7 +96,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('--template', {
         required: false,
         nargs: '+',
-        default: ['en/dialogue.genie'],
+        default: ['dialogue.genie'],
         help: 'Path to file(s) containing construct templates, in Genie syntax.'
     });
     parser.add_argument('--set-flag', {

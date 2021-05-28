@@ -23,11 +23,11 @@
 import assert from 'assert';
 import { Ast, } from 'thingtalk';
 
-import * as C from '../../ast_manip';
-import * as D from '../../dialogue_acts';
-import * as S from '../../state_manip';
-import { SlotBag } from '../../slot_bag';
-import ThingpediaLoader from '../../load-thingpedia';
+import * as C from '../ast_manip';
+import * as D from '../dialogue_acts';
+import * as S from '../state_manip';
+import { SlotBag } from '../slot_bag';
+import ThingpediaLoader from '../load-thingpedia';
 
 // a phrase that talks about the result by name
 direct_answer_phrase : D.DirectAnswerPhrase = {

@@ -21,14 +21,14 @@
 import { Ast, } from 'thingtalk';
 
 // import the combinator library
-import * as C from '../ast_manip';
-import ThingpediaLoader from '../load-thingpedia';
+import * as C from './ast_manip';
+import ThingpediaLoader from './load-thingpedia';
 
 // Initialize the Thingpedia loader before doing anything else
 {
 $loader = new ThingpediaLoader($runtime, $ttUtils, $grammar, $locale, $options);
 }
-import '../common.genie';
+import './common.genie';
 {
 await $loader.init();
 }

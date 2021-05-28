@@ -22,8 +22,8 @@
 import assert from 'assert';
 import { Ast, Type } from 'thingtalk';
 
-import * as C from '../ast_manip';
-import ThingpediaLoader from '../load-thingpedia';
+import * as C from './ast_manip';
+import ThingpediaLoader from './load-thingpedia';
 
 table_join_replace_placeholder : Ast.ChainExpression = {}
 action_replace_param_with_table : Ast.ChainExpression = {}

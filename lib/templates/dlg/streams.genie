@@ -22,9 +22,9 @@
 
 import { Ast, } from 'thingtalk';
 
-import * as C from '../../ast_manip';
-import * as S from '../../state_manip';
-import ThingpediaLoader from '../../load-thingpedia';
+import * as C from '../ast_manip';
+import * as S from '../state_manip';
+import ThingpediaLoader from '../load-thingpedia';
 
 notification_preamble : S.ContextInfo = {
     ["notification from ${app}:"] : (ctx : ctx_with_notification, app : ctx_notification_app_name) => ctx,

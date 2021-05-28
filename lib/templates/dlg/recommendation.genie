@@ -29,12 +29,12 @@
 
 import { Ast, } from 'thingtalk';
 
-import * as C from '../../ast_manip';
-import * as D from '../../dialogue_acts';
-import * as S from '../../state_manip';
-import ThingpediaLoader from '../../load-thingpedia';
+import * as C from '../ast_manip';
+import * as D from '../dialogue_acts';
+import * as S from '../state_manip';
+import ThingpediaLoader from '../load-thingpedia';
 
-import { SlotBag } from '../../slot_bag';
+import { SlotBag } from '../slot_bag';
 
 question_system_recommendation_short : D.Recommendation = {
     ["how about ${proposal}"]: (ctx : ctx_with_result_and_action, proposal : constant_name<value = ctx.id0>)

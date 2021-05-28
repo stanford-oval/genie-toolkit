@@ -20,18 +20,19 @@
 
 import assert from 'assert';
 import { Ast, } from 'thingtalk';
-import { SentenceGeneratorTypes } from '../..';
 
-import * as C from '../ast_manip';
-import * as S from '../state_manip';
-import * as D from '../dialogue_acts';
-import ThingpediaLoader from '../load-thingpedia';
+import * as SentenceGeneratorTypes from '../sentence-generator/types';
+
+import * as C from './ast_manip';
+import * as S from './state_manip';
+import * as D from './dialogue_acts';
+import ThingpediaLoader from './load-thingpedia';
 
 // Initialize the Thingpedia loader before doing anything else
 {
 $loader = new ThingpediaLoader($runtime, $ttUtils, $grammar, $locale, $options);
 }
-import '../common.genie';
+import './common.genie';
 {
 await $loader.init();
 }

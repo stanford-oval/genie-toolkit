@@ -6,8 +6,7 @@ prepare: dist
 
 template_sources = \
 	lib/templates/*.genie \
-	lib/templates/*/*.genie \
-	lib/templates/*/*/*.genie
+	lib/templates/*/*.genie
 
 sources = \
 	lib/*.ts \
@@ -27,25 +26,28 @@ sources = \
 languages = en
 
 bundled_templates := \
-	lib/templates/en/basic.genie \
-	lib/templates/en/single-command.genie \
-	lib/templates/en/dialogue.genie
+	lib/templates/basic.genie \
+	lib/templates/single-command.genie \
+	lib/templates/dialogue.genie
 
 built_bundled_templates := $(addsuffix .ts,$(bundled_templates))
 
+generated_early := \
+	lib/sentence-generator/compiler/grammar.js \
+	lib/utils/template-string/grammar.js
+
 generated := \
+	$(generated_early) \
 	$(patsubst %.po,%.mo,$(wildcard po/*.po)) \
 	$(built_bundled_templates) \
 	data/builtins/thingengine.builtin/dataset.tt \
 	lib/engine/db/sqlite/schema.json \
-	lib/sentence-generator/compiler/grammar.js \
-	lib/utils/template-string/grammar.js \
 	lib/engine/devices/builtins/test.tt.json \
 	lib/engine/devices/builtins/thingengine.tt.json \
 	lib/engine/devices/builtins/thingengine.builtin.tt.json \
 	lib/engine/devices/builtins/faq.json
 
-$(built_bundled_templates) : $(template_sources) lib/sentence-generator/compiler/*.ts lib/sentence-generator/compiler/grammar.js
+$(built_bundled_templates) : $(template_sources) lib/sentence-generator/compiler/*.ts $(generated_early)
 	ts-node -T ./lib/sentence-generator/compiler $(patsubst %.genie.ts,%.genie,$@)
 
 dist: $(wildcard $(sources)) $(generated) tsconfig.json

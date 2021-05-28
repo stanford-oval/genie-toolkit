@@ -55,7 +55,7 @@ async function main() {
     const generatorOptions = {
         rng,
         locale: 'en-US',
-        templateFiles: ['en/single-command.genie'],
+        templateFiles: ['single-command.genie'],
         targetLanguage: 'thingtalk',
         thingpediaClient: _tpClient,
         flags: {

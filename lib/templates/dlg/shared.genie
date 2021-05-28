@@ -23,8 +23,8 @@
 
 import { Ast, } from 'thingtalk';
 
-import * as C from '../../ast_manip';
-import ThingpediaLoader from '../../load-thingpedia';
+import * as C from '../ast_manip';
+import ThingpediaLoader from '../load-thingpedia';
 
 counterproposal_preamble : string = {
     ["{i was thinking more of|i would like|i am looking for|do you have|can you find|is there [plural=one]|are there [plural=other]|that does not sound great , do you have}"]: () => '',

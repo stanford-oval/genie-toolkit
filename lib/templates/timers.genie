@@ -19,7 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import { Ast, } from 'thingtalk';
-import ThingpediaLoader from '../load-thingpedia';
+import ThingpediaLoader from './load-thingpedia';
 
 {
 const TIME_MORNING = new Ast.Value.Time(new Ast.Time.Relative("morning"));

@@ -26,8 +26,8 @@
 
 import { Ast, } from 'thingtalk';
 
-import * as C from '../../ast_manip';
-import ThingpediaLoader from '../../load-thingpedia';
+import * as C from '../ast_manip';
+import ThingpediaLoader from '../load-thingpedia';
 
 one_param_slot_fill_question : C.ParamSlot[] = {
     ( p:thingpedia_slot_fill_question '?' [priority=0.1]

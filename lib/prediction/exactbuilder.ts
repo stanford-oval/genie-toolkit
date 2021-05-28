@@ -106,7 +106,7 @@ export default class ExactMatchBuilder {
             rng: this._rng,
             locale: this._locale,
             timezone: this._timezone,
-            templateFiles: ['en/basic.genie'],
+            templateFiles: ['basic.genie'],
             thingpediaClient: this._tpClient,
             schemaRetriever: schemas,
             onlyDevices: forDevices,

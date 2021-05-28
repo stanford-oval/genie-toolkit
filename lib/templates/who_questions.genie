@@ -20,8 +20,8 @@
 
 import { Ast, } from 'thingtalk';
 
-import * as C from '../ast_manip';
-import ThingpediaLoader from '../load-thingpedia';
+import * as C from './ast_manip';
+import ThingpediaLoader from './load-thingpedia';
 
 // an empty string for the table
 who_complete_table : Ast.Expression = {

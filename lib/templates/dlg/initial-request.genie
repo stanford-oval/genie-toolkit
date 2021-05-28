@@ -20,9 +20,9 @@
 
 import { Ast, } from 'thingtalk';
 
-import * as C from '../../ast_manip';
-import * as D from '../../dialogue_acts';
-import ThingpediaLoader from '../../load-thingpedia';
+import * as C from '../ast_manip';
+import * as D from '../dialogue_acts';
+import ThingpediaLoader from '../load-thingpedia';
 
 initial_command : Ast.Expression = {
     // now => say

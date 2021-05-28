@@ -32,8 +32,6 @@ import { EntityMap } from '../utils/entity-utils';
 const MAX_DEPTH = 8;
 const TARGET_PRUNING_SIZES = [15, 50, 100, 200];
 
-const TEMPLATE_FILE_PATH = require.resolve('../templates/en/dialogue.genie');
-
 function arrayEqual<T>(a : T[], b : T[]) : boolean {
     if (a.length !== b.length)
         return false;
@@ -137,7 +135,7 @@ export default class DialoguePolicy {
             rng: this._rng,
             locale: this._locale,
             timezone: this._timezone,
-            templateFiles: [TEMPLATE_FILE_PATH],
+            templateFiles: ['dialogue.genie'],
             thingpediaClient: this._thingpedia,
             schemaRetriever: this._schemas,
             entityAllocator: this._entityAllocator,

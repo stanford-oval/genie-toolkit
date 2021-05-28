@@ -190,11 +190,11 @@ async function doTestDialogue(filename, onlyDevices = null) {
 }
 
 async function main() {
-    await doTestBasic('en/basic.genie');
-    await doTestBasic('en/single-command.genie');
-    await doTestDialogue('en/dialogue.genie');
+    await doTestBasic('basic.genie');
+    await doTestBasic('single-command.genie');
+    await doTestDialogue('dialogue.genie');
     // run again with just yelp weather and spotify, as way to check certain paths that don't come up otherwise
-    await doTestDialogue('en/dialogue.genie',
+    await doTestDialogue('dialogue.genie',
     ['com.yelp', 'org.thingpedia.weather', 'com.spotify2']);
 }
 export default main;
