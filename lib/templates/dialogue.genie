@@ -30,7 +30,7 @@ import ThingpediaLoader from './load-thingpedia';
 
 // Initialize the Thingpedia loader before doing anything else
 {
-$loader = new ThingpediaLoader($runtime, $ttUtils, $grammar, $locale, $options);
+$loader = new ThingpediaLoader($grammar, $locale, $options);
 }
 import './common.genie';
 {

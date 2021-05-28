@@ -32,7 +32,11 @@ import {
 import * as Units from 'thingtalk-units';
 import type * as Tp from 'thingpedia';
 
-import type * as Genie from '..';
+import * as SentenceGeneratorRuntime from '../sentence-generator/runtime';
+import { DerivationKey, GrammarOptions, RuleAttributes } from '../sentence-generator/types';
+import SentenceGenerator from '../sentence-generator/generator';
+import * as ThingTalkUtils from '../utils/thingtalk';
+import * as I18n from '../i18n';
 
 import {
     ParamSlot,
@@ -86,13 +90,13 @@ interface CanonicalForm {
     default : string;
     projection_pronoun ?: string[];
 
-    base : Genie.SentenceGeneratorRuntime.Phrase[];
-    base_projection : Genie.SentenceGeneratorRuntime.Phrase[];
-    argmin : Genie.SentenceGeneratorRuntime.Phrase[];
-    argmax : Genie.SentenceGeneratorRuntime.Phrase[];
-    filter : Genie.SentenceGeneratorRuntime.Concatenation[];
-    enum_filter : Record<string, Genie.SentenceGeneratorRuntime.Phrase[]>;
-    projection : Genie.SentenceGeneratorRuntime.Phrase[];
+    base : SentenceGeneratorRuntime.Phrase[];
+    base_projection : SentenceGeneratorRuntime.Phrase[];
+    argmin : SentenceGeneratorRuntime.Phrase[];
+    argmax : SentenceGeneratorRuntime.Phrase[];
+    filter : SentenceGeneratorRuntime.Concatenation[];
+    enum_filter : Record<string, SentenceGeneratorRuntime.Phrase[]>;
+    projection : SentenceGeneratorRuntime.Phrase[];
 }
 
 // FIXME this info needs to be in Thingpedia
@@ -104,7 +108,7 @@ type PrimitiveTemplateType = 'action'|'action_past'|'query'|'get_command'|'strea
 
 export interface ParsedPlaceholderPhrase {
     names : string[];
-    replaceable : Genie.SentenceGeneratorRuntime.Replaceable;
+    replaceable : SentenceGeneratorRuntime.Replaceable;
 }
 
 interface NormalizedResultPhraseList {
@@ -114,14 +118,12 @@ interface NormalizedResultPhraseList {
 }
 
 export default class ThingpediaLoader {
-    private _runtime : typeof Genie.SentenceGeneratorRuntime;
-    private _ttUtils : typeof Genie.ThingTalkUtils;
-    private _grammar : Genie.SentenceGenerator<any, Ast.Input>;
+    private _grammar : SentenceGenerator<any, Ast.Input>;
     private _schemas : SchemaRetriever;
     private _tpClient : Tp.BaseClient;
-    private _langPack : Genie.I18n.LanguagePack;
-    private _options : Genie.SentenceGeneratorTypes.GrammarOptions;
-    private _describer : Genie.ThingTalkUtils.Describer;
+    private _langPack : I18n.LanguagePack;
+    private _options : GrammarOptions;
+    private _describer : ThingTalkUtils.Describer;
 
     private _entities : Record<string, ExtendedEntityRecord>
     // cached annotations extracted from Thingpedia, for use at inference time
@@ -151,22 +153,18 @@ export default class ThingpediaLoader {
     entitySubTypeMap : Record<string, string>;
     private _subEntityMap : Map<string, string[]>;
 
-    constructor(runtime : typeof Genie.SentenceGeneratorRuntime,
-                ttUtils : typeof Genie.ThingTalkUtils,
-                grammar : Genie.SentenceGenerator<any, Ast.Input>,
-                langPack : Genie.I18n.LanguagePack,
-                options : Genie.SentenceGeneratorTypes.GrammarOptions) {
-        this._runtime = runtime;
-        this._ttUtils = ttUtils;
+    constructor(grammar : SentenceGenerator<any, Ast.Input>,
+                langPack : I18n.LanguagePack,
+                options : GrammarOptions) {
         this._grammar = grammar;
         this._langPack = langPack;
-        this._describer = new ttUtils.Describer(langPack.locale,
+        this._describer = new ThingTalkUtils.Describer(langPack.locale,
             options.timezone, options.entityAllocator, options.forSide);
 
         this._tpClient = options.thingpediaClient;
         if (!options.schemaRetriever) {
             options.schemaRetriever = new SchemaRetriever(this._tpClient, null,
-                options.debug < this._runtime.LogLevel.DUMP_TEMPLATES);
+                options.debug < SentenceGeneratorRuntime.LogLevel.DUMP_TEMPLATES);
         }
         this._schemas = options.schemaRetriever!;
 
@@ -217,14 +215,6 @@ export default class ThingpediaLoader {
         await this._loadMetadata();
     }
 
-    get runtime() {
-        return this._runtime;
-    }
-
-    get ttUtils() {
-        return this._ttUtils;
-    }
-
     get locale() {
         return this._langPack.locale;
     }
@@ -251,11 +241,11 @@ export default class ThingpediaLoader {
     }
 
     private _addRule<ArgTypes extends unknown[], ResultType>(nonTerm : string,
-                                                             nonTerminals : Genie.SentenceGeneratorRuntime.NonTerminal[],
-                                                             sentenceTemplate : string|Genie.SentenceGeneratorRuntime.Replaceable,
+                                                             nonTerminals : SentenceGeneratorRuntime.NonTerminal[],
+                                                             sentenceTemplate : string|SentenceGeneratorRuntime.Replaceable,
                                                              semanticAction : (...args : ArgTypes) => ResultType|null,
-                                                             keyFunction : (value : ResultType) => Genie.SentenceGeneratorTypes.DerivationKey,
-                                                             attributes : Genie.SentenceGeneratorTypes.RuleAttributes = {}) {
+                                                             keyFunction : (value : ResultType) => DerivationKey,
+                                                             attributes : RuleAttributes = {}) {
         this._grammar.addRule(nonTerm, nonTerminals, sentenceTemplate, semanticAction, keyFunction, attributes);
     }
 
@@ -304,7 +294,7 @@ export default class ThingpediaLoader {
                 for (const entry of type.entries!) {
                     const value = new Ast.Value.Enum(entry);
                     value.getType = function() { return type; };
-                    this._addRule('constant_' + typestr, [], this._ttUtils.clean(entry),
+                    this._addRule('constant_' + typestr, [], ThingTalkUtils.clean(entry),
                         () => value, keyfns.valueKeyFn);
                 }
             }
@@ -330,14 +320,14 @@ export default class ThingpediaLoader {
         // mustBeTrueConstant indicates that we really need just a constant literal
         // as oppposed to some relative constant like "today" or "here"
         if (mustBeTrueConstant)
-            return new this._runtime.NonTerminal('constant_' + typestr, name, ['is_constant', true]);
+            return new SentenceGeneratorRuntime.NonTerminal('constant_' + typestr, name, ['is_constant', true]);
         else if (strictTypeCheck && typestr === 'Any')
-            return new this._runtime.NonTerminal('constant_' + typestr, name, ['type', type]);
+            return new SentenceGeneratorRuntime.NonTerminal('constant_' + typestr, name, ['type', type]);
         else
-            return new this._runtime.NonTerminal('constant_' + typestr, name);
+            return new SentenceGeneratorRuntime.NonTerminal('constant_' + typestr, name);
     }
 
-    private _collectByPOS<T extends Genie.SentenceGeneratorRuntime.Phrase|Genie.SentenceGeneratorRuntime.Concatenation>(phrases : T[]) : Record<string, T[]> {
+    private _collectByPOS<T extends SentenceGeneratorRuntime.Phrase|SentenceGeneratorRuntime.Concatenation>(phrases : T[]) : Record<string, T[]> {
         const pos : Record<string, T[]> = {};
 
         for (const phrase of phrases) {
@@ -354,7 +344,7 @@ export default class ThingpediaLoader {
         return pos;
     }
 
-    private _getRuleAttributes(canonical : CanonicalForm, cat : string) : Genie.SentenceGeneratorTypes.RuleAttributes {
+    private _getRuleAttributes(canonical : CanonicalForm, cat : string) : RuleAttributes {
         const attributes = { priority: ANNOTATION_PRIORITY[cat] };
         assert(Number.isFinite(attributes.priority), cat);
         if (cat === canonical.default ||
@@ -402,9 +392,9 @@ export default class ThingpediaLoader {
             }
         }*/
 
-        const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || this._ttUtils.clean(arg.name), this._options.forSide);
+        const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || ThingTalkUtils.clean(arg.name), this._options.forSide);
 
-        const corefconst = new this._runtime.NonTerminal('coref_constant', 'value');
+        const corefconst = new SentenceGeneratorRuntime.NonTerminal('coref_constant', 'value');
         const constant = this._getConstantNT(ptype, 'value');
 
         for (const form of canonical.base)
@@ -440,7 +430,7 @@ export default class ThingpediaLoader {
         if (!this._recordType(ptype))
             return;
 
-        const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || this._ttUtils.clean(pname), this._options.forSide);
+        const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || ThingTalkUtils.clean(pname), this._options.forSide);
 
         for (const form of canonical.base)
             this._addOutParam(pslot, String(form));
@@ -510,7 +500,7 @@ export default class ThingpediaLoader {
                 this._addRule('out_param_ArrayCount', [], form, () => pslot, keyfns.paramKeyFn);
         }
 
-        const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || this._ttUtils.clean(pname), this._options.forSide);
+        const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || ThingTalkUtils.clean(pname), this._options.forSide);
 
         const vtype = ptype;
         let op = '==';
@@ -560,10 +550,10 @@ export default class ThingpediaLoader {
         this._addOutParam(pslot, baseforms.trim());
 
         const constant = this._getConstantNT(vtype, 'value');
-        const corefconst = new this._runtime.NonTerminal('coref_constant', 'value');
-        const both_prefix = new this._runtime.NonTerminal('both_prefix');
-        const constant_pairs = new this._runtime.NonTerminal('constant_pairs', 'values');
-        const constant_date_range = new this._runtime.NonTerminal('constant_date_range', 'value');
+        const corefconst = new SentenceGeneratorRuntime.NonTerminal('coref_constant', 'value');
+        const both_prefix = new SentenceGeneratorRuntime.NonTerminal('both_prefix');
+        const constant_pairs = new SentenceGeneratorRuntime.NonTerminal('constant_pairs', 'values');
+        const constant_date_range = new SentenceGeneratorRuntime.NonTerminal('constant_date_range', 'value');
 
         if (pslot.schema.is_list) {
             for (const enumerand in canonical.enum_filter) {
@@ -724,7 +714,7 @@ export default class ThingpediaLoader {
         if (!ex.preprocessed || ex.preprocessed.length === 0) {
             // preprocess here...
             const tokenizer = this._langPack.getTokenizer();
-            ex.preprocessed = ex.utterances.map((utterance : string) => this._ttUtils.tokenizeExample(tokenizer, utterance, ex.id));
+            ex.preprocessed = ex.utterances.map((utterance : string) => ThingTalkUtils.tokenizeExample(tokenizer, utterance, ex.id));
         }
 
         for (let preprocessed of ex.preprocessed) {
@@ -735,7 +725,7 @@ export default class ThingpediaLoader {
                 grammarCat = 'get_command';
             }
 
-            if (this._options.debug >= this._runtime.LogLevel.INFO && preprocessed[0].startsWith(','))
+            if (this._options.debug >= SentenceGeneratorRuntime.LogLevel.INFO && preprocessed[0].startsWith(','))
                 console.log(`WARNING: template ${ex.id} starts with , but is not a query`);
 
             if (this._options.forSide === 'agent')
@@ -757,13 +747,13 @@ export default class ThingpediaLoader {
                                   preprocessed : string,
                                   example : Ast.Example) {
         // compute the names used in the primitive template for each non-terminal
-        const nonTerminals : Genie.SentenceGeneratorRuntime.NonTerminal[] = [];
+        const nonTerminals : SentenceGeneratorRuntime.NonTerminal[] = [];
         const names : string[] = [];
         const options : string[] = [];
 
-        const parsed : Genie.SentenceGeneratorRuntime.Replaceable = this._runtime.Replaceable.parse(preprocessed);
+        const parsed : SentenceGeneratorRuntime.Replaceable = SentenceGeneratorRuntime.Replaceable.parse(preprocessed);
         parsed.visit((elem) => {
-            if (elem instanceof this._runtime.Placeholder) {
+            if (elem instanceof SentenceGeneratorRuntime.Placeholder) {
                 const param = elem.param;
                 if (names.includes(param))
                     return true;
@@ -776,7 +766,7 @@ export default class ThingpediaLoader {
                 const canUseUndefined = grammarCat !== 'action_past' && elem.option !== 'no-undefined' &&
                     elem.option !== 'const' && !type.isEnum && !type.isBoolean;
 
-                const nonTerm = canUseUndefined ? new this._runtime.NonTerminal('constant_or_undefined', param, ['type', type])
+                const nonTerm = canUseUndefined ? new SentenceGeneratorRuntime.NonTerminal('constant_or_undefined', param, ['type', type])
                     : this._getConstantNT(type, param, { strictTypeCheck: true });
                 nonTerminals.push(nonTerm);
                 names.push(param);
@@ -804,8 +794,8 @@ export default class ThingpediaLoader {
      * coreference.
      */
     private _addCoreferencePrimitiveTemplate(grammarCat : 'stream'|'action'|'query'|'get_command',
-                                             expansion : Genie.SentenceGeneratorRuntime.Replaceable,
-                                             nonTerminals : Genie.SentenceGeneratorRuntime.NonTerminal[],
+                                             expansion : SentenceGeneratorRuntime.Replaceable,
+                                             nonTerminals : SentenceGeneratorRuntime.NonTerminal[],
                                              names : string[],
                                              options : string[],
                                              example : Ast.Example) {
@@ -837,11 +827,11 @@ export default class ThingpediaLoader {
 
                     let fromNonTerm;
                     if (fromNonTermName === 'out_param_Any')
-                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, tableParam, ['type', intoType]);
+                        fromNonTerm = new SentenceGeneratorRuntime.NonTerminal(fromNonTermName, tableParam, ['type', intoType]);
                     else if (fromNonTermName === 'the_base_table')
-                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, tableParam, ['idType', intoType]);
+                        fromNonTerm = new SentenceGeneratorRuntime.NonTerminal(fromNonTermName, tableParam, ['idType', intoType]);
                     else
-                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, tableParam);
+                        fromNonTerm = new SentenceGeneratorRuntime.NonTerminal(fromNonTermName, tableParam);
 
                     const clone = nonTerminals.slice();
                     clone[paramIdx] = fromNonTerm;
@@ -881,8 +871,8 @@ export default class ThingpediaLoader {
      * or undefined.
      */
     private _addPlaceholderReplacementJoinPrimitiveTemplate(grammarCat : 'action'|'query'|'get_command'|'action_past',
-                                                            expansion : Genie.SentenceGeneratorRuntime.Replaceable,
-                                                            nonTerminals : Genie.SentenceGeneratorRuntime.NonTerminal[],
+                                                            expansion : SentenceGeneratorRuntime.Replaceable,
+                                                            nonTerminals : SentenceGeneratorRuntime.NonTerminal[],
                                                             names : string[],
                                                             options : string[],
                                                             example : Ast.Example) {
@@ -927,11 +917,11 @@ export default class ThingpediaLoader {
                 for (const fromType of fromTypes) {
                     let fromNonTerm;
                     if (fromNonTermName === 'ctx_current_query')
-                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, tableParam);
+                        fromNonTerm = new SentenceGeneratorRuntime.NonTerminal(fromNonTermName, tableParam);
                     else if (fromNonTermName === 'projection_Any' || fromNonTermName === 'stream_projection_Any')
-                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, tableParam, ['projectionType', fromType]);
+                        fromNonTerm = new SentenceGeneratorRuntime.NonTerminal(fromNonTermName, tableParam, ['projectionType', fromType]);
                     else
-                        fromNonTerm = new this._runtime.NonTerminal(fromNonTermName, tableParam, ['implicitParamPassingType', fromType]);
+                        fromNonTerm = new SentenceGeneratorRuntime.NonTerminal(fromNonTermName, tableParam, ['implicitParamPassingType', fromType]);
 
                     const clone = nonTerminals.slice();
                     clone[paramIdx] = fromNonTerm;
@@ -959,8 +949,8 @@ export default class ThingpediaLoader {
      * only constants and undefined.
      */
     private _addConstantOrUndefinedPrimitiveTemplate(grammarCat : PrimitiveTemplateType,
-                                                     expansion : Genie.SentenceGeneratorRuntime.Replaceable,
-                                                     nonTerminals : Genie.SentenceGeneratorRuntime.NonTerminal[],
+                                                     expansion : SentenceGeneratorRuntime.Replaceable,
+                                                     nonTerminals : SentenceGeneratorRuntime.NonTerminal[],
                                                      names : string[],
                                                      example : Ast.Example) {
         const attributes = { priority: this._getPrimitiveTemplatePriority(example) };
@@ -975,7 +965,7 @@ export default class ThingpediaLoader {
 
         const canonical : string[] = a.canonical ?
             (Array.isArray(a.canonical) ? a.canonical : [a.canonical]) :
-            [this._ttUtils.clean(a.name)];
+            [ThingTalkUtils.clean(a.name)];
 
         const action = new Ast.InvocationExpression(null, invocation, a);
         await this._loadTemplate(new Ast.Example(
@@ -995,7 +985,7 @@ export default class ThingpediaLoader {
         const invocation = new Ast.Invocation(null, device, q.name, [], q);
 
         const canonical = this._langPack.preprocessFunctionCanonical(q.nl_annotations.canonical
-            || this._ttUtils.clean(q.name), 'query', this._options.forSide, q.is_list);
+            || ThingTalkUtils.clean(q.name), 'query', this._options.forSide, q.is_list);
 
         const table = new Ast.InvocationExpression(null, invocation, q);
 
@@ -1197,9 +1187,9 @@ export default class ThingpediaLoader {
             const names : string[] = [];
 
             try {
-                const parsed : Genie.SentenceGeneratorRuntime.Replaceable = this._runtime.Replaceable.parse(strings[i]);
+                const parsed : SentenceGeneratorRuntime.Replaceable = SentenceGeneratorRuntime.Replaceable.parse(strings[i]);
                 parsed.visit((elem) => {
-                    if (elem instanceof this._runtime.Placeholder) {
+                    if (elem instanceof SentenceGeneratorRuntime.Placeholder) {
                         const param = elem.param;
                         if (names.includes(param))
                             return true;
@@ -1331,17 +1321,17 @@ export default class ThingpediaLoader {
 
             if (has_ner_support) {
                 if (this.idQueries.has(entityType)) {
-                    if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
+                    if (this._options.debug >= SentenceGeneratorRuntime.LogLevel.DUMP_TEMPLATES)
                         console.log('Loaded entity ' + entityType + ' as id entity');
                 } else {
-                    if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
+                    if (this._options.debug >= SentenceGeneratorRuntime.LogLevel.DUMP_TEMPLATES)
                         console.log('Loaded entity ' + entityType + ' as generic entity');
                 }
 
                 this._grammar.addConstants('constant_' + typestr, 'GENERIC_ENTITY_' + entityType, ttType,
                     keyfns.entityOrNumberValueKeyFn);
             } else {
-                if (this._options.debug >= this._runtime.LogLevel.DUMP_TEMPLATES)
+                if (this._options.debug >= SentenceGeneratorRuntime.LogLevel.DUMP_TEMPLATES)
                     console.log('Loaded entity ' + entityType + ' as non-constant entity');
             }
         }
@@ -1406,7 +1396,7 @@ export default class ThingpediaLoader {
             this._describer.setFullDataset(datasets);
         }
 
-        if (this._options.debug >= this._runtime.LogLevel.INFO) {
+        if (this._options.debug >= SentenceGeneratorRuntime.LogLevel.INFO) {
             const countTemplates = datasets.map((d) => d.examples.length).reduce((a, b) => a+b, 0);
             console.log('Loaded ' + devices.length + ' devices');
             console.log('Loaded ' + countTemplates + ' templates');

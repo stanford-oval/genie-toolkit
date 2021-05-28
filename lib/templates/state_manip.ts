@@ -23,8 +23,10 @@ import assert from 'assert';
 import * as ThingTalk from 'thingtalk';
 import { Ast, Type } from 'thingtalk';
 
-import type { SentenceGeneratorTypes, SentenceGeneratorRuntime, ThingTalkUtils } from '..';
+import * as SentenceGeneratorRuntime from '../sentence-generator/runtime';
+import * as SentenceGeneratorTypes from '../sentence-generator/types';
 export type AgentReplyRecord = SentenceGeneratorTypes.AgentReplyRecord<Ast.DialogueState>;
+import * as ThingTalkUtils from '../utils/thingtalk';
 
 import * as C from './ast_manip';
 import * as keyfns from './keyfns';
@@ -814,21 +816,21 @@ function addQueryAndAction(ctx : ContextInfo,
 
 export function makeContextPhrase(symbol : number,
                                   value : ContextInfo,
-                                  utterance : SentenceGeneratorRuntime.ReplacedResult = value.loader.runtime.ReplacedResult.EMPTY,
+                                  utterance : SentenceGeneratorRuntime.ReplacedResult = SentenceGeneratorRuntime.ReplacedResult.EMPTY,
                                   priority = 0) : SentenceGeneratorTypes.ContextPhrase {
     return { symbol, utterance, value, priority, key: value.key };
 }
 export function makeExpressionContextPhrase(loader : ThingpediaLoader,
                                             symbol : number,
                                             value : Ast.Expression,
-                                            utterance : SentenceGeneratorRuntime.ReplacedResult = loader.runtime.ReplacedResult.EMPTY,
+                                            utterance : SentenceGeneratorRuntime.ReplacedResult = SentenceGeneratorRuntime.ReplacedResult.EMPTY,
                                             priority = 0) : SentenceGeneratorTypes.ContextPhrase {
     return { symbol, utterance, value, priority, key: keyfns.expressionKeyFn(value) };
 }
 export function makeValueContextPhrase(loader : ThingpediaLoader,
                                        symbol : number,
                                        value : Ast.Value,
-                                       utterance : SentenceGeneratorRuntime.ReplacedResult = loader.runtime.ReplacedResult.EMPTY,
+                                       utterance : SentenceGeneratorRuntime.ReplacedResult = SentenceGeneratorRuntime.ReplacedResult.EMPTY,
                                        priority = 0) : SentenceGeneratorTypes.ContextPhrase {
     return { symbol, utterance, value, priority, key: keyfns.valueKeyFn(value) };
 }
@@ -1261,7 +1263,7 @@ function makeListConcatResultContextPhrase(ctx : ContextInfo,
             const result = allResults[resultIdx];
             const piece = tryReplacePlaceholderPhrase(candidate, (param) => {
                 if (param === '__index')
-                    return { value: resultIdx+1, text: new ctx.loader.runtime.ReplacedConcatenation([String(resultIdx+1)], {}, {}) };
+                    return { value: resultIdx+1, text: new SentenceGeneratorRuntime.ReplacedConcatenation([String(resultIdx+1)], {}, {}) };
 
                 // FIXME this should be extracted from the result instead
                 // so we can show different names for different devices
@@ -1297,7 +1299,7 @@ function makeListConcatResultContextPhrase(ctx : ContextInfo,
         if (utterance) {
             const value = [ctx, bag];
             output.push({ symbol: contextTable.ctx_thingpedia_list_result, utterance:
-                new ctx.loader.runtime.ReplacedList(utterance, ctx.loader.locale, '.'), value, priority: 0, key: keyfns.slotBagKeyFn(bag) });
+                new SentenceGeneratorRuntime.ReplacedList(utterance, ctx.loader.locale, '.'), value, priority: 0, key: keyfns.slotBagKeyFn(bag) });
 
             // in inference mode, we're done
             if (ctx.loader.flags.inference)
@@ -1427,7 +1429,7 @@ export function nameListKeyFn(list : NameList) {
 function makeOneNameListContextPhrase(ctx : ContextInfo,
                                       descriptions : SentenceGeneratorRuntime.ReplacedResult[],
                                       length : number) {
-    const utterance = new ctx.loader.runtime.ReplacedList(descriptions.slice(0, length), ctx.loader.locale, undefined);
+    const utterance = new SentenceGeneratorRuntime.ReplacedList(descriptions.slice(0, length), ctx.loader.locale, undefined);
     const value : NameList = { ctx, results: ctx.results!.slice(0, length) };
     return {
         symbol: ctx.contextTable.ctx_result_name_list,

@@ -23,6 +23,8 @@ import assert from 'assert';
 
 import { Ast, Type } from 'thingtalk';
 
+import * as ThingTalkUtils from '../../utils/thingtalk';
+
 import * as C from '../ast_manip';
 import ThingpediaLoader from '../load-thingpedia';
 
@@ -53,7 +55,7 @@ function adjustStatementsForInitialRequest(loader : ThingpediaLoader,
         const table = expr.expressions[0];
         const action = expr.expressions[1];
         assert(action instanceof Ast.InvocationExpression);
-        const confirm = loader.ttUtils.normalizeConfirmAnnotation(action.invocation.schema!);
+        const confirm = ThingTalkUtils.normalizeConfirmAnnotation(action.invocation.schema!);
 
         if (confirm === 'auto') {
             const compoundStmt = new Ast.ExpressionStatement(null, expr);
@@ -125,7 +127,7 @@ function adjustStatementsForInitialRequest(loader : ThingpediaLoader,
             return newStatements.map(C.adjustDefaultParameters);
         }
 
-        const confirm = loader.ttUtils.normalizeConfirmAnnotation(action.invocation.schema!);
+        const confirm = ThingTalkUtils.normalizeConfirmAnnotation(action.invocation.schema!);
         const clone = action.clone();
 
         let newTable : Ast.Expression|null = null;
