@@ -30,8 +30,9 @@ import {
     Operators
 } from 'thingtalk';
 import * as Units from 'thingtalk-units';
-import type * as Genie from 'genie-toolkit';
 import type * as Tp from 'thingpedia';
+
+import type * as Genie from '..';
 
 import {
     ParamSlot,

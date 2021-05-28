@@ -55,7 +55,7 @@ async function main() {
     const generatorOptions = {
         rng,
         locale: 'en-US',
-        templateFiles: [path.resolve(path.dirname(module.filename), '../../languages/thingtalk/en/thingtalk.genie')],
+        templateFiles: ['en/single-command.genie'],
         targetLanguage: 'thingtalk',
         thingpediaClient: _tpClient,
         flags: {

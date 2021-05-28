@@ -84,7 +84,7 @@
   "scripts": {
     "update-pot": "./po/update-pot.sh",
     "update-po": "./po/update-po.sh",
-    "lint": "eslint --ext .js,.jsx,.ts,.tsx ./lib ./tool ./languages ./test",
+    "lint": "eslint --ext .js,.jsx,.ts,.tsx ./lib ./tool ./test",
     "test": "nyc ./test/everything.sh",
     "coverage": "nyc report --reporter=text-lcov | coveralls",
     "prepare": "make",

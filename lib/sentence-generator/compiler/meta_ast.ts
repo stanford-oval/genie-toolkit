@@ -18,7 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
+import * as path from 'path';
 import assert from 'assert';
 
 import { stringEscape } from '../../utils/escaping';
@@ -50,7 +50,7 @@ export class Grammar {
             stmt.visit(visitor);
     }
 
-    codegen() : string {
+    codegen(filename : string) : string {
         let buffer = '';
 
         buffer += (this.comment);
@@ -58,7 +58,11 @@ export class Grammar {
             if (stmt instanceof JSImportStmt)
                 buffer += stmt.codegen();
         }
-        buffer += `import type * as $Genie from "genie-toolkit";\n`;
+
+        let geniepath = path.relative(path.dirname(filename), require.resolve('../..'));
+        if (geniepath.endsWith('.ts'))
+            geniepath = geniepath.substring(0, geniepath.length-3);
+        buffer += `import type * as $Genie from ${stringEscape(geniepath)};\n`;
         buffer += `export default async function($runtime : typeof $Genie.SentenceGeneratorRuntime, $ttUtils : typeof $Genie.ThingTalkUtils, $options : $Genie.SentenceGeneratorTypes.GrammarOptions, $locale : $Genie.I18n.LanguagePack, $grammar : $Genie.SentenceGenerator<any, any>, $loader : ThingpediaLoader) : Promise<void> {\n`;
         for (const stmt of this.statements) {
             if (stmt instanceof JSImportStmt)

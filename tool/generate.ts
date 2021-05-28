@@ -61,9 +61,10 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: 'Path to file containing primitive templates, in ThingTalk syntax.'
     });
     parser.add_argument('--template', {
-        required: true,
+        required: false,
         nargs: '+',
-        help: 'Path to file containing construct templates, in Genie syntax.'
+        default: ['en/single-command.genie'],
+        help: 'Path to file(s) containing construct templates, in Genie syntax.'
     });
     parser.add_argument('--set-flag', {
         required: false,

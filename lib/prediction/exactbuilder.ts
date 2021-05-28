@@ -30,25 +30,6 @@ import { SentenceExample } from '../dataset-tools/parsers';
 
 import ExactMatcher from './exact';
 
-let TEMPLATE_FILE_PATH : string;
-try {
-    // try the path relative to our build location first (in dist/lib/dialogue-agent)
-    TEMPLATE_FILE_PATH = require.resolve('../../../languages-dist/thingtalk/en/basic.genie');
-} catch(e) {
-    if (e.code !== 'MODULE_NOT_FOUND')
-        throw e;
-    try {
-        // if that fails, try the location relative to our source directory
-        // (in case we're running with ts-node)
-        TEMPLATE_FILE_PATH = require.resolve('../../languages-dist/thingtalk/en/basic.genie');
-    } catch(e) {
-        if (e.code !== 'MODULE_NOT_FOUND')
-            throw e;
-        // if that still fails, we're probably in the "compile-template" call
-        // in a clean build, so set ourselves empty (it will not matter)
-        TEMPLATE_FILE_PATH = '';
-    }
-}
 const SYNTHETIC_DEPTH = 8;
 const TARGET_PRUNING_SIZE = 1000;
 
@@ -125,7 +106,7 @@ export default class ExactMatchBuilder {
             rng: this._rng,
             locale: this._locale,
             timezone: this._timezone,
-            templateFiles: [TEMPLATE_FILE_PATH],
+            templateFiles: ['en/basic.genie'],
             thingpediaClient: this._tpClient,
             schemaRetriever: schemas,
             onlyDevices: forDevices,

@@ -22,7 +22,8 @@
 import assert from 'assert';
 import * as ThingTalk from 'thingtalk';
 import { Ast, Type } from 'thingtalk';
-import type { SentenceGeneratorTypes, SentenceGeneratorRuntime, ThingTalkUtils } from 'genie-toolkit';
+
+import type { SentenceGeneratorTypes, SentenceGeneratorRuntime, ThingTalkUtils } from '..';
 export type AgentReplyRecord = SentenceGeneratorTypes.AgentReplyRecord<Ast.DialogueState>;
 
 import * as C from './ast_manip';

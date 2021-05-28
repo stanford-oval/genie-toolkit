@@ -20,7 +20,7 @@
 
 import assert from 'assert';
 import { Ast, } from 'thingtalk';
-import { SentenceGeneratorTypes } from 'genie-toolkit';
+import { SentenceGeneratorTypes } from '../..';
 
 import * as C from '../ast_manip';
 import * as S from '../state_manip';
