@@ -32,7 +32,7 @@ built_bundled_templates := $(addsuffix .ts,$(bundled_templates))
 generated := \
 	$(patsubst %.po,%.mo,$(wildcard po/*.po)) \
 	data/builtins/thingengine.builtin/dataset.tt \
-	lib/engine/db/schema.json \
+	lib/engine/db/sqlite/schema.json \
 	lib/sentence-generator/compiler/grammar.js \
 	lib/utils/template-string/grammar.js \
 	lib/engine/devices/builtins/test.tt.json \

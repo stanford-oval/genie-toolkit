@@ -270,6 +270,7 @@ class MockDeviceDatabase {
         this._devices['switch-bed2'] = new MockSwitch('bed2', 'Bed Switch 2');
         this._devices['switch-kitchen'] = new MockSwitch('kitchen', 'Kitchen Switches');
         this._devices['switch-ceiling'] = new MockSwitch('ceiling', 'Ceiling Switches');
+        this._devices['switch-office-de'] = new MockSwitch('office-de', 'Büro Decke');
         // increase cnt so the tests don't fail
         _cnt++;
 

@@ -26,7 +26,7 @@ import AsyncQueue from 'consumer-queue';
 import RateLimiter from '../util/rate_limiter';
 
 import * as Protocol from '../sync/protocol';
-import { ChannelStateBinder } from '../db/channel';
+import { ChannelStateBinder } from './channel_state_binder';
 
 import type ExecWrapper from './exec_wrapper';
 import type DeviceView from '../devices/device_view';
@@ -142,12 +142,10 @@ export default class MonitorRunner {
         const uniqueId = device.uniqueId + ':' + this._channel + ':' + Protocol.params.makeString(this._params);
 
         Promise.resolve().then(() => {
-            const state = new ChannelStateBinder(this._env.engine.platform);
+            const state = new ChannelStateBinder(this._env.engine.db, uniqueId);
             // TODO deduplicate subscriptions globally
             // (this needs to be done at a different level because we need to
             // do global common subexpression elimination to save history)
-
-            state.init(uniqueId);
 
             return state.open().then(() => {
                 if (this._stopped)

@@ -130,7 +130,7 @@ export default class RemoteParserClient {
         if (this._platform)
             data.developer_key = this._platform.getDeveloperKey();
         if (options.expect)
-            data.expect = String(options.expect);
+            data.expect = options.expect;
         if (options.choices)
             data.choices = options.choices;
         if (options.answer)

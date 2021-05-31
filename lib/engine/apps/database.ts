@@ -27,18 +27,10 @@ import { getProgramIcon } from '../../utils/icons';
 import { Describer, getProgramName } from '../../utils/thingtalk/describe';
 import * as I18n from '../../i18n';
 
-import AppSql from '../db/app';
 import AppExecutor, { AppMeta } from './app_executor';
 
 import type Engine from '../index';
-
-interface AppRow {
-    uniqueId : string;
-    code : string;
-    name : string;
-    description : string;
-    state : string;
-}
+import { LocalTable, AppRow } from '../db';
 
 /**
  * The collection of all running and configured ThingTalk programs.
@@ -47,7 +39,7 @@ export default class AppDatabase extends events.EventEmitter {
     private _apps : Record<string, AppExecutor>;
     private _engine : Engine;
     private _platform : Tp.BasePlatform;
-    private _db : AppSql;
+    private _db : LocalTable<AppRow>;
 
     /**
      * Construct the app database for this engine.
@@ -63,7 +55,7 @@ export default class AppDatabase extends events.EventEmitter {
 
         this._engine = engine;
         this._platform = engine.platform;
-        this._db = new AppSql(engine.platform);
+        this._db = engine.db.getLocalTable('app');
     }
 
     private _getAll() : Promise<AppRow[]> {

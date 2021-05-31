@@ -94,16 +94,6 @@ const TEST_CASES = [
     `Get the current weather in Somewhere.`,
     'Weather'],
 
-    /*[`now => @org.thingpedia.weather.sunrise(date=new Date(2018,4,24)) => notify;`,
-    `get get the sunrise and sunset time for location ____ with date equal to 4/24/2018`,
-    'Weather'],
-    [`now => @org.thingpedia.weather.sunrise(date=new Date(2018,4,24,10,0,0)) => notify;`,
-    `get get the sunrise and sunset time for location ____ with date equal to 4/24/2018, 10:00:00 AM`,
-    'Weather'],
-    [`now => @org.thingpedia.weather.sunrise(date=new Date(2018,4,24,22,0,0)) => notify;`,
-    `get get the sunrise and sunset time for location ____ with date equal to 4/24/2018, 10:00:00 PM`,
-    'Weather'],*/
-
     [`now => @com.instagram.get_pictures(), in_array(caption,["foo","bar"]) => notify;`,
     `Get pictures on instagram that have caption foo or bar.`,
     'Instagram'],
@@ -350,6 +340,10 @@ const TEST_CASES = [
     [`@com.wsj.get(section=enum world_news);`,
     'Get articles published in the world news section of the wall street journal.',
     'Wsj'],
+
+    [`timer(base=$now, interval=1h) => @org.thingpedia.iot.light-bulb(id="io.home-assistant/lights.living_room_1"^^tt:device_id("Living Room")).set_power(power=enum off);`,
+    'Shut down the Living Room lights every 60 min.',
+    'Light Bulb'],
 ];
 
 async function test(i) {

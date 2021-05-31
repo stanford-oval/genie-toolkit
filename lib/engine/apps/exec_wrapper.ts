@@ -263,8 +263,8 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
     readState(stateId : number) {
         return this.app.readState(stateId);
     }
-    writeState(stateId : number, state : unknown) {
-        return this.app.writeState(stateId, state);
+    async writeState(stateId : number, state : unknown) {
+        await this.app.writeState(stateId, state);
     }
 
     async *invokeAction(kind : string,

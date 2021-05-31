@@ -194,7 +194,7 @@ export default class AssistantDispatcher extends events.EventEmitter {
     getAvailableNotificationBackends() : NotificationBackend[] {
         const backends = Object.values(this._staticNotificationBackends);
         for (const dev of this._notificationDeviceView.values())
-            backends.push(new ThingpediaNotificationBackend(dev.queryInterface('notifications')));
+            backends.push(new ThingpediaNotificationBackend(dev));
         return backends;
     }
 

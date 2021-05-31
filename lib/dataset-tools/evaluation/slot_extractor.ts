@@ -19,18 +19,20 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import * as Tp from 'thingpedia';
-import { Ast, } from 'thingtalk';
+import { Ast, SchemaRetriever, } from 'thingtalk';
 import assert from 'assert';
 
 import * as I18n from '../../i18n';
 import { EntityRecord, getBestEntityMatch } from '../../dialogue-agent/entity-linking/entity-finder';
 import { SimulationDatabase } from '../../dialogue-agent/simulator/types';
+import { cleanKind } from '../../utils/misc-utils';
 
 /**
  * Convert a ThingTalk dialogue state to a set of MultiWOZ-style slots.
  */
 export default class SlotExtractor {
     private _tpClient : Tp.BaseClient|null;
+    private _schemas : SchemaRetriever;
     private _database : SimulationDatabase|undefined;
     private _tokenizer : I18n.BaseTokenizer;
     private _omittedSlots : string[];
@@ -39,10 +41,12 @@ export default class SlotExtractor {
 
     constructor(locale : string,
                 tpClient : Tp.BaseClient|null,
+                schemaRetriever : SchemaRetriever,
                 database : SimulationDatabase|undefined,
                 omittedSlots = ['train-name']) {
         this._database = database;
         this._tpClient = tpClient;
+        this._schemas = schemaRetriever;
         this._omittedSlots = omittedSlots;
         this._tokenizer = I18n.get(locale).getTokenizer();
 
@@ -58,7 +62,6 @@ export default class SlotExtractor {
         case 'tt:email_address':
         case 'tt:phone_number':
         case 'tt:path_name':
-        case 'tt:device':
         case 'tt:function':
             return true;
         default:
@@ -72,7 +75,7 @@ export default class SlotExtractor {
 
     private async _resolveEntity(value : Ast.EntityValue) : Promise<EntityRecord> {
         if (this._isWellKnownEntity(value.type)) {
-            assert(value.value);
+            assert(value.value, `Unexpected missing entity value "${value.value}" for a ${value.type} entity`);
             return { value: value.value!, name: value.display||'', canonical: value.value! };
         }
 
@@ -107,9 +110,51 @@ export default class SlotExtractor {
             return resolved;
         }
 
-        // resolve as regular Thingpedia entity
-        const candidates = await this._tpClient!.lookupEntity(value.type, searchKey);
-        resolved = getBestEntityMatch(searchKey, value.type, candidates.data);
+        if (value.type === 'tt:device') {
+            if (value.value) {
+                try {
+                    const classDef = await this._schemas.getFullMeta(value.value);
+                    value.display = classDef.nl_annotations.thingpedia_name || classDef.nl_annotations.canonical;
+                } catch(e) {
+                    // ignore errors if the device is not known
+                }
+                if (!value.display)
+                    value.display = cleanKind(value.value);
+                return {
+                    value: value.value!,
+                    name: value.display||'',
+                    canonical: this._tokenizer.tokenize(value.display).rawTokens.join(' ')
+                };
+            }
+
+            const candidates = await this._tpClient!.searchDevice(value.display!);
+            if (candidates.length === 0) {
+                resolved = {
+                    value: value.display||'',
+                    name: value.display||'',
+                    canonical: value.display||''
+                };
+            } else {
+                resolved = getBestEntityMatch(value.display!, value.type, candidates.map((d) => ({
+                    value: d.primary_kind,
+                    name: d.name,
+                    canonical: this._tokenizer.tokenize(d.name).rawTokens.join(' ')
+                })));
+            }
+        } else {
+            // resolve as regular Thingpedia entity
+            const candidates = await this._tpClient!.lookupEntity(value.type, searchKey);
+            if (candidates.data.length === 0) {
+                // this entity has no NER
+                resolved = {
+                    value: value.value||value.display||'',
+                    name: value.display||'',
+                    canonical: value.display||''
+                };
+            } else {
+                resolved = getBestEntityMatch(searchKey, value.type, candidates.data);
+            }
+        }
         this._cachedEntityMatches.set(cacheKey, resolved);
         return resolved;
     }

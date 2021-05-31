@@ -66,6 +66,7 @@ direct_result_info_phrase : D.ResultPhrase = {
     one_param_direct_result_info_phrase,
     two_param_direct_result_info_phrase,
     three_param_direct_result_info_phrase,
+    ?long_projections four_param_direct_result_info_phrase,
 }
 
 one_param_direct_result_info_phrase : D.ResultPhrase = {
@@ -92,6 +93,17 @@ three_param_direct_result_info_phrase : D.ResultPhrase = {
     ["${b1}, ${b2}"]: (b1:one_param_direct_result_info_phrase, b2:two_param_direct_result_info_phrase) => D.mergeResultPhrase(b1, b2);
 }
 
+four_param_direct_result_info_phrase : D.ResultPhrase = {
+    // account for nulls when merging
+    ["${b1}, ${b2}, ${b3}"]: (b1:one_param_direct_result_info_phrase, b2:one_param_direct_result_info_phrase, b3:two_param_direct_result_info_phrase)
+    => {
+        const b12 = D.mergeResultPhrase(b1, b2);
+        if (b12 === null)
+            return null;
+        return D.mergeResultPhrase(b12, b3);
+    },
+}
+
 // a noun phrase of the form "a restaurant in Cambridge that serves X"
 // structurally similar to a with_filter_table, but used to describe a result
 // so either filters & comparisons are not allowed, and the AST is different (it's a SlotBag)
@@ -113,6 +125,12 @@ result_info_phrase : D.ResultPhrase = {
         three_which_info_phrase [weight=0.33*0.5];
         three_clean_info_phrase [weight=0.33*0.5];
     }
+
+    ?long_projections {
+        n_with_info_phrase;
+        n_with_info_phrase;
+        n_with_info_phrase;
+    }
 }
 
 base_result_phrase : D.ResultPhrase = {
@@ -122,8 +140,13 @@ base_result_phrase : D.ResultPhrase = {
     },
 }
 
+equal_with_filter : C.FilterSlot = {
+    ["the ${p} equal to ${x}"]: (p:out_param_Any, x:constant_Any<type=p.type>) => C.makeFilter($loader, p, '==', x),
+}
+
 one_with_info_phrase : D.ResultPhrase = {
     ["${table} {with|having} ${filter} [plural=table[plural]]"]: (table:base_result_phrase, filter:npp_filter<functionName = table.functionName>) => D.addSlotToResultPhrase(table, filter),
+    ["${table} {with|having} ${filter} [plural=table[plural]]"]: (table:base_result_phrase, filter:equal_with_filter<functionName = table.functionName>) => D.addSlotToResultPhrase(table, filter),
 }
 
 one_which_info_phrase : D.ResultPhrase = {
@@ -157,6 +180,9 @@ one_clean_info_phrase : D.ResultPhrase = {
 two_with_info_phrase : D.ResultPhrase = {
     ["${table} and ${filter} [plural=table[plural]]"]:
         (table:one_with_info_phrase, filter:npp_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} and ${filter} [plural=table[plural]]"]:
+        (table:one_with_info_phrase, filter:equal_with_filter<functionName = table.functionName>)
             => D.addSlotToResultPhrase(table, filter),
     // XXX not sure about this one, once a table is "which" it should stay which
     // concretely, it generates "restaurants that serve chinese food and having moderate price" which seems awkward?
@@ -224,11 +250,19 @@ three_with_info_phrase : D.ResultPhrase = {
     ["${table} and ${filter} [plural=table[plural]]"]:
         (table:two_with_info_phrase, filter:npp_filter<functionName = table.functionName>)
             => D.addSlotToResultPhrase(table, filter),
+    ["${table} and ${filter} [plural=table[plural]]"]:
+        (table:two_with_info_phrase, filter:equal_with_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
     ["${table} {and having|and with|, with} ${filter} [plural=table[plural]]"]:
         (table:two_which_info_phrase, filter:npp_filter<functionName = table.functionName>)
             => D.addSlotToResultPhrase(table, filter),
+    ["${table} {and having|and with|, with} ${filter} [plural=table[plural]]"]:
+        (table:two_which_info_phrase, filter:equal_with_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
     ["${table} {with|having} ${filter} [plural=table[plural]]"]:
         (table:two_clean_info_phrase, filter:npp_filter<functionName = table.functionName>) => D.addSlotToResultPhrase(table, filter),
+    ["${table} {with|having} ${filter} [plural=table[plural]]"]:
+        (table:two_clean_info_phrase, filter:equal_with_filter<functionName = table.functionName>) => D.addSlotToResultPhrase(table, filter),
 }
 
 three_which_info_phrase : D.ResultPhrase = {
@@ -281,5 +315,146 @@ three_clean_info_phrase : D.ResultPhrase = {
             => D.addSlotToResultPhrase(table, filter),
     ["${table} ${filter} [plural=table[plural]]"]:
         (table:two_clean_info_phrase, filter:preposition_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+}
+
+
+n_with_info_phrase : D.ResultPhrase = {
+    ["${table} and ${filter} [plural=table[plural]]"]:
+        (table:one_with_info_phrase, filter:npp_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} and ${filter} [plural=table[plural]]"]:
+        (table:one_with_info_phrase, filter:equal_with_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    // XXX not sure about this one, once a table is "which" it should stay which
+    // concretely, it generates "restaurants that serve chinese food and having moderate price" which seems awkward?
+    ["${table} {and having|and with|, with} ${filter} [plural=table[plural]]"]:
+        (table:one_which_info_phrase, filter:npp_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} {and having|and with|, with} ${filter} [plural=table[plural]]"]:
+        (table:one_which_info_phrase, filter:equal_with_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} {with|having} ${filter} [plural=table[plural]]"]:
+        (table:one_clean_info_phrase, filter:npp_filter<functionName = table.functionName>) => D.addSlotToResultPhrase(table, filter),
+    ["${table} {with|having} ${filter} [plural=table[plural]]"]:
+        (table:one_clean_info_phrase, filter:equal_with_filter<functionName = table.functionName>) => D.addSlotToResultPhrase(table, filter),
+
+    ["${table} and ${filter} [plural=table[plural]]"]:
+        (table:n_with_info_phrase, filter:npp_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} and ${filter} [plural=table[plural]]"]:
+        (table:n_with_info_phrase, filter:equal_with_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} {and having|and with|, with} ${filter} [plural=table[plural]]"]:
+        (table:n_which_info_phrase, filter:npp_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} {and having|and with|, with} ${filter} [plural=table[plural]]"]:
+        (table:n_which_info_phrase, filter:equal_with_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} {with|having} ${filter} [plural=table[plural]]"]:
+        (table:n_clean_info_phrase, filter:npp_filter<functionName = table.functionName>) => D.addSlotToResultPhrase(table, filter),
+    ["${table} {with|having} ${filter} [plural=table[plural]]"]:
+        (table:n_clean_info_phrase, filter:equal_with_filter<functionName = table.functionName>) => D.addSlotToResultPhrase(table, filter),
+}
+
+n_which_info_phrase : D.ResultPhrase = {
+    ["${table} {which|that} ${table[plural]:select:one{is}other{are}} ${filter} [plural=table[plural]]"]:
+        (table:one_with_info_phrase, filter:npi_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} {which|that} ${table[plural]:select:one{${filter[plural=one]}}other{${filter[plural=other]}}} [plural=table[plural]]"]:
+        (table:one_with_info_phrase, filter:avp_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} {which|that} ${table[plural]:select:one{is}other{are}} ${filter} [plural=table[plural]]", priority=-0.1]:
+        (table:one_with_info_phrase, filter:apv_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} {which|that} ${table[plural]:select:one{is}other{are}} ${filter} [plural=table[plural]]"]:
+        (table:one_with_info_phrase, filter:npv_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+
+    ["${table} and ${table[plural]:select:one{is}other{are}} ${filter} [plural=table[plural]]"]:
+        (table:one_which_info_phrase, filter:npi_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} and ${table[plural]:select:one{${filter[plural=one]}}other{${filter[plural=other]}}} [plural=table[plural]]"]:
+        (table:one_which_info_phrase, filter:avp_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} and ${table[plural]:select:one{is}other{are}} ${filter} [plural=table[plural]]", priority=-0.1]:
+        (table:one_which_info_phrase, filter:apv_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} and ${table[plural]:select:one{is}other{are}} ${filter} [plural=table[plural]]"]:
+        (table:one_which_info_phrase, filter:npv_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+
+    ["${table} {which|that} ${table[plural]:select:one{is}other{are}} ${filter} [plural=table[plural]]"]:
+        (table:one_clean_info_phrase, filter:npi_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} {which|that} ${table[plural]:select:one{${filter[plural=one]}}other{${filter[plural=other]}}} [plural=table[plural]]"]:
+        (table:one_clean_info_phrase, filter:avp_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} {which|that} ${table[plural]:select:one{is}other{are}} ${filter} [plural=table[plural]]", priority=-0.1]:
+        (table:one_clean_info_phrase, filter:apv_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} {which|that} ${table[plural]:select:one{is}other{are}} ${filter} [plural=table[plural]]"]:
+        (table:one_clean_info_phrase, filter:npv_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+
+    ["${table} {which|that} ${table[plural]:select:one{is}other{are}} ${filter} [plural=table[plural]]"]:
+        (table:n_with_info_phrase, filter:npi_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} {which|that} ${table[plural]:select:one{${filter[plural=one]}}other{${filter[plural=other]}}} [plural=table[plural]]"]:
+        (table:n_with_info_phrase, filter:avp_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} {which|that} ${table[plural]:select:one{is}other{are}} ${filter} [plural=table[plural]]", priority=-0.1]:
+        (table:n_with_info_phrase, filter:apv_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} {which|that} ${table[plural]:select:one{is}other{are}} ${filter} [plural=table[plural]]"]:
+        (table:n_with_info_phrase, filter:npv_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+
+    ["${table} and ${table[plural]:select:one{is}other{are}} ${filter} [plural=table[plural]]"]:
+        (table:n_which_info_phrase, filter:npi_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} and ${table[plural]:select:one{${filter[plural=one]}}other{${filter[plural=other]}}} [plural=table[plural]]"]:
+        (table:n_which_info_phrase, filter:avp_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} and ${table[plural]:select:one{is}other{are}} ${filter} [plural=table[plural]]", priority=-0.1]:
+        (table:n_which_info_phrase, filter:apv_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} and ${table[plural]:select:one{is}other{are}} ${filter} [plural=table[plural]]"]:
+        (table:n_which_info_phrase, filter:npv_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+
+    ["${table} {which|that} ${table[plural]:select:one{is}other{are}} ${filter} [plural=table[plural]]"]:
+        (table:n_clean_info_phrase, filter:npi_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} {which|that} ${table[plural]:select:one{${filter[plural=one]}}other{${filter[plural=other]}}} [plural=table[plural]]"]:
+        (table:n_clean_info_phrase, filter:avp_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} {which|that} ${table[plural]:select:one{is}other{are}} ${filter} [plural=table[plural]]", priority=-0.1]:
+        (table:n_clean_info_phrase, filter:apv_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} {which|that} ${table[plural]:select:one{is}other{are}} ${filter} [plural=table[plural]]"]:
+        (table:n_clean_info_phrase, filter:npv_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+}
+
+n_clean_info_phrase : D.ResultPhrase = {
+    ["${filter} ${table} [plural=table[plural]]"]:
+        (table:one_clean_info_phrase, filter:apv_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} ${filter} [plural=table[plural]]"]:
+        (table:one_clean_info_phrase, filter:pvp_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} ${filter} [plural=table[plural]]"]:
+        (table:one_clean_info_phrase, filter:preposition_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+
+    ["${filter} ${table} [plural=table[plural]]"]:
+        (table:n_clean_info_phrase, filter:apv_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} ${filter} [plural=table[plural]]"]:
+        (table:n_clean_info_phrase, filter:pvp_filter<functionName = table.functionName>)
+            => D.addSlotToResultPhrase(table, filter),
+    ["${table} ${filter} [plural=table[plural]]"]:
+        (table:n_clean_info_phrase, filter:preposition_filter<functionName = table.functionName>)
             => D.addSlotToResultPhrase(table, filter),
 }

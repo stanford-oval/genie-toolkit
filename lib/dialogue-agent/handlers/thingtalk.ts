@@ -284,7 +284,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
 
         // alright, let's ask parser first then
         const nluResult = await this._nlu.sendUtterance(command.utterance, contextCode, contextEntities, {
-            expect: this._loop.expecting ? String(this._loop.expecting) : undefined,
+            expect: this._loop.expecting ? ValueCategory[this._loop.expecting] : undefined,
             choices: this._loop.choices,
             store: this._prefs.get('sabrina-store-log') as string || 'no'
         });
@@ -334,7 +334,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         }
 
         if (type === CommandAnalysisType.OUT_OF_DOMAIN_COMMAND ||
-            choice.score !== 'Infinity') {
+            (choice.score !== 'Infinity' && this._loop.expecting !== ValueCategory.MultipleChoice)) {
             type = CommandAnalysisType.OUT_OF_DOMAIN_COMMAND;
             this._loop.debug('Failed to analyze message');
             this._loop.conversation.stats.hit('sabrina-failure');

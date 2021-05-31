@@ -419,6 +419,11 @@ class DialogueParser extends Stream.Transform {
                         currentTurn.context = currentTurn.user_target;
                         expect = (expect + 1) % this._keySequence.length;
                     }
+
+                    if (key === 'user_target' && this._keySequence[expect] === 'user') {
+                        currentTurn.user = '';
+                        expect = (expect + 1) % this._keySequence.length;
+                    }
                 }
 
                 if (key !== 'intermediate_context') {

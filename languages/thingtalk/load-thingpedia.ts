@@ -67,12 +67,12 @@ const ANNOTATION_RENAME : Record<string, string> = {
 const ANNOTATION_PRIORITY : Record<string, number> = {
     'base': 0,
     'npp': 0,
-    'avp': 0.4,
-    'reverse_verb': 0.4,
-    'adj': 0.5,
+    'avp': 0.15,
+    'reverse_verb': 0,
+    'adj': 0.8,
     'preposition': 0.4,
-    'pvp': 0.2,
-    'apv': 0.2,
+    'pvp': 0.35,
+    'apv': 0.05,
     'npi': 0.8,
     'npv': 1
 };

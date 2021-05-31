@@ -27,6 +27,7 @@ po/*.json
 *.tt.json
 data/builtins/thingengine.builtin/*.tt
 lib/engine/devices/builtins/faq.json
+lib/engine/db/sqlite/schema.json
 
 workdir*
 genienlp/

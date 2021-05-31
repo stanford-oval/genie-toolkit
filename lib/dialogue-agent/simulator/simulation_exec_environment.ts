@@ -340,6 +340,9 @@ function recursivelyComputeOutputType(kind : string, expr : Ast.Expression) : st
 }
 
 function genFakeData(size : number, fill : number) {
+    if (size > 10000)
+        throw new SimulatedError('too big');
+
     return String(Buffer.alloc(size, fill));
 }
 
