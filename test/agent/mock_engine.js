@@ -50,7 +50,7 @@ class QueueOutputDelegate {
     output(outputType, outputValue) {
         this._queue.push({ done: false, value: { outputType, outputValue } });
     }
-    notifyError(error) {
+    error(error) {
         this._queue.push({ done: false, value: error });
     }
 }
@@ -88,12 +88,7 @@ class MockAppExecutor {
             generator.addCandidate(slot.get());
         }
         this._simulator.generator = generator;
-        this._simulator.output = async (outputType, outputValue) => {
-            return this.mainOutput.output(outputType, outputValue);
-        };
-        this._simulator.reportError = async (msg, err) => {
-            return this.mainOutput.notifyError(err);
-        };
+        this._simulator.setOutputDelegate(this.mainOutput);
         if (this._compiled.command)
             await this._compiled.command(this._simulator);
         this.mainOutput.done();

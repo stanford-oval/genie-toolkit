@@ -45,7 +45,7 @@ function extendParams(output : Record<string, unknown>,
 export interface OutputDelegate {
     done() : void;
     output(outputType : string, outputValue : Record<string, unknown>) : void;
-    notifyError(error : Error) : void;
+    error(error : Error) : void;
 }
 
 type MaybePromise<T> = T|Promise<T>;
@@ -291,7 +291,7 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
 
         console.error(message, error);
         this.app.setError(error);
-        await this._outputDelegate.notifyError(error);
+        await this._outputDelegate.error(error);
     }
 
     async output(outputType : string, outputValues : Record<string, unknown>) : Promise<void> {

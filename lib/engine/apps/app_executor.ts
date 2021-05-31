@@ -54,7 +54,7 @@ class QueueOutputDelegate {
     output(outputType : string, outputValue : Record<string, unknown>) {
         this._queue.push({ done: false, value: { outputType, outputValue } });
     }
-    notifyError(error : Error) {
+    error(error : Error) {
         this._queue.push({ done: false, value: error });
     }
 }
@@ -75,7 +75,7 @@ class NotificationOutputDelegate {
      * @param {Error} error - the error that occurred.
      * @package
      */
-    notifyError(error : Error) {
+    error(error : Error) {
         this._app.setError(error);
         return this._engine.assistant.notifyError(this._app, error);
     }
@@ -237,7 +237,7 @@ export default class AppExecutor extends events.EventEmitter {
         this._error = e;
     }
     reportError(error : Error) {
-        this._notificationOutput.notifyError(error);
+        this._notificationOutput.error(error);
     }
 
     get hasRule() {
