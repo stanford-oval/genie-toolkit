@@ -1442,4 +1442,17 @@ class @org.thingpedia.covid-vaccine
   #[initial=true]
   #[poll_interval=86400000ms]
   #[doc="Information about COVID vaccine appointments"];
+
+  action mark_valid(in req appointment : Entity(org.thingpedia.covid-vaccine:vaccine_appointment),
+                    in req validity : Boolean
+                    #_[prompt="please try this and let me know if it works."]
+                    #_[canonical={
+                      base=["validity", "existence"],
+                      preposition_true=["as valid", "as existent", "as real"],
+                      preposition_false=["as invalid", "as non-existent", "as not real"]
+                    }])
+  #[canonical=["mark an appointment", "record an appointment"]]
+  #_[result=["${validity:select:true{Great, congratulations on getting your appointment! Please tell your friends about us.} false{Sorry that did not work out.}}"]]
+  #[follow_up="org.thingpedia.covid-vaccine.appointment(zip_code,dose,vaccine_type) if validity=false"]
+  #[confirm=false];
 }

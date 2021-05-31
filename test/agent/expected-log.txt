@@ -1964,7 +1964,7 @@ U: @com.twitter.post();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.twitter.post();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: To use this command you must first create a personal Almond account.
+A: To use this command you must first create a personal Genie account.
 #! vote: up
 #! comment: test comment for dialogue turns
 #!          additional

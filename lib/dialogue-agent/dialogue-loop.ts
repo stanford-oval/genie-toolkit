@@ -477,9 +477,6 @@ export default class DialogueLoop {
         if (expect === ValueCategory.RawString && !policyResult.raw)
             expect = ValueCategory.Generic;
 
-        if (expect === null && TERMINAL_STATES.includes(this._dialogueState!.dialogueAct))
-            throw new CancellationError();
-
         await this.setExpected(expect);
     }
 
@@ -610,6 +607,19 @@ export default class DialogueLoop {
         this._checkPolicy(this._dialogueState.policy);
 
         await this._executeCurrentState();
+
+        while (this.expecting === null) {
+            const followUp : Ast.DialogueState|null = await this._policy.getFollowUp(this._dialogueState!);
+            if (followUp === null)
+                break;
+
+            console.log('followUp', followUp.prettyprint());
+            this._dialogueState = followUp;
+            await this._executeCurrentState();
+        }
+
+        if (this.expecting === null && TERMINAL_STATES.includes(this._dialogueState!.dialogueAct))
+            throw new CancellationError();
     }
 
     private async _executeCurrentState() {

@@ -245,6 +245,12 @@ export default class DialoguePolicy {
         };
     }
 
+    async getFollowUp(state : Ast.DialogueState) : Promise<Ast.DialogueState|null> {
+        await this._ensureGeneratorForState(state);
+
+        return this._sentenceGenerator!.invokeFunction('followUp', state, this._sentenceGenerator!.contextTable);
+    }
+
     async getNotificationState(appName : string|null, program : Ast.Program, result : Ast.DialogueHistoryResultItem) {
         await this._ensureGeneratorForState(program);
 
