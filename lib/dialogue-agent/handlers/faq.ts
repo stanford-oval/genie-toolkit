@@ -23,7 +23,6 @@ import * as Tp from 'thingpedia';
 import { UserInput } from "../user-input";
 import {
     DialogueHandler,
-    DialogueHandlerPriority,
     CommandAnalysisType,
     ReplyResult,
     DialogueLoop
@@ -39,13 +38,16 @@ interface FAQCommandAnalysisType {
 const CONFIDENCE_THRESHOLD = 0.4;
 
 export default class FAQDialogueHandler implements DialogueHandler<FAQCommandAnalysisType, undefined> {
-    priority = DialogueHandlerPriority.SECONDARY;
+    priority = Tp.DialogueHandler.Priority.SECONDARY;
     icon = null;
+    uniqueId : string;
     private _loop : DialogueLoop;
     private _url : string;
 
     constructor(loop : DialogueLoop,
+                uniqueId : string,
                 url : string) {
+        this.uniqueId = 'faq/' + uniqueId;
         this._loop = loop;
         this._url = url;
     }

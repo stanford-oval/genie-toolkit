@@ -46,7 +46,6 @@ import {
     DialogueHandler,
     CommandAnalysisType,
     ReplyResult,
-    DialogueHandlerPriority
 } from '../dialogue-loop';
 import { Button } from '../card-output/format_objects';
 
@@ -102,7 +101,8 @@ interface ThingTalkCommandAnalysisType {
 }
 
 export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTalkCommandAnalysisType, string> {
-    priority = DialogueHandlerPriority.PRIMARY;
+    priority = Tp.DialogueHandler.Priority.PRIMARY;
+    uniqueId = 'thingtalk';
 
     icon : string|null = null;
     private _ : (x : string) => string;
