@@ -1,5 +1,5 @@
 geniedir ?= ../..
-developer_key = ***REMOVED***
+developer_key =
 thingpedia_url = https://thingpedia.stanford.edu/thingpedia
 
 -include ./config.mk
