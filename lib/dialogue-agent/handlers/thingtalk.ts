@@ -99,7 +99,6 @@ interface ThingTalkCommandAnalysisType {
 
     // the user target
     parsed : Ast.Input;
-    isInteractive : boolean;
 }
 
 export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTalkCommandAnalysisType, string> {
@@ -226,13 +225,6 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
 
         // convert to dialogue state, if not already
 
-        if (analysis.parsed instanceof Ast.Program &&
-            (analysis.parsed.declarations.length > 0 ||
-             analysis.parsed.statements.some((x) => !(x instanceof Ast.ExpressionStatement)))) {
-            analysis.isInteractive = true;
-            return analysis;
-        }
-
         const prediction = await ThingTalkUtils.inputToDialogueState(this._policy, this._dialogueState, analysis.parsed);
         if (prediction === null) {
             analysis.type = CommandAnalysisType.OUT_OF_DOMAIN_COMMAND;
@@ -246,7 +238,6 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             user_target: prediction.prettyprint(),
             answer: analysis.answer,
             parsed: prediction,
-            isInteractive: false
         };
     }
 
@@ -259,7 +250,6 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                 user_target: command.parsed.prettyprint(),
                 answer: this._maybeGetThingTalkAnswer(command.parsed),
                 parsed: command.parsed,
-                isInteractive: false
             };
         }
 
@@ -289,7 +279,6 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                 user_target: parsed.prettyprint(),
                 answer: value,
                 parsed: parsed,
-                isInteractive: false
             };
         }
 
@@ -309,7 +298,6 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                 user_target: parsed.prettyprint(),
                 answer: null,
                 parsed: parsed,
-                isInteractive: false
             };
         }
 
@@ -366,7 +354,6 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             user_target: choice.parsed.prettyprint(),
             answer: this._maybeGetThingTalkAnswer(choice.parsed),
             parsed: choice.parsed,
-            isInteractive: false
         };
     }
 
@@ -392,57 +379,9 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
 
         case CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND:
         default: {
-            if (analyzed.isInteractive)
-                return this._runInteractiveThingTalk(analyzed.parsed as Ast.Program);
-
             return this._handleNormalDialogueCommand(analyzed.parsed as Ast.DialogueState);
         }
         }
-    }
-
-    private async _runInteractiveThingTalk(program : Ast.Program) : Promise<ReplyResult> {
-        const app = await this._engine.createApp(program);
-
-        await new Promise<void>((resolve, reject) => {
-            app.runImmediate({
-                ask: async (type : Type, question : string) : Promise<Ast.Value> => {
-                    if (type instanceof Type.Enum) {
-                        const entries = type.entries!;
-                        const choice = await this._loop.askChoices(question, entries.map((e) => clean(e)));
-                        return new Ast.Value.Enum(entries[choice]);
-                    }
-                    return this._loop.ask(ValueCategory.fromType(type), question);
-                },
-
-                say: async (message : string) : Promise<void> => {
-                    await this._loop.replyInterp(message);
-                },
-
-                done: async () => {
-                    await this._loop.setExpected(null);
-                    resolve();
-                },
-
-                output: () => {
-                    // TODO
-                },
-
-                error: (err : any) => {
-                    if (err.code === 'ECANCELLED')
-                        throw err;
-
-                    // TODO
-                    console.error(`Error`, err);
-                },
-            });
-        });
-
-        return {
-            messages: [],
-            context: '$dialogue @org.thingpedia.dialogue.custom.execute;',
-            agent_target: '',
-            expecting: null,
-        };
     }
 
     private async _handleNormalDialogueCommand(prediction : Ast.DialogueState) : Promise<ReplyResult> {

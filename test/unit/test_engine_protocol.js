@@ -22,7 +22,7 @@
 import assert from 'assert';
 import * as Tp from 'thingpedia';
 
-import * as protocol from '../../lib/engine/tiers/protocol';
+import * as protocol from '../../lib/engine/sync/protocol';
 
 const TEST_CASES = [
     // primitives

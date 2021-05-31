@@ -1386,12 +1386,6 @@ export class Describer {
         const desc = this._makeList(program.statements.map((r) => {
             if (r instanceof Ast.Assignment)
                 return this._describeAssignment(r);
-            else if (r instanceof Ast.AskStatement && r.question)
-                return this._interp(this._("ask ${question}"), { question: this._const(r.question) });
-            else if (r instanceof Ast.AskStatement)
-                return this._interp(this._("ask for the ${name}"), { name: r.name });
-            else if (r instanceof Ast.SayStatement)
-                return this._interp(this._("say ${message}"), { message: this._const(r.message) });
             else
                 return this.describeExpressionStatement(r);
         }), ' ; ');
