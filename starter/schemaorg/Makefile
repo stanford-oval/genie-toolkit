@@ -1,5 +1,5 @@
 geniedir ?= ../..
-developer_key =
+developer_key = ***REMOVED***
 thingpedia_url = https://thingpedia.stanford.edu/thingpedia
 
 -include ./config.mk
@@ -52,7 +52,7 @@ generate_flags = $(foreach v,$(synthetic_flags),--set-flag $(v))
 target_pruning_size ?= 500
 maxdepth ?= 8
 
-annotation ?= manual
+annotation ?= bart
 paraphraser_options ?= --paraphraser-model ./models/paraphraser-bart-large-speedup-megabatch-5m
 
 baseline_process_schemaorg_flags =
@@ -114,7 +114,7 @@ emptydataset.tt:
 	cat $(geniedir)/data/en-US/constants.tsv >> $@
 
 %/manifest.tt: %/constants.tsv %/schema.trimmed.tt %/parameter-datasets.tsv $(if $(findstring bart,$(annotation)),models/paraphraser-bart-large-speedup-megabatch-5m,) common-words.txt
-	$(genie) auto-annotate -o $@.tmp --constants $*/constants.tsv --thingpedia $*/schema.trimmed.tt --functions $($(*)_white_list) $(annotate_flags) --parameter-datasets $*/parameter-datasets.tsv --dataset schemaorg
+	$(genie) auto-annotate -o $@.tmp --constants $*/constants.tsv --thingpedia $*/schema.trimmed.tt --functions $($(*)_white_list) $(annotate_flags) --parameter-datasets $*/parameter-datasets.tsv --dataset schemaorg --debug
 	mv $@.tmp $@
 
 multidomain/manifest.tt: $(addsuffix /manifest.tt,$(all_experiments))

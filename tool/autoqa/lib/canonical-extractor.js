@@ -216,7 +216,7 @@ export default class AnnotationExtractor {
         }
 
         // genienlp run-paraphrase --input_column 0 --skip_heuristics --model_name_or_path xxx --temperature 1 1 1 --num_beams 4 --pipe_mode
-        const args = [
+        /*const args = [
             `run-paraphrase`,
             `--task`, `paraphrase`,
             `--input_column`, `0`,
@@ -226,13 +226,24 @@ export default class AnnotationExtractor {
             `--num_beams`, `4`,
             `--pipe_mode`,
             `--batch_size`, this.options.batch_size
+        ];*/
+
+        const args = [
+            `run-paraphrase`,
+            `--task`, `translate`,
+            `--input_column`, `0`,
+            `--output_attentions`,
+            `--src_lang`, `en`,
+            `--tgt_lang`, `fr`,
+            `--model_name_or_path`, `Helsinki-NLP/opus-mt-en-fr`,
+            `--temperature`, `1`,
+            `--repetition_penalty`, `1`,
+            `--pipe_mode`
         ];
         const child = child_process.spawn(`genienlp`, args, { stdio: ['pipe', 'pipe', 'inherit'] });
-
         const output = util.promisify(fs.writeFile);
         if (this.options.debug)
             await output(`./paraphraser-in.tsv`, this._input.join('\n'));
-
         const stdout = await new Promise((resolve, reject) => {
             child.stdin.write(this._input.join('\n'));
             child.stdin.end();
@@ -245,11 +256,111 @@ export default class AnnotationExtractor {
             });
             child.stdout.on('end', () => resolve(buffer));
         });
+        if (this.options.debug)
+            await output(`./paraphraser-pivot0.json`, JSON.stringify(JSON.parse(stdout), null, 2));
+        const args2 = [
+            `run-paraphrase`,
+            `--task`, `translate`,
+            `--input_column`, `0`,
+            `--output_attentions`,
+            `--src_lang`, `fr`,
+            `--tgt_lang`, `en`,
+            `--model_name_or_path`, `Helsinki-NLP/opus-mt-fr-en`,
+            `--temperature`, `1`,
+            `--repetition_penalty`, `1`,
+            `--pipe_mode`
+        ];
+        const child2 = child_process.spawn(`genienlp`, args2, { stdio: ['pipe', 'pipe', 'inherit'] });
+        const output2 = util.promisify(fs.writeFile);
+        const stdout2 = await new Promise((resolve, reject) => {
+            child2.stdin.write(this._input.join('\n'));
+            child2.stdin.end();
+            child2.on('error', reject);
+            child2.stdout.on('error', reject);
+            child2.stdout.setEncoding('utf8');
+            let buffer = '';
+            child2.stdout.on('data', (data) => {
+                buffer += data;
+            });
+            child2.stdout.on('end', () => resolve(buffer));
+        });
 
         if (this.options.debug)
-            await output(`./paraphraser-out.json`, JSON.stringify(JSON.parse(stdout), null, 2));
+            await output2(`./paraphraser-eng0.json`, JSON.stringify(JSON.parse(stdout2), null, 2));
+        
+        const child3 = child_process.spawn(`genienlp`, args, { stdio: ['pipe', 'pipe', 'inherit'] });
+        const output3 = util.promisify(fs.writeFile);
+        const stdout3 = await new Promise((resolve, reject) => {
+            child3.stdin.write(this._input.join('\n'));
+            child3.stdin.end();
+            child3.on('error', reject);
+            child3.stdout.on('error', reject);
+            child3.stdout.setEncoding('utf8');
+            let buffer = '';
+            child3.stdout.on('data', (data) => {
+                buffer += data;
+            });
+            child3.stdout.on('end', () => resolve(buffer));
+        });
 
-        this._output = JSON.parse(stdout);
+        if (this.options.debug)
+            await output3(`./paraphraser-pivot1.json`, JSON.stringify(JSON.parse(stdout3), null, 2));
+        
+        const child4 = child_process.spawn(`genienlp`, args2, { stdio: ['pipe', 'pipe', 'inherit'] });
+        const output4 = util.promisify(fs.writeFile);
+        const stdout4 = await new Promise((resolve, reject) => {
+            child4.stdin.write(this._input.join('\n'));
+            child4.stdin.end();
+            child4.on('error', reject);
+            child4.stdout.on('error', reject);
+            child4.stdout.setEncoding('utf8');
+            let buffer = '';
+            child4.stdout.on('data', (data) => {
+                buffer += data;
+            });
+            child4.stdout.on('end', () => resolve(buffer));
+        });
+
+        if (this.options.debug)
+            await output4(`./paraphraser-eng1.json`, JSON.stringify(JSON.parse(stdout4), null, 2));
+        
+        const child5 = child_process.spawn(`genienlp`, args, { stdio: ['pipe', 'pipe', 'inherit'] });
+        const output5 = util.promisify(fs.writeFile);
+        const stdout5 = await new Promise((resolve, reject) => {
+            child5.stdin.write(this._input.join('\n'));
+            child5.stdin.end();
+            child5.on('error', reject);
+            child5.stdout.on('error', reject);
+            child5.stdout.setEncoding('utf8');
+            let buffer = '';
+            child5.stdout.on('data', (data) => {
+                buffer += data;
+            });
+            child5.stdout.on('end', () => resolve(buffer));
+        });
+
+        if (this.options.debug)
+            await output5(`./paraphraser-pivot2.json`, JSON.stringify(JSON.parse(stdout5), null, 2));
+        
+        const child6 = child_process.spawn(`genienlp`, args2, { stdio: ['pipe', 'pipe', 'inherit'] });
+        const output6 = util.promisify(fs.writeFile);
+        const stdout6 = await new Promise((resolve, reject) => {
+            child6.stdin.write(this._input.join('\n'));
+            child6.stdin.end();
+            child6.on('error', reject);
+            child6.stdout.on('error', reject);
+            child6.stdout.setEncoding('utf8');
+            let buffer = '';
+            child6.stdout.on('data', (data) => {
+                buffer += data;
+            });
+            child6.stdout.on('end', () => resolve(buffer));
+        });
+
+        if (this.options.debug)
+            await output6(`./paraphraser-out.json`, JSON.stringify(JSON.parse(stdout6), null, 2));
+
+        this._output = JSON.parse(stdout6);
     }
 
     generateInput(candidates) {
