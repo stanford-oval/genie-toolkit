@@ -34,7 +34,7 @@ export default async function testCloudSync(engine) {
     const platform = engine.platform;
     const prefs = platform.getSharedPreferences(platform);
 
-    const tierManager = engine._tiers;
+    const tierManager = engine._sync;
 
     assert.strictEqual(tierManager.ownTier, 'desktop');
     assert.strictEqual(tierManager.ownIdentity.length, 17);
