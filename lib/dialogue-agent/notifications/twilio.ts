@@ -22,7 +22,6 @@ import * as Tp from 'thingpedia';
 import * as twilio from 'twilio';
 
 import type Engine from '../../engine';
-import { FormattedObject } from './formatter';
 
 interface TwilioConfig {
     accountSid : string;
@@ -31,7 +30,7 @@ interface TwilioConfig {
     fromByLocale ?: Record<string, string>;
 }
 
-export default class TwilioNotificationBackend {
+export default class TwilioNotificationBackend implements Tp.Capabilities.NotificationBackend {
     private _platform : Tp.BasePlatform;
     private _client : twilio.Twilio;
     private _from : string;
@@ -54,7 +53,7 @@ export default class TwilioNotificationBackend {
         icon : string|null;
         raw : Record<string, unknown>;
         type : string;
-        formatted : FormattedObject[]
+        formatted : Tp.FormatObjects.FormattedObject[]
     }, config ?: Record<string, string>) {
         let to;
         if (config) {

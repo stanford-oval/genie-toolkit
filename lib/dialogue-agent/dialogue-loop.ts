@@ -20,7 +20,7 @@
 
 
 import assert from 'assert';
-
+import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
 import AsyncQueue from 'consumer-queue';
 
@@ -37,7 +37,6 @@ import { CancellationError } from './errors';
 
 import type Conversation from './conversation';
 import { ConversationState } from './conversation';
-import { FormattedObject } from './card-output/card-formatter';
 import AppExecutor from '../engine/apps/app_executor';
 
 import ExecutionDialogueAgent from './execution_dialogue_agent';
@@ -55,7 +54,15 @@ export enum CommandAnalysisType {
     // some sort of command
     CONFIDENT_IN_DOMAIN_COMMAND,
     NONCONFIDENT_IN_DOMAIN_COMMAND,
+    CONFIDENT_IN_DOMAIN_FOLLOWUP,
+    NONCONFIDENT_IN_DOMAIN_FOLLOWUP,
     OUT_OF_DOMAIN_COMMAND,
+}
+
+const enum Confidence {
+    NO,
+    MAYBE,
+    YES
 }
 
 export interface CommandAnalysisResult {
@@ -66,7 +73,7 @@ export interface CommandAnalysisResult {
 }
 
 export interface ReplyResult {
-    messages : Array<string|FormattedObject>;
+    messages : Array<string|Tp.FormatObjects.FormattedObject>;
     expecting : ValueCategory|null;
 
     // used in the conversation logs
@@ -75,13 +82,14 @@ export interface ReplyResult {
 }
 
 export enum DialogueHandlerPriority {
-    FALLBACK, // "Sorry, I did not understand that."
+    FALLBACK, // general fallbacks, barely above "Sorry, I did not understand that."
     SECONDARY, // can take over if confident, or if nothing better is available
     PRIMARY, // will always take over if confident or almost confident
 }
 
 export interface DialogueHandler<AnalysisType extends CommandAnalysisResult, StateType> {
     priority : DialogueHandlerPriority;
+    icon : string|null;
 
     initialize(initialState : StateType|undefined, showWelcome : boolean) : Promise<ReplyResult|null>;
     getState() : StateType;
@@ -112,8 +120,9 @@ export class DialogueLoop {
         thingtalk : ThingTalkDialogueHandler,
         [key : string] : DialogueHandler<any, any>
     };
+    private _currentHandler : DialogueHandler<any, any>|null;
 
-    icon : string|null;
+    private icon : string|null;
     expecting : ValueCategory|null;
     platformData : PlatformData;
     choices : string[];
@@ -146,6 +155,7 @@ export class DialogueLoop {
         };
         for (const faq in FAQS)
             this._handlers[faq] = new FAQDialogueHandler(this, FAQS[faq]);
+        this._currentHandler = null;
 
         this.icon = null;
         this.expecting = null;
@@ -221,7 +231,14 @@ export class DialogueLoop {
 
     private async _analyzeCommand(command : UserInput) : Promise<[DialogueHandler<any, any>|undefined, CommandAnalysisResult]> {
         try {
-            let best : DialogueHandler<any, any>|undefined, bestanalysis : CommandAnalysisResult|undefined, bestpriority = -1;
+            let best : DialogueHandler<any, any>|undefined, bestanalysis : CommandAnalysisResult|undefined;
+            let bestconfidence = Confidence.NO;
+
+            // This algorithm will choose the dialogue handlers that reports:
+            // - the highest confidence
+            // - if a tie, the highest priority
+            // - if a tie, the current handler
+            // - if a tie, the first handler that reports any confidence at all
 
             for (const key in this._handlers) {
                 const handler = this._handlers[key];
@@ -233,28 +250,61 @@ export class DialogueLoop {
                 case CommandAnalysisType.NEVERMIND:
                 case CommandAnalysisType.WAKEUP:
                 case CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND:
-                    // take over if either
+                    // choose if either
                     // - we're higher priority
                     // - we're more confident
-                    if (handler.priority > bestpriority ||
-                        bestanalysis === undefined ||
-                        bestanalysis.type === CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND) {
+                    // - we're the current dialogue and we have the same priority
+                    if (best === undefined ||
+                        handler.priority > best.priority ||
+                        bestconfidence < Confidence.YES ||
+                        (this._currentHandler === handler &&
+                         handler.priority >= best.priority)) {
                         best = handler;
                         bestanalysis = analysis;
-                        bestpriority = handler.priority;
+                        bestconfidence = Confidence.YES;
                     }
                     break;
 
                 case CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND:
-                    // take over if both:
-                    // - we're higher priority
+                    // choose if both:
+                    // - we're higher priority (same if we're the current dialogue)
                     // - we're as confident
-                    if (bestanalysis === undefined ||
-                        (handler.priority > bestpriority &&
-                        bestanalysis.type === CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND)) {
+                    if (best === undefined ||
+                        ((handler.priority > best.priority ||
+                         (this._currentHandler === handler &&
+                         handler.priority >= best.priority)) &&
+                        bestconfidence <= Confidence.MAYBE)) {
                         best = handler;
                         bestanalysis = analysis;
-                        bestpriority = handler.priority;
+                        bestconfidence = Confidence.MAYBE;
+                    }
+                    break;
+
+                case CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP:
+                    // choose if handler is the current handler and either
+                    // - we're same priority
+                    // - we're more confident
+                    if (this._currentHandler === handler &&
+                        (best === undefined ||
+                         handler.priority >= best.priority ||
+                         bestconfidence < Confidence.YES)) {
+                        best = handler;
+                        bestanalysis = analysis;
+                        bestconfidence = Confidence.YES;
+                    }
+                    break;
+
+                case CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_FOLLOWUP:
+                    // choose if handler is the current handler and either
+                    // - we're same priority
+                    // - we're as confident
+                    if (this._currentHandler === handler &&
+                        (best === undefined ||
+                         (handler.priority >= best.priority &&
+                          bestconfidence <= Confidence.MAYBE))) {
+                        best = handler;
+                        bestanalysis = analysis;
+                        bestconfidence = Confidence.YES;
                     }
                     break;
 
@@ -339,7 +389,9 @@ export class DialogueLoop {
                 continue;
             }
 
+            this._currentHandler = handler;
             const reply = await handler.getReply(analysis);
+            this.icon = handler.icon;
             await this._sendAgentReply(reply);
 
             while (this.expecting === null) {
@@ -347,6 +399,7 @@ export class DialogueLoop {
                 if (followUp === null)
                     break;
 
+                this.icon = handler.icon;
                 await this._sendAgentReply(followUp);
             }
 
@@ -397,9 +450,10 @@ export class DialogueLoop {
                     await this._handleAPICall(item);
             } catch(e) {
                 if (e.code === 'ECANCELLED') {
-                    this.icon = null;
                     for (const key in this._handlers)
                         this._handlers[key].reset();
+                    this._currentHandler = null;
+                    this.icon = null;
                     await this.setExpected(null);
                     // if the dialogue terminated, save the last utterance from the agent
                     // in a new turn with an empty utterance from the user
@@ -572,7 +626,7 @@ export class DialogueLoop {
         await this.conversation.sendReply(msg, icon || this.icon);
     }
 
-    async replyGeneric(message : string|FormattedObject, icon ?: string|null) {
+    async replyGeneric(message : string|Tp.FormatObjects.FormattedObject, icon ?: string|null) {
         if (typeof message === 'string')
             await this.reply(message, icon);
         else if (message.type === 'picture' || message.type === 'audio' || message.type === 'video')

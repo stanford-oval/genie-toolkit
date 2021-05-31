@@ -40,6 +40,7 @@ const CONFIDENCE_THRESHOLD = 0.4;
 
 export default class FAQDialogueHandler implements DialogueHandler<FAQCommandAnalysisType, undefined> {
     priority = DialogueHandlerPriority.SECONDARY;
+    icon = null;
     private _loop : DialogueLoop;
     private _url : string;
 

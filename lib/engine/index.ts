@@ -37,7 +37,7 @@ import type AppExecutor from './apps/app_executor';
 
 import AssistantDispatcher from '../dialogue-agent/assistant_dispatcher';
 import { NotificationConfig } from '../dialogue-agent/notifications';
-import NotificationFormatter, { FormattedObject } from '../dialogue-agent/notifications/formatter';
+import NotificationFormatter from '../dialogue-agent/notifications/formatter';
 
 import * as Config from '../config';
 
@@ -168,7 +168,7 @@ interface CreateAppOptions {
 interface AppResult {
     raw : Record<string, unknown>;
     type : string;
-    formatted : FormattedObject[];
+    formatted : Tp.FormatObjects.FormattedObject[];
 }
 
 /**

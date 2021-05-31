@@ -19,22 +19,20 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import interpolate from 'string-interp';
+import * as Tp from 'thingpedia';
 import { SchemaRetriever } from 'thingtalk';
 
 import * as I18n from '../../i18n';
 import {
     FORMAT_TYPES,
-    FormattedObjectSpec,
-    FormattedObject,
     FormattedObjectClass,
     isNull
 } from './format_objects';
 
 type PlainObject = { [key : string] : unknown };
 
-type FormatSpecChunk = string | FormattedObjectSpec;
+type FormatSpecChunk = string | Tp.FormatObjects.FormattedObject;
 export type FormatSpec = FormatSpecChunk[];
-export { FormattedObject };
 
 /**
  * An object that is able to convert structured ThingTalk results
@@ -76,7 +74,7 @@ export default class CardFormatter {
         return replaced;
     }
 
-    async formatForType(outputType : string, outputValue : PlainObject) : Promise<FormattedObject[]> {
+    async formatForType(outputType : string, outputValue : PlainObject) : Promise<Tp.FormatObjects.FormattedObject[]> {
         // apply masquerading for @remote.receive
         if (outputType === 'org.thingpedia.builtin.thingengine.remote:receive')
             outputType = String(outputValue.__kindChannel);
@@ -97,7 +95,7 @@ export default class CardFormatter {
         const [kind, function_name] = outputType.split(':');
         const formatspec = (await this._schemas.getFormatMetadata(kind, function_name)) as FormatSpecChunk[];
 
-        return formatspec.map((f : FormatSpecChunk, i : number) : FormattedObject|null => {
+        return formatspec.map((f : FormatSpecChunk, i : number) : Tp.FormatObjects.FormattedObject|null => {
             if (typeof f === 'string')
                 f = { type: 'text', text: f };
 
@@ -113,6 +111,6 @@ export default class CardFormatter {
                 return null;
 
             return obj;
-        }).filter((formatted) : formatted is FormattedObject => !isNull(formatted));
+        }).filter((formatted) : formatted is Tp.FormatObjects.FormattedObject => !isNull(formatted));
     }
 }

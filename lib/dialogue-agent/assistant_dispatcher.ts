@@ -19,6 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
+import * as Tp from 'thingpedia';
 import * as events from 'events';
 
 import Conversation, {
@@ -33,7 +34,6 @@ import {
     ThingpediaNotificationBackend,
     NotificationConfig,
     NotificationDelegate,
-    NotificationBackend
 } from './notifications';
 
 import AppExecutor from '../engine/apps/app_executor';
@@ -107,7 +107,7 @@ export default class AssistantDispatcher extends events.EventEmitter {
     private _nluModelUrl : string|undefined;
 
     private _notificationOutputs : Set<NotificationDelegate>;
-    private _staticNotificationBackends : Record<string, NotificationBackend>;
+    private _staticNotificationBackends : Record<string, Tp.Capabilities.NotificationBackend>;
     private _conversations : Map<string, Conversation>;
     private _lastConversation : Conversation|null;
 
@@ -191,7 +191,7 @@ export default class AssistantDispatcher extends events.EventEmitter {
     /**
      * Get the list of notification backends that can be used.
      */
-    getAvailableNotificationBackends() : NotificationBackend[] {
+    getAvailableNotificationBackends() : Tp.Capabilities.NotificationBackend[] {
         const backends = Object.values(this._staticNotificationBackends);
         for (const dev of this._notificationDeviceView.values())
             backends.push(new ThingpediaNotificationBackend(dev));
