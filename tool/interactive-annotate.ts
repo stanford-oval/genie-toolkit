@@ -229,7 +229,7 @@ class Annotator extends events.EventEmitter {
             getState() {
                 return {
                     history: [],
-                    dialogueState: 'null',
+                    dialogueState: {},
                     expected: null
                 };
             }

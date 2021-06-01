@@ -207,7 +207,7 @@ class SoundEffect extends BaseFormattedObject implements SoundEffectSpec {
      *
      * @param {Object} spec
      * @param {string} spec.name - the name of the sound, from the {@link http://0pointer.de/public/sound-theme-spec.html|Freedesktop Sound Theme Spec}
-     *                             (with a couple Almond-specific extensions)
+     *                             (with a couple Genie-specific extensions)
      */
     constructor(spec : SoundEffectSpec) {
         super();
@@ -312,6 +312,42 @@ class Text extends BaseFormattedObject implements TextSpec {
     }
 }
 
+interface ButtonSpec {
+    type : 'button';
+    title : string;
+    json : string;
+}
+/**
+ * A button that triggers a pre-parsed command.
+ */
+ export class Button extends BaseFormattedObject implements ButtonSpec {
+    type : 'button';
+    title : string;
+    json : string;
+
+    /**
+     * Construct a new text object.
+     *
+     * @param {Object} spec
+     * @param {string} spec.text - the text to display
+     */
+    constructor(spec : ButtonSpec) {
+        super();
+
+        this.type = spec.type;
+        this.title = spec.title;
+        this.json = spec.json;
+    }
+
+    isValid() : boolean {
+        return !isNull(this.title) && !isNull(this.json);
+    }
+
+    toLocaleString(locale : string) : string {
+        return this.title;
+    }
+}
+
 export interface FormattedObjectClass {
     new (obj : FormattedObjectSpec) : FormattedObject;
 }
@@ -322,17 +358,20 @@ export const FORMAT_TYPES = {
     'picture': Media,
     'audio': Media,
     'video': Media,
-    'text': Text
+    'text': Text,
+    'button': Button
 };
 
 export type FormattedObjectSpec =
     RDLSpec |
     SoundEffectSpec |
     MediaSpec |
-    TextSpec;
+    TextSpec |
+    ButtonSpec;
 
 export type FormattedObject =
     RDL |
     SoundEffect |
     Media |
-    Text;
+    Text |
+    Button;

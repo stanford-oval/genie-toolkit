@@ -80,6 +80,7 @@ export default class DefaultLanguagePack {
     ARGUMENT_NAME_OVERRIDES ! : { [key : string] : string[] };
     IGNORABLE_TOKENS ! : { [key : string] : string[] };
     _NO_SPACE_TOKENS ! : Set<string>;
+    _NO_SPACE_AFTER_TOKENS ! : Set<string>;
     NO_IDEA ! : string[];
     CHANGE_SUBJECT_TEMPLATES ! : string[];
     SINGLE_DEVICE_TEMPLATES ! : Array<[string, RegExp|null]>;
@@ -392,7 +393,13 @@ export default class DefaultLanguagePack {
      * It can be used to detokenize one token at a time.
      */
     detokenize(sentence : string, prevtoken : string|null, token : string) : string {
-        if (sentence && !this._NO_SPACE_TOKENS.has(token))
+        if (token === '.' && prevtoken && /[.!?]$/.test(prevtoken))
+            return sentence;
+        if (token === '?' && prevtoken === '.')
+            return sentence;
+        if (!token)
+            return sentence;
+        if (prevtoken && !this._NO_SPACE_AFTER_TOKENS.has(prevtoken) && sentence && !this._NO_SPACE_TOKENS.has(token))
             sentence += ' ';
         sentence += token;
         return sentence;
@@ -838,6 +845,13 @@ DefaultLanguagePack.prototype.ABBREVIATIONS = {};
  * implementation.
  */
 DefaultLanguagePack.prototype._NO_SPACE_TOKENS = new Set(['.', ',', '?', '!', ':']);
+
+/**
+ * Tokens that should not be followed by a space.
+ * This is used by the default {@link DefaultLanguagePack#detokenize}
+ * implementation.
+ */
+DefaultLanguagePack.prototype._NO_SPACE_AFTER_TOKENS = new Set([]);
 
 /**
  * All the different forms in which MTurk workers write "no idea" for a sentence
