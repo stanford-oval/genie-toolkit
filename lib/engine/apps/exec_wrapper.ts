@@ -45,7 +45,7 @@ function extendParams(output : Record<string, unknown>,
 export interface OutputDelegate {
     done() : void;
     output(outputType : string, outputValue : Record<string, unknown>) : void;
-    notifyError(error : Error) : void;
+    error(error : Error) : void;
 }
 
 type MaybePromise<T> = T|Promise<T>;
@@ -71,7 +71,7 @@ function recursivelyComputeOutputType(kind : string, expr : Ast.Expression) : st
  * Wrap a ThingTalk statement and provide access to the Engine.
  *
  * This is an implementation of {@link external:thingtalk.ExecEnvironment}
- * suitable for running with the Almond engine.
+ * suitable for running with the Genie engine.
  *
  * @package
  */
@@ -291,7 +291,7 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
 
         console.error(message, error);
         this.app.setError(error);
-        await this._outputDelegate.notifyError(error);
+        await this._outputDelegate.error(error);
     }
 
     async output(outputType : string, outputValues : Record<string, unknown>) : Promise<void> {

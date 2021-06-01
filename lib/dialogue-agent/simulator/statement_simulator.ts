@@ -110,24 +110,27 @@ export class ThingTalkSimulatorState {
             generator.addCandidate(slot.get());
         }
         this._execEnv.generator = generator;
-        this._execEnv.output = async (outputType : string, outputValue : { [key : string] : unknown }) => {
-            const mapped = new Ast.DialogueHistoryResultItem(null, await this._mapResult(outputType, outputValue));
-            results.push(mapped);
-            rawResults.push([outputType, outputValue]);
-        };
-        this._execEnv.reportError = async (msg, err) => {
-            if (!(err instanceof SimulatedError)) {
-                console.error(`Failed to execute program`);
-                console.error(msg, err);
-                console.error(new Ast.Program(null, [], [], [stmt]).prettyprint());
-                process.exit(1);
-                return;
+
+        this._execEnv.setOutputDelegate({
+            output: async (outputType : string, outputValue : { [key : string] : unknown }) => {
+                const mapped = new Ast.DialogueHistoryResultItem(null, await this._mapResult(outputType, outputValue));
+                results.push(mapped);
+                rawResults.push([outputType, outputValue]);
+            },
+            error: (err) => {
+                if (!(err instanceof SimulatedError)) {
+                    console.error(`Failed to execute program`);
+                    console.error(err);
+                    console.error(new Ast.Program(null, [], [], [stmt]).prettyprint());
+                    process.exit(1);
+                    return;
+                }
+                if (err.code)
+                    error = new Ast.Value.Enum(err.code);
+                else
+                    error = new Ast.Value.String(err.message);
             }
-            if (err.code)
-                error = new Ast.Value.Enum(err.code);
-            else
-                error = new Ast.Value.String(err.message);
-        };
+        });
 
         try {
             assert(typeof compiled.command === 'function');

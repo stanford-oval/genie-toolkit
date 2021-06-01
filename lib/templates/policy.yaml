@@ -27,6 +27,9 @@ dialogueActs:
 
     # pseudo state used to enter the dialogue state machine for notifications
     - notification
+
+    # pseudo state used to enter the dialogue state machine before the first turn
+    - init
   agent:
     # agent says hi back
     - sys_greet
