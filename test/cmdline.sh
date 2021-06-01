@@ -55,7 +55,7 @@ diff -u com.spotify:genre.tsv $srcdir/test/data/en-US/expected-spotify-genre.tsv
 node $srcdir/dist/tool/genie.js generate --help
 node $srcdir/dist/tool/genie.js generate --maxdepth 2 \
   --thingpedia thingpedia.tt --entities entities.json --dataset dataset.tt \
-  --template $srcdir/languages-dist/thingtalk/en/thingtalk.genie -o /dev/null -l en
+  -o /dev/null -l en
 
 # sample
 node $srcdir/dist/tool/genie.js sample -o synthetic-sampled.tsv \

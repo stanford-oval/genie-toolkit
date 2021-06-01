@@ -38,7 +38,6 @@ music_paraphrase =
 
 eval_set ?= eval
 
-template_file ?= thingtalk/en/thingtalk.genie
 dataset_file ?= emptydataset.tt
 synthetic_flags ?= \
 	projection_with_filter \
@@ -120,9 +119,8 @@ emptydataset.tt:
 multidomain/manifest.tt: $(addsuffix /manifest.tt,$(all_experiments))
 	cat $^ > $@
 
-%/synthetic.tsv: %/manifest.tt $(dataset_file) $(geniedir)/languages-dist/thingtalk/en/*.genie.js
+%/synthetic.tsv: %/manifest.tt $(dataset_file)
 	$(genie) generate \
-	  --template $(geniedir)/languages-dist/$(template_file) \
 	  --thingpedia $*/manifest.tt --entities $*/entities.json --dataset $(dataset_file) \
 	  --target-pruning-size $(target_pruning_size) \
 	  -o $@.tmp --no-debug $(generate_flags) --maxdepth $(maxdepth) \

@@ -32,26 +32,6 @@ import { EntityMap } from '../utils/entity-utils';
 const MAX_DEPTH = 8;
 const TARGET_PRUNING_SIZES = [15, 50, 100, 200];
 
-let TEMPLATE_FILE_PATH : string;
-try {
-    // try the path relative to our build location first (in dist/lib/dialogue-agent)
-    TEMPLATE_FILE_PATH = require.resolve('../../../languages-dist/thingtalk/en/dialogue.genie');
-} catch(e) {
-    if (e.code !== 'MODULE_NOT_FOUND')
-        throw e;
-    try {
-        // if that fails, try the location relative to our source directory
-        // (in case we're running with ts-node)
-        TEMPLATE_FILE_PATH = require.resolve('../../languages-dist/thingtalk/en/dialogue.genie');
-    } catch(e) {
-        if (e.code !== 'MODULE_NOT_FOUND')
-            throw e;
-        // if that still fails, we're probably in the "compile-template" call
-        // in a clean build, so set ourselves empty (it will not matter)
-        TEMPLATE_FILE_PATH = '';
-    }
-}
-
 function arrayEqual<T>(a : T[], b : T[]) : boolean {
     if (a.length !== b.length)
         return false;
@@ -155,7 +135,7 @@ export default class DialoguePolicy {
             rng: this._rng,
             locale: this._locale,
             timezone: this._timezone,
-            templateFiles: [TEMPLATE_FILE_PATH],
+            templateFiles: ['dialogue.genie'],
             thingpediaClient: this._thingpedia,
             schemaRetriever: this._schemas,
             entityAllocator: this._entityAllocator,

@@ -14,7 +14,6 @@ all_experiments = $(all_domains) multidomain
 experiment ?= multidomain
 # eval (dev) or test
 eval_set ?= eval
-template_file ?= thingtalk/en/dialogue.genie
 dataset_file ?= $(experiment)/dataset.tt
 synthetic_flags ?= \
 	dialogues \
@@ -62,11 +61,6 @@ generate_flags = $(foreach v,$(synthetic_flags),--set-flag $(v)) --target-prunin
 custom_gen_flags ?=
 
 schema_deps = $(experiment)/schema.tt $(experiment)/entities.json
-template_deps = \
-	$(geniedir)/languages-dist/thingtalk/*.js \
-	$(geniedir)/languages-dist/thingtalk/*.genie.js \
-	$(geniedir)/languages-dist/thingtalk/en/*.genie.js \
-	$(geniedir)/languages-dist/thingtalk/en/dlg/*.genie.js
 
 evalflags ?=
 
@@ -103,10 +97,9 @@ multidomain/test/annotated.txt : $(foreach v,$(all_domains),$(v)/test/annotated.
 	mkdir -p $(dir $@)
 	cat $^ > $@
 
-$(experiment)/synthetic-%.txt : $(schema_deps) $(dataset_file) $(template_deps)
+$(experiment)/synthetic-%.txt : $(schema_deps) $(dataset_file)
 	$(genie) generate-dialogs \
 	  --locale en-US --target-language thingtalk \
-	  --template $(geniedir)/languages-dist/$(template_file) \
 	  --thingpedia $(experiment)/schema.tt --entities $(experiment)/entities.json --dataset $(dataset_file) \
 	  -o $@.tmp -f txt $(generate_flags) --no-debug $(custom_gen_flags) --random-seed $@ \
 	  -n $(target_size) -B $(minibatch_size)

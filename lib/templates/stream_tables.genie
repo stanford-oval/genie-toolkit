@@ -1,0 +1,632 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2019-2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Author: Silei Xu <silei@cs.stanford.edu>
+//         Giovanni Campagna <gcampagn@cs.stanford.edu>
+
+import { Ast, Type } from 'thingtalk';
+
+import * as C from './ast_manip';
+import ThingpediaLoader from './load-thingpedia';
+
+complete_table : Ast.Expression = {
+    q:thingpedia_complete_query => {
+        if (q instanceof Ast.AggregationExpression)
+            return null;
+        return q;
+    };
+
+    !notablejoin table_join_replace_placeholder;
+    //filter:apv_filter q:thingpedia_complete_query => C.addFilter(q, filter);
+
+    ( table:complete_table param:preposition_input_param with { functionName = table.functionName }
+    | table:complete_table ('with' | 'having') param:npp_input_param with { functionName = table.functionName }
+    | param:apv_input_param table:complete_table with { functionName = param.functionName }
+    | table:complete_table param:pvp_input_param with { functionName = table.functionName }
+    ) => C.addActionInputParam($loader, table, param);
+}
+
+complete_get_command : Ast.Expression = {
+    thingpedia_complete_get_command;
+
+    ( table:complete_get_command param:preposition_input_param with { functionName = table.functionName }
+    | table:complete_table ('with' | 'having') param:npp_input_param with { functionName = table.functionName }
+    ) => C.addActionInputParam($loader, table, param);
+}
+
+// if filter: if it rains (used for stream only)
+if_filtered_table : Ast.Expression = {
+    !always_filter complete_table;
+    one_if_filter_table;
+    !turking two_if_filter_table;
+}
+
+one_if_filter_table : Ast.Expression = {
+    !nofilter {
+        ( table:complete_table 'if' filter:if_filter with { functionName = table.functionName }
+        | table:complete_table 'if' filter:if_filter with { functionName = null }
+        ) => C.addFilter(table, filter, { ifFilter: true });
+    }
+}
+
+two_if_filter_table : Ast.Expression = {
+    !nofilter {
+        ( table:one_if_filter_table 'and' filter:if_filter with { functionName = table.functionName }
+        | table:one_if_filter_table 'and' filter:if_filter with { functionName = null }
+        ) => C.addFilter(table, filter, { ifFilter: true });
+    }
+}
+
+// non-verb filter:
+// (1) with filtered: restaurants with name bla
+// (2) which filtered: restaurants which have name bla
+// (3) "clean" filtered (i.e., no which/with): chinese restaurants, reviews written by bob
+with_filtered_table : Ast.Expression = {
+    complete_table [weight=3];
+
+    // one filter
+    one_with_filter_table;
+    one_which_filter_table;
+    one_clean_filter_table;
+
+    // two filters
+    two_with_filter_table;
+    two_which_filter_table;
+    two_clean_filter_table;
+
+    // three filters
+    three_with_filter_table [weight=0.1];
+    three_which_filter_table [weight=0.1];
+    three_clean_filter_table [weight=0.1];
+}
+
+answer_noun_phrase : Ast.Expression = {
+    // one filter
+    one_with_filter_table [weight=10];
+    one_which_filter_table [weight=10];
+    one_clean_filter_table [weight=10];
+
+    // two filters
+    two_with_filter_table;
+    two_which_filter_table;
+    two_clean_filter_table;
+}
+
+one_with_filter_table : Ast.Expression = {
+    !nofilter {
+        ( table:complete_table ('with' | 'having') filter:with_filter with { functionName = table.functionName }
+        | table:complete_table ('with' | 'having') filter:npp_filter with { functionName = table.functionName }
+        ) => C.addFilter(table, filter);
+    }
+
+    // within distance filtered table
+    !turking {
+        !nofilter table:complete_table with { has_geo = true } filter:within_filter
+        => C.makeWithinGeoDistanceExpression(table, filter.place, filter.distance);
+    }
+}
+
+one_which_filter_table : Ast.Expression = {
+    !nofilter {
+        ( table:complete_table ('which' | 'that') ('is' | 'are') filter:npi_filter with { functionName = table.functionName }
+        | table:complete_table ('which' | 'that') filter:avp_filter with { functionName = table.functionName }
+        | table:complete_table ('which' | 'that') ('is' | 'are') filter:apv_filter with { functionName = table.functionName }
+        | table:complete_table ('which' | 'that') ('is' | 'are') filter:npv_filter with { functionName = table.functionName }
+        | table:complete_table ('which' | 'that') 'have' filter:npp_filter with { functionName = table.functionName }
+        | table:complete_table ('which' | 'that') 'have' filter:with_filter with { functionName = table.functionName }
+        | table:complete_table ('which' | 'that') filter:reverse_verb_filter with { functionName = table.functionName }
+        ) => C.addFilter(table, filter);
+    }
+}
+
+one_clean_filter_table : Ast.Expression = {
+    !nofilter {
+        ( filter:apv_filter table:complete_table with { functionName = filter.functionName }
+        | table:complete_table filter:pvp_filter with { functionName = table.functionName }
+        | table:complete_table filter:preposition_filter with { functionName = table.functionName }
+        ) => C.addFilter(table, filter);
+
+        filter:quality_filter table:complete_table => C.addFilter(table, filter);
+        table:complete_table with { has_geo = true } filter:nearby_filter => C.addFilter(table, filter);
+    }
+}
+
+two_with_filter_table : Ast.Expression = {
+    !nofilter {
+        ( table:one_with_filter_table 'and' filter:with_filter with { functionName = table.functionName }
+        | table:one_which_filter_table ('' | ',') ('and having' | 'and with' | ', with' | 'and have') filter:with_filter with { functionName = table.functionName }
+        | table:one_clean_filter_table ('' | ',') ('with' | 'having' | 'that have') filter:with_filter with { functionName = table.functionName }
+        | table:one_with_filter_table 'and' filter:npp_filter with { functionName = table.functionName }
+        | table:one_which_filter_table ('' | ',') ('and having' | 'and with' | ', with' | 'and have') filter:npp_filter with { functionName = table.functionName }
+        | table:one_clean_filter_table ('' | ',') ('with' | 'having' | 'that have') filter:npp_filter with { functionName = table.functionName }
+        ) => C.addFilter(table, filter);
+    }
+
+    !nofilter filter:apv_filter table:one_with_filter_table with { functionName = filter.functionName } => C.addFilter(table, filter);
+
+    // within distance filtered table
+    !turking {
+        !nofilter (
+              table:one_with_filter_table with { has_geo = true } filter:within_filter
+            | table:one_which_filter_table with { has_geo = true } filter:within_filter
+            | table:one_clean_filter_table with { has_geo = true } filter:within_filter
+        ) => C.makeWithinGeoDistanceExpression(table, filter.place, filter.distance);
+    }
+}
+
+two_which_filter_table : Ast.Expression = {
+    !nofilter {
+        ( table:one_with_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:npi_filter with { functionName = table.functionName }
+        | table:one_with_filter_table ('' | ',') ('which' | 'that') filter:avp_filter with { functionName = table.functionName }
+        | table:one_with_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:apv_filter with { functionName = table.functionName }
+        | table:one_with_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:npv_filter with { functionName = table.functionName }
+        | table:one_with_filter_table ('' | ',') ('which' | 'that') 'have' filter:npp_filter with { functionName = table.functionName }
+        | table:one_with_filter_table ('' | ',') ('which' | 'that') 'have' filter:with_filter with { functionName = table.functionName }
+        | table:one_with_filter_table ('' | ',') ('which' | 'that') filter:reverse_verb_filter with { functionName = table.functionName }
+        ) => C.addFilter(table, filter);
+
+        ( table:one_which_filter_table ('' | ',') 'and' ('is' | 'are') filter:npi_filter with { functionName = table.functionName }
+        | table:one_which_filter_table 'and' filter:avp_filter with { functionName = table.functionName }
+        | table:one_which_filter_table ('' | ',') 'and' ('is' | 'are') filter:apv_filter with { functionName = table.functionName }
+        | table:one_which_filter_table ('' | ',') 'and' ('is' | 'are') filter:npv_filter with { functionName = table.functionName }
+        | table:one_which_filter_table ('' | ',') 'and' 'have' filter:npp_filter with { functionName = table.functionName }
+        | table:one_which_filter_table ('' | ',') 'and' 'have' filter:with_filter with { functionName = table.functionName }
+        | table:one_which_filter_table ('' | ',') 'and' filter:reverse_verb_filter with { functionName = table.functionName }
+        ) => C.addFilter(table, filter);
+
+        ( table:one_clean_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:npi_filter with { functionName = table.functionName }
+        | table:one_clean_filter_table ('' | ',') ('which' | 'that') filter:avp_filter with { functionName = table.functionName }
+        | table:one_clean_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:apv_filter with { functionName = table.functionName }
+        | table:one_clean_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:npv_filter with { functionName = table.functionName }
+        | table:one_clean_filter_table ('' | ',') ('which' | 'that') 'have' filter:npp_filter with { functionName = table.functionName }
+        | table:one_clean_filter_table ('' | ',') ('which' | 'that') 'have' filter:with_filter with { functionName = table.functionName }
+        | table:one_clean_filter_table ('' | ',') ('which' | 'that') filter:reverse_verb_filter with { functionName = table.functionName }
+        ) => C.addFilter(table, filter);
+
+        !nofilter filter:apv_filter table:one_which_filter_table with { functionName = filter.functionName } => C.addFilter(table, filter);
+    }
+}
+
+two_clean_filter_table : Ast.Expression = {
+    !nofilter {
+        ( filter:apv_filter table:one_clean_filter_table with { functionName = filter.functionName }
+        | table:one_clean_filter_table filter:pvp_filter with { functionName = table.functionName }
+        | table:one_clean_filter_table filter:preposition_filter with { functionName = table.functionName }
+        ) => C.addFilter(table, filter);
+
+        filter:quality_filter table:one_clean_filter_table => C.addFilter(table, filter);
+        table:one_clean_filter_table with { has_geo = true } filter:nearby_filter => C.addFilter(table, filter);
+    }
+}
+
+three_with_filter_table : Ast.Expression = {
+    !nofilter {
+        ( table:two_with_filter_table 'and' filter:with_filter with { functionName = table.functionName }
+        | table:two_which_filter_table ('' | ',') ('and having' | 'and with' | ', with' | 'and have') filter:with_filter with { functionName = table.functionName }
+        | table:two_clean_filter_table ('' | ',') ('with' | 'having' | 'that have') filter:with_filter with { functionName = table.functionName }
+        | table:two_with_filter_table 'and' filter:npp_filter with { functionName = table.functionName }
+        | table:two_which_filter_table ('' | ',') ('and having' | 'and with' | ', with' | 'and have') filter:npp_filter with { functionName = table.functionName }
+        | table:two_clean_filter_table ('' | ',') ('with' | 'having' | 'that have') filter:npp_filter with { functionName = table.functionName }
+        ) => C.addFilter(table, filter);
+    }
+
+    !nofilter filter:apv_filter table:two_with_filter_table with { functionName = filter.functionName } => C.addFilter(table, filter);
+
+    // within distance filtered table
+    !turking {
+        !nofilter (
+              table:two_with_filter_table with { has_geo = true } filter:within_filter
+            | table:two_which_filter_table with { has_geo = true } filter:within_filter
+            | table:two_clean_filter_table with { has_geo = true } filter:within_filter
+        ) => C.makeWithinGeoDistanceExpression(table, filter.place, filter.distance);
+    }
+}
+
+three_which_filter_table : Ast.Expression = {
+    !nofilter {
+        ( table:two_with_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:npi_filter with { functionName = table.functionName }
+        | table:two_with_filter_table ('' | ',') ('which' | 'that') filter:avp_filter with { functionName = table.functionName }
+        | table:two_with_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:apv_filter with { functionName = table.functionName }
+        | table:two_with_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:npv_filter with { functionName = table.functionName }
+        | table:two_with_filter_table ('' | ',') ('which' | 'that') 'have' filter:npp_filter with { functionName = table.functionName }
+        | table:two_with_filter_table ('' | ',') ('which' | 'that') 'have' filter:with_filter with { functionName = table.functionName }
+        | table:two_with_filter_table ('' | ',') ('which' | 'that') filter:reverse_verb_filter with { functionName = table.functionName }
+        ) => C.addFilter(table, filter);
+
+        ( table:two_which_filter_table ('' | ',') 'and' ('is' | 'are') filter:npi_filter with { functionName = table.functionName }
+        | table:two_which_filter_table 'and' filter:avp_filter with { functionName = table.functionName }
+        | table:two_which_filter_table ('' | ',') 'and' ('is' | 'are') filter:apv_filter with { functionName = table.functionName }
+        | table:two_which_filter_table ('' | ',') 'and' ('is' | 'are') filter:npv_filter with { functionName = table.functionName }
+        | table:two_which_filter_table ('' | ',') 'and' 'have' filter:npp_filter with { functionName = table.functionName }
+        | table:two_which_filter_table ('' | ',') 'and' 'have' filter:with_filter with { functionName = table.functionName }
+        | table:two_which_filter_table ('' | ',') 'and' filter:reverse_verb_filter with { functionName = table.functionName }
+        ) => C.addFilter(table, filter);
+
+        ( table:two_clean_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:npi_filter with { functionName = table.functionName }
+        | table:two_clean_filter_table ('' | ',') ('which' | 'that') filter:avp_filter with { functionName = table.functionName }
+        | table:two_clean_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:apv_filter with { functionName = table.functionName }
+        | table:two_clean_filter_table ('' | ',') ('which' | 'that') ('is' | 'are') filter:npv_filter with { functionName = table.functionName }
+        | table:two_clean_filter_table ('' | ',') ('which' | 'that') 'have' filter:npp_filter with { functionName = table.functionName }
+        | table:two_clean_filter_table ('' | ',') ('which' | 'that') 'have' filter:with_filter with { functionName = table.functionName }
+        | table:two_clean_filter_table ('' | ',') ('which' | 'that') filter:reverse_verb_filter with { functionName = table.functionName }
+        ) => C.addFilter(table, filter);
+    }
+
+    !nofilter filter:apv_filter table:two_which_filter_table with { functionName = filter.functionName } => C.addFilter(table, filter);
+}
+
+three_clean_filter_table : Ast.Expression = {
+    !nofilter {
+        ( filter:apv_filter table:two_clean_filter_table with { functionName = filter.functionName }
+        | table:two_clean_filter_table filter:pvp_filter with { functionName = table.functionName }
+        | table:two_clean_filter_table filter:preposition_filter with { functionName = table.functionName }
+        ) => C.addFilter(table, filter);
+
+        filter:quality_filter table:two_clean_filter_table => C.addFilter(table, filter);
+        table:two_clean_filter_table with { has_geo = true } filter:nearby_filter => C.addFilter(table, filter);
+    }
+}
+
+anything_phrase : Ast.Expression = {
+    anything_with_filter_phrase;
+    anything_which_filter_phrase;
+    anything_clean_filter_phrase;
+}
+
+anything_with_filter_phrase : Ast.Expression = {
+    ( ('any' | 'some') phrase:generic_base_noun_phrase ('with' | 'having') filter:npp_filter with { functionName = phrase.functionName }
+    | phrase:generic_anything_noun_phrase ('with' | 'having') filter:npp_filter with { functionName = phrase.functionName }
+    ) => C.addFilter(phrase, filter);
+}
+
+anything_which_filter_phrase : Ast.Expression = {
+    ( ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') ('has' | 'have') filter:npp_filter with { functionName = phrase.functionName }
+    | ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter with { functionName = phrase.functionName }
+    | ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') filter:avp_filter with { functionName = phrase.functionName }
+    | ('any' | 'some') phrase:generic_base_noun_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter with { functionName = phrase.functionName }
+    | phrase:generic_anything_noun_phrase ('which' | 'that') ('has' | 'have') filter:npp_filter with { functionName = phrase.functionName }
+    | phrase:generic_anything_noun_phrase ('which' | 'that') ('is' | 'are') filter:npi_filter with { functionName = phrase.functionName }
+    | phrase:generic_anything_noun_phrase ('which' | 'that') filter:avp_filter with { functionName = phrase.functionName }
+    | phrase:generic_anything_noun_phrase ('which' | 'that') ('is' | 'are') filter:apv_filter with { functionName = phrase.functionName }
+    ) => C.addFilter(phrase, filter);
+}
+
+anything_clean_filter_phrase : Ast.Expression = {
+    ( ('any' | 'some') filter:apv_filter phrase:generic_base_noun_phrase with { functionName = filter.functionName }
+    | ('any' | 'some') phrase:generic_base_noun_phrase filter:pvp_filter with { functionName = phrase.functionName }
+    | ('any' | 'some') phrase:generic_base_noun_phrase filter:preposition_filter with { functionName = phrase.functionName }
+    | phrase:generic_anything_noun_phrase filter:apv_filter with { functionName = phrase.functionName }
+    | phrase:generic_anything_noun_phrase filter:pvp_filter with { functionName = phrase.functionName }
+    | phrase:generic_anything_noun_phrase filter:preposition_filter with { functionName = phrase.functionName }
+    | phrase:generic_anything_noun_phrase with { has_geo = true } filter:nearby_filter
+    | filter:quality_filter phrase:generic_anything_noun_phrase
+    ) => C.addFilter(phrase, filter);
+}
+
+// verb filter:
+// (1) be filter: reviews are written by bob
+// (2) have: restaurants have panda in name
+// (3) verb: restaurants serve chinese food
+verb_filtered_table : Ast.Expression = {
+    // one filter
+    one_be_filter_table;
+    one_have_filter_table;
+    one_verb_filter_table;
+
+    // two filters
+    two_be_filter_table;
+    two_have_filter_table;
+    two_verb_filter_table;
+}
+
+one_be_filter_table : Ast.Expression = {
+    !nofilter {
+        ( table:complete_table ('is' | 'are') filter:npi_filter with { functionName = table.functionName }
+        | table:complete_table ('is' | 'are') filter:pvp_filter with { functionName = table.functionName }
+        | table:complete_table ('is' | 'are') filter:apv_filter with { functionName = table.functionName }
+        | table:complete_table ('is' | 'are') filter:npv_filter with { functionName = table.functionName }
+        ) => C.addFilter(table, filter);
+    }
+}
+
+one_have_filter_table : Ast.Expression = {
+    !nofilter table:complete_table ('get' | 'have') filter:with_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+    !nofilter table:complete_table ('get' | 'have') filter:npp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+}
+
+one_verb_filter_table : Ast.Expression = {
+    !nofilter table:complete_table filter:avp_filter with { functionName = table.functionName } => C.addFilter(table, filter);
+}
+
+two_be_filter_table : Ast.Expression = {
+    !nofilter {
+        ( table:one_be_filter_table 'and' filter:npi_filter with { functionName = table.functionName }
+        | table:one_be_filter_table 'and' filter:pvp_filter with { functionName = table.functionName }
+        | table:one_be_filter_table 'and' filter:apv_filter with { functionName = table.functionName }
+        | table:one_be_filter_table 'and' filter:npv_filter with { functionName = table.functionName }
+        ) => C.addFilter(table, filter);
+
+        ( table:one_have_filter_table ('' | ',') 'and' ('is' | 'are') filter:npi_filter with { functionName = table.functionName }
+        | table:one_have_filter_table ('' | ',') 'and' ('is' | 'are') filter:pvp_filter with { functionName = table.functionName }
+        | table:one_have_filter_table ('' | ',') 'and' ('is' | 'are') filter:apv_filter with { functionName = table.functionName }
+        | table:one_have_filter_table ('' | ',') 'and' ('is' | 'are') filter:npv_filter with { functionName = table.functionName }
+        ) => C.addFilter(table, filter);
+
+        ( table:one_verb_filter_table ('' | ',') 'and' ('is' | 'are') filter:npi_filter with { functionName = table.functionName }
+        | table:one_verb_filter_table ('' | ',') 'and' ('is' | 'are') filter:pvp_filter with { functionName = table.functionName }
+        | table:one_verb_filter_table ('' | ',') 'and' ('is' | 'are') filter:apv_filter with { functionName = table.functionName }
+        | table:one_verb_filter_table ('' | ',') 'and' ('is' | 'are') filter:npv_filter with { functionName = table.functionName }
+        ) => C.addFilter(table, filter);
+    }
+}
+
+two_have_filter_table : Ast.Expression = {
+    !nofilter {
+        ( table:one_be_filter_table ('' | ',') 'and' ('get' | 'have') filter:with_filter with { functionName = table.functionName }
+        | table:one_have_filter_table 'and' filter:with_filter with { functionName = table.functionName }
+        | table:one_verb_filter_table ('' | ',') 'and' ('get' | 'have') filter:with_filter with { functionName = table.functionName }
+        | table:one_be_filter_table ('' | ',') 'and' ('get' | 'have') filter:npp_filter with { functionName = table.functionName }
+        | table:one_have_filter_table 'and' filter:npp_filter with { functionName = table.functionName }
+        | table:one_verb_filter_table ('' | ',') 'and' ('get' | 'have') filter:npp_filter with { functionName = table.functionName }
+        ) => C.addFilter(table, filter);
+    }
+}
+
+two_verb_filter_table : Ast.Expression = {
+    !nofilter {
+        ( table:one_be_filter_table 'and' filter:avp_filter with { functionName = table.functionName }
+        | table:one_have_filter_table 'and' filter:avp_filter with { functionName = table.functionName }
+        | table:one_verb_filter_table 'and' filter:avp_filter with { functionName = table.functionName }
+        ) => C.addFilter(table, filter);
+    }
+}
+
+generic_argminmax : C.ArgMinMax = {
+    ('maximum' | 'highest') p:out_param_Any with { type = (Type.Number) } => [p, 'desc'];
+    ('minimum' | 'lowest') p:out_param_Any with { type = (Type.Number) } => [p, 'asc'];
+
+    ('most costly' | 'most expensive' | 'maximum') p:out_param_Any with { type = (Type.Currency) } => [p, 'desc'];
+    ('least costly'| 'cheapest' | 'minimum') p:out_param_Any with { type = (Type.Currency) } => [p, 'asc'];
+
+    ('longest' | 'most lasting') p:out_param_Any with { type = (new Type.Measure('ms')) } => [p, 'desc'];
+    'shortest' p:out_param_Any with { type = (new Type.Measure('ms')) } => [p, 'asc'];
+
+    ('maximum' | 'largest') p:out_param_Any with { type = (new Type.Measure('byte')) } => [p, 'desc'];
+    ('minimum' | 'smallest') p:out_param_Any with { type = (new Type.Measure('byte')) } => [p, 'asc'];
+
+    ('heaviest' | 'largest' | 'maximum') p:out_param_Any with { type = (new Type.Measure('kg')) } => [p, 'desc'];
+    ('lightest' | 'smallest' | 'minimum') p:out_param_Any with { type = (new Type.Measure('kg')) } => [p, 'asc'];
+
+    ('hottest' | 'highest' | 'maximum') p:out_param_Any with { type = (new Type.Measure('C')) } => [p, 'desc'];
+    ('coolest' | 'lowest' | 'minimum') p:out_param_Any with { type = (new Type.Measure('C')) } => [p, 'asc'];
+
+    ('farthest' | 'most distant' | 'longest') p:out_param_Any with { type = (new Type.Measure('m')) } => [p, 'desc'];
+    ('nearest' | 'closest' | 'shortest') p:out_param_Any with { type = (new Type.Measure('m')) } => [p, 'asc'];
+
+    ('largest' | 'biggest') p:out_param_Any with { type = (new Type.Measure('m2')) } => [p, 'desc'];
+    'smallest' p:out_param_Any with { type = (new Type.Measure('m2')) } => [p, 'asc'];
+
+    ('largest' | 'biggest') p:out_param_Any with { type = (new Type.Measure('m3')) } => [p, 'desc'];
+    'smallest' p:out_param_Any with { type = (new Type.Measure('m3')) } => [p, 'asc'];
+
+    ('fastest' | 'quickest' | 'speediest') p:out_param_Any with { type = (new Type.Measure('mps')) } => [p, 'desc'];
+    ('slowest' | 'most slowly') p:out_param_Any with { type = (new Type.Measure('mps')) } => [p, 'asc'];
+
+    ('latest'| 'most recent') p:out_param_Any with { type = (Type.Date) } => [p, 'desc'];
+    ('earliest' | 'soonest') p:out_param_Any with { type = (Type.Date) } => [p, 'asc'];
+
+    ('latest'| 'most recent') p:out_param_Any with { type = (Type.Time) } => [p, 'desc'];
+    ('earliest' | 'soonest') p:out_param_Any with { type = (Type.Time) } => [p, 'asc'];
+}
+
+// arg min max
+with_arg_min_max_table : Ast.Expression = {
+    // note: the *_argminmax templates expect "the" to be prepended in front,
+    // except for (avp_argminmax, pvp_argminmax and preposition_argminmax)
+    // for the whole expression, "the" will be prepended by the template that uses
+    // "with_arg_min_max_table"
+
+    ?aggregation {
+    ( t:complete_table ('with' | 'which has' | 'which have') 'the' argminmax:generic_argminmax with { functionName = t.functionName }
+    | t:complete_table ('with' | 'which has' | 'which have') 'the' argminmax:npp_argminmax with { functionName = t.functionName }
+    | t:complete_table ('that' | 'which') argminmax:avp_argminmax with { functionName = t.functionName }
+    | t:complete_table ('that' | 'which') ('is' | 'are') argminmax:pvp_argminmax with { functionName = t.functionName }
+    | t:complete_table ('that' | 'which') ('is' | 'are') 'the' argminmax:apv_argminmax with { functionName = t.functionName }
+    | argminmax:apv_argminmax t:complete_table with { functionName = argminmax.functionName }
+    | t:complete_table ('that' | 'which') ('is' | 'are') argminmax:preposition_argminmax with { functionName = t.functionName }
+
+    | t:one_clean_filter_table ('with' | 'which has' | 'which have') 'the' argminmax:generic_argminmax with { functionName = t.functionName }
+    | t:one_clean_filter_table ('with' | 'which has' | 'which have') argminmax:npp_argminmax with { functionName = t.functionName }
+    | t:one_clean_filter_table ('that' | 'which') argminmax:avp_argminmax with { functionName = t.functionName }
+    | t:one_clean_filter_table ('that' | 'which') ('is' | 'are') argminmax:pvp_argminmax with { functionName = t.functionName }
+    | t:one_clean_filter_table ('that' | 'which') ('is' | 'are') 'the' argminmax:apv_argminmax with { functionName = t.functionName }
+    | argminmax:apv_argminmax t:one_clean_filter_table with { functionName = argminmax.functionName }
+    | t:one_clean_filter_table ('that' | 'which') ('is' | 'are') argminmax:preposition_argminmax with { functionName = t.functionName }
+
+    | t:one_with_filter_table 'and the' argminmax:generic_argminmax with { functionName = t.functionName }
+    | t:one_with_filter_table 'and the' argminmax:npp_argminmax with { functionName = t.functionName }
+    | t:one_with_filter_table ('that' | 'which') argminmax:avp_argminmax with { functionName = t.functionName }
+    | t:one_with_filter_table ('that' | 'which') ('is' | 'are') argminmax:pvp_argminmax with { functionName = t.functionName }
+    | t:one_with_filter_table ('that' | 'which') ('is' | 'are') 'the' argminmax:apv_argminmax with { functionName = t.functionName }
+    | argminmax:apv_argminmax t:one_with_filter_table with { functionName = argminmax.functionName }
+    | t:one_with_filter_table ('that' | 'which') ('is' | 'are') argminmax:preposition_argminmax with { functionName = t.functionName }
+
+    | t:two_with_filter_table 'and the' argminmax:generic_argminmax with { functionName = t.functionName }
+    | t:two_with_filter_table 'and the' argminmax:npp_argminmax with { functionName = t.functionName }
+    | t:two_with_filter_table ('that' | 'which') argminmax:avp_argminmax with { functionName = t.functionName }
+    | t:two_with_filter_table ('that' | 'which') ('is' | 'are') argminmax:pvp_argminmax with { functionName = t.functionName }
+    | t:two_with_filter_table ('that' | 'which') ('is' | 'are') 'the' argminmax:apv_argminmax with { functionName = t.functionName }
+    | argminmax:apv_argminmax t:two_with_filter_table with { functionName = argminmax.functionName }
+    | t:two_with_filter_table ('that' | 'which') ('is' | 'are') argminmax:preposition_argminmax with { functionName = t.functionName }
+
+    | t:one_which_filter_table 'and have the' argminmax:generic_argminmax with { functionName = t.functionName }
+    | t:one_which_filter_table 'and have the' argminmax:npp_argminmax with { functionName = t.functionName }
+    | t:one_which_filter_table 'and' argminmax:avp_argminmax with { functionName = t.functionName }
+    | t:one_which_filter_table 'and' ('is' | 'are') argminmax:pvp_argminmax with { functionName = t.functionName }
+    | t:one_which_filter_table 'and' ('is' | 'are') 'the' argminmax:apv_argminmax with { functionName = t.functionName }
+    | argminmax:apv_argminmax t:one_which_filter_table with { functionName = argminmax.functionName }
+    | t:one_which_filter_table 'and' ('is' | 'are') argminmax:preposition_argminmax with { functionName = t.functionName }
+
+    | t:two_which_filter_table 'and have the' argminmax:generic_argminmax with { functionName = t.functionName }
+    | t:two_which_filter_table 'and have the' argminmax:npp_argminmax with { functionName = t.functionName }
+    | t:two_which_filter_table 'and' argminmax:avp_argminmax with { functionName = t.functionName }
+    | t:two_which_filter_table 'and' ('is' | 'are') argminmax:pvp_argminmax with { functionName = t.functionName }
+    | t:two_which_filter_table 'and' ('is' | 'are') 'the' argminmax:apv_argminmax with { functionName = t.functionName }
+    | argminmax:apv_argminmax t:two_which_filter_table with { functionName = argminmax.functionName }
+    | t:two_which_filter_table 'and' ('is' | 'are') argminmax:preposition_argminmax with { functionName = t.functionName }
+    ) => C.makeArgMaxMinTable(t, argminmax[0].name, argminmax[1]);
+
+    ( argminmax:apv_argminmax count:constant_Number t:with_filtered_table with { functionName = argminmax.functionName }
+    | count:constant_Number argminmax:apv_argminmax t:with_filtered_table with { functionName = argminmax.functionName }
+    )
+        => C.makeArgMaxMinTable(t, argminmax[0].name, argminmax[1], count);
+
+    }
+}
+
+have_arg_min_max_table : Ast.Expression = {
+    ?aggregation {
+    ( t:complete_table ('has' | 'gets') 'the' argminmax:generic_argminmax with { functionName = t.functionName }
+    | t:complete_table ('has' | 'gets') 'the' argminmax:npp_argminmax with { functionName = t.functionName }
+    | t:complete_table argminmax:avp_argminmax with { functionName = t.functionName }
+    | t:complete_table ('is' | 'are') argminmax:pvp_argminmax with { functionName = t.functionName }
+    | t:complete_table ('is' | 'are') 'the' argminmax:apv_argminmax with { functionName = t.functionName }
+    | t:complete_table ('is' | 'are') argminmax:preposition_argminmax with { functionName = t.functionName }
+
+    | t:with_filtered_table ('has' | 'gets') 'the' argminmax:generic_argminmax with { functionName = t.functionName }
+    | t:with_filtered_table ('has' | 'gets') 'the' argminmax:npp_argminmax with { functionName = t.functionName }
+    | t:with_filtered_table argminmax:avp_argminmax with { functionName = t.functionName }
+    | t:with_filtered_table ('is' | 'are') argminmax:pvp_argminmax with { functionName = t.functionName }
+    | t:with_filtered_table ('is' | 'are') 'the' argminmax:apv_argminmax with { functionName = t.functionName }
+    | t:with_filtered_table ('is' | 'are') argminmax:preposition_argminmax with { functionName = t.functionName }
+
+    | t:one_have_filter_table ('and' | 'and has') 'the' argminmax:generic_argminmax with { functionName = t.functionName }
+    | t:one_have_filter_table ('and' | 'and has') 'the' argminmax:npp_argminmax with { functionName = t.functionName }
+    | t:one_have_filter_table 'and' argminmax:avp_argminmax with { functionName = t.functionName }
+    | t:one_have_filter_table 'and' ('is' | 'are') argminmax:pvp_argminmax with { functionName = t.functionName }
+    | t:one_have_filter_table 'and' ('is' | 'are') 'the' argminmax:apv_argminmax with { functionName = t.functionName }
+    | t:one_have_filter_table 'and' ('is' | 'are') argminmax:preposition_argminmax with { functionName = t.functionName }
+
+    | t:one_verb_filter_table ('and' | 'and has') 'the' argminmax:generic_argminmax with { functionName = t.functionName }
+    | t:one_verb_filter_table ('and' | 'and has') 'the' argminmax:npp_argminmax with { functionName = t.functionName }
+    | t:one_verb_filter_table 'and' argminmax:avp_argminmax with { functionName = t.functionName }
+    | t:one_verb_filter_table 'and' ('is' | 'are') argminmax:pvp_argminmax with { functionName = t.functionName }
+    | t:one_verb_filter_table 'and' ('is' | 'are') 'the' argminmax:apv_argminmax with { functionName = t.functionName }
+    | t:one_verb_filter_table 'and' ('is' | 'are') argminmax:preposition_argminmax with { functionName = t.functionName }
+
+    | t:one_be_filter_table ('and' | 'and has') 'the' argminmax:generic_argminmax with { functionName = t.functionName }
+    | t:one_be_filter_table ('and' | 'and has') 'the' argminmax:npp_argminmax with { functionName = t.functionName }
+    | t:one_be_filter_table 'and' argminmax:avp_argminmax with { functionName = t.functionName }
+    | t:one_be_filter_table 'and' ('' | 'is' | 'are') argminmax:pvp_argminmax with { functionName = t.functionName }
+    | t:one_be_filter_table 'and' ('' | 'is' | 'are') 'the' argminmax:apv_argminmax with { functionName = t.functionName }
+    | t:one_be_filter_table 'and' ('' | 'is' | 'are') argminmax:preposition_argminmax with { functionName = t.functionName }
+
+    | t:two_have_filter_table ('and' | 'and has') 'the' argminmax:generic_argminmax with { functionName = t.functionName }
+    | t:two_have_filter_table ('and' | 'and has') 'the' argminmax:npp_argminmax with { functionName = t.functionName }
+    | t:two_have_filter_table 'and' argminmax:avp_argminmax with { functionName = t.functionName }
+    | t:two_have_filter_table 'and' ('is' | 'are') argminmax:pvp_argminmax with { functionName = t.functionName }
+    | t:two_have_filter_table 'and' ('is' | 'are') 'the' argminmax:apv_argminmax with { functionName = t.functionName }
+    | t:two_have_filter_table 'and' ('is' | 'are') argminmax:preposition_argminmax with { functionName = t.functionName }
+
+    | t:two_verb_filter_table ('and' | 'and has') 'the' argminmax:generic_argminmax with { functionName = t.functionName }
+    | t:two_verb_filter_table ('and' | 'and has') 'the' argminmax:npp_argminmax with { functionName = t.functionName }
+    | t:two_verb_filter_table 'and' argminmax:avp_argminmax with { functionName = t.functionName }
+    | t:two_verb_filter_table 'and' ('is' | 'are') argminmax:pvp_argminmax with { functionName = t.functionName }
+    | t:two_verb_filter_table 'and' ('is' | 'are') 'the' argminmax:apv_argminmax with { functionName = t.functionName }
+    | t:two_verb_filter_table 'and' ('is' | 'are') argminmax:preposition_argminmax with { functionName = t.functionName }
+
+    | t:two_be_filter_table ('and' | 'and has') 'the' argminmax:generic_argminmax with { functionName = t.functionName }
+    | t:two_be_filter_table ('and' | 'and has') 'the' argminmax:npp_argminmax with { functionName = t.functionName }
+    | t:two_be_filter_table 'and' argminmax:avp_argminmax with { functionName = t.functionName }
+    | t:two_be_filter_table 'and' ('' | 'is' | 'are') argminmax:pvp_argminmax with { functionName = t.functionName }
+    | t:two_be_filter_table 'and' ('' | 'is' | 'are') 'the' argminmax:apv_argminmax with { functionName = t.functionName }
+    | t:two_be_filter_table 'and' ('' | 'is' | 'are') argminmax:preposition_argminmax with { functionName = t.functionName }
+    ) => C.makeArgMaxMinTable(t, argminmax[0].name, argminmax[1]);
+    }
+}
+
+
+edge_stream : Ast.Expression = {
+    // this is not exactly precise because it will disregard entity inheritance and enums
+    // but it's good enough, and otherwise this template is very slow
+    ["{when|if} the ${p} {becomes|becomes equal to} ${x}"]: (p:projection_Any<is_monitorable=true>, x:constant_Any<type=p.projectionType>)
+        => C.makeEdgeFilterStream($loader, p, '==', x),
+    ["{when|if} the ${p} {becomes greater than|becomes higher than|goes above|increases above} ${x}"]: (p:projection_Any<is_monitorable=true>, x:constant_Numeric<type=p.projectionType>)
+        => C.makeEdgeFilterStream($loader, p, '>=', x),
+    ["{when|if} the ${p} {becomes smaller than|becomes lower than|goes below|decreases above} ${x}"]: (p:projection_Any<is_monitorable=true>, x:constant_Numeric<type=p.projectionType>)
+        => C.makeEdgeFilterStream($loader, p, '<=', x),
+}
+
+stream : Ast.Expression = {
+    thingpedia_complete_stream;
+    !turking {
+        ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:with_filtered_table with { is_monitorable = true } ('change' | 'update') => C.tableToStream(table);
+    }
+    ?turking ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:with_filtered_table with { is_monitorable = true } 'update' => C.tableToStream(table);
+
+    !turking {
+        ('in case of changes' | 'in case of variations' | 'in case of updates' | 'if something changes' | 'when something changes' | 'if there are changes' | 'if there are updates') 'in' table:with_filtered_table with { is_monitorable = true } => C.tableToStream(table);
+
+        ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'anytime') proj:projection_Any with { is_monitorable = true } 'changes'
+            => C.tableToStream(proj);
+    }
+    !nofilter ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table with { is_monitorable = true } 'change and' filter:edge_filter with { functionName = table.functionName } => {
+        if (!table.schema!.is_monitorable || !C.checkFilter(table, filter) || table.schema!.is_list)
+            return null;
+        const withFilter = C.addFilter(table, filter, { ifFilter: true });
+        if (!withFilter)
+            return null;
+        return C.tableToStream(withFilter);
+    };
+    !nofilter ('when' | 'if' | 'in case' | 'whenever' | 'any time' | 'should' | 'anytime') table:complete_table with { is_monitorable = true } 'change and' filter:if_filter with { functionName = table.functionName } => {
+        if (!table.schema!.is_monitorable || !C.checkFilter(table, filter))
+            return null;
+        if ($loader.flags.turking && table.schema!.is_list)
+            return null;
+        const withFilter = C.addFilter(table, filter, { ifFilter: true });
+        if (!withFilter)
+            return null;
+        return C.tableToStream(withFilter);
+    };
+    !nofilter edge_stream;
+}
+
+
+with_filtered_table_join : Ast.Expression = {
+    !notablejoin {
+    table:with_filtered_table ('with' | 'having' | 'that has' | 'that have' | 'which has' | 'which have') p:out_param_Any_hidden with { functionName = table.functionName } subquery:with_filtered_table with { idType = p.elem }
+        => C.addComparisonSubquery(table, subquery, p.name);
+
+    ( table:with_filtered_table 'with' p:out_param_Any with { functionName = table.functionName } subquery:with_filtered_table with { idType = p.elem }
+    | table:with_filtered_table p:out_param_pvp with { functionName = table.functionName } subquery:with_filtered_table with { idType = p.elem }
+    | table:with_filtered_table ('who' | 'which' | 'that') p:out_param_avp with { functionName = table.functionName } subquery:with_filtered_table with { idType = p.elem }
+    ) => C.addComparisonSubquery(table, subquery, p.name);
+
+    table:with_filtered_table ('of' | 'for' | 'in') p:out_param_Any_hidden with { functionName = table.functionName } subquery:with_filtered_table with { idType = p.elem }
+        => C.addReverseComparisonSubquery(table, subquery, null);
+    !turking table:with_filtered_table '\'s' p:out_param_Any_hidden with { functionName = table.functionName } subquery:with_filtered_table with { idType = p.elem }
+        => C.addReverseComparisonSubquery(table, subquery, null);
+    }
+}
+
+have_filtered_table_join : Ast.Expression = {
+    !notablejoin {
+    table:verb_filtered_table ('and' | 'and have' | 'and also' | 'and in addition' | 'but also')  p:out_param_Any_hidden with { functionName = table.functionName } subquery:with_filtered_table with { idType = p.elem }
+        => C.addComparisonSubquery(table, subquery, p.name);
+    }
+}

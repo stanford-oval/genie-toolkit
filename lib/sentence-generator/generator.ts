@@ -39,7 +39,6 @@ import {
     Replaceable,
 } from '../utils/template-string';
 
-import * as SentenceGeneratorRuntime from './runtime';
 import {
     LogLevel,
 
@@ -539,7 +538,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
     async initialize() : Promise<void> {
         for (const filename of this._templateFiles) {
             const imported = await importGenie(filename);
-            await imported(SentenceGeneratorRuntime, ThingTalkUtils, this._options, this._langPack, this);
+            await imported(this._options, this._langPack, this);
         }
         this.finalize();
     }
