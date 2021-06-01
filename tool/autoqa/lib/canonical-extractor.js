@@ -215,28 +215,15 @@ export default class AnnotationExtractor {
             return;
         }
 
-        // genienlp run-paraphrase --input_column 0 --skip_heuristics --model_name_or_path xxx --temperature 1 1 1 --num_beams 4 --pipe_mode
-        /*const args = [
-            `run-paraphrase`,
-            `--task`, `paraphrase`,
-            `--input_column`, `0`,
-            `--skip_heuristics`,
-            `--model_name_or_path`, this.model,
-            `--temperature`, `1`, `1`, `1`,
-            `--num_beams`, `4`,
-            `--pipe_mode`,
-            `--batch_size`, this.options.batch_size
-        ];*/
-
         const args = [
             `run-paraphrase`,
             `--task`, `translate`,
             `--input_column`, `0`,
             `--output_attentions`,
             `--src_lang`, `en`,
-            `--tgt_lang`, `fr`,
-            `--model_name_or_path`, `Helsinki-NLP/opus-mt-en-fr`,
-            `--temperature`, `1`,
+            `--tgt_lang`, `de`,
+            `--model_name_or_path`, `Helsinki-NLP/opus-mt-en-de`,
+            `--temperature`, `0.7`, `0.7`,
             `--repetition_penalty`, `1`,
             `--pipe_mode`
         ];
@@ -258,22 +245,30 @@ export default class AnnotationExtractor {
         });
         if (this.options.debug)
             await output(`./paraphraser-pivot0.json`, JSON.stringify(JSON.parse(stdout), null, 2));
+
+        var tmp = [];
+        for (const val of JSON.parse(stdout)) {
+            tmp.push(val[0]);
+            tmp.push(val[1]);
+        }
+
         const args2 = [
             `run-paraphrase`,
             `--task`, `translate`,
             `--input_column`, `0`,
             `--output_attentions`,
-            `--src_lang`, `fr`,
+            `--src_lang`, `de`,
             `--tgt_lang`, `en`,
-            `--model_name_or_path`, `Helsinki-NLP/opus-mt-fr-en`,
-            `--temperature`, `1`,
+            `--model_name_or_path`, `Helsinki-NLP/opus-mt-de-en`,
+            `--temperature`, `0.7`, `0.7`,
             `--repetition_penalty`, `1`,
             `--pipe_mode`
         ];
+
         const child2 = child_process.spawn(`genienlp`, args2, { stdio: ['pipe', 'pipe', 'inherit'] });
         const output2 = util.promisify(fs.writeFile);
         const stdout2 = await new Promise((resolve, reject) => {
-            child2.stdin.write(this._input.join('\n'));
+            child2.stdin.write(tmp.join('\n'));
             child2.stdin.end();
             child2.on('error', reject);
             child2.stdout.on('error', reject);
@@ -287,11 +282,30 @@ export default class AnnotationExtractor {
 
         if (this.options.debug)
             await output2(`./paraphraser-eng0.json`, JSON.stringify(JSON.parse(stdout2), null, 2));
-        
-        const child3 = child_process.spawn(`genienlp`, args, { stdio: ['pipe', 'pipe', 'inherit'] });
+
+        tmp = [];
+        for (const val of JSON.parse(stdout2)) {
+            tmp.push(val[0]);
+            tmp.push(val[1]);
+        }
+
+        const args3 = [
+            `run-paraphrase`,
+            `--task`, `translate`,
+            `--input_column`, `0`,
+            `--output_attentions`,
+            `--src_lang`, `en`,
+            `--tgt_lang`, `fr`,
+            `--model_name_or_path`, `Helsinki-NLP/opus-mt-en-fr`,
+            `--temperature`, `0.4`,
+            `--repetition_penalty`, `1`,
+            `--pipe_mode`
+        ];
+
+        const child3 = child_process.spawn(`genienlp`, args3, { stdio: ['pipe', 'pipe', 'inherit'] });
         const output3 = util.promisify(fs.writeFile);
         const stdout3 = await new Promise((resolve, reject) => {
-            child3.stdin.write(this._input.join('\n'));
+            child3.stdin.write(tmp.join('\n'));
             child3.stdin.end();
             child3.on('error', reject);
             child3.stdout.on('error', reject);
@@ -305,11 +319,28 @@ export default class AnnotationExtractor {
 
         if (this.options.debug)
             await output3(`./paraphraser-pivot1.json`, JSON.stringify(JSON.parse(stdout3), null, 2));
-        
-        const child4 = child_process.spawn(`genienlp`, args2, { stdio: ['pipe', 'pipe', 'inherit'] });
+
+        tmp = [];
+        for (const val of JSON.parse(stdout3)) {
+            tmp.push(val[0]);
+        }
+
+        const args4 = [
+            `run-paraphrase`,
+            `--task`, `translate`,
+            `--input_column`, `0`,
+            `--output_attentions`,
+            `--src_lang`, `fr`,
+            `--tgt_lang`, `en`,
+            `--model_name_or_path`, `Helsinki-NLP/opus-mt-fr-en`,
+            `--temperature`, `0.4`,
+            `--repetition_penalty`, `1`,
+            `--pipe_mode`
+        ];
+        const child4 = child_process.spawn(`genienlp`, args4, { stdio: ['pipe', 'pipe', 'inherit'] });
         const output4 = util.promisify(fs.writeFile);
         const stdout4 = await new Promise((resolve, reject) => {
-            child4.stdin.write(this._input.join('\n'));
+            child4.stdin.write(tmp.join('\n'));
             child4.stdin.end();
             child4.on('error', reject);
             child4.stdout.on('error', reject);
@@ -323,11 +354,16 @@ export default class AnnotationExtractor {
 
         if (this.options.debug)
             await output4(`./paraphraser-eng1.json`, JSON.stringify(JSON.parse(stdout4), null, 2));
-        
-        const child5 = child_process.spawn(`genienlp`, args, { stdio: ['pipe', 'pipe', 'inherit'] });
+
+        tmp = [];
+        for (const val of JSON.parse(stdout4)) {
+            tmp.push(val[0]);
+        }
+
+        const child5 = child_process.spawn(`genienlp`, args3, { stdio: ['pipe', 'pipe', 'inherit'] });
         const output5 = util.promisify(fs.writeFile);
         const stdout5 = await new Promise((resolve, reject) => {
-            child5.stdin.write(this._input.join('\n'));
+            child5.stdin.write(tmp.join('\n'));
             child5.stdin.end();
             child5.on('error', reject);
             child5.stdout.on('error', reject);
@@ -341,11 +377,16 @@ export default class AnnotationExtractor {
 
         if (this.options.debug)
             await output5(`./paraphraser-pivot2.json`, JSON.stringify(JSON.parse(stdout5), null, 2));
-        
-        const child6 = child_process.spawn(`genienlp`, args2, { stdio: ['pipe', 'pipe', 'inherit'] });
+
+        tmp = [];
+        for (const val of JSON.parse(stdout5)) {
+            tmp.push(val[0]);
+        }
+
+        const child6 = child_process.spawn(`genienlp`, args4, { stdio: ['pipe', 'pipe', 'inherit'] });
         const output6 = util.promisify(fs.writeFile);
         const stdout6 = await new Promise((resolve, reject) => {
-            child6.stdin.write(this._input.join('\n'));
+            child6.stdin.write(tmp.join('\n'));
             child6.stdin.end();
             child6.on('error', reject);
             child6.stdout.on('error', reject);
@@ -360,7 +401,16 @@ export default class AnnotationExtractor {
         if (this.options.debug)
             await output6(`./paraphraser-out.json`, JSON.stringify(JSON.parse(stdout6), null, 2));
 
-        this._output = JSON.parse(stdout6);
+        var final_output = JSON.parse(stdout6);
+        this._output = [];
+        var tmp_output = [];
+        for (var i = 0; i < final_output.length; i++) {
+            tmp_output.push(final_output[i][0]);
+            if ((i + 1) % 4 == 0) {
+                this._output.push(tmp_output);
+                tmp_output = [];
+            }
+        }
     }
 
     generateInput(candidates) {
