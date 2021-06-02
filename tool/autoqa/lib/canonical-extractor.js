@@ -215,6 +215,36 @@ export default class AnnotationExtractor {
             return;
         }
 
+        const bart_args = [
+            `run-paraphrase`,
+            `--task`, `paraphrase`,
+            `--input_column`, `0`,
+            `--skip_heuristics`,
+            `--model_name_or_path`, './models/paraphraser-bart-large-speedup-megabatch-5m',
+            `--temperature`, `1`, `1`,
+            `--num_beams`, `4`,
+            `--pipe_mode`,
+            `--batch_size`, this.options.batch_size
+        ];
+        const bart_child = child_process.spawn(`genienlp`, bart_args, { stdio: ['pipe', 'pipe', 'inherit'] });
+
+        const bart_output = util.promisify(fs.writeFile);
+        const bart_stdout = await new Promise((resolve, reject) => {
+            bart_child.stdin.write(this._input.join('\n'));
+            bart_child.stdin.end();
+            bart_child.on('error', reject);
+            bart_child.stdout.on('error', reject);
+            bart_child.stdout.setEncoding('utf8');
+            let buffer = '';
+            bart_child.stdout.on('data', (data) => {
+                buffer += data;
+            });
+            bart_child.stdout.on('end', () => resolve(buffer));
+        });
+
+        if (this.options.debug)
+            await bart_output(`./paraphraser-bart-out.json`, JSON.stringify(JSON.parse(bart_stdout), null, 2));
+
         const args = [
             `run-paraphrase`,
             `--task`, `translate`,
@@ -402,6 +432,7 @@ export default class AnnotationExtractor {
             await output6(`./paraphraser-out.json`, JSON.stringify(JSON.parse(stdout6), null, 2));
 
         var final_output = JSON.parse(stdout6);
+        var final_bart_output = JSON.parse(bart_stdout);
         this._output = [];
         var tmp_output = [];
         for (var i = 0; i < final_output.length; i++) {
@@ -411,6 +442,13 @@ export default class AnnotationExtractor {
                 tmp_output = [];
             }
         }
+
+        for (var i = 0; i < final_bart_output.length; i++) {
+            this._output[i].push(final_bart_output[i][0]);
+            this._output[i].push(final_bart_output[i][1]);
+        }
+
+        console.log(this._output);
     }
 
     generateInput(candidates) {
