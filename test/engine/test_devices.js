@@ -32,7 +32,7 @@ function cleanInstanceID(infos) {
     for (let info of infos) {
         if (info.uniqueId.startsWith('thingengine-own-desktop:')) {
             info.uniqueId = 'thingengine-own-desktop:XXXXXX';
-            info.name = 'Genie desktop (XXXXXX)';
+            info.name = 'Almond desktop (XXXXXX)';
         }
     }
     return infos;
@@ -55,7 +55,7 @@ async function testLookup(engine) {
     assert.deepStrictEqual(cleanInstanceID(await engine.getDeviceInfos()), [
      { uniqueId: 'org.thingpedia.builtin.test',
        name: 'Test Device',
-       description: 'Test Genie in various ways',
+       description: 'Test Almond in various ways',
        kind: 'org.thingpedia.builtin.test',
        version: 0,
        class: 'system',
@@ -81,8 +81,8 @@ async function testLookup(engine) {
        isTransient: true,
        authType: 'builtin' },
      { uniqueId: 'thingengine-own-desktop:XXXXXX',
-       name: 'Genie desktop (XXXXXX)',
-       description: 'This is one of your Genie apps.',
+       name: 'Almond desktop (XXXXXX)',
+       description: 'This is one of your own Almond apps.',
        kind: 'org.thingpedia.builtin.thingengine',
        version: 0,
        class: 'system',

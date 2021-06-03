@@ -153,6 +153,7 @@ class Platform extends Tp.BasePlatform {
         this._filesDir = homedir;
         safeMkdirSync(this._filesDir);
         this._locale = 'en-US';
+        this._databaseProxyConfig = { baseUrl: "http://localhost:8080", userId: 100 };
 
         this._gettext.setLocale(this._locale);
         this._timezone = 'America/Los_Angeles';
@@ -205,6 +206,9 @@ class Platform extends Tp.BasePlatform {
             // If downloading code from the thingpedia server is allowed on
             // this platform
             return true;
+        case 'database-proxy':
+            // return true to test database proxy
+            return false;
 
 /*
         // We can use the phone capabilities
@@ -239,6 +243,8 @@ class Platform extends Tp.BasePlatform {
         switch (cap) {
         case 'code-download':
             return _unzipApi;
+        case 'database-proxy':
+            return this._databaseProxyConfig;
 
 /*
         case 'notify-api':
