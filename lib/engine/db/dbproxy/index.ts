@@ -26,6 +26,12 @@ export interface DatabaseProxyConfig {
     userId : number
 }
 
+const FIELD_NAMES = {
+    app: ['code', 'state', 'name', 'description'] as const,
+    device: ['state'] as const,
+    channel: ['value'] as const
+};
+
 export class DatabaseProxy implements DB.AbstractDatabase {
     _config : DatabaseProxyConfig
 
@@ -43,6 +49,6 @@ export class DatabaseProxy implements DB.AbstractDatabase {
     }
 
     getSyncTable<T extends keyof DB.SyncTables>(name : T) : SyncTable<DB.SyncTables[T]> {
-        return new SyncTable(name, this._config.baseUrl, this._config.userId);
+        return new SyncTable(name, this._config.baseUrl, this._config.userId, FIELD_NAMES[name] as any);
     }
 }

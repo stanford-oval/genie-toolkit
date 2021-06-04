@@ -29,52 +29,29 @@ export default class LocalTable<RowType> {
         this._userId = userId;
     }
 
-    getAll() : Promise<RowType[]> {
-        return new Promise<any[]>((resolve, reject) => {
-            Tp.Helpers.Http.get(`${this._baseUrl}/localtable/user_${this.name}/${this._userId}`)
-            .then( (resp : string) => { 
-                resolve(JSON.parse(resp)['data']);
-            }).catch( (err) =>{
-                reject(err); 
-            });
-        });
+    async getAll() : Promise<RowType[]> {
+        const resp = await Tp.Helpers.Http.get(`${this._baseUrl}/localtable/user_${this.name}/${this._userId}`);
+        return JSON.parse(resp)['data'];
     }
 
-    getOne(uniqueId : string) : Promise<RowType|undefined> {
-        return new Promise<RowType|undefined>((resolve, reject) => {
-            Tp.Helpers.Http.get(`${this._baseUrl}/localtable/user_${this.name}/${this._userId}/${uniqueId}`)
-            .then((resp : string) => { 
-                resolve(JSON.parse(resp)['data']); 
-            }).catch((err) => {
-                if (err.code === 404)
-                    resolve(undefined);
-                else 
-                    reject(err);
-            });
-        });
+    async getOne(uniqueId : string) : Promise<RowType|undefined> {
+        try {
+            const resp = await Tp.Helpers.Http.get(`${this._baseUrl}/localtable/user_${this.name}/${this._userId}/${encodeURIComponent(uniqueId)}`);
+            return JSON.parse(resp)['data']; 
+        } catch(err) {
+            if (err.code === 404)
+                return undefined;
+            throw err;
+        }
     }
 
-    insertOne(uniqueId : string, row : Omit<RowType, "uniqueId">) : Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            Tp.Helpers.Http.post(`${this._baseUrl}/localtable/user_${this.name}/${this._userId}/${uniqueId}`,
-                    JSON.stringify(row), { dataContentType: 'application/json' })
-            .then(() => { 
-                 resolve();
-            }).catch((err) => { 
-                reject(err);
-            });
-        });
+    async insertOne(uniqueId : string, row : Omit<RowType, "uniqueId">) : Promise<void> {
+        await Tp.Helpers.Http.post(`${this._baseUrl}/localtable/user_${this.name}/${this._userId}/${encodeURIComponent(uniqueId)}`,
+                JSON.stringify(row), { dataContentType: 'application/json' });
     }
 
-    deleteOne(uniqueId : string) : Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            Tp.Helpers.Http.request(`${this._baseUrl}/localtable/user_${this.name}/${this._userId}/${uniqueId}`,
-                    'DELETE', null, {})
-            .then(() => {
-                resolve();
-            }).catch((err) => { 
-                reject(err);
-            });
-        });
+    async deleteOne(uniqueId : string) : Promise<void> {
+        await Tp.Helpers.Http.request(`${this._baseUrl}/localtable/user_${this.name}/${this._userId}/${encodeURIComponent(uniqueId)}`,
+                'DELETE', null, {});
     }
 }

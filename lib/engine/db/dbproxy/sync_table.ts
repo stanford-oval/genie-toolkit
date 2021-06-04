@@ -20,148 +20,86 @@
 import * as Tp from 'thingpedia';
 import { SyncRecord } from '..';
 
+type Field<RowType> = Exclude<keyof RowType & string, "uniqueId">;
+
 export default class SyncTable<RowType> {
     name : string;
-    fields : ReadonlyArray<keyof RowType>;
+    fields : ReadonlyArray<Field<RowType>>;
 
     private _baseUrl : string;
     private _userId : number;
 
-    constructor(name : string, baseUrl : string, userId : number) {
+    constructor(name : string, baseUrl : string, userId : number, fields : ReadonlyArray<Field<RowType>>) {
         this.name = name;
-        this.fields = []; // not used
+        this.fields = fields;
         this._baseUrl = baseUrl;
         this._userId = userId;
     }
 
-    getAll() : Promise<RowType[]> {
-        return new Promise<RowType[]>((resolve, reject) => {
-            Tp.Helpers.Http.get(`${this._baseUrl}/synctable/user_${this.name}/${this._userId}`)
-            .then((resp : string) => {
-                resolve(JSON.parse(resp)['data']);
-            }).catch((err) => {
-                reject(err);
-            });
-        });
+    async getAll() : Promise<RowType[]> {
+        const resp = await Tp.Helpers.Http.get(`${this._baseUrl}/synctable/user_${this.name}/${this._userId}`);
+        return JSON.parse(resp)['data'];
     }
 
-    getOne(uniqueId : string) : Promise<RowType|undefined> {
-        return new Promise<RowType|undefined>((resolve, reject) => {
-            Tp.Helpers.Http.get(`${this._baseUrl}/synctable/user_${this.name}/${this._userId}/${uniqueId}`)
-            .then((resp : string) => {
-                resolve(JSON.parse(resp)['data']);
-            }).catch((err) => {
-                if (err.code === 404)
-                    resolve(undefined);
-                else
-                    reject(err);
-            });
-        });
+    async getOne(uniqueId : string) : Promise<RowType|undefined> {
+        try {
+            const resp = await Tp.Helpers.Http.get(`${this._baseUrl}/synctable/user_${this.name}/${this._userId}/${encodeURIComponent(uniqueId)}`);
+            return JSON.parse(resp)['data'];
+        } catch(err) {
+            if (err.code === 404)
+                return undefined;
+            throw err;
+        }
     }
 
-    getRaw() : Promise<Array<SyncRecord<RowType>>> {
-        return new Promise<Array<SyncRecord<RowType>>>((resolve, reject) => {
-            Tp.Helpers.Http.get(`${this._baseUrl}/synctable/raw/user_${this.name}/${this._userId}`)
-            .then((resp : string) => {
-                resolve(JSON.parse(resp)['data']);
-            }).catch((err) => {
-                reject(err);
-            });
-        });
+    async getRaw() : Promise<Array<SyncRecord<RowType>>> {
+        const resp = await Tp.Helpers.Http.get(`${this._baseUrl}/synctable/raw/user_${this.name}/${this._userId}`);
+        return JSON.parse(resp)['data'];
     }
 
-    getChangesAfter(lastModified : number) : Promise<Array<SyncRecord<RowType>>> {
-        return new Promise<Array<SyncRecord<RowType>>>((resolve, reject) => {
-            Tp.Helpers.Http.get(`${this._baseUrl}/synctable/changes/user_${this.name}/${this._userId}/${lastModified}`)
-            .then((resp : string) => {
-                resolve(JSON.parse(resp)['data']);
-            }).catch((err) => {
-                reject(err);
-            });
-        });
+    async getChangesAfter(lastModified : number) : Promise<Array<SyncRecord<RowType>>> {
+        const resp = await Tp.Helpers.Http.get(`${this._baseUrl}/synctable/changes/user_${this.name}/${this._userId}/${lastModified}`);
+        return JSON.parse(resp)['data'];
     }
 
-    handleChanges(changes : Array<SyncRecord<RowType>>) : Promise<boolean[]> {
-        return new Promise<boolean[]>((resolve, reject) => {
-            Tp.Helpers.Http.post(`${this._baseUrl}/synctable/changes/user_${this.name}/${this._userId}`,
-                JSON.stringify(changes), { dataContentType: 'application/json' })
-            .then((resp : string) => {
-                resolve(JSON.parse(resp)['data']);
-            }).catch((err) => {
-                reject(err);
-            });
-        });
+    async handleChanges(changes : Array<SyncRecord<RowType>>) : Promise<boolean[]> {
+        const resp = await Tp.Helpers.Http.post(`${this._baseUrl}/synctable/changes/user_${this.name}/${this._userId}`,
+                JSON.stringify(changes), { dataContentType: 'application/json' });
+        return JSON.parse(resp)['data'];
     }
 
-    syncAt(lastModified : number, pushedChanges : Array<SyncRecord<RowType>>) : Promise<[number, Array<SyncRecord<RowType>>, boolean[]]> {
-        return new Promise<[number, Array<SyncRecord<RowType>>, boolean[]]>((resolve, reject) => {
-            Tp.Helpers.Http.post(`${this._baseUrl}/synctable/sync/user_${this.name}/${this._userId}/${lastModified}`,
-                JSON.stringify(pushedChanges), { dataContentType: 'application/json' })
-            .then((resp : string) => {
-                resolve(JSON.parse(resp)['data']);
-            }).catch((err) => {
-                reject(err);
-            });
-        });
+    async syncAt(lastModified : number, pushedChanges : Array<SyncRecord<RowType>>) : Promise<[number, Array<SyncRecord<RowType>>, boolean[]]> {
+        const resp = await Tp.Helpers.Http.post(`${this._baseUrl}/synctable/sync/user_${this.name}/${this._userId}/${lastModified}`,
+                JSON.stringify(pushedChanges), { dataContentType: 'application/json' });
+        return JSON.parse(resp)['data'];
     }
 
-    replaceAll(data : Array<SyncRecord<RowType>>) : Promise<void>{
-        return new Promise<void>((resolve, reject) => {
-            Tp.Helpers.Http.post(`${this._baseUrl}/synctable/replace/user_${this.name}/${this._userId}`,
-                JSON.stringify(data), { dataContentType: 'application/json' })
-            .then(() => {
-                resolve();
-            }).catch((err) => {
-                reject(err);
-            });
-        });
+    async replaceAll(data : Array<SyncRecord<RowType>>) : Promise<void>{
+        await Tp.Helpers.Http.post(`${this._baseUrl}/synctable/replace/user_${this.name}/${this._userId}`,
+                JSON.stringify(data), { dataContentType: 'application/json' });
     }
 
-    insertIfRecent(uniqueId : string, lastModified : number, row : Omit<RowType, "uniqueId">) : Promise<boolean> {
-        return new Promise<any>((resolve, reject) => {
-            Tp.Helpers.Http.post(`${this._baseUrl}/synctable/user_${this.name}/${this._userId}/${uniqueId}/${lastModified}`,
-                JSON.stringify(row), { dataContentType: 'application/json' })
-            .then((resp : string) => {
-                resolve(JSON.parse(resp)['data']);
-            }).catch((err) => {
-                reject(err);
-            });
-        });
+    async insertIfRecent(uniqueId : string, lastModified : number, row : Omit<RowType, "uniqueId">) : Promise<boolean> {
+        const resp = await Tp.Helpers.Http.post(`${this._baseUrl}/synctable/user_${this.name}/${this._userId}/${encodeURIComponent(uniqueId)}/${lastModified}`,
+                JSON.stringify(row), { dataContentType: 'application/json' });
+        return JSON.parse(resp)['data'];
     }
 
-    insertOne(uniqueId : string, row : Omit<RowType, "uniqueId">) : Promise<number>{
-        return new Promise<number>((resolve, reject) => {
-            Tp.Helpers.Http.post(`${this._baseUrl}/synctable/user_${this.name}/${this._userId}/${uniqueId}`,
-                JSON.stringify(row), { dataContentType: 'application/json' })
-            .then((resp : string) => {
-                resolve(JSON.parse(resp)['data']);
-            }).catch((err) => {
-                reject(err);
-            });
-        });
+    async insertOne(uniqueId : string, row : Omit<RowType, "uniqueId">) : Promise<number>{
+        const resp = await Tp.Helpers.Http.post(`${this._baseUrl}/synctable/user_${this.name}/${this._userId}/${encodeURIComponent(uniqueId)}`,
+                JSON.stringify(row), { dataContentType: 'application/json' });
+        return JSON.parse(resp)['data'];
     }
 
-    deleteIfRecent(uniqueId : string, lastModified : number) : Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
-            Tp.Helpers.Http.request(`${this._baseUrl}/synctable/user_${this.name}/${this._userId}/${uniqueId}/${lastModified}`,
-                'DELETE', null, {})
-            .then((resp : string) => {
-                resolve(JSON.parse(resp)['data']);
-            }).catch((err) => {
-                reject(err);
-            });
-        });
+    async deleteIfRecent(uniqueId : string, lastModified : number) : Promise<boolean> {
+        const resp = await Tp.Helpers.Http.request(`${this._baseUrl}/synctable/user_${this.name}/${this._userId}/${encodeURIComponent(uniqueId)}/${lastModified}`,
+                'DELETE', null, {});
+        return JSON.parse(resp)['data'];
     }
 
-    deleteOne(uniqueId : string) : Promise<number> {
-        return new Promise<number>((resolve, reject) => {
-            Tp.Helpers.Http.request(`${this._baseUrl}/synctable/user_${this.name}/${this._userId}/${uniqueId}`,
-                'DELETE', null, {})
-            .then((resp : string) => {
-                resolve(JSON.parse(resp)['data']);
-            }).catch((err) => {
-                reject(err);
-            });
-        });
+    async deleteOne(uniqueId : string) : Promise<number> {
+        const resp = await Tp.Helpers.Http.request(`${this._baseUrl}/synctable/user_${this.name}/${this._userId}/${encodeURIComponent(uniqueId)}`,
+                'DELETE', null, {});
+        return JSON.parse(resp)['data'];
     }
 }
