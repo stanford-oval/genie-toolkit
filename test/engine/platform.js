@@ -124,33 +124,15 @@ function safeMkdirSync(dir) {
     }
 }
 
-function getUserConfigDir() {
-    if (process.env.XDG_CONFIG_HOME)
-        return process.env.XDG_CONFIG_HOME;
-    return os.homedir() + '/.config';
-}
-function getUserCacheDir() {
-    if (process.env.XDG_CACHE_HOME)
-        return process.env.XDG_CACHE_HOME;
-    return os.homedir() + '/.cache';
-}
-function getFilesDir() {
-    if (process.env.THINGENGINE_HOME)
-        return path.resolve(process.env.THINGENGINE_HOME);
-    else
-        return path.resolve(getUserConfigDir(), 'almond-test');
-}
-
 class Platform extends Tp.BasePlatform {
     // Initialize the platform code
     // Will be called before instantiating the engine
-    constructor(homedir) {
+    constructor() {
         super();
-        homedir = homedir || getFilesDir();
 
         this._gettext = new Gettext();
 
-        this._filesDir = homedir;
+        this._filesDir = path.resolve(path.dirname(module.filename), './workdir');
         safeMkdirSync(this._filesDir);
         this._locale = 'en-US';
 
@@ -161,7 +143,7 @@ class Platform extends Tp.BasePlatform {
         // set a fix device ID for cloud sync
         this._prefs.set('cloud-sync-device-id', 'abcdef0123456789');
 
-        this._cacheDir = getUserCacheDir() + '/almond-test';
+        this._cacheDir = path.resolve(path.dirname(module.filename), './cache');
         safeMkdirSync(this._cacheDir);
         try {
             // wipe the database and start fresh
@@ -372,6 +354,6 @@ class Platform extends Tp.BasePlatform {
     }
 }
 
-export function newInstance(homedir) {
-    return new Platform(homedir);
+export function newInstance() {
+    return new Platform();
 }
