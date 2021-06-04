@@ -340,7 +340,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         if (type === CommandAnalysisType.OUT_OF_DOMAIN_COMMAND ||
             choice.score !== 'Infinity') {
             type = CommandAnalysisType.OUT_OF_DOMAIN_COMMAND;
-            this._loop.debug('Failed to analyze message');
+            this._loop.debug('Failed to analyze message as ThingTalk');
             this._loop.conversation.stats.hit('sabrina-failure');
         /*} else if (choice.score < CONFIDENCE_CONFIRM_THRESHOLD) {
             type = CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND;
