@@ -1,4 +1,4 @@
-// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
 //
 // This file is part of Genie
 //
@@ -18,14 +18,25 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-class CancellationError extends Error {
-    constructor() {
-        super("User cancelled");
-        this.code = 'ECANCELLED';
-    }
-}
+/**
+ * The public APIs of the dialogue agent components of Genie.
+ *
+ * Exported for convenience of TypeScript users.
+ */
 
 export {
-    CancellationError
-};
+    NotificationDelegate,
+    NotificationConfig,
+    NotificationBackend,
+} from './notifications';
+export {
+    default as AssistantDispatcher,
+} from './assistant_dispatcher';
+export {
+    ConversationState,
+    ConversationDelegate,
+    ConversationOptions,
+    default as Conversation
+} from './conversation';
+export * as Protocol from './protocol';
+export * from './errors';

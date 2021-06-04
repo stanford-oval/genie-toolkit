@@ -270,10 +270,10 @@ export default class AppExecutor extends events.EventEmitter {
     /**
      * Attempt compilation of this app.
      *
-     * This method must be called before running the app through {@link AppExecutor#runCommand}
-     * or {@link AppExecutor#start}.
+     * This method must be called before running the app through {@link AppExecutor.runCommand}
+     * or {@link AppExecutor.start}.
      *
-     * On failure, this method will set {@link AppExecutor#error}.
+     * On failure, this method will set {@link AppExecutor.error}.
      */
     async compile() : Promise<void> {
         const compiled = await this.compiler.compileProgram(this.program);
@@ -302,8 +302,8 @@ export default class AppExecutor extends events.EventEmitter {
      * It should be called only for a newly created app, not for an app that was loaded from
      * disk after a restart.
      *
-     * This method must not be called on an app returned by {@link Engine#createApp} or
-     * {@link AppDatabase#createApp}, as those methods will already call this one.
+     * This method must not be called on an app returned by {@link AssistantEngine.createApp} or
+     * {@link AppDatabase.createApp}, as those methods will already call this one.
      */
     async runCommand() {
         if (this.command) {
@@ -353,7 +353,7 @@ export default class AppExecutor extends events.EventEmitter {
      *
      * This method pauses the app temporarily, and is called when the engine is terminating.
      * The app will be restarted the next time the engine is restarted. To stop the app
-     * permanently, use {@link AppDatabase#removeApp} or {@link AppExecutor#removeSelf}.
+     * permanently, use {@link AppDatabase.removeApp} or {@link AppExecutor.removeSelf}.
      */
     async stop() {
         await Promise.all(this.rules.map((r) => r.stop()));
