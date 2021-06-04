@@ -208,7 +208,7 @@ class Platform extends Tp.BasePlatform {
             return true;
         case 'database-proxy':
             // return true to test database proxy
-            return true;
+            return false;
 
 /*
         // We can use the phone capabilities
