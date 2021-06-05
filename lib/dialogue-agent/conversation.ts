@@ -150,10 +150,9 @@ export interface ConversationState {
  * This object is responsible for maintaining the history of the conversation
  * to support clients reconnecting to the same conversation later, as well
  * as tracking connected clients and inactivity timeouts.
- *
- * The actual conversation logic is in {@link DialogueLoop}.
  */
 export default class Conversation extends events.EventEmitter {
+    // NOTE: The actual conversation logic is in DialogueLoop.
     private _engine : Engine;
     private _conversationId : string;
     private _locale : string;

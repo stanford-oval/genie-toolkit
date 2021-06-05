@@ -45,7 +45,7 @@ export default class AppDatabase extends events.EventEmitter {
      * Construct the app database for this engine.
      *
      * There is only one app database instance per engine,
-     * and it is accessible as {@link Engine#apps}.
+     * and it is accessible as {@link AssistantEngine.apps}.
      * @package
      */
     constructor(engine : Engine) {

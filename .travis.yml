@@ -25,21 +25,21 @@ jobs:
       - pip install --user torch transformers
       - travis_retry npm ci
       script:
-      - TZ="America/Los_Angeles" npx nyc ts-node -T ./test/unit
+      - TZ="America/Los_Angeles" npx nyc ts-node ./test/unit
       after_success: npm run coverage
     -
       name: "Dialogue Agent Tests"
       install:
       - travis_retry npm ci
       script:
-      - TZ="America/Los_Angeles" npx nyc ts-node -T ./test/agent
+      - TZ="America/Los_Angeles" npx nyc ts-node ./test/agent
       after_success: npm run coverage
     -
       name: "Engine Tests"
       install:
       - travis_retry npm ci
       script:
-      - TZ="America/Los_Angeles" npx nyc ts-node -T ./test/engine
+      - TZ="America/Los_Angeles" npx nyc ts-node ./test/engine
       after_success: npm run coverage
     -
       name: "Command-line Tests"

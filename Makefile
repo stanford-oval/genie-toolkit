@@ -48,7 +48,7 @@ generated := \
 	lib/engine/devices/builtins/faq.json
 
 $(built_bundled_templates) : $(template_sources) lib/sentence-generator/compiler/*.ts $(generated_early)
-	ts-node -T ./lib/sentence-generator/compiler $(patsubst %.genie.ts,%.genie,$@)
+	ts-node ./lib/sentence-generator/compiler $(patsubst %.genie.ts,%.genie,$@)
 
 dist: $(wildcard $(sources)) $(generated) tsconfig.json
 	tsc --build tsconfig.json
