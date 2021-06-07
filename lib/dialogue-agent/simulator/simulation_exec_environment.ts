@@ -339,6 +339,9 @@ function recursivelyComputeOutputType(kind : string, expr : Ast.Expression) : st
 }
 
 function genFakeData(size : number, fill : number) {
+    if (size > 10000)
+        throw new SimulatedError('too big');
+
     return String(Buffer.alloc(size, fill));
 }
 
@@ -366,16 +369,21 @@ class SimpleTestDevice {
     }
 }
 
+interface OutputDelegate {
+    output(outputType : string, outputValue : Record<string, unknown>) : void;
+    error(error : Error) : void;
+}
+
 class SimulationExecEnvironment extends ExecEnvironment {
     private _schemas : SchemaRetriever;
     private _database : SimulationDatabase|undefined;
     private _rng : () => number;
     private _simulateErrors : boolean;
     private _testDevice = new SimpleTestDevice();
+    private _delegate ! : OutputDelegate;
 
     private _execCache : Array<[string, Record<string, string>, Record<string, unknown>, Array<[string, Record<string, unknown>]>]>;
 
-    output ! : (type : string, value : Record<string, unknown>) => Promise<void>;
     generator : ResultGenerator|null;
 
     constructor(locale : string,
@@ -394,6 +402,10 @@ class SimulationExecEnvironment extends ExecEnvironment {
         this.generator = null;
     }
 
+    setOutputDelegate(delegate : OutputDelegate) {
+        this._delegate = delegate;
+    }
+
     get program_id() {
         return new ThingTalk.Entity('uuid-simulation', null);
     }
@@ -401,6 +413,14 @@ class SimulationExecEnvironment extends ExecEnvironment {
     clearGetCache() {
         // do not actually clear the get cache
         // all queries are expected to return consistent results
+    }
+
+    async reportError(message : string, error : Error & { code ?: string }) : Promise<void> {
+        await this._delegate.error(error);
+    }
+
+    async output(outputType : string, outputValues : Record<string, unknown>) : Promise<void> {
+        await this._delegate.output(outputType, outputValues);
     }
 
     private _findInCache(functionKey : string,

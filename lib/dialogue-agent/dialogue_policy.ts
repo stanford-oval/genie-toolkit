@@ -29,28 +29,8 @@ import { AgentReplyRecord } from '../sentence-generator/types';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import { EntityMap } from '../utils/entity-utils';
 
-const MAX_DEPTH = 7;
-const TARGET_PRUNING_SIZES = [15, 50, 100];
-
-let TEMPLATE_FILE_PATH : string;
-try {
-    // try the path relative to our build location first (in dist/lib/dialogue-agent)
-    TEMPLATE_FILE_PATH = require.resolve('../../../languages-dist/thingtalk/en/dialogue.genie');
-} catch(e) {
-    if (e.code !== 'MODULE_NOT_FOUND')
-        throw e;
-    try {
-        // if that fails, try the location relative to our source directory
-        // (in case we're running with ts-node)
-        TEMPLATE_FILE_PATH = require.resolve('../../languages-dist/thingtalk/en/dialogue.genie');
-    } catch(e) {
-        if (e.code !== 'MODULE_NOT_FOUND')
-            throw e;
-        // if that still fails, we're probably in the "compile-template" call
-        // in a clean build, so set ourselves empty (it will not matter)
-        TEMPLATE_FILE_PATH = '';
-    }
-}
+const MAX_DEPTH = 8;
+const TARGET_PRUNING_SIZES = [15, 50, 100, 200];
 
 function arrayEqual<T>(a : T[], b : T[]) : boolean {
     if (a.length !== b.length)
@@ -155,7 +135,7 @@ export default class DialoguePolicy {
             rng: this._rng,
             locale: this._locale,
             timezone: this._timezone,
-            templateFiles: [TEMPLATE_FILE_PATH],
+            templateFiles: ['dialogue.genie'],
             thingpediaClient: this._thingpedia,
             schemaRetriever: this._schemas,
             entityAllocator: this._entityAllocator,
@@ -245,6 +225,12 @@ export default class DialoguePolicy {
         };
     }
 
+    async getFollowUp(state : Ast.DialogueState) : Promise<Ast.DialogueState|null> {
+        await this._ensureGeneratorForState(state);
+
+        return this._sentenceGenerator!.invokeFunction('followUp', state, this._sentenceGenerator!.contextTable);
+    }
+
     async getNotificationState(appName : string|null, program : Ast.Program, result : Ast.DialogueHistoryResultItem) {
         await this._ensureGeneratorForState(program);
 
@@ -255,5 +241,10 @@ export default class DialoguePolicy {
         await this._ensureGeneratorForState(program);
 
         return this._sentenceGenerator!.invokeFunction('notifyError', appName, program, error, this._sentenceGenerator!.contextTable);
+    }
+
+    async getInitialState() {
+        await this._ensureGeneratorForState(null);
+        return this._sentenceGenerator!.invokeFunction('initialState', this._sentenceGenerator!.contextTable);
     }
 }

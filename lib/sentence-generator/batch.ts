@@ -23,6 +23,7 @@ import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
 import assert from 'assert';
 import stream from 'stream';
+import * as path from 'path';
 
 import * as I18n from '../i18n';
 import MultiMap from '../utils/multimap';
@@ -524,7 +525,8 @@ class DialogueGenerator extends stream.Readable {
         };
         this._userGenerator = new SentenceGenerator<AgentTurn, ThingTalkUtils.DialogueState>(userOptions);
 
-        this._stateValidator = ThingTalkUtils.createStateValidator(options.policyFile);
+        this._stateValidator = ThingTalkUtils.createStateValidator(
+            options.policyFile ? path.resolve(path.dirname(module.filename), '../templates', options.policyFile) : undefined);
 
         this._initialized = false;
         this._simulator = ThingTalkUtils.createSimulator({

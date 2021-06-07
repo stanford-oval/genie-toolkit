@@ -283,6 +283,8 @@ export default class EnglishLanguagePack extends DefaultLanguagePack {
     detokenize(sentence : string, prevtoken : string|null, token : string) : string {
         if (token === '.' && prevtoken && /[.!?]$/.test(prevtoken))
             return sentence;
+        if (token === '?' && prevtoken === '.')
+            return sentence;
         if (!token)
             return sentence;
         if (token.startsWith("'")) {

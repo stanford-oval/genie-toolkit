@@ -27,7 +27,7 @@ import * as ThingTalk from 'thingtalk';
 import * as I18n from '../i18n';
 
 import ValueCategory from './value-category';
-import DialogueLoop from './dialogue-loop';
+import { DialogueLoop } from './dialogue-loop';
 import { PlatformData, MessageType, Message, RDL } from './protocol';
 import { EntityMap } from '../utils/entity-utils';
 import * as ThingTalkUtils from '../utils/thingtalk';
@@ -141,7 +141,7 @@ class DialogueLog {
 
 export interface ConversationState {
     history : Message[];
-    dialogueState : string;
+    dialogueState : Record<string, unknown>;
 }
 
 /**
@@ -150,10 +150,9 @@ export interface ConversationState {
  * This object is responsible for maintaining the history of the conversation
  * to support clients reconnecting to the same conversation later, as well
  * as tracking connected clients and inactivity timeouts.
- *
- * The actual conversation logic is in {@link DialogueLoop}.
  */
 export default class Conversation extends events.EventEmitter {
+    // NOTE: The actual conversation logic is in DialogueLoop.
     private _engine : Engine;
     private _conversationId : string;
     private _locale : string;

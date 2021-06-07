@@ -6,7 +6,7 @@ the model.
 
 Note: this tutorial assumes that you installed Genie using the ["git" installation
 instructions](install.md). If you used the "npm" installation method, you will
-need to adjust the paths. 
+need to adjust the paths.
 
 ## Step 1: Obtain the skill definitions
 
@@ -56,7 +56,7 @@ genie download-string-values -d parameter-datasets/ --manifest parameter-dataset
 ```
 
 These commands will download into the `parameter-datasets` directory, and
-create a manifest called `parameter-datasets.tsv`. 
+create a manifest called `parameter-datasets.tsv`.
 
 ## Step 3: Synthesize Sentences.
 
@@ -64,8 +64,7 @@ Given the skill definition, we will proceed to synthesize a dataset of commands 
 can train on. To do so, use:
 
 ```bash
-genie generate --locale en-US --template languages-dist/thingtalk/en/thingtalk.genie
-  --thingpedia thingpedia.tt --entities entities.json --dataset dataset.tt
+genie generate --locale en-US --thingpedia thingpedia.tt --entities entities.json --dataset dataset.tt
   -o synthesized.tsv
 ```
 

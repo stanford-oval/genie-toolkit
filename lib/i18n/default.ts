@@ -76,10 +76,11 @@ const POS_RENAME : Record<string, string> = {
  * Base class for all code that is specific to a certain natural language
  * in Genie.
  */
-export default class DefaultLanguagePack {
+export default class LanguagePack {
     ARGUMENT_NAME_OVERRIDES ! : { [key : string] : string[] };
     IGNORABLE_TOKENS ! : { [key : string] : string[] };
     _NO_SPACE_TOKENS ! : Set<string>;
+    _NO_SPACE_AFTER_TOKENS ! : Set<string>;
     NO_IDEA ! : string[];
     CHANGE_SUBJECT_TEMPLATES ! : string[];
     SINGLE_DEVICE_TEMPLATES ! : Array<[string, RegExp|null]>;
@@ -388,11 +389,17 @@ export default class DefaultLanguagePack {
      * Convert a tokenized sentence back into a correctly spaced, correctly
      * punctuated sentence.
      *
-     * This is a low-level method called by {@link DefaultLanguagePack#detokenizeSentence}.
+     * This is a low-level method called by {@link LanguagePack.detokenizeSentence}.
      * It can be used to detokenize one token at a time.
      */
     detokenize(sentence : string, prevtoken : string|null, token : string) : string {
-        if (sentence && !this._NO_SPACE_TOKENS.has(token))
+        if (token === '.' && prevtoken && /[.!?]$/.test(prevtoken))
+            return sentence;
+        if (token === '?' && prevtoken === '.')
+            return sentence;
+        if (!token)
+            return sentence;
+        if (prevtoken && !this._NO_SPACE_AFTER_TOKENS.has(prevtoken) && sentence && !this._NO_SPACE_TOKENS.has(token))
             sentence += ' ';
         sentence += token;
         return sentence;
@@ -770,7 +777,7 @@ export default class DefaultLanguagePack {
      * Check if a phrase looks like a person name.
      *
      * This is a coarse check that is used to override
-     * {@link DefaultLanguagePack#isGoodWord} to account for foreign person
+     * {@link LanguagePack.isGoodWord} to account for foreign person
      * names and loan words.
      */
      isGoodPersonName(word : string) : boolean {
@@ -781,7 +788,7 @@ export default class DefaultLanguagePack {
      * Check if a phrase looks like a social media user name.
      *
      * This is a coarse check that is used to override
-     * {@link DefaultLanguagePack#isGoodWord} to account for foreign person
+     * {@link LanguagePack.isGoodWord} to account for foreign person
      * names and loan words.
      */
     isGoodUserName(word : string) : boolean {
@@ -806,7 +813,7 @@ export default class DefaultLanguagePack {
  * More than one form can be provided for each argument name, in which case
  * all are used.
  */
-DefaultLanguagePack.prototype.ARGUMENT_NAME_OVERRIDES = {
+LanguagePack.prototype.ARGUMENT_NAME_OVERRIDES = {
 };
 
 /**
@@ -815,7 +822,7 @@ DefaultLanguagePack.prototype.ARGUMENT_NAME_OVERRIDES = {
  * This should cover abbreviations, prefixes and suffixes that are usually
  * omitted in colloquial speech.
  */
-DefaultLanguagePack.prototype.IGNORABLE_TOKENS = {
+LanguagePack.prototype.IGNORABLE_TOKENS = {
     'sportradar': ['fc', 'ac', 'us', 'if', 'as', 'rc', 'rb', 'il', 'fk', 'cd', 'cf'],
     'tt:stock_id': ['l.p.', 's.a.', 'plc', 'n.v', 's.a.b', 'c.v.'],
     'org:freedesktop:app_id': ['gnome']
@@ -830,14 +837,21 @@ DefaultLanguagePack.prototype.IGNORABLE_TOKENS = {
  * Use this to fix tokenization inconsistencies in the entity database, to add
  * colloquial forms, and to add robustness to punctuation.
  */
-DefaultLanguagePack.prototype.ABBREVIATIONS = {};
+LanguagePack.prototype.ABBREVIATIONS = {};
 
 /**
  * Tokens that should not be preceded by a space.
- * This is used by the default {@link DefaultLanguagePack#detokenize}
+ * This is used by the default {@link LanguagePack.detokenize}
  * implementation.
  */
-DefaultLanguagePack.prototype._NO_SPACE_TOKENS = new Set(['.', ',', '?', '!', ':']);
+LanguagePack.prototype._NO_SPACE_TOKENS = new Set(['.', ',', '?', '!', ':']);
+
+/**
+ * Tokens that should not be followed by a space.
+ * This is used by the default {@link LanguagePack.detokenize}
+ * implementation.
+ */
+LanguagePack.prototype._NO_SPACE_AFTER_TOKENS = new Set([]);
 
 /**
  * All the different forms in which MTurk workers write "no idea" for a sentence
@@ -846,14 +860,14 @@ DefaultLanguagePack.prototype._NO_SPACE_TOKENS = new Set(['.', ',', '?', '!', ':
  * This is usually empirically collected by looking at the results and finding
  * sentences that don't validate or are too short.
  */
-DefaultLanguagePack.prototype.NO_IDEA = [];
+LanguagePack.prototype.NO_IDEA = [];
 
-DefaultLanguagePack.prototype.CHANGE_SUBJECT_TEMPLATES = [];
+LanguagePack.prototype.CHANGE_SUBJECT_TEMPLATES = [];
 
 /**
  * Different ways to add an explicit reference to a skill name for a command.
  */
-DefaultLanguagePack.prototype.SINGLE_DEVICE_TEMPLATES = [];
+LanguagePack.prototype.SINGLE_DEVICE_TEMPLATES = [];
 
 /**
  * A regular expression used to identify a definite article ("the") at the
@@ -861,11 +875,11 @@ DefaultLanguagePack.prototype.SINGLE_DEVICE_TEMPLATES = [];
  *
  * A language without definite articles should leave this to `undefined`.
  */
-DefaultLanguagePack.prototype.DEFINITE_ARTICLE_REGEXP = undefined;
+LanguagePack.prototype.DEFINITE_ARTICLE_REGEXP = undefined;
 
 /**
  * A set of tokens that must always be capitalized.
  */
-DefaultLanguagePack.prototype.MUST_CAPITALIZE_TOKEN = new Set([
+LanguagePack.prototype.MUST_CAPITALIZE_TOKEN = new Set([
     'spotify', 'twitter', 'yelp', 'google', 'facebook',
 ]);

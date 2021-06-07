@@ -22,7 +22,7 @@
 import Stream from 'stream';
 import deepEqual from 'deep-equal';
 import * as Tp from 'thingpedia';
-import { Ast, } from 'thingtalk';
+import { Ast, SchemaRetriever, } from 'thingtalk';
 import assert from 'assert';
 
 import * as Utils from '../../utils/misc-utils';
@@ -36,7 +36,8 @@ import { SimulationDatabase } from '../../dialogue-agent/simulator/types';
 import SlotExtractor from './slot_extractor';
 
 interface DialogueEvaluatorOptions {
-    thingpediaClient : Tp.BaseClient|null;
+    thingpediaClient : Tp.BaseClient;
+    schemaRetriever ?: SchemaRetriever;
     locale : string;
     targetLanguage : string;
     tokenized : boolean;
@@ -90,7 +91,9 @@ class DialogueEvaluatorStream extends Stream.Transform {
         this._locale = options.locale;
         this._debug = !!options.debug;
         this._tokenized = options.tokenized;
-        this._slotExtractor = new SlotExtractor(options.locale, options.thingpediaClient, options.database);
+        if (!options.schemaRetriever)
+            options.schemaRetriever = new SchemaRetriever(options.thingpediaClient, null, true);
+        this._slotExtractor = new SlotExtractor(options.locale, options.thingpediaClient, options.schemaRetriever, options.database);
         this._oracle = !!options.oracle;
 
         this._minibatch = [];

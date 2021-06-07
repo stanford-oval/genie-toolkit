@@ -50,7 +50,7 @@ class QueueOutputDelegate {
     output(outputType, outputValue) {
         this._queue.push({ done: false, value: { outputType, outputValue } });
     }
-    notifyError(error) {
+    error(error) {
         this._queue.push({ done: false, value: error });
     }
 }
@@ -88,12 +88,7 @@ class MockAppExecutor {
             generator.addCandidate(slot.get());
         }
         this._simulator.generator = generator;
-        this._simulator.output = async (outputType, outputValue) => {
-            return this.mainOutput.output(outputType, outputValue);
-        };
-        this._simulator.reportError = async (msg, err) => {
-            return this.mainOutput.notifyError(err);
-        };
+        this._simulator.setOutputDelegate(this.mainOutput);
         if (this._compiled.command)
             await this._compiled.command(this._simulator);
         this.mainOutput.done();
@@ -258,6 +253,7 @@ class MockDeviceDatabase {
         this._devices['switch-bed2'] = new MockSwitch('bed2', 'Bed Switch 2');
         this._devices['switch-kitchen'] = new MockSwitch('kitchen', 'Kitchen Switches');
         this._devices['switch-ceiling'] = new MockSwitch('ceiling', 'Ceiling Switches');
+        this._devices['switch-office-de'] = new MockSwitch('office-de', 'Büro Decke');
         // increase cnt so the tests don't fail
         _cnt++;
 

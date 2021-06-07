@@ -45,6 +45,8 @@ import * as BTrie from './utils/btrie';
 
 import SpeechHandler from './speech/speech_handler';
 import AssistantEngine from './engine';
+import * as EngineModules from './engine';
+import * as DialogueAgent from './dialogue-agent';
 
 import SentenceGenerator from './sentence-generator/generator';
 import * as SentenceGeneratorRuntime from './sentence-generator/runtime';
@@ -66,12 +68,17 @@ export {
     DialogueParser,
     DialogueSerializer,
 
+    // the various modules inside Genie
     I18n,
     MTurk,
     Training,
     Evaluation,
     ParserClient,
     ExactMatcher,
+    DialogueAgent,
+    SpeechHandler,
+    AssistantEngine,
+    EngineModules,
 
     // semi-unstable API
     parallelize,
@@ -80,8 +87,4 @@ export {
     ThingTalkUtils,
     StreamUtils,
     BTrie,
-
-    // dialogue agent
-    SpeechHandler,
-    AssistantEngine,
 };

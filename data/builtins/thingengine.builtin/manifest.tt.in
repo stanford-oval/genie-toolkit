@@ -42,7 +42,7 @@ class @org.thingpedia.builtin.thingengine.builtin
   #_[canonical=["my current location", "my current position", "my current geocoordinates"]]
   #_[result=["your current location is ${location}", "you are currently in ${location}"]]
   #_[on_error={
-    unsupported_platform=["i cannot access your location in this version of almond"]
+    unsupported_platform=["i cannot access your location in this version of Genie"]
   }]
   #[minimal_projection=["location"]]
   #[poll_interval=0ms]
@@ -179,7 +179,7 @@ class @org.thingpedia.builtin.thingengine.builtin
                   }])
   #_[canonical=["open a url", "open a link"]]
   #_[on_error={
-    unsupported_platform=["opening files is not possible in this version of almond"]
+    unsupported_platform=["opening files is not possible in this version of Genie"]
   }]
   #[doc="open a file/link"]
   #[confirm=false];
@@ -193,7 +193,7 @@ class @org.thingpedia.builtin.thingengine.builtin
   #_[result="${message_output}"]
   #_[canonical="say"]
   #_[confirmation="send me a message $message"]
-  #[doc="makes Almond say something"]
+  #[doc="makes Genie say something"]
   #[confirm=false];
 
   action debug_log(in req message: String
@@ -211,9 +211,9 @@ class @org.thingpedia.builtin.thingengine.builtin
                    out reply: String
                    #_[canonical=["reply", "answer"]])
   #_[result="${reply}"]
-  #_[canonical="ask question about almond"]
+  #_[canonical="ask question about Genie"]
   #_[confirmation="reply to $question"]
-  #[doc="asks a question about Almond"]
+  #[doc="asks a question about Genie"]
   #[confirm=false];
 
   action configure(in req device: Entity(tt:device) #_[prompt="what device do you want to configure"])

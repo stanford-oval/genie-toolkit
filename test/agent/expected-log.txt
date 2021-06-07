@@ -57,7 +57,8 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(status);
 AT: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: hello world
-UT: $answer("hello world");
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post(status="hello world");
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post(status="hello world");
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
@@ -153,8 +154,8 @@ C: ]]
 C: #[count=50]
 C: #[more=true];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I see Ramen Nagi and Evvia Estiatorio. Both are restaurants rated 4.5 star.
-AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
+A: I see Ramen Nagi, Evvia Estiatorio, and Oren's Hummus. Ramen Nagi is a restaurant rated 4.5 star, Evvia Estiatorio is rated 4.5 star, and Oren's Hummus is rated 4 star.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: [price] of @com.yelp.restaurant() filter id == "vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant;
@@ -326,7 +327,8 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(location);
 AT: @org.thingpedia.weather.current(location=$?);
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $answer(new Location(37.442156, -122.1634471, "Palo Alto, California"));
-UT: $answer(new Location(37.442156, -122.1634471, "Palo Alto, California"));
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"));
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.weather.current(location=new Location(37.442156, -122.1634471, "Palo Alto, California"))
 C: #[results=[
@@ -346,13 +348,13 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
-U: @com.spotify.song() filter id =~ "despacito" => @com.spotify.play_song(song=id);
+U: @com.spotify.song() filter id =~ "despacito" => @com.spotify.play(playable=id);
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
-UT: @com.spotify.song() filter id =~ "despacito" => @com.spotify.play_song(song=id);
+UT: @com.spotify.song() filter id =~ "despacito" => @com.spotify.play(playable=id);
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: (@com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "despacito")[1] => @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(song=id)
+C: (@com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "despacito")[1] => @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play(playable=id)
 C: #[results=[
-C:   { song="spotify:track:6habFhsOp2NvshLv26DqMb"^^com.spotify:song("Despacito"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") }
+C:   { playable="spotify:track:6habFhsOp2NvshLv26DqMb"^^com.spotify:playable("Despacito"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I played Despacito on Spotify.
@@ -368,26 +370,26 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
-U: @com.spotify.song() filter contains(artists, null^^com.spotify:artist("ariana grande")) => @com.spotify.play_song(song=id);
+U: @com.spotify.song() filter contains(artists, null^^com.spotify:artist("ariana grande")) => @com.spotify.play(playable=id);
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
-UT: @com.spotify.song() filter contains(artists, null^^com.spotify:artist("ariana grande")) => @com.spotify.play_song(song=id);
+UT: @com.spotify.song() filter contains(artists, null^^com.spotify:artist("ariana grande")) => @com.spotify.play(playable=id);
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter contains(artists, "spotify:artist:66CXWjxzNUsdJxJ2JdwvnR"^^com.spotify:artist("Ariana Grande")) => @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(song=id)
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter contains(artists, "spotify:artist:66CXWjxzNUsdJxJ2JdwvnR"^^com.spotify:artist("Ariana Grande")) => @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play(playable=id)
 C: #[results=[
-C:   { song="spotify:track:6ocbgoVGwYJhOv1GgI9NsF"^^com.spotify:song("7 rings"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
-C:   { song="spotify:track:6va6SjWz457IOZidBppAhz"^^com.spotify:song("7 rings - live"), device="str:ENTITY_com.spotify:device::15:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
-C:   { song="spotify:track:6AyI8UGx8Y4peb7pLOy2pf"^^com.spotify:song("7 rings (feat. 2 Chainz) - Remix"), device="str:ENTITY_com.spotify:device::9:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
-C:   { song="spotify:track:4HBZA5flZLE435QTztThqH"^^com.spotify:song("Stuck with U (with Justin Bieber)"), device="str:ENTITY_com.spotify:device::19:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
-C:   { song="spotify:track:6ocbgoVGwYJhOv1GgI9NsF"^^com.spotify:song("7 rings"), device="str:ENTITY_com.spotify:device::14:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
-C:   { song="spotify:track:3e9HZxeyfWwjeyPAMmWSSQ"^^com.spotify:song("thank u, next"), device="str:ENTITY_com.spotify:device::15:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
-C:   { song="spotify:track:2qT1uLXPVPzGgFOx4jtEuo"^^com.spotify:song("no tears left to cry"), device="str:ENTITY_com.spotify:device::40:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
-C:   { song="spotify:track:0Ryd8975WihbObpp5cPW1t"^^com.spotify:song("boyfriend (with Social House)"), device="str:ENTITY_com.spotify:device::31:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
-C:   { song="spotify:track:4kV4N9D1iKVxx1KLvtTpjS"^^com.spotify:song("break up with your girlfriend, i'm bored"), device="str:ENTITY_com.spotify:device::23:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
-C:   { song="spotify:track:5OCJzvD7sykQEKHH7qAC3C"^^com.spotify:song("God is a woman"), device="str:ENTITY_com.spotify:device::40:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") }
+C:   { playable="spotify:track:6ocbgoVGwYJhOv1GgI9NsF"^^com.spotify:playable("7 rings"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { playable="spotify:track:6va6SjWz457IOZidBppAhz"^^com.spotify:playable("7 rings - live"), device="str:ENTITY_com.spotify:device::15:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { playable="spotify:track:6AyI8UGx8Y4peb7pLOy2pf"^^com.spotify:playable("7 rings (feat. 2 Chainz) - Remix"), device="str:ENTITY_com.spotify:device::9:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { playable="spotify:track:4HBZA5flZLE435QTztThqH"^^com.spotify:playable("Stuck with U (with Justin Bieber)"), device="str:ENTITY_com.spotify:device::19:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { playable="spotify:track:6ocbgoVGwYJhOv1GgI9NsF"^^com.spotify:playable("7 rings"), device="str:ENTITY_com.spotify:device::14:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { playable="spotify:track:3e9HZxeyfWwjeyPAMmWSSQ"^^com.spotify:playable("thank u, next"), device="str:ENTITY_com.spotify:device::15:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { playable="spotify:track:2qT1uLXPVPzGgFOx4jtEuo"^^com.spotify:playable("no tears left to cry"), device="str:ENTITY_com.spotify:device::40:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { playable="spotify:track:0Ryd8975WihbObpp5cPW1t"^^com.spotify:playable("boyfriend (with Social House)"), device="str:ENTITY_com.spotify:device::31:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { playable="spotify:track:4kV4N9D1iKVxx1KLvtTpjS"^^com.spotify:playable("break up with your girlfriend, i'm bored"), device="str:ENTITY_com.spotify:device::23:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { playable="spotify:track:5OCJzvD7sykQEKHH7qAC3C"^^com.spotify:playable("God is a woman"), device="str:ENTITY_com.spotify:device::40:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") }
 C: ]]
 C: #[count=23];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I played music by Ariana Grande on Spotify.
+A: I played songs by Ariana Grande on Spotify.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -400,26 +402,26 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
-U: @com.spotify.song() filter album == null^^com.spotify:album("folklore") => @com.spotify.play_song(song=id);
+U: @com.spotify.song() filter album == null^^com.spotify:album("folklore") => @com.spotify.play(playable=id);
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
-UT: @com.spotify.song() filter album == null^^com.spotify:album("folklore") => @com.spotify.play_song(song=id);
+UT: @com.spotify.song() filter album == null^^com.spotify:album("folklore") => @com.spotify.play(playable=id);
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter album == "spotify:album:2fenSS68JI1h4Fo296JfGr"^^com.spotify:album("folklore") => @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(song=id)
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter album == "spotify:album:2fenSS68JI1h4Fo296JfGr"^^com.spotify:album("folklore") => @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play(playable=id)
 C: #[results=[
-C:   { song="spotify:track:4R2kfaDFhslZEMJqAFNpdd"^^com.spotify:song("cardigan"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
-C:   { song="spotify:track:4pvb0WLRcMtbPGmtejJJ6y"^^com.spotify:song("exile (feat. Bon Iver)"), device="str:ENTITY_com.spotify:device::15:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
-C:   { song="spotify:track:0Jlcvv8IykzHaSmj49uNW8"^^com.spotify:song("the 1"), device="str:ENTITY_com.spotify:device::9:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
-C:   { song="spotify:track:2Eeur20xVqfUoM3Q7EFPFt"^^com.spotify:song("the last great american dynasty"), device="str:ENTITY_com.spotify:device::19:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
-C:   { song="spotify:track:1MgV7FIyNxIG7WzMRJV5HC"^^com.spotify:song("my tears ricochet"), device="str:ENTITY_com.spotify:device::14:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
-C:   { song="spotify:track:3hUxzQpSfdDqwM3ZTFQY0K"^^com.spotify:song("august"), device="str:ENTITY_com.spotify:device::15:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
-C:   { song="spotify:track:6VsvKPJ4xjVNKpI8VVZ3SV"^^com.spotify:song("invisible string"), device="str:ENTITY_com.spotify:device::40:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
-C:   { song="spotify:track:0ZNU020wNYvgW84iljPkPP"^^com.spotify:song("mirrorball"), device="str:ENTITY_com.spotify:device::31:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
-C:   { song="spotify:track:6KJqZcs9XDgVck7Lg9QOTC"^^com.spotify:song("seven"), device="str:ENTITY_com.spotify:device::23:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
-C:   { song="spotify:track:7kt9e9LFSpN1zQtYEl19o1"^^com.spotify:song("this is me trying"), device="str:ENTITY_com.spotify:device::40:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") }
+C:   { playable="spotify:track:4R2kfaDFhslZEMJqAFNpdd"^^com.spotify:playable("cardigan"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { playable="spotify:track:4pvb0WLRcMtbPGmtejJJ6y"^^com.spotify:playable("exile (feat. Bon Iver)"), device="str:ENTITY_com.spotify:device::15:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { playable="spotify:track:0Jlcvv8IykzHaSmj49uNW8"^^com.spotify:playable("the 1"), device="str:ENTITY_com.spotify:device::9:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { playable="spotify:track:2Eeur20xVqfUoM3Q7EFPFt"^^com.spotify:playable("the last great american dynasty"), device="str:ENTITY_com.spotify:device::19:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { playable="spotify:track:1MgV7FIyNxIG7WzMRJV5HC"^^com.spotify:playable("my tears ricochet"), device="str:ENTITY_com.spotify:device::14:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { playable="spotify:track:3hUxzQpSfdDqwM3ZTFQY0K"^^com.spotify:playable("august"), device="str:ENTITY_com.spotify:device::15:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { playable="spotify:track:6VsvKPJ4xjVNKpI8VVZ3SV"^^com.spotify:playable("invisible string"), device="str:ENTITY_com.spotify:device::40:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { playable="spotify:track:0ZNU020wNYvgW84iljPkPP"^^com.spotify:playable("mirrorball"), device="str:ENTITY_com.spotify:device::31:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { playable="spotify:track:6KJqZcs9XDgVck7Lg9QOTC"^^com.spotify:playable("seven"), device="str:ENTITY_com.spotify:device::23:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") },
+C:   { playable="spotify:track:7kt9e9LFSpN1zQtYEl19o1"^^com.spotify:playable("this is me trying"), device="str:ENTITY_com.spotify:device::40:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Some Device 7") }
 C: ]]
 C: #[count=22];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I played music in the album folklore on Spotify.
+A: I played songs in the album folklore on Spotify.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
 #! vote: down
 #! comment: test comment for dialogue turns
@@ -529,7 +531,7 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_slot_fill(status);
 AT: @com.twitter(id="twitter-bar"^^tt:device_id("Twitter Account bar")).post();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $nevermind;
-UT: $nevermind;
+UT: $dialogue @org.thingpedia.dialogue.transaction.cancel;
 C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Alright, let me know if I can help you with anything else!
@@ -690,11 +692,11 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
-U: @com.spotify.song() filter contains(artists, "invalid"^^com.spotify:artist("Invalid")) => @com.spotify.play_song(song=id);
+U: @com.spotify.song() filter contains(artists, "invalid"^^com.spotify:artist("Invalid")) => @com.spotify.play(playable=id);
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
-UT: @com.spotify.song() filter contains(artists, "invalid"^^com.spotify:artist("Invalid")) => @com.spotify.play_song(song=id);
+UT: @com.spotify.song() filter contains(artists, "invalid"^^com.spotify:artist("Invalid")) => @com.spotify.play(playable=id);
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter contains(artists, "invalid"^^com.spotify:artist("Invalid")) => @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(song=id)
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter contains(artists, "invalid"^^com.spotify:artist("Invalid")) => @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play(playable=id)
 C: #[results=[]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Sorry, there are no songs matching your request.
@@ -871,11 +873,11 @@ C: #[results=[
 C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles")], price=enum moderate, rating=4.5, reviewCount=1625, geo=new Location(37.445523, -122.1607073261) }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Ramen Nagi is a moderate restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg].
+A: Ramen Nagi is a restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg] rated 4.5 star.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $yes;
-UT: $yes;
+UT: $dialogue @org.thingpedia.dialogue.transaction.learn_more;
 C: $dialogue @org.thingpedia.dialogue.transaction.learn_more;
 C: @com.yelp.restaurant() filter id =~ "ramen nagi"
 C: #[results=[
@@ -904,11 +906,11 @@ C: #[results=[
 C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles")], price=enum moderate, rating=4.5, reviewCount=1625, geo=new Location(37.445523, -122.1607073261) }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Ramen Nagi is a moderate restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg].
+A: Ramen Nagi is a restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg] rated 4.5 star.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $no;
-UT: $no;
+UT: $dialogue @org.thingpedia.dialogue.transaction.cancel;
 C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
 C: @com.yelp.restaurant() filter id =~ "ramen nagi"
 C: #[results=[
@@ -930,30 +932,31 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
-U: @com.spotify.song() filter id =~ "Nice For What";
+U: @com.spotify.playable() filter id =~ "Nice For What";
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
-UT: @com.spotify.song() filter id =~ "Nice For What";
+UT: @com.spotify.playable() filter id =~ "Nice For What";
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "Nice For What"
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).playable() filter id =~ "Nice For What"
 C: #[results=[
-C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], album="spotify:album:1ATL5GLyefJaxhQzSPVrLX"^^com.spotify:album("Scorpion"), genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79, energy=90, danceability=58 }
+C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:playable("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79 }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Nice For What is a song by Drake in the album Scorpion. Would you like to play it on Spotify?
+A: Nice For What is a music by Drake released in June 28, 2018. Would you like to play it on Spotify?
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
+AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play(playable="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:playable("Nice For What"))
 AT: #[confirm=enum proposed];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $yes;
-UT: $yes;
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.spotify(id="com.spotify-7"^^tt:device_id).play(playable="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:playable("Nice For What"));
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "Nice For What"
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).playable() filter id =~ "Nice For What"
 C: #[results=[
-C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], album="spotify:album:1ATL5GLyefJaxhQzSPVrLX"^^com.spotify:album("Scorpion"), genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79, energy=90, danceability=58 }
+C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:playable("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79 }
 C: ]];
-C: @com.spotify(id="com.spotify-7"^^tt:device_id).play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
+C: @com.spotify(id="com.spotify-7"^^tt:device_id).play(playable="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:playable("Nice For What"))
 C: #[results=[
-C:   { song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Unknown device") }
+C:   { playable="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:playable("Nice For What"), device="str:ENTITY_com.spotify:device::36:"^^com.spotify:device, __device="com.spotify-7"^^tt:device_id("Unknown device") }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I played Nice For What on Spotify.
@@ -969,26 +972,26 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
-U: @com.spotify.song() filter id =~ "Nice For What";
+U: @com.spotify.playable() filter id =~ "Nice For What";
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
-UT: @com.spotify.song() filter id =~ "Nice For What";
+UT: @com.spotify.playable() filter id =~ "Nice For What";
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "Nice For What"
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).playable() filter id =~ "Nice For What"
 C: #[results=[
-C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], album="spotify:album:1ATL5GLyefJaxhQzSPVrLX"^^com.spotify:album("Scorpion"), genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79, energy=90, danceability=58 }
+C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:playable("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79 }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Nice For What is a song by Drake in the album Scorpion. Would you like to play it on Spotify?
+A: Nice For What is a music by Drake released in June 28, 2018. Would you like to play it on Spotify?
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
+AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play(playable="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:playable("Nice For What"))
 AT: #[confirm=enum proposed];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $no;
-UT: $no;
+UT: $dialogue @org.thingpedia.dialogue.transaction.cancel;
 C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
-C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "Nice For What"
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).playable() filter id =~ "Nice For What"
 C: #[results=[
-C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], album="spotify:album:1ATL5GLyefJaxhQzSPVrLX"^^com.spotify:album("Scorpion"), genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79, energy=90, danceability=58 }
+C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:playable("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79 }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Alright, let me know if I can help you with anything else!
@@ -1006,11 +1009,11 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
-U: @com.spotify.play_song(song="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:song("Hello"));
+U: @com.spotify.play(playable="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:playable("Hello"));
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
-UT: @com.spotify.play_song(song="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:song("Hello"));
+UT: @com.spotify.play(playable="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:playable("Hello"));
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(song="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:song("Hello"))
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play(playable="spotify:track:4sPmO7WMQUAf45kwMOtONw"^^com.spotify:playable("Hello"))
 C: #[results=[]]
 C: #[error=enum no_active_device];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
@@ -1027,11 +1030,11 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
-U: @com.spotify.play_song(song="spotify:track:2zYzyRzz6pRmhPzyfMEC8s"^^com.spotify:song("Hello"));
+U: @com.spotify.play(playable="spotify:track:2zYzyRzz6pRmhPzyfMEC8s"^^com.spotify:playable("Hello"));
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
-UT: @com.spotify.play_song(song="spotify:track:2zYzyRzz6pRmhPzyfMEC8s"^^com.spotify:song("Hello"));
+UT: @com.spotify.play(playable="spotify:track:2zYzyRzz6pRmhPzyfMEC8s"^^com.spotify:playable("Hello"));
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play_song(song="spotify:track:2zYzyRzz6pRmhPzyfMEC8s"^^com.spotify:song("Hello"))
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).play(playable="spotify:track:2zYzyRzz6pRmhPzyfMEC8s"^^com.spotify:playable("Hello"))
 C: #[results=[]]
 C: #[error=enum E_some_other_error];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
@@ -1057,10 +1060,8 @@ C: #[results=[
 C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), release_date=new Date("2018-06-29T00:00:00.000Z") }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Nice For What is a song released on June 28, 2018. Would you like to play it on Spotify?
+A: Nice For What is a song with the date equal to June 28, 2018.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
-AT: #[confirm=enum proposed];
 #! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
@@ -1091,10 +1092,8 @@ C:   { id="spotify:track:0vZ97gHhemKm6c64hTfJNA"^^com.spotify:song("Hello, Goodb
 C: ]]
 C: #[count=11];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Hello? Is a song released on May 24, 2018. Would you like to play it on Spotify?
+A: Hello? Is a song released in May 24, 2018.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play_song(song="spotify:track:7qwt4xUIqQWCu1DJf96g2k"^^com.spotify:song("Hello?"))
-AT: #[confirm=enum proposed];
 #! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
@@ -1117,7 +1116,7 @@ C:   { id="spotify:track:0VjIjW4GlUZAMYd2vXMi3b"^^com.spotify:song("Blinding Lig
 C:   { id="spotify:track:7eJMfftS33KTjuF7lTsMCx"^^com.spotify:song("death bed (coffee for your head)"), artists=["spotify:artist:6bmlMHgSheBauioMgKv2tn"^^com.spotify:artist("Powfu"), "spotify:artist:35l9BRT7MXmM8bv2WDQiyB"^^com.spotify:artist("beabadoobee")], album="spotify:album:2p9gK2BcdrloHNJwarc9gc"^^com.spotify:album("death bed (coffee for your head)"), genres=[], release_date=new Date("2020-02-08T00:00:00.000Z"), popularity=95, energy=43, danceability=72 }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I see ROCKSTAR (feat. Roddy Ricch), Blinding Lights, and death bed (coffee for your head). ROCKSTAR (feat. Roddy Ricch) is released on April 16, 2020, Blinding Lights is released on March 19, 2020, and death bed (coffee for your head) is released on February 7, 2020.
+A: I see ROCKSTAR (feat. Roddy Ricch), Blinding Lights, and death bed (coffee for your head). ROCKSTAR (feat. Roddy Ricch) is a song by DaBaby, Blinding Lights The Weeknd wrote, and death bed (coffee for your head) Powfu wrote.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -1142,7 +1141,7 @@ C:   { id="spotify:album:2ZytN2cY4Zjrr9ukb2rqTP"^^com.spotify:album("Off the Wal
 C:   { id="spotify:album:1GlOZiKHTgtJqEF2FRii9y"^^com.spotify:album("Over The Garden Wall"), release_date=new Date("2017-09-19T00:00:00.000Z") }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The Wall is an album from November 29, 1979.
+A: The Wall is an album released in November 29, 1979.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! vote: down
 #! comment: test comment for dialogue turns
@@ -1167,7 +1166,7 @@ C:   { id="spotify:album:2ZytN2cY4Zjrr9ukb2rqTP"^^com.spotify:album("Off the Wal
 C:   { id="spotify:album:1GlOZiKHTgtJqEF2FRii9y"^^com.spotify:album("Over The Garden Wall"), release_date=new Date("2017-09-19T00:00:00.000Z") }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The Wall is an album from November 29, 1979.
+A: The Wall is an album released in November 29, 1979.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
@@ -1200,26 +1199,26 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
-U: @com.spotify.song() filter id =~ "Nice For What";
+U: @com.spotify.playable() filter id =~ "Nice For What";
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
-UT: @com.spotify.song() filter id =~ "Nice For What";
+UT: @com.spotify.playable() filter id =~ "Nice For What";
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "Nice For What"
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).playable() filter id =~ "Nice For What"
 C: #[results=[
-C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], album="spotify:album:1ATL5GLyefJaxhQzSPVrLX"^^com.spotify:album("Scorpion"), genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79, energy=90, danceability=58 }
+C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:playable("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79 }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Nice For What is a song by Drake in the album Scorpion. Would you like to play it on Spotify?
+A: Nice For What is a music by Drake released in June 28, 2018. Would you like to play it on Spotify?
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
+AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play(playable="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:playable("Nice For What"))
 AT: #[confirm=enum proposed];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $no;
-UT: $no;
+UT: $dialogue @org.thingpedia.dialogue.transaction.cancel;
 C: $dialogue @org.thingpedia.dialogue.transaction.cancel;
-C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "Nice For What"
+C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).playable() filter id =~ "Nice For What"
 C: #[results=[
-C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], album="spotify:album:1ATL5GLyefJaxhQzSPVrLX"^^com.spotify:album("Scorpion"), genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79, energy=90, danceability=58 }
+C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:playable("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79 }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Alright, let me know if I can help you with anything else!
@@ -1246,10 +1245,8 @@ C: #[results=[
 C:   { id="spotify:track:7ytR5pFWmSjzHJIeQkgog4"^^com.spotify:song("ROCKSTAR (feat. Roddy Ricch)"), artists=["spotify:artist:4r63FhuTkUYltbVAg5TQnk"^^com.spotify:artist("DaBaby"), "spotify:artist:757aE44tKEUQEqRuT6GnEB"^^com.spotify:artist("Roddy Ricch")], album="spotify:album:623PL2MBg50Br5dLXC9E9e"^^com.spotify:album("BLAME IT ON BABY"), genres=["north carolina hip hop", "rap"], release_date=new Date("2020-04-17T00:00:00.000Z"), popularity=100, energy=69, danceability=74 }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The most popular song is ROCKSTAR (feat. Roddy Ricch). It is a song by DaBaby in the album BLAME IT ON BABY. Would you like to play it on Spotify?
+A: The answer is ROCKSTAR (feat. Roddy Ricch). It is a song in the album BLAME IT ON BABY by DaBaby.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play_song(song="spotify:track:7ytR5pFWmSjzHJIeQkgog4"^^com.spotify:song("ROCKSTAR (feat. Roddy Ricch)"))
-AT: #[confirm=enum proposed];
 #! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
@@ -1270,10 +1267,8 @@ C: #[results=[
 C:   { id="spotify:track:0VXeNEtuiD77F2StUeUadK"^^com.spotify:song("Love Yourself"), artists=["spotify:artist:1uNFoZAHBGtllmzznpCI3s"^^com.spotify:artist("Justin Bieber")], album="spotify:album:74jDw6TsdKnT92V790QfvF"^^com.spotify:album("Romantic Pop Songs"), genres=["canadian pop", "pop", "post-teen pop"], release_date=new Date("2020-08-10T00:00:00.000Z"), popularity=0, energy=43, danceability=78 }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The least popular song is Love Yourself. It is a song by Justin Bieber in the album Romantic Pop Songs. Would you like to play it on Spotify?
+A: The answer is Love Yourself. It is a song in the album Romantic Pop Songs by Justin Bieber.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play_song(song="spotify:track:0VXeNEtuiD77F2StUeUadK"^^com.spotify:song("Love Yourself"))
-AT: #[confirm=enum proposed];
 #! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
@@ -1294,7 +1289,7 @@ C: #[results=[
 C:   { id="jwaXc3VVGDFQu1aCoiXwdw"^^com.yelp:restaurant("NOLA Restaurant & Bar"), image_url="https://s3-media2.fl.yelpcdn.com/bphoto/tna5SSdgZq3fFxoi4-Xx7A/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/nola-restaurant-and-bar-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["cajun"^^com.yelp:restaurant_cuisine("Cajun/Creole"), "newamerican"^^com.yelp:restaurant_cuisine("American (New)")], price=enum expensive, rating=3.5, reviewCount=2821, geo=new Location(37.4450225830078, -122.161323547363), phone="+16503282722"^^tt:phone_number }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The restaurant with the highest review count is NOLA Restaurant & Bar. It is an expensive restaurant near [Latitude: 37.445 deg, Longitude: -122.161 deg].
+A: The restaurant with the highest review count is NOLA Restaurant & Bar. It is a restaurant near [Latitude: 37.445 deg, Longitude: -122.161 deg] rated 3.5 star.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -1418,7 +1413,9 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_confirm_action;
 AT: @com.xkcd.comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title);
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $yes;
-UT: $yes;
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.xkcd.comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title)
+UT: #[confirm=enum confirmed];
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.xkcd.comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title)
 C: #[results=[]];
@@ -1695,6 +1692,7 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @org.thingpedia.builtin.test.get_data(count=1, size=5byte);
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.builtin.test.get_data(count=1, size=5byte);
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.builtin.test.get_data(count=1, size=5byte)
@@ -1706,6 +1704,7 @@ A: The answer is !!!!!
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @org.thingpedia.builtin.test.get_data(count=2, size=5byte);
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.builtin.test.get_data(count=2, size=5byte);
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.builtin.test.get_data(count=1, size=5byte)
@@ -1722,6 +1721,7 @@ A: First answer for 2 items of size 5 byte is !!!!! 2 nd answer is """"".
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @org.thingpedia.builtin.test.get_data(count=3, size=5byte);
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.builtin.test.get_data(count=3, size=5byte);
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.builtin.test.get_data(count=1, size=5byte)
@@ -1744,6 +1744,7 @@ A: First answer for 3 items of size 5 byte is !!!!! 2 nd answer is """"". 3 rd a
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @org.thingpedia.builtin.test.get_data2(count=3, size=5byte);
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.builtin.test.get_data2(count=3, size=5byte);
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.builtin.test.get_data(count=1, size=5byte)
@@ -1845,7 +1846,7 @@ C: #[results=[
 C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles")], price=enum moderate, rating=4.5, reviewCount=1625, geo=new Location(37.445523, -122.1607073261) }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Notification from Yelp: I see Ramen Nagi. It is a moderate restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg].
+A: Notification from Yelp: I see Ramen Nagi. It is a restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg] rated 4.5 star.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! vote: down
 #! comment: test comment for dialogue turns
@@ -1873,7 +1874,7 @@ C: #[results=[
 C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/OKCXWIEFIkNdvkqETl0Bqw/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/ramen-nagi-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["ramen"^^com.yelp:restaurant_cuisine("Ramen"), "noodles"^^com.yelp:restaurant_cuisine("Noodles")], price=enum moderate, rating=4.5, reviewCount=1625, geo=new Location(37.445523, -122.1607073261) }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Notification from Yelp: the restaurant with the highest rating is Ramen Nagi. It is a moderate restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg].
+A: Notification from Yelp: the restaurant with the highest rating is Ramen Nagi. It is a restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg] rated 4.5 star.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -1914,6 +1915,7 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @com.yelp.restaurant()[1 : 3];
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.yelp.restaurant()[1 : 3];
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.yelp.restaurant()[1 : 3]
@@ -1923,10 +1925,11 @@ C:   { id="1vMgajRAI3lYwuCeGX58oQ"^^com.yelp:restaurant("Evvia Estiatorio"), ima
 C:   { id="KyU7XWDPclmZ3BpdIsd_0Q"^^com.yelp:restaurant("Oren's Hummus"), image_url="https://s3-media3.fl.yelpcdn.com/bphoto/vOWdAh4DKhMisL0K4YzXtA/o.jpg"^^tt:picture, link="https://www.yelp.com/biz/orens-hummus-palo-alto?adjust_creative=hejPBQRox5iXtqGPiDw4dg&utm_campaign=yelp_api_v3&utm_medium=api_v3_business_search&utm_source=hejPBQRox5iXtqGPiDw4dg"^^tt:url, cuisines=["mediterranean"^^com.yelp:restaurant_cuisine("Mediterranean"), "mideastern"^^com.yelp:restaurant_cuisine("Middle Eastern")], price=enum moderate, rating=4, reviewCount=2248, geo=new Location(37.445717, -122.162173), phone="+16507526492"^^tt:phone_number }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: I see Ramen Nagi, Evvia Estiatorio, and Oren's Hummus. Ramen Nagi is rated 4.5 star, Evvia Estiatorio is rated 4.5 star, and Oren's Hummus is rated 4 star.
+A: I see Ramen Nagi, Evvia Estiatorio, and Oren's Hummus. Ramen Nagi is a restaurant rated 4.5 star, Evvia Estiatorio is rated 4.5 star, and Oren's Hummus is rated 4 star.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t [reviewCount] of @com.yelp.restaurant()[1 : 3];
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: [reviewCount] of @com.yelp.restaurant()[1 : 3];
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.yelp.restaurant()[1 : 3]
@@ -1942,7 +1945,7 @@ C:   { id="1vMgajRAI3lYwuCeGX58oQ"^^com.yelp:restaurant("Evvia Estiatorio"), rev
 C:   { id="KyU7XWDPclmZ3BpdIsd_0Q"^^com.yelp:restaurant("Oren's Hummus"), reviewCount=2248 }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Ramen Nagi has 1,625 reviews, Evvia Estiatorio has 2,393 reviews, and Oren's Hummus has 2,248 reviews.
+A: Ramen Nagi is a restaurant with 1,625 reviews, Evvia Estiatorio has 2,393 reviews, and Oren's Hummus has 2,248 reviews.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -1972,7 +1975,7 @@ U: @com.twitter.post();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.twitter.post();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: To use this command you must first create a personal Almond account.
+A: To use this command you must first create a personal Genie account.
 #! vote: up
 #! comment: test comment for dialogue turns
 #!          additional
@@ -2014,94 +2017,79 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @org.thingpedia.iot.switch.state();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.iot.switch.state();
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @org.thingpedia.iot.switch.state()
+C: @org.thingpedia.iot.switch(id="switch-bed1"^^tt:device_id("Bed Switch 1")).state()
 C: #[results=[
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 0") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::2:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 2") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::4:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 4") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
+C:   { state=enum off, __device="switch-bed1"^^tt:device_id("Bed Switch 1") }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The Simulated Device org.thingpedia.iot.switch 0 switch is off. The Simulated Device org.thingpedia.iot.switch 1 switch is off. The Simulated Device org.thingpedia.iot.switch 2 switch is on. The Simulated Device org.thingpedia.iot.switch 3 switch is on. The Simulated Device org.thingpedia.iot.switch 4 switch is on.
+A: You have multiple switch devices. Which one do you want to use?
+A: The Bed Switch 1 switch is off.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @org.thingpedia.iot.switch(name="kitchen").state();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.iot.switch(name="kitchen").state();
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @org.thingpedia.iot.switch.state()
+C: @org.thingpedia.iot.switch(id="switch-bed1"^^tt:device_id("Bed Switch 1")).state()
 C: #[results=[
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 0") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::2:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 2") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::4:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 4") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
+C:   { state=enum off, __device="switch-bed1"^^tt:device_id("Bed Switch 1") }
 C: ]];
 C: @org.thingpedia.iot.switch(id="switch-kitchen"^^tt:device_id("Kitchen Switches")).state()
 C: #[results=[
-C:   { state=enum on, __device="switch-kitchen"^^tt:device_id("Kitchen Switches") }
+C:   { state=enum off, __device="switch-kitchen"^^tt:device_id("Kitchen Switches") }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The Kitchen Switches switch is on.
+A: The Kitchen Switches switch is off.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @org.thingpedia.iot.switch(all=true).state();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.iot.switch(all=true).state();
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @org.thingpedia.iot.switch.state()
+C: @org.thingpedia.iot.switch(id="switch-bed1"^^tt:device_id("Bed Switch 1")).state()
 C: #[results=[
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 0") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::2:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 2") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::4:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 4") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
+C:   { state=enum off, __device="switch-bed1"^^tt:device_id("Bed Switch 1") }
 C: ]];
 C: @org.thingpedia.iot.switch(id="switch-kitchen"^^tt:device_id("Kitchen Switches")).state()
 C: #[results=[
-C:   { state=enum on, __device="switch-kitchen"^^tt:device_id("Kitchen Switches") }
+C:   { state=enum off, __device="switch-kitchen"^^tt:device_id("Kitchen Switches") }
 C: ]];
 C: @org.thingpedia.iot.switch(all=true).state()
 C: #[results=[
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 0") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 0") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
 C:   { state=enum on, __device="str:ENTITY_tt:device_id::2:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 2") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
 C:   { state=enum on, __device="str:ENTITY_tt:device_id::4:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 4") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The Simulated Device org.thingpedia.iot.switch 0 switch is off. The Simulated Device org.thingpedia.iot.switch 1 switch is off. The Simulated Device org.thingpedia.iot.switch 2 switch is on. The Simulated Device org.thingpedia.iot.switch 3 switch is on. The Simulated Device org.thingpedia.iot.switch 4 switch is on.
+A: The Simulated Device org.thingpedia.iot.switch 0 switch is on. The Simulated Device org.thingpedia.iot.switch 1 switch is on. The Simulated Device org.thingpedia.iot.switch 2 switch is on. The Simulated Device org.thingpedia.iot.switch 3 switch is off. The Simulated Device org.thingpedia.iot.switch 4 switch is on.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @org.thingpedia.iot.switch(all=true, name="bed").state();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.iot.switch(all=true, name="bed").state();
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: @org.thingpedia.iot.switch.state()
+C: @org.thingpedia.iot.switch(id="switch-bed1"^^tt:device_id("Bed Switch 1")).state()
 C: #[results=[
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 0") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::2:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 2") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::4:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 4") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
+C:   { state=enum off, __device="switch-bed1"^^tt:device_id("Bed Switch 1") }
 C: ]];
 C: @org.thingpedia.iot.switch(id="switch-kitchen"^^tt:device_id("Kitchen Switches")).state()
 C: #[results=[
-C:   { state=enum on, __device="switch-kitchen"^^tt:device_id("Kitchen Switches") }
+C:   { state=enum off, __device="switch-kitchen"^^tt:device_id("Kitchen Switches") }
 C: ]];
 C: @org.thingpedia.iot.switch(all=true).state()
 C: #[results=[
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 0") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 0") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
 C:   { state=enum on, __device="str:ENTITY_tt:device_id::2:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 2") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
 C:   { state=enum on, __device="str:ENTITY_tt:device_id::4:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 4") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
 C: ]];
 C: @org.thingpedia.iot.switch(all=true, name="bed").state()
 C: #[results=[
@@ -2109,11 +2097,11 @@ C:   { state=enum on, __device="str:ENTITY_tt:device_id::0:"^^tt:device_id("Simu
 C:   { state=enum on, __device="str:ENTITY_tt:device_id::1:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 1") },
 C:   { state=enum on, __device="str:ENTITY_tt:device_id::2:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 2") },
 C:   { state=enum on, __device="str:ENTITY_tt:device_id::3:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 3") },
-C:   { state=enum on, __device="str:ENTITY_tt:device_id::4:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 4") },
-C:   { state=enum off, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
+C:   { state=enum off, __device="str:ENTITY_tt:device_id::4:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 4") },
+C:   { state=enum on, __device="str:ENTITY_tt:device_id::5:"^^tt:device_id("Simulated Device org.thingpedia.iot.switch 5") }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: The Simulated Device org.thingpedia.iot.switch 0 switch is on. The Simulated Device org.thingpedia.iot.switch 1 switch is on. The Simulated Device org.thingpedia.iot.switch 2 switch is on. The Simulated Device org.thingpedia.iot.switch 3 switch is on. The Simulated Device org.thingpedia.iot.switch 4 switch is on.
+A: The Simulated Device org.thingpedia.iot.switch 0 switch is on. The Simulated Device org.thingpedia.iot.switch 1 switch is on. The Simulated Device org.thingpedia.iot.switch 2 switch is on. The Simulated Device org.thingpedia.iot.switch 3 switch is on. The Simulated Device org.thingpedia.iot.switch 4 switch is off.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_display_result;
 #! vote: up
 #! comment: test comment for dialogue turns
@@ -2184,7 +2172,7 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $wakeup;
-UT: $wakeup;
+UT: $dialogue @org.thingpedia.dialogue.transaction.greet;
 C: $dialogue @org.thingpedia.dialogue.transaction.greet;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: Hello! How can I help you?
@@ -2200,6 +2188,7 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t monitor(@org.thingpedia.weather.current()) filter temperature >= 70defaultTemperature;
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: monitor(@org.thingpedia.weather.current()) filter temperature >= 70defaultTemperature;
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: monitor(@org.thingpedia.weather.current(location=new Location(37.4275, -122.1697))) filter temperature >= 70F
@@ -2218,6 +2207,7 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @org.thingpedia.iot.switch(name="invalid").state();
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.iot.switch(name="invalid").state();
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I cannot find any invalid switch device. Which device do you want to use?
@@ -2229,6 +2219,7 @@ A: I cannot find any invalid switch device. Which device do you want to use?
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t @com.spotify(name="invalid").song() filter id =~ "nice for what";
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.spotify(name="invalid").song() filter id =~ "nice for what";
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).song() filter id =~ "nice for what"
@@ -2236,10 +2227,133 @@ C: #[results=[
 C:   { id="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"), artists=["spotify:artist:3TVXtAsR1Inumwj472S9r4"^^com.spotify:artist("Drake")], album="spotify:album:1ATL5GLyefJaxhQzSPVrLX"^^com.spotify:album("Scorpion"), genres=["canadian hip hop", "canadian pop", "hip hop", "pop rap", "rap", "toronto rap"], release_date=new Date("2018-06-29T00:00:00.000Z"), popularity=79, energy=90, danceability=58 }
 C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-A: Nice For What is a song by Drake in the album Scorpion. Would you like to play it on Spotify?
+A: Nice For What is a song in the album Scorpion by Drake.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
-AT: @com.spotify(id="com.spotify-7"^^tt:device_id).play_song(song="spotify:track:3CA9pLiwRIGtUBiMjbZmRw"^^com.spotify:song("Nice For What"))
-AT: #[confirm=enum proposed];
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
+U: @com.spotify(id="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax")).playable() filter release_date <= new Date("2000-01-01T00:00:00.000Z") + 1year && release_date >= new Date("2000-01-01T00:00:00.000Z")
+U: #[results=[
+U:   { id="spotify:track:3AJwUDP919kvQ9QcozQPxg"^^com.spotify:playable("Yellow"), artists=["spotify:artist:4gzpq5DPGxSnKTe4SA8HAU"^^com.spotify:artist("Coldplay")], album="spotify:album:6ZG5lRT77aJ3btmArcykra"^^com.spotify:album("Parachutes"), genres=["permanent wave", "pop"], release_date=new Date("2000-07-10T00:00:00.000Z"), popularity=85, energy=66.10000000000001, danceability=42.9, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+U:   { id="spotify:track:3yfqSUWxFvZELEM4PmlwIR"^^com.spotify:playable("The Real Slim Shady"), artists=["spotify:artist:7dGJo4pcD2V6oG8kP0tJRR"^^com.spotify:artist("Eminem")], album="spotify:album:6t7956yu5zYf5A829XRiHC"^^com.spotify:album("The Marshall Mathers LP"), genres=["detroit hip hop", "hip hop", "rap"], release_date=new Date("2000-05-23T00:00:00.000Z"), popularity=84, energy=66.10000000000001, danceability=94.89999999999999, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+U:   { id="spotify:track:0I3q5fE6wg7LIfHGngUTnV"^^com.spotify:playable("Ms. Jackson"), artists=["spotify:artist:1G9G7WwrXka3Z1r7aIDjI7"^^com.spotify:artist("Outkast")], album="spotify:album:2tm3Ht61kqqRZtIYsBjxEj"^^com.spotify:album("Stankonia"), genres=["atl hip hop", "dirty south rap", "hip hop", "rap", "southern hip hop"], release_date=new Date("2000-10-31T00:00:00.000Z"), popularity=82, energy=80.60000000000001, danceability=84.3, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+U:   { id="spotify:track:6ZOBP3NvffbU4SZcrnt1k6"^^com.spotify:playable("Kryptonite"), artists=["spotify:artist:2RTUTCvo6onsAnheUk3aL9"^^com.spotify:artist("3 Doors Down")], album="spotify:album:5gO2acKSOaJnP0Mcy8IpU6"^^com.spotify:album("The Better Life"), genres=["alternative metal", "nu metal", "pop rock", "post-grunge"], release_date=new Date("2000-01-01T00:00:00.000Z"), popularity=79, energy=86.5, danceability=54.50000000000001, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+U:   { id="spotify:track:60a0Rd6pjrkxjPbaKzXjfq"^^com.spotify:playable("In the End"), artists=["spotify:artist:6XyY86QOPPrYVGvF9ch6wz"^^com.spotify:artist("Linkin Park")], album="spotify:album:6hPkbAV3ZXpGZBGUvL6jVM"^^com.spotify:album("Hybrid Theory (Bonus Edition)"), genres=["alternative metal", "nu metal", "post-grunge", "rap metal"], release_date=new Date("2000-10-24T00:00:00.000Z"), popularity=83, energy=86.4, danceability=55.60000000000001, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+U:   { id="spotify:track:40rvBMQizxkIqnjPdEWY1v"^^com.spotify:playable("Down with the Sickness"), artists=["spotify:artist:3TOqt5oJwL9BE2NG9MEwDa"^^com.spotify:artist("Disturbed")], album="spotify:album:6IvosVciDOQ9NAPaKwhtLY"^^com.spotify:album("The Sickness"), genres=["alternative metal", "nu metal", "rap metal"], release_date=new Date("2000-03-07T00:00:00.000Z"), popularity=76, energy=87.6, danceability=69.5, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+U:   { id="spotify:track:3Gf5nttwcX9aaSQXRWidEZ"^^com.spotify:playable("Ride Wit Me"), artists=["spotify:artist:2gBjLmx6zQnFGQJCAQpRgw"^^com.spotify:artist("Nelly"), "spotify:artist:3L2SIGZah4QZSvN4wC8rHl"^^com.spotify:artist("City Spud")], album="spotify:album:5v7Icroz1sQsK2sQyLrWzE"^^com.spotify:album("Country Grammar"), genres=["dance pop", "hip hop", "pop rap", "rap", "southern hip hop", "st louis rap", "urban contemporary"], release_date=new Date("2000-06-27T00:00:00.000Z"), popularity=75, energy=70, danceability=85, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+U:   { id="spotify:track:6naxalmIoLFWR0siv8dnQQ"^^com.spotify:playable("Oops!...I Did It Again"), artists=["spotify:artist:26dSoYclwsYLMAKD3tpOr4"^^com.spotify:artist("Britney Spears")], album="spotify:album:5PmgtkodFl2Om3hMXONDll"^^com.spotify:album("Oops!... I Did It Again"), genres=["dance pop", "pop", "post-teen pop"], release_date=new Date("2000-05-16T00:00:00.000Z"), popularity=80, energy=83.39999999999999, danceability=75.1, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+U:   { id="spotify:track:3UmaczJpikHgJFyBTAJVoz"^^com.spotify:playable("Stan"), artists=["spotify:artist:7dGJo4pcD2V6oG8kP0tJRR"^^com.spotify:artist("Eminem"), "spotify:artist:2mpeljBig2IXLXRAFO9AAs"^^com.spotify:artist("Dido")], album="spotify:album:6t7956yu5zYf5A829XRiHC"^^com.spotify:album("The Marshall Mathers LP"), genres=["detroit hip hop", "hip hop", "rap"], release_date=new Date("2000-05-23T00:00:00.000Z"), popularity=80, energy=76.8, danceability=78, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+U:   { id="spotify:track:62bOmKYxYg7dhrC6gH9vFn"^^com.spotify:playable("Bye Bye Bye"), artists=["spotify:artist:6Ff53KvcvAj5U7Z1vojB5o"^^com.spotify:artist("*NSYNC")], album="spotify:album:20RMokVwJ2wjQ0s8FOdOFC"^^com.spotify:album("No Strings Attached"), genres=["boy band", "dance pop", "pop", "post-teen pop"], release_date=new Date("2000-03-21T00:00:00.000Z"), popularity=72, energy=92.60000000000001, danceability=61, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") }
+U: ]]
+U: #[count=50];
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.spotify(id="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax")).playable() filter release_date <= new Date("2000-01-01T00:00:00.000Z") + 1year && release_date >= new Date("2000-01-01T00:00:00.000Z")
+UT: #[results=[
+UT:   { id="spotify:track:3AJwUDP919kvQ9QcozQPxg"^^com.spotify:playable("Yellow"), artists=["spotify:artist:4gzpq5DPGxSnKTe4SA8HAU"^^com.spotify:artist("Coldplay")], album="spotify:album:6ZG5lRT77aJ3btmArcykra"^^com.spotify:album("Parachutes"), genres=["permanent wave", "pop"], release_date=new Date("2000-07-10T00:00:00.000Z"), popularity=85, energy=66.10000000000001, danceability=42.9, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+UT:   { id="spotify:track:3yfqSUWxFvZELEM4PmlwIR"^^com.spotify:playable("The Real Slim Shady"), artists=["spotify:artist:7dGJo4pcD2V6oG8kP0tJRR"^^com.spotify:artist("Eminem")], album="spotify:album:6t7956yu5zYf5A829XRiHC"^^com.spotify:album("The Marshall Mathers LP"), genres=["detroit hip hop", "hip hop", "rap"], release_date=new Date("2000-05-23T00:00:00.000Z"), popularity=84, energy=66.10000000000001, danceability=94.89999999999999, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+UT:   { id="spotify:track:0I3q5fE6wg7LIfHGngUTnV"^^com.spotify:playable("Ms. Jackson"), artists=["spotify:artist:1G9G7WwrXka3Z1r7aIDjI7"^^com.spotify:artist("Outkast")], album="spotify:album:2tm3Ht61kqqRZtIYsBjxEj"^^com.spotify:album("Stankonia"), genres=["atl hip hop", "dirty south rap", "hip hop", "rap", "southern hip hop"], release_date=new Date("2000-10-31T00:00:00.000Z"), popularity=82, energy=80.60000000000001, danceability=84.3, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+UT:   { id="spotify:track:6ZOBP3NvffbU4SZcrnt1k6"^^com.spotify:playable("Kryptonite"), artists=["spotify:artist:2RTUTCvo6onsAnheUk3aL9"^^com.spotify:artist("3 Doors Down")], album="spotify:album:5gO2acKSOaJnP0Mcy8IpU6"^^com.spotify:album("The Better Life"), genres=["alternative metal", "nu metal", "pop rock", "post-grunge"], release_date=new Date("2000-01-01T00:00:00.000Z"), popularity=79, energy=86.5, danceability=54.50000000000001, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+UT:   { id="spotify:track:60a0Rd6pjrkxjPbaKzXjfq"^^com.spotify:playable("In the End"), artists=["spotify:artist:6XyY86QOPPrYVGvF9ch6wz"^^com.spotify:artist("Linkin Park")], album="spotify:album:6hPkbAV3ZXpGZBGUvL6jVM"^^com.spotify:album("Hybrid Theory (Bonus Edition)"), genres=["alternative metal", "nu metal", "post-grunge", "rap metal"], release_date=new Date("2000-10-24T00:00:00.000Z"), popularity=83, energy=86.4, danceability=55.60000000000001, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+UT:   { id="spotify:track:40rvBMQizxkIqnjPdEWY1v"^^com.spotify:playable("Down with the Sickness"), artists=["spotify:artist:3TOqt5oJwL9BE2NG9MEwDa"^^com.spotify:artist("Disturbed")], album="spotify:album:6IvosVciDOQ9NAPaKwhtLY"^^com.spotify:album("The Sickness"), genres=["alternative metal", "nu metal", "rap metal"], release_date=new Date("2000-03-07T00:00:00.000Z"), popularity=76, energy=87.6, danceability=69.5, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+UT:   { id="spotify:track:3Gf5nttwcX9aaSQXRWidEZ"^^com.spotify:playable("Ride Wit Me"), artists=["spotify:artist:2gBjLmx6zQnFGQJCAQpRgw"^^com.spotify:artist("Nelly"), "spotify:artist:3L2SIGZah4QZSvN4wC8rHl"^^com.spotify:artist("City Spud")], album="spotify:album:5v7Icroz1sQsK2sQyLrWzE"^^com.spotify:album("Country Grammar"), genres=["dance pop", "hip hop", "pop rap", "rap", "southern hip hop", "st louis rap", "urban contemporary"], release_date=new Date("2000-06-27T00:00:00.000Z"), popularity=75, energy=70, danceability=85, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+UT:   { id="spotify:track:6naxalmIoLFWR0siv8dnQQ"^^com.spotify:playable("Oops!...I Did It Again"), artists=["spotify:artist:26dSoYclwsYLMAKD3tpOr4"^^com.spotify:artist("Britney Spears")], album="spotify:album:5PmgtkodFl2Om3hMXONDll"^^com.spotify:album("Oops!... I Did It Again"), genres=["dance pop", "pop", "post-teen pop"], release_date=new Date("2000-05-16T00:00:00.000Z"), popularity=80, energy=83.39999999999999, danceability=75.1, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+UT:   { id="spotify:track:3UmaczJpikHgJFyBTAJVoz"^^com.spotify:playable("Stan"), artists=["spotify:artist:7dGJo4pcD2V6oG8kP0tJRR"^^com.spotify:artist("Eminem"), "spotify:artist:2mpeljBig2IXLXRAFO9AAs"^^com.spotify:artist("Dido")], album="spotify:album:6t7956yu5zYf5A829XRiHC"^^com.spotify:album("The Marshall Mathers LP"), genres=["detroit hip hop", "hip hop", "rap"], release_date=new Date("2000-05-23T00:00:00.000Z"), popularity=80, energy=76.8, danceability=78, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+UT:   { id="spotify:track:62bOmKYxYg7dhrC6gH9vFn"^^com.spotify:playable("Bye Bye Bye"), artists=["spotify:artist:6Ff53KvcvAj5U7Z1vojB5o"^^com.spotify:artist("*NSYNC")], album="spotify:album:20RMokVwJ2wjQ0s8FOdOFC"^^com.spotify:album("No Strings Attached"), genres=["boy band", "dance pop", "pop", "post-teen pop"], release_date=new Date("2000-03-21T00:00:00.000Z"), popularity=72, energy=92.60000000000001, danceability=61, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") }
+UT: ]]
+UT: #[count=50];
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.spotify(id="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax")).playable() filter release_date <= new Date("2000-01-01T00:00:00.000Z") + 1year && release_date >= new Date("2000-01-01T00:00:00.000Z")
+C: #[results=[
+C:   { id="spotify:track:3AJwUDP919kvQ9QcozQPxg"^^com.spotify:playable("Yellow"), artists=["spotify:artist:4gzpq5DPGxSnKTe4SA8HAU"^^com.spotify:artist("Coldplay")], album="spotify:album:6ZG5lRT77aJ3btmArcykra"^^com.spotify:album("Parachutes"), genres=["permanent wave", "pop"], release_date=new Date("2000-07-10T00:00:00.000Z"), popularity=85, energy=66.10000000000001, danceability=42.9, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+C:   { id="spotify:track:3yfqSUWxFvZELEM4PmlwIR"^^com.spotify:playable("The Real Slim Shady"), artists=["spotify:artist:7dGJo4pcD2V6oG8kP0tJRR"^^com.spotify:artist("Eminem")], album="spotify:album:6t7956yu5zYf5A829XRiHC"^^com.spotify:album("The Marshall Mathers LP"), genres=["detroit hip hop", "hip hop", "rap"], release_date=new Date("2000-05-23T00:00:00.000Z"), popularity=84, energy=66.10000000000001, danceability=94.89999999999999, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+C:   { id="spotify:track:0I3q5fE6wg7LIfHGngUTnV"^^com.spotify:playable("Ms. Jackson"), artists=["spotify:artist:1G9G7WwrXka3Z1r7aIDjI7"^^com.spotify:artist("Outkast")], album="spotify:album:2tm3Ht61kqqRZtIYsBjxEj"^^com.spotify:album("Stankonia"), genres=["atl hip hop", "dirty south rap", "hip hop", "rap", "southern hip hop"], release_date=new Date("2000-10-31T00:00:00.000Z"), popularity=82, energy=80.60000000000001, danceability=84.3, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+C:   { id="spotify:track:6ZOBP3NvffbU4SZcrnt1k6"^^com.spotify:playable("Kryptonite"), artists=["spotify:artist:2RTUTCvo6onsAnheUk3aL9"^^com.spotify:artist("3 Doors Down")], album="spotify:album:5gO2acKSOaJnP0Mcy8IpU6"^^com.spotify:album("The Better Life"), genres=["alternative metal", "nu metal", "pop rock", "post-grunge"], release_date=new Date("2000-01-01T00:00:00.000Z"), popularity=79, energy=86.5, danceability=54.50000000000001, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+C:   { id="spotify:track:60a0Rd6pjrkxjPbaKzXjfq"^^com.spotify:playable("In the End"), artists=["spotify:artist:6XyY86QOPPrYVGvF9ch6wz"^^com.spotify:artist("Linkin Park")], album="spotify:album:6hPkbAV3ZXpGZBGUvL6jVM"^^com.spotify:album("Hybrid Theory (Bonus Edition)"), genres=["alternative metal", "nu metal", "post-grunge", "rap metal"], release_date=new Date("2000-10-24T00:00:00.000Z"), popularity=83, energy=86.4, danceability=55.60000000000001, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+C:   { id="spotify:track:40rvBMQizxkIqnjPdEWY1v"^^com.spotify:playable("Down with the Sickness"), artists=["spotify:artist:3TOqt5oJwL9BE2NG9MEwDa"^^com.spotify:artist("Disturbed")], album="spotify:album:6IvosVciDOQ9NAPaKwhtLY"^^com.spotify:album("The Sickness"), genres=["alternative metal", "nu metal", "rap metal"], release_date=new Date("2000-03-07T00:00:00.000Z"), popularity=76, energy=87.6, danceability=69.5, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+C:   { id="spotify:track:3Gf5nttwcX9aaSQXRWidEZ"^^com.spotify:playable("Ride Wit Me"), artists=["spotify:artist:2gBjLmx6zQnFGQJCAQpRgw"^^com.spotify:artist("Nelly"), "spotify:artist:3L2SIGZah4QZSvN4wC8rHl"^^com.spotify:artist("City Spud")], album="spotify:album:5v7Icroz1sQsK2sQyLrWzE"^^com.spotify:album("Country Grammar"), genres=["dance pop", "hip hop", "pop rap", "rap", "southern hip hop", "st louis rap", "urban contemporary"], release_date=new Date("2000-06-27T00:00:00.000Z"), popularity=75, energy=70, danceability=85, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+C:   { id="spotify:track:6naxalmIoLFWR0siv8dnQQ"^^com.spotify:playable("Oops!...I Did It Again"), artists=["spotify:artist:26dSoYclwsYLMAKD3tpOr4"^^com.spotify:artist("Britney Spears")], album="spotify:album:5PmgtkodFl2Om3hMXONDll"^^com.spotify:album("Oops!... I Did It Again"), genres=["dance pop", "pop", "post-teen pop"], release_date=new Date("2000-05-16T00:00:00.000Z"), popularity=80, energy=83.39999999999999, danceability=75.1, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+C:   { id="spotify:track:3UmaczJpikHgJFyBTAJVoz"^^com.spotify:playable("Stan"), artists=["spotify:artist:7dGJo4pcD2V6oG8kP0tJRR"^^com.spotify:artist("Eminem"), "spotify:artist:2mpeljBig2IXLXRAFO9AAs"^^com.spotify:artist("Dido")], album="spotify:album:6t7956yu5zYf5A829XRiHC"^^com.spotify:album("The Marshall Mathers LP"), genres=["detroit hip hop", "hip hop", "rap"], release_date=new Date("2000-05-23T00:00:00.000Z"), popularity=80, energy=76.8, danceability=78, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") },
+C:   { id="spotify:track:62bOmKYxYg7dhrC6gH9vFn"^^com.spotify:playable("Bye Bye Bye"), artists=["spotify:artist:6Ff53KvcvAj5U7Z1vojB5o"^^com.spotify:artist("*NSYNC")], album="spotify:album:20RMokVwJ2wjQ0s8FOdOFC"^^com.spotify:album("No Strings Attached"), genres=["boy band", "dance pop", "pop", "post-teen pop"], release_date=new Date("2000-03-21T00:00:00.000Z"), popularity=72, energy=92.60000000000001, danceability=61, __device="com.spotify-gcampax"^^tt:device_id("Spotify Account of gcampax") }
+C: ]]
+C: #[count=50];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: I see Yellow and The Real Slim Shady. Yellow is a music by Coldplay, while The Real Slim Shady Eminem wrote.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t @org.thingpedia.iot.switch(name="büro decke").set_power(power=enum on);
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.iot.switch(name="büro decke").set_power(power=enum on);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.iot.switch(id="switch-office-de"^^tt:device_id("Büro Decke")).set_power(power=enum on)
+C: #[results=[]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: I turned on your Büro Decke switch.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t @org.thingpedia.iot.switch(name="büro decke").set_power(power=enum off);
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.iot.switch(name="büro decke").set_power(power=enum off);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.iot.switch(id="switch-office-de"^^tt:device_id("Büro Decke")).set_power(power=enum on)
+C: #[results=[]];
+C: @org.thingpedia.iot.switch(id="switch-office-de"^^tt:device_id("Büro Decke")).set_power(power=enum off)
+C: #[results=[]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: I turned off your Büro Decke switch for you.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t @org.thingpedia.iot.switch(name="invalid").set_power(power=enum off);
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @org.thingpedia.iot.switch(name="invalid").set_power(power=enum off);
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @org.thingpedia.iot.switch(id="switch-kitchen"^^tt:device_id("Kitchen Switches")).set_power(power=enum off)
+C: #[results=[]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: I cannot find any invalid switch device. Which device do you want to use?
+A: I turned off your Kitchen Switches switch.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: What are the vaccine side effects?
+UT: $dialogue @org.thingpedia.dialogue.faq.question;
+C: $dialogue @org.thingpedia.dialogue.faq.question;
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Vaccine recipients commonly experience mild to moderate side effects that occur within the first three days of vaccination and resolve within 1-3 days of onset. These are normal signs that your body is building protection. Common side effects include mild to moderate pain, swelling, or redness at the injection site and/or mild to moderate flu-like symptoms (for example, fever, fatigue, headache, chills, muscle aches). Serious side effects are very rare.
+AT: $dialogue @org.thingpedia.dialogue.faq.answer;
 #! vote: down
 #! comment: test comment for dialogue turns
 #!          additional

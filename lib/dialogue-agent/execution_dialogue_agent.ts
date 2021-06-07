@@ -113,7 +113,7 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
     private async _requireRegistration(msg : string) : Promise<never> {
         const state = this._dlg.conversation.getState();
         await this._dlg.reply(msg);
-        await this._dlg.replyLink(this._("Sign up for Almond"), "/user/register", state);
+        await this._dlg.replyLink(this._("Sign up for Genie"), "/user/register", state);
         throw new CancellationError();
     }
 
@@ -124,7 +124,7 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
         if (stmt.last.schema!.functionType === 'action' &&
             !['org.thingpedia.builtin.thingengine.builtin.faq_reply',
               'org.thingpedia.builtin.thingengine.builtin.say'].includes(stmt.last.schema!.qualifiedName))
-            await this._requireRegistration(this._("To use this command you must first create a personal Almond account."));
+            await this._requireRegistration(this._("To use this command you must first create a personal Genie account."));
 
         if (stmt.stream) {
             // check available notification backends
@@ -134,7 +134,7 @@ export default class ExecutionDialogueAgent extends AbstractDialogueAgent<undefi
             const available = this._engine.assistant.getAvailableNotificationBackends();
 
             if (available.length === 0)
-                await this._requireRegistration(this._("To receive notifications you must first create a personal Almond account."));
+                await this._requireRegistration(this._("To receive notifications you must first create a personal Genie account."));
         }
     }
 

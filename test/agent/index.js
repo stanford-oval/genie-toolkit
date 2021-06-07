@@ -103,9 +103,6 @@ class TestDelegate {
         case 'text':
             checkIcon(msg);
             this._testRunner.writeLine(msg.text);
-            // die horribly if something does not work (and it's not a test error)
-            if (msg.text.indexOf('that did not work') >= 0 && msg.text.indexOf('I do not like that location') < 0)
-                setImmediate(() => process.exit(1));
             break;
 
         case 'result':
@@ -232,6 +229,7 @@ async function test(testRunner, dlg, i) {
     console.log(`Test Case #${i+1}: ${dlg.id}`);
 
     testRunner.conversation._options.anonymous = dlg.id.indexOf('-anon-') >= 0;
+    testRunner.conversation.dialogueFlags.faqs = dlg.id.indexOf('-faqs-') >= 0;
     testRunner.reset();
 
     // reset the conversation
@@ -275,8 +273,8 @@ async function main(onlyIds) {
     // test the welcome message (and the context at the start)
     expect(testRunner, `
 Hello! How can I help you?
->> context = null // {}
->> expecting = null
+>> context = $dialogue @org.thingpedia.dialogue.transaction . sys_greet ; // {}
+>> expecting = generic
 `);
 
     const TEST_CASES = await loadTestCases();

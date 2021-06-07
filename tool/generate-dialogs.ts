@@ -71,7 +71,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
     });
     parser.add_argument('--max-turns', {
         required: false,
-        default: 7,
+        default: 6,
         type: Number,
         help: `Maximum number of turns per dialog`
     });
@@ -94,9 +94,10 @@ export function initArgparse(subparsers : argparse.SubParser) {
         help: 'Path to file containing primitive templates, in ThingTalk syntax.'
     });
     parser.add_argument('--template', {
-        required: true,
+        required: false,
         nargs: '+',
-        help: 'Path to file containing construct templates, in Genie syntax.'
+        default: ['dialogue.genie'],
+        help: 'Path to file(s) containing construct templates, in Genie syntax.'
     });
     parser.add_argument('--set-flag', {
         required: false,
@@ -117,13 +118,13 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('--maxdepth', {
         required: false,
         type: Number,
-        default: 4,
+        default: 8,
         help: 'Maximum depth of sentence generation',
     });
     parser.add_argument('--target-pruning-size', {
         required: false,
         type: Number,
-        default: 100,
+        default: 250,
         help: 'Pruning target for each non-terminal',
     });
     parser.add_argument('-B', '--minibatch-size', {

@@ -146,6 +146,31 @@ export default class AssistantDispatcher extends events.EventEmitter {
      * It exists for the convenience of REST API clients which do not keep
      * an open web socket.
      */
+    async converse(command : {
+        type : 'command';
+        text : string;
+    } & PlatformData, conversationId : string) : Promise<{
+        conversationId : string;
+        messages : Message[],
+        askSpecial : string|null;
+    }>;
+    async converse(command : {
+        type : 'parsed';
+        json : any;
+        title ?: string;
+    } & PlatformData, conversationId : string) : Promise<{
+        conversationId : string;
+        messages : Message[],
+        askSpecial : string|null;
+    }>;
+    async converse(command : {
+        type : 'tt';
+        code : string;
+    } & PlatformData, conversationId : string) : Promise<{
+        conversationId : string;
+        messages : Message[],
+        askSpecial : string|null;
+    }>;
     async converse(command : ConverseInput, conversationId : string) {
         const conversation = await this.getOrOpenConversation(conversationId, {
             showWelcome: false,
@@ -194,7 +219,7 @@ export default class AssistantDispatcher extends events.EventEmitter {
     getAvailableNotificationBackends() : NotificationBackend[] {
         const backends = Object.values(this._staticNotificationBackends);
         for (const dev of this._notificationDeviceView.values())
-            backends.push(new ThingpediaNotificationBackend(dev.queryInterface('notifications')));
+            backends.push(new ThingpediaNotificationBackend(dev));
         return backends;
     }
 

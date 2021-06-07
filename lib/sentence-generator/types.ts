@@ -60,6 +60,17 @@ export type ContextTable = Record<string, number>;
 
 export type ContextFunction<StateType> = (state : StateType|null, contextSymbols : ContextTable) => ContextPhrase[]|null;
 
+export interface FunctionTable<StateType> {
+    answer ?: (state : StateType, value : unknown, contextTable : ContextTable) => StateType|null;
+    context ?: ContextFunction<StateType>;
+    notification ?: (appName : string|null, program : unknown, result : unknown, contextTable : ContextTable) => StateType|null;
+    notifyError ?: (appName : string|null, program : unknown, error : unknown, contextTable : ContextTable) => StateType|null;
+    initialState ?: (contextTable : ContextTable) => StateType|null;
+    followUp ?: (state : StateType, contextTable : ContextTable) => StateType|null;
+
+    [key : string] : ((...args : any[]) => any)|undefined;
+}
+
 export interface AgentReplyRecord<StateType> {
     state : StateType;
     context : any;

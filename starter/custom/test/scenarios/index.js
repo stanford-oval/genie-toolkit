@@ -306,10 +306,10 @@ async function main() {
     if (args.nlu_model)
         nluModelUrl = 'file://' + path.resolve('everything/models/' + args.nlu_model);
     else
-        nluModelUrl = 'https://nlp-staging.almond.stanford.edu';
+        nluModelUrl = 'https://nlp.almond.stanford.edu';
     const engine = new Genie.AssistantEngine(platform, {
         nluModelUrl,
-        cloudSyncUrl: 'https://dev.almond.stanford.edu'
+        cloudSyncUrl: 'https://almond.stanford.edu'
     });
     testRunner.engine = engine;
 

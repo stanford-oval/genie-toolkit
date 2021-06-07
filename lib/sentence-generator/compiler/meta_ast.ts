@@ -18,7 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
+import * as path from 'path';
 import assert from 'assert';
 
 import { stringEscape } from '../../utils/escaping';
@@ -50,7 +50,7 @@ export class Grammar {
             stmt.visit(visitor);
     }
 
-    codegen() : string {
+    codegen(filename : string) : string {
         let buffer = '';
 
         buffer += (this.comment);
@@ -58,8 +58,24 @@ export class Grammar {
             if (stmt instanceof JSImportStmt)
                 buffer += stmt.codegen();
         }
-        buffer += `import type * as $Genie from "genie-toolkit";\n`;
-        buffer += `export default async function($runtime : typeof $Genie.SentenceGeneratorRuntime, $ttUtils : typeof $Genie.ThingTalkUtils, $options : $Genie.SentenceGeneratorTypes.GrammarOptions, $locale : $Genie.I18n.LanguagePack, $grammar : $Genie.SentenceGenerator<any, any>, $loader : ThingpediaLoader) : Promise<void> {\n`;
+
+        let runtimepath = path.relative(path.dirname(filename), require.resolve('../runtime'));
+        if (runtimepath.endsWith('.ts'))
+            runtimepath = runtimepath.substring(0, runtimepath.length-3);
+        let generatorpath = path.relative(path.dirname(filename), require.resolve('../generator'));
+        if (generatorpath.endsWith('.ts'))
+            generatorpath = generatorpath.substring(0, generatorpath.length-3);
+        let typespath = path.relative(path.dirname(filename), require.resolve('../types'));
+        if (typespath.endsWith('.ts'))
+            typespath = typespath.substring(0, typespath.length-3);
+        let i18npath = path.relative(path.dirname(filename), require.resolve('../../i18n'));
+        if (i18npath.endsWith('.ts'))
+            i18npath = i18npath.substring(0, i18npath.length-3);
+        buffer += `import * as $runtime from ${stringEscape(runtimepath)};\n`;
+        buffer += `import type $SentenceGenerator from ${stringEscape(generatorpath)};\n`;
+        buffer += `import * as $SentenceGeneratorTypes from ${stringEscape(typespath)};\n`;
+        buffer += `import * as $I18n from ${stringEscape(i18npath)};\n`;
+        buffer += `export default async function($options : $SentenceGeneratorTypes.GrammarOptions, $locale : $I18n.LanguagePack, $grammar : $SentenceGenerator<any, any>, $loader : ThingpediaLoader) : Promise<void> {\n`;
         for (const stmt of this.statements) {
             if (stmt instanceof JSImportStmt)
                 continue;
@@ -247,7 +263,7 @@ export class Import extends Statement {
     }
 
     codegen(prefix = '') : string {
-        return `${prefix}await (await $runtime.import(${stringEscape(this.what)}, __dirname))($runtime, $ttUtils, $options, $locale, $grammar, $loader);\n`;
+        return `${prefix}await (await $runtime.import(${stringEscape(this.what)}, __dirname))($options, $locale, $grammar, $loader);\n`;
     }
 }
 Statement.Import = Import;
@@ -333,7 +349,7 @@ export class OldStyleExpansion extends Rule {
 
         // generate code to lookup the translation of the template if meaningful
         // (skip if this template has only one component)
-        if (this.head.length > 1)
+        if (this.head.length > 1 && template !== '""')
             template = `$locale._(${template})`;
 
         return `${prefix}$grammar.addRule(${stringEscape(nonTerminal)}, [${nonTerminalChildren.map((h, i) => h.codegen(nonTerminalChildren, i)).join(', ')}], ${template}, (${expanderCode}), ${keyfn}, ${this.attrs.codegen()});\n`;
@@ -365,7 +381,13 @@ export class NewStyleExpansion extends Rule {
             throw new Error(`Failed to parse template string for ${nonTerminal} = ${this.sentenceTemplate} (${this.nonTerminals.join(', ')}): ${e.message}`);
         }
 
-        return `${prefix}$grammar.addRule(${stringEscape(nonTerminal)}, [${this.nonTerminals.map((h, i) => h.codegen(this.nonTerminals, i)).join(', ')}], $locale._(${stringEscape(this.sentenceTemplate)}), (${expanderCode}), ${keyfn}, ${this.attrs.codegen()});\n`;
+        let gettext;
+        if (this.sentenceTemplate)
+            gettext = `$locale._(${stringEscape(this.sentenceTemplate)})`;
+        else
+            gettext = "''";
+
+        return `${prefix}$grammar.addRule(${stringEscape(nonTerminal)}, [${this.nonTerminals.map((h, i) => h.codegen(this.nonTerminals, i)).join(', ')}], ${gettext}, (${expanderCode}), ${keyfn}, ${this.attrs.codegen()});\n`;
     }
 }
 Rule.NewStyleExpansion = NewStyleExpansion;

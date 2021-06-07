@@ -39,7 +39,6 @@ import {
     Replaceable,
 } from '../utils/template-string';
 
-import * as SentenceGeneratorRuntime from './runtime';
 import {
     LogLevel,
 
@@ -55,7 +54,7 @@ import {
     RuleAttributes,
     ContextPhrase,
     ContextTable,
-    ContextFunction,
+    FunctionTable,
     GrammarOptions,
 } from './types';
 import { importGenie } from './compiler';
@@ -149,14 +148,6 @@ const MAX_SAMPLE_SIZE = 1000000;
 // the automatically added derivation key considering the context
 const CONTEXT_KEY_NAME = '$context';
 
-interface FunctionTable<StateType> {
-    answer ?: (state : StateType, value : unknown, contextTable : ContextTable) => StateType|null;
-    context ?: ContextFunction<StateType>;
-    notification ?: (appName : string|null, program : unknown, result : unknown, contextTable : ContextTable) => StateType|null;
-    notifyError ?: (appName : string|null, program : unknown, error : unknown, contextTable : ContextTable) => StateType|null;
-
-    [key : string] : ((...args : any[]) => any)|undefined;
-}
 type ContextInitializer<ContextType, StateType> = (previousTurn : ContextType, functionTable : FunctionTable<StateType>, contextTable : ContextTable) => ContextPhrase[]|null;
 
 interface GenericSentenceGeneratorOptions extends GrammarOptions {
@@ -547,7 +538,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
     async initialize() : Promise<void> {
         for (const filename of this._templateFiles) {
             const imported = await importGenie(filename);
-            await imported(SentenceGeneratorRuntime, ThingTalkUtils, this._options, this._langPack, this);
+            await imported(this._options, this._langPack, this);
         }
         this.finalize();
     }
