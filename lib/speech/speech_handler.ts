@@ -87,7 +87,7 @@ export default class SpeechHandler extends events.EventEmitter {
         this._recognizer.on('error', (e) => {
             this.emit('error', e);
         });
-        this._tts = new SpeechSynthesizer(platform);
+        this._tts = new SpeechSynthesizer(platform, options.nlUrl);
 
         this._currentRequest = null;
         this._queuedAudio = [];

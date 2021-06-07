@@ -32,6 +32,7 @@ class SpeechRequest extends Stream.Writable {
     private _started : boolean;
     private _vad : Tp.Capabilities.VadApi|null;
     private consecutiveSilence : number;
+    private silenceThreshold : number;
     private _bufferedMessages : Buffer[];
     private _piped : boolean;
     private _endTimeout : NodeJS.Timeout|null = null;
@@ -50,6 +51,7 @@ class SpeechRequest extends Stream.Writable {
 
         //this._debugFile = fs.createWriteStream('out_' + process.pid + '_' + (i++) + '.wav');
         this._vad = vad;
+        this.silenceThreshold = process.env.VAD_THRESHOLD ? parseInt(process.env.VAD_THRESHOLD) : 96;
         this.consecutiveSilence = 0;
 
         // all chunks received before the connection is ready are buffered here
@@ -137,13 +139,13 @@ class SpeechRequest extends Stream.Writable {
         //console.log('Sending chunk of length ' + chunk.length);
         if (this._connection && this._connection.readyState === 1) {
             // OPEN
-            if (this._vad && chunk.length === 320) {
+            if (this._vad) {
                 if (this._vad.process(chunk))
                     this.consecutiveSilence = 0;
                 else
                     this.consecutiveSilence++;
             }
-            if (this.consecutiveSilence === 96) {
+            if (this.consecutiveSilence === this.silenceThreshold) {
                 this._endDetected = true;
                 console.log("VAD threshold reached", this.consecutiveSilence);
                 this._connection.send(undefined, {}, (err ?: Error) => callback(err));
