@@ -2358,3 +2358,19 @@ AT: $dialogue @org.thingpedia.dialogue.faq.answer;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: !! test command always bing !!
+UT: $dialogue @com.bing.search;
+C: $dialogue @com.bing.search;
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Here is something I found on the web.
+AT: $dialogue @com.bing.sys_search_result;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines

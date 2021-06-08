@@ -59,7 +59,6 @@ interface AbstractConversation {
  * We should refactor all of this.
  */
 export interface AbstractDialogueLoop {
-    icon : string|null;
     platformData : PlatformData;
     isAnonymous : boolean;
     _ : (x : string) => string;
