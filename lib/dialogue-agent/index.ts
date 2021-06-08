@@ -27,7 +27,6 @@
 export {
     NotificationDelegate,
     NotificationConfig,
-    NotificationBackend,
 } from './notifications';
 export {
     default as AssistantDispatcher,
