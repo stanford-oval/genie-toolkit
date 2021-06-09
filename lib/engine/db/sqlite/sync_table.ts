@@ -20,7 +20,8 @@
 
 import * as sqlite3 from 'sqlite3';
 import * as sql from '.';
-import { SyncRecord } from '..';
+
+import type { SyncRecord } from '..';
 
 type Field<RowType> = Exclude<keyof RowType & string, "uniqueId">;
 

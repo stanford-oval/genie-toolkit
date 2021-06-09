@@ -116,8 +116,8 @@ export class DialogueLoop {
     private _nlg : ParserClient.ParserClient;
     private _thingtalkHandler : ThingTalkDialogueHandler;
     private _faqHandlers : Record<string, FAQDialogueHandler>;
-    private _dynamicHandlers : DeviceInterfaceMapper<DialogueHandler<any, any>>;
-    private _currentHandler : DialogueHandler<any, any>|null;
+    private _dynamicHandlers : DeviceInterfaceMapper<DialogueHandler<CommandAnalysisResult, any>>;
+    private _currentHandler : DialogueHandler<CommandAnalysisResult, any>|null;
 
     private icon : string|null;
     expecting : ValueCategory|null;
@@ -249,6 +249,8 @@ export class DialogueLoop {
 
             for (const handler of this._iterateDialogueHandlers()) {
                 const analysis = await handler.analyzeCommand(command);
+
+                this.debug(`Handler ${handler.uniqueId} reports ${CommandAnalysisType[analysis.type]}`);
 
                 switch (analysis.type) {
                 case CommandAnalysisType.STOP:

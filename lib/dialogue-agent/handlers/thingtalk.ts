@@ -147,7 +147,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             locale: engine.platform.locale,
             timezone: engine.platform.timezone,
             rng: loop.conversation.rng,
-            debug : this._debug ? 2 : 1,
+            debug : this._debug ? 2 : 0,
             anonymous: loop.isAnonymous,
             extraFlags: loop.conversation.dialogueFlags,
         });
@@ -294,7 +294,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         });
 
         if (nluResult.intent.command < IN_DOMAIN_THRESHOLD) {
-            this._loop.debug('Analyzed as out-of-domain command');
+            this._loop.debug('ThingTalk confidence analyzed as out-of-domain command');
             const parsed = new Ast.ControlCommand(null, new Ast.SpecialControlIntent(null, 'ood'));
             return {
                 type: CommandAnalysisType.OUT_OF_DOMAIN_COMMAND,
@@ -337,8 +337,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             type = this._getSpecialThingTalkType(choice.parsed);
         }
 
-        if (type === CommandAnalysisType.OUT_OF_DOMAIN_COMMAND ||
-            choice.score !== 'Infinity') {
+        if (type === CommandAnalysisType.OUT_OF_DOMAIN_COMMAND) {
             type = CommandAnalysisType.OUT_OF_DOMAIN_COMMAND;
             this._loop.debug('Failed to analyze message as ThingTalk');
             this._loop.conversation.stats.hit('sabrina-failure');
