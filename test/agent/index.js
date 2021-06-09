@@ -263,6 +263,12 @@ async function main(onlyIds) {
         showWelcome: true,
         anonymous: false,
         rng: rng,
+
+        faqModels: {
+            'covid-faq': {
+                url: 'http://covid-faq.staging.almond.stanford.edu/v1/models/covid-faq:predict'
+            }
+        }
     });
     conversation.startRecording();
     testRunner.conversation = conversation;
