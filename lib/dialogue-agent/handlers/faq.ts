@@ -20,6 +20,8 @@
 
 import * as Tp from 'thingpedia';
 
+import * as I18n from '../../i18n';
+
 import { UserInput } from "../user-input";
 import {
     DialogueHandler,
@@ -44,13 +46,21 @@ export default class FAQDialogueHandler implements DialogueHandler<FAQCommandAna
     uniqueId : string;
     private _loop : DialogueLoop;
     private _url : string;
+    private _looksLikeQuestion : RegExp;
 
     constructor(loop : DialogueLoop,
                 uniqueId : string,
-                url : string) {
+                url : string,
+                options : {
+                    locale : string
+                }) {
         this.uniqueId = 'faq/' + uniqueId;
         this._loop = loop;
         this._url = url;
+
+        // TRANSLATORS: this is a regular expression that should match commands that
+        // "look like questions" - and thus are candidate for lookup in the FAQ database
+        this._looksLikeQuestion = new RegExp(I18n.get(options.locale)._("^(what|who|where|when|why|how)|\\?\\s*$"), 'i');
     }
 
     async initialize() : Promise<ReplyResult | null> {
@@ -64,6 +74,9 @@ export default class FAQDialogueHandler implements DialogueHandler<FAQCommandAna
 
     async analyzeCommand(command : UserInput) : Promise<FAQCommandAnalysisType> {
         if (command.type !== 'command')
+            return { type: CommandAnalysisType.OUT_OF_DOMAIN_COMMAND, utterance: '', user_target: '', answer: '' };
+
+        if (!this._looksLikeQuestion.test(command.utterance))
             return { type: CommandAnalysisType.OUT_OF_DOMAIN_COMMAND, utterance: '', user_target: '', answer: '' };
 
         const response = await Tp.Helpers.Http.post(this._url, JSON.stringify({

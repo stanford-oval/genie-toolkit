@@ -150,7 +150,7 @@ export class DialogueLoop {
         this._thingtalkHandler = new ThingTalkDialogueHandler(engine, this, this._agent, this._nlu, this._nlg, options);
         this._faqHandlers = {};
         for (const faq in FAQS)
-            this._faqHandlers[faq] = new FAQDialogueHandler(this, faq, FAQS[faq]);
+            this._faqHandlers[faq] = new FAQDialogueHandler(this, faq, FAQS[faq], { locale: engine.platform.locale });
         this._dynamicHandlers = new DeviceInterfaceMapper(new DeviceView(engine.devices, 'org.thingpedia.dialogue-handler', {}),
             (device) => new ThingpediaDialogueHandler(device));
         this._currentHandler = null;
