@@ -1,0 +1,85 @@
+// -*- mode: typescript; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+
+import { Ast, } from 'thingtalk';
+
+// import the combinator library
+import * as C from './ast_manip';
+import ThingpediaLoader from './load-thingpedia';
+
+// Initialize the Thingpedia loader before doing anything else
+{
+$loader = new ThingpediaLoader($grammar, $locale, $options);
+}
+import './common.genie';
+{
+await $loader.init();
+}
+
+{
+function special(specialType : string) {
+    return new Ast.ControlCommand(null, new Ast.SpecialControlIntent(null, specialType));
+}
+}
+
+import './constants.genie';
+
+bookkeeping : Ast.ControlCommand = {
+    'debug' => special('debug');
+
+    ('cancel'
+    | 'never mind'
+    ) => special('nevermind');
+
+    ('stop'
+    | 'shut up'
+    | 'shush'
+    | 'quiet'
+    | 'close'
+    ) => special('stop');
+
+    ( 'yes'
+    | 'yes please'
+    | 'yes ,  please'
+    | 'yeah'
+    | 'ok'
+    | 'okay'
+    ) => special('yes');
+
+    ( 'no'
+    | 'no thanks'
+    | 'no ,  thanks'
+    | 'nope'
+    ) => special('no');
+
+    c:constant_Any => new Ast.ControlCommand(null, new Ast.AnswerControlIntent(null, c));
+}
+
+$root : Ast.Input = {
+    bookkeeping;
+
+    ( 'get' query:thingpedia_complete_query
+    | query:thingpedia_complete_get_command
+    ) => C.makeProgram($loader, query);
+
+    action:thingpedia_complete_action => C.makeProgram($loader, action);
+
+    'notify me' stream:thingpedia_complete_stream => C.makeProgram($loader, stream);
+}

@@ -18,6 +18,8 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+/// <reference types="./flex-js" />
+
 import Lexer from 'flex-js';
 import { WS, makeToken } from './helpers';
 import { EntityMap } from '../../utils/entity-utils';

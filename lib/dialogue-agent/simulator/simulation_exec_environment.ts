@@ -25,7 +25,6 @@ import * as ThingTalk from 'thingtalk';
 import { Ast, Type, ExecEnvironment, SchemaRetriever, Runtime } from 'thingtalk';
 
 import { coin, uniform, randint } from '../../utils/random';
-import { IODelegate } from '../../engine/apps/exec_wrapper';
 
 import { SimulationDatabase } from './types';
 import { getAllDevicesOfKind } from './helpers';
@@ -370,13 +369,18 @@ class SimpleTestDevice {
     }
 }
 
+interface OutputDelegate {
+    output(outputType : string, outputValue : Record<string, unknown>) : void;
+    error(error : Error) : void;
+}
+
 class SimulationExecEnvironment extends ExecEnvironment {
     private _schemas : SchemaRetriever;
     private _database : SimulationDatabase|undefined;
     private _rng : () => number;
     private _simulateErrors : boolean;
     private _testDevice = new SimpleTestDevice();
-    private _delegate ! : IODelegate;
+    private _delegate ! : OutputDelegate;
 
     private _execCache : Array<[string, Record<string, string>, Record<string, unknown>, Array<[string, Record<string, unknown>]>]>;
 
@@ -398,25 +402,8 @@ class SimulationExecEnvironment extends ExecEnvironment {
         this.generator = null;
     }
 
-    setIODelegate(delegate : IODelegate) {
+    setOutputDelegate(delegate : OutputDelegate) {
         this._delegate = delegate;
-    }
-
-    async output(outputType : string, outputValue : Record<string, unknown>) {
-        return this._delegate.output(outputType, outputValue);
-    }
-
-    async reportError(message : string, err : Error) {
-        return this._delegate.error(err);
-    }
-
-    async say(message : string) {
-        return this._delegate.say(message);
-    }
-
-    async ask(name : string, typestr : string, question : string|null) {
-        // FIXME
-        return this._delegate.ask(Type.fromString(typestr), question || `What ${name} would you like?`);
     }
 
     get program_id() {
@@ -426,6 +413,14 @@ class SimulationExecEnvironment extends ExecEnvironment {
     clearGetCache() {
         // do not actually clear the get cache
         // all queries are expected to return consistent results
+    }
+
+    async reportError(message : string, error : Error & { code ?: string }) : Promise<void> {
+        await this._delegate.error(error);
+    }
+
+    async output(outputType : string, outputValues : Record<string, unknown>) : Promise<void> {
+        await this._delegate.output(outputType, outputValues);
     }
 
     private _findInCache(functionKey : string,

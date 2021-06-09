@@ -111,25 +111,16 @@ export class ThingTalkSimulatorState {
         }
         this._execEnv.generator = generator;
 
-        this._execEnv.setIODelegate({
-            done() {},
-            ask() {
-                // TODO
-                throw new Error('not implemented');
-            },
-            say() {
-                // TODO
-                throw new Error('not implemented');
-            },
-
+        this._execEnv.setOutputDelegate({
             output: async (outputType : string, outputValue : { [key : string] : unknown }) => {
                 const mapped = new Ast.DialogueHistoryResultItem(null, await this._mapResult(outputType, outputValue));
                 results.push(mapped);
                 rawResults.push([outputType, outputValue]);
             },
-            error: async (err) => {
+            error: (err) => {
                 if (!(err instanceof SimulatedError)) {
                     console.error(`Failed to execute program`);
+                    console.error(err);
                     console.error(new Ast.Program(null, [], [], [stmt]).prettyprint());
                     process.exit(1);
                     return;
@@ -138,7 +129,7 @@ export class ThingTalkSimulatorState {
                     error = new Ast.Value.Enum(err.code);
                 else
                     error = new Ast.Value.String(err.message);
-            },
+            }
         });
 
         try {

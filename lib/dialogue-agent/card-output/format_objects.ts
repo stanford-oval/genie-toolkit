@@ -18,6 +18,7 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
+import * as Tp from 'thingpedia';
 import interpolate from 'string-interp';
 
 import * as I18n from '../../i18n';
@@ -106,15 +107,6 @@ function localeCompat(locale : string) : [(x : string) => string, string|undefin
     return [I18n.get(locale).gettext, locale];
 }
 
-interface RDLSpec {
-    type : 'rdl';
-    callback ?: string;
-    webCallback : string;
-    displayTitle : string;
-    displayText ?: string;
-    pictureUrl ?: string;
-}
-
 /**
  * A rich deep link (also known as a card).
  *
@@ -122,7 +114,7 @@ interface RDLSpec {
  * description and picture.
  *
  */
-class RDL extends BaseFormattedObject implements RDLSpec {
+class RDL extends BaseFormattedObject implements Tp.FormatObjects.RDL {
     type : 'rdl';
     callback : string|undefined;
     webCallback : string;
@@ -143,7 +135,7 @@ class RDL extends BaseFormattedObject implements RDLSpec {
      * @param {string} [spec.callback] - a different link target, to use on plaforms where deep-linking is allowed (e.g. Android)
      * @param {string} [spec.pictureUrl] - a picture associated with this link
      */
-    constructor(spec : RDLSpec) {
+    constructor(spec : Tp.FormatObjects.RDL) {
         super();
 
         /**
@@ -187,17 +179,11 @@ class RDL extends BaseFormattedObject implements RDLSpec {
     }
 }
 
-interface SoundEffectSpec {
-    type : 'sound';
-    name : string;
-    exclusive ?: boolean;
-}
-
 /**
  * A short notification sound from a predefined library.
  *
 */
-class SoundEffect extends BaseFormattedObject implements SoundEffectSpec {
+class SoundEffect extends BaseFormattedObject implements Tp.FormatObjects.SoundEffect {
     type : 'sound';
     name : string;
     exclusive : boolean;
@@ -209,7 +195,7 @@ class SoundEffect extends BaseFormattedObject implements SoundEffectSpec {
      * @param {string} spec.name - the name of the sound, from the {@link http://0pointer.de/public/sound-theme-spec.html|Freedesktop Sound Theme Spec}
      *                             (with a couple Genie-specific extensions)
      */
-    constructor(spec : SoundEffectSpec) {
+    constructor(spec : Tp.FormatObjects.SoundEffect) {
         super();
 
         /**
@@ -233,17 +219,11 @@ class SoundEffect extends BaseFormattedObject implements SoundEffectSpec {
     }
 }
 
-interface MediaSpec {
-    type : 'picture'|'audio'|'video';
-    url : string;
-    alt ?: string;
-}
-
 /**
  * Picture, or audio/video display with controls
  *
 */
-class Media extends BaseFormattedObject implements MediaSpec {
+class Media extends BaseFormattedObject implements Tp.FormatObjects.Media {
     type : 'picture'|'audio'|'video';
     url : string;
     alt : string|undefined;
@@ -254,7 +234,7 @@ class Media extends BaseFormattedObject implements MediaSpec {
      * @param {Object} spec
      * @param {string} spec.url - the URL of the music/video to display
      */
-    constructor(spec : MediaSpec) {
+    constructor(spec : Tp.FormatObjects.Media) {
         super();
 
         /**
@@ -279,14 +259,10 @@ class Media extends BaseFormattedObject implements MediaSpec {
     }
 }
 
-interface TextSpec {
-    type : 'text';
-    text : string;
-}
 /**
  * A plain text message.
  */
-class Text extends BaseFormattedObject implements TextSpec {
+class Text extends BaseFormattedObject implements Tp.FormatObjects.Text {
     type : 'text';
     text : string;
 
@@ -296,7 +272,7 @@ class Text extends BaseFormattedObject implements TextSpec {
      * @param {Object} spec
      * @param {string} spec.text - the text to display
      */
-    constructor(spec : TextSpec) {
+    constructor(spec : Tp.FormatObjects.Text) {
         super();
 
         this.type = spec.type;
@@ -312,15 +288,10 @@ class Text extends BaseFormattedObject implements TextSpec {
     }
 }
 
-interface ButtonSpec {
-    type : 'button';
-    title : string;
-    json : string;
-}
 /**
  * A button that triggers a pre-parsed command.
  */
- export class Button extends BaseFormattedObject implements ButtonSpec {
+ export class Button extends BaseFormattedObject implements Tp.FormatObjects.Button {
     type : 'button';
     title : string;
     json : string;
@@ -331,7 +302,7 @@ interface ButtonSpec {
      * @param {Object} spec
      * @param {string} spec.text - the text to display
      */
-    constructor(spec : ButtonSpec) {
+    constructor(spec : Tp.FormatObjects.Button) {
         super();
 
         this.type = spec.type;
@@ -349,7 +320,7 @@ interface ButtonSpec {
 }
 
 export interface FormattedObjectClass {
-    new (obj : FormattedObjectSpec) : FormattedObject;
+    new (obj : Tp.FormatObjects.FormattedObject) : BaseFormattedObject & Tp.FormatObjects.FormattedObject;
 }
 
 export const FORMAT_TYPES = {
@@ -361,17 +332,3 @@ export const FORMAT_TYPES = {
     'text': Text,
     'button': Button
 };
-
-export type FormattedObjectSpec =
-    RDLSpec |
-    SoundEffectSpec |
-    MediaSpec |
-    TextSpec |
-    ButtonSpec;
-
-export type FormattedObject =
-    RDL |
-    SoundEffect |
-    Media |
-    Text |
-    Button;

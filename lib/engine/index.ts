@@ -24,6 +24,7 @@ import * as Tp from 'thingpedia';
 
 import * as I18n from '../i18n';
 
+import * as DB from './db';
 import { AbstractDatabase, createDB } from './db';
 import DeviceDatabase from './devices/database';
 import SyncManager from './sync/manager';
@@ -37,15 +38,36 @@ import type AppExecutor from './apps/app_executor';
 
 import AssistantDispatcher from '../dialogue-agent/assistant_dispatcher';
 import { NotificationConfig } from '../dialogue-agent/notifications';
-import NotificationFormatter, { FormattedObject } from '../dialogue-agent/notifications/formatter';
+import NotificationFormatter from '../dialogue-agent/notifications/formatter';
 
 import * as Config from '../config';
+
+export {
+    DB,
+    DeviceDatabase,
+    SyncManager,
+    AudioController,
+    AppDatabase,
+    AppExecutor
+};
+
+interface EngineModule {
+    start() : Promise<void>;
+    stop() : Promise<void>;
+}
+
+interface DeviceState {
+    kind : string;
+    accessToken ?: string;
+    refreshToken ?: string;
+    [key : string] : unknown;
+}
 
 
 /**
  * Information about a running ThingTalk program (app).
  */
-export interface AppInfo {
+ export interface AppInfo {
     /**
      * The unique ID of the app.
      */
@@ -134,41 +156,10 @@ export interface DeviceInfo {
     authType : string;
 }
 
-interface EngineModule {
-    start() : Promise<void>;
-    stop() : Promise<void>;
-}
-
-interface DeviceState {
-    kind : string;
-    accessToken ?: string;
-    refreshToken ?: string;
-    [key : string] : unknown;
-}
-
-interface AssistantEngineOptions {
-    cloudSyncUrl ?: string;
-    nluModelUrl ?: string;
-    thingpediaUrl ?: string;
-    notifications ?: NotificationConfig;
-}
-
-interface CreateAppOptions {
-    uniqueId ?: string;
-    name ?: string;
-    description ?: string;
-    icon ?: string;
-    conversation ?: string;
-    notifications ?: Array<{
-        backend : string;
-        config : Record<string, string>;
-    }>;
-}
-
-interface AppResult {
+export interface AppResult {
     raw : Record<string, unknown>;
     type : string;
-    formatted : FormattedObject[];
+    formatted : Tp.FormatObjects.FormattedObject[];
 }
 
 /**
@@ -203,7 +194,12 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * @param {Object} options - additional options; this is also passed to the parent class
      * @param {string} [options.cloudSyncUrl] - URL to use for cloud sync
      */
-    constructor(platform : Tp.BasePlatform, options : AssistantEngineOptions = {}) {
+    constructor(platform : Tp.BasePlatform, options : {
+        cloudSyncUrl ?: string;
+        nluModelUrl ?: string;
+        thingpediaUrl ?: string;
+        notifications ?: NotificationConfig;
+    } = {}) {
         super(platform, options);
 
         this._ = I18n.get(platform.locale).gettext;
@@ -581,7 +577,17 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * @param {string} [options.conversation] - the ID of the conversation associated with the new app
      * @return {AppExecutor} the newly created program
      */
-    async createApp(programOrString : ThingTalk.Ast.Program|string, options ?: CreateAppOptions) : Promise<AppExecutor> {
+    async createApp(programOrString : ThingTalk.Ast.Program|string, options ?: {
+        uniqueId ?: string;
+        name ?: string;
+        description ?: string;
+        icon ?: string;
+        conversation ?: string;
+        notifications ?: Array<{
+            backend : string;
+            config : Record<string, string>;
+        }>;
+    }) : Promise<AppExecutor> {
         let program : ThingTalk.Ast.Program;
         if (typeof programOrString === 'string') {
             const parsed = await ThingTalk.Syntax.parse(programOrString).typecheck(this.schemas, true);
@@ -609,13 +615,23 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * @param {string} [options.icon] - the icon of the new app (as a Thingpedia class ID)
      * @param {string} [options.conversation] - the ID of the conversation associated with the new app
      */
-    async createAppAndReturnResults(programOrString : ThingTalk.Ast.Program|string, options ?: CreateAppOptions) {
+    async createAppAndReturnResults(programOrString : ThingTalk.Ast.Program|string, options ?: {
+        uniqueId ?: string;
+        name ?: string;
+        description ?: string;
+        icon ?: string;
+        conversation ?: string;
+        notifications ?: Array<{
+            backend : string;
+            config : Record<string, string>;
+        }>;
+    }) {
         const app = await this.createApp(programOrString, options);
         const results : AppResult[] = [];
         const errors : Error[] = [];
 
         const formatter = new NotificationFormatter(this);
-        for await (const value of app.runImmediate()) {
+        for await (const value of app.mainOutput) {
             if (value instanceof Error) {
                 errors.push(value);
             } else {

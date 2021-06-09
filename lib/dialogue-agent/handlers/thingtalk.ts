@@ -37,7 +37,7 @@ import { UserInput, } from '../user-input';
 import { CancellationError } from '../errors';
 
 import DialoguePolicy from '../dialogue_policy';
-import CardFormatter, { FormattedObject } from '../card-output/card-formatter';
+import CardFormatter from '../card-output/card-formatter';
 import AppExecutor from '../../engine/apps/app_executor';
 
 import ExecutionDialogueAgent from '../execution_dialogue_agent';
@@ -46,13 +46,12 @@ import {
     DialogueHandler,
     CommandAnalysisType,
     ReplyResult,
-    DialogueHandlerPriority
 } from '../dialogue-loop';
 import { Button } from '../card-output/format_objects';
 
 // TODO: load the policy.yaml file instead
 const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
-const TERMINAL_STATES = ['sys_greet', 'sys_end'];
+const TERMINAL_STATES = ['sys_end'];
 
 // Confidence thresholds:
 //
@@ -102,8 +101,10 @@ interface ThingTalkCommandAnalysisType {
 }
 
 export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTalkCommandAnalysisType, string> {
-    priority = DialogueHandlerPriority.PRIMARY;
+    priority = Tp.DialogueHandler.Priority.PRIMARY;
+    uniqueId = 'thingtalk';
 
+    icon : string|null = null;
     private _ : (x : string) => string;
     private _engine : Engine;
     private _loop : DialogueLoop;
@@ -146,7 +147,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             locale: engine.platform.locale,
             timezone: engine.platform.timezone,
             rng: loop.conversation.rng,
-            debug : this._debug ? 2 : 1,
+            debug : this._debug ? 2 : 0,
             anonymous: loop.isAnonymous,
             extraFlags: loop.conversation.dialogueFlags,
         });
@@ -186,6 +187,9 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
                     return CommandAnalysisType.OUT_OF_DOMAIN_COMMAND;
                 }
             }
+
+            if (input.intent instanceof Ast.AnswerControlIntent)
+                return CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP;
         }
 
         // anything else is automatically in-domain
@@ -261,7 +265,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
 
             // we still ship it to the parser so it gets recorded
             await this._nlu.sendUtterance(command.utterance, contextCode, contextEntities, {
-                expect: this._loop.expecting ? String(this._loop.expecting) : undefined,
+                expect: this._loop.expecting ? ValueCategory[this._loop.expecting] : undefined,
                 choices: this._loop.choices,
                 store: this._prefs.get('sabrina-store-log') as string || 'no'
             });
@@ -274,7 +278,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
 
             const parsed = new Ast.ControlCommand(null, new Ast.AnswerControlIntent(null, value));
             return {
-                type: CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND,
+                type: CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP,
                 utterance: command.utterance,
                 user_target: parsed.prettyprint(),
                 answer: value,
@@ -290,7 +294,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         });
 
         if (nluResult.intent.command < IN_DOMAIN_THRESHOLD) {
-            this._loop.debug('Analyzed as out-of-domain command');
+            this._loop.debug('ThingTalk confidence analyzed as out-of-domain command');
             const parsed = new Ast.ControlCommand(null, new Ast.SpecialControlIntent(null, 'ood'));
             return {
                 type: CommandAnalysisType.OUT_OF_DOMAIN_COMMAND,
@@ -333,10 +337,9 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             type = this._getSpecialThingTalkType(choice.parsed);
         }
 
-        if (type === CommandAnalysisType.OUT_OF_DOMAIN_COMMAND ||
-            (choice.score !== 'Infinity' && this._loop.expecting !== ValueCategory.MultipleChoice)) {
+        if (type === CommandAnalysisType.OUT_OF_DOMAIN_COMMAND) {
             type = CommandAnalysisType.OUT_OF_DOMAIN_COMMAND;
-            this._loop.debug('Failed to analyze message');
+            this._loop.debug('Failed to analyze message as ThingTalk');
             this._loop.conversation.stats.hit('sabrina-failure');
         /*} else if (choice.score < CONFIDENCE_CONFIRM_THRESHOLD) {
             type = CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND;
@@ -359,6 +362,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
 
     async getReply(analyzed : ThingTalkCommandAnalysisType) : Promise<ReplyResult> {
         switch (analyzed.type) {
+        case CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_FOLLOWUP:
         case CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND: {
             // TODO move this to the state machine, not here
             const confirmation = await this._describeProgram(analyzed.parsed!);
@@ -377,6 +381,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             // fallthrough to the confident case
         }
 
+        case CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP:
         case CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND:
         default: {
             return this._handleNormalDialogueCommand(analyzed.parsed as Ast.DialogueState);
@@ -425,7 +430,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
     }
 
     private async _executeCurrentState() {
-        this._loop.icon = getProgramIcon(this._dialogueState!);
+        this.icon = getProgramIcon(this._dialogueState!);
 
         //this.debug(`Before execution:`);
         //this.debug(this._dialogueState.prettyprint());
@@ -467,9 +472,9 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         }
         utterance = this._langPack.postprocessNLG(utterance, policyResult.entities, this._agent);
 
-        this._loop.icon = getProgramIcon(this._dialogueState!);
+        this.icon = getProgramIcon(this._dialogueState!);
 
-        const messages : Array<string|FormattedObject> = [utterance];
+        const messages : Array<string|Tp.FormatObjects.FormattedObject> = [utterance];
 
         for (const [outputType, outputValue] of newResults.slice(0, policyResult.numResults)) {
             const formatted = await this._cardFormatter.formatForType(outputType, outputValue);
@@ -499,7 +504,7 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
 
         return {
             messages,
-            context: oldState!.prettyprint(),
+            context: oldState ? oldState!.prettyprint() : '',
             agent_target: agentTarget,
             expecting,
         };

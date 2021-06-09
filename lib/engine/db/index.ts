@@ -21,6 +21,7 @@
 import * as Tp from 'thingpedia';
 
 import { SQLiteDatabase, SQLitePlatform } from './sqlite';
+import { DatabaseProxy, DatabaseProxyConfig }  from './dbproxy';
 
 export interface AbstractRow {
     uniqueId : string;
@@ -90,7 +91,9 @@ export interface AbstractDatabase {
 }
 
 export function createDB(platform : Tp.BasePlatform) : AbstractDatabase {
-    // for now, all platforms are sqlite platforms
+    // use database proxy if it's configured in the platform
+    if (platform.hasCapability('database-proxy'))
+        return new DatabaseProxy(platform.getCapability('database-proxy') as DatabaseProxyConfig);
 
     const sqliteplatform = platform as SQLitePlatform;
     return new SQLiteDatabase(sqliteplatform);

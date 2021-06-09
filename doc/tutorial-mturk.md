@@ -20,8 +20,7 @@ Next, you should synthesize a set of sentences to show the MTurk workers.
 To do so, use:
 
 ```bash
-genie generate --locale en-US --template languages/thingtalk/en/thingtalk.genie
-  --thingpedia thingpedia.tt --entities entities.json --dataset dataset.tt
+genie generate --locale en-US --thingpedia thingpedia.tt --entities entities.json --dataset dataset.tt
   -o synthesized.tsv --set-flag turking
 ```
 
@@ -43,7 +42,7 @@ This parameter cannot be omitted.
 A default that is appropriate for English and the reference Thingpedia can be found at [data/en-US/constants.tsv](data/en-US/constants.tsv).
 
 Use `--sampling-control` to choose which functions are hard and which functions are easy; this affect
-the proportion of paraphrase inputs that will use each functions. See [data/easy-hard-functions.tsv](data/easy-hard-functions.tsv) for details of the file format. If omitted, all functions are considered equally hard. 
+the proportion of paraphrase inputs that will use each functions. See [data/easy-hard-functions.tsv](data/easy-hard-functions.tsv) for details of the file format. If omitted, all functions are considered equally hard.
 
 You can also modify [lib/paraphrase-sampler.js](lib/paraphrase-sampler.js) to further adapt how
 sampling occurs, based on program complexity, sentence complexity or other heuristics.
@@ -58,7 +57,7 @@ Next, we'll deploy a _Human Intelligence Task_ (HIT) asking workers to paraphras
 our synthetic sentences.
 Prepare the paraphrasing HITs with:
 ```
-genie mturk-make-paraphrase-hits -o paraphrasing-hits.csv < mturk-input.tsv 
+genie mturk-make-paraphrase-hits -o paraphrasing-hits.csv < mturk-input.tsv
 ```
 The resulting `paraphrasing-hits.csv` will be suitable to use on Amazon MTurk using the template provided
 in [data/mturk/paraphrasing-template.html](data/mturk/paraphrasing-template.html).

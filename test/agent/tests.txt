@@ -1120,7 +1120,25 @@ A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_succ
 A: >> expecting = null
 
 ====
-# 73-covid-vaccine-first-dose
+# 73-covid-faqs-basic
+
+U: What are the vaccine side effects?
+A: Vaccine recipients commonly experience mild to moderate side effects that occur within the first three days of vaccination and resolve within 1-3 days of onset. These are normal signs that your body is building protection. Common side effects include mild to moderate pain, swelling, or redness at the injection site and/or mild to moderate flu-like symptoms (for example, fever, fatigue, headache, chills, muscle aches). Serious side effects are very rare.
+A: >> context = null // {}
+A: >> expecting = null
+
+====
+# 74-3rd-party-dispatch
+
+U: !! test command always bing !!
+A: Here is something I found on the web.
+A: rdl: Example 1 http://example.com
+A: rdl: Example 2 http://example.org
+A: >> context = null // {}
+A: >> expecting = null
+
+====
+# 75-covid-vaccine-first-dose
 
 U: \t $dialogue @org.thingpedia.dialogue.transaction.init;
 U: @org.thingpedia.covid-vaccine.appointment();
@@ -1145,7 +1163,7 @@ A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_succ
 A: >> expecting = null
 
 ====
-# 74-covid-vaccine-second-dose
+# 76-covid-vaccine-second-dose
 
 U: \t $dialogue @org.thingpedia.dialogue.transaction.init;
 U: @org.thingpedia.covid-vaccine.appointment();
@@ -1184,7 +1202,7 @@ A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_slot_fill (
 A: >> expecting = yesno
 
 ====
-# 75-covid-vaccine-cancel
+# 77-covid-vaccine-cancel
 
 U: \t $dialogue @org.thingpedia.dialogue.transaction.init;
 U: @org.thingpedia.covid-vaccine.appointment();
@@ -1200,7 +1218,7 @@ A: >> context = null // {}
 A: >> expecting = null
 
 ====
-# 76-covid-vaccine-cancel-nevermind
+# 78-covid-vaccine-cancel-nevermind
 
 U: \t $dialogue @org.thingpedia.dialogue.transaction.init;
 U: @org.thingpedia.covid-vaccine.appointment();
@@ -1216,7 +1234,7 @@ A: >> context = null // {}
 A: >> expecting = null
 
 ====
-# 77-covid-vaccine-missing
+# 79-covid-vaccine-missing
 
 U: \t $dialogue @org.thingpedia.dialogue.transaction.init;
 U: @org.thingpedia.covid-vaccine.appointment();
@@ -1238,7 +1256,7 @@ A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_rule_enable
 A: >> expecting = null
 
 ====
-# 78-covid-vaccine-notification
+# 80-covid-vaccine-notification
 
 U: \t $dialogue @org.thingpedia.dialogue.transaction.notification("Stanford Covid Genie");
 U: monitor(@org.thingpedia.covid-vaccine.appointment(zip_code="94062"))
@@ -1248,12 +1266,4 @@ U: ]];
 
 A: Notification from Stanford Covid Genie: here is a location near you that has reported available appointments.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; monitor ( @org.thingpedia.covid-vaccine . appointment ( zip_code = QUOTED_STRING_0 ) ) #[ results = [ { zip_code = QUOTED_STRING_0 , vaccine_type = enum pfizer , dose = enum first , id = GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0 , geo = LOCATION_0 , link = URL_0 } ] ] ; // {"QUOTED_STRING_0":"94062","GENERIC_ENTITY_org.thingpedia.covid-vaccine:vaccine_appointment_0":{"value":"1","display":null},"LOCATION_0":{"latitude":37.4334411,"longitude":-122.1774838,"display":"Stanford Hospital (Pfizer)"},"URL_0":"https://stanfordhealthcare.org/"}
-A: >> expecting = null
-
-====
-# 79-covid-faqs-basic
-
-U: What are the vaccine side effects?
-A: Vaccine recipients commonly experience mild to moderate side effects that occur within the first three days of vaccination and resolve within 1-3 days of onset. These are normal signs that your body is building protection. Common side effects include mild to moderate pain, swelling, or redness at the injection site and/or mild to moderate flu-like symptoms (for example, fever, fatigue, headache, chills, muscle aches). Serious side effects are very rare.
-A: >> context = null // {}
 A: >> expecting = null

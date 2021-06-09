@@ -22,7 +22,6 @@ custom_test_models =
 # eval (dev) or test
 eval_set ?= eval
 
-template_file ?= thingtalk/en/thingtalk.genie
 dataset_file ?= $(experiment)/dataset.tt
 synthetic_flags ?= \
 	aggregation \
@@ -70,9 +69,8 @@ thingpedia/dataset.tt:
 thingpedia/entities.json:
 	$(genie) download-entities --thingpedia-url $(thingpedia_url) --developer-key $(developer_key) -o $@
 
-$(experiment)/synthetic.tsv : $(experiment)/thingpedia.tt $(experiment)/dataset.tt $(experiment)/entities.json $(geniedir)/languages-dist/thingtalk/en/*.genie.js
+$(experiment)/synthetic.tsv : $(experiment)/thingpedia.tt $(experiment)/dataset.tt $(experiment)/entities.json
 	$(genie) generate \
-	  --template $(geniedir)/languages-dist/$(template_file) \
 	  --thingpedia $(experiment)/thingpedia.tt --entities $(experiment)/entities.json --dataset $(experiment)/dataset.tt \
 	  -o $@.tmp --no-debug $(generate_flags) --random-seed $@
 	mv $@.tmp $@

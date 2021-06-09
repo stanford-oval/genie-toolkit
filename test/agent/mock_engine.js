@@ -19,10 +19,11 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
-import events from 'events';
+import * as Tp from 'thingpedia';
 import { Ast, Compiler, SchemaRetriever } from 'thingtalk';
 import Gettext from 'node-gettext';
 import * as uuid from 'uuid';
+import * as events from 'events';
 import AsyncQueue from 'consumer-queue';
 
 import { getProgramName } from '../../lib/utils/thingtalk/describe';
@@ -73,6 +74,7 @@ class MockAppExecutor extends events.EventEmitter {
 
         this._program = program;
         assert(this._program.statements.length === 1);
+        this.mainOutput = new QueueOutputDelegate();
     }
 
     async compile() {
@@ -80,7 +82,7 @@ class MockAppExecutor extends events.EventEmitter {
         this._compiled = await compiler.compileCode(this.code);
     }
 
-    runImmediate(delegate) {
+    async execute() {
         const overrides = new Map;
         const generator = new ResultGenerator(this._rng, overrides);
         for (let slot of this._program.iterateSlots2()) {
@@ -89,19 +91,11 @@ class MockAppExecutor extends events.EventEmitter {
             generator.addCandidate(slot.get());
         }
         this._simulator.generator = generator;
-        if (!delegate)
-            delegate = new QueueOutputDelegate();
-        this._simulator.setIODelegate(delegate);
-        if (this._compiled.command) {
-            this._compiled.command(this._simulator).then(() => {
-                this.emit('done');
-                delegate.done();
-            });
-        } else {
-            this.emit('done');
-            delegate.done();
-        }
-        return delegate;
+        this._simulator.setOutputDelegate(this.mainOutput);
+        if (this._compiled.command)
+            await this._compiled.command(this._simulator);
+        this.mainOutput.done();
+        this.emit('done');
     }
 }
 
@@ -150,65 +144,123 @@ class MockAppDatabase {
             delete this._apps[options.uniqueId];
         });
         await app.compile();
+
+        // execute asynchronously
+        app.execute();
         return app;
     }
 }
 
-class MockTwitterDevice {
+class MockDevice {
+    hasKind(kind) {
+        return kind === this.kind;
+    }
+
+    queryInterface() {
+        return null;
+    }
+}
+
+class MockTwitterDevice extends MockDevice {
     constructor(who) {
+        super();
         this.name = "Twitter Account " + who;
         this.kind = 'com.twitter';
         this.uniqueId = 'twitter-' + who;
     }
 }
 
-class MockYoutubeDevice {
+class MockYoutubeDevice extends MockDevice {
     constructor(who) {
+        super();
         this.name = "Youtube Account " + who;
         this.kind = 'com.youtube';
         this.uniqueId = 'youtube-' + who;
     }
 }
 
-class MockBingQuery {
-    constructor() {
-        this.uniqueId = 'com.bing-web_search';
+class MockBingDialogueHandler {
+    icon = 'com.bing';
+
+    initialize() {
+        return null;
     }
 
-    formatEvent(event) {
-        return { type: 'rdl', displayTitle: event[0], displayText: event[1],
-            webCallback: event[2], callback: event[2] };
+    getState() {
+        return '';
     }
 
-    invokeQuery() {
-        return Promise.resolve([
-            ['Google', "Google is where you should really run your searches", 'http://google.com'],
-            ['Bing', "Bing is what you're using. So dumb it's not even first!", 'http://bing.com'],
-            ['Yahoo', "If all else fails", 'http://yahoo.com']
-        ]);
+    reset() {
     }
 
-    close() {
+    analyzeCommand(command) {
+        if (command === '!! test command always bing !!') {
+            return {
+                confident : Tp.DialogueHandler.Confidence.CONFIDENT_IN_DOMAIN_COMMAND,
+                utterance : command,
+                user_target : '$dialogue @com.bing.search;',
+                my_prop : 42
+            };
+        }
+
+        return {
+            confident : Tp.DialogueHandler.Confidence.OUT_OF_DOMAIN_COMMAND,
+            utterance : command,
+            user_target : '',
+        };
+    }
+
+    getReply(analysis) {
+        assert.strictEqual(analysis.utterance, '!! test command always bing !!');
+        assert.strictEqual(analysis.my_prop, 42);
+
+        return {
+            messages: [
+                'Here is something I found on the web.',
+                {
+                    type: 'rdl',
+                    webCallback: 'http://example.com',
+                    callback: 'http://example.com',
+                    displayTitle: 'Example 1'
+                }, {
+                    type: 'rdl',
+                    webCallback: 'http://example.org',
+                    callback: 'http://example.org',
+                    displayTitle: 'Example 2'
+                }
+            ],
+
+            expecting: null,
+            context: '$dialogue @com.bing.search;',
+            agent_target: '$dialogue @com.bing.sys_search_result;'
+        };
     }
 }
 
-class MockBingDevice {
+class MockBingDevice extends MockDevice {
     constructor() {
+        super();
         this.name = "Bing Search";
         this.description = "I know you secretly want to bing your hot friend.";
         this.kind = 'com.bing';
         this.uniqueId = 'com.bing';
+        this.icon = 'com.bing';
     }
 
-    getQuery(id) {
-        if (id !== 'web_search')
-            throw new Error('Unexpected id in MOCK Bing: ' + id);
-        return Promise.resolve(new MockBingQuery());
+    hasKind(kind) {
+        return kind === 'com.bing' || kind === 'org.thingpedia.dialogue-handler';
+    }
+
+    queryInterface(iface) {
+        if (iface === 'dialogue-handler')
+            return new MockBingDialogueHandler();
+        return null;
     }
 }
 
-class MockPhoneDevice {
+class MockPhoneDevice extends MockDevice {
     constructor() {
+        super();
         this.name = "Phone";
         this.description = "Your phone, in your hand. Not that hand, the other one.";
         this.kind = 'org.thingpedia.builtin.thingengine.phone';
@@ -216,8 +268,9 @@ class MockPhoneDevice {
     }
 }
 
-class MockBuiltinDevice {
+class MockBuiltinDevice extends MockDevice {
     constructor() {
+        super();
         this.name = "Builtin";
         this.description = "Time random bla bla bla";
         this.kind = 'org.thingpedia.builtin.thingengine.builtin';
@@ -229,8 +282,9 @@ let _cnt = 0;
 
 const UNIQUE_DEVICES = new Set(['com.yelp', 'org.thingpedia.weather', 'org.thingpedia.builtin.test',
     'com.thecatapi', 'com.xkcd', 'org.thingpedia.covid-vaccine']);
-class MockUnknownDevice {
+class MockUnknownDevice extends MockDevice {
     constructor(kind) {
+        super();
         if (UNIQUE_DEVICES.has(kind)) {
             this.name = "Some Device " + kind;
             this.description = 'This is a device of some sort';
@@ -247,8 +301,9 @@ class MockUnknownDevice {
     }
 }
 
-class MockSwitch {
+class MockSwitch extends MockDevice {
     constructor(uniqueId, name) {
+        super();
         this.name = name;
         this.description = "Switch in the " + name;
         this.kind = 'org.thingpedia.iot.switch';
@@ -256,9 +311,11 @@ class MockSwitch {
     }
 }
 
-class MockDeviceDatabase {
+class MockDeviceDatabase extends events.EventEmitter {
     constructor() {
+        super();
         this._devices = {};
+        this._devices['com.bing'] = new MockBingDevice();
         this._devices['twitter-foo'] = new MockTwitterDevice('foo');
         this._devices['twitter-bar'] = new MockTwitterDevice('bar');
         this._devices['youtube-foo'] = new MockYoutubeDevice('foo');
@@ -277,6 +334,10 @@ class MockDeviceDatabase {
         this._devices['org.thingpedia.builtin.thingengine.phone'] = new MockPhoneDevice();
         this._devices['org.thingpedia.builtin.thingengine.builtin'] = new MockBuiltinDevice();
         this._devices['org.thingpedia.builtin.thingengine.remote'] = new MockUnknownDevice('remote');
+    }
+
+    values() {
+        return this.getAllDevices();
     }
 
     addSerialized(blob) {

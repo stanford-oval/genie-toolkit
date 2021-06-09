@@ -14,6 +14,8 @@ jsdoc/
 __pycache__
 *.genie.ts
 *.genie.js
+test/engine/workdir
+test/engine/cache
 
 lib/sentence-generator/compiler/grammar.js
 lib/utils/template-string/grammar.js

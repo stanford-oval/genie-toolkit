@@ -27,7 +27,7 @@ const FAILURE = {};
 
 async function collectOutputs(app) {
     let into = [];
-    for await (const output of app.runImmediate())
+    for await (const output of app.mainOutput)
         into.push(output);
     return into;
 }

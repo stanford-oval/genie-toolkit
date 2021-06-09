@@ -1,0 +1,169 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+
+// Action result templates: used after executing the action
+// Either the action was successful, and we're done, or
+// the action failed, and we give the user an option to try again
+
+import assert from 'assert';
+import { Ast, } from 'thingtalk';
+
+import * as C from '../ast_manip';
+import * as D from '../dialogue_acts';
+import * as S from '../state_manip';
+import ThingpediaLoader from '../load-thingpedia';
+
+import { SlotBag } from '../slot_bag';
+
+complete_past_action_phrase : Ast.Expression = {
+    // using a constant
+    ( action:thingpedia_complete_action_past
+    | action:thingpedia_complete_action_past 'for you'
+    ) => {
+        // check against weird primitive templates, because
+        // later we don't check the query
+        if (!(action instanceof Ast.InvocationExpression))
+            return null;
+        return action;
+    };
+
+    // using a join
+    ( action:thingpedia_complete_join_action_past
+    | action:thingpedia_complete_join_action_past 'for you'
+    ) => action;
+
+    ( action:complete_past_action_phrase param:preposition_input_param with { functionName = action.functionName } [priority=0.1]
+    | action:complete_past_action_phrase ('with' | 'having') param:npp_input_param with { functionName = action.functionName } [priority=0.1]
+    ) => C.addActionInputParam($loader, action, param);
+
+    ( action:complete_past_action_phrase param:preposition_filter with { functionName = action.functionName } [priority=0.1]
+    | action:complete_past_action_phrase ('with' | 'having') param:npp_filter with { functionName = action.functionName } [priority=0.1]
+    ) => {
+        if (!(param.ast instanceof Ast.AtomBooleanExpression))
+            return null;
+        const ipslot = { schema: param.schema, ptype: param.ptype,
+            ast: new Ast.InputParam(null, param.ast.name, param.ast.value) };
+        return C.addActionInputParam($loader, action, ipslot, { allowOutput: true });
+    };
+}
+
+generic_action_success_phrase : string = {
+    'your request was completed successfully';
+    'consider your request done !';
+}
+
+action_success_phrase_with_result : D.ActionSuccessPhraseWithResult = {
+    generic_action_success_phrase '.' result:direct_result_info_phrase [priority=1]
+        => [null, result.info];
+
+    'i' action:complete_past_action_phrase '.' result:direct_result_info_phrase with { functionName = action.functionName } [priority=2]
+        => [action, result.info];
+}
+
+action_success_phrase : S.AgentReplyRecord = {
+    ctx:ctx_completed_action_success generic_excitement_phrase result:ctx_thingpedia_result '.' [priority=5]
+        => D.makeThingpediaActionSuccessPhrase(ctx, result);
+
+    ctx:ctx_completed_action_success generic_excitement_phrase 'i' action:complete_past_action_phrase with { functionName = ctx.currentFunction } '.' [priority=2]
+        => D.makeCompleteActionSuccessPhrase(ctx, action, null);
+
+    ctx:ctx_completed_action_success generic_excitement_phrase phrase:action_success_phrase_with_result => {
+        const [action, info] = phrase;
+        if (action)
+            return D.makeCompleteActionSuccessPhrase(ctx, action, info);
+        else
+            return D.makeThingpediaActionSuccessPhrase(ctx, info);
+    };
+
+    // purely generic fallback, so we always say something, even if we cannot use a better template
+    ctx:ctx_completed_action_success generic_excitement_phrase generic_action_success_phrase [priority=-10]
+        => D.makeGenericActionSuccessPhrase(ctx);
+
+}
+
+action_notification_phrase : S.AgentReplyRecord = {
+    ctx:ctx_action_notification notification_preamble generic_excitement_phrase result:ctx_thingpedia_result '.' [priority=5]
+        => D.makeThingpediaActionSuccessPhrase(ctx, result);
+
+    ctx:ctx_action_notification notification_preamble generic_excitement_phrase 'i' action:complete_past_action_phrase with { functionName = ctx.currentFunction } '.' [priority=2]
+        => D.makeCompleteActionSuccessPhrase(ctx, action, null);
+
+    ctx:ctx_action_notification notification_preamble generic_excitement_phrase phrase:action_success_phrase_with_result => {
+        const [action, info] = phrase;
+        if (action)
+            return D.makeCompleteActionSuccessPhrase(ctx, action, info);
+        else
+            return D.makeThingpediaActionSuccessPhrase(ctx, info);
+    };
+
+    // purely generic fallback, so we always say something, even if we cannot use a better template
+    ctx:ctx_action_notification notification_preamble generic_excitement_phrase generic_action_success_phrase [priority=-10]
+        => D.makeGenericActionSuccessPhrase(ctx);
+}
+
+short_action_error_message : S.ContextInfo = {
+    ctx:ctx_completed_action_error msg:ctx_thingpedia_error_message '.' [priority=5]
+        => D.checkThingpediaErrorMessage(ctx, msg);
+
+    ctx:ctx_completed_action_error 'there was an unexpected error with your command . please try again later or report this issue to my developers' => ctx;
+}
+
+long_action_error_message : S.ContextInfo = {
+    ('i could not' | 'it was not possible to') action:action_description_phrase (':' | 'because') ctx:short_action_error_message
+        => D.checkActionErrorMessage(ctx, action);
+}
+
+one_param_try_different_param_question : C.ParamSlot[] = {
+    ( 'would you like to try a different' p:input_param '?'
+    | 'would you like a different' p:input_param '?'
+    | 'shall i try another' p:input_param '?'
+    | 'how about for another' p:input_param '?'
+    ) => {
+        return [p];
+    };
+}
+
+two_param_try_different_param_question : C.ParamSlot[] = {
+    ( 'would you like to try a different' p1:input_param 'or' p2:input_param with { functionName = p1.functionName } '?'
+    | 'would you like a different' p1:input_param 'or' p2:input_param with { functionName = p1.functionName } '?'
+    | 'shall i try another' p1:input_param 'or' p2:input_param with { functionName = p1.functionName } '?'
+    | 'how about for another' p1:input_param 'or' p2:input_param with { functionName = p1.functionName } '?'
+    ) => {
+        assert(C.isSameFunction(p1.schema, p2.schema));
+        if (p1 === p2)
+            return null;
+        return [p1, p2];
+    };
+}
+
+action_error_phrase : S.AgentReplyRecord = {
+    ctx:short_action_error_message '.' => D.makeActionErrorPhrase(ctx, []);
+
+    !inference {
+        // FIXME this should be good for inference too but the phrase it generates is weird
+        sorry_preamble ctx:long_action_error_message '.' => D.makeActionErrorPhrase(ctx, []);
+
+        ( sorry_preamble ctx:short_action_error_message '.' questions:one_param_try_different_param_question [weight=1, priority=0.5]
+        | sorry_preamble ctx:short_action_error_message '.' questions:two_param_try_different_param_question [weight=0.5]
+        | sorry_preamble ctx:long_action_error_message '.' questions:one_param_try_different_param_question [weight=1, priority=0.5]
+        | sorry_preamble ctx:long_action_error_message '.' questions:two_param_try_different_param_question [weight=0.5]
+        ) => D.makeActionErrorPhrase(ctx, questions);
+    }
+}

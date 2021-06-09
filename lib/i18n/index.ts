@@ -19,7 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-import DefaultLanguagePack from './default';
+import LanguagePack from './default';
 import English from './english';
 import Italian from './italian';
 import Persian from './persian';
@@ -35,9 +35,11 @@ import SimplifiedChinese from './simplified-chinese';
 import TraditionalChinese from './traditional-chinese';
 
 import BaseTokenizer, { TokenizerResult } from './tokenizer/base';
-export { BaseTokenizer, TokenizerResult };
-
-export type LanguagePack = DefaultLanguagePack;
+export {
+    BaseTokenizer,
+    TokenizerResult,
+    LanguagePack
+} ;
 
 interface LPClass {
     new(locale : string) : LanguagePack;
@@ -89,7 +91,7 @@ export function get(locale : string) : LanguagePack {
         }
     }
     console.error(`Locale ${locale} is not fully supported.`);
-    const instance = new DefaultLanguagePack(locale);
+    const instance = new LanguagePack(locale);
     _instances.set(locale, instance);
     return instance;
 }

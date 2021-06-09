@@ -1,0 +1,39 @@
+// -*- mode: js; indent-tabs-mode: nil; js-basic-offset: 4 -*-
+//
+// This file is part of Genie
+//
+// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
+
+// Recommendation templates: the agent reads out or describe the top result from the search,
+// optionally proposing an action to do on it
+
+// A recommendation from the system is followed by:
+// - yes (= "positive_recommendation_reply_pair")
+// - some form of search refinement (= "negative_recommendation_reply_pair")
+// - a question (= "recommendation_search_question_pair")
+// - closing the dialogue (= "recommendation_cancel_pair")
+
+import { Ast, } from 'thingtalk';
+import * as D from '../dialogue_acts';
+import * as S from '../state_manip';
+import ThingpediaLoader from '../load-thingpedia';
+
+related_question : Ast.DialogueState = {
+    ctx:ctx_for_related_question stmt:search_command [weight=0.1] => D.relatedQuestion(ctx, stmt);
+    ctx:ctx_for_related_question stmt:complete_question => D.relatedQuestion(ctx, stmt);
+    ctx:ctx_for_related_question stmt:projection_question [weight=0.1] => D.relatedQuestion(ctx, stmt);
+}
