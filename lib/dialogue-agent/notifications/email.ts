@@ -23,7 +23,6 @@ import * as nodemailer from 'nodemailer';
 import interpolate from 'string-interp';
 
 import type Engine from '../../engine';
-import { FormattedObject } from './formatter';
 import * as I18n from '../../i18n';
 
 interface EmailConfig {
@@ -57,7 +56,7 @@ function htmlEscape(x : string|undefined) {
     });
 }
 
-export default class EmailNotificationBackend {
+export default class EmailNotificationBackend implements Tp.Capabilities.NotificationBackend {
     private _platform : Tp.BasePlatform;
     private _client : nodemailer.Transporter;
     private _from : string;
@@ -81,7 +80,7 @@ export default class EmailNotificationBackend {
         icon : string|null;
         raw : Record<string, unknown>;
         type : string;
-        formatted : FormattedObject[]
+        formatted : Tp.FormatObjects.FormattedObject[]
     }, config ?: Record<string, string>) {
         let to;
         if (config) {

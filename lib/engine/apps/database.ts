@@ -45,7 +45,7 @@ export default class AppDatabase extends events.EventEmitter {
      * Construct the app database for this engine.
      *
      * There is only one app database instance per engine,
-     * and it is accessible as {@link Engine#apps}.
+     * and it is accessible as {@link AssistantEngine.apps}.
      * @package
      */
     constructor(engine : Engine) {
@@ -72,13 +72,14 @@ export default class AppDatabase extends events.EventEmitter {
 
     private async _doStartApp(app : AppExecutor, isNewApp : boolean) {
         try {
+            if (isNewApp)
+                await app.runCommand();
             // only start and save into db apps that actually have some rules
             if (app.hasRule) {
                 this._enableApp(app);
                 if (isNewApp)
                     await this.saveApp(app);
             } else {
-                await app.waitFinished();
                 await this._removeAppInternal(app.uniqueId!);
             }
         } catch(e) {

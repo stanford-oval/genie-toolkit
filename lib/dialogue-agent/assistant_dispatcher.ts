@@ -19,6 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
+import * as Tp from 'thingpedia';
 import * as events from 'events';
 
 import Conversation, {
@@ -33,12 +34,12 @@ import {
     ThingpediaNotificationBackend,
     NotificationConfig,
     NotificationDelegate,
-    NotificationBackend
 } from './notifications';
 
 import AppExecutor from '../engine/apps/app_executor';
 import type Engine from '../engine';
 import DeviceView from '../engine/devices/device_view';
+import DeviceInterfaceMapper from '../engine/devices/device_interface_mapper';
 
 /**
  * A conversation delegate that buffers all commands until the dialogue turn
@@ -103,11 +104,11 @@ type ConverseInput = ({
 export default class AssistantDispatcher extends events.EventEmitter {
     private _engine : Engine;
     private _notificationFormatter : NotificationFormatter;
-    private _notificationDeviceView : DeviceView;
     private _nluModelUrl : string|undefined;
 
     private _notificationOutputs : Set<NotificationDelegate>;
-    private _staticNotificationBackends : Record<string, NotificationBackend>;
+    private _staticNotificationBackends : Record<string, Tp.Capabilities.NotificationBackend>;
+    private _dynamicNotificationBackends : DeviceInterfaceMapper<Tp.Capabilities.NotificationBackend>;
     private _conversations : Map<string, Conversation>;
     private _lastConversation : Conversation|null;
 
@@ -121,7 +122,9 @@ export default class AssistantDispatcher extends events.EventEmitter {
         this._conversations = new Map;
         this._lastConversation = null;
 
-        this._notificationDeviceView = new DeviceView(engine.devices, 'org.thingpedia.notification-provider', {});
+        this._dynamicNotificationBackends = new DeviceInterfaceMapper(
+            new DeviceView(engine.devices, 'org.thingpedia.notification-provider', {}),
+            (device) => new ThingpediaNotificationBackend(device));
 
         // initialize static notification backends
         this._staticNotificationBackends = {};
@@ -132,10 +135,10 @@ export default class AssistantDispatcher extends events.EventEmitter {
     }
 
     async start() {
-        this._notificationDeviceView.start();
+        this._dynamicNotificationBackends.start();
     }
     async stop() {
-        this._notificationDeviceView.stop();
+        this._dynamicNotificationBackends.stop();
     }
 
     /**
@@ -146,6 +149,31 @@ export default class AssistantDispatcher extends events.EventEmitter {
      * It exists for the convenience of REST API clients which do not keep
      * an open web socket.
      */
+    async converse(command : {
+        type : 'command';
+        text : string;
+    } & PlatformData, conversationId : string) : Promise<{
+        conversationId : string;
+        messages : Message[],
+        askSpecial : string|null;
+    }>;
+    async converse(command : {
+        type : 'parsed';
+        json : any;
+        title ?: string;
+    } & PlatformData, conversationId : string) : Promise<{
+        conversationId : string;
+        messages : Message[],
+        askSpecial : string|null;
+    }>;
+    async converse(command : {
+        type : 'tt';
+        code : string;
+    } & PlatformData, conversationId : string) : Promise<{
+        conversationId : string;
+        messages : Message[],
+        askSpecial : string|null;
+    }>;
     async converse(command : ConverseInput, conversationId : string) {
         const conversation = await this.getOrOpenConversation(conversationId, {
             showWelcome: false,
@@ -191,11 +219,9 @@ export default class AssistantDispatcher extends events.EventEmitter {
     /**
      * Get the list of notification backends that can be used.
      */
-    getAvailableNotificationBackends() : NotificationBackend[] {
-        const backends = Object.values(this._staticNotificationBackends);
-        for (const dev of this._notificationDeviceView.values())
-            backends.push(new ThingpediaNotificationBackend(dev));
-        return backends;
+    getAvailableNotificationBackends() : Tp.Capabilities.NotificationBackend[] {
+        return Object.values(this._staticNotificationBackends)
+            .concat(Array.from(this._dynamicNotificationBackends.values()));
     }
 
     /**
@@ -243,9 +269,9 @@ export default class AssistantDispatcher extends events.EventEmitter {
 
                 if (config.backend.startsWith('thingpedia/')) {
                     const deviceId = config.backend.substring('thingpedia/'.length);
-                    const device = this._notificationDeviceView.getById(deviceId);
-                    if (device)
-                        promises.push((device.queryInterface('notifications') as NotificationDelegate).notify(notification));
+                    const backend = this._dynamicNotificationBackends.getById(deviceId);
+                    if (backend)
+                        promises.push(backend.notify(notification));
                 } else {
                     const backend = this._staticNotificationBackends[config.backend];
                     if (backend)
@@ -284,9 +310,9 @@ export default class AssistantDispatcher extends events.EventEmitter {
                     promises.push(conv.notifyError(app, error));
             } else if (config.backend.startsWith('thingpedia/')) {
                 const deviceId = config.backend.substring('thingpedia/'.length);
-                const device = this._notificationDeviceView.getById(deviceId);
-                if (device)
-                    promises.push((device.queryInterface('notifications') as NotificationDelegate).notifyError(notification));
+                const backend = this._dynamicNotificationBackends.getById(deviceId);
+                if (backend)
+                    promises.push(backend.notifyError(notification));
             } else {
                 const backend = this._staticNotificationBackends[config.backend];
                 if (backend)

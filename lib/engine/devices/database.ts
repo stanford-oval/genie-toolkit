@@ -55,7 +55,7 @@ export default class DeviceDatabase extends ObjectSet.Base<Tp.BaseDevice> {
      * Construct the device database for this engine.
      *
      * There is only one device database instance per engine,
-     * and it is accessible as {@link Engine#devices}.
+     * and it is accessible as {@link AssistantEngine.devices}.
      *
      * @param platform - the platform associated with the engine
      * @param syncManager - the tier manager to use for device synchronization

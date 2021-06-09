@@ -21,7 +21,8 @@
 import assert from 'assert';
 
 import * as Tp from 'thingpedia';
-import { Ast, Type, Runtime, Builtin } from 'thingtalk';
+import * as ThingTalk from 'thingtalk';
+import { Ast, Runtime } from 'thingtalk';
 import MonitorRunner from './monitor_runner';
 
 import { Timer, AtTimer } from './timers';
@@ -41,23 +42,10 @@ function extendParams(output : Record<string, unknown>,
     }
 }
 
-export interface IODelegate {
-    /**
-     * Report a new result from app.
-     * @param {string} outputType - the type of result.
-     * @param {any} outputValue - the actual result.
-     * @package
-     */
-    output(outputType : string, outputValue : Record<string, unknown>) : void;
-    /**
-     * Report that the app had an error.
-     * @param {Error} error - the error that occurred.
-     * @package
-     */
-    error(error : Error) : void;
-    ask(type : Type, question : string) : Promise<Ast.Value>;
-    say(message : string) : Promise<void>;
+export interface OutputDelegate {
     done() : void;
+    output(outputType : string, outputValue : Record<string, unknown>) : void;
+    error(error : Error) : void;
 }
 
 type MaybePromise<T> = T|Promise<T>;
@@ -92,21 +80,21 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
     app : AppExecutor;
     format : NotificationFormatter;
 
-    private _programId : Builtin.Entity;
-    private _delegate : IODelegate;
+    private _programId : ThingTalk.Builtin.Entity;
+    private _outputDelegate : OutputDelegate;
     private _trigger : MonitorRunner|Timer|AtTimer|null;
 
     private _execCache : Array<[string, string, Record<string, unknown>, Array<Promise<QueryFunctionResult>>]>;
     private _hooks : Array<() => void|Promise<void>>;
 
-    constructor(engine : Engine, app : AppExecutor, delegate : IODelegate) {
+    constructor(engine : Engine, app : AppExecutor, output : OutputDelegate) {
         super();
 
         this.format = new NotificationFormatter(engine);
         this.engine = engine;
         this.app = app;
-        this._programId = new Builtin.Entity(this.app.uniqueId!, null);
-        this._delegate = delegate;
+        this._programId = new ThingTalk.Builtin.Entity(this.app.uniqueId!, null);
+        this._outputDelegate = output;
 
         this._trigger = null;
 
@@ -114,8 +102,8 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
         this._hooks = [];
     }
 
-    setIODelegate(delegate : IODelegate) {
-        this._delegate = delegate;
+    setOutput(delegate : OutputDelegate) {
+        this._outputDelegate = delegate;
     }
 
     get program_id() {
@@ -144,15 +132,6 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
         };
     }
 
-    async ask(name : string, typestr : string, question : string|null) {
-        const type = Type.fromString(typestr);
-        return (await this._delegate.ask(type, question || `what ${name} would you like?`)).toJS();
-    }
-
-    async say(message : string) {
-        await this._delegate.say(message);
-    }
-
     loadContext() : never {
         throw new Error('$context is not implemented');
         //return this.engine.platform.loadContext(info);
@@ -165,7 +144,7 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
         return this._wrapClearCache(trigger);
     }
 
-    invokeAtTimer(time : Builtin.Time[], expiration_date : Date|undefined) : AsyncIterator<{ __timestamp : number }> {
+    invokeAtTimer(time : ThingTalk.Builtin.Time[], expiration_date : Date|undefined) : AsyncIterator<{ __timestamp : number }> {
         const trigger = new AtTimer(time, expiration_date);
         this._trigger = trigger;
         trigger.start();
@@ -186,7 +165,8 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
     private _findInCache(kindKey : string, fnameKey : string, params : Record<string, unknown>) : Array<Promise<QueryFunctionResult>>|undefined {
         for (const cached of this._execCache) {
             const [kind, fname, cachedparams, result] = cached;
-            if (kind === kindKey && fname === fnameKey && Builtin.equality(cachedparams, params))
+            if (kind === kindKey && fname === fnameKey &&
+                ThingTalk.Builtin.equality(cachedparams, params))
                 return result;
         }
         return undefined;
@@ -311,11 +291,11 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
 
         console.error(message, error);
         this.app.setError(error);
-        await this._delegate.error(error);
+        await this._outputDelegate.error(error);
     }
 
     async output(outputType : string, outputValues : Record<string, unknown>) : Promise<void> {
-        await this._delegate.output(outputType, outputValues);
+        await this._outputDelegate.output(outputType, outputValues);
     }
 
     async formatEvent(outputType : string, outputValue : Record<string, unknown>, hint : string) : Promise<string> {

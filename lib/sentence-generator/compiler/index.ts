@@ -25,8 +25,6 @@ import * as ts from 'typescript';
 import * as metagrammar from './grammar';
 import * as metaast from './meta_ast';
 
-import type * as ThingTalkUtils from '../../utils/thingtalk';
-import type * as SentenceGeneratorRuntime from '../runtime';
 import type { GrammarOptions } from '../types';
 import type * as I18n from '../../i18n';
 import type SentenceGenerator from '../generator';
@@ -189,7 +187,7 @@ export class Compiler {
     private async _outputFile(filename : string,
                               parsed : metaast.Grammar) {
         const outputFile = filename + '.' + this._target;
-        let output = parsed.codegen();
+        let output = parsed.codegen(filename);
 
         if (this._target === 'js') {
             const result = ts.transpileModule(output, {
@@ -222,15 +220,13 @@ export function compile(filename : string) : Promise<void> {
     return new Compiler('ts').process(filename);
 }
 
-type CompiledTemplate = (runtime : typeof SentenceGeneratorRuntime,
-                         ttUtils : typeof ThingTalkUtils,
-                         options : GrammarOptions,
+type CompiledTemplate = (options : GrammarOptions,
                          langPack : I18n.LanguagePack,
                          grammar : SentenceGenerator<any, any, any>,
                          loader ?: any) => Promise<void>;
 
 export async function importGenie(filename : string,
-                                  searchPath = '.') : Promise<CompiledTemplate> {
+                                  searchPath = path.resolve(path.dirname(module.filename), '../../templates')) : Promise<CompiledTemplate> {
     filename = path.resolve(searchPath, filename);
 
     // try loading compiled js first
@@ -262,3 +258,19 @@ export async function importGenie(filename : string,
 
     return (await import(filename + '.' + target)).default;
 }
+
+async function main() {
+    try {
+        await compile(process.argv[2]);
+    } catch(e) {
+        if (e.name === 'SyntaxError') {
+            console.error(`Syntax error in ${e.fileName} at line ${e.location.start.line}: ${e.message}`);
+        } else {
+            console.error(e.message);
+            console.error(e.stack);
+        }
+        process.exit(1);
+    }
+}
+if (!module.parent)
+    main();

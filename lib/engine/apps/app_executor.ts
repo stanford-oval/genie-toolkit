@@ -22,29 +22,23 @@ import assert from 'assert';
 import * as events from 'events';
 import AsyncQueue from 'consumer-queue';
 
-import { Syntax, Compiler as AppCompiler, Ast, Type } from 'thingtalk';
+import { Syntax, Compiler as AppCompiler, Ast } from 'thingtalk';
 import RuleExecutor from './rule_executor';
+import type ExecWrapper from './exec_wrapper';
 import { ChannelState } from './channel_state_binder';
 
 import type Engine from '../index';
-import { IODelegate } from './exec_wrapper';
 
 interface ResultItem {
     outputType : string;
     outputValue : Record<string, unknown>;
 }
-class QueueIODelegate {
+
+class QueueOutputDelegate {
     private _queue : AsyncQueue<IteratorResult<ResultItem|Error>>;
 
     constructor() {
         this._queue = new AsyncQueue();
-    }
-
-    ask(type : Type, question : string) : Promise<Ast.Value> {
-        throw new Error('Not available when streaming results');
-    }
-    say(message : string) : Promise<void> {
-        throw new Error('Not available when streaming results');
     }
 
     [Symbol.asyncIterator]() : AsyncIterator<ResultItem|Error> {
@@ -65,7 +59,7 @@ class QueueIODelegate {
     }
 }
 
-class BackgroundIODelegate implements IODelegate {
+class NotificationOutputDelegate {
     private _app : AppExecutor;
     private _engine : Engine;
 
@@ -74,20 +68,24 @@ class BackgroundIODelegate implements IODelegate {
         this._engine = app.engine;
     }
 
-    ask(type : Type, question : string) : Promise<Ast.Value> {
-        throw new Error('Not available in background');
-    }
-    say(message : string) : Promise<void> {
-        throw new Error('Not available in background');
-    }
-
     done() {}
 
+    /**
+     * Report that the app had an error.
+     * @param {Error} error - the error that occurred.
+     * @package
+     */
     error(error : Error) {
         this._app.setError(error);
         return this._engine.assistant.notifyError(this._app, error);
     }
 
+    /**
+     * Report a new result from app.
+     * @param {string} outputType - the type of result.
+     * @param {any} outputValue - the actual result.
+     * @package
+     */
     output(outputType : string, outputValue : Record<string, unknown>) {
         return this._engine.assistant.notify(this._app, outputType, outputValue);
     }
@@ -132,7 +130,8 @@ export default class AppExecutor extends events.EventEmitter {
     name : string;
     description : string;
 
-    private _notificationdelegate : IODelegate;
+    mainOutput : QueueOutputDelegate;
+    private _notificationOutput : NotificationOutputDelegate;
     notifications : NotificationConfig[];
 
     /**
@@ -205,9 +204,9 @@ export default class AppExecutor extends events.EventEmitter {
 
         this._states = [];
 
-        this._notificationdelegate = new BackgroundIODelegate(this);
+        this.mainOutput = new QueueOutputDelegate();
+        this._notificationOutput = new NotificationOutputDelegate(this);
         this.notifications = meta.notifications || [];
-        meta.notifications = this.notifications;
     }
 
     get metadata() : AppMeta {
@@ -238,7 +237,7 @@ export default class AppExecutor extends events.EventEmitter {
         this._error = e;
     }
     reportError(error : Error) {
-        this._notificationdelegate.error(error);
+        this._notificationOutput.error(error);
     }
 
     get hasRule() {
@@ -271,7 +270,7 @@ export default class AppExecutor extends events.EventEmitter {
     /**
      * Attempt compilation of this app.
      *
-     * This method must be called before running the app through {@link AppExecutor.runImmediate}
+     * This method must be called before running the app through {@link AppExecutor.runCommand}
      * or {@link AppExecutor.start}.
      *
      * On failure, this method will set {@link AppExecutor.error}.
@@ -280,10 +279,10 @@ export default class AppExecutor extends events.EventEmitter {
         const compiled = await this.compiler.compileProgram(this.program);
 
         if (compiled.command)
-            this.command = new RuleExecutor(this.engine, this, compiled.command, this._notificationdelegate);
+            this.command = new RuleExecutor(this.engine, this, compiled.command as (env : ExecWrapper) => Promise<unknown>, this.mainOutput);
 
         for (const rule of compiled.rules) {
-            const executor = new RuleExecutor(this.engine, this, rule, this._notificationdelegate);
+            const executor = new RuleExecutor(this.engine, this, rule as (env : ExecWrapper) => Promise<unknown>, this._notificationOutput);
             this.rules.push(executor);
             executor.on('finish', () => {
                 this._finishedRules.add(executor);
@@ -302,20 +301,18 @@ export default class AppExecutor extends events.EventEmitter {
      * This method will execute the portion of the app that uses the `now =>` stream.
      * It should be called only for a newly created app, not for an app that was loaded from
      * disk after a restart.
+     *
+     * This method must not be called on an app returned by {@link AssistantEngine.createApp} or
+     * {@link AppDatabase.createApp}, as those methods will already call this one.
      */
-    runImmediate(delegate : IODelegate) : IODelegate;
-    runImmediate() : QueueIODelegate;
-    runImmediate(delegate ?: IODelegate) {
-        if (!delegate)
-            delegate = new QueueIODelegate();
-
+    async runCommand() {
         if (this.command) {
-            this.command.setIODelegate(delegate);
             this.command.start();
+            await this.command.waitFinished();
         } else {
-            delegate.done();
+            // mark the main output as done or we'll hang when we iterate it
+            this.mainOutput.done();
         }
-        return delegate;
     }
 
     /**
@@ -356,7 +353,7 @@ export default class AppExecutor extends events.EventEmitter {
      *
      * This method pauses the app temporarily, and is called when the engine is terminating.
      * The app will be restarted the next time the engine is restarted. To stop the app
-     * permanently, use {@link AppDatabase#removeApp} or {@link AppExecutor#removeSelf}.
+     * permanently, use {@link AppDatabase.removeApp} or {@link AppExecutor.removeSelf}.
      */
     async stop() {
         await Promise.all(this.rules.map((r) => r.stop()));

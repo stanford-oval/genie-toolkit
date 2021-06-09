@@ -18,7 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
 import assert from 'assert';
 import * as Tp from 'thingpedia';
 import { Ast, SchemaRetriever, Builtin } from 'thingtalk';

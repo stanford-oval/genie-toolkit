@@ -23,13 +23,14 @@ import * as events from 'events';
 import type Engine from '..';
 
 import type AppExecutor from './app_executor';
-import ExecWrapper, { IODelegate } from './exec_wrapper';
+import ExecWrapper from './exec_wrapper';
+import { OutputDelegate } from './exec_wrapper';
 
 export default class RuleExecutor extends events.EventEmitter {
     engine : Engine;
     app : AppExecutor;
 
-    private _output : IODelegate;
+    private _output : OutputDelegate;
     private _env : ExecWrapper;
     private _tt : (env : ExecWrapper) => Promise<unknown>;
 
@@ -42,7 +43,7 @@ export default class RuleExecutor extends events.EventEmitter {
     constructor(engine : Engine,
                 app : AppExecutor,
                 compiled : (env : ExecWrapper) => Promise<unknown>,
-                output : IODelegate) {
+                output : OutputDelegate) {
         super();
         this.engine = engine;
         this.app = app;
@@ -57,23 +58,16 @@ export default class RuleExecutor extends events.EventEmitter {
         });
     }
 
-    setIODelegate(delegate : IODelegate) {
-        this._output = delegate;
-        this._env.setIODelegate(delegate);
-    }
-
     private async _ruleThread() {
         try {
-            try {
-                await this._tt(this._env);
-            } catch(e) {
-                this._env.reportError('Uncaught error in rule', e);
-            }
-        } finally {
-            this.emit('finish');
-            this._output.done();
-            this._finished.resolve();
+            await this._tt(this._env);
+        } catch(e) {
+            this._env.reportError('Uncaught error in rule', e);
         }
+
+        this.emit('finish');
+        this._output.done();
+        this._finished.resolve();
     }
 
     start() {

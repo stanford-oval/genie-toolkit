@@ -12,6 +12,9 @@
   utterance: '!! test command always failed !!'
   candidates: []
 -
+  utterance: '!! test command always bing !!'
+  candidates: []
+-
   utterance: 'get new york times'
   candidates:
     - { code: ['now', '=>', '@test.nytimes.get', '=>', 'notify'], score: 'Infinity', }
