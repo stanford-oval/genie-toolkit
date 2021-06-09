@@ -55,6 +55,11 @@ export interface ConversationOptions {
     deleteWhenInactive ?: boolean;
     log ?: boolean;
     dialogueFlags ?: Record<string, boolean>;
+    faqModels ?: Record<string, {
+        url : string;
+        highConfidence ?: number;
+        lowConfidence ?: number;
+    }>;
 }
 
 interface Statistics {
@@ -203,7 +208,8 @@ export default class Conversation extends events.EventEmitter {
         this._loop = new DialogueLoop(this, this._engine, {
             nluServerUrl: options.nluServerUrl,
             nlgServerUrl: options.nlgServerUrl,
-            debug: this._debug
+            faqModels: options.faqModels || {},
+            debug: this._debug,
         });
         this._expecting = null;
         this._context = { code: ['null'], entities: {} };

@@ -98,11 +98,6 @@ export interface DialogueHandler<AnalysisType extends CommandAnalysisResult, Sta
     getFollowUp() : Promise<ReplyResult|null>;
 }
 
-// todo move this somewhere else
-const FAQS : Record<string, string> = {
-    'covid-faq': 'http://covid-faq.staging.almond.stanford.edu/v1/models/covid-faq:predict'
-};
-
 export class DialogueLoop {
     conversation : Conversation;
     engine : Engine;
@@ -135,6 +130,11 @@ export class DialogueLoop {
                     nluServerUrl : string|undefined;
                     nlgServerUrl : string|undefined;
                     debug : boolean;
+                    faqModels : Record<string, {
+                        url : string;
+                        highConfidence ?: number;
+                        lowConfidence ?: number;
+                    }>
                 }) {
         this._userInputQueue = new AsyncQueue();
         this._notifyQueue = new AsyncQueue();
@@ -149,8 +149,8 @@ export class DialogueLoop {
         this._nlg = ParserClient.get(options.nlgServerUrl || undefined, engine.platform.locale, engine.platform);
         this._thingtalkHandler = new ThingTalkDialogueHandler(engine, this, this._agent, this._nlu, this._nlg, options);
         this._faqHandlers = {};
-        for (const faq in FAQS)
-            this._faqHandlers[faq] = new FAQDialogueHandler(this, faq, FAQS[faq]);
+        for (const faq in options.faqModels)
+            this._faqHandlers[faq] = new FAQDialogueHandler(this, faq, options.faqModels[faq], { locale: engine.platform.locale });
         this._dynamicHandlers = new DeviceInterfaceMapper(new DeviceView(engine.devices, 'org.thingpedia.dialogue-handler', {}),
             (device) => new ThingpediaDialogueHandler(device));
         this._currentHandler = null;
