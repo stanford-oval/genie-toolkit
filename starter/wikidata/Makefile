@@ -77,7 +77,7 @@ preprocess_flags ?= $($(annotation)_preprocess_flags) --type-system $(type_syste
 process_schema_flags ?= $($(annotation)_process_schema_flags) --type-system $(type_system)
 annotate_flags ?= $($(annotation)_annotate_flags)
 
-use_preprocessed_wikidata = true
+use_preprocessed_wikidata = false
 use_csqa_valid = true
 use_preprocessed_csqa_valid = 
 

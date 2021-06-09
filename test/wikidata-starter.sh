@@ -10,15 +10,15 @@ trap on_error ERR INT TERM
 cp -r $srcdir/starter/wikidata/* .
 
 # generate & train
-starter_gen_and_train wikidata sports_team
+starter_gen_and_train wikidata country
 
 # get some fake data to test with
-mkdir sports_team/eval
-cat > sports_team/eval/annotated.tsv <<EOF
+mkdir country/eval
+cat > country/eval/annotated.tsv <<EOF
 1	i'm looking for a sports_team	now => @org.wikidata.sports_team => notify
 EOF
 
 # evaluate
-make experiment=sports_team eval_set=eval model=small evaluate
+make experiment=country eval_set=eval model=small use_preprocessed_wikidata=true evaluate
 
 rm -fr $workdir
