@@ -66,9 +66,6 @@ export default class FAQDialogueHandler implements DialogueHandler<FAQCommandAna
         if (command.type !== 'command')
             return { type: CommandAnalysisType.OUT_OF_DOMAIN_COMMAND, utterance: '', user_target: '', answer: '' };
 
-        if (!this._loop.conversation.dialogueFlags.faqs)
-            return { type: CommandAnalysisType.OUT_OF_DOMAIN_COMMAND, utterance: command.utterance, user_target: '', answer: '' };
-
         const response = await Tp.Helpers.Http.post(this._url, JSON.stringify({
             instances: [command.utterance]
         }), { dataContentType: 'application/json' });
