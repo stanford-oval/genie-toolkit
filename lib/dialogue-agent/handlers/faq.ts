@@ -35,7 +35,8 @@ interface FAQCommandAnalysisType {
     answer : string;
 }
 
-const CONFIDENCE_THRESHOLD = 0.4;
+const HIGH_CONFIDENCE_THRESHOLD = 0.4;
+const LOW_CONFIDENCE_THRESHOLD = 0;
 
 export default class FAQDialogueHandler implements DialogueHandler<FAQCommandAnalysisType, undefined> {
     priority = Tp.DialogueHandler.Priority.SECONDARY;
@@ -73,10 +74,13 @@ export default class FAQDialogueHandler implements DialogueHandler<FAQCommandAna
         }), { dataContentType: 'application/json' });
 
         const best : { answer : string, score : number } = JSON.parse(response).predictions[0];
+        this._loop.debug(`Best FAQ answer for ${this.uniqueId} has score ${best.score}`);
 
-        const confidence = best.score >= CONFIDENCE_THRESHOLD ?
+        const confidence = best.score >= HIGH_CONFIDENCE_THRESHOLD ?
             CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND :
-            CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND;
+            best.score >= LOW_CONFIDENCE_THRESHOLD ?
+            CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND :
+            CommandAnalysisType.OUT_OF_DOMAIN_COMMAND;
 
         return {
             type: confidence,
