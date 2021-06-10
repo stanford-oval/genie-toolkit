@@ -231,14 +231,7 @@ class CsqaConverter {
             
         let activeSet = [];
         for (let active of system.active_set) {
-            // There is no info if the question is subject or object based in CSQA json
-            // except for ques_type_id 2. So we check that ourselves.
-            if (!user.sec_ques_type) {
-                const type = active.replace(/[^0-9PQc,|]/g, '').split(',');
-                user.sec_ques_type = type[0].startsWith('c') ? 2:1;
-            }
             active = active.replace(/[^0-9PQ,|]/g, '').split(',');
-            if (user.sec_ques_type === 2) active = active.reverse();
             activeSet = activeSet.concat(active);
         }
 
@@ -280,27 +273,21 @@ class CsqaConverter {
             if (speaker === 'USER') {
                 userTurn = dialog[turn];
             } else {
-                let found = false;
                 for (let active of dialog[turn].active_set) {
-                    active = active.replace(/[^0-9PQ,|]/g, '').split(',');
-                    const entities = active[0].split('|').concat(active[2].split('|'));
-                    for (const entity of entities) {
-                        if (this._items.has(entity) &&
-                            QUESTION_TYPES.has(userTurn['question-type']) &&
-                            userTurn.description &&
-                            !userTurn.description.toLowerCase().includes('indirect') &&
-                            !userTurn.description.toLowerCase().includes('incomplete')) {
-                            this._examples.push({
-                                file: file,
-                                turn: turn - 1, // count from start of the turn (i.e. user turn)
-                                user: userTurn,
-                                system: dialog[turn],
-                            });
-                            found = true;
-                            break; // one entity set is sufficient for positive case.
-                        }
+                    // this only check the subject of the first triple
+                    // for set-based questions, there might be two triples in one active 
+                    // but normally they are from the same domain 
+                    active = active.replace(/[^0-9PQ,|]/g, '');
+                    const subject = active.split(',')[0];
+                    if (subject === this._domain || this._items.has(subject)) {
+                        this._examples.push({
+                            file: file,
+                            turn: turn - 1, // count from start of the turn (i.e. user turn)
+                            user: userTurn,
+                            system: dialog[turn],
+                        });
+                        break;
                     }
-                    if (found) break; // break +1 outer loop as well.
                 }
             }
         }
