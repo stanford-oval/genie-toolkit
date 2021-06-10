@@ -25,7 +25,7 @@ import * as ThingTalk from 'thingtalk';
 import { Ast, Runtime } from 'thingtalk';
 import MonitorRunner from './monitor_runner';
 
-import { Timer, AtTimer } from './timers';
+import { Timer, AtTimer, OnTimer } from './timers';
 import DeviceView from '../devices/device_view';
 import NotificationFormatter from '../../dialogue-agent/notifications/formatter';
 import RestartableAsyncIterable from '../util/restartable_async_iterable';
@@ -82,7 +82,7 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
 
     private _programId : ThingTalk.Builtin.Entity;
     private _outputDelegate : OutputDelegate;
-    private _trigger : MonitorRunner|Timer|AtTimer|null;
+    private _trigger : MonitorRunner|Timer|AtTimer|OnTimer|null;
 
     private _execCache : Array<[string, string, Record<string, unknown>, Array<Promise<QueryFunctionResult>>]>;
     private _hooks : Array<() => void|Promise<void>>;
@@ -146,6 +146,13 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
 
     invokeAtTimer(time : ThingTalk.Builtin.Time[], expiration_date : Date|undefined) : AsyncIterator<{ __timestamp : number }> {
         const trigger = new AtTimer(time, expiration_date);
+        this._trigger = trigger;
+        trigger.start();
+        return this._wrapClearCache(trigger);
+    }
+
+    invokeOnTimer(date : Date[]) : AsyncIterator<{ __timestamp : number}> {
+        const trigger = new OnTimer(date);
         this._trigger = trigger;
         trigger.start();
         return this._wrapClearCache(trigger);

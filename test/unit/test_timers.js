@@ -497,6 +497,36 @@ function testTimer_nextTimeout_error() {
     });
 }
 
+function testOnTimer_nextTimeout() {
+    let timer = new timers.OnTimer(null);
+    let tests = [
+        //5 minute timer
+        {
+            _dates: [Date.parse("1 Jan 2020, 12:30:00")],
+            _now: Date.parse("1 Jan 2020, 12:25:00"),
+            expected: 300000
+        },
+        //3 day timer
+        {
+            _dates: [Date.parse("4 Jan 2020, 12:30:00")],
+            _now: Date.parse("1 Jan 2020, 12:30:00"),
+            expected: 259200000
+        },
+        //target time is in the past
+        {
+            _dates: [Date.parse("1 Jan 2019, 12:30:00")],
+            _now: Date.parse("1 Jan 2020, 12:30:00"),
+            expected: 0
+        },
+    ];
+    console.log("Testing OnTimer _nextTimeout...");
+    tests.forEach((test, i) => {
+        timer._dates = test._dates;
+        assert.strictEqual(timer._nextTimeout(test._now), test.expected);
+        console.log(`#${i} passed`);
+    });
+}
+
 function main() {
     testTimer_setTimems();
     testTimer_getTimems();
@@ -505,6 +535,7 @@ function main() {
     testTimer_nextTimeout();
     testTimer_splitWeek_error();
     testTimer_nextTimeout_error();
+    testOnTimer_nextTimeout();
 }
 export default main;
 if (!module.parent)

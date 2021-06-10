@@ -288,7 +288,35 @@ class AtTimer extends BaseTimer {
     }
 }
 
+class OnTimer extends BaseTimer {
+    private _dates : Date[];
+
+    constructor(dates : Date[]) {
+        super();
+        
+        this._dates = dates;
+    }
+
+    toString() {
+        return `[OnTimer [${this._dates}]]`;
+    }
+
+    protected _nextTimeout(_now : number|null = null) {
+        const now = _now === null ? new Date() : new Date(_now); // used for testing
+
+        for (let i = 0; i < this._dates.length; i++) {
+            const target = new Date(this._dates[i]);
+            const interval = target.getTime() - now.getTime();
+            if (interval > 0) 
+                return interval;
+        }
+        this.end();
+        return 0;
+    }
+}
+
 export {
     Timer,
     AtTimer,
+    OnTimer
 };

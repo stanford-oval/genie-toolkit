@@ -85,6 +85,7 @@ const ANNOTATION_PRIORITY : Record<string, number> = {
 // TODO translate these
 const TIMER_SCHEMA = Operators.Functions['timer'];
 const ATTIMER_SCHEMA = Operators.Functions['attimer'];
+const ONTIMER_SCHEMA = Operators.Functions['ontimer'];
 
 interface CanonicalForm {
     default : string;
@@ -160,6 +161,7 @@ export default class ThingpediaLoader {
     standardSchemas : {
         timer : Ast.FunctionDef,
         attimer : Ast.FunctionDef,
+        ontimer : Ast.FunctionDef,
         say : Ast.FunctionDef|null;
         get_gps : Ast.FunctionDef|null;
         get_time : Ast.FunctionDef|null;
@@ -204,6 +206,7 @@ export default class ThingpediaLoader {
         this.standardSchemas = {
             timer: TIMER_SCHEMA,
             attimer: ATTIMER_SCHEMA,
+            ontimer : ONTIMER_SCHEMA,
             say: null,
             get_gps: null,
             get_time: null

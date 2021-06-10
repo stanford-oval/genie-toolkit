@@ -138,4 +138,15 @@ dataset @org.thingpedia.builtin.thingengine.builtin language "en" {
     program (p_unit : Enum(celsius,fahrenheit,kelvin)) = @org.thingpedia.builtin.thingengine.builtin.set_temperature_unit(unit=p_unit)
     #_[utterances=["use ${p_unit} for temperatures", "use ${p_unit} to display temperatures",
                    "tell me the temperature in ${p_unit}"]];
+
+    program(p_date : Date, p_message : String) = ontimer(date=[p_date]) => @org.thingpedia.builtin.thingengine.builtin.say(message=p_message)
+    #_[utterances=["remind me to ${p_message} at ${p_time}",
+                    "tell me to ${p_message} at ${p_time}",
+                    "set an alarm for ${p_time}"]];
+
+    program(p_num : Number, p_unit : Enum(hour, minute, second)) = ontimer(date=[new Date()]) => @org.thingpedia.builtin.thingengine.builtin.say(message="Time's up!")
+    #_[utterances=["set a timer for ${p_num} ${p_unit}"]];
+
+    program(p_num : Number, p_unit : Enum(hour, minute, second), p_message : String) = ontimer(date=[new Date()]) => @org.thingpedia.builtin.thingengine.builtin.say(message=p_message)
+    #_[utterances=["remind me to ${p_message} in ${p_num} ${p_unit}"]];
 }
