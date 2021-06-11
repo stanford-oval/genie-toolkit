@@ -22,6 +22,8 @@ import * as fs from 'fs';
 import util from 'util';
 import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
+import JSONStream from 'JSONStream';
+import * as StreamUtils from '../../../lib/utils/stream-utils';
 import { snakecase } from '../lib/utils';
 
 const URL = 'https://query.wikidata.org/sparql';
@@ -402,8 +404,14 @@ function getElementType(type) {
 }
 
 async function readJson(file) {
-    const data = await util.promisify(fs.readFile)(file, { encoding: 'utf8' });
-    return new Map(Object.entries(JSON.parse(data)));
+    const data = new Map();
+    const pipeline = fs.createReadStream(file).pipe(JSONStream.parse('$*'));
+    pipeline.on('data', (item) => {
+        data.set(item.key, item.value);
+    });
+    pipeline.on('error', (error) => console.error(error));
+    await StreamUtils.waitEnd(pipeline);
+    return data;
 }
 
 async function dumpMap(file, map) {
