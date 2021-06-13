@@ -80,6 +80,7 @@ annotate_flags ?= $($(annotation)_annotate_flags)
 use_preprocessed_wikidata = false
 use_csqa_valid = true
 use_preprocessed_csqa_valid = 
+csqa_filter = 
 
 annotate_with_entity_id = true
 
@@ -242,6 +243,7 @@ raw/test:
 	  --items $*/items.json \
 	  --values $*/values.json \
 	  --filtered-examples $*/valid.json \
+	  $(if $(csqa_filter),--filter $(csqa_filter),) \
 	  $(if $(annotate_with_entity_id),--entity-id,)
 
 %/valid_annotated.tsv: %/manifest.tt %/valid.tsv

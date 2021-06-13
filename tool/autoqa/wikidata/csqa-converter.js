@@ -46,6 +46,12 @@ class CsqaConverter {
         this._domain = options.domain;
         this._canonical = options.canonical;
         this._includeEntityValue = options.includeEntityValue;
+        this._filters = {};
+        for (const filter of options.filter) {
+            assert(filter.indexOf('=') > 0 && filter.indexOf('=') === filter.lastIndexOf('='));
+            const [key, value] = filter.split('=');
+            this._filters[key] = parseInt(value);
+        }
 
         this._paths = {
             inputDir: options.inputDir,
@@ -507,14 +513,26 @@ class CsqaConverter {
 
     async _filterTurnsByDomain(dialog, file) {
         let userTurn;
-        for (const turn in dialog) {
-            const speaker = dialog[turn].speaker;
+        for (const turn of dialog) {
+            const speaker = turn.speaker;
             if (speaker === 'USER') {
-                userTurn = dialog[turn];
+                let skip = false;
+                for (const [key, value] of Object.entries(this._filters)) {
+                    if (Array.isArray(turn[key])) {
+                        if (!turn[key].includes(value))
+                            skip = true;
+                    } else if (turn[key] !== value) {
+                        skip = true;
+                    }
+                }
+                userTurn = skip ? null : turn;
             } else {
+                if (!userTurn)
+                    continue;
+
                 // only consider examples that contain _only_ the given domain
                 let inDomain = true;
-                for (let active of dialog[turn].active_set) {
+                for (let active of turn.active_set) {
                     active = active.replace(/[^0-9PQc,|]/g, '').split(',');
                     for (let i = 0; i < active.length; i += 3) {
                         const subject = active[i];
@@ -527,7 +545,7 @@ class CsqaConverter {
                         file: file,
                         turn: turn - 1,
                         user: userTurn,
-                        system: dialog[turn],
+                        system: turn,
                     });
                 }
             }
@@ -662,6 +680,12 @@ module.exports = {
             help: "Exclude entity id in thingtalk",
             dest: 'entity_id'
         });
+        parser.add_argument('--filter', {
+            required: false,
+            default: [],
+            nargs: '+',
+            help: 'filters to be applied to CSQA dataset, in the format of [key]=[value(int)]'
+        });
     },
 
     async execute(args) {
@@ -674,7 +698,8 @@ module.exports = {
             items: args.items,
             values: args.values,
             filteredExamples: args.filtered_examples,
-            includeEntityValue: args.entity_id
+            includeEntityValue: args.entity_id,
+            filter: args.filter
         });
         csqaConverter.run();
     },
