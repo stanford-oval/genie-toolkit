@@ -47,7 +47,7 @@ class CsqaConverter {
         this._canonical = options.canonical;
         this._includeEntityValue = options.includeEntityValue;
         this._filters = {};
-        for (const filter of options.filter) {
+        for (const filter of options.filter || []) {
             assert(filter.indexOf('=') > 0 && filter.indexOf('=') === filter.lastIndexOf('='));
             const [key, value] = filter.split('=');
             this._filters[key] = parseInt(value);
@@ -74,7 +74,6 @@ class CsqaConverter {
             indirect: 0,
             setOp: 0,
             typeConstraint: 0,
-            multiQuestion: 0,
             wrongAnnotation: 0
         };
     }
@@ -153,7 +152,7 @@ class CsqaConverter {
         // when the subjects of some triples are different, it requires set operation 
         // in ThingTalk to represent, which is not supported yet
         const subjects = new Set(triples.map(((triple) => triple[0])));
-        if (subjects.length > 1)
+        if (subjects.size > 1)
             return [null, null];
 
         // process tripes in active set
@@ -209,13 +208,8 @@ class CsqaConverter {
             return this._simpleQuestion(activeSet);
         }
         if (secQuesSubType === 4) {
-            // this whole category is weird, it's unclear how this can be distinguished from set-based
-            // questions from the utterance. 
-            // it basically is asking multiple questions in one sentence. 
-            // for the case where subjects are entity, predicates are the same, we can approximate 
-            // to a single projection on table with multiple id filters
-            // but it's probably better to actually run 3 separate queries, to make sure the answer
-            // is in order.
+            // this it basically is asking multiple questions in one sentence. 
+            // it is sometimes ambiguous with set-based questions
             if (activeSet.length <= 1)
                 throw new Error('Only one active set found for secondary plural question');
             const projections = [];
@@ -225,20 +219,19 @@ class CsqaConverter {
                 projections.push(projection);
                 filters.push(filter);
             }
+
+            const filter = new Ast.BooleanExpression.Or(null, filters);
+            const filterTable = new Ast.FilterExpression(null, this._invocationTable(), filter, null);
             // when subjects of triples are entity, we are asking the same projection for multiple entities
             if (secQuesType === 1) {
                 const uniqueProjection = [...new Set(projections.flat())];
                 assert(uniqueProjection.length === 1);
-                const filter = new Ast.BooleanExpression.Or(null, filters);
-                const filterTable = new Ast.FilterExpression(null, this._invocationTable(), filter, null);
                 return new Ast.ProjectionExpression(null, filterTable, uniqueProjection, [], [], null);
             }
             // when subjects of triples are type (domain), we are asking multiple questions, each of which
             // satisfies a different filter
-            if (secQuesType === 2) {
-                this._unsupportedCounter.multiQuestion += 1;
-                return null;
-            }
+            if (secQuesType === 2) 
+                return filterTable;
             throw new Error('Invalid sec_ques_type for secondary question');
         }        
         throw new Error('Invalid sec_sub_ques_type for secondary question');
@@ -607,8 +600,7 @@ class CsqaConverter {
         console.log(`(1) indirect questions: ${this._unsupportedCounter.indirect}`);
         console.log(`(2) set operations: ${this._unsupportedCounter.setOp}`);
         console.log(`(3) type constraint: ${this._unsupportedCounter.typeConstraint}`);
-        console.log(`(4) multiple questions in one sentence: ${this._unsupportedCounter.multiQuestion}`);
-        console.log(`(5) wrong annotation: ${this._unsupportedCounter.wrongAnnotation}`);
+        console.log(`(4) wrong annotation: ${this._unsupportedCounter.wrongAnnotation}`);
         return annotated;
     }
 

@@ -124,21 +124,18 @@ const TEST_CASES = [
     }},
     '[legislative_body] of @org.wikidata.country() filter id == "Q142"^^org.wikidata:country("france") || id == "Q16"^^org.wikidata:country("canada") || id == "Q27"^^org.wikidata:country("ireland")'],
     // 2.4. Secondary question, Subject based question, plural
-    // TODO: not supported yet, this is essentially asking multiple questions 
-    // in fact, we don't even know how to distinguish them from set-based question
-    /*
+    // this is often ambiguous from set-based question in CSQA
     ['2.4.2', {  
         user: {
             ques_type_id: 2,  
             sec_ques_sub_type: 4,  
             sec_ques_type: 2,
-            utterance: 'Which country have official language English, Spanish, and French ?' },
+            utterance: 'Which country have official language English, Spanish, and French, respectively ?' },
         system: {
             utterance: '???',
             active_set: [ 'c(Q6256),P37,Q1860)', '(c(Q6256),P37,Q1321)', '(c(Q6256),P37,Q150)' ],
     }},
-    ''],
-    */
+    '@org.wikidata.country() filter contains(official_language, "Q1860"^^org.wikidata:p_official_language("english")) || contains(official_language, "Q1321"^^org.wikidata:p_official_language("spanish")) || contains(official_language, "Q150"^^org.wikidata:p_official_language("french"))'],
     // 2.2. Secondary question, Object based question 
     ['2.2', {  
         user: {
@@ -175,7 +172,7 @@ const TEST_CASES = [
             active_set: [ 'OR((Q30,P530,c(Q1048835)), (Q30,P47,c(Q1048835)))' ]}},
     '[diplomatic_relation, shares_border_with] of @org.wikidata.country() filter id == "Q30"^^org.wikidata:country("united states of america")'],
     // 4.1. Set-based question OR
-    // TODO: not supported yet, requires union operator in thingtalk
+    // TODO: not supported yet, requires union operator in thingtalk, or a subquery
     /*
     ['4.1.3', {  
         user: {
@@ -200,7 +197,7 @@ const TEST_CASES = [
             active_set: [ 'AND((c(Q6256),P37,Q1860), (c(Q6256),P37,Q1321))' ]}},
     '@org.wikidata.country() filter contains(official_language, "Q1860"^^org.wikidata:p_official_language("english")) && contains(official_language, "Q1321"^^org.wikidata:p_official_language("spanish"))'],
     // 4.2. Set-based question AND
-    // TODO: not supported yet, multiple domains, and requires intersection operator in thingtalk
+    // TODO: not supported yet, multiple domains, and requires intersection operator in thingtalk or subquery
     /*
     ['4.2.2', {  
         user: {
@@ -227,7 +224,7 @@ const TEST_CASES = [
     }},
     '@org.wikidata.country() filter contains(official_language, "Q1860"^^org.wikidata:p_official_language("english")) && !contains(official_language, "Q1321"^^org.wikidata:p_official_language("spanish"))'],
     // 4.3. Set-based question Difference
-    // TODO: not supported yet, requires diff operator in thingtalk
+    // TODO: not supported yet, requires diff operator in thingtalk or a subquery
     /*
     ['4.3.2', {  
         user: {
