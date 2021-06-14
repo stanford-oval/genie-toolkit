@@ -37,7 +37,7 @@ const SYMMETRIC_PROPERTY_THRESHOLD = 0.85;
 class ParamDatasetGenerator {
     constructor(options) {
         this._locale = options.locale;
-        this._domain = options.domain;
+        this._domains = options.domains;
         this._canonical = options.canonical;
         this._typeSystem = options.typeSystem;
 
@@ -117,7 +117,12 @@ class ParamDatasetGenerator {
                 // skip reading predicates for entities that do not have $domain as one of 
                 // its types "instance of"
                 const entityTypes = predicates[INSTANCE_OF_PROP];
-                if (!entityTypes.includes(this._domain))
+                let match = false;
+                for (const domain of this._domains) {
+                    if (entityTypes.includes(domain))
+                        match = true;
+                }
+                if (!match)
                     return;
 
                 // add wikidata item in the domain 
@@ -393,9 +398,9 @@ module.exports = {
             required: false,
             default: 'en-US'
         });
-        parser.add_argument('--domain', {
+        parser.add_argument('--domains', {
             required: true,
-            help: 'the domain (by item id) to process data'
+            help: 'the domains (by item id) to process data, split by comma without space'
         });
         parser.add_argument('--domain-canonical', {
             required: true,
@@ -454,7 +459,7 @@ module.exports = {
     async execute(args) {
         const paramDatasetGenerator = new ParamDatasetGenerator({
             locale: args.locale,
-            domain: args.domain,
+            domains: args.domains.split(','),
             canonical: args.domain_canonical,
             typeSystem: args.type_system,
             wikidata: args.wikidata,

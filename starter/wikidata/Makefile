@@ -164,7 +164,7 @@ raw/csqa-wikidata:
 	                      $(if ${use_preprocessed_wikidata},%/items.json %/predicates.json %/values.json %/types.json %/symmetric-properties.txt,raw/csqa-wikidata)
 	mkdir -p $*/parameter-datasets
 	$(genie) wikidata-preprocess-data \
-	  --domain $(class) \
+	  --domains $(class) \
 	  --domain-canonical $(canonical) \
 	  --wikidata raw/csqa-wikidata/wikidata_short_1.json raw/csqa-wikidata/wikidata_short_2.json \
 	  --wikidata-entity-list raw/csqa-wikidata/items_wikidata_n.json \
