@@ -35,26 +35,79 @@ export interface ParseOptions {
     example_id ?: string;
 }
 
+/**
+ * A single possible parse for an input sentence.
+ */
 export interface PredictionCandidate {
+    /**
+     * The ThingTalk code corresponding to this parse, as a sequence of tokens.
+     *
+     * This code should be passed to the {@link ThingTalk.Syntax.parse} API together
+     * with the {@link PredictionResult.entities} field.
+     */
     code : string[];
+
+    /**
+     * A score indicating how likely it is that the parse is correct.
+     *
+     * There is no guarantee on the range of this score, but a score
+     * higher than 0.5 indicates the model is very confident that the parse is correct.
+     *
+     * A score of "Infinity" indicates that the model matched the sentence exactly
+     * to some sentence in the training data and therefore the parse is guaranteed to
+     * be correct.
+     */
     score : number|'Infinity';
 }
 
-// this type matches the NLP web API exactly, including some
-// odd aspects around "intent"
+/**
+ * The result of calling the NLU web API.
+ */
 export interface PredictionResult {
     result : 'ok';
+
+    /**
+     * The tokens in the input sentence.
+     */
     tokens : string[];
+    /**
+     * The entities in the input sentence, extracted by the tokenizer.
+     */
     entities : EntityMap;
+
+    /**
+     * A list of candidate ThingTalk parses for the input sentence, sorted
+     * by decreasing score.
+     */
     candidates : PredictionCandidate[];
 
-    // the server's best guess of whether this is a command (in-domain),
-    // an out of domain command (could be a new function, web question, or
-    // chatty sentence), or should be ignored altogether
+    /**
+     * The server's best guess of whether this is a command (in-domain),
+     * an out of domain command (could be a new function, web question, or
+     * chatty sentence), or should be ignored altogether.
+     *
+     * There is no guarantee on the range of these numbers, but it is guaranteed
+     * that the highest number corresponds to the most likely classification
+     * of the command.
+     */
     intent : {
+        /**
+         * A score indicating whether the input is recognized as a ThingTalk command.
+         */
         command : number;
-        other : number;
+
+        /**
+         * A score indicating whether the input is "junk" caused by spurious
+         * wake-word activation or keyboard mashing, and should be ignored
+         * entirely.
+         */
         ignore : number;
+
+        /**
+         * A score indicating whether the input is some other sort of command
+         * not representable in ThingTalk (out-of-domain).
+         */
+        other : number;
     }
 }
 
