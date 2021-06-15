@@ -177,9 +177,12 @@ export default class LocalParserClient {
         } else if (options.expect === 'MultipleChoice') {
             const choices = await Promise.all((options.choices || []).map((choice) => this._tokenizer.tokenize(choice)));
             result = choices.map((choice, i) => {
+                const distance = editDistance(tokens, choice.tokens);
                 return {
                     code: ['$choice', '(', String(i), ')', ';'],
-                    score: -editDistance(tokens, choice.tokens)
+                    // distance is between 0 (exact match) and the maximum of the two lengths
+                    // adjust distance to be between 0 and 1, higher is better
+                    score: 1 - distance / Math.max(tokens.length, choice.tokens.length)
                 };
             });
             result.sort(compareScore);
