@@ -64,6 +64,12 @@ export interface LocalTable<RowType extends AbstractRow> {
 }
 
 export type SyncRecord<RowType> = { [K in keyof RowType] : RowType[K]|null } & { uniqueId : string; lastModified : number };
+export interface SyncAtReply<RowType> {
+    lastModified : number;
+    ourChanges : Array<SyncRecord<RowType>>;
+    done : boolean[];
+}
+
 export interface SyncTable<RowType extends AbstractRow>{
     name : string;
     fields : ReadonlyArray<keyof RowType>;
@@ -76,7 +82,7 @@ export interface SyncTable<RowType extends AbstractRow>{
     getRaw() : Promise<Array<SyncRecord<RowType>>>;
     getChangesAfter(lastModified : number) : Promise<Array<SyncRecord<RowType>>>;
     handleChanges(changes : Array<SyncRecord<RowType>>) : Promise<boolean[]>;
-    syncAt(lastModified : number, pushedChanges : Array<SyncRecord<RowType>>) : Promise<[number, Array<SyncRecord<RowType>>, boolean[]]>;
+    syncAt(lastModified : number, pushedChanges : Array<SyncRecord<RowType>>) : Promise<SyncAtReply<RowType>>;
     replaceAll(data : Array<SyncRecord<RowType>>) : Promise<void>;
 
     insertIfRecent(uniqueId : string, lastModified : number, row : Omit<RowType, "uniqueId">) : Promise<boolean>;

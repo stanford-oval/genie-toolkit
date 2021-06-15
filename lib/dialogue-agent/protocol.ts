@@ -106,6 +106,7 @@ export interface RDL {
     displayText ?: string;
     webCallback : string;
     callback ?: string;
+    pictureUrl ?: string;
 }
 
 export interface RDLMessage {
