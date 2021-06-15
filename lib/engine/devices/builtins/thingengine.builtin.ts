@@ -227,7 +227,7 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
     }
 
     do_alert() {
-        return { message_output : 'Time\'s up!'}
+        return { message_output : 'Time\'s up!'};
     }
 
     async do_configure({ device } : { device : unknown }) : Promise<never> {
