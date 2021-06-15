@@ -322,7 +322,7 @@ export default class SyncDatabase<K extends keyof SyncTables> extends events.Eve
         if (this._debug)
             console.log(`syncdb sync request for ${this._table.name} from ${fromTier} at ${lastModified}`);
 
-        this._table.syncAt(lastModified, pushedChanges).then(([lastModified, ourChanges, done]) => {
+        this._table.syncAt(lastModified, pushedChanges).then(({ lastModified, ourChanges, done }) => {
             this._reportChanges(fromTier, pushedChanges, done);
             this._sendMessage(fromTier, {
                 op: 'sync-reply',

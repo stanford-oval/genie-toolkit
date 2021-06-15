@@ -18,7 +18,7 @@
 //
 
 import * as Tp from 'thingpedia';
-import { SyncRecord } from '..';
+import { SyncRecord, SyncAtReply } from '..';
 
 type Field<RowType> = Exclude<keyof RowType & string, "uniqueId">;
 
@@ -68,7 +68,7 @@ export default class SyncTable<RowType> {
         return JSON.parse(resp)['data'];
     }
 
-    async syncAt(lastModified : number, pushedChanges : Array<SyncRecord<RowType>>) : Promise<[number, Array<SyncRecord<RowType>>, boolean[]]> {
+    async syncAt(lastModified : number, pushedChanges : Array<SyncRecord<RowType>>) : Promise<SyncAtReply<RowType>> {
         const resp = await Tp.Helpers.Http.post(`${this._baseUrl}/synctable/sync/user_${this.name}/${this._userId}/${lastModified}`,
                 JSON.stringify(pushedChanges), { dataContentType: 'application/json' });
         return JSON.parse(resp)['data'];
