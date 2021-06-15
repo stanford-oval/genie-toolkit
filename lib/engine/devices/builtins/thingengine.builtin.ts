@@ -226,6 +226,10 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         return cap.launchURL(String(url));
     }
 
+    do_alert() {
+        return { message_output : 'Time\'s up!'}
+    }
+
     async do_configure({ device } : { device : unknown }) : Promise<never> {
         const tpClient = this.engine.thingpedia;
         try {

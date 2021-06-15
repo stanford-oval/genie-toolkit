@@ -304,12 +304,17 @@ class OnTimer extends BaseTimer {
     protected _nextTimeout(_now : number|null = null) {
         const now = _now === null ? new Date() : new Date(_now); // used for testing
 
-        for (let i = 0; i < this._dates.length; i++) {
-            const target = new Date(this._dates[i]);
-            const interval = target.getTime() - now.getTime();
-            if (interval > 0) 
-                return interval;
+        let target = new Date(this._dates[0]);
+        for (let i = 1; i < this._dates.length; i++) {
+            const temp = new Date(this._dates[i]);
+
+            if (temp.getTime() > now.getTime() && (temp.getTime() < target.getTime() || now.getTime() > target.getTime()))
+                target = temp;
         }
+        const interval = target.getTime() - now.getTime();
+        if (interval > 0) 
+            return interval;
+
         this.end();
         return 0;
     }

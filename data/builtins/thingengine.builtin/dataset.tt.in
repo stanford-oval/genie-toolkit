@@ -144,9 +144,9 @@ dataset @org.thingpedia.builtin.thingengine.builtin language "en" {
                     "tell me to ${p_message} at ${p_time}",
                     "set an alarm for ${p_time}"]];
 
-    program(p_num : Number, p_unit : Enum(hour, minute, second)) = ontimer(date=[new Date()]) => @org.thingpedia.builtin.thingengine.builtin.say(message="Time's up!")
-    #_[utterances=["set a timer for ${p_num} ${p_unit}"]];
+    program(p_duration : Measure(ms)) = ontimer(date=[$now + p_duration]) => @org.thingpedia.builtin.thingengine.builtin.alert()
+    #_[utterances=["set a timer for ${p_duration}"]];
 
-    program(p_num : Number, p_unit : Enum(hour, minute, second), p_message : String) = ontimer(date=[new Date()]) => @org.thingpedia.builtin.thingengine.builtin.say(message=p_message)
-    #_[utterances=["remind me to ${p_message} in ${p_num} ${p_unit}"]];
+    program(p_duration : Measure(ms)), p_message : String) = ontimer(date=[$now + p_duration]) => @org.thingpedia.builtin.thingengine.builtin.say(message=p_message)
+    #_[utterances=["remind me to ${p_message} in ${p_duration}"]];
 }
