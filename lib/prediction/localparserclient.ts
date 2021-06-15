@@ -200,10 +200,7 @@ export default class LocalParserClient {
             assert(candidates.length > 0);
 
             result = candidates.map((c) => {
-                // convert is_correct and is_probably_correct scores into
-                // a single scale such that >0.5 is correct and >0.25 is
-                // probably correct
-                const score = c.score.is_correct ?? 1;
+                const score = c.score.is_correct ?? 0;
                 return {
                     code: c.answer.split(' '),
                     score: score
