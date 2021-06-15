@@ -147,6 +147,6 @@ dataset @org.thingpedia.builtin.thingengine.builtin language "en" {
     program(p_duration : Measure(ms)) = ontimer(date=[$now + p_duration]) => @org.thingpedia.builtin.thingengine.builtin.alert()
     #_[utterances=["set a timer for ${p_duration}"]];
 
-    program(p_duration : Measure(ms)), p_message : String) = ontimer(date=[$now + p_duration]) => @org.thingpedia.builtin.thingengine.builtin.say(message=p_message)
+    program(p_duration : Measure(ms), p_message : String) = ontimer(date=[$now + p_duration]) => @org.thingpedia.builtin.thingengine.builtin.say(message=p_message)
     #_[utterances=["remind me to ${p_message} in ${p_duration}"]];
 }
