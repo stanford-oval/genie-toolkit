@@ -24,7 +24,7 @@ import { Ast, SchemaRetriever, Builtin } from 'thingtalk';
 
 import * as I18n from '../i18n';
 import { cleanKind } from '../utils/misc-utils';
-import { shouldAutoConfirmStatement } from '../utils/thingtalk';
+import { shouldAutoConfirmStatement, addIndexToIDQuery } from '../utils/thingtalk';
 import { contactSearch, Contact } from './entity-linking/contact_search';
 import { collectDisambiguationHints, getBestEntityMatch, EntityRecord } from './entity-linking/entity-finder';
 
@@ -76,34 +76,6 @@ interface ExecutionResult<PrivateStateType> {
     newResults : Array<[string, Record<string, unknown>]>;
     newPrograms : NewProgramRecord[];
     anyChange : boolean;
-}
-
-class UsesParamVisitor extends Ast.NodeVisitor {
-    used = false;
-    constructor(private pname : string) {
-        super();
-    }
-
-    visitExternalBooleanExpression() {
-        // do not recurse
-        return false;
-    }
-    visitValue() {
-        // do not recurse
-        return false;
-    }
-
-    visitAtomBooleanExpression(atom : Ast.AtomBooleanExpression) {
-        this.used = this.used ||
-            (this.pname === atom.name && atom.operator === '=~');
-        return true;
-    }
-}
-
-function expressionUsesIDFilter(expr : Ast.Expression) {
-    const visitor = new UsesParamVisitor('id');
-    expr.visit(visitor);
-    return visitor.used;
 }
 
 /**
@@ -254,18 +226,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         // somewhat of a HACK:
         // add a [1] clause to immediate-mode statements that refer to "id" in
         // the query and don't have an index clause already
-        // we add the clause to all expressions except the last one
-        // that way, if we have an action, it will be performed on the first
-        // result only, but if we don't have an action, we'll return all results
-        // that match
-
-        for (let i = 0; i < stmt.expression.expressions.length-1; i++) {
-            const expr = stmt.expression.expressions[i];
-            if (expr.schema!.functionType !== 'action' &&
-                expressionUsesIDFilter(expr) && !(expr instanceof Ast.IndexExpression) &&
-                !(expr instanceof Ast.SliceExpression))
-                stmt.expression.expressions[i] = new Ast.IndexExpression(null, expr, [new Ast.Value.Number(1)], expr.schema).optimize();
-        }
+        addIndexToIDQuery(stmt);
 
         await this.checkForPermission(stmt);
 
