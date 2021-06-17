@@ -498,6 +498,10 @@ class MockLocalTable {
         });
     }
 
+    getBy(field, value) {
+        return this.getAll().then((rows) => rows.filter((row) => row[field] === value));
+    }
+
     getOne(uniqueId) {
         return new Promise((resolve) => {
             resolve(this._db[uniqueId]);
