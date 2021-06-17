@@ -486,6 +486,59 @@ class MockAssistantDispatcher {
     }
 }
 
+class MockLocalTable {
+    constructor(name) {
+        this.name = name;
+        this._db = {};
+    }
+
+    getAll() {
+        return new Promise((resolve) => {
+            resolve(Object.values(this._db));
+        });
+    }
+
+    getOne(uniqueId) {
+        return new Promise((resolve) => {
+            resolve(this._db[uniqueId]);
+        });
+    }
+
+    insertOne(uniqueId, row) {
+        return new Promise((resolve) => {
+            this._db[uniqueId] = { uniqueId: uniqueId, ...row };
+            resolve();
+        });
+    }
+
+    deleteOne(uniqueId) {
+        return new Promise((resolve, reject) => {
+            if (uniqueId in this._db) {
+                delete this._db[uniqueId];
+                resolve();
+            } else {
+                reject(Error(`LocalTable ${this.name}: ${uniqueId} not found`));
+            }
+        });
+    }
+}
+
+class MockAbstractDatabase {
+    constructor() {
+        this._localTables = {};
+    }
+
+    getLocalTable(name) {
+        if (name in this._localTables) {
+            return this._localTables[name];
+	} else {
+            const table = new MockLocalTable(name);
+            this._localTables[name] = table;
+            return table;
+	}
+    }
+}
+
 export function createMockEngine(thingpedia, rng, database) {
     const platform = new TestPlatform();
     const schemas = new SchemaRetriever(thingpedia, null, true);
@@ -499,6 +552,7 @@ export function createMockEngine(thingpedia, rng, database) {
         apps: new MockAppDatabase(schemas, gettext, rng, database),
         audio: new MockAudioController(),
         assistant: new MockAssistantDispatcher(),
+        db : new MockAbstractDatabase(),
 
         createApp(program, options = {}) {
             return this.apps.createApp(program, options);

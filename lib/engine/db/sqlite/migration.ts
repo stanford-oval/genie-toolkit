@@ -78,6 +78,27 @@ function migrateTo7(db : sqlite3.Database) {
 },
 function migrateTo8(db : sqlite3.Database) {
     // we used to create a table called `memory_table_meta` here, we no longer do that
+},
+function migrateTo9(db : sqlite3.Database) {
+    db.serialize(() => {
+        // we used to create a table called `keyword` here, we no longer do that
+	db.run('drop table if exists conversation');
+	db.run('create table conversation (' +
+               'uniqueId varchar(255) primary key, ' +
+               'conversationId varchar(255), ' +
+               'previousId varchar(255), ' +
+               'dialogueId varchar(255), ' +
+               'context text default null, ' +
+               'agent text default null, ' +
+               'agentTimestamp text default null, ' +
+               'agentTarget text default null, ' +
+               'intermediateContext text default null, ' +
+               'user text default null, ' +
+               'userTimestamp text default null, ' +
+               'userTarget text default null, ' +
+               'vote text default null, ' +
+               'comment text default null)');
+    });
 }];
 const currentVersion = MIGRATIONS.length;
 
