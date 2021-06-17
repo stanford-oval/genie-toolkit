@@ -186,3 +186,71 @@ export async function inputToDialogueState(policy : DialoguePolicy,
     assert(input instanceof Ast.DialogueState);
     return input;
 }
+
+class UsesParamVisitor extends Ast.NodeVisitor {
+    used = false;
+    constructor(private pname : string) {
+        super();
+    }
+
+    visitExternalBooleanExpression() {
+        // do not recurse
+        return false;
+    }
+    visitValue() {
+        // do not recurse
+        return false;
+    }
+
+    visitAtomBooleanExpression(atom : Ast.AtomBooleanExpression) {
+        this.used = this.used ||
+            (this.pname === atom.name && atom.operator === '=~');
+        return true;
+    }
+}
+
+export function expressionUsesIDFilter(expr : Ast.Expression) {
+    const visitor = new UsesParamVisitor('id');
+    expr.visit(visitor);
+    return visitor.used;
+}
+
+export function addIndexToIDQuery(stmt : Ast.ExpressionStatement) {
+    // we add the clause to all expressions except the last one
+    // that way, if we have an action, it will be performed on the first
+    // result only, but if we don't have an action, we'll return all results
+    // that match
+    //
+    // we go inside projection/monitor expressions, and skip entirely expressions that
+    // have existing sort/index/slice/aggregate
+
+    for (let i = 0; i < stmt.expression.expressions.length-1; i++) {
+        let expr = stmt.expression.expressions[i];
+
+        // use a lens pattern to write the newly created expression in the right place
+        // as we traverse the AST down
+        let lens = (expr : Ast.Expression) => {
+            stmt.expression.expressions[i] = expr;
+        };
+        if (expr.schema!.functionType !== 'action' &&
+            expr.schema!.is_list &&
+            expressionUsesIDFilter(expr)) {
+            while (expr instanceof Ast.MonitorExpression ||
+                expr instanceof Ast.ProjectionExpression ||
+                // also recurse into edge filters (filters of monitors)
+                (expr instanceof Ast.FilterExpression &&
+                 expr.expression instanceof Ast.MonitorExpression)) {
+                const parent = expr;
+                lens = (expr : Ast.Expression) => {
+                    parent.expression = expr;
+                };
+                expr = parent.expression;
+            }
+            if (expr instanceof Ast.IndexExpression || expr instanceof Ast.SliceExpression ||
+                expr instanceof Ast.SortExpression || expr instanceof Ast.AggregationExpression)
+                continue;
+
+            lens(new Ast.IndexExpression(null, expr, [new Ast.Value.Number(1)], expr.schema).optimize());
+        }
+    }
+}
