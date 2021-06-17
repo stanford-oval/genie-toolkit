@@ -45,6 +45,12 @@ export default class LocalTable<RowType> {
         });
     }
 
+    getBy(field : keyof RowType, value : string) : Promise<RowType[]> {
+        return this._db.withClient((client) => {
+            return sql.selectOne(client, `select * from ${this.name} where ${field} = ?`, [value]);
+        });
+    }
+
     insertOne(uniqueId : string, row : Omit<RowType, "uniqueId">) : Promise<void> {
         return this._db.withTransaction(async (client) => {
             const insertSql = `insert or replace into ${this.name}(uniqueId, ${this._fields}) values(?,${this._fields.map(() => '?')})`;

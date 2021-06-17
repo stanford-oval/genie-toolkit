@@ -37,12 +37,17 @@ export default class LocalTable<RowType> {
     async getOne(uniqueId : string) : Promise<RowType|undefined> {
         try {
             const resp = await Tp.Helpers.Http.get(`${this._baseUrl}/localtable/user_${this.name}/${this._userId}/${encodeURIComponent(uniqueId)}`);
-            return JSON.parse(resp)['data']; 
+            return JSON.parse(resp)['data'];
         } catch(err) {
             if (err.code === 404)
                 return undefined;
             throw err;
         }
+    }
+
+    async getBy(field : keyof RowType, value : string) : Promise<RowType[]> {
+        const resp = await Tp.Helpers.Http.get(`${this._baseUrl}/localtable/user_${this.name}/by-${field}/${this._userId}/${encodeURIComponent(value)}`);
+        return JSON.parse(resp)['data'];
     }
 
     async insertOne(uniqueId : string, row : Omit<RowType, "uniqueId">) : Promise<void> {
