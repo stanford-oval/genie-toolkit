@@ -383,7 +383,7 @@ export class DialogueLoop {
             // skip the log if the command was ignored
             this.conversation.updateLog('user', analysis.utterance);
             this.conversation.updateLog('user_target', analysis.user_target);
-            this.conversation.turnFinished();
+            await this.conversation.turnFinished();
 
             if (!handler) {
                 await this.fail();
@@ -464,7 +464,7 @@ export class DialogueLoop {
                     await this.setExpected(null);
                     // if the dialogue terminated, save the last utterance from the agent
                     // in a new turn with an empty utterance from the user
-                    this.conversation.dialogueFinished();
+                    await this.conversation.dialogueFinished();
                 } else {
                     if (item instanceof QueueItem.UserInput) {
                         await this.replyInterp(this._("Sorry, I had an error processing your command: ${error}."), {//"

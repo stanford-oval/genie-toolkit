@@ -240,6 +240,32 @@ async function test(testRunner, dlg, i) {
         await roundtrip(testRunner, turn.user, turn.agent);
 }
 
+async function testDatabase(conversation) {
+    const log = conversation.log;
+    let db = await conversation
+        .engine
+        .db
+        .getLocalTable('conversation')
+        .getAll();
+
+    for (const dialogue of log) {
+        assert(db.length >= dialogue.turns.length);
+        assert(db[0].previousId === null);
+
+        const dialogueId = db[0].dialogueId;
+        for (let i = 0; i < dialogue.turns.length; i++) {
+            assert(db[i].dialogueId === dialogueId);
+            if (i === 0)
+                assert(db[i].previousId === null);
+            else
+                assert(db[i].previousId === db[i - 1].uniqueId);
+        }
+        db = db.slice(dialogue.turns.length);
+    }
+
+    assert(db.length === 0);
+}
+
 async function main(onlyIds) {
     const testRunner = new TestRunner();
     const rng = testRunner.rng.makeRNG();
@@ -293,14 +319,17 @@ Hello! How can I help you?
     }
 
     await conversation.saveLog();
-    conversation.endRecording();
+    await conversation.endRecording();
 
-    const log = fs.readFileSync(conversation.log).toString()
+    const log = fs.readFileSync(conversation.logFileName).toString()
         .replace(/^#! timestamp: 202[1-9]-[01][0-9]-[0123][0-9]T[012][0-9]:[0-5][0-9]:[0-5][0-9](\.[0-9]+)Z$/gm,
                  '#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ');
     //fs.writeFileSync(path.resolve(__dirname, './expected-log.txt'), log);
     const expectedLog = fs.readFileSync(path.resolve(__dirname, './expected-log.txt')).toString();
     assert(log === expectedLog);
+
+    // test conversation log in database
+    await testDatabase(conversation);
 
     console.log('Done');
     process.exit(0);

@@ -23,6 +23,7 @@ import path from "path";
 import fs from "fs";
 import * as events from 'events';
 import * as ThingTalk from 'thingtalk';
+import {v4 as uuidv4} from 'uuid';
 
 import * as I18n from '../i18n';
 
@@ -80,6 +81,9 @@ export interface ConversationDelegate {
 export class DialogueTurnLog {
     private readonly _turn : DialogueTurn;
     private _done : boolean;
+    private _uuid : string;
+    private _uuidPrevious : string|null;
+    private _uuidDialogue : string|null;
 
     constructor() {
         this._turn = {
@@ -91,6 +95,9 @@ export class DialogueTurnLog {
             user_target: ''
         };
         this._done = false;
+        this._uuid = uuidv4();
+        this._uuidPrevious = null;
+        this._uuidDialogue = null;
     }
 
     get turn() {
@@ -99,6 +106,26 @@ export class DialogueTurnLog {
 
     get done() {
         return this._done;
+    }
+
+    get uuid() {
+        return this._uuid;
+    }
+
+    get uuidPrevious() {
+        return this._uuidPrevious;
+    }
+
+    set uuidPrevious(uuid : string|null) {
+        this._uuidPrevious = uuid;
+    }
+
+    get uuidDialogue() {
+        return this._uuidDialogue;
+    }
+
+    set uuidDialogue(uuid : string|null) {
+        this._uuidDialogue = uuid;
     }
 
     finish() {
@@ -117,10 +144,12 @@ export class DialogueTurnLog {
 class DialogueLog {
     private readonly _turns : DialogueTurnLog[];
     private _done : boolean;
+    private _uuid : string;
 
     constructor() {
         this._turns = [];
         this._done = false;
+        this._uuid = uuidv4();
     }
 
     get turns() {
@@ -129,6 +158,10 @@ class DialogueLog {
 
     get done() {
         return this._done;
+    }
+
+    get uuid() {
+        return this._uuid;
     }
 
     finish() {
@@ -257,9 +290,9 @@ export default class Conversation extends events.EventEmitter {
         this._options.log = true;
     }
 
-    endRecording() {
+    async endRecording() {
+        await this.dialogueFinished();
         this._options.log = false;
-        this.dialogueFinished();
     }
 
     notify(app : AppExecutor, outputType : string, outputValue : Record<string, unknown>) {
@@ -530,16 +563,56 @@ export default class Conversation extends events.EventEmitter {
         this._log.push(new DialogueLog());
     }
 
-    dialogueFinished() {
+    async insertOne(turn : DialogueTurnLog) {
+        if (this.inRecordingMode) {
+            const db = this.engine.db.getLocalTable('conversation');
+            const agentTimestamp = ('agent_timestamp' in turn.turn) ?
+                turn.turn.agent_timestamp!.toISOString() :
+                null;
+            const userTimestamp = ('user_timestamp' in turn.turn) ?
+                turn.turn.user_timestamp!.toISOString() :
+                null;
+            const vote = ('vote' in turn.turn) ?
+                turn.turn.vote! :
+                null;
+            const comment = ('comment' in turn.turn) ?
+                turn.turn.comment! :
+                null;
+            const row = {
+                conversationId : this.id,
+                previousId : turn.uuidPrevious,
+                dialogueId : turn.uuidDialogue!,
+                context : turn.turn.context,
+                agent : turn.turn.agent,
+                agentTimestamp : agentTimestamp,
+                agentTarget : turn.turn.agent_target,
+                intermediateContext : turn.turn.intermediate_context,
+                user : turn.turn.user,
+                userTimestamp : userTimestamp,
+                userTarget : turn.turn.user_target,
+                vote : vote,
+                comment : comment
+            };
+            await db.insertOne(turn.uuid, row);
+        }
+    }
+    
+    async dialogueFinished() {
         const last = this._lastDialogue;
-        if (last)
+        if (last) {
             last.finish();
+            const lastTurn = this._lastTurn;
+            if (lastTurn)
+                await this.insertOne(lastTurn);
+        }
     }
 
-    turnFinished() {
+    async turnFinished() {
         const last = this._lastTurn;
-        if (last)
+        if (last) {
             last.finish();
+            await this.insertOne(last);
+        }
     }
 
     appendNewTurn(turn : DialogueTurnLog) {
@@ -547,6 +620,16 @@ export default class Conversation extends events.EventEmitter {
         if (!last || last.done)
             this.appendNewDialogue();
         const dialogue = this._lastDialogue!;
+
+        if (this.inRecordingMode) {
+            turn.uuidDialogue = dialogue.uuid;
+            const lastTurn = this._lastTurn;
+            if (lastTurn)
+                turn.uuidPrevious = lastTurn.uuid;
+            else
+                turn.uuidPrevious = null;
+        }
+
         dialogue.append(turn);
     }
 
@@ -596,7 +679,11 @@ export default class Conversation extends events.EventEmitter {
         await StreamUtils.waitFinish(output);
     }
 
-    get log() : string|null {
+    get log() : DialogueLog[] {
+        return this._log;
+    }
+
+    get logFileName() : string|null {
         const log = path.join(this._engine.platform.getWritableDir(), 'logs', this.id + '.txt');
         if (!fs.existsSync(log))
             return null;
