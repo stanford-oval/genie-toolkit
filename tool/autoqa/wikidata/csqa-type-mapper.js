@@ -24,6 +24,7 @@ import assert from 'assert';
 import csvstringify from 'csv-stringify';
 import JSONStream from 'JSONStream';
 import * as StreamUtils from '../../../lib/utils/stream-utils';
+import { argnameFromLabel } from './utils';
 
 const pfs = fs.promises;
 
@@ -32,9 +33,11 @@ class CSQATypeMapper {
         this._inputDir = options.input_dir;
         this._output = options.output;
         this._wikidata = options.wikidata;
+        this._wikidataLabels = options.wikidata_labels;
         this._minAppearance = options.minimum_appearance;
         this._minPercentage = options.minimum_percentage;
 
+        this._labels = new Map();
         this._wikidataTypes = new Map();
         this._wikidataSuperTypes = new Map();
         this._typeMap = new Map();
@@ -48,11 +51,28 @@ class CSQATypeMapper {
             if ('P31' in predicates) {
                 const entityTypes = predicates['P31'];
                 this._wikidataTypes.set(entity, entityTypes);
+                for (const type of entityTypes)
+                    this._labels.set(type, undefined);
             }
             if ('P279' in predicates) {
                 const superTypes = predicates['P279'];
                 this._wikidataSuperTypes.set(entity, superTypes);
+                for (const type of superTypes) 
+                    this._labels.set(type, undefined);
             }
+        });
+
+        pipeline.on('error', (error) => console.error(error));
+        await StreamUtils.waitEnd(pipeline);
+    }
+
+    async _loadLabels() {
+        const pipeline = fs.createReadStream(this._wikidataLabels).pipe(JSONStream.parse('$*'));
+        pipeline.on('data', async (entity) => {
+            const qid = String(entity.key);
+            const label = String(entity.value);
+            if (this._labels.has(qid))
+                this._labels.set(qid, label); 
         });
 
         pipeline.on('error', (error) => console.error(error));
@@ -63,6 +83,9 @@ class CSQATypeMapper {
         console.log('loading wikidata files ...');
         for (const kbfile of this._wikidata) 
             await this._loadKB(kbfile);
+
+        console.log('loading wikidata labels ...');
+        await this._loadLabels();
     }
 
     _processDialog(dialog) {
@@ -85,18 +108,11 @@ class CSQATypeMapper {
                     this._typeMap.set(csqaType, { total: 0 });
                 const answer = systemTurn.entities_in_utterance;
                 for (const entity of answer) {
-                    if (!this._wikidataTypes.has(entity)) {
-                        console.error('Entity with no wikidata type:', entity);
+                    if (!this._wikidataTypes.has(entity)) 
                         continue;
-                    }
                     for (const type of this._wikidataTypes.get(entity)) {
                         const map = this._typeMap.get(csqaType);
                         map.total += 1;
-                        if (type !== csqaType) {
-                            const superTypes = this._wikidataSuperTypes.get(type);
-                            if (!superTypes || !superTypes.includes(csqaType))
-                                continue;
-                        }
                         if (!(type in map)) 
                             map[type] = 1;
                         else
@@ -134,16 +150,39 @@ class CSQATypeMapper {
         console.log('write type mapping to file ...');
         const output = csvstringify({ header: false, delimiter: '\t'});
         output.pipe(fs.createWriteStream(this._output, { encoding: 'utf8' })); 
-        for (const [key, counter] of this._typeMap) {
+        for (const [csqaType, counter] of this._typeMap) {
+            const label = this._labels.get(csqaType);
+            if (!label) {
+                console.error(`Found no label for CSQA type ${csqaType}`);
+                continue;
+            }
             const mappedTypes = [];
+            const allTypes = [];
             const total = counter.total;
             if (total < this._minAppearance)
                 continue;
             for (const type in counter) {
-                if (type !== 'total' && counter[type] >= this._minPercentage * total)
-                    mappedTypes.push(type);
+                if (type === 'total')
+                    continue;
+                const label = this._labels.get(type);
+                if (!label) {
+                    console.error(`Found no label for Wikidata type ${csqaType}`);
+                    continue;
+                }
+                const entry = `${type}:${argnameFromLabel(label)}:${counter[type]}`;
+                allTypes.push(entry);
+                if (counter[type] < this._minPercentage * total) 
+                    continue;
+                if (type !== csqaType) {
+                    const superTypes = this._wikidataSuperTypes.get(type);
+                    if (!superTypes || !superTypes.includes(csqaType))
+                        continue;
+                }
+                mappedTypes.push(entry);
             }
-            output.write([key, mappedTypes.join(',')]);
+
+            
+            output.write([argnameFromLabel(label), csqaType, mappedTypes.join(' '), allTypes.join(' ')]);
         }
         StreamUtils.waitFinish(output);
     }
@@ -169,16 +208,20 @@ module.exports = {
             default: 50,
             help: 'the minimum number of appearance of a CSQA type to be included in the output'
         });
-        parser.add_argument('--minimum-percentage ', {
+        parser.add_argument('--minimum-percentage', {
             required: false,
             type: Number,
             default: 0.05,
             help: 'the minimum percentage for a Wikidata type to be included in the type map'
         });
         parser.add_argument('--wikidata', {
-            required: false,
+            required: true,
             nargs: '+',
             help: "full knowledge base of wikidata, named wikidata_short_1.json and wikidata_short_2.json"
+        });
+        parser.add_argument('--wikidata-labels', {
+            required: true,
+            help: "wikidata labels"
         });
     },
 

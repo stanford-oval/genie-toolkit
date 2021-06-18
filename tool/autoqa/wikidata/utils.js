@@ -23,6 +23,7 @@ import util from 'util';
 import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
 import JSONStream from 'JSONStream';
+import csvparse from 'csv-parse';
 import * as StreamUtils from '../../../lib/utils/stream-utils';
 import { snakecase } from '../lib/utils';
 
@@ -419,6 +420,26 @@ async function dumpMap(file, map) {
     await util.promisify(fs.writeFile)(file, JSON.stringify(data, undefined, 2));
 }
 
+async function loadTypeMapping(file, domain) {
+    let csqaType, wikidataTypes = new Map();
+    const pipeline = fs.createReadStream(file)
+        .pipe(csvparse({ columns: ['domain', 'csqa-type', 'wikidata-types', 'all-types'], delimiter: '\t', relax: true }));
+    pipeline.on('data', (row) => {
+        if (row.domain === domain) {
+            csqaType = row['csqa-type'];
+            if (row['wikidata-types']) {
+                for (const type of row['wikidata-types'].split(' ')) {
+                    const [qid, label, ] = type.split(':');
+                    wikidataTypes.set(qid, label);
+                }
+            }
+        }
+    });
+    pipeline.on('error', (error) => console.error(error));
+    await StreamUtils.waitEnd(pipeline);
+    return [csqaType, wikidataTypes];
+}
+
 export {
     unitConverter,
     wikidataQuery,
@@ -436,5 +457,6 @@ export {
     getElementType,
     readJson,
     dumpMap,
+    loadTypeMapping,
     argnameFromLabel
 };
