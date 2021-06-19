@@ -147,6 +147,12 @@ class CSQATypeMapper {
 
 
     async write() {
+        const sortByCount = function(a, b) {
+            if (a.split(':')[2] < b.split(':')[2])
+                return 1;
+            return -1;
+        };
+
         console.log('write type mapping to file ...');
         const output = csvstringify({ header: false, delimiter: '\t'});
         output.pipe(fs.createWriteStream(this._output, { encoding: 'utf8' })); 
@@ -181,8 +187,23 @@ class CSQATypeMapper {
                 mappedTypes.push(entry);
             }
 
-            
-            output.write([argnameFromLabel(label), csqaType, mappedTypes.join(' '), allTypes.join(' ')]);
+            // in case no mapped type is found, i.e., none of the wikidata types 
+            // are subtypes of the csqa type, then remove the subtype requirement
+            // but use a higher threshold
+            if (mappedTypes.length === 0) {
+                for (const entry of allTypes) {
+                    const [,, count] = entry.split(':');
+                    if (count > this._minPercentage * 2 * total)
+                        mappedTypes.push(entry);
+                }
+            }
+
+            output.write([
+                argnameFromLabel(label), 
+                csqaType, 
+                mappedTypes.sort(sortByCount).join(' '), 
+                allTypes.sort(sortByCount).join(' ')
+            ]);
         }
         StreamUtils.waitFinish(output);
     }
