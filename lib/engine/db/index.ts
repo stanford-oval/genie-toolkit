@@ -77,6 +77,7 @@ export interface LocalTable<RowType extends AbstractRow> {
 
     getAll() : Promise<RowType[]>;
     getOne(uniqueId : string) : Promise<RowType|undefined>;
+    getBy(field : keyof RowType, value : string) : Promise<RowType[]>;
     insertOne(uniqueId : string, row : Omit<RowType, "uniqueId">) : Promise<void>;
     deleteOne(uniqueId : string) : Promise<void>;
 }
