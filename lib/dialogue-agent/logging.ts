@@ -133,6 +133,9 @@ function* reorderTurns(rows : ConversationRow[]) : IterableIterator<DialogueTurn
 }
 
 function* reconstructDialogues(rows : ConversationRow[]) : IterableIterator<DialogueExample> {
+    if (rows.length === 0)
+        return;
+
     const conversationId = rows[0].conversationId;
     const dialogues = new Map<string, ConversationRow[]>();
 
@@ -199,7 +202,6 @@ export default class ConversationLogger {
 
     async *read() : AsyncIterableIterator<DialogueExample> {
         const rows = await this._conversationDB.getBy('conversationId', this._conversationId);
-
         yield* reconstructDialogues(rows);
     }
 }
