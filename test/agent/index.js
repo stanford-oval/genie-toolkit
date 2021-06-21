@@ -241,6 +241,16 @@ async function test(testRunner, dlg, i) {
         await roundtrip(testRunner, turn.user, turn.agent);
 }
 
+async function readLog(conversation) {
+    const logstream = conversation.readLog();
+    let log = '';
+    logstream.on('data', (data) => {
+        log += data;
+    });
+    await StreamUtils.waitFinish(logstream);
+    return log;
+}
+
 async function main(onlyIds) {
     const testRunner = new TestRunner();
     const rng = testRunner.rng.makeRNG();
@@ -264,6 +274,12 @@ async function main(onlyIds) {
         showWelcome: true,
         anonymous: false,
         rng: rng,
+
+        faqModels: {
+            'covid-faq': {
+                url: 'http://covid-faq.staging.almond.stanford.edu/v1/models/covid-faq:predict'
+            }
+        }
     });
     conversation.startRecording();
     testRunner.conversation = conversation;
@@ -292,13 +308,13 @@ Hello! I can help you find an appointment. What is your zip code?
         conversation.commentLast('test comment for dialogue turns\nadditional\nlines');
     }
 
-    await conversation.saveLog();
-    conversation.endRecording();
+    await conversation.endRecording();
 
-    const log = fs.readFileSync(conversation.log).toString()
+    const log = (await readLog(conversation))
         .replace(/^#! timestamp: 202[1-9]-[01][0-9]-[0123][0-9]T[012][0-9]:[0-5][0-9]:[0-5][0-9](\.[0-9]+)Z$/gm,
-                 '#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ');
-    fs.writeFileSync(path.resolve(__dirname, './expected-log.txt'), log);
+                 '#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ')
+        .replace(/^# test\/[0-9a-f-]{36}$/gm, '# test');
+    //fs.writeFileSync(path.resolve(__dirname, './expected-log.txt'), log);
     const expectedLog = fs.readFileSync(path.resolve(__dirname, './expected-log.txt')).toString();
     assert(log === expectedLog);
 

@@ -109,7 +109,22 @@ export function insertOne(client : sqlite3.Database, string : string, args : unk
 const FIELD_NAMES = {
     app: ['code', 'state', 'name', 'description'] as const,
     device: ['state'] as const,
-    channel: ['value'] as const
+    channel: ['value'] as const,
+    conversation: [
+        'conversationId',
+        'previousId',
+        'dialogueId',
+        'context',
+        'agent',
+        'agentTimestamp',
+        'agentTarget',
+        'intermediateContext',
+        'user',
+        'userTimestamp',
+        'userTarget',
+        'vote',
+        'comment'
+    ] as const
 };
 
 export class SQLiteDatabase implements DB.AbstractDatabase {

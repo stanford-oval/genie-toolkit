@@ -152,10 +152,22 @@ export default class DeviceDatabase extends ObjectSet.Base<Tp.BaseDevice> {
     }
 
     async stop() {
-        this._syncdb.close();
+        await this._syncdb.close();
         if (this._updateTimer)
             clearInterval(this._updateTimer);
         this._updateTimer = null;
+
+        await Promise.all(this.values().map(async (device) => {
+            if (device.ownerTier === this._syncManager.ownTier + this._syncManager.ownIdentity ||
+                device.ownerTier === 'global') {
+                try {
+                    await device.stop();
+                } catch(e) {
+                    console.error('Device failed to stop: ' + e.message);
+                    console.error(e.stack);
+                }
+            }
+        }));
     }
 
     // return all devices directly stored in the database
