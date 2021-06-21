@@ -30,6 +30,10 @@ export {
 } from './notifications';
 export {
     default as AssistantDispatcher,
+    ThingTalkInput,
+    ParsedInput,
+    CommandInput,
+    ConverseInput
 } from './assistant_dispatcher';
 export {
     ConversationState,

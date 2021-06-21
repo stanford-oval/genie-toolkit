@@ -82,17 +82,23 @@ class StatelessConversationDelegate implements ConversationDelegate {
     }
 }
 
-type ConverseInput = ({
+export interface CommandInput {
     type : 'command';
     text : string;
-} | {
+}
+
+export interface ParsedInput {
     type : 'parsed';
     json : any;
     title ?: string;
-} | {
+}
+
+export interface ThingTalkInput {
     type : 'tt';
     code : string;
-}) & PlatformData;
+}
+
+export type ConverseInput = (CommandInput | ParsedInput | ThingTalkInput) & PlatformData;
 
 /**
  * The main controller class for interaction with the user.
@@ -149,32 +155,11 @@ export default class AssistantDispatcher extends events.EventEmitter {
      * It exists for the convenience of REST API clients which do not keep
      * an open web socket.
      */
-    async converse(command : {
-        type : 'command';
-        text : string;
-    } & PlatformData, conversationId : string) : Promise<{
+    async converse(command : ConverseInput, conversationId : string) : Promise<{
         conversationId : string;
         messages : Message[],
         askSpecial : string|null;
-    }>;
-    async converse(command : {
-        type : 'parsed';
-        json : any;
-        title ?: string;
-    } & PlatformData, conversationId : string) : Promise<{
-        conversationId : string;
-        messages : Message[],
-        askSpecial : string|null;
-    }>;
-    async converse(command : {
-        type : 'tt';
-        code : string;
-    } & PlatformData, conversationId : string) : Promise<{
-        conversationId : string;
-        messages : Message[],
-        askSpecial : string|null;
-    }>;
-    async converse(command : ConverseInput, conversationId : string) {
+    }> {
         const conversation = await this.getOrOpenConversation(conversationId, {
             showWelcome: false,
             anonymous: false,
