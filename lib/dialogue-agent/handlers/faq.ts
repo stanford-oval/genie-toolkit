@@ -20,6 +20,8 @@
 
 import * as Tp from 'thingpedia';
 
+import * as I18n from '../../i18n';
+
 import { UserInput } from "../user-input";
 import {
     DialogueHandler,
@@ -35,6 +37,12 @@ interface FAQCommandAnalysisType {
     answer : string;
 }
 
+export interface FAQModel {
+    url : string;
+    highConfidence ?: number;
+    lowConfidence ?: number;
+}
+
 const HIGH_CONFIDENCE_THRESHOLD = 0.4;
 const LOW_CONFIDENCE_THRESHOLD = 0;
 
@@ -44,13 +52,25 @@ export default class FAQDialogueHandler implements DialogueHandler<FAQCommandAna
     uniqueId : string;
     private _loop : DialogueLoop;
     private _url : string;
+    private _highConfidence : number;
+    private _lowConfidence : number;
+    private _looksLikeQuestion : RegExp;
 
     constructor(loop : DialogueLoop,
                 uniqueId : string,
-                url : string) {
+                model : FAQModel,
+                options : {
+                    locale : string
+                }) {
         this.uniqueId = 'faq/' + uniqueId;
         this._loop = loop;
-        this._url = url;
+        this._url = model.url;
+        this._highConfidence = model.highConfidence ?? HIGH_CONFIDENCE_THRESHOLD;
+        this._lowConfidence = model.lowConfidence ?? LOW_CONFIDENCE_THRESHOLD;
+
+        // TRANSLATORS: this is a regular expression that should match commands that
+        // "look like questions" - and thus are candidate for lookup in the FAQ database
+        this._looksLikeQuestion = new RegExp(I18n.get(options.locale)._("^(what|who|where|when|why|how)|\\?\\s*$"), 'i');
     }
 
     async initialize() : Promise<ReplyResult | null> {
@@ -66,6 +86,9 @@ export default class FAQDialogueHandler implements DialogueHandler<FAQCommandAna
         if (command.type !== 'command')
             return { type: CommandAnalysisType.OUT_OF_DOMAIN_COMMAND, utterance: '', user_target: '', answer: '' };
 
+        if (!this._looksLikeQuestion.test(command.utterance))
+            return { type: CommandAnalysisType.OUT_OF_DOMAIN_COMMAND, utterance: '', user_target: '', answer: '' };
+
         const response = await Tp.Helpers.Http.post(this._url, JSON.stringify({
             instances: [command.utterance]
         }), { dataContentType: 'application/json' });
@@ -73,9 +96,9 @@ export default class FAQDialogueHandler implements DialogueHandler<FAQCommandAna
         const best : { answer : string, score : number } = JSON.parse(response).predictions[0];
         this._loop.debug(`Best FAQ answer for ${this.uniqueId} has score ${best.score}`);
 
-        const confidence = best.score >= HIGH_CONFIDENCE_THRESHOLD ?
+        const confidence = best.score >= this._highConfidence ?
             CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND :
-            best.score >= LOW_CONFIDENCE_THRESHOLD ?
+            best.score >= this._lowConfidence ?
             CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND :
             CommandAnalysisType.OUT_OF_DOMAIN_COMMAND;
 

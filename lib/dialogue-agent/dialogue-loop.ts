@@ -98,11 +98,6 @@ export interface DialogueHandler<AnalysisType extends CommandAnalysisResult, Sta
     getFollowUp() : Promise<ReplyResult|null>;
 }
 
-// todo move this somewhere else
-const FAQS : Record<string, string> = {
-    'covid-faq': 'http://covid-faq.staging.almond.stanford.edu/v1/models/covid-faq:predict'
-};
-
 export class DialogueLoop {
     conversation : Conversation;
     engine : Engine;
@@ -134,6 +129,11 @@ export class DialogueLoop {
                     nluServerUrl : string|undefined;
                     nlgServerUrl : string|undefined;
                     debug : boolean;
+                    faqModels : Record<string, {
+                        url : string;
+                        highConfidence ?: number;
+                        lowConfidence ?: number;
+                    }>
                 }) {
         this._userInputQueue = new AsyncQueue();
         this._notifyQueue = new AsyncQueue();
@@ -148,8 +148,8 @@ export class DialogueLoop {
         this._nlg = ParserClient.get(options.nlgServerUrl || undefined, engine.platform.locale, engine.platform);
         this._thingtalkHandler = new ThingTalkDialogueHandler(engine, this, this._agent, this._nlu, this._nlg, options);
         this._faqHandlers = {};
-        for (const faq in FAQS)
-            this._faqHandlers[faq] = new FAQDialogueHandler(this, faq, FAQS[faq]);
+        for (const faq in options.faqModels)
+            this._faqHandlers[faq] = new FAQDialogueHandler(this, faq, options.faqModels[faq], { locale: engine.platform.locale });
         this._dynamicHandlers = new DeviceInterfaceMapper(new DeviceView(engine.devices, 'org.thingpedia.dialogue-handler', {}),
             (device) => new ThingpediaDialogueHandler(device));
         this._currentHandler = null;
@@ -388,7 +388,7 @@ export class DialogueLoop {
             // skip the log if the command was ignored
             this.conversation.updateLog('user', analysis.utterance);
             this.conversation.updateLog('user_target', analysis.user_target);
-            this.conversation.turnFinished();
+            await this.conversation.turnFinished();
 
             if (!handler) {
                 await this.fail();
@@ -469,7 +469,7 @@ export class DialogueLoop {
                     await this.setExpected(null);
                     // if the dialogue terminated, save the last utterance from the agent
                     // in a new turn with an empty utterance from the user
-                    this.conversation.dialogueFinished();
+                    await this.conversation.dialogueFinished();
                 } else {
                     if (item instanceof QueueItem.UserInput) {
                         await this.replyInterp(this._("Sorry, I had an error processing your command: ${error}."), {//"

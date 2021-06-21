@@ -21,7 +21,7 @@
 import * as sqlite3 from 'sqlite3';
 import * as sql from '.';
 
-import type { SyncRecord } from '..';
+import type { SyncRecord, SyncAtReply } from '..';
 
 type Field<RowType> = Exclude<keyof RowType & string, "uniqueId">;
 
@@ -96,19 +96,16 @@ export default class SyncTable<RowType extends { uniqueId : string }> {
         });
     }
 
-    syncAt(lastModified : number, pushedChanges : Array<SyncRecord<RowType>>) : Promise<[number, Array<SyncRecord<RowType>>, boolean[]]> {
-        return this._db.withTransaction((client) => {
-            return sql.selectAll(client,
+    syncAt(theirLastModified : number, pushedChanges : Array<SyncRecord<RowType>>) : Promise<SyncAtReply<RowType>> {
+        return this._db.withTransaction(async (client) => {
+            const ourChanges = await sql.selectAll(client,
                 `select tj.uniqueId,tj.lastModified,${this.fields.map((f) => 't.' + f)}
                  from ${this.name}_journal as tj left outer join
                  ${this.name} as t on tj.uniqueId = t.uniqueId where
-                 tj.lastModified > ?`, [lastModified]).then((ourChanges) =>{
-                return this._getLastModifiedInternal(client).then((lastModified) => {
-                    return this._handleChangesInternal(client, pushedChanges).then((done) => {
-                        return [lastModified, ourChanges, done];
-                    });
-                });
-            });
+                 tj.lastModified > ?`, [theirLastModified]);
+            const lastModified = await this._getLastModifiedInternal(client);
+            const done = await this._handleChangesInternal(client, pushedChanges);
+            return { lastModified, ourChanges, done };
         });
     }
 

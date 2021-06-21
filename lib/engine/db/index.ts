@@ -45,9 +45,27 @@ export interface DeviceRow {
     state : string;
 }
 
+export interface ConversationRow {
+    uniqueId : string;
+    conversationId : string;
+    previousId : string|null;
+    dialogueId : string;
+    context : string|null;
+    agent : string|null;
+    agentTimestamp : string|null;
+    agentTarget : string|null;
+    intermediateContext : string|null;
+    user : string;
+    userTimestamp : string|null;
+    userTarget : string;
+    vote : string|null;
+    comment : string|null;
+}
+
 export interface LocalTables {
     app : AppRow;
     channel : ChannelRow;
+    conversation : ConversationRow;
 }
 
 export interface SyncTables {
@@ -59,11 +77,18 @@ export interface LocalTable<RowType extends AbstractRow> {
 
     getAll() : Promise<RowType[]>;
     getOne(uniqueId : string) : Promise<RowType|undefined>;
+    getBy(field : keyof RowType, value : string) : Promise<RowType[]>;
     insertOne(uniqueId : string, row : Omit<RowType, "uniqueId">) : Promise<void>;
     deleteOne(uniqueId : string) : Promise<void>;
 }
 
 export type SyncRecord<RowType> = { [K in keyof RowType] : RowType[K]|null } & { uniqueId : string; lastModified : number };
+export interface SyncAtReply<RowType> {
+    lastModified : number;
+    ourChanges : Array<SyncRecord<RowType>>;
+    done : boolean[];
+}
+
 export interface SyncTable<RowType extends AbstractRow>{
     name : string;
     fields : ReadonlyArray<keyof RowType>;
@@ -76,7 +101,7 @@ export interface SyncTable<RowType extends AbstractRow>{
     getRaw() : Promise<Array<SyncRecord<RowType>>>;
     getChangesAfter(lastModified : number) : Promise<Array<SyncRecord<RowType>>>;
     handleChanges(changes : Array<SyncRecord<RowType>>) : Promise<boolean[]>;
-    syncAt(lastModified : number, pushedChanges : Array<SyncRecord<RowType>>) : Promise<[number, Array<SyncRecord<RowType>>, boolean[]]>;
+    syncAt(lastModified : number, pushedChanges : Array<SyncRecord<RowType>>) : Promise<SyncAtReply<RowType>>;
     replaceAll(data : Array<SyncRecord<RowType>>) : Promise<void>;
 
     insertIfRecent(uniqueId : string, lastModified : number, row : Omit<RowType, "uniqueId">) : Promise<boolean>;
