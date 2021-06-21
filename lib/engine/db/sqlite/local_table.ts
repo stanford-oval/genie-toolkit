@@ -47,7 +47,7 @@ export default class LocalTable<RowType> {
 
     getBy(field : keyof RowType, value : string) : Promise<RowType[]> {
         return this._db.withClient((client) => {
-            return sql.selectOne(client, `select * from ${this.name} where ${field} = ?`, [value]);
+            return sql.selectAll(client, `select * from ${this.name} where ${field} = ?`, [value]);
         });
     }
 
