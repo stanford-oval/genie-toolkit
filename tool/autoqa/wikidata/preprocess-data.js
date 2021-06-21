@@ -26,7 +26,7 @@ import csvstringify from 'csv-stringify';
 import JSONStream from 'JSONStream';
 
 import * as I18N from '../../../lib/i18n';
-import { argnameFromLabel, readJson, dumpMap } from './utils';
+import { argnameFromLabel, readJson, dumpMap, Domains } from './utils';
 import * as StreamUtils from '../../../lib/utils/stream-utils';
 import { PROPERTIES_DROP_WITH_GEO } from '../schemaorg/manual-annotations';
 
@@ -38,7 +38,6 @@ class ParamDatasetGenerator {
     constructor(options) {
         this._locale = options.locale;
         this._domains = options.domains;
-        this._canonical = options.canonical;
         this._typeSystem = options.typeSystem;
 
         this._paths = {
@@ -48,6 +47,7 @@ class ParamDatasetGenerator {
             wikidata: options.wikidata,
             wikidataEntities: options.wikidataEntities,
             wikidataProperties: options.wikidataProperties,
+            subtypes: options.subtypes,
             filteredProperties: options.filteredProperties,
             symmetricProperties: options.symmetricProperties,
             bootlegTypes: options.bootlegTypes
@@ -57,16 +57,25 @@ class ParamDatasetGenerator {
         this._wikidataProperties = new Map(); // labels for all properties
         this._bootlegTypes = new Map();
 
-        // in domain information
-        this._items = new Map();
-        this._values = new Map();
-        this._predicates = new Map();
-        this._types = new Map(); // types for all entities
-        this._subtypes = new Map(); 
-        this._valueSets = new Map();
 
+        // in domain information
+        this._items = new Map(); // items (subjects) by domain
+        this._predicates = new Map(); // predicates by domain
+        this._values = new Map(); // all values appeared in all domains' predicates 
+        this._types = new Map(); // types for all entities
+        this._subtypes = new Map();  // subtype information for all types
+        this._filteredPropertiesByDomain = new Map(); // final list of properties by domain
+
+        this._valueSets = new Map(); // parameter value sets by type 
         this._manifest = fs.createWriteStream(this._paths.manifest);
         this._tokenizer = I18N.get(options.locale).getTokenizer();
+
+        // init items, predicates, properties
+        for (const domain of this._domains.domains) {
+            this._items.set(domain, new Map());
+            this._predicates.set(domain, new Map());
+            this._filteredPropertiesByDomain.set(domain, []);
+        }
     }
 
     async _outputEntityValueSet(type, data) {
@@ -74,7 +83,7 @@ class ParamDatasetGenerator {
         const manifestEntry = `entity\t${this._locale}\t${type}\tparameter-datasets/${type}.json\n`;
         if (fs.existsSync(outputPath)) {
             // skip domain entities, no need to add
-            if (type === `org.wikidata:${this._canonical}`)
+            if (type === `org.wikidata:${this._domain}`)
                 return;
 
             const savedData = await readJson(outputPath);
@@ -96,16 +105,8 @@ class ParamDatasetGenerator {
         this._manifest.write(manifestEntry);
     }
 
-    async _outputDomainValueSet() {
-        const data = [];
-        for (const [value, label] of this._items) {
-            const tokenized = this._tokenizer.tokenize(label).tokens.join(' ');
-            data.push({ value, name: label, canonical: tokenized });
-        }
-        await this._outputEntityValueSet(`org.wikidata:${this._canonical}`, data);
-    }
-
     async _loadPredicates() {
+        // loading predicates from kb files
         for (const kbFile of this._paths.wikidata) {
             const pipeline = fs.createReadStream(kbFile).pipe(JSONStream.parse('$*'));
             pipeline.on('data', async (item) => {
@@ -114,34 +115,36 @@ class ParamDatasetGenerator {
                 if (!(INSTANCE_OF_PROP in predicates))
                     return;
                 
-                // skip reading predicates for entities that do not have $domain as one of 
-                // its types "instance of"
+                // skip reading predicates for entities that do not have one of the 
+                // in-domain wikidata types as its types "instance of"
                 const entityTypes = predicates[INSTANCE_OF_PROP];
                 let match = false;
-                for (const domain of this._domains) {
+                for (const domain of this._domains.wikidataTypes) {
                     if (entityTypes.includes(domain))
                         match = true;
                 }
                 if (!match)
                     return;
 
-                // add wikidata item in the domain 
-                // set QID as label as fallback, and update with labels later
-                this._items.set(item.key, item.key);
-
-                // add predicates
-                for (const [property, values] of Object.entries(predicates)) {
-                    if (!this._wikidataProperties.has(property))
-                        continue;
-                    if (!this._predicates.has(property))
-                        this._predicates.set(property, []);
-
-                    const predicate = this._predicates.get(property);
-                    for (const value of values) {
-                        predicate.push(value);
-                        // add values 
-                        // set QID as label as fallback, and update with labels later
-                        this._values.set(value, value);
+                const domains = this._domains.getDomainsByWikidataTypes(entityTypes);
+                for (const domain of domains) {
+                    // add wikidata item in the domain 
+                    // set QID as label as fallback, and update with labels later
+                    const items = this._items.get(domain);
+                    items.set(item.key, item.key);
+                    // add predicates
+                    for (const [property, values] of Object.entries(predicates)) {
+                        if (!this._wikidataProperties.has(property))
+                            continue;
+                        if (!this._predicates.get(domain).has(property))
+                            this._predicates.get(domain).set(property, []);
+                        const predicate = this._predicates.get(domain).get(property);
+                        for (const value of values) {
+                            predicate.push(value);
+                            // add values 
+                            // set QID as label as fallback, and update with labels later
+                            this._values.set(value, value);
+                        }
                     }
                 }
             });
@@ -173,24 +176,21 @@ class ParamDatasetGenerator {
         for (const kbFile of this._paths.wikidata) {
             const pipeline = fs.createReadStream(kbFile).pipe(JSONStream.parse('$*'));
             pipeline.on('data', async (item) => {
-                if (!this._items.has(item.key))
-                    return;
-
-                for (const property in item.value) {
-                    if (!this._predicates.has(property))
-                        continue;
-                    
-                    if (!relations.has(property))
-                        relations.set(property, new Map());
-
-                    relations.get(property).set(item.key, item.value[property]);
+                for (const domain of this._domains.domains) {
+                    if (!this._items.get(domain).has(item.key))
+                        return;
+                    for (const property in item.value) {
+                        if (!this._predicates.get(domain).has(property))
+                            continue;
+                        if (!relations.has(property))
+                            relations.set(property, new Map());
+                        relations.get(property).set(item.key, item.value[property]);
+                    }
                 }
             });
-
             pipeline.on('error', (error) => console.error(error));
             await StreamUtils.waitEnd(pipeline);
         }
-
         const symmetricProperties = [];
         for (const [property, maps] of relations) {
             let count_bidirectional = 0;
@@ -215,6 +215,7 @@ class ParamDatasetGenerator {
                 symmetricProperties.push(property);
         }
         await util.promisify(fs.writeFile)(this._paths.symmetricProperties, symmetricProperties.join(','), { encoding: 'utf8' });
+        
     }
 
     async _loadBootlegTypes() {
@@ -234,10 +235,12 @@ class ParamDatasetGenerator {
         pipeline.on('data', async (entity) => {
             const qid = String(entity.key);
             const label = String(entity.value);
-            if (this._items.has(qid))
-                this._items.set(qid, label);
+            for (const domain of this._domains.domains) {
+                if (this._items.get(domain).has(qid))
+                    this._items.get(domain).set(qid, label);
+            }
             if (this._values.has(qid) || valueTypes.has(qid)) 
-                this._values.set(qid, label);
+                this._values.set(qid, label);   
         });
 
         pipeline.on('error', (error) => console.error(error));
@@ -280,62 +283,71 @@ class ParamDatasetGenerator {
      * Find data type and value and output corresponding json/tsv files.
      */
     async _generateParameterDatasets() {
-        console.log('Processing entity: ', this._canonical);
-        this._outputDomainValueSet();
+        await this._outputDomainValueSet();
+        await this._outputParameterValueSet();
+        this._manifest.end();
+        await StreamUtils.waitFinish(this._manifest);
+    }
 
-        const filteredDomainProperties = [];
-        for (const [property, values] of this._predicates.entries()) {
-            // Ignore list for now as later step throws error 
-            // FIXME: what is this?
-            if (['P2439'].indexOf(property) > -1)
-                continue;
-
-            // all properties in CSQA has entity values, skip if no value has been found
-            if (values.length === 0)
-                continue; 
-
-            const propertyLabel = this._wikidataProperties.get(property);
-            const thingtalkPropertyType = 'p_' + argnameFromLabel(propertyLabel);
-            console.log('Processing property: ', propertyLabel);
-            const thingtalkEntityTypes = new Set();
-            for (const value of values) {               
-                const valueLabel = this._values.get(value);
-                // Tokenizer throws error.
-                if (valueLabel.includes('æ'))
-                    continue;
-                const tokens = this._tokenizer.tokenize(valueLabel).tokens;
-                if (this._maxValueLength && tokens.length > this._maxValueLength) 
-                    continue;
-
-                const tokenized = tokens.join(' ');
-
-                if (this._typeSystem === 'string') {
-                    this._addToValueSet(thingtalkPropertyType, [valueLabel, tokenized, 1]);
-                    continue;
-                } 
-
-                const entry = { value, name: valueLabel, canonical: tokenized };
-                // add to property value set
-                this._addToValueSet(thingtalkPropertyType, entry);
-
-                if (this._typeSystem === 'entity-hierarchical') {
-                    // skip entities with no type information
-                    if (!this._types.has(value))
-                        continue;
-
-                    const valueType = this._getEntityType(value);
-                    // value does not have value for "instance of" field
-                    if (!valueType)
-                        continue;
-                    
-                    // add to entity type value set
-                    thingtalkEntityTypes.add(valueType);
-                    this._addToValueSet(valueType, entry);
-                }         
+    async _outputDomainValueSet() {
+        for (const domain of this._domains.domains) {
+            console.log('Processing entities for domain:', domain);
+            const data = [];
+            for (const [value, label] of this._items.get(domain)) {
+                const tokenized = this._tokenizer.tokenize(label).tokens.join(' ');
+                data.push({ value, name: label, canonical: tokenized });
             }
-            if (this._typeSystem === 'entity-hierarchical')
-                this._subtypes.set(thingtalkPropertyType, Array.from(thingtalkEntityTypes));
-            filteredDomainProperties.push(property);
+            await this._outputEntityValueSet(`org.wikidata:${domain}`, data);
+        }   
+    }
+
+    async _outputParameterValueSet() {
+        for (const domain of this._domains.domains) {
+            console.log('Processing properties for domain:', domain);
+            for (const [property, values] of this._predicates.get(domain)) {
+                // all properties in CSQA has entity values, skip if no value has been found
+                if (values.length === 0)
+                    continue; 
+                const propertyLabel = this._wikidataProperties.get(property);
+                const thingtalkPropertyType = 'p_' + argnameFromLabel(propertyLabel);
+                console.log('Processing property:', propertyLabel);
+                const thingtalkEntityTypes = new Set();
+                for (const value of values) {               
+                    const valueLabel = this._values.get(value);
+                    // Tokenizer throws error.
+                    if (valueLabel.includes('æ'))
+                        continue;
+                    const tokens = this._tokenizer.tokenize(valueLabel).tokens;
+                    if (this._maxValueLength && tokens.length > this._maxValueLength) 
+                        continue;
+                    const tokenized = tokens.join(' ');
+                    
+                    if (this._typeSystem === 'string') {
+                        this._addToValueSet(thingtalkPropertyType, [valueLabel, tokenized, 1]);
+                        continue;
+                    } 
+                    
+                    const entry = { value, name: valueLabel, canonical: tokenized };
+                    // add to property value set
+                    this._addToValueSet(thingtalkPropertyType, entry);
+                    
+                    if (this._typeSystem === 'entity-hierarchical') {
+                        // skip entities with no type information
+                        if (!this._types.has(value))
+                            continue;
+                        const valueType = this._getEntityType(value);
+                        // value does not have value for "instance of" field
+                        if (!valueType)
+                            continue;
+                        // add to entity type value set
+                        thingtalkEntityTypes.add(valueType);
+                        this._addToValueSet(valueType, entry);
+                    }         
+                }
+                if (this._typeSystem === 'entity-hierarchical')
+                    this._subtypes.set(thingtalkPropertyType, Array.from(thingtalkEntityTypes));
+                this._filteredPropertiesByDomain.get(domain).push(property);
+            }
         }
         for (const [valueType, examples] of this._valueSets) {
             if (this._typeSystem === 'string') {
@@ -345,37 +357,19 @@ class ParamDatasetGenerator {
                 await this._outputEntityValueSet(type, examples);
             }
         }
-        await util.promisify(fs.writeFile)(this._paths.filteredProperties, filteredDomainProperties.join(','), { encoding: 'utf8' });
-
-        this._manifest.end();
-        await StreamUtils.waitFinish(this._manifest);
     }
 
     async run() {
         console.log('loading property labels ...');
         this._wikidataProperties = await readJson(this._paths.wikidataProperties);
-        
-        const preprocessed = ['predicates.json', 'items.json', 'values.json', 'types.json', 'symmetric-properties.txt'];
-        if (preprocessed.every((fname) => fs.existsSync(path.join(this._paths.dir, fname)))) {
-            console.log('loading preprocessed in-domain files ...');
-            this._items = await readJson(path.join(this._paths.dir, 'items.json'));
-            this._predicates = await readJson(path.join(this._paths.dir, 'predicates.json'));
-            this._values = await readJson(path.join(this._paths.dir, 'values.json'));
-            this._types = await readJson(path.join(this._paths.dir, 'types.json'));
-        } else {
-            console.log('loading predicates ...');
-            await this._loadPredicates();
-            console.log('loading value types ...');
-            await this._loadWikidataTypes();
-            console.log('loading entity labels ...');
-            await this._loadLabels();
-            console.log('identifying symmetric properties ...');
-            await this._identifySymmetricProperties();
-            await dumpMap(path.join(this._paths.dir, 'items.json'), this._items);
-            await dumpMap(path.join(this._paths.dir, 'predicates.json'), this._predicates);
-            await dumpMap(path.join(this._paths.dir, 'values.json'), this._values);
-            await dumpMap(path.join(this._paths.dir, 'types.json'), this._types);
-        }
+        console.log('loading predicates ...');
+        await this._loadPredicates();
+        console.log('loading value types ...');
+        await this._loadWikidataTypes();
+        console.log('loading entity labels ...');
+        await this._loadLabels();
+        console.log('identifying symmetric properties ...');
+        await this._identifySymmetricProperties();
 
         if (this._paths.bootlegTypes) {
             console.log('loading bootleg types ...');
@@ -384,7 +378,12 @@ class ParamDatasetGenerator {
 
         console.log('generating parameter datasets ...');
         await this._generateParameterDatasets();
-        await dumpMap(path.join(this._paths.dir, 'subtypes.json'), this._subtypes);
+
+        console.log('dumping files');
+        await dumpMap(this._paths.subtypes, this._subtypes);
+        await dumpMap(this._paths.filteredProperties, this._filteredPropertiesByDomain);
+        await dumpMap(path.join(this._paths.dir, 'values.json'), this._values);
+        await dumpMap(path.join(this._paths.dir, 'items.json'), this._items);
     }
 }
 
@@ -400,11 +399,7 @@ module.exports = {
         });
         parser.add_argument('--domains', {
             required: true,
-            help: 'the domains (by item id) to process data, split by comma without space'
-        });
-        parser.add_argument('--domain-canonical', {
-            required: true,
-            help: 'the canonical form for the given domain, used as the query names'
+            help: 'the path to the file containing type mapping for all domains to include'
         });
         parser.add_argument('--type-system', {
             required: true,
@@ -430,9 +425,13 @@ module.exports = {
             help: "full list of properties in the wikidata dump, named filtered_property_wikidata4.json"
                 + "in CSQA, in the form of a dictionary with PID as keys and canonical as values."
         });
+        parser.add_argument('--subtypes', {
+            required: true,
+            help: "Path to output a json file containing the sub type information for properties"
+        });
         parser.add_argument('--filtered-properties', {
             required: true,
-            help: "Path to output a txt file containing properties available for the domain, split by comma"
+            help: "Path to output a json file containing properties available for each domain"
         });
         parser.add_argument('--symmetric-properties', {
             required: true,
@@ -457,14 +456,17 @@ module.exports = {
     },
 
     async execute(args) {
+        const domains = new Domains({ path: args.domains });
+        await domains.init();
+
         const paramDatasetGenerator = new ParamDatasetGenerator({
             locale: args.locale,
-            domains: args.domains.split(','),
-            canonical: args.domain_canonical,
+            domains,
             typeSystem: args.type_system,
             wikidata: args.wikidata,
             wikidataEntities: args.wikidata_entity_list,
             wikidataProperties: args.wikidata_property_list,
+            subtypes: args.subtypes,
             filteredProperties: args.filtered_properties,
             symmetricProperties: args.symmetric_properties,
             bootlegTypes: args.bootleg_types,

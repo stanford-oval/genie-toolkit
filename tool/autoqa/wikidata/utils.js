@@ -416,28 +416,74 @@ async function readJson(file) {
 }
 
 async function dumpMap(file, map) {
-    const data = Object.fromEntries(map);
+    const data = {};
+    for (const [key, value] of map) 
+        data[key] = value instanceof Map ? Object.fromEntries(value) : value;
     await util.promisify(fs.writeFile)(file, JSON.stringify(data, undefined, 2));
 }
 
-async function loadTypeMapping(file, domain) {
-    let csqaType, wikidataTypes = new Map();
-    const pipeline = fs.createReadStream(file)
-        .pipe(csvparse({ columns: ['domain', 'csqa-type', 'wikidata-types', 'all-types'], delimiter: '\t', relax: true }));
-    pipeline.on('data', (row) => {
-        if (row.domain === domain) {
-            csqaType = row['csqa-type'];
-            if (row['wikidata-types']) {
-                for (const type of row['wikidata-types'].split(' ')) {
-                    const [qid, label, ] = type.split(':');
-                    wikidataTypes.set(qid, label);
-                }
+class Domains {
+    constructor(options) {
+        this._path = options.path;
+        this._map = {};
+        this.domains = [];
+        this.csqaTypes = [];
+        this.wikidataTypes = [];
+    }
+
+    async init() {
+        const pipeline = fs.createReadStream(this._path).pipe(csvparse({ 
+            columns: ['domain', 'csqa-type', 'wikidata-types', 'all-types'], 
+            delimiter: '\t', 
+            relax: true 
+        }));
+        pipeline.on('data', (row) => {
+            this.domains.push(row.domain);
+            if (!this.csqaTypes.includes(row['csqa-type'])) 
+                this.csqaTypes.push(row['csqa-type']);
+            for (const entry of row['wikidata-types'].split(' ')) {
+                const type = entry.split(':')[0];
+                if (!this.wikidataTypes.includes(type))
+                    this.wikidataTypes.push(type);
             }
+            this._map[row.domain] = {
+                'csqa-type': row['csqa-type'],
+                'wikidata-types': row['wikidata-types'].split(' ').map((x) => x.split(':')[0])
+            };
+        });
+        pipeline.on('error', (error) => console.error(error));
+        await StreamUtils.waitEnd(pipeline);
+    }
+
+    getCSQAType(domain) {
+        return this._map[domain]['csqa-type'];
+    }
+
+    getWikidataTypes(domain) {
+        return this._map[domain]['wikidata-types'];
+    }
+
+    getDomainByCSQAType(csqaType) {
+        for (const [domain, map] of Object.entries(this._map)) {
+            if (map['csqa-type'] === csqaType)
+                return domain;
         }
-    });
-    pipeline.on('error', (error) => console.error(error));
-    await StreamUtils.waitEnd(pipeline);
-    return [csqaType, wikidataTypes];
+        return null;
+    }
+
+    getDomainsByWikidataType(wikidataType) {
+        const domains = [];
+        for (const [domain, map] of Object.entries(this._map)) {
+            if (map['wikidata-types'].includes(wikidataType))
+                domains.push(domain);
+        }
+        return domains;
+    }
+    
+    getDomainsByWikidataTypes(wikidataTypes) {
+        const domains = wikidataTypes.map((type) => this.getDomainsByWikidataType(type));
+        return [...new Set(domains.flat())];
+    }
 }
 
 export {
@@ -457,6 +503,6 @@ export {
     getElementType,
     readJson,
     dumpMap,
-    loadTypeMapping,
-    argnameFromLabel
+    argnameFromLabel,
+    Domains
 };

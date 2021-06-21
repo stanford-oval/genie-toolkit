@@ -26,7 +26,7 @@ import * as path from 'path';
 import * as ThingTalk from 'thingtalk';
 import * as I18N from '../../../lib/i18n';
 import { serializePrediction } from '../../../lib/utils/thingtalk';
-import { getElementType, getItemLabel, argnameFromLabel, readJson } from './utils';
+import { getElementType, getItemLabel, argnameFromLabel, readJson, Domains } from './utils';
 import { makeDummyEntities } from "../../../lib/utils/entity-utils";
 
 const Ast = ThingTalk.Ast;
@@ -43,8 +43,7 @@ const QUESTION_TYPES = new Set(
 
 class CsqaConverter {
     constructor(options) {
-        this._domain = options.domain;
-        this._canonical = options.canonical;
+        this._domains = options.domains;
         this._includeEntityValue = options.includeEntityValue;
         this._filters = {};
         for (const filter of options.filter || []) {
@@ -92,16 +91,16 @@ class CsqaConverter {
         throw new Error(`Label not found for ${qid}`);
     }
 
-    _invocationTable() {
+    _invocationTable(domain) {
         const selector = new Ast.DeviceSelector(null, 'org.wikidata', null, null);
-        return (new Ast.InvocationExpression(null, new Ast.Invocation(null, selector, this._canonical, [], null), null));
+        return (new Ast.InvocationExpression(null, new Ast.Invocation(null, selector, domain, [], null), null));
     }
 
-    _generateFilter(param, value) {
+    _generateFilter(domain, param, value) {
         let ttValue, op;
         if (param === 'id') {
             if (this._includeEntityValue) {
-                ttValue = new Ast.Value.Entity(value.value, `org.wikidata:${this._canonical}`, value.preprocessed);
+                ttValue = new Ast.Value.Entity(value.value, `org.wikidata:${domain}`, value.preprocessed);
                 op = '==';
             } else {
                 ttValue = new Ast.Value.String(value.preprocessed);
@@ -122,23 +121,35 @@ class CsqaConverter {
         return new Ast.BooleanExpression.Atom(null, param, op, ttValue);
     }
 
+    _getDomainBySubject(x) {
+        if (x.startsWith('c'))
+            return this._domains.getDomainByCSQAType(x.slice(1));
+        for (const [domain, items] of this._items) {
+            if (x in items)
+                return domain;
+        }
+        return null;
+    }
+
     // returns [projection, filter]
     async _processOneActiveSet(activeSet) {
         const triple = activeSet[0];
-        const subject = triple[0] === `c${this._domain}` ? null : await this._getArgValue(triple[0]);
+        const domain = this._getDomainBySubject(triple[0]);
+        assert(domain);
+        const subject = triple[0].startsWith('c') ? null : await this._getArgValue(triple[0]);
         const relation = await argnameFromLabel(this._wikidataProperties.get(triple[1]));
         const object = triple[2].startsWith('c') ? null : await this._getArgValue(triple[2]);
 
         // when object is absent, return a projection on relation with filtering on id = subject
         if (subject && !object)
-            return [[relation], this._generateFilter('id', subject)];
+            return [domain, [relation], this._generateFilter(domain, 'id', subject)];
         // when subject is absent, return a filter on the relation with the object value
         if (!subject && object)
-            return [null, this._generateFilter(relation, object)];
+            return [domain, null, this._generateFilter(domain, relation, object)];
         // when both subject and object exists, then it's a verification question
         // return a boolean expression as projection, and a filter on id = subject
         if (subject && object)
-            return [this._generateFilter(relation, object), this._generateFilter('id', subject)];
+            return [domain, this._generateFilter(domain, relation, object), this._generateFilter(domain, 'id', subject)];
 
         throw new Error('Both subject and object absent in the active set entry: ', activeSet);
     }
@@ -156,28 +167,34 @@ class CsqaConverter {
             return [null, null];
 
         // process tripes in active set
-        let projections = [];
+        const domains = [];
+        const projections = [];
         const filters = [];
         for (let i = 0; i < triples.length; i ++) {
-            const [projection, filter] = await this._processOneActiveSet(triples.slice(i, i+1));
+            const [domain, projection, filter] = await this._processOneActiveSet(triples.slice(i, i+1));
+            domains.push(domain);
             projections.push(projection);
             filters.push(filter);
         }
+
+        // FIXME: we current don't handle multiple domains 
+        assert((new Set(domains)).size === 1);
+        const domain = domains[0];
 
         // when projection is not null, it means we should have the same id filter on 
         // both triple, and different projection
         if (projections[0] && projections[0].length > 0) {
             const uniqueProjections = [...new Set(projections.flat())];
-            return [uniqueProjections, filters[0]];
+            return [domain, uniqueProjections, filters[0]];
         }
         // when projection is null, then we merge two filters according to setOp
         switch (setOp) {
-            case 1: return [null, new Ast.BooleanExpression.Or(null, filters)]; // OR
-            case 2: return [null, new Ast.BooleanExpression.And(null, filters)]; // AND
+            case 1: return [domain, null, new Ast.BooleanExpression.Or(null, filters)]; // OR
+            case 2: return [domain, null, new Ast.BooleanExpression.And(null, filters)]; // AND
             case 3: { // DIFF
                 assert(filters.length === 2);
                 const negateFilter = new Ast.BooleanExpression.Not(null, filters[1]);
-                return [null, new Ast.BooleanExpression.And(null, [filters[0], negateFilter])];
+                return [domain, null, new Ast.BooleanExpression.And(null, [filters[0], negateFilter])];
             }
             default:
                 throw new Error(`Unknown set_op_choice: ${setOp}`);
@@ -187,8 +204,8 @@ class CsqaConverter {
     // ques_type_id=1
     async _simpleQuestion(activeSet) {
         assert(activeSet.length === 1);
-        const [projection, filter] = await this._processOneActiveSet(activeSet);
-        const filterTable = new Ast.FilterExpression(null, this._invocationTable(), filter, null);
+        const [domain, projection, filter] = await this._processOneActiveSet(activeSet);
+        const filterTable = new Ast.FilterExpression(null, this._invocationTable(domain), filter, null);
         if (projection && projection.length > 0)
             return new Ast.ProjectionExpression(null, filterTable, projection, [], [], null);
         return filterTable;
@@ -212,16 +229,22 @@ class CsqaConverter {
             // it is sometimes ambiguous with set-based questions
             if (activeSet.length <= 1)
                 throw new Error('Only one active set found for secondary plural question');
+            const domains = [];
             const projections = [];
             const filters = [];
             for (let i = 0; i < activeSet.length; i ++) {
-                const [projection, filter] = await this._processOneActiveSet(activeSet.slice(i, i+1));
+                const [domain, projection, filter] = await this._processOneActiveSet(activeSet.slice(i, i+1));
+                domains.push(domain);
                 projections.push(projection);
                 filters.push(filter);
             }
 
+            // FIXME: we current don't handle multiple domains 
+            assert((new Set(domains)).size === 1);
+            const domain = domains[0];
+
             const filter = new Ast.BooleanExpression.Or(null, filters);
-            const filterTable = new Ast.FilterExpression(null, this._invocationTable(), filter, null);
+            const filterTable = new Ast.FilterExpression(null, this._invocationTable(domain), filter, null);
             // when subjects of triples are entity, we are asking the same projection for multiple entities
             if (secQuesType === 1) {
                 const uniqueProjection = [...new Set(projections.flat())];
@@ -240,13 +263,13 @@ class CsqaConverter {
     // ques_type_id=4
     async _setBasedQuestion(activeSet, setOpChoice) {
         assert(activeSet.length === 1);
-        const [projection, filter] = await this._processOneActiveSetWithSetOp(activeSet, setOpChoice);
+        const [domain, projection, filter] = await this._processOneActiveSetWithSetOp(activeSet, setOpChoice);
         if (!projection & !filter) {
             this._unsupportedCounter.setOp += 1;
             return null;
         }
 
-        const filterTable = new Ast.FilterExpression(null, this._invocationTable(), filter, null);
+        const filterTable = new Ast.FilterExpression(null, this._invocationTable(domain), filter, null);
         if (projection && projection.length > 0)
             return new Ast.ProjectionExpression(null, filterTable, projection, [], []);
         return filterTable;
@@ -257,15 +280,17 @@ class CsqaConverter {
     async _booleanQuestion(activeSet, boolQuesType) {
         if (boolQuesType === 1) {
             assert(activeSet.length === 1);
-            const [projection, filter] = await this._processOneActiveSet(activeSet);
-            const filterTable = new Ast.FilterExpression(null, this._invocationTable(), filter, null);
+            const [domain, projection, filter] = await this._processOneActiveSet(activeSet);
+            const filterTable = new Ast.FilterExpression(null, this._invocationTable(domain), filter, null);
             return new Ast.BooleanQuestionExpression(null, filterTable, projection, null);
         } 
         if (boolQuesType === 4) {
             assert(activeSet.length === 2);
-            const [projection1, filter] = await this._processOneActiveSet(activeSet);
-            const [projection2, ] = await this._processOneActiveSet(activeSet.slice(1));
-            const filterTable = new Ast.FilterExpression(null, this._invocationTable(), filter, null);
+            const [domain1, projection1, filter] = await this._processOneActiveSet(activeSet);
+            const [domain2, projection2, ] = await this._processOneActiveSet(activeSet.slice(1));
+            // FIXME: we current don't handle multiple domains 
+            assert(domain1 === domain2);
+            const filterTable = new Ast.FilterExpression(null, this._invocationTable(domain1), filter, null);
             const projection = new Ast.BooleanExpression.And(null, [projection1, projection2]);
             return new Ast.BooleanQuestionExpression(null, filterTable, projection, null);
         } 
@@ -279,8 +304,8 @@ class CsqaConverter {
         switch (countQuesSubType) {
             case 1: { // Quantitative (count) 
                 assert(activeSet.length === 1);
-                const [projection, filter] = await this._processOneActiveSet(activeSet);
-                return this._quantitativeQuestionCount(projection, filter);
+                const [domain, projection, filter] = await this._processOneActiveSet(activeSet);
+                return this._quantitativeQuestionCount(domain, projection, filter);
             }
             case 2: // Quantitative (min/max) 
                 return this._quantitativeQuestionMinMax(activeSet, utterance);
@@ -315,12 +340,12 @@ class CsqaConverter {
             case 1: { // Quantitative with logical operators
                 assert(activeSet.length === 2);
                 activeSet = [activeSet[0].concat(activeSet[1])];
-                const [projection, filter] = await this._processOneActiveSetWithSetOp(activeSet, setOp);
+                const [domain, projection, filter] = await this._processOneActiveSetWithSetOp(activeSet, setOp);
                 if (!projection && !filter) {
                     this._unsupportedCounter.setOp += 1;
                     return null;
                 }
-                return this._quantitativeQuestionCount(projection, filter);
+                return this._quantitativeQuestionCount(domain, projection, filter);
             }
             case 2: // Quantitative (count)
             case 3: // Quantitative (min/max)
@@ -381,8 +406,8 @@ class CsqaConverter {
     }
 
     // Quantitative (count)
-    async _quantitativeQuestionCount(projection, filter) {
-        const filterTable = new Ast.FilterExpression(null, this._invocationTable(), filter, null);
+    async _quantitativeQuestionCount(domain, projection, filter) {
+        const filterTable = new Ast.FilterExpression(null, this._invocationTable(domain), filter, null);
         // when projection exists, it is counting parameter on a table with id filter
         if (projection) {
             const computation = new Ast.Value.Computation(
@@ -408,7 +433,8 @@ class CsqaConverter {
             'count',
             [new Ast.Value.VarRef(param)]
         );
-        const countTable = new Ast.ProjectionExpression(null, this._invocationTable(), [], [computation], [null], null);
+        const domain = this._getDomainBySubject(triple[0]);
+        const countTable = new Ast.ProjectionExpression(null, this._invocationTable(domain), [], [computation], [null], null);
         const direction = this._quantitativeOperator(utterance);
         const sortTable = new Ast.SortExpression(null, countTable, new Ast.Value.VarRef('count'), direction, null);
         return new Ast.IndexExpression(null, sortTable, [new Ast.Value.Number(1)], null);
@@ -431,7 +457,8 @@ class CsqaConverter {
             new Ast.Value.Number(this._number(utterance)), 
             null
         );
-        return new Ast.FilterExpression(null, this._invocationTable(), filter, null);
+        const domain = this._getDomainBySubject(triple[0]);
+        return new Ast.FilterExpression(null, this._invocationTable(domain), filter, null);
     }
 
     // comparative (more/less/~~)
@@ -439,12 +466,13 @@ class CsqaConverter {
         assert(activeSet.length === 1 && entities.length === 1);
         const triple = activeSet[0];
         assert(triple[0].startsWith('c') && triple[2].startsWith('c'));
+        const domain = this._getDomainBySubject(triple[0]);
         const param = await argnameFromLabel(this._wikidataProperties.get(triple[1]));
         const comparisonTarget = await this._getArgValue(entities[0]);
-        const filter = this._generateFilter('id', comparisonTarget);
+        const filter = this._generateFilter(domain, 'id', comparisonTarget);
         const subquery = new Ast.ProjectionExpression(
             null,
-            new Ast.FilterExpression(null, this._invocationTable(), filter, null),
+            new Ast.FilterExpression(null, this._invocationTable(domain), filter, null),
             [],
             [new Ast.Value.Computation('count', [new Ast.Value.VarRef(param)])],
             [null],
@@ -452,7 +480,7 @@ class CsqaConverter {
         );
         return new Ast.FilterExpression(
             null,
-            this._invocationTable(),
+            this._invocationTable(domain),
             new Ast.ComparisonSubqueryBooleanExpression(
                 null,
                 new Ast.Value.Computation('count', [new Ast.Value.VarRef(param)]),
@@ -529,7 +557,8 @@ class CsqaConverter {
                     active = active.replace(/[^0-9PQc,|]/g, '').split(',');
                     for (let i = 0; i < active.length; i += 3) {
                         const subject = active[i];
-                        if (subject !== `c${this._domain}` && !this._items.has(subject))
+                        const domain = this._getDomainBySubject(subject);
+                        if (!domain && !this._items.has(subject))
                             inDomain = false; 
                     } 
                 }
@@ -552,7 +581,7 @@ class CsqaConverter {
                 this._filterTurnsByDomain(dialog, file);
             }
         }
-        console.log(`${this._examples.length} QA pairs found for ${this._canonical} domain.`);
+        console.log(`${this._examples.length} QA pairs found`);
         await util.promisify(fs.writeFile)(this._paths.filteredExamples, JSON.stringify(this._examples, undefined, 2));
     }
 
@@ -595,7 +624,7 @@ class CsqaConverter {
                 error.push(example);
             }
         }
-        console.log(`${annotated.length} annotated, ${skipped.length} skipped, ${error.length} thrown error in ${this._canonical}`);
+        console.log(`${annotated.length} annotated, ${skipped.length} skipped, ${error.length} thrown error.`);
         console.log(`Among skipped questions:`);
         console.log(`(1) indirect questions: ${this._unsupportedCounter.indirect}`);
         console.log(`(2) set operations: ${this._unsupportedCounter.setOp}`);
@@ -637,13 +666,9 @@ module.exports = {
         parser.add_argument('-i', '--input', {
             required: true,
         });
-        parser.add_argument('--domain', {
+        parser.add_argument('--domains', {
             required: true,
-            help: 'domain (by item id) to process data'
-        });
-        parser.add_argument('--domain-canonical', {
-            required: true,
-            help: 'the canonical form for the given domains, used as the query names'
+            help: 'the path to the file containing type mapping for each domain'
         });
         parser.add_argument('--wikidata-property-list', {
             required: true,
@@ -681,9 +706,10 @@ module.exports = {
     },
 
     async execute(args) {
+        const domains = new Domains({ path: args.domains });
+        await domains.init();
         const csqaConverter = new CsqaConverter({
-            domain: args.domain,
-            canonical: args.domain_canonical,
+            domains,
             inputDir: args.input,
             output: args.output,
             wikidataProperties: args.wikidata_property_list,

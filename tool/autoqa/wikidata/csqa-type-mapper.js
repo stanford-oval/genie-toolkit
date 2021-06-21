@@ -36,6 +36,7 @@ class CSQATypeMapper {
         this._wikidataLabels = options.wikidata_labels;
         this._minAppearance = options.minimum_appearance;
         this._minPercentage = options.minimum_percentage;
+        this._domains = options.domains;
 
         this._labels = new Map();
         this._wikidataTypes = new Map();
@@ -162,6 +163,9 @@ class CSQATypeMapper {
                 console.error(`Found no label for CSQA type ${csqaType}`);
                 continue;
             }
+            if (this._domains && !this._domains.includes(argnameFromLabel(label)))
+                continue;
+
             const mappedTypes = [];
             const allTypes = [];
             const total = counter.total;
@@ -217,7 +221,7 @@ module.exports = {
         });
         parser.add_argument('-i', '--input-dir', {
             required: true,
-            help: 'the directory containing the raw csqa examples'
+            help: 'the directory containing the raw CSQA examples'
         });
         parser.add_argument('-o', '--output', {
             required: true,
@@ -243,6 +247,11 @@ module.exports = {
         parser.add_argument('--wikidata-labels', {
             required: true,
             help: "wikidata labels"
+        });
+        parser.add_argument('--domains', {
+            required: false,
+            nargs: '+',
+            help: "domains to include, if available, all other domains will be excluded"
         });
     },
 

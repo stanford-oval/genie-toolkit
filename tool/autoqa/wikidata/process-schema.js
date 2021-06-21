@@ -19,10 +19,7 @@
 // Author: Silei Xu <silei@cs.stanford.edu>
 
 import * as fs from 'fs';
-import util from 'util';
-import assert from 'assert';
 import { Ast, Type } from 'thingtalk';
-
 import * as StreamUtils from '../../../lib/utils/stream-utils';
 import genBaseCanonical from '../lib/base-canonical-generator';
 import { clean } from '../../../lib/utils/misc-utils';
@@ -30,64 +27,41 @@ import { DEFAULT_ENTITIES } from '../lib/utils';
 
 import {
     readJson,
-    getPropertyList,
-    getItemLabel,
     getPropertyAltLabels,
-    argnameFromLabel
+    argnameFromLabel,
+    Domains
 } from './utils';
 
 import {
     MANUAL_PROPERTY_CANONICAL_OVERRIDE,
 } from './manual-annotations';
 
-async function retrieveProperties(domain, properties) {
-    let list = properties.includes('default') ? await getPropertyList(domain) : [];
-    for (let property of properties) {
-        if (property === 'none')
-            continue;
-        if (property === 'default')
-            continue;
-        if (property.startsWith('-')) {
-            property = property.slice(1);
-            let index = list.indexOf(property);
-            if (index > -1)
-                list.splice(index, 1);
-        } else if (!list.includes(property)) {
-            list.push(property);
-        }
-    }
-    return list;
+function canonical(domain) {
+    if (domain === 'common_name')
+        return ['person', 'people'];
+    return clean(domain);
 }
 
 class SchemaProcessor {
-    constructor(domains, domainCanonicals, propertiesByDomain, requiredPropertiesByDomain, typeSystem, subtypeMap, labels,
-                output, outputEntities, manual, wikidataLabels, paramDatasetsTsv) {
-        this._domains = domains;
-        this._domainCanonicals = domainCanonicals;
-        this._propertiesByDomain = propertiesByDomain;
-        this._requiredPropertiesByDomain = requiredPropertiesByDomain;
-        this._typeSystem = typeSystem;
-        this._subtypeMap = subtypeMap;
-        this._labels = labels;
-        this._output = output;
-        this._outputEntities = outputEntities;
+    constructor(options) {
+        this._domains = options.domains;
+        this._propertiesByDomain = options.properties;
+        this._labels = options.labels;
+        this._typeSystem = options.typeSystem;
+        this._subtypeMap = options.subtypeMap;
+        this._output = options.output;
+        this._outputEntities = options.outputEntities;
         this._entities = new Map();
-        this._manual = manual;
-        this._wikidataLabels = wikidataLabels;
-
-        // Test if worth adding type mapping from paramter_datasets.tsv
-        this._paramDatasetsTsv = paramDatasetsTsv;
-        this._paramDatasets = { 'entity': new Set() , 'string': new Set() };
+        this._manual = options.manual;
+        this._useWikidataAltLabels = options.useWikidataAltLabels;
     }
 
     async _getArgCanonical(property, label, type) {
         if (this._manual && property in MANUAL_PROPERTY_CANONICAL_OVERRIDE)
             return MANUAL_PROPERTY_CANONICAL_OVERRIDE[property];
-
         const canonical = {};
         genBaseCanonical(canonical, label, type);
-
-        if (this._wikidataLabels) {
+        if (this._useWikidataAltLabels) {
             const altLabels = await getPropertyAltLabels(property);
             if (altLabels) {
                 for (let label of altLabels)
@@ -129,77 +103,59 @@ class SchemaProcessor {
         });
     }
 
+   async  _genFunctionDef(domain) {
+        const args = [
+            new Ast.ArgumentDef(
+                null,
+                Ast.ArgDirection.OUT,
+                'id',
+                new Type.Entity(`org.wikidata:${domain}`), {
+                nl: { canonical: { base: ['name'], passive_verb: ['named', 'called'] } }
+            })
+        ];
+        this._addPrimEntity(domain);
+        for (let property of this._propertiesByDomain.get(domain)) {
+            const label = this._labels.get(property);
+            const name = argnameFromLabel(label);
+            // in case the property has the same name as the domain, drop it
+            // it happens for country entities, probably added for the completeness of the kb
+            if (name === domain) 
+                continue;
+            let type;
+            if (this._typeSystem === 'string') {
+                type = new Type.Array(Type.String);
+            } else {
+                type = new Type.Array(new Type.Entity(`org.wikidata:p_${name}`));
+                if (this._typeSystem === 'entity-plain')
+                    this._addPrimEntity(`p_${name}`);
+                else if (this._typeSystem === 'entity-hierarchical')
+                    this._addSuperEntity(`p_${name}`);
+            }
+            const annotations = {
+                nl: { canonical: await this._getArgCanonical(property, label, type) },
+                impl: { wikidata_id: new Ast.Value.String(property) }
+            };
+            if (this._typeSystem === 'string') 
+                annotations.nl.string_values = 'p_' + name;
+            args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, name, type, annotations));  
+        }
+        const qualifiers = { is_list: true, is_monitorable: false };
+        const annotations = {
+            nl: { canonical: canonical(domain) },
+            impl: { 
+                csqa_type: new Ast.Value.String(this._domains.getCSQAType(domain)),
+                wikidata_types: new Ast.Value.Array(this._domains.getWikidataTypes(domain).map((t) => new Ast.Value.String(t))) 
+            }
+        };
+        return new Ast.FunctionDef(null, 'query', null, domain, null, qualifiers, args, annotations);
+    }
+
     async run() {
         const queries = {};
         const actions = {};
-
-        // load parameter dataset file ids if available
-        if (this._paramDatasetsTsv) {
-            const paramDatasets = await util.promisify(fs.readFile)(this._paramDatasetsTsv, { encoding: 'utf8' });
-            for (const dataset of paramDatasets.split('\n')) {
-                if (dataset === '') continue;
-                const data = dataset.split('\t');
-                if (data[0] === 'string')
-                    this._paramDatasets['string'].add(data[2]);
-                 else
-                    this._paramDatasets['entity'].add(data[2]);
-            }
-        }
-
-        for (let domain of this._domains) {
-            const domainLabel = domain in this._domainCanonicals ? this._domainCanonicals[domain] : await getItemLabel(domain);
-            const domainEntityType = argnameFromLabel(domainLabel);
-            const properties = this._propertiesByDomain[domain];
-            const args = [
-                new Ast.ArgumentDef(
-                    null,
-                    Ast.ArgDirection.OUT,
-                    'id',
-                    new Type.Entity(`org.wikidata:${domainEntityType}`), {
-                    nl: { canonical: { base: ['name'], passive_verb: ['named', 'called'] } }
-                })
-            ];
-            this._addPrimEntity(domainEntityType);
-            for (let property of properties) {
-                const label = this._labels.get(property);
-                // in case the property has the same name as the domain, drop it
-                // it happens for country entities, probably added for the completeness of the kb
-                if (label === domainLabel) 
-                    continue;
-                const name = argnameFromLabel(label);
-                let type;
-                if (this._typeSystem === 'string') {
-                    type = new Type.Array(Type.String);
-                } else {
-                    type = new Type.Array(new Type.Entity(`org.wikidata:p_${name}`));
-                    if (this._typeSystem === 'entity-plain')
-                        this._addPrimEntity(`p_${name}`);
-                    else if (this._typeSystem === 'entity-hierarchical')
-                        this._addSuperEntity(`p_${name}`);
-                }
-                const annotations = {
-                    nl: { canonical: await this._getArgCanonical(property, label, type) },
-                    impl: { wikidata_id: new Ast.Value.String(property) }
-                };
-                if (this._typeSystem === 'string') 
-                    annotations.nl.string_values = 'p_' + name;
-                args.push(new Ast.ArgumentDef(null, Ast.ArgDirection.OUT, name, type, annotations));
-            }
-            const qualifiers = { is_list: true, is_monitorable: false };
-            const annotations = {
-                nl: { canonical: clean(domainLabel), confirmation: clean(domainLabel) },
-                impl: { wikidata_subject: new Ast.Value.String(domain) }
-            };
-            if (domain in this._requiredPropertiesByDomain) {
-                annotations.impl.required_properties = new Ast.Value.Array(
-                    this._requiredPropertiesByDomain[domain].map((p) => new Ast.Value.String(p))
-                );
-            }
-
-            queries[domainLabel] = new Ast.FunctionDef(
-                null, 'query', null, argnameFromLabel(domainLabel), null, qualifiers, args, annotations);
-        }
-
+        for (const domain of this._domains.domains) 
+            queries[domain] = await this._genFunctionDef(domain);
+        
         const imports = [
             new Ast.MixinImportStmt(null, ['loader'], 'org.thingpedia.v2', []),
             new Ast.MixinImportStmt(null, ['config'], 'org.thingpedia.config.none', [])
@@ -217,7 +173,7 @@ class SchemaProcessor {
         const classdef = new Ast.ClassDef(null, 'org.wikidata', null,
             { imports, queries, actions, entities }, {
                 nl: {
-                    name: `Wikidata for domain ${this._domains.join(', ')}`,
+                    name: `Wikidata QA`,
                     description: 'Natural language dialogues over Wikidata knowledge base.'
                 },
             }, {
@@ -249,19 +205,11 @@ export function initArgparse(subparsers) {
     });
     parser.add_argument('--domains', {
         required: true,
-        help: 'domains (by item id) to include in the schema, split by comma (no space)'
-    });
-    parser.add_argument('--domain-canonicals', {
-        required: false,
-        help: 'the canonical form for the given domains, used as the query names, split by comma (no space);\n' +
-            'if absent, use Wikidata label by default.'
+        help: 'the path to the file containing type mapping for each domain'
     });
     parser.add_argument('--properties', {
-        nargs: '+',
         required: true,
-        help: 'properties to include for each domain, properties are split by comma (no space);\n' +
-            'use "default" to include properties included in P1963 (properties of this type);\n' +
-            'exclude a property by placing a minus sign before its id (no space)'
+        help: 'properties by each domain'
     });
     parser.add_argument('--property-labels', {
         required: true,
@@ -285,62 +233,30 @@ export function initArgparse(subparsers) {
         help: 'Enable manual annotations.',
         default: false
     });
-    parser.add_argument('--wikidata-labels', {
+    parser.add_argument('--use-wikidata-alt-labels', {
         action: 'store_true',
-        help: 'Enable wikidata labels as annotations.',
+        help: 'Enable wikidata alternative labels as annotations.',
         default: false
-    });
-    parser.add_argument('--required-properties', {
-        nargs: '+',
-        required: false,
-        help: 'the subset of properties that are required to be non-empty for all retrieved entities;\n' +
-            'use "none" to indicate no required property needed;\n' +
-            'use "default" to include properties included in P1963 (properties of this type);\n' +
-            'exclude a property by placing a minus sign before its id (no space)'
-    });
-    parser.add_argument('--parameter-datasets', {
-        required: true,
-        help: 'Path to parameter_datasets.tsv; used for entity/string type mapping'
     });
 }
 
 export async function execute(args) {
-    const domains = args.domains.split(',');
-
-    const domainCanonicals = {};
-
-    if (args.domain_canonicals) {
-        const canonicals = args.domain_canonicals.split(',');
-        assert.strictEqual(canonicals.length, domains.length);
-        for (let i = 0; i < domains.length; i++)
-            domainCanonicals[domains[i]] = canonicals[i];
-    }
-
-    const requiredPropertiesByDomain = {};
-    if (args.required_properties) {
-        // if provided, property lists should match the number of domains
-        assert(Array.isArray(args.required_properties) && args.required_properties.length === domains.length);
-        for (let i = 0; i < domains.length; i++) {
-            const domain = domains[i];
-            requiredPropertiesByDomain[domain] = await retrieveProperties(domain, args.required_properties[i].split(','));
-        }
-    }
-
-    const propertiesByDomain = {};
-    // if provided, property lists should match the number of domains
-    assert(Array.isArray(args.properties) && args.properties.length === domains.length);
-    for (let i = 0; i < domains.length; i++) {
-        const domain = domains[i];
-        const properties = args.properties[i].split(',');
-        propertiesByDomain[domain] = await retrieveProperties(domain, properties);
-    }
-
+    const domains = new Domains({ path: args.domains });
+    await domains.init();
+    const properties = await readJson(args.properties);
     const subtypeMap = await readJson(args.subtypes);
     const labels = await readJson(args.property_labels);
+    const schemaProcessor = new SchemaProcessor({
+        domains,
+        properties,
+        labels,
+        typeSystem: args.type_system,
+        subtypeMap,
+        output: args.output,
+        outputEntities: args.entities,
+        manual: args.manual,
+        useWikidataLabels: args.use_wikidata_labels
 
-    const schemaProcessor = new SchemaProcessor(
-        domains, domainCanonicals, propertiesByDomain, requiredPropertiesByDomain, args.type_system, subtypeMap, labels,
-        args.output, args.entities, args.manual, args.wikidata_labels
-    );
+    });
     schemaProcessor.run();
 }

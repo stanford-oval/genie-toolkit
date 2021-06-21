@@ -403,14 +403,16 @@ const TEST_CASES = [
 
 ];
 
-export default async function main() {    
+export default async function main() {
     const csqaConverter = new CsqaConverter({
-        domain: 'Q6256',
-        canonical: 'country',
-        outputDir: '.',
         includeEntityValue: true
     });
-    csqaConverter._items = new Map(Object.entries(ITEMS));
+    csqaConverter._domains = {
+        getDomainByCSQAType: function(csqaType) {
+            return csqaType === 'Q6256' ? 'country' : null;
+        } 
+    };
+    csqaConverter._items = new Map([['country', new Map(Object.entries(ITEMS))]]);
     csqaConverter._values = new Map(Object.entries(VALUES));
     csqaConverter._wikidataProperties = new Map(Object.entries(PROPERTIES));
 
