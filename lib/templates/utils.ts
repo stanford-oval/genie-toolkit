@@ -308,6 +308,8 @@ function isHumanEntity(type : Type|string) : boolean {
         return false;
     if (['tt:contact', 'tt:username', 'org.wikidata:human'].includes(type))
         return true;
+    if (type === 'org.wikidata:common_name') // hack for CSQA dataset
+        return true;
     if (type.startsWith('org.schema') && type.endsWith(':Person'))
         return true;
     return false;
