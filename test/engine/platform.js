@@ -135,7 +135,7 @@ class Platform extends Tp.BasePlatform {
         this._filesDir = path.resolve(path.dirname(module.filename), './workdir');
         safeMkdirSync(this._filesDir);
         this._locale = 'en-US';
-        this._databaseProxyConfig = { baseUrl: "http://localhost:8080", userId: 100 };
+        this._databaseProxyConfig = { baseUrl: "http://localhost:8080" };
 
         this._gettext.setLocale(this._locale);
         this._timezone = 'America/Los_Angeles';

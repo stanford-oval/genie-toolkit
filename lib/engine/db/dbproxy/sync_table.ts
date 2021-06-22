@@ -27,23 +27,23 @@ export default class SyncTable<RowType> {
     fields : ReadonlyArray<Field<RowType>>;
 
     private _baseUrl : string;
-    private _userId : number;
+    private _auth : string|undefined;
 
-    constructor(name : string, baseUrl : string, userId : number, fields : ReadonlyArray<Field<RowType>>) {
+    constructor(name : string, baseUrl : string, accessToken : string|undefined, fields : ReadonlyArray<Field<RowType>>) {
         this.name = name;
         this.fields = fields;
         this._baseUrl = baseUrl;
-        this._userId = userId;
+        this._auth = accessToken !== undefined ? `Bearer ${accessToken}` : undefined;
     }
 
     async getAll() : Promise<RowType[]> {
-        const resp = await Tp.Helpers.Http.get(`${this._baseUrl}/synctable/user_${this.name}/${this._userId}`);
+        const resp = await Tp.Helpers.Http.get(`${this._baseUrl}/synctable/user_${this.name}`, { auth: this._auth });
         return JSON.parse(resp)['data'];
     }
 
     async getOne(uniqueId : string) : Promise<RowType|undefined> {
         try {
-            const resp = await Tp.Helpers.Http.get(`${this._baseUrl}/synctable/user_${this.name}/${this._userId}/${encodeURIComponent(uniqueId)}`);
+            const resp = await Tp.Helpers.Http.get(`${this._baseUrl}/synctable/user_${this.name}/${encodeURIComponent(uniqueId)}`, { auth: this._auth });
             return JSON.parse(resp)['data'];
         } catch(err) {
             if (err.code === 404)
@@ -53,53 +53,53 @@ export default class SyncTable<RowType> {
     }
 
     async getRaw() : Promise<Array<SyncRecord<RowType>>> {
-        const resp = await Tp.Helpers.Http.get(`${this._baseUrl}/synctable/raw/user_${this.name}/${this._userId}`);
+        const resp = await Tp.Helpers.Http.get(`${this._baseUrl}/synctable/raw/user_${this.name}`, { auth: this._auth });
         return JSON.parse(resp)['data'];
     }
 
     async getChangesAfter(lastModified : number) : Promise<Array<SyncRecord<RowType>>> {
-        const resp = await Tp.Helpers.Http.get(`${this._baseUrl}/synctable/changes/user_${this.name}/${this._userId}/${lastModified}`);
+        const resp = await Tp.Helpers.Http.get(`${this._baseUrl}/synctable/changes/user_${this.name}/${lastModified}`, { auth: this._auth });
         return JSON.parse(resp)['data'];
     }
 
     async handleChanges(changes : Array<SyncRecord<RowType>>) : Promise<boolean[]> {
-        const resp = await Tp.Helpers.Http.post(`${this._baseUrl}/synctable/changes/user_${this.name}/${this._userId}`,
-                JSON.stringify(changes), { dataContentType: 'application/json' });
+        const resp = await Tp.Helpers.Http.post(`${this._baseUrl}/synctable/changes/user_${this.name}`,
+                JSON.stringify(changes), { dataContentType: 'application/json', auth: this._auth });
         return JSON.parse(resp)['data'];
     }
 
     async syncAt(lastModified : number, pushedChanges : Array<SyncRecord<RowType>>) : Promise<SyncAtReply<RowType>> {
-        const resp = await Tp.Helpers.Http.post(`${this._baseUrl}/synctable/sync/user_${this.name}/${this._userId}/${lastModified}`,
-                JSON.stringify(pushedChanges), { dataContentType: 'application/json' });
+        const resp = await Tp.Helpers.Http.post(`${this._baseUrl}/synctable/sync/user_${this.name}/${lastModified}`,
+                JSON.stringify(pushedChanges), { dataContentType: 'application/json', auth: this._auth });
         return JSON.parse(resp)['data'];
     }
 
     async replaceAll(data : Array<SyncRecord<RowType>>) : Promise<void>{
-        await Tp.Helpers.Http.post(`${this._baseUrl}/synctable/replace/user_${this.name}/${this._userId}`,
-                JSON.stringify(data), { dataContentType: 'application/json' });
+        await Tp.Helpers.Http.post(`${this._baseUrl}/synctable/replace/user_${this.name}/`,
+                JSON.stringify(data), { dataContentType: 'application/json', auth: this._auth });
     }
 
     async insertIfRecent(uniqueId : string, lastModified : number, row : Omit<RowType, "uniqueId">) : Promise<boolean> {
-        const resp = await Tp.Helpers.Http.post(`${this._baseUrl}/synctable/user_${this.name}/${this._userId}/${encodeURIComponent(uniqueId)}/${lastModified}`,
-                JSON.stringify(row), { dataContentType: 'application/json' });
+        const resp = await Tp.Helpers.Http.post(`${this._baseUrl}/synctable/user_${this.name}/${encodeURIComponent(uniqueId)}/${lastModified}`,
+                JSON.stringify(row), { dataContentType: 'application/json', auth: this._auth });
         return JSON.parse(resp)['data'];
     }
 
     async insertOne(uniqueId : string, row : Omit<RowType, "uniqueId">) : Promise<number>{
-        const resp = await Tp.Helpers.Http.post(`${this._baseUrl}/synctable/user_${this.name}/${this._userId}/${encodeURIComponent(uniqueId)}`,
-                JSON.stringify(row), { dataContentType: 'application/json' });
+        const resp = await Tp.Helpers.Http.post(`${this._baseUrl}/synctable/user_${this.name}/${encodeURIComponent(uniqueId)}`,
+                JSON.stringify(row), { dataContentType: 'application/json', auth: this._auth });
         return JSON.parse(resp)['data'];
     }
 
     async deleteIfRecent(uniqueId : string, lastModified : number) : Promise<boolean> {
-        const resp = await Tp.Helpers.Http.request(`${this._baseUrl}/synctable/user_${this.name}/${this._userId}/${encodeURIComponent(uniqueId)}/${lastModified}`,
-                'DELETE', null, {});
+        const resp = await Tp.Helpers.Http.request(`${this._baseUrl}/synctable/user_${this.name}/${encodeURIComponent(uniqueId)}/${lastModified}`,
+                'DELETE', null, { auth: this._auth });
         return JSON.parse(resp)['data'];
     }
 
     async deleteOne(uniqueId : string) : Promise<number> {
-        const resp = await Tp.Helpers.Http.request(`${this._baseUrl}/synctable/user_${this.name}/${this._userId}/${encodeURIComponent(uniqueId)}`,
-                'DELETE', null, {});
+        const resp = await Tp.Helpers.Http.request(`${this._baseUrl}/synctable/user_${this.name}/${encodeURIComponent(uniqueId)}`,
+                'DELETE', null, { auth: this._auth });
         return JSON.parse(resp)['data'];
     }
 }
