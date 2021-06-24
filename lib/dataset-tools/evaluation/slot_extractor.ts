@@ -75,12 +75,19 @@ export default class SlotExtractor {
 
     private async _resolveEntity(value : Ast.EntityValue) : Promise<EntityRecord> {
         if (this._isWellKnownEntity(value.type)) {
-            assert(value.value, `Unexpected missing entity value "${value.value}" for a ${value.type} entity`);
-            return { value: value.value!, name: value.display||'', canonical: value.value! };
+            assert(value.value !== null, `Unexpected missing entity value "${value.value}" for a ${value.type} entity`);
+            return { value: value.value, name: value.display||'', canonical: value.value };
         }
 
         const searchKey = value.display||value.value;
-        assert(searchKey);
+        if (!searchKey) {
+            // the neural model produced an empty string
+            return {
+                value: '',
+                name: '',
+                canonical: ''
+            };
+        }
         const cacheKey = value.type + '/' + value.value + '/' + searchKey;
         let resolved = this._cachedEntityMatches.get(cacheKey);
         if (resolved)
