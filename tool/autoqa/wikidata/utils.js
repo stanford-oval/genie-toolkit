@@ -387,6 +387,9 @@ async function getType(property) {
 }
 
 function argnameFromLabel(label) {
+    // if label is a keyword or starts with number
+    if (ThingTalk.Syntax.KEYWORDS.has(label) || /^\d/.test(label))
+        label = `_${label}`;
     return snakecase(label)
         .replace(/'/g, '') // remove apostrophe
         .replace(/,/g, '') // remove comma
