@@ -389,7 +389,7 @@ class CsqaConverter {
             return '>=';
         if (utterance.includes(' less ') || utterance.includes(' lesser number '))
             return '<=';
-        if (utterance.incldues(' same number '))
+        if (utterance.includes(' same number '))
             return '~~';
         
         throw new Error('Failed to identify comparative operator based on the utterance');
