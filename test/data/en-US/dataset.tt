@@ -112,11 +112,11 @@ dataset @org.thingpedia.everything {
     query (p_query : String) := [link] of @com.bing.image_search(query=p_query)
     #[id=5]
     #_[preprocessed=["the link to images that match ${p_query}"]];
-    
+
     action := @light-bulb.set_power(power=enum(on))
     #[id=6]
     #_[preprocessed=["turn on my lights"]];
-    
+
     action (p_name : String) := @light-bulb(name=p_name).set_power(power=enum(on))
     #[id=7]
     #_[preprocessed=["turn on my $p_name lights"]];
@@ -124,117 +124,144 @@ dataset @org.thingpedia.everything {
     query (p_section : Enum(opinions,world_news,us_business,markets,technology,lifestyle)) := @com.wsj.get(section=p_section)
     #_[preprocessed=["articles published in the ${p_section} section of the wall street journal"]];
 }
-dataset @com.spotify2 {
+dataset @com.spotify2 language "en" {
     // this combination is so common it warrants its own primitive template...
-    query (p_song :String, p_artist :Entity(com.spotify2:artist)) := @com.spotify2.song(), id =~ p_song && contains(artists, p_artist)
+    query (p_song :String, p_artist :Entity(com.spotify2:artist)) := @com.spotify2.playable(), id =~ p_song && contains(artists, p_artist)
     #_[utterances=["${p_song:no-undefined} by ${p_artist}",
                    "${p_song:no-undefined} from ${p_artist}"]];
 
-    program := @com.spotify2.play_song(song=$?)
+    // these ones are hard to get with domain-independent templates
+    query (p_artist :Entity(com.spotify2:artist)) := sort(popularity desc of @com.spotify2.playable(), contains(artists, p_artist))
+    #_[utterances=[/*"${p_artist}'s greatest hits",*/
+                   "popular music by ${p_artist:no-undefined}"]];
+    query (p_artist :Entity(com.spotify2:artist)) := sort(release_date desc of @com.spotify2.playable(), contains(artists, p_artist))
+    #_[utterances=["new ${p_artist:no-undefined}", "new music from ${p_artist:no-undefined}",
+                   "${p_artist:no-undefined} by the new first"]];
+
+    program := @com.spotify2.play(playable=$?)
     #_[utterances=["play some music on spotify",
                    "open spotify and play some music",
                    "use spotify to play some music"]]
-    #[id=27924738]
-    #[name=""];
+    ;
 
-    action (p_song :Entity(com.spotify2:song)) := @com.spotify2.play_song(song=p_song)
-    #_[utterances=["play ${p_song} on spotify",
-                   "on spotify play ${p_song}",
-                   "play ${p_song}",
-                   "i would like to hear ${p_song}",
-                   "i would like to listen to ${p_song}"]]
-    #[id=27924741]
-    #[name=""];
+    action (p_song :Entity(com.spotify2:playable)) := @com.spotify2.play(playable=p_song)
+    #_[utterances=["play ${p_song:no-undefined} on spotify",
+                   "play ${p_song:no-undefined}"]]
+    ;
 
-    /*action (p_state :Enum(on,off)) := @com.spotify2.player_shuffle(shuffle=p_state)
+    program (p_song :String) := (@com.spotify2.playable(), id =~ p_song) => @com.spotify2.play(playable=id)
+    #_[utterances=["i would like to hear ${p_song:const}",
+                   "i would like to listen to ${p_song:const}",
+                   "play ${p_song:const} on spotify",
+                   "on spotify play ${p_song:const}",
+                   "play ${p_song:const}"]]
+    ;
+
+    program (p_genre :String) := (@com.spotify2.playable(), contains~(genres, p_genre)) => @com.spotify2.play(playable=id)
+    #_[utterances=["i would like to hear some ${p_genre:const}",
+                   "i would like to listen to ${p_genre:const} music",
+                   "play ${p_genre:const} on spotify",
+                   "on spotify play ${p_genre:const} music",
+                   "play ${p_genre:const} music"]]
+    ;
+
+    program (p_song :String, p_playlist :String) := (@com.spotify2.song(), id =~ p_song) => @com.spotify2.add_song_to_playlist(song=id, playlist=p_playlist)
+    #_[utterances=["add ${p_song:no-undefined} to ${p_playlist}",
+                   "put ${p_song:no-undefined} in ${p_playlist}"]]
+    ;
+
+    program (p_playlist :String) := (@com.spotify2.get_currently_playing()) => @com.spotify2.add_song_to_playlist(song=song, playlist=p_playlist)
+    #_[utterances=["add this song to ${p_playlist}",
+                   "put this song in ${p_playlist}"]]
+    ;
+
+    action (p_state :Enum(on,off)) := @com.spotify2.player_shuffle(shuffle=p_state)
     #_[utterances=["turn shuffle ${p_state}",
                    "turn ${p_state} shuffle"]]
-    #[id=27924854]
-    #[name=""];*/
+    ;
 
     action := @com.spotify2.player_shuffle(shuffle=enum(on))
     #_[utterances=["shuffle my spotify"]]
-    #[id=27924856]
-    #[name=""];
+    ;
 
-    action := @com.spotify2.player_repeat(repeat=enum(track))
+    action := @com.spotify.player_repeat(repeat=enum(track))
     #_[utterances=["repeat this song",
                    "turn on repeat"]]
-    #[id=27924857]
-    #[name=""];
+    ;
 
     action := @com.spotify2.player_repeat(repeat=enum(off))
     #_[utterances=["turn off repeat"]]
-    #[id=27924859]
-    #[name=""];
+    ;
 
     action := @com.spotify2.player_next()
     #_[utterances=["play the next song",
-                   "skip this song"]]
-    #[id=27924859]
-    #[name=""];
+                   "skip this song",
+                   "play the next episode",
+                   "skip this episode"]]
+    ;
 
     action := @com.spotify2.player_previous()
     #_[utterances=["play the previous song",
-                   "go back a song"]]
+                   "go back a song",
+                   "play the previous episode",
+                   "go back an episode"]]
     #[id=27924859]
-    #[name=""];
+    ;
 
     action := @com.spotify2.player_play()
     #_[utterances=["continue playback",
                    "continue playing"]]
-    #[id=27924859]
-    #[name=""];
+    ;
 
     action := @com.spotify2.player_pause()
-    #_[utterances=["paused playback",
-                   "paused playing"]]
-    #[id=27924859]
-    #[name=""];
+    #_[utterances=["pause playback",
+                   "pause playing",
+                   "stop playing",
+                   "stop playback",
+                   "stop the music"]]
+    ;
 
     // TODO: use "action" here so we can combine with streams
     program (p_artist :Entity(com.spotify2:artist)) :=
-      @com.spotify2.song(), contains(artists, p_artist) => @com.spotify2.play_song(song=id)
+      @com.spotify2.playable(), contains(artists, p_artist) => @com.spotify2.play(playable=id)
     #_[utterances=["play ${p_artist:no-undefined}",
-                   "play music by ${p_artist:no-undefined}",
                    "play some ${p_artist:no-undefined}",
                    "play the artist ${p_artist:no-undefined}",
                    "i would like to hear ${p_artist:no-undefined}",
                    "i would like to listen to ${p_artist:no-undefined}",
                    "i would like to listen to the artist ${p_artist:no-undefined}"]]
-    #[id=27924875]
-    #[name=""];
+    ;
 
-    program (p_album :Entity(com.spotify2:album)) :=
-      @com.spotify2.song(), album == p_album => @com.spotify2.play_song(song=id)
-    #_[utterances=["play ${p_album:no-undefined}",
-                   "play the album ${p_album:no-undefined}",
-                   "i would like to hear ${p_album:no-undefined}",
-                   "i would like to hear the album ${p_album:no-undefined}",
-                   "i would like to listen to ${p_album:no-undefined}"]]
-    #[id=27924878]
-    #[name=""];
-
-    program (p_album :Entity(com.spotify2:album), p_artist :Entity(com.spotify2:artist)) :=
-      @com.spotify2.song(), album == p_album && contains(artists, p_artist) => @com.spotify2.play_song(song=id)
-    #_[utterances=["play ${p_album:no-undefined} by ${p_artist:no-undefined}",
+    program (p_album :String, p_artist :Entity(com.spotify2:artist)) :=
+      @com.spotify2.album(), id =~ p_album && contains(artists, p_artist) => @com.spotify2.play(playable=id)
+    #_[utterances=[/*"play ${p_album:no-undefined} by ${p_artist:no-undefined}",*/
                    "play the album ${p_album:no-undefined} by ${p_artist:no-undefined}",
-                   "i would like to listen the album ${p_album:no-undefined} by ${p_artist:no-undefined}",
-                   "i would like to listen the album ${p_album:no-undefined} from ${p_artist:no-undefined}"]]
-    #[id=27924878]
-    #[name=""];
+                   "i would like to listen to the album ${p_album:no-undefined} by ${p_artist:no-undefined}",
+                   "i would like to listen to the album ${p_album:no-undefined} from ${p_artist:no-undefined}"]]
+    ;
+
+    program (p_show :String) :=
+      @com.spotify2.show(), id =~ p_show => @com.spotify2.play(playable=id)
+    #_[utterances=["play the podcast ${p_show:no-undefined}", "play the show ${p_show:no-undefined}",
+                   "i would like to listen to the show ${p_show:no-undefined}",
+                   "i would like to listen to the podcast ${p_show:no-undefined}"]]
+    ;
+
 
     stream := monitor (@com.spotify2.get_user_top_tracks())
     #_[utterances=["when my top tracks changes",
                    "when I have new favorite songs"]]
-    #[id=27924898]
-    #[name=""];
+    ;
 
     stream := monitor (@com.spotify2.get_currently_playing())
     #_[utterances=["when a song is playing"]]
-    #[id=27924900]
-    #[name=""];
+    ;
+
+    program := @com.spotify2.get_currently_playing()
+    #_[utterances=["what song is playing?", "what music is playing?", "what is playing?", "what song is currently on?"]]
+    ;
 }
+
 dataset @org.thingpedia.iot.light-bulb language "en" {
     action = @org.thingpedia.iot.light-bulb.set_power(power=enum(off))
     #_[utterances=["shut down the lights"]]
