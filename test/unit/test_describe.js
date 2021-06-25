@@ -344,6 +344,11 @@ const TEST_CASES = [
     [`timer(base=$now, interval=1h) => @org.thingpedia.iot.light-bulb(id="io.home-assistant/lights.living_room_1"^^tt:device_id("Living Room")).set_power(power=enum off);`,
     'Shut down the Living Room lights every 60 min.',
     'Light Bulb'],
+
+    [`$dialogue @org.thingpedia.dialogue.transaction.execute;
+    @com.spotify2.playable() filter contains(artists, null^^com.spotify2:artist("roddy ricch")) && id =~ "box";`,
+    `Get music by roddy ricch and have name box.`,
+    ``]
 ];
 
 async function test(i) {

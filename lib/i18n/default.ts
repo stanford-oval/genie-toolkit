@@ -671,7 +671,7 @@ export default class LanguagePack {
             const token = tokens[i];
             const nextToken = tokens[i+1];
             if (token in entities) {
-                if (nextToken.startsWith('-')) {
+                if (nextToken !== undefined && nextToken.startsWith('-')) {
                     // nextToken is a marker to tell us how to display this entity
                     lexicalized.push(this.displayEntity(token, entities[token], delegate, nextToken.substring(1)));
 
