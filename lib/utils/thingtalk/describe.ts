@@ -1416,6 +1416,14 @@ export class Describer {
         }
     }
 
+    describeDialogueState(state : Ast.DialogueState) : ReplacedResult|null {
+        // TODO account for the dialogue act here
+        const desc = this._makeList(state.history.map((item) => {
+            return this.describeExpressionStatement(item.stmt);
+        }), ' ; ');
+        return desc;
+    }
+
     describePermissionFunction(permissionFunction : Ast.PermissionFunction,
                                functionType : 'query'|'action',
                                scope : ScopeMap) : ReplacedResult|null {
@@ -1641,14 +1649,16 @@ export class Describer {
     }
 
     describe(input : Ast.Input) : ReplacedResult|null {
-        if (input instanceof Ast.Program)
+        if (input instanceof Ast.DialogueState)
+            return this.describeDialogueState(input);
+        else if (input instanceof Ast.Program)
             return this.describeProgram(input);
         else if (input instanceof Ast.PermissionRule)
             return this.describePermissionRule(input);
         else if (input instanceof Ast.ControlCommand)
             return this._describeControlCommand(input);
         else
-            throw new TypeError(`Unrecognized input type ${input}`);
+            throw new TypeError(`Unrecognized input type ${input.constructor.name}`);
     }
 }
 

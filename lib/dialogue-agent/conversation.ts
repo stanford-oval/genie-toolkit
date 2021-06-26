@@ -18,11 +18,9 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
-import path from "path";
-import fs from "fs";
 import * as events from 'events';
 import * as ThingTalk from 'thingtalk';
+import * as Stream from "stream";
 
 import * as I18n from '../i18n';
 
@@ -32,9 +30,9 @@ import { PlatformData, MessageType, Message, RDL } from './protocol';
 import { EntityMap } from '../utils/entity-utils';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import type Engine from '../engine';
-import * as StreamUtils from "../utils/stream-utils";
 import { DialogueSerializer, DialogueTurn } from "../dataset-tools/parsers";
 import AppExecutor from '../engine/apps/app_executor';
+import ConversationLogger from './logging';
 
 const DummyStatistics = {
     hit() {
@@ -77,73 +75,6 @@ export interface ConversationDelegate {
     addMessage(msg : Message) : Promise<void>;
 }
 
-export class DialogueTurnLog {
-    private readonly _turn : DialogueTurn;
-    private _done : boolean;
-
-    constructor() {
-        this._turn = {
-            context: null,
-            agent: null,
-            agent_target: null,
-            intermediate_context: null,
-            user: '',
-            user_target: ''
-        };
-        this._done = false;
-    }
-
-    get turn() {
-        return this._turn;
-    }
-
-    get done() {
-        return this._done;
-    }
-
-    finish() {
-        this._done = true;
-    }
-
-    update(field : Exclude<keyof DialogueTurn,'agent_timestamp'|'user_timestamp'>, value : string) {
-        this._turn[field] = this._turn[field] ? this._turn[field] + '\n' + value : value;
-        if (field === 'user')
-            this._turn.user_timestamp = new Date;
-        else if (field === 'agent')
-            this._turn.agent_timestamp = new Date;
-    }
-}
-
-class DialogueLog {
-    private readonly _turns : DialogueTurnLog[];
-    private _done : boolean;
-
-    constructor() {
-        this._turns = [];
-        this._done = false;
-    }
-
-    get turns() {
-        return this._turns;
-    }
-
-    get done() {
-        return this._done;
-    }
-
-    finish() {
-        this._done = true;
-        if (this.turns.length) {
-            const lastTurn = this.turns[this.turns.length - 1];
-            lastTurn.finish();
-        }
-    }
-
-    append(turn : DialogueTurnLog) {
-        this._turns.push(turn);
-    }
-}
-
 export interface ConversationState {
     history : Message[];
     dialogueState : Record<string, unknown>;
@@ -181,7 +112,7 @@ export default class Conversation extends events.EventEmitter {
     private _contextResetTimeout : NodeJS.Timeout|null;
     private _contextResetTimeoutSec : number;
 
-    private _log : DialogueLog[];
+    private _log : ConversationLogger;
 
     constructor(engine : Engine,
                 conversationId : string,
@@ -222,7 +153,7 @@ export default class Conversation extends events.EventEmitter {
         this._contextResetTimeout = null;
         this._contextResetTimeoutSec = options.contextResetTimeout || this._inactivityTimeoutSec;
 
-        this._log = [];
+        this._log = new ConversationLogger(engine.db.getLocalTable('conversation'), this._conversationId);
     }
 
     get isAnonymous() : boolean {
@@ -257,9 +188,9 @@ export default class Conversation extends events.EventEmitter {
         this._options.log = true;
     }
 
-    endRecording() {
+    async endRecording() {
+        await this._log.dialogueFinished();
         this._options.log = false;
-        this.dialogueFinished();
     }
 
     notify(app : AppExecutor, outputType : string, outputValue : Record<string, unknown>) {
@@ -513,93 +444,39 @@ export default class Conversation extends events.EventEmitter {
         return this.addMessage({ type: MessageType.NEW_PROGRAM, ...program });
     }
 
-    private get _lastDialogue() {
-        if (this._log.length === 0)
-            return null;
-        return this._log[this._log.length - 1];
+    async dialogueFinished() {
+        if (!this.inRecordingMode)
+            return;
+        await this._log.dialogueFinished();
     }
 
-    private get _lastTurn() {
-        const lastDialogue = this._lastDialogue;
-        if (!lastDialogue || lastDialogue.turns.length === 0)
-            return null;
-        return lastDialogue.turns[lastDialogue.turns.length - 1];
+    async turnFinished() {
+        if (!this.inRecordingMode)
+            return;
+        await this._log.turnFinished();
     }
 
-    appendNewDialogue() {
-        this._log.push(new DialogueLog());
+    async voteLast(vote : 'up'|'down') {
+        if (!this.inRecordingMode)
+            return;
+        await this._log.voteLast(vote);
     }
 
-    dialogueFinished() {
-        const last = this._lastDialogue;
-        if (last)
-            last.finish();
-    }
-
-    turnFinished() {
-        const last = this._lastTurn;
-        if (last)
-            last.finish();
-    }
-
-    appendNewTurn(turn : DialogueTurnLog) {
-        const last = this._lastDialogue;
-        if (!last || last.done)
-            this.appendNewDialogue();
-        const dialogue = this._lastDialogue!;
-        dialogue.append(turn);
-    }
-
-    voteLast(vote : 'up'|'down') {
-        const last = this._lastTurn;
-        if (!last)
-            throw new Error('No dialogue is logged');
-        last.turn.vote = vote;
-    }
-
-    commentLast(comment : string) {
-        const last = this._lastTurn;
-        if (!last)
-            throw new Error('No dialogue is logged');
-        last.turn.comment = comment;
+    async commentLast(comment : string) {
+        if (!this.inRecordingMode)
+            return;
+        await this._log.commentLast(comment);
     }
 
     updateLog(field : Exclude<keyof DialogueTurn,'agent_timestamp'|'user_timestamp'>, value : string) {
-        if (this.inRecordingMode) {
-            let last = this._lastTurn;
-            if (!last || last.done) {
-                last = new DialogueTurnLog();
-                this.appendNewTurn(last);
-            }
-            last.update(field, value);
-        }
+        if (!this.inRecordingMode)
+            return;
+        this._log.updateLog(field, value);
     }
 
-    async saveLog() {
-        const dir = path.join(this._engine.platform.getWritableDir(), 'logs');
-        try {
-            fs.mkdirSync(dir);
-        } catch(e) {
-            if (e.code !== 'EEXIST')
-                throw e;
-        }
-        const logfile = path.join(dir, this.id + '.txt');
+    readLog() {
+        const readable = Stream.Readable.from(this._log.read());
         const serializer = new DialogueSerializer({ annotations: true });
-
-        const output = fs.createWriteStream(logfile);
-
-        serializer.pipe(output);
-        for (const dialogue of this._log)
-            serializer.write({ id: this.id, turns: dialogue.turns.map((log) => log.turn) });
-        serializer.end();
-
-        await StreamUtils.waitFinish(output);
-    }
-
-    get log() : string|null {
-        const log = path.join(this._engine.platform.getWritableDir(), 'logs', this.id + '.txt');
-        if (!fs.existsSync(log))
-            return null;
-        return log;
+        return readable.pipe(serializer);
     }
 }

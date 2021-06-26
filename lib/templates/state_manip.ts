@@ -1162,7 +1162,7 @@ function makeErrorContextPhrase(ctx : ContextInfo,
             if (text === null)
                 return null;
             bag.set(param, value);
-            return { value: value.toJS(), text };
+            return { value: value.isConstant() ? value.toJS() : value, text };
         });
 
         if (utterance) {

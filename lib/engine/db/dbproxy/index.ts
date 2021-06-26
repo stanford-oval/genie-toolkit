@@ -23,7 +23,7 @@ import SyncTable from './sync_table';
 
 export interface DatabaseProxyConfig {
     baseUrl : string
-    userId : number
+    accessToken ?: string
 }
 
 const FIELD_NAMES = {
@@ -39,16 +39,16 @@ export class DatabaseProxy implements DB.AbstractDatabase {
         this._config = config;
     }
 
-    ensureSchema() { 
+    ensureSchema() {
         // database initialization is done in the cloud
         return Promise.resolve();
     }
 
     getLocalTable<T extends keyof DB.LocalTables>(name : T) : LocalTable<DB.LocalTables[T]> {
-        return new LocalTable(name, this._config.baseUrl, this._config.userId);
+        return new LocalTable(name, this._config.baseUrl, this._config.accessToken);
     }
 
     getSyncTable<T extends keyof DB.SyncTables>(name : T) : SyncTable<DB.SyncTables[T]> {
-        return new SyncTable(name, this._config.baseUrl, this._config.userId, FIELD_NAMES[name] as any);
+        return new SyncTable(name, this._config.baseUrl, this._config.accessToken, FIELD_NAMES[name] as any);
     }
 }

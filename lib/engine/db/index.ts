@@ -45,9 +45,27 @@ export interface DeviceRow {
     state : string;
 }
 
+export interface ConversationRow {
+    uniqueId : string;
+    conversationId : string;
+    previousId : string|null;
+    dialogueId : string;
+    context : string|null;
+    agent : string|null;
+    agentTimestamp : string|null;
+    agentTarget : string|null;
+    intermediateContext : string|null;
+    user : string;
+    userTimestamp : string|null;
+    userTarget : string;
+    vote : string|null;
+    comment : string|null;
+}
+
 export interface LocalTables {
     app : AppRow;
     channel : ChannelRow;
+    conversation : ConversationRow;
 }
 
 export interface SyncTables {
@@ -59,6 +77,7 @@ export interface LocalTable<RowType extends AbstractRow> {
 
     getAll() : Promise<RowType[]>;
     getOne(uniqueId : string) : Promise<RowType|undefined>;
+    getBy(field : keyof RowType, value : string) : Promise<RowType[]>;
     insertOne(uniqueId : string, row : Omit<RowType, "uniqueId">) : Promise<void>;
     deleteOne(uniqueId : string) : Promise<void>;
 }

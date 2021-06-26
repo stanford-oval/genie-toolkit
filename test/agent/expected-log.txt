@@ -849,12 +849,12 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_one;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $stop;
 UT: $stop;
-====
-# test
 #! vote: down
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+====
+# test
 ====
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ

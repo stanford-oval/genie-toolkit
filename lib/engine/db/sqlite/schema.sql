@@ -31,3 +31,22 @@ create table channel (
        uniqueId varchar(255) primary key,
        value text default null
 );
+
+drop table if exists conversation ;
+
+create table conversation (
+       uniqueId varchar(255) primary key,
+       conversationId varchar(255),
+       previousId varchar(255),
+       dialogueId varchar(255),
+       context text default null,
+       agent text default null,
+       agentTimestamp text default null,
+       agentTarget text default null,
+       intermediateContext text default null,
+       user text default null,
+       userTimestamp text default null,
+       userTarget text default null,
+       vote text default null,
+       comment text default null
+);

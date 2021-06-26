@@ -55,37 +55,28 @@ const TERMINAL_STATES = ['sys_end'];
 
 // Confidence thresholds:
 //
-// The API returns two global scores associated with
-// the utterance (the "command" score and the "ignore" score),
-// and a confidence score on each candidate parse.
-// (There is a third score, the "other" score, which is exactly
-// 1-command-ignore)
+// The API returns a global "intent" score associated with
+// the utterance, with three components:
+// "command", "ignore", "other"
+// It also returns a confidence score on each candidate parse.
 //
 // (See LocalParserClient for how these scores are computed
 // from the raw confidence scores produced by genienlp)
 //
-// - If the "ignore" score is greater than IGNORE_THRESHOLD
-//   we ignore this command entirely, do nothing and say
-//   nothing. Typically, this means a spurious wakeword activation,
-//   or a command that was truncated midway by the microphone.
-//   In Alexa, the ring would light up, turn off, and nothing would happen.
-//
-// - If the "command" score is less than IN_DOMAIN_THRESHOLD,
-//   we ship this command out to other backends silently, or tell
-//   the user that the command is not supported.
+// - If the "command" component of the "intent" score is not the
+//   highest of the three components, or or if we failed to parse,
+//   this command is definitely out of domain.
+//   We'll ship it to other backends or fail.
 //
 // - If we have a best valid parse, and the confidence of that parse
 //   is greater than CONFIDENCE_CONFIRM_THRESHOLD, we run the command
 //   without further confirmation.
 //
 // - If we have a best valid parse, and the confidence of that parse
-//   is greater than CONFIDENCE_FAILURE_THRESHOLD, we ask the user
+//   is lower than CONFIDENCE_CONFIRM_THRESHOLD, we ship the command
+//   to other backends if they are confident, or ask the user
 //   for additional confirmation before executing.
-//
-// - In all other cases, we tell the user we did not understand.
-//const CONFIDENCE_CONFIRM_THRESHOLD = 0.5;
-//const CONFIDENCE_FAILURE_THRESHOLD = 0.25;
-const IN_DOMAIN_THRESHOLD = 0.5;
+const CONFIDENCE_CONFIRM_THRESHOLD = 0.5;
 
 interface ThingTalkCommandAnalysisType {
     type : CommandAnalysisType;
@@ -293,7 +284,8 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             store: this._prefs.get('sabrina-store-log') as string || 'no'
         });
 
-        if (nluResult.intent.command < IN_DOMAIN_THRESHOLD) {
+        if (nluResult.intent.command < nluResult.intent.ignore ||
+            nluResult.intent.command < nluResult.intent.other) {
             this._loop.debug('ThingTalk confidence analyzed as out-of-domain command');
             const parsed = new Ast.ControlCommand(null, new Ast.SpecialControlIntent(null, 'ood'));
             return {
@@ -341,10 +333,10 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
             type = CommandAnalysisType.OUT_OF_DOMAIN_COMMAND;
             this._loop.debug('Failed to analyze message as ThingTalk');
             this._loop.conversation.stats.hit('sabrina-failure');
-        /*} else if (choice.score < CONFIDENCE_CONFIRM_THRESHOLD) {
+        } else if (choice.score < CONFIDENCE_CONFIRM_THRESHOLD) {
             type = CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND;
-            this.debug('Dubiously analyzed message into ' + choice.parsed.prettyprint());
-            this.conversation.stats.hit('sabrina-command-maybe');*/
+            this._loop.debug('Dubiously analyzed message into ' + choice.parsed.prettyprint());
+            this._loop.conversation.stats.hit('sabrina-command-maybe');
         } else {
             this._loop.debug('Confidently analyzed message into ' + choice.parsed.prettyprint());
             this._loop.conversation.stats.hit('sabrina-command-good');
