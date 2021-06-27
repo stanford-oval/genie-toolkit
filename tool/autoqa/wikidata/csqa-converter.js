@@ -48,8 +48,8 @@ class CsqaConverter {
         this._filters = {};
         for (const filter of options.filter || []) {
             assert(filter.indexOf('=') > 0 && filter.indexOf('=') === filter.lastIndexOf('='));
-            const [key, value] = filter.split('=');
-            this._filters[key] = parseInt(value);
+            const [key, values] = filter.split('=');
+            this._filters[key] = values.split(',').map((v) => parseInt(v));
         }
 
         this._paths = {
@@ -538,13 +538,9 @@ class CsqaConverter {
             const speaker = turn.speaker;
             if (speaker === 'USER') {
                 let skip = false;
-                for (const [key, value] of Object.entries(this._filters)) {
-                    if (Array.isArray(turn[key])) {
-                        if (!turn[key].includes(value))
-                            skip = true;
-                    } else if (turn[key] !== value) {
+                for (const [key, values] of Object.entries(this._filters)) {
+                    if (!values.includes(turn[key]))
                         skip = true;
-                    }
                 }
                 userTurn = skip ? null : turn;
             } else {
@@ -598,6 +594,9 @@ class CsqaConverter {
             try {
                 program = await this.csqaToThingTalk(example);
             } catch(e) {
+                console.log('Error during conversion:');
+                console.log('question:', example.user.utterance);
+                console.log('triples:', example.system.active_set);
                 console.error(e.message);
                 program = null;
             }
@@ -619,7 +618,9 @@ class CsqaConverter {
                     thingtalk
                 });
             } catch(e) {
-                // Mostly non-English alphabet
+                console.log('Error during serializing:');
+                console.log('question:', example.user.utterance);
+                console.log('triples:', example.system.active_set);
                 console.error(e.message);
                 error.push(example);
             }
