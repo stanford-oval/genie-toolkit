@@ -20,6 +20,7 @@
 
 import { Ast, } from 'thingtalk';
 import ThingpediaLoader from './load-thingpedia';
+import * as C from './ast_manip';
 
 {
 const TIME_MORNING = new Ast.Value.Time(new Ast.Time.Relative("morning"));
@@ -337,6 +338,19 @@ on = {
   'when it is' => 'when it is';
 }
 
+constant_Date : Ast.Value = {
+    !inference {
+        !turking {
+            at_morning 'on' date:constant_Date => C.makeDateWithDateTime(date, TIME_MORNING);
+            at_noon 'on' date:constant_Date => C.makeDateWithDateTime(date, TIME_NOON);
+            at_evening 'on' date:constant_Date => C.makeDateWithDateTime(date, TIME_EVENING);
+            date:constant_Date at_morning => C.makeDateWithDateTime(date, TIME_MORNING);
+            date:constant_Date at_noon => C.makeDateWithDateTime(date, TIME_NOON);
+            date:constant_Date at_evening => C.makeDateWithDateTime(date, TIME_EVENING);
+        }
+    }
+}
+
 // TODO rewrite using FunctionCallExpression directly instead of using toExpression()
 timer : Ast.FunctionCallExpression = {
     ?extended_timers {
@@ -346,7 +360,7 @@ timer : Ast.FunctionCallExpression = {
         optional_once optional_emphasis at_evening => new Ast.Stream.AtTimer(null, [TIME_EVENING], null, $loader.standardSchemas.attimer).toExpression();
         optional_twice optional_per_day optional_comma optional_first optional_emphasis at_morning and optional_second optional_emphasis at_evening_second => new Ast.Stream.AtTimer(null, [TIME_MORNING, TIME_EVENING], null, $loader.standardSchemas.attimer).toExpression();
         when_brushing_teeth => new Ast.Stream.AtTimer(null, [TIME_MORNING, TIME_EVENING], null, $loader.standardSchemas.attimer).toExpression();
-        on date:constant_Date => new Ast.FunctionCallExpression(null, 'ontimer', [new Ast.InputParam(null, 'date', new Ast.Value.Array([date]))], $loader.standardSchemas.ontimer);
+        'on' date:constant_Date => new Ast.FunctionCallExpression(null, 'ontimer', [new Ast.InputParam(null, 'date', new Ast.Value.Array([date]))], $loader.standardSchemas.ontimer);
     }
 
     once_per_day 'at' time:constant_Time => new Ast.Stream.AtTimer(null, [time], null, $loader.standardSchemas.attimer).toExpression();

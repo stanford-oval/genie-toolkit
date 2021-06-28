@@ -81,6 +81,18 @@ function makeDate(base : Ast.Value|Date|Ast.DateEdge|Ast.DatePiece|Ast.WeekDayDa
     return value;
 }
 
+function makeDateWithDateTime(base : Ast.Value|Date|Ast.DateEdge|Ast.DatePiece|Ast.WeekDayDate|null, time : Ast.Value|null) : Ast.Value {
+    if (!(base instanceof Ast.Value))
+        base = new Ast.Value.Date(base);
+    if (time === null)
+        return base;
+    assert(time instanceof Ast.Value);
+
+    const value = new Ast.Value.Computation("set_time", [base, time],
+        [Type.Date, Type.Time, Type.Date], Type.Date);
+    return value;
+}
+
 export function fixTwoYearNumber(year : number) {
     if (year >= 50)
         return 1900 + year;
@@ -1803,6 +1815,7 @@ export {
     addUnit,
     makeDate,
     makeMonthDateRange,
+    makeDateWithDateTime,
 
     // builtins
     builtinSayAction,
