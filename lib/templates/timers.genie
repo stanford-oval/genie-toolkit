@@ -20,7 +20,6 @@
 
 import { Ast, } from 'thingtalk';
 import ThingpediaLoader from './load-thingpedia';
-import * as C from './ast_manip';
 
 {
 const TIME_MORNING = new Ast.Value.Time(new Ast.Time.Relative("morning"));
@@ -145,117 +144,6 @@ optional_emphasis = {
   '' => '';
 }
 
-at_noon = {
-  'at noon' => 'at noon';
-  'in the middle of the day' => 'in the middle of the day';
-  'at lunch' => 'at lunch';
-}
-
-at_morning = {
-  'when i get up' => 'when i get up';
-  'when i wake up' => 'when i wake up';
-  'after getting up' => 'after getting up';
-  'after i get up' => 'after i get up';
-  'after waking up' => 'after waking up';
-  'after i wake up' => 'after i wake up';
-  'during the morning' => 'during the morning';
-  'each morning' => 'each morning';
-  'every morning' => 'every morning';
-  'in the morning' => 'in the morning';
-  'at breakfast' => 'at breakfast';
-  'with breakfast' => 'with breakfast';
-  'during breakfast' => 'during breakfast';
-  'before breakfast' => 'before breakfast';
-  'before eating breakfast' => 'before eating breakfast';
-  'before i eat breakfast' => 'before i eat breakfast';
-  'after breakfast' => 'after breakfast';
-  'after eating breakfast' => 'after eating breakfast';
-  'after i eat breakfast' => 'after i eat breakfast';
-  'when i eat breakfast' => 'when i eat breakfast';
-  'while i eat breakfast' => 'while i eat breakfast';
-  'before school' => 'before school';
-  'before going to school' => 'before going to school';
-  'before i go to school' => 'before i go to school';
-  'before leaving for school' => 'before leaving for school';
-  'before i leave for school' => 'before i leave for school';
-  'before heading to school' => 'before heading to school';
-  'before i head to school' => 'before i head to school';
-  'when i go to school' => 'when i go to school';
-  'when i leave for school' => 'when i leave for school';
-  'when i head to school' => 'when i head to school';
-  'before work' => 'before work';
-  'before going to work' => 'before going to work';
-  'before i go to work' => 'before i go to work';
-  'before leaving for work' => 'before leaving for work';
-  'before i leave for work' => 'before i leave for work';
-  'before heading to work' => 'before heading to work';
-  'before i head to work' => 'before i head to work';
-  'when i go to work' => 'when i go to work';
-  'when i leave for work' => 'when i leave for work';
-  'when i head to work' => 'when i head to work';
-}
-
-at_evening = {
-  'during the evening' => 'during the evening';
-  'each evening' => 'each evening';
-  'every evening' => 'every evening';
-  'in the evening' => 'in the evening';
-  'during the night' => 'during the night';
-  'each night' => 'each night';
-  'every night' => 'every night';
-  'in the night' => 'in the night';
-  'at night' => 'at night';
-  'at dinner' => 'at dinner';
-  'with dinner' => 'with dinner';
-  'during dinner' => 'during dinner';
-  'before dinner' => 'before dinner';
-  'before eating dinner' => 'before eating dinner';
-  'before i eat dinner' => 'before i eat dinner';
-  'after dinner' => 'after dinner';
-  'after eating dinner' => 'after eating dinner';
-  'after i eat dinner' => 'after i eat dinner';
-  'when i eat dinner' => 'when i eat dinner';
-  'while i eat dinner' => 'while i eat dinner';
-  'after school' => 'after school';
-  'after getting back from school' => 'after getting back from school';
-  'after returning from school' => 'after returning from school';
-  'after coming home from school' => 'after coming home from school';
-  'after i get back from school' => 'after i get back from school';
-  'after i return from school' => 'after i return from school';
-  'after i come home from school' => 'after i come home from school';
-  'when i get back from school' => 'when i get back from school';
-  'when i return from school' => 'when i return from school';
-  'when i come home from school' => 'when i come home from school';
-  'after work' => 'after work';
-  'after getting back from work' => 'after getting back from work';
-  'after returning from work' => 'after returning from work';
-  'after coming home from work' => 'after coming home from work';
-  'after i get back from work' => 'after i get back from work';
-  'after i return from work' => 'after i return from work';
-  'after i come home from work' => 'after i come home from work';
-  'when i get back from work' => 'when i get back from work';
-  'when i return from work' => 'when i return from work';
-  'when i come home from work' => 'when i come home from work';
-  'before bed' => 'before bed';
-  'before going to bed' => 'before going to bed';
-  'before i go to bed' => 'before i go to bed';
-  'before leaving for bed' => 'before leaving for bed';
-  'before i leave for bed' => 'before i leave for bed';
-  'before heading to bed' => 'before heading to bed';
-  'before i head to bed' => 'before i head to bed';
-  'when i go to bed' => 'when i go to bed';
-  'when i leave for bed' => 'when i leave for bed';
-  'when i head to bed' => 'when i head to bed';
-  'at bedtime' => 'at bedtime';
-  'before bedtime' => 'before bedtime';
-  'before i go to sleep' => 'before i go to sleep';
-  'before going to sleep' => 'before going to sleep';
-  'before sleeping' => 'before sleeping';
-  'before i sleep' => 'before i sleep';
-  'before i fall asleep' => 'before i fall asleep';
-  'before falling asleep' => 'before falling asleep';
-}
-
 at_evening_second = {
   'evening' => 'evening';
   'work' => 'work';
@@ -330,25 +218,6 @@ when_brushing_teeth = {
   'before i brush my teeth' => 'before i brush my teeth';
   'after brushing my teeth' => 'after brushing my teeth';
   'after i brush my teeth' => 'after i brush my teeth';
-}
-
-on = {
-  'on' => 'on';
-  'when it \'s' => 'when it \'s';
-  'when it is' => 'when it is';
-}
-
-constant_Date : Ast.Value = {
-    !inference {
-        !turking {
-            at_morning 'on' date:constant_Date => C.makeDateWithDateTime(date, TIME_MORNING);
-            at_noon 'on' date:constant_Date => C.makeDateWithDateTime(date, TIME_NOON);
-            at_evening 'on' date:constant_Date => C.makeDateWithDateTime(date, TIME_EVENING);
-            date:constant_Date at_morning => C.makeDateWithDateTime(date, TIME_MORNING);
-            date:constant_Date at_noon => C.makeDateWithDateTime(date, TIME_NOON);
-            date:constant_Date at_evening => C.makeDateWithDateTime(date, TIME_EVENING);
-        }
-    }
 }
 
 // TODO rewrite using FunctionCallExpression directly instead of using toExpression()
