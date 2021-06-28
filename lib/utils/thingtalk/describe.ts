@@ -288,6 +288,8 @@ export class Describer {
                 return this._interp(this._("the total ${arg}"), { arg: operands[0] });
             case 'count':
                 return this._interp(this._("the number of ${arg}"), { arg: operands[0] });
+            case 'set_time':
+                return this._interp(this._("set time ${time} on date ${date}"), { date : operands[0], time: operands[1] });
             default:
                 throw new TypeError(`Unexpected computation operator ${arg.op}`);
             }
@@ -1258,12 +1260,22 @@ export class Describer {
         }
     }
 
+    private _describeOnTimer(stream : Ast.FunctionCallExpression) {
+        const date = stream.in_params.find((ip) => ip.name === 'date');
+
+        return this._interp(this._("at ${date}"), {
+            date: this.describeArg(date ? date.value : new Ast.Value.Undefined())
+        });
+    }
+
     describeStream(stream : Ast.Expression) : ReplacedResult|null {
         if (stream instanceof Ast.FunctionCallExpression) {
             if (stream.name === 'timer')
                 return this._describeTimer(stream);
             else if (stream.name === 'attimer')
                 return this._describeAtTimer(stream);
+            else if (stream.name === 'ontimer')
+                return this._describeOnTimer(stream);
             else
                 return this.describePrimitive(stream);
         } else if (stream instanceof Ast.MonitorExpression) {
@@ -1678,7 +1690,7 @@ export function getProgramName(program : Ast.Program) : string {
         if (prim instanceof Ast.ExternalBooleanExpression)
             continue;
         if (prim instanceof Ast.FunctionCallExpression &&
-            (prim.name === 'timer' || prim.name === 'attimer'))
+            (prim.name === 'timer' || prim.name === 'attimer' || prim.name === 'ontimer'))
             continue;
         descriptions.push(capitalizeSelector(prim));
     }
