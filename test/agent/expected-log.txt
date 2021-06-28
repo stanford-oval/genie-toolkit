@@ -2348,7 +2348,7 @@ UT: $stop;
 ====
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
-U: What are the vaccine side effects?
+U: What are the side effects of the vaccine?
 UT: $dialogue @org.thingpedia.dialogue.faq.question;
 C: $dialogue @org.thingpedia.dialogue.faq.question;
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
