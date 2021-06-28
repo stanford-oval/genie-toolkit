@@ -1122,7 +1122,7 @@ A: >> expecting = null
 ====
 # 73-covid-faqs-basic
 
-U: What are the vaccine side effects?
+U: What are the side effects of the vaccine?
 A: Vaccine recipients commonly experience mild to moderate side effects that occur within the first three days of vaccination and resolve within 1-3 days of onset. These are normal signs that your body is building protection. Common side effects include mild to moderate pain, swelling, or redness at the injection site and/or mild to moderate flu-like symptoms (for example, fever, fatigue, headache, chills, muscle aches). Serious side effects are very rare.
 A: >> context = null // {}
 A: >> expecting = null
