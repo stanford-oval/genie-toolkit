@@ -289,7 +289,7 @@ export class Describer {
             case 'count':
                 return this._interp(this._("the number of ${arg}"), { arg: operands[0] });
             case 'set_time':
-                return this._interp(this._("set the time of date ${date} to ${time}"), { date : operands[0], time: operands[1] });
+                return this._interp(this._("set time ${time} on date ${date}"), { date : operands[0], time: operands[1] });
             default:
                 throw new TypeError(`Unexpected computation operator ${arg.op}`);
             }
