@@ -22,6 +22,7 @@
 
 import { Inflectors } from 'en-inflectors';
 import { Tag } from 'en-pos';
+import * as lexicon from 'en-lexicon';
 
 import { coin } from '../utils/random';
 import { Phrase } from '../utils/template-string';
@@ -134,6 +135,13 @@ function indefiniteArticle(word : string) {
  */
 export default class EnglishLanguagePack extends DefaultLanguagePack {
     protected _tokenizer : EnglishTokenizer|undefined;
+
+    constructor(locale : string) {
+        super(locale);
+
+        // the pos tagger will crash without this lexicon extension
+        lexicon.extend({ constructor: 'NN' });
+    }
 
     getTokenizer() : EnglishTokenizer {
         if (this._tokenizer)
