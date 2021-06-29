@@ -141,9 +141,10 @@ dataset @org.thingpedia.builtin.thingengine.builtin language "en" {
 
     program(p_date : Date, p_message : String) = ontimer(date=[p_date]) => @org.thingpedia.builtin.thingengine.builtin.say(message=p_message)
     #_[utterances=["remind me to ${p_message} on ${p_date}",
-                    "tell me to ${p_message} on ${p_date}",
-                    "set an alarm for ${p_date}"]];
+                    "tell me to ${p_message} on ${p_date}"]];
 
+    program(p_date : Date) = ontimer(date=[p_date]) => @org.thingpedia.builtin.thingengine.builtin.alert()
+    #_[utterances=["set an alarm for ${p_date}"]];
     program(p_duration : Measure(ms)) = ontimer(date=[$now + p_duration]) => @org.thingpedia.builtin.thingengine.builtin.alert()
     #_[utterances=["set a timer for ${p_duration}"]];
 
