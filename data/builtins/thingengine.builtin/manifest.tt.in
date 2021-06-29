@@ -192,8 +192,13 @@ class @org.thingpedia.builtin.thingengine.builtin
              #_[canonical="message"])
   #_[result="${message_output}"]
   #_[canonical="say"]
-  #_[confirmation="send me a message $message"]
   #[doc="makes Genie say something"]
+  #[confirm=false];
+
+  action alert()
+  #_[result="Time's up!"]
+  #_[canonical="alert"]
+  #[doc="makes Genie show/say a generic alert"]
   #[confirm=false];
 
   action debug_log(in req message: String
