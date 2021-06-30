@@ -49,6 +49,7 @@ interface DialogueToTurnStreamOptions {
     deduplicate : boolean;
     tokenized : boolean;
     thingpediaClient : Tp.BaseClient;
+    ignoreErrors : boolean;
 }
 
 class DialogueToTurnStream extends Stream.Transform {
@@ -59,7 +60,8 @@ class DialogueToTurnStream extends Stream.Transform {
     private _idPrefix : string;
     private _dedupe : Set<string>|undefined;
     private _tokenized : boolean;
-    private _tokenizer : I18n.BaseTokenizer|null;
+    private _tokenizer : I18n.BaseTokenizer;
+    private _ignoreErrors : boolean;
 
     constructor(options : DialogueToTurnStreamOptions) {
         super({ objectMode: true });
@@ -73,9 +75,8 @@ class DialogueToTurnStream extends Stream.Transform {
         this._dedupe = options.deduplicate ? new Set : undefined;
 
         this._tokenized = options.tokenized;
-        this._tokenizer = null;
-        if (!this._tokenized)
-            this._tokenizer = I18n.get(this._locale).getTokenizer();
+        this._tokenizer = I18n.get(this._locale).getTokenizer();
+        this._ignoreErrors = options.ignoreErrors;
     }
 
     private _preprocess(sentence : string, contextEntities : EntityMap) {
@@ -85,7 +86,7 @@ class DialogueToTurnStream extends Stream.Transform {
             const entities = Utils.makeDummyEntities(sentence);
             tokenized = { tokens, entities };
         } else {
-            tokenized = this._tokenizer!.tokenize(sentence);
+            tokenized = this._tokenizer.tokenize(sentence);
         }
         Utils.renumberEntities(tokenized, contextEntities);
         return tokenized;
@@ -188,6 +189,8 @@ class DialogueToTurnStream extends Stream.Transform {
                 else
                     await this._emitUserTurn(i, turn, dlg);
             } catch(e) {
+                if (this._ignoreErrors)
+                    continue;
                 console.error('Failed in dialogue ' + dlg.id);
                 console.error(turn);
                 throw e;
@@ -279,6 +282,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         dest: 'debug',
         help: 'Disable debugging.',
     });
+    parser.add_argument('--ignore-errors', {
+        action: 'store_true',
+        help: 'Ignore erroneous turns.',
+        default: false
+    });
 }
 
 export async function execute(args : any) {
@@ -299,7 +307,8 @@ export async function execute(args : any) {
             side: args.side,
             tokenized: args.tokenized,
             deduplicate: args.deduplicate,
-            debug: args.debug
+            debug: args.debug,
+            ignoreErrors: args.ignore_errors,
         }))
         .pipe(new DatasetStringifier())
         .pipe(args.output);
