@@ -42,7 +42,7 @@ class State {
     constructor(isEnd = false) {
         this.id = stateCounter++;
         this.isEnd = isEnd;
-        this.transitions = {};
+        this.transitions = Object.create(null);
     }
 
     addTransition(token : string, to : State, capturing = false) {
