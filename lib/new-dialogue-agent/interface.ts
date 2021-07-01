@@ -18,26 +18,21 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import { Ast } from 'thingtalk';
+import assert from 'assert';
+import { Ast, SchemaRetriever, Syntax } from 'thingtalk';
+
+import * as I18n from '../i18n';
+
 import { DerivationKey, SemanticAction } from '../sentence-generator/types';
 import { PlaceholderReplacement, Replaceable, ReplacedResult } from '../utils/template-string';
+import { Command, CommandType } from './command';
+export { Command, CommandType };
+import { UnexpectedCommandError, TerminatedDialogueError, CommandDispatcher, ParallelCommandDispatcher, AbstractCommandIO } from './cmd-dispatch';
+export { UnexpectedCommandError, TerminatedDialogueError };
 
-export class UnexpectedCommandError extends Error {
-    code = 'ERR_UNEXPECTED_COMMAND' as const;
-
-    constructor(public readonly command : Command,
-                public readonly state : Ast.DialogueState) {
-        super(`Unexpected command`);
-    }
-}
-
-export class TerminatedDialogueError extends Error {
-    code = 'ERR_TERMINATED_DIALOGUE' as const;
-
-    constructor() {
-        super(`The dialogue was terminated`);
-    }
-}
+/**
+ * This module contains the public API of the Genie dialogue scripting language.
+ */
 
 /**
  * A single template for synthesis.
@@ -51,15 +46,6 @@ export type Template<ArgTypes extends unknown[], ReturnType> =
     [Replaceable, DerivationKey, SemanticAction<ArgTypes, ReturnType>];
 
 /**
- * Coarse classification of the kind of command issued by a user.
- */
-export enum CommandType {
-    THINGTALK_QUERY,
-    THINGTALK_ACTION,
-    THINGTALK_MONITOR
-}
-
-/**
  * A callback that computes all the relevant templates to use for synthesis
  * at the given state
  */
@@ -70,34 +56,6 @@ export type SynthesisFunction<ReturnType> = (dlg : DialogueInterface) => Iterabl
  */
 export type PolicyFunction = (dlg : DialogueInterface) => Promise<void>;
 
-/**
- * Data structure containing a parsed command from the user.
- */
-export interface Command {
-    /**
-     * The actual underlying utterance from the user.
-     */
-    utterance : string;
-
-    /**
-     * The coarse type of the command.
-     *
-     * This will be a string containing the dialogue act, unless the dialogue act
-     * is `org.thingpedia.dialogue.transaction.execute`, in which case it will be a
-     * {@link CommandType}.
-     */
-    type : CommandType|string;
-
-    /**
-     * The dialogue act associated with the command.
-     */
-    dialogueAct : string;
-
-    /**
-     * The ThingTalk program (sequence of executable statements) associated with the command.
-     */
-    program : Ast.Program|null;
-}
 
 /**
  * The result of executing a ThingTalk program.
@@ -127,6 +85,9 @@ export interface ExecutionResult {
  * A parameter of this type is provided to the dialogue function.
  */
 export class DialogueInterface {
+    readonly locale : string;
+    readonly _ : (x : string) => string;
+
     /**
      * `true` if this dialogue is occurring during a real interaction with
      * the user, and `false` during synthesis.
@@ -159,20 +120,36 @@ export class DialogueInterface {
      */
     readonly rng : () => number;
 
+    private readonly _schemas : SchemaRetriever;
+    private readonly _deterministic : boolean;
+    private readonly _io : AbstractCommandIO;
+
+    private _dispatcher : CommandDispatcher;
     private _synthesisFunctions : Array<SynthesisFunction<Ast.DialogueState>>;
     private _sayBuffer : ReplacedResult[];
     private _nextAgentState : Ast.DialogueState|null;
 
     constructor(options : {
+        io : AbstractCommandIO,
+        dispatcher : CommandDispatcher,
+        locale : string,
+        schemaRetriever : SchemaRetriever,
         simulated : boolean,
         interactive : boolean,
+        deterministic : boolean,
         rng : () => number
     }) {
+        this.locale = options.locale;
         this.simulated = options.simulated;
         this.interactive = options.interactive;
         this.rng = options.rng;
         this.state = null;
+        this._schemas = options.schemaRetriever;
+        this._ = I18n.get(options.locale)._;
+        this._deterministic = options.deterministic;
+        this._io = options.io;
 
+        this._dispatcher = options.dispatcher;
         this._synthesisFunctions = [];
         this._sayBuffer = [];
         this._nextAgentState = null;
@@ -200,15 +177,16 @@ export class DialogueInterface {
      * @param options.acceptActions - fully qualified names of acceptable Thingpedia actions
      * @param options.acceptQueries - fully qualified names of acceptable Thingpedia queries
      */
-    async get(options ?: {
+    async get(options : {
         followUp ?: SynthesisFunction<Ast.DialogueState>,
         acceptActs ?: string[],
         acceptActions ?: string[],
         acceptQueries ?: string[],
-    }) : Promise<Command> {
+    } = {}) : Promise<Command> {
         // TODO send the current agent utterance to the output/synthesis
         console.log(this._nextAgentState);
-        throw new Error(`not implemented yet`);
+
+        return this._dispatcher.get(options);
     }
 
     /**
@@ -270,6 +248,19 @@ export class DialogueInterface {
         throw new Error(`not implemented`);
     }
 
+    private clone(withDispatcher : CommandDispatcher) : DialogueInterface {
+        return new DialogueInterface({
+            io: this._io,
+            dispatcher: withDispatcher,
+            locale: this.locale,
+            schemaRetriever: this._schemas,
+            simulated: this.simulated,
+            interactive: this.interactive,
+            deterministic: this._deterministic,
+            rng: this.rng
+        });
+    }
+
     /**
      * Nest a dialogue function.
      *
@@ -278,7 +269,7 @@ export class DialogueInterface {
      * by calls to {@link DialogueInterface.use})
      */
     async nest(fn : PolicyFunction) : Promise<void> {
-        const nested = new DialogueInterface(this);
+        const nested = this.clone(this._dispatcher);
         await fn(nested);
     }
 
@@ -293,9 +284,12 @@ export class DialogueInterface {
      * with an exception. This is similar to the behavior of `Promise.allSettled`.
      */
     async par(...fns : PolicyFunction[]) : Promise<void> {
-        const results = await Promise.allSettled(fns.map(async (fn) => {
-            // TODO: make this a parallel dialogue interface correctly
-            const nested = new DialogueInterface(this);
+        const parallel = new ParallelCommandDispatcher(this._io, fns.length, {
+            deterministic: this._deterministic,
+            rng: this.rng
+        });
+        const results = await Promise.allSettled(fns.map(async (fn, i) => {
+            const nested = this.clone(parallel.getDispatcher(i));
             await fn(nested);
         }));
 
@@ -320,11 +314,17 @@ export class DialogueInterface {
      * the {@link TerminatedDialogueError} and does not exit, this call will not resolve.
      */
     async any(...fns : PolicyFunction[]) : Promise<void> {
-        const results = await Promise.allSettled(fns.map(async (fn) => {
-            // TODO: make this the right dialogue interface
-            const nested = new DialogueInterface(this);
-            await fn(nested);
-
+        const parallel = new ParallelCommandDispatcher(this._io, fns.length, {
+            deterministic: this._deterministic,
+            rng: this.rng
+        });
+        const results = await Promise.allSettled(fns.map(async (fn, i) => {
+            const nested = this.clone(parallel.getDispatcher(i));
+            try {
+                await fn(nested);
+            } finally {
+                parallel.terminate();
+            }
             // TODO terminate the command dispatcher here
         }));
 
@@ -334,5 +334,20 @@ export class DialogueInterface {
                   result.reason instanceof TerminatedDialogueError))
                   throw result.reason;
         }
+    }
+
+    async _T(tmpls : TemplateStringsArray, ...exprs : Ast.Node[]) : Promise<Ast.Input> {
+        assert(tmpls.length === exprs.length+1);
+
+        let code = '';
+        for (let i = 0; i < tmpls.raw.length-1; i++) {
+            code += tmpls.raw[i];
+            code += exprs[i].prettyprint();
+        }
+        code += tmpls.raw[tmpls.raw.length-1];
+
+        const parsed = Syntax.parse(code);
+        await parsed.typecheck(this._schemas, true);
+        return parsed;
     }
 }
