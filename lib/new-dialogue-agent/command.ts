@@ -21,7 +21,8 @@
 import assert from 'assert';
 import { Ast } from 'thingtalk';
 
-const TRANSACTION_POLICY = 'org.thingpedia.dialogue.transaction';
+import * as ThingTalkUtils from '../utils/thingtalk';
+import { POLICY_NAME as TRANSACTION_POLICY } from '../templates/transactions';
 
 /**
  * Coarse classification of the kind of command issued by a user.
@@ -63,7 +64,19 @@ function getCommandType(cmd : Ast.ExpressionStatement) : CommandType {
     readonly type : CommandType|string;
 
     /**
-     * The dialogue state associated with the command.
+     * The dialogue state before the command was issued.
+     *
+     * This will be null if this is the first command in the dialogue.
+     */
+    readonly context : Ast.DialogueState|null;
+
+    /**
+     * The formal representation of the command.
+     */
+    readonly prediction : Ast.DialogueState;
+
+    /**
+     * The dialogue state immediately after the command.
      */
     readonly state : Ast.DialogueState;
 
@@ -72,25 +85,27 @@ function getCommandType(cmd : Ast.ExpressionStatement) : CommandType {
      */
     readonly program : Ast.Program|null;
 
-    constructor(utterance : string, state : Ast.DialogueState) {
+    constructor(utterance : string, context : Ast.DialogueState|null, prediction : Ast.DialogueState) {
         this.utterance = utterance;
-        this.state = state;
-
-        assert(state.history.every((item) => item.results === null));
-        if (this.state.history.length > 0)
-            this.program = new Ast.Program(null, [], [], [this.state.history[0].stmt]);
+        this.context = context;
+        this.prediction = prediction;
+        assert(prediction.history.every((item) => item.results === null));
+        if (prediction.history.length > 0)
+            this.program = new Ast.Program(null, [], [], [prediction.history[0].stmt]);
         else
             this.program = null;
 
-        if (this.state.policy === TRANSACTION_POLICY &&
-            this.state.dialogueAct === 'execute') {
-            if (this.state.history.length > 0)
-                this.type = getCommandType(this.state.history[0].stmt);
+        if (prediction.policy === TRANSACTION_POLICY &&
+            prediction.dialogueAct === 'execute') {
+            if (prediction.history.length > 0)
+                this.type = getCommandType(prediction.history[0].stmt);
             else
                 this.type = TRANSACTION_POLICY + '.invalid';
         } else {
-            this.type = this.state.policy + '.' + this.state.dialogueAct;
+            this.type = prediction.policy + '.' + prediction.dialogueAct;
         }
+
+        this.state = ThingTalkUtils.computeNewState(context, prediction, 'user');
     }
 
     /**

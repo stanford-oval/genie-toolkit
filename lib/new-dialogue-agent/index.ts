@@ -23,33 +23,34 @@ import { Ast, SchemaRetriever, Syntax, Type } from 'thingtalk';
 
 import * as I18n from '../i18n';
 
-import { DerivationKey, SemanticAction } from '../sentence-generator/types';
-import { PlaceholderReplacement, Replaceable, ReplacedResult } from '../utils/template-string';
+import {
+    SemanticAction,
+    ContextTable,
+    ContextPhrase,
+    Template,
+    TemplatePlaceholderMap,
+    AgentReply,
+    AgentReplyRecord
+} from '../sentence-generator/types';
+import { Replaceable, } from '../utils/template-string';
 import { Command, CommandType } from './command';
 export { Command, CommandType };
 import { UnexpectedCommandError, TerminatedDialogueError, CommandDispatcher, ParallelCommandDispatcher, AbstractCommandIO } from './cmd-dispatch';
 export { UnexpectedCommandError, TerminatedDialogueError };
+import type SentenceGenerator from '../sentence-generator/generator';
+import type { SentenceGeneratorOptions } from '../sentence-generator/generator';
+import type ThingpediaLoader from '../templates/load-thingpedia';
+import AbstractDialogueAgent from '../dialogue-agent/abstract_dialogue_agent';
 
 /**
  * This module contains the public API of the Genie dialogue scripting language.
  */
 
 /**
- * A single template for synthesis.
- *
- * This consists of a phrase with placeholders, a semantic function to compute the
- * formal representation, and an optional key to optimize matching templates
- * according to the rules of the semantic function.
- */
-export type Template<ArgTypes extends unknown[], ReturnType> =
-    [Replaceable, SemanticAction<ArgTypes, ReturnType>] |
-    [Replaceable, DerivationKey, SemanticAction<ArgTypes, ReturnType>];
-
-/**
  * A callback that computes all the relevant templates to use for synthesis
  * at the given state
  */
-export type SynthesisFunction<ReturnType> = (dlg : DialogueInterface) => Iterable<Template<any[], ReturnType>>;
+export type SynthesisFunction<ReturnType> = (dlg : DialogueInterface) => Iterable<Template<[Ast.DialogueState, ...any[]], ReturnType>>;
 
 /**
  * A callback that implements the logic of the agent.
@@ -78,8 +79,19 @@ export interface ExecutionResult {
     results : Ast.DialogueHistoryResultList|null;
 }
 
-interface Synthesizer {
-    synthesize(templates : Iterable<Template<any[], any>>) : void;
+export interface Synthesizer {
+    synthesize(templates : Iterable<[number|null, Template<[Ast.DialogueState, ...any[]], Ast.DialogueState>]>) : void;
+}
+
+function wrapAgentReplySemantics<T extends unknown[]>(semantics : SemanticAction<T, AgentReplyRecord|Ast.DialogueState>) : SemanticAction<T, AgentReplyRecord> {
+    return function(...args) {
+        const result = semantics(...args);
+        if (result === null)
+            return null;
+        if (result instanceof Ast.DialogueState)
+            return { meaning: result, numResults: 0 };
+        return result;
+    };
 }
 
 /**
@@ -114,55 +126,79 @@ export class DialogueInterface {
     readonly simulated : boolean;
 
     /**
-     * The current ThingTalk state of the dialogue (or null at the beginning of the dialogue).
-     */
-    state : Ast.DialogueState|null;
-
-    /**
      * The random number generator to use for non-deterministic choices.
      */
     readonly rng : () => number;
 
+    private readonly _parent : DialogueInterface|null;
     private readonly _langPack : I18n.LanguagePack;
     private readonly _schemas : SchemaRetriever;
     private readonly _deterministic : boolean;
     private readonly _io : AbstractCommandIO;
     private readonly _dispatcher : CommandDispatcher;
     private readonly _synthesizer : Synthesizer|undefined;
+    private readonly _executor : AbstractDialogueAgent<any>;
 
-    private readonly _synthesisFunctions : Array<SynthesisFunction<Ast.DialogueState>>;
-    private readonly _sayBuffer : ReplacedResult[];
-    private _nextAgentState : Ast.DialogueState|null;
-    private _numResults : number;
+    private _state : Ast.DialogueState|null;
+    private _execState : any|undefined = undefined;
+    private _inGet : boolean;
 
-    constructor(options : {
-        io : AbstractCommandIO,
-        dispatcher : CommandDispatcher,
-        synthesizer ?: Synthesizer,
-        locale : string,
-        schemaRetriever : SchemaRetriever,
-        simulated : boolean,
-        interactive : boolean,
-        deterministic : boolean,
-        rng : () => number
-    }) {
+    /**
+     * Functions to use for synthesis of the user turn.
+     *
+     * These templates are registered dynamically by calling {@link expect}
+     * while the agent runs. If they are registered inside a call to {@link either},
+     * they will be registered with a unique ID corresponding to that parallel
+     * branch of {@link either}, and will only be applicable to agent states that
+     * were generated in that either branch. Otherwise, they will be registered
+     * with `null` as the key.
+     */
+    private readonly _userTemplates : Map<number|null, Array<Template<[Ast.DialogueState, ...any[]], Ast.DialogueState>>>;
+    private _sayBuffer : AgentReply;
+    private _eitherTag : number;
+
+    constructor(parent : DialogueInterface|null,
+                options : {
+                    io : AbstractCommandIO,
+                    executor : AbstractDialogueAgent<any>,
+                    dispatcher : CommandDispatcher,
+                    synthesizer ?: Synthesizer,
+                    locale : string,
+                    schemaRetriever : SchemaRetriever,
+                    simulated : boolean,
+                    interactive : boolean,
+                    deterministic : boolean,
+                    rng : () => number
+                }) {
         this.locale = options.locale;
         this.simulated = options.simulated;
         this.interactive = options.interactive;
         this.rng = options.rng;
-        this.state = null;
+        this._state = null;
+        this._parent = parent;
         this._schemas = options.schemaRetriever;
         this._langPack = I18n.get(options.locale);
         this._ = this._langPack._;
         this._deterministic = options.deterministic;
         this._io = options.io;
+        this._executor = options.executor;
         this._synthesizer = options.synthesizer;
 
         this._dispatcher = options.dispatcher;
-        this._synthesisFunctions = [];
+        this._userTemplates = new Map;
         this._sayBuffer = [];
-        this._nextAgentState = null;
-        this._numResults = 0;
+        this._inGet = false;
+        this._eitherTag = 0;
+    }
+
+    /**
+     * The current ThingTalk state of the dialogue (or null at the beginning of the dialogue).
+     */
+    get state() : Ast.DialogueState|null {
+        if (this._parent)
+            return this._parent.state;
+        else
+            return this._state;
     }
 
     /**
@@ -182,7 +218,7 @@ export class DialogueInterface {
      * All other commands raise a {@link UnexpectedCommandError}.
      *
      * @param options - additional options controlling what kind of commands
-     * @param options.followUp - a synthesis function to apply only at this state
+     * @param options.followUp - templates to apply only at this state
      * @param options.expecting - a ThingTalk type of a single value that the agent expect; this
      *    used to configure the UI (keyboard, file/image pickers) for a specific type of input,
      *    and it has no other effect otherwise; use `null` to explicitly indicate that the agent
@@ -194,7 +230,7 @@ export class DialogueInterface {
      * @param options.acceptQueries - fully qualified names of acceptable Thingpedia queries
      */
     async get(options : {
-        followUp ?: SynthesisFunction<Ast.DialogueState>,
+        followUp ?: Iterable<Template<[Ast.DialogueState, ...any[]], Ast.DialogueState>>,
 
         expecting ?: Type|null,
         rawHandler ?: (cmd : string) => Ast.DialogueState|null,
@@ -202,39 +238,56 @@ export class DialogueInterface {
         acceptActions ?: string[],
         acceptQueries ?: string[],
     } = {}) : Promise<Command> {
-        if (this._sayBuffer.length > 0 && this._nextAgentState !== null) {
-            await this._io.emit({
-                state: this._nextAgentState,
-                expect: options.expecting === undefined ? Type.Any : options.expecting,
-                numResults: this._numResults
-            });
-        }
+        await this.flush();
+        if (this._inGet)
+            throw new Error(`Multiple reentrant or parallel calls to DialogueInterface.get are not allowed`);
+        this._inGet = true;
 
         if (this._synthesizer) {
-            const self = this;
-            const synthesisFunctions = this._synthesisFunctions;
-            this._synthesizer.synthesize(function*() {
-                if (options.followUp)
-                    yield *options.followUp(self);
-                for (const fn of synthesisFunctions)
-                    yield *fn(self);
+            const userTemplates = this._userTemplates;
+            this._synthesizer.synthesize(function*() : Iterable<[number|null, Template<[Ast.DialogueState, ...any[]], Ast.DialogueState>]> {
+                if (options.followUp) {
+                    for (const tmpl of options.followUp)
+                        yield [null, tmpl];
+                }
+                for (const [tag, templates] of userTemplates) {
+                    for (const tmpl of templates)
+                        yield [tag, tmpl];
+                }
             }());
         }
 
-        return this._dispatcher.get(options);
+        const cmd = await this._dispatcher.get(options);
+        this._state = cmd.state;
+
+        this._inGet = false;
+        return cmd;
     }
 
     /**
-     * Register a synthesis function to use at any state.
+     * Register a synthesis function recording what commands to expect at this
+     * point of the dialogue.
      *
      * This method can be called at the beginning of the dialogue function to
-     * register all relevant synthesis functions.
+     * register synthesis functions that are valid at any state, or it can be
+     * called inside a call to {@link either} to register synthesis functions
+     * that are valid in that state.
      *
      * The method has no effect outside of synthesis and it is safe to call
      * unconditionally.
      */
-    use(fn : SynthesisFunction<Ast.DialogueState>) {
-        this._synthesisFunctions.push(fn);
+    expect(templates : Iterable<Template<[Ast.DialogueState, ...any[]], Ast.DialogueState>>) {
+        if (!this._synthesizer)
+            return;
+
+        const tag = this._eitherTag === 0 ? null : this._eitherTag;
+        const list = this._userTemplates.get(tag);
+        if (list) {
+            for (const tmpl of templates)
+                list.push(tmpl);
+        } else {
+            this._userTemplates.set(tag, Array.from(templates));
+        }
     }
 
     /**
@@ -243,16 +296,16 @@ export class DialogueInterface {
      * This method can be called multiple times in a single turn, and the
      * messages are all concatenated.
      *
-     * If a dialogue state is specified, it will be passed to
-     * {@link DialogueInterface.addState}. If a semantic action is specified, the
-     * output of that semantic action will be passed to {@link DialogueInterface.addState}.
+     * If a dialogue state is specified, it will be used as the formal meaning of
+     * the current agent turn. If a semantic action is specified, the
+     * output of that semantic action will be used as the formal meaning of the turn.
+     * The semantic action receives as input the specified values of the placeholders
      */
-    say(tmpl : string, args ?: Record<string, PlaceholderReplacement|null>) : void;
+    say(tmpl : string, args ?: TemplatePlaceholderMap) : void;
     say(tmpl : string, semantics : Ast.DialogueState) : void;
-    say(tmpl : string, args : Record<string, PlaceholderReplacement|null>, semantics : SemanticAction<any[], Ast.DialogueState>) : void;
-
-    say(tmpl : string, argsOrState ?: Record<string, PlaceholderReplacement|null>|Ast.DialogueState, semantics ?: SemanticAction<any[], Ast.DialogueState>) {
-        let args : Record<string, PlaceholderReplacement|null>;
+    say(tmpl : string, args : TemplatePlaceholderMap, semantics : SemanticAction<any[], Ast.DialogueState|AgentReplyRecord>) : void;
+    say(tmpl : string, argsOrState ?: TemplatePlaceholderMap|Ast.DialogueState, semantics ?: SemanticAction<any[], Ast.DialogueState|AgentReplyRecord>) {
+        let args : TemplatePlaceholderMap;
         let state : Ast.DialogueState|undefined;
         if (argsOrState instanceof Ast.DialogueState) {
             state = argsOrState;
@@ -265,45 +318,36 @@ export class DialogueInterface {
             args = {};
         }
 
-        const replacements = [];
-        const values = [];
-        const names = [];
-        for (const key in args) {
-            names.push(key);
-            const value = args[key];
-            if (value === null)
-                return;
-            replacements.push(value);
-            values.push(value.value);
+        if (state) {
+            // assign to a local variable to remove "|undefined" from the type
+            const s2 = state;
+            semantics = () => s2;
         }
 
-        const replaced = Replaceable.get(tmpl, this._langPack, names).replace({
-            constraints: {},
-            replacements: replacements
-        });
-        if (replaced === null)
-            return;
+        const names = Object.keys(args);
+        const parsed = Replaceable.get(tmpl, this._langPack, names);
 
-        if (semantics) {
-            const value = semantics(...values);
-            if (value === null)
-                return;
-            this.addState(value);
-        } else if (state !== undefined) {
-            this.addState(state);
-        }
-        this._sayBuffer.push(replaced);
+        this._sayBuffer.push([parsed, args, semantics !== undefined ? wrapAgentReplySemantics(semantics) : (() => undefined)]);
     }
 
     /**
-     * Set the new agent state for the current turn.
+     * Flush all current output from the agent and show it to user.
      *
-     * This method csn be called multiple times in one turn, and each time the new
-     * agent state is merged with the existing state.
+     * Under normal circumstances, calls to {@link say} are buffered, and the
+     * buffer is flushed in the subsequent call to {@link get} or when the dialogue
+     * ends.
+     *
+     * This method can be used to force send the message immediately. It is useful
+     * in combination with timeouts.
+     *
+     * This method has no effect if {@link say} has not been called since the last
+     * flush.
      */
-    addState(newAgentState : Ast.DialogueState, numResults = 0) {
-        this._nextAgentState = newAgentState;
-        this._numResults = numResults;
+    async flush() {
+        if (this._sayBuffer.length > 0) {
+            await this._io.emit(this._sayBuffer, this._eitherTag);
+            this._sayBuffer = [];
+        }
     }
 
     /**
@@ -312,13 +356,29 @@ export class DialogueInterface {
      * The newly executed program is immediately appended to the current
      * dialogue state.
      */
-    execute(program : Ast.Program) : Promise<ExecutionResult> {
+    async execute(program : Ast.Program) : Promise<ExecutionResult> {
+        // TODO use program
+        if (this._parent) {
+            return this._parent.execute(program);
+        } else {
+            try {
+                const { newDialogueState, newExecutorState } = await this._executor.execute(this._state!, this._execState);
+                this._state = newDialogueState;
+                this._execState = newExecutorState;
+            } catch(e) {
+                console.error(`Failed to execute dialogue`);
+                console.error(this._state!.prettyprint());
+                throw e;
+            }
+        }
+
         throw new Error(`not implemented`);
     }
 
     private clone(withDispatcher : CommandDispatcher) : DialogueInterface {
-        return new DialogueInterface({
+        const clone = new DialogueInterface(this, {
             io: this._io,
+            executor: this._executor,
             dispatcher: withDispatcher,
             synthesizer: this._synthesizer,
             locale: this.locale,
@@ -328,6 +388,46 @@ export class DialogueInterface {
             deterministic: this._deterministic,
             rng: this.rng
         });
+        clone._state = this._state;
+        return clone;
+    }
+
+    /**
+     * Take a non-deterministic action.
+     *
+     * This method takes an iterable of functions, representing possible continuations
+     * of the dialogue. The functions are allowed to call {@link say}, {@link execute},
+     * and {@link addState}, but must _not_ call (directly or indirectly) {@link get},
+     * {@link flush}, or any of the nesting functions ({@link nest}, {@link par}, {@link any}).
+     *
+     * At synthesis time, all or a large sample of the actions are executed. Each action
+     * is executed sequentially.
+     * At inference time, the system non-deterministically chooses on action to execute.
+     *
+     * At the end of this call, the dialogue will be flushed, and the {@link state}
+     * property is undefined. You must not call {@link say}, or perform any action that
+     * depends on the state, before the next call to {@link get}.
+     *
+     * @param actions - possible actions to execute
+     */
+    async either(actions : Iterable<PolicyFunction>) {
+        if (this._deterministic) {
+            const first = actions[Symbol.iterator]().next();
+            if (first.done)
+                return;
+            await first.value(this);
+            await this.flush();
+        } else {
+            const state = this._state;
+            const initialEitherTag = this._eitherTag;
+            for (const action of actions) {
+                this._state = state;
+                this._eitherTag ++;
+                await action(this);
+                await this.flush();
+            }
+            this._eitherTag = initialEitherTag;
+        }
     }
 
     /**
@@ -340,6 +440,7 @@ export class DialogueInterface {
     async nest(fn : PolicyFunction) : Promise<void> {
         const nested = this.clone(this._dispatcher);
         await fn(nested);
+        this._state = nested._state;
     }
 
     /**
@@ -419,4 +520,40 @@ export class DialogueInterface {
         await parsed.typecheck(this._schemas, true);
         return parsed;
     }
+}
+
+/**
+ * The abstract interface of a dialogue policy module.
+ *
+ * This interface defines the functions that a policy module should export.
+ */
+ export interface PolicyModule {
+    /**
+     * The policy manifest.
+     *
+     * This is used to check the generated dialogue states for correctness.
+     */
+    MANIFEST : {
+        name : string,
+        terminalAct : string,
+        dialogueActs : {
+            user : readonly string[],
+            agent : readonly string[],
+            withParam : readonly string[]
+        },
+    },
+
+    initializeTemplates(agentOptions : SentenceGeneratorOptions, langPack : I18n.LanguagePack, grammar : SentenceGenerator, tpLoader : ThingpediaLoader) : Promise<void>;
+
+    policy(dlg : DialogueInterface) : Promise<void>;
+    getContextPhrasesForState(state : Ast.DialogueState|null, tpLoader : ThingpediaLoader, contextTable : ContextTable) : ContextPhrase[]|null;
+
+    interpretAnswer?(state : Ast.DialogueState, value : Ast.Value, tpLoader : ThingpediaLoader, contextTable : ContextTable) : Ast.DialogueState|null;
+
+    initialState?(tpLoader : ThingpediaLoader) : Ast.DialogueState|null;
+
+    notification?(appName : string | null, program : Ast.Program, result : Ast.DialogueHistoryResultItem) : Ast.DialogueState|null;
+    notifyError?(appName : string | null, program : Ast.Program, error : Ast.Value) : Ast.DialogueState|null;
+
+    getFollowUp?(state : Ast.DialogueState, tpLoader : ThingpediaLoader, contextTable : ContextTable) : Ast.DialogueState|null;
 }

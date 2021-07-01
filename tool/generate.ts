@@ -23,7 +23,7 @@ import seedrandom from 'seedrandom';
 import * as fs from 'fs';
 import * as Tp from 'thingpedia';
 
-import { BasicSentenceGenerator } from '../lib/sentence-generator/batch';
+import BasicSentenceGenerator from '../lib/sentence-generator/batch-sentence';
 import { DatasetStringifier } from '../lib/dataset-tools/parsers';
 import ProgressBar from './lib/progress_bar';
 import { ActionSetFlag } from './lib/argutils';

@@ -902,14 +902,7 @@ function makeAgentReply(ctx : ContextInfo,
         // here and skip a whole bunch of computation
 
         return {
-            state,
-            contextPhrases: [],
-            expect: expectedType,
-
-            end: end,
-            // if true, enter raw mode for this user's turn
-            // (this is used for slot filling free-form strings)
-            raw: !!options.raw,
+            meaning: state /* FIXME */,
 
             // the number of results we're describing at this turn
             // (this affects the number of result cards to show)
@@ -922,6 +915,7 @@ function makeAgentReply(ctx : ContextInfo,
     // to see if the continuation is compatible with the specific reply from the agent
     newContext.aux = aux;
 
+    /*
     let mainTag;
     if (state.dialogueAct === 'sys_generic_search_question')
         mainTag = contextTable.ctx_sys_search_question;
@@ -933,20 +927,10 @@ function makeAgentReply(ctx : ContextInfo,
         mainTag = contextTable.ctx_sys_action_success;
     else
         mainTag = contextTable['ctx_' + state.dialogueAct];
+    */
 
     return {
-        state,
-        contextPhrases: [
-            makeContextPhrase(ctx.contextTable.ctx_sys_any, newContext),
-            makeContextPhrase(mainTag, newContext),
-            ...getUserContextPhrases(newContext)
-        ],
-        expect: expectedType,
-
-        end: end,
-        // if true, enter raw mode for this user's turn
-        // (this is used for slot filling free-form strings)
-        raw: !!options.raw,
+        meaning: state /* FIXME */,
 
         // the number of results we're describing at this turn
         // (this affects the number of result cards to show)
@@ -957,7 +941,8 @@ function makeAgentReply(ctx : ContextInfo,
 function setEndBit(reply : AgentReplyRecord, value : boolean) : AgentReplyRecord {
     const newReply = {} as AgentReplyRecord;
     Object.assign(newReply, reply);
-    newReply.end = value;
+    // TODO
+    // newReply.end = value;
     return newReply;
 }
 

@@ -30,6 +30,7 @@ import * as D from './dialogue_acts';
 
 export * as Templates from './dialogue.genie.out';
 import { $load } from './dialogue.genie.out';
+import { DialogueInterface } from '../new-dialogue-agent';
 export {
     $load as initializeTemplates
 };
@@ -41,10 +42,15 @@ export {
  */
 
 /**
+ * The name of the dialogue policy
+ */
+export const POLICY_NAME = 'org.thingpedia.dialogue.transaction';
+
+/**
  * Metadata about this dialogue policy
  */
 export const MANIFEST = {
-    name: 'org.thingpedia.dialogue.transaction',
+    name: POLICY_NAME,
 
     dialogueActs: {
         user: [
@@ -125,6 +131,44 @@ export const MANIFEST = {
 
     terminalAct: 'sys_end'
 } as const;
+
+function simpleDialogueState(dialogueAct : string) {
+    return new Ast.DialogueState(null, S.POLICY_NAME, dialogueAct, null, []);
+}
+
+function greet(dlg : DialogueInterface) {
+    dlg.say(dlg._("{hello|hi}{!|,} {how can i help you|what are you interested in|what can i do for you}?"),
+        simpleDialogueState('sys_greet'));
+}
+
+/**
+ * The main entrypoint of the dialogue.
+ *
+ * @param dlg the interface to use to interact with the user
+ */
+export async function policy(dlg : DialogueInterface) {
+    // TODO call "expect" here a bunch of times to register the templates
+    dlg.expect([
+        ["TODO user", {}, (state) => simpleDialogueState('cancel')]
+    ]);
+
+    greet(dlg);
+
+    for (;;) {
+        const cmd = await dlg.get();
+
+        switch (cmd.type) {
+        case 'cancel':
+            dlg.say(dlg._("alright, let me know if I can help you with anything else!"), simpleDialogueState('sys_end'));
+            return;
+
+        default:
+            // all other cases
+        }
+
+        dlg.say(dlg._("TODO agent"), simpleDialogueState('sys_todo'));
+    }
+}
 
 /**
  * Extract all the relevant context phrases for the given state.

@@ -30,6 +30,7 @@ import ValueCategory from '../value-category';
 import StatementSimulator, {
     ThingTalkSimulatorState,
 } from './statement_simulator';
+export { ThingTalkSimulatorState };
 import { SimulationDatabase } from './types';
 import { getAllDevicesOfKind } from './helpers';
 

@@ -24,6 +24,7 @@ import { Ast, Type } from 'thingtalk';
 import { split } from '../utils/misc-utils';
 import { Command, CommandType } from './command';
 import { uniform } from '../utils/random';
+import { AgentReply } from '../sentence-generator/types';
 
 export class UnexpectedCommandError extends Error {
     code = 'ERR_UNEXPECTED_COMMAND' as const;
@@ -42,6 +43,7 @@ export class TerminatedDialogueError extends Error {
 }
 
 interface GetCommandOptions {
+    expecting ?: Type|null;
     rawHandler ?: (cmd : string) => Ast.DialogueState|null;
     acceptActs ?: string[];
     acceptActions ?: string[];
@@ -49,31 +51,29 @@ interface GetCommandOptions {
     acceptStreams ?: boolean;
 }
 
-export interface AgentReplyRecord {
-    state : Ast.DialogueState;
-    expect : Type|null;
-    numResults : number;
-}
-
 /**
  * Abstract interface to interact with the user.
  *
  * The ThingTalkDialogueHandler implements this interface at runtime, and the
  * SynthesisCommandQueue implements this interface at synthesis time.
- *
- * Calls to this method must be paired correctly: it is an error to have two
- * consecutive calls to {@link next} or two consecutive calls to {@link reply}.
  */
 export interface AbstractCommandIO {
     /**
      * Fetch the next command from the user.
      */
-    get() : Promise<Command>;
+    get(expecting : Type|null) : Promise<Command>;
 
     /**
      * Emit the next reply from the agent.
+     *
+     * At synthesis time, this can be called multiple times with different `tag`s
+     * to produce multiple potential replies. At inference time, this must be paired
+     * with a single call to {@link get} exactly.
+     *
+     * @param reply - the reply from the agent
+     * @param tag - a tag to use at synthesis time to identify this specific reply
      */
-    emit(reply : AgentReplyRecord) : void;
+    emit(reply : AgentReply, tag : number) : Promise<void>;
 }
 
 const enum Compatibility {
@@ -189,7 +189,7 @@ export class SimpleCommandDispatcher implements CommandDispatcher {
         if (this._inGet)
             throw new Error(`Concurrent calls to DialogueInterface.get are not allowed. Use DialogueInterface.par or DialogueInterface.any instead`);
         this._inGet = true;
-        const cmd = await this._io.get();
+        const cmd = await this._io.get(options.expecting === undefined ? Type.Any : options.expecting);
         this._inGet = false;
 
         const compat = isCommandCompatible(cmd, options);
@@ -197,7 +197,7 @@ export class SimpleCommandDispatcher implements CommandDispatcher {
             const handled = options.rawHandler!(cmd.utterance);
             if (handled === null)
                 throw new UnexpectedCommandError(cmd);
-            return new Command(cmd.utterance, handled);
+            return new Command(cmd.utterance, cmd.state, handled);
         }
 
         if (compat === Compatibility.NONE)
@@ -285,7 +285,16 @@ export class ParallelCommandDispatcher {
         if (this._waiters.some((state) => state.promise === null))
             return;
 
-        this._io.get().then((cmd) => {
+        let expecting : Type|null = null;
+        for (const waiter of this._waiters) {
+            if (waiter.getCmdOptions!.expecting !== null) {
+                if (expecting === null)
+                    expecting = waiter.getCmdOptions!.expecting ?? Type.Any;
+                else if (waiter.getCmdOptions!.expecting !== Type.Any && waiter.getCmdOptions!.expecting !== expecting)
+                    expecting = Type.Any;
+            }
+        }
+        this._io.get(expecting).then((cmd) => {
             const compat = this._waiters.map((state) => isCommandCompatible(cmd, state.getCmdOptions!));
 
             // first check for some waiting dialogue in raw mode
@@ -293,7 +302,7 @@ export class ParallelCommandDispatcher {
             for (const choice of raw) {
                 const handled = choice.getCmdOptions!.rawHandler!(cmd.utterance);
                 if (handled !== null) {
-                    const cmd2 = new Command(cmd.utterance, handled);
+                    const cmd2 = new Command(cmd.utterance, cmd.state, handled);
                     choice.resolve!(cmd2);
                     choice.promise = null;
                     choice.resolve = null;

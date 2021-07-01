@@ -25,7 +25,8 @@ import { Ast, Type, SchemaRetriever, Syntax } from 'thingtalk';
 
 import * as I18n from '../i18n';
 import SentenceGenerator, { SentenceGeneratorOptions } from '../sentence-generator/generator';
-import { AgentReplyRecord, PolicyModule } from '../sentence-generator/types';
+import { AgentReplyRecord } from '../sentence-generator/types';
+import { PolicyModule } from '../new-dialogue-agent';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import { EntityMap } from '../utils/entity-utils';
 import { Derivation } from '../sentence-generator/runtime';
@@ -212,13 +213,14 @@ export default class DialoguePolicy {
             return derivation;
 
         let utterance = derivation.chooseBestSentence();
-        utterance = this._langPack.postprocessSynthetic(utterance, derivation.value.state, this._rng, 'agent');
+        utterance = this._langPack.postprocessSynthetic(utterance, derivation.value.meaning, this._rng, 'agent');
 
+        const newState = ThingTalkUtils.computeNewState(state, derivation.value.meaning, 'agent');
         return {
-            state: derivation.value.state,
-            end: derivation.value.end,
-            expect: derivation.value.expect,
-            raw: derivation.value.raw,
+            state: newState,
+            end: /* TODO */ false,
+            expect: /* TODO */ null,
+            raw: /* TODO */ false,
             utterance,
             entities: this._entityAllocator.entities,
             numResults: derivation.value.numResults

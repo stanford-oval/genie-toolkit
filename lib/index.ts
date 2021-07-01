@@ -18,8 +18,6 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import { BasicSentenceGenerator, DialogueGenerator } from './sentence-generator/batch';
-
 import DatasetAugmenter from './dataset-tools/augmentation';
 import {
     DatasetParser,
@@ -48,6 +46,8 @@ import AssistantEngine from './engine';
 import * as EngineModules from './engine';
 import * as DialogueAgent from './dialogue-agent';
 
+import BatchSentenceGenerator from './sentence-generator/batch-sentence';
+import DialogueGenerator from './sentence-generator/dialogue-generator';
 import SentenceGenerator from './sentence-generator/generator';
 import * as SentenceGeneratorRuntime from './sentence-generator/runtime';
 import * as SentenceGeneratorTypes from './sentence-generator/types';
@@ -57,7 +57,7 @@ import ThingpediaLoader from './templates/load-thingpedia';
 
 export {
     // sentence generation
-    BasicSentenceGenerator,
+    BatchSentenceGenerator,
     DialogueGenerator,
     SentenceGenerator,
     SentenceGeneratorRuntime,

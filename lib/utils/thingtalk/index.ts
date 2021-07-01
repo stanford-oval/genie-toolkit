@@ -20,9 +20,8 @@
 
 
 import assert from 'assert';
-import { Ast, SchemaRetriever } from 'thingtalk';
+import { Ast, } from 'thingtalk';
 
-import SimulationDialogueAgent, { SimulationDialogueAgentOptions } from '../../dialogue-agent/simulator/simulation_dialogue_agent';
 import { extractConstants, createConstants } from './constants';
 export * from './describe';
 export * from './syntax';
@@ -30,13 +29,8 @@ export * from './dialogue_state_utils';
 import { computePrediction } from './dialogue_state_utils';
 // reexport clean, tokenizeExample from misc-utils
 import { clean, tokenizeExample } from '../misc-utils';
-import { PolicyModule } from '../../sentence-generator/types';
+import { PolicyModule } from '../../new-dialogue-agent';
 export { clean, tokenizeExample };
-
-export type Input = Ast.Input;
-export type DialogueState = Ast.DialogueState;
-export type Simulator = SimulationDialogueAgent;
-export type SimulatorOptions = SimulationDialogueAgentOptions;
 
 export {
     extractConstants,
@@ -56,13 +50,6 @@ function validateState(state : Ast.DialogueState, forTarget : 'user'|'agent') : 
         for (const item of state.history)
             assert(item.confirm !== 'confirmed' || item.results !== null);
     }
-}
-
-export function createSimulator(options : SimulationDialogueAgentOptions) : SimulationDialogueAgent {
-    const tpClient = options.thingpediaClient;
-    if (!options.schemaRetriever)
-        options.schemaRetriever = new SchemaRetriever(tpClient!, null, true);
-    return new SimulationDialogueAgent(options);
 }
 
 /**

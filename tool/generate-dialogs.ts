@@ -23,8 +23,9 @@ import * as fs from 'fs';
 import JSONStream from 'JSONStream';
 import * as Tp from 'thingpedia';
 import seedrandom from 'seedrandom';
+import { SchemaRetriever } from 'thingtalk';
 
-import { DialogueGenerator } from '../lib/sentence-generator/batch';
+import DialogueGenerator from '../lib/sentence-generator/dialogue-generator';
 import * as StreamUtils from '../lib/utils/stream-utils';
 import { DialogueSerializer } from '../lib/dataset-tools/parsers';
 
@@ -163,6 +164,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
 
 export async function execute(args : any) {
     const tpClient = new Tp.FileClient(args);
+    const schemas = new SchemaRetriever(tpClient);
     const options = {
         rng: seedrandom.alea(args.random_seed),
         locale: args.locale,
@@ -171,6 +173,7 @@ export async function execute(args : any) {
         policy: args.policy,
         targetLanguage: args.target_language,
         thingpediaClient: tpClient,
+        schemaRetriever: schemas,
         maxDepth: args.maxdepth,
         targetPruningSize: args.target_pruning_size,
         maxTurns: args.max_turns,

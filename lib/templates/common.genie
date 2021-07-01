@@ -53,6 +53,11 @@ keyfn = {
     C.ErrorMessage : C.errorMessageKeyFn,
     C.ExpressionWithCoreference : C.expressionWithCoreferenceKeyFn,
 }
+// declare contexts used internally
+context : unknown = {
+    ctx_dynamic_any,
+    ctx_sys_dynamic_any
+};
 
 // Thingpedia Grammar Rules
 

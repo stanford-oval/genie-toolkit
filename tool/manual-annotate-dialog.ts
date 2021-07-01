@@ -40,6 +40,7 @@ import {
 
 import { readAllLines } from './lib/argutils';
 import MultiJSONDatabase from './lib/multi_json_database';
+import SimulationDialogueAgent, { SimulationDialogueAgentOptions } from '../lib/dialogue-agent/simulator/simulation_dialogue_agent';
 
 interface AnnotatorOptions {
     locale : string;
@@ -69,7 +70,7 @@ class Annotator extends events.EventEmitter {
     private _schemas : ThingTalk.SchemaRetriever;
     private _userParser : ParserClient.ParserClient;
     private _agentParser : ParserClient.ParserClient;
-    private _simulator : ThingTalkUtils.Simulator;
+    private _simulator : SimulationDialogueAgent;
     private _simulatorOverrides : Map<string, string>;
     private _database : MultiJSONDatabase|undefined;
 
@@ -110,7 +111,7 @@ class Annotator extends events.EventEmitter {
         this._agentParser = ParserClient.get(options.agent_nlu_server, options.locale);
 
         this._simulatorOverrides = new Map;
-        const simulatorOptions : ThingTalkUtils.SimulatorOptions = {
+        const simulatorOptions : SimulationDialogueAgentOptions = {
             rng: seedrandom.alea('almond is awesome'),
             locale: options.locale,
             timezone: options.timezone,
@@ -124,7 +125,7 @@ class Annotator extends events.EventEmitter {
             simulatorOptions.database = this._database;
         }
 
-        this._simulator = ThingTalkUtils.createSimulator(simulatorOptions);
+        this._simulator = new SimulationDialogueAgent(simulatorOptions);
 
         this._state = 'loading';
 

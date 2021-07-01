@@ -268,6 +268,8 @@ interface ReplacementContext {
 export abstract class Replaceable {
     private static _cache = new Map<string, Replaceable>();
 
+    static EMPTY : Replaceable;
+
     /**
      * Parse a template string into a replaceable object.
      */
@@ -422,6 +424,7 @@ export class Phrase extends Replaceable {
         return new ReplacedConcatenation([this.text], this.flags, {});
     }
 }
+Replaceable.EMPTY = new Phrase('');
 
 function mergeConstraints(into : PlaceholderConstraints, newConstraints : PlaceholderConstraints) {
     for (const placeholder in newConstraints) {

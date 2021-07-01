@@ -34,6 +34,7 @@ import MultiJSONDatabase from './lib/multi_json_database';
 import ProgressBar from './lib/progress_bar';
 import { getBestEntityMatch } from '../lib/dialogue-agent/entity-linking/entity-finder';
 import * as ThingTalkUtils from '../lib/utils/thingtalk';
+import SimulationDialogueAgent, { SimulationDialogueAgentOptions } from '../lib/dialogue-agent/simulator/simulation_dialogue_agent';
 
 function undoTradePreprocessing(sentence : string) : string {
     return sentence.replace(/ -(ly|s)/g, '$1').replace(/\b24:([0-9]{2})\b/g, '00:$1');
@@ -268,7 +269,7 @@ class Converter extends stream.Readable {
     private _agentParser : ParserClient.ParserClient;
     private _simulatorOverrides : Map<string, string>;
     private _database : MultiJSONDatabase;
-    private _simulator : ThingTalkUtils.Simulator;
+    private _simulator : SimulationDialogueAgent;
 
     private _onlyMultidomain : boolean;
     private _useExisting : boolean;
@@ -288,7 +289,7 @@ class Converter extends stream.Readable {
         this._maxTurn = args.max_turn;
 
         this._simulatorOverrides = new Map;
-        const simulatorOptions : ThingTalkUtils.SimulatorOptions = {
+        const simulatorOptions : SimulationDialogueAgentOptions = {
             rng: seedrandom.alea('almond is awesome'),
             locale: 'en-US',
             timezone: args.timezone,
@@ -299,7 +300,7 @@ class Converter extends stream.Readable {
         };
         this._database = new MultiJSONDatabase(args.database_file);
         simulatorOptions.database = this._database;
-        this._simulator = ThingTalkUtils.createSimulator(simulatorOptions);
+        this._simulator = new SimulationDialogueAgent(simulatorOptions);
 
         this._n = 0;
         this._N = 0;

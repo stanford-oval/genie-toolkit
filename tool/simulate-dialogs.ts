@@ -27,6 +27,9 @@ import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
 
 import * as ThingTalkUtils from '../lib/utils/thingtalk';
+import SimulationDialogueAgent, {
+    SimulationDialogueAgentOptions
+} from '../lib/dialogue-agent/simulator/simulation_dialogue_agent';
 import * as StreamUtils from '../lib/utils/stream-utils';
 import {
     DialogueParser,
@@ -123,7 +126,7 @@ export function initArgparse(subparsers : argparse.SubParser) {
 }
 
 class SimulatorStream extends Stream.Transform {
-    private _simulator : ThingTalkUtils.Simulator;
+    private _simulator : SimulationDialogueAgent;
     private _schemas : ThingTalk.SchemaRetriever;
     private _dialoguePolicy : DialoguePolicy;
     private _parser : ParserClient.ParserClient | null;
@@ -133,7 +136,7 @@ class SimulatorStream extends Stream.Transform {
     private _langPack : I18n.LanguagePack;
 
     constructor(policy : DialoguePolicy,
-                simulator : ThingTalkUtils.Simulator,
+                simulator : SimulationDialogueAgent,
                 schemas : ThingTalk.SchemaRetriever,
                 parser : ParserClient.ParserClient | null,
                 tpClient : Tp.BaseClient,
@@ -303,7 +306,7 @@ export async function execute(args : any) {
     const tpClient = new FileThingpediaClient(args);
     const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
 
-    const simulatorOptions : ThingTalkUtils.SimulatorOptions = {
+    const simulatorOptions : SimulationDialogueAgentOptions = {
         rng: seedrandom.alea('almond is awesome'),
         locale: args.locale,
         timezone: args.timezone,
@@ -316,7 +319,7 @@ export async function execute(args : any) {
         await database.load();
         simulatorOptions.database = database;
     }
-    const simulator = ThingTalkUtils.createSimulator(simulatorOptions);
+    const simulator = new SimulationDialogueAgent(simulatorOptions);
     const policy = new DialoguePolicy({
         thingpedia: tpClient,
         schemas: schemas,

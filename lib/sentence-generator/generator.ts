@@ -545,6 +545,7 @@ export default class SentenceGenerator extends events.EventEmitter {
     private _nonTermList : string[];
     private _rules : Array<Array<Rule<any[], any>>>;
     private _contextTable : Record<string, number>;
+    private _dynamicNonTerm : number;
 
     private _constantMap : MultiMap<string, [number, KeyFunction<any>]>;
 
@@ -586,6 +587,8 @@ export default class SentenceGenerator extends events.EventEmitter {
         this._charts = undefined;
 
         this._progress = 0;
+
+        this._dynamicNonTerm = this._internalDeclareSymbol('$dynamic');
     }
 
     get tpLoader() {
@@ -746,6 +749,7 @@ export default class SentenceGenerator extends events.EventEmitter {
         for (let nonTermIndex = 0; nonTermIndex < this._nonTermList.length; nonTermIndex++)
             this._nonTermHasContext.push(false);
 
+        this._nonTermHasContext[this._dynamicNonTerm] = true;
         for (const index of Object.values(this._contextTable))
             this._nonTermHasContext[index] = true;
 
@@ -989,6 +993,8 @@ export default class SentenceGenerator extends events.EventEmitter {
      * @param hard - whether to reset all derivations or only those that depend on the context
      */
     reset(hard ?: boolean) {
+        this._rules[this._dynamicNonTerm] = [];
+
         if (!this._charts)
             return;
         if (hard) {
@@ -1169,6 +1175,16 @@ export default class SentenceGenerator extends events.EventEmitter {
     private *_getAllDerivations(nonTermIndex : number) : IterableIterator<Derivation<any>> {
         for (let depth = 0; depth <= this._options.maxDepth; depth++)
             yield* this._charts!.getAtDepth(nonTermIndex, depth);
+    }
+
+    /**
+     * Add a dynamically generate template.
+     */
+    addDynamicRule<ArgTypes extends unknown[], ResultType>(expansion : NonTerminal[],
+                                                           sentence : Replaceable,
+                                                           semanticAction : SemanticAction<ArgTypes, ResultType>,
+                                                           attributes : RuleAttributes = {}) : void {
+        this._addRuleInternal(this._dynamicNonTerm, expansion, sentence, semanticAction, undefined, attributes);
     }
 
     /**

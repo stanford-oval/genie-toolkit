@@ -51,10 +51,12 @@ export {
 };
 
 import {
-    DerivationKeyValue,
     DerivationKey,
     SemanticAction,
-    KeyFunction
+    KeyFunction,
+    RelativeKeyConstraint,
+    ConstantKeyConstraint,
+    NonTerminalKeyConstraint
 } from './types';
 
 const LogLevel = {
@@ -202,20 +204,6 @@ class Derivation<ValueType> {
     }
 }
 
-/**
- * Equality of key compared to another non-terminal.
- *
- * The values are [our index name, the 0-based position of the other non-terminal, the other index name].
- */
-type RelativeKeyConstraint = [string, number, string];
-
-/**
- * Equality of key compared to a constant value.
- *
- * The constraint store [our index name, the comparison value].
- */
-type ConstantKeyConstraint = [string, DerivationKeyValue];
-
 class NonTerminal {
     symbol : string;
     name : string|undefined;
@@ -224,7 +212,7 @@ class NonTerminal {
     relativeKeyConstraint : RelativeKeyConstraint|undefined = undefined;
     constantKeyConstraint : ConstantKeyConstraint|undefined = undefined;
 
-    constructor(symbol : string, name ?: string, constraint ?: RelativeKeyConstraint|ConstantKeyConstraint) {
+    constructor(symbol : string, name ?: string, constraint ?: NonTerminalKeyConstraint) {
         this.symbol = symbol;
         this.name = name;
         this.index = -1;

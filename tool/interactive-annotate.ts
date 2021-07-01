@@ -45,6 +45,7 @@ import * as I18n from '../lib/i18n';
 
 import MultiJSONDatabase from './lib/multi_json_database';
 import Platform from './lib/cmdline-platform';
+import SimulationDialogueAgent, { SimulationDialogueAgentOptions } from '../lib/dialogue-agent/simulator/simulation_dialogue_agent';
 
 interface AnnotatorOptions {
     locale : string;
@@ -101,7 +102,7 @@ class Annotator extends events.EventEmitter {
         if (options.execution_mode === 'simulation') {
             this._schemas = new ThingTalk.SchemaRetriever(this._tpClient, null, true);
 
-            const simulatorOptions : ThingTalkUtils.SimulatorOptions = {
+            const simulatorOptions : SimulationDialogueAgentOptions = {
                 rng: seedrandom.alea('almond is awesome'),
                 locale: options.locale,
                 timezone: options.timezone,
@@ -114,7 +115,7 @@ class Annotator extends events.EventEmitter {
                 simulatorOptions.database = this._simulatorDatabase;
             }
 
-            this._executor = ThingTalkUtils.createSimulator(simulatorOptions);
+            this._executor = new SimulationDialogueAgent(simulatorOptions);
         } else {
             this._engine = new Engine(this._platform);
             this._executor = new ExecutionDialogueAgent(this._engine, this, false);

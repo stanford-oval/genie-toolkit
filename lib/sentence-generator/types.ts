@@ -19,14 +19,10 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import * as Tp from 'thingpedia';
-import { Type, SchemaRetriever, Syntax, Ast } from 'thingtalk';
+import { SchemaRetriever, Syntax, Ast } from 'thingtalk';
 
-import * as I18n from '../i18n';
 import { Hashable } from '../utils/hashmap';
-import { ReplacedResult } from '../utils/template-string';
-import type SentenceGenerator from './generator';
-import type { SentenceGeneratorOptions } from './generator';
-import type ThingpediaLoader from '../templates/load-thingpedia';
+import { PlaceholderReplacement, ReplacedResult } from '../utils/template-string';
 
 export interface RuleAttributes {
     weight ?: number;
@@ -63,15 +59,6 @@ export interface ContextPhrase {
 
 export type ContextTable = Record<string, number>;
 
-export interface AgentReplyRecord {
-    state : Ast.DialogueState;
-    contextPhrases : ContextPhrase[];
-    expect : Type|null;
-    end : boolean;
-    raw : boolean;
-    numResults : number;
-}
-
 // options passed to the templates
 export interface GrammarOptions {
     thingpediaClient : Tp.BaseClient;
@@ -95,36 +82,69 @@ export type NonTerminal<ValueType> = ValueType extends unknown ? string : never;
 // an unused type argument, and it hides the type definition from typedoc
 
 /**
- * The abstract interface of a dialogue policy module.
+ * Equality of key compared to another non-terminal.
  *
- * This interface defines the functions that a policy module should export.
+ * The values are [our index name, the 0-based position of the other non-terminal, the other index name].
  */
-export interface PolicyModule {
+export type RelativeKeyConstraint = [string, number, string];
+
+/**
+ * Equality of key compared to a constant value.
+ *
+ * The constraint store [our index name, the comparison value].
+ */
+export type ConstantKeyConstraint = [string, DerivationKeyValue];
+
+/**
+ * A constraint on the content of a non-terminal.
+ *
+ * Constraints are expressed using the `<>` syntax in the Genie template
+ * language, and are used to speed-up synthesis by avoiding repeated calls
+ * to the semantic function.
+ */
+export type NonTerminalKeyConstraint = RelativeKeyConstraint | ConstantKeyConstraint;
+
+/**
+ * A mapping defining the meaning of placeholders in a template.
+ *
+ * `null` is allowed in the mapping for convenience. If any replacement is `null`,
+ * the whole template is discarded.
+ */
+export type TemplatePlaceholderMap = Record<string, NonTerminal<any>|[NonTerminal<any>, ...NonTerminalKeyConstraint]|PlaceholderReplacement|null>
+
+/**
+ * A single template for synthesis.
+ *
+ * This consists of a phrase with placeholders and a semantic function to compute the
+ * formal representation. The arguments to the semantic function depend on the declared
+ * placeholders, and the purpose of the template.
+ */
+export type Template<ArgTypes extends unknown[], ReturnType> =
+    [string, TemplatePlaceholderMap, SemanticAction<ArgTypes, ReturnType>];
+
+/**
+ * The reply of the agent at one turn.
+ *
+ * This is an array of messages, concatenated together, expressed
+ * in the form of templates. The last non-void semantics are used
+ * as the overall semantics of the turn.
+ */
+ export type AgentReply = Array<Template<any[], AgentReplyRecord|void>>;
+
+/**
+ * Formally represent a single concrete action taken by the agent at this turn.
+ */
+ export interface AgentReplyRecord {
     /**
-     * The policy manifest.
-     *
-     * This is used to check the generated dialogue states for correctness.
+     * The formal representation of the agent utterance in ThingTalk.
      */
-    MANIFEST : {
-        name : string,
-        terminalAct : string,
-        dialogueActs : {
-            user : readonly string[],
-            agent : readonly string[],
-            withParam : readonly string[]
-        },
-    },
+    meaning : Ast.DialogueState;
 
-    initializeTemplates(agentOptions : SentenceGeneratorOptions, langPack : I18n.LanguagePack, grammar : SentenceGenerator, tpLoader : ThingpediaLoader) : Promise<void>;
-
-    getContextPhrasesForState(state : Ast.DialogueState|null, tpLoader : ThingpediaLoader, contextTable : ContextTable) : ContextPhrase[]|null;
-
-    interpretAnswer?(state : Ast.DialogueState, value : Ast.Value, tpLoader : ThingpediaLoader, contextTable : ContextTable) : Ast.DialogueState|null;
-
-    initialState?(tpLoader : ThingpediaLoader) : Ast.DialogueState|null;
-
-    notification?(appName : string | null, program : Ast.Program, result : Ast.DialogueHistoryResultItem) : Ast.DialogueState|null;
-    notifyError?(appName : string | null, program : Ast.Program, error : Ast.Value) : Ast.DialogueState|null;
-
-    getFollowUp?(state : Ast.DialogueState, tpLoader : ThingpediaLoader, contextTable : ContextTable) : Ast.DialogueState|null;
+    /**
+     * The number of results that the agent is talking about at this turn.
+     *
+     * This affects the presentation of non-textual elements (cards, media objects)
+     * associated with this agent turn.
+     */
+    numResults : number;
 }
