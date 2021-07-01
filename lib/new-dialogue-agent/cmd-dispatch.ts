@@ -19,12 +19,11 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import escapeStringRegexp from 'escape-string-regexp';
-import { Ast } from 'thingtalk';
+import { Ast, Type } from 'thingtalk';
 
 import { split } from '../utils/misc-utils';
 import { Command, CommandType } from './command';
 import { uniform } from '../utils/random';
-import { AgentReplyRecord } from '../sentence-generator/types';
 
 export class UnexpectedCommandError extends Error {
     code = 'ERR_UNEXPECTED_COMMAND' as const;
@@ -43,10 +42,17 @@ export class TerminatedDialogueError extends Error {
 }
 
 interface GetCommandOptions {
+    rawHandler ?: (cmd : string) => Ast.DialogueState|null;
     acceptActs ?: string[];
     acceptActions ?: string[];
     acceptQueries ?: string[];
     acceptStreams ?: boolean;
+}
+
+export interface AgentReplyRecord {
+    state : Ast.DialogueState;
+    expect : Type|null;
+    numResults : number;
 }
 
 /**
@@ -67,7 +73,7 @@ export interface AbstractCommandIO {
     /**
      * Emit the next reply from the agent.
      */
-    emit(reply : AgentReplyRecord<Ast.DialogueState>) : void;
+    emit(reply : AgentReplyRecord) : void;
 }
 
 const enum Compatibility {
@@ -82,7 +88,11 @@ const enum Compatibility {
     /**
      * Compatible because the dialogue handler specifies the dialogue act/function exactly.
      */
-    PERFECT
+    PERFECT,
+    /**
+     * Compatible because there is a raw handler
+     */
+    RAW
 }
 
 function patternToRegExp(pattern : string) {
@@ -111,6 +121,9 @@ function wildCardMatch(pattern : string, str : string) {
 }
 
 function isCommandCompatible(cmd : Command, options : GetCommandOptions) : Compatibility {
+    if (options.rawHandler)
+        return Compatibility.RAW;
+
     if (cmd.type === CommandType.THINGTALK_ACTION) {
         if (!options.acceptActions)
             return Compatibility.NONE;
@@ -180,6 +193,13 @@ export class SimpleCommandDispatcher implements CommandDispatcher {
         this._inGet = false;
 
         const compat = isCommandCompatible(cmd, options);
+        if (compat === Compatibility.RAW) {
+            const handled = options.rawHandler!(cmd.utterance);
+            if (handled === null)
+                throw new UnexpectedCommandError(cmd);
+            return new Command(cmd.utterance, handled);
+        }
+
         if (compat === Compatibility.NONE)
             throw new UnexpectedCommandError(cmd);
 
@@ -267,6 +287,20 @@ export class ParallelCommandDispatcher {
 
         this._io.get().then((cmd) => {
             const compat = this._waiters.map((state) => isCommandCompatible(cmd, state.getCmdOptions!));
+
+            // first check for some waiting dialogue in raw mode
+            const raw = this._waiters.filter((w, i) => compat[i] === Compatibility.RAW);
+            for (const choice of raw) {
+                const handled = choice.getCmdOptions!.rawHandler!(cmd.utterance);
+                if (handled !== null) {
+                    const cmd2 = new Command(cmd.utterance, handled);
+                    choice.resolve!(cmd2);
+                    choice.promise = null;
+                    choice.resolve = null;
+                    choice.reject = null;
+                    return;
+                }
+            }
 
             // first check if some of the waiting dialogues can handle the command perfectly
 

@@ -19,7 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import assert from 'assert';
-import { Ast, SchemaRetriever, Syntax } from 'thingtalk';
+import { Ast, SchemaRetriever, Syntax, Type } from 'thingtalk';
 
 import * as I18n from '../i18n';
 
@@ -56,7 +56,6 @@ export type SynthesisFunction<ReturnType> = (dlg : DialogueInterface) => Iterabl
  */
 export type PolicyFunction = (dlg : DialogueInterface) => Promise<void>;
 
-
 /**
  * The result of executing a ThingTalk program.
  */
@@ -77,6 +76,10 @@ export interface ExecutionResult {
      * results could be fetched from the API, and whether any error occurred.
      */
     results : Ast.DialogueHistoryResultList|null;
+}
+
+interface Synthesizer {
+    synthesize(templates : Iterable<Template<any[], any>>) : void;
 }
 
 /**
@@ -120,18 +123,22 @@ export class DialogueInterface {
      */
     readonly rng : () => number;
 
+    private readonly _langPack : I18n.LanguagePack;
     private readonly _schemas : SchemaRetriever;
     private readonly _deterministic : boolean;
     private readonly _io : AbstractCommandIO;
+    private readonly _dispatcher : CommandDispatcher;
+    private readonly _synthesizer : Synthesizer|undefined;
 
-    private _dispatcher : CommandDispatcher;
-    private _synthesisFunctions : Array<SynthesisFunction<Ast.DialogueState>>;
-    private _sayBuffer : ReplacedResult[];
+    private readonly _synthesisFunctions : Array<SynthesisFunction<Ast.DialogueState>>;
+    private readonly _sayBuffer : ReplacedResult[];
     private _nextAgentState : Ast.DialogueState|null;
+    private _numResults : number;
 
     constructor(options : {
         io : AbstractCommandIO,
         dispatcher : CommandDispatcher,
+        synthesizer ?: Synthesizer,
         locale : string,
         schemaRetriever : SchemaRetriever,
         simulated : boolean,
@@ -145,14 +152,17 @@ export class DialogueInterface {
         this.rng = options.rng;
         this.state = null;
         this._schemas = options.schemaRetriever;
-        this._ = I18n.get(options.locale)._;
+        this._langPack = I18n.get(options.locale);
+        this._ = this._langPack._;
         this._deterministic = options.deterministic;
         this._io = options.io;
+        this._synthesizer = options.synthesizer;
 
         this._dispatcher = options.dispatcher;
         this._synthesisFunctions = [];
         this._sayBuffer = [];
         this._nextAgentState = null;
+        this._numResults = 0;
     }
 
     /**
@@ -173,18 +183,43 @@ export class DialogueInterface {
      *
      * @param options - additional options controlling what kind of commands
      * @param options.followUp - a synthesis function to apply only at this state
+     * @param options.expecting - a ThingTalk type of a single value that the agent expect; this
+     *    used to configure the UI (keyboard, file/image pickers) for a specific type of input,
+     *    and it has no other effect otherwise; use `null` to explicitly indicate that the agent
+     *    is _not_ expecting an answer at all, and therefore the UI should reflect that and the
+     *    microphone should stop listening
+     * @param options.rawHandler - if specified, handles the raw command, without any parsing
      * @param options.acceptActs - the list of acceptable dialogue acts
      * @param options.acceptActions - fully qualified names of acceptable Thingpedia actions
      * @param options.acceptQueries - fully qualified names of acceptable Thingpedia queries
      */
     async get(options : {
         followUp ?: SynthesisFunction<Ast.DialogueState>,
+
+        expecting ?: Type|null,
+        rawHandler ?: (cmd : string) => Ast.DialogueState|null,
         acceptActs ?: string[],
         acceptActions ?: string[],
         acceptQueries ?: string[],
     } = {}) : Promise<Command> {
-        // TODO send the current agent utterance to the output/synthesis
-        console.log(this._nextAgentState);
+        if (this._sayBuffer.length > 0 && this._nextAgentState !== null) {
+            await this._io.emit({
+                state: this._nextAgentState,
+                expect: options.expecting === undefined ? Type.Any : options.expecting,
+                numResults: this._numResults
+            });
+        }
+
+        if (this._synthesizer) {
+            const self = this;
+            const synthesisFunctions = this._synthesisFunctions;
+            this._synthesizer.synthesize(function*() {
+                if (options.followUp)
+                    yield *options.followUp(self);
+                for (const fn of synthesisFunctions)
+                    yield *fn(self);
+            }());
+        }
 
         return this._dispatcher.get(options);
     }
@@ -208,22 +243,54 @@ export class DialogueInterface {
      * This method can be called multiple times in a single turn, and the
      * messages are all concatenated.
      *
-     * If a semantic action is specified, the output of
-     * that semantic action will be passed to {@link DialogueInterface.addState}.
+     * If a dialogue state is specified, it will be passed to
+     * {@link DialogueInterface.addState}. If a semantic action is specified, the
+     * output of that semantic action will be passed to {@link DialogueInterface.addState}.
      */
-    say(tmpl : Replaceable, args : PlaceholderReplacement[], semantics ?: SemanticAction<any[], Ast.DialogueState>) {
-        const replaced = tmpl.replace({
+    say(tmpl : string, args ?: Record<string, PlaceholderReplacement|null>) : void;
+    say(tmpl : string, semantics : Ast.DialogueState) : void;
+    say(tmpl : string, args : Record<string, PlaceholderReplacement|null>, semantics : SemanticAction<any[], Ast.DialogueState>) : void;
+
+    say(tmpl : string, argsOrState ?: Record<string, PlaceholderReplacement|null>|Ast.DialogueState, semantics ?: SemanticAction<any[], Ast.DialogueState>) {
+        let args : Record<string, PlaceholderReplacement|null>;
+        let state : Ast.DialogueState|undefined;
+        if (argsOrState instanceof Ast.DialogueState) {
+            state = argsOrState;
+            args = {};
+        } else if (argsOrState) {
+            state = undefined;
+            args = argsOrState;
+        } else {
+            state = undefined;
+            args = {};
+        }
+
+        const replacements = [];
+        const values = [];
+        const names = [];
+        for (const key in args) {
+            names.push(key);
+            const value = args[key];
+            if (value === null)
+                return;
+            replacements.push(value);
+            values.push(value.value);
+        }
+
+        const replaced = Replaceable.get(tmpl, this._langPack, names).replace({
             constraints: {},
-            replacements: args
+            replacements: replacements
         });
         if (replaced === null)
             return;
 
         if (semantics) {
-            const value = semantics(...args);
+            const value = semantics(...values);
             if (value === null)
                 return;
             this.addState(value);
+        } else if (state !== undefined) {
+            this.addState(state);
         }
         this._sayBuffer.push(replaced);
     }
@@ -234,8 +301,9 @@ export class DialogueInterface {
      * This method csn be called multiple times in one turn, and each time the new
      * agent state is merged with the existing state.
      */
-    addState(newAgentState : Ast.DialogueState) {
+    addState(newAgentState : Ast.DialogueState, numResults = 0) {
         this._nextAgentState = newAgentState;
+        this._numResults = numResults;
     }
 
     /**
@@ -252,6 +320,7 @@ export class DialogueInterface {
         return new DialogueInterface({
             io: this._io,
             dispatcher: withDispatcher,
+            synthesizer: this._synthesizer,
             locale: this.locale,
             schemaRetriever: this._schemas,
             simulated: this.simulated,
