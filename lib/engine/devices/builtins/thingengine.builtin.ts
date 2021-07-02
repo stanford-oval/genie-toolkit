@@ -236,11 +236,11 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
 
         let hours = Math.floor(duration / (1000 * 60 * 60));
         let hoursStr = hours ? `${hours} hours ` : '';
-        duration = duration % (1000 * 60 * 60 * 24);
+        duration = duration % (1000 * 60 * 60);
 
         let minutes = Math.floor(duration / (1000 * 60));
         let minsStr = minutes ? `${minutes} minutes ` : '';
-        duration = duration % (1000 * 60 * 60);
+        duration = duration % (1000 * 60);
 
         let seconds = Math.floor(duration / (1000));
         let secsStr = seconds ? `${seconds} seconds ` : '';
