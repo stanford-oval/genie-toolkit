@@ -204,12 +204,11 @@ class @org.thingpedia.builtin.thingengine.builtin
   #[doc="makes Genie show/play a generic alert"]
   #[confirm=false];
 
-  action timer_expire(out message_output: String
-                      #_[canonical="message"])
-  #_[result="${message_output}"]
+  action timer_expire(out duration: Measure(ms)
+                      #_[canonical="duration"])
+  #_[result="It has been ${duration}"]
   #_[formatted=[
-    { type="sound", name="alarm-clock-elapsed", exclusive=true },
-    { type="text", text="${message_output}"}
+    { type="sound", name="alarm-clock-elapsed", exclusive=true }
   ]]
   #_[canonical="timer expire"]
   #[doc="makes Genie play a generic alert and show/say the elapsed time"]

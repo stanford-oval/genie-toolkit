@@ -142,8 +142,9 @@ export default class AppDatabase extends events.EventEmitter {
         const icon = options.icon || getProgramIcon(program);
         const conversation = options.conversation;
         const notifications = options.notifications;
+        const startTime = new Date;
 
-        return this._loadOneApp(program.prettyprint(), { icon, conversation, notifications }, uniqueId, name, description, true);
+        return this._loadOneApp(program.prettyprint(), { icon, conversation, notifications, startTime }, uniqueId, name, description, true);
     }
 
     private async _loadOneApp(code : string,

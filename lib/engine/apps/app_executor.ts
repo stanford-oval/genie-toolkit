@@ -101,6 +101,7 @@ export interface AppMeta {
     conversation ?: string;
     description ?: string;
     notifications ?: NotificationConfig;
+    startTime : Date;
 }
 
 /**
@@ -134,7 +135,7 @@ export default class AppExecutor extends events.EventEmitter {
     private _notificationOutput : NotificationOutputDelegate;
     notifications : NotificationConfig|undefined;
 
-    private _date : Date;
+    startTime : Date;
 
     /**
      * Whether this app is running.
@@ -210,15 +211,11 @@ export default class AppExecutor extends events.EventEmitter {
         this._notificationOutput = new NotificationOutputDelegate(this);
         this.notifications = meta.notifications;
 
-        this._date = new Date;
+        this.startTime = meta.startTime;
     }
 
     get metadata() : AppMeta {
         return this._meta;
-    }
-
-    get date() : Date {
-        return this._date;
     }
 
     private _updateNameDescription(name : string|undefined, description : string|undefined) {
