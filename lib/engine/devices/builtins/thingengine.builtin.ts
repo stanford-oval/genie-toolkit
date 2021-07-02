@@ -227,7 +227,25 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
     }
 
     do_alert() {
-        return { message_output : 'Time\'s up!'};
+        return { message_output : 'Alert' };
+    }
+
+    do_timer_expire(env : ExecWrapper) {
+        let now = new Date;
+        let duration = now.getTime() - env.app.date.getTime();
+
+        let hours = Math.floor(duration / (1000 * 60 * 60));
+        let hoursStr = hours ? `${hours} hours ` : '';
+        duration = duration % (1000 * 60 * 60 * 24);
+
+        let minutes = Math.floor(duration / (1000 * 60));
+        let minsStr = minutes ? `${minutes} minutes ` : '';
+        duration = duration % (1000 * 60 * 60);
+
+        let seconds = Math.floor(duration / (1000));
+        let secsStr = seconds ? `${seconds} seconds ` : '';
+
+        return { message_output : `It\'s been ${hoursStr} ${minsStr} ${secsStr}`};
     }
 
     async do_configure({ device } : { device : unknown }) : Promise<never> {

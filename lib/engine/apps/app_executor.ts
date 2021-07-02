@@ -134,6 +134,8 @@ export default class AppExecutor extends events.EventEmitter {
     private _notificationOutput : NotificationOutputDelegate;
     notifications : NotificationConfig|undefined;
 
+    date : Date;
+
     /**
      * Whether this app is running.
      *
@@ -207,10 +209,16 @@ export default class AppExecutor extends events.EventEmitter {
         this.mainOutput = new QueueOutputDelegate();
         this._notificationOutput = new NotificationOutputDelegate(this);
         this.notifications = meta.notifications;
+
+        this.date = new Date;
     }
 
     get metadata() : AppMeta {
         return this._meta;
+    }
+
+    get startDate() : Date {
+        return this.date;
     }
 
     private _updateNameDescription(name : string|undefined, description : string|undefined) {
