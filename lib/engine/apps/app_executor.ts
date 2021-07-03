@@ -101,7 +101,7 @@ export interface AppMeta {
     conversation ?: string;
     description ?: string;
     notifications ?: NotificationConfig;
-    startTime : Date;
+    startTime : number;
 }
 
 /**
@@ -135,7 +135,7 @@ export default class AppExecutor extends events.EventEmitter {
     private _notificationOutput : NotificationOutputDelegate;
     notifications : NotificationConfig|undefined;
 
-    startTime : Date;
+    startTime : number;
 
     /**
      * Whether this app is running.
