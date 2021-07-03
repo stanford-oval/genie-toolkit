@@ -76,3 +76,14 @@
   error:
     code: 500
     message: 'Internal Server Error'
+
+-
+  utterance: 'What are the side effects of the vaccine?'
+  candidates:
+    - code: ['$dialogue', '@org.thingpedia.dialogue.transaction', '.', 'execute', ';',
+             '@org.thingpedia.covid-vaccine', '.', 'appointment', '(', ')', ';']
+      score: 1
+  intent:
+    command: 0.2
+    other: 0.8
+    ignore: 0
