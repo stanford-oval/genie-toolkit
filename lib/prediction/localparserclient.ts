@@ -200,7 +200,7 @@ export default class LocalParserClient {
             assert(candidates.length > 0);
 
             result = candidates.map((c) => {
-                const score = c.score.is_correct ?? 0;
+                const score = c.score.is_correct ?? 1;
                 return {
                     code: c.answer.split(' '),
                     score: score
