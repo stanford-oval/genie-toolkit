@@ -64,22 +64,22 @@ function dummyKeyFunction() {
 }
 
 class Rule<ArgTypes extends unknown[], ReturnType> {
-    number : number;
-    expansion : NonTerminal[];
-    sentence : Replaceable;
-    semanticAction : SemanticAction<ArgTypes, ReturnType>;
-    keyFunction : KeyFunction<ReturnType>;
+    readonly expansion : NonTerminal[];
+    readonly sentence : Replaceable;
+    readonly semanticAction : SemanticAction<ArgTypes, ReturnType>;
+    readonly keyFunction : KeyFunction<ReturnType>;
 
-    weight : number;
-    priority : number;
+    readonly weight : number;
+    readonly priority : number;
+    readonly forConstant : boolean;
+    readonly temporary : boolean;
+    readonly identity : boolean;
+    readonly expandchoice : boolean;
+
     repeat : boolean;
-    forConstant : boolean;
-    temporary : boolean;
-    identity : boolean;
-    expandchoice : boolean;
-
     hasContext : boolean;
     enabled : boolean;
+    estimatedPruningFactor : number;
 
     constructor(number : number,
                 expansion : NonTerminal[],
@@ -88,7 +88,6 @@ class Rule<ArgTypes extends unknown[], ReturnType> {
                 keyFunction : KeyFunction<ReturnType> = dummyKeyFunction,
                 { weight = 1, priority = 0, repeat = false, forConstant = false, temporary = false,
                   identity = false, expandchoice = true } : RuleAttributes) {
-        this.number = number;
         this.expansion = expansion;
         this.sentence = sentence;
         this.semanticAction = semanticAction;
@@ -107,6 +106,9 @@ class Rule<ArgTypes extends unknown[], ReturnType> {
 
         this.hasContext = false;
         this.enabled = true;
+        // initialize prune factor estimates to 0.2
+        // so we don't start pruning until we have a good estimate
+        this.estimatedPruningFactor = 0.2;
         assert(this.weight > 0);
     }
 
@@ -551,7 +553,6 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
     private _constantMap : MultiMap<string, [number, KeyFunction<any>]>;
 
     private _finalized : boolean;
-    private _averagePruningFactor : number[][];
     private _nonTermHasContext : boolean[];
 
     private _charts : ChartTable|undefined;
@@ -585,7 +586,6 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
         this._constantMap = new MultiMap;
 
         this._finalized = false;
-        this._averagePruningFactor = [];
         this._nonTermHasContext = [];
 
         this._charts = undefined;
@@ -820,16 +820,9 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
         if (this._contextual)
             this._computeHasContext();
 
-        for (let index = 0; index < this._nonTermList.length; index++) {
-            const prunefactors : number[] = [];
-            this._averagePruningFactor.push(prunefactors);
-
-            for (const rule of this._rules[index]) {
-                // initialize prune factor estimates to 0.2
-                // so we don't start pruning until we have a good estimate
-                prunefactors.push(0.2);
-
-                if (this._options.debug >= LogLevel.DUMP_TEMPLATES)
+        if (this._options.debug >= LogLevel.DUMP_TEMPLATES) {
+            for (let index = 0; index < this._nonTermList.length; index++) {
+                for (const rule of this._rules[index])
                     console.log(`rule NT[${this._nonTermList[index]}] -> ${rule}`);
             }
         }
@@ -1114,7 +1107,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
             if (mode === GenerationMode.BY_PRIORITY) {
                 const rulebegin = Date.now();
                 try {
-                    expandRule(charts, depth, nonTermIndex, rule, this._averagePruningFactor, INFINITY, this._options, this._nonTermList, (derivation) => {
+                    expandRule(charts, depth, nonTermIndex, rule, INFINITY, this._options, this._nonTermList, (derivation) => {
                         queue!.push(derivation);
                     });
                 } catch(e) {
@@ -1131,7 +1124,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
                 const sampler = new ReservoirSampler(ruleTarget, this._options.rng);
 
                 try {
-                    expandRule(charts, depth, nonTermIndex, rule, this._averagePruningFactor, ruleTarget, this._options, this._nonTermList, (derivation) => {
+                    expandRule(charts, depth, nonTermIndex, rule, ruleTarget, this._options, this._nonTermList, (derivation) => {
                         sampler.add(derivation);
                     });
                 } catch(e) {
@@ -1278,8 +1271,7 @@ interface RuleSizeEstimate {
 function estimateRuleSize(charts : ChartTable,
                           depth : number,
                           nonTermIndex : number,
-                          rule : Rule<unknown[], unknown>,
-                          averagePruningFactor : number[][]) : RuleSizeEstimate {
+                          rule : Rule<unknown[], unknown>) : RuleSizeEstimate {
     // first compute how many things we expect to produce in the worst case
     let maxdepth = depth-1;
     const worstCaseGenSize = computeWorstCaseGenSize(charts, depth, rule, maxdepth);
@@ -1295,7 +1287,7 @@ function estimateRuleSize(charts : ChartTable,
     if (maxdepth < 0 || reducedWorstCaseGenSize === 0)
         return { maxdepth, worstCaseGenSize, reducedWorstCaseGenSize, estimatedGenSize: 0, estimatedPruneFactor: 1 };
 
-    const estimatedPruneFactor = averagePruningFactor[nonTermIndex][rule.number];
+    const estimatedPruneFactor = rule.estimatedPruningFactor;
     const estimatedGenSize = worstCaseGenSize * estimatedPruneFactor;
     return { maxdepth, worstCaseGenSize, reducedWorstCaseGenSize, estimatedGenSize, estimatedPruneFactor } ;
 }
@@ -1737,7 +1729,6 @@ function expandRule(charts : ChartTable,
                     depth : number,
                     nonTermIndex : number,
                     rule : Rule<any[], any>,
-                    averagePruningFactor : number[][],
                     targetPruningSize : number,
                     options : ExpandOptions,
                     nonTermList : string[],
@@ -1754,7 +1745,7 @@ function expandRule(charts : ChartTable,
     }
 
     const sizeEstimate =
-        estimateRuleSize(charts, depth, nonTermIndex, rule, averagePruningFactor);
+        estimateRuleSize(charts, depth, nonTermIndex, rule);
     const { maxdepth, worstCaseGenSize, estimatedGenSize, estimatedPruneFactor } = sizeEstimate;
 
     if (options.debug >= LogLevel.EVERYTHING)
@@ -1808,5 +1799,5 @@ function expandRule(charts : ChartTable,
         console.log(`expand NT[${nonTermList[nonTermIndex]}] @ ${depth} -> ${rule} : took ${(elapsed/1000).toFixed(2)} seconds using ${strategy}`);
 
     const movingAverageOfPruneFactor = (0.01 * estimatedPruneFactor + newEstimatedPruneFactor) / (1.01);
-    averagePruningFactor[nonTermIndex][rule.number] = movingAverageOfPruneFactor;
+    rule.estimatedPruningFactor = movingAverageOfPruneFactor;
 }
