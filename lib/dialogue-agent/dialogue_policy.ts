@@ -197,7 +197,8 @@ export default class DialoguePolicy {
         // the pruning size if we don't find anything useful
         for (const pruningSize of TARGET_PRUNING_SIZES) {
             this._generatorOptions!.targetPruningSize = pruningSize;
-            derivation = this._sentenceGenerator!.generateOne(state);
+            this._sentenceGenerator!.reset(true);
+            derivation = this._sentenceGenerator!.generateOne(state, '$agent');
             if (derivation !== undefined)
                 break;
         }

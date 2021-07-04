@@ -108,7 +108,8 @@ class BasicSentenceGenerator extends stream.Readable {
             this._initialization = this._generator.initialize();
 
         this._initialization!.then(() => {
-            this._generator.generate([], this._output.bind(this));
+            for (const derivation of this._generator.generate([], '$root'))
+                this._output(derivation);
             this.emit('progress', this._generator.progress);
             this.push(null);
         }).catch((e) => {
@@ -124,7 +125,7 @@ class BasicSentenceGenerator extends stream.Readable {
         return utterance;
     }
 
-    private _output(depth : number, derivation : Derivation<ThingTalkUtils.Input>) {
+    private _output(derivation : Derivation<ThingTalkUtils.Input>) {
         const program = derivation.value.optimize();
         assert(program !== null); // not-null even after optimize
         let preprocessed = this._postprocessSentence(derivation, program);
@@ -149,11 +150,11 @@ class BasicSentenceGenerator extends stream.Readable {
             return;
         }
         let id = String(this._i++);
-        id = this._idPrefix + depth + '000000000'.substring(0,9-id.length) + id;
+        id = this._idPrefix + derivation.depth + '000000000'.substring(0,9-id.length) + id;
         const flags = {
             synthetic: true
         };
-        this.push({ depth, id, flags, preprocessed, target_code: sequence.join(' ') });
+        this.push({ id, flags, preprocessed, target_code: sequence.join(' ') });
     }
 }
 
@@ -274,7 +275,8 @@ class MinibatchDialogueGenerator {
 
     private _generateAgent(partials : readonly PartialDialogue[]) : AgentTurn[] {
         const agentTurns : AgentTurn[] = [];
-        this._agentGenerator.generate(partials, (depth : number, derivation : Derivation<AgentReplyRecord<ThingTalkUtils.DialogueState>>) => {
+        this._agentGenerator.reset();
+        for (const derivation of this._agentGenerator.generate(partials, '$agent')) {
             // derivation.dlg is the PartialDialogue that is being continued
             // derivation.value is the object returned by the root semantic function, with:
             // - state (the thingtalk state)
@@ -302,12 +304,13 @@ class MinibatchDialogueGenerator {
                 state,
                 target
             });
-        });
+        }
         return agentTurns;
     }
 
     private _generateUser(continuations : MultiMap<PartialDialogue, Continuation>, agentTurns : AgentTurn[]) {
-        this._userGenerator.generate(agentTurns, (depth, derivation) => {
+        this._userGenerator.reset();
+        for (const derivation of this._userGenerator.generate(agentTurns, '$user')) {
             // the derivation value for the user is directly the thingtalk user state
             // (unlike the agent)
 
@@ -334,7 +337,7 @@ class MinibatchDialogueGenerator {
                     user_target: target,
                 },
             });
-        });
+        }
     }
 
     private async _continueOneDialogue(dlg : PartialDialogue, continuations : MultiMap<PartialDialogue, Continuation>) {
