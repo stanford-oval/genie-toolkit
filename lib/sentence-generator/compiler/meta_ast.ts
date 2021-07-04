@@ -85,6 +85,10 @@ export class Grammar {
             } else if (stmt instanceof NonTerminalStmt) {
                 if (declaredNames.has(stmt.name))
                     continue;
+                if (stmt.doc) {
+                    buffer += stmt.doc;
+                    buffer += '\n';
+                }
                 buffer += `export const ${stmt.name} : $SentenceGeneratorTypes.NonTerminal<${stmt.type}> = ${stringEscape(stmt.name)};\n`;
                 declaredNames.add(stmt.name);
             }
@@ -170,7 +174,8 @@ export class NonTerminalStmt extends Statement {
 
     constructor(public name : string,
                 public type : string|undefined,
-                public rules : Rule[]) {
+                public rules : Rule[],
+                public doc : string) {
         super();
     }
 

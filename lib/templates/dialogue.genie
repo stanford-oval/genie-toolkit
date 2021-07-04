@@ -390,6 +390,11 @@ initial_request_preamble : S.ContextInfo = {
     },
 }
 
+/**
+ * The root of the agent generation.
+ *
+ * This non-terminal contains the entire reply of the agent.
+ */
 $agent : S.AgentReplyRecord = {
     ( ctx:ctx_greet ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
     | ctx:ctx_init ('hello' | 'hi') ('!' | ',') ('how can i help you' | 'what are you interested in' | 'what can i do for you') '?'
@@ -467,6 +472,11 @@ $agent : S.AgentReplyRecord = {
     ctx:ctx_notification_error notification_error_preamble phrase:action_error_phrase => phrase;
 }
 
+/**
+ * The root of the user generation.
+ *
+ * This non-terminal contains a single user turn in its entirety.
+ */
 $user : Ast.DialogueState = {
     ctx:ctx_init greeting [weight=0.01, expandchoice=false]
         => S.makeSimpleState(ctx, 'greet', null);
