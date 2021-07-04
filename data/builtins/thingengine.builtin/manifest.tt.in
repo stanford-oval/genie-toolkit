@@ -196,9 +196,22 @@ class @org.thingpedia.builtin.thingengine.builtin
   #[confirm=false];
 
   action alert()
-  #_[result="Time's up!"]
+  #_[result="Alert"]
+  #_[formatted=[
+    { type="sound", name="alarm-clock-elapsed", exclusive=true }
+  ]]
   #_[canonical="alert"]
-  #[doc="makes Genie show/say a generic alert"]
+  #[doc="makes Genie show/play a generic alert"]
+  #[confirm=false];
+
+  action timer_expire(out duration: Measure(ms)
+                      #_[canonical="duration"])
+  #_[result="It has been ${duration}"]
+  #_[formatted=[
+    { type="sound", name="alarm-clock-elapsed", exclusive=true }
+  ]]
+  #_[canonical="timer expire"]
+  #[doc="makes Genie play a generic alert and show/say the elapsed time"]
   #[confirm=false];
 
   action debug_log(in req message: String

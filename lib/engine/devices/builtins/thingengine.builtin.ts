@@ -226,8 +226,13 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         return cap.launchURL(String(url));
     }
 
-    do_alert() {
-        return { message_output : 'Time\'s up!'};
+    do_alert() {}
+
+    do_timer_expire(env : ExecWrapper) {
+        const now = new Date;
+        const duration = now.getTime() - env.app.metadata.startTime;
+
+        return { duration : duration };
     }
 
     async do_configure({ device } : { device : unknown }) : Promise<never> {
