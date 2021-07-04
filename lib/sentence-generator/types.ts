@@ -93,3 +93,12 @@ export interface GrammarOptions {
     debug : number;
     timezone : string|undefined;
 }
+
+/**
+ * A statically-defined non-terminal in a Genie template file.
+ *
+ * This type exists only for documentation.
+ */
+export type NonTerminal<ValueType> = ValueType extends unknown ? string : never;
+// ^ clever hack with dual purposes: it shuts up typescript about
+// an unused type argument, and it hides the type definition from typedoc

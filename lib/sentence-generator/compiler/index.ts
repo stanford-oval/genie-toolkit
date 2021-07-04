@@ -48,6 +48,9 @@ export class Compiler {
     private _nonTerm = new Set<string>();
     // map a non-terminal to its type declaration, if any
     private _typeMap = new Map<string, string>();
+    // map a non-terminal to the first filename that declared it,
+    // in import order
+    private _filenameMap = new Map<string, string>();
 
     // map a type to its key function, if any
     private _keyFnMap = new Map<string, string>();
@@ -60,6 +63,7 @@ export class Compiler {
         if (this._files.has(filename))
             return;
 
+        filename = path.resolve(filename);
         const dirname = path.dirname(filename);
         const input = await pfs.readFile(filename, { encoding: 'utf8' });
         let parsed;
@@ -93,6 +97,9 @@ export class Compiler {
                 const symbol = stmt.name;
                 self._nonTerm.add(symbol);
 
+                if (!self._filenameMap.has(symbol))
+                    self._filenameMap.set(symbol, filename);
+
                 if (stmt.type === undefined || stmt.type === 'any')
                     return;
 
@@ -123,6 +130,21 @@ export class Compiler {
 
         for (const import_ of allImports)
             await this._loadFile(import_);
+    }
+
+    private _assignAllImportNames() {
+        const filenameMap = this._filenameMap;
+        for (const [filename, parsed] of this._files) {
+            parsed.visit(new class extends metaast.NodeVisitor {
+                visitImport(node : metaast.Import) {
+                    const importedfile = path.resolve(path.dirname(filename), node.what);
+                    for (const [name, definedinfile] of filenameMap) {
+                        if (importedfile === definedinfile)
+                            node.names.push(name);
+                    }
+                }
+            });
+        }
     }
 
     private _assignAllTypes() {
@@ -172,6 +194,10 @@ export class Compiler {
 
         // assign the type annotations to all the uses of the non-terminals
         this._assignAllTypes();
+
+        // resolve the names imported from all import statements, for the
+        // purposes of documentation
+        this._assignAllImportNames();
     }
 
     async process(filename : string) : Promise<void> {
@@ -186,7 +212,7 @@ export class Compiler {
 
     private async _outputFile(filename : string,
                               parsed : metaast.Grammar) {
-        const outputFile = filename + '.' + this._target;
+        const outputFile = filename + '.out.' + this._target;
         let output = parsed.codegen(filename);
 
         if (this._target === 'js') {
@@ -233,9 +259,9 @@ export async function importGenie(filename : string,
     let target : 'js'|'ts' = 'js';
     try {
         if (filename.endsWith('.js'))
-            return (await import(filename)).default;
+            return (await import(filename)).$load;
         else
-            return (await import(filename + '.' + target)).default;
+            return (await import(filename + '.out.' + target)).$load;
     } catch(e) {
         if (e.code !== 'MODULE_NOT_FOUND')
             throw e;
@@ -249,14 +275,14 @@ export async function importGenie(filename : string,
 
     target = require.extensions['.ts'] ? 'ts' : 'js';
     try {
-        await pfs.access(filename + '.' + target);
+        await pfs.access(filename + '.out.' + target);
     } catch(e) {
         if (e.code !== 'ENOENT')
             throw e;
         await new Compiler(target).process(filename);
     }
 
-    return (await import(filename + '.' + target)).default;
+    return (await import(filename + '.out.' + target)).$load;
 }
 
 async function main() {

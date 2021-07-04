@@ -50,8 +50,6 @@ export {
     ReplacedList,
 };
 
-export { importGenie as import } from './compiler';
-
 import {
     DerivationKeyValue,
     DerivationKey,

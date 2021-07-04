@@ -30,7 +30,7 @@ bundled_templates := \
 	lib/templates/single-command.genie \
 	lib/templates/dialogue.genie
 
-built_bundled_templates := $(addsuffix .ts,$(bundled_templates))
+built_bundled_templates := $(addsuffix .out.ts,$(bundled_templates))
 
 generated_early := \
 	lib/sentence-generator/compiler/grammar.js \
@@ -48,7 +48,7 @@ generated := \
 	lib/engine/devices/builtins/faq.json
 
 $(built_bundled_templates) : $(template_sources) lib/sentence-generator/compiler/*.ts $(generated_early)
-	ts-node ./lib/sentence-generator/compiler $(patsubst %.genie.ts,%.genie,$@)
+	ts-node ./lib/sentence-generator/compiler $(patsubst %.genie.out.ts,%.genie,$@)
 
 dist: $(wildcard $(sources)) $(generated) tsconfig.json
 	tsc --build tsconfig.json

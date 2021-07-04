@@ -51,6 +51,7 @@ import * as DialogueAgent from './dialogue-agent';
 import SentenceGenerator from './sentence-generator/generator';
 import * as SentenceGeneratorRuntime from './sentence-generator/runtime';
 import * as SentenceGeneratorTypes from './sentence-generator/types';
+import * as Templates from './templates/dialogue.genie.out';
 
 export {
     // sentence generation
@@ -59,6 +60,7 @@ export {
     SentenceGenerator,
     SentenceGeneratorRuntime,
     SentenceGeneratorTypes,
+    Templates,
 
     // dataset manipulation
     DatasetParser,
