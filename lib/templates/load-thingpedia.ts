@@ -129,6 +129,16 @@ interface FollowUpRecord {
     };
 }
 
+/**
+ * Initialize templates that depend on Thingpedia.
+ *
+ * This class will load the information in Thingpedia manifests and
+ * primitive template files, and initialize the templates defined
+ * in {@link CommonTemplates}.
+ *
+ * This class should not be constructed directly. Instead, an appropriately
+ * initialized loader can be retrieved from {@link SentenceGenerator.tpLoader}.
+ */
 export default class ThingpediaLoader {
     private _grammar : SentenceGenerator;
     private _schemas : SchemaRetriever;

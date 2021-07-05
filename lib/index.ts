@@ -53,6 +53,7 @@ import * as SentenceGeneratorRuntime from './sentence-generator/runtime';
 import * as SentenceGeneratorTypes from './sentence-generator/types';
 import * as CommonTemplates from './templates/common.genie.out';
 import * as TransactionPolicy from './templates/transactions';
+import ThingpediaLoader from './templates/load-thingpedia';
 
 export {
     // sentence generation
@@ -63,6 +64,7 @@ export {
     SentenceGeneratorTypes,
     CommonTemplates,
     TransactionPolicy,
+    ThingpediaLoader,
 
     // dataset manipulation
     DatasetParser,
