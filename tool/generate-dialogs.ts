@@ -150,6 +150,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         dest: 'debug',
         help: 'Disable debugging.',
     });
+    parser.add_argument('--log-prefix', {
+        required: false,
+        default: '',
+        help: 'Additional prefix to debugging messages'
+    });
     parser.add_argument('--random-seed', {
         default: 'almond is awesome',
         help: 'Random seed'
@@ -171,6 +176,7 @@ export async function execute(args : any) {
         maxTurns: args.max_turns,
         minibatchSize: args.minibatch_size,
         numMinibatches: args.num_minibatches,
+        logPrefix: args.log_prefix,
 
         debug: args.debug,
     };

@@ -133,7 +133,7 @@ everything/synthetic-%.txt : $(schema_file) $(dataset_file) entities.json
 	$(genie) generate-dialogs \
 	  --locale en-US --target-language thingtalk \
 	  --thingpedia everything/schema-$*.tt --entities entities.json --dataset $(dataset_file) \
-	  -o $@.tmp -f txt $(generate_flags) --debug $(debug_level) $(custom_gen_flags) --random-seed $@ \
+	  -o $@.tmp -f txt $(generate_flags) --debug $(debug_level) --log-prefix "$(notdir $@): " $(custom_gen_flags) --random-seed $@ \
 	  -n $(target_size) -B $(minibatch_size)
 	mv $@.tmp $@
 

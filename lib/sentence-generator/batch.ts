@@ -207,6 +207,7 @@ class MinibatchDialogueGenerator {
     private _minibatchSize : number;
     private _rng : () => number;
     private _options : DialogueGeneratorOptions;
+    private _logPrefix : string;
 
     private _minibatchIdx : number;
     private _turnIdx : number;
@@ -234,6 +235,7 @@ class MinibatchDialogueGenerator {
         this._minibatchSize = options.minibatchSize;
         this._rng = options.rng;
         this._options = options;
+        this._logPrefix = options.logPrefix || '';
 
         this._minibatchIdx = minibatchIdx;
         this._turnIdx = 0;
@@ -405,7 +407,7 @@ class MinibatchDialogueGenerator {
         this._turnIdx++;
         const start = Date.now();
         if (this._debug)
-            console.log(`Minibatch ${this._minibatchIdx}, turn ${this._turnIdx}`);
+            console.log(`${this._logPrefix}Minibatch ${this._minibatchIdx}, turn ${this._turnIdx}`);
 
         const partials = this._partialDialogues.sampled;
         this._partialDialogues.reset();
@@ -432,8 +434,8 @@ class MinibatchDialogueGenerator {
 
         const end = Date.now();
         if (this._debug) {
-            console.log(`Produced ${this._partialDialogues.counter} partial dialogs this turn`);
-            console.log(`Turn took ${Math.round((end-start)/1000)} seconds`);
+            console.log(`${this._logPrefix}Produced ${this._partialDialogues.counter} partial dialogs this turn`);
+            console.log(`${this._logPrefix}Turn took ${Math.round((end-start)/1000)} seconds`);
         }
     }
 
@@ -455,6 +457,7 @@ interface DialogueGeneratorOptions {
     minibatchSize : number;
     numMinibatches : number;
     idPrefix ?: string;
+    logPrefix ?: string;
     debug : number;
     rng : () => number;
 
@@ -482,6 +485,7 @@ class DialogueGenerator extends stream.Readable {
     private _numMinibatches : number;
     private _options : DialogueGeneratorOptions;
     private _idPrefix : string;
+    private _logPrefix : string;
     private _debug : number;
     private _langPack : I18n.LanguagePack;
     private _agentGenerator ! : SentenceGenerator;
@@ -501,6 +505,7 @@ class DialogueGenerator extends stream.Readable {
 
         this._options = options;
         this._idPrefix = options.idPrefix || '';
+        this._logPrefix = options.logPrefix || '';
         this._debug = options.debug;
 
         this._langPack = I18n.get(options.locale);
@@ -536,6 +541,7 @@ class DialogueGenerator extends stream.Readable {
             maxDepth: options.maxDepth,
             maxConstants: options.maxConstants || 5,
             debug: options.debug,
+            logPrefix: options.logPrefix,
             rng: options.rng,
             thingpediaClient: options.thingpediaClient,
             entityAllocator: new ThingTalk.Syntax.SequentialEntityAllocator({}),
@@ -557,6 +563,7 @@ class DialogueGenerator extends stream.Readable {
             maxDepth: options.maxDepth,
             maxConstants: options.maxConstants || 5,
             debug: options.debug,
+            logPrefix: options.logPrefix,
             rng: options.rng,
             thingpediaClient: options.thingpediaClient,
             entityAllocator: new ThingTalk.Syntax.SequentialEntityAllocator({}),
@@ -597,7 +604,7 @@ class DialogueGenerator extends stream.Readable {
         } finally {
             const end = Date.now();
             if (this._debug)
-                console.log(`Minibatch took ${Math.round((end-start)/1000)} seconds and produced ${counter} dialogues`);
+                console.log(`${this._logPrefix}Minibatch took ${Math.round((end-start)/1000)} seconds and produced ${counter} dialogues`);
         }
     }
 

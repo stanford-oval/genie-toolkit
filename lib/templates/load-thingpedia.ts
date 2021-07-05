@@ -757,7 +757,7 @@ export default class ThingpediaLoader {
             }
 
             if (this._options.debug >= SentenceGeneratorRuntime.LogLevel.INFO && preprocessed[0].startsWith(','))
-                console.log(`WARNING: template ${ex.id} starts with , but is not a query`);
+                this._grammar.log(`WARNING: template ${ex.id} starts with , but is not a query`);
 
             if (this._options.forSide === 'agent')
                 preprocessed = this._langPack.toAgentSideUtterance(preprocessed);
@@ -1202,7 +1202,7 @@ export default class ThingpediaLoader {
 
         if (functionDef.getImplementationAnnotation<boolean>('initial')) {
             if (this._initialFunction) {
-                console.log('WARNING: multiple initial functions defined, will ignore all but the first one');
+                this._grammar.log('WARNING: multiple initial functions defined, will ignore all but the first one');
                 return;
             }
             this._initialFunction = functionDef;
@@ -1389,17 +1389,17 @@ export default class ThingpediaLoader {
             if (has_ner_support) {
                 if (this.idQueries.has(entityType)) {
                     if (this._options.debug >= SentenceGeneratorRuntime.LogLevel.DUMP_TEMPLATES)
-                        console.log('Loaded entity ' + entityType + ' as id entity');
+                        this._grammar.log('Loaded entity ' + entityType + ' as id entity');
                 } else {
                     if (this._options.debug >= SentenceGeneratorRuntime.LogLevel.DUMP_TEMPLATES)
-                        console.log('Loaded entity ' + entityType + ' as generic entity');
+                        this._grammar.log('Loaded entity ' + entityType + ' as generic entity');
                 }
 
                 this._grammar.addConstants('constant_' + typestr, 'GENERIC_ENTITY_' + entityType, ttType,
                     keyfns.entityOrNumberValueKeyFn);
             } else {
                 if (this._options.debug >= SentenceGeneratorRuntime.LogLevel.DUMP_TEMPLATES)
-                    console.log('Loaded entity ' + entityType + ' as non-constant entity');
+                    this._grammar.log('Loaded entity ' + entityType + ' as non-constant entity');
             }
         }
     }
@@ -1465,8 +1465,8 @@ export default class ThingpediaLoader {
 
         if (this._options.debug >= SentenceGeneratorRuntime.LogLevel.INFO) {
             const countTemplates = datasets.map((d) => d.examples.length).reduce((a, b) => a+b, 0);
-            console.log('Loaded ' + devices.length + ' devices');
-            console.log('Loaded ' + countTemplates + ' templates');
+            this._grammar.log('Loaded ' + devices.length + ' devices');
+            this._grammar.log('Loaded ' + countTemplates + ' templates');
         }
 
         for (const entity of entityTypes) {

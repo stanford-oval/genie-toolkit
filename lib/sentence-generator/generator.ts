@@ -152,6 +152,7 @@ interface GenericSentenceGeneratorOptions extends GrammarOptions {
     maxDepth : number;
     maxConstants : number;
     rng : () => number;
+    logPrefix ?: string;
 }
 
 interface BasicSentenceGeneratorOptions {
@@ -444,7 +445,7 @@ class ChartTable {
 
     getSizeAtDepth(nonTermIndex : number, depth : number) {
         const ret = this._getChart(nonTermIndex, depth).size;
-        //console.log(`getSizeAtDepth(${this._nonTermList[nonTermIndex]}, ${depth}) = ${ret}`);
+        //generator.log(`getSizeAtDepth(${this._nonTermList[nonTermIndex]}, ${depth}) = ${ret}`);
         return ret;
     }
 
@@ -535,6 +536,7 @@ export default class SentenceGenerator extends events.EventEmitter {
     private _langPack : I18n.LanguagePack;
     private _entityAllocator : ThingTalk.Syntax.SequentialEntityAllocator;
     private _tpLoader : ThingpediaLoader;
+    private _logPrefix : string;
 
     private _options : SentenceGeneratorOptions;
     private _contextual : boolean;
@@ -564,6 +566,7 @@ export default class SentenceGenerator extends events.EventEmitter {
         this._langPack = I18n.get(options.locale);
         this._entityAllocator = options.entityAllocator;
         this._tpLoader = new ThingpediaLoader(this, this._langPack, options);
+        this._logPrefix = options.logPrefix ?? '';
 
         this._options = options;
         this._contextual = options.contextual;
@@ -590,6 +593,19 @@ export default class SentenceGenerator extends events.EventEmitter {
     }
     get langPack() {
         return this._langPack;
+    }
+
+    /**
+     * Log a debug message.
+     *
+     * This is a wrapper over `console.log` that includes a logging prefix
+     * to disambiguate recursive calls and parallel generation.
+     *
+     * @param message the message to log
+     * @param args additional arguments to `console.log`
+     */
+    log(message : string, ...args : []) {
+        console.log(`${this._logPrefix}${' '.repeat(this._stackDepth)}${message}`, ...args);
     }
 
     async initialize() : Promise<void> {
@@ -775,9 +791,9 @@ export default class SentenceGenerator extends events.EventEmitter {
         if (this._options.debug >= LogLevel.DUMP_DERIVED) {
             for (let nonTermIndex = 0; nonTermIndex < this._nonTermList.length; nonTermIndex++) {
                 if (this._nonTermHasContext[nonTermIndex])
-                    console.log(`NT[${this._nonTermList[nonTermIndex]}] depends on context`);
+                    this.log(`NT[${this._nonTermList[nonTermIndex]}] depends on context`);
                 else
-                    console.log(`NT[${this._nonTermList[nonTermIndex]}] does not depend on context`);
+                    this.log(`NT[${this._nonTermList[nonTermIndex]}] does not depend on context`);
             }
         }
     }
@@ -812,7 +828,7 @@ export default class SentenceGenerator extends events.EventEmitter {
         if (this._options.debug >= LogLevel.DUMP_TEMPLATES) {
             for (let index = 0; index < this._nonTermList.length; index++) {
                 for (const rule of this._rules[index])
-                    console.log(`rule NT[${this._nonTermList[index]}] -> ${rule}`);
+                    this.log(`rule NT[${this._nonTermList[index]}] -> ${rule}`);
             }
         }
     }
@@ -831,7 +847,7 @@ export default class SentenceGenerator extends events.EventEmitter {
                 for (const constant of constants[token]) {
                     this._addRuleInternal(symbolId, [], new Phrase(constant.token), () => constant.value, keyFunction, attributes);
                     if (this._options.debug >= LogLevel.EVERYTHING)
-                        console.log(`added temporary rule NT[${this._nonTermList[symbolId]}] -> ${constant.token}`);
+                        this.log(`added temporary rule NT[${this._nonTermList[symbolId]}] -> ${constant.token}`);
                 }
             }
         }
@@ -857,7 +873,7 @@ export default class SentenceGenerator extends events.EventEmitter {
                 if (rule.forConstant && !rule.temporary) {
                     rule.enabled = false;
                     if (this._options.debug >= LogLevel.EVERYTHING)
-                        console.log(`disabling rule NT[${this._nonTermList[index]}] -> ${rule}`);
+                        this.log(`disabling rule NT[${this._nonTermList[index]}] -> ${rule}`);
                 }
             }
         }
@@ -1065,11 +1081,11 @@ export default class SentenceGenerator extends events.EventEmitter {
         const alreadyGenerated = charts.isChartGenerated(nonTermIndex, depth);
         const existingSize = charts.getSizeAtDepth(nonTermIndex, depth);
         if (this._options.debug >= LogLevel.EVERYTHING)
-            console.log(`${' '.repeat(this._stackDepth)}checking that ${this._nonTermList[nonTermIndex]} is generated at depth ${depth}: ${alreadyGenerated} (${existingSize})`);
+            this.log(`checking that ${this._nonTermList[nonTermIndex]} is generated at depth ${depth}: ${alreadyGenerated} (${existingSize})`);
         if (alreadyGenerated)
             return existingSize;
         if (this._options.debug >= LogLevel.VERBOSE_GENERATION)
-            console.log(`${' '.repeat(this._stackDepth)}generating ${this._nonTermList[nonTermIndex]} at depth ${depth}`);
+            this.log(`generating ${this._nonTermList[nonTermIndex]} at depth ${depth}`);
         this._stackDepth ++;
 
         let queue : PriorityQueue<Derivation<any>>|undefined;
@@ -1081,14 +1097,14 @@ export default class SentenceGenerator extends events.EventEmitter {
             if (!rule.enabled)
                 continue;
             if (this._options.debug >= LogLevel.EVERYTHING)
-                console.log(`evaluating NT[${this._nonTermList[nonTermIndex]}] @ ${depth} -> ${rule}`);
+                this.log(`evaluating NT[${this._nonTermList[nonTermIndex]}] @ ${depth} -> ${rule}`);
             if (!this._ensureRuleReadyToGenerate(rule, depth, mode))
                 continue;
 
             if (mode === GenerationMode.BY_PRIORITY) {
                 const rulebegin = Date.now();
                 try {
-                    expandRule(charts, depth, nonTermIndex, rule, INFINITY, this._options, this._nonTermList, (derivation) => {
+                    expandRule(this, charts, depth, nonTermIndex, rule, INFINITY, this._options, this._nonTermList, (derivation) => {
                         queue!.push(derivation);
                     });
                 } catch(e) {
@@ -1098,14 +1114,14 @@ export default class SentenceGenerator extends events.EventEmitter {
                 if (this._options.debug >= LogLevel.INFO) {
                     const ruleend = Date.now();
                     if (ruleend - rulebegin >= 250)
-                        console.log(`NT[${this._nonTermList[nonTermIndex]}] @ ${depth} -> ${rule} took ${ruleend - rulebegin} milliseconds`);
+                        this.log(`NT[${this._nonTermList[nonTermIndex]}] @ ${depth} -> ${rule} took ${ruleend - rulebegin} milliseconds`);
                 }
             } else {
                 const ruleTarget = this._getRuleTarget(rule, nonTermIndex, depth);
                 const sampler = new ReservoirSampler(ruleTarget, this._options.rng);
 
                 try {
-                    expandRule(charts, depth, nonTermIndex, rule, ruleTarget, this._options, this._nonTermList, (derivation) => {
+                    expandRule(this, charts, depth, nonTermIndex, rule, ruleTarget, this._options, this._nonTermList, (derivation) => {
                         sampler.add(derivation);
                     });
                 } catch(e) {
@@ -1140,11 +1156,11 @@ export default class SentenceGenerator extends events.EventEmitter {
         }
 
         if (this._options.debug >= LogLevel.EVERYTHING)
-            console.log(`marking ${this._nonTermList[nonTermIndex]} generated at depth ${depth}`);
+            this.log(`marking ${this._nonTermList[nonTermIndex]} generated at depth ${depth}`);
         charts.markGenerated(nonTermIndex, depth);
         const nonTermSize = charts.getSizeAtDepth(nonTermIndex, depth);
         if (this._options.debug >= LogLevel.GENERATION && nonTermSize > 0)
-            console.log(`stats: size(charts[${depth}][${this._nonTermList[nonTermIndex]}]) = ${nonTermSize}`);
+            this.log(`stats: size(charts[${depth}][${this._nonTermList[nonTermIndex]}]) = ${nonTermSize}`);
 
         this._stackDepth --;
         return nonTermSize;
@@ -1298,7 +1314,8 @@ function* iterchain<T>(iter1 : Iterable<T>, iter2 : Iterable<T>) : Iterable<T> {
     yield* iter2;
 }
 
-function expandRuleExhaustive(charts : ChartTable,
+function expandRuleExhaustive(generator : SentenceGenerator,
+                              charts : ChartTable,
                               depth : number,
                               maxdepth : number,
                               basicCoinProbability : number,
@@ -1363,10 +1380,10 @@ function expandRuleExhaustive(charts : ChartTable,
     const expansion = rule.expansion;
 
     if (maxdepth < depth-1 && options.debug >= LogLevel.INFO)
-        console.log(`expand NT[${nonTermList[nonTermIndex]}] @ ${depth} -> ${rule} : reduced max depth to avoid exponential behavior`);
+        generator.log(`expand NT[${nonTermList[nonTermIndex]}] @ ${depth} -> ${rule} : reduced max depth to avoid exponential behavior`);
 
     if (options.debug >= LogLevel.EVERYTHING)
-        console.log(`expand NT[${nonTermList[nonTermIndex]}] @ ${depth} -> ${rule} : worst case ${sizeEstimate.worstCaseGenSize}, expect ${Math.round(sizeEstimate.estimatedGenSize)}`);
+        generator.log(`expand NT[${nonTermList[nonTermIndex]}] @ ${depth} -> ${rule} : worst case ${sizeEstimate.worstCaseGenSize}, expect ${Math.round(sizeEstimate.estimatedGenSize)}`);
 
     const estimatedPruneFactor = sizeEstimate.estimatedPruneFactor;
     const choices : Array<Derivation<any>> = [];
@@ -1380,8 +1397,8 @@ function expandRuleExhaustive(charts : ChartTable,
         const fixeddepth = depth-1;
         (function recursiveHelper(k : number, context : Context|null) {
             if (k === expansion.length) {
-                //console.log('combine: ' + choices.join(' ++ '));
-                //console.log('depths: ' + depths);
+                //generator.log('combine: ' + choices.join(' ++ '));
+                //generator.log('depths: ' + depths);
                 if (!(coinProbability < 1.0) || coin(coinProbability, rng)) {
                     const v = rule.apply(choices, depth);
                     if (v !== null) {
@@ -1468,7 +1485,8 @@ function expandRuleExhaustive(charts : ChartTable,
     return [actualGenSize, prunedGenSize];
 }
 
-function expandRuleSample(charts : ChartTable,
+function expandRuleSample(generator : SentenceGenerator,
+                          charts : ChartTable,
                           depth : number,
                           nonTermIndex : number,
                           rule : Rule<any[], any>,
@@ -1706,7 +1724,8 @@ function expandRuleSample(charts : ChartTable,
     return [actualGenSize, prunedGenSize];
 }
 
-function expandRule(charts : ChartTable,
+function expandRule(generator : SentenceGenerator,
+                    charts : ChartTable,
                     depth : number,
                     nonTermIndex : number,
                     rule : Rule<any[], any>,
@@ -1730,7 +1749,7 @@ function expandRule(charts : ChartTable,
     const { maxdepth, worstCaseGenSize, estimatedGenSize, estimatedPruneFactor } = sizeEstimate;
 
     if (options.debug >= LogLevel.EVERYTHING)
-        console.log(`expand NT[${nonTermList[nonTermIndex]}] @ ${depth} -> ${expansion.join(' ')} : worst case estimate ${worstCaseGenSize}`);
+        generator.log(`expand NT[${nonTermList[nonTermIndex]}] @ ${depth} -> ${expansion.join(' ')} : worst case estimate ${worstCaseGenSize}`);
     if (worstCaseGenSize === 0)
         return;
 
@@ -1745,25 +1764,25 @@ function expandRule(charts : ChartTable,
     // to get the target pruning size
     const targetSemanticFunctionCalls = Math.min(targetPruningSize / estimatedPruneFactor, SAMPLING_PRUNE_SIZE);
 
-    //console.log('expand $' + nonterminal + ' -> ' + expansion.join('') + ' : actual ' + actualGenSize);
+    //generator.log('expand $' + nonterminal + ' -> ' + expansion.join('') + ' : actual ' + actualGenSize);
 
     let actualGenSize, prunedGenSize;
     let strategy;
     if (sizeEstimate.maxdepth === depth-1 && (coinProbability >= 1 || targetSemanticFunctionCalls >= worstCaseGenSize * 0.8)) {
         if (options.debug >= LogLevel.EVERYTHING)
-            console.log(`expand NT[${nonTermList[nonTermIndex]}] @ ${depth} -> ${rule} : using recursive expansion`);
+            generator.log(`expand NT[${nonTermList[nonTermIndex]}] @ ${depth} -> ${rule} : using recursive expansion`);
 
         // use the exhaustive algorithm if we expect to we'll be close to exhaustive anyway
-        [actualGenSize, prunedGenSize] = expandRuleExhaustive(charts, depth, maxdepth, coinProbability,
+        [actualGenSize, prunedGenSize] = expandRuleExhaustive(generator, charts, depth, maxdepth, coinProbability,
             nonTermIndex, rule, sizeEstimate, targetPruningSize,
             options, nonTermList, emit);
         strategy = 'enumeration';
     } else {
         if (options.debug >= LogLevel.EVERYTHING)
-            console.log(`expand NT[${nonTermList[nonTermIndex]}] @ ${depth} -> ${rule} : using sampling`);
+            generator.log(`expand NT[${nonTermList[nonTermIndex]}] @ ${depth} -> ${rule} : using sampling`);
 
         // otherwise use the imprecise but faster sampling algorithm
-        [actualGenSize, prunedGenSize] = expandRuleSample(charts, depth,
+        [actualGenSize, prunedGenSize] = expandRuleSample(generator, charts, depth,
             nonTermIndex, rule, sizeEstimate, targetSemanticFunctionCalls, targetPruningSize,
             options, nonTermList, emit);
         strategy = 'sampling';
@@ -1773,11 +1792,11 @@ function expandRule(charts : ChartTable,
         return;
     const newEstimatedPruneFactor = actualGenSize / (actualGenSize + prunedGenSize);
     if (options.debug >= LogLevel.VERBOSE_GENERATION && newEstimatedPruneFactor < 0.2)
-        console.log(`expand NT[${nonTermList[nonTermIndex]}] @ ${depth} -> ${rule} : semantic function only accepted ${(newEstimatedPruneFactor*100).toFixed(1)}% of derivations`);
+        generator.log(`expand NT[${nonTermList[nonTermIndex]}] @ ${depth} -> ${rule} : semantic function only accepted ${(newEstimatedPruneFactor*100).toFixed(1)}% of derivations`);
 
     const elapsed = Date.now() - now;
     if (options.debug >= LogLevel.INFO && elapsed >= 10000)
-        console.log(`expand NT[${nonTermList[nonTermIndex]}] @ ${depth} -> ${rule} : took ${(elapsed/1000).toFixed(2)} seconds using ${strategy}`);
+        generator.log(`expand NT[${nonTermList[nonTermIndex]}] @ ${depth} -> ${rule} : took ${(elapsed/1000).toFixed(2)} seconds using ${strategy}`);
 
     const movingAverageOfPruneFactor = (0.01 * estimatedPruneFactor + newEstimatedPruneFactor) / (1.01);
     rule.estimatedPruningFactor = movingAverageOfPruneFactor;
