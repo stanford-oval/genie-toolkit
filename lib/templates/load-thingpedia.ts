@@ -38,6 +38,7 @@ import SentenceGenerator from '../sentence-generator/generator';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import * as I18n from '../i18n';
 
+import { $load as commonTemplates } from './common.genie.out';
 import {
     ParamSlot,
     ExpressionWithCoreference,
@@ -129,7 +130,7 @@ interface FollowUpRecord {
 }
 
 export default class ThingpediaLoader {
-    private _grammar : SentenceGenerator<any, Ast.Input>;
+    private _grammar : SentenceGenerator;
     private _schemas : SchemaRetriever;
     private _tpClient : Tp.BaseClient;
     private _langPack : I18n.LanguagePack;
@@ -169,7 +170,7 @@ export default class ThingpediaLoader {
     entitySubTypeMap : Record<string, string>;
     private _subEntityMap : Map<string, string[]>;
 
-    constructor(grammar : SentenceGenerator<any, Ast.Input>,
+    constructor(grammar : SentenceGenerator,
                 langPack : I18n.LanguagePack,
                 options : GrammarOptions) {
         this._grammar = grammar;
@@ -214,6 +215,9 @@ export default class ThingpediaLoader {
     }
 
     async init() {
+        // import the common templates
+        await commonTemplates(this._options, this._langPack, this._grammar, this);
+
         // make sure that these types are always available, regardless of which templates we have
         this._recordType(Type.String);
         this._recordType(Type.Date);

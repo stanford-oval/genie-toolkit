@@ -25,7 +25,7 @@ import { Ast, Type } from 'thingtalk';
 
 import * as SentenceGeneratorRuntime from '../sentence-generator/runtime';
 import * as SentenceGeneratorTypes from '../sentence-generator/types';
-export type AgentReplyRecord = SentenceGeneratorTypes.AgentReplyRecord<Ast.DialogueState>;
+export type AgentReplyRecord = SentenceGeneratorTypes.AgentReplyRecord;
 import * as ThingTalkUtils from '../utils/thingtalk';
 
 import * as C from './ast_manip';
@@ -818,21 +818,21 @@ export function makeContextPhrase(symbol : number,
                                   value : ContextInfo,
                                   utterance : SentenceGeneratorRuntime.ReplacedResult = SentenceGeneratorRuntime.ReplacedResult.EMPTY,
                                   priority = 0) : SentenceGeneratorTypes.ContextPhrase {
-    return { symbol, utterance, value, priority, key: value.key };
+    return { symbol, utterance, value, priority, context: value, key: value.key };
 }
-export function makeExpressionContextPhrase(loader : ThingpediaLoader,
+export function makeExpressionContextPhrase(context : ContextInfo,
                                             symbol : number,
                                             value : Ast.Expression,
                                             utterance : SentenceGeneratorRuntime.ReplacedResult = SentenceGeneratorRuntime.ReplacedResult.EMPTY,
                                             priority = 0) : SentenceGeneratorTypes.ContextPhrase {
-    return { symbol, utterance, value, priority, key: keyfns.expressionKeyFn(value) };
+    return { symbol, utterance, value, priority, context, key: keyfns.expressionKeyFn(value) };
 }
-export function makeValueContextPhrase(loader : ThingpediaLoader,
+export function makeValueContextPhrase(context : ContextInfo,
                                        symbol : number,
                                        value : Ast.Value,
                                        utterance : SentenceGeneratorRuntime.ReplacedResult = SentenceGeneratorRuntime.ReplacedResult.EMPTY,
                                        priority = 0) : SentenceGeneratorTypes.ContextPhrase {
-    return { symbol, utterance, value, priority, key: keyfns.valueKeyFn(value) };
+    return { symbol, utterance, value, priority, context, key: keyfns.valueKeyFn(value) };
 }
 
 export interface AgentReplyOptions {
@@ -886,7 +886,6 @@ function makeAgentReply(ctx : ContextInfo,
 
         return {
             state,
-            context: null,
             contextPhrases: [],
             expect: expectedType,
 
@@ -920,7 +919,6 @@ function makeAgentReply(ctx : ContextInfo,
 
     return {
         state,
-        context: newContext,
         contextPhrases: [
             makeContextPhrase(ctx.contextTable.ctx_sys_any, newContext),
             makeContextPhrase(mainTag, newContext),
@@ -1167,7 +1165,14 @@ function makeErrorContextPhrase(ctx : ContextInfo,
 
         if (utterance) {
             const value : C.ErrorMessage = { code: error.value, bag };
-            output.push({ symbol: contextTable.ctx_thingpedia_error_message, utterance, value, priority: 0, key: keyfns.errorMessageKeyFn(value) });
+            output.push({
+                symbol: contextTable.ctx_thingpedia_error_message,
+                utterance,
+                value,
+                priority: 0,
+                context: ctx,
+                key: keyfns.errorMessageKeyFn(value)
+            });
 
             // in inference mode, we're done
             if (ctx.loader.flags.inference)
@@ -1227,7 +1232,14 @@ function makeListResultContextPhrase(ctx : ContextInfo,
 
         if (utterance) {
             const value = [ctx, bag];
-            output.push({ symbol: contextTable.ctx_thingpedia_list_result, utterance, value, priority: 0, key: keyfns.slotBagKeyFn(bag) });
+            output.push({
+                symbol: contextTable.ctx_thingpedia_list_result,
+                utterance,
+                value,
+                priority: 0,
+                context: ctx,
+                key: keyfns.slotBagKeyFn(bag)
+            });
 
             // in inference mode, we're done
             if (ctx.loader.flags.inference)
@@ -1299,8 +1311,14 @@ function makeListConcatResultContextPhrase(ctx : ContextInfo,
 
         if (utterance) {
             const value = [ctx, bag];
-            output.push({ symbol: contextTable.ctx_thingpedia_list_result, utterance:
-                new SentenceGeneratorRuntime.ReplacedList(utterance, ctx.loader.locale, '.'), value, priority: 0, key: keyfns.slotBagKeyFn(bag) });
+            output.push({
+                symbol: contextTable.ctx_thingpedia_list_result,
+                utterance: new SentenceGeneratorRuntime.ReplacedList(utterance, ctx.loader.locale, '.'),
+                value,
+                priority: 0,
+                context: ctx,
+                key: keyfns.slotBagKeyFn(bag)
+            });
 
             // in inference mode, we're done
             if (ctx.loader.flags.inference)
@@ -1341,7 +1359,14 @@ function makeTopResultContextPhrase(ctx : ContextInfo,
         });
 
         if (utterance) {
-            output.push({ symbol: contextTable.ctx_thingpedia_result, utterance, value: bag, priority: 0, key: keyfns.slotBagKeyFn(bag) });
+            output.push({
+                symbol: contextTable.ctx_thingpedia_result,
+                utterance,
+                value: bag,
+                priority: 0,
+                context: ctx,
+                key: keyfns.slotBagKeyFn(bag)
+            });
 
             // in inference mode, we're done
             if (ctx.loader.flags.inference)
@@ -1444,6 +1469,7 @@ export function makeEmptyResultContextPhrase(ctx : ContextInfo) {
                 utterance,
                 value: bag,
                 priority: 0,
+                context: ctx,
                 key: keyfns.slotBagKeyFn(bag)
             });
 
@@ -1484,6 +1510,7 @@ function makeOneNameListContextPhrase(ctx : ContextInfo,
         utterance,
         value,
         priority: length === 2 || length === 3 ? length : 0,
+        context: ctx,
         key: nameListKeyFn(value)
     };
 }
@@ -1508,6 +1535,7 @@ function makeNameContextPhrase(ctx : ContextInfo,
         utterance,
         value,
         priority: 0,
+        context: ctx,
         key: contextNameKeyFn(value)
     };
 }
@@ -1574,7 +1602,7 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
         if (ctx.state.dialogueActParam) {
             const appName = ctx.state.dialogueActParam[0];
             assert(appName instanceof Ast.StringValue);
-            phrases.push(makeValueContextPhrase(ctx.loader,
+            phrases.push(makeValueContextPhrase(ctx,
                 contextTable.ctx_notification_app_name, appName, describer.describeArg(appName)!));
         }
     }
@@ -1600,7 +1628,7 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
             if (description !== null)
                 description = description.constrain('plural', 'other');
             if (description !== null) {
-                phrases.push(makeExpressionContextPhrase(ctx.loader,
+                phrases.push(makeExpressionContextPhrase(ctx,
                                                          contextTable.ctx_current_query, lastQuery,
                                                          description));
             }
@@ -1630,7 +1658,7 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
         if (lastQuery) {
             const description = describer.describeQuery(lastQuery);
             if (description !== null) {
-                phrases.push(makeExpressionContextPhrase(ctx.loader, contextTable.ctx_next_query, lastQuery,
+                phrases.push(makeExpressionContextPhrase(ctx, contextTable.ctx_next_query, lastQuery,
                                                          description));
             }
         }
@@ -1640,7 +1668,7 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
             assert(action instanceof Ast.InvocationExpression);
             const description = describer.describePrimitive(action.invocation);
             if (description !== null) {
-                phrases.push(makeExpressionContextPhrase(ctx.loader, contextTable.ctx_next_action, action,
+                phrases.push(makeExpressionContextPhrase(ctx, contextTable.ctx_next_action, action,
                                                          description));
             }
         }

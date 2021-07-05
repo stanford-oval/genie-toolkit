@@ -24,15 +24,6 @@ import { Ast, } from 'thingtalk';
 import * as C from './ast_manip';
 import ThingpediaLoader from './load-thingpedia';
 
-// Initialize the Thingpedia loader before doing anything else
-{
-$loader = new ThingpediaLoader($grammar, $locale, $options);
-}
-import './common.genie';
-{
-await $loader.init();
-}
-
 import './shared.genie';
 import './constants.genie';
 import './timers.genie';

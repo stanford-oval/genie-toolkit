@@ -28,6 +28,7 @@ import * as metaast from './meta_ast';
 import type { GrammarOptions } from '../types';
 import type * as I18n from '../../i18n';
 import type SentenceGenerator from '../generator';
+import ThingpediaLoader from '../../templates/load-thingpedia';
 
 const COMPILER_OPTIONS : ts.CompilerOptions = {
     module: ts.ModuleKind.CommonJS,
@@ -189,6 +190,9 @@ export class Compiler {
     }
 
     async parse(filename : string) {
+        // load the common file first
+        await this._loadFile(path.resolve(path.dirname(module.filename), '../../templates/common.genie'));
+
         // load all template files and extract all the type annotations
         await this._loadFile(filename);
 
@@ -248,8 +252,8 @@ export function compile(filename : string) : Promise<void> {
 
 type CompiledTemplate = (options : GrammarOptions,
                          langPack : I18n.LanguagePack,
-                         grammar : SentenceGenerator<any, any, any>,
-                         loader ?: any) => Promise<void>;
+                         grammar : SentenceGenerator,
+                         loader : ThingpediaLoader) => Promise<void>;
 
 export async function importGenie(filename : string,
                                   searchPath = path.resolve(path.dirname(module.filename), '../../templates')) : Promise<CompiledTemplate> {

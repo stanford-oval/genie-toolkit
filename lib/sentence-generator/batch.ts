@@ -31,13 +31,13 @@ import { ReservoirSampler, } from '../utils/random';
 import * as Utils from '../utils/entity-utils';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import { SimulationDatabase } from '../dialogue-agent/simulator/types';
+import * as TransactionLogic from '../templates/transaction-logic';
 
 import SentenceGenerator, {
     SentenceGeneratorOptions,
 } from './generator';
 import {
     ContextPhrase,
-    AgentReplyRecord
 } from './types';
 import { Derivation } from './runtime';
 
@@ -67,7 +67,7 @@ class BasicSentenceGenerator extends stream.Readable {
     private _locale : string;
     private _langPack : I18n.LanguagePack;
     private _rng : () => number;
-    private _generator : SentenceGenerator<undefined, ThingTalkUtils.Input>;
+    private _generator : SentenceGenerator;
     private _initialization : Promise<void>|null;
     private _i : number;
 
@@ -118,14 +118,14 @@ class BasicSentenceGenerator extends stream.Readable {
         });
     }
 
-    private _postprocessSentence(derivation : Derivation<ThingTalkUtils.Input>, program : ThingTalkUtils.Input) {
+    private _postprocessSentence(derivation : Derivation<ThingTalk.Ast.Input>, program : ThingTalk.Ast.Input) {
         let utterance = derivation.sampleSentence(this._rng);
         utterance = utterance.replace(/ +/g, ' ');
         utterance = this._langPack.postprocessSynthetic(utterance, program, this._rng, 'user');
         return utterance;
     }
 
-    private _output(derivation : Derivation<ThingTalkUtils.Input>) {
+    private _output(derivation : Derivation<ThingTalk.Ast.Input>) {
         const program = derivation.value.optimize();
         assert(program !== null); // not-null even after optimize
         let preprocessed = this._postprocessSentence(derivation, program);
@@ -169,7 +169,7 @@ interface DialogueTurn {
 type Dialogue = DialogueTurn[];
 
 class PartialDialogue {
-    constructor(public context : any = null,
+    constructor(public context : ThingTalk.Ast.DialogueState|null = null,
                 public turns : DialogueTurn[] = [],
                 public execState : any = undefined) {
     }
@@ -203,8 +203,8 @@ const FACTORS = [50, 75, 75, 100];
  * This object is created afresh for every minibatch.
  */
 class MinibatchDialogueGenerator {
-    private _agentGenerator : SentenceGenerator<PartialDialogue, AgentReplyRecord<ThingTalkUtils.DialogueState>>;
-    private _userGenerator : SentenceGenerator<AgentTurn, ThingTalkUtils.DialogueState>;
+    private _agentGenerator : SentenceGenerator;
+    private _userGenerator : SentenceGenerator;
     private _langPack : I18n.LanguagePack;
     private _simulator : ThingTalkUtils.Simulator;
     private _stateValidator : StateValidator;
@@ -221,8 +221,8 @@ class MinibatchDialogueGenerator {
     private _emptyDialogue : PartialDialogue;
     private _completeDialogues : Array<ReservoirSampler<Dialogue>>;
 
-    constructor(agentGenerator : SentenceGenerator<PartialDialogue, AgentReplyRecord<ThingTalkUtils.DialogueState>>,
-                userGenerator : SentenceGenerator<AgentTurn, ThingTalkUtils.DialogueState>,
+    constructor(agentGenerator : SentenceGenerator,
+                userGenerator : SentenceGenerator,
                 langPack : I18n.LanguagePack,
                 simulator : ThingTalkUtils.Simulator,
                 stateValidator : StateValidator,
@@ -252,6 +252,39 @@ class MinibatchDialogueGenerator {
         }
     }
 
+    private *_agentGetContextPhrases(partials : readonly PartialDialogue[]) {
+        for (const dlg of partials) {
+            const phrases = TransactionLogic.getContextPhrasesForState(dlg.context, this._agentGenerator.tpLoader,
+                this._agentGenerator.contextTable);
+            if (phrases !== null) {
+                for (const phrase of phrases) {
+                    // override the context because we need the context in _generateAgent
+                    phrase.context = dlg;
+                    yield phrase;
+                }
+            }
+        }
+    }
+
+    private *_userGetContextPhrases(agentTurns : readonly AgentTurn[]) {
+        for (const agentTurn of agentTurns) {
+            if (agentTurn.context === null) {
+                // first turn
+                for (const phrase of TransactionLogic.getContextPhrasesForState!(null, this._userGenerator.tpLoader, this._userGenerator.contextTable)!) {
+                    // override the context because we need the context in _generateUser
+                    phrase.context = agentTurn;
+                    yield phrase;
+                }
+            } else {
+                for (const phrase of agentTurn.contextPhrases) {
+                    // override the context because we need the context in _generateUser
+                    phrase.context = agentTurn;
+                    yield phrase;
+                }
+            }
+        }
+    }
+
     private _maybeAddCompleteDialog(dlg : PartialDialogue) {
         assert(dlg.turns.length > 0);
         this._completeDialogues[dlg.turns.length-1].add(dlg.turns);
@@ -276,7 +309,7 @@ class MinibatchDialogueGenerator {
     private _generateAgent(partials : readonly PartialDialogue[]) : AgentTurn[] {
         const agentTurns : AgentTurn[] = [];
         this._agentGenerator.reset();
-        for (const derivation of this._agentGenerator.generate(partials, '$agent')) {
+        for (const derivation of this._agentGenerator.generate(this._agentGetContextPhrases(partials), '$agent')) {
             // derivation.dlg is the PartialDialogue that is being continued
             // derivation.value is the object returned by the root semantic function, with:
             // - state (the thingtalk state)
@@ -310,7 +343,7 @@ class MinibatchDialogueGenerator {
 
     private _generateUser(continuations : MultiMap<PartialDialogue, Continuation>, agentTurns : AgentTurn[]) {
         this._userGenerator.reset();
-        for (const derivation of this._userGenerator.generate(agentTurns, '$user')) {
+        for (const derivation of this._userGenerator.generate(this._userGetContextPhrases(agentTurns), '$user')) {
             // the derivation value for the user is directly the thingtalk user state
             // (unlike the agent)
 
@@ -455,8 +488,8 @@ class DialogueGenerator extends stream.Readable {
     private _idPrefix : string;
     private _debug : number;
     private _langPack : I18n.LanguagePack;
-    private _agentGenerator : SentenceGenerator<PartialDialogue, AgentReplyRecord<ThingTalkUtils.DialogueState>>;
-    private _userGenerator : SentenceGenerator<AgentTurn, ThingTalkUtils.DialogueState>;
+    private _agentGenerator : SentenceGenerator;
+    private _userGenerator : SentenceGenerator;
     private _stateValidator : StateValidator;
     private _simulator : ThingTalkUtils.Simulator;
 
@@ -475,7 +508,7 @@ class DialogueGenerator extends stream.Readable {
 
         this._langPack = I18n.get(options.locale);
 
-        const agentOptions : SentenceGeneratorOptions<PartialDialogue, AgentReplyRecord<ThingTalkUtils.DialogueState>> = {
+        const agentOptions : SentenceGeneratorOptions = {
             locale: options.locale,
             timezone: options.timezone,
             templateFiles: options.templateFiles,
@@ -492,14 +525,10 @@ class DialogueGenerator extends stream.Readable {
             entityAllocator: new ThingTalk.Syntax.SequentialEntityAllocator({}),
             onlyDevices: options.onlyDevices,
             whiteList: options.whiteList,
-
-            contextInitializer: (partialDialogue : PartialDialogue, functionTable, contextTable) => {
-                return functionTable.context!(partialDialogue.context, contextTable);
-            }
         };
-        this._agentGenerator = new SentenceGenerator<PartialDialogue, AgentReplyRecord<ThingTalkUtils.DialogueState>>(agentOptions);
+        this._agentGenerator = new SentenceGenerator(agentOptions);
 
-        const userOptions : SentenceGeneratorOptions<AgentTurn, ThingTalkUtils.DialogueState> = {
+        const userOptions : SentenceGeneratorOptions = {
             locale: options.locale,
             timezone: options.timezone,
             templateFiles: options.templateFiles,
@@ -516,17 +545,8 @@ class DialogueGenerator extends stream.Readable {
             entityAllocator: new ThingTalk.Syntax.SequentialEntityAllocator({}),
             onlyDevices: options.onlyDevices,
             whiteList: options.whiteList,
-
-            contextInitializer: (agentTurn : AgentTurn, functionTable, contextTable) => {
-                if (agentTurn.context === null) {
-                    // first turn
-                    return functionTable.context!(null, contextTable);
-                } else {
-                    return agentTurn.contextPhrases;
-                }
-            }
         };
-        this._userGenerator = new SentenceGenerator<AgentTurn, ThingTalkUtils.DialogueState>(userOptions);
+        this._userGenerator = new SentenceGenerator(userOptions);
 
         this._stateValidator = ThingTalkUtils.createStateValidator(
             options.policyFile ? path.resolve(path.dirname(module.filename), '../templates', options.policyFile) : undefined);

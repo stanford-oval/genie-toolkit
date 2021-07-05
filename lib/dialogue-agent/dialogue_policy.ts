@@ -28,6 +28,9 @@ import SentenceGenerator, { SentenceGeneratorOptions } from '../sentence-generat
 import { AgentReplyRecord } from '../sentence-generator/types';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import { EntityMap } from '../utils/entity-utils';
+import { Derivation } from '../sentence-generator/runtime';
+
+import * as TransactionLogic from '../templates/transaction-logic';
 
 const MAX_DEPTH = 8;
 const TARGET_PRUNING_SIZES = [15, 50, 100, 200];
@@ -95,9 +98,9 @@ export default class DialoguePolicy {
     private _anonymous : boolean;
     private _extraFlags : Record<string, boolean>;
 
-    private _sentenceGenerator : SentenceGenerator<Ast.DialogueState|null, Ast.DialogueState, AgentReplyRecord<Ast.DialogueState>>|null;
+    private _sentenceGenerator : SentenceGenerator|null;
     private _generatorDevices : string[]|null;
-    private _generatorOptions : SentenceGeneratorOptions<Ast.DialogueState|null, Ast.DialogueState>|undefined;
+    private _generatorOptions : SentenceGeneratorOptions|undefined;
     private _entityAllocator : Syntax.SequentialEntityAllocator;
 
     constructor(options : DialoguePolicyOptions) {
@@ -144,18 +147,8 @@ export default class DialoguePolicy {
             maxConstants: 5,
             targetPruningSize: TARGET_PRUNING_SIZES[0],
             debug: this._debug,
-
-            contextInitializer: (state, functionTable, contextTable) => {
-                // ask the target language to extract the constants from the context
-                this._entityAllocator.reset();
-                if (state !== null) {
-                    const constants = ThingTalkUtils.extractConstants(state, this._entityAllocator);
-                    sentenceGenerator.addConstantsFromContext(constants);
-                }
-                return functionTable.context!(state, contextTable);
-            }
         };
-        const sentenceGenerator = new SentenceGenerator<Ast.DialogueState|null, Ast.DialogueState, AgentReplyRecord<Ast.DialogueState>>(this._generatorOptions!);
+        const sentenceGenerator = new SentenceGenerator(this._generatorOptions!);
         this._sentenceGenerator = sentenceGenerator;
         this._generatorDevices = forDevices;
         await this._sentenceGenerator.initialize();
@@ -187,18 +180,29 @@ export default class DialoguePolicy {
         if (state === null)
             return null;
         await this._ensureGeneratorForState(state);
-        return this._sentenceGenerator!.invokeFunction('answer', state, value, this._sentenceGenerator!.contextTable);
+        return TransactionLogic.interpretAnswer(state, value, this._sentenceGenerator!.tpLoader, this._sentenceGenerator!.contextTable);
     }
 
     private _generateDerivation(state : Ast.DialogueState|null) {
-        let derivation;
+        let derivation : Derivation<AgentReplyRecord>|undefined;
 
         // try with a low pruning size first, because that's faster, and then increase
         // the pruning size if we don't find anything useful
         for (const pruningSize of TARGET_PRUNING_SIZES) {
             this._generatorOptions!.targetPruningSize = pruningSize;
             this._sentenceGenerator!.reset(true);
-            derivation = this._sentenceGenerator!.generateOne(state, '$agent');
+
+            this._entityAllocator.reset();
+            if (state !== null) {
+                const constants = ThingTalkUtils.extractConstants(state, this._entityAllocator);
+                this._sentenceGenerator!.addConstantsFromContext(constants);
+            }
+            const contextPhrases = TransactionLogic.getContextPhrasesForState(state, this._sentenceGenerator!.tpLoader,
+                this._sentenceGenerator!.contextTable);
+            if (contextPhrases === null)
+                return undefined;
+
+            derivation = this._sentenceGenerator!.generateOne(contextPhrases, '$agent');
             if (derivation !== undefined)
                 break;
         }
@@ -228,24 +232,21 @@ export default class DialoguePolicy {
 
     async getFollowUp(state : Ast.DialogueState) : Promise<Ast.DialogueState|null> {
         await this._ensureGeneratorForState(state);
-
-        return this._sentenceGenerator!.invokeFunction('followUp', state, this._sentenceGenerator!.contextTable);
+        return TransactionLogic.getFollowUp(state, this._sentenceGenerator!.tpLoader, this._sentenceGenerator!.contextTable);
     }
 
     async getNotificationState(appName : string|null, program : Ast.Program, result : Ast.DialogueHistoryResultItem) {
         await this._ensureGeneratorForState(program);
-
-        return this._sentenceGenerator!.invokeFunction('notification', appName, program, result, this._sentenceGenerator!.contextTable);
+        return TransactionLogic.notification(appName, program, result);
     }
 
     async getAsyncErrorState(appName : string|null, program : Ast.Program, error : Ast.Value) {
         await this._ensureGeneratorForState(program);
-
-        return this._sentenceGenerator!.invokeFunction('notifyError', appName, program, error, this._sentenceGenerator!.contextTable);
+        return TransactionLogic.notifyError(appName, program, error);
     }
 
     async getInitialState() {
         await this._ensureGeneratorForState(null);
-        return this._sentenceGenerator!.invokeFunction('initialState', this._sentenceGenerator!.contextTable);
+        return TransactionLogic.initialState(this._sentenceGenerator!.tpLoader);
     }
 }

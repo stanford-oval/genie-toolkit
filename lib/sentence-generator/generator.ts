@@ -54,10 +54,10 @@ import {
     RuleAttributes,
     ContextPhrase,
     ContextTable,
-    FunctionTable,
     GrammarOptions,
 } from './types';
 import { importGenie } from './compiler';
+import ThingpediaLoader from '../templates/load-thingpedia';
 
 function dummyKeyFunction() {
     return {};
@@ -144,8 +144,6 @@ const MAX_SAMPLE_SIZE = 1000000;
 // the automatically added derivation key considering the context
 const CONTEXT_KEY_NAME = '$context';
 
-type ContextInitializer<ContextType, StateType> = (previousTurn : ContextType, functionTable : FunctionTable<StateType>, contextTable : ContextTable) => ContextPhrase[]|null;
-
 interface GenericSentenceGeneratorOptions extends GrammarOptions {
     locale : string;
     templateFiles : string[];
@@ -158,18 +156,16 @@ interface GenericSentenceGeneratorOptions extends GrammarOptions {
 
 interface BasicSentenceGeneratorOptions {
     contextual : false;
-    contextInitializer ?: undefined;
 }
 
-interface ContextualSentenceGeneratorOptions<ContextType, StateType> {
+interface ContextualSentenceGeneratorOptions {
     contextual : true;
     rootSymbol ?: string;
-    contextInitializer : ContextInitializer<ContextType, StateType>;
 }
 
-export type SentenceGeneratorOptions<ContextType, RootOutputType> =
+export type SentenceGeneratorOptions =
     GenericSentenceGeneratorOptions &
-    (BasicSentenceGeneratorOptions | ContextualSentenceGeneratorOptions<ContextType, RootOutputType>);
+    (BasicSentenceGeneratorOptions | ContextualSentenceGeneratorOptions);
 
 interface Constant {
     token : string;
@@ -534,21 +530,19 @@ const INFINITY = 1<<30; // integer infinity
  * Low-level class that generates sentences and associated logical forms,
  * given a grammar expressed as Genie template files.
  */
-export default class SentenceGenerator<ContextType, StateType, RootOutputType = StateType> extends events.EventEmitter {
+export default class SentenceGenerator extends events.EventEmitter {
     private _templateFiles : string[];
     private _langPack : I18n.LanguagePack;
     private _entityAllocator : ThingTalk.Syntax.SequentialEntityAllocator;
+    private _tpLoader : ThingpediaLoader;
 
-    private _options : SentenceGeneratorOptions<ContextType, StateType>;
+    private _options : SentenceGeneratorOptions;
     private _contextual : boolean;
 
     private _nonTermTable : Map<string, number>;
     private _nonTermList : string[];
     private _rules : Array<Array<Rule<any[], any>>>;
     private _contextTable : Record<string, number>;
-    private _functionTable : FunctionTable<StateType>;
-
-    private _contextInitializer : ContextInitializer<ContextType, StateType>|undefined;
 
     private _constantMap : MultiMap<string, [number, KeyFunction<any>]>;
 
@@ -563,12 +557,13 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
     // used to debug the mutally recursive calls
     private _stackDepth = 0;
 
-    constructor(options : SentenceGeneratorOptions<ContextType, StateType>) {
+    constructor(options : SentenceGeneratorOptions) {
         super();
 
         this._templateFiles = options.templateFiles;
         this._langPack = I18n.get(options.locale);
         this._entityAllocator = options.entityAllocator;
+        this._tpLoader = new ThingpediaLoader(this, this._langPack, options);
 
         this._options = options;
         this._contextual = options.contextual;
@@ -578,9 +573,6 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
         this._rules = [];
 
         this._contextTable = {};
-        this._functionTable = {};
-
-        this._contextInitializer = options.contextInitializer;
 
         // map constant tokens (QUOTED_STRING, NUMBER, ...) to the non-terms where they are used (constant_String, ...)
         this._constantMap = new MultiMap;
@@ -593,10 +585,16 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
         this._progress = 0;
     }
 
+    get tpLoader() {
+        return this._tpLoader;
+    }
+
     async initialize() : Promise<void> {
+        await this._tpLoader.init();
+
         for (const filename of this._templateFiles) {
             const imported = await importGenie(filename);
-            await imported(this._options, this._langPack, this);
+            await imported(this._options, this._langPack, this, this._tpLoader);
         }
         this.finalize();
     }
@@ -624,14 +622,6 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
         assert(this._rules.length === this._nonTermList.length);
         this._nonTermTable.set(symbol, index);
         return index;
-    }
-
-    declareFunction(name : string, fn : (...args : any[]) => any) : void {
-        if (this._finalized)
-            throw new GenieTypeError(`Grammar was finalized, cannot declare more functions`);
-        if (Object.prototype.hasOwnProperty.call(this._functionTable, name))
-            throw new GenieTypeError(`Function ${name} already declared`);
-        this._functionTable[name] = fn;
     }
 
     declareContext(context : string) : void {
@@ -714,9 +704,6 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
     }
 
     private _typecheck() {
-        if (this._contextual && !this._functionTable.context)
-            throw new GenieTypeError(`Missing "context" function for contextual grammar`);
-
         for (let nonTermIndex = 0; nonTermIndex < this._nonTermList.length; nonTermIndex++) {
             const nonTerm = this._nonTermList[nonTermIndex];
             const rules = this._rules[nonTermIndex];
@@ -828,12 +815,6 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
         }
     }
 
-    invokeFunction<K extends keyof FunctionTable<StateType>>(name : K, ...args : Parameters<NonNullable<FunctionTable<StateType>[K]>>) : ReturnType<NonNullable<FunctionTable<StateType>[K]>> {
-        //if (!this._functionTable.has(name))
-        //    return null;
-        return this._functionTable[name]!(...args);
-    }
-
     addConstantsFromContext(constants : { [key : string] : Constant[] }) : void {
         // create temporary rules generating these constants
         // these rules are added to all the non-terminals where we saw a `const()` declaration
@@ -893,7 +874,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
      * @param nonTerm - the symbol to generate
      * @return {Derivation} - the sampled derivation
      */
-    generateOne(context : ContextType, nonTerm : string) : Derivation<RootOutputType>|undefined {
+    generateOne(contexts : Iterable<ContextPhrase>, nonTerm : string) : Derivation<any>|undefined {
         this.finalize();
         assert(this._contextual);
 
@@ -901,7 +882,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
         this._disableRulesForConstants();
 
         this._initializeCharts();
-        this._initializeContexts([context]);
+        this._initializeContexts(contexts);
 
         const nonTermIndex = this._lookupNonTerminal(nonTerm);
 
@@ -910,7 +891,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
             this._ensureGenerated(nonTermIndex, depth, GenerationMode.BY_PRIORITY);
 
         // find the one best derivation for this non-terminal, across all depths
-        let best : Derivation<RootOutputType>|undefined = undefined;
+        let best : Derivation<any>|undefined = undefined;
         for (const derivation of this._getAllDerivations(nonTermIndex)) {
             if (best === undefined || derivation.priority > best.priority)
                 best = derivation;
@@ -961,23 +942,21 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
      * - The templates can pass arbitrary information from the agent turns to the user turns,
      *   including information that is not representable in a ThingTalk dialogue state.
      */
-    private _initializeContexts(contextInputs : readonly ContextType[]) : void {
-        for (const ctxIn of contextInputs) {
-            try {
-                const result = this._contextInitializer!(ctxIn, this._functionTable, this._contextTable);
-                if (result !== null) {
-                    const ctx = new Context(ctxIn);
-                    for (const phrase of result) {
-                        const index = phrase.symbol;
-                        assert(index >= 0 && index <= this._nonTermTable.size, `Invalid context number ${index}`);
-                        const derivation = new Derivation(phrase.key, phrase.value, phrase.utterance, ctx, 0, phrase.priority || 0);
-                        this._charts!.add(index, 0, derivation);
-                    }
-                }
-            } catch(e) {
-                console.error(ctxIn);
-                throw e;
-            }
+    private _initializeContexts(contextPhrases : Iterable<ContextPhrase>) : void {
+        contextPhrases = Array.from(contextPhrases);
+
+        const contexts = new Map<unknown, Context>();
+        for (const phrase of contextPhrases) {
+            const existing = contexts.get(phrase.context);
+            if (existing === undefined)
+                contexts.set(phrase.context, new Context(phrase.context));
+        }
+
+        for (const phrase of contextPhrases) {
+            const index = phrase.symbol;
+            assert(index >= 0 && index <= this._nonTermTable.size, `Invalid context number ${index}`);
+            const derivation = new Derivation(phrase.key, phrase.value, phrase.utterance, contexts.get(phrase.context)!, 0, phrase.priority || 0);
+            this._charts!.add(index, 0, derivation);
         }
     }
 
@@ -1169,7 +1148,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
         return nonTermSize;
     }
 
-    private *_getAllDerivations(nonTermIndex : number) : IterableIterator<Derivation<RootOutputType>> {
+    private *_getAllDerivations(nonTermIndex : number) : IterableIterator<Derivation<any>> {
         for (let depth = 0; depth <= this._options.maxDepth; depth++)
             yield* this._charts!.getAtDepth(nonTermIndex, depth);
     }
@@ -1178,8 +1157,8 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
      * Generate a batch of derivations for the given symbol, given the batch of contexts.
      *
      */
-    generate(contextInputs : readonly ContextType[],
-             symbol : string) : Iterable<Derivation<RootOutputType>> {
+    generate(contextPhrases : Iterable<ContextPhrase>,
+             symbol : string) : Iterable<Derivation<any>> {
         this.finalize();
 
         // enable all rules (in case we called generateOne before)
@@ -1190,7 +1169,7 @@ export default class SentenceGenerator<ContextType, StateType, RootOutputType = 
 
         this._initializeCharts();
         if (this._contextual)
-            this._initializeContexts(contextInputs);
+            this._initializeContexts(contextPhrases);
 
         const nonTermIndex = this._lookupNonTerminal(symbol);
 

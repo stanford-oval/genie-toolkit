@@ -19,7 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import * as Tp from 'thingpedia';
-import { Type, SchemaRetriever, Syntax } from 'thingtalk';
+import { Type, SchemaRetriever, Syntax, Ast } from 'thingtalk';
 
 import { Hashable } from '../utils/hashmap';
 import { ReplacedResult } from '../utils/template-string';
@@ -52,28 +52,15 @@ export interface ContextPhrase {
     symbol : number;
     utterance : ReplacedResult;
     value : unknown;
+    context : unknown;
     priority ?: number;
     key : DerivationKey;
 }
 
 export type ContextTable = Record<string, number>;
 
-export type ContextFunction<StateType> = (state : StateType|null, contextSymbols : ContextTable) => ContextPhrase[]|null;
-
-export interface FunctionTable<StateType> {
-    answer ?: (state : StateType, value : unknown, contextTable : ContextTable) => StateType|null;
-    context ?: ContextFunction<StateType>;
-    notification ?: (appName : string|null, program : unknown, result : unknown, contextTable : ContextTable) => StateType|null;
-    notifyError ?: (appName : string|null, program : unknown, error : unknown, contextTable : ContextTable) => StateType|null;
-    initialState ?: (contextTable : ContextTable) => StateType|null;
-    followUp ?: (state : StateType, contextTable : ContextTable) => StateType|null;
-
-    [key : string] : ((...args : any[]) => any)|undefined;
-}
-
-export interface AgentReplyRecord<StateType> {
-    state : StateType;
-    context : any;
+export interface AgentReplyRecord {
+    state : Ast.DialogueState;
     contextPhrases : ContextPhrase[];
     expect : Type|null;
     end : boolean;
