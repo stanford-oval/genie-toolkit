@@ -18,19 +18,19 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-
+import path from 'path';
 import assert from 'assert';
 import * as Tp from 'thingpedia';
 import { Ast, Type, SchemaRetriever, Syntax } from 'thingtalk';
 
 import * as I18n from '../i18n';
 import SentenceGenerator, { SentenceGeneratorOptions } from '../sentence-generator/generator';
-import { AgentReplyRecord } from '../sentence-generator/types';
+import { AgentReplyRecord, PolicyModule } from '../sentence-generator/types';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import { EntityMap } from '../utils/entity-utils';
 import { Derivation } from '../sentence-generator/runtime';
 
-import * as TransactionLogic from '../templates/transaction-logic';
+import * as TransactionPolicy from '../templates/transactions';
 
 const MAX_DEPTH = 8;
 const TARGET_PRUNING_SIZES = [15, 50, 100, 200];
@@ -45,26 +45,6 @@ function arrayEqual<T>(a : T[], b : T[]) : boolean {
     return true;
 }
 
-/*interface GeneratorOptions {
-    locale : string;
-    templateFiles : string[];
-    flags : { [key : string] : boolean };
-    rootSymbol ?: string;
-    targetPruningSize : number;
-    maxDepth : number;
-    maxConstants : number;
-    debug : number;
-    rng : () => number;
-
-    thingpediaClient ?: Tp.BaseClient;
-    schemaRetriever ?: SchemaRetriever;
-    onlyDevices ?: string[];
-    whiteList ?: string;
-
-    contextual : true;
-    contextInitializer : ContextInitializer;
-}*/
-
 interface DialoguePolicyOptions {
     thingpedia : Tp.BaseClient;
     schemas : SchemaRetriever;
@@ -72,6 +52,7 @@ interface DialoguePolicyOptions {
     timezone : string|undefined;
     extraFlags : Record<string, boolean>;
     anonymous : boolean;
+    policyModule ?: string;
 
     rng : () => number;
     debug : number;
@@ -102,6 +83,8 @@ export default class DialoguePolicy {
     private _generatorDevices : string[]|null;
     private _generatorOptions : SentenceGeneratorOptions|undefined;
     private _entityAllocator : Syntax.SequentialEntityAllocator;
+    private _policyModuleName : string|undefined;
+    private _policyModule ! : PolicyModule;
 
     constructor(options : DialoguePolicyOptions) {
         this._thingpedia = options.thingpedia;
@@ -116,10 +99,20 @@ export default class DialoguePolicy {
         this._debug = options.debug;
         this._anonymous = options.anonymous;
         this._extraFlags = options.extraFlags;
+        this._policyModuleName = options.policyModule;
 
         this._sentenceGenerator = null;
         this._generatorDevices = null;
         this._generatorOptions = undefined;
+    }
+
+    async initialize() {
+        if (this._policyModule)
+            return;
+        if (this._policyModuleName)
+            this._policyModule = await import(path.resolve(this._policyModuleName));
+        else
+            this._policyModule = TransactionPolicy;
     }
 
     private async _initializeGenerator(forDevices : string[]) {
@@ -138,7 +131,6 @@ export default class DialoguePolicy {
             rng: this._rng,
             locale: this._locale,
             timezone: this._timezone,
-            templateFiles: ['dialogue.genie'],
             thingpediaClient: this._thingpedia,
             schemaRetriever: this._schemas,
             entityAllocator: this._entityAllocator,
@@ -152,6 +144,7 @@ export default class DialoguePolicy {
         this._sentenceGenerator = sentenceGenerator;
         this._generatorDevices = forDevices;
         await this._sentenceGenerator.initialize();
+        await this._policyModule.initializeTemplates(this._generatorOptions, this._langPack, this._sentenceGenerator, this._sentenceGenerator.tpLoader);
     }
 
     private _extractDevices(state : Ast.DialogueState|Ast.Program|null) : string[] {
@@ -179,8 +172,10 @@ export default class DialoguePolicy {
     async handleAnswer(state : Ast.DialogueState|null, value : Ast.Value) : Promise<Ast.DialogueState|null> {
         if (state === null)
             return null;
+        if (!this._policyModule.interpretAnswer)
+            return null;
         await this._ensureGeneratorForState(state);
-        return TransactionLogic.interpretAnswer(state, value, this._sentenceGenerator!.tpLoader, this._sentenceGenerator!.contextTable);
+        return this._policyModule.interpretAnswer(state, value, this._sentenceGenerator!.tpLoader, this._sentenceGenerator!.contextTable);
     }
 
     private _generateDerivation(state : Ast.DialogueState|null) {
@@ -197,7 +192,7 @@ export default class DialoguePolicy {
                 const constants = ThingTalkUtils.extractConstants(state, this._entityAllocator);
                 this._sentenceGenerator!.addConstantsFromContext(constants);
             }
-            const contextPhrases = TransactionLogic.getContextPhrasesForState(state, this._sentenceGenerator!.tpLoader,
+            const contextPhrases = this._policyModule.getContextPhrasesForState(state, this._sentenceGenerator!.tpLoader,
                 this._sentenceGenerator!.contextTable);
             if (contextPhrases === null)
                 return undefined;
@@ -232,21 +227,25 @@ export default class DialoguePolicy {
 
     async getFollowUp(state : Ast.DialogueState) : Promise<Ast.DialogueState|null> {
         await this._ensureGeneratorForState(state);
-        return TransactionLogic.getFollowUp(state, this._sentenceGenerator!.tpLoader, this._sentenceGenerator!.contextTable);
+        if (!this._policyModule.getFollowUp)
+            return null;
+        return this._policyModule.getFollowUp(state, this._sentenceGenerator!.tpLoader, this._sentenceGenerator!.contextTable);
     }
 
     async getNotificationState(appName : string|null, program : Ast.Program, result : Ast.DialogueHistoryResultItem) {
         await this._ensureGeneratorForState(program);
-        return TransactionLogic.notification(appName, program, result);
+        return (this._policyModule.notification ?? TransactionPolicy.notification)(appName, program, result);
     }
 
     async getAsyncErrorState(appName : string|null, program : Ast.Program, error : Ast.Value) {
         await this._ensureGeneratorForState(program);
-        return TransactionLogic.notifyError(appName, program, error);
+        return (this._policyModule.notifyError ?? TransactionPolicy.notifyError)(appName, program, error);
     }
 
     async getInitialState() {
         await this._ensureGeneratorForState(null);
-        return TransactionLogic.initialState(this._sentenceGenerator!.tpLoader);
+        if (!this._policyModule.initialState)
+            return null;
+        return this._policyModule.initialState(this._sentenceGenerator!.tpLoader);
     }
 }

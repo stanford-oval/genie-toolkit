@@ -141,6 +141,7 @@ export default class AssistantDispatcher extends events.EventEmitter {
     }
 
     async start() {
+        await this._notificationFormatter.initialize();
         this._dynamicNotificationBackends.start();
     }
     async stop() {

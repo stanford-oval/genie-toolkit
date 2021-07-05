@@ -125,7 +125,6 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
         this._loop = loop;
         this._prefs = engine.platform.getSharedPreferences();
 
-
         this._langPack = I18n.get(engine.platform.locale);
         this._cardFormatter = new CardFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas);
 
@@ -511,6 +510,8 @@ export default class ThingTalkDialogueHandler implements DialogueHandler<ThingTa
     }
 
     async initialize(initialState : string | undefined, showWelcome : boolean) : Promise<ReplyResult|null> {
+        await this._policy.initialize();
+
         if (initialState !== undefined) {
             if (initialState === 'null') {
                 this._dialogueState = null;

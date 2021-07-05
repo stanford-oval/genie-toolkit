@@ -51,7 +51,8 @@ import * as DialogueAgent from './dialogue-agent';
 import SentenceGenerator from './sentence-generator/generator';
 import * as SentenceGeneratorRuntime from './sentence-generator/runtime';
 import * as SentenceGeneratorTypes from './sentence-generator/types';
-import * as Templates from './templates/dialogue.genie.out';
+import * as CommonTemplates from './templates/common.genie.out';
+import * as TransactionPolicy from './templates/transactions';
 
 export {
     // sentence generation
@@ -60,7 +61,8 @@ export {
     SentenceGenerator,
     SentenceGeneratorRuntime,
     SentenceGeneratorTypes,
-    Templates,
+    CommonTemplates,
+    TransactionPolicy,
 
     // dataset manipulation
     DatasetParser,

@@ -146,7 +146,7 @@ const CONTEXT_KEY_NAME = '$context';
 
 interface GenericSentenceGeneratorOptions extends GrammarOptions {
     locale : string;
-    templateFiles : string[];
+    templateFiles ?: string[];
     rootSymbol ?: string;
     targetPruningSize : number;
     maxDepth : number;
@@ -560,7 +560,7 @@ export default class SentenceGenerator extends events.EventEmitter {
     constructor(options : SentenceGeneratorOptions) {
         super();
 
-        this._templateFiles = options.templateFiles;
+        this._templateFiles = options.templateFiles ?? [];
         this._langPack = I18n.get(options.locale);
         this._entityAllocator = options.entityAllocator;
         this._tpLoader = new ThingpediaLoader(this, this._langPack, options);
@@ -588,6 +588,9 @@ export default class SentenceGenerator extends events.EventEmitter {
     get tpLoader() {
         return this._tpLoader;
     }
+    get langPack() {
+        return this._langPack;
+    }
 
     async initialize() : Promise<void> {
         await this._tpLoader.init();
@@ -596,7 +599,6 @@ export default class SentenceGenerator extends events.EventEmitter {
             const imported = await importGenie(filename);
             await imported(this._options, this._langPack, this, this._tpLoader);
         }
-        this.finalize();
     }
 
     get progress() : number {

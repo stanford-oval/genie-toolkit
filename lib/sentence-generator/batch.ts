@@ -31,13 +31,14 @@ import { ReservoirSampler, } from '../utils/random';
 import * as Utils from '../utils/entity-utils';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import { SimulationDatabase } from '../dialogue-agent/simulator/types';
-import * as TransactionLogic from '../templates/transaction-logic';
+import * as TransactionPolicy from '../templates/transactions';
 
 import SentenceGenerator, {
     SentenceGeneratorOptions,
 } from './generator';
 import {
     ContextPhrase,
+    PolicyModule
 } from './types';
 import { Derivation } from './runtime';
 
@@ -184,12 +185,6 @@ interface AgentTurn {
     target : string|null;
 }
 
-interface StateValidator {
-    load() : Promise<void>;
-    validateUser(state : any) : void;
-    validateAgent(state : any) : void;
-}
-
 interface Continuation {
     userState : any;
     newTurn : DialogueTurn;
@@ -206,8 +201,9 @@ class MinibatchDialogueGenerator {
     private _agentGenerator : SentenceGenerator;
     private _userGenerator : SentenceGenerator;
     private _langPack : I18n.LanguagePack;
+    private _policy : PolicyModule;
     private _simulator : ThingTalkUtils.Simulator;
-    private _stateValidator : StateValidator;
+    private _stateValidator : ThingTalkUtils.StateValidator;
     private _minibatchSize : number;
     private _rng : () => number;
     private _options : DialogueGeneratorOptions;
@@ -224,13 +220,15 @@ class MinibatchDialogueGenerator {
     constructor(agentGenerator : SentenceGenerator,
                 userGenerator : SentenceGenerator,
                 langPack : I18n.LanguagePack,
+                policy : PolicyModule,
                 simulator : ThingTalkUtils.Simulator,
-                stateValidator : StateValidator,
+                stateValidator : ThingTalkUtils.StateValidator,
                 options : DialogueGeneratorOptions,
                 minibatchIdx : number) {
         this._agentGenerator = agentGenerator;
         this._userGenerator = userGenerator;
         this._langPack = langPack;
+        this._policy = policy;
         this._simulator = simulator;
         this._stateValidator = stateValidator;
         this._minibatchSize = options.minibatchSize;
@@ -254,7 +252,7 @@ class MinibatchDialogueGenerator {
 
     private *_agentGetContextPhrases(partials : readonly PartialDialogue[]) {
         for (const dlg of partials) {
-            const phrases = TransactionLogic.getContextPhrasesForState(dlg.context, this._agentGenerator.tpLoader,
+            const phrases = this._policy.getContextPhrasesForState(dlg.context, this._agentGenerator.tpLoader,
                 this._agentGenerator.contextTable);
             if (phrases !== null) {
                 for (const phrase of phrases) {
@@ -270,7 +268,7 @@ class MinibatchDialogueGenerator {
         for (const agentTurn of agentTurns) {
             if (agentTurn.context === null) {
                 // first turn
-                for (const phrase of TransactionLogic.getContextPhrasesForState!(null, this._userGenerator.tpLoader, this._userGenerator.contextTable)!) {
+                for (const phrase of this._policy.getContextPhrasesForState!(null, this._userGenerator.tpLoader, this._userGenerator.contextTable)!) {
                     // override the context because we need the context in _generateUser
                     phrase.context = agentTurn;
                     yield phrase;
@@ -460,9 +458,7 @@ interface DialogueGeneratorOptions {
     debug : number;
     rng : () => number;
 
-    policyFile ?: string;
-
-    templateFiles : string[];
+    policyModule ?: string;
     flags : { [key : string] : boolean };
     maxConstants ?: number;
     targetPruningSize : number;
@@ -488,9 +484,10 @@ class DialogueGenerator extends stream.Readable {
     private _idPrefix : string;
     private _debug : number;
     private _langPack : I18n.LanguagePack;
-    private _agentGenerator : SentenceGenerator;
-    private _userGenerator : SentenceGenerator;
-    private _stateValidator : StateValidator;
+    private _agentGenerator ! : SentenceGenerator;
+    private _userGenerator ! : SentenceGenerator;
+    private _policyModule ! : PolicyModule;
+    private _stateValidator ! : ThingTalkUtils.StateValidator;
     private _simulator : ThingTalkUtils.Simulator;
 
     private _initialized : boolean;
@@ -508,10 +505,29 @@ class DialogueGenerator extends stream.Readable {
 
         this._langPack = I18n.get(options.locale);
 
+        this._initialized = false;
+        this._simulator = ThingTalkUtils.createSimulator({
+            locale: options.locale,
+            timezone: options.timezone,
+            thingpediaClient: options.thingpediaClient,
+            database: options.database,
+            rng: options.rng,
+            interactive: false
+        });
+        this._minibatchIdx = 0;
+    }
+
+    private async _initialize() {
+        const options = this._options;
+
+        if (options.policyModule)
+            this._policyModule = await import(path.resolve(options.policyModule));
+        else
+            this._policyModule = TransactionPolicy;
+
         const agentOptions : SentenceGeneratorOptions = {
             locale: options.locale,
             timezone: options.timezone,
-            templateFiles: options.templateFiles,
             rootSymbol: '$agent',
             forSide: 'agent',
             contextual: true,
@@ -527,11 +543,12 @@ class DialogueGenerator extends stream.Readable {
             whiteList: options.whiteList,
         };
         this._agentGenerator = new SentenceGenerator(agentOptions);
+        await this._agentGenerator.initialize();
+        await this._policyModule.initializeTemplates(agentOptions, this._agentGenerator.langPack, this._agentGenerator, this._agentGenerator.tpLoader);
 
         const userOptions : SentenceGeneratorOptions = {
             locale: options.locale,
             timezone: options.timezone,
-            templateFiles: options.templateFiles,
             rootSymbol: '$user',
             forSide: 'user',
             contextual: true,
@@ -547,27 +564,15 @@ class DialogueGenerator extends stream.Readable {
             whiteList: options.whiteList,
         };
         this._userGenerator = new SentenceGenerator(userOptions);
+        await this._userGenerator.initialize();
+        await this._policyModule.initializeTemplates(agentOptions, this._userGenerator.langPack, this._userGenerator, this._userGenerator.tpLoader);
 
-        this._stateValidator = ThingTalkUtils.createStateValidator(
-            options.policyFile ? path.resolve(path.dirname(module.filename), '../templates', options.policyFile) : undefined);
-
-        this._initialized = false;
-        this._simulator = ThingTalkUtils.createSimulator({
-            locale: options.locale,
-            timezone: options.timezone,
-            thingpediaClient: options.thingpediaClient,
-            database: options.database,
-            rng: options.rng,
-            interactive: false
-        });
-        this._minibatchIdx = 0;
+        this._stateValidator = new ThingTalkUtils.StateValidator(this._policyModule.MANIFEST);
     }
 
     private async _generateMinibatch() {
         if (!this._initialized) {
-            await this._userGenerator.initialize();
-            await this._agentGenerator.initialize();
-            await this._stateValidator.load();
+            await this._initialize();
             this._initialized = true;
         }
 
@@ -575,7 +580,7 @@ class DialogueGenerator extends stream.Readable {
         let counter = 0;
         try {
             const generator = new MinibatchDialogueGenerator(this._agentGenerator,
-                this._userGenerator, this._langPack, this._simulator,
+                this._userGenerator, this._langPack, this._policyModule, this._simulator,
                 this._stateValidator, this._options, this._minibatchIdx++);
 
             for (let turn = 0; turn < this._options.maxTurns; turn++)

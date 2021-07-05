@@ -93,11 +93,9 @@ export function initArgparse(subparsers : argparse.SubParser) {
         required: true,
         help: 'Path to file containing primitive templates, in ThingTalk syntax.'
     });
-    parser.add_argument('--template', {
+    parser.add_argument('--policy', {
         required: false,
-        nargs: '+',
-        default: ['dialogue.genie'],
-        help: 'Path to file(s) containing construct templates, in Genie syntax.'
+        help: 'Path to JS/TS module defining the dialogue policy.'
     });
     parser.add_argument('--set-flag', {
         required: false,
@@ -165,7 +163,7 @@ export async function execute(args : any) {
         locale: args.locale,
         timezone: args.timezone,
         flags: args.flags || {},
-        templateFiles: args.template,
+        policy: args.policy,
         targetLanguage: args.target_language,
         thingpediaClient: tpClient,
         maxDepth: args.maxdepth,
