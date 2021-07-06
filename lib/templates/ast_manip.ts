@@ -1419,11 +1419,10 @@ function addComparisonSubquery(table : Ast.Expression,
     }
 
     // add id projection to subquery
-    subquery = subquery.clone();
-    if (subquery instanceof Ast.ProjectionExpression)
-        subquery.args = ['id'];
-    else
-        subquery = new Ast.ProjectionExpression(null, subquery, ['id'], [], [], subquery.schema);
+    let expr = subquery;
+    while (expr instanceof Ast.ProjectionExpression)
+        expr = expr.expression;
+    subquery = new Ast.ProjectionExpression(null, expr, ['id'], [], [], subquery.schema);
 
     const comparisonSubquery = new Ast.BooleanExpression.ComparisonSubquery(
         null,
@@ -1446,10 +1445,13 @@ function addReverseComparisonSubquery(table : Ast.Expression,
         return null;
 
     // add id projection to subquery
-    if (subquery instanceof Ast.ProjectionExpression)
-        subquery.args = [projection.name];
-    else
-        subquery = new Ast.ProjectionExpression(null, subquery, [projection.name], [], [], subquery.schema);
+    let expr = subquery;
+    while (expr instanceof Ast.ProjectionExpression)
+        expr = expr.expression;
+    // no projection if there is only one output parameter
+    if (Object.keys(expr.schema!.out).length === 1)
+        return null;
+    subquery = new Ast.ProjectionExpression(null, expr, [projection.name], [], [], subquery.schema);
 
     const comparisonSubquery = new Ast.BooleanExpression.ComparisonSubquery(
         null,
