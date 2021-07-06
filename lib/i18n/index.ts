@@ -19,7 +19,7 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-import LanguagePack from './default';
+import LanguagePack, { NormalizedParameterCanonical } from './default';
 import English from './english';
 import Italian from './italian';
 import Persian from './persian';
@@ -38,7 +38,8 @@ import BaseTokenizer, { TokenizerResult } from './tokenizer/base';
 export {
     BaseTokenizer,
     TokenizerResult,
-    LanguagePack
+    LanguagePack,
+    NormalizedParameterCanonical
 } ;
 
 interface LPClass {
