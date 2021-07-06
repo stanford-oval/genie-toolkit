@@ -152,7 +152,7 @@ export function getContextPhrasesForState(state : Ast.DialogueState|null,
 
     const phrases = tags.map((tag) => S.makeContextPhrase(tag, ctx));
     // add auxiliary context non-terminals used for pruning and to simplify generation
-    phrases.push(...S.getContextPhrases(ctx));
+    phrases.push(...S.getAgentContextPhrases(ctx));
     return phrases;
 }
 

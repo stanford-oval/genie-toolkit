@@ -148,9 +148,7 @@ context : S.ContextInfo = {
     ctx_sys_slot_fill
 };
 context : Ast.Expression = {
-    ctx_current_query,
-    ctx_next_query,
-    ctx_next_action
+    ctx_current_query
 };
 context : SlotBag = {
     ctx_thingpedia_result,

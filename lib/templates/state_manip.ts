@@ -922,7 +922,7 @@ function makeAgentReply(ctx : ContextInfo,
         contextPhrases: [
             makeContextPhrase(ctx.contextTable.ctx_sys_any, newContext),
             makeContextPhrase(mainTag, newContext),
-            ...getContextPhrases(newContext)
+            ...getUserContextPhrases(newContext)
         ],
         expect: expectedType,
 
@@ -1592,7 +1592,14 @@ function getQuery(expr : Ast.Expression) : Ast.Expression|null {
 
 const _warned = new Set<string>();
 
-export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.ContextPhrase[] {
+export function getUserContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.ContextPhrase[] {
+    const phrases : SentenceGeneratorTypes.ContextPhrase[] = [];
+
+    getContextPhrasesCommon(ctx, phrases);
+    return phrases;
+}
+
+export function getAgentContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.ContextPhrase[] {
     const contextTable = ctx.contextTable;
 
     const phrases : SentenceGeneratorTypes.ContextPhrase[] = [];
@@ -1653,26 +1660,14 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
         const description = describer.describeExpressionStatement(next.stmt);
         if (description !== null)
             phrases.push(makeContextPhrase(contextTable.ctx_next_statement, ctx, description));
-
-        const lastQuery = next.stmt.lastQuery ? getQuery(next.stmt.lastQuery) : null;
-        if (lastQuery) {
-            const description = describer.describeQuery(lastQuery);
-            if (description !== null) {
-                phrases.push(makeExpressionContextPhrase(ctx, contextTable.ctx_next_query, lastQuery,
-                                                         description));
-            }
-        }
-
-        const action = next.stmt.last;
-        if (action.schema!.functionType === 'action') {
-            assert(action instanceof Ast.InvocationExpression);
-            const description = describer.describePrimitive(action.invocation);
-            if (description !== null) {
-                phrases.push(makeExpressionContextPhrase(ctx, contextTable.ctx_next_action, action,
-                                                         description));
-            }
-        }
     }
+
+    getContextPhrasesCommon(ctx, phrases);
+    return phrases;
+}
+
+function getContextPhrasesCommon(ctx : ContextInfo, phrases : SentenceGeneratorTypes.ContextPhrase[]) {
+    const contextTable = ctx.contextTable;
 
     if (ctx.state.dialogueAct === 'notification')
         phrases.push(makeContextPhrase(contextTable.ctx_with_notification, ctx));
@@ -1693,9 +1688,9 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
             phrases.push(makeContextPhrase(contextTable.ctx_without_action, ctx));
     }
     if (!ctx.resultInfo || ctx.resultInfo.hasEmptyResult)
-        return phrases;
+        return;
     if (ctx.resultInfo.hasStream && ctx.state.dialogueAct !== 'notification')
-        return phrases;
+        return;
 
     assert(ctx.results && ctx.results.length > 0);
     phrases.push(makeContextPhrase(contextTable.ctx_with_result, ctx));
@@ -1719,7 +1714,6 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
         if (ctx.resultInfo.projection === null)
             phrases.push(makeContextPhrase(contextTable.ctx_without_projection, ctx));
     }
-    return phrases;
 }
 
 export {
