@@ -946,7 +946,7 @@ function setEndBit(reply : AgentReplyRecord, value : boolean) : AgentReplyRecord
 
 function actionShouldHaveResult(ctx : ContextInfo) : boolean {
     const schema = ctx.currentFunction!;
-    return Object.keys(schema.out).length > 0;
+    return C.countInputOutputParams(schema).output > 0;
 }
 
 export function tagContextForAgent(ctx : ContextInfo) : number[] {

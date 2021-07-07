@@ -486,7 +486,7 @@ export class Describer {
             lhs = this._interp(this._("the ${name} [plural=name[plural]]"), { name: lhs });
             rhs = this.describeArg(expr.value, scope);
             if (schema)
-                ptype = schema.out[argname] || schema.inReq[argname] || schema.inOpt[argname];
+                ptype = schema.getArgType(argname)!;
             else
                 ptype = Type.Any;
         } else {
@@ -559,7 +559,7 @@ export class Describer {
                                                   expr.filter.operator,
                                                   this.describeArg(expr.filter.value, scope),
                                                   false,
-                                                  expr.schema!.out[expr.filter.name]);
+                                                  expr.schema!.getArgType(expr.filter.name)!);
                 } else if (expr.filter instanceof Ast.NotBooleanExpression &&
                            expr.filter.expr instanceof Ast.AtomBooleanExpression) {
                     // common case 2
@@ -572,7 +572,7 @@ export class Describer {
                                                   expr.filter.expr.operator,
                                                   this.describeArg(expr.filter.expr.value, scope),
                                                   true,
-                                                  expr.schema!.out[expr.filter.expr.name]);
+                                                  expr.schema!.getArgType(expr.filter.expr.name)!);
                 } else {
                     // general case
                     return this._interp(this._("for the ${expr} , ${filter}"), {
@@ -1501,10 +1501,12 @@ export class Describer {
                 });
             }
 
-            for (const argname in schema.out) {
-                const canonical = this._getArgCanonical(schema, argname);
+            for (const arg of schema.iterateArguments()) {
+                if (arg.is_input)
+                    continue;
+                const canonical = this._getArgCanonical(schema, arg.name);
                 if (canonical !== null)
-                    scope[argname] = canonical;
+                    scope[arg.name] = canonical;
             }
 
             return replaced;
