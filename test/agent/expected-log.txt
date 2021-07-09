@@ -2374,3 +2374,46 @@ AT: $dialogue @com.bing.sys_search_result;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t @com.goal_smart.player(league_id="39"^^com.goal_smart:soccer_league("premier league"));
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: @com.goal_smart.player(league_id="39"^^com.goal_smart:soccer_league("premier league"));
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.goal_smart(id="com.goal_smart-9"^^tt:device_id("Some Device 9")).player(league_id="39"^^com.goal_smart:soccer_league("premier league"))
+C: #[results=[
+C:   { id="114"^^com.goal_smart:soccer_player("Adrien Silva"), goals=0, assists=0, red_cards=0, yellow_cards=0, appearances=0, minutes=0, shots=0, shots_on_target=0, passes=0, key_passes=0, pass_accuracy=0, dribble_attempts=0, successful_dribbles=0, tackles=0, blocks=0, interceptions=0, league_id="39"^^com.goal_smart:soccer_league("premier league") },
+C:   { id="518"^^com.goal_smart:soccer_player("M. Shabani"), goals=0, assists=0, red_cards=0, yellow_cards=0, appearances=0, minutes=0, shots=0, shots_on_target=0, passes=0, key_passes=0, pass_accuracy=0, dribble_attempts=0, successful_dribbles=0, tackles=0, blocks=0, interceptions=0, league_id="39"^^com.goal_smart:soccer_league("premier league") },
+C:   { id="18813"^^com.goal_smart:soccer_player("A. Cresswell"), goals=0, assists=8, red_cards=0, yellow_cards=3, appearances=35, minutes=0, shots=16, shots_on_target=4, passes=1613, key_passes=58, pass_accuracy=36, dribble_attempts=9, successful_dribbles=3, tackles=31, blocks=13, interceptions=32, league_id="39"^^com.goal_smart:soccer_league("premier league") }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Adrien Silva, M. Shabani, and A. Cresswell has scored 0, 0, and 0 goals this season. They have had 0, 0, and 8 assists. After playing 0, 0, and 0 minutes in 0, 0, and 35 appearances in the league, they had 0, 0, and 3 yellow cards and 0, 0, and 0 red cards. Adrien Silva, M. Shabani, and A. Cresswell took 0, 0, and 16 shots, 0, 0, and 4 of which were on target. They made a total of 0, 0, and 1,613 passes, 0, 0, and 58 key passes, with a passing accuracy of 0, 0, and 36 percent. Adrien Silva, M. Shabani, and A. Cresswell took 0, 0, and 9 dribble attempts, and 0, 0, and 3 of them were successful. They made 0, 0, and 31 tackles, 0, 0, and 32 interceptions, and 0, 0, and 13 blocks.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_three;
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t [dribble_attempts] of @com.goal_smart.player(league_id="39"^^com.goal_smart:soccer_league("premier league"));
+UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
+UT: [dribble_attempts] of @com.goal_smart.player(league_id="39"^^com.goal_smart:soccer_league("premier league"));
+C: $dialogue @org.thingpedia.dialogue.transaction.execute;
+C: @com.goal_smart(id="com.goal_smart-9"^^tt:device_id("Some Device 9")).player(league_id="39"^^com.goal_smart:soccer_league("premier league"))
+C: #[results=[
+C:   { id="114"^^com.goal_smart:soccer_player("Adrien Silva"), goals=0, assists=0, red_cards=0, yellow_cards=0, appearances=0, minutes=0, shots=0, shots_on_target=0, passes=0, key_passes=0, pass_accuracy=0, dribble_attempts=0, successful_dribbles=0, tackles=0, blocks=0, interceptions=0, league_id="39"^^com.goal_smart:soccer_league("premier league") },
+C:   { id="518"^^com.goal_smart:soccer_player("M. Shabani"), goals=0, assists=0, red_cards=0, yellow_cards=0, appearances=0, minutes=0, shots=0, shots_on_target=0, passes=0, key_passes=0, pass_accuracy=0, dribble_attempts=0, successful_dribbles=0, tackles=0, blocks=0, interceptions=0, league_id="39"^^com.goal_smart:soccer_league("premier league") },
+C:   { id="18813"^^com.goal_smart:soccer_player("A. Cresswell"), goals=0, assists=8, red_cards=0, yellow_cards=3, appearances=35, minutes=0, shots=16, shots_on_target=4, passes=1613, key_passes=58, pass_accuracy=36, dribble_attempts=9, successful_dribbles=3, tackles=31, blocks=13, interceptions=32, league_id="39"^^com.goal_smart:soccer_league("premier league") }
+C: ]];
+C: [dribble_attempts] of @com.goal_smart(id="com.goal_smart-9"^^tt:device_id("Some Device 9")).player(league_id="39"^^com.goal_smart:soccer_league("premier league"))
+C: #[results=[
+C:   { league_id="39"^^com.goal_smart:soccer_league("premier league"), id="114"^^com.goal_smart:soccer_player("Adrien Silva"), dribble_attempts=0 },
+C:   { league_id="39"^^com.goal_smart:soccer_league("premier league"), id="518"^^com.goal_smart:soccer_player("M. Shabani"), dribble_attempts=0 },
+C:   { league_id="39"^^com.goal_smart:soccer_league("premier league"), id="18813"^^com.goal_smart:soccer_player("A. Cresswell"), dribble_attempts=9 }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Both Adrien Silva and M. Shabani are player stats with the dribble equal to 0.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
+#! vote: down
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines

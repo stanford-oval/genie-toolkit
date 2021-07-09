@@ -1136,3 +1136,18 @@ A: rdl: Example 1 http://example.com
 A: rdl: Example 2 http://example.org
 A: >> context = null // {}
 A: >> expecting = null
+
+====
+# 75-projection-result-list-phrase
+
+U: \t @com.goal_smart.player(league_id="39"^^com.goal_smart:soccer_league("premier league"));
+
+A: Adrien Silva, M. Shabani, and A. Cresswell has scored 0, 0, and 0 goals this season. They have had 0, 0, and 8 assists. After playing 0, 0, and 0 minutes in 0, 0, and 35 appearances in the league, they had 0, 0, and 3 yellow cards and 0, 0, and 0 red cards. Adrien Silva, M. Shabani, and A. Cresswell took 0, 0, and 16 shots, 0, 0, and 4 of which were on target. They made a total of 0, 0, and 1,613 passes, 0, 0, and 58 key passes, with a passing accuracy of 0, 0, and 36 percent. Adrien Silva, M. Shabani, and A. Cresswell took 0, 0, and 9 dribble attempts, and 0, 0, and 3 of them were successful. They made 0, 0, and 31 tackles, 0, 0, and 32 interceptions, and 0, 0, and 13 blocks.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_three ; @com.goal_smart ( id = GENERIC_ENTITY_tt:device_id_0 ) . player ( league_id = GENERIC_ENTITY_com.goal_smart:soccer_league_0 ) #[ results = [ { id = GENERIC_ENTITY_com.goal_smart:soccer_player_0 , goals = 0 , assists = 0 , red_cards = 0 , yellow_cards = 0 , appearances = 0 , minutes = 0 , shots = 0 , shots_on_target = 0 , passes = 0 , key_passes = 0 , pass_accuracy = 0 , dribble_attempts = 0 , successful_dribbles = 0 , tackles = 0 , blocks = 0 , interceptions = 0 , league_id = GENERIC_ENTITY_com.goal_smart:soccer_league_0 } ] ] #[ count = 3 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.goal_smart-9","display":"Some Device 9"},"GENERIC_ENTITY_com.goal_smart:soccer_league_0":{"value":"39","display":"premier league"},"GENERIC_ENTITY_com.goal_smart:soccer_player_0":{"value":"114","display":"Adrien Silva"}}
+A: >> expecting = null
+
+U: \t [dribble_attempts] of @com.goal_smart.player(league_id="39"^^com.goal_smart:soccer_league("premier league"));
+
+A: Both Adrien Silva and M. Shabani are player stats with the dribble equal to 0.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_two ; [ dribble_attempts ] of @com.goal_smart ( id = GENERIC_ENTITY_tt:device_id_0 ) . player ( league_id = GENERIC_ENTITY_com.goal_smart:soccer_league_0 ) #[ results = [ { league_id = GENERIC_ENTITY_com.goal_smart:soccer_league_0 , id = GENERIC_ENTITY_com.goal_smart:soccer_player_0 , dribble_attempts = 0 } ] ] #[ count = 3 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.goal_smart-9","display":"Some Device 9"},"GENERIC_ENTITY_com.goal_smart:soccer_league_0":{"value":"39","display":"premier league"},"GENERIC_ENTITY_com.goal_smart:soccer_player_0":{"value":"114","display":"Adrien Silva"}}
+A: >> expecting = null

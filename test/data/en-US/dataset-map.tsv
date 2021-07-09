@@ -7,3 +7,4 @@ com.spotify:play	spotify_play_song.json
 org.thingpedia.weather:current	weather_db.json
 com.icanhazdadjoke:get	joke_db.json
 org.thingpedia.covid-vaccine:appointment	appointment_db.json
+com.goal_smart:player	soccer_player_db.json

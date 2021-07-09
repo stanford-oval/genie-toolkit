@@ -1090,8 +1090,9 @@ function tryReplacePlaceholderPhrase(phrase : ParsedPlaceholderPhrase,
     for (const param of phrase.names) {
         const replacement = getParam(param);
         if (replacement === null)
-            return null;
-        replacements.push(replacement);
+            replacements.push(undefined);
+        else
+            replacements.push(replacement);
     }
     const replacementCtx = { replacements, constraints: {} };
     return phrase.replaceable.replace(replacementCtx);
@@ -1197,7 +1198,11 @@ function makeListResultContextPhrase(ctx : ContextInfo,
             if (param === '__device')
                 return getDeviceName(describer, undefined, action);
 
-            const arg = currentFunction.getArgument(param)!;
+            const arg = currentFunction.getArgument(param);
+            // check if the argument was projected out, in which case we can't
+            // use this result phrase
+            if (!arg)
+                return null;
             if (arg.is_input) {
                 // use the top result value only
                 const topResult = allResults[0];
