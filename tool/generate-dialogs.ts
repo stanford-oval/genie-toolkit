@@ -93,11 +93,9 @@ export function initArgparse(subparsers : argparse.SubParser) {
         required: true,
         help: 'Path to file containing primitive templates, in ThingTalk syntax.'
     });
-    parser.add_argument('--template', {
+    parser.add_argument('--policy', {
         required: false,
-        nargs: '+',
-        default: ['dialogue.genie'],
-        help: 'Path to file(s) containing construct templates, in Genie syntax.'
+        help: 'Path to JS/TS module defining the dialogue policy.'
     });
     parser.add_argument('--set-flag', {
         required: false,
@@ -152,6 +150,11 @@ export function initArgparse(subparsers : argparse.SubParser) {
         dest: 'debug',
         help: 'Disable debugging.',
     });
+    parser.add_argument('--log-prefix', {
+        required: false,
+        default: '',
+        help: 'Additional prefix to debugging messages'
+    });
     parser.add_argument('--random-seed', {
         default: 'almond is awesome',
         help: 'Random seed'
@@ -165,7 +168,7 @@ export async function execute(args : any) {
         locale: args.locale,
         timezone: args.timezone,
         flags: args.flags || {},
-        templateFiles: args.template,
+        policy: args.policy,
         targetLanguage: args.target_language,
         thingpediaClient: tpClient,
         maxDepth: args.maxdepth,
@@ -173,6 +176,7 @@ export async function execute(args : any) {
         maxTurns: args.max_turns,
         minibatchSize: args.minibatch_size,
         numMinibatches: args.num_minibatches,
+        logPrefix: args.log_prefix,
 
         debug: args.debug,
     };

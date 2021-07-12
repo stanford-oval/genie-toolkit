@@ -71,6 +71,10 @@ export default class NotificationFormatter {
         });
     }
 
+    async initialize() {
+        await this._policy.initialize();
+    }
+
     async formatNotification(appName : string|null, program : ThingTalk.Ast.Program, outputType : string, outputValue : Record<string, unknown>) : Promise<Tp.FormatObjects.FormattedObject[]> {
         assert(program.statements.length === 1);
         const stmt = program.statements[0];

@@ -54,7 +54,7 @@ function areQuestionsValidForContext(ctx : ContextInfo, questions : C.ParamSlot[
     const schema = ctx.currentFunction!;
 
     // if the function only contains one parameter, do not generate projection for it
-    if (Object.keys(schema.out).length === 1)
+    if (C.countInputOutputParams(schema).output === 1)
         return null;
 
     for (const q of questions) {

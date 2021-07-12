@@ -25,6 +25,7 @@ import * as I18n from '../../i18n';
 import { clean, cleanKind, tokenizeExample } from '../misc-utils';
 import { AnyEntity } from '../entity-utils';
 import {
+    Phrase,
     Replaceable,
     Choice,
     Placeholder,
@@ -46,6 +47,8 @@ export class Describer {
     private _direction : 'user'|'agent';
 
     private _datasets : Map<string, Ast.Dataset> = new Map;
+    private _preprocessedArgumentCanonicals : WeakMap<Ast.ArgumentDef, I18n.NormalizedParameterCanonical>;
+    private _preprocessedFunctionCanonicals : WeakMap<Ast.FunctionDef, Phrase[]>;
 
     constructor(locale : string,
                 timezone : string|undefined,
@@ -58,6 +61,9 @@ export class Describer {
         this.timezone = timezone;
 
         this._direction = direction;
+
+        this._preprocessedArgumentCanonicals = new WeakMap;
+        this._preprocessedFunctionCanonicals = new WeakMap;
     }
 
     private _interp(x : string, args : Record<string, string|number|ReplacedResult|null>) : ReplacedResult|null {
@@ -480,7 +486,7 @@ export class Describer {
             lhs = this._interp(this._("the ${name} [plural=name[plural]]"), { name: lhs });
             rhs = this.describeArg(expr.value, scope);
             if (schema)
-                ptype = schema.out[argname] || schema.inReq[argname] || schema.inOpt[argname];
+                ptype = schema.getArgType(argname)!;
             else
                 ptype = Type.Any;
         } else {
@@ -553,7 +559,7 @@ export class Describer {
                                                   expr.filter.operator,
                                                   this.describeArg(expr.filter.value, scope),
                                                   false,
-                                                  expr.schema!.out[expr.filter.name]);
+                                                  expr.schema!.getArgType(expr.filter.name)!);
                 } else if (expr.filter instanceof Ast.NotBooleanExpression &&
                            expr.filter.expr instanceof Ast.AtomBooleanExpression) {
                     // common case 2
@@ -566,7 +572,7 @@ export class Describer {
                                                   expr.filter.expr.operator,
                                                   this.describeArg(expr.filter.expr.value, scope),
                                                   true,
-                                                  expr.schema!.out[expr.filter.expr.name]);
+                                                  expr.schema!.getArgType(expr.filter.expr.name)!);
                 } else {
                     // general case
                     return this._interp(this._("for the ${expr} , ${filter}"), {
@@ -698,6 +704,27 @@ export class Describer {
         }
     }
 
+    private _preprocessFunctionCanonical(fndef : Ast.FunctionDef) {
+        const cached = this._preprocessedFunctionCanonicals.get(fndef);
+        if (cached !== undefined)
+            return cached;
+
+        const computed = this._langPack.preprocessFunctionCanonical(fndef.metadata.canonical || clean(fndef.name),
+            fndef.functionType, this._direction, fndef.is_list);
+        this._preprocessedFunctionCanonicals.set(fndef, computed);
+        return computed;
+    }
+
+    private _preprocessParameterCanonical(arg : Ast.ArgumentDef) {
+        const cached = this._preprocessedArgumentCanonicals.get(arg);
+        if (cached !== undefined)
+            return cached;
+
+        const computed = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || clean(arg.name), this._direction);
+        this._preprocessedArgumentCanonicals.set(arg, computed);
+        return computed;
+    }
+
     private _findBestExampleUtterance(kind : string,
                                       functionName : string,
                                       forSelector : Ast.DeviceSelector|null,
@@ -782,8 +809,7 @@ export class Describer {
         }
 
         // add the fallback example, with the score it would have as a score
-        const canonical = this._langPack.preprocessFunctionCanonical(forSchema.metadata.canonical || clean(forSchema.name),
-            forSchema.functionType, this._direction, forSchema.is_list);
+        const canonical = this._preprocessFunctionCanonical(forSchema);
         // put the canonical form first in the order
         // so all things equal, we'll pick the canonical form (which is, well, canonical)
         const [canonicalscore,] = this._computeParamMatchingScore([], forInParams, {})!;
@@ -849,7 +875,7 @@ export class Describer {
             if (inParam.value.isUndefined && arg.required)
                 continue;
 
-            const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || clean(argname), this._direction);
+            const canonical = this._preprocessParameterCanonical(arg);
             const text = this.describeArg(inParam.value, scope)!;
             const ctx = {
                 replacements: [{ text, value: inParam.value }],
@@ -964,7 +990,7 @@ export class Describer {
                 continue;
             }
 
-            const canonical = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || clean(arg.name), this._direction);
+            const canonical = this._preprocessParameterCanonical(arg);
             // TODO handle boolean/enum filters correctly
 
             let text : ReplacedResult|null = this.describeArg(clause.value, {});
@@ -1200,7 +1226,7 @@ export class Describer {
 
     private _getArgCanonical(schema : Ast.FunctionDef, argname : string) : ReplacedResult|null {
         const arg = schema.getArgument(argname)!;
-        const normalized = this._langPack.preprocessParameterCanonical(arg.metadata.canonical || clean(argname), this._direction);
+        const normalized = this._preprocessParameterCanonical(arg);
 
         const phrases : ReplacedResult[] = normalized.base.map((phrase) => phrase.toReplaced());
         if (phrases.length === 0)
@@ -1475,10 +1501,12 @@ export class Describer {
                 });
             }
 
-            for (const argname in schema.out) {
-                const canonical = this._getArgCanonical(schema, argname);
+            for (const arg of schema.iterateArguments()) {
+                if (arg.is_input)
+                    continue;
+                const canonical = this._getArgCanonical(schema, arg.name);
                 if (canonical !== null)
-                    scope[argname] = canonical;
+                    scope[arg.name] = canonical;
             }
 
             return replaced;

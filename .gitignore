@@ -14,6 +14,8 @@ jsdoc/
 __pycache__
 *.genie.ts
 *.genie.js
+*.genie.out.ts
+*.genie.out.js
 test/engine/workdir
 test/engine/cache
 

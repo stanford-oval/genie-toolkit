@@ -25,7 +25,7 @@ import { Ast, Type } from 'thingtalk';
 
 import * as SentenceGeneratorRuntime from '../sentence-generator/runtime';
 import * as SentenceGeneratorTypes from '../sentence-generator/types';
-export type AgentReplyRecord = SentenceGeneratorTypes.AgentReplyRecord<Ast.DialogueState>;
+export type AgentReplyRecord = SentenceGeneratorTypes.AgentReplyRecord;
 import * as ThingTalkUtils from '../utils/thingtalk';
 
 import * as C from './ast_manip';
@@ -818,21 +818,21 @@ export function makeContextPhrase(symbol : number,
                                   value : ContextInfo,
                                   utterance : SentenceGeneratorRuntime.ReplacedResult = SentenceGeneratorRuntime.ReplacedResult.EMPTY,
                                   priority = 0) : SentenceGeneratorTypes.ContextPhrase {
-    return { symbol, utterance, value, priority, key: value.key };
+    return { symbol, utterance, value, priority, context: value, key: value.key };
 }
-export function makeExpressionContextPhrase(loader : ThingpediaLoader,
+export function makeExpressionContextPhrase(context : ContextInfo,
                                             symbol : number,
                                             value : Ast.Expression,
                                             utterance : SentenceGeneratorRuntime.ReplacedResult = SentenceGeneratorRuntime.ReplacedResult.EMPTY,
                                             priority = 0) : SentenceGeneratorTypes.ContextPhrase {
-    return { symbol, utterance, value, priority, key: keyfns.expressionKeyFn(value) };
+    return { symbol, utterance, value, priority, context, key: keyfns.expressionKeyFn(value) };
 }
-export function makeValueContextPhrase(loader : ThingpediaLoader,
+export function makeValueContextPhrase(context : ContextInfo,
                                        symbol : number,
                                        value : Ast.Value,
                                        utterance : SentenceGeneratorRuntime.ReplacedResult = SentenceGeneratorRuntime.ReplacedResult.EMPTY,
                                        priority = 0) : SentenceGeneratorTypes.ContextPhrase {
-    return { symbol, utterance, value, priority, key: keyfns.valueKeyFn(value) };
+    return { symbol, utterance, value, priority, context, key: keyfns.valueKeyFn(value) };
 }
 
 export interface AgentReplyOptions {
@@ -886,7 +886,6 @@ function makeAgentReply(ctx : ContextInfo,
 
         return {
             state,
-            context: null,
             contextPhrases: [],
             expect: expectedType,
 
@@ -920,11 +919,10 @@ function makeAgentReply(ctx : ContextInfo,
 
     return {
         state,
-        context: newContext,
         contextPhrases: [
             makeContextPhrase(ctx.contextTable.ctx_sys_any, newContext),
             makeContextPhrase(mainTag, newContext),
-            ...getContextPhrases(newContext)
+            ...getUserContextPhrases(newContext)
         ],
         expect: expectedType,
 
@@ -948,7 +946,7 @@ function setEndBit(reply : AgentReplyRecord, value : boolean) : AgentReplyRecord
 
 function actionShouldHaveResult(ctx : ContextInfo) : boolean {
     const schema = ctx.currentFunction!;
-    return Object.keys(schema.out).length > 0;
+    return C.countInputOutputParams(schema).output > 0;
 }
 
 export function tagContextForAgent(ctx : ContextInfo) : number[] {
@@ -1168,7 +1166,14 @@ function makeErrorContextPhrase(ctx : ContextInfo,
 
         if (utterance) {
             const value : C.ErrorMessage = { code: error.value, bag };
-            output.push({ symbol: contextTable.ctx_thingpedia_error_message, utterance, value, priority: 0, key: keyfns.errorMessageKeyFn(value) });
+            output.push({
+                symbol: contextTable.ctx_thingpedia_error_message,
+                utterance,
+                value,
+                priority: 0,
+                context: ctx,
+                key: keyfns.errorMessageKeyFn(value)
+            });
 
             // in inference mode, we're done
             if (ctx.loader.flags.inference)
@@ -1232,7 +1237,14 @@ function makeListResultContextPhrase(ctx : ContextInfo,
 
         if (utterance) {
             const value = [ctx, bag];
-            output.push({ symbol: contextTable.ctx_thingpedia_list_result, utterance, value, priority: 0, key: keyfns.slotBagKeyFn(bag) });
+            output.push({
+                symbol: contextTable.ctx_thingpedia_list_result,
+                utterance,
+                value,
+                priority: 0,
+                context: ctx,
+                key: keyfns.slotBagKeyFn(bag)
+            });
 
             // in inference mode, we're done
             if (ctx.loader.flags.inference)
@@ -1304,8 +1316,14 @@ function makeListConcatResultContextPhrase(ctx : ContextInfo,
 
         if (utterance) {
             const value = [ctx, bag];
-            output.push({ symbol: contextTable.ctx_thingpedia_list_result, utterance:
-                new SentenceGeneratorRuntime.ReplacedList(utterance, ctx.loader.locale, '.'), value, priority: 0, key: keyfns.slotBagKeyFn(bag) });
+            output.push({
+                symbol: contextTable.ctx_thingpedia_list_result,
+                utterance: new SentenceGeneratorRuntime.ReplacedList(utterance, ctx.loader.locale, '.'),
+                value,
+                priority: 0,
+                context: ctx,
+                key: keyfns.slotBagKeyFn(bag)
+            });
 
             // in inference mode, we're done
             if (ctx.loader.flags.inference)
@@ -1346,7 +1364,14 @@ function makeTopResultContextPhrase(ctx : ContextInfo,
         });
 
         if (utterance) {
-            output.push({ symbol: contextTable.ctx_thingpedia_result, utterance, value: bag, priority: 0, key: keyfns.slotBagKeyFn(bag) });
+            output.push({
+                symbol: contextTable.ctx_thingpedia_result,
+                utterance,
+                value: bag,
+                priority: 0,
+                context: ctx,
+                key: keyfns.slotBagKeyFn(bag)
+            });
 
             // in inference mode, we're done
             if (ctx.loader.flags.inference)
@@ -1449,6 +1474,7 @@ export function makeEmptyResultContextPhrase(ctx : ContextInfo) {
                 utterance,
                 value: bag,
                 priority: 0,
+                context: ctx,
                 key: keyfns.slotBagKeyFn(bag)
             });
 
@@ -1489,6 +1515,7 @@ function makeOneNameListContextPhrase(ctx : ContextInfo,
         utterance,
         value,
         priority: length === 2 || length === 3 ? length : 0,
+        context: ctx,
         key: nameListKeyFn(value)
     };
 }
@@ -1513,6 +1540,7 @@ function makeNameContextPhrase(ctx : ContextInfo,
         utterance,
         value,
         priority: 0,
+        context: ctx,
         key: contextNameKeyFn(value)
     };
 }
@@ -1569,7 +1597,14 @@ function getQuery(expr : Ast.Expression) : Ast.Expression|null {
 
 const _warned = new Set<string>();
 
-export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.ContextPhrase[] {
+export function getUserContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.ContextPhrase[] {
+    const phrases : SentenceGeneratorTypes.ContextPhrase[] = [];
+
+    getContextPhrasesCommon(ctx, phrases);
+    return phrases;
+}
+
+export function getAgentContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.ContextPhrase[] {
     const contextTable = ctx.contextTable;
 
     const phrases : SentenceGeneratorTypes.ContextPhrase[] = [];
@@ -1579,7 +1614,7 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
         if (ctx.state.dialogueActParam) {
             const appName = ctx.state.dialogueActParam[0];
             assert(appName instanceof Ast.StringValue);
-            phrases.push(makeValueContextPhrase(ctx.loader,
+            phrases.push(makeValueContextPhrase(ctx,
                 contextTable.ctx_notification_app_name, appName, describer.describeArg(appName)!));
         }
     }
@@ -1605,7 +1640,7 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
             if (description !== null)
                 description = description.constrain('plural', 'other');
             if (description !== null) {
-                phrases.push(makeExpressionContextPhrase(ctx.loader,
+                phrases.push(makeExpressionContextPhrase(ctx,
                                                          contextTable.ctx_current_query, lastQuery,
                                                          description));
             }
@@ -1630,26 +1665,14 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
         const description = describer.describeExpressionStatement(next.stmt);
         if (description !== null)
             phrases.push(makeContextPhrase(contextTable.ctx_next_statement, ctx, description));
-
-        const lastQuery = next.stmt.lastQuery ? getQuery(next.stmt.lastQuery) : null;
-        if (lastQuery) {
-            const description = describer.describeQuery(lastQuery);
-            if (description !== null) {
-                phrases.push(makeExpressionContextPhrase(ctx.loader, contextTable.ctx_next_query, lastQuery,
-                                                         description));
-            }
-        }
-
-        const action = next.stmt.last;
-        if (action.schema!.functionType === 'action') {
-            assert(action instanceof Ast.InvocationExpression);
-            const description = describer.describePrimitive(action.invocation);
-            if (description !== null) {
-                phrases.push(makeExpressionContextPhrase(ctx.loader, contextTable.ctx_next_action, action,
-                                                         description));
-            }
-        }
     }
+
+    getContextPhrasesCommon(ctx, phrases);
+    return phrases;
+}
+
+function getContextPhrasesCommon(ctx : ContextInfo, phrases : SentenceGeneratorTypes.ContextPhrase[]) {
+    const contextTable = ctx.contextTable;
 
     if (ctx.state.dialogueAct === 'notification')
         phrases.push(makeContextPhrase(contextTable.ctx_with_notification, ctx));
@@ -1670,9 +1693,9 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
             phrases.push(makeContextPhrase(contextTable.ctx_without_action, ctx));
     }
     if (!ctx.resultInfo || ctx.resultInfo.hasEmptyResult)
-        return phrases;
+        return;
     if (ctx.resultInfo.hasStream && ctx.state.dialogueAct !== 'notification')
-        return phrases;
+        return;
 
     assert(ctx.results && ctx.results.length > 0);
     phrases.push(makeContextPhrase(contextTable.ctx_with_result, ctx));
@@ -1696,7 +1719,6 @@ export function getContextPhrases(ctx : ContextInfo) : SentenceGeneratorTypes.Co
         if (ctx.resultInfo.projection === null)
             phrases.push(makeContextPhrase(contextTable.ctx_without_projection, ctx));
     }
-    return phrases;
 }
 
 export {

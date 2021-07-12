@@ -152,6 +152,8 @@ class SimulatorStream extends Stream.Transform {
     }
 
     async _run(dlg : ParsedDialogue) : Promise<void> {
+        await this._dialoguePolicy.initialize();
+
         console.log('dialogue = ', dlg.id);
         const lastTurn = dlg[dlg.length-1];
 

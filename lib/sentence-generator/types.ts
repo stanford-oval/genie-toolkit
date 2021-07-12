@@ -19,10 +19,14 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 import * as Tp from 'thingpedia';
-import { Type, SchemaRetriever, Syntax } from 'thingtalk';
+import { Type, SchemaRetriever, Syntax, Ast } from 'thingtalk';
 
+import * as I18n from '../i18n';
 import { Hashable } from '../utils/hashmap';
 import { ReplacedResult } from '../utils/template-string';
+import type SentenceGenerator from './generator';
+import type { SentenceGeneratorOptions } from './generator';
+import type ThingpediaLoader from '../templates/load-thingpedia';
 
 export interface RuleAttributes {
     weight ?: number;
@@ -52,28 +56,15 @@ export interface ContextPhrase {
     symbol : number;
     utterance : ReplacedResult;
     value : unknown;
+    context : unknown;
     priority ?: number;
     key : DerivationKey;
 }
 
 export type ContextTable = Record<string, number>;
 
-export type ContextFunction<StateType> = (state : StateType|null, contextSymbols : ContextTable) => ContextPhrase[]|null;
-
-export interface FunctionTable<StateType> {
-    answer ?: (state : StateType, value : unknown, contextTable : ContextTable) => StateType|null;
-    context ?: ContextFunction<StateType>;
-    notification ?: (appName : string|null, program : unknown, result : unknown, contextTable : ContextTable) => StateType|null;
-    notifyError ?: (appName : string|null, program : unknown, error : unknown, contextTable : ContextTable) => StateType|null;
-    initialState ?: (contextTable : ContextTable) => StateType|null;
-    followUp ?: (state : StateType, contextTable : ContextTable) => StateType|null;
-
-    [key : string] : ((...args : any[]) => any)|undefined;
-}
-
-export interface AgentReplyRecord<StateType> {
-    state : StateType;
-    context : any;
+export interface AgentReplyRecord {
+    state : Ast.DialogueState;
     contextPhrases : ContextPhrase[];
     expect : Type|null;
     end : boolean;
@@ -92,4 +83,48 @@ export interface GrammarOptions {
     whiteList ?: string;
     debug : number;
     timezone : string|undefined;
+}
+
+/**
+ * A statically-defined non-terminal in a Genie template file.
+ *
+ * This type exists only for documentation.
+ */
+export type NonTerminal<ValueType> = ValueType extends unknown ? string : never;
+// ^ clever hack with dual purposes: it shuts up typescript about
+// an unused type argument, and it hides the type definition from typedoc
+
+/**
+ * The abstract interface of a dialogue policy module.
+ *
+ * This interface defines the functions that a policy module should export.
+ */
+export interface PolicyModule {
+    /**
+     * The policy manifest.
+     *
+     * This is used to check the generated dialogue states for correctness.
+     */
+    MANIFEST : {
+        name : string,
+        terminalAct : string,
+        dialogueActs : {
+            user : readonly string[],
+            agent : readonly string[],
+            withParam : readonly string[]
+        },
+    },
+
+    initializeTemplates(agentOptions : SentenceGeneratorOptions, langPack : I18n.LanguagePack, grammar : SentenceGenerator, tpLoader : ThingpediaLoader) : Promise<void>;
+
+    getContextPhrasesForState(state : Ast.DialogueState|null, tpLoader : ThingpediaLoader, contextTable : ContextTable) : ContextPhrase[]|null;
+
+    interpretAnswer?(state : Ast.DialogueState, value : Ast.Value, tpLoader : ThingpediaLoader, contextTable : ContextTable) : Ast.DialogueState|null;
+
+    initialState?(tpLoader : ThingpediaLoader) : Ast.DialogueState|null;
+
+    notification?(appName : string | null, program : Ast.Program, result : Ast.DialogueHistoryResultItem) : Ast.DialogueState|null;
+    notifyError?(appName : string | null, program : Ast.Program, error : Ast.Value) : Ast.DialogueState|null;
+
+    getFollowUp?(state : Ast.DialogueState, tpLoader : ThingpediaLoader, contextTable : ContextTable) : Ast.DialogueState|null;
 }

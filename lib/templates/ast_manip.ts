@@ -337,6 +337,28 @@ function makeAggregateFilterWithFilter(param : ParamSlot,
     return null;
 }
 
+const cachedInputOuputParamCount = new WeakMap<Ast.FunctionDef, {
+    input : number,
+    output : number
+}>();
+export function countInputOutputParams(fndef : Ast.FunctionDef) {
+    const cached = cachedInputOuputParamCount.get(fndef);
+    if (cached !== undefined)
+        return cached;
+
+    const computed = {
+        input : 0,
+        output : 0
+    };
+    for (const arg of fndef.iterateArguments()) {
+        if (arg.is_input)
+            computed.input++;
+        else
+            computed.output++;
+    }
+    cachedInputOuputParamCount.set(fndef, computed);
+    return computed;
+}
 
 function makeEdgeFilterStream(loader : ThingpediaLoader,
                               proj : Ast.Expression,
@@ -358,8 +380,7 @@ function makeEdgeFilterStream(loader : ThingpediaLoader,
         return null;
     if (!proj.schema!.is_monitorable || proj.schema!.is_list)
         return null;
-    const outParams = Object.keys(proj.expression.schema!.out);
-    if (outParams.length === 1 && loader.flags.turking)
+    if (countInputOutputParams(proj.expression.schema!).output === 1 && loader.flags.turking)
         return null;
 
     const monitor = new Ast.MonitorExpression(null, proj.expression, null, proj.expression.schema!.asType('stream'));
@@ -454,9 +475,19 @@ function makeProjection(table : Ast.Expression, pname : string) : Ast.Projection
  */
 export function getImplicitParameterPassing(schema : Ast.FunctionDef) : string {
     // if there is only one parameter, that's the one
-    const outParams = Object.keys(schema.out);
-    if (outParams.length === 1)
-        return outParams[0];
+    let firstOutParam : string|undefined|null = undefined;
+    for (const arg of schema.iterateArguments()) {
+        if (arg.is_input)
+            continue;
+        if (firstOutParam === undefined) {
+            firstOutParam = arg.name;
+        } else {
+            firstOutParam = null;
+            break;
+        }
+    }
+    if (firstOutParam !== null && firstOutParam !== undefined)
+        return firstOutParam;
 
     // if there is an ID, we pick that one
     const id = schema.getArgument('id');
@@ -536,8 +567,7 @@ function makeSingleFieldProjection(loader : ThingpediaLoader,
     if (!arg || arg.is_input)
         return null;
 
-    const outParams = Object.keys(table.schema!.out);
-    if (outParams.length === 1)
+    if (countInputOutputParams(table.schema!).output === 1)
         return table;
 
     if (ptype && !Type.isAssignable(arg.type, ptype, {}, loader.entitySubTypeMap))
@@ -611,7 +641,7 @@ function makeSortedTable(table : Ast.Expression, pname : string, direction = 'de
     assert(typeof pname === 'string');
     assert(direction === 'asc' || direction === 'desc');
 
-    const type = table.schema!.out[pname];
+    const type = table.schema!.getArgType(pname);
     // String are comparable but we don't want to sort alphabetically here
     // (we need to use isComparable because Date/Time are comparable but not numeric)
     if (!type || !type.isComparable() || type.isString)
@@ -687,8 +717,7 @@ export function combineStreamQuery(loader : ThingpediaLoader,
             return null;
         if (table.args[0] === 'picture_url' || table.args[0] === '$event')
             return null;
-        const outParams = Object.keys(table.expression.schema!.out);
-        if (outParams.length === 1)
+        if (countInputOutputParams(table.expression.schema!).output === 1)
             return null;
     }
     if (isSameFunction(stream.schema!, table.schema!))
@@ -721,11 +750,10 @@ function checkComputeFilter(table : Ast.Expression, filter : Ast.ComputeBooleanE
     if (!(param instanceof Ast.VarRefValue))
         return false;
 
-    if (!table.schema!.out[param.name])
-        return false;
-
     let vtype, ftype;
-    const ptype = table.schema!.out[param.name];
+    const ptype = table.schema!.getArgType(param.name);
+    if (!ptype)
+        return false;
     if (!(ptype instanceof Type.Array))
         return false;
     if (filter.lhs.op === 'count') {
@@ -756,7 +784,7 @@ function checkAtomFilter(table : Ast.Expression, filter : Ast.AtomBooleanExpress
     if (arg.getAnnotation('filterable') === false)
         return false;
 
-    const ptype = table.schema!.out[filter.name];
+    const ptype = arg.type;
     const vtype = ptype;
     let vtypes : Type[] = [ptype];
     if (filter.operator === 'contains') {
@@ -1145,7 +1173,7 @@ function makeExistentialSubquery(proj : Ast.Expression, op : string, value : Ast
     const selector = proj.expression.invocation.selector;
     const channel = proj.expression.invocation.channel;
     const schema = proj.expression.invocation.schema!;
-    if (!schema.out[arg].equals(value.getType()))
+    if (!schema.getArgType(arg)!.equals(value.getType()))
         return null;
 
     const invocation = new Ast.Invocation(null, selector, channel, [], schema);
@@ -1253,12 +1281,13 @@ export function addSameNameParameterPassing(loader : ThingpediaLoader,
     if (isSameFunction(action.schema!, table.schema!))
         return null;
 
-    const actiontype = action.schema!.inReq[joinArg.name];
-    if (!actiontype)
+    const actionarg = action.schema!.getArgument(joinArg.name);
+    if (!actionarg || !actionarg.is_input)
         return null;
+    const actiontype = actionarg.type;
     if (action.invocation.in_params.some((p) => p.name === joinArg.name))
         return null;
-    const commandtype = table.schema!.out[joinArg.name];
+    const commandtype = table.schema!.getArgType(joinArg.name);
     if (!commandtype || !Type.isAssignable(commandtype, actiontype, {}, loader.entitySubTypeMap))
         return null;
     // FIXME
@@ -1307,7 +1336,7 @@ function sayProjection(loader : ThingpediaLoader,
         if (proj.args.length === 1 && proj.args[0] === '$event')
             return null;
         // if the function only contains one parameter, do not generate projection for it
-        if (proj.computations.length === 0 && Object.keys(proj.expression.schema!.out).length === 1)
+        if (proj.computations.length === 0 && countInputOutputParams(proj.expression.schema!).output === 1)
             return null;
         if (!loader.flags.projection)
             return null;
@@ -1337,11 +1366,11 @@ function hasConflictParam(table : Ast.Expression, pname : string, operation : st
 
     }
     const pcleaned = cleanName(pname);
-    for (const arg in table.schema!.out) {
-        if (!table.schema!.out[arg].isNumber)
+    for (const arg of table.schema!.iterateArguments()) {
+        if (arg.is_input || !arg.type.isNumber)
             continue;
-        if (cleanName(table.schema!.getArgCanonical(arg)!) === `${pcleaned} ${operation}`)
-            return arg;
+        if (cleanName(arg.canonical) === `${pcleaned} ${operation}`)
+            return arg.name;
     }
     return null;
 }
@@ -1419,11 +1448,10 @@ function addComparisonSubquery(table : Ast.Expression,
     }
 
     // add id projection to subquery
-    subquery = subquery.clone();
-    if (subquery instanceof Ast.ProjectionExpression)
-        subquery.args = ['id'];
-    else
-        subquery = new Ast.ProjectionExpression(null, subquery, ['id'], [], [], subquery.schema);
+    let expr = subquery;
+    while (expr instanceof Ast.ProjectionExpression)
+        expr = expr.expression;
+    subquery = new Ast.ProjectionExpression(null, expr, ['id'], [], [], subquery.schema);
 
     const comparisonSubquery = new Ast.BooleanExpression.ComparisonSubquery(
         null,
@@ -1446,10 +1474,13 @@ function addReverseComparisonSubquery(table : Ast.Expression,
         return null;
 
     // add id projection to subquery
-    if (subquery instanceof Ast.ProjectionExpression)
-        subquery.args = [projection.name];
-    else
-        subquery = new Ast.ProjectionExpression(null, subquery, [projection.name], [], [], subquery.schema);
+    let expr = subquery;
+    while (expr instanceof Ast.ProjectionExpression)
+        expr = expr.expression;
+    // no projection if there is only one output parameter
+    if (countInputOutputParams(expr.schema!).output === 1)
+        return null;
+    subquery = new Ast.ProjectionExpression(null, expr, [projection.name], [], [], subquery.schema);
 
     const comparisonSubquery = new Ast.BooleanExpression.ComparisonSubquery(
         null,

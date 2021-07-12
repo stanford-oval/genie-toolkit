@@ -299,6 +299,7 @@ class Annotator extends events.EventEmitter {
         if (this._engine)
             await this._engine.open();
         await this._parser.start();
+        await this._dialoguePolicy.initialize();
     }
     async stop() {
         await this._parser.stop();

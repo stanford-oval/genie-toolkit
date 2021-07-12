@@ -50,8 +50,6 @@ export {
     ReplacedList,
 };
 
-export { importGenie as import } from './compiler';
-
 import {
     DerivationKeyValue,
     DerivationKey,
@@ -62,8 +60,7 @@ import {
 const LogLevel = {
     NONE: 0,
 
-    // log at the beginning and at the end of the generation for each depth, and notable events
-    // such as particularly slow templates
+    // log notable events such as particularly slow templates
     INFO: 1,
 
     // log each non-empty non terminal
@@ -139,12 +136,14 @@ class Derivation<ValueType> {
     readonly context : Context|null;
     sentence : ReplacedResult;
     priority : number;
+    depth : number;
 
     constructor(key : DerivationKey,
                 value : ValueType,
                 sentence : ReplacedResult,
                 context : Context|null = null,
-                priority = 0) {
+                depth : number,
+                priority : number) {
         this.key = key;
         this.value = value;
         if (value === undefined)
@@ -153,6 +152,7 @@ class Derivation<ValueType> {
         assert(typeof this.context === 'object'); // incl. null
         this.sentence = sentence;
         this.priority = priority;
+        this.depth = depth;
         assert(Number.isFinite(this.priority));
     }
 
@@ -165,13 +165,14 @@ class Derivation<ValueType> {
     }
 
     clone() : Derivation<ValueType> {
-        return new Derivation(this.key, this.value, this.sentence, this.context, this.priority);
+        return new Derivation(this.key, this.value, this.sentence, this.context, this.depth, this.priority);
     }
 
     static combine<ArgTypes extends unknown[], ResultType>(children : DerivationChildTuple<ArgTypes>,
                                                            template : Replaceable,
                                                            semanticAction : SemanticAction<ArgTypes, ResultType>,
                                                            keyFunction : KeyFunction<ResultType>,
+                                                           atDepth : number,
                                                            rulePriority : number) : Derivation<ResultType>|null {
         const phrases : PlaceholderReplacement[] = [];
         const values : unknown[] = [];
@@ -197,7 +198,7 @@ class Derivation<ValueType> {
 
         const newKey = keyFunction(newValue);
 
-        return new Derivation(newKey, newValue, newSentence, newContext, newPriority);
+        return new Derivation(newKey, newValue, newSentence, newContext, atDepth, newPriority);
     }
 }
 

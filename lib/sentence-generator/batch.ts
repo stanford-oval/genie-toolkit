@@ -31,13 +31,14 @@ import { ReservoirSampler, } from '../utils/random';
 import * as Utils from '../utils/entity-utils';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import { SimulationDatabase } from '../dialogue-agent/simulator/types';
+import * as TransactionPolicy from '../templates/transactions';
 
 import SentenceGenerator, {
     SentenceGeneratorOptions,
 } from './generator';
 import {
     ContextPhrase,
-    AgentReplyRecord
+    PolicyModule
 } from './types';
 import { Derivation } from './runtime';
 
@@ -67,7 +68,7 @@ class BasicSentenceGenerator extends stream.Readable {
     private _locale : string;
     private _langPack : I18n.LanguagePack;
     private _rng : () => number;
-    private _generator : SentenceGenerator<undefined, ThingTalkUtils.Input>;
+    private _generator : SentenceGenerator;
     private _initialization : Promise<void>|null;
     private _i : number;
 
@@ -108,7 +109,8 @@ class BasicSentenceGenerator extends stream.Readable {
             this._initialization = this._generator.initialize();
 
         this._initialization!.then(() => {
-            this._generator.generate([], this._output.bind(this));
+            for (const derivation of this._generator.generate([], '$root'))
+                this._output(derivation);
             this.emit('progress', this._generator.progress);
             this.push(null);
         }).catch((e) => {
@@ -117,14 +119,14 @@ class BasicSentenceGenerator extends stream.Readable {
         });
     }
 
-    private _postprocessSentence(derivation : Derivation<ThingTalkUtils.Input>, program : ThingTalkUtils.Input) {
+    private _postprocessSentence(derivation : Derivation<ThingTalk.Ast.Input>, program : ThingTalk.Ast.Input) {
         let utterance = derivation.sampleSentence(this._rng);
         utterance = utterance.replace(/ +/g, ' ');
         utterance = this._langPack.postprocessSynthetic(utterance, program, this._rng, 'user');
         return utterance;
     }
 
-    private _output(depth : number, derivation : Derivation<ThingTalkUtils.Input>) {
+    private _output(derivation : Derivation<ThingTalk.Ast.Input>) {
         const program = derivation.value.optimize();
         assert(program !== null); // not-null even after optimize
         let preprocessed = this._postprocessSentence(derivation, program);
@@ -149,11 +151,11 @@ class BasicSentenceGenerator extends stream.Readable {
             return;
         }
         let id = String(this._i++);
-        id = this._idPrefix + depth + '000000000'.substring(0,9-id.length) + id;
+        id = this._idPrefix + derivation.depth + '000000000'.substring(0,9-id.length) + id;
         const flags = {
             synthetic: true
         };
-        this.push({ depth, id, flags, preprocessed, target_code: sequence.join(' ') });
+        this.push({ id, flags, preprocessed, target_code: sequence.join(' ') });
     }
 }
 
@@ -168,7 +170,7 @@ interface DialogueTurn {
 type Dialogue = DialogueTurn[];
 
 class PartialDialogue {
-    constructor(public context : any = null,
+    constructor(public context : ThingTalk.Ast.DialogueState|null = null,
                 public turns : DialogueTurn[] = [],
                 public execState : any = undefined) {
     }
@@ -181,12 +183,6 @@ interface AgentTurn {
     utterance : string|null;
     state : any|null;
     target : string|null;
-}
-
-interface StateValidator {
-    load() : Promise<void>;
-    validateUser(state : any) : void;
-    validateAgent(state : any) : void;
 }
 
 interface Continuation {
@@ -202,14 +198,16 @@ const FACTORS = [50, 75, 75, 100];
  * This object is created afresh for every minibatch.
  */
 class MinibatchDialogueGenerator {
-    private _agentGenerator : SentenceGenerator<PartialDialogue, AgentReplyRecord<ThingTalkUtils.DialogueState>>;
-    private _userGenerator : SentenceGenerator<AgentTurn, ThingTalkUtils.DialogueState>;
+    private _agentGenerator : SentenceGenerator;
+    private _userGenerator : SentenceGenerator;
     private _langPack : I18n.LanguagePack;
+    private _policy : PolicyModule;
     private _simulator : ThingTalkUtils.Simulator;
-    private _stateValidator : StateValidator;
+    private _stateValidator : ThingTalkUtils.StateValidator;
     private _minibatchSize : number;
     private _rng : () => number;
     private _options : DialogueGeneratorOptions;
+    private _logPrefix : string;
 
     private _minibatchIdx : number;
     private _turnIdx : number;
@@ -220,21 +218,24 @@ class MinibatchDialogueGenerator {
     private _emptyDialogue : PartialDialogue;
     private _completeDialogues : Array<ReservoirSampler<Dialogue>>;
 
-    constructor(agentGenerator : SentenceGenerator<PartialDialogue, AgentReplyRecord<ThingTalkUtils.DialogueState>>,
-                userGenerator : SentenceGenerator<AgentTurn, ThingTalkUtils.DialogueState>,
+    constructor(agentGenerator : SentenceGenerator,
+                userGenerator : SentenceGenerator,
                 langPack : I18n.LanguagePack,
+                policy : PolicyModule,
                 simulator : ThingTalkUtils.Simulator,
-                stateValidator : StateValidator,
+                stateValidator : ThingTalkUtils.StateValidator,
                 options : DialogueGeneratorOptions,
                 minibatchIdx : number) {
         this._agentGenerator = agentGenerator;
         this._userGenerator = userGenerator;
         this._langPack = langPack;
+        this._policy = policy;
         this._simulator = simulator;
         this._stateValidator = stateValidator;
         this._minibatchSize = options.minibatchSize;
         this._rng = options.rng;
         this._options = options;
+        this._logPrefix = options.logPrefix || '';
 
         this._minibatchIdx = minibatchIdx;
         this._turnIdx = 0;
@@ -248,6 +249,39 @@ class MinibatchDialogueGenerator {
         for (let turnIdx = 0; turnIdx < options.maxTurns; turnIdx++) {
             const factor = turnIdx < FACTORS.length ? FACTORS[turnIdx] : FACTORS[FACTORS.length-1];
             this._completeDialogues[turnIdx] = new ReservoirSampler(Math.ceil(this._minibatchSize * factor), this._rng);
+        }
+    }
+
+    private *_agentGetContextPhrases(partials : readonly PartialDialogue[]) {
+        for (const dlg of partials) {
+            const phrases = this._policy.getContextPhrasesForState(dlg.context, this._agentGenerator.tpLoader,
+                this._agentGenerator.contextTable);
+            if (phrases !== null) {
+                for (const phrase of phrases) {
+                    // override the context because we need the context in _generateAgent
+                    phrase.context = dlg;
+                    yield phrase;
+                }
+            }
+        }
+    }
+
+    private *_userGetContextPhrases(agentTurns : readonly AgentTurn[]) {
+        for (const agentTurn of agentTurns) {
+            if (agentTurn.context === null) {
+                // first turn
+                for (const phrase of this._policy.getContextPhrasesForState!(null, this._userGenerator.tpLoader, this._userGenerator.contextTable)!) {
+                    // override the context because we need the context in _generateUser
+                    phrase.context = agentTurn;
+                    yield phrase;
+                }
+            } else {
+                for (const phrase of agentTurn.contextPhrases) {
+                    // override the context because we need the context in _generateUser
+                    phrase.context = agentTurn;
+                    yield phrase;
+                }
+            }
         }
     }
 
@@ -274,7 +308,8 @@ class MinibatchDialogueGenerator {
 
     private _generateAgent(partials : readonly PartialDialogue[]) : AgentTurn[] {
         const agentTurns : AgentTurn[] = [];
-        this._agentGenerator.generate(partials, (depth : number, derivation : Derivation<AgentReplyRecord<ThingTalkUtils.DialogueState>>) => {
+        this._agentGenerator.reset();
+        for (const derivation of this._agentGenerator.generate(this._agentGetContextPhrases(partials), '$agent')) {
             // derivation.dlg is the PartialDialogue that is being continued
             // derivation.value is the object returned by the root semantic function, with:
             // - state (the thingtalk state)
@@ -302,12 +337,13 @@ class MinibatchDialogueGenerator {
                 state,
                 target
             });
-        });
+        }
         return agentTurns;
     }
 
     private _generateUser(continuations : MultiMap<PartialDialogue, Continuation>, agentTurns : AgentTurn[]) {
-        this._userGenerator.generate(agentTurns, (depth, derivation) => {
+        this._userGenerator.reset();
+        for (const derivation of this._userGenerator.generate(this._userGetContextPhrases(agentTurns), '$user')) {
             // the derivation value for the user is directly the thingtalk user state
             // (unlike the agent)
 
@@ -334,7 +370,7 @@ class MinibatchDialogueGenerator {
                     user_target: target,
                 },
             });
-        });
+        }
     }
 
     private async _continueOneDialogue(dlg : PartialDialogue, continuations : MultiMap<PartialDialogue, Continuation>) {
@@ -371,7 +407,7 @@ class MinibatchDialogueGenerator {
         this._turnIdx++;
         const start = Date.now();
         if (this._debug)
-            console.log(`Minibatch ${this._minibatchIdx}, turn ${this._turnIdx}`);
+            console.log(`${this._logPrefix}Minibatch ${this._minibatchIdx}, turn ${this._turnIdx}`);
 
         const partials = this._partialDialogues.sampled;
         this._partialDialogues.reset();
@@ -398,8 +434,8 @@ class MinibatchDialogueGenerator {
 
         const end = Date.now();
         if (this._debug) {
-            console.log(`Produced ${this._partialDialogues.counter} partial dialogs this turn`);
-            console.log(`Turn took ${Math.round((end-start)/1000)} seconds`);
+            console.log(`${this._logPrefix}Produced ${this._partialDialogues.counter} partial dialogs this turn`);
+            console.log(`${this._logPrefix}Turn took ${Math.round((end-start)/1000)} seconds`);
         }
     }
 
@@ -421,12 +457,11 @@ interface DialogueGeneratorOptions {
     minibatchSize : number;
     numMinibatches : number;
     idPrefix ?: string;
+    logPrefix ?: string;
     debug : number;
     rng : () => number;
 
-    policyFile ?: string;
-
-    templateFiles : string[];
+    policyModule ?: string;
     flags : { [key : string] : boolean };
     maxConstants ?: number;
     targetPruningSize : number;
@@ -450,11 +485,13 @@ class DialogueGenerator extends stream.Readable {
     private _numMinibatches : number;
     private _options : DialogueGeneratorOptions;
     private _idPrefix : string;
+    private _logPrefix : string;
     private _debug : number;
     private _langPack : I18n.LanguagePack;
-    private _agentGenerator : SentenceGenerator<PartialDialogue, AgentReplyRecord<ThingTalkUtils.DialogueState>>;
-    private _userGenerator : SentenceGenerator<AgentTurn, ThingTalkUtils.DialogueState>;
-    private _stateValidator : StateValidator;
+    private _agentGenerator ! : SentenceGenerator;
+    private _userGenerator ! : SentenceGenerator;
+    private _policyModule ! : PolicyModule;
+    private _stateValidator ! : ThingTalkUtils.StateValidator;
     private _simulator : ThingTalkUtils.Simulator;
 
     private _initialized : boolean;
@@ -468,65 +505,10 @@ class DialogueGenerator extends stream.Readable {
 
         this._options = options;
         this._idPrefix = options.idPrefix || '';
+        this._logPrefix = options.logPrefix || '';
         this._debug = options.debug;
 
         this._langPack = I18n.get(options.locale);
-
-        const agentOptions : SentenceGeneratorOptions<PartialDialogue, AgentReplyRecord<ThingTalkUtils.DialogueState>> = {
-            locale: options.locale,
-            timezone: options.timezone,
-            templateFiles: options.templateFiles,
-            rootSymbol: '$agent',
-            forSide: 'agent',
-            contextual: true,
-            flags: options.flags,
-            targetPruningSize: options.targetPruningSize,
-            maxDepth: options.maxDepth,
-            maxConstants: options.maxConstants || 5,
-            debug: options.debug,
-            rng: options.rng,
-            thingpediaClient: options.thingpediaClient,
-            entityAllocator: new ThingTalk.Syntax.SequentialEntityAllocator({}),
-            onlyDevices: options.onlyDevices,
-            whiteList: options.whiteList,
-
-            contextInitializer: (partialDialogue : PartialDialogue, functionTable, contextTable) => {
-                return functionTable.context!(partialDialogue.context, contextTable);
-            }
-        };
-        this._agentGenerator = new SentenceGenerator<PartialDialogue, AgentReplyRecord<ThingTalkUtils.DialogueState>>(agentOptions);
-
-        const userOptions : SentenceGeneratorOptions<AgentTurn, ThingTalkUtils.DialogueState> = {
-            locale: options.locale,
-            timezone: options.timezone,
-            templateFiles: options.templateFiles,
-            rootSymbol: '$user',
-            forSide: 'user',
-            contextual: true,
-            flags: options.flags,
-            targetPruningSize: options.targetPruningSize,
-            maxDepth: options.maxDepth,
-            maxConstants: options.maxConstants || 5,
-            debug: options.debug,
-            rng: options.rng,
-            thingpediaClient: options.thingpediaClient,
-            entityAllocator: new ThingTalk.Syntax.SequentialEntityAllocator({}),
-            onlyDevices: options.onlyDevices,
-            whiteList: options.whiteList,
-
-            contextInitializer: (agentTurn : AgentTurn, functionTable, contextTable) => {
-                if (agentTurn.context === null) {
-                    // first turn
-                    return functionTable.context!(null, contextTable);
-                } else {
-                    return agentTurn.contextPhrases;
-                }
-            }
-        };
-        this._userGenerator = new SentenceGenerator<AgentTurn, ThingTalkUtils.DialogueState>(userOptions);
-
-        this._stateValidator = ThingTalkUtils.createStateValidator(
-            options.policyFile ? path.resolve(path.dirname(module.filename), '../templates', options.policyFile) : undefined);
 
         this._initialized = false;
         this._simulator = ThingTalkUtils.createSimulator({
@@ -540,11 +522,64 @@ class DialogueGenerator extends stream.Readable {
         this._minibatchIdx = 0;
     }
 
+    private async _initialize() {
+        const options = this._options;
+
+        if (options.policyModule)
+            this._policyModule = await import(path.resolve(options.policyModule));
+        else
+            this._policyModule = TransactionPolicy;
+
+        const agentOptions : SentenceGeneratorOptions = {
+            locale: options.locale,
+            timezone: options.timezone,
+            rootSymbol: '$agent',
+            forSide: 'agent',
+            contextual: true,
+            flags: options.flags,
+            targetPruningSize: options.targetPruningSize,
+            maxDepth: options.maxDepth,
+            maxConstants: options.maxConstants || 5,
+            debug: options.debug,
+            logPrefix: options.logPrefix,
+            rng: options.rng,
+            thingpediaClient: options.thingpediaClient,
+            entityAllocator: new ThingTalk.Syntax.SequentialEntityAllocator({}),
+            onlyDevices: options.onlyDevices,
+            whiteList: options.whiteList,
+        };
+        this._agentGenerator = new SentenceGenerator(agentOptions);
+        await this._agentGenerator.initialize();
+        await this._policyModule.initializeTemplates(agentOptions, this._agentGenerator.langPack, this._agentGenerator, this._agentGenerator.tpLoader);
+
+        const userOptions : SentenceGeneratorOptions = {
+            locale: options.locale,
+            timezone: options.timezone,
+            rootSymbol: '$user',
+            forSide: 'user',
+            contextual: true,
+            flags: options.flags,
+            targetPruningSize: options.targetPruningSize,
+            maxDepth: options.maxDepth,
+            maxConstants: options.maxConstants || 5,
+            debug: options.debug,
+            logPrefix: options.logPrefix,
+            rng: options.rng,
+            thingpediaClient: options.thingpediaClient,
+            entityAllocator: new ThingTalk.Syntax.SequentialEntityAllocator({}),
+            onlyDevices: options.onlyDevices,
+            whiteList: options.whiteList,
+        };
+        this._userGenerator = new SentenceGenerator(userOptions);
+        await this._userGenerator.initialize();
+        await this._policyModule.initializeTemplates(agentOptions, this._userGenerator.langPack, this._userGenerator, this._userGenerator.tpLoader);
+
+        this._stateValidator = new ThingTalkUtils.StateValidator(this._policyModule.MANIFEST);
+    }
+
     private async _generateMinibatch() {
         if (!this._initialized) {
-            await this._userGenerator.initialize();
-            await this._agentGenerator.initialize();
-            await this._stateValidator.load();
+            await this._initialize();
             this._initialized = true;
         }
 
@@ -552,7 +587,7 @@ class DialogueGenerator extends stream.Readable {
         let counter = 0;
         try {
             const generator = new MinibatchDialogueGenerator(this._agentGenerator,
-                this._userGenerator, this._langPack, this._simulator,
+                this._userGenerator, this._langPack, this._policyModule, this._simulator,
                 this._stateValidator, this._options, this._minibatchIdx++);
 
             for (let turn = 0; turn < this._options.maxTurns; turn++)
@@ -569,7 +604,7 @@ class DialogueGenerator extends stream.Readable {
         } finally {
             const end = Date.now();
             if (this._debug)
-                console.log(`Minibatch took ${Math.round((end-start)/1000)} seconds and produced ${counter} dialogues`);
+                console.log(`${this._logPrefix}Minibatch took ${Math.round((end-start)/1000)} seconds and produced ${counter} dialogues`);
         }
     }
 

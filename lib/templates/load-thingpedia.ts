@@ -38,6 +38,7 @@ import SentenceGenerator from '../sentence-generator/generator';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import * as I18n from '../i18n';
 
+import { $load as commonTemplates } from './common.genie.out';
 import {
     ParamSlot,
     ExpressionWithCoreference,
@@ -128,8 +129,18 @@ interface FollowUpRecord {
     };
 }
 
+/**
+ * Initialize templates that depend on Thingpedia.
+ *
+ * This class will load the information in Thingpedia manifests and
+ * primitive template files, and initialize the templates defined
+ * in {@link CommonTemplates}.
+ *
+ * This class should not be constructed directly. Instead, an appropriately
+ * initialized loader can be retrieved from {@link SentenceGenerator.tpLoader}.
+ */
 export default class ThingpediaLoader {
-    private _grammar : SentenceGenerator<any, Ast.Input>;
+    private _grammar : SentenceGenerator;
     private _schemas : SchemaRetriever;
     private _tpClient : Tp.BaseClient;
     private _langPack : I18n.LanguagePack;
@@ -169,7 +180,7 @@ export default class ThingpediaLoader {
     entitySubTypeMap : Record<string, string>;
     private _subEntityMap : Map<string, string[]>;
 
-    constructor(grammar : SentenceGenerator<any, Ast.Input>,
+    constructor(grammar : SentenceGenerator,
                 langPack : I18n.LanguagePack,
                 options : GrammarOptions) {
         this._grammar = grammar;
@@ -214,6 +225,9 @@ export default class ThingpediaLoader {
     }
 
     async init() {
+        // import the common templates
+        await commonTemplates(this._options, this._langPack, this._grammar, this);
+
         // make sure that these types are always available, regardless of which templates we have
         this._recordType(Type.String);
         this._recordType(Type.Date);
@@ -753,7 +767,7 @@ export default class ThingpediaLoader {
             }
 
             if (this._options.debug >= SentenceGeneratorRuntime.LogLevel.INFO && preprocessed[0].startsWith(','))
-                console.log(`WARNING: template ${ex.id} starts with , but is not a query`);
+                this._grammar.log(`WARNING: template ${ex.id} starts with , but is not a query`);
 
             if (this._options.forSide === 'agent')
                 preprocessed = this._langPack.toAgentSideUtterance(preprocessed);
@@ -1198,7 +1212,7 @@ export default class ThingpediaLoader {
 
         if (functionDef.getImplementationAnnotation<boolean>('initial')) {
             if (this._initialFunction) {
-                console.log('WARNING: multiple initial functions defined, will ignore all but the first one');
+                this._grammar.log('WARNING: multiple initial functions defined, will ignore all but the first one');
                 return;
             }
             this._initialFunction = functionDef;
@@ -1385,17 +1399,17 @@ export default class ThingpediaLoader {
             if (has_ner_support) {
                 if (this.idQueries.has(entityType)) {
                     if (this._options.debug >= SentenceGeneratorRuntime.LogLevel.DUMP_TEMPLATES)
-                        console.log('Loaded entity ' + entityType + ' as id entity');
+                        this._grammar.log('Loaded entity ' + entityType + ' as id entity');
                 } else {
                     if (this._options.debug >= SentenceGeneratorRuntime.LogLevel.DUMP_TEMPLATES)
-                        console.log('Loaded entity ' + entityType + ' as generic entity');
+                        this._grammar.log('Loaded entity ' + entityType + ' as generic entity');
                 }
 
                 this._grammar.addConstants('constant_' + typestr, 'GENERIC_ENTITY_' + entityType, ttType,
                     keyfns.entityOrNumberValueKeyFn);
             } else {
                 if (this._options.debug >= SentenceGeneratorRuntime.LogLevel.DUMP_TEMPLATES)
-                    console.log('Loaded entity ' + entityType + ' as non-constant entity');
+                    this._grammar.log('Loaded entity ' + entityType + ' as non-constant entity');
             }
         }
     }
@@ -1461,8 +1475,8 @@ export default class ThingpediaLoader {
 
         if (this._options.debug >= SentenceGeneratorRuntime.LogLevel.INFO) {
             const countTemplates = datasets.map((d) => d.examples.length).reduce((a, b) => a+b, 0);
-            console.log('Loaded ' + devices.length + ' devices');
-            console.log('Loaded ' + countTemplates + ' templates');
+            this._grammar.log('Loaded ' + devices.length + ' devices');
+            this._grammar.log('Loaded ' + countTemplates + ' templates');
         }
 
         for (const entity of entityTypes) {

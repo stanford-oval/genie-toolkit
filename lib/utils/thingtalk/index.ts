@@ -20,10 +20,6 @@
 
 
 import assert from 'assert';
-import yaml from 'js-yaml';
-import util from 'util';
-import * as fs from 'fs';
-
 import { Ast, SchemaRetriever } from 'thingtalk';
 
 import SimulationDialogueAgent, { SimulationDialogueAgentOptions } from '../../dialogue-agent/simulator/simulation_dialogue_agent';
@@ -34,6 +30,7 @@ export * from './dialogue_state_utils';
 import { computePrediction } from './dialogue_state_utils';
 // reexport clean, tokenizeExample from misc-utils
 import { clean, tokenizeExample } from '../misc-utils';
+import { PolicyModule } from '../../sentence-generator/types';
 export { clean, tokenizeExample };
 
 export type Input = Ast.Input;
@@ -68,7 +65,10 @@ export function createSimulator(options : SimulationDialogueAgentOptions) : Simu
     return new SimulationDialogueAgent(options);
 }
 
-interface PolicyManifest {
+/**
+ * A faster version of PolicyManifest that uses sets instead of arrays.
+ */
+interface SetPolicyManifest {
     name : string;
     terminalAct : string;
     dialogueActs : {
@@ -77,22 +77,12 @@ interface PolicyManifest {
         withParam : Set<string>;
     };
 }
+type PolicyManifest = PolicyModule['MANIFEST'];
 
-class StateValidator {
-    private _policyManifest : string|undefined;
-    private _policy : PolicyManifest|null;
+export class StateValidator {
+    private _policy : SetPolicyManifest;
 
-    constructor(policyManifest : string|undefined) {
-        this._policyManifest = policyManifest;
-        this._policy = null;
-    }
-
-    async load() : Promise<void> {
-        if (!this._policyManifest)
-            return;
-        const buffer = await util.promisify(fs.readFile)(this._policyManifest, { encoding: 'utf8' });
-        const policy = yaml.load(buffer) as any;
-
+    constructor(policy : PolicyManifest) {
         this._policy = {
             name: policy.name,
             terminalAct: policy.terminalAct,
@@ -125,10 +115,6 @@ class StateValidator {
         // if and only if
         assert((state.dialogueActParam !== null) === (this._policy.dialogueActs.withParam.has(state.dialogueAct)));
     }
-}
-
-export function createStateValidator(policyManifest ?: string) : StateValidator {
-    return new StateValidator(policyManifest);
 }
 
 interface DialoguePolicy {

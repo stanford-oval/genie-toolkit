@@ -133,12 +133,10 @@ async function processDialogue(dlg) {
 }
 
 
-async function doTestDialogue(filename, onlyDevices = null) {
+async function doTestDialogue(onlyDevices = null) {
     const options = {
         rng: seedrandom.alea('almond is awesome'),
         locale: 'en-US',
-        policyFile: 'policy.yaml',
-        templateFiles: [filename],
         targetLanguage: 'thingtalk',
         thingpediaClient: _tpClient,
         flags: {
@@ -192,10 +190,9 @@ async function doTestDialogue(filename, onlyDevices = null) {
 async function main() {
     await doTestBasic('basic.genie');
     await doTestBasic('single-command.genie');
-    await doTestDialogue('dialogue.genie');
+    await doTestDialogue();
     // run again with just yelp weather and spotify, as way to check certain paths that don't come up otherwise
-    await doTestDialogue('dialogue.genie',
-    ['com.yelp', 'org.thingpedia.weather', 'com.spotify2']);
+    await doTestDialogue(['com.yelp', 'org.thingpedia.weather', 'com.spotify2']);
 }
 export default main;
 if (!module.parent)

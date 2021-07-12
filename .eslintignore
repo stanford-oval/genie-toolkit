@@ -2,6 +2,8 @@ lib/sentence-generator/compiler/grammar.js
 lib/utils/template-string/grammar.js
 *.genie.ts
 *.genie.js
+*.genie.out.ts
+*.genie.out.js
 node_modules
 dist
 coverage
