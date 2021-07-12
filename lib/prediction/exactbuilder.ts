@@ -30,7 +30,7 @@ import { SentenceExample } from '../dataset-tools/parsers';
 
 import ExactMatcher from './exact';
 
-const SYNTHETIC_DEPTH = 8;
+const SYNTHETIC_DEPTH = 6;
 const TARGET_PRUNING_SIZE = 1000;
 
 async function safeGetMTime(filename : string) : Promise<number> {
