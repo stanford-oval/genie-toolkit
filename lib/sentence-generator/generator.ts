@@ -925,7 +925,7 @@ export default class SentenceGenerator extends events.EventEmitter {
                            depth : number) : number {
         const nonTermHasContext = this._nonTermHasContext[nonTermIndex];
         let targetPruningSize = this._options.targetPruningSize * POWERS[depth];
-        if (!nonTermHasContext)
+        if (this._contextual && !nonTermHasContext)
             targetPruningSize *= NON_CONTEXTUAL_PRUNING_SIZE_MULTIPLIER;
 
         return Math.min(2 * Math.ceil(targetPruningSize * rule.weight), MAX_SAMPLE_SIZE);
@@ -1018,7 +1018,7 @@ export default class SentenceGenerator extends events.EventEmitter {
                 // to a large number (integer, to avoid floating point computations)
                 if (this._contextual && depth === 0 && this.hasContext(this._nonTermList[index]))
                     this._charts.init(index, depth, INFINITY);
-                else if (!this._nonTermHasContext[index]) // multiply non-contextual non-terminals by a factor
+                else if (this._contextual && !this._nonTermHasContext[index]) // multiply non-contextual non-terminals by a factor
                     this._charts.init(index, depth, NON_CONTEXTUAL_PRUNING_SIZE_MULTIPLIER * targetPruningSize);
                 else
                     this._charts.init(index, depth, targetPruningSize);
