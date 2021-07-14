@@ -316,8 +316,11 @@ $user : Ast.DialogueState = {
     | ctx:ctx_sys_action_error nevermind_phrase
     ) => S.makeSimpleState(ctx, 'cancel', null);
 
+    /*
+    FIXME this template is too slow, so it is temporarily commented out
     ctx:ctx_sys_action_error ('i see ,' | 'okay' | 'okay ,' | 'yeah' | 'yeah ,') ('can you try' | 'how about') answer:imprecise_slot_fill_answer_phrase '?'
         => D.actionErrorChangeParam(ctx, answer);
+    */
 
     // empty search errors
     ctx:ctx_sys_empty_search req:precise_empty_search_change_request with { functionName = ctx.currentTableFunction }
