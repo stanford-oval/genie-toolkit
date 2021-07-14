@@ -196,15 +196,30 @@ export function prepareContextForPrediction(context : Ast.DialogueState|null, fo
     if (lastItems.length > MAX_CONTEXT_ITEMS)
         lastItems = lastItems.slice(lastItems.length-MAX_CONTEXT_ITEMS, lastItems.length);
 
-    // add a copy of the last items with results, and trim the result list to 1 or 3
+    // add a copy of the last items with results
+    // trim the result list to 1 or 3
+    // trim arrays in each result so they have at most 3 items
     for (const lastItem of lastItems) {
-        // semi-shallow clone
-        const cloneItem = new Ast.DialogueHistoryItem(null, lastItem.stmt, new Ast.DialogueHistoryResultList(null, lastItem.results!.results.slice(),
-            lastItem.results!.count, lastItem.results!.more, lastItem.results!.error), lastItem.confirm);
+        // clone
+        const cloneItem = lastItem.clone();
         if (forTarget === 'user' && cloneItem.results!.results.length > 1)
             cloneItem.results!.results.length = 1;
         else if (cloneItem.results!.results.length > 3)
             cloneItem.results!.results.length = 3;
+
+        for (const result of cloneItem.results!.results) {
+            for (const key in result.value) {
+                const value = result.value[key];
+                if (value instanceof Ast.ArrayValue && value.value.length > 3) {
+                    // FIXME workaround a bug in the implementation of Ast.DialogueHistoryResultItem.clone
+                    // https://github.com/stanford-oval/thingtalk/issues/364
+                    const clone = value.clone();
+                    clone.value.length = 3;
+                    result.value[key] = clone;
+                }
+            }
+        }
+
         clone.history.push(cloneItem);
     }
 
