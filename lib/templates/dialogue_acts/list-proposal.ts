@@ -156,6 +156,9 @@ export function addActionToListProposal(nameList : NameList, action : Ast.Invoca
         results.length !== ctx.results!.length)
         return null;
 
+    if (!results[0].value.id)
+        return null;
+
     const resultType = results[0].value.id.getType();
     if (!C.hasArgumentOfType(action, resultType))
         return null;
@@ -254,6 +257,9 @@ function positiveListProposalReply(loader : ThingpediaLoader,
 
     const proposal = ctx.aux as ListProposal;
     const { results, action: actionProposal } = proposal;
+    if (!results[0].value.id)
+        return null;
+
     let good = false;
     for (const result of results) {
         if (result.value.id.equals(name)) {
@@ -303,6 +309,8 @@ function positiveListProposalReplyActionByName(loader : ThingpediaLoader,
                                                action : Ast.Invocation) {
     const proposal = ctx.aux as ListProposal;
     const { results } = proposal;
+    if (!results[0].value.id)
+        return null;
 
     let name = null;
     const acceptedAction = action.clone();
@@ -330,6 +338,9 @@ function negativeListProposalReply(ctx : ContextInfo, [preamble, request] : [Ast
 
     const proposal = ctx.aux as ListProposal;
     const { results, info } = proposal;
+    if (!results[0].value.id)
+        return null;
+
     const proposalType = results[0].value.id.getType();
     request = combinePreambleAndRequest(preamble, request, info, proposalType);
     if (request === null)
@@ -345,6 +356,9 @@ function listProposalLearnMoreReply(ctx : ContextInfo, name : Ast.Value) {
 
     const proposal = ctx.aux as ListProposal;
     const { results } = proposal;
+    if (!results[0].value.id)
+        return null;
+
     let good = false;
     for (const result of results) {
         if (result.value.id.equals(name)) {
