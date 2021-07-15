@@ -524,7 +524,24 @@ class ApplyDeviceIDVisitor extends Ast.NodeVisitor {
 function propagateDeviceIDs(ctx : ContextInfo,
                             newHistoryItems : Ast.DialogueHistoryItem[]) {
     const visitor = new CollectDeviceIDVisitor();
-    ctx.state.visit(visitor);
+
+    // here we used to traverse the whole state and collect all device IDs from
+    // all turns
+    // this is not correct though: we cannot propagate a device ID older
+    // than MAX_CONTEXT_ITEMS ago because it won't be seen in the neural context
+    //
+    // instead, we only ask the neural model to propagate the current item, if we have
+    // it, and any item newer than that
+    // propagation from older item will happen in prepareForExecution
+    //
+    // we need to have the neural model propagate from the next item and subsequent
+    // because next items are replaced and gone before prepareForExecution so the
+    // info has to be carried forward by the neural model output
+    const currentIdx = ctx.currentIdx ?? -1;
+    if (currentIdx >= 0)
+        ctx.state.history[currentIdx].visit(visitor);
+    for (let i = currentIdx+1; i < ctx.state.history.length; i++)
+        ctx.state.history[i].visit(visitor);
 
     const applyVisitor = new ApplyDeviceIDVisitor(visitor.collection);
     return newHistoryItems.map((item) => {
