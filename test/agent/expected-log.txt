@@ -2417,3 +2417,31 @@ AT: $dialogue @org.thingpedia.dialogue.transaction.sys_recommend_two;
 #! comment: test comment for dialogue turns
 #!          additional
 #!          lines
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $stop;
+UT: $stop;
+====
+# test
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+U: \t $dialogue @org.thingpedia.dialogue.transaction.notification;
+U: timer(base=$now, interval=1min)
+U: #[results=[
+U:   { __timestamp=1626399487 }
+U: ]];
+UT: $dialogue @org.thingpedia.dialogue.transaction.notification;
+UT: timer(base=$now, interval=1min)
+UT: #[results=[
+UT:   { __timestamp=1626399487 }
+UT: ]];
+C: $dialogue @org.thingpedia.dialogue.transaction.notification;
+C: timer(base=$now, interval=1min)
+C: #[results=[
+C:   { __timestamp=1626399487 }
+C: ]];
+#! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
+A: Your request was completed successfully.
+AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
+#! vote: up
+#! comment: test comment for dialogue turns
+#!          additional
+#!          lines

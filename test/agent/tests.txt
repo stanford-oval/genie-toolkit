@@ -1151,3 +1151,16 @@ U: \t [dribble_attempts] of @com.goal_smart.player(league_id="39"^^com.goal_smar
 A: Both Adrien Silva and M. Shabani are player stats with the dribble equal to 0.
 A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_two ; [ dribble_attempts ] of @com.goal_smart ( id = GENERIC_ENTITY_tt:device_id_0 ) . player ( league_id = GENERIC_ENTITY_com.goal_smart:soccer_league_0 ) #[ results = [ { league_id = GENERIC_ENTITY_com.goal_smart:soccer_league_0 , id = GENERIC_ENTITY_com.goal_smart:soccer_player_0 , dribble_attempts = 0 } ] ] #[ count = 3 ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.goal_smart-9","display":"Some Device 9"},"GENERIC_ENTITY_com.goal_smart:soccer_league_0":{"value":"39","display":"premier league"},"GENERIC_ENTITY_com.goal_smart:soccer_player_0":{"value":"114","display":"Adrien Silva"}}
 A: >> expecting = null
+
+====
+# 76-issue-695
+
+U: \t $dialogue @org.thingpedia.dialogue.transaction.notification;
+U: timer(base=$now, interval=1min)
+U: #[results=[{ __timestamp=1626399487 }]];
+
+# this reply is not great but this is an error case because this command
+# should never be generated in the first place.
+A: Your request was completed successfully.
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; timer ( base = $now , interval = DURATION_0 ) #[ results = [ { __timestamp = NUMBER_0 } ] ] ; // {"DURATION_0":{"unit":"min","value":1},"NUMBER_0":1626399487}
+A: >> expecting = null
