@@ -401,9 +401,8 @@ export function getContextInfo(loader : ThingpediaLoader,
     for (let idx = 0; idx < state.history.length; idx ++) {
         const item = state.history[idx];
         const itemschema = item.stmt.expression.schema!;
-        const device = itemschema.class!.name;
-        assert(typeof device === 'string');
-        if (currentDevice && device !== currentDevice)
+        const device = itemschema.class ? itemschema.class.name : null;
+        if (currentDevice && device && device !== currentDevice)
             previousDomainItemIdx = currentItemIdx;
         if (item.confirm === 'proposed') {
             proposedSkip ++;
@@ -712,6 +711,7 @@ function addActionParam(ctx : ContextInfo,
 
             newHistoryItem = next.clone();
             const newInvocation = C.getInvocation(newHistoryItem);
+            assert(newInvocation instanceof Ast.Invocation);
             setOrAddInvocationParam(newInvocation, pname, value);
             // also add the new parameters from this action, if any
             for (const param of action.in_params) {
@@ -1115,7 +1115,7 @@ function tryReplacePlaceholderPhrase(phrase : ParsedPlaceholderPhrase,
 
 function getDeviceName(describer : ThingTalkUtils.Describer,
                        resultItem : Ast.DialogueHistoryResultItem|undefined,
-                       invocation : Ast.Invocation) {
+                       invocation : Ast.Invocation|Ast.FunctionCallExpression) {
     if (resultItem) {
         // check in the result first
         // until ThingTalk is fixed, this will be present only if there was no
@@ -1128,6 +1128,8 @@ function getDeviceName(describer : ThingTalkUtils.Describer,
                 return { value: entity, text: description };
         }
     }
+    if (!(invocation instanceof Ast.Invocation))
+        return undefined;
 
     let name;
     for (const in_param of invocation.selector.attributes) {

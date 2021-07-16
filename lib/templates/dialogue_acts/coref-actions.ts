@@ -29,7 +29,7 @@ import { ContextInfo } from '../state_manip';
 function contextualAction(ctx : ContextInfo, action : Ast.Invocation) {
     assert(action instanceof Ast.Invocation);
     const ctxInvocation = C.getInvocation(ctx.next!);
-    if (!ctxInvocation || !(ctxInvocation.selector instanceof Ast.DeviceSelector))
+    if (!ctxInvocation || !(ctxInvocation instanceof Ast.Invocation))
         return null;
     if (!C.isSameFunction(ctxInvocation.schema!, action.schema!))
         return null;

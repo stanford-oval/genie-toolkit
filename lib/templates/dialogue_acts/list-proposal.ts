@@ -71,6 +71,11 @@ export function listProposalKeyFn({ results, info, action, hasLearnMore } : List
     };
 }
 
+function checkInvocationCast(x : Ast.Invocation|Ast.FunctionCallExpression) : Ast.Invocation {
+    assert(x instanceof Ast.Invocation);
+    return x;
+}
+
 function checkListProposal(nameList : NameList, info : SlotBag|null, hasLearnMore : boolean) : ListProposal|null {
     const { ctx, results } = nameList;
     const resultType = results[0].value.id.getType();
@@ -109,7 +114,7 @@ function checkListProposal(nameList : NameList, info : SlotBag|null, hasLearnMor
     }
 
 
-    const action = ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next!) : null;
+    const action = ctx.nextInfo && ctx.nextInfo.isAction ? checkInvocationCast(C.getInvocation(ctx.next!)) : null;
     return { results, info, action, hasLearnMore };
 }
 
@@ -140,7 +145,7 @@ export function checkThingpediaListProposal(proposal : ThingpediaListProposal, a
     if (!mergedInfo)
         return null;
 
-    const action = ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next!) : null;
+    const action = ctx.nextInfo && ctx.nextInfo.isAction ? checkInvocationCast(C.getInvocation(ctx.next!)) : null;
     return { results: ctx.results!, info: mergedInfo, action, hasLearnMore: false };
 }
 
@@ -162,7 +167,7 @@ export function addActionToListProposal(nameList : NameList, action : Ast.Invoca
     const resultType = results[0].value.id.getType();
     if (!C.hasArgumentOfType(action, resultType))
         return null;
-    const ctxAction = ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next!) : null;
+    const ctxAction = ctx.nextInfo && ctx.nextInfo.isAction ? checkInvocationCast(C.getInvocation(ctx.next!)) : null;
     if (ctxAction && !C.isSameFunction(ctxAction.schema!, action.schema!))
         return null;
 

@@ -67,7 +67,7 @@ function actionConfirmChangeParam(ctx : ContextInfo, answer : Ast.Value|C.InputP
 
     const clone = ctx.next.clone();
     const action = C.getInvocation(clone);
-    if (!action) return null;
+    if (!action || !(action instanceof Ast.Invocation)) return null;
 
     setOrAddInvocationParam(action, answer.ast.name, answer.ast.value);
     return addNewItem(ctx, 'execute', null, 'confirmed', clone);
