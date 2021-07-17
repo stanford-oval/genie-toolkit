@@ -253,6 +253,9 @@ export default class SpeechHandler extends events.EventEmitter {
                 //    this._onDetected(Buffer.from([]), false);
                 //    return;
                 //}
+                // remove bad chars from the utterance
+                utterance = utterance.replace(/([a-zA-Z]+)([,.]+)/g, '$1 ').replace(/\s+/g, ' ');
+
                 this.emit('match');
                 this._conversation.setHypothesis('');
                 this._conversation.handleCommand(utterance);
