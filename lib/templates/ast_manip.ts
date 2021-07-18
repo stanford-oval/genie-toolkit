@@ -1912,6 +1912,35 @@ export function makeDurationAlarm(loader : ThingpediaLoader, duration : Ast.Valu
     return makeDateAlarm(loader, makeDate(null, '+', duration));
 }
 
+export function makeFrequencyTimer(loader : ThingpediaLoader, frequency : Ast.Value, unit : 'ms'|'s'|'min'|'h'|'day'|'week'|'mon'|'year') {
+    const params = [
+        new Ast.InputParam(null, 'interval', new Ast.Value.Measure(1, unit)),
+        new Ast.InputParam(null, 'frequency', frequency)
+    ];
+    return new Ast.FunctionCallExpression(null, 'timer', params, loader.standardSchemas.timer);
+}
+
+export function makeIntervalTimer(loader : ThingpediaLoader, unit : 'ms'|'s'|'min'|'h'|'day'|'week'|'mon'|'year') {
+    const params = [
+        new Ast.InputParam(null, 'interval', new Ast.Value.Measure(1, unit)),
+    ];
+    return new Ast.FunctionCallExpression(null, 'timer', params, loader.standardSchemas.timer);
+}
+
+export function makeRepeatingTimeTimer(loader : ThingpediaLoader, times : Ast.Value[]) {
+    const params = [
+        new Ast.InputParam(null, 'time', new Ast.Value.Array(times)),
+    ];
+    return new Ast.FunctionCallExpression(null, 'attimer', params, loader.standardSchemas.attimer);
+}
+
+export function makeDateTimer(loader : ThingpediaLoader, date : Ast.Value) {
+    const params = [
+        new Ast.InputParam(null, 'date', new Ast.Value.Array([date]))
+    ];
+    return new Ast.FunctionCallExpression(null, 'ontimer', params, loader.standardSchemas.ontimer);
+}
+
 export {
     // helpers
     typeToStringSafe,
