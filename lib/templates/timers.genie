@@ -229,8 +229,10 @@ timer : Ast.FunctionCallExpression = {
         optional_once optional_emphasis at_evening => new Ast.Stream.AtTimer(null, [TIME_EVENING], null, $loader.standardSchemas.attimer).toExpression();
         optional_twice optional_per_day optional_comma optional_first optional_emphasis at_morning and optional_second optional_emphasis at_evening_second => new Ast.Stream.AtTimer(null, [TIME_MORNING, TIME_EVENING], null, $loader.standardSchemas.attimer).toExpression();
         when_brushing_teeth => new Ast.Stream.AtTimer(null, [TIME_MORNING, TIME_EVENING], null, $loader.standardSchemas.attimer).toExpression();
-        'on' date:constant_Date => new Ast.FunctionCallExpression(null, 'ontimer', [new Ast.InputParam(null, 'date', new Ast.Value.Array([date]))], $loader.standardSchemas.ontimer);
     }
+
+    'on' date:constant_Date => new Ast.FunctionCallExpression(null, 'ontimer', [new Ast.InputParam(null, 'date', new Ast.Value.Array([date]))],
+      $loader.standardSchemas.ontimer);
 
     once_per_day 'at' time:constant_Time => new Ast.Stream.AtTimer(null, [time], null, $loader.standardSchemas.attimer).toExpression();
     twice_per_day 'at' time1:constant_Time and time2:constant_Time => new Ast.Stream.AtTimer(null, [time1, time2], null, $loader.standardSchemas.attimer).toExpression();

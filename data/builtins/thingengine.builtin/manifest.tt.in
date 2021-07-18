@@ -185,7 +185,7 @@ class @org.thingpedia.builtin.thingengine.builtin
   #[confirm=false];
 
   action say(in req message: String
-             #_[prompt="what do you want me to say"]
+             #_[prompt="what would you like me to say"]
              #[string_values="tt:long_free_text"]
              #_[canonical="message"],
              out message_output: String

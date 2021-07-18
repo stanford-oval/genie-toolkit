@@ -170,10 +170,12 @@ export default class ThingpediaLoader {
     compoundArrays : { [key : string] : InstanceType<typeof Type.Compound> };
     globalWhiteList : string[]|null;
     standardSchemas : {
-        timer : Ast.FunctionDef,
-        attimer : Ast.FunctionDef,
-        ontimer : Ast.FunctionDef,
+        timer : Ast.FunctionDef;
+        attimer : Ast.FunctionDef;
+        ontimer : Ast.FunctionDef;
         say : Ast.FunctionDef|null;
+        alert : Ast.FunctionDef|null;
+        timer_expire : Ast.FunctionDef|null;
         get_gps : Ast.FunctionDef|null;
         get_time : Ast.FunctionDef|null;
     };
@@ -219,6 +221,8 @@ export default class ThingpediaLoader {
             attimer: ATTIMER_SCHEMA,
             ontimer : ONTIMER_SCHEMA,
             say: null,
+            alert: null,
+            timer_expire: null,
             get_gps: null,
             get_time: null
         };
@@ -236,12 +240,16 @@ export default class ThingpediaLoader {
         for (const unit of Units.BaseUnits)
             this._recordType(new Type.Measure(unit));
 
-        const [say, get_gps, get_time] = await Promise.all([
+        const [say, alert, timer_expire, get_gps, get_time] = await Promise.all([
             this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'action', 'say'),
+            this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'action', 'alert'),
+            this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'action', 'timer_expire'),
             this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'query', 'get_gps'),
             this._tryGetStandard('org.thingpedia.builtin.thingengine.builtin', 'query', 'get_time')
         ]);
         this.standardSchemas.say = say;
+        this.standardSchemas.alert = alert;
+        this.standardSchemas.timer_expire = timer_expire;
         this.standardSchemas.get_gps = get_gps;
         this.standardSchemas.get_time = get_time;
 

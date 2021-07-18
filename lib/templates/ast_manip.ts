@@ -1083,23 +1083,33 @@ function tableToStream(table : Ast.Expression) : Ast.Expression|null {
 }
 
 function builtinSayAction(loader : ThingpediaLoader,
-                          pname ?: Ast.Value|string) : Ast.InvocationExpression|null {
+                          message ?: Ast.Value|string) : Ast.InvocationExpression|null {
     if (!loader.standardSchemas.say)
         return null;
 
     const selector = new Ast.DeviceSelector(null, 'org.thingpedia.builtin.thingengine.builtin', null, null);
-    if (pname instanceof Ast.Value) {
-        const param = new Ast.InputParam(null, 'message', pname);
+    if (message instanceof Ast.Value) {
+        const param = new Ast.InputParam(null, 'message', message);
         return new Ast.InvocationExpression(null, new Ast.Invocation(null, selector, 'say', [param], loader.standardSchemas.say),
             loader.standardSchemas.say);
-    } else if (pname) {
-        const param = new Ast.InputParam(null, 'message', new Ast.Value.VarRef(pname));
+    } else if (message) {
+        const param = new Ast.InputParam(null, 'message', new Ast.Value.VarRef(message));
         return new Ast.InvocationExpression(null, new Ast.Invocation(null, selector, 'say', [param], loader.standardSchemas.say),
             loader.standardSchemas.say);
     } else {
         return new Ast.InvocationExpression(null, new Ast.Invocation(null, selector, 'say', [], loader.standardSchemas.say),
             loader.standardSchemas.say);
     }
+}
+
+function builtinVoidAction(loader : ThingpediaLoader,
+                           action : 'alert'|'timer_expire') : Ast.InvocationExpression|null {
+    if (!loader.standardSchemas[action])
+        return null;
+
+    const selector = new Ast.DeviceSelector(null, 'org.thingpedia.builtin.thingengine.builtin', null, null);
+    return new Ast.InvocationExpression(null, new Ast.Invocation(null, selector, action, [], loader.standardSchemas[action]),
+        loader.standardSchemas[action]);
 }
 
 function locationSubquery(loader : ThingpediaLoader,
@@ -1834,6 +1844,72 @@ export function expressionUsesIDFilter(expr : Ast.Expression) {
         return false;
 
     return filterUsesParam(filterExpression.filter, 'id');
+}
+
+function isDurationRelativeDate(value : Ast.Value) {
+    if (!(value instanceof Ast.ComputationValue && value.op === '+'))
+        return false;
+    const operand = value.operands[0];
+    return operand instanceof Ast.DateValue && operand.value === null;
+}
+
+/**
+ * Decide if a ThingTalk timer expression should be logically treated like an
+ * "alarm" (beeps, gives you current time) or a "timer" (beeps in a different way,
+ * gives you delta time from start)
+ *
+ * @param timer the ThingTalk timer expression
+ * @returns the Thingpedia function to use for the action with this timer
+ */
+function isTimerOrAlarm(timer : Ast.FunctionCallExpression) : 'alert'|'timer_expire' {
+    if (timer.name === 'timer')
+        return 'timer_expire';
+    if (timer.name === 'attimer')
+        return 'alert';
+
+    assert(timer.name === 'ontimer');
+    assert(timer.in_params.length === 1);
+    const date = timer.in_params[0].value;
+    assert(date instanceof Ast.ArrayValue);
+
+    if (date.value.every(isDurationRelativeDate))
+        return 'timer_expire';
+    else
+        return 'alert';
+}
+
+export function makeReminder(loader : ThingpediaLoader, timer : Ast.FunctionCallExpression, message ?: Ast.Value) {
+    const action = builtinSayAction(loader, message);
+    if (!action)
+        return null;
+    return makeChainExpression(timer, action);
+}
+
+export function makeDateReminder(loader : ThingpediaLoader, date : Ast.Value, message ?: Ast.Value) {
+    const timer = new Ast.FunctionCallExpression(null, 'ontimer', [new Ast.InputParam(null, 'date', new Ast.Value.Array([date]))],
+        loader.standardSchemas.ontimer);
+    return makeReminder(loader, timer, message);
+}
+
+export function makeDurationReminder(loader : ThingpediaLoader, duration : Ast.Value, message ?: Ast.Value) {
+    return makeDateReminder(loader, makeDate(null, '+', duration), message);
+}
+
+export function makeAlarm(loader : ThingpediaLoader, timer : Ast.FunctionCallExpression) {
+    const action = builtinVoidAction(loader, isTimerOrAlarm(timer));
+    if (!action)
+        return null;
+    return makeChainExpression(timer, action);
+}
+
+export function makeDateAlarm(loader : ThingpediaLoader, date : Ast.Value) {
+    const timer = new Ast.FunctionCallExpression(null, 'ontimer', [new Ast.InputParam(null, 'date', new Ast.Value.Array([date]))],
+        loader.standardSchemas.ontimer);
+    return makeAlarm(loader, timer);
+}
+
+export function makeDurationAlarm(loader : ThingpediaLoader, duration : Ast.Value) {
+    return makeDateAlarm(loader, makeDate(null, '+', duration));
 }
 
 export {
