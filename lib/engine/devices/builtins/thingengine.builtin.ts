@@ -226,7 +226,10 @@ export default class MiscellaneousDevice extends Tp.BaseDevice {
         return cap.launchURL(String(url));
     }
 
-    do_alert() {}
+    do_alert() {
+        const now = new Date;
+        return { time: new Tp.Value.Time(now.getHours(), now.getMinutes()) };
+    }
 
     do_timer_expire(env : ExecWrapper) {
         const now = new Date;
