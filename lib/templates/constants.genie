@@ -281,19 +281,13 @@ constant_Date : Ast.Value = {
 
             ["{${duration} from now|in ${duration}}"]: (duration:constant_Measure_ms) => C.makeDate(null, '+', duration);
             ["${duration} after ${pt}"]: (duration:constant_Measure_ms, pt:constant_date_point  => C.makeDate(pt, '+', duration);
-        }
-    }
-}
 
-constant_Date : Ast.Value = {
-    !inference {
-        !turking {
-            at_morning 'on' date:constant_Date => C.makeDateWithDateTime(date, TIME_MORNING);
-            at_noon 'on' date:constant_Date => C.makeDateWithDateTime(date, TIME_NOON);
-            at_evening 'on' date:constant_Date => C.makeDateWithDateTime(date, TIME_EVENING);
-            date:constant_Date at_morning => C.makeDateWithDateTime(date, TIME_MORNING);
-            date:constant_Date at_noon => C.makeDateWithDateTime(date, TIME_NOON);
-            date:constant_Date at_evening => C.makeDateWithDateTime(date, TIME_EVENING);
+            at_morning 'on' date:constant_date_point => C.makeDateWithDateTime(date, TIME_MORNING);
+            at_noon 'on' date:constant_date_point => C.makeDateWithDateTime(date, TIME_NOON);
+            at_evening 'on' date:constant_date_point => C.makeDateWithDateTime(date, TIME_EVENING);
+            date:constant_date_point at_morning => C.makeDateWithDateTime(date, TIME_MORNING);
+            date:constant_date_point at_noon => C.makeDateWithDateTime(date, TIME_NOON);
+            date:constant_date_point at_evening => C.makeDateWithDateTime(date, TIME_EVENING);
         }
     }
 }
