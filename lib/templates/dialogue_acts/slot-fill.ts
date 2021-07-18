@@ -82,6 +82,7 @@ function makeSlotFillQuestion(ctx : ContextInfo, questions : C.ParamSlot[]) {
     assert(questions.length > 0);
     if (questions.length === 1) {
         const action = C.getInvocation(ctx.next!);
+        assert(action instanceof Ast.Invocation);
         const arg = action.schema!.getArgument(questions[0].name)!;
         const type = arg.type;
 
@@ -139,6 +140,7 @@ function preciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Invocation) {
 
     const clone = fastSemiShallowClone(ctx.next);
     const newInvocation = C.getInvocation(clone);
+    assert(newInvocation instanceof Ast.Invocation);
     assert(C.isSameFunction(newInvocation.schema!, answer.schema!));
     // modify in place
     mergeParameters(newInvocation, answer);
@@ -178,6 +180,7 @@ function impreciseSlotFillAnswer(ctx : ContextInfo, answer : Ast.Value|C.InputPa
 
     const clone = fastSemiShallowClone(ctx.next);
     const newAction = C.getInvocation(clone);
+    assert(newAction instanceof Ast.Invocation);
     if (!C.checkInvocationInputParam(ctx.loader, newAction, ipslot))
         return null;
 

@@ -200,7 +200,9 @@ function preciseSearchQuestionAnswer(ctx : ContextInfo, [answerTable, answerActi
                     return null;
             }
 
-            answerAction = addParametersFromContext(answerAction, C.getInvocation(ctx.next!));
+            const contextInvocation = C.getInvocation(ctx.next!);
+            assert(contextInvocation instanceof Ast.Invocation);
+            answerAction = addParametersFromContext(answerAction, contextInvocation);
         }
     }
 

@@ -1783,7 +1783,14 @@ function findFilterExpression(root : Ast.Expression) : Ast.FilterExpression|null
 }
 
 class GetInvocationVisitor extends Ast.NodeVisitor {
-    invocation : Ast.Invocation|undefined = undefined;
+    invocation : Ast.Invocation|Ast.FunctionCallExpression|undefined = undefined;
+
+    visitFunctionCallExpression(inv : Ast.FunctionCallExpression) : boolean {
+        // keep overwriting so we store the last invocation in traversal order
+        // which is also the last invocation in program order
+        this.invocation = inv;
+        return false; // no need to recurse
+    }
 
     visitInvocation(inv : Ast.Invocation) : boolean {
         // keep overwriting so we store the last invocation in traversal order
@@ -1793,7 +1800,7 @@ class GetInvocationVisitor extends Ast.NodeVisitor {
     }
 }
 
-function getInvocation(historyItem : Ast.Node) : Ast.Invocation {
+function getInvocation(historyItem : Ast.Node) : Ast.Invocation|Ast.FunctionCallExpression {
     assert(historyItem instanceof Ast.Node);
 
     const visitor = new GetInvocationVisitor();

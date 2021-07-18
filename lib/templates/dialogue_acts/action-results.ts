@@ -86,6 +86,7 @@ function makeCompleteActionSuccessPhrase(ctx : ContextInfo, action : Ast.Express
     const ctxInvocation = C.getInvocation(ctx.current!);
     if (!C.isSameFunction(ctxInvocation.schema!, last.invocation.schema!))
         return null;
+    assert(ctxInvocation instanceof Ast.Invocation);
     if (!checkSelector(ctxInvocation.selector, last.invocation.selector))
         return null;
 
@@ -264,7 +265,7 @@ function actionErrorChangeParam(ctx : ContextInfo, answer : Ast.Value|C.InputPar
 
     const clone = ctx.current!.clone();
     const action = C.getInvocation(clone);
-    if (!action)
+    if (!action || !(action instanceof Ast.Invocation))
         return null;
     setOrAddInvocationParam(action, ipslot.ast.name, ipslot.ast.value);
     return addNewItem(ctx, 'execute', null, 'accepted', clone);

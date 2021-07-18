@@ -63,7 +63,12 @@ export function recommendationKeyFn(rec : Recommendation) {
     };
 }
 
-function makeActionRecommendation(ctx : ContextInfo, action : Ast.Invocation) {
+function checkInvocationCast(x : Ast.Invocation|Ast.FunctionCallExpression) : Ast.Invocation {
+    assert(x instanceof Ast.Invocation);
+    return x;
+}
+
+function makeActionRecommendation(ctx : ContextInfo, action : Ast.Invocation) : Recommendation|null {
     // we don't offer actions during recommendations
     if (ctx.state.dialogueAct === 'notification')
         return null;
@@ -110,7 +115,7 @@ function makeArgMinMaxRecommendation(ctx : ContextInfo, name : Ast.Value, base :
     return makeRecommendation(ctx, name);
 }
 
-function makeRecommendation(ctx : ContextInfo, name : Ast.Value) {
+function makeRecommendation(ctx : ContextInfo, name : Ast.Value) : Recommendation|null {
     const results = ctx.results;
     assert(results && results.length > 0);
     const currentStmt = ctx.current!.stmt;
@@ -130,13 +135,13 @@ function makeRecommendation(ctx : ContextInfo, name : Ast.Value) {
     return {
         ctx, topResult,
         info: null,
-        action: ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next!) : null,
+        action: ctx.nextInfo && ctx.nextInfo.isAction ? checkInvocationCast(C.getInvocation(ctx.next!)) : null,
         hasLearnMore: false,
         hasAnythingElse: false
     };
 }
 
-function makeThingpediaRecommendation(ctx : ContextInfo, info : SlotBag) {
+function makeThingpediaRecommendation(ctx : ContextInfo, info : SlotBag) : Recommendation|null {
     const results = ctx.results;
     assert(results && results.length > 0);
     const currentStmt = ctx.current!.stmt;
@@ -154,13 +159,13 @@ function makeThingpediaRecommendation(ctx : ContextInfo, info : SlotBag) {
     return {
         ctx, topResult,
         info,
-        action: ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next!) : null,
+        action: ctx.nextInfo && ctx.nextInfo.isAction ? checkInvocationCast(C.getInvocation(ctx.next!)) : null,
         hasLearnMore: false,
         hasAnythingElse: false
     };
 }
 
-function checkRecommendation(rec : Recommendation, info : SlotBag|null) {
+function checkRecommendation(rec : Recommendation, info : SlotBag|null) : Recommendation|null {
     if (info && !isInfoPhraseCompatibleWithResult(rec.topResult, info))
         return null;
 
@@ -222,7 +227,7 @@ export function recommendationSetLearnMore(rec : Recommendation) {
     };
 }
 
-function makeDisplayResult(ctx : ContextInfo, info : SlotBag) {
+function makeDisplayResult(ctx : ContextInfo, info : SlotBag)  : Recommendation|null {
     const results = ctx.results;
     assert(results && results.length > 0);
     const topResult = results[0];
@@ -236,7 +241,7 @@ function makeDisplayResult(ctx : ContextInfo, info : SlotBag) {
     return {
         ctx, topResult,
         info,
-        action: ctx.nextInfo && ctx.nextInfo.isAction ? C.getInvocation(ctx.next!) : null,
+        action: ctx.nextInfo && ctx.nextInfo.isAction ? checkInvocationCast(C.getInvocation(ctx.next!)) : null,
         hasLearnMore: false,
         hasAnythingElse: false
     };
