@@ -70,11 +70,16 @@ export function isEntityOfFunction(type : InstanceType<typeof Type.Entity>, sche
     return type.type === schema.class.name + ':' + schema.name;
 }
 
-function makeDate(base : Ast.Value|Date|Ast.DateEdge|Ast.DatePiece|Ast.WeekDayDate|null, operator : '+'|'-', offset : Ast.Value|null) : Ast.Value {
+function makeDate(base : Ast.Value|Date|Ast.DateEdge|Ast.DatePiece|Ast.WeekDayDate|null, operator : '+'|'-', offset : null) : Ast.Value;
+function makeDate(base : Ast.Value|Date|Ast.DateEdge|Ast.DatePiece|Ast.WeekDayDate|null, operator : '+'|'-', offset : Ast.Value|null) : Ast.Value|null;
+function makeDate(base : Ast.Value|Date|Ast.DateEdge|Ast.DatePiece|Ast.WeekDayDate|null, operator : '+'|'-', offset : Ast.Value|null) : Ast.Value|null {
     if (!(base instanceof Ast.Value))
         base = new Ast.Value.Date(base);
     if (offset === null)
         return base;
+    if ((offset instanceof Ast.MeasureValue || offset instanceof Ast.NumberValue) &&
+        offset.value === 0)
+        return null;
 
     const value = new Ast.Value.Computation(operator, [base, offset],
         [Type.Date, new Type.Measure('ms'), Type.Date], Type.Date);
@@ -110,7 +115,7 @@ export function dateOrDatePiece(year : number|null, month : number|null) : Date|
 function makeMonthDateRange(year : number|null, month : number|null) : [Ast.Value, Ast.Value] {
     return [
         makeDate(dateOrDatePiece(year, month), '+', null),
-        makeDate(dateOrDatePiece(year, month), '+', new Ast.Value.Measure(1, 'mon'))
+        makeDate(dateOrDatePiece(year, month), '+', new Ast.Value.Measure(1, 'mon'))!
     ];
 }
 
@@ -1892,7 +1897,10 @@ export function makeDateReminder(loader : ThingpediaLoader, date : Ast.Value, me
 }
 
 export function makeDurationReminder(loader : ThingpediaLoader, duration : Ast.Value, message ?: Ast.Value) {
-    return makeDateReminder(loader, makeDate(null, '+', duration), message);
+    const date = makeDate(null, '+', duration);
+    if (date === null)
+        return null;
+    return makeDateReminder(loader, date, message);
 }
 
 export function makeAlarm(loader : ThingpediaLoader, timer : Ast.FunctionCallExpression) {
@@ -1909,7 +1917,10 @@ export function makeDateAlarm(loader : ThingpediaLoader, date : Ast.Value) {
 }
 
 export function makeDurationAlarm(loader : ThingpediaLoader, duration : Ast.Value) {
-    return makeDateAlarm(loader, makeDate(null, '+', duration));
+    const date = makeDate(null, '+', duration);
+    if (date === null)
+        return null;
+    return makeDateAlarm(loader, date);
 }
 
 export function makeFrequencyTimer(loader : ThingpediaLoader, frequency : Ast.Value, unit : 'ms'|'s'|'min'|'h'|'day'|'week'|'mon'|'year') {

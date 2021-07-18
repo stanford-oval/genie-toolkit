@@ -90,13 +90,13 @@ constant_date_range : [Ast.Value, Ast.Value] = {
     'this year'   => [C.makeDate(new Ast.DateEdge('start_of', 'year'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'year'), '+', null)];
 
     !turking {
-        'last week'  => [C.makeDate(new Ast.DateEdge('start_of', 'week'), '-', new Ast.Value.Measure(1, 'week')), C.makeDate(new Ast.DateEdge('start_of', 'week'), '+', null)];
-        'last month' => [C.makeDate(new Ast.DateEdge('start_of', 'mon'), '-', new Ast.Value.Measure(1, 'mon')), C.makeDate(new Ast.DateEdge('start_of', 'mon'), '+', null)];
-        'last year'  => [C.makeDate(new Ast.DateEdge('start_of', 'year'), '-', new Ast.Value.Measure(1, 'year')), C.makeDate(new Ast.DateEdge('start_of', 'year'), '+', null)];
+        'last week'  => [C.makeDate(new Ast.DateEdge('start_of', 'week'), '-', new Ast.Value.Measure(1, 'week'))!, C.makeDate(new Ast.DateEdge('start_of', 'week'), '+', null)];
+        'last month' => [C.makeDate(new Ast.DateEdge('start_of', 'mon'), '-', new Ast.Value.Measure(1, 'mon'))!, C.makeDate(new Ast.DateEdge('start_of', 'mon'), '+', null)];
+        'last year'  => [C.makeDate(new Ast.DateEdge('start_of', 'year'), '-', new Ast.Value.Measure(1, 'year'))!, C.makeDate(new Ast.DateEdge('start_of', 'year'), '+', null)];
 
-        'next week'  => [C.makeDate(new Ast.DateEdge('end_of', 'week'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'week'), '+', new Ast.Value.Measure(1, 'week'))];
-        'next month' => [C.makeDate(new Ast.DateEdge('end_of', 'mon'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'mon'), '+', new Ast.Value.Measure(1, 'mon'))];
-        'next year'  => [C.makeDate(new Ast.DateEdge('end_of', 'year'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'year'), '+', new Ast.Value.Measure(1, 'year'))];
+        'next week'  => [C.makeDate(new Ast.DateEdge('end_of', 'week'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'week'), '+', new Ast.Value.Measure(1, 'week'))!];
+        'next month' => [C.makeDate(new Ast.DateEdge('end_of', 'mon'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'mon'), '+', new Ast.Value.Measure(1, 'mon'))!];
+        'next year'  => [C.makeDate(new Ast.DateEdge('end_of', 'year'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'year'), '+', new Ast.Value.Measure(1, 'year'))!];
 
         // year
         year:constant_Number => {
@@ -104,7 +104,7 @@ constant_date_range : [Ast.Value, Ast.Value] = {
                 return null;
             return [
                 C.makeDate(new Date(C.fixTwoYearNumber(year.value), 0), '+', null),
-                C.makeDate(new Date(C.fixTwoYearNumber(year.value), 0), '+', new Ast.Value.Measure(1, 'year'))
+                C.makeDate(new Date(C.fixTwoYearNumber(year.value), 0), '+', new Ast.Value.Measure(1, 'year'))!
             ];
         };
         year:constant_Number 's' => {
@@ -112,7 +112,7 @@ constant_date_range : [Ast.Value, Ast.Value] = {
                 return null;
             return [
                 C.makeDate(new Date(C.fixTwoYearNumber(year.value), 0), '+', null),
-                C.makeDate(new Date(C.fixTwoYearNumber(year.value), 0), '+', new Ast.Value.Measure(10, 'year'))
+                C.makeDate(new Date(C.fixTwoYearNumber(year.value), 0), '+', new Ast.Value.Measure(10, 'year'))!
             ];
         };
     }
@@ -181,7 +181,10 @@ constant_Date : Ast.Value = {
             ["{${duration} from now|in ${duration}}"]: (duration:constant_Measure_ms) => C.makeDate(null, '+', duration);
             ["${duration} after ${pt}"]: (duration:constant_Measure_ms, pt:constant_date_point) => C.makeDate(pt, '+', duration);
 
-            ["{${time} on ${date}|on ${date} ${time}}"]: (time:at_time, date:constant_date_point) => C.makeDateWithDateTime(date, time);
+            ["${time} on ${date}"]: (time:constant_Time, date:constant_date_point) => C.makeDateWithDateTime(date, time);
+            ["${date} ${time}"]: (time:at_time, date:constant_date_point) => C.makeDateWithDateTime(date, time);
+
+            time:constant_Time => C.makeDateWithDateTime(null, time);
         }
     }
 }
