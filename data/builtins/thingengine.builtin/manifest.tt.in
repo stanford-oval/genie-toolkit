@@ -195,10 +195,11 @@ class @org.thingpedia.builtin.thingengine.builtin
   #[doc="makes Genie say something"]
   #[confirm=false];
 
-  action alert()
-  #_[result="Alert"]
+  action alert(out time: Time
+                 #_[canonical=["time"]])
+  #_[result="It is ${time}"]
   #_[formatted=[
-    { type="sound", name="alarm-clock-elapsed", exclusive=true }
+    { type="sound", name="alarm-clock-elapsed", exclusive=false }
   ]]
   #_[canonical="alert"]
   #[doc="makes Genie show/play a generic alert"]
