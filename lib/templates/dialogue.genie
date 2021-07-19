@@ -228,7 +228,7 @@ $agent : S.AgentReplyRecord = {
         => D.makeEmptySearchError(ctx, error);
 
     // query refinement (through proposal or search question)
-    !inference prop:system_generic_proposal => prop;
+    ?multiwoz prop:system_generic_proposal => prop;
     !inference ctx:ctx_search_command questions:search_question
         => D.makeSearchQuestion(ctx, questions);
 
@@ -306,11 +306,22 @@ $user : Ast.DialogueState = {
     ctx:ctx_sys_display_result repeat_command_phrase
         => D.repeatCommandReply(ctx);
 
+    // restarting
+
     ( ctx:ctx_sys_action_success stmt:initial_command
     | ctx:ctx_sys_action_success yes_please_phrase stmt:initial_command
     | ctx:ctx_sys_display_result stmt:initial_command
     | ctx:ctx_sys_display_result yes_please_phrase stmt:initial_command
     ) => D.startNewRequest($loader, ctx, stmt);
+
+    !multiwoz {
+        ( ctx:ctx_sys_recommend_one stmt:initial_command
+        | ctx:ctx_sys_action_error stmt:initial_command
+        | ctx:ctx_sys_recommend_many stmt:initial_command
+        ) => D.startNewRequest($loader, ctx, stmt);
+    }
+
+    // cancelling
 
     ( ctx:ctx_sys_action_error no_thanks_phrase
     | ctx:ctx_sys_action_error nevermind_phrase
