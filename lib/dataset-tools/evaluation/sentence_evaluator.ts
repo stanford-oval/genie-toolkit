@@ -80,6 +80,7 @@ type SentenceEvaluatorOptions = {
     tokenized ?: boolean;
     oracle ?: boolean;
     complexityMetric ?: keyof typeof COMPLEXITY_METRICS;
+    includeEntityValue ?: boolean
 } & ThingTalkUtils.ParseOptions;
 
 export interface ExampleEvaluationResult {
@@ -135,6 +136,7 @@ class SentenceEvaluator {
     private _tokenized : boolean;
     private _debug : boolean;
     private _oracle : boolean;
+    private _includeEntityValue : boolean;
     private _tokenizer : I18n.BaseTokenizer;
     private _computeComplexity : ((id : string, code : string) => number)|undefined;
 
@@ -155,6 +157,7 @@ class SentenceEvaluator {
         this._tokenized = !!options.tokenized;
         this._debug = options.debug;
         this._oracle = !!options.oracle;
+        this._includeEntityValue = !!options.includeEntityValue;
         this._tokenizer = tokenizer;
 
         if (options.complexityMetric)
@@ -228,6 +231,7 @@ class SentenceEvaluator {
             const parsed = await ThingTalkUtils.parsePrediction(firstTargetCode, entities, this._options, true);
             normalizedTargetCode.push(ThingTalkUtils.serializePrediction(parsed!, tokens, entities, {
                locale: this._locale,
+               includeEntityValue: this._includeEntityValue
             }).join(' '));
         } catch(e) {
             // if the target_code did not parse due to missing functions in thingpedia, ignore it
@@ -249,6 +253,7 @@ class SentenceEvaluator {
                 const parsed = await ThingTalkUtils.parsePrediction(this._targetPrograms[i], entities, this._options);
                 normalizedTargetCode.push(ThingTalkUtils.serializePrediction(parsed!, tokens, entities, {
                    locale: this._locale,
+                   includeEntityValue: this._includeEntityValue
                 }).join(' '));
             } catch(e) {
                 console.error(this._id, this._preprocessed, this._targetPrograms);
@@ -324,7 +329,8 @@ class SentenceEvaluator {
             // get creative in copying, and we don't want to crash here)
             const normalized = ThingTalkUtils.serializePrediction(parsed, tokens, entities, {
                locale: this._locale,
-               ignoreSentence: true
+               ignoreSentence: true,
+               includeEntityValue: this._includeEntityValue
             });
             const normalizedCode = normalized.join(' ');
 

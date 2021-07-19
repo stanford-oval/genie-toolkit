@@ -134,6 +134,16 @@ export function initArgparse(subparsers : argparse.SubParser) {
         default: 0,
         help: 'Start evaluation from this line of input data',
     });
+    parser.add_argument('--entity-id', {
+        action: 'store_true',
+        help: "Include entity id in thingtalk",
+        default: true
+    });
+    parser.add_argument('--no-entity-id', {
+        action: 'store_false',
+        help: "Exclude entity id in thingtalk",
+        dest: 'entity_id'
+    });
 }
 
 export async function execute(args : any) {
@@ -152,7 +162,8 @@ export async function execute(args : any) {
             tokenized: args.tokenized,
             debug: args.debug,
             complexityMetric: args.complexity_metric,
-            oracle: args.oracle
+            oracle: args.oracle,
+            includeEntityValue: args.entity_id
         }))
         .pipe(new CollectSentenceStatistics({
             minComplexity: args.min_complexity,
