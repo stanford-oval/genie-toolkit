@@ -1891,8 +1891,9 @@ export function makeReminder(loader : ThingpediaLoader, timer : Ast.FunctionCall
 }
 
 export function makeDateReminder(loader : ThingpediaLoader, date : Ast.Value, message ?: Ast.Value) {
-    const timer = new Ast.FunctionCallExpression(null, 'ontimer', [new Ast.InputParam(null, 'date', new Ast.Value.Array([date]))],
-        loader.standardSchemas.ontimer);
+    const timer = makeDateTimer(loader, date);
+    if (timer === null)
+        return null;
     return makeReminder(loader, timer, message);
 }
 
@@ -1911,8 +1912,9 @@ export function makeAlarm(loader : ThingpediaLoader, timer : Ast.FunctionCallExp
 }
 
 export function makeDateAlarm(loader : ThingpediaLoader, date : Ast.Value) {
-    const timer = new Ast.FunctionCallExpression(null, 'ontimer', [new Ast.InputParam(null, 'date', new Ast.Value.Array([date]))],
-        loader.standardSchemas.ontimer);
+    const timer = makeDateTimer(loader, date);
+    if (timer === null)
+        return null;
     return makeAlarm(loader, timer);
 }
 
@@ -1945,7 +1947,21 @@ export function makeRepeatingTimeTimer(loader : ThingpediaLoader, times : Ast.Va
     return new Ast.FunctionCallExpression(null, 'attimer', params, loader.standardSchemas.attimer);
 }
 
+function isNegativeDate(value : Ast.Value) {
+    if (value instanceof Ast.ComputationValue && value.op === '-')
+        return true;
+
+    if (value instanceof Ast.DateValue &&
+        value.value instanceof Ast.DateEdge &&
+        value.value.edge === 'start_of')
+        return true;
+
+    return false;
+}
+
 export function makeDateTimer(loader : ThingpediaLoader, date : Ast.Value) {
+    if (isNegativeDate(date))
+        return null;
     const params = [
         new Ast.InputParam(null, 'date', new Ast.Value.Array([date]))
     ];
