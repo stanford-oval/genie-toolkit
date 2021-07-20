@@ -854,8 +854,8 @@ export default class ParameterReplacer {
         for (let i = 0; i < code.length; i++) {
             const token = code[i];
 
-            // inside `new Date`, do not replace token
-            if (token === 'Date')
+            // inside `new Date` or `new Time`, do not replace token
+            if (token === 'Date' || token === 'Time')
                 inDate = true;
             if (inDate === true && token === ')')
                 inDate = false;
@@ -914,7 +914,7 @@ export default class ParameterReplacer {
             schemaRetriever: this._schemas,
             loadMetadata: true
         }, true);
-        
+
         if (context.length !== 0 && context[0] !== 'null') {
             // So this is a dialogue, has context and we can safely process the context
             const replacedContext = this._replaceWithSlot(context, entities);
@@ -923,12 +923,12 @@ export default class ParameterReplacer {
                 schemaRetriever: this._schemas,
                 loadMetadata: true
             }, true);
-            
+
             // Go over the context first so that target overwrites these values for common slots
             for (const slot of contextProgram.iterateSlots2()) {
                 if (slot instanceof Ast.DeviceSelector)
                     continue;
-                
+
                 const value : ConstantValue = slot.get();
                 if (isEntity(value)) {
                     if (slot.type.isAny) {
