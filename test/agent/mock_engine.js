@@ -37,6 +37,7 @@ import {
 class QueueOutputDelegate {
     constructor() {
         this._queue = new AsyncQueue();
+        this._n = 0;
     }
 
     [Symbol.asyncIterator]() {
@@ -50,6 +51,7 @@ class QueueOutputDelegate {
         this._queue.push({ done: true });
     }
     output(outputType, outputValue) {
+        this._n++;
         this._queue.push({ done: false, value: { outputType, outputValue } });
     }
     error(error) {
@@ -134,8 +136,8 @@ class MockAppDatabase {
         this._apps[options.uniqueId] = app;
         await app.compile();
 
-        // execute asynchronously
-        app.execute();
+        // execute synchronously (we'll push to the queue)
+        await app.execute();
         return app;
     }
 }

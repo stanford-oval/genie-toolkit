@@ -19,7 +19,7 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.facebook.post(status="hello world") #[confirm=enum(confirmed)];
 
 A: I posted hello world on Facebook.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @com.facebook ( id = GENERIC_ENTITY_tt:device_id_0 ) . post ( status = QUOTED_STRING_0 ) #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.facebook-6","display":"Some Device 6"},"QUOTED_STRING_0":"hello world"}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @com.facebook ( id = GENERIC_ENTITY_tt:device_id_0 ) . post ( status = QUOTED_STRING_0 ) #[ results = [ { status = QUOTED_STRING_0 , __device = GENERIC_ENTITY_tt:device_id_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.facebook-6","display":"Some Device 6"},"QUOTED_STRING_0":"hello world"}
 A: >> expecting = null
 
 ====
@@ -43,7 +43,7 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.facebook.post(status="hello world") #[confirm=enum(confirmed)];
 
 A: I posted hello world on Facebook.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @com.facebook ( id = GENERIC_ENTITY_tt:device_id_0 ) . post ( status = QUOTED_STRING_0 ) #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.facebook-6","display":"Some Device 6"},"QUOTED_STRING_0":"hello world"}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @com.facebook ( id = GENERIC_ENTITY_tt:device_id_0 ) . post ( status = QUOTED_STRING_0 ) #[ results = [ { status = QUOTED_STRING_0 , __device = GENERIC_ENTITY_tt:device_id_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.facebook-6","display":"Some Device 6"},"QUOTED_STRING_0":"hello world"}
 A: >> expecting = null
 
 ====
@@ -75,7 +75,7 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.twitter(id="twitter-foo",name="Twitter Account foo").post(status="hello world") #[confirm=enum(confirmed)];
 
 A: I tweeted hello world.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @com.twitter ( id = GENERIC_ENTITY_tt:device_id_0 ) . post ( status = QUOTED_STRING_0 ) #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"twitter-foo","display":"Twitter Account foo"},"QUOTED_STRING_0":"hello world"}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @com.twitter ( id = GENERIC_ENTITY_tt:device_id_0 ) . post ( status = QUOTED_STRING_0 ) #[ results = [ { status = QUOTED_STRING_0 , __device = GENERIC_ENTITY_tt:device_id_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"twitter-foo","display":"Twitter Account foo"},"QUOTED_STRING_0":"hello world"}
 A: >> expecting = null
 
 ====
@@ -310,7 +310,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.spotify.player_repeat(repeat=enum(track));
 A: I set the repeat state to track.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . player_repeat ( repeat = enum track ) #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"}}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . player_repeat ( repeat = enum track ) #[ results = [ { repeat = enum track , __device = GENERIC_ENTITY_tt:device_id_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"}}
 A: >> expecting = null
 
 ====
@@ -338,7 +338,7 @@ A: >> expecting = null
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: now => @com.spotify.player_shuffle(shuffle=enum(on));
 A: I turned shuffle on.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . player_shuffle ( shuffle = enum on ) #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"}}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @com.spotify ( id = GENERIC_ENTITY_tt:device_id_0 ) . player_shuffle ( shuffle = enum on ) #[ results = [ { shuffle = enum on , __device = GENERIC_ENTITY_tt:device_id_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"com.spotify-7","display":"Some Device 7"}}
 A: >> expecting = null
 
 ====
@@ -684,7 +684,7 @@ A: >> expecting = yesno
 U: \t $yes;
 
 A: I tweeted something.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @com.xkcd . comic ( ) => @com.twitter ( id = GENERIC_ENTITY_tt:device_id_0 ) . post ( status = title ) #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"twitter-foo","display":"Twitter Account foo"}}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @com.xkcd . comic ( ) => @com.twitter ( id = GENERIC_ENTITY_tt:device_id_0 ) . post ( status = title ) #[ results = [ { status = QUOTED_STRING_0 , __device = GENERIC_ENTITY_tt:device_id_0 } ] ] #[ count = NUMBER_0 ] #[ more = true ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"twitter-foo","display":"Twitter Account foo"},"QUOTED_STRING_0":"Some Device com.xkcd","NUMBER_0":50}
 A: >> expecting = null
 
 ====
@@ -776,7 +776,7 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: [rating, geo] of @com.yelp.restaurant();
 
 A: I see Ramen Nagi. It is a restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg] rated 4.5 star.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; [ rating , geo ] of @com.yelp . restaurant ( ) #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , rating = NUMBER_0 , geo = LOCATION_0 } ] ] #[ count = NUMBER_1 ] #[ more = true ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"NUMBER_0":4.5,"LOCATION_0":{"latitude":37.445523,"longitude":-122.1607073261,"display":null},"NUMBER_1":50}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; [ geo , rating ] of @com.yelp . restaurant ( ) #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , rating = NUMBER_0 , geo = LOCATION_0 } ] ] #[ count = NUMBER_1 ] #[ more = true ] ; // {"GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"NUMBER_0":4.5,"LOCATION_0":{"latitude":37.445523,"longitude":-122.1607073261,"display":null},"NUMBER_1":50}
 A: >> expecting = null
 
 ====
@@ -786,7 +786,7 @@ U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
 U: [rating, geo] of @com.yelp.restaurant(), id =~ "ramen nagi";
 
 A: Ramen Nagi is a restaurant near [Latitude: 37.446 deg, Longitude: -122.161 deg] rated 4.5 star.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; [ rating , geo ] of @com.yelp . restaurant ( ) filter id =~ QUOTED_STRING_0 #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , rating = NUMBER_0 , geo = LOCATION_0 } ] ] ; // {"QUOTED_STRING_0":"ramen nagi","GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"NUMBER_0":4.5,"LOCATION_0":{"latitude":37.445523,"longitude":-122.1607073261,"display":null}}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_recommend_one ; [ geo , rating ] of @com.yelp . restaurant ( ) filter id =~ QUOTED_STRING_0 #[ results = [ { id = GENERIC_ENTITY_com.yelp:restaurant_0 , rating = NUMBER_0 , geo = LOCATION_0 } ] ] ; // {"QUOTED_STRING_0":"ramen nagi","GENERIC_ENTITY_com.yelp:restaurant_0":{"value":"vhfPni9pci29SEHrN1OtRg","display":"Ramen Nagi"},"NUMBER_0":4.5,"LOCATION_0":{"latitude":37.445523,"longitude":-122.1607073261,"display":null}}
 A: >> expecting = null
 
 ====
@@ -1091,13 +1091,13 @@ A: >> expecting = null
 U: \t @org.thingpedia.iot.switch(name="büro decke").set_power(power=enum on);
 
 A: I turned on your Büro Decke switch.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @org.thingpedia.iot.switch ( id = GENERIC_ENTITY_tt:device_id_0 ) . set_power ( power = enum on ) #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"switch-office-de","display":"Büro Decke"}}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @org.thingpedia.iot.switch ( id = GENERIC_ENTITY_tt:device_id_0 ) . set_power ( power = enum on ) #[ results = [ { power = enum on , __device = GENERIC_ENTITY_tt:device_id_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"switch-office-de","display":"Büro Decke"}}
 A: >> expecting = null
 
 U: \t @org.thingpedia.iot.switch(name="büro decke").set_power(power=enum off);
 
 A: I turned off your Büro Decke switch for you.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @org.thingpedia.iot.switch ( id = GENERIC_ENTITY_tt:device_id_0 ) . set_power ( power = enum off ) #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"switch-office-de","display":"Büro Decke"}}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @org.thingpedia.iot.switch ( id = GENERIC_ENTITY_tt:device_id_0 ) . set_power ( power = enum off ) #[ results = [ { power = enum off , __device = GENERIC_ENTITY_tt:device_id_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"switch-office-de","display":"Büro Decke"}}
 A: >> expecting = null
 
 ====
@@ -1116,7 +1116,7 @@ A: >> expecting = choice
 U: kitchen
 
 A: I turned off your Kitchen Switches switch.
-A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @org.thingpedia.iot.switch ( id = GENERIC_ENTITY_tt:device_id_0 ) . set_power ( power = enum off ) #[ results = [ ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"switch-kitchen","display":"Kitchen Switches"}}
+A: >> context = $dialogue @org.thingpedia.dialogue.transaction . sys_action_success ; @org.thingpedia.iot.switch ( id = GENERIC_ENTITY_tt:device_id_0 ) . set_power ( power = enum off ) #[ results = [ { power = enum off , __device = GENERIC_ENTITY_tt:device_id_0 } ] ] ; // {"GENERIC_ENTITY_tt:device_id_0":{"value":"switch-kitchen","display":"Kitchen Switches"}}
 A: >> expecting = null
 
 ====

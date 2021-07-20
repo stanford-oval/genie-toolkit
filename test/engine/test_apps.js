@@ -60,7 +60,12 @@ async function testSimpleDo(engine) {
     assert.deepStrictEqual(infos, [appInfo]);
 
     const outputs = await collectOutputs(app);
-    assert.deepStrictEqual(outputs, []);
+    assert.deepStrictEqual(outputs, [{
+        outputType: 'org.thingpedia.builtin.test:action/eat_data',
+        outputValue: {
+            data: 'some data '
+        }
+    }]);
     assert.strictEqual(result, SUCCESS);
     test.do_eat_data = originaldo;
 }

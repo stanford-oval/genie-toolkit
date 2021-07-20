@@ -67,6 +67,15 @@ function recursivelyComputeOutputType(kind : string, expr : Ast.Expression) : st
     throw new TypeError('Invalid query expression ' + expr);
 }
 
+// eslint-disable-next-line @typescript-eslint/ban-types
+function isPlainObject(x : unknown) : x is object {
+    return typeof x === 'object' && x !== null &&
+        typeof (x as any).then !== 'function' &&
+        typeof (x as any).next !== 'function' &&
+        (Object.getPrototypeOf(x) === Object.prototype ||
+        Object.getPrototypeOf(x) === null);
+}
+
 /**
  * Wrap a ThingTalk statement and provide access to the Engine.
  *
@@ -265,12 +274,13 @@ export default class ExecWrapper extends Runtime.ExecEnvironment {
             const outputType = d.kind + ':action/' + fname;
 
             let result = await (d as unknown as Record<string, ActionFunction>)[js_function_name](params, this);
-            if (typeof result === 'object' && result !== null) {
-                extendParams(result as Record<string, unknown>, params);
-            } else if (typeof result !== 'undefined') {
-                console.error(`${outputType} returned a value that is not an object and not undefined; this is deprecated and might break`);
+            if (typeof result !== 'undefined' && !isPlainObject(result)) {
+                console.error(`${outputType} returned a value that is not an object and not undefined; this is deprecated and might break in the future`);
                 result = undefined;
             }
+            if (result === undefined)
+                result = {};
+            extendParams(result as Record<string, unknown>, params);
 
             if (result) {
                 if (d.uniqueId !== d.kind)

@@ -31,7 +31,9 @@ UT: @com.facebook.post(status="hello world")
 UT: #[confirm=enum confirmed];
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post(status="hello world")
-C: #[results=[]];
+C: #[results=[
+C:   { status="hello world", __device="com.facebook-6"^^tt:device_id("Some Device 6") }
+C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I posted hello world on Facebook.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
@@ -74,7 +76,9 @@ UT: @com.facebook.post(status="hello world")
 UT: #[confirm=enum confirmed];
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.facebook(id="com.facebook-6"^^tt:device_id("Some Device 6")).post(status="hello world")
-C: #[results=[]];
+C: #[results=[
+C:   { status="hello world", __device="com.facebook-6"^^tt:device_id("Some Device 6") }
+C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I posted hello world on Facebook.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
@@ -119,7 +123,9 @@ UT: @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(sta
 UT: #[confirm=enum confirmed];
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status="hello world")
-C: #[results=[]];
+C: #[results=[
+C:   { status="hello world", __device="twitter-foo"^^tt:device_id("Twitter Account foo") }
+C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I tweeted hello world.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
@@ -657,7 +663,9 @@ UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.spotify.player_repeat(repeat=enum track);
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).player_repeat(repeat=enum track)
-C: #[results=[]];
+C: #[results=[
+C:   { repeat=enum track, __device="com.spotify-7"^^tt:device_id("Some Device 7") }
+C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I set the repeat state to track.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
@@ -717,7 +725,9 @@ UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @com.spotify.player_shuffle(shuffle=enum on);
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.spotify(id="com.spotify-7"^^tt:device_id("Some Device 7")).player_shuffle(shuffle=enum on)
-C: #[results=[]];
+C: #[results=[
+C:   { shuffle=enum on, __device="com.spotify-7"^^tt:device_id("Some Device 7") }
+C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I turned shuffle on.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
@@ -1418,7 +1428,20 @@ UT: @com.xkcd.comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Ac
 UT: #[confirm=enum confirmed];
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @com.xkcd.comic() => @com.twitter(id="twitter-foo"^^tt:device_id("Twitter Account foo")).post(status=title)
-C: #[results=[]];
+C: #[results=[
+C:   { status="Some Device com.xkcd", __device="twitter-foo"^^tt:device_id("Twitter Account foo") },
+C:   { status="str:QUOTED_STRING::49:", __device="twitter-foo"^^tt:device_id("Twitter Account foo") },
+C:   { status="Some Device com.xkcd", __device="twitter-foo"^^tt:device_id("Twitter Account foo") },
+C:   { status="Some Device com.xkcd", __device="twitter-foo"^^tt:device_id("Twitter Account foo") },
+C:   { status="str:QUOTED_STRING::6:", __device="twitter-foo"^^tt:device_id("Twitter Account foo") },
+C:   { status="Some Device com.xkcd", __device="twitter-foo"^^tt:device_id("Twitter Account foo") },
+C:   { status="str:QUOTED_STRING::28:", __device="twitter-foo"^^tt:device_id("Twitter Account foo") },
+C:   { status="str:QUOTED_STRING::29:", __device="twitter-foo"^^tt:device_id("Twitter Account foo") },
+C:   { status="Some Device com.xkcd", __device="twitter-foo"^^tt:device_id("Twitter Account foo") },
+C:   { status="Some Device com.xkcd", __device="twitter-foo"^^tt:device_id("Twitter Account foo") }
+C: ]]
+C: #[count=50]
+C: #[more=true];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I tweeted something.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
@@ -1580,11 +1603,11 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
-U: [rating, geo] of @com.yelp.restaurant();
+U: [geo, rating] of @com.yelp.restaurant();
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
-UT: [rating, geo] of @com.yelp.restaurant();
+UT: [geo, rating] of @com.yelp.restaurant();
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: [rating, geo] of @com.yelp.restaurant()
+C: [geo, rating] of @com.yelp.restaurant()
 C: #[results=[
 C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), rating=4.5, geo=new Location(37.445523, -122.1607073261) },
 C:   { id="1vMgajRAI3lYwuCeGX58oQ"^^com.yelp:restaurant("Evvia Estiatorio"), rating=4.5, geo=new Location(37.445077, -122.163778) },
@@ -1613,11 +1636,11 @@ UT: $stop;
 # test
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 U: \t $dialogue @org.thingpedia.dialogue.transaction.execute;
-U: [rating, geo] of @com.yelp.restaurant() filter id =~ "ramen nagi";
+U: [geo, rating] of @com.yelp.restaurant() filter id =~ "ramen nagi";
 UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
-UT: [rating, geo] of @com.yelp.restaurant() filter id =~ "ramen nagi";
+UT: [geo, rating] of @com.yelp.restaurant() filter id =~ "ramen nagi";
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
-C: [rating, geo] of @com.yelp.restaurant() filter id =~ "ramen nagi"
+C: [geo, rating] of @com.yelp.restaurant() filter id =~ "ramen nagi"
 C: #[results=[
 C:   { id="vhfPni9pci29SEHrN1OtRg"^^com.yelp:restaurant("Ramen Nagi"), rating=4.5, geo=new Location(37.445523, -122.1607073261) }
 C: ]];
@@ -2302,7 +2325,9 @@ UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.iot.switch(name="büro decke").set_power(power=enum on);
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.iot.switch(id="switch-office-de"^^tt:device_id("Büro Decke")).set_power(power=enum on)
-C: #[results=[]];
+C: #[results=[
+C:   { power=enum on, __device="switch-office-de"^^tt:device_id("Büro Decke") }
+C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I turned on your Büro Decke switch.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
@@ -2312,9 +2337,13 @@ UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.iot.switch(name="büro decke").set_power(power=enum off);
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.iot.switch(id="switch-office-de"^^tt:device_id("Büro Decke")).set_power(power=enum on)
-C: #[results=[]];
+C: #[results=[
+C:   { power=enum on, __device="switch-office-de"^^tt:device_id("Büro Decke") }
+C: ]];
 C: @org.thingpedia.iot.switch(id="switch-office-de"^^tt:device_id("Büro Decke")).set_power(power=enum off)
-C: #[results=[]];
+C: #[results=[
+C:   { power=enum off, __device="switch-office-de"^^tt:device_id("Büro Decke") }
+C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I turned off your Büro Decke switch for you.
 AT: $dialogue @org.thingpedia.dialogue.transaction.sys_action_success;
@@ -2333,7 +2362,9 @@ UT: $dialogue @org.thingpedia.dialogue.transaction.execute;
 UT: @org.thingpedia.iot.switch(name="invalid").set_power(power=enum off);
 C: $dialogue @org.thingpedia.dialogue.transaction.execute;
 C: @org.thingpedia.iot.switch(id="switch-kitchen"^^tt:device_id("Kitchen Switches")).set_power(power=enum off)
-C: #[results=[]];
+C: #[results=[
+C:   { power=enum off, __device="switch-kitchen"^^tt:device_id("Kitchen Switches") }
+C: ]];
 #! timestamp: XXXX-XX-XXTXX:XX:XX.XXXZ
 A: I cannot find any invalid switch device. Which device do you want to use?
 A: I turned off your Kitchen Switches switch.
