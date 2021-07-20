@@ -344,7 +344,7 @@ $user : Ast.DialogueState = {
     // search questions
     ctx:ctx_sys_search_question answer:precise_search_question_answer with { functionName = ctx.currentFunction }
         => D.preciseSearchQuestionAnswer(ctx, answer);
-    ctx:ctx_sys_search_question answer:imprecise_search_question_answer
+    ctx:ctx_sys_search_question answer:imprecise_search_question_answer [weight=0.2]
         => D.impreciseSearchQuestionAnswer(ctx, answer);
 
     // slot fill questions
