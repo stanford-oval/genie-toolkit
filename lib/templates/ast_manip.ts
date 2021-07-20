@@ -70,11 +70,16 @@ export function isEntityOfFunction(type : InstanceType<typeof Type.Entity>, sche
     return type.type === schema.class.name + ':' + schema.name;
 }
 
-function makeDate(base : Ast.Value|Date|Ast.DateEdge|Ast.DatePiece|Ast.WeekDayDate|null, operator : '+'|'-', offset : Ast.Value|null) : Ast.Value {
+function makeDate(base : Ast.Value|Date|Ast.DateEdge|Ast.DatePiece|Ast.WeekDayDate|null, operator : '+'|'-', offset : null) : Ast.Value;
+function makeDate(base : Ast.Value|Date|Ast.DateEdge|Ast.DatePiece|Ast.WeekDayDate|null, operator : '+'|'-', offset : Ast.Value|null) : Ast.Value|null;
+function makeDate(base : Ast.Value|Date|Ast.DateEdge|Ast.DatePiece|Ast.WeekDayDate|null, operator : '+'|'-', offset : Ast.Value|null) : Ast.Value|null {
     if (!(base instanceof Ast.Value))
         base = new Ast.Value.Date(base);
     if (offset === null)
         return base;
+    if ((offset instanceof Ast.MeasureValue || offset instanceof Ast.NumberValue) &&
+        offset.value === 0)
+        return null;
 
     const value = new Ast.Value.Computation(operator, [base, offset],
         [Type.Date, new Type.Measure('ms'), Type.Date], Type.Date);
@@ -110,7 +115,7 @@ export function dateOrDatePiece(year : number|null, month : number|null) : Date|
 function makeMonthDateRange(year : number|null, month : number|null) : [Ast.Value, Ast.Value] {
     return [
         makeDate(dateOrDatePiece(year, month), '+', null),
-        makeDate(dateOrDatePiece(year, month), '+', new Ast.Value.Measure(1, 'mon'))
+        makeDate(dateOrDatePiece(year, month), '+', new Ast.Value.Measure(1, 'mon'))!
     ];
 }
 
@@ -1083,23 +1088,33 @@ function tableToStream(table : Ast.Expression) : Ast.Expression|null {
 }
 
 function builtinSayAction(loader : ThingpediaLoader,
-                          pname ?: Ast.Value|string) : Ast.InvocationExpression|null {
+                          message ?: Ast.Value|string) : Ast.InvocationExpression|null {
     if (!loader.standardSchemas.say)
         return null;
 
     const selector = new Ast.DeviceSelector(null, 'org.thingpedia.builtin.thingengine.builtin', null, null);
-    if (pname instanceof Ast.Value) {
-        const param = new Ast.InputParam(null, 'message', pname);
+    if (message instanceof Ast.Value) {
+        const param = new Ast.InputParam(null, 'message', message);
         return new Ast.InvocationExpression(null, new Ast.Invocation(null, selector, 'say', [param], loader.standardSchemas.say),
             loader.standardSchemas.say);
-    } else if (pname) {
-        const param = new Ast.InputParam(null, 'message', new Ast.Value.VarRef(pname));
+    } else if (message) {
+        const param = new Ast.InputParam(null, 'message', new Ast.Value.VarRef(message));
         return new Ast.InvocationExpression(null, new Ast.Invocation(null, selector, 'say', [param], loader.standardSchemas.say),
             loader.standardSchemas.say);
     } else {
         return new Ast.InvocationExpression(null, new Ast.Invocation(null, selector, 'say', [], loader.standardSchemas.say),
             loader.standardSchemas.say);
     }
+}
+
+function builtinVoidAction(loader : ThingpediaLoader,
+                           action : 'alert'|'timer_expire') : Ast.InvocationExpression|null {
+    if (!loader.standardSchemas[action])
+        return null;
+
+    const selector = new Ast.DeviceSelector(null, 'org.thingpedia.builtin.thingengine.builtin', null, null);
+    return new Ast.InvocationExpression(null, new Ast.Invocation(null, selector, action, [], loader.standardSchemas[action]),
+        loader.standardSchemas[action]);
 }
 
 function locationSubquery(loader : ThingpediaLoader,
@@ -1834,6 +1849,123 @@ export function expressionUsesIDFilter(expr : Ast.Expression) {
         return false;
 
     return filterUsesParam(filterExpression.filter, 'id');
+}
+
+function isDurationRelativeDate(value : Ast.Value) {
+    if (!(value instanceof Ast.ComputationValue && value.op === '+'))
+        return false;
+    const operand = value.operands[0];
+    return operand instanceof Ast.DateValue && operand.value === null;
+}
+
+/**
+ * Decide if a ThingTalk timer expression should be logically treated like an
+ * "alarm" (beeps, gives you current time) or a "timer" (beeps in a different way,
+ * gives you delta time from start)
+ *
+ * @param timer the ThingTalk timer expression
+ * @returns the Thingpedia function to use for the action with this timer
+ */
+function isTimerOrAlarm(timer : Ast.FunctionCallExpression) : 'alert'|'timer_expire' {
+    if (timer.name === 'timer')
+        return 'timer_expire';
+    if (timer.name === 'attimer')
+        return 'alert';
+
+    assert(timer.name === 'ontimer');
+    assert(timer.in_params.length === 1);
+    const date = timer.in_params[0].value;
+    assert(date instanceof Ast.ArrayValue);
+
+    if (date.value.every(isDurationRelativeDate))
+        return 'timer_expire';
+    else
+        return 'alert';
+}
+
+export function makeReminder(loader : ThingpediaLoader, timer : Ast.FunctionCallExpression, message ?: Ast.Value) {
+    const action = builtinSayAction(loader, message);
+    if (!action)
+        return null;
+    return makeChainExpression(timer, action);
+}
+
+export function makeDateReminder(loader : ThingpediaLoader, date : Ast.Value, message ?: Ast.Value) {
+    const timer = makeDateTimer(loader, date);
+    if (timer === null)
+        return null;
+    return makeReminder(loader, timer, message);
+}
+
+export function makeDurationReminder(loader : ThingpediaLoader, duration : Ast.Value, message ?: Ast.Value) {
+    const date = makeDate(null, '+', duration);
+    if (date === null)
+        return null;
+    return makeDateReminder(loader, date, message);
+}
+
+export function makeAlarm(loader : ThingpediaLoader, timer : Ast.FunctionCallExpression) {
+    const action = builtinVoidAction(loader, isTimerOrAlarm(timer));
+    if (!action)
+        return null;
+    return makeChainExpression(timer, action);
+}
+
+export function makeDateAlarm(loader : ThingpediaLoader, date : Ast.Value) {
+    const timer = makeDateTimer(loader, date);
+    if (timer === null)
+        return null;
+    return makeAlarm(loader, timer);
+}
+
+export function makeDurationAlarm(loader : ThingpediaLoader, duration : Ast.Value) {
+    const date = makeDate(null, '+', duration);
+    if (date === null)
+        return null;
+    return makeDateAlarm(loader, date);
+}
+
+export function makeFrequencyTimer(loader : ThingpediaLoader, frequency : Ast.Value, unit : 'ms'|'s'|'min'|'h'|'day'|'week'|'mon'|'year') {
+    const params = [
+        new Ast.InputParam(null, 'interval', new Ast.Value.Measure(1, unit)),
+        new Ast.InputParam(null, 'frequency', frequency)
+    ];
+    return new Ast.FunctionCallExpression(null, 'timer', params, loader.standardSchemas.timer);
+}
+
+export function makeIntervalTimer(loader : ThingpediaLoader, unit : 'ms'|'s'|'min'|'h'|'day'|'week'|'mon'|'year') {
+    const params = [
+        new Ast.InputParam(null, 'interval', new Ast.Value.Measure(1, unit)),
+    ];
+    return new Ast.FunctionCallExpression(null, 'timer', params, loader.standardSchemas.timer);
+}
+
+export function makeRepeatingTimeTimer(loader : ThingpediaLoader, times : Ast.Value[]) {
+    const params = [
+        new Ast.InputParam(null, 'time', new Ast.Value.Array(times)),
+    ];
+    return new Ast.FunctionCallExpression(null, 'attimer', params, loader.standardSchemas.attimer);
+}
+
+function isNegativeDate(value : Ast.Value) {
+    if (value instanceof Ast.ComputationValue && value.op === '-')
+        return true;
+
+    if (value instanceof Ast.DateValue &&
+        value.value instanceof Ast.DateEdge &&
+        value.value.edge === 'start_of')
+        return true;
+
+    return false;
+}
+
+export function makeDateTimer(loader : ThingpediaLoader, date : Ast.Value) {
+    if (isNegativeDate(date))
+        return null;
+    const params = [
+        new Ast.InputParam(null, 'date', new Ast.Value.Array([date]))
+    ];
+    return new Ast.FunctionCallExpression(null, 'ontimer', params, loader.standardSchemas.ontimer);
 }
 
 export {

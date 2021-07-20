@@ -28,124 +28,23 @@ import ThingpediaLoader from './load-thingpedia';
 const TIME_MORNING = new Ast.Value.Time(new Ast.Time.Relative("morning"));
 const TIME_NOON = new Ast.Value.Time(new Ast.Time.Absolute(12, 0, 0));
 const TIME_EVENING = new Ast.Value.Time(new Ast.Time.Relative("evening"));
+const TIME_MIDNIGHT = new Ast.Value.Time(new Ast.Time.Absolute(0, 0, 0));
 }
 
-at_noon = {
-  'at noon' => 'at noon';
-  'in the middle of the day' => 'in the middle of the day';
-  'at lunch' => 'at lunch';
+at_time : Ast.Value = {
+    ["{at|when it is} ${time}"]: (time:constant_Time) => time;
+
+    ["in the middle of the day"]: () => TIME_NOON;
+    ["{{in|during} the morning|{when|after} {getting|waking|i {get|wake}} up}"]: () => TIME_MORNING;
+    ["{{in|during} the {evening|night}|{when|before} {going to {sleep|bed}|i go to {sleep|bed}}|at bedtime}"]: () => TIME_EVENING;
 }
 
-at_morning = {
-  'when i get up' => 'when i get up';
-  'when i wake up' => 'when i wake up';
-  'after getting up' => 'after getting up';
-  'after i get up' => 'after i get up';
-  'after waking up' => 'after waking up';
-  'after i wake up' => 'after i wake up';
-  'during the morning' => 'during the morning';
-  'each morning' => 'each morning';
-  'every morning' => 'every morning';
-  'in the morning' => 'in the morning';
-  'at breakfast' => 'at breakfast';
-  'with breakfast' => 'with breakfast';
-  'during breakfast' => 'during breakfast';
-  'before breakfast' => 'before breakfast';
-  'before eating breakfast' => 'before eating breakfast';
-  'before i eat breakfast' => 'before i eat breakfast';
-  'after breakfast' => 'after breakfast';
-  'after eating breakfast' => 'after eating breakfast';
-  'after i eat breakfast' => 'after i eat breakfast';
-  'when i eat breakfast' => 'when i eat breakfast';
-  'while i eat breakfast' => 'while i eat breakfast';
-  'before school' => 'before school';
-  'before going to school' => 'before going to school';
-  'before i go to school' => 'before i go to school';
-  'before leaving for school' => 'before leaving for school';
-  'before i leave for school' => 'before i leave for school';
-  'before heading to school' => 'before heading to school';
-  'before i head to school' => 'before i head to school';
-  'when i go to school' => 'when i go to school';
-  'when i leave for school' => 'when i leave for school';
-  'when i head to school' => 'when i head to school';
-  'before work' => 'before work';
-  'before going to work' => 'before going to work';
-  'before i go to work' => 'before i go to work';
-  'before leaving for work' => 'before leaving for work';
-  'before i leave for work' => 'before i leave for work';
-  'before heading to work' => 'before heading to work';
-  'before i head to work' => 'before i head to work';
-  'when i go to work' => 'when i go to work';
-  'when i leave for work' => 'when i leave for work';
-  'when i head to work' => 'when i head to work';
+constant_Time = {
+    'noon' => TIME_NOON,
+    'midday' => TIME_NOON,
+    'midnight' => TIME_MIDNIGHT,
 }
 
-at_evening = {
-  'during the evening' => 'during the evening';
-  'each evening' => 'each evening';
-  'every evening' => 'every evening';
-  'in the evening' => 'in the evening';
-  'during the night' => 'during the night';
-  'each night' => 'each night';
-  'every night' => 'every night';
-  'in the night' => 'in the night';
-  'at night' => 'at night';
-  'at dinner' => 'at dinner';
-  'with dinner' => 'with dinner';
-  'during dinner' => 'during dinner';
-  'before dinner' => 'before dinner';
-  'before eating dinner' => 'before eating dinner';
-  'before i eat dinner' => 'before i eat dinner';
-  'after dinner' => 'after dinner';
-  'after eating dinner' => 'after eating dinner';
-  'after i eat dinner' => 'after i eat dinner';
-  'when i eat dinner' => 'when i eat dinner';
-  'while i eat dinner' => 'while i eat dinner';
-  'after school' => 'after school';
-  'after getting back from school' => 'after getting back from school';
-  'after returning from school' => 'after returning from school';
-  'after coming home from school' => 'after coming home from school';
-  'after i get back from school' => 'after i get back from school';
-  'after i return from school' => 'after i return from school';
-  'after i come home from school' => 'after i come home from school';
-  'when i get back from school' => 'when i get back from school';
-  'when i return from school' => 'when i return from school';
-  'when i come home from school' => 'when i come home from school';
-  'after work' => 'after work';
-  'after getting back from work' => 'after getting back from work';
-  'after returning from work' => 'after returning from work';
-  'after coming home from work' => 'after coming home from work';
-  'after i get back from work' => 'after i get back from work';
-  'after i return from work' => 'after i return from work';
-  'after i come home from work' => 'after i come home from work';
-  'when i get back from work' => 'when i get back from work';
-  'when i return from work' => 'when i return from work';
-  'when i come home from work' => 'when i come home from work';
-  'before bed' => 'before bed';
-  'before going to bed' => 'before going to bed';
-  'before i go to bed' => 'before i go to bed';
-  'before leaving for bed' => 'before leaving for bed';
-  'before i leave for bed' => 'before i leave for bed';
-  'before heading to bed' => 'before heading to bed';
-  'before i head to bed' => 'before i head to bed';
-  'when i go to bed' => 'when i go to bed';
-  'when i leave for bed' => 'when i leave for bed';
-  'when i head to bed' => 'when i head to bed';
-  'at bedtime' => 'at bedtime';
-  'before bedtime' => 'before bedtime';
-  'before i go to sleep' => 'before i go to sleep';
-  'before going to sleep' => 'before going to sleep';
-  'before sleeping' => 'before sleeping';
-  'before i sleep' => 'before i sleep';
-  'before i fall asleep' => 'before i fall asleep';
-  'before falling asleep' => 'before falling asleep';
-}
-
-on = {
-  'on' => 'on';
-  'when it \'s' => 'when it \'s';
-  'when it is' => 'when it is';
-}
 
 constant_Number : Ast.NumberValue = {
     // `turking` is a flags that controls a group of grammar rules
@@ -177,13 +76,11 @@ constant_date_point : Ast.Value = {
     'yesterday'           => C.makeDate(new Ast.DateEdge('start_of', 'day'), '-', new Ast.Value.Measure(1, 'day'));
 
     !turking {
-        ?future_dates {
-            'tomorrow'            => C.makeDate(new Ast.DateEdge('end_of', 'day'), '+', null);
-            'the end of the day'  => C.makeDate(new Ast.DateEdge('end_of', 'day'), '+', null);
-            'the end of the week' => C.makeDate(new Ast.DateEdge('end_of', 'week'), '+', null);
-            'the end of the month'=> C.makeDate(new Ast.DateEdge('end_of', 'mon'), '+', null);
-            'the end of the year' => C.makeDate(new Ast.DateEdge('end_of', 'year'), '+', null);
-        }
+        'tomorrow'            => C.makeDate(new Ast.DateEdge('end_of', 'day'), '+', null);
+        'the end of the day'  => C.makeDate(new Ast.DateEdge('end_of', 'day'), '+', null);
+        'the end of the week' => C.makeDate(new Ast.DateEdge('end_of', 'week'), '+', null);
+        'the end of the month'=> C.makeDate(new Ast.DateEdge('end_of', 'mon'), '+', null);
+        'the end of the year' => C.makeDate(new Ast.DateEdge('end_of', 'year'), '+', null);
     }
 }
 
@@ -193,15 +90,13 @@ constant_date_range : [Ast.Value, Ast.Value] = {
     'this year'   => [C.makeDate(new Ast.DateEdge('start_of', 'year'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'year'), '+', null)];
 
     !turking {
-        'last week'  => [C.makeDate(new Ast.DateEdge('start_of', 'week'), '-', new Ast.Value.Measure(1, 'week')), C.makeDate(new Ast.DateEdge('start_of', 'week'), '+', null)];
-        'last month' => [C.makeDate(new Ast.DateEdge('start_of', 'mon'), '-', new Ast.Value.Measure(1, 'mon')), C.makeDate(new Ast.DateEdge('start_of', 'mon'), '+', null)];
-        'last year'  => [C.makeDate(new Ast.DateEdge('start_of', 'year'), '-', new Ast.Value.Measure(1, 'year')), C.makeDate(new Ast.DateEdge('start_of', 'year'), '+', null)];
+        'last week'  => [C.makeDate(new Ast.DateEdge('start_of', 'week'), '-', new Ast.Value.Measure(1, 'week'))!, C.makeDate(new Ast.DateEdge('start_of', 'week'), '+', null)];
+        'last month' => [C.makeDate(new Ast.DateEdge('start_of', 'mon'), '-', new Ast.Value.Measure(1, 'mon'))!, C.makeDate(new Ast.DateEdge('start_of', 'mon'), '+', null)];
+        'last year'  => [C.makeDate(new Ast.DateEdge('start_of', 'year'), '-', new Ast.Value.Measure(1, 'year'))!, C.makeDate(new Ast.DateEdge('start_of', 'year'), '+', null)];
 
-        ?future_dates {
-            'next week'  => [C.makeDate(new Ast.DateEdge('end_of', 'week'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'week'), '+', new Ast.Value.Measure(1, 'week'))];
-            'next month' => [C.makeDate(new Ast.DateEdge('end_of', 'mon'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'mon'), '+', new Ast.Value.Measure(1, 'mon'))];
-            'next year'  => [C.makeDate(new Ast.DateEdge('end_of', 'year'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'year'), '+', new Ast.Value.Measure(1, 'year'))];
-        }
+        'next week'  => [C.makeDate(new Ast.DateEdge('end_of', 'week'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'week'), '+', new Ast.Value.Measure(1, 'week'))!];
+        'next month' => [C.makeDate(new Ast.DateEdge('end_of', 'mon'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'mon'), '+', new Ast.Value.Measure(1, 'mon'))!];
+        'next year'  => [C.makeDate(new Ast.DateEdge('end_of', 'year'), '+', null), C.makeDate(new Ast.DateEdge('end_of', 'year'), '+', new Ast.Value.Measure(1, 'year'))!];
 
         // year
         year:constant_Number => {
@@ -209,7 +104,7 @@ constant_date_range : [Ast.Value, Ast.Value] = {
                 return null;
             return [
                 C.makeDate(new Date(C.fixTwoYearNumber(year.value), 0), '+', null),
-                C.makeDate(new Date(C.fixTwoYearNumber(year.value), 0), '+', new Ast.Value.Measure(1, 'year'))
+                C.makeDate(new Date(C.fixTwoYearNumber(year.value), 0), '+', new Ast.Value.Measure(1, 'year'))!
             ];
         };
         year:constant_Number 's' => {
@@ -217,7 +112,7 @@ constant_date_range : [Ast.Value, Ast.Value] = {
                 return null;
             return [
                 C.makeDate(new Date(C.fixTwoYearNumber(year.value), 0), '+', null),
-                C.makeDate(new Date(C.fixTwoYearNumber(year.value), 0), '+', new Ast.Value.Measure(10, 'year'))
+                C.makeDate(new Date(C.fixTwoYearNumber(year.value), 0), '+', new Ast.Value.Measure(10, 'year'))!
             ];
         };
     }
@@ -280,26 +175,16 @@ constant_Date : Ast.Value = {
         constant_day_of_week;
 
         !turking {
-            duration:constant_Measure_ms 'ago'      => C.makeDate(null, '-', duration);
-            duration:constant_Measure_ms 'before' pt:constant_date_point => C.makeDate(pt, '-', duration);
+            ["${duration} ago"]: (duration:constant_Measure_ms) => C.makeDate(null, '-', duration);
+            ["${duration} before ${pt}"]: (duration:constant_Measure_ms, pt:constant_date_point) => C.makeDate(pt, '-', duration);
 
-            ?future_dates {
-                duration:constant_Measure_ms 'from now' => C.makeDate(null, '+', duration);
-                duration:constant_Measure_ms 'after' pt:constant_date_point  => C.makeDate(pt, '+', duration);
-            }
-        }
-    }
-}
+            ["{${duration} from now|in ${duration}}"]: (duration:constant_Measure_ms) => C.makeDate(null, '+', duration);
+            ["${duration} after ${pt}"]: (duration:constant_Measure_ms, pt:constant_date_point) => C.makeDate(pt, '+', duration);
 
-constant_Date : Ast.Value = {
-    !inference {
-        !turking {
-            at_morning 'on' date:constant_Date => C.makeDateWithDateTime(date, TIME_MORNING);
-            at_noon 'on' date:constant_Date => C.makeDateWithDateTime(date, TIME_NOON);
-            at_evening 'on' date:constant_Date => C.makeDateWithDateTime(date, TIME_EVENING);
-            date:constant_Date at_morning => C.makeDateWithDateTime(date, TIME_MORNING);
-            date:constant_Date at_noon => C.makeDateWithDateTime(date, TIME_NOON);
-            date:constant_Date at_evening => C.makeDateWithDateTime(date, TIME_EVENING);
+            ["${time} on ${date}"]: (time:constant_Time, date:constant_date_point) => C.makeDateWithDateTime(date, time);
+            ["${date} ${time}"]: (time:at_time, date:constant_date_point) => C.makeDateWithDateTime(date, time);
+
+            time:constant_Time => C.makeDateWithDateTime(null, time);
         }
     }
 }
@@ -318,8 +203,16 @@ constant_Measure_ms : Ast.Value = {
         !turking num:constant_Number 'weeks' => C.addUnit('week', num);
         !turking num:constant_Number 'months' => C.addUnit('mon', num);
         !turking num:constant_Number 'years' => C.addUnit('year', num);
-
     }
+}
+
+unit_Measure_ms : 'ms'|'s'|'min'|'h'|'day'|'week'|'mon'|'year' = {
+    'minute' => 'min';
+    'hour' => 'h';
+    'day' => 'day';
+    'week' => 'week';
+    'month' => 'mon';
+    'year' => 'year';
 }
 
 constant_Measure_byte : Ast.Value = {

@@ -471,10 +471,26 @@ say_command : Ast.Expression = {}
 
 if ($loader.standardSchemas.say) {
     timer_rule : Ast.ChainExpression = {
-        'send me a reminder' stream:timer
-            => C.makeChainExpression(stream, C.builtinSayAction($loader)!);
-        'send me' ('a message' | 'an alert' | 'a notification' | 'a reminder' | 'a popup notification') stream:timer ('saying' | 'with the text') constant:constant_String
-            => C.makeChainExpression(stream, C.builtinSayAction($loader, constant)!);
+        // reminders without message (uses @builtin.say, agent asks "what would you like me to say?")
+        ["send me a {reminder|message} ${timer}"]: (timer:timer) => C.makeReminder($loader, timer);
+        ["send me a {reminder|message} for ${date}"]: (date:constant_Date) => C.makeDateReminder($loader, date);
+        ["send me a {reminder|message} in ${duration}"]: (duration:constant_Measure_ms) => C.makeDurationReminder($loader, duration);
+
+        // reminders with message (uses @builtin.say with the given message)
+        ["send me a {message|alert|notification|reminder|popup notification} ${timer} {saying|with the text} ${message}"]:
+            (timer:timer, message:constant_String) => C.makeReminder($loader, timer, message);
+        ["{{remind me|tell me to|send me an alert|send me a reminder} to ${message} {on|at} ${date}|{set an|} alarm at ${date} named ${message}}"]:
+            (date:constant_Date, message:constant_String) => C.makeDateReminder($loader, date, message);
+        ["{{remind me|tell me|{set an|} alarm|send me an alert|send me a reminder} to ${message} in ${duration}|set a timer for ${duration} {named|saying|with the text} ${message}}"]:
+            (duration:constant_Measure_ms, message:constant_String) => C.makeDurationReminder($loader, duration, message);
+
+        // timers/alarms (uses @builtin.alert or @builtin.timer_expire depending on the type of timer)
+        ["set a {timer|alarm} ${timer}"]: (timer:timer) => C.makeAlarm($loader, timer);
+        ["set a {alarm|timer} for ${date}"]:
+            (date:constant_Date) => C.makeDateAlarm($loader, date);
+        ["{set a|} {timer for|alarm in} ${duration}"]:
+            (duration:constant_Measure_ms) => C.makeDurationAlarm($loader, duration);
+
     }
 
     when_command : Ast.Expression = {
