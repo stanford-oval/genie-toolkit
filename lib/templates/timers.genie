@@ -25,9 +25,8 @@ import * as C from './ast_manip';
 // TODO rewrite using FunctionCallExpression directly instead of using toExpression()
 timer : Ast.FunctionCallExpression = {
     // daily repeating timers
-    ["{every day|each day|daily|once a day} "]: (time:constant_Time) => C.makeRepeatingTimeTimer($loader, [time]);
-    ["{every day|each day|daily|once a day} {at|when it is} ${time}"]: (time:constant_Time) => C.makeRepeatingTimeTimer($loader, [time]);
-    ["{every day|each day|daily|twice a day} {at|when it is} ${time1} and ${time2}"]:
+    ["{every day|each day|daily|once a day} ${time}"]: (time:at_time) => C.makeRepeatingTimeTimer($loader, [time]);
+    ["{every day|each day|daily|twice a day} at ${time1} and ${time2}"]:
       (time1:constant_Time, time2:constant_Time) => C.makeRepeatingTimeTimer($loader, [time1, time2]);
 
     // one-off timers
