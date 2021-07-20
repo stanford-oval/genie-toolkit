@@ -170,11 +170,11 @@ export default class SimulationDialogueAgent extends AbstractDialogueAgent<Thing
     protected async resolveUserContext(variable : string) : Promise<Ast.Value> {
         switch (variable) {
         case '$context.location.current_location':
-            return new Ast.Value.Location(new Ast.Location.Absolute(2, 2, 'here'));
+            return new Ast.Value.Location(new Ast.Location.Absolute(2, 2, 'Simulated Location 1'));
         case '$context.location.home':
-            return new Ast.Value.Location(new Ast.Location.Absolute(3, 3, 'home'));
+            return new Ast.Value.Location(new Ast.Location.Absolute(3, 3, 'Simulated Location 2'));
         case '$context.location.work':
-            return new Ast.Value.Location(new Ast.Location.Absolute(4, 4, 'work'));
+            return new Ast.Value.Location(new Ast.Location.Absolute(4, 4, 'Simulated Location 3'));
         case '$context.time.morning':
             return new Ast.Value.Time(new Ast.Time.Absolute(9, 0, 0));
         case '$context.time.evening':
