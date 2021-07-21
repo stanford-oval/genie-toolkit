@@ -372,7 +372,7 @@ $user : Ast.DialogueState = {
         => D.positiveRecommendationReply($loader, ctx, null, null);
     ctx:ctx_sys_recommend_one acceptedAction:recommendation_accept_phrase_with_action [weight=0.7]
         => D.positiveRecommendationReply($loader, ctx, acceptedAction, null);
-    ctx:ctx_sys_recommend_one name:recommendation_accept_phrase_by_name [weight=0.7]
+    ?multiwoz ctx:ctx_sys_recommend_one name:recommendation_accept_phrase_by_name [weight=0.7]
         => D.positiveRecommendationReply($loader, ctx, name[1], name[0]);
 
     // accepting recommendation to learn more
@@ -413,7 +413,7 @@ $user : Ast.DialogueState = {
     // accepting list proposals
     ctx:ctx_sys_recommend_many reply:positive_list_proposal_reply [weight=10 * 0.7]
         => D.positiveListProposalReply($loader, ctx, reply);
-    ctx:ctx_sys_recommend_many action:list_proposal_accept_phrase_with_action_by_name [weight=10 * 0.7]
+    ?multiwoz ctx:ctx_sys_recommend_many action:list_proposal_accept_phrase_with_action_by_name [weight=10 * 0.7]
         => D.positiveListProposalReplyActionByName($loader, ctx, action);
 
     // accepting list proposal to learn more

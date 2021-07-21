@@ -415,6 +415,8 @@ user_search_question_for_list : D.UserSearchQuestionForList = {
     questions:simple_user_search_question_for_list => [null, questions];
     questions:boolean_user_search_question_for_list => [null, questions];
 
-    user_search_question_with_name;
-    boolean_user_search_question_with_name;
+    ?multiwoz {
+        user_search_question_with_name;
+        boolean_user_search_question_with_name;
+    }
 }
