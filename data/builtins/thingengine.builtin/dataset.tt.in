@@ -90,12 +90,12 @@ dataset @org.thingpedia.builtin.thingengine.builtin language "en" {
     #[name="ConfigureWithDevice"];
 
     action (p_status : Enum(on,off)) = @org.thingpedia.builtin.thingengine.builtin.set_voice_output(status=p_status)
-    #_[utterances=["turn ${p_status} voice output"]];
+    #_[utterances=["turn ${p_status:no-undefined} voice output"]];
 
     // note: these are "program" because they don't fit the usual
     // assistant paradigm of doing things on the user's behalf
     program (p_status : Enum(on,off)) = @org.thingpedia.builtin.thingengine.builtin.set_voice_output(status=p_status)
-    #_[utterances=["turn ${p_status} your voice"]];
+    #_[utterances=["turn ${p_status:no-undefined} your voice"]];
 
     program = @org.thingpedia.builtin.thingengine.builtin.set_voice_output(status=enum on)
     #_[utterances=["start speaking", "talk to me", "use voice to talk to me",
@@ -118,24 +118,27 @@ dataset @org.thingpedia.builtin.thingengine.builtin language "en" {
     // must work with both "please do X" and "i would like to do X"
     // (and "i would like to call me bob" is nonsensical)
     program (p_name : String) = @org.thingpedia.builtin.thingengine.builtin.set_name(name=p_name)
-    #_[utterances=["call me ${p_name}", "refer to me as ${p_name}", "i am ${p_name}", "my name is ${p_name}",
-                   "i would like you to call me ${p_name}"]];
+    #_[utterances=["call me ${p_name:no-undefined}",
+                   "refer to me as ${p_name:no-undefined}",
+                   "i am ${p_name:no-undefined}", "my name is ${p_name:no-undefined}",
+                   "i would like you to call me ${p_name:no-undefined}"]];
 
     action (p_type : Enum(current,home,work)) = @org.thingpedia.builtin.thingengine.builtin.set_location(type=p_type)
-    #_[utterances=["set my ${p_type} location",
-                   "set my ${p_type} address",
-                   "remember my ${p_type} location",
-                   "change my ${p_type} address"]];
+    #_[utterances=["set my ${p_type:no-undefined} location",
+                   "set my ${p_type:no-undefined} address",
+                   "remember my ${p_type:no-undefined} location",
+                   "change my ${p_type:no-undefined} address"]];
 
     program (p_location : Location) = @org.thingpedia.builtin.thingengine.builtin.set_location(location=p_location)
-    #_[utterances=["my address is ${p_location}",
-                   "my location is ${p_location}"]];
+    #_[utterances=["my address is ${p_location:no-undefined}",
+                   "my location is ${p_location:no-undefined}"]];
 
     program (p_type : Enum(current,home,work), p_location : Location) = @org.thingpedia.builtin.thingengine.builtin.set_location(type=p_type, location=p_location)
-    #_[utterances=["my ${p_type} address is ${p_location}",
-                   "my ${p_type} is at ${p_location}"]];
+    #_[utterances=["my ${p_type:no-undefined} address is ${p_location:no-undefined}",
+                   "my ${p_type:no-undefined} is at ${p_location:no-undefined}"]];
 
     program (p_unit : Enum(celsius,fahrenheit,kelvin)) = @org.thingpedia.builtin.thingengine.builtin.set_temperature_unit(unit=p_unit)
-    #_[utterances=["use ${p_unit} for temperatures", "use ${p_unit} to display temperatures",
-                   "tell me the temperature in ${p_unit}"]];
+    #_[utterances=["use ${p_unit:no-undefined} for temperatures",
+                   "use ${p_unit:no-undefined} to display temperatures",
+                   "tell me the temperature in ${p_unit:no-undefined}"]];
 }

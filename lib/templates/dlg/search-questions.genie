@@ -167,7 +167,7 @@ search_question : C.ParamSlot[] = {
 
 verbose_search_answer : Ast.Expression = {
     // complete answer, like "I am looking for a bla restaurant"
-    generic_preamble_for_answer ('a' | 'the') query:answer_noun_phrase => query;
+    ?multiwoz generic_preamble_for_answer ('a' | 'the') query:answer_noun_phrase => query;
 
     // complete answer that uses a generic phrase, like "I'm looking for something that serves bla"
     generic_preamble_for_answer query:anything_phrase => query;

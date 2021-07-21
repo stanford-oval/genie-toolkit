@@ -103,7 +103,7 @@ interface CanonicalForm {
 
 // FIXME this info needs to be in Thingpedia
 interface ExtendedEntityRecord extends Tp.BaseClient.EntityTypeRecord {
-    subtype_of ?: string|null;
+    subtype_of ?: string|string[]|null;
 }
 
 type PrimitiveTemplateType = 'action'|'action_past'|'query'|'get_command'|'stream'|'program';
@@ -179,7 +179,7 @@ export default class ThingpediaLoader {
         get_gps : Ast.FunctionDef|null;
         get_time : Ast.FunctionDef|null;
     };
-    entitySubTypeMap : Record<string, string>;
+    entitySubTypeMap : Record<string, string[]>;
     private _subEntityMap : Map<string, string[]>;
 
     constructor(grammar : SentenceGenerator,
@@ -1080,9 +1080,12 @@ export default class ThingpediaLoader {
 
         let hasParentEntity = false;
         if (entity.subtype_of) {
-            const parentFnDef = this.idQueries.get(entity.subtype_of);
-            if (parentFnDef)
-                hasParentEntity = true;
+            const subTypeOf = typeof entity.subtype_of === 'string' ? [entity.subtype_of] : entity.subtype_of;
+            for (const subType of subTypeOf) {
+                const parentFnDef = this.idQueries.get(subType);
+                if (parentFnDef)
+                    hasParentEntity = true;
+            }
         }
 
         let span;
@@ -1353,8 +1356,8 @@ export default class ThingpediaLoader {
                 hasNer = true;
             let subTypeOf = null;
             if (entity.extends) {
-                subTypeOf = entity.extends.includes(':') ? entity.extends
-                    : classDef.kind + ':' + entity.extends;
+                subTypeOf = entity.extends.map((e) =>
+                    e.includes(':') ? e : classDef.kind + ':' + e);
             }
             const entityRecord : ExtendedEntityRecord = {
                 type: classDef.kind + ':' + entity.name,
@@ -1386,15 +1389,19 @@ export default class ThingpediaLoader {
     private _loadEntityType(entityType : string, typeRecord : ExtendedEntityRecord) {
         this._entities[entityType] = typeRecord;
         if (typeRecord.subtype_of) {
-            this.entitySubTypeMap[entityType] = typeRecord.subtype_of;
+            const subTypeOf = typeof
+                typeRecord.subtype_of === 'string' ? [typeRecord.subtype_of] : typeRecord.subtype_of;
+            this.entitySubTypeMap[entityType] = subTypeOf;
 
             // TODO this only supports a flat hierarchy
             // if we have a deeper hierarchy this code will not code
-            const subEntities = this._subEntityMap.get(typeRecord.subtype_of);
-            if (subEntities)
-                subEntities.push(typeRecord.type);
-            else
-                this._subEntityMap.set(typeRecord.subtype_of, [typeRecord.type]);
+            for (const subtype of subTypeOf) {
+                const subEntities = this._subEntityMap.get(subtype);
+                if (subEntities)
+                    subEntities.push(typeRecord.type);
+                else
+                    this._subEntityMap.set(subtype, [typeRecord.type]);
+            }
         }
     }
 

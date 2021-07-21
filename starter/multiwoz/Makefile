@@ -23,6 +23,7 @@ synthetic_flags ?= \
 	projection_with_filter \
 	schema_org \
 	undefined_filter \
+	multiwoz \
 	$(NULL)
 
 restaurant_test_sets = eval test

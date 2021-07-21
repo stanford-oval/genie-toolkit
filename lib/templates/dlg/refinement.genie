@@ -54,7 +54,7 @@ system_generic_proposal : S.AgentReplyRecord = {
 }
 
 negative_proposal_request : Ast.Expression = {
-    counterproposal_preamble ('a' | 'any') request:answer_noun_phrase '.' => request;
+    ?multiwoz counterproposal_preamble ('a' | 'any') request:answer_noun_phrase '.' => request;
     counterproposal_preamble request:anything_phrase '.' => request;
 }
 
@@ -67,6 +67,8 @@ negative_proposal_answer_preamble : Ast.Expression = {
 negative_proposal_reply : D.NegativeProposalReply = {
     ('no ,' | 'no' | '') request:negative_proposal_request => [null, request];
 
-    preamble:negative_proposal_answer_preamble => [preamble, null];
-    preamble:negative_proposal_answer_preamble request:negative_proposal_request with { functionName = preamble.functionName } => [preamble, request];
+    ?multiwoz {
+        preamble:negative_proposal_answer_preamble => [preamble, null];
+        preamble:negative_proposal_answer_preamble request:negative_proposal_request with { functionName = preamble.functionName } => [preamble, request];
+    }
 }

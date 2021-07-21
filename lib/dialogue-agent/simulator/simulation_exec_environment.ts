@@ -481,28 +481,11 @@ class SimulationExecEnvironment extends ExecEnvironment {
             return;
         }
 
-        let anyOutArgument = false;
-        for (const arg of schema.iterateArguments()) {
-            if (!arg.is_input) {
-                anyOutArgument = true;
-                break;
-            }
-        }
-
         for (const d of await this._getDevices(kind, attrs)) {
-            if (anyOutArgument) {
-                const generated = this.generator!.generate(schema, params, 0);
-                if (d.kind !== d.uniqueId)
-                    generated.__device = new ThingTalk.Builtin.Entity(d.uniqueId, d.name);
-                yield [outputType, generated];
-            } else {
-                if (d.kind !== d.uniqueId) {
-                    const __device = new ThingTalk.Builtin.Entity(d.uniqueId, d.name);
-                    yield [outputType, { __device }];
-                } else {
-                    yield [outputType, {}];
-                }
-            }
+            const generated = this.generator!.generate(schema, params, 0);
+            if (d.kind !== d.uniqueId)
+                generated.__device = new ThingTalk.Builtin.Entity(d.uniqueId, d.name);
+            yield [outputType, generated];
         }
     }
 
