@@ -117,7 +117,10 @@ system_learn_more : string = {
 }
 
 repeat_command_phrase : string = {
-    ["{again !|another one|do this again|do it again}"]: () => '',
+    ["{again !|another one|do this again|do it again|do the last command}"]: () => '',
+}
+repeat_command_on_error_phrase : string = {
+    ["{please|} {try again|try this again|do the last command|do it again}"]: () => '',
 }
 
 make_monitor_phrase : string = {

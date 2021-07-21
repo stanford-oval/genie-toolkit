@@ -303,8 +303,9 @@ $user : Ast.DialogueState = {
     ctx:ctx_sys_action_success questions:simple_user_search_question
         => D.actionSuccessQuestion(ctx, questions);
 
-    ctx:ctx_sys_display_result repeat_command_phrase
-        => D.repeatCommandReply(ctx);
+    ( ctx:ctx_sys_display_result repeat_command_phrase
+    | ctx:ctx_sys_action_error repeat_command_on_error_phrase
+    ) => D.repeatCommandReply(ctx);
 
     // restarting
 

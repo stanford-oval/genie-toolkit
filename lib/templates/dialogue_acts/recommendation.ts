@@ -412,10 +412,11 @@ function recommendationLearnMoreReply(ctx : ContextInfo, name : Ast.Value|null) 
 function repeatCommandReply(ctx : ContextInfo) {
     if (ctx.next)
         return null;
-    if (ctx.currentFunction!.is_monitorable)
+    const current = ctx.current!;
+    if (!current.results!.error && ctx.currentFunction!.is_monitorable)
         return null;
 
-    const clone = ctx.current!.clone();
+    const clone = current.clone();
     clone.results = null;
     clone.confirm = 'accepted';
     return addNewItem(ctx, 'execute', null, 'accepted', clone);
