@@ -32,6 +32,7 @@ class DialogueTurnLog {
     private _dialogueId : string;
     private _uniqueId : string;
     private _previousId : string|null;
+    private _anyData : boolean;
 
     constructor(conversationDB : LocalTable<ConversationRow>,
                 conversationId : string,
@@ -50,6 +51,7 @@ class DialogueTurnLog {
         this._dialogueId = dialogueId;
         this._uniqueId = uuidv4();
         this._previousId = previousId;
+        this._anyData = false;
     }
 
     get uniqueId() {
@@ -57,6 +59,13 @@ class DialogueTurnLog {
     }
 
     async save() {
+        // a fully empty turn occurs at the end of the dialogue if the user says
+        // $stop, because we terminate the turn after the user speech, then the
+        // agent speaks exactly nothing, and then we terminate the whole dialogue
+        // we don't want to save the empty turn in that case
+        if (!this._anyData)
+            return;
+
         const agentTimestamp = this._turn.agent_timestamp ?
             this._turn.agent_timestamp!.toISOString() :
             null;
@@ -89,6 +98,7 @@ class DialogueTurnLog {
             this._turn.user_timestamp = new Date;
         else if (field === 'agent')
             this._turn.agent_timestamp = new Date;
+        this._anyData = true;
     }
 }
 
@@ -132,9 +142,9 @@ function* reorderTurns(rows : ConversationRow[]) : IterableIterator<DialogueTurn
     }
 }
 
-function* reconstructDialogues(rows : ConversationRow[]) : IterableIterator<DialogueExample> {
+function reconstructDialogues(rows : ConversationRow[]) : Iterable<DialogueExample> {
     if (rows.length === 0)
-        return;
+        return [];
 
     const conversationId = rows[0].conversationId;
     const dialogues = new Map<string, ConversationRow[]>();
@@ -147,12 +157,18 @@ function* reconstructDialogues(rows : ConversationRow[]) : IterableIterator<Dial
             dialogues.set(row.dialogueId, [row]);
     }
 
+    const sorted = [];
     for (const [dialogueId, rows] of dialogues) {
-        yield {
+        const turns = Array.from(reorderTurns(rows));
+        sorted.push({
             id : conversationId + '/' + dialogueId,
-            turns: Array.from(reorderTurns(rows)),
-        };
+            timestamp: turns[0].user_timestamp || turns[0].agent_timestamp,
+            turns: turns,
+        });
     }
+    sorted.sort((one, two) => one.timestamp!.getTime() - two.timestamp!.getTime());
+
+    return sorted;
 }
 
 export default class ConversationLogger {
