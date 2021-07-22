@@ -132,9 +132,9 @@ function* reorderTurns(rows : ConversationRow[]) : IterableIterator<DialogueTurn
     }
 }
 
-function* reconstructDialogues(rows : ConversationRow[]) : IterableIterator<DialogueExample> {
+function reconstructDialogues(rows : ConversationRow[]) : Iterable<DialogueExample> {
     if (rows.length === 0)
-        return;
+        return [];
 
     const conversationId = rows[0].conversationId;
     const dialogues = new Map<string, ConversationRow[]>();
@@ -147,12 +147,18 @@ function* reconstructDialogues(rows : ConversationRow[]) : IterableIterator<Dial
             dialogues.set(row.dialogueId, [row]);
     }
 
+    const sorted = [];
     for (const [dialogueId, rows] of dialogues) {
-        yield {
+        const turns = Array.from(reorderTurns(rows));
+        sorted.push({
             id : conversationId + '/' + dialogueId,
-            turns: Array.from(reorderTurns(rows)),
-        };
+            timestamp: turns[0].user_timestamp || turns[0].agent_timestamp,
+            turns: turns,
+        });
     }
+    sorted.sort((one, two) => one.timestamp!.getTime() - two.timestamp!.getTime());
+
+    return sorted;
 }
 
 export default class ConversationLogger {
