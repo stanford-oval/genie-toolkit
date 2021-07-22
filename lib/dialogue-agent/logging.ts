@@ -32,6 +32,7 @@ class DialogueTurnLog {
     private _dialogueId : string;
     private _uniqueId : string;
     private _previousId : string|null;
+    private _anyData : boolean;
 
     constructor(conversationDB : LocalTable<ConversationRow>,
                 conversationId : string,
@@ -50,6 +51,7 @@ class DialogueTurnLog {
         this._dialogueId = dialogueId;
         this._uniqueId = uuidv4();
         this._previousId = previousId;
+        this._anyData = false;
     }
 
     get uniqueId() {
@@ -57,6 +59,13 @@ class DialogueTurnLog {
     }
 
     async save() {
+        // a fully empty turn occurs at the end of the dialogue if the user says
+        // $stop, because we terminate the turn after the user speech, then the
+        // agent speaks exactly nothing, and then we terminate the whole dialogue
+        // we don't want to save the empty turn in that case
+        if (!this._anyData)
+            return;
+
         const agentTimestamp = this._turn.agent_timestamp ?
             this._turn.agent_timestamp!.toISOString() :
             null;
@@ -89,6 +98,7 @@ class DialogueTurnLog {
             this._turn.user_timestamp = new Date;
         else if (field === 'agent')
             this._turn.agent_timestamp = new Date;
+        this._anyData = true;
     }
 }
 
