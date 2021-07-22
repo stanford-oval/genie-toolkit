@@ -187,6 +187,11 @@ export default class SlotExtractor {
             assert(value.value instanceof Ast.UnresolvedLocation);
             return this._tokenizeSlot(value.value.name);
         }
+        if (value instanceof Ast.TimeValue) {
+            if (value.value instanceof Ast.RelativeTime)
+                return value.value.relativeTag;
+            return String(value.toJS()).toLowerCase();
+        }
         if (value instanceof Ast.ContextRefValue)
             return 'context-' + value.name;
 

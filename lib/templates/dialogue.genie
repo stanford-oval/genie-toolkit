@@ -303,8 +303,9 @@ $user : Ast.DialogueState = {
     ctx:ctx_sys_action_success questions:simple_user_search_question
         => D.actionSuccessQuestion(ctx, questions);
 
-    ctx:ctx_sys_display_result repeat_command_phrase
-        => D.repeatCommandReply(ctx);
+    ( ctx:ctx_sys_display_result repeat_command_phrase
+    | ctx:ctx_sys_action_error repeat_command_on_error_phrase
+    ) => D.repeatCommandReply(ctx);
 
     // restarting
 
@@ -372,7 +373,7 @@ $user : Ast.DialogueState = {
         => D.positiveRecommendationReply($loader, ctx, null, null);
     ctx:ctx_sys_recommend_one acceptedAction:recommendation_accept_phrase_with_action [weight=0.7]
         => D.positiveRecommendationReply($loader, ctx, acceptedAction, null);
-    ctx:ctx_sys_recommend_one name:recommendation_accept_phrase_by_name [weight=0.7]
+    ?multiwoz ctx:ctx_sys_recommend_one name:recommendation_accept_phrase_by_name [weight=0.7]
         => D.positiveRecommendationReply($loader, ctx, name[1], name[0]);
 
     // accepting recommendation to learn more
@@ -413,7 +414,7 @@ $user : Ast.DialogueState = {
     // accepting list proposals
     ctx:ctx_sys_recommend_many reply:positive_list_proposal_reply [weight=10 * 0.7]
         => D.positiveListProposalReply($loader, ctx, reply);
-    ctx:ctx_sys_recommend_many action:list_proposal_accept_phrase_with_action_by_name [weight=10 * 0.7]
+    ?multiwoz ctx:ctx_sys_recommend_many action:list_proposal_accept_phrase_with_action_by_name [weight=10 * 0.7]
         => D.positiveListProposalReplyActionByName($loader, ctx, action);
 
     // accepting list proposal to learn more
