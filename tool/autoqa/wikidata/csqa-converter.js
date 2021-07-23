@@ -691,12 +691,7 @@ module.exports = {
         parser.add_argument('--entity-id', {
             action: 'store_true',
             help: "Include entity id in thingtalk",
-            default: true
-        });
-        parser.add_argument('--no-entity-id', {
-            action: 'store_false',
-            help: "Exclude entity id in thingtalk",
-            dest: 'entity_id'
+            default: false
         });
         parser.add_argument('--filter', {
             required: false,
