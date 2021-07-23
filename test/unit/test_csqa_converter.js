@@ -412,7 +412,7 @@ export default async function main() {
             return csqaType === 'Q6256' ? 'country' : null;
         } 
     };
-    csqaConverter._items = new Map([['country', new Map(Object.entries(ITEMS))]]);
+    csqaConverter._items = new Map([['country', ITEMS]]);
     csqaConverter._values = new Map(Object.entries(VALUES));
     csqaConverter._wikidataProperties = new Map(Object.entries(PROPERTIES));
 
