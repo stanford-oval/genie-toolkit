@@ -26,7 +26,7 @@ import Engine from '../../engine';
 import * as I18n from '../../i18n';
 
 import StatementExecutor from '../statement_executor';
-import DialoguePolicy from '../dialogue_policy';
+import { DialoguePolicy } from '../../new-dialogue-agent/inference-time-dialogue';
 
 import CardFormatter from '../card-output/card-formatter';
 import { FORMAT_TYPES } from '../card-output/format_objects';

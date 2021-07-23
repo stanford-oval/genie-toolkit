@@ -38,7 +38,7 @@ import {
     DialogueTurn,
     DialogueExample,
 } from '../lib/dataset-tools/parsers';
-import DialoguePolicy from '../lib/dialogue-agent/dialogue_policy';
+import { DialoguePolicy } from '../lib/new-dialogue-agent/inference-time-dialogue';
 import * as ParserClient from '../lib/prediction/parserclient';
 import * as I18n from '../lib/i18n';
 

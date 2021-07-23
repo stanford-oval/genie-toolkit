@@ -25,13 +25,16 @@ import { Ast, Type, SchemaRetriever, Syntax } from 'thingtalk';
 
 import * as I18n from '../i18n';
 import SentenceGenerator, { SentenceGeneratorOptions } from '../sentence-generator/generator';
-import { AgentReplyRecord } from '../sentence-generator/types';
-import { PolicyModule } from '../new-dialogue-agent';
+import { AgentReply, AgentReplyRecord } from '../sentence-generator/types';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import { EntityMap } from '../utils/entity-utils';
 import { Derivation } from '../sentence-generator/runtime';
 
 import * as TransactionPolicy from '../templates/transactions';
+
+import { PolicyModule } from './index';
+import { Command } from './command';
+import { AbstractCommandIO } from './cmd-dispatch';
 
 const MAX_DEPTH = 8;
 const TARGET_PRUNING_SIZES = [15, 50, 100, 200];
@@ -69,7 +72,29 @@ interface PolicyResult {
     numResults : number;
 }
 
-export default class DialoguePolicy {
+export class InferenceTimeDialogue implements AbstractCommandIO {
+    constructor() {
+
+    }
+
+    analyzeCommand() {
+        throw new Error(`not implemented yet`);
+    }
+
+    getReply() {
+        throw new Error(`not implemented yet`);
+    }
+
+    get(expecting : Type|null) : Promise<Command> {
+        throw new Error(`not implemented yet`);
+    }
+
+    emit(reply : AgentReply) : Promise<void> {
+        throw new Error(`not implemented yet`);
+    }
+}
+
+export class DialoguePolicy {
     private _thingpedia : Tp.BaseClient;
     private _schemas : SchemaRetriever;
     private _locale : string;

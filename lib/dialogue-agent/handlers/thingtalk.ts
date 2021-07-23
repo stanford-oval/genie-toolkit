@@ -36,7 +36,7 @@ import ValueCategory from '../value-category';
 import { UserInput, } from '../user-input';
 import { CancellationError } from '../errors';
 
-import DialoguePolicy from '../dialogue_policy';
+import { DialoguePolicy } from '../../new-dialogue-agent/inference-time-dialogue';
 import CardFormatter from '../card-output/card-formatter';
 import AppExecutor from '../../engine/apps/app_executor';
 

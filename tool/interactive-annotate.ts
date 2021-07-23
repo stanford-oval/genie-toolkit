@@ -38,7 +38,7 @@ import {
 } from '../lib/dataset-tools/parsers';
 import AbstractDialogueAgent from '../lib/dialogue-agent/abstract_dialogue_agent';
 import ExecutionDialogueAgent from '../lib/dialogue-agent/execution_dialogue_agent';
-import DialoguePolicy from '../lib/dialogue-agent/dialogue_policy';
+import { DialoguePolicy } from '../lib/new-dialogue-agent/inference-time-dialogue';
 import ValueCategory from '../lib/dialogue-agent/value-category';
 import Engine from '../lib/engine';
 import * as I18n from '../lib/i18n';
