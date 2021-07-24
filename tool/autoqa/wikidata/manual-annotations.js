@@ -99,8 +99,136 @@ const PROPERTY_FORCE_NOT_ARRAY = new Set([
 ]);
 
 
-const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
 
+const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
+    'id': {
+        passive_verb: ["named #", "called #"],
+        property: ["name #"]
+    },
+    'capital_of': {
+        property: ["capital of #"],
+        reverse_property: ["# capital", "#'s capital"],
+    },
+    'located_in_time_zone': {
+        passive_verb: ["located in # time zone"],
+        preposition: ["in # time zone", "in # time"],
+    },
+    'sister_city': {
+        property: ["sister city #"],
+    },
+    'legislative_body': {
+        property: ["#"],
+    },
+    'country': {
+        preposition: ["in #", "part of #"],
+    },
+    'list_of_monuments': {
+        // TODO
+    },
+    'head_of_government': {
+        property: ["head of government #", "leader #"],
+    },
+    'located_next_to_body_of_water': {
+        preposition: ["next to #", "located next to #"],
+        verb: ["borders #"],
+        passive_verb: ["located next to #"]
+    },
+    'architectural_style': {
+        // TODO
+    },
+    'flag': {
+        // TODO
+    },
+    'coat_of_arms': {
+        // TODO
+    },
+    'shares_border_with': {
+        verb: ["shares border with #", "borders #"],
+        preposition: ["next to #"],
+        passive_verb: ["located next to #"]
+    },
+    'founder': {
+        passive_verb: ["founded by #"]
+    },
+    'part_of': {
+        preposition: ["part of #"],
+    },
+    'office_held_by_head_of_government': {
+        passive_verb: ["has a #", "lead by #", "governed by #", "run by #"],
+    },
+    'official_language': {
+        property: ["official language #"]
+    },
+    'applies_to_jurisdiction': {
+        // TODO
+    },
+    'patron_saint': {
+        property: ["patron saint"],
+    },
+    'contains_settlement': {
+        // TODO
+    },
+    'award_received': {
+        verb: ["has # award"]
+    },
+    'located_on_terrain_feature': {
+        passive_verb: ["located on #", "located on a #"],
+        preposition: ["on #", "on a #"]
+    },
+    'heritage_status': {
+        // TODO
+    },
+    'continent': {
+        preposition: ["in #", "within #"]
+    },
+    'named_after': {
+        passive_verb: ["named after #"],
+        property: ["namesake #"]
+    },
+    'from_fictional_universe': {
+        preposition: ["from #", "from the fictional universe #"]
+    },
+    'highest_point': {
+        property: ["highest point #"]
+    },
+    'appointed_by': {
+        // TODO
+    },
+    'member_of': {
+        reverse_property: ["# member"],
+        property: ["member of #"]
+    },
+    'capital': {
+        base: ["capital"],
+    },
+    'headquarters_location': {
+        // TODO
+    },
+    'diocese': {
+        // TODO
+    },
+    'currency': {
+        property: ["currency #"],
+    },
+    'present_in_work': {
+        // TODO
+    },
+    'significant_event': {
+        // TODO
+    },
+    'stated_in': {
+        // TODO
+    },
+    'subsidiary': {
+        // TODO
+    },
+    'work_location': {
+        // TODO
+    },
+    'architect': {
+        property: ["architect #"],
+        passive_verb: ["built by #", "designed by #"],
+    },
 };
 
 const MANUAL_TABLE_CANONICAL_OVERRIDE = {
