@@ -25,7 +25,7 @@ import { Ast, SchemaRetriever } from 'thingtalk';
 import { coin } from '../../utils/random';
 import AbstractDialogueAgent, { DeviceInfo } from '../abstract_dialogue_agent';
 import { EntityRecord } from '../entity-linking/entity-finder';
-import ValueCategory from '../value-category';
+import ValueCategory from '../../dialogue-runtime/value-category';
 
 import StatementSimulator, {
     ThingTalkSimulatorState,

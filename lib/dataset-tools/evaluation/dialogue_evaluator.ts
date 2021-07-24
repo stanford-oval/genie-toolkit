@@ -32,7 +32,7 @@ import { stripOutTypeAnnotations } from './eval_utils';
 import { ParserClient, PredictionResult } from '../../prediction/parserclient';
 import { ParsedDialogue, DialogueTurn } from '../parsers';
 import * as ThingTalkUtils from '../../utils/thingtalk';
-import { SimulationDatabase } from '../../dialogue-agent/simulator/types';
+import { SimulationDatabase } from '../../thingtalk-dialogues/simulator/types';
 import SlotExtractor from './slot_extractor';
 
 interface DialogueEvaluatorOptions {

@@ -40,7 +40,7 @@ import {
 
 import { readAllLines } from './lib/argutils';
 import MultiJSONDatabase from './lib/multi_json_database';
-import SimulationDialogueAgent, { SimulationDialogueAgentOptions } from '../lib/dialogue-agent/simulator/simulation_dialogue_agent';
+import SimulationDialogueAgent, { SimulationDialogueAgentOptions } from '../lib/thingtalk-dialogues/simulator/simulation_dialogue_agent';
 
 interface AnnotatorOptions {
     locale : string;

@@ -37,7 +37,7 @@ import {
     DialogueTurn
 } from '../lib/dataset-tools/parsers';
 import SlotExtractor from '../lib/dataset-tools/evaluation/slot_extractor';
-import { SimulationDatabase } from '../lib/dialogue-agent/simulator/types';
+import { SimulationDatabase } from '../lib/thingtalk-dialogues/simulator/types';
 
 import { maybeCreateReadStream, readAllLines } from './lib/argutils';
 import MultiJSONDatabase from './lib/multi_json_database';

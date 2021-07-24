@@ -22,7 +22,7 @@
 import { Ast, } from 'thingtalk';
 
 import type AbstractDialogueAgent from '../abstract_dialogue_agent';
-import ValueCategory from '../value-category';
+import ValueCategory from '../../dialogue-runtime/value-category';
 
 // scoring heuristics:
 // prefer full matches, allow prefix matches

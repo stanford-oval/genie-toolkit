@@ -29,7 +29,7 @@ export * from './dialogue_state_utils';
 import { computePrediction } from './dialogue_state_utils';
 // reexport clean, tokenizeExample from misc-utils
 import { clean, tokenizeExample } from '../misc-utils';
-import { PolicyModule } from '../../new-dialogue-agent';
+import { PolicyModule } from '../../thingtalk-dialogues';
 export { clean, tokenizeExample };
 
 export {

@@ -24,30 +24,30 @@ import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
 import { Ast, Type, Syntax } from 'thingtalk';
 
-import { clean } from '../../utils/misc-utils';
-import { getProgramIcon } from '../../utils/icons';
-import * as ThingTalkUtils from '../../utils/thingtalk';
-import { EntityMap } from '../../utils/entity-utils';
-import type Engine from '../../engine';
-import * as ParserClient from '../../prediction/parserclient';
-import * as I18n from '../../i18n';
+import { clean } from '../utils/misc-utils';
+import { getProgramIcon } from '../utils/icons';
+import * as ThingTalkUtils from '../utils/thingtalk';
+import { EntityMap } from '../utils/entity-utils';
+import type Engine from '../engine';
+import * as ParserClient from '../prediction/parserclient';
+import * as I18n from '../i18n';
 
-import ValueCategory from '../value-category';
-import { UserInput, } from '../user-input';
-import { CancellationError } from '../errors';
+import ValueCategory from '../dialogue-runtime/value-category';
+import { UserInput, } from '../dialogue-runtime/user-input';
+import { CancellationError } from '../dialogue-runtime/errors';
 
-import { DialoguePolicy } from '../../new-dialogue-agent/inference-time-dialogue';
-import CardFormatter from '../card-output/card-formatter';
-import AppExecutor from '../../engine/apps/app_executor';
+import { DialoguePolicy } from './inference-time-dialogue';
+import CardFormatter from '../dialogue-runtime/card-output/card-formatter';
+import AppExecutor from '../engine/apps/app_executor';
 
-import ExecutionDialogueAgent from '../execution_dialogue_agent';
+import ExecutionDialogueAgent from './execution_dialogue_agent';
 import {
     DialogueLoop,
     DialogueHandler,
     CommandAnalysisType,
     ReplyResult,
-} from '../dialogue-loop';
-import { Button } from '../card-output/format_objects';
+} from '../dialogue-runtime/dialogue-loop';
+import { Button } from '../dialogue-runtime/card-output/format_objects';
 
 // TODO: load the policy.yaml file instead
 const POLICY_NAME = 'org.thingpedia.dialogue.transaction';

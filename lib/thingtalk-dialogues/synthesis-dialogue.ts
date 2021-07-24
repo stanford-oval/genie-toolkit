@@ -24,7 +24,7 @@ import assert from 'assert';
 
 import * as I18n from '../i18n';
 import { DialogueTurn } from '../dataset-tools/parsers';
-import SimulationDialogueAgent from '../dialogue-agent/simulator/simulation_dialogue_agent';
+import SimulationDialogueAgent from './simulator/simulation_dialogue_agent';
 
 import {
     ContextPhrase,

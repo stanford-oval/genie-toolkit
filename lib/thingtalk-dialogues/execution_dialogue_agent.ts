@@ -27,13 +27,13 @@ import type { DeviceInfo } from '../engine';
 
 import { cleanKind } from '../utils/misc-utils';
 import { ReplacedList, ReplacedConcatenation } from '../utils/template-string';
-import ValueCategory from './value-category';
+import ValueCategory from '../dialogue-runtime/value-category';
 import StatementExecutor from './statement_executor';
-import { CancellationError } from './errors';
+import { CancellationError } from '../dialogue-runtime/errors';
 import { EntityRecord } from './entity-linking/entity-finder';
 import { Contact } from './entity-linking/contact_search';
-import { PlatformData } from './protocol';
-import { ConversationState } from './conversation';
+import { PlatformData } from '../dialogue-runtime/protocol';
+import { ConversationState } from '../dialogue-runtime/conversation';
 
 import AbstractDialogueAgent, {
     DisambiguationHints,

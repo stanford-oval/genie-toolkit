@@ -40,8 +40,8 @@ import { ConversationState } from './conversation';
 import AppExecutor from '../engine/apps/app_executor';
 import DeviceInterfaceMapper from '../engine/devices/device_interface_mapper';
 
-import ExecutionDialogueAgent from './execution_dialogue_agent';
-import ThingTalkDialogueHandler from './handlers/thingtalk';
+import ExecutionDialogueAgent from '../thingtalk-dialogues/execution_dialogue_agent';
+import ThingTalkDialogueHandler from '../thingtalk-dialogues/thingtalk-dialogue-handler';
 import FAQDialogueHandler from './handlers/faq';
 import ThingpediaDialogueHandler from './handlers/3rdparty';
 import DeviceView from '../engine/devices/device_view';

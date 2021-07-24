@@ -32,9 +32,9 @@ import { DialogueSerializer } from '../lib/dataset-tools/parsers';
 import * as StreamUtils from '../lib/utils/stream-utils';
 import MultiJSONDatabase from './lib/multi_json_database';
 import ProgressBar from './lib/progress_bar';
-import { getBestEntityMatch } from '../lib/dialogue-agent/entity-linking/entity-finder';
+import { getBestEntityMatch } from '../lib/thingtalk-dialogues/entity-linking/entity-finder';
 import * as ThingTalkUtils from '../lib/utils/thingtalk';
-import SimulationDialogueAgent, { SimulationDialogueAgentOptions } from '../lib/dialogue-agent/simulator/simulation_dialogue_agent';
+import SimulationDialogueAgent, { SimulationDialogueAgentOptions } from '../lib/thingtalk-dialogues/simulator/simulation_dialogue_agent';
 
 function undoTradePreprocessing(sentence : string) : string {
     return sentence.replace(/ -(ly|s)/g, '$1').replace(/\b24:([0-9]{2})\b/g, '00:$1');

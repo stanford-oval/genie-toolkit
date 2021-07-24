@@ -55,7 +55,6 @@ do_test([
     ('./test_entities'),
     ('./test_entity_match'),
     ('./test_exact_matcher'),
-    ('./test_helpers'),
     ('./test_i18n_chinese'),
     ('./test_infix_to_postfix'),
     ('./test_ip_address'),

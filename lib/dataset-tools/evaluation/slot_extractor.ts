@@ -23,8 +23,8 @@ import { Ast, SchemaRetriever, } from 'thingtalk';
 import assert from 'assert';
 
 import * as I18n from '../../i18n';
-import { EntityRecord, getBestEntityMatch } from '../../dialogue-agent/entity-linking/entity-finder';
-import { SimulationDatabase } from '../../dialogue-agent/simulator/types';
+import { EntityRecord, getBestEntityMatch } from '../../thingtalk-dialogues/entity-linking/entity-finder';
+import { SimulationDatabase } from '../../thingtalk-dialogues/simulator/types';
 import { cleanKind } from '../../utils/misc-utils';
 
 /**

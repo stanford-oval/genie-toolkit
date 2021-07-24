@@ -23,8 +23,8 @@ import * as events from 'events';
 
 import SpeechRecognizer from './speech_recognizer';
 import SpeechSynthesizer from './speech_synthesizer';
-import { MessageType } from '../dialogue-agent/protocol';
-import type Conversation from '../dialogue-agent/conversation';
+import { MessageType } from '../dialogue-runtime/protocol';
+import type Conversation from '../dialogue-runtime/conversation';
 import type AudioController from '../engine/audio_controller';
 
 interface SpeechHandlerOptions {

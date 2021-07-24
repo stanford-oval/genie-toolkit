@@ -36,16 +36,16 @@ import {
     DialogueSerializer,
     DialogueTurn,
 } from '../lib/dataset-tools/parsers';
-import AbstractDialogueAgent from '../lib/dialogue-agent/abstract_dialogue_agent';
-import ExecutionDialogueAgent from '../lib/dialogue-agent/execution_dialogue_agent';
-import { DialoguePolicy } from '../lib/new-dialogue-agent/inference-time-dialogue';
-import ValueCategory from '../lib/dialogue-agent/value-category';
+import AbstractDialogueAgent from '../lib/thingtalk-dialogues/abstract_dialogue_agent';
+import ExecutionDialogueAgent from '../lib/thingtalk-dialogues/execution_dialogue_agent';
+import { DialoguePolicy } from '../lib/thingtalk-dialogues/inference-time-dialogue';
+import ValueCategory from '../lib/dialogue-runtime/value-category';
 import Engine from '../lib/engine';
 import * as I18n from '../lib/i18n';
 
 import MultiJSONDatabase from './lib/multi_json_database';
 import Platform from './lib/cmdline-platform';
-import SimulationDialogueAgent, { SimulationDialogueAgentOptions } from '../lib/dialogue-agent/simulator/simulation_dialogue_agent';
+import SimulationDialogueAgent, { SimulationDialogueAgentOptions } from '../lib/thingtalk-dialogues/simulator/simulation_dialogue_agent';
 
 interface AnnotatorOptions {
     locale : string;

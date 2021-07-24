@@ -36,9 +36,9 @@ import AppDatabase from './apps/database';
 import AppRunner from './apps/runner';
 import type AppExecutor from './apps/app_executor';
 
-import AssistantDispatcher from '../dialogue-agent/assistant_dispatcher';
-import { NotificationConfig } from '../dialogue-agent/notifications';
-import NotificationFormatter from '../dialogue-agent/notifications/formatter';
+import AssistantDispatcher from '../dialogue-runtime/assistant_dispatcher';
+import { NotificationConfig } from '../dialogue-runtime/notifications';
+import NotificationFormatter from '../dialogue-runtime/notifications/formatter';
 
 import * as Config from '../config';
 

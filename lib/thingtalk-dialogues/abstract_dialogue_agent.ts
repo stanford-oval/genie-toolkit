@@ -28,8 +28,8 @@ import { shouldAutoConfirmStatement, addIndexToIDQuery } from '../utils/thingtal
 import { contactSearch, Contact } from './entity-linking/contact_search';
 import { collectDisambiguationHints, getBestEntityMatch, EntityRecord } from './entity-linking/entity-finder';
 
-import { CancellationError } from './errors';
-import ValueCategory from './value-category';
+import { CancellationError } from '../dialogue-runtime';
+import ValueCategory from '../dialogue-runtime/value-category';
 
 interface AbstractDialogueAgentOptions {
     locale : string;

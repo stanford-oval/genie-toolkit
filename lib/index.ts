@@ -44,7 +44,7 @@ import * as BTrie from './utils/btrie';
 import SpeechHandler from './speech/speech_handler';
 import AssistantEngine from './engine';
 import * as EngineModules from './engine';
-import * as DialogueAgent from './dialogue-agent';
+import * as DialogueAgent from './dialogue-runtime';
 
 import BatchSentenceGenerator from './sentence-generator/batch-sentence';
 import DialogueGenerator from './sentence-generator/dialogue-generator';

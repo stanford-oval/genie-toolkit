@@ -28,19 +28,19 @@ import * as I18n from '../i18n';
 import { coin, ReservoirSampler, } from '../utils/random';
 import * as ThingTalkUtils from '../utils/thingtalk';
 import { DialogueTurn } from '../dataset-tools/parsers';
-import { SimulationDatabase } from '../dialogue-agent/simulator/types';
+import { SimulationDatabase } from '../thingtalk-dialogues/simulator/types';
 import * as TransactionPolicy from '../templates/transactions';
-import SimulationDialogueAgent from '../dialogue-agent/simulator/simulation_dialogue_agent';
+import SimulationDialogueAgent from '../thingtalk-dialogues/simulator/simulation_dialogue_agent';
 
 import SentenceGenerator, { SentenceGeneratorOptions } from './generator';
 import SynthesisDialogue, {
     AgentTurn, Continuation, ExtendedAgentReplyRecord
-} from '../new-dialogue-agent/synthesis-dialogue';
+} from '../thingtalk-dialogues/synthesis-dialogue';
 
 import {
     Command,
     PolicyModule,
-} from '../new-dialogue-agent';
+} from '../thingtalk-dialogues';
 import { ReplacedResult } from '../utils/template-string';
 
 const FACTORS = [50, 75, 75, 100];

@@ -40,7 +40,7 @@ export { UnexpectedCommandError, TerminatedDialogueError };
 import type SentenceGenerator from '../sentence-generator/generator';
 import type { SentenceGeneratorOptions } from '../sentence-generator/generator';
 import type ThingpediaLoader from '../templates/load-thingpedia';
-import AbstractDialogueAgent from '../dialogue-agent/abstract_dialogue_agent';
+import AbstractDialogueAgent from './abstract_dialogue_agent';
 
 /**
  * This module contains the public API of the Genie dialogue scripting language.

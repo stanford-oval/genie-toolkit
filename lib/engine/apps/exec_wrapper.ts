@@ -27,7 +27,7 @@ import MonitorRunner from './monitor_runner';
 
 import { Timer, AtTimer, OnTimer } from './timers';
 import DeviceView from '../devices/device_view';
-import NotificationFormatter from '../../dialogue-agent/notifications/formatter';
+import NotificationFormatter from '../../dialogue-runtime/notifications/formatter';
 import RestartableAsyncIterable from '../util/restartable_async_iterable';
 
 import type AppExecutor from './app_executor';

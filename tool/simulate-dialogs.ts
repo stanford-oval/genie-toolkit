@@ -29,7 +29,7 @@ import * as ThingTalk from 'thingtalk';
 import * as ThingTalkUtils from '../lib/utils/thingtalk';
 import SimulationDialogueAgent, {
     SimulationDialogueAgentOptions
-} from '../lib/dialogue-agent/simulator/simulation_dialogue_agent';
+} from '../lib/thingtalk-dialogues/simulator/simulation_dialogue_agent';
 import * as StreamUtils from '../lib/utils/stream-utils';
 import {
     DialogueParser,
@@ -38,7 +38,7 @@ import {
     DialogueTurn,
     DialogueExample,
 } from '../lib/dataset-tools/parsers';
-import { DialoguePolicy } from '../lib/new-dialogue-agent/inference-time-dialogue';
+import { DialoguePolicy } from '../lib/thingtalk-dialogues/inference-time-dialogue';
 import * as ParserClient from '../lib/prediction/parserclient';
 import * as I18n from '../lib/i18n';
 
