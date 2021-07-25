@@ -123,9 +123,8 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     'country': {
         preposition: ["in #", "part of #"],
     },
-    'list_of_monuments': {
-        // not in eval set
-    },
+    // not in eval set
+    // 'list_of_monuments': {},
     'head_of_government': {
         property: ["head of government #", "leader #"],
     },
@@ -134,11 +133,11 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         verb: ["borders #"],
         passive_verb: ["located next to #"]
     },
-    'architectural_style': {
-        // not in eval set
-    },
+    // not in eval set
+    // 'architectural_style': {},
     'flag': {
         base: ["flag"],
+        verb: ["associate with"],
     },
     'coat_of_arms': {
         base: ["coat of arms"],
@@ -155,7 +154,8 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         preposition: ["part of #"],
     },
     'office_held_by_head_of_government': {
-        passive_verb: ["has a #", "lead by #", "governed by #", "run by #"],
+        property: ['a #'],
+        passive_verb: ["lead by #", "governed by #", "run by #"],
     },
     'official_language': {
         property: ["official language #"]
@@ -166,19 +166,18 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     'patron_saint': {
         base: ["patron saint"],
     },
-    'contains_settlement': {
-        // eval set only contains noise for this
-    },
+    // eval set only contains noise for this
+    // 'contains_settlement': {},
     'award_received': {
+        property: ['# award'],
         verb: ["has # award"]
     },
     'located_on_terrain_feature': {
         passive_verb: ["located on #", "located on a #"],
         preposition: ["on #", "on a #"]
     },
-    'heritage_status': {
-        // not in eval set
-    },
+    // not in eval set
+    //'heritage_status': {},
     'continent': {
         preposition: ["in #", "within #"]
     },
@@ -192,9 +191,8 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     'highest_point': {
         property: ["highest point #"]
     },
-    'appointed_by': {
-        // not in eval set
-    },
+    // not in eval set
+    //'appointed_by': {},
     'member_of': {
         reverse_property: ["# member"],
         property: ["member of #"]
@@ -205,27 +203,21 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
     'headquarters_location': {
         base: ["headquarters", "head office", "main office"],
     },
-    'diocese': {
-        // not in eval set
-    },
+    // not in eval set
+    //'diocese': {},
     'currency': {
         property: ["currency #"],
     },
-    'present_in_work': {
-        // not in eval set
-    },
-    'significant_event': {
-        // not in eval set
-    },
-    'stated_in': {
-        // TODO
-    },
-    'subsidiary': {
-        // TODO
-    },
-    'work_location': {
-        // TODO
-    },
+    // not in eval set
+    //'present_in_work': {},
+    // not in eval set
+    //'significant_event': {},
+    // TODO
+    //'stated_in': {},
+    // TODO
+    //'subsidiary': {},
+    // TODO
+    //'work_location': {},
     'architect': {
         property: ["architect #"],
         passive_verb: ["built by #", "designed by #"],
