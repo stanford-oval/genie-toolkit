@@ -114,16 +114,17 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         preposition: ["in # time zone", "in # time"],
     },
     'sister_city': {
-        property: ["sister city #"],
+        property: ["sister city #", "sister city of #", "sister town of #"],
     },
     'legislative_body': {
+        base: ["legislature", "assembly"],
         property: ["#"],
     },
     'country': {
         preposition: ["in #", "part of #"],
     },
     'list_of_monuments': {
-        // TODO
+        // not in eval set
     },
     'head_of_government': {
         property: ["head of government #", "leader #"],
@@ -134,13 +135,13 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         passive_verb: ["located next to #"]
     },
     'architectural_style': {
-        // TODO
+        // not in eval set
     },
     'flag': {
-        // TODO
+        base: ["flag"],
     },
     'coat_of_arms': {
-        // TODO
+        base: ["coat of arms"],
     },
     'shares_border_with': {
         verb: ["shares border with #", "borders #"],
@@ -160,13 +161,13 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         property: ["official language #"]
     },
     'applies_to_jurisdiction': {
-        // TODO
+        // not in eval set
     },
     'patron_saint': {
-        property: ["patron saint"],
+        base: ["patron saint"],
     },
     'contains_settlement': {
-        // TODO
+        // eval set only contains noise for this
     },
     'award_received': {
         verb: ["has # award"]
@@ -176,7 +177,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         preposition: ["on #", "on a #"]
     },
     'heritage_status': {
-        // TODO
+        // not in eval set
     },
     'continent': {
         preposition: ["in #", "within #"]
@@ -192,7 +193,7 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         property: ["highest point #"]
     },
     'appointed_by': {
-        // TODO
+        // not in eval set
     },
     'member_of': {
         reverse_property: ["# member"],
@@ -202,19 +203,19 @@ const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
         base: ["capital"],
     },
     'headquarters_location': {
-        // TODO
+        base: ["headquarters", "head office", "main office"],
     },
     'diocese': {
-        // TODO
+        // not in eval set
     },
     'currency': {
         property: ["currency #"],
     },
     'present_in_work': {
-        // TODO
+        // not in eval set
     },
     'significant_event': {
-        // TODO
+        // not in eval set
     },
     'stated_in': {
         // TODO
