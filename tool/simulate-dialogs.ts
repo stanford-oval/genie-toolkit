@@ -38,9 +38,8 @@ import {
     DialogueTurn,
     DialogueExample,
 } from '../lib/dataset-tools/parsers';
-import { DialoguePolicy } from '../lib/thingtalk-dialogues/inference-time-dialogue';
+import { InferenceTimeDialogue } from '../lib/thingtalk-dialogues/inference-time-dialogue';
 import * as ParserClient from '../lib/prediction/parserclient';
-import * as I18n from '../lib/i18n';
 
 import { ActionSetFlag, readAllLines } from './lib/argutils';
 import MultiJSONDatabase from './lib/multi_json_database';
@@ -77,6 +76,10 @@ export function initArgparse(subparsers : argparse.SubParser) {
     parser.add_argument('--dataset', {
         required: true,
         help: 'Path to file containing primitive templates, in ThingTalk syntax.'
+    });
+    parser.add_argument('--policy', {
+        required: false,
+        help: 'Path to JS/TS module defining the dialogue policy.'
     });
     parser.add_argument('--database-file', {
         required: false,
@@ -126,39 +129,61 @@ export function initArgparse(subparsers : argparse.SubParser) {
 }
 
 class SimulatorStream extends Stream.Transform {
+    private _policy : string;
     private _simulator : SimulationDialogueAgent;
     private _schemas : ThingTalk.SchemaRetriever;
-    private _dialoguePolicy : DialoguePolicy;
     private _parser : ParserClient.ParserClient | null;
     private _tpClient : Tp.BaseClient;
     private _outputMistakesOnly : boolean;
     private _locale : string;
-    private _langPack : I18n.LanguagePack;
+    private _timezone : string;
+    private _rng : () => number;
+    private _flags : Record<string, boolean>;
 
-    constructor(policy : DialoguePolicy,
-                simulator : SimulationDialogueAgent,
-                schemas : ThingTalk.SchemaRetriever,
-                parser : ParserClient.ParserClient | null,
-                tpClient : Tp.BaseClient,
-                outputMistakesOnly : boolean,
-                locale : string) {
+    constructor(options : {
+        policy : string,
+        simulator : SimulationDialogueAgent,
+        schemaRetriever : ThingTalk.SchemaRetriever,
+        parser : ParserClient.ParserClient | null,
+        thingpediaClient : Tp.BaseClient,
+        outputMistakesOnly : boolean,
+        locale : string,
+        timezone : string,
+        rng : () => number,
+        flags : Record<string, boolean>
+    }) {
         super({ objectMode : true });
 
-        this._dialoguePolicy = policy;
-        this._simulator = simulator;
-        this._schemas = schemas;
-        this._parser = parser;
-        this._tpClient = tpClient;
-        this._outputMistakesOnly = outputMistakesOnly;
-        this._locale = locale;
-        this._langPack = I18n.get(locale);
+        this._policy = options.policy;
+        this._simulator = options.simulator;
+        this._schemas = options.schemaRetriever;
+        this._parser = options.parser;
+        this._tpClient = options.thingpediaClient;
+        this._outputMistakesOnly = options.outputMistakesOnly;
+        this._locale = options.locale;
+        this._rng = options.rng;
+        this._flags = options.flags;
+        this._timezone = options.timezone;
     }
 
     async _run(dlg : ParsedDialogue) : Promise<void> {
-        await this._dialoguePolicy.initialize();
-
         console.log('dialogue = ', dlg.id);
         const lastTurn = dlg[dlg.length-1];
+
+        const agent = new InferenceTimeDialogue({
+            thingpediaClient: this._tpClient,
+            schemaRetriever: this._schemas,
+            locale: this._locale,
+            timezone: this._timezone,
+            policy: this._policy,
+            executor: this._simulator,
+            nlu: this._parser!, // FIXME???
+            nlg: this._parser!,
+            extraFlags: this._flags,
+            anonymous: false,
+            debug: 0,
+            rng: this._rng
+        });
 
         let state = null;
         let contextCode, contextEntities;
@@ -218,8 +243,7 @@ class SimulatorStream extends Stream.Transform {
         assert(userTarget instanceof ThingTalk.Ast.DialogueState);
         state = ThingTalkUtils.computeNewState(state, userTarget, 'user');
 
-        const { newDialogueState } = await this._simulator.execute(state, undefined);
-        state = newDialogueState;
+        const reply = await agent.initialize(state.prettyprint(), false);
 
         const newTurn : DialogueTurn = {
             context: state.prettyprint(),
@@ -230,24 +254,13 @@ class SimulatorStream extends Stream.Transform {
             user_target: ''
         };
 
-        let policyResult;
-        try {
-            policyResult = await this._dialoguePolicy.chooseAction(state);
-        } catch(error) {
-            console.log(`Error while choosing action: ${error.message}. skipping.`);
-            return;
-        }
-        if (!policyResult) {
+        if (!reply) {
             // throw new Error(`Dialogue policy error: no reply for dialogue ${dlg.id}`);
             console.log(`Dialogue policy error: no reply for dialogue ${dlg.id}. skipping.`);
             return;
         }
-        //
-        const utterance = this._langPack.postprocessNLG(policyResult.utterance, policyResult.entities, this._simulator);
-
-        const prediction = ThingTalkUtils.computePrediction(state, policyResult.state, 'agent');
-        newTurn.agent = utterance;
-        newTurn.agent_target = prediction.prettyprint();
+        newTurn.agent = reply.messages[0] as string;
+        newTurn.agent_target = reply.agent_target;
         this.push({
             id: dlg.id,
             turns: dlg.concat([newTurn])
@@ -303,15 +316,15 @@ class DialogueToPartialDialoguesStream extends Stream.Transform {
 }
 
 export async function execute(args : any) {
-    const tpClient = new FileThingpediaClient(args);
-    const schemas = new ThingTalk.SchemaRetriever(tpClient, null, true);
+    const thingpediaClient = new FileThingpediaClient(args);
+    const schemaRetriever = new ThingTalk.SchemaRetriever(thingpediaClient, null, true);
 
     const simulatorOptions : SimulationDialogueAgentOptions = {
         rng: seedrandom.alea('almond is awesome'),
         locale: args.locale,
         timezone: args.timezone,
-        thingpediaClient: tpClient,
-        schemaRetriever: schemas,
+        thingpediaClient,
+        schemaRetriever,
         interactive: true
     };
     if (args.database_file) {
@@ -320,19 +333,6 @@ export async function execute(args : any) {
         simulatorOptions.database = database;
     }
     const simulator = new SimulationDialogueAgent(simulatorOptions);
-    const policy = new DialoguePolicy({
-        thingpedia: tpClient,
-        schemas: schemas,
-        locale: args.locale,
-        timezone: args.timezone,
-        rng: simulatorOptions.rng,
-        debug: 0,
-        anonymous: false,
-        extraFlags: {
-            ...args.flags
-        },
-    });
-
     let parser = null;
     if (args.nlu_server){
         parser = ParserClient.get(args.nlu_server, args.locale);
@@ -344,7 +344,18 @@ export async function execute(args : any) {
             readAllLines(args.input_file, '====')
             .pipe(new DialogueParser())
             .pipe(new DialogueToPartialDialoguesStream()) // convert each dialogues to many partial dialogues
-            .pipe(new SimulatorStream(policy, simulator, schemas, parser, tpClient, args.output_mistakes_only, args.locale))
+            .pipe(new SimulatorStream({
+                policy: args.policy,
+                simulator,
+                schemaRetriever,
+                parser,
+                thingpediaClient,
+                outputMistakesOnly: args.output_mistakes_only,
+                locale: args.locale,
+                timezone: args.timezone,
+                rng: simulatorOptions.rng,
+                flags: args.flags,
+            }))
             .pipe(new DialogueSerializer())
             .pipe(args.output)
         );
@@ -352,7 +363,18 @@ export async function execute(args : any) {
         await StreamUtils.waitFinish(
             readAllLines(args.input_file, '====')
             .pipe(new DialogueParser())
-            .pipe(new SimulatorStream(policy, simulator, schemas, parser, tpClient, args.output_mistakes_only, args.locale))
+            .pipe(new SimulatorStream({
+                policy: args.policy,
+                simulator,
+                schemaRetriever,
+                parser,
+                thingpediaClient,
+                outputMistakesOnly: args.output_mistakes_only,
+                locale: args.locale,
+                timezone: args.timezone,
+                rng: simulatorOptions.rng,
+                flags: args.flags,
+            }))
             .pipe(new DialogueSerializer())
             .pipe(args.output)
         );

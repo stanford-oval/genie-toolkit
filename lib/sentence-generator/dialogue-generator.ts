@@ -54,7 +54,6 @@ class MinibatchDialogueGenerator {
     private _agentGenerator : SentenceGenerator;
     private _userGenerator : SentenceGenerator;
     private _langPack : I18n.LanguagePack;
-    private _policy : PolicyModule;
     private _stateValidator : ThingTalkUtils.StateValidator;
     private _minibatchSize : number;
     private _rng : () => number;
@@ -80,7 +79,6 @@ class MinibatchDialogueGenerator {
         this._agentGenerator = agentGenerator;
         this._userGenerator = userGenerator;
         this._langPack = langPack;
-        this._policy = policy;
         this._stateValidator = stateValidator;
         this._minibatchSize = options.minibatchSize;
         this._rng = options.rng;
@@ -97,7 +95,7 @@ class MinibatchDialogueGenerator {
             this._partialDialogues.push(new SynthesisDialogue({
                 agentGenerator: agentGenerator,
                 userGenerator: userGenerator,
-                policy: policy.policy,
+                policy: policy,
                 simulator: simulator,
                 locale: options.locale,
                 schemaRetriever: options.schemaRetriever,
@@ -113,35 +111,13 @@ class MinibatchDialogueGenerator {
     }
 
     private *_agentGetContextPhrases() {
-        for (const dlg of this._partialDialogues) {
-            const phrases = this._policy.getContextPhrasesForState(dlg.state, this._agentGenerator.tpLoader,
-                this._agentGenerator.contextTable);
-            if (phrases !== null) {
-                yield dlg.getMainAgentContextPhrase();
-
-                for (const phrase of phrases) {
-                    // override the context because we need the context in _generateAgent
-                    phrase.context = dlg;
-                    yield phrase;
-                }
-            }
-        }
+        for (const dlg of this._partialDialogues)
+            yield* dlg.getAgentContextPhrases();
     }
 
     private *_userGetContextPhrases(agentTurns : readonly AgentTurn[]) {
-        for (const agentTurn of agentTurns) {
-            const phrases = this._policy.getContextPhrasesForState(agentTurn.state, this._userGenerator.tpLoader,
-                this._userGenerator.contextTable!);
-            if (phrases !== null) {
-                yield agentTurn.dialogue.getMainUserContextPhrase(agentTurn);
-
-                for (const phrase of phrases) {
-                    // override the context because we need the context in _generateAgent
-                    phrase.context = agentTurn;
-                    yield phrase;
-                }
-            }
-        }
+        for (const agentTurn of agentTurns)
+            yield* agentTurn.dialogue.getUserContextPhrases(agentTurn);
     }
 
     private _maybeAddCompleteDialog(turns : DialogueTurn[]) {
@@ -374,6 +350,7 @@ export default class DialogueGenerator extends stream.Readable {
             logPrefix: options.logPrefix,
             rng: options.rng,
             thingpediaClient: options.thingpediaClient,
+            schemaRetriever: options.schemaRetriever,
             entityAllocator: new Syntax.SequentialEntityAllocator({}),
             onlyDevices: options.onlyDevices,
             whiteList: options.whiteList,
@@ -396,6 +373,7 @@ export default class DialogueGenerator extends stream.Readable {
             logPrefix: options.logPrefix,
             rng: options.rng,
             thingpediaClient: options.thingpediaClient,
+            schemaRetriever: options.schemaRetriever,
             entityAllocator: new Syntax.SequentialEntityAllocator({}),
             onlyDevices: options.onlyDevices,
             whiteList: options.whiteList,

@@ -2,7 +2,7 @@
 //
 // This file is part of Genie
 //
-// Copyright 2020 The Board of Trustees of the Leland Stanford Junior University
+// Copyright 2020-2021 The Board of Trustees of the Leland Stanford Junior University
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,261 +18,468 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import path from 'path';
 import assert from 'assert';
 import * as Tp from 'thingpedia';
-import { Ast, Type, SchemaRetriever, Syntax } from 'thingtalk';
+import { Ast, Type, SchemaRetriever } from 'thingtalk';
+import AsyncQueue from 'consumer-queue';
 
 import * as I18n from '../i18n';
-import SentenceGenerator, { SentenceGeneratorOptions } from '../sentence-generator/generator';
-import { AgentReply, AgentReplyRecord } from '../sentence-generator/types';
+import * as ParserClient from '../prediction/parserclient';
 import * as ThingTalkUtils from '../utils/thingtalk';
-import { EntityMap } from '../utils/entity-utils';
-import { Derivation } from '../sentence-generator/runtime';
+import { ReplacedConcatenation, ReplacedResult } from '../utils/template-string';
+import { clean } from '../utils/misc-utils';
+import { getProgramIcon } from '../utils/icons';
 
-import * as TransactionPolicy from '../templates/transactions';
+import { AgentReply, AgentReplyRecord, ContextPhrase, Template } from '../sentence-generator/types';
+import { LogLevel } from '../sentence-generator/runtime';
 
-import { PolicyModule } from './index';
+import ValueCategory from '../dialogue-runtime/value-category';
+import { UserInput, } from '../dialogue-runtime/user-input';
+import CardFormatter from '../dialogue-runtime/card-output/card-formatter';
+import {
+    DialogueHandler,
+    CommandAnalysisType,
+    ReplyResult,
+} from '../dialogue-runtime/dialogue-loop';
+import { Button } from '../dialogue-runtime/card-output/format_objects';
+
+import { DialogueInterface, } from './interface';
+import {
+    PolicyModule, PolicyStartMode
+} from './policy';
 import { Command } from './command';
-import { AbstractCommandIO } from './cmd-dispatch';
+import {
+    AbstractCommandIO,
+    SimpleCommandDispatcher,
+    TerminatedDialogueError,
+    UnexpectedCommandError
+} from './cmd-dispatch';
+import AbstractDialogueAgent from './abstract_dialogue_agent';
+import { CommandParser, ThingTalkCommandAnalysisType } from './command-parser';
+import { load as loadPolicy } from './policy';
+import InferenceTimeSentenceGenerator from './inference-sentence-generator';
+import { addTemplate } from './template-utils';
 
-const MAX_DEPTH = 8;
-const TARGET_PRUNING_SIZES = [15, 50, 100, 200];
-
-function arrayEqual<T>(a : T[], b : T[]) : boolean {
-    if (a.length !== b.length)
-        return false;
-    for (let i = 0; i < a.length; i++) {
-        if (a[i] !== b[i])
-            return false;
-    }
-    return true;
-}
-
-interface DialoguePolicyOptions {
-    thingpedia : Tp.BaseClient;
-    schemas : SchemaRetriever;
-    locale : string;
-    timezone : string|undefined;
-    extraFlags : Record<string, boolean>;
-    anonymous : boolean;
-    policyModule ?: string;
-
-    rng : () => number;
-    debug : number;
-}
-
-interface PolicyResult {
-    state : Ast.DialogueState;
-    end : boolean;
-    expect : Type|null;
-    raw : boolean;
+interface ExtendedAgentReplyRecord extends AgentReplyRecord {
     utterance : string;
-    entities : EntityMap;
-    numResults : number;
 }
 
-export class InferenceTimeDialogue implements AbstractCommandIO {
-    constructor() {
-
-    }
-
-    analyzeCommand() {
-        throw new Error(`not implemented yet`);
-    }
-
-    getReply() {
-        throw new Error(`not implemented yet`);
-    }
-
-    get(expecting : Type|null) : Promise<Command> {
-        throw new Error(`not implemented yet`);
-    }
-
-    emit(reply : AgentReply) : Promise<void> {
-        throw new Error(`not implemented yet`);
-    }
+interface InferenceTimeDialogueOptions {
+    nlu : ParserClient.ParserClient,
+    nlg : ParserClient.ParserClient,
+    executor : AbstractDialogueAgent<any>,
+    locale : string,
+    timezone : string,
+    thingpediaClient : Tp.BaseClient,
+    schemaRetriever : SchemaRetriever,
+    policy : string|undefined,
+    extraFlags : Record<string, boolean>,
+    anonymous : boolean,
+    debug : number,
+    rng : () => number
 }
 
-export class DialoguePolicy {
-    private _thingpedia : Tp.BaseClient;
-    private _schemas : SchemaRetriever;
-    private _locale : string;
-    private _timezone : string|undefined;
-    private _langPack : I18n.LanguagePack;
-    private _rng : () => number;
-    private _debug : number;
-    private _anonymous : boolean;
-    private _extraFlags : Record<string, boolean>;
+/**
+ * Runtime for a ThingTalk dialogue at inference time.
+ *
+ * This class is bridge between a {@link PolicyFunction} and the dialogue loop.
+ * It exposes the {@link DialogueInterface} interface to the policy, through
+ * {@link AbstractCommandIO}. It exposes the {@link DialogueHandler} interface
+ * to the dialogue loop.
+ *
+ * The policy function runs in its own promise thread: it pulls commands from
+ * this class (with {@link get}) and pushes replies on its own time (with {@link emit}).
+ * The dialogue loop on the other hand expects a reply to a command in a single call to
+ * {@link getRply}. This class handles the synchronization.
+ */
+export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler<ThingTalkCommandAnalysisType, string> {
+    priority = Tp.DialogueHandler.Priority.PRIMARY;
+    uniqueId = 'thingtalk';
+    icon : string|null = null;
 
-    private _sentenceGenerator : SentenceGenerator|null;
-    private _generatorDevices : string[]|null;
-    private _generatorOptions : SentenceGeneratorOptions|undefined;
-    private _entityAllocator : Syntax.SequentialEntityAllocator;
-    private _policyModuleName : string|undefined;
-    private _policyModule ! : PolicyModule;
+    private readonly _options : InferenceTimeDialogueOptions;
+    private readonly _thingpedia : Tp.BaseClient;
+    private readonly _schemas : SchemaRetriever;
+    private readonly _langPack : I18n.LanguagePack;
+    private readonly _executor : AbstractDialogueAgent<any>;
+    private readonly _dlg : DialogueInterface;
+    private readonly _nlg : ParserClient.ParserClient;
+    private _policy ! : PolicyModule;
+    private _agentGenerator ! : InferenceTimeSentenceGenerator;
+    private _nlu ! : CommandParser;
+    private readonly _cardFormatter : CardFormatter;
+    private readonly _debug : number;
 
-    constructor(options : DialoguePolicyOptions) {
-        this._thingpedia = options.thingpedia;
-        this._schemas = options.schemas;
-        this._locale = options.locale;
-        this._timezone = options.timezone;
+    /**
+     * Whether the dialogue is currently in raw mode (i.e. any command
+     * from the user is treated as a quoted string without parsing).
+     *
+     * This has the same purpose as {@link DialogueLoop}.raw but it
+     * only tracks the state of this agent, so it can differ when other
+     * dialogue handlers are involved.
+     */
+    private _raw : boolean;
+    /**
+     * What type the current agent is expecting.
+     *
+     * This is used to affect the semantic parsing heuristics. It has
+     * the same meaning as {@link DialogueLoop}.expecting, but it only
+     * tracks the state of this agent, so it can differ when other
+     * dialogue handlers are involved.
+     */
+    private _expecting : ValueCategory|null;
+    /**
+     * Multiple choices that the agent is asking the user to disambiguate.
+     *
+     * This is used when {@link _expecting} is {@link ValueCategory.MultipleChoice}.
+     */
+    private _choices : string[];
+
+    private readonly _commandQueue : AsyncQueue<Command>;
+    private _nextReply : ExtendedAgentReplyRecord|null;
+    private _continuePromise : Promise<ReplyResult>|null;
+    private _continueResolve : ((reply : ReplyResult) => void)|null;
+
+    constructor(options : InferenceTimeDialogueOptions) {
+        this._options = options;
+        this._thingpedia = options.thingpediaClient;
+        this._schemas = options.schemaRetriever;
+        this._nlg = options.nlg;
         this._langPack = I18n.get(options.locale);
-        this._entityAllocator = new Syntax.SequentialEntityAllocator({});
-
-        this._rng = options.rng;
-        assert(this._rng);
+        this._executor = options.executor;
+        this._cardFormatter = new CardFormatter(options.locale, options.timezone, options.schemaRetriever);
         this._debug = options.debug;
-        this._anonymous = options.anonymous;
-        this._extraFlags = options.extraFlags;
-        this._policyModuleName = options.policyModule;
-
-        this._sentenceGenerator = null;
-        this._generatorDevices = null;
-        this._generatorOptions = undefined;
-    }
-
-    async initialize() {
-        if (this._policyModule)
-            return;
-        if (this._policyModuleName)
-            this._policyModule = await import(path.resolve(this._policyModuleName));
-        else
-            this._policyModule = TransactionPolicy;
-    }
-
-    private async _initializeGenerator(forDevices : string[]) {
-        console.log('Initializing dialogue policy for devices: ' + forDevices.join(', '));
-
-        this._generatorOptions = {
-            contextual: true,
-            rootSymbol: '$agent',
-            forSide: 'agent',
-            flags: {
-                dialogues: true,
-                inference: true,
-                anonymous: this._anonymous,
-                ...this._extraFlags
-            },
-            rng: this._rng,
-            locale: this._locale,
-            timezone: this._timezone,
-            thingpediaClient: this._thingpedia,
-            schemaRetriever: this._schemas,
-            entityAllocator: this._entityAllocator,
-            onlyDevices: forDevices,
-            maxDepth: MAX_DEPTH,
-            maxConstants: 5,
-            targetPruningSize: TARGET_PRUNING_SIZES[0],
-            debug: this._debug,
-        };
-        const sentenceGenerator = new SentenceGenerator(this._generatorOptions!);
-        this._sentenceGenerator = sentenceGenerator;
-        this._generatorDevices = forDevices;
-        await this._sentenceGenerator.initialize();
-        await this._policyModule.initializeTemplates(this._generatorOptions, this._langPack, this._sentenceGenerator, this._sentenceGenerator.tpLoader);
-    }
-
-    private _extractDevices(state : Ast.DialogueState|Ast.Program|null) : string[] {
-        if (state === null)
-            return [];
-        const devices = new Set<string>();
-        state.visit(new class extends Ast.NodeVisitor {
-            visitDeviceSelector(selector : Ast.DeviceSelector) : boolean {
-                devices.add(selector.kind);
-                return true;
-            }
+        this._dlg = new DialogueInterface(null, {
+            io: this,
+            dispatcher: new SimpleCommandDispatcher(this),
+            simulated: true,
+            interactive: false,
+            deterministic: false,
+            ...options
         });
-        const deviceArray = Array.from(devices);
-        deviceArray.sort();
-        return deviceArray;
+        this._commandQueue = new AsyncQueue();
+
+        this._raw = false;
+        this._expecting = null;
+        this._choices = [];
+
+        this._nextReply = null;
+        this._continuePromise = null;
+        this._continueResolve = null;
     }
 
-    private async _ensureGeneratorForState(state : Ast.DialogueState|Ast.Program|null) {
-        const devices = this._extractDevices(state);
-        if (this._generatorDevices && arrayEqual(this._generatorDevices, devices))
-            return;
-        await this._initializeGenerator(devices);
+    /**
+     * Low-level access to the dialogue state.
+     *
+     * This is used by interactive-annotate, which needs the dialogue state to run the parser.
+     */
+    get state() {
+        return this._dlg.state;
     }
 
-    async handleAnswer(state : Ast.DialogueState|null, value : Ast.Value) : Promise<Ast.DialogueState|null> {
-        if (state === null)
-            return null;
-        if (!this._policyModule.interpretAnswer)
-            return null;
-        await this._ensureGeneratorForState(state);
-        return this._policyModule.interpretAnswer(state, value, this._sentenceGenerator!.tpLoader, this._sentenceGenerator!.contextTable);
+    /**
+     * Low-level access to the agent generator.
+     *
+     * This is used by interactive-annotate, which needs to call raw policy methods to convert answers
+     * to dialogue states.
+     */
+    get generator() {
+        return this._agentGenerator;
     }
 
-    private _generateDerivation(state : Ast.DialogueState|null) {
-        let derivation : Derivation<AgentReplyRecord>|undefined;
+    /**
+     * Low-level access to the policy.
+     *
+     * This is used by interactive-annotate, which needs to call raw policy methods to convert answers
+     * to dialogue states.
+     */
+    get policy() {
+        return this._policy;
+    }
 
-        // try with a low pruning size first, because that's faster, and then increase
-        // the pruning size if we don't find anything useful
-        for (const pruningSize of TARGET_PRUNING_SIZES) {
-            this._generatorOptions!.targetPruningSize = pruningSize;
-            this._sentenceGenerator!.reset(true);
+    /**
+     * Initialize this dialogue handler.
+     *
+     * This method must be called before any other method is called. It can be called multiple times
+     * to start the dialogue multiple times with different initial states.
+     *
+     * @param initialState
+     * @param showWelcome
+     * @returns
+     */
+    async initialize(initialState : string | undefined, showWelcome : boolean) : Promise<ReplyResult|null> {
+        if (!this._policy)
+            this._policy = await loadPolicy(this._options.policy);
+        this._agentGenerator = new InferenceTimeSentenceGenerator({ ...this._options, policy: this._policy });
+        this._nlu = new CommandParser({
+            ...this._options,
+            generator: this._agentGenerator,
+            policy: this._policy
+        });
 
-            this._entityAllocator.reset();
-            if (state !== null) {
-                const constants = ThingTalkUtils.extractConstants(state, this._entityAllocator);
-                this._sentenceGenerator!.addConstantsFromContext(constants);
+        let startMode = PolicyStartMode.NORMAL;
+        if (initialState !== undefined) {
+            if (initialState === 'null') {
+                this._dlg.state = null;
+            } else {
+                const parsed = await ThingTalkUtils.parse(initialState, {
+                    schemaRetriever: this._schemas,
+                    thingpediaClient: this._thingpedia,
+                });
+                assert(parsed instanceof Ast.DialogueState);
+                this._dlg.state = parsed;
             }
-            const contextPhrases = this._policyModule.getContextPhrasesForState(state, this._sentenceGenerator!.tpLoader,
-                this._sentenceGenerator!.contextTable);
-            if (contextPhrases === null)
-                return undefined;
-
-            derivation = this._sentenceGenerator!.generateOne(contextPhrases, '$agent');
-            if (derivation !== undefined)
-                break;
+            startMode = PolicyStartMode.RESUME;
+        } else if (!showWelcome) {
+            startMode = PolicyStartMode.NO_WELCOME;
         }
-        return derivation;
+        // TODO handle user first time
+
+        const promise = this._waitReply();
+        this._startPolicy(startMode);
+
+        const reply = await promise;
+        if (reply.messages.length === 0)
+            return null;
+        return reply;
     }
 
-    async chooseAction(state : Ast.DialogueState|null) : Promise<PolicyResult|undefined> {
-        await this._ensureGeneratorForState(state);
+    private _waitReply() {
+        assert(this._continuePromise === null);
+        this._continuePromise = new Promise<ReplyResult>((resolve, reject) => {
+            this._continueResolve = resolve;
+        });
+        return this._continuePromise;
+    }
 
-        const derivation = this._generateDerivation(state);
-        if (derivation === undefined)
-            return derivation;
+    private _startPolicy(startMode : PolicyStartMode) {
+        this._policy.policy(this._dlg, startMode).catch((e) => {
+            if (!(e instanceof TerminatedDialogueError) && !(e instanceof UnexpectedCommandError))
+                throw e;
+        }).then(() => {
+            // TODO
+            throw new Error('not implemented: terminating dialogues');
+        });
+    }
 
-        let utterance = derivation.chooseBestSentence();
-        utterance = this._langPack.postprocessSynthetic(utterance, derivation.value.meaning, this._rng, 'agent');
+    getState() : string {
+        return this._dlg.state ? this._dlg.state.prettyprint() : 'null';
+    }
 
-        const newState = ThingTalkUtils.computeNewState(state, derivation.value.meaning, 'agent');
+    reset() : void {
+        this._commandQueue.cancelWait(new TerminatedDialogueError());
+        this._dlg.state = null;
+        this._startPolicy(PolicyStartMode.RESUME);
+    }
+
+    analyzeCommand(command : UserInput) {
+        return this._nlu.parse(this._dlg.state, command, {
+            raw: this._raw,
+            expecting: this._expecting,
+            choices: this._choices,
+        });
+    }
+
+    getReply(analyzed : ThingTalkCommandAnalysisType) : Promise<ReplyResult> {
+        const promise = this._waitReply();
+
+        switch (analyzed.type) {
+        case CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_FOLLOWUP:
+        case CommandAnalysisType.NONCONFIDENT_IN_DOMAIN_COMMAND: {
+            // TODO move this to the state machine, not here
+
+            /*
+            const confirmation = await this._describeProgram(analyzed.parsed!);
+            assert(confirmation, `Failed to compute a description of the current command`);
+            const yesNo = await this._loop.ask(ValueCategory.YesNo, this._("Did you mean ${command}?"), { command: confirmation });
+            assert(yesNo instanceof Ast.BooleanValue);
+            if (!yesNo.value) {
+                return {
+                    messages: [this._("Sorry I couldn't help on that. Would you like to try again?")],
+                    context: this._dialogueState ? this._dialogueState.prettyprint() : 'null',
+                    agent_target: '$dialogue @org.thingpedia.dialogue.transaction.sys_clarify;',
+                    expecting: this._loop.expecting,
+                };
+            }
+            */
+
+            // fallthrough to the confident case
+        }
+
+        case CommandAnalysisType.CONFIDENT_IN_DOMAIN_FOLLOWUP:
+        case CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND:
+        default: {
+            const cmd = new Command(analyzed.utterance, this._dlg.state, analyzed.parsed as Ast.DialogueState);
+            this._commandQueue.push(cmd);
+        }
+        }
+
+        return promise;
+    }
+
+    /**
+     * Flush out the reply to the user.
+     *
+     * @param expectingType what type to expect from the user after this reply
+     */
+    private async _sendReply(expectingType : Type|null, raw : boolean) {
+        const messages : Array<string|Tp.FormatObjects.FormattedObject> = [];
+        let agent_target : string;
+
+        if (this._nextReply) {
+            agent_target = this._nextReply.meaning.prettyprint();
+            messages.push(this._nextReply.utterance);
+
+            if (this._dlg.lastResult) {
+                for (const [outputType, outputValue] of this._dlg.lastResult.rawResults.slice(0, this._nextReply.numResults)) {
+                    const formatted = await this._cardFormatter.formatForType(outputType, outputValue);
+                    messages.push(...formatted);
+                }
+            }
+        } else {
+            if (this._debug >= LogLevel.INFO)
+                console.log(`Agent did not produce a reply in-between calls to get()`);
+            agent_target = '';
+        }
+
+        let expecting : ValueCategory|null;
+        if (expectingType === null) {
+            expecting = null;
+        } else if (expectingType instanceof Type.Enum) {
+            for (const entry of expectingType.entries!) {
+                const button = new Button({
+                    type: 'button',
+                    title: clean(entry),
+                    json: JSON.stringify({ code: ['$answer', '(', 'enum', entry, ')', ';'], entities: {} })
+                });
+                messages.push(button);
+            }
+            expecting = ValueCategory.Generic;
+        } else {
+            expecting = ValueCategory.fromType(expectingType);
+        }
+        if (expecting === ValueCategory.RawString && !raw)
+            expecting = ValueCategory.Generic;
+
+        assert(this._continuePromise !== null);
+        this._continueResolve!({
+            messages,
+            expecting,
+            context: this._dlg.state ? this._dlg.state.prettyprint() : '',
+            agent_target
+        });
+        this._continuePromise = null;
+    }
+
+    async get(expectingType : Type|null, raw = false) : Promise<Command> {
+        await this._sendReply(expectingType, raw);
+
+        return this._commandQueue.pop();
+    }
+
+    private _expandTemplate(reply : Template<any[], AgentReplyRecord|void>, contextPhrases : ContextPhrase[]) {
+        this._agentGenerator.reset();
+        const [tmpl, placeholders, semantics] = reply;
+        addTemplate(this._agentGenerator, [], tmpl, placeholders, semantics);
+
+        return this._agentGenerator.generate(this._dlg.state, contextPhrases, '$dynamic');
+    }
+
+    private _getMainAgentContextPhrase() : ContextPhrase {
         return {
-            state: newState,
-            end: /* TODO */ false,
-            expect: /* TODO */ null,
-            raw: /* TODO */ false,
+            symbol: this._agentGenerator.contextTable.ctx_dynamic_any,
+            utterance: ReplacedResult.EMPTY,
+            value: this._dlg.state,
+            context: this,
+            key: {}
+        };
+    }
+    private *_getContextPhrases() : IterableIterator<ContextPhrase> {
+        const phrases = this._policy.getContextPhrasesForState(this._dlg.state, this._agentGenerator.tpLoader,
+            this._agentGenerator.contextTable);
+        if (phrases !== null) {
+            yield this._getMainAgentContextPhrase();
+
+            for (const phrase of phrases) {
+                // override the context because we need the context in _generateAgent
+                phrase.context = this;
+                yield phrase;
+            }
+        }
+    }
+
+    private _useNeuralNLG() : boolean {
+        // TODO wire this up in some form
+        //return this._prefs.get('experimental-use-neural-nlg') as boolean;
+        return false;
+    }
+
+    async emit(replies : AgentReply) : Promise<void> {
+        this.icon = this._dlg.state ? getProgramIcon(this._dlg.state) : null;
+
+        await this._agentGenerator.initialize(this._dlg.state);
+        const contextPhrases = Array.from(this._getContextPhrases());
+
+        const utterances : ReplacedResult[] = [];
+        let meaning : AgentReplyRecord|undefined = undefined;
+        for (const reply of replies) {
+            const derivation = this._expandTemplate(reply, contextPhrases);
+            if (!derivation)
+                continue;
+            meaning = derivation.value;
+            utterances.push(derivation.sentence);
+        }
+        assert(meaning);
+        this._dlg.state = ThingTalkUtils.computeNewState(this._dlg.state, meaning.meaning, 'agent').optimize();
+
+        let utterance = new ReplacedConcatenation(utterances, {}, {}).chooseBest();
+        if (this._useNeuralNLG()) {
+            const prepared = ThingTalkUtils.prepareContextForPrediction(this._dlg.state, 'agent');
+            const [contextCode, contextEntities] = ThingTalkUtils.serializeNormalized(prepared);
+
+            const [targetAct,] = ThingTalkUtils.serializeNormalized(meaning.meaning, contextEntities);
+            const result = await this._nlg.generateUtterance(contextCode, contextEntities, targetAct);
+            utterance = result[0].answer;
+        }
+        utterance = this._langPack.postprocessNLG(utterance, this._agentGenerator.entities, this._executor);
+
+        this._nextReply = {
             utterance,
-            entities: this._entityAllocator.entities,
-            numResults: derivation.value.numResults
+            ...meaning
         };
     }
 
-    async getFollowUp(state : Ast.DialogueState) : Promise<Ast.DialogueState|null> {
-        await this._ensureGeneratorForState(state);
-        if (!this._policyModule.getFollowUp)
-            return null;
-        return this._policyModule.getFollowUp(state, this._sentenceGenerator!.tpLoader, this._sentenceGenerator!.contextTable);
+    prepareContextForPrediction() {
+        return this._nlu.prepareContextForPrediction(this._dlg.state);
     }
 
-    async getNotificationState(appName : string|null, program : Ast.Program, result : Ast.DialogueHistoryResultItem) {
-        await this._ensureGeneratorForState(program);
-        return (this._policyModule.notification ?? TransactionPolicy.notification)(appName, program, result);
+    async showNotification(program : Ast.Program,
+                           name : string,
+                           outputType : string,
+                           outputValue : Record<string, unknown>) : Promise<ReplyResult> {
+        assert(program.statements.length === 1);
+        const stmt = program.statements[0];
+        assert(stmt instanceof Ast.ExpressionStatement);
+        assert(stmt.expression.schema);
+
+        /*
+        const mappedResult = await this._agent.executor.mapResult(stmt.expression.schema, outputValue);
+        this._dialogueState = await this._policy.getNotificationState(app.name, app.program, mappedResult);
+        return this._doAgentReply([[outputType, outputValue]]);
+        */
+        throw new Error('not implemented');
     }
 
-    async getAsyncErrorState(appName : string|null, program : Ast.Program, error : Ast.Value) {
-        await this._ensureGeneratorForState(program);
-        return (this._policyModule.notifyError ?? TransactionPolicy.notifyError)(appName, program, error);
-    }
+    async showAsyncError(program : Ast.Program,
+                         name : string,
+                         error : Error) : Promise<ReplyResult> {
+        //console.log('Error from ' + app.uniqueId, error);
 
-    async getInitialState() {
-        await this._ensureGeneratorForState(null);
-        if (!this._policyModule.initialState)
-            return null;
-        return this._policyModule.initialState(this._sentenceGenerator!.tpLoader);
+        /*
+        const mappedError = await this._agent.executor.mapError(error);
+        this._dialogueState = await this._policy.getAsyncErrorState(app.name, app.program, mappedError);
+        return this._doAgentReply([]);
+        */
+        throw new Error('not implemented');
     }
 }

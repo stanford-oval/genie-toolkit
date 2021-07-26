@@ -30,7 +30,7 @@ import * as D from './dialogue_acts';
 
 export * as Templates from './dialogue.genie.out';
 import { $load } from './dialogue.genie.out';
-import { DialogueInterface } from '../thingtalk-dialogues';
+import { DialogueInterface } from '../thingtalk-dialogues/interface';
 export {
     $load as initializeTemplates
 };

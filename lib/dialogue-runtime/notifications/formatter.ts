@@ -23,13 +23,12 @@ import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
 
 import Engine from '../../engine';
-import * as I18n from '../../i18n';
+//import * as I18n from '../../i18n';
 
 import StatementExecutor from '../../thingtalk-dialogues/statement_executor';
-import { DialoguePolicy } from '../../thingtalk-dialogues/inference-time-dialogue';
 
 import CardFormatter from '../card-output/card-formatter';
-import { FORMAT_TYPES } from '../card-output/format_objects';
+//import { FORMAT_TYPES } from '../card-output/format_objects';
 
 /**
  * An object that is able to convert structured ThingTalk results
@@ -45,9 +44,9 @@ import { FORMAT_TYPES } from '../card-output/format_objects';
 export default class NotificationFormatter {
     private _engine : Engine;
     private _cardFormatter : CardFormatter;
-    private _policy : DialoguePolicy;
+    // TODO
+    // private _policy : DialoguePolicy;
     private _executor : StatementExecutor;
-    private _langPack : I18n.LanguagePack;
 
     /**
      * Construct a new formatter for a given Genie engine.
@@ -56,10 +55,10 @@ export default class NotificationFormatter {
         this._engine = engine;
 
         this._cardFormatter = new CardFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas);
-        this._langPack = I18n.get(engine.platform.locale);
+        //this._langPack = I18n.get(engine.platform.locale);
 
         this._executor = new StatementExecutor(engine);
-        this._policy = new DialoguePolicy({
+        /*this._policy = new DialoguePolicy({
             thingpedia: engine.thingpedia,
             schemas: engine.schemas,
             locale: engine.platform.locale,
@@ -68,11 +67,11 @@ export default class NotificationFormatter {
             debug: 0,
             anonymous: false,
             extraFlags: {}
-        });
+        });*/
     }
 
     async initialize() {
-        await this._policy.initialize();
+        // await this._policy.initialize();
     }
 
     async formatNotification(appName : string|null, program : ThingTalk.Ast.Program, outputType : string, outputValue : Record<string, unknown>) : Promise<Tp.FormatObjects.FormattedObject[]> {
@@ -82,6 +81,14 @@ export default class NotificationFormatter {
         assert(stmt.expression.schema);
 
         const mappedResult = await this._executor.mapResult(stmt.expression.schema, outputValue);
+        void(mappedResult);
+
+        void(this._engine);
+        void(this._cardFormatter);
+        void(this._executor);
+
+        throw new Error(`not implemented yet`);
+        /*
 
         const dialogueState = await this._policy.getNotificationState(appName, program, mappedResult);
 
@@ -107,5 +114,6 @@ export default class NotificationFormatter {
             output.push(card);
 
         return output;
+        */
     }
 }

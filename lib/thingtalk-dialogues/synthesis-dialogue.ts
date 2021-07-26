@@ -22,9 +22,9 @@ import AsyncQueue from 'consumer-queue';
 import { Ast, SchemaRetriever } from 'thingtalk';
 import assert from 'assert';
 
-import * as I18n from '../i18n';
 import { DialogueTurn } from '../dataset-tools/parsers';
-import SimulationDialogueAgent from './simulator/simulation_dialogue_agent';
+import { ReplacedResult } from '../utils/template-string';
+import { Hashable } from '../utils/hashmap';
 
 import {
     ContextPhrase,
@@ -34,12 +34,14 @@ import {
     SemanticAction,
     TemplatePlaceholderMap
 } from '../sentence-generator/types';
+import SentenceGenerator from '../sentence-generator/generator';
+import { NonTerminal } from '../sentence-generator/runtime';
 
+import SimulationDialogueAgent from './simulator/simulation_dialogue_agent';
 import {
     DialogueInterface,
-    PolicyFunction,
     Synthesizer,
-} from './index';
+} from './interface';
 import { Command } from './command';
 import {
     AbstractCommandIO,
@@ -47,11 +49,8 @@ import {
     TerminatedDialogueError,
     UnexpectedCommandError
 } from './cmd-dispatch';
-import { Replaceable, ReplacedResult } from '../utils/template-string';
-import { Hashable } from '../utils/hashmap';
-
-import SentenceGenerator from '../sentence-generator/generator';
-import { NonTerminal } from '../sentence-generator/runtime';
+import { PolicyFunction, PolicyModule, PolicyStartMode } from './policy';
+import { addTemplate } from './template-utils';
 
 export interface AgentTurn {
     dialogue : SynthesisDialogue;
@@ -107,8 +106,8 @@ let partialDialogueID = 0;
 export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer, Hashable<SynthesisDialogue> {
     readonly turns : DialogueTurn[] = [];
     private readonly _id : number;
+    private readonly _policy : PolicyModule;
     private readonly _fn : PolicyFunction;
-    private readonly _langPack : I18n.LanguagePack;
     private readonly _dlg : DialogueInterface;
     private readonly _agentGenerator : SentenceGenerator;
     private readonly _userGenerator : SentenceGenerator;
@@ -123,7 +122,7 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
         agentGenerator : SentenceGenerator,
         userGenerator : SentenceGenerator,
         simulator : SimulationDialogueAgent,
-        policy : PolicyFunction,
+        policy : PolicyModule,
         locale : string,
         schemaRetriever : SchemaRetriever,
         rng : () => number
@@ -133,8 +132,8 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
 
         this._agentGenerator = options.agentGenerator;
         this._userGenerator = options.userGenerator;
-        this._fn = options.policy;
-        this._langPack = I18n.get(options.locale);
+        this._policy = options.policy;
+        this._fn = options.policy.policy;
         this._dlg = new DialogueInterface(null, {
             io: this,
             executor: options.simulator,
@@ -159,7 +158,7 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
         return this === other;
     }
 
-    getMainAgentContextPhrase() : ContextPhrase {
+    private _getMainAgentContextPhrase() : ContextPhrase {
         return {
             symbol: this._agentGenerator.contextTable.ctx_dynamic_any,
             utterance: ReplacedResult.EMPTY,
@@ -170,7 +169,22 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
             }
         };
     }
-    getMainUserContextPhrase(agentTurn : AgentTurn) : ContextPhrase {
+
+    *getAgentContextPhrases() : IterableIterator<ContextPhrase> {
+        const phrases = this._policy.getContextPhrasesForState(this._dlg.state, this._agentGenerator.tpLoader,
+            this._agentGenerator.contextTable);
+        if (phrases !== null) {
+            yield this._getMainAgentContextPhrase();
+
+            for (const phrase of phrases) {
+                // override the context because we need the context in _generateAgent
+                phrase.context = this;
+                yield phrase;
+            }
+        }
+    }
+
+    private _getMainUserContextPhrase(agentTurn : AgentTurn) : ContextPhrase {
         return {
             symbol: this._userGenerator.contextTable.ctx_sys_dynamic_any,
             utterance: ReplacedResult.EMPTY,
@@ -181,6 +195,20 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
                 tag: this._id << 65536 | agentTurn.tag
             }
         };
+    }
+
+    *getUserContextPhrases(agentTurn : AgentTurn) : IterableIterator<ContextPhrase> {
+        const phrases = this._policy.getContextPhrasesForState(agentTurn.state, this._userGenerator.tpLoader,
+            this._userGenerator.contextTable!);
+        if (phrases !== null) {
+            yield this._getMainUserContextPhrase(agentTurn);
+
+            for (const phrase of phrases) {
+                // override the context because we need the context in _generateAgent
+                phrase.context = agentTurn;
+                yield phrase;
+            }
+        }
     }
 
     /**
@@ -204,25 +232,6 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
         return this._commandQueue.pop();
     }
 
-    private _processPlaceholderMap(nonTerms : NonTerminal[], names : string[], placeholders : TemplatePlaceholderMap) {
-        for (const alias in placeholders) {
-            const symbol = placeholders[alias];
-            if (symbol === null)
-                return;
-            names.push(alias);
-            if (typeof symbol === 'string') {
-                nonTerms.push(new NonTerminal(symbol, alias));
-            } else if (!Array.isArray(symbol)) {
-                // do something
-                throw new Error('not implemented yet');
-            } else if (symbol.length === 3) {
-                nonTerms.push(new NonTerminal(symbol[0], alias, [symbol[1], symbol[2]]));
-            } else {
-                nonTerms.push(new NonTerminal(symbol[0], alias, [symbol[1], symbol[2], symbol[3]]));
-            }
-        }
-    }
-
     /**
      * Record a possible agent reply.
      *
@@ -237,18 +246,7 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
             throw new Error('not implemented yet');
 
         const [tmpl, placeholders, semantics] = reply[0];
-
-        const nonTerms : NonTerminal[] = [];
-        const names : string[] = [];
-        this._processPlaceholderMap(nonTerms, names, placeholders);
-
-        let repl;
-        try {
-            repl = Replaceable.get(tmpl, this._langPack, names);
-        } catch(e) {
-            throw new Error(`Failed to parse dynamic template string for ${tmpl} (${nonTerms.join(', ')}): ${e.message}`);
-        }
-        this._agentGenerator.addDynamicRule(nonTerms, repl, (...args : any[]) : ExtendedAgentReplyRecord|null => {
+        addTemplate(this._agentGenerator, [], tmpl, placeholders, (...args : any[]) : ExtendedAgentReplyRecord|null => {
             const result = semantics(...args);
             if (result === null)
                 return null;
@@ -267,27 +265,15 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
                                     tmpl : string,
                                     placeholders : TemplatePlaceholderMap,
                                     semantics : SemanticAction<[Ast.DialogueState, ...any[]], Ast.DialogueState>) {
-        const nonTerms : NonTerminal[] = [];
-        const names : string[] = [];
-
+        let ctxNonTerm;
         if (tag === null) {
-            nonTerms.push(new NonTerminal('ctx_sys_dynamic_any', undefined, ['dialogue', this]));
-            names.push('_1');
+            ctxNonTerm = new NonTerminal('ctx_sys_dynamic_any', undefined, ['dialogue', this]);
         } else {
             assert(tag < 65536);
-            nonTerms.push(new NonTerminal('ctx_sys_dynamic_any', undefined, ['tag', this._id << 65536 | tag]));
-            names.push('_1');
+            ctxNonTerm = new NonTerminal('ctx_sys_dynamic_any', undefined, ['tag', this._id << 65536 | tag]);
         }
 
-        this._processPlaceholderMap(nonTerms, names, placeholders);
-        let repl;
-        try {
-            repl = Replaceable.get(tmpl, this._langPack, names);
-        } catch(e) {
-            throw new Error(`Failed to parse dynamic template string for ${tmpl} (${nonTerms.join(', ')}): ${e.message}`);
-        }
-
-        this._userGenerator.addDynamicRule(nonTerms, repl, (ctx : AgentTurn, ...args : any[]) : UserReplyRecord|null => {
+        addTemplate(this._userGenerator, [ctxNonTerm], tmpl, placeholders, (ctx : AgentTurn, ...args : any[]) : UserReplyRecord|null => {
             const result = semantics(ctx.state, ...args);
             if (result === null)
                 return null;
@@ -325,7 +311,7 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
             });
 
             this._state = PartialDialogueState.RUNNING;
-            this._fn(this._dlg).catch((e) => {
+            this._fn(this._dlg, PolicyStartMode.NORMAL).catch((e) => {
                 if (!(e instanceof TerminatedDialogueError) && !(e instanceof UnexpectedCommandError))
                     throw e;
             }).then(() => {

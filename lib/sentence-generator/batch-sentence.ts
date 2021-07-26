@@ -46,6 +46,7 @@ interface BasicGeneratorOptions {
 
     // options passed to the templates
     thingpediaClient : Tp.BaseClient;
+    schemaRetriever : ThingTalk.SchemaRetriever;
     onlyDevices ?: string[];
     whiteList ?: string;
 }
@@ -82,6 +83,7 @@ export default class BasicSentenceGenerator extends stream.Readable {
             rng: options.rng,
 
             thingpediaClient: options.thingpediaClient,
+            schemaRetriever: options.schemaRetriever,
             entityAllocator: new ThingTalk.Syntax.SequentialEntityAllocator({}),
             onlyDevices: options.onlyDevices,
             whiteList: options.whiteList

@@ -62,7 +62,7 @@ export type ContextTable = Record<string, number>;
 // options passed to the templates
 export interface GrammarOptions {
     thingpediaClient : Tp.BaseClient;
-    schemaRetriever ?: SchemaRetriever;
+    schemaRetriever : SchemaRetriever;
     entityAllocator : Syntax.SequentialEntityAllocator;
     forSide : 'user'|'agent';
     flags : { [key : string] : boolean };
