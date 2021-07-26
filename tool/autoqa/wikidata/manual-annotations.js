@@ -98,130 +98,195 @@ const PROPERTY_FORCE_NOT_ARRAY = new Set([
 
 ]);
 
-
-
 const MANUAL_PROPERTY_CANONICAL_OVERRIDE = {
-    'id': {
-        passive_verb: ["named #", "called #"],
-        property: ["name #"]
+    'P1376': {
+        base_projection: ['administrative territory', 'administrative territories', 'political territory', 'political territories'],
+        reverse_property: ["the capital of #", "#'s capital"],
+        reverse_property_projection: ["the capital of",],
+        reverse_property2_projection: ['capital', 'county seat', 'first city', 'center of administration'],
     },
-    'capital_of': {
-        property: ["capital of #"],
-        reverse_property: ["# capital", "#'s capital"],
-    },
-    'located_in_time_zone': {
+    'P421': {
+        base: ['time zone'],
         passive_verb: ["located in # time zone"],
         preposition: ["in # time zone", "in # time"],
     },
-    'sister_city': {
-        property: ["sister city #", "sister city of #", "sister town of #"],
+    'P190': {
+        base: ['sister city', 'sister town', 'twin town', 'partner town'],
+        base_projection: ['administrative territory', 'administrative territories'],
+        property: ['sister city', 'sister town', 'twin town', 'partner town'],
+        property_projection: ['sister city', 'sister town', 'twin town', 'partner town']
     },
-    'legislative_body': {
-        base: ["legislature", "assembly"],
-        property: ["#"],
+    'P194': {
+        base: ['legislative body'],
+        base_projection: ['legislature', 'assembly'],
+        property: ["representative body", "legislative body"],
+        property_projection: ["representative body", "legislative body"],
+        reverse_verb_projection: ["represents", "governs"]
     },
-    'country': {
-        preposition: ["in #", "part of #"],
+    'P17': {
+        base: ['country'],
+        base_projection: ['administrative territory', 'administrative territories', 'political territory', 'political territories'],
+        preposition: ["in #"],
+        preposition_projection: ["in"],
+        reverse_property: ["a part of #"],
+        reverse_property_projection: ["a part of"],
+        verb: ["belong to"],
+        verb_projection: ["belong to"],
+        passive_verb: ["situated in #", "located in", "present in"],
+        passive_verb_projection: ["situated in", "located in", "present in"]
     },
-    // not in eval set
-    // 'list_of_monuments': {},
-    'head_of_government': {
-        property: ["head of government #", "leader #"],
+    'P6': {
+        base: ['head of government'],
+        base_projection: ['people'],
+        property: ["head of government", "heads of government", "leader #"],
+        property_projection: ["head of government", "heads of government"],
+        verb_projection: ["have their government headed by"],
     },
-    'located_next_to_body_of_water': {
-        preposition: ["next to #", "located next to #"],
-        verb: ["borders #"],
-        passive_verb: ["located next to #"]
-    },
-    // not in eval set
-    // 'architectural_style': {},
-    'flag': {
-        base: ["flag"],
-        verb: ["associate with"],
-    },
-    'coat_of_arms': {
-        base: ["coat of arms"],
-    },
-    'shares_border_with': {
-        verb: ["shares border with #", "borders #"],
+    'P206': {
+        base_projection: ['watercourse'],
         preposition: ["next to #"],
-        passive_verb: ["located next to #"]
+        preposition_projection: ["next to"],
+        verb: ["borders #"],
+        verb_projection: ["borders #"],
+        passive_verb: ["located next to #", "situated near by", "situated close to", "situated in the neighbourhood of"],
+        passive_verb_projection: ["located next to", "situated near by", "situated close to", "situated in the neighbourhood of"]
     },
-    'founder': {
-        passive_verb: ["founded by #"]
+    'P163': {
+        base: ["name of flag", 'flag'],
+        base_projection: ["name of flag", 'flag'],
+        passive_verb: ["associated with"],
+        passive_verb_projection: ["associated with"],
     },
-    'part_of': {
-        preposition: ["part of #"],
+    'P237': {
+        base: ["coat of arms", 'ensign'],
+        base_projection: ["coat of arms"], 
+        reverse_verb_projection: ["serves as the ensign for", "serves as the heraldic design for"], 
     },
-    'office_held_by_head_of_government': {
-        property: ['a #'],
-        passive_verb: ["lead by #", "governed by #", "run by #"],
+    'P47': {
+        base_projection: ['french administrative divisions', 'administrative territory', 'administrative territories', 'political territory', 'political territories', 'cities', ],
+        verb: ["shares border with #", "borders #"],
+        reverse_verb_projection: ['shares the border with', 'have a shared border with'],
+        preposition: ["next to #", "adjacent to"],
+        preposition_projection: ["next to", "adjacent to"],
+        passive_verb: ["located next to #", "bordered by"],
+        passive_verb_projection: ["located next to", "bordered by"]
     },
-    'official_language': {
-        property: ["official language #"]
+    'P112': {
+        base: ['founder'],
+        base_projection: ['founder'],
+        projection_pronoun: ['who'],
+        property: ['founder'],
+        property_projection: ['founder'],
+        reverse_verb_projection: ['founded'],
+        passive_verb: ["founded by #"],
+        passive_verb_projection: ["founded by"]
     },
-    'applies_to_jurisdiction': {
-        // not in eval set
+    'P361': {
+        base_projection: ['city', 'county of iran'],
+        reverse_property: ["a part of #", 'a component of #'],
+        reverse_property_projection: ["a part of", 'a component of'],
     },
-    'patron_saint': {
+    'P1313': {
+        base: ['office held by head of government'],
+        base_projection: ['occupation'],
+        passive_verb: ["lead by #", "governed by #", "run by #", 'held by'],
+        passive_verb_projection: ["lead by", "governed by", "run by", 'held by', 'fulfilled by'],
+        reverse_verb_projection: ['serves as the political office that is fulfilled by the head of government of']
+    },
+    'P37': {
+        base: ['official language'],
+        base_projection: ['language'],
+        verb: ['designates # as its official language'],
+        property: ["official language"],
+        property_projection: ['official language'],
+    },
+    'P417': {
         base: ["patron saint"],
+        projection_pronoun: ['who'],
+        property_projection: ["patron saint"],
     },
-    // eval set only contains noise for this
-    // 'contains_settlement': {},
-    'award_received': {
+    'P1383': {
+        base_projection: ['administrative territory', 'administrative territories'],
+        verb: ['have administrative control over #', 'supervises'],
+        verb_projection: ['have administrative control over', 'supervises'],
+        passive_verb: ['administratively managed by #'],
+        passive_verb_projection: ['administratively managed by'],
+        preposition: ['belong to', 'in'],
+        preposition_projection: ['belong to', 'in'],
+    },
+    'P166': {
+        base: ['award'],
+        base_projection: ['award', 'order'],
         property: ['# award'],
-        verb: ["has # award"]
+        reverse_passive_verb_projection: ['won by', "awarded with", "awarded to", "received by"]
     },
-    'located_on_terrain_feature': {
-        passive_verb: ["located on #", "located on a #"],
+    'P706': {
+        base_projection: ["plain", "landscape", "location", "natural region"],
+        passive_verb: ["located on #"],
+        passive_verb_projection: ["located on"],
         preposition: ["on #", "on a #"]
     },
-    // not in eval set
-    //'heritage_status': {},
-    'continent': {
-        preposition: ["in #", "within #"]
+    'P1435': {
+        base: ['heritage status'],
+        base_projection: ['cultural property'],
+        reverse_verb_projection: ['gives the heritage status of']
     },
-    'named_after': {
+    'P30': {
+        projection_pronoun: ['where'],
+        base: ['continent'],
+        base_projection: ['continent', 'geographic location'],
+        reverse_property: ["a part of #"],
+        reverse_property_projection: ["a part of"],
+        passive_verb: ['situated in', 'located in'],
+        passive_verb_projection: ['situated in', 'located in'],
+        preposition: ["in #", "within #"],
+        preposition_projection: ["in", "within"]
+    },
+    'P138': {
+        base: ["namesake", 'etymology'],
+        base_projection: ['person', 'architectural structure', 'social group', 'watercourse'],
         passive_verb: ["named after #"],
-        property: ["namesake #"]
+        passive_verb_projection: ["named after"],
+        reverse_property: ['the origin of'],
+        reverse_property_projection: ['the origin of'],
+        property: ["namesake", 'etymology'],
+        property_projection: ["namesake", 'etymology']
     },
-    'from_fictional_universe': {
+    'P1080': {
         preposition: ["from #", "from the fictional universe #"]
     },
-    'highest_point': {
-        property: ["highest point #"]
+    'P610': {
+        base: ['highest point', 'zenith'],
+        base_projection: ['concept', 'terrain'],
+        property: ['highest point', 'zenith'],
+        property_projection: ['highest point', 'zenith'],
     },
-    // not in eval set
-    //'appointed_by': {},
-    'member_of': {
-        reverse_property: ["# member"],
-        property: ["member of #"]
+    'P463': {
+        reverse_property: ["member of"],
+        passive_verb: ["participated in"],
     },
-    'capital': {
+    'P36': {
         base: ["capital"],
+        base_projection: ['city'],
+        property: ["capital"],
+        property_projection: ["capital"],
     },
-    'headquarters_location': {
+    'P159': {
+        projection_pronoun: ['where'],
         base: ["headquarters", "head office", "main office"],
+        base_projection: ['thoroughfare'],
+        property: ["headquarters", "head office", "main office"],
+        property_projection: ["headquarters", "head office", "main office"],
     },
-    // not in eval set
-    //'diocese': {},
-    'currency': {
-        property: ["currency #"],
+    'P793': {
+        base: ['significant event'],
+        base_projection: ['event', 'significant event'],
+        passive_verb: ['associated with'],
+        passive_verb_projection: ['associated with'],
     },
-    // not in eval set
-    //'present_in_work': {},
-    // not in eval set
-    //'significant_event': {},
-    // TODO
-    //'stated_in': {},
-    // TODO
-    //'subsidiary': {},
-    // TODO
-    //'work_location': {},
-    'architect': {
-        property: ["architect #"],
-        passive_verb: ["built by #", "designed by #"],
-    },
+    'P748': {
+        preposition: ['appointed by']
+    }
 };
 
 const MANUAL_TABLE_CANONICAL_OVERRIDE = {
