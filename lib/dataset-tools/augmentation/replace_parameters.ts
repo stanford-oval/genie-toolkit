@@ -282,8 +282,9 @@ class ValueListLoader {
         this._rng = rng;
     }
 
-    get([valueListType, valueListName] : ['string'|'entity', string]) : Promise<ValueList> {
-        const key = valueListType + ':' + valueListName;
+    get([valueListType, valueListName] : ['string'|'entity', string|string[]]) : Promise<ValueList> {
+        const name = Array.isArray(valueListName) ? valueListName[0] : valueListName;
+        const key = valueListType + ':' + name;
         if (this._cache.has(key))
             return this._cache.get(key)!;
 
@@ -292,8 +293,12 @@ class ValueListLoader {
         return promise;
     }
 
-    private async _load(valueListType : 'string'|'entity', valueListName : string) : Promise<ValueList> {
-        let rows = await this._provider.get(valueListType, valueListName);
+    private async _load(valueListType : 'string'|'entity', valueListName : string|string[]) : Promise<ValueList> {
+        if (!Array.isArray(valueListName))
+            valueListName = [valueListName];
+        let rows : ParameterRecord[] = [];
+        for (const name of valueListName)
+            rows = rows.concat(await this._provider.get(valueListType, name));
 
         // overwrite weights with random values
         if (this._samplingType === 'random') {
@@ -486,7 +491,7 @@ export default class ParameterReplacer {
         return arg;
     }
 
-    private _getParamListKey(slot : Ast.AbstractSlot, arg : Ast.ArgumentDef|null) : ['string'|'entity', string] {
+    private async _getParamListKey(slot : Ast.AbstractSlot, arg : Ast.ArgumentDef|null) : Promise<['string'|'entity', string|string[]]> {
         const prim = slot.primitive;
         if (prim === null && (
             slot.tag === 'filter.==.$source' ||
@@ -516,7 +521,17 @@ export default class ParameterReplacer {
         return ['string', this._getFallbackParamListKey(slot)];
     }
 
-    private _getEntityListKey(entityType : string) : ['string'|'entity', string] {
+    private async _getDescendants(entityType : string) : Promise<string[]> {
+        const descendants : string[] = [entityType];
+        const entities = await this._tpClient.getAllEntityTypes();
+        for (const entity of entities) {
+            if (entity.subtype_of && entity.subtype_of.includes(entityType))
+                descendants.push(entity.type);
+        }
+        return descendants;
+    }
+
+    private async _getEntityListKey(entityType : string) : Promise<['string'|'entity', string|string[]]> {
         switch (entityType) {
         case 'tt:username':
         case 'tt:contact':
@@ -529,7 +544,7 @@ export default class ParameterReplacer {
         case 'tt:path_name':
             return ['string', 'tt:path_name'];
         default:
-            return ['entity', entityType];
+            return ['entity', await this._getDescendants(entityType)];
         }
     }
 
@@ -653,7 +668,7 @@ export default class ParameterReplacer {
             return [new NumberValueList(min, max, !!unit), arg, slot.type, operator];
         }
 
-        let valueListKey = this._getParamListKey(slot, arg);
+        let valueListKey = await this._getParamListKey(slot, arg);
         const fallbackKey = this._getFallbackParamListKey(slot);
         if (valueListKey[0] === 'string' && valueListKey[1] !== fallbackKey &&
             coin(this._untypedStringProbability, this._rng))
