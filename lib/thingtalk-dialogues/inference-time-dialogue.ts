@@ -30,7 +30,12 @@ import { ReplacedConcatenation, ReplacedResult } from '../utils/template-string'
 import { clean } from '../utils/misc-utils';
 import { getProgramIcon } from '../utils/icons';
 
-import { AgentReply, AgentReplyRecord, ContextPhrase, Template } from '../sentence-generator/types';
+import {
+    AgentReply,
+    AgentReplyRecord,
+    ContextPhrase,
+    Template
+} from '../sentence-generator/types';
 import { LogLevel } from '../sentence-generator/runtime';
 
 import ValueCategory from '../dialogue-runtime/value-category';
@@ -54,20 +59,26 @@ import {
     TerminatedDialogueError,
     UnexpectedCommandError
 } from './cmd-dispatch';
-import AbstractDialogueAgent from './abstract_dialogue_agent';
+import AbstractThingTalkExecutor from './abstract-thingtalk-executor';
 import { CommandParser, ThingTalkCommandAnalysisType } from './command-parser';
 import { load as loadPolicy } from './policy';
 import InferenceTimeSentenceGenerator from './inference-sentence-generator';
 import { addTemplate } from './template-utils';
 
+type ReplacedAgentMessage = Tp.FormatObjects.FormattedObject | {
+    type : 'link';
+    title : string;
+    url : string;
+};
+
 interface ExtendedAgentReplyRecord extends AgentReplyRecord {
-    utterance : string;
+    messages : ReplacedAgentMessage[];
 }
 
 interface InferenceTimeDialogueOptions {
     nlu : ParserClient.ParserClient,
     nlg : ParserClient.ParserClient,
-    executor : AbstractDialogueAgent<any>,
+    executor : AbstractThingTalkExecutor,
     locale : string,
     timezone : string,
     thingpediaClient : Tp.BaseClient,
@@ -101,7 +112,7 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
     private readonly _thingpedia : Tp.BaseClient;
     private readonly _schemas : SchemaRetriever;
     private readonly _langPack : I18n.LanguagePack;
-    private readonly _executor : AbstractDialogueAgent<any>;
+    private readonly _executor : AbstractThingTalkExecutor;
     private readonly _dlg : DialogueInterface;
     private readonly _nlg : ParserClient.ParserClient;
     private _policy ! : PolicyModule;
@@ -323,15 +334,15 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
      * @param expectingType what type to expect from the user after this reply
      */
     private async _sendReply(expectingType : Type|null, raw : boolean) {
-        const messages : Array<string|Tp.FormatObjects.FormattedObject> = [];
+        const messages : ReplacedAgentMessage[] = [];
         let agent_target : string;
 
         if (this._nextReply) {
             agent_target = this._nextReply.meaning.prettyprint();
-            messages.push(this._nextReply.utterance);
+            messages.push(...this._nextReply.messages);
 
-            if (this._dlg.lastResult) {
-                for (const [outputType, outputValue] of this._dlg.lastResult.rawResults.slice(0, this._nextReply.numResults)) {
+            for (const result of this._dlg.lastResult) {
+                for (const [outputType, outputValue] of result.rawResults.slice(0, this._nextReply.numResults)) {
                     const formatted = await this._cardFormatter.formatForType(outputType, outputValue);
                     messages.push(...formatted);
                 }
@@ -421,13 +432,49 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
         const contextPhrases = Array.from(this._getContextPhrases());
 
         const utterances : ReplacedResult[] = [];
+        const messages : ReplacedAgentMessage[] = [];
         let meaning : AgentReplyRecord|undefined = undefined;
-        for (const reply of replies) {
-            const derivation = this._expandTemplate(reply, contextPhrases);
-            if (!derivation)
-                continue;
-            meaning = derivation.value;
-            utterances.push(derivation.sentence);
+
+        messageloop: for (const reply of replies) {
+            if (reply.type === 'text') {
+                const derivation = this._expandTemplate([reply.text, reply.args, reply.meaning], contextPhrases);
+                if (!derivation)
+                    continue;
+                if (derivation.value !== undefined)
+                    meaning = derivation.value;
+                if (messages.length > 0) {
+                    let utterance = derivation.sentence.chooseBest();
+                    utterance = utterance.replace(/ +/g, ' ');
+                    utterance = this._langPack.postprocessSynthetic(utterance, null, this._dlg.rng, 'agent');
+                    utterance = this._langPack.postprocessNLG(utterance, this._agentGenerator.entities, this._executor);
+                    messages.push({
+                        type: 'text',
+                        text: utterance
+                    });
+                } else {
+                    utterances.push(derivation.sentence);
+                }
+            } else {
+                const msg : any = { type: reply.type };
+                for (const key in reply) {
+                    if (key === 'type' || key === 'args')
+                        continue;
+                    if (key === 'title' || key === 'alt' || key === 'displayTitle' || key === 'displayText') {
+                        const derivation = this._expandTemplate([(reply as any)[key], reply.args, () => undefined], contextPhrases);
+                        if (!derivation)
+                            continue messageloop;
+
+                        let utterance = derivation.sentence.chooseBest();
+                        utterance = utterance.replace(/ +/g, ' ');
+                        utterance = this._langPack.postprocessSynthetic(utterance, null, this._dlg.rng, 'agent');
+                        utterance = this._langPack.postprocessNLG(utterance, this._agentGenerator.entities, this._executor);
+                        msg[key] = utterance;
+                    } else {
+                        msg[key] = (reply as any)[key];
+                    }
+                }
+                messages.push(msg);
+            }
         }
         assert(meaning);
         this._dlg.state = ThingTalkUtils.computeNewState(this._dlg.state, meaning.meaning, 'agent').optimize();
@@ -442,9 +489,13 @@ export class InferenceTimeDialogue implements AbstractCommandIO, DialogueHandler
             utterance = result[0].answer;
         }
         utterance = this._langPack.postprocessNLG(utterance, this._agentGenerator.entities, this._executor);
+        messages.unshift({
+            type: 'text',
+            text: utterance
+        });
 
         this._nextReply = {
-            utterance,
+            messages,
             ...meaning
         };
     }

@@ -18,13 +18,41 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import escapeStringRegexp from 'escape-string-regexp';
 import { Ast, Type } from 'thingtalk';
 
 import { split } from '../utils/misc-utils';
 import { Command, CommandType } from './command';
 import { uniform } from '../utils/random';
 import { AgentReply } from '../sentence-generator/types';
+
+function escapeStringRegexp(string : string) {
+    // Copied from escape-string-regexp npm package
+    //
+    // Copyright (c) Sindre Sorhus <sindresorhus@gmail.com> (https://sindresorhus.com)
+    //
+    // Permission is hereby granted, free of charge, to any person obtaining a copy of
+    // this software and associated documentation files (the "Software"), to deal in the
+    // Software without restriction, including without limitation the rights to use,
+    // copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+    // Software, and to permit persons to whom the Software is furnished to do so,
+    // subject to the following conditions:
+    //
+    // The above copyright notice and this permission notice shall be included in all
+    // copies or substantial portions of the Software.
+    //
+    // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+    // INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+    // PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+    // HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+    // CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
+    // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+    // Escape characters with special meaning either inside or outside character sets.
+    // Use a simple backslash escape when it’s always valid, and a `\xnn` escape when the simpler form would be disallowed by Unicode patterns’ stricter grammar.
+    return string
+            .replace(/[|\\{}()[\]^$+*?.]/g, '\\$&')
+            .replace(/-/g, '\\x2d');
+}
 
 export class UnexpectedCommandError extends Error {
     code = 'ERR_UNEXPECTED_COMMAND' as const;
@@ -74,6 +102,16 @@ export interface AbstractCommandIO {
      * @param tag - a tag to use at synthesis time to identify this specific reply
      */
     emit(reply : AgentReply, tag : number) : Promise<void>;
+}
+
+export class DummyCommandIO implements AbstractCommandIO {
+    async get() : Promise<never> {
+        throw new Error(`No command available`);
+    }
+
+    async emit() {
+        // discard
+    }
 }
 
 const enum Compatibility {
@@ -128,7 +166,7 @@ function isCommandCompatible(cmd : Command, options : GetCommandOptions) : Compa
         if (!options.acceptActions)
             return Compatibility.NONE;
 
-        const action = cmd.state.history[0].stmt.expression.schema!.qualifiedName;
+        const action = cmd.meaning.history[0].stmt.expression.schema!.qualifiedName;
         if (options.acceptActions.some((a) => a === action))
             return Compatibility.PERFECT;
 
@@ -146,7 +184,7 @@ function isCommandCompatible(cmd : Command, options : GetCommandOptions) : Compa
         if (!options.acceptQueries)
             return Compatibility.NONE;
 
-        const query = cmd.state.history[0].stmt.expression.schema!.qualifiedName;
+        const query = cmd.meaning.history[0].stmt.expression.schema!.qualifiedName;
         if (options.acceptQueries.some((q) => q === query))
             return Compatibility.PERFECT;
 
@@ -197,7 +235,7 @@ export class SimpleCommandDispatcher implements CommandDispatcher {
             const handled = options.rawHandler!(cmd.utterance);
             if (handled === null)
                 throw new UnexpectedCommandError(cmd);
-            return new Command(cmd.utterance, cmd.state, handled);
+            return new Command(cmd.utterance, cmd.context, handled);
         }
 
         if (compat === Compatibility.NONE)
@@ -302,7 +340,7 @@ export class ParallelCommandDispatcher {
             for (const choice of raw) {
                 const handled = choice.getCmdOptions!.rawHandler!(cmd.utterance);
                 if (handled !== null) {
-                    const cmd2 = new Command(cmd.utterance, cmd.state, handled);
+                    const cmd2 = new Command(cmd.utterance, cmd.context, handled);
                     choice.resolve!(cmd2);
                     choice.promise = null;
                     choice.resolve = null;

@@ -30,7 +30,7 @@ import * as ThingTalkUtils from '../utils/thingtalk';
 import { DialogueTurn } from '../dataset-tools/parsers';
 import { SimulationDatabase } from '../thingtalk-dialogues/simulator/types';
 import * as TransactionPolicy from '../templates/transactions';
-import SimulationDialogueAgent from '../thingtalk-dialogues/simulator/simulation_dialogue_agent';
+import SimulationDialogueAgent from '../thingtalk-dialogues/simulator/simulation-thingtalk-executor';
 
 import SentenceGenerator, { SentenceGeneratorOptions } from './generator';
 import SynthesisDialogue, {
@@ -321,6 +321,7 @@ export default class DialogueGenerator extends stream.Readable {
             locale: options.locale,
             timezone: options.timezone,
             thingpediaClient: options.thingpediaClient,
+            schemaRetriever: options.schemaRetriever,
             database: options.database,
             rng: options.rng,
             interactive: false

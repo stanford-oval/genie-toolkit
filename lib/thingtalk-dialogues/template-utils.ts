@@ -23,7 +23,13 @@
  */
 
 import * as I18n from '../i18n';
-import { Replaceable } from '../utils/template-string';
+import {
+    PlaceholderReplacement,
+    Replaceable,
+    ReplacedConcatenation,
+    ReplacedResult,
+    ReplacementContext
+} from '../utils/template-string';
 
 import {
     SemanticAction,
@@ -31,23 +37,50 @@ import {
 } from '../sentence-generator/types';
 import { NonTerminal } from '../sentence-generator/runtime';
 
-function processPlaceholderMap(nonTerms : NonTerminal[], names : string[], placeholders : TemplatePlaceholderMap) {
+function processPlaceholderMap(tmpl : string, langPack : I18n.LanguagePack, nonTerms : NonTerminal[], names : string[], placeholders : TemplatePlaceholderMap) {
+    let needsReplacePartial = false;
+    const replacePartialCtx : ReplacementContext & { replacements : Array<PlaceholderReplacement|undefined> } = {
+        replacements: [],
+        constraints: {}
+    };
+    const nonTermNames = [...names];
+
     for (const alias in placeholders) {
         const symbol = placeholders[alias];
         if (symbol === null)
-            return;
+            return null;
         names.push(alias);
-        if (typeof symbol === 'string') {
-            nonTerms.push(new NonTerminal(symbol, alias));
-        } else if (!Array.isArray(symbol)) {
-            // do something
-            throw new Error('not implemented yet');
-        } else if (symbol.length === 3) {
-            nonTerms.push(new NonTerminal(symbol[0], alias, [symbol[1], symbol[2]]));
+        if (symbol instanceof NonTerminal) {
+            nonTermNames.push(alias);
+            nonTerms.push(symbol);
+            replacePartialCtx.replacements.push(undefined);
+        } else if (symbol instanceof ReplacedResult) {
+            needsReplacePartial = true;
+            replacePartialCtx.replacements.push({ value: symbol, text: symbol });
+        } else if (typeof symbol === 'string') {
+            needsReplacePartial = true;
+            replacePartialCtx.replacements.push({ value: symbol, text: new ReplacedConcatenation([symbol], {}, {}) });
         } else {
-            nonTerms.push(new NonTerminal(symbol[0], alias, [symbol[1], symbol[2], symbol[3]]));
+            needsReplacePartial = true;
+            replacePartialCtx.replacements.push(symbol);
         }
     }
+
+    let repl;
+    try {
+        repl = Replaceable.get(tmpl, langPack, names);
+    } catch(e) {
+        throw new Error(`Failed to parse dynamic template string for ${tmpl} (${nonTerms.join(', ')}): ${e.message}`);
+    }
+    if (needsReplacePartial) {
+        repl = repl.replacePartial(replacePartialCtx);
+        if (repl === null)
+            return null;
+        // preprocess again to adjust the non-terminal numbers
+        // this is ok because replacePartial created clones
+        repl.preprocess(langPack, nonTermNames);
+    }
+    return repl;
 }
 
 interface SentenceGenerator {
@@ -69,13 +102,8 @@ export function addTemplate(generator : SentenceGenerator,
         names.push(prependNonTerminals[i].name ?? `_${i+1}`);
     }
 
-    processPlaceholderMap(nonTerms, names, placeholders);
-    let repl;
-    try {
-        repl = Replaceable.get(tmpl, generator.langPack, names);
-    } catch(e) {
-        throw new Error(`Failed to parse dynamic template string for ${tmpl} (${nonTerms.join(', ')}): ${e.message}`);
-    }
-
+    const repl = processPlaceholderMap(tmpl, generator.langPack, nonTerms, names, placeholders);
+    if (repl === null)
+        return;
     generator.addDynamicRule(nonTerms, repl, semantics);
 }

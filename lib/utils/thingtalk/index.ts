@@ -20,7 +20,7 @@
 
 
 import assert from 'assert';
-import { Ast, } from 'thingtalk';
+import { Ast, Builtin, Type, } from 'thingtalk';
 
 import { extractConstants, createConstants } from './constants';
 export * from './describe';
@@ -170,4 +170,78 @@ export function addIndexToIDQuery(stmt : Ast.ExpressionStatement) {
             lens(new Ast.IndexExpression(null, expr, [new Ast.Value.Number(1)], expr.schema).optimize());
         }
     }
+}
+
+function inferType(key : string, jsValue : unknown) : Type {
+    if (key === 'distance') // HACK
+        return new Type.Measure('m');
+    if (key === '__device')
+        return new Type.Entity('tt:device_id');
+    if (typeof jsValue === 'boolean')
+        return Type.Boolean;
+    if (typeof jsValue === 'string')
+        return Type.String;
+    if (typeof jsValue === 'number')
+        return Type.Number;
+    if (jsValue instanceof Builtin.Currency)
+        return Type.Currency;
+    if (jsValue instanceof Builtin.Entity)
+        return new Type.Entity('');
+    if (jsValue instanceof Builtin.Time)
+        return Type.Time;
+    if (jsValue instanceof Date)
+        return Type.Date;
+    if (Array.isArray(jsValue) && jsValue.length > 0)
+        return new Type.Array(inferType(key, jsValue[0]));
+    if (Array.isArray(jsValue))
+        return new Type.Array(Type.Any);
+
+    return Type.Any;
+}
+
+export async function mapResult(schema : Ast.FunctionDef, outputValue : Record<string, unknown>) {
+    const mappedResult : Record<string, Ast.Value> = {};
+
+    for (const key in outputValue) {
+        const value = outputValue[key];
+        const type = schema.getArgType(key) || inferType(key, value);
+
+        if (value === null || value === undefined)
+            continue;
+
+        if (type instanceof Type.Compound)
+            mappedResult[key] = mapCompound(key + '.', schema, value as Record<string, unknown>);
+        else
+            mappedResult[key] = Ast.Value.fromJS(type, value);
+    }
+    return new Ast.DialogueHistoryResultItem(null, mappedResult, outputValue);
+}
+
+function mapCompound(prefix : string, schema : Ast.FunctionDef, object : Record<string, unknown>) {
+    const result : Record<string, Ast.Value> = {};
+    for (const key in object) {
+        const value = object[key];
+        const type = schema.getArgType(prefix + key) || inferType(prefix + key, value);
+
+        if (value === null || value === undefined)
+            continue;
+
+        if (type instanceof Type.Compound)
+            result[key] = mapCompound(prefix + key + '.', schema, object as Record<string, unknown>);
+        else
+            result[key] = Ast.Value.fromJS(type, value);
+    }
+    return new Ast.Value.Object(result);
+}
+
+export interface ErrorWithCode {
+    message : string;
+    code ?: string;
+}
+
+export function mapError(error : Error) : Ast.Value {
+    const err : ErrorWithCode = error;
+    if (typeof err.code === 'string') // error codes starting with E are reserved for system errors
+        return new Ast.Value.Enum(err.code);
+    return new Ast.Value.String(error.message);
 }

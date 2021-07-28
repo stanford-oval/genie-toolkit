@@ -29,7 +29,7 @@ import * as ThingTalk from 'thingtalk';
 import * as ThingTalkUtils from '../lib/utils/thingtalk';
 import SimulationDialogueAgent, {
     SimulationDialogueAgentOptions
-} from '../lib/thingtalk-dialogues/simulator/simulation_dialogue_agent';
+} from '../lib/thingtalk-dialogues/simulator/simulation-thingtalk-executor';
 import * as StreamUtils from '../lib/utils/stream-utils';
 import {
     DialogueParser,

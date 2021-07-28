@@ -59,6 +59,7 @@ export async function inputToDialogueState(policy : PolicyModule,
                 return ThingTalkUtils.computePrediction(context, handled, 'user');
             }
             case 'nevermind':
+            case 'stop':
                 return new Ast.DialogueState(null, 'org.thingpedia.dialogue.transaction', 'cancel', null, []);
             case 'wakeup':
                 return new Ast.DialogueState(null, 'org.thingpedia.dialogue.transaction', 'greet', null, []);
@@ -180,10 +181,6 @@ export class CommandParser {
                 switch (input.intent.type) {
                 case 'stop':
                     return CommandAnalysisType.STOP;
-                case 'nevermind':
-                    return CommandAnalysisType.NEVERMIND;
-                case 'wakeup':
-                    return CommandAnalysisType.WAKEUP;
                 case 'debug':
                     return CommandAnalysisType.DEBUG;
                 case 'failed':
@@ -253,8 +250,7 @@ export class CommandParser {
         this._checkPolicy(prediction.policy);
 
         return {
-            type: analysis.type === CommandAnalysisType.NEVERMIND || analysis.type === CommandAnalysisType.WAKEUP ?
-                CommandAnalysisType.CONFIDENT_IN_DOMAIN_COMMAND : analysis.type,
+            type: analysis.type,
             utterance: analysis.utterance,
             user_target: prediction.prettyprint(),
             answer: analysis.answer,

@@ -260,7 +260,7 @@ type PlaceholderConstraints = Record<number, Record<string, FlagValue>>;
 // AST objects (representations of a parsed template)
 
 
-interface ReplacementContext {
+export interface ReplacementContext {
     replacements : Record<number, PlaceholderReplacement|undefined>;
     constraints : PlaceholderConstraints;
 }
@@ -290,7 +290,7 @@ export abstract class Replaceable {
         if (cached)
             return cached;
 
-        const parsed = TemplateGrammar.parse(template);
+        const parsed : Replaceable = TemplateGrammar.parse(template);
         parsed.preprocess(langPack, names);
         Replaceable._cache.set(cacheKey, parsed);
         return parsed;
@@ -303,6 +303,8 @@ export abstract class Replaceable {
     abstract optimize(constraints : PlaceholderConstraints) : Replaceable|null;
 
     abstract replace(ctx : ReplacementContext) : ReplacedResult|null;
+
+    abstract replacePartial(ctx : ReplacementContext) : Replaceable|null;
 }
 
 
@@ -363,7 +365,72 @@ export class Placeholder extends Replaceable {
             return replacement;
         }
     }
+
+    replacePartial(ctx : ReplacementContext) : Replaceable|null {
+        const param = ctx.replacements[this._index!];
+        if (!param)
+            return this;
+
+        if (this.key.length > 0) {
+            const replacement = get(param.value, this.key);
+            if (replacement === null || replacement === undefined)
+                return null;
+            return new Phrase(String(replacement), {});
+        } else {
+            let replacement = param.text;
+            const paramConstraints = ctx.constraints[this._index!] || {};
+            for (const flag in paramConstraints) {
+                const value = paramConstraints[flag];
+                const maybeReplacement = replacement.constrain(flag, value);
+                if (maybeReplacement === null)
+                    return null;
+                replacement = maybeReplacement;
+            }
+
+            return new ReplacedPhrase(replacement);
+        }
+    }
 }
+
+/**
+ * A phrase that is already expressed as a replaced result.
+ *
+ * This is a Replaceable that does not contain any placeholder.
+ */
+ export class ReplacedPhrase extends Replaceable {
+    constructor(public text : ReplacedResult) {
+        super();
+    }
+
+    clone() {
+        return new ReplacedPhrase(this.text);
+    }
+
+    toString() {
+        return this.text.toString();
+    }
+
+    visit(cb : (repl : Replaceable) => boolean) {
+        cb(this);
+    }
+
+    preprocess(langPack : LanguagePack, placeholders : string[]) {
+        return this;
+    }
+
+    optimize() {
+        return this;
+    }
+
+    replace(ctx : ReplacementContext) : ReplacedResult|null {
+        return this.text;
+    }
+
+    replacePartial(ctx : ReplacementContext) : Replaceable|null {
+        return this;
+    }
+}
+Replaceable.EMPTY = new ReplacedPhrase(ReplacedResult.EMPTY);
 
 function templateEscape(str : string) {
     return str.replace(/[${}|[\]\\]/g, '\\$0');
@@ -379,6 +446,8 @@ function templateEscape(str : string) {
  * `restaurants [plural=other]`
  */
 export class Phrase extends Replaceable {
+    private _preprocessed = false;
+
     constructor(public text : string,
                 public flags : Record<string, string> = {}) {
         super();
@@ -387,7 +456,9 @@ export class Phrase extends Replaceable {
     clone() {
         const flags : Record<string, string> = {};
         Object.assign(flags, this.flags);
-        return new Phrase(this.text, flags);
+        const phrase = new Phrase(this.text, flags);
+        phrase._preprocessed = this._preprocessed;
+        return phrase;
     }
 
     toString() {
@@ -411,8 +482,11 @@ export class Phrase extends Replaceable {
     }
 
     preprocess(langPack : LanguagePack, placeholders : string[]) {
+        if (this._preprocessed)
+            return this;
         const tokenizer = langPack.getTokenizer();
         this.text = tokenizer.tokenize(this.text).rawTokens.join(' ');
+        this._preprocessed = true;
         return this;
     }
 
@@ -423,8 +497,11 @@ export class Phrase extends Replaceable {
     replace(ctx : ReplacementContext) : ReplacedResult|null {
         return new ReplacedConcatenation([this.text], this.flags, {});
     }
+
+    replacePartial(ctx : ReplacementContext) : Replaceable|null {
+        return this;
+    }
 }
-Replaceable.EMPTY = new Phrase('');
 
 function mergeConstraints(into : PlaceholderConstraints, newConstraints : PlaceholderConstraints) {
     for (const placeholder in newConstraints) {
@@ -537,6 +614,18 @@ export class Concatenation extends Replaceable {
 
         return new ReplacedConcatenation(replaced, this.flags, this._computedRefFlags);
     }
+
+    replacePartial(ctx : ReplacementContext) : Replaceable|null {
+        const replaced : Replaceable[] = [];
+        for (const child of this.children) {
+            const childReplacement = child.replacePartial(ctx);
+            if (childReplacement === null)
+                return null;
+            replaced.push(childReplacement);
+        }
+
+        return new Concatenation(replaced, this.flags, this._computedRefFlags);
+    }
 }
 
 /**
@@ -601,6 +690,22 @@ export class Choice implements Replaceable {
             return variants[0];
         else
             return new ReplacedChoice(variants);
+    }
+
+    replacePartial(ctx : ReplacementContext) : Replaceable|null {
+        const variants : Replaceable[] = [];
+        for (const v of this.variants) {
+            const replaced = v.replacePartial(ctx);
+            if (replaced === null)
+                continue;
+            variants.push(replaced);
+        }
+        if (variants.length === 0)
+            return null;
+        else if (variants.length === 1)
+            return variants[0];
+        else
+            return new Choice(variants);
     }
 }
 
@@ -716,6 +821,39 @@ export class Plural implements Replaceable {
         else
             return null;
     }
+
+    replacePartial(ctx : ReplacementContext) : Replaceable|null {
+        const param = ctx.replacements[this._index!];
+        if (param) {
+            const value = get(param.value, this.key);
+            if (value === null || value === undefined)
+                return null;
+
+            const number = Number(value);
+            if (number in this.variants)
+                return this.variants[number].replacePartial(ctx);
+
+            const variant = this._rules!.select(number);
+            if (variant in this.variants)
+                return this.variants[variant].replacePartial(ctx);
+            else
+                return null;
+        } else {
+            const newVariants : Record<string|number, Replaceable> = {};
+            let anyVariant = false;
+
+            for (const variant in this.variants) {
+                const replaced = this.variants[variant].replacePartial(ctx);
+                if (replaced === null)
+                    continue;
+                newVariants[variant] = replaced;
+                anyVariant = true;
+            }
+            if (!anyVariant)
+                return null;
+            return new Plural(this.param, this.key, this.type, newVariants);
+        }
+    }
 }
 
 /**
@@ -805,6 +943,33 @@ export class ValueSelect implements Replaceable {
             return this.variants['_'].replace(ctx);
         else
             return null;
+    }
+
+    replacePartial(ctx : ReplacementContext) : Replaceable|null {
+        const param = ctx.replacements[this._index!];
+        if (param) {
+            const value = String(get(param.value, this.key));
+            if (value in this.variants)
+                return this.variants[value].replacePartial(ctx);
+            else if ('_' in this.variants)
+                return this.variants['_'].replacePartial(ctx);
+            else
+                return null;
+        } else {
+            const newVariants : Record<string, Replaceable> = {};
+            let anyVariant = false;
+
+            for (const variant in this.variants) {
+                const replaced = this.variants[variant].replacePartial(ctx);
+                if (replaced === null)
+                    continue;
+                newVariants[variant] = replaced;
+                anyVariant = true;
+            }
+            if (!anyVariant)
+                return null;
+            return new ValueSelect(this.param, this.key, newVariants);
+        }
     }
 }
 
@@ -929,5 +1094,59 @@ export class FlagSelect implements Replaceable {
             return variants[0];
         else
             return new ReplacedChoice(variants);
+    }
+
+    replacePartial(ctx : ReplacementContext) : Replaceable|null {
+        // check if we already have a constraint on this param
+        if (ctx.constraints[this._index!] && this.flag in ctx.constraints[this._index!]) {
+            const constraint = ctx.constraints[this._index!][this.flag];
+            if (!this.variants[constraint])
+                return null;
+
+            return this.variants[constraint].replacePartial(ctx);
+        }
+
+        if (ctx.replacements[this._index!]) {
+            // we're going to replace this parameter, apply the necessary constraints
+            const newVariants : Record<string, Replaceable> = {};
+            let anyVariant = false;
+            for (const v in this.variants) {
+                // make a new replacement context with the added constraint on this
+                // placeholder
+                // the constraint will be propagated down to where this placeholder is
+                // used, and will be applied to the replacement of the placeholder
+                const newCtx : ReplacementContext = {
+                    replacements: ctx.replacements,
+                    constraints: {}
+                };
+                mergeConstraints(newCtx.constraints, ctx.constraints);
+                mergeConstraints(newCtx.constraints, { [this._index!]: { [this.flag]: v } });
+
+                const replaced = this.variants[v].replacePartial(newCtx);
+                if (replaced === null)
+                    continue;
+                newVariants[v] = replaced;
+                anyVariant = true;
+            }
+            if (!anyVariant)
+                return null;
+            return new FlagSelect(this.param, this.flag, newVariants);
+        } else {
+            // we're not going to replace this parameters
+            // recurse down without touching the constraints
+
+            const newVariants : Record<string, Replaceable> = {};
+            let anyVariant = false;
+            for (const v in this.variants) {
+                const replaced = this.variants[v].replacePartial(ctx);
+                if (replaced === null)
+                    continue;
+                newVariants[v] = replaced;
+                anyVariant = true;
+            }
+            if (!anyVariant)
+                return null;
+            return new FlagSelect(this.param, this.flag, newVariants);
+        }
     }
 }

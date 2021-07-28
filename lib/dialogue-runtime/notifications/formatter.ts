@@ -23,9 +23,8 @@ import * as Tp from 'thingpedia';
 import * as ThingTalk from 'thingtalk';
 
 import Engine from '../../engine';
+import * as ThingTalkUtils from '../../utils/thingtalk';
 //import * as I18n from '../../i18n';
-
-import StatementExecutor from '../../thingtalk-dialogues/statement_executor';
 
 import CardFormatter from '../card-output/card-formatter';
 //import { FORMAT_TYPES } from '../card-output/format_objects';
@@ -46,7 +45,6 @@ export default class NotificationFormatter {
     private _cardFormatter : CardFormatter;
     // TODO
     // private _policy : DialoguePolicy;
-    private _executor : StatementExecutor;
 
     /**
      * Construct a new formatter for a given Genie engine.
@@ -57,7 +55,6 @@ export default class NotificationFormatter {
         this._cardFormatter = new CardFormatter(engine.platform.locale, engine.platform.timezone, engine.schemas);
         //this._langPack = I18n.get(engine.platform.locale);
 
-        this._executor = new StatementExecutor(engine);
         /*this._policy = new DialoguePolicy({
             thingpedia: engine.thingpedia,
             schemas: engine.schemas,
@@ -80,12 +77,11 @@ export default class NotificationFormatter {
         assert(stmt instanceof ThingTalk.Ast.ExpressionStatement);
         assert(stmt.expression.schema);
 
-        const mappedResult = await this._executor.mapResult(stmt.expression.schema, outputValue);
+        const mappedResult = await ThingTalkUtils.mapResult(stmt.expression.schema, outputValue);
         void(mappedResult);
 
         void(this._engine);
         void(this._cardFormatter);
-        void(this._executor);
 
         throw new Error(`not implemented yet`);
         /*

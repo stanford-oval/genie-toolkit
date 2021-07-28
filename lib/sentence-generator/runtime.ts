@@ -50,7 +50,7 @@ export {
     ReplacedList,
 };
 
-import {
+import type {
     DerivationKey,
     SemanticAction,
     KeyFunction,

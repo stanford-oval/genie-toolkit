@@ -18,10 +18,9 @@
 //
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
-import assert from 'assert';
 import { Ast } from 'thingtalk';
 
-import * as ThingTalkUtils from '../utils/thingtalk';
+import { PlatformData } from '../dialogue-runtime/protocol';
 import { POLICY_NAME as TRANSACTION_POLICY } from '../templates/transactions';
 
 /**
@@ -73,27 +72,18 @@ function getCommandType(cmd : Ast.ExpressionStatement) : CommandType {
     /**
      * The formal representation of the command.
      */
-    readonly prediction : Ast.DialogueState;
+    readonly meaning : Ast.DialogueState;
 
     /**
-     * The dialogue state immediately after the command.
+     * Platform specific data associated with this command.
      */
-    readonly state : Ast.DialogueState;
+    readonly platformData : PlatformData;
 
-    /**
-     * The ThingTalk program (sequence of executable statements) associated with the command.
-     */
-    readonly program : Ast.Program|null;
-
-    constructor(utterance : string, context : Ast.DialogueState|null, prediction : Ast.DialogueState) {
+    constructor(utterance : string, context : Ast.DialogueState|null, prediction : Ast.DialogueState, platformData : PlatformData = {}) {
         this.utterance = utterance;
         this.context = context;
-        this.prediction = prediction;
-        assert(prediction.history.every((item) => item.results === null));
-        if (prediction.history.length > 0)
-            this.program = new Ast.Program(null, [], [], [prediction.history[0].stmt]);
-        else
-            this.program = null;
+        this.meaning = prediction;
+        this.platformData = platformData;
 
         if (prediction.policy === TRANSACTION_POLICY &&
             prediction.dialogueAct === 'execute') {
@@ -104,16 +94,14 @@ function getCommandType(cmd : Ast.ExpressionStatement) : CommandType {
         } else {
             this.type = prediction.policy + '.' + prediction.dialogueAct;
         }
-
-        this.state = ThingTalkUtils.computeNewState(context, prediction, 'user');
     }
 
     /**
      * The dialogue act associated with the command.
      *
-     * This is a convenience accessor over getting {@link state}.dialogueAct
+     * This is a convenience accessor over getting {@link meaning}.dialogueAct
      */
     get dialogueAct() {
-        return this.state.dialogueAct;
+        return this.meaning.dialogueAct;
     }
 }

@@ -20,23 +20,20 @@
 
 
 import * as Tp from 'thingpedia';
-import { Ast, SchemaRetriever } from 'thingtalk';
+import { Ast, SchemaRetriever, Runtime } from 'thingtalk';
 
 import { coin } from '../../utils/random';
-import AbstractDialogueAgent, { DeviceInfo } from '../abstract_dialogue_agent';
 import { EntityRecord } from '../entity-linking/entity-finder';
-import ValueCategory from '../../dialogue-runtime/value-category';
 
-import StatementSimulator, {
-    ThingTalkSimulatorState,
-} from './statement_simulator';
-export { ThingTalkSimulatorState };
+import AbstractThingTalkExecutor, { DeviceInfo, ExecutionResult, UserContextVariable } from '../abstract-thingtalk-executor';
+import { ThingTalkSimulatorState } from './simulator-state';
 import { SimulationDatabase } from './types';
 import { getAllDevicesOfKind } from './helpers';
+import { DialogueInterface } from '../interface';
 
 export interface SimulationDialogueAgentOptions {
-    schemaRetriever ?: SchemaRetriever;
-    thingpediaClient ?: Tp.BaseClient;
+    schemaRetriever : SchemaRetriever;
+    thingpediaClient : Tp.BaseClient;
     locale : string;
     timezone : string|undefined;
     rng : () => number;
@@ -46,16 +43,18 @@ export interface SimulationDialogueAgentOptions {
 }
 
 /**
- * The dialogue agent used at simulation time.
+ * The ThingTalk executor used at simulation time.
  *
  * This is a completely stateless class, as it handles many possible dialogues at the same
  * time.
  */
-export default class SimulationDialogueAgent extends AbstractDialogueAgent<ThingTalkSimulatorState> {
-    private _executor : StatementSimulator;
+export default class SimulationThingtalkExecutor extends AbstractThingTalkExecutor {
+    private _options : SimulationDialogueAgentOptions;
     private _rng : () => number;
     private _database ?: SimulationDatabase;
     private _interactive : boolean;
+    private cache : Map<string, Runtime.CompiledProgram>;
+    private _execStates : WeakMap<DialogueInterface, ThingTalkSimulatorState>;
 
     constructor(options : SimulationDialogueAgentOptions) {
         super(options.thingpediaClient!, options.schemaRetriever!, {
@@ -63,39 +62,69 @@ export default class SimulationDialogueAgent extends AbstractDialogueAgent<Thing
             debug: false,
             timezone: 'America/Los_Angeles',
         });
-        this._executor = new StatementSimulator({
-            locale: options.locale,
-            timezone: options.timezone,
-            schemaRetriever: options.schemaRetriever!,
-            rng: options.rng,
-            database: options.database,
-            overrides: options.overrides
-        });
-
+        this._options = options;
         this._rng = options.rng;
         this._database = options.database;
         this._interactive = options.interactive;
+        this.cache = new Map;
+        this._execStates = new WeakMap;
     }
 
-    protected get executor() : StatementSimulator {
-        return this._executor;
+    private _getExecState(dlg : DialogueInterface) {
+        let existing = this._execStates.get(dlg);
+        if (existing !== undefined)
+            return existing;
+
+        existing = new ThingTalkSimulatorState(this._options);
+        this._execStates.set(dlg, existing);
+        return existing;
     }
 
-    protected async configureNotifications() {
+    async execute(dlg : DialogueInterface, program : Ast.Program) : Promise<ExecutionResult[]> {
+        const execState = this._getExecState(dlg);
+
+        const out : ExecutionResult[] = [];
+        for (const stmt of program.statements) {
+            if (!(stmt instanceof Ast.ExpressionStatement))
+                throw new Error(`not implemented: ${stmt.constructor.name}`);
+
+            if (stmt.stream) {
+                // nothing to do, this always returns nothing
+                out.push({
+                    stmt,
+                    results: new Ast.DialogueHistoryResultList(null, [], new Ast.Value.Number(0), false, null),
+                    rawResults: []
+                });
+            } else {
+                // there is no way around this, we need to compile and run the program!
+                const compiled = await execState.compile(stmt, this.cache);
+                const [results, rawResults] = await execState.simulate(stmt, compiled);
+                out.push({
+                    stmt,
+                    results,
+                    rawResults
+                });
+            }
+        }
+        return out;
+    }
+
+    async configureNotifications() {
         return undefined;
     }
 
-    protected async checkForPermission(stmt : Ast.ExpressionStatement) {}
+    protected async checkForPermission() {}
 
     protected async getAllDevicesOfKind(kind : string) : Promise<DeviceInfo[]> {
         return getAllDevicesOfKind(this._schemas, kind);
     }
 
-    protected async tryConfigureDevice(kind : string) : Promise<never> {
+    protected async tryConfigureDevice() : Promise<never> {
         throw new TypeError('Should not attempt to configure devices in simulation');
     }
 
-    async disambiguate(type : string,
+    async disambiguate(dlg : DialogueInterface,
+                       type : string,
                        name : string|null,
                        choices : string[],
                        hint ?: string) : Promise<number> {
@@ -103,22 +132,22 @@ export default class SimulationDialogueAgent extends AbstractDialogueAgent<Thing
         return Math.floor(this._rng() * choices.length);
     }
 
-    async lookupContact(category : ValueCategory, name : string) : Promise<never> {
+    async lookupContact() : Promise<never> {
         // TODO???
         throw new TypeError('Abstract method');
     }
 
-    protected async addDisplayToContact(contact : Ast.EntityValue) : Promise<void> {
+    protected async addDisplayToContact() : Promise<void> {
         // do nothing, all our entities are made up in the simulation
         // and we don't care about the display field
     }
 
-    async askMissingContact(category : ValueCategory, name : string) : Promise<never> {
+    async askMissingContact() : Promise<never> {
         // TODO???
         throw new TypeError('Abstract method');
     }
 
-    protected async lookupLocation(searchKey : string, previousLocations : Ast.AbsoluteLocation[]) : Promise<Ast.LocationValue> {
+    protected async lookupLocation(dlg : DialogueInterface, searchKey : string, previousLocations : Ast.AbsoluteLocation[]) : Promise<Ast.LocationValue> {
         // should not happen in non-interactive mode, we only deal with absolute locations
         // and let the augmentation step convert to location names later
         if (!this._interactive)
@@ -154,7 +183,7 @@ export default class SimulationDialogueAgent extends AbstractDialogueAgent<Thing
         });
     }
 
-    protected async lookupEntityCandidates(entityType : string, entityDisplay : string) : Promise<EntityRecord[]> {
+    protected async lookupEntityCandidates(dlg : DialogueInterface, entityType : string, entityDisplay : string) : Promise<EntityRecord[]> {
         if (this._database && this._database.has(entityType))
             return this._getIDs(entityType);
 
@@ -168,17 +197,17 @@ export default class SimulationDialogueAgent extends AbstractDialogueAgent<Thing
         }
     }
 
-    protected async resolveUserContext(variable : string) : Promise<Ast.Value> {
+    protected async resolveUserContext(dlg : DialogueInterface, variable : UserContextVariable) : Promise<Ast.Value> {
         switch (variable) {
-        case '$context.location.current_location':
+        case '$location.current_location':
             return new Ast.Value.Location(new Ast.Location.Absolute(2, 2, 'Simulated Location 1'));
-        case '$context.location.home':
+        case '$location.home':
             return new Ast.Value.Location(new Ast.Location.Absolute(3, 3, 'Simulated Location 2'));
-        case '$context.location.work':
+        case '$location.work':
             return new Ast.Value.Location(new Ast.Location.Absolute(4, 4, 'Simulated Location 3'));
-        case '$context.time.morning':
+        case '$time.morning':
             return new Ast.Value.Time(new Ast.Time.Absolute(9, 0, 0));
-        case '$context.time.evening':
+        case '$time.evening':
             return new Ast.Value.Time(new Ast.Time.Absolute(19, 0, 0));
         default:
             throw new Error(`Unknown $context variable ${variable}`);

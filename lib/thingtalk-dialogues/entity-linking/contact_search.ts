@@ -19,10 +19,12 @@
 // Author: Giovanni Campagna <gcampagn@cs.stanford.edu>
 
 
-import { Ast, } from 'thingtalk';
+import { Ast, Type, } from 'thingtalk';
 
-import type AbstractDialogueAgent from '../abstract_dialogue_agent';
 import ValueCategory from '../../dialogue-runtime/value-category';
+
+import type AbstractThingTalkExecutor from '../abstract-thingtalk-executor';
+import type { DialogueInterface } from '../interface';
 
 // scoring heuristics:
 // prefer full matches, allow prefix matches
@@ -168,7 +170,7 @@ export interface Contact {
     timesContacted ?: number;
 }
 
-export async function contactSearch(dlg : AbstractDialogueAgent<unknown>, type : string, name : string) {
+export async function contactSearch(dlg : DialogueInterface, executor : AbstractThingTalkExecutor, type : string, name : string) {
     let category;
     switch (type) {
         case 'tt:phone_number':
@@ -184,9 +186,9 @@ export async function contactSearch(dlg : AbstractDialogueAgent<unknown>, type :
             throw new TypeError('Invalid contact type ' + type);
     }
 
-    const choices = name === null ? [] : await dlg.lookupContact(category, name);
+    const choices = name === null ? [] : await executor.lookupContact(dlg, category, name);
     if (choices.length === 0) {
-        const answer = await dlg.askMissingContact(category, name);
+        const answer = await executor.askMissingContact(dlg, new Type.Entity(type), name);
         const contact = {
             value: answer.value!,
             displayName: answer.display!
@@ -223,6 +225,6 @@ export async function contactSearch(dlg : AbstractDialogueAgent<unknown>, type :
     if (choice !== null)
         return makeValue(category, choice);
 
-    const idx = await dlg.disambiguate('contact', name, fallbacks.map((c) => c.displayName));
+    const idx = await executor.disambiguate(dlg, 'contact', name, fallbacks.map((c) => c.displayName));
     return makeValue(category, fallbacks[idx]);
 }

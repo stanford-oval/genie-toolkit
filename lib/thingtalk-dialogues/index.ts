@@ -26,3 +26,4 @@ export { Command, CommandType } from './command';
 export { UnexpectedCommandError, TerminatedDialogueError } from './cmd-dispatch';
 export * from './interface';
 export { PolicyFunction, PolicyStartMode, PolicyModule } from './policy';
+export { ExecutionResult } from './abstract-thingtalk-executor';

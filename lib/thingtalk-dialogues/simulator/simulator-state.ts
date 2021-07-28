@@ -246,34 +246,3 @@ export class ThingTalkSimulatorState {
         return new Ast.Value.Object(result);
     }
 }
-
-/**
- * Simulate the execution of ThingTalk code.
- */
-export default class ThingTalkStatementSimulator {
-    private _options : SimulatorOptions;
-    private cache : Map<string, Runtime.CompiledProgram>;
-
-    constructor(options : SimulatorOptions) {
-        this._options = options;
-        this.cache = new Map;
-    }
-
-    async executeStatement(stmt : Ast.ExpressionStatement,
-                           execState : ThingTalkSimulatorState) : Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, undefined, ThingTalkSimulatorState]> {
-        if (stmt.stream) {
-            // nothing to do, this always returns nothing
-            return [new Ast.DialogueHistoryResultList(null, [],
-                new Ast.Value.Number(0), false, null), [], undefined, execState];
-        }
-
-        if (execState === undefined)
-            execState = new ThingTalkSimulatorState(this._options);
-
-        // there is no way around this, we need to compile and run the program!
-        const compiled = await execState.compile(stmt, this.cache);
-        const [resultList, rawResults] = await execState.simulate(stmt, compiled);
-        // ignore the new program record, it doesn't matter at simulation time
-        return [resultList, rawResults, undefined, execState];
-    }
-}

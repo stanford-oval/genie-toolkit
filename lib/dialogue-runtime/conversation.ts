@@ -81,6 +81,15 @@ export interface ConversationState {
     dialogueState : Record<string, unknown>;
 }
 
+export interface NewProgramRecord {
+    uniqueId : string;
+    name : string;
+    code : string;
+    results : Array<Record<string, unknown>>;
+    errors : string[];
+    icon : string|null;
+}
+
 /**
  * A single session of conversation in Genie.
  *
@@ -433,14 +442,7 @@ export default class Conversation extends events.EventEmitter {
         return this.addMessage({ type: MessageType.LINK, url, title, state });
     }
 
-    sendNewProgram(program : {
-        uniqueId : string;
-        name : string;
-        code : string;
-        results : Array<Record<string, unknown>>;
-        errors : string[];
-        icon : string|null;
-    }) {
+    sendNewProgram(program : NewProgramRecord) {
         if (this._debug)
             console.log('Genie executed new program: '+ program.uniqueId);
         return this.addMessage({ type: MessageType.NEW_PROGRAM, ...program });

@@ -23,6 +23,7 @@ import { SchemaRetriever, Syntax, Ast } from 'thingtalk';
 
 import { Hashable } from '../utils/hashmap';
 import { PlaceholderReplacement, ReplacedResult } from '../utils/template-string';
+import type { NonTerminal } from './runtime';
 
 export interface RuleAttributes {
     weight ?: number;
@@ -77,7 +78,7 @@ export interface GrammarOptions {
  *
  * This type exists only for documentation.
  */
-export type NonTerminal<ValueType> = ValueType extends unknown ? string : never;
+export type NonTerminalName<ValueType> = ValueType extends unknown ? string : never;
 // ^ clever hack with dual purposes: it shuts up typescript about
 // an unused type argument, and it hides the type definition from typedoc
 
@@ -110,7 +111,7 @@ export type NonTerminalKeyConstraint = RelativeKeyConstraint | ConstantKeyConstr
  * `null` is allowed in the mapping for convenience. If any replacement is `null`,
  * the whole template is discarded.
  */
-export type TemplatePlaceholderMap = Record<string, NonTerminal<any>|[NonTerminal<any>, ...NonTerminalKeyConstraint]|PlaceholderReplacement|null>
+export type TemplatePlaceholderMap = Record<string, NonTerminal|PlaceholderReplacement|ReplacedResult|string|null>
 
 /**
  * A single template for synthesis.
@@ -123,18 +124,70 @@ export type Template<ArgTypes extends unknown[], ReturnType> =
     [string, TemplatePlaceholderMap, SemanticAction<ArgTypes, ReturnType>];
 
 /**
+ * A textual reply from the agent.
+ */
+export type AgentTextMessage = {
+    type : 'text';
+    text : string;
+    args : TemplatePlaceholderMap;
+    meaning : SemanticAction<any[], AgentReplyRecord|undefined>
+};
+
+/**
+ * A non-textual reply from the agent.
+ */
+export type AgentExtensionMessage = {
+    type : 'link';
+    args : TemplatePlaceholderMap;
+    title : string;
+    url : string;
+} | {
+    type : 'picture'|'audio'|'video';
+    args : TemplatePlaceholderMap;
+    url : string;
+    alt ?: string;
+} | {
+    type : 'button';
+    args : TemplatePlaceholderMap;
+    title : string;
+    json : string;
+} | {
+    type : 'sound';
+    args : TemplatePlaceholderMap;
+    name : string;
+    exclusive ?: boolean;
+} | {
+    type : 'rdl';
+    args : TemplatePlaceholderMap;
+    displayTitle : string;
+    displayText ?: string;
+    callback ?: string;
+    webCallback ?: string;
+    pictureUrl ?: string;
+};
+// TODO add the other message types
+
+/**
+ * A single piece of the reply from the agent at one turn.
+ *
+ * This is either a text message, or a link/card/other non-textual
+ * element.
+ */
+export type AgentMessage = AgentTextMessage | AgentExtensionMessage;
+
+/**
  * The reply of the agent at one turn.
  *
  * This is an array of messages, concatenated together, expressed
  * in the form of templates. The last non-void semantics are used
  * as the overall semantics of the turn.
  */
- export type AgentReply = Array<Template<any[], AgentReplyRecord|void>>;
+export type AgentReply = AgentMessage[];
 
 /**
  * Formally represent a single concrete action taken by the agent at this turn.
  */
- export interface AgentReplyRecord {
+export interface AgentReplyRecord {
     /**
      * The formal representation of the agent utterance in ThingTalk.
      */

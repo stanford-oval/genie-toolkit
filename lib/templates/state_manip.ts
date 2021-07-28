@@ -630,7 +630,7 @@ export function acceptAllProposedStatements(ctx : ContextInfo) {
 
 function makeSimpleState(ctx : ContextInfo,
                          dialogueAct : string,
-                         dialogueActParam : string[]|null) : Ast.DialogueState {
+                         dialogueActParam : Array<string|Ast.Value>|null) : Ast.DialogueState {
     // a "simple state" carries the current executed/confirmed/accepted items, but not the
     // proposed ones
 
@@ -639,6 +639,29 @@ function makeSimpleState(ctx : ContextInfo,
         if (ctx.state.history[i].confirm === 'proposed')
             break;
         newState.history.push(ctx.state.history[i]);
+    }
+
+    return newState;
+}
+
+/**
+ * Construct an agent or user target that only change the dialogue act.
+ *
+ * The resulting agent target carries over all the accepted items and not executed items
+ * from the current state.
+ *
+ * This is the new form of {@link makeSimpleState} that returns a target state instead of
+ * a full state.
+ */
+export function makeSimpleTargetState(state : Ast.DialogueState|null, dialogueAct : string, dialogueActParam : Array<string|Ast.Value> = []) {
+    const newState = new Ast.DialogueState(null, POLICY_NAME, dialogueAct, dialogueActParam, []);
+    if (state === null)
+        return newState;
+
+    for (let i = 0; i < state.history.length; i++) {
+        if (state.history[i].confirm === 'proposed' || state.history[i].results !== null)
+            continue;
+        newState.history.push(state.history[i]);
     }
 
     return newState;

@@ -31,47 +31,29 @@ import {
     AgentReply,
     AgentReplyRecord
 } from '../sentence-generator/types';
-import { Replaceable, } from '../utils/template-string';
 import { Command, } from './command';
-import { UnexpectedCommandError, TerminatedDialogueError, CommandDispatcher, ParallelCommandDispatcher, AbstractCommandIO } from './cmd-dispatch';
-import AbstractDialogueAgent from './abstract_dialogue_agent';
+import {
+    UnexpectedCommandError,
+    TerminatedDialogueError,
+    CommandDispatcher,
+    ParallelCommandDispatcher,
+    AbstractCommandIO
+} from './cmd-dispatch';
 import { PolicyFunction, PolicyStartMode } from './policy';
+import AbstractThingTalkExecutor, {
+    ExecutionResult,
+    NotificationConfig
+} from './abstract-thingtalk-executor';
+import { shouldAutoConfirmStatement } from '../utils/thingtalk';
+
+// FIXME we should not import this here
+import * as S from '../templates/state_manip';
 
 /**
  * A callback that computes all the relevant templates to use for synthesis
  * at the given state
  */
 export type SynthesisFunction<ReturnType> = (dlg : DialogueInterface) => Iterable<Template<[Ast.DialogueState, ...any[]], ReturnType>>;
-
-/**
- * The result of executing a ThingTalk program.
- */
-export interface ExecutionResult {
-    /**
-     * Whether the program could be executed or not.
-     *
-     * The program might not be executed if some required parameter is missing, or
-     * if some value needs entity linking or user context resolution (`$location.current_location`,
-     * `$self.phone_number`, etc.)
-     */
-    executed : boolean;
-
-    /**
-     * The results of executing the ThingTalk program, if any.
-     *
-     * This is a container with the list of actual results, a boolean indicating that more
-     * results could be fetched from the API, and whether any error occurred.
-     */
-    results : Ast.DialogueHistoryResultList|null;
-
-    /**
-     * The raw results of executing the ThingTalk program.
-     *
-     * This is equivalent to {@link results} but contains runtime representations of
-     * the ThingTalk values (as produced/seen by Thingpedia skills) instead of AST values.
-     */
-    rawResults : Array<[string, Record<string, unknown>]>;
-}
 
 export interface Synthesizer {
     synthesize(templates : Iterable<[number|null, Template<[Ast.DialogueState, ...any[]], Ast.DialogueState>]>) : void;
@@ -86,6 +68,46 @@ function wrapAgentReplySemantics<T extends unknown[]>(semantics : SemanticAction
             return { meaning: result, numResults: 0 };
         return result;
     };
+}
+
+/**
+ * Options that can be passed to {@link DialogueInterface.get}
+ */
+export interface GetOptions {
+    /**
+     * Templates to apply only at this state.
+     */
+    followUp ?: Iterable<Template<[Ast.DialogueState, ...any[]], Ast.DialogueState>>;
+
+    /**
+     * A ThingTalk type of a single value that the agent expect.
+     *
+     * This is used to configure the UI (keyboard, file/image pickers) for a specific type of input,
+     * and it has no other effect otherwise; use `null` to explicitly indicate that the agent
+     * is _not_ expecting an answer at all, and therefore the UI should reflect that and the
+     * microphone should stop listening.
+     */
+    expecting ?: Type|null;
+
+    /**
+     * If specified, handles the raw command, without any parsing.
+     */
+    rawHandler ?: (cmd : string) => Ast.DialogueState|null;
+
+    /**
+     * The list of acceptable dialogue acts.
+     */
+    acceptActs ?: string[];
+
+    /**
+     * Fully qualified names of acceptable Thingpedia actions.
+     */
+    acceptActions ?: string[];
+
+    /**
+     * Fully qualified names of acceptable Thingpedia queries.
+     */
+    acceptQueries ?: string[],
 }
 
 /**
@@ -118,12 +140,18 @@ export class DialogueInterface {
      * honors the simulated flag.
      */
     readonly simulated : boolean;
+    /**
+     * `true` if this dialogue is for an anonymous user, `false` if it
+     * is for a logged-in user.
+     */
+    readonly anonymous : boolean;
 
     /**
      * The random number generator to use for non-deterministic choices.
      */
     readonly rng : () => number;
 
+    //private readonly _policy : PolicyModule;
     private readonly _parent : DialogueInterface|null;
     private readonly _langPack : I18n.LanguagePack;
     private readonly _schemas : SchemaRetriever;
@@ -131,15 +159,19 @@ export class DialogueInterface {
     private readonly _io : AbstractCommandIO;
     private readonly _dispatcher : CommandDispatcher;
     private readonly _synthesizer : Synthesizer|undefined;
-    private readonly _executor : AbstractDialogueAgent<any>;
+    private readonly _executor : AbstractThingTalkExecutor;
 
     /**
      * The current ThingTalk state of the dialogue (or null at the beginning of the dialogue).
      */
     state : Ast.DialogueState|null;
 
-    private _lastResult : ExecutionResult|null;
-    private _execState : any|undefined;
+    /**
+     * The last command issued by the user (or null at the beginning of the dialogue).
+     */
+    command : Command|null;
+
+    private _lastResult : ExecutionResult[];
     private _inGet : boolean;
 
     /**
@@ -158,8 +190,9 @@ export class DialogueInterface {
 
     constructor(parent : DialogueInterface|null,
                 options : {
+                    //policy : PolicyModule,
                     io : AbstractCommandIO,
-                    executor : AbstractDialogueAgent<any>,
+                    executor : AbstractThingTalkExecutor,
                     dispatcher : CommandDispatcher,
                     synthesizer ?: Synthesizer,
                     locale : string,
@@ -167,14 +200,18 @@ export class DialogueInterface {
                     simulated : boolean,
                     interactive : boolean,
                     deterministic : boolean,
+                    anonymous : boolean,
                     rng : () => number
                 }) {
         this.locale = options.locale;
         this.simulated = options.simulated;
         this.interactive = options.interactive;
+        this.anonymous = options.anonymous;
         this.rng = options.rng;
         this.state = null;
+        this.command = null;
         this._parent = parent;
+        //this._policy = options.policy;
         this._schemas = options.schemaRetriever;
         this._langPack = I18n.get(options.locale);
         this._ = this._langPack._;
@@ -184,8 +221,7 @@ export class DialogueInterface {
         this._synthesizer = options.synthesizer;
 
         this._dispatcher = options.dispatcher;
-        this._lastResult = null;
-        this._execState = undefined;
+        this._lastResult = [];
         this._userTemplates = new Map;
         this._sayBuffer = [];
         this._inGet = false;
@@ -195,7 +231,7 @@ export class DialogueInterface {
     /**
      * The result of executing the last ThingTalk program
      */
-    get lastResult() : ExecutionResult|null {
+    get lastResult() : ExecutionResult[] {
         if (this._parent)
             return this._parent.lastResult;
         else
@@ -218,27 +254,9 @@ export class DialogueInterface {
      *
      * All other commands raise a {@link UnexpectedCommandError}.
      *
-     * @param options - additional options controlling what kind of commands
-     * @param options.followUp - templates to apply only at this state
-     * @param options.expecting - a ThingTalk type of a single value that the agent expect; this
-     *    used to configure the UI (keyboard, file/image pickers) for a specific type of input,
-     *    and it has no other effect otherwise; use `null` to explicitly indicate that the agent
-     *    is _not_ expecting an answer at all, and therefore the UI should reflect that and the
-     *    microphone should stop listening
-     * @param options.rawHandler - if specified, handles the raw command, without any parsing
-     * @param options.acceptActs - the list of acceptable dialogue acts
-     * @param options.acceptActions - fully qualified names of acceptable Thingpedia actions
-     * @param options.acceptQueries - fully qualified names of acceptable Thingpedia queries
+     * @param options - additional options controlling what kind of commands are expected
      */
-    async get(options : {
-        followUp ?: Iterable<Template<[Ast.DialogueState, ...any[]], Ast.DialogueState>>,
-
-        expecting ?: Type|null,
-        rawHandler ?: (cmd : string) => Ast.DialogueState|null,
-        acceptActs ?: string[],
-        acceptActions ?: string[],
-        acceptQueries ?: string[],
-    } = {}) : Promise<Command> {
+    async get(options : GetOptions = {}) : Promise<Command> {
         await this.flush();
         if (this._inGet)
             throw new Error(`Multiple reentrant or parallel calls to DialogueInterface.get are not allowed`);
@@ -258,11 +276,9 @@ export class DialogueInterface {
             }());
         }
 
-        const cmd = await this._dispatcher.get(options);
-        this.state = cmd.state;
-
+        this.command = await this._dispatcher.get(options);
         this._inGet = false;
-        return cmd;
+        return this.command;
     }
 
     /**
@@ -292,7 +308,7 @@ export class DialogueInterface {
     }
 
     /**
-     * Add a message to the current turn of the agent.
+     * Add a text message to the current turn of the agent.
      *
      * This method can be called multiple times in a single turn, and the
      * messages are all concatenated.
@@ -325,10 +341,178 @@ export class DialogueInterface {
             semantics = () => s2;
         }
 
-        const names = Object.keys(args);
-        const parsed = Replaceable.get(tmpl, this._langPack, names);
+        this._sayBuffer.push({
+            type: 'text',
+            text: tmpl,
+            args,
+            meaning: semantics !== undefined ? wrapAgentReplySemantics(semantics) : (() => undefined)
+        });
+    }
 
-        this._sayBuffer.push([parsed, args, semantics !== undefined ? wrapAgentReplySemantics(semantics) : (() => undefined)]);
+    /**
+     * Add a link message to the current turn of the agent.
+     *
+     * This method can be called multiple times in a single turn, and the
+     * messages are all concatenated.
+     *
+     * Note that link messages do not carry a meaning. You must call {@link say}
+     * in the same turn to include a message with a meaning.
+     */
+    sendLink(title : string, url : string, args : TemplatePlaceholderMap = {}) {
+        // at synthesis time we don't need interactive messages
+        if (this._synthesizer)
+            return;
+
+        this._sayBuffer.push({
+            type: 'link',
+            args, title, url,
+        });
+    }
+
+    /**
+     * Add a button message to the current turn of the agent.
+     *
+     * This method can be called multiple times in a single turn, and the
+     * messages are all concatenated.
+     *
+     * Note that button messages do not carry a meaning. You must call {@link say}
+     * in the same turn to include a message with a meaning.
+     */
+    sendButton(title : string, json : string, args : TemplatePlaceholderMap = {}) {
+        // at synthesis time we don't need interactive messages
+        if (this._synthesizer)
+            return;
+
+        this._sayBuffer.push({
+            type: 'button',
+            args, title, json,
+        });
+    }
+
+    /**
+     * Add a button message for a multiple choice button to the current turn of the agent.
+     *
+     * This is a convenience wrapper over {@link sendButton}.
+     */
+    sendChoice(idx : number, choice : string) {
+        // at synthesis time we don't need interactive messages
+        if (this._synthesizer)
+            return;
+
+        const state = S.makeSimpleTargetState(this.state, 'answer_choice', [new Ast.Value.Number(idx)]);
+        this._sayBuffer.push({
+            type: 'button',
+            args: {},
+            title: choice,
+            json: JSON.stringify({
+                program: state.prettyprint()
+            }),
+        });
+    }
+
+    private _lookingFor(expecting : Type, dialogueState : Ast.DialogueState) {
+        if (expecting === Type.Boolean)
+            this.say(this._("Please answer yes or no."), dialogueState);
+        else if (expecting instanceof Type.Measure)
+            this.say(this._("Could you give me a measurement?"), dialogueState);
+        else if (expecting === Type.Number)
+            this.say(this._("Could you give me a number?"), dialogueState);
+        else if (expecting === Type.Date)
+            this.say(this._("Could you give me a date?"), dialogueState);
+        else if (expecting === Type.Time)
+            this.say(this._("Could you give me a time of day?"), dialogueState);
+        else if (expecting instanceof Type.Entity && expecting.type === 'tt:picture')
+            this.say(this._("Could you upload a picture?"), dialogueState);
+        else if (expecting === Type.Location)
+            this.say(this._("Could you give me a place?"), dialogueState);
+        else if (expecting instanceof Type.Entity && expecting.type === 'tt:phone_number')
+            this.say(this._("Could you give me a phone number?"), dialogueState);
+        else if (expecting instanceof Type.Entity && expecting.type === 'tt:email_address')
+            this.say(this._("Could you give me an email address?"), dialogueState);
+    }
+
+    private _fail(msg ?: string) {
+        if (msg)
+            this.say(this._("Sorry, I did not understand that: ${error}."), { error: msg });
+        else
+            this.say(this._("Sorry, I did not understand that."));
+    }
+
+    /**
+     * Ask a question with a well defined answer.
+     *
+     * This is a convenience function over {@link say}+{@link get} that will continuously
+     * prompt the user until they give an answer of the right type.
+     *
+     * @deprecated This function should not be used. Instead, use helpers in {@link TransactionPolicy}.
+     */
+    async ask(tmpl : string, args : TemplatePlaceholderMap, agentDialogueAct : string, agentDialogueActParam : Array<string|Ast.Value>, expectedType : Type, getOptions : GetOptions = {}) {
+        const dialogueState = S.makeSimpleTargetState(this.state, agentDialogueAct, agentDialogueActParam);
+
+        this.say(tmpl, args, () => dialogueState);
+
+        for (;;) {
+            try {
+                const cmd = await this.get({
+                    expecting: expectedType,
+                    acceptActs: ['answer'],
+                    followUp: [
+                        ['${v}', {
+                            v: ''
+                        }, (state : Ast.DialogueState, v : Ast.Value) => S.makeSimpleTargetState(state, 'answer', [v])]
+                    ],
+                    ...getOptions
+                });
+                const value = cmd.meaning.dialogueActParam?.[0];
+                if (!(value instanceof Ast.Value) || !value.getType().equals(expectedType))
+                    throw new UnexpectedCommandError(cmd);
+
+                return value;
+            } catch(e) {
+                if (!(e instanceof UnexpectedCommandError))
+                    throw e;
+                this._fail();
+                this._lookingFor(expectedType, dialogueState);
+
+                // continue the loop to try again
+            }
+        }
+    }
+
+    async askChoices(tmpl : string, args : TemplatePlaceholderMap, agentDialogueAct : string, choices : string[], getOptions : GetOptions = {}) {
+        const dialogueState = S.makeSimpleTargetState(this.state, agentDialogueAct, choices.map((c) => new Ast.Value.String(c)));
+
+        this.say(tmpl, args, () => dialogueState);
+        for (let idx = 0; idx < choices.length; idx++)
+            this.sendChoice(idx, choices[idx]);
+
+        for (;;) {
+            try {
+                const cmd = await this.get({
+                    expecting: undefined,
+                    acceptActs: ['answer_choice'],
+                    // TODO followUp
+                    ...getOptions
+                });
+                const value = cmd.meaning.dialogueActParam?.[0];
+                if (!(value instanceof Ast.NumberValue))
+                    throw new UnexpectedCommandError(cmd);
+                const choice = value.value;
+                if (choice < 0 || choice >= choices.length)
+                    throw new UnexpectedCommandError(cmd);
+
+                return choice;
+            } catch(e) {
+                if (!(e instanceof UnexpectedCommandError))
+                    throw e;
+                this._fail();
+                this.say(this._("Can you choose one of the following?"), dialogueState);
+                for (let idx = 0; idx < choices.length; idx++)
+                    this.sendChoice(idx, choices[idx]);
+
+                // continue the loop to try again
+            }
+        }
     }
 
     /**
@@ -352,37 +536,105 @@ export class DialogueInterface {
     }
 
     /**
-     * Execute (or simulate) a ThingTalk program.
+     * Prepare a dialogue state for being executed.
      *
-     * The newly executed program is immediately appended to the current
-     * dialogue state.
+     * This will split the statements that are immediately executable for those that
+     * require further input from the user. It will also resolve all ThingTalk values that
+     * are relative to the user, such as `$context.location.current_location`, and will assign
+     * device IDs to all Thingpedia function calls.
+     *
+     * Statements in the state are modified in place.
+     *
+     * @param state - the dialogue state to prepare
      */
-    async execute(program : Ast.Program) : Promise<ExecutionResult> {
-        // TODO use program
-        if (this._parent) {
-            return this._parent.execute(program);
-        } else {
-            try {
-                const { newDialogueState, newResults, newExecutorState } = await this._executor.execute(this.state!, this._execState);
-                this.state = newDialogueState;
-                this._execState = newExecutorState;
-                this._lastResult = {
-                    executed: true, // FIXME
+    private async _prepareForExecution(state : Ast.DialogueState) {
+        const hints = this._executor.collectDisambiguationHintsForState(this.state);
 
-                    rawResults: newResults,
-                    results: new Ast.DialogueHistoryResultList(null, [], new Ast.Value.Number(0)), // FIXME
-                };
-                return this._lastResult;
-            } catch(e) {
-                console.error(`Failed to execute dialogue`);
-                console.error(this.state!.prettyprint());
-                throw e;
+        const toExecute : Ast.ExpressionStatement[] = [];
+        const remaining : Ast.DialogueHistoryItem[] = [];
+
+        for (const item of state.history) {
+            assert(item.confirm !== 'proposed');
+            if (item.results !== null)
+                continue;
+
+            await this._executor.prepareStatementForExecution(this, item.stmt, hints);
+
+            if (item.confirm === 'accepted' &&
+                item.isExecutable() &&
+                shouldAutoConfirmStatement(item.stmt))
+                item.confirm = 'confirmed';
+
+            // if we can execute this statement and all previous statements, we push
+            // this statement to the program to execute
+            // otherwise we push to the list of remaining todo items
+            if (item.confirm === 'confirmed' && item.isExecutable() && remaining.length === 0)
+                toExecute.push(item.stmt);
+            else
+                remaining.push(item);
+        }
+
+        const program = new Ast.Program(null, [], [], toExecute);
+
+        // if we have a stream, we'll trigger notifications
+        // configure them if necessary
+        let notificationConfig : NotificationConfig|undefined = undefined;
+        if (program.statements.some((stmt) => stmt instanceof Ast.ExpressionStatement && stmt.stream))
+            notificationConfig = await this._executor.configureNotifications(this);
+        return [program, remaining, notificationConfig] as const;
+    }
+
+    /**
+     * Execute (or simulate) the ThingTalk statements contained in the given dialogue state.
+     *
+     * @returns the result of executing each statement
+     */
+    async execute(statements : Ast.DialogueState) : Promise<ExecutionResult[]> {
+        // prepare for execution now, even if we don't execute yet
+        // so we slot-fill eagerly
+
+        const [program, remaining, notificationConfig] = await this._prepareForExecution(statements);
+        if (program === null)
+            return [];
+
+        const executionResults = await this._doExecute(program, notificationConfig);
+        this._lastResult = executionResults;
+
+        // update the state with everything that we just executed
+        const newState = new Ast.DialogueState(null, statements.policy, statements.dialogueAct, statements.dialogueActParam, []);
+        if (this.state !== null) {
+            for (const item of this.state.history) {
+                if (item.results !== null)
+                    newState.history.push(item);
             }
         }
+        for (const result of executionResults)
+            newState.history.push(new Ast.DialogueHistoryItem(null, result.stmt, result.results, 'confirmed'));
+
+        // append everything that we did not execute
+        for (const item of remaining) {
+            newState.history.push(item);
+            executionResults.push({
+                stmt: item.stmt,
+                results: null,
+                rawResults: []
+            });
+        }
+
+        this.state = newState;
+        return executionResults;
+    }
+
+    private async _doExecute(program : Ast.Program, notificationConfig : NotificationConfig|undefined) : Promise<ExecutionResult[]> {
+        if (this._parent)
+            return this._parent._doExecute(program, notificationConfig);
+
+        return this._executor.execute(this, program, notificationConfig);
     }
 
     private clone(withDispatcher : CommandDispatcher) : DialogueInterface {
         const clone = new DialogueInterface(this, {
+            //policy: this._policy,
             io: this._io,
             executor: this._executor,
             dispatcher: withDispatcher,
@@ -392,6 +644,7 @@ export class DialogueInterface {
             simulated: this.simulated,
             interactive: this.interactive,
             deterministic: this._deterministic,
+            anonymous: this.anonymous,
             rng: this.rng
         });
         clone.state = this.state;

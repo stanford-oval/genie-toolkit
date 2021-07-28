@@ -36,15 +36,15 @@ import {
     DialogueSerializer,
     DialogueTurn,
 } from '../lib/dataset-tools/parsers';
-import AbstractDialogueAgent from '../lib/thingtalk-dialogues/abstract_dialogue_agent';
-import ExecutionDialogueAgent from '../lib/thingtalk-dialogues/execution_dialogue_agent';
+import AbstractThingTalkExecutor from '../lib/thingtalk-dialogues/abstract-thingtalk-executor';
+import InferenceTimeThingTalkExecutor from '../lib/thingtalk-dialogues/inference-thingtalk-executor';
 import { InferenceTimeDialogue } from '../lib/thingtalk-dialogues/inference-time-dialogue';
 import ValueCategory from '../lib/dialogue-runtime/value-category';
 import Engine from '../lib/engine';
 
 import MultiJSONDatabase from './lib/multi_json_database';
 import Platform from './lib/cmdline-platform';
-import SimulationDialogueAgent, { SimulationDialogueAgentOptions } from '../lib/thingtalk-dialogues/simulator/simulation_dialogue_agent';
+import SimulationThingTalkExecutor, { SimulationDialogueAgentOptions } from '../lib/thingtalk-dialogues/simulator/simulation-thingtalk-executor';
 import { CommandAnalysisType } from '../lib/dialogue-runtime/dialogue-loop';
 import { inputToDialogueState } from '../lib/thingtalk-dialogues/command-parser';
 
@@ -68,7 +68,7 @@ class Annotator extends events.EventEmitter {
     private _tpClient : Tp.BaseClient;
     private _schemas : ThingTalk.SchemaRetriever;
     private _parser : ParserClient.ParserClient;
-    private _executor : AbstractDialogueAgent<unknown>;
+    private _executor : AbstractThingTalkExecutor;
     private _agent : InferenceTimeDialogue;
     private _engine : Engine|undefined;
     private _simulatorDatabase : MultiJSONDatabase|undefined;
@@ -113,10 +113,10 @@ class Annotator extends events.EventEmitter {
                 simulatorOptions.database = this._simulatorDatabase;
             }
 
-            this._executor = new SimulationDialogueAgent(simulatorOptions);
+            this._executor = new SimulationThingTalkExecutor(simulatorOptions);
         } else {
             this._engine = new Engine(this._platform);
-            this._executor = new ExecutionDialogueAgent(this._engine, this, false);
+            this._executor = new InferenceTimeThingTalkExecutor(this._engine, undefined, false);
             this._schemas = this._engine.schemas;
         }
         this._agent = new InferenceTimeDialogue({

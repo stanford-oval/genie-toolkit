@@ -37,10 +37,12 @@ import {
     ParsedDialogue,
     DialogueTurn,
 } from '../lib/dataset-tools/parsers';
+import SimulationDialogueAgent, { SimulationDialogueAgentOptions } from '../lib/thingtalk-dialogues/simulator/simulation-thingtalk-executor';
+import { DialogueInterface } from '../lib/thingtalk-dialogues';
+import { DummyCommandIO, SimpleCommandDispatcher } from '../lib/thingtalk-dialogues/cmd-dispatch';
 
 import { readAllLines } from './lib/argutils';
 import MultiJSONDatabase from './lib/multi_json_database';
-import SimulationDialogueAgent, { SimulationDialogueAgentOptions } from '../lib/thingtalk-dialogues/simulator/simulation_dialogue_agent';
 
 interface AnnotatorOptions {
     locale : string;
@@ -73,6 +75,7 @@ class Annotator extends events.EventEmitter {
     private _simulator : SimulationDialogueAgent;
     private _simulatorOverrides : Map<string, string>;
     private _database : MultiJSONDatabase|undefined;
+    private _dlg : DialogueInterface;
 
     private _state : 'loading'|'input'|'context'|'done'|'top3'|'full'|'code';
     private _serial : number;
@@ -84,7 +87,6 @@ class Annotator extends events.EventEmitter {
     private _currentKey : Exclude<keyof DialogueTurn,'agent_timestamp'|'user_timestamp'>|undefined;
     private _context : ThingTalk.Ast.DialogueState|null;
     private _contextOverride : string|undefined;
-    private _simulatorState : any|undefined;
     private _preprocessed : string|undefined;
     private _entities : EntityMap|undefined;
     private _candidates : ThingTalk.Ast.DialogueState[]|undefined;
@@ -126,6 +128,19 @@ class Annotator extends events.EventEmitter {
         }
 
         this._simulator = new SimulationDialogueAgent(simulatorOptions);
+        const io = new DummyCommandIO();
+        this._dlg = new DialogueInterface(null, {
+            io,
+            executor: this._simulator,
+            dispatcher: new SimpleCommandDispatcher(io),
+            locale: 'en-US',
+            schemaRetriever: this._schemas,
+            simulated: false,
+            interactive: false,
+            deterministic: false,
+            anonymous: false,
+            rng: simulatorOptions.rng
+        });
 
         this._state = 'loading';
 
@@ -139,7 +154,6 @@ class Annotator extends events.EventEmitter {
         this._currentKey = undefined;
         this._context = null;
         this._contextOverride = undefined;
-        this._simulatorState = undefined;
         this._preprocessed = undefined;
         this._entities = undefined;
         this._candidates = undefined;
@@ -373,7 +387,6 @@ class Annotator extends events.EventEmitter {
         this._outputDialogue = [];
         this._context = null;
         this._outputTurn = undefined;
-        this._simulatorState = undefined;
         this._currentTurnIdx = -1;
 
         if (shouldSkip) {
@@ -419,9 +432,9 @@ class Annotator extends events.EventEmitter {
             this._extractSimulatorOverrides(currentTurn.agent!);
 
             // "execute" the context
-            const { newDialogueState, newExecutorState } = await this._simulator.execute(this._context!, this._simulatorState);
-            this._context = newDialogueState;
-            this._simulatorState = newExecutorState;
+            this._dlg.state = this._context!;
+            await this._dlg.execute(this._context!);
+            this._context = this._dlg.state;
 
             // sort all results based on the presence of the name in the agent utterance
             for (const item of this._context!.history) {
@@ -476,10 +489,10 @@ class Annotator extends events.EventEmitter {
 
             let anyChange = true;
             while (anyChange) {
-                const { newDialogueState, newExecutorState, anyChange: newAnyChange } = await this._simulator.execute(this._context!, this._simulatorState);
-                this._context = newDialogueState;
-                this._simulatorState = newExecutorState;
-                anyChange = newAnyChange;
+                this._dlg.state = this._context!;
+                const result = await this._dlg.execute(this._context!);
+                this._context = this._dlg.state;
+                anyChange = result.some((r) => r.results !== null);
                 if (anyChange)
                     this._outputTurn!.intermediate_context = this._context!.prettyprint();
             }

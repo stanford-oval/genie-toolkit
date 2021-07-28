@@ -34,7 +34,9 @@ import MultiJSONDatabase from './lib/multi_json_database';
 import ProgressBar from './lib/progress_bar';
 import { getBestEntityMatch } from '../lib/thingtalk-dialogues/entity-linking/entity-finder';
 import * as ThingTalkUtils from '../lib/utils/thingtalk';
-import SimulationDialogueAgent, { SimulationDialogueAgentOptions } from '../lib/thingtalk-dialogues/simulator/simulation_dialogue_agent';
+import SimulationDialogueAgent, { SimulationDialogueAgentOptions } from '../lib/thingtalk-dialogues/simulator/simulation-thingtalk-executor';
+import { DialogueInterface } from '../lib/thingtalk-dialogues';
+import { DummyCommandIO, SimpleCommandDispatcher } from '../lib/thingtalk-dialogues/cmd-dispatch';
 
 function undoTradePreprocessing(sentence : string) : string {
     return sentence.replace(/ -(ly|s)/g, '$1').replace(/\b24:([0-9]{2})\b/g, '00:$1');
@@ -270,6 +272,7 @@ class Converter extends stream.Readable {
     private _simulatorOverrides : Map<string, string>;
     private _database : MultiJSONDatabase;
     private _simulator : SimulationDialogueAgent;
+    private _dlg : DialogueInterface;
 
     private _onlyMultidomain : boolean;
     private _useExisting : boolean;
@@ -301,6 +304,19 @@ class Converter extends stream.Readable {
         this._database = new MultiJSONDatabase(args.database_file);
         simulatorOptions.database = this._database;
         this._simulator = new SimulationDialogueAgent(simulatorOptions);
+        const io = new DummyCommandIO();
+        this._dlg = new DialogueInterface(null, {
+            io,
+            executor: this._simulator,
+            dispatcher: new SimpleCommandDispatcher(io),
+            locale: 'en-US',
+            schemaRetriever: this._schemas,
+            simulated: false,
+            interactive: false,
+            deterministic: false,
+            anonymous: false,
+            rng: simulatorOptions.rng
+        });
 
         this._n = 0;
         this._N = 0;
@@ -724,8 +740,8 @@ class Converter extends stream.Readable {
 
         const actionDomains = this._getActionDomains(dlg);
 
-        let context : Ast.DialogueState|null = null, contextInfo : ContextInfo = { current: null, next: null },
-            simulatorState : any = undefined;
+        let context : Ast.DialogueState|null = null;
+        let contextInfo : ContextInfo = { current: null, next: null };
         const slotBag = new Map<string, string>();
         const turns = [];
         for (let idx = 0; idx < dlg.dialogue.length; idx++) {
@@ -745,9 +761,9 @@ class Converter extends stream.Readable {
                     this._extractSimulatorOverrides(agentUtterance);
 
                     // "execute" the context
-                    const { newDialogueState, newExecutorState } = await this._simulator.execute(context, simulatorState);
-                    context = newDialogueState;
-                    simulatorState = newExecutorState;
+                    this._dlg.state = context;
+                    await this._dlg.execute(context);
+                    context = this._dlg.state;
 
                     for (const item of context.history) {
                         if (item.results === null)

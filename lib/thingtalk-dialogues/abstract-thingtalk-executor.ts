@@ -20,30 +20,22 @@
 
 import assert from 'assert';
 import * as Tp from 'thingpedia';
-import { Ast, SchemaRetriever, Builtin } from 'thingtalk';
+import { Ast, SchemaRetriever, Builtin, Type } from 'thingtalk';
 
 import * as I18n from '../i18n';
 import { cleanKind } from '../utils/misc-utils';
-import { shouldAutoConfirmStatement, addIndexToIDQuery } from '../utils/thingtalk';
+import { addIndexToIDQuery } from '../utils/thingtalk';
 import { contactSearch, Contact } from './entity-linking/contact_search';
 import { collectDisambiguationHints, getBestEntityMatch, EntityRecord } from './entity-linking/entity-finder';
 
-import { CancellationError } from '../dialogue-runtime';
+import { CancellationError } from '../dialogue-runtime/errors';
 import ValueCategory from '../dialogue-runtime/value-category';
+import type { DialogueInterface } from './interface';
 
-interface AbstractDialogueAgentOptions {
+interface AbstractThingTalkExecutorOptions {
     locale : string;
     timezone : string;
     debug : boolean;
-}
-
-export interface NewProgramRecord {
-    uniqueId : string;
-    name : string;
-    code : string;
-    results : Array<Record<string, unknown>>;
-    errors : string[];
-    icon : string|null;
 }
 
 export interface NotificationConfig {
@@ -52,10 +44,6 @@ export interface NotificationConfig {
 }
 
 export type RawExecutionResult = Array<[string, Record<string, unknown>]>;
-interface AbstractStatementExecutor<PrivateStateType> {
-    executeStatement(stmt : Ast.ExpressionStatement, privateState : PrivateStateType|undefined, notificationConfig : NotificationConfig|undefined) :
-        Promise<[Ast.DialogueHistoryResultList, RawExecutionResult, NewProgramRecord|undefined, PrivateStateType]>;
-}
 
 export interface DisambiguationHints {
     devices : Map<string, [string|null, Ast.InputParam|undefined]>;
@@ -69,28 +57,69 @@ export interface DeviceInfo {
     name : string;
 }
 
+/**
+ * The result of executing a ThingTalk statement.
+ */
+ export interface ExecutionResult {
+    /**
+     * The statement for which this result was obtained
+     */
+    stmt : Ast.ExpressionStatement;
 
-interface ExecutionResult<PrivateStateType> {
-    newDialogueState : Ast.DialogueState;
-    newExecutorState : PrivateStateType|undefined;
-    newResults : Array<[string, Record<string, unknown>]>;
-    newPrograms : NewProgramRecord[];
-    anyChange : boolean;
+    /**
+     * The results of executing the ThingTalk program, if any.
+     *
+     * This is a container with the list of actual results, a boolean indicating that more
+     * results could be fetched from the API, and whether any error occurred.
+     *
+     * This will be null if the statement was not executed. The statement might not be executed
+     * if some required parameter is missing, or if some value needs entity linking or user
+     * context resolution (`$location.current_location`, `$self.phone_number`, etc.)
+     */
+    results : Ast.DialogueHistoryResultList|null;
+
+    /**
+     * The raw results of executing the ThingTalk program.
+     *
+     * This is equivalent to {@link results} but contains runtime representations of
+     * the ThingTalk values (as produced/seen by Thingpedia skills) instead of AST values.
+     */
+    rawResults : RawExecutionResult;
 }
 
+class AddDefaultParamVisitor extends Ast.NodeVisitor {
+    visitInvocation(invocation : Ast.Invocation) {
+        const set = new Set;
+        for (const inParam of invocation.in_params)
+            set.add(inParam.name);
+
+        for (const arg of invocation.schema!.iterateArguments()) {
+            if (arg.is_input && !arg.required && arg.impl_annotations.default && !set.has(arg.name))
+                invocation.in_params.push(new Ast.InputParam(null, arg.name, arg.impl_annotations.default));
+        }
+        return false;
+    }
+}
+
+export type UserContextVariable =
+    `$self.${'phone_number' | 'email_address'}`
+    | `$location.${'current_location' | 'home' | 'work'}`
+    | `$time.${'morning'|'evening'}`
+
 /**
- * Base class of a dialogue agent.
+ * Base class of a ThingTalk executor.
  *
- * The class contains the code that is common between execution (aka inference time)
- * and simulation (aka training time).
- * Because it is used for simulation, the class is completely stateless
+ * The class contains the code that is common between real execution of ThingTalk
+ * (at inference time) and simulation (at training time and during annotation).
+ *
+ * This class is completely stateless.
  *
  * The public API of this class is used by the entity linking & device choice code
  * (during the "prepare for execution" step) to abstract the access to the "user".
  *
  * There are two subclasses, one used during simulation, and one used for execution.
  */
-export default abstract class AbstractDialogueAgent<PrivateStateType> {
+export default abstract class AbstractThingTalkExecutor {
     protected _tpClient : Tp.BaseClient;
     protected _schemas : SchemaRetriever;
     protected _debug : boolean;
@@ -98,7 +127,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
     locale : string;
     timezone : string;
 
-    constructor(tpClient : Tp.BaseClient, schemas : SchemaRetriever, options : AbstractDialogueAgentOptions) {
+    constructor(tpClient : Tp.BaseClient, schemas : SchemaRetriever, options : AbstractThingTalkExecutorOptions) {
         this._tpClient = tpClient;
         this._schemas = schemas;
         this._langPack = I18n.get(options.locale);
@@ -109,75 +138,28 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
     }
 
     /**
-     * Execute the query or action implied by the current dialogue state.
+     * Execute the given ThingTalk program.
      *
-     * This method should return a new dialogue state with filled information
-     * about the result. It should not modify the state in-place.
-     *
-     * This is the only public method in this class.
-     *
-     * @param {Ast.DialogueState} state - the current state, representing the query or action to execute
-     * @param {any} privateState - additional state carried by the dialogue agent (per dialogue)
-     * @return {Ast.DialogueState} - the new state, with information about the returned query or action
+     * @param program - the program to execute
+     * @param privateState - additional state carried by the dialogue agent (per dialogue)
+     * @return the result of the execution
      */
-    async execute(state : Ast.DialogueState, privateState : PrivateStateType|undefined) : Promise<ExecutionResult<PrivateStateType>> {
-        let cloned = false;
-        let clone = state;
-        let anyChange = false;
+    abstract execute(dlg : DialogueInterface, program : Ast.Program, notificationConfig : NotificationConfig|undefined) : Promise<ExecutionResult[]>;
 
-        const newResults : RawExecutionResult = [];
-        const newPrograms : NewProgramRecord[] = [];
-        const hints = this._collectDisambiguationHintsForState(state);
-        for (let i = 0; i < clone.history.length; i++) {
-            if (clone.history[i].results !== null)
-                continue;
-            if (clone.history[i].confirm === 'proposed')
-                continue;
-
-            if (!cloned) {
-                clone = state.clone();
-                cloned = true;
-            }
-            // prepare for execution now, even if we don't execute yet
-            // so we slot-fill eagerly
-            const item = clone.history[i];
-            await this._prepareForExecution(item.stmt, hints);
-
-            // if we did not execute the previous item we're not executing this one either
-            if (i > 0 && clone.history[i-1].results === null)
-                continue;
-            if (item.confirm === 'accepted' &&
-                item.isExecutable() &&
-                shouldAutoConfirmStatement(item.stmt))
-                item.confirm = 'confirmed';
-            if (item.confirm !== 'confirmed')
-                continue;
-            anyChange = true;
-            assert(item.isExecutable());
-
-            // if we have a stream, we'll trigger notifications
-            // configure them if necessary
-            // we do this last after slot-filling and confirmations,
-            // because we use the configuration immediately
-            let notificationConfig = undefined;
-            if (item.stmt.stream)
-                notificationConfig = await this.configureNotifications();
-
-            const [newResultList, newRawResult, newProgram, newPrivateState] = await this.executor.executeStatement(item.stmt, privateState, notificationConfig);
-            item.results = newResultList;
-            newResults.push(...newRawResult);
-            if (newProgram)
-                newPrograms.push(newProgram);
-            privateState = newPrivateState;
-        }
-
-        return { newDialogueState: clone, newExecutorState: privateState, newResults, newPrograms, anyChange };
-    }
-
-    private _collectDisambiguationHintsForState(state : Ast.DialogueState) {
+    /**
+     * Extract hints from the current dialogue state that can be used to
+     * disambiguate entities in a program.
+     *
+     * @param state the current dialogue state
+     * @returns
+     */
+    collectDisambiguationHintsForState(state : Ast.DialogueState|null) {
         const idEntities = new Map<string, EntityRecord[]>();
         const devices = new Map<string, [string|null, Ast.InputParam|undefined]>();
         const previousLocations : Ast.AbsoluteLocation[] = [];
+
+        if (state === null)
+            return { devices, idEntities, previousLocations };
 
         // collect all ID entities and all locations from the state
         for (const item of state.history) {
@@ -201,34 +183,34 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * Ensure that notifications are configured for the user, and gather
      * all the information we need.
      */
-    protected abstract configureNotifications() : Promise<NotificationConfig|undefined>;
+    abstract configureNotifications(dlg : DialogueInterface) : Promise<NotificationConfig|undefined>;
 
     /**
      * Check that a given statement is permitted for the current user.
      *
      * This is the hook to prevent running unsafe statements in anonymous mode.
      */
-    protected abstract checkForPermission(stmt : Ast.ExpressionStatement) : Promise<void>;
+    protected abstract checkForPermission(dlg : DialogueInterface, stmt : Ast.ExpressionStatement) : Promise<void>;
 
     /**
      * Prepare a statement for being executed.
      *
-     * This will resolve all ThingTalk values that are relative to the user, such as
-     * `$context.location.current_location`, and will assign device IDs to all Thingpedia
-     * function calls.
+     * This will resolve all ThingTalk values that are relative to the user, such as `$location.current_location`,
+     * and will assign device IDs to all Thingpedia function calls.
      *
-     * The statement is modified in place.
+     * Statements in the state are modified in place.
      *
-     * @param {thingtalk.Ast.Statement} stmt - the statement to prepare
-     * @param {any} hints - hints to use to resolve any ambiguity
+     * @param dlg - the dialogue interface to use to communicate with the user if necessary
+     * @param stmt - the statement to prepare
+     * @param hints - hints to use to resolve any ambiguity
      */
-    protected async _prepareForExecution(stmt : Ast.ExpressionStatement, hints : DisambiguationHints) : Promise<void> {
+    async prepareStatementForExecution(dlg : DialogueInterface, stmt : Ast.ExpressionStatement, hints : DisambiguationHints) {
         // somewhat of a HACK:
         // add a [1] clause to immediate-mode statements that refer to "id" in
         // the query and don't have an index clause already
         addIndexToIDQuery(stmt);
 
-        await this.checkForPermission(stmt);
+        await this.checkForPermission(dlg, stmt);
 
         // FIXME this method can cause a few questions that
         // bypass the neural network, which is not great
@@ -244,25 +226,12 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         // model for device choice, so the user can say "use the light in this room"
         // or "use the light closest to me", or similar)
 
-        stmt.visit(new class extends Ast.NodeVisitor {
-            visitInvocation(invocation : Ast.Invocation) {
-                const set = new Set;
-                for (const inParam of invocation.in_params)
-                    set.add(inParam.name);
-
-                for (const arg of invocation.schema!.iterateArguments()) {
-                    if (arg.is_input && !arg.required && arg.impl_annotations.default && !set.has(arg.name))
-                        invocation.in_params.push(new Ast.InputParam(null, arg.name, arg.impl_annotations.default));
-                }
-                return false;
-            }
-        });
-
+        stmt.visit(new AddDefaultParamVisitor());
         for (const slot of stmt.iterateSlots2()) {
             if (slot instanceof Ast.DeviceSelector)
-                await this._chooseDevice(slot, hints);
+                await this._chooseDevice(dlg, slot, hints);
             else
-                await this._concretizeValue(slot, hints);
+                await this._concretizeValue(dlg, slot, hints);
         }
     }
 
@@ -277,7 +246,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         console.log(...args);
     }
 
-    private async _chooseDevice(selector : Ast.DeviceSelector, hints : DisambiguationHints) : Promise<void> {
+    private async _chooseDevice(dlg : DialogueInterface, selector : Ast.DeviceSelector, hints : DisambiguationHints) : Promise<void> {
         if (selector.id !== null)
             return;
 
@@ -297,7 +266,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
 
         if (alldevices.length === 0) {
             this.debug('No device of kind ' + kind + ' available, attempting configure...');
-            const device = await this.tryConfigureDevice(kind);
+            const device = await this.tryConfigureDevice(dlg, kind);
             if (!device) // cancel the dialogue if we failed to set up a device
                 throw new CancellationError();
             if (selector.all)
@@ -328,7 +297,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         }
 
         const choosefrom = (selecteddevices.length ? selecteddevices : alldevices);
-        const choice = await this.disambiguate(selecteddevices.length ? 'device' : 'device-missing',
+        const choice = await this.disambiguate(dlg, selecteddevices.length ? 'device' : 'device-missing',
             name ? name.value.toJS() as string : null, choosefrom.map((d) => d.name), kind);
         selector.id = choosefrom[choice].uniqueId;
         if (name)
@@ -348,10 +317,10 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         }
     }
 
-    private async _maybeAddDisplayToValue(value : Ast.EntityValue) : Promise<void> {
+    private async _maybeAddDisplayToValue(dlg : DialogueInterface, value : Ast.EntityValue) : Promise<void> {
         switch (value.type) {
         case 'tt:contact':
-            await this.addDisplayToContact(value);
+            await this.addDisplayToContact(dlg, value);
             break;
 
         case 'tt:device':
@@ -360,7 +329,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         }
     }
 
-    private async _concretizeValue(slot : Ast.AbstractSlot, hints : DisambiguationHints) : Promise<void> {
+    private async _concretizeValue(dlg : DialogueInterface, slot : Ast.AbstractSlot, hints : DisambiguationHints) : Promise<void> {
         let value = slot.get();
 
         // default units (e.g. defaultTemperature) will be concretized
@@ -382,15 +351,17 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
                 }
             }
         } else if (value instanceof Ast.LocationValue && value.value instanceof Ast.UnresolvedLocation) {
-            slot.set(await this.lookupLocation(value.value.name, hints.previousLocations || []));
+            slot.set(await this.lookupLocation(dlg, value.value.name, hints.previousLocations || []));
         } else if (value instanceof Ast.LocationValue && value.value instanceof Ast.RelativeLocation) {
-            slot.set(await this.resolveUserContext('$context.location.' + value.value.relativeTag));
+            assert(value.value.relativeTag === 'current_location' || value.value.relativeTag === 'home' || value.value.relativeTag === 'work');
+            slot.set(await this.resolveUserContext(dlg, `$location.${value.value.relativeTag}` as UserContextVariable));
         } else if (value instanceof Ast.TimeValue && value.value instanceof Ast.RelativeTime) {
-            slot.set(await this.resolveUserContext('$context.time.' + value.value.relativeTag));
+            assert(value.value.relativeTag === 'morning' || value.value.relativeTag === 'evening');
+            slot.set(await this.resolveUserContext(dlg, `$time.${value.value.relativeTag}` as UserContextVariable));
         } else if (value instanceof Ast.EntityValue && value.value === null) {
             if (value.type === 'tt:email_address' || value.type === 'tt:phone_number' ||
                 value.type === 'tt:contact') {
-                slot.set(await contactSearch(this, value.type, value.display!));
+                slot.set(await contactSearch(dlg, this, value.type, value.display!));
             } else if (value.type === 'tt:device') {
                 const candidates = await this._tpClient.searchDevice(value.display!);
                 const tokenizer = this._langPack.getTokenizer();
@@ -403,7 +374,7 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
                 value.display = resolved.name;
             } else {
                 const candidates = (hints.idEntities ? hints.idEntities.get(value.type) : undefined)
-                    || await this.lookupEntityCandidates(value.type, value.display!, hints);
+                    || await this.lookupEntityCandidates(dlg, value.type, value.display!, hints);
                 const resolved = getBestEntityMatch(value.display!, value.type, candidates);
                 value.value = resolved.value;
                 value.display = resolved.name;
@@ -413,42 +384,27 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
         value = slot.get();
         assert(value.isConcrete());
         if (value instanceof Ast.EntityValue && !value.display)
-            await this._maybeAddDisplayToValue(value);
+            await this._maybeAddDisplayToValue(dlg, value);
     }
 
     // The rest is the API that subclasses must implement
 
-    /* instanbul ignore next */
-    /**
-     * Retrieve the executor to use for each statement.
-     */
-    protected get executor() : AbstractStatementExecutor<PrivateStateType> {
-        throw new TypeError('Abstract method');
-    }
-
-    /* instanbul ignore next */
     /**
      * List all configured devices that implement the given ThingTalk kind.
      *
      * @param {string} kind - the kind to check
      * @returns {Array<DeviceInfo>} - the list of configured devices
      */
-    protected async getAllDevicesOfKind(kind : string) : Promise<DeviceInfo[]> {
-        throw new TypeError('Abstract method');
-    }
+    protected abstract getAllDevicesOfKind(kind : string) : Promise<DeviceInfo[]>;
 
-    /* instanbul ignore next */
     /**
      * Attempt to automatically configure a device of the given kind.
      *
      * @param {string} kind - the kind to configure
      * @returns {DeviceInfo} - the newly configured device
      */
-    protected async tryConfigureDevice(kind : string) : Promise<DeviceInfo|null> {
-        throw new TypeError('Abstract method');
-    }
+    protected abstract tryConfigureDevice(dlg : DialogueInterface, kind : string) : Promise<DeviceInfo|null>;
 
-    /* instanbul ignore next */
     /**
      * Disambiguate an entity by explicitly asking the user.
      *
@@ -459,14 +415,12 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * @param {string} hint - a type-specific hint to show to the user
      * @returns {number} - the index of the provided choice
      */
-    async disambiguate(type : 'device'|'device-missing'|'contact',
-                       name : string|null,
-                       choices : string[],
-                       hint ?: string) : Promise<number> {
-        throw new TypeError('Abstract method');
-    }
+    abstract disambiguate(dlg : DialogueInterface,
+                          type : 'device'|'device-missing'|'contact',
+                          name : string|null,
+                          choices : string[],
+                          hint ?: string) : Promise<number>;
 
-    /* instanbul ignore next */
     /**
      * Lookup a contact in the address book.
      *
@@ -474,21 +428,15 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * @param {string} name - the name to look up
      * @returns {string[]} - the list of resolved information of all contacts matching the name
      */
-    async lookupContact(category : ValueCategory, name : string) : Promise<Contact[]> {
-        throw new TypeError('Abstract method');
-    }
+    abstract lookupContact(dlg : DialogueInterface, category : ValueCategory, name : string) : Promise<Contact[]>;
 
-    /* instanbul ignore next */
     /**
      * Add the display field to a phone or email entity, by looking up the contact in the address book.
      *
      * @param {thingtalk.Ast.Value} contact - the entity to look up
      */
-    protected async addDisplayToContact(contact : Ast.EntityValue) : Promise<void> {
-        throw new TypeError('Abstract method');
-    }
+    protected abstract addDisplayToContact(dlg : DialogueInterface, contact : Ast.EntityValue) : Promise<void>;
 
-    /* instanbul ignore next */
     /**
      * Ask the user about a contact that is not in the address book.
      *
@@ -496,12 +444,10 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * @param {string} name - the name to look up
      * @returns {thingtalk.Ast.Value.Entity} - the entity corresponding to the picked up information
      */
-    async askMissingContact(category : ValueCategory.EmailAddress|ValueCategory.PhoneNumber|ValueCategory.Contact,
-                            name : string) : Promise<Ast.EntityValue> {
-        throw new TypeError('Abstract method');
-    }
+    abstract askMissingContact(dlg : DialogueInterface,
+                               type : InstanceType<typeof Type.Entity>,
+                               name : string) : Promise<Ast.EntityValue>;
 
-    /* instanbul ignore next */
     /**
      * Resolve a location name to a specific point on Earth.
      *
@@ -509,11 +455,8 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * @param {thingtalk.Ast.Location[]} previousLocations - recently mentioned locations
      * @returns {thingtalk.Ast.Value} - the best match for the given name
      */
-    protected async lookupLocation(searchKey : string, previousLocations : Ast.AbsoluteLocation[]) : Promise<Ast.LocationValue> {
-        throw new TypeError('Abstract method');
-    }
+    protected abstract lookupLocation(dlg : DialogueInterface, searchKey : string, previousLocations : Ast.AbsoluteLocation[]) : Promise<Ast.LocationValue>;
 
-    /* instanbul ignore next */
     /**
      * Lookup all possible candidates for a given entity in the Thingpedia database or
      * by calling the underlying API.
@@ -523,24 +466,19 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      * @param {any} hints - hints to use to resolve any ambiguity
      * @returns {ThingpediaEntity[]} - possible entities that match the given name, in Thingpedia API format
      */
-    protected async lookupEntityCandidates(entityType : string,
-                                           entityDisplay : string,
-                                           hints : DisambiguationHints) : Promise<EntityRecord[]> {
-        throw new TypeError('Abstract method');
-    }
+    protected abstract lookupEntityCandidates(dlg : DialogueInterface,
+                                              entityType : string,
+                                              entityDisplay : string,
+                                              hints : DisambiguationHints) : Promise<EntityRecord[]>;
 
-    /* instanbul ignore next */
     /**
      * Resolve a `$context` variable to a concrete value.
      *
-     * @param {string} variable - the variable name to lookup, including the `$context.` prefix
+     * @param {string} variable - the variable name to lookup, including the prefix
      * @returns {thingtalk.Ast.Value} - the resolved value
      */
-    protected async resolveUserContext(variable : string) : Promise<Ast.Value> {
-        throw new TypeError('Abstract method');
-    }
+    protected abstract resolveUserContext(dlg : DialogueInterface, variable : UserContextVariable) : Promise<Ast.Value>;
 
-    /* instanbul ignore next */
     /**
      * Compute the user's preferred unit to use when the program specifies an ambiguous unit
      * such as "degrees".
@@ -549,7 +487,5 @@ export default abstract class AbstractDialogueAgent<PrivateStateType> {
      *   if the user has no preference
      * @returns {string} - the preferred unit
      */
-    getPreferredUnit(type : string) : string|undefined {
-        throw new TypeError('Abstract method');
-    }
+    abstract getPreferredUnit(type : string) : string|undefined;
 }

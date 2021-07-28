@@ -78,7 +78,11 @@ export const MANIFEST = {
             // pseudo state used to enter the dialogue state machine for notifications
             'notification',
             // pseudo state used to enter the dialogue state machine before the first turn
-            'init'
+            'init',
+
+            // pseudo states used to answer legacy questions and questions outside the state machine
+            'answer',
+            'answer_choice',
         ],
         agent: [
             // agent says hi back
@@ -118,6 +122,16 @@ export const MANIFEST = {
             'sys_end',
             // agent asks the user a free-form command
             'sys_record_command',
+
+
+            // profile resolution dialogue acts (semi-legacy)
+            'sys_resolve_contact',
+            'sys_resolve_device',
+            'sys_ask_phone_number',
+            'sys_ask_email_address',
+            'sys_resolve_location',
+            'sys_resolve_time',
+            'sys_configure_notifications',
         ],
         withParam: [
             'action_question',
@@ -260,6 +274,14 @@ export function interpretAnswer(state : Ast.DialogueState,
                 return D.actionConfirmRejectPhrase(ctx);
         }
         return null;
+    case 'sys_resolve_contact':
+    case 'sys_resolve_device':
+    case 'sys_ask_phone_number':
+    case 'sys_ask_email_address':
+    case 'sys_resolve_location':
+    case 'sys_resolve_time':
+    case 'sys_configure_notifications':
+        return S.makeSimpleState(ctx, 'answer', [answer]);
     default:
         return null;
     }

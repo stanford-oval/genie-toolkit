@@ -37,7 +37,7 @@ import {
 import SentenceGenerator from '../sentence-generator/generator';
 import { NonTerminal } from '../sentence-generator/runtime';
 
-import SimulationDialogueAgent from './simulator/simulation_dialogue_agent';
+import SimulationDialogueAgent from './simulator/simulation-thingtalk-executor';
 import {
     DialogueInterface,
     Synthesizer,
@@ -142,6 +142,7 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
             simulated: true,
             interactive: false,
             deterministic: false,
+            anonymous: false,
             ...options
         });
         this._commandQueue = new AsyncQueue();
@@ -245,7 +246,8 @@ export default class SynthesisDialogue implements AbstractCommandIO, Synthesizer
         if (reply.length > 1)
             throw new Error('not implemented yet');
 
-        const [tmpl, placeholders, semantics] = reply[0];
+        assert(reply[0].type === 'text');
+        const { text: tmpl, args: placeholders, meaning: semantics } = reply[0];
         addTemplate(this._agentGenerator, [], tmpl, placeholders, (...args : any[]) : ExtendedAgentReplyRecord|null => {
             const result = semantics(...args);
             if (result === null)
