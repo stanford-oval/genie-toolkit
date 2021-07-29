@@ -41,6 +41,7 @@ import { NotificationConfig } from '../dialogue-agent/notifications';
 import NotificationFormatter from '../dialogue-agent/notifications/formatter';
 
 import * as Config from '../config';
+import  { ActivityMonitor, ActivityMonitorOptions } from './activity_monitor';
 
 export {
     DB,
@@ -48,7 +49,9 @@ export {
     SyncManager,
     AudioController,
     AppDatabase,
-    AppExecutor
+    AppExecutor,
+    ActivityMonitor,
+    ActivityMonitorOptions
 };
 
 interface EngineModule {
@@ -183,6 +186,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
     private _appdb : AppDatabase;
     private _assistant : AssistantDispatcher;
     private _audio : AudioController|null;
+    private _activityMonitor : ActivityMonitor|null;
 
     private _running : boolean;
     private _stopCallback : (() => void)|null;
@@ -199,6 +203,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
         nluModelUrl ?: string;
         thingpediaUrl ?: string;
         notifications ?: NotificationConfig;
+        activityMonitorOptions ?: ActivityMonitorOptions;
     } = {}) {
         super(platform, options);
 
@@ -224,6 +229,9 @@ export default class AssistantEngine extends Tp.BaseEngine {
         else
             this._audio = null;
 
+        this._activityMonitor = options.activityMonitorOptions ?
+                new ActivityMonitor(this._appdb, this._assistant, options.activityMonitorOptions) : null;
+
         // in loading order
         this._modules = [this._sync,
                          this._devices,
@@ -238,11 +246,17 @@ export default class AssistantEngine extends Tp.BaseEngine {
         this._stopCallback = null;
     }
 
+    get platform() : Tp.BasePlatform {
+        this.updateActivity();
+        return this._platform;
+    }
+
     get langPack() {
         return this._langPack;
     }
 
     get db() {
+        this.updateActivity();
         return this._db;
     }
 
@@ -262,6 +276,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * Access the device database of this engine.
      */
     get devices() {
+        this.updateActivity();
         return this._devices;
     }
 
@@ -269,6 +284,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * Access the app database of this engine.
      */
     get apps() {
+        this.updateActivity();
         return this._appdb;
     }
 
@@ -276,6 +292,7 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * Access the assistant dispatcher of this engine.
      */
     get assistant() {
+        this.updateActivity();
         return this._assistant;
     }
 
@@ -283,7 +300,20 @@ export default class AssistantEngine extends Tp.BaseEngine {
      * Access the audio controller to coordinate access to audio.
      */
     get audio() {
+        this.updateActivity();
         return this._audio;
+    }
+
+    /**
+     * Access the activity monitor for this engine.
+     */
+    get activityMonitor() {
+        return this._activityMonitor;
+    }
+
+    updateActivity() {
+        if (this._activityMonitor)
+            this._activityMonitor.updateActivity();
     }
 
     private async _openSequential(modules : EngineModule[]) {
@@ -337,6 +367,8 @@ export default class AssistantEngine extends Tp.BaseEngine {
      */
     run() : Promise<void> {
         this._running = true;
+        if (this._activityMonitor)
+            this._activityMonitor.start();
 
         return new Promise((callback, errback) => {
             if (!this._running) {
@@ -358,6 +390,8 @@ export default class AssistantEngine extends Tp.BaseEngine {
     stop() : void {
         console.log('Engine stopped');
         this._running = false;
+        if (this._activityMonitor)
+            this._activityMonitor.stop();
         if (this._stopCallback)
             this._stopCallback();
     }

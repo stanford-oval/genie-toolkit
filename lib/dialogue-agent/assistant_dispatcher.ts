@@ -293,6 +293,10 @@ export default class AssistantDispatcher extends events.EventEmitter {
         return this._conversations.get(id);
     }
 
+    getConversations() {
+        return this._conversations;
+    }
+
     get lastConversation() {
         return this._lastConversation;
     }

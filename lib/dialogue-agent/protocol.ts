@@ -76,7 +76,8 @@ export enum MessageType {
     NEW_PROGRAM = 'new-program',
     SOUND_EFFECT = 'sound',
     AUDIO = 'audio',
-    VIDEO = 'video'
+    VIDEO = 'video',
+    PING = 'ping'
 }
 
 export interface TextMessage {
@@ -165,6 +166,11 @@ export interface NewProgramMessage {
     icon : string|null;
 }
 
+export interface PingMessage {
+    id ?: number;
+    type : MessageType.PING;
+}
+
 export type Message = TextMessage
     | CommandMessage
     | MediaMessage
@@ -173,4 +179,5 @@ export type Message = TextMessage
     | ChoiceMessage
     | LinkMessage
     | ButtonMessage
-    | NewProgramMessage;
+    | NewProgramMessage
+    | PingMessage;

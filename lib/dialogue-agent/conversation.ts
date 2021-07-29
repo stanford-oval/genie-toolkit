@@ -318,6 +318,7 @@ export default class Conversation extends events.EventEmitter {
     }
 
     async handleCommand(command : string, platformData : PlatformData = {}) : Promise<void> {
+        this._engine.updateActivity();
         // if the command is just whitespace, ignore it without even adding it to the history
         if (!command.trim())
             return;
@@ -333,6 +334,7 @@ export default class Conversation extends events.EventEmitter {
     }
 
     async handleParsedCommand(root : any, title ?: string, platformData : PlatformData = {}) : Promise<void> {
+        this._engine.updateActivity();
         const command = `\\r ${typeof root === 'string' ? root : JSON.stringify(root)}`;
         this.stats.hit('sabrina-parsed-command');
         this.emit('active');
@@ -371,6 +373,7 @@ export default class Conversation extends events.EventEmitter {
     }
 
     async handleThingTalk(program : string, platformData : PlatformData = {}) : Promise<void> {
+        this._engine.updateActivity();
         const command = `\\t ${program}`;
         this.stats.hit('sabrina-thingtalk-command');
         this.emit('active');
@@ -385,6 +388,12 @@ export default class Conversation extends events.EventEmitter {
             loadMetadata: true
         });
         return this._loop.handleCommand({ type: 'thingtalk', parsed, platformData });
+    }
+
+    async handlePing() {
+        this._engine.updateActivity();
+        if (this._debug)
+            console.log('Received ping message');
     }
 
     sendReply(message : string, icon : string|null) {
@@ -442,6 +451,12 @@ export default class Conversation extends events.EventEmitter {
         if (this._debug)
             console.log('Genie executed new program: '+ program.uniqueId);
         return this.addMessage({ type: MessageType.NEW_PROGRAM, ...program });
+    }
+
+    sendPing() {
+        if (this._debug)
+            console.log('Genie sends ping');
+        return this.addMessage({ type: MessageType.PING });
     }
 
     async dialogueFinished() {
